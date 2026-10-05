@@ -220,6 +220,9 @@ var funcMap = template.FuncMap {
 	"add": func(a, b int) int {
 		return a + b
 	},
+	"fileBase": fileBase,
+	"fileDir":  fileDir,
+	"shortPaths": shortPaths,
 	"eq": func(a, b interface{}) bool {
 		return a == b
 	},

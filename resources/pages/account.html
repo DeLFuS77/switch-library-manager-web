@@ -24,7 +24,10 @@
 				<div class="col-lg-7">
 					<section class="surface h-100" aria-labelledby="passwordTitle">
 						<h2 class="section-title" id="passwordTitle"><span class="bi bi-key" aria-hidden="true"></span>{{t "Change password"}}</h2>
-						{{- if or .Auth.FromEnv (not .Auth.User)}}
+						{{- if not .Auth.Enabled}}
+						<p class="text-body-secondary">{{t "There are no passwords while login is disabled. Create an administrator to protect the app."}}</p>
+						<a class="btn btn-primary rounded-pill admin-only" href="/users.html"><span class="bi bi-people me-2" aria-hidden="true"></span>{{t "Users"}}</a>
+						{{- else if or .Auth.FromEnv (not .Auth.User)}}
 						<p class="text-body-secondary mb-0">{{t "This user is set with environment variables and cannot be changed here."}}</p>
 						{{- else}}
 						<form method="post" action="/account/password">

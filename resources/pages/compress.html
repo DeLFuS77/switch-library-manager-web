@@ -52,38 +52,29 @@
 				</div>
 
 				<section class="mb-4">
-					<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+					<div class="file-list-head">
 						<div class="form-check mb-0">
 							<input class="form-check-input" type="checkbox" id="compressAll" data-file-all checked>
 							<label class="form-check-label fw-semibold" for="compressAll">{{t "Select all"}}</label>
 						</div>
-						<div class="small text-body-secondary" data-file-summary id="compressSummary" data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" (len .Candidates) (formatSize .TotalSize)}}</div>
+						<div class="toolbar-search file-filter">
+							<span class="bi bi-search" aria-hidden="true"></span>
+							<input type="search" class="form-control form-control-sm" data-file-filter placeholder="{{t "Filter by name..."}}" aria-label="{{t "Filter by name..."}}">
+						</div>
+						<div class="small text-body-secondary ms-sm-auto" data-file-summary id="compressSummary" data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" (len .Candidates) (formatSize .TotalSize)}}</div>
 					</div>
-					<div class="surface p-0 table-responsive">
-						<table class="table table-hover align-middle mb-0">
-							<thead>
-								<tr>
-									<th scope="col" class="ps-3" style="width: 2.5rem"><span class="visually-hidden">{{t "Select"}}</span></th>
-									<th scope="col">{{t "Name"}}</th>
-									<th scope="col">{{t "Type"}}</th>
-									<th scope="col" class="text-end pe-3">{{t "Size"}}</th>
-								</tr>
-							</thead>
-							<tbody>
-								{{- range $i, $c := .Candidates}}
-								<tr>
-									<td class="ps-3"><input class="form-check-input" type="checkbox" name="path" value="{{$c.Path}}" data-size="{{$c.Size}}" id="file{{$i}}" checked></td>
-									<td class="min-w-0">
-										<label class="fw-semibold d-block text-truncate" for="file{{$i}}">{{$c.Name}}</label>
-										<span class="small text-body-secondary font-monospace text-break">{{$c.Path}}</span>
-									</td>
-									<td><span class="chip chip-muted">{{if eq $c.Kind "Base"}}{{t "Game"}}{{else if eq $c.Kind "Update"}}{{t "Update"}}{{else}}DLC{{end}}</span></td>
-									<td class="text-end text-nowrap pe-3">{{formatSize $c.Size}}</td>
-								</tr>
-								{{- end}}
-							</tbody>
-						</table>
-					</div>
+					<ul class="item-list">
+						{{- range $i, $c := .Candidates}}
+						<li class="item-row item-row-check" data-file-row>
+							<input class="form-check-input" type="checkbox" name="path" value="{{$c.Path}}" data-size="{{$c.Size}}" id="file{{$i}}" checked>
+							<label class="item-main" for="file{{$i}}">
+								<span class="item-name d-block">{{$c.Name}}</span>
+								<span class="item-meta"><span class="chip chip-muted">{{if eq $c.Kind "Base"}}{{t "Game"}}{{else if eq $c.Kind "Update"}}{{t "Update"}}{{else}}DLC{{end}}</span><span class="font-monospace text-break" title="{{$c.Path}}">{{fileBase $c.Path}}</span></span>
+							</label>
+							<span class="item-size">{{formatSize $c.Size}}</span>
+						</li>
+						{{- end}}
+					</ul>
 				</section>
 
 				<div class="save-bar d-flex align-items-center justify-content-between gap-3">
@@ -94,46 +85,41 @@
 			{{- end}}
 
 			{{- if .Compressed}}
-			<form id="decompressForm" class="mt-5">
-				<h2 class="section-title"><span class="bi bi-box-arrow-up" aria-hidden="true"></span>{{t "Decompress"}}</h2>
-				<p class="text-body-secondary">{{t "Turn NSZ files back into NSP files, for tools that do not read NSZ. Every NSP is checked before the NSZ is deleted."}}</p>
-				<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-					<div class="form-check mb-0">
-						<input class="form-check-input" type="checkbox" id="decompressAll" data-file-all>
-						<label class="form-check-label fw-semibold" for="decompressAll">{{t "Select all"}}</label>
+			<details class="surface details-section mt-5">
+				<summary class="section-title mb-0"><span class="bi bi-box-arrow-up" aria-hidden="true"></span>{{t "Decompress"}} <span class="badge rounded-pill text-bg-secondary">{{len .Compressed}}</span><span class="bi bi-chevron-down ms-auto details-chevron" aria-hidden="true"></span></summary>
+				<form id="decompressForm" class="mt-3">
+					<p class="text-body-secondary">{{t "Turn NSZ files back into NSP files, for tools that do not read NSZ. Every NSP is checked before the NSZ is deleted."}}</p>
+					<div class="file-list-head">
+						<div class="form-check mb-0">
+							<input class="form-check-input" type="checkbox" id="decompressAll" data-file-all>
+							<label class="form-check-label fw-semibold" for="decompressAll">{{t "Select all"}}</label>
+						</div>
+						<div class="toolbar-search file-filter">
+							<span class="bi bi-search" aria-hidden="true"></span>
+							<input type="search" class="form-control form-control-sm" data-file-filter placeholder="{{t "Filter by name..."}}" aria-label="{{t "Filter by name..."}}">
+						</div>
+						<div class="small text-body-secondary ms-sm-auto" data-file-summary data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" 0 (formatSize 0)}}</div>
 					</div>
-					<div class="small text-body-secondary" data-file-summary data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" 0 (formatSize 0)}}</div>
-				</div>
-				<div class="surface p-0 table-responsive mb-3">
-					<table class="table table-hover align-middle mb-0">
-						<thead>
-							<tr>
-								<th scope="col" class="ps-3" style="width: 2.5rem"><span class="visually-hidden">{{t "Select"}}</span></th>
-								<th scope="col">{{t "Name"}}</th>
-								<th scope="col" class="text-end pe-3">{{t "Size"}}</th>
-							</tr>
-						</thead>
-						<tbody>
-							{{- range $i, $c := .Compressed}}
-							<tr>
-								<td class="ps-3"><input class="form-check-input" type="checkbox" name="path" value="{{$c.Path}}" data-size="{{$c.Size}}" id="nsz{{$i}}"></td>
-								<td class="min-w-0">
-									<label class="fw-semibold d-block text-truncate" for="nsz{{$i}}">{{$c.Name}}</label>
-									<span class="small text-body-secondary font-monospace text-break">{{$c.Path}}</span>
-								</td>
-								<td class="text-end text-nowrap pe-3">{{formatSize $c.Size}}</td>
-							</tr>
-							{{- end}}
-						</tbody>
-					</table>
-				</div>
-				<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
-					<div class="form-check form-switch">
-						<input class="form-check-input" type="checkbox" role="switch" id="deleteCompressed" name="delete_compressed" value="true">
-						<label class="form-check-label" for="deleteCompressed">{{t "Delete each NSZ after its NSP is checked"}}</label>
+					<ul class="item-list mb-3">
+						{{- range $i, $c := .Compressed}}
+						<li class="item-row item-row-check" data-file-row>
+							<input class="form-check-input" type="checkbox" name="path" value="{{$c.Path}}" data-size="{{$c.Size}}" id="nsz{{$i}}">
+							<label class="item-main" for="nsz{{$i}}">
+								<span class="item-name d-block">{{$c.Name}}</span>
+								<span class="item-meta"><span class="font-monospace text-break" title="{{$c.Path}}">{{fileBase $c.Path}}</span></span>
+							</label>
+							<span class="item-size">{{formatSize $c.Size}}</span>
+						</li>
+						{{- end}}
+					</ul>
+					<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
+						<div class="form-check form-switch">
+							<input class="form-check-input" type="checkbox" role="switch" id="deleteCompressed" name="delete_compressed" value="true">
+							<label class="form-check-label" for="deleteCompressed">{{t "Delete each NSZ after its NSP is checked"}}</label>
+						</div>
+						<button type="submit" class="btn btn-outline-primary rounded-pill px-4 text-nowrap"{{if .Running}} disabled{{end}}><span class="bi bi-box-arrow-up me-2" aria-hidden="true"></span>{{t "Decompress selected"}}</button>
 					</div>
-					<button type="submit" class="btn btn-outline-primary rounded-pill px-4 text-nowrap"{{if .Running}} disabled{{end}}><span class="bi bi-box-arrow-up me-2" aria-hidden="true"></span>{{t "Decompress selected"}}</button>
-				</div>
-			</form>
+				</form>
+			</details>
 			{{- end}}
 {{- end}}

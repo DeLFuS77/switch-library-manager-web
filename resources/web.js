@@ -618,19 +618,39 @@ function bindFileForm(form, url) {
 	const all = form.querySelector('[data-file-all]');
 	const summary = form.querySelector('[data-file-summary]');
 	const boxes = [...form.querySelectorAll('input[name="path"]:not(:disabled)')];
+	const visible = box => !box.closest('[hidden]');
 	const update = () => {
 		const selected = boxes.filter(box => box.checked);
 		const size = selected.reduce((sum, box) => sum + Number(box.dataset.size || 0), 0);
 		summary.textContent = summary.dataset.template.replace('%v', selected.length).replace('%v', formatSize(size));
-		all.checked = selected.length === boxes.length;
-		all.indeterminate = selected.length > 0 && selected.length < boxes.length;
+		const shown = boxes.filter(visible);
+		const shownSelected = shown.filter(box => box.checked);
+		all.checked = shown.length > 0 && shownSelected.length === shown.length;
+		all.indeterminate = shownSelected.length > 0 && shownSelected.length < shown.length;
 	};
+	// "select all" changes the rows the filter shows
 	all.addEventListener('change', () => {
-		boxes.forEach(box => {
+		boxes.filter(visible).forEach(box => {
 			box.checked = all.checked;
 		});
 		update();
 	});
+	const filter = form.querySelector('[data-file-filter]');
+	if (filter) {
+		filter.addEventListener('input', () => {
+			const text = filter.value.trim().toLowerCase();
+			form.querySelectorAll('[data-file-row]').forEach(row => {
+				row.hidden = text !== '' && !row.textContent.toLowerCase().includes(text);
+			});
+			update();
+		});
+		// Enter in the filter must not submit the form
+		filter.addEventListener('keydown', e => {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+			}
+		});
+	}
 	boxes.forEach(box => box.addEventListener('change', update));
 	update();
 

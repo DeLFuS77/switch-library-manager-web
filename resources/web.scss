@@ -253,9 +253,9 @@ h3,
 	color: var(--bs-secondary-color);
 	transition: color .15s ease, background-color .15s ease;
 
-	@include media-breakpoint-up(xl) {
-		--bs-navbar-nav-link-padding-x: .6rem;
-		gap: .35rem;
+	@include media-breakpoint-up(xxl) {
+		--bs-navbar-nav-link-padding-x: .5rem;
+		gap: .3rem;
 	}
 
 	.bi {
@@ -274,7 +274,7 @@ h3,
 	}
 }
 
-@include media-breakpoint-down(xl) {
+@include media-breakpoint-down(xxl) {
 	.app-nav .nav-link {
 		padding: .7rem .9rem;
 
@@ -285,8 +285,16 @@ h3,
 }
 
 // on the horizontal bar the secondary links only show their icon, so the bar fits on one line
-@include media-breakpoint-up(xl) {
+@include media-breakpoint-up(xxl) {
 	.app-nav-compact .nav-label {
+		@include visually-hidden();
+	}
+}
+
+// the menu is horizontal from 1400px; until 1600px only the logo is shown, so the longer
+// labels of other languages fit
+@media (min-width: 1400px) and (max-width: 1599.98px) {
+	.navbar-brand .brand-text {
 		@include visually-hidden();
 	}
 }
@@ -439,8 +447,12 @@ h3,
 
 .compress-levels {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+	grid-template-columns: repeat(3, minmax(0, 1fr));
 	gap: .6rem;
+
+	@include media-breakpoint-down(sm) {
+		grid-template-columns: 1fr;
+	}
 }
 
 .compress-level {
@@ -700,6 +712,46 @@ h3,
 		margin-top: auto;
 		padding-top: .35rem;
 	}
+
+	// selects the card for bulk actions (Updates page), above the link of the card
+	.cover-select {
+		position: absolute;
+		top: .6rem;
+		left: .6rem;
+		z-index: 3;
+		width: 1.35rem;
+		height: 1.35rem;
+		margin: 0;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, .45);
+		cursor: pointer;
+	}
+}
+
+// the version change of an update stays on one line on phones
+.version-arrow {
+	white-space: nowrap;
+}
+
+@include media-breakpoint-down(sm) {
+	.game-card .chip:has(.version-arrow) {
+		font-size: .7rem;
+		padding-inline: .5rem;
+	}
+}
+
+// buttons next to a page title keep their label on one line on phones
+.page-actions .btn {
+	white-space: nowrap;
+
+	@include media-breakpoint-down(sm) {
+		font-size: .875rem;
+		padding-inline: .85rem;
+	}
+}
+
+.dlc-progress-none {
+	color: var(--bs-secondary-color);
+	opacity: .75;
 }
 
 // status chips (cards, game page)
@@ -1098,6 +1150,93 @@ h3,
 	}
 }
 
+.issue-icon {
+	display: grid;
+	place-items: center;
+	width: 2.4rem;
+	height: 2.4rem;
+	border-radius: $border-radius-lg;
+	background: var(--slm-surface-muted);
+	font-size: 1.15rem;
+	align-self: start;
+}
+
+.issue-reason {
+	margin-top: .15rem;
+	font-size: .9rem;
+	overflow-wrap: anywhere;
+}
+
+// a selectable row: checkbox, name and details, size
+.item-row-check {
+	grid-template-columns: auto minmax(0, 1fr) auto;
+
+	.item-main {
+		cursor: pointer;
+	}
+
+	.form-check-input {
+		margin: 0;
+	}
+
+	&[hidden] {
+		display: none;
+	}
+}
+
+.item-size {
+	font-weight: 600;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+.file-list-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .5rem 1rem;
+	margin-bottom: .75rem;
+}
+
+.file-filter {
+	flex: 1 1 14rem;
+	max-width: 22rem;
+	position: relative;
+
+	.bi-search {
+		position: absolute;
+		left: .75rem;
+		top: 50%;
+		transform: translateY(-50%);
+		color: var(--bs-secondary-color);
+		pointer-events: none;
+	}
+
+	.form-control {
+		padding-left: 2.1rem;
+	}
+}
+
+// a collapsible section (Compress page)
+.details-section {
+	summary {
+		cursor: pointer;
+		list-style: none;
+
+		&::-webkit-details-marker {
+			display: none;
+		}
+	}
+
+	.details-chevron {
+		transition: transform .2s ease;
+	}
+
+	&[open] .details-chevron {
+		transform: rotate(180deg);
+	}
+}
+
 .item-type {
 	min-width: 3.4rem;
 	justify-content: center;
@@ -1272,6 +1411,15 @@ h3,
 	border: 1px solid var(--slm-border);
 	border-radius: $border-radius-lg $border-radius-lg 0 0;
 	box-shadow: 0 -8px 24px -16px rgba(0, 0, 0, .5);
+
+	// the action takes the whole width on phones instead of overflowing
+	@include media-breakpoint-down(sm) {
+		flex-wrap: wrap;
+
+		.btn[type="submit"] {
+			width: 100%;
+		}
+	}
 }
 
 // the synchronization status floats above the page instead of pushing it down
@@ -1464,6 +1612,15 @@ h3,
 	align-items: center;
 	padding: 1rem 1.1rem;
 	border-radius: $border-radius-xl;
+
+	// on phones the icon goes above the number, so labels have the whole width
+	@include media-breakpoint-down(sm) {
+		grid-template-columns: 1fr;
+		grid-template-areas: "icon" "value" "label";
+		row-gap: .35rem;
+		align-items: start;
+		padding: .9rem;
+	}
 	background: var(--slm-surface);
 	border: 1px solid var(--slm-border);
 	box-shadow: var(--slm-shadow);
@@ -1528,10 +1685,8 @@ h3,
 	.kpi-label {
 		grid-area: label;
 		font-size: .8rem;
+		line-height: 1.25;
 		color: var(--bs-secondary-color);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
 	}
 }
 
