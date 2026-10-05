@@ -81,8 +81,8 @@ jobs:
           curl -fs http://localhost:3000/healthz
           curl -fs -o /dev/null http://localhost:3000/index.html
           # the app must run as PUID, not as root
-          docker top slm -eo uid,args
-          test "$(docker top slm -eo uid,args | awk '/switch-library-manager-web/ {print $1; exit}')" = "1000"
+          docker top slm -eo pid,uid,args
+          test "$(docker top slm -eo pid,uid,args | awk '/switch-library-manager-web/ {print $2; exit}')" = "1000"
           test "$(stat -c %u data/settings.json)" = "1000"
           for i in $(seq 1 45); do
             status=$(docker inspect -f '{{.State.Health.Status}}' slm)
