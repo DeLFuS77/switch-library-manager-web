@@ -203,6 +203,16 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 	progress ProgressUpdater,
 	titles map[string]*SwitchGameFiles,
 	skipped map[ExtendedFileInfo]SkippedFile) {
+
+	// unsupported files with these extensions are not reported as issues
+	ignoreFileTypes := map[string]struct{}{}
+	for _, ext := range settings.ReadSettings(dataFolder).IgnoreFileTypes {
+		ext = strings.ToLower(strings.TrimSpace(ext))
+		if ext != "" {
+			ignoreFileTypes["."+strings.TrimPrefix(ext, ".")] = struct{}{}
+		}
+	}
+
 	ind := 0
 	total := len(files)
 	for _, file := range files {
@@ -237,7 +247,9 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 			!strings.HasSuffix(fileName, "nsp") &&
 			!strings.HasSuffix(fileName, "nsz") &&
 			!strings.HasSuffix(fileName, "xcz") {
-			skipped[file] = SkippedFile{ReasonCode: REASON_UNSUPPORTED_TYPE, ReasonText: "file type is not supported"}
+			if _, ok := ignoreFileTypes[filepath.Ext(fileName)]; !ok {
+				skipped[file] = SkippedFile{ReasonCode: REASON_UNSUPPORTED_TYPE, ReasonText: "file type is not supported"}
+			}
 			continue
 		}
 
