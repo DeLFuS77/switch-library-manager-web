@@ -104,6 +104,8 @@ type AppSettings struct {
 	IgnoreFileTypes        []string          `json:"ignore_file_types"`
 	HideDemoGames          bool              `json:"hide_demo_games"`
 	WatchFolders           bool              `json:"watch_folders"`
+	// days between scheduled verifications of the files; 0 disables them
+	VerifyIntervalDays int `json:"verify_interval_days"`
 	// files read at the same time while scanning; 0 picks a default
 	ScanWorkers       int                 `json:"scan_workers"`
 	SyncIntervalHours int                 `json:"sync_interval_hours"`

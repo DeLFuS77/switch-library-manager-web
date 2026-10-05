@@ -177,6 +177,7 @@ var issuePatterns = []struct {
 		"failed to read %v: prod.keys has no %v. The title needs keys from a newer firmware: update prod.keys, or add [TitleID][vVersion] to the file name"},
 	{regexp.MustCompile(`^failed to read (NSP|XCI|split files) \[reason: (.*)\]$`), "failed to read %v [reason: %v]"},
 	{regexp.MustCompile(`^unable to determine title-Id / version - (.*)$`), "unable to determine title ID / version - %v"},
+	{regexp.MustCompile(`^damaged file: (.*)$`), "damaged file: %v"},
 }
 
 // translateIssue translates an issue text created by the scanner.

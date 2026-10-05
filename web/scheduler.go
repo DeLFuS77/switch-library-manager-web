@@ -33,8 +33,12 @@ func (web *Web) StartScheduler() {
 		ticker := time.NewTicker(time.Minute)
 		defer ticker.Stop()
 		for now := range ticker.C {
-			if syncDue(settings.ReadSettings(web.dataFolder), now) && web.Synchronize(TRIGGER_SCHEDULE) {
+			appSettings := settings.ReadSettings(web.dataFolder)
+			if syncDue(appSettings, now) && web.Synchronize(TRIGGER_SCHEDULE) {
 				web.sugarLogger.Info("[Scheduled synchronization started]")
+			}
+			if verifyDue(appSettings, web.verifications().lastRun(), now) && !web.state.IsSynchronizing() && web.startVerification(true, TRIGGER_SCHEDULE) {
+				web.sugarLogger.Info("[Scheduled verification started]")
 			}
 		}
 	}()

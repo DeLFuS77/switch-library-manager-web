@@ -25,6 +25,7 @@ type SettingsForm struct {
 	IgnoreFileTypes      string `in:"form=ignore_file_types"`
 	HideDemoGames        bool   `in:"form=hide_demo_games"`
 	WatchFolders         bool   `in:"form=watch_folders"`
+	VerifyIntervalDays   int    `in:"form=verify_interval_days"`
 	SyncIntervalHours    int    `in:"form=sync_interval_hours"`
 	Language             string `in:"form=language"`
 	DiscordWebhookUrl    string `in:"form=discord_webhook_url"`
@@ -144,6 +145,13 @@ func (web *Web) HandleSettings() {
 			})
 		}
 
+		if _, ok := allowedVerifyIntervals[settingsForm.VerifyIntervalDays]; !ok {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
+				Field: "verify_interval_days",
+				Message: translate(lang, "Invalid verification interval"),
+			})
+		}
+
 		errorResponse.FieldErrors = append(errorResponse.FieldErrors, validateNotifications(settingsForm.notificationOptions(), lang)...)
 
 		if settingsForm.Language != "" && !isSupportedLanguage(settingsForm.Language) {
@@ -166,6 +174,7 @@ func (web *Web) HandleSettings() {
 		appSettings.IgnoreFileTypes = SplitAndTrimSpaceArray(strings.ReplaceAll(settingsForm.IgnoreFileTypes, ",", " "), " ")
 		appSettings.HideDemoGames = settingsForm.HideDemoGames
 		appSettings.WatchFolders = settingsForm.WatchFolders
+		appSettings.VerifyIntervalDays = settingsForm.VerifyIntervalDays
 		appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
 		appSettings.Language = settingsForm.Language
 		appSettings.Notifications = settingsForm.notificationOptions()
