@@ -13,5 +13,8 @@ The original projects did not publish a license, so their code remains under the
 license of this repository covers only the changes made here. Third-party Go modules and npm packages keep their own
 licenses.
 
+NSZ compression follows the file format of [nsz](https://github.com/nicoboss/nsz) so other tools can read the files;
+it was written for this project and contains no code of nsz.
+
 This software does not include any Nintendo keys, games or other copyrighted content. Every user supplies their own
 `prod.keys`, dumped from their own console.

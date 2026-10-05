@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"net/http"
 	"net/http/httptest"
@@ -401,6 +402,38 @@ func TestValidateJsonObjectFile(t *testing.T) {
 		}
 		if err := validateJsonObjectFile(path); (err == nil) != valid {
 			t.Errorf("%q: valid=%v, err=%v", content, valid, err)
+		}
+	}
+}
+
+func TestFileWithoutContentMetadataIsReported(t *testing.T) {
+	keysDir := t.TempDir()
+	os.WriteFile(filepath.Join(keysDir, "prod.keys"), []byte("header_key = 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f\n"), 0o600)
+	if _, err := settings.InitSwitchKeys(keysDir); err != nil {
+		t.Fatal(err)
+	}
+	defer settings.InitSwitchKeys(t.TempDir())
+
+	folder := t.TempDir()
+	// a valid PFS0 without any NCA
+	empty := []byte("PFS0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")
+	os.WriteFile(filepath.Join(folder, "Empty [0100000000010000][v0].nsp"), empty, 0o644)
+
+	manager, err := NewLocalSwitchDBManager(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer manager.Close()
+	localDB, err := manager.CreateLocalSwitchFilesDB(nil, t.TempDir(), []string{folder}, nil, true, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(localDB.TitlesMap) != 1 || len(localDB.Skipped) != 1 {
+		t.Fatalf("the file must be identified by its name and reported: %v titles, %v issues", len(localDB.TitlesMap), len(localDB.Skipped))
+	}
+	for _, skipped := range localDB.Skipped {
+		if skipped.ReasonCode != REASON_FILENAME_FALLBACK || !strings.Contains(skipped.ReasonText, "no content metadata") {
+			t.Fatalf("reason: %+v", skipped)
 		}
 	}
 }

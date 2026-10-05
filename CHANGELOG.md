@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### New features
+
+- **Compress NSP to NSZ**: the new Compress page turns NSP files into NSZ files, usually 10 to 60% smaller (a test
+  game went from 214 MB to 100 MB), installed directly by Tinfoil, DBI and other installers.
+  - Every file is checked before and after: damaged NSP files are not compressed, and each NSZ is decompressed again
+    and must give back every NCA byte for byte (same SHA-256) before the original is deleted.
+  - Choose the level (fast, balanced, maximum) and whether the originals are deleted. Runs in the background with
+    live progress in Tasks, can be cancelled, and leaves half of the processors free.
+  - Written in Go, compatible with the NSZ format of nsz: nothing else needs to be installed, on Windows, Docker or a
+    Raspberry Pi.
+  - Games whose NSP has no ticket use the title key of a `title.keys` file next to `prod.keys`.
+
+### Fixes
+
+- An NSP without content metadata (for example a damaged one) is listed in Issues instead of disappearing from the
+  library.
+
+### Other changes
+
+- The project moved to the DeLFuS77 account. Saved settings that point to the previous address are updated
+  automatically, and the Docker Hub description follows the README.
+
 ### Performance
 
 Big libraries and the full titles database are handled much faster, with less memory:
