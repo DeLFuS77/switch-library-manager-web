@@ -283,3 +283,29 @@ func TestScanDoesNotDuplicateCachedFiles(t *testing.T) {
 		}
 	}
 }
+
+func TestKeysChanged(t *testing.T) {
+	dataDir := t.TempDir()
+	manager, err := NewLocalSwitchDBManager(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// no keys before and now: nothing to rescan
+	changedWithoutKeys := manager.KeysChanged("")
+	// keys were added (e.g. prod.keys copied into the data folder)
+	changedWithKeys := manager.KeysChanged("abc")
+	manager.Close()
+	if changedWithoutKeys || !changedWithKeys {
+		t.Fatalf("without keys changed=%v, with keys changed=%v", changedWithoutKeys, changedWithKeys)
+	}
+
+	// the fingerprint survives a restart
+	manager, err = NewLocalSwitchDBManager(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer manager.Close()
+	if manager.KeysChanged("abc") {
+		t.Fatal("fingerprint was not persisted")
+	}
+}

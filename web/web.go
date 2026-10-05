@@ -247,18 +247,22 @@ func (web *Web) Start() {
 
 	_, err = settings.InitSwitchKeys(web.dataFolder)
 	if err != nil {
-		web.sugarLogger.Errorf("Failed to initialize switch keys: %s", err)
+		// running without keys is supported, files are then identified by their name
+		web.sugarLogger.Warnf("prod.keys not loaded, files are identified by their file name only. Put prod.keys in %s to read their metadata (%s)", web.dataFolder, err)
 	}
 
 	web.localDbManager = localDbManager
 	defer localDbManager.Close()
 
 	if switchDB != nil {
-		localDB, err := web.buildLocalDB(switchDB, false)
-		if err != nil {
-			web.sugarLogger.Error(err)
+		// files that could not be read with the previous keys may be readable now
+		rescan := web.localDbManager.KeysChanged(settings.KeysFingerprint())
+		if rescan {
+			web.sugarLogger.Info("The keys changed since the last scan, the library is scanned again")
 		}
-		web.state.set(switchDB, localDB)
+		// scanning can take minutes: the pages are served meanwhile, with the progress
+		web.state.set(switchDB, nil)
+		web.scanInBackground(rescan)
 	} else {
 		// first start (or titles cache lost): fetch the titles database right away
 		web.Synchronize()
@@ -353,6 +357,10 @@ func (web *Web) buildSwitchDb() (*db.SwitchTitlesDB, error) {
 // buildLocalDB scans the configured folders. It does not change the shared state.
 func (web *Web) buildLocalDB(switchDB *db.SwitchTitlesDB, ignoreCache bool) (*db.LocalSwitchFilesDB, error) {
 	settingsObj := settings.ReadSettings(web.dataFolder)
+	if ignoreCache {
+		// remember the keys this scan uses
+		web.localDbManager.KeysChanged(settings.KeysFingerprint())
+	}
 
 	scanFolders := []string{}
 	for _, folder := range append([]string{settingsObj.Folder}, settingsObj.ScanFolders...) {
