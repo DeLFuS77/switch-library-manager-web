@@ -394,3 +394,35 @@ func TestOrganizeEndpoints(t *testing.T) {
 	}
 	web.state.endSync()
 }
+
+func TestSyncProgress(t *testing.T) {
+	web := newTestWeb(t)
+	web.HandleSynchronize()
+
+	status := func() SyncProgress {
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/sync", nil))
+		var progress SyncProgress
+		if err := json.Unmarshal(recorder.Body.Bytes(), &progress); err != nil {
+			t.Fatalf("invalid status %q: %v", recorder.Body.String(), err)
+		}
+		return progress
+	}
+
+	if s := status(); s.Synchronizing {
+		t.Fatalf("unexpected status: %+v", s)
+	}
+
+	web.state.startSync()
+	web.UpdateProgress(3, 10, "Reading a.nsp")
+	if s := status(); !s.Synchronizing || s.Current != 3 || s.Total != 10 || s.Message != "Reading a.nsp" {
+		t.Fatalf("unexpected status: %+v", s)
+	}
+
+	// steps with an unknown total keep the last position but update the message
+	web.UpdateProgress(-1, -1, "Found b.nsp")
+	if s := status(); s.Current != 3 || s.Total != 10 || s.Message != "Found b.nsp" {
+		t.Fatalf("unexpected status: %+v", s)
+	}
+	web.state.endSync()
+}

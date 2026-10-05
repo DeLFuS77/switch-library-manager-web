@@ -128,10 +128,10 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 
 	if len(titles) == 0 {
 
-		for i, folder := range folders {
+		for _, folder := range folders {
 			err := scanFolder(folder, recursive, &files, progress)
 			if progress != nil {
-				progress.UpdateProgress(i+1, len(folders)+1, "scanning files in "+folder)
+				progress.UpdateProgress(-1, -1, "Scanned "+folder)
 			}
 			if err != nil {
 				zap.S().Errorf("Failed to scan folder %v - %v", folder, err)
@@ -186,7 +186,7 @@ func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, progre
 			return nil
 		}
 		if progress != nil {
-			progress.UpdateProgress(-1, -1, "scanning "+info.Name())
+			progress.UpdateProgress(-1, -1, "Found "+info.Name())
 		}
 		*files = append(*files, ExtendedFileInfo{FileName: info.Name(), BaseFolder: base, Size: info.Size(), IsDir: info.IsDir()})
 
@@ -218,7 +218,7 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 	for _, file := range files {
 		ind += 1
 		if progress != nil {
-			progress.UpdateProgress(ind, total, "process:"+file.FileName)
+			progress.UpdateProgress(ind, total, "Reading "+file.FileName)
 		}
 
 		//scan sub-folders if flag is present
