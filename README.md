@@ -61,6 +61,24 @@ The image has a health check on `/healthz` (port 3000), which works with passwor
 Put your `prod.keys` into the data folder, or mount it read-only:
 `-v /path/to/prod.keys:/usr/local/share/switch-library-manager-web/prod.keys:ro`.
 
+### Unraid
+
+Installing the image from the Docker Hub search leaves the port and folders empty. Use the template instead, which
+fills them in:
+
+1. Open a terminal on the Unraid server (the `>_` icon) and download the template:
+
+   ```
+   wget -O /boot/config/plugins/dockerMan/templates-user/my-switch-library-manager-web.xml https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/unraid/switch-library-manager-web.xml
+   ```
+
+2. In **Docker**, choose **Add Container** and pick `switch-library-manager-web` in **Template**.
+3. Set **Switch library** to the share with your games, for example `/mnt/user/switch`, and choose **Apply**.
+4. Copy your `prod.keys` (and optionally `title.keys`) to `/mnt/user/appdata/switch-library-manager-web/`, then open
+   the WebUI and save the settings (or restart the container).
+
+The template runs the app as `99:100` (nobody:users), the owner of Unraid shares, so it can organize and compress files.
+
 ### Binary
 
 Build the binary for your platform (see [Building](#building)) and run it. The data folder is the folder of the binary, or the
