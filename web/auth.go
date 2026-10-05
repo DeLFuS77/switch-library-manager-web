@@ -229,7 +229,7 @@ func (a *Auth) forget() {
 
 // public paths work without login: the login page and the files it needs
 func isPublicPath(path string) bool {
-	return path == "/login.html" || path == "/logout" ||
+	return path == "/login.html" || path == "/logout" || path == "/sw.js" ||
 		strings.HasPrefix(path, "/resources/static/") || strings.HasPrefix(path, "/resources/vendor/")
 }
 

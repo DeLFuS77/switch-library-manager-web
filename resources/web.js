@@ -822,6 +822,11 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	}
 
+	// installable app; browsers only allow it on HTTPS or localhost
+	if ('serviceWorker' in navigator && window.isSecureContext) {
+		navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+	}
+
 	// selects and radio buttons that apply their form at once
 	document.querySelectorAll('[data-autosubmit]').forEach(input => {
 		input.addEventListener('change', () => input.form && input.form.submit());
