@@ -2,8 +2,12 @@ package settings
 
 import (
 	"errors"
-	"github.com/magiconair/properties"
+	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/magiconair/properties"
+	"go.uber.org/zap"
 )
 
 var (
@@ -22,27 +26,78 @@ func SwitchKeys() (*switchKeys, error) {
 	return keysInstance, nil
 }
 
-func InitSwitchKeys(dataFolder string) (*switchKeys, error) {
-	settings := ReadSettings(dataFolder)
-	path := settings.Prodkeys
-	keys, err := GetSwitchKeys(path)
+func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
+	// A failed lookup must not leave keys from a previous base folder active.
+	keysInstance = nil
+	var (
+		path string
+		p    *properties.Properties
+		err  error
+	)
+	logger := zap.S()
+
+	// first, try to read the prod keys from the settings value
+	settings := ReadSettings(baseFolder)
+	if settings.Prodkeys != "" {
+		path = settings.Prodkeys
+		path = resolveKeysPath(path)
+
+		logger.Infof("Trying to load prod.keys based on settings.json: %v", path)
+		p, err = properties.LoadFile(path, properties.UTF8)
+	} else {
+		err = errors.New("prod.keys not defined in settings.json")
+	}
+
+	// second, if not found by settings look into the current folder
+	if err != nil {
+		path = filepath.Join(baseFolder, "prod.keys")
+
+		logger.Infof("Trying to load prod.keys based on current folder: %v", path)
+		p, err = properties.LoadFile(path, properties.UTF8)
+	}
+
+	// third, if not found in current, look in home directory
+	if err != nil {
+		home, homeErr := os.UserHomeDir()
+		if homeErr != nil {
+			err = homeErr
+		} else {
+			path = filepath.Join(home, ".switch", "prod.keys")
+
+			logger.Infof("Trying to load prod.keys based on home directory: %v", path)
+			p, err = properties.LoadFile(path, properties.UTF8)
+		}
+	}
 
 	if err != nil {
+		logger.Info("Unable to find prod.keys")
 		return nil, errors.New("Error trying to read prod.keys [reason:" + err.Error() + "]")
 	}
 
-	settings.Prodkeys = path
-	SaveSettings(settings, dataFolder)
-	keysInstance = &switchKeys{keys: keys}
+	keysInstance = &switchKeys{keys: map[string]string{}}
+	for _, key := range p.Keys() {
+		value, _ := p.Get(key)
+		keysInstance.keys[key] = value
+	}
 
+	logger.Infof("Loaded prod.keys from: %v", path)
 	return keysInstance, nil
 }
 
+// resolveKeysPath accepts either a path to a .keys file or a folder containing prod.keys.
+func resolveKeysPath(path string) string {
+	if !strings.EqualFold(filepath.Ext(path), ".keys") {
+		return filepath.Join(path, "prod.keys")
+	}
+	return path
+}
+
+// GetSwitchKeys reads the keys from a .keys file or a folder containing prod.keys,
+// without changing the active keys.
 func GetSwitchKeys(path string) (map[string]string, error) {
 	keys := map[string]string{}
 
-	p, err := properties.LoadFile(filepath.Join(path, "prod.keys"), properties.UTF8)
-
+	p, err := properties.LoadFile(resolveKeysPath(path), properties.UTF8)
 	if err != nil {
 		return keys, err
 	}
