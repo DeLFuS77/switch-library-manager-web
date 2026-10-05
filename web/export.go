@@ -63,7 +63,7 @@ func (web *Web) getExport() []ExportTitle {
 		if !local.BaseExist || local.File.Metadata == nil {
 			continue
 		}
-		detail, ok := web.getTitleDetail(local.File.Metadata.TitleId)
+		detail, ok := web.getTitleDetail(local.File.Metadata.TitleId, DEFAULT_LANGUAGE)
 		if !ok {
 			continue
 		}

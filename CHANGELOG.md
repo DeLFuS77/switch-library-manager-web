@@ -6,6 +6,8 @@
 
 - **Export the library** from the Library page: a spreadsheet (CSV, opens with accents in Excel) or a full inventory
   with files and DLC (JSON).
+- **Game names and descriptions in Spanish** when the interface is in Spanish and the Nintendo eShop has them. The
+  search finds games by their Spanish and their original name. The export keeps the original names.
 
 ### Fixes
 

@@ -16,7 +16,7 @@ Easily manage your Switch game backups from the browser.
 - Ignore lists for DLC, updates and file types; hide demos
 - JSON API to list and download the library (`/api/titles`)
 - Optional password protection
-- Interface in English and Spanish
+- Interface in English and Spanish, including game names and descriptions
 - Zero dependencies, all crypto operations implemented in Go
 
 ## Usage
@@ -108,6 +108,7 @@ Most settings are available in the web interface. `settings.json` in the data fo
 | `debug` | Verbose logging, useful when reporting issues |
 | `titles_json_url` | Titles database. Default: the `data` release of this repository |
 | `versions_json_url` | Versions database. Default: [blawar/titledb](https://github.com/blawar/titledb) |
+| `localized_titles_json_url` | Translated game names and descriptions, `%s` is the language. Default: the `data` release of this repository |
 
 If the configured database cannot be downloaded, a mirror is used.
 

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -15,8 +16,8 @@ func (web *Web) HandleDLC() {
 		"resources/pages/dlc.html",
 	}
 
-	web.HandleFiltered("/dlc.html", func(filter *TitleItemFilter) any {
-		items, p := web.getMissingDLC(filter)
+	web.HandleFiltered("/dlc.html", func(filter *TitleItemFilter, lang string) any {
+		items, p := web.getMissingDLC(filter, lang)
 		return TitleItemsPageData {
 			GlobalPageData: web.globalPageData("dlc"),
 			TitleItems: items,
@@ -26,7 +27,7 @@ func (web *Web) HandleDLC() {
 	}, web.embedFS, fsPatterns...)
 }
 
-func (web *Web) getMissingDLC(filter *TitleItemFilter) ([]TitleItem, pagination.Pagination) {
+func (web *Web) getMissingDLC(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination) {
 	items := []TitleItem{}
 
 	switchDB, localDB := web.state.get()
@@ -39,7 +40,14 @@ func (web *Web) getMissingDLC(filter *TitleItemFilter) ([]TitleItem, pagination.
 	missingDLC := process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds))
 
 	for _, v := range missingDLC {
-		if filter.Matches(v.Attributes.Id, v.Attributes.Name) {
+		name := titleName(switchDB, lang, v.Attributes.Id, v.Attributes.Name)
+		if filter.Matches(v.Attributes.Id, name, v.Attributes.Name) {
+			missingDlc := make([]db.TitleAttributes, len(v.MissingDLCItems))
+			for i, dlc := range v.MissingDLCItems {
+				dlc.Name = titleName(switchDB, lang, dlc.Id, dlc.Name)
+				missingDlc[i] = dlc
+			}
+
 			var imageUrl string
 			if v.Attributes.IconUrl != "" {
 				imageUrl = v.Attributes.IconUrl
@@ -51,8 +59,8 @@ func (web *Web) getMissingDLC(filter *TitleItemFilter) ([]TitleItem, pagination.
 				ImageUrl:         imageUrl,
 				Id:               strings.ToUpper(v.Attributes.Id),
 				MissingDLC:       v.MissingDLC,
-				MissingDLCItems:  v.MissingDLCItems,
-				Name:             v.Attributes.Name,
+				MissingDLCItems:  missingDlc,
+				Name:             name,
 				Region:           v.Attributes.Region,
 			})
 		}
