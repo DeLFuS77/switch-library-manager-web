@@ -6,10 +6,10 @@
 			{{- template "emptyState" (dict "Icon" "bi-bar-chart" "Tone" "" "Title" (t "No statistics yet") "Text" (t "Add your games folders in Settings to see the statistics of your library.") "ActionHref" "/settings.html#library" "ActionLabel" (t "Open Settings") "ActionIcon" "bi-gear")}}
 			{{- else}}
 			<div class="row row-cols-2 row-cols-xl-4 g-2 g-md-3 mb-4">
-				{{- template "statCard" (dict "Label" (t "Games") "Value" $s.Games "Icon" "bi-controller" "Tone" "")}}
-				{{- template "statCard" (dict "Label" (t "Updates") "Value" $s.Updates "Icon" "bi-arrow-up-circle" "Tone" "is-cyan")}}
-				{{- template "statCard" (dict "Label" (t "DLC") "Value" $s.Dlc "Icon" "bi-puzzle" "Tone" "")}}
-				{{- template "statCard" (dict "Label" (t "Total size") "Value" (formatSize $s.TotalSize) "Icon" "bi-hdd-stack" "Tone" "is-cyan")}}
+				{{- template "statCard" (dict "Label" (t "Games") "Value" $s.Games "Icon" "bi-controller" "Tone" "" "Count" true)}}
+				{{- template "statCard" (dict "Label" (t "Updates") "Value" $s.Updates "Icon" "bi-arrow-up-circle" "Tone" "is-cyan" "Count" true)}}
+				{{- template "statCard" (dict "Label" (t "DLC") "Value" $s.Dlc "Icon" "bi-puzzle" "Tone" "" "Count" true)}}
+				{{- template "statCard" (dict "Label" (t "Total size") "Value" (formatSize $s.TotalSize) "Icon" "bi-hdd-stack" "Tone" "is-cyan" "Count" false)}}
 			</div>
 			<div class="row g-3 mb-4">
 				<div class="col-lg-6">
@@ -82,7 +82,7 @@
 					<div class="surface stat-card h-100">
 						<div class="stat-icon {{.Tone}}"><span class="bi {{.Icon}}" aria-hidden="true"></span></div>
 						<div>
-							<div class="stat-value">{{.Value}}</div>
+							<div class="stat-value"{{if .Count}} data-count="{{.Value}}"{{end}}>{{.Value}}</div>
 							<div class="stat-label">{{.Label}}</div>
 						</div>
 					</div>

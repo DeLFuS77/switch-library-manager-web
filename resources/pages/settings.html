@@ -15,14 +15,14 @@
 						<section class="surface mb-4 settings-section" id="library" aria-labelledby="libraryTitle">
 							<h2 class="section-title" id="libraryTitle"><span class="bi bi-collection" aria-hidden="true"></span>{{t "Library"}}</h2>
 							<div class="mb-3">
-								<label for="prod_keys" class="form-label fw-semibold">{{t "Product Keys Path"}}</label>
+								<label for="prod_keys" class="form-label fw-semibold">{{t "Your keys (prod.keys)"}}</label>
 								<div class="input-group">
 									<span class="input-group-text"><span class="bi bi-key" aria-hidden="true"></span></span>
 									<input type="text" class="form-control" id="prod_keys" name="prod_keys" value="{{.Settings.Prodkeys}}" aria-describedby="prodKeysHelp">
 								</div>
 								<div class="form-text" id="prodKeysHelp">
 									{{- if .IsKeysFileAvailable}}<span class="text-success"><span class="bi bi-check-circle-fill me-1" aria-hidden="true"></span>{{t "Keys found"}}</span> &middot; {{else}}<span class="text-warning-emphasis"><span class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></span>{{t "Keys not found"}}</span> &middot; {{end -}}
-									{{t "Folder containing prod.keys or path to a .keys file. Leave empty to look in the data folder and then in ~/.switch"}}
+									{{t "The folder with your prod.keys (and optionally title.keys), or the path to the file. Empty: the data folder, then ~/.switch. Keys stay on your computer and are never uploaded."}}
 								</div>
 							</div>
 							<div>

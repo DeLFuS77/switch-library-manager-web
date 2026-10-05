@@ -651,6 +651,74 @@ function bindFileForm(form, url) {
 	});
 }
 
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// numbers count up from zero when the page opens
+function initCountUp() {
+	if (reducedMotion()) {
+		return;
+	}
+	document.querySelectorAll('[data-count]').forEach(element => {
+		const target = Number(element.dataset.count);
+		if (!Number.isFinite(target) || target <= 0) {
+			return;
+		}
+		const duration = 700;
+		const start = performance.now();
+		const format = new Intl.NumberFormat(document.documentElement.lang || undefined);
+		const step = now => {
+			const progress = Math.min(1, (now - start) / duration);
+			// ease out
+			const value = Math.round(target * (1 - Math.pow(1 - progress, 3)));
+			element.textContent = format.format(value);
+			if (progress < 1) {
+				requestAnimationFrame(step);
+			}
+		};
+		element.textContent = '0';
+		requestAnimationFrame(step);
+		// hidden tabs pause animation frames: the right number is always shown in the end
+		setTimeout(() => {
+			element.textContent = format.format(target);
+		}, duration + 100);
+	});
+}
+
+// covers fade in once loaded, with a shimmer meanwhile
+function initCoverLoading() {
+	document.querySelectorAll('.game-cover img').forEach(image => {
+		if (image.complete) {
+			return;
+		}
+		image.classList.add('is-loading');
+		const done = () => image.classList.remove('is-loading');
+		image.addEventListener('load', done, { once: true });
+		image.addEventListener('error', done, { once: true });
+	});
+}
+
+// cards tilt slightly towards the pointer
+function initCardTilt() {
+	if (reducedMotion() || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+		return;
+	}
+	document.querySelectorAll('.game-card').forEach(card => {
+		card.addEventListener('pointermove', e => {
+			const box = card.getBoundingClientRect();
+			const x = (e.clientX - box.left) / box.width - .5;
+			const y = (e.clientY - box.top) / box.height - .5;
+			card.style.setProperty('--tilt-x', `${(-y * 6).toFixed(2)}deg`);
+			card.style.setProperty('--tilt-y', `${(x * 6).toFixed(2)}deg`);
+			card.classList.add('is-tilting');
+		});
+		card.addEventListener('pointerleave', () => {
+			card.classList.remove('is-tilting');
+			card.style.removeProperty('--tilt-x');
+			card.style.removeProperty('--tilt-y');
+		});
+	});
+}
+
 const VIEW_STORAGE_KEY = 'slm-view';
 
 // large or small covers, remembered by the browser
@@ -717,6 +785,9 @@ document.addEventListener('DOMContentLoaded', () => {
 	initViewToggle();
 	initLiveTasks();
 	initCompress();
+	initCountUp();
+	initCoverLoading();
+	initCardTilt();
 
 	// forms that delete something ask first
 	document.querySelectorAll('form[data-confirm]').forEach(form => {
