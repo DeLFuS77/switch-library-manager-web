@@ -29,7 +29,7 @@ jobs:
 
       # go:embed needs node_modules and the compiled assets
       - name: Build assets
-        run: npm ci && npx gulp
+        run: npm ci && npm run build
 
       - name: Vet
         run: go vet ./...
