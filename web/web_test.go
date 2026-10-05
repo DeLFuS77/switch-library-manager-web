@@ -10,8 +10,10 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -617,6 +619,44 @@ func TestSetIgnoredAndFormatSize(t *testing.T) {
 	for size, want := range map[int64]string{512: "512 B", 2048: "2.0 KB", 213637397: "203.7 MB", 16 << 30: "16.0 GB"} {
 		if got := formatSize(size); got != want {
 			t.Errorf("formatSize(%d) = %q, want %q", size, got, want)
+		}
+	}
+}
+
+func TestSyncSchedule(t *testing.T) {
+	now := time.Date(2026, 10, 5, 12, 0, 0, 0, time.UTC)
+	tests := []struct {
+		name     string
+		interval int
+		last     time.Time
+		due      bool
+	}{
+		{"disabled", 0, time.Time{}, false},
+		{"disabled with old sync", 0, now.Add(-1000 * time.Hour), false},
+		{"never synchronized", 24, time.Time{}, true},
+		{"not yet", 24, now.Add(-23 * time.Hour), false},
+		{"exactly due", 24, now.Add(-24 * time.Hour), true},
+		{"overdue", 6, now.Add(-7 * time.Hour), true},
+		{"weekly not yet", 168, now.Add(-6 * 24 * time.Hour), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &settings.AppSettings{SyncIntervalHours: tt.interval, LastSyncTime: tt.last}
+			if got := syncDue(s, now); got != tt.due {
+				t.Fatalf("syncDue = %v, want %v", got, tt.due)
+			}
+		})
+	}
+
+	s := &settings.AppSettings{SyncIntervalHours: 12, LastSyncTime: now}
+	if next := nextSyncTime(s); !next.Equal(now.Add(12 * time.Hour)) {
+		t.Fatalf("unexpected next sync %v", next)
+	}
+
+	label := funcMap["intervalLabel"].(func(int) string)
+	for hours, want := range map[int]string{0: "Disabled", 6: "Every 6 hours", 24: "Every day", 168: "Every 7 days"} {
+		if got := label(hours); got != want {
+			t.Errorf("intervalLabel(%d) = %q, want %q", hours, got, want)
 		}
 	}
 }
