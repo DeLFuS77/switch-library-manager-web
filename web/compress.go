@@ -156,6 +156,11 @@ func (web *Web) startDecompression(paths []string, deleteCompressed bool) bool {
 // runFileTask runs job on every file as one cancellable task. passes is how many times
 // each file is read, for the progress.
 func (web *Web) runFileTask(kind string, paths []string, passes int64, job fileJob) bool {
+	return web.runFileTaskWithTrigger(kind, TRIGGER_MANUAL, paths, passes, job)
+}
+
+// runFileTaskWithTrigger is runFileTask for a task started by something else than the user.
+func (web *Web) runFileTaskWithTrigger(kind string, trigger string, paths []string, passes int64, job fileJob) bool {
 	web.compressor.mutex.Lock()
 	if web.compressor.cancel != nil {
 		web.compressor.mutex.Unlock()
@@ -165,7 +170,7 @@ func (web *Web) runFileTask(kind string, paths []string, passes int64, job fileJ
 	web.compressor.cancel = cancel
 	web.compressor.mutex.Unlock()
 
-	taskId := web.taskLog().Start(kind, TRIGGER_MANUAL)
+	taskId := web.taskLog().Start(kind, trigger)
 	go func() {
 		defer func() {
 			web.compressor.mutex.Lock()

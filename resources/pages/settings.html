@@ -7,6 +7,7 @@
 						<li class="nav-item"><a class="nav-link" href="#library"><span class="bi bi-collection me-2" aria-hidden="true"></span>{{t "Library"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="#ignored"><span class="bi bi-eye-slash me-2" aria-hidden="true"></span>{{t "Ignored items"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="#general"><span class="bi bi-sliders me-2" aria-hidden="true"></span>{{t "General"}}</a></li>
+						<li class="nav-item"><a class="nav-link" href="#compression"><span class="bi bi-file-zip me-2" aria-hidden="true"></span>{{t "Compression"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="#notifications"><span class="bi bi-bell me-2" aria-hidden="true"></span>{{t "Notifications"}}</a></li>
 					</ul>
 				</nav>
@@ -120,6 +121,34 @@
 										<option value="{{.}}"{{if eq . $.Settings.Language}} selected{{end}}>{{languageName .}}</option>
 										{{- end}}
 									</select>
+								</div>
+							</div>
+						</section>
+						<section class="surface mb-4 settings-section" id="compression" aria-labelledby="compressionTitle">
+							<h2 class="section-title" id="compressionTitle"><span class="bi bi-file-zip" aria-hidden="true"></span>{{t "Compression"}}</h2>
+							<p class="text-body-secondary">{{t "Compress NSP and XCI files to NSZ and XCZ by themselves, with the same checks as on the Compress page. Needs your own prod.keys."}}</p>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label for="auto_compress" class="form-label fw-semibold">{{t "Compress automatically"}}</label>
+									<select class="form-select" id="auto_compress" name="auto_compress">
+										<option value=""{{if eq .Settings.AutoCompress ""}} selected{{end}}>{{t "Off"}}</option>
+										<option value="new"{{if eq .Settings.AutoCompress "new"}} selected{{end}}>{{t "As soon as new files appear"}}</option>
+										<option value="night"{{if eq .Settings.AutoCompress "night"}} selected{{end}}>{{t "Every night at 3:00"}}</option>
+									</select>
+								</div>
+								<div class="col-md-6">
+									<label for="auto_compress_level" class="form-label fw-semibold">{{t "Compression level"}}</label>
+									<select class="form-select" id="auto_compress_level" name="auto_compress_level">
+										<option value="fast"{{if eq .Settings.AutoCompressLevel "fast"}} selected{{end}}>{{t "Fast"}}</option>
+										<option value="balanced"{{if or (eq .Settings.AutoCompressLevel "balanced") (eq .Settings.AutoCompressLevel "")}} selected{{end}}>{{t "Balanced"}}</option>
+										<option value="max"{{if eq .Settings.AutoCompressLevel "max"}} selected{{end}}>{{t "Maximum"}}</option>
+									</select>
+								</div>
+								<div class="col-12">
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="auto_compress_keep" name="auto_compress_keep" value="true"{{if .Settings.AutoCompressKeep}} checked{{end}}>
+										<label class="form-check-label" for="auto_compress_keep">{{t "Keep the originals"}}</label>
+									</div>
 								</div>
 							</div>
 						</section>

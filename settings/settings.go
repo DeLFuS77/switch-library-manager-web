@@ -104,6 +104,11 @@ type AppSettings struct {
 	IgnoreFileTypes        []string          `json:"ignore_file_types"`
 	HideDemoGames          bool              `json:"hide_demo_games"`
 	WatchFolders           bool              `json:"watch_folders"`
+	// automatic compression: "" (off), "new" (when files appear) or "night"
+	AutoCompress      string `json:"auto_compress"`
+	AutoCompressLevel string `json:"auto_compress_level"`
+	// keep the originals of automatic compressions
+	AutoCompressKeep bool `json:"auto_compress_keep"`
 	// ask GitHub once a day whether a newer version of the app was released
 	CheckForUpdates bool `json:"check_for_updates"`
 	// firmware of the user's console, e.g. 18.1.0, to warn about files that need a newer one

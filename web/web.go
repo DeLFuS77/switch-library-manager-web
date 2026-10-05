@@ -109,6 +109,7 @@ func (s *WebState) IsSynchronizing() bool {
 
 type Web struct {
 	state          WebState
+	auto           autoCompressor
 	updates        updateChecker
 	verify         *verifyStore
 	verifyOnce     sync.Once
@@ -451,6 +452,9 @@ func (web *Web) startInBackground() {
 		}
 		web.state.endSync()
 		web.finishTask(taskId, failure)
+		if failure == nil && settings.ReadSettings(web.dataFolder).AutoCompress == AUTO_COMPRESS_NEW {
+			web.autoCompress(TRIGGER_STARTUP)
+		}
 	}()
 }
 

@@ -5,9 +5,16 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
-		"Version %v is available.": "La versión %v está disponible.",
-		"See what is new":          "Ver las novedades",
-		"%v available":             "%v disponible",
+		"Unknown option": "Opción desconocida",
+		"Compress NSP and XCI files to NSZ and XCZ by themselves, with the same checks as on the Compress page. Needs your own prod.keys.": "Comprime los archivos NSP y XCI a NSZ y XCZ por sí solos, con las mismas comprobaciones que en la página Comprimir. Necesita tu propio prod.keys.",
+		"Compress automatically":      "Comprimir automáticamente",
+		"Off":                         "Desactivado",
+		"As soon as new files appear": "En cuanto aparezcan archivos nuevos",
+		"Every night at 3:00":         "Cada noche a las 3:00",
+		"Keep the originals":          "Conservar los originales",
+		"Version %v is available.":    "La versión %v está disponible.",
+		"See what is new":             "Ver las novedades",
+		"%v available":                "%v disponible",
 		"Tell me when a new version of the app is available":                                 "Avisarme cuando haya una versión nueva de la app",
 		"Asks GitHub once a day for the latest release; nothing about your library is sent.": "Consulta a GitHub una vez al día la última versión; no se envía nada de tu biblioteca.",
 		"Your console needs firmware %v or newer for this game":                              "Tu consola necesita el firmware %v o posterior para este juego",
