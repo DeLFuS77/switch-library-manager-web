@@ -349,6 +349,53 @@ body {
 	}
 }
 
+.filter-pills {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .4rem;
+}
+
+.filter-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: .4rem;
+	padding: .35rem .8rem;
+	border-radius: 2rem;
+	border: 1px solid var(--slm-border);
+	background: var(--slm-surface);
+	color: var(--bs-secondary-color);
+	font-size: .85rem;
+	font-weight: 600;
+	text-decoration: none;
+	transition: color .15s ease, background-color .15s ease, border-color .15s ease;
+
+	&:hover {
+		color: var(--bs-body-color);
+		border-color: var(--bs-secondary-color);
+	}
+
+	&.active {
+		color: #fff;
+		background: $primary;
+		border-color: $primary;
+
+		.filter-count {
+			background: rgba(255, 255, 255, .25);
+			color: #fff;
+		}
+	}
+
+	.filter-count {
+		min-width: 1.5rem;
+		padding: .05rem .4rem;
+		border-radius: 1rem;
+		background: var(--slm-surface-muted);
+		font-size: .75rem;
+		text-align: center;
+		font-variant-numeric: tabular-nums;
+	}
+}
+
 // ---------------------------------------------------------------------------------------
 // Game cards
 // ---------------------------------------------------------------------------------------
@@ -365,6 +412,40 @@ body {
 	@include media-breakpoint-up(md) {
 		gap: 1.25rem;
 		grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+	}
+
+	// small covers: more games at a glance
+	&.is-compact {
+		gap: .6rem;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+
+		@include media-breakpoint-up(sm) {
+			grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+		}
+
+		@include media-breakpoint-up(md) {
+			gap: .8rem;
+			grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+		}
+
+		.game-body {
+			padding: .55rem .6rem .65rem;
+			gap: .3rem;
+		}
+
+		.game-title {
+			font-size: .8rem;
+		}
+
+		.game-meta,
+		.game-cover-meta .badge {
+			display: none;
+		}
+
+		.chip {
+			font-size: .68rem;
+			padding: .2rem .45rem;
+		}
 	}
 }
 

@@ -69,22 +69,32 @@ func (web *Web) HandleIndex() {
 	}
 
 	web.HandleFiltered("/index.html", func(filter *TitleItemFilter, lang string) any {
-		items, p := web.getLibrary(filter, lang)
-		return TitleItemsPageData {
-			GlobalPageData: web.globalPageData("index"),
-			TitleItems: items,
-			Filter: filter,
-			Pagination: p,
+		items, p, facets := web.getLibraryWithFacets(filter, lang)
+		return LibraryPageData {
+			TitleItemsPageData: TitleItemsPageData {
+				GlobalPageData: web.globalPageData("index"),
+				TitleItems: items,
+				Filter: filter,
+				Pagination: p,
+			},
+			Facets: facets,
 		}
 	}, web.embedFS, fsPatterns...)
 }
 
 func (web *Web) getLibrary(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination) {
+	items, p, _ := web.getLibraryWithFacets(filter, lang)
+	return items, p
+}
+
+func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination, LibraryFacets) {
 	items := []TitleItem{}
+	facets := LibraryFacets{Formats: []string{}}
+	formats := map[string]struct{}{}
 	switchDB, localDB := web.state.get()
 
 	if localDB == nil {
-		return items, pagination.Calculate(filter.Page, filter.PerPage, 0)
+		return items, pagination.Calculate(filter.Page, filter.PerPage, 0), facets
 	}
 
 	settingsObj := settings.ReadSettings(web.dataFolder)
@@ -159,8 +169,48 @@ func (web *Web) getLibrary(filter *TitleItemFilter, lang string) ([]TitleItem, p
 			item.ReleaseDate = release
 		}
 
+		// the formats are offered whatever the other filters are
+		if item.Type != "" {
+			formats[item.Type] = struct{}{}
+		}
+		if filter.Format != "" && item.Type != filter.Format {
+			continue
+		}
+
+		complete := title != nil && !item.UpdateAvailable && item.MissingDlcCount == 0
+		facets.All++
+		if item.UpdateAvailable {
+			facets.Update++
+		}
+		if item.MissingDlcCount > 0 {
+			facets.Dlc++
+		}
+		if complete {
+			facets.Complete++
+		}
+
+		switch filter.Status {
+			case STATUS_UPDATE:
+				if !item.UpdateAvailable {
+					continue
+				}
+			case STATUS_DLC:
+				if item.MissingDlcCount == 0 {
+					continue
+				}
+			case STATUS_COMPLETE:
+				if !complete {
+					continue
+				}
+		}
+
 		items = append(items, item)
 	}
+
+	for format := range formats {
+		facets.Formats = append(facets.Formats, format)
+	}
+	sort.Strings(facets.Formats)
 
 	p := pagination.Calculate(filter.Page, filter.PerPage, len(items))
 
@@ -168,7 +218,7 @@ func (web *Web) getLibrary(filter *TitleItemFilter, lang string) ([]TitleItem, p
 		web.sugarLogger.Error(err)
 	}
 
-	return items[p.Start:p.End], p
+	return items[p.Start:p.End], p, facets
 }
 
 // localImageUrl returns the cover of a game from the local image cache, if it was

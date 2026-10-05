@@ -12,8 +12,28 @@
 				</div>
 				{{- end}}
 			</div>
-			{{- if or .HasLibrary .Filter.Keyword}}
+			{{- if or .HasLibrary .Filter.Active}}
 			{{- template "filter" .}}
+			<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+				<ul class="filter-pills list-unstyled mb-0" aria-label="{{t "Filter by status"}}">
+					{{- template "statusFilter" (dict "Filter" .Filter "Value" "" "Label" (t "All") "Icon" "" "Count" .Facets.All)}}
+					{{- template "statusFilter" (dict "Filter" .Filter "Value" "update" "Label" (t "Update available") "Icon" "bi-arrow-up-circle" "Count" .Facets.Update)}}
+					{{- template "statusFilter" (dict "Filter" .Filter "Value" "dlc" "Label" (t "DLC missing") "Icon" "bi-puzzle" "Count" .Facets.Dlc)}}
+					{{- template "statusFilter" (dict "Filter" .Filter "Value" "complete" "Label" (t "Up to date") "Icon" "bi-check-circle" "Count" .Facets.Complete)}}
+				</ul>
+				{{- if gt (len .Facets.Formats) 1}}
+				<div class="dropdown">
+					<button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-file-earmark me-1" aria-hidden="true"></span>{{if .Filter.Format}}{{.Filter.Format}}{{else}}{{t "All formats"}}{{end}}</button>
+					<ul class="dropdown-menu dropdown-menu-end">
+						<li><a class="dropdown-item{{if not .Filter.Format}} active{{end}}" href="{{filterUrl .Filter "format" ""}}">{{t "All formats"}}</a></li>
+						{{- $f := .Filter}}
+						{{- range .Facets.Formats}}
+						<li><a class="dropdown-item{{if eq $f.Format .}} active{{end}}" href="{{filterUrl $f "format" (toLower .)}}">{{.}}</a></li>
+						{{- end}}
+					</ul>
+				</div>
+				{{- end}}
+			</div>
 			{{- end}}
 			{{- if gt (len .TitleItems) 0}}
 			<div class="game-grid">
@@ -22,7 +42,7 @@
 				{{- end}}
 			</div>
 			{{- template "pagination" .}}
-			{{- else if .Filter.Keyword}}
+			{{- else if .Filter.Active}}
 			{{- template "noResults" .Filter}}
 			{{- else if .IsSynchronizing}}
 			{{- template "emptyState" (dict "Icon" "bi-hourglass-split" "Tone" "" "Title" (t "Scanning your library") "Text" (t "Your games will appear here in a moment.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}

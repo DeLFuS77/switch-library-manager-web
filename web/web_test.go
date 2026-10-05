@@ -1075,3 +1075,60 @@ func TestNavCountsAndCardStatus(t *testing.T) {
 		t.Fatalf("a game unknown to the titles database has no status: %+v", library[0])
 	}
 }
+
+func TestLibraryStatusAndFormatFilters(t *testing.T) {
+	web := newTestWeb(t)
+	web.state.set(testDatabases(t))
+
+	all, _, facets := web.getLibraryWithFacets(defaultFilter(), "en")
+	if len(all) != 2 || facets.All != 2 || facets.Update != 1 || facets.Dlc != 1 || facets.Complete != 0 {
+		t.Fatalf("unexpected facets: %+v", facets)
+	}
+	if len(facets.Formats) == 0 {
+		t.Fatal("the formats of the library must be offered")
+	}
+
+	filter := defaultFilter()
+	filter.Status = STATUS_UPDATE
+	items, p, facets := web.getLibraryWithFacets(filter, "en")
+	if len(items) != 1 || items[0].Name != "Known Game" || p.NumItems != 1 {
+		t.Fatalf("update filter: %+v", items)
+	}
+	if facets.All != 2 {
+		t.Fatalf("the counts must not depend on the status filter: %+v", facets)
+	}
+
+	filter.Status = STATUS_COMPLETE
+	if items, _, _ := web.getLibraryWithFacets(filter, "en"); len(items) != 0 {
+		t.Fatalf("no game is complete: %+v", items)
+	}
+
+	filter = defaultFilter()
+	filter.Format = "nope"
+	filter.Normalize()
+	if items, _, facets := web.getLibraryWithFacets(filter, "en"); len(items) != 0 || facets.All != 0 || len(facets.Formats) == 0 {
+		t.Fatalf("an unknown format matches nothing but keeps the format list: %+v %+v", items, facets)
+	}
+
+	filter.Format = strings.ToLower(all[1].Type)
+	filter.Normalize()
+	if items, _, _ := web.getLibraryWithFacets(filter, "en"); len(items) == 0 {
+		t.Fatalf("filtering by an existing format (%s) must find games", filter.Format)
+	}
+}
+
+func TestFilterQueryKeepsOtherFilters(t *testing.T) {
+	f := &TitleItemFilter{Keyword: "zelda", Status: STATUS_DLC, Format: "NSZ", PerPage: 48, SortBy: "name", SortOrder: "desc", Page: 3}
+	query := f.query("status", STATUS_UPDATE).Encode()
+	for _, want := range []string{"q=zelda", "status=update", "format=nsz", "per_page=48", "sort_order=desc"} {
+		if !strings.Contains(query, want) {
+			t.Errorf("%q misses %q", query, want)
+		}
+	}
+	if strings.Contains(query, "page=3") {
+		t.Errorf("changing a filter must go back to the first page: %q", query)
+	}
+	if cleared := f.query("q", "", "status", "", "format", "").Encode(); strings.Contains(cleared, "q=") || strings.Contains(cleared, "status=") || strings.Contains(cleared, "format=") {
+		t.Errorf("empty values must be removed: %q", cleared)
+	}
+}
