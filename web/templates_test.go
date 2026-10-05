@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 )
 
 // All pages must parse with the layout and partials, in every language.
@@ -100,5 +101,38 @@ func TestLanguageFromHeader(t *testing.T) {
 	}
 	if translatef("es", "%v DLC missing", 3) != "Faltan 3 DLC" || translate("xx", "Library") != "Library" {
 		t.Fatal("unexpected translation")
+	}
+}
+
+func TestLocalizedDatesAndIssues(t *testing.T) {
+	date := time.Date(2026, 10, 5, 13, 5, 0, 0, time.Local)
+	if got := formatDate("es", date); got != "5 oct 2026" {
+		t.Errorf("es date = %q", got)
+	}
+	if got := formatDate("en", date); got != "Oct 5, 2026" {
+		t.Errorf("en date = %q", got)
+	}
+	if got := formatDateTime("es", date); got != "5 oct 2026 13:05" {
+		t.Errorf("es date time = %q", got)
+	}
+	if formatDate("es", time.Time{}) != "" || formatDateTime("es", time.Time{}) != "nunca" {
+		t.Error("zero dates")
+	}
+
+	issues := map[string]string{
+		"file type is not supported":                           "tipo de archivo no compatible",
+		"duplicate update file (C:\roms\a [v1].nsp)":           "archivo de actualización duplicado (C:\roms\a [v1].nsp)",
+		"old update file, newer update exist locally (/x.nsp)": "actualización antigua, hay una más nueva (/x.nsp)",
+		"failed to read NSP: prod.keys has no key_area_key_application_15. The title needs keys from a newer firmware: update prod.keys, or add [TitleID][vVersion] to the file name": "no se pudo leer el NSP: a prod.keys le falta key_area_key_application_15. El juego necesita claves de un firmware más nuevo: actualiza prod.keys o añade [TitleID][vVersión] al nombre del archivo",
+		"identified by file name only, failed to read XCI [reason: EOF]": "identificado solo por el nombre del archivo; no se pudo leer el XCI [motivo: EOF]",
+		"something new and unknown":                                      "something new and unknown",
+	}
+	for text, want := range issues {
+		if got := translateIssue("es", text); got != want {
+			t.Errorf("translateIssue(%q)\n got %q\nwant %q", text, got, want)
+		}
+		if got := translateIssue("en", text); got != text {
+			t.Errorf("English issue changed: %q", got)
+		}
 	}
 }

@@ -7,6 +7,11 @@
 - **Export the library** from the Library page: a spreadsheet (CSV, opens with accents in Excel) or a full inventory
   with files and DLC (JSON).
 
+### Fixes
+
+- Dates are shown in the format of the interface language ("Oct 5, 2026" / "5 oct 2026").
+- Issues are translated to Spanish as well; file paths and technical details are kept.
+
 ## 1.2.0
 
 > **Docker users:** the container now runs as an unprivileged user (`PUID`/`PGID`, default `1000`). The data folder

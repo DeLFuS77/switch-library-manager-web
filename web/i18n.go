@@ -6,7 +6,9 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"regexp"
 	"strings"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -56,6 +58,9 @@ func i18nFuncs(lang string) template.FuncMap {
 		"lang":           func() string { return lang },
 		"jsTranslations": func() map[string]string { return jsTranslations(lang) },
 		"languageName":   func(code string) string { return languageNames[code] },
+		"formatTime":     func(value time.Time) string { return formatDate(lang, value) },
+		"formatDateTime": func(value time.Time) string { return formatDateTime(lang, value) },
+		"issue":          func(text string) string { return translateIssue(lang, text) },
 	}
 }
 
@@ -119,4 +124,65 @@ func (web *Web) requestLanguage(r *http.Request) string {
 		return lang
 	}
 	return languageFromHeader(r.Header.Get("Accept-Language"))
+}
+
+var monthAbbreviations = map[string][12]string{
+	"es": {"ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"},
+}
+
+// formatDate formats a date for the interface language: "Oct 5, 2026" / "5 oct 2026".
+func formatDate(lang string, value time.Time) string {
+	if value.IsZero() {
+		return ""
+	}
+	if months, ok := monthAbbreviations[lang]; ok {
+		return fmt.Sprintf("%d %s %d", value.Day(), months[value.Month()-1], value.Year())
+	}
+	return value.Format("Jan 2, 2006")
+}
+
+// formatDateTime formats a local date and time for the interface language.
+func formatDateTime(lang string, value time.Time) string {
+	if value.IsZero() {
+		return translate(lang, "never")
+	}
+	value = value.Local()
+	return formatDate(lang, value) + " " + value.Format("15:04")
+}
+
+// Issue texts are created in English by the scanner and contain file paths and technical
+// details, so they are translated by pattern; the captured parts stay as they are.
+var issuePatterns = []struct {
+	pattern *regexp.Regexp
+	text    string
+}{
+	{regexp.MustCompile(`^file type is not supported$`), "file type is not supported"},
+	{regexp.MustCompile(`^base file is missing$`), "base file is missing"},
+	{regexp.MustCompile(`^duplicate (update|base|DLC) file \((.*)\)$`), "duplicate %v file (%v)"},
+	{regexp.MustCompile(`^old update file, newer update exist locally \((.*)\)$`), "old update file, newer update exist locally (%v)"},
+	{regexp.MustCompile(`^old DLC file, newer version exist locally \((.*)\)$`), "old DLC file, newer version exist locally (%v)"},
+	{regexp.MustCompile(`^failed to read (NSP|XCI|split files): prod\.keys has no (\S+)\. The title needs keys from a newer firmware: update prod\.keys, or add \[TitleID\]\[vVersion\] to the file name$`),
+		"failed to read %v: prod.keys has no %v. The title needs keys from a newer firmware: update prod.keys, or add [TitleID][vVersion] to the file name"},
+	{regexp.MustCompile(`^failed to read (NSP|XCI|split files) \[reason: (.*)\]$`), "failed to read %v [reason: %v]"},
+	{regexp.MustCompile(`^unable to determine title-Id / version - (.*)$`), "unable to determine title ID / version - %v"},
+}
+
+// translateIssue translates an issue text created by the scanner.
+func translateIssue(lang string, text string) string {
+	if lang == DEFAULT_LANGUAGE {
+		return text
+	}
+	if rest, ok := strings.CutPrefix(text, "identified by file name only, "); ok {
+		return translatef(lang, "identified by file name only, %v", translateIssue(lang, rest))
+	}
+	for _, issue := range issuePatterns {
+		if match := issue.pattern.FindStringSubmatch(text); match != nil {
+			args := make([]any, 0, len(match)-1)
+			for _, group := range match[1:] {
+				args = append(args, translate(lang, group))
+			}
+			return translatef(lang, issue.text, args...)
+		}
+	}
+	return text
 }
