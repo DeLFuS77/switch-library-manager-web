@@ -1553,6 +1553,46 @@ h3,
 	}
 }
 
+// the share of the library that can be freed (Space page)
+.space-bar {
+	height: .9rem;
+	border-radius: 999px;
+	background: var(--slm-surface-muted);
+	overflow: hidden;
+}
+
+.space-bar-fill {
+	--pct: 0;
+	display: block;
+	height: 100%;
+	width: calc(var(--pct) * 1%);
+	min-width: .9rem;
+	border-radius: inherit;
+	background: linear-gradient(90deg, $warning, $slm-red);
+}
+
+.space-dot {
+	display: inline-block;
+	width: .6rem;
+	height: .6rem;
+	border-radius: 50%;
+	margin-right: .4rem;
+	vertical-align: middle;
+	flex-shrink: 0;
+}
+
+.space-dot-old_updates {
+	background: $warning;
+}
+
+.space-dot-duplicates {
+	background: $slm-red;
+}
+
+.space-dot-compressed {
+	background: $slm-cyan;
+}
+
 // a registered property, so gauges can fill up smoothly
 @property --pct {
 	syntax: "<number>";
@@ -1570,6 +1610,7 @@ h3,
 	}
 
 	.health-bar span,
+	.space-bar-fill,
 	.dlc-progress-bar span,
 	.progress-bar:not(.progress-bar-animated) {
 		transform-origin: left center;

@@ -1,0 +1,88 @@
+{{define "title"}}{{t "Space"}}{{end}}
+{{define "main"}}
+			{{- template "pageHeader" (dict "Title" (t "Space") "Count" -1 "Subtitle" (t "Files that take space without being needed: old updates, duplicates and originals that already have a compressed copy. Nothing is deleted until you confirm it."))}}
+			<section class="surface mb-4 space-overview">
+				<div class="row g-4 align-items-center">
+					<div class="col-md-5">
+						<div class="small text-body-secondary text-uppercase fw-semibold">{{t "Can be freed now"}}</div>
+						<div class="display-6 fw-bold">{{formatSize .Reclaimable}}</div>
+						<div class="text-body-secondary">{{t "%v%% of a library of %v" .RemovablePercent (formatSize .LibrarySize)}}</div>
+					</div>
+					<div class="col-md-7">
+						<div class="space-bar" role="img" aria-label="{{t "%v%% of a library of %v" .RemovablePercent (formatSize .LibrarySize)}}">
+							<span class="space-bar-fill" style="--pct: {{.RemovablePercent}}"></span>
+						</div>
+						<ul class="list-unstyled d-flex flex-wrap gap-3 small mt-3 mb-0">
+							{{- range .Groups}}
+							<li><span class="space-dot space-dot-{{.Id}}" aria-hidden="true"></span>{{template "spaceGroupTitle" .Id}}: <strong>{{formatSize .Size}}</strong></li>
+							{{- end}}
+						</ul>
+					</div>
+				</div>
+			</section>
+
+			{{- if .Compressible}}
+			<p class="small text-body-secondary d-flex align-items-start gap-2 mb-4"><span class="bi bi-lightbulb flex-shrink-0 mt-1" aria-hidden="true"></span><span>{{t "%v files (%v) have no compressed copy yet. Compressing usually saves 10–60%%." .Compressible (formatSize .CompressSize)}} <a href="/compress.html">{{t "Compress"}}</a></span></p>
+			{{- end}}
+
+			{{- if eq .Reclaimable 0}}{{if eq .Unverified 0}}
+			{{- template "emptyState" (dict "Icon" "bi-hdd" "Tone" "success" "Title" (t "Nothing to clean up") "Text" (t "Your library has no old updates, duplicates or compressed originals.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+			{{- end}}{{end}}
+
+			{{- if .Unverified}}
+			<div class="alert alert-info d-flex flex-column flex-sm-row align-items-sm-center gap-3" role="status">
+				<span class="bi bi-shield-check fs-4 flex-shrink-0" aria-hidden="true"></span>
+				<div class="flex-grow-1">{{t "%v originals have a compressed copy that was not verified yet. Verify them before deleting the originals." .Unverified}}</div>
+				<button type="button" class="btn btn-sm btn-primary rounded-pill text-nowrap" data-verify="changed"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Verify now"}}</button>
+			</div>
+			{{- end}}
+
+			{{- if or .Reclaimable .Unverified}}
+			<form id="spaceForm">
+				{{- range $g := .Groups}}{{if $g.Files}}
+				<section class="mb-4" aria-labelledby="space-{{$g.Id}}">
+					<h2 class="section-title" id="space-{{$g.Id}}"><span class="space-dot space-dot-{{$g.Id}}" aria-hidden="true"></span>{{template "spaceGroupTitle" $g.Id}} <span class="badge rounded-pill text-bg-secondary">{{len $g.Files}}</span> <span class="ms-auto small fw-normal text-body-secondary">{{formatSize $g.Size}}</span></h2>
+					<p class="small text-body-secondary">{{template "spaceGroupHelp" $g.Id}}</p>
+					<div class="surface p-0 table-responsive">
+						<table class="table table-hover align-middle mb-0">
+							<thead>
+								<tr>
+									<th scope="col" class="ps-3" style="width: 2.5rem"><span class="visually-hidden">{{t "Select"}}</span></th>
+									<th scope="col">{{t "File"}}</th>
+									<th scope="col" class="d-none d-lg-table-cell">{{t "Kept"}}</th>
+									<th scope="col" class="text-end pe-3">{{t "Size"}}</th>
+								</tr>
+							</thead>
+							<tbody>
+								{{- range $i, $f := $g.Files}}
+								<tr>
+									<td class="ps-3"><input class="form-check-input" type="checkbox" name="path" value="{{$f.Path}}" data-size="{{$f.Size}}" id="{{$g.Id}}{{$i}}"{{if $f.Deletable}} checked{{else}} disabled{{end}}></td>
+									<td class="min-w-0">
+										<label class="fw-semibold d-block text-truncate" for="{{$g.Id}}{{$i}}">{{$f.Name}}</label>
+										<span class="small text-body-secondary font-monospace text-break">{{$f.Path}}</span>
+										{{- with $f.Note}}<div><span class="chip chip-warning mt-1"><span class="bi bi-shield-exclamation" aria-hidden="true"></span>{{t .}}</span></div>{{end}}
+									</td>
+									<td class="d-none d-lg-table-cell small text-body-secondary font-monospace text-break">{{$f.KeptBy}}</td>
+									<td class="text-end text-nowrap pe-3">{{formatSize $f.Size}}</td>
+								</tr>
+								{{- end}}
+							</tbody>
+						</table>
+					</div>
+				</section>
+				{{- end}}{{end}}
+				<div class="save-bar d-flex align-items-center justify-content-between gap-3">
+					<div class="form-check mb-0">
+						<input class="form-check-input" type="checkbox" id="spaceAll" data-file-all checked>
+						<label class="form-check-label fw-semibold" for="spaceAll">{{t "Select all"}}</label>
+					</div>
+					<div class="small text-body-secondary d-none d-sm-block" data-file-summary data-template="{{t "%v files selected, %v"}}" aria-live="polite"></div>
+					<button type="submit" class="btn btn-danger rounded-pill px-4 text-nowrap" data-confirm="{{t "Delete %v files (%v)? This cannot be undone."}}"><span class="bi bi-trash3 me-2" aria-hidden="true"></span>{{t "Delete selected"}}</button>
+				</div>
+			</form>
+			{{- end}}
+{{- end}}
+
+{{define "spaceGroupTitle"}}{{if eq . "old_updates"}}{{t "Old updates"}}{{else if eq . "duplicates"}}{{t "Duplicates"}}{{else}}{{t "Compressed originals"}}{{end}}{{end}}
+
+{{define "spaceGroupHelp"}}{{if eq . "old_updates"}}{{t "A newer update of the same game is in the library."}}{{else if eq . "duplicates"}}{{t "The same content is in the library more than once; the copy shown as kept stays."}}{{else}}{{t "NSP and XCI files with an NSZ or XCZ copy next to them. They can be deleted once the copy is verified."}}{{end}}{{end}}

@@ -542,3 +542,13 @@ func applyTemplate(templateData map[string]string, useSafeNames bool, template s
 	result = strings.TrimSpace(result)
 	return folderIllegalCharsRegex.ReplaceAllString(result, "")
 }
+
+// RemoveFiles deletes the given files, each with its reason, refusing files that changed
+// since the last scan. With dryRun the deletions are only planned.
+func RemoveFiles(files []db.ExtendedFileInfo, reasons []string, dryRun bool) []Operation {
+	ops := newFileOperations(dryRun)
+	for i, file := range files {
+		ops.remove(file, reasons[i])
+	}
+	return ops.operations
+}
