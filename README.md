@@ -122,7 +122,9 @@ by the [Update title data](https://github.com/SiscuPrats/switch-library-manager-
 
 ## Reporting issues
 
-Please set `debug` to `true` in settings.json and attach the log to allow for quicker resolution.
+Report problems and ideas in the [issue tracker](https://github.com/SiscuPrats/switch-library-manager-web/issues).
+For problems, set `debug` to `true` in settings.json and attach the log. **Never share your keys**, also not in logs or
+screenshots.
 
 ## Building
 
