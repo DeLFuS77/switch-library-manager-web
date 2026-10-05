@@ -15,8 +15,14 @@ type SettingsPageData struct {
 type SettingsForm struct {
 	Prodkeys          string `in:"form=prod_keys"`
 	ScanFolders       string `in:"form=scan_folders"`
-	IgnoreDLCTitleIds string `in:"form=ignore_dlc_title_ids"`
+	IgnoreDLCTitleIds    string `in:"form=ignore_dlc_title_ids"`
+	IgnoreUpdateTitleIds string `in:"form=ignore_update_title_ids"`
+	IgnoreDLCUpdates     bool   `in:"form=ignore_dlc_updates"`
+	IgnoreFileTypes      string `in:"form=ignore_file_types"`
+	HideDemoGames        bool   `in:"form=hide_demo_games"`
 }
+
+var titleIdRegex = regexp.MustCompile("^[0-9A-Fa-f]{16}$")
 
 func SplitAndTrimSpaceArray(s string, sep string) []string {
 	arr := []string{}
@@ -28,6 +34,15 @@ func SplitAndTrimSpaceArray(s string, sep string) []string {
 	}
 
 	return arr
+}
+
+// toLowerSet returns the values as a lower case lookup set.
+func toLowerSet(values []string) map[string]struct{} {
+	set := make(map[string]struct{}, len(values))
+	for _, value := range values {
+		set[strings.ToLower(strings.TrimSpace(value))] = struct{}{}
+	}
+	return set
 }
 
 func (web *Web) HandleSettings() {
@@ -82,16 +97,16 @@ func (web *Web) HandleSettings() {
 			}
 		}
 
-		r, _ := regexp.Compile("^[0-9A-Fa-f]+$")
+		for field, ids := range map[string]string{"ignore_dlc_title_ids": settingsForm.IgnoreDLCTitleIds, "ignore_update_title_ids": settingsForm.IgnoreUpdateTitleIds} {
+			for _, value := range SplitAndTrimSpaceArray(ids, "\n") {
+				if !titleIdRegex.MatchString(value) {
+					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
+						Field: field,
+						Message: "Invalid Title ID (16 hexadecimal characters): " + value,
+					})
 
-		for _, value := range SplitAndTrimSpaceArray(settingsForm.IgnoreDLCTitleIds, "\n") {
-			if !r.MatchString(value) {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-					Field: "ignore_dlc_title_ids",
-					Message: "Invalid Title ID: " + value,
-				})
-
-				break
+					break
+				}
 			}
 		}
 
@@ -103,6 +118,10 @@ func (web *Web) HandleSettings() {
 		appSettings := settings.ReadSettings(web.dataFolder)
 		appSettings.Prodkeys = settingsForm.Prodkeys
 		appSettings.IgnoreDLCTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreDLCTitleIds, "\n")
+		appSettings.IgnoreUpdateTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreUpdateTitleIds, "\n")
+		appSettings.IgnoreDLCUpdates = settingsForm.IgnoreDLCUpdates
+		appSettings.IgnoreFileTypes = SplitAndTrimSpaceArray(strings.ReplaceAll(settingsForm.IgnoreFileTypes, ",", " "), " ")
+		appSettings.HideDemoGames = settingsForm.HideDemoGames
 		appSettings.Folder = scanFolders[0]
 		if len(scanFolders) > 1 {
 			appSettings.ScanFolders = scanFolders[1:]

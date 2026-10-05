@@ -59,8 +59,8 @@ function onSyncFinished() {
 		syncAlert.remove();
 	}
 
-	if (document.getElementById('settingsForm')) {
-		// do not reload the settings page, it could discard unsaved changes
+	if (document.querySelector('form[method="post"]')) {
+		// do not reload pages with forms, it could discard unsaved changes
 		insertAlert(mainContainer(), 'alert-success', 'bi-check-circle-fill', 'Done!', 'The library has been updated.');
 	} else {
 		window.location.reload();
@@ -123,9 +123,11 @@ function onSubmit(form) {
 
 		return response.json().then(jsonResponse => {
 			insertAlert(form, 'alert-success', 'bi-check-circle-fill', jsonResponse.strongMessage, jsonResponse.message);
-			// saving the settings rescans the library
-			showSyncAlert();
-			watchSync();
+			if (form.dataset.rescan) {
+				// saving the settings rescans the library
+				showSyncAlert();
+				watchSync();
+			}
 		});
 	}).catch(error => {
 		if (!(error instanceof Response)) {
@@ -160,6 +162,116 @@ function onSubmit(form) {
 	});
 }
 
+const OPERATION_LABELS = {
+	mkdir: 'Create folder',
+	move: 'Move',
+	delete: 'Delete',
+	skip: 'Skip',
+	cleanup: 'Clean up'
+};
+
+function postForm(url, params) {
+	return fetch(url, {
+		method: 'POST',
+		body: new URLSearchParams(params).toString(),
+		headers: {
+			'Content-type': 'application/x-www-form-urlencoded'
+		}
+	}).then(response => response.json().catch(() => ({})).then(json => {
+		if (!response.ok) {
+			const message = (json.globalError && json.globalError.message) || `Unexpected server response (${response.status}).`;
+			throw new Error(message);
+		}
+		return json;
+	}));
+}
+
+function renderOperations(result) {
+	const tbody = document.getElementById('organizeOperations');
+	tbody.replaceChildren();
+
+	result.operations.forEach(op => {
+		const row = document.createElement('tr');
+		if (op.error) {
+			row.classList.add('table-danger');
+		}
+
+		const kind = document.createElement('td');
+		kind.classList.add('text-nowrap');
+		kind.textContent = OPERATION_LABELS[op.kind] || op.kind;
+
+		const from = document.createElement('td');
+		from.classList.add('text-break');
+		from.textContent = op.from || op.to || '';
+
+		const detail = document.createElement('td');
+		detail.classList.add('text-break');
+		detail.textContent = op.error ? `Error: ${op.error}` : (op.kind === 'mkdir' ? '' : (op.to && op.from ? op.to : (op.reason || '')));
+
+		row.append(kind, from, detail);
+		tbody.appendChild(row);
+	});
+}
+
+function initOrganize() {
+	const result = document.getElementById('organizeResult');
+	if (!result) {
+		return;
+	}
+
+	const title = document.getElementById('organizeResultTitle');
+	const runButton = document.getElementById('organizeRun');
+	const actionButtons = document.querySelectorAll('[data-organize-action]');
+	let currentAction = null;
+
+	const setBusy = busy => {
+		actionButtons.forEach(button => button.disabled = busy);
+		runButton.disabled = busy;
+	};
+
+	const show = (response, action) => {
+		result.classList.remove('d-none');
+		renderOperations(response);
+
+		if (response.dryRun) {
+			title.textContent = response.changes === 0 ? 'Preview: nothing to change' : `Preview: ${response.changes} change(s)` + (response.errors ? `, ${response.errors} problem(s)` : '');
+			currentAction = action;
+			runButton.textContent = `Apply ${response.changes} change(s)`;
+			runButton.classList.toggle('d-none', response.changes === 0);
+		} else {
+			title.textContent = `Done: ${response.changes} change(s)` + (response.errors ? `, ${response.errors} failed` : '');
+			runButton.classList.add('d-none');
+			currentAction = null;
+			showSyncAlert();
+			watchSync();
+		}
+		result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	};
+
+	const fail = error => {
+		insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', 'Error!', error.message);
+	};
+
+	actionButtons.forEach(button => button.addEventListener('click', () => {
+		setBusy(true);
+		postForm('/organize/preview', { action: button.dataset.organizeAction })
+			.then(response => show(response, button.dataset.organizeAction))
+			.catch(fail)
+			.finally(() => setBusy(false));
+	}));
+
+	runButton.addEventListener('click', () => {
+		if (!currentAction || !window.confirm('Apply the changes shown in the preview? Files will be moved or deleted.')) {
+			return;
+		}
+		setBusy(true);
+		postForm('/organize/run', { action: currentAction })
+			.then(response => show(response, currentAction))
+			.catch(fail)
+			.finally(() => setBusy(false));
+	});
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 	[...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
@@ -175,11 +287,12 @@ document.addEventListener('DOMContentLoaded', () => {
 		watchSync();
 	}
 
-	const settingsForm = document.getElementById('settingsForm');
-	if (settingsForm) {
-		settingsForm.addEventListener('submit', e => {
+	document.querySelectorAll('#settingsForm, #organizeForm').forEach(form => {
+		form.addEventListener('submit', e => {
 			e.preventDefault();
-			onSubmit(settingsForm);
+			onSubmit(form);
 		});
-	}
+	});
+
+	initOrganize();
 }, false);
