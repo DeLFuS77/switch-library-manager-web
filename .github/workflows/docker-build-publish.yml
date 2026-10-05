@@ -1,5 +1,5 @@
 # Publishes the Docker image for every version tag to the GitHub Container Registry and,
-# when the DOCKERHUB_USERNAME and DOCKERHUB_TOKEN secrets are set, to Docker Hub.
+# when the DOCKERHUB_TOKEN secret is set, to Docker Hub as DOCKERHUB_USERNAME.
 # A version can be published again by hand (Actions > Publish > Run workflow).
 name: Publish
 
@@ -18,6 +18,8 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   DOCKERHUB_REPOSITORY: switch-library-manager-web
+  # public Docker Hub account; the access token is the DOCKERHUB_TOKEN secret
+  DOCKERHUB_USERNAME: delfus77
   VERSION: ${{ inputs.version || github.ref_name }}
 
 jobs:
@@ -28,7 +30,7 @@ jobs:
       contents: read
       packages: write
     env:
-      DOCKERHUB_ENABLED: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
+      DOCKERHUB_ENABLED: ${{ secrets.DOCKERHUB_TOKEN != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,22 +68,12 @@ jobs:
       - name: Prepare Docker Hub credentials
         if: env.DOCKERHUB_ENABLED == 'true'
         env:
-          RAW_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           RAW_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
-          username=$(printf '%s' "$RAW_USERNAME" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
           token=$(printf '%s' "$RAW_TOKEN" | tr -d '[:space:]')
           echo "::add-mask::$token"
-          # check the format without printing the values
-          echo "user name: ${#username} characters, token: ${#token} characters"
-          if printf '%s' "$username" | grep -q '^dckr_'; then
-            echo "::error::DOCKERHUB_USERNAME contains an access token: the two secrets seem to be swapped"
-            exit 1
-          fi
-          if ! printf '%s' "$username" | grep -Eq '^[a-z0-9]{4,30}$'; then
-            echo "::error::DOCKERHUB_USERNAME must be your Docker Hub user name (letters and digits, not your e-mail)"
-            exit 1
-          fi
+          # check the format without printing the value
+          echo "token: ${#token} characters"
           if ! printf '%s' "$token" | LC_ALL=C grep -Eq '^[A-Za-z0-9_-]{20,}$'; then
             echo "::error::DOCKERHUB_TOKEN does not look like a Docker Hub access token (dckr_pat_...): it contains unexpected characters or is too short"
             exit 1
@@ -89,7 +81,6 @@ jobs:
           if ! printf '%s' "$token" | grep -q '^dckr_pat_'; then
             echo "::warning::DOCKERHUB_TOKEN does not start with dckr_pat_: use a personal access token, not your password"
           fi
-          echo "DOCKERHUB_USERNAME=$username" >> "$GITHUB_ENV"
           echo "DOCKERHUB_TOKEN=$token" >> "$GITHUB_ENV"
 
       - name: Log in to Docker Hub
