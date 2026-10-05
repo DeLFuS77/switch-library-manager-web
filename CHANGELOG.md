@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.2.0
+
+> **Docker users:** the container now runs as an unprivileged user (`PUID`/`PGID`, default `1000`). The data folder
+> is given to that user automatically; your library folder must be writable by that user to organize files.
 
 ### New features
 
@@ -17,6 +20,18 @@
 ### Fixes
 
 - Missing DLC are listed in a stable order.
+
+### Security
+
+- The Docker container no longer runs as root.
+- The build tooling no longer uses Gulp and its unmaintained plugins (32 known vulnerabilities, 1 critical); the web
+  assets are built with sass and esbuild and `npm audit` reports no vulnerabilities.
+- Dependabot keeps Go modules, npm packages, GitHub Actions and the Docker base image up to date.
+
+### Other
+
+- Docker health check on `/healthz` (works with password protection) and a `docker-compose.yml` example.
+- CI builds the Docker image and checks that it starts healthy and unprivileged.
 
 ## 1.1.1
 
