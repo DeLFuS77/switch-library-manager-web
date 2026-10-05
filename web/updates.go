@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/process"
-	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"strings"
 )
 
@@ -18,11 +17,9 @@ func (web *Web) HandleUpdates() {
 	}
 
 	web.HandleFiltered("/updates.html", func(filter *TitleItemFilter) any {
-		globalPageData.IsKeysFileAvailable = settings.IsKeysFileAvailable()
-		globalPageData.Page = "updates"
 		items, p := web.getMissingUpdates(filter)
 		return TitleItemsPageData {
-			GlobalPageData: globalPageData,
+			GlobalPageData: web.globalPageData("updates"),
 			TitleItems: items,
 			Filter: filter,
 			Pagination: p,
@@ -33,14 +30,16 @@ func (web *Web) HandleUpdates() {
 func (web *Web) getMissingUpdates(filter *TitleItemFilter) ([]TitleItem, pagination.Pagination) {
 	items := []TitleItem{}
 
-	if web.state.localDB == nil {
+	switchDB, localDB := web.state.get()
+
+	if switchDB == nil || localDB == nil {
 		return items, pagination.Calculate(filter.Page, filter.PerPage, 0)
 	}
 
-	missingUpdates := process.ScanForMissingUpdates(web.state.localDB.TitlesMap, web.state.switchDB.TitlesMap)
+	missingUpdates := process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap)
 
 	for _, v := range missingUpdates {
-		if filter.Keyword == "" || strings.Contains(strings.ToLower(v.Attributes.Id), strings.ToLower(filter.Keyword)) || strings.Contains(strings.ToLower(v.Attributes.Name), strings.ToLower(filter.Keyword)) {
+		if filter.Matches(v.Attributes.Id, v.Attributes.Name) {
 			var imageUrl string
 			if v.Attributes.IconUrl != "" {
 				imageUrl = v.Attributes.IconUrl
@@ -58,6 +57,11 @@ func (web *Web) getMissingUpdates(filter *TitleItemFilter) ([]TitleItem, paginat
 				web.sugarLogger.Error(fmt.Errorf("parsing time failed: %w", err))
 			}
 
+			itemType := ""
+			if v.Meta != nil {
+				itemType = strings.ToUpper(v.Meta.Type)
+			}
+
 			items = append(items, TitleItem {
 				ImageUrl:         imageUrl,
 				Id:               strings.ToUpper(v.Attributes.Id),
@@ -67,7 +71,7 @@ func (web *Web) getMissingUpdates(filter *TitleItemFilter) ([]TitleItem, paginat
 				Name:             v.Attributes.Name,
 				Region:           v.Attributes.Region,
 				ReleaseDate:      release,
-				Type:             strings.ToUpper(v.Meta.Type),
+				Type:             itemType,
 			})
 		}
 	}

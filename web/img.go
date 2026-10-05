@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"github.com/pierrre/imageserver"
 	imageserver_http "github.com/pierrre/imageserver/http"
 	imageserver_http_gift "github.com/pierrre/imageserver/http/gift"
@@ -10,8 +11,8 @@ import (
 	imageserver_source "github.com/pierrre/imageserver/source"
 	_ "github.com/pierrre/imageserver/image/jpeg"
 	_ "github.com/pierrre/imageserver/image/png"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -47,15 +48,25 @@ func (web *Web) HandleImages() {
 }
 
 func (web *Web) GetImg(name string) (*imageserver.Image, error) {
+	// images are stored flat in the img folder, reject anything that could escape it
+	if name == "" || name != filepath.Base(name) || strings.ContainsAny(name, `/\`) {
+		return nil, errors.New("invalid image name")
+	}
 	filePath := filepath.Join(web.dataFolder, "img", name)
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 
 	if err != nil {
 		return nil, err
 	}
 
+	// the resize processor decodes the image using this format
+	format := strings.TrimPrefix(http.DetectContentType(data), "image/")
+	if format != "jpeg" && format != "png" && format != "gif" {
+		format = "jpeg"
+	}
+
 	im := &imageserver.Image {
-		Format: "jpeg",
+		Format: format,
 		Data:   data,
 	}
 

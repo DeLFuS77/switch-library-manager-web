@@ -37,10 +37,8 @@ func (web *Web) HandleSettings() {
 	}
 
 	web.HandleValidated("/settings.html", SettingsForm{}, func() any {
-		globalPageData.IsKeysFileAvailable = settings.IsKeysFileAvailable()
-		globalPageData.Page = "settings"
 		return SettingsPageData {
-			GlobalPageData: globalPageData,
+			GlobalPageData: web.globalPageData("settings"),
 			Settings: web.appSettings,
 		}
 	}, func(value any) ErrorResponse {
@@ -115,12 +113,18 @@ func (web *Web) HandleSettings() {
 		settings.SaveSettings(appSettings, web.dataFolder)
 		web.appSettings = appSettings
 
-		settings.InitSwitchKeys(web.dataFolder)
-		web.buildLocalDB(web.localDbManager, true)
+		if _, err := settings.InitSwitchKeys(web.dataFolder); err != nil {
+			web.sugarLogger.Warnf("Failed to initialize switch keys: %s", err)
+		}
+
+		message := "Settings changed successfully. The library is being rescanned."
+		if !web.Rescan() {
+			message = "Settings changed successfully. They will be applied by the next synchronization."
+		}
 
 		return SuccessResponse {
 			StrongMessage: "Success!",
-			Message: "Settings changed successfully.",
+			Message: message,
 		}
 	}, web.embedFS, fsPatterns...)
 }

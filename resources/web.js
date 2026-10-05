@@ -40,6 +40,61 @@ function insertAlert(element, contextualClass, iconClass, strongMessage, message
 	element.insertBefore(alert, element.firstChild);
 }
 
+const SYNC_ALERT_ID = 'alert_sync';
+const SYNC_POLL_INTERVAL = 3000;
+
+function mainContainer() {
+	return document.querySelector('main > .container-fluid');
+}
+
+function showSyncAlert() {
+	if (!document.getElementById(SYNC_ALERT_ID)) {
+		insertAlert(mainContainer(), 'alert-info', 'bi-arrow-repeat', 'Synchronizing!', 'The library is being updated.', false, SYNC_ALERT_ID);
+	}
+}
+
+function onSyncFinished() {
+	const syncAlert = document.getElementById(SYNC_ALERT_ID);
+	if (syncAlert) {
+		syncAlert.remove();
+	}
+
+	if (document.getElementById('settingsForm')) {
+		// do not reload the settings page, it could discard unsaved changes
+		insertAlert(mainContainer(), 'alert-success', 'bi-check-circle-fill', 'Done!', 'The library has been updated.');
+	} else {
+		window.location.reload();
+	}
+}
+
+function watchSync() {
+	setTimeout(() => {
+		fetch('/sync', { method: 'GET', cache: 'no-store' })
+			.then(response => response.json())
+			.then(isSynchronizing => {
+				if (isSynchronizing) {
+					watchSync();
+				} else {
+					onSyncFinished();
+				}
+			})
+			// the server may be restarting, keep trying
+			.catch(() => watchSync());
+	}, SYNC_POLL_INTERVAL);
+}
+
+function startSync(url) {
+	fetch(url, { method: 'POST' }).then(response => {
+		if (!response.ok) {
+			throw new Error(response.statusText);
+		}
+		showSyncAlert();
+		watchSync();
+	}).catch(() => {
+		insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', 'Error!', 'Synchronization could not be started.');
+	});
+}
+
 function onSubmit(form) {
 	const feedbackAlert = form.querySelector('.alert');
 	if (feedbackAlert) {
@@ -48,6 +103,11 @@ function onSubmit(form) {
 
 	form.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
 	form.querySelectorAll('.invalid-feedback').forEach(e => e.parentNode.removeChild(e));
+
+	const submitButton = form.querySelector('[type="submit"]');
+	if (submitButton) {
+		submitButton.disabled = true;
+	}
 
 	const data = new FormData(form);
 	fetch(form.action || window.location.href, {
@@ -61,10 +121,18 @@ function onSubmit(form) {
 			throw response;
 		}
 
-		response.json().then(jsonResponse => {
+		return response.json().then(jsonResponse => {
 			insertAlert(form, 'alert-success', 'bi-check-circle-fill', jsonResponse.strongMessage, jsonResponse.message);
+			// saving the settings rescans the library
+			showSyncAlert();
+			watchSync();
 		});
 	}).catch(error => {
+		if (!(error instanceof Response)) {
+			insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', 'Error!', 'Could not reach the server.');
+			return;
+		}
+
 		error.json().then(jsonResponse => {
 			if (jsonResponse.globalError.strongMessage || jsonResponse.globalError.message) {
 				insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', jsonResponse.globalError.strongMessage, jsonResponse.globalError.message);
@@ -82,23 +150,14 @@ function onSubmit(form) {
 					field.parentElement.appendChild(validationFeedback);
 				});
 			}
+		}).catch(() => {
+			insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', 'Error!', `Unexpected server response (${error.status}).`);
 		});
-	});
-}
-
-function checkSyncStatus() {
-	let checkAgain = true;
-
-	fetch('/sync', { method: 'GET' }).then(response => response.json().then(isSynchronizing => {
-		if (!isSynchronizing) {
-			document.getElementById('alert_sync').remove();
-			checkAgain = false;
+	}).finally(() => {
+		if (submitButton) {
+			submitButton.disabled = false;
 		}
-	}));
-
-	if (checkAgain) {
-		setTimeout(checkSyncStatus, 5000);
-	}
+	});
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -108,10 +167,13 @@ document.addEventListener('DOMContentLoaded', () => {
 	const sync = document.getElementById('sync');
 	sync.addEventListener('click', e => {
 		e.preventDefault();
-		fetch(sync.href, { method: 'POST' });
-		insertAlert(document.querySelector('main > .container-fluid'), 'alert-info', 'bi-info-circle-fill', "Synchronizing!", "Titles are getting synchronized.", false, "alert_sync");
-		checkSyncStatus();
+		startSync(sync.href);
 	});
+
+	// a synchronization was already running when the page was rendered
+	if (document.getElementById(SYNC_ALERT_ID)) {
+		watchSync();
+	}
 
 	const settingsForm = document.getElementById('settingsForm');
 	if (settingsForm) {

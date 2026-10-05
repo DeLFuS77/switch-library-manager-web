@@ -15,6 +15,23 @@ type Pagination struct {
 func Calculate(currentPage, itemsPerPage, numItems int) (p Pagination) {
 	p = Pagination{}
 
+	if itemsPerPage < 1 {
+		itemsPerPage = 1
+	}
+	if numItems < 0 {
+		numItems = 0
+	}
+
+	// calc number of pages
+	p.NumPages = int(math.Ceil(float64(numItems) / float64(itemsPerPage)))
+
+	if currentPage > p.NumPages {
+		currentPage = p.NumPages
+	}
+	if currentPage < 1 {
+		currentPage = 1
+	}
+
 	p.CurrentPage = currentPage
 	p.ItemsPerPage = itemsPerPage
 	p.NumItems = numItems
@@ -30,10 +47,6 @@ func Calculate(currentPage, itemsPerPage, numItems int) (p Pagination) {
 	if p.End > p.NumItems {
 		p.End = p.NumItems
 	}
-
-	// calc number of pages
-	d := float64(p.NumItems) / float64(p.ItemsPerPage)
-	p.NumPages = int(math.Ceil(d))
 
 	// HasPrev, HasNext?
 	p.HasPrev = p.CurrentPage > 1
