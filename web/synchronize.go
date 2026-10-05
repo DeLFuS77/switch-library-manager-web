@@ -29,7 +29,7 @@ func (web *Web) Synchronize() bool {
 			web.sugarLogger.Debugf("prod.keys not loaded: %s", err)
 		}
 
-		switchDB, err := web.buildSwitchDb()
+		switchDB, err := web.buildSwitchDb(currentSwitchDB)
 		if err != nil {
 			web.sugarLogger.Error(err)
 			// keep working with the titles we already have
