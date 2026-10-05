@@ -426,3 +426,53 @@ func TestSyncProgress(t *testing.T) {
 	}
 	web.state.endSync()
 }
+
+func TestBasicAuth(t *testing.T) {
+	handler := basicAuth("admin", "secret", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	tests := []struct {
+		name, user, password string
+		send                 bool
+		want                 int
+	}{
+		{"no credentials", "", "", false, http.StatusUnauthorized},
+		{"wrong password", "admin", "nope", true, http.StatusUnauthorized},
+		{"wrong user", "root", "secret", true, http.StatusUnauthorized},
+		{"valid", "admin", "secret", true, http.StatusNoContent},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodGet, "/index.html", nil)
+			if tt.send {
+				request.SetBasicAuth(tt.user, tt.password)
+			}
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, request)
+			if recorder.Code != tt.want {
+				t.Fatalf("got %d, want %d", recorder.Code, tt.want)
+			}
+			if tt.want == http.StatusUnauthorized && recorder.Header().Get("WWW-Authenticate") == "" {
+				t.Fatal("missing WWW-Authenticate header")
+			}
+		})
+	}
+}
+
+func TestAuthFromEnv(t *testing.T) {
+	t.Setenv("SLM_AUTH_USERNAME", "")
+	t.Setenv("SLM_AUTH_PASSWORD", "")
+	if _, _, enabled, err := authFromEnv(); enabled || err != nil {
+		t.Fatalf("auth should be disabled: %v %v", enabled, err)
+	}
+
+	t.Setenv("SLM_AUTH_USERNAME", "admin")
+	if _, _, _, err := authFromEnv(); err == nil {
+		t.Fatal("a username without password must be rejected")
+	}
+
+	t.Setenv("SLM_AUTH_PASSWORD", "secret")
+	if user, password, enabled, err := authFromEnv(); !enabled || err != nil || user != "admin" || password != "secret" {
+		t.Fatalf("unexpected result: %q %q %v %v", user, password, enabled, err)
+	}
+}
