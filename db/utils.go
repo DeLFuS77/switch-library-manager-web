@@ -4,65 +4,90 @@ import (
 	bytes2 "bytes"
 	"encoding/json"
 	"errors"
-	"go.uber.org/zap"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
+
+	"go.uber.org/zap"
 )
+
+var httpClient = &http.Client{
+	// titles.json is >100MB, so allow slow connections to finish the download
+	Timeout: 10 * time.Minute,
+	Transport: &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout: 5 * time.Second,
+		}).DialContext,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ResponseHeaderTimeout: 30 * time.Second,
+	},
+}
 
 type ProgressUpdater interface {
 	UpdateProgress(curr int, total int, message string)
 }
 
-func LoadAndUpdateFile(url string, filePath string, etag string) (*os.File, string, error) {
-
-	//create file if not exist
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		_, err = os.Create(filePath)
-		if err != nil {
-			zap.S().Errorf("Failed to create file %v - %v\n", filePath, err)
-			return nil, "", err
-		}
-	}
-
+// LoadAndUpdateFile downloads a JSON file from the first URL that answers with a valid
+// document and stores it at filePath. If no URL provides a newer version, the local copy
+// is used. The returned file must be closed by the caller.
+func LoadAndUpdateFile(urls []string, filePath string, etag string) (*os.File, string, error) {
 	var file *os.File = nil
 
 	//try to check if there is a new version
 	//if so, save the file
-	bytes, newEtag, err := downloadBytesFromUrl(url, etag)
-	if err == nil {
+	for i, url := range urls {
+		if url == "" {
+			continue
+		}
+		// an etag is only meaningful for the URL it came from
+		requestEtag := etag
+		if i > 0 {
+			requestEtag = ""
+		}
+
+		bytes, newEtag, err := downloadBytesFromUrl(url, requestEtag)
+		if err != nil {
+			zap.S().Infof("file [%v] was not downloaded, reason - [%v]", url, err)
+			if errors.Is(err, errNotModified) {
+				break
+			}
+			continue
+		}
+
 		//validate json structure
 		var test map[string]interface{}
-		err = decodeToJsonObject(bytes2.NewReader(bytes), &test)
-		if err == nil {
-			file, err = saveFile(bytes, filePath)
-			etag = newEtag
-		} else {
-			zap.S().Infof("ignoring new update [%v], reason - [mailformed json file]", url)
+		if err = decodeToJsonObject(bytes2.NewReader(bytes), &test); err != nil || len(test) == 0 {
+			zap.S().Infof("ignoring new update [%v], reason - [malformed json file]", url)
+			continue
 		}
-	} else {
-		zap.S().Infof("file [%v] was not downloaded, reason - [%v]", url, err)
+
+		file, err = saveFile(bytes, filePath)
+		if err != nil {
+			return nil, "", err
+		}
+		etag = newEtag
+		break
 	}
 
 	if file == nil {
 		//load file
-		file, err = os.Open(filePath)
-		if err != nil {
-			zap.S().Infof("ignoring new update [%v], reason - [mailformed json file]", url)
-			return nil, "", err
-		}
-
 		fileInfo, err := os.Stat(filePath)
 		if err != nil || fileInfo.Size() == 0 {
-			zap.S().Infof("Local file is empty, or corrupted")
-			return nil, "", errors.New("unable to download switch titles db")
+			zap.S().Infof("Local file [%v] is missing, empty or corrupted", filePath)
+			return nil, "", errors.New("unable to download " + filepath.Base(filePath))
+		}
+
+		file, err = os.Open(filePath)
+		if err != nil {
+			return nil, "", err
 		}
 	}
 
-	return file, etag, err
+	return file, etag, nil
 }
 
 func decodeToJsonObject(reader io.Reader, target interface{}) error {
@@ -70,75 +95,68 @@ func decodeToJsonObject(reader io.Reader, target interface{}) error {
 	return err
 }
 
+var errNotModified = errors.New("no new updates")
+
 func downloadBytesFromUrl(url string, etag string) ([]byte, string, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, "", err
 	}
-	req.Header.Set("If-None-Match", etag)
-	transport := &http.Transport{
-		DialContext: (&net.Dialer{
-			Timeout: 3 * time.Second,
-		}).DialContext,
+	if etag != "" {
+		req.Header.Set("If-None-Match", etag)
 	}
-	client := http.Client{
-		Transport: transport,
-	}
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, "", err
 	}
+	defer resp.Body.Close()
 
-	if resp.StatusCode >= 400 {
+	if resp.StatusCode == http.StatusNotModified {
+		return nil, "", errNotModified
+	}
+
+	if resp.StatusCode != http.StatusOK {
 		return nil, "", errors.New("got a non 200 response - " + resp.Status)
 	}
-	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, "", err
+	}
 	//getting the new etag
-	etag = resp.Header.Get("Etag")
-
-	if resp.StatusCode == http.StatusOK {
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, "", err
-		}
-		return body, etag, nil
-	}
-
-	return nil, "", errors.New("no new updates")
+	return body, resp.Header.Get("Etag"), nil
 }
 
+// saveFile writes the content to a temporary file first, so an interrupted write never
+// replaces a valid file with a truncated one.
 func saveFile(bytes []byte, fileName string) (*os.File, error) {
-
-	err := ioutil.WriteFile(fileName, bytes, 0644)
-	if err != nil {
+	tmpName := fileName + ".tmp"
+	if err := os.WriteFile(tmpName, bytes, 0644); err != nil {
+		return nil, err
+	}
+	if err := os.Rename(tmpName, fileName); err != nil {
+		os.Remove(tmpName)
 		return nil, err
 	}
 
-	file, err := os.Open(fileName)
-	if err != nil {
-		return nil, err
-	}
-	return file, nil
+	return os.Open(fileName)
 }
 
-
-
+// DownloadFile downloads url to filePath unless a non-empty copy already exists.
 func DownloadFile(url string, filePath string) error {
-	//create file if not exist
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		_, err = os.Create(filePath)
-		if err != nil {
-			zap.S().Errorf("Failed to create file %v - %v\n", filePath, err)
-			return err
-		}
+	if fileInfo, err := os.Stat(filePath); err == nil && fileInfo.Size() > 0 {
+		return nil
 	}
 
 	bytes, _, err := downloadBytesFromUrl(url, "")
-	if err == nil {
-		_, err = saveFile(bytes, filePath)
-	} else {
+	if err != nil {
 		zap.S().Infof("file [%v] was not downloaded, reason - [%v]", url, err)
+		return err
 	}
 
-	return err
+	file, err := saveFile(bytes, filePath)
+	if err != nil {
+		return err
+	}
+	return file.Close()
 }

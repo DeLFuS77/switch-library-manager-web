@@ -2,8 +2,12 @@ package db
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
+	"strconv"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 type TitleAttributes struct {
@@ -18,6 +22,7 @@ type TitleAttributes struct {
 	BannerUrl   string      `json:"bannerUrl,omitempty"`
 	Description string      `json:"description,omitempty"`
 	Size        int         `json:"size,omitempty"`
+	IsDemo      bool        `json:"isDemo,omitempty"`
 }
 
 type SwitchTitle struct {
@@ -49,12 +54,17 @@ func CreateSwitchTitleDB(titlesFile, versionsFile io.Reader) (*SwitchTitlesDB, e
 	result := SwitchTitlesDB{TitlesMap: map[string]*SwitchTitle{}}
 	for id, attr := range titles {
 		id = strings.ToLower(id)
+		idPrefix, err := titleIDPrefix(id)
+		if err != nil {
+			zap.S().Debugf("skipping unsupported title ID %q: %v", id, err)
+			continue
+		}
 
 		//TitleAttributes id rules:
 		//main TitleAttributes ends with 000
 		//Updates ends with 800
-		//Dlc have a running counter (starting with 001) in the 4 last chars
-		idPrefix := id[0 : len(id)-4]
+		//Dlc adds 1 to the 4th char from the right and have a running counter
+		//(starting with 001) in the 3 last chars
 		switchTitle := &SwitchTitle{Dlc: map[string]TitleAttributes{}}
 		if t, ok := result.TitlesMap[idPrefix]; ok {
 			switchTitle = t
@@ -80,4 +90,24 @@ func CreateSwitchTitleDB(titlesFile, versionsFile io.Reader) (*SwitchTitlesDB, e
 	}
 
 	return &result, nil
+}
+
+// titleIDPrefix returns the key that groups a base game with its update and DLC title IDs.
+// Ported from https://github.com/trembon/switch-library-manager
+func titleIDPrefix(id string) (string, error) {
+	id = strings.ToLower(id)
+	if len(id) != 16 {
+		return "", errors.New("title ID must contain 16 hexadecimal characters")
+	}
+	if _, err := strconv.ParseUint(id, 16, 64); err != nil {
+		return "", errors.New("title ID must contain 16 hexadecimal characters")
+	}
+	if strings.HasSuffix(id, "000") || strings.HasSuffix(id, "800") {
+		return id[:len(id)-3], nil
+	}
+	value, _ := strconv.ParseUint(id[len(id)-4:len(id)-3], 16, 4)
+	if value == 0 {
+		return "", errors.New("DLC title ID has an invalid group nibble")
+	}
+	return id[:len(id)-4] + strconv.FormatUint(value-1, 16), nil
 }
