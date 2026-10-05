@@ -104,6 +104,8 @@ type AppSettings struct {
 	IgnoreFileTypes        []string          `json:"ignore_file_types"`
 	HideDemoGames          bool              `json:"hide_demo_games"`
 	WatchFolders           bool              `json:"watch_folders"`
+	// firmware of the user's console, e.g. 18.1.0, to warn about files that need a newer one
+	ConsoleFirmware string `json:"console_firmware"`
 	// days between scheduled verifications of the files; 0 disables them
 	VerifyIntervalDays int `json:"verify_interval_days"`
 	// files read at the same time while scanning; 0 picks a default

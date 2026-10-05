@@ -5,6 +5,12 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Your console needs firmware %v or newer for this game": "Tu consola necesita el firmware %v o posterior para este juego",
+		"Needs %v":                       "Necesita %v",
+		"Required firmware":              "Firmware necesario",
+		"Write the firmware like 18.1.0": "Escribe el firmware como 18.1.0",
+		"Firmware of your console":       "Firmware de tu consola",
+		"Optional. Games and updates that need a newer firmware are marked. See it on the console in System Settings > System.": "Opcional. Se marcan los juegos y actualizaciones que necesitan un firmware más nuevo. Lo verás en la consola en Configuración de la consola > Consola.",
 		"The file is damaged or was modified.": "El archivo está dañado o fue modificado.",
 		"The files could not be checked.":      "No se han podido comprobar los archivos.",
 		"damaged file: %v":                     "archivo dañado: %v",
