@@ -1,9 +1,9 @@
 {{define "title"}}{{.Title.Name}}{{end}}
 {{define "main"}}
 			{{- $t := .Title}}
-			<nav aria-label="breadcrumb" class="mb-3">
+			<nav aria-label="{{t "breadcrumb"}}" class="mb-3">
 				<ol class="breadcrumb mb-0">
-					<li class="breadcrumb-item"><a class="link-secondary" href="{{if $t.Owned}}/index.html{{else}}/missing.html{{end}}">{{if $t.Owned}}Library{{else}}Missing Games{{end}}</a></li>
+					<li class="breadcrumb-item"><a class="link-secondary" href="{{if $t.Owned}}/index.html{{else}}/missing.html{{end}}">{{if $t.Owned}}{{t "Library"}}{{else}}{{t "Missing Games"}}{{end}}</a></li>
 					<li class="breadcrumb-item active text-truncate" aria-current="page">{{$t.Name}}</li>
 				</ol>
 			</nav>
@@ -15,34 +15,34 @@
 					<h1 class="mb-2">{{$t.Name}}</h1>
 					<div class="mb-3">
 						{{- if $t.Owned}}
-						<span class="badge text-bg-success">In your library</span>
+						<span class="badge text-bg-success">{{t "In your library"}}</span>
 						{{- else}}
-						<span class="badge text-bg-secondary">Not in your library</span>
+						<span class="badge text-bg-secondary">{{t "Not in your library"}}</span>
 						{{- end}}
-						{{- if $t.UpdateMissing}}{{if not $t.UpdatesIgnored}} <span class="badge text-bg-warning">Update available</span>{{end}}{{end}}
-						{{- if gt $t.MissingDlc 0}} <span class="badge text-bg-info">{{$t.MissingDlc}} DLC missing</span>{{else if and (not $t.Owned) $t.Dlc}} <span class="badge text-bg-secondary">{{len $t.Dlc}} DLC</span>{{end}}
+						{{- if $t.UpdateMissing}}{{if not $t.UpdatesIgnored}} <span class="badge text-bg-warning">{{t "Update available"}}</span>{{end}}{{end}}
+						{{- if gt $t.MissingDlc 0}} <span class="badge text-bg-info">{{t "%v DLC missing" $t.MissingDlc}}</span>{{else if and (not $t.Owned) $t.Dlc}} <span class="badge text-bg-secondary">{{t "%v DLC" (len $t.Dlc)}}</span>{{end}}
 					</div>
 					<dl class="row mb-0">
-						<dt class="col-sm-4 col-lg-3">Title ID</dt>
+						<dt class="col-sm-4 col-lg-3">{{t "Title ID"}}</dt>
 						<dd class="col-sm-8 col-lg-9 font-monospace">{{$t.Id}}</dd>
 						{{- if $t.Publisher}}
-						<dt class="col-sm-4 col-lg-3">Publisher</dt>
+						<dt class="col-sm-4 col-lg-3">{{t "Publisher"}}</dt>
 						<dd class="col-sm-8 col-lg-9">{{$t.Publisher}}</dd>
 						{{- end}}
 						{{- if not $t.ReleaseDate.IsZero}}
-						<dt class="col-sm-4 col-lg-3">Release date</dt>
+						<dt class="col-sm-4 col-lg-3">{{t "Release date"}}</dt>
 						<dd class="col-sm-8 col-lg-9">{{$t.ReleaseDate | formatTime}}</dd>
 						{{- end}}
 						{{- if $t.Region}}
-						<dt class="col-sm-4 col-lg-3">Region</dt>
+						<dt class="col-sm-4 col-lg-3">{{t "Region"}}</dt>
 						<dd class="col-sm-8 col-lg-9"><span class="fi fi-{{$t.Region | toLower}} me-1"></span>{{$t.Region}}</dd>
 						{{- end}}
 						{{- if $t.Base}}
-						<dt class="col-sm-4 col-lg-3">Installed version</dt>
+						<dt class="col-sm-4 col-lg-3">{{t "Installed version"}}</dt>
 						<dd class="col-sm-8 col-lg-9">{{if $t.Updates}}{{with index $t.Updates 0}}{{if .DisplayVersion}}{{.DisplayVersion}} {{end}}(v{{.Version}}){{end}}{{else}}{{if $t.Base.DisplayVersion}}{{$t.Base.DisplayVersion}} {{end}}(v{{$t.Base.Version}}){{end}}</dd>
 						{{- end}}
 						{{- if gt $t.LatestUpdate 0}}
-						<dt class="col-sm-4 col-lg-3">Latest update</dt>
+						<dt class="col-sm-4 col-lg-3">{{t "Latest update"}}</dt>
 						<dd class="col-sm-8 col-lg-9">v{{$t.LatestUpdate}}{{if not $t.LatestUpdateDate.IsZero}} ({{$t.LatestUpdateDate | formatTime}}){{end}}</dd>
 						{{- end}}
 					</dl>
@@ -50,48 +50,48 @@
 			</div>
 			{{- if $t.Description}}
 			<section class="mb-4">
-				<h2 class="h4">Description</h2>
+				<h2 class="h4">{{t "Description"}}</h2>
 				<p class="text-body-secondary title-description">{{$t.Description}}</p>
 			</section>
 			{{- end}}
 			{{- if $t.Screenshots}}
 			<section class="mb-4">
-				<h2 class="h4">Screenshots</h2>
+				<h2 class="h4">{{t "Screenshots"}}</h2>
 				<div class="d-flex gap-2 overflow-auto pb-2">
 					{{- range $t.Screenshots}}
-					<a href="{{.}}" target="_blank" rel="noopener noreferrer" class="flex-shrink-0"><img src="{{.}}" class="rounded title-screenshot" alt="Screenshot" loading="lazy"></a>
+					<a href="{{.}}" target="_blank" rel="noopener noreferrer" class="flex-shrink-0"><img src="{{.}}" class="rounded title-screenshot" alt="{{t "Screenshot"}}" loading="lazy"></a>
 					{{- end}}
 				</div>
 			</section>
 			{{- end}}
 			{{- if $t.Owned}}
 			<section class="mb-4">
-				<h2 class="h4">Updates</h2>
+				<h2 class="h4">{{t "Updates"}}</h2>
 				{{- if $t.UpdatesIgnored}}
 				<div class="alert alert-secondary d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2">
-					<div>Missing updates of this game are ignored.</div>
-					<button type="button" class="btn btn-sm btn-outline-light flex-shrink-0" data-ignore-kind="update" data-ignore-id="{{$t.Id}}" data-ignored="false">Show missing updates again</button>
+					<div>{{t "Missing updates of this game are ignored."}}</div>
+					<button type="button" class="btn btn-sm btn-outline-light flex-shrink-0" data-ignore-kind="update" data-ignore-id="{{$t.Id}}" data-ignored="false">{{t "Show missing updates again"}}</button>
 				</div>
 				{{- else if $t.UpdateMissing}}
 				<div class="alert alert-warning d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2">
-					<div>Update v{{$t.LatestUpdate}} is available, you have {{if $t.LocalUpdate}}v{{$t.LocalUpdate}}{{else}}no update{{end}}.</div>
-					<button type="button" class="btn btn-sm btn-warning flex-shrink-0" data-ignore-kind="update" data-ignore-id="{{$t.Id}}" data-ignored="true">Ignore updates of this game</button>
+					<div>{{if $t.LocalUpdate}}{{t "Update v%v is available, you have v%v." $t.LatestUpdate $t.LocalUpdate}}{{else}}{{t "Update v%v is available, you have no update." $t.LatestUpdate}}{{end}}</div>
+					<button type="button" class="btn btn-sm btn-warning flex-shrink-0" data-ignore-kind="update" data-ignore-id="{{$t.Id}}" data-ignored="true">{{t "Ignore updates of this game"}}</button>
 				</div>
 				{{- else if gt $t.LatestUpdate 0}}
-				<div class="alert alert-success">You have the latest update.</div>
+				<div class="alert alert-success">{{t "You have the latest update."}}</div>
 				{{- end}}
 			</section>
 			<section class="mb-4">
-				<h2 class="h4">Files</h2>
+				<h2 class="h4">{{t "Files"}}</h2>
 				<div class="table-responsive">
 					<table class="table table-striped table-hover align-middle">
 						<thead>
 							<tr>
-								<th scope="col">Type</th>
-								<th scope="col">Version</th>
-								<th scope="col">File</th>
-								<th scope="col" class="text-end">Size</th>
-								<th scope="col"><span class="visually-hidden">Download</span></th>
+								<th scope="col">{{t "Type"}}</th>
+								<th scope="col">{{t "Version"}}</th>
+								<th scope="col">{{t "File"}}</th>
+								<th scope="col" class="text-end">{{t "Size"}}</th>
+								<th scope="col"><span class="visually-hidden">{{t "Download"}}</span></th>
 							</tr>
 						</thead>
 						<tbody class="table-group-divider">
@@ -106,15 +106,15 @@
 			{{- end}}
 			{{- if $t.Dlc}}
 			<section class="mb-4">
-				<h2 class="h4">DLC <span class="badge bg-secondary fs-6 align-text-top">{{len $t.Dlc}}</span></h2>
+				<h2 class="h4">{{t "DLC"}} <span class="badge bg-secondary fs-6 align-text-top">{{len $t.Dlc}}</span></h2>
 				<div class="table-responsive">
 					<table class="table table-striped table-hover align-middle">
 						<thead>
 							<tr>
-								<th scope="col">Name</th>
-								<th scope="col">Status</th>
-								<th scope="col" class="text-end">Size</th>
-								<th scope="col"><span class="visually-hidden">Actions</span></th>
+								<th scope="col">{{t "Name"}}</th>
+								<th scope="col">{{t "Status"}}</th>
+								<th scope="col" class="text-end">{{t "Size"}}</th>
+								<th scope="col"><span class="visually-hidden">{{t "Actions"}}</span></th>
 							</tr>
 						</thead>
 						<tbody class="table-group-divider">
@@ -123,24 +123,24 @@
 								<td>{{.Name}}<br><small class="text-body-secondary font-monospace">{{.Id}}</small></td>
 								<td class="text-nowrap">
 									{{- if .Owned}}
-									<span class="badge text-bg-success">Owned</span>{{if .UpdateAvailable}} <span class="badge text-bg-warning">v{{.LatestVersion}} available</span>{{end}}
+									<span class="badge text-bg-success">{{t "Owned"}}</span>{{if .UpdateAvailable}} <span class="badge text-bg-warning">{{t "v%v available" .LatestVersion}}</span>{{end}}
 									{{- else if not $t.Owned}}
-									<span class="badge text-bg-secondary">Not owned</span>
+									<span class="badge text-bg-secondary">{{t "Not owned"}}</span>
 									{{- else if .Ignored}}
-									<span class="badge text-bg-secondary">Ignored</span>
+									<span class="badge text-bg-secondary">{{t "Ignored"}}</span>
 									{{- else}}
-									<span class="badge text-bg-info">Missing</span>
+									<span class="badge text-bg-info">{{t "Missing"}}</span>
 									{{- end}}
 								</td>
 								<td class="text-end text-nowrap">{{if .File}}{{formatSize .File.Size}}{{end}}</td>
 								<td class="text-end text-nowrap">
 									{{- if .File}}
-									<a class="btn btn-sm btn-outline-light bi bi-download" href="{{.File.DownloadUrl}}" title="Download {{.File.FileName}}"><span class="visually-hidden">Download</span></a>
+									<a class="btn btn-sm btn-outline-light bi bi-download" href="{{.File.DownloadUrl}}" title="{{t "Download %v" .File.FileName}}"><span class="visually-hidden">{{t "Download"}}</span></a>
 									{{- else if not $t.Owned}}
 									{{- else if .Ignored}}
-									<button type="button" class="btn btn-sm btn-outline-light" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="false">Restore</button>
+									<button type="button" class="btn btn-sm btn-outline-light" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="false">{{t "Restore"}}</button>
 									{{- else}}
-									<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="true">Ignore</button>
+									<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="true">{{t "Ignore"}}</button>
 									{{- end}}
 								</td>
 							</tr>
@@ -157,6 +157,6 @@
 								<td class="text-nowrap">{{if .DisplayVersion}}{{.DisplayVersion}} {{end}}<small class="text-body-secondary">v{{.Version}}</small></td>
 								<td class="text-break"><span title="{{.Path}}">{{.FileName}}</span></td>
 								<td class="text-end text-nowrap">{{formatSize .Size}}</td>
-								<td class="text-end"><a class="btn btn-sm btn-outline-light bi bi-download" href="{{.DownloadUrl}}" title="Download {{.FileName}}"><span class="visually-hidden">Download</span></a></td>
+								<td class="text-end"><a class="btn btn-sm btn-outline-light bi bi-download" href="{{.DownloadUrl}}" title="{{t "Download %v" .FileName}}"><span class="visually-hidden">{{t "Download"}}</span></a></td>
 							</tr>
 {{- end}}

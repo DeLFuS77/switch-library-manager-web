@@ -41,11 +41,11 @@ func (web *Web) HandleIgnore() {
 		ignored := r.FormValue("ignored") != "false"
 
 		if !titleIdRegex.MatchString(id) {
-			writeGlobalError(w, http.StatusBadRequest, "Invalid Title ID (16 hexadecimal characters)")
+			writeGlobalError(w, http.StatusBadRequest, web.requestLanguage(r), "Invalid Title ID (16 hexadecimal characters)")
 			return
 		}
 		if kind != IGNORE_KIND_DLC && kind != IGNORE_KIND_UPDATE {
-			writeGlobalError(w, http.StatusBadRequest, "Unknown ignore list")
+			writeGlobalError(w, http.StatusBadRequest, web.requestLanguage(r), "Unknown ignore list")
 			return
 		}
 

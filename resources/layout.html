@@ -1,6 +1,6 @@
 {{- define "layout" -}}
 <!doctype html>
-<html class="min-vh-100" lang="en" data-bs-theme="dark">
+<html class="min-vh-100" lang="{{lang}}" data-bs-theme="dark">
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,33 +21,33 @@
 		<nav class="navbar navbar-expand-lg sticky-top bg-body-tertiary">
 			<div class="container-fluid">
 				<span class="navbar-brand mb-0 h1">
-					<img src="/resources/static/icon.svg" alt="Switch Library Manager" height="24" class="d-inline-block align-text-top">
-					Switch Library Manager
+					<img src="/resources/static/icon.svg" alt="{{t "Switch Library Manager"}}" height="24" class="d-inline-block align-text-top">
+					{{t "Switch Library Manager"}}
 				</span>
-				<button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+				<button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="{{t "Toggle navigation"}}">
 					<span class="navbar-toggler-icon"></span>
 				</button>
 				<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
 					<div class="offcanvas-header">
-						<h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
-						<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+						<h5 class="offcanvas-title" id="offcanvasNavbarLabel">{{t "Menu"}}</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="{{t "Close"}}"></button>
 					</div>
 					<div class="offcanvas-body d-flex">
 						<ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
 							<li class="nav-item">
-								<a class="nav-link{{if eq .Page "index"}} active{{end}}" href="index.html">Library</a>
+								<a class="nav-link{{if eq .Page "index"}} active{{end}}" href="index.html">{{t "Library"}}</a>
 							</li>
 							<li class="nav-item">
-								<a class="nav-link{{if eq .Page "missing"}} active{{end}}" href="missing.html">Missing Games</a>
+								<a class="nav-link{{if eq .Page "missing"}} active{{end}}" href="missing.html">{{t "Missing Games"}}</a>
 							</li>
 							<li class="nav-item">
-								<a class="nav-link{{if eq .Page "updates"}} active{{end}}" href="updates.html">Updates</a>
+								<a class="nav-link{{if eq .Page "updates"}} active{{end}}" href="updates.html">{{t "Updates"}}</a>
 							</li>
 							<li class="nav-item">
-								<a class="nav-link{{if eq .Page "dlc"}} active{{end}}" href="dlc.html">DLC</a>
+								<a class="nav-link{{if eq .Page "dlc"}} active{{end}}" href="dlc.html">{{t "DLC"}}</a>
 							</li>
 							<li class="nav-item">
-								<a class="nav-link{{if eq .Page "issues"}} active{{end}}" href="issues.html">Issues</a>
+								<a class="nav-link{{if eq .Page "issues"}} active{{end}}" href="issues.html">{{t "Issues"}}</a>
 							</li>
 							<li class="d-flex flex-column flex-grow-1 flex-lg-grow-0 justify-content-end">
 								<ul class="navbar-nav flex-row flex-wrap justify-content-center">
@@ -56,13 +56,13 @@
 										<hr class="d-lg-none my-2 text-white-50">
 									</li>
 									<li class="nav-item flex-grow-1 text-center">
-										<a class="nav-link" href="sync" id="sync">Synchronize</a>
+										<a class="nav-link" href="sync" id="sync">{{t "Synchronize"}}</a>
 									</li>
 									<li class="nav-item flex-grow-1 text-center">
-										<a class="nav-link{{if eq .Page "organize"}} active{{end}}" href="organize.html">Organize</a>
+										<a class="nav-link{{if eq .Page "organize"}} active{{end}}" href="organize.html">{{t "Organize"}}</a>
 									</li>
 									<li class="nav-item flex-grow-1 text-center">
-										<a class="nav-link{{if eq .Page "settings"}} active{{end}}" href="settings.html">Settings</a>
+										<a class="nav-link{{if eq .Page "settings"}} active{{end}}" href="settings.html">{{t "Settings"}}</a>
 									</li>
 								</ul>
 							</li>
@@ -77,17 +77,17 @@
 			{{- if not .IsKeysFileAvailable}}
 			<div class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
 				<span class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></span>
-				<div><strong>Product Keys not found!</strong> Analyzing NSP files is disabled. Library content is based on file names only.</div>
-				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				<div><strong>{{t "Product Keys not found!"}}</strong> {{t "Analyzing NSP files is disabled. Library content is based on file names only."}}</div>
+				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{t "Close"}}"></button>
 			</div>
 			{{- end}}
 			{{- if .IsSynchronizing}}
 			<div class="alert alert-info" role="status" id="alert_sync">
 				<div class="d-flex align-items-center">
 					<span class="spinner-border spinner-border-sm flex-shrink-0 me-2" aria-hidden="true"></span>
-					<div class="text-truncate"><strong>Synchronizing!</strong> <span data-sync-message>The library is being updated.</span></div>
+					<div class="text-truncate"><strong>{{t "Synchronizing!"}}</strong> <span data-sync-message>{{t "The library is being updated."}}</span></div>
 				</div>
-				<div class="progress mt-2" role="progressbar" aria-label="Synchronization progress">
+				<div class="progress mt-2" role="progressbar" aria-label="{{t "Synchronization progress"}}">
 					<div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div>
 				</div>
 			</div>
@@ -96,10 +96,11 @@
 		</section>
 	</main>
 	<footer class="bg-body-tertiary text-body-secondary py-4 text-center">
-		<a class="fs-1 link-secondary" href="https://github.com/SiscuPrats/switch-library-manager-web" data-bs-toggle="tooltip" data-bs-placement="top" title="Fork me on GitHub"><span class="bi bi-github"><span class="visually-hidden">Fork me on GitHub</span></span></a><br>
+		<a class="fs-1 link-secondary" href="https://github.com/SiscuPrats/switch-library-manager-web" data-bs-toggle="tooltip" data-bs-placement="top" title="{{t "Fork me on GitHub"}}"><span class="bi bi-github"><span class="visually-hidden">{{t "Fork me on GitHub"}}</span></span></a><br>
 		Switch Library Manager Web {{.Version}}<br>
-		<small>based on <a class="link-secondary" href="https://github.com/giwty/switch-library-manager/releases/tag/{{.SlmVersion}}">Switch Library Manager {{.SlmVersion}}</a></small>
+		<small>{{t "based on"}} <a class="link-secondary" href="https://github.com/giwty/switch-library-manager/releases/tag/{{.SlmVersion}}">Switch Library Manager {{.SlmVersion}}</a></small>
 	</footer>
+	<script>window.SLM_TRANSLATIONS = {{jsTranslations}};</script>
 	<script src="/resources/static/web.js"></script>
 </body>
 </html>

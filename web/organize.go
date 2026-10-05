@@ -75,12 +75,14 @@ func displayPath(libraryFolder string, path string) string {
 	return path
 }
 
-func newOrganizeResponse(operations []process.Operation, dryRun bool, libraryFolder string) OrganizeResponse {
+func newOrganizeResponse(operations []process.Operation, dryRun bool, libraryFolder string, lang string) OrganizeResponse {
 	response := OrganizeResponse{DryRun: dryRun, Operations: []ApiOperation{}, LibraryFolder: libraryFolder}
 	for _, op := range operations {
 		apiOp := ApiOperation(op)
 		apiOp.From = displayPath(libraryFolder, op.From)
 		apiOp.To = displayPath(libraryFolder, op.To)
+		apiOp.Error = translate(lang, op.Error)
+		apiOp.Reason = translate(lang, op.Reason)
 		response.Operations = append(response.Operations, apiOp)
 		if op.Error != "" {
 			response.Errors++
@@ -117,8 +119,8 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 	json.NewEncoder(w).Encode(value)
 }
 
-func writeGlobalError(w http.ResponseWriter, status int, message string) {
-	writeJSON(w, status, ErrorResponse{GlobalError: GlobalError{StrongMessage: "Error!", Message: message}, FieldErrors: []FieldError{}})
+func writeGlobalError(w http.ResponseWriter, status int, lang string, message string) {
+	writeJSON(w, status, ErrorResponse{GlobalError: GlobalError{StrongMessage: translate(lang, "Error!"), Message: translate(lang, message)}, FieldErrors: []FieldError{}})
 }
 
 func (web *Web) HandleOrganize() {
@@ -132,7 +134,7 @@ func (web *Web) HandleOrganize() {
 			GlobalPageData: web.globalPageData("organize"),
 			Settings: settings.ReadSettings(web.dataFolder),
 		}
-	}, func(value any) ErrorResponse {
+	}, func(value any, lang string) ErrorResponse {
 		form := value.(*OrganizeForm)
 		errorResponse := ErrorResponse{FieldErrors: []FieldError{}}
 
@@ -142,25 +144,25 @@ func (web *Web) HandleOrganize() {
 			if strings.Contains(err.Error(), "folder") {
 				field = "folder_name_template"
 			}
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: field, Message: err.Error()})
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: field, Message: translate(lang, err.Error())})
 		}
 
 		for field, folder := range map[string]string{"dlc_folder": options.DlcFolder, "updates_folder": options.UpdatesFolder} {
 			if strings.Contains(folder, "..") {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: field, Message: "Parent folder references (..) are not allowed"})
+				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: field, Message: translate(lang, "Parent folder references (..) are not allowed")})
 			}
 		}
 
 		return errorResponse
-	}, func(value any) SuccessResponse {
+	}, func(value any, lang string) SuccessResponse {
 		form := value.(*OrganizeForm)
 		appSettings := settings.ReadSettings(web.dataFolder)
 		appSettings.OrganizeOptions = form.toOptions(appSettings.OrganizeOptions)
 		settings.SaveSettings(appSettings, web.dataFolder)
 
 		return SuccessResponse {
-			StrongMessage: "Saved!",
-			Message: "Use Preview to see what will change.",
+			StrongMessage: translate(lang, "Saved!"),
+			Message: translate(lang, "Use Preview to see what will change."),
 		}
 	}, web.embedFS, fsPatterns...)
 
@@ -171,16 +173,16 @@ func (web *Web) handleOrganizeActions() {
 	web.router.HandleFunc("/organize/preview", func(w http.ResponseWriter, r *http.Request) {
 		operations, err := web.organize(r.FormValue("action"), true)
 		if err != nil {
-			writeGlobalError(w, http.StatusBadRequest, err.Error())
+			writeGlobalError(w, http.StatusBadRequest, web.requestLanguage(r), err.Error())
 			return
 		}
-		writeJSON(w, http.StatusOK, newOrganizeResponse(operations, true, settings.ReadSettings(web.dataFolder).Folder))
+		writeJSON(w, http.StatusOK, newOrganizeResponse(operations, true, settings.ReadSettings(web.dataFolder).Folder, web.requestLanguage(r)))
 	}).Methods("POST")
 
 	web.router.HandleFunc("/organize/run", func(w http.ResponseWriter, r *http.Request) {
 		// never move files while the library is being scanned
 		if !web.state.startSync() {
-			writeGlobalError(w, http.StatusConflict, "A synchronization is running, try again when it has finished.")
+			writeGlobalError(w, http.StatusConflict, web.requestLanguage(r), "A synchronization is running, try again when it has finished.")
 			return
 		}
 
@@ -188,13 +190,13 @@ func (web *Web) handleOrganizeActions() {
 		web.state.endSync()
 
 		if err != nil {
-			writeGlobalError(w, http.StatusBadRequest, err.Error())
+			writeGlobalError(w, http.StatusBadRequest, web.requestLanguage(r), err.Error())
 			return
 		}
 
 		// the cached library no longer matches the files on disk
 		web.Rescan()
 
-		writeJSON(w, http.StatusOK, newOrganizeResponse(operations, false, settings.ReadSettings(web.dataFolder).Folder))
+		writeJSON(w, http.StatusOK, newOrganizeResponse(operations, false, settings.ReadSettings(web.dataFolder).Folder, web.requestLanguage(r)))
 	}).Methods("POST")
 }
