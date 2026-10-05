@@ -123,12 +123,13 @@ func notificationsConfigured(options settings.NotificationOptions) bool {
 }
 
 // notifyChanges reports the updates and DLC that became available since the last check.
-// The first check only records the current state, so existing gaps are not reported.
-func (web *Web) notifyChanges() {
+// The first check only records the current state, so existing gaps are not reported. It
+// returns an error if the notification could not be sent.
+func (web *Web) notifyChanges() error {
 	settingsObj := settings.ReadSettings(web.dataFolder)
 	options := settingsObj.Notifications
 	if !notificationsConfigured(options) || (!options.NotifyUpdates && !options.NotifyDlc) {
-		return
+		return nil
 	}
 
 	lang := settingsObj.Language
@@ -150,7 +151,7 @@ func (web *Web) notifyChanges() {
 			if err := sendNotification(options, lang, newItems); err != nil {
 				// keep the previous state, so the items are reported by the next synchronization
 				web.sugarLogger.Warnf("Failed to send notification: %v", err)
-				return
+				return err
 			}
 			web.sugarLogger.Infof("Notification sent for %d new item(s)", len(newItems))
 		}
@@ -159,6 +160,7 @@ func (web *Web) notifyChanges() {
 	if err := web.saveNotifiedKeys(current); err != nil {
 		web.sugarLogger.Warnf("Failed to save notification state: %v", err)
 	}
+	return nil
 }
 
 const maxNotificationLines = 20

@@ -98,6 +98,15 @@ func (set templateSet) execute(w io.Writer, lang string, data any) error {
 	return tmpl.ExecuteTemplate(w, "layout", data)
 }
 
+// executeTemplate renders one named template of the page, e.g. a part refreshed by script.
+func (set templateSet) executeTemplate(w io.Writer, lang string, name string, data any) error {
+	tmpl, ok := set[lang]
+	if !ok {
+		tmpl = set[DEFAULT_LANGUAGE]
+	}
+	return tmpl.ExecuteTemplate(w, name, data)
+}
+
 func isSupportedLanguage(lang string) bool {
 	for _, supported := range supportedLanguages {
 		if supported == lang {
