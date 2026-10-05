@@ -50,4 +50,4 @@ First release of this fork after [dtrunk90/switch-library-manager-web](https://g
 
 - Moved from the archived boltdb to bbolt; Go 1.23.
 - `titles.json` and `versions.json` are generated every 6 hours by a workflow of this repository.
-- Test suite and CI for every push and pull request; release binaries for Linux, Windows and macOS.
+- Test suite and CI for every push and pull request.
