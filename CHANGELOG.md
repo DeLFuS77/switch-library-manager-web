@@ -12,6 +12,16 @@
 - **Light theme**: choose light, dark or automatic (follows the system) from the menu. Dark stays the default and the
   choice is remembered by the browser.
 
+### Fixes
+
+- Docker: the container no longer stops when files inside the data folder are mounted read-only (e.g.
+  `-v /path/prod.keys:/usr/local/share/switch-library-manager-web/prod.keys:ro`); it explains when the data folder is
+  not writable by `PUID`/`PGID`.
+- Adding, removing or updating prod.keys rescans the library on the next start, so games that could not be read
+  before appear without a manual synchronization.
+- The web interface answers right after start; the initial library scan runs in the background with its progress.
+- Running without prod.keys is reported as a warning with a hint where to put the file, instead of an error.
+
 ## 1.3.0
 
 ### New features

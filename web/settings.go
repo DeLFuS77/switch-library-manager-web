@@ -178,7 +178,7 @@ func (web *Web) HandleSettings() {
 		web.appSettings = appSettings
 
 		if _, err := settings.InitSwitchKeys(web.dataFolder); err != nil {
-			web.sugarLogger.Warnf("Failed to initialize switch keys: %s", err)
+			web.sugarLogger.Debugf("prod.keys not loaded: %s", err)
 		}
 
 		message := translate(lang, "Settings changed successfully. The library is being rescanned.")
