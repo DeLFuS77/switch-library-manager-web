@@ -63,6 +63,8 @@ func createLogger(debug bool) *zap.Logger {
 	} else {
 		config = zap.NewDevelopmentConfig()
 		config.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
+		// stack traces are only useful when debugging
+		config.DisableStacktrace = true
 	}
 	logger, err := config.Build()
 	if err != nil {
