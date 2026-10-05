@@ -379,35 +379,45 @@ func (web *Web) UpdateProgress(curr int, total int, message string) {
 	web.state.setProgress(curr, total, message)
 }
 
-func (web *Web) buildSwitchDb() (*db.SwitchTitlesDB, error) {
+// buildSwitchDb downloads the titles and versions databases if they changed. When neither
+// changed, the current database is reused instead of processing the files again.
+func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, error) {
 	settingsObj := settings.ReadSettings(web.dataFolder)
 
 	web.UpdateProgress(0, 4, "Downloading titles database...")
 	filename := filepath.Join(web.dataFolder, settings.TITLE_JSON_FILENAME)
-	titleFile, titlesEtag, err := db.LoadAndUpdateFile(settingsObj.TitlesJsonUrls(), filename, settingsObj.TitlesEtag)
+	titles, err := db.LoadAndUpdate(settingsObj.TitlesJsonUrls(), filename, settingsObj.TitlesEtag)
 
 	if err != nil {
 		return nil, errors.New("failed to download switch titles [reason:" + err.Error() + "]")
 	}
-	defer titleFile.Close()
-
-	settingsObj.TitlesEtag = titlesEtag
+	defer titles.File.Close()
 
 	web.UpdateProgress(1, 4, "Downloading versions database...")
 	filename = filepath.Join(web.dataFolder, settings.VERSIONS_JSON_FILENAME)
-	versionsFile, versionsEtag, err := db.LoadAndUpdateFile(settingsObj.VersionsJsonUrls(), filename, settingsObj.VersionsEtag)
+	versions, err := db.LoadAndUpdate(settingsObj.VersionsJsonUrls(), filename, settingsObj.VersionsEtag)
 
 	if err != nil {
 		return nil, errors.New("failed to download switch updates [reason:" + err.Error() + "]")
 	}
-	defer versionsFile.Close()
+	defer versions.File.Close()
 
-	settingsObj.VersionsEtag = versionsEtag
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+		s.TitlesEtag = titles.Etag
+		s.VersionsEtag = versions.Etag
+	})
 
-	settings.SaveSettings(settingsObj, web.dataFolder)
+	if current != nil && !titles.Updated && !versions.Updated {
+		web.sugarLogger.Info("The titles database did not change")
+		web.UpdateProgress(3, 4, "Scanning library...")
+		// a copy, so pages reading the current database are not affected
+		unchanged := *current
+		unchanged.Localized = web.loadLocalizedTitles(true)
+		return &unchanged, nil
+	}
 
 	web.UpdateProgress(2, 4, "Processing titles and updates...")
-	switchTitleDB, err := db.CreateSwitchTitleDB(titleFile, versionsFile)
+	switchTitleDB, err := db.CreateSwitchTitleDB(titles.File, versions.File)
 	if err == nil {
 		switchTitleDB.Localized = web.loadLocalizedTitles(true)
 	}
