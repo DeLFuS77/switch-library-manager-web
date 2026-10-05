@@ -198,6 +198,18 @@ var translations = map[string]map[string]string{
 		"unable to determine title ID / version - %v": "no se pudo determinar el ID del título o la versión - %v",
 		"identified by file name only, %v":            "identificado solo por el nombre del archivo; %v",
 
+		// statistics
+		"Statistics":                  "Estadísticas",
+		"Games":                       "Juegos",
+		"Total size":                  "Tamaño total",
+		"Space by content":            "Espacio por contenido",
+		"Space by format":             "Espacio por formato",
+		"Games up to date":            "Juegos al día",
+		"Games with a missing update": "Juegos con actualizaciones pendientes",
+		"%v in %v games":              "%v en %v juegos",
+		"Largest games":               "Juegos que más ocupan",
+		"Synchronize to compare your library with the titles database.": "Sincroniza para comparar tu biblioteca con la base de títulos.",
+
 		// export
 		"Export":                "Exportar",
 		"Spreadsheet (CSV)":     "Hoja de cálculo (CSV)",
