@@ -1,111 +1,143 @@
 {{define "title"}}{{t "Settings"}}{{end}}
 {{define "main"}}
-			<div class="row mb-3">
-				<div class="col">
-					<h1 class="mb-3">{{t "Settings"}}</h1>
-				</div>
-			</div>
-			<form class="row g-3 mb-3" id="settingsForm" method="post" data-rescan="true">
-				<div class="col-12">
-					<label for="prod_keys" class="form-label">{{t "Product Keys Path"}}</label>
-					<input type="text" class="form-control" id="prod_keys" name="prod_keys" value="{{.Settings.Prodkeys}}">
-					<div class="form-text">{{t "Folder containing prod.keys or path to a .keys file. Leave empty to look in the data folder and then in ~/.switch"}}</div>
-				</div>
-				<div class="col-lg-6">
-					<label for="scan_folders" class="form-label">{{t "Folders to scan"}}</label>
-					<textarea class="form-control" id="scan_folders" name="scan_folders" rows="12">
+			{{- template "pageHeader" (dict "Title" (t "Settings") "Count" -1 "Subtitle" (t "Changes are applied when you save. Changing the folders or the keys rescans the library."))}}
+			<div class="row g-4">
+				<nav class="col-lg-3 d-none d-lg-block" aria-label="{{t "Settings sections"}}">
+					<ul class="nav flex-column settings-nav">
+						<li class="nav-item"><a class="nav-link" href="#library"><span class="bi bi-collection me-2" aria-hidden="true"></span>{{t "Library"}}</a></li>
+						<li class="nav-item"><a class="nav-link" href="#ignored"><span class="bi bi-eye-slash me-2" aria-hidden="true"></span>{{t "Ignored items"}}</a></li>
+						<li class="nav-item"><a class="nav-link" href="#general"><span class="bi bi-sliders me-2" aria-hidden="true"></span>{{t "General"}}</a></li>
+						<li class="nav-item"><a class="nav-link" href="#notifications"><span class="bi bi-bell me-2" aria-hidden="true"></span>{{t "Notifications"}}</a></li>
+					</ul>
+				</nav>
+				<div class="col-lg-9">
+					<form id="settingsForm" method="post" data-rescan="true">
+						<section class="surface mb-4 settings-section" id="library" aria-labelledby="libraryTitle">
+							<h2 class="section-title" id="libraryTitle"><span class="bi bi-collection" aria-hidden="true"></span>{{t "Library"}}</h2>
+							<div class="mb-3">
+								<label for="prod_keys" class="form-label fw-semibold">{{t "Product Keys Path"}}</label>
+								<div class="input-group">
+									<span class="input-group-text"><span class="bi bi-key" aria-hidden="true"></span></span>
+									<input type="text" class="form-control" id="prod_keys" name="prod_keys" value="{{.Settings.Prodkeys}}" aria-describedby="prodKeysHelp">
+								</div>
+								<div class="form-text" id="prodKeysHelp">
+									{{- if .IsKeysFileAvailable}}<span class="text-success"><span class="bi bi-check-circle-fill me-1" aria-hidden="true"></span>{{t "Keys found"}}</span> &middot; {{else}}<span class="text-warning-emphasis"><span class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></span>{{t "Keys not found"}}</span> &middot; {{end -}}
+									{{t "Folder containing prod.keys or path to a .keys file. Leave empty to look in the data folder and then in ~/.switch"}}
+								</div>
+							</div>
+							<div>
+								<label for="scan_folders" class="form-label fw-semibold">{{t "Folders to scan"}}</label>
+								<textarea class="form-control font-monospace" id="scan_folders" name="scan_folders" rows="5" aria-describedby="scanFoldersHelp">
 {{.Settings.Folder}}
 {{- range .Settings.ScanFolders}}
 {{.}}
 {{- end -}}
-					</textarea>
-					<div class="form-text">{{t "One folder per Line"}}</div>
-				</div>
-				<div class="col-lg-6">
-					<label for="ignore_dlc_title_ids" class="form-label">{{t "Ignored DLC Title IDs"}}</label>
-					<textarea class="form-control" id="ignore_dlc_title_ids" name="ignore_dlc_title_ids" rows="12">
+								</textarea>
+								<div class="form-text" id="scanFoldersHelp">{{t "One folder per Line"}}</div>
+							</div>
+						</section>
+						<section class="surface mb-4 settings-section" id="ignored" aria-labelledby="ignoredTitle">
+							<h2 class="section-title" id="ignoredTitle"><span class="bi bi-eye-slash" aria-hidden="true"></span>{{t "Ignored items"}}</h2>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label for="ignore_dlc_title_ids" class="form-label fw-semibold">{{t "Ignored DLC Title IDs"}}</label>
+									<textarea class="form-control font-monospace" id="ignore_dlc_title_ids" name="ignore_dlc_title_ids" rows="6">
 {{- range .Settings.IgnoreDLCTitleIds}}
 {{.}}
 {{- end -}}
-					</textarea>
-					<div class="form-text">{{t "One Title ID per Line"}}</div>
-				</div>
-				<div class="col-lg-6">
-					<label for="ignore_update_title_ids" class="form-label">{{t "Ignored Update Title IDs"}}</label>
-					<textarea class="form-control" id="ignore_update_title_ids" name="ignore_update_title_ids" rows="6">
+									</textarea>
+									<div class="form-text">{{t "One Title ID per Line"}}</div>
+								</div>
+								<div class="col-md-6">
+									<label for="ignore_update_title_ids" class="form-label fw-semibold">{{t "Ignored Update Title IDs"}}</label>
+									<textarea class="form-control font-monospace" id="ignore_update_title_ids" name="ignore_update_title_ids" rows="6">
 {{- range .Settings.IgnoreUpdateTitleIds}}
 {{.}}
 {{- end -}}
-					</textarea>
-					<div class="form-text">{{t "Games or DLC whose missing updates are not listed. One Title ID per Line"}}</div>
+									</textarea>
+									<div class="form-text">{{t "Games or DLC whose missing updates are not listed. One Title ID per Line"}}</div>
+								</div>
+								<div class="col-md-6">
+									<label for="ignore_file_types" class="form-label fw-semibold">{{t "Ignored file types"}}</label>
+									<input type="text" class="form-control" id="ignore_file_types" name="ignore_file_types" value="{{range $i, $e := .Settings.IgnoreFileTypes}}{{if $i}} {{end}}{{$e}}{{end}}" placeholder="{{t "e.g. txt jpg nfo"}}">
+									<div class="form-text">{{t "Unsupported files with these extensions are not reported as issues"}}</div>
+								</div>
+								<div class="col-md-6 d-flex flex-column justify-content-center gap-2">
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="ignore_dlc_updates" name="ignore_dlc_updates" value="true"{{if .Settings.IgnoreDLCUpdates}} checked{{end}}>
+										<label class="form-check-label" for="ignore_dlc_updates">{{t "Do not list updates for DLC"}}</label>
+									</div>
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="hide_demo_games" name="hide_demo_games" value="true"{{if .Settings.HideDemoGames}} checked{{end}}>
+										<label class="form-check-label" for="hide_demo_games">{{t "Hide demos in Missing Games"}}</label>
+									</div>
+								</div>
+							</div>
+						</section>
+						<section class="surface mb-4 settings-section" id="general" aria-labelledby="generalTitle">
+							<h2 class="section-title" id="generalTitle"><span class="bi bi-sliders" aria-hidden="true"></span>{{t "General"}}</h2>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label for="sync_interval_hours" class="form-label fw-semibold">{{t "Automatic synchronization"}}</label>
+									<select class="form-select" id="sync_interval_hours" name="sync_interval_hours">
+										{{- range .SyncIntervals}}
+										<option value="{{.}}"{{if eq . $.Settings.SyncIntervalHours}} selected{{end}}>{{t (intervalLabel .)}}</option>
+										{{- end}}
+									</select>
+									<div class="form-text">{{t "Last synchronization:"}} {{formatDateTime .Settings.LastSyncTime}}{{if not .NextSync.IsZero}} &middot; {{t "next:"}} {{if .Settings.LastSyncTime.IsZero}}{{t "within a minute"}}{{else}}{{formatDateTime .NextSync}}{{end}}{{end}}</div>
+								</div>
+								<div class="col-md-6">
+									<label for="language" class="form-label fw-semibold">{{t "Language"}}</label>
+									<select class="form-select" id="language" name="language">
+										<option value=""{{if eq .Settings.Language ""}} selected{{end}}>{{t "Automatic (browser language)"}}</option>
+										{{- range .Languages}}
+										<option value="{{.}}"{{if eq . $.Settings.Language}} selected{{end}}>{{languageName .}}</option>
+										{{- end}}
+									</select>
+								</div>
+							</div>
+						</section>
+						<section class="surface mb-4 settings-section" id="notifications" aria-labelledby="notificationsTitle">
+							<h2 class="section-title" id="notificationsTitle"><span class="bi bi-bell" aria-hidden="true"></span>{{t "Notifications"}}</h2>
+							<p class="text-body-secondary">{{t "After every synchronization, get a message when an update or a DLC of one of your games becomes available. Only new items are reported."}}</p>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label for="discord_webhook_url" class="form-label fw-semibold"><span class="bi bi-discord me-1" aria-hidden="true"></span>{{t "Discord webhook URL"}}</label>
+									<input type="url" class="form-control" id="discord_webhook_url" name="discord_webhook_url" value="{{.Settings.Notifications.DiscordWebhookUrl}}" placeholder="https://discord.com/api/webhooks/..." autocomplete="off">
+									<div class="form-text">{{t "Channel settings > Integrations > Webhooks"}}</div>
+								</div>
+								<div class="col-md-6">
+									<label for="webhook_url" class="form-label fw-semibold"><span class="bi bi-broadcast me-1" aria-hidden="true"></span>{{t "Other webhook URL"}}</label>
+									<input type="url" class="form-control" id="webhook_url" name="webhook_url" value="{{.Settings.Notifications.WebhookUrl}}" placeholder="https://..." autocomplete="off">
+									<div class="form-text">{{t "Receives a JSON message (ntfy, Home Assistant, n8n, ...)"}}</div>
+								</div>
+								<div class="col-md-6">
+									<label for="telegram_bot_token" class="form-label fw-semibold"><span class="bi bi-telegram me-1" aria-hidden="true"></span>{{t "Telegram bot token"}}</label>
+									<input type="password" class="form-control" id="telegram_bot_token" name="telegram_bot_token" value="{{.Settings.Notifications.TelegramBotToken}}" autocomplete="off">
+									<div class="form-text">{{t "Create a bot with @BotFather"}}</div>
+								</div>
+								<div class="col-md-6">
+									<label for="telegram_chat_id" class="form-label fw-semibold">{{t "Telegram chat ID"}}</label>
+									<input type="text" class="form-control" id="telegram_chat_id" name="telegram_chat_id" value="{{.Settings.Notifications.TelegramChatId}}" autocomplete="off">
+								</div>
+								<div class="col-12 d-flex flex-column flex-sm-row gap-3 align-items-sm-center">
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="notify_updates" name="notify_updates" value="true"{{if .Settings.Notifications.NotifyUpdates}} checked{{end}}>
+										<label class="form-check-label" for="notify_updates">{{t "Notify new updates"}}</label>
+									</div>
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="notify_dlc" name="notify_dlc" value="true"{{if .Settings.Notifications.NotifyDlc}} checked{{end}}>
+										<label class="form-check-label" for="notify_dlc">{{t "Notify new DLC"}}</label>
+									</div>
+									<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill ms-sm-auto" id="notificationTest"><span class="bi bi-send me-1" aria-hidden="true"></span>{{t "Send a test notification"}}</button>
+								</div>
+							</div>
+						</section>
+						<div class="save-bar d-flex align-items-center justify-content-between gap-3">
+							<span class="text-body-secondary small d-none d-sm-inline">{{t "Changes are applied when you save."}}</span>
+							<button type="submit" class="btn btn-primary rounded-pill px-4 ms-auto"><span class="bi bi-check-lg me-2" aria-hidden="true"></span>{{t "Save"}}</button>
+						</div>
+					</form>
 				</div>
-				<div class="col-lg-6">
-					<label for="ignore_file_types" class="form-label">{{t "Ignored file types"}}</label>
-					<input type="text" class="form-control" id="ignore_file_types" name="ignore_file_types" value="{{range $i, $e := .Settings.IgnoreFileTypes}}{{if $i}} {{end}}{{$e}}{{end}}" placeholder="{{t "e.g. txt jpg nfo"}}">
-					<div class="form-text mb-3">{{t "Unsupported files with these extensions are not reported as issues"}}</div>
-					<div class="form-check form-switch mb-2">
-						<input class="form-check-input" type="checkbox" role="switch" id="ignore_dlc_updates" name="ignore_dlc_updates" value="true"{{if .Settings.IgnoreDLCUpdates}} checked{{end}}>
-						<label class="form-check-label" for="ignore_dlc_updates">{{t "Do not list updates for DLC"}}</label>
-					</div>
-					<div class="form-check form-switch">
-						<input class="form-check-input" type="checkbox" role="switch" id="hide_demo_games" name="hide_demo_games" value="true"{{if .Settings.HideDemoGames}} checked{{end}}>
-						<label class="form-check-label" for="hide_demo_games">{{t "Hide demos in Missing Games"}}</label>
-					</div>
-				</div>
-				<div class="col-lg-6">
-					<label for="sync_interval_hours" class="form-label">{{t "Automatic synchronization"}}</label>
-					<select class="form-select" id="sync_interval_hours" name="sync_interval_hours">
-						{{- range .SyncIntervals}}
-						<option value="{{.}}"{{if eq . $.Settings.SyncIntervalHours}} selected{{end}}>{{t (intervalLabel .)}}</option>
-						{{- end}}
-					</select>
-					<div class="form-text">{{t "Last synchronization:"}} {{formatDateTime .Settings.LastSyncTime}}{{if not .NextSync.IsZero}} &middot; {{t "next:"}} {{if .Settings.LastSyncTime.IsZero}}{{t "within a minute"}}{{else}}{{formatDateTime .NextSync}}{{end}}{{end}}</div>
-				</div>
-				<div class="col-lg-6">
-					<label for="language" class="form-label">{{t "Language"}}</label>
-					<select class="form-select" id="language" name="language">
-						<option value=""{{if eq .Settings.Language ""}} selected{{end}}>{{t "Automatic (browser language)"}}</option>
-						{{- range .Languages}}
-						<option value="{{.}}"{{if eq . $.Settings.Language}} selected{{end}}>{{languageName .}}</option>
-						{{- end}}
-					</select>
-				</div>
-				<div class="col-12">
-					<h2 class="h4 mt-3">{{t "Notifications"}}</h2>
-					<p class="text-body-secondary mb-0">{{t "After every synchronization, get a message when an update or a DLC of one of your games becomes available. Only new items are reported."}}</p>
-				</div>
-				<div class="col-lg-6">
-					<label for="discord_webhook_url" class="form-label">{{t "Discord webhook URL"}}</label>
-					<input type="url" class="form-control" id="discord_webhook_url" name="discord_webhook_url" value="{{.Settings.Notifications.DiscordWebhookUrl}}" placeholder="https://discord.com/api/webhooks/..." autocomplete="off">
-					<div class="form-text">{{t "Channel settings > Integrations > Webhooks"}}</div>
-				</div>
-				<div class="col-lg-6">
-					<label for="webhook_url" class="form-label">{{t "Other webhook URL"}}</label>
-					<input type="url" class="form-control" id="webhook_url" name="webhook_url" value="{{.Settings.Notifications.WebhookUrl}}" placeholder="https://..." autocomplete="off">
-					<div class="form-text">{{t "Receives a JSON message (ntfy, Home Assistant, n8n, ...)"}}</div>
-				</div>
-				<div class="col-lg-6">
-					<label for="telegram_bot_token" class="form-label">{{t "Telegram bot token"}}</label>
-					<input type="password" class="form-control" id="telegram_bot_token" name="telegram_bot_token" value="{{.Settings.Notifications.TelegramBotToken}}" autocomplete="off">
-					<div class="form-text">{{t "Create a bot with @BotFather"}}</div>
-				</div>
-				<div class="col-lg-6">
-					<label for="telegram_chat_id" class="form-label">{{t "Telegram chat ID"}}</label>
-					<input type="text" class="form-control" id="telegram_chat_id" name="telegram_chat_id" value="{{.Settings.Notifications.TelegramChatId}}" autocomplete="off">
-				</div>
-				<div class="col-12 d-flex flex-column flex-sm-row gap-3 align-items-sm-center">
-					<div class="form-check form-switch">
-						<input class="form-check-input" type="checkbox" role="switch" id="notify_updates" name="notify_updates" value="true"{{if .Settings.Notifications.NotifyUpdates}} checked{{end}}>
-						<label class="form-check-label" for="notify_updates">{{t "Notify new updates"}}</label>
-					</div>
-					<div class="form-check form-switch">
-						<input class="form-check-input" type="checkbox" role="switch" id="notify_dlc" name="notify_dlc" value="true"{{if .Settings.Notifications.NotifyDlc}} checked{{end}}>
-						<label class="form-check-label" for="notify_dlc">{{t "Notify new DLC"}}</label>
-					</div>
-					<button type="button" class="btn btn-sm btn-outline-secondary ms-sm-auto" id="notificationTest">{{t "Send a test notification"}}</button>
-				</div>
-				<div class="col-12 text-end">
-					<button type="submit" class="btn btn-secondary">{{t "Save"}}</button>
-				</div>
-			</form>
+			</div>
 {{- end}}
