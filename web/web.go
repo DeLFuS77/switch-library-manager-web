@@ -99,6 +99,7 @@ func (s *WebState) IsSynchronizing() bool {
 
 type Web struct {
 	state          WebState
+	auth           *Auth
 	tasks          *TaskLog
 	tasksOnce      sync.Once
 	// the task that receives the progress of the running synchronization, 0 if none
@@ -131,6 +132,8 @@ type TitleItem struct {
 }
 
 type GlobalPageData struct {
+	// set by render for the user of the request
+	Auth                AuthInfo
 	IsKeysFileAvailable bool
 	IsSynchronizing     bool
 	HasLibrary          bool
@@ -209,6 +212,13 @@ var funcMap = template.FuncMap {
 		return template.URL("?" + filter.query(replace...).Encode())
 	},
 	"formatSize": formatSize,
+	// the first letter of a name, for avatars
+	"initial": func(name string) string {
+		for _, r := range name {
+			return strings.ToUpper(string(r))
+		}
+		return "?"
+	},
 	"join": strings.Join,
 	"issueIcon": issueIcon,
 	// dict builds named parameters for a sub-template: dict "Key" value "Key2" value2
@@ -337,6 +347,12 @@ func (web *Web) Start() {
 		web.Synchronize(TRIGGER_STARTUP)
 	}
 
+	web.auth, err = newAuth(web.dataFolder)
+	if err != nil {
+		web.sugarLogger.Error(err)
+		log.Fatal(err)
+	}
+
 	// Run http server
 	web.router.Use(sameOriginOnly)
 	web.HandleResources()
@@ -358,6 +374,7 @@ func (web *Web) Start() {
 	web.HandleArchive()
 	web.HandleApiDocs()
 	web.HandleTasks()
+	web.HandleUsers()
 	web.StartScheduler()
 	web.StartFolderWatcher()
 
@@ -365,14 +382,8 @@ func (web *Web) Start() {
 
 	http.Handle("/", web.router)
 
-	var handler http.Handler = http.DefaultServeMux
-	username, password, authEnabled, err := authFromEnv()
-	if err != nil {
-		web.sugarLogger.Error(err)
-		log.Fatal(err)
-	}
-	if authEnabled {
-		handler = basicAuth(username, password, handler)
+	handler := web.auth.middleware(http.DefaultServeMux)
+	if web.auth.Enabled() {
 		web.sugarLogger.Info("[Authentication enabled]")
 	}
 

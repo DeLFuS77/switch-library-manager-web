@@ -1002,3 +1002,104 @@ body {
 .min-w-0 {
 	min-width: 0;
 }
+
+// ---------------------------------------------------------------------------------------
+// Users and login
+// ---------------------------------------------------------------------------------------
+
+// read-only users do not see the controls that change something; the server refuses the
+// actions anyway
+[data-role="viewer"] {
+	.admin-only,
+	[data-ignore-kind],
+	[data-bulk-item],
+	.bulk-toolbar,
+	[data-sync-action] {
+		display: none !important;
+	}
+}
+
+.login-page {
+	background:
+		radial-gradient(circle at 15% 10%, rgba($slm-red, .18), transparent 40%),
+		radial-gradient(circle at 85% 90%, rgba($slm-cyan, .16), transparent 40%),
+		var(--bs-body-bg);
+}
+
+.login-card {
+	max-width: 24rem;
+	padding: 2rem;
+}
+
+.brand-mark-lg {
+	display: inline-grid;
+	place-items: center;
+	width: 3.5rem;
+	height: 3.5rem;
+	border-radius: 1rem;
+	background: linear-gradient(135deg, $slm-red 0 50%, $slm-cyan 50% 100%);
+	box-shadow: 0 8px 24px -8px rgba($slm-red, .7);
+
+	img {
+		width: 2rem;
+		height: 2rem;
+	}
+}
+
+.user-list {
+	display: grid;
+	gap: .6rem;
+}
+
+.user-row {
+	display: flex;
+	align-items: center;
+	gap: .9rem;
+	padding: .8rem 1rem;
+}
+
+.user-avatar {
+	flex: 0 0 auto;
+	display: inline-grid;
+	place-items: center;
+	width: 2.5rem;
+	height: 2.5rem;
+	border-radius: 50%;
+	font-weight: 800;
+	color: #fff;
+	background: linear-gradient(135deg, $slm-red, $slm-cyan);
+
+	&.user-avatar-sm {
+		width: 1.6rem;
+		height: 1.6rem;
+		font-size: .8rem;
+	}
+
+	&.user-avatar-lg {
+		width: 3.5rem;
+		height: 3.5rem;
+		font-size: 1.4rem;
+	}
+}
+
+.user-actions {
+	position: relative;
+
+	summary {
+		list-style: none;
+
+		&::-webkit-details-marker {
+			display: none;
+		}
+	}
+
+	.user-actions-panel {
+		position: absolute;
+		right: 0;
+		top: calc(100% + .4rem);
+		z-index: 20;
+		width: min(18rem, 80vw);
+		padding: 1rem;
+		box-shadow: var(--slm-shadow-hover);
+	}
+}

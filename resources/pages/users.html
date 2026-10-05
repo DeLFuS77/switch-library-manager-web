@@ -1,0 +1,110 @@
+{{define "title"}}{{t "Users"}}{{end}}
+{{define "main"}}
+			{{- template "pageHeader" (dict "Title" (t "Users") "Count" -1 "Subtitle" (t "Who can open the app. Administrators can change everything; read-only users can browse and download, but not synchronize, organize or change settings."))}}
+			{{- template "flash" .}}
+			{{- if not .Auth.Enabled}}
+			<section class="surface mb-4 login-off" aria-labelledby="loginOffTitle">
+				<div class="d-flex gap-3 align-items-start">
+					<span class="stat-icon is-cyan flex-shrink-0"><span class="bi bi-unlock" aria-hidden="true"></span></span>
+					<div class="flex-grow-1">
+						<h2 class="h5 fw-bold mb-1" id="loginOffTitle">{{t "Login is off"}}</h2>
+						<p class="text-body-secondary">{{t "Anyone who can open this app has full access. Create an administrator to require a login."}}</p>
+						<form class="row g-2 align-items-end" method="post" action="/users/create">
+							<input type="hidden" name="role" value="admin">
+							<div class="col-md-5">
+								<label class="form-label fw-semibold" for="firstName">{{t "User name"}}</label>
+								<input class="form-control" id="firstName" name="name" autocomplete="username" autocapitalize="none" spellcheck="false" required pattern="[A-Za-z0-9._\-]{1,32}">
+							</div>
+							<div class="col-md-4">
+								<label class="form-label fw-semibold" for="firstPassword">{{t "Password"}}</label>
+								<input class="form-control" id="firstPassword" name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="72">
+							</div>
+							<div class="col-md-3">
+								<button class="btn btn-primary rounded-pill w-100 text-nowrap" type="submit"><span class="bi bi-shield-lock me-1" aria-hidden="true"></span>{{t "Require login"}}</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</section>
+			{{- else}}
+			<section class="mb-4" aria-labelledby="usersTitle">
+				<h2 class="section-title" id="usersTitle"><span class="bi bi-people" aria-hidden="true"></span>{{t "Accounts"}}</h2>
+				<ul class="list-unstyled user-list mb-0">
+					{{- if .EnvUser}}
+					<li class="surface user-row">
+						<span class="user-avatar" aria-hidden="true">{{initial .EnvUser}}</span>
+						<div class="flex-grow-1 min-w-0">
+							<div class="fw-semibold">{{.EnvUser}} <span class="chip chip-success ms-1">{{t "Administrator"}}</span></div>
+							<div class="small text-body-secondary">{{t "Set with SLM_AUTH_USERNAME and SLM_AUTH_PASSWORD; change it in the container settings."}}</div>
+						</div>
+					</li>
+					{{- end}}
+					{{- $me := .Auth.User}}
+					{{- range .Users}}
+					<li class="surface user-row">
+						<span class="user-avatar" aria-hidden="true">{{initial .Name}}</span>
+						<div class="flex-grow-1 min-w-0">
+							<div class="fw-semibold">{{.Name}}{{if eq .Name $me}} <span class="text-body-secondary fw-normal">({{t "you"}})</span>{{end}}
+								{{- if .IsAdmin}} <span class="chip chip-success ms-1">{{t "Administrator"}}</span>{{else}} <span class="chip chip-muted ms-1">{{t "Read only"}}</span>{{end}}</div>
+							<div class="small text-body-secondary">{{t "Created %v" (formatDateTime .Created)}}</div>
+						</div>
+						<details class="user-actions">
+							<summary class="btn btn-sm btn-outline-secondary rounded-pill"><span class="bi bi-pencil me-1" aria-hidden="true"></span>{{t "Edit"}}</summary>
+							<div class="user-actions-panel surface">
+								<form class="mb-3" method="post" action="/users/role">
+									<input type="hidden" name="name" value="{{.Name}}">
+									<label class="form-label small fw-semibold" for="role-{{.Name}}">{{t "Role"}}</label>
+									<div class="input-group input-group-sm">
+										<select class="form-select" id="role-{{.Name}}" name="role">
+											<option value="admin"{{if .IsAdmin}} selected{{end}}>{{t "Administrator"}}</option>
+											<option value="viewer"{{if not .IsAdmin}} selected{{end}}>{{t "Read only"}}</option>
+										</select>
+										<button class="btn btn-outline-primary" type="submit">{{t "Change"}}</button>
+									</div>
+								</form>
+								<form class="mb-3" method="post" action="/users/password">
+									<input type="hidden" name="name" value="{{.Name}}">
+									<label class="form-label small fw-semibold" for="password-{{.Name}}">{{t "New password"}}</label>
+									<div class="input-group input-group-sm">
+										<input class="form-control" id="password-{{.Name}}" name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="72">
+										<button class="btn btn-outline-primary" type="submit">{{t "Set"}}</button>
+									</div>
+								</form>
+								{{- if ne .Name $me}}
+								<form method="post" action="/users/delete" data-confirm="{{t "Delete the user %v?" .Name}}">
+									<input type="hidden" name="name" value="{{.Name}}">
+									<button class="btn btn-sm btn-outline-danger w-100" type="submit"><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{t "Delete user"}}</button>
+								</form>
+								{{- end}}
+							</div>
+						</details>
+					</li>
+					{{- end}}
+				</ul>
+			</section>
+			<section class="surface" aria-labelledby="addUserTitle">
+				<h2 class="section-title" id="addUserTitle"><span class="bi bi-person-plus" aria-hidden="true"></span>{{t "Add a user"}}</h2>
+				<form class="row g-3 align-items-end" method="post" action="/users/create">
+					<div class="col-md-4">
+						<label class="form-label fw-semibold" for="newName">{{t "User name"}}</label>
+						<input class="form-control" id="newName" name="name" autocomplete="off" autocapitalize="none" spellcheck="false" required pattern="[A-Za-z0-9._\-]{1,32}">
+					</div>
+					<div class="col-md-3">
+						<label class="form-label fw-semibold" for="newPassword">{{t "Password"}}</label>
+						<input class="form-control" id="newPassword" name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="72">
+					</div>
+					<div class="col-md-3">
+						<label class="form-label fw-semibold" for="newRole">{{t "Role"}}</label>
+						<select class="form-select" id="newRole" name="role">
+							<option value="viewer">{{t "Read only"}}</option>
+							<option value="admin">{{t "Administrator"}}</option>
+						</select>
+					</div>
+					<div class="col-md-2">
+						<button class="btn btn-primary rounded-pill w-100" type="submit"><span class="bi bi-plus-lg me-1" aria-hidden="true"></span>{{t "Add"}}</button>
+					</div>
+					<div class="col-12 form-text mt-1">{{t "Passwords need at least 8 characters."}}</div>
+				</form>
+			</section>
+			{{- end}}
+{{- end}}

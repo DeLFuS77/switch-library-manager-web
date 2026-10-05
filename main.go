@@ -14,7 +14,7 @@ import (
 //go:embed resources/static
 //go:embed node_modules/bootstrap-icons/font/fonts
 //go:embed node_modules/flag-icons/flags
-//go:embed resources/layout.html
+//go:embed resources/layout.html resources/login.html
 //go:embed resources/partials/*.html
 //go:embed resources/pages/*.html
 var embedFS embed.FS
