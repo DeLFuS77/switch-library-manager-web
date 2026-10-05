@@ -14,10 +14,10 @@
 @import "../node_modules/bootstrap/scss/mixins";
 @import "../node_modules/bootstrap/scss/utilities";
 
-// Default variable overrides
-$pagination-color:               $white;
-$pagination-focus-color:         $white;
-$pagination-hover-color:         $white;
+// Default variable overrides (the link colors follow the light/dark theme)
+$pagination-color:               var(--bs-body-color);
+$pagination-focus-color:         var(--bs-body-color);
+$pagination-hover-color:         var(--bs-body-color);
 $pagination-active-bg:           $secondary;
 $pagination-active-border-color: $pagination-active-bg;
 
@@ -127,6 +127,11 @@ $flag-icons-path: "/resources/vendor/flag-icons/flags";
 	.card-img-top {
 		height: 15vw;
 	}
+}
+
+// the logo is white, make it dark on the light theme
+[data-bs-theme="light"] .navbar-brand img {
+	filter: invert(1);
 }
 
 // keep buttons inside a card clickable above the card's stretched link

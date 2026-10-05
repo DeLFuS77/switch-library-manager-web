@@ -3,6 +3,18 @@
 <html class="min-vh-100" lang="{{lang}}" data-bs-theme="dark">
 <head>
 	<meta charset="utf-8" />
+	<script>
+		// apply the saved theme before the page is painted (see initThemeSwitcher in web.js)
+		(function () {
+			try {
+				var theme = localStorage.getItem('slm-theme') || 'dark';
+				if (theme === 'auto') {
+					theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+				}
+				document.documentElement.setAttribute('data-bs-theme', theme);
+			} catch (e) {}
+		})();
+	</script>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{{template "title" .}} - Switch Library Manager Web</title>
 	<link rel="stylesheet" href="/resources/static/web.css">
@@ -55,8 +67,8 @@
 							<li class="d-flex flex-column flex-grow-1 flex-lg-grow-0 justify-content-end">
 								<ul class="navbar-nav flex-row flex-wrap justify-content-center">
 									<li class="nav-item py-2 py-lg-1 col-12 col-lg-auto">
-										<div class="vr d-none d-lg-flex h-100 mx-lg-2 text-white"></div>
-										<hr class="d-lg-none my-2 text-white-50">
+										<div class="vr d-none d-lg-flex h-100 mx-lg-2"></div>
+										<hr class="d-lg-none my-2">
 									</li>
 									<li class="nav-item flex-grow-1 text-center">
 										<a class="nav-link" href="sync" id="sync">{{t "Synchronize"}}</a>
@@ -66,6 +78,16 @@
 									</li>
 									<li class="nav-item flex-grow-1 text-center">
 										<a class="nav-link{{if eq .Page "settings"}} active{{end}}" href="settings.html">{{t "Settings"}}</a>
+									</li>
+									<li class="nav-item dropdown flex-grow-1 text-center">
+										<button class="btn btn-link nav-link dropdown-toggle mx-auto" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{{t "Theme"}}" id="themeMenu">
+											<span class="bi bi-circle-half" aria-hidden="true"></span><span class="d-lg-none ms-2">{{t "Theme"}}</span>
+										</button>
+										<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeMenu">
+											<li><button type="button" class="dropdown-item" data-theme-value="light"><span class="bi bi-sun-fill me-2" aria-hidden="true"></span>{{t "Light"}}</button></li>
+											<li><button type="button" class="dropdown-item" data-theme-value="dark"><span class="bi bi-moon-stars-fill me-2" aria-hidden="true"></span>{{t "Dark"}}</button></li>
+											<li><button type="button" class="dropdown-item" data-theme-value="auto"><span class="bi bi-circle-half me-2" aria-hidden="true"></span>{{t "Automatic (system)"}}</button></li>
+										</ul>
 									</li>
 								</ul>
 							</li>

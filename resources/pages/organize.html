@@ -79,7 +79,7 @@
 						<div class="card-body d-flex flex-column">
 							<h5 class="card-title">{{t "Organize files"}}</h5>
 							<p class="card-text flex-fill">{{t "Move and rename games, updates and DLC according to the options above."}}</p>
-							<div><button type="button" class="btn btn-outline-light" data-organize-action="organize">{{t "Preview"}}</button></div>
+							<div><button type="button" class="btn btn-outline-secondary" data-organize-action="organize">{{t "Preview"}}</button></div>
 						</div>
 					</div>
 				</div>
@@ -88,7 +88,7 @@
 						<div class="card-body d-flex flex-column">
 							<h5 class="card-title">{{t "Delete old updates"}}</h5>
 							<p class="card-text flex-fill">{{if $o.DeleteDuplicateFiles}}{{t "Delete update and DLC files replaced by a newer version, and duplicate files."}}{{else}}{{t "Delete update and DLC files replaced by a newer version."}}{{end}}</p>
-							<div><button type="button" class="btn btn-outline-light" data-organize-action="cleanup">{{t "Preview"}}</button></div>
+							<div><button type="button" class="btn btn-outline-secondary" data-organize-action="cleanup">{{t "Preview"}}</button></div>
 						</div>
 					</div>
 				</div>

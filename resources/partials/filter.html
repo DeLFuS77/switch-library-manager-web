@@ -35,9 +35,9 @@
 								</select>
 								<div class="btn-group" role="group" aria-label="{{t "Sort order"}}">
 									<input type="radio" class="btn-check" name="sort_order" value="asc" id="ascSortOrder" autocomplete="off" onchange="this.form.submit()"{{if eq .Filter.SortOrder "asc"}} checked{{end}}>
-									<label class="btn btn-outline-secondary text-light bi bi-caret-down-fill" for="ascSortOrder"><span class="visually-hidden">{{t "Ascending"}}</span></label>
+									<label class="btn btn-outline-secondary bi bi-caret-down-fill" for="ascSortOrder"><span class="visually-hidden">{{t "Ascending"}}</span></label>
 									<input type="radio" class="btn-check" name="sort_order" value="desc" id="descSortOrder" autocomplete="off" onchange="this.form.submit()"{{if eq .Filter.SortOrder "desc"}} checked{{end}}>
-									<label class="btn btn-outline-secondary text-light bi bi-caret-up-fill" for="descSortOrder"><span class="visually-hidden">{{t "Descending"}}</span></label>
+									<label class="btn btn-outline-secondary bi bi-caret-up-fill" for="descSortOrder"><span class="visually-hidden">{{t "Descending"}}</span></label>
 								</div>
 							</div>
 							<input type="hidden" name="q" value="{{.Filter.Keyword}}">
