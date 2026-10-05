@@ -58,13 +58,11 @@
 									<li class="nav-item flex-grow-1 text-center">
 										<a class="nav-link" href="sync" id="sync">Synchronize</a>
 									</li>
-									<!--
 									<li class="nav-item flex-grow-1 text-center">
-										<a class="nav-link" href="organize.html">Organize</a>
+										<a class="nav-link{{if eq .Page "organize"}} active{{end}}" href="organize.html">Organize</a>
 									</li>
-									-->
 									<li class="nav-item flex-grow-1 text-center">
-										<a class="nav-link" href="settings.html">Settings</a>
+										<a class="nav-link{{if eq .Page "settings"}} active{{end}}" href="settings.html">Settings</a>
 									</li>
 								</ul>
 							</li>
