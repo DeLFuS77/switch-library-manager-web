@@ -176,3 +176,19 @@ func TestMissingOrganizeTemplatesGetDefaults(t *testing.T) {
 		t.Fatalf("unexpected organize options: %+v", s.OrganizeOptions)
 	}
 }
+
+func TestNotificationDefaults(t *testing.T) {
+	isolateSettings(t)
+	dir := t.TempDir()
+	// settings.json written by a version without notifications
+	writeFile(t, filepath.Join(dir, SETTINGS_FILENAME), `{"port": 3000}`)
+	if s := ReadSettings(dir); !s.Notifications.NotifyUpdates || !s.Notifications.NotifyDlc {
+		t.Fatalf("notification kinds should default to enabled: %+v", s.Notifications)
+	}
+
+	isolateSettings(t)
+	writeFile(t, filepath.Join(dir, SETTINGS_FILENAME), `{"notifications": {"notify_updates": false, "notify_dlc": true}}`)
+	if s := ReadSettings(dir); s.Notifications.NotifyUpdates || !s.Notifications.NotifyDlc {
+		t.Fatalf("saved choices must be kept: %+v", s.Notifications)
+	}
+}
