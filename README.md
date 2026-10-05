@@ -225,7 +225,7 @@ screenshots.
 
 ## Building
 
-Requirements: [Go](https://go.dev) 1.23+ and [Node.js](https://nodejs.org) (for the web assets).
+Requirements: [Go](https://go.dev) 1.25+ and [Node.js](https://nodejs.org) (for the web assets).
 
 ```
 $ git clone https://github.com/DeLFuS77/switch-library-manager-web.git
