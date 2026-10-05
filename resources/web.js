@@ -41,15 +41,81 @@ function insertAlert(element, contextualClass, iconClass, strongMessage, message
 }
 
 const SYNC_ALERT_ID = 'alert_sync';
-const SYNC_POLL_INTERVAL = 3000;
+const SYNC_POLL_INTERVAL = 1000;
 
 function mainContainer() {
 	return document.querySelector('main > .container-fluid');
 }
 
 function showSyncAlert() {
-	if (!document.getElementById(SYNC_ALERT_ID)) {
-		insertAlert(mainContainer(), 'alert-info', 'bi-arrow-repeat', 'Synchronizing!', 'The library is being updated.', false, SYNC_ALERT_ID);
+	if (document.getElementById(SYNC_ALERT_ID)) {
+		return;
+	}
+
+	// same markup as the alert rendered by layout.html
+	const alert = document.createElement('div');
+	alert.classList.add('alert', 'alert-info');
+	alert.setAttribute('role', 'status');
+	alert.id = SYNC_ALERT_ID;
+
+	const header = document.createElement('div');
+	header.classList.add('d-flex', 'align-items-center');
+	const spinner = document.createElement('span');
+	spinner.classList.add('spinner-border', 'spinner-border-sm', 'flex-shrink-0', 'me-2');
+	spinner.setAttribute('aria-hidden', 'true');
+	const text = document.createElement('div');
+	text.classList.add('text-truncate');
+	const strong = document.createElement('strong');
+	strong.textContent = 'Synchronizing!';
+	const message = document.createElement('span');
+	message.dataset.syncMessage = '';
+	message.textContent = 'The library is being updated.';
+	text.append(strong, ' ', message);
+	header.append(spinner, text);
+
+	const progress = document.createElement('div');
+	progress.classList.add('progress', 'mt-2');
+	progress.setAttribute('role', 'progressbar');
+	progress.setAttribute('aria-label', 'Synchronization progress');
+	const bar = document.createElement('div');
+	bar.classList.add('progress-bar', 'progress-bar-striped', 'progress-bar-animated', 'w-100');
+	progress.appendChild(bar);
+
+	alert.append(header, progress);
+	mainContainer().insertBefore(alert, mainContainer().firstChild);
+}
+
+function updateSyncAlert(status) {
+	const alert = document.getElementById(SYNC_ALERT_ID);
+	if (!alert) {
+		return;
+	}
+
+	const message = alert.querySelector('[data-sync-message]');
+	if (message && status.message) {
+		message.textContent = status.message;
+	}
+
+	const progress = alert.querySelector('.progress');
+	const bar = alert.querySelector('.progress-bar');
+	if (!progress || !bar) {
+		return;
+	}
+
+	if (status.total > 0) {
+		const percent = Math.min(100, Math.round(status.current * 100 / status.total));
+		bar.classList.remove('w-100', 'progress-bar-animated');
+		bar.style.width = `${percent}%`;
+		bar.textContent = `${percent}%`;
+		progress.setAttribute('aria-valuenow', percent);
+		progress.setAttribute('aria-valuemin', 0);
+		progress.setAttribute('aria-valuemax', 100);
+	} else {
+		// unknown number of steps
+		bar.classList.add('w-100', 'progress-bar-animated');
+		bar.style.width = '';
+		bar.textContent = '';
+		progress.removeAttribute('aria-valuenow');
 	}
 }
 
@@ -71,8 +137,9 @@ function watchSync() {
 	setTimeout(() => {
 		fetch('/sync', { method: 'GET', cache: 'no-store' })
 			.then(response => response.json())
-			.then(isSynchronizing => {
-				if (isSynchronizing) {
+			.then(status => {
+				if (status.synchronizing) {
+					updateSyncAlert(status);
 					watchSync();
 				} else {
 					onSyncFinished();
