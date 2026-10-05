@@ -500,6 +500,42 @@ document.addEventListener('error', e => {
 	}
 }, true);
 
+const VIEW_STORAGE_KEY = 'slm-view';
+
+// large or small covers, remembered by the browser
+function initViewToggle() {
+	const buttons = document.querySelectorAll('[data-view]');
+	if (!buttons.length) {
+		return;
+	}
+
+	const apply = view => {
+		document.querySelectorAll('.game-grid').forEach(grid => grid.classList.toggle('is-compact', view === 'compact'));
+		buttons.forEach(button => {
+			const active = button.dataset.view === view;
+			button.classList.toggle('active', active);
+			button.setAttribute('aria-pressed', active ? 'true' : 'false');
+		});
+	};
+
+	let view = 'cards';
+	try {
+		view = localStorage.getItem(VIEW_STORAGE_KEY) || 'cards';
+	} catch (e) {
+		// storage may be blocked, the default view is used
+	}
+	apply(view);
+
+	buttons.forEach(button => button.addEventListener('click', () => {
+		apply(button.dataset.view);
+		try {
+			localStorage.setItem(VIEW_STORAGE_KEY, button.dataset.view);
+		} catch (e) {
+			// not remembered
+		}
+	}));
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 	[...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
@@ -527,6 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	initOrganize();
 	initIgnoreButtons();
+	initViewToggle();
 	initNotificationTest();
 	initThemeSwitcher();
 	initBulkActions();
