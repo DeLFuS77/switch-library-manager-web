@@ -513,3 +513,36 @@ func TestCompressXciToXcz(t *testing.T) {
 		t.Fatal("XCZ files are not decompressed")
 	}
 }
+
+// Writes complete NSZ, update patch NSZ and XCZ files with their originals and the
+// made-up keys to SLM_NSZ_OFFICIAL, to decompress them with the official nsz tool.
+func TestExportForOfficialNsz(t *testing.T) {
+	folder := os.Getenv("SLM_NSZ_OFFICIAL")
+	if folder == "" {
+		t.Skip("set SLM_NSZ_OFFICIAL")
+	}
+	initNszKeys(t, "")
+	keys := "header_key = " + testHeaderKey + "\nkey_area_key_application_00 = " + testAreaKey + "\ntitlekek_00 = " + testTitleKek + "\n"
+	os.WriteFile(filepath.Join(folder, "prod.keys"), []byte(keys), 0o600)
+
+	game, _ := writeTestNsp(t, folder)
+	patch := makeBktrNca(t, gameData(0x30000))
+	patchSource := filepath.Join(folder, "Patch [0100000000010800][v65536].nsp")
+	os.WriteFile(patchSource, makePFS0(pfs0Magic, []string{contentName(patch, ".nca")}, [][]byte{patch}), 0o644)
+	// an XCI whose metadata is a real NCA too, as the official tool opens every NCA
+	game2 := makeProgramNca(t, gameData(0x80000), 3, "")
+	meta := makeProgramNca(t, gameData(0x4000), 3, "")
+	secure := makePFS0(hfs0Magic, []string{contentName(game2, ".nca"), contentName(meta, ".cnmt.nca")}, [][]byte{game2, meta})
+	update := makePFS0(hfs0Magic, []string{"firmware.nca"}, [][]byte{makeProgramNca(t, gameData(0x2000), 3, "")})
+	root := makePFS0(hfs0Magic, []string{"update", "secure"}, [][]byte{update, secure})
+	header := make([]byte, 0xF000)
+	copy(header[0x100:], "HEAD")
+	binary.LittleEndian.PutUint64(header[0x130:], 0xF000)
+	xci := filepath.Join(folder, "Game [0100000000010000][v0].xci")
+	os.WriteFile(xci, append(header, root...), 0o644)
+	for _, source := range []string{game, patchSource, xci} {
+		if _, err := CompressGame(context.Background(), source, filepath.Join(folder, "out", filepath.Base(CompressedPath(source))), CompressOptions{Level: LevelBalanced}); err != nil {
+			t.Fatal(source, err)
+		}
+	}
+}
