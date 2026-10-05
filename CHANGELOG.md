@@ -1,9 +1,12 @@
 # Changelog
 
-## Unreleased
+## 1.3.0
 
 ### New features
 
+- **Docker Hub**: the image is published as `delfus77/switch-library-manager-web`
+  (also still on `ghcr.io/DeLFuS77/switch-library-manager-web`), for **amd64 and arm64**, so it runs on Raspberry
+  Pi and most NAS as well.
 - **Export the library** from the Library page: a spreadsheet (CSV, opens with accents in Excel) or a full inventory
   with files and DLC (JSON).
 - **Game names and descriptions in Spanish** when the interface is in Spanish and the Nintendo eShop has them. The
