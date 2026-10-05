@@ -39,7 +39,8 @@ Then open http://localhost:3000. On the first start the titles database is downl
 
 ### Binary
 
-Run the binary for your platform (see [Building](#building)). The data folder is the folder of the binary, or the
+Download the binary for your platform from the [releases](https://github.com/SiscuPrats/switch-library-manager-web/releases)
+(or build it, see [Building](#building)) and run it. The data folder is the folder of the binary, or the
 folder set in the `SLM_DATA_DIR` environment variable. Set the folders to scan in the Settings page.
 
 ## Keys (optional)
