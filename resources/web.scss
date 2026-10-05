@@ -392,6 +392,44 @@ body {
 	}
 }
 
+.task-history {
+	display: grid;
+	gap: .6rem;
+}
+
+.task-row {
+	display: flex;
+	align-items: flex-start;
+	gap: .9rem;
+	padding: .9rem 1rem;
+	border-left: 4px solid var(--slm-border);
+
+	&.task-success {
+		border-left-color: $success;
+	}
+
+	&.task-warning {
+		border-left-color: $warning;
+	}
+
+	&.task-failed {
+		border-left-color: $danger;
+	}
+}
+
+.task-note {
+	margin-top: .4rem;
+	font-size: .85rem;
+}
+
+.task-detail {
+	display: block;
+	margin-top: .2rem;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	color: var(--bs-secondary-color);
+}
+
 .filter-pills {
 	display: flex;
 	flex-wrap: wrap;
@@ -607,6 +645,11 @@ body {
 		color: shade-color($success, 10%);
 	}
 
+	&.chip-danger {
+		background: rgba($danger, .14);
+		color: shade-color($danger, 15%);
+	}
+
 	&.chip-warning {
 		background: rgba($warning, .2);
 		color: shade-color($warning, 45%);
@@ -627,6 +670,7 @@ body {
 	&.chip-success { color: tint-color($success, 45%); }
 	&.chip-warning { color: tint-color($warning, 35%); }
 	&.chip-info { color: tint-color($slm-cyan, 40%); }
+	&.chip-danger { color: tint-color($danger, 40%); }
 }
 
 .version-arrow {
@@ -811,6 +855,29 @@ body {
 	}
 }
 
+.stat-icon {
+	flex: 0 0 auto;
+	display: grid;
+	place-items: center;
+	width: 3rem;
+	height: 3rem;
+	border-radius: $border-radius-lg;
+	font-size: 1.35rem;
+	background: var(--slm-accent-soft);
+	color: $primary;
+
+	&.is-cyan {
+		background: var(--slm-cyan-soft);
+		color: $slm-cyan;
+	}
+
+	&.task-icon {
+		width: 2.5rem;
+		height: 2.5rem;
+		font-size: 1.1rem;
+	}
+}
+
 .stat-card {
 	display: flex;
 	align-items: center;
@@ -821,23 +888,6 @@ body {
 		align-items: flex-start;
 		gap: .6rem;
 		padding: 1rem;
-	}
-
-	.stat-icon {
-		flex: 0 0 auto;
-		display: grid;
-		place-items: center;
-		width: 3rem;
-		height: 3rem;
-		border-radius: $border-radius-lg;
-		font-size: 1.35rem;
-		background: var(--slm-accent-soft);
-		color: $primary;
-
-		&.is-cyan {
-			background: var(--slm-cyan-soft);
-			color: $slm-cyan;
-		}
 	}
 
 	.stat-value {

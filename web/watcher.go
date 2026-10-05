@@ -166,7 +166,7 @@ func (w *folderWatcher) scanIfChanged(fingerprint uint64) {
 		return
 	}
 	// walks the folders again; the metadata of unchanged files comes from the cache, so this is quick
-	if w.web.scanInBackground(true) {
+	if w.web.scanInBackground(true, TRIGGER_WATCHER) {
 		w.scanned = fingerprint
 		w.web.sugarLogger.Info("[Library folders changed, scanning]")
 	}

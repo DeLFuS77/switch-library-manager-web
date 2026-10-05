@@ -2,6 +2,7 @@ package web
 
 import (
 	"embed"
+	"io/fs"
 	"errors"
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/db"
@@ -18,6 +19,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -97,8 +99,13 @@ func (s *WebState) IsSynchronizing() bool {
 
 type Web struct {
 	state          WebState
+	tasks          *TaskLog
+	tasksOnce      sync.Once
+	// the task that receives the progress of the running synchronization, 0 if none
+	currentTask    atomic.Int64
 	router         *mux.Router
-	embedFS        embed.FS
+	// templates and static files: embedded in the binary, read from disk in tests
+	embedFS        fs.FS
 	appSettings    *settings.AppSettings
 	dataFolder     string
 	localDbManager *db.LocalSwitchDBManager
@@ -138,6 +145,8 @@ type NavCounts struct {
 	Updates int
 	Dlc     int
 	Issues  int
+	// failed tasks that were not dismissed
+	FailedTasks int
 }
 
 type TitleItemsPageData struct {
@@ -245,7 +254,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 
 // navCounts counts the missing updates and DLC (respecting the ignore lists) and the issues.
 func (web *Web) navCounts() NavCounts {
-	counts := NavCounts{}
+	counts := NavCounts{FailedTasks: web.taskLog().FailedCount()}
 	switchDB, localDB := web.state.get()
 	if localDB == nil {
 		return counts
@@ -322,10 +331,10 @@ func (web *Web) Start() {
 		}
 		// scanning can take minutes: the pages are served meanwhile, with the progress
 		web.state.set(switchDB, nil)
-		web.scanInBackground(rescan)
+		web.scanInBackground(rescan, TRIGGER_STARTUP)
 	} else {
 		// first start (or titles cache lost): fetch the titles database right away
-		web.Synchronize()
+		web.Synchronize(TRIGGER_STARTUP)
 	}
 
 	// Run http server
@@ -348,6 +357,7 @@ func (web *Web) Start() {
 	web.HandleNotifications()
 	web.HandleArchive()
 	web.HandleApiDocs()
+	web.HandleTasks()
 	web.StartScheduler()
 	web.StartFolderWatcher()
 
@@ -377,6 +387,31 @@ func (web *Web) Start() {
 func (web *Web) UpdateProgress(curr int, total int, message string) {
 	web.sugarLogger.Debugf("%v (%v/%v)", message, curr, total)
 	web.state.setProgress(curr, total, message)
+	if id := web.currentTask.Load(); id != 0 {
+		web.taskLog().Progress(id, curr, total, message)
+	}
+}
+
+// taskLog returns the task history, loading it on first use.
+func (web *Web) taskLog() *TaskLog {
+	web.tasksOnce.Do(func() {
+		if web.tasks == nil {
+			web.tasks = loadTaskLog(web.dataFolder)
+		}
+	})
+	return web.tasks
+}
+
+// startTask records a task that receives the progress reported by UpdateProgress.
+func (web *Web) startTask(kind string, trigger string) int64 {
+	id := web.taskLog().Start(kind, trigger)
+	web.currentTask.Store(id)
+	return id
+}
+
+func (web *Web) finishTask(id int64, failure *TaskNote) {
+	web.currentTask.CompareAndSwap(id, 0)
+	web.taskLog().Finish(id, failure)
 }
 
 // buildSwitchDb downloads the titles and versions databases if they changed. When neither
