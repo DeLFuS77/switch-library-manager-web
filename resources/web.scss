@@ -349,6 +349,49 @@ body {
 	}
 }
 
+.setup-progress {
+	min-width: 12rem;
+}
+
+.setup-steps {
+	display: grid;
+	gap: .75rem;
+}
+
+.setup-step {
+	display: flex;
+	gap: 1rem;
+	padding: 1rem;
+	border-radius: $border-radius-lg;
+	background: var(--slm-surface-muted);
+	border: 1px solid var(--slm-border);
+
+	@include media-breakpoint-down(sm) {
+		flex-wrap: wrap;
+	}
+
+	.setup-marker {
+		flex: 0 0 auto;
+		display: grid;
+		place-items: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 50%;
+		font-weight: 800;
+		background: var(--slm-accent-soft);
+		color: $primary;
+	}
+
+	&.is-done {
+		opacity: .75;
+
+		.setup-marker {
+			background: rgba($success, .16);
+			color: $success;
+		}
+	}
+}
+
 .filter-pills {
 	display: flex;
 	flex-wrap: wrap;
