@@ -6,3 +6,13 @@ resources/static/web.js
 
 # Console keys must never be committed: every user provides their own
 *.keys
+
+# data folder files, in case the app runs from the repository
+settings.json
+slm.db
+titles*.json
+versions.json
+notifications.json
+tasks.json
+users.json
+session.key

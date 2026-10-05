@@ -1,0 +1,47 @@
+{{define "title"}}{{t "My account"}}{{end}}
+{{define "main"}}
+			{{- template "pageHeader" (dict "Title" (t "My account") "Count" -1 "Subtitle" "")}}
+			{{- template "flash" .}}
+			<div class="row g-4">
+				<div class="col-lg-5">
+					<section class="surface h-100">
+						<div class="d-flex align-items-center gap-3">
+							<span class="user-avatar user-avatar-lg" aria-hidden="true">{{if .Auth.User}}{{initial .Auth.User}}{{else}}?{{end}}</span>
+							<div>
+								<div class="h5 fw-bold mb-1">{{if .Auth.User}}{{.Auth.User}}{{else}}{{t "Guest"}}{{end}}</div>
+								{{- if .Auth.IsAdmin}}<span class="chip chip-success">{{t "Administrator"}}</span>{{else}}<span class="chip chip-muted">{{t "Read only"}}</span>{{end}}
+							</div>
+						</div>
+						{{- if .Auth.Enabled}}
+						<form class="mt-4" method="post" action="/logout">
+							<button class="btn btn-outline-secondary rounded-pill" type="submit"><span class="bi bi-box-arrow-right me-2" aria-hidden="true"></span>{{t "Log out"}}</button>
+						</form>
+						{{- else}}
+						<p class="text-body-secondary mt-3 mb-0">{{t "Login is off: anyone who can open this app has full access."}}</p>
+						{{- end}}
+					</section>
+				</div>
+				<div class="col-lg-7">
+					<section class="surface h-100" aria-labelledby="passwordTitle">
+						<h2 class="section-title" id="passwordTitle"><span class="bi bi-key" aria-hidden="true"></span>{{t "Change password"}}</h2>
+						{{- if or .Auth.FromEnv (not .Auth.User)}}
+						<p class="text-body-secondary mb-0">{{t "This user is set with environment variables and cannot be changed here."}}</p>
+						{{- else}}
+						<form method="post" action="/account/password">
+							<input class="d-none" name="username" value="{{.Auth.User}}" autocomplete="username" aria-hidden="true" tabindex="-1">
+							<div class="mb-3">
+								<label class="form-label fw-semibold" for="current">{{t "Current password"}}</label>
+								<input class="form-control" id="current" name="current" type="password" autocomplete="current-password" required>
+							</div>
+							<div class="mb-3">
+								<label class="form-label fw-semibold" for="password">{{t "New password"}}</label>
+								<input class="form-control" id="password" name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="72" aria-describedby="passwordHelp">
+								<div class="form-text" id="passwordHelp">{{t "Passwords need at least 8 characters."}}</div>
+							</div>
+							<button class="btn btn-primary rounded-pill px-4" type="submit"><span class="bi bi-check-lg me-2" aria-hidden="true"></span>{{t "Change password"}}</button>
+						</form>
+						{{- end}}
+					</section>
+				</div>
+			</div>
+{{- end}}
