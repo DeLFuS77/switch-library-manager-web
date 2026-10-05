@@ -107,7 +107,15 @@
 			{{- end}}
 			{{- if $t.Dlc}}
 			<section class="mb-4">
-				<h2 class="section-title"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "DLC"}} <span class="badge page-count">{{len $t.Dlc}}</span></h2>
+				<div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+					<h2 class="section-title mb-0"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "DLC"}} <span class="badge page-count">{{len $t.Dlc}}</span></h2>
+					{{- if and $t.Owned (gt $t.DlcTotal 0)}}
+					<div class="d-flex align-items-center gap-2">
+						<span class="small text-body-secondary text-end">{{t "%v of %v DLC" $t.DlcOwned $t.DlcTotal}}</span>
+						<div class="gauge gauge-sm" style="--pct: {{$t.DlcPercent}}" role="img" aria-label="{{t "%v of %v DLC" $t.DlcOwned $t.DlcTotal}}"><span class="gauge-value">{{$t.DlcPercent}}%</span></div>
+					</div>
+					{{- end}}
+				</div>
 				<div class="surface p-0 table-responsive">
 					<table class="table table-hover align-middle">
 						<thead>

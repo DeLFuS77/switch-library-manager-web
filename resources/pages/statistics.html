@@ -15,9 +15,16 @@
 				<div class="col-lg-6">
 					<section class="surface h-100">
 						<h2 class="section-title"><span class="bi bi-pie-chart" aria-hidden="true"></span>{{t "Space by content"}}</h2>
-						{{- range $s.ByContent}}
-						{{- template "statShare" .}}
-						{{- end}}
+						<div class="donut-chart">
+							<div class="donut" style="{{conic $s.ByContent}}" role="img" aria-label="{{t "Space by content"}}">
+								<div class="donut-hole"><span class="donut-value">{{formatSize $s.TotalSize}}</span><span class="donut-label">{{t "Total size"}}</span></div>
+							</div>
+							<ul class="chart-legend list-unstyled mb-0">
+								{{- range $i, $share := $s.ByContent}}
+								<li><span class="chart-dot chart-dot-{{add (mod $i 6) 1}}" aria-hidden="true"></span><span class="flex-grow-1">{{t $share.Label}} <span class="text-body-secondary">({{$share.Count}})</span></span><span class="text-nowrap"><span class="fw-semibold">{{$share.Percent}}%</span> <span class="text-body-secondary small">{{formatSize $share.Size}}</span></span></li>
+								{{- end}}
+							</ul>
+						</div>
 					</section>
 				</div>
 				<div class="col-lg-6">
@@ -34,12 +41,14 @@
 					<section class="surface h-100">
 						<h2 class="section-title"><span class="bi bi-heart-pulse" aria-hidden="true"></span>{{t "Status"}}</h2>
 						{{- if $s.HasTitlesDatabase}}
-						<div class="d-flex justify-content-between align-items-baseline mb-1">
-							<span>{{t "Games up to date"}}</span>
-							<span class="fw-bold">{{$s.GamesUpToDatePct}}% <span class="text-body-secondary fw-normal small">({{$s.GamesUpToDate}} / {{$s.Games}})</span></span>
-						</div>
-						<div class="progress mb-3" role="progressbar" aria-label="{{t "Games up to date"}}" aria-valuenow="{{$s.GamesUpToDatePct}}" aria-valuemin="0" aria-valuemax="100">
-							<div class="progress-bar bg-success" style="width: {{$s.GamesUpToDatePct}}%"></div>
+						<div class="d-flex align-items-center gap-3 mb-3">
+							<div class="gauge" style="--pct: {{$s.GamesUpToDatePct}}" role="img" aria-label="{{t "Games up to date"}}: {{$s.GamesUpToDatePct}}%">
+								<span class="gauge-value">{{$s.GamesUpToDatePct}}%</span>
+							</div>
+							<div>
+								<div class="fw-semibold">{{t "Games up to date"}}</div>
+								<div class="text-body-secondary small">{{$s.GamesUpToDate}} / {{$s.Games}}</div>
+							</div>
 						</div>
 						<div class="list-group list-group-flush">
 							<a class="list-group-item list-group-item-action bg-transparent d-flex justify-content-between align-items-center px-0" href="/updates.html"><span><span class="bi bi-arrow-up-circle text-warning me-2" aria-hidden="true"></span>{{t "Games with a missing update"}}</span><span class="badge text-bg-warning">{{$s.GamesWithUpdate}}</span></a>

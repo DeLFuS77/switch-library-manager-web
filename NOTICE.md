@@ -13,6 +13,8 @@ The original projects did not publish a license, so their code remains under the
 license of this repository covers only the changes made here. Third-party Go modules and npm packages keep their own
 licenses.
 
+The interface uses the [Inter](https://github.com/rsms/inter) font, under the SIL Open Font License 1.1.
+
 NSZ compression follows the file format of [nsz](https://github.com/nicoboss/nsz) so other tools can read the files;
 it was written for this project and contains no code of nsz.
 

@@ -23,7 +23,7 @@ $warning:   #f2b51d;
 $danger:    #dc3545;
 $secondary: #6b7280;
 
-$font-family-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif;
+$font-family-sans-serif: "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif;
 $headings-font-weight: 700;
 $headings-letter-spacing: -.01em;
 $lead-font-weight: 400;
@@ -100,6 +100,25 @@ $bootstrap-icons-font-dir: "/resources/vendor/bootstrap-icons/font/fonts";
 $flag-icons-path: "/resources/vendor/flag-icons/flags";
 @import "../node_modules/flag-icons/sass/flag-icons";
 
+// Inter, embedded in the app (SIL Open Font License): latin covers English and Spanish
+@font-face {
+	font-family: "Inter Variable";
+	font-style: normal;
+	font-display: swap;
+	font-weight: 100 900;
+	src: url("/resources/vendor/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2") format("woff2-variations");
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+	font-family: "Inter Variable";
+	font-style: normal;
+	font-display: swap;
+	font-weight: 100 900;
+	src: url("/resources/vendor/@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2") format("woff2-variations");
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 // ---------------------------------------------------------------------------------------
 // Theme surfaces
 // ---------------------------------------------------------------------------------------
@@ -114,6 +133,14 @@ $flag-icons-path: "/resources/vendor/flag-icons/flags";
 	--slm-header-bg: rgba(255, 255, 255, .82);
 	--slm-accent-soft: rgba(214, 40, 57, .1);
 	--slm-cyan-soft: rgba(15, 181, 216, .12);
+	--slm-glow-red: rgba(214, 40, 57, .07);
+	--slm-glow-cyan: rgba(15, 181, 216, .07);
+	--slm-chart-1: #{$slm-red};
+	--slm-chart-2: #{$slm-cyan};
+	--slm-chart-3: #f2a900;
+	--slm-chart-4: #7c5cff;
+	--slm-chart-5: #2bb673;
+	--slm-chart-6: #8a94a6;
 }
 
 [data-bs-theme="dark"] {
@@ -128,11 +155,29 @@ $flag-icons-path: "/resources/vendor/flag-icons/flags";
 	--slm-cyan-soft: rgba(15, 181, 216, .16);
 	--bs-link-color-rgb: 255, 128, 140;
 	--bs-link-hover-color-rgb: 255, 160, 170;
+	--slm-glow-red: rgba(214, 40, 57, .13);
+	--slm-glow-cyan: rgba(15, 181, 216, .11);
 }
 
 body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+	font-feature-settings: "cv11", "ss01";
+	// soft brand colored light behind the content
+	background-image:
+		radial-gradient(60rem 30rem at 0% -10%, var(--slm-glow-red), transparent 70%),
+		radial-gradient(50rem 30rem at 100% 0%, var(--slm-glow-cyan), transparent 70%);
+	background-attachment: fixed;
+	background-repeat: no-repeat;
+}
+
+h1,
+h2,
+h3,
+.h1,
+.h2,
+.h3 {
+	letter-spacing: -.02em;
 }
 
 ::selection {
@@ -1134,5 +1179,341 @@ body {
 		width: min(18rem, 80vw);
 		padding: 1rem;
 		box-shadow: var(--slm-shadow-hover);
+	}
+}
+
+
+// ---------------------------------------------------------------------------------------
+// Library overview
+// ---------------------------------------------------------------------------------------
+.library-overview {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: .75rem;
+	margin-bottom: 1.25rem;
+
+	@include media-breakpoint-up(lg) {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 1rem;
+	}
+}
+
+.kpi {
+	--kpi-color: #{$slm-red};
+	--kpi-soft: var(--slm-accent-soft);
+	position: relative;
+	overflow: hidden;
+	display: grid;
+	grid-template-columns: auto 1fr;
+	grid-template-areas: "icon value" "icon label";
+	column-gap: .85rem;
+	align-items: center;
+	padding: 1rem 1.1rem;
+	border-radius: $border-radius-xl;
+	background: var(--slm-surface);
+	border: 1px solid var(--slm-border);
+	box-shadow: var(--slm-shadow);
+	color: inherit;
+	text-decoration: none;
+	transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+
+	// a soft blob of the color in the corner
+	&::after {
+		content: "";
+		position: absolute;
+		right: -2.5rem;
+		top: -2.5rem;
+		width: 7rem;
+		height: 7rem;
+		border-radius: 50%;
+		background: var(--kpi-soft);
+		filter: blur(6px);
+		pointer-events: none;
+	}
+
+	&:hover,
+	&:focus-visible {
+		transform: translateY(-3px);
+		box-shadow: var(--slm-shadow-hover);
+		border-color: var(--kpi-color);
+		color: inherit;
+	}
+
+	&.kpi-warning {
+		--kpi-color: #{$warning};
+		--kpi-soft: #{rgba($warning, .16)};
+	}
+
+	&.kpi-info,
+	&.kpi-cyan {
+		--kpi-color: #{$slm-cyan};
+		--kpi-soft: var(--slm-cyan-soft);
+	}
+
+	.kpi-icon {
+		grid-area: icon;
+		display: grid;
+		place-items: center;
+		width: 2.9rem;
+		height: 2.9rem;
+		border-radius: $border-radius-lg;
+		font-size: 1.3rem;
+		color: var(--kpi-color);
+		background: var(--kpi-soft);
+	}
+
+	.kpi-value {
+		grid-area: value;
+		font-size: 1.55rem;
+		font-weight: 800;
+		line-height: 1.1;
+		letter-spacing: -.02em;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.kpi-label {
+		grid-area: label;
+		font-size: .8rem;
+		color: var(--bs-secondary-color);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+}
+
+.library-health {
+	grid-column: 1 / -1;
+	padding: .2rem .2rem 0;
+}
+
+.health-bar {
+	height: .5rem;
+	border-radius: 1rem;
+	background: var(--slm-surface-muted);
+	overflow: hidden;
+
+	span {
+		display: block;
+		height: 100%;
+		border-radius: inherit;
+		background: linear-gradient(90deg, $slm-cyan, $success);
+	}
+}
+
+// ---------------------------------------------------------------------------------------
+// Card details
+// ---------------------------------------------------------------------------------------
+.game-card {
+	// a brand colored ring appears around the hovered card
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: 3;
+		border-radius: inherit;
+		padding: 1px;
+		background: linear-gradient(135deg, $slm-red, $slm-cyan);
+		-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		opacity: 0;
+		transition: opacity .2s ease;
+		pointer-events: none;
+	}
+
+	&:hover::before,
+	&:focus-within::before {
+		opacity: 1;
+	}
+}
+
+.cover-ribbon {
+	position: absolute;
+	top: .55rem;
+	right: .55rem;
+	z-index: 1;
+	display: grid;
+	place-items: center;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 50%;
+	font-size: 1.05rem;
+	color: #1a1300;
+	background: $warning;
+	box-shadow: 0 4px 12px -2px rgba(0, 0, 0, .45);
+}
+
+.dlc-progress {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+
+	.dlc-progress-bar {
+		flex: 1;
+		height: .35rem;
+		border-radius: 1rem;
+		background: var(--slm-surface-muted);
+		overflow: hidden;
+
+		span {
+			display: block;
+			height: 100%;
+			border-radius: inherit;
+			background: linear-gradient(90deg, $slm-cyan, #7c5cff);
+		}
+	}
+
+	.dlc-progress-label {
+		font-size: .72rem;
+		font-weight: 600;
+		color: var(--bs-secondary-color);
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+}
+
+.game-grid.is-compact .dlc-progress-label {
+	display: none;
+}
+
+// cards fade in one after the other
+@media (prefers-reduced-motion: no-preference) {
+	.game-grid > *,
+	.library-overview > .kpi {
+		animation: slm-fade-up .45s cubic-bezier(.2, .7, .2, 1) both;
+	}
+
+	@for $i from 1 through 12 {
+		.game-grid > :nth-child(#{$i}),
+		.library-overview > .kpi:nth-child(#{$i}) {
+			animation-delay: #{$i * 35}ms;
+		}
+	}
+
+	.game-grid > :nth-child(n + 13) {
+		animation-delay: 450ms;
+	}
+}
+
+@keyframes slm-fade-up {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+// ---------------------------------------------------------------------------------------
+// Charts
+// ---------------------------------------------------------------------------------------
+.donut-chart {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 1.5rem;
+}
+
+.donut {
+	position: relative;
+	flex: 0 0 auto;
+	width: 9.5rem;
+	height: 9.5rem;
+	border-radius: 50%;
+
+	.donut-hole {
+		position: absolute;
+		inset: 18%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		background: var(--slm-surface);
+		box-shadow: inset 0 0 0 1px var(--slm-border);
+		text-align: center;
+	}
+
+	.donut-value {
+		font-weight: 800;
+		font-size: 1.05rem;
+		letter-spacing: -.02em;
+	}
+
+	.donut-label {
+		font-size: .7rem;
+		color: var(--bs-secondary-color);
+	}
+}
+
+.chart-legend {
+	flex: 1;
+	min-width: 12rem;
+	display: grid;
+	gap: .55rem;
+
+	li {
+		display: flex;
+		align-items: center;
+		gap: .6rem;
+		font-size: .9rem;
+	}
+}
+
+.chart-dot {
+	flex: 0 0 auto;
+	width: .75rem;
+	height: .75rem;
+	border-radius: .25rem;
+
+	@for $i from 1 through 6 {
+		&.chart-dot-#{$i} {
+			background: var(--slm-chart-#{$i});
+		}
+	}
+}
+
+// a ring that fills up to --pct percent
+.gauge {
+	--pct: 0;
+	position: relative;
+	flex: 0 0 auto;
+	display: grid;
+	place-items: center;
+	width: 5.5rem;
+	height: 5.5rem;
+	border-radius: 50%;
+	background: conic-gradient($success calc(var(--pct) * 1%), var(--slm-surface-muted) 0);
+
+	&::before {
+		content: "";
+		position: absolute;
+		inset: .5rem;
+		border-radius: 50%;
+		background: var(--slm-surface);
+	}
+
+	.gauge-value {
+		position: relative;
+		font-weight: 800;
+		font-size: 1.1rem;
+		font-variant-numeric: tabular-nums;
+	}
+
+	&.gauge-sm {
+		width: 3.2rem;
+		height: 3.2rem;
+		background: conic-gradient($slm-cyan calc(var(--pct) * 1%), var(--slm-surface-muted) 0);
+
+		&::before {
+			inset: .35rem;
+		}
+
+		.gauge-value {
+			font-size: .72rem;
+		}
 	}
 }

@@ -104,3 +104,36 @@ func TestIssuesPageIsPaginatedAndSearchable(t *testing.T) {
 		t.Fatal("a search without results says so")
 	}
 }
+
+func TestDesignShowsOverviewDlcProgressAndRings(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.state.set(testDatabases(t))
+	web.HandleIndex()
+	web.HandleTitle()
+	web.HandleStatistics()
+
+	get := func(path string) string {
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, path, nil))
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("%s: %v", path, recorder.Code)
+		}
+		return recorder.Body.String()
+	}
+
+	library := get("/index.html")
+	for _, want := range []string{"library-overview", "cover-ribbon", "DLC 1/2", `aria-valuenow="50"`} {
+		if !strings.Contains(library, want) {
+			t.Errorf("library page misses %q", want)
+		}
+	}
+	title := get("/title/0100000000010000.html")
+	if !strings.Contains(title, "1 of 2 DLC") || !strings.Contains(title, "gauge-sm") {
+		t.Error("the game page must show the DLC ring")
+	}
+	stats := get("/statistics.html")
+	if !strings.Contains(stats, "conic-gradient(var(--slm-chart-1)") || !strings.Contains(stats, "--pct:") {
+		t.Error("the statistics page must draw the donut and the gauge")
+	}
+}

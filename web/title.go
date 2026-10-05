@@ -57,6 +57,9 @@ type TitleDetail struct {
 
 	Dlc        []TitleDlc
 	MissingDlc int
+	// DLC in the library, of the DLC not ignored
+	DlcOwned int
+	DlcTotal int
 
 	// all local files of the game, downloadable as one archive
 	ArchiveFiles int
@@ -218,6 +221,12 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		if detail.Owned && !dlc.Owned && !dlc.Ignored {
 			detail.MissingDlc++
 		}
+		if dlc.Owned {
+			detail.DlcOwned++
+			detail.DlcTotal++
+		} else if !dlc.Ignored {
+			detail.DlcTotal++
+		}
 		detail.Dlc = append(detail.Dlc, dlc)
 	}
 	sort.Slice(detail.Dlc, func(i, j int) bool {
@@ -263,4 +272,12 @@ func (web *Web) HandleTitle() {
 		}
 		web.render(w, r, templates, TitlePageData{GlobalPageData: web.globalPageData("title"), Title: detail})
 	}).Methods("GET")
+}
+
+// DlcPercent is the share of the DLC of the game in the library.
+func (t TitleDetail) DlcPercent() int {
+	if t.DlcTotal == 0 {
+		return 0
+	}
+	return t.DlcOwned * 100 / t.DlcTotal
 }
