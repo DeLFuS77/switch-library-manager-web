@@ -243,6 +243,8 @@ var translations = map[string]map[string]string{
 		"Dark":               "Oscuro",
 		"Automatic (system)": "Automático (sistema)",
 
+		"Download all (%v files, %v)": "Descargar todo (%v archivos, %v)",
+
 		// export
 		"Export":                "Exportar",
 		"Spreadsheet (CSV)":     "Hoja de cálculo (CSV)",

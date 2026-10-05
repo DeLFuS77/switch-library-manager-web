@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### New features
+
+- **Download all**: the game page downloads the base game, its updates and DLC as one ZIP archive. Files are stored
+  without compressing them again, so large games download at full speed without temporary files.
+
 ## 1.4.0
 
 ### New features
