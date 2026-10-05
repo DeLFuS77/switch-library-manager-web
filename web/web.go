@@ -161,13 +161,6 @@ var funcMap = template.FuncMap {
 	"neq": func(a, b interface{}) bool {
 		return a != b
 	},
-	"formatTime": func(value time.Time) string {
-		if value.IsZero() {
-			return ""
-		}
-
-		return value.Format("2006-01-02")
-	},
 	"pageUrl": func(filter *TitleItemFilter, page int) template.URL {
 		values := url.Values{}
 		if filter.Keyword != "" {
@@ -181,12 +174,6 @@ var funcMap = template.FuncMap {
 		return template.URL("?" + values.Encode())
 	},
 	"formatSize": formatSize,
-	"formatDateTime": func(value time.Time) string {
-		if value.IsZero() {
-			return "never"
-		}
-		return value.Local().Format("2006-01-02 15:04")
-	},
 	"intervalLabel": func(hours int) string {
 		switch {
 		case hours == 0:

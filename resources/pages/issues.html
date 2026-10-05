@@ -18,7 +18,7 @@
 					{{- range .Issues}}
 					<tr>
 						<td class="text-break">{{.File}}</td>
-						<td>{{.Reason}}</td>
+						<td>{{issue .Reason}}</td>
 					</tr>
 					{{- end}}
 				</tbody>

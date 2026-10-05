@@ -184,6 +184,20 @@ var translations = map[string]map[string]string{
 		"empty folder":                                                     "carpeta vacía",
 		"empty folders will be deleted":                                    "se borrarán las carpetas vacías",
 
+		// issues (translated by pattern, see translateIssue)
+		"file type is not supported": "tipo de archivo no compatible",
+		"base file is missing":       "falta el juego base",
+		"duplicate %v file (%v)":     "archivo de %v duplicado (%v)",
+		"update":                     "actualización",
+		"base":                       "juego base",
+		"old update file, newer update exist locally (%v)": "actualización antigua, hay una más nueva (%v)",
+		"old DLC file, newer version exist locally (%v)":   "DLC antiguo, hay una versión más nueva (%v)",
+		"failed to read %v: prod.keys has no %v. The title needs keys from a newer firmware: update prod.keys, or add [TitleID][vVersion] to the file name": "no se pudo leer el %v: a prod.keys le falta %v. El juego necesita claves de un firmware más nuevo: actualiza prod.keys o añade [TitleID][vVersión] al nombre del archivo",
+		"failed to read %v [reason: %v]":              "no se pudo leer el %v [motivo: %v]",
+		"split files":                                 "archivo dividido",
+		"unable to determine title ID / version - %v": "no se pudo determinar el ID del título o la versión - %v",
+		"identified by file name only, %v":            "identificado solo por el nombre del archivo; %v",
+
 		// export
 		"Export":                "Exportar",
 		"Spreadsheet (CSV)":     "Hoja de cálculo (CSV)",
