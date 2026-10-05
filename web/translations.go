@@ -5,7 +5,12 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
-		"Your console needs firmware %v or newer for this game": "Tu consola necesita el firmware %v o posterior para este juego",
+		"Version %v is available.": "La versión %v está disponible.",
+		"See what is new":          "Ver las novedades",
+		"%v available":             "%v disponible",
+		"Tell me when a new version of the app is available":                                 "Avisarme cuando haya una versión nueva de la app",
+		"Asks GitHub once a day for the latest release; nothing about your library is sent.": "Consulta a GitHub una vez al día la última versión; no se envía nada de tu biblioteca.",
+		"Your console needs firmware %v or newer for this game":                              "Tu consola necesita el firmware %v o posterior para este juego",
 		"Needs %v":                       "Necesita %v",
 		"Required firmware":              "Firmware necesario",
 		"Write the firmware like 18.1.0": "Escribe el firmware como 18.1.0",
