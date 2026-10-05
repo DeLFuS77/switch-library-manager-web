@@ -127,6 +127,9 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 	}
 
 	if len(titles) == 0 {
+		// start from scratch, a cache without titles must not add its files a second time
+		files = []ExtendedFileInfo{}
+		skipped = map[ExtendedFileInfo]SkippedFile{}
 
 		for _, folder := range folders {
 			err := scanFolder(folder, recursive, &files, progress)
@@ -381,26 +384,22 @@ func (ldb *LocalSwitchDBManager) getGameMetadata(file ExtendedFileInfo,
 		}
 
 		fileName := strings.ToLower(file.FileName)
+		kind := ""
 		if strings.HasSuffix(fileName, "nsp") ||
 			strings.HasSuffix(fileName, "nsz") {
+			kind = "NSP"
 			metadata, err = switchfs.ReadNspMetadata(filePath)
-			if err != nil {
-				skipped[file] = SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: fmt.Sprintf("failed to read NSP [reason: %v]", err)}
-				zap.S().Errorf("[file:%v] failed to read NSP [reason: %v]\n", file.FileName, err)
-			}
 		} else if strings.HasSuffix(fileName, "xci") ||
 			strings.HasSuffix(fileName, "xcz") {
+			kind = "XCI"
 			metadata, err = switchfs.ReadXciMetadata(filePath)
-			if err != nil {
-				skipped[file] = SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: fmt.Sprintf("failed to read XCI [reason: %v]", err)}
-				zap.S().Errorf("[file:%v] failed to read XCI [reason: %v]\n", file.FileName, err)
-			}
 		} else if strings.HasSuffix(fileName, "00") {
+			kind = "split files"
 			metadata, err = fileio.ReadSplitFileMetadata(filePath)
-			if err != nil {
-				skipped[file] = SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: fmt.Sprintf("failed to read split files [reason: %v]", err)}
-				zap.S().Errorf("[file:%v] failed to read split files [reason: %v]\n", file.FileName, err)
-			}
+		}
+		if err != nil {
+			skipped[file] = SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: readErrorText(kind, err)}
+			zap.S().Warnf("[file:%v] failed to read %v [reason: %v]", file.FileName, kind, err)
 		}
 	}
 
@@ -467,4 +466,14 @@ func ParseTitleNameFromFileName(fileName string) string {
 
 func fullPath(file ExtendedFileInfo) string {
 	return filepath.Join(file.BaseFolder, file.FileName)
+}
+
+// readErrorText explains why a file could not be read, with a hint for missing keys.
+func readErrorText(kind string, err error) string {
+	var missingKey *switchfs.MissingKeyError
+	if errors.As(err, &missingKey) {
+		return fmt.Sprintf("failed to read %v: prod.keys has no %v. The title needs keys from a newer firmware: "+
+			"update prod.keys, or add [TitleID][vVersion] to the file name", kind, missingKey.KeyName)
+	}
+	return fmt.Sprintf("failed to read %v [reason: %v]", kind, err)
 }
