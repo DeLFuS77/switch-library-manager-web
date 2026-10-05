@@ -77,6 +77,12 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 
 	go func() {
 		var failure *TaskNote
+		// files that just appeared are compressed afterwards, if asked
+		defer func() {
+			if failure == nil && trigger != TRIGGER_COMPRESS && settings.ReadSettings(web.dataFolder).AutoCompress == AUTO_COMPRESS_NEW {
+				web.autoCompress(TRIGGER_WATCHER)
+			}
+		}()
 		defer func() { web.finishTask(taskId, failure) }()
 		defer web.state.endSync()
 

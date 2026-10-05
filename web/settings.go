@@ -28,6 +28,9 @@ type SettingsForm struct {
 	VerifyIntervalDays   int    `in:"form=verify_interval_days"`
 	ConsoleFirmware      string `in:"form=console_firmware"`
 	CheckForUpdates      bool   `in:"form=check_for_updates"`
+	AutoCompress         string `in:"form=auto_compress"`
+	AutoCompressLevel    string `in:"form=auto_compress_level"`
+	AutoCompressKeep     bool   `in:"form=auto_compress_keep"`
 	SyncIntervalHours    int    `in:"form=sync_interval_hours"`
 	Language             string `in:"form=language"`
 	DiscordWebhookUrl    string `in:"form=discord_webhook_url"`
@@ -156,6 +159,13 @@ func (web *Web) HandleSettings() {
 			}
 		}
 
+		if _, ok := allowedAutoCompress[settingsForm.AutoCompress]; !ok {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
+				Field: "auto_compress",
+				Message: translate(lang, "Unknown option"),
+			})
+		}
+
 		if _, ok := allowedVerifyIntervals[settingsForm.VerifyIntervalDays]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
 				Field: "verify_interval_days",
@@ -188,6 +198,9 @@ func (web *Web) HandleSettings() {
 		appSettings.VerifyIntervalDays = settingsForm.VerifyIntervalDays
 		appSettings.ConsoleFirmware = strings.TrimSpace(settingsForm.ConsoleFirmware)
 		appSettings.CheckForUpdates = settingsForm.CheckForUpdates
+		appSettings.AutoCompress = settingsForm.AutoCompress
+		appSettings.AutoCompressLevel = settingsForm.AutoCompressLevel
+		appSettings.AutoCompressKeep = settingsForm.AutoCompressKeep
 		appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
 		appSettings.Language = settingsForm.Language
 		appSettings.Notifications = settingsForm.notificationOptions()
