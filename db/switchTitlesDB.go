@@ -92,6 +92,12 @@ func CreateSwitchTitleDB(titlesFile, versionsFile io.Reader) (*SwitchTitlesDB, e
 	return &result, nil
 }
 
+// TitleIDPrefix returns the key that groups a base game with its update and DLC title IDs,
+// as used by SwitchTitlesDB.TitlesMap and LocalSwitchFilesDB.TitlesMap.
+func TitleIDPrefix(id string) (string, error) {
+	return titleIDPrefix(id)
+}
+
 // titleIDPrefix returns the key that groups a base game with its update and DLC title IDs.
 // Ported from https://github.com/trembon/switch-library-manager
 func titleIDPrefix(id string) (string, error) {
