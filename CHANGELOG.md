@@ -6,6 +6,11 @@
 
 - **Statistics page**: number of games, updates and DLC, total size, space by content and by file format, games up to
   date, missing updates, DLC and games, issues and the largest games.
+- **Notifications** after every synchronization when an update or a DLC of one of your games becomes available: Discord
+  webhook, Telegram bot or a generic JSON webhook (ntfy, Home Assistant, n8n, ...). Only new items are reported; the
+  settings page can send a test notification.
+- **Light theme**: choose light, dark or automatic (follows the system) from the menu. Dark stays the default and the
+  choice is remembered by the browser.
 
 ## 1.3.0
 

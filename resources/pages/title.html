@@ -70,7 +70,7 @@
 				{{- if $t.UpdatesIgnored}}
 				<div class="alert alert-secondary d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2">
 					<div>{{t "Missing updates of this game are ignored."}}</div>
-					<button type="button" class="btn btn-sm btn-outline-light flex-shrink-0" data-ignore-kind="update" data-ignore-id="{{$t.Id}}" data-ignored="false">{{t "Show missing updates again"}}</button>
+					<button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" data-ignore-kind="update" data-ignore-id="{{$t.Id}}" data-ignored="false">{{t "Show missing updates again"}}</button>
 				</div>
 				{{- else if $t.UpdateMissing}}
 				<div class="alert alert-warning d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2">
@@ -135,10 +135,10 @@
 								<td class="text-end text-nowrap">{{if .File}}{{formatSize .File.Size}}{{end}}</td>
 								<td class="text-end text-nowrap">
 									{{- if .File}}
-									<a class="btn btn-sm btn-outline-light bi bi-download" href="{{.File.DownloadUrl}}" title="{{t "Download %v" .File.FileName}}"><span class="visually-hidden">{{t "Download"}}</span></a>
+									<a class="btn btn-sm btn-outline-secondary bi bi-download" href="{{.File.DownloadUrl}}" title="{{t "Download %v" .File.FileName}}"><span class="visually-hidden">{{t "Download"}}</span></a>
 									{{- else if not $t.Owned}}
 									{{- else if .Ignored}}
-									<button type="button" class="btn btn-sm btn-outline-light" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="false">{{t "Restore"}}</button>
+									<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="false">{{t "Restore"}}</button>
 									{{- else}}
 									<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="true">{{t "Ignore"}}</button>
 									{{- end}}
@@ -157,6 +157,6 @@
 								<td class="text-nowrap">{{if .DisplayVersion}}{{.DisplayVersion}} {{end}}<small class="text-body-secondary">v{{.Version}}</small></td>
 								<td class="text-break"><span title="{{.Path}}">{{.FileName}}</span></td>
 								<td class="text-end text-nowrap">{{formatSize .Size}}</td>
-								<td class="text-end"><a class="btn btn-sm btn-outline-light bi bi-download" href="{{.DownloadUrl}}" title="{{t "Download %v" .FileName}}"><span class="visually-hidden">{{t "Download"}}</span></a></td>
+								<td class="text-end"><a class="btn btn-sm btn-outline-secondary bi bi-download" href="{{.DownloadUrl}}" title="{{t "Download %v" .FileName}}"><span class="visually-hidden">{{t "Download"}}</span></a></td>
 							</tr>
 {{- end}}

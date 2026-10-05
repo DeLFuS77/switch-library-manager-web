@@ -388,6 +388,44 @@ function initNotificationTest() {
 	});
 }
 
+const THEME_KEY = 'slm-theme';
+
+function storedTheme() {
+	try {
+		return localStorage.getItem(THEME_KEY) || 'dark';
+	} catch (e) {
+		return 'dark';
+	}
+}
+
+function applyTheme(theme) {
+	const dark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+	document.documentElement.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+	document.querySelectorAll('[data-theme-value]').forEach(item => {
+		const active = item.dataset.themeValue === theme;
+		item.classList.toggle('active', active);
+		item.setAttribute('aria-pressed', active);
+	});
+}
+
+function initThemeSwitcher() {
+	applyTheme(storedTheme());
+	document.querySelectorAll('[data-theme-value]').forEach(item => item.addEventListener('click', () => {
+		try {
+			localStorage.setItem(THEME_KEY, item.dataset.themeValue);
+		} catch (e) {
+			// the theme is still applied to this page
+		}
+		applyTheme(item.dataset.themeValue);
+	}));
+	// follow the system when "automatic" is selected
+	window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+		if (storedTheme() === 'auto') {
+			applyTheme('auto');
+		}
+	});
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 	[...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
@@ -413,4 +451,5 @@ document.addEventListener('DOMContentLoaded', () => {
 	initOrganize();
 	initIgnoreButtons();
 	initNotificationTest();
+	initThemeSwitcher();
 }, false);
