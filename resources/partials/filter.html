@@ -2,7 +2,7 @@
 					<div class="d-flex flex-column flex-md-row">
 						<form class="mb-3 mb-md-0 me-md-3 flex-grow-1">
 							<div class="input-group">
-								<input type="text" class="form-control" name="q" placeholder="Search..." aria-label="Search" aria-describedby="button-search">
+								<input type="search" class="form-control" name="q" value="{{.Filter.Keyword}}" placeholder="Search by name or ID..." aria-label="Search" aria-describedby="button-search">
 								<button class="btn btn-secondary bi bi-search" type="submit" id="button-search"><span class="visually-hidden">Search</span></button>
 							</div>
 							<input type="hidden" name="per_page" value="{{.Filter.PerPage}}">
