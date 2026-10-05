@@ -23,7 +23,10 @@ Easily manage your Switch game backups from the browser.
 
 ### Docker
 
-With Docker Compose, copy [docker-compose.yml](docker-compose.yml), set your library folder and run
+The image is available on [Docker Hub](https://hub.docker.com/r/delfus77/switch-library-manager-web) (`delfus77/switch-library-manager-web`)
+and on GitHub (`ghcr.io/DeLFuS77/switch-library-manager-web`), for amd64 and arm64 (Raspberry Pi, most NAS).
+
+With Docker Compose, copy [docker-compose.yml](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/docker-compose.yml), set your library folder and run
 `docker compose up -d`. Or with `docker run`:
 
 ```
@@ -33,7 +36,7 @@ $ docker run -d \
 	-v /home/johndoe/switch-library-manager-web:/usr/local/share/switch-library-manager-web:Z \
 	-v /home/johndoe/Backups/Switch:/mnt/roms:Z \
 	-p 3000:3000 \
-	ghcr.io/DeLFuS77/switch-library-manager-web
+	delfus77/switch-library-manager-web
 ```
 
 Volumes inside the container:
@@ -115,7 +118,7 @@ If the configured database cannot be downloaded, a mirror is used.
 ### Titles database
 
 `titles.json` and `versions.json` are generated every 6 hours from [blawar/titledb](https://github.com/blawar/titledb)
-by the [Update title data](.github/workflows/update-title-data.yml) workflow and published in the `data` release.
+by the [Update title data](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/.github/workflows/update-title-data.yml) workflow and published in the `data` release.
 
 ## Reporting issues
 
