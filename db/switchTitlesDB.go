@@ -1,6 +1,7 @@
 package db
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"io"
@@ -46,25 +47,40 @@ func (s *SwitchTitlesDB) LocalizedTitle(lang string, titleId string) (LocalizedT
 	return title, ok
 }
 
+// CreateSwitchTitleDB builds the titles database from titles.json and versions.json.
+// titles.json is over 100 MB: it is read entry by entry instead of being decoded into one
+// big map first, which halves the memory needed, and the descriptions and screenshots of
+// DLC, never shown, are dropped.
 func CreateSwitchTitleDB(titlesFile, versionsFile io.Reader) (*SwitchTitlesDB, error) {
-	//parse the titles objects
-	var titles = map[string]TitleAttributes{}
-	err := decodeToJsonObject(titlesFile, &titles)
-	if err != nil {
+	//titleID -> versionId-> release date
+	var versions = map[string]map[int]string{}
+	if err := decodeToJsonObject(versionsFile, &versions); err != nil {
 		return nil, err
 	}
 
-	//parse the titles objects
-	//titleID -> versionId-> release date
-	var versions = map[string]map[int]string{}
-	err = decodeToJsonObject(versionsFile, &versions)
-	if err != nil {
+	decoder := json.NewDecoder(bufio.NewReaderSize(titlesFile, 1<<20))
+	if token, err := decoder.Token(); err != nil {
 		return nil, err
+	} else if delim, ok := token.(json.Delim); !ok || delim != '{' {
+		return nil, errors.New("titles database: not a JSON object")
 	}
 
 	result := SwitchTitlesDB{TitlesMap: map[string]*SwitchTitle{}}
-	for id, attr := range titles {
-		id = strings.ToLower(id)
+	for decoder.More() {
+		token, err := decoder.Token()
+		if err != nil {
+			return nil, err
+		}
+		key, ok := token.(string)
+		if !ok {
+			return nil, errors.New("titles database: unexpected key")
+		}
+		var attr TitleAttributes
+		if err := decoder.Decode(&attr); err != nil {
+			return nil, err
+		}
+
+		id := strings.ToLower(key)
 		idPrefix, err := titleIDPrefix(id)
 		if err != nil {
 			zap.S().Debugf("skipping unsupported title ID %q: %v", id, err)
@@ -76,16 +92,15 @@ func CreateSwitchTitleDB(titlesFile, versionsFile io.Reader) (*SwitchTitlesDB, e
 		//Updates ends with 800
 		//Dlc adds 1 to the 4th char from the right and have a running counter
 		//(starting with 001) in the 3 last chars
-		switchTitle := &SwitchTitle{Dlc: map[string]TitleAttributes{}}
-		if t, ok := result.TitlesMap[idPrefix]; ok {
-			switchTitle = t
+		switchTitle, ok := result.TitlesMap[idPrefix]
+		if !ok {
+			switchTitle = &SwitchTitle{Dlc: map[string]TitleAttributes{}}
+			result.TitlesMap[idPrefix] = switchTitle
 		}
-		result.TitlesMap[idPrefix] = switchTitle
 
 		//process Updates
 		if strings.HasSuffix(id, "800") {
-			updates := versions[id[0:len(id)-3]+"000"]
-			switchTitle.Updates = updates
+			switchTitle.Updates = versions[id[0:len(id)-3]+"000"]
 			continue
 		}
 
@@ -96,8 +111,9 @@ func CreateSwitchTitleDB(titlesFile, versionsFile io.Reader) (*SwitchTitlesDB, e
 		}
 
 		//not an update, and not main TitleAttributes, so treat it as a DLC
+		attr.Description = ""
+		attr.Screenshots = nil
 		switchTitle.Dlc[id] = attr
-
 	}
 
 	return &result, nil

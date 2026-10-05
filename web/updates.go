@@ -3,8 +3,6 @@ package web
 import (
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
-	"github.com/dtrunk90/switch-library-manager-web/process"
-	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"strings"
 )
 
@@ -30,20 +28,24 @@ func (web *Web) HandleUpdates() {
 }
 
 func (web *Web) getMissingUpdates(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination) {
+	return web.filterPage(filter, web.sorted("updates:"+lang, filter, func() []TitleItem { return web.buildMissingUpdates(lang) }))
+}
+
+// buildMissingUpdates lists the games and DLC of the library with a newer update.
+func (web *Web) buildMissingUpdates(lang string) []TitleItem {
 	items := []TitleItem{}
 
 	switchDB, localDB := web.state.get()
 
 	if switchDB == nil || localDB == nil {
-		return items, pagination.Calculate(filter.Page, filter.PerPage, 0)
+		return items
 	}
 
-	settingsObj := settings.ReadSettings(web.dataFolder)
-	missingUpdates := process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreUpdateTitleIds), settingsObj.IgnoreDLCUpdates)
+	missingUpdates := web.missingUpdates()
 
 	for _, v := range missingUpdates {
 		name := titleName(switchDB, lang, v.Attributes.Id, v.Attributes.Name)
-		if filter.Matches(v.Attributes.Id, name, v.Attributes.Name) {
+		{
 			imageUrl := localImageUrl(localDB, v.Attributes.Id)
 			if imageUrl == "" && v.Attributes.IconUrl != "" {
 				imageUrl = v.Attributes.IconUrl
@@ -73,18 +75,14 @@ func (web *Web) getMissingUpdates(filter *TitleItemFilter, lang string) ([]Title
 				LatestUpdateDate: latest,
 				LocalUpdate:      v.LocalUpdate,
 				Name:             name,
+				OriginalName:     v.Attributes.Name,
 				Region:           v.Attributes.Region,
 				ReleaseDate:      release,
 				Type:             itemType,
+				Known:            true,
 			})
 		}
 	}
 
-	p := pagination.Calculate(filter.Page, filter.PerPage, len(items))
-
-	if err := sortItems(filter, items); err != nil {
-		web.sugarLogger.Error(err)
-	}
-
-	return items[p.Start:p.End], p
+	return items
 }

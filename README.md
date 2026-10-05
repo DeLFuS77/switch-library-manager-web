@@ -165,6 +165,7 @@ Most settings are available in the web interface. `settings.json` in the data fo
 |---|---|
 | `port` | HTTP port, default `3000` |
 | `debug` | Verbose logging, useful when reporting issues |
+| `scan_workers` | Files read at the same time while scanning. `0` (default) uses up to 4; raise it for fast network storage, lower it to `1` for a single slow disk |
 | `titles_json_url` | Titles database. Default: the `data` release of this repository |
 | `versions_json_url` | Versions database. Default: [blawar/titledb](https://github.com/blawar/titledb) |
 | `localized_titles_json_url` | Translated game names and descriptions, `%s` is the language. Default: the `data` release of this repository |

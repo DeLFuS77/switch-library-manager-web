@@ -3,6 +3,10 @@ package db
 import (
 	"errors"
 	"fmt"
+	"io/fs"
+	"sync"
+	"sync/atomic"
+
 	"github.com/dtrunk90/switch-library-manager-web/fileio"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -158,13 +162,7 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 
 		ldb.processLocalFiles(switchDB, dataFolder, files, progress, titles, skipped)
 
-		if err := ldb.db.AddEntry(DB_TABLE_LOCAL_LIBRARY, "files", files); err != nil {
-			return nil, err
-		}
-		if err := ldb.db.AddEntry(DB_TABLE_LOCAL_LIBRARY, "skipped", skipped); err != nil {
-			return nil, err
-		}
-		if err := ldb.db.AddEntry(DB_TABLE_LOCAL_LIBRARY, "titles", titles); err != nil {
+		if err := ldb.db.AddEntries(DB_TABLE_LOCAL_LIBRARY, map[string]interface{}{"files": files, "skipped": skipped, "titles": titles}); err != nil {
 			return nil, err
 		}
 	}
@@ -180,7 +178,8 @@ func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, progre
 	if _, err := os.Stat(folder); err != nil {
 		return err
 	}
-	return filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
+	// WalkDir reads the entry types from the directory listing; only files are stat'ed
+	return filepath.WalkDir(folder, func(path string, entry fs.DirEntry, err error) error {
 		if path == folder {
 			return nil
 		}
@@ -189,12 +188,17 @@ func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, progre
 			return nil
 		}
 
-		if info == nil || info.IsDir() {
+		if entry.IsDir() {
 			return nil
 		}
 
 		//skip hidden files (including macOS "._" resource forks)
-		if strings.HasPrefix(info.Name(), ".") {
+		if strings.HasPrefix(entry.Name(), ".") {
+			return nil
+		}
+		info, err := entry.Info()
+		if err != nil {
+			// removed while scanning
 			return nil
 		}
 		base := path[0 : len(path)-len(info.Name())]
@@ -230,16 +234,10 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 		}
 	}
 
-	ind := 0
-	total := len(files)
-	for _, file := range files {
-		ind += 1
-		if progress != nil {
-			progress.UpdateProgress(ind, total, "Reading "+file.FileName)
-		}
-
-		//scan sub-folders if flag is present
-		filePath := filepath.Join(file.BaseFolder, file.FileName)
+	// pick the game files; the others are only reported
+	candidates := []int{}
+	isSplitFile := make([]bool, len(files))
+	for i, file := range files {
 		if file.IsDir {
 			continue
 		}
@@ -269,8 +267,60 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 			}
 			continue
 		}
+		isSplitFile[i] = isSplit
+		candidates = append(candidates, i)
+	}
 
-		contentMap, err := ldb.getGameMetadata(file, filePath, skipped)
+	// read the files in parallel, with a bounded number of workers so a big library does
+	// not saturate the disk, the network share or the CPU
+	results := make([]metadataResult, len(files))
+	total := len(candidates)
+	var read atomic.Int64
+	jobs := make(chan int)
+	var workers sync.WaitGroup
+	for w := 0; w < ScanWorkers(dataFolder); w++ {
+		workers.Add(1)
+		go func() {
+			defer workers.Done()
+			for i := range jobs {
+				results[i] = ldb.readGameMetadata(files[i])
+				if progress != nil {
+					progress.UpdateProgress(int(read.Add(1)), total, "Reading "+files[i].FileName)
+				}
+			}
+		}()
+	}
+	for _, i := range candidates {
+		jobs <- i
+	}
+	close(jobs)
+	workers.Wait()
+
+	// newly read metadata is cached in one transaction, not one per file
+	newEntries := map[string]interface{}{}
+	for _, i := range candidates {
+		if results[i].cacheKey != "" {
+			newEntries[results[i].cacheKey] = results[i].metadata
+		}
+	}
+	if len(newEntries) > 0 {
+		if err := ldb.db.AddEntries(DB_TABLE_FILE_SCAN_METADATA, newEntries); err != nil {
+			zap.S().Warnf("Failed to cache the metadata of %v files: %v", len(newEntries), err)
+		}
+	}
+
+	covers := []coverDownload{}
+
+	// combine the results in the order of the files, so duplicates and old versions are
+	// decided like in a sequential scan
+	for _, i := range candidates {
+		file := files[i]
+		isSplit := isSplitFile[i]
+		result := results[i]
+		if result.skip != nil {
+			skipped[file] = *result.skip
+		}
+		contentMap, err := result.metadata, result.err
 
 		if err != nil {
 			if _, ok := skipped[file]; !ok {
@@ -341,18 +391,10 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 
 				if title, ok := switchDB.TitlesMap[idPrefix]; ok {
 					if title.Attributes.IconUrl != "" {
-						basename := filepath.Base(title.Attributes.IconUrl)
-						filename := filepath.Join(dataFolder, "img", basename)
-						if err := DownloadFile(title.Attributes.IconUrl, filename); err == nil {
-							switchTitle.Icon = basename
-						}
+						covers = append(covers, coverDownload{title: switchTitle, url: title.Attributes.IconUrl, icon: true})
 					}
 					if title.Attributes.BannerUrl != "" {
-						basename := filepath.Base(title.Attributes.BannerUrl)
-						filename := filepath.Join(dataFolder, "img", basename)
-						if err := DownloadFile(title.Attributes.BannerUrl, filename); err == nil {
-							switchTitle.Banner = basename
-						}
+						covers = append(covers, coverDownload{title: switchTitle, url: title.Attributes.BannerUrl})
 					}
 				}
 
@@ -376,27 +418,39 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 		}
 	}
 
+	downloadCovers(dataFolder, covers, progress)
 }
 
-func (ldb *LocalSwitchDBManager) getGameMetadata(file ExtendedFileInfo,
-	filePath string,
-	skipped map[ExtendedFileInfo]SkippedFile) (map[string]*switchfs.ContentMetaAttributes, error) {
+// metadataResult is what reading one file found. Workers fill it in parallel; it is applied
+// to the library afterwards, in the order of the files.
+type metadataResult struct {
+	metadata map[string]*switchfs.ContentMetaAttributes
+	// why the file is listed as an issue, even if it was identified
+	skip *SkippedFile
+	err  error
+	// set when the metadata was read from the file and should be cached under this key
+	cacheKey string
+}
 
-	var metadata map[string]*switchfs.ContentMetaAttributes = nil
+// readGameMetadata identifies a file: from the cache, by reading it with the keys, or
+// from its name. It is safe to call from several goroutines.
+func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadataResult {
+	result := metadataResult{}
+	filePath := filepath.Join(file.BaseFolder, file.FileName)
 	keys, _ := settings.SwitchKeys()
-	var err error
 	fileKey := filePath + "|" + file.FileName + "|" + strconv.Itoa(int(file.Size))
-	if keys != nil && keys.GetKey("header_key") != "" {
-		err = ldb.db.GetEntry(DB_TABLE_FILE_SCAN_METADATA, fileKey, &metadata)
 
-		if err != nil {
+	if keys != nil && keys.GetKey("header_key") != "" {
+		var metadata map[string]*switchfs.ContentMetaAttributes
+		if err := ldb.db.GetEntry(DB_TABLE_FILE_SCAN_METADATA, fileKey, &metadata); err != nil {
 			zap.S().Warnf("%v", err)
 		}
-
 		if metadata != nil {
-			return metadata, nil
+			result.metadata = metadata
+			return result
 		}
 
+		var err error
 		fileName := strings.ToLower(file.FileName)
 		kind := ""
 		if strings.HasSuffix(fileName, "nsp") ||
@@ -412,40 +466,33 @@ func (ldb *LocalSwitchDBManager) getGameMetadata(file ExtendedFileInfo,
 			metadata, err = fileio.ReadSplitFileMetadata(filePath)
 		}
 		if err != nil {
-			skipped[file] = SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: readErrorText(kind, err)}
+			result.skip = &SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: readErrorText(kind, err)}
 			zap.S().Warnf("[file:%v] failed to read %v [reason: %v]", file.FileName, kind, err)
 		}
-	}
-
-	if metadata != nil {
-		err = ldb.db.AddEntry(DB_TABLE_FILE_SCAN_METADATA, fileKey, metadata)
-
-		if err != nil {
-			zap.S().Warnf("%v", err)
+		if metadata != nil {
+			result.metadata = metadata
+			result.cacheKey = fileKey
+			return result
 		}
-		return metadata, nil
 	}
 
 	//fallback to parse data from filename
-
-	//parse title id
 	titleId, _ := parseTitleIdFromFileName(file.FileName)
 	version, _ := parseVersionFromFileName(file.FileName)
 
 	if titleId == nil || version == nil {
-		return nil, errors.New("unable to determine titleId / version")
+		result.err = errors.New("unable to determine titleId / version")
+		return result
 	}
-	metadata = map[string]*switchfs.ContentMetaAttributes{}
-	metadata[*titleId] = &switchfs.ContentMetaAttributes{TitleId: *titleId, Version: *version}
+	result.metadata = map[string]*switchfs.ContentMetaAttributes{*titleId: {TitleId: *titleId, Version: *version}}
 
 	// the file is still listed in the library, so explain why it also appears as an issue
-	if skippedFile, ok := skipped[file]; ok && skippedFile.ReasonCode == REASON_MALFORMED_FILE {
-		skippedFile.ReasonCode = REASON_FILENAME_FALLBACK
-		skippedFile.ReasonText = "identified by file name only, " + skippedFile.ReasonText
-		skipped[file] = skippedFile
+	if result.skip != nil && result.skip.ReasonCode == REASON_MALFORMED_FILE {
+		result.skip.ReasonCode = REASON_FILENAME_FALLBACK
+		result.skip.ReasonText = "identified by file name only, " + result.skip.ReasonText
 	}
 
-	return metadata, nil
+	return result
 }
 
 func parseVersionFromFileName(fileName string) (*int, error) {

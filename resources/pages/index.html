@@ -44,7 +44,7 @@
 			{{- template "pagination" .}}
 			{{- else if .Filter.Active}}
 			{{- template "noResults" .Filter}}
-			{{- else if and .IsSynchronizing .Setup.TitlesDatabase .Setup.Folders}}
+			{{- else if and .IsSynchronizing .Setup.Folders}}
 			{{- template "emptyState" (dict "Icon" "bi-hourglass-split" "Tone" "" "Title" (t "Scanning your library") "Text" (t "Your games will appear here in a moment.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 			{{- else}}
 			{{- template "setupChecklist" .Setup}}

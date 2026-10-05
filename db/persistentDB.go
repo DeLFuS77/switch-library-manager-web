@@ -89,6 +89,27 @@ func (pd *PersistentDB) AddEntry(tableName string, key string, value interface{}
 	return err
 }
 
+// AddEntries stores several values in one transaction, which is much faster than one
+// transaction per value: every transaction waits for the disk.
+func (pd *PersistentDB) AddEntries(tableName string, values map[string]interface{}) error {
+	return pd.db.Update(func(tx *bolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists([]byte(tableName))
+		if err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		for key, value := range values {
+			var bytesBuff bytes.Buffer
+			if err := gob.NewEncoder(&bytesBuff).Encode(value); err != nil {
+				return err
+			}
+			if err := b.Put([]byte(key), bytesBuff.Bytes()); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
 func (pd *PersistentDB) GetEntry(tableName string, key string, value interface{}) error {
 	err := pd.db.View(func(tx *bolt.Tx) error {
 

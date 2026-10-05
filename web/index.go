@@ -89,13 +89,78 @@ func (web *Web) getLibrary(filter *TitleItemFilter, lang string) ([]TitleItem, p
 }
 
 func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination, LibraryFacets) {
-	items := []TitleItem{}
+	all := web.sorted("library:"+lang, filter, func() []TitleItem { return web.buildLibrary(lang) })
+
+	// positions of the matching items; only the shown page is copied
+	matched := make([]int, 0, len(all))
 	facets := LibraryFacets{Formats: []string{}}
 	formats := map[string]struct{}{}
+
+	for index := range all {
+		item := &all[index]
+		if !filter.Matches(item.Id, item.Name, item.OriginalName) {
+			continue
+		}
+
+		// the formats are offered whatever the other filters are
+		if item.Type != "" {
+			formats[item.Type] = struct{}{}
+		}
+		if filter.Format != "" && item.Type != filter.Format {
+			continue
+		}
+
+		complete := item.Known && !item.UpdateAvailable && item.MissingDlcCount == 0
+		facets.All++
+		if item.UpdateAvailable {
+			facets.Update++
+		}
+		if item.MissingDlcCount > 0 {
+			facets.Dlc++
+		}
+		if complete {
+			facets.Complete++
+		}
+
+		switch filter.Status {
+			case STATUS_UPDATE:
+				if !item.UpdateAvailable {
+					continue
+				}
+			case STATUS_DLC:
+				if item.MissingDlcCount == 0 {
+					continue
+				}
+			case STATUS_COMPLETE:
+				if !complete {
+					continue
+				}
+		}
+
+		matched = append(matched, index)
+	}
+
+	for format := range formats {
+		facets.Formats = append(facets.Formats, format)
+	}
+	sort.Strings(facets.Formats)
+
+	// the items are already sorted
+	p := pagination.Calculate(filter.Page, filter.PerPage, len(matched))
+	items := make([]TitleItem, 0, p.End-p.Start)
+	for _, index := range matched[p.Start:p.End] {
+		items = append(items, all[index])
+	}
+	return items, p, facets
+}
+
+// buildLibrary lists every game of the library with its status.
+func (web *Web) buildLibrary(lang string) []TitleItem {
+	items := []TitleItem{}
 	switchDB, localDB := web.state.get()
 
 	if localDB == nil {
-		return items, pagination.Calculate(filter.Page, filter.PerPage, 0), facets
+		return items
 	}
 
 	settingsObj := settings.ReadSettings(web.dataFolder)
@@ -114,9 +179,6 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 
 		originalName := getLocalTitleName(title, v)
 		name := titleName(switchDB, lang, v.File.Metadata.TitleId, originalName)
-		if !filter.Matches(v.File.Metadata.TitleId, name, originalName) {
-			continue
-		}
 
 		version := ""
 		if v.File.Metadata.Ncap != nil {
@@ -131,11 +193,13 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		}
 
 		item := TitleItem {
-			Id:          strings.ToUpper(v.File.Metadata.TitleId),
-			LocalUpdate: v.LatestUpdate,
-			Name:        name,
-			Type:        strings.ToUpper(getType(v)),
-			Version:     version,
+			Id:           strings.ToUpper(v.File.Metadata.TitleId),
+			LocalUpdate:  v.LatestUpdate,
+			Name:         name,
+			OriginalName: originalName,
+			Type:         strings.ToUpper(getType(v)),
+			Version:      version,
+			Known:        title != nil,
 		}
 
 		if v.Icon != "" {
@@ -170,56 +234,10 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 			item.ReleaseDate = release
 		}
 
-		// the formats are offered whatever the other filters are
-		if item.Type != "" {
-			formats[item.Type] = struct{}{}
-		}
-		if filter.Format != "" && item.Type != filter.Format {
-			continue
-		}
-
-		complete := title != nil && !item.UpdateAvailable && item.MissingDlcCount == 0
-		facets.All++
-		if item.UpdateAvailable {
-			facets.Update++
-		}
-		if item.MissingDlcCount > 0 {
-			facets.Dlc++
-		}
-		if complete {
-			facets.Complete++
-		}
-
-		switch filter.Status {
-			case STATUS_UPDATE:
-				if !item.UpdateAvailable {
-					continue
-				}
-			case STATUS_DLC:
-				if item.MissingDlcCount == 0 {
-					continue
-				}
-			case STATUS_COMPLETE:
-				if !complete {
-					continue
-				}
-		}
-
 		items = append(items, item)
 	}
 
-	for format := range formats {
-		facets.Formats = append(facets.Formats, format)
-	}
-	sort.Strings(facets.Formats)
-
-	p := pagination.Calculate(filter.Page, filter.PerPage, len(items))
-
-	if err := sortItems(filter, items); err != nil {
-		web.sugarLogger.Error(err)
-	}
-
-	return items[p.Start:p.End], p, facets
+	return items
 }
 
 // localImageUrl returns the cover of a game from the local image cache, if it was
