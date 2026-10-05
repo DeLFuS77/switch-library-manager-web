@@ -181,6 +181,24 @@ var funcMap = template.FuncMap {
 		return template.URL("?" + values.Encode())
 	},
 	"formatSize": formatSize,
+	"formatDateTime": func(value time.Time) string {
+		if value.IsZero() {
+			return "never"
+		}
+		return value.Local().Format("2006-01-02 15:04")
+	},
+	"intervalLabel": func(hours int) string {
+		switch {
+		case hours == 0:
+			return "Disabled"
+		case hours%24 == 0 && hours > 24:
+			return fmt.Sprintf("Every %d days", hours/24)
+		case hours == 24:
+			return "Every day"
+		default:
+			return fmt.Sprintf("Every %d hours", hours)
+		}
+	},
 	"subtract": func(a, b int) int {
 		return a - b
 	},
@@ -272,6 +290,7 @@ func (web *Web) Start() {
 	web.HandleApi()
 	web.HandleTitle()
 	web.HandleIgnore()
+	web.StartScheduler()
 
 	web.router.Handle("/", http.RedirectHandler("/index.html", http.StatusMovedPermanently))
 

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -83,6 +84,8 @@ type AppSettings struct {
 	IgnoreDLCUpdates       bool            `json:"ignore_dlc_updates"`
 	IgnoreFileTypes        []string        `json:"ignore_file_types"`
 	HideDemoGames          bool            `json:"hide_demo_games"`
+	SyncIntervalHours      int             `json:"sync_interval_hours"`
+	LastSyncTime           time.Time       `json:"last_sync_time"`
 }
 
 func ReadSettingsAsJSON(dataFolder string) string {
