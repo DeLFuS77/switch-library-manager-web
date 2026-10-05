@@ -2,8 +2,6 @@ package web
 
 import (
 	"fmt"
-	"html/template"
-	"log"
 	"net/http"
 	"path/filepath"
 	"sort"
@@ -243,11 +241,7 @@ func formatSize(size int64) string {
 }
 
 func (web *Web) HandleTitle() {
-	tmpl, err := template.New("layout").Funcs(funcMap).ParseFS(web.embedFS, "resources/layout.html", "resources/pages/title.html")
-	if err != nil {
-		web.sugarLogger.Error(fmt.Errorf("parsing template failed: %w", err))
-		log.Fatal(err)
-	}
+	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/title.html")
 
 	web.router.HandleFunc("/title/{titleId}.html", func(w http.ResponseWriter, r *http.Request) {
 		detail, ok := web.getTitleDetail(mux.Vars(r)["titleId"])
@@ -255,10 +249,6 @@ func (web *Web) HandleTitle() {
 			http.NotFound(w, r)
 			return
 		}
-		data := TitlePageData{GlobalPageData: web.globalPageData("title"), Title: detail}
-		if err := tmpl.ExecuteTemplate(w, "layout", data); err != nil {
-			web.sugarLogger.Error(fmt.Errorf("executing template failed: %w", err))
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		web.render(w, r, templates, TitlePageData{GlobalPageData: web.globalPageData("title"), Title: detail})
 	}).Methods("GET")
 }

@@ -13,6 +13,7 @@ type SettingsPageData struct {
 	Settings      *settings.AppSettings
 	NextSync      time.Time
 	SyncIntervals []int
+	Languages     []string
 }
 
 type SettingsForm struct {
@@ -24,6 +25,7 @@ type SettingsForm struct {
 	IgnoreFileTypes      string `in:"form=ignore_file_types"`
 	HideDemoGames        bool   `in:"form=hide_demo_games"`
 	SyncIntervalHours    int    `in:"form=sync_interval_hours"`
+	Language             string `in:"form=language"`
 }
 
 var titleIdRegex = regexp.MustCompile("^[0-9A-Fa-f]{16}$")
@@ -59,10 +61,11 @@ func (web *Web) HandleSettings() {
 		return SettingsPageData {
 			NextSync: nextSyncTime(web.appSettings),
 			SyncIntervals: []int{0, 6, 12, 24, 168},
+			Languages: supportedLanguages,
 			GlobalPageData: web.globalPageData("settings"),
 			Settings: web.appSettings,
 		}
-	}, func(value any) ErrorResponse {
+	}, func(value any, lang string) ErrorResponse {
 		settingsForm := value.(*SettingsForm)
 		errorResponse := ErrorResponse{
 			FieldErrors: []FieldError{},
@@ -73,12 +76,12 @@ func (web *Web) HandleSettings() {
 			if err != nil {
 				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
 					Field: "prod_keys",
-					Message: "Error trying to read Product Keys (" + err.Error() + ")",
+					Message: translatef(lang, "Error trying to read Product Keys (%v)", err),
 				})
 			} else if keys["header_key"] == "" {
 				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
 					Field: "prod_keys",
-					Message: "Please provide a valid Product Keys Path",
+					Message: translate(lang, "Please provide a valid Product Keys Path"),
 				})
 			}
 		}
@@ -88,14 +91,14 @@ func (web *Web) HandleSettings() {
 		if len(scanFolders) == 0 {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
 				Field: "scan_folders",
-				Message: "Please provide at least one Folder to scan",
+				Message: translate(lang, "Please provide at least one Folder to scan"),
 			})
 		} else {
 			for _, value := range scanFolders {
 				if _, err := os.Stat(value); os.IsNotExist(err) || os.IsPermission(err) {
 					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
 						Field: "scan_folders",
-						Message: "Folder not found: " + value,
+						Message: translatef(lang, "Folder not found: %v", value),
 					})
 
 					break
@@ -108,7 +111,7 @@ func (web *Web) HandleSettings() {
 				if !titleIdRegex.MatchString(value) {
 					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
 						Field: field,
-						Message: "Invalid Title ID (16 hexadecimal characters): " + value,
+						Message: translatef(lang, "Invalid Title ID (16 hexadecimal characters): %v", value),
 					})
 
 					break
@@ -119,12 +122,19 @@ func (web *Web) HandleSettings() {
 		if _, ok := allowedSyncIntervals[settingsForm.SyncIntervalHours]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
 				Field: "sync_interval_hours",
-				Message: "Invalid synchronization interval",
+				Message: translate(lang, "Invalid synchronization interval"),
+			})
+		}
+
+		if settingsForm.Language != "" && !isSupportedLanguage(settingsForm.Language) {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
+				Field: "language",
+				Message: translate(lang, "Unsupported language"),
 			})
 		}
 
 		return errorResponse
-	}, func(value any) SuccessResponse {
+	}, func(value any, lang string) SuccessResponse {
 		settingsForm := value.(*SettingsForm)
 		scanFolders := SplitAndTrimSpaceArray(settingsForm.ScanFolders, "\n")
 
@@ -136,6 +146,7 @@ func (web *Web) HandleSettings() {
 		appSettings.IgnoreFileTypes = SplitAndTrimSpaceArray(strings.ReplaceAll(settingsForm.IgnoreFileTypes, ",", " "), " ")
 		appSettings.HideDemoGames = settingsForm.HideDemoGames
 		appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
+		appSettings.Language = settingsForm.Language
 		appSettings.Folder = scanFolders[0]
 		if len(scanFolders) > 1 {
 			appSettings.ScanFolders = scanFolders[1:]
@@ -150,13 +161,13 @@ func (web *Web) HandleSettings() {
 			web.sugarLogger.Warnf("Failed to initialize switch keys: %s", err)
 		}
 
-		message := "Settings changed successfully. The library is being rescanned."
+		message := translate(lang, "Settings changed successfully. The library is being rescanned.")
 		if !web.Rescan() {
-			message = "Settings changed successfully. They will be applied by the next synchronization."
+			message = translate(lang, "Settings changed successfully. They will be applied by the next synchronization.")
 		}
 
 		return SuccessResponse {
-			StrongMessage: "Success!",
+			StrongMessage: translate(lang, "Success!"),
 			Message: message,
 		}
 	}, web.embedFS, fsPatterns...)

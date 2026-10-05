@@ -85,6 +85,7 @@ type AppSettings struct {
 	IgnoreFileTypes        []string        `json:"ignore_file_types"`
 	HideDemoGames          bool            `json:"hide_demo_games"`
 	SyncIntervalHours      int             `json:"sync_interval_hours"`
+	Language               string          `json:"language"`
 	LastSyncTime           time.Time       `json:"last_sync_time"`
 }
 

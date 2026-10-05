@@ -16,6 +16,7 @@ Easily manage your Switch game backups from the browser.
 - Ignore lists for DLC, updates and file types; hide demos
 - JSON API to list and download the library (`/api/titles`)
 - Optional password protection
+- Interface in English and Spanish
 - Zero dependencies, all crypto operations implemented in Go
 
 ## Usage

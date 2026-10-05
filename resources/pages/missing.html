@@ -1,8 +1,8 @@
-{{define "title"}}Missing Games{{end}}
+{{define "title"}}{{t "Missing Games"}}{{end}}
 {{define "main"}}
 			<div class="row mb-3">
 				<div class="col d-flex flex-column flex-lg-row justify-content-lg-between align-items-lg-center">
-					<h1 class="mb-3">Missing Games <span class="badge bg-secondary fs-6 align-text-top">{{.Pagination.NumItems}}</span></h1>
+					<h1 class="mb-3">{{t "Missing Games"}} <span class="badge bg-secondary fs-6 align-text-top">{{.Pagination.NumItems}}</span></h1>
 					{{- template "filter" .}}
 				</div>
 			</div>
@@ -16,7 +16,7 @@
 			{{- else}}
 			<div class="alert alert-success d-flex align-items-center" role="alert">
 				<span class="bi bi-check-circle-fill flex-shrink-0 me-2"></span>
-				<div><strong>Well done!</strong> You should get a life.</div>
+				<div><strong>{{t "Well done!"}}</strong> {{t "You should get a life."}}</div>
 			</div>
 			{{- end}}
 {{- end}}
