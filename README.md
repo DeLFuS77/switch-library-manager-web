@@ -30,7 +30,7 @@ Easily manage your Switch game backups from the browser.
 ### Docker
 
 The image is available on [Docker Hub](https://hub.docker.com/r/delfus77/switch-library-manager-web) (`delfus77/switch-library-manager-web`)
-and on GitHub (`ghcr.io/DeLFuS77/switch-library-manager-web`), for amd64 and arm64 (Raspberry Pi, most NAS).
+and on GitHub (`ghcr.io/delfus77/switch-library-manager-web`), for amd64 and arm64 (Raspberry Pi, most NAS).
 
 With Docker Compose, copy [docker-compose.yml](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/docker-compose.yml), set your library folder and run
 `docker compose up -d`. Or with `docker run`:
