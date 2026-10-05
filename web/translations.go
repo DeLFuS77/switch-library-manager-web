@@ -237,6 +237,12 @@ var translations = map[string]map[string]string{
 		"Update %v for %v":                                                                 "Actualización %v de %v",
 		"DLC %v for %v":                                                                    "DLC %v de %v",
 
+		// theme
+		"Theme":              "Tema",
+		"Light":              "Claro",
+		"Dark":               "Oscuro",
+		"Automatic (system)": "Automático (sistema)",
+
 		// export
 		"Export":                "Exportar",
 		"Spreadsheet (CSV)":     "Hoja de cálculo (CSV)",
