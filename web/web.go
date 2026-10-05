@@ -286,6 +286,7 @@ func (web *Web) Start() {
 	web.HandleExport()
 	web.HandleStatistics()
 	web.HandleNotifications()
+	web.HandleArchive()
 	web.StartScheduler()
 
 	web.router.Handle("/", http.RedirectHandler("/index.html", http.StatusMovedPermanently))
