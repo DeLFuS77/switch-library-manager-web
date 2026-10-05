@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### New features
+
+- **Statistics page**: number of games, updates and DLC, total size, space by content and by file format, games up to
+  date, missing updates, DLC and games, issues and the largest games.
+
 ## 1.3.0
 
 ### New features
