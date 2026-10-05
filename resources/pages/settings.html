@@ -70,6 +70,40 @@
 						{{- end}}
 					</select>
 				</div>
+				<div class="col-12">
+					<h2 class="h4 mt-3">{{t "Notifications"}}</h2>
+					<p class="text-body-secondary mb-0">{{t "After every synchronization, get a message when an update or a DLC of one of your games becomes available. Only new items are reported."}}</p>
+				</div>
+				<div class="col-lg-6">
+					<label for="discord_webhook_url" class="form-label">{{t "Discord webhook URL"}}</label>
+					<input type="url" class="form-control" id="discord_webhook_url" name="discord_webhook_url" value="{{.Settings.Notifications.DiscordWebhookUrl}}" placeholder="https://discord.com/api/webhooks/..." autocomplete="off">
+					<div class="form-text">{{t "Channel settings > Integrations > Webhooks"}}</div>
+				</div>
+				<div class="col-lg-6">
+					<label for="webhook_url" class="form-label">{{t "Other webhook URL"}}</label>
+					<input type="url" class="form-control" id="webhook_url" name="webhook_url" value="{{.Settings.Notifications.WebhookUrl}}" placeholder="https://..." autocomplete="off">
+					<div class="form-text">{{t "Receives a JSON message (ntfy, Home Assistant, n8n, ...)"}}</div>
+				</div>
+				<div class="col-lg-6">
+					<label for="telegram_bot_token" class="form-label">{{t "Telegram bot token"}}</label>
+					<input type="password" class="form-control" id="telegram_bot_token" name="telegram_bot_token" value="{{.Settings.Notifications.TelegramBotToken}}" autocomplete="off">
+					<div class="form-text">{{t "Create a bot with @BotFather"}}</div>
+				</div>
+				<div class="col-lg-6">
+					<label for="telegram_chat_id" class="form-label">{{t "Telegram chat ID"}}</label>
+					<input type="text" class="form-control" id="telegram_chat_id" name="telegram_chat_id" value="{{.Settings.Notifications.TelegramChatId}}" autocomplete="off">
+				</div>
+				<div class="col-12 d-flex flex-column flex-sm-row gap-3 align-items-sm-center">
+					<div class="form-check form-switch">
+						<input class="form-check-input" type="checkbox" role="switch" id="notify_updates" name="notify_updates" value="true"{{if .Settings.Notifications.NotifyUpdates}} checked{{end}}>
+						<label class="form-check-label" for="notify_updates">{{t "Notify new updates"}}</label>
+					</div>
+					<div class="form-check form-switch">
+						<input class="form-check-input" type="checkbox" role="switch" id="notify_dlc" name="notify_dlc" value="true"{{if .Settings.Notifications.NotifyDlc}} checked{{end}}>
+						<label class="form-check-label" for="notify_dlc">{{t "Notify new DLC"}}</label>
+					</div>
+					<button type="button" class="btn btn-sm btn-outline-light ms-sm-auto" id="notificationTest">{{t "Send a test notification"}}</button>
+				</div>
 				<div class="col-12 text-end">
 					<button type="submit" class="btn btn-secondary">{{t "Save"}}</button>
 				</div>

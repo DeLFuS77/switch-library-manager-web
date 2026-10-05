@@ -370,6 +370,24 @@ function initIgnoreButtons() {
 	}));
 }
 
+function initNotificationTest() {
+	const button = document.getElementById('notificationTest');
+	if (!button) {
+		return;
+	}
+	button.addEventListener('click', () => {
+		const form = document.getElementById('settingsForm');
+		button.disabled = true;
+		postForm('/notifications/test', {}).then(response => {
+			insertAlert(form, 'alert-success', 'bi-check-circle-fill', response.strongMessage, response.message);
+		}).catch(error => {
+			insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+		}).finally(() => {
+			button.disabled = false;
+		});
+	});
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 	[...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
@@ -394,4 +412,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	initOrganize();
 	initIgnoreButtons();
+	initNotificationTest();
 }, false);

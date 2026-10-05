@@ -43,6 +43,7 @@ func (web *Web) Synchronize() bool {
 		}
 
 		web.state.set(switchDB, localDB)
+		web.notifyChanges()
 	}()
 
 	return true
