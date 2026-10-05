@@ -5,6 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Demo mode: changes are disabled.": "Modo demo: los cambios están desactivados.",
+		"Demo mode with made-up games.": "Modo demo con juegos inventados.",
 		"Backup": "Copia de seguridad",
 		"Save the settings, users, verification results and notified versions in a ZIP file, to move the app or to undo a mistake. Your keys are never included.": "Guarda los ajustes, los usuarios, los resultados de verificación y las versiones avisadas en un archivo ZIP, para mover la app o deshacer un error. Tus claves nunca se incluyen.",
 		"Download a backup": "Descargar una copia",

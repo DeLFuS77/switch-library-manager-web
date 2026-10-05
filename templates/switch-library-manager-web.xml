@@ -14,6 +14,11 @@
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/templates/switch-library-manager-web.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/resources/static/android-chrome-512x512.png</Icon>
+  <Screenshot>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/docs/screenshots/library.png</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/docs/screenshots/title.png</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/docs/screenshots/updates.png</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/docs/screenshots/statistics.png</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/docs/screenshots/mobile.png</Screenshot>
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>MIT</License>
