@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.6.0
+
+### New features
+
+- **Automatic scan**: games copied to, removed from or replaced in the library folders show up by themselves.
+  - Local folders report changes right away.
+  - Every folder is also checked every two minutes, which covers network shares and Docker volumes that do not
+    report changes, and changes made while the app was stopped.
+  - A folder is only scanned once it stopped changing, so files still being copied are not read half written.
+  - Can be turned off in Settings.
+- **Library filters**: status filters with counts (all, update available, DLC missing, up to date), a file format
+  menu, and a switch between large and small covers that the browser remembers.
+- **Setup checklist**: while the library is empty, the Library page lists the steps to set it up (titles database,
+  prod.keys, game folders, scan), shows which are done and links to where each one is done. Folders that cannot be
+  read are named.
+
+### Improvements
+
+- **Titles database downloads**:
+  - Downloads are written straight to disk instead of being kept in memory, which helps small devices such as a
+    Raspberry Pi.
+  - Truncated downloads are rejected, and server errors or dropped connections are retried before the next mirror
+    is tried.
+  - When the database did not change, it is not processed again, so most synchronizations are much faster.
+
 ## 1.5.0
 
 ### New features
