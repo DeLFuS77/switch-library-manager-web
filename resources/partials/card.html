@@ -24,6 +24,10 @@
 							<p class="card-text">
 								Version: {{if .Version}}{{.Version}}{{else}}Unknown{{end}} ({{.LocalUpdate}})
 							</p>
+							{{- else if .Version}}
+							<p class="card-text">
+								Version: {{.Version}}
+							</p>
 							{{- end}}
 							{{- if or (and .ReleaseDate (not .ReleaseDate.IsZero)) (and .LatestUpdateDate (not .LatestUpdateDate.IsZero))}}
 							<div class="card-text mb-3">

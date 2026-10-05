@@ -1,14 +1,20 @@
 # Changelog
 
-## Unreleased
+## 1.1.1
 
 ### Fixes
 
+- Library cards show the version of games without updates.
 - Titles that need keys missing from prod.keys (dumped from an older firmware) are reported in Issues with the name of
   the missing key and how to fix it.
 - Synchronize reloads prod.keys, so a replaced keys file is used without restarting the app.
 - A library cache without recognized titles no longer scans every file twice on start.
 - Log warnings no longer include stack traces unless debug is enabled.
+
+### Other
+
+- `*.keys` files are ignored by git, so console keys cannot be committed by mistake. Keys are never included in this
+  repository or its releases: every user must provide their own `prod.keys`.
 
 ## 1.1.0
 
