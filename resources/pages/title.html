@@ -10,11 +10,9 @@
 			</nav>
 			<header class="title-hero">
 				<div class="title-hero-bg" style="background-image: url('{{thumb $cover}}')"></div>
-				<div class="row g-4 align-items-center">
-					<div class="col-8 col-sm-5 col-md-4 col-xl-3 mx-auto mx-sm-0">
-						<img src="{{$cover}}" class="img-fluid w-100 title-cover" alt="{{$t.Name}}">
-					</div>
-					<div class="col-sm-7 col-md-8 col-xl-9">
+				<div class="title-hero-main">
+					<img src="{{$cover}}" class="title-cover" alt="{{$t.Name}}">
+					<div class="title-hero-info">
 						<div class="d-flex flex-wrap gap-1 mb-2">
 							{{- if $t.Owned}}
 							<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "In your library"}}</span>
@@ -25,33 +23,58 @@
 							{{- if $t.FirmwareTooNew}}<span class="chip chip-danger"><span class="bi bi-cpu" aria-hidden="true"></span>{{t "Your console needs firmware %v or newer for this game" $t.RequiredFirmware}}</span>{{end}}
 							{{- if gt $t.MissingDlc 0}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC missing" $t.MissingDlc}}</span>{{else if and (not $t.Owned) $t.Dlc}}<span class="chip chip-muted"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC" (len $t.Dlc)}}</span>{{end}}
 						</div>
-						<h1 class="fw-bold mb-1">{{$t.Name}}</h1>
+						<h1 class="title-name">{{$t.Name}}</h1>
 						{{- if $t.Publisher}}
-						<p class="text-body-secondary mb-3">{{$t.Publisher}}</p>
+						<p class="title-publisher"><span class="bi bi-building" aria-hidden="true"></span>{{$t.Publisher}}</p>
 						{{- end}}
-						<div class="fact-grid mb-3">
-							<div class="fact"><div class="fact-label">{{t "Title ID"}}</div><div class="fact-value font-monospace">{{$t.Id}}</div></div>
-							{{- if not $t.ReleaseDate.IsZero}}
-							<div class="fact"><div class="fact-label">{{t "Release date"}}</div><div class="fact-value">{{$t.ReleaseDate | formatTime}}</div></div>
+						<div class="title-actions">
+							{{- if and $t.Owned (gt $t.ArchiveFiles 1)}}
+							<a class="btn btn-primary rounded-pill" href="/api/titles/{{$t.Id}}/archive.zip"><span class="bi bi-file-earmark-zip me-2" aria-hidden="true"></span>{{t "Download all (%v files, %v)" $t.ArchiveFiles (formatSize $t.ArchiveSize)}}</a>
 							{{- end}}
-							{{- if $t.Region}}
-							<div class="fact"><div class="fact-label">{{t "Region"}}</div><div class="fact-value"><span class="fi fi-{{$t.Region | toLower}} me-1" aria-hidden="true"></span>{{$t.Region}}</div></div>
-							{{- end}}
-							{{- if $t.Base}}
-							<div class="fact"><div class="fact-label">{{t "Installed version"}}</div><div class="fact-value">{{if $t.Updates}}{{with index $t.Updates 0}}{{if .DisplayVersion}}{{.DisplayVersion}} {{end}}<span class="text-body-secondary fw-normal">v{{.Version}}</span>{{end}}{{else}}{{if $t.Base.DisplayVersion}}{{$t.Base.DisplayVersion}} {{end}}<span class="text-body-secondary fw-normal">v{{$t.Base.Version}}</span>{{end}}</div></div>
-							{{- end}}
-							{{- if $t.RequiredFirmware}}
-							<div class="fact"><div class="fact-label">{{t "Required firmware"}}</div><div class="fact-value{{if $t.FirmwareTooNew}} text-danger{{end}}"><span class="bi bi-cpu me-1" aria-hidden="true"></span>{{$t.RequiredFirmware}}</div></div>
-							{{- end}}
-							{{- if gt $t.LatestUpdate 0}}
-							<div class="fact"><div class="fact-label">{{t "Latest update"}}</div><div class="fact-value">v{{$t.LatestUpdate}}{{if not $t.LatestUpdateDate.IsZero}} <span class="text-body-secondary fw-normal small">{{$t.LatestUpdateDate | formatTime}}</span>{{end}}</div></div>
-							{{- end}}
+							<button type="button" class="btn btn-glass rounded-pill" data-copy="{{$t.Id}}" data-copied="{{t "Copied"}}"><span class="bi bi-clipboard me-2" aria-hidden="true"></span><span data-copy-label>{{t "Copy title ID"}}</span></button>
 						</div>
-						{{- if and $t.Owned (gt $t.ArchiveFiles 1)}}
-						<a class="btn btn-primary rounded-pill px-4" href="/api/titles/{{$t.Id}}/archive.zip"><span class="bi bi-file-earmark-zip me-2" aria-hidden="true"></span>{{t "Download all (%v files, %v)" $t.ArchiveFiles (formatSize $t.ArchiveSize)}}</a>
-						{{- end}}
 					</div>
 				</div>
+				<dl class="fact-grid">
+					<div class="fact fact-wide">
+						<dt class="fact-label"><span class="bi bi-upc" aria-hidden="true"></span>{{t "Title ID"}}</dt>
+						<dd class="fact-value font-monospace fact-id">{{$t.Id}}</dd>
+					</div>
+					{{- if not $t.ReleaseDate.IsZero}}
+					<div class="fact">
+						<dt class="fact-label"><span class="bi bi-calendar-event" aria-hidden="true"></span>{{t "Release date"}}</dt>
+						<dd class="fact-value">{{$t.ReleaseDate | formatTime}}</dd>
+					</div>
+					{{- end}}
+					{{- if $t.Region}}
+					<div class="fact">
+						<dt class="fact-label"><span class="bi bi-globe2" aria-hidden="true"></span>{{t "Region"}}</dt>
+						<dd class="fact-value"><span class="fi fi-{{$t.Region | toLower}} me-2" aria-hidden="true"></span>{{$t.Region}}</dd>
+					</div>
+					{{- end}}
+					{{- if $t.Base}}
+					<div class="fact">
+						<dt class="fact-label"><span class="bi bi-hdd" aria-hidden="true"></span>{{t "Installed version"}}</dt>
+						{{- if $t.Updates}}{{with index $t.Updates 0}}
+						<dd class="fact-value">v{{.Version}}{{if .DisplayVersion}}<span class="fact-sub">{{.DisplayVersion}}</span>{{end}}</dd>
+						{{- end}}{{else}}
+						<dd class="fact-value">v{{$t.Base.Version}}{{if $t.Base.DisplayVersion}}<span class="fact-sub">{{$t.Base.DisplayVersion}}</span>{{end}}</dd>
+						{{- end}}
+					</div>
+					{{- end}}
+					{{- if gt $t.LatestUpdate 0}}
+					<div class="fact">
+						<dt class="fact-label"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Latest update"}}</dt>
+						<dd class="fact-value">v{{$t.LatestUpdate}}{{if not $t.LatestUpdateDate.IsZero}}<span class="fact-sub">{{$t.LatestUpdateDate | formatTime}}</span>{{end}}</dd>
+					</div>
+					{{- end}}
+					{{- if $t.RequiredFirmware}}
+					<div class="fact{{if $t.FirmwareTooNew}} fact-danger{{end}}">
+						<dt class="fact-label"><span class="bi bi-cpu" aria-hidden="true"></span>{{t "Required firmware"}}</dt>
+						<dd class="fact-value">{{$t.RequiredFirmware}}</dd>
+					</div>
+					{{- end}}
+				</dl>
 			</header>
 			{{- if $t.Description}}
 			<section class="surface mb-4">
@@ -84,92 +107,74 @@
 				</div>
 				{{- else if gt $t.LatestUpdate 0}}
 				<div class="alert alert-success mb-0"><span class="bi bi-check-circle-fill me-2" aria-hidden="true"></span>{{t "You have the latest update."}}</div>
+				{{- else}}
+				<p class="text-body-secondary mb-0">{{t "No updates have been released for this game."}}</p>
 				{{- end}}
 			</section>
 			<section class="mb-4">
 				<h2 class="section-title"><span class="bi bi-hdd" aria-hidden="true"></span>{{t "Files"}}</h2>
-				<div class="surface p-0 table-responsive">
-					<table class="table table-hover align-middle">
-						<thead>
-							<tr>
-								<th scope="col">{{t "Type"}}</th>
-								<th scope="col">{{t "Version"}}</th>
-								<th scope="col">{{t "File"}}</th>
-								<th scope="col" class="text-end">{{t "Size"}}</th>
-								<th scope="col"><span class="visually-hidden">{{t "Download"}}</span></th>
-							</tr>
-						</thead>
-						<tbody>
-							{{- template "titleFile" $t.Base}}
-							{{- range $t.Updates}}
-							{{- template "titleFile" .}}
-							{{- end}}
-						</tbody>
-					</table>
-				</div>
+				<ul class="item-list">
+					{{- with $t.Base}}{{template "titleFile" .}}{{end}}
+					{{- range $t.Updates}}
+					{{- template "titleFile" .}}
+					{{- end}}
+				</ul>
 			</section>
 			{{- end}}
 			{{- if $t.Dlc}}
 			<section class="mb-4">
-				<div class="d-flex align-items-center justify-content-between gap-3 mb-3">
-					<h2 class="section-title mb-0"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "DLC"}} <span class="badge page-count">{{len $t.Dlc}}</span></h2>
+				<div class="section-head">
+					<h2 class="section-title mb-0"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "DLC"}} <span class="badge rounded-pill text-bg-secondary">{{len $t.Dlc}}</span></h2>
 					{{- if and $t.Owned (gt $t.DlcTotal 0)}}
-					<div class="d-flex align-items-center gap-2">
-						<span class="small text-body-secondary text-end">{{t "%v of %v DLC" $t.DlcOwned $t.DlcTotal}}</span>
-						<div class="gauge gauge-sm" style="--pct: {{$t.DlcPercent}}" role="img" aria-label="{{t "%v of %v DLC" $t.DlcOwned $t.DlcTotal}}"><span class="gauge-value">{{$t.DlcPercent}}%</span></div>
+					<div class="dlc-summary">
+						<span class="small text-body-secondary text-nowrap">{{t "%v of %v DLC" $t.DlcOwned $t.DlcTotal}}</span>
+						<div class="dlc-progress-bar" role="img" aria-label="{{t "%v of %v DLC" $t.DlcOwned $t.DlcTotal}}"><span style="width: {{$t.DlcPercent}}%"></span></div>
 					</div>
 					{{- end}}
 				</div>
-				<div class="surface p-0 table-responsive">
-					<table class="table table-hover align-middle">
-						<thead>
-							<tr>
-								<th scope="col">{{t "Name"}}</th>
-								<th scope="col">{{t "Status"}}</th>
-								<th scope="col" class="text-end">{{t "Size"}}</th>
-								<th scope="col"><span class="visually-hidden">{{t "Actions"}}</span></th>
-							</tr>
-						</thead>
-						<tbody>
-							{{- range $t.Dlc}}
-							<tr>
-								<td><span class="fw-semibold">{{.Name}}</span><br><small class="text-body-secondary font-monospace">{{.Id}}</small></td>
-								<td class="text-nowrap">
-									{{- if .Owned}}
-									<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Owned"}}</span>{{if .UpdateAvailable}} <span class="chip chip-warning">{{t "v%v available" .LatestVersion}}</span>{{end}}
-									{{- else if not $t.Owned}}
-									<span class="chip chip-muted">{{t "Not owned"}}</span>
-									{{- else if .Ignored}}
-									<span class="chip chip-muted"><span class="bi bi-eye-slash" aria-hidden="true"></span>{{t "Ignored"}}</span>
-									{{- else}}
-									<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "Missing"}}</span>
-									{{- end}}
-								</td>
-								<td class="text-end text-nowrap">{{if .File}}{{formatSize .File.Size}}{{end}}</td>
-								<td class="text-end text-nowrap">
-									{{- if .File}}
-									<a class="btn btn-sm btn-outline-secondary bi bi-download" href="{{.File.DownloadUrl}}" title="{{t "Download %v" .File.FileName}}"><span class="visually-hidden">{{t "Download"}}</span></a>
-									{{- else if not $t.Owned}}
-									{{- else if .Ignored}}
-									<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="false">{{t "Restore"}}</button>
-									{{- else}}
-									<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="true">{{t "Ignore"}}</button>
-									{{- end}}
-								</td>
-							</tr>
+				<ul class="item-list">
+					{{- range $t.Dlc}}
+					<li class="item-row item-row-wide">
+						<div class="item-main">
+							<div class="item-name">{{.Name}}</div>
+							<div class="item-meta"><span class="font-monospace">{{.Id}}</span>{{if .File}}<span>{{formatSize .File.Size}}</span>{{end}}</div>
+						</div>
+						<div class="item-end">
+							{{- if .Owned}}
+							<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Owned"}}</span>{{if .UpdateAvailable}}<span class="chip chip-warning">{{t "v%v available" .LatestVersion}}</span>{{end}}
+							{{- else if not $t.Owned}}
+							<span class="chip chip-muted">{{t "Not owned"}}</span>
+							{{- else if .Ignored}}
+							<span class="chip chip-muted"><span class="bi bi-eye-slash" aria-hidden="true"></span>{{t "Ignored"}}</span>
+							{{- else}}
+							<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "Missing"}}</span>
 							{{- end}}
-						</tbody>
-					</table>
-				</div>
+							{{- if .File}}
+							<a class="btn btn-sm btn-outline-secondary" href="{{.File.DownloadUrl}}" title="{{t "Download %v" .File.FileName}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download %v" .File.FileName}}</span></a>
+							{{- else if not $t.Owned}}
+							{{- else if .Ignored}}
+							<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="false">{{t "Restore"}}</button>
+							{{- else}}
+							<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="true">{{t "Ignore"}}</button>
+							{{- end}}
+						</div>
+					</li>
+					{{- end}}
+				</ul>
 			</section>
 			{{- end}}
 {{- end}}
 {{define "titleFile"}}
-							<tr>
-								<td><span class="chip chip-muted">{{.Type}}</span></td>
-								<td class="text-nowrap">{{if .DisplayVersion}}{{.DisplayVersion}} {{end}}<small class="text-body-secondary">v{{.Version}}</small>{{if .RequiredFirmware}}<br><small class="text-body-secondary" title="{{t "Required firmware"}}"><span class="bi bi-cpu" aria-hidden="true"></span> {{.RequiredFirmware}}</small>{{end}}</td>
-								<td class="text-break"><span title="{{.Path}}">{{.FileName}}</span></td>
-								<td class="text-end text-nowrap">{{formatSize .Size}}</td>
-								<td class="text-end"><a class="btn btn-sm btn-outline-secondary bi bi-download" href="{{.DownloadUrl}}" title="{{t "Download %v" .FileName}}"><span class="visually-hidden">{{t "Download"}}</span></a></td>
-							</tr>
+					<li class="item-row">
+						<span class="chip chip-muted item-type">{{.Type}}</span>
+						<div class="item-main">
+							<div class="item-name" title="{{.Path}}">{{.FileName}}</div>
+							<div class="item-meta">
+								<span>v{{.Version}}{{if .DisplayVersion}} · {{.DisplayVersion}}{{end}}</span>
+								<span>{{formatSize .Size}}</span>
+								{{- if .RequiredFirmware}}<span title="{{t "Required firmware"}}"><span class="bi bi-cpu me-1" aria-hidden="true"></span>{{.RequiredFirmware}}</span>{{end}}
+							</div>
+						</div>
+						<a class="btn btn-sm btn-outline-secondary" href="{{.DownloadUrl}}" title="{{t "Download %v" .FileName}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download %v" .FileName}}</span></a>
+					</li>
 {{- end}}
