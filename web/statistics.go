@@ -1,6 +1,8 @@
 package web
 
 import (
+	"fmt"
+	"html/template"
 	"net/http"
 	"path/filepath"
 	"sort"
@@ -178,4 +180,27 @@ func (web *Web) HandleStatistics() {
 		lang := web.requestLanguage(r)
 		web.render(w, r, templates, StatisticsPageData{GlobalPageData: web.globalPageData("statistics"), Stats: web.getStatistics(lang)})
 	}).Methods("GET")
+}
+
+// conicGradient draws the shares as a donut chart: a CSS conic gradient with one color
+// per share, the colors of the chart legend.
+func conicGradient(shares []SizeShare) template.CSS {
+	if len(shares) == 0 {
+		return template.CSS("background: var(--slm-surface-muted)")
+	}
+	parts := []string{}
+	start := 0.0
+	total := int64(0)
+	for _, share := range shares {
+		total += share.Size
+	}
+	if total == 0 {
+		return template.CSS("background: var(--slm-surface-muted)")
+	}
+	for i, share := range shares {
+		end := start + float64(share.Size)*100/float64(total)
+		parts = append(parts, fmt.Sprintf("var(--slm-chart-%d) %.2f%% %.2f%%", i%6+1, start, end))
+		start = end
+	}
+	return template.CSS("background: conic-gradient(" + strings.Join(parts, ", ") + ")")
 }

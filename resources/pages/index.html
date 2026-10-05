@@ -12,6 +12,40 @@
 				</div>
 				{{- end}}
 			</div>
+			{{- if .HasLibrary}}
+			{{- $s := .Stats}}
+			<section class="library-overview" aria-label="{{t "Overview"}}">
+				<a class="kpi" href="/statistics.html">
+					<span class="kpi-icon"><span class="bi bi-controller" aria-hidden="true"></span></span>
+					<span class="kpi-value">{{$s.Games}}</span>
+					<span class="kpi-label">{{t "Games"}}</span>
+				</a>
+				<a class="kpi kpi-warning" href="/updates.html">
+					<span class="kpi-icon"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span></span>
+					<span class="kpi-value">{{$s.GamesWithUpdate}}</span>
+					<span class="kpi-label">{{t "Updates"}}</span>
+				</a>
+				<a class="kpi kpi-info" href="/dlc.html">
+					<span class="kpi-icon"><span class="bi bi-puzzle" aria-hidden="true"></span></span>
+					<span class="kpi-value">{{$s.MissingDlc}}</span>
+					<span class="kpi-label">{{t "Missing DLC"}}</span>
+				</a>
+				<a class="kpi kpi-cyan" href="/statistics.html">
+					<span class="kpi-icon"><span class="bi bi-hdd-stack" aria-hidden="true"></span></span>
+					<span class="kpi-value">{{formatSize $s.TotalSize}}</span>
+					<span class="kpi-label">{{t "Total size"}}</span>
+				</a>
+				{{- if $s.HasTitlesDatabase}}
+				<div class="library-health">
+					<div class="d-flex justify-content-between small mb-1">
+						<span class="fw-semibold">{{t "Games up to date"}}</span>
+						<span><span class="fw-bold">{{$s.GamesUpToDatePct}}%</span> <span class="text-body-secondary">({{$s.GamesUpToDate}} / {{$s.Games}})</span></span>
+					</div>
+					<div class="health-bar" role="progressbar" aria-label="{{t "Games up to date"}}" aria-valuenow="{{$s.GamesUpToDatePct}}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{$s.GamesUpToDatePct}}%"></span></div>
+				</div>
+				{{- end}}
+			</section>
+			{{- end}}
 			{{- if or .HasLibrary .Filter.Active}}
 			{{- template "filter" .}}
 			<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">

@@ -79,6 +79,7 @@ func (web *Web) HandleIndex() {
 			},
 			Facets: facets,
 			Setup: web.setupStatus(),
+			Stats: web.getStatistics(lang),
 		}
 	}, web.embedFS, fsPatterns...)
 }
@@ -222,8 +223,12 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			for id := range title.Dlc {
 				_, owned := v.Dlc[id]
 				_, ignored := ignoredDlc[id]
-				if !owned && !ignored {
+				if owned {
+					item.DlcOwned++
+					item.DlcTotal++
+				} else if !ignored {
 					item.MissingDlcCount++
+					item.DlcTotal++
 				}
 			}
 

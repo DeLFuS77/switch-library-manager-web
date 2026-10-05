@@ -5,6 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"%v of %v DLC":          "%v de %v DLC",
+		"Overview":              "Resumen",
 		"%v files decompressed": "%v archivos descomprimidos",
 		"Compress your NSP files to NSZ and XCI files to XCZ to save space. Tinfoil, DBI and other installers install them directly. Every file is verified before the original is deleted.": "Comprime tus archivos NSP a NSZ y XCI a XCZ para ahorrar espacio. Tinfoil, DBI y otros instaladores los instalan directamente. Cada archivo se verifica antes de borrar el original.",
 		"Decompress":          "Descomprimir",

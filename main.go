@@ -14,6 +14,7 @@ import (
 //go:embed resources/static
 //go:embed node_modules/bootstrap-icons/font/fonts
 //go:embed node_modules/flag-icons/flags
+//go:embed node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2 node_modules/@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2
 //go:embed resources/layout.html resources/login.html
 //go:embed resources/partials/*.html
 //go:embed resources/pages/*.html

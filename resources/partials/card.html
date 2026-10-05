@@ -1,6 +1,7 @@
 {{- define "card"}}
 				<article class="card game-card h-100">
 					<div class="game-cover">
+						{{- if .UpdateAvailable}}<span class="cover-ribbon" title="{{t "Update available"}}"><span class="bi bi-arrow-up-circle-fill" aria-hidden="true"></span></span>{{end}}
 						<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
 						{{- if or .Type .Region}}
 						<div class="game-cover-meta">
@@ -32,6 +33,12 @@
 							{{- if gt .MissingDlcCount 0}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC missing" .MissingDlcCount}}</span>{{end}}
 							{{- if and .Region (not .UpdateAvailable) (eq .MissingDlcCount 0)}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Up to date"}}</span>{{end}}
 						</div>
+						{{- if gt .DlcTotal 0}}
+						<div class="dlc-progress" title="{{t "%v of %v DLC" .DlcOwned .DlcTotal}}">
+							<div class="dlc-progress-bar" role="progressbar" aria-label="{{t "%v of %v DLC" .DlcOwned .DlcTotal}}" aria-valuenow="{{.DlcPercent}}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{.DlcPercent}}%"></span></div>
+							<span class="dlc-progress-label">DLC {{.DlcOwned}}/{{.DlcTotal}}</span>
+						</div>
+						{{- end}}
 						{{- else}}
 						{{- /* Missing games */}}
 						{{- if not .ReleaseDate.IsZero}}

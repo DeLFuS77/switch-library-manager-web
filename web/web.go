@@ -145,6 +145,17 @@ type TitleItem struct {
 	OriginalName string
 	// the game is in the titles database
 	Known bool
+	// DLC of the game in the library, of the DLC not ignored
+	DlcOwned int
+	DlcTotal int
+}
+
+// DlcPercent is the share of the DLC of a game in the library.
+func (t TitleItem) DlcPercent() int {
+	if t.DlcTotal == 0 {
+		return 0
+	}
+	return t.DlcOwned * 100 / t.DlcTotal
 }
 
 type GlobalPageData struct {
@@ -189,6 +200,8 @@ type LibraryPageData struct {
 	TitleItemsPageData
 	Facets LibraryFacets
 	Setup  SetupStatus
+	// the overview at the top of the library
+	Stats Statistics
 }
 
 var funcMap = template.FuncMap {
@@ -229,6 +242,13 @@ var funcMap = template.FuncMap {
 	},
 	"formatSize": formatSize,
 	"thumb":      thumbUrl,
+	"mod": func(a, b int) int {
+		if b == 0 {
+			return 0
+		}
+		return a % b
+	},
+	"conic":      conicGradient,
 	// the first letter of a name, for avatars
 	"initial": func(name string) string {
 		for _, r := range name {
