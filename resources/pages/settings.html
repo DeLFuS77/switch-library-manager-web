@@ -35,6 +35,11 @@
 								</textarea>
 								<div class="form-text" id="scanFoldersHelp">{{t "One folder per Line"}}</div>
 							</div>
+							<div class="form-check form-switch mt-3">
+								<input class="form-check-input" type="checkbox" role="switch" id="watch_folders" name="watch_folders" value="true" aria-describedby="watchFoldersHelp"{{if .Settings.WatchFolders}} checked{{end}}>
+								<label class="form-check-label" for="watch_folders">{{t "Scan automatically when files change"}}</label>
+								<div class="form-text" id="watchFoldersHelp">{{t "New, removed or replaced files are detected right away in local folders, and every two minutes in network folders."}}</div>
+							</div>
 						</section>
 						<section class="surface mb-4 settings-section" id="ignored" aria-labelledby="ignoredTitle">
 							<h2 class="section-title" id="ignoredTitle"><span class="bi bi-eye-slash" aria-hidden="true"></span>{{t "Ignored items"}}</h2>

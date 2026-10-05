@@ -24,6 +24,7 @@ type SettingsForm struct {
 	IgnoreDLCUpdates     bool   `in:"form=ignore_dlc_updates"`
 	IgnoreFileTypes      string `in:"form=ignore_file_types"`
 	HideDemoGames        bool   `in:"form=hide_demo_games"`
+	WatchFolders         bool   `in:"form=watch_folders"`
 	SyncIntervalHours    int    `in:"form=sync_interval_hours"`
 	Language             string `in:"form=language"`
 	DiscordWebhookUrl    string `in:"form=discord_webhook_url"`
@@ -164,6 +165,7 @@ func (web *Web) HandleSettings() {
 		appSettings.IgnoreDLCUpdates = settingsForm.IgnoreDLCUpdates
 		appSettings.IgnoreFileTypes = SplitAndTrimSpaceArray(strings.ReplaceAll(settingsForm.IgnoreFileTypes, ",", " "), " ")
 		appSettings.HideDemoGames = settingsForm.HideDemoGames
+		appSettings.WatchFolders = settingsForm.WatchFolders
 		appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
 		appSettings.Language = settingsForm.Language
 		appSettings.Notifications = settingsForm.notificationOptions()
