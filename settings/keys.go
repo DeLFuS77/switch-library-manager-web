@@ -1,7 +1,10 @@
 package settings
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"sort"
 	"os"
 	"path/filepath"
 	"strings"
@@ -116,4 +119,23 @@ func IsKeysFileAvailable() bool {
 	}
 
 	return false
+}
+
+// KeysFingerprint identifies the loaded keys without revealing them: a hash of the key
+// names and values, or "" when no keys are loaded. It changes when keys are added,
+// removed or updated, e.g. to rescan files that could not be decrypted before.
+func KeysFingerprint() string {
+	if keysInstance == nil || len(keysInstance.keys) == 0 {
+		return ""
+	}
+	names := make([]string, 0, len(keysInstance.keys))
+	for name := range keysInstance.keys {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	hash := sha256.New()
+	for _, name := range names {
+		hash.Write([]byte(name + "=" + keysInstance.keys[name] + "\n"))
+	}
+	return hex.EncodeToString(hash.Sum(nil))[:16]
 }

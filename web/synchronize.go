@@ -26,7 +26,7 @@ func (web *Web) Synchronize() bool {
 
 		// pick up a prod.keys file that was replaced while the app was running
 		if _, err := settings.InitSwitchKeys(web.dataFolder); err != nil {
-			web.sugarLogger.Warnf("Failed to initialize switch keys: %s", err)
+			web.sugarLogger.Debugf("prod.keys not loaded: %s", err)
 		}
 
 		switchDB, err := web.buildSwitchDb()
@@ -52,6 +52,12 @@ func (web *Web) Synchronize() bool {
 // Rescan rescans the library in the background without downloading the titles database.
 // It returns false if a synchronization is already running.
 func (web *Web) Rescan() bool {
+	return web.scanInBackground(true)
+}
+
+// scanInBackground loads the library (from the cache unless ignoreCache) without blocking,
+// reporting progress like a synchronization. It returns false if one is already running.
+func (web *Web) scanInBackground(ignoreCache bool) bool {
 	if !web.state.startSync() {
 		return false
 	}
@@ -60,7 +66,7 @@ func (web *Web) Rescan() bool {
 		defer web.state.endSync()
 
 		switchDB, _ := web.state.get()
-		localDB, err := web.buildLocalDB(switchDB, true)
+		localDB, err := web.buildLocalDB(switchDB, ignoreCache)
 		if err != nil {
 			web.sugarLogger.Error(err)
 			return

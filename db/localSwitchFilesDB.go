@@ -36,6 +36,8 @@ const (
 	// so caches written by older versions are rebuilt instead of misread
 	LIBRARY_SCHEMA_VERSION = "2"
 	DB_KEY_LIBRARY_SCHEMA  = "library_schema"
+	// fingerprint of the keys the cached library was scanned with
+	DB_KEY_LIBRARY_KEYS = "library_keys"
 )
 
 type LocalSwitchDBManager struct {
@@ -61,6 +63,18 @@ func NewLocalSwitchDBManager(dataFolder string) (*LocalSwitchDBManager, error) {
 	}
 
 	return &LocalSwitchDBManager{db: db}, nil
+}
+
+// KeysChanged reports whether the cached library was scanned with other keys than
+// fingerprint, and records fingerprint for the next check.
+func (ldb *LocalSwitchDBManager) KeysChanged(fingerprint string) bool {
+	changed := ldb.db.GetInternalValue(DB_KEY_LIBRARY_KEYS) != fingerprint
+	if changed {
+		if err := ldb.db.SetInternalValue(DB_KEY_LIBRARY_KEYS, fingerprint); err != nil {
+			zap.S().Warnf("Failed to save the keys fingerprint: %v", err)
+		}
+	}
+	return changed
 }
 
 func (ldb *LocalSwitchDBManager) Close() {

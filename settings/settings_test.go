@@ -192,3 +192,27 @@ func TestNotificationDefaults(t *testing.T) {
 		t.Fatalf("saved choices must be kept: %+v", s.Notifications)
 	}
 }
+
+func TestKeysFingerprint(t *testing.T) {
+	isolateSettings(t)
+	if KeysFingerprint() != "" {
+		t.Fatal("no keys loaded: empty fingerprint expected")
+	}
+	base := t.TempDir()
+	writeFile(t, filepath.Join(base, "prod.keys"), "header_key = aa\nkey_area_key_application_00 = bb\n")
+	SaveSettings(&AppSettings{}, base)
+	if _, err := InitSwitchKeys(base); err != nil {
+		t.Fatal(err)
+	}
+	first := KeysFingerprint()
+	if len(first) != 16 || strings.Contains(first, "aa") {
+		t.Fatalf("unexpected fingerprint %q", first)
+	}
+
+	// a key is added (newer firmware)
+	writeFile(t, filepath.Join(base, "prod.keys"), "header_key = aa\nkey_area_key_application_00 = bb\nkey_area_key_application_15 = cc\n")
+	InitSwitchKeys(base)
+	if second := KeysFingerprint(); second == first || second == "" {
+		t.Fatalf("fingerprint did not change: %q %q", first, second)
+	}
+}
