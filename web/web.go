@@ -171,6 +171,8 @@ type GlobalPageData struct {
 	Auth                AuthInfo
 	// a newer version of the app, if one was released
 	Update              *AppUpdate
+	// a made-up library is shown (SLM_DEMO=true)
+	Demo                bool
 	IsKeysFileAvailable bool
 	IsSynchronizing     bool
 	HasLibrary          bool
@@ -299,7 +301,8 @@ var funcMap = template.FuncMap {
 func (web *Web) globalPageData(page string) GlobalPageData {
 	_, localDB := web.state.get()
 	return GlobalPageData {
-		IsKeysFileAvailable: settings.IsKeysFileAvailable(),
+		IsKeysFileAvailable: settings.IsKeysFileAvailable() || isDemoMode(),
+		Demo: isDemoMode(),
 		IsSynchronizing: web.state.IsSynchronizing(),
 		HasLibrary: localDB != nil && len(localDB.TitlesMap) > 0,
 		Page: page,
@@ -364,7 +367,11 @@ func (web *Web) Start() {
 	web.localDbManager = localDbManager
 	defer localDbManager.Close()
 
-	web.startInBackground()
+	if isDemoMode() {
+		web.loadDemo()
+	} else {
+		web.startInBackground()
+	}
 
 	web.auth, err = newAuth(web.dataFolder)
 	if err != nil {
@@ -397,15 +404,20 @@ func (web *Web) Start() {
 	web.HandleCompress()
 	web.HandleVerify()
 	web.HandleBackup()
-	web.StartScheduler()
-	web.StartFolderWatcher()
-	web.StartUpdateChecker()
+	if !isDemoMode() {
+		web.StartScheduler()
+		web.StartFolderWatcher()
+		web.StartUpdateChecker()
+	}
 
 	web.router.Handle("/", http.RedirectHandler("/index.html", http.StatusMovedPermanently))
 
 	http.Handle("/", web.router)
 
 	handler := web.auth.middleware(http.DefaultServeMux)
+	if isDemoMode() {
+		handler = web.demoReadOnly(handler)
+	}
 	if web.auth.Enabled() {
 		web.sugarLogger.Info("[Authentication enabled]")
 	}

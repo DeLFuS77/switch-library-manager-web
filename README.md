@@ -15,6 +15,18 @@ Linux, Docker, NAS and Raspberry Pi.
 > which you dump from **your own console** (for example with Lockpick_RCM) and keep on your computer: keys are never
 > included, uploaded or shared. Never post your keys anywhere, also not in issues, logs or screenshots.
 
+<p align="center">
+  <img src="docs/screenshots/library.png" alt="The library: games with their covers, missing updates and DLC" width="880">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/title.png" alt="A game page" width="290">
+  <img src="docs/screenshots/updates.png" alt="Missing updates" width="290">
+  <img src="docs/screenshots/statistics.png" alt="Statistics" width="290">
+</p>
+
+<sub>The screenshots show the demo mode: the games, publishers and covers are made up.</sub>
+
 ## Contents
 
 - [Features](#features)
@@ -23,6 +35,7 @@ Linux, Docker, NAS and Raspberry Pi.
 - [First start](#first-start)
 - [Guides](#guides): [Organize](#organize), [Compress](#compress), [Users](#users-and-password-protection),
   [Notifications](#notifications), [API](#api), [Settings](#settings)
+- [Demo mode](#demo-mode)
 - [Troubleshooting](#troubleshooting)
 - [Building](#building)
 - [License](#license)
@@ -250,6 +263,16 @@ Most settings are in the web interface. `settings.json` in the data folder also 
 The titles database is built every 6 hours from [blawar/titledb](https://github.com/blawar/titledb) by the
 [Update title data](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/.github/workflows/update-title-data.yml) workflow and published in the `data` release. If it
 cannot be downloaded, a mirror is used.
+
+## Demo mode
+
+To look around without any games, start the app with the environment variable `SLM_DEMO=true`. It shows a made-up
+library (invented titles and generated covers), does not read your folders or download anything, and refuses every
+change:
+
+```bash
+docker run --rm -p 3000:3000 -e SLM_DEMO=true delfus77/switch-library-manager-web
+```
 
 ## Troubleshooting
 
