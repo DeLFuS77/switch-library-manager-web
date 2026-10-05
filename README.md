@@ -23,9 +23,13 @@ Easily manage your Switch game backups from the browser.
 
 ### Docker
 
+With Docker Compose, copy [docker-compose.yml](docker-compose.yml), set your library folder and run
+`docker compose up -d`. Or with `docker run`:
+
 ```
 $ docker run -d \
 	--name switch-library-manager-web \
+	-e PUID=1000 -e PGID=1000 \
 	-v /home/johndoe/switch-library-manager-web:/usr/local/share/switch-library-manager-web:Z \
 	-v /home/johndoe/Backups/Switch:/mnt/roms:Z \
 	-p 3000:3000 \
@@ -37,6 +41,12 @@ Volumes inside the container:
 - `/mnt/roms`: your library
 
 Then open http://localhost:3000. On the first start the titles database is downloaded automatically.
+
+The app runs as the user and group set with `PUID` and `PGID` (default `1000`), not as root. Use the IDs of the user
+that owns your library (`id` on the host): the library must be writable by them to organize files. The data folder
+is given to that user automatically, so upgrading from a version that ran as root needs no manual steps.
+
+The image has a health check on `/healthz` (port 3000), which works with password protection enabled.
 
 ### Binary
 
