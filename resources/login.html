@@ -1,0 +1,50 @@
+{{- define "layout" -}}
+<!doctype html>
+<html class="min-vh-100" lang="{{lang}}" data-bs-theme="dark">
+<head>
+	<meta charset="utf-8" />
+	<script>
+		(function () {
+			try {
+				var theme = localStorage.getItem('slm-theme') || 'dark';
+				if (theme === 'auto') {
+					theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+				}
+				document.documentElement.setAttribute('data-bs-theme', theme);
+			} catch (e) {}
+		})();
+	</script>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="noindex">
+	<title>{{t "Log in"}} - Switch Library Manager Web</title>
+	<link rel="stylesheet" href="/resources/static/web.css">
+	<link rel="icon" type="image/png" sizes="32x32" href="/resources/static/favicon-32x32.png">
+	<link rel="shortcut icon" href="/resources/static/favicon.ico">
+	<meta name="theme-color" content="#0d1117">
+</head>
+<body class="login-page d-flex align-items-center justify-content-center min-vh-100 p-3">
+	<main class="surface login-card w-100" id="main">
+		<div class="text-center mb-4">
+			<span class="brand-mark brand-mark-lg mb-3"><img src="/resources/static/icon.svg" alt="" aria-hidden="true"></span>
+			<h1 class="h4 fw-bold mb-1">Switch Library Manager</h1>
+			<p class="text-body-secondary mb-0">{{t "Log in to see your library."}}</p>
+		</div>
+		{{- if .Error}}
+		<div class="alert alert-danger d-flex align-items-center gap-2" role="alert"><span class="bi bi-exclamation-triangle-fill flex-shrink-0" aria-hidden="true"></span><div>{{.Error}}</div></div>
+		{{- end}}
+		<form method="post" action="/login.html">
+			<input type="hidden" name="next" value="{{.Next}}">
+			<div class="mb-3">
+				<label class="form-label fw-semibold" for="name">{{t "User name"}}</label>
+				<input class="form-control form-control-lg" id="name" name="name" value="{{.Name}}" autocomplete="username" autocapitalize="none" spellcheck="false" required{{if not .Name}} autofocus{{end}}>
+			</div>
+			<div class="mb-4">
+				<label class="form-label fw-semibold" for="password">{{t "Password"}}</label>
+				<input class="form-control form-control-lg" id="password" name="password" type="password" autocomplete="current-password" required{{if .Name}} autofocus{{end}}>
+			</div>
+			<button class="btn btn-primary btn-lg rounded-pill w-100" type="submit"><span class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></span>{{t "Log in"}}</button>
+		</form>
+	</main>
+</body>
+</html>
+{{- end}}

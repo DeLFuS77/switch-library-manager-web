@@ -1,6 +1,7 @@
 package web
 
 import (
+	"reflect"
 	"encoding/json"
 	"fmt"
 	"github.com/ggicci/httpin"
@@ -49,6 +50,7 @@ func (web *Web) mustParseTemplates(fs fs.FS, fsPatterns ...string) templateSet {
 }
 
 func (web *Web) render(w http.ResponseWriter, r *http.Request, templates templateSet, data any) {
+	data = withAuth(data, web.authInfo(r))
 	if err := templates.execute(w, web.requestLanguage(r), data); err != nil {
 		web.sugarLogger.Error(fmt.Errorf("executing template failed: %w", err))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -99,4 +101,21 @@ func (web *Web) Handle(pattern string, pageData PageData, fs fs.FS, fsPatterns .
 	web.router.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 		web.render(w, r, templates, pageData())
 	})
+}
+
+// withAuth fills in the Auth field of page data (promoted from GlobalPageData), so every
+// page knows the user of the request without each handler passing it on.
+func withAuth(data any, info AuthInfo) any {
+	value := reflect.ValueOf(data)
+	if value.Kind() != reflect.Struct {
+		return data
+	}
+	copied := reflect.New(value.Type()).Elem()
+	copied.Set(value)
+	field := copied.FieldByName("Auth")
+	if !field.IsValid() || !field.CanSet() || field.Type() != reflect.TypeOf(info) {
+		return data
+	}
+	field.Set(reflect.ValueOf(info))
+	return copied.Interface()
 }

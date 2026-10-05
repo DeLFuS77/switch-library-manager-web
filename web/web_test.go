@@ -433,7 +433,7 @@ func TestSyncProgress(t *testing.T) {
 }
 
 func TestBasicAuth(t *testing.T) {
-	handler := basicAuth("admin", "secret", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := envAuth(t, "admin", "secret").middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}))
 	tests := []struct {
@@ -665,7 +665,7 @@ func TestSyncSchedule(t *testing.T) {
 }
 
 func TestHealthCheckBypassesAuthentication(t *testing.T) {
-	protected := basicAuth("admin", "secret", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	protected := envAuth(t, "admin", "secret").middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}))
 	handler := withHealthCheck(protected)
