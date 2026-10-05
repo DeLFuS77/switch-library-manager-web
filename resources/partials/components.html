@@ -1,0 +1,25 @@
+{{- /* Components shared by every page; parsed with the layout. */ -}}
+
+{{- define "pageHeader"}}
+			<div class="page-header">
+				<h1>{{.Title}}{{if ge .Count 0}} <span class="badge page-count">{{.Count}}</span>{{end}}</h1>
+				{{- if .Subtitle}}
+				<p class="page-subtitle">{{.Subtitle}}</p>
+				{{- end}}
+			</div>
+{{- end}}
+
+{{- define "emptyState"}}
+			<div class="surface empty-state">
+				<div class="empty-icon{{if eq .Tone "success"}} is-success{{end}}"><span class="bi {{.Icon}}" aria-hidden="true"></span></div>
+				<h2>{{.Title}}</h2>
+				<p>{{.Text}}</p>
+				{{- if .ActionHref}}
+				<a class="btn btn-primary rounded-pill px-4" href="{{.ActionHref}}"{{if eq .ActionHref "sync"}} data-sync-action{{end}}><span class="bi {{.ActionIcon}} me-2" aria-hidden="true"></span>{{.ActionLabel}}</a>
+				{{- end}}
+			</div>
+{{- end}}
+
+{{- define "noResults"}}
+			{{- template "emptyState" (dict "Icon" "bi-search" "Tone" "" "Title" (t "No results") "Text" (t "Nothing matches “%v”. Try another name or title ID." .Keyword) "ActionHref" (printf "?per_page=%v&sort_by=%v&sort_order=%v" .PerPage .SortBy .SortOrder) "ActionLabel" (t "Clear search") "ActionIcon" "bi-x-circle")}}
+{{- end}}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
+	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -118,14 +119,26 @@ type TitleItem struct {
 	ReleaseDate      time.Time
 	Type             string
 	Version          string
+	// library status, shown on the cards
+	UpdateAvailable bool
+	MissingDlcCount int
 }
 
 type GlobalPageData struct {
 	IsKeysFileAvailable bool
 	IsSynchronizing     bool
+	HasLibrary          bool
 	Page                string
 	SlmVersion          string
 	Version             string
+	Counts              NavCounts
+}
+
+// NavCounts are shown next to the navigation links, so pending work is visible everywhere.
+type NavCounts struct {
+	Updates int
+	Dlc     int
+	Issues  int
 }
 
 type TitleItemsPageData struct {
@@ -174,6 +187,17 @@ var funcMap = template.FuncMap {
 		return template.URL("?" + values.Encode())
 	},
 	"formatSize": formatSize,
+	"issueIcon": issueIcon,
+	// dict builds named parameters for a sub-template: dict "Key" value "Key2" value2
+	"dict": func(values ...any) map[string]any {
+		result := map[string]any{}
+		for i := 0; i+1 < len(values); i += 2 {
+			if key, ok := values[i].(string); ok {
+				result[key] = values[i+1]
+			}
+		}
+		return result
+	},
 	"intervalLabel": func(hours int) string {
 		switch {
 		case hours == 0:
@@ -193,13 +217,35 @@ var funcMap = template.FuncMap {
 }
 
 func (web *Web) globalPageData(page string) GlobalPageData {
+	_, localDB := web.state.get()
 	return GlobalPageData {
 		IsKeysFileAvailable: settings.IsKeysFileAvailable(),
 		IsSynchronizing: web.state.IsSynchronizing(),
+		HasLibrary: localDB != nil && len(localDB.TitlesMap) > 0,
 		Page: page,
 		SlmVersion: settings.SLM_VERSION,
 		Version: settings.SLM_WEB_VERSION,
+		Counts: web.navCounts(),
 	}
+}
+
+// navCounts counts the missing updates and DLC (respecting the ignore lists) and the issues.
+func (web *Web) navCounts() NavCounts {
+	counts := NavCounts{}
+	switchDB, localDB := web.state.get()
+	if localDB == nil {
+		return counts
+	}
+	counts.Issues = len(web.getIssues())
+	if switchDB == nil {
+		return counts
+	}
+	settingsObj := settings.ReadSettings(web.dataFolder)
+	counts.Updates = len(process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreUpdateTitleIds), settingsObj.IgnoreDLCUpdates))
+	for _, title := range process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds)) {
+		counts.Dlc += len(title.MissingDLCItems)
+	}
+	return counts
 }
 
 func intToTime(value int) (time.Time, error) {

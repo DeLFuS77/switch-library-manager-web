@@ -3,6 +3,7 @@ package web
 import (
 	"path/filepath"
 	"sort"
+	"strings"
 )
 
 type Issue struct {
@@ -61,4 +62,22 @@ func (web *Web) getIssues() []Issue {
 	})
 
 	return issues
+}
+
+// issueIcon returns the icon and color of an issue, by the kind of problem.
+func issueIcon(reason string) string {
+	switch {
+	case strings.HasPrefix(reason, "duplicate"):
+		return "bi-files text-info"
+	case strings.HasPrefix(reason, "old "):
+		return "bi-clock-history text-warning"
+	case strings.HasPrefix(reason, "base file is missing"):
+		return "bi-question-diamond text-warning"
+	case strings.HasPrefix(reason, "file type is not supported"):
+		return "bi-file-earmark-x text-secondary"
+	case strings.HasPrefix(reason, "identified by file name only"):
+		return "bi-tag text-info"
+	default:
+		return "bi-exclamation-octagon text-danger"
+	}
 }

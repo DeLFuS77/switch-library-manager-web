@@ -50,30 +50,50 @@ function insertAlert(element, contextualClass, iconClass, strongMessage, message
 	}
 
 	element.insertBefore(alert, element.firstChild);
+	if (element.tagName === 'FORM') {
+		// long forms: bring the feedback into view
+		alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+	}
 }
 
 const SYNC_ALERT_ID = 'alert_sync';
 const SYNC_POLL_INTERVAL = 1000;
 
 function mainContainer() {
-	return document.querySelector('main > .container-fluid');
+	return document.querySelector('main > .container-xxl');
+}
+
+// the synchronize button spins while a synchronization is running
+function setSyncBusy(busy) {
+	const sync = document.getElementById('sync');
+	if (!sync) {
+		return;
+	}
+	sync.classList.toggle('is-syncing', busy);
+	sync.setAttribute('aria-disabled', busy ? 'true' : 'false');
+	if (busy) {
+		sync.setAttribute('aria-busy', 'true');
+	} else {
+		sync.removeAttribute('aria-busy');
+	}
 }
 
 function showSyncAlert() {
+	setSyncBusy(true);
 	if (document.getElementById(SYNC_ALERT_ID)) {
 		return;
 	}
 
 	// same markup as the alert rendered by layout.html
 	const alert = document.createElement('div');
-	alert.classList.add('alert', 'alert-info');
+	alert.classList.add('alert');
 	alert.setAttribute('role', 'status');
 	alert.id = SYNC_ALERT_ID;
 
 	const header = document.createElement('div');
 	header.classList.add('d-flex', 'align-items-center');
 	const spinner = document.createElement('span');
-	spinner.classList.add('spinner-border', 'spinner-border-sm', 'flex-shrink-0', 'me-2');
+	spinner.classList.add('spinner-border', 'spinner-border-sm', 'text-primary', 'flex-shrink-0', 'me-2');
 	spinner.setAttribute('aria-hidden', 'true');
 	const text = document.createElement('div');
 	text.classList.add('text-truncate');
@@ -94,7 +114,7 @@ function showSyncAlert() {
 	progress.appendChild(bar);
 
 	alert.append(header, progress);
-	mainContainer().insertBefore(alert, mainContainer().firstChild);
+	mainContainer().appendChild(alert);
 }
 
 function updateSyncAlert(status) {
@@ -132,6 +152,7 @@ function updateSyncAlert(status) {
 }
 
 function onSyncFinished() {
+	setSyncBusy(false);
 	const syncAlert = document.getElementById(SYNC_ALERT_ID);
 	if (syncAlert) {
 		syncAlert.remove();
@@ -163,6 +184,10 @@ function watchSync() {
 }
 
 function startSync(url) {
+	if (document.getElementById(SYNC_ALERT_ID)) {
+		return;
+	}
+	setSyncBusy(true);
 	fetch(url, { method: 'POST' }).then(response => {
 		if (!response.ok) {
 			throw new Error(response.statusText);
@@ -170,6 +195,7 @@ function startSync(url) {
 		showSyncAlert();
 		watchSync();
 	}).catch(() => {
+		setSyncBusy(false);
 		insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), t('Synchronization could not be started.'));
 	});
 }
@@ -479,13 +505,16 @@ document.addEventListener('DOMContentLoaded', () => {
 	[...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
 
 	const sync = document.getElementById('sync');
-	sync.addEventListener('click', e => {
-		e.preventDefault();
-		startSync(sync.href);
+	document.querySelectorAll('#sync, [data-sync-action]').forEach(link => {
+		link.addEventListener('click', e => {
+			e.preventDefault();
+			startSync(sync.href);
+		});
 	});
 
 	// a synchronization was already running when the page was rendered
 	if (document.getElementById(SYNC_ALERT_ID)) {
+		setSyncBusy(true);
 		watchSync();
 	}
 

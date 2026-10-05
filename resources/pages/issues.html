@@ -1,33 +1,30 @@
 {{define "title"}}{{t "Issues"}}{{end}}
 {{define "main"}}
-			<div class="row mb-3">
-				<div class="col">
-					<h1 class="mb-3">{{t "Issues"}} <span class="badge bg-secondary fs-6 align-text-top">{{len .Issues}}</span></h1>
+			{{- template "pageHeader" (dict "Title" (t "Issues") "Count" (len .Issues) "Subtitle" (t "Files that could not be added to the library, duplicates and old versions. Organize can clean up old updates and duplicates."))}}
+			{{- if gt (len .Issues) 0}}
+			<div class="surface p-0 overflow-hidden">
+				<div class="table-responsive">
+					<table class="table table-hover align-middle">
+						<thead>
+							<tr>
+								<th scope="col" class="ps-3" style="width: 2.5rem"><span class="visually-hidden">{{t "Type"}}</span></th>
+								<th scope="col">{{t "File"}}</th>
+								<th scope="col">{{t "Reason"}}</th>
+							</tr>
+						</thead>
+						<tbody>
+							{{- range .Issues}}
+							<tr>
+								<td class="ps-3"><span class="bi {{issueIcon .Reason}} fs-5" aria-hidden="true"></span></td>
+								<td class="text-break small font-monospace">{{.File}}</td>
+								<td class="small">{{issue .Reason}}</td>
+							</tr>
+							{{- end}}
+						</tbody>
+					</table>
 				</div>
 			</div>
-			{{- if gt (len .Issues) 0}}
-			<div class="table-responsive">
-			<table class="table table-striped table-hover mb-3">
-				<thead>
-					<tr>
-						<th scope="col">{{t "File"}}</th>
-						<th scope="col">{{t "Reason"}}</th>
-					</tr>
-				</thead>
-				<tbody class="table-group-divider">
-					{{- range .Issues}}
-					<tr>
-						<td class="text-break">{{.File}}</td>
-						<td>{{issue .Reason}}</td>
-					</tr>
-					{{- end}}
-				</tbody>
-			</table>
-			</div>
 			{{- else}}
-			<div class="alert alert-success d-flex align-items-center" role="alert">
-				<span class="bi bi-check-circle-fill flex-shrink-0 me-2"></span>
-				<div><strong>{{t "Well done!"}}</strong> {{t "No issues found."}}</div>
-			</div>
+			{{- template "emptyState" (dict "Icon" "bi-shield-check" "Tone" "success" "Title" (t "No issues") "Text" (t "Every file in your folders was recognized.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 			{{- end}}
 {{- end}}
