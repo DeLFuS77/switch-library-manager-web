@@ -1,0 +1,222 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Switch Library Manager Web API",
+    "description": "Read the library, its statistics and download files. When password protection is enabled (SLM_AUTH_USERNAME / SLM_AUTH_PASSWORD), every endpoint except /healthz needs HTTP basic authentication. Requests that change data are rejected when they come from another web site; requests without browser headers (curl, scripts, Home Assistant) are accepted.",
+    "license": { "name": "MIT" }
+  },
+  "servers": [{ "url": "/" }],
+  "security": [{}, { "basicAuth": [] }],
+  "paths": {
+    "/api/titles": {
+      "get": {
+        "summary": "Games in the library",
+        "description": "All base games of the library by title ID, with their latest local update and DLC.",
+        "tags": ["Library"],
+        "responses": {
+          "200": {
+            "description": "Games by title ID",
+            "content": { "application/json": { "schema": { "type": "object", "additionalProperties": { "$ref": "#/components/schemas/Title" } } } }
+          }
+        }
+      }
+    },
+    "/api/titles/{titleId}": {
+      "get": {
+        "summary": "Download the base game file",
+        "tags": ["Downloads"],
+        "parameters": [{ "$ref": "#/components/parameters/titleId" }],
+        "responses": { "200": { "$ref": "#/components/responses/File" }, "404": { "description": "Not in the library" } }
+      }
+    },
+    "/api/titles/{titleId}/updates/{version}": {
+      "get": {
+        "summary": "Download an update file",
+        "tags": ["Downloads"],
+        "parameters": [
+          { "$ref": "#/components/parameters/titleId" },
+          { "name": "version", "in": "path", "required": true, "schema": { "type": "integer" }, "example": 65536 }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/File" }, "404": { "description": "Not in the library" } }
+      }
+    },
+    "/api/titles/{titleId}/dlc/{dlcTitleId}": {
+      "get": {
+        "summary": "Download a DLC file",
+        "tags": ["Downloads"],
+        "parameters": [
+          { "$ref": "#/components/parameters/titleId" },
+          { "name": "dlcTitleId", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^[0-9A-Fa-f]{16}$" } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/File" }, "404": { "description": "Not in the library" } }
+      }
+    },
+    "/api/titles/{titleId}/archive.zip": {
+      "get": {
+        "summary": "Download all files of a game",
+        "description": "The base game, its updates (Updates/) and DLC (DLC/) as an uncompressed ZIP archive.",
+        "tags": ["Downloads"],
+        "parameters": [{ "$ref": "#/components/parameters/titleId" }],
+        "responses": {
+          "200": { "description": "ZIP archive", "content": { "application/zip": { "schema": { "type": "string", "format": "binary" } } } },
+          "404": { "description": "Not in the library" }
+        }
+      }
+    },
+    "/api/statistics": {
+      "get": {
+        "summary": "Library statistics",
+        "description": "The numbers of the Statistics page, e.g. for a Home Assistant REST sensor.",
+        "tags": ["Library"],
+        "parameters": [
+          { "name": "lang", "in": "query", "description": "Language of the game names", "schema": { "type": "string", "enum": ["en", "es"], "default": "en" } }
+        ],
+        "responses": {
+          "200": { "description": "Statistics", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Statistics" } } } }
+        }
+      }
+    },
+    "/api/openapi.json": {
+      "get": {
+        "summary": "This API description",
+        "tags": ["Service"],
+        "responses": { "200": { "description": "OpenAPI document", "content": { "application/json": {} } } }
+      }
+    },
+    "/export/library.csv": {
+      "get": {
+        "summary": "Export the library as CSV",
+        "tags": ["Library"],
+        "responses": { "200": { "description": "UTF-8 CSV with a byte order mark", "content": { "text/csv": {} } } }
+      }
+    },
+    "/export/library.json": {
+      "get": {
+        "summary": "Export the library as JSON",
+        "description": "Every game with its files and DLC, with the original game names.",
+        "tags": ["Library"],
+        "responses": { "200": { "description": "Inventory", "content": { "application/json": {} } } }
+      }
+    },
+    "/sync": {
+      "get": {
+        "summary": "Synchronization status",
+        "tags": ["Synchronization"],
+        "responses": {
+          "200": { "description": "Status", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SyncStatus" } } } }
+        }
+      },
+      "post": {
+        "summary": "Start a synchronization",
+        "description": "Downloads the titles database and rescans the library in the background. If a synchronization is already running, that one continues.",
+        "tags": ["Synchronization"],
+        "responses": { "202": { "description": "Started or already running" } }
+      }
+    },
+    "/ignore": {
+      "post": {
+        "summary": "Ignore or restore missing DLC or updates",
+        "tags": ["Library"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": ["kind", "id"],
+                "properties": {
+                  "kind": { "type": "string", "enum": ["dlc", "update"] },
+                  "id": { "type": "array", "items": { "type": "string", "pattern": "^[0-9A-Fa-f]{16}$" }, "description": "One or several title IDs (repeat the field)" },
+                  "ignored": { "type": "boolean", "default": true, "description": "false restores the IDs" }
+                }
+              },
+              "encoding": { "id": { "explode": true } }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Applied" }, "400": { "description": "Invalid title ID or list" } }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "summary": "Health check",
+        "description": "Answers ok without authentication.",
+        "tags": ["Service"],
+        "security": [],
+        "responses": { "200": { "description": "ok", "content": { "text/plain": {} } } }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "basicAuth": { "type": "http", "scheme": "basic" }
+    },
+    "parameters": {
+      "titleId": { "name": "titleId", "in": "path", "required": true, "description": "Title ID of the base game", "schema": { "type": "string", "pattern": "^[0-9A-Fa-f]{16}$" }, "example": "0100152000022000" }
+    },
+    "responses": {
+      "File": { "description": "File download", "content": { "application/octet-stream": { "schema": { "type": "string", "format": "binary" } } } }
+    },
+    "schemas": {
+      "File": {
+        "type": "object",
+        "properties": {
+          "downloadUrl": { "type": "string" },
+          "size": { "type": "integer", "format": "int64" },
+          "type": { "type": "string", "example": "NSP" }
+        }
+      },
+      "Title": {
+        "allOf": [
+          { "$ref": "#/components/schemas/File" },
+          {
+            "type": "object",
+            "properties": {
+              "name": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Names by language tag" },
+              "region": { "type": "string" },
+              "iconUrl": { "type": "string" },
+              "bannerUrl": { "type": "string" },
+              "thumbnailUrl": { "type": "string" },
+              "requiredSystemVersion": { "type": "integer" },
+              "latestUpdate": { "type": "object", "properties": { "version": { "type": "integer" }, "displayVersion": { "type": "string" }, "downloadUrl": { "type": "string" } } },
+              "dlc": { "type": "object", "additionalProperties": { "type": "object", "properties": { "name": { "type": "string" }, "version": { "type": "integer" }, "downloadUrl": { "type": "string" } } } }
+            }
+          }
+        ]
+      },
+      "Share": {
+        "type": "object",
+        "properties": { "label": { "type": "string" }, "count": { "type": "integer" }, "size": { "type": "integer", "format": "int64" } }
+      },
+      "Statistics": {
+        "type": "object",
+        "properties": {
+          "games": { "type": "integer" },
+          "updates": { "type": "integer" },
+          "dlc": { "type": "integer" },
+          "totalSize": { "type": "integer", "format": "int64", "description": "Bytes" },
+          "gamesUpToDate": { "type": "integer" },
+          "gamesWithUpdate": { "type": "integer" },
+          "missingDlc": { "type": "integer" },
+          "gamesMissingDlc": { "type": "integer" },
+          "missingGames": { "type": "integer" },
+          "issues": { "type": "integer" },
+          "byContent": { "type": "array", "items": { "$ref": "#/components/schemas/Share" } },
+          "byFormat": { "type": "array", "items": { "$ref": "#/components/schemas/Share" } },
+          "largest": { "type": "array", "items": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" }, "size": { "type": "integer", "format": "int64" } } } },
+          "synchronizing": { "type": "boolean" },
+          "lastSync": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SyncStatus": {
+        "type": "object",
+        "properties": {
+          "synchronizing": { "type": "boolean" },
+          "current": { "type": "integer" },
+          "total": { "type": "integer", "description": "0 when the number of steps is unknown" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  }
+}
