@@ -4,9 +4,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"sort"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/magiconair/properties"

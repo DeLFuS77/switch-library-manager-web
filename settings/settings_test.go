@@ -1,6 +1,8 @@
 package settings
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -214,5 +216,24 @@ func TestKeysFingerprint(t *testing.T) {
 	InitSwitchKeys(base)
 	if second := KeysFingerprint(); second == first || second == "" {
 		t.Fatalf("fingerprint did not change: %q %q", first, second)
+	}
+}
+
+func TestMovedRepositoryUrl(t *testing.T) {
+	original := previousOwnerHash
+	defer func() { previousOwnerHash = original }()
+	hash := sha256.Sum256([]byte("oldowner"))
+	previousOwnerHash = hex.EncodeToString(hash[:])
+
+	for url, want := range map[string]string{
+		"https://github.com/OldOwner/switch-library-manager-web/releases/download/data/titles.json": "https://github.com/" + REPOSITORY_OWNER + "/switch-library-manager-web/releases/download/data/titles.json",
+		"https://github.com/someone/switch-library-manager-web/releases/download/data/titles.json":  "https://github.com/someone/switch-library-manager-web/releases/download/data/titles.json",
+		"https://github.com/OldOwner/other-project/titles.json":                                     "https://github.com/OldOwner/other-project/titles.json",
+		"https://raw.githubusercontent.com/blawar/titledb/master/versions.json":                     "https://raw.githubusercontent.com/blawar/titledb/master/versions.json",
+		"": "",
+	} {
+		if got := movedRepositoryUrl(url); got != want {
+			t.Errorf("movedRepositoryUrl(%q) = %q, want %q", url, got, want)
+		}
 	}
 }
