@@ -3,3 +3,6 @@ build
 node_modules
 resources/static/web.css
 resources/static/web.js
+
+# Console keys must never be committed: every user provides their own
+*.keys
