@@ -78,6 +78,7 @@ func (web *Web) HandleIndex() {
 				Pagination: p,
 			},
 			Facets: facets,
+			Setup: web.setupStatus(),
 		}
 	}, web.embedFS, fsPatterns...)
 }

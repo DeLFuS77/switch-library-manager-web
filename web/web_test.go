@@ -1132,3 +1132,32 @@ func TestFilterQueryKeepsOtherFilters(t *testing.T) {
 		t.Errorf("empty values must be removed: %q", cleared)
 	}
 }
+
+func TestSetupStatus(t *testing.T) {
+	web := newTestWeb(t)
+	original := *settings.ReadSettings(web.dataFolder)
+	defer settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+		s.Folder, s.ScanFolders = original.Folder, original.ScanFolders
+	})
+
+	missing := filepath.Join(t.TempDir(), "missing")
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+		s.Folder, s.ScanFolders = missing, []string{}
+	})
+	status := web.setupStatus()
+	if status.TitlesDatabase || status.Library || status.Folders || len(status.MissingFolders) != 1 || status.MissingFolders[0] != missing {
+		t.Fatalf("nothing set up: %+v", status)
+	}
+
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+		s.Folder = t.TempDir()
+	})
+	web.state.set(testDatabases(t))
+	status = web.setupStatus()
+	if !status.TitlesDatabase || !status.Library || !status.Folders || len(status.MissingFolders) != 0 {
+		t.Fatalf("set up: %+v", status)
+	}
+	if status.Total != 4 || status.Done < 3 || status.Percent != status.Done*25 {
+		t.Fatalf("progress: %+v", status)
+	}
+}

@@ -160,6 +160,7 @@ type LibraryFacets struct {
 type LibraryPageData struct {
 	TitleItemsPageData
 	Facets LibraryFacets
+	Setup  SetupStatus
 }
 
 var funcMap = template.FuncMap {
@@ -199,6 +200,7 @@ var funcMap = template.FuncMap {
 		return template.URL("?" + filter.query(replace...).Encode())
 	},
 	"formatSize": formatSize,
+	"join": strings.Join,
 	"issueIcon": issueIcon,
 	// dict builds named parameters for a sub-template: dict "Key" value "Key2" value2
 	"dict": func(values ...any) map[string]any {

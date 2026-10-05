@@ -26,6 +26,44 @@
 			{{- template "emptyState" (dict "Icon" "bi-search" "Tone" "" "Title" (t "No results") "Text" $text "ActionHref" (filterUrl . "q" "" "status" "" "format" "") "ActionLabel" (t "Clear filters") "ActionIcon" "bi-x-circle")}}
 {{- end}}
 
+{{- define "setupChecklist"}}
+			<section class="surface setup" aria-labelledby="setupTitle">
+				<div class="d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-between mb-3">
+					<div>
+						<h2 class="h4 fw-bold mb-1" id="setupTitle"><span class="bi bi-stars text-primary me-2" aria-hidden="true"></span>{{t "Let's set up your library"}}</h2>
+						<p class="text-body-secondary mb-0">{{t "Four steps and your games appear here. Every step links to where it is done."}}</p>
+					</div>
+					<div class="setup-progress text-md-end">
+						<div class="small text-body-secondary mb-1">{{t "%v of %v done" .Done .Total}}</div>
+						<div class="progress" role="progressbar" aria-label="{{t "Setup progress"}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100">
+							<div class="progress-bar" style="width: {{.Percent}}%"></div>
+						</div>
+					</div>
+				</div>
+				<ol class="setup-steps list-unstyled mb-0">
+					{{- template "setupStep" (dict "Done" .TitlesDatabase "Number" 1 "Title" (t "Download the titles database") "Text" (t "Names, covers, updates and DLC of every game come from it. It is downloaded on the first start; if it failed, try again.") "ActionHref" "sync" "ActionLabel" (t "Synchronize") "ActionIcon" "bi-arrow-repeat" "Optional" false)}}
+					{{- template "setupStep" (dict "Done" .Keys "Number" 2 "Title" (t "Add your prod.keys") "Text" (t "Dump them from your own console. With them the files are read; without them games are recognized by their file name only.") "ActionHref" "/settings.html#library" "ActionLabel" (t "Set the keys path") "ActionIcon" "bi-key" "Optional" true)}}
+					{{- $foldersText := t "The folders with your NSP, NSZ, XCI or XCZ files. Sub-folders are included."}}
+					{{- if .MissingFolders}}{{$foldersText = t "These folders cannot be read: %v. Check the path, or the volume of the container." (join .MissingFolders ", ")}}{{end}}
+					{{- template "setupStep" (dict "Done" .Folders "Number" 3 "Title" (t "Choose your game folders") "Text" $foldersText "ActionHref" "/settings.html#library" "ActionLabel" (t "Open Settings") "ActionIcon" "bi-folder2-open" "Optional" false)}}
+					{{- template "setupStep" (dict "Done" .Library "Number" 4 "Title" (t "Scan your library") "Text" (t "Happens by itself when the folders change. If your games are not found, scan again.") "ActionHref" "sync" "ActionLabel" (t "Scan now") "ActionIcon" "bi-search" "Optional" false)}}
+				</ol>
+			</section>
+{{- end}}
+
+{{- define "setupStep"}}
+					<li class="setup-step{{if .Done}} is-done{{end}}">
+						<span class="setup-marker" aria-hidden="true">{{if .Done}}<span class="bi bi-check-lg"></span>{{else}}{{.Number}}{{end}}</span>
+						<div class="flex-grow-1 min-w-0">
+							<h3 class="h6 fw-semibold mb-1">{{.Title}}{{if .Optional}} <span class="chip chip-muted ms-1">{{t "Recommended"}}</span>{{end}}<span class="visually-hidden"> &ndash; {{if .Done}}{{t "done"}}{{else}}{{t "to do"}}{{end}}</span></h3>
+							<p class="text-body-secondary small mb-0">{{.Text}}</p>
+						</div>
+						{{- if not .Done}}
+						<a class="btn btn-sm btn-outline-primary rounded-pill flex-shrink-0 align-self-center" href="{{.ActionHref}}"{{if eq .ActionHref "sync"}} data-sync-action{{end}}><span class="bi {{.ActionIcon}} me-1" aria-hidden="true"></span>{{.ActionLabel}}</a>
+						{{- end}}
+					</li>
+{{- end}}
+
 {{- define "statusFilter"}}
 				{{- $f := .Filter}}
 				<li><a class="filter-pill{{if eq $f.Status .Value}} active{{end}}" href="{{filterUrl $f "status" .Value}}"{{if eq $f.Status .Value}} aria-current="true"{{end}}>{{if .Icon}}<span class="bi {{.Icon}}" aria-hidden="true"></span>{{end}}{{.Label}} <span class="filter-count">{{.Count}}</span></a></li>
