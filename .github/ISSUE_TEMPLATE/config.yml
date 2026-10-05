@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/SiscuPrats/switch-library-manager-web#readme
+    about: Installation, keys, organizing files and settings are explained in the README.
