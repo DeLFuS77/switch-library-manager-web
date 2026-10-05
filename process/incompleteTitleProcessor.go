@@ -17,6 +17,8 @@ type IncompleteTitle struct {
 	LatestUpdate     int      `json:"latest_update"`
 	LatestUpdateDate string   `json:"latest_update_date"`
 	MissingDLC       []string `json:"missing_dlc"`
+	// the same DLC as MissingDLC, sorted by name
+	MissingDLCItems []db.TitleAttributes `json:"-"`
 }
 
 func ScanForMissingUpdates(localDB map[string]*db.SwitchGameFiles,
@@ -146,8 +148,18 @@ func ScanForMissingDLC(localDB map[string]*db.SwitchGameFiles,
 				}
 
 				if _, ok := switchFile.Dlc[k]; !ok {
-					switchTitle.MissingDLC = append(switchTitle.MissingDLC, fmt.Sprintf("%v [%v]", v.Name, v.Id))
+					switchTitle.MissingDLCItems = append(switchTitle.MissingDLCItems, v)
 				}
+			}
+			sort.Slice(switchTitle.MissingDLCItems, func(i, j int) bool {
+				a, b := switchTitle.MissingDLCItems[i], switchTitle.MissingDLCItems[j]
+				if a.Name == b.Name {
+					return a.Id < b.Id
+				}
+				return a.Name < b.Name
+			})
+			for _, v := range switchTitle.MissingDLCItems {
+				switchTitle.MissingDLC = append(switchTitle.MissingDLC, fmt.Sprintf("%v [%v]", v.Name, v.Id))
 			}
 			if len(switchTitle.MissingDLC) != 0 {
 				result[switchDB[idPrefix].Attributes.Id] = switchTitle

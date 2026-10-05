@@ -30,16 +30,19 @@
 										<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{.ImageUrl}}{{end}}" class="td-img" alt="{{.Name}}" loading="lazy">
 									</div>
 									<div>
-										{{.Name}}<br>
+										<a class="link-body-emphasis" href="/title/{{.Id}}.html">{{.Name}}</a><br>
 										<small class="text-body-secondary">ID: {{.Id}}</small>
 									</div>
 								</div>
 							</td>
 							<td>{{len .MissingDLC}}</td>
 							<td>
-								<ul class="list-unstyled">
-									{{- range .MissingDLC}}
-									<li class="text-nowrap">{{.}}</li>
+								<ul class="list-unstyled mb-0">
+									{{- range .MissingDLCItems}}
+									<li class="d-flex align-items-center justify-content-between gap-3 py-1">
+										<span>{{.Name}} <small class="text-body-secondary font-monospace">{{.Id}}</small></span>
+										<button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="true">Ignore</button>
+									</li>
 									{{- end}}
 								</ul>
 							</td>

@@ -476,3 +476,147 @@ func TestAuthFromEnv(t *testing.T) {
 		t.Fatalf("unexpected result: %q %q %v %v", user, password, enabled, err)
 	}
 }
+
+func TestTitleDetail(t *testing.T) {
+	web := newTestWeb(t)
+
+	if _, ok := web.getTitleDetail("0100000000010000"); ok {
+		t.Fatal("no databases: title should not be found")
+	}
+
+	web.state.set(testDatabases(t))
+
+	for _, id := range []string{"0100000000010000", "0100000000010800", "0100000000011002", "0100000000010000"} {
+		detail, ok := web.getTitleDetail(id)
+		if !ok {
+			t.Fatalf("%s: not found", id)
+		}
+		if detail.Id != "0100000000010000" || detail.Name != "Known Game" || !detail.Owned || detail.Region != "US" {
+			t.Fatalf("%s: unexpected detail %+v", id, detail)
+		}
+		if detail.Base == nil || detail.Base.DownloadUrl != "/api/titles/0100000000010000" || len(detail.Updates) != 1 {
+			t.Fatalf("%s: unexpected files %+v %+v", id, detail.Base, detail.Updates)
+		}
+		if !detail.UpdateMissing || detail.LocalUpdate != 65536 || detail.LatestUpdate != 131072 {
+			t.Fatalf("%s: unexpected update state %+v", id, detail)
+		}
+		if len(detail.Dlc) != 2 || detail.MissingDlc != 1 || !detail.Dlc[1].Owned || detail.Dlc[1].File == nil || detail.Dlc[0].Owned {
+			t.Fatalf("%s: unexpected DLC %+v", id, detail.Dlc)
+		}
+	}
+
+	missing, ok := web.getTitleDetail("0100000000020000")
+	if !ok || missing.Owned || missing.Name != "Not Owned" || missing.Base != nil || missing.MissingDlc != 0 {
+		t.Fatalf("game not in the library: %+v", missing)
+	}
+
+	unknown, ok := web.getTitleDetail("0100000000030000")
+	if !ok || !unknown.Owned || unknown.Name != "00" {
+		t.Fatalf("game unknown to the titles database: %+v", unknown)
+	}
+
+	orphan, ok := web.getTitleDetail("0100000000040800")
+	if !ok || orphan.Owned || orphan.Id != "0100000000040000" {
+		t.Fatalf("update without base game: %+v", orphan)
+	}
+
+	for _, id := range []string{"ffffffffffff0000", "nope", "0100000000010001"} {
+		if _, ok := web.getTitleDetail(id); ok {
+			t.Fatalf("%s should not be found", id)
+		}
+	}
+}
+
+func TestIgnoreEndpoint(t *testing.T) {
+	web := newTestWeb(t)
+	web.router.Use(sameOriginOnly)
+	web.HandleIgnore()
+	switchDB, localDB := testDatabases(t)
+	// a newer version of the owned DLC exists
+	game := switchDB.TitlesMap["0100000000010"]
+	ownedDlc := game.Dlc["0100000000011001"]
+	ownedDlc.Version = "65536"
+	game.Dlc["0100000000011001"] = ownedDlc
+	web.state.set(switchDB, localDB)
+
+	post := func(form string, headers map[string]string) *httptest.ResponseRecorder {
+		request := httptest.NewRequest(http.MethodPost, "/ignore", strings.NewReader(form))
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		for k, v := range headers {
+			request.Header.Set(k, v)
+		}
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, request)
+		return recorder
+	}
+	missingDlc := func() int {
+		detail, _ := web.getTitleDetail("0100000000010000")
+		return detail.MissingDlc
+	}
+	updatesIgnored := func() bool {
+		detail, _ := web.getTitleDetail("0100000000010000")
+		return detail.UpdatesIgnored
+	}
+
+	for _, form := range []string{"kind=dlc&id=nope", "kind=other&id=0100000000011002"} {
+		if r := post(form, nil); r.Code != http.StatusBadRequest {
+			t.Fatalf("%s: got %d", form, r.Code)
+		}
+	}
+	if r := post("kind=dlc&id=0100000000011002", map[string]string{"Sec-Fetch-Site": "cross-site"}); r.Code != http.StatusForbidden {
+		t.Fatalf("cross-site ignore must be rejected: %d", r.Code)
+	}
+
+	if missingDlc() != 1 {
+		t.Fatal("expected one missing DLC before ignoring")
+	}
+	// ignoring twice must not add duplicates, lower case IDs are accepted
+	for i := 0; i < 2; i++ {
+		if r := post("kind=dlc&id=0100000000011002&ignored=true", nil); r.Code != http.StatusOK {
+			t.Fatalf("ignore DLC: %d %s", r.Code, r.Body.String())
+		}
+	}
+	if missingDlc() != 0 {
+		t.Fatal("ignored DLC is still missing")
+	}
+	if items, _ := web.getMissingDLC(defaultFilter()); len(items) != 0 {
+		t.Fatalf("ignored DLC still listed: %+v", items)
+	}
+
+	if detail, _ := web.getTitleDetail("0100000000010000"); !detail.Dlc[1].UpdateAvailable {
+		t.Fatal("the DLC update should be offered")
+	}
+
+	post("kind=update&id=0100000000010000&ignored=true", nil)
+	if !updatesIgnored() {
+		t.Fatal("updates should be ignored")
+	}
+	if detail, _ := web.getTitleDetail("0100000000010000"); detail.Dlc[1].UpdateAvailable {
+		t.Fatal("DLC updates of a game with ignored updates should not be offered")
+	}
+	if items, _ := web.getMissingUpdates(defaultFilter()); len(items) != 0 {
+		t.Fatalf("ignored updates still listed: %+v", items)
+	}
+
+	// restore, also leaves the shared settings clean for other tests
+	post("kind=dlc&id=0100000000011002&ignored=false", nil)
+	post("kind=update&id=0100000000010000&ignored=false", nil)
+	if missingDlc() != 1 || updatesIgnored() {
+		t.Fatal("restoring did not work")
+	}
+}
+
+func TestSetIgnoredAndFormatSize(t *testing.T) {
+	list := setIgnored([]string{"0100000000011001", " 0100000000011002 "}, "0100000000011002", true)
+	if strings.Join(list, ",") != "0100000000011001,0100000000011002" {
+		t.Fatalf("unexpected list: %v", list)
+	}
+	if list := setIgnored(list, "0100000000011001", false); strings.Join(list, ",") != "0100000000011002" {
+		t.Fatalf("unexpected list: %v", list)
+	}
+	for size, want := range map[int64]string{512: "512 B", 2048: "2.0 KB", 213637397: "203.7 MB", 16 << 30: "16.0 GB"} {
+		if got := formatSize(size); got != want {
+			t.Errorf("formatSize(%d) = %q, want %q", size, got, want)
+		}
+	}
+}
