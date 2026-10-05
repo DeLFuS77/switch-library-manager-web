@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.10.0
+
+### New features
+
+- **A more visual interface**:
+  - The Library page opens with an overview: games, updates, missing DLC and total size in colored tiles that link
+    to their pages, and a bar with the share of games up to date.
+  - Game cards get a gradient ring when hovered, an update badge on the cover and a bar with the DLC you have.
+  - The Statistics page shows the space by content as a donut chart and the games up to date as a gauge; the game
+    page shows the share of its DLC you have.
+  - The Inter font, embedded in the app so it also works offline, soft brand colored light behind the pages, and
+    cards that fade in one after the other (off when the system asks for reduced motion).
+
 ## 1.9.0
 
 ### New features
