@@ -41,8 +41,9 @@
 							{{- end}}
 							<p class="card-text"><small class="text-body-secondary">{{t "ID"}}: {{.Id}}</small></p>
 							{{- if .LatestUpdate}}
-							<div class="card-action">
+							<div class="card-action d-flex align-items-center justify-content-between gap-2">
 								<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="update" data-ignore-id="{{.Id}}" data-ignored="true">{{t "Ignore updates"}}</button>
+								<input class="form-check-input m-0" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">
 							</div>
 							{{- end}}
 						</div>

@@ -245,6 +245,11 @@ var translations = map[string]map[string]string{
 
 		"Download all (%v files, %v)": "Descargar todo (%v archivos, %v)",
 
+		// bulk actions
+		"Select all on this page": "Seleccionar todo en esta página",
+		"Ignore selected":         "Ignorar seleccionados",
+		"Select":                  "Seleccionar",
+
 		// export
 		"Export":                "Exportar",
 		"Spreadsheet (CSV)":     "Hoja de cálculo (CSV)",
