@@ -3,10 +3,11 @@ package settings
 import (
 	"encoding/json"
 	"fmt"
-	"go.uber.org/zap"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
+
+	"go.uber.org/zap"
 )
 
 var (
@@ -19,9 +20,22 @@ const (
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
 	SLM_WEB_VERSION        = "1.0.12"
-	TITLES_JSON_URL        = "https://tinfoil.io/repo/db/titles.json"
-	//VERSIONS_JSON_URL    = "https://tinfoil.io/repo/db/versions.json"
-	VERSIONS_JSON_URL      = "https://raw.githubusercontent.com/blawar/titledb/master/versions.json"
+	// titles.json and versions.json are generated from blawar/titledb by the
+	// "Update title data" workflow of this repository
+	DEFAULT_TITLES_JSON_URL   = "https://github.com/SiscuPrats/switch-library-manager-web/releases/download/data/titles.json"
+	DEFAULT_VERSIONS_JSON_URL = "https://raw.githubusercontent.com/blawar/titledb/master/versions.json"
+	DEFAULT_TITLES_ETAG       = "W/\"a5b02845cf6bd61:0\""
+	DEFAULT_VERSIONS_ETAG     = "W/\"2ef50d1cb6bd61:0\""
+)
+
+// Mirrors tried in order when the configured URL fails.
+var (
+	FALLBACK_TITLES_JSON_URLS = []string{
+		"https://github.com/trembon/switch-library-manager/releases/download/data/titles.json",
+	}
+	FALLBACK_VERSIONS_JSON_URLS = []string{
+		"https://github.com/SiscuPrats/switch-library-manager-web/releases/download/data/versions.json",
+	}
 )
 
 const (
@@ -45,7 +59,9 @@ type OrganizeOptions struct {
 }
 
 type AppSettings struct {
+	VersionsJsonUrl        string          `json:"versions_json_url"`
 	VersionsEtag           string          `json:"versions_etag"`
+	TitlesJsonUrl          string          `json:"titles_json_url"`
 	TitlesEtag             string          `json:"titles_etag"`
 	Prodkeys               string          `json:"prod_keys"`
 	Folder                 string          `json:"folder"`
@@ -60,8 +76,15 @@ func ReadSettingsAsJSON(dataFolder string) string {
 	if _, err := os.Stat(filepath.Join(dataFolder, SETTINGS_FILENAME)); err != nil {
 		saveDefaultSettings(dataFolder)
 	}
-	file, _ := os.Open(filepath.Join(dataFolder, SETTINGS_FILENAME))
-	bytes, _ := ioutil.ReadAll(file)
+	file, err := os.Open(filepath.Join(dataFolder, SETTINGS_FILENAME))
+	if err != nil {
+		return ""
+	}
+	defer file.Close()
+	bytes, err := io.ReadAll(file)
+	if err != nil {
+		return ""
+	}
 	return string(bytes)
 }
 
@@ -77,18 +100,66 @@ func ReadSettings(dataFolder string) *AppSettings {
 			zap.S().Warnf("Missing or corrupted config file, creating a new one")
 			return saveDefaultSettings(dataFolder)
 		} else {
-			_ = json.NewDecoder(file).Decode(&settingsInstance)
-			return settingsInstance
+			err = json.NewDecoder(file).Decode(settingsInstance)
+			file.Close()
+			if err != nil {
+				zap.S().Warnf("Corrupted config file, creating a new one - %v", err)
+				return saveDefaultSettings(dataFolder)
+			}
+			return verifySettings(dataFolder, settingsInstance)
 		}
 	} else {
 		return saveDefaultSettings(dataFolder)
 	}
 }
 
+// verifySettings fills in values missing from settings files written by older versions.
+// Ported from https://github.com/trembon/switch-library-manager
+func verifySettings(dataFolder string, settings *AppSettings) *AppSettings {
+	if settings.TitlesJsonUrl == "" {
+		settings.TitlesJsonUrl = DEFAULT_TITLES_JSON_URL
+	}
+	if settings.VersionsJsonUrl == "" {
+		settings.VersionsJsonUrl = DEFAULT_VERSIONS_JSON_URL
+	}
+
+	// without a local copy the etag would prevent downloading the file again
+	if _, err := os.Stat(filepath.Join(dataFolder, TITLE_JSON_FILENAME)); err != nil {
+		settings.TitlesEtag = DEFAULT_TITLES_ETAG
+	}
+	if _, err := os.Stat(filepath.Join(dataFolder, VERSIONS_JSON_FILENAME)); err != nil {
+		settings.VersionsEtag = DEFAULT_VERSIONS_ETAG
+	}
+
+	return settings
+}
+
+// TitlesJsonUrls returns the configured titles.json URL followed by the fallback mirrors.
+func (s *AppSettings) TitlesJsonUrls() []string {
+	return withFallbacks(s.TitlesJsonUrl, FALLBACK_TITLES_JSON_URLS)
+}
+
+// VersionsJsonUrls returns the configured versions.json URL followed by the fallback mirrors.
+func (s *AppSettings) VersionsJsonUrls() []string {
+	return withFallbacks(s.VersionsJsonUrl, FALLBACK_VERSIONS_JSON_URLS)
+}
+
+func withFallbacks(url string, fallbacks []string) []string {
+	urls := []string{url}
+	for _, fallback := range fallbacks {
+		if fallback != url {
+			urls = append(urls, fallback)
+		}
+	}
+	return urls
+}
+
 func saveDefaultSettings(dataFolder string) *AppSettings {
 	settingsInstance = &AppSettings{
-		TitlesEtag:             "W/\"a5b02845cf6bd61:0\"",
-		VersionsEtag:           "W/\"2ef50d1cb6bd61:0\"",
+		TitlesJsonUrl:          DEFAULT_TITLES_JSON_URL,
+		TitlesEtag:             DEFAULT_TITLES_ETAG,
+		VersionsJsonUrl:        DEFAULT_VERSIONS_JSON_URL,
+		VersionsEtag:           DEFAULT_VERSIONS_ETAG,
 		Prodkeys:               "", // empty: look for prod.keys in the data folder, then ~/.switch
 		Folder:                 "/mnt/roms",
 		ScanFolders:            []string{},
@@ -111,7 +182,9 @@ func saveDefaultSettings(dataFolder string) *AppSettings {
 
 func SaveSettings(settings *AppSettings, dataFolder string) *AppSettings {
 	file, _ := json.MarshalIndent(settings, "", " ")
-	_ = ioutil.WriteFile(filepath.Join(dataFolder, SETTINGS_FILENAME), file, 0644)
+	if err := os.WriteFile(filepath.Join(dataFolder, SETTINGS_FILENAME), file, 0644); err != nil {
+		zap.S().Errorf("Failed to save settings - %v", err)
+	}
 	settingsInstance = settings
 	return settings
 }

@@ -1,0 +1,41 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # go:embed needs node_modules and the compiled assets
+      - name: Build assets
+        run: npm ci && npx gulp
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test -race ./... ./switchfs/_crypto/
+
+      - name: Build
+        run: make build
