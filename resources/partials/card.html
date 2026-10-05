@@ -1,7 +1,7 @@
 {{- define "card"}}
 				<article class="card game-card h-100">
 					<div class="game-cover">
-						<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{.ImageUrl}}{{end}}" alt="" loading="lazy">
+						<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
 						{{- if or .Type .Region}}
 						<div class="game-cover-meta">
 							{{- if .Type}}<span class="badge">{{.Type}}</span>{{else}}<span></span>{{end}}

@@ -10,7 +10,7 @@
 				{{- range .TitleItems}}
 				<article class="surface">
 					<div class="d-flex align-items-center gap-3 mb-3">
-						<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{.ImageUrl}}{{end}}" class="td-img flex-shrink-0" alt="" loading="lazy">
+						<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" class="td-img flex-shrink-0" alt="" loading="lazy" decoding="async">
 						<div class="flex-grow-1 min-w-0">
 							<h2 class="h5 mb-1 text-truncate"><a class="link-body-emphasis text-decoration-none" href="/title/{{.Id}}.html">{{.Name}}</a></h2>
 							<div class="d-flex flex-wrap align-items-center gap-2 small text-body-secondary">

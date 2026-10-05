@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+### Performance
+
+Big libraries and the full titles database are handled much faster, with less memory:
+
+- **Scans** read up to 4 files at the same time (`scan_workers` in `settings.json`), bounded so disks and network
+  shares are not saturated. The metadata of new files is cached in one transaction instead of one per file: caching
+  500 new files went from 4.9 s to 0.09 s.
+- **Covers** are downloaded after the scan, in parallel. Covers that failed are not retried for a day, and when the
+  server cannot be reached the scan stops trying instead of waiting for every cover.
+- **Pages** reuse their results until the library or the settings change. With 5,000 games and 20,000 titles, the
+  Library page went from 17 ms to 0.1 ms and the navigation counts from 9 ms to almost nothing.
+- **Cover thumbnails**: cards and lists load 360 px thumbnails, made once and cached on disk (about 20 times smaller),
+  and every cover can be cached by the browser. Covers were decoded and encoded again on every request before.
+- **Startup**: the web interface answers right away while the titles database loads in the background, and loading
+  it needs about a third of the memory.
+- The Issues page has a search and pages, so thousands of issues do not make one huge page.
+- Watching the folders no longer keeps or sorts the list of every file.
+
 ## 1.7.0
 
 ### New features
