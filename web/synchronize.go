@@ -70,6 +70,6 @@ func (web *Web) HandleSynchronize() {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Cache-Control", "no-store")
 		jsonEncoder := json.NewEncoder(w)
-		jsonEncoder.Encode(web.state.IsSynchronizing())
+		jsonEncoder.Encode(web.state.getProgress())
 	}).Methods("GET")
 }
