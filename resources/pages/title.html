@@ -82,7 +82,12 @@
 				{{- end}}
 			</section>
 			<section class="mb-4">
-				<h2 class="h4">{{t "Files"}}</h2>
+				<div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center gap-2 mb-2">
+					<h2 class="h4 mb-0">{{t "Files"}}</h2>
+					{{- if gt $t.ArchiveFiles 1}}
+					<a class="btn btn-sm btn-outline-secondary" href="/api/titles/{{$t.Id}}/archive.zip"><span class="bi bi-file-earmark-zip me-1" aria-hidden="true"></span>{{t "Download all (%v files, %v)" $t.ArchiveFiles (formatSize $t.ArchiveSize)}}</a>
+					{{- end}}
+				</div>
 				<div class="table-responsive">
 					<table class="table table-striped table-hover align-middle">
 						<thead>

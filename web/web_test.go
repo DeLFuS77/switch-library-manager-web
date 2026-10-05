@@ -1,8 +1,11 @@
 package web
 
 import (
+	"archive/zip"
+	"bytes"
 	"encoding/json"
 	"html/template"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -901,5 +904,66 @@ func TestValidateNotifications(t *testing.T) {
 		if errs := validateNotifications(options, "en"); len(errs) == 0 {
 			t.Errorf("invalid options accepted: %+v", options)
 		}
+	}
+}
+
+func TestArchive(t *testing.T) {
+	web := newTestWeb(t)
+	web.HandleArchive()
+	web.state.set(testDatabases(t))
+
+	get := func(path string) *httptest.ResponseRecorder {
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, path, nil))
+		return recorder
+	}
+
+	if r := get("/api/titles/ffffffffffff0000/archive.zip"); r.Code != http.StatusNotFound {
+		t.Fatalf("unknown game: %d", r.Code)
+	}
+
+	r := get("/api/titles/0100000000010000/archive.zip")
+	if r.Code != http.StatusOK || !strings.Contains(r.Header().Get("Content-Disposition"), "Known Game [0100000000010000].zip") {
+		t.Fatalf("unexpected response: %d %v", r.Code, r.Header())
+	}
+	archive, err := zip.NewReader(bytes.NewReader(r.Body.Bytes()), int64(r.Body.Len()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	names := []string{}
+	for _, file := range archive.File {
+		names = append(names, file.Name)
+		if file.Method != zip.Store {
+			t.Errorf("%s is compressed", file.Name)
+		}
+		content, _ := file.Open()
+		data, _ := io.ReadAll(content)
+		content.Close()
+		if string(data) != "data" {
+			t.Errorf("%s has unexpected content %q", file.Name, data)
+		}
+	}
+	want := []string{
+		"Known Game [0100000000010000]/Known [0100000000010000][v0].nsp",
+		"Known Game [0100000000010000]/Updates/Known [0100000000010800][v65536].nsp",
+		"Known Game [0100000000010000]/DLC/Known DLC [0100000000011001][v0].nsp",
+	}
+	if strings.Join(names, "\n") != strings.Join(want, "\n") {
+		t.Fatalf("unexpected entries:\n%s", strings.Join(names, "\n"))
+	}
+
+	detail, _ := web.getTitleDetail("0100000000010000", "en")
+	if detail.ArchiveFiles != 3 || detail.ArchiveSize != 12 {
+		t.Fatalf("unexpected archive summary: %d files, %d bytes", detail.ArchiveFiles, detail.ArchiveSize)
+	}
+
+	// a multi content file holding the base and its update is included once
+	local := &db.SwitchGameFiles{BaseExist: true, File: db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{BaseFolder: "/roms", FileName: "all.xci"}}}
+	local.Updates = map[int]db.SwitchFileInfo{65536: {ExtendedInfo: local.File.ExtendedInfo}}
+	if entries := archiveEntries(local); len(entries) != 1 {
+		t.Fatalf("multi content file listed %d times", len(entries))
+	}
+	if safeFileName(`Bad: name? <x>`) != "Bad name x" || safeFileName("  ") != "game" {
+		t.Fatal("unexpected safe file name")
 	}
 }
