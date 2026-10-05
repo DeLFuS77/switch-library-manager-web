@@ -36,13 +36,7 @@ func (web *Web) getMissingDLC(filter *TitleItemFilter) ([]TitleItem, pagination.
 	}
 
 	settingsObj := settings.ReadSettings(web.dataFolder)
-	ignoreIds := map[string]struct{}{}
-
-	for _, id := range settingsObj.IgnoreDLCTitleIds {
-		ignoreIds[strings.ToLower(id)] = struct{}{}
-	}
-
-	missingDLC := process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, ignoreIds)
+	missingDLC := process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds))
 
 	for _, v := range missingDLC {
 		if filter.Matches(v.Attributes.Id, v.Attributes.Name) {

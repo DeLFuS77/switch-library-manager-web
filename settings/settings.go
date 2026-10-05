@@ -2,7 +2,6 @@ package settings
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -39,6 +38,11 @@ var (
 )
 
 const (
+	DEFAULT_FOLDER_NAME_TEMPLATE = "{TITLE_NAME}"
+	DEFAULT_FILE_NAME_TEMPLATE   = "{TITLE_NAME} ({DLC_NAME})[{TITLE_ID}][v{VERSION}]"
+)
+
+const (
 	TEMPLATE_TITLE_ID    = "TITLE_ID"
 	TEMPLATE_TITLE_NAME  = "TITLE_NAME"
 	TEMPLATE_DLC_NAME    = "DLC_NAME"
@@ -49,7 +53,11 @@ const (
 )
 
 type OrganizeOptions struct {
-	CreateFolderPerGame  bool   `json:"create_folder_per_game"`
+	CreateFolderPerGame        bool   `json:"create_folder_per_game"`
+	DlcFolder                  string `json:"dlc_folder"`
+	UpdatesFolder              string `json:"updates_folder"`
+	ProcessWhenMissingBaseGame bool   `json:"process_when_missing_base_game"`
+	DeleteDuplicateFiles       bool   `json:"delete_duplicate_files"`
 	RenameFiles          bool   `json:"rename_files"`
 	DeleteEmptyFolders   bool   `json:"delete_empty_folders"`
 	DeleteOldUpdateFiles bool   `json:"delete_old_update_files"`
@@ -70,6 +78,10 @@ type AppSettings struct {
 	Debug                  bool            `json:"debug"`
 	OrganizeOptions        OrganizeOptions `json:"organize_options"`
 	IgnoreDLCTitleIds      []string        `json:"ignore_dlc_title_ids"`
+	IgnoreUpdateTitleIds   []string        `json:"ignore_update_title_ids"`
+	IgnoreDLCUpdates       bool            `json:"ignore_dlc_updates"`
+	IgnoreFileTypes        []string        `json:"ignore_file_types"`
+	HideDemoGames          bool            `json:"hide_demo_games"`
 }
 
 func ReadSettingsAsJSON(dataFolder string) string {
@@ -122,6 +134,12 @@ func verifySettings(dataFolder string, settings *AppSettings) *AppSettings {
 	if settings.VersionsJsonUrl == "" {
 		settings.VersionsJsonUrl = DEFAULT_VERSIONS_JSON_URL
 	}
+	if settings.OrganizeOptions.FolderNameTemplate == "" {
+		settings.OrganizeOptions.FolderNameTemplate = DEFAULT_FOLDER_NAME_TEMPLATE
+	}
+	if settings.OrganizeOptions.FileNameTemplate == "" {
+		settings.OrganizeOptions.FileNameTemplate = DEFAULT_FILE_NAME_TEMPLATE
+	}
 
 	// without a local copy the etag would prevent downloading the file again
 	if _, err := os.Stat(filepath.Join(dataFolder, TITLE_JSON_FILENAME)); err != nil {
@@ -164,14 +182,15 @@ func saveDefaultSettings(dataFolder string) *AppSettings {
 		Folder:                 "/mnt/roms",
 		ScanFolders:            []string{},
 		IgnoreDLCTitleIds:      []string{},
+		IgnoreUpdateTitleIds:   []string{},
+		IgnoreFileTypes:        []string{},
 		Port:                   3000,
 		Debug:                  false,
 		OrganizeOptions: OrganizeOptions{
 			RenameFiles:         false,
 			CreateFolderPerGame: false,
-			FolderNameTemplate:  fmt.Sprintf("{%v}", TEMPLATE_TITLE_NAME),
-			FileNameTemplate: fmt.Sprintf("{%v} ({%v})[{%v}][v{%v}]", TEMPLATE_TITLE_NAME, TEMPLATE_DLC_NAME,
-				TEMPLATE_TITLE_ID, TEMPLATE_VERSION),
+			FolderNameTemplate:  DEFAULT_FOLDER_NAME_TEMPLATE,
+			FileNameTemplate:    DEFAULT_FILE_NAME_TEMPLATE,
 			DeleteEmptyFolders:   false,
 			SwitchSafeFileNames:  true,
 			DeleteOldUpdateFiles: false,
