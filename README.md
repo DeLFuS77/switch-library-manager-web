@@ -17,7 +17,8 @@ Easily manage your Switch game backups from the browser.
 - Delete old update files and, optionally, duplicates and empty folders
 - Ignore lists for DLC, updates and file types; hide demos
 - JSON API to list and download the library (`/api/titles`)
-- Optional password protection
+- Optional user accounts with administrator and read-only roles
+- Tasks page with the live progress and history of synchronizations, scans and organize runs
 - Interface in English and Spanish, including game names and descriptions, with light and dark theme
 - Statistics: space by content and format, missing updates, DLC and games, largest games
 - Notifications for new updates and DLC (Discord, Telegram, generic webhook)

@@ -20,7 +20,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "1.6.0"
+	SLM_WEB_VERSION        = "1.7.0"
 	// titles.json and versions.json are generated from blawar/titledb by the
 	// "Update title data" workflow of this repository
 	DEFAULT_TITLES_JSON_URL   = "https://github.com/SiscuPrats/switch-library-manager-web/releases/download/data/titles.json"
