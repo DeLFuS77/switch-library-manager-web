@@ -4,6 +4,7 @@ go 1.23
 
 require (
 	github.com/avast/retry-go/v5 v5.0.0
+	github.com/fsnotify/fsnotify v1.10.1
 	github.com/ggicci/httpin v0.11.0
 	github.com/gorilla/mux v1.8.0
 	github.com/justinas/alice v1.2.0

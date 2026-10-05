@@ -98,6 +98,7 @@ type AppSettings struct {
 	IgnoreDLCUpdates       bool                `json:"ignore_dlc_updates"`
 	IgnoreFileTypes        []string            `json:"ignore_file_types"`
 	HideDemoGames          bool                `json:"hide_demo_games"`
+	WatchFolders           bool                `json:"watch_folders"`
 	SyncIntervalHours      int                 `json:"sync_interval_hours"`
 	Language               string              `json:"language"`
 	Notifications          NotificationOptions `json:"notifications"`
@@ -125,7 +126,7 @@ func ReadSettings(dataFolder string) *AppSettings {
 		return settingsInstance
 	}
 	// defaults for keys missing from settings files written by older versions
-	settingsInstance = &AppSettings{Debug: false, ScanFolders: []string{},
+	settingsInstance = &AppSettings{Debug: false, ScanFolders: []string{}, WatchFolders: true,
 		Notifications:   NotificationOptions{NotifyUpdates: true, NotifyDlc: true},
 		OrganizeOptions: OrganizeOptions{SwitchSafeFileNames: true}, Prodkeys: "", IgnoreDLCTitleIds: []string{"01007F600B135007"}}
 	if _, err := os.Stat(filepath.Join(dataFolder, SETTINGS_FILENAME)); err == nil {
@@ -210,6 +211,7 @@ func saveDefaultSettings(dataFolder string) *AppSettings {
 		IgnoreDLCTitleIds:      []string{},
 		IgnoreUpdateTitleIds:   []string{},
 		IgnoreFileTypes:        []string{},
+		WatchFolders:           true,
 		Notifications:          NotificationOptions{NotifyUpdates: true, NotifyDlc: true},
 		Port:                   3000,
 		Debug:                  false,

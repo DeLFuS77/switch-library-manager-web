@@ -335,6 +335,7 @@ func (web *Web) Start() {
 	web.HandleArchive()
 	web.HandleApiDocs()
 	web.StartScheduler()
+	web.StartFolderWatcher()
 
 	web.router.Handle("/", http.RedirectHandler("/index.html", http.StatusMovedPermanently))
 
@@ -410,14 +411,7 @@ func (web *Web) buildLocalDB(switchDB *db.SwitchTitlesDB, ignoreCache bool) (*db
 		web.localDbManager.KeysChanged(settings.KeysFingerprint())
 	}
 
-	scanFolders := []string{}
-	for _, folder := range append([]string{settingsObj.Folder}, settingsObj.ScanFolders...) {
-		if folder != "" {
-			scanFolders = append(scanFolders, folder)
-		}
-	}
-
-	return web.localDbManager.CreateLocalSwitchFilesDB(switchDB, web.dataFolder, scanFolders, web, true, ignoreCache)
+	return web.localDbManager.CreateLocalSwitchFilesDB(switchDB, web.dataFolder, scanFolders(settingsObj), web, true, ignoreCache)
 }
 
 // loadLocalizedTitles loads the names and descriptions of the translated interface

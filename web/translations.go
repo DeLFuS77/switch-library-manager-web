@@ -5,6 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Scan automatically when files change": "Analizar automáticamente cuando cambien los archivos",
+		"New, removed or replaced files are detected right away in local folders, and every two minutes in network folders.": "Los archivos nuevos, borrados o sustituidos se detectan al momento en carpetas locales y cada dos minutos en carpetas de red.",
 		"Skip to content": "Saltar al contenido",
 		"Main navigation": "Navegación principal",
 		"Download the latest titles database and rescan the library": "Descarga la última base de datos de títulos y vuelve a analizar la biblioteca",
