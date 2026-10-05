@@ -112,6 +112,7 @@ type TitleItem struct {
 	LatestUpdateDate time.Time
 	LocalUpdate      int
 	MissingDLC       []string
+	MissingDLCItems  []db.TitleAttributes
 	Name             string
 	Region           string
 	ReleaseDate      time.Time
@@ -179,6 +180,7 @@ var funcMap = template.FuncMap {
 		// url.Values.Encode escapes every value, so the result is safe to use as is
 		return template.URL("?" + values.Encode())
 	},
+	"formatSize": formatSize,
 	"subtract": func(a, b int) int {
 		return a - b
 	},
@@ -268,6 +270,8 @@ func (web *Web) Start() {
 	web.HandleSynchronize()
 	web.HandleOrganize()
 	web.HandleApi()
+	web.HandleTitle()
+	web.HandleIgnore()
 
 	web.router.Handle("/", http.RedirectHandler("/index.html", http.StatusMovedPermanently))
 

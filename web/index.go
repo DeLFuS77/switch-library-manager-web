@@ -33,7 +33,12 @@ func getLocalTitleName(title *db.SwitchTitle, gameFile *db.SwitchGameFiles) stri
 		return title.Attributes.Name
 	}
 
-	if ncap := gameFile.File.Metadata.Ncap; ncap != nil {
+	if gameFile == nil {
+		return ""
+	}
+
+	if gameFile.File.Metadata != nil && gameFile.File.Metadata.Ncap != nil {
+		ncap := gameFile.File.Metadata.Ncap
 		if name := ncap.TitleName["AmericanEnglish"].Title; name != "" {
 			return name
 		}
