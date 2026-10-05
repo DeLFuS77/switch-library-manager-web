@@ -72,6 +72,23 @@ jobs:
           username=$(printf '%s' "$RAW_USERNAME" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
           token=$(printf '%s' "$RAW_TOKEN" | tr -d '[:space:]')
           echo "::add-mask::$token"
+          # check the format without printing the values
+          echo "user name: ${#username} characters, token: ${#token} characters"
+          if printf '%s' "$username" | grep -q '^dckr_'; then
+            echo "::error::DOCKERHUB_USERNAME contains an access token: the two secrets seem to be swapped"
+            exit 1
+          fi
+          if ! printf '%s' "$username" | grep -Eq '^[a-z0-9]{4,30}$'; then
+            echo "::error::DOCKERHUB_USERNAME must be your Docker Hub user name (letters and digits, not your e-mail)"
+            exit 1
+          fi
+          if ! printf '%s' "$token" | LC_ALL=C grep -Eq '^[A-Za-z0-9_-]{20,}$'; then
+            echo "::error::DOCKERHUB_TOKEN does not look like a Docker Hub access token (dckr_pat_...): it contains unexpected characters or is too short"
+            exit 1
+          fi
+          if ! printf '%s' "$token" | grep -q '^dckr_pat_'; then
+            echo "::warning::DOCKERHUB_TOKEN does not start with dckr_pat_: use a personal access token, not your password"
+          fi
           echo "DOCKERHUB_USERNAME=$username" >> "$GITHUB_ENV"
           echo "DOCKERHUB_TOKEN=$token" >> "$GITHUB_ENV"
 
