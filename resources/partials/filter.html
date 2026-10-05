@@ -5,7 +5,7 @@
 					<input type="search" class="form-control" name="q" value="{{.Filter.Keyword}}" placeholder="{{t "Search by name or ID..."}}" aria-label="{{t "Search"}}">
 				</div>
 				{{- if .Filter.Keyword}}
-				<a class="btn btn-link text-decoration-none px-2" href="?per_page={{.Filter.PerPage}}&amp;sort_by={{.Filter.SortBy}}&amp;sort_order={{.Filter.SortOrder}}">{{t "Clear"}}</a>
+				<a class="btn btn-link text-decoration-none px-2" href="{{filterUrl .Filter "q" ""}}">{{t "Clear"}}</a>
 				{{- end}}
 				<label class="visually-hidden" for="sortBy">{{t "Sort by"}}</label>
 				<select class="form-select" id="sortBy" name="sort_by" onchange="this.form.submit()">
@@ -31,6 +31,14 @@
 					<input type="radio" class="btn-check" name="sort_order" value="desc" id="descSortOrder" autocomplete="off" onchange="this.form.submit()"{{if eq .Filter.SortOrder "desc"}} checked{{end}}>
 					<label class="btn btn-outline-secondary" for="descSortOrder" title="{{t "Descending"}}"><span class="bi bi-sort-up" aria-hidden="true"></span><span class="visually-hidden">{{t "Descending"}}</span></label>
 				</div>
+				{{- if or (eq .Page "index") (eq .Page "missing") (eq .Page "updates")}}
+				<div class="btn-group view-toggle" role="group" aria-label="{{t "View"}}">
+					<button type="button" class="btn btn-outline-secondary" data-view="cards" title="{{t "Large covers"}}" aria-pressed="true"><span class="bi bi-grid" aria-hidden="true"></span><span class="visually-hidden">{{t "Large covers"}}</span></button>
+					<button type="button" class="btn btn-outline-secondary" data-view="compact" title="{{t "Small covers"}}" aria-pressed="false"><span class="bi bi-grid-3x3-gap" aria-hidden="true"></span><span class="visually-hidden">{{t "Small covers"}}</span></button>
+				</div>
+				{{- end}}
 				<input type="hidden" name="per_page" value="{{.Filter.PerPage}}">
+				{{- if .Filter.Status}}<input type="hidden" name="status" value="{{.Filter.Status}}">{{end}}
+				{{- if .Filter.Format}}<input type="hidden" name="format" value="{{.Filter.Format | toLower}}">{{end}}
 			</form>
 {{- end}}

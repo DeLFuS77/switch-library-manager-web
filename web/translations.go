@@ -5,6 +5,15 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"View":                                 "Vista",
+		"Large covers":                         "Portadas grandes",
+		"Small covers":                         "Portadas pequeñas",
+		"Filter by status":                     "Filtrar por estado",
+		"All":                                  "Todos",
+		"DLC missing":                          "Faltan DLC",
+		"All formats":                          "Todos los formatos",
+		"No game matches these filters.":       "Ningún juego coincide con estos filtros.",
+		"Clear filters":                        "Borrar filtros",
 		"Scan automatically when files change": "Analizar automáticamente cuando cambien los archivos",
 		"New, removed or replaced files are detected right away in local folders, and every two minutes in network folders.": "Los archivos nuevos, borrados o sustituidos se detectan al momento en carpetas locales y cada dos minutos en carpetas de red.",
 		"Skip to content": "Saltar al contenido",
@@ -36,7 +45,6 @@ var translations = map[string]map[string]string{
 		"Showing %v–%v of %v": "Mostrando %v–%v de %v",
 		"No results":          "Sin resultados",
 		"Nothing matches “%v”. Try another name or title ID.": "Nada coincide con «%v». Prueba con otro nombre o ID de título.",
-		"Clear search": "Borrar búsqueda",
 		"An overview of your library: what you have, how much space it uses and what is missing.": "Un resumen de tu biblioteca: qué tienes, cuánto espacio ocupa y qué falta.",
 		"No statistics yet": "Aún no hay estadísticas",
 		"Add your games folders in Settings to see the statistics of your library.": "Añade las carpetas de tus juegos en Ajustes para ver las estadísticas de tu biblioteca.",

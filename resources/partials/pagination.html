@@ -56,6 +56,8 @@
 						{{- end}}
 					</select>
 					{{- if $f.Keyword}}<input type="hidden" name="q" value="{{$f.Keyword}}">{{end}}
+					{{- if $f.Status}}<input type="hidden" name="status" value="{{$f.Status}}">{{end}}
+					{{- if $f.Format}}<input type="hidden" name="format" value="{{$f.Format | toLower}}">{{end}}
 					<input type="hidden" name="sort_by" value="{{$f.SortBy}}">
 					<input type="hidden" name="sort_order" value="{{$f.SortOrder}}">
 				</form>
