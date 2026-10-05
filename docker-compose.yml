@@ -1,7 +1,7 @@
 # Example: docker compose up -d, then open http://localhost:3000
 services:
   switch-library-manager-web:
-    # also available as ghcr.io/siscuprats/switch-library-manager-web
+    # also available as ghcr.io/delfus77/switch-library-manager-web
     image: delfus77/switch-library-manager-web:latest
     container_name: switch-library-manager-web
     restart: unless-stopped
