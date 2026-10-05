@@ -92,6 +92,15 @@
 									<div class="form-text">{{t "Last synchronization:"}} {{formatDateTime .Settings.LastSyncTime}}{{if not .NextSync.IsZero}} &middot; {{t "next:"}} {{if .Settings.LastSyncTime.IsZero}}{{t "within a minute"}}{{else}}{{formatDateTime .NextSync}}{{end}}{{end}}</div>
 								</div>
 								<div class="col-md-6">
+									<label for="verify_interval_days" class="form-label fw-semibold">{{t "Check the files"}}</label>
+									<select class="form-select" id="verify_interval_days" name="verify_interval_days" aria-describedby="verifyHelp">
+										<option value="0"{{if eq .Settings.VerifyIntervalDays 0}} selected{{end}}>{{t "Only when I ask"}}</option>
+										<option value="7"{{if eq .Settings.VerifyIntervalDays 7}} selected{{end}}>{{t "Every week"}}</option>
+										<option value="30"{{if eq .Settings.VerifyIntervalDays 30}} selected{{end}}>{{t "Every month"}}</option>
+									</select>
+									<div class="form-text" id="verifyHelp">{{t "New and changed files are checked for damage; the results appear in Issues."}}</div>
+								</div>
+								<div class="col-md-6">
 									<label for="language" class="form-label fw-semibold">{{t "Language"}}</label>
 									<select class="form-select" id="language" name="language">
 										<option value=""{{if eq .Settings.Language ""}} selected{{end}}>{{t "Automatic (browser language)"}}</option>

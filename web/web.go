@@ -109,6 +109,8 @@ func (s *WebState) IsSynchronizing() bool {
 
 type Web struct {
 	state          WebState
+	verify         *verifyStore
+	verifyOnce     sync.Once
 	compressor     compressor
 	cache          derivedCache
 	auth           *Auth
@@ -384,6 +386,7 @@ func (web *Web) Start() {
 	web.HandleTasks()
 	web.HandleUsers()
 	web.HandleCompress()
+	web.HandleVerify()
 	web.StartScheduler()
 	web.StartFolderWatcher()
 

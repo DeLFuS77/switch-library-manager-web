@@ -785,6 +785,23 @@ document.addEventListener('DOMContentLoaded', () => {
 	initViewToggle();
 	initLiveTasks();
 	initCompress();
+
+	document.querySelectorAll('[data-verify]').forEach(button => {
+		button.addEventListener('click', () => {
+			button.disabled = true;
+			const body = new URLSearchParams({ all: button.dataset.verify === 'all' ? 'true' : 'false' });
+			fetch('/verify/start', { method: 'POST', body }).then(response => {
+				if (response.ok) {
+					window.location.href = '/tasks.html';
+					return;
+				}
+				return response.json().then(json => {
+					button.disabled = false;
+					insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', json.globalError.strongMessage, json.globalError.message);
+				});
+			});
+		});
+	});
 	initCountUp();
 	initCoverLoading();
 	initCardTilt();

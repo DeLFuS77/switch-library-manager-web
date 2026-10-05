@@ -16,6 +16,7 @@ const (
 	TASK_CLEANUP    = "cleanup"
 	TASK_COMPRESS   = "compress"
 	TASK_DECOMPRESS = "decompress"
+	TASK_VERIFY     = "verify"
 )
 
 // what started a task
@@ -73,6 +74,8 @@ type Task struct {
 	Files int `json:"files,omitempty"`
 	// bytes saved by a compression
 	Saved int64 `json:"saved,omitempty"`
+	// damaged files found by a verification
+	Damaged int `json:"damaged,omitempty"`
 }
 
 // TaskNote is a problem of a task: Text is an English sentence translated by the
@@ -174,6 +177,13 @@ func (l *TaskLog) SetResult(id int64, games int, files int) {
 func (l *TaskLog) SetCompressResult(id int64, files int, saved int64) {
 	l.update(id, false, func(task *Task) {
 		task.Files, task.Saved = files, saved
+	})
+}
+
+// SetVerifyResult records the files checked so far and the damaged ones.
+func (l *TaskLog) SetVerifyResult(id int64, checked int, damaged int) {
+	l.update(id, false, func(task *Task) {
+		task.Files, task.Damaged = checked, damaged
 	})
 }
 

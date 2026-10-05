@@ -1,6 +1,13 @@
 {{define "title"}}{{t "Issues"}}{{end}}
 {{define "main"}}
-			{{- template "pageHeader" (dict "Title" (t "Issues") "Count" .Total "Subtitle" (t "Files that could not be added to the library, duplicates and old versions. Organize can clean up old updates and duplicates."))}}
+			<div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
+				{{- template "pageHeader" (dict "Title" (t "Issues") "Count" .Total "Subtitle" (t "Files that could not be added to the library, damaged files, duplicates and old versions. Organize can clean up old updates and duplicates."))}}
+				<div class="d-flex gap-2 mb-3 admin-only">
+					<button type="button" class="btn btn-primary rounded-pill" data-verify="changed" title="{{t "Checks the new and changed files for damage"}}"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Check files"}}</button>
+					<button type="button" class="btn btn-outline-secondary rounded-pill" data-verify="all" title="{{t "Checks every file again"}}">{{t "Check all"}}</button>
+				</div>
+			</div>
+			{{- if .LastVerified.IsZero}}{{else}}<p class="small text-body-secondary mt-n2">{{t "Files last checked %v" (formatDateTime .LastVerified)}}</p>{{end}}
 			{{- if gt .Total 0}}
 			<form class="toolbar" role="search">
 				<div class="toolbar-search">

@@ -62,6 +62,14 @@ func (web *Web) sorted(name string, filter *TitleItemFilter, build func() []Titl
 	}).([]TitleItem)
 }
 
+// invalidateDerived drops the cached results, after a change they do not follow
+// automatically (e.g. a verification).
+func (web *Web) invalidateDerived() {
+	web.cache.mutex.Lock()
+	web.cache.values = nil
+	web.cache.mutex.Unlock()
+}
+
 // filterPage returns the page of the sorted items that match the keyword of the filter.
 func (web *Web) filterPage(filter *TitleItemFilter, sorted []TitleItem) ([]TitleItem, pagination.Pagination) {
 	items := sorted

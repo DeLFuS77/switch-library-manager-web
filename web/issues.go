@@ -1,6 +1,8 @@
 package web
 
 import (
+	"time"
+
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"path/filepath"
 	"sort"
@@ -19,6 +21,8 @@ type IssuesPageData struct {
 	Total      int
 	Filter     *TitleItemFilter
 	Pagination pagination.Pagination
+	// when the files were last checked for damage
+	LastVerified time.Time
 }
 
 func (web *Web) HandleIssues() {
@@ -47,6 +51,7 @@ func (web *Web) HandleIssues() {
 			Total: len(all),
 			Filter: filter,
 			Pagination: p,
+			LastVerified: web.verifications().lastRun(),
 		}
 	}, web.embedFS, fsPatterns...)
 }
@@ -81,6 +86,11 @@ func (web *Web) buildIssues() []Issue {
 		issues = append(issues, Issue{File: filepath.Join(k.BaseFolder, k.FileName), Reason: v.ReasonText})
 	}
 
+	// files a verification found damaged, while they did not change
+	for path, reason := range web.verifications().damaged() {
+		issues = append(issues, Issue{File: path, Reason: reason})
+	}
+
 	sort.Slice(issues, func(i, j int) bool {
 		if issues[i].File == issues[j].File {
 			return issues[i].Reason < issues[j].Reason
@@ -104,6 +114,8 @@ func issueIcon(reason string) string {
 		return "bi-file-earmark-x text-secondary"
 	case strings.HasPrefix(reason, "identified by file name only"):
 		return "bi-tag text-info"
+	case strings.HasPrefix(reason, "damaged file"):
+		return "bi-heartbreak text-danger"
 	default:
 		return "bi-exclamation-octagon text-danger"
 	}
