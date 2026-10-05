@@ -806,3 +806,100 @@ func TestStatistics(t *testing.T) {
 		t.Fatalf("unexpected largest games: %+v", stats.Largest)
 	}
 }
+
+func TestNotifications(t *testing.T) {
+	web := newTestWeb(t)
+	switchDB, localDB := testDatabases(t)
+	web.state.set(switchDB, localDB)
+
+	var requests []map[string]any
+	var paths []string
+	failing := false
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if failing {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		var body map[string]any
+		json.NewDecoder(r.Body).Decode(&body)
+		requests = append(requests, body)
+		paths = append(paths, r.URL.Path)
+	}))
+	defer server.Close()
+	oldTelegram := telegramApiUrl
+	telegramApiUrl = server.URL
+	defer func() { telegramApiUrl = oldTelegram }()
+
+	original := settings.ReadSettings(web.dataFolder).Notifications
+	defer settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.Notifications = original })
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+		s.Notifications = settings.NotificationOptions{WebhookUrl: server.URL + "/hook", NotifyUpdates: true, NotifyDlc: true}
+	})
+
+	items := web.availableItems("en")
+	if len(items) != 2 || items[0].Kind != "dlc" || items[1].Kind != "update" || items[1].Detail != "v131072" {
+		t.Fatalf("unexpected items: %+v", items)
+	}
+
+	// the first check only records what is already missing
+	web.notifyChanges()
+	if len(requests) != 0 {
+		t.Fatalf("existing items must not be reported: %+v", requests)
+	}
+
+	// a new DLC is released
+	game := switchDB.TitlesMap["0100000000010"]
+	game.Dlc["0100000000011003"] = db.TitleAttributes{Id: "0100000000011003", Name: "Brand New DLC"}
+	web.notifyChanges()
+	if len(requests) != 1 || !strings.Contains(requests[0]["message"].(string), "Brand New DLC") || strings.Contains(requests[0]["message"].(string), "Missing DLC") {
+		t.Fatalf("only the new DLC should be reported: %+v", requests)
+	}
+	web.notifyChanges()
+	if len(requests) != 1 {
+		t.Fatal("an item must be reported only once")
+	}
+
+	// a failed delivery is retried by the next check
+	game.Dlc["0100000000011004"] = db.TitleAttributes{Id: "0100000000011004", Name: "Another DLC"}
+	failing = true
+	web.notifyChanges()
+	failing = false
+	web.notifyChanges()
+	if len(requests) != 2 || !strings.Contains(requests[1]["message"].(string), "Another DLC") {
+		t.Fatalf("failed notification was not retried: %+v", requests)
+	}
+
+	// Telegram
+	telegram := settings.NotificationOptions{TelegramBotToken: "123456:ABCDEFGHIJKLMNOPQRSTUVWXYZ", TelegramChatId: "-100123"}
+	if err := sendNotification(telegram, "es", []NotificationItem{{Kind: "update", Name: "Juego", Detail: "v2"}}); err != nil {
+		t.Fatal(err)
+	}
+	last := requests[len(requests)-1]
+	if paths[len(paths)-1] != "/bot123456:ABCDEFGHIJKLMNOPQRSTUVWXYZ/sendMessage" || last["chat_id"] != "-100123" || !strings.Contains(last["text"].(string), "Actualización v2 de Juego") {
+		t.Fatalf("unexpected Telegram request: %v %+v", paths[len(paths)-1], last)
+	}
+}
+
+func TestValidateNotifications(t *testing.T) {
+	valid := settings.NotificationOptions{
+		DiscordWebhookUrl: "https://discord.com/api/webhooks/123/abc-DEF_1",
+		TelegramBotToken:  "123456:ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+		TelegramChatId:    "@my_channel",
+		WebhookUrl:        "http://192.168.1.10:8080/notify",
+	}
+	if errs := validateNotifications(valid, "en"); len(errs) != 0 {
+		t.Fatalf("valid options rejected: %+v", errs)
+	}
+	invalid := []settings.NotificationOptions{
+		{DiscordWebhookUrl: "https://evil.example/api/webhooks/1/x"},
+		{TelegramBotToken: "123456:ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
+		{TelegramBotToken: "not-a-token", TelegramChatId: "1"},
+		{TelegramBotToken: "123456:ABCDEFGHIJKLMNOPQRSTUVWXYZ", TelegramChatId: "abc"},
+		{WebhookUrl: "ftp://server/file"},
+	}
+	for _, options := range invalid {
+		if errs := validateNotifications(options, "en"); len(errs) == 0 {
+			t.Errorf("invalid options accepted: %+v", options)
+		}
+	}
+}
