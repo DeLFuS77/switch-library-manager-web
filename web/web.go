@@ -109,6 +109,7 @@ func (s *WebState) IsSynchronizing() bool {
 
 type Web struct {
 	state          WebState
+	languages      titleLanguages
 	auto           autoCompressor
 	updates        updateChecker
 	verify         *verifyStore
@@ -570,56 +571,60 @@ func (web *Web) buildLocalDB(switchDB *db.SwitchTitlesDB, ignoreCache bool) (*db
 	return web.localDbManager.CreateLocalSwitchFilesDB(switchDB, web.dataFolder, scanFolders(settingsObj), web, true, ignoreCache)
 }
 
-// loadLocalizedTitles loads the names and descriptions of the translated interface
-// languages. With download, newer files are fetched first. Failures only lose the
-// translations: English names are used instead.
+// loadLocalizedTitles loads the names and descriptions of the title languages. With
+// download, newer files are fetched first. Failures only lose the translations: English
+// names are used instead.
 func (web *Web) loadLocalizedTitles(download bool) map[string]map[string]db.LocalizedTitle {
 	result := map[string]map[string]db.LocalizedTitle{}
+	for _, lang := range web.titleLanguages() {
+		if titles, ok := web.loadTitleLanguage(lang, download); ok {
+			result[lang] = titles
+		}
+	}
+	return result
+}
+
+// loadTitleLanguage loads titles.<lang>.json, downloading a newer one first if asked.
+func (web *Web) loadTitleLanguage(lang string, download bool) (map[string]db.LocalizedTitle, bool) {
+	web.languages.fileMutex.Lock()
+	defer web.languages.fileMutex.Unlock()
 	settingsObj := settings.ReadSettings(web.dataFolder)
+	filePath := filepath.Join(web.dataFolder, "titles."+lang+".json")
 
-	for _, lang := range supportedLanguages {
-		if lang == DEFAULT_LANGUAGE {
-			continue
+	var file *os.File
+	var err error
+	if download {
+		etag := settingsObj.LocalizedTitlesEtags[lang]
+		if _, statErr := os.Stat(filePath); statErr != nil {
+			etag = ""
 		}
-		filePath := filepath.Join(web.dataFolder, "titles."+lang+".json")
-
-		var file *os.File
-		var err error
-		if download {
-			etag := settingsObj.LocalizedTitlesEtags[lang]
-			if _, statErr := os.Stat(filePath); statErr != nil {
-				etag = ""
-			}
-			var newEtag string
-			file, newEtag, err = db.LoadAndUpdateFile([]string{fmt.Sprintf(settingsObj.LocalizedTitlesJsonUrl, lang)}, filePath, etag)
-			if err == nil && newEtag != etag {
-				settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
-					if s.LocalizedTitlesEtags == nil {
-						s.LocalizedTitlesEtags = map[string]string{}
-					}
-					s.LocalizedTitlesEtags[lang] = newEtag
-				})
-			}
-		} else {
-			file, err = os.Open(filePath)
+		var newEtag string
+		file, newEtag, err = db.LoadAndUpdateFile([]string{fmt.Sprintf(settingsObj.LocalizedTitlesJsonUrl, lang)}, filePath, etag)
+		if err == nil && newEtag != etag {
+			settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+				if s.LocalizedTitlesEtags == nil {
+					s.LocalizedTitlesEtags = map[string]string{}
+				}
+				s.LocalizedTitlesEtags[lang] = newEtag
+			})
 		}
-		if err != nil {
-			if download || !os.IsNotExist(err) {
-				web.sugarLogger.Warnf("Titles in %v are not available: %v", lang, err)
-			}
-			continue
+	} else {
+		file, err = os.Open(filePath)
+	}
+	if err != nil {
+		if download || !os.IsNotExist(err) {
+			web.sugarLogger.Warnf("Titles in %v are not available: %v", lang, err)
 		}
-
-		titles, err := db.LoadLocalizedTitles(file)
-		file.Close()
-		if err != nil {
-			web.sugarLogger.Warnf("Failed to read titles in %v: %v", lang, err)
-			continue
-		}
-		result[lang] = titles
+		return nil, false
 	}
 
-	return result
+	titles, err := db.LoadLocalizedTitles(file)
+	file.Close()
+	if err != nil {
+		web.sugarLogger.Warnf("Failed to read titles in %v: %v", lang, err)
+		return nil, false
+	}
+	return titles, true
 }
 
 // missingUpdates are the missing updates of the library, respecting the ignore lists.
