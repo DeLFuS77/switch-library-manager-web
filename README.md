@@ -30,9 +30,9 @@ Easily manage your Switch game backups from the browser.
 ### Docker
 
 The image is available on [Docker Hub](https://hub.docker.com/r/delfus77/switch-library-manager-web) (`delfus77/switch-library-manager-web`)
-and on GitHub (`ghcr.io/siscuprats/switch-library-manager-web`), for amd64 and arm64 (Raspberry Pi, most NAS).
+and on GitHub (`ghcr.io/delfus77/switch-library-manager-web`), for amd64 and arm64 (Raspberry Pi, most NAS).
 
-With Docker Compose, copy [docker-compose.yml](https://github.com/SiscuPrats/switch-library-manager-web/blob/master/docker-compose.yml), set your library folder and run
+With Docker Compose, copy [docker-compose.yml](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/docker-compose.yml), set your library folder and run
 `docker compose up -d`. Or with `docker run`:
 
 ```
@@ -125,7 +125,7 @@ Requests that change data (synchronize, settings, organize) are rejected when th
 ## API
 
 The JSON API lists the library, its statistics and downloads files; it is described in
-[OpenAPI](https://github.com/SiscuPrats/switch-library-manager-web/blob/master/resources/static/openapi.json) format, also
+[OpenAPI](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/resources/static/openapi.json) format, also
 served by the app at `/api/openapi.json`. Main endpoints:
 
 | Endpoint | Description |
@@ -175,11 +175,11 @@ If the configured database cannot be downloaded, a mirror is used.
 ### Titles database
 
 `titles.json` and `versions.json` are generated every 6 hours from [blawar/titledb](https://github.com/blawar/titledb)
-by the [Update title data](https://github.com/SiscuPrats/switch-library-manager-web/blob/master/.github/workflows/update-title-data.yml) workflow and published in the `data` release.
+by the [Update title data](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/.github/workflows/update-title-data.yml) workflow and published in the `data` release.
 
 ## Reporting issues
 
-Report problems and ideas in the [issue tracker](https://github.com/SiscuPrats/switch-library-manager-web/issues).
+Report problems and ideas in the [issue tracker](https://github.com/DeLFuS77/switch-library-manager-web/issues).
 For problems, set `debug` to `true` in settings.json and attach the log. **Never share your keys**, also not in logs or
 screenshots.
 
@@ -188,7 +188,7 @@ screenshots.
 Requirements: [Go](https://go.dev) 1.23+ and [Node.js](https://nodejs.org) (for the web assets).
 
 ```
-$ git clone https://github.com/SiscuPrats/switch-library-manager-web.git
+$ git clone https://github.com/DeLFuS77/switch-library-manager-web.git
 $ cd switch-library-manager-web
 $ npm ci
 $ npm run build       # web assets (sass + esbuild)

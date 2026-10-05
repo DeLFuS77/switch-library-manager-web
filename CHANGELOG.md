@@ -123,7 +123,7 @@ Big libraries and the full titles database are handled much faster, with less me
 ### New features
 
 - **Docker Hub**: the image is published as `delfus77/switch-library-manager-web`
-  (also still on `ghcr.io/siscuprats/switch-library-manager-web`), for **amd64 and arm64**, so it runs on Raspberry
+  (also still on `ghcr.io/delfus77/switch-library-manager-web`), for **amd64 and arm64**, so it runs on Raspberry
   Pi and most NAS as well.
 - **Export the library** from the Library page: a spreadsheet (CSV, opens with accents in Excel) or a full inventory
   with files and DLC (JSON).

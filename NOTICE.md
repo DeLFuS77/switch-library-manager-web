@@ -4,7 +4,7 @@ This project is a fork. Its code comes from several sources with different terms
 
 | Source | License |
 |---|---|
-| Changes made in this repository ([SiscuPrats/switch-library-manager-web](https://github.com/SiscuPrats/switch-library-manager-web)) | MIT, see [LICENSE](LICENSE) |
+| Changes made in this repository ([DeLFuS77/switch-library-manager-web](https://github.com/DeLFuS77/switch-library-manager-web)) | MIT, see [LICENSE](LICENSE) |
 | Code ported from [trembon/switch-library-manager](https://github.com/trembon/switch-library-manager) | MIT, Copyright (c) 2024 trembon |
 | [giwty/switch-library-manager](https://github.com/giwty/switch-library-manager) (the original project) | No license published |
 | [dtrunk90/switch-library-manager-web](https://github.com/dtrunk90/switch-library-manager-web) (the web version this fork is based on) | No license published |

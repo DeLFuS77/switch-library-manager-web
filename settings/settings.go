@@ -1,10 +1,13 @@
 package settings
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -22,12 +25,13 @@ const (
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
 	SLM_WEB_VERSION        = "1.7.0"
+	REPOSITORY_OWNER       = "DeLFuS77"
 	// titles.json and versions.json are generated from blawar/titledb by the
 	// "Update title data" workflow of this repository
-	DEFAULT_TITLES_JSON_URL   = "https://github.com/SiscuPrats/switch-library-manager-web/releases/download/data/titles.json"
+	DEFAULT_TITLES_JSON_URL   = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.json"
 	DEFAULT_VERSIONS_JSON_URL = "https://raw.githubusercontent.com/blawar/titledb/master/versions.json"
 	// %s is replaced by the interface language, e.g. titles.es.json
-	DEFAULT_LOCALIZED_TITLES_JSON_URL = "https://github.com/SiscuPrats/switch-library-manager-web/releases/download/data/titles.%s.json"
+	DEFAULT_LOCALIZED_TITLES_JSON_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.%s.json"
 	DEFAULT_TITLES_ETAG               = "W/\"a5b02845cf6bd61:0\""
 	DEFAULT_VERSIONS_ETAG             = "W/\"2ef50d1cb6bd61:0\""
 )
@@ -38,7 +42,7 @@ var (
 		"https://github.com/trembon/switch-library-manager/releases/download/data/titles.json",
 	}
 	FALLBACK_VERSIONS_JSON_URLS = []string{
-		"https://github.com/SiscuPrats/switch-library-manager-web/releases/download/data/versions.json",
+		"https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/versions.json",
 	}
 )
 
@@ -154,6 +158,11 @@ func ReadSettings(dataFolder string) *AppSettings {
 // verifySettings fills in values missing from settings files written by older versions.
 // Ported from https://github.com/trembon/switch-library-manager
 func verifySettings(dataFolder string, settings *AppSettings) *AppSettings {
+	// the repository moved to another account: follow it
+	settings.TitlesJsonUrl = movedRepositoryUrl(settings.TitlesJsonUrl)
+	settings.VersionsJsonUrl = movedRepositoryUrl(settings.VersionsJsonUrl)
+	settings.LocalizedTitlesJsonUrl = movedRepositoryUrl(settings.LocalizedTitlesJsonUrl)
+
 	if settings.TitlesJsonUrl == "" {
 		settings.TitlesJsonUrl = DEFAULT_TITLES_JSON_URL
 	}
@@ -179,6 +188,28 @@ func verifySettings(dataFolder string, settings *AppSettings) *AppSettings {
 	}
 
 	return settings
+}
+
+// sha256 of the account that owned the repository before it moved
+var previousOwnerHash = "6bd7cb1f52a2bba2c6cb01657035d346617bc6c980b92b0ae1f3d016288a927c"
+
+// movedRepositoryUrl points URLs of this repository under its previous account to the
+// current one, so settings saved by older versions keep working.
+func movedRepositoryUrl(url string) string {
+	const prefix = "https://github.com/"
+	if !strings.HasPrefix(url, prefix) {
+		return url
+	}
+	rest := url[len(prefix):]
+	slash := strings.Index(rest, "/")
+	if slash <= 0 || !strings.HasPrefix(rest[slash:], "/switch-library-manager-web/") {
+		return url
+	}
+	owner := sha256.Sum256([]byte(strings.ToLower(rest[:slash])))
+	if hex.EncodeToString(owner[:]) != previousOwnerHash {
+		return url
+	}
+	return prefix + REPOSITORY_OWNER + rest[slash:]
 }
 
 // TitlesJsonUrls returns the configured titles.json URL followed by the fallback mirrors.
