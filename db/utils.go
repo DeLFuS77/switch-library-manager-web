@@ -1,9 +1,10 @@
 package db
 
 import (
-	bytes2 "bytes"
+	"bufio"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -35,10 +36,27 @@ type ProgressUpdater interface {
 // document and stores it at filePath. If no URL provides a newer version, the local copy
 // is used. The returned file must be closed by the caller.
 func LoadAndUpdateFile(urls []string, filePath string, etag string) (*os.File, string, error) {
-	var file *os.File = nil
+	result, err := LoadAndUpdate(urls, filePath, etag)
+	return result.File, result.Etag, err
+}
 
-	//try to check if there is a new version
-	//if so, save the file
+// UpdateResult is the outcome of LoadAndUpdate.
+type UpdateResult struct {
+	// the up to date file, to be closed by the caller
+	File *os.File
+	Etag string
+	// a new version was downloaded; false when the local copy is used
+	Updated bool
+}
+
+// LoadAndUpdate is LoadAndUpdateFile, also telling whether a new version was downloaded.
+// Downloads are streamed to a temporary file, checked for truncation and for a valid JSON
+// document, and only then replace the local copy, so an interrupted download never
+// damages it. Temporary failures are retried before the next URL is tried.
+func LoadAndUpdate(urls []string, filePath string, etag string) (UpdateResult, error) {
+	tmpName := filePath + ".tmp"
+	defer os.Remove(tmpName)
+
 	for i, url := range urls {
 		if url == "" {
 			continue
@@ -49,7 +67,7 @@ func LoadAndUpdateFile(urls []string, filePath string, etag string) (*os.File, s
 			requestEtag = ""
 		}
 
-		bytes, newEtag, err := downloadBytesFromUrl(url, requestEtag)
+		newEtag, err := downloadWithRetries(url, requestEtag, tmpName)
 		if err != nil {
 			zap.S().Infof("file [%v] was not downloaded, reason - [%v]", url, err)
 			if errors.Is(err, errNotModified) {
@@ -58,36 +76,148 @@ func LoadAndUpdateFile(urls []string, filePath string, etag string) (*os.File, s
 			continue
 		}
 
-		//validate json structure
-		var test map[string]interface{}
-		if err = decodeToJsonObject(bytes2.NewReader(bytes), &test); err != nil || len(test) == 0 {
-			zap.S().Infof("ignoring new update [%v], reason - [malformed json file]", url)
+		if err := validateJsonObjectFile(tmpName); err != nil {
+			zap.S().Infof("ignoring new update [%v], reason - [malformed json file: %v]", url, err)
 			continue
 		}
 
-		file, err = saveFile(bytes, filePath)
-		if err != nil {
-			return nil, "", err
+		if err := os.Rename(tmpName, filePath); err != nil {
+			return UpdateResult{}, err
 		}
-		etag = newEtag
-		break
+		file, err := os.Open(filePath)
+		if err != nil {
+			return UpdateResult{}, err
+		}
+		return UpdateResult{File: file, Etag: newEtag, Updated: true}, nil
 	}
 
-	if file == nil {
-		//load file
-		fileInfo, err := os.Stat(filePath)
-		if err != nil || fileInfo.Size() == 0 {
-			zap.S().Infof("Local file [%v] is missing, empty or corrupted", filePath)
-			return nil, "", errors.New("unable to download " + filepath.Base(filePath))
-		}
-
-		file, err = os.Open(filePath)
-		if err != nil {
-			return nil, "", err
-		}
+	fileInfo, err := os.Stat(filePath)
+	if err != nil || fileInfo.Size() == 0 {
+		zap.S().Infof("Local file [%v] is missing, empty or corrupted", filePath)
+		return UpdateResult{}, errors.New("unable to download " + filepath.Base(filePath))
 	}
 
-	return file, etag, nil
+	file, err := os.Open(filePath)
+	if err != nil {
+		return UpdateResult{}, err
+	}
+	return UpdateResult{File: file, Etag: etag}, nil
+}
+
+// downloadAttempts and retryDelay control how often a temporary failure is retried; the
+// delay doubles after every attempt.
+var (
+	downloadAttempts = 3
+	retryDelay       = 2 * time.Second
+)
+
+// errPermanent marks failures that a retry cannot fix, such as a 404.
+type errPermanent struct{ error }
+
+func downloadWithRetries(url string, etag string, target string) (string, error) {
+	delay := retryDelay
+	var err error
+	for attempt := 1; attempt <= downloadAttempts; attempt++ {
+		var newEtag string
+		newEtag, err = downloadToFile(url, etag, target)
+		var permanent errPermanent
+		if err == nil || errors.Is(err, errNotModified) || errors.As(err, &permanent) {
+			return newEtag, err
+		}
+		if attempt < downloadAttempts {
+			zap.S().Infof("downloading [%v] failed (attempt %v of %v), retrying in %v - %v", url, attempt, downloadAttempts, delay, err)
+			time.Sleep(delay)
+			delay *= 2
+		}
+	}
+	return "", err
+}
+
+// downloadToFile streams url into target and returns the etag of the response.
+func downloadToFile(url string, etag string, target string) (string, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", errPermanent{err}
+	}
+	if etag != "" {
+		req.Header.Set("If-None-Match", etag)
+	}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotModified {
+		return "", errNotModified
+	}
+	if resp.StatusCode != http.StatusOK {
+		err := errors.New("got a non 200 response - " + resp.Status)
+		// server errors and rate limits are usually temporary
+		if resp.StatusCode >= 500 || resp.StatusCode == http.StatusTooManyRequests {
+			return "", err
+		}
+		return "", errPermanent{err}
+	}
+
+	file, err := os.Create(target)
+	if err != nil {
+		return "", errPermanent{err}
+	}
+	written, copyErr := io.Copy(file, resp.Body)
+	closeErr := file.Close()
+	if copyErr != nil {
+		return "", copyErr
+	}
+	if closeErr != nil {
+		return "", errPermanent{closeErr}
+	}
+	if resp.ContentLength >= 0 && written != resp.ContentLength {
+		return "", fmt.Errorf("download incomplete, got %v of %v bytes", written, resp.ContentLength)
+	}
+
+	return resp.Header.Get("Etag"), nil
+}
+
+// validateJsonObjectFile checks that the file holds one non-empty JSON object. The
+// document is read token by token, so a file of hundreds of megabytes is not loaded.
+func validateJsonObjectFile(path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(bufio.NewReader(file))
+	token, err := decoder.Token()
+	if err != nil {
+		return err
+	}
+	if delim, ok := token.(json.Delim); !ok || delim != '{' {
+		return errors.New("not a JSON object")
+	}
+	if !decoder.More() {
+		return errors.New("empty JSON object")
+	}
+	depth := 1
+	for depth > 0 {
+		token, err := decoder.Token()
+		if err != nil {
+			return err
+		}
+		if delim, ok := token.(json.Delim); ok {
+			switch delim {
+			case '{', '[':
+				depth++
+			case '}', ']':
+				depth--
+			}
+		}
+	}
+	if _, err := decoder.Token(); err != io.EOF {
+		return errors.New("unexpected data after the JSON object")
+	}
+	return nil
 }
 
 func decodeToJsonObject(reader io.Reader, target interface{}) error {

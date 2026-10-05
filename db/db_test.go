@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestTitleIDPrefixValidationAndGrouping(t *testing.T) {
@@ -307,5 +308,99 @@ func TestKeysChanged(t *testing.T) {
 	defer manager.Close()
 	if manager.KeysChanged("abc") {
 		t.Fatal("fingerprint was not persisted")
+	}
+}
+
+func init() {
+	// keep the retries of failed downloads fast in tests
+	retryDelay = time.Millisecond
+}
+
+func TestLoadAndUpdateRetriesTemporaryFailures(t *testing.T) {
+	calls := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		if calls < 3 {
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		}
+		w.Write([]byte(`{"ok": true}`))
+	}))
+	t.Cleanup(server.Close)
+	path := filepath.Join(t.TempDir(), "titles.json")
+
+	result, err := LoadAndUpdate([]string{server.URL}, path, "")
+	if err != nil || !result.Updated || readAll(t, result.File) != `{"ok": true}` || calls != 3 {
+		t.Fatalf("expected success on the third attempt: err=%v calls=%v", err, calls)
+	}
+}
+
+func TestLoadAndUpdateDoesNotRetryPermanentFailures(t *testing.T) {
+	calls := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	t.Cleanup(server.Close)
+
+	if _, err := LoadAndUpdate([]string{server.URL}, filepath.Join(t.TempDir(), "titles.json"), ""); err == nil || calls != 1 {
+		t.Fatalf("a 404 must not be retried: err=%v calls=%v", err, calls)
+	}
+}
+
+func TestLoadAndUpdateRejectsTruncatedDownloads(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "titles.json")
+	if err := os.WriteFile(path, []byte(`{"local": true}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// announces more than it sends, like a dropped connection
+		w.Header().Set("Content-Length", "1000")
+		w.Write([]byte(`{"partial": `))
+	}))
+	t.Cleanup(server.Close)
+
+	result, err := LoadAndUpdate([]string{server.URL}, path, "")
+	if err != nil || result.Updated || readAll(t, result.File) != `{"local": true}` {
+		t.Fatalf("a truncated download must keep the local copy: err=%v updated=%v", err, result.Updated)
+	}
+	if _, err := os.Stat(path + ".tmp"); !os.IsNotExist(err) {
+		t.Fatal("temporary file left behind")
+	}
+}
+
+func TestLoadAndUpdateReportsUnchangedFiles(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "titles.json")
+	server := jsonServer(t, http.StatusOK, `{"a": 1}`, `"v1"`)
+
+	first, err := LoadAndUpdate([]string{server.URL}, path, "")
+	if err != nil || !first.Updated || first.Etag != `"v1"` {
+		t.Fatalf("first download: err=%v %+v", err, first)
+	}
+	first.File.Close()
+
+	second, err := LoadAndUpdate([]string{server.URL}, path, first.Etag)
+	if err != nil || second.Updated || readAll(t, second.File) != `{"a": 1}` {
+		t.Fatalf("an unchanged file must be reported as not updated: err=%v %+v", err, second)
+	}
+}
+
+func TestValidateJsonObjectFile(t *testing.T) {
+	cases := map[string]bool{
+		`{"a": {"b": [1, 2, {"c": null}]}}`: true,
+		`{}`:                                false,
+		`[1, 2]`:                            false,
+		`{"a": 1`:                           false,
+		`{"a": 1} trailing`:                 false,
+		`<html>challenge</html>`:            false,
+	}
+	for content, valid := range cases {
+		path := filepath.Join(t.TempDir(), "file.json")
+		if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+			t.Fatal(err)
+		}
+		if err := validateJsonObjectFile(path); (err == nil) != valid {
+			t.Errorf("%q: valid=%v, err=%v", content, valid, err)
+		}
 	}
 }
