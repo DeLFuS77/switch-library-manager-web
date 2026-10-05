@@ -1,33 +1,32 @@
 {{define "title"}}{{t "Library"}}{{end}}
 {{define "main"}}
-			<div class="row mb-3">
-				<div class="col d-flex flex-column flex-lg-row justify-content-lg-between align-items-lg-center">
-					<div class="d-flex align-items-center gap-3 mb-3">
-						<h1 class="mb-0">{{t "Library"}} <span class="badge bg-secondary fs-6 align-text-top">{{.Pagination.NumItems}}</span></h1>
-						{{- if gt .Pagination.NumItems 0}}
-						<div class="dropdown">
-							<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-download me-1" aria-hidden="true"></span>{{t "Export"}}</button>
-							<ul class="dropdown-menu">
-								<li><a class="dropdown-item" href="/export/library.csv">{{t "Spreadsheet (CSV)"}}</a></li>
-								<li><a class="dropdown-item" href="/export/library.json">{{t "Full inventory (JSON)"}}</a></li>
-							</ul>
-						</div>
-						{{- end}}
-					</div>
-					{{- template "filter" .}}
+			<div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
+				{{- template "pageHeader" (dict "Title" (t "Library") "Count" .Pagination.NumItems "Subtitle" (t "The games in your folders. Open a game to see its updates, DLC and files."))}}
+				{{- if gt .Pagination.NumItems 0}}
+				<div class="dropdown mb-3">
+					<button class="btn btn-outline-secondary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-download me-2" aria-hidden="true"></span>{{t "Export"}}</button>
+					<ul class="dropdown-menu dropdown-menu-end">
+						<li><a class="dropdown-item" href="/export/library.csv"><span class="bi bi-filetype-csv me-2" aria-hidden="true"></span>{{t "Spreadsheet (CSV)"}}</a></li>
+						<li><a class="dropdown-item" href="/export/library.json"><span class="bi bi-filetype-json me-2" aria-hidden="true"></span>{{t "Full inventory (JSON)"}}</a></li>
+					</ul>
 				</div>
+				{{- end}}
 			</div>
+			{{- if or .HasLibrary .Filter.Keyword}}
+			{{- template "filter" .}}
+			{{- end}}
 			{{- if gt (len .TitleItems) 0}}
-			<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 row-cols-xxl-6 mb-3">
+			<div class="game-grid">
 				{{- range .TitleItems}}
 				{{- template "card" .}}
 				{{- end}}
 			</div>
 			{{- template "pagination" .}}
+			{{- else if .Filter.Keyword}}
+			{{- template "noResults" .Filter}}
+			{{- else if .IsSynchronizing}}
+			{{- template "emptyState" (dict "Icon" "bi-hourglass-split" "Tone" "" "Title" (t "Scanning your library") "Text" (t "Your games will appear here in a moment.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 			{{- else}}
-			<div class="alert alert-info d-flex align-items-center" role="alert">
-				<span class="bi bi-info-fill flex-shrink-0 me-2"></span>
-				<div><strong>{{t "No items found!"}}</strong> {{t "There are no items to display."}}</div>
-			</div>
+			{{- template "emptyState" (dict "Icon" "bi-collection" "Tone" "" "Title" (t "Your library is empty") "Text" (t "Add the folders with your games in Settings. They are scanned automatically.") "ActionHref" "/settings.html#library" "ActionLabel" (t "Open Settings") "ActionIcon" "bi-gear")}}
 			{{- end}}
 {{- end}}

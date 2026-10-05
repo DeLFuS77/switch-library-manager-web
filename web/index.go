@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -86,6 +87,10 @@ func (web *Web) getLibrary(filter *TitleItemFilter, lang string) ([]TitleItem, p
 		return items, pagination.Calculate(filter.Page, filter.PerPage, 0)
 	}
 
+	settingsObj := settings.ReadSettings(web.dataFolder)
+	ignoredUpdates := toLowerSet(settingsObj.IgnoreUpdateTitleIds)
+	ignoredDlc := toLowerSet(settingsObj.IgnoreDLCTitleIds)
+
 	for k, v := range localDB.TitlesMap {
 		if !v.BaseExist || v.File.Metadata == nil {
 			continue
@@ -130,6 +135,22 @@ func (web *Web) getLibrary(filter *TitleItemFilter, lang string) ([]TitleItem, p
 
 		if title != nil {
 			item.Region = title.Attributes.Region
+
+			if _, ignored := ignoredUpdates[strings.ToLower(v.File.Metadata.TitleId)]; !ignored {
+				for version := range title.Updates {
+					if version > v.LatestUpdate {
+						item.UpdateAvailable = true
+						break
+					}
+				}
+			}
+			for id := range title.Dlc {
+				_, owned := v.Dlc[id]
+				_, ignored := ignoredDlc[id]
+				if !owned && !ignored {
+					item.MissingDlcCount++
+				}
+			}
 
 			release, err := intToTime(title.Attributes.ReleaseDate)
 			if err != nil {

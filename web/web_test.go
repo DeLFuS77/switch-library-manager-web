@@ -1049,3 +1049,29 @@ func TestOpenApiDocumentsEveryEndpoint(t *testing.T) {
 		t.Error("/healthz is not documented")
 	}
 }
+
+func TestNavCountsAndCardStatus(t *testing.T) {
+	web := newTestWeb(t)
+	if counts := web.navCounts(); counts != (NavCounts{}) {
+		t.Fatalf("empty state: %+v", counts)
+	}
+	web.state.set(testDatabases(t))
+
+	counts := web.navCounts()
+	if counts.Updates != 1 || counts.Dlc != 1 || counts.Issues != 2 {
+		t.Fatalf("unexpected counts: %+v", counts)
+	}
+	page := web.globalPageData("index")
+	if !page.HasLibrary || page.Counts != counts {
+		t.Fatalf("unexpected page data: %+v", page)
+	}
+
+	library, _ := web.getLibrary(defaultFilter(), "en")
+	known := library[1]
+	if known.Name != "Known Game" || !known.UpdateAvailable || known.MissingDlcCount != 1 {
+		t.Fatalf("unexpected card status: %+v", known)
+	}
+	if library[0].UpdateAvailable || library[0].MissingDlcCount != 0 {
+		t.Fatalf("a game unknown to the titles database has no status: %+v", library[0])
+	}
+}
