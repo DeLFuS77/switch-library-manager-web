@@ -1,10 +1,10 @@
 {{define "title"}}{{t "Issues"}}{{end}}
 {{define "main"}}
 			<div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
-				{{- template "pageHeader" (dict "Title" (t "Issues") "Count" .Total "Subtitle" (t "Files that could not be added to the library, damaged files, duplicates and old versions. Organize can clean up old updates and duplicates."))}}
-				<div class="d-flex gap-2 mb-3 admin-only">
+				{{- template "pageHeader" (dict "Title" (t "Issues") "Count" .Total "Subtitle" (t "Files that could not be added to the library, damaged files, duplicates and old versions. The Space page can clean up old updates and duplicates."))}}
+				<div class="d-flex gap-2 mb-3 admin-only page-actions">
 					<button type="button" class="btn btn-primary rounded-pill" data-verify="changed" title="{{t "Checks the new and changed files for damage"}}"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Check files"}}</button>
-					<button type="button" class="btn btn-outline-secondary rounded-pill" data-verify="all" title="{{t "Checks every file again"}}">{{t "Check all"}}</button>
+					<button type="button" class="btn btn-glass rounded-pill" data-verify="all" title="{{t "Checks every file again"}}"><span class="bi bi-arrow-repeat me-1" aria-hidden="true"></span>{{t "Check all"}}</button>
 				</div>
 			</div>
 			{{- if .LastVerified.IsZero}}{{else}}<p class="small text-body-secondary mt-n2">{{t "Files last checked %v" (formatDateTime .LastVerified)}}</p>{{end}}
@@ -21,28 +21,18 @@
 			</form>
 			{{- end}}
 			{{- if gt (len .Issues) 0}}
-			<div class="surface p-0 overflow-hidden">
-				<div class="table-responsive">
-					<table class="table table-hover align-middle">
-						<thead>
-							<tr>
-								<th scope="col" class="ps-3" style="width: 2.5rem"><span class="visually-hidden">{{t "Type"}}</span></th>
-								<th scope="col">{{t "File"}}</th>
-								<th scope="col">{{t "Reason"}}</th>
-							</tr>
-						</thead>
-						<tbody>
-							{{- range .Issues}}
-							<tr>
-								<td class="ps-3"><span class="bi {{issueIcon .Reason}} fs-5" aria-hidden="true"></span></td>
-								<td class="text-break small font-monospace">{{.File}}</td>
-								<td class="small">{{issue .Reason}}</td>
-							</tr>
-							{{- end}}
-						</tbody>
-					</table>
-				</div>
-			</div>
+			<ul class="item-list">
+				{{- range .Issues}}
+				<li class="item-row">
+					<span class="issue-icon bi {{issueIcon .Reason}}" aria-hidden="true"></span>
+					<div class="item-main">
+						<div class="item-name" title="{{.File}}">{{fileBase .File}}</div>
+						<div class="issue-reason" title="{{issue .Reason}}">{{shortPaths (issue .Reason)}}</div>
+						{{- with fileDir .File}}<div class="item-meta"><span class="font-monospace text-break"><span class="bi bi-folder2 me-1" aria-hidden="true"></span>{{.}}</span></div>{{end}}
+					</div>
+				</li>
+				{{- end}}
+			</ul>
 			{{- template "pagination" .}}
 			{{- else if .Filter.Keyword}}
 			{{- template "noResults" .Filter}}

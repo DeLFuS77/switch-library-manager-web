@@ -93,12 +93,12 @@ func TestIssuesPageIsPaginatedAndSearchable(t *testing.T) {
 	}
 
 	first := get("")
-	if strings.Count(first, "<tr>") != 24+1 || !strings.Contains(first, "pagination") {
-		t.Fatalf("24 issues per page expected, got %v rows", strings.Count(first, "<tr>")-1)
+	if strings.Count(first, `class="item-row"`) != 24 || !strings.Contains(first, "pagination") {
+		t.Fatalf("24 issues per page expected, got %v rows", strings.Count(first, `class="item-row"`))
 	}
 	search := get("?q=junk+07")
-	if strings.Count(search, "<tr>") != 1+1 || !strings.Contains(search, "junk 07.txt") {
-		t.Fatalf("search: %v rows", strings.Count(search, "<tr>")-1)
+	if strings.Count(search, `class="item-row"`) != 1 || !strings.Contains(search, "junk 07.txt") {
+		t.Fatalf("search: %v rows", strings.Count(search, `class="item-row"`))
 	}
 	if none := get("?q=nothing-like-this"); !strings.Contains(none, "No results") {
 		t.Fatal("a search without results says so")

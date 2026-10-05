@@ -130,3 +130,18 @@ func TestSpaceCleanRefusesChangedFiles(t *testing.T) {
 		t.Fatal("a file that changed since the scan is not deleted")
 	}
 }
+
+func TestShortPaths(t *testing.T) {
+	for text, want := range map[string]string{
+		`duplicate base file (/games/Game [0100][v0].nsp)`:      `duplicate base file (Game [0100][v0].nsp)`,
+		`actualización antigua (C:\Roms\Game (1) [v65536].nsp)`: `actualización antigua (Game (1) [v65536].nsp)`,
+		`file type is not supported`:                            `file type is not supported`,
+	} {
+		if got := shortPaths(text); got != want {
+			t.Errorf("shortPaths(%q) = %q", text, got)
+		}
+	}
+	if fileBase(`C:\Roms\a.nsp`) != "a.nsp" || fileDir("/games/a.nsp") != "/games" || fileDir("a.nsp") != "" {
+		t.Fatal("file name helpers")
+	}
+}

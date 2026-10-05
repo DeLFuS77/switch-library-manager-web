@@ -18,15 +18,15 @@
 <body class="d-flex flex-column min-vh-100" data-role="{{if .Auth.IsAdmin}}admin{{else}}viewer{{end}}">
 	<a class="skip-link btn btn-primary" href="#main">{{t "Skip to content"}}</a>
 	<header class="app-header sticky-top">
-		<nav class="navbar navbar-expand-xl" aria-label="{{t "Main navigation"}}">
+		<nav class="navbar navbar-expand-xxl" aria-label="{{t "Main navigation"}}">
 			<div class="container-xxl">
 				<a class="navbar-brand d-flex align-items-center gap-2 me-3" href="/index.html">
 					<span class="brand-mark"><img src="/resources/static/icon.svg" alt="" aria-hidden="true"></span>
-					<span>Switch Library<span class="d-none d-sm-inline d-xl-none"> Manager</span></span>
+					<span class="brand-text">Switch Library<span class="d-none d-sm-inline d-xxl-none"> Manager</span></span>
 				</a>
-				<div class="d-flex align-items-center gap-2 order-xl-last">
+				<div class="d-flex align-items-center gap-2 order-xxl-last">
 					<a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 rounded-pill px-3 admin-only" href="sync" id="sync" title="{{t "Download the latest titles database and rescan the library"}}">
-						<span class="bi bi-arrow-repeat" aria-hidden="true"></span><span class="d-none d-md-inline d-xl-none">{{t "Synchronize"}}</span>
+						<span class="bi bi-arrow-repeat" aria-hidden="true"></span><span class="d-none d-md-inline d-xxl-none">{{t "Synchronize"}}</span>
 					</a>
 					<button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="{{t "Toggle navigation"}}">
 						<span class="navbar-toggler-icon"></span>
@@ -38,7 +38,7 @@
 						<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="{{t "Close"}}"></button>
 					</div>
 					<div class="offcanvas-body">
-						<ul class="navbar-nav app-nav flex-grow-1 gap-xl-1">
+						<ul class="navbar-nav app-nav flex-grow-1">
 							{{- template "navLink" (dict "Page" .Page "Id" "index" "Href" "index.html" "Icon" "bi-collection" "Label" (t "Library") "Count" 0 "Badge" "")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "updates" "Href" "updates.html" "Icon" "bi-arrow-up-circle" "Label" (t "Updates") "Count" .Counts.Updates "Badge" "text-bg-warning")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "dlc" "Href" "dlc.html" "Icon" "bi-puzzle" "Label" (t "DLC") "Count" .Counts.Dlc "Badge" "text-bg-info")}}
@@ -46,8 +46,8 @@
 							{{- template "navLink" (dict "Page" .Page "Id" "statistics" "Href" "statistics.html" "Icon" "bi-bar-chart" "Label" (t "Statistics") "Count" 0 "Badge" "")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "issues" "Href" "issues.html" "Icon" "bi-exclamation-triangle" "Label" (t "Issues") "Count" .Counts.Issues "Badge" "text-bg-danger")}}
 						</ul>
-						<hr class="d-xl-none">
-						<ul class="navbar-nav app-nav app-nav-compact gap-xl-1 me-xl-2">
+						<hr class="d-xxl-none">
+						<ul class="navbar-nav app-nav app-nav-compact me-xxl-2">
 							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "tasks.html" "Icon" "bi-list-task" "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger")}}
 							{{- if .Auth.IsAdmin}}
 							{{- template "navLink" (dict "Page" .Page "Id" "organize" "Href" "organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Count" 0 "Badge" "")}}
@@ -58,7 +58,7 @@
 							{{- end}}
 							<li class="nav-item dropdown">
 								<button class="btn btn-link nav-link dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="themeMenu">
-									<span class="bi bi-circle-half" aria-hidden="true"></span><span class="d-xl-none">{{t "Theme"}}</span><span class="visually-hidden d-none d-xl-inline">{{t "Theme"}}</span>
+									<span class="bi bi-circle-half" aria-hidden="true"></span><span class="d-xxl-none">{{t "Theme"}}</span><span class="visually-hidden d-none d-xxl-inline">{{t "Theme"}}</span>
 								</button>
 								<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeMenu">
 									<li><button type="button" class="dropdown-item" data-theme-value="light"><span class="bi bi-sun-fill me-2" aria-hidden="true"></span>{{t "Light"}}</button></li>
@@ -69,7 +69,7 @@
 							{{- if .Auth.Enabled}}
 							<li class="nav-item dropdown">
 								<button class="btn btn-link nav-link dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="userMenu">
-									<span class="user-avatar user-avatar-sm" aria-hidden="true">{{initial .Auth.User}}</span><span class="d-xl-none">{{.Auth.User}}</span><span class="visually-hidden d-none d-xl-inline">{{t "My account"}}: {{.Auth.User}}</span>
+									<span class="user-avatar user-avatar-sm" aria-hidden="true">{{initial .Auth.User}}</span><span class="d-xxl-none">{{.Auth.User}}</span><span class="visually-hidden d-none d-xxl-inline">{{t "My account"}}: {{.Auth.User}}</span>
 								</button>
 								<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
 									<li><span class="dropdown-item-text small text-body-secondary">{{.Auth.User}} &middot; {{if .Auth.IsAdmin}}{{t "Administrator"}}{{else}}{{t "Read only"}}{{end}}</span></li>
@@ -134,7 +134,7 @@
 {{define "navLink"}}
 							<li class="nav-item">
 								<a class="nav-link{{if eq .Page .Id}} active{{end}}" href="{{.Href}}" title="{{.Label}}"{{if eq .Page .Id}} aria-current="page"{{end}}>
-									<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}} ms-auto ms-xl-0">{{.Count}}</span>{{end}}
+									<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}} ms-auto ms-xxl-0">{{.Count}}</span>{{end}}
 								</a>
 							</li>
 {{- end}}

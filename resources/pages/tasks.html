@@ -1,6 +1,6 @@
 {{define "title"}}{{t "Tasks"}}{{end}}
 {{define "main"}}
-			{{- template "pageHeader" (dict "Title" (t "Tasks") "Count" -1 "Subtitle" (t "Synchronizations, scans and organize runs with their progress and result. Failed tasks stay here until you dismiss them."))}}
+			{{- template "pageHeader" (dict "Title" (t "Tasks") "Count" -1 "Subtitle" (t "Synchronizations, scans, compressions, checks and cleanups with their progress and result. Failed tasks stay here until you dismiss them."))}}
 			<div id="taskList" data-live-tasks data-version="{{.ListVersion}}" aria-live="polite">
 				{{- template "taskList" .}}
 			</div>
@@ -77,7 +77,7 @@
 					</ul>
 				</section>
 				{{- else if not .Running}}
-				{{- template "emptyState" (dict "Icon" "bi-list-task" "Tone" "" "Title" (t "No tasks yet") "Text" (t "Synchronizations, scans and organize runs appear here.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+				{{- template "emptyState" (dict "Icon" "bi-list-task" "Tone" "" "Title" (t "No tasks yet") "Text" (t "Synchronizations, scans, compressions, checks and cleanups appear here.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 				{{- end}}
 {{- end}}
 
