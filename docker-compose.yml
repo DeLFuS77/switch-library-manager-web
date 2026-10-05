@@ -1,0 +1,21 @@
+# Example: docker compose up -d, then open http://localhost:3000
+services:
+  switch-library-manager-web:
+    image: ghcr.io/siscuprats/switch-library-manager-web:latest
+    container_name: switch-library-manager-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # user and group that own your library folder (see `id` on the host)
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+      # optional password protection, set both to enable it
+      # - SLM_AUTH_USERNAME=admin
+      # - SLM_AUTH_PASSWORD=choose-a-password
+    volumes:
+      # settings, caches, images and your own prod.keys
+      - ./data:/usr/local/share/switch-library-manager-web
+      # your library
+      - /path/to/your/switch/backups:/mnt/roms

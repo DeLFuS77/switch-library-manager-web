@@ -660,3 +660,18 @@ func TestSyncSchedule(t *testing.T) {
 		}
 	}
 }
+
+func TestHealthCheckBypassesAuthentication(t *testing.T) {
+	protected := basicAuth("admin", "secret", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	handler := withHealthCheck(protected)
+
+	for path, want := range map[string]int{"/healthz": http.StatusOK, "/index.html": http.StatusUnauthorized, "/healthz/x": http.StatusUnauthorized} {
+		recorder := httptest.NewRecorder()
+		handler.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, path, nil))
+		if recorder.Code != want {
+			t.Errorf("GET %s = %d, want %d", path, recorder.Code, want)
+		}
+	}
+}
