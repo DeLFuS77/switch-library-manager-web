@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.11.0
+
+### New features
+
+- **Motion**: smooth transitions between pages, gauges and charts that fill up, bars that grow, numbers that count
+  up, covers that shimmer while loading and fade in, a subtle tilt of the game cards towards the pointer, and small
+  animations on buttons, menus and alerts. Everything stays still when the system asks for reduced motion.
+
+### Other changes
+
+- Clearer texts about keys: they are always your own, dumped from your console, and never included in the app,
+  downloaded or uploaded. Without keys games are recognized by their file names and compression is off.
+- The README is rewritten: legal notice, quick start for Docker, Unraid and other systems, a section about keys,
+  guides and troubleshooting.
+
 ## 1.10.0
 
 ### New features
