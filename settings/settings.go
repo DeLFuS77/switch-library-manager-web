@@ -27,8 +27,8 @@ const (
 	DEFAULT_VERSIONS_JSON_URL = "https://raw.githubusercontent.com/blawar/titledb/master/versions.json"
 	// %s is replaced by the interface language, e.g. titles.es.json
 	DEFAULT_LOCALIZED_TITLES_JSON_URL = "https://github.com/SiscuPrats/switch-library-manager-web/releases/download/data/titles.%s.json"
-	DEFAULT_TITLES_ETAG       = "W/\"a5b02845cf6bd61:0\""
-	DEFAULT_VERSIONS_ETAG     = "W/\"2ef50d1cb6bd61:0\""
+	DEFAULT_TITLES_ETAG               = "W/\"a5b02845cf6bd61:0\""
+	DEFAULT_VERSIONS_ETAG             = "W/\"2ef50d1cb6bd61:0\""
 )
 
 // Mirrors tried in order when the configured URL fails.
@@ -62,35 +62,46 @@ type OrganizeOptions struct {
 	UpdatesFolder              string `json:"updates_folder"`
 	ProcessWhenMissingBaseGame bool   `json:"process_when_missing_base_game"`
 	DeleteDuplicateFiles       bool   `json:"delete_duplicate_files"`
-	RenameFiles          bool   `json:"rename_files"`
-	DeleteEmptyFolders   bool   `json:"delete_empty_folders"`
-	DeleteOldUpdateFiles bool   `json:"delete_old_update_files"`
-	FolderNameTemplate   string `json:"folder_name_template"`
-	SwitchSafeFileNames  bool   `json:"switch_safe_file_names"`
-	FileNameTemplate     string `json:"file_name_template"`
+	RenameFiles                bool   `json:"rename_files"`
+	DeleteEmptyFolders         bool   `json:"delete_empty_folders"`
+	DeleteOldUpdateFiles       bool   `json:"delete_old_update_files"`
+	FolderNameTemplate         string `json:"folder_name_template"`
+	SwitchSafeFileNames        bool   `json:"switch_safe_file_names"`
+	FileNameTemplate           string `json:"file_name_template"`
+}
+
+// NotificationOptions configures the messages sent when updates or DLC become available.
+type NotificationOptions struct {
+	DiscordWebhookUrl string `json:"discord_webhook_url"`
+	TelegramBotToken  string `json:"telegram_bot_token"`
+	TelegramChatId    string `json:"telegram_chat_id"`
+	WebhookUrl        string `json:"webhook_url"`
+	NotifyUpdates     bool   `json:"notify_updates"`
+	NotifyDlc         bool   `json:"notify_dlc"`
 }
 
 type AppSettings struct {
-	VersionsJsonUrl        string          `json:"versions_json_url"`
-	VersionsEtag           string          `json:"versions_etag"`
-	TitlesJsonUrl          string          `json:"titles_json_url"`
-	TitlesEtag             string          `json:"titles_etag"`
-	LocalizedTitlesJsonUrl string            `json:"localized_titles_json_url"`
-	LocalizedTitlesEtags   map[string]string `json:"localized_titles_etags"`
-	Prodkeys               string          `json:"prod_keys"`
-	Folder                 string          `json:"folder"`
-	ScanFolders            []string        `json:"scan_folders"`
-	Port                   int             `json:"port"`
-	Debug                  bool            `json:"debug"`
-	OrganizeOptions        OrganizeOptions `json:"organize_options"`
-	IgnoreDLCTitleIds      []string        `json:"ignore_dlc_title_ids"`
-	IgnoreUpdateTitleIds   []string        `json:"ignore_update_title_ids"`
-	IgnoreDLCUpdates       bool            `json:"ignore_dlc_updates"`
-	IgnoreFileTypes        []string        `json:"ignore_file_types"`
-	HideDemoGames          bool            `json:"hide_demo_games"`
-	SyncIntervalHours      int             `json:"sync_interval_hours"`
-	Language               string          `json:"language"`
-	LastSyncTime           time.Time       `json:"last_sync_time"`
+	VersionsJsonUrl        string              `json:"versions_json_url"`
+	VersionsEtag           string              `json:"versions_etag"`
+	TitlesJsonUrl          string              `json:"titles_json_url"`
+	TitlesEtag             string              `json:"titles_etag"`
+	LocalizedTitlesJsonUrl string              `json:"localized_titles_json_url"`
+	LocalizedTitlesEtags   map[string]string   `json:"localized_titles_etags"`
+	Prodkeys               string              `json:"prod_keys"`
+	Folder                 string              `json:"folder"`
+	ScanFolders            []string            `json:"scan_folders"`
+	Port                   int                 `json:"port"`
+	Debug                  bool                `json:"debug"`
+	OrganizeOptions        OrganizeOptions     `json:"organize_options"`
+	IgnoreDLCTitleIds      []string            `json:"ignore_dlc_title_ids"`
+	IgnoreUpdateTitleIds   []string            `json:"ignore_update_title_ids"`
+	IgnoreDLCUpdates       bool                `json:"ignore_dlc_updates"`
+	IgnoreFileTypes        []string            `json:"ignore_file_types"`
+	HideDemoGames          bool                `json:"hide_demo_games"`
+	SyncIntervalHours      int                 `json:"sync_interval_hours"`
+	Language               string              `json:"language"`
+	Notifications          NotificationOptions `json:"notifications"`
+	LastSyncTime           time.Time           `json:"last_sync_time"`
 }
 
 func ReadSettingsAsJSON(dataFolder string) string {
@@ -113,7 +124,9 @@ func ReadSettings(dataFolder string) *AppSettings {
 	if settingsInstance != nil {
 		return settingsInstance
 	}
+	// defaults for keys missing from settings files written by older versions
 	settingsInstance = &AppSettings{Debug: false, ScanFolders: []string{},
+		Notifications:   NotificationOptions{NotifyUpdates: true, NotifyDlc: true},
 		OrganizeOptions: OrganizeOptions{SwitchSafeFileNames: true}, Prodkeys: "", IgnoreDLCTitleIds: []string{"01007F600B135007"}}
 	if _, err := os.Stat(filepath.Join(dataFolder, SETTINGS_FILENAME)); err == nil {
 		file, err := os.Open(filepath.Join(dataFolder, SETTINGS_FILENAME))
@@ -197,13 +210,14 @@ func saveDefaultSettings(dataFolder string) *AppSettings {
 		IgnoreDLCTitleIds:      []string{},
 		IgnoreUpdateTitleIds:   []string{},
 		IgnoreFileTypes:        []string{},
+		Notifications:          NotificationOptions{NotifyUpdates: true, NotifyDlc: true},
 		Port:                   3000,
 		Debug:                  false,
 		OrganizeOptions: OrganizeOptions{
-			RenameFiles:         false,
-			CreateFolderPerGame: false,
-			FolderNameTemplate:  DEFAULT_FOLDER_NAME_TEMPLATE,
-			FileNameTemplate:    DEFAULT_FILE_NAME_TEMPLATE,
+			RenameFiles:          false,
+			CreateFolderPerGame:  false,
+			FolderNameTemplate:   DEFAULT_FOLDER_NAME_TEMPLATE,
+			FileNameTemplate:     DEFAULT_FILE_NAME_TEMPLATE,
 			DeleteEmptyFolders:   false,
 			SwitchSafeFileNames:  true,
 			DeleteOldUpdateFiles: false,

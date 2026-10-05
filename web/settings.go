@@ -26,6 +26,23 @@ type SettingsForm struct {
 	HideDemoGames        bool   `in:"form=hide_demo_games"`
 	SyncIntervalHours    int    `in:"form=sync_interval_hours"`
 	Language             string `in:"form=language"`
+	DiscordWebhookUrl    string `in:"form=discord_webhook_url"`
+	TelegramBotToken     string `in:"form=telegram_bot_token"`
+	TelegramChatId       string `in:"form=telegram_chat_id"`
+	WebhookUrl           string `in:"form=webhook_url"`
+	NotifyUpdates        bool   `in:"form=notify_updates"`
+	NotifyDlc            bool   `in:"form=notify_dlc"`
+}
+
+func (f *SettingsForm) notificationOptions() settings.NotificationOptions {
+	return settings.NotificationOptions{
+		DiscordWebhookUrl: strings.TrimSpace(f.DiscordWebhookUrl),
+		TelegramBotToken:  strings.TrimSpace(f.TelegramBotToken),
+		TelegramChatId:    strings.TrimSpace(f.TelegramChatId),
+		WebhookUrl:        strings.TrimSpace(f.WebhookUrl),
+		NotifyUpdates:     f.NotifyUpdates,
+		NotifyDlc:         f.NotifyDlc,
+	}
 }
 
 var titleIdRegex = regexp.MustCompile("^[0-9A-Fa-f]{16}$")
@@ -126,6 +143,8 @@ func (web *Web) HandleSettings() {
 			})
 		}
 
+		errorResponse.FieldErrors = append(errorResponse.FieldErrors, validateNotifications(settingsForm.notificationOptions(), lang)...)
+
 		if settingsForm.Language != "" && !isSupportedLanguage(settingsForm.Language) {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
 				Field: "language",
@@ -147,6 +166,7 @@ func (web *Web) HandleSettings() {
 		appSettings.HideDemoGames = settingsForm.HideDemoGames
 		appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
 		appSettings.Language = settingsForm.Language
+		appSettings.Notifications = settingsForm.notificationOptions()
 		appSettings.Folder = scanFolders[0]
 		if len(scanFolders) > 1 {
 			appSettings.ScanFolders = scanFolders[1:]
