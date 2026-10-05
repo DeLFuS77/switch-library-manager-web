@@ -9,7 +9,7 @@
   <Privileged>false</Privileged>
   <Support>https://github.com/DeLFuS77/switch-library-manager-web/issues</Support>
   <Project>https://github.com/DeLFuS77/switch-library-manager-web</Project>
-  <Overview>Manage your Nintendo Switch backup library from the browser: missing updates, DLC and games, issues, statistics, organizing and renaming, NSZ compression, notifications and user accounts. Put your own prod.keys (and optionally title.keys) in the appdata folder; keys are never included.</Overview>
+  <Overview>Manage your Nintendo Switch backup library from the browser: missing updates, DLC and games, issues, statistics, organizing and renaming, NSZ compression, notifications and user accounts. Use it with backups of games you own. Put your own prod.keys (and optionally title.keys), dumped from your console, in the appdata folder; no keys or games are included or downloaded.</Overview>
   <Category>Tools:Utilities MediaApp:Other</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/templates/switch-library-manager-web.xml</TemplateURL>
@@ -17,10 +17,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>MIT</License>
-  <Changes>### 1.10.0
-- A more visual interface: library overview, charts, DLC progress and a new font
-### 1.9.0
-- Compress XCI files to XCZ and update patches, decompress NSZ files</Changes>
+  <Changes>### 1.11.0
+- Animations, clearer texts and new instructions
+### 1.10.0
+- A more visual interface: library overview, charts, DLC progress and a new font</Changes>
   <Date>2026-10-05</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>

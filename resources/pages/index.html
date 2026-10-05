@@ -17,17 +17,17 @@
 			<section class="library-overview" aria-label="{{t "Overview"}}">
 				<a class="kpi" href="/statistics.html">
 					<span class="kpi-icon"><span class="bi bi-controller" aria-hidden="true"></span></span>
-					<span class="kpi-value">{{$s.Games}}</span>
+					<span class="kpi-value" data-count="{{$s.Games}}">{{$s.Games}}</span>
 					<span class="kpi-label">{{t "Games"}}</span>
 				</a>
 				<a class="kpi kpi-warning" href="/updates.html">
 					<span class="kpi-icon"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span></span>
-					<span class="kpi-value">{{$s.GamesWithUpdate}}</span>
+					<span class="kpi-value" data-count="{{$s.GamesWithUpdate}}">{{$s.GamesWithUpdate}}</span>
 					<span class="kpi-label">{{t "Updates"}}</span>
 				</a>
 				<a class="kpi kpi-info" href="/dlc.html">
 					<span class="kpi-icon"><span class="bi bi-puzzle" aria-hidden="true"></span></span>
-					<span class="kpi-value">{{$s.MissingDlc}}</span>
+					<span class="kpi-value" data-count="{{$s.MissingDlc}}">{{$s.MissingDlc}}</span>
 					<span class="kpi-label">{{t "Missing DLC"}}</span>
 				</a>
 				<a class="kpi kpi-cyan" href="/statistics.html">

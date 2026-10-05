@@ -1,6 +1,7 @@
 {{define "title"}}{{t "Compress"}}{{end}}
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Compress") "Count" -1 "Subtitle" (t "Compress your NSP files to NSZ and XCI files to XCZ to save space. Tinfoil, DBI and other installers install them directly. Every file is verified before the original is deleted."))}}
+			<p class="small text-body-secondary d-flex align-items-start gap-2 mb-4"><span class="bi bi-shield-lock flex-shrink-0 mt-1" aria-hidden="true"></span><span>{{t "Compression uses your own prod.keys (and title.keys for games without a ticket), dumped from your console. Keys are never included in the app, downloaded or uploaded."}}</span></p>
 			{{- if not .IsKeysFileAvailable}}
 			<div class="alert alert-warning d-flex align-items-start gap-2" role="alert">
 				<span class="bi bi-key-fill flex-shrink-0 mt-1" aria-hidden="true"></span>

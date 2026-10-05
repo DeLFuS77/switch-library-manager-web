@@ -1,191 +1,228 @@
 # Switch Library Manager Web
 
-Easily manage your Switch game backups from the browser.
+[![Release](https://img.shields.io/github/v/release/DeLFuS77/switch-library-manager-web?sort=semver)](https://github.com/DeLFuS77/switch-library-manager-web/releases)
+[![Docker Hub](https://img.shields.io/docker/pulls/delfus77/switch-library-manager-web?logo=docker)](https://hub.docker.com/r/delfus77/switch-library-manager-web)
+[![Tests](https://github.com/DeLFuS77/switch-library-manager-web/actions/workflows/test.yml/badge.svg)](https://github.com/DeLFuS77/switch-library-manager-web/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/LICENSE)
+
+Manage the backups of your Nintendo Switch games from the browser: see which updates, DLC and games you are missing,
+find broken or duplicate files, keep your folders tidy and save space with NSZ compression. It runs on Windows, macOS,
+Linux, Docker, NAS and Raspberry Pi.
+
+> [!IMPORTANT]
+> This project contains **no keys, no games and no copyrighted content**, and it never downloads them. Use it only
+> with backups of games you own. The few features that read the content of your files use **your own** `prod.keys`,
+> which you dump from **your own console** (for example with Lockpick_RCM) and keep on your computer: keys are never
+> included, uploaded or shared. Never post your keys anywhere, also not in issues, logs or screenshots.
+
+## Contents
+
+- [Features](#features)
+- [Quick start](#quick-start): [Docker](#docker), [Unraid](#unraid), [Windows, macOS and Linux](#windows-macos-and-linux)
+- [Your keys](#your-keys)
+- [First start](#first-start)
+- [Guides](#guides): [Organize](#organize), [Compress](#compress), [Users](#users-and-password-protection),
+  [Notifications](#notifications), [API](#api), [Settings](#settings)
+- [Troubleshooting](#troubleshooting)
+- [Building](#building)
+- [License](#license)
 
 ## Features
 
-- Cross platform, works on Windows / Mac / Linux and in Docker
-- Web interface
-- Scan your local Switch backup library (NSP/NSZ/XCI/XCZ and split files), automatically when files change
-- Read title ID / version by decrypting NSP/XCI/NSZ, including titles for recent firmware (requires prod.keys)
-- Without prod.keys, fall back to the file name (example: `Super Mario Odyssey [0100000000010000][v0].nsp`)
-- List missing games, missing updates (for games and DLC) and missing DLC
-- Filter the library by status (update available, DLC missing, up to date) and file format
-- Setup checklist on the first start
-- List issues: unsupported, duplicate, old or unreadable files and updates/DLC without base game
-- Organize games in folders and rename files, with a preview before anything changes
-- Delete old update files and, optionally, duplicates and empty folders
-- Compress NSP files to NSZ and XCI files to XCZ, verified before the originals are deleted, and decompress NSZ back to NSP
-- Ignore lists for DLC, updates and file types; hide demos
-- JSON API to list and download the library (`/api/titles`)
-- Optional user accounts with administrator and read-only roles
-- Tasks page with the live progress and history of synchronizations, scans and organize runs
-- Interface in English and Spanish, including game names and descriptions, with light and dark theme
-- Statistics: space by content and format, missing updates, DLC and games, largest games
-- Notifications for new updates and DLC (Discord, Telegram, generic webhook)
-- Export the library as CSV or JSON
-- Zero dependencies, all crypto operations implemented in Go
+**Your library at a glance**
+- Scans your folders (NSP, NSZ, XCI, XCZ and split files) and rescans by itself when files change
+- An overview of your games, missing updates and DLC, and the space they use
+- Missing updates (for games and DLC), missing DLC and missing games, with filters and search
+- Game pages with description, screenshots, versions, DLC and downloads (a whole game as one ZIP)
+- Statistics with charts, and an export of the library as CSV or JSON
 
-## Usage
+**Keep it tidy**
+- Issues: unsupported, duplicate, old, damaged or unidentified files
+- Organize files in folders and rename them from templates, always with a preview first
+- Delete old updates, duplicates and empty folders
+- Ignore lists for DLC, updates and file types; hide demos
+
+**Save space**
+- Compress NSP to NSZ and XCI to XCZ (10 to 60% smaller), installed directly by Tinfoil, DBI and other installers
+- Every file is verified before the original is deleted; NSZ files can be decompressed back to NSP
+
+**Built to run on a server**
+- Docker image for amd64 and arm64, Unraid template, low memory use and fast with thousands of games
+- User accounts with administrator and read-only roles
+- Live tasks page, scheduled synchronization and notifications (Discord, Telegram, webhook)
+- JSON API with OpenAPI description, e.g. for Home Assistant
+- English and Spanish interface (including game names), light and dark theme
+
+## Quick start
 
 ### Docker
 
-The image is available on [Docker Hub](https://hub.docker.com/r/delfus77/switch-library-manager-web) (`delfus77/switch-library-manager-web`)
-and on GitHub (`ghcr.io/delfus77/switch-library-manager-web`), for amd64 and arm64 (Raspberry Pi, most NAS).
+The image is on [Docker Hub](https://hub.docker.com/r/delfus77/switch-library-manager-web) as
+`delfus77/switch-library-manager-web` (also `ghcr.io/delfus77/switch-library-manager-web`), for amd64 and arm64.
 
-With Docker Compose, copy [docker-compose.yml](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/docker-compose.yml), set your library folder and run
+With Docker Compose, download [docker-compose.yml](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/docker-compose.yml), set the folder of your games and run
 `docker compose up -d`. Or with `docker run`:
 
 ```
-$ docker run -d \
-	--name switch-library-manager-web \
-	-e PUID=1000 -e PGID=1000 \
-	-v /home/johndoe/switch-library-manager-web:/usr/local/share/switch-library-manager-web:Z \
-	-v /home/johndoe/Backups/Switch:/mnt/roms:Z \
-	-p 3000:3000 \
-	delfus77/switch-library-manager-web
+docker run -d \
+  --name switch-library-manager-web \
+  --restart unless-stopped \
+  -p 3000:3000 \
+  -e PUID=1000 -e PGID=1000 -e TZ=Europe/Madrid \
+  -v /path/to/appdata:/usr/local/share/switch-library-manager-web \
+  -v /path/to/your/switch/games:/mnt/roms \
+  delfus77/switch-library-manager-web
 ```
 
-Volumes inside the container:
-- `/usr/local/share/switch-library-manager-web`: data folder (settings, caches, images, prod.keys)
-- `/mnt/roms`: your library
+Then open http://localhost:3000 (or the address of your server).
 
-Then open http://localhost:3000. On the first start the titles database is downloaded automatically.
+| Setting | Meaning |
+|---|---|
+| `-p 3000:3000` | The port of the web interface |
+| `/usr/local/share/switch-library-manager-web` | Data folder: settings, caches, covers and **your keys** |
+| `/mnt/roms` | Your games; writable, to organize and compress files |
+| `PUID`, `PGID` | The user and group that own your games (`id` on the host). The app never runs as root |
+| `TZ` | Your time zone, for dates and scheduled synchronizations |
 
-The app runs as the user and group set with `PUID` and `PGID` (default `1000`), not as root. Use the IDs of the user
-that owns your library (`id` on the host): the library must be writable by them to organize files. The data folder
-is given to that user automatically, so upgrading from a version that ran as root needs no manual steps.
-
-The image has a health check on `/healthz` (port 3000), which works with password protection enabled.
-
-Put your `prod.keys` into the data folder, or mount it read-only:
-`-v /path/to/prod.keys:/usr/local/share/switch-library-manager-web/prod.keys:ro`.
+To update, pull the new image and recreate the container: `docker compose pull && docker compose up -d`.
 
 ### Unraid
 
-Search for **Switch Library Manager** in the **Apps** tab (Community Applications) and install it: the port, folders
-and user are filled in, and can be changed when installing or later with **Edit**. Set **Switch library** to the
-share with your games, for example `/mnt/user/switch`, and copy your `prod.keys` (and optionally `title.keys`) to
-`/mnt/user/appdata/switch-library-manager-web/`.
+Search for **Switch Library Manager** in the **Apps** tab and install it. The port, folders and user (`99:100`) are
+filled in, and can be changed when installing or later with **Edit**. Set **Switch library** to the share with your
+games, for example `/mnt/user/switch`, and copy your keys to `/mnt/user/appdata/switch-library-manager-web/`.
 
-Until the app is listed there, install the same template by hand: in a terminal on the server, run
+The template can also be installed by hand: in a terminal on the server run
 
 ```
 wget -O /boot/config/plugins/dockerMan/templates-user/my-switch-library-manager-web.xml https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/templates/switch-library-manager-web.xml
 ```
 
-then choose **Docker > Add Container** and pick `switch-library-manager-web` in **Template**. Installing the image
-from the Docker Hub search instead leaves the port and folders empty.
+then choose **Docker > Add Container** and pick `switch-library-manager-web` in **Template**. Do not install the
+image from the Docker Hub search: the port and folders would be empty.
 
-The template runs the app as `99:100` (nobody:users), the owner of Unraid shares, so it can organize and compress files.
+### Windows, macOS and Linux
 
-### Binary
+Build the program for your system (see [Building](#building)) and run it. It keeps its data next to the program, or in
+the folder set in the `SLM_DATA_DIR` environment variable. Open http://localhost:3000 and set your folders in
+**Settings**.
 
-Build the binary for your platform (see [Building](#building)) and run it. The data folder is the folder of the binary, or the
-folder set in the `SLM_DATA_DIR` environment variable. Set the folders to scan in the Settings page.
+## Your keys
 
-## Keys (optional)
+Keys are optional. Without them the app still works: games are recognized by their file name, for example
+`Super Mario Odyssey [0100000000010000][v0].nsp`. With your keys it reads the files themselves, so games are found even
+when the names are wrong, and you can compress and decompress them.
 
-A prod.keys file lets the app read the metadata of your files, so they are classified correctly even when the
-file names are wrong. Only `header_key` and the `key_area_key_application_XX` keys are required.
+| File | Needed for |
+|---|---|
+| `prod.keys` | Reading your files and compressing them. Dump it from your own console |
+| `title.keys` | Only to compress games whose NSP has no ticket. Dumped together with `prod.keys` |
 
-Keys are **not** included in this project and must never be shared: dump them from your own console. Titles made for
-a newer firmware need keys dumped from a console running that firmware; Issues tells you which key is missing.
+Put them in the data folder (with Docker, the folder mounted on `/usr/local/share/switch-library-manager-web`), or set
+another folder in **Settings**. You can also mount `prod.keys` read-only:
+`-v /path/to/prod.keys:/usr/local/share/switch-library-manager-web/prod.keys:ro`.
 
-The keys are looked up in this order:
-1. The path set in the Settings page: a folder containing `prod.keys`, or the path to a `.keys` file
-2. `prod.keys` in the data folder
-3. `~/.switch/prod.keys`
+The app looks for `prod.keys` in this order: the path in **Settings**, the data folder, then `~/.switch/prod.keys`.
+`title.keys` is read from the same folder as `prod.keys`.
 
-## Organize
+Games made for a newer firmware need keys dumped from a console with that firmware: the Issues page tells you when a
+key is missing.
+
+## First start
+
+1. On the first start the titles database is downloaded (names, covers, updates and DLC of every game).
+2. The Library page shows a checklist: the titles database, your keys, your folders and the first scan. Every step
+   links to where it is done.
+3. Your games appear once the folders are scanned. New, removed or replaced files are picked up by themselves.
+
+## Guides
+
+### Organize
 
 The Organize page moves and renames files according to its options. Every action shows the exact list of changes
-first; nothing happens until you apply them. Existing files are never overwritten and files that changed since the
-last scan are not deleted. Split files are left untouched.
+first, and nothing happens until you apply them. Existing files are never overwritten, files that changed since the
+last scan are not deleted, and split files are left untouched.
 
-Templates for folder and file names support:
-- `{TITLE_NAME}` - game name
-- `{TITLE_ID}` - title id
-- `{VERSION}` - version id (only applicable to files)
-- `{VERSION_TXT}` - version number, like 1.0.0 (only applicable to files)
-- `{REGION}` - region
-- `{TYPE}` - `BASE`, `UPD` or `DLC`
-- `{DLC_NAME}` - DLC name (only applicable to DLC)
+Templates for folder and file names can use:
+
+| Placeholder | Value |
+|---|---|
+| `{TITLE_NAME}` | Game name |
+| `{TITLE_ID}` | Title ID |
+| `{VERSION}` | Version number of the file, like `65536` |
+| `{VERSION_TXT}` | Version as shown on the console, like `1.0.1` |
+| `{REGION}` | Region |
+| `{TYPE}` | `BASE`, `UPD` or `DLC` |
+| `{DLC_NAME}` | DLC name |
 
 Templates must contain `{TITLE_NAME}` or `{TITLE_ID}`.
 
-## Compress
+### Compress
 
-The Compress page turns NSP files into NSZ files and XCI files into XCZ files, which take 10 to 60% less space and
-are installed directly by Tinfoil, DBI and other installers. It needs `prod.keys`; games whose NSP has no ticket also need their title key in a
-`title.keys` file next to `prod.keys`.
+The Compress page turns NSP files into NSZ files and XCI files into XCZ files. They take 10 to 60% less space and are
+installed directly by Tinfoil, DBI and other installers. It uses your `prod.keys` (and `title.keys` for games without a
+ticket).
 
 Every file is handled safely:
 
-1. The NCA files of the NSP are checked against their content IDs, so damaged or modified files are not compressed.
+1. The files inside the NSP are checked against their content IDs, so damaged or modified files are not compressed.
 2. The NSZ is written next to the NSP under a hidden temporary name.
-3. The NSZ is decompressed again and every NCA must give back the original SHA-256.
-4. Only then is the NSZ renamed and, if chosen, the NSP deleted.
+3. The NSZ is decompressed again and every part must give back the original SHA-256.
+4. Only then is the NSZ renamed and, if you choose so, the NSP deleted.
 
-Compression runs in the background as a task, can be cancelled, and uses at most half of the processors. The NSZ
-format is the one of [nsz](https://github.com/nicoboss/nsz), implemented in Go: nothing else needs to be installed.
-Update patches are compressed too, using the counters of their subsection table. Like nsz, an XCZ keeps only the
-secure partition, the one installers use; the update, normal and logo partitions are left empty.
+Compression runs in the background as a task, can be cancelled and uses at most half of the processors. Update
+patches are compressed too. Like nsz, an XCZ keeps only the secure partition, the one installers use.
 
 NSZ files can be decompressed back to NSP on the same page, for tools that do not read NSZ. The NSP is the original
-byte for byte; its NCA files are checked against their content IDs before the NSZ is deleted.
+byte for byte. The format is the one of [nsz](https://github.com/nicoboss/nsz), written in Go for this project:
+nothing else needs to be installed.
 
-## Users and password protection
+### Users and password protection
 
 Without users, anyone who can open the app has full access. Open **Users** and create an administrator to require a
 login; you are logged in as that administrator right away. Then add more users with one of two roles:
 
 | Role | Can |
 |---|---|
-| Administrator | Everything: synchronize, organize, ignore items, change settings and manage users |
+| Administrator | Everything: synchronize, organize, compress, ignore items, change settings and manage users |
 | Read only | Browse the library and download files; the controls that change something are hidden |
 
 - Passwords are stored as bcrypt hashes in `users.json` in the data folder. Every user can change their own password
-  in **My account**; changing a password ends the other sessions of that user.
-- Logins last 30 days, in a signed cookie (the key is `session.key` in the data folder).
-- After 10 failed logins, an address is blocked for 15 minutes.
+  in **My account**; a new password ends the other sessions of that user.
+- Logins last 30 days. After 10 failed logins an address is blocked for 15 minutes.
+- An administrator can also be set with the environment variables `SLM_AUTH_USERNAME` and `SLM_AUTH_PASSWORD`, which
+  is useful when a password was forgotten.
 
-An administrator can also be set with environment variables, which is useful to get in when you forgot a password:
+Use HTTPS (for example behind a reverse proxy) when the app can be reached from outside your network.
 
-```
-SLM_AUTH_USERNAME=admin
-SLM_AUTH_PASSWORD=choose-a-password
-```
+### Notifications
 
-With Docker, add `-e SLM_AUTH_USERNAME=... -e SLM_AUTH_PASSWORD=...`. Use HTTPS (for example a reverse proxy) when
-the app is reachable from outside your network.
+After every synchronization the app can tell you about new updates and DLC of your games, through a Discord webhook,
+a Telegram bot or any webhook that accepts JSON (ntfy, Home Assistant, n8n...). Set them in **Settings >
+Notifications**; only new items are reported.
 
-Requests that change data (synchronize, settings, organize) are rejected when they come from another web site.
+### API
 
-## API
-
-The JSON API lists the library, its statistics and downloads files; it is described in
-[OpenAPI](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/resources/static/openapi.json) format, also
-served by the app at `/api/openapi.json`. Main endpoints:
+The JSON API lists the library and its statistics and downloads files. It is described in
+[OpenAPI](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/resources/static/openapi.json) format, also served by the app at `/api/openapi.json`.
 
 | Endpoint | Description |
 |---|---|
 | `GET /api/titles` | Games in the library with their updates and DLC |
-| `GET /api/statistics` | Numbers of the Statistics page |
+| `GET /api/statistics` | The numbers of the Statistics page |
 | `GET /api/titles/{titleId}/archive.zip` | All files of a game as one ZIP |
 | `GET /export/library.csv`, `/export/library.json` | Library export |
 | `GET /sync`, `POST /sync` | Synchronization status, start a synchronization |
-| `GET /api/tasks` | Running and recent tasks (synchronizations, scans, organize runs) |
-| `GET /api/tasks/events` | Server-sent events after every change of the tasks |
-| `GET /healthz` | Health check, without authentication |
+| `GET /api/tasks`, `GET /api/tasks/events` | Running and recent tasks, and their live updates |
+| `GET /healthz` | Health check, without login |
 
-When a login is required, API clients use HTTP basic authentication with any user (a read-only user is enough to
-read). Example Home Assistant REST sensor:
+When a login is required, API clients use HTTP basic authentication (a read-only user is enough to read). Example
+Home Assistant sensor:
 
 ```yaml
 rest:
   - resource: http://192.168.1.10:3000/api/statistics
-    # username: admin
+    # username: viewer
     # password: !secret switch_library_password
     scan_interval: 3600
     sensor:
@@ -197,58 +234,71 @@ rest:
         value_template: "{{ value_json.missingDlc }}"
 ```
 
-## Settings
+### Settings
 
-Most settings are available in the web interface. `settings.json` in the data folder also contains:
+Most settings are in the web interface. `settings.json` in the data folder also has:
 
 | Setting | Description |
 |---|---|
-| `port` | HTTP port, default `3000` |
-| `debug` | Verbose logging, useful when reporting issues |
-| `scan_workers` | Files read at the same time while scanning. `0` (default) uses up to 4; raise it for fast network storage, lower it to `1` for a single slow disk |
+| `port` | Port of the web interface, `3000` by default |
+| `debug` | Detailed log, useful when reporting a problem |
+| `scan_workers` | Files read at the same time when scanning. `0` (default) uses up to 4; more for fast network storage, `1` for one slow disk |
 | `titles_json_url` | Titles database. Default: the `data` release of this repository |
 | `versions_json_url` | Versions database. Default: [blawar/titledb](https://github.com/blawar/titledb) |
-| `localized_titles_json_url` | Translated game names and descriptions, `%s` is the language. Default: the `data` release of this repository |
+| `localized_titles_json_url` | Translated game names and descriptions; `%s` is the language |
 
-If the configured database cannot be downloaded, a mirror is used.
+The titles database is built every 6 hours from [blawar/titledb](https://github.com/blawar/titledb) by the
+[Update title data](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/.github/workflows/update-title-data.yml) workflow and published in the `data` release. If it
+cannot be downloaded, a mirror is used.
 
-### Titles database
+## Troubleshooting
 
-`titles.json` and `versions.json` are generated every 6 hours from [blawar/titledb](https://github.com/blawar/titledb)
-by the [Update title data](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/.github/workflows/update-title-data.yml) workflow and published in the `data` release.
+**The web interface does not open.** Check that the port is published (`-p 3000:3000`, or the WebUI port on Unraid) and
+open `http://<address of the server>:3000`. `docker logs switch-library-manager-web` shows why the app stopped, if it
+did.
 
-## Reporting issues
+**"The data folder is not writable".** Set `PUID` and `PGID` to the owner of the folders on the host (on Unraid
+`99` and `100`).
 
-Report problems and ideas in the [issue tracker](https://github.com/DeLFuS77/switch-library-manager-web/issues).
-For problems, set `debug` to `true` in settings.json and attach the log. **Never share your keys**, also not in logs or
-screenshots.
+**Keys not found.** Put `prod.keys` in the data folder, or set its folder in **Settings**, and save the settings. The
+first step of the checklist and the Settings page tell you whether the keys were found.
+
+**A game is missing or shown as an issue.** Open **Issues**: it explains every file that could not be added, for
+example a key missing from an old `prod.keys` or a damaged file.
+
+**No covers.** Covers are downloaded from the Nintendo servers during the scan. If your network blocks them, the
+placeholder is shown and the next scan tries again.
+
+**Reporting a problem.** Use the [issue tracker](https://github.com/DeLFuS77/switch-library-manager-web/issues). Set
+`debug` to `true` in `settings.json` and attach the log, but **never your keys**.
 
 ## Building
 
-Requirements: [Go](https://go.dev) 1.25+ and [Node.js](https://nodejs.org) (for the web assets).
+Requirements: [Go](https://go.dev) 1.25+ and [Node.js](https://nodejs.org) (for the web interface).
 
 ```
-$ git clone https://github.com/DeLFuS77/switch-library-manager-web.git
-$ cd switch-library-manager-web
-$ npm ci
-$ npm run build       # web assets (sass + esbuild)
-$ make build          # Linux
-$ make build-windows  # Windows
-$ make build-mac      # macOS (Apple Silicon)
-$ make test
+git clone https://github.com/DeLFuS77/switch-library-manager-web.git
+cd switch-library-manager-web
+npm ci
+npm run build       # web interface (sass + esbuild)
+make build          # Linux
+make build-windows  # Windows
+make build-mac      # macOS (Apple Silicon)
+make test
 ```
 
-The binaries are written to `build`. The web assets are embedded in the binary, so `npm ci` and `npm run build` must
-run before building. Without `make` (e.g. on Windows), run `go build -o build/switch-library-manager-web.exe .`
+The programs are written to `build`. The web interface is embedded in the program, so `npm ci` and
+`npm run build` must run first. Without `make` (e.g. on Windows): `go build -o build/switch-library-manager-web.exe .`
 
 ## License
 
-The changes made in this repository are published under the [MIT license](LICENSE). The projects this fork is based
-on did not publish a license, so their code remains under the copyright of their authors; see [NOTICE](NOTICE.md).
+The changes made in this repository are published under the [MIT license](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/LICENSE). The projects this fork is based
+on did not publish a license, so their code remains under the copyright of their authors; see [NOTICE](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/NOTICE.md).
 
-#### Thanks
+### Thanks
 
-- This program is based on [giwty's switch-library-manager](https://github.com/giwty/switch-library-manager) and
+- Based on [giwty's switch-library-manager](https://github.com/giwty/switch-library-manager) and
   [dtrunk90's switch-library-manager-web](https://github.com/dtrunk90/switch-library-manager-web)
 - Parsing, organizing and title data fixes from [trembon's switch-library-manager](https://github.com/trembon/switch-library-manager)
 - Title data from [blawar's titledb](https://github.com/blawar/titledb)
+- NSZ format of [nsz](https://github.com/nicoboss/nsz) and the [Inter](https://github.com/rsms/inter) font

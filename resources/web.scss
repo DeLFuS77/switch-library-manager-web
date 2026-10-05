@@ -1517,3 +1517,181 @@ h3,
 		}
 	}
 }
+
+
+// ---------------------------------------------------------------------------------------
+// Motion
+// ---------------------------------------------------------------------------------------
+
+// smooth cross-fade between pages where the browser supports it; the header stays put
+@view-transition {
+	navigation: auto;
+}
+
+.app-header {
+	view-transition-name: app-header;
+}
+
+::view-transition-old(root) {
+	animation: slm-page-out .18s ease both;
+}
+
+::view-transition-new(root) {
+	animation: slm-page-in .28s cubic-bezier(.2, .7, .2, 1) both;
+}
+
+@keyframes slm-page-out {
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes slm-page-in {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+}
+
+// a registered property, so gauges can fill up smoothly
+@property --pct {
+	syntax: "<number>";
+	inherits: false;
+	initial-value: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.gauge {
+		animation: slm-gauge-fill 1.1s cubic-bezier(.2, .7, .2, 1) both;
+	}
+
+	.donut {
+		animation: slm-donut-in .9s cubic-bezier(.2, .7, .2, 1) both;
+	}
+
+	.health-bar span,
+	.dlc-progress-bar span,
+	.progress-bar:not(.progress-bar-animated) {
+		transform-origin: left center;
+		animation: slm-grow .9s cubic-bezier(.2, .7, .2, 1) both;
+		animation-delay: .15s;
+	}
+
+	.empty-state .empty-icon {
+		animation: slm-float 4s ease-in-out infinite;
+	}
+
+	.alert {
+		animation: slm-slide-in .3s ease both;
+	}
+
+	.dropdown-menu.show {
+		animation: slm-pop .16s ease-out both;
+	}
+
+	.setup-step.is-done .setup-marker {
+		animation: slm-pop .4s cubic-bezier(.3, 1.6, .5, 1) both;
+	}
+
+	.cover-ribbon {
+		animation: slm-pulse 2.4s ease-in-out infinite;
+	}
+
+	// cards tilt slightly towards the pointer (set by script)
+	@media (hover: hover) and (pointer: fine) {
+		.game-card.is-tilting {
+			transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) translateY(-4px);
+			transition: transform .08s linear, box-shadow .2s ease;
+		}
+	}
+}
+
+@keyframes slm-gauge-fill {
+	from {
+		--pct: 0;
+	}
+}
+
+@keyframes slm-donut-in {
+	from {
+		opacity: 0;
+		transform: rotate(-120deg) scale(.85);
+	}
+}
+
+@keyframes slm-grow {
+	from {
+		transform: scaleX(0);
+	}
+}
+
+@keyframes slm-float {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+
+	50% {
+		transform: translateY(-6px);
+	}
+}
+
+@keyframes slm-pop {
+	from {
+		opacity: 0;
+		transform: scale(.92);
+	}
+}
+
+@keyframes slm-pulse {
+	0%,
+	100% {
+		box-shadow: 0 4px 12px -2px rgba(0, 0, 0, .45), 0 0 0 0 rgba($warning, .55);
+	}
+
+	50% {
+		box-shadow: 0 4px 12px -2px rgba(0, 0, 0, .45), 0 0 0 7px rgba($warning, 0);
+	}
+}
+
+// buttons and pills give way when pressed
+.btn,
+.filter-pill,
+.kpi,
+.compress-level {
+	&:active {
+		transform: scale(.97);
+	}
+}
+
+.progress-bar,
+.task-card .progress-bar {
+	transition: width .4s ease;
+}
+
+// covers shimmer until they are loaded (the class is set by script)
+.game-cover {
+	img {
+		transition: opacity .35s ease, transform .35s ease;
+	}
+
+	img.is-loading {
+		opacity: 0;
+	}
+
+	&:has(img.is-loading) {
+		background: linear-gradient(100deg, var(--slm-surface-muted) 30%, var(--slm-surface) 50%, var(--slm-surface-muted) 70%);
+		background-size: 300% 100%;
+		animation: slm-shimmer 1.2s linear infinite;
+	}
+}
+
+@keyframes slm-shimmer {
+	from {
+		background-position: 100% 0;
+	}
+
+	to {
+		background-position: 0 0;
+	}
+}

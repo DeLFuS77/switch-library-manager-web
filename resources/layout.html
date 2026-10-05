@@ -104,7 +104,7 @@
 			{{- if not .IsKeysFileAvailable}}
 			<div class="alert alert-warning alert-dismissible fade show d-flex align-items-start gap-2 mt-3 mb-0" role="alert">
 				<span class="bi bi-key-fill flex-shrink-0 mt-1" aria-hidden="true"></span>
-				<div><strong>{{t "Product Keys not found!"}}</strong> {{t "Analyzing NSP files is disabled. Library content is based on file names only."}} <a class="alert-link" href="/settings.html#library">{{t "Set the keys path"}}</a></div>
+				<div><strong>{{t "Your keys were not found."}}</strong> {{t "Games are recognized by their file names only, and compression is off. Add your own prod.keys, dumped from your console."}} <a class="alert-link" href="/settings.html#library">{{t "Set the keys path"}}</a></div>
 				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{t "Close"}}"></button>
 			</div>
 			{{- end}}
