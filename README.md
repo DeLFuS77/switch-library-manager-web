@@ -184,6 +184,11 @@ $ make test
 The binaries are written to `build`. The web assets are embedded in the binary, so `npm ci` and `npm run build` must
 run before building. Without `make` (e.g. on Windows), run `go build -o build/switch-library-manager-web.exe .`
 
+## License
+
+The changes made in this repository are published under the [MIT license](LICENSE). The projects this fork is based
+on did not publish a license, so their code remains under the copyright of their authors; see [NOTICE](NOTICE.md).
+
 #### Thanks
 
 - This program is based on [giwty's switch-library-manager](https://github.com/giwty/switch-library-manager) and
