@@ -17,8 +17,8 @@ func (web *Web) HandleUpdates() {
 		"resources/pages/updates.html",
 	}
 
-	web.HandleFiltered("/updates.html", func(filter *TitleItemFilter) any {
-		items, p := web.getMissingUpdates(filter)
+	web.HandleFiltered("/updates.html", func(filter *TitleItemFilter, lang string) any {
+		items, p := web.getMissingUpdates(filter, lang)
 		return TitleItemsPageData {
 			GlobalPageData: web.globalPageData("updates"),
 			TitleItems: items,
@@ -28,7 +28,7 @@ func (web *Web) HandleUpdates() {
 	}, web.embedFS, fsPatterns...)
 }
 
-func (web *Web) getMissingUpdates(filter *TitleItemFilter) ([]TitleItem, pagination.Pagination) {
+func (web *Web) getMissingUpdates(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination) {
 	items := []TitleItem{}
 
 	switchDB, localDB := web.state.get()
@@ -41,7 +41,8 @@ func (web *Web) getMissingUpdates(filter *TitleItemFilter) ([]TitleItem, paginat
 	missingUpdates := process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreUpdateTitleIds), settingsObj.IgnoreDLCUpdates)
 
 	for _, v := range missingUpdates {
-		if filter.Matches(v.Attributes.Id, v.Attributes.Name) {
+		name := titleName(switchDB, lang, v.Attributes.Id, v.Attributes.Name)
+		if filter.Matches(v.Attributes.Id, name, v.Attributes.Name) {
 			var imageUrl string
 			if v.Attributes.IconUrl != "" {
 				imageUrl = v.Attributes.IconUrl
@@ -70,7 +71,7 @@ func (web *Web) getMissingUpdates(filter *TitleItemFilter) ([]TitleItem, paginat
 				LatestUpdate:     v.LatestUpdate,
 				LatestUpdateDate: latest,
 				LocalUpdate:      v.LocalUpdate,
-				Name:             v.Attributes.Name,
+				Name:             name,
 				Region:           v.Attributes.Region,
 				ReleaseDate:      release,
 				Type:             itemType,

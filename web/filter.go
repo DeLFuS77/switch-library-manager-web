@@ -36,13 +36,21 @@ func (f *TitleItemFilter) Normalize() {
 	}
 }
 
-// Matches reports whether the title ID or name contains the keyword (case insensitive).
-func (f *TitleItemFilter) Matches(id string, name string) bool {
+// Matches reports whether the title ID or one of the names contains the keyword (case insensitive).
+func (f *TitleItemFilter) Matches(id string, names ...string) bool {
 	if f.Keyword == "" {
 		return true
 	}
 	keyword := strings.ToLower(f.Keyword)
-	return strings.Contains(strings.ToLower(id), keyword) || strings.Contains(strings.ToLower(name), keyword)
+	if strings.Contains(strings.ToLower(id), keyword) {
+		return true
+	}
+	for _, name := range names {
+		if strings.Contains(strings.ToLower(name), keyword) {
+			return true
+		}
+	}
+	return false
 }
 
 type TitleItemById               []TitleItem

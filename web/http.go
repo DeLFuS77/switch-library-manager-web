@@ -30,7 +30,7 @@ type SuccessResponse struct {
 	Message       string `json:"message"`
 }
 
-type FilteredPageData func(filter *TitleItemFilter) any
+type FilteredPageData func(filter *TitleItemFilter, lang string) any
 type Validate func(value any, lang string) ErrorResponse
 type OnSuccess func(value any, lang string) SuccessResponse
 type PageData func() any
@@ -61,7 +61,7 @@ func (web *Web) HandleFiltered(pattern string, filteredPageData FilteredPageData
 	web.router.Handle(pattern, alice.New(httpin.NewInput(TitleItemFilter{})).ThenFunc(func(w http.ResponseWriter, r *http.Request) {
 		filter := r.Context().Value(httpin.Input).(*TitleItemFilter)
 		filter.Normalize()
-		web.render(w, r, templates, filteredPageData(filter))
+		web.render(w, r, templates, filteredPageData(filter, web.requestLanguage(r)))
 	}))
 }
 

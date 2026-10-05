@@ -22,6 +22,9 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -49,13 +52,18 @@ jobs:
           cp titledb/titles.json "$GITHUB_WORKSPACE/generated-data/titles.json"
           cp titledb/versions.json "$GITHUB_WORKSPACE/generated-data/versions.json"
 
+      # names and descriptions for the translated interface languages
+      - name: Generate localized titles
+        run: |
+          python .github/scripts/build_localized_titles.py nut/titledb/ES.es.json generated-data/titles.es.json
+
       - name: Validate generated JSON files
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
 
-          for filename in ("titles.json", "versions.json"):
+          for filename in ("titles.json", "versions.json", "titles.es.json"):
               path = Path("generated-data") / filename
               if not path.is_file() or path.stat().st_size == 0:
                   raise SystemExit(f"Missing or empty generated file: {path}")
@@ -75,10 +83,11 @@ jobs:
               --prerelease \
               --latest=false \
               --title "Switch Library Manager title data" \
-              --notes "Rolling US English titles.json and versions.json generated from blawar/titledb using blawar/nut."
+              --notes "Rolling US English titles.json and versions.json generated from blawar/titledb using blawar/nut, and titles.es.json with Spanish names and descriptions."
           fi
 
           gh release upload data \
             generated-data/titles.json \
             generated-data/versions.json \
+            generated-data/titles.es.json \
             --clobber

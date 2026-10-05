@@ -33,6 +33,17 @@ type SwitchTitle struct {
 
 type SwitchTitlesDB struct {
 	TitlesMap map[string]*SwitchTitle
+	// names and descriptions per interface language, by upper case title ID
+	Localized map[string]map[string]LocalizedTitle
+}
+
+// LocalizedTitle returns the name and description of a title in a language, if known.
+func (s *SwitchTitlesDB) LocalizedTitle(lang string, titleId string) (LocalizedTitle, bool) {
+	if s == nil || s.Localized == nil {
+		return LocalizedTitle{}, false
+	}
+	title, ok := s.Localized[lang][strings.ToUpper(titleId)]
+	return title, ok
 }
 
 func CreateSwitchTitleDB(titlesFile, versionsFile io.Reader) (*SwitchTitlesDB, error) {
