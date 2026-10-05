@@ -1,0 +1,9 @@
+{{- define "bulkToolbar"}}
+			<div class="d-flex align-items-center gap-3 mb-3 bulk-toolbar" data-bulk-kind="{{.}}">
+				<div class="form-check mb-0">
+					<input class="form-check-input" type="checkbox" id="bulkSelectAll" data-bulk-select-all>
+					<label class="form-check-label" for="bulkSelectAll">{{t "Select all on this page"}}</label>
+				</div>
+				<button type="button" class="btn btn-sm btn-outline-secondary" data-bulk-ignore disabled>{{t "Ignore selected"}} (<span data-bulk-count>0</span>)</button>
+			</div>
+{{- end}}

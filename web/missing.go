@@ -53,10 +53,10 @@ func (web *Web) getMissingGames(filter *TitleItemFilter, lang string) ([]TitleIt
 
 		name := titleName(switchDB, lang, v.Attributes.Id, v.Attributes.Name)
 		if filter.Matches(v.Attributes.Id, name, v.Attributes.Name) {
-			var imageUrl string
-			if v.Attributes.IconUrl != "" {
+			imageUrl := localImageUrl(localDB, v.Attributes.Id)
+			if imageUrl == "" && v.Attributes.IconUrl != "" {
 				imageUrl = v.Attributes.IconUrl
-			} else if v.Attributes.BannerUrl != "" {
+			} else if imageUrl == "" && v.Attributes.BannerUrl != "" {
 				imageUrl = v.Attributes.BannerUrl
 			}
 

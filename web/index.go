@@ -149,3 +149,24 @@ func (web *Web) getLibrary(filter *TitleItemFilter, lang string) ([]TitleItem, p
 
 	return items[p.Start:p.End], p
 }
+
+// localImageUrl returns the cover of a game from the local image cache, if it was
+// downloaded during a scan, so pages work without access to the Nintendo servers.
+func localImageUrl(localDB *db.LocalSwitchFilesDB, titleId string) string {
+	if localDB == nil {
+		return ""
+	}
+	prefix, err := db.TitleIDPrefix(titleId)
+	if err != nil {
+		return ""
+	}
+	if local, ok := localDB.TitlesMap[prefix]; ok {
+		if local.Icon != "" {
+			return "/i/" + local.Icon
+		}
+		if local.Banner != "" {
+			return "/i/" + local.Banner
+		}
+	}
+	return ""
+}

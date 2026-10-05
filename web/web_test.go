@@ -967,3 +967,21 @@ func TestArchive(t *testing.T) {
 		t.Fatal("unexpected safe file name")
 	}
 }
+
+func TestLocalImageUrl(t *testing.T) {
+	_, localDB := testDatabases(t)
+	localDB.TitlesMap["0100000000010"].Icon = "icon.jpg"
+	for id, want := range map[string]string{
+		"0100000000010000": "/i/icon.jpg", // base game
+		"0100000000011002": "/i/icon.jpg", // its DLC
+		"0100000000020000": "",            // not in the library
+		"invalid":          "",
+	} {
+		if got := localImageUrl(localDB, id); got != want {
+			t.Errorf("localImageUrl(%q) = %q, want %q", id, got, want)
+		}
+	}
+	if localImageUrl(nil, "0100000000010000") != "" {
+		t.Error("no library: no image")
+	}
+}
