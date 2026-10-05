@@ -89,7 +89,7 @@ func saveDefaultSettings(dataFolder string) *AppSettings {
 	settingsInstance = &AppSettings{
 		TitlesEtag:             "W/\"a5b02845cf6bd61:0\"",
 		VersionsEtag:           "W/\"2ef50d1cb6bd61:0\"",
-		Prodkeys:               dataFolder,
+		Prodkeys:               "", // empty: look for prod.keys in the data folder, then ~/.switch
 		Folder:                 "/mnt/roms",
 		ScanFolders:            []string{},
 		IgnoreDLCTitleIds:      []string{},
