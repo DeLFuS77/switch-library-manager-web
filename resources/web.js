@@ -786,6 +786,27 @@ document.addEventListener('DOMContentLoaded', () => {
 	initLiveTasks();
 	initCompress();
 
+	const updateNotice = document.querySelector('[data-update-version]');
+	if (updateNotice) {
+		const key = 'slm-update-dismissed';
+		let dismissed = '';
+		try {
+			dismissed = localStorage.getItem(key) || '';
+		} catch (e) {
+			// not remembered
+		}
+		if (dismissed !== updateNotice.dataset.updateVersion) {
+			updateNotice.hidden = false;
+		}
+		updateNotice.addEventListener('closed.bs.alert', () => {
+			try {
+				localStorage.setItem(key, updateNotice.dataset.updateVersion);
+			} catch (e) {
+				// not remembered
+			}
+		});
+	}
+
 	document.querySelectorAll('[data-verify]').forEach(button => {
 		button.addEventListener('click', () => {
 			button.disabled = true;

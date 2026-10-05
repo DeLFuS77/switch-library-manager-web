@@ -109,6 +109,7 @@ func (s *WebState) IsSynchronizing() bool {
 
 type Web struct {
 	state          WebState
+	updates        updateChecker
 	verify         *verifyStore
 	verifyOnce     sync.Once
 	compressor     compressor
@@ -166,6 +167,8 @@ func (t TitleItem) DlcPercent() int {
 type GlobalPageData struct {
 	// set by render for the user of the request
 	Auth                AuthInfo
+	// a newer version of the app, if one was released
+	Update              *AppUpdate
 	IsKeysFileAvailable bool
 	IsSynchronizing     bool
 	HasLibrary          bool
@@ -301,6 +304,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 		SlmVersion: settings.SLM_VERSION,
 		Version: settings.SLM_WEB_VERSION,
 		Counts: web.navCounts(),
+		Update: web.availableUpdate(),
 	}
 }
 
@@ -392,6 +396,7 @@ func (web *Web) Start() {
 	web.HandleVerify()
 	web.StartScheduler()
 	web.StartFolderWatcher()
+	web.StartUpdateChecker()
 
 	web.router.Handle("/", http.RedirectHandler("/index.html", http.StatusMovedPermanently))
 

@@ -27,6 +27,7 @@ type SettingsForm struct {
 	WatchFolders         bool   `in:"form=watch_folders"`
 	VerifyIntervalDays   int    `in:"form=verify_interval_days"`
 	ConsoleFirmware      string `in:"form=console_firmware"`
+	CheckForUpdates      bool   `in:"form=check_for_updates"`
 	SyncIntervalHours    int    `in:"form=sync_interval_hours"`
 	Language             string `in:"form=language"`
 	DiscordWebhookUrl    string `in:"form=discord_webhook_url"`
@@ -186,6 +187,7 @@ func (web *Web) HandleSettings() {
 		appSettings.WatchFolders = settingsForm.WatchFolders
 		appSettings.VerifyIntervalDays = settingsForm.VerifyIntervalDays
 		appSettings.ConsoleFirmware = strings.TrimSpace(settingsForm.ConsoleFirmware)
+		appSettings.CheckForUpdates = settingsForm.CheckForUpdates
 		appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
 		appSettings.Language = settingsForm.Language
 		appSettings.Notifications = settingsForm.notificationOptions()
