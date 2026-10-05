@@ -51,7 +51,7 @@ Linux, Docker, NAS and Raspberry Pi.
 - User accounts with administrator and read-only roles
 - Live tasks page, scheduled synchronization and notifications (Discord, Telegram, webhook)
 - JSON API with OpenAPI description, e.g. for Home Assistant
-- English and Spanish interface (including game names), light and dark theme
+- Interface in English, Spanish, French, German, Italian and Portuguese (including game names), light and dark theme
 
 ## Quick start
 

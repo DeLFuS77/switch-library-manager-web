@@ -56,6 +56,11 @@ jobs:
       - name: Generate localized titles
         run: |
           python .github/scripts/build_localized_titles.py nut/titledb/ES.es.json generated-data/titles.es.json
+          python .github/scripts/build_localized_titles.py nut/titledb/FR.fr.json generated-data/titles.fr.json
+          python .github/scripts/build_localized_titles.py nut/titledb/DE.de.json generated-data/titles.de.json
+          python .github/scripts/build_localized_titles.py nut/titledb/IT.it.json generated-data/titles.it.json
+          # the Brazilian store has the most titles in Portuguese
+          python .github/scripts/build_localized_titles.py nut/titledb/BR.pt.json generated-data/titles.pt.json
 
       - name: Validate generated JSON files
         run: |
@@ -63,7 +68,7 @@ jobs:
           import json
           from pathlib import Path
 
-          for filename in ("titles.json", "versions.json", "titles.es.json"):
+          for filename in ("titles.json", "versions.json", "titles.es.json", "titles.fr.json", "titles.de.json", "titles.it.json", "titles.pt.json"):
               path = Path("generated-data") / filename
               if not path.is_file() or path.stat().st_size == 0:
                   raise SystemExit(f"Missing or empty generated file: {path}")
@@ -83,11 +88,15 @@ jobs:
               --prerelease \
               --latest=false \
               --title "Switch Library Manager title data" \
-              --notes "Rolling US English titles.json and versions.json generated from blawar/titledb using blawar/nut, and titles.es.json with Spanish names and descriptions."
+              --notes "Rolling US English titles.json and versions.json generated from blawar/titledb using blawar/nut, and titles.<lang>.json with names and descriptions in Spanish, French, German, Italian and Portuguese."
           fi
 
           gh release upload data \
             generated-data/titles.json \
             generated-data/versions.json \
             generated-data/titles.es.json \
+            generated-data/titles.fr.json \
+            generated-data/titles.de.json \
+            generated-data/titles.it.json \
+            generated-data/titles.pt.json \
             --clobber

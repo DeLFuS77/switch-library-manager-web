@@ -19,11 +19,15 @@ import (
 const DEFAULT_LANGUAGE = "en"
 
 // supportedLanguages lists the interface languages, the first one is the default.
-var supportedLanguages = []string{"en", "es"}
+var supportedLanguages = []string{"en", "es", "fr", "de", "it", "pt"}
 
 var languageNames = map[string]string{
 	"en": "English",
 	"es": "Español",
+	"fr": "Français",
+	"de": "Deutsch",
+	"it": "Italiano",
+	"pt": "Português",
 }
 
 func translate(lang string, text string) string {
@@ -132,14 +136,20 @@ func languageFromHeader(header string) string {
 // requestLanguage returns the interface language: the one chosen in the settings, or the
 // browser's preferred language.
 func (web *Web) requestLanguage(r *http.Request) string {
-	if lang := settings.ReadSettings(web.dataFolder).Language; isSupportedLanguage(lang) {
-		return lang
+	lang := settings.ReadSettings(web.dataFolder).Language
+	if !isSupportedLanguage(lang) {
+		lang = languageFromHeader(r.Header.Get("Accept-Language"))
 	}
-	return languageFromHeader(r.Header.Get("Accept-Language"))
+	web.noteLanguage(lang)
+	return lang
 }
 
 var monthAbbreviations = map[string][12]string{
 	"es": {"ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"},
+	"fr": {"janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."},
+	"de": {"Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sept.", "Okt.", "Nov.", "Dez."},
+	"it": {"gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"},
+	"pt": {"jan.", "fev.", "mar.", "abr.", "mai.", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."},
 }
 
 // formatDate formats a date for the interface language: "Oct 5, 2026" / "5 oct 2026".
@@ -148,6 +158,9 @@ func formatDate(lang string, value time.Time) string {
 		return ""
 	}
 	if months, ok := monthAbbreviations[lang]; ok {
+		if lang == "de" {
+			return fmt.Sprintf("%d. %s %d", value.Day(), months[value.Month()-1], value.Year())
+		}
 		return fmt.Sprintf("%d %s %d", value.Day(), months[value.Month()-1], value.Year())
 	}
 	return value.Format("Jan 2, 2006")

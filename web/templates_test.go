@@ -91,8 +91,11 @@ func TestLanguageFromHeader(t *testing.T) {
 		"":                        "en",
 		"es-ES,es;q=0.9,en;q=0.8": "es",
 		"en-US,en;q=0.9,es;q=0.8": "en",
-		"de-DE,de;q=0.9,es;q=0.7": "es",
-		"fr-FR,fr;q=0.9":          "en",
+		"de-DE,de;q=0.9,es;q=0.7": "de",
+		"fr-FR,fr;q=0.9":          "fr",
+		"nl-NL,nl;q=0.9,it;q=0.5": "it",
+		"pt-BR":                   "pt",
+		"ja-JP,ja;q=0.9":          "en",
 		"ES":                      "es",
 	} {
 		if got := languageFromHeader(header); got != want {
@@ -134,5 +137,46 @@ func TestLocalizedDatesAndIssues(t *testing.T) {
 		if got := translateIssue("en", text); got != text {
 			t.Errorf("English issue changed: %q", got)
 		}
+	}
+}
+
+// Every interface language translates the same texts as Spanish, with the same placeholders.
+func TestAllLanguagesAreComplete(t *testing.T) {
+	placeholders := regexp.MustCompile(`%[vsd%]`)
+	for _, lang := range supportedLanguages {
+		if lang == DEFAULT_LANGUAGE || lang == "es" {
+			continue
+		}
+		if languageNames[lang] == "" || len(monthAbbreviations[lang]) == 0 {
+			t.Errorf("%s: no name or months", lang)
+		}
+		for text := range translations["es"] {
+			translated, ok := translations[lang][text]
+			if !ok {
+				t.Errorf("%s: no translation for %q", lang, text)
+				continue
+			}
+			if strings.Join(placeholders.FindAllString(text, -1), "") != strings.Join(placeholders.FindAllString(translated, -1), "") {
+				t.Errorf("%s: placeholders differ in %q", lang, translated)
+			}
+		}
+		for text := range translations[lang] {
+			if _, ok := translations["es"][text]; !ok {
+				t.Errorf("%s: translation of an unknown text %q", lang, text)
+			}
+		}
+	}
+}
+
+func TestTitleLanguagesOnlyThoseInUse(t *testing.T) {
+	web := newTestWeb(t)
+	if got := web.titleLanguages(); len(got) != 0 {
+		t.Fatalf("nothing is used yet: %v", got)
+	}
+	os.WriteFile(filepath.Join(web.dataFolder, "titles.es.json"), []byte("{}"), 0644)
+	web.noteLanguage("fr")
+	web.noteLanguage("en")
+	if got := strings.Join(web.titleLanguages(), ","); got != "es,fr" {
+		t.Fatalf("got %s", got)
 	}
 }
