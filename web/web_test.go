@@ -675,3 +675,52 @@ func TestHealthCheckBypassesAuthentication(t *testing.T) {
 		}
 	}
 }
+
+func TestExport(t *testing.T) {
+	web := newTestWeb(t)
+	web.HandleExport()
+
+	get := func(path string) *httptest.ResponseRecorder {
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, path, nil))
+		return recorder
+	}
+
+	if r := get("/export/library.json"); r.Code != http.StatusOK || strings.TrimSpace(r.Body.String()) != "[]" {
+		t.Fatalf("empty library: %d %q", r.Code, r.Body.String())
+	}
+
+	web.state.set(testDatabases(t))
+
+	r := get("/export/library.json")
+	if !strings.Contains(r.Header().Get("Content-Disposition"), ".json") {
+		t.Fatalf("missing download name: %v", r.Header())
+	}
+	var titles []ExportTitle
+	if err := json.Unmarshal(r.Body.Bytes(), &titles); err != nil {
+		t.Fatal(err)
+	}
+	// sorted by name: the split file "00" first, the orphan update is not a library game
+	if len(titles) != 2 || titles[1].Name != "Known Game" {
+		t.Fatalf("unexpected export: %+v", titles)
+	}
+	game := titles[1]
+	if game.Id != "0100000000010000" || len(game.Files) != 2 || game.DlcOwned != 1 || game.DlcMissing != 1 ||
+		!game.UpdateMissing || game.LatestUpdate != 131072 || game.Size != 12 || game.ReleaseDate != "2017-10-27" {
+		t.Fatalf("unexpected game: %+v", game)
+	}
+
+	r = get("/export/library.csv")
+	body := r.Body.String()
+	if !strings.HasPrefix(body, "\xef\xbb\xbf") || !strings.HasPrefix(r.Header().Get("Content-Type"), "text/csv") {
+		t.Fatal("CSV must be UTF-8 with a byte order mark")
+	}
+	lines := strings.Split(strings.TrimSpace(strings.TrimPrefix(body, "\xef\xbb\xbf")), "\n")
+	if len(lines) != 3 || !strings.HasPrefix(lines[0], "Title ID,Name") || !strings.HasPrefix(lines[2], "0100000000010000,Known Game,") {
+		t.Fatalf("unexpected CSV:\n%s", body)
+	}
+
+	if csvSafe("=HYPERLINK(1)") != "'=HYPERLINK(1)" || csvSafe("Zelda") != "Zelda" || csvSafe("") != "" {
+		t.Fatal("formula cells must be neutralised")
+	}
+}
