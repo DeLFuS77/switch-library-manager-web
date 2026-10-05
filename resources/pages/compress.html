@@ -1,0 +1,94 @@
+{{define "title"}}{{t "Compress"}}{{end}}
+{{define "main"}}
+			{{- template "pageHeader" (dict "Title" (t "Compress") "Count" -1 "Subtitle" (t "Compress your NSP files to NSZ to save space. Tinfoil, DBI and other installers install NSZ files directly. Every file is verified before the original is deleted."))}}
+			{{- if not .IsKeysFileAvailable}}
+			<div class="alert alert-warning d-flex align-items-start gap-2" role="alert">
+				<span class="bi bi-key-fill flex-shrink-0 mt-1" aria-hidden="true"></span>
+				<div>{{t "prod.keys is needed to compress games."}} <a class="alert-link" href="/settings.html#library">{{t "Set the keys path"}}</a></div>
+			</div>
+			{{- end}}
+			{{- if .Running}}
+			<section class="surface d-flex flex-column flex-sm-row align-items-sm-center gap-3 mb-4">
+				<span class="stat-icon flex-shrink-0"><span class="bi bi-file-zip" aria-hidden="true"></span></span>
+				<div class="flex-grow-1">
+					<h2 class="h6 fw-semibold mb-1">{{t "A compression is running"}}</h2>
+					<p class="text-body-secondary small mb-0">{{t "Follow its progress in Tasks. You can leave this page."}}</p>
+				</div>
+				<div class="d-flex gap-2">
+					<a class="btn btn-sm btn-outline-primary rounded-pill" href="/tasks.html"><span class="bi bi-list-task me-1" aria-hidden="true"></span>{{t "Tasks"}}</a>
+					<button type="button" class="btn btn-sm btn-outline-danger rounded-pill" data-compress-cancel><span class="bi bi-x-circle me-1" aria-hidden="true"></span>{{t "Cancel"}}</button>
+				</div>
+			</section>
+			{{- end}}
+			{{- if not .Candidates}}
+			{{- template "emptyState" (dict "Icon" "bi-file-zip" "Tone" "success" "Title" (t "No NSP files") "Text" (t "Your library has no NSP files to compress.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+			{{- else}}
+			<form id="compressForm">
+				<div class="row g-3 mb-4">
+					<div class="col-lg-7">
+						<section class="surface h-100">
+							<h2 class="section-title"><span class="bi bi-speedometer2" aria-hidden="true"></span>{{t "Compression"}}</h2>
+							<div class="compress-levels" role="radiogroup" aria-label="{{t "Compression level"}}">
+								<input type="radio" class="btn-check" name="level" id="levelFast" value="fast">
+								<label class="compress-level" for="levelFast"><span class="fw-semibold">{{t "Fast"}}</span><span class="small text-body-secondary">{{t "Quick, saves a bit less"}}</span></label>
+								<input type="radio" class="btn-check" name="level" id="levelBalanced" value="balanced" checked>
+								<label class="compress-level" for="levelBalanced"><span class="fw-semibold">{{t "Balanced"}}</span><span class="small text-body-secondary">{{t "Recommended"}}</span></label>
+								<input type="radio" class="btn-check" name="level" id="levelMax" value="max">
+								<label class="compress-level" for="levelMax"><span class="fw-semibold">{{t "Maximum"}}</span><span class="small text-body-secondary">{{t "Smallest files, slower"}}</span></label>
+							</div>
+						</section>
+					</div>
+					<div class="col-lg-5">
+						<section class="surface h-100 d-flex flex-column">
+							<h2 class="section-title"><span class="bi bi-shield-check" aria-hidden="true"></span>{{t "Originals"}}</h2>
+							<div class="form-check form-switch mb-2">
+								<input class="form-check-input" type="checkbox" role="switch" id="deleteOriginals" name="delete_originals" value="true" checked aria-describedby="deleteHelp">
+								<label class="form-check-label" for="deleteOriginals">{{t "Delete each original after its compressed file is verified"}}</label>
+							</div>
+							<div class="form-text" id="deleteHelp">{{t "When it is off, both files stay and the library lists them as duplicates."}}</div>
+						</section>
+					</div>
+				</div>
+
+				<section class="mb-4">
+					<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+						<div class="form-check mb-0">
+							<input class="form-check-input" type="checkbox" id="compressAll" checked>
+							<label class="form-check-label fw-semibold" for="compressAll">{{t "Select all"}}</label>
+						</div>
+						<div class="small text-body-secondary" id="compressSummary" data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" (len .Candidates) (formatSize .TotalSize)}}</div>
+					</div>
+					<div class="surface p-0 table-responsive">
+						<table class="table table-hover align-middle mb-0">
+							<thead>
+								<tr>
+									<th scope="col" class="ps-3" style="width: 2.5rem"><span class="visually-hidden">{{t "Select"}}</span></th>
+									<th scope="col">{{t "Name"}}</th>
+									<th scope="col">{{t "Type"}}</th>
+									<th scope="col" class="text-end pe-3">{{t "Size"}}</th>
+								</tr>
+							</thead>
+							<tbody>
+								{{- range $i, $c := .Candidates}}
+								<tr>
+									<td class="ps-3"><input class="form-check-input" type="checkbox" name="path" value="{{$c.Path}}" data-size="{{$c.Size}}" id="file{{$i}}" checked></td>
+									<td class="min-w-0">
+										<label class="fw-semibold d-block text-truncate" for="file{{$i}}">{{$c.Name}}</label>
+										<span class="small text-body-secondary font-monospace text-break">{{$c.Path}}</span>
+									</td>
+									<td><span class="chip chip-muted">{{if eq $c.Kind "Base"}}{{t "Game"}}{{else if eq $c.Kind "Update"}}{{t "Update"}}{{else}}DLC{{end}}</span></td>
+									<td class="text-end text-nowrap pe-3">{{formatSize $c.Size}}</td>
+								</tr>
+								{{- end}}
+							</tbody>
+						</table>
+					</div>
+				</section>
+
+				<div class="save-bar d-flex align-items-center justify-content-between gap-3">
+					<span class="text-body-secondary small d-none d-sm-inline">{{t "Games usually take 10–60% less space. It can take a while: progress is shown in Tasks."}}</span>
+					<button type="submit" class="btn btn-primary rounded-pill px-4 ms-auto text-nowrap"{{if or .Running (not .IsKeysFileAvailable)}} disabled{{end}}><span class="bi bi-file-zip me-2" aria-hidden="true"></span>{{t "Compress selected"}}</button>
+				</div>
+			</form>
+			{{- end}}
+{{- end}}
