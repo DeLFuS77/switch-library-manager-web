@@ -9,16 +9,17 @@ require (
 	github.com/ggicci/httpin v0.11.0
 	github.com/gorilla/mux v1.8.0
 	github.com/justinas/alice v1.2.0
+	github.com/klauspost/compress v1.18.0
 	github.com/magiconair/properties v1.8.1
 	go.etcd.io/bbolt v1.4.3
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.36.0
+	golang.org/x/sys v0.31.0
 	robpike.io/nihongo v0.0.0-20200511095354-a985f0929cfa
 )
 
 require (
 	go.uber.org/atomic v1.6.0 // indirect
 	go.uber.org/multierr v1.5.0 // indirect
-	golang.org/x/sys v0.31.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

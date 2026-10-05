@@ -565,6 +565,86 @@ function initLiveTasks() {
 	});
 }
 
+// same as formatSize on the server
+function formatSize(size) {
+	if (size < 1024) {
+		return `${size} B`;
+	}
+	let unit = 1024;
+	let exp = 0;
+	for (let n = size / 1024; n >= 1024; n /= 1024) {
+		unit *= 1024;
+		exp++;
+	}
+	return `${(size / unit).toFixed(1)} ${'KMGTPE'[exp]}B`;
+}
+
+function initCompress() {
+	document.querySelectorAll('[data-compress-cancel]').forEach(button => {
+		button.addEventListener('click', () => {
+			button.disabled = true;
+			fetch('/compress/cancel', { method: 'POST' });
+		});
+	});
+	// the cancel button of the tasks page is rendered again by the live list
+	document.addEventListener('click', e => {
+		const button = e.target.closest('#taskList [data-compress-cancel]');
+		if (button) {
+			button.disabled = true;
+			fetch('/compress/cancel', { method: 'POST' });
+		}
+	});
+
+	const form = document.getElementById('compressForm');
+	if (!form) {
+		return;
+	}
+	const all = document.getElementById('compressAll');
+	const summary = document.getElementById('compressSummary');
+	const boxes = [...form.querySelectorAll('input[name="path"]')];
+	const update = () => {
+		const selected = boxes.filter(box => box.checked);
+		const size = selected.reduce((sum, box) => sum + Number(box.dataset.size || 0), 0);
+		summary.textContent = summary.dataset.template.replace('%v', selected.length).replace('%v', formatSize(size));
+		all.checked = selected.length === boxes.length;
+		all.indeterminate = selected.length > 0 && selected.length < boxes.length;
+	};
+	all.addEventListener('change', () => {
+		boxes.forEach(box => {
+			box.checked = all.checked;
+		});
+		update();
+	});
+	boxes.forEach(box => box.addEventListener('change', update));
+
+	form.addEventListener('submit', e => {
+		e.preventDefault();
+		const feedback = form.querySelector('.alert');
+		if (feedback) {
+			feedback.remove();
+		}
+		const submit = form.querySelector('[type="submit"]');
+		submit.disabled = true;
+		fetch('/compress/start', {
+			method: 'POST',
+			body: new URLSearchParams(new FormData(form)).toString(),
+			headers: { 'Content-type': 'application/x-www-form-urlencoded' }
+		}).then(response => {
+			if (response.ok) {
+				window.location.href = '/tasks.html';
+				return;
+			}
+			return response.json().then(json => {
+				submit.disabled = false;
+				insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', json.globalError.strongMessage, json.globalError.message);
+			});
+		}).catch(() => {
+			submit.disabled = false;
+			insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), t('Could not reach the server.'));
+		});
+	});
+}
+
 const VIEW_STORAGE_KEY = 'slm-view';
 
 // large or small covers, remembered by the browser
@@ -630,6 +710,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initIgnoreButtons();
 	initViewToggle();
 	initLiveTasks();
+	initCompress();
 
 	// forms that delete something ask first
 	document.querySelectorAll('form[data-confirm]').forEach(form => {

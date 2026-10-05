@@ -465,6 +465,11 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 			kind = "split files"
 			metadata, err = fileio.ReadSplitFileMetadata(filePath)
 		}
+		if err == nil && len(metadata) == 0 && kind != "" {
+			// a file without content metadata cannot be identified: report it
+			metadata = nil
+			err = errors.New("no content metadata found")
+		}
 		if err != nil {
 			result.skip = &SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: readErrorText(kind, err)}
 			zap.S().Warnf("[file:%v] failed to read %v [reason: %v]", file.FileName, kind, err)

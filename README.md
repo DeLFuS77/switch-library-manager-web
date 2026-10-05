@@ -15,6 +15,7 @@ Easily manage your Switch game backups from the browser.
 - List issues: unsupported, duplicate, old or unreadable files and updates/DLC without base game
 - Organize games in folders and rename files, with a preview before anything changes
 - Delete old update files and, optionally, duplicates and empty folders
+- Compress NSP files to NSZ, verified before the originals are deleted
 - Ignore lists for DLC, updates and file types; hide demos
 - JSON API to list and download the library (`/api/titles`)
 - Optional user accounts with administrator and read-only roles
@@ -94,6 +95,23 @@ Templates for folder and file names support:
 - `{DLC_NAME}` - DLC name (only applicable to DLC)
 
 Templates must contain `{TITLE_NAME}` or `{TITLE_ID}`.
+
+## Compress
+
+The Compress page turns NSP files into NSZ files, which take 10 to 60% less space and are installed directly by
+Tinfoil, DBI and other installers. It needs `prod.keys`; games whose NSP has no ticket also need their title key in a
+`title.keys` file next to `prod.keys`.
+
+Every file is handled safely:
+
+1. The NCA files of the NSP are checked against their content IDs, so damaged or modified files are not compressed.
+2. The NSZ is written next to the NSP under a hidden temporary name.
+3. The NSZ is decompressed again and every NCA must give back the original SHA-256.
+4. Only then is the NSZ renamed and, if chosen, the NSP deleted.
+
+Compression runs in the background as a task, can be cancelled, and uses at most half of the processors. The NSZ
+format is the one of [nsz](https://github.com/nicoboss/nsz), implemented in Go: nothing else needs to be installed.
+Update patches (NCA with patch sections) are stored without compression. XCI files are not compressed yet.
 
 ## Users and password protection
 
