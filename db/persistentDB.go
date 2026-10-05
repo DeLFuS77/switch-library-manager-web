@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-	"github.com/boltdb/bolt"
-	"github.com/dtrunk90/switch-library-manager-web/settings"
-	"go.uber.org/zap"
-	"log"
 	"path/filepath"
+	"time"
+
+	"github.com/dtrunk90/switch-library-manager-web/settings"
+	bolt "go.etcd.io/bbolt"
+	"go.uber.org/zap"
 )
 
 const (
@@ -19,17 +20,16 @@ type PersistentDB struct {
 	db *bolt.DB
 }
 
-func NewPersistentDB(dataFolder string) (*PersistentDB, error) {
+func NewPersistentDB(baseFolder string) (*PersistentDB, error) {
 	// Open the my.db data file in your current directory.
 	// It will be created if it doesn't exist.
-	db, err := bolt.Open(filepath.Join(dataFolder, "slm.db"), 0644, &bolt.Options{Timeout: 1 * 60})
+	db, err := bolt.Open(filepath.Join(baseFolder, "slm.db"), 0600, &bolt.Options{Timeout: time.Minute})
 	if err != nil {
-		log.Fatal(err)
 		return nil, err
 	}
 
 	//set DB version
-	err = db.View(func(tx *bolt.Tx) error {
+	err = db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(DB_INTERNAL_TABLENAME))
 		if b == nil {
 			b, err := tx.CreateBucket([]byte(DB_INTERNAL_TABLENAME))
@@ -44,6 +44,10 @@ func NewPersistentDB(dataFolder string) (*PersistentDB, error) {
 		}
 		return nil
 	})
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
 
 	return &PersistentDB{db: db}, nil
 }
@@ -55,6 +59,9 @@ func (pd *PersistentDB) Close() {
 func (pd *PersistentDB) ClearTable(tableName string) error {
 	err := pd.db.Update(func(tx *bolt.Tx) error {
 		err := tx.DeleteBucket([]byte(tableName))
+		if err == bolt.ErrBucketNotFound {
+			return nil
+		}
 		return err
 	})
 	return err
@@ -119,3 +126,26 @@ func (pd *PersistentDB) GetEntry(tableName string, key string, value interface{}
 		return nil
 	})
 }*/
+
+// GetInternalValue returns a value stored in the internal metadata table, or "" if missing.
+func (pd *PersistentDB) GetInternalValue(key string) string {
+	var value string
+	_ = pd.db.View(func(tx *bolt.Tx) error {
+		if b := tx.Bucket([]byte(DB_INTERNAL_TABLENAME)); b != nil {
+			value = string(b.Get([]byte(key)))
+		}
+		return nil
+	})
+	return value
+}
+
+// SetInternalValue stores a value in the internal metadata table.
+func (pd *PersistentDB) SetInternalValue(key string, value string) error {
+	return pd.db.Update(func(tx *bolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists([]byte(DB_INTERNAL_TABLENAME))
+		if err != nil {
+			return err
+		}
+		return b.Put([]byte(key), []byte(value))
+	})
+}
