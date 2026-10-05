@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### New features
+
+- **Export the library** from the Library page: a spreadsheet (CSV, opens with accents in Excel) or a full inventory
+  with files and DLC (JSON).
+
 ## 1.2.0
 
 > **Docker users:** the container now runs as an unprivileged user (`PUID`/`PGID`, default `1000`). The data folder
