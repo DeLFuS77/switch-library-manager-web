@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.12.0
+
+### New features
+
+- **Verify the library**: the Issues page checks every file, NSP and XCI against the content IDs of their NCA files,
+  NSZ and XCZ by decompressing them, without keys. Damaged files are listed as issues. Only new and changed files
+  are checked again, and the check can run by itself every week or month.
+- **Automatic compression**: new NSP and XCI files can be compressed as soon as they appear or every night at 3:00,
+  with the same checks as on the Compress page. It needs your own prod.keys.
+- **Required firmware**: game pages and cards show the system version a game or update needs, and warn when it is
+  newer than the firmware of your console, set in the settings.
+- **New version notice**: administrators see when a new version is released (asked to GitHub once a day, nothing
+  about your library is sent; it can be turned off).
+- **Backups**: the settings page downloads a ZIP with the settings, users, verification results and notified
+  versions, and restores it. Keys and the session key are never included.
+- **Install as an app**: the interface can be installed on phones and computers, with a maskable icon, shortcuts and
+  a notice when the server cannot be reached. Only the app's own files are cached.
+- **Four more languages**: French, German, Italian and Portuguese, including game names. Only the game names of the
+  languages in use are downloaded.
+- **Demo mode**: `SLM_DEMO=true` shows a made-up library to try the app without games; the README and the Unraid
+  template show screenshots of it.
+
+### Other changes
+
+- A Content Security Policy and other security headers: the browser only runs the app's own scripts and refuses
+  being framed by other sites.
+- NSZ files, including update patches, were checked with the official nsz tool: it gives back the original NSP
+  files byte for byte.
+
 ## 1.11.0
 
 ### New features
