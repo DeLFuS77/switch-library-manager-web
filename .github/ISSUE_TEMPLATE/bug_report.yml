@@ -1,0 +1,56 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem!
+
+        **Never attach or paste `prod.keys`, `title.keys` or any console key**: they are not needed and must not be
+        shared. Remove keys from logs and screenshots before posting.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown at the bottom of every page, e.g. 1.3.0
+    validations:
+      required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation
+      options:
+        - Docker (Docker Hub)
+        - Docker (ghcr.io)
+        - Binary
+        - Built from source
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: e.g. Windows 11, Synology DS920+, Raspberry Pi 4, Ubuntu 24.04
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: |
+        Set `"debug": true` in settings.json, restart the app, reproduce the problem and paste the log here.
+        Check that it contains no keys.
+      render: text
+  - type: checkboxes
+    id: keys
+    attributes:
+      label: Keys
+      options:
+        - label: I did not include any console keys in this report
+          required: true
