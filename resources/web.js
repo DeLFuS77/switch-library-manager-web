@@ -426,6 +426,54 @@ function initThemeSwitcher() {
 	});
 }
 
+function initBulkActions() {
+	const toolbar = document.querySelector('.bulk-toolbar');
+	if (!toolbar) {
+		return;
+	}
+	const items = [...document.querySelectorAll('[data-bulk-item]')];
+	const selectAll = toolbar.querySelector('[data-bulk-select-all]');
+	const button = toolbar.querySelector('[data-bulk-ignore]');
+	const count = toolbar.querySelector('[data-bulk-count]');
+
+	const update = () => {
+		const selected = items.filter(item => item.checked).length;
+		count.textContent = selected;
+		button.disabled = selected === 0;
+		selectAll.checked = selected > 0 && selected === items.length;
+		selectAll.indeterminate = selected > 0 && selected < items.length;
+	};
+
+	items.forEach(item => item.addEventListener('change', update));
+	selectAll.addEventListener('change', () => {
+		items.forEach(item => item.checked = selectAll.checked);
+		update();
+	});
+
+	button.addEventListener('click', () => {
+		const params = new URLSearchParams();
+		params.append('kind', toolbar.dataset.bulkKind);
+		params.append('ignored', 'true');
+		items.filter(item => item.checked).forEach(item => params.append('id', item.value));
+		button.disabled = true;
+		postForm('/ignore', params).then(() => {
+			window.location.reload();
+		}).catch(error => {
+			update();
+			insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+		});
+	});
+}
+
+// replace covers that cannot be loaded (e.g. the Nintendo servers are not reachable)
+document.addEventListener('error', e => {
+	const image = e.target;
+	if (image.tagName === 'IMG' && !image.dataset.fallback && !image.classList.contains('title-screenshot')) {
+		image.dataset.fallback = 'true';
+		image.src = '/resources/static/noimage.png';
+	}
+}, true);
+
 document.addEventListener('DOMContentLoaded', () => {
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 	[...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
@@ -452,4 +500,5 @@ document.addEventListener('DOMContentLoaded', () => {
 	initIgnoreButtons();
 	initNotificationTest();
 	initThemeSwitcher();
+	initBulkActions();
 }, false);
