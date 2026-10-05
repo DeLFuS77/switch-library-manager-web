@@ -273,9 +273,20 @@ func (web *Web) Start() {
 
 	http.Handle("/", web.router)
 
+	var handler http.Handler = http.DefaultServeMux
+	username, password, authEnabled, err := authFromEnv()
+	if err != nil {
+		web.sugarLogger.Error(err)
+		log.Fatal(err)
+	}
+	if authEnabled {
+		handler = basicAuth(username, password, handler)
+		web.sugarLogger.Info("[Authentication enabled]")
+	}
+
 	web.sugarLogger.Info("[SLM started]")
 
-	if err := http.ListenAndServe(fmt.Sprint(":", web.appSettings.Port), nil); err != nil {
+	if err := http.ListenAndServe(fmt.Sprint(":", web.appSettings.Port), handler); err != nil {
 		web.sugarLogger.Error(fmt.Errorf("running http server failed: %w", err))
 		log.Fatal(err)
 	}
