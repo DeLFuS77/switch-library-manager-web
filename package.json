@@ -1,19 +1,19 @@
 {
+  "private": true,
+  "scripts": {
+    "build": "npm run build:css && npm run build:js",
+    "build:css": "sass --style=compressed --no-source-map --quiet-deps --silence-deprecation=import --silence-deprecation=global-builtin --silence-deprecation=color-functions --silence-deprecation=if-function --silence-deprecation=abs-percent resources/web.scss resources/static/web.css",
+    "build:js": "esbuild resources/web.js --bundle --minify --format=iife --target=es2020 --outfile=resources/static/web.js",
+    "watch:css": "npm run build:css -- --watch",
+    "watch:js": "npm run build:js -- --watch",
+    "clean": "node -e \"for (const f of ['resources/static/web.css', 'resources/static/web.js']) require('fs').rmSync(f, {force: true})\""
+  },
   "devDependencies": {
-    "gulp": "^4.0.2",
-    "gulp-babel-minify": "^0.5.2",
-    "gulp-clean": "^0.4.0",
-    "gulp-concat": "^2.6.1",
-    "gulp-if": "^3.0.0",
-    "gulp-jshint": "^2.1.0",
-    "gulp-purge-sourcemaps": "^1.0.0",
-    "gulp-remove-empty-lines": "^0.1.0",
-    "gulp-sass": "^5.1.0",
-    "gulp-sourcemaps": "^3.0.0",
-    "jshint-stylish": "^2.2.1",
-    "sass": "^1.65.1"
+    "esbuild": "^0.28.2",
+    "sass": "^1.105.1"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.1",
     "bootstrap-icons": "^1.10.5",
     "flag-icons": "^6.9.4"

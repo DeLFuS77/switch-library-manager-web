@@ -29,7 +29,7 @@ jobs:
 
       # go:embed needs node_modules and the compiled assets
       - name: Build assets
-        run: npm ci && npx gulp
+        run: npm ci && npm run build
 
       - name: Vet
         run: go vet ./...
@@ -39,3 +39,56 @@ jobs:
 
       - name: Build
         run: make build
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build application
+        run: npm ci && make assets build
+
+      - name: Build image
+        run: docker build -t slm-test .
+
+      - name: Start container
+        run: |
+          mkdir -p data roms
+          docker run -d --name slm -p 3000:3000 \
+            -e PUID=1000 -e PGID=1000 \
+            -v "$PWD/data:/usr/local/share/switch-library-manager-web" \
+            -v "$PWD/roms:/mnt/roms" \
+            slm-test
+
+      - name: Check health, user and pages
+        run: |
+          for i in $(seq 1 30); do
+            curl -fs http://localhost:3000/healthz && break
+            sleep 2
+          done
+          curl -fs http://localhost:3000/healthz
+          curl -fs -o /dev/null http://localhost:3000/index.html
+          # the app must run as PUID, not as root
+          docker top slm -eo uid,args
+          test "$(docker top slm -eo uid,args | awk '/switch-library-manager-web/ {print $1; exit}')" = "1000"
+          test "$(stat -c %u data/settings.json)" = "1000"
+          for i in $(seq 1 45); do
+            status=$(docker inspect -f '{{.State.Health.Status}}' slm)
+            echo "health: $status"
+            [ "$status" = "healthy" ] && exit 0
+            sleep 4
+          done
+          docker logs slm
+          exit 1

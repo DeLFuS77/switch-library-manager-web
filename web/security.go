@@ -81,3 +81,16 @@ func authFromEnv() (username string, password string, enabled bool, err error) {
 	}
 	return username, password, true, nil
 }
+
+// withHealthCheck answers /healthz without authentication, so container health checks
+// work when a password is set. It reveals nothing but the fact that the app is running.
+func withHealthCheck(next http.Handler) http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Cache-Control", "no-store")
+		w.Write([]byte("ok"))
+	})
+	mux.Handle("/", next)
+	return mux
+}
