@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"strings"
 )
 
@@ -35,12 +36,18 @@ func (web *Web) getMissingGames(filter *TitleItemFilter) ([]TitleItem, paginatio
 		return items, pagination.Calculate(filter.Page, filter.PerPage, 0)
 	}
 
+	hideDemoGames := settings.ReadSettings(web.dataFolder).HideDemoGames
+
 	for k, v := range switchDB.TitlesMap {
 		if local, ok := localDB.TitlesMap[k]; ok && local.BaseExist {
 			continue
 		}
 
 		if v.Attributes.Name == "" || v.Attributes.Id == "" {
+			continue
+		}
+
+		if hideDemoGames && v.Attributes.IsDemo {
 			continue
 		}
 

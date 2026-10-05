@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/process"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"strings"
 )
 
@@ -36,7 +37,8 @@ func (web *Web) getMissingUpdates(filter *TitleItemFilter) ([]TitleItem, paginat
 		return items, pagination.Calculate(filter.Page, filter.PerPage, 0)
 	}
 
-	missingUpdates := process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap)
+	settingsObj := settings.ReadSettings(web.dataFolder)
+	missingUpdates := process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreUpdateTitleIds), settingsObj.IgnoreDLCUpdates)
 
 	for _, v := range missingUpdates {
 		if filter.Matches(v.Attributes.Id, v.Attributes.Name) {
