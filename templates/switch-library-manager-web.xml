@@ -22,11 +22,12 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>MIT</License>
-  <Changes>### 1.12.0
+  <Changes>### 1.13.0
+- Space page to free space safely and a redesigned game page
+- Every page reviewed on computers and phones
+### 1.12.0
 - Library verification, automatic compression and firmware warnings
-- Backups, installable app, four more languages and a demo mode
-### 1.11.0
-- Animations, clearer texts and new instructions</Changes>
+- Backups, installable app, four more languages and a demo mode</Changes>
   <Date>2026-10-05</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>

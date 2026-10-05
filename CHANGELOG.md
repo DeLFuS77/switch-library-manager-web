@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.13.0
+
+### New features
+
+- **Space page**: old updates, duplicates and NSP/XCI originals that already have a compressed copy, with their
+  sizes and the file that is kept, and how much of the library can be freed. Originals can only be deleted once
+  their compressed copy is verified, files that changed since the last scan are refused, and every deletion is
+  confirmed first and recorded in Tasks.
+- **A new game page**: the facts span the whole header and never cut a value (the title ID can be copied), files
+  and DLC are lists that work on phones, and the DLC share is a bar.
+
+### Other changes
+
+- Every page was reviewed on computers and phones:
+  - The menu fits in every language: it is horizontal from 1400 pixels wide and opens from the menu button below.
+  - Library cards keep their rows aligned, with a "No DLC" row for games without DLC.
+  - Updates cards show the kind translated, a selection box on the cover and a wider ignore button.
+  - Issues, Compress and Space use lists instead of tables; issues show file names instead of full paths, Compress
+    has a filter and the Decompress section is folded.
+  - Clearer texts on the account page when login is disabled and on the Issues and Tasks pages.
+- The GitHub workflows run on Ubuntu 24.04, so the change of ubuntu-latest does not break them.
+
 ## 1.12.0
 
 ### New features

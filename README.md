@@ -58,6 +58,7 @@ Linux, Docker, NAS and Raspberry Pi.
 **Save space**
 - Compress NSP to NSZ and XCI to XCZ (10 to 60% smaller), installed directly by Tinfoil, DBI and other installers
 - Every file is verified before the original is deleted; NSZ files can be decompressed back to NSP
+- Space page: see how much old updates, duplicates and already compressed originals take, and free it safely
 
 **Built to run on a server**
 - Docker image for amd64 and arm64, Unraid template, low memory use and fast with thousands of games
