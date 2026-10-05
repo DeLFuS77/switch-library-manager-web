@@ -1,5 +1,6 @@
-/*jshint esversion: 9 */
-/*globals bootstrap */
+// Bundled with Bootstrap by esbuild into resources/static/web.js (npm run build).
+// Importing Bootstrap also enables its data attributes (offcanvas, dismissible alerts, ...).
+import { Tooltip } from 'bootstrap';
 
 // Translations of the texts below are provided by the server in the page language.
 // "%v" placeholders are replaced by the arguments in order.
@@ -371,7 +372,7 @@ function initIgnoreButtons() {
 
 document.addEventListener('DOMContentLoaded', () => {
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-	[...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+	[...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
 
 	const sync = document.getElementById('sync');
 	sync.addEventListener('click', e => {

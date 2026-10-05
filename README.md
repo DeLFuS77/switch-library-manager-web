@@ -118,15 +118,15 @@ Requirements: [Go](https://go.dev) 1.23+ and [Node.js](https://nodejs.org) (for 
 $ git clone https://github.com/SiscuPrats/switch-library-manager-web.git
 $ cd switch-library-manager-web
 $ npm ci
-$ npx gulp
+$ npm run build       # web assets (sass + esbuild)
 $ make build          # Linux
 $ make build-windows  # Windows
 $ make build-mac      # macOS (Apple Silicon)
 $ make test
 ```
 
-The binaries are written to `build`. The web assets are embedded in the binary, so `npm ci` and `gulp` must run
-before building. Without `make` (e.g. on Windows), run `go build -o build/switch-library-manager-web.exe .`
+The binaries are written to `build`. The web assets are embedded in the binary, so `npm ci` and `npm run build` must
+run before building. Without `make` (e.g. on Windows), run `go build -o build/switch-library-manager-web.exe .`
 
 #### Thanks
 
