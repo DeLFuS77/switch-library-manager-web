@@ -186,7 +186,20 @@ func (web *Web) handleOrganizeActions() {
 			return
 		}
 
-		operations, err := web.organize(r.FormValue("action"), false)
+		action := r.FormValue("action")
+		kind := TASK_ORGANIZE
+		if action == ORGANIZE_ACTION_CLEANUP {
+			kind = TASK_CLEANUP
+		}
+		taskId := web.startTask(kind, TRIGGER_MANUAL)
+		operations, err := web.organize(action, false)
+		var failure *TaskNote
+		if err == nil {
+			web.taskLog().SetResult(taskId, 0, len(operations))
+		} else {
+			failure = &TaskNote{Text: NOTE_ORGANIZE_FAILED, Detail: err.Error()}
+		}
+		web.finishTask(taskId, failure)
 		web.state.endSync()
 
 		if err != nil {
@@ -195,7 +208,7 @@ func (web *Web) handleOrganizeActions() {
 		}
 
 		// the cached library no longer matches the files on disk
-		web.Rescan()
+		web.Rescan(TRIGGER_ORGANIZE)
 
 		writeJSON(w, http.StatusOK, newOrganizeResponse(operations, false, settings.ReadSettings(web.dataFolder).Folder, web.requestLanguage(r)))
 	}).Methods("POST")

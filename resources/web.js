@@ -500,6 +500,71 @@ document.addEventListener('error', e => {
 	}
 }, true);
 
+// the Tasks page follows the tasks live: the server sends an event after every change
+// and the list is rendered again by the server
+function initLiveTasks() {
+	const list = document.querySelector('[data-live-tasks]');
+	if (!list) {
+		return;
+	}
+
+	let rendered = Number(list.dataset.version || 0);
+	let loading = false;
+	let pending = false;
+	const refresh = () => {
+		if (loading) {
+			pending = true;
+			return;
+		}
+		loading = true;
+		fetch('/tasks.html?part=list', { cache: 'no-store' })
+			.then(response => response.ok ? response.text() : Promise.reject(response))
+			.then(html => {
+				list.innerHTML = html;
+			})
+			.catch(() => {
+				// the next event tries again
+			})
+			.finally(() => {
+				loading = false;
+				if (pending) {
+					pending = false;
+					refresh();
+				}
+			});
+	};
+
+	if (window.EventSource) {
+		const source = new EventSource('/api/tasks/events');
+		source.addEventListener('tasks', e => {
+			const version = Number(e.data);
+			if (version !== rendered) {
+				rendered = version;
+				refresh();
+			}
+		});
+		window.addEventListener('pagehide', () => source.close());
+	} else {
+		setInterval(refresh, 3000);
+	}
+
+	list.addEventListener('click', e => {
+		const dismiss = e.target.closest('[data-task-dismiss]');
+		const clear = e.target.closest('[data-task-clear]');
+		if (!dismiss && !clear) {
+			return;
+		}
+		const button = dismiss || clear;
+		button.disabled = true;
+		const url = dismiss ? `/api/tasks/${encodeURIComponent(dismiss.dataset.taskDismiss)}/dismiss` : '/api/tasks/clear';
+		fetch(url, { method: 'POST' })
+			.then(refresh)
+			.catch(() => {
+				button.disabled = false;
+			});
+	});
+}
+
 const VIEW_STORAGE_KEY = 'slm-view';
 
 // large or small covers, remembered by the browser
@@ -564,6 +629,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initOrganize();
 	initIgnoreButtons();
 	initViewToggle();
+	initLiveTasks();
 	initNotificationTest();
 	initThemeSwitcher();
 	initBulkActions();

@@ -184,7 +184,7 @@ func (web *Web) HandleSettings() {
 		}
 
 		message := translate(lang, "Settings changed successfully. The library is being rescanned.")
-		if !web.Rescan() {
+		if !web.Rescan(TRIGGER_SETTINGS) {
 			message = translate(lang, "Settings changed successfully. They will be applied by the next synchronization.")
 		}
 

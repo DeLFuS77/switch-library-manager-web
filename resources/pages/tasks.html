@@ -1,0 +1,81 @@
+{{define "title"}}{{t "Tasks"}}{{end}}
+{{define "main"}}
+			{{- template "pageHeader" (dict "Title" (t "Tasks") "Count" -1 "Subtitle" (t "Synchronizations, scans and organize runs with their progress and result. Failed tasks stay here until you dismiss them."))}}
+			<div id="taskList" data-live-tasks data-version="{{.ListVersion}}" aria-live="polite">
+				{{- template "taskList" .}}
+			</div>
+{{- end}}
+
+{{define "taskList"}}
+				{{- if .Running}}
+				<section class="mb-4">
+					<h2 class="section-title"><span class="bi bi-activity" aria-hidden="true"></span>{{t "Running"}}</h2>
+					{{- range .Running}}
+					<article class="surface task-card mb-3">
+						<div class="d-flex align-items-center gap-3 mb-3">
+							<span class="stat-icon task-icon"><span class="bi {{template "taskIcon" .Kind}}" aria-hidden="true"></span></span>
+							<div class="flex-grow-1 min-w-0">
+								<h3 class="h6 fw-semibold mb-0">{{template "taskKind" .Kind}}</h3>
+								<div class="small text-body-secondary">{{template "taskTrigger" .Trigger}} &middot; {{t "started %v" (formatDateTime .Started)}}</div>
+							</div>
+							<span class="spinner-border spinner-border-sm text-primary flex-shrink-0" aria-hidden="true"></span>
+						</div>
+						{{- $pct := .Percent}}
+						<div class="progress mb-2" role="progressbar" aria-label="{{t "Progress"}}"{{if ge $pct 0}} aria-valuenow="{{$pct}}" aria-valuemin="0" aria-valuemax="100"{{end}}>
+							{{- if ge $pct 0}}
+							<div class="progress-bar" style="width: {{$pct}}%"></div>
+							{{- else}}
+							<div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div>
+							{{- end}}
+						</div>
+						<div class="d-flex justify-content-between gap-3 small text-body-secondary">
+							<span class="text-truncate">{{.Message}}</span>
+							{{- if ge $pct 0}}<span class="text-nowrap">{{.Current}} / {{.Total}} &middot; {{$pct}}%</span>{{end}}
+						</div>
+					</article>
+					{{- end}}
+				</section>
+				{{- end}}
+				{{- if .Finished}}
+				<section>
+					<div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+						<h2 class="section-title mb-0"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "History"}}</h2>
+						<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill admin-only" data-task-clear><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{t "Clear history"}}</button>
+					</div>
+					<ul class="list-unstyled task-history mb-0">
+						{{- range .Finished}}
+						<li class="surface task-row task-{{.Status}}">
+							<span class="stat-icon task-icon flex-shrink-0"><span class="bi {{template "taskIcon" .Kind}}" aria-hidden="true"></span></span>
+							<div class="flex-grow-1 min-w-0">
+								<div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+									<h3 class="h6 fw-semibold mb-0">{{template "taskKind" .Kind}}</h3>
+									{{- if eq .Status "success"}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Completed"}}</span>
+									{{- else if eq .Status "warning"}}<span class="chip chip-warning"><span class="bi bi-exclamation-circle" aria-hidden="true"></span>{{t "Completed with warnings"}}</span>
+									{{- else}}<span class="chip chip-danger"><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Failed"}}</span>{{end}}
+								</div>
+								<div class="small text-body-secondary">
+									{{template "taskTrigger" .Trigger}} &middot; {{formatDateTime .Started}} &middot; {{t "took %v" .Duration}}
+									{{- if or .Games .Files}} &middot; {{if or (eq .Kind "organize") (eq .Kind "cleanup")}}{{t "%v files changed" .Files}}{{else}}{{t "%v games, %v files" .Games .Files}}{{end}}{{end}}
+								</div>
+								{{- with .Error}}
+								<div class="task-note text-danger-emphasis"><span class="bi bi-x-octagon me-1" aria-hidden="true"></span>{{t .Text}}{{if .Detail}} <code class="task-detail">{{.Detail}}</code>{{end}}</div>
+								{{- end}}
+								{{- range .Warnings}}
+								<div class="task-note text-warning-emphasis"><span class="bi bi-exclamation-triangle me-1" aria-hidden="true"></span>{{t .Text}}{{if .Detail}} <code class="task-detail">{{.Detail}}</code>{{end}}</div>
+								{{- end}}
+							</div>
+							<button type="button" class="btn btn-sm btn-link text-body-secondary flex-shrink-0 admin-only" data-task-dismiss="{{.Id}}" title="{{t "Dismiss"}}"><span class="bi bi-x-lg" aria-hidden="true"></span><span class="visually-hidden">{{t "Dismiss"}}</span></button>
+						</li>
+						{{- end}}
+					</ul>
+				</section>
+				{{- else if not .Running}}
+				{{- template "emptyState" (dict "Icon" "bi-list-task" "Tone" "" "Title" (t "No tasks yet") "Text" (t "Synchronizations, scans and organize runs appear here.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+				{{- end}}
+{{- end}}
+
+{{define "taskKind"}}{{if eq . "sync"}}{{t "Synchronization"}}{{else if eq . "scan"}}{{t "Library scan"}}{{else if eq . "organize"}}{{t "Organize files"}}{{else if eq . "cleanup"}}{{t "Delete old updates"}}{{else}}{{.}}{{end}}{{end}}
+
+{{define "taskIcon"}}{{if eq . "sync"}}bi-arrow-repeat{{else if eq . "scan"}}bi-search{{else if eq . "organize"}}bi-folder-symlink{{else if eq . "cleanup"}}bi-trash3{{else}}bi-gear{{end}}{{end}}
+
+{{define "taskTrigger"}}{{if eq . "manual"}}{{t "Started by you"}}{{else if eq . "schedule"}}{{t "Scheduled"}}{{else if eq . "watcher"}}{{t "Files changed"}}{{else if eq . "settings"}}{{t "Settings saved"}}{{else if eq . "startup"}}{{t "App started"}}{{else if eq . "organize"}}{{t "After organizing"}}{{else}}{{.}}{{end}}{{end}}
