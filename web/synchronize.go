@@ -3,6 +3,8 @@ package web
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 // Synchronize downloads the titles database and rescans the library in the background.
@@ -16,6 +18,11 @@ func (web *Web) Synchronize() bool {
 		defer web.state.endSync()
 
 		currentSwitchDB, _ := web.state.get()
+
+		// pick up a prod.keys file that was replaced while the app was running
+		if _, err := settings.InitSwitchKeys(web.dataFolder); err != nil {
+			web.sugarLogger.Warnf("Failed to initialize switch keys: %s", err)
+		}
 
 		switchDB, err := web.buildSwitchDb()
 		if err != nil {

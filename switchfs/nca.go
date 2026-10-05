@@ -109,6 +109,16 @@ func openMetaNcaDataSection(reader io.ReaderAt, ncaOffset int64) (*fsHeader, []b
 	return fsHeader, decoded[hashInfo.pfs0HeaderOffset:], nil
 }
 
+// MissingKeyError is returned when prod.keys lacks the key needed to decrypt a title,
+// usually because the keys were dumped from an older firmware than the title requires.
+type MissingKeyError struct {
+	KeyName string
+}
+
+func (e *MissingKeyError) Error() string {
+	return fmt.Sprintf("missing Key_area_key[%v]", e.KeyName)
+}
+
 func decryptAesCtr(ncaHeader *ncaHeader, fsHeader *fsHeader, offset uint32, size uint32, encoded []byte) ([]byte, error) {
 	keyRevision := fmt.Sprintf("%02x", ncaHeader.getKeyRevision())
 	cryptoType := ncaHeader.cryptoType
@@ -128,7 +138,7 @@ func decryptAesCtr(ncaHeader *ncaHeader, fsHeader *fsHeader, offset uint32, size
 	keyName := fmt.Sprintf("key_area_key_application_%s", keyRevision)
 	KeyString := keys.GetKey(keyName)
 	if KeyString == "" {
-		return nil, fmt.Errorf("missing Key_area_key[%v]", keyName)
+		return nil, &MissingKeyError{KeyName: keyName}
 	}
 	key, _ := hex.DecodeString(KeyString)
 
