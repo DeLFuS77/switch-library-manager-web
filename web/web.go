@@ -231,6 +231,8 @@ func (web *Web) Start() {
 		if versionsFile, err := os.Open(versionsFilePath); err == nil {
 			if switchDB, err = db.CreateSwitchTitleDB(titleFile, versionsFile); err != nil {
 				web.sugarLogger.Errorf("Failed to read cached titles, please synchronize - %v", err)
+			} else {
+				switchDB.Localized = web.loadLocalizedTitles(false)
 			}
 			versionsFile.Close()
 		}
@@ -337,6 +339,9 @@ func (web *Web) buildSwitchDb() (*db.SwitchTitlesDB, error) {
 
 	web.UpdateProgress(2, 4, "Processing titles and updates...")
 	switchTitleDB, err := db.CreateSwitchTitleDB(titleFile, versionsFile)
+	if err == nil {
+		switchTitleDB.Localized = web.loadLocalizedTitles(true)
+	}
 
 	web.UpdateProgress(3, 4, "Scanning library...")
 
@@ -355,4 +360,56 @@ func (web *Web) buildLocalDB(switchDB *db.SwitchTitlesDB, ignoreCache bool) (*db
 	}
 
 	return web.localDbManager.CreateLocalSwitchFilesDB(switchDB, web.dataFolder, scanFolders, web, true, ignoreCache)
+}
+
+// loadLocalizedTitles loads the names and descriptions of the translated interface
+// languages. With download, newer files are fetched first. Failures only lose the
+// translations: English names are used instead.
+func (web *Web) loadLocalizedTitles(download bool) map[string]map[string]db.LocalizedTitle {
+	result := map[string]map[string]db.LocalizedTitle{}
+	settingsObj := settings.ReadSettings(web.dataFolder)
+
+	for _, lang := range supportedLanguages {
+		if lang == DEFAULT_LANGUAGE {
+			continue
+		}
+		filePath := filepath.Join(web.dataFolder, "titles."+lang+".json")
+
+		var file *os.File
+		var err error
+		if download {
+			etag := settingsObj.LocalizedTitlesEtags[lang]
+			if _, statErr := os.Stat(filePath); statErr != nil {
+				etag = ""
+			}
+			var newEtag string
+			file, newEtag, err = db.LoadAndUpdateFile([]string{fmt.Sprintf(settingsObj.LocalizedTitlesJsonUrl, lang)}, filePath, etag)
+			if err == nil && newEtag != etag {
+				settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+					if s.LocalizedTitlesEtags == nil {
+						s.LocalizedTitlesEtags = map[string]string{}
+					}
+					s.LocalizedTitlesEtags[lang] = newEtag
+				})
+			}
+		} else {
+			file, err = os.Open(filePath)
+		}
+		if err != nil {
+			if download || !os.IsNotExist(err) {
+				web.sugarLogger.Warnf("Titles in %v are not available: %v", lang, err)
+			}
+			continue
+		}
+
+		titles, err := db.LoadLocalizedTitles(file)
+		file.Close()
+		if err != nil {
+			web.sugarLogger.Warnf("Failed to read titles in %v: %v", lang, err)
+			continue
+		}
+		result[lang] = titles
+	}
+
+	return result
 }

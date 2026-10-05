@@ -83,7 +83,7 @@ func newTitleFile(info db.SwitchFileInfo, fileType string, downloadUrl string) *
 
 // getTitleDetail collects everything known about the game a title ID (base, update or
 // DLC) belongs to. It returns false if neither the library nor the titles database knows it.
-func (web *Web) getTitleDetail(titleId string) (TitleDetail, bool) {
+func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) {
 	detail := TitleDetail{}
 
 	prefix, err := db.TitleIDPrefix(titleId)
@@ -146,7 +146,10 @@ func (web *Web) getTitleDetail(titleId string) (TitleDetail, bool) {
 		detail.Id = strings.ToUpper(prefix + strings.Repeat("0", 16-len(prefix)))
 	}
 
-	detail.Name = getLocalTitleName(title, local)
+	detail.Name = titleName(switchDB, lang, detail.Id, getLocalTitleName(title, local))
+	if localized, ok := switchDB.LocalizedTitle(lang, detail.Id); ok && localized.Description != "" {
+		detail.Description = localized.Description
+	}
 	if detail.Name == "" {
 		detail.Name = "Unknown title"
 	}
@@ -202,6 +205,7 @@ func (web *Web) getTitleDetail(titleId string) (TitleDetail, bool) {
 		if dlc.Name == "" {
 			dlc.Name = dlc.Id
 		}
+		dlc.Name = titleName(switchDB, lang, dlc.Id, dlc.Name)
 		// DLC of a game that is not in the library are not "missing"
 		if detail.Owned && !dlc.Owned && !dlc.Ignored {
 			detail.MissingDlc++
@@ -244,7 +248,7 @@ func (web *Web) HandleTitle() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/title.html")
 
 	web.router.HandleFunc("/title/{titleId}.html", func(w http.ResponseWriter, r *http.Request) {
-		detail, ok := web.getTitleDetail(mux.Vars(r)["titleId"])
+		detail, ok := web.getTitleDetail(mux.Vars(r)["titleId"], web.requestLanguage(r))
 		if !ok {
 			http.NotFound(w, r)
 			return

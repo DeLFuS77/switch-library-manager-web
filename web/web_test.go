@@ -117,16 +117,16 @@ func TestPagesWithoutDatabases(t *testing.T) {
 	web := newTestWeb(t)
 	filter := defaultFilter()
 
-	if items, p := web.getLibrary(filter); len(items) != 0 || p.NumItems != 0 {
+	if items, p := web.getLibrary(filter, "en"); len(items) != 0 || p.NumItems != 0 {
 		t.Fatal("library should be empty")
 	}
-	if items, _ := web.getMissingGames(filter); len(items) != 0 {
+	if items, _ := web.getMissingGames(filter, "en"); len(items) != 0 {
 		t.Fatal("missing games should be empty")
 	}
-	if items, _ := web.getMissingUpdates(filter); len(items) != 0 {
+	if items, _ := web.getMissingUpdates(filter, "en"); len(items) != 0 {
 		t.Fatal("updates should be empty")
 	}
-	if items, _ := web.getMissingDLC(filter); len(items) != 0 {
+	if items, _ := web.getMissingDLC(filter, "en"); len(items) != 0 {
 		t.Fatal("DLC should be empty")
 	}
 	if issues := web.getIssues(); len(issues) != 0 {
@@ -142,7 +142,7 @@ func TestPagesWithoutTitlesDatabase(t *testing.T) {
 	web.state.set(nil, localDB)
 	filter := defaultFilter()
 
-	items, _ := web.getLibrary(filter)
+	items, _ := web.getLibrary(filter, "en")
 	if len(items) != 2 {
 		t.Fatalf("expected 2 library items, got %+v", items)
 	}
@@ -150,13 +150,13 @@ func TestPagesWithoutTitlesDatabase(t *testing.T) {
 	if items[0].Id != "0100000000030000" || items[1].Name != "Known" || items[1].Type != "NSP" {
 		t.Fatalf("names should fall back to the file name, got %+v", items)
 	}
-	if items, _ := web.getMissingGames(filter); len(items) != 0 {
+	if items, _ := web.getMissingGames(filter, "en"); len(items) != 0 {
 		t.Fatal("missing games need the titles database")
 	}
-	if items, _ := web.getMissingUpdates(filter); len(items) != 0 {
+	if items, _ := web.getMissingUpdates(filter, "en"); len(items) != 0 {
 		t.Fatal("updates need the titles database")
 	}
-	if items, _ := web.getMissingDLC(filter); len(items) != 0 {
+	if items, _ := web.getMissingDLC(filter, "en"); len(items) != 0 {
 		t.Fatal("DLC needs the titles database")
 	}
 }
@@ -166,24 +166,24 @@ func TestPagesWithDatabases(t *testing.T) {
 	web.state.set(testDatabases(t))
 	filter := defaultFilter()
 
-	library, _ := web.getLibrary(filter)
+	library, _ := web.getLibrary(filter, "en")
 	if len(library) != 2 || library[0].Type != "SPLIT" || library[1].Name != "Known Game" {
 		t.Fatalf("unexpected library: %+v", library)
 	}
 
 	filter.SortOrder = "desc"
-	if library, _ := web.getLibrary(filter); library[0].Name != "Known Game" {
+	if library, _ := web.getLibrary(filter, "en"); library[0].Name != "Known Game" {
 		t.Fatalf("descending order not applied: %+v", library)
 	}
 	filter.SortOrder = "asc"
 
 	filter.Keyword = "known"
-	if library, _ := web.getLibrary(filter); len(library) != 1 || library[0].Region != "US" || library[0].ReleaseDate.IsZero() {
+	if library, _ := web.getLibrary(filter, "en"); len(library) != 1 || library[0].Region != "US" || library[0].ReleaseDate.IsZero() {
 		t.Fatalf("search did not find the game with its details: %+v", library)
 	}
 	filter.Keyword = ""
 
-	missing, _ := web.getMissingGames(filter)
+	missing, _ := web.getMissingGames(filter, "en")
 	names := []string{}
 	for _, item := range missing {
 		names = append(names, item.Name)
@@ -192,12 +192,12 @@ func TestPagesWithDatabases(t *testing.T) {
 		t.Fatalf("unexpected missing games: %v", names)
 	}
 
-	updates, _ := web.getMissingUpdates(filter)
+	updates, _ := web.getMissingUpdates(filter, "en")
 	if len(updates) != 1 || updates[0].LocalUpdate != 65536 || updates[0].LatestUpdate != 131072 {
 		t.Fatalf("unexpected updates: %+v", updates)
 	}
 
-	dlc, _ := web.getMissingDLC(filter)
+	dlc, _ := web.getMissingDLC(filter, "en")
 	if len(dlc) != 1 || len(dlc[0].MissingDLC) != 1 || !strings.Contains(dlc[0].MissingDLC[0], "Missing DLC") {
 		t.Fatalf("unexpected missing DLC: %+v", dlc)
 	}
@@ -215,7 +215,7 @@ func TestPaginationBeyondLastPage(t *testing.T) {
 	filter.PerPage = 12
 	filter.Page = 50
 
-	items, p := web.getLibrary(filter)
+	items, p := web.getLibrary(filter, "en")
 	if len(items) != 2 || p.CurrentPage != 1 {
 		t.Fatalf("page beyond the end should show the last page: %d items, %+v", len(items), p)
 	}
@@ -304,8 +304,8 @@ func TestConcurrentReadsDuringSync(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			for j := 0; j < 50; j++ {
-				web.getLibrary(defaultFilter())
-				web.getMissingUpdates(defaultFilter())
+				web.getLibrary(defaultFilter(), "en")
+				web.getMissingUpdates(defaultFilter(), "en")
 				web.getIssues()
 			}
 		}()
@@ -482,14 +482,14 @@ func TestAuthFromEnv(t *testing.T) {
 func TestTitleDetail(t *testing.T) {
 	web := newTestWeb(t)
 
-	if _, ok := web.getTitleDetail("0100000000010000"); ok {
+	if _, ok := web.getTitleDetail("0100000000010000", "en"); ok {
 		t.Fatal("no databases: title should not be found")
 	}
 
 	web.state.set(testDatabases(t))
 
 	for _, id := range []string{"0100000000010000", "0100000000010800", "0100000000011002", "0100000000010000"} {
-		detail, ok := web.getTitleDetail(id)
+		detail, ok := web.getTitleDetail(id, "en")
 		if !ok {
 			t.Fatalf("%s: not found", id)
 		}
@@ -507,23 +507,23 @@ func TestTitleDetail(t *testing.T) {
 		}
 	}
 
-	missing, ok := web.getTitleDetail("0100000000020000")
+	missing, ok := web.getTitleDetail("0100000000020000", "en")
 	if !ok || missing.Owned || missing.Name != "Not Owned" || missing.Base != nil || missing.MissingDlc != 0 {
 		t.Fatalf("game not in the library: %+v", missing)
 	}
 
-	unknown, ok := web.getTitleDetail("0100000000030000")
+	unknown, ok := web.getTitleDetail("0100000000030000", "en")
 	if !ok || !unknown.Owned || unknown.Name != "00" {
 		t.Fatalf("game unknown to the titles database: %+v", unknown)
 	}
 
-	orphan, ok := web.getTitleDetail("0100000000040800")
+	orphan, ok := web.getTitleDetail("0100000000040800", "en")
 	if !ok || orphan.Owned || orphan.Id != "0100000000040000" {
 		t.Fatalf("update without base game: %+v", orphan)
 	}
 
 	for _, id := range []string{"ffffffffffff0000", "nope", "0100000000010001"} {
-		if _, ok := web.getTitleDetail(id); ok {
+		if _, ok := web.getTitleDetail(id, "en"); ok {
 			t.Fatalf("%s should not be found", id)
 		}
 	}
@@ -552,11 +552,11 @@ func TestIgnoreEndpoint(t *testing.T) {
 		return recorder
 	}
 	missingDlc := func() int {
-		detail, _ := web.getTitleDetail("0100000000010000")
+		detail, _ := web.getTitleDetail("0100000000010000", "en")
 		return detail.MissingDlc
 	}
 	updatesIgnored := func() bool {
-		detail, _ := web.getTitleDetail("0100000000010000")
+		detail, _ := web.getTitleDetail("0100000000010000", "en")
 		return detail.UpdatesIgnored
 	}
 
@@ -581,11 +581,11 @@ func TestIgnoreEndpoint(t *testing.T) {
 	if missingDlc() != 0 {
 		t.Fatal("ignored DLC is still missing")
 	}
-	if items, _ := web.getMissingDLC(defaultFilter()); len(items) != 0 {
+	if items, _ := web.getMissingDLC(defaultFilter(), "en"); len(items) != 0 {
 		t.Fatalf("ignored DLC still listed: %+v", items)
 	}
 
-	if detail, _ := web.getTitleDetail("0100000000010000"); !detail.Dlc[1].UpdateAvailable {
+	if detail, _ := web.getTitleDetail("0100000000010000", "en"); !detail.Dlc[1].UpdateAvailable {
 		t.Fatal("the DLC update should be offered")
 	}
 
@@ -593,10 +593,10 @@ func TestIgnoreEndpoint(t *testing.T) {
 	if !updatesIgnored() {
 		t.Fatal("updates should be ignored")
 	}
-	if detail, _ := web.getTitleDetail("0100000000010000"); detail.Dlc[1].UpdateAvailable {
+	if detail, _ := web.getTitleDetail("0100000000010000", "en"); detail.Dlc[1].UpdateAvailable {
 		t.Fatal("DLC updates of a game with ignored updates should not be offered")
 	}
-	if items, _ := web.getMissingUpdates(defaultFilter()); len(items) != 0 {
+	if items, _ := web.getMissingUpdates(defaultFilter(), "en"); len(items) != 0 {
 		t.Fatalf("ignored updates still listed: %+v", items)
 	}
 
@@ -722,5 +722,57 @@ func TestExport(t *testing.T) {
 
 	if csvSafe("=HYPERLINK(1)") != "'=HYPERLINK(1)" || csvSafe("Zelda") != "Zelda" || csvSafe("") != "" {
 		t.Fatal("formula cells must be neutralised")
+	}
+}
+
+func TestLocalizedTitleNames(t *testing.T) {
+	web := newTestWeb(t)
+	switchDB, localDB := testDatabases(t)
+	switchDB.Localized = map[string]map[string]db.LocalizedTitle{
+		"es": {
+			"0100000000010000": {Name: "Juego Conocido", Description: "Descripción en español"},
+			"0100000000011002": {Name: "DLC que falta"},
+			"0100000000020000": {Name: "No lo tengo"},
+		},
+	}
+	web.state.set(switchDB, localDB)
+
+	filter := defaultFilter()
+	library, _ := web.getLibrary(filter, "es")
+	if library[1].Name != "Juego Conocido" {
+		t.Fatalf("library name not translated: %+v", library)
+	}
+	if english, _ := web.getLibrary(filter, "en"); english[1].Name != "Known Game" {
+		t.Fatalf("English name changed: %+v", english)
+	}
+
+	// the search finds a game by its translated and by its original name
+	for _, keyword := range []string{"conocido", "known"} {
+		filter.Keyword = keyword
+		if items, _ := web.getLibrary(filter, "es"); len(items) != 1 {
+			t.Fatalf("search %q: %+v", keyword, items)
+		}
+	}
+	filter.Keyword = ""
+
+	if missing, _ := web.getMissingGames(filter, "es"); len(missing) != 1 || missing[0].Name != "No lo tengo" {
+		t.Fatalf("missing game name not translated: %+v", missing)
+	}
+	if dlc, _ := web.getMissingDLC(filter, "es"); dlc[0].Name != "Juego Conocido" || dlc[0].MissingDLCItems[0].Name != "DLC que falta" {
+		t.Fatalf("DLC names not translated: %+v", dlc)
+	}
+
+	detail, _ := web.getTitleDetail("0100000000010000", "es")
+	if detail.Name != "Juego Conocido" || detail.Description != "Descripción en español" {
+		t.Fatalf("game page not translated: %q %q", detail.Name, detail.Description)
+	}
+	// no translation: the English name of the owned DLC is kept
+	if detail.Dlc[1].Name != "Owned DLC" || detail.Dlc[0].Name != "DLC que falta" {
+		t.Fatalf("unexpected DLC names: %+v", detail.Dlc)
+	}
+
+	// the export keeps the original names
+	if export := web.getExport(); export[1].Name != "Known Game" {
+		t.Fatalf("export should not be translated: %+v", export[1])
 	}
 }

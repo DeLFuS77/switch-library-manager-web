@@ -25,6 +25,8 @@ const (
 	// "Update title data" workflow of this repository
 	DEFAULT_TITLES_JSON_URL   = "https://github.com/SiscuPrats/switch-library-manager-web/releases/download/data/titles.json"
 	DEFAULT_VERSIONS_JSON_URL = "https://raw.githubusercontent.com/blawar/titledb/master/versions.json"
+	// %s is replaced by the interface language, e.g. titles.es.json
+	DEFAULT_LOCALIZED_TITLES_JSON_URL = "https://github.com/SiscuPrats/switch-library-manager-web/releases/download/data/titles.%s.json"
 	DEFAULT_TITLES_ETAG       = "W/\"a5b02845cf6bd61:0\""
 	DEFAULT_VERSIONS_ETAG     = "W/\"2ef50d1cb6bd61:0\""
 )
@@ -73,6 +75,8 @@ type AppSettings struct {
 	VersionsEtag           string          `json:"versions_etag"`
 	TitlesJsonUrl          string          `json:"titles_json_url"`
 	TitlesEtag             string          `json:"titles_etag"`
+	LocalizedTitlesJsonUrl string            `json:"localized_titles_json_url"`
+	LocalizedTitlesEtags   map[string]string `json:"localized_titles_etags"`
 	Prodkeys               string          `json:"prod_keys"`
 	Folder                 string          `json:"folder"`
 	ScanFolders            []string        `json:"scan_folders"`
@@ -139,6 +143,9 @@ func verifySettings(dataFolder string, settings *AppSettings) *AppSettings {
 	if settings.VersionsJsonUrl == "" {
 		settings.VersionsJsonUrl = DEFAULT_VERSIONS_JSON_URL
 	}
+	if settings.LocalizedTitlesJsonUrl == "" {
+		settings.LocalizedTitlesJsonUrl = DEFAULT_LOCALIZED_TITLES_JSON_URL
+	}
 	if settings.OrganizeOptions.FolderNameTemplate == "" {
 		settings.OrganizeOptions.FolderNameTemplate = DEFAULT_FOLDER_NAME_TEMPLATE
 	}
@@ -182,6 +189,7 @@ func saveDefaultSettings(dataFolder string) *AppSettings {
 		TitlesJsonUrl:          DEFAULT_TITLES_JSON_URL,
 		TitlesEtag:             DEFAULT_TITLES_ETAG,
 		VersionsJsonUrl:        DEFAULT_VERSIONS_JSON_URL,
+		LocalizedTitlesJsonUrl: DEFAULT_LOCALIZED_TITLES_JSON_URL,
 		VersionsEtag:           DEFAULT_VERSIONS_ETAG,
 		Prodkeys:               "", // empty: look for prod.keys in the data folder, then ~/.switch
 		Folder:                 "/mnt/roms",

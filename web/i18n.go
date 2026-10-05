@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -185,4 +186,13 @@ func translateIssue(lang string, text string) string {
 		}
 	}
 	return text
+}
+
+// titleName returns the name of a title in the interface language, or fallback when the
+// titles database has no translation.
+func titleName(switchDB *db.SwitchTitlesDB, lang string, titleId string, fallback string) string {
+	if localized, ok := switchDB.LocalizedTitle(lang, titleId); ok {
+		return localized.Name
+	}
+	return fallback
 }

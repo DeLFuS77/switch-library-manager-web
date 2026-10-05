@@ -16,8 +16,8 @@ func (web *Web) HandleMissing() {
 		"resources/pages/missing.html",
 	}
 
-	web.HandleFiltered("/missing.html", func(filter *TitleItemFilter) any {
-		items, p := web.getMissingGames(filter)
+	web.HandleFiltered("/missing.html", func(filter *TitleItemFilter, lang string) any {
+		items, p := web.getMissingGames(filter, lang)
 		return TitleItemsPageData {
 			GlobalPageData: web.globalPageData("missing"),
 			TitleItems: items,
@@ -27,7 +27,7 @@ func (web *Web) HandleMissing() {
 	}, web.embedFS, fsPatterns...)
 }
 
-func (web *Web) getMissingGames(filter *TitleItemFilter) ([]TitleItem, pagination.Pagination) {
+func (web *Web) getMissingGames(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination) {
 	items := []TitleItem{}
 
 	switchDB, localDB := web.state.get()
@@ -51,7 +51,8 @@ func (web *Web) getMissingGames(filter *TitleItemFilter) ([]TitleItem, paginatio
 			continue
 		}
 
-		if filter.Matches(v.Attributes.Id, v.Attributes.Name) {
+		name := titleName(switchDB, lang, v.Attributes.Id, v.Attributes.Name)
+		if filter.Matches(v.Attributes.Id, name, v.Attributes.Name) {
 			var imageUrl string
 			if v.Attributes.IconUrl != "" {
 				imageUrl = v.Attributes.IconUrl
@@ -67,7 +68,7 @@ func (web *Web) getMissingGames(filter *TitleItemFilter) ([]TitleItem, paginatio
 			items = append(items, TitleItem {
 				ImageUrl:    imageUrl,
 				Id:          strings.ToUpper(v.Attributes.Id),
-				Name:        v.Attributes.Name,
+				Name:        name,
 				Region:      v.Attributes.Region,
 				ReleaseDate: release,
 			})

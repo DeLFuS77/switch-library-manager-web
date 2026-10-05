@@ -67,8 +67,8 @@ func (web *Web) HandleIndex() {
 		"resources/pages/index.html",
 	}
 
-	web.HandleFiltered("/index.html", func(filter *TitleItemFilter) any {
-		items, p := web.getLibrary(filter)
+	web.HandleFiltered("/index.html", func(filter *TitleItemFilter, lang string) any {
+		items, p := web.getLibrary(filter, lang)
 		return TitleItemsPageData {
 			GlobalPageData: web.globalPageData("index"),
 			TitleItems: items,
@@ -78,7 +78,7 @@ func (web *Web) HandleIndex() {
 	}, web.embedFS, fsPatterns...)
 }
 
-func (web *Web) getLibrary(filter *TitleItemFilter) ([]TitleItem, pagination.Pagination) {
+func (web *Web) getLibrary(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination) {
 	items := []TitleItem{}
 	switchDB, localDB := web.state.get()
 
@@ -96,8 +96,9 @@ func (web *Web) getLibrary(filter *TitleItemFilter) ([]TitleItem, pagination.Pag
 			title = switchDB.TitlesMap[k]
 		}
 
-		name := getLocalTitleName(title, v)
-		if !filter.Matches(v.File.Metadata.TitleId, name) {
+		originalName := getLocalTitleName(title, v)
+		name := titleName(switchDB, lang, v.File.Metadata.TitleId, originalName)
+		if !filter.Matches(v.File.Metadata.TitleId, name, originalName) {
 			continue
 		}
 
