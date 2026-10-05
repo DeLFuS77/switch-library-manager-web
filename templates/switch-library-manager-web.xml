@@ -17,10 +17,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>MIT</License>
-  <Changes>### 1.8.0
-- Compress NSP files to NSZ, verified before the originals are deleted
-- Much faster with big libraries
-- Unraid template</Changes>
+  <Changes>### 1.9.0
+- Compress XCI files to XCZ and update patches
+- Decompress NSZ files back to NSP
+- Listed in Community Applications</Changes>
   <Date>2026-10-05</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>

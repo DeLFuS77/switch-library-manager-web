@@ -1,6 +1,6 @@
 {{define "title"}}{{t "Compress"}}{{end}}
 {{define "main"}}
-			{{- template "pageHeader" (dict "Title" (t "Compress") "Count" -1 "Subtitle" (t "Compress your NSP files to NSZ to save space. Tinfoil, DBI and other installers install NSZ files directly. Every file is verified before the original is deleted."))}}
+			{{- template "pageHeader" (dict "Title" (t "Compress") "Count" -1 "Subtitle" (t "Compress your NSP files to NSZ and XCI files to XCZ to save space. Tinfoil, DBI and other installers install them directly. Every file is verified before the original is deleted."))}}
 			{{- if not .IsKeysFileAvailable}}
 			<div class="alert alert-warning d-flex align-items-start gap-2" role="alert">
 				<span class="bi bi-key-fill flex-shrink-0 mt-1" aria-hidden="true"></span>
@@ -21,7 +21,7 @@
 			</section>
 			{{- end}}
 			{{- if not .Candidates}}
-			{{- template "emptyState" (dict "Icon" "bi-file-zip" "Tone" "success" "Title" (t "No NSP files") "Text" (t "Your library has no NSP files to compress.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+			{{- template "emptyState" (dict "Icon" "bi-file-zip" "Tone" "success" "Title" (t "Nothing to compress") "Text" (t "Your library has no NSP or XCI files to compress.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 			{{- else}}
 			<form id="compressForm">
 				<div class="row g-3 mb-4">
@@ -53,10 +53,10 @@
 				<section class="mb-4">
 					<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
 						<div class="form-check mb-0">
-							<input class="form-check-input" type="checkbox" id="compressAll" checked>
+							<input class="form-check-input" type="checkbox" id="compressAll" data-file-all checked>
 							<label class="form-check-label fw-semibold" for="compressAll">{{t "Select all"}}</label>
 						</div>
-						<div class="small text-body-secondary" id="compressSummary" data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" (len .Candidates) (formatSize .TotalSize)}}</div>
+						<div class="small text-body-secondary" data-file-summary id="compressSummary" data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" (len .Candidates) (formatSize .TotalSize)}}</div>
 					</div>
 					<div class="surface p-0 table-responsive">
 						<table class="table table-hover align-middle mb-0">
@@ -88,6 +88,50 @@
 				<div class="save-bar d-flex align-items-center justify-content-between gap-3">
 					<span class="text-body-secondary small d-none d-sm-inline">{{t "Games usually take 10–60% less space. It can take a while: progress is shown in Tasks."}}</span>
 					<button type="submit" class="btn btn-primary rounded-pill px-4 ms-auto text-nowrap"{{if or .Running (not .IsKeysFileAvailable)}} disabled{{end}}><span class="bi bi-file-zip me-2" aria-hidden="true"></span>{{t "Compress selected"}}</button>
+				</div>
+			</form>
+			{{- end}}
+
+			{{- if .Compressed}}
+			<form id="decompressForm" class="mt-5">
+				<h2 class="section-title"><span class="bi bi-box-arrow-up" aria-hidden="true"></span>{{t "Decompress"}}</h2>
+				<p class="text-body-secondary">{{t "Turn NSZ files back into NSP files, for tools that do not read NSZ. Every NSP is checked before the NSZ is deleted."}}</p>
+				<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+					<div class="form-check mb-0">
+						<input class="form-check-input" type="checkbox" id="decompressAll" data-file-all>
+						<label class="form-check-label fw-semibold" for="decompressAll">{{t "Select all"}}</label>
+					</div>
+					<div class="small text-body-secondary" data-file-summary data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" 0 (formatSize 0)}}</div>
+				</div>
+				<div class="surface p-0 table-responsive mb-3">
+					<table class="table table-hover align-middle mb-0">
+						<thead>
+							<tr>
+								<th scope="col" class="ps-3" style="width: 2.5rem"><span class="visually-hidden">{{t "Select"}}</span></th>
+								<th scope="col">{{t "Name"}}</th>
+								<th scope="col" class="text-end pe-3">{{t "Size"}}</th>
+							</tr>
+						</thead>
+						<tbody>
+							{{- range $i, $c := .Compressed}}
+							<tr>
+								<td class="ps-3"><input class="form-check-input" type="checkbox" name="path" value="{{$c.Path}}" data-size="{{$c.Size}}" id="nsz{{$i}}"></td>
+								<td class="min-w-0">
+									<label class="fw-semibold d-block text-truncate" for="nsz{{$i}}">{{$c.Name}}</label>
+									<span class="small text-body-secondary font-monospace text-break">{{$c.Path}}</span>
+								</td>
+								<td class="text-end text-nowrap pe-3">{{formatSize $c.Size}}</td>
+							</tr>
+							{{- end}}
+						</tbody>
+					</table>
+				</div>
+				<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
+					<div class="form-check form-switch">
+						<input class="form-check-input" type="checkbox" role="switch" id="deleteCompressed" name="delete_compressed" value="true">
+						<label class="form-check-label" for="deleteCompressed">{{t "Delete each NSZ after its NSP is checked"}}</label>
+					</div>
+					<button type="submit" class="btn btn-outline-primary rounded-pill px-4 text-nowrap"{{if .Running}} disabled{{end}}><span class="bi bi-box-arrow-up me-2" aria-hidden="true"></span>{{t "Decompress selected"}}</button>
 				</div>
 			</form>
 			{{- end}}

@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.9.0
+
+### New features
+
+- **XCI to XCZ**: the Compress page compresses XCI files too, in the XCZ format of nsz (only the secure partition is
+  kept, the one installers use), verified like NSZ files.
+- **Update patches are compressed**: their patch sections are read with the counters of their subsection table, so
+  updates save space as well (they were stored without compression).
+- **Decompress NSZ to NSP**: a new section of the Compress page turns NSZ files back into NSP files, byte for byte the
+  original, checked before the NSZ is deleted, for tools that do not read NSZ.
+- **Unraid**: the app is listed in Community Applications. Search for Switch Library Manager in the Apps tab: the
+  port, folders and user (99:100) are filled in and can be changed later.
+
+### Other changes
+
+- Removed an obsolete Windows tile configuration of the web interface.
+
 ## 1.8.0
 
 ### New features

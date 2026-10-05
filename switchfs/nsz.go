@@ -85,9 +85,9 @@ type nczPlan struct {
 	sections []nczSection
 }
 
-// CompressNsp writes the NSZ of source to target. It does not verify the result, see
-// VerifyNsz.
-func CompressNsp(ctx context.Context, source string, target string, options CompressOptions) (CompressResult, error) {
+// CompressGame writes the NSZ of an NSP, or the XCZ of an XCI, to target. It does not
+// verify the result, see VerifyCompressed.
+func CompressGame(ctx context.Context, source string, target string, options CompressOptions) (CompressResult, error) {
 	result := CompressResult{}
 	input, err := os.Open(source)
 	if err != nil {
@@ -100,33 +100,29 @@ func CompressNsp(ctx context.Context, source string, target string, options Comp
 	}
 	result.InputSize = info.Size()
 
-	pfs0, err := readPfs0(input, 0)
+	pkg, err := openGamePackage(input)
 	if err != nil {
 		return result, err
 	}
-	if string(mustRead(input, 0, 4)) != pfs0Magic {
-		return result, errors.New("not an NSP file")
-	}
-
-	titleKeys, err := readTickets(input, pfs0)
+	titleKeys, err := readTickets(input, pkg.files)
 	if err != nil {
 		return result, err
 	}
 
-	plans := make([]*nczPlan, len(pfs0.Files))
-	names := make([]string, len(pfs0.Files))
-	for i, file := range pfs0.Files {
-		names[i] = file.Name
-		if !isCompressibleNcaName(file.Name) || file.Size <= nczHeaderSize {
+	plans := make([]*nczPlan, len(pkg.files))
+	names := make([]string, len(pkg.files))
+	for i, file := range pkg.files {
+		names[i] = file.name
+		if !isCompressibleNcaName(file.name) || file.size <= nczHeaderSize {
 			continue
 		}
-		plan, err := planNcz(input, int64(file.StartOffset), file.Size, titleKeys)
+		plan, err := planNcz(input, file.offset, uint64(file.size), titleKeys)
 		if err != nil {
-			return result, fmt.Errorf("%s: %w", file.Name, err)
+			return result, fmt.Errorf("%s: %w", file.name, err)
 		}
 		if plan != nil {
 			plans[i] = plan
-			names[i] = strings.TrimSuffix(file.Name, ".nca") + ".ncz"
+			names[i] = strings.TrimSuffix(file.name, ".nca") + ".ncz"
 		}
 	}
 	for _, plan := range plans {
@@ -142,7 +138,7 @@ func CompressNsp(ctx context.Context, source string, target string, options Comp
 	if err != nil {
 		return result, err
 	}
-	writer := &pfs0Writer{file: output, names: names, headerLen: int64(pfs0.HeaderLen)}
+	writer := newPackageWriter(output, input, pkg, names)
 	err = writer.begin()
 
 	var done int64
@@ -152,7 +148,7 @@ func CompressNsp(ctx context.Context, source string, target string, options Comp
 			options.Progress(done, result.InputSize)
 		}
 	}
-	for i, file := range pfs0.Files {
+	for i, file := range pkg.files {
 		if err != nil {
 			break
 		}
@@ -161,10 +157,10 @@ func CompressNsp(ctx context.Context, source string, target string, options Comp
 		}
 		writer.startFile()
 		if plans[i] != nil {
-			err = writeNcz(ctx, writer.file, input, int64(file.StartOffset), int64(file.Size), plans[i], options, progress)
+			err = writeNcz(ctx, output, input, file.offset, file.size, plans[i], options, progress)
 		} else {
 			result.Stored++
-			err = copyRange(ctx, writer.file, input, int64(file.StartOffset), int64(file.Size), progress)
+			err = copyRange(ctx, output, input, file.offset, file.size, progress)
 		}
 		if err == nil {
 			err = writer.endFile()
@@ -185,6 +181,11 @@ func CompressNsp(ctx context.Context, source string, target string, options Comp
 		result.OutputSize = info.Size()
 	}
 	return result, nil
+}
+
+// CompressNsp is CompressGame, kept for the NSP only callers.
+func CompressNsp(ctx context.Context, source string, target string, options CompressOptions) (CompressResult, error) {
+	return CompressGame(ctx, source, target, options)
 }
 
 // isCompressibleNcaName tells the NCA files worth compressing; metadata NCA stay as
@@ -228,23 +229,31 @@ func planNcz(input io.ReaderAt, offset int64, size uint64, titleKeys map[string]
 		if err != nil {
 			return nil, err
 		}
-		switch fsh.encType {
-		case 1, 3:
-		default:
-			// AesCtrEx sections of update patches use changing counters: stored as they are
-			return nil, nil
-		}
 		counter := make([]byte, 16)
 		for i := 0; i < 8; i++ {
 			counter[i] = fsh.fsHeaderBytes[0x147-i]
 		}
-		sections = append(sections, nczSection{
+		whole := nczSection{
 			offset:     uint64(entry.StartOffset),
 			size:       uint64(entry.Size),
 			cryptoType: uint64(fsh.encType),
 			key:        sectionKey,
 			counter:    counter,
-		})
+		}
+		switch fsh.encType {
+		case 1, 3:
+			sections = append(sections, whole)
+		case 4:
+			// update patches: every subsection has its own counter. Read with the wrong
+			// counter the data would still be rebuilt exactly, but not compress at all.
+			if subsections, err := bktrSections(input, offset, whole, fsh); err == nil {
+				sections = append(sections, subsections...)
+			} else {
+				sections = append(sections, whole)
+			}
+		default:
+			return nil, nil
+		}
 	}
 	if len(sections) == 0 {
 		return nil, nil
@@ -264,6 +273,77 @@ func planNcz(input io.ReaderAt, offset int64, size uint64, titleKeys map[string]
 		return nil, nil
 	}
 	return &nczPlan{sections: sections}, nil
+}
+
+// bktrSections splits an AesCtrEx section of an update patch by its subsection table,
+// which gives the counter of every part of the section. The table itself, at the end of
+// the section, is encrypted with the counter of the section.
+func bktrSections(input io.ReaderAt, ncaOffset int64, section nczSection, fsh *fsHeader) ([]nczSection, error) {
+	info := fsh.fsHeaderBytes[0x120:0x140]
+	tableOffset := binary.LittleEndian.Uint64(info[0:8])
+	tableSize := binary.LittleEndian.Uint64(info[8:16])
+	if string(info[16:20]) != "BKTR" || tableSize < 0x8000 || tableOffset+tableSize > section.size {
+		return nil, errors.New("no subsection table")
+	}
+
+	block, err := aes.NewCipher(section.key)
+	if err != nil {
+		return nil, err
+	}
+	read := func(position uint64, size int) ([]byte, error) {
+		data := make([]byte, size)
+		if err := readAtFull(input, data, ncaOffset+int64(position)); err != nil {
+			return nil, err
+		}
+		cipher.NewCTR(block, nczCounter(section.counter, position)).XORKeyStream(data, data)
+		return data, nil
+	}
+
+	tableStart := section.offset + tableOffset
+	header, err := read(tableStart, 0x4000)
+	if err != nil {
+		return nil, err
+	}
+	buckets := binary.LittleEndian.Uint32(header[4:8])
+	if buckets == 0 || uint64(buckets+1)*0x4000 > tableSize {
+		return nil, errors.New("invalid subsection table")
+	}
+
+	sections := []nczSection{}
+	next := section.offset
+	for b := uint32(0); b < buckets; b++ {
+		bucket, err := read(tableStart+uint64(b+1)*0x4000, 0x4000)
+		if err != nil {
+			return nil, err
+		}
+		count := binary.LittleEndian.Uint32(bucket[4:8])
+		end := binary.LittleEndian.Uint64(bucket[8:16])
+		if count == 0 || count > (0x4000-0x10)/0x10 {
+			return nil, errors.New("invalid subsection bucket")
+		}
+		for i := uint32(0); i < count; i++ {
+			entry := bucket[0x10+0x10*i:]
+			start := section.offset + binary.LittleEndian.Uint64(entry[0:8])
+			stop := section.offset + end
+			if i+1 < count {
+				stop = section.offset + binary.LittleEndian.Uint64(bucket[0x10+0x10*(i+1):])
+			}
+			if start != next || stop <= start {
+				return nil, errors.New("subsections do not follow each other")
+			}
+			counter := append([]byte(nil), section.counter...)
+			binary.BigEndian.PutUint32(counter[4:8], binary.LittleEndian.Uint32(entry[12:16]))
+			sections = append(sections, nczSection{offset: start, size: stop - start, cryptoType: 4, key: section.key, counter: counter})
+			next = stop
+		}
+	}
+	// the rest of the section, with the tables, uses the counter of the section
+	if end := section.offset + section.size; next < end {
+		sections = append(sections, nczSection{offset: next, size: end - next, cryptoType: 4, key: section.key, counter: section.counter})
+	} else if next > end {
+		return nil, errors.New("subsections exceed the section")
+	}
+	return sections, nil
 }
 
 // ncaSectionKey returns the AES key of the sections of an NCA: the title key of its
@@ -307,14 +387,14 @@ func ncaSectionKey(header *ncaHeader, titleKeys map[string][]byte) ([]byte, erro
 
 // readTickets returns the encrypted title keys of the common tickets of an NSP, by
 // rights ID. Personalized tickets need the console's keys and are left out.
-func readTickets(input io.ReaderAt, pfs0 *PFS0) (map[string][]byte, error) {
+func readTickets(input io.ReaderAt, files []packedFile) (map[string][]byte, error) {
 	result := map[string][]byte{}
-	for _, file := range pfs0.Files {
-		if !strings.HasSuffix(strings.ToLower(file.Name), ".tik") || file.Size > 0x1000 {
+	for _, file := range files {
+		if !strings.HasSuffix(strings.ToLower(file.name), ".tik") || file.size > 0x1000 {
 			continue
 		}
-		ticket := make([]byte, file.Size)
-		if err := readAtFull(input, ticket, int64(file.StartOffset)); err != nil {
+		ticket := make([]byte, file.size)
+		if err := readAtFull(input, ticket, file.offset); err != nil {
 			return nil, err
 		}
 		if len(ticket) < 4 {
@@ -410,7 +490,7 @@ func writeNcz(ctx context.Context, output io.Writer, input io.ReaderAt, offset i
 				encoder.Close()
 				return err
 			}
-			if section.cryptoType == 3 {
+			if section.cryptoType == 3 || section.cryptoType == 4 {
 				cipher.NewCTR(block, nczCounter(section.counter, position)).XORKeyStream(chunk, chunk)
 			}
 			if _, err := encoder.Write(chunk); err != nil {
@@ -592,22 +672,22 @@ func (b *nczBlockReader) Read(p []byte) (int, error) {
 	return n, nil
 }
 
-// VerifyNsz checks every NCA of an NSZ: compressed ones are decompressed, and the
-// SHA-256 of each NCA must match the content ID in its name. expected holds the hashes of
-// the original NCA files by name, when known.
-func VerifyNsz(ctx context.Context, path string, expected map[string][32]byte, progress func(done int64, total int64)) error {
+// VerifyCompressed checks every NCA of an NSZ or XCZ: compressed ones are decompressed,
+// and the SHA-256 of each NCA must match the content ID in its name. expected holds the
+// hashes of the original NCA files by name, when known.
+func VerifyCompressed(ctx context.Context, path string, expected map[string][32]byte, progress func(done int64, total int64)) error {
 	input, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 	defer input.Close()
-	pfs0, err := readPfs0(input, 0)
+	pkg, err := openGamePackage(input)
 	if err != nil {
 		return err
 	}
 	var total, done int64
-	for _, file := range pfs0.Files {
-		total += int64(file.Size)
+	for _, file := range pkg.files {
+		total += file.size
 	}
 	report := func(n int64) {
 		done += n
@@ -616,34 +696,39 @@ func VerifyNsz(ctx context.Context, path string, expected map[string][32]byte, p
 		}
 	}
 
-	for _, file := range pfs0.Files {
-		lower := strings.ToLower(file.Name)
+	for _, file := range pkg.files {
+		lower := strings.ToLower(file.name)
 		hash := sha256.New()
 		switch {
 		case strings.HasSuffix(lower, ".ncz"):
-			if err := decompressNcz(ctx, hash, input, int64(file.StartOffset), int64(file.Size), nil); err != nil {
-				return fmt.Errorf("%s: %w", file.Name, err)
+			if err := decompressNcz(ctx, hash, input, file.offset, file.size, nil); err != nil {
+				return fmt.Errorf("%s: %w", file.name, err)
 			}
-			report(int64(file.Size))
+			report(file.size)
 		case strings.HasSuffix(lower, ".nca"):
-			if err := copyRange(ctx, hash, input, int64(file.StartOffset), int64(file.Size), report); err != nil {
+			if err := copyRange(ctx, hash, input, file.offset, file.size, report); err != nil {
 				return err
 			}
 		default:
-			report(int64(file.Size))
+			report(file.size)
 			continue
 		}
 		var sum [32]byte
 		copy(sum[:], hash.Sum(nil))
-		original := strings.TrimSuffix(strings.TrimSuffix(file.Name, ".ncz"), ".nca") + ".nca"
+		original := strings.TrimSuffix(strings.TrimSuffix(file.name, ".ncz"), ".nca") + ".nca"
 		if want, ok := expected[original]; ok && want != sum {
-			return fmt.Errorf("%s: the content differs from the original", file.Name)
+			return fmt.Errorf("%s: the content differs from the original", file.name)
 		}
-		if id := contentId(file.Name); id != "" && hex.EncodeToString(sum[:16]) != id {
-			return fmt.Errorf("%s: the content does not match its ID", file.Name)
+		if id := contentId(file.name); id != "" && hex.EncodeToString(sum[:16]) != id {
+			return fmt.Errorf("%s: the content does not match its ID", file.name)
 		}
 	}
 	return nil
+}
+
+// VerifyNsz is VerifyCompressed.
+func VerifyNsz(ctx context.Context, path string, expected map[string][32]byte, progress func(done int64, total int64)) error {
+	return VerifyCompressed(ctx, path, expected, progress)
 }
 
 // contentId returns the content ID in the name of an NCA, or "" if it has none.
@@ -670,21 +755,21 @@ func HashNcas(ctx context.Context, path string, progress func(done int64, total 
 		return nil, err
 	}
 	defer input.Close()
-	pfs0, err := readPfs0(input, 0)
+	pkg, err := openGamePackage(input)
 	if err != nil {
 		return nil, err
 	}
 	var total, done int64
-	for _, file := range pfs0.Files {
-		total += int64(file.Size)
+	for _, file := range pkg.files {
+		total += file.size
 	}
 	result := map[string][32]byte{}
-	for _, file := range pfs0.Files {
-		if !strings.HasSuffix(strings.ToLower(file.Name), ".nca") {
+	for _, file := range pkg.files {
+		if !strings.HasSuffix(strings.ToLower(file.name), ".nca") {
 			continue
 		}
 		hash := sha256.New()
-		if err := copyRange(ctx, hash, input, int64(file.StartOffset), int64(file.Size), func(n int64) {
+		if err := copyRange(ctx, hash, input, file.offset, file.size, func(n int64) {
 			done += n
 			if progress != nil {
 				progress(done, total)
@@ -694,10 +779,10 @@ func HashNcas(ctx context.Context, path string, progress func(done int64, total 
 		}
 		var sum [32]byte
 		copy(sum[:], hash.Sum(nil))
-		if id := contentId(file.Name); id != "" && hex.EncodeToString(sum[:16]) != id {
-			return nil, fmt.Errorf("%s does not match its content ID: the file is damaged or was modified", file.Name)
+		if id := contentId(file.name); id != "" && hex.EncodeToString(sum[:16]) != id {
+			return nil, fmt.Errorf("%s does not match its content ID: the file is damaged or was modified", file.name)
 		}
-		result[file.Name] = sum
+		result[file.name] = sum
 	}
 	return result, nil
 }
@@ -709,6 +794,9 @@ func DecompressNsz(ctx context.Context, source string, target string, progress f
 		return err
 	}
 	defer input.Close()
+	if string(mustRead(input, 0, 4)) != pfs0Magic {
+		return errors.New("only NSZ files can be decompressed")
+	}
 	pfs0, err := readPfs0(input, 0)
 	if err != nil {
 		return err
@@ -856,5 +944,10 @@ func mustRead(input io.ReaderAt, offset int64, size int) []byte {
 
 // NszPath is the name of the NSZ of an NSP.
 func NszPath(nspPath string) string {
-	return strings.TrimSuffix(nspPath, filepath.Ext(nspPath)) + ".nsz"
+	return CompressedPath(nspPath)
+}
+
+// DecompressedPath is the name of the NSP of an NSZ.
+func DecompressedPath(nszPath string) string {
+	return strings.TrimSuffix(nszPath, filepath.Ext(nszPath)) + ".nsp"
 }

@@ -15,7 +15,7 @@ Easily manage your Switch game backups from the browser.
 - List issues: unsupported, duplicate, old or unreadable files and updates/DLC without base game
 - Organize games in folders and rename files, with a preview before anything changes
 - Delete old update files and, optionally, duplicates and empty folders
-- Compress NSP files to NSZ, verified before the originals are deleted
+- Compress NSP files to NSZ and XCI files to XCZ, verified before the originals are deleted, and decompress NSZ back to NSP
 - Ignore lists for DLC, updates and file types; hide demos
 - JSON API to list and download the library (`/api/titles`)
 - Optional user accounts with administrator and read-only roles
@@ -116,8 +116,8 @@ Templates must contain `{TITLE_NAME}` or `{TITLE_ID}`.
 
 ## Compress
 
-The Compress page turns NSP files into NSZ files, which take 10 to 60% less space and are installed directly by
-Tinfoil, DBI and other installers. It needs `prod.keys`; games whose NSP has no ticket also need their title key in a
+The Compress page turns NSP files into NSZ files and XCI files into XCZ files, which take 10 to 60% less space and
+are installed directly by Tinfoil, DBI and other installers. It needs `prod.keys`; games whose NSP has no ticket also need their title key in a
 `title.keys` file next to `prod.keys`.
 
 Every file is handled safely:
@@ -129,7 +129,11 @@ Every file is handled safely:
 
 Compression runs in the background as a task, can be cancelled, and uses at most half of the processors. The NSZ
 format is the one of [nsz](https://github.com/nicoboss/nsz), implemented in Go: nothing else needs to be installed.
-Update patches (NCA with patch sections) are stored without compression. XCI files are not compressed yet.
+Update patches are compressed too, using the counters of their subsection table. Like nsz, an XCZ keeps only the
+secure partition, the one installers use; the update, normal and logo partitions are left empty.
+
+NSZ files can be decompressed back to NSP on the same page, for tools that do not read NSZ. The NSP is the original
+byte for byte; its NCA files are checked against their content IDs before the NSZ is deleted.
 
 ## Users and password protection
 

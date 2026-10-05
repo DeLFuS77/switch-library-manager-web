@@ -10,11 +10,12 @@ import (
 
 // kinds of background tasks
 const (
-	TASK_SYNC     = "sync"
-	TASK_SCAN     = "scan"
-	TASK_ORGANIZE = "organize"
-	TASK_CLEANUP  = "cleanup"
-	TASK_COMPRESS = "compress"
+	TASK_SYNC       = "sync"
+	TASK_SCAN       = "scan"
+	TASK_ORGANIZE   = "organize"
+	TASK_CLEANUP    = "cleanup"
+	TASK_COMPRESS   = "compress"
+	TASK_DECOMPRESS = "decompress"
 )
 
 // what started a task

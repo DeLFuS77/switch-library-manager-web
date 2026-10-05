@@ -1,6 +1,8 @@
 package web
 
 import (
+	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -176,5 +178,61 @@ func TestCompressNotesAreTranslated(t *testing.T) {
 		if _, ok := translations["es"][text]; !ok {
 			t.Errorf("no Spanish translation for %q", text)
 		}
+	}
+}
+
+func TestDecompressFromThePage(t *testing.T) {
+	web, path := compressWeb(t)
+	original, _ := os.ReadFile(path)
+	nsz := switchfs.CompressedPath(path)
+	if _, err := switchfs.CompressGame(context.Background(), path, nsz, switchfs.CompressOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	os.Remove(path)
+	info, _ := os.Stat(nsz)
+	web.state.set(nil, &db.LocalSwitchFilesDB{
+		TitlesMap: map[string]*db.SwitchGameFiles{
+			"0100000000010": {
+				BaseExist: true,
+				File: db.SwitchFileInfo{
+					ExtendedInfo: db.ExtendedFileInfo{FileName: filepath.Base(nsz), BaseFolder: filepath.Dir(nsz), Size: info.Size()},
+					Metadata:     &switchfs.ContentMetaAttributes{TitleId: "0100000000010000"},
+				},
+				Updates: map[int]db.SwitchFileInfo{},
+				Dlc:     map[string]db.SwitchFileInfo{},
+			},
+		},
+		Skipped: map[db.ExtendedFileInfo]db.SkippedFile{},
+	})
+
+	page := httptest.NewRecorder()
+	web.router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/compress.html", nil))
+	if !strings.Contains(page.Body.String(), "decompressForm") || !strings.Contains(page.Body.String(), filepath.Base(nsz)) {
+		t.Fatal("the NSZ must be offered for decompression")
+	}
+
+	if code := postForm(web, "/decompress/start", url.Values{"path": {nsz}, "delete_compressed": {"true"}}).Code; code != http.StatusAccepted {
+		t.Fatalf("start: %v", code)
+	}
+	deadline := time.Now().Add(20 * time.Second)
+	for web.compressionRunning() && time.Now().Before(deadline) {
+		time.Sleep(20 * time.Millisecond)
+	}
+	var task Task
+	for _, candidate := range web.taskLog().Snapshot() {
+		if candidate.Kind == TASK_DECOMPRESS {
+			task = candidate
+			break
+		}
+	}
+	if task.Status != TASK_SUCCESS || task.Files != 1 {
+		t.Fatalf("task: %+v", task)
+	}
+	restored, err := os.ReadFile(path)
+	if err != nil || !bytes.Equal(restored, original) {
+		t.Fatal("the NSP must be restored byte for byte")
+	}
+	if _, err := os.Stat(nsz); !os.IsNotExist(err) {
+		t.Fatal("the NSZ must be deleted after the check")
 	}
 }

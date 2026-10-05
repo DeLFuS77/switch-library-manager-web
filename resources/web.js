@@ -595,12 +595,17 @@ function initCompress() {
 		}
 	});
 
-	const form = document.getElementById('compressForm');
+	bindFileForm(document.getElementById('compressForm'), '/compress/start');
+	bindFileForm(document.getElementById('decompressForm'), '/decompress/start');
+}
+
+// a list of files with "select all", a summary of the selection and a start request
+function bindFileForm(form, url) {
 	if (!form) {
 		return;
 	}
-	const all = document.getElementById('compressAll');
-	const summary = document.getElementById('compressSummary');
+	const all = form.querySelector('[data-file-all]');
+	const summary = form.querySelector('[data-file-summary]');
 	const boxes = [...form.querySelectorAll('input[name="path"]')];
 	const update = () => {
 		const selected = boxes.filter(box => box.checked);
@@ -616,6 +621,7 @@ function initCompress() {
 		update();
 	});
 	boxes.forEach(box => box.addEventListener('change', update));
+	update();
 
 	form.addEventListener('submit', e => {
 		e.preventDefault();
@@ -625,7 +631,7 @@ function initCompress() {
 		}
 		const submit = form.querySelector('[type="submit"]');
 		submit.disabled = true;
-		fetch('/compress/start', {
+		fetch(url, {
 			method: 'POST',
 			body: new URLSearchParams(new FormData(form)).toString(),
 			headers: { 'Content-type': 'application/x-www-form-urlencoded' }

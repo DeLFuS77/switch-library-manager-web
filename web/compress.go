@@ -26,9 +26,10 @@ const (
 	NOTE_COMPRESS_NOTHING  = "Nothing in the file can be compressed."
 	NOTE_COMPRESS_CANCELED = "The compression was cancelled."
 	NOTE_COMPRESS_DELETE   = "The original could not be deleted."
+	NOTE_DECOMPRESS_FAILED = "The file could not be decompressed, the compressed file is kept."
 )
 
-var compressNoteTexts = []string{NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_DELETE}
+var compressNoteTexts = []string{NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_DELETE}
 
 // CompressCandidate is an NSP of the library that can be compressed.
 type CompressCandidate struct {
@@ -43,6 +44,8 @@ type CompressPageData struct {
 	GlobalPageData
 	Candidates []CompressCandidate
 	TotalSize  int64
+	// compressed files that can be decompressed
+	Compressed []CompressCandidate
 	Running    bool
 }
 
@@ -52,17 +55,38 @@ type compressor struct {
 	cancel context.CancelFunc
 }
 
-// compressCandidates lists the NSP files of the library, biggest first.
+// compressCandidates lists the NSP and XCI files of the library, biggest first.
 func (web *Web) compressCandidates() []CompressCandidate {
+	return web.libraryFiles(".nsp", ".xci")
+}
+
+// decompressCandidates lists the NSZ files of the library, biggest first.
+func (web *Web) decompressCandidates() []CompressCandidate {
+	return web.libraryFiles(".nsz")
+}
+
+// libraryFiles lists the files of the library with one of the extensions, each file
+// once: an XCI can hold a game with its update and DLC.
+func (web *Web) libraryFiles(extensions ...string) []CompressCandidate {
 	switchDB, localDB := web.state.get()
 	candidates := []CompressCandidate{}
 	if localDB == nil {
 		return candidates
 	}
+	seen := map[string]bool{}
 	add := func(title *db.SwitchGameFiles, file db.SwitchFileInfo, kind string) {
-		if !strings.EqualFold(filepath.Ext(file.ExtendedInfo.FileName), ".nsp") {
+		extension := strings.ToLower(filepath.Ext(file.ExtendedInfo.FileName))
+		wanted := false
+		for _, candidate := range extensions {
+			if extension == candidate {
+				wanted = true
+			}
+		}
+		path := filepath.Join(file.ExtendedInfo.BaseFolder, file.ExtendedInfo.FileName)
+		if !wanted || seen[path] {
 			return
 		}
+		seen[path] = true
 		name := ""
 		if title.File.Metadata != nil {
 			var known *db.SwitchTitle
@@ -74,12 +98,7 @@ func (web *Web) compressCandidates() []CompressCandidate {
 		if name == "" {
 			name = strings.TrimSpace(db.ParseTitleNameFromFileName(file.ExtendedInfo.FileName))
 		}
-		candidates = append(candidates, CompressCandidate{
-			Path: filepath.Join(file.ExtendedInfo.BaseFolder, file.ExtendedInfo.FileName),
-			Name: name,
-			Kind: kind,
-			Size: file.ExtendedInfo.Size,
-		})
+		candidates = append(candidates, CompressCandidate{Path: path, Name: name, Kind: kind, Size: file.ExtendedInfo.Size})
 	}
 	for _, title := range localDB.TitlesMap {
 		if title.BaseExist && !title.IsSplit {
@@ -113,9 +132,30 @@ func compressWorkers() int {
 	return workers
 }
 
+// fileJob processes one file and returns the bytes saved; report returns the progress
+// callback of a pass over the file, given the bytes of the earlier passes.
+type fileJob func(ctx context.Context, path string, report func(step int64) func(int64, int64)) (int64, error)
+
 // startCompression compresses the files in the background. It returns false if a
-// compression is already running.
+// compression or decompression is already running.
 func (web *Web) startCompression(paths []string, level string, deleteOriginals bool) bool {
+	// every file is read three times: hashed, compressed and verified
+	return web.runFileTask(TASK_COMPRESS, paths, 3, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		return web.compressFile(ctx, path, level, deleteOriginals, report)
+	})
+}
+
+// startDecompression decompresses NSZ files to NSP in the background.
+func (web *Web) startDecompression(paths []string, deleteCompressed bool) bool {
+	// every file is decompressed, then the result is hashed
+	return web.runFileTask(TASK_DECOMPRESS, paths, 2, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		return 0, web.decompressFile(ctx, path, deleteCompressed, report)
+	})
+}
+
+// runFileTask runs job on every file as one cancellable task. passes is how many times
+// each file is read, for the progress.
+func (web *Web) runFileTask(kind string, paths []string, passes int64, job fileJob) bool {
 	web.compressor.mutex.Lock()
 	if web.compressor.cancel != nil {
 		web.compressor.mutex.Unlock()
@@ -125,7 +165,7 @@ func (web *Web) startCompression(paths []string, level string, deleteOriginals b
 	web.compressor.cancel = cancel
 	web.compressor.mutex.Unlock()
 
-	taskId := web.taskLog().Start(TASK_COMPRESS, TRIGGER_MANUAL)
+	taskId := web.taskLog().Start(kind, TRIGGER_MANUAL)
 	go func() {
 		defer func() {
 			web.compressor.mutex.Lock()
@@ -134,16 +174,16 @@ func (web *Web) startCompression(paths []string, level string, deleteOriginals b
 			cancel()
 		}()
 
+		sizes := make([]int64, len(paths))
 		var total, done int64
-		for _, path := range paths {
+		for i, path := range paths {
 			if info, err := os.Stat(path); err == nil {
-				total += info.Size()
+				sizes[i] = info.Size()
+				total += info.Size() * passes
 			}
 		}
-		// every file is read three times: hashed, compressed and verified
-		total *= 3
 
-		compressed := 0
+		processed := 0
 		var saved int64
 		var failure *TaskNote
 		for i, path := range paths {
@@ -158,30 +198,29 @@ func (web *Web) startCompression(paths []string, level string, deleteOriginals b
 					web.taskLog().Progress(taskId, int((base+step+fileDone)>>20), int(total>>20), fmt.Sprintf("%s (%d/%d)", name, i+1, len(paths)))
 				}
 			}
-			size, err := web.compressFile(ctx, path, level, deleteOriginals, report)
-			if info, statErr := os.Stat(path); statErr == nil {
-				done += info.Size() * 3
-			} else {
-				done += size * 3
-			}
+			fileSaved, err := job(ctx, path, report)
+			done += sizes[i] * passes
 			if err != nil {
 				if errors.Is(err, context.Canceled) {
 					failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
 					break
 				}
-				web.sugarLogger.Warnf("Compressing %s failed: %v", path, err)
-				web.taskLog().Warn(taskId, compressNote(err), name+": "+err.Error())
+				web.sugarLogger.Warnf("%s of %s failed: %v", kind, path, err)
+				web.taskLog().Warn(taskId, compressNote(kind, err), name+": "+err.Error())
 				continue
 			}
-			compressed++
-			saved += size
-			web.taskLog().SetCompressResult(taskId, compressed, saved)
+			processed++
+			saved += fileSaved
+			web.taskLog().SetCompressResult(taskId, processed, saved)
 		}
-		if failure == nil && compressed == 0 && len(paths) > 0 {
+		if failure == nil && processed == 0 && len(paths) > 0 {
 			failure = &TaskNote{Text: NOTE_COMPRESS_FAILED}
+			if kind == TASK_DECOMPRESS {
+				failure = &TaskNote{Text: NOTE_DECOMPRESS_FAILED}
+			}
 		}
 		web.taskLog().Finish(taskId, failure)
-		if compressed > 0 {
+		if processed > 0 {
 			web.Rescan(TRIGGER_COMPRESS)
 		}
 	}()
@@ -194,7 +233,7 @@ var (
 	errCompressExists = errors.New("the compressed file already exists")
 )
 
-func compressNote(err error) string {
+func compressNote(kind string, err error) string {
 	switch {
 	case errors.Is(err, errCompressSpace):
 		return NOTE_COMPRESS_SPACE
@@ -207,6 +246,9 @@ func compressNote(err error) string {
 	case strings.Contains(err.Error(), "could not delete"):
 		return NOTE_COMPRESS_DELETE
 	}
+	if kind == TASK_DECOMPRESS {
+		return NOTE_DECOMPRESS_FAILED
+	}
 	return NOTE_COMPRESS_FAILED
 }
 
@@ -218,7 +260,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	if err != nil {
 		return 0, err
 	}
-	target := switchfs.NszPath(path)
+	target := switchfs.CompressedPath(path)
 	if _, err := os.Stat(target); err == nil {
 		return 0, errCompressExists
 	}
@@ -234,13 +276,13 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	// hidden, so scans ignore the file while it is written
 	temporary := filepath.Join(filepath.Dir(path), "."+filepath.Base(target)+".tmp")
 	defer os.Remove(temporary)
-	result, err := switchfs.CompressNsp(ctx, path, temporary, switchfs.CompressOptions{
+	result, err := switchfs.CompressGame(ctx, path, temporary, switchfs.CompressOptions{
 		Level: level, Workers: compressWorkers(), Progress: report(info.Size()),
 	})
 	if err != nil {
 		return 0, err
 	}
-	if err := switchfs.VerifyNsz(ctx, temporary, expected, report(2*info.Size())); err != nil {
+	if err := switchfs.VerifyCompressed(ctx, temporary, expected, report(2*info.Size())); err != nil {
 		return 0, err
 	}
 	if err := os.Rename(temporary, target); err != nil {
@@ -253,6 +295,47 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	}
 	web.sugarLogger.Infof("Compressed %s: %d -> %d bytes", path, result.InputSize, result.OutputSize)
 	return result.InputSize - result.OutputSize, nil
+}
+
+// decompressFile writes the NSP of an NSZ next to it under a hidden temporary name,
+// checks every NCA against its content ID, and only then renames it; the NSZ is deleted
+// last, if asked.
+func (web *Web) decompressFile(ctx context.Context, path string, deleteCompressed bool, report func(step int64) func(int64, int64)) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	target := switchfs.DecompressedPath(path)
+	if _, err := os.Stat(target); err == nil {
+		return errCompressExists
+	}
+	size, err := switchfs.DecompressedSize(path)
+	if err != nil {
+		return err
+	}
+	if free, err := diskFree(filepath.Dir(path)); err == nil && free < uint64(size)+(64<<20) {
+		return errCompressSpace
+	}
+
+	temporary := filepath.Join(filepath.Dir(path), "."+filepath.Base(target)+".tmp")
+	defer os.Remove(temporary)
+	if err := switchfs.DecompressNsz(ctx, path, temporary, report(0)); err != nil {
+		return err
+	}
+	// every NCA must match its content ID
+	if _, err := switchfs.HashNcas(ctx, temporary, report(info.Size())); err != nil {
+		return err
+	}
+	if err := os.Rename(temporary, target); err != nil {
+		return err
+	}
+	if deleteCompressed {
+		if err := os.Remove(path); err != nil {
+			return fmt.Errorf("could not delete the original: %w", err)
+		}
+	}
+	web.sugarLogger.Infof("Decompressed %s", path)
+	return nil
 }
 
 func (web *Web) cancelCompression() bool {
@@ -276,7 +359,7 @@ func (web *Web) HandleCompress() {
 
 	web.router.HandleFunc("/compress.html", func(w http.ResponseWriter, r *http.Request) {
 		candidates := web.compressCandidates()
-		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, Running: web.compressionRunning()}
+		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, Compressed: web.decompressCandidates(), Running: web.compressionRunning()}
 		for _, candidate := range candidates {
 			data.TotalSize += candidate.Size
 		}
@@ -313,6 +396,33 @@ func (web *Web) HandleCompress() {
 			level = switchfs.LevelBalanced
 		}
 		if !web.startCompression(paths, level, r.FormValue("delete_originals") == "true") {
+			writeGlobalError(w, http.StatusConflict, lang, "A compression is already running.")
+			return
+		}
+		writeJSON(w, http.StatusAccepted, map[string]any{"started": len(paths)})
+	}).Methods("POST")
+
+	web.router.HandleFunc("/decompress/start", func(w http.ResponseWriter, r *http.Request) {
+		lang := web.requestLanguage(r)
+		if err := r.ParseForm(); err != nil {
+			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
+			return
+		}
+		known := map[string]bool{}
+		for _, candidate := range web.decompressCandidates() {
+			known[candidate.Path] = true
+		}
+		paths := []string{}
+		for _, path := range r.Form["path"] {
+			if known[path] {
+				paths = append(paths, path)
+			}
+		}
+		if len(paths) == 0 {
+			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to decompress.")
+			return
+		}
+		if !web.startDecompression(paths, r.FormValue("delete_compressed") == "true") {
 			writeGlobalError(w, http.StatusConflict, lang, "A compression is already running.")
 			return
 		}
