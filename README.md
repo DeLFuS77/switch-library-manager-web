@@ -6,10 +6,12 @@ Easily manage your Switch game backups from the browser.
 
 - Cross platform, works on Windows / Mac / Linux and in Docker
 - Web interface
-- Scan your local Switch backup library (NSP/NSZ/XCI/XCZ and split files)
+- Scan your local Switch backup library (NSP/NSZ/XCI/XCZ and split files), automatically when files change
 - Read title ID / version by decrypting NSP/XCI/NSZ, including titles for recent firmware (requires prod.keys)
 - Without prod.keys, fall back to the file name (example: `Super Mario Odyssey [0100000000010000][v0].nsp`)
 - List missing games, missing updates (for games and DLC) and missing DLC
+- Filter the library by status (update available, DLC missing, up to date) and file format
+- Setup checklist on the first start
 - List issues: unsupported, duplicate, old or unreadable files and updates/DLC without base game
 - Organize games in folders and rename files, with a preview before anything changes
 - Delete old update files and, optionally, duplicates and empty folders
