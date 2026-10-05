@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.7.0
+
+### New features
+
+- **Users and roles**: create accounts in the new Users page.
+  - Without users the app stays open as before. Creating the first administrator requires a login from then on.
+  - **Administrators** can do everything. **Read-only** users can browse the library and download files; the
+    controls that change something are hidden and the server refuses those actions.
+  - New login page and a My account page where every user changes their own password.
+  - Passwords are stored as bcrypt hashes. Logins last 30 days and end when the password changes.
+  - After 10 failed logins an address is blocked for 15 minutes.
+  - API clients keep using HTTP basic authentication, now with any user. The administrator set with
+    `SLM_AUTH_USERNAME` / `SLM_AUTH_PASSWORD` keeps working.
+- **Tasks page**: synchronizations, scans and organize runs, with what started them (you, the schedule, a change in
+  the folders...), their live progress, duration and result.
+  - Warnings, such as a titles database that could not be downloaded or a notification that could not be sent, and
+    errors are shown with their reason.
+  - Failed tasks stay until they are dismissed, and the navigation shows how many there are.
+  - New API endpoints `/api/tasks` and `/api/tasks/events` (server-sent events).
+
+### Other changes
+
+- The project now has a license: the changes made in this repository are MIT licensed. The projects this fork is
+  based on did not publish a license; see NOTICE.md.
+
 ## 1.6.0
 
 ### New features
