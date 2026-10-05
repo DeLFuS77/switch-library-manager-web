@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -16,6 +17,10 @@ func (web *Web) Synchronize() bool {
 
 	go func() {
 		defer web.state.endSync()
+		// recorded even if the synchronization fails, so a schedule does not retry every minute
+		defer settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+			s.LastSyncTime = time.Now()
+		})
 
 		currentSwitchDB, _ := web.state.get()
 

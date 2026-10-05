@@ -5,11 +5,14 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type SettingsPageData struct {
 	GlobalPageData
-	Settings *settings.AppSettings
+	Settings      *settings.AppSettings
+	NextSync      time.Time
+	SyncIntervals []int
 }
 
 type SettingsForm struct {
@@ -20,6 +23,7 @@ type SettingsForm struct {
 	IgnoreDLCUpdates     bool   `in:"form=ignore_dlc_updates"`
 	IgnoreFileTypes      string `in:"form=ignore_file_types"`
 	HideDemoGames        bool   `in:"form=hide_demo_games"`
+	SyncIntervalHours    int    `in:"form=sync_interval_hours"`
 }
 
 var titleIdRegex = regexp.MustCompile("^[0-9A-Fa-f]{16}$")
@@ -53,6 +57,8 @@ func (web *Web) HandleSettings() {
 
 	web.HandleValidated("/settings.html", SettingsForm{}, func() any {
 		return SettingsPageData {
+			NextSync: nextSyncTime(web.appSettings),
+			SyncIntervals: []int{0, 6, 12, 24, 168},
 			GlobalPageData: web.globalPageData("settings"),
 			Settings: web.appSettings,
 		}
@@ -110,6 +116,13 @@ func (web *Web) HandleSettings() {
 			}
 		}
 
+		if _, ok := allowedSyncIntervals[settingsForm.SyncIntervalHours]; !ok {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
+				Field: "sync_interval_hours",
+				Message: "Invalid synchronization interval",
+			})
+		}
+
 		return errorResponse
 	}, func(value any) SuccessResponse {
 		settingsForm := value.(*SettingsForm)
@@ -122,6 +135,7 @@ func (web *Web) HandleSettings() {
 		appSettings.IgnoreDLCUpdates = settingsForm.IgnoreDLCUpdates
 		appSettings.IgnoreFileTypes = SplitAndTrimSpaceArray(strings.ReplaceAll(settingsForm.IgnoreFileTypes, ",", " "), " ")
 		appSettings.HideDemoGames = settingsForm.HideDemoGames
+		appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
 		appSettings.Folder = scanFolders[0]
 		if len(scanFolders) > 1 {
 			appSettings.ScanFolders = scanFolders[1:]

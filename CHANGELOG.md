@@ -9,6 +9,8 @@
   every DLC (owned, missing, ignored, update available). Works for games that are not in your library too.
 - **Ignore with one click**: ignore missing DLC from the DLC page or the game page, and missing updates from the
   Updates page or the game page; ignored items can be restored from the game page. The lists in Settings still work.
+- **Automatic synchronization**: synchronize every 6 or 12 hours, daily or weekly (Settings, disabled by default). The
+  Settings page shows the last and the next synchronization.
 
 ### Fixes
 
