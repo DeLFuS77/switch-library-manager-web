@@ -7,6 +7,7 @@
 				</div>
 			</div>
 			{{- if gt (len .TitleItems) 0}}
+			{{- template "bulkToolbar" "dlc"}}
 			<div class="table-responsive">
 				<table class="table table-striped table-hover table-responsive mb-3">
 					<thead>
@@ -40,7 +41,10 @@
 								<ul class="list-unstyled mb-0">
 									{{- range .MissingDLCItems}}
 									<li class="d-flex align-items-center justify-content-between gap-3 py-1">
-										<span>{{.Name}} <small class="text-body-secondary font-monospace">{{.Id}}</small></span>
+										<label class="d-flex align-items-start gap-2 mb-0">
+											<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">
+											<span>{{.Name}} <small class="text-body-secondary font-monospace">{{.Id}}</small></span>
+										</label>
 										<button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="true">{{t "Ignore"}}</button>
 									</li>
 									{{- end}}

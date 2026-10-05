@@ -14,6 +14,7 @@ func (web *Web) HandleUpdates() {
 		"resources/partials/card.html",
 		"resources/partials/filter.html",
 		"resources/partials/pagination.html",
+		"resources/partials/bulk.html",
 		"resources/pages/updates.html",
 	}
 
@@ -43,10 +44,10 @@ func (web *Web) getMissingUpdates(filter *TitleItemFilter, lang string) ([]Title
 	for _, v := range missingUpdates {
 		name := titleName(switchDB, lang, v.Attributes.Id, v.Attributes.Name)
 		if filter.Matches(v.Attributes.Id, name, v.Attributes.Name) {
-			var imageUrl string
-			if v.Attributes.IconUrl != "" {
+			imageUrl := localImageUrl(localDB, v.Attributes.Id)
+			if imageUrl == "" && v.Attributes.IconUrl != "" {
 				imageUrl = v.Attributes.IconUrl
-			} else if v.Attributes.BannerUrl != "" {
+			} else if imageUrl == "" && v.Attributes.BannerUrl != "" {
 				imageUrl = v.Attributes.BannerUrl
 			}
 

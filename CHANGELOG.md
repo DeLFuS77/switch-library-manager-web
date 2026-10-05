@@ -6,6 +6,12 @@
 
 - **Download all**: the game page downloads the base game, its updates and DLC as one ZIP archive. Files are stored
   without compressing them again, so large games download at full speed without temporary files.
+- **Bulk actions**: select several missing DLC or games with missing updates and ignore them at once.
+
+### Fixes
+
+- Covers of your games come from the local image cache on every page, so they are shown without access to the
+  Nintendo servers; covers that cannot be loaded show the placeholder instead of a broken image.
 
 ## 1.4.0
 

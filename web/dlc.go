@@ -13,6 +13,7 @@ func (web *Web) HandleDLC() {
 		"resources/layout.html",
 		"resources/partials/filter.html",
 		"resources/partials/pagination.html",
+		"resources/partials/bulk.html",
 		"resources/pages/dlc.html",
 	}
 
@@ -48,10 +49,10 @@ func (web *Web) getMissingDLC(filter *TitleItemFilter, lang string) ([]TitleItem
 				missingDlc[i] = dlc
 			}
 
-			var imageUrl string
-			if v.Attributes.IconUrl != "" {
+			imageUrl := localImageUrl(localDB, v.Attributes.Id)
+			if imageUrl == "" && v.Attributes.IconUrl != "" {
 				imageUrl = v.Attributes.IconUrl
-			} else if v.Attributes.BannerUrl != "" {
+			} else if imageUrl == "" && v.Attributes.BannerUrl != "" {
 				imageUrl = v.Attributes.BannerUrl
 			}
 
