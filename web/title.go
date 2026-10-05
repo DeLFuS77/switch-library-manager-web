@@ -22,6 +22,8 @@ type TitleFile struct {
 	Version        int
 	DisplayVersion string
 	DownloadUrl    string
+	// the firmware the file needs, e.g. 12.1.0
+	RequiredFirmware string
 }
 
 type TitleDlc struct {
@@ -61,6 +63,10 @@ type TitleDetail struct {
 	DlcOwned int
 	DlcTotal int
 
+	// the firmware the installed game needs, and whether the console is too old for it
+	RequiredFirmware string
+	FirmwareTooNew   bool
+
 	// all local files of the game, downloadable as one archive
 	ArchiveFiles int
 	ArchiveSize  int64
@@ -85,6 +91,7 @@ func newTitleFile(info db.SwitchFileInfo, fileType string, downloadUrl string) *
 			file.DisplayVersion = info.Metadata.Ncap.DisplayVersion
 		}
 	}
+	file.RequiredFirmware = firmwareVersion(requiredSystemVersion(info))
 	return file
 }
 
@@ -147,6 +154,9 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 			detail.Updates = append(detail.Updates, *newTitleFile(update, "UPD", "/api/titles/"+baseId+"/updates/"+strconv.Itoa(version)))
 		}
 		detail.LocalUpdate = local.LatestUpdate
+		required := installedRequirement(local)
+		detail.RequiredFirmware = firmwareVersion(required)
+		detail.FirmwareTooNew = web.firmwareTooNew(required)
 
 		entries := archiveEntries(local)
 		detail.ArchiveFiles = len(entries)

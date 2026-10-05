@@ -26,6 +26,7 @@ type SettingsForm struct {
 	HideDemoGames        bool   `in:"form=hide_demo_games"`
 	WatchFolders         bool   `in:"form=watch_folders"`
 	VerifyIntervalDays   int    `in:"form=verify_interval_days"`
+	ConsoleFirmware      string `in:"form=console_firmware"`
 	SyncIntervalHours    int    `in:"form=sync_interval_hours"`
 	Language             string `in:"form=language"`
 	DiscordWebhookUrl    string `in:"form=discord_webhook_url"`
@@ -145,6 +146,15 @@ func (web *Web) HandleSettings() {
 			})
 		}
 
+		if firmware := strings.TrimSpace(settingsForm.ConsoleFirmware); firmware != "" {
+			if _, ok := parseFirmware(firmware); !ok {
+				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
+					Field: "console_firmware",
+					Message: translate(lang, "Write the firmware like 18.1.0"),
+				})
+			}
+		}
+
 		if _, ok := allowedVerifyIntervals[settingsForm.VerifyIntervalDays]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
 				Field: "verify_interval_days",
@@ -175,6 +185,7 @@ func (web *Web) HandleSettings() {
 		appSettings.HideDemoGames = settingsForm.HideDemoGames
 		appSettings.WatchFolders = settingsForm.WatchFolders
 		appSettings.VerifyIntervalDays = settingsForm.VerifyIntervalDays
+		appSettings.ConsoleFirmware = strings.TrimSpace(settingsForm.ConsoleFirmware)
 		appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
 		appSettings.Language = settingsForm.Language
 		appSettings.Notifications = settingsForm.notificationOptions()

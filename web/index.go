@@ -203,6 +203,11 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			Known:        title != nil,
 		}
 
+		if required := installedRequirement(v); web.firmwareTooNew(required) {
+			item.RequiredFirmware = firmwareVersion(required)
+			item.FirmwareTooNew = true
+		}
+
 		if v.Icon != "" {
 			item.ImageUrl = "/i/" + v.Icon
 		} else if v.Banner != "" {

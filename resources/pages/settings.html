@@ -92,6 +92,11 @@
 									<div class="form-text">{{t "Last synchronization:"}} {{formatDateTime .Settings.LastSyncTime}}{{if not .NextSync.IsZero}} &middot; {{t "next:"}} {{if .Settings.LastSyncTime.IsZero}}{{t "within a minute"}}{{else}}{{formatDateTime .NextSync}}{{end}}{{end}}</div>
 								</div>
 								<div class="col-md-6">
+									<label for="console_firmware" class="form-label fw-semibold">{{t "Firmware of your console"}}</label>
+									<input type="text" class="form-control" id="console_firmware" name="console_firmware" value="{{.Settings.ConsoleFirmware}}" placeholder="18.1.0" inputmode="decimal" aria-describedby="firmwareHelp">
+									<div class="form-text" id="firmwareHelp">{{t "Optional. Games and updates that need a newer firmware are marked. See it on the console in System Settings > System."}}</div>
+								</div>
+								<div class="col-md-6">
 									<label for="verify_interval_days" class="form-label fw-semibold">{{t "Check the files"}}</label>
 									<select class="form-select" id="verify_interval_days" name="verify_interval_days" aria-describedby="verifyHelp">
 										<option value="0"{{if eq .Settings.VerifyIntervalDays 0}} selected{{end}}>{{t "Only when I ask"}}</option>

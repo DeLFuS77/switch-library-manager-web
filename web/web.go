@@ -150,6 +150,9 @@ type TitleItem struct {
 	// DLC of the game in the library, of the DLC not ignored
 	DlcOwned int
 	DlcTotal int
+	// the firmware the installed game needs, when the console is too old for it
+	RequiredFirmware string
+	FirmwareTooNew   bool
 }
 
 // DlcPercent is the share of the DLC of a game in the library.

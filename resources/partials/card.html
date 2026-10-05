@@ -30,6 +30,7 @@
 						</div>
 						<div class="game-footer d-flex flex-wrap gap-1">
 							{{- if .UpdateAvailable}}<span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Update available"}}</span>{{end}}
+							{{- if .FirmwareTooNew}}<span class="chip chip-danger" title="{{t "Your console needs firmware %v or newer for this game" .RequiredFirmware}}"><span class="bi bi-cpu" aria-hidden="true"></span>{{t "Needs %v" .RequiredFirmware}}</span>{{end}}
 							{{- if gt .MissingDlcCount 0}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC missing" .MissingDlcCount}}</span>{{end}}
 							{{- if and .Region (not .UpdateAvailable) (eq .MissingDlcCount 0)}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Up to date"}}</span>{{end}}
 						</div>

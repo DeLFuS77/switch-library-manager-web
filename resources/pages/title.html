@@ -22,6 +22,7 @@
 							<span class="chip chip-muted"><span class="bi bi-cart" aria-hidden="true"></span>{{t "Not in your library"}}</span>
 							{{- end}}
 							{{- if $t.UpdateMissing}}{{if not $t.UpdatesIgnored}}<span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Update available"}}</span>{{end}}{{end}}
+							{{- if $t.FirmwareTooNew}}<span class="chip chip-danger"><span class="bi bi-cpu" aria-hidden="true"></span>{{t "Your console needs firmware %v or newer for this game" $t.RequiredFirmware}}</span>{{end}}
 							{{- if gt $t.MissingDlc 0}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC missing" $t.MissingDlc}}</span>{{else if and (not $t.Owned) $t.Dlc}}<span class="chip chip-muted"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC" (len $t.Dlc)}}</span>{{end}}
 						</div>
 						<h1 class="fw-bold mb-1">{{$t.Name}}</h1>
@@ -38,6 +39,9 @@
 							{{- end}}
 							{{- if $t.Base}}
 							<div class="fact"><div class="fact-label">{{t "Installed version"}}</div><div class="fact-value">{{if $t.Updates}}{{with index $t.Updates 0}}{{if .DisplayVersion}}{{.DisplayVersion}} {{end}}<span class="text-body-secondary fw-normal">v{{.Version}}</span>{{end}}{{else}}{{if $t.Base.DisplayVersion}}{{$t.Base.DisplayVersion}} {{end}}<span class="text-body-secondary fw-normal">v{{$t.Base.Version}}</span>{{end}}</div></div>
+							{{- end}}
+							{{- if $t.RequiredFirmware}}
+							<div class="fact"><div class="fact-label">{{t "Required firmware"}}</div><div class="fact-value{{if $t.FirmwareTooNew}} text-danger{{end}}"><span class="bi bi-cpu me-1" aria-hidden="true"></span>{{$t.RequiredFirmware}}</div></div>
 							{{- end}}
 							{{- if gt $t.LatestUpdate 0}}
 							<div class="fact"><div class="fact-label">{{t "Latest update"}}</div><div class="fact-value">v{{$t.LatestUpdate}}{{if not $t.LatestUpdateDate.IsZero}} <span class="text-body-secondary fw-normal small">{{$t.LatestUpdateDate | formatTime}}</span>{{end}}</div></div>
@@ -163,7 +167,7 @@
 {{define "titleFile"}}
 							<tr>
 								<td><span class="chip chip-muted">{{.Type}}</span></td>
-								<td class="text-nowrap">{{if .DisplayVersion}}{{.DisplayVersion}} {{end}}<small class="text-body-secondary">v{{.Version}}</small></td>
+								<td class="text-nowrap">{{if .DisplayVersion}}{{.DisplayVersion}} {{end}}<small class="text-body-secondary">v{{.Version}}</small>{{if .RequiredFirmware}}<br><small class="text-body-secondary" title="{{t "Required firmware"}}"><span class="bi bi-cpu" aria-hidden="true"></span> {{.RequiredFirmware}}</small>{{end}}</td>
 								<td class="text-break"><span title="{{.Path}}">{{.FileName}}</span></td>
 								<td class="text-end text-nowrap">{{formatSize .Size}}</td>
 								<td class="text-end"><a class="btn btn-sm btn-outline-secondary bi bi-download" href="{{.DownloadUrl}}" title="{{t "Download %v" .FileName}}"><span class="visually-hidden">{{t "Download"}}</span></a></td>
