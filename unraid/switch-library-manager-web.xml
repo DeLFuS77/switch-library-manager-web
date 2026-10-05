@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>switch-library-manager-web</Name>
+  <Repository>delfus77/switch-library-manager-web:latest</Repository>
+  <Registry>https://hub.docker.com/r/delfus77/switch-library-manager-web</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/DeLFuS77/switch-library-manager-web/issues</Support>
+  <Project>https://github.com/DeLFuS77/switch-library-manager-web</Project>
+  <Overview>Manage your Nintendo Switch backup library from the browser: missing updates, DLC and games, issues, statistics, organizing and renaming, NSZ compression, notifications and user accounts. Put your own prod.keys (and optionally title.keys) in the appdata folder; keys are never included.</Overview>
+  <Category>Tools: MediaApp:Other</Category>
+  <WebUI>http://[IP]:[PORT:3000]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/unraid/switch-library-manager-web.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/resources/static/android-chrome-512x512.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires>Your own prod.keys, dumped from your console, in the appdata folder.</Requires>
+  <Config Name="WebUI port" Target="3000" Default="3000" Mode="tcp" Description="Port of the web interface." Type="Port" Display="always" Required="true" Mask="false">3000</Config>
+  <Config Name="Appdata" Target="/usr/local/share/switch-library-manager-web" Default="/mnt/user/appdata/switch-library-manager-web" Mode="rw" Description="Settings, caches and covers. Put your prod.keys (and optionally title.keys) here." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/switch-library-manager-web</Config>
+  <Config Name="Switch library" Target="/mnt/roms" Default="" Mode="rw" Description="Share with your NSP, NSZ, XCI and XCZ files, e.g. /mnt/user/switch. Read and write, to organize and compress files." Type="Path" Display="always" Required="true" Mask="false"></Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="User that runs the app; 99 is nobody, the owner of Unraid shares." Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Group that runs the app; 100 is users." Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
+  <Config Name="Time zone" Target="TZ" Default="Europe/Madrid" Mode="" Description="Time zone for dates and scheduled synchronizations." Type="Variable" Display="advanced" Required="false" Mask="false">Europe/Madrid</Config>
+  <Config Name="Admin user" Target="SLM_AUTH_USERNAME" Default="" Mode="" Description="Optional: an administrator, with the password below. Users can also be created in the app." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="Admin password" Target="SLM_AUTH_PASSWORD" Default="" Mode="" Description="Optional: password of the administrator above." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
+</Container>
