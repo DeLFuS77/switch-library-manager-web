@@ -52,6 +52,15 @@
 						<label class="form-check-label" for="hide_demo_games">Hide demos in Missing Games</label>
 					</div>
 				</div>
+				<div class="col-lg-6">
+					<label for="sync_interval_hours" class="form-label">Automatic synchronization</label>
+					<select class="form-select" id="sync_interval_hours" name="sync_interval_hours">
+						{{- range .SyncIntervals}}
+						<option value="{{.}}"{{if eq . $.Settings.SyncIntervalHours}} selected{{end}}>{{intervalLabel .}}</option>
+						{{- end}}
+					</select>
+					<div class="form-text">Last synchronization: {{formatDateTime .Settings.LastSyncTime}}{{if not .NextSync.IsZero}} &middot; next: {{if .Settings.LastSyncTime.IsZero}}within a minute{{else}}{{formatDateTime .NextSync}}{{end}}{{end}}</div>
+				</div>
 				<div class="col-12 text-end">
 					<button type="submit" class="btn btn-secondary">Save</button>
 				</div>
