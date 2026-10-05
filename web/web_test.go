@@ -985,3 +985,67 @@ func TestLocalImageUrl(t *testing.T) {
 		t.Error("no library: no image")
 	}
 }
+
+func TestApiStatistics(t *testing.T) {
+	web := newTestWeb(t)
+	web.HandleApiDocs()
+	web.state.set(testDatabases(t))
+
+	recorder := httptest.NewRecorder()
+	web.router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/api/statistics", nil))
+	var stats map[string]any
+	if err := json.Unmarshal(recorder.Body.Bytes(), &stats); err != nil {
+		t.Fatalf("invalid JSON %q: %v", recorder.Body.String(), err)
+	}
+	if stats["games"] != float64(2) || stats["totalSize"] != float64(20) || stats["gamesWithUpdate"] != float64(1) || stats["synchronizing"] != false {
+		t.Fatalf("unexpected statistics: %v", stats)
+	}
+	if largest := stats["largest"].([]any); len(largest) != 2 || largest[0].(map[string]any)["name"] != "Known Game" {
+		t.Fatalf("unexpected largest games: %v", stats["largest"])
+	}
+}
+
+// Every API endpoint must be described in openapi.json.
+func TestOpenApiDocumentsEveryEndpoint(t *testing.T) {
+	data, err := os.ReadFile("../resources/static/openapi.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var spec struct {
+		Paths map[string]map[string]any `json:"paths"`
+	}
+	if err := json.Unmarshal(data, &spec); err != nil {
+		t.Fatalf("openapi.json is not valid JSON: %v", err)
+	}
+
+	web := newTestWeb(t)
+	web.HandleApi()
+	web.HandleArchive()
+	web.HandleExport()
+	web.HandleSynchronize()
+	web.HandleIgnore()
+	web.HandleApiDocs()
+	documented := 0
+	web.router.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		path, _ := route.GetPathTemplate()
+		methods, _ := route.GetMethods()
+		operations, ok := spec.Paths[path]
+		if !ok {
+			t.Errorf("%s is not documented", path)
+			return nil
+		}
+		for _, method := range methods {
+			if _, ok := operations[strings.ToLower(method)]; !ok {
+				t.Errorf("%s %s is not documented", method, path)
+			}
+		}
+		documented++
+		return nil
+	})
+	if documented < 10 {
+		t.Fatalf("only %d routes checked", documented)
+	}
+	if _, ok := spec.Paths["/healthz"]; !ok {
+		t.Error("/healthz is not documented")
+	}
+}

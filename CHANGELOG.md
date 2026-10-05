@@ -7,6 +7,8 @@
 - **Download all**: the game page downloads the base game, its updates and DLC as one ZIP archive. Files are stored
   without compressing them again, so large games download at full speed without temporary files.
 - **Bulk actions**: select several missing DLC or games with missing updates and ignore them at once.
+- **Documented API**: `/api/openapi.json` describes every endpoint, and `/api/statistics` returns the numbers of the
+  Statistics page, e.g. for a Home Assistant REST sensor (example in the README).
 
 ### Fixes
 

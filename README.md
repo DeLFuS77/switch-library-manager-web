@@ -107,6 +107,38 @@ the app is reachable from outside your network, since basic authentication sends
 
 Requests that change data (synchronize, settings, organize) are rejected when they come from another web site.
 
+## API
+
+The JSON API lists the library, its statistics and downloads files; it is described in
+[OpenAPI](https://github.com/SiscuPrats/switch-library-manager-web/blob/master/resources/static/openapi.json) format, also
+served by the app at `/api/openapi.json`. Main endpoints:
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/titles` | Games in the library with their updates and DLC |
+| `GET /api/statistics` | Numbers of the Statistics page |
+| `GET /api/titles/{titleId}/archive.zip` | All files of a game as one ZIP |
+| `GET /export/library.csv`, `/export/library.json` | Library export |
+| `GET /sync`, `POST /sync` | Synchronization status, start a synchronization |
+| `GET /healthz` | Health check, without authentication |
+
+With password protection enabled, use HTTP basic authentication. Example Home Assistant REST sensor:
+
+```yaml
+rest:
+  - resource: http://192.168.1.10:3000/api/statistics
+    # username: admin
+    # password: !secret switch_library_password
+    scan_interval: 3600
+    sensor:
+      - name: Switch games
+        value_template: "{{ value_json.games }}"
+      - name: Switch games with a missing update
+        value_template: "{{ value_json.gamesWithUpdate }}"
+      - name: Switch missing DLC
+        value_template: "{{ value_json.missingDlc }}"
+```
+
 ## Settings
 
 Most settings are available in the web interface. `settings.json` in the data folder also contains:
