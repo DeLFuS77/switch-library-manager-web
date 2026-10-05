@@ -1,4 +1,4 @@
-all: clean gulp build
+all: clean assets build
 
 build:
 	GOOS=linux CGO_ENABLED=0 go build -o build/switch-library-manager-web main.go
@@ -11,10 +11,10 @@ build-mac:
 
 clean:
 	rm -rf build || true
-	gulp clean
+	npm run clean
 
-gulp:
-	gulp
+assets:
+	npm run build
 
 run:
 	go run main.go
@@ -24,6 +24,6 @@ test:
 	go test ./... ./switchfs/_crypto/
 
 watch:
-	gulp watch
+	npm run watch:css & npm run watch:js
 
-.PHONY: build build-windows build-mac test
+.PHONY: build build-windows build-mac test assets
