@@ -58,7 +58,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Build application
-        run: npm ci && make assets build
+        run: npm ci && make assets docker-binaries
 
       - name: Build image
         run: docker build -t slm-test .

@@ -8,7 +8,9 @@ ENV SLM_DATA_DIR=/usr/local/share/switch-library-manager-web \
 
 RUN mkdir -p $SLM_DATA_DIR /mnt/roms
 
-COPY build/switch-library-manager-web /usr/local/bin/switch-library-manager-web
+# set by docker buildx / BuildKit: amd64 or arm64 (make docker-binaries)
+ARG TARGETARCH
+COPY build/switch-library-manager-web-linux-${TARGETARCH} /usr/local/bin/switch-library-manager-web
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod 755 /usr/local/bin/switch-library-manager-web /usr/local/bin/docker-entrypoint.sh
 
