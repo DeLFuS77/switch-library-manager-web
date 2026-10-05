@@ -59,7 +59,7 @@
 						<option value="{{.}}"{{if eq . $.Settings.SyncIntervalHours}} selected{{end}}>{{t (intervalLabel .)}}</option>
 						{{- end}}
 					</select>
-					<div class="form-text">{{t "Last synchronization:"}} {{t (formatDateTime .Settings.LastSyncTime)}}{{if not .NextSync.IsZero}} &middot; {{t "next:"}} {{if .Settings.LastSyncTime.IsZero}}{{t "within a minute"}}{{else}}{{formatDateTime .NextSync}}{{end}}{{end}}</div>
+					<div class="form-text">{{t "Last synchronization:"}} {{formatDateTime .Settings.LastSyncTime}}{{if not .NextSync.IsZero}} &middot; {{t "next:"}} {{if .Settings.LastSyncTime.IsZero}}{{t "within a minute"}}{{else}}{{formatDateTime .NextSync}}{{end}}{{end}}</div>
 				</div>
 				<div class="col-lg-6">
 					<label for="language" class="form-label">{{t "Language"}}</label>
