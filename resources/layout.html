@@ -61,6 +61,7 @@
 						</ul>
 						<hr class="d-xl-none">
 						<ul class="navbar-nav app-nav app-nav-compact gap-xl-1 me-xl-2">
+							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "tasks.html" "Icon" "bi-list-task" "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "organize" "Href" "organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Count" 0 "Badge" "")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "settings" "Href" "settings.html" "Icon" "bi-gear" "Label" (t "Settings") "Count" 0 "Badge" "")}}
 							<li class="nav-item dropdown">

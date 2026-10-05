@@ -33,7 +33,7 @@ func (web *Web) StartScheduler() {
 		ticker := time.NewTicker(time.Minute)
 		defer ticker.Stop()
 		for now := range ticker.C {
-			if syncDue(settings.ReadSettings(web.dataFolder), now) && web.Synchronize() {
+			if syncDue(settings.ReadSettings(web.dataFolder), now) && web.Synchronize(TRIGGER_SCHEDULE) {
 				web.sugarLogger.Info("[Scheduled synchronization started]")
 			}
 		}
