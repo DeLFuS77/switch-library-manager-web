@@ -47,6 +47,9 @@ folder set in the `SLM_DATA_DIR` environment variable. Set the folders to scan i
 A prod.keys file lets the app read the metadata of your files, so they are classified correctly even when the
 file names are wrong. Only `header_key` and the `key_area_key_application_XX` keys are required.
 
+Keys are **not** included in this project and must never be shared: dump them from your own console. Titles made for
+a newer firmware need keys dumped from a console running that firmware; Issues tells you which key is missing.
+
 The keys are looked up in this order:
 1. The path set in the Settings page: a folder containing `prod.keys`, or the path to a `.keys` file
 2. `prod.keys` in the data folder
