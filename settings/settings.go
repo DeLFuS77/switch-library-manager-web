@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"go.uber.org/zap"
 )
@@ -197,6 +198,18 @@ func saveDefaultSettings(dataFolder string) *AppSettings {
 		},
 	}
 	return SaveSettings(settingsInstance, dataFolder)
+}
+
+var updateMutex sync.Mutex
+
+// UpdateSettings applies change to the current settings and saves them. Concurrent
+// updates are serialized so one request cannot overwrite the change of another.
+func UpdateSettings(dataFolder string, change func(settings *AppSettings)) *AppSettings {
+	updateMutex.Lock()
+	defer updateMutex.Unlock()
+	appSettings := ReadSettings(dataFolder)
+	change(appSettings)
+	return SaveSettings(appSettings, dataFolder)
 }
 
 func SaveSettings(settings *AppSettings, dataFolder string) *AppSettings {

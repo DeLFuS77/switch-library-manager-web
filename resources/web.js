@@ -339,6 +339,25 @@ function initOrganize() {
 	});
 }
 
+function initIgnoreButtons() {
+	document.querySelectorAll('[data-ignore-kind]').forEach(button => button.addEventListener('click', e => {
+		e.preventDefault();
+		e.stopPropagation();
+		button.disabled = true;
+		postForm('/ignore', {
+			kind: button.dataset.ignoreKind,
+			id: button.dataset.ignoreId,
+			ignored: button.dataset.ignored
+		}).then(() => {
+			// the lists and counters are computed on the server
+			window.location.reload();
+		}).catch(error => {
+			button.disabled = false;
+			insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', 'Error!', error.message);
+		});
+	}));
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 	[...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
@@ -362,4 +381,5 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 
 	initOrganize();
+	initIgnoreButtons();
 }, false);

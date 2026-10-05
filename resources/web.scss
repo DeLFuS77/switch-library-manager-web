@@ -129,6 +129,26 @@ $flag-icons-path: "/resources/vendor/flag-icons/flags";
 	}
 }
 
+// keep buttons inside a card clickable above the card's stretched link
+.card-action {
+	position: relative;
+	z-index: 2;
+}
+
+.title-cover {
+	aspect-ratio: 1;
+	object-fit: cover;
+}
+
+.title-description {
+	white-space: pre-line;
+}
+
+.title-screenshot {
+	height: 180px;
+	width: auto;
+}
+
 .bs-tooltip-auto {
 	&[data-popper-placement^="top"] .tooltip-arrow::before {
 		border-top-color: $black;

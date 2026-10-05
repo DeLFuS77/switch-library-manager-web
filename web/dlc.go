@@ -51,6 +51,7 @@ func (web *Web) getMissingDLC(filter *TitleItemFilter) ([]TitleItem, pagination.
 				ImageUrl:         imageUrl,
 				Id:               strings.ToUpper(v.Attributes.Id),
 				MissingDLC:       v.MissingDLC,
+				MissingDLCItems:  v.MissingDLCItems,
 				Name:             v.Attributes.Name,
 				Region:           v.Attributes.Region,
 			})

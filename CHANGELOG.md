@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### New features
+
+- **Game page**: click a game anywhere (library, missing games, updates, DLC) to see its details: cover, publisher,
+  release date, region, description and screenshots, your files with size and download button, update status and
+  every DLC (owned, missing, ignored, update available). Works for games that are not in your library too.
+- **Ignore with one click**: ignore missing DLC from the DLC page or the game page, and missing updates from the
+  Updates page or the game page; ignored items can be restored from the game page. The lists in Settings still work.
+
+### Fixes
+
+- Missing DLC are listed in a stable order.
+
 ## 1.1.1
 
 ### Fixes
