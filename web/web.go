@@ -28,6 +28,34 @@ type WebState struct {
 	switchDB        *db.SwitchTitlesDB
 	localDB         *db.LocalSwitchFilesDB
 	isSynchronizing bool
+	progress        SyncProgress
+}
+
+// SyncProgress describes the running synchronization. Total is 0 when the number of
+// steps is unknown.
+type SyncProgress struct {
+	Synchronizing bool   `json:"synchronizing"`
+	Current       int    `json:"current"`
+	Total         int    `json:"total"`
+	Message       string `json:"message"`
+}
+
+func (s *WebState) setProgress(current int, total int, message string) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	if total < 0 {
+		// unknown total: keep the last known position
+		current, total = s.progress.Current, s.progress.Total
+	}
+	s.progress = SyncProgress{Current: current, Total: total, Message: message}
+}
+
+func (s *WebState) getProgress() SyncProgress {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	progress := s.progress
+	progress.Synchronizing = s.isSynchronizing
+	return progress
 }
 
 func (s *WebState) get() (*db.SwitchTitlesDB, *db.LocalSwitchFilesDB) {
@@ -51,6 +79,7 @@ func (s *WebState) startSync() bool {
 		return false
 	}
 	s.isSynchronizing = true
+	s.progress = SyncProgress{Message: "Starting..."}
 	return true
 }
 
@@ -254,12 +283,13 @@ func (web *Web) Start() {
 
 func (web *Web) UpdateProgress(curr int, total int, message string) {
 	web.sugarLogger.Debugf("%v (%v/%v)", message, curr, total)
+	web.state.setProgress(curr, total, message)
 }
 
 func (web *Web) buildSwitchDb() (*db.SwitchTitlesDB, error) {
 	settingsObj := settings.ReadSettings(web.dataFolder)
 
-	web.UpdateProgress(1, 4, "Downloading titles.json")
+	web.UpdateProgress(0, 4, "Downloading titles database...")
 	filename := filepath.Join(web.dataFolder, settings.TITLE_JSON_FILENAME)
 	titleFile, titlesEtag, err := db.LoadAndUpdateFile(settingsObj.TitlesJsonUrls(), filename, settingsObj.TitlesEtag)
 
@@ -270,7 +300,7 @@ func (web *Web) buildSwitchDb() (*db.SwitchTitlesDB, error) {
 
 	settingsObj.TitlesEtag = titlesEtag
 
-	web.UpdateProgress(2, 4, "Downloading versions.json")
+	web.UpdateProgress(1, 4, "Downloading versions database...")
 	filename = filepath.Join(web.dataFolder, settings.VERSIONS_JSON_FILENAME)
 	versionsFile, versionsEtag, err := db.LoadAndUpdateFile(settingsObj.VersionsJsonUrls(), filename, settingsObj.VersionsEtag)
 
@@ -283,10 +313,10 @@ func (web *Web) buildSwitchDb() (*db.SwitchTitlesDB, error) {
 
 	settings.SaveSettings(settingsObj, web.dataFolder)
 
-	web.UpdateProgress(3, 4, "Processing switch titles and updates ...")
+	web.UpdateProgress(2, 4, "Processing titles and updates...")
 	switchTitleDB, err := db.CreateSwitchTitleDB(titleFile, versionsFile)
 
-	web.UpdateProgress(4, 4, "Finishing up...")
+	web.UpdateProgress(3, 4, "Scanning library...")
 
 	return switchTitleDB, err
 }

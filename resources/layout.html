@@ -82,9 +82,14 @@
 			</div>
 			{{- end}}
 			{{- if .IsSynchronizing}}
-			<div class="alert alert-info d-flex align-items-center" role="status" id="alert_sync">
-				<span class="spinner-border spinner-border-sm flex-shrink-0 me-2" aria-hidden="true"></span>
-				<div><strong>Synchronizing!</strong> The library is being updated.</div>
+			<div class="alert alert-info" role="status" id="alert_sync">
+				<div class="d-flex align-items-center">
+					<span class="spinner-border spinner-border-sm flex-shrink-0 me-2" aria-hidden="true"></span>
+					<div class="text-truncate"><strong>Synchronizing!</strong> <span data-sync-message>The library is being updated.</span></div>
+				</div>
+				<div class="progress mt-2" role="progressbar" aria-label="Synchronization progress">
+					<div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div>
+				</div>
 			</div>
 			{{- end}}
 			{{- template "main" .}}
