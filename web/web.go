@@ -395,6 +395,7 @@ func (web *Web) Start() {
 	web.HandleUsers()
 	web.HandleCompress()
 	web.HandleVerify()
+	web.HandleBackup()
 	web.StartScheduler()
 	web.StartFolderWatcher()
 	web.StartUpdateChecker()
@@ -410,7 +411,7 @@ func (web *Web) Start() {
 
 	web.sugarLogger.Info("[SLM started]")
 
-	if err := http.ListenAndServe(fmt.Sprint(":", web.appSettings.Port), withHealthCheck(handler)); err != nil {
+	if err := http.ListenAndServe(fmt.Sprint(":", web.appSettings.Port), withSecurityHeaders(withHealthCheck(handler))); err != nil {
 		web.sugarLogger.Error(fmt.Errorf("running http server failed: %w", err))
 		log.Fatal(err)
 	}

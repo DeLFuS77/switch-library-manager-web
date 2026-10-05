@@ -5,6 +5,16 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Backup": "Copia de seguridad",
+		"Save the settings, users, verification results and notified versions in a ZIP file, to move the app or to undo a mistake. Your keys are never included.": "Guarda los ajustes, los usuarios, los resultados de verificación y las versiones avisadas en un archivo ZIP, para mover la app o deshacer un error. Tus claves nunca se incluyen.",
+		"Download a backup": "Descargar una copia",
+		"Backup file": "Archivo de copia",
+		"Restoring replaces the current settings and users. Continue?": "Restaurar sustituye los ajustes y usuarios actuales. ¿Continuar?",
+		"The file is not a backup of this app.": "El archivo no es una copia de seguridad de esta app.",
+		"The backup contains a damaged file.": "La copia contiene un archivo dañado.",
+		"The backup has users but no administrator.": "La copia tiene usuarios pero ningún administrador.",
+		"The backup could not be restored.": "No se pudo restaurar la copia.",
+		"The backup was restored. The library is being rescanned.": "Se ha restaurado la copia. Se está volviendo a escanear la biblioteca.",
 		"Unknown option": "Opción desconocida",
 		"Compress NSP and XCI files to NSZ and XCZ by themselves, with the same checks as on the Compress page. Needs your own prod.keys.": "Comprime los archivos NSP y XCI a NSZ y XCZ por sí solos, con las mismas comprobaciones que en la página Comprimir. Necesita tu propio prod.keys.",
 		"Compress automatically":      "Comprimir automáticamente",

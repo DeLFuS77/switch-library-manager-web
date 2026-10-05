@@ -9,6 +9,7 @@
 						<li class="nav-item"><a class="nav-link" href="#general"><span class="bi bi-sliders me-2" aria-hidden="true"></span>{{t "General"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="#compression"><span class="bi bi-file-zip me-2" aria-hidden="true"></span>{{t "Compression"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="#notifications"><span class="bi bi-bell me-2" aria-hidden="true"></span>{{t "Notifications"}}</a></li>
+						<li class="nav-item"><a class="nav-link" href="#backup"><span class="bi bi-life-preserver me-2" aria-hidden="true"></span>{{t "Backup"}}</a></li>
 					</ul>
 				</nav>
 				<div class="col-lg-9">
@@ -193,6 +194,18 @@
 							<button type="submit" class="btn btn-primary rounded-pill px-4 ms-auto"><span class="bi bi-check-lg me-2" aria-hidden="true"></span>{{t "Save"}}</button>
 						</div>
 					</form>
+					<section class="surface mt-4 settings-section" id="backup" aria-labelledby="backupTitle">
+						<h2 class="section-title" id="backupTitle"><span class="bi bi-life-preserver" aria-hidden="true"></span>{{t "Backup"}}</h2>
+						<p class="text-body-secondary">{{t "Save the settings, users, verification results and notified versions in a ZIP file, to move the app or to undo a mistake. Your keys are never included."}}</p>
+						<div class="d-flex flex-wrap align-items-center gap-2">
+							<a class="btn btn-outline-primary rounded-pill" href="/backup/download" download><span class="bi bi-download me-2" aria-hidden="true"></span>{{t "Download a backup"}}</a>
+							<form id="restoreForm" class="d-flex flex-wrap align-items-center gap-2" enctype="multipart/form-data">
+								<label class="visually-hidden" for="backupFile">{{t "Backup file"}}</label>
+								<input class="form-control form-control-sm w-auto" type="file" id="backupFile" name="backup" accept=".zip,application/zip" required>
+								<button type="submit" class="btn btn-outline-danger rounded-pill" data-confirm="{{t "Restoring replaces the current settings and users. Continue?"}}"><span class="bi bi-upload me-2" aria-hidden="true"></span>{{t "Restore"}}</button>
+							</form>
+						</div>
+					</section>
 				</div>
 			</div>
 {{- end}}

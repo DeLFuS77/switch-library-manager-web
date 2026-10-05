@@ -8,7 +8,7 @@
 				<a class="btn btn-link text-decoration-none px-2" href="{{filterUrl .Filter "q" ""}}">{{t "Clear"}}</a>
 				{{- end}}
 				<label class="visually-hidden" for="sortBy">{{t "Sort by"}}</label>
-				<select class="form-select" id="sortBy" name="sort_by" onchange="this.form.submit()">
+				<select class="form-select" id="sortBy" name="sort_by" data-autosubmit>
 					{{- if eq .Page "dlc"}}
 					<option value="missing"{{if eq .Filter.SortBy "missing"}} selected{{end}}>{{t "# Missing"}}</option>
 					{{- end}}
@@ -26,9 +26,9 @@
 					<option value="id"{{if eq .Filter.SortBy "id"}} selected{{end}}>{{t "ID"}}</option>
 				</select>
 				<div class="btn-group" role="group" aria-label="{{t "Sort order"}}">
-					<input type="radio" class="btn-check" name="sort_order" value="asc" id="ascSortOrder" autocomplete="off" onchange="this.form.submit()"{{if eq .Filter.SortOrder "asc"}} checked{{end}}>
+					<input type="radio" class="btn-check" name="sort_order" value="asc" id="ascSortOrder" autocomplete="off" data-autosubmit{{if eq .Filter.SortOrder "asc"}} checked{{end}}>
 					<label class="btn btn-outline-secondary" for="ascSortOrder" title="{{t "Ascending"}}"><span class="bi bi-sort-down-alt" aria-hidden="true"></span><span class="visually-hidden">{{t "Ascending"}}</span></label>
-					<input type="radio" class="btn-check" name="sort_order" value="desc" id="descSortOrder" autocomplete="off" onchange="this.form.submit()"{{if eq .Filter.SortOrder "desc"}} checked{{end}}>
+					<input type="radio" class="btn-check" name="sort_order" value="desc" id="descSortOrder" autocomplete="off" data-autosubmit{{if eq .Filter.SortOrder "desc"}} checked{{end}}>
 					<label class="btn btn-outline-secondary" for="descSortOrder" title="{{t "Descending"}}"><span class="bi bi-sort-up" aria-hidden="true"></span><span class="visually-hidden">{{t "Descending"}}</span></label>
 				</div>
 				{{- if or (eq .Page "index") (eq .Page "missing") (eq .Page "updates")}}
