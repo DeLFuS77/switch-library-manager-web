@@ -63,19 +63,19 @@ Put your `prod.keys` into the data folder, or mount it read-only:
 
 ### Unraid
 
-Installing the image from the Docker Hub search leaves the port and folders empty. Use the template instead, which
-fills them in:
+Search for **Switch Library Manager** in the **Apps** tab (Community Applications) and install it: the port, folders
+and user are filled in, and can be changed when installing or later with **Edit**. Set **Switch library** to the
+share with your games, for example `/mnt/user/switch`, and copy your `prod.keys` (and optionally `title.keys`) to
+`/mnt/user/appdata/switch-library-manager-web/`.
 
-1. Open a terminal on the Unraid server (the `>_` icon) and download the template:
+Until the app is listed there, install the same template by hand: in a terminal on the server, run
 
-   ```
-   wget -O /boot/config/plugins/dockerMan/templates-user/my-switch-library-manager-web.xml https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/unraid/switch-library-manager-web.xml
-   ```
+```
+wget -O /boot/config/plugins/dockerMan/templates-user/my-switch-library-manager-web.xml https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/templates/switch-library-manager-web.xml
+```
 
-2. In **Docker**, choose **Add Container** and pick `switch-library-manager-web` in **Template**.
-3. Set **Switch library** to the share with your games, for example `/mnt/user/switch`, and choose **Apply**.
-4. Copy your `prod.keys` (and optionally `title.keys`) to `/mnt/user/appdata/switch-library-manager-web/`, then open
-   the WebUI and save the settings (or restart the container).
+then choose **Docker > Add Container** and pick `switch-library-manager-web` in **Template**. Installing the image
+from the Docker Hub search instead leaves the port and folders empty.
 
 The template runs the app as `99:100` (nobody:users), the owner of Unraid shares, so it can organize and compress files.
 

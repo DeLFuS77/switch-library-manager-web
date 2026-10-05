@@ -10,10 +10,19 @@
   <Support>https://github.com/DeLFuS77/switch-library-manager-web/issues</Support>
   <Project>https://github.com/DeLFuS77/switch-library-manager-web</Project>
   <Overview>Manage your Nintendo Switch backup library from the browser: missing updates, DLC and games, issues, statistics, organizing and renaming, NSZ compression, notifications and user accounts. Put your own prod.keys (and optionally title.keys) in the appdata folder; keys are never included.</Overview>
-  <Category>Tools: MediaApp:Other</Category>
+  <Category>Tools:Utilities MediaApp:Other</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
-  <TemplateURL>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/unraid/switch-library-manager-web.xml</TemplateURL>
+  <TemplateURL>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/templates/switch-library-manager-web.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/resources/static/android-chrome-512x512.png</Icon>
+  <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
+  <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
+  <License>MIT</License>
+  <Changes>### 1.8.0
+- Compress NSP files to NSZ, verified before the originals are deleted
+- Much faster with big libraries
+- Unraid template</Changes>
+  <Date>2026-10-05</Date>
+  <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>

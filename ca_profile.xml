@@ -1,0 +1,9 @@
+<CommunityApplications>
+  <Profile>
+**Switch Library Manager Web** manages your Nintendo Switch backup library from the browser: missing updates, DLC and games, issues, statistics, organizing and renaming, NSZ compression, notifications and user accounts.
+
+You need your own prod.keys, dumped from your console; keys are never included. Report problems and ideas in the GitHub issue tracker.
+  </Profile>
+  <Icon>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/resources/static/android-chrome-512x512.png</Icon>
+  <WebPage>https://github.com/DeLFuS77/switch-library-manager-web</WebPage>
+</CommunityApplications>
