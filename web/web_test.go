@@ -776,3 +776,33 @@ func TestLocalizedTitleNames(t *testing.T) {
 		t.Fatalf("export should not be translated: %+v", export[1])
 	}
 }
+
+func TestStatistics(t *testing.T) {
+	web := newTestWeb(t)
+	if stats := web.getStatistics("en"); stats.Games != 0 || stats.TotalSize != 0 {
+		t.Fatalf("empty library: %+v", stats)
+	}
+
+	web.state.set(testDatabases(t))
+	stats := web.getStatistics("en")
+
+	// two games (one split), one update of the known game, one orphan update, one DLC; 4 bytes each
+	if stats.Games != 2 || stats.Updates != 2 || stats.Dlc != 1 || stats.TotalSize != 20 {
+		t.Fatalf("unexpected counts: %+v", stats)
+	}
+	if stats.ByContent[0].Size != 8 || stats.ByContent[1].Size != 8 || stats.ByContent[2].Size != 4 || stats.ByContent[0].Percent != 40 {
+		t.Fatalf("unexpected space by content: %+v", stats.ByContent)
+	}
+	if len(stats.ByFormat) != 2 || stats.ByFormat[0].Label != "NSP" || stats.ByFormat[0].Count != 4 || stats.ByFormat[1].Label != "?" {
+		t.Fatalf("unexpected space by format: %+v", stats.ByFormat)
+	}
+	if stats.GamesWithUpdate != 1 || stats.GamesUpToDate != 1 || stats.GamesUpToDatePct != 50 {
+		t.Fatalf("unexpected update status: %+v", stats)
+	}
+	if stats.MissingDlc != 1 || stats.GamesMissingDlc != 1 || stats.MissingGames != 1 || stats.Issues != 2 {
+		t.Fatalf("unexpected missing counts: %+v", stats)
+	}
+	if len(stats.Largest) != 2 || stats.Largest[0].Name != "Known Game" || stats.Largest[0].Size != 12 {
+		t.Fatalf("unexpected largest games: %+v", stats.Largest)
+	}
+}
