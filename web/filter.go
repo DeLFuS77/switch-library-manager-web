@@ -2,7 +2,9 @@ package web
 
 import (
 	"errors"
+	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -12,11 +14,22 @@ type TitleItemFilter struct {
 	SortBy    string `in:"form=sort_by;default=name"`
 	SortOrder string `in:"form=sort_order;default=asc"`
 	Page      int    `in:"form=page;default=1"`
+	// library only: status of the games and file format
+	Status string `in:"form=status"`
+	Format string `in:"form=format"`
 }
+
+// library status filters
+const (
+	STATUS_UPDATE   = "update"
+	STATUS_DLC      = "dlc"
+	STATUS_COMPLETE = "complete"
+)
 
 var (
 	allowedPerPage = map[int]struct{}{12: {}, 24: {}, 48: {}, 96: {}}
 	allowedSortBy  = map[string]struct{}{"id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "type": {}}
+	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}}
 )
 
 // Normalize replaces invalid values coming from the query string with the defaults.
@@ -34,6 +47,44 @@ func (f *TitleItemFilter) Normalize() {
 	if f.SortOrder != "asc" && f.SortOrder != "desc" {
 		f.SortOrder = "asc"
 	}
+	if _, ok := allowedStatus[f.Status]; !ok {
+		f.Status = ""
+	}
+	// the format is compared with the formats of the library, anything else matches nothing
+	f.Format = strings.ToUpper(strings.TrimSpace(f.Format))
+	if len(f.Format) > 16 {
+		f.Format = ""
+	}
+}
+
+// Active reports whether the items are filtered by a keyword, a status or a format.
+func (f *TitleItemFilter) Active() bool {
+	return f.Keyword != "" || f.Status != "" || f.Format != ""
+}
+
+// query returns the query string of the filter, with the given values replaced; an empty
+// value removes the parameter. Changing a filter goes back to the first page.
+func (f *TitleItemFilter) query(replace ...string) url.Values {
+	values := url.Values{}
+	values.Set("q", f.Keyword)
+	values.Set("status", f.Status)
+	values.Set("format", strings.ToLower(f.Format))
+	values.Set("per_page", strconv.Itoa(f.PerPage))
+	values.Set("sort_by", f.SortBy)
+	values.Set("sort_order", f.SortOrder)
+	values.Set("page", strconv.Itoa(f.Page))
+	for i := 0; i+1 < len(replace); i += 2 {
+		values.Set(replace[i], replace[i+1])
+		if replace[i] != "page" {
+			values.Set("page", "1")
+		}
+	}
+	for key, value := range values {
+		if len(value) == 0 || value[0] == "" || (key == "page" && value[0] == "1") {
+			values.Del(key)
+		}
+	}
+	return values
 }
 
 // Matches reports whether the title ID or one of the names contains the keyword (case insensitive).

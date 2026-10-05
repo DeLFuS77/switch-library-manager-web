@@ -21,5 +21,12 @@
 {{- end}}
 
 {{- define "noResults"}}
-			{{- template "emptyState" (dict "Icon" "bi-search" "Tone" "" "Title" (t "No results") "Text" (t "Nothing matches “%v”. Try another name or title ID." .Keyword) "ActionHref" (printf "?per_page=%v&sort_by=%v&sort_order=%v" .PerPage .SortBy .SortOrder) "ActionLabel" (t "Clear search") "ActionIcon" "bi-x-circle")}}
+			{{- $text := t "No game matches these filters."}}
+			{{- if .Keyword}}{{$text = t "Nothing matches “%v”. Try another name or title ID." .Keyword}}{{end}}
+			{{- template "emptyState" (dict "Icon" "bi-search" "Tone" "" "Title" (t "No results") "Text" $text "ActionHref" (filterUrl . "q" "" "status" "" "format" "") "ActionLabel" (t "Clear filters") "ActionIcon" "bi-x-circle")}}
+{{- end}}
+
+{{- define "statusFilter"}}
+				{{- $f := .Filter}}
+				<li><a class="filter-pill{{if eq $f.Status .Value}} active{{end}}" href="{{filterUrl $f "status" .Value}}"{{if eq $f.Status .Value}} aria-current="true"{{end}}>{{if .Icon}}<span class="bi {{.Icon}}" aria-hidden="true"></span>{{end}}{{.Label}} <span class="filter-count">{{.Count}}</span></a></li>
 {{- end}}

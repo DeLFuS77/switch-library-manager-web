@@ -13,7 +13,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -148,6 +147,21 @@ type TitleItemsPageData struct {
 	Pagination pagination.Pagination
 }
 
+// LibraryFacets are the numbers shown on the status filters of the library, counted
+// before the status filter is applied, and the file formats found in the library.
+type LibraryFacets struct {
+	All      int
+	Update   int
+	Dlc      int
+	Complete int
+	Formats  []string
+}
+
+type LibraryPageData struct {
+	TitleItemsPageData
+	Facets LibraryFacets
+}
+
 var funcMap = template.FuncMap {
 	"add": func(a, b int) int {
 		return a + b
@@ -175,16 +189,14 @@ var funcMap = template.FuncMap {
 		return a != b
 	},
 	"pageUrl": func(filter *TitleItemFilter, page int) template.URL {
-		values := url.Values{}
-		if filter.Keyword != "" {
-			values.Set("q", filter.Keyword)
-		}
-		values.Set("per_page", strconv.Itoa(filter.PerPage))
-		values.Set("sort_by", filter.SortBy)
-		values.Set("sort_order", filter.SortOrder)
+		values := filter.query("page", strconv.Itoa(page))
 		values.Set("page", strconv.Itoa(page))
 		// url.Values.Encode escapes every value, so the result is safe to use as is
 		return template.URL("?" + values.Encode())
+	},
+	// filterUrl links to the current list with some filter values replaced: filterUrl .Filter "status" "dlc"
+	"filterUrl": func(filter *TitleItemFilter, replace ...string) template.URL {
+		return template.URL("?" + filter.query(replace...).Encode())
 	},
 	"formatSize": formatSize,
 	"issueIcon": issueIcon,
