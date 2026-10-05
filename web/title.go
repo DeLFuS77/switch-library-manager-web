@@ -57,6 +57,10 @@ type TitleDetail struct {
 
 	Dlc        []TitleDlc
 	MissingDlc int
+
+	// all local files of the game, downloadable as one archive
+	ArchiveFiles int
+	ArchiveSize  int64
 }
 
 type TitlePageData struct {
@@ -140,6 +144,10 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 			detail.Updates = append(detail.Updates, *newTitleFile(update, "UPD", "/api/titles/"+baseId+"/updates/"+strconv.Itoa(version)))
 		}
 		detail.LocalUpdate = local.LatestUpdate
+
+		entries := archiveEntries(local)
+		detail.ArchiveFiles = len(entries)
+		detail.ArchiveSize = archiveSize(entries)
 	}
 	if detail.Id == "" {
 		// only updates or DLC of an unknown game are present
