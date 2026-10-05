@@ -1,6 +1,6 @@
 module github.com/dtrunk90/switch-library-manager-web
 
-go 1.23.0
+go 1.25.0
 
 require (
 	github.com/avast/retry-go/v5 v5.0.0
@@ -13,8 +13,8 @@ require (
 	github.com/magiconair/properties v1.8.1
 	go.etcd.io/bbolt v1.4.3
 	go.uber.org/zap v1.16.0
-	golang.org/x/crypto v0.36.0
-	golang.org/x/sys v0.31.0
+	golang.org/x/crypto v0.52.0
+	golang.org/x/sys v0.45.0
 	robpike.io/nihongo v0.0.0-20200511095354-a985f0929cfa
 )
 
