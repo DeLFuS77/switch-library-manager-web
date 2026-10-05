@@ -60,6 +60,7 @@
 									{{template "taskTrigger" .Trigger}} &middot; {{formatDateTime .Started}} &middot; {{t "took %v" .Duration}}
 									{{- if eq .Kind "compress"}}{{if .Files}} &middot; {{t "%v files compressed, %v saved" .Files (formatSize .Saved)}}{{end}}
 									{{- else if eq .Kind "decompress"}}{{if .Files}} &middot; {{t "%v files decompressed" .Files}}{{end}}
+									{{- else if and (eq .Kind "cleanup") .Saved}} &middot; {{t "%v files deleted, %v freed" .Files (formatSize .Saved)}}
 									{{- else if eq .Kind "verify"}} &middot; {{t "%v files checked, %v damaged" .Files .Damaged}}
 									{{- else if or .Games .Files}} &middot; {{if or (eq .Kind "organize") (eq .Kind "cleanup")}}{{t "%v files changed" .Files}}{{else}}{{t "%v games, %v files" .Games .Files}}{{end}}{{end}}
 								</div>

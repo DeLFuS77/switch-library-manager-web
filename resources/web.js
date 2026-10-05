@@ -607,6 +607,7 @@ function initCompress() {
 
 	bindFileForm(document.getElementById('compressForm'), '/compress/start');
 	bindFileForm(document.getElementById('decompressForm'), '/decompress/start');
+	bindFileForm(document.getElementById('spaceForm'), '/space/clean');
 }
 
 // a list of files with "select all", a summary of the selection and a start request
@@ -616,7 +617,7 @@ function bindFileForm(form, url) {
 	}
 	const all = form.querySelector('[data-file-all]');
 	const summary = form.querySelector('[data-file-summary]');
-	const boxes = [...form.querySelectorAll('input[name="path"]')];
+	const boxes = [...form.querySelectorAll('input[name="path"]:not(:disabled)')];
 	const update = () => {
 		const selected = boxes.filter(box => box.checked);
 		const size = selected.reduce((sum, box) => sum + Number(box.dataset.size || 0), 0);
@@ -640,6 +641,14 @@ function bindFileForm(form, url) {
 			feedback.remove();
 		}
 		const submit = form.querySelector('[type="submit"]');
+		// deleting asks first, with the number and size of the files
+		if (submit.dataset.confirm) {
+			const selected = boxes.filter(box => box.checked);
+			const size = selected.reduce((sum, box) => sum + Number(box.dataset.size || 0), 0);
+			if (!window.confirm(submit.dataset.confirm.replace('%v', selected.length).replace('%v', formatSize(size)))) {
+				return;
+			}
+		}
 		submit.disabled = true;
 		fetch(url, {
 			method: 'POST',

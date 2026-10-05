@@ -148,7 +148,9 @@ func (web *Web) loadDemo() {
 	localDB.Skipped[file("notes.txt", 2048)] = db.SkippedFile{ReasonCode: db.REASON_UNSUPPORTED_TYPE, ReasonText: "file type is not supported"}
 	localDB.Skipped[file("Starlight Odyssey ["+demoTitleId(0)[:13]+"800][v65536].nsp", 200<<20)] = db.SkippedFile{ReasonCode: db.REASON_OLD_UPDATE,
 		ReasonText: "old update file, newer update exist locally (" + filepath.Join(baseFolder, "Starlight Odyssey ["+demoTitleId(0)[:13]+"800][v262144].nsp") + ")"}
-	localDB.NumFiles += 2
+	localDB.Skipped[file("Pixel Kart Rally ["+demoTitleId(1)+"][v0] (1).nsz", 3<<30)] = db.SkippedFile{ReasonCode: db.REASON_DUPLICATE,
+		ReasonText: "duplicate base file (" + filepath.Join(baseFolder, "Pixel Kart Rally ["+demoTitleId(1)+"][v0].nsz") + ")"}
+	localDB.NumFiles += 3
 
 	web.state.set(switchDB, localDB)
 	web.sugarLogger.Infof("[Demo mode: %d made-up games]", len(localDB.TitlesMap))
