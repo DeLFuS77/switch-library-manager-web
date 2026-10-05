@@ -85,6 +85,18 @@ func loadUserStore(dataFolder string, reservedName string) (*UserStore, error) {
 	return store, nil
 }
 
+// reload reads the users file again, after it was replaced.
+func (s *UserStore) reload() error {
+	loaded, err := loadUserStore(filepath.Dir(s.path), s.reservedName)
+	if err != nil {
+		return err
+	}
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.users = loaded.users
+	return nil
+}
+
 // List returns the users sorted by name.
 func (s *UserStore) List() []User {
 	s.mutex.RLock()

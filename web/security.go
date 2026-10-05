@@ -57,6 +57,26 @@ func authFromEnv() (username string, password string, enabled bool, err error) {
 	return username, password, true, nil
 }
 
+// contentSecurityPolicy allows only the app's own scripts, styles and fonts. Images may
+// also come from the Nintendo servers (covers and screenshots not cached yet).
+const contentSecurityPolicy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
+	"img-src 'self' data: https:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; " +
+	"frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+
+// withSecurityHeaders adds headers that make the browser refuse foreign scripts, framing
+// by other sites and content type guessing.
+func withSecurityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		headers := w.Header()
+		headers.Set("Content-Security-Policy", contentSecurityPolicy)
+		headers.Set("X-Content-Type-Options", "nosniff")
+		headers.Set("X-Frame-Options", "DENY")
+		headers.Set("Referrer-Policy", "same-origin")
+		headers.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
+		next.ServeHTTP(w, r)
+	})
+}
+
 // withHealthCheck answers /healthz without authentication, so container health checks
 // work when a password is set. It reveals nothing but the fact that the app is running.
 func withHealthCheck(next http.Handler) http.Handler {

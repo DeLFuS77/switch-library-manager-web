@@ -50,7 +50,7 @@
 				</div>
 				<form class="d-flex align-items-center gap-2 order-3">
 					<label class="small text-body-secondary text-nowrap" for="perPage">{{t "Per page"}}</label>
-					<select class="form-select form-select-sm w-auto" id="perPage" name="per_page" onchange="this.form.submit()">
+					<select class="form-select form-select-sm w-auto" id="perPage" name="per_page" data-autosubmit>
 						{{- range mkSlice 12 24 48 96}}
 						<option value="{{.}}"{{if eq . $f.PerPage}} selected{{end}}>{{.}}</option>
 						{{- end}}

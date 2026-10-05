@@ -62,6 +62,15 @@ func loadVerifyStore(dataFolder string) *verifyStore {
 	return store
 }
 
+// reload reads the results file again, after it was replaced.
+func (s *verifyStore) reload() {
+	loaded := loadVerifyStore(filepath.Dir(s.path))
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.records = loaded.records
+	s.LastRun = loaded.LastRun
+}
+
 func (s *verifyStore) save() error {
 	s.mutex.Lock()
 	data, err := json.MarshalIndent(verifyFile{LastRun: s.LastRun, Records: s.records}, "", " ")

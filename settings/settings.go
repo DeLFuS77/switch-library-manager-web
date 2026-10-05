@@ -285,6 +285,16 @@ func Version() uint64 {
 	return version.Load()
 }
 
+// ReloadSettings reads the settings file again, after it was replaced.
+func ReloadSettings(dataFolder string) *AppSettings {
+	updateMutex.Lock()
+	defer updateMutex.Unlock()
+	settingsInstance = nil
+	appSettings := ReadSettings(dataFolder)
+	version.Add(1)
+	return appSettings
+}
+
 // UpdateSettings applies change to the current settings and saves them. Concurrent
 // updates are serialized so one request cannot overwrite the change of another.
 func UpdateSettings(dataFolder string, change func(settings *AppSettings)) *AppSettings {

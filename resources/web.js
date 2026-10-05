@@ -1,3 +1,13 @@
+// the translations of the page, as JSON data (inline scripts are not allowed)
+function readTranslations() {
+	try {
+		const data = document.getElementById('slm-translations');
+		return data ? JSON.parse(data.textContent) : {};
+	} catch (e) {
+		return {};
+	}
+}
+
 // Bundled with Bootstrap by esbuild into resources/static/web.js (npm run build).
 // Importing Bootstrap also enables its data attributes (offcanvas, dismissible alerts, ...).
 import { Tooltip } from 'bootstrap';
@@ -5,7 +15,7 @@ import { Tooltip } from 'bootstrap';
 // Translations of the texts below are provided by the server in the page language.
 // "%v" placeholders are replaced by the arguments in order.
 function t(text, ...args) {
-	const translations = window.SLM_TRANSLATIONS || {};
+	const translations = window.SLM_TRANSLATIONS || readTranslations();
 	let result = translations[text] || text;
 	args.forEach(arg => {
 		result = result.replace('%v', arg);
@@ -785,6 +795,37 @@ document.addEventListener('DOMContentLoaded', () => {
 	initViewToggle();
 	initLiveTasks();
 	initCompress();
+
+	const restoreForm = document.getElementById('restoreForm');
+	if (restoreForm) {
+		restoreForm.addEventListener('submit', e => {
+			e.preventDefault();
+			const button = restoreForm.querySelector('[type=submit]');
+			if (!window.confirm(button.dataset.confirm)) {
+				return;
+			}
+			button.disabled = true;
+			fetch('/backup/restore', { method: 'POST', body: new FormData(restoreForm) })
+				.then(response => response.json().then(json => ({ ok: response.ok, json })))
+				.then(({ ok, json }) => {
+					button.disabled = false;
+					if (ok) {
+						insertAlert(mainContainer(), 'alert-success', 'bi-check-circle-fill', json.strongMessage, json.message);
+						setTimeout(() => window.location.reload(), 1500);
+					} else {
+						insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', json.globalError.strongMessage, json.globalError.message);
+					}
+				})
+				.catch(() => {
+					button.disabled = false;
+				});
+		});
+	}
+
+	// selects and radio buttons that apply their form at once
+	document.querySelectorAll('[data-autosubmit]').forEach(input => {
+		input.addEventListener('change', () => input.form && input.form.submit());
+	});
 
 	const updateNotice = document.querySelector('[data-update-version]');
 	if (updateNotice) {

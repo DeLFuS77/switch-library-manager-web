@@ -3,18 +3,7 @@
 <html class="min-vh-100" lang="{{lang}}" data-bs-theme="dark">
 <head>
 	<meta charset="utf-8" />
-	<script>
-		// apply the saved theme before the page is painted (see initThemeSwitcher in web.js)
-		(function () {
-			try {
-				var theme = localStorage.getItem('slm-theme') || 'dark';
-				if (theme === 'auto') {
-					theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-				}
-				document.documentElement.setAttribute('data-bs-theme', theme);
-			} catch (e) {}
-		})();
-	</script>
+	<script src="/resources/static/theme.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{{template "title" .}} - Switch Library Manager Web</title>
 	<link rel="stylesheet" href="/resources/static/web.css">
@@ -135,7 +124,7 @@
 			<a class="d-inline-flex align-items-center gap-2 text-decoration-none" href="https://github.com/DeLFuS77/switch-library-manager-web"><span class="bi bi-github" aria-hidden="true"></span>GitHub</a>
 		</div>
 	</footer>
-	<script>window.SLM_TRANSLATIONS = {{jsTranslations}};</script>
+	<script type="application/json" id="slm-translations">{{jsTranslations}}</script>
 	<script src="/resources/static/web.js"></script>
 </body>
 </html>

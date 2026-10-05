@@ -3,17 +3,7 @@
 <html class="min-vh-100" lang="{{lang}}" data-bs-theme="dark">
 <head>
 	<meta charset="utf-8" />
-	<script>
-		(function () {
-			try {
-				var theme = localStorage.getItem('slm-theme') || 'dark';
-				if (theme === 'auto') {
-					theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-				}
-				document.documentElement.setAttribute('data-bs-theme', theme);
-			} catch (e) {}
-		})();
-	</script>
+	<script src="/resources/static/theme.js"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="robots" content="noindex">
 	<title>{{t "Log in"}} - Switch Library Manager Web</title>
