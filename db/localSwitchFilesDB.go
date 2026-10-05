@@ -23,16 +23,19 @@ const (
 	DB_TABLE_FILE_SCAN_METADATA = "deep-scan"
 	DB_TABLE_LOCAL_LIBRARY      = "local-library"
 
-	// bump when the structure or keys of the cached local library change,
-	// so caches written by older versions are rebuilt instead of misread
-	LIBRARY_SCHEMA_VERSION = "2"
-	DB_KEY_LIBRARY_SCHEMA  = "library_schema"
-
 	REASON_UNSUPPORTED_TYPE = iota
 	REASON_DUPLICATE
 	REASON_OLD_UPDATE
 	REASON_UNRECOGNISED
 	REASON_MALFORMED_FILE
+	REASON_FILENAME_FALLBACK
+)
+
+const (
+	// bump when the structure or keys of the cached local library change,
+	// so caches written by older versions are rebuilt instead of misread
+	LIBRARY_SCHEMA_VERSION = "2"
+	DB_KEY_LIBRARY_SCHEMA  = "library_schema"
 )
 
 type LocalSwitchDBManager struct {
@@ -405,10 +408,17 @@ func (ldb *LocalSwitchDBManager) getGameMetadata(file ExtendedFileInfo,
 	version, _ := parseVersionFromFileName(file.FileName)
 
 	if titleId == nil || version == nil {
-		return nil, errors.New("unable to determine titileId / version")
+		return nil, errors.New("unable to determine titleId / version")
 	}
 	metadata = map[string]*switchfs.ContentMetaAttributes{}
 	metadata[*titleId] = &switchfs.ContentMetaAttributes{TitleId: *titleId, Version: *version}
+
+	// the file is still listed in the library, so explain why it also appears as an issue
+	if skippedFile, ok := skipped[file]; ok && skippedFile.ReasonCode == REASON_MALFORMED_FILE {
+		skippedFile.ReasonCode = REASON_FILENAME_FALLBACK
+		skippedFile.ReasonText = "identified by file name only, " + skippedFile.ReasonText
+		skipped[file] = skippedFile
+	}
 
 	return metadata, nil
 }

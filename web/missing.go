@@ -3,7 +3,6 @@ package web
 import (
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
-	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"strings"
 )
 
@@ -17,11 +16,9 @@ func (web *Web) HandleMissing() {
 	}
 
 	web.HandleFiltered("/missing.html", func(filter *TitleItemFilter) any {
-		globalPageData.IsKeysFileAvailable = settings.IsKeysFileAvailable()
-		globalPageData.Page = "missing"
 		items, p := web.getMissingGames(filter)
 		return TitleItemsPageData {
-			GlobalPageData: globalPageData,
+			GlobalPageData: web.globalPageData("missing"),
 			TitleItems: items,
 			Filter: filter,
 			Pagination: p,
@@ -32,12 +29,14 @@ func (web *Web) HandleMissing() {
 func (web *Web) getMissingGames(filter *TitleItemFilter) ([]TitleItem, pagination.Pagination) {
 	items := []TitleItem{}
 
-	if web.state.localDB == nil {
+	switchDB, localDB := web.state.get()
+
+	if switchDB == nil || localDB == nil {
 		return items, pagination.Calculate(filter.Page, filter.PerPage, 0)
 	}
 
-	for k, v := range web.state.switchDB.TitlesMap {
-		if _, ok := web.state.localDB.TitlesMap[k]; ok {
+	for k, v := range switchDB.TitlesMap {
+		if local, ok := localDB.TitlesMap[k]; ok && local.BaseExist {
 			continue
 		}
 
@@ -45,7 +44,7 @@ func (web *Web) getMissingGames(filter *TitleItemFilter) ([]TitleItem, paginatio
 			continue
 		}
 
-		if filter.Keyword == "" || strings.Contains(strings.ToLower(v.Attributes.Id), strings.ToLower(filter.Keyword)) || strings.Contains(strings.ToLower(v.Attributes.Name), strings.ToLower(filter.Keyword)) {
+		if filter.Matches(v.Attributes.Id, v.Attributes.Name) {
 			var imageUrl string
 			if v.Attributes.IconUrl != "" {
 				imageUrl = v.Attributes.IconUrl

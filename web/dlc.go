@@ -16,11 +16,9 @@ func (web *Web) HandleDLC() {
 	}
 
 	web.HandleFiltered("/dlc.html", func(filter *TitleItemFilter) any {
-		globalPageData.IsKeysFileAvailable = settings.IsKeysFileAvailable()
-		globalPageData.Page = "dlc"
 		items, p := web.getMissingDLC(filter)
 		return TitleItemsPageData {
-			GlobalPageData: globalPageData,
+			GlobalPageData: web.globalPageData("dlc"),
 			TitleItems: items,
 			Filter: filter,
 			Pagination: p,
@@ -31,7 +29,9 @@ func (web *Web) HandleDLC() {
 func (web *Web) getMissingDLC(filter *TitleItemFilter) ([]TitleItem, pagination.Pagination) {
 	items := []TitleItem{}
 
-	if web.state.localDB == nil {
+	switchDB, localDB := web.state.get()
+
+	if switchDB == nil || localDB == nil {
 		return items, pagination.Calculate(filter.Page, filter.PerPage, 0)
 	}
 
@@ -42,10 +42,10 @@ func (web *Web) getMissingDLC(filter *TitleItemFilter) ([]TitleItem, pagination.
 		ignoreIds[strings.ToLower(id)] = struct{}{}
 	}
 
-	missingDLC := process.ScanForMissingDLC(web.state.localDB.TitlesMap, web.state.switchDB.TitlesMap, ignoreIds)
+	missingDLC := process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, ignoreIds)
 
 	for _, v := range missingDLC {
-		if filter.Keyword == "" || strings.Contains(strings.ToLower(v.Attributes.Id), strings.ToLower(filter.Keyword)) || strings.Contains(strings.ToLower(v.Attributes.Name), strings.ToLower(filter.Keyword)) {
+		if filter.Matches(v.Attributes.Id, v.Attributes.Name) {
 			var imageUrl string
 			if v.Attributes.IconUrl != "" {
 				imageUrl = v.Attributes.IconUrl

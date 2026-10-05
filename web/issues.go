@@ -1,8 +1,8 @@
 package web
 
 import (
-	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"path/filepath"
+	"sort"
 )
 
 type Issue struct {
@@ -22,24 +22,22 @@ func (web *Web) HandleIssues() {
 	}
 
 	web.Handle("/issues.html", func() any {
-		globalPageData.IsKeysFileAvailable = settings.IsKeysFileAvailable()
-		globalPageData.Page = "issues"
-		issues := web.getIssues()
 		return IssuesPageData {
-			GlobalPageData: globalPageData,
-			Issues: issues,
+			GlobalPageData: web.globalPageData("issues"),
+			Issues: web.getIssues(),
 		}
 	}, web.embedFS, fsPatterns...)
 }
 
 func (web *Web) getIssues() []Issue {
 	issues := []Issue{}
+	_, localDB := web.state.get()
 
-	if web.state.localDB == nil {
+	if localDB == nil {
 		return issues
 	}
 
-	for _, v := range web.state.localDB.TitlesMap {
+	for _, v := range localDB.TitlesMap {
 		if !v.BaseExist {
 			for _, update := range v.Updates {
 				issues = append(issues, Issue{File: filepath.Join(update.ExtendedInfo.BaseFolder, update.ExtendedInfo.FileName), Reason: "base file is missing"})
@@ -51,9 +49,16 @@ func (web *Web) getIssues() []Issue {
 		}
 	}
 
-	for k, v := range web.state.localDB.Skipped {
+	for k, v := range localDB.Skipped {
 		issues = append(issues, Issue{File: filepath.Join(k.BaseFolder, k.FileName), Reason: v.ReasonText})
 	}
+
+	sort.Slice(issues, func(i, j int) bool {
+		if issues[i].File == issues[j].File {
+			return issues[i].Reason < issues[j].Reason
+		}
+		return issues[i].File < issues[j].File
+	})
 
 	return issues
 }
