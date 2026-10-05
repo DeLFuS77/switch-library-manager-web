@@ -836,6 +836,25 @@ document.addEventListener('DOMContentLoaded', () => {
 		navigator.serviceWorker.register('/sw.js').catch(() => undefined);
 	}
 
+	// copies a value, e.g. the title ID, and says so on the button for a moment
+	document.querySelectorAll('[data-copy]').forEach(button => {
+		const label = button.querySelector('[data-copy-label]');
+		const text = label ? label.textContent : '';
+		button.addEventListener('click', () => {
+			if (!navigator.clipboard) {
+				return;
+			}
+			navigator.clipboard.writeText(button.dataset.copy).then(() => {
+				if (label) {
+					label.textContent = button.dataset.copied;
+					setTimeout(() => {
+						label.textContent = text;
+					}, 1500);
+				}
+			}).catch(() => undefined);
+		});
+	});
+
 	// selects and radio buttons that apply their form at once
 	document.querySelectorAll('[data-autosubmit]').forEach(input => {
 		input.addEventListener('change', () => input.form && input.form.submit());

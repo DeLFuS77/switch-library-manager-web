@@ -5,6 +5,9 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Copy title ID": "Copiar ID",
+		"Copied":        "Copiado",
+		"No updates have been released for this game.": "No se han publicado actualizaciones para este juego.",
 		"Space": "Espacio",
 		"Files that take space without being needed: old updates, duplicates and originals that already have a compressed copy. Nothing is deleted until you confirm it.": "Archivos que ocupan espacio sin hacer falta: actualizaciones viejas, duplicados y originales que ya tienen copia comprimida. No se borra nada hasta que lo confirmes.",
 		"Can be freed now":        "Se puede liberar ahora",

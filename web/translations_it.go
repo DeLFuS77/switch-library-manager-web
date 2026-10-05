@@ -3,6 +3,9 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Copy title ID": "Copia ID",
+		"Copied":        "Copiato",
+		"No updates have been released for this game.": "Non sono stati pubblicati aggiornamenti per questo gioco.",
 		"Space": "Spazio",
 		"Files that take space without being needed: old updates, duplicates and originals that already have a compressed copy. Nothing is deleted until you confirm it.": "File che occupano spazio senza servire: aggiornamenti vecchi, duplicati e originali che hanno già una copia compressa. Non viene eliminato nulla finché non confermi.",
 		"Can be freed now":        "Liberabile ora",

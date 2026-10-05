@@ -812,7 +812,7 @@ h3,
 	isolation: isolate;
 
 	@include media-breakpoint-up(md) {
-		padding: 2rem;
+		padding: 1.75rem;
 	}
 
 	.title-hero-bg {
@@ -821,7 +821,7 @@ h3,
 		z-index: -1;
 		background-size: cover;
 		background-position: center;
-		filter: blur(28px) saturate(140%);
+		filter: blur(32px) saturate(140%);
 		opacity: .35;
 		transform: scale(1.2);
 	}
@@ -831,49 +831,303 @@ h3,
 		position: absolute;
 		inset: 0;
 		z-index: -1;
-		background: linear-gradient(90deg, var(--slm-surface) 15%, transparent);
-		opacity: .85;
+		background: linear-gradient(180deg, transparent 0%, var(--slm-surface) 92%),
+			linear-gradient(90deg, var(--slm-surface) 10%, transparent 70%);
+		opacity: .9;
+	}
+}
+
+// cover and the main information side by side, stacked on phones
+.title-hero-main {
+	display: grid;
+	gap: 1.25rem;
+	align-items: center;
+
+	@include media-breakpoint-up(sm) {
+		grid-template-columns: 11rem minmax(0, 1fr);
 	}
 
-	h1 {
-		font-size: calc(1.5rem + 1.2vw);
-
-		@include media-breakpoint-up(xl) {
-			font-size: 2.5rem;
-		}
+	@include media-breakpoint-up(lg) {
+		grid-template-columns: 14rem minmax(0, 1fr);
+		gap: 2rem;
 	}
 }
 
 .title-cover {
+	width: 100%;
+	max-width: 13rem;
+	margin: 0 auto;
 	aspect-ratio: 1;
 	object-fit: cover;
 	border-radius: $border-radius-lg;
 	box-shadow: 0 18px 40px -16px rgba(0, 0, 0, .6);
+
+	@include media-breakpoint-up(sm) {
+		max-width: none;
+	}
 }
 
-.fact-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(8.25rem, 1fr));
-	gap: .6rem;
+.title-hero-info {
+	min-width: 0;
+	text-align: center;
 
-	.fact {
-		padding: .7rem .85rem;
-		border-radius: $border-radius-lg;
-		background: var(--slm-surface-muted);
-		border: 1px solid var(--slm-border);
+	@include media-breakpoint-up(sm) {
+		text-align: start;
+	}
 
-		.fact-label {
-			font-size: .75rem;
-			text-transform: uppercase;
-			letter-spacing: .04em;
-			color: var(--bs-secondary-color);
-		}
+	.d-flex {
+		justify-content: center;
 
-		.fact-value {
-			font-weight: 600;
-			overflow-wrap: anywhere;
+		@include media-breakpoint-up(sm) {
+			justify-content: flex-start;
 		}
 	}
+}
+
+.title-name {
+	font-weight: 800;
+	font-size: clamp(1.6rem, 1.1rem + 2vw, 2.6rem);
+	line-height: 1.1;
+	letter-spacing: -.02em;
+	margin-bottom: .35rem;
+	text-wrap: balance;
+	overflow-wrap: anywhere;
+}
+
+.title-publisher {
+	display: inline-flex;
+	align-items: center;
+	gap: .4rem;
+	color: var(--bs-secondary-color);
+	margin-bottom: 1rem;
+}
+
+// a translucent button that stays readable on the colored header
+.btn-glass {
+	--bs-btn-color: var(--bs-body-color);
+	--bs-btn-bg: color-mix(in srgb, var(--slm-surface) 70%, transparent);
+	--bs-btn-border-color: var(--slm-border);
+	--bs-btn-hover-color: var(--bs-body-color);
+	--bs-btn-hover-bg: var(--slm-surface);
+	--bs-btn-hover-border-color: var(--bs-border-color);
+	--bs-btn-active-bg: var(--slm-surface);
+	--bs-btn-active-color: var(--bs-body-color);
+	backdrop-filter: blur(6px);
+}
+
+.title-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .5rem;
+	justify-content: center;
+
+	.btn {
+		white-space: nowrap;
+		padding-inline: 1.25rem;
+
+		// the download label with its size fits on one line on phones
+		@include media-breakpoint-down(sm) {
+			font-size: .875rem;
+			padding-inline: .9rem;
+		}
+	}
+
+	@include media-breakpoint-up(sm) {
+		justify-content: flex-start;
+	}
+}
+
+// the facts span the whole width of the header, each box as wide as it needs
+.fact-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+	gap: .6rem;
+	margin: 1.5rem 0 0;
+
+	// two columns on phones, the title ID across both
+	@include media-breakpoint-down(sm) {
+		grid-template-columns: 1fr 1fr;
+
+		.fact-wide {
+			grid-column: 1 / -1;
+		}
+	}
+
+	// label and value rows are shared by the boxes of a row (subgrid), so the values stay
+	// aligned when a long label takes two lines
+	.fact {
+		display: grid;
+		grid-row: span 2;
+		grid-template-rows: subgrid;
+		row-gap: .3rem;
+		align-content: start;
+		min-width: 0;
+		padding: .75rem .9rem;
+		border-radius: $border-radius-lg;
+		background: color-mix(in srgb, var(--slm-surface-muted) 80%, transparent);
+		border: 1px solid var(--slm-border);
+		backdrop-filter: blur(6px);
+	}
+
+	.fact-label {
+		display: flex;
+		align-items: center;
+		gap: .4rem;
+		font-size: .72rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: .05em;
+		line-height: 1.25;
+		color: var(--bs-secondary-color);
+		align-self: start;
+
+		.bi {
+			color: $primary;
+			flex-shrink: 0;
+		}
+	}
+
+	.fact-value {
+		margin: 0;
+		font-size: 1.05rem;
+		font-weight: 700;
+		line-height: 1.25;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	// a 16 digit ID fits on one line
+	.fact-id {
+		font-size: 1rem;
+		letter-spacing: .02em;
+	}
+
+	.fact-sub {
+		display: block;
+		margin-top: .15rem;
+		font-size: .8rem;
+		font-weight: 500;
+		color: var(--bs-secondary-color);
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.fact-danger {
+		border-color: rgba($danger, .5);
+
+		.fact-value {
+			color: $danger;
+		}
+	}
+}
+
+// a heading with a summary on the right, wrapping under it on phones
+.section-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: .5rem 1rem;
+	margin-bottom: 1rem;
+
+	.section-title .badge {
+		font-size: .75rem;
+	}
+}
+
+.dlc-summary {
+	display: flex;
+	align-items: center;
+	gap: .75rem;
+
+	.dlc-progress-bar {
+		width: 8rem;
+		height: .45rem;
+		border-radius: 1rem;
+		background: var(--slm-surface-muted);
+		overflow: hidden;
+
+		span {
+			display: block;
+			height: 100%;
+			border-radius: inherit;
+			background: linear-gradient(90deg, $slm-cyan, #7c5cff);
+		}
+	}
+}
+
+// files and DLC of a game: a list that works at any width
+.item-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	background: var(--slm-surface);
+	border: 1px solid var(--slm-border);
+	border-radius: $border-radius-lg;
+	box-shadow: var(--slm-shadow);
+	overflow: hidden;
+}
+
+.item-row {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: .5rem 1rem;
+	padding: .85rem 1rem;
+	transition: background-color .15s ease;
+
+	& + & {
+		border-top: 1px solid var(--slm-border);
+	}
+
+	&:hover {
+		background: var(--slm-surface-muted);
+	}
+
+	&.item-row-wide {
+		grid-template-columns: minmax(0, 1fr) auto;
+
+		@include media-breakpoint-down(sm) {
+			grid-template-columns: minmax(0, 1fr);
+
+			.item-end {
+				justify-content: flex-start;
+			}
+		}
+	}
+}
+
+.item-type {
+	min-width: 3.4rem;
+	justify-content: center;
+}
+
+.item-main {
+	min-width: 0;
+}
+
+.item-name {
+	font-weight: 600;
+	overflow-wrap: anywhere;
+	line-height: 1.35;
+}
+
+.item-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .15rem .9rem;
+	margin-top: .2rem;
+	font-size: .82rem;
+	color: var(--bs-secondary-color);
+}
+
+.item-end {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: .5rem;
 }
 
 .title-description {
