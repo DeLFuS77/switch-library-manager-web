@@ -1,6 +1,17 @@
 /*jshint esversion: 9 */
 /*globals bootstrap */
 
+// Translations of the texts below are provided by the server in the page language.
+// "%v" placeholders are replaced by the arguments in order.
+function t(text, ...args) {
+	const translations = window.SLM_TRANSLATIONS || {};
+	let result = translations[text] || text;
+	args.forEach(arg => {
+		result = result.replace('%v', arg);
+	});
+	return result;
+}
+
 function insertAlert(element, contextualClass, iconClass, strongMessage, message, dismissible = true, id = "") {
 	const alert = document.createElement('div');
 	alert.classList.add('alert', contextualClass, 'd-flex', 'align-items-center', 'fade', 'show');
@@ -30,7 +41,7 @@ function insertAlert(element, contextualClass, iconClass, strongMessage, message
 
 	if (dismissible) {
 		const closeBtn = document.createElement('button');
-		closeBtn.setAttribute('aria-label', 'Close');
+		closeBtn.setAttribute('aria-label', t('Close'));
 		closeBtn.setAttribute('type', 'button');
 		closeBtn.classList.add('btn-close');
 		closeBtn.dataset.bsDismiss = 'alert';
@@ -66,17 +77,17 @@ function showSyncAlert() {
 	const text = document.createElement('div');
 	text.classList.add('text-truncate');
 	const strong = document.createElement('strong');
-	strong.textContent = 'Synchronizing!';
+	strong.textContent = t('Synchronizing!');
 	const message = document.createElement('span');
 	message.dataset.syncMessage = '';
-	message.textContent = 'The library is being updated.';
+	message.textContent = t('The library is being updated.');
 	text.append(strong, ' ', message);
 	header.append(spinner, text);
 
 	const progress = document.createElement('div');
 	progress.classList.add('progress', 'mt-2');
 	progress.setAttribute('role', 'progressbar');
-	progress.setAttribute('aria-label', 'Synchronization progress');
+	progress.setAttribute('aria-label', t('Synchronization progress'));
 	const bar = document.createElement('div');
 	bar.classList.add('progress-bar', 'progress-bar-striped', 'progress-bar-animated', 'w-100');
 	progress.appendChild(bar);
@@ -127,7 +138,7 @@ function onSyncFinished() {
 
 	if (document.querySelector('form[method="post"]')) {
 		// do not reload pages with forms, it could discard unsaved changes
-		insertAlert(mainContainer(), 'alert-success', 'bi-check-circle-fill', 'Done!', 'The library has been updated.');
+		insertAlert(mainContainer(), 'alert-success', 'bi-check-circle-fill', t('Done!'), t('The library has been updated.'));
 	} else {
 		window.location.reload();
 	}
@@ -158,7 +169,7 @@ function startSync(url) {
 		showSyncAlert();
 		watchSync();
 	}).catch(() => {
-		insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', 'Error!', 'Synchronization could not be started.');
+		insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), t('Synchronization could not be started.'));
 	});
 }
 
@@ -198,7 +209,7 @@ function onSubmit(form) {
 		});
 	}).catch(error => {
 		if (!(error instanceof Response)) {
-			insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', 'Error!', 'Could not reach the server.');
+			insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), t('Could not reach the server.'));
 			return;
 		}
 
@@ -220,7 +231,7 @@ function onSubmit(form) {
 				});
 			}
 		}).catch(() => {
-			insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', 'Error!', `Unexpected server response (${error.status}).`);
+			insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), t('Unexpected server response (%v).', error.status));
 		});
 	}).finally(() => {
 		if (submitButton) {
@@ -230,11 +241,11 @@ function onSubmit(form) {
 }
 
 const OPERATION_LABELS = {
-	mkdir: 'Create folder',
-	move: 'Move',
-	delete: 'Delete',
-	skip: 'Skip',
-	cleanup: 'Clean up'
+	mkdir: t('Create folder'),
+	move: t('Move'),
+	delete: t('Delete'),
+	skip: t('Skip'),
+	cleanup: t('Clean up')
 };
 
 function postForm(url, params) {
@@ -246,7 +257,7 @@ function postForm(url, params) {
 		}
 	}).then(response => response.json().catch(() => ({})).then(json => {
 		if (!response.ok) {
-			const message = (json.globalError && json.globalError.message) || `Unexpected server response (${response.status}).`;
+			const message = (json.globalError && json.globalError.message) || t('Unexpected server response (%v).', response.status);
 			throw new Error(message);
 		}
 		return json;
@@ -273,7 +284,7 @@ function renderOperations(result) {
 
 		const detail = document.createElement('td');
 		detail.classList.add('text-break');
-		detail.textContent = op.error ? `Error: ${op.error}` : (op.kind === 'mkdir' ? '' : (op.to && op.from ? op.to : (op.reason || '')));
+		detail.textContent = op.error ? t('Error: %v', op.error) : (op.kind === 'mkdir' ? '' : (op.to && op.from ? op.to : (op.reason || '')));
 
 		row.append(kind, from, detail);
 		tbody.appendChild(row);
@@ -301,12 +312,12 @@ function initOrganize() {
 		renderOperations(response);
 
 		if (response.dryRun) {
-			title.textContent = response.changes === 0 ? 'Preview: nothing to change' : `Preview: ${response.changes} change(s)` + (response.errors ? `, ${response.errors} problem(s)` : '');
+			title.textContent = response.changes === 0 ? t('Preview: nothing to change') : t('Preview: %v change(s)', response.changes) + (response.errors ? t(', %v problem(s)', response.errors) : '');
 			currentAction = action;
-			runButton.textContent = `Apply ${response.changes} change(s)`;
+			runButton.textContent = t('Apply %v change(s)', response.changes);
 			runButton.classList.toggle('d-none', response.changes === 0);
 		} else {
-			title.textContent = `Done: ${response.changes} change(s)` + (response.errors ? `, ${response.errors} failed` : '');
+			title.textContent = t('Done: %v change(s)', response.changes) + (response.errors ? t(', %v failed', response.errors) : '');
 			runButton.classList.add('d-none');
 			currentAction = null;
 			showSyncAlert();
@@ -316,7 +327,7 @@ function initOrganize() {
 	};
 
 	const fail = error => {
-		insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', 'Error!', error.message);
+		insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
 	};
 
 	actionButtons.forEach(button => button.addEventListener('click', () => {
@@ -328,7 +339,7 @@ function initOrganize() {
 	}));
 
 	runButton.addEventListener('click', () => {
-		if (!currentAction || !window.confirm('Apply the changes shown in the preview? Files will be moved or deleted.')) {
+		if (!currentAction || !window.confirm(t('Apply the changes shown in the preview? Files will be moved or deleted.'))) {
 			return;
 		}
 		setBusy(true);
@@ -353,7 +364,7 @@ function initIgnoreButtons() {
 			window.location.reload();
 		}).catch(error => {
 			button.disabled = false;
-			insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', 'Error!', error.message);
+			insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
 		});
 	}));
 }

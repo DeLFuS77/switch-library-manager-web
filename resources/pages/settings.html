@@ -1,68 +1,77 @@
-{{define "title"}}Settings{{end}}
+{{define "title"}}{{t "Settings"}}{{end}}
 {{define "main"}}
 			<div class="row mb-3">
 				<div class="col">
-					<h1 class="mb-3">Settings</h1>
+					<h1 class="mb-3">{{t "Settings"}}</h1>
 				</div>
 			</div>
 			<form class="row g-3 mb-3" id="settingsForm" method="post" data-rescan="true">
 				<div class="col-12">
-					<label for="prod_keys" class="form-label">Product Keys Path</label>
+					<label for="prod_keys" class="form-label">{{t "Product Keys Path"}}</label>
 					<input type="text" class="form-control" id="prod_keys" name="prod_keys" value="{{.Settings.Prodkeys}}">
-					<div class="form-text">Folder containing prod.keys or path to a .keys file. Leave empty to look in the data folder and then in ~/.switch</div>
+					<div class="form-text">{{t "Folder containing prod.keys or path to a .keys file. Leave empty to look in the data folder and then in ~/.switch"}}</div>
 				</div>
 				<div class="col-lg-6">
-					<label for="scan_folders" class="form-label">Folders to scan</label>
+					<label for="scan_folders" class="form-label">{{t "Folders to scan"}}</label>
 					<textarea class="form-control" id="scan_folders" name="scan_folders" rows="12">
 {{.Settings.Folder}}
 {{- range .Settings.ScanFolders}}
 {{.}}
 {{- end -}}
 					</textarea>
-					<div class="form-text">One folder per Line</div>
+					<div class="form-text">{{t "One folder per Line"}}</div>
 				</div>
 				<div class="col-lg-6">
-					<label for="ignore_dlc_title_ids" class="form-label">Ignored DLC Title IDs</label>
+					<label for="ignore_dlc_title_ids" class="form-label">{{t "Ignored DLC Title IDs"}}</label>
 					<textarea class="form-control" id="ignore_dlc_title_ids" name="ignore_dlc_title_ids" rows="12">
 {{- range .Settings.IgnoreDLCTitleIds}}
 {{.}}
 {{- end -}}
 					</textarea>
-					<div class="form-text">One Title ID per Line</div>
+					<div class="form-text">{{t "One Title ID per Line"}}</div>
 				</div>
 				<div class="col-lg-6">
-					<label for="ignore_update_title_ids" class="form-label">Ignored Update Title IDs</label>
+					<label for="ignore_update_title_ids" class="form-label">{{t "Ignored Update Title IDs"}}</label>
 					<textarea class="form-control" id="ignore_update_title_ids" name="ignore_update_title_ids" rows="6">
 {{- range .Settings.IgnoreUpdateTitleIds}}
 {{.}}
 {{- end -}}
 					</textarea>
-					<div class="form-text">Games or DLC whose missing updates are not listed. One Title ID per Line</div>
+					<div class="form-text">{{t "Games or DLC whose missing updates are not listed. One Title ID per Line"}}</div>
 				</div>
 				<div class="col-lg-6">
-					<label for="ignore_file_types" class="form-label">Ignored file types</label>
-					<input type="text" class="form-control" id="ignore_file_types" name="ignore_file_types" value="{{range $i, $e := .Settings.IgnoreFileTypes}}{{if $i}} {{end}}{{$e}}{{end}}" placeholder="e.g. txt jpg nfo">
-					<div class="form-text mb-3">Unsupported files with these extensions are not reported as issues</div>
+					<label for="ignore_file_types" class="form-label">{{t "Ignored file types"}}</label>
+					<input type="text" class="form-control" id="ignore_file_types" name="ignore_file_types" value="{{range $i, $e := .Settings.IgnoreFileTypes}}{{if $i}} {{end}}{{$e}}{{end}}" placeholder="{{t "e.g. txt jpg nfo"}}">
+					<div class="form-text mb-3">{{t "Unsupported files with these extensions are not reported as issues"}}</div>
 					<div class="form-check form-switch mb-2">
 						<input class="form-check-input" type="checkbox" role="switch" id="ignore_dlc_updates" name="ignore_dlc_updates" value="true"{{if .Settings.IgnoreDLCUpdates}} checked{{end}}>
-						<label class="form-check-label" for="ignore_dlc_updates">Do not list updates for DLC</label>
+						<label class="form-check-label" for="ignore_dlc_updates">{{t "Do not list updates for DLC"}}</label>
 					</div>
 					<div class="form-check form-switch">
 						<input class="form-check-input" type="checkbox" role="switch" id="hide_demo_games" name="hide_demo_games" value="true"{{if .Settings.HideDemoGames}} checked{{end}}>
-						<label class="form-check-label" for="hide_demo_games">Hide demos in Missing Games</label>
+						<label class="form-check-label" for="hide_demo_games">{{t "Hide demos in Missing Games"}}</label>
 					</div>
 				</div>
 				<div class="col-lg-6">
-					<label for="sync_interval_hours" class="form-label">Automatic synchronization</label>
+					<label for="sync_interval_hours" class="form-label">{{t "Automatic synchronization"}}</label>
 					<select class="form-select" id="sync_interval_hours" name="sync_interval_hours">
 						{{- range .SyncIntervals}}
-						<option value="{{.}}"{{if eq . $.Settings.SyncIntervalHours}} selected{{end}}>{{intervalLabel .}}</option>
+						<option value="{{.}}"{{if eq . $.Settings.SyncIntervalHours}} selected{{end}}>{{t (intervalLabel .)}}</option>
 						{{- end}}
 					</select>
-					<div class="form-text">Last synchronization: {{formatDateTime .Settings.LastSyncTime}}{{if not .NextSync.IsZero}} &middot; next: {{if .Settings.LastSyncTime.IsZero}}within a minute{{else}}{{formatDateTime .NextSync}}{{end}}{{end}}</div>
+					<div class="form-text">{{t "Last synchronization:"}} {{t (formatDateTime .Settings.LastSyncTime)}}{{if not .NextSync.IsZero}} &middot; {{t "next:"}} {{if .Settings.LastSyncTime.IsZero}}{{t "within a minute"}}{{else}}{{formatDateTime .NextSync}}{{end}}{{end}}</div>
+				</div>
+				<div class="col-lg-6">
+					<label for="language" class="form-label">{{t "Language"}}</label>
+					<select class="form-select" id="language" name="language">
+						<option value=""{{if eq .Settings.Language ""}} selected{{end}}>{{t "Automatic (browser language)"}}</option>
+						{{- range .Languages}}
+						<option value="{{.}}"{{if eq . $.Settings.Language}} selected{{end}}>{{languageName .}}</option>
+						{{- end}}
+					</select>
 				</div>
 				<div class="col-12 text-end">
-					<button type="submit" class="btn btn-secondary">Save</button>
+					<button type="submit" class="btn btn-secondary">{{t "Save"}}</button>
 				</div>
 			</form>
 {{- end}}

@@ -3,10 +3,10 @@
 			{{- $f := .Filter}}
 			<div class="row">
 				<div class="col d-flex justify-content-center">
-					<nav aria-label="Page navigation">
+					<nav aria-label="{{t "Page navigation"}}">
 						<ul class="pagination mb-0">
 							<li class="page-item{{if not $p.HasPrev}} disabled{{end}}">
-								<a class="page-link" href="{{pageUrl $f $p.PrevPage}}" aria-label="Previous">
+								<a class="page-link" href="{{pageUrl $f $p.PrevPage}}" aria-label="{{t "Previous"}}">
 									<span aria-hidden="true">&laquo;</span>
 								</a>
 							</li>
@@ -40,7 +40,7 @@
 							<li class="page-item{{if eq $p.CurrentPage $p.NumPages}} active{{end}}"><a class="page-link" href="{{pageUrl $f $p.NumPages}}">{{$p.NumPages}}</a></li>
 							{{- end}}
 							<li class="page-item{{if not $p.HasNext}} disabled{{end}}">
-								<a class="page-link" href="{{pageUrl $f $p.NextPage}}" aria-label="Next">
+								<a class="page-link" href="{{pageUrl $f $p.NextPage}}" aria-label="{{t "Next"}}">
 									<span aria-hidden="true">&raquo;</span>
 								</a>
 							</li>
