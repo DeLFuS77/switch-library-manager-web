@@ -51,6 +51,7 @@ func (web *Web) HandleFiltered(pattern string, filteredPageData FilteredPageData
 
 	web.router.Handle(pattern, alice.New(httpin.NewInput(TitleItemFilter{})).ThenFunc(func(w http.ResponseWriter, r *http.Request) {
 		filter := r.Context().Value(httpin.Input).(*TitleItemFilter)
+		filter.Normalize()
 		if err := tmpl.ExecuteTemplate(w, "layout", filteredPageData(filter)); err != nil {
 			web.sugarLogger.Error(fmt.Errorf("executing template failed: %w", err))
 			w.WriteHeader(http.StatusInternalServerError)

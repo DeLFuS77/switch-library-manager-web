@@ -12,6 +12,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -20,11 +21,49 @@ import (
 	"time"
 )
 
+// WebState holds the databases shared by all requests. They are only ever replaced as a
+// whole, so handlers take a snapshot with get() and never see a half built state.
 type WebState struct {
-	sync.Mutex
+	mutex           sync.RWMutex
 	switchDB        *db.SwitchTitlesDB
 	localDB         *db.LocalSwitchFilesDB
-	IsSynchronizing bool
+	isSynchronizing bool
+}
+
+func (s *WebState) get() (*db.SwitchTitlesDB, *db.LocalSwitchFilesDB) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	return s.switchDB, s.localDB
+}
+
+func (s *WebState) set(switchDB *db.SwitchTitlesDB, localDB *db.LocalSwitchFilesDB) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.switchDB = switchDB
+	s.localDB = localDB
+}
+
+// startSync marks a synchronization as running. It returns false if one is already running.
+func (s *WebState) startSync() bool {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	if s.isSynchronizing {
+		return false
+	}
+	s.isSynchronizing = true
+	return true
+}
+
+func (s *WebState) endSync() {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.isSynchronizing = false
+}
+
+func (s *WebState) IsSynchronizing() bool {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	return s.isSynchronizing
 }
 
 type Web struct {
@@ -53,8 +92,9 @@ type TitleItem struct {
 
 type GlobalPageData struct {
 	IsKeysFileAvailable bool
+	IsSynchronizing     bool
 	Page                string
-	SlmVersion          string	
+	SlmVersion          string
 	Version             string
 }
 
@@ -98,15 +138,32 @@ var funcMap = template.FuncMap {
 
 		return value.Format("2006-01-02")
 	},
+	"pageUrl": func(filter *TitleItemFilter, page int) template.URL {
+		values := url.Values{}
+		if filter.Keyword != "" {
+			values.Set("q", filter.Keyword)
+		}
+		values.Set("per_page", strconv.Itoa(filter.PerPage))
+		values.Set("sort_by", filter.SortBy)
+		values.Set("sort_order", filter.SortOrder)
+		values.Set("page", strconv.Itoa(page))
+		// url.Values.Encode escapes every value, so the result is safe to use as is
+		return template.URL("?" + values.Encode())
+	},
 	"subtract": func(a, b int) int {
 		return a - b
 	},
 	"toLower": strings.ToLower,
 }
 
-var globalPageData = GlobalPageData {
-	SlmVersion: settings.SLM_VERSION,
-	Version: settings.SLM_WEB_VERSION,
+func (web *Web) globalPageData(page string) GlobalPageData {
+	return GlobalPageData {
+		IsKeysFileAvailable: settings.IsKeysFileAvailable(),
+		IsSynchronizing: web.state.IsSynchronizing(),
+		Page: page,
+		SlmVersion: settings.SLM_VERSION,
+		Version: settings.SLM_WEB_VERSION,
+	}
 }
 
 func intToTime(value int) (time.Time, error) {
@@ -126,18 +183,17 @@ func strToTime(layout, value string) (time.Time, error) {
 }
 
 func CreateWeb(router *mux.Router, embedFS embed.FS, appSettings *settings.AppSettings, dataFolder string, sugarLogger *zap.SugaredLogger) *Web {
-	return &Web{state: WebState{}, router: router, embedFS: embedFS, appSettings: appSettings, dataFolder: dataFolder, sugarLogger: sugarLogger}
+	return &Web{router: router, embedFS: embedFS, appSettings: appSettings, dataFolder: dataFolder, sugarLogger: sugarLogger}
 }
 
 func (web *Web) Start() {
 	titleFilePath := filepath.Join(web.dataFolder, settings.TITLE_JSON_FILENAME)
 	versionsFilePath := filepath.Join(web.dataFolder, settings.VERSIONS_JSON_FILENAME)
 
+	var switchDB *db.SwitchTitlesDB
 	if titleFile, err := os.Open(titleFilePath); err == nil {
 		if versionsFile, err := os.Open(versionsFilePath); err == nil {
-			if switchTitleDB, err := db.CreateSwitchTitleDB(titleFile, versionsFile); err == nil {
-				web.state.switchDB = switchTitleDB
-			} else {
+			if switchDB, err = db.CreateSwitchTitleDB(titleFile, versionsFile); err != nil {
 				web.sugarLogger.Errorf("Failed to read cached titles, please synchronize - %v", err)
 			}
 			versionsFile.Close()
@@ -159,10 +215,15 @@ func (web *Web) Start() {
 	web.localDbManager = localDbManager
 	defer localDbManager.Close()
 
-	if web.state.switchDB != nil {
-		if _, err := web.buildLocalDB(web.localDbManager, false); err != nil {
+	if switchDB != nil {
+		localDB, err := web.buildLocalDB(switchDB, false)
+		if err != nil {
 			web.sugarLogger.Error(err)
 		}
+		web.state.set(switchDB, localDB)
+	} else {
+		// first start (or titles cache lost): fetch the titles database right away
+		web.Synchronize()
 	}
 
 	// Run http server
@@ -192,17 +253,6 @@ func (web *Web) Start() {
 
 func (web *Web) UpdateProgress(curr int, total int, message string) {
 	web.sugarLogger.Debugf("%v (%v/%v)", message, curr, total)
-}
-
-func (web *Web) updateDB() {
-	if web.state.switchDB == nil {
-		switchDb, err := web.buildSwitchDb()
-		if err != nil {
-			web.sugarLogger.Error(err)
-			return
-		}
-		web.state.switchDB = switchDb
-	}
 }
 
 func (web *Web) buildSwitchDb() (*db.SwitchTitlesDB, error) {
@@ -240,16 +290,16 @@ func (web *Web) buildSwitchDb() (*db.SwitchTitlesDB, error) {
 	return switchTitleDB, err
 }
 
-func (web *Web) buildLocalDB(localDbManager *db.LocalSwitchDBManager, ignoreCache bool) (*db.LocalSwitchFilesDB, error) {
+// buildLocalDB scans the configured folders. It does not change the shared state.
+func (web *Web) buildLocalDB(switchDB *db.SwitchTitlesDB, ignoreCache bool) (*db.LocalSwitchFilesDB, error) {
 	settingsObj := settings.ReadSettings(web.dataFolder)
 
-	folderToScan := settingsObj.Folder
+	scanFolders := []string{}
+	for _, folder := range append([]string{settingsObj.Folder}, settingsObj.ScanFolders...) {
+		if folder != "" {
+			scanFolders = append(scanFolders, folder)
+		}
+	}
 
-	scanFolders := settingsObj.ScanFolders
-	scanFolders = append(scanFolders, folderToScan)
-
-	localDB, err := localDbManager.CreateLocalSwitchFilesDB(web.state.switchDB, web.dataFolder, scanFolders, web, true, ignoreCache)
-	web.state.localDB = localDB
-
-	return localDB, err
+	return web.localDbManager.CreateLocalSwitchFilesDB(switchDB, web.dataFolder, scanFolders, web, true, ignoreCache)
 }

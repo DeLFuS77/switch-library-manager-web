@@ -49,15 +49,44 @@ type ApiTitleItem struct {
 	Dlc           map[string]ApiDlcItem `json:"dlc,omitempty"`
 }
 
+func fileType(fileName string) string {
+	return strings.ToUpper(strings.TrimPrefix(filepath.Ext(fileName), "."))
+}
+
+// findLocalTitle returns the local title whose base file has the given title ID.
+func findLocalTitle(localDB *db.LocalSwitchFilesDB, titleId string) *db.SwitchGameFiles {
+	if localDB == nil {
+		return nil
+	}
+	for _, v := range localDB.TitlesMap {
+		if v.BaseExist && v.File.Metadata != nil && strings.EqualFold(v.File.Metadata.TitleId, titleId) {
+			return v
+		}
+	}
+	return nil
+}
+
+func serveDownload(w http.ResponseWriter, r *http.Request, file db.ExtendedFileInfo) {
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Disposition", "attachment; filename=" + strconv.Quote(file.FileName))
+	http.ServeFile(w, r, filepath.Join(file.BaseFolder, file.FileName))
+}
+
 func (web *Web) HandleApi() {
 	web.router.HandleFunc("/api/titles", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		items := map[string]ApiTitleItem{}
+		switchDB, localDB := web.state.get()
 
-		if web.state.localDB != nil {
-			for k, v := range web.state.localDB.TitlesMap {
-				if v.BaseExist {
+		if localDB != nil {
+			for k, v := range localDB.TitlesMap {
+				if v.BaseExist && v.File.Metadata != nil {
+					var switchTitle *db.SwitchTitle
+					if switchDB != nil {
+						switchTitle = switchDB.TitlesMap[k]
+					}
+
 					titleId := strings.ToUpper(v.File.Metadata.TitleId)
 					latestUpdate := ApiUpdateItem{ ApiExtendedFileInfo: ApiExtendedFileInfo { Version: v.LatestUpdate } }
 					name := map[string]string{}
@@ -66,14 +95,14 @@ func (web *Web) HandleApi() {
 						latestUpdate.DisplayVersion = v.File.Metadata.Ncap.DisplayVersion
 					}
 
-					if v.Updates != nil && len(v.Updates) != 0 {
+					if update, ok := v.Updates[v.LatestUpdate]; ok && update.Metadata != nil {
 						latestUpdate.DownloadUrl = "/api/titles/" + titleId + "/updates/" + strconv.Itoa(v.LatestUpdate)
-						latestUpdate.Size = v.Updates[v.LatestUpdate].ExtendedInfo.Size
-						latestUpdate.Type = strings.ToUpper(filepath.Ext(v.Updates[v.LatestUpdate].ExtendedInfo.FileName)[1:])
-						latestUpdate.RequiredSystemVersion = v.Updates[v.LatestUpdate].Metadata.RequiredTitleVersion
+						latestUpdate.Size = update.ExtendedInfo.Size
+						latestUpdate.Type = fileType(update.ExtendedInfo.FileName)
+						latestUpdate.RequiredSystemVersion = update.Metadata.RequiredTitleVersion
 
-						if v.Updates[v.LatestUpdate].Metadata.Ncap != nil {
-							latestUpdate.DisplayVersion = v.Updates[v.LatestUpdate].Metadata.Ncap.DisplayVersion
+						if update.Metadata.Ncap != nil {
+							latestUpdate.DisplayVersion = update.Metadata.Ncap.DisplayVersion
 						}
 					}
 
@@ -93,7 +122,7 @@ func (web *Web) HandleApi() {
 						ApiFileInfo:   ApiFileInfo {
 							DownloadUrl:  "/api/titles/" + titleId,
 							Size:         v.File.ExtendedInfo.Size,
-							Type:         strings.ToUpper(filepath.Ext(v.File.ExtendedInfo.FileName)[1:]),
+							Type:         fileType(v.File.ExtendedInfo.FileName),
 						},
 						ApiSystemInfo: ApiSystemInfo {
 							RequiredSystemVersion:        v.File.Metadata.RequiredTitleVersion,
@@ -102,9 +131,9 @@ func (web *Web) HandleApi() {
 						Name:          name,
 					}
 
-					if title, ok1 := web.state.switchDB.TitlesMap[k]; ok1 {
+					if switchTitle != nil {
 						if item, ok2 := items[titleId]; ok2 {
-							item.Region = title.Attributes.Region
+							item.Region = switchTitle.Attributes.Region
 							items[titleId] = item
 						}
 					}
@@ -127,6 +156,9 @@ func (web *Web) HandleApi() {
 						item.Dlc = map[string]ApiDlcItem{}
 
 						for id, dlc := range v.Dlc {
+							if dlc.Metadata == nil {
+								continue
+							}
 							dlcTitleId := strings.ToUpper(id)
 
 							item.Dlc[dlcTitleId] = ApiDlcItem {
@@ -134,17 +166,19 @@ func (web *Web) HandleApi() {
 									ApiFileInfo:    ApiFileInfo {
 										DownloadUrl: "/api/titles/" + titleId + "/dlc/" + dlcTitleId,
 										Size:        dlc.ExtendedInfo.Size,
-										Type:        strings.ToUpper(filepath.Ext(dlc.ExtendedInfo.FileName)[1:]),
+										Type:        fileType(dlc.ExtendedInfo.FileName),
 									},
 									Version:        dlc.Metadata.Version,
 								},
 								RequiredApplicationVersion: dlc.Metadata.RequiredTitleVersion,
 							}
 
-							if entry, ok2 := web.state.switchDB.TitlesMap[k].Dlc[id]; ok2 {
-								if dlcItem, ok3 := item.Dlc[dlcTitleId]; ok3 {
-									dlcItem.Name = entry.Name
-									item.Dlc[dlcTitleId] = dlcItem
+							if switchTitle != nil {
+								if entry, ok2 := switchTitle.Dlc[id]; ok2 {
+									if dlcItem, ok3 := item.Dlc[dlcTitleId]; ok3 {
+										dlcItem.Name = entry.Name
+										item.Dlc[dlcTitleId] = dlcItem
+									}
 								}
 							}
 
@@ -167,14 +201,23 @@ func (web *Web) HandleApi() {
 	})
 
 	web.router.HandleFunc("/api/titles/{titleId}", func(w http.ResponseWriter, r *http.Request) {
-		if web.state.localDB != nil {
-			vars := mux.Vars(r)
+		_, localDB := web.state.get()
+		if title := findLocalTitle(localDB, mux.Vars(r)["titleId"]); title != nil {
+			serveDownload(w, r, title.File.ExtendedInfo)
+			return
+		}
 
-			for _, v := range web.state.localDB.TitlesMap {
-				if v.BaseExist && strings.ToUpper(v.File.Metadata.TitleId) == strings.ToUpper(vars["titleId"]) {
-					w.Header().Set("Content-Type", "application/octet-stream")
-					w.Header().Set("Content-Disposition", "attachment; filename=" + strconv.Quote(v.File.ExtendedInfo.FileName))
-					http.ServeFile(w, r, filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName))
+		w.WriteHeader(http.StatusNotFound)
+	})
+
+	web.router.HandleFunc("/api/titles/{titleId}/updates/{version}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		_, localDB := web.state.get()
+
+		if version, err := strconv.Atoi(vars["version"]); err == nil {
+			if title := findLocalTitle(localDB, vars["titleId"]); title != nil {
+				if update, ok := title.Updates[version]; ok {
+					serveDownload(w, r, update.ExtendedInfo)
 					return
 				}
 			}
@@ -183,47 +226,15 @@ func (web *Web) HandleApi() {
 		w.WriteHeader(http.StatusNotFound)
 	})
 
-	web.router.HandleFunc("/api/titles/{titleId}/updates/{version}", func(w http.ResponseWriter, r *http.Request) {
-		if web.state.localDB != nil {
-			vars := mux.Vars(r)
-
-			if version, err := strconv.Atoi(vars["version"]); err == nil {
-				for _, v := range web.state.localDB.TitlesMap {
-					if v.BaseExist && strings.ToUpper(v.File.Metadata.TitleId) == strings.ToUpper(vars["titleId"]) {
-						if v.Updates != nil && len(v.Updates) != 0 {
-							if update, ok := v.Updates[version]; ok {
-								w.Header().Set("Content-Type", "application/octet-stream")
-								w.Header().Set("Content-Disposition", "attachment; filename=" + strconv.Quote(update.ExtendedInfo.FileName))
-								http.ServeFile(w, r, filepath.Join(update.ExtendedInfo.BaseFolder, update.ExtendedInfo.FileName))
-								return
-							}
-						}
-
-						break
-					}
-				}
-			}
-		}
-
-		w.WriteHeader(http.StatusNotFound)
-	})
-
 	web.router.HandleFunc("/api/titles/{titleId}/dlc/{dlcTitleId}", func(w http.ResponseWriter, r *http.Request) {
-		if web.state.localDB != nil {
-			vars := mux.Vars(r)
+		vars := mux.Vars(r)
+		_, localDB := web.state.get()
 
-			for _, v := range web.state.localDB.TitlesMap {
-				if v.BaseExist && strings.ToUpper(v.File.Metadata.TitleId) == strings.ToUpper(vars["titleId"]) {
-					if v.Dlc != nil && len(v.Dlc) != 0 {
-						if dlc, ok := v.Dlc[strings.ToUpper(vars["dlcTitleId"])]; ok {
-							w.Header().Set("Content-Type", "application/octet-stream")
-							w.Header().Set("Content-Disposition", "attachment; filename=" + strconv.Quote(dlc.ExtendedInfo.FileName))
-							http.ServeFile(w, r, filepath.Join(dlc.ExtendedInfo.BaseFolder, dlc.ExtendedInfo.FileName))
-							return
-						}
-					}
-
-					break
+		if title := findLocalTitle(localDB, vars["titleId"]); title != nil {
+			for id, dlc := range title.Dlc {
+				if strings.EqualFold(id, vars["dlcTitleId"]) {
+					serveDownload(w, r, dlc.ExtendedInfo)
+					return
 				}
 			}
 		}

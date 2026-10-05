@@ -83,6 +83,12 @@
 				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 			</div>
 			{{- end}}
+			{{- if .IsSynchronizing}}
+			<div class="alert alert-info d-flex align-items-center" role="status" id="alert_sync">
+				<span class="spinner-border spinner-border-sm flex-shrink-0 me-2" aria-hidden="true"></span>
+				<div><strong>Synchronizing!</strong> The library is being updated.</div>
+			</div>
+			{{- end}}
 			{{- template "main" .}}
 		</section>
 	</main>

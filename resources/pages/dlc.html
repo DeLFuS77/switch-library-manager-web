@@ -27,7 +27,7 @@
 											<span class="fi fi-{{.Region | toLower}}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{.Region}}"><span class="visually-hidden">{{.Region}}</span></span>
 										</div>
 										{{- end}}
-										<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{.ImageUrl}}{{end}}" class="td-img" alt="{{.Name}}">
+										<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{.ImageUrl}}{{end}}" class="td-img" alt="{{.Name}}" loading="lazy">
 									</div>
 									<div>
 										{{.Name}}<br>
