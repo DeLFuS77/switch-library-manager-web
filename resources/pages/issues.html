@@ -1,6 +1,18 @@
 {{define "title"}}{{t "Issues"}}{{end}}
 {{define "main"}}
-			{{- template "pageHeader" (dict "Title" (t "Issues") "Count" (len .Issues) "Subtitle" (t "Files that could not be added to the library, duplicates and old versions. Organize can clean up old updates and duplicates."))}}
+			{{- template "pageHeader" (dict "Title" (t "Issues") "Count" .Total "Subtitle" (t "Files that could not be added to the library, duplicates and old versions. Organize can clean up old updates and duplicates."))}}
+			{{- if gt .Total 0}}
+			<form class="toolbar" role="search">
+				<div class="toolbar-search">
+					<span class="bi bi-search" aria-hidden="true"></span>
+					<input type="search" class="form-control" name="q" value="{{.Filter.Keyword}}" placeholder="{{t "Search by file or reason..."}}" aria-label="{{t "Search"}}">
+				</div>
+				{{- if .Filter.Keyword}}
+				<a class="btn btn-link text-decoration-none px-2" href="{{filterUrl .Filter "q" ""}}">{{t "Clear"}}</a>
+				{{- end}}
+				<input type="hidden" name="per_page" value="{{.Filter.PerPage}}">
+			</form>
+			{{- end}}
 			{{- if gt (len .Issues) 0}}
 			<div class="surface p-0 overflow-hidden">
 				<div class="table-responsive">
@@ -24,6 +36,9 @@
 					</table>
 				</div>
 			</div>
+			{{- template "pagination" .}}
+			{{- else if .Filter.Keyword}}
+			{{- template "noResults" .Filter}}
 			{{- else}}
 			{{- template "emptyState" (dict "Icon" "bi-shield-check" "Tone" "success" "Title" (t "No issues") "Text" (t "Every file in your folders was recognized.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 			{{- end}}

@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"time"
 
@@ -34,9 +33,13 @@ func scanFolders(s *settings.AppSettings) []string {
 }
 
 // folderFingerprint summarizes the paths, sizes and modification times of every file in
-// the folders. It changes when a file is added, removed, renamed or rewritten.
+// the folders. It changes when a file is added, removed, renamed or rewritten. The hashes
+// of the files are combined in a way that does not depend on their order, so no list of
+// the files is kept or sorted, however big the library is.
 func folderFingerprint(folders []string) uint64 {
-	entries := []string{}
+	var sum, xor uint64
+	count := uint64(0)
+	hash := fnv.New64a()
 	for _, folder := range folders {
 		filepath.WalkDir(folder, func(path string, d fs.DirEntry, err error) error {
 			if err != nil || d.IsDir() {
@@ -47,18 +50,24 @@ func folderFingerprint(folders []string) uint64 {
 			if err != nil {
 				return nil
 			}
-			entries = append(entries, path+"\x00"+strconv.FormatInt(info.Size(), 10)+"\x00"+strconv.FormatInt(info.ModTime().UnixNano(), 10))
+			hash.Reset()
+			hash.Write([]byte(path))
+			hash.Write([]byte{0})
+			hash.Write([]byte(strconv.FormatInt(info.Size(), 10)))
+			hash.Write([]byte{0})
+			hash.Write([]byte(strconv.FormatInt(info.ModTime().UnixNano(), 10)))
+			entry := hash.Sum64()
+			// mix the bits, so files with similar hashes do not cancel out
+			entry ^= entry >> 33
+			entry *= 0xff51afd7ed558ccd
+			entry ^= entry >> 33
+			sum += entry
+			xor ^= entry
+			count++
 			return nil
 		})
 	}
-	sort.Strings(entries)
-
-	hash := fnv.New64a()
-	for _, entry := range entries {
-		hash.Write([]byte(entry))
-		hash.Write([]byte{'\n'})
-	}
-	return hash.Sum64()
+	return sum ^ (xor * 0x9e3779b97f4a7c15) ^ count
 }
 
 // folderWatcher rescans the library when the files in the library folders change.

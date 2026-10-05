@@ -5,10 +5,11 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
-		"Accounts":      "Cuentas",
-		"Add":           "Añadir",
-		"Add a user":    "Añadir un usuario",
-		"Administrator": "Administrador",
+		"Search by file or reason...": "Buscar por archivo o motivo...",
+		"Accounts":                    "Cuentas",
+		"Add":                         "Añadir",
+		"Add a user":                  "Añadir un usuario",
+		"Administrator":               "Administrador",
 		"Anyone who can open this app has full access. Create an administrator to require a login.": "Cualquiera que pueda abrir esta app tiene acceso completo. Crea un administrador para exigir inicio de sesión.",
 		"Change":                      "Cambiar",
 		"Change password":             "Cambiar contraseña",

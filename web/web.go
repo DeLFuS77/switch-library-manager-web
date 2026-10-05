@@ -31,6 +31,15 @@ type WebState struct {
 	localDB         *db.LocalSwitchFilesDB
 	isSynchronizing bool
 	progress        SyncProgress
+	// changes every time the databases are replaced
+	version uint64
+}
+
+// Version identifies the current databases, so results computed from them can be cached.
+func (s *WebState) Version() uint64 {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	return s.version
 }
 
 // SyncProgress describes the running synchronization. Total is 0 when the number of
@@ -71,6 +80,7 @@ func (s *WebState) set(switchDB *db.SwitchTitlesDB, localDB *db.LocalSwitchFiles
 	defer s.mutex.Unlock()
 	s.switchDB = switchDB
 	s.localDB = localDB
+	s.version++
 }
 
 // startSync marks a synchronization as running. It returns false if one is already running.
@@ -99,6 +109,7 @@ func (s *WebState) IsSynchronizing() bool {
 
 type Web struct {
 	state          WebState
+	cache          derivedCache
 	auth           *Auth
 	tasks          *TaskLog
 	tasksOnce      sync.Once
@@ -129,6 +140,10 @@ type TitleItem struct {
 	// library status, shown on the cards
 	UpdateAvailable bool
 	MissingDlcCount int
+	// the name in the titles database, also matched by the search
+	OriginalName string
+	// the game is in the titles database
+	Known bool
 }
 
 type GlobalPageData struct {
@@ -212,6 +227,7 @@ var funcMap = template.FuncMap {
 		return template.URL("?" + filter.query(replace...).Encode())
 	},
 	"formatSize": formatSize,
+	"thumb":      thumbUrl,
 	// the first letter of a name, for avatars
 	"initial": func(name string) string {
 		for _, r := range name {
@@ -273,9 +289,8 @@ func (web *Web) navCounts() NavCounts {
 	if switchDB == nil {
 		return counts
 	}
-	settingsObj := settings.ReadSettings(web.dataFolder)
-	counts.Updates = len(process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreUpdateTitleIds), settingsObj.IgnoreDLCUpdates))
-	for _, title := range process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds)) {
+	counts.Updates = len(web.missingUpdates())
+	for _, title := range web.missingDLC() {
 		counts.Dlc += len(title.MissingDLCItems)
 	}
 	return counts
@@ -302,22 +317,6 @@ func CreateWeb(router *mux.Router, embedFS embed.FS, appSettings *settings.AppSe
 }
 
 func (web *Web) Start() {
-	titleFilePath := filepath.Join(web.dataFolder, settings.TITLE_JSON_FILENAME)
-	versionsFilePath := filepath.Join(web.dataFolder, settings.VERSIONS_JSON_FILENAME)
-
-	var switchDB *db.SwitchTitlesDB
-	if titleFile, err := os.Open(titleFilePath); err == nil {
-		if versionsFile, err := os.Open(versionsFilePath); err == nil {
-			if switchDB, err = db.CreateSwitchTitleDB(titleFile, versionsFile); err != nil {
-				web.sugarLogger.Errorf("Failed to read cached titles, please synchronize - %v", err)
-			} else {
-				switchDB.Localized = web.loadLocalizedTitles(false)
-			}
-			versionsFile.Close()
-		}
-		titleFile.Close()
-	}
-
 	localDbManager, err := db.NewLocalSwitchDBManager(web.dataFolder)
 	if err != nil {
 		web.sugarLogger.Error("Failed to create local files db\n", err)
@@ -333,19 +332,7 @@ func (web *Web) Start() {
 	web.localDbManager = localDbManager
 	defer localDbManager.Close()
 
-	if switchDB != nil {
-		// files that could not be read with the previous keys may be readable now
-		rescan := web.localDbManager.KeysChanged(settings.KeysFingerprint())
-		if rescan {
-			web.sugarLogger.Info("The keys changed since the last scan, the library is scanned again")
-		}
-		// scanning can take minutes: the pages are served meanwhile, with the progress
-		web.state.set(switchDB, nil)
-		web.scanInBackground(rescan, TRIGGER_STARTUP)
-	} else {
-		// first start (or titles cache lost): fetch the titles database right away
-		web.Synchronize(TRIGGER_STARTUP)
-	}
+	web.startInBackground()
 
 	web.auth, err = newAuth(web.dataFolder)
 	if err != nil {
@@ -393,6 +380,67 @@ func (web *Web) Start() {
 		web.sugarLogger.Error(fmt.Errorf("running http server failed: %w", err))
 		log.Fatal(err)
 	}
+}
+
+// startInBackground loads the saved titles database and the library while the web server
+// already answers: on a small device, reading titles.json takes many seconds.
+func (web *Web) startInBackground() {
+	if !web.state.startSync() {
+		return
+	}
+	go func() {
+		web.UpdateProgress(-1, -1, "Loading titles database...")
+		switchDB := web.loadSavedTitles()
+		if switchDB == nil {
+			web.state.endSync()
+			// first start (or titles cache lost): fetch the titles database right away
+			web.Synchronize(TRIGGER_STARTUP)
+			return
+		}
+
+		// files that could not be read with the previous keys may be readable now
+		rescan := web.localDbManager.KeysChanged(settings.KeysFingerprint())
+		if rescan {
+			web.sugarLogger.Info("The keys changed since the last scan, the library is scanned again")
+		}
+		// the pages show the titles while the library is scanned
+		web.state.set(switchDB, nil)
+
+		taskId := web.startTask(TASK_SCAN, TRIGGER_STARTUP)
+		var failure *TaskNote
+		localDB, err := web.buildLocalDB(switchDB, rescan)
+		if err != nil {
+			web.sugarLogger.Error(err)
+			failure = &TaskNote{Text: NOTE_SCAN_FAILED, Detail: err.Error()}
+		} else {
+			web.taskLog().SetResult(taskId, len(localDB.TitlesMap), localDB.NumFiles)
+			web.state.set(switchDB, localDB)
+		}
+		web.state.endSync()
+		web.finishTask(taskId, failure)
+	}()
+}
+
+// loadSavedTitles reads the titles database downloaded by an earlier synchronization.
+func (web *Web) loadSavedTitles() *db.SwitchTitlesDB {
+	titleFile, err := os.Open(filepath.Join(web.dataFolder, settings.TITLE_JSON_FILENAME))
+	if err != nil {
+		return nil
+	}
+	defer titleFile.Close()
+	versionsFile, err := os.Open(filepath.Join(web.dataFolder, settings.VERSIONS_JSON_FILENAME))
+	if err != nil {
+		return nil
+	}
+	defer versionsFile.Close()
+
+	switchDB, err := db.CreateSwitchTitleDB(titleFile, versionsFile)
+	if err != nil {
+		web.sugarLogger.Errorf("Failed to read cached titles, please synchronize - %v", err)
+		return nil
+	}
+	switchDB.Localized = web.loadLocalizedTitles(false)
+	return switchDB
 }
 
 func (web *Web) UpdateProgress(curr int, total int, message string) {
@@ -534,4 +582,28 @@ func (web *Web) loadLocalizedTitles(download bool) map[string]map[string]db.Loca
 	}
 
 	return result
+}
+
+// missingUpdates are the missing updates of the library, respecting the ignore lists.
+func (web *Web) missingUpdates() map[string]process.IncompleteTitle {
+	return web.derived("missingUpdates", func() any {
+		switchDB, localDB := web.state.get()
+		if switchDB == nil || localDB == nil {
+			return map[string]process.IncompleteTitle{}
+		}
+		settingsObj := settings.ReadSettings(web.dataFolder)
+		return process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreUpdateTitleIds), settingsObj.IgnoreDLCUpdates)
+	}).(map[string]process.IncompleteTitle)
+}
+
+// missingDLC are the games with missing DLC, respecting the ignore list.
+func (web *Web) missingDLC() map[string]process.IncompleteTitle {
+	return web.derived("missingDLC", func() any {
+		switchDB, localDB := web.state.get()
+		if switchDB == nil || localDB == nil {
+			return map[string]process.IncompleteTitle{}
+		}
+		settingsObj := settings.ReadSettings(web.dataFolder)
+		return process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds))
+	}).(map[string]process.IncompleteTitle)
 }
