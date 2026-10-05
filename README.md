@@ -54,6 +54,9 @@ is given to that user automatically, so upgrading from a version that ran as roo
 
 The image has a health check on `/healthz` (port 3000), which works with password protection enabled.
 
+Put your `prod.keys` into the data folder, or mount it read-only:
+`-v /path/to/prod.keys:/usr/local/share/switch-library-manager-web/prod.keys:ro`.
+
 ### Binary
 
 Build the binary for your platform (see [Building](#building)) and run it. The data folder is the folder of the binary, or the
