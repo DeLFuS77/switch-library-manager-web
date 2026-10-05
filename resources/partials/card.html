@@ -18,31 +18,31 @@
 							<h5 class="card-title flex-fill"><a class="stretched-link link-body-emphasis text-decoration-none" href="/title/{{.Id}}.html">{{.Name}}</a></h5>
 							{{- if .LatestUpdate}}
 							<p class="card-text">
-								Update: {{.LocalUpdate}} &rarr; {{.LatestUpdate}}
+								{{t "Update"}}: {{.LocalUpdate}} &rarr; {{.LatestUpdate}}
 							</p>
 							{{- else if .LocalUpdate}}
 							<p class="card-text">
-								Version: {{if .Version}}{{.Version}}{{else}}Unknown{{end}} ({{.LocalUpdate}})
+								{{t "Version"}}: {{if .Version}}{{.Version}}{{else}}{{t "Unknown"}}{{end}} ({{.LocalUpdate}})
 							</p>
 							{{- else if .Version}}
 							<p class="card-text">
-								Version: {{.Version}}
+								{{t "Version"}}: {{.Version}}
 							</p>
 							{{- end}}
 							{{- if or (and .ReleaseDate (not .ReleaseDate.IsZero)) (and .LatestUpdateDate (not .LatestUpdateDate.IsZero))}}
 							<div class="card-text mb-3">
 								{{- if and .ReleaseDate (not .ReleaseDate.IsZero)}}
-								<div>Release Date: {{.ReleaseDate | formatTime}}</div>
+								<div>{{t "Release Date"}}: {{.ReleaseDate | formatTime}}</div>
 								{{- end}}
 								{{- if and .LatestUpdateDate (not .LatestUpdateDate.IsZero)}}
-								<div>Latest Update Date: {{.LatestUpdateDate | formatTime}}</div>
+								<div>{{t "Latest Update Date"}}: {{.LatestUpdateDate | formatTime}}</div>
 								{{- end}}
 							</div>
 							{{- end}}
-							<p class="card-text"><small class="text-body-secondary">ID: {{.Id}}</small></p>
+							<p class="card-text"><small class="text-body-secondary">{{t "ID"}}: {{.Id}}</small></p>
 							{{- if .LatestUpdate}}
 							<div class="card-action">
-								<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="update" data-ignore-id="{{.Id}}" data-ignored="true">Ignore updates</button>
+								<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="update" data-ignore-id="{{.Id}}" data-ignored="true">{{t "Ignore updates"}}</button>
 							</div>
 							{{- end}}
 						</div>
