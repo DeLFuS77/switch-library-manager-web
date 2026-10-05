@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -56,6 +55,10 @@ func percent(part int64, total int64) int {
 
 // getStatistics summarizes the library. Ignored updates and DLC are not counted as missing.
 func (web *Web) getStatistics(lang string) Statistics {
+	return web.derived("statistics:"+lang, func() any { return web.buildStatistics(lang) }).(Statistics)
+}
+
+func (web *Web) buildStatistics(lang string) Statistics {
 	stats := Statistics{}
 	switchDB, localDB := web.state.get()
 	if localDB == nil {
@@ -137,7 +140,7 @@ func (web *Web) getStatistics(lang string) Statistics {
 
 	if switchDB != nil {
 		settingsObj := settings.ReadSettings(web.dataFolder)
-		missingUpdates := process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreUpdateTitleIds), settingsObj.IgnoreDLCUpdates)
+		missingUpdates := web.missingUpdates()
 		for _, title := range missingUpdates {
 			// DLC updates are listed as well, only base games count here
 			if strings.HasSuffix(strings.ToLower(title.Attributes.Id), "000") {
@@ -147,7 +150,7 @@ func (web *Web) getStatistics(lang string) Statistics {
 		stats.GamesUpToDate = stats.Games - stats.GamesWithUpdate
 		stats.GamesUpToDatePct = percent(int64(stats.GamesUpToDate), int64(stats.Games))
 
-		for _, title := range process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds)) {
+		for _, title := range web.missingDLC() {
 			stats.GamesMissingDlc++
 			stats.MissingDlc += len(title.MissingDLCItems)
 		}

@@ -3,8 +3,6 @@ package web
 import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
-	"github.com/dtrunk90/switch-library-manager-web/process"
-	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"strings"
 )
 
@@ -29,20 +27,24 @@ func (web *Web) HandleDLC() {
 }
 
 func (web *Web) getMissingDLC(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination) {
+	return web.filterPage(filter, web.sorted("dlc:"+lang, filter, func() []TitleItem { return web.buildMissingDLC(lang) }))
+}
+
+// buildMissingDLC lists the games of the library with DLC that are not in the library.
+func (web *Web) buildMissingDLC(lang string) []TitleItem {
 	items := []TitleItem{}
 
 	switchDB, localDB := web.state.get()
 
 	if switchDB == nil || localDB == nil {
-		return items, pagination.Calculate(filter.Page, filter.PerPage, 0)
+		return items
 	}
 
-	settingsObj := settings.ReadSettings(web.dataFolder)
-	missingDLC := process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds))
+	missingDLC := web.missingDLC()
 
 	for _, v := range missingDLC {
 		name := titleName(switchDB, lang, v.Attributes.Id, v.Attributes.Name)
-		if filter.Matches(v.Attributes.Id, name, v.Attributes.Name) {
+		{
 			missingDlc := make([]db.TitleAttributes, len(v.MissingDLCItems))
 			for i, dlc := range v.MissingDLCItems {
 				dlc.Name = titleName(switchDB, lang, dlc.Id, dlc.Name)
@@ -62,16 +64,12 @@ func (web *Web) getMissingDLC(filter *TitleItemFilter, lang string) ([]TitleItem
 				MissingDLC:       v.MissingDLC,
 				MissingDLCItems:  missingDlc,
 				Name:             name,
+				OriginalName:     v.Attributes.Name,
 				Region:           v.Attributes.Region,
+				Known:            true,
 			})
 		}
 	}
 
-	p := pagination.Calculate(filter.Page, filter.PerPage, len(items))
-
-	if err := sortItems(filter, items); err != nil {
-		web.sugarLogger.Error(err)
-	}
-
-	return items[p.Start:p.End], p
+	return items
 }

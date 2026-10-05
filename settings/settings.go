@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"go.uber.org/zap"
@@ -81,28 +82,30 @@ type NotificationOptions struct {
 }
 
 type AppSettings struct {
-	VersionsJsonUrl        string              `json:"versions_json_url"`
-	VersionsEtag           string              `json:"versions_etag"`
-	TitlesJsonUrl          string              `json:"titles_json_url"`
-	TitlesEtag             string              `json:"titles_etag"`
-	LocalizedTitlesJsonUrl string              `json:"localized_titles_json_url"`
-	LocalizedTitlesEtags   map[string]string   `json:"localized_titles_etags"`
-	Prodkeys               string              `json:"prod_keys"`
-	Folder                 string              `json:"folder"`
-	ScanFolders            []string            `json:"scan_folders"`
-	Port                   int                 `json:"port"`
-	Debug                  bool                `json:"debug"`
-	OrganizeOptions        OrganizeOptions     `json:"organize_options"`
-	IgnoreDLCTitleIds      []string            `json:"ignore_dlc_title_ids"`
-	IgnoreUpdateTitleIds   []string            `json:"ignore_update_title_ids"`
-	IgnoreDLCUpdates       bool                `json:"ignore_dlc_updates"`
-	IgnoreFileTypes        []string            `json:"ignore_file_types"`
-	HideDemoGames          bool                `json:"hide_demo_games"`
-	WatchFolders           bool                `json:"watch_folders"`
-	SyncIntervalHours      int                 `json:"sync_interval_hours"`
-	Language               string              `json:"language"`
-	Notifications          NotificationOptions `json:"notifications"`
-	LastSyncTime           time.Time           `json:"last_sync_time"`
+	VersionsJsonUrl        string            `json:"versions_json_url"`
+	VersionsEtag           string            `json:"versions_etag"`
+	TitlesJsonUrl          string            `json:"titles_json_url"`
+	TitlesEtag             string            `json:"titles_etag"`
+	LocalizedTitlesJsonUrl string            `json:"localized_titles_json_url"`
+	LocalizedTitlesEtags   map[string]string `json:"localized_titles_etags"`
+	Prodkeys               string            `json:"prod_keys"`
+	Folder                 string            `json:"folder"`
+	ScanFolders            []string          `json:"scan_folders"`
+	Port                   int               `json:"port"`
+	Debug                  bool              `json:"debug"`
+	OrganizeOptions        OrganizeOptions   `json:"organize_options"`
+	IgnoreDLCTitleIds      []string          `json:"ignore_dlc_title_ids"`
+	IgnoreUpdateTitleIds   []string          `json:"ignore_update_title_ids"`
+	IgnoreDLCUpdates       bool              `json:"ignore_dlc_updates"`
+	IgnoreFileTypes        []string          `json:"ignore_file_types"`
+	HideDemoGames          bool              `json:"hide_demo_games"`
+	WatchFolders           bool              `json:"watch_folders"`
+	// files read at the same time while scanning; 0 picks a default
+	ScanWorkers       int                 `json:"scan_workers"`
+	SyncIntervalHours int                 `json:"sync_interval_hours"`
+	Language          string              `json:"language"`
+	Notifications     NotificationOptions `json:"notifications"`
+	LastSyncTime      time.Time           `json:"last_sync_time"`
 }
 
 func ReadSettingsAsJSON(dataFolder string) string {
@@ -230,6 +233,15 @@ func saveDefaultSettings(dataFolder string) *AppSettings {
 
 var updateMutex sync.Mutex
 
+// version changes every time the settings are saved, so results computed from them can
+// be cached until then
+var version atomic.Uint64
+
+// Version identifies the saved settings.
+func Version() uint64 {
+	return version.Load()
+}
+
 // UpdateSettings applies change to the current settings and saves them. Concurrent
 // updates are serialized so one request cannot overwrite the change of another.
 func UpdateSettings(dataFolder string, change func(settings *AppSettings)) *AppSettings {
@@ -246,5 +258,6 @@ func SaveSettings(settings *AppSettings, dataFolder string) *AppSettings {
 		zap.S().Errorf("Failed to save settings - %v", err)
 	}
 	settingsInstance = settings
+	version.Add(1)
 	return settings
 }

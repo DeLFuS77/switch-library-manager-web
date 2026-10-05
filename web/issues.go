@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -13,24 +14,50 @@ type Issue struct {
 
 type IssuesPageData struct {
 	GlobalPageData
-	Issues []Issue
+	// the shown page of the issues that match the search
+	Issues     []Issue
+	Total      int
+	Filter     *TitleItemFilter
+	Pagination pagination.Pagination
 }
 
 func (web *Web) HandleIssues() {
 	fsPatterns := []string {
 		"resources/layout.html",
+		"resources/partials/pagination.html",
 		"resources/pages/issues.html",
 	}
 
-	web.Handle("/issues.html", func() any {
+	web.HandleFiltered("/issues.html", func(filter *TitleItemFilter, lang string) any {
+		all := web.getIssues()
+		matching := all
+		if filter.Keyword != "" {
+			keyword := strings.ToLower(filter.Keyword)
+			matching = []Issue{}
+			for _, issue := range all {
+				if strings.Contains(strings.ToLower(issue.File), keyword) || strings.Contains(strings.ToLower(translateIssue(lang, issue.Reason)), keyword) {
+					matching = append(matching, issue)
+				}
+			}
+		}
+		p := pagination.Calculate(filter.Page, filter.PerPage, len(matching))
 		return IssuesPageData {
 			GlobalPageData: web.globalPageData("issues"),
-			Issues: web.getIssues(),
+			Issues: matching[p.Start:p.End],
+			Total: len(all),
+			Filter: filter,
+			Pagination: p,
 		}
 	}, web.embedFS, fsPatterns...)
 }
 
+// getIssues lists the problems of the library, sorted by file. The result is shared, it
+// must not be modified.
 func (web *Web) getIssues() []Issue {
+	return web.derived("issues", func() any { return web.buildIssues() }).([]Issue)
+}
+
+func (web *Web) buildIssues() []Issue {
 	issues := []Issue{}
 	_, localDB := web.state.get()
 

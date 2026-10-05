@@ -28,12 +28,17 @@ func (web *Web) HandleMissing() {
 }
 
 func (web *Web) getMissingGames(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination) {
+	return web.filterPage(filter, web.sorted("missingGames:"+lang, filter, func() []TitleItem { return web.buildMissingGames(lang) }))
+}
+
+// buildMissingGames lists every game of the titles database that is not in the library.
+func (web *Web) buildMissingGames(lang string) []TitleItem {
 	items := []TitleItem{}
 
 	switchDB, localDB := web.state.get()
 
 	if switchDB == nil || localDB == nil {
-		return items, pagination.Calculate(filter.Page, filter.PerPage, 0)
+		return items
 	}
 
 	hideDemoGames := settings.ReadSettings(web.dataFolder).HideDemoGames
@@ -52,7 +57,7 @@ func (web *Web) getMissingGames(filter *TitleItemFilter, lang string) ([]TitleIt
 		}
 
 		name := titleName(switchDB, lang, v.Attributes.Id, v.Attributes.Name)
-		if filter.Matches(v.Attributes.Id, name, v.Attributes.Name) {
+		{
 			imageUrl := localImageUrl(localDB, v.Attributes.Id)
 			if imageUrl == "" && v.Attributes.IconUrl != "" {
 				imageUrl = v.Attributes.IconUrl
@@ -69,17 +74,13 @@ func (web *Web) getMissingGames(filter *TitleItemFilter, lang string) ([]TitleIt
 				ImageUrl:    imageUrl,
 				Id:          strings.ToUpper(v.Attributes.Id),
 				Name:        name,
+				OriginalName: v.Attributes.Name,
 				Region:      v.Attributes.Region,
 				ReleaseDate: release,
+				Known:       true,
 			})
 		}
 	}
 
-	p := pagination.Calculate(filter.Page, filter.PerPage, len(items))
-
-	if err := sortItems(filter, items); err != nil {
-		web.sugarLogger.Error(err)
-	}
-
-	return items[p.Start:p.End], p
+	return items
 }
