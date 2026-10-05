@@ -19,6 +19,18 @@ var (
 
 type switchKeys struct {
 	keys map[string]string
+	// title keys by lower case rights ID, from title.keys next to prod.keys
+	titleKeys map[string]string
+}
+
+// TitleKey returns the encrypted title key of a rights ID from title.keys, if known.
+// Title keys are needed to decrypt games without a ticket in their NSP.
+func (k *switchKeys) TitleKey(rightsId string) (string, bool) {
+	if k == nil {
+		return "", false
+	}
+	key, ok := k.titleKeys[strings.ToLower(rightsId)]
+	return key, ok
 }
 
 func (k *switchKeys) GetKey(keyName string) string {
@@ -77,13 +89,23 @@ func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
 		return nil, errors.New("Error trying to read prod.keys [reason:" + err.Error() + "]")
 	}
 
-	keysInstance = &switchKeys{keys: map[string]string{}}
+	keysInstance = &switchKeys{keys: map[string]string{}, titleKeys: map[string]string{}}
 	for _, key := range p.Keys() {
 		value, _ := p.Get(key)
 		keysInstance.keys[key] = value
 	}
 
 	logger.Infof("Loaded prod.keys from: %v", path)
+
+	// optional: title keys for games whose NSP has no ticket
+	titleKeysPath := filepath.Join(filepath.Dir(path), "title.keys")
+	if titleKeys, err := properties.LoadFile(titleKeysPath, properties.UTF8); err == nil {
+		for _, rightsId := range titleKeys.Keys() {
+			value, _ := titleKeys.Get(rightsId)
+			keysInstance.titleKeys[strings.ToLower(strings.TrimSpace(rightsId))] = strings.TrimSpace(value)
+		}
+		logger.Infof("Loaded %v title keys from: %v", len(keysInstance.titleKeys), titleKeysPath)
+	}
 	return keysInstance, nil
 }
 

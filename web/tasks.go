@@ -14,6 +14,7 @@ const (
 	TASK_SCAN     = "scan"
 	TASK_ORGANIZE = "organize"
 	TASK_CLEANUP  = "cleanup"
+	TASK_COMPRESS = "compress"
 )
 
 // what started a task
@@ -24,6 +25,7 @@ const (
 	TRIGGER_SETTINGS = "settings"
 	TRIGGER_STARTUP  = "startup"
 	TRIGGER_ORGANIZE = "organize"
+	TRIGGER_COMPRESS = "compress"
 )
 
 // task results
@@ -68,6 +70,8 @@ type Task struct {
 	// results, depending on the kind
 	Games int `json:"games,omitempty"`
 	Files int `json:"files,omitempty"`
+	// bytes saved by a compression
+	Saved int64 `json:"saved,omitempty"`
 }
 
 // TaskNote is a problem of a task: Text is an English sentence translated by the
@@ -162,6 +166,13 @@ func (l *TaskLog) Warn(id int64, text string, detail string) {
 func (l *TaskLog) SetResult(id int64, games int, files int) {
 	l.update(id, false, func(task *Task) {
 		task.Games, task.Files = games, files
+	})
+}
+
+// SetCompressResult records the files compressed so far and the bytes saved.
+func (l *TaskLog) SetCompressResult(id int64, files int, saved int64) {
+	l.update(id, false, func(task *Task) {
+		task.Files, task.Saved = files, saved
 	})
 }
 
