@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
-	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -26,6 +26,33 @@ func getType(gameFile *db.SwitchGameFiles) string {
 	return ""
 }
 
+// getLocalTitleName returns the best known name of a local title: the titles database,
+// then the NACP (American English first), then the file name.
+func getLocalTitleName(title *db.SwitchTitle, gameFile *db.SwitchGameFiles) string {
+	if title != nil && title.Attributes.Name != "" {
+		return title.Attributes.Name
+	}
+
+	if ncap := gameFile.File.Metadata.Ncap; ncap != nil {
+		if name := ncap.TitleName["AmericanEnglish"].Title; name != "" {
+			return name
+		}
+
+		languages := make([]string, 0, len(ncap.TitleName))
+		for language := range ncap.TitleName {
+			languages = append(languages, language)
+		}
+		sort.Strings(languages)
+		for _, language := range languages {
+			if name := ncap.TitleName[language].Title; name != "" {
+				return name
+			}
+		}
+	}
+
+	return strings.TrimSpace(db.ParseTitleNameFromFileName(gameFile.File.ExtendedInfo.FileName))
+}
+
 func (web *Web) HandleIndex() {
 	fsPatterns := []string {
 		"resources/layout.html",
@@ -36,11 +63,9 @@ func (web *Web) HandleIndex() {
 	}
 
 	web.HandleFiltered("/index.html", func(filter *TitleItemFilter) any {
-		globalPageData.IsKeysFileAvailable = settings.IsKeysFileAvailable()
-		globalPageData.Page = "index"
 		items, p := web.getLibrary(filter)
 		return TitleItemsPageData {
-			GlobalPageData: globalPageData,
+			GlobalPageData: web.globalPageData("index"),
 			TitleItems: items,
 			Filter: filter,
 			Pagination: p,
@@ -50,73 +75,64 @@ func (web *Web) HandleIndex() {
 
 func (web *Web) getLibrary(filter *TitleItemFilter) ([]TitleItem, pagination.Pagination) {
 	items := []TitleItem{}
+	switchDB, localDB := web.state.get()
 
-	if web.state.localDB == nil {
+	if localDB == nil {
 		return items, pagination.Calculate(filter.Page, filter.PerPage, 0)
 	}
 
-	for k, v := range web.state.localDB.TitlesMap {
-		if v.BaseExist {
-			version := ""
-			name := ""
-			if v.File.Metadata.Ncap != nil {
-				version = v.File.Metadata.Ncap.DisplayVersion
-				name = v.File.Metadata.Ncap.TitleName["AmericanEnglish"].Title
-			}
+	for k, v := range localDB.TitlesMap {
+		if !v.BaseExist || v.File.Metadata == nil {
+			continue
+		}
 
-			if v.Updates != nil && len(v.Updates) != 0 {
-				if v.Updates[v.LatestUpdate].Metadata.Ncap != nil {
-					version = v.Updates[v.LatestUpdate].Metadata.Ncap.DisplayVersion
-				} else {
-					version = ""
-				}
-			}
+		var title *db.SwitchTitle
+		if switchDB != nil {
+			title = switchDB.TitlesMap[k]
+		}
 
-			if title, ok := web.state.switchDB.TitlesMap[k]; ok {
-				if title.Attributes.Name != "" {
-					name = title.Attributes.Name
-				}
+		name := getLocalTitleName(title, v)
+		if !filter.Matches(v.File.Metadata.TitleId, name) {
+			continue
+		}
 
-				if filter.Keyword == "" || strings.Contains(strings.ToLower(v.File.Metadata.TitleId), strings.ToLower(filter.Keyword)) || strings.Contains(strings.ToLower(name), strings.ToLower(filter.Keyword)) {
-					var imageUrl string
-					if v.Icon != "" {
-						imageUrl = "/i/" + v.Icon
-					} else if v.Banner != "" {
-						imageUrl = "/i/" + v.Banner
-					}
+		version := ""
+		if v.File.Metadata.Ncap != nil {
+			version = v.File.Metadata.Ncap.DisplayVersion
+		}
 
-					release, err := intToTime(title.Attributes.ReleaseDate)
-					if err != nil {
-						web.sugarLogger.Error(fmt.Errorf("parsing time failed: %w", err))
-					}
-
-					items = append(items, TitleItem {
-						ImageUrl:    imageUrl,
-						Id:          strings.ToUpper(v.File.Metadata.TitleId),
-						LocalUpdate: v.LatestUpdate,
-						Name:        name,
-						Region:      title.Attributes.Region,
-						ReleaseDate: release,
-						Type:        strings.ToUpper(getType(v)),
-						Version:     version,
-					})
-				}
-			} else {
-				if name == "" {
-					name = db.ParseTitleNameFromFileName(v.File.ExtendedInfo.FileName)
-				}
-
-				if filter.Keyword == "" || strings.Contains(strings.ToLower(v.File.Metadata.TitleId), strings.ToLower(filter.Keyword)) || strings.Contains(strings.ToLower(name), strings.ToLower(filter.Keyword)) {
-					items = append(items, TitleItem {
-						Id:          strings.ToUpper(v.File.Metadata.TitleId),
-						LocalUpdate: v.LatestUpdate,
-						Name:        name,
-						Type:        strings.ToUpper(getType(v)),
-						Version:     version,
-					})
-				}
+		if len(v.Updates) != 0 {
+			version = ""
+			if update, ok := v.Updates[v.LatestUpdate]; ok && update.Metadata != nil && update.Metadata.Ncap != nil {
+				version = update.Metadata.Ncap.DisplayVersion
 			}
 		}
+
+		item := TitleItem {
+			Id:          strings.ToUpper(v.File.Metadata.TitleId),
+			LocalUpdate: v.LatestUpdate,
+			Name:        name,
+			Type:        strings.ToUpper(getType(v)),
+			Version:     version,
+		}
+
+		if v.Icon != "" {
+			item.ImageUrl = "/i/" + v.Icon
+		} else if v.Banner != "" {
+			item.ImageUrl = "/i/" + v.Banner
+		}
+
+		if title != nil {
+			item.Region = title.Attributes.Region
+
+			release, err := intToTime(title.Attributes.ReleaseDate)
+			if err != nil {
+				web.sugarLogger.Error(fmt.Errorf("parsing time failed: %w", err))
+			}
+			item.ReleaseDate = release
+		}
+
+		items = append(items, item)
 	}
 
 	p := pagination.Calculate(filter.Page, filter.PerPage, len(items))
