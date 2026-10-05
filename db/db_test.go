@@ -1,6 +1,10 @@
 package db
 
 import (
+	"errors"
+	"fmt"
+
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -244,5 +248,38 @@ func TestLocalDBManagerRebuildsOldSchemaCache(t *testing.T) {
 	}
 	if got := manager.db.GetInternalValue(DB_KEY_LIBRARY_SCHEMA); got != LIBRARY_SCHEMA_VERSION {
 		t.Fatalf("schema version = %q", got)
+	}
+}
+
+func TestReadErrorTextExplainsMissingKeys(t *testing.T) {
+	missing := readErrorText("NSP", fmt.Errorf("reading: %w", &switchfs.MissingKeyError{KeyName: "key_area_key_application_15"}))
+	if !strings.Contains(missing, "key_area_key_application_15") || !strings.Contains(missing, "newer firmware") {
+		t.Fatalf("missing key hint not shown: %q", missing)
+	}
+	if other := readErrorText("XCI", errors.New("broken")); other != "failed to read XCI [reason: broken]" {
+		t.Fatalf("unexpected text: %q", other)
+	}
+}
+
+// A cache with files but no recognized titles used to scan every file twice.
+func TestScanDoesNotDuplicateCachedFiles(t *testing.T) {
+	romDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(romDir, "unknown.nsp"), []byte("x"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	manager, err := NewLocalSwitchDBManager(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer manager.Close()
+
+	for i := 0; i < 3; i++ {
+		localDB, err := manager.CreateLocalSwitchFilesDB(nil, t.TempDir(), []string{romDir}, nil, true, false)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if localDB.NumFiles != 1 || len(localDB.Skipped) != 1 {
+			t.Fatalf("run %d: %d files, %d skipped", i, localDB.NumFiles, len(localDB.Skipped))
+		}
 	}
 }

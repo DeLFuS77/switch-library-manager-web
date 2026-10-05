@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Titles that need keys missing from prod.keys (dumped from an older firmware) are reported in Issues with the name of
+  the missing key and how to fix it.
+- Synchronize reloads prod.keys, so a replaced keys file is used without restarting the app.
+- A library cache without recognized titles no longer scans every file twice on start.
+- Log warnings no longer include stack traces unless debug is enabled.
+
 ## 1.1.0
 
 First release of this fork after [dtrunk90/switch-library-manager-web](https://github.com/dtrunk90/switch-library-manager-web)
