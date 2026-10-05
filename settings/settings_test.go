@@ -165,3 +165,14 @@ func TestGetSwitchKeysAcceptsFolderAndFile(t *testing.T) {
 		t.Fatal("expected error for missing keys")
 	}
 }
+
+func TestMissingOrganizeTemplatesGetDefaults(t *testing.T) {
+	isolateSettings(t)
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, SETTINGS_FILENAME), `{"organize_options": {"rename_files": true}}`)
+
+	s := ReadSettings(dir)
+	if s.OrganizeOptions.FolderNameTemplate != DEFAULT_FOLDER_NAME_TEMPLATE || s.OrganizeOptions.FileNameTemplate != DEFAULT_FILE_NAME_TEMPLATE || !s.OrganizeOptions.RenameFiles {
+		t.Fatalf("unexpected organize options: %+v", s.OrganizeOptions)
+	}
+}

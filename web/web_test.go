@@ -317,3 +317,80 @@ func TestConcurrentReadsDuringSync(t *testing.T) {
 	}
 	wg.Wait()
 }
+
+func TestSameOriginOnly(t *testing.T) {
+	handler := sameOriginOnly(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	tests := []struct {
+		name    string
+		method  string
+		headers map[string]string
+		want    int
+	}{
+		{"get from another site", http.MethodGet, map[string]string{"Sec-Fetch-Site": "cross-site"}, http.StatusNoContent},
+		{"post without browser headers", http.MethodPost, nil, http.StatusNoContent},
+		{"post same origin", http.MethodPost, map[string]string{"Sec-Fetch-Site": "same-origin", "Origin": "http://example.com"}, http.StatusNoContent},
+		{"post from another site", http.MethodPost, map[string]string{"Sec-Fetch-Site": "cross-site"}, http.StatusForbidden},
+		{"post from same site subdomain", http.MethodPost, map[string]string{"Sec-Fetch-Site": "same-site"}, http.StatusForbidden},
+		{"post with foreign origin", http.MethodPost, map[string]string{"Origin": "http://evil.test"}, http.StatusForbidden},
+		{"post with null origin", http.MethodPost, map[string]string{"Origin": "null"}, http.StatusForbidden},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := httptest.NewRequest(tt.method, "http://example.com/sync", nil)
+			for k, v := range tt.headers {
+				request.Header.Set(k, v)
+			}
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, request)
+			if recorder.Code != tt.want {
+				t.Fatalf("got %d, want %d", recorder.Code, tt.want)
+			}
+		})
+	}
+}
+
+func TestOrganizeEndpoints(t *testing.T) {
+	web := newTestWeb(t)
+	web.router.Use(sameOriginOnly)
+	web.handleOrganizeActions()
+
+	post := func(path string, action string, headers map[string]string) *httptest.ResponseRecorder {
+		request := httptest.NewRequest(http.MethodPost, path, strings.NewReader("action="+action))
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		for k, v := range headers {
+			request.Header.Set(k, v)
+		}
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, request)
+		return recorder
+	}
+
+	if r := post("/organize/preview", "organize", nil); r.Code != http.StatusBadRequest {
+		t.Fatalf("preview without library: %d %s", r.Code, r.Body.String())
+	}
+
+	switchDB, localDB := testDatabases(t)
+	web.state.set(switchDB, localDB)
+
+	if r := post("/organize/preview", "bogus", nil); r.Code != http.StatusBadRequest {
+		t.Fatalf("unknown action: %d", r.Code)
+	}
+	if r := post("/organize/run", "cleanup", map[string]string{"Sec-Fetch-Site": "cross-site"}); r.Code != http.StatusForbidden {
+		t.Fatalf("cross-site run must be rejected: %d", r.Code)
+	}
+
+	r := post("/organize/preview", "cleanup", nil)
+	var response OrganizeResponse
+	if err := json.Unmarshal(r.Body.Bytes(), &response); err != nil || r.Code != http.StatusOK || !response.DryRun {
+		t.Fatalf("cleanup preview: %d %s", r.Code, r.Body.String())
+	}
+
+	// a running synchronization blocks file changes
+	web.state.startSync()
+	if r := post("/organize/run", "cleanup", nil); r.Code != http.StatusConflict {
+		t.Fatalf("run during sync: %d", r.Code)
+	}
+	web.state.endSync()
+}

@@ -227,6 +227,7 @@ func (web *Web) Start() {
 	}
 
 	// Run http server
+	web.router.Use(sameOriginOnly)
 	web.HandleResources()
 	web.HandleImages()
 	web.HandleIndex()
