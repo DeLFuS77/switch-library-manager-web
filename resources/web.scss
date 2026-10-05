@@ -1,28 +1,69 @@
 /*
- * Bootstrap
+ * Switch Library Manager Web
+ *
+ * Design system on top of Bootstrap 5: an accent red and a cyan secondary color inspired
+ * by game controllers, layered surfaces, rounded components and quiet motion.
  */
 @import "../node_modules/bootstrap/scss/mixins/banner";
 @include bsBanner("");
 
-
-// scss-docs-start import-stack
-// Configuration
 @import "../node_modules/bootstrap/scss/functions";
+
+// ---------------------------------------------------------------------------------------
+// Design tokens (before Bootstrap's variables, which derive their colors from them)
+// ---------------------------------------------------------------------------------------
+$slm-red:  #d62839; // 4.9:1 on white, primary actions
+$slm-cyan: #0fb5d8; // secondary accent, information
+$slm-ink:  #0d1117;
+
+$primary:   $slm-red;
+$info:      $slm-cyan;
+$success:   #1f9d55;
+$warning:   #f2b51d;
+$danger:    #dc3545;
+$secondary: #6b7280;
+
+$font-family-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif;
+$headings-font-weight: 700;
+$headings-letter-spacing: -.01em;
+$lead-font-weight: 400;
+
+$border-radius:    .5rem;
+$border-radius-sm: .375rem;
+$border-radius-lg: .75rem;
+$border-radius-xl: 1rem;
+$card-border-radius: $border-radius-xl;
+$card-cap-padding-y: .75rem;
+$badge-border-radius: 2rem;
+$badge-font-weight: 600;
+$badge-padding-y: .4em;
+$badge-padding-x: .7em;
+
+$body-bg: #f4f6fa;
+$body-tertiary-bg: #ffffff;
+$body-bg-dark: $slm-ink;
+$body-secondary-bg-dark: #161b22;
+$body-tertiary-bg-dark: #12161d;
+$border-color-dark: #2a313c;
+
+$input-btn-focus-width: .2rem;
+$input-btn-focus-color-opacity: .35;
+
+$pagination-active-bg: $primary;
+$pagination-active-border-color: $primary;
+$pagination-border-radius: $border-radius;
+
+$tooltip-color: #fff;
+$tooltip-bg: $slm-ink;
+
+$navbar-nav-link-padding-x: .75rem;
+$offcanvas-horizontal-width: 320px;
+
 @import "../node_modules/bootstrap/scss/variables";
 @import "../node_modules/bootstrap/scss/variables-dark";
 @import "../node_modules/bootstrap/scss/maps";
 @import "../node_modules/bootstrap/scss/mixins";
 @import "../node_modules/bootstrap/scss/utilities";
-
-// Default variable overrides (the link colors follow the light/dark theme)
-$pagination-color:               var(--bs-body-color);
-$pagination-focus-color:         var(--bs-body-color);
-$pagination-hover-color:         var(--bs-body-color);
-$pagination-active-bg:           $secondary;
-$pagination-active-border-color: $pagination-active-bg;
-
-$tooltip-color:                  $dark;
-$tooltip-bg:                     $light;
 
 // Layout & components
 @import "../node_modules/bootstrap/scss/root";
@@ -40,7 +81,6 @@ $tooltip-bg:                     $light;
 @import "../node_modules/bootstrap/scss/nav";
 @import "../node_modules/bootstrap/scss/navbar";
 @import "../node_modules/bootstrap/scss/card";
-@import "../node_modules/bootstrap/scss/accordion";
 @import "../node_modules/bootstrap/scss/breadcrumb";
 @import "../node_modules/bootstrap/scss/pagination";
 @import "../node_modules/bootstrap/scss/badge";
@@ -48,131 +88,733 @@ $tooltip-bg:                     $light;
 @import "../node_modules/bootstrap/scss/progress";
 @import "../node_modules/bootstrap/scss/list-group";
 @import "../node_modules/bootstrap/scss/close";
-@import "../node_modules/bootstrap/scss/toasts";
-@import "../node_modules/bootstrap/scss/modal";
 @import "../node_modules/bootstrap/scss/tooltip";
-@import "../node_modules/bootstrap/scss/popover";
-@import "../node_modules/bootstrap/scss/carousel";
 @import "../node_modules/bootstrap/scss/spinners";
 @import "../node_modules/bootstrap/scss/offcanvas";
-@import "../node_modules/bootstrap/scss/placeholders";
-
-// Helpers
 @import "../node_modules/bootstrap/scss/helpers";
-
-// Utilities
 @import "../node_modules/bootstrap/scss/utilities/api";
-// scss-docs-end import-stack
 
-/*
- * Bootstrap Icons
- */
 $bootstrap-icons-font-dir: "/resources/vendor/bootstrap-icons/font/fonts";
 @import "../node_modules/bootstrap-icons/font/bootstrap-icons";
 
-/*
- * Flag Icons
- */
 $flag-icons-path: "/resources/vendor/flag-icons/flags";
 @import "../node_modules/flag-icons/sass/flag-icons";
 
-/*
- * Other
- */
-.card-img-top {
-	object-fit: cover;
-	height: 94vw;
-	width: 100%;
+// ---------------------------------------------------------------------------------------
+// Theme surfaces
+// ---------------------------------------------------------------------------------------
+:root,
+[data-bs-theme="light"] {
+	--slm-surface: #ffffff;
+	--slm-surface-raised: #ffffff;
+	--slm-surface-muted: #eef1f6;
+	--slm-border: rgba(15, 23, 42, .08);
+	--slm-shadow: 0 1px 2px rgba(15, 23, 42, .06), 0 2px 8px rgba(15, 23, 42, .06);
+	--slm-shadow-hover: 0 14px 30px -10px rgba(15, 23, 42, .28);
+	--slm-header-bg: rgba(255, 255, 255, .82);
+	--slm-accent-soft: rgba(214, 40, 57, .1);
+	--slm-cyan-soft: rgba(15, 181, 216, .12);
 }
 
-.td-img {
-	object-fit: cover;
-	height: 26vw;
-	width: auto;
+[data-bs-theme="dark"] {
+	--slm-surface: #161b22;
+	--slm-surface-raised: #1c222b;
+	--slm-surface-muted: #11151b;
+	--slm-border: rgba(255, 255, 255, .07);
+	--slm-shadow: 0 1px 2px rgba(0, 0, 0, .4);
+	--slm-shadow-hover: 0 16px 34px -12px rgba(0, 0, 0, .75);
+	--slm-header-bg: rgba(13, 17, 23, .8);
+	--slm-accent-soft: rgba(255, 92, 108, .14);
+	--slm-cyan-soft: rgba(15, 181, 216, .16);
+	--bs-link-color-rgb: 255, 128, 140;
+	--bs-link-hover-color-rgb: 255, 160, 170;
 }
 
-@include media-breakpoint-up(sm) {
-	.card-img-top {
-		height: 45vw;
-	}
+body {
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
 
-	.td-img {
-		height: 18vw;
+::selection {
+	background: var(--slm-accent-soft);
+}
+
+// keyboard users always see where they are
+:focus-visible {
+	outline: 2px solid $slm-cyan;
+	outline-offset: 2px;
+}
+
+.skip-link {
+	position: absolute;
+	top: .5rem;
+	left: .5rem;
+	z-index: 2000;
+	transform: translateY(-200%);
+	transition: transform .15s ease;
+
+	&:focus {
+		transform: none;
 	}
 }
 
-@include media-breakpoint-up(md) {
-	.card-img-top {
-		height: 30vw;
-	}
+// ---------------------------------------------------------------------------------------
+// Header and navigation
+// ---------------------------------------------------------------------------------------
+.app-header {
+	background: var(--slm-header-bg);
+	backdrop-filter: saturate(160%) blur(12px);
+	-webkit-backdrop-filter: saturate(160%) blur(12px);
+	border-bottom: 1px solid var(--slm-border);
+}
 
-	.td-img {
-		height: 15vw;
+.navbar-brand {
+	font-weight: 800;
+	letter-spacing: -.02em;
+
+	.brand-mark {
+		display: inline-grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: .6rem;
+		background: linear-gradient(135deg, $slm-red 0 50%, $slm-cyan 50% 100%);
+		box-shadow: 0 4px 12px -4px rgba($slm-red, .7);
+
+		img {
+			width: 1.15rem;
+			height: 1.15rem;
+		}
 	}
 }
 
-@include media-breakpoint-up(lg) {
-	.card-img-top {
-		height: 22vw;
+.app-nav .nav-link {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	border-radius: $border-radius;
+	font-weight: 500;
+	white-space: nowrap;
+	color: var(--bs-secondary-color);
+	transition: color .15s ease, background-color .15s ease;
+
+	@include media-breakpoint-up(xl) {
+		--bs-navbar-nav-link-padding-x: .6rem;
+		gap: .35rem;
+	}
+
+	.bi {
+		font-size: 1.05rem;
+	}
+
+	&:hover {
+		color: var(--bs-body-color);
+		background: var(--slm-surface-muted);
+	}
+
+	&.active {
+		color: var(--bs-body-color);
+		background: var(--slm-accent-soft);
+		box-shadow: inset 0 -2px 0 $primary;
 	}
 }
 
+@include media-breakpoint-down(xl) {
+	.app-nav .nav-link {
+		padding: .7rem .9rem;
+
+		&.active {
+			box-shadow: inset 3px 0 0 $primary;
+		}
+	}
+}
+
+// on the horizontal bar the secondary links only show their icon, so the bar fits on one line
 @include media-breakpoint-up(xl) {
-	.card-img-top {
-		height: 18vw;
+	.app-nav-compact .nav-label {
+		@include visually-hidden();
 	}
 }
 
-@include media-breakpoint-up(xxl) {
-	.card-img-top {
-		height: 15vw;
+.nav-count {
+	min-width: 1.4rem;
+	padding: .2em .5em;
+	font-size: .7rem;
+	line-height: 1.2;
+}
+
+// ---------------------------------------------------------------------------------------
+// Page header, toolbar and surfaces
+// ---------------------------------------------------------------------------------------
+.page-header {
+	margin: 1.75rem 0 1.25rem;
+
+	h1 {
+		font-size: calc(1.45rem + .9vw);
+		margin: 0;
+
+		@include media-breakpoint-up(xl) {
+			font-size: 2.1rem;
+		}
+	}
+
+	.page-count {
+		font-size: .95rem;
+		vertical-align: middle;
+		background: var(--slm-surface-muted);
+		color: var(--bs-body-color);
+		border: 1px solid var(--slm-border);
+	}
+
+	.page-subtitle {
+		color: var(--bs-secondary-color);
+		margin: .35rem 0 0;
+		max-width: 60rem;
 	}
 }
 
-// the logo is white, make it dark on the light theme
-[data-bs-theme="light"] .navbar-brand img {
-	filter: invert(1);
+.toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .5rem;
+	align-items: center;
+	padding: .5rem;
+	margin-bottom: 1.25rem;
+	background: var(--slm-surface);
+	border: 1px solid var(--slm-border);
+	border-radius: $border-radius-lg;
+	box-shadow: var(--slm-shadow);
+
+	.toolbar-search {
+		flex: 1 1 16rem;
+		position: relative;
+
+		.bi-search {
+			position: absolute;
+			left: .85rem;
+			top: 50%;
+			transform: translateY(-50%);
+			color: var(--bs-secondary-color);
+			pointer-events: none;
+		}
+
+		.form-control {
+			padding-left: 2.4rem;
+			border-color: transparent;
+			background: var(--slm-surface-muted);
+		}
+	}
+
+	.form-select {
+		width: auto;
+		border-color: transparent;
+		background-color: var(--slm-surface-muted);
+	}
 }
 
-// keep buttons inside a card clickable above the card's stretched link
+.card,
+.surface {
+	--bs-card-bg: var(--slm-surface);
+	--bs-card-border-color: var(--slm-border);
+	background: var(--slm-surface);
+	border: 1px solid var(--slm-border);
+	box-shadow: var(--slm-shadow);
+}
+
+.surface {
+	border-radius: $border-radius-xl;
+	padding: 1.25rem;
+}
+
+.section-title {
+	font-size: 1.15rem;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	margin-bottom: 1rem;
+
+	.bi {
+		color: $primary;
+	}
+}
+
+// ---------------------------------------------------------------------------------------
+// Game cards
+// ---------------------------------------------------------------------------------------
+.game-grid {
+	display: grid;
+	gap: .75rem;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+
+	@include media-breakpoint-up(sm) {
+		gap: 1rem;
+		grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+	}
+
+	@include media-breakpoint-up(md) {
+		gap: 1.25rem;
+		grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+	}
+}
+
+.game-card {
+	position: relative;
+	overflow: hidden;
+	transition: transform .2s ease, box-shadow .2s ease;
+
+	&:hover,
+	&:focus-within {
+		transform: translateY(-4px);
+		box-shadow: var(--slm-shadow-hover);
+
+		.game-cover img {
+			transform: scale(1.04);
+		}
+	}
+
+	.game-cover {
+		position: relative;
+		aspect-ratio: 1;
+		overflow: hidden;
+		background: var(--slm-surface-muted);
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			transition: transform .35s ease;
+		}
+
+		&::after {
+			content: "";
+			position: absolute;
+			inset: auto 0 0 0;
+			height: 40%;
+			background: linear-gradient(to top, rgba(0, 0, 0, .55), transparent);
+			pointer-events: none;
+		}
+	}
+
+	.game-cover-meta {
+		position: absolute;
+		inset: auto .6rem .6rem .6rem;
+		z-index: 1;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: .4rem;
+
+		.badge {
+			background: rgba(0, 0, 0, .55);
+			backdrop-filter: blur(6px);
+			color: #fff;
+		}
+
+		.fi {
+			border-radius: .2rem;
+			box-shadow: 0 0 0 1px rgba(255, 255, 255, .35);
+		}
+	}
+
+	.game-body {
+		padding: .85rem .9rem 1rem;
+		display: flex;
+		flex-direction: column;
+		gap: .45rem;
+		flex: 1;
+	}
+
+	.game-title {
+		font-size: 1rem;
+		font-weight: 700;
+		line-height: 1.3;
+		margin: 0;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+
+		a {
+			color: inherit;
+			text-decoration: none;
+		}
+	}
+
+	.game-meta {
+		font-size: .85rem;
+		color: var(--bs-secondary-color);
+	}
+
+	.game-footer {
+		margin-top: auto;
+		padding-top: .35rem;
+	}
+}
+
+// status chips (cards, game page)
+.chip {
+	display: inline-flex;
+	align-items: center;
+	gap: .35rem;
+	padding: .3rem .65rem;
+	border-radius: 2rem;
+	font-size: .78rem;
+	font-weight: 600;
+	line-height: 1.2;
+	max-width: 100%;
+
+	.bi {
+		flex: 0 0 auto;
+	}
+
+	&.chip-success {
+		background: rgba($success, .14);
+		color: shade-color($success, 10%);
+	}
+
+	&.chip-warning {
+		background: rgba($warning, .2);
+		color: shade-color($warning, 45%);
+	}
+
+	&.chip-info {
+		background: var(--slm-cyan-soft);
+		color: shade-color($slm-cyan, 35%);
+	}
+
+	&.chip-muted {
+		background: var(--slm-surface-muted);
+		color: var(--bs-secondary-color);
+	}
+}
+
+[data-bs-theme="dark"] .chip {
+	&.chip-success { color: tint-color($success, 45%); }
+	&.chip-warning { color: tint-color($warning, 35%); }
+	&.chip-info { color: tint-color($slm-cyan, 40%); }
+}
+
+.version-arrow {
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+}
+
+// keep controls inside a card clickable above the card's stretched link
 .card-action {
 	position: relative;
 	z-index: 2;
 }
 
+// ---------------------------------------------------------------------------------------
+// Empty states
+// ---------------------------------------------------------------------------------------
+.empty-state {
+	text-align: center;
+	padding: 3.5rem 1.5rem;
+
+	.empty-icon {
+		display: inline-grid;
+		place-items: center;
+		width: 4.5rem;
+		height: 4.5rem;
+		border-radius: 50%;
+		font-size: 2rem;
+		margin-bottom: 1rem;
+		background: var(--slm-accent-soft);
+		color: $primary;
+
+		&.is-success {
+			background: rgba($success, .14);
+			color: $success;
+		}
+	}
+
+	h2 {
+		font-size: 1.35rem;
+	}
+
+	p {
+		color: var(--bs-secondary-color);
+		max-width: 32rem;
+		margin: .5rem auto 1.25rem;
+	}
+}
+
+// ---------------------------------------------------------------------------------------
+// Game page
+// ---------------------------------------------------------------------------------------
+.title-hero {
+	position: relative;
+	overflow: hidden;
+	border-radius: $border-radius-xl;
+	padding: 1.25rem;
+	margin: 1.25rem 0 1.5rem;
+	background: var(--slm-surface);
+	border: 1px solid var(--slm-border);
+	box-shadow: var(--slm-shadow);
+	isolation: isolate;
+
+	@include media-breakpoint-up(md) {
+		padding: 2rem;
+	}
+
+	.title-hero-bg {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background-size: cover;
+		background-position: center;
+		filter: blur(28px) saturate(140%);
+		opacity: .35;
+		transform: scale(1.2);
+	}
+
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: linear-gradient(90deg, var(--slm-surface) 15%, transparent);
+		opacity: .85;
+	}
+
+	h1 {
+		font-size: calc(1.5rem + 1.2vw);
+
+		@include media-breakpoint-up(xl) {
+			font-size: 2.5rem;
+		}
+	}
+}
+
 .title-cover {
 	aspect-ratio: 1;
 	object-fit: cover;
+	border-radius: $border-radius-lg;
+	box-shadow: 0 18px 40px -16px rgba(0, 0, 0, .6);
+}
+
+.fact-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(8.25rem, 1fr));
+	gap: .6rem;
+
+	.fact {
+		padding: .7rem .85rem;
+		border-radius: $border-radius-lg;
+		background: var(--slm-surface-muted);
+		border: 1px solid var(--slm-border);
+
+		.fact-label {
+			font-size: .75rem;
+			text-transform: uppercase;
+			letter-spacing: .04em;
+			color: var(--bs-secondary-color);
+		}
+
+		.fact-value {
+			font-weight: 600;
+			overflow-wrap: anywhere;
+		}
+	}
 }
 
 .title-description {
 	white-space: pre-line;
+	color: var(--bs-secondary-color);
+	line-height: 1.65;
+}
+
+.screenshot-strip {
+	display: flex;
+	gap: .75rem;
+	overflow-x: auto;
+	scroll-snap-type: x mandatory;
+	padding-bottom: .5rem;
+
+	a {
+		flex: 0 0 auto;
+		scroll-snap-align: start;
+	}
 }
 
 .title-screenshot {
-	height: 180px;
+	height: 190px;
 	width: auto;
-}
+	border-radius: $border-radius-lg;
+	transition: transform .2s ease;
 
-.bs-tooltip-auto {
-	&[data-popper-placement^="top"] .tooltip-arrow::before {
-		border-top-color: $black;
-	}
-
-	&[data-popper-placement^="right"] .tooltip-arrow::before {
-		border-right-color: $black;
-	}
-
-	&[data-popper-placement^="bottom"] .tooltip-arrow::before {
-		border-bottom-color: $black;
-	}
-
-	&[data-popper-placement^="left"] .tooltip-arrow::before {
-		border-left-color: $black;
+	&:hover {
+		transform: scale(1.02);
 	}
 }
 
-.tooltip-inner {
-	background-color: $black;
-	color: $white;
+.td-img {
+	width: 3.25rem;
+	height: 3.25rem;
+	object-fit: cover;
+	border-radius: $border-radius;
+}
+
+// ---------------------------------------------------------------------------------------
+// Tables, statistics, settings
+// ---------------------------------------------------------------------------------------
+.table {
+	--bs-table-bg: transparent;
+	margin-bottom: 0;
+
+	> :not(caption) > * > * {
+		padding: .8rem .9rem;
+	}
+
+	thead th {
+		font-size: .78rem;
+		text-transform: uppercase;
+		letter-spacing: .04em;
+		color: var(--bs-secondary-color);
+		font-weight: 600;
+	}
+}
+
+.stat-card {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+
+	@include media-breakpoint-down(sm) {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: .6rem;
+		padding: 1rem;
+	}
+
+	.stat-icon {
+		flex: 0 0 auto;
+		display: grid;
+		place-items: center;
+		width: 3rem;
+		height: 3rem;
+		border-radius: $border-radius-lg;
+		font-size: 1.35rem;
+		background: var(--slm-accent-soft);
+		color: $primary;
+
+		&.is-cyan {
+			background: var(--slm-cyan-soft);
+			color: $slm-cyan;
+		}
+	}
+
+	.stat-value {
+		font-size: 1.6rem;
+		font-weight: 800;
+		line-height: 1.1;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.stat-label {
+		color: var(--bs-secondary-color);
+		font-size: .85rem;
+	}
+}
+
+.progress {
+	--bs-progress-bg: var(--slm-surface-muted);
+	--bs-progress-height: .6rem;
+	--bs-progress-border-radius: 1rem;
+}
+
+.settings-nav {
+	position: sticky;
+	top: 5.5rem;
+
+	.nav-link {
+		border-radius: $border-radius;
+		color: var(--bs-secondary-color);
+
+		&:hover {
+			color: var(--bs-body-color);
+			background: var(--slm-surface-muted);
+		}
+	}
+}
+
+.settings-section {
+	scroll-margin-top: 5.5rem;
+}
+
+.save-bar {
+	position: sticky;
+	bottom: 0;
+	z-index: 10;
+	margin-top: 1.5rem;
+	padding: .85rem 1rem;
+	background: var(--slm-header-bg);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border: 1px solid var(--slm-border);
+	border-radius: $border-radius-lg $border-radius-lg 0 0;
+	box-shadow: 0 -8px 24px -16px rgba(0, 0, 0, .5);
+}
+
+// the synchronization status floats above the page instead of pushing it down
+#alert_sync {
+	position: fixed;
+	right: 1rem;
+	bottom: 1rem;
+	z-index: 1080;
+	width: min(24rem, calc(100vw - 2rem));
+	margin: 0;
+	background: var(--slm-surface-raised);
+	color: var(--bs-body-color);
+	border: 1px solid var(--slm-border);
+	box-shadow: var(--slm-shadow-hover);
+	animation: slm-slide-in .25s ease;
+}
+
+#sync.is-syncing {
+	pointer-events: none;
+
+	.bi {
+		animation: slm-spin 1s linear infinite;
+	}
+}
+
+@keyframes slm-spin {
+	to { transform: rotate(360deg); }
+}
+
+@keyframes slm-slide-in {
+	from { opacity: 0; transform: translateY(12px); }
+	to { opacity: 1; transform: none; }
+}
+
+.app-footer {
+	border-top: 1px solid var(--slm-border);
+	color: var(--bs-secondary-color);
+	font-size: .85rem;
+
+	a {
+		color: inherit;
+	}
+}
+
+// the logo is white, make it dark on the light theme (outside the colored brand mark)
+[data-bs-theme="light"] .invert-on-light {
+	filter: invert(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: .01ms !important;
+		transition-duration: .01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+.min-w-0 {
+	min-width: 0;
 }

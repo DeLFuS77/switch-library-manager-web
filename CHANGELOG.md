@@ -4,6 +4,17 @@
 
 ### New features
 
+- **Redesigned interface**: a new look for every page, in light and dark themes.
+  - Game cards show the status of each game: update available, missing DLC or up to date.
+  - The navigation shows how many updates, DLC and issues are pending.
+  - Every page has a header that explains it, and empty pages say what to do next.
+  - The game page has a large header with the cover and the key facts.
+  - Settings are split into sections with a save bar that is always visible.
+  - The Synchronize button spins while a synchronization runs, and its progress floats in a corner instead of moving
+    the page.
+  - Two columns of games on phones, a skip link, visible keyboard focus and reduced motion when the system asks
+    for it.
+
 - **Download all**: the game page downloads the base game, its updates and DLC as one ZIP archive. Files are stored
   without compressing them again, so large games download at full speed without temporary files.
 - **Bulk actions**: select several missing DLC or games with missing updates and ignore them at once.

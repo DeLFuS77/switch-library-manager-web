@@ -69,6 +69,8 @@ func i18nFuncs(lang string) template.FuncMap {
 type templateSet map[string]*template.Template
 
 func parseTemplates(fsys fs.FS, fsPatterns ...string) (templateSet, error) {
+	// components shared by every page
+	fsPatterns = append(fsPatterns, "resources/partials/components.html")
 	base, err := template.New("layout").Funcs(funcMap).Funcs(i18nFuncs(DEFAULT_LANGUAGE)).ParseFS(fsys, fsPatterns...)
 	if err != nil {
 		return nil, err

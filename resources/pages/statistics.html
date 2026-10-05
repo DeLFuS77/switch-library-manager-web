@@ -1,111 +1,90 @@
 {{define "title"}}{{t "Statistics"}}{{end}}
 {{define "main"}}
 			{{- $s := .Stats}}
-			<div class="row mb-3">
-				<div class="col">
-					<h1 class="mb-3">{{t "Statistics"}}</h1>
-				</div>
-			</div>
+			{{- template "pageHeader" (dict "Title" (t "Statistics") "Count" -1 "Subtitle" (t "An overview of your library: what you have, how much space it uses and what is missing."))}}
 			{{- if eq $s.Games 0}}
-			<div class="alert alert-info d-flex align-items-center" role="alert">
-				<span class="bi bi-info-fill flex-shrink-0 me-2"></span>
-				<div><strong>{{t "No items found!"}}</strong> {{t "There are no items to display."}}</div>
-			</div>
+			{{- template "emptyState" (dict "Icon" "bi-bar-chart" "Tone" "" "Title" (t "No statistics yet") "Text" (t "Add your games folders in Settings to see the statistics of your library.") "ActionHref" "/settings.html#library" "ActionLabel" (t "Open Settings") "ActionIcon" "bi-gear")}}
 			{{- else}}
-			<div class="row row-cols-2 row-cols-lg-4 g-3 mb-4">
-				{{- template "statCard" (mkSlice (t "Games") $s.Games "bi-controller")}}
-				{{- template "statCard" (mkSlice (t "Updates") $s.Updates "bi-arrow-up-circle")}}
-				{{- template "statCard" (mkSlice (t "DLC") $s.Dlc "bi-puzzle")}}
-				<div class="col">
-					<div class="card h-100">
-						<div class="card-body">
-							<div class="text-body-secondary small"><span class="bi bi-hdd me-1" aria-hidden="true"></span>{{t "Total size"}}</div>
-							<div class="fs-3 fw-semibold">{{formatSize $s.TotalSize}}</div>
-						</div>
-					</div>
-				</div>
+			<div class="row row-cols-2 row-cols-xl-4 g-2 g-md-3 mb-4">
+				{{- template "statCard" (dict "Label" (t "Games") "Value" $s.Games "Icon" "bi-controller" "Tone" "")}}
+				{{- template "statCard" (dict "Label" (t "Updates") "Value" $s.Updates "Icon" "bi-arrow-up-circle" "Tone" "is-cyan")}}
+				{{- template "statCard" (dict "Label" (t "DLC") "Value" $s.Dlc "Icon" "bi-puzzle" "Tone" "")}}
+				{{- template "statCard" (dict "Label" (t "Total size") "Value" (formatSize $s.TotalSize) "Icon" "bi-hdd-stack" "Tone" "is-cyan")}}
 			</div>
 			<div class="row g-3 mb-4">
 				<div class="col-lg-6">
-					<div class="card h-100">
-						<div class="card-body">
-							<h2 class="h5 card-title">{{t "Space by content"}}</h2>
-							{{- range $s.ByContent}}
-							{{- template "statShare" .}}
-							{{- end}}
-						</div>
-					</div>
+					<section class="surface h-100">
+						<h2 class="section-title"><span class="bi bi-pie-chart" aria-hidden="true"></span>{{t "Space by content"}}</h2>
+						{{- range $s.ByContent}}
+						{{- template "statShare" .}}
+						{{- end}}
+					</section>
 				</div>
 				<div class="col-lg-6">
-					<div class="card h-100">
-						<div class="card-body">
-							<h2 class="h5 card-title">{{t "Space by format"}}</h2>
-							{{- range $s.ByFormat}}
-							{{- template "statShare" .}}
-							{{- end}}
-						</div>
-					</div>
+					<section class="surface h-100">
+						<h2 class="section-title"><span class="bi bi-file-earmark-binary" aria-hidden="true"></span>{{t "Space by format"}}</h2>
+						{{- range $s.ByFormat}}
+						{{- template "statShare" .}}
+						{{- end}}
+					</section>
 				</div>
 			</div>
-			<div class="row g-3 mb-4">
+			<div class="row g-3">
 				<div class="col-lg-6">
-					<div class="card h-100">
-						<div class="card-body">
-							<h2 class="h5 card-title">{{t "Status"}}</h2>
-							{{- if $s.HasTitlesDatabase}}
-							<div class="d-flex justify-content-between small mb-1">
-								<span>{{t "Games up to date"}}</span>
-								<span>{{$s.GamesUpToDate}} / {{$s.Games}}</span>
-							</div>
-							<div class="progress mb-3" role="progressbar" aria-label="{{t "Games up to date"}}" aria-valuenow="{{$s.GamesUpToDatePct}}" aria-valuemin="0" aria-valuemax="100">
-								<div class="progress-bar bg-success" style="width: {{$s.GamesUpToDatePct}}%"></div>
-							</div>
-							<ul class="list-group list-group-flush">
-								<li class="list-group-item d-flex justify-content-between px-0"><a class="link-body-emphasis" href="/updates.html">{{t "Games with a missing update"}}</a><span class="badge text-bg-warning align-self-center">{{$s.GamesWithUpdate}}</span></li>
-								<li class="list-group-item d-flex justify-content-between px-0"><a class="link-body-emphasis" href="/dlc.html">{{t "Missing DLC"}}</a><span class="badge text-bg-info align-self-center">{{t "%v in %v games" $s.MissingDlc $s.GamesMissingDlc}}</span></li>
-								<li class="list-group-item d-flex justify-content-between px-0"><a class="link-body-emphasis" href="/missing.html">{{t "Missing Games"}}</a><span class="badge text-bg-secondary align-self-center">{{$s.MissingGames}}</span></li>
-								<li class="list-group-item d-flex justify-content-between px-0"><a class="link-body-emphasis" href="/issues.html">{{t "Issues"}}</a><span class="badge {{if gt $s.Issues 0}}text-bg-danger{{else}}text-bg-success{{end}} align-self-center">{{$s.Issues}}</span></li>
-							</ul>
-							{{- else}}
-							<p class="text-body-secondary mb-0">{{t "Synchronize to compare your library with the titles database."}}</p>
-							{{- end}}
+					<section class="surface h-100">
+						<h2 class="section-title"><span class="bi bi-heart-pulse" aria-hidden="true"></span>{{t "Status"}}</h2>
+						{{- if $s.HasTitlesDatabase}}
+						<div class="d-flex justify-content-between align-items-baseline mb-1">
+							<span>{{t "Games up to date"}}</span>
+							<span class="fw-bold">{{$s.GamesUpToDatePct}}% <span class="text-body-secondary fw-normal small">({{$s.GamesUpToDate}} / {{$s.Games}})</span></span>
 						</div>
-					</div>
+						<div class="progress mb-3" role="progressbar" aria-label="{{t "Games up to date"}}" aria-valuenow="{{$s.GamesUpToDatePct}}" aria-valuemin="0" aria-valuemax="100">
+							<div class="progress-bar bg-success" style="width: {{$s.GamesUpToDatePct}}%"></div>
+						</div>
+						<div class="list-group list-group-flush">
+							<a class="list-group-item list-group-item-action bg-transparent d-flex justify-content-between align-items-center px-0" href="/updates.html"><span><span class="bi bi-arrow-up-circle text-warning me-2" aria-hidden="true"></span>{{t "Games with a missing update"}}</span><span class="badge text-bg-warning">{{$s.GamesWithUpdate}}</span></a>
+							<a class="list-group-item list-group-item-action bg-transparent d-flex justify-content-between align-items-center px-0" href="/dlc.html"><span><span class="bi bi-puzzle text-info me-2" aria-hidden="true"></span>{{t "Missing DLC"}}</span><span class="badge text-bg-info">{{t "%v in %v games" $s.MissingDlc $s.GamesMissingDlc}}</span></a>
+							<a class="list-group-item list-group-item-action bg-transparent d-flex justify-content-between align-items-center px-0" href="/missing.html"><span><span class="bi bi-search-heart me-2" aria-hidden="true"></span>{{t "Missing Games"}}</span><span class="badge text-bg-secondary">{{$s.MissingGames}}</span></a>
+							<a class="list-group-item list-group-item-action bg-transparent d-flex justify-content-between align-items-center px-0" href="/issues.html"><span><span class="bi bi-exclamation-triangle {{if gt $s.Issues 0}}text-danger{{else}}text-success{{end}} me-2" aria-hidden="true"></span>{{t "Issues"}}</span><span class="badge {{if gt $s.Issues 0}}text-bg-danger{{else}}text-bg-success{{end}}">{{$s.Issues}}</span></a>
+						</div>
+						{{- else}}
+						<p class="text-body-secondary mb-0">{{t "Synchronize to compare your library with the titles database."}}</p>
+						{{- end}}
+					</section>
 				</div>
 				<div class="col-lg-6">
-					<div class="card h-100">
-						<div class="card-body">
-							<h2 class="h5 card-title">{{t "Largest games"}}</h2>
-							<ol class="list-group list-group-flush list-group-numbered">
-								{{- range $s.Largest}}
-								<li class="list-group-item d-flex justify-content-between align-items-start gap-2 px-0">
-									<a class="link-body-emphasis me-auto text-truncate" href="/title/{{.Id}}.html">{{.Name}}</a>
-									<span class="text-body-secondary text-nowrap">{{formatSize .Size}}</span>
-								</li>
-								{{- end}}
-							</ol>
-						</div>
-					</div>
+					<section class="surface h-100">
+						<h2 class="section-title"><span class="bi bi-trophy" aria-hidden="true"></span>{{t "Largest games"}}</h2>
+						<ol class="list-group list-group-flush list-group-numbered">
+							{{- range $s.Largest}}
+							<li class="list-group-item bg-transparent d-flex justify-content-between align-items-center gap-2 px-0">
+								<a class="link-body-emphasis text-decoration-none me-auto text-truncate" href="/title/{{.Id}}.html">{{.Name}}</a>
+								<span class="text-body-secondary text-nowrap small">{{formatSize .Size}}</span>
+							</li>
+							{{- end}}
+						</ol>
+					</section>
 				</div>
 			</div>
 			{{- end}}
 {{- end}}
 {{define "statCard"}}
 				<div class="col">
-					<div class="card h-100">
-						<div class="card-body">
-							<div class="text-body-secondary small"><span class="bi {{index . 2}} me-1" aria-hidden="true"></span>{{index . 0}}</div>
-							<div class="fs-3 fw-semibold">{{index . 1}}</div>
+					<div class="surface stat-card h-100">
+						<div class="stat-icon {{.Tone}}"><span class="bi {{.Icon}}" aria-hidden="true"></span></div>
+						<div>
+							<div class="stat-value">{{.Value}}</div>
+							<div class="stat-label">{{.Label}}</div>
 						</div>
 					</div>
 				</div>
 {{- end}}
 {{define "statShare"}}
-							<div class="d-flex justify-content-between small mb-1">
-								<span>{{t .Label}} <span class="text-body-secondary">({{.Count}})</span></span>
-								<span>{{formatSize .Size}} &middot; {{.Percent}}%</span>
-							</div>
-							<div class="progress mb-3" role="progressbar" aria-label="{{t .Label}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100">
-								<div class="progress-bar" style="width: {{.Percent}}%"></div>
-							</div>
+						<div class="d-flex justify-content-between small mb-1">
+							<span>{{t .Label}} <span class="text-body-secondary">({{.Count}})</span></span>
+							<span class="text-body-secondary">{{formatSize .Size}} &middot; <span class="fw-semibold text-body">{{.Percent}}%</span></span>
+						</div>
+						<div class="progress mb-3" role="progressbar" aria-label="{{t .Label}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100">
+							<div class="progress-bar" style="width: {{.Percent}}%"></div>
+						</div>
 {{- end}}

@@ -1,65 +1,43 @@
 {{define "title"}}{{t "DLC"}}{{end}}
 {{define "main"}}
-			<div class="row mb-3">
-				<div class="col d-flex flex-column flex-lg-row justify-content-lg-between align-items-lg-center">
-					<h1 class="mb-3">{{t "DLC"}} <span class="badge bg-secondary fs-6 align-text-top">{{.Pagination.NumItems}}</span></h1>
-					{{- template "filter" .}}
-				</div>
-			</div>
+			{{- template "pageHeader" (dict "Title" (t "DLC") "Count" .Pagination.NumItems "Subtitle" (t "Games in your library with DLC that you do not have. Ignore the ones you do not want."))}}
+			{{- if or (gt (len .TitleItems) 0) .Filter.Keyword}}
+			{{- template "filter" .}}
+			{{- end}}
 			{{- if gt (len .TitleItems) 0}}
 			{{- template "bulkToolbar" "dlc"}}
-			<div class="table-responsive">
-				<table class="table table-striped table-hover table-responsive mb-3">
-					<thead>
-						<tr>
-							<th scope="col">{{t "Title"}}</th>
-							<th class="text-nowrap" scope="col">{{t "# Missing"}}</th>
-							<th scope="col">{{t "Missing DLC"}}</th>
-						</tr>
-					</thead>
-					<tbody class="table-group-divider">
-						{{- range .TitleItems}}
-						<tr>
-							<td>
-								<div class="d-flex align-items-start">
-									<div class="me-3 position-relative">
-										{{- if .Region}}
-										<div class="position-absolute bottom-0 end-0 d-flex m-1">
-											<span class="fi fi-{{.Region | toLower}}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{.Region}}"><span class="visually-hidden">{{.Region}}</span></span>
-										</div>
-										{{- end}}
-										<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{.ImageUrl}}{{end}}" class="td-img" alt="{{.Name}}" loading="lazy">
-									</div>
-									<div>
-										<a class="link-body-emphasis" href="/title/{{.Id}}.html">{{.Name}}</a><br>
-										<small class="text-body-secondary">{{t "ID"}}: {{.Id}}</small>
-									</div>
-								</div>
-							</td>
-							<td>{{len .MissingDLC}}</td>
-							<td>
-								<ul class="list-unstyled mb-0">
-									{{- range .MissingDLCItems}}
-									<li class="d-flex align-items-center justify-content-between gap-3 py-1">
-										<label class="d-flex align-items-start gap-2 mb-0">
-											<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">
-											<span>{{.Name}} <small class="text-body-secondary font-monospace">{{.Id}}</small></span>
-										</label>
-										<button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="true">{{t "Ignore"}}</button>
-									</li>
-									{{- end}}
-								</ul>
-							</td>
-						</tr>
+			<div class="d-flex flex-column gap-3">
+				{{- range .TitleItems}}
+				<article class="surface">
+					<div class="d-flex align-items-center gap-3 mb-3">
+						<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{.ImageUrl}}{{end}}" class="td-img flex-shrink-0" alt="" loading="lazy">
+						<div class="flex-grow-1 min-w-0">
+							<h2 class="h5 mb-1 text-truncate"><a class="link-body-emphasis text-decoration-none" href="/title/{{.Id}}.html">{{.Name}}</a></h2>
+							<div class="d-flex flex-wrap align-items-center gap-2 small text-body-secondary">
+								<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC missing" (len .MissingDLCItems)}}</span>
+								{{- if .Region}}<span class="fi fi-{{.Region | toLower}}" title="{{.Region}}"></span>{{end}}
+								<span class="font-monospace">{{.Id}}</span>
+							</div>
+						</div>
+					</div>
+					<ul class="list-group list-group-flush">
+						{{- range .MissingDLCItems}}
+						<li class="list-group-item bg-transparent d-flex align-items-center justify-content-between gap-3 px-0">
+							<label class="d-flex align-items-start gap-2 mb-0 min-w-0">
+								<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">
+								<span class="min-w-0">{{.Name}}<br><small class="text-body-secondary font-monospace">{{.Id}}</small></span>
+							</label>
+							<button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="true">{{t "Ignore"}}</button>
+						</li>
 						{{- end}}
-					</tbody>
-				</table>
+					</ul>
+				</article>
+				{{- end}}
 			</div>
 			{{- template "pagination" .}}
+			{{- else if .Filter.Keyword}}
+			{{- template "noResults" .Filter}}
 			{{- else}}
-			<div class="alert alert-success d-flex align-items-center" role="alert">
-				<span class="bi bi-check-circle-fill flex-shrink-0 me-2"></span>
-				<div><strong>{{t "Well done!"}}</strong> {{t "No missing DLC found."}}</div>
-			</div>
+			{{- template "emptyState" (dict "Icon" "bi-puzzle" "Tone" "success" "Title" (t "No DLC missing") "Text" (t "You have every DLC of your games, or you ignored the rest.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 			{{- end}}
 {{- end}}

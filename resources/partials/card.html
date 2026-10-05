@@ -1,52 +1,43 @@
 {{- define "card"}}
-				<div class="col mb-3">
-					<div class="card h-100">
-						<div class="position-relative overflow-hidden">
-							{{- if or .Type .Region}}
-							<div class="position-absolute bottom-0 end-0 d-flex m-1">
-								{{- if .Type}}
-								<span class="badge bg-secondary{{if .Region}} me-1{{end}}">{{.Type}}</span>
-								{{- end}}
-								{{- if .Region}}
-								<span class="fi fi-{{.Region | toLower}}" data-bs-toggle="tooltip" data-bs-placement="top" title="{{.Region}}"><span class="visually-hidden">{{.Region}}</span></span>
-								{{- end}}
-							</div>
-							{{- end}}
-							<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{.ImageUrl}}{{end}}" class="card-img-top" alt="{{.Name}}" loading="lazy">
+				<article class="card game-card h-100">
+					<div class="game-cover">
+						<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{.ImageUrl}}{{end}}" alt="" loading="lazy">
+						{{- if or .Type .Region}}
+						<div class="game-cover-meta">
+							{{- if .Type}}<span class="badge">{{.Type}}</span>{{else}}<span></span>{{end}}
+							{{- if .Region}}<span class="fi fi-{{.Region | toLower}}" title="{{.Region}}"><span class="visually-hidden">{{.Region}}</span></span>{{end}}
 						</div>
-						<div class="card-body d-flex flex-column">
-							<h5 class="card-title flex-fill"><a class="stretched-link link-body-emphasis text-decoration-none" href="/title/{{.Id}}.html">{{.Name}}</a></h5>
-							{{- if .LatestUpdate}}
-							<p class="card-text">
-								{{t "Update"}}: {{.LocalUpdate}} &rarr; {{.LatestUpdate}}
-							</p>
-							{{- else if .LocalUpdate}}
-							<p class="card-text">
-								{{t "Version"}}: {{if .Version}}{{.Version}}{{else}}{{t "Unknown"}}{{end}} ({{.LocalUpdate}})
-							</p>
-							{{- else if .Version}}
-							<p class="card-text">
-								{{t "Version"}}: {{.Version}}
-							</p>
-							{{- end}}
-							{{- if or (and .ReleaseDate (not .ReleaseDate.IsZero)) (and .LatestUpdateDate (not .LatestUpdateDate.IsZero))}}
-							<div class="card-text mb-3">
-								{{- if and .ReleaseDate (not .ReleaseDate.IsZero)}}
-								<div>{{t "Release Date"}}: {{.ReleaseDate | formatTime}}</div>
-								{{- end}}
-								{{- if and .LatestUpdateDate (not .LatestUpdateDate.IsZero)}}
-								<div>{{t "Latest Update Date"}}: {{.LatestUpdateDate | formatTime}}</div>
-								{{- end}}
-							</div>
-							{{- end}}
-							<p class="card-text"><small class="text-body-secondary">{{t "ID"}}: {{.Id}}</small></p>
-							{{- if .LatestUpdate}}
-							<div class="card-action d-flex align-items-center justify-content-between gap-2">
-								<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="update" data-ignore-id="{{.Id}}" data-ignored="true">{{t "Ignore updates"}}</button>
-								<input class="form-check-input m-0" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">
-							</div>
-							{{- end}}
-						</div>
+						{{- end}}
 					</div>
-				</div>
+					<div class="game-body">
+						<h2 class="game-title"><a class="stretched-link" href="/title/{{.Id}}.html">{{.Name}}</a></h2>
+						{{- if .LatestUpdate}}
+						{{- /* Updates page */}}
+						<div class="d-flex flex-wrap gap-1"><span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span><span class="version-arrow">v{{.LocalUpdate}} &rarr; v{{.LatestUpdate}}</span></span></div>
+						{{- if not .LatestUpdateDate.IsZero}}
+						<div class="game-meta">{{t "Released %v" (formatTime .LatestUpdateDate)}}</div>
+						{{- end}}
+						<div class="game-footer card-action d-flex align-items-center justify-content-between gap-2">
+							<button type="button" class="btn btn-sm btn-outline-secondary" data-ignore-kind="update" data-ignore-id="{{.Id}}" data-ignored="true">{{t "Ignore updates"}}</button>
+							<input class="form-check-input m-0" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">
+						</div>
+						{{- else if .Type}}
+						{{- /* Library */}}
+						<div class="game-meta">
+							{{- if .Version}}{{t "Version"}} {{.Version}}{{else if .LocalUpdate}}v{{.LocalUpdate}}{{end}}
+							{{- if not .ReleaseDate.IsZero}}{{if or .Version .LocalUpdate}} &middot; {{end}}{{.ReleaseDate.Year}}{{end}}
+						</div>
+						<div class="game-footer d-flex flex-wrap gap-1">
+							{{- if .UpdateAvailable}}<span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Update available"}}</span>{{end}}
+							{{- if gt .MissingDlcCount 0}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC missing" .MissingDlcCount}}</span>{{end}}
+							{{- if and .Region (not .UpdateAvailable) (eq .MissingDlcCount 0)}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Up to date"}}</span>{{end}}
+						</div>
+						{{- else}}
+						{{- /* Missing games */}}
+						{{- if not .ReleaseDate.IsZero}}
+						<div class="game-meta game-footer"><span class="bi bi-calendar3 me-1" aria-hidden="true"></span>{{.ReleaseDate | formatTime}}</div>
+						{{- end}}
+						{{- end}}
+					</div>
+				</article>
 {{- end}}

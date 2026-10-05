@@ -26,69 +26,51 @@
 	<link rel="shortcut icon" href="/resources/static/favicon.ico">
 	<meta name="msapplication-TileColor" content="#0a0a0a">
 	<meta name="msapplication-config" content="/resources/static/browserconfig.xml">
-	<meta name="theme-color" content="#0a0a0a">
+	<meta name="theme-color" content="#0d1117">
 </head>
 <body class="d-flex flex-column min-vh-100">
-	<header class="sticky-top mb-4">
-		<nav class="navbar navbar-expand-lg sticky-top bg-body-tertiary">
-			<div class="container-fluid">
-				<span class="navbar-brand mb-0 h1">
-					<img src="/resources/static/icon.svg" alt="{{t "Switch Library Manager"}}" height="24" class="d-inline-block align-text-top">
-					{{t "Switch Library Manager"}}
-				</span>
-				<button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="{{t "Toggle navigation"}}">
-					<span class="navbar-toggler-icon"></span>
-				</button>
+	<a class="skip-link btn btn-primary" href="#main">{{t "Skip to content"}}</a>
+	<header class="app-header sticky-top">
+		<nav class="navbar navbar-expand-xl" aria-label="{{t "Main navigation"}}">
+			<div class="container-xxl">
+				<a class="navbar-brand d-flex align-items-center gap-2 me-3" href="/index.html">
+					<span class="brand-mark"><img src="/resources/static/icon.svg" alt="" aria-hidden="true"></span>
+					<span>Switch Library<span class="d-none d-sm-inline d-xl-none"> Manager</span></span>
+				</a>
+				<div class="d-flex align-items-center gap-2 order-xl-last">
+					<a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 rounded-pill px-3" href="sync" id="sync" title="{{t "Download the latest titles database and rescan the library"}}">
+						<span class="bi bi-arrow-repeat" aria-hidden="true"></span><span class="d-none d-md-inline d-xl-none">{{t "Synchronize"}}</span>
+					</a>
+					<button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="{{t "Toggle navigation"}}">
+						<span class="navbar-toggler-icon"></span>
+					</button>
+				</div>
 				<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
 					<div class="offcanvas-header">
 						<h5 class="offcanvas-title" id="offcanvasNavbarLabel">{{t "Menu"}}</h5>
 						<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="{{t "Close"}}"></button>
 					</div>
-					<div class="offcanvas-body d-flex">
-						<ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-							<li class="nav-item">
-								<a class="nav-link{{if eq .Page "index"}} active{{end}}" href="index.html">{{t "Library"}}</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link{{if eq .Page "missing"}} active{{end}}" href="missing.html">{{t "Missing Games"}}</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link{{if eq .Page "updates"}} active{{end}}" href="updates.html">{{t "Updates"}}</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link{{if eq .Page "dlc"}} active{{end}}" href="dlc.html">{{t "DLC"}}</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link{{if eq .Page "issues"}} active{{end}}" href="issues.html">{{t "Issues"}}</a>
-							</li>
-							<li class="nav-item">
-								<a class="nav-link{{if eq .Page "statistics"}} active{{end}}" href="statistics.html">{{t "Statistics"}}</a>
-							</li>
-							<li class="d-flex flex-column flex-grow-1 flex-lg-grow-0 justify-content-end">
-								<ul class="navbar-nav flex-row flex-wrap justify-content-center">
-									<li class="nav-item py-2 py-lg-1 col-12 col-lg-auto">
-										<div class="vr d-none d-lg-flex h-100 mx-lg-2"></div>
-										<hr class="d-lg-none my-2">
-									</li>
-									<li class="nav-item flex-grow-1 text-center">
-										<a class="nav-link" href="sync" id="sync">{{t "Synchronize"}}</a>
-									</li>
-									<li class="nav-item flex-grow-1 text-center">
-										<a class="nav-link{{if eq .Page "organize"}} active{{end}}" href="organize.html">{{t "Organize"}}</a>
-									</li>
-									<li class="nav-item flex-grow-1 text-center">
-										<a class="nav-link{{if eq .Page "settings"}} active{{end}}" href="settings.html">{{t "Settings"}}</a>
-									</li>
-									<li class="nav-item dropdown flex-grow-1 text-center">
-										<button class="btn btn-link nav-link dropdown-toggle mx-auto" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{{t "Theme"}}" id="themeMenu">
-											<span class="bi bi-circle-half" aria-hidden="true"></span><span class="d-lg-none ms-2">{{t "Theme"}}</span>
-										</button>
-										<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeMenu">
-											<li><button type="button" class="dropdown-item" data-theme-value="light"><span class="bi bi-sun-fill me-2" aria-hidden="true"></span>{{t "Light"}}</button></li>
-											<li><button type="button" class="dropdown-item" data-theme-value="dark"><span class="bi bi-moon-stars-fill me-2" aria-hidden="true"></span>{{t "Dark"}}</button></li>
-											<li><button type="button" class="dropdown-item" data-theme-value="auto"><span class="bi bi-circle-half me-2" aria-hidden="true"></span>{{t "Automatic (system)"}}</button></li>
-										</ul>
-									</li>
+					<div class="offcanvas-body">
+						<ul class="navbar-nav app-nav flex-grow-1 gap-xl-1">
+							{{- template "navLink" (dict "Page" .Page "Id" "index" "Href" "index.html" "Icon" "bi-collection" "Label" (t "Library") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "updates" "Href" "updates.html" "Icon" "bi-arrow-up-circle" "Label" (t "Updates") "Count" .Counts.Updates "Badge" "text-bg-warning")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "dlc" "Href" "dlc.html" "Icon" "bi-puzzle" "Label" (t "DLC") "Count" .Counts.Dlc "Badge" "text-bg-info")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "missing" "Href" "missing.html" "Icon" "bi-search-heart" "Label" (t "Missing Games") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "statistics" "Href" "statistics.html" "Icon" "bi-bar-chart" "Label" (t "Statistics") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "issues" "Href" "issues.html" "Icon" "bi-exclamation-triangle" "Label" (t "Issues") "Count" .Counts.Issues "Badge" "text-bg-danger")}}
+						</ul>
+						<hr class="d-xl-none">
+						<ul class="navbar-nav app-nav app-nav-compact gap-xl-1 me-xl-2">
+							{{- template "navLink" (dict "Page" .Page "Id" "organize" "Href" "organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "settings" "Href" "settings.html" "Icon" "bi-gear" "Label" (t "Settings") "Count" 0 "Badge" "")}}
+							<li class="nav-item dropdown">
+								<button class="btn btn-link nav-link dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="themeMenu">
+									<span class="bi bi-circle-half" aria-hidden="true"></span><span class="d-xl-none">{{t "Theme"}}</span><span class="visually-hidden d-none d-xl-inline">{{t "Theme"}}</span>
+								</button>
+								<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeMenu">
+									<li><button type="button" class="dropdown-item" data-theme-value="light"><span class="bi bi-sun-fill me-2" aria-hidden="true"></span>{{t "Light"}}</button></li>
+									<li><button type="button" class="dropdown-item" data-theme-value="dark"><span class="bi bi-moon-stars-fill me-2" aria-hidden="true"></span>{{t "Dark"}}</button></li>
+									<li><button type="button" class="dropdown-item" data-theme-value="auto"><span class="bi bi-circle-half me-2" aria-hidden="true"></span>{{t "Automatic (system)"}}</button></li>
 								</ul>
 							</li>
 						</ul>
@@ -97,19 +79,19 @@
 			</div>
 		</nav>
 	</header>
-	<main class="flex-grow-1 mb-4">
-		<section class="container-fluid">
+	<main class="flex-grow-1 pb-5" id="main" tabindex="-1">
+		<div class="container-xxl">
 			{{- if not .IsKeysFileAvailable}}
-			<div class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
-				<span class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2"></span>
-				<div><strong>{{t "Product Keys not found!"}}</strong> {{t "Analyzing NSP files is disabled. Library content is based on file names only."}}</div>
+			<div class="alert alert-warning alert-dismissible fade show d-flex align-items-start gap-2 mt-3 mb-0" role="alert">
+				<span class="bi bi-key-fill flex-shrink-0 mt-1" aria-hidden="true"></span>
+				<div><strong>{{t "Product Keys not found!"}}</strong> {{t "Analyzing NSP files is disabled. Library content is based on file names only."}} <a class="alert-link" href="/settings.html#library">{{t "Set the keys path"}}</a></div>
 				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{t "Close"}}"></button>
 			</div>
 			{{- end}}
 			{{- if .IsSynchronizing}}
-			<div class="alert alert-info" role="status" id="alert_sync">
+			<div class="alert" role="status" id="alert_sync">
 				<div class="d-flex align-items-center">
-					<span class="spinner-border spinner-border-sm flex-shrink-0 me-2" aria-hidden="true"></span>
+					<span class="spinner-border spinner-border-sm text-primary flex-shrink-0 me-2" aria-hidden="true"></span>
 					<div class="text-truncate"><strong>{{t "Synchronizing!"}}</strong> <span data-sync-message>{{t "The library is being updated."}}</span></div>
 				</div>
 				<div class="progress mt-2" role="progressbar" aria-label="{{t "Synchronization progress"}}">
@@ -118,15 +100,23 @@
 			</div>
 			{{- end}}
 			{{- template "main" .}}
-		</section>
+		</div>
 	</main>
-	<footer class="bg-body-tertiary text-body-secondary py-4 text-center">
-		<a class="fs-1 link-secondary" href="https://github.com/SiscuPrats/switch-library-manager-web" data-bs-toggle="tooltip" data-bs-placement="top" title="{{t "Fork me on GitHub"}}"><span class="bi bi-github"><span class="visually-hidden">{{t "Fork me on GitHub"}}</span></span></a><br>
-		Switch Library Manager Web {{.Version}}<br>
-		<small>{{t "based on"}} <a class="link-secondary" href="https://github.com/giwty/switch-library-manager/releases/tag/{{.SlmVersion}}">Switch Library Manager {{.SlmVersion}}</a></small>
+	<footer class="app-footer py-3">
+		<div class="container-xxl d-flex flex-column flex-sm-row gap-2 justify-content-between align-items-center">
+			<span>Switch Library Manager Web {{.Version}} &middot; {{t "based on"}} <a href="https://github.com/giwty/switch-library-manager/releases/tag/{{.SlmVersion}}">Switch Library Manager {{.SlmVersion}}</a></span>
+			<a class="d-inline-flex align-items-center gap-2 text-decoration-none" href="https://github.com/SiscuPrats/switch-library-manager-web"><span class="bi bi-github" aria-hidden="true"></span>GitHub</a>
+		</div>
 	</footer>
 	<script>window.SLM_TRANSLATIONS = {{jsTranslations}};</script>
 	<script src="/resources/static/web.js"></script>
 </body>
 </html>
 {{end}}
+{{define "navLink"}}
+							<li class="nav-item">
+								<a class="nav-link{{if eq .Page .Id}} active{{end}}" href="{{.Href}}" title="{{.Label}}"{{if eq .Page .Id}} aria-current="page"{{end}}>
+									<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}} ms-auto ms-xl-0">{{.Count}}</span>{{end}}
+								</a>
+							</li>
+{{- end}}
