@@ -184,6 +184,11 @@ var translations = map[string]map[string]string{
 		"empty folder":                                                     "carpeta vacía",
 		"empty folders will be deleted":                                    "se borrarán las carpetas vacías",
 
+		// export
+		"Export":                "Exportar",
+		"Spreadsheet (CSV)":     "Hoja de cálculo (CSV)",
+		"Full inventory (JSON)": "Inventario completo (JSON)",
+
 		// web.js
 		"Done!":                                 "¡Hecho!",
 		"The library has been updated.":         "La biblioteca se ha actualizado.",

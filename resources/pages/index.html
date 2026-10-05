@@ -2,7 +2,18 @@
 {{define "main"}}
 			<div class="row mb-3">
 				<div class="col d-flex flex-column flex-lg-row justify-content-lg-between align-items-lg-center">
-					<h1 class="mb-3">{{t "Library"}} <span class="badge bg-secondary fs-6 align-text-top">{{.Pagination.NumItems}}</span></h1>
+					<div class="d-flex align-items-center gap-3 mb-3">
+						<h1 class="mb-0">{{t "Library"}} <span class="badge bg-secondary fs-6 align-text-top">{{.Pagination.NumItems}}</span></h1>
+						{{- if gt .Pagination.NumItems 0}}
+						<div class="dropdown">
+							<button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-download me-1" aria-hidden="true"></span>{{t "Export"}}</button>
+							<ul class="dropdown-menu">
+								<li><a class="dropdown-item" href="/export/library.csv">{{t "Spreadsheet (CSV)"}}</a></li>
+								<li><a class="dropdown-item" href="/export/library.json">{{t "Full inventory (JSON)"}}</a></li>
+							</ul>
+						</div>
+						{{- end}}
+					</div>
 					{{- template "filter" .}}
 				</div>
 			</div>
