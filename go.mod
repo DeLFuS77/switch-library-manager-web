@@ -1,6 +1,6 @@
 module github.com/dtrunk90/switch-library-manager-web
 
-go 1.23
+go 1.23.0
 
 require (
 	github.com/avast/retry-go/v5 v5.0.0
@@ -20,5 +20,6 @@ require (
 	github.com/pierrre/imageutil v1.0.0 // indirect
 	go.uber.org/atomic v1.6.0 // indirect
 	go.uber.org/multierr v1.5.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
 )

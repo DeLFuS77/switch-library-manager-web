@@ -94,10 +94,22 @@ Templates for folder and file names support:
 
 Templates must contain `{TITLE_NAME}` or `{TITLE_ID}`.
 
-## Password protection
+## Users and password protection
 
-Set both environment variables to require a user name and password (HTTP basic authentication) for every page and
-API call:
+Without users, anyone who can open the app has full access. Open **Users** and create an administrator to require a
+login; you are logged in as that administrator right away. Then add more users with one of two roles:
+
+| Role | Can |
+|---|---|
+| Administrator | Everything: synchronize, organize, ignore items, change settings and manage users |
+| Read only | Browse the library and download files; the controls that change something are hidden |
+
+- Passwords are stored as bcrypt hashes in `users.json` in the data folder. Every user can change their own password
+  in **My account**; changing a password ends the other sessions of that user.
+- Logins last 30 days, in a signed cookie (the key is `session.key` in the data folder).
+- After 10 failed logins, an address is blocked for 15 minutes.
+
+An administrator can also be set with environment variables, which is useful to get in when you forgot a password:
 
 ```
 SLM_AUTH_USERNAME=admin
@@ -105,7 +117,7 @@ SLM_AUTH_PASSWORD=choose-a-password
 ```
 
 With Docker, add `-e SLM_AUTH_USERNAME=... -e SLM_AUTH_PASSWORD=...`. Use HTTPS (for example a reverse proxy) when
-the app is reachable from outside your network, since basic authentication sends the password with every request.
+the app is reachable from outside your network.
 
 Requests that change data (synchronize, settings, organize) are rejected when they come from another web site.
 
@@ -122,9 +134,12 @@ served by the app at `/api/openapi.json`. Main endpoints:
 | `GET /api/titles/{titleId}/archive.zip` | All files of a game as one ZIP |
 | `GET /export/library.csv`, `/export/library.json` | Library export |
 | `GET /sync`, `POST /sync` | Synchronization status, start a synchronization |
+| `GET /api/tasks` | Running and recent tasks (synchronizations, scans, organize runs) |
+| `GET /api/tasks/events` | Server-sent events after every change of the tasks |
 | `GET /healthz` | Health check, without authentication |
 
-With password protection enabled, use HTTP basic authentication. Example Home Assistant REST sensor:
+When a login is required, API clients use HTTP basic authentication with any user (a read-only user is enough to
+read). Example Home Assistant REST sensor:
 
 ```yaml
 rest:

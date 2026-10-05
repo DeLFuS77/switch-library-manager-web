@@ -28,7 +28,7 @@
 	<meta name="msapplication-config" content="/resources/static/browserconfig.xml">
 	<meta name="theme-color" content="#0d1117">
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100" data-role="{{if .Auth.IsAdmin}}admin{{else}}viewer{{end}}">
 	<a class="skip-link btn btn-primary" href="#main">{{t "Skip to content"}}</a>
 	<header class="app-header sticky-top">
 		<nav class="navbar navbar-expand-xl" aria-label="{{t "Main navigation"}}">
@@ -38,7 +38,7 @@
 					<span>Switch Library<span class="d-none d-sm-inline d-xl-none"> Manager</span></span>
 				</a>
 				<div class="d-flex align-items-center gap-2 order-xl-last">
-					<a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 rounded-pill px-3" href="sync" id="sync" title="{{t "Download the latest titles database and rescan the library"}}">
+					<a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 rounded-pill px-3 admin-only" href="sync" id="sync" title="{{t "Download the latest titles database and rescan the library"}}">
 						<span class="bi bi-arrow-repeat" aria-hidden="true"></span><span class="d-none d-md-inline d-xl-none">{{t "Synchronize"}}</span>
 					</a>
 					<button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="{{t "Toggle navigation"}}">
@@ -62,8 +62,11 @@
 						<hr class="d-xl-none">
 						<ul class="navbar-nav app-nav app-nav-compact gap-xl-1 me-xl-2">
 							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "tasks.html" "Icon" "bi-list-task" "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger")}}
+							{{- if .Auth.IsAdmin}}
 							{{- template "navLink" (dict "Page" .Page "Id" "organize" "Href" "organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Count" 0 "Badge" "")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "settings" "Href" "settings.html" "Icon" "bi-gear" "Label" (t "Settings") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "users" "Href" "users.html" "Icon" "bi-people" "Label" (t "Users") "Count" 0 "Badge" "")}}
+							{{- end}}
 							<li class="nav-item dropdown">
 								<button class="btn btn-link nav-link dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="themeMenu">
 									<span class="bi bi-circle-half" aria-hidden="true"></span><span class="d-xl-none">{{t "Theme"}}</span><span class="visually-hidden d-none d-xl-inline">{{t "Theme"}}</span>
@@ -74,6 +77,23 @@
 									<li><button type="button" class="dropdown-item" data-theme-value="auto"><span class="bi bi-circle-half me-2" aria-hidden="true"></span>{{t "Automatic (system)"}}</button></li>
 								</ul>
 							</li>
+							{{- if .Auth.Enabled}}
+							<li class="nav-item dropdown">
+								<button class="btn btn-link nav-link dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="userMenu">
+									<span class="user-avatar user-avatar-sm" aria-hidden="true">{{initial .Auth.User}}</span><span class="d-xl-none">{{.Auth.User}}</span><span class="visually-hidden d-none d-xl-inline">{{t "My account"}}: {{.Auth.User}}</span>
+								</button>
+								<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+									<li><span class="dropdown-item-text small text-body-secondary">{{.Auth.User}} &middot; {{if .Auth.IsAdmin}}{{t "Administrator"}}{{else}}{{t "Read only"}}{{end}}</span></li>
+									<li><a class="dropdown-item" href="/account.html"><span class="bi bi-person-gear me-2" aria-hidden="true"></span>{{t "My account"}}</a></li>
+									<li><hr class="dropdown-divider"></li>
+									<li>
+										<form method="post" action="/logout">
+											<button type="submit" class="dropdown-item"><span class="bi bi-box-arrow-right me-2" aria-hidden="true"></span>{{t "Log out"}}</button>
+										</form>
+									</li>
+								</ul>
+							</li>
+							{{- end}}
 						</ul>
 					</div>
 				</div>

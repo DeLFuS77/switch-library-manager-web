@@ -26,6 +26,15 @@
 			{{- template "emptyState" (dict "Icon" "bi-search" "Tone" "" "Title" (t "No results") "Text" $text "ActionHref" (filterUrl . "q" "" "status" "" "format" "") "ActionLabel" (t "Clear filters") "ActionIcon" "bi-x-circle")}}
 {{- end}}
 
+{{- define "flash"}}
+			{{- if .Message}}
+			<div class="alert alert-success d-flex align-items-center gap-2" role="status"><span class="bi bi-check-circle-fill flex-shrink-0" aria-hidden="true"></span><div>{{.Message}}</div></div>
+			{{- end}}
+			{{- if .Error}}
+			<div class="alert alert-danger d-flex align-items-center gap-2" role="alert"><span class="bi bi-exclamation-triangle-fill flex-shrink-0" aria-hidden="true"></span><div>{{.Error}}</div></div>
+			{{- end}}
+{{- end}}
+
 {{- define "setupChecklist"}}
 			<section class="surface setup" aria-labelledby="setupTitle">
 				<div class="d-flex flex-column flex-md-row gap-3 align-items-md-center justify-content-between mb-3">

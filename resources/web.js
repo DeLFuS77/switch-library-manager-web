@@ -630,6 +630,15 @@ document.addEventListener('DOMContentLoaded', () => {
 	initIgnoreButtons();
 	initViewToggle();
 	initLiveTasks();
+
+	// forms that delete something ask first
+	document.querySelectorAll('form[data-confirm]').forEach(form => {
+		form.addEventListener('submit', e => {
+			if (!window.confirm(form.dataset.confirm)) {
+				e.preventDefault();
+			}
+		});
+	});
 	initNotificationTest();
 	initThemeSwitcher();
 	initBulkActions();
