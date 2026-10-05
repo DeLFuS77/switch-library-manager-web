@@ -16,12 +16,17 @@ import (
 
 var (
 	versionRegex = regexp.MustCompile(`\[[vV]?(?P<version>[0-9]{1,10})]`)
-	titleIdRegex = regexp.MustCompile(`\[(?P<titleId>[A-Z,a-z0-9]{16})]`)
+	titleIdRegex = regexp.MustCompile(`\[(?P<titleId>[A-Fa-f0-9]{16})]`)
 )
 
 const (
 	DB_TABLE_FILE_SCAN_METADATA = "deep-scan"
 	DB_TABLE_LOCAL_LIBRARY      = "local-library"
+
+	// bump when the structure or keys of the cached local library change,
+	// so caches written by older versions are rebuilt instead of misread
+	LIBRARY_SCHEMA_VERSION = "2"
+	DB_KEY_LIBRARY_SCHEMA  = "library_schema"
 
 	REASON_UNSUPPORTED_TYPE = iota
 	REASON_DUPLICATE
@@ -39,6 +44,19 @@ func NewLocalSwitchDBManager(dataFolder string) (*LocalSwitchDBManager, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if db.GetInternalValue(DB_KEY_LIBRARY_SCHEMA) != LIBRARY_SCHEMA_VERSION {
+		zap.S().Info("Local library cache was created by an older version, it will be rebuilt")
+		if err := db.ClearTable(DB_TABLE_LOCAL_LIBRARY); err != nil {
+			db.Close()
+			return nil, err
+		}
+		if err := db.SetInternalValue(DB_KEY_LIBRARY_SCHEMA, LIBRARY_SCHEMA_VERSION); err != nil {
+			db.Close()
+			return nil, err
+		}
+	}
+
 	return &LocalSwitchDBManager{db: db}, nil
 }
 
@@ -90,9 +108,19 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 	files := []ExtendedFileInfo{}
 
 	if !ignoreCache {
-		ldb.db.GetEntry(DB_TABLE_LOCAL_LIBRARY, "files", &files)
-		ldb.db.GetEntry(DB_TABLE_LOCAL_LIBRARY, "skipped", &skipped)
-		ldb.db.GetEntry(DB_TABLE_LOCAL_LIBRARY, "titles", &titles)
+		err := ldb.db.GetEntry(DB_TABLE_LOCAL_LIBRARY, "files", &files)
+		if err == nil {
+			err = ldb.db.GetEntry(DB_TABLE_LOCAL_LIBRARY, "skipped", &skipped)
+		}
+		if err == nil {
+			err = ldb.db.GetEntry(DB_TABLE_LOCAL_LIBRARY, "titles", &titles)
+		}
+		if err != nil {
+			zap.S().Warnf("Failed to read local library cache, rescanning - %v", err)
+			titles = map[string]*SwitchGameFiles{}
+			skipped = map[ExtendedFileInfo]SkippedFile{}
+			files = []ExtendedFileInfo{}
+		}
 	}
 
 	if len(titles) == 0 {
@@ -103,15 +131,22 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 				progress.UpdateProgress(i+1, len(folders)+1, "scanning files in "+folder)
 			}
 			if err != nil {
+				zap.S().Errorf("Failed to scan folder %v - %v", folder, err)
 				continue
 			}
 		}
 
 		ldb.processLocalFiles(switchDB, dataFolder, files, progress, titles, skipped)
 
-		ldb.db.AddEntry(DB_TABLE_LOCAL_LIBRARY, "files", files)
-		ldb.db.AddEntry(DB_TABLE_LOCAL_LIBRARY, "skipped", skipped)
-		ldb.db.AddEntry(DB_TABLE_LOCAL_LIBRARY, "titles", titles)
+		if err := ldb.db.AddEntry(DB_TABLE_LOCAL_LIBRARY, "files", files); err != nil {
+			return nil, err
+		}
+		if err := ldb.db.AddEntry(DB_TABLE_LOCAL_LIBRARY, "skipped", skipped); err != nil {
+			return nil, err
+		}
+		if err := ldb.db.AddEntry(DB_TABLE_LOCAL_LIBRARY, "titles", titles); err != nil {
+			return nil, err
+		}
 	}
 
 	if progress != nil {
@@ -122,7 +157,10 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 }
 
 func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, progress ProgressUpdater) error {
-	filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
+	if _, err := os.Stat(folder); err != nil {
+		return err
+	}
+	return filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
 		if path == folder {
 			return nil
 		}
@@ -131,12 +169,12 @@ func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, progre
 			return nil
 		}
 
-		if info.IsDir() {
+		if info == nil || info.IsDir() {
 			return nil
 		}
 
-		//skip mac hidden files
-		if info.Name()[0:1] == "." {
+		//skip hidden files (including macOS "._" resource forks)
+		if strings.HasPrefix(info.Name(), ".") {
 			return nil
 		}
 		base := path[0 : len(path)-len(info.Name())]
@@ -151,7 +189,6 @@ func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, progre
 
 		return nil
 	})
-	return nil
 }
 
 func (ldb *LocalSwitchDBManager) ClearScanData() error {
@@ -180,13 +217,14 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 		fileName := strings.ToLower(file.FileName)
 		isSplit := false
 
-		if partNum, err := strconv.Atoi(fileName[len(fileName)-2:]); err == nil {
-			if partNum == 0 {
-				isSplit = true
-			} else {
-				continue
+		if len(fileName) >= 2 {
+			if partNum, err := strconv.Atoi(fileName[len(fileName)-2:]); err == nil {
+				if partNum == 0 {
+					isSplit = true
+				} else {
+					continue
+				}
 			}
-
 		}
 
 		//only handle NSZ and NSP files
@@ -211,7 +249,13 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 
 		for _, metadata := range contentMap {
 
-			idPrefix := metadata.TitleId[0 : len(metadata.TitleId)-4]
+			id := strings.ToLower(metadata.TitleId)
+			idPrefix, prefixErr := titleIDPrefix(id)
+			if prefixErr != nil {
+				skipped[file] = SkippedFile{ReasonText: "unable to determine title-Id / version - " + prefixErr.Error(), ReasonCode: REASON_UNRECOGNISED}
+				continue
+			}
+			metadata.TitleId = id
 
 			multiContent := len(contentMap) > 1
 			switchTitle := &SwitchGameFiles{
@@ -232,18 +276,18 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 				metadata.Type = "Update"
 
 				if update, ok := switchTitle.Updates[metadata.Version]; ok {
-					skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate update file (" + update.ExtendedInfo.FileName + ")"}
+					skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate update file (" + fullPath(update.ExtendedInfo) + ")"}
 					zap.S().Warnf("-->Duplicate update file found [%v] and [%v]", update.ExtendedInfo.FileName, file.FileName)
 					continue
 				}
 				switchTitle.Updates[metadata.Version] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
 				if metadata.Version > switchTitle.LatestUpdate {
 					if switchTitle.LatestUpdate != 0 {
-						skipped[switchTitle.Updates[switchTitle.LatestUpdate].ExtendedInfo] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally"}
+						skipped[switchTitle.Updates[switchTitle.LatestUpdate].ExtendedInfo] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally (" + fullPath(file) + ")"}
 					}
 					switchTitle.LatestUpdate = metadata.Version
 				} else {
-					skipped[file] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally"}
+					skipped[file] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally (" + fullPath(switchTitle.Updates[switchTitle.LatestUpdate].ExtendedInfo) + ")"}
 				}
 				continue
 			}
@@ -252,12 +296,16 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 			if strings.HasSuffix(metadata.TitleId, "000") {
 				metadata.Type = "Base"
 				if switchTitle.BaseExist {
-					skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate base file (" + switchTitle.File.ExtendedInfo.FileName + ")"}
+					skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate base file (" + fullPath(switchTitle.File.ExtendedInfo) + ")"}
 					zap.S().Warnf("-->Duplicate base file found [%v] and [%v]", file.FileName, switchTitle.File.ExtendedInfo.FileName)
 					continue
 				}
 				switchTitle.File = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
 				switchTitle.BaseExist = true
+
+				if switchDB == nil {
+					continue
+				}
 
 				if title, ok := switchDB.TitlesMap[idPrefix]; ok {
 					if title.Attributes.IconUrl != "" {
@@ -281,11 +329,11 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 
 			if dlc, ok := switchTitle.Dlc[metadata.TitleId]; ok {
 				if metadata.Version < dlc.Metadata.Version {
-					skipped[file] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old DLC file, newer version exist locally"}
+					skipped[file] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old DLC file, newer version exist locally (" + fullPath(dlc.ExtendedInfo) + ")"}
 					zap.S().Warnf("-->Old DLC file found [%v] and [%v]", file.FileName, dlc.ExtendedInfo.FileName)
 					continue
 				} else if metadata.Version == dlc.Metadata.Version {
-					skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate DLC file (" + dlc.ExtendedInfo.FileName + ")"}
+					skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate DLC file (" + fullPath(dlc.ExtendedInfo) + ")"}
 					zap.S().Warnf("-->Duplicate DLC file found [%v] and [%v]", file.FileName, dlc.ExtendedInfo.FileName)
 					continue
 				}
@@ -329,14 +377,14 @@ func (ldb *LocalSwitchDBManager) getGameMetadata(file ExtendedFileInfo,
 			strings.HasSuffix(fileName, "xcz") {
 			metadata, err = switchfs.ReadXciMetadata(filePath)
 			if err != nil {
-				skipped[file] = SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: fmt.Sprintf("failed to read NSP [reason: %v]", err)}
-				zap.S().Errorf("[file:%v] failed to read file [reason: %v]\n", file.FileName, err)
+				skipped[file] = SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: fmt.Sprintf("failed to read XCI [reason: %v]", err)}
+				zap.S().Errorf("[file:%v] failed to read XCI [reason: %v]\n", file.FileName, err)
 			}
 		} else if strings.HasSuffix(fileName, "00") {
 			metadata, err = fileio.ReadSplitFileMetadata(filePath)
 			if err != nil {
 				skipped[file] = SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: fmt.Sprintf("failed to read split files [reason: %v]", err)}
-				zap.S().Errorf("[file:%v] failed to read NSP [reason: %v]\n", file.FileName, err)
+				zap.S().Errorf("[file:%v] failed to read split files [reason: %v]\n", file.FileName, err)
 			}
 		}
 	}
@@ -393,4 +441,8 @@ func ParseTitleNameFromFileName(fileName string) string {
 		return fileName[:ind]
 	}
 	return fileName
+}
+
+func fullPath(file ExtendedFileInfo) string {
+	return filepath.Join(file.BaseFolder, file.FileName)
 }

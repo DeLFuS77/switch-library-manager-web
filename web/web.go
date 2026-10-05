@@ -137,8 +137,12 @@ func (web *Web) Start() {
 		if versionsFile, err := os.Open(versionsFilePath); err == nil {
 			if switchTitleDB, err := db.CreateSwitchTitleDB(titleFile, versionsFile); err == nil {
 				web.state.switchDB = switchTitleDB
+			} else {
+				web.sugarLogger.Errorf("Failed to read cached titles, please synchronize - %v", err)
 			}
+			versionsFile.Close()
 		}
+		titleFile.Close()
 	}
 
 	localDbManager, err := db.NewLocalSwitchDBManager(web.dataFolder)
@@ -206,21 +210,23 @@ func (web *Web) buildSwitchDb() (*db.SwitchTitlesDB, error) {
 
 	web.UpdateProgress(1, 4, "Downloading titles.json")
 	filename := filepath.Join(web.dataFolder, settings.TITLE_JSON_FILENAME)
-	titleFile, titlesEtag, err := db.LoadAndUpdateFile(settings.TITLES_JSON_URL, filename, settingsObj.TitlesEtag)
+	titleFile, titlesEtag, err := db.LoadAndUpdateFile(settingsObj.TitlesJsonUrls(), filename, settingsObj.TitlesEtag)
 
 	if err != nil {
 		return nil, errors.New("failed to download switch titles [reason:" + err.Error() + "]")
 	}
+	defer titleFile.Close()
 
 	settingsObj.TitlesEtag = titlesEtag
 
 	web.UpdateProgress(2, 4, "Downloading versions.json")
 	filename = filepath.Join(web.dataFolder, settings.VERSIONS_JSON_FILENAME)
-	versionsFile, versionsEtag, err := db.LoadAndUpdateFile(settings.VERSIONS_JSON_URL, filename, settingsObj.VersionsEtag)
+	versionsFile, versionsEtag, err := db.LoadAndUpdateFile(settingsObj.VersionsJsonUrls(), filename, settingsObj.VersionsEtag)
 
 	if err != nil {
 		return nil, errors.New("failed to download switch updates [reason:" + err.Error() + "]")
 	}
+	defer versionsFile.Close()
 
 	settingsObj.VersionsEtag = versionsEtag
 
