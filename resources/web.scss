@@ -162,10 +162,20 @@ body {
 // Header and navigation
 // ---------------------------------------------------------------------------------------
 .app-header {
-	background: var(--slm-header-bg);
-	backdrop-filter: saturate(160%) blur(12px);
-	-webkit-backdrop-filter: saturate(160%) blur(12px);
+	isolation: isolate;
 	border-bottom: 1px solid var(--slm-border);
+
+	// the blur lives on a pseudo-element: a backdrop-filter on the header itself would make it the containing block
+	// of the fixed offcanvas menu, which then sticks out of the page and adds a horizontal scrollbar
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: var(--slm-header-bg);
+		backdrop-filter: saturate(160%) blur(12px);
+		-webkit-backdrop-filter: saturate(160%) blur(12px);
+	}
 }
 
 .navbar-brand {
