@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.16.1
+
+### New features
+
+- **More library filters**: games or demos, region, games without a cover and games the titles database does not
+  know, each with its count. They combine with the search and the other filters. Demos have a "Demo" label on
+  their cards.
+
+### Fixes
+
+- Saving the settings no longer changes them while other parts of the app are reading them.
+
 ## 1.16.0
 
 ### New features

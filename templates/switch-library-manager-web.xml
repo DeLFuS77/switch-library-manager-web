@@ -22,7 +22,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>MIT</License>
-  <Changes>### 1.16.0
+  <Changes>### 1.16.1
+- Library filters: games or demos, region, without a cover, not recognized
+- Safer settings while they are saved
+### 1.16.0
 - Wishlist with notifications when wished games are released
 - Export the library as a web page to share
 - Background hours for heavy work, an in-app update guide
