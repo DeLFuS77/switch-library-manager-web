@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -39,6 +40,42 @@ type SpaceGroup struct {
 	Size  int64
 	// the size of the files that can be deleted now
 	DeletableSize int64
+}
+
+// shownFiles is how many files of a group are listed one by one; a big library can have
+// thousands, which would make the page huge.
+const shownFiles = 300
+
+// Shown are the biggest files of the group, listed one by one.
+func (g SpaceGroup) Shown() []SpaceFile {
+	if len(g.Files) > shownFiles {
+		return g.Files[:shownFiles]
+	}
+	return g.Files
+}
+
+// Rest are the deletable files that are not listed one by one: their number and size.
+func (g SpaceGroup) Rest() (int, int64) {
+	count, size := 0, int64(0)
+	if len(g.Files) > shownFiles {
+		for _, file := range g.Files[shownFiles:] {
+			if file.Deletable {
+				count++
+				size += file.Size
+			}
+		}
+	}
+	return count, size
+}
+
+func (g SpaceGroup) RestCount() int {
+	count, _ := g.Rest()
+	return count
+}
+
+func (g SpaceGroup) RestSize() int64 {
+	_, size := g.Rest()
+	return size
 }
 
 type SpacePageData struct {
@@ -82,10 +119,15 @@ func (web *Web) spaceGroups() []SpaceGroup {
 
 	// originals with a compressed copy next to them, from the library and the duplicates
 	compressed := map[string]bool{}
-	checkCompressed := func(file db.ExtendedFileInfo, name string) {
+	copies := web.compressedCopies()
+	checkCompressed := func(file db.ExtendedFileInfo, name string, known bool) {
 		path := filepath.Join(file.BaseFolder, file.FileName)
 		extension := strings.ToLower(filepath.Ext(path))
 		if compressed[path] || (extension != ".nsp" && extension != ".xci") {
+			return
+		}
+		// files of the library were looked up once for this scan; duplicates are asked
+		if known && !copies[path] {
 			return
 		}
 		copyPath := switchfs.CompressedPath(path)
@@ -103,11 +145,10 @@ func (web *Web) spaceGroups() []SpaceGroup {
 		add(SPACE_COMPRESSED, entry)
 	}
 	for _, candidate := range web.compressCandidates() {
-		info, err := os.Stat(candidate.Path)
-		if err != nil {
+		if !copies[candidate.Path] {
 			continue
 		}
-		checkCompressed(db.ExtendedFileInfo{FileName: filepath.Base(candidate.Path), BaseFolder: filepath.Dir(candidate.Path), Size: info.Size()}, candidate.Name)
+		checkCompressed(db.ExtendedFileInfo{FileName: filepath.Base(candidate.Path), BaseFolder: filepath.Dir(candidate.Path), Size: candidate.Size}, candidate.Name, true)
 	}
 
 	for file, skipped := range localDB.Skipped {
@@ -120,10 +161,21 @@ func (web *Web) spaceGroups() []SpaceGroup {
 		case db.REASON_OLD_UPDATE:
 			add(SPACE_OLD_UPDATES, SpaceFile{Path: path, Name: name, Size: file.Size, KeptBy: keptBy(skipped.ReasonText), Deletable: true, file: file})
 		case db.REASON_DUPLICATE:
-			checkCompressed(file, name)
-			if !compressed[path] {
-				add(SPACE_DUPLICATES, SpaceFile{Path: path, Name: name, Size: file.Size, KeptBy: keptBy(skipped.ReasonText), Deletable: true, file: file})
+			checkCompressed(file, name, false)
+			if compressed[path] {
+				continue
 			}
+			entry := SpaceFile{Path: path, Name: name, Size: file.Size, KeptBy: keptBy(skipped.ReasonText), Deletable: true, file: file}
+			// the copy is deleted, not the file with the clean name, even when the copy was
+			// found first and is the one in the library
+			if entry.KeptBy != "" && isCopyOf(fileBase(entry.KeptBy), file.FileName) {
+				if info, err := os.Stat(entry.KeptBy); err == nil && !info.IsDir() {
+					entry.Path, entry.KeptBy = entry.KeptBy, path
+					entry.Size = info.Size()
+					entry.file = db.ExtendedFileInfo{FileName: filepath.Base(entry.Path), BaseFolder: filepath.Dir(entry.Path), Size: info.Size()}
+				}
+			}
+			add(SPACE_DUPLICATES, entry)
 		}
 	}
 
@@ -142,13 +194,22 @@ func (web *Web) spaceGroups() []SpaceGroup {
 }
 
 // keptBy is the other file named in the reason of a skipped file, e.g.
-// "old update file, newer update exist locally (path)".
+// "old update file, newer update exist locally (path)". File names may have parentheses
+// themselves, e.g. "Game [v0](2).nsz".
 func keptBy(reason string) string {
-	start, end := strings.LastIndex(reason, "("), strings.LastIndex(reason, ")")
-	if start < 0 || end <= start {
-		return ""
+	if match := trailingPath.FindStringSubmatch(reason); match != nil {
+		return match[1]
 	}
-	return reason[start+1 : end]
+	return ""
+}
+
+// a copy made by a file manager or a download tool: "Game(2).nsz", "Game - Copy.nsz"
+var copySuffix = regexp.MustCompile(`(?i)^(.*?)\s*(\(\d+\)|- (copy|copia|kopie|copie)( \(\d+\))?)(\.[^.]+)$`)
+
+// isCopyOf reports whether the file name copy is name with a copy suffix.
+func isCopyOf(copy string, name string) bool {
+	match := copySuffix.FindStringSubmatch(copy)
+	return match != nil && strings.EqualFold(match[1]+match[5], name)
 }
 
 func (web *Web) spacePageData() SpacePageData {
@@ -170,11 +231,9 @@ func (web *Web) spacePageData() SpacePageData {
 			data.LibrarySize += file.Size
 		}
 	}
-	for _, candidate := range web.compressCandidates() {
-		if _, err := os.Stat(switchfs.CompressedPath(candidate.Path)); err != nil {
-			data.Compressible++
-			data.CompressSize += candidate.Size
-		}
+	for _, candidate := range web.uncompressedCandidates() {
+		data.Compressible++
+		data.CompressSize += candidate.Size
 	}
 	return data
 }
@@ -195,17 +254,26 @@ func (web *Web) HandleSpace() {
 		// only files listed on the page, and deletable now, are deleted
 		deletable := map[string]SpaceFile{}
 		reasons := map[string]string{}
+		requested := r.Form["path"]
+		wholeGroups := map[string]bool{}
+		for _, id := range r.Form["rest"] {
+			wholeGroups[id] = true
+		}
 		for _, group := range web.spaceGroups() {
-			for _, file := range group.Files {
+			for i, file := range group.Files {
 				if file.Deletable {
 					deletable[file.Path] = file
 					reasons[file.Path] = group.Id
+					// "the rest of the group": the files not listed one by one
+					if i >= shownFiles && wholeGroups[group.Id] {
+						requested = append(requested, file.Path)
+					}
 				}
 			}
 		}
 		files, why := []db.ExtendedFileInfo{}, []string{}
 		var size int64
-		for _, path := range r.Form["path"] {
+		for _, path := range requested {
 			if file, ok := deletable[path]; ok {
 				files = append(files, file.file)
 				why = append(why, reasons[path])

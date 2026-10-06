@@ -40,13 +40,26 @@ type CompressCandidate struct {
 	Size int64
 }
 
+// NszListData is a page of the NSZ files that can be decompressed.
+type NszListData struct {
+	Files   []CompressCandidate
+	Matches int
+	Total   int
+}
+
 type CompressPageData struct {
 	GlobalPageData
 	Candidates []CompressCandidate
-	TotalSize  int64
+	// files not listed one by one, compressed with "the rest"
+	RestCount int
+	RestSize  int64
+	// NSZ files that can be decompressed; the list is loaded when the section is opened
+	CompressedCount int
+	// NSP and XCI files that already have a compressed copy (listed on the Space page)
+	AlreadyCompressed int
+	TotalSize         int64
 	// compressed files that can be decompressed
-	Compressed []CompressCandidate
-	Running    bool
+	Running bool
 }
 
 // compressor runs one compression at a time and can cancel it.
@@ -57,12 +70,40 @@ type compressor struct {
 
 // compressCandidates lists the NSP and XCI files of the library, biggest first.
 func (web *Web) compressCandidates() []CompressCandidate {
-	return web.libraryFiles(".nsp", ".xci")
+	return web.derived("compressCandidates", func() any { return web.libraryFiles(".nsp", ".xci") }).([]CompressCandidate)
+}
+
+// compressedCopies are the compress candidates that have a compressed copy next to them.
+// Asking the disk for every file is slow on NAS shares, so the answer is kept until the
+// library changes (a compression or the folder watcher rescans it).
+func (web *Web) compressedCopies() map[string]bool {
+	return web.derived("compressedCopies", func() any {
+		copies := map[string]bool{}
+		for _, candidate := range web.compressCandidates() {
+			if _, err := os.Stat(switchfs.CompressedPath(candidate.Path)); err == nil {
+				copies[candidate.Path] = true
+			}
+		}
+		return copies
+	}).(map[string]bool)
+}
+
+// uncompressedCandidates are the compress candidates without a compressed copy next to
+// them; compressing those again would only redo the work.
+func (web *Web) uncompressedCandidates() []CompressCandidate {
+	copies := web.compressedCopies()
+	result := []CompressCandidate{}
+	for _, candidate := range web.compressCandidates() {
+		if !copies[candidate.Path] {
+			result = append(result, candidate)
+		}
+	}
+	return result
 }
 
 // decompressCandidates lists the NSZ files of the library, biggest first.
 func (web *Web) decompressCandidates() []CompressCandidate {
-	return web.libraryFiles(".nsz")
+	return web.derived("decompressCandidates", func() any { return web.libraryFiles(".nsz") }).([]CompressCandidate)
 }
 
 // libraryFiles lists the files of the library with one of the extensions, each file
@@ -363,12 +404,40 @@ func (web *Web) HandleCompress() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/compress.html")
 
 	web.router.HandleFunc("/compress.html", func(w http.ResponseWriter, r *http.Request) {
-		candidates := web.compressCandidates()
-		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, Compressed: web.decompressCandidates(), Running: web.compressionRunning()}
-		for _, candidate := range candidates {
+		candidates := web.uncompressedCandidates()
+		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, CompressedCount: len(web.decompressCandidates()), Running: web.compressionRunning()}
+		data.AlreadyCompressed = len(web.compressCandidates()) - len(candidates)
+		for i, candidate := range candidates {
 			data.TotalSize += candidate.Size
+			if i >= shownFiles {
+				data.RestCount++
+				data.RestSize += candidate.Size
+			}
+		}
+		if len(candidates) > shownFiles {
+			data.Candidates = candidates[:shownFiles]
 		}
 		web.render(w, r, templates, data)
+	}).Methods("GET")
+
+	// the NSZ files that match a search, for the Decompress section
+	web.router.HandleFunc("/compress/nsz-list", func(w http.ResponseWriter, r *http.Request) {
+		query := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("q")))
+		all := web.decompressCandidates()
+		data := NszListData{Total: len(all)}
+		for _, candidate := range all {
+			if query != "" && !strings.Contains(strings.ToLower(candidate.Name+" "+filepath.Base(candidate.Path)), query) {
+				continue
+			}
+			data.Matches++
+			if len(data.Files) < shownFiles {
+				data.Files = append(data.Files, candidate)
+			}
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		if err := templates.executeTemplate(w, web.requestLanguage(r), "nszRows", data); err != nil {
+			web.sugarLogger.Error(err)
+		}
 	}).Methods("GET")
 
 	web.router.HandleFunc("/compress/start", func(w http.ResponseWriter, r *http.Request) {
@@ -383,12 +452,19 @@ func (web *Web) HandleCompress() {
 		}
 		// only files of the library can be compressed
 		known := map[string]bool{}
-		for _, candidate := range web.compressCandidates() {
+		requested := r.Form["path"]
+		for i, candidate := range web.uncompressedCandidates() {
 			known[candidate.Path] = true
+			// "the rest": the files not listed one by one
+			if i >= shownFiles && r.FormValue("rest") == "compress" {
+				requested = append(requested, candidate.Path)
+			}
 		}
 		paths := []string{}
-		for _, path := range r.Form["path"] {
-			if known[path] {
+		seen := map[string]bool{}
+		for _, path := range requested {
+			if known[path] && !seen[path] {
+				seen[path] = true
 				paths = append(paths, path)
 			}
 		}

@@ -5,6 +5,13 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"And %v more files": "Y %v archivos más",
+		"Smaller files of this group, not listed one by one.": "Archivos más pequeños de este grupo, sin listar uno a uno.",
+		"Smaller files, not listed one by one.":               "Archivos más pequeños, sin listar uno a uno.",
+		"Loading...":                                          "Cargando...",
+		"The %v biggest of %v files are shown; use the filter to find the others.":                                                                          "Se muestran los %v más grandes de %v archivos; usa el filtro para encontrar los demás.",
+		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.":        "%v archivos ya tienen una copia comprimida y no se muestran. Los originales se pueden borrar en la página Espacio cuando sus copias estén verificadas.",
+		"DLC without a name in the titles database":                                                                                                         "DLC sin nombre en la base de datos de títulos",
 		"Files that could not be added to the library, damaged files, duplicates and old versions. The Space page can clean up old updates and duplicates.": "Archivos que no se han podido añadir a la biblioteca, archivos dañados, duplicados y versiones antiguas. La página Espacio puede limpiar las actualizaciones antiguas y los duplicados.",
 		"Synchronizations, scans, compressions, checks and cleanups with their progress and result. Failed tasks stay here until you dismiss them.":         "Sincronizaciones, análisis, compresiones, verificaciones y limpiezas con su progreso y resultado. Las tareas fallidas se quedan aquí hasta que las descartes.",
 		"Synchronizations, scans, compressions, checks and cleanups appear here.":                                                                           "Aquí aparecen las sincronizaciones, los análisis, las compresiones, las verificaciones y las limpiezas.",

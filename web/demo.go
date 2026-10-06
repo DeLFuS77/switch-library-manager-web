@@ -82,8 +82,8 @@ func (web *Web) loadDemo() {
 		id := demoTitleId(i)
 		icon := "demo-" + id + ".png"
 		banner := "demo-" + id + "-banner.png"
-		writeDemoCover(filepath.Join(imgFolder, icon), 512, 512, game.hue, i)
-		writeDemoCover(filepath.Join(imgFolder, banner), 1280, 720, game.hue, i)
+		writeDemoCover(filepath.Join(imgFolder, icon), 360, 360, game.hue, i)
+		writeDemoCover(filepath.Join(imgFolder, banner), 960, 540, game.hue, i)
 
 		title := &db.SwitchTitle{
 			Attributes: db.TitleAttributes{Id: id, Name: game.name, Publisher: game.publisher, Description: game.description,

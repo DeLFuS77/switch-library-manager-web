@@ -44,10 +44,19 @@ func (web *Web) buildMissingDLC(lang string) []TitleItem {
 
 	for _, v := range missingDLC {
 		name := titleName(switchDB, lang, v.Attributes.Id, v.Attributes.Name)
+		if name == "" {
+			name = localTitleName(localDB, v.Attributes.Id)
+		}
+		if name == "" {
+			name = strings.ToUpper(v.Attributes.Id)
+		}
 		{
 			missingDlc := make([]db.TitleAttributes, len(v.MissingDLCItems))
 			for i, dlc := range v.MissingDLCItems {
 				dlc.Name = titleName(switchDB, lang, dlc.Id, dlc.Name)
+				if dlc.Name == "" {
+					dlc.Name = translate(lang, "DLC without a name in the titles database")
+				}
 				missingDlc[i] = dlc
 			}
 

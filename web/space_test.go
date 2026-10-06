@@ -145,3 +145,43 @@ func TestShortPaths(t *testing.T) {
 		t.Fatal("file name helpers")
 	}
 }
+
+func TestKeptByWithParenthesesInTheName(t *testing.T) {
+	if got := keptBy("duplicate base file (/roms/DOOM [0100B1A00D8CE000][v0](2).nsz)"); got != "/roms/DOOM [0100B1A00D8CE000][v0](2).nsz" {
+		t.Fatalf("got %q", got)
+	}
+	for copy, name := range map[string]string{
+		"Game [v0](2).nsz":      "Game [v0].nsz",
+		"Game [v0] (3).nsp":     "Game [v0].nsp",
+		"Game [v0] - Copy.nsz":  "Game [v0].nsz",
+		"Game [v0] - copia.nsz": "Game [v0].nsz",
+	} {
+		if !isCopyOf(copy, name) {
+			t.Errorf("%q is a copy of %q", copy, name)
+		}
+	}
+	if isCopyOf("Game [v0].nsz", "Game [v0].nsz") || isCopyOf("Other(2).nsz", "Game.nsz") {
+		t.Fatal("not copies")
+	}
+}
+
+func TestSpaceDeletesTheCopyNotTheCleanName(t *testing.T) {
+	web := newTestWeb(t)
+	dir := t.TempDir()
+	clean := filepath.Join(dir, "Game [0100000000010000][v0].nsz")
+	copy := filepath.Join(dir, "Game [0100000000010000][v0](2).nsz")
+	os.WriteFile(clean, make([]byte, 40), 0644)
+	os.WriteFile(copy, make([]byte, 40), 0644)
+	localDB := &db.LocalSwitchFilesDB{
+		TitlesMap: map[string]*db.SwitchGameFiles{},
+		// the copy was found first and is in the library; the clean name is the duplicate
+		Skipped: map[db.ExtendedFileInfo]db.SkippedFile{
+			{FileName: filepath.Base(clean), BaseFolder: dir, Size: 40}: {ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + copy + ")"},
+		},
+	}
+	web.state.set(&db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{}}, localDB)
+	duplicates := spaceGroup(web.spaceGroups(), SPACE_DUPLICATES)
+	if len(duplicates.Files) != 1 || duplicates.Files[0].Path != copy || duplicates.Files[0].KeptBy != clean {
+		t.Fatalf("the copy must be the file to delete: %+v", duplicates.Files)
+	}
+}

@@ -10,11 +10,14 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/disintegration/gift"
+
+	"github.com/dtrunk90/switch-library-manager-web/db"
 )
 
 const (
@@ -38,9 +41,53 @@ func newThumbnails() *thumbnails {
 	return &thumbnails{slots: make(chan struct{}, thumbnailWorkers), running: map[string]*sync.WaitGroup{}}
 }
 
+// thumbnails returns the thumbnail maker shared by requests and the background work.
+func (web *Web) thumbnails() *thumbnails {
+	web.thumbsOnce.Do(func() {
+		web.thumbs = newThumbnails()
+	})
+	return web.thumbs
+}
+
+// pregenerateThumbnails makes the missing thumbnails of the library covers, one at a time,
+// so pages do not wait for them the first time they are shown.
+func (web *Web) pregenerateThumbnails() {
+	_, localDB := web.state.get()
+	if localDB == nil {
+		return
+	}
+	names := map[string]bool{}
+	for _, title := range localDB.TitlesMap {
+		if title.Icon != "" {
+			names[title.Icon] = true
+		}
+	}
+	made := 0
+	for name := range names {
+		// a new scan brings its own list
+		if web.state.IsSynchronizing() {
+			return
+		}
+		original, ok := web.imagePath(name)
+		if !ok {
+			continue
+		}
+		thumbnail := filepath.Join(web.dataFolder, "img", "thumbs", name)
+		if _, err := os.Stat(thumbnail); err == nil {
+			continue
+		}
+		if web.thumbnails().make(original, thumbnail) == nil {
+			made++
+		}
+	}
+	if made > 0 {
+		web.sugarLogger.Infof("[%d thumbnails made in the background]", made)
+	}
+}
+
 // HandleImages serves the cached covers: /i/ the original files, /t/ thumbnails.
 func (web *Web) HandleImages() {
-	thumbs := newThumbnails()
+	thumbs := web.thumbnails()
 
 	http.HandleFunc("/i/", func(w http.ResponseWriter, r *http.Request) {
 		path, ok := web.imagePath(strings.TrimPrefix(r.URL.Path, "/i/"))
@@ -54,6 +101,15 @@ func (web *Web) HandleImages() {
 	http.HandleFunc("/t/", func(w http.ResponseWriter, r *http.Request) {
 		name := strings.TrimPrefix(r.URL.Path, "/t/")
 		original, ok := web.imagePath(name)
+		if !ok && remoteCoverName.MatchString(name) {
+			path, err := web.fetchRemoteCover(name)
+			if err != nil {
+				// the browser can still try the cover server itself
+				http.Redirect(w, r, remoteCoverBase+name, http.StatusFound)
+				return
+			}
+			original, ok = path, true
+		}
 		if !ok {
 			http.NotFound(w, r)
 			return
@@ -158,7 +214,9 @@ func writeThumbnail(original string, thumbnail string) error {
 
 	result := source
 	if bounds.Dx() > thumbnailSize || bounds.Dy() > thumbnailSize {
-		filter := gift.New(gift.ResizeToFit(thumbnailSize, thumbnailSize, gift.LanczosResampling))
+		// linear resampling is several times faster than Lanczos on small NAS processors,
+		// and looks the same at this size
+		filter := gift.New(gift.ResizeToFit(thumbnailSize, thumbnailSize, gift.LinearResampling))
 		resized := image.NewRGBA(filter.Bounds(bounds))
 		filter.Draw(resized, source)
 		result = resized
@@ -189,5 +247,71 @@ func thumbUrl(url string) string {
 	if strings.HasPrefix(url, "/i/") {
 		return "/t/" + strings.TrimPrefix(url, "/i/")
 	}
+	// covers of games that are not in the library are fetched once by the server and
+	// shown as small thumbnails, instead of every browser loading the full images
+	if name, ok := strings.CutPrefix(url, remoteCoverBase); ok && remoteCoverName.MatchString(name) {
+		return "/t/" + name
+	}
 	return url
+}
+
+// the server of the covers in the titles database; covers are cached under the same name
+var remoteCoverBase = "https://img-eshop.cdn.nintendo.net/i/"
+
+// only names of that server are fetched, so the app cannot be used to reach other sites
+var remoteCoverName = regexp.MustCompile(`^[0-9a-f]{64}\.(jpg|png)$`)
+
+// remoteCovers downloads covers asked for by pages, a few at a time.
+type remoteCovers struct {
+	slots   chan struct{}
+	mutex   sync.Mutex
+	running map[string]*sync.WaitGroup
+}
+
+func (web *Web) remoteCoverFetcher() *remoteCovers {
+	web.remoteOnce.Do(func() {
+		web.remote = &remoteCovers{slots: make(chan struct{}, 3), running: map[string]*sync.WaitGroup{}}
+	})
+	return web.remote
+}
+
+// fetchRemoteCover stores the cover name of the cover server in the image cache.
+func (web *Web) fetchRemoteCover(name string) (string, error) {
+	if !remoteCoverName.MatchString(name) {
+		return "", errors.New("not a cover of the titles database")
+	}
+	path := filepath.Join(web.dataFolder, "img", name)
+	if info, err := os.Stat(path); err == nil && info.Size() > 0 {
+		return path, nil
+	}
+	fetcher := web.remoteCoverFetcher()
+	fetcher.mutex.Lock()
+	if wait, ok := fetcher.running[name]; ok {
+		fetcher.mutex.Unlock()
+		wait.Wait()
+		if _, err := os.Stat(path); err != nil {
+			return "", err
+		}
+		return path, nil
+	}
+	wait := &sync.WaitGroup{}
+	wait.Add(1)
+	fetcher.running[name] = wait
+	fetcher.mutex.Unlock()
+	defer func() {
+		fetcher.mutex.Lock()
+		delete(fetcher.running, name)
+		fetcher.mutex.Unlock()
+		wait.Done()
+	}()
+
+	fetcher.slots <- struct{}{}
+	defer func() { <-fetcher.slots }()
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return "", err
+	}
+	if err := db.DownloadFile(remoteCoverBase+name, path); err != nil {
+		return "", err
+	}
+	return path, nil
 }

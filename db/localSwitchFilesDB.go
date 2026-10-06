@@ -215,6 +215,12 @@ func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, progre
 	})
 }
 
+// SaveTitles stores the games of the library again, e.g. after their covers were
+// downloaded, so the next start shows them right away.
+func (ldb *LocalSwitchDBManager) SaveTitles(titles map[string]*SwitchGameFiles) error {
+	return ldb.db.AddEntries(DB_TABLE_LOCAL_LIBRARY, map[string]interface{}{"titles": titles})
+}
+
 func (ldb *LocalSwitchDBManager) ClearScanData() error {
 	return ldb.db.ClearTable(DB_TABLE_FILE_SCAN_METADATA)
 }
@@ -418,7 +424,9 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 		}
 	}
 
-	downloadCovers(dataFolder, covers, progress)
+	// covers not cached yet are downloaded after the scan, so a big library is shown
+	// without waiting for thousands of downloads
+	assignCachedCovers(dataFolder, covers)
 }
 
 // metadataResult is what reading one file found. Workers fill it in parallel; it is applied

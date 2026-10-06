@@ -617,28 +617,72 @@ function bindFileForm(form, url) {
 	}
 	const all = form.querySelector('[data-file-all]');
 	const summary = form.querySelector('[data-file-summary]');
-	const boxes = [...form.querySelectorAll('input[name="path"]:not(:disabled)')];
+	// rows can be replaced later (lists loaded from the server), so they are looked up each time
+	const boxes = () => [...form.querySelectorAll('input[name="path"]:not(:disabled), input[name="rest"]')];
 	const visible = box => !box.closest('[hidden]');
+	const selection = () => {
+		const selected = boxes().filter(box => box.checked);
+		return {
+			count: selected.reduce((sum, box) => sum + Number(box.dataset.count || 1), 0),
+			size: selected.reduce((sum, box) => sum + Number(box.dataset.size || 0), 0)
+		};
+	};
 	const update = () => {
-		const selected = boxes.filter(box => box.checked);
-		const size = selected.reduce((sum, box) => sum + Number(box.dataset.size || 0), 0);
-		summary.textContent = summary.dataset.template.replace('%v', selected.length).replace('%v', formatSize(size));
-		const shown = boxes.filter(visible);
+		const { count, size } = selection();
+		summary.textContent = summary.dataset.template.replace('%v', count).replace('%v', formatSize(size));
+		const shown = boxes().filter(visible);
 		const shownSelected = shown.filter(box => box.checked);
 		all.checked = shown.length > 0 && shownSelected.length === shown.length;
 		all.indeterminate = shownSelected.length > 0 && shownSelected.length < shown.length;
 	};
 	// "select all" changes the rows the filter shows
 	all.addEventListener('change', () => {
-		boxes.filter(visible).forEach(box => {
+		boxes().filter(visible).forEach(box => {
 			box.checked = all.checked;
 		});
 		update();
 	});
+	form.addEventListener('change', e => {
+		if (e.target.matches('input[name="path"], input[name="rest"]')) {
+			update();
+		}
+	});
+
+	// a list loaded from the server, e.g. thousands of NSZ files: only the rows that
+	// match the filter are sent
+	const list = form.querySelector('[data-file-list]');
+	const load = query => {
+		if (!list) {
+			return Promise.resolve();
+		}
+		return fetch(list.dataset.fileList + '?q=' + encodeURIComponent(query || ''))
+			.then(response => response.text())
+			.then(html => {
+				list.innerHTML = html;
+				list.dataset.loaded = 'true';
+				update();
+			})
+			.catch(() => undefined);
+	};
+	const details = form.closest('details');
+	if (list && details) {
+		details.addEventListener('toggle', () => {
+			if (details.open && !list.dataset.loaded) {
+				load('');
+			}
+		});
+	}
+
 	const filter = form.querySelector('[data-file-filter]');
 	if (filter) {
+		let timer;
 		filter.addEventListener('input', () => {
 			const text = filter.value.trim().toLowerCase();
+			if (list) {
+				clearTimeout(timer);
+				timer = setTimeout(() => load(text), 300);
+				return;
+			}
 			form.querySelectorAll('[data-file-row]').forEach(row => {
 				row.hidden = text !== '' && !row.textContent.toLowerCase().includes(text);
 			});
@@ -651,7 +695,6 @@ function bindFileForm(form, url) {
 			}
 		});
 	}
-	boxes.forEach(box => box.addEventListener('change', update));
 	update();
 
 	form.addEventListener('submit', e => {
@@ -663,9 +706,8 @@ function bindFileForm(form, url) {
 		const submit = form.querySelector('[type="submit"]');
 		// deleting asks first, with the number and size of the files
 		if (submit.dataset.confirm) {
-			const selected = boxes.filter(box => box.checked);
-			const size = selected.reduce((sum, box) => sum + Number(box.dataset.size || 0), 0);
-			if (!window.confirm(submit.dataset.confirm.replace('%v', selected.length).replace('%v', formatSize(size)))) {
+			const { count, size } = selection();
+			if (!window.confirm(submit.dataset.confirm.replace('%v', count).replace('%v', formatSize(size)))) {
 				return;
 			}
 		}
