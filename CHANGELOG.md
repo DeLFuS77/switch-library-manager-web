@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.14.0
+
+Made for big libraries (tens of thousands of files).
+
+### New features
+
+- **The library shows up right away**: covers are downloaded after the scan, in the background, and appear as they
+  arrive. Before, a first scan of a big library waited for thousands of cover downloads.
+- **Slow first scans show their games while they run**, every few seconds, and what was read is saved as it goes,
+  so an interrupted scan does not start over.
+- **Background work is visible**: cover downloads and thumbnails are tasks with their progress, and the Tasks icon
+  turns while something runs.
+- **Safer duplicates**: a duplicate can only be deleted once the copy that is kept was verified and is sound; the
+  Space page checks only those copies.
+
+### Faster pages
+
+- Thumbnails are made in the background with a faster method, so pages do not wait for them the first time.
+- Covers of games that are not in the library are fetched once by the server and shown as small thumbnails.
+- The main lists are prepared after each scan, before anyone opens them.
+- Space and Compress list the 300 biggest files of each group and offer the rest as one row; the Decompress list is
+  loaded when it is opened and searched on the server. With a big library these pages went from 11-18 MB to about
+  200 KB.
+- Pages, styles and scripts are sent compressed (about 7 times smaller).
+
+### Fixes
+
+- Updates and DLC of titles without a name in the titles database take the name from the files; the kind "BASE" is
+  translated.
+- Space read kept files with parentheses in their names wrongly ("2).nsz"), and now deletes the copy
+  ("Game(2).nsz") instead of the file with the clean name.
+- Compress no longer lists files that already have a compressed copy.
+- The library tile says "games with a missing update", which matches its number.
+
 ## 1.13.0
 
 ### New features

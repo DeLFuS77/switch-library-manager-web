@@ -61,7 +61,8 @@ Linux, Docker, NAS and Raspberry Pi.
 - Space page: see how much old updates, duplicates and already compressed originals take, and free it safely
 
 **Built to run on a server**
-- Docker image for amd64 and arm64, Unraid template, low memory use and fast with thousands of games
+- Docker image for amd64 and arm64, Unraid template, low memory use and fast with tens of thousands of files:
+  the library shows up while it is scanned, covers and thumbnails load in the background
 - User accounts with administrator and read-only roles
 - Live tasks page, scheduled synchronization and notifications (Discord, Telegram, webhook)
 - JSON API with OpenAPI description, e.g. for Home Assistant
