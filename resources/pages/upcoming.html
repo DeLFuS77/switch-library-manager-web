@@ -3,17 +3,20 @@
 			{{- $f := .Filter}}
 			{{- template "pageHeader" (dict "Title" (t "Upcoming releases") "Count" .Total "Subtitle" (t "The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out."))}}
 			{{- if or .Total .JustReleased $f.Keyword}}
-			<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-				<ul class="filter-pills list-unstyled mb-0 me-auto" aria-label="{{t "Filter by status"}}">
-					{{- template "statusFilter" (dict "Filter" $f "Value" "" "Label" (t "All") "Icon" "" "Count" .Total)}}
-					{{- template "statusFilter" (dict "Filter" $f "Value" "wanted" "Label" (t "For you") "Icon" "bi-stars" "Count" .ForYou)}}
-				</ul>
-				<form class="toolbar-search" method="get" action="/upcoming.html" role="search">
-					{{- if $f.Status}}<input type="hidden" name="status" value="{{$f.Status}}">{{end}}
+			<form class="toolbar" method="get" action="/upcoming.html" role="search">
+				{{- if $f.Status}}<input type="hidden" name="status" value="{{$f.Status}}">{{end}}
+				<div class="toolbar-search">
 					<span class="bi bi-search" aria-hidden="true"></span>
-					<input type="search" class="form-control" name="q" value="{{$f.Keyword}}" placeholder="{{t "Search by name or ID..."}}" aria-label="{{t "Search by name or ID..."}}">
-				</form>
-			</div>
+					<input type="search" class="form-control" name="q" value="{{$f.Keyword}}" placeholder="{{t "Search by name or ID..."}}" aria-label="{{t "Search"}}">
+				</div>
+				{{- if $f.Keyword}}
+				<a class="btn btn-link text-decoration-none px-2" href="{{filterUrl $f "q" ""}}">{{t "Clear"}}</a>
+				{{- end}}
+			</form>
+			<ul class="filter-pills list-unstyled mb-3" aria-label="{{t "Filter by status"}}">
+				{{- template "statusFilter" (dict "Filter" $f "Value" "" "Label" (t "All") "Icon" "" "Count" .Total)}}
+				{{- template "statusFilter" (dict "Filter" $f "Value" "wanted" "Label" (t "For you") "Icon" "bi-stars" "Count" .ForYou)}}
+			</ul>
 			<p class="mark-legend">
 				<span><span class="bi bi-heart-fill text-danger" aria-hidden="true"></span>{{t "Wishlist: games you want and do not have yet"}}</span>
 				<span><span class="bi bi-collection text-primary" aria-hidden="true"></span>{{t "A new game of a series you have"}}</span>
