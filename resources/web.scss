@@ -2262,3 +2262,42 @@ h3,
 		right: 1rem;
 	}
 }
+
+/* the selection boxes of the library show on hover, on keyboard focus and while selecting;
+   touch screens always show them */
+.cover-select[data-library-item] {
+	opacity: 0;
+	transition: opacity .15s ease;
+}
+
+.game-card:hover .cover-select[data-library-item],
+.game-card:focus-within .cover-select[data-library-item],
+.is-selecting .cover-select[data-library-item] {
+	opacity: 1;
+}
+
+@media (hover: none) {
+	.cover-select[data-library-item] {
+		opacity: .85;
+	}
+}
+
+/* phones: the filters scroll sideways in one row instead of filling the screen */
+@media (max-width: 575.98px) {
+	.filter-scroll {
+		flex-wrap: nowrap !important;
+		overflow-x: auto;
+		scrollbar-width: none;
+		margin-inline: -1rem;
+		padding-inline: 1rem;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.filter-scroll::-webkit-scrollbar {
+		display: none;
+	}
+
+	.filter-scroll > * {
+		flex-shrink: 0;
+	}
+}

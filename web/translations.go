@@ -5,6 +5,9 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"%v files": "%v archivos",
+		"originals deleted after the check": "originales borrados tras la comprobación",
+		"NSZ deleted after the check": "NSZ borrados tras la comprobación",
 		"All collections": "Todas las colecciones",
 		"Collections": "Colecciones",
 		"Collection": "Colección",

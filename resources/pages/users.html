@@ -11,15 +11,15 @@
 						<p class="text-body-secondary">{{t "Anyone who can open this app has full access. Create an administrator to require a login."}}</p>
 						<form class="row g-2 align-items-end" method="post" action="/users/create">
 							<input type="hidden" name="role" value="admin">
-							<div class="col-md-5">
+							<div class="col-sm-6 col-lg-5">
 								<label class="form-label fw-semibold" for="firstName">{{t "User name"}}</label>
 								<input class="form-control" id="firstName" name="name" autocomplete="username" autocapitalize="none" spellcheck="false" required pattern="[A-Za-z0-9._\-]{1,32}">
 							</div>
-							<div class="col-md-4">
+							<div class="col-sm-6 col-lg-4">
 								<label class="form-label fw-semibold" for="firstPassword">{{t "Password"}}</label>
 								<input class="form-control" id="firstPassword" name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="72">
 							</div>
-							<div class="col-md-3">
+							<div class="col-12 col-lg-3">
 								<button class="btn btn-primary rounded-pill w-100 text-nowrap" type="submit"><span class="bi bi-shield-lock me-1" aria-hidden="true"></span>{{t "Require login"}}</button>
 							</div>
 						</form>

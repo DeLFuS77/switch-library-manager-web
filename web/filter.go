@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 type TitleItemFilter struct {
@@ -202,8 +203,18 @@ func (a TitleItemByName) Less(i, j int) bool {
 	return lessName(a[i], a[j])
 }
 
+// sortName is a name as it is sorted: without case, and without the quotes and signs some
+// names start with ("GAME", #Game, [Game]).
+func sortName(name string) string {
+	trimmed := strings.TrimLeftFunc(name, func(r rune) bool { return !unicode.IsLetter(r) && !unicode.IsDigit(r) })
+	if trimmed == "" {
+		trimmed = name
+	}
+	return strings.ToLower(trimmed)
+}
+
 func lessName(a, b TitleItem) bool {
-	nameA, nameB := strings.ToLower(a.Name), strings.ToLower(b.Name)
+	nameA, nameB := sortName(a.Name), sortName(b.Name)
 	if nameA == nameB {
 		return a.Id < b.Id
 	}

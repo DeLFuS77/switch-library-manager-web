@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"testing"
@@ -1254,5 +1255,17 @@ func TestHiddenDemosLeaveEveryList(t *testing.T) {
 	filter.Kind = KIND_DEMO
 	if items, _, _ := web.getLibraryWithFacets(filter, "en"); len(items) != 1 || !items[0].Demo {
 		t.Fatalf("the kind filter still shows the demos: %+v", items)
+	}
+}
+
+func TestNamesSortWithoutLeadingSigns(t *testing.T) {
+	items := []TitleItem{{Name: "Zelda"}, {Name: "\"GUDETAMARUN\""}, {Name: "#Anagrams"}, {Name: "apple"}, {Name: "!!!"}}
+	sort.Stable(TitleItemByName(items))
+	got := []string{}
+	for _, item := range items {
+		got = append(got, item.Name)
+	}
+	if strings.Join(got, "|") != "!!!|#Anagrams|apple|\"GUDETAMARUN\"|Zelda" {
+		t.Fatalf("quotes and signs are not sorted first: %v", got)
 	}
 }

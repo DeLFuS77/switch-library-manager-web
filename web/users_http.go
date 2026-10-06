@@ -91,7 +91,7 @@ func (web *Web) HandleUsers() {
 
 	web.router.HandleFunc("/users.html", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
-		data := UsersPageData{GlobalPageData: web.globalPageData("users"), Users: web.auth.users.List(), EnvUser: web.auth.envUser, Activity: web.activities().list()}
+		data := UsersPageData{GlobalPageData: web.globalPageData("users"), Users: web.auth.users.List(), EnvUser: web.auth.envUser, Activity: translateActivity(web.requestLanguage(r), web.activities().list())}
 		if message, ok := userMessages[r.URL.Query().Get("done")]; ok {
 			data.Message = translate(lang, message)
 		}

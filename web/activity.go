@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -157,6 +158,54 @@ func (web *Web) withActivityLog(next http.Handler) http.Handler {
 		}
 		web.activities().add(Activity{Time: time.Now(), User: user, Action: action, Detail: detail})
 	})
+}
+
+var (
+	activityFilesPattern = regexp.MustCompile(`^(\d+) files`)
+	// values of the forms, shown with the name of what they do
+	activityValues = map[string]string{
+		ORGANIZE_ACTION_ORGANIZE: "Organize files",
+		ORGANIZE_ACTION_CLEANUP:  "Delete old updates",
+		SPACE_OLD_UPDATES:        "Old updates",
+		SPACE_DUPLICATES:         "Duplicates",
+		SPACE_COMPRESSED:         "Compressed originals",
+		"admin":                  "Administrator",
+		"viewer":                 "Read only",
+	}
+	activityPhrases = []string{", originals deleted after the check", ", NSZ deleted after the check"}
+)
+
+// translateActivity returns the activity with its details in a language. The details are
+// recorded in English: counts of files, values of forms and names of users.
+func translateActivity(lang string, entries []Activity) []Activity {
+	result := make([]Activity, len(entries))
+	for i, entry := range entries {
+		detail := entry.Detail
+		if label, ok := activityValues[detail]; ok {
+			detail = translate(lang, label)
+		}
+		if match := activityFilesPattern.FindStringSubmatch(detail); match != nil {
+			detail = translatef(lang, "%v files", match[1]) + detail[len(match[0]):]
+		}
+		parts := strings.Split(detail, " + ")
+		for j, part := range parts {
+			if label, ok := activityValues[part]; ok {
+				parts[j] = translate(lang, label)
+			}
+		}
+		detail = strings.Join(parts, " + ")
+		for _, phrase := range activityPhrases {
+			detail = strings.Replace(detail, phrase, ", "+translate(lang, strings.TrimPrefix(phrase, ", ")), 1)
+		}
+		if name, role, found := strings.Cut(detail, ": "); found {
+			if label, ok := activityValues[role]; ok {
+				detail = name + ": " + translate(lang, label)
+			}
+		}
+		entry.Detail = detail
+		result[i] = entry
+	}
+	return result
 }
 
 func containsError(location string) bool {

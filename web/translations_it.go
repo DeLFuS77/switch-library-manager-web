@@ -3,6 +3,9 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"%v files": "%v file",
+		"originals deleted after the check": "originali eliminati dopo la verifica",
+		"NSZ deleted after the check": "NSZ eliminati dopo la verifica",
 		"All collections": "Tutte le collezioni",
 		"Collections": "Collezioni",
 		"Collection": "Collezione",
