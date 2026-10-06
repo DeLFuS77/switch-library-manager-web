@@ -47,8 +47,9 @@ Linux, Docker, NAS and Raspberry Pi.
 - Scans your folders (NSP, NSZ, XCI, XCZ and split files) and rescans by itself when files change
 - An overview of your games, missing updates and DLC, and the space they use
 - Missing updates (for games and DLC), missing DLC and missing games, with filters and search
-- Library filters by status, format, region, collection, games or demos, and games without a cover; sort by size
-  or date added
+- Library filters by status, genre, players, language, format, region, collection, games or demos, and games
+  without a cover; sort by size or date added; a search that forgives typos
+- SD card planner: the games that fit on a card by what you like, copied to the card in one go
 - Favorites, your own collections of games ("Playing", "For the kids"...) and actions on several games at once
 - The missing games greyed out with yours on request, and the games of the same series on each game page
 - A wishlist of games you do not have yet, with a notification when they come out
@@ -62,7 +63,8 @@ Linux, Docker, NAS and Raspberry Pi.
 - Ignore lists for DLC, updates and file types; hide demos
 
 **Save space**
-- Compress NSP to NSZ and XCI to XCZ (10 to 60% smaller), installed directly by Tinfoil, DBI and other installers
+- Compress NSP to NSZ and XCI to XCZ (10 to 60% smaller), installed directly by Tinfoil, DBI and other installers;
+  convert XCI to NSP
 - Every file is verified before the original is deleted; NSZ files can be decompressed back to NSP
 - Space page: see how much old updates, duplicates and already compressed originals take, and free it safely
 
