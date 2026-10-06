@@ -31,8 +31,8 @@ type TitleItemFilter struct {
 	Genre        string `in:"form=genre"`
 	Players      string `in:"form=players"`
 	GameLanguage string `in:"form=languages"`
-	// the keyword in lower case, set by MatchesItem
-	keyword string
+	// the keyword prepared for searching, set by MatchesItem
+	search *searchQuery
 }
 
 // library status filters
@@ -173,10 +173,10 @@ func (f *TitleItemFilter) MatchesItem(item *TitleItem) bool {
 	if item.searchKey == "" {
 		return f.Matches(item.Id, item.Name, item.OriginalName)
 	}
-	if f.keyword == "" {
-		f.keyword = strings.ToLower(f.Keyword)
+	if f.search == nil {
+		f.search = newSearchQuery(f.Keyword)
 	}
-	return strings.Contains(item.searchKey, f.keyword)
+	return f.search.matches(item.searchKey, item.searchWords)
 }
 
 // Matches reports whether the title ID or one of the names contains the keyword (case insensitive).

@@ -62,7 +62,8 @@ func (web *Web) sorted(name string, filter *TitleItemFilter, build func() []Titl
 		items := append([]TitleItem(nil), all...)
 		for i := range items {
 			items[i].sortKey = sortName(items[i].Name)
-			items[i].searchKey = strings.ToLower(items[i].Id + "\n" + items[i].Name + "\n" + items[i].OriginalName)
+			items[i].searchKey = searchText(items[i].Id + " " + items[i].Name + " " + items[i].OriginalName)
+			items[i].searchWords = strings.Fields(items[i].searchKey)
 		}
 		if err := sortItems(filter, items); err != nil {
 			web.sugarLogger.Error(err)

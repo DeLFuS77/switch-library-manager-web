@@ -198,8 +198,9 @@ type TitleItem struct {
 	Players   int
 	Languages []string
 	// computed once when a list is sorted (see sorted), for sorting and searching
-	sortKey   string
-	searchKey string
+	sortKey     string
+	searchKey   string
+	searchWords []string
 }
 
 // DlcPercent is the share of the DLC of a game in the library.
