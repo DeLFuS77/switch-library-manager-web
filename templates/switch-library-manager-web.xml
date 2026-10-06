@@ -22,14 +22,14 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>MIT</License>
-  <Changes>### 1.21.0
+  <Changes>### 1.22.0
+- Security: without users the app only answers on the local network
+- Log out ends sessions for good, safer downloads and limits
+- One card everywhere, cover animations, game artwork, bottom bar on phones
+### 1.21.0
 - Upcoming releases by month, with the wishlist and your series first
 - Series page with how many games of each series you have
-- "You might like": missing games like your favorites
-### 1.20.0
-- Games without their base game, grouped with the wishlist heart
-- Issues without images and notes, with a button to ignore other file types
-- Lighter SD card planner and numbers with the separator of the language</Changes>
+- "You might like": missing games like your favorites</Changes>
   <Date>2026-10-06</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
