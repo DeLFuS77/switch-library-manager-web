@@ -347,8 +347,15 @@ func intToTime(value int) (time.Time, error) {
 	if value <= 0 {
 		return time.Time{}, nil
 	}
-
-	return strToTime("20060102", strconv.Itoa(value))
+	// some titles only have the year, or the year and the month, of their release
+	switch text := strconv.Itoa(value); len(text) {
+	case 4:
+		return strToTime("2006", text)
+	case 6:
+		return strToTime("200601", text)
+	default:
+		return strToTime("20060102", text)
+	}
 }
 
 func strToTime(layout, value string) (time.Time, error) {

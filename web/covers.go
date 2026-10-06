@@ -103,6 +103,8 @@ func (web *Web) downloadMissingCovers() {
 	if len(ready) > 0 {
 		web.state.applyCovers(ready)
 	}
+	// covers that failed recently (removed from the cover server) wait a day
+	urls = db.CoversToTry(web.dataFolder, urls)
 	if len(urls) == 0 {
 		web.saveCovers(len(ready) > 0)
 		web.pregenerateThumbnails()

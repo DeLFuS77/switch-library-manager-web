@@ -82,6 +82,24 @@ func assignCachedCovers(dataFolder string, covers []coverDownload) []coverDownlo
 	return pending
 }
 
+// CoversToTry returns the urls that are worth downloading now: covers that failed
+// recently are tried again only after a day.
+func CoversToTry(dataFolder string, urls []string) []string {
+	failures := map[string]int64{}
+	if data, err := os.ReadFile(filepath.Join(dataFolder, "img", coverFailuresFilename)); err == nil {
+		json.Unmarshal(data, &failures)
+	}
+	now := time.Now()
+	result := []string{}
+	for _, url := range urls {
+		if failed, ok := failures[url]; ok && now.Sub(time.Unix(failed, 0)) < coverRetryAfter {
+			continue
+		}
+		result = append(result, url)
+	}
+	return result
+}
+
 // DownloadCovers stores the covers at urls in the image cache, a few at a time. done is
 // called after each cover that was downloaded; stop, when not nil, is checked between
 // downloads. Covers that failed recently are skipped, and when the cover server cannot be
