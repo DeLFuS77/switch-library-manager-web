@@ -2234,3 +2234,31 @@ h3,
 .library-bulk[hidden] {
 	display: none !important;
 }
+
+/* notifications in a corner of the screen, see showToast in web.js */
+.toast-stack {
+	position: fixed;
+	top: 4.75rem;
+	right: 1rem;
+	z-index: 1090;
+	display: flex;
+	flex-direction: column;
+	gap: .5rem;
+	width: min(24rem, calc(100vw - 2rem));
+	pointer-events: none;
+}
+
+.toast-note {
+	margin: 0;
+	pointer-events: auto;
+	box-shadow: var(--slm-shadow);
+	backdrop-filter: blur(8px);
+}
+
+@media (max-width: 575.98px) {
+	.toast-stack {
+		top: auto;
+		bottom: 1rem;
+		right: 1rem;
+	}
+}

@@ -28,10 +28,10 @@
 
 {{- define "flash"}}
 			{{- if .Message}}
-			<div class="alert alert-success d-flex align-items-center gap-2" role="status"><span class="bi bi-check-circle-fill flex-shrink-0" aria-hidden="true"></span><div>{{.Message}}</div></div>
+			<div class="alert alert-success d-flex align-items-center gap-2" role="status" data-flash><span class="bi bi-check-circle-fill flex-shrink-0" aria-hidden="true"></span><div>{{.Message}}</div></div>
 			{{- end}}
 			{{- if .Error}}
-			<div class="alert alert-danger d-flex align-items-center gap-2" role="alert"><span class="bi bi-exclamation-triangle-fill flex-shrink-0" aria-hidden="true"></span><div>{{.Error}}</div></div>
+			<div class="alert alert-danger d-flex align-items-center gap-2" role="alert" data-flash><span class="bi bi-exclamation-triangle-fill flex-shrink-0" aria-hidden="true"></span><div>{{.Error}}</div></div>
 			{{- end}}
 {{- end}}
 
