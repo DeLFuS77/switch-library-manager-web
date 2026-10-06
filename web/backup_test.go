@@ -144,6 +144,10 @@ func TestTemplatesHaveNoInlineScripts(t *testing.T) {
 		if err != nil || entry.IsDir() || filepath.Ext(path) != ".html" {
 			return err
 		}
+		// the exported web page opens from a file, without the app and its policy
+		if filepath.Base(filepath.Dir(path)) == "export" {
+			return nil
+		}
 		data, err := os.ReadFile(path)
 		if err != nil {
 			return err

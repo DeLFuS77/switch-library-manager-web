@@ -3,6 +3,10 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"My Switch library":                           "Meine Switch-Bibliothek",
+		"Made with Switch Library Manager Web on %v.": "Erstellt mit Switch Library Manager Web am %v.",
+		"Only names, versions and covers are included; no game files and no keys.": "Nur Namen, Versionen und Cover sind enthalten; keine Spieldateien und keine Schlüssel.",
+		"Web page to share (ZIP)":            "Webseite zum Teilen (ZIP)",
 		"Your language was saved.":           "Deine Sprache wurde gespeichert.",
 		"My language":                        "Meine Sprache",
 		"Same as the app":                    "Wie die App",

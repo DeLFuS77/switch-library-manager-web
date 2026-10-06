@@ -5,6 +5,10 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"My Switch library":                           "Mi biblioteca de Switch",
+		"Made with Switch Library Manager Web on %v.": "Creada con Switch Library Manager Web el %v.",
+		"Only names, versions and covers are included; no game files and no keys.": "Solo incluye nombres, versiones y portadas; ni archivos de juegos ni claves.",
+		"Web page to share (ZIP)":            "Página web para compartir (ZIP)",
 		"Your language was saved.":           "Se ha guardado tu idioma.",
 		"My language":                        "Mi idioma",
 		"Same as the app":                    "El de la app",

@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -135,6 +136,17 @@ func exportFileName(extension string) string {
 }
 
 func (web *Web) HandleExport() {
+	var site templateSet
+	var siteOnce sync.Once
+	web.router.HandleFunc("/export/library-site.zip", func(w http.ResponseWriter, r *http.Request) {
+		siteOnce.Do(func() { site = web.mustParseTemplates(web.embedFS, "resources/export/site.html") })
+		w.Header().Set("Content-Type", "application/zip")
+		w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote(strings.TrimSuffix(exportFileName("zip"), ".zip")+"-web.zip"))
+		if err := web.writeExportSite(w, site, web.requestLanguage(r)); err != nil {
+			web.sugarLogger.Errorf("Exporting the web page failed: %v", err)
+		}
+	}).Methods("GET")
+
 	web.router.HandleFunc("/export/library.json", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote(exportFileName("json")))

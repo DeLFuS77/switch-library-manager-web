@@ -207,6 +207,18 @@
         }
       }
     },
+    "/export/library-site.zip": {
+      "get": {
+        "summary": "Export the library as a web page",
+        "tags": ["Library"],
+        "responses": {
+          "200": {
+            "description": "ZIP with an index.html that opens without the app and the thumbnails of the covers",
+            "content": {"application/zip": {}}
+          }
+        }
+      }
+    },
     "/export/library.csv": {
       "get": {
         "summary": "Export the library as CSV",
