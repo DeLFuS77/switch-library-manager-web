@@ -53,6 +53,13 @@
 								</select>
 								<div class="form-text" id="watchIntervalHelp">{{t "Only folders that changed are read again. A longer interval lets the disks of a NAS sleep."}}</div>
 							</div>
+							<div class="covers-box mt-4">
+								<div class="flex-grow-1">
+									<div class="fw-semibold"><span class="bi bi-images me-2" aria-hidden="true"></span>{{t "Covers"}}</div>
+									<div class="form-text mt-1">{{if .MissingCovers}}{{t "Games without a cover: %v." .MissingCovers}} {{end}}{{t "Covers are downloaded after each scan; games without one take the icon stored in their own file (with your keys). Searching again also retries covers that failed."}}</div>
+								</div>
+								<button type="button" class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" data-covers-retry><span class="bi bi-arrow-clockwise me-1" aria-hidden="true"></span>{{t "Search covers again"}}</button>
+							</div>
 						</section>
 						<section class="surface mb-4 settings-section" id="ignored" aria-labelledby="ignoredTitle">
 							<h2 class="section-title" id="ignoredTitle"><span class="bi bi-eye-slash" aria-hidden="true"></span>{{t "Ignored items"}}</h2>

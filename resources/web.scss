@@ -1202,6 +1202,17 @@ h3,
 	background: var(--slm-surface-muted);
 }
 
+.covers-box {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .75rem 1rem;
+	padding: .9rem 1rem;
+	border-radius: $border-radius-lg;
+	background: var(--slm-surface-muted);
+	border: 1px solid var(--slm-border);
+}
+
 .item-size {
 	font-weight: 600;
 	white-space: nowrap;

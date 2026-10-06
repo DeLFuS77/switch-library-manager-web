@@ -5,6 +5,11 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Covers":                  "Portadas",
+		"%v games have no cover.": "%v juegos no tienen portada.",
+		"Covers are downloaded after each scan; games without one take the icon stored in their own file (with your keys). Searching again also retries covers that failed.": "Las portadas se descargan tras cada análisis; los juegos sin portada usan el icono guardado en su propio archivo (con tus claves). Volver a buscar también reintenta las portadas que fallaron.",
+		"Search covers again":               "Volver a buscar portadas",
+		"Reading icons from the game files": "Leyendo los iconos de los archivos de juego",
 		"New, removed or replaced files are detected right away in local folders, and at the interval below in network folders and on NAS shares.": "Los archivos nuevos, borrados o sustituidos se detectan al momento en carpetas locales, y con el intervalo de abajo en carpetas de red y de un NAS.",
 		"Check the folders every": "Comprobar las carpetas cada",
 		"2 minutes":               "2 minutos",

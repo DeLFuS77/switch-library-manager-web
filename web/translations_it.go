@@ -3,6 +3,11 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Covers":                  "Copertine",
+		"%v games have no cover.": "%v giochi non hanno copertina.",
+		"Covers are downloaded after each scan; games without one take the icon stored in their own file (with your keys). Searching again also retries covers that failed.": "Le copertine si scaricano dopo ogni analisi; i giochi senza copertina usano l'icona salvata nel proprio file (con le tue chiavi). Cercare di nuovo riprova anche le copertine non riuscite.",
+		"Search covers again":               "Cerca di nuovo le copertine",
+		"Reading icons from the game files": "Lettura delle icone dai file di gioco",
 		"New, removed or replaced files are detected right away in local folders, and at the interval below in network folders and on NAS shares.": "I file nuovi, eliminati o sostituiti vengono rilevati subito nelle cartelle locali, e all'intervallo qui sotto nelle cartelle di rete e su un NAS.",
 		"Check the folders every": "Controlla le cartelle ogni",
 		"2 minutes":               "2 minuti",
