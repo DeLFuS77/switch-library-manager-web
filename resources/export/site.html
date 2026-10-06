@@ -1,0 +1,91 @@
+{{define "layout"}}<!DOCTYPE html>
+<html lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}}</title>
+<style>
+:root { color-scheme: dark; --bg: #0d1117; --card: #161b22; --muted: #8b949e; --line: rgba(255,255,255,.08); --red: #e5484d; --amber: #f2b51d; --green: #2ea043; --cyan: #0fb5d8; }
+@media (prefers-color-scheme: light) { :root { color-scheme: light; --bg: #f5f6f8; --card: #fff; --muted: #57606a; --line: rgba(0,0,0,.08); } }
+* { box-sizing: border-box; }
+body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: inherit; }
+header { padding: 28px 20px 8px; max-width: 1320px; margin: 0 auto; }
+h1 { margin: 0 0 4px; font-size: 28px; }
+.sub { color: var(--muted); margin: 0 0 16px; }
+.stats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; min-width: 120px; }
+.stat b { display: block; font-size: 22px; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.tools input, .tools select { padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: inherit; font: inherit; }
+.tools input { flex: 1 1 260px; }
+main { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; padding: 16px 20px 40px; max-width: 1320px; margin: 0 auto; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+.card img, .card .noimg { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; background: linear-gradient(135deg, #30363d, #161b22); }
+.body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.name { font-weight: 700; line-height: 1.25; }
+.meta { color: var(--muted); font-size: 13px; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: auto; padding-top: 6px; }
+.chip { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: rgba(127,127,127,.15); }
+.chip.update { color: var(--amber); }
+.chip.dlc { color: var(--cyan); }
+.chip.ok { color: var(--green); }
+footer { text-align: center; color: var(--muted); font-size: 13px; padding: 0 20px 30px; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+	<h1>{{.Title}}</h1>
+	<p class="sub">{{t "Made with Switch Library Manager Web on %v." (formatTime .Created)}}</p>
+	<div class="stats">
+		<div class="stat"><b>{{len .Games}}</b>{{t "Games"}}</div>
+		<div class="stat"><b>{{.Updates}}</b>{{t "Games with a missing update"}}</div>
+		<div class="stat"><b>{{.MissingDlc}}</b>{{t "Missing DLC"}}</div>
+		<div class="stat"><b>{{formatSize .Size}}</b>{{t "Total size"}}</div>
+	</div>
+	<div class="tools">
+		<input type="search" id="search" placeholder="{{t "Search by name or ID..."}}" aria-label="{{t "Search"}}">
+		<select id="status" aria-label="{{t "Filter by status"}}">
+			<option value="">{{t "All"}}</option>
+			<option value="update">{{t "Update available"}}</option>
+			<option value="dlc">{{t "DLC missing"}}</option>
+			<option value="ok">{{t "Up to date"}}</option>
+		</select>
+	</div>
+</header>
+<main id="games">
+{{- range .Games}}
+	<article class="card" data-search="{{.Search}}" data-status="{{.Status}}">
+		{{- if .Cover}}<img src="covers/{{.Cover}}" alt="" loading="lazy">{{else}}<div class="noimg"></div>{{end}}
+		<div class="body">
+			<div class="name">{{.Name}}</div>
+			<div class="meta">{{.Id}}{{with .Year}} · {{.}}{{end}}</div>
+			<div class="meta">{{with .Version}}v{{.}} · {{end}}{{formatSize .Size}}</div>
+			<div class="chips">
+				{{- if .UpdateMissing}}<span class="chip update">{{t "Update available"}}</span>{{end}}
+				{{- if gt .DlcMissing 0}}<span class="chip dlc">{{t "%v DLC missing" .DlcMissing}}</span>{{end}}
+				{{- if eq .Status "ok"}}<span class="chip ok">{{t "Up to date"}}</span>{{end}}
+				{{- if gt .DlcOwned 0}}<span class="chip">DLC {{.DlcOwned}}</span>{{end}}
+			</div>
+		</div>
+	</article>
+{{- end}}
+</main>
+<footer>{{t "Only names, versions and covers are included; no game files and no keys."}}</footer>
+<script>
+(function () {
+	var search = document.getElementById('search'), status = document.getElementById('status');
+	var cards = Array.prototype.slice.call(document.querySelectorAll('#games .card'));
+	function apply() {
+		var text = search.value.trim().toLowerCase(), wanted = status.value;
+		cards.forEach(function (card) {
+			card.hidden = (text && card.getAttribute('data-search').indexOf(text) < 0) || (wanted && card.getAttribute('data-status').indexOf(wanted) < 0);
+		});
+	}
+	search.addEventListener('input', apply);
+	status.addEventListener('change', apply);
+})();
+</script>
+</body>
+</html>
+{{end}}

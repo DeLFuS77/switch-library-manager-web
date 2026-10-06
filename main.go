@@ -18,6 +18,7 @@ import (
 //go:embed resources/layout.html resources/login.html
 //go:embed resources/partials/*.html
 //go:embed resources/pages/*.html
+//go:embed resources/export/*.html
 var embedFS embed.FS
 
 func main() {
