@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.16.0
+
+### New features
+
+- **Wishlist**: mark missing games with the heart, on the Missing Games page or on the game page. The "Wishlist"
+  filter shows them, the menu counts them, and the notifications tell you when a wished game is released or gets
+  new DLC. Games leave the list by themselves once they are in the library.
+- **Export the library as a web page**: Export > "Web page to share (ZIP)" makes a page that opens in any browser,
+  without the app, with search, filters and covers. Only names, versions and covers are included; no game files and
+  no keys.
+- **Background hours**: a new setting keeps heavy work (cover downloads, thumbnails, automatic compression and
+  scheduled checks) for the night, so the server and the disks are free during the day.
+- **Update guide**: the update notice links to a page with the steps for each installation. For containers created
+  with `docker run` it shows the commands with the ports, folders and variables of this container.
+- **Language per user**: each user can choose the language of the interface on the Account page.
+- **Activity log**: the Users page lists who deleted, organized or compressed files, restored backups, saved the
+  settings or changed users.
+
+### Covers
+
+- Games without a cover get the icon from their own files (also NSZ and XCZ), so games missing from the titles
+  database have a cover too.
+- Covers missing in the US store are looked for in the stores of other regions.
+- New button "Search covers again" on the Settings page, for covers that could not be downloaded.
+
+### Fixes
+
+- Quieter starts: covers that failed recently no longer start a cover task on each start.
+- Release dates with only a year are read correctly.
+
 ## 1.15.0
 
 ### Faster starts, less memory
