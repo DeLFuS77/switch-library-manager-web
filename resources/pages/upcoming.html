@@ -1,0 +1,58 @@
+{{define "title"}}{{t "Upcoming releases"}}{{end}}
+{{define "main"}}
+			{{- $f := .Filter}}
+			{{- template "pageHeader" (dict "Title" (t "Upcoming releases") "Count" .Total "Subtitle" (t "The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out."))}}
+			{{- if or .Total .JustReleased $f.Keyword}}
+			<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+				<ul class="filter-pills list-unstyled mb-0 me-auto" aria-label="{{t "Filter by status"}}">
+					{{- template "statusFilter" (dict "Filter" $f "Value" "" "Label" (t "All") "Icon" "" "Count" .Total)}}
+					{{- template "statusFilter" (dict "Filter" $f "Value" "wanted" "Label" (t "For you") "Icon" "bi-stars" "Count" .ForYou)}}
+				</ul>
+				<form class="toolbar-search" method="get" action="/upcoming.html" role="search">
+					{{- if $f.Status}}<input type="hidden" name="status" value="{{$f.Status}}">{{end}}
+					<span class="bi bi-search" aria-hidden="true"></span>
+					<input type="search" class="form-control" name="q" value="{{$f.Keyword}}" placeholder="{{t "Search by name or ID..."}}" aria-label="{{t "Search by name or ID..."}}">
+				</form>
+			</div>
+			<p class="mark-legend">
+				<span><span class="bi bi-heart-fill text-danger" aria-hidden="true"></span>{{t "Wishlist: games you want and do not have yet"}}</span>
+				<span><span class="bi bi-collection text-primary" aria-hidden="true"></span>{{t "A new game of a series you have"}}</span>
+			</p>
+			{{- end}}
+			{{- with .JustReleased}}
+			<section class="mb-4" aria-labelledby="justReleased">
+				<h2 class="section-title" id="justReleased"><span class="bi bi-lightning-charge" aria-hidden="true"></span>{{t "Just released"}} <span class="badge rounded-pill text-bg-secondary">{{len .}}</span></h2>
+				<div class="rec-strip">
+					{{- range .}}{{template "upcomingGame" .}}{{end}}
+				</div>
+			</section>
+			{{- end}}
+			{{- range .Months}}
+			<section class="mb-4 upcoming-month">
+				<h2 class="section-title"><span class="bi bi-calendar-event" aria-hidden="true"></span>{{formatMonth .Month}} <span class="badge rounded-pill text-bg-secondary">{{len .Games}}</span></h2>
+				<div class="saga-grid">
+					{{- range .Games}}{{template "upcomingGame" .}}{{end}}
+				</div>
+			</section>
+			{{- end}}
+			{{- if and (not .Months) (not .JustReleased)}}
+			{{- if $f.Keyword}}
+			{{- template "noResults" $f}}
+			{{- else if eq $f.Status "wanted"}}
+			{{- template "emptyState" (dict "Icon" "bi-stars" "Tone" "" "Title" (t "Nothing for you yet") "Text" (t "When a game of your wishlist or a new game of one of your series can be pre-ordered, it is shown here.") "ActionHref" "/upcoming.html" "ActionLabel" (t "See all") "ActionIcon" "bi-calendar-event")}}
+			{{- else}}
+			{{- template "emptyState" (dict "Icon" "bi-calendar-event" "Tone" "" "Title" (t "No upcoming games") "Text" (t "The titles database has no games with a future release date. It is updated every few hours.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+			{{- end}}
+			{{- end}}
+{{- end}}
+{{define "upcomingGame"}}
+					<div class="rec-item{{if .ForYou}} is-for-you{{end}}">
+						<a class="saga-item" href="/title/{{.Item.Id}}.html">
+							<span class="upcoming-date"><span class="bi bi-calendar3" aria-hidden="true"></span>{{formatDay .Item.ReleaseDate}}</span>
+							<img src="{{if eq .Item.ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .Item.ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
+							<span class="saga-name">{{.Item.Name}}</span>
+							{{- with .Saga}}<span class="saga-state text-primary"><span class="bi bi-collection me-1" aria-hidden="true"></span>{{.Name}} &middot; {{t "you have %v of %v" .Owned .Total}}</span>{{end}}
+						</a>
+						<button type="button" class="wish-toggle admin-only{{if .Item.Wished}} is-wished{{end}}" data-wish="{{.Item.Id}}" data-wished="{{.Item.Wished}}" aria-pressed="{{.Item.Wished}}" title="{{if .Item.Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if .Item.Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>
+					</div>
+{{- end}}

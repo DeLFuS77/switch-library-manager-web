@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -70,6 +71,8 @@ func i18nFuncs(lang string) template.FuncMap {
 		"jsTranslations": func() map[string]string { return jsTranslations(lang) },
 		"languageName":   func(code string) string { return languageNames[code] },
 		"formatTime":     func(value time.Time) string { return formatDate(lang, value) },
+		"formatMonth":    func(value time.Time) string { return formatMonth(lang, value) },
+		"formatDay":      func(value time.Time) string { return formatDay(lang, value) },
 		"num":            func(value int) string { return formatNumber(lang, value) },
 		"formatDateTime": func(value time.Time) string { return formatDateTime(lang, value) },
 		"issue":          func(text string) string { return translateIssue(lang, text) },
@@ -226,6 +229,48 @@ func formatDate(lang string, value time.Time) string {
 		return fmt.Sprintf("%d %s %d", value.Day(), months[value.Month()-1], value.Year())
 	}
 	return value.Format("Jan 2, 2006")
+}
+
+var monthNames = map[string][12]string{
+	"es": {"enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"},
+	"fr": {"janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"},
+	"de": {"Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"},
+	"it": {"gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"},
+	"pt": {"janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"},
+	"nl": {"januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"},
+	"ru": {"январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"},
+}
+
+// formatMonth formats a month and its year: "October 2026" / "octubre de 2026".
+func formatMonth(lang string, value time.Time) string {
+	if signs, ok := dateSigns[lang]; ok {
+		return fmt.Sprintf("%d%s%d%s", value.Year(), signs[0], value.Month(), strings.TrimSpace(signs[1]))
+	}
+	if months, ok := monthNames[lang]; ok {
+		// a title: the month starts with a capital letter
+		month := []rune(months[value.Month()-1])
+		month[0] = unicode.ToUpper(month[0])
+		switch lang {
+		case "es", "pt":
+			return fmt.Sprintf("%s de %d", string(month), value.Year())
+		}
+		return fmt.Sprintf("%s %d", string(month), value.Year())
+	}
+	return value.Format("January 2006")
+}
+
+// formatDay formats a day of the month without the year: "Oct 8" / "8 oct".
+func formatDay(lang string, value time.Time) string {
+	if signs, ok := dateSigns[lang]; ok {
+		return fmt.Sprintf("%d%s%d%s", value.Month(), signs[1], value.Day(), signs[2])
+	}
+	if months, ok := monthAbbreviations[lang]; ok {
+		if lang == "de" {
+			return fmt.Sprintf("%d. %s", value.Day(), months[value.Month()-1])
+		}
+		return fmt.Sprintf("%d %s", value.Day(), months[value.Month()-1])
+	}
+	return value.Format("Jan 2")
 }
 
 // formatDateTime formats a local date and time for the interface language.

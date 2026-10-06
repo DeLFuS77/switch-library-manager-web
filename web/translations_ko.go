@@ -3,6 +3,18 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Upcoming": "출시 예정",
+		"Upcoming releases": "출시 예정 게임",
+		"The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out.": "eShop에서 이미 예약할 수 있는 게임을 출시일순으로 보여 줍니다. 하트로 위시리스트에 추가하면 출시될 때 알려 드립니다.",
+		"For you": "맞춤",
+		"A new game of a series you have": "보유한 시리즈의 신작",
+		"Just released": "방금 출시됨",
+		"Nothing for you yet": "아직 없습니다",
+		"When a game of your wishlist or a new game of one of your series can be pre-ordered, it is shown here.": "위시리스트의 게임이나 보유한 시리즈의 신작을 예약할 수 있게 되면 여기에 표시됩니다.",
+		"See all": "모두 보기",
+		"No upcoming games": "출시 예정 게임이 없습니다",
+		"The titles database has no games with a future release date. It is updated every few hours.": "타이틀 데이터베이스에 출시 예정 게임이 없습니다. 몇 시간마다 업데이트됩니다.",
+		"you have %v of %v": "%v/%v개 보유",
 		"Series": "시리즈",
 		"The series of which you have a game, with the games you are missing to complete them.": "보유한 게임의 시리즈와 완성하는 데 부족한 게임입니다.",
 		"To complete": "미완성",

@@ -3,6 +3,18 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Upcoming": "発売予定",
+		"Upcoming releases": "発売予定のゲーム",
+		"The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out.": "eShopで予約できるゲームを発売日順に表示します。ハートでウィッシュリストに追加すると、発売時にお知らせします。",
+		"For you": "あなたへ",
+		"A new game of a series you have": "持っているシリーズの新作",
+		"Just released": "発売されたばかり",
+		"Nothing for you yet": "まだありません",
+		"When a game of your wishlist or a new game of one of your series can be pre-ordered, it is shown here.": "ウィッシュリストのゲームや持っているシリーズの新作が予約できるようになると、ここに表示されます。",
+		"See all": "すべて表示",
+		"No upcoming games": "発売予定のゲームはありません",
+		"The titles database has no games with a future release date. It is updated every few hours.": "タイトルデータベースに発売予定のゲームはありません。数時間ごとに更新されます。",
+		"you have %v of %v": "%v / %v 本所持",
 		"Series": "シリーズ",
 		"The series of which you have a game, with the games you are missing to complete them.": "持っているゲームのシリーズと、コンプリートに足りないゲーム。",
 		"To complete": "未コンプリート",

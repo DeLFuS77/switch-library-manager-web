@@ -527,6 +527,7 @@ func (web *Web) Start() {
 	web.HandleSdCard()
 	web.HandleOrphans()
 	web.HandleSagas()
+	web.HandleUpcoming()
 	web.HandleCovers()
 	web.HandleUpdateGuide()
 	web.HandleWishlist()

@@ -19,6 +19,8 @@ const (
 
 // SagaProgress is a series with the games the library has of it.
 type SagaProgress struct {
+	// the key of the series (see sagaIndex.family)
+	family   string
 	Name     string
 	ImageUrl string
 	Owned    int
@@ -222,7 +224,7 @@ func (web *Web) sagaProgress(lang string) []SagaProgress {
 			if len(games) < 2 {
 				continue
 			}
-			saga := SagaProgress{Total: len(games), Games: games}
+			saga := SagaProgress{family: family, Total: len(games), Games: games}
 			words := []string{family}
 			for _, game := range games {
 				words = append(words, game.Name, game.OriginalName)
