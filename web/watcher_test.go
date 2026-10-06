@@ -97,3 +97,27 @@ func TestOnlyChangedFoldersAreReadAgain(t *testing.T) {
 		t.Fatal("a file growing in a recently changed folder must change the fingerprint")
 	}
 }
+
+func TestWatchFingerprintIsKeptBetweenRuns(t *testing.T) {
+	web := newTestWeb(t)
+	if web.savedWatchFingerprint() != 0 {
+		t.Fatal("nothing was scanned yet")
+	}
+	// nothing asked: nothing saved
+	web.saveWatchFingerprint()
+	if web.savedWatchFingerprint() != 0 {
+		t.Fatal("no fingerprint without a scan of the watcher")
+	}
+	web.watchFingerprint.Store(1234567890123)
+	web.saveWatchFingerprint()
+	if web.savedWatchFingerprint() != 1234567890123 {
+		t.Fatal("the next run knows the folders were scanned")
+	}
+
+	// the folders did not change since: no scan
+	w := &folderWatcher{web: web, scanned: web.savedWatchFingerprint()}
+	w.scanIfChanged(1234567890123)
+	if web.state.IsSynchronizing() {
+		t.Fatal("unchanged folders are not scanned again after a restart")
+	}
+}

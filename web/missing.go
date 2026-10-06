@@ -53,6 +53,7 @@ func (web *Web) buildMissingGames(lang string) []TitleItem {
 	}
 
 	hideDemoGames := settings.ReadSettings(web.dataFolder).HideDemoGames
+	wished := web.wishes().snapshot()
 
 	for k, v := range switchDB.TitlesMap {
 		if local, ok := localDB.TitlesMap[k]; ok && local.BaseExist {
@@ -63,18 +64,13 @@ func (web *Web) buildMissingGames(lang string) []TitleItem {
 			continue
 		}
 
-		if hideDemoGames && v.Attributes.IsDemo {
+		if hideDemoGames && isDemo(v, v.Attributes.Name) {
 			continue
 		}
 
 		name := titleName(switchDB, lang, v.Attributes.Id, v.Attributes.Name)
 		{
-			imageUrl := localImageUrl(localDB, v.Attributes.Id)
-			if imageUrl == "" && v.Attributes.IconUrl != "" {
-				imageUrl = v.Attributes.IconUrl
-			} else if imageUrl == "" && v.Attributes.BannerUrl != "" {
-				imageUrl = v.Attributes.BannerUrl
-			}
+			imageUrl := coverUrl(localDB, v.Attributes)
 
 			release, err := intToTime(v.Attributes.ReleaseDate)
 			if err != nil {
@@ -89,7 +85,7 @@ func (web *Web) buildMissingGames(lang string) []TitleItem {
 				Region:      v.Attributes.Region,
 				ReleaseDate: release,
 				Known:       true,
-				Wished:      web.wishes().has(v.Attributes.Id),
+				Wished:      wished[strings.ToUpper(v.Attributes.Id)],
 			})
 		}
 	}

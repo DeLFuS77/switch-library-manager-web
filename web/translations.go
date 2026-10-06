@@ -5,6 +5,9 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"%v files": "%v archivos",
+		"originals deleted after the check": "originales borrados tras la comprobación",
+		"NSZ deleted after the check": "NSZ borrados tras la comprobación",
 		"All collections": "Todas las colecciones",
 		"Collections": "Colecciones",
 		"Collection": "Colección",
@@ -478,7 +481,6 @@ var translations = map[string]map[string]string{
 		"e.g. txt jpg nfo":   "p. ej. txt jpg nfo",
 		"Unsupported files with these extensions are not reported as issues": "Los archivos no compatibles con estas extensiones no se muestran en Problemas",
 		"Do not list updates for DLC":                                        "No listar actualizaciones de DLC",
-		"Hide demos in Missing Games":                                        "Ocultar demos en Juegos que faltan",
 		"Automatic synchronization":                                          "Sincronización automática",
 		"Disabled":                                                           "Desactivada",
 		"Every 6 hours":                                                      "Cada 6 horas",

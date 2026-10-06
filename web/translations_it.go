@@ -3,6 +3,9 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"%v files": "%v file",
+		"originals deleted after the check": "originali eliminati dopo la verifica",
+		"NSZ deleted after the check": "NSZ eliminati dopo la verifica",
 		"All collections": "Tutte le collezioni",
 		"Collections": "Collezioni",
 		"Collection": "Collezione",
@@ -318,7 +321,6 @@ func init() {
 		"General":                     "Generali",
 		"Guest":                       "Ospite",
 		"Happens by itself when the folders change. If your games are not found, scan again.": "Avviene da sola quando le cartelle cambiano. Se i tuoi giochi non vengono trovati, scansiona di nuovo.",
-		"Hide demos in Missing Games": "Nascondi le demo in Giochi mancanti",
 		"History":                     "Cronologia",
 		"ID":                          "ID",
 		"Ignore":                      "Ignora",

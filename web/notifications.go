@@ -134,7 +134,7 @@ func (web *Web) saveNotifiedKeys(items []NotificationItem) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(web.notificationStatePath(), data, 0644)
+	return writeFileAtomic(web.notificationStatePath(), data)
 }
 
 func notificationsConfigured(options settings.NotificationOptions) bool {

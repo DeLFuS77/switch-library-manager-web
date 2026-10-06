@@ -120,6 +120,8 @@ type Web struct {
 	historyOnce     sync.Once
 	coll            *collectionStore
 	collectionsOnce sync.Once
+	// the fingerprint of the folders the watcher asked to scan (see saveWatchFingerprint)
+	watchFingerprint atomic.Uint64
 	fallbackMutex  sync.Mutex
 	thumbs         *thumbnails
 	thumbsOnce     sync.Once
@@ -184,6 +186,9 @@ type TitleItem struct {
 	// library: the user's collections of the game, and the card can be selected
 	Collections []string
 	Selectable  bool
+	// computed once when a list is sorted (see sorted), for sorting and searching
+	sortKey   string
+	searchKey string
 }
 
 // DlcPercent is the share of the DLC of a game in the library.

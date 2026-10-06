@@ -36,7 +36,7 @@ func TestTranslationsAreUsed(t *testing.T) {
 	for _, pattern := range []string{"../resources/*.html", "../resources/*/*.html", "../resources/web.js", "*.go", "../process/*.go"} {
 		files, _ := filepath.Glob(pattern)
 		for _, file := range files {
-			if strings.HasSuffix(file, "_test.go") || strings.HasSuffix(file, "translations.go") {
+			if strings.HasSuffix(file, "_test.go") || strings.HasPrefix(filepath.Base(file), "translations") {
 				continue
 			}
 			data, _ := os.ReadFile(file)

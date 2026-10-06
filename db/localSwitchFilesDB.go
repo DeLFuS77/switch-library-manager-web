@@ -263,10 +263,6 @@ func (ldb *LocalSwitchDBManager) SaveTitles(titles map[string]*SwitchGameFiles) 
 	return ldb.db.AddEntries(DB_TABLE_LOCAL_LIBRARY, map[string]interface{}{"titles": titles})
 }
 
-func (ldb *LocalSwitchDBManager) ClearScanData() error {
-	return ldb.db.ClearTable(DB_TABLE_FILE_SCAN_METADATA)
-}
-
 func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dataFolder string,
 	files []ExtendedFileInfo,
 	progress ProgressUpdater,

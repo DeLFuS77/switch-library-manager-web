@@ -614,6 +614,8 @@ function initLibraryBulk() {
 		const ids = selected();
 		count.textContent = ids.length;
 		toolbar.hidden = ids.length === 0;
+		// the boxes of the other cards show while selecting
+		document.querySelector('.game-grid')?.classList.toggle('is-selecting', ids.length > 0);
 		items.forEach(item => item.closest('.game-card')?.classList.toggle('is-selected', item.checked));
 	};
 	items.forEach(item => {

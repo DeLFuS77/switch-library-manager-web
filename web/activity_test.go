@@ -45,3 +45,23 @@ func TestActivityTextsAreTranslated(t *testing.T) {
 		}
 	}
 }
+
+func TestActivityDetailsAreTranslated(t *testing.T) {
+	entries := []Activity{
+		{Action: ACTION_ORGANIZE, Detail: "cleanup"},
+		{Action: ACTION_SPACE, Detail: "3 files + duplicates"},
+		{Action: ACTION_COMPRESS, Detail: "2 files, originals deleted after the check"},
+		{Action: ACTION_USER_ROLE, Detail: "ana: viewer"},
+		{Action: ACTION_USER_NEW, Detail: "pedro"},
+	}
+	got := translateActivity("es", entries)
+	want := []string{"Borrar actualizaciones antiguas", "3 archivos + Duplicados", "2 archivos, originales borrados tras la comprobación", "ana: " + translate("es", "Read only"), "pedro"}
+	for i := range want {
+		if got[i].Detail != want[i] {
+			t.Errorf("%q: got %q, want %q", entries[i].Detail, got[i].Detail, want[i])
+		}
+	}
+	if entries[0].Detail != "cleanup" {
+		t.Fatal("the recorded activity is not changed")
+	}
+}

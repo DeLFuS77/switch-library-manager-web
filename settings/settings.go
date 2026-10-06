@@ -4,10 +4,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"io"
 	"maps"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -135,22 +135,6 @@ type AppSettings struct {
 	Language          string              `json:"language"`
 	Notifications     NotificationOptions `json:"notifications"`
 	LastSyncTime      time.Time           `json:"last_sync_time"`
-}
-
-func ReadSettingsAsJSON(dataFolder string) string {
-	if _, err := os.Stat(filepath.Join(dataFolder, SETTINGS_FILENAME)); err != nil {
-		saveDefaultSettings(dataFolder)
-	}
-	file, err := os.Open(filepath.Join(dataFolder, SETTINGS_FILENAME))
-	if err != nil {
-		return ""
-	}
-	defer file.Close()
-	bytes, err := io.ReadAll(file)
-	if err != nil {
-		return ""
-	}
-	return string(bytes)
 }
 
 func ReadSettings(dataFolder string) *AppSettings {
@@ -328,12 +312,29 @@ func UpdateSettings(dataFolder string, change func(settings *AppSettings)) *AppS
 	return SaveSettings(&appSettings, dataFolder)
 }
 
+// changesLists reports whether a change of the settings can change the lists of the app:
+// the time of the last synchronization, the versions of the downloaded files, the organize
+// options and the notifications do not.
+func changesLists(before *AppSettings, after *AppSettings) bool {
+	a, b := *before, *after
+	for _, s := range []*AppSettings{&a, &b} {
+		s.LastSyncTime = time.Time{}
+		s.TitlesEtag, s.VersionsEtag = "", ""
+		s.LocalizedTitlesEtags = nil
+		s.OrganizeOptions = OrganizeOptions{}
+		s.Notifications = NotificationOptions{}
+	}
+	return !reflect.DeepEqual(a, b)
+}
+
 func SaveSettings(settings *AppSettings, dataFolder string) *AppSettings {
 	file, _ := json.MarshalIndent(settings, "", " ")
 	if err := os.WriteFile(filepath.Join(dataFolder, SETTINGS_FILENAME), file, 0644); err != nil {
 		zap.S().Errorf("Failed to save settings - %v", err)
 	}
-	settingsInstance.Store(settings)
-	version.Add(1)
+	previous := settingsInstance.Swap(settings)
+	if previous == nil || changesLists(previous, settings) {
+		version.Add(1)
+	}
 	return settings
 }

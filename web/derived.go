@@ -1,6 +1,7 @@
 package web
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
@@ -15,7 +16,9 @@ type derivedCache struct {
 	mutex           sync.Mutex
 	stateVersion    uint64
 	settingsVersion uint64
-	values          map[string]any
+	// changed by invalidateDerived: values computed before are not kept
+	generation uint64
+	values     map[string]any
 }
 
 // derived returns the cached value of name, computing it if the library or the settings
@@ -33,6 +36,7 @@ func (web *Web) derived(name string, compute func() any) any {
 		cache.mutex.Unlock()
 		return value
 	}
+	generation := cache.generation
 	cache.mutex.Unlock()
 
 	// computed without the lock, so slow pages do not block each other
@@ -40,7 +44,8 @@ func (web *Web) derived(name string, compute func() any) any {
 
 	cache.mutex.Lock()
 	// a value computed while the library or the settings changed may be outdated
-	if cache.stateVersion == stateVersion && cache.settingsVersion == settingsVersion &&
+	if cache.values != nil && cache.generation == generation &&
+		cache.stateVersion == stateVersion && cache.settingsVersion == settingsVersion &&
 		web.state.Version() == stateVersion && settings.Version() == settingsVersion {
 		cache.values[name] = value
 	}
@@ -55,6 +60,10 @@ func (web *Web) sorted(name string, filter *TitleItemFilter, build func() []Titl
 		all := web.derived(name, func() any { return build() }).([]TitleItem)
 		// a copy: the unsorted list is shared
 		items := append([]TitleItem(nil), all...)
+		for i := range items {
+			items[i].sortKey = sortName(items[i].Name)
+			items[i].searchKey = strings.ToLower(items[i].Id + "\n" + items[i].Name + "\n" + items[i].OriginalName)
+		}
 		if err := sortItems(filter, items); err != nil {
 			web.sugarLogger.Error(err)
 		}
@@ -67,22 +76,28 @@ func (web *Web) sorted(name string, filter *TitleItemFilter, build func() []Titl
 func (web *Web) invalidateDerived() {
 	web.cache.mutex.Lock()
 	web.cache.values = nil
+	web.cache.generation++
 	web.cache.mutex.Unlock()
 }
 
 // filterPage returns the page of the sorted items that match the keyword of the filter.
 func (web *Web) filterPage(filter *TitleItemFilter, sorted []TitleItem) ([]TitleItem, pagination.Pagination) {
-	items := sorted
-	if filter.Keyword != "" {
-		items = make([]TitleItem, 0, len(sorted))
-		for _, item := range sorted {
-			if filter.Matches(item.Id, item.Name, item.OriginalName) {
-				items = append(items, item)
-			}
+	if filter.Keyword == "" {
+		p := pagination.Calculate(filter.Page, filter.PerPage, len(sorted))
+		// a copy of the page, so the cached list is never shared with a template
+		return append([]TitleItem(nil), sorted[p.Start:p.End]...), p
+	}
+	// positions of the matching items: only the shown page is copied
+	matched := make([]int, 0, len(sorted))
+	for index := range sorted {
+		if filter.MatchesItem(&sorted[index]) {
+			matched = append(matched, index)
 		}
 	}
-
-	p := pagination.Calculate(filter.Page, filter.PerPage, len(items))
-	// a copy of the page, so the cached list is never shared with a template
-	return append([]TitleItem(nil), items[p.Start:p.End]...), p
+	p := pagination.Calculate(filter.Page, filter.PerPage, len(matched))
+	items := make([]TitleItem, 0, p.End-p.Start)
+	for _, index := range matched[p.Start:p.End] {
+		items = append(items, sorted[index])
+	}
+	return items, p
 }

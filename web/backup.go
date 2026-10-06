@@ -145,7 +145,7 @@ func (web *Web) restoreBackup(data []byte) error {
 		}
 	}
 
-	web.appSettings = settings.ReloadSettings(web.dataFolder)
+	settings.ReloadSettings(web.dataFolder)
 	if _, err := settings.InitSwitchKeys(web.dataFolder); err != nil {
 		web.sugarLogger.Debugf("prod.keys not loaded: %s", err)
 	}
@@ -156,6 +156,9 @@ func (web *Web) restoreBackup(data []byte) error {
 	}
 	if _, ok := files[VERIFY_FILENAME]; ok {
 		web.verifications().reload()
+	}
+	if _, ok := files[ACTIVITY_FILENAME]; ok {
+		web.activities().reload()
 	}
 	if _, ok := files[COLLECTIONS_FILENAME]; ok {
 		web.collections().reload()

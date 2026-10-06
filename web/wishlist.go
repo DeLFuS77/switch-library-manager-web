@@ -47,6 +47,17 @@ func (w *wishlist) has(id string) bool {
 	return ok
 }
 
+// snapshot returns the wished title IDs (upper case), for checking many titles at once.
+func (w *wishlist) snapshot() map[string]bool {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+	set := make(map[string]bool, len(w.games))
+	for id := range w.games {
+		set[id] = true
+	}
+	return set
+}
+
 func (w *wishlist) ids() []string {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
@@ -100,7 +111,7 @@ func (w *wishlist) removeOwned(owned func(id string) bool) {
 
 func (w *wishlist) saveLocked() {
 	if data, err := json.MarshalIndent(w.games, "", " "); err == nil {
-		os.WriteFile(w.path, data, 0644)
+		writeFileAtomic(w.path, data)
 	}
 }
 

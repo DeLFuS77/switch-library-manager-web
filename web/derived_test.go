@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -27,9 +28,25 @@ func TestDerivedValuesFollowTheLibraryAndTheSettings(t *testing.T) {
 	if web.derived("x", compute) != 2 {
 		t.Fatal("a new library must compute the value again")
 	}
-	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {})
+	hide := settings.ReadSettings(web.dataFolder).HideDemoGames
+	defer settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.HideDemoGames = hide })
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.HideDemoGames = !s.HideDemoGames })
 	if web.derived("x", compute) != 3 {
-		t.Fatal("saved settings must compute the value again")
+		t.Fatal("settings that change the lists must compute the value again")
+	}
+	// the time of the last synchronization changes no list
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.LastSyncTime = time.Now() })
+	if web.derived("x", compute) != 3 {
+		t.Fatal("settings that change no list keep the values")
+	}
+
+	// an invalidation while a value is computed: nothing breaks and the value is not kept
+	value := web.derived("y", func() any {
+		web.invalidateDerived()
+		return "stale"
+	})
+	if value != "stale" || web.derived("y", func() any { return "fresh" }) != "fresh" {
+		t.Fatal("a value computed before an invalidation is not kept")
 	}
 }
 
