@@ -882,6 +882,7 @@ function initCompress() {
 
 	bindFileForm(document.getElementById('compressForm'), '/compress/start');
 	bindFileForm(document.getElementById('decompressForm'), '/decompress/start');
+	bindFileForm(document.getElementById('convertForm'), '/convert/start');
 	bindFileForm(document.getElementById('spaceForm'), '/space/clean');
 }
 

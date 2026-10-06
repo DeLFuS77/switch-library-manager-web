@@ -3,6 +3,13 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Convert XCI to NSP": "XCI in NSP umwandeln",
+		"Turn game card files (XCI, XCZ) into NSP and NSZ files with the same content, for installers and tools that prefer them. Every new file is checked before the original is deleted.": "Wandelt Spielkarten-Dateien (XCI, XCZ) in NSP- und NSZ-Dateien mit gleichem Inhalt um, für Installer und Tools, die diese bevorzugen. Jede neue Datei wird geprüft, bevor das Original gelöscht wird.",
+		"Delete each XCI after its NSP is checked": "Jede XCI löschen, sobald ihre NSP geprüft ist",
+		"Convert selected": "Auswahl umwandeln",
+		"Select the files to convert.": "Wähle die umzuwandelnden Dateien.",
+		"Conversion": "Umwandlung",
+		"%v files converted": "%v Dateien umgewandelt",
 		"SD card planner": "SD-Karten-Planer",
 		"Choose the size of your card and what you like: the app proposes the games that fit. Change the list as you want, then download it or copy the games to the card.": "Wähle die Größe deiner Karte und was du magst: Die App schlägt die passenden Spiele vor. Ändere die Liste nach Belieben und lade sie herunter oder kopiere die Spiele auf die Karte.",
 		"Size of the card": "Größe der Karte",

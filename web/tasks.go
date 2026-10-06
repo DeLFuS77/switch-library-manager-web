@@ -17,6 +17,7 @@ const (
 	TASK_COMPRESS   = "compress"
 	TASK_DECOMPRESS = "decompress"
 	TASK_VERIFY     = "verify"
+	TASK_CONVERT    = "convert"
 	// background work after a scan
 	TASK_COVERS     = "covers"
 	TASK_THUMBNAILS = "thumbnails"

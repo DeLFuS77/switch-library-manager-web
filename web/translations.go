@@ -5,6 +5,13 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Convert XCI to NSP": "Convertir XCI a NSP",
+		"Turn game card files (XCI, XCZ) into NSP and NSZ files with the same content, for installers and tools that prefer them. Every new file is checked before the original is deleted.": "Convierte los archivos de cartucho (XCI, XCZ) en NSP y NSZ con el mismo contenido, para los instaladores y herramientas que los prefieren. Cada archivo nuevo se comprueba antes de borrar el original.",
+		"Delete each XCI after its NSP is checked": "Borrar cada XCI cuando su NSP esté comprobado",
+		"Convert selected": "Convertir los seleccionados",
+		"Select the files to convert.": "Elige los archivos a convertir.",
+		"Conversion": "Conversión",
+		"%v files converted": "%v archivos convertidos",
 		"SD card planner": "Configurador de SD",
 		"Choose the size of your card and what you like: the app proposes the games that fit. Change the list as you want, then download it or copy the games to the card.": "Elige el tamaño de tu tarjeta y lo que te gusta: la app propone los juegos que caben. Cambia la lista como quieras y luego descárgala o copia los juegos a la tarjeta.",
 		"Size of the card": "Tamaño de la tarjeta",

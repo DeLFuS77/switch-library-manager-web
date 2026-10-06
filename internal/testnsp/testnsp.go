@@ -121,3 +121,50 @@ func pfs0(names []string, payloads [][]byte) []byte {
 	}
 	return header
 }
+
+// WriteXci writes an XCI (a game card) with the same program NCA as WriteNsp in its secure
+// partition to path and returns its bytes.
+func WriteXci(path string) ([]byte, error) {
+	plain := make([]byte, 0x40000)
+	text := []byte("compressible test game data ")
+	for i := range plain {
+		plain[i] = text[i%len(text)]
+	}
+	nca := programNca(plain)
+	sum := sha256.Sum256(nca)
+	secure := hfs0([]string{hex.EncodeToString(sum[:16]) + ".nca"}, [][]byte{nca})
+	root := hfs0([]string{"secure"}, [][]byte{secure})
+	header := make([]byte, 0xF000)
+	copy(header[0x100:], "HEAD")
+	binary.LittleEndian.PutUint64(header[0x130:], 0xF000)
+	xci := append(header, root...)
+	return xci, os.WriteFile(path, xci, 0o644)
+}
+
+// hfs0 builds a partition of a game card: like a PFS0 with bigger entries (with hashes,
+// left empty here).
+func hfs0(names []string, payloads [][]byte) []byte {
+	var table []byte
+	offsets := make([]uint32, len(names))
+	for i, name := range names {
+		offsets[i] = uint32(len(table))
+		table = append(append(table, name...), 0)
+	}
+	header := make([]byte, 0x10+0x40*len(names)+len(table))
+	copy(header, "HFS0")
+	binary.LittleEndian.PutUint32(header[4:], uint32(len(names)))
+	binary.LittleEndian.PutUint32(header[8:], uint32(len(table)))
+	position := 0
+	for i, payload := range payloads {
+		entry := header[0x10+0x40*i:]
+		binary.LittleEndian.PutUint64(entry[0:], uint64(position))
+		binary.LittleEndian.PutUint64(entry[8:], uint64(len(payload)))
+		binary.LittleEndian.PutUint32(entry[16:], offsets[i])
+		position += len(payload)
+	}
+	copy(header[0x10+0x40*len(names):], table)
+	for _, payload := range payloads {
+		header = append(header, payload...)
+	}
+	return header
+}
