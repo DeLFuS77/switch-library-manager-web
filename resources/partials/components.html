@@ -23,7 +23,7 @@
 {{- define "noResults"}}
 			{{- $text := t "No game matches these filters."}}
 			{{- if .Keyword}}{{$text = t "Nothing matches “%v”. Try another name or title ID." .Keyword}}{{end}}
-			{{- template "emptyState" (dict "Icon" "bi-search" "Tone" "" "Title" (t "No results") "Text" $text "ActionHref" (filterUrl . "q" "" "status" "" "format" "" "kind" "" "region" "" "extra" "" "collection" "") "ActionLabel" (t "Clear filters") "ActionIcon" "bi-x-circle")}}
+			{{- template "emptyState" (dict "Icon" "bi-search" "Tone" "" "Title" (t "No results") "Text" $text "ActionHref" (filterUrl . "q" "" "status" "" "format" "" "kind" "" "region" "" "extra" "" "collection" "" "missing" "") "ActionLabel" (t "Clear filters") "ActionIcon" "bi-x-circle")}}
 {{- end}}
 
 {{- define "flash"}}
@@ -76,4 +76,12 @@
 {{- define "statusFilter"}}
 				{{- $f := .Filter}}
 				<li><a class="filter-pill{{if eq $f.Status .Value}} active{{end}}" href="{{filterUrl $f "status" .Value}}"{{if eq $f.Status .Value}} aria-current="true"{{end}}>{{if .Icon}}<span class="bi {{.Icon}}" aria-hidden="true"></span>{{end}}{{.Label}}{{if ge .Count 0}} <span class="filter-count">{{.Count}}</span>{{end}}</a></li>
+{{- end}}
+
+{{- define "markLegend"}}
+			<p class="mark-legend">
+				{{- if .Favorites}}<span><span class="bi bi-star-fill text-warning" aria-hidden="true"></span>{{t "Favorite: the games you like most"}}</span>{{end}}
+				<span><span class="bi bi-heart-fill text-danger" aria-hidden="true"></span>{{t "Wishlist: games you want and do not have yet"}}</span>
+				{{- if .Missing}}<span><span class="mark-legend-missing" aria-hidden="true"></span>{{t "Greyed out: not in your library"}}</span>{{end}}
+			</p>
 {{- end}}

@@ -9,6 +9,7 @@
 				{{- template "statusFilter" (dict "Filter" .Filter "Value" "wanted" "Label" (t "Wishlist") "Icon" "bi-heart" "Count" .WishedCount)}}
 			</ul>
 			{{- if gt (len .TitleItems) 0}}
+			{{- template "markLegend" (dict "Missing" "" "Favorites" false)}}
 			<div class="game-grid">
 				{{- range .TitleItems}}
 				{{- template "card" .}}

@@ -3,6 +3,17 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Remove from favorites": "Retirer des favoris",
+		"Add to favorites": "Ajouter aux favoris",
+		"Favorite": "Favori",
+		"Favorites only": "Favoris uniquement",
+		"Show the missing games too": "Afficher aussi les jeux manquants",
+		"Games of the eShop you do not have, greyed out with the others.": "Les jeux de l'eShop que vous n'avez pas, grisés avec les vôtres.",
+		"With the missing games": "Avec les jeux manquants",
+		"Favorite: the games you like most": "Favori : les jeux que vous préférez",
+		"Wishlist: games you want and do not have yet": "Liste de souhaits : les jeux que vous voulez et n'avez pas encore",
+		"Greyed out: not in your library": "Grisé : pas dans votre ludothèque",
+		"From the same series": "De la même série",
 		"Filters": "Filtres",
 		"Format": "Format",
 		"Other": "Autres",

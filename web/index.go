@@ -101,6 +101,9 @@ func (web *Web) getLibrary(filter *TitleItemFilter, lang string) ([]TitleItem, p
 
 func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination, LibraryFacets) {
 	all := web.sorted("library:"+lang, filter, func() []TitleItem { return web.buildLibrary(lang) })
+	if filter.WithMissing != "" {
+		all = web.sorted("library+missing:"+lang, filter, func() []TitleItem { return web.buildLibraryWithMissing(lang) })
+	}
 
 	// positions of the matching items; only the shown page is copied
 	matched := make([]int, 0, len(all))
@@ -156,13 +159,26 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		if recent {
 			facets.Recent++
 		}
+		if item.Favorite {
+			facets.Favorites++
+		}
 		if (filter.Kind == KIND_GAME && item.Demo) || (filter.Kind == KIND_DEMO && !item.Demo) || (filter.Kind == "" && facets.DemosHidden && item.Demo) {
 			continue
 		}
-		if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) || (filter.Extra == EXTRA_RECENT && !recent) {
+		if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) || (filter.Extra == EXTRA_RECENT && !recent) || (filter.Extra == EXTRA_FAVORITES && !item.Favorite) {
 			continue
 		}
 
+		if item.Missing {
+			// games not in the library have no status: they show with "All" only
+			if filter.Status != "" {
+				continue
+			}
+			facets.Missing++
+			facets.All++
+			matched = append(matched, index)
+			continue
+		}
 		complete := item.Known && !item.UpdateAvailable && item.MissingDlcCount == 0
 		facets.All++
 		if item.UpdateAvailable {
@@ -217,6 +233,22 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	return items, p, facets
 }
 
+// buildLibraryWithMissing lists the games of the library and, greyed out, the games of the
+// titles database that are not in it.
+func (web *Web) buildLibraryWithMissing(lang string) []TitleItem {
+	library := web.derived("library:"+lang, func() any { return web.buildLibrary(lang) }).([]TitleItem)
+	missing := web.derived("missing:"+lang, func() any { return web.buildMissingGames(lang) }).([]TitleItem)
+	collections := web.collections().snapshot()
+	items := make([]TitleItem, 0, len(library)+len(missing))
+	items = append(items, library...)
+	for _, item := range missing {
+		item.Missing = true
+		item.Collections = collections[item.Id]
+		items = append(items, item)
+	}
+	return items
+}
+
 // buildLibrary lists every game of the library with its status.
 func (web *Web) buildLibrary(lang string) []TitleItem {
 	items := []TitleItem{}
@@ -231,6 +263,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 	ignoredDlc := toLowerSet(settingsObj.IgnoreDLCTitleIds)
 	added := web.history().addedTimes()
 	collections := web.collections().snapshot()
+	favorites := web.favorites().snapshot()
 
 	for k, v := range localDB.TitlesMap {
 		if !v.BaseExist || v.File.Metadata == nil {
@@ -271,6 +304,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 		item.Added = added["game:"+item.Id]
 		item.Collections = collections[item.Id]
 		item.Selectable = true
+		item.Favorite = favorites[item.Id]
 		for _, update := range v.Updates {
 			item.Size += update.ExtendedInfo.Size
 		}

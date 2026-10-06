@@ -28,6 +28,8 @@ func newTestWeb(t *testing.T) *Web {
 	web := &Web{router: mux.NewRouter(), dataFolder: t.TempDir(), sugarLogger: zap.NewNop().Sugar()}
 	// the processed titles are kept open, and Windows cannot remove an open file
 	t.Cleanup(func() {
+		// files written in the background after a scan
+		web.afterScanWork.Wait()
 		if web.store != nil {
 			web.store.Close()
 		}

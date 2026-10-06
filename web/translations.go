@@ -5,6 +5,17 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Remove from favorites": "Quitar de favoritos",
+		"Add to favorites": "Añadir a favoritos",
+		"Favorite": "Favorito",
+		"Favorites only": "Solo favoritos",
+		"Show the missing games too": "Mostrar también los que faltan",
+		"Games of the eShop you do not have, greyed out with the others.": "Los juegos de la eShop que no tienes, en gris junto a los tuyos.",
+		"With the missing games": "Con los que faltan",
+		"Favorite: the games you like most": "Favorito: los juegos que más te gustan",
+		"Wishlist: games you want and do not have yet": "Lista de deseos: juegos que quieres y aún no tienes",
+		"Greyed out: not in your library": "En gris: no están en tu biblioteca",
+		"From the same series": "De la misma saga",
 		"Filters": "Filtros",
 		"Format": "Formato",
 		"Other": "Otros",

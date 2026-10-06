@@ -1171,6 +1171,19 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 
 	// adds a game to the wishlist or removes it
+	document.querySelectorAll('[data-fav]').forEach(button => {
+		button.addEventListener('click', e => {
+			e.preventDefault();
+			e.stopPropagation();
+			button.disabled = true;
+			postForm('/favorites', { id: button.dataset.fav, favorite: button.dataset.favorite === 'true' ? 'false' : 'true' })
+				.then(() => window.location.reload())
+				.catch(() => {
+					button.disabled = false;
+				});
+		});
+	});
+
 	document.querySelectorAll('[data-wish]').forEach(button => {
 		button.addEventListener('click', e => {
 			e.preventDefault();

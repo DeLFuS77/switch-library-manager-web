@@ -80,6 +80,9 @@ type TitlePageData struct {
 	// the collections of the game, and every collection to choose from
 	Collections    []string
 	AllCollections []string
+	// the game is a favorite, and the other games of its series
+	Favorite bool
+	Saga     []TitleItem
 }
 
 func newTitleFile(info db.SwitchFileInfo, fileType string, downloadUrl string) *TitleFile {
@@ -288,7 +291,8 @@ func (web *Web) HandleTitle() {
 			return
 		}
 		web.render(w, r, templates, TitlePageData{GlobalPageData: web.globalPageData("title"), Title: detail,
-			Collections: web.collections().of(detail.Id), AllCollections: web.collections().names()})
+			Collections: web.collections().of(detail.Id), AllCollections: web.collections().names(),
+			Favorite: web.favorites().has(detail.Id), Saga: web.sameSaga(detail.Id, detail.Name, web.requestLanguage(r))})
 	}).Methods("GET")
 }
 
