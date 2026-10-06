@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,8 +16,11 @@ import (
 	"go.uber.org/zap"
 )
 
+// The settings are read by many goroutines: the current settings are never changed in
+// place, a change saves a new copy (see UpdateSettings).
 var (
-	settingsInstance *AppSettings
+	settingsInstance atomic.Pointer[AppSettings]
+	loadMutex        sync.Mutex
 )
 
 const (
@@ -148,11 +152,16 @@ func ReadSettingsAsJSON(dataFolder string) string {
 }
 
 func ReadSettings(dataFolder string) *AppSettings {
-	if settingsInstance != nil {
-		return settingsInstance
+	if current := settingsInstance.Load(); current != nil {
+		return current
+	}
+	loadMutex.Lock()
+	defer loadMutex.Unlock()
+	if current := settingsInstance.Load(); current != nil {
+		return current
 	}
 	// defaults for keys missing from settings files written by older versions
-	settingsInstance = &AppSettings{Debug: false, ScanFolders: []string{}, WatchFolders: true, CheckForUpdates: true,
+	loaded := &AppSettings{Debug: false, ScanFolders: []string{}, WatchFolders: true, CheckForUpdates: true,
 		Notifications:   NotificationOptions{NotifyUpdates: true, NotifyDlc: true, NotifyWishlist: true},
 		OrganizeOptions: OrganizeOptions{SwitchSafeFileNames: true}, Prodkeys: "", IgnoreDLCTitleIds: []string{"01007F600B135007"}}
 	if _, err := os.Stat(filepath.Join(dataFolder, SETTINGS_FILENAME)); err == nil {
@@ -161,13 +170,15 @@ func ReadSettings(dataFolder string) *AppSettings {
 			zap.S().Warnf("Missing or corrupted config file, creating a new one")
 			return saveDefaultSettings(dataFolder)
 		} else {
-			err = json.NewDecoder(file).Decode(settingsInstance)
+			err = json.NewDecoder(file).Decode(loaded)
 			file.Close()
 			if err != nil {
 				zap.S().Warnf("Corrupted config file, creating a new one - %v", err)
 				return saveDefaultSettings(dataFolder)
 			}
-			return verifySettings(dataFolder, settingsInstance)
+			verified := verifySettings(dataFolder, loaded)
+			settingsInstance.Store(verified)
+			return verified
 		}
 	} else {
 		return saveDefaultSettings(dataFolder)
@@ -252,7 +263,7 @@ func withFallbacks(url string, fallbacks []string) []string {
 }
 
 func saveDefaultSettings(dataFolder string) *AppSettings {
-	settingsInstance = &AppSettings{
+	defaults := &AppSettings{
 		TitlesJsonUrl:          DEFAULT_TITLES_JSON_URL,
 		TitlesEtag:             DEFAULT_TITLES_ETAG,
 		VersionsJsonUrl:        DEFAULT_VERSIONS_JSON_URL,
@@ -279,7 +290,7 @@ func saveDefaultSettings(dataFolder string) *AppSettings {
 			DeleteOldUpdateFiles: false,
 		},
 	}
-	return SaveSettings(settingsInstance, dataFolder)
+	return SaveSettings(defaults, dataFolder)
 }
 
 var updateMutex sync.Mutex
@@ -297,7 +308,7 @@ func Version() uint64 {
 func ReloadSettings(dataFolder string) *AppSettings {
 	updateMutex.Lock()
 	defer updateMutex.Unlock()
-	settingsInstance = nil
+	settingsInstance.Store(nil)
 	appSettings := ReadSettings(dataFolder)
 	version.Add(1)
 	return appSettings
@@ -308,9 +319,11 @@ func ReloadSettings(dataFolder string) *AppSettings {
 func UpdateSettings(dataFolder string, change func(settings *AppSettings)) *AppSettings {
 	updateMutex.Lock()
 	defer updateMutex.Unlock()
-	appSettings := ReadSettings(dataFolder)
-	change(appSettings)
-	return SaveSettings(appSettings, dataFolder)
+	// a copy: other goroutines may be reading the current settings
+	appSettings := *ReadSettings(dataFolder)
+	appSettings.LocalizedTitlesEtags = maps.Clone(appSettings.LocalizedTitlesEtags)
+	change(&appSettings)
+	return SaveSettings(&appSettings, dataFolder)
 }
 
 func SaveSettings(settings *AppSettings, dataFolder string) *AppSettings {
@@ -318,7 +331,7 @@ func SaveSettings(settings *AppSettings, dataFolder string) *AppSettings {
 	if err := os.WriteFile(filepath.Join(dataFolder, SETTINGS_FILENAME), file, 0644); err != nil {
 		zap.S().Errorf("Failed to save settings - %v", err)
 	}
-	settingsInstance = settings
+	settingsInstance.Store(settings)
 	version.Add(1)
 	return settings
 }
