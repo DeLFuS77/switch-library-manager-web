@@ -2316,3 +2316,79 @@ h3,
 		font-size: 1.3rem;
 	}
 }
+
+/* the library filters besides the status: one button opens a panel with a section for each */
+.filter-panel-menu {
+	width: min(26rem, calc(100vw - 2rem));
+	max-height: min(70vh, 34rem);
+	overflow-y: auto;
+	padding: .75rem;
+}
+
+.filter-group + .filter-group {
+	margin-top: .75rem;
+	padding-top: .75rem;
+	border-top: 1px solid var(--slm-border);
+}
+
+.filter-group-title {
+	display: flex;
+	align-items: center;
+	gap: .4rem;
+	margin-bottom: .5rem;
+	font-size: .75rem;
+	font-weight: 700;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	color: var(--bs-secondary-color);
+}
+
+.filter-choices {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .35rem;
+}
+
+.filter-choice,
+.active-filter {
+	display: inline-flex;
+	align-items: center;
+	gap: .35rem;
+	padding: .3rem .7rem;
+	border-radius: 999px;
+	border: 1px solid var(--slm-border);
+	background: var(--slm-surface-muted);
+	color: var(--bs-body-color);
+	font-size: .85rem;
+	text-decoration: none;
+	transition: border-color .15s ease, background-color .15s ease;
+
+	&:hover,
+	&:focus-visible {
+		border-color: var(--slm-chart-1);
+		color: var(--bs-body-color);
+	}
+}
+
+.filter-choice.active {
+	border-color: var(--slm-chart-1);
+	background: var(--slm-accent-soft);
+	font-weight: 600;
+}
+
+.filter-count {
+	color: var(--bs-secondary-color);
+	font-size: .8em;
+	font-variant-numeric: tabular-nums;
+}
+
+.active-filter {
+	background: var(--slm-accent-soft);
+	border-color: var(--slm-chart-1);
+
+	.bi-x {
+		margin-right: -.25rem;
+		font-size: 1rem;
+		opacity: .7;
+	}
+}

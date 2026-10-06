@@ -3,6 +3,9 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Filters": "Filtres",
+		"Format": "Format",
+		"Other": "Autres",
 		"%v files": "%v fichiers",
 		"originals deleted after the check": "originaux supprimés après la vérification",
 		"NSZ deleted after the check": "NSZ supprimés après la vérification",
@@ -35,7 +38,6 @@ func init() {
 		"Games only": "Jeux uniquement",
 		"Demos only": "Démos uniquement",
 		"All regions": "Toutes les régions",
-		"More filters": "Plus de filtres",
 		"No other filter": "Aucun autre filtre",
 		"Without a cover": "Sans jaquette",
 		"Not recognized": "Non reconnus",

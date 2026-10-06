@@ -99,6 +99,18 @@ func (f *TitleItemFilter) Active() bool {
 	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Region != "" || f.Extra != "" || f.Collection != ""
 }
 
+// SecondaryCount is the number of library filters set besides the keyword and the status:
+// collection, kind, region, format and the others.
+func (f *TitleItemFilter) SecondaryCount() int {
+	count := 0
+	for _, value := range []string{f.Collection, f.Kind, f.Region, f.Format, f.Extra} {
+		if value != "" {
+			count++
+		}
+	}
+	return count
+}
+
 // query returns the query string of the filter, with the given values replaced; an empty
 // value removes the parameter. Changing a filter goes back to the first page.
 func (f *TitleItemFilter) query(replace ...string) url.Values {

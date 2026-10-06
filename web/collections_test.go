@@ -52,3 +52,19 @@ func TestCollections(t *testing.T) {
 		t.Fatal("the collections are saved")
 	}
 }
+
+func TestFilterCountsFollowTheCollection(t *testing.T) {
+	web := newTestWeb(t)
+	web.state.set(testDatabases(t))
+	web.collections().set([]string{"0100000000010000"}, "Favorites", true)
+	web.invalidateDerived()
+	filter := defaultFilter()
+	filter.Collection = "Favorites"
+	_, _, facets := web.getLibraryWithFacets(filter, "en")
+	if facets.Games+facets.Demos != 1 || facets.Unknown != 0 || len(facets.Collections) != 1 {
+		t.Fatalf("the counts of the panel are those of the collection: %+v", facets)
+	}
+	if filter.SecondaryCount() != 1 {
+		t.Fatal("one filter besides the status")
+	}
+}
