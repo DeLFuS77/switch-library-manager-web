@@ -1168,3 +1168,12 @@ func TestSetupStatus(t *testing.T) {
 		t.Fatalf("progress: %+v", status)
 	}
 }
+
+func TestReleaseDatesWithOnlyTheYear(t *testing.T) {
+	for value, want := range map[int]string{20171027: "2017-10-27", 2019: "2019-01-01", 202403: "2024-03-01"} {
+		got, err := intToTime(value)
+		if err != nil || got.Format("2006-01-02") != want {
+			t.Errorf("intToTime(%d) = %v, %v", value, got, err)
+		}
+	}
+}

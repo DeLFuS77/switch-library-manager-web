@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sync/atomic"
 	"testing"
+	"time"
 )
 
 func TestDownloadCovers(t *testing.T) {
@@ -61,5 +62,15 @@ func TestDownloadCoversStopsWhenTheServerIsUnreachable(t *testing.T) {
 	downloadCovers(dataFolder, covers[:3], nil)
 	if requests.Load() != first {
 		t.Fatalf("recent failures must not be retried: %v -> %v", first, requests.Load())
+	}
+}
+
+func TestCoversThatFailedRecentlyWait(t *testing.T) {
+	dataFolder := t.TempDir()
+	os.MkdirAll(filepath.Join(dataFolder, "img"), 0755)
+	os.WriteFile(filepath.Join(dataFolder, "img", coverFailuresFilename), []byte(fmt.Sprintf(`{"https://x/failed.jpg": %d, "https://x/old.jpg": 1}`, time.Now().Unix())), 0644)
+	got := CoversToTry(dataFolder, []string{"https://x/failed.jpg", "https://x/old.jpg", "https://x/new.jpg"})
+	if len(got) != 2 || got[0] != "https://x/old.jpg" || got[1] != "https://x/new.jpg" {
+		t.Fatalf("got %v", got)
 	}
 }
