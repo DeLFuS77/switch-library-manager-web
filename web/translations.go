@@ -5,6 +5,16 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"The same game from several regions": "El mismo juego de varias regiones",
+		"Each region sells the game with its own title ID, so both copies are kept by the app. The suggested copy is marked; delete the other one yourself if you do not need it.": "Cada región vende el juego con su propio ID, así que la app conserva las dos copias. La copia recomendada está marcada; borra la otra tú mismo si no la necesitas.",
+		"%v could be freed": "se podrían liberar %v",
+		"%v languages": "%v idiomas",
+		"yours included": "incluido el tuyo",
+		"Suggested to keep": "Recomendado conservar",
+		"In your language": "En tu idioma",
+		"More languages": "Más idiomas",
+		"Newer update": "Actualización más nueva",
+		"More DLC": "Más DLC",
 		"Adventure": "Aventura",
 		"Arcade": "Arcade",
 		"Board Game": "Juego de mesa",

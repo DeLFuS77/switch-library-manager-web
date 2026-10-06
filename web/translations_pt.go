@@ -3,6 +3,16 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"The same game from several regions": "O mesmo jogo de várias regiões",
+		"Each region sells the game with its own title ID, so both copies are kept by the app. The suggested copy is marked; delete the other one yourself if you do not need it.": "Cada região vende o jogo com seu próprio ID, então o app mantém as duas cópias. A cópia recomendada está marcada; exclua a outra você mesmo se não precisar dela.",
+		"%v could be freed": "%v poderiam ser liberados",
+		"%v languages": "%v idiomas",
+		"yours included": "o seu incluído",
+		"Suggested to keep": "Recomendado manter",
+		"In your language": "No seu idioma",
+		"More languages": "Mais idiomas",
+		"Newer update": "Atualização mais nova",
+		"More DLC": "Mais DLC",
 		"Adventure": "Aventura",
 		"Arcade": "Arcade",
 		"Board Game": "Jogo de tabuleiro",

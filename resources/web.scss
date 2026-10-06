@@ -2589,3 +2589,9 @@ h3,
 		color: var(--bs-secondary-color);
 	}
 }
+
+/* the copy of a game suggested to keep among its regions */
+.region-keep {
+	background: var(--slm-accent-soft);
+	border-radius: $border-radius;
+}

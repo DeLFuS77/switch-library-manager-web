@@ -78,6 +78,37 @@
 				</div>
 			</form>
 			{{- end}}
+			{{- with .Regions}}
+			<section class="mt-4" aria-labelledby="regionsTitle">
+				<h2 class="section-title" id="regionsTitle"><span class="bi bi-globe2" aria-hidden="true"></span>{{t "The same game from several regions"}} <span class="badge rounded-pill text-bg-secondary">{{len .}}</span></h2>
+				<p class="text-body-secondary small">{{t "Each region sells the game with its own title ID, so both copies are kept by the app. The suggested copy is marked; delete the other one yourself if you do not need it."}}</p>
+				{{- range .}}
+				<article class="surface mb-3 region-group">
+					<div class="d-flex justify-content-between align-items-baseline gap-2 mb-2">
+						<h3 class="h6 fw-semibold mb-0">{{.Name}}</h3>
+						<span class="small text-body-secondary text-nowrap">{{t "%v could be freed" (formatSize .Savable)}}</span>
+					</div>
+					<ul class="item-list mb-0">
+						{{- range .Copies}}
+						<li class="item-row{{if .Keep}} region-keep{{end}}">
+							{{- if .Region}}<span class="fi fi-{{.Region | toLower}} flex-shrink-0" title="{{.Region}}" aria-hidden="true"></span>{{end}}
+							<div class="item-main">
+								<div class="item-name"><a class="link-body-emphasis text-decoration-none" href="/title/{{.Id}}.html">{{.Name}}</a> <span class="font-monospace small text-body-secondary">{{.Id}}</span></div>
+								<div class="item-meta">
+									<span>{{t "%v languages" (len .Languages)}}{{if .HasLanguage}} &middot; {{t "yours included"}}{{end}}</span>
+									{{- if .LocalUpdate}}<span>v{{.LocalUpdate}}</span>{{end}}
+									{{- if .Dlc}}<span>{{.Dlc}} DLC</span>{{end}}
+									<span>{{formatSize .Size}}</span>
+								</div>
+							</div>
+							{{- if .Keep}}<span class="chip chip-success flex-shrink-0" title="{{range $i, $r := .Reasons}}{{if $i}}, {{end}}{{t $r}}{{end}}"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Suggested to keep"}}{{with .Reasons}}: {{range $i, $r := .}}{{if $i}}, {{end}}{{t $r}}{{end}}{{end}}</span>{{end}}
+						</li>
+						{{- end}}
+					</ul>
+				</article>
+				{{- end}}
+			</section>
+			{{- end}}
 {{- end}}
 
 {{define "spaceGroupTitle"}}{{if eq . "old_updates"}}{{t "Old updates"}}{{else if eq . "duplicates"}}{{t "Duplicates"}}{{else}}{{t "Compressed originals"}}{{end}}{{end}}
