@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.20.0
+
+### New features
+
+- **Games without their base game**: the updates and DLC of games that are not in the library, which Issues listed
+  file by file, are grouped by game with their cover, how many updates and DLC you have of each one, and the heart
+  for the wishlist. Issues links to it.
+- **Issues without the noise**: images, notes, checksums and other files that are never games (such as the
+  screenshots other tools leave next to the games) are no longer reported. For any other type, Issues offers a
+  button to ignore it and scan again.
+
+### Improvements
+
+- The SD card planner lists a few rows of a big library instead of thousands (its page weighed 8 MB with 11,000
+  games) and has a search among the games that are not chosen; the games it does not list still count in the
+  totals and in the copy.
+- Big numbers are written with the thousands separator of the language everywhere (11.382 in Spanish, 11,382 in
+  English), not in some places only.
+
 ## 1.19.0
 
 ### New features
