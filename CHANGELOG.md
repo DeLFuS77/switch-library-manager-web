@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.18.1
+
+### Fixes
+
+- The progress bars of running tasks, such as a file verification, move on smoothly instead of starting again
+  at every update.
+- A test that depended on the speed of the machine kept the 1.18.0 release from being built on GitHub; the Docker
+  image of 1.18.0 was published. This version has everything of 1.18.0.
+
 ## 1.18.0
 
 ### New features
