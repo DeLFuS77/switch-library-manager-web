@@ -377,7 +377,7 @@ func (l *TaskLog) save() {
 		return
 	}
 	tmp := l.path + ".tmp"
-	if os.WriteFile(tmp, data, 0644) == nil {
+	if os.WriteFile(tmp, data, 0600) == nil {
 		os.Rename(tmp, l.path)
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 )
 
 // sameOriginOnly rejects state changing requests sent by other web sites (CSRF): without it
@@ -73,6 +74,42 @@ func withSecurityHeaders(next http.Handler) http.Handler {
 		headers.Set("X-Frame-Options", "DENY")
 		headers.Set("Referrer-Policy", "same-origin")
 		headers.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
+		headers.Set("Cross-Origin-Opener-Policy", "same-origin")
+		headers.Set("Cross-Origin-Resource-Policy", "same-origin")
+		// served over https (directly or through a proxy): browsers keep using https
+		if isHttps(r) {
+			headers.Set("Strict-Transport-Security", "max-age=31536000")
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+const (
+	// the largest request body: forms and lists of files; a backup has its own limit
+	maxRequestBody = 8 << 20
+	maxBackupBody  = 17 << 20
+	// the login form only has a name and a password
+	maxLoginBody = 64 << 10
+)
+
+// withBodyLimit refuses request bodies larger than the forms need, so nobody can fill the
+// memory or the disk of the server by sending endless data, even without logging in.
+func withBodyLimit(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet && r.Method != http.MethodHead && r.Body != nil {
+			limit := int64(maxRequestBody)
+			switch r.URL.Path {
+			case "/backup/restore":
+				limit = maxBackupBody
+			case "/login.html":
+				limit = maxLoginBody
+				if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/") {
+					http.Error(w, "unsupported form", http.StatusUnsupportedMediaType)
+					return
+				}
+			}
+			r.Body = http.MaxBytesReader(w, r.Body, limit)
+		}
 		next.ServeHTTP(w, r)
 	})
 }

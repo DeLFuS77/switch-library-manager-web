@@ -134,7 +134,7 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 		return result, ErrNotCompressible
 	}
 
-	output, err := os.Create(target)
+	output, err := CreateNew(target)
 	if err != nil {
 		return result, err
 	}
@@ -817,7 +817,7 @@ func DecompressNsz(ctx context.Context, source string, target string, progress f
 		}
 	}
 
-	output, err := os.Create(target)
+	output, err := CreateNew(target)
 	if err != nil {
 		return err
 	}

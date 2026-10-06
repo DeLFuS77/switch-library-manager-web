@@ -59,6 +59,8 @@ func (c *client) do(method string, path string, form url.Values, headers ...stri
 	} else {
 		request = httptest.NewRequest(method, path, nil)
 	}
+	// a client of the local network, unless the test sets another address
+	request.RemoteAddr = "192.168.1.10:1234"
 	if c.ip != "" {
 		request.RemoteAddr = c.ip + ":1234"
 	}

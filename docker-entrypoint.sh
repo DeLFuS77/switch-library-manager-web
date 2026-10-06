@@ -16,6 +16,9 @@ if [ "$(id -u)" = "0" ]; then
 		exit 1
 	fi
 
+	if [ "$PUID" = "0" ]; then
+		echo "Warning: PUID=0 runs the app as root. Set PUID/PGID to an unprivileged user (on Unraid 99/100)." >&2
+	fi
 	exec su-exec "$PUID:$PGID" env HOME="$SLM_DATA_DIR" "$@"
 fi
 

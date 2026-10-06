@@ -10,10 +10,63 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
+	"syscall"
 	"time"
 
 	"go.uber.org/zap"
 )
+
+const (
+	// the titles database is more than 100 MB; nothing it downloads is larger than this
+	maxDownloadSize = 1 << 30
+	// a cover or screenshot
+	maxImageSize = 20 << 20
+)
+
+// publicClient downloads the covers named by the titles database: only from addresses on
+// the internet, so a changed database cannot make the app call services of the local network.
+var publicClient = &http.Client{
+	Timeout: 2 * time.Minute,
+	Transport: &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout: 5 * time.Second,
+			Control: publicAddressOnly,
+		}).DialContext,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ResponseHeaderTimeout: 30 * time.Second,
+	},
+	CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		if len(via) >= 3 {
+			return errors.New("too many redirects")
+		}
+		return nil
+	},
+}
+
+// AllowLocalDownloads lets the tests download covers from servers on this computer.
+var AllowLocalDownloads = false
+
+// publicAddressOnly refuses connections to this computer and to private networks, unless
+// the downloads go through a proxy (which is then on the local network).
+func publicAddressOnly(network string, address string, _ syscall.RawConn) error {
+	if AllowLocalDownloads {
+		return nil
+	}
+	if os.Getenv("HTTPS_PROXY") != "" || os.Getenv("https_proxy") != "" || os.Getenv("HTTP_PROXY") != "" || os.Getenv("http_proxy") != "" {
+		return nil
+	}
+	host, _, err := net.SplitHostPort(address)
+	if err != nil {
+		return err
+	}
+	ip := net.ParseIP(host)
+	if ip == nil || ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsUnspecified() || ip.IsMulticast() {
+		return fmt.Errorf("address %s is not on the internet", host)
+	}
+	return nil
+}
 
 var httpClient = &http.Client{
 	// titles.json is >100MB, so allow slow connections to finish the download
@@ -228,6 +281,11 @@ func decodeToJsonObject(reader io.Reader, target interface{}) error {
 var errNotModified = errors.New("no new updates")
 
 func downloadBytesFromUrl(url string, etag string) ([]byte, string, error) {
+	return download(httpClient, url, etag, maxDownloadSize)
+}
+
+// download gets a URL, refusing answers larger than limit.
+func download(client *http.Client, url string, etag string, limit int64) ([]byte, string, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, "", err
@@ -235,7 +293,7 @@ func downloadBytesFromUrl(url string, etag string) ([]byte, string, error) {
 	if etag != "" {
 		req.Header.Set("If-None-Match", etag)
 	}
-	resp, err := httpClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, "", err
 	}
@@ -249,9 +307,15 @@ func downloadBytesFromUrl(url string, etag string) ([]byte, string, error) {
 		return nil, "", errors.New("got a non 200 response - " + resp.Status)
 	}
 
-	body, err := io.ReadAll(resp.Body)
+	if resp.ContentLength > limit {
+		return nil, "", errors.New("the file is too large")
+	}
+	body, err := io.ReadAll(io.LimitReader(resp.Body, limit+1))
 	if err != nil {
 		return nil, "", err
+	}
+	if int64(len(body)) > limit {
+		return nil, "", errors.New("the file is too large")
 	}
 	//getting the new etag
 	return body, resp.Header.Get("Etag"), nil
@@ -278,7 +342,10 @@ func DownloadFile(url string, filePath string) error {
 		return nil
 	}
 
-	bytes, _, err := downloadBytesFromUrl(url, "")
+	if !strings.HasPrefix(url, "https://") && !AllowLocalDownloads {
+		return errors.New("only https downloads are allowed")
+	}
+	bytes, _, err := download(publicClient, url, "", maxImageSize)
 	if err != nil {
 		zap.S().Infof("file [%v] was not downloaded, reason - [%v]", url, err)
 		return err

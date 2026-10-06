@@ -20,7 +20,9 @@ import (
 const NOTIFICATIONS_STATE_FILENAME = "notifications.json"
 
 var (
-	notificationClient = &http.Client{Timeout: 15 * time.Second}
+	// redirects are not followed: a webhook answering with one could send the request
+	// to an address of the local network
+	notificationClient = &http.Client{Timeout: 15 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 
 	discordWebhookRegex = regexp.MustCompile(`^https://(discord\.com|discordapp\.com|ptb\.discord\.com|canary\.discord\.com)/api/webhooks/[0-9]+/[A-Za-z0-9_-]+$`)
 	telegramTokenRegex  = regexp.MustCompile(`^[0-9]+:[A-Za-z0-9_-]{20,}$`)
@@ -263,7 +265,7 @@ func postJSON(url string, payload any) error {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("server answered %s", resp.Status)
+		return fmt.Errorf("server answered %d", resp.StatusCode)
 	}
 	return nil
 }

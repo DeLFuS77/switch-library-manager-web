@@ -532,7 +532,13 @@ func applyTemplate(templateData map[string]string, useSafeNames bool, template s
 	result = whitespace.ReplaceAllString(result, " ")
 
 	result = strings.TrimSpace(result)
-	return folderIllegalCharsRegex.ReplaceAllString(result, "")
+	result = folderIllegalCharsRegex.ReplaceAllString(result, "")
+	// names such as ".." or "." would point outside the folder of the game
+	result = strings.Trim(result, ". ")
+	if result == "" {
+		result = "_"
+	}
+	return result
 }
 
 // RemoveFiles deletes the given files, each with its reason, refusing files that changed

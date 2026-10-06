@@ -3,6 +3,9 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Login is off.": "ログインは無効です。",
+		"Anyone on your network can change or delete your library. Create an administrator to protect the app, above all if it can be reached from the internet.": "ネットワーク上の誰でもライブラリを変更・削除できます。特にインターネットから開ける場合は、管理者を作成してアプリを保護してください。",
+		"Create an administrator": "管理者を作成",
 		"%v times in a row, the last one shown": "%v 回連続、最新のものを表示",
 		"Next for you": "次はこれ",
 		"Next release": "次の発売",

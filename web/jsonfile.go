@@ -8,7 +8,7 @@ import (
 // a full disk while writing leaves the previous version instead of a cut file.
 func writeFileAtomic(path string, data []byte) error {
 	temporary := path + ".tmp"
-	if err := os.WriteFile(temporary, data, 0644); err != nil {
+	if err := os.WriteFile(temporary, data, 0600); err != nil {
 		os.Remove(temporary)
 		return err
 	}

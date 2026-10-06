@@ -85,6 +85,7 @@ func (web *Web) HandleUsers() {
 	}).Methods("POST")
 
 	web.router.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+		web.auth.endSession(r)
 		http.SetCookie(w, clearSessionCookie(r))
 		http.Redirect(w, r, "/login.html", http.StatusSeeOther)
 	}).Methods("POST")
@@ -126,7 +127,9 @@ func (web *Web) HandleUsers() {
 			// whoever enables the login must be able to manage it
 			role = ROLE_ADMIN
 		}
-		if err := web.auth.users.Add(name, r.FormValue("password"), role); err != nil {
+		// the first user is only created if there is still none, so two requests at once
+		// cannot both become administrators without login
+		if err := web.auth.users.add(name, r.FormValue("password"), role, firstUser); err != nil {
 			redirectWithError(w, r, "/users.html", err)
 			return
 		}

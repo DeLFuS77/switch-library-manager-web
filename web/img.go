@@ -210,10 +210,20 @@ func (t *thumbnails) make(original string, thumbnail string) error {
 	return writeThumbnail(original, thumbnail)
 }
 
+// covers and screenshots are a few megapixels; larger images are not decoded
+const maxImagePixels = 40_000_000
+
 func writeThumbnail(original string, thumbnail string) error {
 	data, err := os.ReadFile(original)
 	if err != nil {
 		return err
+	}
+	config, _, err := image.DecodeConfig(bytes.NewReader(data))
+	if err != nil {
+		return err
+	}
+	if config.Width*config.Height > maxImagePixels {
+		return errors.New("image too large")
 	}
 	source, _, err := image.Decode(bytes.NewReader(data))
 	if err != nil {
