@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -52,8 +51,8 @@ func (web *Web) availableItems(lang string) []NotificationItem {
 	options := settingsObj.Notifications
 
 	if options.NotifyUpdates {
-		missing := process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreUpdateTitleIds), settingsObj.IgnoreDLCUpdates)
-		for _, title := range missing {
+		// the same lists as the pages: ignored titles and hidden demos are left out
+		for _, title := range web.missingUpdates() {
 			id := strings.ToUpper(title.Attributes.Id)
 			items = append(items, NotificationItem{
 				Key:     fmt.Sprintf("update:%s:%d", id, title.LatestUpdate),
@@ -66,8 +65,7 @@ func (web *Web) availableItems(lang string) []NotificationItem {
 	}
 
 	if options.NotifyDlc {
-		missing := process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds))
-		for _, title := range missing {
+		for _, title := range web.missingDLC() {
 			gameName := titleName(switchDB, lang, title.Attributes.Id, title.Attributes.Name)
 			for _, dlc := range title.MissingDLCItems {
 				id := strings.ToUpper(dlc.Id)
@@ -186,6 +184,43 @@ func (web *Web) notifyChanges() error {
 	return nil
 }
 
+// notifyNewContent reports the games and DLC that appeared in the folders.
+func (web *Web) notifyNewContent(events []HistoryEvent) {
+	settingsObj := settings.ReadSettings(web.dataFolder)
+	options := settingsObj.Notifications
+	if !notificationsConfigured(options) || !options.NotifyNewGames {
+		return
+	}
+	lang := settingsObj.Language
+	if !isSupportedLanguage(lang) {
+		lang = DEFAULT_LANGUAGE
+	}
+	switchDB, _ := web.state.get()
+	items := []NotificationItem{}
+	for _, event := range events {
+		if !event.Added || event.Kind == HISTORY_UPDATE {
+			continue
+		}
+		name := titleName(switchDB, lang, event.Id, event.Name)
+		if name == "" {
+			name = event.Id
+		}
+		kind := "new"
+		if event.Kind == HISTORY_DLC {
+			kind = "newdlc"
+		}
+		items = append(items, NotificationItem{Key: kind + ":" + event.Id, Kind: kind, TitleId: event.Id, Name: name})
+	}
+	if len(items) == 0 {
+		return
+	}
+	if err := sendNotification(options, lang, items); err != nil {
+		web.sugarLogger.Warnf("Failed to send notification: %v", err)
+		return
+	}
+	web.sugarLogger.Infof("Notification sent for %d new game(s) and DLC", len(items))
+}
+
 const maxNotificationLines = 20
 
 func notificationText(lang string, items []NotificationItem) (string, string) {
@@ -205,6 +240,10 @@ func notificationText(lang string, items []NotificationItem) (string, string) {
 			lines = append(lines, "• "+translatef(lang, "On your wishlist and available: %v", item.Name))
 		case "wishdlc":
 			lines = append(lines, "• "+translatef(lang, "DLC %v for %v (on your wishlist)", item.Detail, item.Name))
+		case "new":
+			lines = append(lines, "• "+translatef(lang, "New in your library: %v", item.Name))
+		case "newdlc":
+			lines = append(lines, "• "+translatef(lang, "New DLC in your library: %v", item.Name))
 		default:
 			lines = append(lines, "• "+item.Name)
 		}

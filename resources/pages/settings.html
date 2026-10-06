@@ -95,7 +95,8 @@
 									</div>
 									<div class="form-check form-switch">
 										<input class="form-check-input" type="checkbox" role="switch" id="hide_demo_games" name="hide_demo_games" value="true"{{if .Settings.HideDemoGames}} checked{{end}}>
-										<label class="form-check-label" for="hide_demo_games">{{t "Hide demos in Missing Games"}}</label>
+										<label class="form-check-label" for="hide_demo_games">{{t "Hide demos"}}</label>
+										<div class="form-text">{{t "In the library (unless its filter asks for them), missing updates, DLC and games, statistics and notifications."}}</div>
 									</div>
 								</div>
 							</div>
@@ -221,6 +222,10 @@
 									<div class="form-check form-switch">
 										<input class="form-check-input" type="checkbox" role="switch" id="notify_wishlist" name="notify_wishlist" value="true"{{if .Settings.Notifications.NotifyWishlist}} checked{{end}}>
 										<label class="form-check-label" for="notify_wishlist">{{t "Notify my wishlist"}}</label>
+									</div>
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="notify_new_games" name="notify_new_games" value="true"{{if .Settings.Notifications.NotifyNewGames}} checked{{end}}>
+										<label class="form-check-label" for="notify_new_games">{{t "Notify games added to my folders"}}</label>
 									</div>
 									<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill ms-sm-auto" id="notificationTest"><span class="bi bi-send me-1" aria-hidden="true"></span>{{t "Send a test notification"}}</button>
 								</div>

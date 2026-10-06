@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 )
 
 func getType(gameFile *db.SwitchGameFiles) string {
@@ -103,9 +104,11 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 
 	// positions of the matching items; only the shown page is copied
 	matched := make([]int, 0, len(all))
-	facets := LibraryFacets{Formats: []string{}, Regions: []string{}}
+	facets := LibraryFacets{Formats: []string{}, Regions: []string{}, DemosHidden: settings.ReadSettings(web.dataFolder).HideDemoGames}
 	formats := map[string]struct{}{}
 	regions := map[string]struct{}{}
+	recentSince := time.Now().AddDate(0, 0, -recentDays)
+	collectionCounts := map[string]int{}
 
 	for index := range all {
 		item := &all[index]
@@ -139,10 +142,24 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		if !item.Known {
 			facets.Unknown++
 		}
-		if (filter.Kind == KIND_GAME && item.Demo) || (filter.Kind == KIND_DEMO && !item.Demo) {
+		inCollection := filter.Collection == ""
+		for _, name := range item.Collections {
+			collectionCounts[name]++
+			if strings.EqualFold(name, filter.Collection) {
+				inCollection = true
+			}
+		}
+		if !inCollection {
 			continue
 		}
-		if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) {
+		recent := item.Added.After(recentSince)
+		if recent {
+			facets.Recent++
+		}
+		if (filter.Kind == KIND_GAME && item.Demo) || (filter.Kind == KIND_DEMO && !item.Demo) || (filter.Kind == "" && facets.DemosHidden && item.Demo) {
+			continue
+		}
+		if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) || (filter.Extra == EXTRA_RECENT && !recent) {
 			continue
 		}
 
@@ -184,6 +201,12 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		facets.Regions = append(facets.Regions, region)
 	}
 	sort.Strings(facets.Regions)
+	for name, count := range collectionCounts {
+		facets.Collections = append(facets.Collections, CollectionCount{Name: name, Count: count})
+	}
+	sort.Slice(facets.Collections, func(i, j int) bool {
+		return strings.ToLower(facets.Collections[i].Name) < strings.ToLower(facets.Collections[j].Name)
+	})
 
 	// the items are already sorted
 	p := pagination.Calculate(filter.Page, filter.PerPage, len(matched))
@@ -206,6 +229,8 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 	settingsObj := settings.ReadSettings(web.dataFolder)
 	ignoredUpdates := toLowerSet(settingsObj.IgnoreUpdateTitleIds)
 	ignoredDlc := toLowerSet(settingsObj.IgnoreDLCTitleIds)
+	added := web.history().addedTimes()
+	collections := web.collections().snapshot()
 
 	for k, v := range localDB.TitlesMap {
 		if !v.BaseExist || v.File.Metadata == nil {
@@ -241,6 +266,16 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			Version:      version,
 			Known:        title != nil,
 			Demo:         isDemo(title, originalName),
+			Size:         v.File.ExtendedInfo.Size,
+		}
+		item.Added = added["game:"+item.Id]
+		item.Collections = collections[item.Id]
+		item.Selectable = true
+		for _, update := range v.Updates {
+			item.Size += update.ExtendedInfo.Size
+		}
+		for _, dlc := range v.Dlc {
+			item.Size += dlc.ExtendedInfo.Size
 		}
 
 		if required := installedRequirement(v); web.firmwareTooNew(required) {

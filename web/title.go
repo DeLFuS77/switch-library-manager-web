@@ -77,6 +77,9 @@ type TitleDetail struct {
 type TitlePageData struct {
 	GlobalPageData
 	Title TitleDetail
+	// the collections of the game, and every collection to choose from
+	Collections    []string
+	AllCollections []string
 }
 
 func newTitleFile(info db.SwitchFileInfo, fileType string, downloadUrl string) *TitleFile {
@@ -284,7 +287,8 @@ func (web *Web) HandleTitle() {
 			http.NotFound(w, r)
 			return
 		}
-		web.render(w, r, templates, TitlePageData{GlobalPageData: web.globalPageData("title"), Title: detail})
+		web.render(w, r, templates, TitlePageData{GlobalPageData: web.globalPageData("title"), Title: detail,
+			Collections: web.collections().of(detail.Id), AllCollections: web.collections().names()})
 	}).Methods("GET")
 }
 

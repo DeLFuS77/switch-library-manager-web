@@ -860,6 +860,8 @@ func TestNotifications(t *testing.T) {
 	// a new DLC is released
 	game := switchDB.TitlesMap["0100000000010"]
 	game.Dlc["0100000000011003"] = db.TitleAttributes{Id: "0100000000011003", Name: "Brand New DLC"}
+	// changed in place: a new titles database would be a new state
+	web.invalidateDerived()
 	web.notifyChanges()
 	if len(requests) != 1 || !strings.Contains(requests[0]["message"].(string), "Brand New DLC") || strings.Contains(requests[0]["message"].(string), "Missing DLC") {
 		t.Fatalf("only the new DLC should be reported: %+v", requests)
@@ -871,6 +873,7 @@ func TestNotifications(t *testing.T) {
 
 	// a failed delivery is retried by the next check
 	game.Dlc["0100000000011004"] = db.TitleAttributes{Id: "0100000000011004", Name: "Another DLC"}
+	web.invalidateDerived()
 	failing = true
 	web.notifyChanges()
 	failing = false
@@ -1227,5 +1230,29 @@ func TestLibraryKindRegionAndExtraFilters(t *testing.T) {
 		if isDemo(nil, name) {
 			t.Errorf("%q is not a demo", name)
 		}
+	}
+}
+
+func TestHiddenDemosLeaveEveryList(t *testing.T) {
+	web := newTestWeb(t)
+	switchDB, localDB := testDatabases(t)
+	switchDB.TitlesMap["0100000000010"].Attributes.IsDemo = true
+	web.state.set(switchDB, localDB)
+	if len(web.missingUpdates()) == 0 || len(web.missingDLC()) == 0 {
+		t.Fatal("the demo has a missing update and DLC while demos are shown")
+	}
+
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.HideDemoGames = true })
+	if len(web.missingUpdates()) != 0 || len(web.missingDLC()) != 0 {
+		t.Fatal("hidden demos leave the missing updates and DLC")
+	}
+	items, _, facets := web.getLibraryWithFacets(defaultFilter(), "en")
+	if len(items) != 1 || items[0].Demo || !facets.DemosHidden || facets.Demos != 1 {
+		t.Fatalf("hidden demos leave the library but are still counted: %+v %+v", items, facets)
+	}
+	filter := defaultFilter()
+	filter.Kind = KIND_DEMO
+	if items, _, _ := web.getLibraryWithFacets(filter, "en"); len(items) != 1 || !items[0].Demo {
+		t.Fatalf("the kind filter still shows the demos: %+v", items)
 	}
 }

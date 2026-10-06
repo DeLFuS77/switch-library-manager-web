@@ -24,6 +24,9 @@
 							{{- if gt $t.MissingDlc 0}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC missing" $t.MissingDlc}}</span>{{else if and (not $t.Owned) $t.Dlc}}<span class="chip chip-muted"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC" (len $t.Dlc)}}</span>{{end}}
 						</div>
 						<h1 class="title-name">{{$t.Name}}</h1>
+						{{- with .Collections}}
+						<div class="d-flex flex-wrap gap-1 mb-2">{{range .}}<a class="chip chip-muted text-decoration-none" href="/index.html?collection={{.}}"><span class="bi bi-bookmark" aria-hidden="true"></span>{{.}}</a>{{end}}</div>
+						{{- end}}
 						{{- if $t.Publisher}}
 						<p class="title-publisher"><span class="bi bi-building" aria-hidden="true"></span>{{$t.Publisher}}</p>
 						{{- end}}
@@ -34,6 +37,21 @@
 							{{- if not $t.Owned}}
 							<button type="button" class="btn rounded-pill admin-only {{if $t.Wished}}btn-danger{{else}}btn-glass{{end}}" data-wish="{{$t.Id}}" data-wished="{{$t.Wished}}" aria-pressed="{{$t.Wished}}"><span class="bi {{if $t.Wished}}bi-heart-fill{{else}}bi-heart{{end}} me-2" aria-hidden="true"></span>{{if $t.Wished}}{{t "On your wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}</button>
 							{{- end}}
+							<div class="dropdown admin-only">
+								<button type="button" class="btn btn-glass rounded-pill dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"><span class="bi bi-bookmark me-2" aria-hidden="true"></span>{{t "Collections"}}{{with .Collections}} ({{len .}}){{end}}</button>
+								<form class="dropdown-menu p-3 collection-menu" data-collections="{{$t.Id}}">
+									{{- range $i, $name := .AllCollections}}
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" id="collection-{{$i}}" value="{{$name}}" data-collection-toggle{{if inList $name $.Collections}} checked{{end}}>
+										<label class="form-check-label" for="collection-{{$i}}">{{$name}}</label>
+									</div>
+									{{- end}}
+									<div class="input-group input-group-sm{{if .AllCollections}} mt-2{{end}}">
+										<input type="text" class="form-control" maxlength="40" placeholder="{{t "New collection"}}" aria-label="{{t "New collection"}}" data-collection-new>
+										<button type="submit" class="btn btn-primary" aria-label="{{t "Add"}}"><span class="bi bi-plus-lg" aria-hidden="true"></span></button>
+									</div>
+								</form>
+							</div>
 							<button type="button" class="btn btn-glass rounded-pill" data-copy="{{$t.Id}}" data-copied="{{t "Copied"}}"><span class="bi bi-clipboard me-2" aria-hidden="true"></span><span data-copy-label>{{t "Copy title ID"}}</span></button>
 						</div>
 					</div>

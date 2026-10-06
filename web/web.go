@@ -116,6 +116,10 @@ type Web struct {
 	wishOnce       sync.Once
 	activity       *activityLog
 	activityOnce   sync.Once
+	hist            *libraryHistory
+	historyOnce     sync.Once
+	coll            *collectionStore
+	collectionsOnce sync.Once
 	fallbackMutex  sync.Mutex
 	thumbs         *thumbnails
 	thumbsOnce     sync.Once
@@ -174,6 +178,12 @@ type TitleItem struct {
 	Wished bool
 	// the game is a demo (library)
 	Demo bool
+	// library: the size of the game with its updates and DLC, and when it was found in the folders
+	Size  int64
+	Added time.Time
+	// library: the user's collections of the game, and the card can be selected
+	Collections []string
+	Selectable  bool
 }
 
 // DlcPercent is the share of the DLC of a game in the library.
@@ -235,7 +245,12 @@ type LibraryFacets struct {
 	Demos   int
 	NoCover int
 	Unknown int
+	Recent  int
+	// the collections with their number of games, before the collection filter
+	Collections []CollectionCount
 	Regions []string
+	// the settings hide the demos unless the kind filter asks for them
+	DemosHidden bool
 }
 
 type LibraryPageData struct {
@@ -329,6 +344,15 @@ var funcMap = template.FuncMap {
 		return a - b
 	},
 	"toLower": strings.ToLower,
+	// inList reports whether a list of strings contains a value
+	"inList": func(value string, list []string) bool {
+		for _, item := range list {
+			if item == value {
+				return true
+			}
+		}
+		return false
+	},
 }
 
 func (web *Web) globalPageData(page string) GlobalPageData {
@@ -448,6 +472,7 @@ func (web *Web) Start() {
 	web.HandleCovers()
 	web.HandleUpdateGuide()
 	web.HandleWishlist()
+	web.HandleCollections()
 	if !isDemoMode() {
 		web.StartScheduler()
 		web.StartFolderWatcher()
@@ -703,8 +728,31 @@ func (web *Web) missingUpdates() map[string]process.IncompleteTitle {
 			return map[string]process.IncompleteTitle{}
 		}
 		settingsObj := settings.ReadSettings(web.dataFolder)
-		return process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreUpdateTitleIds), settingsObj.IgnoreDLCUpdates)
+		missing := process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreUpdateTitleIds), settingsObj.IgnoreDLCUpdates)
+		return withoutDemos(missing, switchDB, settingsObj.HideDemoGames)
 	}).(map[string]process.IncompleteTitle)
+}
+
+// withoutDemos removes the demos (and their DLC) when the settings hide them.
+func withoutDemos(titles map[string]process.IncompleteTitle, switchDB *db.SwitchTitlesDB, hide bool) map[string]process.IncompleteTitle {
+	if !hide {
+		return titles
+	}
+	for key, title := range titles {
+		prefix, err := db.TitleIDPrefix(title.Attributes.Id)
+		if err != nil {
+			continue
+		}
+		base := switchDB.TitlesMap[prefix]
+		name := title.Attributes.Name
+		if base != nil {
+			name = base.Attributes.Name
+		}
+		if isDemo(base, name) {
+			delete(titles, key)
+		}
+	}
+	return titles
 }
 
 // missingDLC are the games with missing DLC, respecting the ignore list.
@@ -715,6 +763,7 @@ func (web *Web) missingDLC() map[string]process.IncompleteTitle {
 			return map[string]process.IncompleteTitle{}
 		}
 		settingsObj := settings.ReadSettings(web.dataFolder)
-		return process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds))
+		missing := process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds))
+		return withoutDemos(missing, switchDB, settingsObj.HideDemoGames)
 	}).(map[string]process.IncompleteTitle)
 }

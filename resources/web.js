@@ -501,6 +501,95 @@ function initBulkActions() {
 	});
 }
 
+// selection of games in the library, for actions on several games at once
+function initLibraryBulk() {
+	const toolbar = document.querySelector('.library-bulk');
+	if (!toolbar) {
+		return;
+	}
+	const items = [...document.querySelectorAll('[data-library-item]')];
+	const count = toolbar.querySelector('[data-library-count]');
+	const collection = toolbar.querySelector('[data-library-collection]');
+	const selected = () => items.filter(item => item.checked).map(item => item.value);
+	const update = () => {
+		const ids = selected();
+		count.textContent = ids.length;
+		toolbar.hidden = ids.length === 0;
+		items.forEach(item => item.closest('.game-card')?.classList.toggle('is-selected', item.checked));
+	};
+	items.forEach(item => {
+		item.addEventListener('change', update);
+		// the card is a link: the checkbox must not open the game
+		item.addEventListener('click', e => e.stopPropagation());
+	});
+	toolbar.querySelector('[data-library-all]').addEventListener('click', () => {
+		items.forEach(item => item.checked = true);
+		update();
+	});
+	toolbar.querySelector('[data-library-none]').addEventListener('click', () => {
+		items.forEach(item => item.checked = false);
+		update();
+	});
+	toolbar.querySelectorAll('[data-library-action]').forEach(button => {
+		button.addEventListener('click', () => {
+			const action = button.dataset.libraryAction;
+			const params = new URLSearchParams();
+			selected().forEach(id => params.append('id', id));
+			let url = '/collections';
+			if (action === 'ignore') {
+				url = '/ignore';
+				params.append('kind', 'update');
+				params.append('ignored', 'true');
+			} else {
+				const name = collection.value.trim();
+				if (!name) {
+					collection.focus();
+					return;
+				}
+				params.append('name', name);
+				params.append('action', action);
+			}
+			button.disabled = true;
+			postForm(url, params).then(() => {
+				window.location.reload();
+			}).catch(error => {
+				button.disabled = false;
+				insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+			});
+		});
+	});
+	update();
+}
+
+// the collections of a game, on its page
+function initCollections() {
+	const form = document.querySelector('[data-collections]');
+	if (!form) {
+		return;
+	}
+	const id = form.dataset.collections;
+	const send = (name, add) => {
+		const params = new URLSearchParams({ id, name, action: add ? 'add' : 'remove' });
+		return postForm('/collections', params).catch(error => {
+			insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+			throw error;
+		});
+	};
+	form.querySelectorAll('[data-collection-toggle]').forEach(toggle => {
+		toggle.addEventListener('change', () => {
+			send(toggle.value, toggle.checked).then(() => window.location.reload(), () => toggle.checked = !toggle.checked);
+		});
+	});
+	form.addEventListener('submit', e => {
+		e.preventDefault();
+		const input = form.querySelector('[data-collection-new]');
+		const name = input.value.trim();
+		if (name) {
+			send(name, true).then(() => window.location.reload(), () => {});
+		}
+	});
+}
+
 // replace covers that cannot be loaded (e.g. the Nintendo servers are not reachable)
 document.addEventListener('error', e => {
 	const image = e.target;
@@ -836,7 +925,51 @@ function initViewToggle() {
 	}));
 }
 
+// The filters of each list are remembered by the browser: coming back to a list from another
+// page (the menu, a game page) shows it as it was left. On the list itself, removing the
+// filters shows everything.
+const FILTER_PAGES = ['/index.html', '/updates.html', '/dlc.html', '/missing.html'];
+
+function listPath(pathname) {
+	return pathname === '/' ? '/index.html' : pathname;
+}
+
+// restoreFilters returns true when the page is replaced by the remembered filters.
+function restoreFilters() {
+	const path = listPath(window.location.pathname);
+	if (!FILTER_PAGES.includes(path)) {
+		return false;
+	}
+	const key = 'slm-filters:' + path;
+	let from = '';
+	try {
+		const referrer = new URL(document.referrer);
+		if (referrer.origin === window.location.origin) {
+			from = listPath(referrer.pathname);
+		}
+	} catch (e) {
+		// no referrer
+	}
+	try {
+		const query = window.location.search;
+		if (!query && from !== path) {
+			const stored = localStorage.getItem(key);
+			if (stored) {
+				window.location.replace(path + stored);
+				return true;
+			}
+		}
+		localStorage.setItem(key, query);
+	} catch (e) {
+		// storage is not available: the lists start without filters
+	}
+	return false;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+	if (restoreFilters()) {
+		return;
+	}
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 	[...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
 
@@ -863,6 +996,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	initOrganize();
 	initIgnoreButtons();
+	initLibraryBulk();
+	initCollections();
 	initViewToggle();
 	initLiveTasks();
 	initCompress();
