@@ -61,6 +61,15 @@
 				<div class="dropdown filter-panel">
 					<button class="btn btn-sm rounded-pill dropdown-toggle {{if .Filter.SecondaryCount}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false"><span class="bi bi-sliders me-1" aria-hidden="true"></span>{{t "Filters"}}{{with .Filter.SecondaryCount}} <span class="badge text-bg-light ms-1">{{.}}</span>{{end}}</button>
 					<div class="dropdown-menu dropdown-menu-end filter-panel-menu">
+						<section class="filter-group">
+							<div class="form-check form-switch mb-0">
+								<a class="stretched-toggle" href="{{if $f.WithMissing}}{{filterUrl $f "missing" ""}}{{else}}{{filterUrl $f "missing" "1"}}{{end}}">
+									<input class="form-check-input" type="checkbox" role="switch" tabindex="-1" aria-hidden="true"{{if $f.WithMissing}} checked{{end}}>
+									<span class="form-check-label">{{t "Show the missing games too"}}</span>
+								</a>
+								<div class="form-text">{{t "Games of the eShop you do not have, greyed out with the others."}}</div>
+							</div>
+						</section>
 						{{- if or $fc.Collections $f.Collection}}
 						<section class="filter-group">
 							<h3 class="filter-group-title"><span class="bi bi-bookmark" aria-hidden="true"></span>{{t "Collections"}}</h3>
@@ -108,6 +117,7 @@
 							<h3 class="filter-group-title"><span class="bi bi-funnel" aria-hidden="true"></span>{{t "Other"}}</h3>
 							<div class="filter-choices">
 								<a class="filter-choice{{if not $f.Extra}} active{{end}}" href="{{filterUrl $f "extra" ""}}">{{t "No other filter"}}</a>
+								<a class="filter-choice{{if eq $f.Extra "favorites"}} active{{end}}" href="{{filterUrl $f "extra" "favorites"}}"><span class="bi bi-star-fill text-warning" aria-hidden="true"></span> {{t "Favorites only"}} <span class="filter-count">{{$fc.Favorites}}</span></a>
 								<a class="filter-choice{{if eq $f.Extra "recent"}} active{{end}}" href="{{filterUrl $f "extra" "recent"}}">{{t "Added in the last 30 days"}} <span class="filter-count">{{$fc.Recent}}</span></a>
 								<a class="filter-choice{{if eq $f.Extra "no_cover"}} active{{end}}" href="{{filterUrl $f "extra" "no_cover"}}">{{t "Without a cover"}} <span class="filter-count">{{$fc.NoCover}}</span></a>
 								<a class="filter-choice{{if eq $f.Extra "unknown"}} active{{end}}" href="{{filterUrl $f "extra" "unknown"}}" title="{{t "Games the titles database does not know"}}">{{t "Not recognized"}} <span class="filter-count">{{$fc.Unknown}}</span></a>
@@ -122,12 +132,14 @@
 				{{- if $f.Kind}}<a class="active-filter" href="{{filterUrl $f "kind" ""}}"><span class="bi bi-controller" aria-hidden="true"></span>{{if eq $f.Kind "demo"}}{{t "Demos only"}}{{else}}{{t "Games only"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Region}}<a class="active-filter" href="{{filterUrl $f "region" ""}}"><span class="fi fi-{{. | toLower}}" aria-hidden="true"></span>{{.}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Format}}<a class="active-filter" href="{{filterUrl $f "format" ""}}"><span class="bi bi-file-earmark" aria-hidden="true"></span>{{.}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
-				{{- if $f.Extra}}<a class="active-filter" href="{{filterUrl $f "extra" ""}}"><span class="bi bi-funnel" aria-hidden="true"></span>{{if eq $f.Extra "recent"}}{{t "Added in the last 30 days"}}{{else if eq $f.Extra "no_cover"}}{{t "Without a cover"}}{{else}}{{t "Not recognized"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
-				<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" ""}}">{{t "Clear filters"}}</a>
+				{{- if $f.WithMissing}}<a class="active-filter" href="{{filterUrl $f "missing" ""}}"><span class="bi bi-eye" aria-hidden="true"></span>{{t "With the missing games"}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				{{- if $f.Extra}}<a class="active-filter" href="{{filterUrl $f "extra" ""}}"><span class="bi bi-funnel" aria-hidden="true"></span>{{if eq $f.Extra "recent"}}{{t "Added in the last 30 days"}}{{else if eq $f.Extra "no_cover"}}{{t "Without a cover"}}{{else if eq $f.Extra "favorites"}}{{t "Favorites only"}}{{else}}{{t "Not recognized"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "missing" ""}}">{{t "Clear filters"}}</a>
 			</div>
 			{{- end}}
 			{{- end}}
 			{{- if gt (len .TitleItems) 0}}
+			{{- template "markLegend" (dict "Missing" .Filter.WithMissing "Favorites" true)}}
 			<div class="library-bulk admin-only d-flex flex-wrap align-items-center gap-2 mb-3" hidden>
 				<span class="fw-semibold me-1"><span data-library-count>0</span> {{t "selected"}}</span>
 				<button type="button" class="btn btn-sm btn-link px-1" data-library-all>{{t "Select all on this page"}}</button>

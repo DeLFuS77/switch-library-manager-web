@@ -34,6 +34,9 @@
 							{{- if and $t.Owned (gt $t.ArchiveFiles 1)}}
 							<a class="btn btn-primary rounded-pill" href="/api/titles/{{$t.Id}}/archive.zip"><span class="bi bi-file-earmark-zip me-2" aria-hidden="true"></span>{{t "Download all (%v files, %v)" $t.ArchiveFiles (formatSize $t.ArchiveSize)}}</a>
 							{{- end}}
+							{{- if $t.Owned}}
+							<button type="button" class="btn rounded-pill admin-only {{if .Favorite}}btn-warning{{else}}btn-glass{{end}}" data-fav="{{$t.Id}}" data-favorite="{{.Favorite}}" aria-pressed="{{.Favorite}}" title="{{t "Favorite: the games you like most"}}"><span class="bi {{if .Favorite}}bi-star-fill{{else}}bi-star{{end}} me-2" aria-hidden="true"></span>{{if .Favorite}}{{t "Favorite"}}{{else}}{{t "Add to favorites"}}{{end}}</button>
+							{{- end}}
 							{{- if not $t.Owned}}
 							<button type="button" class="btn rounded-pill admin-only {{if $t.Wished}}btn-danger{{else}}btn-glass{{end}}" data-wish="{{$t.Id}}" data-wished="{{$t.Wished}}" aria-pressed="{{$t.Wished}}"><span class="bi {{if $t.Wished}}bi-heart-fill{{else}}bi-heart{{end}} me-2" aria-hidden="true"></span>{{if $t.Wished}}{{t "On your wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}</button>
 							{{- end}}
@@ -182,6 +185,20 @@
 					</li>
 					{{- end}}
 				</ul>
+			</section>
+			{{- end}}
+			{{- with .Saga}}
+			<section class="mb-4" aria-labelledby="sagaTitle">
+				<h2 class="section-title" id="sagaTitle"><span class="bi bi-collection" aria-hidden="true"></span>{{t "From the same series"}}</h2>
+				<div class="saga-grid">
+					{{- range .}}
+					<a class="saga-item{{if .Missing}} is-missing{{end}}" href="/title/{{.Id}}.html">
+						<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
+						<span class="saga-name">{{.Name}}</span>
+						<span class="saga-state">{{if .Missing}}{{t "Not in your library"}}{{else}}<span class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></span>{{t "In your library"}}{{end}}{{if not .ReleaseDate.IsZero}} &middot; {{.ReleaseDate.Year}}{{end}}</span>
+					</a>
+					{{- end}}
+				</div>
 			</section>
 			{{- end}}
 {{- end}}

@@ -120,6 +120,10 @@ type Web struct {
 	historyOnce     sync.Once
 	coll            *collectionStore
 	collectionsOnce sync.Once
+	fav             *favoriteStore
+	favoritesOnce   sync.Once
+	// the history and the lists prepared after a scan (tests wait for them)
+	afterScanWork sync.WaitGroup
 	// the fingerprint of the folders the watcher asked to scan (see saveWatchFingerprint)
 	watchFingerprint atomic.Uint64
 	fallbackMutex  sync.Mutex
@@ -186,6 +190,9 @@ type TitleItem struct {
 	// library: the user's collections of the game, and the card can be selected
 	Collections []string
 	Selectable  bool
+	// library: the game is a favorite, or it is not in the library (shown with the others)
+	Favorite bool
+	Missing  bool
 	// computed once when a list is sorted (see sorted), for sorting and searching
 	sortKey   string
 	searchKey string
@@ -250,7 +257,10 @@ type LibraryFacets struct {
 	Demos   int
 	NoCover int
 	Unknown int
-	Recent  int
+	Recent    int
+	Favorites int
+	// games not in the library, shown with "missing=1"
+	Missing int
 	// the collections with their number of games, before the collection filter
 	Collections []CollectionCount
 	Regions []string
@@ -267,6 +277,10 @@ type LibraryPageData struct {
 }
 
 var funcMap = template.FuncMap {
+	// mul multiplies, e.g. megabytes into bytes for formatSize
+	"mul": func(a, b int) int64 {
+		return int64(a) * int64(b)
+	},
 	"add": func(a, b int) int {
 		return a + b
 	},
@@ -478,6 +492,7 @@ func (web *Web) Start() {
 	web.HandleUpdateGuide()
 	web.HandleWishlist()
 	web.HandleCollections()
+	web.HandleFavorites()
 	if !isDemoMode() {
 		web.StartScheduler()
 		web.StartFolderWatcher()

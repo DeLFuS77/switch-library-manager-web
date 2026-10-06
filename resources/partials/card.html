@@ -1,6 +1,6 @@
 {{- define "card"}}
 				{{- $type := .Type}}{{if or (eq $type "BASEGAME") (eq $type "BASE")}}{{$type = t "Game"}}{{else if eq $type "ADDONCONTENT"}}{{$type = "DLC"}}{{else if eq $type "UPDATE"}}{{$type = t "Update"}}{{end}}
-				<article class="card game-card h-100">
+				<article class="card game-card h-100{{if .Missing}} is-missing{{end}}">
 					<div class="game-cover">
 						{{- if .LatestUpdate}}<input class="form-check-input cover-select" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">{{else if .Selectable}}<input class="form-check-input cover-select admin-only" type="checkbox" data-library-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">{{end}}
 						{{- if and (not .Type) (not .LatestUpdate)}}<button type="button" class="wish-toggle admin-only{{if .Wished}} is-wished{{end}}" data-wish="{{.Id}}" data-wished="{{.Wished}}" aria-pressed="{{.Wished}}" title="{{if .Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if .Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>{{end}}
@@ -14,6 +14,7 @@
 						{{- end}}
 					</div>
 					<div class="game-body">
+						{{- if and .Selectable (not .LatestUpdate)}}<button type="button" class="fav-toggle admin-only{{if .Favorite}} is-favorite{{end}}" data-fav="{{.Id}}" data-favorite="{{.Favorite}}" aria-pressed="{{.Favorite}}" title="{{if .Favorite}}{{t "Remove from favorites"}}{{else}}{{t "Add to favorites"}}{{end}}"><span class="bi {{if .Favorite}}bi-star-fill{{else}}bi-star{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Favorite"}}</span></button>{{end}}
 						<h2 class="game-title"><a class="stretched-link" href="/title/{{.Id}}.html">{{.Name}}</a></h2>
 						{{- if .LatestUpdate}}
 						{{- /* Updates page */}}
@@ -47,6 +48,7 @@
 						{{- end}}
 						{{- else}}
 						{{- /* Missing games */}}
+						{{- if .Missing}}<div class="game-meta"><span class="chip chip-muted"><span class="bi bi-cart" aria-hidden="true"></span>{{t "Not in your library"}}</span></div>{{end}}
 						{{- if not .ReleaseDate.IsZero}}
 						<div class="game-meta game-footer"><span class="bi bi-calendar3 me-1" aria-hidden="true"></span>{{.ReleaseDate | formatTime}}</div>
 						{{- end}}

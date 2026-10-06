@@ -2392,3 +2392,154 @@ h3,
 		opacity: .7;
 	}
 }
+
+/* favorites: a star next to the name of the games of the library */
+.game-card .game-body {
+	position: relative;
+}
+
+.fav-toggle {
+	position: absolute;
+	top: .55rem;
+	right: .5rem;
+	z-index: 3;
+	padding: .15rem .3rem;
+	border: 0;
+	background: none;
+	color: var(--bs-secondary-color);
+	font-size: 1rem;
+	line-height: 1;
+	opacity: .55;
+	transition: opacity .15s ease, transform .15s ease, color .15s ease;
+
+	&:hover,
+	&:focus-visible {
+		opacity: 1;
+		transform: scale(1.15);
+		color: $warning;
+	}
+
+	&.is-favorite {
+		opacity: 1;
+		color: $warning;
+	}
+}
+
+.game-card:has(.fav-toggle) .game-title {
+	padding-right: 1.6rem;
+}
+
+/* games not in the library, shown with the others */
+.game-card.is-missing {
+	.game-cover img {
+		filter: grayscale(1) brightness(.6);
+		transition: filter .2s ease;
+	}
+
+	.game-body {
+		opacity: .7;
+	}
+
+	&:hover .game-cover img {
+		filter: grayscale(.3) brightness(.85);
+	}
+}
+
+/* what the star, the heart and the grey mean */
+.mark-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .35rem 1.1rem;
+	margin: 0 0 .9rem;
+	font-size: .8rem;
+	color: var(--bs-secondary-color);
+
+	> span {
+		display: inline-flex;
+		align-items: center;
+		gap: .35rem;
+	}
+}
+
+.mark-legend-missing {
+	display: inline-block;
+	width: .85rem;
+	height: .85rem;
+	border-radius: .2rem;
+	background: linear-gradient(135deg, #8a8a8a, #4a4a4a);
+}
+
+/* the switch of the filter panel is a link */
+.stretched-toggle {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	color: inherit;
+	text-decoration: none;
+
+	.form-check-input {
+		margin: 0;
+		pointer-events: none;
+	}
+}
+
+.filter-panel-menu .form-switch {
+	padding-left: 0;
+}
+
+/* the other games of the series of a game */
+.saga-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+	gap: .75rem;
+}
+
+.saga-item {
+	display: flex;
+	flex-direction: column;
+	gap: .3rem;
+	padding: .5rem;
+	border-radius: $border-radius-lg;
+	background: var(--slm-surface);
+	border: 1px solid var(--slm-border);
+	color: inherit;
+	text-decoration: none;
+	transition: border-color .15s ease, transform .15s ease;
+
+	img {
+		width: 100%;
+		aspect-ratio: 1;
+		object-fit: cover;
+		border-radius: $border-radius;
+	}
+
+	&:hover,
+	&:focus-visible {
+		border-color: var(--slm-chart-1);
+		transform: translateY(-2px);
+		color: inherit;
+	}
+
+	&.is-missing img {
+		filter: grayscale(1) brightness(.6);
+	}
+
+	&.is-missing .saga-name {
+		opacity: .75;
+	}
+}
+
+.saga-name {
+	font-size: .85rem;
+	font-weight: 600;
+	line-height: 1.25;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.saga-state {
+	font-size: .75rem;
+	color: var(--bs-secondary-color);
+}

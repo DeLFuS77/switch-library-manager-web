@@ -6,7 +6,9 @@ import "github.com/dtrunk90/switch-library-manager-web/db"
 // the lists the pages show, so opening a page for the first time is fast.
 func (web *Web) afterScan() {
 	web.startCoverDownloads()
+	web.afterScanWork.Add(1)
 	go func() {
+		defer web.afterScanWork.Done()
 		// first: the lists show the dates the games were added
 		web.recordHistory()
 		web.warmPages()

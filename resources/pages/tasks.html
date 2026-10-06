@@ -33,7 +33,7 @@
 						</div>
 						<div class="d-flex justify-content-between gap-3 small text-body-secondary">
 							<span class="text-truncate">{{t .Message}}</span>
-							{{- if ge $pct 0}}<span class="text-nowrap">{{.Current}} / {{.Total}} &middot; {{$pct}}%</span>{{end}}
+							{{- if ge $pct 0}}<span class="text-nowrap">{{if eq .Kind "verify"}}{{formatSize (mul .Current 1048576)}} / {{formatSize (mul .Total 1048576)}}{{else}}{{.Current}} / {{.Total}}{{end}} &middot; {{$pct}}%{{with .Speed}} &middot; {{.}} MB/s{{end}}{{with .Remaining}} &middot; {{t "%v left" .}}{{end}}</span>{{end}}
 						</div>
 					</article>
 					{{- end}}

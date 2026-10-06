@@ -129,6 +129,8 @@ type AppSettings struct {
 	ConsoleFirmware string `json:"console_firmware"`
 	// days between scheduled verifications of the files; 0 disables them
 	VerifyIntervalDays int `json:"verify_interval_days"`
+	// how many files a verification checks at the same time: low, normal (empty) or fast
+	VerifySpeed string `json:"verify_speed,omitempty"`
 	// files read at the same time while scanning; 0 picks a default
 	ScanWorkers       int                 `json:"scan_workers"`
 	SyncIntervalHours int                 `json:"sync_interval_hours"`

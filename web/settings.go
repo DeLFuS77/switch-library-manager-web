@@ -1,6 +1,7 @@
 package web
 
 import (
+	"runtime"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"os"
 	"regexp"
@@ -16,6 +17,8 @@ type SettingsPageData struct {
 	Languages     []string
 	// games of the library without a cover
 	MissingCovers int
+	// the verification speeds, with the files checked at once on this computer
+	VerifySpeeds []VerifySpeedOption
 }
 
 type SettingsForm struct {
@@ -30,6 +33,7 @@ type SettingsForm struct {
 	WatchIntervalMinutes int    `in:"form=watch_interval_minutes"`
 	BackgroundHours      string `in:"form=background_hours"`
 	VerifyIntervalDays   int    `in:"form=verify_interval_days"`
+	VerifySpeed          string `in:"form=verify_speed"`
 	ConsoleFirmware      string `in:"form=console_firmware"`
 	CheckForUpdates      bool   `in:"form=check_for_updates"`
 	AutoCompress         string `in:"form=auto_compress"`
@@ -99,6 +103,7 @@ func (web *Web) HandleSettings() {
 			GlobalPageData: web.globalPageData("settings"),
 			Settings: current,
 			MissingCovers: web.missingCovers(),
+			VerifySpeeds: verifySpeedOptions(),
 		}
 	}, func(value any, lang string) ErrorResponse {
 		settingsForm := value.(*SettingsForm)
@@ -191,6 +196,13 @@ func (web *Web) HandleSettings() {
 			})
 		}
 
+		if _, ok := allowedVerifySpeeds[settingsForm.VerifySpeed]; !ok {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
+				Field: "verify_speed",
+				Message: translate(lang, "Unknown option"),
+			})
+		}
+
 		if _, ok := allowedVerifyIntervals[settingsForm.VerifyIntervalDays]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
 				Field: "verify_interval_days",
@@ -223,6 +235,7 @@ func (web *Web) HandleSettings() {
 			appSettings.WatchIntervalMinutes = settingsForm.WatchIntervalMinutes
 			appSettings.BackgroundHours = settingsForm.BackgroundHours
 			appSettings.VerifyIntervalDays = settingsForm.VerifyIntervalDays
+			appSettings.VerifySpeed = settingsForm.VerifySpeed
 			appSettings.ConsoleFirmware = strings.TrimSpace(settingsForm.ConsoleFirmware)
 			appSettings.CheckForUpdates = settingsForm.CheckForUpdates
 			appSettings.AutoCompress = settingsForm.AutoCompress
@@ -253,4 +266,20 @@ func (web *Web) HandleSettings() {
 			Message: message,
 		}
 	}, web.embedFS, fsPatterns...)
+}
+
+// VerifySpeedOption is a verification speed and how many files it checks at once here.
+type VerifySpeedOption struct {
+	Value   string
+	Label   string
+	Workers int
+}
+
+func verifySpeedOptions() []VerifySpeedOption {
+	cores := runtime.NumCPU()
+	return []VerifySpeedOption{
+		{Value: VERIFY_SPEED_LOW, Label: "Gentle", Workers: verifyWorkers(VERIFY_SPEED_LOW, cores)},
+		{Value: "", Label: "Normal", Workers: verifyWorkers(VERIFY_SPEED_NORMAL, cores)},
+		{Value: VERIFY_SPEED_FAST, Label: "Fast", Workers: verifyWorkers(VERIFY_SPEED_FAST, cores)},
+	}
 }

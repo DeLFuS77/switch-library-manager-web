@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -144,15 +146,56 @@ func verifyLibraryFile(ctx context.Context, path string, progress func(int64, in
 	}
 }
 
+// files checked again by a scheduled verification once their last check is this old
+// (see recheckAfter); new and changed files are always checked
+const (
+	verifyRecheckChanged = time.Duration(0)
+	verifyRecheckAll     = time.Duration(-1)
+	// the results are saved this often, so a stopped verification goes on where it was
+	verifySaveInterval = 2 * time.Minute
+)
+
+// verify speeds: how many files are checked at the same time
+const (
+	VERIFY_SPEED_LOW    = "low"
+	VERIFY_SPEED_NORMAL = "normal"
+	VERIFY_SPEED_FAST   = "fast"
+)
+
+var allowedVerifySpeeds = map[string]struct{}{"": {}, VERIFY_SPEED_LOW: {}, VERIFY_SPEED_NORMAL: {}, VERIFY_SPEED_FAST: {}}
+
+// verifyWorkers returns how many files are checked at the same time. Compressed files are
+// decompressed to be checked, which keeps one processor core busy per file; the files of a
+// NAS are spread over several disks, so reading a few at once costs little.
+func verifyWorkers(speed string, cores int) int {
+	workers := 1
+	switch speed {
+	case VERIFY_SPEED_LOW:
+		return 1
+	case VERIFY_SPEED_FAST:
+		workers = min(cores-1, 8)
+	default:
+		workers = min(cores/2, 4)
+	}
+	return max(workers, 1)
+}
+
 // startVerification checks the files of the library in the background; with onlyChanged
 // only the files that are new or changed since they were last checked. It returns false
 // if a compression or verification is already running.
 func (web *Web) startVerification(onlyChanged bool, trigger string) bool {
-	return web.startVerificationOf(nil, onlyChanged, trigger)
+	recheck := verifyRecheckAll
+	if onlyChanged {
+		recheck = verifyRecheckChanged
+	}
+	return web.startVerificationOf(nil, recheck, trigger)
 }
 
-// startVerificationOf checks the given files, or every file of the library when paths is nil.
-func (web *Web) startVerificationOf(paths []string, onlyChanged bool, trigger string) bool {
+// startVerificationOf checks the given files, or every file of the library when paths is
+// nil: all of them (verifyRecheckAll), the new and changed ones (verifyRecheckChanged), or
+// also the ones last checked longer ago than recheck. The files never checked go first, then
+// the ones checked the longest ago.
+func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigger string) bool {
 	web.compressor.mutex.Lock()
 	if web.compressor.cancel != nil {
 		web.compressor.mutex.Unlock()
@@ -173,8 +216,9 @@ func (web *Web) startVerificationOf(paths []string, onlyChanged bool, trigger st
 		}()
 
 		type pending struct {
-			path string
-			info os.FileInfo
+			path    string
+			info    os.FileInfo
+			checked time.Time
 		}
 		files := []pending{}
 		var total int64
@@ -183,49 +227,120 @@ func (web *Web) startVerificationOf(paths []string, onlyChanged bool, trigger st
 				paths = append(paths, candidate.Path)
 			}
 		}
+		now := time.Now()
 		for _, path := range paths {
 			info, err := os.Stat(path)
 			if err != nil || info.IsDir() {
 				continue
 			}
-			if _, ok := store.current(path, info); ok && onlyChanged {
+			record, ok := store.current(path, info)
+			if ok && recheck >= 0 && (recheck == 0 || now.Sub(record.Checked) < recheck) {
 				continue
 			}
-			files = append(files, pending{path, info})
+			files = append(files, pending{path, info, record.Checked})
 			total += info.Size()
 		}
+		sort.SliceStable(files, func(i, j int) bool { return files[i].checked.Before(files[j].checked) })
 
-		var done int64
-		checked, damaged := 0, 0
-		var failure *TaskNote
-		for i, file := range files {
-			if ctx.Err() != nil {
-				failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
-				break
+		workers := min(verifyWorkers(settings.ReadSettings(web.dataFolder).VerifySpeed, runtime.NumCPU()), max(len(files), 1))
+		var (
+			mutex      sync.Mutex
+			completed  int64
+			partial    = make([]int64, workers)
+			started    int
+			checked    int
+			damaged    int
+			lastReport time.Time
+			lastSave   = time.Now()
+			failure    *TaskNote
+		)
+		report := func(name string, force bool) {
+			// called with the mutex held
+			if !force && time.Since(lastReport) < 500*time.Millisecond {
+				return
 			}
-			name := filepath.Base(file.path)
-			base := done
-			err := verifyLibraryFile(ctx, file.path, func(fileDone int64, fileTotal int64) {
-				web.taskLog().Progress(taskId, int((base+fileDone)>>20), int(total>>20), fmt.Sprintf("%s (%d/%d)", name, i+1, len(files)))
-			})
-			done += file.info.Size()
-			if errors.Is(err, context.Canceled) {
-				failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
-				break
+			lastReport = time.Now()
+			done := completed
+			for _, value := range partial {
+				done += value
 			}
-			record := verifyRecord{Size: file.info.Size(), ModTime: file.info.ModTime().UnixNano(), OK: err == nil, Checked: time.Now()}
-			if err != nil {
-				damaged++
-				record.Reason = "damaged file: " + err.Error()
-				web.taskLog().Warn(taskId, NOTE_VERIFY_DAMAGED, name+": "+err.Error())
-			}
-			store.set(file.path, record)
-			checked++
-			web.taskLog().SetVerifyResult(taskId, checked, damaged)
+			web.taskLog().Progress(taskId, int(done>>20), int(total>>20), fmt.Sprintf("%s (%d/%d)", name, started, len(files)))
 		}
-		store.mutex.Lock()
-		store.LastRun = time.Now()
-		store.mutex.Unlock()
+		// a scheduled verification stops when the background hours end and goes on the next time
+		stopped := func() bool {
+			return ctx.Err() != nil || (trigger == TRIGGER_SCHEDULE && !web.backgroundAllowed())
+		}
+
+		next := 0
+		var wait sync.WaitGroup
+		for worker := 0; worker < workers; worker++ {
+			wait.Add(1)
+			go func(worker int) {
+				defer wait.Done()
+				for {
+					mutex.Lock()
+					if next >= len(files) || stopped() {
+						mutex.Unlock()
+						return
+					}
+					file := files[next]
+					next++
+					started++
+					name := filepath.Base(file.path)
+					report(name, true)
+					mutex.Unlock()
+
+					err := verifyLibraryFile(ctx, file.path, func(fileDone int64, fileTotal int64) {
+						mutex.Lock()
+						partial[worker] = fileDone
+						report(name, false)
+						mutex.Unlock()
+					})
+
+					mutex.Lock()
+					partial[worker] = 0
+					completed += file.info.Size()
+					if errors.Is(err, context.Canceled) {
+						mutex.Unlock()
+						return
+					}
+					record := verifyRecord{Size: file.info.Size(), ModTime: file.info.ModTime().UnixNano(), OK: err == nil, Checked: time.Now()}
+					if err != nil {
+						damaged++
+						record.Reason = "damaged file: " + err.Error()
+						web.taskLog().Warn(taskId, NOTE_VERIFY_DAMAGED, name+": "+err.Error())
+					}
+					store.set(file.path, record)
+					checked++
+					web.taskLog().SetVerifyResult(taskId, checked, damaged)
+					saveNow := time.Since(lastSave) >= verifySaveInterval
+					if saveNow {
+						lastSave = time.Now()
+					}
+					mutex.Unlock()
+					if saveNow {
+						if err := store.save(); err != nil {
+							web.sugarLogger.Warnf("Failed to save the verification results: %v", err)
+						}
+					}
+				}
+			}(worker)
+		}
+		wait.Wait()
+
+		finished := checked == len(files)
+		switch {
+		case ctx.Err() != nil:
+			failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
+		case !finished && trigger == TRIGGER_SCHEDULE:
+			// the next scheduled run goes on with the files not checked yet
+			web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_HOURS, "")
+		}
+		if finished {
+			store.mutex.Lock()
+			store.LastRun = time.Now()
+			store.mutex.Unlock()
+		}
 		if err := store.save(); err != nil {
 			web.sugarLogger.Warnf("Failed to save the verification results: %v", err)
 		}
@@ -252,7 +367,11 @@ func (web *Web) HandleVerify() {
 			// only the files the Space page needs checked before deleting
 			paths = web.spaceVerifyPaths()
 		}
-		if !web.startVerificationOf(paths, r.FormValue("all") != "true", TRIGGER_MANUAL) {
+		recheck := verifyRecheckChanged
+		if r.FormValue("all") == "true" {
+			recheck = verifyRecheckAll
+		}
+		if !web.startVerificationOf(paths, recheck, TRIGGER_MANUAL) {
 			writeGlobalError(w, http.StatusConflict, lang, "A compression is already running.")
 			return
 		}

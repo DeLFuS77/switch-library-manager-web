@@ -25,6 +25,8 @@ type TitleItemFilter struct {
 	Extra  string `in:"form=extra"`
 	// library only: one of the user's collections
 	Collection string `in:"form=collection"`
+	// library only: "1" shows the games that are not in the library too, greyed out
+	WithMissing string `in:"form=missing"`
 	// the keyword in lower case, set by MatchesItem
 	keyword string
 }
@@ -42,7 +44,8 @@ const (
 	KIND_DEMO      = "demo"
 	EXTRA_NO_COVER = "no_cover"
 	EXTRA_UNKNOWN  = "unknown"
-	EXTRA_RECENT   = "recent"
+	EXTRA_RECENT    = "recent"
+	EXTRA_FAVORITES = "favorites"
 )
 
 // games found in the folders in the last days count as recently added
@@ -50,10 +53,10 @@ const recentDays = 30
 
 var (
 	allowedPerPage = map[int]struct{}{12: {}, 24: {}, 48: {}, 96: {}}
-	allowedSortBy  = map[string]struct{}{"added": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}}
+	allowedSortBy  = map[string]struct{}{"added": {}, "favorite": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}}
 	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}, STATUS_WANTED: {}}
 	allowedKind    = map[string]struct{}{"": {}, KIND_GAME: {}, KIND_DEMO: {}}
-	allowedExtra   = map[string]struct{}{"": {}, EXTRA_NO_COVER: {}, EXTRA_UNKNOWN: {}, EXTRA_RECENT: {}}
+	allowedExtra   = map[string]struct{}{"": {}, EXTRA_NO_COVER: {}, EXTRA_UNKNOWN: {}, EXTRA_RECENT: {}, EXTRA_FAVORITES: {}}
 	regionPattern  = regexp.MustCompile(`^[A-Z]{2,4}$`)
 )
 
@@ -87,6 +90,9 @@ func (f *TitleItemFilter) Normalize() {
 		f.Extra = ""
 	}
 	f.Collection = cleanCollectionName(f.Collection)
+	if f.WithMissing != "1" {
+		f.WithMissing = ""
+	}
 	f.Region = strings.ToUpper(strings.TrimSpace(f.Region))
 	if !regionPattern.MatchString(f.Region) {
 		f.Region = ""
@@ -103,7 +109,7 @@ func (f *TitleItemFilter) Active() bool {
 // collection, kind, region, format and the others.
 func (f *TitleItemFilter) SecondaryCount() int {
 	count := 0
-	for _, value := range []string{f.Collection, f.Kind, f.Region, f.Format, f.Extra} {
+	for _, value := range []string{f.Collection, f.Kind, f.Region, f.Format, f.Extra, f.WithMissing} {
 		if value != "" {
 			count++
 		}
@@ -122,6 +128,7 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("region", strings.ToLower(f.Region))
 	values.Set("extra", f.Extra)
 	values.Set("collection", f.Collection)
+	values.Set("missing", f.WithMissing)
 	values.Set("per_page", strconv.Itoa(f.PerPage))
 	values.Set("sort_by", f.SortBy)
 	values.Set("sort_order", f.SortOrder)
@@ -179,7 +186,18 @@ type TitleItemByName             []TitleItem
 type TitleItemByRegion           []TitleItem
 type TitleItemByReleaseDate      []TitleItem
 type TitleItemByType             []TitleItem
+type TitleItemByFavorite         []TitleItem
 type TitleItemBySize             []TitleItem
+
+func (a TitleItemByFavorite) Len() int      { return len(a) }
+func (a TitleItemByFavorite) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a TitleItemByFavorite) Less(i, j int) bool {
+	if a[i].Favorite != a[j].Favorite {
+		return a[i].Favorite
+	}
+	return lessName(a[i], a[j])
+}
+
 type TitleItemByAdded            []TitleItem
 
 func (a TitleItemBySize) Len() int      { return len(a) }
@@ -305,6 +323,8 @@ func sortItems(filter *TitleItemFilter, items []TitleItem) error {
 			data = TitleItemBySize(items)
 		case "added":
 			data = TitleItemByAdded(items)
+		case "favorite":
+			data = TitleItemByFavorite(items)
 		default:
 			return errors.New("Unknown value for parameter sort_by")
 	}
