@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.15.0
+
+### Faster starts, less memory
+
+- The titles database (a JSON file of over 100 MB) is processed once into `titles.db` in the data folder. Later
+  starts load it in about 0.1 seconds instead of 2, and descriptions and screenshots stay on disk until a game
+  page shows them: the titles take about a third of the memory. The copy is made again when the titles change.
+
+### Folder watching for big libraries
+
+- The folder watcher remembers the folders of the library and only asks each folder for its modification time;
+  only folders that changed are read again. Recently changed folders are still read file by file, so games being
+  copied are not scanned half written. Empty folders no longer cause a scan.
+- New setting "Check the folders every" (2, 10, 30 or 60 minutes): a longer interval lets the disks of a NAS sleep.
+
 ## 1.14.0
 
 Made for big libraries (tens of thousands of files).
