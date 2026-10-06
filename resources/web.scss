@@ -2595,3 +2595,33 @@ h3,
 	background: var(--slm-accent-soft);
 	border-radius: $border-radius;
 }
+
+/* the SD card planner */
+.sd-summary {
+	position: sticky;
+	top: 4.5rem;
+	z-index: 5;
+}
+
+.sd-cover {
+	width: 2.75rem;
+	height: 2.75rem;
+	object-fit: cover;
+	border-radius: $border-radius;
+	flex-shrink: 0;
+}
+
+.sd-game .item-meta .chip {
+	font-size: .72rem;
+}
+
+.sd-options .btn-check:checked + .filter-choice {
+	border-color: var(--slm-chart-1);
+	background: var(--slm-accent-soft);
+	font-weight: 600;
+}
+
+/* a game of the SD card planner: box, cover, name and reasons, size */
+.item-row.sd-game {
+	grid-template-columns: auto auto minmax(0, 1fr) auto;
+}

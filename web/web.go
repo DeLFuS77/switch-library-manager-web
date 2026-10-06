@@ -373,6 +373,17 @@ var funcMap = template.FuncMap {
 		return a - b
 	},
 	"toLower": strings.ToLower,
+	// percentOf64 is part of total in percent, for bars of sizes
+	"percentOf64": func(part int64, total int64) int64 {
+		if total <= 0 {
+			return 0
+		}
+		return min(part*100/total, 100)
+	},
+	// sdTerabytes shows a size in GB as terabytes: 1500 is 1.5
+	"sdTerabytes": func(gigabytes int) string {
+		return strings.TrimSuffix(strings.TrimSuffix(fmt.Sprintf("%.1f", float64(gigabytes)/1000), "0"), ".")
+	},
 	// percentOf is part of total in percent, for bars
 	"percentOf": func(part int, total int) int {
 		if total <= 0 {
@@ -507,6 +518,7 @@ func (web *Web) Start() {
 	web.HandleVerify()
 	web.HandleBackup()
 	web.HandleSpace()
+	web.HandleSdCard()
 	web.HandleCovers()
 	web.HandleUpdateGuide()
 	web.HandleWishlist()

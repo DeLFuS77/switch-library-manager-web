@@ -1,0 +1,131 @@
+{{define "title"}}{{t "SD card planner"}}{{end}}
+{{define "main"}}
+			{{- $p := .Plan}}
+			{{- $o := $p.Options}}
+			{{- template "pageHeader" (dict "Title" (t "SD card planner") "Count" -1 "Subtitle" (t "Choose the size of your card and what you like: the app proposes the games that fit. Change the list as you want, then download it or copy the games to the card."))}}
+			<form class="surface mb-4 sd-options" method="get" action="/sd.html">
+				<input type="hidden" name="planned" value="1">
+				<div class="row g-3">
+					<div class="col-sm-6 col-lg-3">
+						<label class="form-label fw-semibold" for="sdCapacity">{{t "Size of the card"}}</label>
+						<select class="form-select" id="sdCapacity" name="capacity">
+							{{- range .Capacities}}
+							<option value="{{.}}"{{if eq . $o.Capacity}} selected{{end}}>{{if ge . 1000}}{{sdTerabytes .}} TB{{else}}{{.}} GB{{end}}</option>
+							{{- end}}
+						</select>
+					</div>
+					<div class="col-sm-6 col-lg-3">
+						<label class="form-label fw-semibold" for="sdReserve">{{t "Space to keep free"}}</label>
+						<div class="input-group">
+							<input class="form-control" type="number" id="sdReserve" name="reserve" min="0" max="200" value="{{$o.ReserveGB}}">
+							<span class="input-group-text">GB</span>
+						</div>
+						<div class="form-text">{{t "For saves, screenshots and new games."}}</div>
+					</div>
+					<div class="col-sm-6 col-lg-3">
+						<label class="form-label fw-semibold" for="sdCollection">{{t "Collection"}}</label>
+						<select class="form-select" id="sdCollection" name="collection">
+							<option value="">{{t "Any collection"}}</option>
+							{{- range $p.Collections}}
+							<option value="{{.}}"{{if eq . $o.Collection}} selected{{end}}>{{.}}</option>
+							{{- end}}
+						</select>
+					</div>
+					<div class="col-sm-6 col-lg-3">
+						<span class="form-label fw-semibold d-block">{{t "What matters most"}}</span>
+						<div class="form-check">
+							<input class="form-check-input" type="radio" name="strategy" id="sdLiked" value="liked"{{if not $o.MoreGames}} checked{{end}}>
+							<label class="form-check-label" for="sdLiked">{{t "What I like most"}}</label>
+						</div>
+						<div class="form-check">
+							<input class="form-check-input" type="radio" name="strategy" id="sdMore" value="more"{{if $o.MoreGames}} checked{{end}}>
+							<label class="form-check-label" for="sdMore">{{t "As many games as fit"}}</label>
+						</div>
+					</div>
+					{{- if $p.Genres}}
+					<div class="col-12">
+						<span class="form-label fw-semibold d-block">{{t "Genres you like"}}{{if $o.AutoGenres}} <span class="fw-normal small text-body-secondary">&middot; {{t "taken from your favorites"}}</span>{{end}}</span>
+						<div class="filter-choices">
+							{{- range $p.Genres}}
+							<input class="btn-check" type="checkbox" name="genre" id="sdGenre{{.Name}}" value="{{.Name}}"{{if inList .Name $o.Genres}} checked{{end}}>
+							<label class="filter-choice" for="sdGenre{{.Name}}">{{t .Name}} <span class="filter-count">{{.Count}}</span></label>
+							{{- end}}
+						</div>
+					</div>
+					{{- end}}
+					<div class="col-12 d-flex flex-wrap align-items-center gap-3">
+						<div class="form-check form-switch mb-0">
+							<input class="form-check-input" type="checkbox" role="switch" id="sdFavorites" name="favorites" value="1"{{if $o.Favorites}} checked{{end}}>
+							<label class="form-check-label" for="sdFavorites"><span class="bi bi-star-fill text-warning me-1" aria-hidden="true"></span>{{t "Favorites first"}}</label>
+						</div>
+						<div class="form-check form-switch mb-0">
+							<input class="form-check-input" type="checkbox" role="switch" id="sdMultiplayer" name="multiplayer" value="1"{{if $o.Multiplayer}} checked{{end}}>
+							<label class="form-check-label" for="sdMultiplayer">{{t "Games for several players"}}</label>
+						</div>
+						<div class="form-check form-switch mb-0">
+							<input class="form-check-input" type="checkbox" role="switch" id="sdDlc" name="dlc" value="1"{{if $o.Dlc}} checked{{end}}>
+							<label class="form-check-label" for="sdDlc">{{t "With their DLC"}}</label>
+						</div>
+						<button class="btn btn-primary rounded-pill ms-auto" type="submit"><span class="bi bi-magic me-1" aria-hidden="true"></span>{{t "Propose a list"}}</button>
+					</div>
+				</div>
+			</form>
+
+			<div class="sd-summary surface mb-3" data-sd-usable="{{$p.Usable}}" data-sd-template="{{t "%v of %v"}}">
+				<div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
+					<span class="fw-semibold"><span data-sd-count>{{len $p.Selected}}</span> {{t "games on the card"}}</span>
+					<span class="text-body-secondary" data-sd-total>{{t "%v of %v" (formatSize $p.Total) (formatSize $p.Usable)}}</span>
+				</div>
+				<div class="progress" role="progressbar" aria-label="{{t "Space of the card"}}">
+					<div class="progress-bar" data-sd-bar style="width: {{percentOf64 $p.Total $p.Usable}}%"></div>
+				</div>
+				<div class="small text-danger mt-1" data-sd-over hidden>{{t "The chosen games do not fit on the card."}}</div>
+			</div>
+
+			{{- if or $p.Selected $p.Others}}
+			<section class="mb-4" aria-labelledby="sdChosen">
+				<h2 class="section-title" id="sdChosen"><span class="bi bi-sd-card" aria-hidden="true"></span>{{t "Proposed games"}}</h2>
+				<ul class="item-list sd-list">
+					{{- range $p.Selected}}{{template "sdGame" .}}{{end}}
+				</ul>
+			</section>
+			{{- with $p.Others}}
+			<section class="mb-4" aria-labelledby="sdOthers">
+				<h2 class="section-title" id="sdOthers"><span class="bi bi-plus-circle" aria-hidden="true"></span>{{t "Other games of your library"}}</h2>
+				<ul class="item-list sd-list">
+					{{- range .}}{{template "sdGame" .}}{{end}}
+				</ul>
+			</section>
+			{{- end}}
+
+			<section class="surface mb-4 admin-only" aria-labelledby="sdCopyTitle">
+				<h2 class="section-title" id="sdCopyTitle"><span class="bi bi-box-arrow-down" aria-hidden="true"></span>{{t "Put them on the card"}}</h2>
+				<form class="row g-2 align-items-end" data-sd-copy data-sd-dlc="{{if $o.Dlc}}1{{end}}">
+					<div class="col-md-8">
+						<label class="form-label fw-semibold" for="sdTarget">{{t "Folder of the card or USB drive"}}</label>
+						<input class="form-control font-monospace" id="sdTarget" name="target" placeholder="E:\ &middot; /mnt/disks/SD" required>
+						<div class="form-text">{{t "A folder of the server where the app runs. A folder per game is made there; files already copied are skipped and nothing is deleted."}}</div>
+					</div>
+					<div class="col-md-4 d-flex gap-2">
+						<button class="btn btn-primary rounded-pill flex-grow-1" type="submit"><span class="bi bi-copy me-1" aria-hidden="true"></span>{{t "Copy"}}</button>
+						<button class="btn btn-outline-secondary rounded-pill" type="button" data-sd-download title="{{t "Download the list"}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download the list"}}</span></button>
+					</div>
+				</form>
+			</section>
+			{{- else}}
+			{{- template "emptyState" (dict "Icon" "bi-sd-card" "Tone" "" "Title" (t "No games yet") "Text" (t "Add your games folders in Settings to plan a card.") "ActionHref" "/settings.html#library" "ActionLabel" (t "Open Settings") "ActionIcon" "bi-gear")}}
+			{{- end}}
+{{- end}}
+{{define "sdGame"}}
+					<li class="item-row sd-game">
+						<input class="form-check-input flex-shrink-0" type="checkbox" data-sd-game value="{{.Id}}" data-size="{{.Size}}" aria-label="{{.Name}}"{{if .Selected}} checked{{end}}>
+						<img class="sd-cover" src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
+						<div class="item-main">
+							<div class="item-name"><a class="link-body-emphasis text-decoration-none" href="/title/{{.Id}}.html">{{.Name}}</a></div>
+							<div class="item-meta">
+								{{- range .Reasons}}<span class="chip chip-muted">{{if eq .Key "Favorite"}}<span class="bi bi-star-fill text-warning" aria-hidden="true"></span>{{t "Favorite"}}{{else if eq .Key "Genre"}}{{t .Value}}{{else if eq .Key "Collection"}}<span class="bi bi-bookmark" aria-hidden="true"></span>{{.Value}}{{else}}{{t .Key}}{{end}}</span>{{end}}
+							</div>
+						</div>
+						<span class="text-body-secondary small text-nowrap">{{formatSize .Size}}</span>
+					</li>
+{{- end}}
