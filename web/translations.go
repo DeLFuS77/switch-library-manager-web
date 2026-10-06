@@ -5,6 +5,9 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Filters": "Filtros",
+		"Format": "Formato",
+		"Other": "Otros",
 		"%v files": "%v archivos",
 		"originals deleted after the check": "originales borrados tras la comprobación",
 		"NSZ deleted after the check": "NSZ borrados tras la comprobación",
@@ -37,7 +40,6 @@ var translations = map[string]map[string]string{
 		"Games only": "Solo juegos",
 		"Demos only": "Solo demos",
 		"All regions": "Todas las regiones",
-		"More filters": "Más filtros",
 		"No other filter": "Sin otro filtro",
 		"Without a cover": "Sin carátula",
 		"Not recognized": "No reconocidos",

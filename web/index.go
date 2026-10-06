@@ -130,7 +130,17 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 			continue
 		}
 
-		// the kinds and extras are counted whatever they are set to
+		inCollection := filter.Collection == ""
+		for _, name := range item.Collections {
+			collectionCounts[name]++
+			if strings.EqualFold(name, filter.Collection) {
+				inCollection = true
+			}
+		}
+		if !inCollection {
+			continue
+		}
+		// the kinds and extras are counted whatever they are set to, within the collection
 		if item.Demo {
 			facets.Demos++
 		} else {
@@ -141,16 +151,6 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		}
 		if !item.Known {
 			facets.Unknown++
-		}
-		inCollection := filter.Collection == ""
-		for _, name := range item.Collections {
-			collectionCounts[name]++
-			if strings.EqualFold(name, filter.Collection) {
-				inCollection = true
-			}
-		}
-		if !inCollection {
-			continue
 		}
 		recent := item.Added.After(recentSince)
 		if recent {
