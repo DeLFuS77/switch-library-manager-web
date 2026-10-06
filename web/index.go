@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 )
 
 func getType(gameFile *db.SwitchGameFiles) string {
@@ -106,6 +107,7 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	facets := LibraryFacets{Formats: []string{}, Regions: []string{}, DemosHidden: settings.ReadSettings(web.dataFolder).HideDemoGames}
 	formats := map[string]struct{}{}
 	regions := map[string]struct{}{}
+	recentSince := time.Now().AddDate(0, 0, -recentDays)
 
 	for index := range all {
 		item := &all[index]
@@ -139,10 +141,14 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		if !item.Known {
 			facets.Unknown++
 		}
+		recent := item.Added.After(recentSince)
+		if recent {
+			facets.Recent++
+		}
 		if (filter.Kind == KIND_GAME && item.Demo) || (filter.Kind == KIND_DEMO && !item.Demo) || (filter.Kind == "" && facets.DemosHidden && item.Demo) {
 			continue
 		}
-		if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) {
+		if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) || (filter.Extra == EXTRA_RECENT && !recent) {
 			continue
 		}
 
@@ -206,6 +212,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 	settingsObj := settings.ReadSettings(web.dataFolder)
 	ignoredUpdates := toLowerSet(settingsObj.IgnoreUpdateTitleIds)
 	ignoredDlc := toLowerSet(settingsObj.IgnoreDLCTitleIds)
+	added := web.history().addedTimes()
 
 	for k, v := range localDB.TitlesMap {
 		if !v.BaseExist || v.File.Metadata == nil {
@@ -241,6 +248,14 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			Version:      version,
 			Known:        title != nil,
 			Demo:         isDemo(title, originalName),
+			Size:         v.File.ExtendedInfo.Size,
+		}
+		item.Added = added["game:"+item.Id]
+		for _, update := range v.Updates {
+			item.Size += update.ExtendedInfo.Size
+		}
+		for _, dlc := range v.Dlc {
+			item.Size += dlc.ExtendedInfo.Size
 		}
 
 		if required := installedRequirement(v); web.firmwareTooNew(required) {

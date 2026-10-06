@@ -3,6 +3,8 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Date added": "Hinzugefügt am",
+		"Added in the last 30 days": "In den letzten 30 Tagen hinzugefügt",
 		"Notify games added to my folders": "Neue Spiele in meinen Ordnern melden",
 		"New in your library: %v": "Neu in deiner Bibliothek: %v",
 		"New DLC in your library: %v": "Neuer DLC in deiner Bibliothek: %v",

@@ -23,6 +23,10 @@
 					{{- if or (eq .Page "index") (eq .Page "updates")}}
 					<option value="type"{{if eq .Filter.SortBy "type"}} selected{{end}}>{{t "Type"}}</option>
 					{{- end}}
+					{{- if eq .Page "index"}}
+					<option value="size"{{if eq .Filter.SortBy "size"}} selected{{end}}>{{t "Size"}}</option>
+					<option value="added"{{if eq .Filter.SortBy "added"}} selected{{end}}>{{t "Date added"}}</option>
+					{{- end}}
 					<option value="id"{{if eq .Filter.SortBy "id"}} selected{{end}}>{{t "ID"}}</option>
 				</select>
 				<div class="btn-group" role="group" aria-label="{{t "Sort order"}}">

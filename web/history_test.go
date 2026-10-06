@@ -100,3 +100,37 @@ func TestNewGamesAreNotified(t *testing.T) {
 		t.Fatal("nothing is sent when the option is off")
 	}
 }
+
+func TestLibrarySortsBySizeAndDateAdded(t *testing.T) {
+	web := newTestWeb(t)
+	switchDB, localDB := testDatabases(t)
+	web.state.set(switchDB, localDB)
+	contents := libraryContents(switchDB, localDB)
+	old := time.Now().AddDate(0, 0, -90)
+	web.history().record(contents, old)
+	// the unknown game left and came back recently
+	delete(contents, "game:0100000000030000")
+	web.history().record(contents, old)
+	contents = libraryContents(switchDB, localDB)
+	web.history().record(contents, time.Now())
+	web.invalidateDerived()
+
+	filter := defaultFilter()
+	filter.SortBy, filter.SortOrder = "added", "desc"
+	items, _, facets := web.getLibraryWithFacets(filter, "en")
+	if len(items) != 2 || items[0].Id != "0100000000030000" || facets.Recent != 1 {
+		t.Fatalf("newest first, one recent game: %+v %+v", items, facets)
+	}
+
+	filter.SortBy = "size"
+	items, _, _ = web.getLibraryWithFacets(filter, "en")
+	if items[0].Size < items[1].Size || items[0].Id != "0100000000010000" {
+		t.Fatalf("the game with an update and a DLC is the biggest: %+v", items)
+	}
+
+	filter = defaultFilter()
+	filter.Extra = EXTRA_RECENT
+	if items, _, _ := web.getLibraryWithFacets(filter, "en"); len(items) != 1 || items[0].Id != "0100000000030000" {
+		t.Fatalf("recently added: %+v", items)
+	}
+}

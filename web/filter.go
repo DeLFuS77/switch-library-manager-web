@@ -37,14 +37,18 @@ const (
 	KIND_DEMO      = "demo"
 	EXTRA_NO_COVER = "no_cover"
 	EXTRA_UNKNOWN  = "unknown"
+	EXTRA_RECENT   = "recent"
 )
+
+// games found in the folders in the last days count as recently added
+const recentDays = 30
 
 var (
 	allowedPerPage = map[int]struct{}{12: {}, 24: {}, 48: {}, 96: {}}
-	allowedSortBy  = map[string]struct{}{"id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "type": {}}
+	allowedSortBy  = map[string]struct{}{"added": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}}
 	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}, STATUS_WANTED: {}}
 	allowedKind    = map[string]struct{}{"": {}, KIND_GAME: {}, KIND_DEMO: {}}
-	allowedExtra   = map[string]struct{}{"": {}, EXTRA_NO_COVER: {}, EXTRA_UNKNOWN: {}}
+	allowedExtra   = map[string]struct{}{"": {}, EXTRA_NO_COVER: {}, EXTRA_UNKNOWN: {}, EXTRA_RECENT: {}}
 	regionPattern  = regexp.MustCompile(`^[A-Z]{2,4}$`)
 )
 
@@ -141,6 +145,26 @@ type TitleItemByName             []TitleItem
 type TitleItemByRegion           []TitleItem
 type TitleItemByReleaseDate      []TitleItem
 type TitleItemByType             []TitleItem
+type TitleItemBySize             []TitleItem
+type TitleItemByAdded            []TitleItem
+
+func (a TitleItemBySize) Len() int      { return len(a) }
+func (a TitleItemBySize) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a TitleItemBySize) Less(i, j int) bool {
+	if a[i].Size == a[j].Size {
+		return lessName(a[i], a[j])
+	}
+	return a[i].Size < a[j].Size
+}
+
+func (a TitleItemByAdded) Len() int      { return len(a) }
+func (a TitleItemByAdded) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a TitleItemByAdded) Less(i, j int) bool {
+	if a[i].Added.Equal(a[j].Added) {
+		return lessName(a[i], a[j])
+	}
+	return a[i].Added.Before(a[j].Added)
+}
 
 func (a TitleItemById) Len() int           { return len(a) }
 func (a TitleItemById) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
@@ -230,6 +254,10 @@ func sortItems(filter *TitleItemFilter, items []TitleItem) error {
 			data = TitleItemByReleaseDate(items)
 		case "type":
 			data = TitleItemByType(items)
+		case "size":
+			data = TitleItemBySize(items)
+		case "added":
+			data = TitleItemByAdded(items)
 		default:
 			return errors.New("Unknown value for parameter sort_by")
 	}

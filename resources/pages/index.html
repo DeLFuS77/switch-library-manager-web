@@ -92,9 +92,10 @@
 				{{- end}}
 				{{- if or .Facets.Games .Facets.Demos .Filter.Extra}}
 				<div class="dropdown">
-					<button class="btn btn-sm dropdown-toggle rounded-pill {{if .Filter.Extra}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-funnel me-1" aria-hidden="true"></span>{{if eq .Filter.Extra "no_cover"}}{{t "Without a cover"}}{{else if eq .Filter.Extra "unknown"}}{{t "Not recognized"}}{{else}}{{t "More filters"}}{{end}}</button>
+					<button class="btn btn-sm dropdown-toggle rounded-pill {{if .Filter.Extra}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-funnel me-1" aria-hidden="true"></span>{{if eq .Filter.Extra "no_cover"}}{{t "Without a cover"}}{{else if eq .Filter.Extra "unknown"}}{{t "Not recognized"}}{{else if eq .Filter.Extra "recent"}}{{t "Added in the last 30 days"}}{{else}}{{t "More filters"}}{{end}}</button>
 					<ul class="dropdown-menu dropdown-menu-end">
 						<li><a class="dropdown-item{{if not .Filter.Extra}} active{{end}}" href="{{filterUrl .Filter "extra" ""}}">{{t "No other filter"}}</a></li>
+						<li><a class="dropdown-item d-flex justify-content-between gap-3{{if eq .Filter.Extra "recent"}} active{{end}}" href="{{filterUrl .Filter "extra" "recent"}}">{{t "Added in the last 30 days"}}<span class="text-body-secondary">{{.Facets.Recent}}</span></a></li>
 						<li><a class="dropdown-item d-flex justify-content-between gap-3{{if eq .Filter.Extra "no_cover"}} active{{end}}" href="{{filterUrl .Filter "extra" "no_cover"}}">{{t "Without a cover"}}<span class="text-body-secondary">{{.Facets.NoCover}}</span></a></li>
 						<li><a class="dropdown-item d-flex justify-content-between gap-3{{if eq .Filter.Extra "unknown"}} active{{end}}" href="{{filterUrl .Filter "extra" "unknown"}}" title="{{t "Games the titles database does not know"}}">{{t "Not recognized"}}<span class="text-body-secondary">{{.Facets.Unknown}}</span></a></li>
 					</ul>

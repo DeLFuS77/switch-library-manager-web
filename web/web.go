@@ -176,6 +176,9 @@ type TitleItem struct {
 	Wished bool
 	// the game is a demo (library)
 	Demo bool
+	// library: the size of the game with its updates and DLC, and when it was found in the folders
+	Size  int64
+	Added time.Time
 }
 
 // DlcPercent is the share of the DLC of a game in the library.
@@ -237,6 +240,7 @@ type LibraryFacets struct {
 	Demos   int
 	NoCover int
 	Unknown int
+	Recent  int
 	Regions []string
 	// the settings hide the demos unless the kind filter asks for them
 	DemosHidden bool

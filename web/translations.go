@@ -5,6 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Date added": "Fecha en que se añadió",
+		"Added in the last 30 days": "Añadidos en los últimos 30 días",
 		"Notify games added to my folders": "Avisar de juegos añadidos a mis carpetas",
 		"New in your library: %v": "Nuevo en tu biblioteca: %v",
 		"New DLC in your library: %v": "DLC nuevo en tu biblioteca: %v",
