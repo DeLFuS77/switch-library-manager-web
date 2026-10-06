@@ -134,7 +134,7 @@ func (c *collectionStore) set(ids []string, name string, add bool) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(c.path, data, 0644)
+	return writeFileAtomic(c.path, data)
 }
 
 func (web *Web) HandleCollections() {

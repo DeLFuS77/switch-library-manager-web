@@ -100,7 +100,7 @@ func (w *wishlist) removeOwned(owned func(id string) bool) {
 
 func (w *wishlist) saveLocked() {
 	if data, err := json.MarshalIndent(w.games, "", " "); err == nil {
-		os.WriteFile(w.path, data, 0644)
+		writeFileAtomic(w.path, data)
 	}
 }
 

@@ -238,7 +238,7 @@ func (h *libraryHistory) record(contents map[string]libraryContent, now time.Tim
 	if err != nil {
 		return events, first, err
 	}
-	return events, first, os.WriteFile(h.path, bytes, 0644)
+	return events, first, writeFileAtomic(h.path, bytes)
 }
 
 // added returns when a content was found in the folders, or the zero time.

@@ -54,12 +54,21 @@ type activityLog struct {
 func (web *Web) activities() *activityLog {
 	web.activityOnce.Do(func() {
 		log := &activityLog{path: filepath.Join(web.dataFolder, ACTIVITY_FILENAME)}
-		if data, err := os.ReadFile(log.path); err == nil {
-			json.Unmarshal(data, &log.entries)
-		}
+		log.reload()
 		web.activity = log
 	})
 	return web.activity
+}
+
+// reload reads the log again, also after a backup was restored.
+func (l *activityLog) reload() {
+	entries := []Activity{}
+	if data, err := os.ReadFile(l.path); err == nil {
+		json.Unmarshal(data, &entries)
+	}
+	l.mutex.Lock()
+	l.entries = entries
+	l.mutex.Unlock()
 }
 
 // add records an action, newest first.
@@ -71,7 +80,7 @@ func (l *activityLog) add(entry Activity) {
 		l.entries = l.entries[:maxActivities]
 	}
 	if data, err := json.MarshalIndent(l.entries, "", " "); err == nil {
-		os.WriteFile(l.path, data, 0644)
+		writeFileAtomic(l.path, data)
 	}
 }
 

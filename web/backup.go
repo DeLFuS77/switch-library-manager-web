@@ -157,6 +157,9 @@ func (web *Web) restoreBackup(data []byte) error {
 	if _, ok := files[VERIFY_FILENAME]; ok {
 		web.verifications().reload()
 	}
+	if _, ok := files[ACTIVITY_FILENAME]; ok {
+		web.activities().reload()
+	}
 	if _, ok := files[COLLECTIONS_FILENAME]; ok {
 		web.collections().reload()
 	}
