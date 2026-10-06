@@ -43,6 +43,12 @@ type TitleDetail struct {
 	Name        string
 	Publisher   string
 	Region      string
+	// from the titles database
+	Genres        []string
+	Players       int
+	Languages     []string
+	AgeRating     int
+	RatingContent []string
 	Description string
 	ReleaseDate time.Time
 	ImageUrl    string
@@ -133,6 +139,11 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 	if title != nil {
 		detail.Id = strings.ToUpper(title.Attributes.Id)
 		detail.Publisher = title.Attributes.Publisher
+		detail.Genres = title.Attributes.Genres
+		detail.Players = title.Attributes.Players
+		detail.Languages = title.Attributes.Languages
+		detail.AgeRating = title.Attributes.AgeRating
+		detail.RatingContent = title.Attributes.RatingContent
 		detail.Region = title.Attributes.Region
 		details := web.titleDetails(title, lang)
 		detail.Description = strings.TrimSpace(details.Description)

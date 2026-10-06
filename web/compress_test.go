@@ -246,3 +246,38 @@ func TestDecompressFromThePage(t *testing.T) {
 		t.Fatal("the NSZ must be deleted after the check")
 	}
 }
+
+func TestConvertGameCardToNsp(t *testing.T) {
+	web, path, _ := compressWebWithLibrary(t)
+	folder := filepath.Dir(path)
+	xci := filepath.Join(folder, "Card [0100000000020000][v0].xci")
+	data, err := testnsp.WriteXci(xci)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, library := web.state.get()
+	library.TitlesMap["0100000000020"] = &db.SwitchGameFiles{
+		BaseExist: true,
+		File:      db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: filepath.Base(xci), BaseFolder: folder, Size: int64(len(data))}, Metadata: &switchfs.ContentMetaAttributes{TitleId: "0100000000020000"}},
+		Updates:   map[int]db.SwitchFileInfo{},
+		Dlc:       map[string]db.SwitchFileInfo{},
+	}
+	web.invalidateDerived()
+
+	if response := postForm(web, "/convert/start", url.Values{"path": {path}}); response.Code != http.StatusBadRequest {
+		t.Fatalf("only game cards are converted: %d", response.Code)
+	}
+	if response := postForm(web, "/convert/start", url.Values{"path": {xci}, "delete_originals": {"true"}}); response.Code != http.StatusAccepted {
+		t.Fatalf("convert: %d %s", response.Code, response.Body.String())
+	}
+	task := waitForTask(t, web, TASK_CONVERT)
+	if task.Status != TASK_SUCCESS || task.Files != 1 {
+		t.Fatalf("one card converted: %+v", task)
+	}
+	if _, err := os.Stat(strings.TrimSuffix(xci, ".xci") + ".nsp"); err != nil {
+		t.Fatal("the NSP must exist")
+	}
+	if _, err := os.Stat(xci); !os.IsNotExist(err) {
+		t.Fatal("the checked card is deleted when asked")
+	}
+}

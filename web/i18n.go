@@ -19,7 +19,7 @@ import (
 const DEFAULT_LANGUAGE = "en"
 
 // supportedLanguages lists the interface languages, the first one is the default.
-var supportedLanguages = []string{"en", "es", "fr", "de", "it", "pt"}
+var supportedLanguages = []string{"en", "es", "fr", "de", "it", "pt", "nl", "ru", "ja", "ko", "zh"}
 
 var languageNames = map[string]string{
 	"en": "English",
@@ -28,6 +28,11 @@ var languageNames = map[string]string{
 	"de": "Deutsch",
 	"it": "Italiano",
 	"pt": "Português",
+	"nl": "Nederlands",
+	"ru": "Русский",
+	"ja": "日本語",
+	"ko": "한국어",
+	"zh": "简体中文",
 }
 
 func translate(lang string, text string) string {
@@ -157,12 +162,24 @@ var monthAbbreviations = map[string][12]string{
 	"de": {"Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sept.", "Okt.", "Nov.", "Dez."},
 	"it": {"gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"},
 	"pt": {"jan.", "fev.", "mar.", "abr.", "mai.", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."},
+	"nl": {"jan.", "feb.", "mrt.", "apr.", "mei", "jun.", "jul.", "aug.", "sep.", "okt.", "nov.", "dec."},
+	"ru": {"янв.", "февр.", "мар.", "апр.", "мая", "июн.", "июл.", "авг.", "сент.", "окт.", "нояб.", "дек."},
+}
+
+// languages that write dates as year, month and day with their own signs
+var dateSigns = map[string][3]string{
+	"ja": {"年", "月", "日"},
+	"zh": {"年", "月", "日"},
+	"ko": {"년 ", "월 ", "일"},
 }
 
 // formatDate formats a date for the interface language: "Oct 5, 2026" / "5 oct 2026".
 func formatDate(lang string, value time.Time) string {
 	if value.IsZero() {
 		return ""
+	}
+	if signs, ok := dateSigns[lang]; ok {
+		return fmt.Sprintf("%d%s%d%s%d%s", value.Year(), signs[0], value.Month(), signs[1], value.Day(), signs[2])
 	}
 	if months, ok := monthAbbreviations[lang]; ok {
 		if lang == "de" {

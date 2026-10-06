@@ -27,8 +27,12 @@ type TitleItemFilter struct {
 	Collection string `in:"form=collection"`
 	// library only: "1" shows the games that are not in the library too, greyed out
 	WithMissing string `in:"form=missing"`
-	// the keyword in lower case, set by MatchesItem
-	keyword string
+	// library only: a genre, the players ("1", "2" or "4") and a language of the games
+	Genre        string `in:"form=genre"`
+	Players      string `in:"form=players"`
+	GameLanguage string `in:"form=languages"`
+	// the keyword prepared for searching, set by MatchesItem
+	search *searchQuery
 }
 
 // library status filters
@@ -93,6 +97,16 @@ func (f *TitleItemFilter) Normalize() {
 	if f.WithMissing != "1" {
 		f.WithMissing = ""
 	}
+	if !knownGenreSet[f.Genre] {
+		f.Genre = ""
+	}
+	if f.Players != "1" && f.Players != "2" && f.Players != "4" {
+		f.Players = ""
+	}
+	f.GameLanguage = strings.ToLower(strings.TrimSpace(f.GameLanguage))
+	if _, ok := gameLanguageNames[f.GameLanguage]; !ok {
+		f.GameLanguage = ""
+	}
 	f.Region = strings.ToUpper(strings.TrimSpace(f.Region))
 	if !regionPattern.MatchString(f.Region) {
 		f.Region = ""
@@ -109,7 +123,7 @@ func (f *TitleItemFilter) Active() bool {
 // collection, kind, region, format and the others.
 func (f *TitleItemFilter) SecondaryCount() int {
 	count := 0
-	for _, value := range []string{f.Collection, f.Kind, f.Region, f.Format, f.Extra, f.WithMissing} {
+	for _, value := range []string{f.Collection, f.Kind, f.Region, f.Format, f.Extra, f.WithMissing, f.Genre, f.Players, f.GameLanguage} {
 		if value != "" {
 			count++
 		}
@@ -129,6 +143,9 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("extra", f.Extra)
 	values.Set("collection", f.Collection)
 	values.Set("missing", f.WithMissing)
+	values.Set("genre", f.Genre)
+	values.Set("players", f.Players)
+	values.Set("languages", f.GameLanguage)
 	values.Set("per_page", strconv.Itoa(f.PerPage))
 	values.Set("sort_by", f.SortBy)
 	values.Set("sort_order", f.SortOrder)
@@ -156,10 +173,10 @@ func (f *TitleItemFilter) MatchesItem(item *TitleItem) bool {
 	if item.searchKey == "" {
 		return f.Matches(item.Id, item.Name, item.OriginalName)
 	}
-	if f.keyword == "" {
-		f.keyword = strings.ToLower(f.Keyword)
+	if f.search == nil {
+		f.search = newSearchQuery(f.Keyword)
 	}
-	return strings.Contains(item.searchKey, f.keyword)
+	return f.search.matches(item.searchKey, item.searchWords)
 }
 
 // Matches reports whether the title ID or one of the names contains the keyword (case insensitive).

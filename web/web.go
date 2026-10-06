@@ -193,9 +193,14 @@ type TitleItem struct {
 	// library: the game is a favorite, or it is not in the library (shown with the others)
 	Favorite bool
 	Missing  bool
+	// from the titles database: genres, number of players and language codes
+	Genres    []string
+	Players   int
+	Languages []string
 	// computed once when a list is sorted (see sorted), for sorting and searching
-	sortKey   string
-	searchKey string
+	sortKey     string
+	searchKey   string
+	searchWords []string
 }
 
 // DlcPercent is the share of the DLC of a game in the library.
@@ -261,6 +266,12 @@ type LibraryFacets struct {
 	Favorites int
 	// games not in the library, shown with "missing=1"
 	Missing int
+	// genres and languages of the games, the most frequent first, and the games by players
+	Genres      []NamedCount
+	Languages   []NamedCount
+	SinglePlayer int
+	TwoPlayers   int
+	FourPlayers  int
 	// the collections with their number of games, before the collection filter
 	Collections []CollectionCount
 	Regions []string
@@ -363,6 +374,26 @@ var funcMap = template.FuncMap {
 		return a - b
 	},
 	"toLower": strings.ToLower,
+	// percentOf64 is part of total in percent, for bars of sizes
+	"percentOf64": func(part int64, total int64) int64 {
+		if total <= 0 {
+			return 0
+		}
+		return min(part*100/total, 100)
+	},
+	// sdTerabytes shows a size in GB as terabytes: 1500 is 1.5
+	"sdTerabytes": func(gigabytes int) string {
+		return strings.TrimSuffix(strings.TrimSuffix(fmt.Sprintf("%.1f", float64(gigabytes)/1000), "0"), ".")
+	},
+	// percentOf is part of total in percent, for bars
+	"percentOf": func(part int, total int) int {
+		if total <= 0 {
+			return 0
+		}
+		return part * 100 / total
+	},
+	// the English name of a language of a game, for t
+	"gameLanguage": gameLanguageName,
 	// inList reports whether a list of strings contains a value
 	"inList": func(value string, list []string) bool {
 		for _, item := range list {
@@ -488,6 +519,7 @@ func (web *Web) Start() {
 	web.HandleVerify()
 	web.HandleBackup()
 	web.HandleSpace()
+	web.HandleSdCard()
 	web.HandleCovers()
 	web.HandleUpdateGuide()
 	web.HandleWishlist()

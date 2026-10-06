@@ -128,3 +128,15 @@ func BenchmarkMissingGamesRebuild(b *testing.B) {
 		web.getMissingGames(defaultFilter(), "en")
 	}
 }
+
+// a search with a typo compares the words of every game
+func BenchmarkMissingGamesTypoSearch(b *testing.B) {
+	web := benchWeb(b)
+	filter := defaultFilter()
+	filter.Keyword = "gaem wxyz"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		filter.search = nil
+		web.getMissingGames(filter, "en")
+	}
+}

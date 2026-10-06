@@ -91,6 +91,39 @@
 							</div>
 						</section>
 						{{- end}}
+						{{- if or $fc.Genres $f.Genre}}
+						<section class="filter-group">
+							<h3 class="filter-group-title"><span class="bi bi-tags" aria-hidden="true"></span>{{t "Genre"}}</h3>
+							<div class="filter-choices">
+								<a class="filter-choice{{if not $f.Genre}} active{{end}}" href="{{filterUrl $f "genre" ""}}">{{t "All genres"}}</a>
+								{{- range $fc.Genres}}
+								<a class="filter-choice{{if eq $f.Genre .Name}} active{{end}}" href="{{filterUrl $f "genre" .Name}}">{{t .Name}} <span class="filter-count">{{.Count}}</span></a>
+								{{- end}}
+							</div>
+						</section>
+						{{- end}}
+						{{- if or $fc.SinglePlayer $fc.TwoPlayers $f.Players}}
+						<section class="filter-group">
+							<h3 class="filter-group-title"><span class="bi bi-people" aria-hidden="true"></span>{{t "Players"}}</h3>
+							<div class="filter-choices">
+								<a class="filter-choice{{if not $f.Players}} active{{end}}" href="{{filterUrl $f "players" ""}}">{{t "Any number"}}</a>
+								<a class="filter-choice{{if eq $f.Players "1"}} active{{end}}" href="{{filterUrl $f "players" "1"}}">{{t "1 player"}} <span class="filter-count">{{$fc.SinglePlayer}}</span></a>
+								<a class="filter-choice{{if eq $f.Players "2"}} active{{end}}" href="{{filterUrl $f "players" "2"}}">{{t "2 or more"}} <span class="filter-count">{{$fc.TwoPlayers}}</span></a>
+								<a class="filter-choice{{if eq $f.Players "4"}} active{{end}}" href="{{filterUrl $f "players" "4"}}">{{t "4 or more"}} <span class="filter-count">{{$fc.FourPlayers}}</span></a>
+							</div>
+						</section>
+						{{- end}}
+						{{- if or $fc.Languages $f.GameLanguage}}
+						<section class="filter-group">
+							<h3 class="filter-group-title"><span class="bi bi-translate" aria-hidden="true"></span>{{t "Language of the game"}}</h3>
+							<div class="filter-choices">
+								<a class="filter-choice{{if not $f.GameLanguage}} active{{end}}" href="{{filterUrl $f "languages" ""}}">{{t "Any language"}}</a>
+								{{- range $fc.Languages}}
+								<a class="filter-choice{{if eq $f.GameLanguage .Name}} active{{end}}" href="{{filterUrl $f "languages" .Name}}">{{t (gameLanguage .Name)}} <span class="filter-count">{{.Count}}</span></a>
+								{{- end}}
+							</div>
+						</section>
+						{{- end}}
 						{{- if or (gt (len $fc.Regions) 1) $f.Region}}
 						<section class="filter-group">
 							<h3 class="filter-group-title"><span class="bi bi-globe2" aria-hidden="true"></span>{{t "Region"}}</h3>
@@ -132,9 +165,12 @@
 				{{- if $f.Kind}}<a class="active-filter" href="{{filterUrl $f "kind" ""}}"><span class="bi bi-controller" aria-hidden="true"></span>{{if eq $f.Kind "demo"}}{{t "Demos only"}}{{else}}{{t "Games only"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Region}}<a class="active-filter" href="{{filterUrl $f "region" ""}}"><span class="fi fi-{{. | toLower}}" aria-hidden="true"></span>{{.}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Format}}<a class="active-filter" href="{{filterUrl $f "format" ""}}"><span class="bi bi-file-earmark" aria-hidden="true"></span>{{.}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				{{- with $f.Genre}}<a class="active-filter" href="{{filterUrl $f "genre" ""}}"><span class="bi bi-tags" aria-hidden="true"></span>{{t .}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				{{- with $f.Players}}<a class="active-filter" href="{{filterUrl $f "players" ""}}"><span class="bi bi-people" aria-hidden="true"></span>{{if eq . "1"}}{{t "1 player"}}{{else if eq . "2"}}{{t "2 or more"}}{{else}}{{t "4 or more"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				{{- with $f.GameLanguage}}<a class="active-filter" href="{{filterUrl $f "languages" ""}}"><span class="bi bi-translate" aria-hidden="true"></span>{{t (gameLanguage .)}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- if $f.WithMissing}}<a class="active-filter" href="{{filterUrl $f "missing" ""}}"><span class="bi bi-eye" aria-hidden="true"></span>{{t "With the missing games"}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- if $f.Extra}}<a class="active-filter" href="{{filterUrl $f "extra" ""}}"><span class="bi bi-funnel" aria-hidden="true"></span>{{if eq $f.Extra "recent"}}{{t "Added in the last 30 days"}}{{else if eq $f.Extra "no_cover"}}{{t "Without a cover"}}{{else if eq $f.Extra "favorites"}}{{t "Favorites only"}}{{else}}{{t "Not recognized"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
-				<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "missing" ""}}">{{t "Clear filters"}}</a>
+				<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "missing" "" "genre" "" "players" "" "languages" ""}}">{{t "Clear filters"}}</a>
 			</div>
 			{{- end}}
 			{{- end}}

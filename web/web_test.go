@@ -1273,3 +1273,36 @@ func TestNamesSortWithoutLeadingSigns(t *testing.T) {
 		t.Fatalf("quotes and signs are not sorted first: %v", got)
 	}
 }
+
+func TestLibraryGenrePlayersAndLanguageFilters(t *testing.T) {
+	web := newTestWeb(t)
+	switchDB, localDB := testDatabases(t)
+	known := switchDB.TitlesMap["0100000000010"]
+	known.Attributes.Genres = []string{"Action", "RPG"}
+	known.Attributes.Players = 4
+	known.Attributes.Languages = []string{"en", "es"}
+	known.Attributes.Publisher = "Nintendo"
+	web.state.set(switchDB, localDB)
+
+	_, _, facets := web.getLibraryWithFacets(defaultFilter(), "en")
+	if len(facets.Genres) != 2 || facets.FourPlayers != 1 || facets.TwoPlayers != 1 || len(facets.Languages) != 2 {
+		t.Fatalf("unexpected facets: %+v", facets)
+	}
+	for _, filter := range []*TitleItemFilter{{Genre: "RPG"}, {Players: "4"}, {GameLanguage: "ES"}} {
+		filter.PerPage, filter.SortBy, filter.SortOrder, filter.Page = 24, "name", "asc", 1
+		filter.Normalize()
+		if items, _, _ := web.getLibraryWithFacets(filter, "en"); len(items) != 1 || items[0].Name != "Known Game" {
+			t.Fatalf("%+v: %+v", filter, items)
+		}
+	}
+	filter := &TitleItemFilter{Genre: "Nope", Players: "3", GameLanguage: "xx"}
+	filter.Normalize()
+	if filter.Genre != "" || filter.Players != "" || filter.GameLanguage != "" {
+		t.Fatalf("unknown values are dropped: %+v", filter)
+	}
+
+	stats := web.buildStatistics("en")
+	if len(stats.ByGenre) != 2 || stats.ByPublisher[0].Name != "Nintendo" || len(stats.ByYear) != 1 || stats.ByYear[0].Name != "2017" {
+		t.Fatalf("statistics by genre, publisher and year: %+v %+v %+v", stats.ByGenre, stats.ByPublisher, stats.ByYear)
+	}
+}

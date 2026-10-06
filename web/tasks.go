@@ -17,6 +17,7 @@ const (
 	TASK_COMPRESS   = "compress"
 	TASK_DECOMPRESS = "decompress"
 	TASK_VERIFY     = "verify"
+	TASK_CONVERT    = "convert"
 	// background work after a scan
 	TASK_COVERS     = "covers"
 	TASK_THUMBNAILS = "thumbnails"
@@ -54,7 +55,7 @@ const (
 	NOTE_PAUSED_FOR_HOURS  = "Paused outside the background hours; it continues when they begin."
 )
 
-var taskNoteTexts = []string{NOTE_INTERRUPTED, NOTE_TITLES_DOWNLOAD, NOTE_TITLES_SAVED_COPY, NOTE_SCAN_FAILED, NOTE_NOTIFY_FAILED, NOTE_ORGANIZE_FAILED, NOTE_PAUSED_FOR_SCAN, NOTE_PAUSED_FOR_HOURS}
+var taskNoteTexts = []string{NOTE_SD_COPY_FAILED, NOTE_INTERRUPTED, NOTE_TITLES_DOWNLOAD, NOTE_TITLES_SAVED_COPY, NOTE_SCAN_FAILED, NOTE_NOTIFY_FAILED, NOTE_ORGANIZE_FAILED, NOTE_PAUSED_FOR_SCAN, NOTE_PAUSED_FOR_HOURS}
 
 const (
 	TASKS_FILENAME = "tasks.json"
@@ -113,7 +114,7 @@ func (t Task) Speed() int {
 
 func (t Task) speedAt(now time.Time) int {
 	elapsed := now.Sub(t.Started).Seconds()
-	if t.Kind != TASK_VERIFY || t.Current <= 0 || elapsed < 10 {
+	if (t.Kind != TASK_VERIFY && t.Kind != TASK_COPY) || t.Current <= 0 || elapsed < 10 {
 		return 0
 	}
 	return int(float64(t.Current) / elapsed)

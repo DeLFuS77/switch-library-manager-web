@@ -691,6 +691,70 @@ function initCollections() {
 	});
 }
 
+// the SD card planner: totals of the chosen games, download of the list and copy
+function initSdPlanner() {
+	const summary = document.querySelector('[data-sd-usable]');
+	if (!summary) {
+		return;
+	}
+	const usable = Number(summary.dataset.sdUsable);
+	const games = [...document.querySelectorAll('[data-sd-game]')];
+	const chosen = () => games.filter(game => game.checked);
+	const update = () => {
+		const total = chosen().reduce((sum, game) => sum + Number(game.dataset.size), 0);
+		summary.querySelector('[data-sd-count]').textContent = chosen().length;
+		summary.querySelector('[data-sd-total]').textContent = summary.dataset.sdTemplate.replace('%v', formatSize(total)).replace('%v', formatSize(usable));
+		const bar = summary.querySelector('[data-sd-bar]');
+		bar.style.width = Math.min(100, usable > 0 ? total * 100 / usable : 100) + '%';
+		bar.classList.toggle('bg-danger', total > usable);
+		summary.querySelector('[data-sd-over]').hidden = total <= usable;
+	};
+	games.forEach(game => game.addEventListener('change', update));
+	update();
+
+	const form = document.querySelector('[data-sd-copy]');
+	if (!form) {
+		return;
+	}
+	const params = () => {
+		const values = new URLSearchParams();
+		chosen().forEach(game => values.append('id', game.value));
+		if (form.dataset.sdDlc) {
+			values.append('dlc', '1');
+		}
+		return values;
+	};
+	form.querySelector('[data-sd-download]').addEventListener('click', () => {
+		// a form post, so the browser downloads the file
+		const download = document.createElement('form');
+		download.method = 'post';
+		download.action = '/sd/list.txt';
+		params().forEach((value, key) => {
+			const input = document.createElement('input');
+			input.type = 'hidden';
+			input.name = key;
+			input.value = value;
+			download.appendChild(input);
+		});
+		document.body.appendChild(download);
+		download.submit();
+		download.remove();
+	});
+	form.addEventListener('submit', e => {
+		e.preventDefault();
+		const values = params();
+		values.append('target', form.elements.target.value);
+		const button = form.querySelector('[type=submit]');
+		button.disabled = true;
+		postForm('/sd/copy', values).then(() => {
+			window.location.href = '/tasks.html';
+		}).catch(error => {
+			button.disabled = false;
+			insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+		});
+	});
+}
+
 // replace covers that cannot be loaded (e.g. the Nintendo servers are not reachable)
 document.addEventListener('error', e => {
 	const image = e.target;
@@ -818,6 +882,7 @@ function initCompress() {
 
 	bindFileForm(document.getElementById('compressForm'), '/compress/start');
 	bindFileForm(document.getElementById('decompressForm'), '/decompress/start');
+	bindFileForm(document.getElementById('convertForm'), '/convert/start');
 	bindFileForm(document.getElementById('spaceForm'), '/space/clean');
 }
 
@@ -1121,6 +1186,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initIgnoreButtons();
 	initLibraryBulk();
 	initCollections();
+	initSdPlanner();
 	initViewToggle();
 	initLiveTasks();
 	initCompress();

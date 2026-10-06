@@ -55,6 +55,8 @@ type CompressPageData struct {
 	RestSize  int64
 	// NSZ files that can be decompressed; the list is loaded when the section is opened
 	CompressedCount int
+	// XCI and XCZ files that can be converted to NSP and NSZ
+	CardCount int
 	// NSP and XCI files that already have a compressed copy (listed on the Space page)
 	AlreadyCompressed int
 	TotalSize         int64
@@ -102,6 +104,58 @@ func (web *Web) uncompressedCandidates() []CompressCandidate {
 }
 
 // decompressCandidates lists the NSZ files of the library, biggest first.
+// convertCandidates are the game cards (XCI, XCZ) of the library.
+func (web *Web) convertCandidates() []CompressCandidate {
+	return web.derived("convertCandidates", func() any { return web.libraryFiles(".xci", ".xcz") }).([]CompressCandidate)
+}
+
+// startConversion turns game cards into NSP (or NSZ) files, each one checked before the
+// original is deleted, if asked.
+func (web *Web) startConversion(paths []string, deleteOriginals bool) bool {
+	// every file is copied, then the result is checked
+	return web.runFileTask(TASK_CONVERT, paths, 2, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		return 0, web.convertFile(ctx, path, deleteOriginals, report)
+	})
+}
+
+func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal bool, report func(step int64) func(int64, int64)) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	target := switchfs.ConvertedPath(path)
+	if _, err := os.Stat(target); err == nil {
+		return errCompressExists
+	}
+	if free, err := diskFree(filepath.Dir(path)); err == nil && free < uint64(info.Size())+(64<<20) {
+		return errCompressSpace
+	}
+	temporary := filepath.Join(filepath.Dir(path), "."+filepath.Base(target)+".tmp")
+	defer os.Remove(temporary)
+	if err := switchfs.ConvertXciToNsp(ctx, path, temporary, report(0)); err != nil {
+		return err
+	}
+	// every NCA must match its content ID
+	if strings.EqualFold(filepath.Ext(target), ".nsz") {
+		err = switchfs.VerifyCompressed(ctx, temporary, nil, report(info.Size()))
+	} else {
+		_, err = switchfs.HashNcas(ctx, temporary, report(info.Size()))
+	}
+	if err != nil {
+		return err
+	}
+	if err := os.Rename(temporary, target); err != nil {
+		return err
+	}
+	if deleteOriginal {
+		if err := os.Remove(path); err != nil {
+			return fmt.Errorf("could not delete the original: %w", err)
+		}
+	}
+	web.sugarLogger.Infof("Converted %s", path)
+	return nil
+}
+
 func (web *Web) decompressCandidates() []CompressCandidate {
 	return web.derived("decompressCandidates", func() any { return web.libraryFiles(".nsz") }).([]CompressCandidate)
 }
@@ -405,7 +459,7 @@ func (web *Web) HandleCompress() {
 
 	web.router.HandleFunc("/compress.html", func(w http.ResponseWriter, r *http.Request) {
 		candidates := web.uncompressedCandidates()
-		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, CompressedCount: len(web.decompressCandidates()), Running: web.compressionRunning()}
+		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, CompressedCount: len(web.decompressCandidates()), CardCount: len(web.convertCandidates()), Running: web.compressionRunning()}
 		data.AlreadyCompressed = len(web.compressCandidates()) - len(candidates)
 		for i, candidate := range candidates {
 			data.TotalSize += candidate.Size
@@ -421,24 +475,41 @@ func (web *Web) HandleCompress() {
 	}).Methods("GET")
 
 	// the NSZ files that match a search, for the Decompress section
-	web.router.HandleFunc("/compress/nsz-list", func(w http.ResponseWriter, r *http.Request) {
-		query := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("q")))
-		all := web.decompressCandidates()
-		data := NszListData{Total: len(all)}
-		for _, candidate := range all {
-			if query != "" && !strings.Contains(strings.ToLower(candidate.Name+" "+filepath.Base(candidate.Path)), query) {
-				continue
-			}
-			data.Matches++
-			if len(data.Files) < shownFiles {
-				data.Files = append(data.Files, candidate)
-			}
-		}
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		if err := templates.executeTemplate(w, web.requestLanguage(r), "nszRows", data); err != nil {
-			web.sugarLogger.Error(err)
-		}
+	web.router.HandleFunc("/compress/xci-list", func(w http.ResponseWriter, r *http.Request) {
+		web.writeFileRows(w, r, templates, web.convertCandidates())
 	}).Methods("GET")
+
+	web.router.HandleFunc("/convert/start", func(w http.ResponseWriter, r *http.Request) {
+		lang := web.requestLanguage(r)
+		if err := r.ParseForm(); err != nil {
+			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
+			return
+		}
+		known := map[string]bool{}
+		for _, candidate := range web.convertCandidates() {
+			known[candidate.Path] = true
+		}
+		paths := []string{}
+		for _, path := range r.Form["path"] {
+			if known[path] {
+				paths = append(paths, path)
+			}
+		}
+		if len(paths) == 0 {
+			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to convert.")
+			return
+		}
+		if !web.startConversion(paths, r.FormValue("delete_originals") == "true") {
+			writeGlobalError(w, http.StatusConflict, lang, "A compression is already running.")
+			return
+		}
+		writeJSON(w, http.StatusAccepted, map[string]any{"started": len(paths)})
+	}).Methods("POST")
+
+	web.router.HandleFunc("/compress/nsz-list", func(w http.ResponseWriter, r *http.Request) {
+		web.writeFileRows(w, r, templates, web.decompressCandidates())
+	}).Methods("GET")
+
 
 	web.router.HandleFunc("/compress/start", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
@@ -514,4 +585,24 @@ func (web *Web) HandleCompress() {
 		web.cancelCompression()
 		w.WriteHeader(http.StatusNoContent)
 	}).Methods("POST")
+}
+
+// writeFileRows writes the rows of a list of files of the Compress page, the ones matching
+// the search, at most shownFiles.
+func (web *Web) writeFileRows(w http.ResponseWriter, r *http.Request, templates templateSet, all []CompressCandidate) {
+	query := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("q")))
+	data := NszListData{Total: len(all)}
+	for _, candidate := range all {
+		if query != "" && !strings.Contains(strings.ToLower(candidate.Name+" "+filepath.Base(candidate.Path)), query) {
+			continue
+		}
+		data.Matches++
+		if len(data.Files) < shownFiles {
+			data.Files = append(data.Files, candidate)
+		}
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := templates.executeTemplate(w, web.requestLanguage(r), "nszRows", data); err != nil {
+		web.sugarLogger.Error(err)
+	}
 }

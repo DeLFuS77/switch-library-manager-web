@@ -87,6 +87,9 @@ func (web *Web) buildMissingGames(lang string) []TitleItem {
 				Known:       true,
 				Wished:      wished[strings.ToUpper(v.Attributes.Id)],
 				Demo:        isDemo(v, v.Attributes.Name),
+				Genres:      v.Attributes.Genres,
+				Players:     v.Attributes.Players,
+				Languages:   v.Attributes.Languages,
 			})
 		}
 	}

@@ -76,6 +76,30 @@
 						<dd class="fact-value"><span class="fi fi-{{$t.Region | toLower}} me-2" aria-hidden="true"></span>{{$t.Region}}</dd>
 					</div>
 					{{- end}}
+					{{- if $t.Genres}}
+					<div class="fact">
+						<dt class="fact-label"><span class="bi bi-tags" aria-hidden="true"></span>{{t "Genre"}}</dt>
+						<dd class="fact-value fact-tags">{{range $t.Genres}}<a class="chip chip-muted text-decoration-none" href="/index.html?genre={{.}}">{{t .}}</a>{{end}}</dd>
+					</div>
+					{{- end}}
+					{{- if gt $t.Players 0}}
+					<div class="fact">
+						<dt class="fact-label"><span class="bi bi-people" aria-hidden="true"></span>{{t "Players"}}</dt>
+						<dd class="fact-value">{{if eq $t.Players 1}}{{t "1 player"}}{{else}}{{t "Up to %v players" $t.Players}}{{end}}</dd>
+					</div>
+					{{- end}}
+					{{- if gt $t.AgeRating 0}}
+					<div class="fact">
+						<dt class="fact-label"><span class="bi bi-person-badge" aria-hidden="true"></span>{{t "Age rating"}}</dt>
+						<dd class="fact-value">{{$t.AgeRating}}+{{with $t.RatingContent}}<span class="fact-sub">{{range $i, $c := .}}{{if $i}}, {{end}}{{$c}}{{end}}</span>{{end}}</dd>
+					</div>
+					{{- end}}
+					{{- if $t.Languages}}
+					<div class="fact fact-wide">
+						<dt class="fact-label"><span class="bi bi-translate" aria-hidden="true"></span>{{t "Languages"}}</dt>
+						<dd class="fact-value fact-tags">{{range $t.Languages}}<span class="chip chip-muted">{{t (gameLanguage .)}}</span>{{end}}</dd>
+					</div>
+					{{- end}}
 					{{- if $t.Base}}
 					<div class="fact">
 						<dt class="fact-label"><span class="bi bi-hdd" aria-hidden="true"></span>{{t "Installed version"}}</dt>

@@ -2548,3 +2548,80 @@ h3,
 [data-live-tasks] .progress-bar {
 	animation: none !important;
 }
+
+/* chips of genres and languages on the game page */
+.fact-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .3rem;
+	font-size: .85rem;
+}
+
+/* games by year of release */
+.year-chart {
+	display: flex;
+	align-items: flex-end;
+	gap: .35rem;
+	height: 9rem;
+	overflow-x: auto;
+	padding-bottom: .25rem;
+}
+
+.year-bar {
+	flex: 1 0 1.8rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	align-items: center;
+	height: 100%;
+
+	span {
+		display: block;
+		width: 100%;
+		min-height: 2px;
+		border-radius: .3rem .3rem 0 0;
+		background: var(--slm-chart-1);
+	}
+
+	small {
+		margin-top: .25rem;
+		font-size: .65rem;
+		color: var(--bs-secondary-color);
+	}
+}
+
+/* the copy of a game suggested to keep among its regions */
+.region-keep {
+	background: var(--slm-accent-soft);
+	border-radius: $border-radius;
+}
+
+/* the SD card planner */
+.sd-summary {
+	position: sticky;
+	top: 4.5rem;
+	z-index: 5;
+}
+
+.sd-cover {
+	width: 2.75rem;
+	height: 2.75rem;
+	object-fit: cover;
+	border-radius: $border-radius;
+	flex-shrink: 0;
+}
+
+.sd-game .item-meta .chip {
+	font-size: .72rem;
+}
+
+.sd-options .btn-check:checked + .filter-choice {
+	border-color: var(--slm-chart-1);
+	background: var(--slm-accent-soft);
+	font-weight: 600;
+}
+
+/* a game of the SD card planner: box, cover, name and reasons, size */
+.item-row.sd-game {
+	grid-template-columns: auto auto minmax(0, 1fr) auto;
+}

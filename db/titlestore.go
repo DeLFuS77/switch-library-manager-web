@@ -27,7 +27,7 @@ const (
 	storeCoreKey          = "core"
 	storeDetailsBucket    = "details"
 	// bump when the stored structures change
-	storeFormat = "2"
+	storeFormat = "3"
 )
 
 // values are stored compressed: descriptions and the processed titles are text that

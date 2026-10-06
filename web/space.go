@@ -91,6 +91,8 @@ type SpacePageData struct {
 	Unverified   int
 	Compressible int
 	CompressSize int64
+	// games of the library with copies of several stores
+	Regions []RegionGroup
 }
 
 // RemovablePercent is the share of the library that can be freed.
@@ -289,7 +291,9 @@ func (web *Web) HandleSpace() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/space.html")
 
 	web.router.HandleFunc("/space.html", func(w http.ResponseWriter, r *http.Request) {
-		web.render(w, r, templates, web.spacePageData())
+		data := web.spacePageData()
+		data.Regions = web.regionalDuplicates(web.requestLanguage(r))
+		web.render(w, r, templates, data)
 	}).Methods("GET")
 
 	web.router.HandleFunc("/space/clean", func(w http.ResponseWriter, r *http.Request) {

@@ -33,7 +33,7 @@ func TestTemplatesParse(t *testing.T) {
 // Every translation key must be used, and every translated text must be non-empty.
 func TestTranslationsAreUsed(t *testing.T) {
 	var sources strings.Builder
-	for _, pattern := range []string{"../resources/*.html", "../resources/*/*.html", "../resources/web.js", "*.go", "../process/*.go"} {
+	for _, pattern := range []string{"../resources/*.html", "../resources/*/*.html", "../resources/web.js", "*.go", "../process/*.go", "../db/*.go"} {
 		files, _ := filepath.Glob(pattern)
 		for _, file := range files {
 			if strings.HasSuffix(file, "_test.go") || strings.HasPrefix(filepath.Base(file), "translations") {
@@ -93,9 +93,12 @@ func TestLanguageFromHeader(t *testing.T) {
 		"en-US,en;q=0.9,es;q=0.8": "en",
 		"de-DE,de;q=0.9,es;q=0.7": "de",
 		"fr-FR,fr;q=0.9":          "fr",
-		"nl-NL,nl;q=0.9,it;q=0.5": "it",
+		"sv-SE,sv;q=0.9,it;q=0.5": "it",
+		"nl-NL,nl;q=0.9":          "nl",
+		"zh-CN,zh;q=0.9":          "zh",
 		"pt-BR":                   "pt",
-		"ja-JP,ja;q=0.9":          "en",
+		"pl-PL,pl;q=0.9":          "en",
+		"ja-JP,ja;q=0.9":          "ja",
 		"ES":                      "es",
 	} {
 		if got := languageFromHeader(header); got != want {
@@ -114,6 +117,11 @@ func TestLocalizedDatesAndIssues(t *testing.T) {
 	}
 	if got := formatDate("en", date); got != "Oct 5, 2026" {
 		t.Errorf("en date = %q", got)
+	}
+	for lang, want := range map[string]string{"ja": "2026年10月5日", "zh": "2026年10月5日", "ko": "2026년 10월 5일", "nl": "5 okt. 2026", "ru": "5 окт. 2026"} {
+		if got := formatDate(lang, date); got != want {
+			t.Errorf("%s date = %q, want %q", lang, got, want)
+		}
 	}
 	if got := formatDateTime("es", date); got != "5 oct 2026 13:05" {
 		t.Errorf("es date time = %q", got)
