@@ -47,10 +47,12 @@ Linux, Docker, NAS and Raspberry Pi.
 - Scans your folders (NSP, NSZ, XCI, XCZ and split files) and rescans by itself when files change
 - An overview of your games, missing updates and DLC, and the space they use
 - Missing updates (for games and DLC), missing DLC and missing games, with filters and search
-- Library filters by status, format, region, games or demos, and games without a cover
+- Library filters by status, format, region, collection, games or demos, and games without a cover; sort by size
+  or date added
+- Your own collections of games ("Favorites", "Playing"...), and actions on several games at once
 - A wishlist of games you do not have yet, with a notification when they come out
 - Game pages with description, screenshots, versions, DLC and downloads (a whole game as one ZIP)
-- Statistics with charts, and an export of the library as CSV, JSON or a web page to share
+- Statistics with charts and the history of your library, and an export as CSV, JSON or a web page to share
 
 **Keep it tidy**
 - Issues: unsupported, duplicate, old, damaged or unidentified files
@@ -68,7 +70,8 @@ Linux, Docker, NAS and Raspberry Pi.
   the library shows up while it is scanned, covers and thumbnails load in the background
 - Background hours: keep cover downloads, thumbnails and compression for the night
 - User accounts with administrator and read-only roles, a language per user and an activity log
-- Live tasks page, scheduled synchronization and notifications (Discord, Telegram, webhook)
+- Live tasks page, scheduled synchronization and notifications (Discord, Telegram, webhook) of new updates, DLC
+  and games
 - JSON API with OpenAPI description, e.g. for Home Assistant
 - Interface in English, Spanish, French, German, Italian and Portuguese (including game names), light and dark theme
 

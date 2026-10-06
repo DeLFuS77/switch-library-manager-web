@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.17.0
+
+### New features
+
+- **Collections**: group your games in your own collections ("Favorites", "Playing", "For the kids"...) from the
+  game page, and filter the library by collection.
+- **Select several games in the library** to add them to a collection, remove them from one or ignore their
+  updates at once.
+- **Library history**: the Statistics page lists the games, updates and DLC added to or removed from your folders,
+  with a chart of the number of games over time.
+- **Notifications of new games**: a new option reports the games and DLC that appear in your folders, also after
+  the automatic folder checks.
+- **Sort the library by size or by date added**, and a filter for the games added in the last 30 days.
+- **The lists remember their filters**: coming back to the library, missing updates, DLC or games from another
+  page shows them as you left them.
+- **"Hide demos" works everywhere**: in the library (where the filter can still show them), missing updates, DLC
+  and games, statistics and notifications.
+- **Messages appear as notifications** in a corner of the screen and go away by themselves, instead of piling up
+  in the page.
+
+### Fixes
+
+- The Docker Hub page shows the screenshots and the notice about keys.
+- A development dependency used to build the interface was updated (not part of the app or the image).
+
 ## 1.16.1
 
 ### New features
