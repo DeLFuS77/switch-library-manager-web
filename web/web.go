@@ -114,6 +114,8 @@ type Web struct {
 	coverFallbacks map[string]coverFallback
 	wish           *wishlist
 	wishOnce       sync.Once
+	activity       *activityLog
+	activityOnce   sync.Once
 	fallbackMutex  sync.Mutex
 	thumbs         *thumbnails
 	thumbsOnce     sync.Once
@@ -448,7 +450,7 @@ func (web *Web) Start() {
 
 	http.Handle("/", web.router)
 
-	handler := web.auth.middleware(http.DefaultServeMux)
+	handler := web.auth.middleware(web.withActivityLog(http.DefaultServeMux))
 	if isDemoMode() {
 		handler = web.demoReadOnly(handler)
 	}

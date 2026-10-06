@@ -242,7 +242,7 @@ func viewerAllowed(r *http.Request) bool {
 		_, adminOnly := adminOnlyPages[r.URL.Path]
 		return !adminOnly
 	case http.MethodPost:
-		return r.URL.Path == "/account/password" || r.URL.Path == "/logout"
+		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/logout"
 	}
 	return false
 }

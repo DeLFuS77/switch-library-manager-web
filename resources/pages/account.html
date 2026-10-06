@@ -12,6 +12,21 @@
 								{{- if .Auth.IsAdmin}}<span class="chip chip-success">{{t "Administrator"}}</span>{{else}}<span class="chip chip-muted">{{t "Read only"}}</span>{{end}}
 							</div>
 						</div>
+						{{- if .Stored}}
+						<form class="mt-4" method="post" action="/account/language">
+							<label class="form-label fw-semibold" for="language">{{t "My language"}}</label>
+							<div class="d-flex gap-2">
+								<select class="form-select" id="language" name="language">
+									<option value=""{{if eq .Language ""}} selected{{end}}>{{t "Same as the app"}}</option>
+									{{- range .Languages}}
+									<option value="{{.}}"{{if eq . $.Language}} selected{{end}}>{{languageName .}}</option>
+									{{- end}}
+								</select>
+								<button class="btn btn-outline-primary rounded-pill text-nowrap" type="submit">{{t "Save"}}</button>
+							</div>
+							<div class="form-text">{{t "The theme is kept by each browser."}}</div>
+						</form>
+						{{- end}}
 						{{- if .Auth.Enabled}}
 						<form class="mt-4" method="post" action="/logout">
 							<button class="btn btn-outline-secondary rounded-pill" type="submit"><span class="bi bi-box-arrow-right me-2" aria-hidden="true"></span>{{t "Log out"}}</button>

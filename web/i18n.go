@@ -136,6 +136,13 @@ func languageFromHeader(header string) string {
 // requestLanguage returns the interface language: the one chosen in the settings, or the
 // browser's preferred language.
 func (web *Web) requestLanguage(r *http.Request) string {
+	// the language chosen by the user comes first
+	if principal := principalFrom(r); principal != nil && principal.Name != "" && web.auth != nil {
+		if user, ok := web.auth.users.Get(principal.Name); ok && isSupportedLanguage(user.Language) {
+			web.noteLanguage(user.Language)
+			return user.Language
+		}
+	}
 	lang := settings.ReadSettings(web.dataFolder).Language
 	if !isSupportedLanguage(lang) {
 		lang = languageFromHeader(r.Header.Get("Accept-Language"))

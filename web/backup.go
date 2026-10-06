@@ -23,7 +23,7 @@ const (
 // backupFiles are the files of the data folder kept in a backup: the configuration, the
 // users, the verification results and the notified versions. Console keys, the session
 // key and the caches are never included.
-var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, WISHLIST_FILENAME}
+var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, WISHLIST_FILENAME, ACTIVITY_FILENAME}
 
 // errors shown to the user, translated by the interface
 var (

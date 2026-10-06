@@ -17,16 +17,23 @@ type LoginPageData struct {
 
 type UsersPageData struct {
 	GlobalPageData
-	Users   []User
-	EnvUser string
-	Message string
-	Error   string
+	// what users changed, newest first
+	Activity []Activity
+	Users    []User
+	EnvUser  string
+	Message  string
+	Error    string
 }
 
 type AccountPageData struct {
 	GlobalPageData
 	Message string
 	Error   string
+	// the language of the user, and the languages to choose from
+	Language  string
+	Languages []string
+	// the user is stored in users.json, so preferences can be kept
+	Stored bool
 }
 
 // messages shown after an action, by the key in the redirect
@@ -36,6 +43,7 @@ var userMessages = map[string]string{
 	"password": "The password was changed.",
 	"deleted":  "The user was deleted.",
 	"enabled":  "Login is now required. You are logged in as the new administrator.",
+	"language": "Your language was saved.",
 }
 
 func (web *Web) HandleUsers() {
@@ -83,7 +91,7 @@ func (web *Web) HandleUsers() {
 
 	web.router.HandleFunc("/users.html", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
-		data := UsersPageData{GlobalPageData: web.globalPageData("users"), Users: web.auth.users.List(), EnvUser: web.auth.envUser}
+		data := UsersPageData{GlobalPageData: web.globalPageData("users"), Users: web.auth.users.List(), EnvUser: web.auth.envUser, Activity: web.activities().list()}
 		if message, ok := userMessages[r.URL.Query().Get("done")]; ok {
 			data.Message = translate(lang, message)
 		}
@@ -95,7 +103,12 @@ func (web *Web) HandleUsers() {
 
 	web.router.HandleFunc("/account.html", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
-		data := AccountPageData{GlobalPageData: web.globalPageData("account")}
+		data := AccountPageData{GlobalPageData: web.globalPageData("account"), Languages: supportedLanguages}
+		if principal := principalFrom(r); principal != nil && principal.Name != "" {
+			if user, ok := web.auth.users.Get(principal.Name); ok {
+				data.Stored, data.Language = true, user.Language
+			}
+		}
 		if message, ok := userMessages[r.URL.Query().Get("done")]; ok {
 			data.Message = translate(lang, message)
 		}
@@ -163,6 +176,23 @@ func (web *Web) HandleUsers() {
 		web.auth.forget()
 		web.sugarLogger.Infof("User %q deleted", name)
 		http.Redirect(w, r, "/users.html?done=deleted", http.StatusSeeOther)
+	}).Methods("POST")
+
+	web.router.HandleFunc("/account/language", func(w http.ResponseWriter, r *http.Request) {
+		principal := principalFrom(r)
+		lang := r.FormValue("language")
+		if lang != "" && !isSupportedLanguage(lang) {
+			lang = ""
+		}
+		if principal == nil || principal.Name == "" {
+			redirectWithError(w, r, "/account.html", ErrEnvironmentUser)
+			return
+		}
+		if err := web.auth.users.SetLanguage(principal.Name, lang); err != nil {
+			redirectWithError(w, r, "/account.html", err)
+			return
+		}
+		http.Redirect(w, r, "/account.html?done=language", http.StatusSeeOther)
 	}).Methods("POST")
 
 	web.router.HandleFunc("/account/password", func(w http.ResponseWriter, r *http.Request) {

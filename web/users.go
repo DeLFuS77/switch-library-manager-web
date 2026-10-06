@@ -43,10 +43,12 @@ var validUserName = regexp.MustCompile(`^[A-Za-z0-9._-]{1,32}$`)
 
 // User is an account of the web interface.
 type User struct {
-	Name         string    `json:"name"`
-	Role         string    `json:"role"`
-	PasswordHash string    `json:"password_hash"`
-	Created      time.Time `json:"created"`
+	Name         string `json:"name"`
+	Role         string `json:"role"`
+	PasswordHash string `json:"password_hash"`
+	// interface language of the user; empty for the language of the app
+	Language string    `json:"language,omitempty"`
+	Created  time.Time `json:"created"`
 }
 
 func (u User) IsAdmin() bool {
@@ -157,6 +159,18 @@ func (s *UserStore) Add(name string, password string, role string) error {
 		return ErrUserExists
 	}
 	s.users[key] = &User{Name: name, Role: role, PasswordHash: hash, Created: time.Now()}
+	return s.save()
+}
+
+// SetLanguage changes the interface language of a user ("" for the language of the app).
+func (s *UserStore) SetLanguage(name string, lang string) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	user, ok := s.users[strings.ToLower(name)]
+	if !ok {
+		return ErrUserNotFound
+	}
+	user.Language = lang
 	return s.save()
 }
 
