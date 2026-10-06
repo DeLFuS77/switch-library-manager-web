@@ -1243,6 +1243,8 @@ func TestHiddenDemosLeaveEveryList(t *testing.T) {
 		t.Fatal("the demo has a missing update and DLC while demos are shown")
 	}
 
+	hide := settings.ReadSettings(web.dataFolder).HideDemoGames
+	defer settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.HideDemoGames = hide })
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.HideDemoGames = true })
 	if len(web.missingUpdates()) != 0 || len(web.missingDLC()) != 0 {
 		t.Fatal("hidden demos leave the missing updates and DLC")

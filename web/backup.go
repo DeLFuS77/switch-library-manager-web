@@ -145,7 +145,7 @@ func (web *Web) restoreBackup(data []byte) error {
 		}
 	}
 
-	web.appSettings = settings.ReloadSettings(web.dataFolder)
+	settings.ReloadSettings(web.dataFolder)
 	if _, err := settings.InitSwitchKeys(web.dataFolder); err != nil {
 		web.sugarLogger.Debugf("prod.keys not loaded: %s", err)
 	}

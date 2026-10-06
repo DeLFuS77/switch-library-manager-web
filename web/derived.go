@@ -15,7 +15,9 @@ type derivedCache struct {
 	mutex           sync.Mutex
 	stateVersion    uint64
 	settingsVersion uint64
-	values          map[string]any
+	// changed by invalidateDerived: values computed before are not kept
+	generation uint64
+	values     map[string]any
 }
 
 // derived returns the cached value of name, computing it if the library or the settings
@@ -33,6 +35,7 @@ func (web *Web) derived(name string, compute func() any) any {
 		cache.mutex.Unlock()
 		return value
 	}
+	generation := cache.generation
 	cache.mutex.Unlock()
 
 	// computed without the lock, so slow pages do not block each other
@@ -40,7 +43,8 @@ func (web *Web) derived(name string, compute func() any) any {
 
 	cache.mutex.Lock()
 	// a value computed while the library or the settings changed may be outdated
-	if cache.stateVersion == stateVersion && cache.settingsVersion == settingsVersion &&
+	if cache.values != nil && cache.generation == generation &&
+		cache.stateVersion == stateVersion && cache.settingsVersion == settingsVersion &&
 		web.state.Version() == stateVersion && settings.Version() == settingsVersion {
 		cache.values[name] = value
 	}
@@ -67,6 +71,7 @@ func (web *Web) sorted(name string, filter *TitleItemFilter, build func() []Titl
 func (web *Web) invalidateDerived() {
 	web.cache.mutex.Lock()
 	web.cache.values = nil
+	web.cache.generation++
 	web.cache.mutex.Unlock()
 }
 

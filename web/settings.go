@@ -90,12 +90,14 @@ func (web *Web) HandleSettings() {
 	}
 
 	web.HandleValidated("/settings.html", SettingsForm{}, func() any {
+		// the current settings: ignoring a title or a synchronization also changes them
+		current := settings.ReadSettings(web.dataFolder)
 		return SettingsPageData {
-			NextSync: nextSyncTime(web.appSettings),
+			NextSync: nextSyncTime(current),
 			SyncIntervals: []int{0, 6, 12, 24, 168},
 			Languages: supportedLanguages,
 			GlobalPageData: web.globalPageData("settings"),
-			Settings: web.appSettings,
+			Settings: current,
 			MissingCovers: web.missingCovers(),
 		}
 	}, func(value any, lang string) ErrorResponse {
@@ -210,7 +212,7 @@ func (web *Web) HandleSettings() {
 		settingsForm := value.(*SettingsForm)
 		scanFolders := SplitAndTrimSpaceArray(settingsForm.ScanFolders, "\n")
 
-		appSettings := settings.UpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
+		settings.UpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
 			appSettings.Prodkeys = settingsForm.Prodkeys
 			appSettings.IgnoreDLCTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreDLCTitleIds, "\n")
 			appSettings.IgnoreUpdateTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreUpdateTitleIds, "\n")
@@ -236,7 +238,6 @@ func (web *Web) HandleSettings() {
 				appSettings.ScanFolders = []string{}
 			}
 		})
-		web.appSettings = appSettings
 
 		if _, err := settings.InitSwitchKeys(web.dataFolder); err != nil {
 			web.sugarLogger.Debugf("prod.keys not loaded: %s", err)
