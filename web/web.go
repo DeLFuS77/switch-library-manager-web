@@ -1,6 +1,7 @@
 package web
 
 import (
+	"reflect"
 	"embed"
 	"io/fs"
 	"errors"
@@ -303,9 +304,7 @@ var funcMap = template.FuncMap {
 	"fileBase": fileBase,
 	"fileDir":  fileDir,
 	"shortPaths": shortPaths,
-	"eq": func(a, b interface{}) bool {
-		return a == b
-	},
+	"eq": templateEq,
 	"gt": func(a, b int) bool {
 		return a > b
 	},
@@ -323,7 +322,7 @@ var funcMap = template.FuncMap {
 		return args
 	},
 	"neq": func(a, b interface{}) bool {
-		return a != b
+		return !templateEq(a, b)
 	},
 	"pageUrl": func(filter *TitleItemFilter, page int) template.URL {
 		values := filter.query("page", strconv.Itoa(page))
@@ -441,6 +440,28 @@ func (web *Web) navCounts() NavCounts {
 		counts.Dlc += len(title.MissingDLCItems)
 	}
 	return counts
+}
+
+// templateEq compares two values of a template; numbers of different types are equal when
+// they have the same value, so a size (int64) can be compared with 0.
+func templateEq(a, b interface{}) bool {
+	if x, ok := templateInt(a); ok {
+		if y, ok := templateInt(b); ok {
+			return x == y
+		}
+	}
+	return a == b
+}
+
+func templateInt(value interface{}) (int64, bool) {
+	v := reflect.ValueOf(value)
+	switch v.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int(), true
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return int64(v.Uint()), true
+	}
+	return 0, false
 }
 
 func intToTime(value int) (time.Time, error) {

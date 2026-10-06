@@ -3,17 +3,20 @@
 			{{- $f := .Filter}}
 			{{- template "pageHeader" (dict "Title" (t "Series") "Count" .Pagination.NumItems "Subtitle" (t "The series of which you have a game, with the games you are missing to complete them."))}}
 			{{- if or .Incomplete .Complete}}
-			<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-				<ul class="filter-pills list-unstyled mb-0 me-auto" aria-label="{{t "Filter by status"}}">
-					{{- template "statusFilter" (dict "Filter" $f "Value" "" "Label" (t "To complete") "Icon" "bi-hourglass-split" "Count" .Incomplete)}}
-					{{- template "statusFilter" (dict "Filter" $f "Value" "complete" "Label" (t "Complete") "Icon" "bi-trophy" "Count" .Complete)}}
-				</ul>
-				<form class="toolbar-search" method="get" action="/sagas.html" role="search">
-					{{- if $f.Status}}<input type="hidden" name="status" value="{{$f.Status}}">{{end}}
+			<form class="toolbar" method="get" action="/sagas.html" role="search">
+				{{- if $f.Status}}<input type="hidden" name="status" value="{{$f.Status}}">{{end}}
+				<div class="toolbar-search">
 					<span class="bi bi-search" aria-hidden="true"></span>
-					<input type="search" class="form-control" name="q" value="{{$f.Keyword}}" placeholder="{{t "Search a series"}}" aria-label="{{t "Search a series"}}">
-				</form>
-			</div>
+					<input type="search" class="form-control" name="q" value="{{$f.Keyword}}" placeholder="{{t "Search a series"}}" aria-label="{{t "Search"}}">
+				</div>
+				{{- if $f.Keyword}}
+				<a class="btn btn-link text-decoration-none px-2" href="{{filterUrl $f "q" ""}}">{{t "Clear"}}</a>
+				{{- end}}
+			</form>
+			<ul class="filter-pills list-unstyled mb-3" aria-label="{{t "Filter by status"}}">
+				{{- template "statusFilter" (dict "Filter" $f "Value" "" "Label" (t "To complete") "Icon" "bi-hourglass-split" "Count" .Incomplete)}}
+				{{- template "statusFilter" (dict "Filter" $f "Value" "complete" "Label" (t "Complete") "Icon" "bi-trophy" "Count" .Complete)}}
+			</ul>
 			{{- end}}
 			{{- if .Sagas}}
 			<div class="saga-list">

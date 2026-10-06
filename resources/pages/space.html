@@ -1,6 +1,7 @@
 {{define "title"}}{{t "Space"}}{{end}}
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Space") "Count" -1 "Subtitle" (t "Files that take space without being needed: old updates, duplicates and originals that already have a compressed copy. Nothing is deleted until you confirm it."))}}
+			{{- if or .Reclaimable .Unverified}}
 			<section class="surface mb-4 space-overview">
 				<div class="row g-4 align-items-center">
 					<div class="col-md-5">
@@ -20,6 +21,7 @@
 					</div>
 				</div>
 			</section>
+			{{- end}}
 
 			{{- if .Compressible}}
 			<p class="small text-body-secondary d-flex align-items-start gap-2 mb-4"><span class="bi bi-lightbulb flex-shrink-0 mt-1" aria-hidden="true"></span><span>{{t "%v files (%v) have no compressed copy yet. Compressing usually saves 10–60%%." .Compressible (formatSize .CompressSize)}} <a href="/compress.html">{{t "Compress"}}</a></span></p>

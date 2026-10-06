@@ -5,7 +5,7 @@
 			{{- if eq $s.Games 0}}
 			{{- template "emptyState" (dict "Icon" "bi-bar-chart" "Tone" "" "Title" (t "No statistics yet") "Text" (t "Add your games folders in Settings to see the statistics of your library.") "ActionHref" "/settings.html#library" "ActionLabel" (t "Open Settings") "ActionIcon" "bi-gear")}}
 			{{- else}}
-			<div class="row row-cols-2 row-cols-xl-4 g-2 g-md-3 mb-4">
+			<div class="row row-cols-2 row-cols-lg-4 g-2 g-md-3 mb-4">
 				{{- template "statCard" (dict "Label" (t "Games") "Value" $s.Games "Icon" "bi-controller" "Tone" "" "Count" true)}}
 				{{- template "statCard" (dict "Label" (t "Updates") "Value" $s.Updates "Icon" "bi-arrow-up-circle" "Tone" "is-cyan" "Count" true)}}
 				{{- template "statCard" (dict "Label" (t "DLC") "Value" $s.Dlc "Icon" "bi-puzzle" "Tone" "" "Count" true)}}
