@@ -7,6 +7,7 @@
 						<li class="nav-item"><a class="nav-link" href="#library"><span class="bi bi-collection me-2" aria-hidden="true"></span>{{t "Library"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="#ignored"><span class="bi bi-eye-slash me-2" aria-hidden="true"></span>{{t "Ignored items"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="#general"><span class="bi bi-sliders me-2" aria-hidden="true"></span>{{t "General"}}</a></li>
+						<li class="nav-item"><a class="nav-link" href="#background"><span class="bi bi-moon-stars me-2" aria-hidden="true"></span>{{t "Background work"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="#compression"><span class="bi bi-file-zip me-2" aria-hidden="true"></span>{{t "Compression"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="#notifications"><span class="bi bi-bell me-2" aria-hidden="true"></span>{{t "Notifications"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="#backup"><span class="bi bi-life-preserver me-2" aria-hidden="true"></span>{{t "Backup"}}</a></li>
@@ -141,6 +142,20 @@
 										{{- end}}
 									</select>
 								</div>
+							</div>
+						</section>
+						<section class="surface mb-4 settings-section" id="background" aria-labelledby="backgroundTitle">
+							<h2 class="section-title" id="backgroundTitle"><span class="bi bi-moon-stars" aria-hidden="true"></span>{{t "Background work"}}</h2>
+							<p class="text-body-secondary">{{t "Downloading covers, making thumbnails, reading icons from game files, scheduled checks and the automatic compression of new files can wait for some hours, so the NAS stays fast while you use it. What you start yourself always runs at once."}}</p>
+							<div class="col-md-6 px-0">
+								<label for="background_hours" class="form-label fw-semibold">{{t "Do heavy work"}}</label>
+								<select class="form-select" id="background_hours" name="background_hours">
+									<option value=""{{if eq .Settings.BackgroundHours ""}} selected{{end}}>{{t "At any time"}}</option>
+									<option value="22-6"{{if eq .Settings.BackgroundHours "22-6"}} selected{{end}}>{{t "From %v to %v" "22:00" "6:00"}}</option>
+									<option value="0-6"{{if eq .Settings.BackgroundHours "0-6"}} selected{{end}}>{{t "From %v to %v" "0:00" "6:00"}}</option>
+									<option value="1-7"{{if eq .Settings.BackgroundHours "1-7"}} selected{{end}}>{{t "From %v to %v" "1:00" "7:00"}}</option>
+									<option value="2-8"{{if eq .Settings.BackgroundHours "2-8"}} selected{{end}}>{{t "From %v to %v" "2:00" "8:00"}}</option>
+								</select>
 							</div>
 						</section>
 						<section class="surface mb-4 settings-section" id="compression" aria-labelledby="compressionTitle">

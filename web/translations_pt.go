@@ -3,6 +3,12 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Background work": "Trabalho em segundo plano",
+		"Downloading covers, making thumbnails, reading icons from game files, scheduled checks and the automatic compression of new files can wait for some hours, so the NAS stays fast while you use it. What you start yourself always runs at once.": "O download de capas, as miniaturas, a leitura de ícones dos arquivos, as verificações agendadas e a compactação automática de arquivos novos podem esperar algumas horas, para o NAS ficar rápido enquanto você o usa. O que você inicia sempre roda na hora.",
+		"Do heavy work": "Fazer o trabalho pesado",
+		"At any time":   "A qualquer hora",
+		"From %v to %v": "Das %v às %v",
+		"Paused outside the background hours; it continues when they begin.": "Pausado fora do horário de segundo plano; continua quando ele começar.",
 		"Covers":                     "Capas",
 		"Games without a cover: %v.": "Jogos sem capa: %v.",
 		"Covers are downloaded after each scan; games without one take the icon stored in their own file (with your keys). Searching again also retries covers that failed.": "As capas são baixadas após cada análise; jogos sem capa usam o ícone guardado no próprio arquivo (com suas chaves). Buscar de novo também tenta outra vez as capas que falharam.",

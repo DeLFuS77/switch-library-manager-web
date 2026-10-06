@@ -78,6 +78,11 @@ func (web *Web) pregenerateThumbnails() {
 			web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_SCAN, "")
 			break
 		}
+		if !web.backgroundAllowed() {
+			web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_HOURS, "")
+			web.waitForBackgroundHours()
+			break
+		}
 		web.taskLog().Progress(taskId, i, len(missing), "Making thumbnails")
 		original, ok := web.imagePath(name)
 		if !ok {

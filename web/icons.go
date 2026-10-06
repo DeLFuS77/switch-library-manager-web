@@ -70,6 +70,10 @@ func (web *Web) extractMissingIcons(taskId int64) int {
 		if web.state.IsSynchronizing() {
 			break
 		}
+		if !web.backgroundAllowed() {
+			web.waitForBackgroundHours()
+			break
+		}
 		web.taskLog().Progress(taskId, i, len(candidates), "Reading icons from the game files")
 		icon, err := switchfs.ExtractIcon(item.path)
 		if err != nil {
@@ -126,8 +130,12 @@ func (web *Web) missingCovers() int {
 // HandleCovers lets an administrator search again for every missing cover at once.
 func (web *Web) HandleCovers() {
 	web.router.HandleFunc("/covers/retry", func(w http.ResponseWriter, r *http.Request) {
-		// forget the covers that failed and the files without an icon
+		// forget the covers that failed and the files without an icon; asked by hand, it
+		// runs now, also outside the background hours
 		db.ForgetCoverFailures(web.dataFolder)
+		web.background.mutex.Lock()
+		web.background.forced = true
+		web.background.mutex.Unlock()
 		web.writeNoIcon(map[string]string{})
 		web.startCoverDownloads()
 		writeJSON(w, http.StatusAccepted, map[string]any{"started": true, "missing": web.missingCovers()})

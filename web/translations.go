@@ -5,6 +5,12 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Background work": "Trabajo en segundo plano",
+		"Downloading covers, making thumbnails, reading icons from game files, scheduled checks and the automatic compression of new files can wait for some hours, so the NAS stays fast while you use it. What you start yourself always runs at once.": "La descarga de portadas, las miniaturas, la lectura de iconos de los archivos, las verificaciones programadas y la compresión automática de archivos nuevos pueden esperar a unas horas, para que el NAS vaya rápido mientras lo usas. Lo que inicias tú siempre se hace al momento.",
+		"Do heavy work": "Hacer el trabajo pesado",
+		"At any time":   "En cualquier momento",
+		"From %v to %v": "De %v a %v",
+		"Paused outside the background hours; it continues when they begin.": "En pausa fuera del horario de segundo plano; continuará cuando empiece.",
 		"Covers":                     "Portadas",
 		"Games without a cover: %v.": "Juegos sin portada: %v.",
 		"Covers are downloaded after each scan; games without one take the icon stored in their own file (with your keys). Searching again also retries covers that failed.": "Las portadas se descargan tras cada análisis; los juegos sin portada usan el icono guardado en su propio archivo (con tus claves). Volver a buscar también reintenta las portadas que fallaron.",
