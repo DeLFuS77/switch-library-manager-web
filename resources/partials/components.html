@@ -78,6 +78,27 @@
 				<li><a class="filter-pill{{if eq $f.Status .Value}} active{{end}}" href="{{filterUrl $f "status" .Value}}"{{if eq $f.Status .Value}} aria-current="true"{{end}}>{{if .Icon}}<span class="bi {{.Icon}}" aria-hidden="true"></span>{{end}}{{.Label}}{{if ge .Count 0}} <span class="filter-count">{{num .Count}}</span>{{end}}</a></li>
 {{- end}}
 
+{{- define "recommendations"}}
+			<section class="recommendations mb-4" aria-labelledby="recommendationsTitle">
+				<div class="d-flex flex-wrap align-items-baseline gap-2 mb-2">
+					<h2 class="section-title mb-0" id="recommendationsTitle"><span class="bi bi-stars" aria-hidden="true"></span>{{t "You might like"}}</h2>
+					<span class="small text-body-secondary">{{t "Games you do not have, like the ones you like most"}}</span>
+				</div>
+				<div class="rec-strip">
+					{{- range .}}
+					<div class="rec-item">
+						<a class="saga-item" href="/title/{{.Item.Id}}.html">
+							<img src="{{thumb .Item.ImageUrl}}" alt="" loading="lazy" decoding="async">
+							<span class="saga-name">{{.Item.Name}}</span>
+							<span class="saga-state">{{if .Saga}}<span class="bi bi-collection me-1" aria-hidden="true"></span>{{t "Same series as %v" .Saga}}{{else if .Genre}}<span class="bi bi-tags me-1" aria-hidden="true"></span>{{t .Genre}}{{end}}{{if not .Item.ReleaseDate.IsZero}} &middot; {{.Item.ReleaseDate.Year}}{{end}}</span>
+						</a>
+						<button type="button" class="wish-toggle admin-only" data-wish="{{.Item.Id}}" data-wished="false" aria-pressed="false" title="{{t "Add to the wishlist"}}"><span class="bi bi-heart" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>
+					</div>
+					{{- end}}
+				</div>
+			</section>
+{{- end}}
+
 {{- define "markLegend"}}
 			<p class="mark-legend">
 				{{- if .Favorites}}<span><span class="bi bi-star-fill text-warning" aria-hidden="true"></span>{{t "Favorite: the games you like most"}}</span>{{end}}

@@ -80,12 +80,18 @@ func (web *Web) HandleIndex() {
 
 	web.HandleFiltered("/index.html", func(filter *TitleItemFilter, lang string) any {
 		items, p, facets := web.getLibraryWithFacets(filter, lang)
+		var recommendations []Recommendation
+		// the library recommends games only from the favorites
+		if filter.Plain() && facets.Favorites > 0 {
+			recommendations = web.recommendations(lang)
+		}
 		return LibraryPageData {
 			TitleItemsPageData: TitleItemsPageData {
 				GlobalPageData: web.globalPageData("index"),
 				TitleItems: items,
 				Filter: filter,
 				Pagination: p,
+				Recommendations: recommendations,
 			},
 			Facets: facets,
 			Setup: web.setupStatus(),

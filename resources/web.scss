@@ -2625,3 +2625,101 @@ h3,
 .item-row.sd-game {
 	grid-template-columns: auto auto minmax(0, 1fr) auto;
 }
+
+// "You might like": a row of games that scrolls sideways
+.rec-strip {
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: minmax(9rem, 10rem);
+	gap: .75rem;
+	overflow-x: auto;
+	padding-bottom: .5rem;
+	scroll-snap-type: x proximity;
+	scrollbar-width: thin;
+}
+
+.rec-item {
+	position: relative;
+	scroll-snap-align: start;
+
+	.saga-item {
+		height: 100%;
+	}
+
+	.wish-toggle {
+		top: .9rem;
+		right: .9rem;
+	}
+}
+
+// the series of the library and how many games of each one it has
+.saga-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 26rem), 1fr));
+	gap: .75rem;
+}
+
+.saga-card {
+	display: flex;
+	gap: .9rem;
+	align-items: flex-start;
+	min-width: 0;
+}
+
+.saga-cover {
+	width: 4.5rem;
+	height: 4.5rem;
+	flex-shrink: 0;
+	object-fit: cover;
+	border-radius: $border-radius;
+}
+
+.saga-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.saga-title {
+	font-size: 1rem;
+	font-weight: 700;
+	margin: 0;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.saga-strip {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .35rem;
+}
+
+.saga-thumb img {
+	width: 2.4rem;
+	height: 2.4rem;
+	object-fit: cover;
+	border-radius: .35rem;
+	display: block;
+	transition: transform .15s ease;
+}
+
+.saga-thumb:hover img,
+.saga-thumb:focus-visible img {
+	transform: scale(1.1);
+}
+
+.saga-thumb.is-missing img {
+	filter: grayscale(1) brightness(.6);
+	outline: 1px dashed var(--slm-border);
+	outline-offset: 1px;
+}
+
+.saga-more {
+	font-size: .8rem;
+	color: var(--bs-secondary-color);
+}
+
+.saga-progress .progress,
+.saga-card .progress {
+	height: .5rem;
+}

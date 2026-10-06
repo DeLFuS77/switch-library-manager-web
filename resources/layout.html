@@ -43,6 +43,7 @@
 							{{- template "navLink" (dict "Page" .Page "Id" "updates" "Href" "updates.html" "Icon" "bi-arrow-up-circle" "Label" (t "Updates") "Count" .Counts.Updates "Badge" "text-bg-warning")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "dlc" "Href" "dlc.html" "Icon" "bi-puzzle" "Label" (t "DLC") "Count" .Counts.Dlc "Badge" "text-bg-info")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "missing" "Href" "missing.html" "Icon" "bi-search-heart" "Label" (t "Missing Games") "Count" .Counts.Wished "Badge" "text-bg-danger")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "sagas" "Href" "sagas.html" "Icon" "bi-stack" "Label" (t "Series") "Count" 0 "Badge" "")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "statistics" "Href" "statistics.html" "Icon" "bi-bar-chart" "Label" (t "Statistics") "Count" 0 "Badge" "")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "issues" "Href" "issues.html" "Icon" "bi-exclamation-triangle" "Label" (t "Issues") "Count" .Counts.Issues "Badge" "text-bg-danger")}}
 						</ul>
