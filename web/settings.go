@@ -28,6 +28,7 @@ type SettingsForm struct {
 	HideDemoGames        bool   `in:"form=hide_demo_games"`
 	WatchFolders         bool   `in:"form=watch_folders"`
 	WatchIntervalMinutes int    `in:"form=watch_interval_minutes"`
+	BackgroundHours      string `in:"form=background_hours"`
 	VerifyIntervalDays   int    `in:"form=verify_interval_days"`
 	ConsoleFirmware      string `in:"form=console_firmware"`
 	CheckForUpdates      bool   `in:"form=check_for_updates"`
@@ -170,6 +171,13 @@ func (web *Web) HandleSettings() {
 			})
 		}
 
+		if _, ok := allowedBackgroundHours[settingsForm.BackgroundHours]; !ok {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
+				Field: "background_hours",
+				Message: translate(lang, "Unknown option"),
+			})
+		}
+
 		if _, ok := allowedWatchIntervals[settingsForm.WatchIntervalMinutes]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
 				Field: "watch_interval_minutes",
@@ -207,6 +215,7 @@ func (web *Web) HandleSettings() {
 		appSettings.HideDemoGames = settingsForm.HideDemoGames
 		appSettings.WatchFolders = settingsForm.WatchFolders
 		appSettings.WatchIntervalMinutes = settingsForm.WatchIntervalMinutes
+		appSettings.BackgroundHours = settingsForm.BackgroundHours
 		appSettings.VerifyIntervalDays = settingsForm.VerifyIntervalDays
 		appSettings.ConsoleFirmware = strings.TrimSpace(settingsForm.ConsoleFirmware)
 		appSettings.CheckForUpdates = settingsForm.CheckForUpdates

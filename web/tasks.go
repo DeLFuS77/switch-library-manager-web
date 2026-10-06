@@ -51,9 +51,10 @@ const (
 	NOTE_NOTIFY_FAILED     = "The notification could not be sent."
 	NOTE_ORGANIZE_FAILED   = "The files could not be organized."
 	NOTE_PAUSED_FOR_SCAN   = "Paused for a scan; it continues afterwards."
+	NOTE_PAUSED_FOR_HOURS  = "Paused outside the background hours; it continues when they begin."
 )
 
-var taskNoteTexts = []string{NOTE_INTERRUPTED, NOTE_TITLES_DOWNLOAD, NOTE_TITLES_SAVED_COPY, NOTE_SCAN_FAILED, NOTE_NOTIFY_FAILED, NOTE_ORGANIZE_FAILED, NOTE_PAUSED_FOR_SCAN}
+var taskNoteTexts = []string{NOTE_INTERRUPTED, NOTE_TITLES_DOWNLOAD, NOTE_TITLES_SAVED_COPY, NOTE_SCAN_FAILED, NOTE_NOTIFY_FAILED, NOTE_ORGANIZE_FAILED, NOTE_PAUSED_FOR_SCAN, NOTE_PAUSED_FOR_HOURS}
 
 const (
 	TASKS_FILENAME = "tasks.json"

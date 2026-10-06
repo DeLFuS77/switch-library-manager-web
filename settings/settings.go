@@ -104,6 +104,8 @@ type AppSettings struct {
 	IgnoreFileTypes        []string          `json:"ignore_file_types"`
 	HideDemoGames          bool              `json:"hide_demo_games"`
 	WatchFolders           bool              `json:"watch_folders"`
+	// hours of heavy background work, e.g. "1-7"; empty for any time
+	BackgroundHours string `json:"background_hours"`
 	// how often the folders are checked for changes notifications do not report
 	WatchIntervalMinutes int `json:"watch_interval_minutes"`
 	// automatic compression: "" (off), "new" (when files appear) or "night"

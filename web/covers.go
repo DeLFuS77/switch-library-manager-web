@@ -67,6 +67,11 @@ func (web *Web) downloadMissingCovers() {
 	if switchDB == nil || localDB == nil {
 		return
 	}
+	if !web.backgroundAllowed() {
+		web.waitForBackgroundHours()
+		return
+	}
+	defer web.endForcedCovers()
 
 	// covers cached by an earlier run are shown at once, the others are downloaded
 	ready := map[string]coverUpdate{}
@@ -128,7 +133,7 @@ func (web *Web) downloadMissingCovers() {
 	}
 	db.DownloadCovers(web.dataFolder, urls,
 		// a scan replaces the library: stop, and start again after it
-		func() bool { return web.state.IsSynchronizing() },
+		func() bool { return web.state.IsSynchronizing() || !web.backgroundAllowed() },
 		func(url string) {
 			mutex.Lock()
 			defer mutex.Unlock()
@@ -152,6 +157,14 @@ func (web *Web) downloadMissingCovers() {
 	mutex.Unlock()
 	web.sugarLogger.Infof("[%d covers downloaded]", downloaded)
 	web.taskLog().SetResult(taskId, 0, downloaded)
+	if !web.backgroundAllowed() && !web.state.IsSynchronizing() {
+		// the background hours ended: continue when they begin again
+		web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_HOURS, "")
+		web.taskLog().Finish(taskId, nil)
+		web.waitForBackgroundHours()
+		web.saveCovers(downloaded > 0)
+		return
+	}
 	if web.state.IsSynchronizing() {
 		// continue after the scan that interrupted the downloads
 		web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_SCAN, "")
@@ -213,4 +226,11 @@ func (s *WebState) applyCovers(updates map[string]coverUpdate) {
 	library.TitlesMap = titles
 	s.localDB = &library
 	s.version++
+}
+
+// endForcedCovers ends a run of "Search covers again", which ignores the background hours.
+func (web *Web) endForcedCovers() {
+	web.background.mutex.Lock()
+	web.background.forced = false
+	web.background.mutex.Unlock()
 }

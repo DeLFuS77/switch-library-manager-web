@@ -110,6 +110,7 @@ func (s *WebState) IsSynchronizing() bool {
 type Web struct {
 	state          WebState
 	covers         coverLoader
+	background     backgroundWork
 	thumbs         *thumbnails
 	thumbsOnce     sync.Once
 	store          *db.TitleStore

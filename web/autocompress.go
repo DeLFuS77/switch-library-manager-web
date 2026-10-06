@@ -64,6 +64,10 @@ func (web *Web) autoCompress(trigger string) bool {
 	if keys, _ := settings.SwitchKeys(); keys == nil || keys.GetKey("header_key") == "" {
 		return false
 	}
+	if appSettings.AutoCompress == AUTO_COMPRESS_NEW && !web.backgroundAllowed() {
+		web.waitToCompress()
+		return false
+	}
 	paths := web.autoCompressCandidates()
 	if len(paths) == 0 {
 		return false

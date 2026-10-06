@@ -40,9 +40,10 @@ func (web *Web) StartScheduler() {
 			if web.nightlyCompressDue(now) && !web.state.IsSynchronizing() && web.autoCompress(TRIGGER_SCHEDULE) {
 				web.sugarLogger.Info("[Nightly compression started]")
 			}
-			if verifyDue(appSettings, web.verifications().lastRun(), now) && !web.state.IsSynchronizing() && web.startVerification(true, TRIGGER_SCHEDULE) {
+			if verifyDue(appSettings, web.verifications().lastRun(), now) && inBackgroundHours(appSettings, now) && !web.state.IsSynchronizing() && web.startVerification(true, TRIGGER_SCHEDULE) {
 				web.sugarLogger.Info("[Scheduled verification started]")
 			}
+			web.resumeBackgroundWork(now)
 		}
 	}()
 }
