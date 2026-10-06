@@ -570,11 +570,25 @@ func (web *Web) Start() {
 	}
 	if web.auth.Enabled() {
 		web.sugarLogger.Info("[Authentication enabled]")
+	} else if web.auth.remoteWithoutLogin {
+		web.sugarLogger.Warn("[Authentication disabled] Anyone who can reach the app is an administrator (" + REMOTE_WITHOUT_LOGIN_ENV + "=true). Create an administrator in Users unless another service protects it.")
+	} else {
+		web.sugarLogger.Warn("[Authentication disabled] The app only answers on the local network until an administrator is created in Users.")
 	}
 
 	web.sugarLogger.Info("[SLM started]")
 
-	if err := http.ListenAndServe(fmt.Sprint(":", web.appSettings.Port), withSecurityHeaders(withCompression(withHealthCheck(handler)))); err != nil {
+	// timeouts so slow or idle connections cannot pile up; no write timeout, because game
+	// downloads and the live task events can take long
+	server := &http.Server{
+		Addr:              fmt.Sprint(":", web.appSettings.Port),
+		Handler:           withSecurityHeaders(withBodyLimit(withCompression(withHealthCheck(handler)))),
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       5 * time.Minute,
+		IdleTimeout:       2 * time.Minute,
+		MaxHeaderBytes:    64 << 10,
+	}
+	if err := server.ListenAndServe(); err != nil {
 		web.sugarLogger.Error(fmt.Errorf("running http server failed: %w", err))
 		log.Fatal(err)
 	}

@@ -56,7 +56,7 @@ func ConvertXciToNsp(ctx context.Context, source string, target string, progress
 		}
 	}
 
-	output, err := os.Create(target)
+	output, err := CreateNew(target)
 	if err != nil {
 		return err
 	}

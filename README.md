@@ -205,8 +205,10 @@ nothing else needs to be installed.
 
 ### Users and password protection
 
-Without users, anyone who can open the app has full access. Open **Users** and create an administrator to require a
-login; you are logged in as that administrator right away. Then add more users with one of two roles:
+Without users, anyone on your local network who can open the app has full access, and every page shows a reminder.
+Requests from outside the local network (the internet, also through a reverse proxy) are refused until an
+administrator exists, so an app published by mistake is not open to everyone. Open **Users** and create an
+administrator to require a login; you are logged in as that administrator right away. Then add more users with one of two roles:
 
 | Role | Can |
 |---|---|
@@ -215,11 +217,21 @@ login; you are logged in as that administrator right away. Then add more users w
 
 - Passwords are stored as bcrypt hashes in `users.json` in the data folder. Every user can change their own password
   in **My account**; a new password ends the other sessions of that user.
-- Logins last 30 days. After 10 failed logins an address is blocked for 15 minutes.
+- Logins last 30 days; **Log out** ends the session for good, also on a copied cookie. After 10 failed logins an
+  address is blocked for 15 minutes (behind a reverse proxy, the address of the client that the proxy reports).
 - An administrator can also be set with the environment variables `SLM_AUTH_USERNAME` and `SLM_AUTH_PASSWORD`, which
   is useful when a password was forgotten.
 
-Use HTTPS (for example behind a reverse proxy) when the app can be reached from outside your network.
+- If another service already protects the app (a reverse proxy with its own login, a VPN) and you want no users, set
+  `SLM_ALLOW_REMOTE_WITHOUT_LOGIN=true` so it also answers outside the local network.
+
+Use HTTPS (for example behind a reverse proxy) when the app can be reached from outside your network: the app then
+marks its cookies as secure and tells the browser to keep using HTTPS.
+
+Other protections: other web sites cannot send actions to the app (CSRF), pages cannot be shown inside other sites,
+only the app's own scripts run, request sizes and slow connections are limited, covers are only downloaded from the
+internet (never from addresses of your network) and the settings, users and session files are readable only by the
+app.
 
 ### Notifications
 

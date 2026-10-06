@@ -13,6 +13,8 @@ services:
       - PGID=1000
       - TZ=Europe/Madrid
       # optional password protection, set both to enable it
+      # Without users the app only answers on the local network; create an administrator in Users,
+      # or set one here:
       # - SLM_AUTH_USERNAME=admin
       # - SLM_AUTH_PASSWORD=choose-a-password
     volumes:

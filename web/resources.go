@@ -10,20 +10,37 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
+// filesOnly serves files but not the lists of the folders.
+type filesOnly struct {
+	fs.FS
+}
+
+func (f filesOnly) Open(name string) (fs.File, error) {
+	file, err := f.FS.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	if info, err := file.Stat(); err != nil || info.IsDir() {
+		file.Close()
+		return nil, fs.ErrNotExist
+	}
+	return file, nil
+}
+
 func (web *Web) HandleResources() {
 	fSys, err := fs.Sub(web.embedFS, "resources/static")
 	if err != nil {
 		web.sugarLogger.Error(fmt.Errorf("getting static files failed: %w", err))
 		log.Fatal(err)
 	}
-	http.Handle("/resources/static/", http.StripPrefix("/resources/static/", http.FileServer(http.FS(fSys))))
+	http.Handle("/resources/static/", http.StripPrefix("/resources/static/", http.FileServer(http.FS(filesOnly{fSys}))))
 
 	fSys, err = fs.Sub(web.embedFS, "node_modules")
 	if err != nil {
 		web.sugarLogger.Error(fmt.Errorf("getting vendor files failed: %w", err))
 		log.Fatal(err)
 	}
-	http.Handle("/resources/vendor/", http.StripPrefix("/resources/vendor/", http.FileServer(http.FS(fSys))))
+	http.Handle("/resources/vendor/", http.StripPrefix("/resources/vendor/", http.FileServer(http.FS(filesOnly{fSys}))))
 
 	// the service worker is served from the root so it can handle every page; its cache
 	// is named after the version, so a new version replaces the cached files

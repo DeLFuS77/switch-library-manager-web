@@ -66,7 +66,10 @@ type UserStore struct {
 
 // a hash compared when the user does not exist, so the response time does not tell
 // whether a name exists
-var dummyHash, _ = bcrypt.GenerateFromPassword([]byte("not a real password"), bcrypt.DefaultCost)
+// the cost of the password hashes: a guess takes a quarter of a second
+const passwordCost = 12
+
+var dummyHash, _ = bcrypt.GenerateFromPassword([]byte("not a real password"), passwordCost)
 
 func loadUserStore(dataFolder string, reservedName string) (*UserStore, error) {
 	store := &UserStore{path: filepath.Join(dataFolder, USERS_FILENAME), users: map[string]*User{}, reservedName: reservedName}
@@ -141,6 +144,11 @@ func (s *UserStore) Verify(name string, password string) (User, bool) {
 }
 
 func (s *UserStore) Add(name string, password string, role string) error {
+	return s.add(name, password, role, false)
+}
+
+// add creates a user; onlyFirst refuses it when a user exists already.
+func (s *UserStore) add(name string, password string, role string, onlyFirst bool) error {
 	if !validUserName.MatchString(name) {
 		return ErrUserName
 	}
@@ -156,6 +164,9 @@ func (s *UserStore) Add(name string, password string, role string) error {
 	defer s.mutex.Unlock()
 	key := strings.ToLower(name)
 	if _, exists := s.users[key]; exists || (s.reservedName != "" && strings.EqualFold(name, s.reservedName)) {
+		return ErrUserExists
+	}
+	if onlyFirst && len(s.users) > 0 {
 		return ErrUserExists
 	}
 	s.users[key] = &User{Name: name, Role: role, PasswordHash: hash, Created: time.Now()}
@@ -255,7 +266,7 @@ func hashPassword(password string) (string, error) {
 	if len(password) < minPasswordLength || len(password) > maxPasswordLength {
 		return "", ErrPasswordLength
 	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), passwordCost)
 	if err != nil {
 		return "", err
 	}

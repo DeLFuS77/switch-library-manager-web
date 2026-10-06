@@ -46,4 +46,5 @@
   <Config Name="Time zone" Target="TZ" Default="Europe/Madrid" Mode="" Description="Time zone for dates and scheduled synchronizations." Type="Variable" Display="advanced" Required="false" Mask="false">Europe/Madrid</Config>
   <Config Name="Admin user" Target="SLM_AUTH_USERNAME" Default="" Mode="" Description="Optional: an administrator, with the password below. Users can also be created in the app." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
   <Config Name="Admin password" Target="SLM_AUTH_PASSWORD" Default="" Mode="" Description="Optional: password of the administrator above." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
+  <Config Name="Allow remote access without login" Target="SLM_ALLOW_REMOTE_WITHOUT_LOGIN" Default="" Mode="" Description="Optional: set to true only if another service (a proxy with its own login, a VPN) protects the app. Without users, the app otherwise only answers on the local network." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
 </Container>

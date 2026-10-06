@@ -3,6 +3,9 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Login is off.": "로그인이 꺼져 있습니다.",
+		"Anyone on your network can change or delete your library. Create an administrator to protect the app, above all if it can be reached from the internet.": "네트워크의 누구나 라이브러리를 변경하거나 삭제할 수 있습니다. 특히 인터넷에서 접속할 수 있다면 관리자를 만들어 앱을 보호하세요.",
+		"Create an administrator": "관리자 만들기",
 		"%v times in a row, the last one shown": "%v회 연속, 마지막 항목 표시",
 		"Next for you": "다음 추천작",
 		"Next release": "다음 출시작",

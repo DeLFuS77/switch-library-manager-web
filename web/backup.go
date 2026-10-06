@@ -125,6 +125,10 @@ func (web *Web) restoreBackup(data []byte) error {
 		if len(users) > 0 && !hasAdmin {
 			return ErrBackupAdmin
 		}
+		// a backup made before the login was enabled does not disable it
+		if len(users) == 0 && web.auth != nil && web.auth.users.Count() > 0 {
+			delete(files, USERS_FILENAME)
+		}
 	}
 
 	for _, name := range backupFiles {
@@ -132,8 +136,9 @@ func (web *Web) restoreBackup(data []byte) error {
 		if !ok {
 			continue
 		}
+		// the settings hold notification tokens, the users their password hashes
 		mode := os.FileMode(0644)
-		if name == USERS_FILENAME {
+		if name == USERS_FILENAME || name == settings.SETTINGS_FILENAME {
 			mode = 0600
 		}
 		path := filepath.Join(web.dataFolder, name)
@@ -153,6 +158,7 @@ func (web *Web) restoreBackup(data []byte) error {
 		if err := web.auth.users.reload(); err != nil {
 			return err
 		}
+		web.auth.forget()
 	}
 	if _, ok := files[VERIFY_FILENAME]; ok {
 		web.verifications().reload()

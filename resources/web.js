@@ -1363,6 +1363,27 @@ document.addEventListener('DOMContentLoaded', () => {
 		input.addEventListener('change', () => input.form && input.form.submit());
 	});
 
+	// notices that stay closed once closed (for a week, so they are not forgotten for good)
+	document.querySelectorAll('[data-remember-close]').forEach(notice => {
+		const key = notice.dataset.rememberClose;
+		let closed = 0;
+		try {
+			closed = Number(localStorage.getItem(key) || 0);
+		} catch (e) {
+			// not remembered
+		}
+		if (Date.now() - closed > 7 * 24 * 3600 * 1000) {
+			notice.hidden = false;
+		}
+		notice.addEventListener('closed.bs.alert', () => {
+			try {
+				localStorage.setItem(key, String(Date.now()));
+			} catch (e) {
+				// not remembered
+			}
+		});
+	});
+
 	const updateNotice = document.querySelector('[data-update-version]');
 	if (updateNotice) {
 		const key = 'slm-update-dismissed';

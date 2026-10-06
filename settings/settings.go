@@ -181,13 +181,14 @@ func verifySettings(dataFolder string, settings *AppSettings) *AppSettings {
 	settings.VersionsJsonUrl = movedRepositoryUrl(settings.VersionsJsonUrl)
 	settings.LocalizedTitlesJsonUrl = movedRepositoryUrl(settings.LocalizedTitlesJsonUrl)
 
-	if settings.TitlesJsonUrl == "" {
+	// the databases are only downloaded over https (a restored backup could name any address)
+	if !strings.HasPrefix(settings.TitlesJsonUrl, "https://") {
 		settings.TitlesJsonUrl = DEFAULT_TITLES_JSON_URL
 	}
-	if settings.VersionsJsonUrl == "" {
+	if !strings.HasPrefix(settings.VersionsJsonUrl, "https://") {
 		settings.VersionsJsonUrl = DEFAULT_VERSIONS_JSON_URL
 	}
-	if settings.LocalizedTitlesJsonUrl == "" {
+	if !strings.HasPrefix(settings.LocalizedTitlesJsonUrl, "https://") {
 		settings.LocalizedTitlesJsonUrl = DEFAULT_LOCALIZED_TITLES_JSON_URL
 	}
 	if settings.OrganizeOptions.FolderNameTemplate == "" {
@@ -331,9 +332,13 @@ func changesLists(before *AppSettings, after *AppSettings) bool {
 
 func SaveSettings(settings *AppSettings, dataFolder string) *AppSettings {
 	file, _ := json.MarshalIndent(settings, "", " ")
-	if err := os.WriteFile(filepath.Join(dataFolder, SETTINGS_FILENAME), file, 0644); err != nil {
+	// the settings hold notification tokens: only the app reads them
+	path := filepath.Join(dataFolder, SETTINGS_FILENAME)
+	if err := os.WriteFile(path, file, 0600); err != nil {
 		zap.S().Errorf("Failed to save settings - %v", err)
 	}
+	// a file written by an older version keeps its permissions otherwise
+	os.Chmod(path, 0600)
 	previous := settingsInstance.Swap(settings)
 	if previous == nil || changesLists(previous, settings) {
 		version.Add(1)

@@ -28,6 +28,8 @@ const (
 	// failed logins allowed per address within the window, before it is blocked for the window
 	maxLoginFailures = 10
 	loginWindow      = 15 * time.Minute
+	// addresses remembered by the login limiter at most, so many addresses cannot fill memory
+	maxLimiterEntries = 10000
 
 	// successful basic authentication is remembered, so API clients do not pay for bcrypt
 	// on every request
@@ -73,6 +75,10 @@ type Auth struct {
 	secret      []byte
 	limiter     *loginLimiter
 	basicCache  sync.Map // sha256 of name and password -> expiry
+	// sessions ended with Log out before they expire
+	revoked *revokedSessions
+	// login disabled: requests from outside the local network are refused, unless allowed
+	remoteWithoutLogin bool
 }
 
 func newAuth(dataFolder string) (*Auth, error) {
@@ -91,7 +97,8 @@ func newAuth(dataFolder string) (*Auth, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Auth{users: users, envUser: envUser, envPassword: envPassword, secret: secret, limiter: newLoginLimiter()}, nil
+	return &Auth{users: users, envUser: envUser, envPassword: envPassword, secret: secret, limiter: newLoginLimiter(),
+		revoked: loadRevokedSessions(dataFolder), remoteWithoutLogin: os.Getenv(REMOTE_WITHOUT_LOGIN_ENV) == "true"}, nil
 }
 
 // loadSessionSecret reads the key that signs the session cookies, creating it on first use.
@@ -163,6 +170,18 @@ func (a *Auth) sessionCookie(r *http.Request, name string) *http.Cookie {
 	return &http.Cookie{Name: SESSION_COOKIE, Value: value, Path: "/", Expires: expiry, HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: isHttps(r)}
 }
 
+// endSession makes the session cookie of the request invalid, also if it was copied elsewhere.
+func (a *Auth) endSession(r *http.Request) {
+	cookie, err := r.Cookie(SESSION_COOKIE)
+	if err != nil || a.fromSession(r) == nil {
+		return
+	}
+	parts := strings.Split(cookie.Value, ".")
+	if expiry, err := strconv.ParseInt(parts[1], 10, 64); err == nil {
+		a.revoked.add(parts[2], expiry)
+	}
+}
+
 func clearSessionCookie(r *http.Request) *http.Cookie {
 	return &http.Cookie{Name: SESSION_COOKIE, Value: "", Path: "/", MaxAge: -1, HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: isHttps(r)}
 }
@@ -194,6 +213,9 @@ func (a *Auth) fromSession(r *http.Request) *Principal {
 		return nil
 	}
 	if !hmac.Equal([]byte(parts[2]), []byte(a.sign(string(nameBytes), expiry, tag))) {
+		return nil
+	}
+	if a.revoked.has(parts[2]) {
 		return nil
 	}
 	return principal
@@ -234,7 +256,8 @@ func isPublicPath(path string) bool {
 }
 
 // pages and actions of administrators; read-only users can only look and download
-var adminOnlyPages = map[string]struct{}{"/settings.html": {}, "/organize.html": {}, "/users.html": {}, "/compress.html": {}, "/space.html": {}, "/update.html": {}, "/backup/download": {}}
+var adminOnlyPages = map[string]struct{}{"/settings.html": {}, "/organize.html": {}, "/users.html": {}, "/compress.html": {}, "/space.html": {}, "/update.html": {}, "/backup/download": {},
+	"/compress/xci-list": {}, "/compress/nsz-list": {}}
 
 func viewerAllowed(r *http.Request) bool {
 	switch r.Method {
@@ -242,7 +265,8 @@ func viewerAllowed(r *http.Request) bool {
 		_, adminOnly := adminOnlyPages[r.URL.Path]
 		return !adminOnly
 	case http.MethodPost:
-		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/logout"
+		// the list of files of the SD card planner is a download, as the pages are
+		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt"
 	}
 	return false
 }
@@ -255,6 +279,12 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 		case isPublicPath(r.URL.Path):
 			principal = a.fromSession(r)
 		case !a.Enabled():
+			// without login everybody is an administrator: only on the local network, so an app
+			// published on the internet before an administrator is created is not open to anyone
+			if !a.remoteWithoutLogin && !isLocalRequest(r) {
+				http.Error(w, remoteWithoutLoginMessage, http.StatusForbidden)
+				return
+			}
 			principal = &Principal{Role: ROLE_ADMIN}
 		default:
 			principal = a.fromSession(r)
@@ -302,19 +332,104 @@ func (a *Auth) unauthorized(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "unauthorized", http.StatusUnauthorized)
 }
 
-// safeNext keeps redirects after login on this site.
+// safeNext keeps redirects after login on this site: a path of it, without control characters
+// or backslashes that browsers would turn into a link to another site.
 func safeNext(next string) string {
-	if !strings.HasPrefix(next, "/") || strings.HasPrefix(next, "//") || strings.HasPrefix(next, "/\\") || strings.HasPrefix(next, "/login.html") {
-		return "/index.html"
+	const home = "/index.html"
+	for _, c := range next {
+		if c < 0x20 || c == 0x7f || c == '\\' {
+			return home
+		}
 	}
-	return next
+	u, err := url.Parse(next)
+	if err != nil || u.Scheme != "" || u.Host != "" || u.User != nil || !strings.HasPrefix(u.Path, "/") || strings.HasPrefix(u.Path, "//") || strings.HasPrefix(u.Path, "/login.html") {
+		return home
+	}
+	return u.RequestURI()
 }
 
-func clientIp(r *http.Request) string {
-	// the remote address only: forwarded headers can be forged
+const (
+	// set to "true" when another service (a proxy with its own login, a VPN) protects the app:
+	// without users it then also answers outside the local network
+	REMOTE_WITHOUT_LOGIN_ENV  = "SLM_ALLOW_REMOTE_WITHOUT_LOGIN"
+	remoteWithoutLoginMessage = "Login is disabled, so this app only answers on the local network. Create an administrator in Users from your local network, or set SLM_AUTH_USERNAME and SLM_AUTH_PASSWORD. If another service already protects the app, set " + REMOTE_WITHOUT_LOGIN_ENV + "=true."
+)
+
+// remoteHost is the address the request comes from.
+func remoteHost(r *http.Request) string {
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return r.RemoteAddr
+	}
+	return host
+}
+
+// isLocalAddress reports whether an address is of this computer or of a private network.
+func isLocalAddress(address string) bool {
+	ip := net.ParseIP(strings.Trim(strings.TrimSpace(address), "[]"))
+	return ip != nil && (ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() || sharedAddressSpace.Contains(ip))
+}
+
+// 100.64.0.0/10: carrier-grade NAT and VPNs such as Tailscale, never seen as a client address
+// coming from the internet
+var _, sharedAddressSpace, _ = net.ParseCIDR("100.64.0.0/10")
+
+// forwardedAddresses are the client addresses that reverse proxies report.
+func forwardedAddresses(r *http.Request) []string {
+	addresses := []string{}
+	for _, value := range r.Header.Values("X-Forwarded-For") {
+		for _, part := range strings.Split(value, ",") {
+			addresses = append(addresses, strings.TrimSpace(part))
+		}
+	}
+	if real := strings.TrimSpace(r.Header.Get("X-Real-Ip")); real != "" {
+		addresses = append(addresses, real)
+	}
+	for _, value := range r.Header.Values("Forwarded") {
+		for _, element := range strings.Split(value, ",") {
+			for _, pair := range strings.Split(element, ";") {
+				if key, value, ok := strings.Cut(strings.TrimSpace(pair), "="); ok && strings.EqualFold(key, "for") {
+					value = strings.Trim(value, `"`)
+					if host, _, err := net.SplitHostPort(value); err == nil {
+						value = host
+					}
+					addresses = append(addresses, value)
+				}
+			}
+		}
+	}
+	return addresses
+}
+
+// isLocalRequest reports whether a request comes from the local network: from a local address
+// and, through a reverse proxy, without any address outside it among the forwarded ones (a
+// client can add addresses, but not remove the one its proxy adds).
+func isLocalRequest(r *http.Request) bool {
+	if !isLocalAddress(remoteHost(r)) {
+		return false
+	}
+	for _, address := range forwardedAddresses(r) {
+		if address != "" && !isLocalAddress(address) {
+			return false
+		}
+	}
+	return true
+}
+
+// clientIp is the address of the client, for the login limiter. Behind a reverse proxy on the
+// local network it is the last address outside the local network that the proxy reports, so
+// the clients do not all share the address of the proxy; forwarded addresses are ignored when
+// the request does not come from the local network, so they cannot be forged from outside.
+func clientIp(r *http.Request) string {
+	host := remoteHost(r)
+	if !isLocalAddress(host) {
+		return host
+	}
+	addresses := forwardedAddresses(r)
+	for i := len(addresses) - 1; i >= 0; i-- {
+		if address := addresses[i]; address != "" && !isLocalAddress(address) {
+			return strings.Trim(address, "[]")
+		}
 	}
 	return host
 }
@@ -329,6 +444,7 @@ func (web *Web) authInfo(r *http.Request) AuthInfo {
 type loginLimiter struct {
 	mutex    sync.Mutex
 	failures map[string]*loginFailures
+	pruned   time.Time
 }
 
 type loginFailures struct {
@@ -370,11 +486,24 @@ func (l *loginLimiter) fail(ip string) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	now := time.Now()
-	// forget old entries, so the map does not grow forever
-	for key, entry := range l.failures {
-		if now.Sub(entry.first) > loginWindow {
-			delete(l.failures, key)
+	// forget old entries now and then, so the map does not grow forever
+	if now.Sub(l.pruned) > time.Minute || len(l.failures) >= maxLimiterEntries {
+		l.pruned = now
+		for key, entry := range l.failures {
+			if now.Sub(entry.first) > loginWindow {
+				delete(l.failures, key)
+			}
 		}
+	}
+	if _, ok := l.failures[ip]; !ok && len(l.failures) >= maxLimiterEntries {
+		// too many addresses failing at once: the oldest is forgotten
+		oldest := ""
+		for key, entry := range l.failures {
+			if oldest == "" || entry.first.Before(l.failures[oldest].first) {
+				oldest = key
+			}
+		}
+		delete(l.failures, oldest)
 	}
 	entry, ok := l.failures[ip]
 	if !ok {

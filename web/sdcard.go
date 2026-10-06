@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
 // The SD card planner proposes the games of the library to put on a card of a size: the
@@ -438,7 +439,7 @@ func copyFileTo(ctx context.Context, source string, target string, progress func
 	}
 	defer input.Close()
 	temporary := target + ".part"
-	output, err := os.Create(temporary)
+	output, err := switchfs.CreateNew(temporary)
 	if err != nil {
 		return err
 	}
