@@ -47,6 +47,7 @@ Linux, Docker, NAS and Raspberry Pi.
 - Scans your folders (NSP, NSZ, XCI, XCZ and split files) and rescans by itself when files change
 - An overview of your games, missing updates and DLC, and the space they use
 - Missing updates (for games and DLC), missing DLC and missing games, with filters and search
+- Library filters by status, format, region, games or demos, and games without a cover
 - A wishlist of games you do not have yet, with a notification when they come out
 - Game pages with description, screenshots, versions, DLC and downloads (a whole game as one ZIP)
 - Statistics with charts, and an export of the library as CSV, JSON or a web page to share

@@ -79,7 +79,8 @@ jobs:
                   raise SystemExit(f"Missing or empty generated file: {path}")
               with path.open(encoding="utf-8") as source:
                   payload = json.load(source)
-              if not isinstance(payload, dict) or not payload:
+              # NUT already fills most missing covers from other stores, so the fallbacks may be empty
+              if not isinstance(payload, dict) or (not payload and filename != "titles.covers.json"):
                   raise SystemExit(f"Expected a non-empty JSON object: {path}")
           PY
 
