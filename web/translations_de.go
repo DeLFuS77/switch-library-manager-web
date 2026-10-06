@@ -3,6 +3,13 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"New, removed or replaced files are detected right away in local folders, and at the interval below in network folders and on NAS shares.": "Neue, gelöschte oder ersetzte Dateien werden in lokalen Ordnern sofort erkannt, in Netzwerkordnern und auf einem NAS im unten gewählten Abstand.",
+		"Check the folders every": "Ordner prüfen alle",
+		"2 minutes":               "2 Minuten",
+		"10 minutes":              "10 Minuten",
+		"30 minutes":              "30 Minuten",
+		"1 hour":                  "1 Stunde",
+		"Only folders that changed are read again. A longer interval lets the disks of a NAS sleep.":              "Nur geänderte Ordner werden neu gelesen. Ein längerer Abstand lässt die Festplatten eines NAS schlafen.",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v Dateien können erst gelöscht werden, wenn die behaltenen Kopien geprüft sind. Nur diese Kopien werden geprüft.",
 		"Verify the copy that is kept first.":                      "Prüfe zuerst die Kopie, die behalten wird.",
 		"The copy that is kept is damaged: keep this one.":         "Die behaltene Kopie ist beschädigt: behalte diese.",
@@ -279,8 +286,7 @@ func init() {
 		"Names, covers, updates and DLC of every game come from it. It is downloaded on the first start; if it failed, try again.": "Namen, Cover, Updates und DLC aller Spiele stammen daraus. Sie wird beim ersten Start heruntergeladen; falls das fehlgeschlagen ist, versuche es erneut.",
 		"Needs %v": "Benötigt %v",
 		"New and changed files are checked for damage; the results appear in Issues.": "Neue und geänderte Dateien werden auf Beschädigungen geprüft; die Ergebnisse erscheinen unter Probleme.",
-		"New password": "Neues Passwort",
-		"New, removed or replaced files are detected right away in local folders, and every two minutes in network folders.": "Neue, entfernte oder ersetzte Dateien werden in lokalen Ordnern sofort erkannt, in Netzwerkordnern alle zwei Minuten.",
+		"New password":                   "Neues Passwort",
 		"Next":                           "Weiter",
 		"No DLC missing":                 "Keine DLC fehlen",
 		"No game matches these filters.": "Kein Spiel entspricht diesen Filtern.",

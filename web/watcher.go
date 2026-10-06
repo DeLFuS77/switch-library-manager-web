@@ -1,11 +1,7 @@
 package web
 
 import (
-	"hash/fnv"
-	"io/fs"
 	"os"
-	"path/filepath"
-	"strconv"
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -33,50 +29,33 @@ func scanFolders(s *settings.AppSettings) []string {
 }
 
 // folderFingerprint summarizes the paths, sizes and modification times of every file in
-// the folders. It changes when a file is added, removed, renamed or rewritten. The hashes
-// of the files are combined in a way that does not depend on their order, so no list of
-// the files is kept or sorted, however big the library is.
+// the folders. It changes when a file is added, removed, renamed or rewritten.
 func folderFingerprint(folders []string) uint64 {
-	var sum, xor uint64
-	count := uint64(0)
-	hash := fnv.New64a()
-	for _, folder := range folders {
-		filepath.WalkDir(folder, func(path string, d fs.DirEntry, err error) error {
-			if err != nil || d.IsDir() {
-				// unreadable folders are skipped, like the scan does
-				return nil
-			}
-			info, err := d.Info()
-			if err != nil {
-				return nil
-			}
-			hash.Reset()
-			hash.Write([]byte(path))
-			hash.Write([]byte{0})
-			hash.Write([]byte(strconv.FormatInt(info.Size(), 10)))
-			hash.Write([]byte{0})
-			hash.Write([]byte(strconv.FormatInt(info.ModTime().UnixNano(), 10)))
-			entry := hash.Sum64()
-			// mix the bits, so files with similar hashes do not cancel out
-			entry ^= entry >> 33
-			entry *= 0xff51afd7ed558ccd
-			entry ^= entry >> 33
-			sum += entry
-			xor ^= entry
-			count++
-			return nil
-		})
-	}
-	return sum ^ (xor * 0x9e3779b97f4a7c15) ^ count
+	fingerprint, _ := newDirTree().refresh(folders)
+	return fingerprint
 }
+
+// watchInterval is how often the folders are checked, from the settings.
+func watchInterval(s *settings.AppSettings) time.Duration {
+	if _, ok := allowedWatchIntervals[s.WatchIntervalMinutes]; ok && s.WatchIntervalMinutes > 0 {
+		return time.Duration(s.WatchIntervalMinutes) * time.Minute
+	}
+	return watchPollInterval
+}
+
+// allowed values of watch_interval_minutes
+var allowedWatchIntervals = map[int]struct{}{0: {}, 2: {}, 10: {}, 30: {}, 60: {}}
 
 // folderWatcher rescans the library when the files in the library folders change.
 type folderWatcher struct {
 	web       *Web
+	tree      *dirTree
 	notify    *fsnotify.Watcher
 	watched   map[string]struct{}
 	scanned   uint64
 	lastCheck uint64
+	// the folders found by the last check
+	dirs []string
 }
 
 // StartFolderWatcher watches the library folders and rescans the library when files are
@@ -89,17 +68,25 @@ func (web *Web) StartFolderWatcher() {
 		web.sugarLogger.Warnf("File change notifications are not available, the folders are checked every %v - %v", watchPollInterval, err)
 	}
 
-	w := &folderWatcher{web: web, notify: notify, watched: map[string]struct{}{}}
+	w := &folderWatcher{web: web, tree: newDirTree(), notify: notify, watched: map[string]struct{}{}}
 	// the library may come from the cache of the previous run: files changed while the app
 	// was stopped are picked up by the first check, as nothing counts as scanned yet
-	w.lastCheck = folderFingerprint(scanFolders(settings.ReadSettings(web.dataFolder)))
+	w.lastCheck = w.fingerprint()
 	w.updateWatches()
 
 	go w.run()
 }
 
+// fingerprint checks the library folders (see dirTree) and returns their fingerprint.
+func (w *folderWatcher) fingerprint() uint64 {
+	fingerprint, dirs := w.tree.refresh(scanFolders(settings.ReadSettings(w.web.dataFolder)))
+	w.dirs = dirs
+	return fingerprint
+}
+
 func (w *folderWatcher) run() {
-	ticker := time.NewTicker(watchPollInterval)
+	interval := watchInterval(settings.ReadSettings(w.web.dataFolder))
+	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	quiet := time.NewTimer(time.Hour)
@@ -135,8 +122,13 @@ func (w *folderWatcher) run() {
 		case <-quiet.C:
 			w.checkStable()
 		case <-ticker.C:
-			w.updateWatches()
+			// the interval can be changed in the settings
+			if wanted := watchInterval(settings.ReadSettings(w.web.dataFolder)); wanted != interval {
+				interval = wanted
+				ticker.Reset(interval)
+			}
 			w.checkPolled()
+			w.updateWatches()
 		}
 	}
 }
@@ -146,10 +138,9 @@ func (w *folderWatcher) checkStable() {
 	if !w.enabled() {
 		return
 	}
-	folders := scanFolders(settings.ReadSettings(w.web.dataFolder))
-	first := folderFingerprint(folders)
+	first := w.fingerprint()
 	time.Sleep(watchStableDelay)
-	second := folderFingerprint(folders)
+	second := w.fingerprint()
 	w.lastCheck = second
 	if first == second {
 		w.scanIfChanged(second)
@@ -162,7 +153,7 @@ func (w *folderWatcher) checkPolled() {
 	if !w.enabled() {
 		return
 	}
-	current := folderFingerprint(scanFolders(settings.ReadSettings(w.web.dataFolder)))
+	current := w.fingerprint()
 	previous := w.lastCheck
 	w.lastCheck = current
 	if current == previous {
@@ -192,15 +183,11 @@ func (w *folderWatcher) updateWatches() {
 		return
 	}
 
+	// the folders found by the last check; walking them again would read every folder
 	wanted := map[string]struct{}{}
 	if w.enabled() {
-		for _, folder := range scanFolders(settings.ReadSettings(w.web.dataFolder)) {
-			filepath.WalkDir(folder, func(path string, d fs.DirEntry, err error) error {
-				if err == nil && d.IsDir() {
-					wanted[path] = struct{}{}
-				}
-				return nil
-			})
+		for _, dir := range w.dirs {
+			wanted[dir] = struct{}{}
 		}
 	}
 

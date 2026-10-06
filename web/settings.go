@@ -25,6 +25,7 @@ type SettingsForm struct {
 	IgnoreFileTypes      string `in:"form=ignore_file_types"`
 	HideDemoGames        bool   `in:"form=hide_demo_games"`
 	WatchFolders         bool   `in:"form=watch_folders"`
+	WatchIntervalMinutes int    `in:"form=watch_interval_minutes"`
 	VerifyIntervalDays   int    `in:"form=verify_interval_days"`
 	ConsoleFirmware      string `in:"form=console_firmware"`
 	CheckForUpdates      bool   `in:"form=check_for_updates"`
@@ -166,6 +167,13 @@ func (web *Web) HandleSettings() {
 			})
 		}
 
+		if _, ok := allowedWatchIntervals[settingsForm.WatchIntervalMinutes]; !ok {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
+				Field: "watch_interval_minutes",
+				Message: translate(lang, "Unknown option"),
+			})
+		}
+
 		if _, ok := allowedVerifyIntervals[settingsForm.VerifyIntervalDays]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
 				Field: "verify_interval_days",
@@ -195,6 +203,7 @@ func (web *Web) HandleSettings() {
 		appSettings.IgnoreFileTypes = SplitAndTrimSpaceArray(strings.ReplaceAll(settingsForm.IgnoreFileTypes, ",", " "), " ")
 		appSettings.HideDemoGames = settingsForm.HideDemoGames
 		appSettings.WatchFolders = settingsForm.WatchFolders
+		appSettings.WatchIntervalMinutes = settingsForm.WatchIntervalMinutes
 		appSettings.VerifyIntervalDays = settingsForm.VerifyIntervalDays
 		appSettings.ConsoleFirmware = strings.TrimSpace(settingsForm.ConsoleFirmware)
 		appSettings.CheckForUpdates = settingsForm.CheckForUpdates

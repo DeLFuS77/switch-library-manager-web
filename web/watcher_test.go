@@ -61,3 +61,39 @@ func TestFolderFingerprintIgnoresMissingFolders(t *testing.T) {
 		t.Fatal("a missing folder must count as empty")
 	}
 }
+
+func TestOnlyChangedFoldersAreReadAgain(t *testing.T) {
+	root := t.TempDir()
+	old := time.Now().Add(-time.Hour)
+	for i := 0; i < 20; i++ {
+		dir := filepath.Join(root, "game "+string(rune('a'+i)))
+		os.MkdirAll(dir, 0755)
+		file := filepath.Join(dir, "game.nsz")
+		os.WriteFile(file, []byte("data"), 0644)
+		os.Chtimes(file, old, old)
+		os.Chtimes(dir, old, old)
+	}
+	os.Chtimes(root, old, old)
+
+	tree := newDirTree()
+	first, dirs := tree.refresh([]string{root})
+	if tree.lastRead != 21 || len(dirs) != 21 {
+		t.Fatalf("the first check reads every folder: %d read, %d found", tree.lastRead, len(dirs))
+	}
+	if again, _ := tree.refresh([]string{root}); again != first || tree.lastRead != 0 {
+		t.Fatalf("an unchanged library is not read again: %d folders read", tree.lastRead)
+	}
+
+	// a new file is noticed by reading only its folder
+	added := filepath.Join(root, "game c", "update.nsp")
+	os.WriteFile(added, []byte("new"), 0644)
+	changed, _ := tree.refresh([]string{root})
+	if changed == first || tree.lastRead != 1 {
+		t.Fatalf("one folder changed: fingerprint changed %v, %d folders read", changed != first, tree.lastRead)
+	}
+	// while it is recent, the folder is read again, so a file being copied is seen growing
+	os.WriteFile(added, []byte("new and bigger"), 0644)
+	if grown, _ := tree.refresh([]string{root}); grown == changed {
+		t.Fatal("a file growing in a recently changed folder must change the fingerprint")
+	}
+}

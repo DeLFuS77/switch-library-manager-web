@@ -3,6 +3,13 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"New, removed or replaced files are detected right away in local folders, and at the interval below in network folders and on NAS shares.": "I file nuovi, eliminati o sostituiti vengono rilevati subito nelle cartelle locali, e all'intervallo qui sotto nelle cartelle di rete e su un NAS.",
+		"Check the folders every": "Controlla le cartelle ogni",
+		"2 minutes":               "2 minuti",
+		"10 minutes":              "10 minuti",
+		"30 minutes":              "30 minuti",
+		"1 hour":                  "1 ora",
+		"Only folders that changed are read again. A longer interval lets the disks of a NAS sleep.":              "Vengono rilette solo le cartelle cambiate. Un intervallo più lungo lascia dormire i dischi di un NAS.",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v file si possono eliminare solo quando le copie conservate sono verificate. Vengono controllate solo quelle copie.",
 		"Verify the copy that is kept first.":                      "Verifica prima la copia che viene conservata.",
 		"The copy that is kept is damaged: keep this one.":         "La copia conservata è danneggiata: tieni questa.",
@@ -279,8 +286,7 @@ func init() {
 		"Names, covers, updates and DLC of every game come from it. It is downloaded on the first start; if it failed, try again.": "Nomi, copertine, aggiornamenti e DLC di ogni gioco provengono da qui. Viene scaricato al primo avvio; se non è riuscito, riprova.",
 		"Needs %v": "Richiede %v",
 		"New and changed files are checked for damage; the results appear in Issues.": "I file nuovi e modificati vengono controllati per rilevare eventuali danni; i risultati compaiono in Problemi.",
-		"New password": "Nuova password",
-		"New, removed or replaced files are detected right away in local folders, and every two minutes in network folders.": "I file nuovi, rimossi o sostituiti vengono rilevati subito nelle cartelle locali e ogni due minuti nelle cartelle di rete.",
+		"New password":                   "Nuova password",
 		"Next":                           "Avanti",
 		"No DLC missing":                 "Nessun DLC mancante",
 		"No game matches these filters.": "Nessun gioco corrisponde a questi filtri.",

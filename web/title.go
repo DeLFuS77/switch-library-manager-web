@@ -126,10 +126,11 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		detail.Id = strings.ToUpper(title.Attributes.Id)
 		detail.Publisher = title.Attributes.Publisher
 		detail.Region = title.Attributes.Region
-		detail.Description = strings.TrimSpace(title.Attributes.Description)
+		details := web.titleDetails(title, lang)
+		detail.Description = strings.TrimSpace(details.Description)
 		detail.ImageUrl = title.Attributes.IconUrl
 		detail.BannerUrl = title.Attributes.BannerUrl
-		detail.Screenshots = title.Attributes.Screenshots
+		detail.Screenshots = details.Screenshots
 		if release, err := intToTime(title.Attributes.ReleaseDate); err == nil {
 			detail.ReleaseDate = release
 		}

@@ -112,6 +112,8 @@ type Web struct {
 	covers         coverLoader
 	thumbs         *thumbnails
 	thumbsOnce     sync.Once
+	store          *db.TitleStore
+	storeOnce      sync.Once
 	remote         *remoteCovers
 	remoteOnce     sync.Once
 	languages      titleLanguages
@@ -499,7 +501,9 @@ func (web *Web) loadSavedTitles() *db.SwitchTitlesDB {
 	}
 	defer versionsFile.Close()
 
-	switchDB, err := db.CreateSwitchTitleDB(titleFile, versionsFile)
+	titleFile.Close()
+	versionsFile.Close()
+	switchDB, err := web.readTitles()
 	if err != nil {
 		web.sugarLogger.Errorf("Failed to read cached titles, please synchronize - %v", err)
 		return nil
@@ -576,7 +580,9 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 	}
 
 	web.UpdateProgress(2, 4, "Processing titles and updates...")
-	switchTitleDB, err := db.CreateSwitchTitleDB(titles.File, versions.File)
+	titles.File.Close()
+	versions.File.Close()
+	switchTitleDB, err := web.readTitles()
 	if err == nil {
 		switchTitleDB.Localized = web.loadLocalizedTitles(true)
 	}
@@ -644,8 +650,8 @@ func (web *Web) loadTitleLanguage(lang string, download bool) (map[string]db.Loc
 		return nil, false
 	}
 
-	titles, err := db.LoadLocalizedTitles(file)
 	file.Close()
+	titles, err := web.readLocalizedTitles(lang, filePath)
 	if err != nil {
 		web.sugarLogger.Warnf("Failed to read titles in %v: %v", lang, err)
 		return nil, false
