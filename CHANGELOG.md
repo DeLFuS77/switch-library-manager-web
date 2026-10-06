@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.17.1
+
+### Fixes
+
+- The app could stop when the wishlist or a collection changed while the pages were prepared after a scan.
+- The Settings page shows the current settings: saving it no longer undoes titles ignored from other pages.
+- Folders that did not change are not scanned again after every start.
+- The wishlist, history, collections, activity and notification state are written safely, so a crash while
+  saving does not empty them; the activity is read again after a backup is restored.
+- The activity of the Users page is shown in the language of the interface.
+
+### Improvements
+
+- Searching big lists is about 15 times faster and uses much less memory.
+- Settings that change no list (such as the time of the last synchronization) no longer make every page compute
+  its lists again.
+- Phones: the library filters scroll in one row and the overview cards are shorter.
+- The selection boxes of the library show on hover and while selecting.
+- Names that start with quotes or signs are sorted by their first letter.
+
 ## 1.17.0
 
 ### New features

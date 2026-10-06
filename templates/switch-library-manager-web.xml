@@ -22,17 +22,14 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>MIT</License>
-  <Changes>### 1.17.0
+  <Changes>### 1.17.1
+- Fixes: a possible stop of the app, stale settings page, a scan after every start
+- Faster searches, safer data files, better layout on phones
+### 1.17.0
 - Collections of games and a selection of several games in the library
 - Library history with a chart, notifications of new games
 - Sort by size or date added, lists remember their filters
-- "Hide demos" everywhere, messages as notifications that go away
-### 1.16.1
-- Library filters: games or demos, region, without a cover, not recognized
-- Safer settings while they are saved
-### 1.15.0
-- Faster starts and less memory with big title databases
-- Cheaper folder watching and a setting for its interval, so NAS disks can sleep</Changes>
+- "Hide demos" everywhere, messages as notifications that go away</Changes>
   <Date>2026-10-06</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
