@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -52,8 +51,8 @@ func (web *Web) availableItems(lang string) []NotificationItem {
 	options := settingsObj.Notifications
 
 	if options.NotifyUpdates {
-		missing := process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreUpdateTitleIds), settingsObj.IgnoreDLCUpdates)
-		for _, title := range missing {
+		// the same lists as the pages: ignored titles and hidden demos are left out
+		for _, title := range web.missingUpdates() {
 			id := strings.ToUpper(title.Attributes.Id)
 			items = append(items, NotificationItem{
 				Key:     fmt.Sprintf("update:%s:%d", id, title.LatestUpdate),
@@ -66,8 +65,7 @@ func (web *Web) availableItems(lang string) []NotificationItem {
 	}
 
 	if options.NotifyDlc {
-		missing := process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds))
-		for _, title := range missing {
+		for _, title := range web.missingDLC() {
 			gameName := titleName(switchDB, lang, title.Attributes.Id, title.Attributes.Name)
 			for _, dlc := range title.MissingDLCItems {
 				id := strings.ToUpper(dlc.Id)

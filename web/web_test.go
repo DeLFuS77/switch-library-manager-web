@@ -860,6 +860,8 @@ func TestNotifications(t *testing.T) {
 	// a new DLC is released
 	game := switchDB.TitlesMap["0100000000010"]
 	game.Dlc["0100000000011003"] = db.TitleAttributes{Id: "0100000000011003", Name: "Brand New DLC"}
+	// changed in place: a new titles database would be a new state
+	web.invalidateDerived()
 	web.notifyChanges()
 	if len(requests) != 1 || !strings.Contains(requests[0]["message"].(string), "Brand New DLC") || strings.Contains(requests[0]["message"].(string), "Missing DLC") {
 		t.Fatalf("only the new DLC should be reported: %+v", requests)
@@ -871,6 +873,7 @@ func TestNotifications(t *testing.T) {
 
 	// a failed delivery is retried by the next check
 	game.Dlc["0100000000011004"] = db.TitleAttributes{Id: "0100000000011004", Name: "Another DLC"}
+	web.invalidateDerived()
 	failing = true
 	web.notifyChanges()
 	failing = false
