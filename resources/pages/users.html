@@ -107,4 +107,21 @@
 				</form>
 			</section>
 			{{- end}}
+			<section class="mt-4" aria-labelledby="activityTitle">
+				<h2 class="section-title" id="activityTitle"><span class="bi bi-journal-text" aria-hidden="true"></span>{{t "Activity"}}</h2>
+				{{- if .Activity}}
+				<ul class="item-list">
+					{{- range .Activity}}
+					<li class="item-row item-row-wide">
+						<div class="item-main">
+							<div class="item-name">{{t .Action}}{{with .Detail}} <span class="fw-normal text-body-secondary">&middot; {{.}}</span>{{end}}</div>
+							<div class="item-meta"><span><span class="bi bi-person me-1" aria-hidden="true"></span>{{if .User}}{{.User}}{{else}}{{t "Login disabled"}}{{end}}</span><span>{{formatDateTime .Time}}</span></div>
+						</div>
+					</li>
+					{{- end}}
+				</ul>
+				{{- else}}
+				<p class="text-body-secondary">{{t "Deleted, organized or compressed files, restored backups, saved settings and changes of users appear here."}}</p>
+				{{- end}}
+			</section>
 {{- end}}
