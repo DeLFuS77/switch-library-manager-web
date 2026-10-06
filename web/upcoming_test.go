@@ -40,6 +40,9 @@ func TestUpcomingGamesByMonth(t *testing.T) {
 	if page.Total != 2 || page.ForYou != 2 || len(page.JustReleased) != 1 || len(page.Months) != 2 || page.Months[0].Month.Month() != time.October {
 		t.Fatalf("by month: %+v", page)
 	}
+	if page.Featured == nil || page.Featured.Item.Id != "0100000000060000" || page.FeaturedDays != 13 {
+		t.Fatalf("the next game for the user is featured: %+v %d", page.Featured, page.FeaturedDays)
+	}
 	page = upcomingPage(games, &TitleItemFilter{Status: STATUS_FOR_YOU}, now)
 	if page.Shown != 2 || len(page.JustReleased) != 0 {
 		t.Fatalf("for you: %+v", page)

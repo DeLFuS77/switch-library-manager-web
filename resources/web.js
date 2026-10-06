@@ -861,8 +861,9 @@ function initLiveTasks() {
 		}
 		const button = dismiss || clear;
 		button.disabled = true;
-		const url = dismiss ? `/api/tasks/${encodeURIComponent(dismiss.dataset.taskDismiss)}/dismiss` : '/api/tasks/clear';
-		fetch(url, { method: 'POST' })
+		// a group of tasks shown once is dismissed together
+		const urls = dismiss ? dismiss.dataset.taskDismiss.split(',').map(id => `/api/tasks/${encodeURIComponent(id)}/dismiss`) : ['/api/tasks/clear'];
+		Promise.all(urls.map(url => fetch(url, { method: 'POST' })))
 			.then(refresh)
 			.catch(() => {
 				button.disabled = false;
@@ -1074,6 +1075,83 @@ function initCoverLoading() {
 	});
 }
 
+// The star of the favorites and the heart of the wishlist change at once, with a little pop,
+// and the server is told; if it fails they go back. The buttons with a label (the game page)
+// reload the page, which shows the change in more places.
+const MARKS = {
+	fav: { url: '/favorites', field: 'favorite', state: 'favorite', on: 'bi-star-fill', off: 'bi-star', active: 'is-favorite', add: 'Add to favorites', remove: 'Remove from favorites' },
+	wish: { url: '/wishlist', field: 'wanted', state: 'wished', on: 'bi-heart-fill', off: 'bi-heart', active: 'is-wished', add: 'Add to the wishlist', remove: 'Remove from the wishlist' },
+};
+
+function setMark(button, mark, marked) {
+	button.dataset[mark.state] = String(marked);
+	button.setAttribute('aria-pressed', String(marked));
+	button.classList.toggle(mark.active, marked);
+	button.title = t(marked ? mark.remove : mark.add);
+	const icon = button.querySelector('.bi');
+	if (icon) {
+		icon.classList.toggle(mark.on, marked);
+		icon.classList.toggle(mark.off, !marked);
+	}
+}
+
+function initMarks() {
+	Object.entries(MARKS).forEach(([key, mark]) => {
+		document.querySelectorAll(`[data-${key}]`).forEach(button => {
+			button.addEventListener('click', e => {
+				e.preventDefault();
+				e.stopPropagation();
+				const id = button.dataset[key];
+				const marked = button.dataset[mark.state] !== 'true';
+				const labelled = button.textContent.trim() !== '' && !button.querySelector('.visually-hidden');
+				if (labelled) {
+					button.disabled = true;
+					postForm(mark.url, { id, [mark.field]: String(marked) })
+						.then(() => window.location.reload())
+						.catch(() => {
+							button.disabled = false;
+						});
+					return;
+				}
+				// every button of the same game on the page
+				const buttons = [...document.querySelectorAll(`[data-${key}="${CSS.escape(id)}"]`)];
+				buttons.forEach(other => setMark(other, mark, marked));
+				if (!reducedMotion()) {
+					button.classList.remove('is-popping');
+					void button.offsetWidth;
+					button.classList.add('is-popping');
+				}
+				postForm(mark.url, { id, [mark.field]: String(marked) })
+					.catch(() => buttons.forEach(other => setMark(other, mark, !marked)));
+			});
+		});
+	});
+}
+
+// the cover of the game that is opened flies to the cover of its page (see the view
+// transitions in web.scss); only that cover takes part, so the names never repeat
+function initCoverTransition() {
+	if (!('startViewTransition' in document) || reducedMotion()) {
+		return;
+	}
+	document.addEventListener('click', e => {
+		const link = e.target.closest('a[href^="/title/"]');
+		const card = link && link.closest('.game-card');
+		if (!card || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) {
+			return;
+		}
+		document.querySelectorAll('.is-flying').forEach(image => image.classList.remove('is-flying'));
+		const image = card.querySelector('.game-cover img');
+		if (image) {
+			image.classList.add('is-flying');
+		}
+	});
+	// back on the list, the cover that flew is a plain cover again
+	window.addEventListener('pageshow', () => {
+		setTimeout(() => document.querySelectorAll('.is-flying').forEach(image => image.classList.remove('is-flying')), 600);
+	});
+}
+
 // cards tilt slightly towards the pointer
 function initCardTilt() {
 	if (reducedMotion() || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
@@ -1278,32 +1356,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	});
 
-	// adds a game to the wishlist or removes it
-	document.querySelectorAll('[data-fav]').forEach(button => {
-		button.addEventListener('click', e => {
-			e.preventDefault();
-			e.stopPropagation();
-			button.disabled = true;
-			postForm('/favorites', { id: button.dataset.fav, favorite: button.dataset.favorite === 'true' ? 'false' : 'true' })
-				.then(() => window.location.reload())
-				.catch(() => {
-					button.disabled = false;
-				});
-		});
-	});
-
-	document.querySelectorAll('[data-wish]').forEach(button => {
-		button.addEventListener('click', e => {
-			e.preventDefault();
-			e.stopPropagation();
-			button.disabled = true;
-			postForm('/wishlist', { id: button.dataset.wish, wanted: button.dataset.wished === 'true' ? 'false' : 'true' })
-				.then(() => window.location.reload())
-				.catch(() => {
-					button.disabled = false;
-				});
-		});
-	});
+	initMarks();
 
 	// selects and radio buttons that apply their form at once
 	document.querySelectorAll('[data-autosubmit]').forEach(input => {
@@ -1350,6 +1403,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initCountUp();
 	initCoverLoading();
 	initCardTilt();
+	initCoverTransition();
 
 	// forms that delete something ask first
 	document.querySelectorAll('form[data-confirm]').forEach(form => {

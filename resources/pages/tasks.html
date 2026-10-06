@@ -55,6 +55,7 @@
 									{{- if eq .Status "success"}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Completed"}}</span>
 									{{- else if eq .Status "warning"}}<span class="chip chip-warning"><span class="bi bi-exclamation-circle" aria-hidden="true"></span>{{t "Completed with warnings"}}</span>
 									{{- else}}<span class="chip chip-danger"><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Failed"}}</span>{{end}}
+									{{- if gt .Count 1}}<span class="chip chip-muted" title="{{t "%v times in a row, the last one shown" .Count}}"><span class="bi bi-layers" aria-hidden="true"></span>&times;{{.Count}}</span>{{end}}
 								</div>
 								<div class="small text-body-secondary">
 									{{template "taskTrigger" .Trigger}} &middot; {{formatDateTime .Started}} &middot; {{t "took %v" .Duration}}
@@ -75,7 +76,7 @@
 								<div class="task-note text-warning-emphasis"><span class="bi bi-exclamation-triangle me-1" aria-hidden="true"></span>{{t .Text}}{{if .Detail}} <code class="task-detail">{{.Detail}}</code>{{end}}</div>
 								{{- end}}
 							</div>
-							<button type="button" class="btn btn-sm btn-link text-body-secondary flex-shrink-0 admin-only" data-task-dismiss="{{.Id}}" title="{{t "Dismiss"}}"><span class="bi bi-x-lg" aria-hidden="true"></span><span class="visually-hidden">{{t "Dismiss"}}</span></button>
+							<button type="button" class="btn btn-sm btn-link text-body-secondary flex-shrink-0 admin-only" data-task-dismiss="{{.Ids}}" title="{{t "Dismiss"}}"><span class="bi bi-x-lg" aria-hidden="true"></span><span class="visually-hidden">{{t "Dismiss"}}</span></button>
 						</li>
 						{{- end}}
 					</ul>

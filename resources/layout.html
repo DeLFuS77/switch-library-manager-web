@@ -129,6 +129,13 @@
 			<a class="d-inline-flex align-items-center gap-2 text-decoration-none" href="https://github.com/DeLFuS77/switch-library-manager-web"><span class="bi bi-github" aria-hidden="true"></span>GitHub</a>
 		</div>
 	</footer>
+	<nav class="bottom-nav d-md-none" aria-label="{{t "Main navigation"}}">
+		{{- template "bottomLink" (dict "Page" .Page "Id" "index" "Href" "/index.html" "Icon" "bi-collection" "Label" (t "Library") "Count" 0)}}
+		{{- template "bottomLink" (dict "Page" .Page "Id" "updates" "Href" "/updates.html" "Icon" "bi-arrow-up-circle" "Label" (t "Updates") "Count" .Counts.Updates)}}
+		{{- template "bottomLink" (dict "Page" .Page "Id" "upcoming" "Href" "/upcoming.html" "Icon" "bi-calendar-event" "Label" (t "Upcoming") "Count" 0)}}
+		{{- template "bottomLink" (dict "Page" .Page "Id" "sagas" "Href" "/sagas.html" "Icon" "bi-stack" "Label" (t "Series") "Count" 0)}}
+		<button type="button" class="bottom-link" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar"><span class="bi bi-grid" aria-hidden="true"></span><span class="bottom-label">{{t "Menu"}}</span></button>
+	</nav>
 	<script type="application/json" id="slm-translations">{{jsTranslations}}</script>
 	<script src="/resources/static/web.js"></script>
 </body>

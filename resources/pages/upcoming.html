@@ -22,6 +22,24 @@
 				<span><span class="bi bi-collection text-primary" aria-hidden="true"></span>{{t "A new game of a series you have"}}</span>
 			</p>
 			{{- end}}
+			{{- with .Featured}}
+			{{- $i := .Item}}
+			<section class="featured-release mb-4{{if .ForYou}} is-for-you{{end}}" aria-labelledby="featuredRelease">
+				<div class="featured-bg" style="background-image: url('{{if .BannerUrl}}{{.BannerUrl}}{{else}}{{thumb $i.ImageUrl}}{{end}}')"></div>
+				<img class="featured-cover" src="{{if eq $i.ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb $i.ImageUrl}}{{end}}" alt="">
+				<div class="featured-info">
+					<span class="chip {{if .ForYou}}chip-danger{{else}}chip-muted{{end}}"><span class="bi {{if .ForYou}}bi-stars{{else}}bi-calendar-event{{end}}" aria-hidden="true"></span>{{if .ForYou}}{{t "Next for you"}}{{else}}{{t "Next release"}}{{end}}</span>
+					<h2 class="featured-name" id="featuredRelease"><a class="stretched-link" href="/title/{{$i.Id}}.html">{{$i.Name}}</a></h2>
+					<p class="featured-when mb-0"><span class="bi bi-calendar3" aria-hidden="true"></span>{{formatTime $i.ReleaseDate}}{{with .Saga}} &middot; <span class="bi bi-collection" aria-hidden="true"></span>{{.Name}} &middot; {{t "you have %v of %v" .Owned .Total}}{{end}}</p>
+				</div>
+				<div class="featured-countdown" aria-label="{{if eq $.FeaturedDays 0}}{{t "Out today"}}{{else if eq $.FeaturedDays 1}}{{t "Tomorrow"}}{{else}}{{t "In %v days" $.FeaturedDays}}{{end}}">
+					{{- if eq $.FeaturedDays 0}}<span class="countdown-label">{{t "Out today"}}</span>
+					{{- else if eq $.FeaturedDays 1}}<span class="countdown-label">{{t "Tomorrow"}}</span>
+					{{- else}}<span class="countdown-number">{{$.FeaturedDays}}</span><span class="countdown-label">{{t "days left"}}</span>{{end}}
+				</div>
+				<button type="button" class="wish-toggle admin-only{{if $i.Wished}} is-wished{{end}}" data-wish="{{$i.Id}}" data-wished="{{$i.Wished}}" aria-pressed="{{$i.Wished}}" title="{{if $i.Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if $i.Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>
+			</section>
+			{{- end}}
 			{{- with .JustReleased}}
 			<section class="mb-4" aria-labelledby="justReleased">
 				<h2 class="section-title" id="justReleased"><span class="bi bi-lightning-charge" aria-hidden="true"></span>{{t "Just released"}} <span class="badge rounded-pill text-bg-secondary">{{len .}}</span></h2>
@@ -49,13 +67,6 @@
 			{{- end}}
 {{- end}}
 {{define "upcomingGame"}}
-					<div class="rec-item{{if .ForYou}} is-for-you{{end}}">
-						<a class="saga-item" href="/title/{{.Item.Id}}.html">
-							<span class="upcoming-date"><span class="bi bi-calendar3" aria-hidden="true"></span>{{formatDay .Item.ReleaseDate}}</span>
-							<img src="{{if eq .Item.ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .Item.ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
-							<span class="saga-name">{{.Item.Name}}</span>
-							{{- with .Saga}}<span class="saga-state text-primary"><span class="bi bi-collection me-1" aria-hidden="true"></span>{{.Name}} &middot; {{t "you have %v of %v" .Owned .Total}}</span>{{end}}
-						</a>
-						<button type="button" class="wish-toggle admin-only{{if .Item.Wished}} is-wished{{end}}" data-wish="{{.Item.Id}}" data-wished="{{.Item.Wished}}" aria-pressed="{{.Item.Wished}}" title="{{if .Item.Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if .Item.Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>
-					</div>
+					{{- $note := ""}}{{with .Saga}}{{$note = printf "%s · %s" .Name (t "you have %v of %v" .Owned .Total)}}{{end}}
+					{{- template "miniCard" (dict "Item" .Item "Wish" true "Grey" false "Highlight" .ForYou "Badge" (formatDay .Item.ReleaseDate) "Note" $note "NoteIcon" "bi-collection")}}
 {{- end}}

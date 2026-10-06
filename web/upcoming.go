@@ -24,6 +24,8 @@ type UpcomingGame struct {
 	Item TitleItem
 	// the series of the library the game belongs to, with how many games of it the library has
 	Saga *SagaProgress
+	// the artwork of the game, for the featured game
+	BannerUrl string
 }
 
 // ForYou reports whether the game is on the wishlist or of a series of the library.
@@ -43,6 +45,9 @@ type UpcomingPageData struct {
 	Filter       *TitleItemFilter
 	JustReleased []UpcomingGame
 	Months       []UpcomingMonth
+	// the next game for the user, or the next one, and the days until it comes out
+	Featured     *UpcomingGame
+	FeaturedDays int
 	// upcoming games, of them on the wishlist or of a series of the library, and shown
 	Total  int
 	ForYou int
@@ -121,7 +126,7 @@ func (web *Web) upcomingGamesAt(lang string, now time.Time) []UpcomingGame {
 			Missing:      true,
 			Wished:       wished[id],
 			Genres:       attributes.Genres,
-		}}
+		}, BannerUrl: attributes.BannerUrl}
 		if family := web.sagaFamilyOf(id, attributes.Name); family != "" {
 			game.Saga = sagas[family]
 		}
@@ -192,6 +197,23 @@ func upcomingPage(games []UpcomingGame, filter *TitleItemFilter, now time.Time) 
 			data.Months = append(data.Months, UpcomingMonth{Month: month})
 		}
 		data.Months[len(data.Months)-1].Games = append(data.Months[len(data.Months)-1].Games, game)
+	}
+	// the featured game: the next one for the user, or else the next one, on the full list
+	if query == nil {
+		for _, month := range data.Months {
+			for i := range month.Games {
+				game := &month.Games[i]
+				if data.Featured == nil || (game.ForYou() && !data.Featured.ForYou()) {
+					data.Featured = game
+				}
+			}
+			if data.Featured != nil && data.Featured.ForYou() {
+				break
+			}
+		}
+		if data.Featured != nil {
+			data.FeaturedDays = int(data.Featured.Item.ReleaseDate.Sub(day).Hours() / 24)
+		}
 	}
 	// the last released first
 	for i, j := 0, len(data.JustReleased)-1; i < j; i, j = i+1, j-1 {

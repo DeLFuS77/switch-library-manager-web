@@ -938,6 +938,38 @@ h3,
 			linear-gradient(90deg, var(--slm-surface) 10%, transparent 70%);
 		opacity: .9;
 	}
+
+	// the artwork of the game, like a store page: sharper and brighter than the cover
+	&.has-banner {
+		.title-hero-bg {
+			filter: blur(3px) saturate(120%);
+			opacity: .55;
+			transform: scale(1.04);
+			background-position: center 30%;
+		}
+
+		&::before {
+			background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--slm-surface) 88%),
+				linear-gradient(90deg, var(--slm-surface) 0%, transparent 75%);
+			opacity: .95;
+		}
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.title-hero.has-banner .title-hero-bg {
+		animation: slm-hero-drift 18s ease-in-out infinite alternate;
+	}
+}
+
+@keyframes slm-hero-drift {
+	from {
+		transform: scale(1.04) translateX(0);
+	}
+
+	to {
+		transform: scale(1.1) translateX(-1.5%);
+	}
 }
 
 // cover and the main information side by side, stacked on phones
@@ -1478,7 +1510,7 @@ h3,
 
 .save-bar {
 	position: sticky;
-	bottom: 0;
+	bottom: var(--slm-bottom-nav, 0px);
 	z-index: 10;
 	margin-top: 1.5rem;
 	padding: .85rem 1rem;
@@ -1503,7 +1535,7 @@ h3,
 #alert_sync {
 	position: fixed;
 	right: 1rem;
-	bottom: 1rem;
+	bottom: calc(1rem + var(--slm-bottom-nav, 0px));
 	z-index: 1080;
 	width: min(24rem, calc(100vw - 2rem));
 	margin: 0;
@@ -2500,54 +2532,10 @@ h3,
 /* the other games of the series of a game */
 .saga-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
 	gap: .75rem;
 }
 
-.saga-item {
-	display: flex;
-	flex-direction: column;
-	gap: .3rem;
-	padding: .5rem;
-	border-radius: $border-radius-lg;
-	background: var(--slm-surface);
-	border: 1px solid var(--slm-border);
-	color: inherit;
-	text-decoration: none;
-	transition: border-color .15s ease, transform .15s ease;
-
-	img {
-		width: 100%;
-		aspect-ratio: 1;
-		object-fit: cover;
-		border-radius: $border-radius;
-	}
-
-	&:hover,
-	&:focus-visible {
-		border-color: var(--slm-chart-1);
-		transform: translateY(-2px);
-		color: inherit;
-	}
-
-	&.is-missing img {
-		filter: grayscale(1) brightness(.6);
-	}
-
-	&.is-missing .saga-name {
-		opacity: .75;
-	}
-}
-
-.saga-name {
-	font-size: .85rem;
-	font-weight: 600;
-	line-height: 1.25;
-	display: -webkit-box;
-	-webkit-line-clamp: 2;
-	-webkit-box-orient: vertical;
-	overflow: hidden;
-}
 
 .saga-state {
 	font-size: .75rem;
@@ -2640,26 +2628,12 @@ h3,
 .rec-strip {
 	display: grid;
 	grid-auto-flow: column;
-	grid-auto-columns: minmax(9rem, 10rem);
+	grid-auto-columns: minmax(9.5rem, 10.5rem);
 	gap: .75rem;
 	overflow-x: auto;
 	padding-bottom: .5rem;
 	scroll-snap-type: x proximity;
 	scrollbar-width: thin;
-}
-
-.rec-item {
-	position: relative;
-	scroll-snap-align: start;
-
-	.saga-item {
-		height: 100%;
-	}
-
-	.wish-toggle {
-		top: .9rem;
-		right: .9rem;
-	}
 }
 
 // the series of the library and how many games of each one it has
@@ -2734,11 +2708,50 @@ h3,
 	height: .5rem;
 }
 
-// upcoming releases: the date on the cover, and the games for the user outlined
-.upcoming-date {
+// a small game card, the same as the cards of the lists: recommendations, series and upcoming games
+.mini-card {
+	.game-body {
+		padding: .6rem .7rem .7rem;
+		gap: .25rem;
+	}
+
+	.game-title {
+		font-size: .85rem;
+		-webkit-line-clamp: 2;
+	}
+
+	.game-meta {
+		font-size: .75rem;
+		display: flex;
+		gap: .3rem;
+		align-items: baseline;
+
+		> span:last-child {
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
+	}
+
+	.wish-toggle {
+		top: .45rem;
+		right: .45rem;
+		width: 1.9rem;
+		height: 1.9rem;
+		font-size: .9rem;
+	}
+
+	&.is-for-you {
+		box-shadow: 0 0 0 2px var(--bs-primary), var(--slm-shadow);
+	}
+}
+
+// the release date on the cover of an upcoming game
+.cover-date {
 	position: absolute;
-	top: .9rem;
-	left: .9rem;
+	top: .5rem;
+	left: .5rem;
 	z-index: 2;
 	display: inline-flex;
 	align-items: center;
@@ -2747,16 +2760,340 @@ h3,
 	border-radius: 999px;
 	background: rgba(0, 0, 0, .7);
 	color: #fff;
-	font-size: .75rem;
+	font-size: .72rem;
 	font-weight: 700;
 	backdrop-filter: blur(4px);
 }
 
-.upcoming-month .saga-grid .rec-item .saga-item {
-	height: 100%;
+@media (prefers-reduced-motion: no-preference) {
+	.rec-strip > *,
+	.saga-grid > *,
+	.saga-list > * {
+		animation: slm-fade-up .45s cubic-bezier(.2, .7, .2, 1) both;
+	}
+
+	@for $i from 1 through 8 {
+		.rec-strip > :nth-child(#{$i}),
+		.saga-grid > :nth-child(#{$i}),
+		.saga-list > :nth-child(#{$i}) {
+			animation-delay: #{$i * 35}ms;
+		}
+	}
+
+	.rec-strip > :nth-child(n + 9),
+	.saga-grid > :nth-child(n + 9),
+	.saga-list > :nth-child(n + 9) {
+		animation-delay: 300ms;
+	}
 }
 
-.rec-item.is-for-you .saga-item {
-	border-color: var(--bs-primary);
-	box-shadow: 0 0 0 1px var(--bs-primary);
+// the cover of the opened game flies from its card to the page of the game
+.is-flying,
+.title-cover {
+	view-transition-name: slm-cover;
+}
+
+::view-transition-group(slm-cover) {
+	animation-duration: .38s;
+	animation-timing-function: cubic-bezier(.2, .7, .2, 1);
+	z-index: 10;
+}
+
+::view-transition-old(slm-cover),
+::view-transition-new(slm-cover) {
+	height: 100%;
+	object-fit: cover;
+	border-radius: 1rem;
+	overflow: hidden;
+}
+
+// back on a page, its cards appear at once
+.is-returning {
+	.game-grid > *,
+	.library-overview > .kpi,
+	.rec-strip > *,
+	.saga-grid > *,
+	.saga-list > * {
+		animation: none !important;
+	}
+}
+
+// the star and the heart pop when they are pressed
+.is-popping {
+	animation: slm-mark-pop .4s cubic-bezier(.3, 1.6, .5, 1);
+}
+
+@keyframes slm-mark-pop {
+	40% {
+		transform: scale(1.35);
+	}
+
+	100% {
+		transform: scale(1);
+	}
+}
+
+// Upcoming: the next game for the user, big, with the days left
+.featured-release {
+	position: relative;
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	gap: 1.25rem;
+	align-items: center;
+	padding: 1.25rem;
+	border-radius: $border-radius-xl;
+	border: 1px solid var(--slm-border);
+	background: var(--slm-surface);
+	box-shadow: var(--slm-shadow);
+	overflow: hidden;
+	isolation: isolate;
+
+	&.is-for-you {
+		border-color: rgba(214, 40, 57, .45);
+	}
+
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: linear-gradient(90deg, var(--slm-surface) 15%, transparent 80%),
+			linear-gradient(180deg, transparent 30%, var(--slm-surface) 100%);
+		opacity: .92;
+	}
+
+	.wish-toggle {
+		top: .75rem;
+		right: .75rem;
+	}
+
+	@include media-breakpoint-down(sm) {
+		grid-template-columns: auto minmax(0, 1fr);
+
+		.featured-countdown {
+			grid-column: 1 / -1;
+			flex-direction: row;
+			justify-content: flex-start;
+			gap: .5rem;
+		}
+	}
+}
+
+.featured-bg {
+	position: absolute;
+	inset: 0;
+	z-index: -2;
+	background-size: cover;
+	background-position: center 30%;
+	filter: blur(4px) saturate(120%);
+	opacity: .6;
+	transform: scale(1.05);
+}
+
+.featured-cover {
+	width: 7rem;
+	height: 7rem;
+	object-fit: cover;
+	border-radius: $border-radius-lg;
+	box-shadow: 0 12px 30px -12px rgba(0, 0, 0, .7);
+
+	@include media-breakpoint-down(sm) {
+		width: 5rem;
+		height: 5rem;
+	}
+}
+
+.featured-info {
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: .4rem;
+}
+
+.featured-name {
+	font-size: clamp(1.15rem, 2.5vw, 1.6rem);
+	font-weight: 800;
+	margin: 0;
+
+	a {
+		color: inherit;
+		text-decoration: none;
+	}
+}
+
+.featured-when {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .35rem;
+	color: var(--bs-secondary-color);
+	font-size: .9rem;
+}
+
+.featured-countdown {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-width: 6rem;
+	margin-right: 2.5rem;
+
+	.countdown-number {
+		font-size: 2.6rem;
+		font-weight: 800;
+		line-height: 1;
+		color: var(--bs-emphasis-color);
+		text-shadow: 0 2px 18px rgba(214, 40, 57, .55);
+	}
+
+	.countdown-label {
+		font-size: .8rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: .04em;
+		color: var(--bs-secondary-color);
+	}
+
+	@include media-breakpoint-down(sm) {
+		margin-right: 0;
+		align-items: baseline;
+
+		.countdown-number {
+			font-size: 1.6rem;
+		}
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.featured-release {
+		animation: slm-fade-up .5s cubic-bezier(.2, .7, .2, 1) both;
+	}
+
+	.featured-release .featured-bg {
+		animation: slm-hero-drift 18s ease-in-out infinite alternate;
+	}
+
+	.is-returning .featured-release {
+		animation: none;
+	}
+}
+
+// phones: the main sections in a bar at the bottom, within reach of the thumb
+.bottom-nav {
+	position: fixed;
+	inset: auto 0 0 0;
+	z-index: 1030;
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	padding: .3rem .25rem calc(.3rem + env(safe-area-inset-bottom));
+	background: var(--slm-header-bg);
+	backdrop-filter: blur(14px) saturate(140%);
+	-webkit-backdrop-filter: blur(14px) saturate(140%);
+	border-top: 1px solid var(--slm-border);
+	view-transition-name: bottom-nav;
+}
+
+.bottom-link {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: .1rem;
+	padding: .3rem 0;
+	border: 0;
+	border-radius: $border-radius;
+	background: none;
+	color: var(--bs-secondary-color);
+	font-size: .68rem;
+	font-weight: 600;
+	text-decoration: none;
+	transition: color .15s ease;
+
+	> .bi {
+		position: relative;
+		font-size: 1.25rem;
+		line-height: 1.2;
+		transition: transform .2s cubic-bezier(.3, 1.6, .5, 1);
+	}
+
+	&.active {
+		color: var(--bs-primary);
+
+		> .bi {
+			transform: translateY(-1px) scale(1.08);
+		}
+
+		&::before {
+			content: "";
+			position: absolute;
+			top: -.3rem;
+			left: 30%;
+			right: 30%;
+			height: 3px;
+			border-radius: 0 0 3px 3px;
+			background: var(--bs-primary);
+		}
+	}
+
+	&:active > .bi {
+		transform: scale(.9);
+	}
+}
+
+.bottom-label {
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.bottom-badge {
+	position: absolute;
+	top: -.25rem;
+	left: 70%;
+	min-width: 1.05rem;
+	padding: 0 .3rem;
+	border-radius: 999px;
+	background: $warning;
+	color: #000;
+	font-family: $font-family-base;
+	font-size: .6rem;
+	font-weight: 800;
+	line-height: 1.05rem;
+	text-align: center;
+}
+
+@include media-breakpoint-down(md) {
+	:root {
+		--slm-bottom-nav: calc(3.6rem + env(safe-area-inset-bottom));
+	}
+
+	body {
+		padding-bottom: var(--slm-bottom-nav);
+	}
+}
+
+// on the light theme the artwork stays behind a lighter veil, so the text keeps its contrast
+[data-bs-theme="light"] {
+	.title-hero.has-banner {
+		.title-hero-bg {
+			opacity: .28;
+			filter: blur(6px) saturate(110%);
+		}
+
+		&::before {
+			background: linear-gradient(180deg, rgba(255, 255, 255, .35) 0%, var(--slm-surface) 85%),
+				linear-gradient(90deg, var(--slm-surface) 10%, rgba(255, 255, 255, .4) 80%);
+			opacity: 1;
+		}
+	}
+
+	.featured-bg {
+		opacity: .3;
+	}
+
+	.featured-release::before {
+		opacity: 1;
+	}
 }

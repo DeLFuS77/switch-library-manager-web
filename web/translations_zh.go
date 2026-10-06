@@ -3,6 +3,13 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"%v times in a row, the last one shown": "连续 %v 次，显示最近一次",
+		"Next for you": "下一款为你推荐",
+		"Next release": "下一款发售",
+		"Out today": "今天发售",
+		"Tomorrow": "明天",
+		"In %v days": "%v 天后",
+		"days left": "天",
 		"Upcoming": "即将推出",
 		"Upcoming releases": "即将发售",
 		"The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out.": "已可在 eShop 预购的游戏，按发售日期排列。点击心形加入愿望单，发售时会通知您。",

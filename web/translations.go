@@ -5,6 +5,13 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"%v times in a row, the last one shown": "%v veces seguidas; se muestra la última",
+		"Next for you": "El próximo para ti",
+		"Next release": "Próximo lanzamiento",
+		"Out today": "Sale hoy",
+		"Tomorrow": "Mañana",
+		"In %v days": "En %v días",
+		"days left": "días",
 		"Upcoming": "Próximos",
 		"Upcoming releases": "Próximos lanzamientos",
 		"The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out.": "Los juegos que ya se pueden reservar en la eShop, por fecha de salida. Añade uno a la lista de deseos con el corazón y te avisaremos cuando salga.",
@@ -820,4 +827,5 @@ var jsTexts = []string{
 	"Preview: nothing to change", "Preview: %v change(s)", ", %v problem(s)", "Apply %v change(s)",
 	"Done: %v change(s)", ", %v failed",
 	"Apply the changes shown in the preview? Files will be moved or deleted.",
+	"Add to the wishlist", "Remove from the wishlist", "Add to favorites", "Remove from favorites",
 }

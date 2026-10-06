@@ -3,6 +3,13 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"%v times in a row, the last one shown": "%v раз подряд; показан последний",
+		"Next for you": "Следующий для вас",
+		"Next release": "Следующий релиз",
+		"Out today": "Выходит сегодня",
+		"Tomorrow": "Завтра",
+		"In %v days": "Через %v дн.",
+		"days left": "дн.",
 		"Upcoming": "Скоро",
 		"Upcoming releases": "Скорые релизы",
 		"The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out.": "Игры, которые уже можно предзаказать в eShop, по дате выхода. Добавьте игру в список желаемого сердечком, чтобы узнать о её выходе.",

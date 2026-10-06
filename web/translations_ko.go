@@ -3,6 +3,13 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"%v times in a row, the last one shown": "%v회 연속, 마지막 항목 표시",
+		"Next for you": "다음 추천작",
+		"Next release": "다음 출시작",
+		"Out today": "오늘 출시",
+		"Tomorrow": "내일",
+		"In %v days": "%v일 후",
+		"days left": "일",
 		"Upcoming": "출시 예정",
 		"Upcoming releases": "출시 예정 게임",
 		"The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out.": "eShop에서 이미 예약할 수 있는 게임을 출시일순으로 보여 줍니다. 하트로 위시리스트에 추가하면 출시될 때 알려 드립니다.",
