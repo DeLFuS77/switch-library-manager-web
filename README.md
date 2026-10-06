@@ -35,6 +35,7 @@ Linux, Docker, NAS and Raspberry Pi.
 - [First start](#first-start)
 - [Guides](#guides): [Organize](#organize), [Compress](#compress), [Users](#users-and-password-protection),
   [Notifications](#notifications), [API](#api), [Settings](#settings)
+- [Updating](#updating)
 - [Demo mode](#demo-mode)
 - [Troubleshooting](#troubleshooting)
 - [Building](#building)
@@ -265,6 +266,21 @@ Most settings are in the web interface. `settings.json` in the data folder also 
 The titles database is built every 6 hours from [blawar/titledb](https://github.com/blawar/titledb) by the
 [Update title data](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/.github/workflows/update-title-data.yml) workflow and published in the `data` release. If it
 cannot be downloaded, a mirror is used.
+
+## Updating
+
+- **Unraid, installed from the Apps tab:** Docker tab > Check for Updates > update.
+- **Created with `docker run`** (on Unraid also when the template could not be saved, which shows "Configuration not
+  found" when updating): download the new image and create the container again with the same folders. Your settings,
+  keys, covers and caches stay, because they are in the data folder. The app shows these commands with your folders
+  already filled in under **How to update** (from the update notice or Settings).
+
+```bash
+docker pull delfus77/switch-library-manager-web:latest && docker stop switch-library-manager-web && docker rm switch-library-manager-web
+```
+
+  Then run your `docker run` command again.
+- **Windows, macOS, Linux:** stop the app, replace the file with the new version and start it.
 
 ## Demo mode
 
