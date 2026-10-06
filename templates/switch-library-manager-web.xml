@@ -22,12 +22,12 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>MIT</License>
-  <Changes>### 1.14.0
+  <Changes>### 1.15.0
+- Faster starts and less memory with big title databases
+- Cheaper folder watching and a setting for its interval, so NAS disks can sleep
+### 1.14.0
 - Made for big libraries: the library shows up right away, covers and thumbnails load in the background
-- Visible background work, safer duplicates and faster pages
-### 1.13.0
-- Space page to free space safely and a redesigned game page
-- Every page reviewed on computers and phones</Changes>
+- Visible background work, safer duplicates and faster pages</Changes>
   <Date>2026-10-06</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
