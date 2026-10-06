@@ -109,6 +109,8 @@ func (web *Web) downloadMissingCovers() {
 		return
 	}
 	web.sugarLogger.Infof("[Downloading %d covers in the background]", len(urls))
+	taskId := web.taskLog().Start(TASK_COVERS, TRIGGER_SCAN)
+	web.taskLog().Progress(taskId, 0, len(urls), "Downloading covers")
 
 	var mutex sync.Mutex
 	batch := map[string]coverUpdate{}
@@ -128,6 +130,7 @@ func (web *Web) downloadMissingCovers() {
 			mutex.Lock()
 			defer mutex.Unlock()
 			downloaded++
+			web.taskLog().Progress(taskId, downloaded, len(urls), "Downloading covers")
 			for _, target := range waiting[url] {
 				update := batch[target.prefix]
 				if target.icon {
@@ -145,14 +148,19 @@ func (web *Web) downloadMissingCovers() {
 	flush()
 	mutex.Unlock()
 	web.sugarLogger.Infof("[%d covers downloaded]", downloaded)
-	web.saveCovers(downloaded > 0 || len(ready) > 0)
-	web.pregenerateThumbnails()
+	web.taskLog().SetResult(taskId, 0, downloaded)
 	if web.state.IsSynchronizing() {
 		// continue after the scan that interrupted the downloads
+		web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_SCAN, "")
+		web.taskLog().Finish(taskId, nil)
 		web.covers.mutex.Lock()
 		web.covers.again = true
 		web.covers.mutex.Unlock()
+		return
 	}
+	web.taskLog().Finish(taskId, nil)
+	web.saveCovers(downloaded > 0 || len(ready) > 0)
+	web.pregenerateThumbnails()
 }
 
 // saveCovers stores the library with its covers for the next start.

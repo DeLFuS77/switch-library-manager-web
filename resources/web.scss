@@ -299,6 +299,20 @@ h3,
 	}
 }
 
+// the tasks icon turns while background work runs
+@media (prefers-reduced-motion: no-preference) {
+	.nav-busy {
+		display: inline-block;
+		animation: slm-spin 1.6s linear infinite;
+	}
+}
+
+@keyframes slm-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
 .nav-count {
 	min-width: 1.4rem;
 	padding: .2em .5em;

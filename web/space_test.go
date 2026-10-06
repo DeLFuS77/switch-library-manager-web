@@ -75,8 +75,12 @@ func TestSpaceGroups(t *testing.T) {
 	if old := spaceGroup(groups, SPACE_OLD_UPDATES); len(old.Files) != 1 || old.Size != 50 || old.Files[0].KeptBy == "" {
 		t.Fatalf("old updates: %+v", old)
 	}
-	if duplicates := spaceGroup(groups, SPACE_DUPLICATES); len(duplicates.Files) != 1 || duplicates.Size != 70 {
-		t.Fatalf("duplicates: %+v", duplicates)
+	duplicates := spaceGroup(groups, SPACE_DUPLICATES)
+	if len(duplicates.Files) != 1 || duplicates.Size != 70 || duplicates.Files[0].Deletable || duplicates.Files[0].Note != NOTE_SPACE_VERIFY_KEPT {
+		t.Fatalf("a duplicate whose kept copy was not verified cannot be deleted: %+v", duplicates)
+	}
+	if paths := web.spaceVerifyPaths(); len(paths) != 2 {
+		t.Fatalf("the kept duplicate and the compressed copy are checked: %v", paths)
 	}
 	compressed := spaceGroup(groups, SPACE_COMPRESSED)
 	if len(compressed.Files) != 1 || compressed.Files[0].Deletable || compressed.DeletableSize != 0 {
@@ -90,6 +94,18 @@ func TestSpaceGroups(t *testing.T) {
 	if compressed := spaceGroup(web.spaceGroups(), SPACE_COMPRESSED); !compressed.Files[0].Deletable || compressed.DeletableSize != 300 {
 		t.Fatalf("verified copy: %+v", compressed)
 	}
+	if data := web.spacePageData(); data.Reclaimable != 350 || data.LibrarySize == 0 {
+		t.Fatalf("page data: reclaimable %d of %d", data.Reclaimable, data.LibrarySize)
+	}
+
+	// a damaged kept copy protects the duplicate; a sound one lets it be deleted
+	kept := filepath.Join(dir, "Other [0100000000020000][v0].nsp")
+	info, _ = os.Stat(kept)
+	web.verifications().set(kept, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Checked: time.Now()})
+	if file := spaceGroup(web.spaceGroups(), SPACE_DUPLICATES).Files[0]; file.Deletable || file.Note != NOTE_SPACE_KEPT_DAMAGED {
+		t.Fatalf("damaged kept copy: %+v", file)
+	}
+	web.verifications().set(kept, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checked: time.Now()})
 	if data := web.spacePageData(); data.Reclaimable != 420 || data.LibrarySize == 0 {
 		t.Fatalf("page data: reclaimable %d of %d", data.Reclaimable, data.LibrarySize)
 	}

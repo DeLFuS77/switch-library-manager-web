@@ -32,8 +32,8 @@
 			{{- if .Unverified}}
 			<div class="alert alert-info d-flex flex-column flex-sm-row align-items-sm-center gap-3" role="status">
 				<span class="bi bi-shield-check fs-4 flex-shrink-0" aria-hidden="true"></span>
-				<div class="flex-grow-1">{{t "%v originals have a compressed copy that was not verified yet. Verify them before deleting the originals." .Unverified}}</div>
-				<button type="button" class="btn btn-sm btn-primary rounded-pill text-nowrap" data-verify="changed"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Verify now"}}</button>
+				<div class="flex-grow-1">{{t "%v files can only be deleted once the copies that are kept are verified. Only those copies are checked." .Unverified}}</div>
+				<button type="button" class="btn btn-sm btn-primary rounded-pill text-nowrap" data-verify="space"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Verify now"}}</button>
 			</div>
 			{{- end}}
 

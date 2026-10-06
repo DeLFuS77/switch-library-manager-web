@@ -1,5 +1,7 @@
 package web
 
+import "github.com/dtrunk90/switch-library-manager-web/db"
+
 // afterScan runs the background work that follows a new library: covers, thumbnails and
 // the lists the pages show, so opening a page for the first time is fast.
 func (web *Web) afterScan() {
@@ -28,4 +30,21 @@ func (web *Web) warmPages() {
 // languages in use.
 func (web *Web) titleLanguagesWithDefault() []string {
 	return append([]string{DEFAULT_LANGUAGE}, web.titleLanguages()...)
+}
+
+// PartialLibrary shows the games a slow scan found so far (see db.PartialLibraryReceiver).
+// The scan goes on and replaces it with the whole library at the end.
+func (web *Web) PartialLibrary(titles map[string]*db.SwitchGameFiles, skipped map[db.ExtendedFileInfo]db.SkippedFile, files int) {
+	web.state.setPartialLibrary(&db.LocalSwitchFilesDB{TitlesMap: titles, Skipped: skipped, NumFiles: files})
+}
+
+// setPartialLibrary replaces the library while the synchronization keeps running.
+func (s *WebState) setPartialLibrary(localDB *db.LocalSwitchFilesDB) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	if !s.isSynchronizing {
+		return
+	}
+	s.localDB = localDB
+	s.version++
 }

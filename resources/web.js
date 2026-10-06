@@ -946,7 +946,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	document.querySelectorAll('[data-verify]').forEach(button => {
 		button.addEventListener('click', () => {
 			button.disabled = true;
-			const body = new URLSearchParams({ all: button.dataset.verify === 'all' ? 'true' : 'false' });
+			const body = new URLSearchParams({ all: button.dataset.verify === 'all' ? 'true' : 'false', scope: button.dataset.verify });
 			fetch('/verify/start', { method: 'POST', body }).then(response => {
 				if (response.ok) {
 					window.location.href = '/tasks.html';
