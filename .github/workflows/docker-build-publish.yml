@@ -121,6 +121,10 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      - name: Prepare the README for Docker Hub
+        if: env.DOCKERHUB_ENABLED == 'true'
+        run: python3 .github/scripts/dockerhub_readme.py README.md README.dockerhub.md
+
       - name: Update Docker Hub description
         if: env.DOCKERHUB_ENABLED == 'true'
         uses: peter-evans/dockerhub-description@v5
@@ -129,4 +133,4 @@ jobs:
           password: ${{ env.DOCKERHUB_TOKEN }}
           repository: ${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPOSITORY }}
           short-description: Manage your Nintendo Switch backup library from the browser
-          readme-filepath: ./README.md
+          readme-filepath: ./README.dockerhub.md

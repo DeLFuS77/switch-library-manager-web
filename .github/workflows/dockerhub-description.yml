@@ -6,6 +6,8 @@ on:
     branches: [master]
     paths:
       - README.md
+      - docs/screenshots/**
+      - .github/scripts/dockerhub_readme.py
       - .github/workflows/dockerhub-description.yml
   workflow_dispatch:
 
@@ -21,6 +23,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # Docker Hub shows the README outside the repository: images and links need full URLs
+      - name: Prepare the README for Docker Hub
+        run: python3 .github/scripts/dockerhub_readme.py README.md README.dockerhub.md
+
       - name: Update Docker Hub description
         if: env.DOCKERHUB_TOKEN != ''
         uses: peter-evans/dockerhub-description@v5
@@ -29,4 +35,4 @@ jobs:
           password: ${{ env.DOCKERHUB_TOKEN }}
           repository: delfus77/switch-library-manager-web
           short-description: Manage your Nintendo Switch backup library from the browser
-          readme-filepath: ./README.md
+          readme-filepath: ./README.dockerhub.md
