@@ -1,12 +1,15 @@
 package web
 
 import (
-	"time"
-
-	"github.com/dtrunk90/switch-library-manager-web/pagination"
+	"net/http"
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
+
+	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/pagination"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 type Issue struct {
@@ -23,10 +26,26 @@ type IssuesPageData struct {
 	Pagination pagination.Pagination
 	// when the files were last checked for damage
 	LastVerified time.Time
+	// the types of the files that are not games and fill the list, most files first
+	UnsupportedTypes []NamedCount
+}
+
+// unsupportedTypes counts the files of the issues that are of a type the app does not read,
+// by extension, the most frequent first, at most limit.
+func unsupportedTypes(issues []Issue, limit int) []NamedCount {
+	counts := map[string]int{}
+	for _, issue := range issues {
+		if issue.Reason == "file type is not supported" {
+			if extension := strings.ToLower(filepath.Ext(issue.File)); extension != "" {
+				counts[extension]++
+			}
+		}
+	}
+	return topCounts(counts, limit)
 }
 
 func (web *Web) HandleIssues() {
-	fsPatterns := []string {
+	fsPatterns := []string{
 		"resources/layout.html",
 		"resources/partials/pagination.html",
 		"resources/pages/issues.html",
@@ -45,15 +64,38 @@ func (web *Web) HandleIssues() {
 			}
 		}
 		p := pagination.Calculate(filter.Page, filter.PerPage, len(matching))
-		return IssuesPageData {
-			GlobalPageData: web.globalPageData("issues"),
-			Issues: matching[p.Start:p.End],
-			Total: len(all),
-			Filter: filter,
-			Pagination: p,
-			LastVerified: web.verifications().lastRun(),
+		return IssuesPageData{
+			GlobalPageData:   web.globalPageData("issues"),
+			Issues:           matching[p.Start:p.End],
+			Total:            len(all),
+			Filter:           filter,
+			Pagination:       p,
+			LastVerified:     web.verifications().lastRun(),
+			UnsupportedTypes: web.derived("unsupportedTypes", func() any { return unsupportedTypes(all, 5) }).([]NamedCount),
 		}
 	}, web.embedFS, fsPatterns...)
+
+	// ignore a type of file: its files are no longer reported, and the library is scanned again
+	web.router.HandleFunc("/issues/ignore-type", func(w http.ResponseWriter, r *http.Request) {
+		extension := strings.ToLower(strings.TrimSpace(r.FormValue("type")))
+		if !strings.HasPrefix(extension, ".") {
+			extension = "." + extension
+		}
+		if len(extension) < 2 || len(extension) > 12 || strings.ContainsAny(extension[1:], `./\ `) || db.IsGameFileType(extension) {
+			writeGlobalError(w, http.StatusBadRequest, web.requestLanguage(r), "Invalid request")
+			return
+		}
+		settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+			for _, known := range s.IgnoreFileTypes {
+				if strings.EqualFold(strings.TrimPrefix(known, "."), extension[1:]) {
+					return
+				}
+			}
+			s.IgnoreFileTypes = append(s.IgnoreFileTypes, extension[1:])
+		})
+		web.Rescan(TRIGGER_SETTINGS)
+		writeJSON(w, http.StatusAccepted, map[string]any{"ignored": extension})
+	}).Methods("POST")
 }
 
 // getIssues lists the problems of the library, sorted by file. The result is shared, it

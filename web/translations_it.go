@@ -3,6 +3,7 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Many of these files are not games (images, notes...). Ignore a type to stop listing it:": "Molti di questi file non sono giochi (immagini, note...). Ignora un tipo per non elencarlo più:",
 		"Search among the other games": "Cerca tra gli altri giochi",
 		"Showing the first %v of %v games. Search to see others.": "Vengono mostrati i primi %v di %v giochi. Cerca per vedere gli altri.",
 		"and %v more games chosen, not listed": "e altri %v giochi scelti, non elencati",

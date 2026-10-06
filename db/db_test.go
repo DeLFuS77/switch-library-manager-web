@@ -185,9 +185,12 @@ func TestScanWithFilenameFallback(t *testing.T) {
 		"Game Update [0100000000010800][v65536].nsp",
 		"Game DLC [0100000000011001][v0].nsp",
 		"Other [01006F8002328000][v0].xci",
-		"readme.txt",
+		"readme.cue",
 		"a",
 		"._Game [0100000000010000][v0].nsp",
+		// files that are never games are not reported
+		"cover.jpg",
+		"notes.TXT",
 	}
 	for _, name := range files {
 		if err := os.WriteFile(filepath.Join(romDir, name), []byte("x"), 0644); err != nil {
@@ -215,7 +218,7 @@ func TestScanWithFilenameFallback(t *testing.T) {
 		t.Fatalf("second game missing: %v", localDB.TitlesMap)
 	}
 	if len(localDB.Skipped) != 2 {
-		t.Fatalf("expected readme.txt and \"a\" to be skipped, got %v", localDB.Skipped)
+		t.Fatalf("expected readme.cue and \"a\" to be skipped, not the images and notes, got %v", localDB.Skipped)
 	}
 }
 

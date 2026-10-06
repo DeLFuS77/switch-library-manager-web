@@ -48,7 +48,7 @@
 						<div class="filter-choices">
 							{{- range $p.Genres}}
 							<input class="btn-check" type="checkbox" name="genre" id="sdGenre{{.Name}}" value="{{.Name}}"{{if inList .Name $o.Genres}} checked{{end}}>
-							<label class="filter-choice" for="sdGenre{{.Name}}">{{t .Name}} <span class="filter-count">{{.Count}}</span></label>
+							<label class="filter-choice" for="sdGenre{{.Name}}">{{t .Name}} <span class="filter-count">{{num .Count}}</span></label>
 							{{- end}}
 						</div>
 					</div>

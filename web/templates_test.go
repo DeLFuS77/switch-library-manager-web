@@ -188,3 +188,18 @@ func TestTitleLanguagesOnlyThoseInUse(t *testing.T) {
 		t.Fatalf("got %s", got)
 	}
 }
+
+func TestNumbersHaveTheSeparatorOfTheLanguage(t *testing.T) {
+	for _, c := range []struct {
+		lang  string
+		value int
+		want  string
+	}{
+		{"en", 11382, "11,382"}, {"en", 999, "999"}, {"en", 1234567, "1,234,567"}, {"es", 3111, "3111"}, {"es", 11382, "11.382"},
+		{"de", 3111, "3.111"}, {"fr", 11382, "11\u202f382"}, {"ja", 2547, "2,547"}, {"en", 0, "0"}, {"en", -1500, "-1,500"},
+	} {
+		if got := formatNumber(c.lang, c.value); got != c.want {
+			t.Errorf("%s %d: %q, want %q", c.lang, c.value, got, c.want)
+		}
+	}
+}

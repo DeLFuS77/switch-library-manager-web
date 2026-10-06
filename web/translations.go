@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Many of these files are not games (images, notes...). Ignore a type to stop listing it:": "Muchos de estos archivos no son juegos (imágenes, notas...). Ignora un tipo para dejar de listarlo:",
 		"Search among the other games": "Buscar entre los demás juegos",
 		"Showing the first %v of %v games. Search to see others.": "Se muestran los %v primeros de %v juegos. Busca para ver otros.",
 		"and %v more games chosen, not listed": "y %v juegos más elegidos, que no se listan",

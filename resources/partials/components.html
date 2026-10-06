@@ -2,7 +2,7 @@
 
 {{- define "pageHeader"}}
 			<div class="page-header">
-				<h1>{{.Title}}{{if ge .Count 0}} <span class="badge page-count">{{.Count}}</span>{{end}}</h1>
+				<h1>{{.Title}}{{if ge .Count 0}} <span class="badge page-count">{{num .Count}}</span>{{end}}</h1>
 				{{- if .Subtitle}}
 				<p class="page-subtitle">{{.Subtitle}}</p>
 				{{- end}}
@@ -75,7 +75,7 @@
 
 {{- define "statusFilter"}}
 				{{- $f := .Filter}}
-				<li><a class="filter-pill{{if eq $f.Status .Value}} active{{end}}" href="{{filterUrl $f "status" .Value}}"{{if eq $f.Status .Value}} aria-current="true"{{end}}>{{if .Icon}}<span class="bi {{.Icon}}" aria-hidden="true"></span>{{end}}{{.Label}}{{if ge .Count 0}} <span class="filter-count">{{.Count}}</span>{{end}}</a></li>
+				<li><a class="filter-pill{{if eq $f.Status .Value}} active{{end}}" href="{{filterUrl $f "status" .Value}}"{{if eq $f.Status .Value}} aria-current="true"{{end}}>{{if .Icon}}<span class="bi {{.Icon}}" aria-hidden="true"></span>{{end}}{{.Label}}{{if ge .Count 0}} <span class="filter-count">{{num .Count}}</span>{{end}}</a></li>
 {{- end}}
 
 {{- define "markLegend"}}
