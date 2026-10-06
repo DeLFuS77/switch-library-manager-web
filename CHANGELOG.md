@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.22.0
+
+### Security
+
+- **Without users the app only answers on the local network** (VPNs such as Tailscale included). An app published
+  on the internet before an administrator is created is no longer open to anyone; every page reminds you that login
+  is off. If another service already protects the app, set `SLM_ALLOW_REMOTE_WITHOUT_LOGIN=true`.
+- **Log out ends the session for good**, also on a copied cookie, and only one first administrator can be created.
+- No open redirect after login; behind a reverse proxy the login limiter sees the client, not the proxy.
+- Limits on request sizes and slow connections, HSTS over HTTPS, cross-origin isolation headers, no folder listings.
+- Covers are only downloaded over HTTPS from the internet and with a size limit, webhooks do not follow redirects,
+  oversized images are refused, organize names cannot point outside the game folder and temporary files never follow
+  links. The settings, users and session files are readable only by the app.
+- Restoring an old backup cannot disable the login or point the databases to plain http.
+
+### Visual improvements
+
+- **One card everywhere**: recommendations, series and upcoming games use the same card as the library.
+- The star and the heart change at once with a little pop, the cover flies from the card to the game page, and the
+  cards appear at once when you come back to a page.
+- The game page shows the artwork of the game behind its header.
+- Upcoming releases feature the next game for you with the days left.
+- Repeated tasks are shown once ("×18") in Tasks.
+- **Phones**: a bar at the bottom with the main sections.
+- The same search bar on every list, Space says when there is nothing to clean up, and the statistics cards fit in
+  one row.
+
 ## 1.21.0
 
 ### New features
