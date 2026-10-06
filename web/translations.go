@@ -5,6 +5,9 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Hide demos": "Ocultar demos",
+		"In the library (unless its filter asks for them), missing updates, DLC and games, statistics and notifications.": "En la biblioteca (salvo que su filtro las pida), actualizaciones, DLC y juegos que faltan, estadísticas y notificaciones.",
+		"Games (demos hidden)": "Juegos (demos ocultas)",
 		"Demo": "Demo",
 		"Games and demos": "Juegos y demos",
 		"Games only": "Solo juegos",

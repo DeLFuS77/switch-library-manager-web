@@ -3,6 +3,9 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Hide demos": "Masquer les démos",
+		"In the library (unless its filter asks for them), missing updates, DLC and games, statistics and notifications.": "Dans la ludothèque (sauf si son filtre les demande), les mises à jour, DLC et jeux manquants, les statistiques et les notifications.",
+		"Games (demos hidden)": "Jeux (démos masquées)",
 		"Demo": "Démo",
 		"Games and demos": "Jeux et démos",
 		"Games only": "Jeux uniquement",

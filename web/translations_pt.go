@@ -3,6 +3,9 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Hide demos": "Ocultar demos",
+		"In the library (unless its filter asks for them), missing updates, DLC and games, statistics and notifications.": "Na biblioteca (a menos que o filtro as peça), nas atualizações, DLC e jogos que faltam, nas estatísticas e nas notificações.",
+		"Games (demos hidden)": "Jogos (demos ocultas)",
 		"Demo": "Demo",
 		"Games and demos": "Jogos e demos",
 		"Games only": "Só jogos",

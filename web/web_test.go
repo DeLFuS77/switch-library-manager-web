@@ -1229,3 +1229,27 @@ func TestLibraryKindRegionAndExtraFilters(t *testing.T) {
 		}
 	}
 }
+
+func TestHiddenDemosLeaveEveryList(t *testing.T) {
+	web := newTestWeb(t)
+	switchDB, localDB := testDatabases(t)
+	switchDB.TitlesMap["0100000000010"].Attributes.IsDemo = true
+	web.state.set(switchDB, localDB)
+	if len(web.missingUpdates()) == 0 || len(web.missingDLC()) == 0 {
+		t.Fatal("the demo has a missing update and DLC while demos are shown")
+	}
+
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.HideDemoGames = true })
+	if len(web.missingUpdates()) != 0 || len(web.missingDLC()) != 0 {
+		t.Fatal("hidden demos leave the missing updates and DLC")
+	}
+	items, _, facets := web.getLibraryWithFacets(defaultFilter(), "en")
+	if len(items) != 1 || items[0].Demo || !facets.DemosHidden || facets.Demos != 1 {
+		t.Fatalf("hidden demos leave the library but are still counted: %+v %+v", items, facets)
+	}
+	filter := defaultFilter()
+	filter.Kind = KIND_DEMO
+	if items, _, _ := web.getLibraryWithFacets(filter, "en"); len(items) != 1 || !items[0].Demo {
+		t.Fatalf("the kind filter still shows the demos: %+v", items)
+	}
+}

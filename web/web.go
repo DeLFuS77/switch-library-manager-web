@@ -236,6 +236,8 @@ type LibraryFacets struct {
 	NoCover int
 	Unknown int
 	Regions []string
+	// the settings hide the demos unless the kind filter asks for them
+	DemosHidden bool
 }
 
 type LibraryPageData struct {
@@ -703,8 +705,31 @@ func (web *Web) missingUpdates() map[string]process.IncompleteTitle {
 			return map[string]process.IncompleteTitle{}
 		}
 		settingsObj := settings.ReadSettings(web.dataFolder)
-		return process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreUpdateTitleIds), settingsObj.IgnoreDLCUpdates)
+		missing := process.ScanForMissingUpdates(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreUpdateTitleIds), settingsObj.IgnoreDLCUpdates)
+		return withoutDemos(missing, switchDB, settingsObj.HideDemoGames)
 	}).(map[string]process.IncompleteTitle)
+}
+
+// withoutDemos removes the demos (and their DLC) when the settings hide them.
+func withoutDemos(titles map[string]process.IncompleteTitle, switchDB *db.SwitchTitlesDB, hide bool) map[string]process.IncompleteTitle {
+	if !hide {
+		return titles
+	}
+	for key, title := range titles {
+		prefix, err := db.TitleIDPrefix(title.Attributes.Id)
+		if err != nil {
+			continue
+		}
+		base := switchDB.TitlesMap[prefix]
+		name := title.Attributes.Name
+		if base != nil {
+			name = base.Attributes.Name
+		}
+		if isDemo(base, name) {
+			delete(titles, key)
+		}
+	}
+	return titles
 }
 
 // missingDLC are the games with missing DLC, respecting the ignore list.
@@ -715,6 +740,7 @@ func (web *Web) missingDLC() map[string]process.IncompleteTitle {
 			return map[string]process.IncompleteTitle{}
 		}
 		settingsObj := settings.ReadSettings(web.dataFolder)
-		return process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds))
+		missing := process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds))
+		return withoutDemos(missing, switchDB, settingsObj.HideDemoGames)
 	}).(map[string]process.IncompleteTitle)
 }

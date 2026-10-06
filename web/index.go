@@ -103,7 +103,7 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 
 	// positions of the matching items; only the shown page is copied
 	matched := make([]int, 0, len(all))
-	facets := LibraryFacets{Formats: []string{}, Regions: []string{}}
+	facets := LibraryFacets{Formats: []string{}, Regions: []string{}, DemosHidden: settings.ReadSettings(web.dataFolder).HideDemoGames}
 	formats := map[string]struct{}{}
 	regions := map[string]struct{}{}
 
@@ -139,7 +139,7 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		if !item.Known {
 			facets.Unknown++
 		}
-		if (filter.Kind == KIND_GAME && item.Demo) || (filter.Kind == KIND_DEMO && !item.Demo) {
+		if (filter.Kind == KIND_GAME && item.Demo) || (filter.Kind == KIND_DEMO && !item.Demo) || (filter.Kind == "" && facets.DemosHidden && item.Demo) {
 			continue
 		}
 		if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) {

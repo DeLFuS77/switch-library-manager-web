@@ -58,11 +58,11 @@
 				</ul>
 				{{- $f := .Filter}}
 				<div class="d-flex flex-wrap gap-2">
-				{{- if or .Facets.Demos .Filter.Kind}}
+				{{- if or .Facets.Games .Facets.Demos .Filter.Kind}}
 				<div class="dropdown">
-					<button class="btn btn-sm dropdown-toggle rounded-pill {{if .Filter.Kind}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-controller me-1" aria-hidden="true"></span>{{if eq .Filter.Kind "game"}}{{t "Games only"}}{{else if eq .Filter.Kind "demo"}}{{t "Demos only"}}{{else}}{{t "Games and demos"}}{{end}}</button>
+					<button class="btn btn-sm dropdown-toggle rounded-pill {{if .Filter.Kind}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-controller me-1" aria-hidden="true"></span>{{if eq .Filter.Kind "game"}}{{t "Games only"}}{{else if eq .Filter.Kind "demo"}}{{t "Demos only"}}{{else if .Facets.DemosHidden}}{{t "Games (demos hidden)"}}{{else}}{{t "Games and demos"}}{{end}}</button>
 					<ul class="dropdown-menu dropdown-menu-end">
-						<li><a class="dropdown-item{{if not .Filter.Kind}} active{{end}}" href="{{filterUrl .Filter "kind" ""}}">{{t "Games and demos"}}</a></li>
+						<li><a class="dropdown-item{{if not .Filter.Kind}} active{{end}}" href="{{filterUrl .Filter "kind" ""}}">{{if .Facets.DemosHidden}}{{t "Games (demos hidden)"}}{{else}}{{t "Games and demos"}}{{end}}</a></li>
 						<li><a class="dropdown-item d-flex justify-content-between gap-3{{if eq .Filter.Kind "game"}} active{{end}}" href="{{filterUrl .Filter "kind" "game"}}">{{t "Games only"}}<span class="text-body-secondary">{{.Facets.Games}}</span></a></li>
 						<li><a class="dropdown-item d-flex justify-content-between gap-3{{if eq .Filter.Kind "demo"}} active{{end}}" href="{{filterUrl .Filter "kind" "demo"}}">{{t "Demos only"}}<span class="text-body-secondary">{{.Facets.Demos}}</span></a></li>
 					</ul>
@@ -90,7 +90,7 @@
 					</ul>
 				</div>
 				{{- end}}
-				{{- if or .Facets.NoCover .Facets.Unknown .Filter.Extra}}
+				{{- if or .Facets.Games .Facets.Demos .Filter.Extra}}
 				<div class="dropdown">
 					<button class="btn btn-sm dropdown-toggle rounded-pill {{if .Filter.Extra}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-funnel me-1" aria-hidden="true"></span>{{if eq .Filter.Extra "no_cover"}}{{t "Without a cover"}}{{else if eq .Filter.Extra "unknown"}}{{t "Not recognized"}}{{else}}{{t "More filters"}}{{end}}</button>
 					<ul class="dropdown-menu dropdown-menu-end">
