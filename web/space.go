@@ -20,6 +20,10 @@ const (
 	SPACE_COMPRESSED  = "compressed"
 	// a compressed copy that was not verified yet
 	NOTE_SPACE_VERIFY = "Verify the compressed copy first."
+	// duplicates are deleted only when the copy that stays is known to be sound
+	NOTE_SPACE_VERIFY_KEPT  = "Verify the copy that is kept first."
+	NOTE_SPACE_KEPT_DAMAGED = "The copy that is kept is damaged: keep this one."
+	NOTE_SPACE_KEPT_MISSING = "The copy that is kept was not found; rescan the library."
 )
 
 // SpaceFile is a file that takes space without being needed.
@@ -175,6 +179,7 @@ func (web *Web) spaceGroups() []SpaceGroup {
 					entry.file = db.ExtendedFileInfo{FileName: filepath.Base(entry.Path), BaseFolder: filepath.Dir(entry.Path), Size: info.Size()}
 				}
 			}
+			web.requireSoundKeptCopy(&entry)
 			add(SPACE_DUPLICATES, entry)
 		}
 	}
@@ -191,6 +196,48 @@ func (web *Web) spaceGroups() []SpaceGroup {
 		result = append(result, *group)
 	}
 	return result
+}
+
+// requireSoundKeptCopy lets a duplicate be deleted only when the copy that stays was
+// verified and found sound: the two files are the same game and version, but one of them
+// could be damaged.
+func (web *Web) requireSoundKeptCopy(entry *SpaceFile) {
+	if entry.KeptBy == "" {
+		entry.Deletable = false
+		entry.Note = NOTE_SPACE_KEPT_MISSING
+		return
+	}
+	info, err := os.Stat(entry.KeptBy)
+	if err != nil || info.IsDir() {
+		entry.Deletable = false
+		entry.Note = NOTE_SPACE_KEPT_MISSING
+		return
+	}
+	record, ok := web.verifications().current(entry.KeptBy, info)
+	switch {
+	case !ok:
+		entry.Deletable = false
+		entry.Note = NOTE_SPACE_VERIFY_KEPT
+	case !record.OK:
+		entry.Deletable = false
+		entry.Note = NOTE_SPACE_KEPT_DAMAGED
+	}
+}
+
+// spaceVerifyPaths are the files that stay and must be verified before the files they
+// replace can be deleted: compressed copies and kept duplicates.
+func (web *Web) spaceVerifyPaths() []string {
+	paths := []string{}
+	seen := map[string]bool{}
+	for _, group := range web.spaceGroups() {
+		for _, file := range group.Files {
+			if (file.Note == NOTE_SPACE_VERIFY || file.Note == NOTE_SPACE_VERIFY_KEPT) && !seen[file.KeptBy] {
+				seen[file.KeptBy] = true
+				paths = append(paths, file.KeptBy)
+			}
+		}
+	}
+	return paths
 }
 
 // keptBy is the other file named in the reason of a skipped file, e.g.

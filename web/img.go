@@ -56,33 +56,40 @@ func (web *Web) pregenerateThumbnails() {
 	if localDB == nil {
 		return
 	}
-	names := map[string]bool{}
+	missing := []string{}
+	seen := map[string]bool{}
 	for _, title := range localDB.TitlesMap {
-		if title.Icon != "" {
-			names[title.Icon] = true
+		if title.Icon == "" || seen[title.Icon] {
+			continue
+		}
+		seen[title.Icon] = true
+		if _, err := os.Stat(filepath.Join(web.dataFolder, "img", "thumbs", title.Icon)); err != nil {
+			missing = append(missing, title.Icon)
 		}
 	}
+	if len(missing) == 0 {
+		return
+	}
+	taskId := web.taskLog().Start(TASK_THUMBNAILS, TRIGGER_SCAN)
 	made := 0
-	for name := range names {
+	for i, name := range missing {
 		// a new scan brings its own list
 		if web.state.IsSynchronizing() {
-			return
+			web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_SCAN, "")
+			break
 		}
+		web.taskLog().Progress(taskId, i, len(missing), "Making thumbnails")
 		original, ok := web.imagePath(name)
 		if !ok {
 			continue
 		}
-		thumbnail := filepath.Join(web.dataFolder, "img", "thumbs", name)
-		if _, err := os.Stat(thumbnail); err == nil {
-			continue
-		}
-		if web.thumbnails().make(original, thumbnail) == nil {
+		if web.thumbnails().make(original, filepath.Join(web.dataFolder, "img", "thumbs", name)) == nil {
 			made++
 		}
 	}
-	if made > 0 {
-		web.sugarLogger.Infof("[%d thumbnails made in the background]", made)
-	}
+	web.taskLog().SetResult(taskId, 0, made)
+	web.taskLog().Finish(taskId, nil)
+	web.sugarLogger.Infof("[%d thumbnails made in the background]", made)
 }
 
 // HandleImages serves the cached covers: /i/ the original files, /t/ thumbnails.

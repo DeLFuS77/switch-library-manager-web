@@ -194,6 +194,8 @@ type NavCounts struct {
 	Issues  int
 	// failed tasks that were not dismissed
 	FailedTasks int
+	// tasks running now, e.g. covers downloaded in the background
+	RunningTasks int
 }
 
 type TitleItemsPageData struct {
@@ -323,7 +325,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 
 // navCounts counts the missing updates and DLC (respecting the ignore lists) and the issues.
 func (web *Web) navCounts() NavCounts {
-	counts := NavCounts{FailedTasks: web.taskLog().FailedCount()}
+	counts := NavCounts{FailedTasks: web.taskLog().FailedCount(), RunningTasks: web.taskLog().RunningCount()}
 	switchDB, localDB := web.state.get()
 	if localDB == nil {
 		return counts
@@ -433,7 +435,7 @@ func (web *Web) Start() {
 
 	web.sugarLogger.Info("[SLM started]")
 
-	if err := http.ListenAndServe(fmt.Sprint(":", web.appSettings.Port), withSecurityHeaders(withHealthCheck(handler))); err != nil {
+	if err := http.ListenAndServe(fmt.Sprint(":", web.appSettings.Port), withSecurityHeaders(withCompression(withHealthCheck(handler)))); err != nil {
 		web.sugarLogger.Error(fmt.Errorf("running http server failed: %w", err))
 		log.Fatal(err)
 	}

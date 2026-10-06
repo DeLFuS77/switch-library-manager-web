@@ -17,6 +17,9 @@ const (
 	TASK_COMPRESS   = "compress"
 	TASK_DECOMPRESS = "decompress"
 	TASK_VERIFY     = "verify"
+	// background work after a scan
+	TASK_COVERS     = "covers"
+	TASK_THUMBNAILS = "thumbnails"
 )
 
 // what started a task
@@ -28,6 +31,7 @@ const (
 	TRIGGER_STARTUP  = "startup"
 	TRIGGER_ORGANIZE = "organize"
 	TRIGGER_COMPRESS = "compress"
+	TRIGGER_SCAN     = "scan"
 )
 
 // task results
@@ -46,9 +50,10 @@ const (
 	NOTE_SCAN_FAILED       = "The library could not be scanned."
 	NOTE_NOTIFY_FAILED     = "The notification could not be sent."
 	NOTE_ORGANIZE_FAILED   = "The files could not be organized."
+	NOTE_PAUSED_FOR_SCAN   = "Paused for a scan; it continues afterwards."
 )
 
-var taskNoteTexts = []string{NOTE_INTERRUPTED, NOTE_TITLES_DOWNLOAD, NOTE_TITLES_SAVED_COPY, NOTE_SCAN_FAILED, NOTE_NOTIFY_FAILED, NOTE_ORGANIZE_FAILED}
+var taskNoteTexts = []string{NOTE_INTERRUPTED, NOTE_TITLES_DOWNLOAD, NOTE_TITLES_SAVED_COPY, NOTE_SCAN_FAILED, NOTE_NOTIFY_FAILED, NOTE_ORGANIZE_FAILED, NOTE_PAUSED_FOR_SCAN}
 
 const (
 	TASKS_FILENAME = "tasks.json"
@@ -216,6 +221,19 @@ func (l *TaskLog) Dismiss(id int64) bool {
 		}
 	}
 	return false
+}
+
+// RunningCount is the number of tasks that are running, background work included.
+func (l *TaskLog) RunningCount() int {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+	count := 0
+	for _, task := range l.tasks {
+		if task.Status == TASK_RUNNING {
+			count++
+		}
+	}
+	return count
 }
 
 // ClearFinished removes every finished task, failed ones included.

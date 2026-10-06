@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/fileio"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -83,6 +84,47 @@ func (ldb *LocalSwitchDBManager) KeysChanged(fingerprint string) bool {
 
 func (ldb *LocalSwitchDBManager) Close() {
 	ldb.db.Close()
+}
+
+const (
+	// files read before the found games are added to the library
+	scanChunkSize = 1000
+)
+
+// how often a slow scan shows the games found so far; a variable for tests
+var partialLibraryInterval = 5 * time.Second
+
+// PartialLibraryReceiver is implemented by progress receivers that show the games of a
+// slow scan before it ends. The maps are copies the receiver may keep.
+type PartialLibraryReceiver interface {
+	PartialLibrary(titles map[string]*SwitchGameFiles, skipped map[ExtendedFileInfo]SkippedFile, files int)
+}
+
+// copyTitles copies the games of a library that is still being built, so the copy does
+// not change while the scan goes on.
+func copyTitles(titles map[string]*SwitchGameFiles) map[string]*SwitchGameFiles {
+	result := make(map[string]*SwitchGameFiles, len(titles))
+	for prefix, title := range titles {
+		copied := *title
+		copied.Updates = make(map[int]SwitchFileInfo, len(title.Updates))
+		for version, update := range title.Updates {
+			copied.Updates[version] = update
+		}
+		copied.Dlc = make(map[string]SwitchFileInfo, len(title.Dlc))
+		for id, dlc := range title.Dlc {
+			copied.Dlc[id] = dlc
+		}
+		result[prefix] = &copied
+	}
+	return result
+}
+
+func copySkipped(skipped map[ExtendedFileInfo]SkippedFile) map[ExtendedFileInfo]SkippedFile {
+	result := make(map[ExtendedFileInfo]SkippedFile, len(skipped))
+	for file, reason := range skipped {
+		result[file] = reason
+	}
+	return result
 }
 
 type ExtendedFileInfo struct {
@@ -277,150 +319,165 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 		candidates = append(candidates, i)
 	}
 
-	// read the files in parallel, with a bounded number of workers so a big library does
-	// not saturate the disk, the network share or the CPU
+	// the files are read and added in chunks: a big first scan shows its games while it
+	// runs, and what was read is cached even if the app stops before the end
 	results := make([]metadataResult, len(files))
 	total := len(candidates)
 	var read atomic.Int64
-	jobs := make(chan int)
-	var workers sync.WaitGroup
-	for w := 0; w < ScanWorkers(dataFolder); w++ {
-		workers.Add(1)
-		go func() {
-			defer workers.Done()
-			for i := range jobs {
-				results[i] = ldb.readGameMetadata(files[i])
-				if progress != nil {
-					progress.UpdateProgress(int(read.Add(1)), total, "Reading "+files[i].FileName)
-				}
-			}
-		}()
-	}
-	for _, i := range candidates {
-		jobs <- i
-	}
-	close(jobs)
-	workers.Wait()
-
-	// newly read metadata is cached in one transaction, not one per file
-	newEntries := map[string]interface{}{}
-	for _, i := range candidates {
-		if results[i].cacheKey != "" {
-			newEntries[results[i].cacheKey] = results[i].metadata
-		}
-	}
-	if len(newEntries) > 0 {
-		if err := ldb.db.AddEntries(DB_TABLE_FILE_SCAN_METADATA, newEntries); err != nil {
-			zap.S().Warnf("Failed to cache the metadata of %v files: %v", len(newEntries), err)
-		}
-	}
-
 	covers := []coverDownload{}
+	partial, publishes := progress.(PartialLibraryReceiver)
+	lastPublish := time.Now()
+	for start := 0; start < len(candidates); start += scanChunkSize {
+		chunk := candidates[start:min(start+scanChunkSize, len(candidates))]
 
-	// combine the results in the order of the files, so duplicates and old versions are
-	// decided like in a sequential scan
-	for _, i := range candidates {
-		file := files[i]
-		isSplit := isSplitFile[i]
-		result := results[i]
-		if result.skip != nil {
-			skipped[file] = *result.skip
+		// read the files in parallel, with a bounded number of workers so a big library
+		// does not saturate the disk, the network share or the CPU
+		jobs := make(chan int)
+		var workers sync.WaitGroup
+		for w := 0; w < ScanWorkers(dataFolder); w++ {
+			workers.Add(1)
+			go func() {
+				defer workers.Done()
+				for i := range jobs {
+					results[i] = ldb.readGameMetadata(files[i])
+					if progress != nil {
+						progress.UpdateProgress(int(read.Add(1)), total, "Reading "+files[i].FileName)
+					}
+				}
+			}()
 		}
-		contentMap, err := result.metadata, result.err
+		for _, i := range chunk {
+			jobs <- i
+		}
+		close(jobs)
+		workers.Wait()
 
-		if err != nil {
-			if _, ok := skipped[file]; !ok {
-				skipped[file] = SkippedFile{ReasonText: "unable to determine title-Id / version - " + err.Error(), ReasonCode: REASON_UNRECOGNISED}
+		// newly read metadata is cached in one transaction, not one per file
+		newEntries := map[string]interface{}{}
+		for _, i := range chunk {
+			if results[i].cacheKey != "" {
+				newEntries[results[i].cacheKey] = results[i].metadata
 			}
-			continue
+		}
+		if len(newEntries) > 0 {
+			if err := ldb.db.AddEntries(DB_TABLE_FILE_SCAN_METADATA, newEntries); err != nil {
+				zap.S().Warnf("Failed to cache the metadata of %v files: %v", len(newEntries), err)
+			}
 		}
 
-		for _, metadata := range contentMap {
-
-			id := strings.ToLower(metadata.TitleId)
-			idPrefix, prefixErr := titleIDPrefix(id)
-			if prefixErr != nil {
-				skipped[file] = SkippedFile{ReasonText: "unable to determine title-Id / version - " + prefixErr.Error(), ReasonCode: REASON_UNRECOGNISED}
-				continue
+		// combine the results in the order of the files, so duplicates and old versions are
+		// decided like in a sequential scan
+		for _, i := range chunk {
+			file := files[i]
+			isSplit := isSplitFile[i]
+			result := results[i]
+			if result.skip != nil {
+				skipped[file] = *result.skip
 			}
-			metadata.TitleId = id
+			contentMap, err := result.metadata, result.err
 
-			multiContent := len(contentMap) > 1
-			switchTitle := &SwitchGameFiles{
-				MultiContent: multiContent,
-				Updates:      map[int]SwitchFileInfo{},
-				Dlc:          map[string]SwitchFileInfo{},
-				BaseExist:    false,
-				IsSplit:      isSplit,
-				LatestUpdate: 0,
-			}
-			if t, ok := titles[idPrefix]; ok {
-				switchTitle = t
-			}
-			titles[idPrefix] = switchTitle
-
-			//process Updates
-			if strings.HasSuffix(metadata.TitleId, "800") {
-				metadata.Type = "Update"
-
-				if update, ok := switchTitle.Updates[metadata.Version]; ok {
-					skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate update file (" + fullPath(update.ExtendedInfo) + ")"}
-					zap.S().Warnf("-->Duplicate update file found [%v] and [%v]", update.ExtendedInfo.FileName, file.FileName)
-					continue
-				}
-				switchTitle.Updates[metadata.Version] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
-				if metadata.Version > switchTitle.LatestUpdate {
-					if switchTitle.LatestUpdate != 0 {
-						skipped[switchTitle.Updates[switchTitle.LatestUpdate].ExtendedInfo] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally (" + fullPath(file) + ")"}
-					}
-					switchTitle.LatestUpdate = metadata.Version
-				} else {
-					skipped[file] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally (" + fullPath(switchTitle.Updates[switchTitle.LatestUpdate].ExtendedInfo) + ")"}
+			if err != nil {
+				if _, ok := skipped[file]; !ok {
+					skipped[file] = SkippedFile{ReasonText: "unable to determine title-Id / version - " + err.Error(), ReasonCode: REASON_UNRECOGNISED}
 				}
 				continue
 			}
 
-			//process base
-			if strings.HasSuffix(metadata.TitleId, "000") {
-				metadata.Type = "Base"
-				if switchTitle.BaseExist {
-					skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate base file (" + fullPath(switchTitle.File.ExtendedInfo) + ")"}
-					zap.S().Warnf("-->Duplicate base file found [%v] and [%v]", file.FileName, switchTitle.File.ExtendedInfo.FileName)
+			for _, metadata := range contentMap {
+
+				id := strings.ToLower(metadata.TitleId)
+				idPrefix, prefixErr := titleIDPrefix(id)
+				if prefixErr != nil {
+					skipped[file] = SkippedFile{ReasonText: "unable to determine title-Id / version - " + prefixErr.Error(), ReasonCode: REASON_UNRECOGNISED}
 					continue
 				}
-				switchTitle.File = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
-				switchTitle.BaseExist = true
+				metadata.TitleId = id
 
-				if switchDB == nil {
-					continue
+				multiContent := len(contentMap) > 1
+				switchTitle := &SwitchGameFiles{
+					MultiContent: multiContent,
+					Updates:      map[int]SwitchFileInfo{},
+					Dlc:          map[string]SwitchFileInfo{},
+					BaseExist:    false,
+					IsSplit:      isSplit,
+					LatestUpdate: 0,
 				}
+				if t, ok := titles[idPrefix]; ok {
+					switchTitle = t
+				}
+				titles[idPrefix] = switchTitle
 
-				if title, ok := switchDB.TitlesMap[idPrefix]; ok {
-					if title.Attributes.IconUrl != "" {
-						covers = append(covers, coverDownload{title: switchTitle, url: title.Attributes.IconUrl, icon: true})
+				//process Updates
+				if strings.HasSuffix(metadata.TitleId, "800") {
+					metadata.Type = "Update"
+
+					if update, ok := switchTitle.Updates[metadata.Version]; ok {
+						skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate update file (" + fullPath(update.ExtendedInfo) + ")"}
+						zap.S().Warnf("-->Duplicate update file found [%v] and [%v]", update.ExtendedInfo.FileName, file.FileName)
+						continue
 					}
-					if title.Attributes.BannerUrl != "" {
-						covers = append(covers, coverDownload{title: switchTitle, url: title.Attributes.BannerUrl})
+					switchTitle.Updates[metadata.Version] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
+					if metadata.Version > switchTitle.LatestUpdate {
+						if switchTitle.LatestUpdate != 0 {
+							skipped[switchTitle.Updates[switchTitle.LatestUpdate].ExtendedInfo] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally (" + fullPath(file) + ")"}
+						}
+						switchTitle.LatestUpdate = metadata.Version
+					} else {
+						skipped[file] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally (" + fullPath(switchTitle.Updates[switchTitle.LatestUpdate].ExtendedInfo) + ")"}
+					}
+					continue
+				}
+
+				//process base
+				if strings.HasSuffix(metadata.TitleId, "000") {
+					metadata.Type = "Base"
+					if switchTitle.BaseExist {
+						skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate base file (" + fullPath(switchTitle.File.ExtendedInfo) + ")"}
+						zap.S().Warnf("-->Duplicate base file found [%v] and [%v]", file.FileName, switchTitle.File.ExtendedInfo.FileName)
+						continue
+					}
+					switchTitle.File = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
+					switchTitle.BaseExist = true
+
+					if switchDB == nil {
+						continue
+					}
+
+					if title, ok := switchDB.TitlesMap[idPrefix]; ok {
+						if title.Attributes.IconUrl != "" {
+							covers = append(covers, coverDownload{title: switchTitle, url: title.Attributes.IconUrl, icon: true})
+						}
+						if title.Attributes.BannerUrl != "" {
+							covers = append(covers, coverDownload{title: switchTitle, url: title.Attributes.BannerUrl})
+						}
+					}
+
+					continue
+				}
+
+				if dlc, ok := switchTitle.Dlc[metadata.TitleId]; ok {
+					if metadata.Version < dlc.Metadata.Version {
+						skipped[file] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old DLC file, newer version exist locally (" + fullPath(dlc.ExtendedInfo) + ")"}
+						zap.S().Warnf("-->Old DLC file found [%v] and [%v]", file.FileName, dlc.ExtendedInfo.FileName)
+						continue
+					} else if metadata.Version == dlc.Metadata.Version {
+						skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate DLC file (" + fullPath(dlc.ExtendedInfo) + ")"}
+						zap.S().Warnf("-->Duplicate DLC file found [%v] and [%v]", file.FileName, dlc.ExtendedInfo.FileName)
+						continue
 					}
 				}
-
-				continue
+				//not an update, and not main TitleAttributes, so treat it as a DLC
+				metadata.Type = "DLC"
+				switchTitle.Dlc[metadata.TitleId] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
 			}
+		}
 
-			if dlc, ok := switchTitle.Dlc[metadata.TitleId]; ok {
-				if metadata.Version < dlc.Metadata.Version {
-					skipped[file] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old DLC file, newer version exist locally (" + fullPath(dlc.ExtendedInfo) + ")"}
-					zap.S().Warnf("-->Old DLC file found [%v] and [%v]", file.FileName, dlc.ExtendedInfo.FileName)
-					continue
-				} else if metadata.Version == dlc.Metadata.Version {
-					skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate DLC file (" + fullPath(dlc.ExtendedInfo) + ")"}
-					zap.S().Warnf("-->Duplicate DLC file found [%v] and [%v]", file.FileName, dlc.ExtendedInfo.FileName)
-					continue
-				}
-			}
-			//not an update, and not main TitleAttributes, so treat it as a DLC
-			metadata.Type = "DLC"
-			switchTitle.Dlc[metadata.TitleId] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
+		// slow reads (a first scan) show what was found so far; fast ones (everything
+		// cached) finish before anything is published
+		if publishes && start+scanChunkSize < len(candidates) && time.Since(lastPublish) >= partialLibraryInterval {
+			covers = assignCachedCovers(dataFolder, covers)
+			partial.PartialLibrary(copyTitles(titles), copySkipped(skipped), start+len(chunk))
+			lastPublish = time.Now()
 		}
 	}
 

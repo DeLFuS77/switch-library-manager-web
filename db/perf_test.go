@@ -12,7 +12,7 @@ import (
 )
 
 // fakeLibrary creates files named like a library, identified by their names.
-func fakeLibrary(b *testing.B, games int) string {
+func fakeLibrary(b testing.TB, games int) string {
 	b.Helper()
 	folder := b.TempDir()
 	for i := 0; i < games; i++ {

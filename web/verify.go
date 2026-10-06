@@ -148,6 +148,11 @@ func verifyLibraryFile(ctx context.Context, path string, progress func(int64, in
 // only the files that are new or changed since they were last checked. It returns false
 // if a compression or verification is already running.
 func (web *Web) startVerification(onlyChanged bool, trigger string) bool {
+	return web.startVerificationOf(nil, onlyChanged, trigger)
+}
+
+// startVerificationOf checks the given files, or every file of the library when paths is nil.
+func (web *Web) startVerificationOf(paths []string, onlyChanged bool, trigger string) bool {
 	web.compressor.mutex.Lock()
 	if web.compressor.cancel != nil {
 		web.compressor.mutex.Unlock()
@@ -173,15 +178,20 @@ func (web *Web) startVerification(onlyChanged bool, trigger string) bool {
 		}
 		files := []pending{}
 		var total int64
-		for _, candidate := range web.libraryFiles(".nsp", ".nsz", ".xci", ".xcz") {
-			info, err := os.Stat(candidate.Path)
-			if err != nil {
+		if paths == nil {
+			for _, candidate := range web.libraryFiles(".nsp", ".nsz", ".xci", ".xcz") {
+				paths = append(paths, candidate.Path)
+			}
+		}
+		for _, path := range paths {
+			info, err := os.Stat(path)
+			if err != nil || info.IsDir() {
 				continue
 			}
-			if _, ok := store.current(candidate.Path, info); ok && onlyChanged {
+			if _, ok := store.current(path, info); ok && onlyChanged {
 				continue
 			}
-			files = append(files, pending{candidate.Path, info})
+			files = append(files, pending{path, info})
 			total += info.Size()
 		}
 
@@ -237,7 +247,12 @@ func verifyDue(s *settings.AppSettings, lastRun time.Time, now time.Time) bool {
 func (web *Web) HandleVerify() {
 	web.router.HandleFunc("/verify/start", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
-		if !web.startVerification(r.FormValue("all") != "true", TRIGGER_MANUAL) {
+		var paths []string
+		if r.FormValue("scope") == "space" {
+			// only the files the Space page needs checked before deleting
+			paths = web.spaceVerifyPaths()
+		}
+		if !web.startVerificationOf(paths, r.FormValue("all") != "true", TRIGGER_MANUAL) {
 			writeGlobalError(w, http.StatusConflict, lang, "A compression is already running.")
 			return
 		}

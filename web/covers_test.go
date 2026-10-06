@@ -57,6 +57,17 @@ func TestCoversAreDownloadedAfterTheScan(t *testing.T) {
 		t.Fatalf("covers: %+v %+v", game1, game2)
 	}
 
+	// the downloads are shown in Tasks
+	var coverTask *Task
+	for _, task := range web.taskLog().Snapshot() {
+		if task.Kind == TASK_COVERS {
+			coverTask = &task
+		}
+	}
+	if coverTask == nil || coverTask.Status != TASK_SUCCESS || coverTask.Files != 2 || coverTask.Trigger != TRIGGER_SCAN {
+		t.Fatalf("cover task: %+v", coverTask)
+	}
+
 	// the covers are saved for the next start
 	saved, err := manager.CreateLocalSwitchFilesDB(switchDB, web.dataFolder, []string{}, nil, true, false)
 	if err != nil {
