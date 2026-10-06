@@ -5,7 +5,16 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
-		"Update the app": "Actualizar la app",
+		"Wishlist":               "Lista de deseos",
+		"Your wishlist is empty": "Tu lista de deseos está vacía",
+		"Tap the heart of a missing game to be told when it is released or gets new DLC.": "Pulsa el corazón de un juego que falta para que te avisemos cuando salga o tenga DLC nuevos.",
+		"Remove from the wishlist":           "Quitar de la lista de deseos",
+		"Add to the wishlist":                "Añadir a la lista de deseos",
+		"On your wishlist":                   "En tu lista de deseos",
+		"Notify my wishlist":                 "Avisar de mi lista de deseos",
+		"On your wishlist and available: %v": "En tu lista de deseos y ya disponible: %v",
+		"DLC %v for %v (on your wishlist)":   "DLC %v para %v (en tu lista de deseos)",
+		"Update the app":                     "Actualizar la app",
 		"Your settings, users, keys, covers and caches are in the data folder and stay when the app is updated.": "Tus ajustes, usuarios, claves, portadas y cachés están en la carpeta de datos y se conservan al actualizar la app.",
 		"No newer version is known.":                                     "No se conoce ninguna versión más nueva.",
 		"Unraid, installed from the Apps tab":                            "Unraid, instalado desde Apps",

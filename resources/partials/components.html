@@ -75,5 +75,5 @@
 
 {{- define "statusFilter"}}
 				{{- $f := .Filter}}
-				<li><a class="filter-pill{{if eq $f.Status .Value}} active{{end}}" href="{{filterUrl $f "status" .Value}}"{{if eq $f.Status .Value}} aria-current="true"{{end}}>{{if .Icon}}<span class="bi {{.Icon}}" aria-hidden="true"></span>{{end}}{{.Label}} <span class="filter-count">{{.Count}}</span></a></li>
+				<li><a class="filter-pill{{if eq $f.Status .Value}} active{{end}}" href="{{filterUrl $f "status" .Value}}"{{if eq $f.Status .Value}} aria-current="true"{{end}}>{{if .Icon}}<span class="bi {{.Icon}}" aria-hidden="true"></span>{{end}}{{.Label}}{{if ge .Count 0}} <span class="filter-count">{{.Count}}</span>{{end}}</a></li>
 {{- end}}

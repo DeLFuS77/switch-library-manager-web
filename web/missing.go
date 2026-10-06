@@ -20,6 +20,7 @@ func (web *Web) HandleMissing() {
 		items, p := web.getMissingGames(filter, lang)
 		return TitleItemsPageData {
 			GlobalPageData: web.globalPageData("missing"),
+			WishedCount: web.wishes().count(),
 			TitleItems: items,
 			Filter: filter,
 			Pagination: p,
@@ -28,7 +29,17 @@ func (web *Web) HandleMissing() {
 }
 
 func (web *Web) getMissingGames(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination) {
-	return web.filterPage(filter, web.sorted("missingGames:"+lang, filter, func() []TitleItem { return web.buildMissingGames(lang) }))
+	items := web.sorted("missingGames:"+lang, filter, func() []TitleItem { return web.buildMissingGames(lang) })
+	if filter.Status == STATUS_WANTED {
+		wanted := []TitleItem{}
+		for _, item := range items {
+			if item.Wished {
+				wanted = append(wanted, item)
+			}
+		}
+		items = wanted
+	}
+	return web.filterPage(filter, items)
 }
 
 // buildMissingGames lists every game of the titles database that is not in the library.
@@ -78,6 +89,7 @@ func (web *Web) buildMissingGames(lang string) []TitleItem {
 				Region:      v.Attributes.Region,
 				ReleaseDate: release,
 				Known:       true,
+				Wished:      web.wishes().has(v.Attributes.Id),
 			})
 		}
 	}

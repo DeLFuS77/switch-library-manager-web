@@ -43,6 +43,7 @@ type SettingsForm struct {
 	WebhookUrl           string `in:"form=webhook_url"`
 	NotifyUpdates        bool   `in:"form=notify_updates"`
 	NotifyDlc            bool   `in:"form=notify_dlc"`
+	NotifyWishlist       bool   `in:"form=notify_wishlist"`
 }
 
 func (f *SettingsForm) notificationOptions() settings.NotificationOptions {
@@ -53,6 +54,7 @@ func (f *SettingsForm) notificationOptions() settings.NotificationOptions {
 		WebhookUrl:        strings.TrimSpace(f.WebhookUrl),
 		NotifyUpdates:     f.NotifyUpdates,
 		NotifyDlc:         f.NotifyDlc,
+		NotifyWishlist:    f.NotifyWishlist,
 	}
 }
 

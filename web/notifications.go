@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -81,6 +82,26 @@ func (web *Web) availableItems(lang string) []NotificationItem {
 		}
 	}
 
+	if options.NotifyWishlist {
+		today := time.Now().Format("20060102")
+		for _, id := range web.wishes().ids() {
+			title, ok := switchDB.TitlesMap[strings.ToLower(id[:13])]
+			if !ok {
+				continue
+			}
+			name := titleName(switchDB, lang, id, title.Attributes.Name)
+			released := title.Attributes.ReleaseDate
+			// released, or in the store without a known date
+			if released == 0 || strconv.Itoa(released) <= today {
+				items = append(items, NotificationItem{Key: "wish:" + id, Kind: "wish", TitleId: id, Name: name})
+			}
+			for dlcId, dlc := range title.Dlc {
+				dlcId = strings.ToUpper(dlcId)
+				items = append(items, NotificationItem{Key: "wishdlc:" + dlcId, Kind: "wishdlc", TitleId: id, Name: name, Detail: titleName(switchDB, lang, dlcId, dlc.Name)})
+			}
+		}
+	}
+
 	sort.Slice(items, func(i, j int) bool { return items[i].Key < items[j].Key })
 	return items
 }
@@ -128,7 +149,9 @@ func notificationsConfigured(options settings.NotificationOptions) bool {
 func (web *Web) notifyChanges() error {
 	settingsObj := settings.ReadSettings(web.dataFolder)
 	options := settingsObj.Notifications
-	if !notificationsConfigured(options) || (!options.NotifyUpdates && !options.NotifyDlc) {
+	// games bought since the last check leave the wishlist
+	web.forgetOwnedWishes()
+	if !notificationsConfigured(options) || (!options.NotifyUpdates && !options.NotifyDlc && !options.NotifyWishlist) {
 		return nil
 	}
 
@@ -178,6 +201,10 @@ func notificationText(lang string, items []NotificationItem) (string, string) {
 			lines = append(lines, "• "+translatef(lang, "Update %v for %v", item.Detail, item.Name))
 		case "dlc":
 			lines = append(lines, "• "+translatef(lang, "DLC %v for %v", item.Detail, item.Name))
+		case "wish":
+			lines = append(lines, "• "+translatef(lang, "On your wishlist and available: %v", item.Name))
+		case "wishdlc":
+			lines = append(lines, "• "+translatef(lang, "DLC %v for %v (on your wishlist)", item.Detail, item.Name))
 		default:
 			lines = append(lines, "• "+item.Name)
 		}

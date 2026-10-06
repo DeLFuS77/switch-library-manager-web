@@ -85,6 +85,8 @@ type NotificationOptions struct {
 	WebhookUrl        string `json:"webhook_url"`
 	NotifyUpdates     bool   `json:"notify_updates"`
 	NotifyDlc         bool   `json:"notify_dlc"`
+	// wished games that are released or get new DLC
+	NotifyWishlist bool `json:"notify_wishlist"`
 }
 
 type AppSettings struct {
@@ -151,7 +153,7 @@ func ReadSettings(dataFolder string) *AppSettings {
 	}
 	// defaults for keys missing from settings files written by older versions
 	settingsInstance = &AppSettings{Debug: false, ScanFolders: []string{}, WatchFolders: true, CheckForUpdates: true,
-		Notifications:   NotificationOptions{NotifyUpdates: true, NotifyDlc: true},
+		Notifications:   NotificationOptions{NotifyUpdates: true, NotifyDlc: true, NotifyWishlist: true},
 		OrganizeOptions: OrganizeOptions{SwitchSafeFileNames: true}, Prodkeys: "", IgnoreDLCTitleIds: []string{"01007F600B135007"}}
 	if _, err := os.Stat(filepath.Join(dataFolder, SETTINGS_FILENAME)); err == nil {
 		file, err := os.Open(filepath.Join(dataFolder, SETTINGS_FILENAME))
@@ -264,7 +266,7 @@ func saveDefaultSettings(dataFolder string) *AppSettings {
 		IgnoreFileTypes:        []string{},
 		WatchFolders:           true,
 		CheckForUpdates:        true,
-		Notifications:          NotificationOptions{NotifyUpdates: true, NotifyDlc: true},
+		Notifications:          NotificationOptions{NotifyUpdates: true, NotifyDlc: true, NotifyWishlist: true},
 		Port:                   3000,
 		Debug:                  false,
 		OrganizeOptions: OrganizeOptions{

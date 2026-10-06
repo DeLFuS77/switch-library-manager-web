@@ -29,7 +29,7 @@ const (
 var (
 	allowedPerPage = map[int]struct{}{12: {}, 24: {}, 48: {}, 96: {}}
 	allowedSortBy  = map[string]struct{}{"id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "type": {}}
-	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}}
+	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}, STATUS_WANTED: {}}
 )
 
 // Normalize replaces invalid values coming from the query string with the defaults.

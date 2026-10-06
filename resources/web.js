@@ -933,6 +933,20 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	});
 
+	// adds a game to the wishlist or removes it
+	document.querySelectorAll('[data-wish]').forEach(button => {
+		button.addEventListener('click', e => {
+			e.preventDefault();
+			e.stopPropagation();
+			button.disabled = true;
+			postForm('/wishlist', { id: button.dataset.wish, wanted: button.dataset.wished === 'true' ? 'false' : 'true' })
+				.then(() => window.location.reload())
+				.catch(() => {
+					button.disabled = false;
+				});
+		});
+	});
+
 	// selects and radio buttons that apply their form at once
 	document.querySelectorAll('[data-autosubmit]').forEach(input => {
 		input.addEventListener('change', () => input.form && input.form.submit());

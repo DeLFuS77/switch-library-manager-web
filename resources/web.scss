@@ -763,6 +763,33 @@ h3,
 	}
 }
 
+// the heart of a missing game, above the link of the card
+.wish-toggle {
+	position: absolute;
+	top: .55rem;
+	right: .55rem;
+	z-index: 3;
+	display: grid;
+	place-items: center;
+	width: 2.1rem;
+	height: 2.1rem;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(0, 0, 0, .55);
+	color: #fff;
+	font-size: 1rem;
+	backdrop-filter: blur(4px);
+	transition: transform .15s ease, background-color .15s ease;
+
+	&:hover {
+		transform: scale(1.08);
+	}
+
+	&.is-wished {
+		background: $primary;
+	}
+}
+
 .dlc-progress-none {
 	color: var(--bs-secondary-color);
 	opacity: .75;
