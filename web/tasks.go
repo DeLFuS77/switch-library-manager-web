@@ -108,7 +108,11 @@ func (t Task) Percent() int {
 
 // Speed returns the megabytes checked per second by a running verification, or 0.
 func (t Task) Speed() int {
-	elapsed := time.Since(t.Started).Seconds()
+	return t.speedAt(time.Now())
+}
+
+func (t Task) speedAt(now time.Time) int {
+	elapsed := now.Sub(t.Started).Seconds()
 	if t.Kind != TASK_VERIFY || t.Current <= 0 || elapsed < 10 {
 		return 0
 	}
@@ -117,7 +121,11 @@ func (t Task) Speed() int {
 
 // Remaining estimates the time left of a running verification, or 0.
 func (t Task) Remaining() time.Duration {
-	speed := t.Speed()
+	return t.remainingAt(time.Now())
+}
+
+func (t Task) remainingAt(now time.Time) time.Duration {
+	speed := t.speedAt(now)
 	if speed <= 0 || t.Total <= t.Current {
 		return 0
 	}

@@ -11,7 +11,7 @@
 				<section class="mb-4">
 					<h2 class="section-title"><span class="bi bi-activity" aria-hidden="true"></span>{{t "Running"}}</h2>
 					{{- range .Running}}
-					<article class="surface task-card mb-3">
+					<article class="surface task-card mb-3" data-task-id="{{.Id}}">
 						<div class="d-flex align-items-center gap-3 mb-3">
 							<span class="stat-icon task-icon"><span class="bi {{template "taskIcon" .Kind}}" aria-hidden="true"></span></span>
 							<div class="flex-grow-1 min-w-0">
