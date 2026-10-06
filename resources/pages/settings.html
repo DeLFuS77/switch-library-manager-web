@@ -115,7 +115,7 @@
 								<div class="col-12">
 									<div class="form-check form-switch">
 										<input class="form-check-input" type="checkbox" role="switch" id="check_for_updates" name="check_for_updates" value="true" aria-describedby="updateHelp"{{if .Settings.CheckForUpdates}} checked{{end}}>
-										<label class="form-check-label" for="check_for_updates">{{t "Tell me when a new version of the app is available"}}</label>
+										<label class="form-check-label" for="check_for_updates">{{t "Tell me when a new version of the app is available"}}</label> <a class="small ms-1" href="/update.html">{{t "How to update"}}</a>
 										<div class="form-text" id="updateHelp">{{t "Asks GitHub once a day for the latest release; nothing about your library is sent."}}</div>
 									</div>
 								</div>

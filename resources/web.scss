@@ -1213,6 +1213,17 @@ h3,
 	border: 1px solid var(--slm-border);
 }
 
+.update-command {
+	margin: .5rem 0 0;
+	padding: .75rem 1rem;
+	border-radius: $border-radius-lg;
+	background: var(--slm-surface-muted);
+	border: 1px solid var(--slm-border);
+	white-space: pre-wrap;
+	word-break: break-all;
+	user-select: all;
+}
+
 .item-size {
 	font-weight: 600;
 	white-space: nowrap;

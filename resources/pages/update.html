@@ -1,0 +1,51 @@
+{{define "title"}}{{t "Update the app"}}{{end}}
+{{define "main"}}
+			{{- template "pageHeader" (dict "Title" (t "Update the app") "Count" -1 "Subtitle" (t "Your settings, users, keys, covers and caches are in the data folder and stay when the app is updated."))}}
+			<section class="surface mb-4 d-flex flex-wrap align-items-center gap-3">
+				<span class="stat-icon flex-shrink-0"><span class="bi bi-stars" aria-hidden="true"></span></span>
+				<div class="flex-grow-1">
+					<div class="fw-semibold">{{t "Installed version"}}: {{.Version}}</div>
+					{{- with .Update}}
+					<div class="text-body-secondary">{{t "Version %v is available." .Version}} <a href="{{.Url}}" target="_blank" rel="noopener noreferrer">{{t "See what is new"}}</a></div>
+					{{- else}}
+					<div class="text-body-secondary">{{t "No newer version is known."}}</div>
+					{{- end}}
+				</div>
+			</section>
+
+			<section class="surface mb-4">
+				<h2 class="section-title"><span class="bi bi-hdd-stack" aria-hidden="true"></span>{{t "Unraid, installed from the Apps tab"}}</h2>
+				<ol class="mb-0">
+					<li>{{t "Open the Docker tab and click Check for Updates at the bottom."}}</li>
+					<li>{{t "Click update ready next to the app, or Update All."}}</li>
+				</ol>
+			</section>
+
+			<section class="surface mb-4">
+				<h2 class="section-title"><span class="bi bi-terminal" aria-hidden="true"></span>{{t "Docker, or Unraid without the Apps template"}}</h2>
+				<p class="text-body-secondary">{{t "If Unraid says 'Configuration not found' when updating, the container was made with docker run. Run these commands in the terminal of the server (on Unraid the >_ icon). Nothing in the data folder is deleted."}}</p>
+				<ol>
+					<li class="mb-3">{{t "Download the new version and remove the old container:"}}
+						<pre class="update-command"><code>docker pull {{.Image}} &amp;&amp; docker stop switch-library-manager-web &amp;&amp; docker rm switch-library-manager-web</code></pre>
+					</li>
+					<li>{{t "Create it again with the same folders:"}}
+						{{- if .InContainer}}
+						<pre class="update-command"><code>{{.Command}}</code></pre>
+						<ul class="small text-body-secondary mb-0">
+							{{- range .Mounts}}
+							<li><code>{{.Host}}</code> &rarr; <code>{{.Container}}</code>{{if .Uncertain}} <span class="chip chip-warning"><span class="bi bi-exclamation-triangle" aria-hidden="true"></span>{{t "check this folder"}}</span>{{end}}</li>
+							{{- end}}
+						</ul>
+						<p class="small text-body-secondary mt-2 mb-0">{{t "The folders were read from this container. If a folder is marked, see it with: docker inspect switch-library-manager-web. Use the name of your container if it is another one."}}</p>
+						{{- else}}
+						<pre class="update-command"><code>docker run -d --name switch-library-manager-web --restart unless-stopped -p {{.Port}}:{{.Port}} -e PUID={{.PUID}} -e PGID={{.PGID}} -e TZ={{.TZ}} -v /mnt/user/appdata/switch-library-manager-web:/usr/local/share/switch-library-manager-web -v /mnt/user/YOUR_SHARE:/mnt/roms {{.Image}}</code></pre>
+						{{- end}}
+					</li>
+				</ol>
+			</section>
+
+			<section class="surface mb-4">
+				<h2 class="section-title"><span class="bi bi-pc-display" aria-hidden="true"></span>{{t "Windows, macOS and Linux"}}</h2>
+				<p class="mb-0">{{t "Stop the app, replace it with the file of the new version and start it again."}} <a href="{{.Releases}}" target="_blank" rel="noopener noreferrer">{{t "Download the latest version"}}</a></p>
+			</section>
+{{- end}}
