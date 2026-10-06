@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.19.0
+
+### New features
+
+- **SD card planner**: choose the size of a card and what you like (genres, favorites, games for several players,
+  a collection) and the app proposes the games that fit, with why each one was chosen. Change the list by hand,
+  download it or copy the games to the card or a USB drive, a folder per game; nothing is ever deleted.
+- **More data of each game**: genres, number of players, languages and age rating from the titles database. The
+  library filters by genre, players and language of the game, the game page shows them, and the statistics show
+  the games by genre, publisher and year of release. The genres of every store are joined into one list.
+- **The same game from several regions**: the Space page groups the copies of a game from different stores and
+  suggests the one to keep (in your language, more languages, newer update, more DLC).
+- **Convert game cards**: XCI files become NSP files and XCZ files NSZ files, each new file checked before the
+  original is deleted, if asked.
+- **Forgiving search**: accents, case, signs and the order of the words do not matter, and small typing mistakes
+  are accepted ("zelda brth" finds "Breath of the Wild").
+- **Five more languages**: Dutch, Russian, Japanese, Korean and Chinese, with dates in their format and the game
+  names from their eShop.
+
 ## 1.18.1
 
 ### Fixes
