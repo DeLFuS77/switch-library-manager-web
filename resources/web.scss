@@ -1680,13 +1680,15 @@ h3,
 	padding: 1rem 1.1rem;
 	border-radius: $border-radius-xl;
 
-	// on phones the icon goes above the number, so labels have the whole width
+	// on phones a small icon goes next to the number, so labels have the whole width and
+	// the cards stay short
 	@include media-breakpoint-down(sm) {
-		grid-template-columns: 1fr;
-		grid-template-areas: "icon" "value" "label";
-		row-gap: .35rem;
-		align-items: start;
-		padding: .9rem;
+		grid-template-columns: 1fr auto;
+		grid-template-areas: "value icon" "label label";
+		row-gap: .3rem;
+		column-gap: .5rem;
+		align-items: center;
+		padding: .75rem .85rem;
 	}
 	background: var(--slm-surface);
 	border: 1px solid var(--slm-border);
@@ -2299,5 +2301,18 @@ h3,
 
 	.filter-scroll > * {
 		flex-shrink: 0;
+	}
+}
+
+/* phones: smaller icon and number in the overview cards (after the rules of .kpi) */
+@include media-breakpoint-down(sm) {
+	.kpi .kpi-icon {
+		width: 2rem;
+		height: 2rem;
+		font-size: 1rem;
+	}
+
+	.kpi .kpi-value {
+		font-size: 1.3rem;
 	}
 }
