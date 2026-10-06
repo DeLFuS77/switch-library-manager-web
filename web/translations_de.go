@@ -3,7 +3,16 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
-		"Update the app": "App aktualisieren",
+		"Wishlist":               "Wunschliste",
+		"Your wishlist is empty": "Deine Wunschliste ist leer",
+		"Tap the heart of a missing game to be told when it is released or gets new DLC.": "Tippe auf das Herz eines fehlenden Spiels, um bei Erscheinen oder neuen DLC benachrichtigt zu werden.",
+		"Remove from the wishlist":           "Von der Wunschliste entfernen",
+		"Add to the wishlist":                "Zur Wunschliste hinzufügen",
+		"On your wishlist":                   "Auf deiner Wunschliste",
+		"Notify my wishlist":                 "Wunschliste benachrichtigen",
+		"On your wishlist and available: %v": "Auf deiner Wunschliste und verfügbar: %v",
+		"DLC %v for %v (on your wishlist)":   "DLC %v für %v (auf deiner Wunschliste)",
+		"Update the app":                     "App aktualisieren",
 		"Your settings, users, keys, covers and caches are in the data folder and stay when the app is updated.": "Deine Einstellungen, Benutzer, Schlüssel, Cover und Caches liegen im Datenordner und bleiben beim Aktualisieren erhalten.",
 		"No newer version is known.":                                     "Keine neuere Version bekannt.",
 		"Unraid, installed from the Apps tab":                            "Unraid, aus Apps installiert",

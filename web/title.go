@@ -37,6 +37,8 @@ type TitleDlc struct {
 }
 
 type TitleDetail struct {
+	// the game is on the wishlist
+	Wished      bool
 	Id          string
 	Name        string
 	Publisher   string
@@ -169,6 +171,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 	}
 
 	detail.Name = titleName(switchDB, lang, detail.Id, getLocalTitleName(title, local))
+	detail.Wished = web.wishes().has(detail.Id)
 	if localized, ok := switchDB.LocalizedTitle(lang, detail.Id); ok && localized.Description != "" {
 		detail.Description = localized.Description
 	}

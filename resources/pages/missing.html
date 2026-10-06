@@ -1,9 +1,13 @@
 {{define "title"}}{{t "Missing Games"}}{{end}}
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Missing Games") "Count" .Pagination.NumItems "Subtitle" (t "Games of the Nintendo eShop that are not in your library."))}}
-			{{- if or (gt (len .TitleItems) 0) .Filter.Keyword}}
+			{{- if or (gt (len .TitleItems) 0) .Filter.Keyword .Filter.Status}}
 			{{- template "filter" .}}
 			{{- end}}
+			<ul class="filter-pills list-unstyled mb-3" aria-label="{{t "Filter by status"}}">
+				{{- template "statusFilter" (dict "Filter" .Filter "Value" "" "Label" (t "All") "Icon" "" "Count" -1)}}
+				{{- template "statusFilter" (dict "Filter" .Filter "Value" "wanted" "Label" (t "Wishlist") "Icon" "bi-heart" "Count" .WishedCount)}}
+			</ul>
 			{{- if gt (len .TitleItems) 0}}
 			<div class="game-grid">
 				{{- range .TitleItems}}
@@ -11,6 +15,8 @@
 				{{- end}}
 			</div>
 			{{- template "pagination" .}}
+			{{- else if eq .Filter.Status "wanted"}}
+			{{- template "emptyState" (dict "Icon" "bi-heart" "Tone" "" "Title" (t "Your wishlist is empty") "Text" (t "Tap the heart of a missing game to be told when it is released or gets new DLC.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 			{{- else if .Filter.Keyword}}
 			{{- template "noResults" .Filter}}
 			{{- else}}

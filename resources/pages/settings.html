@@ -218,6 +218,10 @@
 										<input class="form-check-input" type="checkbox" role="switch" id="notify_dlc" name="notify_dlc" value="true"{{if .Settings.Notifications.NotifyDlc}} checked{{end}}>
 										<label class="form-check-label" for="notify_dlc">{{t "Notify new DLC"}}</label>
 									</div>
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="notify_wishlist" name="notify_wishlist" value="true"{{if .Settings.Notifications.NotifyWishlist}} checked{{end}}>
+										<label class="form-check-label" for="notify_wishlist">{{t "Notify my wishlist"}}</label>
+									</div>
 									<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill ms-sm-auto" id="notificationTest"><span class="bi bi-send me-1" aria-hidden="true"></span>{{t "Send a test notification"}}</button>
 								</div>
 							</div>

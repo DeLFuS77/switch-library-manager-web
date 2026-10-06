@@ -31,6 +31,9 @@
 							{{- if and $t.Owned (gt $t.ArchiveFiles 1)}}
 							<a class="btn btn-primary rounded-pill" href="/api/titles/{{$t.Id}}/archive.zip"><span class="bi bi-file-earmark-zip me-2" aria-hidden="true"></span>{{t "Download all (%v files, %v)" $t.ArchiveFiles (formatSize $t.ArchiveSize)}}</a>
 							{{- end}}
+							{{- if not $t.Owned}}
+							<button type="button" class="btn rounded-pill admin-only {{if $t.Wished}}btn-danger{{else}}btn-glass{{end}}" data-wish="{{$t.Id}}" data-wished="{{$t.Wished}}" aria-pressed="{{$t.Wished}}"><span class="bi {{if $t.Wished}}bi-heart-fill{{else}}bi-heart{{end}} me-2" aria-hidden="true"></span>{{if $t.Wished}}{{t "On your wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}</button>
+							{{- end}}
 							<button type="button" class="btn btn-glass rounded-pill" data-copy="{{$t.Id}}" data-copied="{{t "Copied"}}"><span class="bi bi-clipboard me-2" aria-hidden="true"></span><span data-copy-label>{{t "Copy title ID"}}</span></button>
 						</div>
 					</div>

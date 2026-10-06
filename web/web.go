@@ -112,6 +112,8 @@ type Web struct {
 	covers         coverLoader
 	background     backgroundWork
 	coverFallbacks map[string]coverFallback
+	wish           *wishlist
+	wishOnce       sync.Once
 	fallbackMutex  sync.Mutex
 	thumbs         *thumbnails
 	thumbsOnce     sync.Once
@@ -166,6 +168,8 @@ type TitleItem struct {
 	// the firmware the installed game needs, when the console is too old for it
 	RequiredFirmware string
 	FirmwareTooNew   bool
+	// the game is on the wishlist (Missing Games)
+	Wished bool
 }
 
 // DlcPercent is the share of the DLC of a game in the library.
@@ -201,10 +205,14 @@ type NavCounts struct {
 	FailedTasks int
 	// tasks running now, e.g. covers downloaded in the background
 	RunningTasks int
+	// games on the wishlist
+	Wished int
 }
 
 type TitleItemsPageData struct {
 	GlobalPageData
+	// games on the wishlist (Missing Games)
+	WishedCount int
 	TitleItems []TitleItem
 	Filter     *TitleItemFilter
 	Pagination pagination.Pagination
@@ -330,7 +338,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 
 // navCounts counts the missing updates and DLC (respecting the ignore lists) and the issues.
 func (web *Web) navCounts() NavCounts {
-	counts := NavCounts{FailedTasks: web.taskLog().FailedCount(), RunningTasks: web.taskLog().RunningCount()}
+	counts := NavCounts{FailedTasks: web.taskLog().FailedCount(), RunningTasks: web.taskLog().RunningCount(), Wished: web.wishes().count()}
 	switchDB, localDB := web.state.get()
 	if localDB == nil {
 		return counts
@@ -429,6 +437,7 @@ func (web *Web) Start() {
 	web.HandleSpace()
 	web.HandleCovers()
 	web.HandleUpdateGuide()
+	web.HandleWishlist()
 	if !isDemoMode() {
 		web.StartScheduler()
 		web.StartFolderWatcher()
