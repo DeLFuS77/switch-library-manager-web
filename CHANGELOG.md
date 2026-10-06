@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.18.0
+
+### New features
+
+- **Favorites**: mark the games you like most with the star, on their card or their page, and see only them
+  ("Favorites only") or first (sort by favorites). A collection named "Favorites" becomes the stars.
+- **The missing games in the library**: "Show the missing games too", in the filters, shows the games of the
+  eShop you do not have greyed out with yours, with their heart for the wishlist. Searching a name then shows
+  which games of it you have and which ones you are missing.
+- **From the same series**: the game page shows the other games of its series, the ones you have and the ones
+  you are missing, found by their names.
+- **Filters in one panel**: the library filters besides the status open from one "Filters" button, with a section
+  for each; the active ones show as chips that can be removed. A legend explains the star, the heart and the grey.
+- **Faster file verification**:
+  - several files are checked at once, with a speed setting (gentle, normal or fast) that shows how many files
+    each one checks at once on your server;
+  - the results are saved as it goes, so a stopped verification goes on where it was;
+  - the progress shows the speed and the time left;
+  - the scheduled verification also checks again the files not checked for a week or a month, a part every
+    night within the background hours, so the whole library is checked over time.
+
 ## 1.17.1
 
 ### Fixes

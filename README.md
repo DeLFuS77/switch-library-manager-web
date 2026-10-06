@@ -49,7 +49,8 @@ Linux, Docker, NAS and Raspberry Pi.
 - Missing updates (for games and DLC), missing DLC and missing games, with filters and search
 - Library filters by status, format, region, collection, games or demos, and games without a cover; sort by size
   or date added
-- Your own collections of games ("Favorites", "Playing"...), and actions on several games at once
+- Favorites, your own collections of games ("Playing", "For the kids"...) and actions on several games at once
+- The missing games greyed out with yours on request, and the games of the same series on each game page
 - A wishlist of games you do not have yet, with a notification when they come out
 - Game pages with description, screenshots, versions, DLC and downloads (a whole game as one ZIP)
 - Statistics with charts and the history of your library, and an export as CSV, JSON or a web page to share
