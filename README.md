@@ -74,7 +74,8 @@ Linux, Docker, NAS and Raspberry Pi.
 - Live tasks page, scheduled synchronization and notifications (Discord, Telegram, webhook) of new updates, DLC
   and games
 - JSON API with OpenAPI description, e.g. for Home Assistant
-- Interface in English, Spanish, French, German, Italian and Portuguese (including game names), light and dark theme
+- Interface in English, Spanish, French, German, Italian, Portuguese, Dutch, Russian, Japanese, Korean and Chinese
+  (including game names where the eShop has them), light and dark theme
 
 ## Quick start
 
