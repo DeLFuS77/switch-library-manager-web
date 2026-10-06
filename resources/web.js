@@ -836,7 +836,51 @@ function initViewToggle() {
 	}));
 }
 
+// The filters of each list are remembered by the browser: coming back to a list from another
+// page (the menu, a game page) shows it as it was left. On the list itself, removing the
+// filters shows everything.
+const FILTER_PAGES = ['/index.html', '/updates.html', '/dlc.html', '/missing.html'];
+
+function listPath(pathname) {
+	return pathname === '/' ? '/index.html' : pathname;
+}
+
+// restoreFilters returns true when the page is replaced by the remembered filters.
+function restoreFilters() {
+	const path = listPath(window.location.pathname);
+	if (!FILTER_PAGES.includes(path)) {
+		return false;
+	}
+	const key = 'slm-filters:' + path;
+	let from = '';
+	try {
+		const referrer = new URL(document.referrer);
+		if (referrer.origin === window.location.origin) {
+			from = listPath(referrer.pathname);
+		}
+	} catch (e) {
+		// no referrer
+	}
+	try {
+		const query = window.location.search;
+		if (!query && from !== path) {
+			const stored = localStorage.getItem(key);
+			if (stored) {
+				window.location.replace(path + stored);
+				return true;
+			}
+		}
+		localStorage.setItem(key, query);
+	} catch (e) {
+		// storage is not available: the lists start without filters
+	}
+	return false;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+	if (restoreFilters()) {
+		return;
+	}
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 	[...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
 
