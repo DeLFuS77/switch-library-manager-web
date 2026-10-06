@@ -2,6 +2,7 @@ package web
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -64,5 +65,41 @@ func TestSdCopy(t *testing.T) {
 	}
 	if folder := sdFolderName(`Game: "The <Best>" / 2`); folder != "Game The Best 2" {
 		t.Fatalf("names safe for a card: %q", folder)
+	}
+}
+
+func TestSdPageListsFewRowsOfABigLibrary(t *testing.T) {
+	web := newTestWeb(t)
+	switchDB, localDB := largeDatabases(2000, 2000)
+	web.state.set(switchDB, localDB)
+
+	// a big card: more games are chosen than the page lists
+	// (each test game takes about 1 GB with its update and DLC: a card of 2 TB fits some)
+	plan := web.sdPlan(readSdOptions(url.Values{"capacity": {"2000"}, "reserve": {"0"}, "strategy": {"more"}, "dlc": {"0"}, "planned": {"1"}}), "en")
+	if plan.SelectedCount <= maxSdSelectedRows || len(plan.Selected) != maxSdSelectedRows || len(plan.HiddenIds) != plan.SelectedCount-maxSdSelectedRows || plan.HiddenSize <= 0 {
+		t.Fatalf("the chosen games the page does not list are counted: %d %d %d", plan.SelectedCount, len(plan.Selected), len(plan.HiddenIds))
+	}
+	// a small card: the games left are listed at most maxSdOtherRows, and can be searched
+	plan = web.sdPlan(readSdOptions(url.Values{"capacity": {"32"}, "reserve": {"0"}, "planned": {"1"}}), "en")
+	if plan.OthersTotal <= maxSdOtherRows || len(plan.Others) != maxSdOtherRows {
+		t.Fatalf("the others are limited: %d %d", plan.OthersTotal, len(plan.Others))
+	}
+	search := plan.Others[0].Name
+	found := web.sdPlan(readSdOptions(url.Values{"capacity": {"32"}, "reserve": {"0"}, "planned": {"1"}, "q": {search}}), "en")
+	if found.OthersTotal == 0 || found.OthersTotal >= plan.OthersTotal || found.Others[0].Name != search {
+		t.Fatalf("searching the others: %d of %d", found.OthersTotal, plan.OthersTotal)
+	}
+}
+
+func TestSdPageSizeStaysSmall(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.state.set(largeDatabases(2000, 2000))
+	web.HandleSdCard()
+	request := httptest.NewRequest(http.MethodGet, "/sd.html?capacity=32&planned=1", nil)
+	recorder := httptest.NewRecorder()
+	web.router.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK || recorder.Body.Len() > 300<<10 {
+		t.Fatalf("the page of a big library stays under 300 KB: %d, %d bytes", recorder.Code, recorder.Body.Len())
 	}
 }

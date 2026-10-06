@@ -3,6 +3,9 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Search among the other games": "その他のゲームから検索",
+		"Showing the first %v of %v games. Search to see others.": "%v/%v 本のゲームを表示しています。他は検索で探せます。",
+		"and %v more games chosen, not listed": "ほか %v 本の選択済みゲームは一覧に表示されません",
 		"# Missing":            "# 不足",
 		"%v DLC":               "%v DLC",
 		"%v DLC missing":       "%v件のDLCが不足",

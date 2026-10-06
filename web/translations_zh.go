@@ -3,6 +3,9 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Search among the other games": "在其他游戏中搜索",
+		"Showing the first %v of %v games. Search to see others.": "显示前 %v/%v 款游戏。搜索可查看其他游戏。",
+		"and %v more games chosen, not listed": "另有 %v 款已选游戏未在列表中显示",
 		"# Missing":            "缺失数量",
 		"%v DLC":               "%v 个 DLC",
 		"%v DLC missing":       "缺少 %v 个 DLC",

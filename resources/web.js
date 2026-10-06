@@ -700,9 +700,12 @@ function initSdPlanner() {
 	const usable = Number(summary.dataset.sdUsable);
 	const games = [...document.querySelectorAll('[data-sd-game]')];
 	const chosen = () => games.filter(game => game.checked);
+	// the chosen games the page does not list count too
+	const hiddenCount = Number(summary.dataset.sdHiddenCount || 0);
+	const hiddenSize = Number(summary.dataset.sdHiddenSize || 0);
 	const update = () => {
-		const total = chosen().reduce((sum, game) => sum + Number(game.dataset.size), 0);
-		summary.querySelector('[data-sd-count]').textContent = chosen().length;
+		const total = chosen().reduce((sum, game) => sum + Number(game.dataset.size), hiddenSize);
+		summary.querySelector('[data-sd-count]').textContent = chosen().length + hiddenCount;
 		summary.querySelector('[data-sd-total]').textContent = summary.dataset.sdTemplate.replace('%v', formatSize(total)).replace('%v', formatSize(usable));
 		const bar = summary.querySelector('[data-sd-bar]');
 		bar.style.width = Math.min(100, usable > 0 ? total * 100 / usable : 100) + '%';
@@ -719,6 +722,7 @@ function initSdPlanner() {
 	const params = () => {
 		const values = new URLSearchParams();
 		chosen().forEach(game => values.append('id', game.value));
+		document.querySelectorAll('[data-sd-hidden]').forEach(hidden => values.append('id', hidden.value));
 		if (form.dataset.sdDlc) {
 			values.append('dlc', '1');
 		}

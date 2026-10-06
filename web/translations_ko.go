@@ -3,6 +3,9 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Search among the other games": "다른 게임에서 검색",
+		"Showing the first %v of %v games. Search to see others.": "%v/%v개 게임을 표시 중입니다. 다른 게임은 검색해서 찾아보세요.",
+		"and %v more games chosen, not listed": "그 외 선택된 %v개 게임은 목록에 표시되지 않습니다",
 		"# Missing":            "누락 수",
 		"%v DLC":               "DLC %v개",
 		"%v DLC missing":       "DLC %v개 누락",

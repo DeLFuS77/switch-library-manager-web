@@ -28,6 +28,10 @@ const (
 	// a card of "1000 GB" holds about this share of it once formatted
 	sdFormattedShare = 0.93
 	maxSdGenres      = 8
+	// the rows of the page: a big library has thousands of games, which the page would
+	// take megabytes to show
+	maxSdSelectedRows = 400
+	maxSdOtherRows    = 100
 	// the genres taken from the favorites when none is chosen
 	sdAutoGenres = 3
 )
@@ -48,6 +52,8 @@ type SdOptions struct {
 	Collection  string
 	Dlc         bool
 	MoreGames   bool
+	// a search among the games that are not chosen
+	Search string
 }
 
 // SdReason is why a game is proposed; Key is translated, Value shown as is or translated.
@@ -74,6 +80,12 @@ type SdPlan struct {
 	Total    int64
 	Selected []SdGame
 	Others   []SdGame
+	// the games chosen and the others, with the ones the page does not list: their
+	// identifiers, number and size count in the totals and in the copy
+	SelectedCount int
+	OthersTotal   int
+	HiddenIds     []string
+	HiddenSize    int64
 	// the genres of the library and the collections, to choose from
 	Genres      []NamedCount
 	Collections []string
@@ -106,6 +118,9 @@ func readSdOptions(query url.Values) SdOptions {
 	options.Multiplayer = query.Get("multiplayer") == "1"
 	options.MoreGames = query.Get("strategy") == "more"
 	options.Collection = cleanCollectionName(query.Get("collection"))
+	if search := strings.TrimSpace(query.Get("q")); len(search) <= 80 {
+		options.Search = search
+	}
 	return options
 }
 
@@ -256,6 +271,31 @@ func (web *Web) sdPlan(options SdOptions, lang string) SdPlan {
 		} else {
 			plan.Others = append(plan.Others, game)
 		}
+	}
+
+	// the page lists the first games only; the totals count all of them
+	plan.SelectedCount = len(plan.Selected)
+	if len(plan.Selected) > maxSdSelectedRows {
+		for _, game := range plan.Selected[maxSdSelectedRows:] {
+			plan.HiddenIds = append(plan.HiddenIds, game.Id)
+			plan.HiddenSize += game.Size
+		}
+		plan.Selected = plan.Selected[:maxSdSelectedRows]
+	}
+	if options.Search != "" {
+		search := newSearchQuery(options.Search)
+		found := plan.Others[:0:0]
+		for _, game := range plan.Others {
+			text := searchText(game.Name)
+			if search.matches(text, strings.Fields(text)) {
+				found = append(found, game)
+			}
+		}
+		plan.Others = found
+	}
+	plan.OthersTotal = len(plan.Others)
+	if len(plan.Others) > maxSdOtherRows {
+		plan.Others = plan.Others[:maxSdOtherRows]
 	}
 	return plan
 }
@@ -442,7 +482,9 @@ func (web *Web) HandleSdCard() {
 	var parse sync.Once
 
 	web.router.HandleFunc("/sd.html", func(w http.ResponseWriter, r *http.Request) {
-		parse.Do(func() { templates = web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/sd.html") })
+		parse.Do(func() {
+			templates = web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/sd.html")
+		})
 		lang := web.requestLanguage(r)
 		capacities := make([]int, 0, len(allowedSdCapacities))
 		for capacity := range allowedSdCapacities {

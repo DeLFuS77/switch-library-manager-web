@@ -71,9 +71,9 @@
 				</div>
 			</form>
 
-			<div class="sd-summary surface mb-3" data-sd-usable="{{$p.Usable}}" data-sd-template="{{t "%v of %v"}}">
+			<div class="sd-summary surface mb-3" data-sd-usable="{{$p.Usable}}" data-sd-template="{{t "%v of %v"}}" data-sd-hidden-count="{{len $p.HiddenIds}}" data-sd-hidden-size="{{$p.HiddenSize}}">
 				<div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
-					<span class="fw-semibold"><span data-sd-count>{{len $p.Selected}}</span> {{t "games on the card"}}</span>
+					<span class="fw-semibold"><span data-sd-count>{{$p.SelectedCount}}</span> {{t "games on the card"}}</span>
 					<span class="text-body-secondary" data-sd-total>{{t "%v of %v" (formatSize $p.Total) (formatSize $p.Usable)}}</span>
 				</div>
 				<div class="progress" role="progressbar" aria-label="{{t "Space of the card"}}">
@@ -88,13 +88,33 @@
 				<ul class="item-list sd-list">
 					{{- range $p.Selected}}{{template "sdGame" .}}{{end}}
 				</ul>
+				{{- if $p.HiddenIds}}
+				<p class="small text-body-secondary mt-2 mb-0">{{t "and %v more games chosen, not listed" (len $p.HiddenIds)}}</p>
+				{{- range $p.HiddenIds}}<input type="hidden" data-sd-hidden value="{{.}}">{{end}}
+				{{- end}}
 			</section>
-			{{- with $p.Others}}
+			{{- if or $p.Others $o.Search}}
 			<section class="mb-4" aria-labelledby="sdOthers">
-				<h2 class="section-title" id="sdOthers"><span class="bi bi-plus-circle" aria-hidden="true"></span>{{t "Other games of your library"}}</h2>
+				<h2 class="section-title" id="sdOthers"><span class="bi bi-plus-circle" aria-hidden="true"></span>{{t "Other games of your library"}} <span class="badge rounded-pill text-bg-secondary">{{$p.OthersTotal}}</span></h2>
+				<form class="toolbar-search mb-3" method="get" action="/sd.html#sdOthers">
+					<input type="hidden" name="planned" value="1">
+					<input type="hidden" name="capacity" value="{{$o.Capacity}}">
+					<input type="hidden" name="reserve" value="{{$o.ReserveGB}}">
+					<input type="hidden" name="collection" value="{{$o.Collection}}">
+					{{- if $o.MoreGames}}<input type="hidden" name="strategy" value="more">{{end}}
+					{{- if $o.Favorites}}<input type="hidden" name="favorites" value="1">{{end}}
+					{{- if $o.Multiplayer}}<input type="hidden" name="multiplayer" value="1">{{end}}
+					{{- if $o.Dlc}}<input type="hidden" name="dlc" value="1">{{end}}
+					{{- range $o.Genres}}{{if not $o.AutoGenres}}<input type="hidden" name="genre" value="{{.}}">{{end}}{{end}}
+					<span class="bi bi-search" aria-hidden="true"></span>
+					<input type="search" class="form-control" name="q" value="{{$o.Search}}" placeholder="{{t "Search among the other games"}}" aria-label="{{t "Search among the other games"}}">
+				</form>
 				<ul class="item-list sd-list">
-					{{- range .}}{{template "sdGame" .}}{{end}}
+					{{- range $p.Others}}{{template "sdGame" .}}{{end}}
 				</ul>
+				{{- if gt $p.OthersTotal (len $p.Others)}}
+				<p class="small text-body-secondary mt-2">{{t "Showing the first %v of %v games. Search to see others." (len $p.Others) $p.OthersTotal}}</p>
+				{{- end}}
 			</section>
 			{{- end}}
 
