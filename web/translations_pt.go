@@ -3,6 +3,13 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"New, removed or replaced files are detected right away in local folders, and at the interval below in network folders and on NAS shares.": "Arquivos novos, excluídos ou substituídos são detectados na hora em pastas locais, e no intervalo abaixo em pastas de rede e em um NAS.",
+		"Check the folders every": "Verificar as pastas a cada",
+		"2 minutes":               "2 minutos",
+		"10 minutes":              "10 minutos",
+		"30 minutes":              "30 minutos",
+		"1 hour":                  "1 hora",
+		"Only folders that changed are read again. A longer interval lets the disks of a NAS sleep.":              "Só as pastas que mudaram são lidas de novo. Um intervalo maior deixa os discos de um NAS dormirem.",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v arquivos só podem ser excluídos quando as cópias mantidas forem verificadas. Só essas cópias são verificadas.",
 		"Verify the copy that is kept first.":                      "Verifique primeiro a cópia que será mantida.",
 		"The copy that is kept is damaged: keep this one.":         "A cópia mantida está danificada: mantenha esta.",
@@ -279,8 +286,7 @@ func init() {
 		"Names, covers, updates and DLC of every game come from it. It is downloaded on the first start; if it failed, try again.": "Os nomes, capas, atualizações e DLC de cada jogo vêm dele. Ele é baixado na primeira inicialização; se falhou, tente novamente.",
 		"Needs %v": "Requer %v",
 		"New and changed files are checked for damage; the results appear in Issues.": "Arquivos novos e alterados são verificados quanto a danos; os resultados aparecem em Problemas.",
-		"New password": "Nova senha",
-		"New, removed or replaced files are detected right away in local folders, and every two minutes in network folders.": "Arquivos novos, removidos ou substituídos são detectados imediatamente em pastas locais e a cada dois minutos em pastas de rede.",
+		"New password":                   "Nova senha",
 		"Next":                           "Próximo",
 		"No DLC missing":                 "Nenhuma DLC faltando",
 		"No game matches these filters.": "Nenhum jogo corresponde a estes filtros.",

@@ -5,6 +5,13 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"New, removed or replaced files are detected right away in local folders, and at the interval below in network folders and on NAS shares.": "Los archivos nuevos, borrados o sustituidos se detectan al momento en carpetas locales, y con el intervalo de abajo en carpetas de red y de un NAS.",
+		"Check the folders every": "Comprobar las carpetas cada",
+		"2 minutes":               "2 minutos",
+		"10 minutes":              "10 minutos",
+		"30 minutes":              "30 minutos",
+		"1 hour":                  "1 hora",
+		"Only folders that changed are read again. A longer interval lets the disks of a NAS sleep.":              "Solo se vuelven a leer las carpetas que han cambiado. Un intervalo más largo deja dormir los discos de un NAS.",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v archivos solo se pueden borrar cuando las copias que se conservan estén verificadas. Solo se comprueban esas copias.",
 		"Verify the copy that is kept first.":                      "Verifica primero la copia que se conserva.",
 		"The copy that is kept is damaged: keep this one.":         "La copia que se conserva está dañada: conserva esta.",
@@ -252,9 +259,8 @@ var translations = map[string]map[string]string{
 		"No game matches these filters.":       "Ningún juego coincide con estos filtros.",
 		"Clear filters":                        "Borrar filtros",
 		"Scan automatically when files change": "Analizar automáticamente cuando cambien los archivos",
-		"New, removed or replaced files are detected right away in local folders, and every two minutes in network folders.": "Los archivos nuevos, borrados o sustituidos se detectan al momento en carpetas locales y cada dos minutos en carpetas de red.",
-		"Skip to content": "Saltar al contenido",
-		"Main navigation": "Navegación principal",
+		"Skip to content":                      "Saltar al contenido",
+		"Main navigation":                      "Navegación principal",
 		"Download the latest titles database and rescan the library": "Descarga la última base de datos de títulos y vuelve a analizar la biblioteca",
 		"Set the keys path": "Indica la ruta de las claves",
 		"The games in your folders. Open a game to see its updates, DLC and files.": "Los juegos de tus carpetas. Abre un juego para ver sus actualizaciones, DLC y archivos.",

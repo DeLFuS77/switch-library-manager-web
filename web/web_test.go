@@ -24,7 +24,14 @@ import (
 
 func newTestWeb(t *testing.T) *Web {
 	t.Helper()
-	return &Web{router: mux.NewRouter(), dataFolder: t.TempDir(), sugarLogger: zap.NewNop().Sugar()}
+	web := &Web{router: mux.NewRouter(), dataFolder: t.TempDir(), sugarLogger: zap.NewNop().Sugar()}
+	// the processed titles are kept open, and Windows cannot remove an open file
+	t.Cleanup(func() {
+		if web.store != nil {
+			web.store.Close()
+		}
+	})
+	return web
 }
 
 func defaultFilter() *TitleItemFilter {

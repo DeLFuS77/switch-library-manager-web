@@ -3,6 +3,13 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"New, removed or replaced files are detected right away in local folders, and at the interval below in network folders and on NAS shares.": "Les fichiers nouveaux, supprimés ou remplacés sont détectés immédiatement dans les dossiers locaux, et à l'intervalle ci-dessous dans les dossiers réseau et sur un NAS.",
+		"Check the folders every": "Vérifier les dossiers toutes les",
+		"2 minutes":               "2 minutes",
+		"10 minutes":              "10 minutes",
+		"30 minutes":              "30 minutes",
+		"1 hour":                  "1 heure",
+		"Only folders that changed are read again. A longer interval lets the disks of a NAS sleep.":              "Seuls les dossiers modifiés sont relus. Un intervalle plus long laisse les disques d'un NAS se mettre en veille.",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v fichiers ne peuvent être supprimés qu'une fois les copies conservées vérifiées. Seules ces copies sont contrôlées.",
 		"Verify the copy that is kept first.":                      "Vérifiez d'abord la copie conservée.",
 		"The copy that is kept is damaged: keep this one.":         "La copie conservée est endommagée : gardez celle-ci.",
@@ -279,8 +286,7 @@ func init() {
 		"Names, covers, updates and DLC of every game come from it. It is downloaded on the first start; if it failed, try again.": "Les noms, jaquettes, mises à jour et DLC de chaque jeu en proviennent. Elle est téléchargée au premier démarrage ; en cas d'échec, réessayez.",
 		"Needs %v": "Nécessite %v",
 		"New and changed files are checked for damage; the results appear in Issues.": "Les fichiers nouveaux et modifiés sont vérifiés pour détecter les dommages ; les résultats apparaissent dans Problèmes.",
-		"New password": "Nouveau mot de passe",
-		"New, removed or replaced files are detected right away in local folders, and every two minutes in network folders.": "Les fichiers nouveaux, supprimés ou remplacés sont détectés immédiatement dans les dossiers locaux, et toutes les deux minutes dans les dossiers réseau.",
+		"New password":                   "Nouveau mot de passe",
 		"Next":                           "Suivant",
 		"No DLC missing":                 "Aucun DLC manquant",
 		"No game matches these filters.": "Aucun jeu ne correspond à ces filtres.",
