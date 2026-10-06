@@ -5,6 +5,15 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"All collections": "Todas las colecciones",
+		"Collections": "Colecciones",
+		"Collection": "Colección",
+		"New collection": "Nueva colección",
+		"selected": "seleccionados",
+		"Clear selection": "Quitar la selección",
+		"Remove": "Quitar",
+		"Ignore their updates": "Ignorar sus actualizaciones",
+		"Invalid collection name": "Nombre de colección no válido",
 		"Date added": "Fecha en que se añadió",
 		"Added in the last 30 days": "Añadidos en los últimos 30 días",
 		"Notify games added to my folders": "Avisar de juegos añadidos a mis carpetas",

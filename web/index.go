@@ -108,6 +108,7 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	formats := map[string]struct{}{}
 	regions := map[string]struct{}{}
 	recentSince := time.Now().AddDate(0, 0, -recentDays)
+	collectionCounts := map[string]int{}
 
 	for index := range all {
 		item := &all[index]
@@ -140,6 +141,16 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		}
 		if !item.Known {
 			facets.Unknown++
+		}
+		inCollection := filter.Collection == ""
+		for _, name := range item.Collections {
+			collectionCounts[name]++
+			if strings.EqualFold(name, filter.Collection) {
+				inCollection = true
+			}
+		}
+		if !inCollection {
+			continue
 		}
 		recent := item.Added.After(recentSince)
 		if recent {
@@ -190,6 +201,12 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		facets.Regions = append(facets.Regions, region)
 	}
 	sort.Strings(facets.Regions)
+	for name, count := range collectionCounts {
+		facets.Collections = append(facets.Collections, CollectionCount{Name: name, Count: count})
+	}
+	sort.Slice(facets.Collections, func(i, j int) bool {
+		return strings.ToLower(facets.Collections[i].Name) < strings.ToLower(facets.Collections[j].Name)
+	})
 
 	// the items are already sorted
 	p := pagination.Calculate(filter.Page, filter.PerPage, len(matched))
@@ -213,6 +230,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 	ignoredUpdates := toLowerSet(settingsObj.IgnoreUpdateTitleIds)
 	ignoredDlc := toLowerSet(settingsObj.IgnoreDLCTitleIds)
 	added := web.history().addedTimes()
+	collections := web.collections().snapshot()
 
 	for k, v := range localDB.TitlesMap {
 		if !v.BaseExist || v.File.Metadata == nil {
@@ -251,6 +269,8 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			Size:         v.File.ExtendedInfo.Size,
 		}
 		item.Added = added["game:"+item.Id]
+		item.Collections = collections[item.Id]
+		item.Selectable = true
 		for _, update := range v.Updates {
 			item.Size += update.ExtendedInfo.Size
 		}

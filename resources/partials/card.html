@@ -2,7 +2,7 @@
 				{{- $type := .Type}}{{if or (eq $type "BASEGAME") (eq $type "BASE")}}{{$type = t "Game"}}{{else if eq $type "ADDONCONTENT"}}{{$type = "DLC"}}{{else if eq $type "UPDATE"}}{{$type = t "Update"}}{{end}}
 				<article class="card game-card h-100">
 					<div class="game-cover">
-						{{- if .LatestUpdate}}<input class="form-check-input cover-select" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">{{end}}
+						{{- if .LatestUpdate}}<input class="form-check-input cover-select" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">{{else if .Selectable}}<input class="form-check-input cover-select admin-only" type="checkbox" data-library-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">{{end}}
 						{{- if and (not .Type) (not .LatestUpdate)}}<button type="button" class="wish-toggle admin-only{{if .Wished}} is-wished{{end}}" data-wish="{{.Id}}" data-wished="{{.Wished}}" aria-pressed="{{.Wished}}" title="{{if .Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if .Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>{{end}}
 						{{- if .UpdateAvailable}}<span class="cover-ribbon" title="{{t "Update available"}}"><span class="bi bi-arrow-up-circle-fill" aria-hidden="true"></span></span>{{end}}
 						<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">

@@ -47,5 +47,6 @@
 				{{- if .Filter.Kind}}<input type="hidden" name="kind" value="{{.Filter.Kind}}">{{end}}
 				{{- if .Filter.Region}}<input type="hidden" name="region" value="{{.Filter.Region | toLower}}">{{end}}
 				{{- if .Filter.Extra}}<input type="hidden" name="extra" value="{{.Filter.Extra}}">{{end}}
+				{{- if .Filter.Collection}}<input type="hidden" name="collection" value="{{.Filter.Collection}}">{{end}}
 			</form>
 {{- end}}

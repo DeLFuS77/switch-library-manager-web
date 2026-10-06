@@ -22,6 +22,8 @@ type TitleItemFilter struct {
 	Kind   string `in:"form=kind"`
 	Region string `in:"form=region"`
 	Extra  string `in:"form=extra"`
+	// library only: one of the user's collections
+	Collection string `in:"form=collection"`
 }
 
 // library status filters
@@ -81,6 +83,7 @@ func (f *TitleItemFilter) Normalize() {
 	if _, ok := allowedExtra[f.Extra]; !ok {
 		f.Extra = ""
 	}
+	f.Collection = cleanCollectionName(f.Collection)
 	f.Region = strings.ToUpper(strings.TrimSpace(f.Region))
 	if !regionPattern.MatchString(f.Region) {
 		f.Region = ""
@@ -90,7 +93,7 @@ func (f *TitleItemFilter) Normalize() {
 // Active reports whether the items are filtered by a keyword, a status, a format or another
 // library filter.
 func (f *TitleItemFilter) Active() bool {
-	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Region != "" || f.Extra != ""
+	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Region != "" || f.Extra != "" || f.Collection != ""
 }
 
 // query returns the query string of the filter, with the given values replaced; an empty
@@ -103,6 +106,7 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("kind", f.Kind)
 	values.Set("region", strings.ToLower(f.Region))
 	values.Set("extra", f.Extra)
+	values.Set("collection", f.Collection)
 	values.Set("per_page", strconv.Itoa(f.PerPage))
 	values.Set("sort_by", f.SortBy)
 	values.Set("sort_order", f.SortOrder)

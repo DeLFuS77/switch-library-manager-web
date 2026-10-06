@@ -58,6 +58,17 @@
 				</ul>
 				{{- $f := .Filter}}
 				<div class="d-flex flex-wrap gap-2">
+				{{- if or .Facets.Collections .Filter.Collection}}
+				<div class="dropdown">
+					<button class="btn btn-sm dropdown-toggle rounded-pill {{if .Filter.Collection}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-bookmark me-1" aria-hidden="true"></span>{{if .Filter.Collection}}{{.Filter.Collection}}{{else}}{{t "All collections"}}{{end}}</button>
+					<ul class="dropdown-menu dropdown-menu-end">
+						<li><a class="dropdown-item{{if not .Filter.Collection}} active{{end}}" href="{{filterUrl .Filter "collection" ""}}">{{t "All collections"}}</a></li>
+						{{- range .Facets.Collections}}
+						<li><a class="dropdown-item d-flex justify-content-between gap-3{{if eq $f.Collection .Name}} active{{end}}" href="{{filterUrl $f "collection" .Name}}">{{.Name}}<span class="text-body-secondary">{{.Count}}</span></a></li>
+						{{- end}}
+					</ul>
+				</div>
+				{{- end}}
 				{{- if or .Facets.Games .Facets.Demos .Filter.Kind}}
 				<div class="dropdown">
 					<button class="btn btn-sm dropdown-toggle rounded-pill {{if .Filter.Kind}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-controller me-1" aria-hidden="true"></span>{{if eq .Filter.Kind "game"}}{{t "Games only"}}{{else if eq .Filter.Kind "demo"}}{{t "Demos only"}}{{else if .Facets.DemosHidden}}{{t "Games (demos hidden)"}}{{else}}{{t "Games and demos"}}{{end}}</button>
@@ -105,6 +116,22 @@
 			</div>
 			{{- end}}
 			{{- if gt (len .TitleItems) 0}}
+			<div class="library-bulk admin-only d-flex flex-wrap align-items-center gap-2 mb-3" hidden>
+				<span class="fw-semibold me-1"><span data-library-count>0</span> {{t "selected"}}</span>
+				<button type="button" class="btn btn-sm btn-link px-1" data-library-all>{{t "Select all on this page"}}</button>
+				<button type="button" class="btn btn-sm btn-link px-1" data-library-none>{{t "Clear selection"}}</button>
+				<div class="input-group input-group-sm w-auto ms-md-auto">
+					<input type="text" class="form-control" list="collectionNames" maxlength="40" placeholder="{{t "Collection"}}" aria-label="{{t "Collection"}}" data-library-collection>
+					<button type="button" class="btn btn-outline-primary" data-library-action="add"><span class="bi bi-bookmark-plus me-1" aria-hidden="true"></span>{{t "Add"}}</button>
+					<button type="button" class="btn btn-outline-secondary" data-library-action="remove"><span class="bi bi-bookmark-dash me-1" aria-hidden="true"></span>{{t "Remove"}}</button>
+				</div>
+				<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-library-action="ignore"><span class="bi bi-eye-slash me-1" aria-hidden="true"></span>{{t "Ignore their updates"}}</button>
+				<datalist id="collectionNames">
+					{{- range .Facets.Collections}}
+					<option value="{{.Name}}"></option>
+					{{- end}}
+				</datalist>
+			</div>
 			<div class="game-grid">
 				{{- range .TitleItems}}
 				{{- template "card" .}}

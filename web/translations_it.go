@@ -3,6 +3,15 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"All collections": "Tutte le collezioni",
+		"Collections": "Collezioni",
+		"Collection": "Collezione",
+		"New collection": "Nuova collezione",
+		"selected": "selezionati",
+		"Clear selection": "Annulla la selezione",
+		"Remove": "Rimuovi",
+		"Ignore their updates": "Ignora i loro aggiornamenti",
+		"Invalid collection name": "Nome della collezione non valido",
 		"Date added": "Data di aggiunta",
 		"Added in the last 30 days": "Aggiunti negli ultimi 30 giorni",
 		"Notify games added to my folders": "Notifica i giochi aggiunti alle mie cartelle",

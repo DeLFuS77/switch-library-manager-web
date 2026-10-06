@@ -116,8 +116,10 @@ type Web struct {
 	wishOnce       sync.Once
 	activity       *activityLog
 	activityOnce   sync.Once
-	hist           *libraryHistory
-	historyOnce    sync.Once
+	hist            *libraryHistory
+	historyOnce     sync.Once
+	coll            *collectionStore
+	collectionsOnce sync.Once
 	fallbackMutex  sync.Mutex
 	thumbs         *thumbnails
 	thumbsOnce     sync.Once
@@ -179,6 +181,9 @@ type TitleItem struct {
 	// library: the size of the game with its updates and DLC, and when it was found in the folders
 	Size  int64
 	Added time.Time
+	// library: the user's collections of the game, and the card can be selected
+	Collections []string
+	Selectable  bool
 }
 
 // DlcPercent is the share of the DLC of a game in the library.
@@ -241,6 +246,8 @@ type LibraryFacets struct {
 	NoCover int
 	Unknown int
 	Recent  int
+	// the collections with their number of games, before the collection filter
+	Collections []CollectionCount
 	Regions []string
 	// the settings hide the demos unless the kind filter asks for them
 	DemosHidden bool
@@ -337,6 +344,15 @@ var funcMap = template.FuncMap {
 		return a - b
 	},
 	"toLower": strings.ToLower,
+	// inList reports whether a list of strings contains a value
+	"inList": func(value string, list []string) bool {
+		for _, item := range list {
+			if item == value {
+				return true
+			}
+		}
+		return false
+	},
 }
 
 func (web *Web) globalPageData(page string) GlobalPageData {
@@ -456,6 +472,7 @@ func (web *Web) Start() {
 	web.HandleCovers()
 	web.HandleUpdateGuide()
 	web.HandleWishlist()
+	web.HandleCollections()
 	if !isDemoMode() {
 		web.StartScheduler()
 		web.StartFolderWatcher()
