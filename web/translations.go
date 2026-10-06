@@ -5,6 +5,16 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Demo": "Demo",
+		"Games and demos": "Juegos y demos",
+		"Games only": "Solo juegos",
+		"Demos only": "Solo demos",
+		"All regions": "Todas las regiones",
+		"More filters": "Más filtros",
+		"No other filter": "Sin otro filtro",
+		"Without a cover": "Sin carátula",
+		"Not recognized": "No reconocidos",
+		"Games the titles database does not know": "Juegos que la base de datos de títulos no conoce",
 		"My Switch library":                           "Mi biblioteca de Switch",
 		"Made with Switch Library Manager Web on %v.": "Creada con Switch Library Manager Web el %v.",
 		"Only names, versions and covers are included; no game files and no keys.": "Solo incluye nombres, versiones y portadas; ni archivos de juegos ni claves.",

@@ -208,33 +208,32 @@ func (web *Web) HandleSettings() {
 		settingsForm := value.(*SettingsForm)
 		scanFolders := SplitAndTrimSpaceArray(settingsForm.ScanFolders, "\n")
 
-		appSettings := settings.ReadSettings(web.dataFolder)
-		appSettings.Prodkeys = settingsForm.Prodkeys
-		appSettings.IgnoreDLCTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreDLCTitleIds, "\n")
-		appSettings.IgnoreUpdateTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreUpdateTitleIds, "\n")
-		appSettings.IgnoreDLCUpdates = settingsForm.IgnoreDLCUpdates
-		appSettings.IgnoreFileTypes = SplitAndTrimSpaceArray(strings.ReplaceAll(settingsForm.IgnoreFileTypes, ",", " "), " ")
-		appSettings.HideDemoGames = settingsForm.HideDemoGames
-		appSettings.WatchFolders = settingsForm.WatchFolders
-		appSettings.WatchIntervalMinutes = settingsForm.WatchIntervalMinutes
-		appSettings.BackgroundHours = settingsForm.BackgroundHours
-		appSettings.VerifyIntervalDays = settingsForm.VerifyIntervalDays
-		appSettings.ConsoleFirmware = strings.TrimSpace(settingsForm.ConsoleFirmware)
-		appSettings.CheckForUpdates = settingsForm.CheckForUpdates
-		appSettings.AutoCompress = settingsForm.AutoCompress
-		appSettings.AutoCompressLevel = settingsForm.AutoCompressLevel
-		appSettings.AutoCompressKeep = settingsForm.AutoCompressKeep
-		appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
-		appSettings.Language = settingsForm.Language
-		appSettings.Notifications = settingsForm.notificationOptions()
-		appSettings.Folder = scanFolders[0]
-		if len(scanFolders) > 1 {
-			appSettings.ScanFolders = scanFolders[1:]
-		} else {
-			appSettings.ScanFolders = []string{}
-		}
-
-		settings.SaveSettings(appSettings, web.dataFolder)
+		appSettings := settings.UpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
+			appSettings.Prodkeys = settingsForm.Prodkeys
+			appSettings.IgnoreDLCTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreDLCTitleIds, "\n")
+			appSettings.IgnoreUpdateTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreUpdateTitleIds, "\n")
+			appSettings.IgnoreDLCUpdates = settingsForm.IgnoreDLCUpdates
+			appSettings.IgnoreFileTypes = SplitAndTrimSpaceArray(strings.ReplaceAll(settingsForm.IgnoreFileTypes, ",", " "), " ")
+			appSettings.HideDemoGames = settingsForm.HideDemoGames
+			appSettings.WatchFolders = settingsForm.WatchFolders
+			appSettings.WatchIntervalMinutes = settingsForm.WatchIntervalMinutes
+			appSettings.BackgroundHours = settingsForm.BackgroundHours
+			appSettings.VerifyIntervalDays = settingsForm.VerifyIntervalDays
+			appSettings.ConsoleFirmware = strings.TrimSpace(settingsForm.ConsoleFirmware)
+			appSettings.CheckForUpdates = settingsForm.CheckForUpdates
+			appSettings.AutoCompress = settingsForm.AutoCompress
+			appSettings.AutoCompressLevel = settingsForm.AutoCompressLevel
+			appSettings.AutoCompressKeep = settingsForm.AutoCompressKeep
+			appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
+			appSettings.Language = settingsForm.Language
+			appSettings.Notifications = settingsForm.notificationOptions()
+			appSettings.Folder = scanFolders[0]
+			if len(scanFolders) > 1 {
+				appSettings.ScanFolders = scanFolders[1:]
+			} else {
+				appSettings.ScanFolders = []string{}
+			}
+		})
 		web.appSettings = appSettings
 
 		if _, err := settings.InitSwitchKeys(web.dataFolder); err != nil {

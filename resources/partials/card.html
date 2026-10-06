@@ -8,7 +8,7 @@
 						<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
 						{{- if or .Type .Region}}
 						<div class="game-cover-meta">
-							{{- if $type}}<span class="badge">{{$type}}</span>{{else}}<span></span>{{end}}
+							{{- if or $type .Demo}}<span class="d-inline-flex gap-1">{{if $type}}<span class="badge">{{$type}}</span>{{end}}{{if .Demo}}<span class="badge">{{t "Demo"}}</span>{{end}}</span>{{else}}<span></span>{{end}}
 							{{- if .Region}}<span class="fi fi-{{.Region | toLower}}" title="{{.Region}}"><span class="visually-hidden">{{.Region}}</span></span>{{end}}
 						</div>
 						{{- end}}

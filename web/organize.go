@@ -156,9 +156,9 @@ func (web *Web) HandleOrganize() {
 		return errorResponse
 	}, func(value any, lang string) SuccessResponse {
 		form := value.(*OrganizeForm)
-		appSettings := settings.ReadSettings(web.dataFolder)
-		appSettings.OrganizeOptions = form.toOptions(appSettings.OrganizeOptions)
-		settings.SaveSettings(appSettings, web.dataFolder)
+		settings.UpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
+			appSettings.OrganizeOptions = form.toOptions(appSettings.OrganizeOptions)
+		})
 
 		return SuccessResponse {
 			StrongMessage: translate(lang, "Saved!"),

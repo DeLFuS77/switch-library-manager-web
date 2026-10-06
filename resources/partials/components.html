@@ -23,7 +23,7 @@
 {{- define "noResults"}}
 			{{- $text := t "No game matches these filters."}}
 			{{- if .Keyword}}{{$text = t "Nothing matches “%v”. Try another name or title ID." .Keyword}}{{end}}
-			{{- template "emptyState" (dict "Icon" "bi-search" "Tone" "" "Title" (t "No results") "Text" $text "ActionHref" (filterUrl . "q" "" "status" "" "format" "") "ActionLabel" (t "Clear filters") "ActionIcon" "bi-x-circle")}}
+			{{- template "emptyState" (dict "Icon" "bi-search" "Tone" "" "Title" (t "No results") "Text" $text "ActionHref" (filterUrl . "q" "" "status" "" "format" "" "kind" "" "region" "" "extra" "") "ActionLabel" (t "Clear filters") "ActionIcon" "bi-x-circle")}}
 {{- end}}
 
 {{- define "flash"}}

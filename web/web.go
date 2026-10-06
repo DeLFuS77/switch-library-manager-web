@@ -172,6 +172,8 @@ type TitleItem struct {
 	FirmwareTooNew   bool
 	// the game is on the wishlist (Missing Games)
 	Wished bool
+	// the game is a demo (library)
+	Demo bool
 }
 
 // DlcPercent is the share of the DLC of a game in the library.
@@ -228,6 +230,12 @@ type LibraryFacets struct {
 	Dlc      int
 	Complete int
 	Formats  []string
+	// counted before the kind and extra filters; the regions found in the library
+	Games   int
+	Demos   int
+	NoCover int
+	Unknown int
+	Regions []string
 }
 
 type LibraryPageData struct {
