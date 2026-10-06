@@ -33,7 +33,7 @@ func TestTemplatesParse(t *testing.T) {
 // Every translation key must be used, and every translated text must be non-empty.
 func TestTranslationsAreUsed(t *testing.T) {
 	var sources strings.Builder
-	for _, pattern := range []string{"../resources/*.html", "../resources/*/*.html", "../resources/web.js", "*.go", "../process/*.go"} {
+	for _, pattern := range []string{"../resources/*.html", "../resources/*/*.html", "../resources/web.js", "*.go", "../process/*.go", "../db/*.go"} {
 		files, _ := filepath.Glob(pattern)
 		for _, file := range files {
 			if strings.HasSuffix(file, "_test.go") || strings.HasPrefix(filepath.Base(file), "translations") {

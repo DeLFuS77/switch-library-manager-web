@@ -1,6 +1,7 @@
 package web
 
 import (
+	"strconv"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -41,6 +42,14 @@ type Statistics struct {
 	Issues            int
 	Largest           []LargestGame
 	HasTitlesDatabase bool
+	// the games of the library by genre, publisher and year of release, the most first
+	ByGenre     []NamedCount
+	ByPublisher []NamedCount
+	ByYear      []NamedCount
+	// the highest count of each list, for the bars
+	MaxGenre     int
+	MaxPublisher int
+	MaxYear      int
 }
 
 type StatisticsPageData struct {
@@ -122,6 +131,30 @@ func (web *Web) buildStatistics(lang string) Statistics {
 				Size: gameSize,
 			})
 		}
+	}
+
+	if switchDB != nil {
+		genres, publishers, years := map[string]int{}, map[string]int{}, map[string]int{}
+		for id, local := range localDB.TitlesMap {
+			title := switchDB.TitlesMap[id]
+			if !local.BaseExist || title == nil {
+				continue
+			}
+			for _, genre := range title.Attributes.Genres {
+				genres[genre]++
+			}
+			if title.Attributes.Publisher != "" {
+				publishers[title.Attributes.Publisher]++
+			}
+			if title.Attributes.ReleaseDate >= 10000000 {
+				years[strconv.Itoa(title.Attributes.ReleaseDate/10000)]++
+			}
+		}
+		stats.ByGenre = topCounts(genres, 10)
+		stats.ByPublisher = topCounts(publishers, 10)
+		stats.ByYear = sortedCounts(years)
+		sort.Slice(stats.ByYear, func(i, j int) bool { return stats.ByYear[i].Name < stats.ByYear[j].Name })
+		stats.MaxGenre, stats.MaxPublisher, stats.MaxYear = maxCount(stats.ByGenre), maxCount(stats.ByPublisher), maxCount(stats.ByYear)
 	}
 
 	stats.TotalSize = baseSize + updateSize + dlcSize
@@ -207,4 +240,21 @@ func conicGradient(shares []SizeShare) template.CSS {
 		start = end
 	}
 	return template.CSS("background: conic-gradient(" + strings.Join(parts, ", ") + ")")
+}
+
+// topCounts returns the most frequent values, at most limit.
+func topCounts(counts map[string]int, limit int) []NamedCount {
+	sorted := sortedCounts(counts)
+	if len(sorted) > limit {
+		sorted = sorted[:limit]
+	}
+	return sorted
+}
+
+func maxCount(counts []NamedCount) int {
+	highest := 0
+	for _, count := range counts {
+		highest = max(highest, count.Count)
+	}
+	return highest
 }

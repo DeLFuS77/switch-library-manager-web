@@ -112,6 +112,8 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	regions := map[string]struct{}{}
 	recentSince := time.Now().AddDate(0, 0, -recentDays)
 	collectionCounts := map[string]int{}
+	genreCounts := map[string]int{}
+	languageCounts := map[string]int{}
 
 	for index := range all {
 		item := &all[index]
@@ -141,6 +143,26 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 			}
 		}
 		if !inCollection {
+			continue
+		}
+		// genres, players and languages are counted before their own filters
+		for _, genre := range item.Genres {
+			genreCounts[genre]++
+		}
+		for _, language := range item.Languages {
+			languageCounts[language]++
+		}
+		switch {
+		case item.Players == 1:
+			facets.SinglePlayer++
+		case item.Players >= 4:
+			facets.TwoPlayers++
+			facets.FourPlayers++
+		case item.Players >= 2:
+			facets.TwoPlayers++
+		}
+		if (filter.Genre != "" && !hasValue(item.Genres, filter.Genre)) || !playersMatch(item.Players, filter.Players) ||
+			(filter.GameLanguage != "" && !hasValue(item.Languages, filter.GameLanguage)) {
 			continue
 		}
 		// the kinds and extras are counted whatever they are set to, within the collection
@@ -217,6 +239,8 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		facets.Regions = append(facets.Regions, region)
 	}
 	sort.Strings(facets.Regions)
+	facets.Genres = sortedCounts(genreCounts)
+	facets.Languages = sortedCounts(languageCounts)
 	for name, count := range collectionCounts {
 		facets.Collections = append(facets.Collections, CollectionCount{Name: name, Count: count})
 	}
@@ -325,6 +349,9 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 
 		if title != nil {
 			item.Region = title.Attributes.Region
+			item.Genres = title.Attributes.Genres
+			item.Players = title.Attributes.Players
+			item.Languages = title.Attributes.Languages
 
 			if _, ignored := ignoredUpdates[strings.ToLower(v.File.Metadata.TitleId)]; !ignored {
 				for version := range title.Updates {

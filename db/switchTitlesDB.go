@@ -24,6 +24,14 @@ type TitleAttributes struct {
 	Description string      `json:"description,omitempty"`
 	Size        int         `json:"size,omitempty"`
 	IsDemo      bool        `json:"isDemo,omitempty"`
+	// genres (see Genres), number of players, language codes and age rating of the game
+	Genres        []string `json:"category,omitempty"`
+	Players       int      `json:"numberOfPlayers,omitempty"`
+	Languages     []string `json:"languages,omitempty"`
+	AgeRating     int      `json:"rating,omitempty"`
+	RatingContent []string `json:"ratingContent,omitempty"`
+	// a short sentence about the game, in English
+	Intro string `json:"intro,omitempty"`
 }
 
 type SwitchTitle struct {
@@ -116,6 +124,7 @@ func CreateSwitchTitleDB(titlesFile, versionsFile io.Reader) (*SwitchTitlesDB, e
 		switchTitle.Dlc[id] = attr
 	}
 
+	normalizeTitles(&result)
 	return &result, nil
 }
 
