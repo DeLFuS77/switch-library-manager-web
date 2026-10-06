@@ -4,10 +4,13 @@
 			{{- if or (gt (len .TitleItems) 0) .Filter.Keyword .Filter.Status}}
 			{{- template "filter" .}}
 			{{- end}}
-			<ul class="filter-pills list-unstyled mb-3" aria-label="{{t "Filter by status"}}">
-				{{- template "statusFilter" (dict "Filter" .Filter "Value" "" "Label" (t "All") "Icon" "" "Count" -1)}}
-				{{- template "statusFilter" (dict "Filter" .Filter "Value" "wanted" "Label" (t "Wishlist") "Icon" "bi-heart" "Count" .WishedCount)}}
-			</ul>
+			<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+				<ul class="filter-pills list-unstyled mb-0 me-auto" aria-label="{{t "Filter by status"}}">
+					{{- template "statusFilter" (dict "Filter" .Filter "Value" "" "Label" (t "All") "Icon" "" "Count" -1)}}
+					{{- template "statusFilter" (dict "Filter" .Filter "Value" "wanted" "Label" (t "Wishlist") "Icon" "bi-heart" "Count" .WishedCount)}}
+				</ul>
+				<a class="btn btn-sm btn-outline-secondary rounded-pill" href="/upcoming.html"><span class="bi bi-calendar-event me-1" aria-hidden="true"></span>{{t "Upcoming releases"}}</a>
+			</div>
 			{{- if gt (len .TitleItems) 0}}
 			{{- with .Recommendations}}{{template "recommendations" .}}{{end}}
 			{{- template "markLegend" (dict "Missing" "" "Favorites" false)}}

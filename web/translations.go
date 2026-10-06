@@ -5,6 +5,18 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Upcoming": "Próximos",
+		"Upcoming releases": "Próximos lanzamientos",
+		"The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out.": "Los juegos que ya se pueden reservar en la eShop, por fecha de salida. Añade uno a la lista de deseos con el corazón y te avisaremos cuando salga.",
+		"For you": "Para ti",
+		"A new game of a series you have": "Un juego nuevo de una saga que tienes",
+		"Just released": "Recién salidos",
+		"Nothing for you yet": "Aún no hay nada para ti",
+		"When a game of your wishlist or a new game of one of your series can be pre-ordered, it is shown here.": "Cuando se pueda reservar un juego de tu lista de deseos o uno nuevo de tus sagas, aparecerá aquí.",
+		"See all": "Ver todos",
+		"No upcoming games": "No hay próximos lanzamientos",
+		"The titles database has no games with a future release date. It is updated every few hours.": "La base de datos de títulos no tiene juegos con fecha de salida futura. Se actualiza cada pocas horas.",
+		"you have %v of %v": "tienes %v de %v",
 		"Series": "Sagas",
 		"The series of which you have a game, with the games you are missing to complete them.": "Las sagas de las que tienes algún juego, con los juegos que te faltan para completarlas.",
 		"To complete": "Por completar",

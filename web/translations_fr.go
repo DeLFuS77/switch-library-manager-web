@@ -3,6 +3,18 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Upcoming": "À venir",
+		"Upcoming releases": "Prochaines sorties",
+		"The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out.": "Les jeux déjà en précommande sur l'eShop, par date de sortie. Ajoutez-en un à la liste de souhaits avec le cœur pour être averti de sa sortie.",
+		"For you": "Pour vous",
+		"A new game of a series you have": "Un nouveau jeu d'une série que vous avez",
+		"Just released": "Tout juste sortis",
+		"Nothing for you yet": "Rien pour vous pour l'instant",
+		"When a game of your wishlist or a new game of one of your series can be pre-ordered, it is shown here.": "Quand un jeu de votre liste de souhaits ou un nouveau jeu de vos séries sera en précommande, il apparaîtra ici.",
+		"See all": "Tout voir",
+		"No upcoming games": "Aucune sortie à venir",
+		"The titles database has no games with a future release date. It is updated every few hours.": "La base de données des titres n'a aucun jeu avec une date de sortie future. Elle est mise à jour toutes les quelques heures.",
+		"you have %v of %v": "vous en avez %v sur %v",
 		"Series": "Séries",
 		"The series of which you have a game, with the games you are missing to complete them.": "Les séries dont vous avez un jeu, avec les jeux qu'il vous manque pour les compléter.",
 		"To complete": "À compléter",

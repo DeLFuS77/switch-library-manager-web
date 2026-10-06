@@ -3,6 +3,18 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Upcoming": "Binnenkort",
+		"Upcoming releases": "Aankomende releases",
+		"The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out.": "De games die je al kunt pre-orderen in de eShop, op releasedatum. Voeg er een toe aan je verlanglijst met het hartje om een melding te krijgen als hij uitkomt.",
+		"For you": "Voor jou",
+		"A new game of a series you have": "Een nieuwe game uit een serie die je hebt",
+		"Just released": "Net uitgekomen",
+		"Nothing for you yet": "Nog niets voor jou",
+		"When a game of your wishlist or a new game of one of your series can be pre-ordered, it is shown here.": "Zodra een game van je verlanglijst of een nieuwe game uit je series te pre-orderen is, verschijnt die hier.",
+		"See all": "Alles bekijken",
+		"No upcoming games": "Geen aankomende games",
+		"The titles database has no games with a future release date. It is updated every few hours.": "De titeldatabase heeft geen games met een toekomstige releasedatum. Die wordt om de paar uur bijgewerkt.",
+		"you have %v of %v": "je hebt %v van %v",
 		"Series": "Series",
 		"The series of which you have a game, with the games you are missing to complete them.": "De series waarvan je een game hebt, met de games die je mist om ze compleet te maken.",
 		"To complete": "Te voltooien",

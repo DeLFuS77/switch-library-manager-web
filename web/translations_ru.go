@@ -3,6 +3,18 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Upcoming": "Скоро",
+		"Upcoming releases": "Скорые релизы",
+		"The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out.": "Игры, которые уже можно предзаказать в eShop, по дате выхода. Добавьте игру в список желаемого сердечком, чтобы узнать о её выходе.",
+		"For you": "Для вас",
+		"A new game of a series you have": "Новая игра из вашей серии",
+		"Just released": "Только что вышли",
+		"Nothing for you yet": "Пока ничего для вас",
+		"When a game of your wishlist or a new game of one of your series can be pre-ordered, it is shown here.": "Когда игру из списка желаемого или новую игру ваших серий можно будет предзаказать, она появится здесь.",
+		"See all": "Показать все",
+		"No upcoming games": "Нет скорых релизов",
+		"The titles database has no games with a future release date. It is updated every few hours.": "В базе данных игр нет игр с будущей датой выхода. Она обновляется каждые несколько часов.",
+		"you have %v of %v": "у вас %v из %v",
 		"Series": "Серии",
 		"The series of which you have a game, with the games you are missing to complete them.": "Серии, в которых у вас есть игра, и игры, которых не хватает до полной коллекции.",
 		"To complete": "Незавершённые",

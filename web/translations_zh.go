@@ -3,6 +3,18 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Upcoming": "即将推出",
+		"Upcoming releases": "即将发售",
+		"The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out.": "已可在 eShop 预购的游戏，按发售日期排列。点击心形加入愿望单，发售时会通知您。",
+		"For you": "为你推荐",
+		"A new game of a series you have": "您拥有的系列的新作",
+		"Just released": "刚刚发售",
+		"Nothing for you yet": "暂时没有",
+		"When a game of your wishlist or a new game of one of your series can be pre-ordered, it is shown here.": "当您愿望单中的游戏或您拥有的系列的新作可以预购时，会显示在这里。",
+		"See all": "查看全部",
+		"No upcoming games": "没有即将发售的游戏",
+		"The titles database has no games with a future release date. It is updated every few hours.": "标题数据库中没有未来发售的游戏。它每隔几小时更新一次。",
+		"you have %v of %v": "已有 %v/%v 款",
 		"Series": "系列",
 		"The series of which you have a game, with the games you are missing to complete them.": "您拥有游戏的系列，以及集齐还缺少的游戏。",
 		"To complete": "未集齐",
