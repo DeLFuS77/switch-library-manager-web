@@ -93,16 +93,36 @@ func (web *Web) downloadMissingCovers() {
 		}
 		waiting[url] = append(waiting[url], coverTarget{prefix: prefix, icon: icon})
 	}
+	// a cover that failed recently (often removed from the US store) is taken from
+	// another store when one has it
+	pick := func(url string, fallback string) string {
+		if fallback != "" && fallback != url && (url == "" || len(db.CoversToTry(web.dataFolder, []string{url})) == 0) {
+			return fallback
+		}
+		return url
+	}
 	for prefix, local := range localDB.TitlesMap {
-		title, ok := switchDB.TitlesMap[prefix]
-		if !ok || !local.BaseExist {
+		if !local.BaseExist {
 			continue
 		}
-		if local.Icon == "" && title.Attributes.IconUrl != "" {
-			need(prefix, title.Attributes.IconUrl, true)
+		title, ok := switchDB.TitlesMap[prefix]
+		icon, banner := "", ""
+		if ok {
+			icon, banner = title.Attributes.IconUrl, title.Attributes.BannerUrl
 		}
-		if local.Banner == "" && title.Attributes.BannerUrl != "" {
-			need(prefix, title.Attributes.BannerUrl, false)
+		// titles the US store does not sell at all may be in another store
+		id := prefix + "000"
+		if ok {
+			id = title.Attributes.Id
+		}
+		if fallback, found := web.coverFallbackFor(id); found {
+			icon, banner = pick(icon, fallback.IconUrl), pick(banner, fallback.BannerUrl)
+		}
+		if local.Icon == "" && icon != "" {
+			need(prefix, icon, true)
+		}
+		if local.Banner == "" && banner != "" {
+			need(prefix, banner, false)
 		}
 	}
 	if len(ready) > 0 {
