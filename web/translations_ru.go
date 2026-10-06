@@ -3,6 +3,7 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Many of these files are not games (images, notes...). Ignore a type to stop listing it:": "Многие из этих файлов — не игры (изображения, заметки…). Игнорируйте тип, чтобы он больше не показывался:",
 		"Search among the other games": "Поиск среди остальных игр",
 		"Showing the first %v of %v games. Search to see others.": "Показаны первые %v из %v игр. Воспользуйтесь поиском, чтобы увидеть остальные.",
 		"and %v more games chosen, not listed": "и ещё %v выбранных игр, которые не показаны",

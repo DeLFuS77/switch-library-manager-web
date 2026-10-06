@@ -3,6 +3,7 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Many of these files are not games (images, notes...). Ignore a type to stop listing it:": "これらのファイルの多くはゲームではありません（画像、メモなど）。種類を無視すると一覧に表示されなくなります:",
 		"Search among the other games": "その他のゲームから検索",
 		"Showing the first %v of %v games. Search to see others.": "%v/%v 本のゲームを表示しています。他は検索で探せます。",
 		"and %v more games chosen, not listed": "ほか %v 本の選択済みゲームは一覧に表示されません",

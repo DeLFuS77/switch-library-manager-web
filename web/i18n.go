@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -69,6 +70,7 @@ func i18nFuncs(lang string) template.FuncMap {
 		"jsTranslations": func() map[string]string { return jsTranslations(lang) },
 		"languageName":   func(code string) string { return languageNames[code] },
 		"formatTime":     func(value time.Time) string { return formatDate(lang, value) },
+		"num":            func(value int) string { return formatNumber(lang, value) },
 		"formatDateTime": func(value time.Time) string { return formatDateTime(lang, value) },
 		"issue":          func(text string) string { return translateIssue(lang, text) },
 	}
@@ -154,6 +156,42 @@ func (web *Web) requestLanguage(r *http.Request) string {
 	}
 	web.noteLanguage(lang)
 	return lang
+}
+
+// thousands separators by language; the others use a comma
+var thousandsSeparators = map[string]string{"es": ".", "pt": ".", "it": ".", "de": ".", "nl": ".", "fr": " ", "ru": " "}
+
+// formatNumber writes a number with the thousands separator of the language: 11382 is
+// "11,382" in English and "11.382" in Spanish, where four-digit numbers have none.
+func formatNumber(lang string, value int) string {
+	digits := strconv.Itoa(value)
+	negative := strings.HasPrefix(digits, "-")
+	digits = strings.TrimPrefix(digits, "-")
+	minimum := 4
+	if lang == "es" || lang == "pt" {
+		minimum = 5
+	}
+	if len(digits) < minimum {
+		if negative {
+			return "-" + digits
+		}
+		return digits
+	}
+	separator, ok := thousandsSeparators[lang]
+	if !ok {
+		separator = ","
+	}
+	var builder strings.Builder
+	for i, digit := range digits {
+		if i > 0 && (len(digits)-i)%3 == 0 {
+			builder.WriteString(separator)
+		}
+		builder.WriteRune(digit)
+	}
+	if negative {
+		return "-" + builder.String()
+	}
+	return builder.String()
 }
 
 var monthAbbreviations = map[string][12]string{

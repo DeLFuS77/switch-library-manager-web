@@ -691,6 +691,22 @@ function initCollections() {
 	});
 }
 
+// ignore a type of file listed in Issues: the library is scanned again without them
+function initIgnoreTypes() {
+	document.querySelectorAll('[data-ignore-type]').forEach(button => {
+		button.addEventListener('click', () => {
+			button.disabled = true;
+			postForm('/issues/ignore-type', { type: button.dataset.ignoreType }).then(() => {
+				showSyncAlert();
+				watchSync();
+			}).catch(error => {
+				button.disabled = false;
+				insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+			});
+		});
+	});
+}
+
 // the SD card planner: totals of the chosen games, download of the list and copy
 function initSdPlanner() {
 	const summary = document.querySelector('[data-sd-usable]');
@@ -1191,6 +1207,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initLibraryBulk();
 	initCollections();
 	initSdPlanner();
+	initIgnoreTypes();
 	initViewToggle();
 	initLiveTasks();
 	initCompress();

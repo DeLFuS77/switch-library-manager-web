@@ -8,6 +8,15 @@
 				</div>
 			</div>
 			{{- if .LastVerified.IsZero}}{{else}}<p class="small text-body-secondary mt-n2">{{t "Files last checked %v" (formatDateTime .LastVerified)}}</p>{{end}}
+			{{- if .UnsupportedTypes}}
+			<div class="alert alert-secondary d-flex flex-wrap align-items-center gap-2 admin-only" role="note">
+				<span class="bi bi-info-circle flex-shrink-0" aria-hidden="true"></span>
+				<div class="flex-grow-1">{{t "Many of these files are not games (images, notes...). Ignore a type to stop listing it:"}}</div>
+				{{- range .UnsupportedTypes}}
+				<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-ignore-type="{{.Name}}">{{.Name}} <span class="filter-count">{{num .Count}}</span></button>
+				{{- end}}
+			</div>
+			{{- end}}
 			{{- if gt .Total 0}}
 			<form class="toolbar" role="search">
 				<div class="toolbar-search">

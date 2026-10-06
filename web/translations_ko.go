@@ -3,6 +3,7 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Many of these files are not games (images, notes...). Ignore a type to stop listing it:": "이 파일 중 상당수는 게임이 아닙니다(이미지, 메모 등). 유형을 무시하면 더 이상 표시되지 않습니다:",
 		"Search among the other games": "다른 게임에서 검색",
 		"Showing the first %v of %v games. Search to see others.": "%v/%v개 게임을 표시 중입니다. 다른 게임은 검색해서 찾아보세요.",
 		"and %v more games chosen, not listed": "그 외 선택된 %v개 게임은 목록에 표시되지 않습니다",

@@ -127,6 +127,21 @@ func copySkipped(skipped map[ExtendedFileInfo]SkippedFile) map[ExtendedFileInfo]
 	return result
 }
 
+// NonGameFileTypes are the extensions of files that are found next to games and are never
+// games: covers and screenshots of other tools, notes, checksums...
+var NonGameFileTypes = []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".ico", ".txt", ".nfo", ".md", ".json", ".xml",
+	".ini", ".url", ".html", ".htm", ".db", ".log", ".srt", ".sfv", ".md5", ".sha1", ".sha256", ".torrent", ".ds_store"}
+
+// IsGameFileType reports whether files with this extension (with its dot) are games, which
+// can never be ignored.
+func IsGameFileType(extension string) bool {
+	switch strings.ToLower(extension) {
+	case ".nsp", ".nsz", ".xci", ".xcz":
+		return true
+	}
+	return false
+}
+
 type ExtendedFileInfo struct {
 	FileName   string
 	BaseFolder string
@@ -269,8 +284,12 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 	titles map[string]*SwitchGameFiles,
 	skipped map[ExtendedFileInfo]SkippedFile) {
 
-	// unsupported files with these extensions are not reported as issues
+	// unsupported files with these extensions are not reported as issues: the ones that are
+	// never games (images, notes...) and the ones the user chose
 	ignoreFileTypes := map[string]struct{}{}
+	for _, ext := range NonGameFileTypes {
+		ignoreFileTypes[ext] = struct{}{}
+	}
 	for _, ext := range settings.ReadSettings(dataFolder).IgnoreFileTypes {
 		ext = strings.ToLower(strings.TrimSpace(ext))
 		if ext != "" {

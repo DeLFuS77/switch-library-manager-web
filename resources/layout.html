@@ -135,7 +135,7 @@
 {{define "navLink"}}
 							<li class="nav-item">
 								<a class="nav-link{{if eq .Page .Id}} active{{end}}" href="{{.Href}}" title="{{.Label}}"{{if eq .Page .Id}} aria-current="page"{{end}}>
-									<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}} ms-auto ms-xxl-0">{{.Count}}</span>{{end}}
+									<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}} ms-auto ms-xxl-0">{{num .Count}}</span>{{end}}
 								</a>
 							</li>
 {{- end}}
