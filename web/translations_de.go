@@ -3,6 +3,14 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Verification speed": "Prüfgeschwindigkeit",
+		"Gentle": "Schonend",
+		"Normal": "Normal",
+		"1 file at a time": "1 Datei gleichzeitig",
+		"%v files at a time": "%v Dateien gleichzeitig",
+		"Checking compressed files keeps one processor core busy per file. Faster checks use more cores and disks at once; gentle leaves the server free for other apps.": "Das Prüfen komprimierter Dateien belegt einen Prozessorkern pro Datei. Schnellere Prüfungen nutzen mehr Kerne und Laufwerke gleichzeitig; schonend lässt den Server für andere Apps frei.",
+		"New and changed files are checked for damage, and the others again after this time, a part every night within the background hours. The results appear in Issues.": "Neue und geänderte Dateien werden geprüft und die übrigen nach dieser Zeit erneut, jede Nacht ein Teil innerhalb der Zeiten für schwere Arbeit. Die Ergebnisse erscheinen unter Probleme.",
+		"%v left": "noch %v",
 		"Remove from favorites": "Aus den Favoriten entfernen",
 		"Add to favorites": "Zu den Favoriten",
 		"Favorite": "Favorit",
@@ -391,7 +399,6 @@ func init() {
 		"Name":       "Name",
 		"Names, covers, updates and DLC of every game come from it. It is downloaded on the first start; if it failed, try again.": "Namen, Cover, Updates und DLC aller Spiele stammen daraus. Sie wird beim ersten Start heruntergeladen; falls das fehlgeschlagen ist, versuche es erneut.",
 		"Needs %v": "Benötigt %v",
-		"New and changed files are checked for damage; the results appear in Issues.": "Neue und geänderte Dateien werden auf Beschädigungen geprüft; die Ergebnisse erscheinen unter Probleme.",
 		"New password":                   "Neues Passwort",
 		"Next":                           "Weiter",
 		"No DLC missing":                 "Keine DLC fehlen",

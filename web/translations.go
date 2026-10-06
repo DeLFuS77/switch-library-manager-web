@@ -5,6 +5,14 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Verification speed": "Velocidad de comprobación",
+		"Gentle": "Suave",
+		"Normal": "Normal",
+		"1 file at a time": "1 archivo a la vez",
+		"%v files at a time": "%v archivos a la vez",
+		"Checking compressed files keeps one processor core busy per file. Faster checks use more cores and disks at once; gentle leaves the server free for other apps.": "Comprobar archivos comprimidos ocupa un núcleo del procesador por archivo. Las velocidades altas usan más núcleos y discos a la vez; la suave deja el servidor libre para otras apps.",
+		"New and changed files are checked for damage, and the others again after this time, a part every night within the background hours. The results appear in Issues.": "Se comprueban los archivos nuevos y cambiados, y los demás de nuevo pasado este tiempo, una parte cada noche dentro del horario para trabajo pesado. Los resultados aparecen en Problemas.",
+		"%v left": "quedan %v",
 		"Remove from favorites": "Quitar de favoritos",
 		"Add to favorites": "Añadir a favoritos",
 		"Favorite": "Favorito",
@@ -205,7 +213,6 @@ var translations = map[string]map[string]string{
 		"Only when I ask":                      "Solo cuando lo pida",
 		"Every week":                           "Cada semana",
 		"Every month":                          "Cada mes",
-		"New and changed files are checked for damage; the results appear in Issues.": "Se comprueba si los archivos nuevos o modificados están dañados; los resultados aparecen en Problemas.",
 		"Checks the new and changed files for damage":                                 "Comprueba si los archivos nuevos o modificados están dañados",
 		"Check files":                  "Comprobar archivos",
 		"Checks every file again":      "Vuelve a comprobar todos los archivos",

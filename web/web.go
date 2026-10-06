@@ -277,6 +277,10 @@ type LibraryPageData struct {
 }
 
 var funcMap = template.FuncMap {
+	// mul multiplies, e.g. megabytes into bytes for formatSize
+	"mul": func(a, b int) int64 {
+		return int64(a) * int64(b)
+	},
 	"add": func(a, b int) int {
 		return a + b
 	},

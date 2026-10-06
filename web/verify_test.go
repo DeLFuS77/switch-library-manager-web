@@ -88,3 +88,51 @@ func TestVerifyDue(t *testing.T) {
 		t.Fatal("weekly schedule")
 	}
 }
+
+func TestVerifyWorkers(t *testing.T) {
+	for _, c := range []struct {
+		speed string
+		cores int
+		want  int
+	}{
+		{VERIFY_SPEED_LOW, 16, 1}, {"", 1, 1}, {"", 4, 2}, {VERIFY_SPEED_NORMAL, 16, 4},
+		{VERIFY_SPEED_FAST, 1, 1}, {VERIFY_SPEED_FAST, 4, 3}, {VERIFY_SPEED_FAST, 32, 8},
+	} {
+		if got := verifyWorkers(c.speed, c.cores); got != c.want {
+			t.Errorf("%q with %d cores: %d files at a time, want %d", c.speed, c.cores, got, c.want)
+		}
+	}
+}
+
+func TestScheduledVerificationChecksOldResultsAgain(t *testing.T) {
+	web, path := compressWeb(t)
+	info, _ := os.Stat(path)
+	// checked 40 days ago and fine
+	web.verifications().set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checked: time.Now().AddDate(0, 0, -40)})
+
+	web.startVerificationOf([]string{path}, verifyRecheckChanged, TRIGGER_MANUAL)
+	if task := waitForTask(t, web, TASK_VERIFY); task.Files != 0 {
+		t.Fatalf("an unchanged file is skipped by a manual check of the changes: %+v", task)
+	}
+	web.startVerificationOf([]string{path}, 30*24*time.Hour, TRIGGER_MANUAL)
+	if task := waitForTask(t, web, TASK_VERIFY); task.Files != 1 {
+		t.Fatalf("a result older than the interval is checked again: %+v", task)
+	}
+	web.startVerificationOf([]string{path}, 30*24*time.Hour, TRIGGER_MANUAL)
+	if task := waitForTask(t, web, TASK_VERIFY); task.Files != 0 {
+		t.Fatalf("a recent result is kept: %+v", task)
+	}
+}
+
+func TestVerificationSpeedAndTimeLeft(t *testing.T) {
+	task := Task{Kind: TASK_VERIFY, Started: time.Now().Add(-100 * time.Second), Current: 10000, Total: 70000}
+	if task.Speed() != 100 {
+		t.Fatalf("10000 MB in 100 s: %d MB/s", task.Speed())
+	}
+	if task.Remaining() != 10*time.Minute {
+		t.Fatalf("60000 MB left at 100 MB/s: %v", task.Remaining())
+	}
+	if (Task{Kind: TASK_SCAN, Started: task.Started, Current: 5, Total: 10}).Speed() != 0 {
+		t.Fatal("only verifications show a speed")
+	}
+}

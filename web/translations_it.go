@@ -3,6 +3,14 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Verification speed": "Velocità della verifica",
+		"Gentle": "Leggera",
+		"Normal": "Normale",
+		"1 file at a time": "1 file alla volta",
+		"%v files at a time": "%v file alla volta",
+		"Checking compressed files keeps one processor core busy per file. Faster checks use more cores and disks at once; gentle leaves the server free for other apps.": "Verificare i file compressi occupa un core del processore per file. Le velocità alte usano più core e dischi insieme; quella leggera lascia il server libero per altre app.",
+		"New and changed files are checked for damage, and the others again after this time, a part every night within the background hours. The results appear in Issues.": "Si verificano i file nuovi e modificati, e gli altri di nuovo dopo questo tempo, una parte ogni notte negli orari per i lavori pesanti. I risultati compaiono in Problemi.",
+		"%v left": "mancano %v",
 		"Remove from favorites": "Rimuovi dai preferiti",
 		"Add to favorites": "Aggiungi ai preferiti",
 		"Favorite": "Preferito",
@@ -391,7 +399,6 @@ func init() {
 		"Name":       "Nome",
 		"Names, covers, updates and DLC of every game come from it. It is downloaded on the first start; if it failed, try again.": "Nomi, copertine, aggiornamenti e DLC di ogni gioco provengono da qui. Viene scaricato al primo avvio; se non è riuscito, riprova.",
 		"Needs %v": "Richiede %v",
-		"New and changed files are checked for damage; the results appear in Issues.": "I file nuovi e modificati vengono controllati per rilevare eventuali danni; i risultati compaiono in Problemi.",
 		"New password":                   "Nuova password",
 		"Next":                           "Avanti",
 		"No DLC missing":                 "Nessun DLC mancante",

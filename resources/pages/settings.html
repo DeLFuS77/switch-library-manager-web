@@ -132,7 +132,16 @@
 										<option value="7"{{if eq .Settings.VerifyIntervalDays 7}} selected{{end}}>{{t "Every week"}}</option>
 										<option value="30"{{if eq .Settings.VerifyIntervalDays 30}} selected{{end}}>{{t "Every month"}}</option>
 									</select>
-									<div class="form-text" id="verifyHelp">{{t "New and changed files are checked for damage; the results appear in Issues."}}</div>
+									<div class="form-text" id="verifyHelp">{{t "New and changed files are checked for damage, and the others again after this time, a part every night within the background hours. The results appear in Issues."}}</div>
+								</div>
+								<div class="col-md-6">
+									<label for="verify_speed" class="form-label fw-semibold">{{t "Verification speed"}}</label>
+									<select class="form-select" id="verify_speed" name="verify_speed" aria-describedby="verifySpeedHelp">
+										{{- range .VerifySpeeds}}
+										<option value="{{.Value}}"{{if eq .Value $.Settings.VerifySpeed}} selected{{end}}>{{t .Label}} &middot; {{if eq .Workers 1}}{{t "1 file at a time"}}{{else}}{{t "%v files at a time" .Workers}}{{end}}</option>
+										{{- end}}
+									</select>
+									<div class="form-text" id="verifySpeedHelp">{{t "Checking compressed files keeps one processor core busy per file. Faster checks use more cores and disks at once; gentle leaves the server free for other apps."}}</div>
 								</div>
 								<div class="col-md-6">
 									<label for="language" class="form-label fw-semibold">{{t "Language"}}</label>
