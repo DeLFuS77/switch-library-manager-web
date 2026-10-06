@@ -8,4 +8,11 @@
 		}
 		document.documentElement.setAttribute('data-bs-theme', theme);
 	} catch (e) {}
+	// coming back to a page, its cards are already known: they appear without the cascade
+	try {
+		var navigation = performance.getEntriesByType('navigation')[0];
+		if (navigation && navigation.type === 'back_forward') {
+			document.documentElement.classList.add('is-returning');
+		}
+	} catch (e) {}
 })();

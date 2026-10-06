@@ -78,6 +78,25 @@
 				<li><a class="filter-pill{{if eq $f.Status .Value}} active{{end}}" href="{{filterUrl $f "status" .Value}}"{{if eq $f.Status .Value}} aria-current="true"{{end}}>{{if .Icon}}<span class="bi {{.Icon}}" aria-hidden="true"></span>{{end}}{{.Label}}{{if ge .Count 0}} <span class="filter-count">{{num .Count}}</span>{{end}}</a></li>
 {{- end}}
 
+{{- define "bottomLink"}}
+		<a class="bottom-link{{if eq .Page .Id}} active{{end}}" href="{{.Href}}"{{if eq .Page .Id}} aria-current="page"{{end}}><span class="bi {{.Icon}}" aria-hidden="true">{{if gt .Count 0}}<span class="bottom-badge">{{if gt .Count 99}}99+{{else}}{{.Count}}{{end}}</span>{{end}}</span><span class="bottom-label">{{.Label}}</span></a>
+{{- end}}
+
+{{- define "miniCard"}}
+				{{- $i := .Item}}
+				<article class="card game-card mini-card h-100{{if and .Grey $i.Missing}} is-missing{{end}}{{if .Highlight}} is-for-you{{end}}">
+					<div class="game-cover">
+						{{- if .Wish}}<button type="button" class="wish-toggle admin-only{{if $i.Wished}} is-wished{{end}}" data-wish="{{$i.Id}}" data-wished="{{$i.Wished}}" aria-pressed="{{$i.Wished}}" title="{{if $i.Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if $i.Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>{{end}}
+						{{- with .Badge}}<span class="cover-date"><span class="bi bi-calendar3" aria-hidden="true"></span>{{.}}</span>{{end}}
+						<img src="{{if eq $i.ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb $i.ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
+					</div>
+					<div class="game-body">
+						<h3 class="game-title"><a class="stretched-link" href="/title/{{$i.Id}}.html">{{$i.Name}}</a></h3>
+						{{- if .Note}}<div class="game-meta{{if .Highlight}} text-primary{{end}}">{{with .NoteIcon}}<span class="bi {{.}}" aria-hidden="true"></span>{{end}}<span>{{.Note}}</span></div>{{end}}
+					</div>
+				</article>
+{{- end}}
+
 {{- define "recommendations"}}
 			<section class="recommendations mb-4" aria-labelledby="recommendationsTitle">
 				<div class="d-flex flex-wrap align-items-baseline gap-2 mb-2">
@@ -86,14 +105,10 @@
 				</div>
 				<div class="rec-strip">
 					{{- range .}}
-					<div class="rec-item">
-						<a class="saga-item" href="/title/{{.Item.Id}}.html">
-							<img src="{{thumb .Item.ImageUrl}}" alt="" loading="lazy" decoding="async">
-							<span class="saga-name">{{.Item.Name}}</span>
-							<span class="saga-state">{{if .Saga}}<span class="bi bi-collection me-1" aria-hidden="true"></span>{{t "Same series as %v" .Saga}}{{else if .Genre}}<span class="bi bi-tags me-1" aria-hidden="true"></span>{{t .Genre}}{{end}}{{if not .Item.ReleaseDate.IsZero}} &middot; {{.Item.ReleaseDate.Year}}{{end}}</span>
-						</a>
-						<button type="button" class="wish-toggle admin-only" data-wish="{{.Item.Id}}" data-wished="false" aria-pressed="false" title="{{t "Add to the wishlist"}}"><span class="bi bi-heart" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>
-					</div>
+					{{- $note := ""}}{{$icon := ""}}
+					{{- if .Saga}}{{$note = t "Same series as %v" .Saga}}{{$icon = "bi-collection"}}{{else if .Genre}}{{$note = t .Genre}}{{$icon = "bi-tags"}}{{end}}
+					{{- if not .Item.ReleaseDate.IsZero}}{{$note = printf "%s · %d" $note .Item.ReleaseDate.Year}}{{end}}
+					{{- template "miniCard" (dict "Item" .Item "Wish" true "Grey" false "Highlight" false "Badge" "" "Note" $note "NoteIcon" $icon)}}
 					{{- end}}
 				</div>
 			</section>

@@ -12,21 +12,51 @@ import (
 type TasksPageData struct {
 	GlobalPageData
 	Running  []Task
-	Finished []Task
+	Finished []TaskGroup
 	// the version of the task list, so the page knows when to refresh
 	ListVersion int64
 }
 
 func (web *Web) tasksPageData() TasksPageData {
-	data := TasksPageData{GlobalPageData: web.globalPageData("tasks"), Running: []Task{}, Finished: []Task{}, ListVersion: web.taskLog().Version()}
+	data := TasksPageData{GlobalPageData: web.globalPageData("tasks"), Running: []Task{}, ListVersion: web.taskLog().Version()}
+	finished := []Task{}
 	for _, task := range web.taskLog().Snapshot() {
 		if task.Running() {
 			data.Running = append(data.Running, task)
 		} else {
-			data.Finished = append(data.Finished, task)
+			finished = append(finished, task)
 		}
 	}
+	data.Finished = groupTasks(finished)
 	return data
+}
+
+// TaskGroup is a finished task, or several of the same kind that followed one another and
+// went well, shown once: "Library scan ×9".
+type TaskGroup struct {
+	Task
+	Count int
+	// the IDs of the tasks of the group, separated by commas, to dismiss them together
+	Ids string
+}
+
+// groupTasks puts together the tasks of the same kind and trigger that went well one after
+// another; the first of each group is shown.
+func groupTasks(tasks []Task) []TaskGroup {
+	groups := []TaskGroup{}
+	quiet := func(task Task) bool { return task.Status == TASK_SUCCESS && task.Error == nil && len(task.Warnings) == 0 }
+	for _, task := range tasks {
+		if n := len(groups); n > 0 {
+			last := &groups[n-1]
+			if quiet(task) && quiet(last.Task) && task.Kind == last.Kind && task.Trigger == last.Trigger {
+				last.Count++
+				last.Ids += "," + strconv.FormatInt(task.Id, 10)
+				continue
+			}
+		}
+		groups = append(groups, TaskGroup{Task: task, Count: 1, Ids: strconv.FormatInt(task.Id, 10)})
+	}
+	return groups
 }
 
 const (

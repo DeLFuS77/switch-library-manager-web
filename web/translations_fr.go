@@ -3,6 +3,13 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"%v times in a row, the last one shown": "%v fois de suite ; la dernière est affichée",
+		"Next for you": "Le prochain pour vous",
+		"Next release": "Prochaine sortie",
+		"Out today": "Sort aujourd'hui",
+		"Tomorrow": "Demain",
+		"In %v days": "Dans %v jours",
+		"days left": "jours",
 		"Upcoming": "À venir",
 		"Upcoming releases": "Prochaines sorties",
 		"The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out.": "Les jeux déjà en précommande sur l'eShop, par date de sortie. Ajoutez-en un à la liste de souhaits avec le cœur pour être averti de sa sortie.",

@@ -3,6 +3,13 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"%v times in a row, the last one shown": "%v 回連続、最新のものを表示",
+		"Next for you": "次はこれ",
+		"Next release": "次の発売",
+		"Out today": "本日発売",
+		"Tomorrow": "明日",
+		"In %v days": "%v 日後",
+		"days left": "日",
 		"Upcoming": "発売予定",
 		"Upcoming releases": "発売予定のゲーム",
 		"The games that can already be pre-ordered in the eShop, by release date. Add one to the wishlist with the heart to be told when it comes out.": "eShopで予約できるゲームを発売日順に表示します。ハートでウィッシュリストに追加すると、発売時にお知らせします。",

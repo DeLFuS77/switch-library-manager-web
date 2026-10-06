@@ -71,6 +71,7 @@ func (web *Web) sagaMembers(family string, lang string) []TitleItem {
 	}
 	index := web.sagas()
 	hideDemos := settings.ReadSettings(web.dataFolder).HideDemoGames
+	wished := web.wishes().snapshot()
 	items := []TitleItem{}
 	for i := sort.SearchStrings(index.keys, family); i < len(index.keys); i++ {
 		k := index.keys[i]
@@ -89,6 +90,7 @@ func (web *Web) sagaMembers(family string, lang string) []TitleItem {
 				ImageUrl:     coverUrl(localDB, title.Attributes),
 				Region:       title.Attributes.Region,
 				Missing:      true,
+				Wished:       wished[strings.ToUpper(title.Attributes.Id)],
 			}
 			if localDB != nil {
 				if local, ok := localDB.TitlesMap[prefix]; ok && local.BaseExist {

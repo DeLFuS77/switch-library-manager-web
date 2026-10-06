@@ -8,8 +8,12 @@
 					<li class="breadcrumb-item active text-truncate" aria-current="page">{{$t.Name}}</li>
 				</ol>
 			</nav>
-			<header class="title-hero">
+			<header class="title-hero{{if $t.BannerUrl}} has-banner{{end}}">
+				{{- if $t.BannerUrl}}
+				<div class="title-hero-bg" style="background-image: url('{{$t.BannerUrl}}')"></div>
+				{{- else}}
 				<div class="title-hero-bg" style="background-image: url('{{thumb $cover}}')"></div>
+				{{- end}}
 				<div class="title-hero-main">
 					<img src="{{$cover}}" class="title-cover" alt="{{$t.Name}}">
 					<div class="title-hero-info">
@@ -223,11 +227,9 @@
 				</div>
 				<div class="saga-grid">
 					{{- range .Games}}
-					<a class="saga-item{{if .Missing}} is-missing{{end}}" href="/title/{{.Id}}.html">
-						<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
-						<span class="saga-name">{{.Name}}</span>
-						<span class="saga-state">{{if .Missing}}{{t "Not in your library"}}{{else}}<span class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></span>{{t "In your library"}}{{end}}{{if not .ReleaseDate.IsZero}} &middot; {{.ReleaseDate.Year}}{{end}}</span>
-					</a>
+					{{- $note := t "In your library"}}{{$icon := "bi-check-circle-fill text-success"}}{{if .Missing}}{{$note = t "Not in your library"}}{{$icon = ""}}{{end}}
+					{{- if not .ReleaseDate.IsZero}}{{$note = printf "%s · %d" $note .ReleaseDate.Year}}{{end}}
+					{{- template "miniCard" (dict "Item" . "Wish" .Missing "Grey" true "Highlight" false "Badge" "" "Note" $note "NoteIcon" $icon)}}
 					{{- end}}
 				</div>
 			</section>
