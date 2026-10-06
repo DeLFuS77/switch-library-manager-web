@@ -3,6 +3,12 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Games without their base game": "Игры без базовой игры",
+		"You have updates or DLC of these games, but not the game itself. Add the ones you want to the wishlist with the heart.": "У вас есть обновления или DLC для этих игр, но нет самой игры. Добавьте нужные в список желаемого с помощью сердечка.",
+		"Every update and DLC has its game": "У каждого обновления и DLC есть игра",
+		"All the updates and DLC of your library have their game.": "У всех обновлений и DLC в вашей библиотеке есть игра.",
+		"Updates: %v": "Обновлений: %v",
+		"%v games have updates or DLC here but not the game itself. See them grouped by game.": "Для %v игр здесь есть обновления или DLC, но нет самой игры. Смотреть по играм.",
 		"Many of these files are not games (images, notes...). Ignore a type to stop listing it:": "Многие из этих файлов — не игры (изображения, заметки…). Игнорируйте тип, чтобы он больше не показывался:",
 		"Search among the other games": "Поиск среди остальных игр",
 		"Showing the first %v of %v games. Search to see others.": "Показаны первые %v из %v игр. Воспользуйтесь поиском, чтобы увидеть остальные.",

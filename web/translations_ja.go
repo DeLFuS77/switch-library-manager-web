@@ -3,6 +3,12 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Games without their base game": "本編のないゲーム",
+		"You have updates or DLC of these games, but not the game itself. Add the ones you want to the wishlist with the heart.": "これらのゲームの更新データやDLCはありますが、本編がありません。ハートで欲しいものをウィッシュリストに追加できます。",
+		"Every update and DLC has its game": "すべての更新データとDLCに本編があります",
+		"All the updates and DLC of your library have their game.": "ライブラリのすべての更新データとDLCに本編があります。",
+		"Updates: %v": "更新データ: %v",
+		"%v games have updates or DLC here but not the game itself. See them grouped by game.": "%v 本のゲームは更新データやDLCがあるのに本編がありません。ゲームごとにまとめて見る。",
 		"Many of these files are not games (images, notes...). Ignore a type to stop listing it:": "これらのファイルの多くはゲームではありません（画像、メモなど）。種類を無視すると一覧に表示されなくなります:",
 		"Search among the other games": "その他のゲームから検索",
 		"Showing the first %v of %v games. Search to see others.": "%v/%v 本のゲームを表示しています。他は検索で探せます。",

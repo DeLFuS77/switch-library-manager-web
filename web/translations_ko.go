@@ -3,6 +3,12 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Games without their base game": "본편이 없는 게임",
+		"You have updates or DLC of these games, but not the game itself. Add the ones you want to the wishlist with the heart.": "이 게임들의 업데이트나 DLC는 있지만 본편이 없습니다. 하트로 원하는 게임을 위시리스트에 추가하세요.",
+		"Every update and DLC has its game": "모든 업데이트와 DLC에 본편이 있습니다",
+		"All the updates and DLC of your library have their game.": "라이브러리의 모든 업데이트와 DLC에 본편이 있습니다.",
+		"Updates: %v": "업데이트: %v",
+		"%v games have updates or DLC here but not the game itself. See them grouped by game.": "%v개 게임은 업데이트나 DLC는 있지만 본편이 없습니다. 게임별로 묶어서 보기.",
 		"Many of these files are not games (images, notes...). Ignore a type to stop listing it:": "이 파일 중 상당수는 게임이 아닙니다(이미지, 메모 등). 유형을 무시하면 더 이상 표시되지 않습니다:",
 		"Search among the other games": "다른 게임에서 검색",
 		"Showing the first %v of %v games. Search to see others.": "%v/%v개 게임을 표시 중입니다. 다른 게임은 검색해서 찾아보세요.",

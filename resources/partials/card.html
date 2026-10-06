@@ -48,6 +48,7 @@
 						{{- end}}
 						{{- else}}
 						{{- /* Missing games */}}
+						{{- if or .OrphanUpdates .OrphanDlc}}<div class="game-meta d-flex flex-wrap gap-1">{{if .OrphanUpdates}}<span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Updates: %v" .OrphanUpdates}}</span>{{end}}{{if .OrphanDlc}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC" .OrphanDlc}}</span>{{end}}</div>{{end}}
 						{{- if .Missing}}<div class="game-meta"><span class="chip chip-muted"><span class="bi bi-cart" aria-hidden="true"></span>{{t "Not in your library"}}</span></div>{{end}}
 						{{- if not .ReleaseDate.IsZero}}
 						<div class="game-meta game-footer"><span class="bi bi-calendar3 me-1" aria-hidden="true"></span>{{.ReleaseDate | formatTime}}</div>

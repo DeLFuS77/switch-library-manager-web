@@ -1,0 +1,26 @@
+{{define "title"}}{{t "Games without their base game"}}{{end}}
+{{define "main"}}
+			<nav aria-label="{{t "breadcrumb"}}" class="mt-3">
+				<ol class="breadcrumb mb-0">
+					<li class="breadcrumb-item"><a href="/issues.html">{{t "Issues"}}</a></li>
+					<li class="breadcrumb-item active" aria-current="page">{{t "Games without their base game"}}</li>
+				</ol>
+			</nav>
+			{{- template "pageHeader" (dict "Title" (t "Games without their base game") "Count" .Pagination.NumItems "Subtitle" (t "You have updates or DLC of these games, but not the game itself. Add the ones you want to the wishlist with the heart."))}}
+			{{- if or (gt (len .TitleItems) 0) .Filter.Keyword}}
+			{{- template "filter" .}}
+			{{- end}}
+			{{- if gt (len .TitleItems) 0}}
+			{{- template "markLegend" (dict "Missing" "" "Favorites" false)}}
+			<div class="game-grid">
+				{{- range .TitleItems}}
+				{{- template "card" .}}
+				{{- end}}
+			</div>
+			{{- template "pagination" .}}
+			{{- else if .Filter.Keyword}}
+			{{- template "noResults" .Filter}}
+			{{- else}}
+			{{- template "emptyState" (dict "Icon" "bi-check-circle" "Tone" "success" "Title" (t "Every update and DLC has its game") "Text" (t "All the updates and DLC of your library have their game.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+			{{- end}}
+{{- end}}

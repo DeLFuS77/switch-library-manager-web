@@ -193,6 +193,9 @@ type TitleItem struct {
 	// library: the game is a favorite, or it is not in the library (shown with the others)
 	Favorite bool
 	Missing  bool
+	// games without their base game: the updates and DLC the library has of them
+	OrphanUpdates int
+	OrphanDlc     int
 	// from the titles database: genres, number of players and language codes
 	Genres    []string
 	Players   int
@@ -520,6 +523,7 @@ func (web *Web) Start() {
 	web.HandleBackup()
 	web.HandleSpace()
 	web.HandleSdCard()
+	web.HandleOrphans()
 	web.HandleCovers()
 	web.HandleUpdateGuide()
 	web.HandleWishlist()
