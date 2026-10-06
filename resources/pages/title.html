@@ -211,11 +211,18 @@
 				</ul>
 			</section>
 			{{- end}}
-			{{- with .Saga}}
+			{{- with .Saga}}{{if .Games}}
 			<section class="mb-4" aria-labelledby="sagaTitle">
 				<h2 class="section-title" id="sagaTitle"><span class="bi bi-collection" aria-hidden="true"></span>{{t "From the same series"}}</h2>
+				<div class="saga-progress mb-3">
+					<div class="d-flex flex-wrap justify-content-between gap-2 small mb-1">
+						<span class="fw-semibold">{{if .Complete}}<span class="bi bi-trophy-fill text-warning me-1" aria-hidden="true"></span>{{t "You have the whole series"}}{{else}}{{t "You have %v of %v games of the series" .Owned .Total}}{{end}}</span>
+						<a href="/sagas.html">{{t "All your series"}}</a>
+					</div>
+					<div class="progress" role="progressbar" aria-label="{{t "From the same series"}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar{{if .Complete}} bg-success{{end}}" style="width: {{.Percent}}%"></div></div>
+				</div>
 				<div class="saga-grid">
-					{{- range .}}
+					{{- range .Games}}
 					<a class="saga-item{{if .Missing}} is-missing{{end}}" href="/title/{{.Id}}.html">
 						<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
 						<span class="saga-name">{{.Name}}</span>
@@ -224,7 +231,7 @@
 					{{- end}}
 				</div>
 			</section>
-			{{- end}}
+			{{- end}}{{end}}
 {{- end}}
 {{define "titleFile"}}
 					<li class="item-row">

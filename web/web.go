@@ -250,6 +250,8 @@ type TitleItemsPageData struct {
 	TitleItems []TitleItem
 	Filter     *TitleItemFilter
 	Pagination pagination.Pagination
+	// missing games like the ones the user likes, on the first page without filters
+	Recommendations []Recommendation
 }
 
 // LibraryFacets are the numbers shown on the status filters of the library, counted
@@ -524,6 +526,7 @@ func (web *Web) Start() {
 	web.HandleSpace()
 	web.HandleSdCard()
 	web.HandleOrphans()
+	web.HandleSagas()
 	web.HandleCovers()
 	web.HandleUpdateGuide()
 	web.HandleWishlist()

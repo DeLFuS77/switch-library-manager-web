@@ -88,7 +88,7 @@ type TitlePageData struct {
 	AllCollections []string
 	// the game is a favorite, and the other games of its series
 	Favorite bool
-	Saga     []TitleItem
+	Saga     SagaProgress
 }
 
 func newTitleFile(info db.SwitchFileInfo, fileType string, downloadUrl string) *TitleFile {

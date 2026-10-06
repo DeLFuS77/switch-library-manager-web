@@ -18,13 +18,17 @@ func (web *Web) HandleMissing() {
 
 	web.HandleFiltered("/missing.html", func(filter *TitleItemFilter, lang string) any {
 		items, p := web.getMissingGames(filter, lang)
-		return TitleItemsPageData {
+		data := TitleItemsPageData {
 			GlobalPageData: web.globalPageData("missing"),
 			WishedCount: web.wishes().count(),
 			TitleItems: items,
 			Filter: filter,
 			Pagination: p,
 		}
+		if filter.Plain() {
+			data.Recommendations = web.recommendations(lang)
+		}
+		return data
 	}, web.embedFS, fsPatterns...)
 }
 

@@ -4,8 +4,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-
-	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 // The titles database does not know which games belong to the same series, so they are
@@ -96,18 +94,29 @@ func (index *sagaIndex) family(key string) string {
 }
 
 // regionalName is a name without the translation some stores add in brackets, e.g.
-// "Darksiders Genesis（ダークサイダーズ ジェネシス）".
+// "Darksiders Genesis（ダークサイダーズ ジェネシス）", in lower case without marks and signs.
 func regionalName(name string) string {
 	if i := strings.IndexAny(name, "（(["); i > 0 {
 		name = name[:i]
 	}
-	return strings.ToLower(strings.TrimSpace(strings.Trim(name, "™®© ")))
+	return searchText(name)
 }
+
+// notAGame matches the trials, network tests and apps of a game that the titles database does
+// not flag as demos; they are left out of the series and the recommendations.
+var notAGame = regexp.MustCompile(`(?i)\bnetwork test\b|\btest ver(sion)?\b|\b(open|closed) beta\b|\bprototype (orders|missions)\b|misiones prototipo|\bmedia review\b`)
 
 // withoutRegionalCopies keeps one game of each name: the same game sold in several stores is
 // shown once, the copy in the library first; the game of the page itself is left out.
 func withoutRegionalCopies(items []TitleItem, self string) []TitleItem {
-	sort.SliceStable(items, func(i, j int) bool { return !items[i].Missing && items[j].Missing })
+	// the copy in the library first, then a copy named without a translation
+	translated := func(item TitleItem) bool { return strings.ContainsAny(item.Name, "（(") }
+	sort.SliceStable(items, func(i, j int) bool {
+		if items[i].Missing != items[j].Missing {
+			return !items[i].Missing
+		}
+		return !translated(items[i]) && translated(items[j])
+	})
 	seen := map[string]bool{regionalName(self): true}
 	result := items[:0]
 	for _, item := range items {
@@ -119,66 +128,4 @@ func withoutRegionalCopies(items []TitleItem, self string) []TitleItem {
 		result = append(result, item)
 	}
 	return result
-}
-
-// sameSaga returns the other games of the series of a title, owned or not, the oldest first.
-func (web *Web) sameSaga(titleId string, name string, lang string) []TitleItem {
-	switchDB, localDB := web.state.get()
-	if switchDB == nil || len(titleId) < 13 {
-		return nil
-	}
-	index := web.sagas()
-	self := strings.ToLower(titleId[:13])
-	key, ok := index.keyOfId[self]
-	if !ok {
-		key = sagaKey(name)
-	}
-	if key == "" {
-		return nil
-	}
-	family := index.family(key)
-	hideDemos := settings.ReadSettings(web.dataFolder).HideDemoGames
-
-	items := []TitleItem{}
-	start := sort.SearchStrings(index.keys, family)
-	for i := start; i < len(index.keys); i++ {
-		k := index.keys[i]
-		if k != family && !strings.HasPrefix(k, family+" ") {
-			break
-		}
-		for _, prefix := range index.byKey[k] {
-			if prefix == self {
-				continue
-			}
-			title := switchDB.TitlesMap[prefix]
-			if title == nil || title.Attributes.Id == "" || (hideDemos && isDemo(title, title.Attributes.Name)) {
-				continue
-			}
-			item := TitleItem{
-				Id:       strings.ToUpper(title.Attributes.Id),
-				Name:     titleName(switchDB, lang, title.Attributes.Id, title.Attributes.Name),
-				ImageUrl: coverUrl(localDB, title.Attributes),
-				Region:   title.Attributes.Region,
-				Missing:  true,
-			}
-			if localDB != nil {
-				if local, ok := localDB.TitlesMap[prefix]; ok && local.BaseExist {
-					item.Missing = false
-				}
-			}
-			item.ReleaseDate, _ = intToTime(title.Attributes.ReleaseDate)
-			items = append(items, item)
-		}
-	}
-	items = withoutRegionalCopies(items, name)
-	sort.Slice(items, func(i, j int) bool {
-		if !items[i].ReleaseDate.Equal(items[j].ReleaseDate) {
-			return items[i].ReleaseDate.Before(items[j].ReleaseDate)
-		}
-		return items[i].Name < items[j].Name
-	})
-	if len(items) > maxSagaTitles {
-		items = items[:maxSagaTitles]
-	}
-	return items
 }

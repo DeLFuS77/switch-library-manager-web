@@ -119,6 +119,11 @@ func (f *TitleItemFilter) Active() bool {
 	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Region != "" || f.Extra != "" || f.Collection != ""
 }
 
+// Plain reports whether the first page is shown without any filter.
+func (f *TitleItemFilter) Plain() bool {
+	return !f.Active() && f.Genre == "" && f.Players == "" && f.GameLanguage == "" && f.WithMissing == "" && f.Page <= 1
+}
+
 // SecondaryCount is the number of library filters set besides the keyword and the status:
 // collection, kind, region, format and the others.
 func (f *TitleItemFilter) SecondaryCount() int {

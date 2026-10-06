@@ -1,0 +1,52 @@
+{{define "title"}}{{t "Series"}}{{end}}
+{{define "main"}}
+			{{- $f := .Filter}}
+			{{- template "pageHeader" (dict "Title" (t "Series") "Count" .Pagination.NumItems "Subtitle" (t "The series of which you have a game, with the games you are missing to complete them."))}}
+			{{- if or .Incomplete .Complete}}
+			<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+				<ul class="filter-pills list-unstyled mb-0 me-auto" aria-label="{{t "Filter by status"}}">
+					{{- template "statusFilter" (dict "Filter" $f "Value" "" "Label" (t "To complete") "Icon" "bi-hourglass-split" "Count" .Incomplete)}}
+					{{- template "statusFilter" (dict "Filter" $f "Value" "complete" "Label" (t "Complete") "Icon" "bi-trophy" "Count" .Complete)}}
+				</ul>
+				<form class="toolbar-search" method="get" action="/sagas.html" role="search">
+					{{- if $f.Status}}<input type="hidden" name="status" value="{{$f.Status}}">{{end}}
+					<span class="bi bi-search" aria-hidden="true"></span>
+					<input type="search" class="form-control" name="q" value="{{$f.Keyword}}" placeholder="{{t "Search a series"}}" aria-label="{{t "Search a series"}}">
+				</form>
+			</div>
+			{{- end}}
+			{{- if .Sagas}}
+			<div class="saga-list">
+				{{- range .Sagas}}
+				<section class="surface saga-card">
+					<img class="saga-cover" src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
+					<div class="saga-body">
+						<div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
+							<h2 class="saga-title">{{.Name}}</h2>
+							<span class="small fw-semibold text-nowrap">{{if .Complete}}<span class="bi bi-trophy-fill text-warning me-1" aria-hidden="true"></span>{{end}}{{t "%v of %v" .Owned .Total}}</span>
+						</div>
+						<div class="progress my-2" role="progressbar" aria-label="{{.Name}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar{{if .Complete}} bg-success{{end}}" style="width: {{.Percent}}%"></div></div>
+						<div class="saga-strip">
+							{{- range .Games}}{{if not .Missing}}
+							<a class="saga-thumb" href="/title/{{.Id}}.html" title="{{.Name}}"><img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="{{.Name}}" loading="lazy" decoding="async"></a>
+							{{- end}}{{end}}
+							{{- range .MissingGames}}
+							<a class="saga-thumb is-missing" href="/title/{{.Id}}.html" title="{{t "Missing"}}: {{.Name}}"><img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="{{.Name}}" loading="lazy" decoding="async"></a>
+							{{- end}}
+							{{- if .MoreMissing}}<span class="saga-more">{{t "+%v more" .MoreMissing}}</span>{{end}}
+						</div>
+					</div>
+				</section>
+				{{- end}}
+			</div>
+			{{- template "pagination" .}}
+			{{- else if $f.Keyword}}
+			{{- template "noResults" $f}}
+			{{- else if eq $f.Status "complete"}}
+			{{- template "emptyState" (dict "Icon" "bi-trophy" "Tone" "" "Title" (t "No complete series yet") "Text" (t "When you have every game of a series, it is shown here.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+			{{- else if .Complete}}
+			{{- template "emptyState" (dict "Icon" "bi-trophy" "Tone" "success" "Title" (t "Every series is complete!") "Text" (t "You have every game of the series of your library.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+			{{- else}}
+			{{- template "emptyState" (dict "Icon" "bi-collection" "Tone" "" "Title" (t "No series yet") "Text" (t "When your library has a game of a series with more games, it is shown here.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+			{{- end}}
+{{- end}}
