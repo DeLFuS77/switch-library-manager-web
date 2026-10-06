@@ -62,13 +62,18 @@ jobs:
           # the Brazilian store has the most titles in Portuguese
           python .github/scripts/build_localized_titles.py nut/titledb/BR.pt.json generated-data/titles.pt.json
 
+      # covers of other stores for titles without one in the US store
+      - name: Generate cover fallbacks
+        run: |
+          python .github/scripts/build_cover_fallbacks.py generated-data/titles.json nut/titledb generated-data/titles.covers.json
+
       - name: Validate generated JSON files
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
 
-          for filename in ("titles.json", "versions.json", "titles.es.json", "titles.fr.json", "titles.de.json", "titles.it.json", "titles.pt.json"):
+          for filename in ("titles.json", "versions.json", "titles.es.json", "titles.fr.json", "titles.de.json", "titles.it.json", "titles.pt.json", "titles.covers.json"):
               path = Path("generated-data") / filename
               if not path.is_file() or path.stat().st_size == 0:
                   raise SystemExit(f"Missing or empty generated file: {path}")
@@ -99,4 +104,5 @@ jobs:
             generated-data/titles.de.json \
             generated-data/titles.it.json \
             generated-data/titles.pt.json \
+            generated-data/titles.covers.json \
             --clobber

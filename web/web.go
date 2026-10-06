@@ -111,6 +111,8 @@ type Web struct {
 	state          WebState
 	covers         coverLoader
 	background     backgroundWork
+	coverFallbacks map[string]coverFallback
+	fallbackMutex  sync.Mutex
 	thumbs         *thumbnails
 	thumbsOnce     sync.Once
 	store          *db.TitleStore
@@ -518,6 +520,7 @@ func (web *Web) loadSavedTitles() *db.SwitchTitlesDB {
 		web.sugarLogger.Errorf("Failed to read cached titles, please synchronize - %v", err)
 		return nil
 	}
+	web.applyCoverFallbacks(switchDB)
 	switchDB.Localized = web.loadLocalizedTitles(false)
 	return switchDB
 }
@@ -586,6 +589,8 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 		// a copy, so pages reading the current database are not affected
 		unchanged := *current
 		unchanged.Localized = web.loadLocalizedTitles(true)
+		web.downloadCoverFallbacks()
+		web.applyCoverFallbacks(&unchanged)
 		return &unchanged, nil
 	}
 
@@ -595,6 +600,8 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 	switchTitleDB, err := web.readTitles()
 	if err == nil {
 		switchTitleDB.Localized = web.loadLocalizedTitles(true)
+		web.downloadCoverFallbacks()
+		web.applyCoverFallbacks(switchTitleDB)
 	}
 
 	web.UpdateProgress(3, 4, "Scanning library...")
