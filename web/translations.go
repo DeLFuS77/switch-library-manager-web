@@ -5,6 +5,16 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Notify games added to my folders": "Avisar de juegos añadidos a mis carpetas",
+		"New in your library: %v": "Nuevo en tu biblioteca: %v",
+		"New DLC in your library: %v": "DLC nuevo en tu biblioteca: %v",
+		"Library history": "Historial de la biblioteca",
+		"Games in the library over time": "Juegos en la biblioteca a lo largo del tiempo",
+		"%v games": "%v juegos",
+		"maximum %v": "máximo %v",
+		"added": "añadido",
+		"removed": "quitado",
+		"The games, updates and DLC added to or removed from your folders appear here after the next scans.": "Aquí aparecen los juegos, actualizaciones y DLC que se añadan o quiten de tus carpetas a partir de los próximos escaneos.",
 		"Hide demos": "Ocultar demos",
 		"In the library (unless its filter asks for them), missing updates, DLC and games, statistics and notifications.": "En la biblioteca (salvo que su filtro las pida), actualizaciones, DLC y juegos que faltan, estadísticas y notificaciones.",
 		"Games (demos hidden)": "Juegos (demos ocultas)",

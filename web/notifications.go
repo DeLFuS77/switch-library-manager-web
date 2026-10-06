@@ -184,6 +184,43 @@ func (web *Web) notifyChanges() error {
 	return nil
 }
 
+// notifyNewContent reports the games and DLC that appeared in the folders.
+func (web *Web) notifyNewContent(events []HistoryEvent) {
+	settingsObj := settings.ReadSettings(web.dataFolder)
+	options := settingsObj.Notifications
+	if !notificationsConfigured(options) || !options.NotifyNewGames {
+		return
+	}
+	lang := settingsObj.Language
+	if !isSupportedLanguage(lang) {
+		lang = DEFAULT_LANGUAGE
+	}
+	switchDB, _ := web.state.get()
+	items := []NotificationItem{}
+	for _, event := range events {
+		if !event.Added || event.Kind == HISTORY_UPDATE {
+			continue
+		}
+		name := titleName(switchDB, lang, event.Id, event.Name)
+		if name == "" {
+			name = event.Id
+		}
+		kind := "new"
+		if event.Kind == HISTORY_DLC {
+			kind = "newdlc"
+		}
+		items = append(items, NotificationItem{Key: kind + ":" + event.Id, Kind: kind, TitleId: event.Id, Name: name})
+	}
+	if len(items) == 0 {
+		return
+	}
+	if err := sendNotification(options, lang, items); err != nil {
+		web.sugarLogger.Warnf("Failed to send notification: %v", err)
+		return
+	}
+	web.sugarLogger.Infof("Notification sent for %d new game(s) and DLC", len(items))
+}
+
 const maxNotificationLines = 20
 
 func notificationText(lang string, items []NotificationItem) (string, string) {
@@ -203,6 +240,10 @@ func notificationText(lang string, items []NotificationItem) (string, string) {
 			lines = append(lines, "• "+translatef(lang, "On your wishlist and available: %v", item.Name))
 		case "wishdlc":
 			lines = append(lines, "• "+translatef(lang, "DLC %v for %v (on your wishlist)", item.Detail, item.Name))
+		case "new":
+			lines = append(lines, "• "+translatef(lang, "New in your library: %v", item.Name))
+		case "newdlc":
+			lines = append(lines, "• "+translatef(lang, "New DLC in your library: %v", item.Name))
 		default:
 			lines = append(lines, "• "+item.Name)
 		}

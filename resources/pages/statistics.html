@@ -75,6 +75,33 @@
 					</section>
 				</div>
 			</div>
+			<section class="surface mb-4" aria-labelledby="historyTitle">
+				<h2 class="section-title" id="historyTitle"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "Library history"}}</h2>
+				{{- with .Chart}}
+				<figure class="mb-3">
+					<svg class="history-chart" viewBox="0 0 600 120" preserveAspectRatio="none" role="img" aria-label="{{t "Games in the library over time"}}">
+						<polyline points="{{.Points}}" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+					</svg>
+					<figcaption class="d-flex justify-content-between small text-body-secondary"><span>{{.From}}</span><span>{{t "%v games" .Last}} &middot; {{t "maximum %v" .Max}}</span><span>{{.To}}</span></figcaption>
+				</figure>
+				{{- end}}
+				{{- if .History}}
+				<ul class="list-group list-group-flush">
+					{{- range .History}}
+					<li class="list-group-item bg-transparent d-flex align-items-center gap-2 px-0">
+						<span class="bi {{if .Added}}bi-plus-circle text-success{{else}}bi-dash-circle text-danger{{end}}" aria-hidden="true"></span>
+						<span class="me-auto text-truncate">
+							{{- if and .Added (eq .Kind "game")}}<a class="link-body-emphasis text-decoration-none" href="/title/{{.Id}}.html">{{.Name}}</a>{{else}}{{.Name}}{{end}}
+							<span class="text-body-secondary small">&middot; {{if eq .Kind "game"}}{{t "Game"}}{{else if eq .Kind "update"}}{{t "Update"}} v{{.Version}}{{else}}DLC{{end}} &middot; {{if .Added}}{{t "added"}}{{else}}{{t "removed"}}{{end}}</span>
+						</span>
+						<span class="text-body-secondary small text-nowrap">{{formatDateTime .Time}}</span>
+					</li>
+					{{- end}}
+				</ul>
+				{{- else}}
+				<p class="text-body-secondary mb-0">{{t "The games, updates and DLC added to or removed from your folders appear here after the next scans."}}</p>
+				{{- end}}
+			</section>
 			{{- end}}
 {{- end}}
 {{define "statCard"}}

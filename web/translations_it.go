@@ -3,6 +3,16 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Notify games added to my folders": "Notifica i giochi aggiunti alle mie cartelle",
+		"New in your library: %v": "Nuovo nella tua libreria: %v",
+		"New DLC in your library: %v": "Nuovo DLC nella tua libreria: %v",
+		"Library history": "Cronologia della libreria",
+		"Games in the library over time": "Giochi nella libreria nel tempo",
+		"%v games": "%v giochi",
+		"maximum %v": "massimo %v",
+		"added": "aggiunto",
+		"removed": "rimosso",
+		"The games, updates and DLC added to or removed from your folders appear here after the next scans.": "Giochi, aggiornamenti e DLC aggiunti o rimossi dalle tue cartelle compaiono qui dopo le prossime scansioni.",
 		"Hide demos": "Nascondi le demo",
 		"In the library (unless its filter asks for them), missing updates, DLC and games, statistics and notifications.": "Nella libreria (a meno che il filtro non le chieda), negli aggiornamenti, DLC e giochi mancanti, nelle statistiche e nelle notifiche.",
 		"Games (demos hidden)": "Giochi (demo nascoste)",

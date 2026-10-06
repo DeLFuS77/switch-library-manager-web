@@ -116,6 +116,8 @@ type Web struct {
 	wishOnce       sync.Once
 	activity       *activityLog
 	activityOnce   sync.Once
+	hist           *libraryHistory
+	historyOnce    sync.Once
 	fallbackMutex  sync.Mutex
 	thumbs         *thumbnails
 	thumbsOnce     sync.Once
