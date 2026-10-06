@@ -6,6 +6,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -59,6 +60,14 @@ func getLocalTitleName(title *db.SwitchTitle, gameFile *db.SwitchGameFiles) stri
 	return strings.TrimSpace(db.ParseTitleNameFromFileName(gameFile.File.ExtendedInfo.FileName))
 }
 
+// demoName matches names that mark a demo, for demos the titles database does not flag.
+var demoName = regexp.MustCompile(`(?i)[<(\[]\s*(demo|trial)( version)?\s*[>)\]]|\bdemo version\b|体験版`)
+
+// isDemo reports whether a game of the library is a demo.
+func isDemo(title *db.SwitchTitle, name string) bool {
+	return (title != nil && title.Attributes.IsDemo) || demoName.MatchString(name)
+}
+
 func (web *Web) HandleIndex() {
 	fsPatterns := []string {
 		"resources/layout.html",
@@ -94,8 +103,9 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 
 	// positions of the matching items; only the shown page is copied
 	matched := make([]int, 0, len(all))
-	facets := LibraryFacets{Formats: []string{}}
+	facets := LibraryFacets{Formats: []string{}, Regions: []string{}}
 	formats := map[string]struct{}{}
+	regions := map[string]struct{}{}
 
 	for index := range all {
 		item := &all[index]
@@ -108,6 +118,31 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 			formats[item.Type] = struct{}{}
 		}
 		if filter.Format != "" && item.Type != filter.Format {
+			continue
+		}
+		if item.Region != "" {
+			regions[item.Region] = struct{}{}
+		}
+		if filter.Region != "" && item.Region != filter.Region {
+			continue
+		}
+
+		// the kinds and extras are counted whatever they are set to
+		if item.Demo {
+			facets.Demos++
+		} else {
+			facets.Games++
+		}
+		if item.ImageUrl == "" {
+			facets.NoCover++
+		}
+		if !item.Known {
+			facets.Unknown++
+		}
+		if (filter.Kind == KIND_GAME && item.Demo) || (filter.Kind == KIND_DEMO && !item.Demo) {
+			continue
+		}
+		if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) {
 			continue
 		}
 
@@ -145,6 +180,10 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		facets.Formats = append(facets.Formats, format)
 	}
 	sort.Strings(facets.Formats)
+	for region := range regions {
+		facets.Regions = append(facets.Regions, region)
+	}
+	sort.Strings(facets.Regions)
 
 	// the items are already sorted
 	p := pagination.Calculate(filter.Page, filter.PerPage, len(matched))
@@ -201,6 +240,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			Type:         strings.ToUpper(getType(v)),
 			Version:      version,
 			Known:        title != nil,
+			Demo:         isDemo(title, originalName),
 		}
 
 		if required := installedRequirement(v); web.firmwareTooNew(required) {

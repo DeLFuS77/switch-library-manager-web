@@ -3,6 +3,7 @@ package web
 import (
 	"errors"
 	"net/url"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -17,6 +18,10 @@ type TitleItemFilter struct {
 	// library only: status of the games and file format
 	Status string `in:"form=status"`
 	Format string `in:"form=format"`
+	// library only: games or demos, region, and games without a cover or unknown
+	Kind   string `in:"form=kind"`
+	Region string `in:"form=region"`
+	Extra  string `in:"form=extra"`
 }
 
 // library status filters
@@ -26,10 +31,21 @@ const (
 	STATUS_COMPLETE = "complete"
 )
 
+// library kind and extra filters
+const (
+	KIND_GAME      = "game"
+	KIND_DEMO      = "demo"
+	EXTRA_NO_COVER = "no_cover"
+	EXTRA_UNKNOWN  = "unknown"
+)
+
 var (
 	allowedPerPage = map[int]struct{}{12: {}, 24: {}, 48: {}, 96: {}}
 	allowedSortBy  = map[string]struct{}{"id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "type": {}}
 	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}, STATUS_WANTED: {}}
+	allowedKind    = map[string]struct{}{"": {}, KIND_GAME: {}, KIND_DEMO: {}}
+	allowedExtra   = map[string]struct{}{"": {}, EXTRA_NO_COVER: {}, EXTRA_UNKNOWN: {}}
+	regionPattern  = regexp.MustCompile(`^[A-Z]{2,4}$`)
 )
 
 // Normalize replaces invalid values coming from the query string with the defaults.
@@ -55,11 +71,22 @@ func (f *TitleItemFilter) Normalize() {
 	if len(f.Format) > 16 {
 		f.Format = ""
 	}
+	if _, ok := allowedKind[f.Kind]; !ok {
+		f.Kind = ""
+	}
+	if _, ok := allowedExtra[f.Extra]; !ok {
+		f.Extra = ""
+	}
+	f.Region = strings.ToUpper(strings.TrimSpace(f.Region))
+	if !regionPattern.MatchString(f.Region) {
+		f.Region = ""
+	}
 }
 
-// Active reports whether the items are filtered by a keyword, a status or a format.
+// Active reports whether the items are filtered by a keyword, a status, a format or another
+// library filter.
 func (f *TitleItemFilter) Active() bool {
-	return f.Keyword != "" || f.Status != "" || f.Format != ""
+	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Region != "" || f.Extra != ""
 }
 
 // query returns the query string of the filter, with the given values replaced; an empty
@@ -69,6 +96,9 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("q", f.Keyword)
 	values.Set("status", f.Status)
 	values.Set("format", strings.ToLower(f.Format))
+	values.Set("kind", f.Kind)
+	values.Set("region", strings.ToLower(f.Region))
+	values.Set("extra", f.Extra)
 	values.Set("per_page", strconv.Itoa(f.PerPage))
 	values.Set("sort_by", f.SortBy)
 	values.Set("sort_order", f.SortOrder)

@@ -40,5 +40,8 @@
 				<input type="hidden" name="per_page" value="{{.Filter.PerPage}}">
 				{{- if .Filter.Status}}<input type="hidden" name="status" value="{{.Filter.Status}}">{{end}}
 				{{- if .Filter.Format}}<input type="hidden" name="format" value="{{.Filter.Format | toLower}}">{{end}}
+				{{- if .Filter.Kind}}<input type="hidden" name="kind" value="{{.Filter.Kind}}">{{end}}
+				{{- if .Filter.Region}}<input type="hidden" name="region" value="{{.Filter.Region | toLower}}">{{end}}
+				{{- if .Filter.Extra}}<input type="hidden" name="extra" value="{{.Filter.Extra}}">{{end}}
 			</form>
 {{- end}}

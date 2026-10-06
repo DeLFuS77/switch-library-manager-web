@@ -3,6 +3,16 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Demo": "Demo",
+		"Games and demos": "Jogos e demos",
+		"Games only": "Só jogos",
+		"Demos only": "Só demos",
+		"All regions": "Todas as regiões",
+		"More filters": "Mais filtros",
+		"No other filter": "Sem outro filtro",
+		"Without a cover": "Sem capa",
+		"Not recognized": "Não reconhecidos",
+		"Games the titles database does not know": "Jogos que a base de dados de títulos não conhece",
 		"My Switch library":                           "Minha biblioteca de Switch",
 		"Made with Switch Library Manager Web on %v.": "Criada com Switch Library Manager Web em %v.",
 		"Only names, versions and covers are included; no game files and no keys.": "Inclui só nomes, versões e capas; nenhum arquivo de jogo e nenhuma chave.",

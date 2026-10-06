@@ -1177,3 +1177,55 @@ func TestReleaseDatesWithOnlyTheYear(t *testing.T) {
 		}
 	}
 }
+
+func TestLibraryKindRegionAndExtraFilters(t *testing.T) {
+	web := newTestWeb(t)
+	switchDB, localDB := testDatabases(t)
+	switchDB.TitlesMap["0100000000010"].Attributes.IsDemo = true
+	web.state.set(switchDB, localDB)
+
+	_, _, facets := web.getLibraryWithFacets(defaultFilter(), "en")
+	if facets.Demos != 1 || facets.Games != 1 || facets.Unknown != 1 || facets.NoCover != 2 || len(facets.Regions) != 1 {
+		t.Fatalf("unexpected facets: %+v", facets)
+	}
+
+	filter := defaultFilter()
+	filter.Kind = KIND_DEMO
+	if items, _, _ := web.getLibraryWithFacets(filter, "en"); len(items) != 1 || !items[0].Demo {
+		t.Fatalf("demos only: %+v", items)
+	}
+	filter.Kind = KIND_GAME
+	if items, _, _ := web.getLibraryWithFacets(filter, "en"); len(items) != 1 || items[0].Demo {
+		t.Fatalf("games only: %+v", items)
+	}
+
+	filter = defaultFilter()
+	filter.Extra = EXTRA_UNKNOWN
+	if items, _, _ := web.getLibraryWithFacets(filter, "en"); len(items) != 1 || items[0].Known {
+		t.Fatalf("not recognized: %+v", items)
+	}
+
+	filter = defaultFilter()
+	filter.Region = "us"
+	filter.Normalize()
+	if items, _, facets := web.getLibraryWithFacets(filter, "en"); len(items) != 1 || items[0].Region != "US" || len(facets.Regions) != 1 {
+		t.Fatalf("region: %+v", items)
+	}
+
+	filter = &TitleItemFilter{Kind: "x", Extra: "y", Region: "<script>"}
+	filter.Normalize()
+	if filter.Kind != "" || filter.Extra != "" || filter.Region != "" {
+		t.Fatalf("invalid values must be dropped: %+v", filter)
+	}
+
+	for _, name := range []string{"Game <Demo>", "Game (Demo)", "Game [Trial Version]", "Game Demo Version"} {
+		if !isDemo(nil, name) {
+			t.Errorf("%q is a demo", name)
+		}
+	}
+	for _, name := range []string{"Demolition Crew", "Demon Slayer", "Game"} {
+		if isDemo(nil, name) {
+			t.Errorf("%q is not a demo", name)
+		}
+	}
+}

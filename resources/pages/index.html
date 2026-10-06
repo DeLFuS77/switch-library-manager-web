@@ -56,18 +56,51 @@
 					{{- template "statusFilter" (dict "Filter" .Filter "Value" "dlc" "Label" (t "DLC missing") "Icon" "bi-puzzle" "Count" .Facets.Dlc)}}
 					{{- template "statusFilter" (dict "Filter" .Filter "Value" "complete" "Label" (t "Up to date") "Icon" "bi-check-circle" "Count" .Facets.Complete)}}
 				</ul>
+				{{- $f := .Filter}}
+				<div class="d-flex flex-wrap gap-2">
+				{{- if or .Facets.Demos .Filter.Kind}}
+				<div class="dropdown">
+					<button class="btn btn-sm dropdown-toggle rounded-pill {{if .Filter.Kind}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-controller me-1" aria-hidden="true"></span>{{if eq .Filter.Kind "game"}}{{t "Games only"}}{{else if eq .Filter.Kind "demo"}}{{t "Demos only"}}{{else}}{{t "Games and demos"}}{{end}}</button>
+					<ul class="dropdown-menu dropdown-menu-end">
+						<li><a class="dropdown-item{{if not .Filter.Kind}} active{{end}}" href="{{filterUrl .Filter "kind" ""}}">{{t "Games and demos"}}</a></li>
+						<li><a class="dropdown-item d-flex justify-content-between gap-3{{if eq .Filter.Kind "game"}} active{{end}}" href="{{filterUrl .Filter "kind" "game"}}">{{t "Games only"}}<span class="text-body-secondary">{{.Facets.Games}}</span></a></li>
+						<li><a class="dropdown-item d-flex justify-content-between gap-3{{if eq .Filter.Kind "demo"}} active{{end}}" href="{{filterUrl .Filter "kind" "demo"}}">{{t "Demos only"}}<span class="text-body-secondary">{{.Facets.Demos}}</span></a></li>
+					</ul>
+				</div>
+				{{- end}}
+				{{- if or (gt (len .Facets.Regions) 1) .Filter.Region}}
+				<div class="dropdown">
+					<button class="btn btn-sm dropdown-toggle rounded-pill {{if .Filter.Region}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false">{{if .Filter.Region}}<span class="fi fi-{{.Filter.Region | toLower}} me-1" aria-hidden="true"></span>{{.Filter.Region}}{{else}}<span class="bi bi-globe2 me-1" aria-hidden="true"></span>{{t "All regions"}}{{end}}</button>
+					<ul class="dropdown-menu dropdown-menu-end">
+						<li><a class="dropdown-item{{if not .Filter.Region}} active{{end}}" href="{{filterUrl .Filter "region" ""}}">{{t "All regions"}}</a></li>
+						{{- range .Facets.Regions}}
+						<li><a class="dropdown-item{{if eq $f.Region .}} active{{end}}" href="{{filterUrl $f "region" (toLower .)}}"><span class="fi fi-{{. | toLower}} me-2" aria-hidden="true"></span>{{.}}</a></li>
+						{{- end}}
+					</ul>
+				</div>
+				{{- end}}
 				{{- if gt (len .Facets.Formats) 1}}
 				<div class="dropdown">
-					<button class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-file-earmark me-1" aria-hidden="true"></span>{{if .Filter.Format}}{{.Filter.Format}}{{else}}{{t "All formats"}}{{end}}</button>
+					<button class="btn btn-sm dropdown-toggle rounded-pill {{if .Filter.Format}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-file-earmark me-1" aria-hidden="true"></span>{{if .Filter.Format}}{{.Filter.Format}}{{else}}{{t "All formats"}}{{end}}</button>
 					<ul class="dropdown-menu dropdown-menu-end">
 						<li><a class="dropdown-item{{if not .Filter.Format}} active{{end}}" href="{{filterUrl .Filter "format" ""}}">{{t "All formats"}}</a></li>
-						{{- $f := .Filter}}
 						{{- range .Facets.Formats}}
 						<li><a class="dropdown-item{{if eq $f.Format .}} active{{end}}" href="{{filterUrl $f "format" (toLower .)}}">{{.}}</a></li>
 						{{- end}}
 					</ul>
 				</div>
 				{{- end}}
+				{{- if or .Facets.NoCover .Facets.Unknown .Filter.Extra}}
+				<div class="dropdown">
+					<button class="btn btn-sm dropdown-toggle rounded-pill {{if .Filter.Extra}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-funnel me-1" aria-hidden="true"></span>{{if eq .Filter.Extra "no_cover"}}{{t "Without a cover"}}{{else if eq .Filter.Extra "unknown"}}{{t "Not recognized"}}{{else}}{{t "More filters"}}{{end}}</button>
+					<ul class="dropdown-menu dropdown-menu-end">
+						<li><a class="dropdown-item{{if not .Filter.Extra}} active{{end}}" href="{{filterUrl .Filter "extra" ""}}">{{t "No other filter"}}</a></li>
+						<li><a class="dropdown-item d-flex justify-content-between gap-3{{if eq .Filter.Extra "no_cover"}} active{{end}}" href="{{filterUrl .Filter "extra" "no_cover"}}">{{t "Without a cover"}}<span class="text-body-secondary">{{.Facets.NoCover}}</span></a></li>
+						<li><a class="dropdown-item d-flex justify-content-between gap-3{{if eq .Filter.Extra "unknown"}} active{{end}}" href="{{filterUrl .Filter "extra" "unknown"}}" title="{{t "Games the titles database does not know"}}">{{t "Not recognized"}}<span class="text-body-secondary">{{.Facets.Unknown}}</span></a></li>
+					</ul>
+				</div>
+				{{- end}}
+				</div>
 			</div>
 			{{- end}}
 			{{- if gt (len .TitleItems) 0}}
