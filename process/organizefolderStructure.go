@@ -446,14 +446,6 @@ func ValidateOptions(options settings.OrganizeOptions) error {
 	return nil
 }
 
-func IsOptionsValid(options settings.OrganizeOptions) bool {
-	if err := ValidateOptions(options); err != nil {
-		zap.S().Error(err)
-		return false
-	}
-	return true
-}
-
 func getDlcName(switchTitle *db.SwitchTitle, file db.SwitchFileInfo) string {
 	if switchTitle == nil || file.Metadata == nil {
 		return ""

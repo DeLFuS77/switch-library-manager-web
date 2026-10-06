@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"io"
 	"maps"
 	"os"
 	"path/filepath"
@@ -136,22 +135,6 @@ type AppSettings struct {
 	Language          string              `json:"language"`
 	Notifications     NotificationOptions `json:"notifications"`
 	LastSyncTime      time.Time           `json:"last_sync_time"`
-}
-
-func ReadSettingsAsJSON(dataFolder string) string {
-	if _, err := os.Stat(filepath.Join(dataFolder, SETTINGS_FILENAME)); err != nil {
-		saveDefaultSettings(dataFolder)
-	}
-	file, err := os.Open(filepath.Join(dataFolder, SETTINGS_FILENAME))
-	if err != nil {
-		return ""
-	}
-	defer file.Close()
-	bytes, err := io.ReadAll(file)
-	if err != nil {
-		return ""
-	}
-	return string(bytes)
 }
 
 func ReadSettings(dataFolder string) *AppSettings {

@@ -321,7 +321,6 @@ func init() {
 		"General":                     "Général",
 		"Guest":                       "Invité",
 		"Happens by itself when the folders change. If your games are not found, scan again.": "Se fait automatiquement lorsque les dossiers changent. Si vos jeux ne sont pas trouvés, relancez l'analyse.",
-		"Hide demos in Missing Games": "Masquer les démos dans Jeux manquants",
 		"History":                     "Historique",
 		"ID":                          "ID",
 		"Ignore":                      "Ignorer",
