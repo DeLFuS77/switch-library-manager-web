@@ -55,9 +55,15 @@ func TestFilesWithoutAnIconAreNotReadAgain(t *testing.T) {
 	if len(web.readNoIcon()) != 0 {
 		t.Fatal("the files without an icon are tried again")
 	}
-	for deadline := 0; web.covers.running && deadline < 200; deadline++ {
+	for deadline := 0; coversRunning(web) && deadline < 200; deadline++ {
 		waitShort()
 	}
+}
+
+func coversRunning(web *Web) bool {
+	web.covers.mutex.Lock()
+	defer web.covers.mutex.Unlock()
+	return web.covers.running
 }
 
 func waitShort() { <-time.After(20 * time.Millisecond) }
