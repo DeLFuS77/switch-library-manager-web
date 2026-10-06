@@ -355,6 +355,18 @@ func localTitleName(localDB *db.LocalSwitchFilesDB, titleId string) string {
 	return ""
 }
 
+// coverUrl returns the cover of a title: the cached one of the library, else the icon or
+// the banner of the titles database.
+func coverUrl(localDB *db.LocalSwitchFilesDB, attributes db.TitleAttributes) string {
+	if url := localImageUrl(localDB, attributes.Id); url != "" {
+		return url
+	}
+	if attributes.IconUrl != "" {
+		return attributes.IconUrl
+	}
+	return attributes.BannerUrl
+}
+
 func localImageUrl(localDB *db.LocalSwitchFilesDB, titleId string) string {
 	if localDB == nil {
 		return ""

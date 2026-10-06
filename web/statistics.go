@@ -164,7 +164,7 @@ func (web *Web) buildStatistics(lang string) Statistics {
 			if title.Attributes.Name == "" || title.Attributes.Id == "" {
 				continue
 			}
-			if settingsObj.HideDemoGames && title.Attributes.IsDemo {
+			if settingsObj.HideDemoGames && isDemo(title, title.Attributes.Name) {
 				continue
 			}
 			if local, ok := localDB.TitlesMap[id]; !ok || !local.BaseExist {

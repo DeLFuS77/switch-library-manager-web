@@ -60,12 +60,7 @@ func (web *Web) buildMissingDLC(lang string) []TitleItem {
 				missingDlc[i] = dlc
 			}
 
-			imageUrl := localImageUrl(localDB, v.Attributes.Id)
-			if imageUrl == "" && v.Attributes.IconUrl != "" {
-				imageUrl = v.Attributes.IconUrl
-			} else if imageUrl == "" && v.Attributes.BannerUrl != "" {
-				imageUrl = v.Attributes.BannerUrl
-			}
+			imageUrl := coverUrl(localDB, v.Attributes)
 
 			items = append(items, TitleItem {
 				ImageUrl:         imageUrl,
