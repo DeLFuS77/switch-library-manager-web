@@ -5,6 +5,9 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Search among the other games": "Buscar entre los demás juegos",
+		"Showing the first %v of %v games. Search to see others.": "Se muestran los %v primeros de %v juegos. Busca para ver otros.",
+		"and %v more games chosen, not listed": "y %v juegos más elegidos, que no se listan",
 		"Convert XCI to NSP": "Convertir XCI a NSP",
 		"Turn game card files (XCI, XCZ) into NSP and NSZ files with the same content, for installers and tools that prefer them. Every new file is checked before the original is deleted.": "Convierte los archivos de cartucho (XCI, XCZ) en NSP y NSZ con el mismo contenido, para los instaladores y herramientas que los prefieren. Cada archivo nuevo se comprueba antes de borrar el original.",
 		"Delete each XCI after its NSP is checked": "Borrar cada XCI cuando su NSP esté comprobado",

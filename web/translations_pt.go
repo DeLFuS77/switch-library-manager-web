@@ -3,6 +3,9 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Search among the other games": "Buscar entre os outros jogos",
+		"Showing the first %v of %v games. Search to see others.": "Mostrando os primeiros %v de %v jogos. Pesquise para ver os outros.",
+		"and %v more games chosen, not listed": "e mais %v jogos escolhidos, não listados",
 		"Convert XCI to NSP": "Converter XCI em NSP",
 		"Turn game card files (XCI, XCZ) into NSP and NSZ files with the same content, for installers and tools that prefer them. Every new file is checked before the original is deleted.": "Converte arquivos de cartucho (XCI, XCZ) em NSP e NSZ com o mesmo conteúdo, para instaladores e ferramentas que os preferem. Cada arquivo novo é verificado antes de excluir o original.",
 		"Delete each XCI after its NSP is checked": "Excluir cada XCI depois que o NSP for verificado",
