@@ -25,6 +25,8 @@ type TitleItemFilter struct {
 	Extra  string `in:"form=extra"`
 	// library only: one of the user's collections
 	Collection string `in:"form=collection"`
+	// the keyword in lower case, set by MatchesItem
+	keyword string
 }
 
 // library status filters
@@ -126,6 +128,21 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	return values
 }
 
+// MatchesItem reports whether the title ID or one of the names of an item contains the
+// keyword (case insensitive). Items of a sorted list are checked without allocating.
+func (f *TitleItemFilter) MatchesItem(item *TitleItem) bool {
+	if f.Keyword == "" {
+		return true
+	}
+	if item.searchKey == "" {
+		return f.Matches(item.Id, item.Name, item.OriginalName)
+	}
+	if f.keyword == "" {
+		f.keyword = strings.ToLower(f.Keyword)
+	}
+	return strings.Contains(item.searchKey, f.keyword)
+}
+
 // Matches reports whether the title ID or one of the names contains the keyword (case insensitive).
 func (f *TitleItemFilter) Matches(id string, names ...string) bool {
 	if f.Keyword == "" {
@@ -214,7 +231,10 @@ func sortName(name string) string {
 }
 
 func lessName(a, b TitleItem) bool {
-	nameA, nameB := sortName(a.Name), sortName(b.Name)
+	nameA, nameB := a.sortKey, b.sortKey
+	if nameA == "" || nameB == "" {
+		nameA, nameB = sortName(a.Name), sortName(b.Name)
+	}
 	if nameA == nameB {
 		return a.Id < b.Id
 	}

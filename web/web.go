@@ -186,6 +186,9 @@ type TitleItem struct {
 	// library: the user's collections of the game, and the card can be selected
 	Collections []string
 	Selectable  bool
+	// computed once when a list is sorted (see sorted), for sorting and searching
+	sortKey   string
+	searchKey string
 }
 
 // DlcPercent is the share of the DLC of a game in the library.

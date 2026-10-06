@@ -1,6 +1,7 @@
 package web
 
 import (
+	"strings"
 	"sync"
 
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
@@ -59,6 +60,10 @@ func (web *Web) sorted(name string, filter *TitleItemFilter, build func() []Titl
 		all := web.derived(name, func() any { return build() }).([]TitleItem)
 		// a copy: the unsorted list is shared
 		items := append([]TitleItem(nil), all...)
+		for i := range items {
+			items[i].sortKey = sortName(items[i].Name)
+			items[i].searchKey = strings.ToLower(items[i].Id + "\n" + items[i].Name + "\n" + items[i].OriginalName)
+		}
 		if err := sortItems(filter, items); err != nil {
 			web.sugarLogger.Error(err)
 		}
@@ -77,17 +82,22 @@ func (web *Web) invalidateDerived() {
 
 // filterPage returns the page of the sorted items that match the keyword of the filter.
 func (web *Web) filterPage(filter *TitleItemFilter, sorted []TitleItem) ([]TitleItem, pagination.Pagination) {
-	items := sorted
-	if filter.Keyword != "" {
-		items = make([]TitleItem, 0, len(sorted))
-		for _, item := range sorted {
-			if filter.Matches(item.Id, item.Name, item.OriginalName) {
-				items = append(items, item)
-			}
+	if filter.Keyword == "" {
+		p := pagination.Calculate(filter.Page, filter.PerPage, len(sorted))
+		// a copy of the page, so the cached list is never shared with a template
+		return append([]TitleItem(nil), sorted[p.Start:p.End]...), p
+	}
+	// positions of the matching items: only the shown page is copied
+	matched := make([]int, 0, len(sorted))
+	for index := range sorted {
+		if filter.MatchesItem(&sorted[index]) {
+			matched = append(matched, index)
 		}
 	}
-
-	p := pagination.Calculate(filter.Page, filter.PerPage, len(items))
-	// a copy of the page, so the cached list is never shared with a template
-	return append([]TitleItem(nil), items[p.Start:p.End]...), p
+	p := pagination.Calculate(filter.Page, filter.PerPage, len(matched))
+	items := make([]TitleItem, 0, p.End-p.Start)
+	for _, index := range matched[p.Start:p.End] {
+		items = append(items, sorted[index])
+	}
+	return items, p
 }

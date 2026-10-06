@@ -107,3 +107,24 @@ func BenchmarkStatisticsPage(b *testing.B) {
 		web.globalPageData("statistics")
 	}
 }
+
+// a search walks the whole list
+func BenchmarkMissingGamesSearch(b *testing.B) {
+	web := benchWeb(b)
+	filter := defaultFilter()
+	filter.Keyword = "game 1"
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		web.getMissingGames(filter, "en")
+	}
+}
+
+// the lists are built and sorted again after every scan
+func BenchmarkMissingGamesRebuild(b *testing.B) {
+	web := benchWeb(b)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		web.invalidateDerived()
+		web.getMissingGames(defaultFilter(), "en")
+	}
+}

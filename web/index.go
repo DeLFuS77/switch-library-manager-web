@@ -112,7 +112,7 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 
 	for index := range all {
 		item := &all[index]
-		if !filter.Matches(item.Id, item.Name, item.OriginalName) {
+		if !filter.MatchesItem(item) {
 			continue
 		}
 
