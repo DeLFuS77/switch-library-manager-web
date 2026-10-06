@@ -5,8 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
-		"Covers":                  "Portadas",
-		"%v games have no cover.": "%v juegos no tienen portada.",
+		"Covers":                     "Portadas",
+		"Games without a cover: %v.": "Juegos sin portada: %v.",
 		"Covers are downloaded after each scan; games without one take the icon stored in their own file (with your keys). Searching again also retries covers that failed.": "Las portadas se descargan tras cada análisis; los juegos sin portada usan el icono guardado en su propio archivo (con tus claves). Volver a buscar también reintenta las portadas que fallaron.",
 		"Search covers again":               "Volver a buscar portadas",
 		"Reading icons from the game files": "Leyendo los iconos de los archivos de juego",

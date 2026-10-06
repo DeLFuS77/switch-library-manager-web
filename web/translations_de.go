@@ -3,8 +3,8 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
-		"Covers":                  "Cover",
-		"%v games have no cover.": "%v Spiele haben kein Cover.",
+		"Covers":                     "Cover",
+		"Games without a cover: %v.": "Spiele ohne Cover: %v.",
 		"Covers are downloaded after each scan; games without one take the icon stored in their own file (with your keys). Searching again also retries covers that failed.": "Cover werden nach jedem Scan heruntergeladen; Spiele ohne Cover nehmen das Symbol aus ihrer eigenen Datei (mit deinen Schlüsseln). Erneut suchen versucht auch fehlgeschlagene Cover noch einmal.",
 		"Search covers again":               "Cover erneut suchen",
 		"Reading icons from the game files": "Symbole werden aus den Spieldateien gelesen",

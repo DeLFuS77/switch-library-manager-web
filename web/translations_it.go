@@ -3,8 +3,8 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
-		"Covers":                  "Copertine",
-		"%v games have no cover.": "%v giochi non hanno copertina.",
+		"Covers":                     "Copertine",
+		"Games without a cover: %v.": "Giochi senza copertina: %v.",
 		"Covers are downloaded after each scan; games without one take the icon stored in their own file (with your keys). Searching again also retries covers that failed.": "Le copertine si scaricano dopo ogni analisi; i giochi senza copertina usano l'icona salvata nel proprio file (con le tue chiavi). Cercare di nuovo riprova anche le copertine non riuscite.",
 		"Search covers again":               "Cerca di nuovo le copertine",
 		"Reading icons from the game files": "Lettura delle icone dai file di gioco",

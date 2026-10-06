@@ -3,8 +3,8 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
-		"Covers":                  "Jaquettes",
-		"%v games have no cover.": "%v jeux n'ont pas de jaquette.",
+		"Covers":                     "Jaquettes",
+		"Games without a cover: %v.": "Jeux sans jaquette : %v.",
 		"Covers are downloaded after each scan; games without one take the icon stored in their own file (with your keys). Searching again also retries covers that failed.": "Les jaquettes sont téléchargées après chaque analyse ; les jeux sans jaquette prennent l'icône enregistrée dans leur propre fichier (avec vos clés). Rechercher à nouveau réessaie aussi les jaquettes qui ont échoué.",
 		"Search covers again":               "Rechercher les jaquettes",
 		"Reading icons from the game files": "Lecture des icônes dans les fichiers de jeu",
