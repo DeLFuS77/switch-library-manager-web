@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.21.0
+
+### New features
+
+- **Upcoming releases**: the games that can already be pre-ordered in the eShop, by month, with the date on the
+  cover and the heart for the wishlist (the wishlist notification tells you when they come out). The games of the
+  wishlist and the new games of the series you have are outlined, with a "For you" filter, and the games released
+  in the last two weeks are shown apart.
+- **Series**: a page with the series you have a game of, how many of their games you have ("3 of 4") with a bar,
+  and the ones you are missing. The page of each game shows the progress of its series too.
+- **You might like**: Missing Games, and the library when you have favorites, recommend games you do not have
+  that look like your favorites, by their series and genres, with the reason and the heart for the wishlist.
+
+### Improvements
+
+- The same game from several stores counts once in the series, with or without marks such as ™, and network
+  tests and trial missions are not counted as games.
+- The menu fits on one line on wide screens with its new links, in every language.
+
 ## 1.20.0
 
 ### New features
