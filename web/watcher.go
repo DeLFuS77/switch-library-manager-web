@@ -2,6 +2,9 @@ package web
 
 import (
 	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -15,6 +18,8 @@ const (
 	watchQuietPeriod = 10 * time.Second
 	// a folder must look the same twice in a row, this far apart, before it is scanned
 	watchStableDelay = 3 * time.Second
+	// the fingerprint of the folders at the last scan of the watcher, kept between runs
+	WATCH_FINGERPRINT_FILENAME = "folders.fingerprint"
 )
 
 // scanFolders returns the configured library folders.
@@ -72,6 +77,8 @@ func (web *Web) StartFolderWatcher() {
 	// the library may come from the cache of the previous run: files changed while the app
 	// was stopped are picked up by the first check, as nothing counts as scanned yet
 	w.lastCheck = w.fingerprint()
+	// folders that did not change since the last scan of the previous run need no scan
+	w.scanned = web.savedWatchFingerprint()
 	w.updateWatches()
 
 	go w.run()
@@ -166,6 +173,7 @@ func (w *folderWatcher) scanIfChanged(fingerprint uint64) {
 		return
 	}
 	// walks the folders again; the metadata of unchanged files comes from the cache, so this is quick
+	w.web.watchFingerprint.Store(fingerprint)
 	if w.web.scanInBackground(true, TRIGGER_WATCHER) {
 		w.scanned = fingerprint
 		w.web.sugarLogger.Info("[Library folders changed, scanning]")
@@ -211,4 +219,27 @@ func (w *folderWatcher) add(path string) {
 		return
 	}
 	w.watched[path] = struct{}{}
+}
+
+// savedWatchFingerprint returns the fingerprint of the folders at the last scan of the
+// watcher in the previous run, or 0.
+func (web *Web) savedWatchFingerprint() uint64 {
+	data, err := os.ReadFile(filepath.Join(web.dataFolder, WATCH_FINGERPRINT_FILENAME))
+	if err != nil {
+		return 0
+	}
+	fingerprint, _ := strconv.ParseUint(strings.TrimSpace(string(data)), 10, 64)
+	return fingerprint
+}
+
+// saveWatchFingerprint remembers the fingerprint of the folders the watcher scanned, once
+// the scan is done and saved.
+func (web *Web) saveWatchFingerprint() {
+	fingerprint := web.watchFingerprint.Load()
+	if fingerprint == 0 {
+		return
+	}
+	if err := os.WriteFile(filepath.Join(web.dataFolder, WATCH_FINGERPRINT_FILENAME), []byte(strconv.FormatUint(fingerprint, 10)), 0644); err != nil {
+		web.sugarLogger.Debugf("The fingerprint of the folders could not be saved: %v", err)
+	}
 }

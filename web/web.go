@@ -120,6 +120,8 @@ type Web struct {
 	historyOnce     sync.Once
 	coll            *collectionStore
 	collectionsOnce sync.Once
+	// the fingerprint of the folders the watcher asked to scan (see saveWatchFingerprint)
+	watchFingerprint atomic.Uint64
 	fallbackMutex  sync.Mutex
 	thumbs         *thumbnails
 	thumbsOnce     sync.Once

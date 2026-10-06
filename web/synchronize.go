@@ -106,6 +106,9 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 		web.taskLog().SetResult(taskId, len(localDB.TitlesMap), localDB.NumFiles)
 
 		web.state.set(switchDB, localDB)
+		if trigger == TRIGGER_WATCHER {
+			web.saveWatchFingerprint()
+		}
 	}()
 
 	return true
