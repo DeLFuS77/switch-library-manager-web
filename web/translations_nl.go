@@ -3,6 +3,12 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Games without their base game": "Games zonder hun basisgame",
+		"You have updates or DLC of these games, but not the game itself. Add the ones you want to the wishlist with the heart.": "Je hebt updates of DLC van deze games, maar niet de game zelf. Voeg de games die je wilt toe aan je verlanglijst met het hartje.",
+		"Every update and DLC has its game": "Elke update en DLC heeft zijn game",
+		"All the updates and DLC of your library have their game.": "Alle updates en DLC in je bibliotheek hebben hun game.",
+		"Updates: %v": "Updates: %v",
+		"%v games have updates or DLC here but not the game itself. See them grouped by game.": "%v games hebben hier updates of DLC, maar niet de game zelf. Bekijk ze gegroepeerd per game.",
 		"Many of these files are not games (images, notes...). Ignore a type to stop listing it:": "Veel van deze bestanden zijn geen games (afbeeldingen, notities...). Negeer een type om het niet meer te tonen:",
 		"Search among the other games": "Zoeken tussen de andere games",
 		"Showing the first %v of %v games. Search to see others.": "De eerste %v van %v games worden getoond. Zoek om andere te zien.",

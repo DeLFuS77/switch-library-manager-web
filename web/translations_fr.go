@@ -3,6 +3,12 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Games without their base game": "Jeux sans leur jeu de base",
+		"You have updates or DLC of these games, but not the game itself. Add the ones you want to the wishlist with the heart.": "Vous avez des mises à jour ou des DLC de ces jeux, mais pas le jeu lui-même. Ajoutez ceux que vous voulez à la liste de souhaits avec le cœur.",
+		"Every update and DLC has its game": "Chaque mise à jour et DLC a son jeu",
+		"All the updates and DLC of your library have their game.": "Toutes les mises à jour et DLC de votre ludothèque ont leur jeu.",
+		"Updates: %v": "Mises à jour : %v",
+		"%v games have updates or DLC here but not the game itself. See them grouped by game.": "%v jeux ont ici des mises à jour ou des DLC, mais pas le jeu lui-même. Voyez-les regroupés par jeu.",
 		"Many of these files are not games (images, notes...). Ignore a type to stop listing it:": "Beaucoup de ces fichiers ne sont pas des jeux (images, notes...). Ignorez un type pour ne plus le lister :",
 		"Search among the other games": "Chercher parmi les autres jeux",
 		"Showing the first %v of %v games. Search to see others.": "Les %v premiers sur %v jeux sont affichés. Cherchez pour voir les autres.",

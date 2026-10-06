@@ -28,6 +28,8 @@ type IssuesPageData struct {
 	LastVerified time.Time
 	// the types of the files that are not games and fill the list, most files first
 	UnsupportedTypes []NamedCount
+	// games of which the library has updates or DLC but not the game
+	Orphans int
 }
 
 // unsupportedTypes counts the files of the issues that are of a type the app does not read,
@@ -71,6 +73,7 @@ func (web *Web) HandleIssues() {
 			Filter:           filter,
 			Pagination:       p,
 			LastVerified:     web.verifications().lastRun(),
+			Orphans: web.orphanCount(),
 			UnsupportedTypes: web.derived("unsupportedTypes", func() any { return unsupportedTypes(all, 5) }).([]NamedCount),
 		}
 	}, web.embedFS, fsPatterns...)

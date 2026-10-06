@@ -3,6 +3,12 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Games without their base game": "缺少本体的游戏",
+		"You have updates or DLC of these games, but not the game itself. Add the ones you want to the wishlist with the heart.": "您有这些游戏的更新或 DLC，但没有游戏本体。点击心形可将想要的游戏加入愿望单。",
+		"Every update and DLC has its game": "所有更新和 DLC 都有对应的游戏",
+		"All the updates and DLC of your library have their game.": "您库中的所有更新和 DLC 都有对应的游戏。",
+		"Updates: %v": "更新：%v",
+		"%v games have updates or DLC here but not the game itself. See them grouped by game.": "有 %v 款游戏有更新或 DLC，但缺少游戏本体。按游戏分组查看。",
 		"Many of these files are not games (images, notes...). Ignore a type to stop listing it:": "其中许多文件不是游戏（图片、笔记等）。忽略某种类型后将不再列出：",
 		"Search among the other games": "在其他游戏中搜索",
 		"Showing the first %v of %v games. Search to see others.": "显示前 %v/%v 款游戏。搜索可查看其他游戏。",

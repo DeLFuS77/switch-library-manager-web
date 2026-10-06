@@ -8,6 +8,13 @@
 				</div>
 			</div>
 			{{- if .LastVerified.IsZero}}{{else}}<p class="small text-body-secondary mt-n2">{{t "Files last checked %v" (formatDateTime .LastVerified)}}</p>{{end}}
+			{{- if .Orphans}}
+			<a class="alert alert-secondary d-flex align-items-center gap-2 text-decoration-none" href="/orphans.html">
+				<span class="bi bi-collection flex-shrink-0" aria-hidden="true"></span>
+				<div class="flex-grow-1">{{t "%v games have updates or DLC here but not the game itself. See them grouped by game." (num .Orphans)}}</div>
+				<span class="bi bi-chevron-right" aria-hidden="true"></span>
+			</a>
+			{{- end}}
 			{{- if .UnsupportedTypes}}
 			<div class="alert alert-secondary d-flex flex-wrap align-items-center gap-2 admin-only" role="note">
 				<span class="bi bi-info-circle flex-shrink-0" aria-hidden="true"></span>

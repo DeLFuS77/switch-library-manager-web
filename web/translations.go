@@ -5,6 +5,12 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Games without their base game": "Juegos sin su juego base",
+		"You have updates or DLC of these games, but not the game itself. Add the ones you want to the wishlist with the heart.": "Tienes actualizaciones o DLC de estos juegos, pero no el juego. Añade a la lista de deseos los que quieras con el corazón.",
+		"Every update and DLC has its game": "Todas las actualizaciones y DLC tienen su juego",
+		"All the updates and DLC of your library have their game.": "Todas las actualizaciones y DLC de tu biblioteca tienen su juego.",
+		"Updates: %v": "Actualizaciones: %v",
+		"%v games have updates or DLC here but not the game itself. See them grouped by game.": "%v juegos tienen aquí actualizaciones o DLC, pero no el juego. Míralos agrupados por juego.",
 		"Many of these files are not games (images, notes...). Ignore a type to stop listing it:": "Muchos de estos archivos no son juegos (imágenes, notas...). Ignora un tipo para dejar de listarlo:",
 		"Search among the other games": "Buscar entre los demás juegos",
 		"Showing the first %v of %v games. Search to see others.": "Se muestran los %v primeros de %v juegos. Busca para ver otros.",
