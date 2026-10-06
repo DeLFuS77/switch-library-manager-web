@@ -424,6 +424,7 @@ func (web *Web) Start() {
 	web.HandleVerify()
 	web.HandleBackup()
 	web.HandleSpace()
+	web.HandleCovers()
 	if !isDemoMode() {
 		web.StartScheduler()
 		web.StartFolderWatcher()

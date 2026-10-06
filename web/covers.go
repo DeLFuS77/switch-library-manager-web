@@ -106,7 +106,8 @@ func (web *Web) downloadMissingCovers() {
 	// covers that failed recently (removed from the cover server) wait a day
 	urls = db.CoversToTry(web.dataFolder, urls)
 	if len(urls) == 0 {
-		web.saveCovers(len(ready) > 0)
+		extracted := web.extractMissingIcons(0)
+		web.saveCovers(len(ready) > 0 || extracted > 0)
 		web.pregenerateThumbnails()
 		return
 	}
@@ -160,8 +161,11 @@ func (web *Web) downloadMissingCovers() {
 		web.covers.mutex.Unlock()
 		return
 	}
+	// games still without a cover take the icon stored in their files
+	extracted := web.extractMissingIcons(taskId)
+	web.taskLog().SetResult(taskId, 0, downloaded+extracted)
 	web.taskLog().Finish(taskId, nil)
-	web.saveCovers(downloaded > 0 || len(ready) > 0)
+	web.saveCovers(downloaded > 0 || extracted > 0 || len(ready) > 0)
 	web.pregenerateThumbnails()
 }
 

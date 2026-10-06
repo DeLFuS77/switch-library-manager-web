@@ -14,6 +14,8 @@ type SettingsPageData struct {
 	NextSync      time.Time
 	SyncIntervals []int
 	Languages     []string
+	// games of the library without a cover
+	MissingCovers int
 }
 
 type SettingsForm struct {
@@ -89,6 +91,7 @@ func (web *Web) HandleSettings() {
 			Languages: supportedLanguages,
 			GlobalPageData: web.globalPageData("settings"),
 			Settings: web.appSettings,
+			MissingCovers: web.missingCovers(),
 		}
 	}, func(value any, lang string) ErrorResponse {
 		settingsForm := value.(*SettingsForm)

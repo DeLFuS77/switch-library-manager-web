@@ -3,6 +3,11 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Covers":                  "Jaquettes",
+		"%v games have no cover.": "%v jeux n'ont pas de jaquette.",
+		"Covers are downloaded after each scan; games without one take the icon stored in their own file (with your keys). Searching again also retries covers that failed.": "Les jaquettes sont téléchargées après chaque analyse ; les jeux sans jaquette prennent l'icône enregistrée dans leur propre fichier (avec vos clés). Rechercher à nouveau réessaie aussi les jaquettes qui ont échoué.",
+		"Search covers again":               "Rechercher les jaquettes",
+		"Reading icons from the game files": "Lecture des icônes dans les fichiers de jeu",
 		"New, removed or replaced files are detected right away in local folders, and at the interval below in network folders and on NAS shares.": "Les fichiers nouveaux, supprimés ou remplacés sont détectés immédiatement dans les dossiers locaux, et à l'intervalle ci-dessous dans les dossiers réseau et sur un NAS.",
 		"Check the folders every": "Vérifier les dossiers toutes les",
 		"2 minutes":               "2 minutes",

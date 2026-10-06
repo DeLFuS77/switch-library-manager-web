@@ -917,6 +917,22 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	});
 
+	// searches every missing cover again; the progress is shown in Tasks
+	document.querySelectorAll('[data-covers-retry]').forEach(button => {
+		button.addEventListener('click', () => {
+			button.disabled = true;
+			fetch('/covers/retry', { method: 'POST' }).then(response => {
+				if (response.ok) {
+					window.location.href = '/tasks.html';
+				} else {
+					button.disabled = false;
+				}
+			}).catch(() => {
+				button.disabled = false;
+			});
+		});
+	});
+
 	// selects and radio buttons that apply their form at once
 	document.querySelectorAll('[data-autosubmit]').forEach(input => {
 		input.addEventListener('change', () => input.form && input.form.submit());

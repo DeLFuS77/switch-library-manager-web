@@ -82,6 +82,14 @@ func assignCachedCovers(dataFolder string, covers []coverDownload) []coverDownlo
 	return pending
 }
 
+// ForgetCoverFailures makes the covers that failed be tried again at the next download.
+func ForgetCoverFailures(dataFolder string) {
+	path := filepath.Join(dataFolder, "img", coverFailuresFilename)
+	if _, err := os.Stat(path); err == nil {
+		os.WriteFile(path, []byte("{}"), 0644)
+	}
+}
+
 // CoversToTry returns the urls that are worth downloading now: covers that failed
 // recently are tried again only after a day.
 func CoversToTry(dataFolder string, urls []string) []string {
