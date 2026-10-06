@@ -44,7 +44,7 @@
 					<h2 class="section-title" id="space-{{$g.Id}}"><span class="space-dot space-dot-{{$g.Id}}" aria-hidden="true"></span>{{template "spaceGroupTitle" $g.Id}} <span class="badge rounded-pill text-bg-secondary">{{len $g.Files}}</span> <span class="ms-auto small fw-normal text-body-secondary">{{formatSize $g.Size}}</span></h2>
 					<p class="small text-body-secondary">{{template "spaceGroupHelp" $g.Id}}</p>
 					<ul class="item-list">
-						{{- range $i, $f := $g.Files}}
+						{{- range $i, $f := $g.Shown}}
 						<li class="item-row item-row-check">
 							<input class="form-check-input" type="checkbox" name="path" value="{{$f.Path}}" data-size="{{$f.Size}}" id="{{$g.Id}}{{$i}}"{{if $f.Deletable}} checked{{else}} disabled{{end}}>
 							<label class="item-main" for="{{$g.Id}}{{$i}}">
@@ -53,6 +53,16 @@
 								{{- with $f.Note}}<span class="chip chip-warning mt-1"><span class="bi bi-shield-exclamation" aria-hidden="true"></span>{{t .}}</span>{{end}}
 							</label>
 							<span class="item-size">{{formatSize $f.Size}}</span>
+						</li>
+						{{- end}}
+						{{- if $g.RestCount}}
+						<li class="item-row item-row-check item-row-rest">
+							<input class="form-check-input" type="checkbox" name="rest" value="{{$g.Id}}" data-size="{{$g.RestSize}}" data-count="{{$g.RestCount}}" id="{{$g.Id}}Rest" checked>
+							<label class="item-main" for="{{$g.Id}}Rest">
+								<span class="item-name d-block">{{t "And %v more files" $g.RestCount}}</span>
+								<span class="item-meta">{{t "Smaller files of this group, not listed one by one."}}</span>
+							</label>
+							<span class="item-size">{{formatSize $g.RestSize}}</span>
 						</li>
 						{{- end}}
 					</ul>

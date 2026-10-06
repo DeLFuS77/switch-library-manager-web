@@ -3,6 +3,13 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"And %v more files": "Und %v weitere Dateien",
+		"Smaller files of this group, not listed one by one.": "Kleinere Dateien dieser Gruppe, nicht einzeln aufgelistet.",
+		"Smaller files, not listed one by one.":               "Kleinere Dateien, nicht einzeln aufgelistet.",
+		"Loading...":                                          "Wird geladen...",
+		"The %v biggest of %v files are shown; use the filter to find the others.":                                                                          "Die %v größten von %v Dateien werden angezeigt; nutze den Filter, um die anderen zu finden.",
+		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.":        "%v Dateien haben schon eine komprimierte Kopie und werden nicht angezeigt. Die Originale können auf der Seite Speicherplatz gelöscht werden, sobald ihre Kopien geprüft sind.",
+		"DLC without a name in the titles database":                                                                                                         "DLC ohne Namen in der Titeldatenbank",
 		"Files that could not be added to the library, damaged files, duplicates and old versions. The Space page can clean up old updates and duplicates.": "Dateien, die nicht zur Bibliothek hinzugefügt werden konnten, beschädigte Dateien, Duplikate und alte Versionen. Die Seite Speicherplatz kann alte Updates und Duplikate aufräumen.",
 		"Synchronizations, scans, compressions, checks and cleanups with their progress and result. Failed tasks stay here until you dismiss them.":         "Synchronisierungen, Scans, Komprimierungen, Prüfungen und Aufräumvorgänge mit Fortschritt und Ergebnis. Fehlgeschlagene Aufgaben bleiben hier, bis du sie verwirfst.",
 		"Synchronizations, scans, compressions, checks and cleanups appear here.":                                                                           "Synchronisierungen, Scans, Komprimierungen, Prüfungen und Aufräumvorgänge erscheinen hier.",

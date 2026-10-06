@@ -147,13 +147,12 @@ func TestCompressKeepsOriginalsWhenAsked(t *testing.T) {
 	}
 
 	restore()
-	// a second run finds the NSZ and keeps the original
-	if code := postForm(web, "/compress/start", url.Values{"path": {path}}).Code; code != http.StatusAccepted {
-		t.Fatalf("start: %v", code)
+	// a file with a compressed copy is not offered again
+	if code := postForm(web, "/compress/start", url.Values{"path": {path}}).Code; code != http.StatusBadRequest {
+		t.Fatalf("a file that already has an NSZ must not be compressed again: %v", code)
 	}
-	task := waitForCompression(t, web)
-	if task.Status != TASK_FAILED || len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_COMPRESS_EXISTS {
-		t.Fatalf("an existing NSZ must be reported: %+v", task)
+	if len(web.uncompressedCandidates()) != 0 || len(web.compressCandidates()) != 1 {
+		t.Fatal("the compressed original is only listed on the Space page")
 	}
 }
 
@@ -207,8 +206,19 @@ func TestDecompressFromThePage(t *testing.T) {
 
 	page := httptest.NewRecorder()
 	web.router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/compress.html", nil))
-	if !strings.Contains(page.Body.String(), "decompressForm") || !strings.Contains(page.Body.String(), filepath.Base(nsz)) {
-		t.Fatal("the NSZ must be offered for decompression")
+	if !strings.Contains(page.Body.String(), "decompressForm") || !strings.Contains(page.Body.String(), `data-file-list="/compress/nsz-list"`) {
+		t.Fatal("the Decompress section must be shown")
+	}
+	// the NSZ files are loaded when the section is opened, filtered on the server
+	list := httptest.NewRecorder()
+	web.router.ServeHTTP(list, httptest.NewRequest(http.MethodGet, "/compress/nsz-list?q=game", nil))
+	if !strings.Contains(list.Body.String(), filepath.Base(nsz)) {
+		t.Fatalf("the NSZ must be offered for decompression: %s", list.Body.String())
+	}
+	none := httptest.NewRecorder()
+	web.router.ServeHTTP(none, httptest.NewRequest(http.MethodGet, "/compress/nsz-list?q=nothing-like-this", nil))
+	if strings.Contains(none.Body.String(), filepath.Base(nsz)) {
+		t.Fatal("the filter is applied on the server")
 	}
 
 	if code := postForm(web, "/decompress/start", url.Values{"path": {nsz}, "delete_compressed": {"true"}}).Code; code != http.StatusAccepted {

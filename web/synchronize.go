@@ -18,7 +18,12 @@ func (web *Web) Synchronize(trigger string) bool {
 
 	go func() {
 		var failure *TaskNote
-		defer func() { web.finishTask(taskId, failure) }()
+		defer func() {
+			web.finishTask(taskId, failure)
+			if failure == nil {
+				web.afterScan()
+			}
+		}()
 		defer web.state.endSync()
 		// recorded even if the synchronization fails, so a schedule does not retry every minute
 		defer settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
@@ -83,7 +88,12 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 				web.autoCompress(TRIGGER_WATCHER)
 			}
 		}()
-		defer func() { web.finishTask(taskId, failure) }()
+		defer func() {
+			web.finishTask(taskId, failure)
+			if failure == nil {
+				web.afterScan()
+			}
+		}()
 		defer web.state.endSync()
 
 		switchDB, _ := web.state.get()

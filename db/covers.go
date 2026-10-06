@@ -54,9 +54,39 @@ type coverDownload struct {
 	icon  bool
 }
 
-// downloadCovers stores the covers of the library in the image cache of the data folder.
-// Covers already cached are used right away; the others are downloaded in parallel.
-func downloadCovers(dataFolder string, covers []coverDownload, progress ProgressUpdater) {
+func assignCover(cover coverDownload, basename string) {
+	if cover.icon {
+		cover.title.Icon = basename
+	} else {
+		cover.title.Banner = basename
+	}
+}
+
+// CoverCached reports whether the cover at url is in the image cache of the data folder.
+func CoverCached(dataFolder string, url string) bool {
+	info, err := os.Stat(filepath.Join(dataFolder, "img", filepath.Base(url)))
+	return err == nil && info.Size() > 0
+}
+
+// assignCachedCovers sets the covers that are already in the image cache and returns the
+// others, which are downloaded later without holding up the scan.
+func assignCachedCovers(dataFolder string, covers []coverDownload) []coverDownload {
+	pending := []coverDownload{}
+	for _, cover := range covers {
+		if CoverCached(dataFolder, cover.url) {
+			assignCover(cover, filepath.Base(cover.url))
+		} else {
+			pending = append(pending, cover)
+		}
+	}
+	return pending
+}
+
+// DownloadCovers stores the covers at urls in the image cache, a few at a time. done is
+// called after each cover that was downloaded; stop, when not nil, is checked between
+// downloads. Covers that failed recently are skipped, and when the cover server cannot be
+// reached at all the rest is left for later.
+func DownloadCovers(dataFolder string, urls []string, stop func() bool, done func(url string)) {
 	folder := filepath.Join(dataFolder, "img")
 	if err := os.MkdirAll(folder, 0755); err != nil {
 		zap.S().Warnf("Covers are not cached: %v", err)
@@ -69,43 +99,30 @@ func downloadCovers(dataFolder string, covers []coverDownload, progress Progress
 		json.Unmarshal(data, &failures)
 	}
 
-	assign := func(cover coverDownload, basename string) {
-		if cover.icon {
-			cover.title.Icon = basename
-		} else {
-			cover.title.Banner = basename
-		}
-	}
-
-	pending := map[string][]coverDownload{}
 	order := []string{}
+	seen := map[string]bool{}
 	now := time.Now()
-	for _, cover := range covers {
-		basename := filepath.Base(cover.url)
-		if info, err := os.Stat(filepath.Join(folder, basename)); err == nil && info.Size() > 0 {
-			assign(cover, basename)
+	for _, url := range urls {
+		if seen[url] {
 			continue
 		}
-		if failed, ok := failures[cover.url]; ok && now.Sub(time.Unix(failed, 0)) < coverRetryAfter {
+		seen[url] = true
+		if failed, ok := failures[url]; ok && now.Sub(time.Unix(failed, 0)) < coverRetryAfter {
 			continue
 		}
-		if _, ok := pending[cover.url]; !ok {
-			order = append(order, cover.url)
-		}
-		pending[cover.url] = append(pending[cover.url], cover)
+		order = append(order, url)
 	}
 	if len(order) == 0 {
 		return
 	}
 
 	var (
-		mutex      sync.Mutex
-		done       atomic.Int64
-		inARow     atomic.Int64
-		succeeded  atomic.Bool
-		downloaded = map[string]bool{}
-		jobs       = make(chan string)
-		workers    sync.WaitGroup
+		mutex     sync.Mutex
+		finished  atomic.Int64
+		inARow    atomic.Int64
+		succeeded atomic.Bool
+		jobs      = make(chan string)
+		workers   sync.WaitGroup
 	)
 	for w := 0; w < coverWorkers; w++ {
 		workers.Add(1)
@@ -115,27 +132,27 @@ func downloadCovers(dataFolder string, covers []coverDownload, progress Progress
 				err := DownloadFile(url, filepath.Join(folder, filepath.Base(url)))
 				mutex.Lock()
 				if err == nil {
-					downloaded[url] = true
 					delete(failures, url)
 				} else {
 					failures[url] = time.Now().Unix()
 				}
 				mutex.Unlock()
+				finished.Add(1)
 				if err == nil {
 					succeeded.Store(true)
 					inARow.Store(0)
+					if done != nil {
+						done(url)
+					}
 				} else {
 					inARow.Add(1)
-				}
-				if progress != nil {
-					progress.UpdateProgress(int(done.Add(1)), len(order), "Downloading covers")
 				}
 			}
 		}()
 	}
 	stopped := false
 	for _, url := range order {
-		if !succeeded.Load() && inARow.Load() >= coverMaxFailuresInARow {
+		if (!succeeded.Load() && inARow.Load() >= coverMaxFailuresInARow) || (stop != nil && stop()) {
 			stopped = true
 			break
 		}
@@ -144,15 +161,39 @@ func downloadCovers(dataFolder string, covers []coverDownload, progress Progress
 	close(jobs)
 	workers.Wait()
 	if stopped {
-		zap.S().Infof("The cover server cannot be reached, %v covers are left for the next scan", len(order)-int(done.Load()))
+		zap.S().Infof("%v covers are left for later", len(order)-int(finished.Load()))
 	}
 
-	for url := range downloaded {
-		for _, cover := range pending[url] {
-			assign(cover, filepath.Base(url))
-		}
-	}
-	if data, err := json.Marshal(failures); err == nil {
+	mutex.Lock()
+	data, err := json.Marshal(failures)
+	mutex.Unlock()
+	if err == nil {
 		os.WriteFile(failuresPath, data, 0644)
 	}
+}
+
+// downloadCovers sets the cached covers and downloads the others right away.
+func downloadCovers(dataFolder string, covers []coverDownload, progress ProgressUpdater) {
+	pending := assignCachedCovers(dataFolder, covers)
+	byUrl := map[string][]coverDownload{}
+	urls := []string{}
+	for _, cover := range pending {
+		if _, ok := byUrl[cover.url]; !ok {
+			urls = append(urls, cover.url)
+		}
+		byUrl[cover.url] = append(byUrl[cover.url], cover)
+	}
+	var mutex sync.Mutex
+	count := 0
+	DownloadCovers(dataFolder, urls, nil, func(url string) {
+		mutex.Lock()
+		defer mutex.Unlock()
+		for _, cover := range byUrl[url] {
+			assignCover(cover, filepath.Base(url))
+		}
+		count++
+		if progress != nil {
+			progress.UpdateProgress(count, len(urls), "Downloading covers")
+		}
+	})
 }

@@ -3,6 +3,13 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"And %v more files": "E altri %v file",
+		"Smaller files of this group, not listed one by one.": "File più piccoli di questo gruppo, non elencati uno per uno.",
+		"Smaller files, not listed one by one.":               "File più piccoli, non elencati uno per uno.",
+		"Loading...":                                          "Caricamento...",
+		"The %v biggest of %v files are shown; use the filter to find the others.":                                                                          "Sono mostrati i %v più grandi di %v file; usa il filtro per trovare gli altri.",
+		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.":        "%v file hanno già una copia compressa e non sono mostrati. Gli originali si possono eliminare nella pagina Spazio quando le copie sono verificate.",
+		"DLC without a name in the titles database":                                                                                                         "DLC senza nome nel database dei titoli",
 		"Files that could not be added to the library, damaged files, duplicates and old versions. The Space page can clean up old updates and duplicates.": "File che non è stato possibile aggiungere alla libreria, file danneggiati, duplicati e versioni vecchie. La pagina Spazio può pulire gli aggiornamenti vecchi e i duplicati.",
 		"Synchronizations, scans, compressions, checks and cleanups with their progress and result. Failed tasks stay here until you dismiss them.":         "Sincronizzazioni, analisi, compressioni, verifiche e pulizie con il loro avanzamento e risultato. Le attività non riuscite restano qui finché non le chiudi.",
 		"Synchronizations, scans, compressions, checks and cleanups appear here.":                                                                           "Qui compaiono sincronizzazioni, analisi, compressioni, verifiche e pulizie.",

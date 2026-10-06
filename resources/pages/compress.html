@@ -21,6 +21,9 @@
 				</div>
 			</section>
 			{{- end}}
+			{{- if .AlreadyCompressed}}
+			<p class="small text-body-secondary d-flex align-items-start gap-2 mb-4"><span class="bi bi-info-circle flex-shrink-0 mt-1" aria-hidden="true"></span><span>{{t "%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified." .AlreadyCompressed}} <a href="/space.html">{{t "Space"}}</a></span></p>
+			{{- end}}
 			{{- if not .Candidates}}
 			{{- template "emptyState" (dict "Icon" "bi-file-zip" "Tone" "success" "Title" (t "Nothing to compress") "Text" (t "Your library has no NSP or XCI files to compress.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 			{{- else}}
@@ -74,6 +77,16 @@
 							<span class="item-size">{{formatSize $c.Size}}</span>
 						</li>
 						{{- end}}
+						{{- if .RestCount}}
+						<li class="item-row item-row-check item-row-rest">
+							<input class="form-check-input" type="checkbox" name="rest" value="compress" data-size="{{.RestSize}}" data-count="{{.RestCount}}" id="compressRest" checked>
+							<label class="item-main" for="compressRest">
+								<span class="item-name d-block">{{t "And %v more files" .RestCount}}</span>
+								<span class="item-meta">{{t "Smaller files, not listed one by one."}}</span>
+							</label>
+							<span class="item-size">{{formatSize .RestSize}}</span>
+						</li>
+						{{- end}}
 					</ul>
 				</section>
 
@@ -84,9 +97,9 @@
 			</form>
 			{{- end}}
 
-			{{- if .Compressed}}
+			{{- if .CompressedCount}}
 			<details class="surface details-section mt-5">
-				<summary class="section-title mb-0"><span class="bi bi-box-arrow-up" aria-hidden="true"></span>{{t "Decompress"}} <span class="badge rounded-pill text-bg-secondary">{{len .Compressed}}</span><span class="bi bi-chevron-down ms-auto details-chevron" aria-hidden="true"></span></summary>
+				<summary class="section-title mb-0"><span class="bi bi-box-arrow-up" aria-hidden="true"></span>{{t "Decompress"}} <span class="badge rounded-pill text-bg-secondary">{{.CompressedCount}}</span><span class="bi bi-chevron-down ms-auto details-chevron" aria-hidden="true"></span></summary>
 				<form id="decompressForm" class="mt-3">
 					<p class="text-body-secondary">{{t "Turn NSZ files back into NSP files, for tools that do not read NSZ. Every NSP is checked before the NSZ is deleted."}}</p>
 					<div class="file-list-head">
@@ -100,18 +113,7 @@
 						</div>
 						<div class="small text-body-secondary ms-sm-auto" data-file-summary data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" 0 (formatSize 0)}}</div>
 					</div>
-					<ul class="item-list mb-3">
-						{{- range $i, $c := .Compressed}}
-						<li class="item-row item-row-check" data-file-row>
-							<input class="form-check-input" type="checkbox" name="path" value="{{$c.Path}}" data-size="{{$c.Size}}" id="nsz{{$i}}">
-							<label class="item-main" for="nsz{{$i}}">
-								<span class="item-name d-block">{{$c.Name}}</span>
-								<span class="item-meta"><span class="font-monospace text-break" title="{{$c.Path}}">{{fileBase $c.Path}}</span></span>
-							</label>
-							<span class="item-size">{{formatSize $c.Size}}</span>
-						</li>
-						{{- end}}
-					</ul>
+					<div data-file-list="/compress/nsz-list" class="mb-3"><p class="text-body-secondary small">{{t "Loading..."}}</p></div>
 					<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
 						<div class="form-check form-switch">
 							<input class="form-check-input" type="checkbox" role="switch" id="deleteCompressed" name="delete_compressed" value="true">
@@ -122,4 +124,26 @@
 				</form>
 			</details>
 			{{- end}}
+{{- end}}
+
+{{define "nszRows"}}
+					{{- if .Files}}
+					<ul class="item-list">
+						{{- range $i, $c := .Files}}
+						<li class="item-row item-row-check">
+							<input class="form-check-input" type="checkbox" name="path" value="{{$c.Path}}" data-size="{{$c.Size}}" id="nsz{{$i}}">
+							<label class="item-main" for="nsz{{$i}}">
+								<span class="item-name d-block">{{$c.Name}}</span>
+								<span class="item-meta"><span class="font-monospace text-break" title="{{$c.Path}}">{{fileBase $c.Path}}</span></span>
+							</label>
+							<span class="item-size">{{formatSize $c.Size}}</span>
+						</li>
+						{{- end}}
+					</ul>
+					{{- if gt .Matches (len .Files)}}
+					<p class="small text-body-secondary mt-2 mb-0">{{t "The %v biggest of %v files are shown; use the filter to find the others." (len .Files) .Matches}}</p>
+					{{- end}}
+					{{- else}}
+					<p class="text-body-secondary small mb-0">{{t "No results"}}</p>
+					{{- end}}
 {{- end}}

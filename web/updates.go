@@ -45,6 +45,12 @@ func (web *Web) buildMissingUpdates(lang string) []TitleItem {
 
 	for _, v := range missingUpdates {
 		name := titleName(switchDB, lang, v.Attributes.Id, v.Attributes.Name)
+		if name == "" {
+			name = localTitleName(localDB, v.Attributes.Id)
+		}
+		if name == "" {
+			name = strings.ToUpper(v.Attributes.Id)
+		}
 		{
 			imageUrl := localImageUrl(localDB, v.Attributes.Id)
 			if imageUrl == "" && v.Attributes.IconUrl != "" {

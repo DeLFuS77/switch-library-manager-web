@@ -3,6 +3,13 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"And %v more files": "E mais %v arquivos",
+		"Smaller files of this group, not listed one by one.": "Arquivos menores deste grupo, não listados um a um.",
+		"Smaller files, not listed one by one.":               "Arquivos menores, não listados um a um.",
+		"Loading...":                                          "Carregando...",
+		"The %v biggest of %v files are shown; use the filter to find the others.":                                                                          "Os %v maiores de %v arquivos são mostrados; use o filtro para encontrar os outros.",
+		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.":        "%v arquivos já têm uma cópia compactada e não são mostrados. Os originais podem ser excluídos na página Espaço quando as cópias forem verificadas.",
+		"DLC without a name in the titles database":                                                                                                         "DLC sem nome no banco de dados de títulos",
 		"Files that could not be added to the library, damaged files, duplicates and old versions. The Space page can clean up old updates and duplicates.": "Arquivos que não puderam ser adicionados à biblioteca, arquivos danificados, duplicados e versões antigas. A página Espaço pode limpar atualizações antigas e duplicados.",
 		"Synchronizations, scans, compressions, checks and cleanups with their progress and result. Failed tasks stay here until you dismiss them.":         "Sincronizações, análises, compactações, verificações e limpezas com seu progresso e resultado. As tarefas com falha ficam aqui até você descartá-las.",
 		"Synchronizations, scans, compressions, checks and cleanups appear here.":                                                                           "Sincronizações, análises, compactações, verificações e limpezas aparecem aqui.",

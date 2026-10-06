@@ -1,5 +1,5 @@
 {{- define "card"}}
-				{{- $type := .Type}}{{if eq $type "BASEGAME"}}{{$type = t "Game"}}{{else if eq $type "ADDONCONTENT"}}{{$type = "DLC"}}{{else if eq $type "UPDATE"}}{{$type = t "Update"}}{{end}}
+				{{- $type := .Type}}{{if or (eq $type "BASEGAME") (eq $type "BASE")}}{{$type = t "Game"}}{{else if eq $type "ADDONCONTENT"}}{{$type = "DLC"}}{{else if eq $type "UPDATE"}}{{$type = t "Update"}}{{end}}
 				<article class="card game-card h-100">
 					<div class="game-cover">
 						{{- if .LatestUpdate}}<input class="form-check-input cover-select" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">{{end}}
