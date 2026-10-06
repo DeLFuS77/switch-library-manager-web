@@ -125,14 +125,15 @@ func TestScheduledVerificationChecksOldResultsAgain(t *testing.T) {
 }
 
 func TestVerificationSpeedAndTimeLeft(t *testing.T) {
-	task := Task{Kind: TASK_VERIFY, Started: time.Now().Add(-100 * time.Second), Current: 10000, Total: 70000}
-	if task.Speed() != 100 {
-		t.Fatalf("10000 MB in 100 s: %d MB/s", task.Speed())
+	now := time.Now()
+	task := Task{Kind: TASK_VERIFY, Started: now.Add(-100 * time.Second), Current: 10000, Total: 70000}
+	if task.speedAt(now) != 100 {
+		t.Fatalf("10000 MB in 100 s: %d MB/s", task.speedAt(now))
 	}
-	if task.Remaining() != 10*time.Minute {
-		t.Fatalf("60000 MB left at 100 MB/s: %v", task.Remaining())
+	if task.remainingAt(now) != 10*time.Minute {
+		t.Fatalf("60000 MB left at 100 MB/s: %v", task.remainingAt(now))
 	}
-	if (Task{Kind: TASK_SCAN, Started: task.Started, Current: 5, Total: 10}).Speed() != 0 {
+	if (Task{Kind: TASK_SCAN, Started: task.Started, Current: 5, Total: 10}).speedAt(now) != 0 {
 		t.Fatal("only verifications show a speed")
 	}
 }

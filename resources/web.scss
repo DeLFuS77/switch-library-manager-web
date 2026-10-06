@@ -2543,3 +2543,8 @@ h3,
 	font-size: .75rem;
 	color: var(--bs-secondary-color);
 }
+
+/* the bars of running tasks are drawn again at every update: no entrance animation */
+[data-live-tasks] .progress-bar {
+	animation: none !important;
+}

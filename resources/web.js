@@ -720,7 +720,28 @@ function initLiveTasks() {
 		fetch('/tasks.html?part=list', { cache: 'no-store' })
 			.then(response => response.ok ? response.text() : Promise.reject(response))
 			.then(html => {
+				// the bars go on from where they were instead of starting again
+				const widths = {};
+				list.querySelectorAll('[data-task-id]').forEach(card => {
+					const bar = card.querySelector('.progress-bar');
+					if (bar) {
+						widths[card.dataset.taskId] = bar.style.width;
+					}
+				});
 				list.innerHTML = html;
+				list.querySelectorAll('[data-task-id]').forEach(card => {
+					const bar = card.querySelector('.progress-bar');
+					const before = widths[card.dataset.taskId];
+					if (!bar || !before || before === bar.style.width) {
+						return;
+					}
+					const after = bar.style.width;
+					bar.style.transition = 'none';
+					bar.style.width = before;
+					void bar.offsetWidth;
+					bar.style.transition = '';
+					bar.style.width = after;
+				});
 			})
 			.catch(() => {
 				// the next event tries again
