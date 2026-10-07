@@ -125,6 +125,8 @@ type Web struct {
 	favoritesOnce   sync.Once
 	// the history and the lists prepared after a scan (tests wait for them)
 	afterScanWork sync.WaitGroup
+	// scans and the work after them that are still running, for the tests to wait for them
+	backgroundWork atomic.Int32
 	// the fingerprint of the folders the watcher asked to scan (see saveWatchFingerprint)
 	watchFingerprint atomic.Uint64
 	fallbackMutex  sync.Mutex

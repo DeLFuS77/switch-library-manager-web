@@ -1306,3 +1306,20 @@ func TestLibraryGenrePlayersAndLanguageFilters(t *testing.T) {
 		t.Fatalf("statistics by genre, publisher and year: %+v %+v %+v", stats.ByGenre, stats.ByPublisher, stats.ByYear)
 	}
 }
+
+// waitForBackgroundWork waits until no scan, and no work after a scan, has run for a moment:
+// a scan can start a little after the action that asks for it.
+func waitForBackgroundWork(web *Web) {
+	quiet := time.Time{}
+	for deadline := time.Now().Add(30 * time.Second); time.Now().Before(deadline); time.Sleep(20 * time.Millisecond) {
+		if web.backgroundWork.Load() != 0 || web.state.IsSynchronizing() {
+			quiet = time.Time{}
+			continue
+		}
+		if quiet.IsZero() {
+			quiet = time.Now()
+		} else if time.Since(quiet) > 300*time.Millisecond {
+			return
+		}
+	}
+}

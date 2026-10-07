@@ -80,7 +80,10 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 	}
 	taskId := web.startTask(TASK_SCAN, trigger)
 
+	web.backgroundWork.Add(1)
 	go func() {
+		// the last thing done: after the task, the work after the scan has been started
+		defer web.backgroundWork.Add(-1)
 		var failure *TaskNote
 		// files that just appeared are compressed afterwards, if asked
 		defer func() {

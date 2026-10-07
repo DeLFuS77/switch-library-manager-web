@@ -7,7 +7,9 @@ import "github.com/dtrunk90/switch-library-manager-web/db"
 func (web *Web) afterScan() {
 	web.startCoverDownloads()
 	web.afterScanWork.Add(1)
+	web.backgroundWork.Add(1)
 	go func() {
+		defer web.backgroundWork.Add(-1)
 		defer web.afterScanWork.Done()
 		// first: the lists show the dates the games were added
 		web.recordHistory()
