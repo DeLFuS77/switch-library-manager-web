@@ -365,6 +365,11 @@ function onSubmit(form) {
 
 					field.parentElement.appendChild(validationFeedback);
 				});
+				// the first field with an error is shown, also in another section of Settings
+				const first = form.querySelector('.is-invalid');
+				if (first) {
+					document.dispatchEvent(new CustomEvent('slm:show-field', { detail: first }));
+				}
 			}
 		}).catch(() => {
 			insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), t('Unexpected server response (%v).', error.status));
@@ -1152,6 +1157,63 @@ function initCoverTransition() {
 	});
 }
 
+// Settings: each section of the menu on its own, as a page of its own, instead of one long
+// page; the address (#library, #backup...) tells which one, and Save still saves them all
+function initSettingsSections() {
+	const nav = document.querySelector('.settings-nav');
+	const sections = [...document.querySelectorAll('.settings-section')];
+	if (!nav || sections.length < 2) {
+		return;
+	}
+	const saveBar = document.querySelector('#settingsForm .save-bar');
+	const links = [...nav.querySelectorAll('a[href^="#"]')];
+	const show = (id, toTop) => {
+		const target = sections.find(section => section.id === id) || sections[0];
+		sections.forEach(section => {
+			section.hidden = section !== target;
+		});
+		links.forEach(link => {
+			const active = link.getAttribute('href') === `#${target.id}`;
+			link.classList.toggle('active', active);
+			if (active) {
+				link.setAttribute('aria-current', 'page');
+				link.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+			} else {
+				link.removeAttribute('aria-current');
+			}
+		});
+		// the backup is not part of the settings form
+		if (saveBar) {
+			saveBar.hidden = !target.closest('#settingsForm');
+		}
+		if (toTop) {
+			window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
+		}
+	};
+	nav.addEventListener('click', e => {
+		const link = e.target.closest('a[href^="#"]');
+		if (!link) {
+			return;
+		}
+		e.preventDefault();
+		history.replaceState(null, '', link.getAttribute('href'));
+		show(link.getAttribute('href').slice(1), true);
+	});
+	window.addEventListener('hashchange', () => show(window.location.hash.slice(1), true));
+	// a field the browser or the server finds wrong is shown in its section
+	const showField = field => {
+		const section = field.closest('.settings-section');
+		if (section && section.hidden) {
+			show(section.id, false);
+		}
+		field.scrollIntoView({ block: 'center' });
+	};
+	document.addEventListener('invalid', e => showField(e.target), true);
+	document.addEventListener('slm:show-field', e => showField(e.detail));
+	document.documentElement.classList.add('has-settings-sections');
+	show(window.location.hash.slice(1), false);
+}
+
 // cards tilt slightly towards the pointer
 function initCardTilt() {
 	if (reducedMotion() || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
@@ -1449,6 +1511,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initCountUp();
 	initCoverLoading();
 	initCardTilt();
+	initSettingsSections();
 	initCoverTransition();
 
 	// forms that delete something ask first
