@@ -3,9 +3,6 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
-		"Pending": "À traiter",
-		"Discover": "Découvrir",
-		"Tools": "Outils",
 		"Login is off.": "La connexion est désactivée.",
 		"Anyone on your network can change or delete your library. Create an administrator to protect the app, above all if it can be reached from the internet.": "N'importe qui sur votre réseau peut modifier ou supprimer votre ludothèque. Créez un administrateur pour protéger l'app, surtout si elle est accessible depuis Internet.",
 		"Create an administrator": "Créer un administrateur",

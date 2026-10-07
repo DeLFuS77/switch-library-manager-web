@@ -3,9 +3,6 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
-		"Pending": "Ожидает",
-		"Discover": "Обзор",
-		"Tools": "Инструменты",
 		"Login is off.": "Вход отключён.",
 		"Anyone on your network can change or delete your library. Create an administrator to protect the app, above all if it can be reached from the internet.": "Любой в вашей сети может изменить или удалить библиотеку. Создайте администратора, чтобы защитить приложение, особенно если оно доступно из интернета.",
 		"Create an administrator": "Создать администратора",

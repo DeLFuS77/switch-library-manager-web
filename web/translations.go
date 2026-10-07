@@ -5,9 +5,6 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
-		"Pending": "Pendiente",
-		"Discover": "Descubrir",
-		"Tools": "Herramientas",
 		"Login is off.": "El inicio de sesión está desactivado.",
 		"Anyone on your network can change or delete your library. Create an administrator to protect the app, above all if it can be reached from the internet.": "Cualquiera en tu red puede cambiar o borrar tu biblioteca. Crea un administrador para proteger la app, sobre todo si se puede abrir desde internet.",
 		"Create an administrator": "Crear un administrador",
