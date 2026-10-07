@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -42,6 +43,9 @@ func SwitchKeys() (*switchKeys, error) {
 	return keysInstance, nil
 }
 
+// lastKeysReport is what was last reported about the keys, so it is not repeated
+var lastKeysReport string
+
 func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
 	// A failed lookup must not leave keys from a previous base folder active.
 	keysInstance = nil
@@ -58,7 +62,7 @@ func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
 		path = settings.Prodkeys
 		path = resolveKeysPath(path)
 
-		logger.Infof("Trying to load prod.keys based on settings.json: %v", path)
+		logger.Debugf("Trying to load prod.keys based on settings.json: %v", path)
 		p, err = properties.LoadFile(path, properties.UTF8)
 	} else {
 		err = errors.New("prod.keys not defined in settings.json")
@@ -68,7 +72,7 @@ func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
 	if err != nil {
 		path = filepath.Join(baseFolder, "prod.keys")
 
-		logger.Infof("Trying to load prod.keys based on current folder: %v", path)
+		logger.Debugf("Trying to load prod.keys based on current folder: %v", path)
 		p, err = properties.LoadFile(path, properties.UTF8)
 	}
 
@@ -80,13 +84,16 @@ func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
 		} else {
 			path = filepath.Join(home, ".switch", "prod.keys")
 
-			logger.Infof("Trying to load prod.keys based on home directory: %v", path)
+			logger.Debugf("Trying to load prod.keys based on home directory: %v", path)
 			p, err = properties.LoadFile(path, properties.UTF8)
 		}
 	}
 
 	if err != nil {
-		logger.Info("Unable to find prod.keys")
+		if lastKeysReport != "none" {
+			lastKeysReport = "none"
+			logger.Info("Unable to find prod.keys")
+		}
 		return nil, errors.New("Error trying to read prod.keys [reason:" + err.Error() + "]")
 	}
 
@@ -96,8 +103,6 @@ func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
 		keysInstance.keys[key] = value
 	}
 
-	logger.Infof("Loaded prod.keys from: %v", path)
-
 	// optional: title keys for games whose NSP has no ticket
 	titleKeysPath := filepath.Join(filepath.Dir(path), "title.keys")
 	if titleKeys, err := properties.LoadFile(titleKeysPath, properties.UTF8); err == nil {
@@ -105,7 +110,16 @@ func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
 			value, _ := titleKeys.Get(rightsId)
 			keysInstance.titleKeys[strings.ToLower(strings.TrimSpace(rightsId))] = strings.TrimSpace(value)
 		}
-		logger.Infof("Loaded %v title keys from: %v", len(keysInstance.titleKeys), titleKeysPath)
+	}
+
+	// the keys are read again before every synchronization: they are reported when they change
+	report := fmt.Sprintf("%s|%d|%d|%s", path, len(keysInstance.keys), len(keysInstance.titleKeys), KeysFingerprint())
+	if report != lastKeysReport {
+		lastKeysReport = report
+		logger.Infof("Loaded prod.keys from: %v", path)
+		if len(keysInstance.titleKeys) > 0 {
+			logger.Infof("Loaded %v title keys from: %v", len(keysInstance.titleKeys), titleKeysPath)
+		}
 	}
 	return keysInstance, nil
 }

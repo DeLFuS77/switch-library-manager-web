@@ -597,6 +597,15 @@ func (web *Web) Start() {
 		go web.openBrowserWhenReady(web.appSettings.Port)
 	}
 	if err := server.ListenAndServe(); err != nil {
+		// started twice with a double click: the app is already open, show it instead
+		if portInUse(err) {
+			url := fmt.Sprintf("http://localhost:%d/", web.appSettings.Port)
+			web.sugarLogger.Warnf("Port %d is already in use: the app may be running already. Open %s, or set another \"port\" in settings.json.", web.appSettings.Port, url)
+			if shouldOpenBrowser() {
+				openUrl(url)
+			}
+			os.Exit(1)
+		}
 		web.sugarLogger.Error(fmt.Errorf("running http server failed: %w", err))
 		log.Fatal(err)
 	}
