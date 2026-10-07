@@ -22,14 +22,14 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>MIT</License>
-  <Changes>### 1.23.0
+  <Changes>### 1.24.0
+- Ready-to-run programs for Windows, macOS, Linux and Raspberry Pi in every release
+- Space by content chart fills like a loading bar
+- Richer demo mode and new screenshots
+### 1.23.0
 - Fix: menu links from game pages gave 404 (#3, thanks @LonelyTV)
 - Diagnostics page and weekly automatic copies of the configuration
-- Settings by sections, and no movement when pages load
-### 1.22.0
-- Security: without users the app only answers on the local network
-- Log out ends sessions for good, safer downloads and limits
-- One card everywhere, cover animations, game artwork, bottom bar on phones</Changes>
+- Settings by sections, and no movement when pages load</Changes>
   <Date>2026-10-06</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>

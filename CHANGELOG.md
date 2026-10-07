@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.24.0
+
+### New features
+
+- **Ready-to-run programs**: every release now has the program for Windows (x64 and ARM), macOS (Apple and Intel chips),
+  Linux (x64 and ARM64) and Raspberry Pi (32-bit), with checksums. Unpack it and run it, nothing to build or install.
+  The Windows program has its icon and version details.
+- On Windows and macOS the app **opens in the browser** when it starts (`SLM_OPEN_BROWSER=false` turns it off).
+
+### Improvements
+
+- Statistics: the ring of **Space by content** fills clockwise like a bar that loads, instead of the whole chart
+  turning with the number in its center.
+- The genre chips of the game page keep their size when the box beside them is taller.
+- The demo mode has genres, sequels and coming games, so the recommendations, the series and the upcoming releases
+  can be tried too; new screenshots in the README.
+- A visible thank-you to the authors this project builds on: @giwty, @dtrunk90 and @trembon.
+
 ## 1.23.0
 
 ### Fixes
