@@ -33,7 +33,7 @@
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>
-  <DonateText>Free and open source. If it saves you time, you can support its development with a tip on Ko-fi.</DonateText>
+  <DonateText>❤️ Free and open source. If it saves you time, you can support its development with a tip on Ko-fi.</DonateText>
   <DonateLink>https://ko-fi.com/delfus77</DonateLink>
   <Requires>Your own prod.keys, dumped from your console, in the appdata folder.</Requires>
   <Config Name="WebUI port" Target="3000" Default="3000" Mode="tcp" Description="Port of the web interface." Type="Port" Display="always" Required="true" Mask="false">3000</Config>
