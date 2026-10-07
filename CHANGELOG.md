@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.25.2
+
+### Fixes
+
+- **A weak `SLM_AUTH_PASSWORD` no longer stops the app.** Since 1.25.0 a password shorter than 10 characters or very
+  common in `SLM_AUTH_PASSWORD` kept the container from starting. It now starts and the password still logs in, so
+  nobody is locked out; the log and a notice on the pages of the administrators ask to change it to a stronger one.
+
 ## 1.25.1
 
 ### Improvements

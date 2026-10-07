@@ -22,12 +22,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>MIT</License>
-  <Changes>### 1.25.1
-- Optional support link (Ko-fi) in the footer; the app stays free
-### 1.25.0
-- Quick search from any page (Ctrl+K)
-- Login protection against brute force and bots, also behind Cloudflare
-- Important: a weak SLM_AUTH_PASSWORD (under 10 characters or very common) is refused</Changes>
+  <Changes>### 1.25.2
+- Fix: a weak SLM_AUTH_PASSWORD no longer keeps the container from starting; the app asks to change it
+### 1.25.1
+- Optional support link (Ko-fi) in the footer; the app stays free</Changes>
   <Date>2026-10-06</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
