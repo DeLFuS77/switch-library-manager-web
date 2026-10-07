@@ -5,6 +5,10 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Search games, series, collections and pages": "Buscar juegos, sagas, colecciones y páginas",
+		"Search results": "Resultados de la búsqueda",
+		"Go to": "Ir a",
+		"Open": "Abrir",
 		"This password is too common or too easy to guess. Choose another one.": "Esta contraseña es demasiado común o fácil de adivinar. Elige otra.",
 		"The password must not be the user name.": "La contraseña no puede ser el nombre de usuario.",
 		"1 thing to look at": "1 cosa que revisar",

@@ -3,6 +3,10 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Search games, series, collections and pages": "搜索游戏、系列、收藏和页面",
+		"Search results": "搜索结果",
+		"Go to": "前往",
+		"Open": "打开",
 		"This password is too common or too easy to guess. Choose another one.": "该密码太常见或太容易被猜到。请换一个。",
 		"The password must not be the user name.": "密码不能与用户名相同。",
 		"1 thing to look at": "1 项需要查看",

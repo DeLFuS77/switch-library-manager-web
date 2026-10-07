@@ -3,6 +3,10 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Search games, series, collections and pages": "게임, 시리즈, 컬렉션, 페이지 검색",
+		"Search results": "검색 결과",
+		"Go to": "이동",
+		"Open": "열기",
 		"This password is too common or too easy to guess. Choose another one.": "이 비밀번호는 너무 흔하거나 추측하기 쉽습니다. 다른 것을 선택하세요.",
 		"The password must not be the user name.": "비밀번호는 사용자 이름과 같을 수 없습니다.",
 		"1 thing to look at": "확인할 항목 1개",

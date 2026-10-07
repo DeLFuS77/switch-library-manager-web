@@ -3,6 +3,10 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Search games, series, collections and pages": "ゲーム、シリーズ、コレクション、ページを検索",
+		"Search results": "検索結果",
+		"Go to": "移動",
+		"Open": "開く",
 		"This password is too common or too easy to guess. Choose another one.": "このパスワードはよく使われていて推測されやすいです。別のものにしてください。",
 		"The password must not be the user name.": "パスワードをユーザー名と同じにはできません。",
 		"1 thing to look at": "確認が必要な項目 1 件",

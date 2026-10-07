@@ -3,6 +3,10 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Search games, series, collections and pages": "Zoek games, series, collecties en pagina's",
+		"Search results": "Zoekresultaten",
+		"Go to": "Ga naar",
+		"Open": "Openen",
 		"This password is too common or too easy to guess. Choose another one.": "Dit wachtwoord is te algemeen of te makkelijk te raden. Kies een ander.",
 		"The password must not be the user name.": "Het wachtwoord mag niet de gebruikersnaam zijn.",
 		"1 thing to look at": "1 punt om na te kijken",

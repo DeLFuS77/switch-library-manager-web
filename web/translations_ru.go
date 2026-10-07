@@ -3,6 +3,10 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Search games, series, collections and pages": "Поиск игр, серий, коллекций и страниц",
+		"Search results": "Результаты поиска",
+		"Go to": "Перейти",
+		"Open": "Открыть",
 		"This password is too common or too easy to guess. Choose another one.": "Этот пароль слишком распространён или легко угадывается. Выберите другой.",
 		"The password must not be the user name.": "Пароль не должен совпадать с именем пользователя.",
 		"1 thing to look at": "Требует внимания: 1",

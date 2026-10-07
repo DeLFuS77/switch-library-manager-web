@@ -3,6 +3,10 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Search games, series, collections and pages": "Pesquisar jogos, séries, coleções e páginas",
+		"Search results": "Resultados da pesquisa",
+		"Go to": "Ir para",
+		"Open": "Abrir",
 		"This password is too common or too easy to guess. Choose another one.": "Esta senha é muito comum ou fácil de adivinhar. Escolha outra.",
 		"The password must not be the user name.": "A senha não pode ser o nome de usuário.",
 		"1 thing to look at": "1 item para revisar",
