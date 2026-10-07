@@ -2606,6 +2606,9 @@ h3,
 .fact-tags {
 	display: flex;
 	flex-wrap: wrap;
+	// the chips keep their height when the box is taller than they are
+	align-content: flex-start;
+	align-items: flex-start;
 	gap: .3rem;
 	font-size: .85rem;
 }
