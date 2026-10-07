@@ -81,6 +81,52 @@ func TestClientAddressBehindAProxy(t *testing.T) {
 	}
 }
 
+func TestClientAddressBehindCloudflare(t *testing.T) {
+	saved := trustedProxyNets
+	defer func() { trustedProxyNets = saved }()
+	trustedProxyNets = parseTrustedProxies("")
+
+	r := httptest.NewRequest("GET", "/", nil)
+	// a cloudflared tunnel on the local network
+	r.RemoteAddr = "172.17.0.5:5000"
+	r.Header.Set("Cf-Connecting-Ip", "203.0.113.20")
+	if got := clientIp(r); got != "203.0.113.20" {
+		t.Fatalf("through a tunnel: %q", got)
+	}
+	if isLocalRequest(r) {
+		t.Fatal("a visitor from the internet through a tunnel is not local")
+	}
+
+	// Cloudflare connecting directly, not trusted unless set
+	r.RemoteAddr = "162.158.1.1:5000"
+	if got := clientIp(r); got != "162.158.1.1" {
+		t.Fatalf("Cloudflare not trusted yet: %q", got)
+	}
+	trustedProxyNets = parseTrustedProxies("cloudflare")
+	if got := clientIp(r); got != "203.0.113.20" {
+		t.Fatalf("Cloudflare trusted: %q", got)
+	}
+	r.Header.Del("Cf-Connecting-Ip")
+	r.Header.Set("X-Forwarded-For", "1.2.3.4, 203.0.113.21")
+	if got := clientIp(r); got != "203.0.113.21" {
+		t.Fatalf("Cloudflare without its header: %q", got)
+	}
+
+	// anyone else sending the header is not believed
+	r.RemoteAddr = "198.51.100.7:5000"
+	r.Header.Set("Cf-Connecting-Ip", "203.0.113.22")
+	if got := clientIp(r); got != "198.51.100.7" {
+		t.Fatalf("forged Cloudflare header: %q", got)
+	}
+}
+
+func TestParseTrustedProxies(t *testing.T) {
+	nets := parseTrustedProxies("10.0.0.1, 2001:db8::/32;cloudflare  nonsense")
+	if len(nets) != 2+len(cloudflareRanges) {
+		t.Fatalf("parsed %d ranges", len(nets))
+	}
+}
+
 func TestLogoutEndsTheSession(t *testing.T) {
 	web := usersWeb(t)
 	c := &client{t: t, handler: web.auth.middleware(web.router)}
