@@ -127,6 +127,8 @@ type Web struct {
 	afterScanWork sync.WaitGroup
 	// scans and the work after them that are still running, for the tests to wait for them
 	backgroundWork atomic.Int32
+	// a scan was started at least once
+	backgroundStarted atomic.Bool
 	// the fingerprint of the folders the watcher asked to scan (see saveWatchFingerprint)
 	watchFingerprint atomic.Uint64
 	fallbackMutex  sync.Mutex
