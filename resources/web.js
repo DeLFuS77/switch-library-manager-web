@@ -1177,7 +1177,13 @@ function initSettingsSections() {
 			link.classList.toggle('active', active);
 			if (active) {
 				link.setAttribute('aria-current', 'page');
-				link.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+				// phones: the row of sections scrolls sideways to the active one, the page stays
+				if (nav.scrollWidth > nav.clientWidth) {
+					const left = link.offsetLeft - nav.offsetLeft;
+					if (left < nav.scrollLeft || left + link.offsetWidth > nav.scrollLeft + nav.clientWidth) {
+						nav.scrollLeft = left - 16;
+					}
+				}
 			} else {
 				link.removeAttribute('aria-current');
 			}
@@ -1186,8 +1192,11 @@ function initSettingsSections() {
 		if (saveBar) {
 			saveBar.hidden = !target.closest('#settingsForm');
 		}
-		if (toTop) {
-			window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
+		// back to the start of the section only when it is above the window, at once, so the
+		// menu does not travel with the page
+		const top = target.getBoundingClientRect().top + window.scrollY - 96;
+		if (toTop && window.scrollY > top) {
+			window.scrollTo({ top: Math.max(0, top), behavior: 'auto' });
 		}
 	};
 	nav.addEventListener('click', e => {
