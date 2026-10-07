@@ -3,6 +3,8 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"This password is too common or too easy to guess. Choose another one.": "Esta senha é muito comum ou fácil de adivinhar. Escolha outra.",
+		"The password must not be the user name.": "A senha não pode ser o nome de usuário.",
 		"1 thing to look at": "1 item para revisar",
 		"%v files, %v not recognized": "%v arquivos, %v não reconhecidos",
 		"%v free": "%v livres",
@@ -748,7 +750,7 @@ func init() {
 		"The library is being updated.":                                        "A biblioteca está sendo atualizada.",
 		"The notification could not be sent.":                                  "Não foi possível enviar a notificação.",
 		"The original could not be deleted.":                                   "Não foi possível excluir o original.",
-		"The password must have between 8 and 72 characters.":                  "A senha deve ter entre 8 e 72 caracteres.",
+		"The password must have between 10 and 72 characters.":                  "A senha deve ter entre 10 e 72 caracteres.",
 		"The password was changed.":                                            "A senha foi alterada.",
 		"The role was changed.":                                                "A função foi alterada.",
 		"The titles database could not be downloaded, the saved copy is used.": "Não foi possível baixar o banco de dados de títulos; a cópia salva é usada.",

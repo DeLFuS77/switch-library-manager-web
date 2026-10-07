@@ -5,6 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"This password is too common or too easy to guess. Choose another one.": "Esta contraseña es demasiado común o fácil de adivinar. Elige otra.",
+		"The password must not be the user name.": "La contraseña no puede ser el nombre de usuario.",
 		"1 thing to look at": "1 cosa que revisar",
 		"%v files, %v not recognized": "%v archivos, %v sin reconocer",
 		"%v free": "%v libres",
@@ -515,7 +517,7 @@ var translations = map[string]map[string]string{
 		"The user name may only contain letters, numbers, dots, dashes and underscores (up to 32).": "El nombre de usuario solo puede tener letras, números, puntos, guiones y guiones bajos (hasta 32).",
 		"A user with this name already exists.":                                                     "Ya existe un usuario con este nombre.",
 		"The user does not exist.":                                                                  "El usuario no existe.",
-		"The password must have between 8 and 72 characters.":                                       "La contraseña debe tener entre 8 y 72 caracteres.",
+		"The password must have between 10 and 72 characters.":                                       "La contraseña debe tener entre 10 y 72 caracteres.",
 		"Unknown role.":                         "Rol desconocido.",
 		"At least one administrator is needed.": "Hace falta al menos un administrador.",
 		"You cannot delete your own account.":   "No puedes borrar tu propia cuenta.",

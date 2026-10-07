@@ -444,7 +444,7 @@ func TestSyncProgress(t *testing.T) {
 }
 
 func TestBasicAuth(t *testing.T) {
-	handler := envAuth(t, "admin", "secret").middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := envAuth(t, "admin", "env-secret-99").middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}))
 	tests := []struct {
@@ -454,8 +454,8 @@ func TestBasicAuth(t *testing.T) {
 	}{
 		{"no credentials", "", "", false, http.StatusUnauthorized},
 		{"wrong password", "admin", "nope", true, http.StatusUnauthorized},
-		{"wrong user", "root", "secret", true, http.StatusUnauthorized},
-		{"valid", "admin", "secret", true, http.StatusNoContent},
+		{"wrong user", "root", "env-secret-99", true, http.StatusUnauthorized},
+		{"valid", "admin", "env-secret-99", true, http.StatusNoContent},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -487,8 +487,8 @@ func TestAuthFromEnv(t *testing.T) {
 		t.Fatal("a username without password must be rejected")
 	}
 
-	t.Setenv("SLM_AUTH_PASSWORD", "secret")
-	if user, password, enabled, err := authFromEnv(); !enabled || err != nil || user != "admin" || password != "secret" {
+	t.Setenv("SLM_AUTH_PASSWORD", "env-secret-99")
+	if user, password, enabled, err := authFromEnv(); !enabled || err != nil || user != "admin" || password != "env-secret-99" {
 		t.Fatalf("unexpected result: %q %q %v %v", user, password, enabled, err)
 	}
 }
@@ -676,7 +676,7 @@ func TestSyncSchedule(t *testing.T) {
 }
 
 func TestHealthCheckBypassesAuthentication(t *testing.T) {
-	protected := envAuth(t, "admin", "secret").middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	protected := envAuth(t, "admin", "env-secret-99").middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}))
 	handler := withHealthCheck(protected)

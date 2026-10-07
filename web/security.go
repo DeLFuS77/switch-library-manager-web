@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"os"
@@ -54,6 +55,9 @@ func authFromEnv() (username string, password string, enabled bool, err error) {
 	}
 	if username == "" || password == "" {
 		return "", "", false, errors.New("both SLM_AUTH_USERNAME and SLM_AUTH_PASSWORD must be set to enable authentication")
+	}
+	if err := checkPassword(username, password); err != nil {
+		return "", "", false, fmt.Errorf("SLM_AUTH_PASSWORD is weak: %s", strings.ToLower(err.Error()))
 	}
 	return username, password, true, nil
 }

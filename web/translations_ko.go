@@ -3,6 +3,8 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"This password is too common or too easy to guess. Choose another one.": "이 비밀번호는 너무 흔하거나 추측하기 쉽습니다. 다른 것을 선택하세요.",
+		"The password must not be the user name.": "비밀번호는 사용자 이름과 같을 수 없습니다.",
 		"1 thing to look at": "확인할 항목 1개",
 		"%v files, %v not recognized": "파일 %v개, 인식 안 됨 %v개",
 		"%v free": "%v 여유",
@@ -710,7 +712,7 @@ func init() {
 		"The library is being updated.":                       "라이브러리를 업데이트하는 중이에요.",
 		"The notification could not be sent.":                 "알림을 보낼 수 없어요.",
 		"The original could not be deleted.":                  "원본을 삭제할 수 없어요.",
-		"The password must have between 8 and 72 characters.": "비밀번호는 8자에서 72자 사이여야 해요.",
+		"The password must have between 10 and 72 characters.": "비밀번호는 10자에서 72자 사이여야 해요.",
 		"The password was changed.":                           "비밀번호가 변경되었어요.",
 		"The role was changed.":                               "역할이 변경되었어요.",
 		"The same content is in the library more than once; the copy shown as kept stays.":          "같은 콘텐츠가 라이브러리에 여러 번 있어요. 유지됨으로 표시된 사본이 남아요.",

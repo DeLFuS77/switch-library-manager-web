@@ -94,36 +94,36 @@ func TestUserStore(t *testing.T) {
 		name, password, role string
 		want                 error
 	}{
-		{"bad name!", "password1", ROLE_ADMIN, ErrUserName},
-		{"", "password1", ROLE_ADMIN, ErrUserName},
+		{"bad name!", "alpha-secret-11", ROLE_ADMIN, ErrUserName},
+		{"", "alpha-secret-11", ROLE_ADMIN, ErrUserName},
 		{"alice", "short", ROLE_ADMIN, ErrPasswordLength},
 		{"alice", strings.Repeat("x", 73), ROLE_ADMIN, ErrPasswordLength},
-		{"alice", "password1", "root", ErrRole},
-		{"EnvAdmin", "password1", ROLE_ADMIN, ErrUserExists},
-		{"alice", "password1", ROLE_ADMIN, nil},
-		{"ALICE", "password1", ROLE_VIEWER, ErrUserExists},
-		{"bob", "password2", ROLE_VIEWER, nil},
+		{"alice", "alpha-secret-11", "root", ErrRole},
+		{"EnvAdmin", "alpha-secret-11", ROLE_ADMIN, ErrUserExists},
+		{"alice", "alpha-secret-11", ROLE_ADMIN, nil},
+		{"ALICE", "alpha-secret-11", ROLE_VIEWER, ErrUserExists},
+		{"bob", "bravo-secret-22", ROLE_VIEWER, nil},
 	} {
 		if err := store.Add(tt.name, tt.password, tt.role); !errors.Is(err, tt.want) {
 			t.Errorf("Add(%q, %q): got %v, want %v", tt.name, tt.role, err, tt.want)
 		}
 	}
 
-	if _, ok := store.Verify("alice", "password1"); !ok {
+	if _, ok := store.Verify("alice", "alpha-secret-11"); !ok {
 		t.Fatal("valid password rejected")
 	}
-	if _, ok := store.Verify("Alice", "password1"); !ok {
+	if _, ok := store.Verify("Alice", "alpha-secret-11"); !ok {
 		t.Fatal("user names are not case sensitive")
 	}
 	if _, ok := store.Verify("alice", "wrong"); ok {
 		t.Fatal("wrong password accepted")
 	}
-	if _, ok := store.Verify("nobody", "password1"); ok {
+	if _, ok := store.Verify("nobody", "alpha-secret-11"); ok {
 		t.Fatal("unknown user accepted")
 	}
 
 	data, _ := os.ReadFile(filepath.Join(folder, USERS_FILENAME))
-	if strings.Contains(string(data), "password1") {
+	if strings.Contains(string(data), "alpha-secret-11") {
 		t.Fatal("passwords must be stored hashed")
 	}
 	if runtime.GOOS != "windows" {
@@ -143,8 +143,8 @@ func TestUserStore(t *testing.T) {
 
 func TestUserStoreKeepsAnAdministrator(t *testing.T) {
 	store, _ := loadUserStore(t.TempDir(), "")
-	store.Add("alice", "password1", ROLE_ADMIN)
-	store.Add("bob", "password2", ROLE_VIEWER)
+	store.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	store.Add("bob", "bravo-secret-22", ROLE_VIEWER)
 
 	if err := store.SetRole("alice", ROLE_VIEWER); !errors.Is(err, ErrLastAdmin) {
 		t.Fatalf("demoting the last administrator: %v", err)
@@ -158,13 +158,13 @@ func TestUserStoreKeepsAnAdministrator(t *testing.T) {
 	if err := store.SetRole("alice", ROLE_VIEWER); err != nil {
 		t.Fatalf("with another administrator the role can change: %v", err)
 	}
-	if err := store.SetPassword("ghost", "password1"); !errors.Is(err, ErrUserNotFound) {
+	if err := store.SetPassword("ghost", "alpha-secret-11"); !errors.Is(err, ErrUserNotFound) {
 		t.Fatalf("unknown user: %v", err)
 	}
 
 	// with an administrator in the environment, the store needs none
 	withEnv, _ := loadUserStore(t.TempDir(), "envadmin")
-	withEnv.Add("carol", "password3", ROLE_ADMIN)
+	withEnv.Add("carol", "charlie-sec-33", ROLE_ADMIN)
 	if err := withEnv.SetRole("carol", ROLE_VIEWER); err != nil {
 		t.Fatalf("the environment administrator remains: %v", err)
 	}
@@ -185,7 +185,7 @@ func TestFirstUserEnablesLogin(t *testing.T) {
 	web := usersWeb(t)
 	c := &client{t: t, handler: web.auth.middleware(web.router)}
 
-	created := c.do("POST", "/users/create", url.Values{"name": {"alice"}, "password": {"password1"}, "role": {ROLE_VIEWER}})
+	created := c.do("POST", "/users/create", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}, "role": {ROLE_VIEWER}})
 	if created.Code != http.StatusSeeOther || !strings.Contains(created.Header().Get("Location"), "done=enabled") {
 		t.Fatalf("create: %v %q", created.Code, created.Header().Get("Location"))
 	}
@@ -207,8 +207,8 @@ func TestFirstUserEnablesLogin(t *testing.T) {
 
 func TestLoginLogoutAndRoles(t *testing.T) {
 	web := usersWeb(t)
-	web.auth.users.Add("alice", "password1", ROLE_ADMIN)
-	web.auth.users.Add("bob", "password2", ROLE_VIEWER)
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	web.auth.users.Add("bob", "bravo-secret-22", ROLE_VIEWER)
 	handler := web.auth.middleware(web.router)
 
 	anonymous := &client{t: t, handler: handler}
@@ -234,7 +234,7 @@ func TestLoginLogoutAndRoles(t *testing.T) {
 	}
 
 	viewer := &client{t: t, handler: handler}
-	login := viewer.do("POST", "/login.html", url.Values{"name": {"bob"}, "password": {"password2"}, "next": {"/index.html?page=2"}})
+	login := viewer.do("POST", "/login.html", url.Values{"name": {"bob"}, "password": {"bravo-secret-22"}, "next": {"/index.html?page=2"}})
 	if login.Code != http.StatusSeeOther || login.Header().Get("Location") != "/index.html?page=2" || len(viewer.cookies) != 1 {
 		t.Fatalf("login: %v %q", login.Code, login.Header().Get("Location"))
 	}
@@ -251,7 +251,7 @@ func TestLoginLogoutAndRoles(t *testing.T) {
 	}
 
 	admin := &client{t: t, handler: handler}
-	admin.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"password1"}})
+	admin.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
 	if code := admin.do("POST", "/sync", nil).Code; code != http.StatusAccepted {
 		t.Fatalf("administrators can synchronize: %v", code)
 	}
@@ -270,15 +270,15 @@ func TestLoginLogoutAndRoles(t *testing.T) {
 
 func TestSessionsEndWhenThePasswordChanges(t *testing.T) {
 	web := usersWeb(t)
-	web.auth.users.Add("alice", "password1", ROLE_ADMIN)
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
 	handler := web.auth.middleware(web.router)
 
 	first := &client{t: t, handler: handler}
-	first.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"password1"}})
+	first.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
 	second := &client{t: t, handler: handler}
-	second.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"password1"}})
+	second.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
 
-	changed := first.do("POST", "/account/password", url.Values{"current": {"password1"}, "password": {"password9"}})
+	changed := first.do("POST", "/account/password", url.Values{"current": {"alpha-secret-11"}, "password": {"india-secret-99"}})
 	if changed.Code != http.StatusSeeOther || !strings.Contains(changed.Header().Get("Location"), "done=password") {
 		t.Fatalf("change password: %v %q", changed.Code, changed.Header().Get("Location"))
 	}
@@ -289,7 +289,7 @@ func TestSessionsEndWhenThePasswordChanges(t *testing.T) {
 		t.Fatalf("other sessions must end: %v", code)
 	}
 
-	wrong := first.do("POST", "/account/password", url.Values{"current": {"nope"}, "password": {"password8"}})
+	wrong := first.do("POST", "/account/password", url.Values{"current": {"nope"}, "password": {"hotel-secret-88"}})
 	if !strings.Contains(wrong.Header().Get("Location"), "error=") {
 		t.Fatalf("the current password is checked: %q", wrong.Header().Get("Location"))
 	}
@@ -297,12 +297,12 @@ func TestSessionsEndWhenThePasswordChanges(t *testing.T) {
 
 func TestTamperedSessionsAreRejected(t *testing.T) {
 	web := usersWeb(t)
-	web.auth.users.Add("alice", "password1", ROLE_ADMIN)
-	web.auth.users.Add("bob", "password2", ROLE_VIEWER)
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	web.auth.users.Add("bob", "bravo-secret-22", ROLE_VIEWER)
 	handler := web.auth.middleware(web.router)
 
 	viewer := &client{t: t, handler: handler}
-	viewer.do("POST", "/login.html", url.Values{"name": {"bob"}, "password": {"password2"}})
+	viewer.do("POST", "/login.html", url.Values{"name": {"bob"}, "password": {"bravo-secret-22"}})
 	parts := strings.Split(viewer.cookies[0].Value, ".")
 	// claim to be alice with bob's signature
 	forged := &client{t: t, handler: handler, cookies: []*http.Cookie{{Name: SESSION_COOKIE, Value: "YWxpY2U." + parts[1] + "." + parts[2]}}}
@@ -317,10 +317,10 @@ func TestTamperedSessionsAreRejected(t *testing.T) {
 
 func TestDeleteAndRoleChangesFromTheUsersPage(t *testing.T) {
 	web := usersWeb(t)
-	web.auth.users.Add("alice", "password1", ROLE_ADMIN)
-	web.auth.users.Add("bob", "password2", ROLE_VIEWER)
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	web.auth.users.Add("bob", "bravo-secret-22", ROLE_VIEWER)
 	admin := &client{t: t, handler: web.auth.middleware(web.router)}
-	admin.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"password1"}})
+	admin.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
 
 	if location := admin.do("POST", "/users/delete", url.Values{"name": {"alice"}}).Header().Get("Location"); !strings.Contains(location, "error=") {
 		t.Fatalf("deleting yourself must be refused: %q", location)
@@ -345,28 +345,30 @@ func TestDeleteAndRoleChangesFromTheUsersPage(t *testing.T) {
 
 func TestBasicAuthForUsersAndRateLimit(t *testing.T) {
 	web := usersWeb(t)
-	web.auth.users.Add("bob", "password2", ROLE_VIEWER)
+	web.auth.users.Add("bob", "bravo-secret-22", ROLE_VIEWER)
 	c := &client{t: t, handler: web.auth.middleware(web.router), ip: "192.0.2.7"}
 
-	if code := c.do("GET", "/index.html", nil, "Authorization", basic("bob", "password2")).Code; code != http.StatusOK {
+	if code := c.do("GET", "/index.html", nil, "Authorization", basic("bob", "bravo-secret-22")).Code; code != http.StatusOK {
 		t.Fatalf("basic authentication of a user: %v", code)
 	}
-	if code := c.do("POST", "/sync", nil, "Authorization", basic("bob", "password2")).Code; code != http.StatusForbidden {
+	if code := c.do("POST", "/sync", nil, "Authorization", basic("bob", "bravo-secret-22")).Code; code != http.StatusForbidden {
 		t.Fatalf("roles apply to basic authentication: %v", code)
 	}
+	// a flood of wrong passwords for an account blocks it, from every address: a botnet
+	// cannot keep guessing one user name from many addresses
 	for i := 0; i < maxLoginFailures; i++ {
 		c.do("GET", "/index.html", nil, "Authorization", basic("bob", "wrong"))
 	}
-	if code := c.do("GET", "/index.html", nil, "Authorization", basic("bob", "password2")).Code; code != http.StatusTooManyRequests {
-		t.Fatalf("too many failures must block the address: %v", code)
+	if code := c.do("GET", "/index.html", nil, "Authorization", basic("bob", "bravo-secret-22")).Code; code != http.StatusTooManyRequests {
+		t.Fatalf("too many failures must block the account: %v", code)
 	}
-	login := c.do("POST", "/login.html", url.Values{"name": {"bob"}, "password": {"password2"}})
+	login := c.do("POST", "/login.html", url.Values{"name": {"bob"}, "password": {"bravo-secret-22"}})
 	if login.Code != http.StatusTooManyRequests || len(c.cookies) != 0 {
 		t.Fatalf("the login form is blocked too: %v", login.Code)
 	}
 	other := &client{t: t, handler: c.handler, ip: "192.0.2.8"}
-	if code := other.do("GET", "/index.html", nil, "Authorization", basic("bob", "password2")).Code; code != http.StatusOK {
-		t.Fatalf("other addresses are not blocked: %v", code)
+	if code := other.do("GET", "/index.html", nil, "Authorization", basic("bob", "bravo-secret-22")).Code; code != http.StatusTooManyRequests {
+		t.Fatalf("the account stays blocked from another address too: %v", code)
 	}
 }
 

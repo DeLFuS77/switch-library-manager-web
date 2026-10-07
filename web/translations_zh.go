@@ -3,6 +3,8 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"This password is too common or too easy to guess. Choose another one.": "该密码太常见或太容易被猜到。请换一个。",
+		"The password must not be the user name.": "密码不能与用户名相同。",
 		"1 thing to look at": "1 项需要查看",
 		"%v files, %v not recognized": "%v 个文件，%v 个未识别",
 		"%v free": "可用 %v",
@@ -710,7 +712,7 @@ func init() {
 		"The library is being updated.":                       "正在更新游戏库。",
 		"The notification could not be sent.":                 "无法发送通知。",
 		"The original could not be deleted.":                  "无法删除原始文件。",
-		"The password must have between 8 and 72 characters.": "密码长度必须为 8 到 72 个字符。",
+		"The password must have between 10 and 72 characters.": "密码长度必须为 10 到 72 个字符。",
 		"The password was changed.":                           "密码已修改。",
 		"The role was changed.":                               "角色已更改。",
 		"The same content is in the library more than once; the copy shown as kept stays.":          "游戏库中有多份相同内容；标记为保留的副本会被保留。",

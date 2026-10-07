@@ -3,6 +3,8 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"This password is too common or too easy to guess. Choose another one.": "Этот пароль слишком распространён или легко угадывается. Выберите другой.",
+		"The password must not be the user name.": "Пароль не должен совпадать с именем пользователя.",
 		"1 thing to look at": "Требует внимания: 1",
 		"%v files, %v not recognized": "Файлов: %v, не распознано: %v",
 		"%v free": "свободно %v",
@@ -710,7 +712,7 @@ func init() {
 		"The library is being updated.":                       "Библиотека обновляется.",
 		"The notification could not be sent.":                 "Не удалось отправить уведомление.",
 		"The original could not be deleted.":                  "Не удалось удалить оригинал.",
-		"The password must have between 8 and 72 characters.": "Пароль должен содержать от 8 до 72 символов.",
+		"The password must have between 10 and 72 characters.": "Пароль должен содержать от 10 до 72 символов.",
 		"The password was changed.":                           "Пароль изменён.",
 		"The role was changed.":                               "Роль изменена.",
 		"The same content is in the library more than once; the copy shown as kept stays.":          "Одно и то же содержимое есть в библиотеке несколько раз; копия, отмеченная как сохраняемая, остаётся.",
