@@ -68,12 +68,7 @@ func compressWebWithLibrary(t *testing.T) (*Web, string, func()) {
 	web.HandleCompress()
 	// the rescan that follows a compression writes in the temporary folders: it ends before
 	// they are removed
-	t.Cleanup(func() {
-		for deadline := time.Now().Add(30 * time.Second); web.state.IsSynchronizing() && time.Now().Before(deadline); {
-			time.Sleep(20 * time.Millisecond)
-		}
-		web.afterScanWork.Wait()
-	})
+	t.Cleanup(func() { waitForBackgroundWork(web) })
 	return web, path, func() { web.state.set(nil, library) }
 }
 
