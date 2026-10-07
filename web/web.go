@@ -576,6 +576,9 @@ func (web *Web) Start() {
 	if isDemoMode() {
 		handler = web.demoReadOnly(handler)
 	}
+	if err := web.auth.envPasswordWeak; err != nil {
+		web.sugarLogger.Warnf("[Weak password] SLM_AUTH_PASSWORD still works, but it is weak: %s Change it to one of at least %d characters that is not common.", err.Error(), minPasswordLength)
+	}
 	if web.auth.Enabled() {
 		web.sugarLogger.Info("[Authentication enabled]")
 	} else if web.auth.remoteWithoutLogin {

@@ -65,6 +65,8 @@ type AuthInfo struct {
 	User    string
 	IsAdmin bool
 	FromEnv bool
+	// the password of SLM_AUTH_PASSWORD is weak: shown to the administrators
+	WeakEnvPassword bool
 }
 
 type principalKey struct{}
@@ -90,6 +92,8 @@ type Auth struct {
 	revoked *revokedSessions
 	// login disabled: requests from outside the local network are refused, unless allowed
 	remoteWithoutLogin bool
+	// why the password of SLM_AUTH_PASSWORD is weak, or nil
+	envPasswordWeak error
 }
 
 func newAuth(dataFolder string) (*Auth, error) {
@@ -109,7 +113,8 @@ func newAuth(dataFolder string) (*Auth, error) {
 		return nil, err
 	}
 	return &Auth{users: users, envUser: envUser, envPassword: envPassword, secret: secret, limiter: newLoginLimiter(),
-		revoked: loadRevokedSessions(dataFolder), remoteWithoutLogin: os.Getenv(REMOTE_WITHOUT_LOGIN_ENV) == "true"}, nil
+		revoked: loadRevokedSessions(dataFolder), remoteWithoutLogin: os.Getenv(REMOTE_WITHOUT_LOGIN_ENV) == "true",
+		envPasswordWeak: weakEnvPassword(envUser, envPassword)}, nil
 }
 
 // loadSessionSecret reads the key that signs the session cookies, creating it on first use.
@@ -531,7 +536,8 @@ func clientIp(r *http.Request) string {
 func (web *Web) authInfo(r *http.Request) AuthInfo {
 	principal := principalFrom(r)
 	enabled := web.auth != nil && web.auth.Enabled()
-	return AuthInfo{Enabled: enabled, User: principal.Name, IsAdmin: principal.IsAdmin(), FromEnv: principal.Source == "env"}
+	weak := web.auth != nil && web.auth.envPasswordWeak != nil
+	return AuthInfo{Enabled: enabled, User: principal.Name, IsAdmin: principal.IsAdmin(), FromEnv: principal.Source == "env", WeakEnvPassword: weak && principal.IsAdmin()}
 }
 
 // loginLimiter slows and blocks failed logins. It keys on both the client address and the

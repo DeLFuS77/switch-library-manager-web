@@ -3,6 +3,8 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"The password of SLM_AUTH_PASSWORD is weak.": "Das Passwort in SLM_AUTH_PASSWORD ist schwach.",
+		"It still works, but change it to one of at least 10 characters that is not common, in the settings of the container, and restart it.": "Es funktioniert weiterhin, aber ändere es in den Einstellungen des Containers in eines mit mindestens 10 Zeichen, das nicht verbreitet ist, und starte ihn neu.",
 		"The app is free. A tip on Ko-fi supports its development.": "Die App ist kostenlos. Ein Trinkgeld auf Ko-fi unterstützt ihre Entwicklung.",
 		"Support": "Unterstützen",
 		"Search games, series, collections and pages": "Spiele, Reihen, Sammlungen und Seiten suchen",

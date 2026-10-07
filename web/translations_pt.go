@@ -3,6 +3,8 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"The password of SLM_AUTH_PASSWORD is weak.": "A palavra-passe de SLM_AUTH_PASSWORD é fraca.",
+		"It still works, but change it to one of at least 10 characters that is not common, in the settings of the container, and restart it.": "Continua a funcionar, mas altere-a para uma com pelo menos 10 caracteres que não seja comum, nas definições do contentor, e reinicie-o.",
 		"The app is free. A tip on Ko-fi supports its development.": "A aplicação é gratuita. Uma gorjeta no Ko-fi apoia o seu desenvolvimento.",
 		"Support": "Apoiar",
 		"Search games, series, collections and pages": "Pesquisar jogos, séries, coleções e páginas",

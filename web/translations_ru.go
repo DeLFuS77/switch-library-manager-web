@@ -3,6 +3,8 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"The password of SLM_AUTH_PASSWORD is weak.": "Пароль в SLM_AUTH_PASSWORD слабый.",
+		"It still works, but change it to one of at least 10 characters that is not common, in the settings of the container, and restart it.": "Он по-прежнему работает, но замените его в настройках контейнера на нераспространённый пароль не короче 10 символов и перезапустите контейнер.",
 		"The app is free. A tip on Ko-fi supports its development.": "Приложение бесплатное. Чаевые на Ko-fi поддерживают его разработку.",
 		"Support": "Поддержать",
 		"Search games, series, collections and pages": "Поиск игр, серий, коллекций и страниц",

@@ -3,6 +3,8 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"The password of SLM_AUTH_PASSWORD is weak.": "SLM_AUTH_PASSWORD의 비밀번호가 약합니다.",
+		"It still works, but change it to one of at least 10 characters that is not common, in the settings of the container, and restart it.": "계속 사용할 수 있지만, 컨테이너 설정에서 흔하지 않은 10자 이상의 비밀번호로 바꾸고 다시 시작하세요.",
 		"The app is free. A tip on Ko-fi supports its development.": "이 앱은 무료입니다. Ko-fi 후원이 개발에 도움이 됩니다.",
 		"Support": "후원하기",
 		"Search games, series, collections and pages": "게임, 시리즈, 컬렉션, 페이지 검색",
