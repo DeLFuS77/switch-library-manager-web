@@ -1,5 +1,6 @@
 # Creates the GitHub release for a version tag, using the matching section of
-# CHANGELOG.md as release notes. GitHub attaches the source code archives.
+# CHANGELOG.md as release notes, with the program for Windows, macOS, Linux and Raspberry Pi
+# attached. GitHub attaches the source code archives.
 name: Release
 
 on:
@@ -49,6 +50,30 @@ jobs:
             exit 1
           fi
 
+      - name: Build the programs
+        run: bash .github/scripts/build_release.sh "${GITHUB_REF_NAME}"
+
+      - name: Add how to download
+        run: |
+          cat >> release-notes.md <<'EOF'
+
+          ### Downloads
+
+          | System | File |
+          |---|---|
+          | Windows (most PCs) | `windows-x64.zip` |
+          | Windows on ARM | `windows-arm64.zip` |
+          | macOS with Apple chip (M1 or newer) | `macos-apple.tar.gz` |
+          | macOS with Intel chip | `macos-intel.tar.gz` |
+          | Linux, PC | `linux-x64.tar.gz` |
+          | Linux on ARM 64-bit (Raspberry Pi 4/5 with a 64-bit system) | `linux-arm64.tar.gz` |
+          | Raspberry Pi with a 32-bit system | `linux-armv7.tar.gz` |
+
+          Unpack it and run the program: on Windows and macOS the app opens in the browser, on Linux open
+          http://localhost:3000. The settings and the library data are kept next to the program. Docker and Unraid
+          users update the container instead. `SHA256SUMS.txt` has the checksums of the files.
+          EOF
+
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -56,4 +81,5 @@ jobs:
           gh release create "${GITHUB_REF_NAME}" \
             --title "${GITHUB_REF_NAME}" \
             --notes-file release-notes.md \
-            --verify-tag
+            --verify-tag \
+            dist/*.zip dist/*.tar.gz dist/SHA256SUMS.txt
