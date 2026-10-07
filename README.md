@@ -1,14 +1,20 @@
 # Switch Library Manager Web
 
+[![Support on Ko-fi](https://img.shields.io/badge/Support_on-Ko--fi-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/delfus77)
 [![Release](https://img.shields.io/github/v/release/DeLFuS77/switch-library-manager-web?sort=semver)](https://github.com/DeLFuS77/switch-library-manager-web/releases)
 [![Docker Hub](https://img.shields.io/docker/pulls/delfus77/switch-library-manager-web?logo=docker)](https://hub.docker.com/r/delfus77/switch-library-manager-web)
 [![Tests](https://github.com/DeLFuS77/switch-library-manager-web/actions/workflows/test.yml/badge.svg)](https://github.com/DeLFuS77/switch-library-manager-web/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/LICENSE)
-[![Support on Ko-fi](https://img.shields.io/badge/Ko--fi-support-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/delfus77)
 
 Manage the backups of your Nintendo Switch games from the browser: see which updates, DLC and games you are missing,
 find broken or duplicate files, keep your folders tidy and save space with NSZ compression. It runs on Windows, macOS,
 Linux, Docker, NAS and Raspberry Pi.
+
+<p align="center">
+  <a href="https://ko-fi.com/delfus77"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi" height="36"></a>
+  <br>
+  <sub>❤️ Free and open source, and it will stay free. If it saves you time, a coffee helps keep it going.</sub>
+</p>
 
 > Built on the work of [@giwty](https://github.com/giwty), who created
 > [Switch Library Manager](https://github.com/giwty/switch-library-manager), [@dtrunk90](https://github.com/dtrunk90),
@@ -432,7 +438,7 @@ on did not publish a license, so their code remains under the copyright of their
 
 ### Thanks
 
-The app is free and will stay free. If it saves you time, you can support its development with a tip on
+❤️ The app is free and will stay free. If it saves you time, you can support its development with a tip on
 [Ko-fi](https://ko-fi.com/delfus77): it is entirely voluntary and unlocks nothing. Starring the repository and reporting bugs
 help too.
 
