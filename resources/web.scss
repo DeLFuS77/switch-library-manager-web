@@ -291,22 +291,14 @@ h3,
 	}
 }
 
-// the menu is horizontal from 1400px; until 1800px only the logo is shown, so the longer
+// the menu is horizontal from 1400px; until 1600px only the logo is shown, so the longer
 // labels of other languages fit
-@media (min-width: 1400px) and (max-width: 1799.98px) {
+@media (min-width: 1400px) and (max-width: 1599.98px) {
 	.navbar-brand .brand-text {
 		@include visually-hidden();
 	}
 }
 
-// and the links are closer together until there is room for all of them
-@media (min-width: 1400px) and (max-width: 1799.98px) {
-	.app-nav:not(.app-nav-compact) .nav-link {
-		gap: .3rem;
-		padding-inline: .4rem;
-		font-size: .9rem;
-	}
-}
 
 // the tasks icon turns while background work runs
 @media (prefers-reduced-motion: no-preference) {
@@ -3095,5 +3087,55 @@ h3,
 
 	.featured-release::before {
 		opacity: 1;
+	}
+}
+
+// wide screens: the sections grouped in menus, each with its icon and number
+.nav-menu {
+	min-width: 15rem;
+	padding: .4rem;
+
+	.dropdown-header {
+		font-size: .72rem;
+		text-transform: uppercase;
+		letter-spacing: .05em;
+	}
+}
+
+.nav-menu-item {
+	display: flex;
+	align-items: center;
+	gap: .6rem;
+	border-radius: $border-radius;
+	padding: .5rem .65rem;
+
+	> .bi {
+		width: 1.2rem;
+		text-align: center;
+		color: var(--bs-secondary-color);
+	}
+
+	&.active,
+	&:active {
+		color: var(--bs-primary);
+		background: var(--slm-accent-soft);
+
+		> .bi {
+			color: inherit;
+		}
+	}
+}
+
+@include media-breakpoint-up(xxl) {
+	.app-nav-grouped {
+		gap: .25rem;
+
+		.nav-link {
+			padding-inline: .8rem;
+		}
+	}
+
+	.app-nav .dropdown-toggle.active {
+		color: var(--bs-emphasis-color);
 	}
 }

@@ -3,6 +3,9 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Pending": "Te doen",
+		"Discover": "Ontdekken",
+		"Tools": "Hulpmiddelen",
 		"Login is off.": "Inloggen staat uit.",
 		"Anyone on your network can change or delete your library. Create an administrator to protect the app, above all if it can be reached from the internet.": "Iedereen in je netwerk kan je bibliotheek wijzigen of verwijderen. Maak een beheerder aan om de app te beschermen, vooral als hij vanaf internet bereikbaar is.",
 		"Create an administrator": "Beheerder aanmaken",

@@ -3,6 +3,9 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Pending": "In sospeso",
+		"Discover": "Scopri",
+		"Tools": "Strumenti",
 		"Login is off.": "L'accesso è disattivato.",
 		"Anyone on your network can change or delete your library. Create an administrator to protect the app, above all if it can be reached from the internet.": "Chiunque nella tua rete può modificare o eliminare la tua libreria. Crea un amministratore per proteggere l'app, soprattutto se è raggiungibile da Internet.",
 		"Create an administrator": "Crea un amministratore",

@@ -3,6 +3,9 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Pending": "待处理",
+		"Discover": "发现",
+		"Tools": "工具",
 		"Login is off.": "登录已关闭。",
 		"Anyone on your network can change or delete your library. Create an administrator to protect the app, above all if it can be reached from the internet.": "您网络中的任何人都可以更改或删除您的游戏库。请创建管理员来保护应用，尤其是当它可以从互联网访问时。",
 		"Create an administrator": "创建管理员",
