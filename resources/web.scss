@@ -1527,7 +1527,13 @@ h3,
 // each section appears as a page of its own
 @media (prefers-reduced-motion: no-preference) {
 	.has-settings-sections .settings-section:not([hidden]) {
-		animation: slm-fade-up .3s cubic-bezier(.2, .7, .2, 1) both;
+		animation: slm-fade-in .2s ease both;
+	}
+}
+
+@keyframes slm-fade-in {
+	from {
+		opacity: 0;
 	}
 }
 
@@ -3190,4 +3196,10 @@ h3,
 
 .check-error .check-hint {
 	color: var(--bs-danger-text-emphasis);
+}
+
+// the space of the scroll bar is always kept, so pages shorter than the window (and the
+// sections of Settings) do not move sideways when the bar appears or goes away
+html {
+	scrollbar-gutter: stable;
 }
