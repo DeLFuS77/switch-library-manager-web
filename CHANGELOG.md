@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.25.1
+
+### Improvements
+
+- The app is free and will stay free. If it saves you time, you can now support its development with a tip on
+  [Ko-fi](https://ko-fi.com/delfus77): a small **Support** link with a heart in the footer of every page, the donate
+  button of the Unraid template and the Sponsor button of the repository. It is entirely voluntary and unlocks nothing.
+
 ## 1.25.0
 
 ### Important
