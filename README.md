@@ -4,6 +4,7 @@
 [![Docker Hub](https://img.shields.io/docker/pulls/delfus77/switch-library-manager-web?logo=docker)](https://hub.docker.com/r/delfus77/switch-library-manager-web)
 [![Tests](https://github.com/DeLFuS77/switch-library-manager-web/actions/workflows/test.yml/badge.svg)](https://github.com/DeLFuS77/switch-library-manager-web/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/LICENSE)
+[![Support on Ko-fi](https://img.shields.io/badge/Ko--fi-support-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/delfus77)
 
 Manage the backups of your Nintendo Switch games from the browser: see which updates, DLC and games you are missing,
 find broken or duplicate files, keep your folders tidy and save space with NSZ compression. It runs on Windows, macOS,
@@ -430,6 +431,10 @@ The changes made in this repository are published under the [MIT license](https:
 on did not publish a license, so their code remains under the copyright of their authors; see [NOTICE](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/NOTICE.md).
 
 ### Thanks
+
+The app is free and will stay free. If it saves you time, you can support its development with a tip on
+[Ko-fi](https://ko-fi.com/delfus77): it is entirely voluntary and unlocks nothing. Starring the repository and reporting bugs
+help too.
 
 - Based on [giwty's switch-library-manager](https://github.com/giwty/switch-library-manager) and
   [dtrunk90's switch-library-manager-web](https://github.com/dtrunk90/switch-library-manager-web)

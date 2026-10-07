@@ -3,6 +3,8 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"The app is free. A tip on Ko-fi supports its development.": "このアプリは無料です。Ko-fi でのチップが開発の支えになります。",
+		"Support": "支援する",
 		"Search games, series, collections and pages": "ゲーム、シリーズ、コレクション、ページを検索",
 		"Search results": "検索結果",
 		"Go to": "移動",

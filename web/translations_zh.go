@@ -3,6 +3,8 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"The app is free. A tip on Ko-fi supports its development.": "本应用免费。在 Ko-fi 打赏可以支持它的开发。",
+		"Support": "支持",
 		"Search games, series, collections and pages": "搜索游戏、系列、收藏和页面",
 		"Search results": "搜索结果",
 		"Go to": "前往",

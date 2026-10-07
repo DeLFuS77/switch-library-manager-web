@@ -3,6 +3,8 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"The app is free. A tip on Ko-fi supports its development.": "이 앱은 무료입니다. Ko-fi 후원이 개발에 도움이 됩니다.",
+		"Support": "후원하기",
 		"Search games, series, collections and pages": "게임, 시리즈, 컬렉션, 페이지 검색",
 		"Search results": "검색 결과",
 		"Go to": "이동",

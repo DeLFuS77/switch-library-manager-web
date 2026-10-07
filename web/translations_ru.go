@@ -3,6 +3,8 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"The app is free. A tip on Ko-fi supports its development.": "Приложение бесплатное. Чаевые на Ko-fi поддерживают его разработку.",
+		"Support": "Поддержать",
 		"Search games, series, collections and pages": "Поиск игр, серий, коллекций и страниц",
 		"Search results": "Результаты поиска",
 		"Go to": "Перейти",

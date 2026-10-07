@@ -35,8 +35,8 @@
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>
-  <DonateText/>
-  <DonateLink/>
+  <DonateText>Free and open source. If it saves you time, you can support its development with a tip on Ko-fi.</DonateText>
+  <DonateLink>https://ko-fi.com/delfus77</DonateLink>
   <Requires>Your own prod.keys, dumped from your console, in the appdata folder.</Requires>
   <Config Name="WebUI port" Target="3000" Default="3000" Mode="tcp" Description="Port of the web interface." Type="Port" Display="always" Required="true" Mask="false">3000</Config>
   <Config Name="Appdata" Target="/usr/local/share/switch-library-manager-web" Default="/mnt/user/appdata/switch-library-manager-web" Mode="rw" Description="Settings, caches and covers. Put your prod.keys (and optionally title.keys) here." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/switch-library-manager-web</Config>

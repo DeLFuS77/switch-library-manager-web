@@ -5,6 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"The app is free. A tip on Ko-fi supports its development.": "La app es gratis. Una propina en Ko-fi apoya su desarrollo.",
+		"Support": "Apoyar",
 		"Search games, series, collections and pages": "Buscar juegos, sagas, colecciones y páginas",
 		"Search results": "Resultados de la búsqueda",
 		"Go to": "Ir a",

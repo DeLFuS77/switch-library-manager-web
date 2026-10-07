@@ -3,6 +3,8 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"The app is free. A tip on Ko-fi supports its development.": "A aplicação é gratuita. Uma gorjeta no Ko-fi apoia o seu desenvolvimento.",
+		"Support": "Apoiar",
 		"Search games, series, collections and pages": "Pesquisar jogos, séries, coleções e páginas",
 		"Search results": "Resultados da pesquisa",
 		"Go to": "Ir para",
