@@ -30,12 +30,13 @@ func (web *Web) downloadCoverFallbacks() {
 	if _, err := os.Stat(path); err != nil {
 		etag = ""
 	}
-	file, newEtag, err := db.LoadAndUpdateFile([]string{settings.DEFAULT_COVERS_JSON_URL}, path, etag)
+	result, err := db.LoadAndUpdateAllowingEmpty([]string{settings.DEFAULT_COVERS_JSON_URL}, path, etag)
 	if err != nil {
 		web.sugarLogger.Debugf("Cover fallbacks are not available: %v", err)
 		return
 	}
-	file.Close()
+	result.File.Close()
+	newEtag := result.Etag
 	if newEtag != etag {
 		settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
 			if s.LocalizedTitlesEtags == nil {

@@ -175,7 +175,24 @@ func ReadSettings(dataFolder string) *AppSettings {
 
 // verifySettings fills in values missing from settings files written by older versions.
 // Ported from https://github.com/trembon/switch-library-manager
+// CONTAINER_GAMES_FOLDER is where the Docker image mounts the games.
+const CONTAINER_GAMES_FOLDER = "/mnt/roms"
+
+// defaultGamesFolder is the folder of the games of the container, or none on a computer: the
+// user then chooses it in Settings.
+func defaultGamesFolder() string {
+	if info, err := os.Stat(CONTAINER_GAMES_FOLDER); err == nil && info.IsDir() {
+		return CONTAINER_GAMES_FOLDER
+	}
+	return ""
+}
+
 func verifySettings(dataFolder string, settings *AppSettings) *AppSettings {
+	// settings written on a computer by an older version have the folder of the container,
+	// which does not exist there
+	if settings.Folder == CONTAINER_GAMES_FOLDER && defaultGamesFolder() == "" {
+		settings.Folder = ""
+	}
 	// the repository moved to another account: follow it
 	settings.TitlesJsonUrl = movedRepositoryUrl(settings.TitlesJsonUrl)
 	settings.VersionsJsonUrl = movedRepositoryUrl(settings.VersionsJsonUrl)
@@ -259,7 +276,7 @@ func saveDefaultSettings(dataFolder string) *AppSettings {
 		LocalizedTitlesJsonUrl: DEFAULT_LOCALIZED_TITLES_JSON_URL,
 		VersionsEtag:           DEFAULT_VERSIONS_ETAG,
 		Prodkeys:               "", // empty: look for prod.keys in the data folder, then ~/.switch
-		Folder:                 "/mnt/roms",
+		Folder:                 defaultGamesFolder(),
 		ScanFolders:            []string{},
 		IgnoreDLCTitleIds:      []string{},
 		IgnoreUpdateTitleIds:   []string{},

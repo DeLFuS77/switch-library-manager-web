@@ -107,6 +107,15 @@ type UpdateResult struct {
 // document, and only then replace the local copy, so an interrupted download never
 // damages it. Temporary failures are retried before the next URL is tried.
 func LoadAndUpdate(urls []string, filePath string, etag string) (UpdateResult, error) {
+	return loadAndUpdate(urls, filePath, etag, false)
+}
+
+// LoadAndUpdateAllowingEmpty is LoadAndUpdate for files that may be an empty object.
+func LoadAndUpdateAllowingEmpty(urls []string, filePath string, etag string) (UpdateResult, error) {
+	return loadAndUpdate(urls, filePath, etag, true)
+}
+
+func loadAndUpdate(urls []string, filePath string, etag string, allowEmpty bool) (UpdateResult, error) {
 	tmpName := filePath + ".tmp"
 	defer os.Remove(tmpName)
 
@@ -129,7 +138,7 @@ func LoadAndUpdate(urls []string, filePath string, etag string) (UpdateResult, e
 			continue
 		}
 
-		if err := validateJsonObjectFile(tmpName); err != nil {
+		if err := validateJsonObjectFile(tmpName); err != nil && !(allowEmpty && errors.Is(err, errEmptyJsonObject)) {
 			zap.S().Infof("ignoring new update [%v], reason - [malformed json file: %v]", url, err)
 			continue
 		}
@@ -234,6 +243,8 @@ func downloadToFile(url string, etag string, target string) (string, error) {
 
 // validateJsonObjectFile checks that the file holds one non-empty JSON object. The
 // document is read token by token, so a file of hundreds of megabytes is not loaded.
+var errEmptyJsonObject = errors.New("empty JSON object")
+
 func validateJsonObjectFile(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
@@ -250,7 +261,7 @@ func validateJsonObjectFile(path string) error {
 		return errors.New("not a JSON object")
 	}
 	if !decoder.More() {
-		return errors.New("empty JSON object")
+		return errEmptyJsonObject
 	}
 	depth := 1
 	for depth > 0 {
