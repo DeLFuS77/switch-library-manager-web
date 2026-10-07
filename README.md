@@ -289,6 +289,10 @@ The titles database is built every 6 hours from [blawar/titledb](https://github.
 [Update title data](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/.github/workflows/update-title-data.yml) workflow and published in the `data` release. If it
 cannot be downloaded, a mirror is used.
 
+Every week the app keeps a copy of its configuration (settings, users, favorites, collections, wishlist and history)
+in the `backups` folder of the data folder, the last 5. **Settings > Backup** lists them to download or restore, and
+makes one at any moment.
+
 ## Updating
 
 - **Unraid, installed from the Apps tab:** Docker tab > Check for Updates > update.
@@ -315,6 +319,10 @@ docker run --rm -p 3000:3000 -e SLM_DEMO=true delfus77/switch-library-manager-we
 ```
 
 ## Troubleshooting
+
+**Diagnostics** (in the footer and in Settings) checks at a glance the keys, the library folders, the titles database,
+the free space, the automatic copies and the protection, and tells what to do about what is wrong. **Copy the report**
+to ask for help: it holds no key and no password.
 
 **The web interface does not open.** Check that the port is published (`-p 3000:3000`, or the WebUI port on Unraid) and
 open `http://<address of the server>:3000`. `docker logs switch-library-manager-web` shows why the app stopped, if it

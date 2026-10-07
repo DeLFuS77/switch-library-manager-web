@@ -1316,6 +1316,31 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	}
 
+	// copies of the configuration kept by the app: make one now, or restore one
+	document.querySelectorAll('[data-auto-backup], [data-auto-restore]').forEach(button => {
+		button.addEventListener('click', () => {
+			const name = button.dataset.autoRestore;
+			if (name && !window.confirm(button.dataset.confirm)) {
+				return;
+			}
+			button.disabled = true;
+			fetch(name ? `/backup/auto/${encodeURIComponent(name)}/restore` : '/backup/auto', { method: 'POST' })
+				.then(response => response.json().then(json => ({ ok: response.ok, json })))
+				.then(({ ok, json }) => {
+					if (ok) {
+						insertAlert(mainContainer(), 'alert-success', 'bi-check-circle-fill', json.strongMessage, json.message);
+						setTimeout(() => window.location.reload(), 1500);
+					} else {
+						button.disabled = false;
+						insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', json.globalError.strongMessage, json.globalError.message);
+					}
+				})
+				.catch(() => {
+					button.disabled = false;
+				});
+		});
+	});
+
 	// installable app; browsers only allow it on HTTPS or localhost
 	if ('serviceWorker' in navigator && window.isSecureContext) {
 		navigator.serviceWorker.register('/sw.js').catch(() => undefined);

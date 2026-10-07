@@ -1,0 +1,33 @@
+{{define "title"}}{{t "Diagnostics"}}{{end}}
+{{define "main"}}
+			{{- template "pageHeader" (dict "Title" (t "Diagnostics") "Count" -1 "Subtitle" (t "What the app needs to work, checked at a glance. Copy the report to ask for help: it holds no key and no password."))}}
+			<div class="d-flex flex-wrap align-items-center gap-2 mb-4">
+				{{- if .Problems}}
+				<span class="chip chip-warning"><span class="bi bi-exclamation-triangle" aria-hidden="true"></span>{{if eq .Problems 1}}{{t "1 thing to look at"}}{{else}}{{t "%v things to look at" .Problems}}{{end}}</span>
+				{{- else}}
+				<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Everything is fine"}}</span>
+				{{- end}}
+				<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill ms-auto" data-copy="{{.Report}}" data-copied="{{t "Copied"}}"><span class="bi bi-clipboard me-1" aria-hidden="true"></span><span data-copy-label>{{t "Copy the report"}}</span></button>
+			</div>
+			<div class="diagnostics-grid">
+				{{- range .Groups}}
+				<section class="surface">
+					<h2 class="section-title"><span class="bi {{.Icon}}" aria-hidden="true"></span>{{.Title}}</h2>
+					<ul class="list-unstyled mb-0 check-list">
+						{{- range .Checks}}
+						<li class="check-row check-{{.Status}}">
+							<span class="check-icon bi {{if eq .Status "ok"}}bi-check-circle-fill{{else if eq .Status "warn"}}bi-exclamation-triangle-fill{{else if eq .Status "error"}}bi-x-circle-fill{{else}}bi-info-circle{{end}}" aria-hidden="true"></span>
+							<div class="min-w-0 flex-grow-1">
+								<div class="d-flex flex-wrap justify-content-between gap-2">
+									<span class="check-label text-break">{{.Label}}</span>
+									<span class="check-value text-break">{{.Value}}</span>
+								</div>
+								{{- with .Hint}}<div class="check-hint">{{.}}</div>{{end}}
+							</div>
+						</li>
+						{{- end}}
+					</ul>
+				</section>
+				{{- end}}
+			</div>
+{{- end}}

@@ -3097,3 +3097,66 @@ h3,
 		opacity: 1;
 	}
 }
+
+// Diagnostics: the checks of each part, with their state
+.diagnostics-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 26rem), 1fr));
+	gap: 1rem;
+	align-items: start;
+}
+
+.check-row {
+	display: flex;
+	gap: .65rem;
+	padding: .6rem 0;
+	border-top: 1px solid var(--slm-border);
+
+	&:first-child {
+		border-top: 0;
+		padding-top: 0;
+	}
+}
+
+.check-icon {
+	flex-shrink: 0;
+	margin-top: .15rem;
+	color: var(--bs-secondary-color);
+}
+
+.check-ok .check-icon {
+	color: var(--bs-success);
+}
+
+.check-warn .check-icon {
+	color: var(--bs-warning);
+}
+
+.check-error .check-icon {
+	color: var(--bs-danger);
+}
+
+.check-label {
+	font-weight: 600;
+	font-size: .9rem;
+}
+
+.check-value {
+	font-size: .9rem;
+	color: var(--bs-secondary-color);
+	text-align: right;
+}
+
+.check-hint {
+	margin-top: .25rem;
+	font-size: .8rem;
+	color: var(--bs-secondary-color);
+}
+
+.check-warn .check-hint {
+	color: var(--bs-warning-text-emphasis);
+}
+
+.check-error .check-hint {
+	color: var(--bs-danger-text-emphasis);
+}

@@ -61,14 +61,18 @@ jobs:
           python .github/scripts/build_localized_titles.py nut/titledb/IT.it.json generated-data/titles.it.json
           # the Brazilian store has the most titles in Portuguese
           python .github/scripts/build_localized_titles.py nut/titledb/BR.pt.json generated-data/titles.pt.json
-          # more languages, when titledb has their store (Chinese: mainland China, else Hong Kong)
-          for pair in nl:NL.nl ru:RU.ru ja:JP.ja ko:KR.ko zh:CN.zh zh:HK.zh; do
+          # more languages, when titledb has their store
+          for pair in nl:NL.nl ru:RU.ru ja:JP.ja ko:KR.ko; do
             lang="${pair%%:*}"
             store="nut/titledb/${pair#*:}.json"
-            if [ -f "$store" ] && [ ! -f "generated-data/titles.$lang.json" ]; then
+            if [ -f "$store" ]; then
               python .github/scripts/build_localized_titles.py "$store" "generated-data/titles.$lang.json"
             fi
           done
+          # Chinese is sold in several stores, each with few titles: all of them together
+          if [ -f nut/titledb/CN.zh.json ] || [ -f nut/titledb/HK.zh.json ] || [ -f nut/titledb/TW.zh.json ]; then
+            python .github/scripts/build_localized_titles.py nut/titledb/CN.zh.json generated-data/titles.zh.json nut/titledb/HK.zh.json nut/titledb/TW.zh.json
+          fi
 
       # covers of other stores for titles without one in the US store
       - name: Generate cover fallbacks

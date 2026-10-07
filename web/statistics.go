@@ -178,10 +178,11 @@ func (web *Web) buildStatistics(lang string) Statistics {
 
 	if switchDB != nil {
 		settingsObj := settings.ReadSettings(web.dataFolder)
-		missingUpdates := web.missingUpdates()
-		for _, title := range missingUpdates {
-			// DLC updates are listed as well, only base games count here
-			if strings.HasSuffix(strings.ToLower(title.Attributes.Id), "000") {
+		// the same games as the "Update available" filter of the library, so both numbers match
+		hideDemos := settingsObj.HideDemoGames
+		library := web.derived("library:"+lang, func() any { return web.buildLibrary(lang) }).([]TitleItem)
+		for _, item := range library {
+			if item.UpdateAvailable && !(hideDemos && item.Demo) {
 				stats.GamesWithUpdate++
 			}
 		}
