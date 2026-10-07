@@ -104,7 +104,7 @@ $flag-icons-path: "/resources/vendor/flag-icons/flags";
 @font-face {
 	font-family: "Inter Variable";
 	font-style: normal;
-	font-display: swap;
+	font-display: optional;
 	font-weight: 100 900;
 	src: url("/resources/vendor/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2") format("woff2-variations");
 	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
@@ -113,7 +113,7 @@ $flag-icons-path: "/resources/vendor/flag-icons/flags";
 @font-face {
 	font-family: "Inter Variable";
 	font-style: normal;
-	font-display: swap;
+	font-display: optional;
 	font-weight: 100 900;
 	src: url("/resources/vendor/@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2") format("woff2-variations");
 	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
@@ -2106,7 +2106,6 @@ h3,
 @keyframes slm-page-in {
 	from {
 		opacity: 0;
-		transform: translateY(8px);
 	}
 }
 
@@ -3202,4 +3201,27 @@ h3,
 // sections of Settings) do not move sideways when the bar appears or goes away
 html {
 	scrollbar-gutter: stable;
+}
+
+.closed-slm-no-login-notice [data-remember-close="slm-no-login-notice"] {
+	display: none !important;
+}
+
+// Settings: only the section in the address is shown, already in the first paint
+html[data-section] .settings-section {
+	display: none;
+}
+
+html[data-section="library"] #library,
+html[data-section="ignored"] #ignored,
+html[data-section="general"] #general,
+html[data-section="background"] #background,
+html[data-section="compression"] #compression,
+html[data-section="notifications"] #notifications,
+html[data-section="backup"] #backup {
+	display: block;
+}
+
+html[data-section="backup"] #settingsForm .save-bar {
+	display: none !important;
 }

@@ -1180,6 +1180,7 @@ function initSettingsSections() {
 		sections.forEach(section => {
 			section.hidden = section !== target;
 		});
+		document.documentElement.setAttribute('data-section', target.id);
 		links.forEach(link => {
 			const active = link.getAttribute('href') === `#${target.id}`;
 			link.classList.toggle('active', active);
@@ -1478,6 +1479,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 		if (Date.now() - closed > 7 * 24 * 3600 * 1000) {
 			notice.hidden = false;
+		} else {
+			notice.hidden = true;
 		}
 		notice.addEventListener('closed.bs.alert', () => {
 			try {
