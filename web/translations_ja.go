@@ -3,6 +3,8 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"This password is too common or too easy to guess. Choose another one.": "このパスワードはよく使われていて推測されやすいです。別のものにしてください。",
+		"The password must not be the user name.": "パスワードをユーザー名と同じにはできません。",
 		"1 thing to look at": "確認が必要な項目 1 件",
 		"%v files, %v not recognized": "%v 個のファイル、未認識 %v 個",
 		"%v free": "空き %v",
@@ -710,7 +712,7 @@ func init() {
 		"The library is being updated.":                       "ライブラリを更新中です。",
 		"The notification could not be sent.":                 "通知を送信できませんでした。",
 		"The original could not be deleted.":                  "元のファイルを削除できませんでした。",
-		"The password must have between 8 and 72 characters.": "パスワードは8〜72文字にしてください。",
+		"The password must have between 10 and 72 characters.": "パスワードは10〜72文字にしてください。",
 		"The password was changed.":                           "パスワードを変更しました。",
 		"The role was changed.":                               "権限を変更しました。",
 		"The same content is in the library more than once; the copy shown as kept stays.":          "同じコンテンツがライブラリに複数あります。「残す」と表示されたファイルが残ります。",

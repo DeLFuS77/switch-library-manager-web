@@ -262,11 +262,17 @@ administrator to require a login; you are logged in as that administrator right 
 | Read only | Browse the library and download files; the controls that change something are hidden |
 
 - Passwords are stored as bcrypt hashes in `users.json` in the data folder. Every user can change their own password
-  in **My account**; a new password ends the other sessions of that user.
-- Logins last 30 days; **Log out** ends the session for good, also on a copied cookie. After 10 failed logins an
-  address is blocked for 15 minutes (behind a reverse proxy, the address of the client that the proxy reports).
+  in **My account**; a new password ends the other sessions of that user. A password needs at least 10 characters and
+  cannot be a very common one or the user name.
+- Logins last 30 days; **Log out** ends the session for good, also on a copied cookie.
+- **Protection against brute force and bots** (a botnet trying lists of user names and passwords): after a few failed
+  logins each attempt is slowed down a little, and after 10 the address **and** the account are blocked, so guessing
+  one account from many addresses, or many accounts from one address, are both stopped. The block grows with each
+  further failure (up to a day for an address, an hour for an account), and a flood from many addresses at once slows
+  every attempt. Behind a reverse proxy the real client address is used, not the proxy's, and forged forwarded
+  addresses from outside the local network are ignored.
 - An administrator can also be set with the environment variables `SLM_AUTH_USERNAME` and `SLM_AUTH_PASSWORD`, which
-  is useful when a password was forgotten.
+  is useful when a password was forgotten; a weak `SLM_AUTH_PASSWORD` is refused.
 
 - If another service already protects the app (a reverse proxy with its own login, a VPN) and you want no users, set
   `SLM_ALLOW_REMOTE_WITHOUT_LOGIN=true` so it also answers outside the local network.

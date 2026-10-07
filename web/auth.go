@@ -25,11 +25,22 @@ const (
 	SESSION_FILENAME = "session.key"
 	sessionLifetime  = 30 * 24 * time.Hour
 
-	// failed logins allowed per address within the window, before it is blocked for the window
+	// failed logins allowed per key (an address or an account) before it is blocked
 	maxLoginFailures = 10
 	loginWindow      = 15 * time.Minute
-	// addresses remembered by the login limiter at most, so many addresses cannot fill memory
-	maxLimiterEntries = 10000
+	// a block doubles with each further failure, up to this for an address and less for an
+	// account, so flooding a user name cannot lock its owner out for a whole day
+	maxLoginBlock   = 24 * time.Hour
+	maxAccountBlock = 1 * time.Hour
+	// from this many failures a small growing delay is added to each attempt
+	tarpitAfter = 3
+	tarpitStep  = 400 * time.Millisecond
+	maxTarpit   = 4 * time.Second
+	// failed logins from everywhere per minute before every attempt is delayed, and that delay
+	globalFailureCap = 200
+	globalFloodDelay = 2 * time.Second
+	// addresses and accounts remembered at most, so an attack cannot fill memory
+	maxLimiterEntries = 20000
 
 	// successful basic authentication is remembered, so API clients do not pay for bcrypt
 	// on every request
@@ -291,19 +302,27 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 			principal = a.fromSession(r)
 			if principal == nil {
 				ip := clientIp(r)
-				if !a.limiter.allowed(ip) {
+				name, _, _ := r.BasicAuth()
+				keys := loginKeys(ip, name)
+				retryAfter, delay := a.limiter.check(keys...)
+				if retryAfter > 0 {
+					w.Header().Set("Retry-After", strconv.Itoa(int(retryAfter.Seconds())+1))
 					http.Error(w, "too many failed logins, try again later", http.StatusTooManyRequests)
 					return
+				}
+				if delay > 0 {
+					sleepFor(delay)
 				}
 				var attempted bool
 				principal, attempted = a.fromBasicAuth(r)
 				if principal == nil {
 					if attempted {
-						a.limiter.fail(ip)
+						a.limiter.fail(keys...)
 					}
 					a.unauthorized(w, r)
 					return
 				}
+				a.limiter.succeed(keys...)
 			}
 		}
 
@@ -441,83 +460,153 @@ func (web *Web) authInfo(r *http.Request) AuthInfo {
 	return AuthInfo{Enabled: enabled, User: principal.Name, IsAdmin: principal.IsAdmin(), FromEnv: principal.Source == "env"}
 }
 
-// loginLimiter blocks addresses with too many failed logins.
+// loginLimiter slows and blocks failed logins. It keys on both the client address and the
+// account name, so one address trying many accounts and many addresses trying one account
+// (a botnet with a list of users and passwords) are both stopped. After a few failures a small
+// delay is added, barely felt by a person but costly for a bot; after maxLoginFailures the key
+// is blocked, and each further failure doubles the block. A global cap slows every attempt
+// while a flood from many addresses is going on.
 type loginLimiter struct {
 	mutex    sync.Mutex
 	failures map[string]*loginFailures
 	pruned   time.Time
+	// failures from everywhere in the current minute
+	globalCount  int
+	globalMinute time.Time
 }
 
 type loginFailures struct {
-	count int
-	first time.Time
+	count      int
+	last       time.Time
+	blockUntil time.Time
 }
+
+// sleepFor applies the login delay; the tests replace it so they do not wait.
+var sleepFor = time.Sleep
 
 func newLoginLimiter() *loginLimiter {
 	return &loginLimiter{failures: map[string]*loginFailures{}}
 }
 
-func (l *loginLimiter) allowed(ip string) bool {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
-	entry, ok := l.failures[ip]
-	if !ok {
-		return true
+// loginKeys are the limiter keys of an attempt: the client address, and the account when a
+// name is given. A failed login counts against both, so a single address trying many accounts
+// and many addresses trying one account are both stopped.
+func loginKeys(ip, name string) []string {
+	keys := []string{"ip:" + ip}
+	if name = strings.ToLower(strings.TrimSpace(name)); name != "" {
+		keys = append(keys, "user:"+name)
 	}
-	if time.Since(entry.first) > loginWindow {
-		delete(l.failures, ip)
-		return true
-	}
-	return entry.count < maxLoginFailures
+	return keys
 }
 
-// retryAfter is how long an address stays blocked.
-func (l *loginLimiter) retryAfter(ip string) time.Duration {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
-	if entry, ok := l.failures[ip]; ok {
-		if wait := loginWindow - time.Since(entry.first); wait > 0 {
-			return wait
-		}
+// block is how long a key stays blocked after n failures: the window, doubled for each failure
+// beyond maxLoginFailures, up to cap. An account is capped lower than an address, so flooding
+// someone's user name cannot lock them out for as long as it blocks an attacking address.
+func block(n int, cap time.Duration) time.Duration {
+	wait := loginWindow
+	for i := maxLoginFailures; i < n && wait < cap; i++ {
+		wait *= 2
 	}
-	return 0
+	if wait > cap {
+		wait = cap
+	}
+	return wait
 }
 
-func (l *loginLimiter) fail(ip string) {
+// check returns how long the keys stay blocked (0 if none is) and the delay to add to this
+// attempt. The longest of the keys wins, plus an extra delay while a global flood is going on.
+func (l *loginLimiter) check(keys ...string) (retryAfter time.Duration, delay time.Duration) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	now := time.Now()
+	for _, key := range keys {
+		entry, ok := l.failures[key]
+		if !ok {
+			continue
+		}
+		if wait := entry.blockUntil.Sub(now); wait > retryAfter {
+			retryAfter = wait
+		}
+		if entry.count >= tarpitAfter {
+			if d := time.Duration(entry.count-tarpitAfter+1) * tarpitStep; d > delay {
+				delay = d
+			}
+		}
+	}
+	if delay > maxTarpit {
+		delay = maxTarpit
+	}
+	if l.globalMinute.Equal(now.Truncate(time.Minute)) && l.globalCount >= globalFailureCap {
+		delay += globalFloodDelay
+	}
+	return retryAfter, delay
+}
+
+func (l *loginLimiter) fail(keys ...string) {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+	now := time.Now()
+	minute := now.Truncate(time.Minute)
+	if !l.globalMinute.Equal(minute) {
+		l.globalMinute = minute
+		l.globalCount = 0
+	}
+	l.globalCount++
+
 	// forget old entries now and then, so the map does not grow forever
 	if now.Sub(l.pruned) > time.Minute || len(l.failures) >= maxLimiterEntries {
 		l.pruned = now
 		for key, entry := range l.failures {
-			if now.Sub(entry.first) > loginWindow {
+			if now.After(entry.blockUntil) && now.Sub(entry.last) > loginWindow {
 				delete(l.failures, key)
 			}
 		}
 	}
-	if _, ok := l.failures[ip]; !ok && len(l.failures) >= maxLimiterEntries {
-		// too many addresses failing at once: the oldest is forgotten
-		oldest := ""
-		for key, entry := range l.failures {
-			if oldest == "" || entry.first.Before(l.failures[oldest].first) {
-				oldest = key
-			}
+	for _, key := range keys {
+		if key == "" {
+			continue
 		}
-		delete(l.failures, oldest)
+		if _, ok := l.failures[key]; !ok && len(l.failures) >= maxLimiterEntries {
+			l.evictOldest()
+		}
+		entry, ok := l.failures[key]
+		if !ok {
+			entry = &loginFailures{}
+			l.failures[key] = entry
+		}
+		// a fresh window after a long quiet time
+		if now.After(entry.blockUntil) && now.Sub(entry.last) > loginWindow {
+			entry.count = 0
+		}
+		entry.count++
+		entry.last = now
+		if entry.count >= maxLoginFailures {
+			cap := maxLoginBlock
+			if strings.HasPrefix(key, "user:") {
+				cap = maxAccountBlock
+			}
+			entry.blockUntil = now.Add(block(entry.count, cap))
+		}
 	}
-	entry, ok := l.failures[ip]
-	if !ok {
-		entry = &loginFailures{first: now}
-		l.failures[ip] = entry
-	}
-	entry.count++
 }
 
-func (l *loginLimiter) succeed(ip string) {
+// evictOldest drops the entry that has been quiet the longest, to make room.
+func (l *loginLimiter) evictOldest() {
+	oldest := ""
+	for key, entry := range l.failures {
+		if oldest == "" || entry.last.Before(l.failures[oldest].last) {
+			oldest = key
+		}
+	}
+	delete(l.failures, oldest)
+}
+
+func (l *loginLimiter) succeed(keys ...string) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
-	delete(l.failures, ip)
+	for _, key := range keys {
+		delete(l.failures, key)
+	}
 }
 
 var errTooManyLogins = errors.New("Too many failed logins. Try again in %v minutes.")

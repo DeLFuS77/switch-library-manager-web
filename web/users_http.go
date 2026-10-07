@@ -63,23 +63,32 @@ func (web *Web) HandleUsers() {
 		lang := web.requestLanguage(r)
 		data := LoginPageData{Next: r.FormValue("next"), Name: strings.TrimSpace(r.FormValue("name"))}
 		ip := clientIp(r)
-		if !web.auth.limiter.allowed(ip) {
-			minutes := int(math.Ceil(web.auth.limiter.retryAfter(ip).Minutes()))
+		keys := loginKeys(ip, data.Name)
+		retryAfter, delay := web.auth.limiter.check(keys...)
+		if retryAfter > 0 {
+			minutes := int(math.Ceil(retryAfter.Minutes()))
+			if minutes < 1 {
+				minutes = 1
+			}
 			data.Error = translatef(lang, errTooManyLogins.Error(), minutes)
 			w.WriteHeader(http.StatusTooManyRequests)
 			web.renderLogin(w, r, login, data)
 			return
 		}
+		// a small delay after a few failures: barely felt by a person, costly for a bot
+		if delay > 0 {
+			sleepFor(delay)
+		}
 		principal, ok := web.auth.verify(data.Name, r.FormValue("password"))
 		if !ok {
-			web.auth.limiter.fail(ip)
+			web.auth.limiter.fail(keys...)
 			web.sugarLogger.Warnf("Failed login for %q from %s", data.Name, ip)
 			data.Error = translate(lang, "Wrong user name or password.")
 			w.WriteHeader(http.StatusUnauthorized)
 			web.renderLogin(w, r, login, data)
 			return
 		}
-		web.auth.limiter.succeed(ip)
+		web.auth.limiter.succeed(keys...)
 		http.SetCookie(w, web.auth.sessionCookie(r, principal.Name))
 		http.Redirect(w, r, safeNext(data.Next), http.StatusSeeOther)
 	}).Methods("POST")

@@ -84,7 +84,7 @@ func TestClientAddressBehindAProxy(t *testing.T) {
 func TestLogoutEndsTheSession(t *testing.T) {
 	web := usersWeb(t)
 	c := &client{t: t, handler: web.auth.middleware(web.router)}
-	c.do("POST", "/users/create", url.Values{"name": {"alice"}, "password": {"password1"}})
+	c.do("POST", "/users/create", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
 	if code := c.do("GET", "/settings.html", nil).Code; code != http.StatusOK {
 		t.Fatalf("logged in: %d", code)
 	}
@@ -102,10 +102,10 @@ func TestLogoutEndsTheSession(t *testing.T) {
 
 func TestOnlyOneFirstAdministrator(t *testing.T) {
 	web := usersWeb(t)
-	if err := web.auth.users.add("alice", "password1", ROLE_ADMIN, true); err != nil {
+	if err := web.auth.users.add("alice", "alpha-secret-11", ROLE_ADMIN, true); err != nil {
 		t.Fatal(err)
 	}
-	if err := web.auth.users.add("mallory", "password2", ROLE_ADMIN, true); err == nil {
+	if err := web.auth.users.add("mallory", "bravo-secret-22", ROLE_ADMIN, true); err == nil {
 		t.Fatal("a second first user was created")
 	}
 }

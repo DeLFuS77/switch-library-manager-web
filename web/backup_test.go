@@ -98,7 +98,7 @@ func TestRestoreBackupNeedsAnAdministrator(t *testing.T) {
 
 func TestBackupRestoreRoundTrip(t *testing.T) {
 	web := usersWeb(t)
-	if err := web.auth.users.Add("ana", "password1", ROLE_ADMIN); err != nil {
+	if err := web.auth.users.Add("ana", "alpha-secret-11", ROLE_ADMIN); err != nil {
 		t.Fatal(err)
 	}
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.ConsoleFirmware = "18.1.0" })
@@ -108,7 +108,7 @@ func TestBackupRestoreRoundTrip(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	web.auth.users.Add("luis", "password2", ROLE_VIEWER)
+	web.auth.users.Add("luis", "bravo-secret-22", ROLE_VIEWER)
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.ConsoleFirmware = "19.0.0" })
 
 	before := settings.Version()
@@ -124,7 +124,7 @@ func TestBackupRestoreRoundTrip(t *testing.T) {
 	if _, ok := web.auth.users.Get("luis"); ok {
 		t.Fatal("users not restored")
 	}
-	if _, ok := web.auth.users.Verify("ana", "password1"); !ok {
+	if _, ok := web.auth.users.Verify("ana", "alpha-secret-11"); !ok {
 		t.Fatal("restored user cannot log in")
 	}
 }

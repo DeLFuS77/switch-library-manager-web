@@ -12,12 +12,12 @@ func TestActivityAndLanguagePerUser(t *testing.T) {
 	c := &client{t: t, handler: web.auth.middleware(web.withActivityLog(web.router))}
 
 	// the first user enables the login and is logged in
-	if response := c.do(http.MethodPost, "/users/create", url.Values{"name": {"ana"}, "password": {"password1"}}); response.Code != http.StatusSeeOther {
+	if response := c.do(http.MethodPost, "/users/create", url.Values{"name": {"ana"}, "password": {"alpha-secret-11"}}); response.Code != http.StatusSeeOther {
 		t.Fatalf("create: %d", response.Code)
 	}
-	c.do(http.MethodPost, "/users/create", url.Values{"name": {"luis"}, "password": {"password2"}, "role": {ROLE_VIEWER}})
+	c.do(http.MethodPost, "/users/create", url.Values{"name": {"luis"}, "password": {"bravo-secret-22"}, "role": {ROLE_VIEWER}})
 	// a failure is not recorded
-	c.do(http.MethodPost, "/users/create", url.Values{"name": {"bad name!"}, "password": {"password3"}})
+	c.do(http.MethodPost, "/users/create", url.Values{"name": {"bad name!"}, "password": {"charlie-sec-33"}})
 
 	entries := web.activities().list()
 	if len(entries) != 2 || entries[0].Action != ACTION_USER_NEW || entries[0].Detail != "luis" || entries[0].User != "ana" {

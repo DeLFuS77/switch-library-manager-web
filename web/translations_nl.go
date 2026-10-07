@@ -3,6 +3,8 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"This password is too common or too easy to guess. Choose another one.": "Dit wachtwoord is te algemeen of te makkelijk te raden. Kies een ander.",
+		"The password must not be the user name.": "Het wachtwoord mag niet de gebruikersnaam zijn.",
 		"1 thing to look at": "1 punt om na te kijken",
 		"%v files, %v not recognized": "%v bestanden, %v niet herkend",
 		"%v free": "%v vrij",
@@ -710,7 +712,7 @@ func init() {
 		"The library is being updated.":                       "De bibliotheek wordt bijgewerkt.",
 		"The notification could not be sent.":                 "De melding kon niet worden verstuurd.",
 		"The original could not be deleted.":                  "Het origineel kon niet worden verwijderd.",
-		"The password must have between 8 and 72 characters.": "Het wachtwoord moet tussen 8 en 72 tekens hebben.",
+		"The password must have between 10 and 72 characters.": "Het wachtwoord moet tussen 10 en 72 tekens hebben.",
 		"The password was changed.":                           "Het wachtwoord is gewijzigd.",
 		"The role was changed.":                               "De rol is gewijzigd.",
 		"The same content is in the library more than once; the copy shown as kept stays.":          "Dezelfde inhoud staat meer dan eens in de bibliotheek; de kopie die als bewaard is gemarkeerd blijft.",

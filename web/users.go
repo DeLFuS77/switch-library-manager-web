@@ -18,10 +18,7 @@ const (
 	ROLE_ADMIN  = "admin"
 	ROLE_VIEWER = "viewer"
 
-	USERS_FILENAME    = "users.json"
-	minPasswordLength = 8
-	// bcrypt only uses the first 72 bytes
-	maxPasswordLength = 72
+	USERS_FILENAME = "users.json"
 )
 
 // errors shown to the user, translated by the interface
@@ -29,7 +26,6 @@ var (
 	ErrUserName        = errors.New("The user name may only contain letters, numbers, dots, dashes and underscores (up to 32).")
 	ErrUserExists      = errors.New("A user with this name already exists.")
 	ErrUserNotFound    = errors.New("The user does not exist.")
-	ErrPasswordLength  = errors.New("The password must have between 8 and 72 characters.")
 	ErrRole            = errors.New("Unknown role.")
 	ErrLastAdmin       = errors.New("At least one administrator is needed.")
 	ErrDeleteSelf      = errors.New("You cannot delete your own account.")
@@ -37,7 +33,7 @@ var (
 	ErrEnvironmentUser = errors.New("This user is set with environment variables and cannot be changed here.")
 )
 
-var userErrors = []error{ErrUserName, ErrUserExists, ErrUserNotFound, ErrPasswordLength, ErrRole, ErrLastAdmin, ErrDeleteSelf, ErrWrongPassword, ErrEnvironmentUser}
+var userErrors = []error{ErrUserName, ErrUserExists, ErrUserNotFound, ErrPasswordLength, ErrPasswordCommon, ErrPasswordName, ErrRole, ErrLastAdmin, ErrDeleteSelf, ErrWrongPassword, ErrEnvironmentUser}
 
 var validUserName = regexp.MustCompile(`^[A-Za-z0-9._-]{1,32}$`)
 
@@ -155,6 +151,9 @@ func (s *UserStore) add(name string, password string, role string, onlyFirst boo
 	if role != ROLE_ADMIN && role != ROLE_VIEWER {
 		return ErrRole
 	}
+	if err := checkPassword(name, password); err != nil {
+		return err
+	}
 	hash, err := hashPassword(password)
 	if err != nil {
 		return err
@@ -203,6 +202,9 @@ func (s *UserStore) SetRole(name string, role string) error {
 }
 
 func (s *UserStore) SetPassword(name string, password string) error {
+	if err := checkPassword(name, password); err != nil {
+		return err
+	}
 	hash, err := hashPassword(password)
 	if err != nil {
 		return err
@@ -263,6 +265,7 @@ func (s *UserStore) save() error {
 }
 
 func hashPassword(password string) (string, error) {
+	// the length is also checked by checkPassword before this, this is the last guard
 	if len(password) < minPasswordLength || len(password) > maxPasswordLength {
 		return "", ErrPasswordLength
 	}
