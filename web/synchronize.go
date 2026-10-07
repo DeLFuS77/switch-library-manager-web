@@ -81,6 +81,7 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 	taskId := web.startTask(TASK_SCAN, trigger)
 
 	web.backgroundWork.Add(1)
+	web.backgroundStarted.Store(true)
 	go func() {
 		// the last thing done: after the task, the work after the scan has been started
 		defer web.backgroundWork.Add(-1)

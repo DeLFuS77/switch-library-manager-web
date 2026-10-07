@@ -29,6 +29,7 @@ func newTestWeb(t *testing.T) *Web {
 	// the processed titles are kept open, and Windows cannot remove an open file
 	t.Cleanup(func() {
 		// files written in the background after a scan
+		waitForBackgroundWork(web)
 		web.afterScanWork.Wait()
 		if web.store != nil {
 			web.store.Close()
@@ -1310,6 +1311,9 @@ func TestLibraryGenrePlayersAndLanguageFilters(t *testing.T) {
 // waitForBackgroundWork waits until no scan, and no work after a scan, has run for a moment:
 // a scan can start a little after the action that asks for it.
 func waitForBackgroundWork(web *Web) {
+	if !web.backgroundStarted.Load() {
+		return
+	}
 	quiet := time.Time{}
 	for deadline := time.Now().Add(30 * time.Second); time.Now().Before(deadline); time.Sleep(20 * time.Millisecond) {
 		if web.backgroundWork.Load() != 0 || web.state.IsSynchronizing() {
