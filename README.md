@@ -22,7 +22,7 @@ Linux, Docker, NAS and Raspberry Pi.
 > included, uploaded or shared. Never post your keys anywhere, also not in issues, logs or screenshots.
 
 <p align="center">
-  <img src="docs/screenshots/library.png" alt="The library: games with their covers, missing updates and DLC" width="880">
+  <img src="docs/tour.gif" alt="A short tour: the library, a game page, upcoming releases, series and statistics" width="880">
 </p>
 
 <p align="center">
@@ -32,12 +32,16 @@ Linux, Docker, NAS and Raspberry Pi.
 </p>
 
 <p align="center">
+  <img src="docs/screenshots/library.png" alt="The library: games with their covers, missing updates and DLC" width="290">
   <img src="docs/screenshots/updates.png" alt="Missing updates" width="290">
   <img src="docs/screenshots/statistics.png" alt="Statistics" width="290">
-  <img src="docs/screenshots/mobile.png" alt="On a phone, with the bar at the bottom" width="145">
 </p>
 
-<sub>The screenshots show the demo mode: the games, publishers and covers are made up.</sub>
+<p align="center">
+  <img src="docs/screenshots/mobile.png" alt="On a phone, with the bar at the bottom" width="220">
+</p>
+
+<sub>The tour and the screenshots show the demo mode: the games, publishers and covers are made up.</sub>
 
 ## Contents
 
