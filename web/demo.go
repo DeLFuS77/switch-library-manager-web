@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"fmt"
 	"hash/fnv"
 	"image"
@@ -11,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -60,7 +62,31 @@ var demoGames = []demoGame{
 	{"Hollow Crown", "Verdant Forge", "An action role-playing game in a kingdom that lost its king and its colors.", 20220421, 3, -1, 2, 0, 0.78},
 	{"Sky Garden Story", "Firefly Collective", "Keep a floating garden alive with the help of grumpy bees.", 20240905, 0, -1, 0, 0, 0.27},
 	{"Circuit Breakers", "Gridline", "A cooperative puzzle game about rewiring a very angry factory.", 20210610, 2, -1, 1, 0, 0.18},
+	// sequels: of a series of the library, one out and two coming (see demoComing)
+	{"Pixel Kart Rally 2", "Tiny Tyre Games", "Twice the tracks, twice the drifting, and karts that fly.", 20250314, 1, -1, 1, 0, 0.04},
+	{"Starlight Odyssey II", "Lumen Works", "The paper ship sails again, this time beyond the edge of the map.", 0, 0, -1, 0, 0, 0.65},
+	{"Robo Rumble League 2", "Gridline", "Bigger stadiums, bolder robots, and a career mode.", 0, 0, -1, 0, 0, 0.01},
+	{"Lantern Fields: Winter", "Firefly Collective", "The valley meets its first snow.", 0, 0, -1, 0, 0, 0.16},
 }
+
+// demoComing are the games released in some days from now, so the upcoming page has games
+var demoComing = map[string]int{"Starlight Odyssey II": 9, "Robo Rumble League 2": 38, "Lantern Fields: Winter": 70}
+
+// demoGenres are the genres of the games, for the filters, the statistics and the recommendations
+var demoGenres = map[string][]string{
+	"Starlight Odyssey": {"Adventure", "RPG"}, "Pixel Kart Rally": {"Racing", "Multiplayer"}, "Moss & Mortar": {"Simulation", "Strategy"},
+	"Neon Drift 2088": {"Racing", "Music"}, "Tidecaller": {"Puzzle", "Adventure"}, "Gearheart Tactics": {"Strategy", "RPG"},
+	"Lantern Fields": {"Simulation"}, "Echoes of Aurora": {"Adventure", "Action"}, "Bubble Bistro": {"Simulation", "Party"},
+	"Iron Petal": {"Action"}, "Cloudline Express": {"Simulation", "Puzzle"}, "Quiet Hollow": {"Adventure", "Puzzle"},
+	"Robo Rumble League": {"Action", "Multiplayer", "Sports"}, "Saltwind": {"Adventure", "Action"}, "Garden of Glass": {"Puzzle"},
+	"Fable Forge": {"Adventure", "Education"}, "Comet Couriers": {"Arcade", "Action"}, "Ember Trail": {"Action", "RPG"},
+	"Velvet Thunder": {"Music", "Fighting"}, "Paper Lighthouse": {"Puzzle", "Adventure"}, "Hollow Crown": {"RPG", "Action", "Adventure"},
+	"Sky Garden Story": {"Simulation", "Adventure"}, "Circuit Breakers": {"Puzzle", "Multiplayer"}, "Pixel Kart Rally 2": {"Racing", "Multiplayer"},
+	"Starlight Odyssey II": {"Adventure", "RPG"}, "Robo Rumble League 2": {"Action", "Multiplayer", "Sports"}, "Lantern Fields: Winter": {"Simulation"},
+}
+
+// demoFavorites are the favorites of the demo library
+var demoFavorites = []string{"Starlight Odyssey", "Gearheart Tactics", "Ember Trail"}
 
 func demoTitleId(index int) string {
 	return fmt.Sprintf("0100D%07X", index+1) + "0000"
@@ -78,8 +104,18 @@ func (web *Web) loadDemo() {
 	switchDB := &db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{}, Localized: map[string]map[string]db.LocalizedTitle{}}
 	localDB := &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{}, Skipped: map[db.ExtendedFileInfo]db.SkippedFile{}}
 
+	favorites := map[string]time.Time{}
 	for i, game := range demoGames {
 		id := demoTitleId(i)
+		if days, ok := demoComing[game.name]; ok {
+			coming := time.Now().AddDate(0, 0, days)
+			game.released = coming.Year()*10000 + int(coming.Month())*100 + coming.Day()
+		}
+		for _, favorite := range demoFavorites {
+			if favorite == game.name {
+				favorites[id] = time.Now()
+			}
+		}
 		icon := "demo-" + id + ".png"
 		banner := "demo-" + id + "-banner.png"
 		writeDemoCover(filepath.Join(imgFolder, icon), 360, 360, game.hue, i)
@@ -88,7 +124,7 @@ func (web *Web) loadDemo() {
 		title := &db.SwitchTitle{
 			Attributes: db.TitleAttributes{Id: id, Name: game.name, Publisher: game.publisher, Description: game.description,
 				ReleaseDate: game.released, Region: "US", IconUrl: "/i/" + icon, BannerUrl: "/i/" + banner,
-				Size: (2 + i%9) << 30, Version: "0"},
+				Size: (2 + i%9) << 30, Version: "0", Genres: demoGenres[game.name], Players: 1 + i%4, Languages: []string{"en", "es", "fr", "de", "ja"}},
 			Updates: map[int]string{},
 			Dlc:     map[string]db.TitleAttributes{},
 		}
@@ -151,6 +187,12 @@ func (web *Web) loadDemo() {
 	localDB.Skipped[file("Pixel Kart Rally ["+demoTitleId(1)+"][v0] (1).nsz", 3<<30)] = db.SkippedFile{ReasonCode: db.REASON_DUPLICATE,
 		ReasonText: "duplicate base file (" + filepath.Join(baseFolder, "Pixel Kart Rally ["+demoTitleId(1)+"][v0].nsz") + ")"}
 	localDB.NumFiles += 3
+
+	// the favorites of the demo, which the recommendations follow
+	if data, err := json.Marshal(favorites); err == nil {
+		os.WriteFile(filepath.Join(web.dataFolder, FAVORITES_FILENAME), data, 0600)
+		web.favorites().reload()
+	}
 
 	web.state.set(switchDB, localDB)
 	web.sugarLogger.Infof("[Demo mode: %d made-up games]", len(localDB.TitlesMap))

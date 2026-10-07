@@ -9,6 +9,12 @@ Manage the backups of your Nintendo Switch games from the browser: see which upd
 find broken or duplicate files, keep your folders tidy and save space with NSZ compression. It runs on Windows, macOS,
 Linux, Docker, NAS and Raspberry Pi.
 
+> Built on the work of [@giwty](https://github.com/giwty), who created
+> [Switch Library Manager](https://github.com/giwty/switch-library-manager), [@dtrunk90](https://github.com/dtrunk90),
+> who made [its web version](https://github.com/dtrunk90/switch-library-manager-web), and
+> [@trembon](https://github.com/trembon), whose [fixes](https://github.com/trembon/switch-library-manager) are included.
+> Thank you! See [Thanks](#thanks) and [NOTICE](NOTICE.md).
+
 > [!IMPORTANT]
 > This project contains **no keys, no games and no copyrighted content**, and it never downloads them. Use it only
 > with backups of games you own. The few features that read the content of your files use **your own** `prod.keys`,
@@ -21,8 +27,14 @@ Linux, Docker, NAS and Raspberry Pi.
 
 <p align="center">
   <img src="docs/screenshots/title.png" alt="A game page" width="290">
+  <img src="docs/screenshots/upcoming.png" alt="Upcoming releases, the wishlist and your series first" width="290">
+  <img src="docs/screenshots/sagas.png" alt="Series: how many games of each series you have" width="290">
+</p>
+
+<p align="center">
   <img src="docs/screenshots/updates.png" alt="Missing updates" width="290">
   <img src="docs/screenshots/statistics.png" alt="Statistics" width="290">
+  <img src="docs/screenshots/mobile.png" alt="On a phone, with the bar at the bottom" width="145">
 </p>
 
 <sub>The screenshots show the demo mode: the games, publishers and covers are made up.</sub>
@@ -373,3 +385,4 @@ on did not publish a license, so their code remains under the copyright of their
 - Parsing, organizing and title data fixes from [trembon's switch-library-manager](https://github.com/trembon/switch-library-manager)
 - Title data from [blawar's titledb](https://github.com/blawar/titledb)
 - NSZ format of [nsz](https://github.com/nicoboss/nsz) and the [Inter](https://github.com/rsms/inter) font
+- Everyone who reports bugs, like [@LonelyTV](https://github.com/LonelyTV) ([#3](https://github.com/DeLFuS77/switch-library-manager-web/issues/3))

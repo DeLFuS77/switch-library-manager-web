@@ -104,7 +104,7 @@
 				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{t "Close"}}"></button>
 			</div>
 			{{- end}}
-			{{- if and (not .Auth.Enabled) (ne .Page "users")}}
+			{{- if and (not .Auth.Enabled) (ne .Page "users") (not .Demo)}}
 			<div class="alert alert-warning alert-dismissible fade show d-flex align-items-start gap-2 mt-3 mb-0" role="status" data-remember-close="slm-no-login-notice">
 				<span class="bi bi-shield-exclamation flex-shrink-0 mt-1" aria-hidden="true"></span>
 				<div><strong>{{t "Login is off."}}</strong> {{t "Anyone on your network can change or delete your library. Create an administrator to protect the app, above all if it can be reached from the internet."}} <a class="alert-link" href="/users.html">{{t "Create an administrator"}}</a></div>
