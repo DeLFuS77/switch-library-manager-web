@@ -1,0 +1,73 @@
+# CasaOS / ZimaOS: App Store > Custom Install > Import (the icon at the top right), paste this file
+# and set the folder of your games. Then open the app from the dashboard.
+name: switch-library-manager-web
+services:
+  switch-library-manager-web:
+    image: delfus77/switch-library-manager-web:latest
+    container_name: switch-library-manager-web
+    restart: unless-stopped
+    network_mode: bridge
+    ports:
+      - target: 3000
+        published: "3000"
+        protocol: tcp
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+    volumes:
+      - type: bind
+        source: /DATA/AppData/switch-library-manager-web
+        target: /usr/local/share/switch-library-manager-web
+      - type: bind
+        source: /DATA/Gallery/Switch
+        target: /mnt/roms
+    x-casaos:
+      envs:
+        - container: PUID
+          description:
+            en_us: User that owns your games
+        - container: PGID
+          description:
+            en_us: Group that owns your games
+        - container: TZ
+          description:
+            en_us: Time zone
+      ports:
+        - container: "3000"
+          description:
+            en_us: Web interface
+      volumes:
+        - container: /usr/local/share/switch-library-manager-web
+          description:
+            en_us: Settings, caches and covers. Put your own prod.keys here.
+        - container: /mnt/roms
+          description:
+            en_us: Your Switch games (NSP, NSZ, XCI, XCZ)
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: switch-library-manager-web
+  author: DeLFuS77
+  developer: DeLFuS77
+  category: Utilities
+  icon: https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/resources/static/android-chrome-512x512.png
+  screenshot_link:
+    - https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/docs/screenshots/library.png
+    - https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/docs/screenshots/title.png
+    - https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/docs/screenshots/upcoming.png
+  thumbnail: https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/docs/social-preview.png
+  tagline:
+    en_us: Your Nintendo Switch library, up to date and organized
+  description:
+    en_us: >-
+      Manage your Nintendo Switch backup library from the browser: missing updates, DLC and games, upcoming releases,
+      series, statistics, organizing and renaming, NSZ compression and an SD card planner. Use it with backups of games
+      you own. No keys or games are included or downloaded: put your own prod.keys, dumped from your console, in the
+      AppData folder.
+  title:
+    en_us: Switch Library Manager Web
+  port_map: "3000"
+  index: /
+  scheme: http
