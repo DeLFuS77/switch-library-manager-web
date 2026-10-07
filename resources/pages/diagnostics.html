@@ -1,7 +1,13 @@
 {{define "title"}}{{t "Diagnostics"}}{{end}}
 {{define "main"}}
-			{{- template "pageHeader" (dict "Title" (t "Diagnostics") "Count" -1 "Subtitle" (t "What the app needs to work, checked at a glance. Copy the report to ask for help: it holds no key and no password."))}}
-			<div class="d-flex flex-wrap align-items-center gap-2 mb-4">
+			{{- template "pageHeader" (dict "Title" (t "Settings") "Count" -1 "Subtitle" (t "Changes are applied when you save. Changing the folders or the keys rescans the library."))}}
+			<div class="row g-4">
+			{{- template "settingsNav" "diagnostics"}}
+			<div class="col-lg-9">
+			<section class="surface mb-4">
+				<h2 class="section-title"><span class="bi bi-heart-pulse" aria-hidden="true"></span>{{t "Diagnostics"}}</h2>
+				<p class="text-body-secondary mb-3">{{t "What the app needs to work, checked at a glance. Copy the report to ask for help: it holds no key and no password."}}</p>
+			<div class="d-flex flex-wrap align-items-center gap-2">
 				{{- if .Problems}}
 				<span class="chip chip-warning"><span class="bi bi-exclamation-triangle" aria-hidden="true"></span>{{if eq .Problems 1}}{{t "1 thing to look at"}}{{else}}{{t "%v things to look at" .Problems}}{{end}}</span>
 				{{- else}}
@@ -9,6 +15,7 @@
 				{{- end}}
 				<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill ms-auto" data-copy="{{.Report}}" data-copied="{{t "Copied"}}"><span class="bi bi-clipboard me-1" aria-hidden="true"></span><span data-copy-label>{{t "Copy the report"}}</span></button>
 			</div>
+			</section>
 			<div class="diagnostics-grid">
 				{{- range .Groups}}
 				<section class="surface">
@@ -29,5 +36,7 @@
 					</ul>
 				</section>
 				{{- end}}
+			</div>
+			</div>
 			</div>
 {{- end}}

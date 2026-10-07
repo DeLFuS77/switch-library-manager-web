@@ -37,7 +37,11 @@ self.addEventListener('fetch', event => {
 		event.respondWith(caches.open(CACHE).then(cache => cache.match(request).then(cached => {
 			const fresh = fetch(request).then(response => {
 				if (response.ok) {
-					cache.put(request, response.clone()).catch(() => undefined);
+					const copy = response.clone();
+					cache.keys()
+						.then(keys => Promise.all(keys.filter(key => new URL(key.url).pathname === url.pathname && key.url !== request.url).map(key => cache.delete(key))))
+						.then(() => cache.put(request, copy))
+						.catch(() => undefined);
 				}
 				return response;
 			});

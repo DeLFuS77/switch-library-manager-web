@@ -3,10 +3,10 @@
 <html class="min-vh-100" lang="{{lang}}" data-bs-theme="dark">
 <head>
 	<meta charset="utf-8" />
-	<script src="/resources/static/theme.js"></script>
+	<script src="{{asset "/resources/static/theme.js"}}"></script>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{{template "title" .}} - Switch Library Manager Web</title>
-	<link rel="stylesheet" href="/resources/static/web.css">
+	<link rel="stylesheet" href="{{asset "/resources/static/web.css"}}">
 	<link rel="apple-touch-icon" sizes="180x180" href="/resources/static/apple-touch-icon.png">
 	<link rel="icon" type="image/png" sizes="32x32" href="/resources/static/favicon-32x32.png">
 	<link rel="icon" type="image/png" sizes="16x16" href="/resources/static/favicon-16x16.png">
@@ -144,7 +144,7 @@
 		<button type="button" class="bottom-link" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar"><span class="bi bi-grid" aria-hidden="true"></span><span class="bottom-label">{{t "Menu"}}</span></button>
 	</nav>
 	<script type="application/json" id="slm-translations">{{jsTranslations}}</script>
-	<script src="/resources/static/web.js"></script>
+	<script src="{{asset "/resources/static/web.js"}}"></script>
 </body>
 </html>
 {{end}}
