@@ -591,6 +591,9 @@ func (web *Web) Start() {
 		IdleTimeout:       2 * time.Minute,
 		MaxHeaderBytes:    64 << 10,
 	}
+	if shouldOpenBrowser() && !isDemoMode() {
+		go web.openBrowserWhenReady(web.appSettings.Port)
+	}
 	if err := server.ListenAndServe(); err != nil {
 		web.sugarLogger.Error(fmt.Errorf("running http server failed: %w", err))
 		log.Fatal(err)

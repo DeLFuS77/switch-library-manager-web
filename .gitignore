@@ -1,5 +1,7 @@
 .idea
 build
+dist
+rsrc_windows_*.syso
 node_modules
 resources/static/web.css
 resources/static/web.js

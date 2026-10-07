@@ -141,9 +141,30 @@ image from the Docker Hub search: the port and folders would be empty.
 
 ### Windows, macOS and Linux
 
-Build the program for your system (see [Building](#building)) and run it. It keeps its data next to the program, or in
-the folder set in the `SLM_DATA_DIR` environment variable. Open http://localhost:3000 and set your folders in
-**Settings**.
+Download the file for your system from the [latest release](https://github.com/DeLFuS77/switch-library-manager-web/releases/latest),
+unpack it and run the program; nothing has to be installed.
+
+| System | File |
+|---|---|
+| Windows (most PCs) | `…-windows-x64.zip` |
+| Windows on ARM | `…-windows-arm64.zip` |
+| macOS with Apple chip (M1 or newer) | `…-macos-apple.tar.gz` |
+| macOS with Intel chip | `…-macos-intel.tar.gz` |
+| Linux, PC | `…-linux-x64.tar.gz` |
+| Raspberry Pi 4/5 with a 64-bit system, other ARM 64-bit | `…-linux-arm64.tar.gz` |
+| Raspberry Pi with a 32-bit system | `…-linux-armv7.tar.gz` |
+
+- **Windows**: double-click `switch-library-manager-web.exe`; the app opens in the browser. The first time, Windows
+  may show "Windows protected your PC" because the program is not signed: click **More info → Run anyway**.
+- **macOS**: double-click `switch-library-manager-web`, or run it from the Terminal. The program is not signed by Apple,
+  so the first time macOS refuses to open it: right-click it, choose **Open** and confirm, or run
+  `xattr -d com.apple.quarantine switch-library-manager-web` in its folder.
+- **Linux and Raspberry Pi**: run `./switch-library-manager-web` and open http://localhost:3000 (or the address of the
+  computer from another device).
+
+The program keeps its settings and data next to itself, or in the folder set in the `SLM_DATA_DIR` environment
+variable. Set your folders in **Settings**. To update, replace the program with the one of the new version: the data
+stays. `SLM_OPEN_BROWSER=false` stops it from opening the browser, `true` makes it open it on Linux too.
 
 ## Your keys
 
@@ -372,6 +393,8 @@ make test
 
 The programs are written to `build`. The web interface is embedded in the program, so `npm ci` and
 `npm run build` must run first. Without `make` (e.g. on Windows): `go build -o build/switch-library-manager-web.exe .`
+
+`.github/scripts/build_release.sh <version>` builds and packs the programs of every system in `dist`, as the releases do.
 
 ## License
 
