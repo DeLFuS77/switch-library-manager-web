@@ -1974,12 +1974,31 @@ h3,
 	gap: 1.5rem;
 }
 
+// the angle of the ring that is drawn: it grows from 0 to the whole circle when the page opens
+@property --donut-reveal {
+	syntax: "<angle>";
+	inherits: false;
+	initial-value: 360deg;
+}
+
 .donut {
 	position: relative;
 	flex: 0 0 auto;
 	width: 9.5rem;
 	height: 9.5rem;
 	border-radius: 50%;
+	background: var(--slm-surface-muted);
+
+	// the colored ring, revealed clockwise from the top like a bar that loads
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: 50%;
+		background: var(--donut-fill, var(--slm-surface-muted));
+		-webkit-mask: conic-gradient(#000 var(--donut-reveal), transparent 0);
+		mask: conic-gradient(#000 var(--donut-reveal), transparent 0);
+	}
 
 	.donut-hole {
 		position: absolute;
@@ -2161,8 +2180,9 @@ h3,
 		animation: slm-gauge-fill 1.1s cubic-bezier(.2, .7, .2, 1) both;
 	}
 
-	.donut {
-		animation: slm-donut-in .9s cubic-bezier(.2, .7, .2, 1) both;
+	.donut::before {
+		animation: slm-donut-in 1.1s cubic-bezier(.3, .7, .2, 1) both;
+		animation-delay: .1s;
 	}
 
 	.health-bar span,
@@ -2211,8 +2231,7 @@ h3,
 
 @keyframes slm-donut-in {
 	from {
-		opacity: 0;
-		transform: rotate(-120deg) scale(.85);
+		--donut-reveal: 0deg;
 	}
 }
 
