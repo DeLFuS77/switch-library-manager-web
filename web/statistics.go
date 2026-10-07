@@ -224,7 +224,7 @@ func (web *Web) HandleStatistics() {
 // per share, the colors of the chart legend.
 func conicGradient(shares []SizeShare) template.CSS {
 	if len(shares) == 0 {
-		return template.CSS("background: var(--slm-surface-muted)")
+		return template.CSS("--donut-fill: var(--slm-surface-muted)")
 	}
 	parts := []string{}
 	start := 0.0
@@ -233,14 +233,14 @@ func conicGradient(shares []SizeShare) template.CSS {
 		total += share.Size
 	}
 	if total == 0 {
-		return template.CSS("background: var(--slm-surface-muted)")
+		return template.CSS("--donut-fill: var(--slm-surface-muted)")
 	}
 	for i, share := range shares {
 		end := start + float64(share.Size)*100/float64(total)
 		parts = append(parts, fmt.Sprintf("var(--slm-chart-%d) %.2f%% %.2f%%", i%6+1, start, end))
 		start = end
 	}
-	return template.CSS("background: conic-gradient(" + strings.Join(parts, ", ") + ")")
+	return template.CSS("--donut-fill: conic-gradient(" + strings.Join(parts, ", ") + ")")
 }
 
 // topCounts returns the most frequent values, at most limit.
