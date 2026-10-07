@@ -1162,7 +1162,15 @@ function initCoverTransition() {
 function initSettingsSections() {
 	const nav = document.querySelector('.settings-nav');
 	const sections = [...document.querySelectorAll('.settings-section')];
-	if (!nav || sections.length < 2) {
+	if (nav && sections.length < 2) {
+		// a page of its own (Diagnostics): the row of sections shows the active one
+		const active = nav.querySelector('.active');
+		if (active && nav.scrollWidth > nav.clientWidth) {
+			nav.scrollLeft = active.offsetLeft - nav.offsetLeft - 16;
+		}
+		return;
+	}
+	if (!nav) {
 		return;
 	}
 	const saveBar = document.querySelector('#settingsForm .save-bar');

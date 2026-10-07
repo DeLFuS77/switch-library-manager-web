@@ -336,6 +336,7 @@ var funcMap = template.FuncMap {
 	},
 	"formatSize": formatSize,
 	"thumb":      thumbUrl,
+	"asset":      func(path string) string { return path + "?v=" + assetVersion },
 	"mod": func(a, b int) int {
 		if b == 0 {
 			return 0

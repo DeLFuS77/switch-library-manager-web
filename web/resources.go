@@ -2,6 +2,8 @@ package web
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io/fs"
 	"log"
@@ -27,12 +29,27 @@ func (f filesOnly) Open(name string) (fs.File, error) {
 	return file, nil
 }
 
+// assetVersion identifies the styles and scripts of this build; their addresses carry it, so
+// browsers and the service worker load them again when they change, even in the same version
+var assetVersion = "1"
+
+func computeAssetVersion(files fs.FS) string {
+	hash := sha256.New()
+	for _, name := range []string{"web.css", "web.js", "theme.js"} {
+		if data, err := fs.ReadFile(files, name); err == nil {
+			hash.Write(data)
+		}
+	}
+	return hex.EncodeToString(hash.Sum(nil))[:12]
+}
+
 func (web *Web) HandleResources() {
 	fSys, err := fs.Sub(web.embedFS, "resources/static")
 	if err != nil {
 		web.sugarLogger.Error(fmt.Errorf("getting static files failed: %w", err))
 		log.Fatal(err)
 	}
+	assetVersion = computeAssetVersion(fSys)
 	http.Handle("/resources/static/", http.StripPrefix("/resources/static/", http.FileServer(http.FS(filesOnly{fSys}))))
 
 	fSys, err = fs.Sub(web.embedFS, "node_modules")
