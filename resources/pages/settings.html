@@ -209,7 +209,7 @@
 									<label for="telegram_chat_id" class="form-label fw-semibold">{{t "Telegram chat ID"}}</label>
 									<input type="text" class="form-control" id="telegram_chat_id" name="telegram_chat_id" value="{{.Settings.Notifications.TelegramChatId}}" autocomplete="off">
 								</div>
-								<div class="col-12 d-flex flex-column flex-sm-row gap-3 align-items-sm-center">
+								<div class="col-12 d-flex flex-column flex-sm-row flex-sm-wrap gap-3 align-items-sm-center">
 									<div class="form-check form-switch">
 										<input class="form-check-input" type="checkbox" role="switch" id="notify_updates" name="notify_updates" value="true"{{if .Settings.Notifications.NotifyUpdates}} checked{{end}}>
 										<label class="form-check-label" for="notify_updates">{{t "Notify new updates"}}</label>

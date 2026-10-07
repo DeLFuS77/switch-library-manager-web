@@ -28,6 +28,9 @@
 					<span class="brand-text">Switch Library<span class="d-none d-sm-inline d-xxl-none"> Manager</span></span>
 				</a>
 				<div class="d-flex align-items-center gap-2 order-xxl-last">
+					<button type="button" class="btn btn-sm search-trigger rounded-pill" data-search-open aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K /" title="{{t "Search"}} (Ctrl K)">
+						<span class="bi bi-search" aria-hidden="true"></span><span class="search-trigger-label d-none d-lg-inline">{{t "Search"}}</span><kbd class="search-kbd d-none d-lg-inline" data-search-kbd>Ctrl K</kbd>
+					</button>
 					<a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 rounded-pill px-3 admin-only" href="/sync" id="sync" title="{{t "Download the latest titles database and rescan the library"}}">
 						<span class="bi bi-arrow-repeat" aria-hidden="true"></span><span class="d-none d-md-inline d-xxl-none">{{t "Synchronize"}}</span>
 					</a>
@@ -146,6 +149,24 @@
 		{{- template "bottomLink" (dict "Page" .Page "Id" "sagas" "Href" "/sagas.html" "Icon" "bi-stack" "Label" (t "Series") "Count" 0)}}
 		<button type="button" class="bottom-link" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar"><span class="bi bi-grid" aria-hidden="true"></span><span class="bottom-label">{{t "Menu"}}</span></button>
 	</nav>
+	<div class="modal fade quick-search" id="quickSearch" tabindex="-1" aria-label="{{t "Search"}}" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-scrollable modal-lg">
+			<div class="modal-content">
+				<div class="modal-header quick-search-header">
+					<span class="bi bi-search quick-search-icon" aria-hidden="true"></span>
+					<input type="search" class="form-control quick-search-input" id="quickSearchInput" placeholder="{{t "Search games, series, collections and pages"}}" aria-label="{{t "Search"}}" role="combobox" aria-expanded="true" aria-controls="quickSearchResults" aria-autocomplete="list" autocomplete="off" spellcheck="false" maxlength="80">
+					<button type="button" class="btn quick-search-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"><kbd>Esc</kbd></button>
+				</div>
+				<div class="modal-body quick-search-body">
+					<div id="quickSearchResults" role="listbox" aria-label="{{t "Search results"}}" data-label-games="{{t "Games"}}" data-label-series="{{t "Series"}}" data-label-collections="{{t "Collections"}}" data-label-pages="{{t "Go to"}}"></div>
+					<p class="quick-search-empty" hidden><span class="bi bi-search" aria-hidden="true"></span>{{t "No results"}}</p>
+				</div>
+				<div class="modal-footer quick-search-footer" aria-hidden="true">
+					<span><kbd>&uarr;</kbd><kbd>&darr;</kbd>{{t "Select"}}</span><span><kbd>&crarr;</kbd>{{t "Open"}}</span><span><kbd>Esc</kbd>{{t "Close"}}</span>
+				</div>
+			</div>
+		</div>
+	</div>
 	<script type="application/json" id="slm-translations">{{jsTranslations}}</script>
 	<script src="{{asset "/resources/static/web.js"}}"></script>
 </body>

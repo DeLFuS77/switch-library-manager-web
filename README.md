@@ -65,6 +65,8 @@ Linux, Docker, NAS and Raspberry Pi.
 - Missing updates (for games and DLC), missing DLC and missing games, with filters and search
 - Library filters by status, genre, players, language, format, region, collection, games or demos, and games
   without a cover; sort by size or date added; a search that forgives typos
+- Quick search from any page (<kbd>Ctrl</kbd>+<kbd>K</kbd>, <kbd>/</kbd> or the magnifier in the header): games,
+  series, collections, pages and sections of Settings, chosen with the arrows and opened with Enter
 - SD card planner: the games that fit on a card by what you like, copied to the card in one go
 - Favorites, your own collections of games ("Playing", "For the kids"...) and actions on several games at once
 - The missing games greyed out with yours on request, and the games of the same series on each game page

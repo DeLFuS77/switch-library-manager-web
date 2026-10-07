@@ -3,6 +3,10 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Search games, series, collections and pages": "Rechercher des jeux, séries, collections et pages",
+		"Search results": "Résultats de la recherche",
+		"Go to": "Aller à",
+		"Open": "Ouvrir",
 		"This password is too common or too easy to guess. Choose another one.": "Ce mot de passe est trop courant ou trop facile à deviner. Choisissez-en un autre.",
 		"The password must not be the user name.": "Le mot de passe ne doit pas être le nom d'utilisateur.",
 		"1 thing to look at": "1 point à vérifier",

@@ -554,6 +554,7 @@ func (web *Web) Start() {
 	web.HandleOrphans()
 	web.HandleSagas()
 	web.HandleUpcoming()
+	web.HandleQuickSearch()
 	web.HandleAutoBackups()
 	web.HandleDiagnostics()
 	web.HandleCovers()
