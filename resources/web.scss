@@ -1492,16 +1492,47 @@ h3,
 .settings-nav {
 	position: sticky;
 	top: 5.5rem;
+	gap: .15rem;
 
 	.nav-link {
+		display: flex;
+		align-items: center;
 		border-radius: $border-radius;
 		color: var(--bs-secondary-color);
+		white-space: nowrap;
+		transition: color .15s ease, background-color .15s ease;
 
 		&:hover {
 			color: var(--bs-body-color);
 			background: var(--slm-surface-muted);
 		}
+
+		&.active {
+			color: var(--bs-primary);
+			background: var(--slm-accent-soft);
+			font-weight: 600;
+		}
 	}
+
+	// phones and tablets: the sections in a row that scrolls sideways, above the content
+	@include media-breakpoint-down(lg) {
+		position: static;
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		padding-bottom: .4rem;
+		scrollbar-width: thin;
+	}
+}
+
+// each section appears as a page of its own
+@media (prefers-reduced-motion: no-preference) {
+	.has-settings-sections .settings-section:not([hidden]) {
+		animation: slm-fade-up .3s cubic-bezier(.2, .7, .2, 1) both;
+	}
+}
+
+.has-settings-sections .settings-section {
+	margin-top: 0 !important;
 }
 
 .settings-section {

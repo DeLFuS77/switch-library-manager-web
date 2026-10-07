@@ -2,8 +2,8 @@
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Settings") "Count" -1 "Subtitle" (t "Changes are applied when you save. Changing the folders or the keys rescans the library."))}}
 			<div class="row g-4">
-				<nav class="col-lg-3 d-none d-lg-block" aria-label="{{t "Settings sections"}}">
-					<ul class="nav flex-column settings-nav">
+				<nav class="col-lg-3" aria-label="{{t "Settings sections"}}">
+					<ul class="nav flex-lg-column settings-nav">
 						<li class="nav-item"><a class="nav-link" href="#library"><span class="bi bi-collection me-2" aria-hidden="true"></span>{{t "Library"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="#ignored"><span class="bi bi-eye-slash me-2" aria-hidden="true"></span>{{t "Ignored items"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="#general"><span class="bi bi-sliders me-2" aria-hidden="true"></span>{{t "General"}}</a></li>
