@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.23.0
+
+### Fixes
+
+- **Menu links from game pages no longer give 404** ([#3](https://github.com/DeLFuS77/switch-library-manager-web/issues/3),
+  thanks to [@LonelyTV](https://github.com/LonelyTV) for the report): the links of the menu were relative, so from
+  `/title/...` they pointed inside that folder. Every link now starts at the root of the site, and a test checks them.
+- The library card of games with a missing update counts the same games as the "Update available" filter.
+- No more movement when pages load or when changing sections of Settings: the fonts are preloaded, the space of the
+  scroll bar is kept, pages change with a crossfade and the notices are in place from the first paint.
+- Styles and scripts are loaded again whenever they change, so an update is never shown with old styles.
+
+### New features
+
+- **Diagnostics** (footer and Settings): keys, library folders, titles database, free space, automatic copies,
+  protection and tasks checked at a glance, with what to do about what is wrong and a report to copy (no keys, no
+  passwords).
+- **Automatic copies of the configuration**: every week, the last 5 kept in the `backups` folder of the data folder,
+  to download or restore from **Settings > Backup**, and a copy at any moment.
+- **Settings by sections**: each section of the menu is shown on its own instead of one long page; Save still saves
+  everything, and on phones the sections are a row above the content.
+- Chinese names take the titles of the stores of mainland China, Hong Kong and Taiwan together.
+
 ## 1.22.0
 
 ### Security
