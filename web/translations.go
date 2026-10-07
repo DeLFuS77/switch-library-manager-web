@@ -5,6 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"The password of SLM_AUTH_PASSWORD is weak.": "La contraseña de SLM_AUTH_PASSWORD es débil.",
+		"It still works, but change it to one of at least 10 characters that is not common, in the settings of the container, and restart it.": "Sigue funcionando, pero cámbiala por una de al menos 10 caracteres que no sea común, en la configuración del contenedor, y reinícialo.",
 		"The app is free. A tip on Ko-fi supports its development.": "La app es gratis. Una propina en Ko-fi apoya su desarrollo.",
 		"Support": "Apoyar",
 		"Search games, series, collections and pages": "Buscar juegos, sagas, colecciones y páginas",

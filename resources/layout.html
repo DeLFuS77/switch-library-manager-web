@@ -114,6 +114,12 @@
 				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{t "Close"}}"></button>
 			</div>
 			{{- end}}
+			{{- if .Auth.WeakEnvPassword}}
+			<div class="alert alert-warning d-flex align-items-start gap-2 mt-3 mb-0" role="status">
+				<span class="bi bi-shield-exclamation flex-shrink-0 mt-1" aria-hidden="true"></span>
+				<div><strong>{{t "The password of SLM_AUTH_PASSWORD is weak."}}</strong> {{t "It still works, but change it to one of at least 10 characters that is not common, in the settings of the container, and restart it."}}</div>
+			</div>
+			{{- end}}
 			{{- with .Update}}{{if $.Auth.IsAdmin}}
 			<div class="alert alert-info alert-dismissible fade show d-flex align-items-start gap-2 mt-3 mb-0 app-update" role="status" data-update-version="{{.Version}}" hidden>
 				<span class="bi bi-stars flex-shrink-0 mt-1" aria-hidden="true"></span>

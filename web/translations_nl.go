@@ -3,6 +3,8 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"The password of SLM_AUTH_PASSWORD is weak.": "Het wachtwoord van SLM_AUTH_PASSWORD is zwak.",
+		"It still works, but change it to one of at least 10 characters that is not common, in the settings of the container, and restart it.": "Het werkt nog, maar vervang het in de instellingen van de container door een wachtwoord van minstens 10 tekens dat niet veel voorkomt, en herstart hem.",
 		"The app is free. A tip on Ko-fi supports its development.": "De app is gratis. Een fooi op Ko-fi steunt de ontwikkeling.",
 		"Support": "Steunen",
 		"Search games, series, collections and pages": "Zoek games, series, collecties en pagina's",

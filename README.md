@@ -281,7 +281,9 @@ administrator to require a login; you are logged in as that administrator right 
   every attempt. Behind a reverse proxy the real client address is used, not the proxy's, and forged forwarded
   addresses from outside the local network are ignored.
 - An administrator can also be set with the environment variables `SLM_AUTH_USERNAME` and `SLM_AUTH_PASSWORD`, which
-  is useful when a password was forgotten; a weak `SLM_AUTH_PASSWORD` is refused.
+  is useful when a password was forgotten. A weak `SLM_AUTH_PASSWORD` (shorter than 10
+  characters or very common) still works, so nobody is locked out, but the log and the pages of the administrators ask
+  to change it.
 
 - If another service already protects the app (a reverse proxy with its own login, a VPN) and you want no users, set
   `SLM_ALLOW_REMOTE_WITHOUT_LOGIN=true` so it also answers outside the local network.

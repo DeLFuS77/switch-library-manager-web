@@ -3,6 +3,8 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"The password of SLM_AUTH_PASSWORD is weak.": "SLM_AUTH_PASSWORD 的密码太弱。",
+		"It still works, but change it to one of at least 10 characters that is not common, in the settings of the container, and restart it.": "它仍然可以使用，但请在容器设置中改为至少 10 个字符且不常见的密码，然后重启容器。",
 		"The app is free. A tip on Ko-fi supports its development.": "本应用免费。在 Ko-fi 打赏可以支持它的开发。",
 		"Support": "支持",
 		"Search games, series, collections and pages": "搜索游戏、系列、收藏和页面",

@@ -3,6 +3,8 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"The password of SLM_AUTH_PASSWORD is weak.": "SLM_AUTH_PASSWORD のパスワードが弱いです。",
+		"It still works, but change it to one of at least 10 characters that is not common, in the settings of the container, and restart it.": "引き続き使えますが、コンテナの設定で、よく使われていない 10 文字以上のパスワードに変更し、再起動してください。",
 		"The app is free. A tip on Ko-fi supports its development.": "このアプリは無料です。Ko-fi でのチップが開発の支えになります。",
 		"Support": "支援する",
 		"Search games, series, collections and pages": "ゲーム、シリーズ、コレクション、ページを検索",

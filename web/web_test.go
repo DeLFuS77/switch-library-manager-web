@@ -3,6 +3,7 @@ package web
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"encoding/json"
 	"html/template"
 	"io"
@@ -490,6 +491,41 @@ func TestAuthFromEnv(t *testing.T) {
 	t.Setenv("SLM_AUTH_PASSWORD", "env-secret-99")
 	if user, password, enabled, err := authFromEnv(); !enabled || err != nil || user != "admin" || password != "env-secret-99" {
 		t.Fatalf("unexpected result: %q %q %v %v", user, password, enabled, err)
+	}
+}
+
+// A weak SLM_AUTH_PASSWORD from an older version still logs in, so nobody is locked out after
+// an update; the administrators are asked to change it.
+func TestWeakEnvPasswordStillWorks(t *testing.T) {
+	t.Setenv("SLM_AUTH_USERNAME", "admin")
+	t.Setenv("SLM_AUTH_PASSWORD", "secret")
+	auth, err := newAuth(t.TempDir())
+	if err != nil {
+		t.Fatalf("the app must start with a weak password: %v", err)
+	}
+	if !auth.Enabled() || auth.envPasswordWeak == nil {
+		t.Fatalf("enabled %v, weak %v", auth.Enabled(), auth.envPasswordWeak)
+	}
+	if _, ok := auth.verify("admin", "secret"); !ok {
+		t.Fatal("the weak password must still log in")
+	}
+	if _, ok := auth.verify("admin", "wrong"); ok {
+		t.Fatal("a wrong password must not log in")
+	}
+
+	web := &Web{auth: auth}
+	r := httptest.NewRequest("GET", "/", nil)
+	if info := web.authInfo(r); !info.WeakEnvPassword {
+		t.Fatal("an administrator is told the password is weak")
+	}
+	viewer := r.WithContext(context.WithValue(r.Context(), principalKey{}, &Principal{Name: "bob", Role: ROLE_VIEWER}))
+	if info := web.authInfo(viewer); info.WeakEnvPassword {
+		t.Fatal("a viewer is not told")
+	}
+
+	t.Setenv("SLM_AUTH_PASSWORD", "a-strong-env-pass")
+	if auth, _ := newAuth(t.TempDir()); auth.envPasswordWeak != nil {
+		t.Fatal("a strong password is not weak")
 	}
 }
 
