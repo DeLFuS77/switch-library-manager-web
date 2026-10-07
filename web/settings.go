@@ -19,6 +19,8 @@ type SettingsPageData struct {
 	MissingCovers int
 	// the verification speeds, with the files checked at once on this computer
 	VerifySpeeds []VerifySpeedOption
+	// the copies of the configuration made every week
+	AutoBackups []AutoBackup
 }
 
 type SettingsForm struct {
@@ -104,6 +106,7 @@ func (web *Web) HandleSettings() {
 			Settings: current,
 			MissingCovers: web.missingCovers(),
 			VerifySpeeds: verifySpeedOptions(),
+			AutoBackups: web.autoBackups(),
 		}
 	}, func(value any, lang string) ErrorResponse {
 		settingsForm := value.(*SettingsForm)

@@ -11,6 +11,7 @@
 						<li class="nav-item"><a class="nav-link" href="#compression"><span class="bi bi-file-zip me-2" aria-hidden="true"></span>{{t "Compression"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="#notifications"><span class="bi bi-bell me-2" aria-hidden="true"></span>{{t "Notifications"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="#backup"><span class="bi bi-life-preserver me-2" aria-hidden="true"></span>{{t "Backup"}}</a></li>
+						<li class="nav-item"><a class="nav-link" href="/diagnostics.html"><span class="bi bi-heart-pulse me-2" aria-hidden="true"></span>{{t "Diagnostics"}}</a></li>
 					</ul>
 				</nav>
 				<div class="col-lg-9">
@@ -256,6 +257,26 @@
 								<button type="submit" class="btn btn-outline-danger rounded-pill" data-confirm="{{t "Restoring replaces the current settings and users. Continue?"}}"><span class="bi bi-upload me-2" aria-hidden="true"></span>{{t "Restore"}}</button>
 							</form>
 						</div>
+						<h3 class="h6 fw-semibold mt-4 mb-1">{{t "Automatic copies"}}</h3>
+						<p class="small text-body-secondary">{{t "Every week the app saves a copy of the configuration in the backups folder of its data folder, and keeps the last %v." 5}}</p>
+						{{- if .AutoBackups}}
+						<ul class="item-list mb-2">
+							{{- range .AutoBackups}}
+							<li class="item-row">
+								<span class="bi bi-file-earmark-zip text-body-secondary" aria-hidden="true"></span>
+								<div class="item-main">
+									<div class="item-name">{{formatDateTime .Time}}</div>
+									<div class="item-meta"><span>{{formatSize .Size}}</span></div>
+								</div>
+								<a class="btn btn-sm btn-outline-secondary" href="/backup/auto/{{.Name}}" download title="{{t "Download"}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download"}}</span></a>
+								<button type="button" class="btn btn-sm btn-outline-danger" data-auto-restore="{{.Name}}" data-confirm="{{t "Restoring replaces the current settings and users. Continue?"}}">{{t "Restore"}}</button>
+							</li>
+							{{- end}}
+						</ul>
+						{{- else}}
+						<p class="small text-body-secondary mb-2">{{t "No copy yet: the first one is made within a minute."}}</p>
+						{{- end}}
+						<button type="button" class="btn btn-sm btn-outline-primary rounded-pill" data-auto-backup><span class="bi bi-plus-circle me-1" aria-hidden="true"></span>{{t "Make a copy now"}}</button>
 					</section>
 				</div>
 			</div>

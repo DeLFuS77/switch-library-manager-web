@@ -257,13 +257,14 @@ func isPublicPath(path string) bool {
 
 // pages and actions of administrators; read-only users can only look and download
 var adminOnlyPages = map[string]struct{}{"/settings.html": {}, "/organize.html": {}, "/users.html": {}, "/compress.html": {}, "/space.html": {}, "/update.html": {}, "/backup/download": {},
-	"/compress/xci-list": {}, "/compress/nsz-list": {}}
+	"/compress/xci-list": {}, "/compress/nsz-list": {}, "/diagnostics.html": {}}
 
 func viewerAllowed(r *http.Request) bool {
 	switch r.Method {
 	case http.MethodGet, http.MethodHead:
 		_, adminOnly := adminOnlyPages[r.URL.Path]
-		return !adminOnly
+		// the backups hold the settings and the users
+		return !adminOnly && !strings.HasPrefix(r.URL.Path, "/backup/")
 	case http.MethodPost:
 		// the list of files of the SD card planner is a download, as the pages are
 		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt"

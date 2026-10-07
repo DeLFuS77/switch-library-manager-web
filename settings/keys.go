@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/magiconair/properties"
@@ -160,4 +161,21 @@ func KeysFingerprint() string {
 		hash.Write([]byte(name + "=" + keysInstance.keys[name] + "\n"))
 	}
 	return hex.EncodeToString(hash.Sum(nil))[:16]
+}
+
+// KeysSummary tells how many keys and title keys are loaded and the newest key generation,
+// without revealing any key: newer games need keys of newer generations.
+func KeysSummary() (keys int, titleKeys int, generation int) {
+	if keysInstance == nil {
+		return 0, 0, -1
+	}
+	generation = -1
+	for name := range keysInstance.keys {
+		if suffix, ok := strings.CutPrefix(name, "key_area_key_application_"); ok {
+			if value, err := strconv.ParseInt(suffix, 16, 32); err == nil && int(value) > generation {
+				generation = int(value)
+			}
+		}
+	}
+	return len(keysInstance.keys), len(keysInstance.titleKeys), generation
 }

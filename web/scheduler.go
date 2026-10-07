@@ -43,6 +43,11 @@ func (web *Web) StartScheduler() {
 			if verifyDue(appSettings, web.verifications().lastRun(), now) && inBackgroundHours(appSettings, now) && !web.state.IsSynchronizing() && web.startVerificationOf(nil, time.Duration(appSettings.VerifyIntervalDays)*24*time.Hour, TRIGGER_SCHEDULE) {
 				web.sugarLogger.Info("[Scheduled verification started]")
 			}
+			if web.autoBackupDue(now) {
+				if err := web.makeAutoBackup(now); err != nil {
+					web.sugarLogger.Errorf("Automatic backup failed: %v", err)
+				}
+			}
 			web.resumeBackgroundWork(now)
 		}
 	}()
