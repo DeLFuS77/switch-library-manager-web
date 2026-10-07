@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.25.0
+
+### Important
+
+- A weak `SLM_AUTH_PASSWORD` is now refused and the app does not start: it needs at least 10 characters, cannot be a
+  very common password and cannot be the user name. Change it before updating if yours is shorter. Accounts created in
+  **Users** keep working with their current password; the new rules apply when a password is set.
+
+### New features
+
+- **Quick search** from any page: <kbd>Ctrl</kbd>+<kbd>K</kbd> (<kbd>⌘</kbd>+<kbd>K</kbd> on a Mac), <kbd>/</kbd> or
+  the magnifier in the header find games, series, collections, pages and sections of Settings as you type, forgiving
+  typos. The arrows choose a result and Enter opens it. Nothing is added to the menus.
+- **Login protection against brute force and bots**: after a few failed logins every attempt is slowed down, and after
+  10 the address **and** the account are blocked, so guessing one account from many addresses, or many accounts from
+  one address, are both stopped. The block grows with each further failure, and a flood from many addresses slows
+  every attempt.
+- **Behind Cloudflare**: the login protection uses the visitor's address. With a Cloudflare Tunnel nothing needs to be
+  set; when Cloudflare connects directly, set `SLM_TRUSTED_PROXIES=cloudflare`.
+- Install guide and templates for **Synology** (Container Manager) and **Portainer**.
+
+### Improvements
+
+- New passwords need at least 10 characters and cannot be a very common one or the user name.
+- A short animated tour of the app at the top of the README.
+
+### Fixes
+
+- Windows, macOS and Linux programs: the games folder of the container (`/mnt/roms`) is no longer scanned by default
+  on a computer, an empty covers file no longer shows an error, the keys are logged once, and starting the app twice
+  opens the running one in the browser instead of failing.
+- Settings > Notifications: the test button no longer goes out of the page on medium-sized windows.
+
 ## 1.24.0
 
 ### New features
