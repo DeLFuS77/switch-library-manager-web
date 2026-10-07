@@ -28,7 +28,7 @@
 					<span class="brand-text">Switch Library<span class="d-none d-sm-inline d-xxl-none"> Manager</span></span>
 				</a>
 				<div class="d-flex align-items-center gap-2 order-xxl-last">
-					<a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 rounded-pill px-3 admin-only" href="sync" id="sync" title="{{t "Download the latest titles database and rescan the library"}}">
+					<a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 rounded-pill px-3 admin-only" href="/sync" id="sync" title="{{t "Download the latest titles database and rescan the library"}}">
 						<span class="bi bi-arrow-repeat" aria-hidden="true"></span><span class="d-none d-md-inline d-xxl-none">{{t "Synchronize"}}</span>
 					</a>
 					<button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="{{t "Toggle navigation"}}">
@@ -42,25 +42,25 @@
 					</div>
 					<div class="offcanvas-body">
 						<ul class="navbar-nav app-nav flex-grow-1">
-							{{- template "navLink" (dict "Page" .Page "Id" "index" "Href" "index.html" "Icon" "bi-collection" "Label" (t "Library") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "updates" "Href" "updates.html" "Icon" "bi-arrow-up-circle" "Label" (t "Updates") "Count" .Counts.Updates "Badge" "text-bg-warning")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "dlc" "Href" "dlc.html" "Icon" "bi-puzzle" "Label" (t "DLC") "Count" .Counts.Dlc "Badge" "text-bg-info")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "missing" "Href" "missing.html" "Icon" "bi-search-heart" "Label" (t "Missing Games") "Count" .Counts.Wished "Badge" "text-bg-danger")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "upcoming" "Href" "upcoming.html" "Icon" "bi-calendar-event" "Label" (t "Upcoming") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "sagas" "Href" "sagas.html" "Icon" "bi-stack" "Label" (t "Series") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "statistics" "Href" "statistics.html" "Icon" "bi-bar-chart" "Label" (t "Statistics") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "issues" "Href" "issues.html" "Icon" "bi-exclamation-triangle" "Label" (t "Issues") "Count" .Counts.Issues "Badge" "text-bg-danger")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "index" "Href" "/index.html" "Icon" "bi-collection" "Label" (t "Library") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "updates" "Href" "/updates.html" "Icon" "bi-arrow-up-circle" "Label" (t "Updates") "Count" .Counts.Updates "Badge" "text-bg-warning")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "dlc" "Href" "/dlc.html" "Icon" "bi-puzzle" "Label" (t "DLC") "Count" .Counts.Dlc "Badge" "text-bg-info")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "missing" "Href" "/missing.html" "Icon" "bi-search-heart" "Label" (t "Missing Games") "Count" .Counts.Wished "Badge" "text-bg-danger")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "upcoming" "Href" "/upcoming.html" "Icon" "bi-calendar-event" "Label" (t "Upcoming") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "sagas" "Href" "/sagas.html" "Icon" "bi-stack" "Label" (t "Series") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "statistics" "Href" "/statistics.html" "Icon" "bi-bar-chart" "Label" (t "Statistics") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "issues" "Href" "/issues.html" "Icon" "bi-exclamation-triangle" "Label" (t "Issues") "Count" .Counts.Issues "Badge" "text-bg-danger")}}
 						</ul>
 						<hr class="d-xxl-none">
 						<ul class="navbar-nav app-nav app-nav-compact me-xxl-2">
-							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "tasks.html" "Icon" (or (and .Counts.RunningTasks "bi-arrow-repeat nav-busy") "bi-list-task") "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "/tasks.html" "Icon" (or (and .Counts.RunningTasks "bi-arrow-repeat nav-busy") "bi-list-task") "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger")}}
 							{{- if .Auth.IsAdmin}}
-							{{- template "navLink" (dict "Page" .Page "Id" "organize" "Href" "organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "compress" "Href" "compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "space" "Href" "space.html" "Icon" "bi-hdd" "Label" (t "Space") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "sd" "Href" "sd.html" "Icon" "bi-sd-card" "Label" (t "SD card planner") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "settings" "Href" "settings.html" "Icon" "bi-gear" "Label" (t "Settings") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "users" "Href" "users.html" "Icon" "bi-people" "Label" (t "Users") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "sd" "Href" "/sd.html" "Icon" "bi-sd-card" "Label" (t "SD card planner") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "settings" "Href" "/settings.html" "Icon" "bi-gear" "Label" (t "Settings") "Count" 0 "Badge" "")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "users" "Href" "/users.html" "Icon" "bi-people" "Label" (t "Users") "Count" 0 "Badge" "")}}
 							{{- end}}
 							<li class="nav-item dropdown">
 								<button class="btn btn-link nav-link dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="themeMenu">
