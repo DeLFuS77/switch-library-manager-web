@@ -1,0 +1,21 @@
+# Synology DSM 7.2 or newer, Container Manager > Project > Create:
+#   - Path: /volume1/docker/switch-library-manager-web (create it first in File Station)
+#   - Source: "Create docker-compose.yml", paste this file
+# Set the folder of your games below, and PUID/PGID to your user (SSH: `id your-user`; the
+# first user is usually 1026, the "users" group is 100). Then open http://<NAS address>:3000
+services:
+  switch-library-manager-web:
+    image: delfus77/switch-library-manager-web:latest
+    container_name: switch-library-manager-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PUID=1026
+      - PGID=100
+      - TZ=Europe/Madrid
+    volumes:
+      # settings, caches, covers and your own prod.keys
+      - /volume1/docker/switch-library-manager-web/data:/usr/local/share/switch-library-manager-web
+      # your games
+      - /volume1/Switch:/mnt/roms

@@ -46,7 +46,7 @@ Linux, Docker, NAS and Raspberry Pi.
 ## Contents
 
 - [Features](#features)
-- [Quick start](#quick-start): [Docker](#docker), [Unraid](#unraid), [Windows, macOS and Linux](#windows-macos-and-linux)
+- [Quick start](#quick-start): [Docker](#docker), [Synology, TrueNAS, CasaOS, Portainer](#synology-truenas-casaos-zimaos-and-portainer), [Unraid](#unraid), [Windows, macOS and Linux](#windows-macos-and-linux)
 - [Your keys](#your-keys)
 - [First start](#first-start)
 - [Guides](#guides): [Organize](#organize), [Compress](#compress), [Users](#users-and-password-protection),
@@ -127,6 +127,17 @@ Then open http://localhost:3000 (or the address of your server).
 | `TZ` | Your time zone, for dates and scheduled synchronizations |
 
 To update, pull the new image and recreate the container: `docker compose pull && docker compose up -d`.
+
+### Synology, TrueNAS, CasaOS, ZimaOS and Portainer
+
+Ready-made files and step-by-step instructions are in [Installing on a NAS](docs/install/nas.md):
+
+| System | How |
+|---|---|
+| Synology (DSM 7.2+) | Container Manager project: [templates/synology/docker-compose.yml](templates/synology/docker-compose.yml) |
+| TrueNAS SCALE (24.10+) | Apps > Install via YAML: [templates/truenas/docker-compose.yml](templates/truenas/docker-compose.yml) |
+| CasaOS / ZimaOS | App Store > Custom Install > Import: [templates/casaos/docker-compose.yml](templates/casaos/docker-compose.yml) |
+| Portainer | App template URL: `https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/templates/portainer.json` |
 
 ### Unraid
 

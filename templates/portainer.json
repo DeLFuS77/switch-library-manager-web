@@ -1,0 +1,27 @@
+{
+  "version": "2",
+  "templates": [
+    {
+      "type": 1,
+      "title": "Switch Library Manager Web",
+      "name": "switch-library-manager-web",
+      "description": "Manage your Nintendo Switch backup library from the browser: missing updates, DLC and games, upcoming releases, statistics, organizing, NSZ compression and an SD card planner. No keys or games are included: put your own prod.keys in the data folder.",
+      "note": "Open the app on the port you choose (3000 by default). Set PUID/PGID to the owner of your games folder.",
+      "categories": ["Media", "Tools"],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/resources/static/android-chrome-512x512.png",
+      "image": "delfus77/switch-library-manager-web:latest",
+      "restart_policy": "unless-stopped",
+      "ports": ["3000:3000/tcp"],
+      "volumes": [
+        { "container": "/usr/local/share/switch-library-manager-web", "bind": "/opt/switch-library-manager-web" },
+        { "container": "/mnt/roms", "bind": "/path/to/your/switch/games" }
+      ],
+      "env": [
+        { "name": "PUID", "label": "PUID (user that owns your games)", "default": "1000" },
+        { "name": "PGID", "label": "PGID (group that owns your games)", "default": "1000" },
+        { "name": "TZ", "label": "Time zone", "default": "Europe/Madrid" }
+      ]
+    }
+  ]
+}
