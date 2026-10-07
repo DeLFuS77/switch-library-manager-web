@@ -402,8 +402,11 @@ func forwardedAddresses(r *http.Request) []string {
 			addresses = append(addresses, strings.TrimSpace(part))
 		}
 	}
-	if real := strings.TrimSpace(r.Header.Get("X-Real-Ip")); real != "" {
-		addresses = append(addresses, real)
+	// X-Real-Ip from proxies such as nginx, the other two from Cloudflare and its tunnels
+	for _, header := range []string{"X-Real-Ip", "Cf-Connecting-Ip", "True-Client-Ip"} {
+		if value := strings.TrimSpace(r.Header.Get(header)); value != "" {
+			addresses = append(addresses, value)
+		}
 	}
 	for _, value := range r.Header.Values("Forwarded") {
 		for _, element := range strings.Split(value, ",") {
@@ -436,19 +439,90 @@ func isLocalRequest(r *http.Request) bool {
 	return true
 }
 
-// clientIp is the address of the client, for the login limiter. Behind a reverse proxy on the
-// local network it is the last address outside the local network that the proxy reports, so
-// the clients do not all share the address of the proxy; forwarded addresses are ignored when
-// the request does not come from the local network, so they cannot be forged from outside.
+// TRUSTED_PROXIES_ENV lists more proxies whose forwarded client addresses are believed, besides
+// the ones of the local network: addresses or ranges, and "cloudflare" for its published ranges
+// (when Cloudflare connects to the app directly instead of through a tunnel on this computer).
+const TRUSTED_PROXIES_ENV = "SLM_TRUSTED_PROXIES"
+
+// cloudflareRanges are the addresses Cloudflare connects from (https://www.cloudflare.com/ips/).
+var cloudflareRanges = []string{
+	"173.245.48.0/20", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "141.101.64.0/18",
+	"108.162.192.0/18", "190.93.240.0/20", "188.114.96.0/20", "197.234.240.0/22", "198.41.128.0/17",
+	"162.158.0.0/15", "104.16.0.0/13", "104.24.0.0/14", "172.64.0.0/13", "131.0.72.0/22",
+	"2400:cb00::/32", "2606:4700::/32", "2803:f800::/32", "2405:b500::/32", "2405:8100::/32",
+	"2a06:98c0::/29", "2c0f:f248::/32",
+}
+
+// trustedProxyNets are the proxies set in SLM_TRUSTED_PROXIES.
+var trustedProxyNets = parseTrustedProxies(os.Getenv(TRUSTED_PROXIES_ENV))
+
+// parseTrustedProxies reads a list of addresses, ranges and "cloudflare", separated by commas
+// or spaces; what cannot be read is left out.
+func parseTrustedProxies(value string) []*net.IPNet {
+	nets := []*net.IPNet{}
+	add := func(cidr string) {
+		if !strings.Contains(cidr, "/") {
+			if ip := net.ParseIP(cidr); ip != nil {
+				if ip.To4() != nil {
+					cidr += "/32"
+				} else {
+					cidr += "/128"
+				}
+			}
+		}
+		if _, network, err := net.ParseCIDR(cidr); err == nil {
+			nets = append(nets, network)
+		}
+	}
+	for _, item := range strings.FieldsFunc(value, func(r rune) bool { return r == ',' || r == ' ' || r == ';' }) {
+		if strings.EqualFold(item, "cloudflare") {
+			for _, cidr := range cloudflareRanges {
+				add(cidr)
+			}
+			continue
+		}
+		add(item)
+	}
+	return nets
+}
+
+// trustedProxy reports whether forwarded client addresses are believed from an address: one of
+// the local network (a reverse proxy or a tunnel on it) or one set in SLM_TRUSTED_PROXIES.
+func trustedProxy(address string) bool {
+	ip := net.ParseIP(strings.Trim(strings.TrimSpace(address), "[]"))
+	if ip == nil {
+		return false
+	}
+	if isLocalAddress(address) {
+		return true
+	}
+	for _, network := range trustedProxyNets {
+		if network.Contains(ip) {
+			return true
+		}
+	}
+	return false
+}
+
+// clientIp is the address of the client, for the login limiter. Through a trusted proxy it is
+// the address the proxy reports: Cloudflare's CF-Connecting-IP when there is one, else the last
+// forwarded address that is not a proxy, so the clients do not all share the proxy's address.
+// From any other address forwarded headers are ignored, so they cannot be forged from outside.
 func clientIp(r *http.Request) string {
 	host := remoteHost(r)
-	if !isLocalAddress(host) {
+	if !trustedProxy(host) {
 		return host
+	}
+	for _, header := range []string{"Cf-Connecting-Ip", "True-Client-Ip"} {
+		if value := strings.Trim(strings.TrimSpace(r.Header.Get(header)), "[]"); net.ParseIP(value) != nil {
+			return value
+		}
 	}
 	addresses := forwardedAddresses(r)
 	for i := len(addresses) - 1; i >= 0; i-- {
-		if address := addresses[i]; address != "" && !isLocalAddress(address) {
-			return strings.Trim(address, "[]")
+		address := strings.Trim(addresses[i], "[]")
+		if address != "" && net.ParseIP(address) != nil && !trustedProxy(address) {
+			return address
 		}
 	}
 	return host

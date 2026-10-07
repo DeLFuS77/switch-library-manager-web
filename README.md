@@ -280,6 +280,13 @@ administrator to require a login; you are logged in as that administrator right 
 Use HTTPS (for example behind a reverse proxy) when the app can be reached from outside your network: the app then
 marks its cookies as secure and tells the browser to keep using HTTPS.
 
+**Behind Cloudflare.** With a Cloudflare Tunnel (`cloudflared` on your network) nothing needs to be set: the app reads
+the visitor's address from Cloudflare's `CF-Connecting-IP` header, so the login protection blocks the attacker and not
+Cloudflare. If Cloudflare connects to the app directly (a proxied DNS record pointing at your public address), set
+`SLM_TRUSTED_PROXIES=cloudflare` so its headers are believed only from [Cloudflare's addresses](https://www.cloudflare.com/ips/).
+`SLM_TRUSTED_PROXIES` also takes other proxy addresses or ranges, separated by commas. Cloudflare's own protections
+(for example a WAF rate limiting rule on `/login.html`, or Cloudflare Access) can be added on top.
+
 Other protections: other web sites cannot send actions to the app (CSRF), pages cannot be shown inside other sites,
 only the app's own scripts run, request sizes and slow connections are limited, covers are only downloaded from the
 internet (never from addresses of your network) and the settings, users and session files are readable only by the
