@@ -70,6 +70,7 @@ var quickPages = []quickPage{
 	{label: "General", href: "/settings.html#general", icon: "bi-sliders", admin: true, words: "settings language port"},
 	{label: "Background work", href: "/settings.html#background", icon: "bi-moon-stars", admin: true, words: "settings schedule automatic"},
 	{label: "Compression", href: "/settings.html#compression", icon: "bi-file-zip", admin: true, words: "settings nsz"},
+	{label: "Setup wizard", href: "/settings.html#wizard", icon: "bi-signpost-split", admin: true, words: "setup assistant first start configure guide"},
 	{label: "Automations", href: "/settings.html#automation", icon: "bi-magic", admin: true, words: "settings automatic rules auto organize compress"},
 	{label: "Notifications", href: "/settings.html#notifications", icon: "bi-bell", admin: true, words: "settings telegram discord webhook"},
 	{label: "Backup", href: "/settings.html#backup", icon: "bi-life-preserver", admin: true, words: "settings restore copy"},

@@ -1,0 +1,337 @@
+{{- define "wizard"}}
+{{- $s := .Settings}}
+<div class="modal fade wizard" id="setupWizard" tabindex="-1" aria-labelledby="wizardTitle" aria-hidden="true" data-bs-backdrop="static" data-wizard data-auto="{{.Auto}}" data-auth="{{.AuthEnabled}}">
+	<div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-md-down">
+		<div class="modal-content">
+			<form id="wizardForm" class="wizard-shell" novalidate autocomplete="off">
+				<aside class="wizard-art" aria-hidden="true">
+					<div class="wizard-art-orbit"></div>
+					<div class="wizard-art-blob"><span class="bi bi-stars" data-wizard-icon></span></div>
+					<p class="wizard-art-caption" data-wizard-caption></p>
+					<ol class="wizard-dots" data-wizard-dots></ol>
+				</aside>
+				<div class="wizard-main">
+					<header class="wizard-header">
+						<div class="flex-grow-1">
+							<p class="wizard-counter" data-wizard-counter></p>
+							<div class="progress wizard-progress" role="progressbar" aria-label="{{t "Setup wizard"}}"><div class="progress-bar" data-wizard-bar></div></div>
+						</div>
+						<button type="button" class="btn-close" data-wizard-close aria-label="{{t "Close"}}"></button>
+					</header>
+					<div class="wizard-alert" data-wizard-alert hidden role="alert"></div>
+
+					<div class="wizard-steps">
+						<!-- 1. welcome -->
+						<section class="wizard-step" data-step="welcome" data-icon="bi-stars" data-caption="{{t "Welcome"}}">
+							<h2 class="wizard-title" id="wizardTitle">{{if .Auto}}{{t "Welcome to Switch Library Manager"}}{{else}}{{t "Setup wizard"}}{{end}}</h2>
+							<p class="wizard-lead">{{if .Auto}}{{t "In a few steps your library will be ready, to your liking. Every step can be skipped, and everything can be changed later in Settings."}}{{else}}{{t "Go through every setting again. Each step shows how it is set now: keep it or change it."}}{{end}}</p>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label for="wizard_language" class="form-label fw-semibold">{{t "Language"}}</label>
+									<select class="form-select" id="wizard_language" name="language">
+										<option value=""{{if eq $s.Language ""}} selected{{end}}>{{t "Automatic (browser language)"}}</option>
+										{{- range .Languages}}
+										<option value="{{.}}"{{if eq . $s.Language}} selected{{end}}>{{languageName .}}</option>
+										{{- end}}
+									</select>
+								</div>
+								<div class="col-md-6">
+									<span class="form-label fw-semibold d-block">{{t "Theme"}}</span>
+									<div class="wizard-choices wizard-choices-3" role="radiogroup" aria-label="{{t "Theme"}}">
+										<button type="button" class="wizard-choice" data-wizard-theme="light"><span class="bi bi-sun-fill" aria-hidden="true"></span>{{t "Light"}}</button>
+										<button type="button" class="wizard-choice" data-wizard-theme="dark"><span class="bi bi-moon-stars-fill" aria-hidden="true"></span>{{t "Dark"}}</button>
+										<button type="button" class="wizard-choice" data-wizard-theme="auto"><span class="bi bi-circle-half" aria-hidden="true"></span>{{t "Automatic"}}</button>
+									</div>
+								</div>
+							</div>
+						</section>
+
+						<!-- 2. folders -->
+						<section class="wizard-step" data-step="folders" data-icon="bi-folder2-open" data-caption="{{t "Your games"}}" hidden>
+							<h2 class="wizard-title">{{t "Where are your games?"}}</h2>
+							<p class="wizard-lead">{{t "The folders with your NSP, NSZ, XCI and XCZ files. Subfolders are read too. With Docker, write the path inside the container, like /mnt/roms."}}</p>
+							{{- if not .Auto}}<p class="wizard-now"><span class="bi bi-info-circle" aria-hidden="true"></span>{{t "Now:"}} {{if $s.Folder}}<code>{{$s.Folder}}</code>{{range $s.ScanFolders}}, <code>{{.}}</code>{{end}}{{else}}{{t "no folder yet"}}{{end}}</p>{{end}}
+							<label for="wizard_scan_folders" class="form-label fw-semibold">{{t "Folders to scan"}}</label>
+							<textarea class="form-control font-monospace" id="wizard_scan_folders" name="scan_folders" rows="3" spellcheck="false" data-wizard-field="scan_folders" placeholder="/mnt/roms">
+{{$s.Folder}}
+{{- range $s.ScanFolders}}
+{{.}}
+{{- end -}}
+							</textarea>
+							<div class="form-text">{{t "One folder per Line"}}</div>
+							<ul class="wizard-checks list-unstyled" data-wizard-folder-results aria-live="polite"></ul>
+							<button type="button" class="btn btn-sm btn-outline-primary rounded-pill" data-wizard-check-folders><span class="bi bi-search me-1" aria-hidden="true"></span>{{t "Check the folders"}}</button>
+							<div class="form-check form-switch mt-3">
+								<input class="form-check-input" type="checkbox" role="switch" id="wizard_watch_folders" name="watch_folders" value="true"{{if $s.WatchFolders}} checked{{end}}>
+								<label class="form-check-label" for="wizard_watch_folders">{{t "Scan automatically when files change"}}</label>
+							</div>
+						</section>
+
+						<!-- 3. keys -->
+						<section class="wizard-step" data-step="keys" data-icon="bi-key" data-caption="{{t "Your keys"}}" hidden>
+							<h2 class="wizard-title">{{t "Your keys"}}</h2>
+							<p class="wizard-lead">{{t "With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Keys stay on your computer and are never uploaded."}}</p>
+							{{- if not .Auto}}<p class="wizard-now"><span class="bi bi-info-circle" aria-hidden="true"></span>{{t "Now:"}} {{if .KeysAvailable}}{{t "Keys found"}}{{else}}{{t "Keys not found"}}{{end}}</p>{{end}}
+							<label for="wizard_prod_keys" class="form-label fw-semibold">{{t "Your keys (prod.keys)"}}</label>
+							<div class="input-group">
+								<span class="input-group-text"><span class="bi bi-key" aria-hidden="true"></span></span>
+								<input type="text" class="form-control" id="wizard_prod_keys" name="prod_keys" value="{{$s.Prodkeys}}" spellcheck="false" data-wizard-field="prod_keys" placeholder="{{t "Empty: the data folder"}}">
+								<button type="button" class="btn btn-outline-primary" data-wizard-check-keys>{{t "Check"}}</button>
+							</div>
+							<p class="wizard-check-line" data-wizard-keys-result aria-live="polite"></p>
+							<p class="form-text">{{t "The folder with your prod.keys (and optionally title.keys), or the path to the file. Empty: the data folder, then ~/.switch. Keys stay on your computer and are never uploaded."}}</p>
+						</section>
+
+						<!-- 4. console -->
+						<section class="wizard-step" data-step="console" data-icon="bi-nintendo-switch" data-caption="{{t "Your console"}}" hidden>
+							<h2 class="wizard-title">{{t "Your console"}}</h2>
+							<p class="wizard-lead">{{t "Optional. With the firmware of your console, games and updates that need a newer one are marked, so you know before installing them."}}</p>
+							{{- if not .Auto}}<p class="wizard-now"><span class="bi bi-info-circle" aria-hidden="true"></span>{{t "Now:"}} {{if $s.ConsoleFirmware}}{{$s.ConsoleFirmware}}{{else}}{{t "not set"}}{{end}}</p>{{end}}
+							<div class="col-md-6 px-0">
+								<label for="wizard_console_firmware" class="form-label fw-semibold">{{t "Firmware of your console"}}</label>
+								<input type="text" class="form-control" id="wizard_console_firmware" name="console_firmware" value="{{$s.ConsoleFirmware}}" placeholder="18.1.0" inputmode="decimal" data-wizard-field="console_firmware">
+								<div class="form-text">{{t "See it on the console in System Settings > System."}}</div>
+							</div>
+						</section>
+
+						<!-- 5. library -->
+						<section class="wizard-step" data-step="library" data-icon="bi-collection" data-caption="{{t "Your library"}}" hidden>
+							<h2 class="wizard-title">{{t "How you like your library"}}</h2>
+							<p class="wizard-lead">{{t "What the lists show and how the app keeps itself up to date."}}</p>
+							<div class="wizard-toggles">
+								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" id="wizard_hide_demo_games" name="hide_demo_games" value="true"{{if $s.HideDemoGames}} checked{{end}}>
+									<label class="form-check-label" for="wizard_hide_demo_games">{{t "Hide demos"}}</label>
+								</div>
+								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" id="wizard_ignore_dlc_updates" name="ignore_dlc_updates" value="true"{{if $s.IgnoreDLCUpdates}} checked{{end}}>
+									<label class="form-check-label" for="wizard_ignore_dlc_updates">{{t "Do not list updates for DLC"}}</label>
+								</div>
+								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" id="wizard_check_for_updates" name="check_for_updates" value="true"{{if $s.CheckForUpdates}} checked{{end}}>
+									<label class="form-check-label" for="wizard_check_for_updates">{{t "Tell me when a new version of the app is available"}}</label>
+								</div>
+							</div>
+							<div class="row g-3 mt-1">
+								<div class="col-md-6">
+									<label for="wizard_sync_interval_hours" class="form-label fw-semibold">{{t "Automatic synchronization"}}</label>
+									<select class="form-select" id="wizard_sync_interval_hours" name="sync_interval_hours">
+										{{- range .SyncIntervals}}
+										<option value="{{.}}"{{if eq . $s.SyncIntervalHours}} selected{{end}}>{{t (intervalLabel .)}}</option>
+										{{- end}}
+									</select>
+								</div>
+								<div class="col-md-6">
+									<label for="wizard_watch_interval_minutes" class="form-label fw-semibold">{{t "Check the folders every"}}</label>
+									<select class="form-select" id="wizard_watch_interval_minutes" name="watch_interval_minutes">
+										{{- $interval := $s.WatchIntervalMinutes}}{{if eq $interval 0}}{{$interval = 2}}{{end}}
+										<option value="2"{{if eq $interval 2}} selected{{end}}>{{t "2 minutes"}}</option>
+										<option value="10"{{if eq $interval 10}} selected{{end}}>{{t "10 minutes"}}</option>
+										<option value="30"{{if eq $interval 30}} selected{{end}}>{{t "30 minutes"}}</option>
+										<option value="60"{{if eq $interval 60}} selected{{end}}>{{t "1 hour"}}</option>
+									</select>
+								</div>
+							</div>
+						</section>
+
+						<!-- 6. background hours -->
+						<section class="wizard-step" data-step="background" data-icon="bi-moon-stars" data-caption="{{t "Background work"}}" hidden>
+							<h2 class="wizard-title">{{t "When can the app work hard?"}}</h2>
+							<p class="wizard-lead">{{t "Covers, thumbnails, file checks and compression can wait for the night, so the NAS stays fast while you use it. What you start yourself always runs at once."}}</p>
+							<div class="wizard-choices wizard-choices-cards" role="radiogroup" aria-label="{{t "Do heavy work"}}">
+								<label class="wizard-card"><input type="radio" name="background_hours" value=""{{if eq $s.BackgroundHours ""}} checked{{end}}><span class="wizard-card-icon bi bi-lightning-charge" aria-hidden="true"></span><span class="wizard-card-label">{{t "At any time"}}</span></label>
+								<label class="wizard-card"><input type="radio" name="background_hours" value="22-6"{{if eq $s.BackgroundHours "22-6"}} checked{{end}}><span class="wizard-card-icon bi bi-moon-stars" aria-hidden="true"></span><span class="wizard-card-label">{{t "From %v to %v" "22:00" "6:00"}}</span></label>
+								<label class="wizard-card"><input type="radio" name="background_hours" value="0-6"{{if eq $s.BackgroundHours "0-6"}} checked{{end}}><span class="wizard-card-icon bi bi-moon-stars" aria-hidden="true"></span><span class="wizard-card-label">{{t "From %v to %v" "0:00" "6:00"}}</span></label>
+								<label class="wizard-card"><input type="radio" name="background_hours" value="1-7"{{if eq $s.BackgroundHours "1-7"}} checked{{end}}><span class="wizard-card-icon bi bi-moon-stars" aria-hidden="true"></span><span class="wizard-card-label">{{t "From %v to %v" "1:00" "7:00"}}</span></label>
+								<label class="wizard-card"><input type="radio" name="background_hours" value="2-8"{{if eq $s.BackgroundHours "2-8"}} checked{{end}}><span class="wizard-card-icon bi bi-moon-stars" aria-hidden="true"></span><span class="wizard-card-label">{{t "From %v to %v" "2:00" "8:00"}}</span></label>
+							</div>
+						</section>
+
+						<!-- 7. compression -->
+						<section class="wizard-step" data-step="compression" data-icon="bi-file-zip" data-caption="{{t "Compression"}}" hidden>
+							<h2 class="wizard-title">{{t "Save space by itself"}}</h2>
+							<p class="wizard-lead">{{t "NSP and XCI files can be compressed to NSZ and XCZ, 10 to 60% smaller, and installers like Tinfoil and DBI install them directly. Every file is checked before the original is deleted."}}{{if not .KeysAvailable}} <span class="text-warning-emphasis">{{t "Needs your own prod.keys."}}</span>{{end}}</p>
+							<div class="wizard-choices wizard-choices-cards" role="radiogroup" aria-label="{{t "Compress automatically"}}">
+								<label class="wizard-card"><input type="radio" name="auto_compress" value=""{{if eq $s.AutoCompress ""}} checked{{end}}><span class="wizard-card-icon bi bi-hand-index" aria-hidden="true"></span><span class="wizard-card-label">{{t "Only when I ask"}}</span></label>
+								<label class="wizard-card"><input type="radio" name="auto_compress" value="new"{{if eq $s.AutoCompress "new"}} checked{{end}}><span class="wizard-card-icon bi bi-lightning-charge" aria-hidden="true"></span><span class="wizard-card-label">{{t "As soon as new files appear"}}</span></label>
+								<label class="wizard-card"><input type="radio" name="auto_compress" value="night"{{if eq $s.AutoCompress "night"}} checked{{end}}><span class="wizard-card-icon bi bi-moon-stars" aria-hidden="true"></span><span class="wizard-card-label">{{t "Every night at 3:00"}}</span></label>
+							</div>
+							<div class="row g-3 mt-1">
+								<div class="col-md-6">
+									<label for="wizard_auto_compress_level" class="form-label fw-semibold">{{t "Compression level"}}</label>
+									<select class="form-select" id="wizard_auto_compress_level" name="auto_compress_level">
+										<option value="fast"{{if eq $s.AutoCompressLevel "fast"}} selected{{end}}>{{t "Fast"}}</option>
+										<option value="balanced"{{if or (eq $s.AutoCompressLevel "balanced") (eq $s.AutoCompressLevel "")}} selected{{end}}>{{t "Balanced"}}</option>
+										<option value="max"{{if eq $s.AutoCompressLevel "max"}} selected{{end}}>{{t "Maximum"}}</option>
+									</select>
+								</div>
+								<div class="col-md-6 d-flex align-items-end">
+									<div class="form-check form-switch mb-2">
+										<input class="form-check-input" type="checkbox" role="switch" id="wizard_auto_compress_keep" name="auto_compress_keep" value="true"{{if $s.AutoCompressKeep}} checked{{end}}>
+										<label class="form-check-label" for="wizard_auto_compress_keep">{{t "Keep the originals"}}</label>
+									</div>
+								</div>
+							</div>
+						</section>
+
+						<!-- 8. automations -->
+						<section class="wizard-step" data-step="automation" data-icon="bi-magic" data-caption="{{t "Automations"}}" hidden>
+							{{- $a := $s.Automation}}
+							<h2 class="wizard-title">{{t "Let the library take care of itself"}}</h2>
+							<p class="wizard-lead">{{t "When new files appear, the steps you choose run one after the other. All off until you turn them on."}}</p>
+							<div class="form-check form-switch automation-master mb-2">
+								<input class="form-check-input" type="checkbox" role="switch" id="wizard_automation_enabled" name="automation_enabled" value="true" data-automation-master{{if $a.Enabled}} checked{{end}}>
+								<label class="form-check-label fw-semibold" for="wizard_automation_enabled">{{t "Take care of new files by themselves"}}</label>
+							</div>
+							<div class="wizard-flow" data-automation-steps>
+								<label class="wizard-flow-step"><input class="form-check-input" type="checkbox" name="automation_verify" value="true"{{if $a.Verify}} checked{{end}}><span class="bi bi-shield-check" aria-hidden="true"></span><span>{{t "Check the new files"}}</span></label>
+								<span class="wizard-flow-arrow bi bi-chevron-right" aria-hidden="true"></span>
+								<label class="wizard-flow-step"><input class="form-check-input" type="checkbox" name="automation_compress" value="true"{{if $a.Compress}} checked{{end}}><span class="bi bi-file-zip" aria-hidden="true"></span><span>{{t "Compress them"}}</span></label>
+								<span class="wizard-flow-arrow bi bi-chevron-right" aria-hidden="true"></span>
+								<label class="wizard-flow-step"><input class="form-check-input" type="checkbox" name="automation_cleanup" value="true"{{if $a.CleanupUpdates}} checked{{end}}><span class="bi bi-trash3" aria-hidden="true"></span><span>{{t "Delete the updates a new one replaces"}}</span></label>
+								<span class="wizard-flow-arrow bi bi-chevron-right" aria-hidden="true"></span>
+								<label class="wizard-flow-step"><input class="form-check-input" type="checkbox" name="automation_organize" value="true"{{if $a.Organize}} checked{{end}}><span class="bi bi-folder-symlink" aria-hidden="true"></span><span>{{t "Organize the library"}}</span></label>
+								<span class="wizard-flow-arrow bi bi-chevron-right" aria-hidden="true"></span>
+								<label class="wizard-flow-step"><input class="form-check-input" type="checkbox" name="automation_notify" value="true"{{if $a.Notify}} checked{{end}}><span class="bi bi-bell" aria-hidden="true"></span><span>{{t "Tell me what was done"}}</span></label>
+							</div>
+							<div class="form-check form-switch mt-3">
+								<input class="form-check-input" type="checkbox" role="switch" id="wizard_automation_night" name="automation_night" value="true"{{if $a.BackgroundHoursOnly}} checked{{end}}>
+								<label class="form-check-label" for="wizard_automation_night">{{t "Wait for the background hours"}}</label>
+							</div>
+						</section>
+
+						<!-- 9. notifications -->
+						<section class="wizard-step" data-step="notifications" data-icon="bi-bell" data-caption="{{t "Notifications"}}" hidden>
+							<h2 class="wizard-title">{{t "Get a message when something new arrives"}}</h2>
+							<p class="wizard-lead">{{t "Optional. Updates, DLC, games of your wishlist and new games, on Discord, Telegram or any webhook."}}</p>
+							{{- if not .Auto}}<p class="wizard-now"><span class="bi bi-info-circle" aria-hidden="true"></span>{{t "Now:"}} {{if .NotificationsConfigured}}{{t "a channel is set"}}{{else}}{{t "no channel yet"}}{{end}}</p>{{end}}
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label for="wizard_discord_webhook_url" class="form-label fw-semibold"><span class="bi bi-discord me-1" aria-hidden="true"></span>{{t "Discord webhook URL"}}</label>
+									<input type="url" class="form-control" id="wizard_discord_webhook_url" name="discord_webhook_url" value="{{$s.Notifications.DiscordWebhookUrl}}" placeholder="https://discord.com/api/webhooks/..." data-wizard-field="discord_webhook_url">
+								</div>
+								<div class="col-md-6">
+									<label for="wizard_webhook_url" class="form-label fw-semibold"><span class="bi bi-broadcast me-1" aria-hidden="true"></span>{{t "Other webhook URL"}}</label>
+									<input type="url" class="form-control" id="wizard_webhook_url" name="webhook_url" value="{{$s.Notifications.WebhookUrl}}" placeholder="https://..." data-wizard-field="webhook_url">
+								</div>
+								<div class="col-md-6">
+									<label for="wizard_telegram_bot_token" class="form-label fw-semibold"><span class="bi bi-telegram me-1" aria-hidden="true"></span>{{t "Telegram bot token"}}</label>
+									<input type="password" class="form-control" id="wizard_telegram_bot_token" name="telegram_bot_token" value="{{$s.Notifications.TelegramBotToken}}" data-wizard-field="telegram_bot_token">
+								</div>
+								<div class="col-md-6">
+									<label for="wizard_telegram_chat_id" class="form-label fw-semibold">{{t "Telegram chat ID"}}</label>
+									<input type="text" class="form-control" id="wizard_telegram_chat_id" name="telegram_chat_id" value="{{$s.Notifications.TelegramChatId}}" data-wizard-field="telegram_chat_id">
+								</div>
+							</div>
+							<div class="wizard-toggles wizard-toggles-grid mt-3">
+								<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="wizard_notify_updates" name="notify_updates" value="true"{{if $s.Notifications.NotifyUpdates}} checked{{end}}><label class="form-check-label" for="wizard_notify_updates">{{t "Notify new updates"}}</label></div>
+								<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="wizard_notify_dlc" name="notify_dlc" value="true"{{if $s.Notifications.NotifyDlc}} checked{{end}}><label class="form-check-label" for="wizard_notify_dlc">{{t "Notify new DLC"}}</label></div>
+								<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="wizard_notify_wishlist" name="notify_wishlist" value="true"{{if $s.Notifications.NotifyWishlist}} checked{{end}}><label class="form-check-label" for="wizard_notify_wishlist">{{t "Notify my wishlist"}}</label></div>
+								<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="wizard_notify_new_games" name="notify_new_games" value="true"{{if $s.Notifications.NotifyNewGames}} checked{{end}}><label class="form-check-label" for="wizard_notify_new_games">{{t "Notify games added to my folders"}}</label></div>
+							</div>
+						</section>
+
+						<!-- 10. extras -->
+						<section class="wizard-step" data-step="extras" data-icon="bi-gem" data-caption="{{t "Extras"}}" hidden>
+							<h2 class="wizard-title">{{t "Extras"}}</h2>
+							<p class="wizard-lead">{{t "Regular checks of your files, and how long games take to beat. All optional."}}</p>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label for="wizard_verify_interval_days" class="form-label fw-semibold">{{t "Check the files"}}</label>
+									<select class="form-select" id="wizard_verify_interval_days" name="verify_interval_days">
+										<option value="0"{{if eq $s.VerifyIntervalDays 0}} selected{{end}}>{{t "Only when I ask"}}</option>
+										<option value="7"{{if eq $s.VerifyIntervalDays 7}} selected{{end}}>{{t "Every week"}}</option>
+										<option value="30"{{if eq $s.VerifyIntervalDays 30}} selected{{end}}>{{t "Every month"}}</option>
+									</select>
+								</div>
+								<div class="col-md-6">
+									<label for="wizard_verify_speed" class="form-label fw-semibold">{{t "Verification speed"}}</label>
+									<select class="form-select" id="wizard_verify_speed" name="verify_speed">
+										{{- range .VerifySpeeds}}
+										<option value="{{.Value}}"{{if eq .Value $s.VerifySpeed}} selected{{end}}>{{t .Label}}</option>
+										{{- end}}
+									</select>
+								</div>
+							</div>
+							<fieldset class="igdb-settings mt-3">
+								<legend class="form-label fw-semibold"><span class="bi bi-hourglass-split me-1" aria-hidden="true"></span>{{t "Times to beat (IGDB)"}}</legend>
+								<p class="form-text mt-0">{{t "Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret."}}</p>
+								<div class="row g-3">
+									<div class="col-md-6">
+										<label for="wizard_igdb_client_id" class="form-label">{{t "Client ID"}}</label>
+										<input type="text" class="form-control" id="wizard_igdb_client_id" name="igdb_client_id" value="{{$s.IgdbClientId}}" spellcheck="false">
+									</div>
+									<div class="col-md-6">
+										<label for="wizard_igdb_client_secret" class="form-label">{{t "Client Secret"}}</label>
+										<input type="password" class="form-control" id="wizard_igdb_client_secret" name="igdb_client_secret" value="" autocomplete="new-password" placeholder="{{if $s.IgdbClientSecret}}{{t "Saved. Leave it empty to keep it."}}{{end}}">
+									</div>
+								</div>
+							</fieldset>
+						</section>
+
+						<!-- 11. security -->
+						<section class="wizard-step" data-step="security" data-icon="bi-shield-lock" data-caption="{{t "Security"}}" hidden>
+							<h2 class="wizard-title">{{t "Protect your library"}}</h2>
+							{{- if .AuthEnabled}}
+							<p class="wizard-lead">{{t "Login is on: only your users can open the app. Manage them in Users."}}</p>
+							<p class="wizard-now wizard-now-ok"><span class="bi bi-shield-check" aria-hidden="true"></span>{{t "Login is on"}}</p>
+							{{- else}}
+							<p class="wizard-lead">{{t "Login is off: anyone on your network can change or delete your library, and the app does not answer from the internet. Create an administrator now, or later in Users."}}</p>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label for="wizard_admin_name" class="form-label fw-semibold">{{t "User name"}}</label>
+									<input type="text" class="form-control" id="wizard_admin_name" name="wizard_admin_name" autocomplete="username" maxlength="32" data-wizard-field="name">
+								</div>
+								<div class="col-md-6">
+									<label for="wizard_admin_password" class="form-label fw-semibold">{{t "Password"}}</label>
+									<input type="password" class="form-control" id="wizard_admin_password" name="wizard_admin_password" autocomplete="new-password" minlength="10" maxlength="72" data-wizard-field="password">
+									<div class="form-text">{{t "At least 10 characters, not a common one and not the user name."}}</div>
+								</div>
+							</div>
+							{{- end}}
+						</section>
+
+						<!-- 12. summary -->
+						<section class="wizard-step" data-step="summary" data-icon="bi-flag" data-caption="{{t "Ready"}}" hidden>
+							<h2 class="wizard-title">{{t "All set?"}}</h2>
+							<p class="wizard-lead">{{t "This is what you chose. Saving starts reading your library."}}</p>
+							<ul class="wizard-summary list-unstyled" data-wizard-summary></ul>
+						</section>
+
+						<!-- done -->
+						<section class="wizard-step wizard-done" data-step="done" data-icon="bi-check2-circle" data-caption="{{t "Done"}}" hidden>
+							<div class="wizard-done-mark" aria-hidden="true"><span class="bi bi-check-lg"></span></div>
+							<h2 class="wizard-title">{{t "Your library is on its way!"}}</h2>
+							<p class="wizard-lead">{{t "The app is reading your folders now. You can follow it on the Tasks page, and change anything in Settings or with this wizard."}}</p>
+							<a class="btn btn-primary rounded-pill px-4" href="/index.html"><span class="bi bi-collection me-2" aria-hidden="true"></span>{{t "Go to the library"}}</a>
+						</section>
+					</div>
+
+					<!-- settings the wizard does not show keep their value -->
+					<div hidden>
+						<textarea name="ignore_dlc_title_ids">{{range $s.IgnoreDLCTitleIds}}{{.}}
+{{end}}</textarea>
+						<textarea name="ignore_update_title_ids">{{range $s.IgnoreUpdateTitleIds}}{{.}}
+{{end}}</textarea>
+						<input type="text" name="ignore_file_types" value="{{range $i, $e := $s.IgnoreFileTypes}}{{if $i}} {{end}}{{$e}}{{end}}">
+					</div>
+
+					<footer class="wizard-footer" data-wizard-footer>
+						<div class="wizard-footer-left">
+							{{- if .Auto}}
+							<button type="button" class="btn btn-link btn-sm text-body-secondary px-0" data-wizard-later>{{t "Later"}}</button>
+							<button type="button" class="btn btn-link btn-sm text-body-secondary px-0" data-wizard-never>{{t "Do not show again"}}</button>
+							{{- end}}
+						</div>
+						<button type="button" class="btn btn-outline-secondary rounded-pill" data-wizard-back><span class="bi bi-arrow-left me-1" aria-hidden="true"></span>{{t "Back"}}</button>
+						<button type="button" class="btn btn-link text-body-secondary" data-wizard-skip>{{t "Skip"}}</button>
+						<button type="button" class="btn btn-primary rounded-pill px-4" data-wizard-next>{{t "Next"}}<span class="bi bi-arrow-right ms-1" aria-hidden="true"></span></button>
+						<button type="submit" class="btn btn-primary rounded-pill px-4" data-wizard-finish hidden><span class="bi bi-check-lg me-1" aria-hidden="true"></span>{{t "Save and start"}}</button>
+					</footer>
+				</div>
+			</form>
+		</div>
+	</div>
+	<script type="application/json" data-wizard-texts>{"step":{{t "Step %v of %v"}},"checking":{{t "Checking…"}},"saving":{{t "Saving…"}},"yes":{{t "Yes"}},"no":{{t "No"}},"none":{{t "None"}},"folders":{{t "Folders to scan"}},"keys":{{t "Your keys (prod.keys)"}},"firmware":{{t "Firmware of your console"}},"background":{{t "Do heavy work"}},"compress":{{t "Compress automatically"}},"automation":{{t "Automations"}},"notifications":{{t "Notifications"}},"admin":{{t "Administrator"}},"igdb":{{t "Times to beat (IGDB)"}},"theme":{{t "Theme"}},"language":{{t "Language"}},"default":{{t "Default"}},"stepsOn":{{t "%v steps on"}},"off":{{t "Off"}},"set":{{t "Set"}}}</script>
+</div>
+{{- end}}

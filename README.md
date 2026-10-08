@@ -97,6 +97,8 @@ Linux, Docker, NAS and Raspberry Pi.
 - Organize files in folders and rename them from templates, always with a preview first
 - Delete old updates, duplicates and empty folders
 - Ignore lists for DLC, updates and file types; hide demos
+- **Automations** (off until you turn them on): new files are checked, compressed, the updates they replace deleted
+  and the library organized by itself, with a message of what was done
 
 **Save space**
 - Compress NSP to NSZ and XCI to XCZ (10 to 60% smaller), installed directly by Tinfoil, DBI and other installers;
@@ -105,6 +107,7 @@ Linux, Docker, NAS and Raspberry Pi.
 - Space page: see how much old updates, duplicates and already compressed originals take, and free it safely
 
 **Built to run on a server, or on your computer**
+- A setup wizard on the first start, and again from Settings whenever you want
 - Docker image for amd64 and arm64, templates for Unraid, Synology and Portainer, and ready-to-run programs for
   Windows, macOS, Linux and Raspberry Pi
 - Low memory use and fast with tens of thousands of files: the library shows up while it is scanned, covers and
@@ -234,8 +237,10 @@ key is missing.
 ## First start
 
 1. On the first start the titles database is downloaded (names, covers, updates and DLC of every game).
-2. The Library page shows a checklist: the titles database, your keys, your folders and the first scan. Every step
-   links to where it is done.
+2. A **setup wizard** opens: your folders (checked as you type), your keys, the firmware of your console, the
+   background hours, compression, automations, notifications, times to beat and an administrator, one step at a
+   time. Every step can be skipped, and the wizard can be put off or turned off. Run it again at any time from
+   **Settings**: each step shows how it is set now.
 3. Your games appear once the folders are scanned. New, removed or replaced files are picked up by themselves.
 
 ## Guides
