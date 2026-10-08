@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.26.0
+
+### New features
+
+- **Setup wizard**: on the first start, a friendly step-by-step guide walks you through every setting (language and
+  theme, your folders checked as you type, keys, console firmware, library options, background hours, compression,
+  automations, notifications, times to beat and a first administrator), with a summary before saving. Every step can
+  be skipped, and the wizard can be put off or turned off. Run it again from **Settings** or the quick search: each
+  step shows how it is set now.
+- **Automations** (off until you turn them on in **Settings > Automations**): new files are checked, compressed
+  (except damaged ones), the updates they replace deleted and the library organized, one step after the other, with a
+  message of what was done. Optionally only within the background hours; the queue survives a restart.
+- **Your year on Switch**: a page that sums up what came to your library in a year (games, updates, DLC, space, the
+  busiest month, your favorite genre and publisher, the biggest, oldest and newest game, your most complete series),
+  ready to download as an image to share. From **Statistics** or the quick search.
+- **Version history** on every game page: each update with its date, the one installed, and a button to look up what
+  is new.
+- **Times to beat** (optional, from IGDB): with your own free Twitch application, game pages show the quick, story and
+  100% times, the library can be sorted by time to beat and Statistics adds up the hours of your games.
+
+### Improvements
+
+- The Tasks icon of the menu stops turning as soon as the last task ends or is cancelled, without reloading the page.
+- The README, the Unraid, Synology and Portainer templates and Docker Hub describe every feature.
+
+### License
+
+- From this version the changes made in this repository are published under the **GNU AGPL-3.0**: the app stays free
+  and open source, and nobody can turn it into a closed or paid product without sharing its source. Versions up to
+  1.25.2 were published under the MIT license.
+
 ## 1.25.2
 
 ### Fixes
