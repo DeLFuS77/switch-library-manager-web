@@ -5,6 +5,7 @@
 			{{- if eq $s.Games 0}}
 			{{- template "emptyState" (dict "Icon" "bi-bar-chart" "Tone" "" "Title" (t "No statistics yet") "Text" (t "Add your games folders in Settings to see the statistics of your library.") "ActionHref" "/settings.html#library" "ActionLabel" (t "Open Settings") "ActionIcon" "bi-gear")}}
 			{{- else}}
+			<a class="year-teaser mb-3" href="/year.html"><span class="bi bi-stars" aria-hidden="true"></span><span class="flex-grow-1"><strong>{{t "Your year on Switch"}}</strong> <span class="text-body-secondary">{{t "What came to your library this year, ready to share."}}</span></span><span class="bi bi-chevron-right" aria-hidden="true"></span></a>
 			<div class="row row-cols-2 row-cols-lg-4 g-2 g-md-3 mb-4">
 				{{- template "statCard" (dict "Label" (t "Games") "Value" $s.Games "Icon" "bi-controller" "Tone" "" "Count" true)}}
 				{{- template "statCard" (dict "Label" (t "Updates") "Value" $s.Updates "Icon" "bi-arrow-up-circle" "Tone" "is-cyan" "Count" true)}}
@@ -138,17 +139,7 @@
 			</section>
 			{{- end}}
 {{- end}}
-{{define "statCard"}}
-				<div class="col">
-					<div class="surface stat-card h-100">
-						<div class="stat-icon {{.Tone}}"><span class="bi {{.Icon}}" aria-hidden="true"></span></div>
-						<div>
-							<div class="stat-value"{{if .Count}} data-count="{{.Value}}"{{end}}>{{.Value}}</div>
-							<div class="stat-label">{{.Label}}</div>
-						</div>
-					</div>
-				</div>
-{{- end}}
+
 {{define "statShare"}}
 						<div class="d-flex justify-content-between small mb-1">
 							<span>{{t .Label}} <span class="text-body-secondary">({{num .Count}})</span></span>
@@ -159,14 +150,3 @@
 						</div>
 {{- end}}
 
-{{define "countBar"}}
-						<div class="count-bar">
-							<div class="d-flex justify-content-between small mb-1">
-								{{- if .Href}}<a class="link-body-emphasis text-decoration-none text-truncate" href="{{.Href}}">{{.Label}}</a>{{else}}<span class="text-truncate">{{.Label}}</span>{{end}}
-								<span class="text-body-secondary">{{num .Count}}</span>
-							</div>
-							<div class="progress mb-2" role="progressbar" aria-label="{{.Label}}" aria-valuenow="{{.Count}}" aria-valuemin="0" aria-valuemax="{{.Max}}">
-								<div class="progress-bar" style="width: {{percentOf .Count .Max}}%"></div>
-							</div>
-						</div>
-{{- end}}

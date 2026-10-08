@@ -114,6 +114,17 @@ func (f *favoriteStore) set(id string, favorite bool) bool {
 	return true
 }
 
+// snapshotTimes returns when each favorite was marked, by title ID.
+func (f *favoriteStore) snapshotTimes() map[string]time.Time {
+	f.mutex.Lock()
+	defer f.mutex.Unlock()
+	times := make(map[string]time.Time, len(f.games))
+	for id, marked := range f.games {
+		times[id] = marked
+	}
+	return times
+}
+
 func (f *favoriteStore) save() {
 	f.mutex.Lock()
 	data, err := json.MarshalIndent(f.games, "", " ")

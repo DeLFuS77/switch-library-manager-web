@@ -58,6 +58,7 @@ var quickPages = []quickPage{
 	{label: "Upcoming", href: "/upcoming.html", icon: "bi-calendar-event", words: "releases calendar coming"},
 	{label: "Series", href: "/sagas.html", icon: "bi-stack", words: "sagas franchises"},
 	{label: "Statistics", href: "/statistics.html", icon: "bi-bar-chart", words: "charts numbers", suggested: true},
+	{label: "Your year on Switch", href: "/year.html", icon: "bi-stars", words: "year review wrapped summary"},
 	{label: "Issues", href: "/issues.html", icon: "bi-exclamation-triangle", words: "problems errors"},
 	{label: "Tasks", href: "/tasks.html", icon: "bi-list-task", words: "jobs progress"},
 	{label: "Organize", href: "/organize.html", icon: "bi-folder-symlink", admin: true, words: "rename move folders files"},

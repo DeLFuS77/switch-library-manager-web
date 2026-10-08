@@ -1,0 +1,103 @@
+{{define "title"}}{{t "Your year on Switch"}}{{end}}
+{{define "main"}}
+			{{- $y := .Review}}
+			<section class="year-hero" data-year-review data-label-games="{{t "Games added"}}" data-label-updates="{{t "Updates added"}}" data-label-dlc="{{t "DLC added"}}" data-label-space="{{t "Space added"}}" data-label-genre="{{t "Favorite genre"}}" data-label-month="{{t "Busiest month"}}" data-label-biggest="{{t "The biggest"}}" data-games="{{$y.GamesAdded}}" data-updates="{{$y.UpdatesAdded}}" data-dlc="{{$y.DlcAdded}}" data-space="{{formatSize $y.SizeAdded}}" data-month="{{$y.BusiestMonth}}">
+				<div class="year-hero-glow" aria-hidden="true"></div>
+				<div class="year-hero-body">
+					<p class="year-kicker"><span class="bi bi-stars" aria-hidden="true"></span>{{t "Your year on Switch"}}</p>
+					<h1 class="year-title" data-year-title>{{t "Your %v on Switch" $y.Year}}</h1>
+					{{- if not $y.Empty}}
+					<p class="year-lead">{{t "%v games, %v updates and %v DLC came to your library." $y.GamesAdded $y.UpdatesAdded $y.DlcAdded}}</p>
+					{{- end}}
+					{{- if gt (len $y.Years) 1}}
+					<nav class="year-switch" aria-label="{{t "Year"}}">
+						{{- range $y.Years}}
+						<a class="chip{{if eq . $y.Year}} is-active{{end}}" href="/year.html?y={{.}}"{{if eq . $y.Year}} aria-current="page"{{end}}>{{.}}</a>
+						{{- end}}
+					</nav>
+					{{- end}}
+				</div>
+				{{- if not $y.Empty}}
+				<button type="button" class="btn btn-light rounded-pill px-3 year-share" data-year-download><span class="bi bi-download me-2" aria-hidden="true"></span>{{t "Download image"}}</button>
+				{{- end}}
+			</section>
+
+			{{- if $y.FirstYear}}
+			<p class="small text-body-secondary mt-3 mb-0"><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "The app keeps your history since %v: the games you already had then are not counted as added." (formatTime $y.Since)}}</p>
+			{{- end}}
+
+			{{- if $y.Empty}}
+			<div class="mt-4">
+			{{- template "emptyState" (dict "Icon" "bi-calendar-heart" "Tone" "" "Title" (t "Nothing added yet") "Text" (t "No games, updates or DLC were added to your library in %v. Come back when you add some." $y.Year) "ActionHref" "/statistics.html" "ActionLabel" (t "Statistics") "ActionIcon" "bi-bar-chart")}}
+			</div>
+			{{- else}}
+			<div class="row row-cols-2 row-cols-lg-4 g-2 g-md-3 my-4" data-year-stats>
+				{{- template "statCard" (dict "Label" (t "Games added") "Value" $y.GamesAdded "Icon" "bi-controller" "Tone" "" "Count" true)}}
+				{{- template "statCard" (dict "Label" (t "Updates added") "Value" $y.UpdatesAdded "Icon" "bi-arrow-up-circle" "Tone" "is-cyan" "Count" true)}}
+				{{- template "statCard" (dict "Label" (t "DLC added") "Value" $y.DlcAdded "Icon" "bi-puzzle" "Tone" "" "Count" true)}}
+				{{- template "statCard" (dict "Label" (t "Space added") "Value" (formatSize $y.SizeAdded) "Icon" "bi-hdd-stack" "Tone" "is-cyan" "Count" false)}}
+			</div>
+
+			<div class="row g-3 mb-4">
+				<div class="col-lg-7">
+					<section class="surface h-100">
+						<h2 class="section-title"><span class="bi bi-calendar3" aria-hidden="true"></span>{{t "Games added each month"}}</h2>
+						<div class="year-months" role="img" aria-label="{{t "Games added each month"}}">
+							{{- range $y.Months}}
+							<div class="year-month{{if gt .Games 0}} has-games{{end}}{{if and (gt .Games 0) (eq .Games $y.MaxMonth)}} is-top{{end}}">
+								<span class="year-month-count">{{if gt .Games 0}}{{.Games}}{{end}}</span>
+								<span class="year-month-bar" style="--h: {{percentOf .Games $y.MaxMonth}}"></span>
+								<span class="year-month-label">{{.Label}}</span>
+							</div>
+							{{- end}}
+						</div>
+						{{- if $y.BusiestMonth}}
+						<p class="small text-body-secondary mb-0 mt-3"><span class="bi bi-fire text-danger me-1" aria-hidden="true"></span>{{t "Busiest month: %v, with %v games." $y.BusiestMonth $y.MaxMonth}}</p>
+						{{- end}}
+					</section>
+				</div>
+				<div class="col-lg-5">
+					<section class="surface h-100">
+						<h2 class="section-title"><span class="bi bi-trophy" aria-hidden="true"></span>{{t "Highlights"}}</h2>
+						<ul class="year-facts list-unstyled mb-0">
+							{{- if $y.TopGenre}}
+							<li><span class="year-fact-icon"><span class="bi bi-tags" aria-hidden="true"></span></span><span><span class="year-fact-label">{{t "Favorite genre"}}</span><a class="year-fact-value" href="/index.html?genre={{$y.TopGenre}}" data-year-genre>{{t $y.TopGenre}}</a><span class="year-fact-sub">{{t "%v games" $y.TopGenreGames}}</span></span></li>
+							{{- end}}
+							{{- if $y.TopPublisher}}
+							<li><span class="year-fact-icon"><span class="bi bi-building" aria-hidden="true"></span></span><span><span class="year-fact-label">{{t "Favorite publisher"}}</span><span class="year-fact-value" data-year-publisher>{{$y.TopPublisher}}</span><span class="year-fact-sub">{{t "%v games" $y.TopPublisherGames}}</span></span></li>
+							{{- end}}
+							{{- with $y.Biggest}}
+							<li><span class="year-fact-icon"><span class="bi bi-hdd" aria-hidden="true"></span></span><span><span class="year-fact-label">{{t "The biggest"}}</span><a class="year-fact-value" href="/title/{{.Id}}.html" data-year-biggest>{{.Name}}</a><span class="year-fact-sub">{{formatSize .Size}}</span></span></li>
+							{{- end}}
+							{{- with $y.Oldest}}
+							<li><span class="year-fact-icon"><span class="bi bi-hourglass-split" aria-hidden="true"></span></span><span><span class="year-fact-label">{{t "The oldest"}}</span><a class="year-fact-value" href="/title/{{.Id}}.html">{{.Name}}</a><span class="year-fact-sub">{{formatTime .ReleaseDate}}</span></span></li>
+							{{- end}}
+							{{- with $y.Newest}}
+							<li><span class="year-fact-icon"><span class="bi bi-lightning-charge" aria-hidden="true"></span></span><span><span class="year-fact-label">{{t "The newest"}}</span><a class="year-fact-value" href="/title/{{.Id}}.html">{{.Name}}</a><span class="year-fact-sub">{{formatTime .ReleaseDate}}</span></span></li>
+							{{- end}}
+							{{- with $y.Saga}}
+							<li><span class="year-fact-icon"><span class="bi bi-stack" aria-hidden="true"></span></span><span><span class="year-fact-label">{{t "Most complete series"}}</span><a class="year-fact-value" href="/sagas.html?q={{.Name}}{{if .Complete}}&amp;status=complete{{end}}">{{.Name}}</a><span class="year-fact-sub">{{t "%v of %v" .Owned .Total}}</span></span></li>
+							{{- end}}
+							{{- if gt $y.Favorites 0}}
+							<li><span class="year-fact-icon"><span class="bi bi-star-fill text-warning" aria-hidden="true"></span></span><span><span class="year-fact-label">{{t "New favorites"}}</span><span class="year-fact-value">{{num $y.Favorites}}</span></span></li>
+							{{- end}}
+							{{- if gt $y.Growth 0}}
+							<li><span class="year-fact-icon"><span class="bi bi-graph-up-arrow" aria-hidden="true"></span></span><span><span class="year-fact-label">{{t "Your library grew"}}</span><span class="year-fact-value">+{{num $y.Growth}}</span><span class="year-fact-sub">{{t "%v games in total" $y.LibraryGames}}</span></span></li>
+							{{- end}}
+						</ul>
+					</section>
+				</div>
+			</div>
+
+			{{- if $y.NewGames}}
+			<section class="mb-4">
+				<h2 class="section-title"><span class="bi bi-bag-heart" aria-hidden="true"></span>{{t "New in your library"}}</h2>
+				<div class="row row-cols-3 row-cols-sm-4 row-cols-lg-6 g-2 g-md-3" data-year-games>
+					{{- range $y.NewGames}}
+					<div class="col">{{template "miniCard" (dict "Item" . "Grey" false "Highlight" false "Wish" false "Badge" (formatTime .Added) "Note" "" "NoteIcon" "")}}</div>
+					{{- end}}
+				</div>
+			</section>
+			{{- end}}
+			{{- end}}
+{{- end}}

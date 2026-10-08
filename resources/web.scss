@@ -3504,3 +3504,240 @@ html[data-section="backup"] #settingsForm .save-bar {
 .footer-support:hover .bi-heart-fill {
 	transform: scale(1.2);
 }
+
+// ---------------------------------------------------------------------------------------
+// Your year on Switch: a summary of what came to the library in a year
+// ---------------------------------------------------------------------------------------
+.year-hero {
+	position: relative;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-top: 1.5rem;
+	padding: clamp(1.5rem, 4vw, 2.75rem);
+	overflow: hidden;
+	isolation: isolate;
+	border-radius: $border-radius-xl * 1.5;
+	background: linear-gradient(135deg, $slm-red 0%, #8e1d6b 55%, #1d4f91 100%);
+	color: #fff;
+	box-shadow: 0 24px 48px -24px rgba($slm-red, .6);
+}
+
+.year-hero-glow {
+	position: absolute;
+	inset: -40% -10% auto auto;
+	z-index: -1;
+	width: 60%;
+	aspect-ratio: 1;
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba($slm-cyan, .55), transparent 65%);
+}
+
+.year-kicker {
+	display: inline-flex;
+	align-items: center;
+	gap: .4rem;
+	margin-bottom: .35rem;
+	font-size: .8rem;
+	font-weight: 700;
+	letter-spacing: .08em;
+	text-transform: uppercase;
+	opacity: .85;
+}
+
+.year-title {
+	margin-bottom: .5rem;
+	font-size: clamp(2rem, 6vw, 3.5rem);
+	font-weight: 800;
+	letter-spacing: -.03em;
+	line-height: 1.05;
+}
+
+.year-lead {
+	max-width: 36rem;
+	margin-bottom: 0;
+	font-size: 1.05rem;
+	opacity: .9;
+}
+
+.year-switch {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .4rem;
+	margin-top: 1rem;
+
+	.chip {
+		background: rgba(255, 255, 255, .16);
+		color: #fff;
+		text-decoration: none;
+
+		&:hover {
+			background: rgba(255, 255, 255, .26);
+		}
+
+		&.is-active {
+			background: #fff;
+			color: $slm-red;
+		}
+	}
+}
+
+.year-share {
+	font-weight: 600;
+}
+
+.year-months {
+	display: grid;
+	grid-template-columns: repeat(12, minmax(0, 1fr));
+	align-items: end;
+	gap: .35rem;
+	height: 11rem;
+}
+
+.year-month {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-end;
+	gap: .3rem;
+	height: 100%;
+	min-width: 0;
+}
+
+.year-month-count {
+	min-height: 1rem;
+	color: var(--bs-secondary-color);
+	font-size: .72rem;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.year-month-bar {
+	width: 100%;
+	max-width: 2rem;
+	// the column holds the number above and the month below the bar
+	height: max(calc((100% - 2.8rem) * var(--h) / 100), 3px);
+	border-radius: .4rem .4rem .15rem .15rem;
+	background: var(--slm-surface-muted);
+	transform-origin: bottom;
+
+	.year-month.has-games & {
+		background: linear-gradient(to top, rgba($slm-cyan, .55), $slm-cyan);
+	}
+
+	.year-month.has-games.is-top & {
+		background: linear-gradient(to top, rgba($slm-red, .6), $slm-red);
+	}
+}
+
+.year-month-label {
+	overflow: hidden;
+	max-width: 100%;
+	color: var(--bs-secondary-color);
+	font-size: .7rem;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.year-facts {
+	display: grid;
+	gap: .9rem;
+
+	li {
+		display: flex;
+		align-items: center;
+		gap: .75rem;
+		min-width: 0;
+
+		> span:last-child {
+			display: flex;
+			flex-direction: column;
+			min-width: 0;
+		}
+	}
+}
+
+.year-fact-icon {
+	display: inline-grid;
+	flex-shrink: 0;
+	place-items: center;
+	width: 2.4rem;
+	height: 2.4rem;
+	border-radius: .75rem;
+	background: var(--slm-accent-soft);
+	color: var(--bs-primary-text-emphasis);
+	font-size: 1.05rem;
+}
+
+.year-fact-label {
+	color: var(--bs-secondary-color);
+	font-size: .75rem;
+	font-weight: 600;
+	letter-spacing: .03em;
+	text-transform: uppercase;
+}
+
+.year-fact-value {
+	overflow: hidden;
+	color: var(--bs-body-color);
+	font-weight: 700;
+	text-decoration: none;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+
+	&:is(a):hover {
+		text-decoration: underline;
+	}
+}
+
+.year-fact-sub {
+	color: var(--bs-secondary-color);
+	font-size: .78rem;
+}
+
+// the link from Statistics
+.year-teaser {
+	display: flex;
+	align-items: center;
+	gap: .75rem;
+	padding: .75rem 1rem;
+	border-radius: $border-radius-lg;
+	background: linear-gradient(135deg, rgba($slm-red, .12), rgba($slm-cyan, .12));
+	color: var(--bs-body-color);
+	text-decoration: none;
+	transition: transform .2s cubic-bezier(.2, .7, .2, 1), box-shadow .2s ease;
+
+	.bi-stars {
+		color: $slm-red;
+		font-size: 1.25rem;
+	}
+
+	&:hover {
+		box-shadow: var(--slm-shadow-hover);
+		transform: translateY(-2px);
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.year-hero {
+		animation: slm-fade-up .5s cubic-bezier(.2, .7, .2, 1) both;
+	}
+
+	.year-month-bar {
+		animation: slm-rise .8s cubic-bezier(.2, .7, .2, 1) both;
+	}
+
+	@for $i from 1 through 12 {
+		.year-month:nth-child(#{$i}) .year-month-bar {
+			animation-delay: #{$i * 40}ms;
+		}
+	}
+}
+
+@keyframes slm-rise {
+	from {
+		transform: scaleY(0);
+	}
+}
