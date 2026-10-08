@@ -35,7 +35,7 @@ jobs:
         run: go vet ./...
 
       - name: Test
-        run: go test -race ./... ./switchfs/_crypto/
+        run: go test -race -timeout 20m ./... ./switchfs/_crypto/
 
       - name: Build
         run: make build

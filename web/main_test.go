@@ -12,5 +12,7 @@ func TestMain(m *testing.M) {
 	db.AllowLocalDownloads = true
 	// the login delay would make the tests slow; its value is checked on its own
 	sleepFor = func(time.Duration) {}
-	os.Exit(m.Run())
+	code := m.Run()
+	removeSharedDemo()
+	os.Exit(code)
 }

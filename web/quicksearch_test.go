@@ -16,8 +16,7 @@ func quickLabels(results []QuickResult) []string {
 }
 
 func TestQuickSearchFindsGamesSeriesAndPages(t *testing.T) {
-	web := newTestWeb(t)
-	web.loadDemo()
+	web := demoWeb(t)
 
 	results := web.quickSearch("kart", "en", true)
 	if len(results.Games) == 0 || results.Games[0].Label != "Pixel Kart Rally" || !strings.HasPrefix(results.Games[0].Href, "/title/") {
@@ -42,8 +41,7 @@ func TestQuickSearchFindsGamesSeriesAndPages(t *testing.T) {
 }
 
 func TestQuickSearchHidesAdministratorPages(t *testing.T) {
-	web := newTestWeb(t)
-	web.loadDemo()
+	web := demoWeb(t)
 	if got := web.quickSearch("settings", "en", false).Pages; len(got) != 0 {
 		t.Fatalf("a viewer does not get the settings: %+v", got)
 	}
@@ -62,8 +60,7 @@ func TestQuickSearchHidesAdministratorPages(t *testing.T) {
 }
 
 func TestQuickSearchTitleIdIsExact(t *testing.T) {
-	web := newTestWeb(t)
-	web.loadDemo()
+	web := demoWeb(t)
 	id := demoTitleId(0)
 	if got := web.quickSearch(id, "en", true).Games; len(got) != 1 || !strings.Contains(got[0].Href, id) {
 		t.Fatalf("the game of the ID: %+v", got)
@@ -74,9 +71,7 @@ func TestQuickSearchTitleIdIsExact(t *testing.T) {
 }
 
 func TestQuickSearchEndpoint(t *testing.T) {
-	web := newTestWeb(t)
-	web.loadDemo()
-	web.HandleQuickSearch()
+	web := demoWeb(t)
 	recorder := httptest.NewRecorder()
 	web.router.ServeHTTP(recorder, httptest.NewRequest("GET", "/api/search?q="+strings.Repeat("a", 500), nil))
 	var results QuickResults
