@@ -3,6 +3,12 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Version history": "История версий",
+		"Show the %v older versions": "Показать ещё %v старых версий",
+		"The titles database only has the date of each update. The button searches the web for its notes.": "В базе данных игр есть только дата каждого обновления. Кнопка ищет описание в интернете.",
+		"Update %v": "Обновление %v",
+		"Installed": "Установлено",
+		"What is new": "Что нового",
 		"Your year on Switch": "Твой год на Switch",
 		"Your %v on Switch": "Твой %v на Switch",
 		"%v games, %v updates and %v DLC came to your library.": "В библиотеку добавлено игр: %v, обновлений: %v, DLC: %v.",

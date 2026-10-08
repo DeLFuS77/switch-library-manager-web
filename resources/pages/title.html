@@ -173,6 +173,26 @@
 				</ul>
 			</section>
 			{{- end}}
+			{{- if $t.Versions}}
+			<section class="mb-4">
+				<h2 class="section-title"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "Version history"}} <span class="badge rounded-pill text-bg-secondary">{{len $t.Versions}}</span></h2>
+				<ol class="version-history list-unstyled mb-0">
+					{{- range $i, $v := $t.Versions}}
+					{{- if eq $i 5}}
+				</ol>
+				<details class="version-more">
+					<summary>{{t "Show the %v older versions" $t.OlderVersions}}</summary>
+					<ol class="version-history list-unstyled mb-0">
+					{{- end}}
+					{{- template "titleVersion" $v}}
+					{{- end}}
+				</ol>
+				{{- if gt (len $t.Versions) 5}}
+				</details>
+				{{- end}}
+				<p class="small text-body-secondary mt-2 mb-0">{{t "The titles database only has the date of each update. The button searches the web for its notes."}}</p>
+			</section>
+			{{- end}}
 			{{- if $t.Dlc}}
 			<section class="mb-4">
 				<div class="section-head">
@@ -247,5 +267,18 @@
 							</div>
 						</div>
 						<a class="btn btn-sm btn-outline-secondary" href="{{.DownloadUrl}}" title="{{t "Download %v" .FileName}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download %v" .FileName}}</span></a>
+					</li>
+{{- end}}
+{{define "titleVersion"}}
+					<li class="version-item{{if .Installed}} is-installed{{else if .Owned}} is-owned{{end}}">
+						<span class="version-dot" aria-hidden="true"></span>
+						<div class="version-main">
+							<div class="version-title">{{t "Update %v" .Number}}{{if .DisplayVersion}} <span class="text-body-secondary">· {{.DisplayVersion}}</span>{{end}} <span class="version-code">v{{.Version}}</span></div>
+							<div class="version-meta">
+								{{- if not .Date.IsZero}}<span><span class="bi bi-calendar3" aria-hidden="true"></span>{{formatTime .Date}}</span>{{end}}
+								{{- if .Installed}}<span class="chip chip-success">{{t "Installed"}}</span>{{else if .Owned}}<span class="chip chip-info">{{t "In your library"}}</span>{{end}}
+							</div>
+						</div>
+						<a class="btn btn-sm btn-outline-secondary rounded-pill flex-shrink-0" href="{{.NotesUrl}}" target="_blank" rel="noopener noreferrer"><span class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></span>{{t "What is new"}}</a>
 					</li>
 {{- end}}

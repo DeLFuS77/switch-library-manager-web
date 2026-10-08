@@ -3,6 +3,12 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Version history": "버전 기록",
+		"Show the %v older versions": "이전 버전 %v개 보기",
+		"The titles database only has the date of each update. The button searches the web for its notes.": "타이틀 데이터베이스에는 각 업데이트의 날짜만 있습니다. 버튼을 누르면 웹에서 업데이트 노트를 검색합니다.",
+		"Update %v": "업데이트 %v",
+		"Installed": "설치됨",
+		"What is new": "새로운 내용",
 		"Your year on Switch": "나의 Switch 한 해",
 		"Your %v on Switch": "나의 %v년 Switch",
 		"%v games, %v updates and %v DLC came to your library.": "게임 %v개, 업데이트 %v개, DLC %v개가 라이브러리에 추가되었습니다.",

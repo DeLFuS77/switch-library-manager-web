@@ -5,6 +5,12 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Version history": "Historial de versiones",
+		"Show the %v older versions": "Ver las %v versiones anteriores",
+		"The titles database only has the date of each update. The button searches the web for its notes.": "La base de datos de títulos solo tiene la fecha de cada actualización. El botón busca sus notas en la web.",
+		"Update %v": "Actualización %v",
+		"Installed": "Instalada",
+		"What is new": "Novedades",
 		"Your year on Switch": "Tu año en Switch",
 		"Your %v on Switch": "Tu %v en Switch",
 		"%v games, %v updates and %v DLC came to your library.": "%v juegos, %v actualizaciones y %v DLC llegaron a tu biblioteca.",

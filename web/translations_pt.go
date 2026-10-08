@@ -3,6 +3,12 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Version history": "Histórico de versões",
+		"Show the %v older versions": "Ver as %v versões anteriores",
+		"The titles database only has the date of each update. The button searches the web for its notes.": "A base de dados de títulos só tem a data de cada atualização. O botão procura as notas na web.",
+		"Update %v": "Atualização %v",
+		"Installed": "Instalada",
+		"What is new": "Novidades",
 		"Your year on Switch": "O teu ano na Switch",
 		"Your %v on Switch": "O teu %v na Switch",
 		"%v games, %v updates and %v DLC came to your library.": "%v jogos, %v atualizações e %v DLC chegaram à tua biblioteca.",

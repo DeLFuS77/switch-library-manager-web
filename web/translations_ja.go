@@ -3,6 +3,12 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Version history": "バージョン履歴",
+		"Show the %v older versions": "以前の %v バージョンを表示",
+		"The titles database only has the date of each update. The button searches the web for its notes.": "タイトルデータベースには各アップデートの日付しかありません。ボタンを押すとウェブで内容を検索します。",
+		"Update %v": "アップデート %v",
+		"Installed": "インストール済み",
+		"What is new": "新着情報",
 		"Your year on Switch": "あなたの Switch イヤー",
 		"Your %v on Switch": "あなたの %v 年の Switch",
 		"%v games, %v updates and %v DLC came to your library.": "%v 本のゲーム、%v 件のアップデート、%v 件の DLC がライブラリに加わりました。",

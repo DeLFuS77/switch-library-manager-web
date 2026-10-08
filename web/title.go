@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -24,6 +25,21 @@ type TitleFile struct {
 	DownloadUrl    string
 	// the firmware the file needs, e.g. 12.1.0
 	RequiredFirmware string
+}
+
+// TitleVersion is an update released for a game, for the version history of the game page.
+type TitleVersion struct {
+	Version int
+	// the number of the update: 1 for the first one
+	Number int
+	// the version shown by the game, when the file is in the library (e.g. 1.2.0)
+	DisplayVersion string
+	Date           time.Time
+	// the update is in the library, or it is the one installed
+	Owned     bool
+	Installed bool
+	// a web search for what the update brings
+	NotesUrl string
 }
 
 type TitleDlc struct {
@@ -58,6 +74,8 @@ type TitleDetail struct {
 	Owned   bool
 	Base    *TitleFile
 	Updates []TitleFile
+	// every update released, the newest first
+	Versions []TitleVersion
 
 	LocalUpdate      int
 	LatestUpdate     int
@@ -206,6 +224,9 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		}
 	}
 	detail.UpdateMissing = detail.Owned && detail.LocalUpdate < detail.LatestUpdate
+	if title != nil {
+		detail.Versions = titleVersions(detail.Name, title.Updates, local)
+	}
 
 	// all DLC known to the titles database or present in the library
 	dlcIds := map[string]struct{}{}
@@ -270,6 +291,39 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 	return detail, true
 }
 
+// titleVersions lists the updates of a game known to the titles database, the newest first,
+// with the ones in the library marked.
+func titleVersions(name string, released map[int]string, local *db.SwitchGameFiles) []TitleVersion {
+	versions := make([]TitleVersion, 0, len(released))
+	for version, date := range released {
+		if version <= 0 {
+			continue
+		}
+		entry := TitleVersion{Version: version, Number: version >> 16}
+		entry.Date, _ = strToTime("2006-01-02", date)
+		if local != nil {
+			if update, ok := local.Updates[version]; ok {
+				entry.Owned = true
+				if update.Metadata != nil && update.Metadata.Ncap != nil {
+					entry.DisplayVersion = update.Metadata.Ncap.DisplayVersion
+				}
+			}
+			entry.Installed = local.BaseExist && local.LatestUpdate == version
+		}
+		query := name + " Nintendo Switch update"
+		if entry.DisplayVersion != "" {
+			query += " " + entry.DisplayVersion
+		} else if !entry.Date.IsZero() {
+			query += " " + entry.Date.Format("January 2006")
+		}
+		query += " patch notes"
+		entry.NotesUrl = "https://duckduckgo.com/?q=" + url.QueryEscape(query)
+		versions = append(versions, entry)
+	}
+	sort.Slice(versions, func(i, j int) bool { return versions[i].Version > versions[j].Version })
+	return versions
+}
+
 func sortedVersions(updates map[int]db.SwitchFileInfo) []int {
 	versions := make([]int, 0, len(updates))
 	for version := range updates {
@@ -313,4 +367,9 @@ func (t TitleDetail) DlcPercent() int {
 		return 0
 	}
 	return t.DlcOwned * 100 / t.DlcTotal
+}
+
+// OlderVersions is the number of versions shown only on request, after the newest five.
+func (d TitleDetail) OlderVersions() int {
+	return max(len(d.Versions)-5, 0)
 }
