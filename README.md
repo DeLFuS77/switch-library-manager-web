@@ -4,7 +4,7 @@
 [![Release](https://img.shields.io/github/v/release/DeLFuS77/switch-library-manager-web?sort=semver)](https://github.com/DeLFuS77/switch-library-manager-web/releases)
 [![Docker Hub](https://img.shields.io/docker/pulls/delfus77/switch-library-manager-web?logo=docker)](https://hub.docker.com/r/delfus77/switch-library-manager-web)
 [![Tests](https://github.com/DeLFuS77/switch-library-manager-web/actions/workflows/test.yml/badge.svg)](https://github.com/DeLFuS77/switch-library-manager-web/actions/workflows/test.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/LICENSE)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/LICENSE)
 
 Manage the backups of your Nintendo Switch games from the browser: see which updates, DLC and games you are missing,
 find broken or duplicate files, keep your folders tidy and save space with NSZ compression. It runs on Windows, macOS,
@@ -478,8 +478,11 @@ The programs are written to `build`. The web interface is embedded in the progra
 
 ## License
 
-The changes made in this repository are published under the [MIT license](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/LICENSE). The projects this fork is based
-on did not publish a license, so their code remains under the copyright of their authors; see [NOTICE](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/NOTICE.md).
+The changes made in this repository are published under the [GNU Affero General Public License 3.0](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/LICENSE)
+(up to version 1.25.2 they were MIT). You may use, change and share the app freely; if you distribute a changed
+version or offer it over a network, its source code must stay available under the same license. The projects this
+fork is based on did not publish a license, so their code remains under the copyright of their authors; see
+[NOTICE](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/NOTICE.md).
 
 ### Thanks
 
