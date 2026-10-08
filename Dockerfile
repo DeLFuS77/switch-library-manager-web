@@ -14,7 +14,8 @@ COPY build/switch-library-manager-web-linux-${TARGETARCH} /usr/local/bin/switch-
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 # the license and where the source code is (GNU AGPL-3.0)
 COPY LICENSE NOTICE.md /usr/share/doc/switch-library-manager-web/
-LABEL org.opencontainers.image.licenses="AGPL-3.0-only" \n      org.opencontainers.image.source="https://github.com/DeLFuS77/switch-library-manager-web"
+LABEL org.opencontainers.image.licenses="AGPL-3.0-only" \
+      org.opencontainers.image.source="https://github.com/DeLFuS77/switch-library-manager-web"
 RUN chmod 755 /usr/local/bin/switch-library-manager-web /usr/local/bin/docker-entrypoint.sh
 
 VOLUME $SLM_DATA_DIR
