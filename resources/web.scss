@@ -3741,3 +3741,90 @@ html[data-section="backup"] #settingsForm .save-bar {
 		transform: scaleY(0);
 	}
 }
+
+// the version history of a game: a timeline, the newest first
+.version-history {
+	position: relative;
+	display: grid;
+	gap: .25rem;
+}
+
+.version-item {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: .85rem;
+	padding: .55rem .25rem .55rem 0;
+
+	// the line of the timeline
+	&::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: .4rem;
+		width: 2px;
+		background: var(--slm-border);
+	}
+}
+
+.version-dot {
+	position: relative;
+	z-index: 1;
+	flex-shrink: 0;
+	width: .85rem;
+	height: .85rem;
+	border: 2px solid var(--bs-border-color);
+	border-radius: 50%;
+	background: var(--slm-surface);
+
+	.is-owned & {
+		border-color: $slm-cyan;
+		background: rgba($slm-cyan, .35);
+	}
+
+	.is-installed & {
+		border-color: $success;
+		background: $success;
+		box-shadow: 0 0 0 4px rgba($success, .2);
+	}
+}
+
+.version-main {
+	flex: 1;
+	min-width: 0;
+}
+
+.version-title {
+	font-weight: 600;
+}
+
+.version-code {
+	color: var(--bs-secondary-color);
+	font-size: .78rem;
+	font-weight: 500;
+	font-variant-numeric: tabular-nums;
+}
+
+.version-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .6rem;
+	color: var(--bs-secondary-color);
+	font-size: .8rem;
+
+	.bi {
+		margin-right: .3rem;
+	}
+}
+
+.version-more {
+	summary {
+		padding: .4rem 0 .4rem 1.7rem;
+		color: var(--bs-link-color);
+		font-size: .85rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+}

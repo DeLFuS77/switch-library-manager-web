@@ -3,6 +3,12 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Version history": "Historique des versions",
+		"Show the %v older versions": "Voir les %v versions précédentes",
+		"The titles database only has the date of each update. The button searches the web for its notes.": "La base de données des titres ne connaît que la date de chaque mise à jour. Le bouton cherche ses notes sur le web.",
+		"Update %v": "Mise à jour %v",
+		"Installed": "Installée",
+		"What is new": "Nouveautés",
 		"Your year on Switch": "Ton année sur Switch",
 		"Your %v on Switch": "Ton %v sur Switch",
 		"%v games, %v updates and %v DLC came to your library.": "%v jeux, %v mises à jour et %v DLC sont arrivés dans ta bibliothèque.",

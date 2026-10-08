@@ -3,6 +3,12 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Version history": "版本历史",
+		"Show the %v older versions": "显示较早的 %v 个版本",
+		"The titles database only has the date of each update. The button searches the web for its notes.": "游戏数据库只记录每个更新的日期。按钮会在网上搜索更新说明。",
+		"Update %v": "更新 %v",
+		"Installed": "已安装",
+		"What is new": "更新内容",
 		"Your year on Switch": "你的 Switch 年度回顾",
 		"Your %v on Switch": "你的 %v 年 Switch",
 		"%v games, %v updates and %v DLC came to your library.": "你的游戏库新增了 %v 款游戏、%v 个更新和 %v 个 DLC。",

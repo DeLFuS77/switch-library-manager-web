@@ -3,6 +3,12 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Version history": "Versiegeschiedenis",
+		"Show the %v older versions": "De %v oudere versies tonen",
+		"The titles database only has the date of each update. The button searches the web for its notes.": "De titeldatabase kent alleen de datum van elke update. De knop zoekt de notities op het web.",
+		"Update %v": "Update %v",
+		"Installed": "Geïnstalleerd",
+		"What is new": "Wat is er nieuw",
 		"Your year on Switch": "Jouw jaar op Switch",
 		"Your %v on Switch": "Jouw %v op Switch",
 		"%v games, %v updates and %v DLC came to your library.": "%v games, %v updates en %v DLC kwamen in je bibliotheek.",
