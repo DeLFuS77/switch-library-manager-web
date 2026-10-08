@@ -125,6 +125,9 @@ type AppSettings struct {
 	AutoCompressKeep bool `json:"auto_compress_keep"`
 	// ask GitHub once a day whether a newer version of the app was released
 	CheckForUpdates bool `json:"check_for_updates"`
+	// the Twitch application of the user, for the times to beat of IGDB (optional)
+	IgdbClientId     string `json:"igdb_client_id,omitempty"`
+	IgdbClientSecret string `json:"igdb_client_secret,omitempty"`
 	// firmware of the user's console, e.g. 18.1.0, to warn about files that need a newer one
 	ConsoleFirmware string `json:"console_firmware"`
 	// days between scheduled verifications of the files; 0 disables them

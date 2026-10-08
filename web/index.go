@@ -294,6 +294,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 	added := web.history().addedTimes()
 	collections := web.collections().snapshot()
 	favorites := web.favorites().snapshot()
+	timesToBeat := web.timesToBeat().snapshot()
 
 	for k, v := range localDB.TitlesMap {
 		if !v.BaseExist || v.File.Metadata == nil {
@@ -332,6 +333,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			Size:         v.File.ExtendedInfo.Size,
 		}
 		item.Added = added["game:"+item.Id]
+		item.TimeToBeat = timesToBeat[item.Id].Main()
 		item.Collections = collections[item.Id]
 		item.Selectable = true
 		item.Favorite = favorites[item.Id]

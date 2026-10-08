@@ -67,6 +67,7 @@
 									{{- else if eq .Kind "copy"}} &middot; {{t "%v files copied" .Files}}
 									{{- else if eq .Kind "convert"}}{{if .Files}} &middot; {{t "%v files converted" .Files}}{{end}}
 									{{- else if eq .Kind "thumbnails"}} &middot; {{t "%v thumbnails made" .Files}}
+									{{- else if eq .Kind "timetobeat"}} &middot; {{t "%v of %v games with times" .Games .Files}}
 									{{- else if or .Games .Files}} &middot; {{if or (eq .Kind "organize") (eq .Kind "cleanup")}}{{t "%v files changed" .Files}}{{else}}{{t "%v games, %v files" .Games .Files}}{{end}}{{end}}
 								</div>
 								{{- with .Error}}
@@ -86,8 +87,8 @@
 				{{- end}}
 {{- end}}
 
-{{define "taskKind"}}{{if eq . "sync"}}{{t "Synchronization"}}{{else if eq . "scan"}}{{t "Library scan"}}{{else if eq . "organize"}}{{t "Organize files"}}{{else if eq . "cleanup"}}{{t "Delete old updates"}}{{else if eq . "compress"}}{{t "Compression"}}{{else if eq . "decompress"}}{{t "Decompression"}}{{else if eq . "verify"}}{{t "File check"}}{{else if eq . "covers"}}{{t "Cover downloads"}}{{else if eq . "thumbnails"}}{{t "Thumbnails"}}{{else if eq . "copy"}}{{t "Copy to the card"}}{{else if eq . "convert"}}{{t "Conversion"}}{{else}}{{.}}{{end}}{{end}}
+{{define "taskKind"}}{{if eq . "sync"}}{{t "Synchronization"}}{{else if eq . "scan"}}{{t "Library scan"}}{{else if eq . "organize"}}{{t "Organize files"}}{{else if eq . "cleanup"}}{{t "Delete old updates"}}{{else if eq . "compress"}}{{t "Compression"}}{{else if eq . "decompress"}}{{t "Decompression"}}{{else if eq . "verify"}}{{t "File check"}}{{else if eq . "covers"}}{{t "Cover downloads"}}{{else if eq . "thumbnails"}}{{t "Thumbnails"}}{{else if eq . "copy"}}{{t "Copy to the card"}}{{else if eq . "convert"}}{{t "Conversion"}}{{else if eq . "timetobeat"}}{{t "Times to beat (IGDB)"}}{{else}}{{.}}{{end}}{{end}}
 
-{{define "taskIcon"}}{{if eq . "sync"}}bi-arrow-repeat{{else if eq . "scan"}}bi-search{{else if eq . "organize"}}bi-folder-symlink{{else if eq . "cleanup"}}bi-trash3{{else if eq . "compress"}}bi-file-zip{{else if eq . "decompress"}}bi-box-arrow-up{{else if eq . "verify"}}bi-shield-check{{else if eq . "covers"}}bi-images{{else if eq . "thumbnails"}}bi-aspect-ratio{{else if eq . "copy"}}bi-sd-card{{else if eq . "convert"}}bi-arrow-left-right{{else}}bi-gear{{end}}{{end}}
+{{define "taskIcon"}}{{if eq . "sync"}}bi-arrow-repeat{{else if eq . "scan"}}bi-search{{else if eq . "organize"}}bi-folder-symlink{{else if eq . "cleanup"}}bi-trash3{{else if eq . "compress"}}bi-file-zip{{else if eq . "decompress"}}bi-box-arrow-up{{else if eq . "verify"}}bi-shield-check{{else if eq . "covers"}}bi-images{{else if eq . "thumbnails"}}bi-aspect-ratio{{else if eq . "copy"}}bi-sd-card{{else if eq . "convert"}}bi-arrow-left-right{{else if eq . "timetobeat"}}bi-hourglass-split{{else}}bi-gear{{end}}{{end}}
 
 {{define "taskTrigger"}}{{if eq . "manual"}}{{t "Started by you"}}{{else if eq . "schedule"}}{{t "Scheduled"}}{{else if eq . "watcher"}}{{t "Files changed"}}{{else if eq . "settings"}}{{t "Settings saved"}}{{else if eq . "startup"}}{{t "App started"}}{{else if eq . "organize"}}{{t "After organizing"}}{{else if eq . "compress"}}{{t "After compressing"}}{{else if eq . "scan"}}{{t "After the scan"}}{{else}}{{.}}{{end}}{{end}}

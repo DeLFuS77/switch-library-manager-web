@@ -3,6 +3,23 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"%v of %v games with times": "%v von %v Spielen mit Spielzeiten",
+		"%v players": "%v Spieler",
+		"%v to beat your games": "%v, um deine Spiele durchzuspielen",
+		"100%": "100 %",
+		"Client ID": "Client ID",
+		"Client Secret": "Client Secret",
+		"Data from IGDB": "Daten von IGDB",
+		"How to get them": "So bekommst du sie",
+		"Never shown again once saved. Empty the Client ID to remove both.": "Wird nach dem Speichern nie wieder angezeigt. Leere die Client ID, um beide zu entfernen.",
+		"Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret.": "Optional. Zeigt, wie lange man für jedes Spiel braucht, mit Daten von IGDB, kostenlos für den privaten Gebrauch. Erstelle eine Anwendung unter dev.twitch.tv/console (Twitch-Konto mit Zwei-Faktor-Authentifizierung, Client-Typ Confidential, Weiterleitungs-URL http://localhost) und füge ihre Client ID und ihr Secret ein.",
+		"Quick": "Schnell",
+		"Saved. Leave it empty to keep it.": "Gespeichert. Leer lassen, um es zu behalten.",
+		"Story": "Story",
+		"Story of the %v games with times from IGDB. See the shortest first.": "Story der %v Spiele mit Spielzeiten von IGDB. Die kürzesten zuerst ansehen.",
+		"Time to beat": "Spielzeit",
+		"Times to beat (IGDB)": "Spielzeiten (IGDB)",
+		"Twitch refused the IGDB Client ID or Secret. Check them in Settings.": "Twitch hat die Client ID oder das Secret von IGDB abgelehnt. Prüfe sie in den Einstellungen.",
 		"Version history": "Versionsverlauf",
 		"Show the %v older versions": "Die %v älteren Versionen anzeigen",
 		"The titles database only has the date of each update. The button searches the web for its notes.": "Die Titeldatenbank kennt nur das Datum jedes Updates. Die Schaltfläche sucht seine Hinweise im Web.",

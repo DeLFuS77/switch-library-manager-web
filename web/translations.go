@@ -5,6 +5,23 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"%v of %v games with times": "%v de %v juegos con tiempos",
+		"%v players": "%v jugadores",
+		"%v to beat your games": "%v para terminar tus juegos",
+		"100%": "100%",
+		"Client ID": "Client ID",
+		"Client Secret": "Client Secret",
+		"Data from IGDB": "Datos de IGDB",
+		"How to get them": "Cómo conseguirlas",
+		"Never shown again once saved. Empty the Client ID to remove both.": "No se vuelve a mostrar una vez guardado. Vacía el Client ID para quitar los dos.",
+		"Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret.": "Opcional. Muestra cuánto se tarda en terminar cada juego, con datos de IGDB, gratis para uso personal. Crea una aplicación en dev.twitch.tv/console (cuenta de Twitch con verificación en dos pasos, tipo de cliente Confidential, URL de redirección http://localhost) y pega su Client ID y su Secret.",
+		"Quick": "Rápido",
+		"Saved. Leave it empty to keep it.": "Guardado. Déjalo vacío para conservarlo.",
+		"Story": "Historia",
+		"Story of the %v games with times from IGDB. See the shortest first.": "Historia de los %v juegos con tiempos de IGDB. Ver primero los más cortos.",
+		"Time to beat": "Tiempo para terminarlo",
+		"Times to beat (IGDB)": "Tiempos para terminar (IGDB)",
+		"Twitch refused the IGDB Client ID or Secret. Check them in Settings.": "Twitch rechazó el Client ID o el Secret de IGDB. Revísalos en Ajustes.",
 		"Version history": "Historial de versiones",
 		"Show the %v older versions": "Ver las %v versiones anteriores",
 		"The titles database only has the date of each update. The button searches the web for its notes.": "La base de datos de títulos solo tiene la fecha de cada actualización. El botón busca sus notas en la web.",

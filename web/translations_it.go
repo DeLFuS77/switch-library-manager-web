@@ -3,6 +3,23 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"%v of %v games with times": "%v giochi su %v con tempi",
+		"%v players": "%v giocatori",
+		"%v to beat your games": "%v per finire i tuoi giochi",
+		"100%": "100%",
+		"Client ID": "Client ID",
+		"Client Secret": "Client Secret",
+		"Data from IGDB": "Dati di IGDB",
+		"How to get them": "Come ottenerli",
+		"Never shown again once saved. Empty the Client ID to remove both.": "Non viene più mostrato una volta salvato. Svuota il Client ID per rimuoverli entrambi.",
+		"Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret.": "Facoltativo. Mostra quanto serve per finire ogni gioco, con dati di IGDB, gratuiti per uso personale. Crea un'applicazione su dev.twitch.tv/console (account Twitch con verifica in due passaggi, tipo di client Confidential, URL di reindirizzamento http://localhost) e incolla il suo Client ID e il suo Secret.",
+		"Quick": "Veloce",
+		"Saved. Leave it empty to keep it.": "Salvato. Lascia vuoto per mantenerlo.",
+		"Story": "Storia",
+		"Story of the %v games with times from IGDB. See the shortest first.": "Storia dei %v giochi con tempi di IGDB. Vedi prima i più brevi.",
+		"Time to beat": "Tempo per finirlo",
+		"Times to beat (IGDB)": "Tempi per finire (IGDB)",
+		"Twitch refused the IGDB Client ID or Secret. Check them in Settings.": "Twitch ha rifiutato il Client ID o il Secret di IGDB. Controllali nelle impostazioni.",
 		"Version history": "Cronologia delle versioni",
 		"Show the %v older versions": "Mostra le %v versioni precedenti",
 		"The titles database only has the date of each update. The button searches the web for its notes.": "Il database dei titoli conosce solo la data di ogni aggiornamento. Il pulsante ne cerca le note sul web.",

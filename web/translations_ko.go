@@ -3,6 +3,23 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"%v of %v games with times": "%v / %v개 게임에 플레이 시간 있음",
+		"%v players": "플레이어 %v명",
+		"%v to beat your games": "게임을 모두 끝내려면 %v",
+		"100%": "100%",
+		"Client ID": "Client ID",
+		"Client Secret": "Client Secret",
+		"Data from IGDB": "IGDB 데이터",
+		"How to get them": "받는 방법",
+		"Never shown again once saved. Empty the Client ID to remove both.": "저장한 뒤에는 다시 표시되지 않습니다. 둘 다 지우려면 Client ID를 비우세요.",
+		"Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret.": "선택 사항. IGDB 데이터로 각 게임을 끝내는 데 걸리는 시간을 보여 줍니다(개인 사용 무료). dev.twitch.tv/console에서 애플리케이션을 만들고(2단계 인증을 켠 Twitch 계정, 클라이언트 유형 Confidential, 리디렉션 URL http://localhost) Client ID와 Secret을 붙여 넣으세요.",
+		"Quick": "빠르게",
+		"Saved. Leave it empty to keep it.": "저장됨. 유지하려면 비워 두세요.",
+		"Story": "스토리",
+		"Story of the %v games with times from IGDB. See the shortest first.": "IGDB에 시간이 있는 게임 %v개의 스토리. 짧은 게임부터 보기.",
+		"Time to beat": "플레이 시간",
+		"Times to beat (IGDB)": "플레이 시간 (IGDB)",
+		"Twitch refused the IGDB Client ID or Secret. Check them in Settings.": "Twitch가 IGDB Client ID 또는 Secret을 거부했습니다. 설정에서 확인하세요.",
 		"Version history": "버전 기록",
 		"Show the %v older versions": "이전 버전 %v개 보기",
 		"The titles database only has the date of each update. The button searches the web for its notes.": "타이틀 데이터베이스에는 각 업데이트의 날짜만 있습니다. 버튼을 누르면 웹에서 업데이트 노트를 검색합니다.",

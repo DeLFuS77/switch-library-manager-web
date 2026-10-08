@@ -3,6 +3,23 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"%v of %v games with times": "Время прохождения есть у %v из %v игр",
+		"%v players": "Игроков: %v",
+		"%v to beat your games": "%v, чтобы пройти твои игры",
+		"100%": "100%",
+		"Client ID": "Client ID",
+		"Client Secret": "Client Secret",
+		"Data from IGDB": "Данные IGDB",
+		"How to get them": "Как их получить",
+		"Never shown again once saved. Empty the Client ID to remove both.": "После сохранения больше не показывается. Очисти Client ID, чтобы удалить оба значения.",
+		"Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret.": "Необязательно. Показывает, сколько времени нужно на прохождение каждой игры, по данным IGDB (бесплатно для личного использования). Создай приложение на dev.twitch.tv/console (аккаунт Twitch с двухэтапной проверкой, тип клиента Confidential, URL перенаправления http://localhost) и вставь его Client ID и Secret.",
+		"Quick": "Быстро",
+		"Saved. Leave it empty to keep it.": "Сохранено. Оставь пустым, чтобы не менять.",
+		"Story": "Сюжет",
+		"Story of the %v games with times from IGDB. See the shortest first.": "Сюжет %v игр со временем из IGDB. Сначала самые короткие.",
+		"Time to beat": "Время прохождения",
+		"Times to beat (IGDB)": "Время прохождения (IGDB)",
+		"Twitch refused the IGDB Client ID or Secret. Check them in Settings.": "Twitch отклонил Client ID или Secret для IGDB. Проверь их в настройках.",
 		"Version history": "История версий",
 		"Show the %v older versions": "Показать ещё %v старых версий",
 		"The titles database only has the date of each update. The button searches the web for its notes.": "В базе данных игр есть только дата каждого обновления. Кнопка ищет описание в интернете.",

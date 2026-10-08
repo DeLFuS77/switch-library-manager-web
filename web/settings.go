@@ -38,6 +38,8 @@ type SettingsForm struct {
 	VerifySpeed          string `in:"form=verify_speed"`
 	ConsoleFirmware      string `in:"form=console_firmware"`
 	CheckForUpdates      bool   `in:"form=check_for_updates"`
+	IgdbClientId         string `in:"form=igdb_client_id"`
+	IgdbClientSecret     string `in:"form=igdb_client_secret"`
 	AutoCompress         string `in:"form=auto_compress"`
 	AutoCompressLevel    string `in:"form=auto_compress_level"`
 	AutoCompressKeep     bool   `in:"form=auto_compress_keep"`
@@ -241,6 +243,13 @@ func (web *Web) HandleSettings() {
 			appSettings.VerifySpeed = settingsForm.VerifySpeed
 			appSettings.ConsoleFirmware = strings.TrimSpace(settingsForm.ConsoleFirmware)
 			appSettings.CheckForUpdates = settingsForm.CheckForUpdates
+			// the secret is never sent to the page: an empty field keeps it, no Client ID removes both
+			appSettings.IgdbClientId = strings.TrimSpace(settingsForm.IgdbClientId)
+			if appSettings.IgdbClientId == "" {
+				appSettings.IgdbClientSecret = ""
+			} else if secret := strings.TrimSpace(settingsForm.IgdbClientSecret); secret != "" {
+				appSettings.IgdbClientSecret = secret
+			}
 			appSettings.AutoCompress = settingsForm.AutoCompress
 			appSettings.AutoCompressLevel = settingsForm.AutoCompressLevel
 			appSettings.AutoCompressKeep = settingsForm.AutoCompressKeep

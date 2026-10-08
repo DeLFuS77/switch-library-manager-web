@@ -57,7 +57,7 @@ const recentDays = 30
 
 var (
 	allowedPerPage = map[int]struct{}{12: {}, 24: {}, 48: {}, 96: {}}
-	allowedSortBy  = map[string]struct{}{"added": {}, "favorite": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}}
+	allowedSortBy  = map[string]struct{}{"added": {}, "favorite": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}, "duration": {}}
 	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}, STATUS_WANTED: {}}
 	allowedKind    = map[string]struct{}{"": {}, KIND_GAME: {}, KIND_DEMO: {}}
 	allowedExtra   = map[string]struct{}{"": {}, EXTRA_NO_COVER: {}, EXTRA_UNKNOWN: {}, EXTRA_RECENT: {}, EXTRA_FAVORITES: {}}
@@ -222,6 +222,18 @@ func (a TitleItemByFavorite) Less(i, j int) bool {
 
 type TitleItemByAdded            []TitleItem
 
+// TitleItemByDuration sorts by the time to beat; games without one go last, whatever the order.
+type TitleItemByDuration []TitleItem
+
+func (a TitleItemByDuration) Len() int      { return len(a) }
+func (a TitleItemByDuration) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a TitleItemByDuration) Less(i, j int) bool {
+	if a[i].TimeToBeat == a[j].TimeToBeat {
+		return lessName(a[i], a[j])
+	}
+	return a[i].TimeToBeat < a[j].TimeToBeat
+}
+
 func (a TitleItemBySize) Len() int      { return len(a) }
 func (a TitleItemBySize) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a TitleItemBySize) Less(i, j int) bool {
@@ -347,6 +359,25 @@ func sortItems(filter *TitleItemFilter, items []TitleItem) error {
 			data = TitleItemByAdded(items)
 		case "favorite":
 			data = TitleItemByFavorite(items)
+		case "duration":
+			// the games without a time go last in both orders
+			known := items[:0:0]
+			unknown := []TitleItem{}
+			for _, item := range items {
+				if item.TimeToBeat > 0 {
+					known = append(known, item)
+				} else {
+					unknown = append(unknown, item)
+				}
+			}
+			var sorter sort.Interface = TitleItemByDuration(known)
+			if filter.SortOrder == "desc" {
+				sorter = sort.Reverse(sorter)
+			}
+			sort.Sort(sorter)
+			sort.Sort(TitleItemByName(unknown))
+			copy(items, append(known, unknown...))
+			return nil
 		default:
 			return errors.New("Unknown value for parameter sort_by")
 	}

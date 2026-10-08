@@ -196,6 +196,7 @@ func (web *Web) loadDemo() {
 	}
 
 	web.writeDemoHistory(switchDB, localDB, time.Now())
+	web.writeDemoTimesToBeat(localDB)
 	web.state.set(switchDB, localDB)
 	web.sugarLogger.Infof("[Demo mode: %d made-up games]", len(localDB.TitlesMap))
 }
@@ -364,4 +365,28 @@ func (web *Web) writeDemoHistory(switchDB *db.SwitchTitlesDB, localDB *db.LocalS
 		os.WriteFile(filepath.Join(web.dataFolder, HISTORY_FILENAME), bytes, 0600)
 		web.history().reload()
 	}
+}
+
+// writeDemoTimesToBeat makes up how long the games of the demo take to beat, so the times of
+// IGDB can be seen without a Twitch application.
+func (web *Web) writeDemoTimesToBeat(localDB *db.LocalSwitchFilesDB) {
+	store := web.timesToBeat()
+	store.mutex.Lock()
+	store.games = map[string]TimeToBeat{}
+	store.mutex.Unlock()
+	i := 0
+	for _, local := range localDB.TitlesMap {
+		if !local.BaseExist || local.File.Metadata == nil {
+			continue
+		}
+		i++
+		// every fifth game has no time, like games nobody reported yet
+		if i%5 == 0 {
+			continue
+		}
+		hours := 3 + (i*7)%38
+		store.set(local.File.Metadata.TitleId, TimeToBeat{Found: true, Checked: time.Now(), Hastily: hours * 2700, Normally: hours * 3600,
+			Completely: hours * 6300, Count: 4 + (i*13)%90})
+	}
+	store.save()
 }

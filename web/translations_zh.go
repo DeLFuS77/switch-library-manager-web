@@ -3,6 +3,23 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"%v of %v games with times": "%v / %v 款游戏有通关时长",
+		"%v players": "%v 位玩家",
+		"%v to beat your games": "通关你的游戏需要 %v",
+		"100%": "100%",
+		"Client ID": "Client ID",
+		"Client Secret": "Client Secret",
+		"Data from IGDB": "数据来自 IGDB",
+		"How to get them": "如何获取",
+		"Never shown again once saved. Empty the Client ID to remove both.": "保存后不再显示。清空 Client ID 即可同时删除两者。",
+		"Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret.": "可选。使用 IGDB 的数据显示每款游戏的通关时长，个人使用免费。在 dev.twitch.tv/console 创建应用（Twitch 账户需开启两步验证，客户端类型选 Confidential，重定向 URL 填 http://localhost），然后粘贴它的 Client ID 和 Secret。",
+		"Quick": "速通",
+		"Saved. Leave it empty to keep it.": "已保存。留空即可保留。",
+		"Story": "主线",
+		"Story of the %v games with times from IGDB. See the shortest first.": "IGDB 中有时长的 %v 款游戏的主线。先看最短的。",
+		"Time to beat": "通关时长",
+		"Times to beat (IGDB)": "通关时长（IGDB）",
+		"Twitch refused the IGDB Client ID or Secret. Check them in Settings.": "Twitch 拒绝了 IGDB 的 Client ID 或 Secret。请在设置中检查。",
 		"Version history": "版本历史",
 		"Show the %v older versions": "显示较早的 %v 个版本",
 		"The titles database only has the date of each update. The button searches the web for its notes.": "游戏数据库只记录每个更新的日期。按钮会在网上搜索更新说明。",

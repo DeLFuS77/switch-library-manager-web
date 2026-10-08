@@ -3828,3 +3828,43 @@ html[data-section="backup"] #settingsForm .save-bar {
 		cursor: pointer;
 	}
 }
+
+// times to beat (IGDB)
+.time-to-beat {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: .4rem 1.25rem;
+
+	> span {
+		display: flex;
+		flex-direction: column;
+	}
+}
+
+.time-to-beat-value {
+	font-variant-numeric: tabular-nums;
+}
+
+.time-to-beat-source {
+	flex-basis: 100%;
+	color: var(--bs-secondary-color);
+	font-size: .72rem;
+	font-weight: 500;
+	text-decoration: none;
+
+	&:hover {
+		text-decoration: underline;
+	}
+}
+
+.time-teaser .bi-hourglass-split {
+	color: $slm-cyan;
+	font-size: 1.25rem;
+}
+
+.igdb-settings legend {
+	float: none;
+	margin-bottom: .25rem;
+	font-size: 1rem;
+}

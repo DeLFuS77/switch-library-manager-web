@@ -115,6 +115,23 @@
 									<input type="text" class="form-control" id="console_firmware" name="console_firmware" value="{{.Settings.ConsoleFirmware}}" placeholder="18.1.0" inputmode="decimal" aria-describedby="firmwareHelp">
 									<div class="form-text" id="firmwareHelp">{{t "Optional. Games and updates that need a newer firmware are marked. See it on the console in System Settings > System."}}</div>
 								</div>
+								<div class="col-12">
+									<fieldset class="igdb-settings">
+										<legend class="form-label fw-semibold"><span class="bi bi-hourglass-split me-1" aria-hidden="true"></span>{{t "Times to beat (IGDB)"}}</legend>
+										<p class="form-text mt-0" id="igdbHelp">{{t "Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret."}} <a href="https://api-docs.igdb.com/#account-creation" target="_blank" rel="noopener noreferrer">{{t "How to get them"}}</a></p>
+										<div class="row g-3">
+											<div class="col-md-6">
+												<label for="igdb_client_id" class="form-label">{{t "Client ID"}}</label>
+												<input type="text" class="form-control" id="igdb_client_id" name="igdb_client_id" value="{{.Settings.IgdbClientId}}" autocomplete="off" spellcheck="false" aria-describedby="igdbHelp">
+											</div>
+											<div class="col-md-6">
+												<label for="igdb_client_secret" class="form-label">{{t "Client Secret"}}</label>
+												<input type="password" class="form-control" id="igdb_client_secret" name="igdb_client_secret" value="" autocomplete="new-password" spellcheck="false" placeholder="{{if .Settings.IgdbClientSecret}}{{t "Saved. Leave it empty to keep it."}}{{end}}" aria-describedby="igdbSecretHelp">
+												<div class="form-text" id="igdbSecretHelp">{{t "Never shown again once saved. Empty the Client ID to remove both."}}</div>
+											</div>
+										</div>
+									</fieldset>
+								</div>
 								<div class="col-md-6">
 									<label for="verify_interval_days" class="form-label fw-semibold">{{t "Check the files"}}</label>
 									<select class="form-select" id="verify_interval_days" name="verify_interval_days" aria-describedby="verifyHelp">
