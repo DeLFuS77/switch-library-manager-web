@@ -9,7 +9,7 @@
   <Privileged>false</Privileged>
   <Support>https://github.com/DeLFuS77/switch-library-manager-web/issues</Support>
   <Project>https://github.com/DeLFuS77/switch-library-manager-web</Project>
-  <Overview>Manage your Nintendo Switch backup library from the browser: missing updates, DLC and games, issues, statistics, organizing and renaming, NSZ compression, notifications and user accounts. Use it with backups of games you own. Put your own prod.keys (and optionally title.keys), dumped from your console, in the appdata folder; no keys or games are included or downloaded.</Overview>
+  <Overview>Manage your Nintendo Switch backup library from the browser: missing updates, DLC and games, issues, organizing and renaming, NSZ compression and an SD card planner. Discover games you might like, upcoming releases and your series, see statistics, your year on Switch, the version history of each game and, optionally, how long games take to beat (IGDB). Quick search, notifications, user accounts with protection against bots, 11 languages. Use it with backups of games you own. Put your own prod.keys (and optionally title.keys), dumped from your console, in the appdata folder; no keys or games are included or downloaded.</Overview>
   <Category>Tools:Utilities MediaApp:Other</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/templates/switch-library-manager-web.xml</TemplateURL>
@@ -44,4 +44,6 @@
   <Config Name="Admin password" Target="SLM_AUTH_PASSWORD" Default="" Mode="" Description="Optional: password of the administrator above." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
   <Config Name="Allow remote access without login" Target="SLM_ALLOW_REMOTE_WITHOUT_LOGIN" Default="" Mode="" Description="Optional: set to true only if another service (a proxy with its own login, a VPN) protects the app. Without users, the app otherwise only answers on the local network." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
   <Config Name="Trusted proxies" Target="SLM_TRUSTED_PROXIES" Default="" Mode="" Description="Optional: set to cloudflare when Cloudflare connects to the app directly, so the login protection sees the real visitor address (not needed with a Cloudflare Tunnel or a proxy on your network). Also takes proxy addresses or ranges, separated by commas." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="IGDB Client ID" Target="SLM_IGDB_CLIENT_ID" Default="" Mode="" Description="Optional: the Client ID of your own Twitch application (dev.twitch.tv/console), to show how long games take to beat, from IGDB. Can also be set in Settings." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="IGDB Client Secret" Target="SLM_IGDB_CLIENT_SECRET" Default="" Mode="" Description="Optional: the Client Secret of the same Twitch application." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
 </Container>

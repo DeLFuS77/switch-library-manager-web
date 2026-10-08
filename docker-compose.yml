@@ -12,6 +12,9 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Madrid
+      # optional: how long games take to beat, with your own Twitch application (see the README)
+      # - SLM_IGDB_CLIENT_ID=
+      # - SLM_IGDB_CLIENT_SECRET=
       # optional password protection, set both to enable it
       # Without users the app only answers on the local network; create an administrator in Users,
       # or set one here:

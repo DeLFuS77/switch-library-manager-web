@@ -5,7 +5,7 @@
       "type": 1,
       "title": "Switch Library Manager Web",
       "name": "switch-library-manager-web",
-      "description": "Manage your Nintendo Switch backup library from the browser: missing updates, DLC and games, upcoming releases, statistics, organizing, NSZ compression and an SD card planner. No keys or games are included: put your own prod.keys in the data folder.",
+      "description": "Manage your Nintendo Switch backup library from the browser: missing updates, DLC and games, issues, organizing, NSZ compression and an SD card planner; games you might like, upcoming releases, series, statistics, your year on Switch and times to beat (optional, IGDB). No keys or games are included: put your own prod.keys in the data folder.",
       "note": "Open the app on the port you choose (3000 by default). Set PUID/PGID to the owner of your games folder.",
       "categories": ["Media", "Tools"],
       "platform": "linux",
