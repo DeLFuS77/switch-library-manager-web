@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
@@ -193,19 +194,19 @@ func (web *Web) waitForAutomation() (settings.AutomationOptions, bool) {
 	}
 }
 
-// the waits of the automation, shorter in the tests
-var automationPollOverride time.Duration
+// the waits of the automation, shorter in the tests (read by the queue while it runs)
+var automationPollOverride atomic.Int64
 
 func (web *Web) automationPollInterval() time.Duration {
-	if automationPollOverride > 0 {
-		return automationPollOverride
+	if override := time.Duration(automationPollOverride.Load()); override > 0 {
+		return override
 	}
 	return automationPoll
 }
 
 func (web *Web) automationSettle() time.Duration {
-	if automationPollOverride > 0 {
-		return automationPollOverride
+	if override := time.Duration(automationPollOverride.Load()); override > 0 {
+		return override
 	}
 	return time.Second
 }
