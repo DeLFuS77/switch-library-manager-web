@@ -32,8 +32,6 @@ type WizardPageData struct {
 	AuthEnabled bool
 	// the wizard opened by itself: it offers "Later" and "Do not show again"
 	Auto bool
-	// a theme chosen by the user (applied in the browser only)
-	Themes []string
 }
 
 // wizardAuto reports whether the wizard opens by itself: the first use, not put off nor turned off.
@@ -128,19 +126,10 @@ func (web *Web) HandleWizard() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/partials/wizard.html")
 
 	web.router.HandleFunc("/wizard", func(w http.ResponseWriter, r *http.Request) {
-		current := settings.ReadSettings(web.dataFolder)
 		data := WizardPageData{
-			SettingsPageData: SettingsPageData{
-				GlobalPageData: web.globalPageData("settings"),
-				Settings:       current,
-				SyncIntervals:  []int{0, 6, 12, 24, 168},
-				Languages:      supportedLanguages,
-				VerifySpeeds:   verifySpeedOptions(),
-				KeysAvailable:  settings.IsKeysFileAvailable(),
-				NotificationsConfigured: notificationsConfigured(current.Notifications),
-			},
-			AuthEnabled: web.auth != nil && web.auth.Enabled(),
-			Auto:        r.URL.Query().Get("auto") == "1",
+			SettingsPageData: web.settingsPageData(),
+			AuthEnabled:      web.auth != nil && web.auth.Enabled(),
+			Auto:             r.URL.Query().Get("auto") == "1",
 		}
 		data.SettingsPageData.GlobalPageData.Auth = web.authInfo(r)
 		w.Header().Set("Cache-Control", "no-store")
@@ -177,6 +166,17 @@ func (web *Web) HandleWizard() {
 			settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.WizardLater = time.Now().Add(wizardSnooze) })
 		case "done":
 			settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.WizardDone = true })
+			// saved by the wizard: the covers of the games it finds are downloaded at once, also
+			// outside the background hours, like "Search covers again"
+			if r.FormValue("covers") == "1" {
+				web.background.mutex.Lock()
+				web.background.forced = true
+				web.background.mutex.Unlock()
+				// the scan the saved settings started downloads them when it ends
+				if !web.state.IsSynchronizing() {
+					web.startCoverDownloads()
+				}
+			}
 		default:
 			http.Error(w, "unknown state", http.StatusBadRequest)
 			return

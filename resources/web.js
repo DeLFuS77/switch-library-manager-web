@@ -1755,6 +1755,17 @@ function setupWizard(element) {
 		void icon.parentElement.offsetWidth;
 		icon.parentElement.classList.add('is-changing');
 		caption.textContent = step.dataset.caption || '';
+		// the picture of the step plays its animation again
+		element.querySelectorAll('[data-scene]').forEach(scene => {
+			const shown = scene.dataset.scene === step.dataset.step;
+			// an SVG element has no hidden property: the attribute itself
+			scene.toggleAttribute('hidden', !shown);
+			scene.classList.remove('is-playing');
+			if (shown) {
+				void scene.getBoundingClientRect();
+				scene.classList.add('is-playing');
+			}
+		});
 		element.dataset.step = step.dataset.step;
 		[...dots.children].forEach((dot, i) => {
 			dot.classList.toggle('is-done', i < current);
@@ -1984,7 +1995,8 @@ function setupWizard(element) {
 					return;
 				}
 				saved = true;
-				fetch('/wizard/state', { method: 'POST', body: new URLSearchParams({ state: 'done' }) });
+				// the covers of the games found are downloaded at once
+				fetch('/wizard/state', { method: 'POST', body: new URLSearchParams({ state: 'done', covers: '1' }) });
 				show(done, 1);
 			})
 			.catch(() => showAlert(t('The server could not be reached.')))

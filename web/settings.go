@@ -110,21 +110,7 @@ func (web *Web) HandleSettings() {
 	}
 
 	web.HandleValidated("/settings.html", SettingsForm{}, func() any {
-		// the current settings: ignoring a title or a synchronization also changes them
-		current := settings.ReadSettings(web.dataFolder)
-		return SettingsPageData {
-			NextSync: nextSyncTime(current),
-			SyncIntervals: []int{0, 6, 12, 24, 168},
-			Languages: supportedLanguages,
-			GlobalPageData: web.globalPageData("settings"),
-			Settings: current,
-			MissingCovers: web.missingCovers(),
-			VerifySpeeds: verifySpeedOptions(),
-			AutoBackups: web.autoBackups(),
-			KeysAvailable: settings.IsKeysFileAvailable(),
-			NotificationsConfigured: notificationsConfigured(current.Notifications),
-			AutomationPending: web.automationPending(),
-		}
+		return web.settingsPageData()
 	}, func(value any, lang string) ErrorResponse {
 		settingsForm := value.(*SettingsForm)
 		errorResponse := ErrorResponse{
@@ -311,5 +297,24 @@ func verifySpeedOptions() []VerifySpeedOption {
 		{Value: VERIFY_SPEED_LOW, Label: "Gentle", Workers: verifyWorkers(VERIFY_SPEED_LOW, cores)},
 		{Value: "", Label: "Normal", Workers: verifyWorkers(VERIFY_SPEED_NORMAL, cores)},
 		{Value: VERIFY_SPEED_FAST, Label: "Fast", Workers: verifyWorkers(VERIFY_SPEED_FAST, cores)},
+	}
+}
+
+// settingsPageData is what the Settings page and the setup wizard show: the current settings
+// (ignoring a title or a synchronization also changes them) and what they depend on.
+func (web *Web) settingsPageData() SettingsPageData {
+	current := settings.ReadSettings(web.dataFolder)
+	return SettingsPageData{
+		GlobalPageData:          web.globalPageData("settings"),
+		Settings:                current,
+		NextSync:                nextSyncTime(current),
+		SyncIntervals:           []int{0, 6, 12, 24, 168},
+		Languages:               supportedLanguages,
+		MissingCovers:           web.missingCovers(),
+		VerifySpeeds:            verifySpeedOptions(),
+		AutoBackups:             web.autoBackups(),
+		KeysAvailable:           settings.IsKeysFileAvailable(),
+		NotificationsConfigured: notificationsConfigured(current.Notifications),
+		AutomationPending:       web.automationPending(),
 	}
 }

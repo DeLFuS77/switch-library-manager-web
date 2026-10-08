@@ -80,6 +80,15 @@ func TestWizardState(t *testing.T) {
 	if code := post("done"); code != 204 || !settings.ReadSettings(web.dataFolder).WizardDone {
 		t.Fatalf("done: %d", code)
 	}
+	// saved by the wizard: the covers are downloaded now, whatever the background hours
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.BackgroundHours = backgroundHoursNotNow(time.Now()) })
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest("POST", "/wizard/state", strings.NewReader("state=done&covers=1"))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	web.router.ServeHTTP(recorder, request)
+	if recorder.Code != 204 || !web.backgroundAllowed() {
+		t.Fatalf("covers now: %d, allowed %v", recorder.Code, web.backgroundAllowed())
+	}
 	if code := post("nonsense"); code != 400 {
 		t.Fatalf("unknown: %d", code)
 	}

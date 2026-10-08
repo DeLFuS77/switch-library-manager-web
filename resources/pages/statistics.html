@@ -125,7 +125,13 @@
 				{{- end}}
 				{{- if .History}}
 				<ul class="list-group list-group-flush">
-					{{- range .History}}
+					{{- range $i, $e := .History}}
+					{{- if eq $i 10}}
+				</ul>
+				<details class="version-more history-more">
+					<summary>{{t "Show the %v older changes" $.OlderHistory}}</summary>
+					<ul class="list-group list-group-flush">
+					{{- end}}
 					<li class="list-group-item bg-transparent d-flex align-items-center gap-2 px-0">
 						<span class="bi {{if .Added}}bi-plus-circle text-success{{else}}bi-dash-circle text-danger{{end}}" aria-hidden="true"></span>
 						<span class="me-auto text-truncate">
@@ -136,6 +142,9 @@
 					</li>
 					{{- end}}
 				</ul>
+				{{- if gt $.OlderHistory 0}}
+				</details>
+				{{- end}}
 				{{- else}}
 				<p class="text-body-secondary mb-0">{{t "The games, updates and DLC added to or removed from your folders appear here after the next scans."}}</p>
 				{{- end}}

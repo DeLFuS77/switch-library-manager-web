@@ -224,6 +224,13 @@ h3,
 	}
 }
 
+// the full menu of wide screens takes a little more width than the page, so it always fits
+@include media-breakpoint-up(xxl) {
+	.app-header > .navbar > .container-xxl {
+		max-width: min(100%, 1480px);
+	}
+}
+
 .navbar-brand {
 	font-weight: 800;
 	letter-spacing: -.02em;
@@ -1080,7 +1087,12 @@ h3,
 	gap: .6rem;
 	margin: 1.5rem 0 0;
 
-	// two columns on phones, the title ID across both
+	// the wide boxes (title ID, languages, times to beat) take two columns, so their values
+	// are not cut; on phones, two columns with the wide boxes across both
+	.fact-wide {
+		grid-column: span 2;
+	}
+
 	@include media-breakpoint-down(sm) {
 		grid-template-columns: 1fr 1fr;
 
@@ -3254,6 +3266,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 // Quick search (Ctrl+K): one button in the header, the results in a window above the page
 // ---------------------------------------------------------------------------------------
 .search-trigger {
+	flex-shrink: 0;
 	display: inline-flex;
 	align-items: center;
 	gap: .5rem;
@@ -3275,6 +3288,17 @@ html[data-section="backup"] #settingsForm .save-bar {
 
 		.search-kbd {
 			margin-left: auto;
+		}
+	}
+
+	// next to the full menu of wide screens only the magnifier fits (the shortcut is in its title)
+	@include media-breakpoint-up(xxl) {
+		min-width: 0;
+		padding-inline: .55rem;
+
+		.search-trigger-label,
+		.search-kbd {
+			display: none !important;
 		}
 	}
 }
@@ -3591,10 +3615,16 @@ html[data-section="backup"] #settingsForm .save-bar {
 
 .year-months {
 	display: grid;
+	flex: 1;
 	grid-template-columns: repeat(12, minmax(0, 1fr));
 	align-items: end;
 	gap: .35rem;
-	height: 11rem;
+	min-height: 11rem;
+}
+
+.year-chart {
+	display: flex;
+	flex-direction: column;
 }
 
 .year-month {
@@ -3828,6 +3858,10 @@ html[data-section="backup"] #settingsForm .save-bar {
 		font-weight: 600;
 		cursor: pointer;
 	}
+}
+
+.history-more summary {
+	padding-left: 0;
 }
 
 // times to beat (IGDB)
@@ -4414,3 +4448,86 @@ body:has(.wizard.show) #alert_sync {
 		transform: translateX(-24px);
 	}
 }
+
+// the pictures of the wizard: one scene per step, drawn in the colors of the app
+.wizard-scenes {
+	width: min(17rem, 90%);
+
+	@include media-breakpoint-down(md) {
+		display: none;
+	}
+}
+
+.wizard-defs {
+	position: absolute;
+}
+
+.wizard-scene {
+	display: block;
+
+	&[hidden] {
+		display: none;
+	}
+
+	width: 100%;
+	height: auto;
+	filter: drop-shadow(0 18px 26px rgba(0, 0, 0, .35));
+
+	* {
+		transform-box: fill-box;
+		transform-origin: center;
+	}
+}
+
+// on wide screens the scene replaces the icon; on phones the icon stays in the banner
+@include media-breakpoint-up(md) {
+	.wizard-art .wizard-art-blob {
+		display: none;
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.wizard-scene {
+		.wz-float { animation: wz-float 5s ease-in-out infinite; }
+		.wz-twinkle > * { animation: wz-twinkle 2.4s ease-in-out infinite; }
+		.wz-twinkle > :nth-child(2) { animation-delay: .8s; }
+		.wz-twinkle > :nth-child(3) { animation-delay: 1.6s; }
+		.wz-swing { animation: wz-swing 3s ease-in-out infinite; transform-origin: 30% 50%; }
+		.wz-spin { animation: wz-spin 8s linear infinite; transform-box: view-box; }
+		.wz-spin-back { animation: wz-spin 6s linear infinite reverse; transform-box: view-box; }
+		.wz-spin-slow { animation: wz-spin 14s linear infinite; transform-box: view-box; }
+		.wz-clock { animation: wz-spin 6s linear infinite; transform-box: view-box; }
+		.wz-nudge { animation: wz-nudge 1.6s ease-in-out infinite; }
+		.wz-belt { animation: wz-belt 3s linear infinite; }
+		.wz-ring { animation: wz-ring 2.8s ease-in-out infinite; transform-box: view-box; }
+		.wz-flip { animation: wz-flip 4s cubic-bezier(.6, 0, .2, 1) infinite; transform-box: view-box; }
+	}
+
+	.wizard-scene.is-playing {
+		.wz-pop { animation: wz-pop .6s .25s cubic-bezier(.3, 1.6, .5, 1) both; }
+		.wz-rise > * { animation: wz-rise .7s cubic-bezier(.2, .7, .2, 1) both; }
+		.wz-rise > :nth-child(2) { animation-delay: .12s; }
+		.wz-rise > :nth-child(3) { animation-delay: .24s; }
+		.wz-cascade > * { animation: wz-rise .5s cubic-bezier(.2, .7, .2, 1) both; }
+		@for $i from 1 through 6 {
+			.wz-cascade > :nth-child(#{$i}) { animation-delay: #{$i * 70}ms; }
+		}
+		.wz-bubbles > * { animation: wz-pop .5s cubic-bezier(.3, 1.6, .5, 1) both; }
+		.wz-bubbles > :nth-child(2) { animation-delay: .35s; }
+		.wz-bubbles > :nth-child(3) { animation-delay: .7s; }
+		.wz-confetti > * { animation: wz-confetti 1.4s cubic-bezier(.2, .7, .2, 1) both; }
+		.wz-confetti > :nth-child(even) { animation-delay: .15s; }
+	}
+}
+
+@keyframes wz-float { 50% { transform: translateY(-6px); } }
+@keyframes wz-twinkle { 50% { opacity: .25; transform: scale(.7); } }
+@keyframes wz-swing { 50% { transform: rotate(-10deg); } }
+@keyframes wz-spin { to { transform: rotate(360deg); } }
+@keyframes wz-nudge { 50% { transform: translateX(6px); } }
+@keyframes wz-belt { from { transform: translateX(-10px); } 50% { transform: translateX(10px); } to { transform: translateX(-10px); } }
+@keyframes wz-ring { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(14deg); } 80% { transform: rotate(-12deg); } 90% { transform: rotate(8deg); } }
+@keyframes wz-flip { 0%, 40% { transform: rotate(0); } 55%, 90% { transform: rotate(180deg); } 100% { transform: rotate(360deg); } }
+@keyframes wz-pop { from { opacity: 0; transform: scale(.3); } }
+@keyframes wz-rise { from { opacity: 0; transform: translateY(18px); } }
+@keyframes wz-confetti { from { opacity: 0; transform: translateY(-30px) rotate(-90deg); } }

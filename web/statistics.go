@@ -266,3 +266,8 @@ func maxCount(counts []NamedCount) int {
 	}
 	return highest
 }
+
+// OlderHistory is the number of changes shown only on request, after the latest ten.
+func (d StatisticsPageData) OlderHistory() int {
+	return max(len(d.History)-10, 0)
+}

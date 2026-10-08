@@ -7,6 +7,137 @@
 				<aside class="wizard-art" aria-hidden="true">
 					<div class="wizard-art-orbit"></div>
 					<div class="wizard-art-blob"><span class="bi bi-stars" data-wizard-icon></span></div>
+					<div class="wizard-scenes" aria-hidden="true">
+						<svg class="wizard-defs" width="0" height="0" focusable="false">
+							<defs>
+								<linearGradient id="wzScreen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ee7ff"/><stop offset="1" stop-color="#7c5cff"/></linearGradient>
+								<linearGradient id="wzWarm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd166"/><stop offset="1" stop-color="#ff7a59"/></linearGradient>
+								<linearGradient id="wzGlass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset="1" stop-color="#ffffff" stop-opacity=".7"/></linearGradient>
+								<linearGradient id="wzGreen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5be38f"/><stop offset="1" stop-color="#0fb5d8"/></linearGradient>
+							</defs>
+						</svg>
+
+						<!-- welcome: a handheld console with its two controllers -->
+						<svg class="wizard-scene" data-scene="welcome" viewBox="0 0 240 200">
+							<ellipse cx="120" cy="178" rx="78" ry="8" fill="#000" opacity=".18"/>
+							<g class="wz-float">
+								<rect x="44" y="52" width="34" height="104" rx="17" fill="#ff4b5c"/>
+								<rect x="162" y="52" width="34" height="104" rx="17" fill="#18c5e8"/>
+								<rect x="72" y="52" width="96" height="104" rx="10" fill="#1d2330"/>
+								<rect x="80" y="62" width="80" height="84" rx="5" fill="url(#wzScreen)"/>
+								<path d="M80 130 Q100 112 120 126 T160 118 V146 H80Z" fill="#fff" opacity=".25"/>
+								<circle cx="61" cy="80" r="7" fill="#1d2330"/>
+								<circle cx="179" cy="118" r="7" fill="#1d2330"/>
+								<g fill="#1d2330"><circle cx="179" cy="76" r="3"/><circle cx="187" cy="84" r="3"/><circle cx="171" cy="84" r="3"/><circle cx="179" cy="92" r="3"/></g>
+								<path d="M61 108 v14 M54 115 h14" stroke="#1d2330" stroke-width="4" stroke-linecap="round"/>
+							</g>
+							<g class="wz-twinkle" fill="#fff"><path d="M30 40 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3z"/><path d="M206 30 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2z"/><path d="M214 150 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z"/></g>
+						</svg>
+
+						<!-- folders: game cards coming out of folders -->
+						<svg class="wizard-scene" data-scene="folders" viewBox="0 0 240 200" hidden>
+							<ellipse cx="120" cy="180" rx="80" ry="7" fill="#000" opacity=".18"/>
+							<g class="wz-rise"><rect x="78" y="40" width="34" height="46" rx="5" fill="url(#wzScreen)" transform="rotate(-12 95 63)"/><rect x="110" y="30" width="34" height="46" rx="5" fill="url(#wzWarm)"/><rect x="142" y="42" width="34" height="46" rx="5" fill="url(#wzGreen)" transform="rotate(12 159 65)"/></g>
+							<path d="M52 82 h50 l12 12 h74 a8 8 0 0 1 8 8 v66 a8 8 0 0 1 -8 8 H52 a8 8 0 0 1 -8 -8 V90 a8 8 0 0 1 8 -8z" fill="#ffd166"/>
+							<path d="M44 110 h152 v58 a8 8 0 0 1 -8 8 H52 a8 8 0 0 1 -8 -8z" fill="#ffb238"/>
+							<circle class="wz-pop" cx="176" cy="150" r="16" fill="#1f9d55"/><path class="wz-pop" d="M168 150 l6 6 11 -12" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+						</svg>
+
+						<!-- keys: a key and a shield -->
+						<svg class="wizard-scene" data-scene="keys" viewBox="0 0 240 200" hidden>
+							<ellipse cx="120" cy="180" rx="70" ry="7" fill="#000" opacity=".18"/>
+							<path d="M120 30 l52 18 v40 c0 36 -24 62 -52 76 c-28 -14 -52 -40 -52 -76 v-40z" fill="url(#wzGlass)"/>
+							<path d="M120 46 l38 13 v29 c0 26 -17 45 -38 56 c-21 -11 -38 -30 -38 -56 v-29z" fill="#18c5e8" opacity=".25"/>
+							<g class="wz-swing"><circle cx="104" cy="96" r="20" fill="none" stroke="#ffd166" stroke-width="10"/><path d="M122 104 l40 22 M146 117 l-6 11 M156 123 l-6 11" stroke="#ffd166" stroke-width="10" stroke-linecap="round"/></g>
+						</svg>
+
+						<!-- console: the firmware on the screen -->
+						<svg class="wizard-scene" data-scene="console" viewBox="0 0 240 200" hidden>
+							<ellipse cx="120" cy="180" rx="80" ry="7" fill="#000" opacity=".18"/>
+							<rect x="40" y="46" width="160" height="110" rx="14" fill="#1d2330"/>
+							<rect x="52" y="58" width="136" height="86" rx="8" fill="url(#wzScreen)"/>
+							<g class="wz-spin-slow" style="transform-origin:92px 101px"><circle cx="92" cy="101" r="18" fill="none" stroke="#fff" stroke-width="7" stroke-dasharray="7 5"/><circle cx="92" cy="101" r="7" fill="#fff"/></g>
+							<rect class="wz-pop" x="118" y="88" width="56" height="26" rx="13" fill="#fff"/><text x="146" y="106" text-anchor="middle" font-size="14" font-weight="800" fill="#7c5cff" font-family="Inter Variable, system-ui, sans-serif">18.1</text>
+						</svg>
+
+						<!-- library: a grid of covers with a star -->
+						<svg class="wizard-scene" data-scene="library" viewBox="0 0 240 200" hidden>
+							<ellipse cx="120" cy="182" rx="84" ry="7" fill="#000" opacity=".18"/>
+							<g class="wz-cascade">
+								<rect x="44" y="34" width="44" height="60" rx="7" fill="url(#wzScreen)"/><rect x="98" y="34" width="44" height="60" rx="7" fill="url(#wzWarm)"/><rect x="152" y="34" width="44" height="60" rx="7" fill="url(#wzGreen)"/>
+								<rect x="44" y="104" width="44" height="60" rx="7" fill="url(#wzWarm)"/><rect x="98" y="104" width="44" height="60" rx="7" fill="url(#wzGreen)"/><rect x="152" y="104" width="44" height="60" rx="7" fill="url(#wzScreen)"/>
+							</g>
+							<path class="wz-pop" d="M174 20 l7 14 15 2 -11 11 3 15 -14 -7 -14 7 3 -15 -11 -11 15 -2z" fill="#ffd166" stroke="#fff" stroke-width="2"/>
+						</svg>
+
+						<!-- background work: the moon and a clock -->
+						<svg class="wizard-scene" data-scene="background" viewBox="0 0 240 200" hidden>
+							<path class="wz-float" d="M150 34 a52 52 0 1 0 46 72 a44 44 0 1 1 -46 -72z" fill="#ffd166"/>
+							<g class="wz-twinkle" fill="#fff"><circle cx="58" cy="44" r="3"/><circle cx="84" cy="70" r="2"/><circle cx="200" cy="40" r="2.5"/><circle cx="48" cy="120" r="2"/></g>
+							<circle cx="92" cy="128" r="40" fill="url(#wzGlass)"/>
+							<g class="wz-clock" style="transform-origin:92px 128px"><path d="M92 128 V102" stroke="#1d2330" stroke-width="5" stroke-linecap="round"/></g>
+							<path d="M92 128 l16 10" stroke="#ff4b5c" stroke-width="5" stroke-linecap="round"/><circle cx="92" cy="128" r="5" fill="#1d2330"/>
+						</svg>
+
+						<!-- compression: a big file that gets smaller -->
+						<svg class="wizard-scene" data-scene="compression" viewBox="0 0 240 200" hidden>
+							<ellipse cx="120" cy="180" rx="80" ry="7" fill="#000" opacity=".18"/>
+							<path d="M40 40 h48 l20 20 v100 a6 6 0 0 1 -6 6 H40 a6 6 0 0 1 -6 -6 V46 a6 6 0 0 1 6 -6z" fill="url(#wzGlass)"/>
+							<text x="70" y="120" text-anchor="middle" font-size="16" font-weight="800" fill="#7c5cff" font-family="Inter Variable, system-ui, sans-serif">NSP</text>
+							<path class="wz-nudge" d="M120 104 h30 m-10 -12 l12 12 -12 12" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+							<g class="wz-pop"><path d="M168 76 h28 l12 12 v60 a5 5 0 0 1 -5 5 H168 a5 5 0 0 1 -5 -5 V81 a5 5 0 0 1 5 -5z" fill="url(#wzGreen)"/><text x="186" y="124" text-anchor="middle" font-size="12" font-weight="800" fill="#fff" font-family="Inter Variable, system-ui, sans-serif">NSZ</text></g>
+						</svg>
+
+						<!-- automations: gears and a belt of steps -->
+						<svg class="wizard-scene" data-scene="automation" viewBox="0 0 240 200" hidden>
+							<g class="wz-spin" style="transform-origin:88px 84px"><circle cx="88" cy="84" r="34" fill="none" stroke="#fff" stroke-width="14" stroke-dasharray="11 7"/><circle cx="88" cy="84" r="20" fill="#fff"/></g>
+							<g class="wz-spin-back" style="transform-origin:150px 104px"><circle cx="150" cy="104" r="24" fill="none" stroke="#ffd166" stroke-width="11" stroke-dasharray="9 6"/><circle cx="150" cy="104" r="13" fill="#ffd166"/></g>
+							<rect x="30" y="150" width="180" height="16" rx="8" fill="#1d2330" opacity=".6"/>
+							<g class="wz-belt"><rect x="40" y="134" width="22" height="16" rx="4" fill="url(#wzScreen)"/><rect x="92" y="134" width="22" height="16" rx="4" fill="url(#wzWarm)"/><rect x="144" y="134" width="22" height="16" rx="4" fill="url(#wzGreen)"/></g>
+						</svg>
+
+						<!-- notifications: a phone with messages -->
+						<svg class="wizard-scene" data-scene="notifications" viewBox="0 0 240 200" hidden>
+							<ellipse cx="120" cy="182" rx="56" ry="7" fill="#000" opacity=".18"/>
+							<rect x="84" y="30" width="72" height="144" rx="14" fill="#1d2330"/>
+							<rect x="92" y="42" width="56" height="120" rx="6" fill="url(#wzScreen)"/>
+							<g class="wz-bubbles"><rect x="40" y="58" width="72" height="24" rx="12" fill="#fff"/><rect x="128" y="94" width="78" height="24" rx="12" fill="#ffd166"/><rect x="44" y="130" width="64" height="24" rx="12" fill="#fff"/></g>
+							<path class="wz-ring" d="M170 30 a14 14 0 0 1 14 14 v10 l6 8 H150 l6 -8 V44 a14 14 0 0 1 14 -14z M164 66 a6 6 0 0 0 12 0" fill="#ff4b5c" style="transform-origin:170px 30px"/>
+						</svg>
+
+						<!-- extras: an hourglass and a gem -->
+						<svg class="wizard-scene" data-scene="extras" viewBox="0 0 240 200" hidden>
+							<ellipse cx="120" cy="180" rx="76" ry="7" fill="#000" opacity=".18"/>
+							<g class="wz-flip" style="transform-origin:86px 102px"><path d="M58 40 h56 M58 164 h56" stroke="#fff" stroke-width="8" stroke-linecap="round"/><path d="M64 44 c0 30 44 40 44 58 s-44 28 -44 58 h44 c0 -30 -44 -40 -44 -58 s44 -28 44 -58z" fill="url(#wzGlass)"/><path d="M74 156 h24 l-12 -16z" fill="#ffd166"/></g>
+							<g class="wz-float"><path d="M148 70 h48 l14 20 -38 52 -38 -52z" fill="url(#wzScreen)"/><path d="M148 70 l10 20 h-24z M196 70 l14 20 h-24z M158 90 h28 l-14 52z" fill="#fff" opacity=".35"/></g>
+						</svg>
+
+						<!-- security: a shield with a lock -->
+						<svg class="wizard-scene" data-scene="security" viewBox="0 0 240 200" hidden>
+							<ellipse cx="120" cy="182" rx="70" ry="7" fill="#000" opacity=".18"/>
+							<path class="wz-float" d="M120 26 l58 20 v44 c0 40 -27 68 -58 84 c-31 -16 -58 -44 -58 -84 v-44z" fill="url(#wzGreen)"/>
+							<g class="wz-pop"><rect x="96" y="92" width="48" height="40" rx="8" fill="#fff"/><path d="M106 92 v-12 a14 14 0 0 1 28 0 v12" stroke="#fff" stroke-width="8" fill="none"/><circle cx="120" cy="110" r="6" fill="#1f9d55"/><path d="M120 112 v10" stroke="#1f9d55" stroke-width="5" stroke-linecap="round"/></g>
+						</svg>
+
+						<!-- summary: a checklist -->
+						<svg class="wizard-scene" data-scene="summary" viewBox="0 0 240 200" hidden>
+							<ellipse cx="120" cy="182" rx="66" ry="7" fill="#000" opacity=".18"/>
+							<rect x="66" y="30" width="108" height="144" rx="12" fill="url(#wzGlass)"/>
+							<rect x="96" y="22" width="48" height="18" rx="6" fill="#ffd166"/>
+							<g class="wz-cascade" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M84 66 l6 6 12 -12" stroke="#1f9d55" stroke-width="5" fill="none"/><rect x="112" y="62" width="48" height="8" rx="4" fill="#9aa4b5"/>
+								<path d="M84 98 l6 6 12 -12" stroke="#1f9d55" stroke-width="5" fill="none"/><rect x="112" y="94" width="40" height="8" rx="4" fill="#9aa4b5"/>
+								<path d="M84 130 l6 6 12 -12" stroke="#1f9d55" stroke-width="5" fill="none"/><rect x="112" y="126" width="44" height="8" rx="4" fill="#9aa4b5"/>
+							</g>
+						</svg>
+
+						<!-- done: a trophy and confetti -->
+						<svg class="wizard-scene" data-scene="done" viewBox="0 0 240 200" hidden>
+							<ellipse cx="120" cy="182" rx="56" ry="7" fill="#000" opacity=".18"/>
+							<g class="wz-float"><path d="M84 36 h72 v34 a36 36 0 0 1 -72 0z" fill="url(#wzWarm)"/><path d="M84 46 h-18 a18 18 0 0 0 22 26 M156 46 h18 a18 18 0 0 1 -22 26" stroke="#ffd166" stroke-width="7" fill="none"/><rect x="112" y="104" width="16" height="30" fill="#ffb238"/><rect x="92" y="134" width="56" height="16" rx="5" fill="#ffd166"/></g>
+							<g class="wz-confetti"><rect x="40" y="40" width="8" height="14" rx="2" fill="#ff4b5c"/><rect x="190" y="50" width="8" height="14" rx="2" fill="#18c5e8"/><rect x="60" y="120" width="8" height="14" rx="2" fill="#5be38f"/><rect x="180" y="128" width="8" height="14" rx="2" fill="#ffd166"/><circle cx="200" cy="96" r="5" fill="#fff"/><circle cx="36" cy="90" r="5" fill="#fff"/></g>
+						</svg>
+					</div>
 					<p class="wizard-art-caption" data-wizard-caption></p>
 					<ol class="wizard-dots" data-wizard-dots></ol>
 				</aside>
