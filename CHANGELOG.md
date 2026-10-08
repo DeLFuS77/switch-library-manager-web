@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.26.1
+
+### Improvements
+
+- **Setup wizard**: every step has its own animated picture (a console with its controllers, folders full of games,
+  a key and a shield, the moon and a clock, a file that shrinks, gears, a phone with messages, a trophy…), and
+  Settings has a clear **Open the wizard** button.
+- After the wizard saves, the covers of the games it finds are downloaded at once, also outside the background hours.
+- Game pages: the title ID, the languages and the times to beat are no longer cut.
+- Your year on Switch: the chart of the months fills its card.
+- Statistics: the history shows the latest ten changes, the older ones on request.
+
+### Fixes
+
+- **No more sideways scrolling on desktop**: the menu of wide screens always fits, in every language (only the
+  magnifier of the quick search next to it).
+
 ## 1.26.0
 
 ### New features
