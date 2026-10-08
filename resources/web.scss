@@ -3625,6 +3625,13 @@ html[data-section="backup"] #settingsForm .save-bar {
 .year-chart {
 	display: flex;
 	flex-direction: column;
+	align-items: stretch;
+
+	// the bars grow with the card next to them, up to a height that still reads as a chart
+	.year-months {
+		max-height: 17rem;
+		margin-block: auto;
+	}
 }
 
 .year-month {

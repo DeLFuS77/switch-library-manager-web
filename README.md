@@ -32,21 +32,24 @@ Linux, Docker, NAS and Raspberry Pi.
   <img src="docs/tour.gif" alt="A short tour: the library, a game page, upcoming releases, series and statistics" width="880">
 </p>
 
-<p align="center">
-  <img src="docs/screenshots/title.png" alt="A game page" width="290">
-  <img src="docs/screenshots/upcoming.png" alt="Upcoming releases, the wishlist and your series first" width="290">
-  <img src="docs/screenshots/sagas.png" alt="Series: how many games of each series you have" width="290">
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/library.png" alt="The library: games with their covers, missing updates and DLC" width="290">
-  <img src="docs/screenshots/updates.png" alt="Missing updates" width="290">
-  <img src="docs/screenshots/statistics.png" alt="Statistics" width="290">
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/mobile.png" alt="On a phone, with the bar at the bottom" width="220">
-</p>
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/library.png" alt="The library: covers, missing updates and DLC, recommendations" width="100%"><br><sub>The library: covers, missing updates and DLC, recommendations</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/title.png" alt="A game page: facts, times to beat, versions and DLC" width="100%"><br><sub>A game page: facts, times to beat, versions and DLC</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/upcoming.png" alt="Upcoming releases, with your wishlist and series first" width="100%"><br><sub>Upcoming releases, with your wishlist and series first</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/sagas.png" alt="Series: how many games of each one you have" width="100%"><br><sub>Series: how many games of each one you have</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/statistics.png" alt="Statistics of your library" width="100%"><br><sub>Statistics of your library</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/year.png" alt="Your year on Switch, ready to share" width="100%"><br><sub>Your year on Switch, ready to share</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/wizard.png" alt="The setup wizard of the first start" width="100%"><br><sub>The setup wizard of the first start</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/search.png" alt="Quick search from any page (Ctrl+K)" width="100%"><br><sub>Quick search from any page (Ctrl+K)</sub></td>
+  </tr>
+</table>
 
 <sub>The tour and the screenshots show the demo mode: the games, publishers and covers are made up.</sub>
 
