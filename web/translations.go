@@ -5,6 +5,13 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Each region sells the game with its own title ID, so the app keeps both copies. The suggested one is marked; delete the copies you do not need, with their updates and DLC.": "Cada región vende el juego con su propio Title ID, así que la app conserva las dos copias. La sugerida está marcada; borra las copias que no necesites, con sus actualizaciones y DLC.",
+		"Damaged": "Dañado",
+		"Not damaged": "Sin daños",
+		"Already compressed": "Ya comprimida",
+		"Delete this copy": "Borrar esta copia",
+		"Delete this copy of %v, with its updates and DLC (%v)? The other copy stays in the library.": "¿Borrar esta copia de %v, con sus actualizaciones y DLC (%v)? La otra copia se queda en la biblioteca.",
+		"This copy cannot be deleted: no other copy of the game is in the library.": "Esta copia no se puede borrar: no hay otra copia del juego en la biblioteca.",
 		"Open the wizard": "Abrir el asistente",
 		"Show the %v older changes": "Ver los %v cambios anteriores",
 		"Setup wizard": "Asistente de configuración",
@@ -298,7 +305,6 @@ var translations = map[string]map[string]string{
 		"The folder does not exist or is not an absolute path.": "La carpeta no existe o no es una ruta completa.",
 		"Choose at least one game.": "Elige al menos un juego.",
 		"The same game from several regions": "El mismo juego de varias regiones",
-		"Each region sells the game with its own title ID, so both copies are kept by the app. The suggested copy is marked; delete the other one yourself if you do not need it.": "Cada región vende el juego con su propio ID, así que la app conserva las dos copias. La copia recomendada está marcada; borra la otra tú mismo si no la necesitas.",
 		"%v could be freed": "se podrían liberar %v",
 		"%v languages": "%v idiomas",
 		"yours included": "incluido el tuyo",

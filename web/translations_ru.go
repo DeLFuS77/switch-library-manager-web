@@ -3,6 +3,13 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Each region sells the game with its own title ID, so the app keeps both copies. The suggested one is marked; delete the copies you do not need, with their updates and DLC.": "Каждый регион продаёт игру со своим Title ID, поэтому приложение хранит обе копии. Рекомендуемая отмечена; удали ненужные копии вместе с обновлениями и DLC.",
+		"Damaged": "Повреждён",
+		"Not damaged": "Без повреждений",
+		"Already compressed": "Уже сжата",
+		"Delete this copy": "Удалить эту копию",
+		"Delete this copy of %v, with its updates and DLC (%v)? The other copy stays in the library.": "Удалить эту копию %v вместе с обновлениями и DLC (%v)? Другая копия останется в библиотеке.",
+		"This copy cannot be deleted: no other copy of the game is in the library.": "Эту копию нельзя удалить: другой копии игры в библиотеке нет.",
 		"Open the wizard": "Открыть мастер",
 		"Show the %v older changes": "Показать ещё %v более ранних изменений",
 		"Setup wizard": "Мастер настройки",
@@ -468,7 +475,6 @@ func init() {
 		"Dump them from your own console. With them the files are read; without them games are recognized by their file name only.":                                                                                                                       "Извлеките их со своей консоли. С ними файлы читаются; без них игры распознаются только по имени файла.",
 		"Duplicates": "Дубликаты",
 		"Dutch":      "Нидерландский",
-		"Each region sells the game with its own title ID, so both copies are kept by the app. The suggested copy is marked; delete the other one yourself if you do not need it.": "Каждый регион продаёт игру со своим Title ID, поэтому приложение сохраняет обе копии. Рекомендуемая копия отмечена; удалите другую сами, если она вам не нужна.",
 		"Edit":      "Изменить",
 		"Education": "Обучение",
 		"English":   "Английский",

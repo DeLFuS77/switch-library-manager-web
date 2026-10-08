@@ -2049,6 +2049,28 @@ function initWizard() {
 	}
 }
 
+// Space: a copy of a game from another region is deleted, with its updates and DLC, after a
+// confirmation; the page shows the library again once it is rescanned.
+function initRegionRemove() {
+	document.querySelectorAll('[data-region-remove]').forEach(button => {
+		button.addEventListener('click', () => {
+			if (!window.confirm(button.dataset.confirmText)) {
+				return;
+			}
+			button.disabled = true;
+			postForm('/space/regions/remove', { id: button.dataset.regionRemove })
+				.then(() => {
+					button.closest('.item-row').classList.add('is-removed');
+					setTimeout(() => window.location.reload(), 1200);
+				})
+				.catch(error => {
+					button.disabled = false;
+					insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+				});
+		});
+	});
+}
+
 // cards tilt slightly towards the pointer
 function initCardTilt() {
 	if (reducedMotion() || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
@@ -2355,6 +2377,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initYearReview();
 	initAutomationSettings();
 	initWizard();
+	initRegionRemove();
 
 	// forms that delete something ask first
 	document.querySelectorAll('form[data-confirm]').forEach(form => {

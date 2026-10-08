@@ -296,6 +296,8 @@ func (web *Web) HandleSpace() {
 		web.render(w, r, templates, data)
 	}).Methods("GET")
 
+	web.handleRegionRemove()
+
 	web.router.HandleFunc("/space/clean", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
 		if err := r.ParseForm(); err != nil {
