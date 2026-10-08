@@ -244,6 +244,8 @@ type GlobalPageData struct {
 	Counts              NavCounts
 	// some games have their time to beat (IGDB): the library can be sorted by it
 	TimesToBeat         bool
+	// the setup wizard opens by itself (first use), for an administrator
+	WizardAuto          bool
 }
 
 // NavCounts are shown next to the navigation links, so pending work is visible everywhere.
@@ -439,6 +441,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 		Counts: web.navCounts(),
 		Update: web.availableUpdate(),
 		TimesToBeat: web.timesToBeat().hasKnown(),
+		WizardAuto: web.wizardAuto(),
 	}
 }
 
@@ -569,6 +572,7 @@ func (web *Web) Start() {
 	web.HandleUpcoming()
 	web.HandleQuickSearch()
 	web.HandleYear()
+	web.HandleWizard()
 	web.HandleAutoBackups()
 	web.HandleDiagnostics()
 	web.HandleCovers()

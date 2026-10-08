@@ -143,6 +143,9 @@ type AppSettings struct {
 	AutoCompressKeep bool `json:"auto_compress_keep"`
 	// ask GitHub once a day whether a newer version of the app was released
 	CheckForUpdates bool `json:"check_for_updates"`
+	// the setup wizard was finished or turned off, or put off until then
+	WizardDone  bool      `json:"wizard_done,omitempty"`
+	WizardLater time.Time `json:"wizard_later,omitempty"`
 	// what happens by itself when new files appear (all off by default)
 	Automation AutomationOptions `json:"automation"`
 	// the Twitch application of the user, for the times to beat of IGDB (optional)

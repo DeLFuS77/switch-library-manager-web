@@ -1,6 +1,7 @@
 {{define "title"}}{{t "Settings"}}{{end}}
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Settings") "Count" -1 "Subtitle" (t "Changes are applied when you save. Changing the folders or the keys rescans the library."))}}
+			<button type="button" class="year-teaser wizard-teaser mb-3 w-100 border-0 text-start" data-wizard-open><span class="bi bi-signpost-split" aria-hidden="true"></span><span class="flex-grow-1"><strong>{{t "Setup wizard"}}</strong> <span class="text-body-secondary">{{t "Go through every setting step by step, seeing how each one is set now."}}</span></span><span class="bi bi-chevron-right" aria-hidden="true"></span></button>
 			<div class="row g-4">
 				{{- template "settingsNav" ""}}
 				<div class="col-lg-9">

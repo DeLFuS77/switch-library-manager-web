@@ -18,7 +18,7 @@
 	<link rel="shortcut icon" href="/resources/static/favicon.ico">
 	<meta name="theme-color" content="#0d1117">
 </head>
-<body class="d-flex flex-column min-vh-100" data-role="{{if .Auth.IsAdmin}}admin{{else}}viewer{{end}}">
+<body class="d-flex flex-column min-vh-100" data-role="{{if .Auth.IsAdmin}}admin{{else}}viewer{{end}}" data-wizard-auto="{{and .Auth.IsAdmin .WizardAuto}}">
 	<a class="skip-link btn btn-primary" href="#main">{{t "Skip to content"}}</a>
 	<header class="app-header sticky-top">
 		<nav class="navbar navbar-expand-xxl" aria-label="{{t "Main navigation"}}">
