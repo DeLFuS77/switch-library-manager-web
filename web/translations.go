@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Open the wizard": "Abrir el asistente",
 		"Show the %v older changes": "Ver los %v cambios anteriores",
 		"Setup wizard": "Asistente de configuración",
 		"Welcome": "Bienvenida",
