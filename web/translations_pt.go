@@ -3,6 +3,13 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Each region sells the game with its own title ID, so the app keeps both copies. The suggested one is marked; delete the copies you do not need, with their updates and DLC.": "Cada região vende o jogo com o seu próprio Title ID, por isso a aplicação mantém as duas cópias. A sugerida está marcada; apaga as cópias de que não precisas, com as atualizações e DLC.",
+		"Damaged": "Danificado",
+		"Not damaged": "Sem danos",
+		"Already compressed": "Já comprimida",
+		"Delete this copy": "Apagar esta cópia",
+		"Delete this copy of %v, with its updates and DLC (%v)? The other copy stays in the library.": "Apagar esta cópia de %v, com as atualizações e DLC (%v)? A outra cópia fica na biblioteca.",
+		"This copy cannot be deleted: no other copy of the game is in the library.": "Esta cópia não pode ser apagada: não há outra cópia do jogo na biblioteca.",
 		"Open the wizard": "Abrir o assistente",
 		"Show the %v older changes": "Ver as %v alterações anteriores",
 		"Setup wizard": "Assistente de configuração",
@@ -296,7 +303,6 @@ func init() {
 		"The folder does not exist or is not an absolute path.": "A pasta não existe ou não é um caminho completo.",
 		"Choose at least one game.": "Escolha pelo menos um jogo.",
 		"The same game from several regions": "O mesmo jogo de várias regiões",
-		"Each region sells the game with its own title ID, so both copies are kept by the app. The suggested copy is marked; delete the other one yourself if you do not need it.": "Cada região vende o jogo com seu próprio ID, então o app mantém as duas cópias. A cópia recomendada está marcada; exclua a outra você mesmo se não precisar dela.",
 		"%v could be freed": "%v poderiam ser liberados",
 		"%v languages": "%v idiomas",
 		"yours included": "o seu incluído",

@@ -4538,3 +4538,10 @@ body:has(.wizard.show) #alert_sync {
 @keyframes wz-pop { from { opacity: 0; transform: scale(.3); } }
 @keyframes wz-rise { from { opacity: 0; transform: translateY(18px); } }
 @keyframes wz-confetti { from { opacity: 0; transform: translateY(-30px) rotate(-90deg); } }
+
+// Space: a copy of another region that was just deleted
+.item-row.is-removed {
+	opacity: .35;
+	text-decoration: line-through;
+	transition: opacity .3s ease;
+}

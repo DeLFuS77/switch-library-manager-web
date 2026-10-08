@@ -3,6 +3,13 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Each region sells the game with its own title ID, so the app keeps both copies. The suggested one is marked; delete the copies you do not need, with their updates and DLC.": "每个地区以各自的 Title ID 销售游戏，因此应用会保留两个副本。推荐的副本已标出；删除不需要的副本及其更新和 DLC。",
+		"Damaged": "已损坏",
+		"Not damaged": "未损坏",
+		"Already compressed": "已压缩",
+		"Delete this copy": "删除此副本",
+		"Delete this copy of %v, with its updates and DLC (%v)? The other copy stays in the library.": "删除 %v 的此副本及其更新和 DLC（%v）？另一个副本会保留在游戏库中。",
+		"This copy cannot be deleted: no other copy of the game is in the library.": "无法删除此副本：游戏库中没有该游戏的其他副本。",
 		"Open the wizard": "打开向导",
 		"Show the %v older changes": "显示较早的 %v 项变更",
 		"Setup wizard": "设置向导",
@@ -468,7 +475,6 @@ func init() {
 		"Dump them from your own console. With them the files are read; without them games are recognized by their file name only.":                                                                                                                       "请从你自己的主机中导出。有了密钥就能读取文件内容；没有密钥时只能根据文件名识别游戏。",
 		"Duplicates": "重复文件",
 		"Dutch":      "荷兰语",
-		"Each region sells the game with its own title ID, so both copies are kept by the app. The suggested copy is marked; delete the other one yourself if you do not need it.": "每个地区销售的游戏都有各自的 Title ID，因此应用会保留两个副本。建议保留的副本已标记；如果不需要另一个，请自行删除。",
 		"Edit":      "编辑",
 		"Education": "教育",
 		"English":   "英语",

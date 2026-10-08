@@ -3,6 +3,13 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Each region sells the game with its own title ID, so the app keeps both copies. The suggested one is marked; delete the copies you do not need, with their updates and DLC.": "Elke regio verkoopt de game met een eigen Title ID, dus de app houdt beide kopieën. De voorgestelde is gemarkeerd; verwijder de kopieën die je niet nodig hebt, met hun updates en DLC.",
+		"Damaged": "Beschadigd",
+		"Not damaged": "Niet beschadigd",
+		"Already compressed": "Al gecomprimeerd",
+		"Delete this copy": "Deze kopie verwijderen",
+		"Delete this copy of %v, with its updates and DLC (%v)? The other copy stays in the library.": "Deze kopie van %v met updates en DLC (%v) verwijderen? De andere kopie blijft in de bibliotheek.",
+		"This copy cannot be deleted: no other copy of the game is in the library.": "Deze kopie kan niet worden verwijderd: er staat geen andere kopie van de game in de bibliotheek.",
 		"Open the wizard": "Wizard openen",
 		"Show the %v older changes": "De %v oudere wijzigingen tonen",
 		"Setup wizard": "Installatiewizard",
@@ -468,7 +475,6 @@ func init() {
 		"Dump them from your own console. With them the files are read; without them games are recognized by their file name only.":                                                                                                                       "Dump ze van je eigen console. Met de keys worden de bestanden gelezen; zonder worden games alleen aan hun bestandsnaam herkend.",
 		"Duplicates": "Duplicaten",
 		"Dutch":      "Nederlands",
-		"Each region sells the game with its own title ID, so both copies are kept by the app. The suggested copy is marked; delete the other one yourself if you do not need it.": "Elke regio verkoopt de game met een eigen title ID, dus de app bewaart beide kopieën. De voorgestelde kopie is gemarkeerd; verwijder de andere zelf als je die niet nodig hebt.",
 		"Edit":      "Bewerken",
 		"Education": "Educatie",
 		"English":   "Engels",

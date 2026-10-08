@@ -83,7 +83,7 @@
 			{{- with .Regions}}
 			<section class="mt-4" aria-labelledby="regionsTitle">
 				<h2 class="section-title" id="regionsTitle"><span class="bi bi-globe2" aria-hidden="true"></span>{{t "The same game from several regions"}} <span class="badge rounded-pill text-bg-secondary">{{len .}}</span></h2>
-				<p class="text-body-secondary small">{{t "Each region sells the game with its own title ID, so both copies are kept by the app. The suggested copy is marked; delete the other one yourself if you do not need it."}}</p>
+				<p class="text-body-secondary small">{{t "Each region sells the game with its own title ID, so the app keeps both copies. The suggested one is marked; delete the copies you do not need, with their updates and DLC."}}</p>
 				{{- range .}}
 				<article class="surface mb-3 region-group">
 					<div class="d-flex justify-content-between align-items-baseline gap-2 mb-2">
@@ -103,7 +103,9 @@
 									<span>{{formatSize .Size}}</span>
 								</div>
 							</div>
-							{{- if .Keep}}<span class="chip chip-success flex-shrink-0" title="{{range $i, $r := .Reasons}}{{if $i}}, {{end}}{{t $r}}{{end}}"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Suggested to keep"}}{{with .Reasons}}: {{range $i, $r := .}}{{if $i}}, {{end}}{{t $r}}{{end}}{{end}}</span>{{end}}
+							{{- if .Damaged}}<span class="chip chip-danger flex-shrink-0"><span class="bi bi-exclamation-octagon" aria-hidden="true"></span>{{t "Damaged"}}</span>{{end}}
+							{{- if .Keep}}<span class="chip chip-success flex-shrink-0" title="{{range $i, $r := .Reasons}}{{if $i}}, {{end}}{{t $r}}{{end}}"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Suggested to keep"}}{{with .Reasons}}: {{range $i, $r := .}}{{if $i}}, {{end}}{{t $r}}{{end}}{{end}}</span>
+							{{- else}}<button type="button" class="btn btn-sm btn-outline-danger rounded-pill flex-shrink-0 admin-only" data-region-remove="{{.Id}}" data-confirm-text="{{t "Delete this copy of %v, with its updates and DLC (%v)? The other copy stays in the library." .Name (formatSize .Size)}}"><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{t "Delete this copy"}}</button>{{end}}
 						</li>
 						{{- end}}
 					</ul>

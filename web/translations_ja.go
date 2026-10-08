@@ -3,6 +3,13 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Each region sells the game with its own title ID, so the app keeps both copies. The suggested one is marked; delete the copies you do not need, with their updates and DLC.": "地域ごとにゲームは別の Title ID で販売されるため、アプリは両方のコピーを保持します。おすすめのコピーに印が付いています。不要なコピーはアップデートや DLC ごと削除してください。",
+		"Damaged": "破損",
+		"Not damaged": "破損なし",
+		"Already compressed": "圧縮済み",
+		"Delete this copy": "このコピーを削除",
+		"Delete this copy of %v, with its updates and DLC (%v)? The other copy stays in the library.": "%v のこのコピーをアップデートと DLC ごと削除しますか（%v）？もう一方のコピーはライブラリに残ります。",
+		"This copy cannot be deleted: no other copy of the game is in the library.": "このコピーは削除できません。ライブラリにこのゲームの別のコピーがありません。",
 		"Open the wizard": "ウィザードを開く",
 		"Show the %v older changes": "以前の %v 件の変更を表示",
 		"Setup wizard": "セットアップウィザード",
@@ -468,7 +475,6 @@ func init() {
 		"Dump them from your own console. With them the files are read; without them games are recognized by their file name only.":                                                                                                                       "ご自身の本体から吸い出してください。キーがあればファイルの中身を読み取れます。ない場合、ゲームはファイル名だけで認識されます。",
 		"Duplicates": "重複",
 		"Dutch":      "オランダ語",
-		"Each region sells the game with its own title ID, so both copies are kept by the app. The suggested copy is marked; delete the other one yourself if you do not need it.": "地域ごとに異なるタイトルIDで販売されているため、アプリは両方を残します。おすすめのほうに印が付いています。不要であれば、もう一方はご自身で削除してください。",
 		"Edit":      "編集",
 		"Education": "教育",
 		"English":   "英語",

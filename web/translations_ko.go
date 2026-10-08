@@ -3,6 +3,13 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Each region sells the game with its own title ID, so the app keeps both copies. The suggested one is marked; delete the copies you do not need, with their updates and DLC.": "지역마다 게임이 다른 Title ID로 판매되므로 앱은 두 사본을 모두 유지합니다. 추천 사본이 표시되어 있으니, 필요 없는 사본은 업데이트와 DLC와 함께 삭제하세요.",
+		"Damaged": "손상됨",
+		"Not damaged": "손상 없음",
+		"Already compressed": "이미 압축됨",
+		"Delete this copy": "이 사본 삭제",
+		"Delete this copy of %v, with its updates and DLC (%v)? The other copy stays in the library.": "%v의 이 사본을 업데이트와 DLC와 함께 삭제할까요(%v)? 다른 사본은 라이브러리에 남습니다.",
+		"This copy cannot be deleted: no other copy of the game is in the library.": "이 사본은 삭제할 수 없습니다. 라이브러리에 이 게임의 다른 사본이 없습니다.",
 		"Open the wizard": "마법사 열기",
 		"Show the %v older changes": "이전 변경 %v개 보기",
 		"Setup wizard": "설정 마법사",
@@ -468,7 +475,6 @@ func init() {
 		"Dump them from your own console. With them the files are read; without them games are recognized by their file name only.":                                                                                                                       "본인 콘솔에서 덤프하세요. 키가 있으면 파일 내용을 읽고, 없으면 파일 이름으로만 게임을 인식해요.",
 		"Duplicates": "중복",
 		"Dutch":      "네덜란드어",
-		"Each region sells the game with its own title ID, so both copies are kept by the app. The suggested copy is marked; delete the other one yourself if you do not need it.": "지역마다 다른 타이틀 ID로 게임을 판매하기 때문에 앱은 두 사본을 모두 남겨요. 추천 사본이 표시되어 있으니 필요 없으면 다른 사본을 직접 삭제하세요.",
 		"Edit":      "편집",
 		"Education": "교육",
 		"English":   "영어",
