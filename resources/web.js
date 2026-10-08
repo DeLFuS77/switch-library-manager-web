@@ -791,6 +791,66 @@ document.addEventListener('error', e => {
 
 // the Tasks page follows the tasks live: the server sends an event after every change
 // and the list is rendered again by the server
+// The Tasks link of the menu turns while a task runs and shows the failed ones. The page draws
+// it once, so it follows the tasks live: on the Tasks page with its list, elsewhere only while
+// a task runs, until the last one ends (also when it is cancelled).
+function taskLinks() {
+	return [...document.querySelectorAll('.app-nav a.nav-link[href="/tasks.html"]')];
+}
+
+function updateTaskIndicator() {
+	if (taskLinks().length === 0) {
+		return Promise.resolve(0);
+	}
+	return fetch('/api/tasks', { cache: 'no-store', headers: { Accept: 'application/json' } })
+		.then(response => (response.ok ? response.json() : Promise.reject(response)))
+		.then(tasks => {
+			const running = tasks.filter(task => task.status === 'running').length;
+			const failed = tasks.filter(task => task.status === 'failed').length;
+			taskLinks().forEach(link => {
+				const icon = link.querySelector('.bi');
+				if (icon) {
+					icon.classList.toggle('bi-arrow-repeat', running > 0);
+					icon.classList.toggle('nav-busy', running > 0);
+					icon.classList.toggle('bi-list-task', running === 0);
+				}
+				let badge = link.querySelector('.nav-count');
+				if (failed > 0) {
+					if (!badge) {
+						badge = document.createElement('span');
+						badge.className = 'badge rounded-pill nav-count text-bg-danger ms-auto ms-xxl-0';
+						link.appendChild(badge);
+					}
+					badge.textContent = String(failed);
+				} else if (badge) {
+					badge.remove();
+				}
+			});
+			return running;
+		})
+		.catch(() => -1);
+}
+
+function initTaskIndicator() {
+	// the Tasks page updates it with its list (initLiveTasks)
+	if (document.querySelector('[data-live-tasks]') || !window.EventSource) {
+		return;
+	}
+	const busy = taskLinks().some(link => link.querySelector('.nav-busy'));
+	if (!busy) {
+		return;
+	}
+	const source = new EventSource('/api/tasks/events');
+	source.addEventListener('tasks', () => {
+		updateTaskIndicator().then(running => {
+			if (running === 0) {
+				source.close();
+			}
+		});
+	});
+	window.addEventListener('pagehide', () => source.close());
+}
+
 function initLiveTasks() {
 	const list = document.querySelector('[data-live-tasks]');
 	if (!list) {
@@ -818,6 +878,7 @@ function initLiveTasks() {
 					}
 				});
 				list.innerHTML = html;
+				updateTaskIndicator();
 				list.querySelectorAll('[data-task-id]').forEach(card => {
 					const bar = card.querySelector('.progress-bar');
 					const before = widths[card.dataset.taskId];
@@ -1739,6 +1800,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initSettingsSections();
 	initCoverTransition();
 	initQuickSearch();
+	initTaskIndicator();
 
 	// forms that delete something ask first
 	document.querySelectorAll('form[data-confirm]').forEach(form => {
