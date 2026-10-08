@@ -6,6 +6,9 @@
 			{{- template "emptyState" (dict "Icon" "bi-bar-chart" "Tone" "" "Title" (t "No statistics yet") "Text" (t "Add your games folders in Settings to see the statistics of your library.") "ActionHref" "/settings.html#library" "ActionLabel" (t "Open Settings") "ActionIcon" "bi-gear")}}
 			{{- else}}
 			<a class="year-teaser mb-3" href="/year.html"><span class="bi bi-stars" aria-hidden="true"></span><span class="flex-grow-1"><strong>{{t "Your year on Switch"}}</strong> <span class="text-body-secondary">{{t "What came to your library this year, ready to share."}}</span></span><span class="bi bi-chevron-right" aria-hidden="true"></span></a>
+			{{- if gt $s.TimeToBeatGames 0}}
+			<a class="year-teaser time-teaser mb-3" href="/index.html?sort_by=duration&amp;sort_order=asc"><span class="bi bi-hourglass-split" aria-hidden="true"></span><span class="flex-grow-1"><strong>{{t "%v to beat your games" (hours $s.TimeToBeat)}}</strong> <span class="text-body-secondary">{{t "Story of the %v games with times from IGDB. See the shortest first." $s.TimeToBeatGames}}</span></span><span class="bi bi-chevron-right" aria-hidden="true"></span></a>
+			{{- end}}
 			<div class="row row-cols-2 row-cols-lg-4 g-2 g-md-3 mb-4">
 				{{- template "statCard" (dict "Label" (t "Games") "Value" $s.Games "Icon" "bi-controller" "Tone" "" "Count" true)}}
 				{{- template "statCard" (dict "Label" (t "Updates") "Value" $s.Updates "Icon" "bi-arrow-up-circle" "Tone" "is-cyan" "Count" true)}}

@@ -14,6 +14,7 @@ func (web *Web) afterScan() {
 		// first: the lists show the dates the games were added
 		web.recordHistory()
 		web.warmPages()
+		web.lookupTimesToBeat(TRIGGER_SCAN)
 	}()
 }
 

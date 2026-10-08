@@ -3,6 +3,23 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"%v of %v games with times": "%v / %v 本にクリア時間あり",
+		"%v players": "%v 人のプレイヤー",
+		"%v to beat your games": "ゲームをクリアするまで %v",
+		"100%": "100%",
+		"Client ID": "Client ID",
+		"Client Secret": "Client Secret",
+		"Data from IGDB": "IGDB のデータ",
+		"How to get them": "取得方法",
+		"Never shown again once saved. Empty the Client ID to remove both.": "保存後は表示されません。両方を削除するには Client ID を空にしてください。",
+		"Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret.": "任意。IGDB のデータで各ゲームのクリア時間を表示します（個人利用は無料）。dev.twitch.tv/console でアプリケーションを作成し（二段階認証を有効にした Twitch アカウント、クライアントタイプ Confidential、リダイレクト URL http://localhost）、Client ID と Secret を貼り付けてください。",
+		"Quick": "サクッと",
+		"Saved. Leave it empty to keep it.": "保存済み。空のままにすると保持されます。",
+		"Story": "ストーリー",
+		"Story of the %v games with times from IGDB. See the shortest first.": "IGDB にクリア時間がある %v 本のストーリー。短い順に見る。",
+		"Time to beat": "クリア時間",
+		"Times to beat (IGDB)": "クリア時間（IGDB）",
+		"Twitch refused the IGDB Client ID or Secret. Check them in Settings.": "Twitch が IGDB の Client ID または Secret を拒否しました。設定を確認してください。",
 		"Version history": "バージョン履歴",
 		"Show the %v older versions": "以前の %v バージョンを表示",
 		"The titles database only has the date of each update. The button searches the web for its notes.": "タイトルデータベースには各アップデートの日付しかありません。ボタンを押すとウェブで内容を検索します。",

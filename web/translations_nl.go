@@ -3,6 +3,23 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"%v of %v games with times": "%v van %v games met speeltijden",
+		"%v players": "%v spelers",
+		"%v to beat your games": "%v om je games uit te spelen",
+		"100%": "100%",
+		"Client ID": "Client ID",
+		"Client Secret": "Client Secret",
+		"Data from IGDB": "Gegevens van IGDB",
+		"How to get them": "Zo krijg je ze",
+		"Never shown again once saved. Empty the Client ID to remove both.": "Wordt na het opslaan nooit meer getoond. Maak de Client ID leeg om beide te verwijderen.",
+		"Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret.": "Optioneel. Toont hoe lang het duurt om elke game uit te spelen, met gegevens van IGDB, gratis voor persoonlijk gebruik. Maak een applicatie op dev.twitch.tv/console (Twitch-account met tweestapsverificatie, clienttype Confidential, redirect-URL http://localhost) en plak de Client ID en het Secret.",
+		"Quick": "Snel",
+		"Saved. Leave it empty to keep it.": "Opgeslagen. Laat leeg om te behouden.",
+		"Story": "Verhaal",
+		"Story of the %v games with times from IGDB. See the shortest first.": "Verhaal van de %v games met speeltijden van IGDB. Bekijk de kortste eerst.",
+		"Time to beat": "Speeltijd",
+		"Times to beat (IGDB)": "Speeltijden (IGDB)",
+		"Twitch refused the IGDB Client ID or Secret. Check them in Settings.": "Twitch weigerde de Client ID of het Secret van IGDB. Controleer ze in de instellingen.",
 		"Version history": "Versiegeschiedenis",
 		"Show the %v older versions": "De %v oudere versies tonen",
 		"The titles database only has the date of each update. The button searches the web for its notes.": "De titeldatabase kent alleen de datum van elke update. De knop zoekt de notities op het web.",

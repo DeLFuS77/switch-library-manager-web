@@ -3,6 +3,23 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"%v of %v games with times": "%v de %v jogos com tempos",
+		"%v players": "%v jogadores",
+		"%v to beat your games": "%v para terminar os teus jogos",
+		"100%": "100%",
+		"Client ID": "Client ID",
+		"Client Secret": "Client Secret",
+		"Data from IGDB": "Dados do IGDB",
+		"How to get them": "Como obtê-los",
+		"Never shown again once saved. Empty the Client ID to remove both.": "Não volta a ser mostrado depois de guardado. Esvazia o Client ID para remover ambos.",
+		"Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret.": "Opcional. Mostra quanto tempo leva a terminar cada jogo, com dados do IGDB, grátis para uso pessoal. Cria uma aplicação em dev.twitch.tv/console (conta Twitch com verificação em dois passos, tipo de cliente Confidential, URL de redirecionamento http://localhost) e cola o Client ID e o Secret.",
+		"Quick": "Rápido",
+		"Saved. Leave it empty to keep it.": "Guardado. Deixa vazio para o manter.",
+		"Story": "História",
+		"Story of the %v games with times from IGDB. See the shortest first.": "História dos %v jogos com tempos do IGDB. Ver primeiro os mais curtos.",
+		"Time to beat": "Tempo para terminar",
+		"Times to beat (IGDB)": "Tempos para terminar (IGDB)",
+		"Twitch refused the IGDB Client ID or Secret. Check them in Settings.": "A Twitch recusou o Client ID ou o Secret do IGDB. Verifica-os nas definições.",
 		"Version history": "Histórico de versões",
 		"Show the %v older versions": "Ver as %v versões anteriores",
 		"The titles database only has the date of each update. The button searches the web for its notes.": "A base de dados de títulos só tem a data de cada atualização. O botão procura as notas na web.",

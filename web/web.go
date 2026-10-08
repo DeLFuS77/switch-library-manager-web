@@ -119,6 +119,10 @@ type Web struct {
 	activityOnce   sync.Once
 	hist            *libraryHistory
 	historyOnce     sync.Once
+	// how long the games take to beat, from IGDB (see igdb.go)
+	timeToBeat        *timeToBeatStore
+	timeToBeatOnce    sync.Once
+	timeToBeatRunning atomic.Bool
 	coll            *collectionStore
 	collectionsOnce sync.Once
 	fav             *favoriteStore
@@ -189,6 +193,8 @@ type TitleItem struct {
 	Wished bool
 	// the game is a demo (library)
 	Demo bool
+	// library: how long the game takes to beat, in seconds (IGDB); 0 when not known
+	TimeToBeat int
 	// library: the size of the game with its updates and DLC, and when it was found in the folders
 	Size  int64
 	Added time.Time
@@ -233,6 +239,8 @@ type GlobalPageData struct {
 	SlmVersion          string
 	Version             string
 	Counts              NavCounts
+	// some games have their time to beat (IGDB): the library can be sorted by it
+	TimesToBeat         bool
 }
 
 // NavCounts are shown next to the navigation links, so pending work is visible everywhere.
@@ -339,6 +347,7 @@ var funcMap = template.FuncMap {
 		return template.URL("?" + filter.query(replace...).Encode())
 	},
 	"formatSize": formatSize,
+	"hours":      hoursText,
 	"thumb":      thumbUrl,
 	"asset":      func(path string) string { return path + "?v=" + assetVersion },
 	"mod": func(a, b int) int {
@@ -426,6 +435,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 		Version: settings.SLM_WEB_VERSION,
 		Counts: web.navCounts(),
 		Update: web.availableUpdate(),
+		TimesToBeat: web.timesToBeat().hasKnown(),
 	}
 }
 

@@ -46,6 +46,9 @@ type Statistics struct {
 	ByGenre     []NamedCount
 	ByPublisher []NamedCount
 	ByYear      []NamedCount
+	// how long the games with a time to beat (IGDB) take, in seconds, and how many they are
+	TimeToBeat      int
+	TimeToBeatGames int
 	// the highest count of each list, for the bars
 	MaxGenre     int
 	MaxPublisher int
@@ -184,6 +187,10 @@ func (web *Web) buildStatistics(lang string) Statistics {
 		for _, item := range library {
 			if item.UpdateAvailable && !(hideDemos && item.Demo) {
 				stats.GamesWithUpdate++
+			}
+			if item.TimeToBeat > 0 {
+				stats.TimeToBeat += item.TimeToBeat
+				stats.TimeToBeatGames++
 			}
 		}
 		stats.GamesUpToDate = stats.Games - stats.GamesWithUpdate

@@ -26,6 +26,9 @@
 					{{- if eq .Page "index"}}
 					<option value="size"{{if eq .Filter.SortBy "size"}} selected{{end}}>{{t "Size"}}</option>
 					<option value="added"{{if eq .Filter.SortBy "added"}} selected{{end}}>{{t "Date added"}}</option>
+					{{- if or .TimesToBeat (eq .Filter.SortBy "duration")}}
+					<option value="duration"{{if eq .Filter.SortBy "duration"}} selected{{end}}>{{t "Time to beat"}}</option>
+					{{- end}}
 					{{- end}}
 					<option value="id"{{if eq .Filter.SortBy "id"}} selected{{end}}>{{t "ID"}}</option>
 				</select>

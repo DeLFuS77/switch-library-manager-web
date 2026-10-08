@@ -3,6 +3,23 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"%v of %v games with times": "%v jeux sur %v avec durées",
+		"%v players": "%v joueurs",
+		"%v to beat your games": "%v pour finir tes jeux",
+		"100%": "100 %",
+		"Client ID": "Client ID",
+		"Client Secret": "Client Secret",
+		"Data from IGDB": "Données d'IGDB",
+		"How to get them": "Comment les obtenir",
+		"Never shown again once saved. Empty the Client ID to remove both.": "N'est plus jamais affiché une fois enregistré. Vide le Client ID pour supprimer les deux.",
+		"Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret.": "Facultatif. Indique le temps nécessaire pour finir chaque jeu, avec les données d'IGDB, gratuites pour un usage personnel. Crée une application sur dev.twitch.tv/console (compte Twitch avec validation en deux étapes, type de client Confidential, URL de redirection http://localhost) et colle son Client ID et son Secret.",
+		"Quick": "Rapide",
+		"Saved. Leave it empty to keep it.": "Enregistré. Laisse vide pour le garder.",
+		"Story": "Histoire",
+		"Story of the %v games with times from IGDB. See the shortest first.": "Histoire des %v jeux avec durées d'IGDB. Voir les plus courts d'abord.",
+		"Time to beat": "Durée de jeu",
+		"Times to beat (IGDB)": "Durées de jeu (IGDB)",
+		"Twitch refused the IGDB Client ID or Secret. Check them in Settings.": "Twitch a refusé le Client ID ou le Secret d'IGDB. Vérifie-les dans les paramètres.",
 		"Version history": "Historique des versions",
 		"Show the %v older versions": "Voir les %v versions précédentes",
 		"The titles database only has the date of each update. The button searches the web for its notes.": "La base de données des titres ne connaît que la date de chaque mise à jour. Le bouton cherche ses notes sur le web.",
