@@ -60,7 +60,7 @@ Linux, Docker, NAS and Raspberry Pi.
 - [Your keys](#your-keys)
 - [First start](#first-start)
 - [Guides](#guides): [Organize](#organize), [Compress](#compress), [Users](#users-and-password-protection),
-  [Times to beat](#times-to-beat), [Notifications](#notifications), [API](#api), [Settings](#settings)
+  [Times to beat](#times-to-beat), [Save vault](#save-vault-jksv), [Notifications](#notifications), [API](#api), [Settings](#settings)
 - [Updating](#updating)
 - [Demo mode](#demo-mode)
 - [Troubleshooting](#troubleshooting)
@@ -89,6 +89,11 @@ Linux, Docker, NAS and Raspberry Pi.
 - **Times to beat** (optional, from [IGDB](https://www.igdb.com)): how long each game takes, quick, story and 100%,
   and how many hours your library adds up to
 
+**Save vault**
+- Keep the backups of your saves on your server: **JKSV** on the console uploads them over WebDAV, a ZIP per backup,
+  matched to the games of your library, with their history, downloads, a limit of backups per game and a message for
+  every new one. Off until you turn it on
+
 **Statistics**
 - Charts of your library: space by content and format, genres, publishers, years, the largest games and its history
 - **Your year on Switch**: what came to your library in a year (games, updates, DLC, the busiest month, your
@@ -108,6 +113,8 @@ Linux, Docker, NAS and Raspberry Pi.
   convert XCI to NSP
 - Every file is verified before the original is deleted; NSZ files can be decompressed back to NSP
 - Space page: see how much old updates, duplicates and already compressed originals take, and free it safely
+- The same game from several regions (each with its own title ID): the copy to keep is suggested (your language,
+  more languages, newer update, more DLC, not damaged, already compressed) and the others are deleted in one click
 
 **Built to run on a server, or on your computer**
 - A setup wizard on the first start, and again from Settings whenever you want
@@ -348,6 +355,22 @@ for non-commercial use, through your own Twitch application:
 After the next scan, the games are looked up in the background, a few a second as IGDB asks, and the times are kept
 in `timetobeat.json` in the data folder, so each game is looked up once (again after some months). The secret stays
 on the server and is never shown again. Games that nobody reported on IGDB have no time.
+
+### Save vault (JKSV)
+
+The save vault keeps the backups of your saves on the server, so a broken SD card or console does not take them. It is
+off until you turn it on in **Settings > Save vault**:
+
+1. Turn it on, choose a user and a password for JKSV (not those of the web interface) and save.
+2. Write the address of the server as the console sees it (like `http://192.168.1.10:3000`) and download
+   **webdav.json**. Copy it to the SD card of the console as `sdmc:/config/JKSV/webdav.json`.
+3. Open [JKSV](https://github.com/J-D-K/JKSV) on the console: it says WebDAV is ready. Make a backup of a save and
+   choose to upload it.
+
+The backups appear on the **Save backups** page and on the page of each game, matched by the title ID JKSV writes in
+each ZIP. They are kept in the `saves` folder of the data folder (include it in the backups of your server). WebDAV
+answers at `/dav/` on the same port, with its own password and the same protection against guessing as the login;
+from outside your home use it through a VPN. **Backups kept per game** deletes the oldest ones automatically.
 
 ### Notifications
 

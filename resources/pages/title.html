@@ -204,6 +204,26 @@
 				<p class="small text-body-secondary mt-2 mb-0">{{t "The titles database only has the date of each update. The button searches the web for its notes."}}</p>
 			</section>
 			{{- end}}
+			{{- if $t.Saves}}
+			<section class="mb-4 admin-only">
+				<div class="section-head">
+					<h2 class="section-title mb-0"><span class="bi bi-safe" aria-hidden="true"></span>{{t "Save backups"}} <span class="badge rounded-pill text-bg-secondary">{{len $t.Saves}}</span></h2>
+					<a class="small" href="/saves.html">{{t "All the backups"}}</a>
+				</div>
+				<ul class="item-list">
+					{{- range $i, $b := $t.Saves}}{{if lt $i 5}}
+					<li class="item-row">
+						<span class="chip {{if eq $i 0}}chip-success{{else}}chip-muted{{end}} item-type">{{if eq $i 0}}{{t "Latest"}}{{else}}#{{add $i 1}}{{end}}</span>
+						<div class="item-main">
+							<div class="item-name">{{formatDateTime $b.Time}}</div>
+							<div class="item-meta"><span>{{formatSize $b.Size}}</span></div>
+						</div>
+						<a class="btn btn-sm btn-outline-secondary" href="/saves/download?path={{$b.Path}}" title="{{t "Download"}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download"}}</span></a>
+					</li>
+					{{- end}}{{end}}
+				</ul>
+			</section>
+			{{- end}}
 			{{- if $t.Dlc}}
 			<section class="mb-4">
 				<div class="section-head">

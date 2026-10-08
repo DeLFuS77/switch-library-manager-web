@@ -78,6 +78,8 @@ type TitleDetail struct {
 	Versions []TitleVersion
 	// how long the game takes to beat, from IGDB
 	TimeToBeat TimeToBeat
+	// the backups of its save in the vault, the newest first
+	Saves []SaveBackup
 
 	LocalUpdate      int
 	LatestUpdate     int
@@ -210,6 +212,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 	detail.Name = titleName(switchDB, lang, detail.Id, getLocalTitleName(title, local))
 	detail.Wished = web.wishes().has(detail.Id)
 	detail.TimeToBeat, _ = web.timesToBeat().get(detail.Id)
+	detail.Saves = web.titleSaves(detail.Id, lang)
 	if localized, ok := switchDB.LocalizedTitle(lang, detail.Id); ok && localized.Description != "" {
 		detail.Description = localized.Description
 	}

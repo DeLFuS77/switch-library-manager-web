@@ -95,6 +95,18 @@ type NotificationOptions struct {
 	NotifyNewGames bool `json:"notify_new_games"`
 }
 
+// VaultOptions are the save vault: JKSV uploads the backups of the saves over WebDAV, with this
+// user and password (the hash only is kept). Off by default.
+type VaultOptions struct {
+	Enabled      bool   `json:"enabled"`
+	User         string `json:"user,omitempty"`
+	PasswordHash string `json:"password_hash,omitempty"`
+	// backups kept per game, the newest; 0 keeps them all
+	Keep int `json:"keep,omitempty"`
+	// a message for every new backup
+	Notify bool `json:"notify,omitempty"`
+}
+
 // AutomationOptions are the steps run on the files that appear in the library, in this order:
 // check, compress, delete old updates, organize, and a message with what was done.
 type AutomationOptions struct {
@@ -148,6 +160,8 @@ type AppSettings struct {
 	WizardLater time.Time `json:"wizard_later,omitempty"`
 	// what happens by itself when new files appear (all off by default)
 	Automation AutomationOptions `json:"automation"`
+	// the save vault for JKSV (off by default)
+	Vault VaultOptions `json:"vault"`
 	// the Twitch application of the user, for the times to beat of IGDB (optional)
 	IgdbClientId     string `json:"igdb_client_id,omitempty"`
 	IgdbClientSecret string `json:"igdb_client_secret,omitempty"`

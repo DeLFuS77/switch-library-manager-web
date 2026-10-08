@@ -108,6 +108,11 @@ func withBodyLimit(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet && r.Method != http.MethodHead && r.Body != nil {
 			limit := int64(maxRequestBody)
+			switch {
+			case strings.HasPrefix(r.URL.Path, VAULT_PREFIX+"/"):
+				// the save backups that JKSV uploads to the vault
+				limit = maxSaveBody
+			}
 			switch r.URL.Path {
 			case "/backup/restore":
 				limit = maxBackupBody
