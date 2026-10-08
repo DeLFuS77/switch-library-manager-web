@@ -2,7 +2,6 @@ package web
 
 import (
 	"net/http/httptest"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -10,8 +9,7 @@ import (
 )
 
 func TestYearReviewCountsOnlyWhatCameAfterTheFirstScan(t *testing.T) {
-	web := newTestWeb(t)
-	web.loadDemo()
+	web := demoWeb(t)
 	now := time.Now()
 
 	review := web.buildYearReview(now.Year(), "en", now)
@@ -54,10 +52,7 @@ func TestAddedIn(t *testing.T) {
 }
 
 func TestYearPage(t *testing.T) {
-	web := newTestWeb(t)
-	web.embedFS = os.DirFS("..")
-	web.loadDemo()
-	web.HandleYear()
+	web := demoWeb(t)
 	year := strconv.Itoa(time.Now().Year())
 	for _, query := range []string{"", "?y=" + year, "?y=1999", "?y=abc"} {
 		recorder := httptest.NewRecorder()
@@ -69,8 +64,7 @@ func TestYearPage(t *testing.T) {
 }
 
 func TestYearReviewOldestIsOlderThanNewest(t *testing.T) {
-	web := newTestWeb(t)
-	web.loadDemo()
+	web := demoWeb(t)
 	review := web.buildYearReview(time.Now().Year(), "en", time.Now())
 	if review.Oldest == nil || review.Newest == nil || !review.Oldest.ReleaseDate.Before(review.Newest.ReleaseDate) {
 		t.Fatalf("oldest %+v, newest %+v", review.Oldest, review.Newest)
