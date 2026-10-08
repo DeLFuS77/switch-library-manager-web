@@ -113,6 +113,25 @@ func (web *Web) organize(action string, dryRun bool) ([]process.Operation, error
 	}
 }
 
+// runOrganizeAction organizes the files or deletes the old updates as a task. The caller holds
+// the synchronization (startSync), so no scan moves files at the same time, and rescans after.
+func (web *Web) runOrganizeAction(action string, trigger string) ([]process.Operation, error) {
+	kind := TASK_ORGANIZE
+	if action == ORGANIZE_ACTION_CLEANUP {
+		kind = TASK_CLEANUP
+	}
+	taskId := web.startTask(kind, trigger)
+	operations, err := web.organize(action, false)
+	var failure *TaskNote
+	if err == nil {
+		web.taskLog().SetResult(taskId, 0, len(operations))
+	} else {
+		failure = &TaskNote{Text: NOTE_ORGANIZE_FAILED, Detail: err.Error()}
+	}
+	web.finishTask(taskId, failure)
+	return operations, err
+}
+
 func writeJSON(w http.ResponseWriter, status int, value any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -186,20 +205,7 @@ func (web *Web) handleOrganizeActions() {
 			return
 		}
 
-		action := r.FormValue("action")
-		kind := TASK_ORGANIZE
-		if action == ORGANIZE_ACTION_CLEANUP {
-			kind = TASK_CLEANUP
-		}
-		taskId := web.startTask(kind, TRIGGER_MANUAL)
-		operations, err := web.organize(action, false)
-		var failure *TaskNote
-		if err == nil {
-			web.taskLog().SetResult(taskId, 0, len(operations))
-		} else {
-			failure = &TaskNote{Text: NOTE_ORGANIZE_FAILED, Detail: err.Error()}
-		}
-		web.finishTask(taskId, failure)
+		operations, err := web.runOrganizeAction(r.FormValue("action"), TRIGGER_MANUAL)
 		web.state.endSync()
 
 		if err != nil {

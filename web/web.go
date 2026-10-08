@@ -123,6 +123,9 @@ type Web struct {
 	timeToBeat        *timeToBeatStore
 	timeToBeatOnce    sync.Once
 	timeToBeatRunning atomic.Bool
+	// the files waiting for the automations (see automation.go)
+	automationQueue *automationQueue
+	automationOnce  sync.Once
 	coll            *collectionStore
 	collectionsOnce sync.Once
 	fav             *favoriteStore
@@ -669,6 +672,9 @@ func (web *Web) startInBackground() {
 		}
 		if failure == nil && settings.ReadSettings(web.dataFolder).AutoCompress == AUTO_COMPRESS_NEW {
 			web.autoCompress(TRIGGER_STARTUP)
+		}
+		if failure == nil {
+			web.resumeAutomation()
 		}
 	}()
 }

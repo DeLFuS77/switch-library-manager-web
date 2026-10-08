@@ -95,6 +95,24 @@ type NotificationOptions struct {
 	NotifyNewGames bool `json:"notify_new_games"`
 }
 
+// AutomationOptions are the steps run on the files that appear in the library, in this order:
+// check, compress, delete old updates, organize, and a message with what was done.
+type AutomationOptions struct {
+	Enabled        bool `json:"enabled"`
+	Verify         bool `json:"verify"`
+	Compress       bool `json:"compress"`
+	CleanupUpdates bool `json:"cleanup_updates"`
+	Organize       bool `json:"organize"`
+	Notify         bool `json:"notify"`
+	// wait for the background hours instead of running at once
+	BackgroundHoursOnly bool `json:"background_hours_only"`
+}
+
+// Any reports whether the automation is on with at least one step.
+func (o AutomationOptions) Any() bool {
+	return o.Enabled && (o.Verify || o.Compress || o.CleanupUpdates || o.Organize || o.Notify)
+}
+
 type AppSettings struct {
 	VersionsJsonUrl        string            `json:"versions_json_url"`
 	VersionsEtag           string            `json:"versions_etag"`
@@ -125,6 +143,8 @@ type AppSettings struct {
 	AutoCompressKeep bool `json:"auto_compress_keep"`
 	// ask GitHub once a day whether a newer version of the app was released
 	CheckForUpdates bool `json:"check_for_updates"`
+	// what happens by itself when new files appear (all off by default)
+	Automation AutomationOptions `json:"automation"`
 	// the Twitch application of the user, for the times to beat of IGDB (optional)
 	IgdbClientId     string `json:"igdb_client_id,omitempty"`
 	IgdbClientSecret string `json:"igdb_client_secret,omitempty"`
