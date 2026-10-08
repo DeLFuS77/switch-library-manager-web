@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.27.0
+
+### New features
+
+- **Complete packs**: from a game page, put the game, its latest update and all its DLC in one NSP (or NSZ when a
+  part is compressed), to copy and install everything at once with DBI, Tinfoil and other installers. The delta
+  fragments of the update, never used when installing from a file, are left out. The pack is checked before it gets
+  its name, and you always choose whether the separate files are kept or deleted. The library reads the pack as the
+  game with its update, DLC and cover.
+- **Save vault for JKSV** (off until you turn it on in **Settings > Save vault**): the app becomes a WebDAV server for
+  JKSV, the save manager of the console, with its own user and password. Every backup is matched to its game by the
+  title ID inside it: a **Save backups** page with the history of each game, downloads, deletions and the games of
+  your library without a backup; the latest backups on each game page; how many backups to keep per game; a message
+  for every new one; and the webdav.json file for the SD card made for you.
+- **The same game from several regions**: the copy suggested to keep is never a damaged one and prefers one already
+  compressed, and each other copy can be deleted from the **Space** page with its updates and DLC, after a
+  confirmation, only while another copy of the game stays.
+
+### Fixes
+
+- Game pages: the Collections menu is no longer cut by the header of the game.
+
 ## 1.26.1
 
 ### Improvements

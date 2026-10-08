@@ -22,16 +22,15 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>MIT</License>
-  <Changes>### 1.26.1
+  <Changes>### 1.27.0
+- Complete packs: game, latest update and DLC in one file, without deltas
+- Save vault for JKSV (WebDAV, off by default)
+- Delete the extra copies of a game from other regions
+### 1.26.1
 - No more sideways scrolling on desktop
 - Animated pictures in the setup wizard, and covers downloaded right after it
-- Game page and statistics polish
-### 1.26.0
-- Setup wizard on the first start, and again from Settings
-- Automations: new files checked, compressed and organized by themselves (off by default)
-- Your year on Switch, version history and times to beat (IGDB, optional)
-- License: GNU AGPL-3.0 from this version</Changes>
-  <Date>2026-10-06</Date>
+- Game page and statistics polish</Changes>
+  <Date>2026-10-08</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>
