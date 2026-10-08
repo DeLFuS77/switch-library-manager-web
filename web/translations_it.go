@@ -3,6 +3,7 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Show the %v older changes": "Mostra le %v modifiche precedenti",
 		"Setup wizard": "Configurazione guidata",
 		"Welcome": "Benvenuto",
 		"Welcome to Switch Library Manager": "Benvenuto in Switch Library Manager",

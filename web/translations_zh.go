@@ -3,6 +3,7 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Show the %v older changes": "显示较早的 %v 项变更",
 		"Setup wizard": "设置向导",
 		"Welcome": "欢迎",
 		"Welcome to Switch Library Manager": "欢迎使用 Switch Library Manager",

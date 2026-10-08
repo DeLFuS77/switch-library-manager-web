@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Show the %v older changes": "Ver los %v cambios anteriores",
 		"Setup wizard": "Asistente de configuración",
 		"Welcome": "Bienvenida",
 		"Welcome to Switch Library Manager": "Te damos la bienvenida a Switch Library Manager",
