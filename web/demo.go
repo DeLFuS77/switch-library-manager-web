@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -194,6 +195,7 @@ func (web *Web) loadDemo() {
 		web.favorites().reload()
 	}
 
+	web.writeDemoHistory(switchDB, localDB, time.Now())
 	web.state.set(switchDB, localDB)
 	web.sugarLogger.Infof("[Demo mode: %d made-up games]", len(localDB.TitlesMap))
 }
@@ -283,4 +285,83 @@ func (web *Web) demoReadOnly(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+// writeDemoHistory makes up when the games of the demo came to the library: a few were there
+// at the first scan, last year, and the others came month after month this year, so the
+// statistics and the summary of the year have something to show.
+func (web *Web) writeDemoHistory(switchDB *db.SwitchTitlesDB, localDB *db.LocalSwitchFilesDB, now time.Time) {
+	since := time.Date(now.Year()-1, time.March, 14, 18, 0, 0, 0, time.Local)
+	contents := libraryContents(switchDB, localDB)
+	keys := make([]string, 0, len(contents))
+	for key := range contents {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	data := historyData{Since: since, Contents: map[string]historyEntry{}}
+	months := int(now.Month())
+	added := map[string]time.Time{}
+	gameIndex := 0
+	for _, key := range keys {
+		kind, id, _ := historyKind(key)
+		if kind != HISTORY_GAME {
+			continue
+		}
+		when := since
+		// the first games were already there, the others came this year
+		if gameIndex >= 4 {
+			month := 1 + (gameIndex*7)%months
+			when = time.Date(now.Year(), time.Month(month), 1+(gameIndex*5)%27, 20, 0, 0, 0, time.Local)
+			if when.After(now) {
+				when = now.Add(-time.Hour * time.Duration(24*gameIndex))
+			}
+		}
+		added[strings.ToLower(id[:12])] = when
+		gameIndex++
+	}
+	for _, key := range keys {
+		content := contents[key]
+		kind, id, _ := historyKind(key)
+		// updates and DLC share the first 12 digits of their game
+		when, ok := added[strings.ToLower(id[:12])]
+		if !ok {
+			when = since
+		}
+		// updates and DLC came some days after their game
+		if kind != HISTORY_GAME && !when.Equal(since) {
+			if later := when.AddDate(0, 0, 9); later.Before(now) {
+				when = later
+			}
+		}
+		data.Contents[key] = historyEntry{Time: when, Name: content.name}
+		if !when.Equal(since) {
+			data.Events = append(data.Events, HistoryEvent{Time: when, Added: true, Kind: content.kind, Id: content.id, Name: content.name, Version: content.version})
+		}
+	}
+	sort.Slice(data.Events, func(i, j int) bool { return data.Events[i].Time.After(data.Events[j].Time) })
+
+	// the size of the library at the end of every month
+	for day := since; !day.After(now); day = day.AddDate(0, 1, 0) {
+		entry := HistoryDay{Date: day.Format("2006-01-02")}
+		for key, content := range contents {
+			if data.Contents[key].Time.After(day) {
+				continue
+			}
+			switch content.kind {
+			case HISTORY_GAME:
+				entry.Games++
+			case HISTORY_UPDATE:
+				entry.Updates++
+			case HISTORY_DLC:
+				entry.Dlc++
+			}
+			entry.Size += content.size
+		}
+		data.Days = append(data.Days, entry)
+	}
+	if bytes, err := json.Marshal(data); err == nil {
+		os.WriteFile(filepath.Join(web.dataFolder, HISTORY_FILENAME), bytes, 0600)
+		web.history().reload()
+	}
 }

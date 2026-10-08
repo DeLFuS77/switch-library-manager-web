@@ -555,6 +555,7 @@ func (web *Web) Start() {
 	web.HandleSagas()
 	web.HandleUpcoming()
 	web.HandleQuickSearch()
+	web.HandleYear()
 	web.HandleAutoBackups()
 	web.HandleDiagnostics()
 	web.HandleCovers()

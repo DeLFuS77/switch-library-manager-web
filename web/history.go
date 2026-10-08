@@ -58,6 +58,8 @@ type historyEntry struct {
 }
 
 type historyData struct {
+	// the first scan: what it found was already in the library
+	Since time.Time `json:"since,omitempty"`
 	// by content key (see libraryContents)
 	Contents map[string]historyEntry `json:"contents"`
 	// newest first
@@ -172,6 +174,7 @@ func (h *libraryHistory) record(contents map[string]libraryContent, now time.Tim
 	first := h.data.Contents == nil
 	if first {
 		h.data.Contents = map[string]historyEntry{}
+		h.data.Since = now
 	}
 	events := []HistoryEvent{}
 	for key, content := range contents {
