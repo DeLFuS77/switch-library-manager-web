@@ -33,6 +33,7 @@ const (
 	TRIGGER_ORGANIZE = "organize"
 	TRIGGER_COMPRESS = "compress"
 	TRIGGER_SCAN     = "scan"
+	TRIGGER_AUTOMATION = "automation"
 )
 
 // task results

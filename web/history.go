@@ -293,6 +293,7 @@ func (web *Web) recordHistory() {
 	}
 	if len(events) > 0 {
 		web.notifyNewContent(events)
+		web.queueAutomation(events)
 	}
 }
 

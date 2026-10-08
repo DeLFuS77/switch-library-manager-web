@@ -72,10 +72,22 @@ func (web *Web) autoCompress(trigger string) bool {
 	if len(paths) == 0 {
 		return false
 	}
+	return web.compressPaths(paths, trigger)
+}
+
+// compressPaths compresses files as one task, with the level and the keeping of the originals
+// of the automatic compression; files that fail are not tried again until they change.
+func (web *Web) compressPaths(paths []string, trigger string) bool {
+	appSettings := settings.ReadSettings(web.dataFolder)
 	level := appSettings.AutoCompressLevel
 	if level != switchfs.LevelFast && level != switchfs.LevelMax {
 		level = switchfs.LevelBalanced
 	}
+	web.auto.mutex.Lock()
+	if web.auto.failed == nil {
+		web.auto.failed = map[string]time.Time{}
+	}
+	web.auto.mutex.Unlock()
 	return web.runFileTaskWithTrigger(TASK_COMPRESS, trigger, paths, 3, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		saved, err := web.compressFile(ctx, path, level, !appSettings.AutoCompressKeep, report)
 		if err != nil {

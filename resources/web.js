@@ -1649,6 +1649,19 @@ function initYearReview() {
 	});
 }
 
+// Settings > Automations: the steps look off while the main switch is off (they keep their
+// choice, so turning it on again brings them back).
+function initAutomationSettings() {
+	const master = document.querySelector('[data-automation-master]');
+	const steps = document.querySelector('[data-automation-steps]');
+	if (!master || !steps) {
+		return;
+	}
+	const update = () => steps.classList.toggle('is-off', !master.checked);
+	master.addEventListener('change', update);
+	update();
+}
+
 // cards tilt slightly towards the pointer
 function initCardTilt() {
 	if (reducedMotion() || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
@@ -1953,6 +1966,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initQuickSearch();
 	initTaskIndicator();
 	initYearReview();
+	initAutomationSettings();
 
 	// forms that delete something ask first
 	document.querySelectorAll('form[data-confirm]').forEach(form => {

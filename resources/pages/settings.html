@@ -203,6 +203,65 @@
 								</div>
 							</div>
 						</section>
+						<section class="surface mb-4 settings-section" id="automation" aria-labelledby="automationTitle">
+							{{- $a := .Settings.Automation}}
+							<h2 class="section-title" id="automationTitle"><span class="bi bi-magic" aria-hidden="true"></span>{{t "Automations"}}</h2>
+							<p class="text-body-secondary">{{t "The library takes care of itself: when new files appear in your folders, the steps you choose run one after the other, and each one appears on the Tasks page. Everything is off until you turn it on."}}</p>
+							<div class="form-check form-switch automation-master mb-3">
+								<input class="form-check-input" type="checkbox" role="switch" id="automation_enabled" name="automation_enabled" value="true" data-automation-master{{if $a.Enabled}} checked{{end}}>
+								<label class="form-check-label fw-semibold" for="automation_enabled">{{t "Take care of new files by themselves"}}</label>
+							</div>
+							{{- if gt .AutomationPending 0}}
+							<p class="small text-body-secondary"><span class="bi bi-hourglass-split me-1" aria-hidden="true"></span>{{t "%v new files are waiting for the automations." .AutomationPending}}</p>
+							{{- end}}
+							<ol class="automation-steps list-unstyled mb-0" data-automation-steps>
+								<li class="automation-step">
+									<span class="automation-step-number" aria-hidden="true">1</span>
+									<div class="form-check form-switch flex-grow-1">
+										<input class="form-check-input" type="checkbox" role="switch" id="automation_verify" name="automation_verify" value="true"{{if $a.Verify}} checked{{end}}>
+										<label class="form-check-label" for="automation_verify"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Check the new files"}}</label>
+										<div class="form-text">{{t "Finds damaged files before anything else is done with them. The results appear in Issues."}}</div>
+									</div>
+								</li>
+								<li class="automation-step">
+									<span class="automation-step-number" aria-hidden="true">2</span>
+									<div class="form-check form-switch flex-grow-1">
+										<input class="form-check-input" type="checkbox" role="switch" id="automation_compress" name="automation_compress" value="true"{{if $a.Compress}} checked{{end}}>
+										<label class="form-check-label" for="automation_compress"><span class="bi bi-file-zip me-1" aria-hidden="true"></span>{{t "Compress them"}}</label>
+										<div class="form-text">{{t "NSP and XCI to NSZ and XCZ, with the level and the originals option of Compression; damaged files are left alone."}}{{if not .KeysAvailable}} <span class="text-warning-emphasis">{{t "Needs your own prod.keys."}}</span>{{end}}</div>
+									</div>
+								</li>
+								<li class="automation-step">
+									<span class="automation-step-number" aria-hidden="true">3</span>
+									<div class="form-check form-switch flex-grow-1">
+										<input class="form-check-input" type="checkbox" role="switch" id="automation_cleanup" name="automation_cleanup" value="true"{{if $a.CleanupUpdates}} checked{{end}}>
+										<label class="form-check-label" for="automation_cleanup"><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{t "Delete the updates a new one replaces"}}</label>
+										<div class="form-text">{{t "When a newer update of a game arrives, the older ones are deleted, like Delete old updates on the Organize page."}}</div>
+									</div>
+								</li>
+								<li class="automation-step">
+									<span class="automation-step-number" aria-hidden="true">4</span>
+									<div class="form-check form-switch flex-grow-1">
+										<input class="form-check-input" type="checkbox" role="switch" id="automation_organize" name="automation_organize" value="true"{{if $a.Organize}} checked{{end}}>
+										<label class="form-check-label" for="automation_organize"><span class="bi bi-folder-symlink me-1" aria-hidden="true"></span>{{t "Organize the library"}}</label>
+										<div class="form-text">{{t "Moves and renames the files with the folders and names of the Organize page. Look at its preview first, to see what would change."}} <a href="/organize.html">{{t "Open Organize"}}</a></div>
+									</div>
+								</li>
+								<li class="automation-step">
+									<span class="automation-step-number" aria-hidden="true">5</span>
+									<div class="form-check form-switch flex-grow-1">
+										<input class="form-check-input" type="checkbox" role="switch" id="automation_notify" name="automation_notify" value="true"{{if $a.Notify}} checked{{end}}>
+										<label class="form-check-label" for="automation_notify"><span class="bi bi-bell me-1" aria-hidden="true"></span>{{t "Tell me what was done"}}</label>
+										<div class="form-text">{{t "A message with the new games and the result of every step."}}{{if not .NotificationsConfigured}} <span class="text-warning-emphasis">{{t "Set up a channel in Notifications first."}}</span>{{end}}</div>
+									</div>
+								</li>
+							</ol>
+							<div class="form-check form-switch mt-3">
+								<input class="form-check-input" type="checkbox" role="switch" id="automation_night" name="automation_night" value="true"{{if $a.BackgroundHoursOnly}} checked{{end}}>
+								<label class="form-check-label" for="automation_night">{{t "Wait for the background hours"}}</label>
+								<div class="form-text">{{t "The new files wait for the hours of Background work, so the NAS stays fast while you use it."}}</div>
+							</div>
+						</section>
 						<section class="surface mb-4 settings-section" id="notifications" aria-labelledby="notificationsTitle">
 							<h2 class="section-title" id="notificationsTitle"><span class="bi bi-bell" aria-hidden="true"></span>{{t "Notifications"}}</h2>
 							<p class="text-body-secondary">{{t "After every synchronization, get a message when an update or a DLC of one of your games becomes available. Only new items are reported."}}</p>

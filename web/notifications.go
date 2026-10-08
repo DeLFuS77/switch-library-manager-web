@@ -273,6 +273,11 @@ func postJSON(url string, payload any) error {
 // sendNotification sends the items to every configured channel.
 func sendNotification(options settings.NotificationOptions, lang string, items []NotificationItem) error {
 	title, text := notificationText(lang, items)
+	return sendMessage(options, title, text, items)
+}
+
+// sendMessage sends a message to every configured channel; items go to the JSON webhook.
+func sendMessage(options settings.NotificationOptions, title string, text string, items any) error {
 	errs := []string{}
 
 	if options.DiscordWebhookUrl != "" {

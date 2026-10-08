@@ -21,6 +21,11 @@ type SettingsPageData struct {
 	VerifySpeeds []VerifySpeedOption
 	// the copies of the configuration made every week
 	AutoBackups []AutoBackup
+	// what the automations need: the keys (to compress) and a notification channel
+	KeysAvailable           bool
+	NotificationsConfigured bool
+	// files waiting for the automations
+	AutomationPending int
 }
 
 type SettingsForm struct {
@@ -38,6 +43,13 @@ type SettingsForm struct {
 	VerifySpeed          string `in:"form=verify_speed"`
 	ConsoleFirmware      string `in:"form=console_firmware"`
 	CheckForUpdates      bool   `in:"form=check_for_updates"`
+	AutomationEnabled    bool   `in:"form=automation_enabled"`
+	AutomationVerify     bool   `in:"form=automation_verify"`
+	AutomationCompress   bool   `in:"form=automation_compress"`
+	AutomationCleanup    bool   `in:"form=automation_cleanup"`
+	AutomationOrganize   bool   `in:"form=automation_organize"`
+	AutomationNotify     bool   `in:"form=automation_notify"`
+	AutomationNight      bool   `in:"form=automation_night"`
 	IgdbClientId         string `in:"form=igdb_client_id"`
 	IgdbClientSecret     string `in:"form=igdb_client_secret"`
 	AutoCompress         string `in:"form=auto_compress"`
@@ -109,6 +121,9 @@ func (web *Web) HandleSettings() {
 			MissingCovers: web.missingCovers(),
 			VerifySpeeds: verifySpeedOptions(),
 			AutoBackups: web.autoBackups(),
+			KeysAvailable: settings.IsKeysFileAvailable(),
+			NotificationsConfigured: notificationsConfigured(current.Notifications),
+			AutomationPending: web.automationPending(),
 		}
 	}, func(value any, lang string) ErrorResponse {
 		settingsForm := value.(*SettingsForm)
@@ -243,6 +258,9 @@ func (web *Web) HandleSettings() {
 			appSettings.VerifySpeed = settingsForm.VerifySpeed
 			appSettings.ConsoleFirmware = strings.TrimSpace(settingsForm.ConsoleFirmware)
 			appSettings.CheckForUpdates = settingsForm.CheckForUpdates
+			appSettings.Automation = settings.AutomationOptions{Enabled: settingsForm.AutomationEnabled, Verify: settingsForm.AutomationVerify,
+				Compress: settingsForm.AutomationCompress, CleanupUpdates: settingsForm.AutomationCleanup, Organize: settingsForm.AutomationOrganize,
+				Notify: settingsForm.AutomationNotify, BackgroundHoursOnly: settingsForm.AutomationNight}
 			// the secret is never sent to the page: an empty field keeps it, no Client ID removes both
 			appSettings.IgdbClientId = strings.TrimSpace(settingsForm.IgdbClientId)
 			if appSettings.IgdbClientId == "" {
