@@ -3,6 +3,7 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Open the wizard": "Abrir o assistente",
 		"Show the %v older changes": "Ver as %v alterações anteriores",
 		"Setup wizard": "Assistente de configuração",
 		"Welcome": "Boas-vindas",

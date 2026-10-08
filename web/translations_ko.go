@@ -3,6 +3,7 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Open the wizard": "마법사 열기",
 		"Show the %v older changes": "이전 변경 %v개 보기",
 		"Setup wizard": "설정 마법사",
 		"Welcome": "환영합니다",

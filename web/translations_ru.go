@@ -3,6 +3,7 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Open the wizard": "Открыть мастер",
 		"Show the %v older changes": "Показать ещё %v более ранних изменений",
 		"Setup wizard": "Мастер настройки",
 		"Welcome": "Добро пожаловать",

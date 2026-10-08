@@ -3,6 +3,7 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Open the wizard": "ウィザードを開く",
 		"Show the %v older changes": "以前の %v 件の変更を表示",
 		"Setup wizard": "セットアップウィザード",
 		"Welcome": "ようこそ",

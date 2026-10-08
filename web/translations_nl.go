@@ -3,6 +3,7 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Open the wizard": "Wizard openen",
 		"Show the %v older changes": "De %v oudere wijzigingen tonen",
 		"Setup wizard": "Installatiewizard",
 		"Welcome": "Welkom",
