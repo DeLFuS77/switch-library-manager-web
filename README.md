@@ -112,6 +112,8 @@ Linux, Docker, NAS and Raspberry Pi.
 - Compress NSP to NSZ and XCI to XCZ (10 to 60% smaller), installed directly by Tinfoil, DBI and other installers;
   convert XCI to NSP
 - Every file is verified before the original is deleted; NSZ files can be decompressed back to NSP
+- Complete packs: the game, its latest update and its DLC in one NSP (or NSZ) to install at once, without the
+  delta fragments of the update; checked before the separate files are deleted, only if you choose it
 - Space page: see how much old updates, duplicates and already compressed originals take, and free it safely
 - The same game from several regions (each with its own title ID): the copy to keep is suggested (your language,
   more languages, newer update, more DLC, not damaged, already compressed) and the others are deleted in one click

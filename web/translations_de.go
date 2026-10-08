@@ -3,6 +3,19 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"And the separate files?": "Und die einzelnen Dateien?",
+		"Keep them": "Behalten",
+		"Choose whether to keep or delete the separate files.": "Wähle, ob die einzelnen Dateien behalten oder gelöscht werden.",
+		"Complete pack": "Komplettpaket",
+		"One file with the game, its latest update and its DLC (%v files, %v), to copy and install all at once. The delta fragments of the update are left out.": "Eine Datei mit dem Spiel, seinem neuesten Update und seinen DLC (%v Dateien, %v), um alles auf einmal zu kopieren und zu installieren. Die Delta-Fragmente des Updates bleiben weg.",
+		"Until the separate files are deleted, it needs as much free space again.": "Bis die einzelnen Dateien gelöscht sind, braucht es noch einmal so viel freien Speicher.",
+		"Delete the separate files once the pack is checked": "Die einzelnen Dateien löschen, sobald das Paket geprüft ist",
+		"Make the pack": "Paket erstellen",
+		"The pack could not be made, the files of the game are kept.": "Das Paket konnte nicht erstellt werden, die Dateien des Spiels bleiben erhalten.",
+		"A pack with the same name already exists.": "Ein Paket mit demselben Namen existiert bereits.",
+		"The game is not in your library.": "Das Spiel ist nicht in deiner Bibliothek.",
+		"This game has nothing to put in a pack.": "Dieses Spiel hat nichts, was in ein Paket passt.",
+		"%v packs made, %v of delta fragments left out": "%v Pakete erstellt, %v Delta-Fragmente weggelassen",
 		"1 backup": "1 Sicherung",
 		"Save backups": "Spielstand-Sicherungen",
 		"The backups of your saves that JKSV uploads from the console to the vault of the app.": "Die Sicherungen deiner Spielstände, die JKSV von der Konsole in den Tresor der App hochlädt.",

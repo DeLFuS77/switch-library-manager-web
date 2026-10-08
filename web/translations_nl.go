@@ -3,6 +3,19 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"And the separate files?": "En de losse bestanden?",
+		"Keep them": "Bewaren",
+		"Choose whether to keep or delete the separate files.": "Kies of de losse bestanden bewaard of verwijderd worden.",
+		"Complete pack": "Compleet pakket",
+		"One file with the game, its latest update and its DLC (%v files, %v), to copy and install all at once. The delta fragments of the update are left out.": "Eén bestand met het spel, de nieuwste update en de DLC (%v bestanden, %v), om alles in één keer te kopiëren en te installeren. De deltafragmenten van de update blijven weg.",
+		"Until the separate files are deleted, it needs as much free space again.": "Tot de losse bestanden verwijderd zijn, is er nog eens zoveel vrije ruimte nodig.",
+		"Delete the separate files once the pack is checked": "De losse bestanden verwijderen zodra het pakket gecontroleerd is",
+		"Make the pack": "Pakket maken",
+		"The pack could not be made, the files of the game are kept.": "Het pakket kon niet worden gemaakt, de bestanden van het spel blijven bewaard.",
+		"A pack with the same name already exists.": "Er bestaat al een pakket met dezelfde naam.",
+		"The game is not in your library.": "Het spel staat niet in je bibliotheek.",
+		"This game has nothing to put in a pack.": "Dit spel heeft niets om in een pakket te stoppen.",
+		"%v packs made, %v of delta fragments left out": "%v pakketten gemaakt, %v aan deltafragmenten weggelaten",
 		"1 backup": "1 back-up",
 		"Save backups": "Spelopslag-back-ups",
 		"The backups of your saves that JKSV uploads from the console to the vault of the app.": "De back-ups van je spelopslag die JKSV vanaf de console naar de kluis van de app uploadt.",

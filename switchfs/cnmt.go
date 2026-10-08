@@ -142,3 +142,33 @@ func readXmlCnmt(xmlBytes []byte) (*ContentMetaAttributes, error) {
 	titleId = strings.ToLower(titleId)
 	return &ContentMetaAttributes{Version: cmt.Version, TitleId: titleId, Type: cmt.Type}, nil
 }
+
+// cnmtDeltaFragments gives the NCA IDs of the delta fragments a CNMT lists: an update has
+// them to patch an older update over the network, and installs from a file never use them.
+func cnmtDeltaFragments(pfs0 *PFS0, data []byte) []string {
+	if pfs0 == nil || len(pfs0.Files) != 1 {
+		return nil
+	}
+	cnmtFile := pfs0.Files[0]
+	if cnmtFile.StartOffset > uint64(len(data)) || cnmtFile.Size > uint64(len(data))-cnmtFile.StartOffset {
+		return nil
+	}
+	cnmt := data[cnmtFile.StartOffset : cnmtFile.StartOffset+cnmtFile.Size]
+	if len(cnmt) < 0x20 {
+		return nil
+	}
+	tableOffset := binary.LittleEndian.Uint16(cnmt[0xE:0x10])
+	count := binary.LittleEndian.Uint16(cnmt[0x10:0x12])
+	entriesOffset := uint64(0x20) + uint64(tableOffset)
+	if entriesOffset > uint64(len(cnmt)) || uint64(count)*0x38 > uint64(len(cnmt))-entriesOffset {
+		return nil
+	}
+	ids := []string{}
+	for i := uint64(0); i < uint64(count); i++ {
+		entry := cnmt[entriesOffset+i*0x38:]
+		if entry[0x36] == 6 {
+			ids = append(ids, fmt.Sprintf("%x", entry[0x20:0x30]))
+		}
+	}
+	return ids
+}

@@ -29,7 +29,7 @@ const (
 	NOTE_DECOMPRESS_FAILED = "The file could not be decompressed, the compressed file is kept."
 )
 
-var compressNoteTexts = []string{NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_DELETE}
+var compressNoteTexts = []string{NOTE_PACK_FAILED, NOTE_PACK_EXISTS, NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_DELETE}
 
 // CompressCandidate is an NSP of the library that can be compressed.
 type CompressCandidate struct {
@@ -256,6 +256,18 @@ func (web *Web) runFileTask(kind string, paths []string, passes int64, job fileJ
 
 // runFileTaskWithTrigger is runFileTask for a task started by something else than the user.
 func (web *Web) runFileTaskWithTrigger(kind string, trigger string, paths []string, passes int64, job fileJob) bool {
+	sizes := make([]int64, len(paths))
+	for i, path := range paths {
+		if info, err := os.Stat(path); err == nil {
+			sizes[i] = info.Size()
+		}
+	}
+	return web.runFileTaskSized(kind, trigger, paths, sizes, passes, job)
+}
+
+// runFileTaskSized is runFileTaskWithTrigger with the size each job reads, for jobs that
+// read more than their path (a pack reads every file of the game).
+func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, sizes []int64, passes int64, job fileJob) bool {
 	web.compressor.mutex.Lock()
 	if web.compressor.cancel != nil {
 		web.compressor.mutex.Unlock()
@@ -274,13 +286,9 @@ func (web *Web) runFileTaskWithTrigger(kind string, trigger string, paths []stri
 			cancel()
 		}()
 
-		sizes := make([]int64, len(paths))
 		var total, done int64
-		for i, path := range paths {
-			if info, err := os.Stat(path); err == nil {
-				sizes[i] = info.Size()
-				total += info.Size() * passes
-			}
+		for _, size := range sizes {
+			total += size * passes
 		}
 
 		processed := 0
@@ -317,6 +325,8 @@ func (web *Web) runFileTaskWithTrigger(kind string, trigger string, paths []stri
 			failure = &TaskNote{Text: NOTE_COMPRESS_FAILED}
 			if kind == TASK_DECOMPRESS {
 				failure = &TaskNote{Text: NOTE_DECOMPRESS_FAILED}
+			} else if kind == TASK_PACK {
+				failure = &TaskNote{Text: NOTE_PACK_FAILED}
 			}
 		}
 		web.taskLog().Finish(taskId, failure)
@@ -334,6 +344,17 @@ var (
 )
 
 func compressNote(kind string, err error) string {
+	if kind == TASK_PACK {
+		switch {
+		case errors.Is(err, errCompressSpace):
+			return NOTE_COMPRESS_SPACE
+		case errors.Is(err, errPackExists):
+			return NOTE_PACK_EXISTS
+		case strings.Contains(err.Error(), "could not delete"):
+			return NOTE_COMPRESS_DELETE
+		}
+		return NOTE_PACK_FAILED
+	}
 	switch {
 	case errors.Is(err, errCompressSpace):
 		return NOTE_COMPRESS_SPACE

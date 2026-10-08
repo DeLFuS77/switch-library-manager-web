@@ -3,6 +3,19 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"And the separate files?": "E os arquivos separados?",
+		"Keep them": "Mantê-los",
+		"Choose whether to keep or delete the separate files.": "Escolha se os arquivos separados são mantidos ou apagados.",
+		"Complete pack": "Pacote completo",
+		"One file with the game, its latest update and its DLC (%v files, %v), to copy and install all at once. The delta fragments of the update are left out.": "Um único arquivo com o jogo, sua última atualização e seus DLC (%v arquivos, %v), para copiar e instalar tudo de uma vez. Os fragmentos delta da atualização ficam de fora.",
+		"Until the separate files are deleted, it needs as much free space again.": "Até que os arquivos separados sejam apagados, é preciso outro tanto de espaço livre.",
+		"Delete the separate files once the pack is checked": "Apagar os arquivos separados depois que o pacote for verificado",
+		"Make the pack": "Criar o pacote",
+		"The pack could not be made, the files of the game are kept.": "Não foi possível criar o pacote, os arquivos do jogo são mantidos.",
+		"A pack with the same name already exists.": "Já existe um pacote com o mesmo nome.",
+		"The game is not in your library.": "O jogo não está na sua biblioteca.",
+		"This game has nothing to put in a pack.": "Este jogo não tem nada para juntar em um pacote.",
+		"%v packs made, %v of delta fragments left out": "%v pacotes criados, %v de fragmentos delta deixados de fora",
 		"1 backup": "1 cópia",
 		"Save backups": "Cópias de jogos guardados",
 		"The backups of your saves that JKSV uploads from the console to the vault of the app.": "As cópias dos teus jogos guardados que o JKSV envia da consola para o cofre da aplicação.",

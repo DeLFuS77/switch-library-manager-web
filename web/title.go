@@ -54,22 +54,22 @@ type TitleDlc struct {
 
 type TitleDetail struct {
 	// the game is on the wishlist
-	Wished      bool
-	Id          string
-	Name        string
-	Publisher   string
-	Region      string
+	Wished    bool
+	Id        string
+	Name      string
+	Publisher string
+	Region    string
 	// from the titles database
 	Genres        []string
 	Players       int
 	Languages     []string
 	AgeRating     int
 	RatingContent []string
-	Description string
-	ReleaseDate time.Time
-	ImageUrl    string
-	BannerUrl   string
-	Screenshots []string
+	Description   string
+	ReleaseDate   time.Time
+	ImageUrl      string
+	BannerUrl     string
+	Screenshots   []string
 
 	Owned   bool
 	Base    *TitleFile
@@ -100,6 +100,9 @@ type TitleDetail struct {
 	// all local files of the game, downloadable as one archive
 	ArchiveFiles int
 	ArchiveSize  int64
+	// the files a complete pack of the game is made of (base, latest update and DLC)
+	PackFiles int
+	PackSize  int64
 }
 
 type TitlePageData struct {
@@ -203,6 +206,10 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		entries := archiveEntries(local)
 		detail.ArchiveFiles = len(entries)
 		detail.ArchiveSize = archiveSize(entries)
+		for _, file := range packFiles(local) {
+			detail.PackFiles++
+			detail.PackSize += file.Size
+		}
 	}
 	if detail.Id == "" {
 		// only updates or DLC of an unknown game are present
@@ -354,6 +361,7 @@ func formatSize(size int64) string {
 
 func (web *Web) HandleTitle() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/title.html")
+	web.handlePack()
 
 	web.router.HandleFunc("/title/{titleId}.html", func(w http.ResponseWriter, r *http.Request) {
 		detail, ok := web.getTitleDetail(mux.Vars(r)["titleId"], web.requestLanguage(r))

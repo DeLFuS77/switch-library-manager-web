@@ -44,6 +44,27 @@
 							{{- if not $t.Owned}}
 							<button type="button" class="btn rounded-pill admin-only {{if $t.Wished}}btn-danger{{else}}btn-glass{{end}}" data-wish="{{$t.Id}}" data-wished="{{$t.Wished}}" aria-pressed="{{$t.Wished}}"><span class="bi {{if $t.Wished}}bi-heart-fill{{else}}bi-heart{{end}} me-2" aria-hidden="true"></span>{{if $t.Wished}}{{t "On your wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}</button>
 							{{- end}}
+							{{- if gt $t.PackFiles 1}}
+							<div class="dropdown admin-only">
+								<button type="button" class="btn btn-glass rounded-pill dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"><span class="bi bi-box-seam me-2" aria-hidden="true"></span>{{t "Complete pack"}}</button>
+								<form class="dropdown-menu p-3 pack-menu" data-pack="{{$t.Id}}">
+									<p class="small mb-2">{{t "One file with the game, its latest update and its DLC (%v files, %v), to copy and install all at once. The delta fragments of the update are left out." $t.PackFiles (formatSize $t.PackSize)}}</p>
+									<p class="small text-body-secondary mb-2"><span class="bi bi-hdd me-1" aria-hidden="true"></span>{{t "Until the separate files are deleted, it needs as much free space again."}}</p>
+									<fieldset class="mb-3">
+										<legend class="small fw-semibold mb-1">{{t "And the separate files?"}}</legend>
+										<div class="form-check">
+											<input class="form-check-input" type="radio" id="pack-keep" name="delete_originals" value="false" required>
+											<label class="form-check-label small" for="pack-keep">{{t "Keep them"}}</label>
+										</div>
+										<div class="form-check">
+											<input class="form-check-input" type="radio" id="pack-delete" name="delete_originals" value="true" required>
+											<label class="form-check-label small" for="pack-delete">{{t "Delete the separate files once the pack is checked"}}</label>
+										</div>
+									</fieldset>
+									<button type="submit" class="btn btn-primary btn-sm w-100" disabled><span class="bi bi-box-seam me-2" aria-hidden="true"></span>{{t "Make the pack"}}</button>
+								</form>
+							</div>
+							{{- end}}
 							<div class="dropdown admin-only">
 								<button type="button" class="btn btn-glass rounded-pill dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"><span class="bi bi-bookmark me-2" aria-hidden="true"></span>{{t "Collections"}}{{with .Collections}} ({{len .}}){{end}}</button>
 								<form class="dropdown-menu p-3 collection-menu" data-collections="{{$t.Id}}">

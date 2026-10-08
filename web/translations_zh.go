@@ -3,6 +3,19 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"And the separate files?": "单独的文件怎么办？",
+		"Keep them": "保留",
+		"Choose whether to keep or delete the separate files.": "请选择保留还是删除单独的文件。",
+		"Complete pack": "完整合集包",
+		"One file with the game, its latest update and its DLC (%v files, %v), to copy and install all at once. The delta fragments of the update are left out.": "把游戏、最新更新和 DLC 合成一个文件（%v 个文件，%v），一次复制、一次安装。不包含更新的增量片段。",
+		"Until the separate files are deleted, it needs as much free space again.": "在删除单独的文件之前，需要再多出同样大小的可用空间。",
+		"Delete the separate files once the pack is checked": "合集包校验通过后删除单独的文件",
+		"Make the pack": "制作合集包",
+		"The pack could not be made, the files of the game are kept.": "无法制作合集包，游戏文件保持不变。",
+		"A pack with the same name already exists.": "已存在同名的合集包。",
+		"The game is not in your library.": "这个游戏不在你的游戏库中。",
+		"This game has nothing to put in a pack.": "这个游戏没有可以合成合集包的内容。",
+		"%v packs made, %v of delta fragments left out": "已制作 %v 个合集包，省去 %v 增量片段",
 		"1 backup": "1 个备份",
 		"Save backups": "存档备份",
 		"The backups of your saves that JKSV uploads from the console to the vault of the app.": "JKSV 从主机上传到应用存档库的存档备份。",

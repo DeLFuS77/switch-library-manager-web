@@ -5,6 +5,19 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"And the separate files?": "¿Y los archivos sueltos?",
+		"Keep them": "Conservarlos",
+		"Choose whether to keep or delete the separate files.": "Elige si se conservan o se borran los archivos sueltos.",
+		"Complete pack": "Pack completo",
+		"One file with the game, its latest update and its DLC (%v files, %v), to copy and install all at once. The delta fragments of the update are left out.": "Un solo archivo con el juego, su última actualización y sus DLC (%v archivos, %v), para copiarlo e instalarlo todo de una vez. Los fragmentos delta de la actualización se quedan fuera.",
+		"Until the separate files are deleted, it needs as much free space again.": "Hasta que se borren los archivos sueltos, necesita otro tanto de espacio libre.",
+		"Delete the separate files once the pack is checked": "Borrar los archivos sueltos cuando el pack esté comprobado",
+		"Make the pack": "Crear el pack",
+		"The pack could not be made, the files of the game are kept.": "No se pudo crear el pack, los archivos del juego se conservan.",
+		"A pack with the same name already exists.": "Ya existe un pack con el mismo nombre.",
+		"The game is not in your library.": "El juego no está en tu biblioteca.",
+		"This game has nothing to put in a pack.": "Este juego no tiene nada que juntar en un pack.",
+		"%v packs made, %v of delta fragments left out": "%v packs creados, %v de fragmentos delta descartados",
 		"1 backup": "1 copia",
 		"Save backups": "Partidas guardadas",
 		"The backups of your saves that JKSV uploads from the console to the vault of the app.": "Las copias de tus partidas que JKSV sube desde la consola a la bóveda de la app.",
