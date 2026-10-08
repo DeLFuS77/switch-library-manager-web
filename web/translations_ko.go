@@ -3,6 +3,19 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"And the separate files?": "개별 파일은?",
+		"Keep them": "유지",
+		"Choose whether to keep or delete the separate files.": "개별 파일을 유지할지 삭제할지 선택하세요.",
+		"Complete pack": "전체 팩",
+		"One file with the game, its latest update and its DLC (%v files, %v), to copy and install all at once. The delta fragments of the update are left out.": "게임, 최신 업데이트, DLC를 하나로 묶은 파일(%v개 파일, %v)로, 한 번에 복사하고 설치할 수 있습니다. 업데이트의 델타 조각은 제외됩니다.",
+		"Until the separate files are deleted, it needs as much free space again.": "개별 파일을 삭제할 때까지 같은 크기의 여유 공간이 더 필요합니다.",
+		"Delete the separate files once the pack is checked": "팩 확인 후 개별 파일 삭제",
+		"Make the pack": "팩 만들기",
+		"The pack could not be made, the files of the game are kept.": "팩을 만들 수 없습니다. 게임 파일은 그대로 유지됩니다.",
+		"A pack with the same name already exists.": "같은 이름의 팩이 이미 있습니다.",
+		"The game is not in your library.": "이 게임은 라이브러리에 없습니다.",
+		"This game has nothing to put in a pack.": "이 게임에는 팩으로 묶을 것이 없습니다.",
+		"%v packs made, %v of delta fragments left out": "팩 %v개 생성, 델타 조각 %v 제외",
 		"1 backup": "백업 1개",
 		"Save backups": "세이브 백업",
 		"The backups of your saves that JKSV uploads from the console to the vault of the app.": "JKSV가 콘솔에서 앱의 보관함으로 업로드한 세이브 데이터 백업입니다.",

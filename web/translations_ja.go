@@ -3,6 +3,19 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"And the separate files?": "個別のファイルは？",
+		"Keep them": "残す",
+		"Choose whether to keep or delete the separate files.": "個別のファイルを残すか削除するかを選んでください。",
+		"Complete pack": "完全パック",
+		"One file with the game, its latest update and its DLC (%v files, %v), to copy and install all at once. The delta fragments of the update are left out.": "ゲーム本体、最新アップデート、DLC を 1 つにまとめたファイル（%v ファイル、%v）。まとめてコピー・インストールできます。アップデートのデルタフラグメントは含めません。",
+		"Until the separate files are deleted, it needs as much free space again.": "個別のファイルを削除するまで、同じだけの空き容量が追加で必要です。",
+		"Delete the separate files once the pack is checked": "パックの確認後に個別のファイルを削除する",
+		"Make the pack": "パックを作成",
+		"The pack could not be made, the files of the game are kept.": "パックを作成できませんでした。ゲームのファイルはそのまま残ります。",
+		"A pack with the same name already exists.": "同じ名前のパックがすでにあります。",
+		"The game is not in your library.": "このゲームはライブラリにありません。",
+		"This game has nothing to put in a pack.": "このゲームにはパックにまとめるものがありません。",
+		"%v packs made, %v of delta fragments left out": "%v 個のパックを作成、デルタフラグメント %v を除外",
 		"1 backup": "1 件のバックアップ",
 		"Save backups": "セーブデータのバックアップ",
 		"The backups of your saves that JKSV uploads from the console to the vault of the app.": "JKSV が本体からアプリの保管庫にアップロードしたセーブデータのバックアップです。",

@@ -10,7 +10,7 @@ function readTranslations() {
 
 // Bundled with Bootstrap by esbuild into resources/static/web.js (npm run build).
 // Importing Bootstrap also enables its data attributes (offcanvas, dismissible alerts, ...).
-import { Modal, Tooltip } from 'bootstrap';
+import { Dropdown, Modal, Tooltip } from 'bootstrap';
 
 // Translations of the texts below are provided by the server in the page language.
 // "%v" placeholders are replaced by the arguments in order.
@@ -2051,6 +2051,41 @@ function initWizard() {
 
 // Space: a copy of a game from another region is deleted, with its updates and DLC, after a
 // confirmation; the page shows the library again once it is rescanned.
+// The header of the game page clips what goes out of it (its blurred background), so its
+// menus (collections, pack) are placed fixed on the screen, over the rest of the page.
+function initHeroMenus() {
+	document.querySelectorAll('.title-hero [data-bs-toggle="dropdown"]').forEach(toggle => {
+		Dropdown.getOrCreateInstance(toggle, { popperConfig: config => ({ ...config, strategy: 'fixed' }) });
+	});
+}
+
+// Game page > Complete pack: the pack is made as a task, followed on the Tasks page.
+function initPack() {
+	document.querySelectorAll('[data-pack]').forEach(form => {
+		const submit = form.querySelector('[type="submit"]');
+		// keeping or deleting the separate files is always chosen, nothing is chosen first
+		form.addEventListener('change', () => {
+			submit.disabled = !form.elements.delete_originals.value;
+		});
+		form.addEventListener('submit', e => {
+			e.preventDefault();
+			const choice = form.elements.delete_originals.value;
+			if (!choice) {
+				return;
+			}
+			submit.disabled = true;
+			postForm('/title/pack', { id: form.dataset.pack, delete_originals: choice })
+				.then(() => {
+					window.location.href = '/tasks.html';
+				})
+				.catch(error => {
+					submit.disabled = false;
+					insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+				});
+		});
+	});
+}
+
 function initRegionRemove() {
 	document.querySelectorAll('[data-region-remove]').forEach(button => {
 		button.addEventListener('click', () => {
@@ -2437,6 +2472,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	initAutomationSettings();
 	initWizard();
 	initRegionRemove();
+	initPack();
+	initHeroMenus();
 	initVaultSettings();
 	initSaveDelete();
 

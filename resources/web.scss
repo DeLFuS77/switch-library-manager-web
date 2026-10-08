@@ -2343,6 +2343,11 @@ h3,
 	min-width: 16rem;
 }
 
+.pack-menu {
+	width: 22rem;
+	max-width: calc(100vw - 2rem);
+}
+
 .library-bulk[hidden] {
 	display: none !important;
 }

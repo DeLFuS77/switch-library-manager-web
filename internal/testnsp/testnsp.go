@@ -25,8 +25,14 @@ func WriteKeys(folder string) error {
 
 // WriteNsp writes an NSP with one compressible program NCA to path and returns its bytes.
 func WriteNsp(path string) ([]byte, error) {
+	return WriteNspOf(path, "compressible test game data ")
+}
+
+// WriteNspOf is WriteNsp with an NCA made of text, so that NSPs of different texts hold
+// different NCAs (a game, its update, its DLC).
+func WriteNspOf(path string, content string) ([]byte, error) {
 	plain := make([]byte, 0x40000)
-	text := []byte("compressible test game data ")
+	text := []byte(content)
 	for i := range plain {
 		plain[i] = text[i%len(text)]
 	}

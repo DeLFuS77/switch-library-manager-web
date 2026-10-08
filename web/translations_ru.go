@@ -3,6 +3,19 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"And the separate files?": "А отдельные файлы?",
+		"Keep them": "Оставить",
+		"Choose whether to keep or delete the separate files.": "Выберите, оставить или удалить отдельные файлы.",
+		"Complete pack": "Полный пакет",
+		"One file with the game, its latest update and its DLC (%v files, %v), to copy and install all at once. The delta fragments of the update are left out.": "Один файл с игрой, её последним обновлением и DLC (%v файлов, %v), чтобы скопировать и установить всё сразу. Дельта-фрагменты обновления не включаются.",
+		"Until the separate files are deleted, it needs as much free space again.": "Пока отдельные файлы не удалены, нужно ещё столько же свободного места.",
+		"Delete the separate files once the pack is checked": "Удалить отдельные файлы после проверки пакета",
+		"Make the pack": "Создать пакет",
+		"The pack could not be made, the files of the game are kept.": "Не удалось создать пакет, файлы игры сохранены.",
+		"A pack with the same name already exists.": "Пакет с таким именем уже существует.",
+		"The game is not in your library.": "Этой игры нет в вашей библиотеке.",
+		"This game has nothing to put in a pack.": "У этой игры нечего объединять в пакет.",
+		"%v packs made, %v of delta fragments left out": "Создано пакетов: %v, исключено дельта-фрагментов: %v",
 		"1 backup": "1 копия",
 		"Save backups": "Резервные копии сохранений",
 		"The backups of your saves that JKSV uploads from the console to the vault of the app.": "Резервные копии сохранений, которые JKSV загружает с консоли в хранилище приложения.",
