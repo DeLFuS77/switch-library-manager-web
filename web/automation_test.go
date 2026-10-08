@@ -52,9 +52,9 @@ func TestLibraryContentPaths(t *testing.T) {
 }
 
 func TestAutomationQueueSurvivesARestart(t *testing.T) {
-	saved := automationPollOverride
-	automationPollOverride = 10 * time.Millisecond
-	defer func() { automationPollOverride = saved }()
+	saved := automationPollOverride.Load()
+	automationPollOverride.Store(int64(10 * time.Millisecond))
+	defer automationPollOverride.Store(saved)
 
 	web := newTestWeb(t)
 	web.state.set(testDatabases(t))
@@ -97,9 +97,9 @@ func TestAutomationMessage(t *testing.T) {
 }
 
 func TestAutomationRunsTheChosenSteps(t *testing.T) {
-	saved := automationPollOverride
-	automationPollOverride = 10 * time.Millisecond
-	defer func() { automationPollOverride = saved }()
+	saved := automationPollOverride.Load()
+	automationPollOverride.Store(int64(10 * time.Millisecond))
+	defer automationPollOverride.Store(saved)
 
 	var mutex sync.Mutex
 	messages := []map[string]any{}

@@ -27,6 +27,8 @@ import (
 func newTestWeb(t *testing.T) *Web {
 	t.Helper()
 	web := &Web{router: mux.NewRouter(), dataFolder: t.TempDir(), sugarLogger: zap.NewNop().Sugar()}
+	// every test starts from the settings of its own folder, not those a test before left in memory
+	settings.ReloadSettings(web.dataFolder)
 	// the processed titles are kept open, and Windows cannot remove an open file
 	t.Cleanup(func() {
 		// files written in the background after a scan
