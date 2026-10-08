@@ -62,6 +62,9 @@
 							{{- template "navLink" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Count" 0 "Badge" "")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Count" 0 "Badge" "")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "sd" "Href" "/sd.html" "Icon" "bi-sd-card" "Label" (t "SD card planner") "Count" 0 "Badge" "")}}
+							{{- if .VaultEnabled}}
+							{{- template "navLink" (dict "Page" .Page "Id" "saves" "Href" "/saves.html" "Icon" "bi-safe" "Label" (t "Save backups") "Count" 0 "Badge" "")}}
+							{{- end}}
 							{{- template "navLink" (dict "Page" .Page "Id" "settings" "Href" "/settings.html" "Icon" "bi-gear" "Label" (t "Settings") "Count" 0 "Badge" "")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "users" "Href" "/users.html" "Icon" "bi-people" "Label" (t "Users") "Count" 0 "Badge" "")}}
 							{{- end}}

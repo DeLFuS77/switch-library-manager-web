@@ -1,6 +1,9 @@
 package web
 
 import (
+	"archive/zip"
+	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
@@ -12,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -197,6 +201,7 @@ func (web *Web) loadDemo() {
 
 	web.writeDemoHistory(switchDB, localDB, time.Now())
 	web.writeDemoTimesToBeat(localDB)
+	web.writeDemoSaves(time.Now())
 	web.state.set(switchDB, localDB)
 	web.sugarLogger.Infof("[Demo mode: %d made-up games]", len(localDB.TitlesMap))
 }
@@ -389,4 +394,46 @@ func (web *Web) writeDemoTimesToBeat(localDB *db.LocalSwitchFilesDB) {
 			Completely: hours * 6300, Count: 4 + (i*13)%90})
 	}
 	store.save()
+}
+
+// writeDemoSaves makes up a few save backups, as JKSV would upload them, so the save vault can
+// be seen in the demo.
+func (web *Web) writeDemoSaves(now time.Time) {
+	for i, game := range demoGames[:8] {
+		if i%3 == 2 {
+			continue
+		}
+		folder := filepath.Join(web.vaultRoot(), VAULT_BASE, game.name)
+		if err := os.MkdirAll(folder, 0755); err != nil {
+			return
+		}
+		id, _ := strconv.ParseUint(demoTitleId(i), 16, 64)
+		for b := 0; b < 1+i%4; b++ {
+			when := now.Add(-time.Duration(i*31+b*53) * time.Hour)
+			path := filepath.Join(folder, fmt.Sprintf("Player - %s.zip", when.Format("2006.01.02 @ 15.04.05")))
+			if _, err := os.Stat(path); err == nil {
+				continue
+			}
+			os.WriteFile(path, demoSaveZip(id, when, 20000+i*7000+b*900), 0644)
+		}
+	}
+}
+
+// demoSaveZip is a ZIP like the backups of JKSV, with its meta file and made-up save data.
+func demoSaveZip(titleId uint64, when time.Time, size int) []byte {
+	meta := make([]byte, 86)
+	binary.LittleEndian.PutUint32(meta[0:4], jksvMetaMagic)
+	meta[4] = 1
+	binary.LittleEndian.PutUint64(meta[5:13], titleId)
+	binary.LittleEndian.PutUint64(meta[49:57], uint64(when.Unix()))
+	var buffer bytes.Buffer
+	writer := zip.NewWriter(&buffer)
+	if file, err := writer.Create(jksvMetaName); err == nil {
+		file.Write(meta)
+	}
+	if file, err := writer.CreateHeader(&zip.FileHeader{Name: "save.dat", Method: zip.Store}); err == nil {
+		file.Write(bytes.Repeat([]byte{0x5a}, size))
+	}
+	writer.Close()
+	return buffer.Bytes()
 }

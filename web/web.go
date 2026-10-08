@@ -126,6 +126,9 @@ type Web struct {
 	// the files waiting for the automations (see automation.go)
 	automationQueue *automationQueue
 	automationOnce  sync.Once
+	// the save vault: verified passwords and what was read from the backups (see vault.go)
+	vault      vaultAuth
+	vaultFiles vaultIndex
 	coll            *collectionStore
 	collectionsOnce sync.Once
 	fav             *favoriteStore
@@ -246,6 +249,8 @@ type GlobalPageData struct {
 	TimesToBeat         bool
 	// the setup wizard opens by itself (first use), for an administrator
 	WizardAuto          bool
+	// the save vault is on: its page is in the menu
+	VaultEnabled        bool
 }
 
 // NavCounts are shown next to the navigation links, so pending work is visible everywhere.
@@ -442,6 +447,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 		Update: web.availableUpdate(),
 		TimesToBeat: web.timesToBeat().hasKnown(),
 		WizardAuto: web.wizardAuto(),
+		VaultEnabled: vaultEnabled(settings.ReadSettings(web.dataFolder)) || isDemoMode(),
 	}
 }
 
@@ -573,6 +579,7 @@ func (web *Web) Start() {
 	web.HandleQuickSearch()
 	web.HandleYear()
 	web.HandleWizard()
+	web.HandleSaves()
 	web.HandleAutoBackups()
 	web.HandleDiagnostics()
 	web.HandleCovers()
@@ -611,7 +618,7 @@ func (web *Web) Start() {
 	// downloads and the live task events can take long
 	server := &http.Server{
 		Addr:              fmt.Sprint(":", web.appSettings.Port),
-		Handler:           withSecurityHeaders(withBodyLimit(withCompression(withHealthCheck(handler)))),
+		Handler:           withSecurityHeaders(withBodyLimit(withCompression(withHealthCheck(web.withVault(handler))))),
 		ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout:       5 * time.Minute,
 		IdleTimeout:       2 * time.Minute,

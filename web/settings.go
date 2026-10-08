@@ -50,6 +50,11 @@ type SettingsForm struct {
 	AutomationOrganize   bool   `in:"form=automation_organize"`
 	AutomationNotify     bool   `in:"form=automation_notify"`
 	AutomationNight      bool   `in:"form=automation_night"`
+	VaultEnabled         bool   `in:"form=vault_enabled"`
+	VaultUser            string `in:"form=vault_user"`
+	VaultPassword        string `in:"form=vault_password"`
+	VaultKeep            int    `in:"form=vault_keep"`
+	VaultNotify          bool   `in:"form=vault_notify"`
 	IgdbClientId         string `in:"form=igdb_client_id"`
 	IgdbClientSecret     string `in:"form=igdb_client_secret"`
 	AutoCompress         string `in:"form=auto_compress"`
@@ -209,6 +214,24 @@ func (web *Web) HandleSettings() {
 			})
 		}
 
+		// the save vault needs a user, and a password the first time (the hash only is kept)
+		if settingsForm.VaultEnabled {
+			vaultUser := strings.TrimSpace(settingsForm.VaultUser)
+			if !validUserName.MatchString(vaultUser) {
+				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_user", Message: translate(lang, ErrUserName.Error())})
+			}
+			if password := settingsForm.VaultPassword; password != "" {
+				if err := checkPassword(vaultUser, password); err != nil {
+					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_password", Message: translate(lang, err.Error())})
+				}
+			} else if settings.ReadSettings(web.dataFolder).Vault.PasswordHash == "" {
+				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_password", Message: translate(lang, ErrPasswordLength.Error())})
+			}
+		}
+		if _, ok := allowedVaultKeep[settingsForm.VaultKeep]; !ok {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_keep", Message: translate(lang, "Unknown option")})
+		}
+
 		if _, ok := allowedVerifyIntervals[settingsForm.VerifyIntervalDays]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
 				Field: "verify_interval_days",
@@ -247,6 +270,16 @@ func (web *Web) HandleSettings() {
 			appSettings.Automation = settings.AutomationOptions{Enabled: settingsForm.AutomationEnabled, Verify: settingsForm.AutomationVerify,
 				Compress: settingsForm.AutomationCompress, CleanupUpdates: settingsForm.AutomationCleanup, Organize: settingsForm.AutomationOrganize,
 				Notify: settingsForm.AutomationNotify, BackgroundHoursOnly: settingsForm.AutomationNight}
+			// the vault password is kept as a hash only; an empty field keeps the one there is
+			appSettings.Vault.Enabled = settingsForm.VaultEnabled
+			appSettings.Vault.User = strings.TrimSpace(settingsForm.VaultUser)
+			appSettings.Vault.Keep = settingsForm.VaultKeep
+			appSettings.Vault.Notify = settingsForm.VaultNotify
+			if settingsForm.VaultPassword != "" {
+				if hash, err := hashVaultPassword(settingsForm.VaultPassword); err == nil {
+					appSettings.Vault.PasswordHash = hash
+				}
+			}
 			// the secret is never sent to the page: an empty field keeps it, no Client ID removes both
 			appSettings.IgdbClientId = strings.TrimSpace(settingsForm.IgdbClientId)
 			if appSettings.IgdbClientId == "" {

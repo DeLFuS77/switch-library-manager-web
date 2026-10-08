@@ -263,6 +263,60 @@
 								<div class="form-text">{{t "The new files wait for the hours of Background work, so the NAS stays fast while you use it."}}</div>
 							</div>
 						</section>
+						<section class="surface mb-4 settings-section" id="vault" aria-labelledby="vaultTitle">
+							{{- $v := .Settings.Vault}}
+							<h2 class="section-title" id="vaultTitle"><span class="bi bi-safe" aria-hidden="true"></span>{{t "Save vault"}}</h2>
+							<p class="text-body-secondary">{{t "Keep the backups of your saves on this server: JKSV, the save manager of the console, uploads them over WebDAV with the user and password below, also from outside your home with a VPN. Off until you turn it on."}}</p>
+							<div class="form-check form-switch mb-3">
+								<input class="form-check-input" type="checkbox" role="switch" id="vault_enabled" name="vault_enabled" value="true" data-vault-master{{if $v.Enabled}} checked{{end}}>
+								<label class="form-check-label fw-semibold" for="vault_enabled">{{t "Turn on the save vault"}}</label>
+							</div>
+							<div class="row g-3" data-vault-fields>
+								<div class="col-md-6">
+									<label for="vault_user" class="form-label fw-semibold">{{t "User for JKSV"}}</label>
+									<input type="text" class="form-control" id="vault_user" name="vault_user" value="{{if $v.User}}{{$v.User}}{{else}}jksv{{end}}" autocomplete="off" spellcheck="false" maxlength="32">
+								</div>
+								<div class="col-md-6">
+									<label for="vault_password" class="form-label fw-semibold">{{t "Password for JKSV"}}</label>
+									<input type="password" class="form-control" id="vault_password" name="vault_password" value="" autocomplete="new-password" minlength="10" maxlength="72" placeholder="{{if $v.PasswordHash}}{{t "Saved. Leave it empty to keep it."}}{{end}}">
+									<div class="form-text">{{t "Not the password of the web interface: only JKSV uses it. At least 10 characters."}}</div>
+								</div>
+								<div class="col-md-6">
+									<label for="vault_keep" class="form-label fw-semibold">{{t "Backups kept per game"}}</label>
+									<select class="form-select" id="vault_keep" name="vault_keep">
+										<option value="0"{{if eq $v.Keep 0}} selected{{end}}>{{t "All of them"}}</option>
+										<option value="5"{{if eq $v.Keep 5}} selected{{end}}>{{t "The newest %v" 5}}</option>
+										<option value="10"{{if eq $v.Keep 10}} selected{{end}}>{{t "The newest %v" 10}}</option>
+										<option value="20"{{if eq $v.Keep 20}} selected{{end}}>{{t "The newest %v" 20}}</option>
+										<option value="50"{{if eq $v.Keep 50}} selected{{end}}>{{t "The newest %v" 50}}</option>
+									</select>
+								</div>
+								<div class="col-md-6 d-flex align-items-end">
+									<div class="form-check form-switch mb-2">
+										<input class="form-check-input" type="checkbox" role="switch" id="vault_notify" name="vault_notify" value="true"{{if $v.Notify}} checked{{end}}>
+										<label class="form-check-label" for="vault_notify">{{t "Tell me about every new backup"}}</label>
+									</div>
+								</div>
+							</div>
+							<div class="vault-setup mt-4">
+								<h3 class="h6 fw-semibold"><span class="bi bi-nintendo-switch me-1" aria-hidden="true"></span>{{t "Set up JKSV on the console"}}</h3>
+								<ol class="small mb-3">
+									<li>{{t "Save these settings with the vault on."}}</li>
+									<li>{{t "Download the file below and copy it to the SD card of the console as %v." "sdmc:/config/JKSV/webdav.json"}}</li>
+									<li>{{t "Open JKSV: it says that WebDAV is ready. Make a backup and choose to upload it."}}</li>
+								</ol>
+								<div class="row g-2 align-items-end">
+									<div class="col-md-8">
+										<label for="vault_origin" class="form-label small fw-semibold">{{t "Address of this server for the console"}}</label>
+										<input type="url" class="form-control form-control-sm font-monospace" id="vault_origin" data-vault-origin spellcheck="false">
+										<div class="form-text">{{t "The console needs the address of the server on your network (not localhost), like http://192.168.1.10:3000."}}</div>
+									</div>
+									<div class="col-md-4">
+										<button type="button" class="btn btn-outline-primary rounded-pill w-100" data-vault-download data-missing-password="{{t "Write the password for JKSV above to put it in the file."}}"><span class="bi bi-download me-1" aria-hidden="true"></span>webdav.json</button>
+									</div>
+								</div>
+							</div>
+						</section>
 						<section class="surface mb-4 settings-section" id="notifications" aria-labelledby="notificationsTitle">
 							<h2 class="section-title" id="notificationsTitle"><span class="bi bi-bell" aria-hidden="true"></span>{{t "Notifications"}}</h2>
 							<p class="text-body-secondary">{{t "After every synchronization, get a message when an update or a DLC of one of your games becomes available. Only new items are reported."}}</p>

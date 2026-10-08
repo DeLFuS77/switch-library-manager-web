@@ -445,6 +445,11 @@
 						<textarea name="ignore_update_title_ids">{{range $s.IgnoreUpdateTitleIds}}{{.}}
 {{end}}</textarea>
 						<input type="text" name="ignore_file_types" value="{{range $i, $e := $s.IgnoreFileTypes}}{{if $i}} {{end}}{{$e}}{{end}}">
+						<input type="checkbox" name="vault_enabled" value="true"{{if $s.Vault.Enabled}} checked{{end}}>
+						<input type="text" name="vault_user" value="{{$s.Vault.User}}">
+						<input type="password" name="vault_password" value="" autocomplete="off">
+						<input type="text" name="vault_keep" value="{{$s.Vault.Keep}}">
+						<input type="checkbox" name="vault_notify" value="true"{{if $s.Vault.Notify}} checked{{end}}>
 					</div>
 
 					<footer class="wizard-footer" data-wizard-footer>

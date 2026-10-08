@@ -2071,6 +2071,65 @@ function initRegionRemove() {
 	});
 }
 
+// Settings > Save vault: the webdav.json file of JKSV, made in the browser with the address of
+// the server and the user and password written above (the password is never sent back by the
+// server, so it has to be written to be put in the file).
+function initVaultSettings() {
+	const origin = document.querySelector('[data-vault-origin]');
+	const download = document.querySelector('[data-vault-download]');
+	const master = document.querySelector('[data-vault-master]');
+	const fields = document.querySelector('[data-vault-fields]');
+	if (master && fields) {
+		const update = () => fields.classList.toggle('is-off', !master.checked);
+		master.addEventListener('change', update);
+		update();
+	}
+	if (!origin || !download) {
+		return;
+	}
+	origin.value = window.location.origin;
+	download.addEventListener('click', () => {
+		const user = document.getElementById('vault_user').value.trim();
+		const password = document.getElementById('vault_password').value;
+		if (!password) {
+			insertAlert(download.closest('.vault-setup'), 'alert-warning', 'bi-key-fill', '', download.dataset.missingPassword);
+			document.getElementById('vault_password').focus();
+			return;
+		}
+		const config = { origin: origin.value.trim().replace(/\/+$/, '') + '/dav', basepath: 'JKSV', username: user, password };
+		const blob = new Blob([JSON.stringify(config, null, 2) + '\n'], { type: 'application/json' });
+		const link = document.createElement('a');
+		link.href = URL.createObjectURL(blob);
+		link.download = 'webdav.json';
+		document.body.appendChild(link);
+		link.click();
+		link.remove();
+		setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+	});
+}
+
+// Save backups: a backup is deleted after a confirmation.
+function initSaveDelete() {
+	document.querySelectorAll('[data-save-delete]').forEach(button => {
+		button.addEventListener('click', () => {
+			if (!window.confirm(button.dataset.confirmText)) {
+				return;
+			}
+			button.disabled = true;
+			postForm('/saves/delete', { path: button.dataset.saveDelete })
+				.then(() => {
+					const row = button.closest('.item-row');
+					row.classList.add('is-removed');
+					setTimeout(() => row.remove(), 400);
+				})
+				.catch(error => {
+					button.disabled = false;
+					insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+				});
+		});
+	});
+}
+
 // cards tilt slightly towards the pointer
 function initCardTilt() {
 	if (reducedMotion() || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
@@ -2378,6 +2437,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	initAutomationSettings();
 	initWizard();
 	initRegionRemove();
+	initVaultSettings();
+	initSaveDelete();
 
 	// forms that delete something ask first
 	document.querySelectorAll('form[data-confirm]').forEach(form => {

@@ -1,0 +1,59 @@
+{{define "title"}}{{t "Save backups"}}{{end}}
+{{define "main"}}
+			{{- template "pageHeader" (dict "Title" (t "Save backups") "Count" (len .Games) "Subtitle" (t "The backups of your saves that JKSV uploads from the console to the vault of the app."))}}
+			{{- if not .Games}}
+			{{- if .Enabled}}
+			{{- template "emptyState" (dict "Icon" "bi-safe" "Tone" "" "Title" (t "The vault is ready") "Text" (t "Make a backup of a save in JKSV on the console and choose the WebDAV remote: it appears here.") "ActionHref" "/settings.html#vault" "ActionLabel" (t "How to set up JKSV") "ActionIcon" "bi-gear")}}
+			{{- else}}
+			{{- template "emptyState" (dict "Icon" "bi-safe" "Tone" "" "Title" (t "Keep your saves safe") "Text" (t "Turn on the save vault in Settings, copy the file it makes to the SD card of the console, and JKSV uploads the backups of your saves here.") "ActionHref" "/settings.html#vault" "ActionLabel" (t "Turn on the vault") "ActionIcon" "bi-safe")}}
+			{{- end}}
+			{{- else}}
+			<div class="row row-cols-2 row-cols-lg-4 g-2 g-md-3 mb-4">
+				{{- template "statCard" (dict "Label" (t "Games") "Value" (len .Games) "Icon" "bi-controller" "Tone" "" "Count" true)}}
+				{{- template "statCard" (dict "Label" (t "Backups") "Value" .Backups "Icon" "bi-safe" "Tone" "is-cyan" "Count" true)}}
+				{{- template "statCard" (dict "Label" (t "Total size") "Value" (formatSize .Size) "Icon" "bi-hdd-stack" "Tone" "" "Count" false)}}
+				{{- template "statCard" (dict "Label" (t "Latest backup") "Value" (formatTime .Latest) "Icon" "bi-clock-history" "Tone" "is-cyan" "Count" false)}}
+			</div>
+			{{- if not .Enabled}}
+			<div class="alert alert-warning d-flex gap-2 align-items-start"><span class="bi bi-pause-circle mt-1" aria-hidden="true"></span><div>{{t "The vault is off: the backups below are kept, but JKSV cannot upload new ones."}} <a class="alert-link" href="/settings.html#vault">{{t "Turn on the vault"}}</a></div></div>
+			{{- end}}
+			<div class="save-list">
+				{{- range .Games}}{{$game := .}}
+				<details class="surface save-game">
+					<summary class="save-game-head">
+						<img class="save-game-cover" src="{{if .ImageUrl}}{{thumb .ImageUrl}}{{else}}/resources/static/noimage.png{{end}}" alt="" loading="lazy" decoding="async">
+						<span class="save-game-main">
+							<span class="save-game-name">{{.Name}}{{if not .InLibrary}} <span class="chip chip-muted">{{t "Not in your library"}}</span>{{end}}</span>
+							<span class="save-game-meta"><span class="bi bi-clock-history" aria-hidden="true"></span>{{formatDateTime .Latest}} &middot; {{if eq (len .Backups) 1}}{{t "1 backup"}}{{else}}{{t "%v backups" (len .Backups)}}{{end}} &middot; {{formatSize .Size}}</span>
+						</span>
+						<span class="bi bi-chevron-down save-game-toggle" aria-hidden="true"></span>
+					</summary>
+					<ul class="item-list mb-0 mt-3">
+						{{- range $i, $b := .Backups}}
+						<li class="item-row">
+							<span class="chip {{if eq $i 0}}chip-success{{else}}chip-muted{{end}} item-type">{{if eq $i 0}}{{t "Latest"}}{{else}}#{{add $i 1}}{{end}}</span>
+							<div class="item-main">
+								<div class="item-name">{{formatDateTime $b.Time}}</div>
+								<div class="item-meta"><span class="font-monospace">{{$b.Name}}</span><span>{{formatSize $b.Size}}</span></div>
+							</div>
+							<div class="d-flex gap-2 flex-shrink-0">
+							<a class="btn btn-sm btn-outline-secondary" href="/saves/download?path={{$b.Path}}" title="{{t "Download"}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download"}}</span></a>
+							<button type="button" class="btn btn-sm btn-outline-danger" data-save-delete="{{$b.Path}}" data-confirm-text="{{t "Delete this backup of %v (%v)? It cannot be undone." $game.Name (formatDateTime $b.Time)}}" title="{{t "Delete"}}"><span class="bi bi-trash3" aria-hidden="true"></span><span class="visually-hidden">{{t "Delete"}}</span></button>
+							</div>
+						</li>
+						{{- end}}
+					</ul>
+				</details>
+				{{- end}}
+			</div>
+			{{- if .Missing}}
+			<details class="surface mt-4 saves-missing">
+				<summary class="section-title mb-0"><span class="bi bi-exclamation-diamond" aria-hidden="true"></span>{{t "Games of your library without a backup"}} <span class="badge rounded-pill text-bg-secondary">{{len .Missing}}</span></summary>
+				<p class="small text-body-secondary mt-2">{{t "Make a backup of their saves in JKSV, if you play them."}}</p>
+				<div class="d-flex flex-wrap gap-2">
+					{{- range .Missing}}<a class="chip chip-muted text-decoration-none" href="/title/{{.Id}}.html">{{.Name}}</a>{{end}}
+				</div>
+			</details>
+			{{- end}}
+			{{- end}}
+{{- end}}

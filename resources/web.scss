@@ -3253,6 +3253,7 @@ html[data-section="general"] #general,
 html[data-section="background"] #background,
 html[data-section="compression"] #compression,
 html[data-section="automation"] #automation,
+html[data-section="vault"] #vault,
 html[data-section="notifications"] #notifications,
 html[data-section="backup"] #backup {
 	display: block;
@@ -4544,4 +4545,85 @@ body:has(.wizard.show) #alert_sync {
 	opacity: .35;
 	text-decoration: line-through;
 	transition: opacity .3s ease;
+}
+
+// Save backups: a game with its backups, folded
+.save-list {
+	display: grid;
+	gap: .75rem;
+}
+
+.save-game {
+	padding: .85rem 1rem;
+
+	&[open] .save-game-toggle {
+		transform: rotate(180deg);
+	}
+}
+
+.save-game-head {
+	display: flex;
+	align-items: center;
+	gap: .9rem;
+	list-style: none;
+	cursor: pointer;
+
+	&::-webkit-details-marker {
+		display: none;
+	}
+}
+
+.save-game-cover {
+	flex-shrink: 0;
+	width: 3.25rem;
+	height: 3.25rem;
+	border-radius: .7rem;
+	object-fit: cover;
+	background: var(--slm-surface-muted);
+}
+
+.save-game-main {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.save-game-name {
+	overflow: hidden;
+	font-weight: 700;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.save-game-meta {
+	color: var(--bs-secondary-color);
+	font-size: .82rem;
+
+	.bi {
+		margin-right: .3rem;
+	}
+}
+
+.save-game-toggle {
+	color: var(--bs-secondary-color);
+	transition: transform .2s ease;
+}
+
+.saves-missing summary {
+	cursor: pointer;
+}
+
+[data-vault-fields] {
+	transition: opacity .2s ease;
+
+	&.is-off {
+		opacity: .5;
+	}
+}
+
+.vault-setup {
+	padding: 1rem;
+	border-radius: $border-radius-lg;
+	background: var(--slm-surface-muted);
 }
