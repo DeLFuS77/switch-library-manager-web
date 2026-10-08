@@ -14,6 +14,9 @@ services:
       - PUID=1026
       - PGID=100
       - TZ=Europe/Madrid
+      # optional: how long games take to beat, with your own Twitch application (see the README)
+      # - SLM_IGDB_CLIENT_ID=
+      # - SLM_IGDB_CLIENT_SECRET=
     volumes:
       # settings, caches, covers and your own prod.keys
       - /volume1/docker/switch-library-manager-web/data:/usr/local/share/switch-library-manager-web

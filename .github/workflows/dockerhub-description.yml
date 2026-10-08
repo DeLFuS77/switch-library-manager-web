@@ -34,5 +34,5 @@ jobs:
           username: delfus77
           password: ${{ env.DOCKERHUB_TOKEN }}
           repository: delfus77/switch-library-manager-web
-          short-description: Manage your Nintendo Switch backup library from the browser
+          short-description: Nintendo Switch library manager in your browser - updates, DLC, stats, NSZ, discovery
           readme-filepath: ./README.dockerhub.md

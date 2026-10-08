@@ -57,7 +57,7 @@ Linux, Docker, NAS and Raspberry Pi.
 - [Your keys](#your-keys)
 - [First start](#first-start)
 - [Guides](#guides): [Organize](#organize), [Compress](#compress), [Users](#users-and-password-protection),
-  [Notifications](#notifications), [API](#api), [Settings](#settings)
+  [Times to beat](#times-to-beat), [Notifications](#notifications), [API](#api), [Settings](#settings)
 - [Updating](#updating)
 - [Demo mode](#demo-mode)
 - [Troubleshooting](#troubleshooting)
@@ -68,18 +68,29 @@ Linux, Docker, NAS and Raspberry Pi.
 
 **Your library at a glance**
 - Scans your folders (NSP, NSZ, XCI, XCZ and split files) and rescans by itself when files change
-- An overview of your games, missing updates and DLC, and the space they use
 - Missing updates (for games and DLC), missing DLC and missing games, with filters and search
 - Library filters by status, genre, players, language, format, region, collection, games or demos, and games
-  without a cover; sort by size or date added; a search that forgives typos
+  without a cover; sort by size, date added or time to beat; a search that forgives typos
 - Quick search from any page (<kbd>Ctrl</kbd>+<kbd>K</kbd>, <kbd>/</kbd> or the magnifier in the header): games,
   series, collections, pages and sections of Settings, chosen with the arrows and opened with Enter
-- SD card planner: the games that fit on a card by what you like, copied to the card in one go
+- Game pages with description, screenshots, DLC, downloads (a whole game as one ZIP) and the **version history**:
+  every update with its date, the one installed, and a link to what is new
 - Favorites, your own collections of games ("Playing", "For the kids"...) and actions on several games at once
-- The missing games greyed out with yours on request, and the games of the same series on each game page
+- SD card planner: the games that fit on a card by what you like, copied to the card in one go
+
+**Discover**
+- **You might like**: games you do not have, like the ones you like most
+- **Upcoming releases**: a calendar of the games coming out, with your wishlist and the sequels of your series first
+- **Series**: how many games of each series you have and which ones are missing
 - A wishlist of games you do not have yet, with a notification when they come out
-- Game pages with description, screenshots, versions, DLC and downloads (a whole game as one ZIP)
-- Statistics with charts and the history of your library, and an export as CSV, JSON or a web page to share
+- **Times to beat** (optional, from [IGDB](https://www.igdb.com)): how long each game takes, quick, story and 100%,
+  and how many hours your library adds up to
+
+**Statistics**
+- Charts of your library: space by content and format, genres, publishers, years, the largest games and its history
+- **Your year on Switch**: what came to your library in a year (games, updates, DLC, the busiest month, your
+  favorite genre and more), ready to download as an image and share
+- Export as CSV, JSON or a web page to share
 
 **Keep it tidy**
 - Issues: unsupported, duplicate, old, damaged or unidentified files
@@ -93,16 +104,27 @@ Linux, Docker, NAS and Raspberry Pi.
 - Every file is verified before the original is deleted; NSZ files can be decompressed back to NSP
 - Space page: see how much old updates, duplicates and already compressed originals take, and free it safely
 
-**Built to run on a server**
-- Docker image for amd64 and arm64, Unraid template, low memory use and fast with tens of thousands of files:
-  the library shows up while it is scanned, covers and thumbnails load in the background
-- Background hours: keep cover downloads, thumbnails and compression for the night
-- User accounts with administrator and read-only roles, a language per user and an activity log
+**Built to run on a server, or on your computer**
+- Docker image for amd64 and arm64, templates for Unraid, Synology and Portainer, and ready-to-run programs for
+  Windows, macOS, Linux and Raspberry Pi
+- Low memory use and fast with tens of thousands of files: the library shows up while it is scanned, covers and
+  thumbnails load in the background
+- Background hours: keep cover downloads, thumbnails, file checks and compression for the night
 - Live tasks page, scheduled synchronization and notifications (Discord, Telegram, webhook) of new updates, DLC
   and games
+- Weekly backups of your configuration, and a Diagnostics page that checks everything at a glance
 - JSON API with OpenAPI description, e.g. for Home Assistant
-- Interface in English, Spanish, French, German, Italian, Portuguese, Dutch, Russian, Japanese, Korean and Chinese
-  (including game names where the eShop has them), light and dark theme
+- Installable on your phone's home screen like an app
+
+**Safe to reach from the internet**
+- User accounts with administrator and read-only roles, a language per user and an activity log
+- Protection against brute force and bots that try lists of users and passwords, also behind Cloudflare
+- No access from outside your network until an administrator exists; HTTPS-ready, with the usual browser
+  protections
+
+**In your language**
+- English, Spanish, French, German, Italian, Portuguese, Dutch, Russian, Japanese, Korean and Chinese (including
+  game names where the eShop has them), light and dark theme
 
 ## Quick start
 
@@ -302,6 +324,22 @@ Other protections: other web sites cannot send actions to the app (CSRF), pages 
 only the app's own scripts run, request sizes and slow connections are limited, covers are only downloaded from the
 internet (never from addresses of your network) and the settings, users and session files are readable only by the
 app.
+
+### Times to beat
+
+Optional: the game pages can show how long each game takes to beat (quick, story and 100%), the library can be
+sorted by it and Statistics adds up the hours of your games. The times come from [IGDB](https://www.igdb.com), free
+for non-commercial use, through your own Twitch application:
+
+1. Have a Twitch account with two-step verification enabled.
+2. In [dev.twitch.tv/console](https://dev.twitch.tv/console), **Register Your Application**: any name,
+   OAuth Redirect URL `http://localhost`, category *Application Integration*, client type **Confidential**.
+3. Copy its **Client ID**, create a **Client Secret**, and paste both in **Settings > General > Times to beat**
+   (or set `SLM_IGDB_CLIENT_ID` and `SLM_IGDB_CLIENT_SECRET`).
+
+After the next scan, the games are looked up in the background, a few a second as IGDB asks, and the times are kept
+in `timetobeat.json` in the data folder, so each game is looked up once (again after some months). The secret stays
+on the server and is never shown again. Games that nobody reported on IGDB have no time.
 
 ### Notifications
 
