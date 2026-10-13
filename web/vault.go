@@ -8,7 +8,9 @@ import (
 	"encoding/hex"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -131,6 +133,10 @@ func (web *Web) vaultHandler() http.Handler {
 		}
 
 		root := web.vaultRoot()
+		if status, message := vaultAllowed(r, root); status != 0 {
+			http.Error(w, message, status)
+			return
+		}
 		if err := os.MkdirAll(filepath.Join(root, VAULT_BASE), 0755); err != nil {
 			http.Error(w, "the vault folder cannot be created", http.StatusInternalServerError)
 			return
@@ -147,6 +153,65 @@ func (web *Web) vaultHandler() http.Handler {
 			web.afterVaultUpload(r)
 		}
 	})
+}
+
+// vaultMinFree is the free space an upload must leave on the disk of the vault.
+var vaultMinFree uint64 = 2 << 30
+
+// vaultMethods are the WebDAV requests JKSV makes; the others are refused.
+var vaultMethods = map[string]bool{http.MethodOptions: true, http.MethodGet: true, http.MethodHead: true, "PROPFIND": true,
+	"MKCOL": true, http.MethodPut: true, http.MethodDelete: true, "MOVE": true, "LOCK": true, "UNLOCK": true}
+
+// vaultAllowed limits what the vault accepts, even with the right password: backups (ZIP
+// files) in the folder of JKSV, never a file anywhere else, never a full disk. It returns
+// the status of a refusal, or 0.
+func vaultAllowed(r *http.Request, root string) (int, string) {
+	if !vaultMethods[r.Method] {
+		return http.StatusMethodNotAllowed, "not used by the save vault"
+	}
+	inside := func(urlPath string) (string, bool) {
+		rel := path.Clean("/" + strings.TrimPrefix(urlPath, VAULT_PREFIX))
+		return rel, rel == "/"+VAULT_BASE || strings.HasPrefix(rel, "/"+VAULT_BASE+"/")
+	}
+	rel, ok := inside(r.URL.Path)
+	switch r.Method {
+	case http.MethodOptions, http.MethodGet, http.MethodHead:
+		return 0, ""
+	case "PROPFIND":
+		// a listing of the whole vault at once is never needed
+		if strings.EqualFold(strings.TrimSpace(r.Header.Get("Depth")), "infinity") {
+			return http.StatusForbidden, "only listings of one level are answered"
+		}
+		return 0, ""
+	}
+	// changes: only inside the folder of JKSV, never the folder itself
+	if !ok || rel == "/"+VAULT_BASE {
+		return http.StatusForbidden, "only the folder of JKSV can be changed"
+	}
+	isZip := strings.EqualFold(path.Ext(rel), ".zip")
+	switch r.Method {
+	case http.MethodPut:
+		if !isZip {
+			return http.StatusForbidden, "only backups (ZIP files) are kept"
+		}
+		need := vaultMinFree
+		if r.ContentLength > 0 {
+			need += uint64(r.ContentLength)
+		}
+		if free, err := diskFree(root); err == nil && free < need {
+			return http.StatusInsufficientStorage, "not enough free space on the server"
+		}
+	case "MOVE":
+		destination, err := url.Parse(r.Header.Get("Destination"))
+		if err != nil || destination.Path == "" {
+			return http.StatusBadRequest, "no destination"
+		}
+		target, ok := inside(destination.Path)
+		if !ok || target == "/"+VAULT_BASE || isZip != strings.EqualFold(path.Ext(target), ".zip") {
+			return http.StatusForbidden, "backups stay in the folder of JKSV"
+		}
+	}
+	return 0, ""
 }
 
 // withVault sends the requests of the vault to its handler, before the login of the web

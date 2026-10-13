@@ -440,3 +440,49 @@ func TestFileWithoutContentMetadataIsReported(t *testing.T) {
 		}
 	}
 }
+
+// A DLC whose index is 0x800 ends with 800 like an update, but its group digit tells it is
+// a DLC of the game below.
+func TestDlcWithIndex800IsNoUpdate(t *testing.T) {
+	if kind, _ := ContentKind("0100000000011800"); kind != KIND_DLC {
+		t.Fatalf("kind %s", kind)
+	}
+	if prefix, _ := titleIDPrefix("0100000000011800"); prefix != "0100000000010" {
+		t.Fatalf("prefix %s", prefix)
+	}
+	if kind, _ := ContentKind("0100000000010800"); kind != KIND_UPDATE {
+		t.Fatalf("an update: %s", kind)
+	}
+	// the metadata of the file names the kind exactly
+	if kind, _ := metadataKind(&switchfs.ContentMetaAttributes{TitleId: "0100000000011800", Type: "DLC"}); kind != KIND_DLC {
+		t.Fatalf("from metadata: %s", kind)
+	}
+}
+
+// When a newer version of a DLC is found after an older one, the older one is listed as an
+// old file, like an old update, instead of vanishing from the library.
+func TestOlderDlcIsListedAsOld(t *testing.T) {
+	romDir := t.TempDir()
+	for _, name := range []string{"Game [0100000000010000][v0].nsp", "Game DLC [0100000000011001][v0].nsp", "Game DLC [0100000000011001][v65536].nsp"} {
+		os.WriteFile(filepath.Join(romDir, name), []byte("x"), 0644)
+	}
+	manager, err := NewLocalSwitchDBManager(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer manager.Close()
+	localDB, err := manager.CreateLocalSwitchFilesDB(nil, t.TempDir(), []string{romDir}, nil, true, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if dlc := localDB.TitlesMap["0100000000010"].Dlc["0100000000011001"]; dlc.Metadata == nil || dlc.Metadata.Version != 65536 {
+		t.Fatalf("the newer DLC is kept: %+v", dlc)
+	}
+	found := false
+	for file, skipped := range localDB.Skipped {
+		found = found || file.FileName == "Game DLC [0100000000011001][v0].nsp" && skipped.ReasonCode == REASON_OLD_UPDATE
+	}
+	if !found {
+		t.Fatalf("the older DLC is listed: %v", localDB.Skipped)
+	}
+}
