@@ -65,7 +65,7 @@ func TestRegionalDuplicateDamagedIsNotKept(t *testing.T) {
 	// the Spanish copy would be kept for a Spanish interface, but it is damaged
 	path := filepath.Join(folder, "Known JP.nsp")
 	info, _ := os.Stat(path)
-	web.verifications().set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Reason: "bad"})
+	web.verifications().set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Reason: "bad", Checker: verifyChecker})
 	group := web.buildRegionalDuplicates("es")[0]
 	if group.Copies[0].Id != "0100000000010000" || group.Copies[0].Reasons[0] != REGION_REASON_SOUND || !group.Copies[1].Damaged {
 		t.Fatalf("the sound copy is kept: %+v", group.Copies)

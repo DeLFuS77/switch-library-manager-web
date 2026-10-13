@@ -526,6 +526,12 @@ func nczCounter(sectionCounter []byte, offset uint64) []byte {
 
 // decompressNcz writes the original NCA of an NCZ stored at offset in input.
 func decompressNcz(ctx context.Context, output io.Writer, input io.ReaderAt, offset int64, size int64, progress func(int64)) error {
+	return decompressNczPlain(ctx, output, input, offset, size, progress, nil)
+}
+
+// decompressNczPlain is decompressNcz that also gives plain the decrypted bytes of the NCA
+// after its header, with their offset in the NCA, to check its hashes.
+func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt, offset int64, size int64, progress func(int64), plain func(int64, []byte)) error {
 	reader := io.NewSectionReader(input, offset, size)
 	header := make([]byte, nczHeaderSize)
 	if _, err := io.ReadFull(reader, header); err != nil {
@@ -539,8 +545,10 @@ func decompressNcz(ctx context.Context, output io.Writer, input io.ReaderAt, off
 	if _, err := io.ReadFull(reader, magic); err != nil || string(magic) != nczSectionMagic {
 		return errors.New("not an NCZ file")
 	}
+	// updates split their sections by the subsection table: thousands of entries of 0x40
+	// bytes are possible, but never more than the NCZ holds
 	var count uint64
-	if err := binary.Read(reader, binary.LittleEndian, &count); err != nil || count == 0 || count > 64 {
+	if err := binary.Read(reader, binary.LittleEndian, &count); err != nil || count == 0 || count > uint64(size)/0x40 {
 		return errors.New("invalid NCZ section table")
 	}
 	sections := make([]nczSection, count)
@@ -556,6 +564,21 @@ func decompressNcz(ctx context.Context, output io.Writer, input io.ReaderAt, off
 		if _, err := io.ReadFull(reader, sections[i].counter); err != nil {
 			return err
 		}
+	}
+
+	// like nsz: the bytes between the copied header and a first section that starts later
+	// are stored without encryption, and a first section that starts earlier continues
+	// where the copied header ends
+	if sections[0].offset > nczHeaderSize {
+		gap := nczSection{offset: nczHeaderSize, size: sections[0].offset - nczHeaderSize, cryptoType: 1, key: make([]byte, 16), counter: make([]byte, 16)}
+		sections = append([]nczSection{gap}, sections...)
+	} else if sections[0].offset < nczHeaderSize {
+		skip := nczHeaderSize - sections[0].offset
+		if skip >= sections[0].size {
+			return errors.New("invalid NCZ section table")
+		}
+		sections[0].offset += skip
+		sections[0].size -= skip
 	}
 
 	position, _ := reader.Seek(0, io.SeekCurrent)
@@ -597,6 +620,9 @@ func decompressNcz(ctx context.Context, output io.Writer, input io.ReaderAt, off
 			if _, err := io.ReadFull(stream, chunk); err != nil {
 				return fmt.Errorf("NCZ data ends early: %w", err)
 			}
+			if plain != nil {
+				plain(int64(position), chunk)
+			}
 			if section.cryptoType == 3 || section.cryptoType == 4 {
 				cipher.NewCTR(block, nczCounter(section.counter, position)).XORKeyStream(chunk, chunk)
 			}
@@ -619,6 +645,8 @@ type nczBlockReader struct {
 	sizes     []uint32
 	current   []byte
 	decoder   *zstd.Decoder
+	// decompressed bytes not given yet, to know the size of the last block
+	remaining uint64
 }
 
 func newNczBlockReader(source io.Reader) (*nczBlockReader, error) {
@@ -643,7 +671,7 @@ func newNczBlockReader(source io.Reader) (*nczBlockReader, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &nczBlockReader{source: source, blockSize: 1 << exponent, sizes: sizes, decoder: decoder}, nil
+	return &nczBlockReader{source: source, blockSize: 1 << exponent, sizes: sizes, decoder: decoder, remaining: decompressedSize}, nil
 }
 
 func (b *nczBlockReader) Read(p []byte) (int, error) {
@@ -657,7 +685,14 @@ func (b *nczBlockReader) Read(p []byte) (int, error) {
 		if _, err := io.ReadFull(b.source, compressed); err != nil {
 			return 0, err
 		}
-		if len(compressed) < b.blockSize {
+		// a block is stored as it is when compressing it gave nothing; the last block is
+		// shorter than the others (nsz issue 210)
+		size := uint64(b.blockSize)
+		if b.remaining < size {
+			size = b.remaining
+		}
+		b.remaining -= size
+		if uint64(len(compressed)) < size {
 			decoded, err := b.decoder.DecodeAll(compressed, nil)
 			if err != nil {
 				return 0, err
@@ -672,63 +707,35 @@ func (b *nczBlockReader) Read(p []byte) (int, error) {
 	return n, nil
 }
 
-// VerifyCompressed checks every NCA of an NSZ or XCZ: compressed ones are decompressed,
-// and the SHA-256 of each NCA must match the content ID in its name. expected holds the
-// hashes of the original NCA files by name, when known.
-func VerifyCompressed(ctx context.Context, path string, expected map[string][32]byte, progress func(done int64, total int64)) error {
-	input, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer input.Close()
-	pkg, err := openGamePackage(input)
-	if err != nil {
-		return err
-	}
-	var total, done int64
-	for _, file := range pkg.files {
-		total += file.size
-	}
-	report := func(n int64) {
-		done += n
-		if progress != nil {
-			progress(done, total)
-		}
-	}
+// FileCheck tells what the check of a game file found besides damage.
+type FileCheck struct {
+	// NCA files rewritten by a tool (their header no longer matches their content ID)
+	// whose data still matches all its hashes: they install and play like the originals
+	Modified []string
+	// some sections of those files cannot be checked on their own (the romfs of an
+	// update, or no key to decrypt them)
+	Partial bool
+}
 
-	for _, file := range pkg.files {
-		lower := strings.ToLower(file.name)
-		hash := sha256.New()
-		switch {
-		case strings.HasSuffix(lower, ".ncz"):
-			if err := decompressNcz(ctx, hash, input, file.offset, file.size, nil); err != nil {
-				return fmt.Errorf("%s: %w", file.name, err)
-			}
-			report(file.size)
-		case strings.HasSuffix(lower, ".nca"):
-			if err := copyRange(ctx, hash, input, file.offset, file.size, report); err != nil {
-				return err
-			}
-		default:
-			report(file.size)
-			continue
-		}
-		var sum [32]byte
-		copy(sum[:], hash.Sum(nil))
-		original := strings.TrimSuffix(strings.TrimSuffix(file.name, ".ncz"), ".nca") + ".nca"
-		if want, ok := expected[original]; ok && want != sum {
-			return fmt.Errorf("%s: the content differs from the original", file.name)
-		}
-		if id := contentId(file.name); id != "" && hex.EncodeToString(sum[:16]) != id {
-			return fmt.Errorf("%s: the content does not match its ID", file.name)
-		}
-	}
-	return nil
+// VerifyCompressed checks every file of an NSZ or XCZ: compressed ones are decompressed,
+// and the SHA-256 of each NCA must match the content ID in its name. expected holds the
+// hashes of the files of the original by name, when known: every one of them must then be
+// there with the same content.
+func VerifyCompressed(ctx context.Context, path string, expected map[string][32]byte, progress func(done int64, total int64)) error {
+	_, _, err := checkPackage(ctx, path, expected, progress)
+	return err
 }
 
 // VerifyNsz is VerifyCompressed.
 func VerifyNsz(ctx context.Context, path string, expected map[string][32]byte, progress func(done int64, total int64)) error {
 	return VerifyCompressed(ctx, path, expected, progress)
+}
+
+// VerifyFile checks a game file of the library (NSP, NSZ, XCI or XCZ). An NCA that does
+// not match its content ID is only damaged when its data does not match its hashes.
+func VerifyFile(ctx context.Context, path string, progress func(done int64, total int64)) (FileCheck, error) {
+	_, check, err := checkPackage(ctx, path, nil, progress)
+	return check, err
 }
 
 // contentId returns the content ID in the name of an NCA, or "" if it has none.
@@ -746,45 +753,123 @@ func contentId(name string) string {
 	return id
 }
 
-// HashNcas returns the SHA-256 of every NCA of an NSP by name, to compare with the NSZ.
-// It also tells when an NCA does not match the content ID in its name, which means the
-// file is damaged or was modified.
+// HashNcas returns the SHA-256 of every file of an NSP or XCI by name, to compare with
+// its compressed copy. It tells when an NCA is damaged; one that was only modified by a
+// tool (see FileCheck) is not an error.
 func HashNcas(ctx context.Context, path string, progress func(done int64, total int64)) (map[string][32]byte, error) {
+	hashes, _, err := checkPackage(ctx, path, nil, progress)
+	return hashes, err
+}
+
+// checkPackage hashes every file of a package (NCZ files decompressed) and checks them:
+// against expected when given, else every NCA against its content ID and, when that
+// fails, against the hash trees of its data.
+func checkPackage(ctx context.Context, path string, expected map[string][32]byte, progress func(done int64, total int64)) (map[string][32]byte, FileCheck, error) {
+	check := FileCheck{}
 	input, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return nil, check, err
 	}
 	defer input.Close()
 	pkg, err := openGamePackage(input)
 	if err != nil {
-		return nil, err
+		return nil, check, err
 	}
 	var total, done int64
 	for _, file := range pkg.files {
 		total += file.size
 	}
-	result := map[string][32]byte{}
+	report := func(n int64) {
+		done += n
+		if progress != nil {
+			progress(done, total)
+		}
+	}
+	var titleKeys map[string][]byte
+
+	hashes := map[string][32]byte{}
 	for _, file := range pkg.files {
-		if !strings.HasSuffix(strings.ToLower(file.name), ".nca") {
-			continue
+		original := file.name
+		compressed := strings.HasSuffix(strings.ToLower(file.name), ".ncz")
+		if compressed {
+			original = file.name[:len(file.name)-4] + ".nca"
 		}
 		hash := sha256.New()
-		if err := copyRange(ctx, hash, input, file.offset, file.size, func(n int64) {
-			done += n
-			if progress != nil {
-				progress(done, total)
-			}
-		}); err != nil {
-			return nil, err
+		if compressed {
+			err = decompressNcz(ctx, hash, input, file.offset, file.size, nil)
+			report(file.size)
+		} else {
+			err = copyRange(ctx, hash, input, file.offset, file.size, report)
+		}
+		if err != nil {
+			return nil, check, fmt.Errorf("%s: %w", file.name, err)
 		}
 		var sum [32]byte
 		copy(sum[:], hash.Sum(nil))
-		if id := contentId(file.name); id != "" && hex.EncodeToString(sum[:16]) != id {
-			return nil, fmt.Errorf("%s does not match its content ID: the file is damaged or was modified", file.name)
+		hashes[original] = sum
+
+		if expected != nil {
+			// a copy: every file must be the one of the original
+			want, ok := expected[original]
+			if !ok {
+				return nil, check, fmt.Errorf("%s is not in the original", file.name)
+			}
+			if want != sum {
+				return nil, check, fmt.Errorf("%s: the content differs from the original", file.name)
+			}
+			continue
 		}
-		result[file.name] = sum
+		if !strings.HasSuffix(strings.ToLower(original), ".nca") {
+			continue
+		}
+		if id := contentId(file.name); id == "" || hex.EncodeToString(sum[:16]) == id {
+			continue
+		}
+		// the NCA does not match its content ID: modified by a tool, or damaged
+		var result IntegrityResult
+		if compressed {
+			result, err = checkNczIntegrity(ctx, input, file.offset, file.size)
+		} else {
+			if titleKeys == nil {
+				if titleKeys, err = readTickets(input, pkg.files); err != nil {
+					return nil, check, err
+				}
+			}
+			result, err = checkNcaIntegrity(ctx, input, file.offset, file.size, titleKeys)
+		}
+		if err != nil || result.Checked == 0 {
+			reason := "it cannot be checked further"
+			if err != nil {
+				reason = err.Error()
+			}
+			return nil, check, fmt.Errorf("%s does not match its content ID: the file is damaged or was modified (%s)", file.name, reason)
+		}
+		check.Modified = append(check.Modified, original)
+		check.Partial = check.Partial || result.Unchecked > 0
 	}
-	return result, nil
+	for name := range expected {
+		if _, ok := hashes[name]; !ok {
+			return nil, check, fmt.Errorf("%s of the original is missing", name)
+		}
+	}
+	return hashes, check, nil
+}
+
+// checkNczIntegrity checks the hash trees of the NCA of an NCZ: its stream holds the data
+// already decrypted, so no key is needed.
+func checkNczIntegrity(ctx context.Context, input io.ReaderAt, offset int64, size int64) (IntegrityResult, error) {
+	encryptedHeader := make([]byte, 0xC00)
+	if err := readAtFull(input, encryptedHeader, offset); err != nil {
+		return IntegrityResult{}, err
+	}
+	check, _, err := newNcaIntegrity(encryptedHeader)
+	if err != nil {
+		return IntegrityResult{}, err
+	}
+	if err := decompressNczPlain(ctx, io.Discard, input, offset, size, nil, check.feed); err != nil {
+		return IntegrityResult{}, err
+	}
+	return check.finish()
 }
 
 // DecompressNsz writes the NSP of an NSZ to target.

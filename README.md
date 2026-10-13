@@ -285,10 +285,23 @@ ticket).
 
 Every file is handled safely:
 
-1. The files inside the NSP are checked against their content IDs, so damaged or modified files are not compressed.
+1. The files inside the NSP are checked against their content IDs, so damaged files are not compressed.
 2. The NSZ is written next to the NSP under a hidden temporary name.
-3. The NSZ is decompressed again and every part must give back the original SHA-256.
+3. The NSZ is decompressed again and every file (also tickets and certificates) must give back the original SHA-256,
+   and none may be missing.
 4. Only then is the NSZ renamed and, if you choose so, the NSP deleted.
+
+Nothing can be lost even with a wrong key: the data is decrypted and encrypted again with the same key, so the original
+comes back byte for byte (a wrong key only compresses worse).
+
+#### How files are checked
+
+The file check (on its own, before deleting copies, or in automations) reads every NCA, decompressing NSZ and XCZ
+files the way nsz does it, and compares its SHA-256 with its content ID. Tools such as NSC_Builder rewrite the header of
+the NCA files (to remove the title rights, or when converting a card to NSP): the content ID no longer matches, yet the
+game installs and plays like the original. Such an NCA is then checked by the hash tree of its data, the one stored in
+its header, like hactool does: when every hash matches the file is fine (rewritten, not damaged), else it is damaged.
+The romfs of an update cannot be checked on its own (it patches the game), the rest of the update is.
 
 Compression runs in the background as a task, can be cancelled and uses at most half of the processors. Update
 patches are compressed too. Like nsz, an XCZ keeps only the secure partition, the one installers use.

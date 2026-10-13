@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- **File check: no more good files reported as damaged.** NSZ and XCZ files made by nsz are now read in every form it
+  writes: updates split in many sections, block compression whose last block is stored as it is, and a first section
+  that does not start right after the header. Updates compressed by the app itself no longer fail their check either.
+- **Files rewritten by NSC_Builder and similar tools** (title rights removed, cards converted to NSP) are no longer
+  reported as damaged: when an NCA does not match its content ID, the hash tree of its data is checked, and the file
+  is only damaged when that fails. Files found damaged by the previous check are checked again by themselves.
+- Compression: every file of the NSZ (also tickets and certificates) must match the original, and none may be missing.
+
 ## 1.27.0
 
 ### New features
