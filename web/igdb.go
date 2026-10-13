@@ -55,6 +55,9 @@ type TimeToBeat struct {
 	Normally   int       `json:"normally,omitempty"`
 	Completely int       `json:"completely,omitempty"`
 	Count      int       `json:"count,omitempty"`
+	// the collections (series) of the game on IGDB; SeriesChecked tells they were asked
+	Collections   []int `json:"collections,omitempty"`
+	SeriesChecked bool  `json:"seriesChecked,omitempty"`
 }
 
 // Known reports whether there is at least one time to show.
@@ -158,7 +161,7 @@ func (s *timeToBeatStore) save() error {
 // needsLookup reports whether a game is looked up: never looked up, or a while ago.
 func (s *timeToBeatStore) needsLookup(id string, now time.Time) bool {
 	value, ok := s.get(id)
-	if !ok {
+	if !ok || !value.SeriesChecked {
 		return true
 	}
 	if value.Found {
@@ -285,13 +288,14 @@ func apicalypseText(text string) string {
 
 // lookup finds a game of the Switch on IGDB by its name, and how long it takes to beat.
 func (c *igdbClient) lookup(ctx context.Context, name string, now time.Time) (TimeToBeat, error) {
-	result := TimeToBeat{Checked: now}
+	result := TimeToBeat{Checked: now, SeriesChecked: true}
 	var games []struct {
-		Id   int    `json:"id"`
-		Name string `json:"name"`
-		Slug string `json:"slug"`
+		Id          int    `json:"id"`
+		Name        string `json:"name"`
+		Slug        string `json:"slug"`
+		Collections []int  `json:"collections"`
 	}
-	query := fmt.Sprintf(`search "%s"; fields id,name,slug; where platforms = (%d); limit 5;`, apicalypseText(name), igdbSwitchPlatform)
+	query := fmt.Sprintf(`search "%s"; fields id,name,slug,collections; where platforms = (%d); limit 5;`, apicalypseText(name), igdbSwitchPlatform)
 	if err := c.query(ctx, "games", query, &games); err != nil {
 		return result, err
 	}
@@ -307,7 +311,7 @@ func (c *igdbClient) lookup(ctx context.Context, name string, now time.Time) (Ti
 			break
 		}
 	}
-	result.Found, result.GameId, result.Slug = true, chosen.Id, chosen.Slug
+	result.Found, result.GameId, result.Slug, result.Collections = true, chosen.Id, chosen.Slug, chosen.Collections
 
 	var times []struct {
 		Hastily    int `json:"hastily"`
@@ -347,7 +351,7 @@ func (web *Web) lookupTimesToBeat(trigger string) bool {
 			games = append(games, pending{item.Id, name})
 		}
 	}
-	if len(games) == 0 {
+	if len(games) == 0 && len(web.missingIgdbCollections(now)) == 0 {
 		web.timeToBeatRunning.Store(false)
 		return false
 	}
@@ -388,6 +392,12 @@ func (web *Web) lookupTimesToBeat(trigger string) bool {
 		web.taskLog().SetResult(taskId, found, len(games))
 		if err := store.save(); err != nil && failure == nil {
 			failure = &TaskNote{Text: err.Error()}
+		}
+		// the Switch games of the collections of the games, for their series
+		if failure == nil && !web.state.IsSynchronizing() {
+			if err := web.lookupIgdbCollections(ctx, client); errors.Is(err, errIgdbCredentials) {
+				failure = &TaskNote{Text: NOTE_IGDB_CREDENTIALS}
+			}
 		}
 		web.invalidateDerived()
 		web.taskLog().Finish(taskId, failure)

@@ -371,6 +371,16 @@ After the next scan, the games are looked up in the background, a few a second a
 in `timetobeat.json` in the data folder, so each game is looked up once (again after some months). The secret stays
 on the server and is never shown again. Games that nobody reported on IGDB have no time.
 
+The same keys give the **Sagas** the series of your games from IGDB, its *collections*, kept in `igdbseries.json`.
+
+### Sagas
+
+The Sagas page and each game page show the series of your games, "4 of 6", with the games you are missing. The
+series come, in this order, from IGDB (with your keys, see above), from [Wikidata](https://www.wikidata.org) (the
+series of the known Switch games, made with the titles data and free to reuse, no keys needed) and, for the games
+neither knows, from their names and publishers: "Kingdom Two Crowns", "Kingdom Hearts" and "Kingdom Rush" share a
+word, not a series.
+
 ### Save vault (JKSV)
 
 The save vault keeps the backups of your saves on the server, so a broken SD card or console does not take them. It is
