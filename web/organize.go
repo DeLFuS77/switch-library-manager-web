@@ -120,6 +120,15 @@ func (web *Web) runOrganizeAction(action string, trigger string) ([]process.Oper
 	if action == ORGANIZE_ACTION_CLEANUP {
 		kind = TASK_CLEANUP
 	}
+	// files are moved or deleted: no compression, conversion, pack or check may start
+	// meanwhile, and none may be running
+	if !web.organizing.CompareAndSwap(false, true) {
+		return nil, errOrganizeBusy
+	}
+	defer web.organizing.Store(false)
+	if web.compressionRunning() {
+		return nil, errOrganizeBusy
+	}
 	taskId := web.startTask(kind, trigger)
 	operations, err := web.organize(action, false)
 	var failure *TaskNote
@@ -131,6 +140,9 @@ func (web *Web) runOrganizeAction(action string, trigger string) ([]process.Oper
 	web.finishTask(taskId, failure)
 	return operations, err
 }
+
+// errOrganizeBusy is returned while another task reads or writes the files of the library.
+var errOrganizeBusy = errorString("A compression, conversion, pack or file check is running, try again when it has finished.")
 
 func writeJSON(w http.ResponseWriter, status int, value any) {
 	w.Header().Set("Content-Type", "application/json")

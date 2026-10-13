@@ -3,6 +3,7 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"A compression, conversion, pack or file check is running, try again when it has finished.": "正在进行压缩、转换、制作合集包或文件校验，请在完成后重试。",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "它还包含游戏库保留的游戏本体、最新更新或 DLC，因此不会删除。",
 		"The newer file is damaged: keep this one.": "较新的文件已损坏：请保留这个。",
 		"The compressed file does not hold everything this file holds: keep this one.": "压缩文件没有包含此文件的全部内容：请保留这个。",

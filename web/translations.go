@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"A compression, conversion, pack or file check is running, try again when it has finished.": "Hay una compresión, conversión, pack o comprobación en marcha; inténtalo cuando termine.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "También contiene el juego, su última actualización o un DLC que la biblioteca conserva, así que no se borra.",
 		"The newer file is damaged: keep this one.": "El archivo más nuevo está dañado: conserva este.",
 		"The compressed file does not hold everything this file holds: keep this one.": "El archivo comprimido no contiene todo lo que tiene este: conserva este.",

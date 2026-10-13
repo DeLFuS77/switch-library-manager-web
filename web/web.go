@@ -154,6 +154,8 @@ type Web struct {
 	verify         *verifyStore
 	verifyOnce     sync.Once
 	compressor     compressor
+	// files are being organized or deleted by Organize: file tasks wait
+	organizing atomic.Bool
 	cache          derivedCache
 	auth           *Auth
 	tasks          *TaskLog

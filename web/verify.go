@@ -205,7 +205,7 @@ func (web *Web) startVerification(onlyChanged bool, trigger string) bool {
 // the ones checked the longest ago.
 func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigger string) bool {
 	web.compressor.mutex.Lock()
-	if web.compressor.cancel != nil {
+	if web.compressor.cancel != nil || web.organizing.Load() {
 		web.compressor.mutex.Unlock()
 		return false
 	}

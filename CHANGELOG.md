@@ -15,6 +15,12 @@
   the same name and region are different games), and files that also hold another game stay.
 - Converting a card to NSP checks that every content of the card is in the NSP before the card can be deleted.
 - Save vault: an upload cut halfway no longer counts as a backup, so it can never push a good backup out.
+- Organize: a file with several DLC (or an update and DLC) is moved once instead of failing for the others; names are
+  kept within the 255 bytes of Linux file systems (the names of the game and DLC are shortened, never the title ID or
+  the version), names that Windows does not allow (such as "Con") get an underscore, and a pack is named with the
+  update it holds, not with a newer one in another file.
+- Organize and cleanup no longer run while a compression, conversion, pack or file check works on the files, and
+  those tasks do not start while files are organized.
 
 ## 1.27.1
 

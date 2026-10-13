@@ -273,7 +273,8 @@ func (web *Web) runFileTaskWithTrigger(kind string, trigger string, paths []stri
 // read more than their path (a pack reads every file of the game).
 func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, sizes []int64, passes int64, job fileJob) bool {
 	web.compressor.mutex.Lock()
-	if web.compressor.cancel != nil {
+	// files are being moved or deleted
+	if web.compressor.cancel != nil || web.organizing.Load() {
 		web.compressor.mutex.Unlock()
 		return false
 	}

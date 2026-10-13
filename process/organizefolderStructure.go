@@ -51,11 +51,14 @@ type fileOperations struct {
 	operations     []Operation
 	plannedDirs    map[string]bool
 	plannedTargets map[string]string
-	logger         *zap.SugaredLogger
+	// files already moved, by their old path: a file with several contents is listed once
+	// for each of them
+	movedFrom map[string]string
+	logger    *zap.SugaredLogger
 }
 
 func newFileOperations(dryRun bool) *fileOperations {
-	return &fileOperations{dryRun: dryRun, plannedDirs: map[string]bool{}, plannedTargets: map[string]string{}, logger: zap.S()}
+	return &fileOperations{dryRun: dryRun, plannedDirs: map[string]bool{}, plannedTargets: map[string]string{}, movedFrom: map[string]string{}, logger: zap.S()}
 }
 
 func (f *fileOperations) record(op Operation, err error) {
@@ -102,6 +105,10 @@ func (f *fileOperations) move(from string, to string) error {
 	if from == to {
 		return nil
 	}
+	if _, moved := f.movedFrom[from]; moved {
+		// moved already with another of its contents
+		return nil
+	}
 
 	err := func() error {
 		fromInfo, err := os.Stat(from)
@@ -122,9 +129,14 @@ func (f *fileOperations) move(from string, to string) error {
 		}
 		f.plannedTargets[to] = from
 		if f.dryRun {
+			f.movedFrom[from] = to
 			return nil
 		}
-		return os.Rename(from, to)
+		if err := os.Rename(from, to); err != nil {
+			return err
+		}
+		f.movedFrom[from] = to
+		return nil
 	}()
 
 	f.record(Operation{Kind: OP_MOVE, From: from, To: to}, err)
@@ -327,13 +339,17 @@ func OrganizeByFolders(baseFolder string,
 			templateData[settings.TEMPLATE_REGION] = title.Attributes.Region
 		}
 
-		if v.MultiContent && len(v.Updates) > 0 {
-			latestUpdate := 0
-			for update := range v.Updates {
-				if update > latestUpdate {
+		// a multi content file is named with the latest update it holds itself, not with a
+		// newer one in a file of its own
+		latestUpdate := 0
+		if v.MultiContent {
+			for update, info := range v.Updates {
+				if info.ExtendedInfo == v.File.ExtendedInfo && update > latestUpdate {
 					latestUpdate = update
 				}
 			}
+		}
+		if latestUpdate > 0 {
 			templateData[settings.TEMPLATE_VERSION] = strconv.Itoa(latestUpdate)
 
 			if latestUpdate > 0 && v.Updates[latestUpdate].Metadata != nil && v.Updates[latestUpdate].Metadata.Ncap != nil {
@@ -526,8 +542,12 @@ func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles) string {
 	return "Unknown Title"
 }
 
+// maxNameBytes is the longest file or folder name written: Linux file systems take 255
+// bytes, and a hidden temporary copy (".name.tmp") needs a few more.
+const maxNameBytes = 240
+
 func getFolderName(options settings.OrganizeOptions, templateData map[string]string) string {
-	return applyTemplate(templateData, options.SwitchSafeFileNames, options.FolderNameTemplate, 0)
+	return fittingTemplate(templateData, options.SwitchSafeFileNames, options.FolderNameTemplate, 0, maxNameBytes)
 }
 
 func getFileName(options settings.OrganizeOptions, originalName string, templateData map[string]string, nameTry int) string {
@@ -535,8 +555,58 @@ func getFileName(options settings.OrganizeOptions, originalName string, template
 		return originalName
 	}
 	ext := path.Ext(originalName)
-	result := applyTemplate(templateData, options.SwitchSafeFileNames, options.FileNameTemplate, nameTry)
+	result := fittingTemplate(templateData, options.SwitchSafeFileNames, options.FileNameTemplate, nameTry, maxNameBytes-len(ext))
 	return result + ext
+}
+
+// fittingTemplate is applyTemplate shortened to budget bytes: the names of the DLC and of
+// the game are cut, on a character boundary, never the title ID or the version that
+// identify the file.
+func fittingTemplate(templateData map[string]string, useSafeNames bool, template string, nameTry int, budget int) string {
+	result := applyTemplate(templateData, useSafeNames, template, nameTry)
+	if len(result) <= budget {
+		return result
+	}
+	data := make(map[string]string, len(templateData))
+	for key, value := range templateData {
+		data[key] = value
+	}
+	for _, key := range []string{settings.TEMPLATE_DLC_NAME, settings.TEMPLATE_TITLE_NAME} {
+		for len(result) > budget {
+			runes := []rune(data[key])
+			if len(runes) == 0 {
+				break
+			}
+			// a few characters at a time: names made safe change length
+			cut := (len(result) - budget + 2) / 3
+			if cut < 1 {
+				cut = 1
+			}
+			if cut > len(runes) {
+				cut = len(runes)
+			}
+			data[key] = strings.TrimSpace(string(runes[:len(runes)-cut]))
+			result = applyTemplate(data, useSafeNames, template, nameTry)
+		}
+	}
+	return result
+}
+
+// windowsReserved are names Windows does not allow, with or without an extension.
+var windowsReserved = map[string]bool{"CON": true, "PRN": true, "AUX": true, "NUL": true,
+	"COM1": true, "COM2": true, "COM3": true, "COM4": true, "COM5": true, "COM6": true, "COM7": true, "COM8": true, "COM9": true,
+	"LPT1": true, "LPT2": true, "LPT3": true, "LPT4": true, "LPT5": true, "LPT6": true, "LPT7": true, "LPT8": true, "LPT9": true}
+
+// avoidReserved adds an underscore to a name Windows does not allow (such as "Con").
+func avoidReserved(name string) string {
+	stem, rest, _ := strings.Cut(name, ".")
+	if windowsReserved[strings.ToUpper(strings.TrimSpace(stem))] {
+		if rest == "" && !strings.Contains(name, ".") {
+			return stem + "_"
+		}
+		return stem + "_." + rest
+	}
+	return name
 }
 
 func applyTemplate(templateData map[string]string, useSafeNames bool, template string, nameTry int) string {
@@ -583,7 +653,7 @@ func applyTemplate(templateData map[string]string, useSafeNames bool, template s
 	if result == "" {
 		result = "_"
 	}
-	return result
+	return avoidReserved(result)
 }
 
 // RemoveFiles deletes the given files, each with its reason, refusing files that changed
