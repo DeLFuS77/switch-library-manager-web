@@ -7,8 +7,10 @@ import (
 )
 
 // The titles database does not know which games belong to the same series, so they are
-// found by their names: "Darkest Dungeon II" and "Darkest Dungeon®" share "darkest dungeon",
-// and "Darksiders Genesis" belongs to "darksiders" because a game is named like that.
+// found by their names and their publisher: "Darkest Dungeon II" and "Darkest Dungeon®" share
+// "darkest dungeon", and "Darksiders Genesis" belongs to "darksiders" because a game of the
+// same publisher is named like that. Names alone are not enough: "Kingdom Two Crowns",
+// "Kingdom Hearts" and "Kingdom Rush" share a word, not a series, and each has its publisher.
 
 const maxSagaTitles = 24
 
@@ -24,7 +26,8 @@ var (
 	// a single word like these is no series
 	sagaGeneric = map[string]bool{"the": true, "super": true, "new": true, "my": true, "dark": true, "little": true, "pro": true,
 		"mega": true, "ultra": true, "star": true, "space": true, "grand": true, "real": true, "just": true, "game": true,
-		"world": true, "puzzle": true, "pixel": true, "red": true, "black": true, "big": true, "mini": true, "tiny": true}
+		"world": true, "puzzle": true, "pixel": true, "red": true, "black": true, "big": true, "mini": true, "tiny": true,
+		"nintendo": true}
 )
 
 // sagaKey returns the name of a game without its number, edition and subtitle, in lower case.
@@ -52,11 +55,50 @@ type sagaIndex struct {
 	keys    []string
 	byKey   map[string][]string
 	keyOfId map[string]string
+	// the publisher of every game, made comparable, and the series it belongs to
+	publisherOf map[string]string
+	familyOfId  map[string]string
+	// the keys of the games of every publisher, sorted
+	keysOf map[string][]string
+	// how many keys begin with some words, in all and by publisher: "sonic" is a word of
+	// Sega, "escape" begins the names of games of hundreds of publishers
+	beginTotal map[string]int
+	beginBy    map[string]int
+}
+
+// publisherSuffixes are the words of a company form, left out to compare publishers.
+var publisherSuffixes = map[string]bool{"inc": true, "ltd": true, "llc": true, "co": true, "corp": true, "corporation": true,
+	"limited": true, "gmbh": true, "sa": true, "srl": true, "sl": true, "kk": true, "bv": true, "ab": true, "oy": true,
+	"pty": true, "plc": true, "the": true, "ag": true, "sas": true, "spa": true}
+
+// publisherKey is a publisher name made comparable: "Raw Fury AB" and "Raw Fury" are one.
+func publisherKey(name string) string {
+	words := strings.FieldsFunc(strings.ToLower(name), func(r rune) bool {
+		return !(r >= 'a' && r <= 'z' || r >= '0' && r <= '9' || r > 127)
+	})
+	kept := words[:0]
+	for _, word := range words {
+		if !publisherSuffixes[word] {
+			kept = append(kept, word)
+		}
+	}
+	return strings.Join(kept, " ")
+}
+
+// sagaId is the identity of a series: its key and its publisher.
+func sagaId(key string, publisher string) string {
+	return key + "\x00" + publisher
+}
+
+// splitSagaId returns the key and the publisher of a series.
+func splitSagaId(id string) (string, string) {
+	key, publisher, _ := strings.Cut(id, "\x00")
+	return key, publisher
 }
 
 func (web *Web) sagas() *sagaIndex {
 	return web.derived("sagas", func() any {
-		index := &sagaIndex{byKey: map[string][]string{}, keyOfId: map[string]string{}}
+		index := &sagaIndex{byKey: map[string][]string{}, keyOfId: map[string]string{}, publisherOf: map[string]string{}, familyOfId: map[string]string{}}
 		switchDB, _ := web.state.get()
 		if switchDB == nil {
 			return index
@@ -71,26 +113,68 @@ func (web *Web) sagas() *sagaIndex {
 			}
 			index.byKey[key] = append(index.byKey[key], prefix)
 			index.keyOfId[prefix] = key
+			index.publisherOf[prefix] = publisherKey(title.Attributes.Publisher)
 		}
 		sort.Strings(index.keys)
+		index.keysOf = map[string][]string{}
+		index.beginTotal, index.beginBy = map[string]int{}, map[string]int{}
+		for _, key := range index.keys {
+			seen := map[string]bool{}
+			for _, id := range index.byKey[key] {
+				if publisher := index.publisherOf[id]; publisher != "" && !seen[publisher] {
+					seen[publisher] = true
+					index.keysOf[publisher] = append(index.keysOf[publisher], key)
+				}
+			}
+			words := strings.Fields(key)
+			for n := 1; n < len(words); n++ {
+				begin := strings.Join(words[:n], " ")
+				index.beginTotal[begin]++
+				for publisher := range seen {
+					index.beginBy[sagaId(begin, publisher)]++
+				}
+			}
+		}
+		for prefix, key := range index.keyOfId {
+			index.familyOfId[prefix] = index.family(key, index.publisherOf[prefix])
+		}
 		return index
 	}).(*sagaIndex)
 }
 
-// family returns the key of the series of a key: its shortest beginning that is the key of
-// a game too, so "darksiders genesis" belongs to "darksiders".
-func (index *sagaIndex) family(key string) string {
+// family returns the series of a game from its key and publisher: the shortest beginning of
+// the key that is the key of a game of the same publisher ("darksiders genesis" belongs to
+// "darksiders"), or that another game of the publisher starts with too ("sonic forces" and
+// "sonic frontiers" are "sonic"). Without a publisher, only games of the very same key are a
+// series.
+func (index *sagaIndex) family(key string, publisher string) string {
+	if publisher == "" {
+		return sagaId(key, "")
+	}
 	words := strings.Fields(key)
 	for n := 1; n < len(words); n++ {
 		prefix := strings.Join(words[:n], " ")
 		if n == 1 && (sagaGeneric[prefix] || len(prefix) < 4) {
 			continue
 		}
-		if _, ok := index.byKey[prefix]; ok {
-			return prefix
+		for _, id := range index.byKey[prefix] {
+			if index.publisherOf[id] == publisher {
+				return sagaId(prefix, publisher)
+			}
+		}
+		// a beginning shared with another game of the publisher, when it is a word of that
+		// publisher: at least half of the names that begin so are its games
+		if index.beginBy[sagaId(prefix, publisher)]*2 < index.beginTotal[prefix] {
+			continue
+		}
+		keys := index.keysOf[publisher]
+		for i := sort.SearchStrings(keys, prefix); i < len(keys) && strings.HasPrefix(keys[i], prefix+" "); i++ {
+			if keys[i] != key {
+				return sagaId(prefix, publisher)
+			}
 		}
 	}
-	return key
+	return sagaId(key, publisher)
 }
 
 // regionalName is a name without the translation some stores add in brackets, e.g.

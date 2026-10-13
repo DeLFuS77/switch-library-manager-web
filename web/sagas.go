@@ -73,12 +73,17 @@ func (web *Web) sagaMembers(family string, lang string) []TitleItem {
 	hideDemos := settings.ReadSettings(web.dataFolder).HideDemoGames
 	wished := web.wishes().snapshot()
 	items := []TitleItem{}
-	for i := sort.SearchStrings(index.keys, family); i < len(index.keys); i++ {
+	key, _ := splitSagaId(family)
+	for i := sort.SearchStrings(index.keys, key); i < len(index.keys); i++ {
 		k := index.keys[i]
-		if k != family && !strings.HasPrefix(k, family+" ") {
+		if k != key && !strings.HasPrefix(k, key+" ") {
 			break
 		}
 		for _, prefix := range index.byKey[k] {
+			// the same name from another publisher is another series
+			if index.familyOfId[prefix] != family {
+				continue
+			}
 			title := switchDB.TitlesMap[prefix]
 			if title == nil || title.Attributes.Id == "" || (hideDemos && isDemo(title, title.Attributes.Name)) || notAGame.MatchString(title.Attributes.Name) {
 				continue
@@ -117,14 +122,14 @@ func (web *Web) sagaFamilyOf(titleId string, name string) string {
 		return ""
 	}
 	index := web.sagas()
-	key, ok := index.keyOfId[strings.ToLower(titleId[:13])]
-	if !ok {
-		key = sagaKey(name)
+	if family, ok := index.familyOfId[strings.ToLower(titleId[:13])]; ok {
+		return family
 	}
+	key := sagaKey(name)
 	if key == "" {
 		return ""
 	}
-	return index.family(key)
+	return index.family(key, "")
 }
 
 // sameSaga returns the series of a title: its other games, owned or not, the oldest first, and
@@ -165,6 +170,7 @@ func (web *Web) sameSaga(titleId string, name string, lang string) SagaProgress 
 // sagaName is the name of a series: the shortest name of its games without the subtitle, of
 // the games named like the series ("Darkest Dungeon" rather than "Darkest Dungeon II").
 func sagaName(family string, games []TitleItem) string {
+	family, _ = splitSagaId(family)
 	name, fallback := "", ""
 	for _, game := range games {
 		candidate := sagaTitle(game.Name)
@@ -217,8 +223,8 @@ func (web *Web) sagaProgress(lang string) []SagaProgress {
 			if !local.BaseExist {
 				continue
 			}
-			if key, ok := index.keyOfId[prefix]; ok {
-				families[index.family(key)] = true
+			if family, ok := index.familyOfId[prefix]; ok {
+				families[family] = true
 			}
 		}
 		for family := range families {
