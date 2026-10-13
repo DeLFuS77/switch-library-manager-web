@@ -21,6 +21,15 @@
   update it holds, not with a newer one in another file.
 - Organize and cleanup no longer run while a compression, conversion, pack or file check works on the files, and
   those tasks do not start while files are organized.
+- Scanner: a DLC whose index is 0x800 is no longer taken for an update (the kind of a content comes from its metadata,
+  or from the group digit of its title ID), and an older DLC replaced by a newer one is listed as an old file instead
+  of vanishing from the library.
+
+### Security
+
+- Save vault: even with the right password, it only keeps backups (ZIP files) in the folder of JKSV, refuses the
+  WebDAV requests JKSV does not make, listings of the whole vault at once, and uploads that would leave less than
+  2 GB free on the disk.
 
 ## 1.27.1
 

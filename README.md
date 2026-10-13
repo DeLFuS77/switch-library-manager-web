@@ -385,7 +385,9 @@ off until you turn it on in **Settings > Save vault**:
 The backups appear on the **Save backups** page and on the page of each game, matched by the title ID JKSV writes in
 each ZIP. They are kept in the `saves` folder of the data folder (include it in the backups of your server). WebDAV
 answers at `/dav/` on the same port, with its own password and the same protection against guessing as the login;
-from outside your home use it through a VPN. **Backups kept per game** deletes the oldest ones automatically.
+from outside your home use it through a VPN. **Backups kept per game** deletes the oldest ones automatically. Even
+with the right password the vault only keeps backups (ZIP files) in the folder of JKSV, and refuses an upload that
+would leave less than 2 GB free on the disk.
 
 ### Notifications
 

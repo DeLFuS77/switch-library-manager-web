@@ -217,3 +217,41 @@ func TestPruneVaultFolderIgnoresBrokenUploads(t *testing.T) {
 		t.Fatal("the good backup is kept")
 	}
 }
+
+// Even with the right password, the vault only keeps backups in the folder of JKSV.
+func TestVaultOnlyKeepsBackupsInTheFolderOfJksv(t *testing.T) {
+	_, handler := vaultTestServer(t)
+	davRequest(handler, "MKCOL", "/dav/JKSV/Game/", nil)
+	cases := []struct {
+		method, path string
+		headers      []string
+		want         int
+	}{
+		{http.MethodPut, "/dav/JKSV/Game/tool.exe", nil, http.StatusForbidden},
+		{http.MethodPut, "/dav/other.zip", nil, http.StatusForbidden},
+		{http.MethodPut, "/dav/JKSV/../other.zip", nil, http.StatusForbidden},
+		{"MKCOL", "/dav/Other/", nil, http.StatusForbidden},
+		{http.MethodDelete, "/dav/JKSV/", nil, http.StatusForbidden},
+		{"COPY", "/dav/JKSV/Game/a.zip", nil, http.StatusMethodNotAllowed},
+		{"PROPPATCH", "/dav/JKSV/", nil, http.StatusMethodNotAllowed},
+		{"PROPFIND", "/dav/JKSV/", []string{"Depth", "infinity"}, http.StatusForbidden},
+		{"MOVE", "/dav/JKSV/Game/a.zip", []string{"Destination", "http://example.com/dav/elsewhere.zip"}, http.StatusForbidden},
+		{"MOVE", "/dav/JKSV/Game/a.zip", []string{"Destination", "http://example.com/dav/JKSV/Game/a.exe"}, http.StatusForbidden},
+	}
+	for _, c := range cases {
+		if r := davRequest(handler, c.method, c.path, []byte("x"), c.headers...); r.Code != c.want {
+			t.Errorf("%s %s: %d, want %d", c.method, c.path, r.Code, c.want)
+		}
+	}
+}
+
+func TestVaultRefusesUploadsThatWouldFillTheDisk(t *testing.T) {
+	_, handler := vaultTestServer(t)
+	davRequest(handler, "MKCOL", "/dav/JKSV/Game/", nil)
+	before := vaultMinFree
+	vaultMinFree = 1 << 62
+	defer func() { vaultMinFree = before }()
+	if r := davRequest(handler, http.MethodPut, "/dav/JKSV/Game/backup.zip", []byte("x")); r.Code != http.StatusInsufficientStorage {
+		t.Fatalf("a full disk: %d", r.Code)
+	}
+}
