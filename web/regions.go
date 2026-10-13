@@ -2,6 +2,7 @@ package web
 
 import (
 	"net/http"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -176,32 +177,41 @@ func suggestRegionCopy(copies []RegionCopy) RegionGroup {
 // same game stays in the library. Only the copies listed on the Space page can be deleted.
 func (web *Web) removeRegionCopy(id string, lang string) (int, int64, error) {
 	var target *RegionCopy
+	var others []RegionCopy
 	for _, group := range web.buildRegionalDuplicates(lang) {
 		for i := range group.Copies {
 			if strings.EqualFold(group.Copies[i].Id, id) && len(group.Copies) > 1 {
 				copy := group.Copies[i]
 				target = &copy
+				others = append(append([]RegionCopy{}, group.Copies[:i]...), group.Copies[i+1:]...)
 			}
 		}
 	}
 	if target == nil || len(target.files) == 0 {
 		return 0, 0, errRegionCopy
 	}
+	if !web.soundCopyStays(*target, others) {
+		return 0, 0, errRegionVerify
+	}
+	files := web.regionFilesToDelete(*target)
+	if len(files) == 0 {
+		return 0, 0, errRegionCopy
+	}
 	if web.compressionRunning() || !web.state.startSync() {
 		return 0, 0, errRegionBusy
 	}
 	defer web.state.endSync()
-	reasons := make([]string, len(target.files))
+	reasons := make([]string, len(files))
 	for i := range reasons {
 		reasons[i] = "other region"
 	}
 	taskId := web.startTask(TASK_CLEANUP, TRIGGER_MANUAL)
 	deleted, freed := 0, int64(0)
 	var failure *TaskNote
-	for i, op := range process.RemoveFiles(target.files, reasons, false) {
+	for i, op := range process.RemoveFiles(files, reasons, false) {
 		if op.Error == "" {
 			deleted++
-			freed += target.files[i].Size
+			freed += files[i].Size
 		} else if failure == nil {
 			failure = &TaskNote{Text: NOTE_ORGANIZE_FAILED, Detail: op.From + ": " + op.Error}
 		}
@@ -212,9 +222,58 @@ func (web *Web) removeRegionCopy(id string, lang string) (int, int64, error) {
 	return deleted, freed, nil
 }
 
+// soundCopyStays tells whether a copy of the game from another region stays, checked and
+// sound: two games of the same name and region are different games, not copies, and a
+// copy is never deleted while the one that stays could be damaged.
+func (web *Web) soundCopyStays(target RegionCopy, others []RegionCopy) bool {
+	store := web.verifications()
+	for _, other := range others {
+		if other.Damaged || len(other.files) == 0 || other.Region == "" || strings.EqualFold(other.Region, target.Region) {
+			continue
+		}
+		base := other.files[0]
+		path := filepath.Join(base.BaseFolder, base.FileName)
+		info, err := os.Stat(path)
+		if err != nil || info.IsDir() {
+			continue
+		}
+		if record, ok := store.current(path, info); ok && record.OK {
+			return true
+		}
+	}
+	return false
+}
+
+// regionFilesToDelete are the files of a copy, each once, without the ones that also hold
+// another game (a collection on one card).
+func (web *Web) regionFilesToDelete(target RegionCopy) []db.ExtendedFileInfo {
+	_, localDB := web.state.get()
+	others := &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{}}
+	if localDB != nil {
+		for prefix, title := range localDB.TitlesMap {
+			if title.File.Metadata == nil || !strings.EqualFold(title.File.Metadata.TitleId, target.Id) {
+				others.TitlesMap[prefix] = title
+			}
+		}
+	}
+	inUse := process.FilesInUse(others)
+	files := []db.ExtendedFileInfo{}
+	seen := map[string]bool{}
+	for _, file := range target.files {
+		path := filepath.Join(file.BaseFolder, file.FileName)
+		if seen[path] || inUse[path] {
+			continue
+		}
+		seen[path] = true
+		files = append(files, file)
+	}
+	return files
+}
+
 var (
-	errRegionCopy = errorString("This copy cannot be deleted: no other copy of the game is in the library.")
-	errRegionBusy = errorString("A synchronization is running, try again when it has finished.")
+	errRegionVerify = errorString("A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.")
+	errRegionCopy   = errorString("This copy cannot be deleted: no other copy of the game is in the library.")
+	errRegionBusy   = errorString("A synchronization is running, try again when it has finished.")
 )
 
 // errorString is an error whose text is shown translated.

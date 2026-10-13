@@ -3,6 +3,10 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "Contiene anche il gioco, il suo ultimo aggiornamento o un DLC che la libreria conserva, quindi non viene eliminato.",
+		"The newer file is damaged: keep this one.": "Il file più recente è danneggiato: conserva questo.",
+		"The compressed file does not hold everything this file holds: keep this one.": "Il file compresso non contiene tutto ciò che contiene questo: conserva questo.",
+		"A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.": "Una copia viene eliminata solo se resta una copia del gioco di un'altra regione, verificata e integra: verifica prima i file.",
 		"And the separate files?": "E i file separati?",
 		"Keep them": "Conservarli",
 		"Choose whether to keep or delete the separate files.": "Scegli se conservare o eliminare i file separati.",

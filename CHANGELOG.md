@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- **Deleting old updates or duplicates no longer deletes a file that still holds a game.** A file with several
+  contents (a complete pack, a card with its update or a DLC) was deleted whole when one of its contents was older or
+  a duplicate, also by the automations; it is now kept and listed as such, here and on the Space page.
+- The cleanup of Organize and of the automations follows the rules of the Space page: a duplicate is only deleted when
+  the copy that stays was checked and is sound, and an old update or DLC is kept when its newer version is damaged.
+- Space page: an original is only deleted when its compressed copy holds every content of it, not only when a sound
+  copy of the same name exists.
+- Copies of other regions: one is only deleted while a checked, sound copy from another region stays (two games of
+  the same name and region are different games), and files that also hold another game stay.
+- Converting a card to NSP checks that every content of the card is in the NSP before the card can be deleted.
+- Save vault: an upload cut halfway no longer counts as a backup, so it can never push a good backup out.
+
 ## 1.27.1
 
 ### Fixes

@@ -386,8 +386,13 @@ func pruneVaultFolder(folder string, keep int) int {
 			continue
 		}
 		path := filepath.Join(folder, entry.Name())
+		// only real backups count and are pruned: an upload cut halfway must never push
+		// a good backup out
 		_, when, ok := jksvMeta(path)
-		if !ok || when.IsZero() {
+		if !ok {
+			continue
+		}
+		if when.IsZero() {
 			if info, err := entry.Info(); err == nil {
 				when = info.ModTime()
 			}

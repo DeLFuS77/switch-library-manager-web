@@ -21,9 +21,11 @@ const (
 	// a compressed copy that was not verified yet
 	NOTE_SPACE_VERIFY = "Verify the compressed copy first."
 	// duplicates are deleted only when the copy that stays is known to be sound
-	NOTE_SPACE_VERIFY_KEPT  = "Verify the copy that is kept first."
-	NOTE_SPACE_KEPT_DAMAGED = "The copy that is kept is damaged: keep this one."
-	NOTE_SPACE_KEPT_MISSING = "The copy that is kept was not found; rescan the library."
+	NOTE_SPACE_VERIFY_KEPT   = "Verify the copy that is kept first."
+	NOTE_SPACE_KEPT_DAMAGED  = "The copy that is kept is damaged: keep this one."
+	NOTE_SPACE_KEPT_MISSING  = "The copy that is kept was not found; rescan the library."
+	NOTE_SPACE_NEWER_DAMAGED = "The newer file is damaged: keep this one."
+	NOTE_SPACE_NOT_SAME      = "The compressed file does not hold everything this file holds: keep this one."
 )
 
 // SpaceFile is a file that takes space without being needed.
@@ -144,7 +146,12 @@ func (web *Web) spaceGroups() []SpaceGroup {
 		compressed[path] = true
 		entry := SpaceFile{Path: path, Name: name, Size: file.Size, KeptBy: copyPath, file: file}
 		if record, ok := web.verifications().current(copyPath, info); ok && record.OK {
-			entry.Deletable = true
+			// the copy of the same name must hold everything the original holds
+			if same, err := switchfs.HoldsSameContents(path, copyPath); err == nil && same {
+				entry.Deletable = true
+			} else {
+				entry.Note = NOTE_SPACE_NOT_SAME
+			}
 		} else {
 			entry.Note = NOTE_SPACE_VERIFY
 		}
@@ -157,6 +164,7 @@ func (web *Web) spaceGroups() []SpaceGroup {
 		checkCompressed(db.ExtendedFileInfo{FileName: filepath.Base(candidate.Path), BaseFolder: filepath.Dir(candidate.Path), Size: candidate.Size}, candidate.Name, true)
 	}
 
+	inUse := process.FilesInUse(localDB)
 	for file, skipped := range localDB.Skipped {
 		path := filepath.Join(file.BaseFolder, file.FileName)
 		name := strings.TrimSpace(db.ParseTitleNameFromFileName(file.FileName))
@@ -165,7 +173,16 @@ func (web *Web) spaceGroups() []SpaceGroup {
 		}
 		switch skipped.ReasonCode {
 		case db.REASON_OLD_UPDATE:
-			add(SPACE_OLD_UPDATES, SpaceFile{Path: path, Name: name, Size: file.Size, KeptBy: keptBy(skipped.ReasonText), Deletable: true, file: file})
+			entry := SpaceFile{Path: path, Name: name, Size: file.Size, KeptBy: keptBy(skipped.ReasonText), Deletable: true, file: file}
+			if note := web.newerDamaged(entry.KeptBy); note != "" {
+				entry.Deletable = false
+				entry.Note = note
+			}
+			if inUse[path] {
+				entry.Deletable = false
+				entry.Note = process.REASON_IN_USE
+			}
+			add(SPACE_OLD_UPDATES, entry)
 		case db.REASON_DUPLICATE:
 			checkCompressed(file, name, false)
 			if compressed[path] {
@@ -182,6 +199,10 @@ func (web *Web) spaceGroups() []SpaceGroup {
 				}
 			}
 			web.requireSoundKeptCopy(&entry)
+			if inUse[entry.Path] {
+				entry.Deletable = false
+				entry.Note = process.REASON_IN_USE
+			}
 			add(SPACE_DUPLICATES, entry)
 		}
 	}
@@ -198,6 +219,36 @@ func (web *Web) spaceGroups() []SpaceGroup {
 		result = append(result, *group)
 	}
 	return result
+}
+
+// newerDamaged refuses to delete an old update or DLC whose newer version was found
+// damaged: the old one may be the only one that works.
+func (web *Web) newerDamaged(newer string) string {
+	if newer == "" {
+		return ""
+	}
+	if _, damaged := web.verifications().damaged()[newer]; damaged {
+		return NOTE_SPACE_NEWER_DAMAGED
+	}
+	return ""
+}
+
+// cleanupRefusal applies the rules of the Space page to the cleanup of Organize and of the
+// automations: a duplicate only goes when the copy that stays was checked and is sound, an
+// old update only when its newer version is not damaged.
+func (web *Web) cleanupRefusal(file db.ExtendedFileInfo, skipped db.SkippedFile) string {
+	kept := keptBy(skipped.ReasonText)
+	switch skipped.ReasonCode {
+	case db.REASON_DUPLICATE:
+		entry := SpaceFile{KeptBy: kept, Deletable: true}
+		web.requireSoundKeptCopy(&entry)
+		if !entry.Deletable {
+			return entry.Note
+		}
+	case db.REASON_OLD_UPDATE:
+		return web.newerDamaged(kept)
+	}
+	return ""
 }
 
 // requireSoundKeptCopy lets a duplicate be deleted only when the copy that stays was

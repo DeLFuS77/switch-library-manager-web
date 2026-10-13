@@ -190,12 +190,43 @@ func sortedKeys[V any](m map[string]V) []string {
 	return keys
 }
 
+// REASON_IN_USE is why a file listed as old or duplicate is kept: a file with several
+// contents (a complete pack, a card with its update) is listed for one of them.
+const REASON_IN_USE = "It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted."
+
+// FilesInUse are the paths of the files that hold content the library keeps: the game,
+// its latest update and every DLC. Such a file is never deleted as old or duplicate.
+func FilesInUse(localDB *db.LocalSwitchFilesDB) map[string]bool {
+	inUse := map[string]bool{}
+	if localDB == nil {
+		return inUse
+	}
+	add := func(file db.ExtendedFileInfo) {
+		inUse[filepath.Join(file.BaseFolder, file.FileName)] = true
+	}
+	for _, title := range localDB.TitlesMap {
+		if title.BaseExist {
+			add(title.File.ExtendedInfo)
+		}
+		if update, ok := title.Updates[title.LatestUpdate]; ok {
+			add(update.ExtendedInfo)
+		}
+		for _, dlc := range title.Dlc {
+			add(dlc.ExtendedInfo)
+		}
+	}
+	return inUse
+}
+
 // DeleteOldUpdates deletes update and DLC files superseded by a newer local version and,
-// if requested, duplicate files. The scan keeps the first file of a duplicate set.
+// if requested, duplicate files. The scan keeps the first file of a duplicate set. A file
+// that still holds content the library keeps is never deleted, and keep can refuse others
+// with the reason it returns (the file that stays was not checked, or is damaged).
 func DeleteOldUpdates(baseFolder string, localDB *db.LocalSwitchFilesDB, options settings.OrganizeOptions,
-	dryRun bool, updateProgress db.ProgressUpdater) []Operation {
+	dryRun bool, updateProgress db.ProgressUpdater, keep ...func(db.ExtendedFileInfo, db.SkippedFile) string) []Operation {
 
 	ops := newFileOperations(dryRun)
+	inUse := FilesInUse(localDB)
 
 	files := make([]db.ExtendedFileInfo, 0, len(localDB.Skipped))
 	for file := range localDB.Skipped {
@@ -212,6 +243,20 @@ func DeleteOldUpdates(baseFolder string, localDB *db.LocalSwitchFilesDB, options
 		}
 		if updateProgress != nil {
 			updateProgress.UpdateProgress(i+1, len(files), "deleting "+file.FileName)
+		}
+		if inUse[filepath.Join(file.BaseFolder, file.FileName)] {
+			ops.skip(filepath.Join(file.BaseFolder, file.FileName), REASON_IN_USE)
+			continue
+		}
+		refused := ""
+		for _, check := range keep {
+			if refused == "" {
+				refused = check(file, skipped)
+			}
+		}
+		if refused != "" {
+			ops.skip(filepath.Join(file.BaseFolder, file.FileName), refused)
+			continue
 		}
 		ops.remove(file, skipped.ReasonText)
 	}

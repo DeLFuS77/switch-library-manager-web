@@ -203,3 +203,17 @@ func TestSavesPage(t *testing.T) {
 		t.Fatalf("the backups of the demo: %d", recorder.Code)
 	}
 }
+
+func TestPruneVaultFolderIgnoresBrokenUploads(t *testing.T) {
+	folder := t.TempDir()
+	good := jksvZip(t, 0x0100000000010000, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
+	os.WriteFile(filepath.Join(folder, "good.zip"), good, 0644)
+	// an upload cut halfway: newer, but not a backup
+	os.WriteFile(filepath.Join(folder, "cut.zip"), good[:len(good)/2], 0644)
+	if removed := pruneVaultFolder(folder, 1); removed != 0 {
+		t.Fatalf("the only real backup stays: %d removed", removed)
+	}
+	if _, err := os.Stat(filepath.Join(folder, "good.zip")); err != nil {
+		t.Fatal("the good backup is kept")
+	}
+}

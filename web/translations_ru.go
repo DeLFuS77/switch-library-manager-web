@@ -3,6 +3,10 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "Он также содержит игру, её последнее обновление или DLC, которые библиотека сохраняет, поэтому он не удаляется.",
+		"The newer file is damaged: keep this one.": "Более новый файл повреждён: оставьте этот.",
+		"The compressed file does not hold everything this file holds: keep this one.": "Сжатый файл содержит не всё, что есть в этом файле: оставьте этот.",
+		"A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.": "Копия удаляется, только если остаётся проверенная и целая копия игры из другого региона: сначала проверьте файлы.",
 		"And the separate files?": "А отдельные файлы?",
 		"Keep them": "Оставить",
 		"Choose whether to keep or delete the separate files.": "Выберите, оставить или удалить отдельные файлы.",

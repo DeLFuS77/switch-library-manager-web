@@ -321,3 +321,44 @@ func DecompressedSize(path string) (int64, error) {
 	}
 	return size, nil
 }
+
+// HoldsSameContents tells whether the compressed copy of a game file holds every NCA of
+// the original (as NCA or NCZ), so that deleting the original loses nothing.
+func HoldsSameContents(original string, compressed string) (bool, error) {
+	names := func(path string) (map[string]bool, error) {
+		reader, err := OpenFile(path)
+		if err != nil {
+			return nil, err
+		}
+		defer reader.Close()
+		pkg, err := openGamePackage(reader)
+		if err != nil {
+			return nil, err
+		}
+		result := map[string]bool{}
+		for _, file := range pkg.files {
+			lower := strings.ToLower(file.name)
+			if strings.HasSuffix(lower, ".ncz") {
+				lower = strings.TrimSuffix(lower, ".ncz") + ".nca"
+			}
+			if strings.HasSuffix(lower, ".nca") {
+				result[lower] = true
+			}
+		}
+		return result, nil
+	}
+	want, err := names(original)
+	if err != nil {
+		return false, err
+	}
+	have, err := names(compressed)
+	if err != nil {
+		return false, err
+	}
+	for name := range want {
+		if !have[name] {
+			return false, nil
+		}
+	}
+	return len(want) > 0, nil
+}
