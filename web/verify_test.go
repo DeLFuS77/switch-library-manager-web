@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -135,5 +136,21 @@ func TestVerificationSpeedAndTimeLeft(t *testing.T) {
 	}
 	if (Task{Kind: TASK_SCAN, Started: task.Started, Current: 5, Total: 10}).speedAt(now) != 0 {
 		t.Fatal("only verifications show a speed")
+	}
+}
+
+func TestOldDamageIsCheckedAgain(t *testing.T) {
+	web := newTestWeb(t)
+	path := filepath.Join(t.TempDir(), "Game.nsp")
+	os.WriteFile(path, []byte("x"), 0644)
+	info, _ := os.Stat(path)
+	store := web.verifications()
+	store.set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Reason: "damaged file: old check"})
+	if _, ok := store.current(path, info); ok || len(store.damaged()) != 0 {
+		t.Fatal("a damage found by the old check is checked again, and not shown meanwhile")
+	}
+	store.set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Checker: verifyChecker})
+	if _, ok := store.current(path, info); !ok || len(store.damaged()) != 1 {
+		t.Fatal("a damage found by the current check stays")
 	}
 }

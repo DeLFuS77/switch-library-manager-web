@@ -101,7 +101,7 @@ func TestSpaceGroups(t *testing.T) {
 	// a damaged kept copy protects the duplicate; a sound one lets it be deleted
 	kept := filepath.Join(dir, "Other [0100000000020000][v0].nsp")
 	info, _ = os.Stat(kept)
-	web.verifications().set(kept, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Checked: time.Now()})
+	web.verifications().set(kept, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Checked: time.Now(), Checker: verifyChecker})
 	if file := spaceGroup(web.spaceGroups(), SPACE_DUPLICATES).Files[0]; file.Deletable || file.Note != NOTE_SPACE_KEPT_DAMAGED {
 		t.Fatalf("damaged kept copy: %+v", file)
 	}

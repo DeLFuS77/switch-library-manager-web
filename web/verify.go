@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -36,6 +35,20 @@ type verifyRecord struct {
 	OK      bool      `json:"ok"`
 	Reason  string    `json:"reason,omitempty"`
 	Checked time.Time `json:"checked"`
+	// NCA files rewritten by a tool whose data matched all its hashes
+	Modified bool `json:"modified,omitempty"`
+	// the version of the check that gave the result
+	Checker int `json:"checker,omitempty"`
+}
+
+// verifyChecker is the version of the check. Version 2 reads every NCZ that nsz writes
+// (updates with many sections, block compression) and tells NCA files rewritten by a tool
+// apart from damaged ones: files found damaged by an older version are checked again.
+const verifyChecker = 2
+
+// stale tells a damage found by an older version of the check.
+func (r verifyRecord) stale() bool {
+	return !r.OK && r.Checker < verifyChecker
 }
 
 // verifyStore keeps the results in verify.json in the data folder.
@@ -92,7 +105,7 @@ func (s *verifyStore) current(path string, info os.FileInfo) (verifyRecord, bool
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	record, ok := s.records[path]
-	if !ok || record.Size != info.Size() || record.ModTime != info.ModTime().UnixNano() {
+	if !ok || record.Size != info.Size() || record.ModTime != info.ModTime().UnixNano() || record.stale() {
 		return verifyRecord{}, false
 	}
 	return record, true
@@ -115,7 +128,7 @@ func (s *verifyStore) damaged() map[string]string {
 
 	result := map[string]string{}
 	for path, record := range records {
-		if record.OK {
+		if record.OK || record.stale() {
 			continue
 		}
 		if info, err := os.Stat(path); err == nil && info.Size() == record.Size && info.ModTime().UnixNano() == record.ModTime {
@@ -134,16 +147,11 @@ func (web *Web) verifications() *verifyStore {
 	return web.verify
 }
 
-// verifyLibraryFile checks one file: the NCA files of NSP and XCI files against their
-// content IDs, and NSZ and XCZ files by decompressing them. No keys are needed.
-func verifyLibraryFile(ctx context.Context, path string, progress func(int64, int64)) error {
-	switch strings.ToLower(filepath.Ext(path)) {
-	case ".nsz", ".xcz":
-		return switchfs.VerifyCompressed(ctx, path, nil, progress)
-	default:
-		_, err := switchfs.HashNcas(ctx, path, progress)
-		return err
-	}
+// verifyLibraryFile checks one file: every NCA against its content ID (NSZ and XCZ files
+// decompressed), and an NCA that does not match it against the hashes of its data, to
+// tell one rewritten by a tool from a damaged one.
+func verifyLibraryFile(ctx context.Context, path string, progress func(int64, int64)) (switchfs.FileCheck, error) {
+	return switchfs.VerifyFile(ctx, path, progress)
 }
 
 // files checked again by a scheduled verification once their last check is this old
@@ -290,7 +298,7 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 					report(name, true)
 					mutex.Unlock()
 
-					err := verifyLibraryFile(ctx, file.path, func(fileDone int64, fileTotal int64) {
+					check, err := verifyLibraryFile(ctx, file.path, func(fileDone int64, fileTotal int64) {
 						mutex.Lock()
 						partial[worker] = fileDone
 						report(name, false)
@@ -304,7 +312,8 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 						mutex.Unlock()
 						return
 					}
-					record := verifyRecord{Size: file.info.Size(), ModTime: file.info.ModTime().UnixNano(), OK: err == nil, Checked: time.Now()}
+					record := verifyRecord{Size: file.info.Size(), ModTime: file.info.ModTime().UnixNano(), OK: err == nil, Checked: time.Now(),
+						Modified: err == nil && len(check.Modified) > 0, Checker: verifyChecker}
 					if err != nil {
 						damaged++
 						record.Reason = "damaged file: " + err.Error()
