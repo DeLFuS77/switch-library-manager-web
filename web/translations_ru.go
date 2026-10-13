@@ -3,6 +3,7 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Preparing the list of files to check...": "Подготовка списка файлов для проверки...",
 		"The copy that is kept could not be checked whole: keep this one.": "Оставляемую копию не удалось проверить полностью: оставьте эту.",
 		"%v files at once": "%v файлов одновременно",
 		"%v threads": "%v потоков",

@@ -4,6 +4,8 @@
 
 ### Fixes
 
+- File check: each file being checked moves on while an NSZ is decompressed, instead of staying still until its end,
+  and the task tells it is preparing the list of files at the start, now made faster on a NAS.
 - The log no longer fills with errors for updates whose date the versions database does not know, nor with a line for
   every game that has updates or DLC without the game (they are listed on the Issues page).
 

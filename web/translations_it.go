@@ -3,6 +3,7 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Preparing the list of files to check...": "Preparazione dell'elenco dei file da verificare...",
 		"The copy that is kept could not be checked whole: keep this one.": "La copia che resta non è stata verificata per intero: conserva questa.",
 		"%v files at once": "%v file alla volta",
 		"%v threads": "%v thread",

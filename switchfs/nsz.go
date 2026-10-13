@@ -826,8 +826,13 @@ func checkPackage(ctx context.Context, path string, expected map[string][32]byte
 		}
 		hash := sha256.New()
 		if compressed {
-			err = decompressNcz(ctx, hash, input, file.offset, file.size, nil)
-			report(file.size)
+			// the progress follows the compressed bytes read, so a big NCZ moves on while it
+			// is decompressed instead of all at once at its end
+			counter := &countingReaderAt{reader: input, start: file.offset, end: file.offset + file.size, report: report}
+			err = decompressNcz(ctx, hash, counter, file.offset, file.size, nil)
+			if rest := file.size - counter.counted; err == nil && rest > 0 {
+				report(rest)
+			}
 		} else {
 			err = copyRange(ctx, hash, input, file.offset, file.size, report)
 		}
@@ -883,6 +888,35 @@ func checkPackage(ctx context.Context, path string, expected map[string][32]byte
 		}
 	}
 	return hashes, check, nil
+}
+
+// countingReaderAt reports the bytes read from a part of a file, each byte once, as its
+// progress.
+type countingReaderAt struct {
+	reader     io.ReaderAt
+	start, end int64
+	// the furthest position read so far, and the bytes reported
+	furthest int64
+	counted  int64
+	report   func(int64)
+}
+
+func (c *countingReaderAt) ReadAt(p []byte, offset int64) (int, error) {
+	n, err := c.reader.ReadAt(p, offset)
+	if reached := offset + int64(n); reached > c.furthest && offset >= c.start {
+		if reached > c.end {
+			reached = c.end
+		}
+		if c.furthest < c.start {
+			c.furthest = c.start
+		}
+		if step := reached - c.furthest; step > 0 {
+			c.furthest = reached
+			c.counted += step
+			c.report(step)
+		}
+	}
+	return n, err
 }
 
 // checkNczIntegrity checks the hash trees of the NCA of an NCZ: its stream holds the data
