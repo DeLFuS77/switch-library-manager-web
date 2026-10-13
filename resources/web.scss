@@ -3260,10 +3260,12 @@ html[data-section="compression"] #compression,
 html[data-section="automation"] #automation,
 html[data-section="vault"] #vault,
 html[data-section="notifications"] #notifications,
+html[data-section="mobile"] #mobile,
 html[data-section="backup"] #backup {
 	display: block;
 }
 
+html[data-section="mobile"] #settingsForm .save-bar,
 html[data-section="backup"] #settingsForm .save-bar {
 	display: none !important;
 }
@@ -4631,4 +4633,36 @@ body:has(.wizard.show) #alert_sync {
 	padding: 1rem;
 	border-radius: $border-radius-lg;
 	background: var(--slm-surface-muted);
+}
+
+// Settings > App on your phone
+.mobile-qr {
+	width: 11rem;
+	max-width: 100%;
+	padding: 0.5rem;
+	border-radius: $border-radius-lg;
+	background: #fff;
+
+	svg {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+}
+
+.mobile-guides {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.mobile-guide {
+	border: 1px solid var(--slm-border);
+	border-radius: $border-radius-lg;
+	padding: 0.6rem 0.9rem;
+
+	summary {
+		font-weight: 600;
+		cursor: pointer;
+	}
 }

@@ -366,6 +366,54 @@
 							<button type="submit" class="btn btn-primary rounded-pill px-4 ms-auto"><span class="bi bi-check-lg me-2" aria-hidden="true"></span>{{t "Save"}}</button>
 						</div>
 					</form>
+					<section class="surface mt-4 settings-section" id="mobile" aria-labelledby="mobileTitle" data-mobile-app>
+						<h2 class="section-title" id="mobileTitle"><span class="bi bi-phone" aria-hidden="true"></span>{{t "App on your phone"}}</h2>
+						<p class="text-body-secondary">{{t "Use it like any other app on your phone, tablet or computer: an icon on the home screen that opens it in its own window, without the bar of the browser."}}</p>
+						<div class="mobile-status mb-3">
+							<p class="mb-2" data-mobile-installed hidden><span class="bi bi-check-circle-fill text-success me-2" aria-hidden="true"></span>{{t "The app is installed on this device."}}</p>
+							<div data-mobile-install hidden>
+								<p class="mb-2"><span class="bi bi-stars text-warning me-2" aria-hidden="true"></span>{{t "This browser can install the app in one step."}}</p>
+								<button type="button" class="btn btn-primary rounded-pill" data-mobile-install-button><span class="bi bi-download me-2" aria-hidden="true"></span>{{t "Install the app"}}</button>
+							</div>
+							<div data-mobile-insecure hidden><div class="alert alert-warning d-flex gap-2 mb-0"><span class="bi bi-shield-exclamation mt-1" aria-hidden="true"></span><div>{{t "To install it as an app, open it with HTTPS: a reverse proxy, Tailscale or a Cloudflare Tunnel. With http:// the icon also works, but it opens like a page of the browser."}}</div></div></div>
+						</div>
+						<div class="row g-4">
+							<div class="col-md-5">
+								<h3 class="h6 fw-semibold">{{t "Open it on your phone"}}</h3>
+								<p class="small text-body-secondary mb-2">{{t "Scan the code with the camera of the phone, on the same network as the server, or from outside with your VPN."}}</p>
+								<div class="mobile-qr" data-mobile-qr></div>
+								<p class="small font-monospace mt-2 mb-1 text-break" data-mobile-address></p>
+								<p class="small text-warning mb-0" data-mobile-local hidden><span class="bi bi-exclamation-triangle me-1" aria-hidden="true"></span>{{t "This address only works on this computer. On the phone, use the address of the server on your network, like http://192.168.1.10:3000."}}</p>
+							</div>
+							<div class="col-md-7">
+								<div class="mobile-guides">
+									<details class="mobile-guide" data-mobile-guide="android">
+										<summary><span class="bi bi-android2 me-2" aria-hidden="true"></span>{{t "Android"}}</summary>
+										<ol class="small mt-2 mb-2">
+											<li>{{t "Open the address in Chrome."}}</li>
+											<li>{{t "Tap the menu ⋮ at the top right."}}</li>
+											<li>{{t "Tap Add to home screen, then Install."}}</li>
+										</ol>
+										<p class="small text-body-secondary mb-0">{{t "In Samsung Internet: menu ☰, Add page to, Home screen. In Edge or Firefox: their menu, Add to phone or Install."}}</p>
+									</details>
+									<details class="mobile-guide" data-mobile-guide="ios">
+										<summary><span class="bi bi-apple me-2" aria-hidden="true"></span>{{t "iPhone and iPad"}}</summary>
+										<ol class="small mt-2 mb-2">
+											<li>{{t "Open the address in Safari."}}</li>
+											<li>{{t "Tap the Share button: in iOS 26 it is in the menu ⋯ at the bottom; in earlier versions, the square with an arrow."}}</li>
+											<li>{{t "Tap Add to Home Screen. In iOS 26, leave Open as Web App on."}}</li>
+											<li>{{t "Tap Add: the icon is on the home screen."}}</li>
+										</ol>
+										<p class="small text-body-secondary mb-0">{{t "Since iOS 16.4 it also works from Chrome, Edge or Firefox, with their Share button. Apple does not let a web page install itself, so it is always done by hand."}}</p>
+									</details>
+									<details class="mobile-guide" data-mobile-guide="desktop">
+										<summary><span class="bi bi-laptop me-2" aria-hidden="true"></span>{{t "Computer"}}</summary>
+										<p class="small mt-2 mb-0">{{t "In Chrome or Edge, the install icon at the right of the address bar, or the menu, Cast, save and share, Install. In Safari on a Mac, File, Add to Dock."}}</p>
+									</details>
+								</div>
+							</div>
+						</div>
+					</section>
 					<section class="surface mt-4 settings-section" id="backup" aria-labelledby="backupTitle">
 						<h2 class="section-title" id="backupTitle"><span class="bi bi-life-preserver" aria-hidden="true"></span>{{t "Backup"}}</h2>
 						<p class="text-body-secondary">{{t "Save the settings, users, verification results and notified versions in a ZIP file, to move the app or to undo a mistake. Your keys are never included."}}</p>

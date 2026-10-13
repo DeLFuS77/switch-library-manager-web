@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### New features
+
+- **App on your phone**, in Settings: an **Install the app** button where the browser allows it (Chrome, Edge and
+  Samsung Internet), a code to open the server on the phone, and the steps for Android, iPhone and iPad (iOS 26 and
+  earlier) and computers, the ones of the device first. It tells when HTTPS is needed to install it as an app.
+
+### Improvements
+
+- The Tasks page tells that tasks run on the server: the browser or the device can be closed, they only stop when the
+  app itself stops.
+
 ## 1.28.1
 
 ### New features

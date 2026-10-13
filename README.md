@@ -381,6 +381,22 @@ series of the known Switch games, made with the titles data and free to reuse, n
 neither knows, from their names and publishers: "Kingdom Two Crowns", "Kingdom Hearts" and "Kingdom Rush" share a
 word, not a series.
 
+### App on your phone
+
+The app installs like any other on a phone, tablet or computer: an icon on the home screen that opens it in its own
+window. **Settings > App on your phone** has a code to open the server on the phone and the steps for Android, iPhone
+and iPad and computers; in Chrome, Edge and Samsung Internet an **Install the app** button does it in one step.
+
+To install it as an app the address must be HTTPS (a reverse proxy, Tailscale or a Cloudflare Tunnel); with
+`http://192.168...` the icon also works, but opens like a page of the browser. Apple does not let a web page install
+itself, so on iPhone and iPad it is always done from the Share button, Add to Home Screen.
+
+### Tasks keep running
+
+Synchronizations, scans, compressions, file checks and the other tasks run on the server: the browser, the phone or
+the computer where you started them can be closed or turned off. They only stop when the app itself stops (its Docker
+container or its program), and a stopped file check goes on where it was the next time.
+
 ### Save vault (JKSV)
 
 The save vault keeps the backups of your saves on the server, so a broken SD card or console does not take them. It is
