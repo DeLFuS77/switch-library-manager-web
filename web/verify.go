@@ -169,6 +169,34 @@ func (web *Web) verifications() *verifyStore {
 	return web.verify
 }
 
+// NOTE_VERIFY_PREPARING is the message of a verification while it makes its list of files.
+const NOTE_VERIFY_PREPARING = "Preparing the list of files to check..."
+
+// statFiles looks at files with several workers at once, as a NAS answers each one slowly;
+// a file that cannot be looked at is nil.
+func statFiles(paths []string, workers int) []os.FileInfo {
+	infos := make([]os.FileInfo, len(paths))
+	jobs := make(chan int)
+	var wait sync.WaitGroup
+	for w := 0; w < workers; w++ {
+		wait.Add(1)
+		go func() {
+			defer wait.Done()
+			for i := range jobs {
+				if info, err := os.Stat(paths[i]); err == nil {
+					infos[i] = info
+				}
+			}
+		}()
+	}
+	for i := range paths {
+		jobs <- i
+	}
+	close(jobs)
+	wait.Wait()
+	return infos
+}
+
 // verifyLibraryFile checks one file: every NCA against its content ID (NSZ and XCZ files
 // decompressed), and an NCA that does not match it against the hashes of its data, to
 // tell one rewritten by a tool from a damaged one.
@@ -252,15 +280,18 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 		}
 		files := []pending{}
 		var total int64
+		// making the list of a big library on a NAS takes a while: the task says so
+		web.taskLog().Progress(taskId, 0, 0, NOTE_VERIFY_PREPARING)
 		if paths == nil {
 			for _, candidate := range web.libraryFiles(".nsp", ".nsz", ".xci", ".xcz") {
 				paths = append(paths, candidate.Path)
 			}
 		}
 		now := time.Now()
-		for _, path := range paths {
-			info, err := os.Stat(path)
-			if err != nil || info.IsDir() {
+		infos := statFiles(paths, 16)
+		for i, path := range paths {
+			info := infos[i]
+			if info == nil || info.IsDir() {
 				continue
 			}
 			record, ok := store.current(path, info)

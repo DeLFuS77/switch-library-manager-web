@@ -3,6 +3,7 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Preparing the list of files to check...": "確認するファイルのリストを準備しています...",
 		"The copy that is kept could not be checked whole: keep this one.": "残すコピーを完全には確認できませんでした。こちらを残してください。",
 		"%v files at once": "同時に %v ファイル",
 		"%v threads": "%v スレッド",

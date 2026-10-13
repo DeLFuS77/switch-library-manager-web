@@ -147,3 +147,27 @@ func TestCopyMustHoldEveryFileOfTheOriginal(t *testing.T) {
 		t.Fatal("a ticket that differs from the original")
 	}
 }
+
+// The check of an NSZ moves on while each NCZ is decompressed, and ends at its total.
+func TestCheckOfAnNszMovesOnSmoothly(t *testing.T) {
+	initNszKeys(t, "")
+	source, _ := writeTestNsp(t, t.TempDir())
+	target := NszPath(source)
+	if _, err := CompressGame(context.Background(), source, target, CompressOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	steps, last, total := 0, int64(0), int64(0)
+	if _, err := VerifyFile(context.Background(), target, func(done, all int64) {
+		if done < last {
+			t.Fatalf("the progress goes back: %d after %d", done, last)
+		}
+		steps++
+		last, total = done, all
+	}); err != nil {
+		t.Fatal(err)
+	}
+	// the old check moved once per file: 5 steps for this package
+	if last != total || steps < 10 {
+		t.Fatalf("%d steps, %d of %d", steps, last, total)
+	}
+}
