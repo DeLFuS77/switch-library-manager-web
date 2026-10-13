@@ -314,8 +314,8 @@ func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, si
 			fileSize := sizes[i] * passes
 			report := func(step int64) func(int64, int64) {
 				return func(fileDone int64, fileTotal int64) {
-					web.taskLog().Progress(taskId, int((base+step+fileDone)>>20), int(total>>20), fmt.Sprintf("%s (%d/%d)", name, i+1, len(paths)))
-					web.taskLog().Lanes(taskId, []TaskLane{{Name: name, Done: min(step+fileDone, fileSize), Total: fileSize}})
+					web.taskLog().ProgressLanes(taskId, int((base+step+fileDone)>>20), int(total>>20), fmt.Sprintf("%s (%d/%d)", name, i+1, len(paths)),
+						[]TaskLane{{Name: name, Done: min(step+fileDone, fileSize), Total: fileSize}})
 				}
 			}
 			fileSaved, err := job(ctx, path, report)

@@ -3,6 +3,7 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"The copy that is kept could not be checked whole: keep this one.": "La copia che resta non è stata verificata per intero: conserva questa.",
 		"%v files at once": "%v file alla volta",
 		"%v threads": "%v thread",
 		"Total": "Totale",
@@ -41,7 +42,7 @@ func init() {
 		"Tasks run on the server: you can close this page, the browser or this device and they go on. They only stop when the app itself stops (its Docker container or its program); a stopped file check goes on where it was the next time.": "Le attività girano sul server: puoi chiudere questa pagina, il browser o questo dispositivo e continuano. Si fermano solo se si ferma l'app stessa (il suo container Docker o il suo programma); una verifica fermata riprende da dove era la volta successiva.",
 		"See the series": "Vedi la saga",
 		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "Con le chiavi, le saghe prendono anche da IGDB la serie esatta dei tuoi giochi.",
-		"A compression, conversion, pack or file check is running, try again when it has finished.": "È in corso una compressione, conversione, pacchetto o verifica dei file, riprova quando è terminata.",
+		"Another task is working on the files of the library (organizing, a cleanup, a compression, a pack or a check): try again when it has finished.": "Un'altra attività sta lavorando sui file della libreria (organizzazione, pulizia, compressione, pacchetto o verifica): riprova quando è terminata.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "Contiene anche il gioco, il suo ultimo aggiornamento o un DLC che la libreria conserva, quindi non viene eliminato.",
 		"The newer file is damaged: keep this one.": "Il file più recente è danneggiato: conserva questo.",
 		"The compressed file does not hold everything this file holds: keep this one.": "Il file compresso non contiene tutto ciò che contiene questo: conserva questo.",

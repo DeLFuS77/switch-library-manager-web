@@ -100,3 +100,15 @@ func TestPageOfASeries(t *testing.T) {
 		t.Fatalf("an unknown series: %d", missing.Code)
 	}
 }
+
+// A collection IGDB no longer knows (no name, no games) is no series: the game keeps the
+// series Wikidata or its name give it.
+func TestEmptyIgdbCollectionIsNoSeries(t *testing.T) {
+	web := seriesTestWeb(t)
+	web.timesToBeat().set("0100000000060000", TimeToBeat{Found: true, Checked: time.Now(), SeriesChecked: true, Collections: []int{78}})
+	web.igdbCollections().set(78, igdbCollection{Checked: time.Now()})
+	web.invalidateDerived()
+	if family := web.sagaFamilyOf("0100000000060000", "Moon Runner"); strings.HasPrefix(family, "igdb:") {
+		t.Fatalf("an empty collection: %q", family)
+	}
+}

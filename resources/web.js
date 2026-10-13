@@ -870,28 +870,30 @@ function initLiveTasks() {
 		fetch('/tasks.html?part=list', { cache: 'no-store' })
 			.then(response => response.ok ? response.text() : Promise.reject(response))
 			.then(html => {
-				// the bars go on from where they were instead of starting again
+				// every bar (the total and the one of each file) goes on from where it was
+				// instead of jumping: by task, the total first, then the files by name
+				const barKey = (card, bar) => card.dataset.taskId + '|' + (bar.closest('.task-lane')?.querySelector('[title]')?.title || '');
 				const widths = {};
 				list.querySelectorAll('[data-task-id]').forEach(card => {
-					const bar = card.querySelector('.progress-bar');
-					if (bar) {
-						widths[card.dataset.taskId] = bar.style.width;
-					}
+					card.querySelectorAll('.progress-bar').forEach(bar => {
+						widths[barKey(card, bar)] = bar.style.width;
+					});
 				});
 				list.innerHTML = html;
 				updateTaskIndicator();
 				list.querySelectorAll('[data-task-id]').forEach(card => {
-					const bar = card.querySelector('.progress-bar');
-					const before = widths[card.dataset.taskId];
-					if (!bar || !before || before === bar.style.width) {
-						return;
-					}
-					const after = bar.style.width;
-					bar.style.transition = 'none';
-					bar.style.width = before;
-					void bar.offsetWidth;
-					bar.style.transition = '';
-					bar.style.width = after;
+					card.querySelectorAll('.progress-bar').forEach(bar => {
+						const before = widths[barKey(card, bar)];
+						if (!before || before === bar.style.width) {
+							return;
+						}
+						const after = bar.style.width;
+						bar.style.transition = 'none';
+						bar.style.width = before;
+						void bar.offsetWidth;
+						bar.style.transition = '';
+						bar.style.width = after;
+					});
 				});
 			})
 			.catch(() => {
@@ -2127,9 +2129,15 @@ function showMobileStatus(justInstalled = false) {
 		return;
 	}
 	const installed = justInstalled || window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-	section.querySelector('[data-mobile-installed]').hidden = !installed;
-	section.querySelector('[data-mobile-install]').hidden = installed || !installPrompt;
-	section.querySelector('[data-mobile-insecure]').hidden = installed || window.isSecureContext;
+	const toggle = (selector, hidden) => {
+		const element = section.querySelector(selector);
+		if (element) {
+			element.hidden = hidden;
+		}
+	};
+	toggle('[data-mobile-installed]', !installed);
+	toggle('[data-mobile-install]', installed || !installPrompt);
+	toggle('[data-mobile-insecure]', installed || window.isSecureContext);
 }
 
 function initMobileApp() {
@@ -2138,25 +2146,33 @@ function initMobileApp() {
 		return;
 	}
 	showMobileStatus();
-	section.querySelector('[data-mobile-install-button]').addEventListener('click', () => {
-		if (!installPrompt) {
+	section.querySelector('[data-mobile-install-button]')?.addEventListener('click', () => {
+		// the prompt can be shown once: a second tap does nothing
+		const prompt = installPrompt;
+		installPrompt = null;
+		if (!prompt) {
 			return;
 		}
-		installPrompt.prompt();
-		installPrompt.userChoice.finally(() => {
-			installPrompt = null;
-			showMobileStatus();
-		});
+		prompt.prompt();
+		prompt.userChoice.finally(() => showMobileStatus());
 	});
 
 	const address = window.location.origin + '/';
-	section.querySelector('[data-mobile-address]').textContent = address;
-	const local = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
-	section.querySelector('[data-mobile-local]').hidden = !local;
-	const code = qrcode(0, 'M');
-	code.addData(address);
-	code.make();
-	section.querySelector('[data-mobile-qr]').innerHTML = code.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+	const addressText = section.querySelector('[data-mobile-address]');
+	if (addressText) {
+		addressText.textContent = address;
+	}
+	const localNote = section.querySelector('[data-mobile-local]');
+	if (localNote) {
+		localNote.hidden = !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+	}
+	const qr = section.querySelector('[data-mobile-qr]');
+	if (qr) {
+		const code = qrcode(0, 'M');
+		code.addData(address);
+		code.make();
+		qr.innerHTML = code.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+	}
 
 	// the guide of this device open, and first
 	const agent = navigator.userAgent;

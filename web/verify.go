@@ -37,6 +37,9 @@ type verifyRecord struct {
 	Checked time.Time `json:"checked"`
 	// NCA files rewritten by a tool whose data matched all its hashes
 	Modified bool `json:"modified,omitempty"`
+	// some sections of those files could not be checked on their own (the romfs of an
+	// update): not damaged, but not proven sound enough to delete another copy for it
+	Partial bool `json:"partial,omitempty"`
 	// the version of the check that gave the result
 	Checker int `json:"checker,omitempty"`
 }
@@ -45,6 +48,12 @@ type verifyRecord struct {
 // (updates with many sections, block compression) and tells NCA files rewritten by a tool
 // apart from damaged ones: files found damaged by an older version are checked again.
 const verifyChecker = 2
+
+// sound tells a file checked whole and found sound: only such a copy lets another one be
+// deleted.
+func (r verifyRecord) sound() bool {
+	return r.OK && !r.Partial
+}
 
 // stale tells a damage found by an older version of the check.
 func (r verifyRecord) stale() bool {
@@ -115,6 +124,19 @@ func (s *verifyStore) set(path string, record verifyRecord) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.records[path] = record
+}
+
+// foundDamaged tells whether a file, unchanged since, was found damaged, also by an older
+// version of the check: a deletion must not rely on it until it is checked again.
+func (s *verifyStore) foundDamaged(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	record, ok := s.records[path]
+	return ok && !record.OK && record.Size == info.Size() && record.ModTime == info.ModTime().UnixNano()
 }
 
 // damaged returns the files found damaged that are still unchanged, by path.
@@ -274,14 +296,13 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 			for _, value := range partial {
 				done += value
 			}
-			web.taskLog().Progress(taskId, int(done>>20), int(total>>20), fmt.Sprintf("%s (%d/%d)", name, started, len(files)))
 			lanes := []TaskLane{}
 			for i, laneName := range laneNames {
 				if laneName != "" {
 					lanes = append(lanes, TaskLane{Name: laneName, Done: partial[i], Total: laneSizes[i]})
 				}
 			}
-			web.taskLog().Lanes(taskId, lanes)
+			web.taskLog().ProgressLanes(taskId, int(done>>20), int(total>>20), fmt.Sprintf("%s (%d/%d)", name, started, len(files)), lanes)
 		}
 		// a scheduled verification stops when the background hours end and goes on the next time
 		stopped := func() bool {
@@ -325,7 +346,7 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 						return
 					}
 					record := verifyRecord{Size: file.info.Size(), ModTime: file.info.ModTime().UnixNano(), OK: err == nil, Checked: time.Now(),
-						Modified: err == nil && len(check.Modified) > 0, Checker: verifyChecker}
+						Modified: err == nil && len(check.Modified) > 0, Partial: err == nil && check.Partial, Checker: verifyChecker}
 					if err != nil {
 						damaged++
 						record.Reason = "damaged file: " + err.Error()

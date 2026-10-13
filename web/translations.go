@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"The copy that is kept could not be checked whole: keep this one.": "La copia que se queda no se ha podido comprobar entera: conserva esta.",
 		"%v files at once": "%v archivos a la vez",
 		"%v threads": "%v hilos",
 		"Total": "Total",
@@ -43,7 +44,7 @@ var translations = map[string]map[string]string{
 		"Tasks run on the server: you can close this page, the browser or this device and they go on. They only stop when the app itself stops (its Docker container or its program); a stopped file check goes on where it was the next time.": "Las tareas se ejecutan en el servidor: puedes cerrar esta página, el navegador o este dispositivo y siguen trabajando. Solo se paran si se detiene la propia app (su contenedor Docker o su programa); una comprobación de archivos parada sigue por donde iba la próxima vez.",
 		"See the series": "Ver la saga",
 		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "Con las claves, las sagas también toman de IGDB la serie exacta de tus juegos.",
-		"A compression, conversion, pack or file check is running, try again when it has finished.": "Hay una compresión, conversión, pack o comprobación en marcha; inténtalo cuando termine.",
+		"Another task is working on the files of the library (organizing, a cleanup, a compression, a pack or a check): try again when it has finished.": "Otra tarea está trabajando con los archivos de la biblioteca (organizar, una limpieza, una compresión, un pack o una comprobación): inténtalo cuando termine.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "También contiene el juego, su última actualización o un DLC que la biblioteca conserva, así que no se borra.",
 		"The newer file is damaged: keep this one.": "El archivo más nuevo está dañado: conserva este.",
 		"The compressed file does not hold everything this file holds: keep this one.": "El archivo comprimido no contiene todo lo que tiene este: conserva este.",

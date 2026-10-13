@@ -7,6 +7,23 @@
 - **Tasks show their workers**: a running task tells how many files it works on at the same time (file checks) or
   with how many threads (compression), and under the total bar, a line for each file being worked on with its own
   progress.
+- Every bar of a running task moves on smoothly, the ones of each file too; the cards of the sagas and of the save
+  backups come in one after the other, like the library.
+
+### Fixes
+
+- A file whose check could only cover part of it (an update rewritten by a tool, whose romfs cannot be checked on its
+  own) is no longer enough to delete another copy for it, and an old update or DLC is only deleted while its newer
+  version is still there and was not found damaged, also by the previous check.
+- Deleting from the Space page or the copies of other regions holds off every compression, check, pack and copy until
+  it ends; a copy to the SD card no longer starts while files are organized.
+- Damaged or crafted NSZ and XCZ files are refused (sections that leave holes or overflow, blocks bigger than their
+  size, counts beyond the file) instead of reserving memory from what they claim.
+- Sagas: "Trial of Mana" and other games with Demo or Trial inside their name are games again; a collection IGDB no
+  longer knows is no series; the series are given in the same order every time.
+- Save vault: it refuses LOCK requests, deleting or moving a whole folder of a game and names with ":", and stops an
+  upload without a declared size before the disk is full.
+- The install button of the app prompts only once on a double tap.
 
 ## 1.28.2
 

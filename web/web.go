@@ -124,6 +124,9 @@ type Web struct {
 	timeToBeatOnce    sync.Once
 	igdbSeriesOnce    sync.Once
 	igdbSeries        *igdbCollectionStore
+	seriesFile        seriesFile
+	// results of switchfs.HoldsSameContents, see holdsSameContents
+	sameContents sync.Map
 	timeToBeatRunning atomic.Bool
 	// the files waiting for the automations (see automation.go)
 	automationQueue *automationQueue

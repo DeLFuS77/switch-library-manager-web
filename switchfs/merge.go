@@ -112,14 +112,19 @@ func MergePackages(ctx context.Context, sources []string, target string, without
 			deltas = deltaFragmentNames(reader, pkg)
 		}
 		for _, file := range pkg.files {
-			if seen[file.name] {
+			// the same content once, also as an NCA in one package and an NCZ in another
+			key := file.name
+			if id := contentId(file.name); id != "" {
+				key = id
+			}
+			if seen[key] {
 				continue
 			}
 			if deltas[file.name] {
 				skipped += file.size
 				continue
 			}
-			seen[file.name] = true
+			seen[key] = true
 			names = append(names, file.name)
 			parts = append(parts, part{source: len(opened) - 1, file: file})
 			total += file.size
