@@ -3,6 +3,7 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"A compression, conversion, pack or file check is running, try again when it has finished.": "È in corso una compressione, conversione, pacchetto o verifica dei file, riprova quando è terminata.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "Contiene anche il gioco, il suo ultimo aggiornamento o un DLC che la libreria conserva, quindi non viene eliminato.",
 		"The newer file is damaged: keep this one.": "Il file più recente è danneggiato: conserva questo.",
 		"The compressed file does not hold everything this file holds: keep this one.": "Il file compresso non contiene tutto ciò che contiene questo: conserva questo.",

@@ -3,6 +3,7 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"A compression, conversion, pack or file check is running, try again when it has finished.": "圧縮、変換、パック作成、またはファイル確認を実行中です。終了してからもう一度お試しください。",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "ライブラリが残すゲーム本体、最新アップデート、または DLC も含んでいるため、削除しません。",
 		"The newer file is damaged: keep this one.": "新しいファイルが破損しています。こちらを残してください。",
 		"The compressed file does not hold everything this file holds: keep this one.": "圧縮ファイルにはこのファイルの内容がすべて含まれていません。こちらを残してください。",

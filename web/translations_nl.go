@@ -3,6 +3,7 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"A compression, conversion, pack or file check is running, try again when it has finished.": "Er loopt een compressie, conversie, pakket of bestandscontrole, probeer het opnieuw als die klaar is.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "Het bevat ook het spel, de nieuwste update of een DLC die de bibliotheek bewaart, dus het wordt niet verwijderd.",
 		"The newer file is damaged: keep this one.": "Het nieuwere bestand is beschadigd: bewaar dit bestand.",
 		"The compressed file does not hold everything this file holds: keep this one.": "Het gecomprimeerde bestand bevat niet alles wat dit bestand bevat: bewaar dit bestand.",
