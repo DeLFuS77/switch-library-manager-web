@@ -3,6 +3,7 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"See the series": "シリーズを見る",
 		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "キーがあれば、シリーズも IGDB からゲームの正確なシリーズを取得します。",
 		"A compression, conversion, pack or file check is running, try again when it has finished.": "圧縮、変換、パック作成、またはファイル確認を実行中です。終了してからもう一度お試しください。",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "ライブラリが残すゲーム本体、最新アップデート、または DLC も含んでいるため、削除しません。",

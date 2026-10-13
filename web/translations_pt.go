@@ -3,6 +3,7 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"See the series": "Ver a saga",
 		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "Com as chaves, as sagas também obtêm do IGDB a série exata dos seus jogos.",
 		"A compression, conversion, pack or file check is running, try again when it has finished.": "Há uma compressão, conversão, pacote ou verificação em andamento, tente novamente quando terminar.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "Também contém o jogo, sua última atualização ou um DLC que a biblioteca mantém, por isso não é apagado.",

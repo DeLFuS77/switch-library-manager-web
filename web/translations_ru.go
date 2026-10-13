@@ -3,6 +3,7 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"See the series": "Открыть серию",
 		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "С ключами серии также берут из IGDB точную серию ваших игр.",
 		"A compression, conversion, pack or file check is running, try again when it has finished.": "Выполняется сжатие, преобразование, создание пакета или проверка файлов, повторите попытку после завершения.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "Он также содержит игру, её последнее обновление или DLC, которые библиотека сохраняет, поэтому он не удаляется.",

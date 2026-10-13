@@ -25,7 +25,7 @@
 					<img class="saga-cover" src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
 					<div class="saga-body">
 						<div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
-							<h2 class="saga-title">{{.Name}}</h2>
+							<h2 class="saga-title"><a class="link-body-emphasis text-decoration-none" href="{{.Url}}">{{.Name}}</a></h2>
 							<span class="small fw-semibold text-nowrap">{{if .Complete}}<span class="bi bi-trophy-fill text-warning me-1" aria-hidden="true"></span>{{end}}{{t "%v of %v" .Owned .Total}}</span>
 						</div>
 						<div class="progress my-2" role="progressbar" aria-label="{{.Name}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar{{if .Complete}} bg-success{{end}}" style="width: {{.Percent}}%"></div></div>
@@ -38,6 +38,7 @@
 							{{- end}}
 							{{- if .MoreMissing}}<span class="saga-more">{{t "+%v more" .MoreMissing}}</span>{{end}}
 						</div>
+						<a class="btn btn-sm btn-outline-secondary rounded-pill mt-2" href="{{.Url}}"><span class="bi bi-grid-3x3-gap me-1" aria-hidden="true"></span>{{t "See the series"}}</a>
 					</div>
 				</section>
 				{{- end}}
