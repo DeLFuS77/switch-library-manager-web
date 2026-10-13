@@ -3,6 +3,10 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "它还包含游戏库保留的游戏本体、最新更新或 DLC，因此不会删除。",
+		"The newer file is damaged: keep this one.": "较新的文件已损坏：请保留这个。",
+		"The compressed file does not hold everything this file holds: keep this one.": "压缩文件没有包含此文件的全部内容：请保留这个。",
+		"A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.": "只有在保留一份其他地区、已校验且完好的游戏副本时才会删除副本：请先校验文件。",
 		"And the separate files?": "单独的文件怎么办？",
 		"Keep them": "保留",
 		"Choose whether to keep or delete the separate files.": "请选择保留还是删除单独的文件。",

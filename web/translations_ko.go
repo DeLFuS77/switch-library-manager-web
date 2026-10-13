@@ -3,6 +3,10 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "라이브러리가 유지하는 게임, 최신 업데이트 또는 DLC도 들어 있어 삭제하지 않습니다.",
+		"The newer file is damaged: keep this one.": "더 새로운 파일이 손상되었습니다. 이 파일을 유지하세요.",
+		"The compressed file does not hold everything this file holds: keep this one.": "압축 파일에 이 파일의 내용이 모두 들어 있지 않습니다. 이 파일을 유지하세요.",
+		"A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.": "다른 지역의 게임 사본이 확인되고 정상일 때만 사본을 삭제합니다. 먼저 파일을 확인하세요.",
 		"And the separate files?": "개별 파일은?",
 		"Keep them": "유지",
 		"Choose whether to keep or delete the separate files.": "개별 파일을 유지할지 삭제할지 선택하세요.",

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/binary"
 	"net/http"
 	"net/url"
 	"os"
@@ -87,10 +88,19 @@ func TestSpaceGroups(t *testing.T) {
 		t.Fatalf("an original whose copy was not verified cannot be deleted: %+v", compressed)
 	}
 
-	// once the copy is verified, the original can be deleted
+	// once the copy is verified, the original can be deleted, if the copy holds all of it
 	copyPath := filepath.Join(dir, "Game [0100000000010000][v0].nsz")
-	info, _ := os.Stat(copyPath)
-	web.verifications().set(copyPath, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checked: time.Now()})
+	os.WriteFile(filepath.Join(dir, "Game [0100000000010000][v0].nsp"), testPfs0("game.nca", "update.nca"), 0644)
+	verified := func(names ...string) {
+		os.WriteFile(copyPath, testPfs0(names...), 0644)
+		info, _ := os.Stat(copyPath)
+		web.verifications().set(copyPath, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checked: time.Now(), Checker: verifyChecker})
+	}
+	verified("game.ncz")
+	if compressed := spaceGroup(web.spaceGroups(), SPACE_COMPRESSED); compressed.Files[0].Deletable || compressed.Files[0].Note != NOTE_SPACE_NOT_SAME {
+		t.Fatalf("the copy lacks the update of the original: %+v", compressed)
+	}
+	verified("game.ncz", "update.nca")
 	if compressed := spaceGroup(web.spaceGroups(), SPACE_COMPRESSED); !compressed.Files[0].Deletable || compressed.DeletableSize != 300 {
 		t.Fatalf("verified copy: %+v", compressed)
 	}
@@ -100,7 +110,7 @@ func TestSpaceGroups(t *testing.T) {
 
 	// a damaged kept copy protects the duplicate; a sound one lets it be deleted
 	kept := filepath.Join(dir, "Other [0100000000020000][v0].nsp")
-	info, _ = os.Stat(kept)
+	info, _ := os.Stat(kept)
 	web.verifications().set(kept, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Checked: time.Now(), Checker: verifyChecker})
 	if file := spaceGroup(web.spaceGroups(), SPACE_DUPLICATES).Files[0]; file.Deletable || file.Note != NOTE_SPACE_KEPT_DAMAGED {
 		t.Fatalf("damaged kept copy: %+v", file)
@@ -200,4 +210,22 @@ func TestSpaceDeletesTheCopyNotTheCleanName(t *testing.T) {
 	if len(duplicates.Files) != 1 || duplicates.Files[0].Path != copy || duplicates.Files[0].KeptBy != clean {
 		t.Fatalf("the copy must be the file to delete: %+v", duplicates.Files)
 	}
+}
+
+// testPfs0 is a package with empty files of these names.
+func testPfs0(names ...string) []byte {
+	table := []byte{}
+	offsets := []uint32{}
+	for _, name := range names {
+		offsets = append(offsets, uint32(len(table)))
+		table = append(append(table, name...), 0)
+	}
+	header := make([]byte, 0x10+0x18*len(names))
+	copy(header, "PFS0")
+	binary.LittleEndian.PutUint32(header[4:], uint32(len(names)))
+	binary.LittleEndian.PutUint32(header[8:], uint32(len(table)))
+	for i := range names {
+		binary.LittleEndian.PutUint32(header[0x10+0x18*i+16:], offsets[i])
+	}
+	return append(header, table...)
 }

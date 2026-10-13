@@ -74,6 +74,21 @@ func TestRegionalDuplicateDamagedIsNotKept(t *testing.T) {
 
 func TestRemoveRegionCopy(t *testing.T) {
 	web, folder := regionTestWeb(t)
+	// the copy that stays was never checked: nothing is deleted
+	if _, _, err := web.removeRegionCopy("0100000000050000", "en"); err != errRegionVerify {
+		t.Fatalf("the copy that stays must be checked first: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(folder, "Known JP.nsp")); err != nil {
+		t.Fatal("nothing is deleted before")
+	}
+	_, localDB := web.state.get()
+	base := localDB.TitlesMap["0100000000010"].File.ExtendedInfo
+	kept := filepath.Join(base.BaseFolder, base.FileName)
+	info, err := os.Stat(kept)
+	if err != nil {
+		t.Fatal(err)
+	}
+	web.verifications().set(kept, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checker: verifyChecker})
 	deleted, freed, err := web.removeRegionCopy("0100000000050000", "en")
 	if err != nil || deleted != 2 || freed != 8 {
 		t.Fatalf("the copy and its DLC: %d %d %v", deleted, freed, err)
@@ -90,5 +105,35 @@ func TestRemoveRegionCopy(t *testing.T) {
 	web.state.set(testDatabases(t))
 	if _, _, err := web.removeRegionCopy("0100000000010000", "en"); err != errRegionCopy {
 		t.Fatalf("the only copy: %v", err)
+	}
+}
+
+func TestRegionCopyNeedsAnotherRegionAndKeepsSharedFiles(t *testing.T) {
+	web, folder := regionTestWeb(t)
+	switchDB, localDB := web.state.get()
+	base := localDB.TitlesMap["0100000000010"].File.ExtendedInfo
+	kept := filepath.Join(base.BaseFolder, base.FileName)
+	info, _ := os.Stat(kept)
+	web.verifications().set(kept, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checker: verifyChecker})
+
+	// two games of the same name and region are different games, not copies
+	region := switchDB.TitlesMap["0100000000050"].Attributes.Region
+	switchDB.TitlesMap["0100000000050"].Attributes.Region = switchDB.TitlesMap["0100000000010"].Attributes.Region
+	web.invalidateDerived()
+	if _, _, err := web.removeRegionCopy("0100000000050000", "en"); err != errRegionVerify {
+		t.Fatalf("same region: %v", err)
+	}
+	switchDB.TitlesMap["0100000000050"].Attributes.Region = region
+
+	// the DLC file also holds a DLC of another game: it stays
+	shared := localDB.TitlesMap["0100000000050"].Dlc["0100000000051001"]
+	localDB.TitlesMap["0100000000099"] = &db.SwitchGameFiles{Updates: map[int]db.SwitchFileInfo{}, Dlc: map[string]db.SwitchFileInfo{"0100000000099001": shared}}
+	web.invalidateDerived()
+	deleted, _, err := web.removeRegionCopy("0100000000050000", "en")
+	if err != nil || deleted != 1 {
+		t.Fatalf("only the game file: %d %v", deleted, err)
+	}
+	if _, err := os.Stat(filepath.Join(folder, "Known JP DLC.nsp")); err != nil {
+		t.Fatal("the shared file stays")
 	}
 }

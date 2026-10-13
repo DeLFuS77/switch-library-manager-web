@@ -144,6 +144,10 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 	if err != nil {
 		return err
 	}
+	// every NCA of the card must be in the NSP
+	if same, err := switchfs.HoldsSameContents(path, temporary); err != nil || !same {
+		return errors.New("the converted file does not hold every content of the card")
+	}
 	if err := os.Rename(temporary, target); err != nil {
 		return err
 	}
