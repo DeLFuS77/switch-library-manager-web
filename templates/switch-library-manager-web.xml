@@ -22,15 +22,15 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>MIT</License>
-  <Changes>### 1.27.0
+  <Changes>### 1.27.1
+- File check: no more good files reported as damaged (nsz updates, block compression, files rewritten by NSC_Builder)
+- Files found damaged before are checked again by themselves
+- Compression compares every file of the NSZ with the original
+### 1.27.0
 - Complete packs: game, latest update and DLC in one file, without deltas
 - Save vault for JKSV (WebDAV, off by default)
-- Delete the extra copies of a game from other regions
-### 1.26.1
-- No more sideways scrolling on desktop
-- Animated pictures in the setup wizard, and covers downloaded right after it
-- Game page and statistics polish</Changes>
-  <Date>2026-10-08</Date>
+- Delete the extra copies of a game from other regions</Changes>
+  <Date>2026-10-13</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>
