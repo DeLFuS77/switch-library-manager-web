@@ -3,6 +3,15 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Outside your home network": "Fora da rede de casa",
+		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "O código abre o endereço que você está usando agora: um endereço local (como 192.168...) só funciona em casa. Para usar o app de fora, o celular precisa de um jeito de chegar ao servidor. Do mais fácil ao que dá mais trabalho:",
+		"A VPN": "Uma VPN",
+		"Tailscale, WireGuard or the VPN of your router. The phone joins your network from anywhere and uses the same address as at home. No domain, no fixed IP and no open ports; the safest.": "Tailscale, WireGuard ou a VPN do seu roteador. O celular entra na sua rede de qualquer lugar e usa o mesmo endereço de casa. Sem domínio, sem IP fixo e sem abrir portas; o mais seguro.",
+		"A Cloudflare Tunnel": "Um túnel Cloudflare",
+		"a free Cloudflare account and a domain of yours give an HTTPS address, like https://switch.your-domain.com, without opening ports nor a fixed IP; the app can then be installed as an app. Turn on users in the app first.": "uma conta gratuita da Cloudflare e um domínio seu dão um endereço HTTPS, como https://switch.seu-dominio.com, sem abrir portas nem IP fixo; assim o app pode ser instalado como app. Ative antes os usuários no app.",
+		"A reverse proxy": "Um proxy reverso",
+		"Nginx Proxy Manager, Caddy or SWAG with a domain and a certificate, opening port 443 of the router. Without a fixed IP, a dynamic DNS (DuckDNS, No-IP) follows the IP of your home. With Cloudflare in front, set SLM_TRUSTED_PROXIES to cloudflare.": "Nginx Proxy Manager, Caddy ou SWAG com um domínio e um certificado, abrindo a porta 443 do roteador. Sem IP fixo, um DNS dinâmico (DuckDNS, No-IP) acompanha o IP da sua casa. Com a Cloudflare na frente, defina SLM_TRUSTED_PROXIES como cloudflare.",
+		"Open the app once with that outside address: the code above then shows it, ready for the phone.": "Abra o app uma vez com esse endereço de fora: o código acima vai mostrá-lo, pronto para o celular.",
 		"App on your phone": "App no celular",
 		"Use it like any other app on your phone, tablet or computer: an icon on the home screen that opens it in its own window, without the bar of the browser.": "Use como qualquer outro app no celular, tablet ou computador: um ícone na tela inicial que abre em sua própria janela, sem a barra do navegador.",
 		"The app is installed on this device.": "O app está instalado neste dispositivo.",

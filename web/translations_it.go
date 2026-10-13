@@ -3,6 +3,15 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Outside your home network": "Fuori dalla rete di casa",
+		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "Il codice apre l'indirizzo che stai usando ora: un indirizzo locale (come 192.168...) funziona solo a casa. Per usare l'app da fuori, il telefono deve poter raggiungere il server. Dal più semplice al più laborioso:",
+		"A VPN": "Una VPN",
+		"Tailscale, WireGuard or the VPN of your router. The phone joins your network from anywhere and uses the same address as at home. No domain, no fixed IP and no open ports; the safest.": "Tailscale, WireGuard o la VPN del router. Il telefono entra nella tua rete da ovunque e usa lo stesso indirizzo di casa. Niente dominio, niente IP fisso e nessuna porta aperta; la più sicura.",
+		"A Cloudflare Tunnel": "Un tunnel Cloudflare",
+		"a free Cloudflare account and a domain of yours give an HTTPS address, like https://switch.your-domain.com, without opening ports nor a fixed IP; the app can then be installed as an app. Turn on users in the app first.": "un account Cloudflare gratuito e un tuo dominio danno un indirizzo HTTPS, come https://switch.tuo-dominio.it, senza aprire porte né IP fisso; così l'app si può installare come app. Attiva prima gli utenti nell'app.",
+		"A reverse proxy": "Un reverse proxy",
+		"Nginx Proxy Manager, Caddy or SWAG with a domain and a certificate, opening port 443 of the router. Without a fixed IP, a dynamic DNS (DuckDNS, No-IP) follows the IP of your home. With Cloudflare in front, set SLM_TRUSTED_PROXIES to cloudflare.": "Nginx Proxy Manager, Caddy o SWAG con un dominio e un certificato, aprendo la porta 443 del router. Senza IP fisso, un DNS dinamico (DuckDNS, No-IP) segue l'IP di casa. Con Cloudflare davanti, imposta SLM_TRUSTED_PROXIES a cloudflare.",
+		"Open the app once with that outside address: the code above then shows it, ready for the phone.": "Apri l'app una volta con quell'indirizzo esterno: il codice sopra lo mostrerà, pronto per il telefono.",
 		"App on your phone": "App sul telefono",
 		"Use it like any other app on your phone, tablet or computer: an icon on the home screen that opens it in its own window, without the bar of the browser.": "Usala come qualsiasi altra app su telefono, tablet o computer: un'icona nella schermata Home che la apre nella sua finestra, senza la barra del browser.",
 		"The app is installed on this device.": "L'app è installata su questo dispositivo.",

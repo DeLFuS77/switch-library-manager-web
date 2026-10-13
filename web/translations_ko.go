@@ -3,6 +3,15 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Outside your home network": "집 네트워크 밖에서",
+		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "코드는 지금 사용 중인 주소를 엽니다. 로컬 주소(192.168... 등)는 집에서만 작동합니다. 밖에서 앱을 쓰려면 휴대폰이 서버에 닿을 방법이 필요합니다. 쉬운 순서대로:",
+		"A VPN": "VPN",
+		"Tailscale, WireGuard or the VPN of your router. The phone joins your network from anywhere and uses the same address as at home. No domain, no fixed IP and no open ports; the safest.": "Tailscale, WireGuard 또는 공유기의 VPN. 휴대폰이 어디서든 집 네트워크에 들어와 집과 같은 주소를 씁니다. 도메인, 고정 IP, 포트 개방이 필요 없고 가장 안전합니다.",
+		"A Cloudflare Tunnel": "Cloudflare Tunnel",
+		"a free Cloudflare account and a domain of yours give an HTTPS address, like https://switch.your-domain.com, without opening ports nor a fixed IP; the app can then be installed as an app. Turn on users in the app first.": "무료 Cloudflare 계정과 자신의 도메인으로 포트 개방이나 고정 IP 없이 https://switch.your-domain.com 같은 HTTPS 주소를 얻고, 앱으로 설치할 수 있습니다. 먼저 앱에서 사용자를 켜세요.",
+		"A reverse proxy": "리버스 프록시",
+		"Nginx Proxy Manager, Caddy or SWAG with a domain and a certificate, opening port 443 of the router. Without a fixed IP, a dynamic DNS (DuckDNS, No-IP) follows the IP of your home. With Cloudflare in front, set SLM_TRUSTED_PROXIES to cloudflare.": "Nginx Proxy Manager, Caddy 또는 SWAG에 도메인과 인증서를 설정하고 공유기의 443 포트를 엽니다. 고정 IP가 없으면 동적 DNS(DuckDNS, No-IP)가 집 IP를 따라갑니다. Cloudflare를 앞에 두면 SLM_TRUSTED_PROXIES를 cloudflare로 설정하세요.",
+		"Open the app once with that outside address: the code above then shows it, ready for the phone.": "그 외부 주소로 앱을 한 번 열면 위 코드가 그 주소를 보여 주어 휴대폰에서 쓸 수 있습니다.",
 		"App on your phone": "휴대폰 앱",
 		"Use it like any other app on your phone, tablet or computer: an icon on the home screen that opens it in its own window, without the bar of the browser.": "휴대폰, 태블릿, 컴퓨터에서 다른 앱처럼 사용하세요. 홈 화면 아이콘으로 브라우저 주소창 없이 자체 창에서 열립니다.",
 		"The app is installed on this device.": "이 기기에 앱이 설치되어 있습니다.",

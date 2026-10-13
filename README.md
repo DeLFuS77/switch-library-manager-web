@@ -391,6 +391,12 @@ To install it as an app the address must be HTTPS (a reverse proxy, Tailscale or
 `http://192.168...` the icon also works, but opens like a page of the browser. Apple does not let a web page install
 itself, so on iPhone and iPad it is always done from the Share button, Add to Home Screen.
 
+The code opens the address in use, so a local one (`192.168...`) only works at home. From outside, the phone needs a
+way to reach the server: a **VPN** (Tailscale, WireGuard or the one of your router; no domain, fixed IP nor open
+ports, the safest), a **Cloudflare Tunnel** (a domain of yours and a free account give an HTTPS address without
+opening ports) or a **reverse proxy** (Nginx Proxy Manager, Caddy or SWAG with a domain and port 443 open; a dynamic
+DNS such as DuckDNS replaces a fixed IP). Turn on users in the app before opening it to the internet.
+
 ### Tasks keep running
 
 Synchronizations, scans, compressions, file checks and the other tasks run on the server: the browser, the phone or

@@ -3,6 +3,15 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Outside your home network": "自宅のネットワークの外",
+		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "コードは今使っているアドレスを開きます。ローカルアドレス（192.168... など）は自宅でしか使えません。外からアプリを使うには、スマホがサーバーに届く方法が必要です。簡単な順に:",
+		"A VPN": "VPN",
+		"Tailscale, WireGuard or the VPN of your router. The phone joins your network from anywhere and uses the same address as at home. No domain, no fixed IP and no open ports; the safest.": "Tailscale、WireGuard、またはルーターの VPN。スマホがどこからでも自宅のネットワークに入り、自宅と同じアドレスを使います。ドメインも固定 IP もポート開放も不要で、最も安全です。",
+		"A Cloudflare Tunnel": "Cloudflare Tunnel",
+		"a free Cloudflare account and a domain of yours give an HTTPS address, like https://switch.your-domain.com, without opening ports nor a fixed IP; the app can then be installed as an app. Turn on users in the app first.": "無料の Cloudflare アカウントと自分のドメインで、ポート開放も固定 IP もなしに https://switch.your-domain.com のような HTTPS アドレスが得られ、アプリとしてインストールできます。先にアプリでユーザーを有効にしてください。",
+		"A reverse proxy": "リバースプロキシ",
+		"Nginx Proxy Manager, Caddy or SWAG with a domain and a certificate, opening port 443 of the router. Without a fixed IP, a dynamic DNS (DuckDNS, No-IP) follows the IP of your home. With Cloudflare in front, set SLM_TRUSTED_PROXIES to cloudflare.": "Nginx Proxy Manager、Caddy、SWAG にドメインと証明書を設定し、ルーターのポート 443 を開けます。固定 IP がなければ、ダイナミック DNS（DuckDNS、No-IP）が自宅の IP を追跡します。Cloudflare を前に置く場合は SLM_TRUSTED_PROXIES を cloudflare にします。",
+		"Open the app once with that outside address: the code above then shows it, ready for the phone.": "外のアドレスで一度アプリを開くと、上のコードにそのアドレスが表示され、スマホで使えます。",
 		"App on your phone": "スマホのアプリ",
 		"Use it like any other app on your phone, tablet or computer: an icon on the home screen that opens it in its own window, without the bar of the browser.": "スマホ、タブレット、パソコンでほかのアプリと同じように使えます。ホーム画面のアイコンから、ブラウザのバーなしで専用のウィンドウで開きます。",
 		"The app is installed on this device.": "このデバイスにアプリがインストールされています。",
