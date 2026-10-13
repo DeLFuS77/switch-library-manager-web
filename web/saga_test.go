@@ -21,12 +21,40 @@ func TestSagaKeys(t *testing.T) {
 			t.Errorf("%q: got %q, want %q", name, got, want)
 		}
 	}
-	index := &sagaIndex{byKey: map[string][]string{"darksiders": nil, "darksiders genesis": nil, "dark": nil, "dark souls": nil}}
-	if index.family("darksiders genesis") != "darksiders" {
+	index := &sagaIndex{
+		byKey: map[string][]string{"darksiders": {"a"}, "darksiders genesis": {"b"}, "dark": {"c"}, "dark souls": {"d"},
+			"kingdom": {"e"}, "kingdom hearts": {"f"}, "kingdom two crowns": {"g"}},
+		publisherOf: map[string]string{"a": "thq nordic", "b": "thq nordic", "c": "thq nordic", "d": "bandai namco",
+			"e": "raw fury", "f": "square enix", "g": "raw fury"},
+	}
+	if index.family("darksiders genesis", "thq nordic") != sagaId("darksiders", "thq nordic") {
 		t.Error("Darksiders Genesis belongs to the Darksiders games")
 	}
-	if index.family("dark souls") != "dark souls" {
+	if index.family("dark souls", "bandai namco") != sagaId("dark souls", "bandai namco") {
 		t.Error("a generic word is no series")
+	}
+	// a word in common is no series: another publisher, another series
+	if index.family("kingdom two crowns", "raw fury") != sagaId("kingdom", "raw fury") {
+		t.Error("Kingdom Two Crowns follows Kingdom of the same publisher")
+	}
+	if index.family("kingdom hearts", "square enix") != sagaId("kingdom hearts", "square enix") {
+		t.Error("Kingdom Hearts is not in the series of Kingdom")
+	}
+	// games of one publisher that begin alike are a series, even without a game of that name
+	index.byKey["sonic forces"], index.byKey["sonic frontiers"] = []string{"h"}, []string{"i"}
+	index.publisherOf["h"], index.publisherOf["i"] = "sega", "sega"
+	index.keysOf = map[string][]string{"sega": {"sonic forces", "sonic frontiers"}, "x": {"escape from a", "escape from b"}}
+	index.beginTotal = map[string]int{"sonic": 2, "escape": 40, "escape from": 30}
+	index.beginBy = map[string]int{sagaId("sonic", "sega"): 2, sagaId("escape", "x"): 2, sagaId("escape from", "x"): 2}
+	// a beginning that the games of hundreds of publishers share is no series
+	if index.family("escape from a", "x") != sagaId("escape from a", "x") {
+		t.Error("two games that begin with a common word are no series")
+	}
+	if index.family("sonic forces", "sega") != sagaId("sonic", "sega") || index.family("sonic frontiers", "sega") != sagaId("sonic", "sega") {
+		t.Error("Sonic Forces and Sonic Frontiers are one series")
+	}
+	if publisherKey("Raw Fury AB") != publisherKey("raw fury") || publisherKey("Nintendo Co., Ltd.") != "nintendo" {
+		t.Error("company forms are left out")
 	}
 }
 

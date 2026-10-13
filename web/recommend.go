@@ -56,8 +56,8 @@ func (web *Web) tasteProfile(lang string) tasteProfile {
 		}
 		id := strings.ToUpper(title.Attributes.Id)
 		family := ""
-		if key, ok := index.keyOfId[prefix]; ok {
-			family = index.family(key)
+		if id, ok := index.familyOfId[prefix]; ok {
+			family = id
 		}
 		name := titleName(switchDB, lang, title.Attributes.Id, title.Attributes.Name)
 		profile.ownedNames[regionalName(title.Attributes.Name)] = true
@@ -129,8 +129,8 @@ func (web *Web) recommendationsAt(lang string, now time.Time) []Recommendation {
 			continue
 		}
 		c := candidate{Recommendation: Recommendation{Item: item}}
-		if key, ok := index.keyOfId[strings.ToLower(item.Id[:13])]; ok {
-			c.family = index.family(key)
+		if id, ok := index.familyOfId[strings.ToLower(item.Id[:13])]; ok {
+			c.family = id
 		}
 		// a game that shares more of the genres the user likes scores more
 		best := 0.0

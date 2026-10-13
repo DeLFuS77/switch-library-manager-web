@@ -25,6 +25,11 @@
   or from the group digit of its title ID), and an older DLC replaced by a newer one is listed as an old file instead
   of vanishing from the library.
 
+- **Sagas: games of another series are no longer mixed in.** A series is now a name and its publisher: "Kingdom Two
+  Crowns", "Kingdom Hearts" and "Kingdom Rush" are three series, not one "Kingdom", and a word many games begin with
+  ("Escape", "Hidden", "Cat"...) is no series; games of one publisher that begin alike ("Sonic Forces", "Sonic
+  Frontiers") are, when that word belongs to that publisher.
+
 ### Security
 
 - Save vault: even with the right password, it only keeps backups (ZIP files) in the folder of JKSV, refuses the
