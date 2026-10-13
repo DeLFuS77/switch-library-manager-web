@@ -1365,3 +1365,14 @@ func waitForBackgroundWork(web *Web) {
 		}
 	}
 }
+
+func TestUnknownDatesAreNoError(t *testing.T) {
+	for _, value := range []string{"", "-", " - "} {
+		if date, err := strToTime("2006-01-02", value); err != nil || !date.IsZero() {
+			t.Fatalf("%q: %v %v", value, date, err)
+		}
+	}
+	if date, err := strToTime("2006-01-02", "2024-05-01"); err != nil || date.Year() != 2024 {
+		t.Fatalf("a real date: %v %v", date, err)
+	}
+}
