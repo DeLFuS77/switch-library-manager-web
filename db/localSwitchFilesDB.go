@@ -422,8 +422,10 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 				}
 				titles[idPrefix] = switchTitle
 
+				kind, _ := metadataKind(metadata)
+
 				//process Updates
-				if strings.HasSuffix(metadata.TitleId, "800") {
+				if kind == KIND_UPDATE {
 					metadata.Type = "Update"
 
 					if update, ok := switchTitle.Updates[metadata.Version]; ok {
@@ -444,7 +446,7 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 				}
 
 				//process base
-				if strings.HasSuffix(metadata.TitleId, "000") {
+				if kind == KIND_BASE {
 					metadata.Type = "Base"
 					if switchTitle.BaseExist {
 						skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate base file (" + fullPath(switchTitle.File.ExtendedInfo) + ")"}
@@ -482,6 +484,10 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 					}
 				}
 				//not an update, and not main TitleAttributes, so treat it as a DLC
+				if older, ok := switchTitle.Dlc[metadata.TitleId]; ok && older.ExtendedInfo != file {
+					// the older version stays listed, like an old update, instead of vanishing
+					skipped[older.ExtendedInfo] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old DLC file, newer version exist locally (" + fullPath(file) + ")"}
+				}
 				metadata.Type = "DLC"
 				switchTitle.Dlc[metadata.TitleId] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
 			}
@@ -622,4 +628,18 @@ func readErrorText(kind string, err error) string {
 			"update prod.keys, or add [TitleID][vVersion] to the file name", kind, missingKey.KeyName)
 	}
 	return fmt.Sprintf("failed to read %v [reason: %v]", kind, err)
+}
+
+// metadataKind is the kind of a content read from its metadata, which names it exactly,
+// else from its title ID.
+func metadataKind(metadata *switchfs.ContentMetaAttributes) (string, error) {
+	switch strings.ToUpper(metadata.Type) {
+	case "BASE":
+		return KIND_BASE, nil
+	case "UPD", "UPDATE":
+		return KIND_UPDATE, nil
+	case "DLC":
+		return KIND_DLC, nil
+	}
+	return ContentKind(metadata.TitleId)
 }

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
@@ -106,14 +107,16 @@ func CreateSwitchTitleDB(titlesFile, versionsFile io.Reader) (*SwitchTitlesDB, e
 			result.TitlesMap[idPrefix] = switchTitle
 		}
 
+		kind, _ := ContentKind(id)
+
 		//process Updates
-		if strings.HasSuffix(id, "800") {
+		if kind == KIND_UPDATE {
 			switchTitle.Updates = versions[id[0:len(id)-3]+"000"]
 			continue
 		}
 
 		//process main TitleAttributes
-		if strings.HasSuffix(id, "000") {
+		if kind == KIND_BASE {
 			switchTitle.Attributes = attr
 			continue
 		}
@@ -137,19 +140,48 @@ func TitleIDPrefix(id string) (string, error) {
 // titleIDPrefix returns the key that groups a base game with its update and DLC title IDs.
 // Ported from https://github.com/trembon/switch-library-manager
 func titleIDPrefix(id string) (string, error) {
-	id = strings.ToLower(id)
+	kind, err := ContentKind(id)
+	if err != nil {
+		return "", err
+	}
+	value, _ := strconv.ParseUint(id, 16, 64)
+	switch kind {
+	case KIND_DLC:
+		// a DLC is the game plus 0x1000 plus its index
+		value = (value - 0x1000) &^ 0xFFF
+	default:
+		value &^= 0xFFF
+	}
+	return fmt.Sprintf("%016x", value)[:13], nil
+}
+
+// kinds of content, from their title ID or their metadata
+const (
+	KIND_BASE   = "BASE"
+	KIND_UPDATE = "UPD"
+	KIND_DLC    = "DLC"
+)
+
+// ContentKind tells from a title ID whether it is a game (its last three digits are 000),
+// an update (the game plus 0x800) or a DLC (the game plus 0x1000 plus an index from 1).
+// A DLC has bit 12 set: a DLC whose index is 0x800 also ends with 800, yet is no update.
+func ContentKind(id string) (string, error) {
 	if len(id) != 16 {
 		return "", errors.New("title ID must contain 16 hexadecimal characters")
 	}
-	if _, err := strconv.ParseUint(id, 16, 64); err != nil {
+	value, err := strconv.ParseUint(id, 16, 64)
+	if err != nil {
 		return "", errors.New("title ID must contain 16 hexadecimal characters")
 	}
-	if strings.HasSuffix(id, "000") || strings.HasSuffix(id, "800") {
-		return id[:len(id)-3], nil
+	low, dlcBit, nibble := value&0xFFF, value&0x1000 != 0, (value>>12)&0xF
+	switch {
+	case low == 0:
+		return KIND_BASE, nil
+	case low == 0x800 && !dlcBit:
+		return KIND_UPDATE, nil
+	case nibble != 0:
+		// the group of a DLC is one above the one of its game
+		return KIND_DLC, nil
 	}
-	value, _ := strconv.ParseUint(id[len(id)-4:len(id)-3], 16, 4)
-	if value == 0 {
-		return "", errors.New("DLC title ID has an invalid group nibble")
-	}
-	return id[:len(id)-4] + strconv.FormatUint(value-1, 16), nil
+	return "", errors.New("DLC title ID has an invalid group nibble")
 }
