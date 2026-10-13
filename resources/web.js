@@ -870,28 +870,30 @@ function initLiveTasks() {
 		fetch('/tasks.html?part=list', { cache: 'no-store' })
 			.then(response => response.ok ? response.text() : Promise.reject(response))
 			.then(html => {
-				// the bars go on from where they were instead of starting again
+				// every bar (the total and the one of each file) goes on from where it was
+				// instead of jumping: by task, the total first, then the files by name
+				const barKey = (card, bar) => card.dataset.taskId + '|' + (bar.closest('.task-lane')?.querySelector('[title]')?.title || '');
 				const widths = {};
 				list.querySelectorAll('[data-task-id]').forEach(card => {
-					const bar = card.querySelector('.progress-bar');
-					if (bar) {
-						widths[card.dataset.taskId] = bar.style.width;
-					}
+					card.querySelectorAll('.progress-bar').forEach(bar => {
+						widths[barKey(card, bar)] = bar.style.width;
+					});
 				});
 				list.innerHTML = html;
 				updateTaskIndicator();
 				list.querySelectorAll('[data-task-id]').forEach(card => {
-					const bar = card.querySelector('.progress-bar');
-					const before = widths[card.dataset.taskId];
-					if (!bar || !before || before === bar.style.width) {
-						return;
-					}
-					const after = bar.style.width;
-					bar.style.transition = 'none';
-					bar.style.width = before;
-					void bar.offsetWidth;
-					bar.style.transition = '';
-					bar.style.width = after;
+					card.querySelectorAll('.progress-bar').forEach(bar => {
+						const before = widths[barKey(card, bar)];
+						if (!before || before === bar.style.width) {
+							return;
+						}
+						const after = bar.style.width;
+						bar.style.transition = 'none';
+						bar.style.width = before;
+						void bar.offsetWidth;
+						bar.style.transition = '';
+						bar.style.width = after;
+					});
 				});
 			})
 			.catch(() => {
