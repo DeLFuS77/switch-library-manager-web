@@ -22,13 +22,13 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.28.2
+  <Changes>### 1.28.3
+- Tasks show their workers: a line with its progress for each file being worked on
+- Safer deletions and checks, sturdier NSZ reading, save vault and sagas fixes
+### 1.28.2
 - App on your phone in Settings: install button, QR code and steps for Android and iPhone
 - How to reach the app from outside your home network
-- The Tasks page tells that tasks keep running on the server
-### 1.28.1
-- The page of each saga, with all its games in big cards
-- Sagas never list demos</Changes>
+- The Tasks page tells that tasks keep running on the server</Changes>
   <Date>2026-10-13</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
