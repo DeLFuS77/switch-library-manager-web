@@ -3,6 +3,7 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"See the series": "查看系列",
 		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "有了密钥，系列页面也会从 IGDB 获取你的游戏的准确系列。",
 		"A compression, conversion, pack or file check is running, try again when it has finished.": "正在进行压缩、转换、制作合集包或文件校验，请在完成后重试。",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "它还包含游戏库保留的游戏本体、最新更新或 DLC，因此不会删除。",

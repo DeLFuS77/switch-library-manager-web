@@ -3,6 +3,7 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"See the series": "시리즈 보기",
 		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "키가 있으면 시리즈도 IGDB에서 게임의 정확한 시리즈를 가져옵니다.",
 		"A compression, conversion, pack or file check is running, try again when it has finished.": "압축, 변환, 팩 만들기 또는 파일 확인이 진행 중입니다. 끝난 뒤 다시 시도하세요.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "라이브러리가 유지하는 게임, 최신 업데이트 또는 DLC도 들어 있어 삭제하지 않습니다.",

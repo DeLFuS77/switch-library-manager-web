@@ -3,7 +3,7 @@
 				<article class="card game-card h-100{{if .Missing}} is-missing{{end}}">
 					<div class="game-cover">
 						{{- if .LatestUpdate}}<input class="form-check-input cover-select" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">{{else if .Selectable}}<input class="form-check-input cover-select admin-only" type="checkbox" data-library-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">{{end}}
-						{{- if and (not .Type) (not .LatestUpdate)}}<button type="button" class="wish-toggle admin-only{{if .Wished}} is-wished{{end}}" data-wish="{{.Id}}" data-wished="{{.Wished}}" aria-pressed="{{.Wished}}" title="{{if .Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if .Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>{{end}}
+						{{- if and (not .Type) (not .LatestUpdate) (not .InLibrary)}}<button type="button" class="wish-toggle admin-only{{if .Wished}} is-wished{{end}}" data-wish="{{.Id}}" data-wished="{{.Wished}}" aria-pressed="{{.Wished}}" title="{{if .Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if .Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>{{end}}
 						{{- if .UpdateAvailable}}<span class="cover-ribbon" title="{{t "Update available"}}"><span class="bi bi-arrow-up-circle-fill" aria-hidden="true"></span></span>{{end}}
 						<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
 						{{- if or .Type .Region}}
@@ -49,7 +49,7 @@
 						{{- else}}
 						{{- /* Missing games */}}
 						{{- if or .OrphanUpdates .OrphanDlc}}<div class="game-meta d-flex flex-wrap gap-1">{{if .OrphanUpdates}}<span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Updates: %v" .OrphanUpdates}}</span>{{end}}{{if .OrphanDlc}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC" .OrphanDlc}}</span>{{end}}</div>{{end}}
-						{{- if .Missing}}<div class="game-meta"><span class="chip chip-muted"><span class="bi bi-cart" aria-hidden="true"></span>{{t "Not in your library"}}</span></div>{{end}}
+						{{- if .Missing}}<div class="game-meta"><span class="chip chip-muted"><span class="bi bi-cart" aria-hidden="true"></span>{{t "Not in your library"}}</span></div>{{else if .InLibrary}}<div class="game-meta"><span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "In your library"}}</span></div>{{end}}
 						{{- if not .ReleaseDate.IsZero}}
 						<div class="game-meta game-footer"><span class="bi bi-calendar3 me-1" aria-hidden="true"></span>{{.ReleaseDate | formatTime}}</div>
 						{{- end}}

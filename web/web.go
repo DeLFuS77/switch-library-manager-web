@@ -225,6 +225,8 @@ type TitleItem struct {
 	sortKey     string
 	searchKey   string
 	searchWords []string
+	// shown as a game of the library on the page of a series
+	InLibrary bool
 }
 
 // DlcPercent is the share of the DLC of a game in the library.

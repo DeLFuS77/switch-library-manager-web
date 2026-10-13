@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### New features
+
+- **The page of each saga**: the name of a saga, its button **See the series** or the series on a game page open
+  the page of the series, with all its games in big cards, the oldest first: the ones you have and the ones you are
+  missing.
+
+### Improvements
+
+- Sagas never list demos (also those the titles database does not flag, such as "Demo for KIOSK"), nor count them.
+
 ## 1.28.0
 
 ### New features

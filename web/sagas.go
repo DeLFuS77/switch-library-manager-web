@@ -1,11 +1,14 @@
 package web
 
 import (
+	"encoding/base64"
+	"github.com/gorilla/mux"
+	"net/http"
+	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
-	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 // The series of the library with how many of their games it has: "4 of 6", with the games that
@@ -30,6 +33,14 @@ type SagaProgress struct {
 	// search text of the series and its games
 	searchKey   string
 	searchWords []string
+}
+
+// Url is the page of the series, with all its games.
+func (s SagaProgress) Url() string {
+	if s.family == "" {
+		return ""
+	}
+	return "/saga/" + base64.RawURLEncoding.EncodeToString([]byte(s.family)) + ".html"
 }
 
 func (s SagaProgress) Percent() int {
@@ -62,6 +73,10 @@ func (s SagaProgress) MoreMissing() int {
 	return s.Total - s.Owned - len(s.MissingGames())
 }
 
+// sagaDemo matches the demos the titles database does not flag, as "Super Mario Odyssey Demo
+// for KIOSK" or "Puzzle Puppers Demo": a series lists games, not demos.
+var sagaDemo = regexp.MustCompile(`(?i)\b(demo|trial|kiosk)\b|体験版`)
+
 // sagaMembers returns the games of a series, one of each name (the copy in the library first),
 // the oldest first.
 func (web *Web) sagaMembers(family string, lang string) []TitleItem {
@@ -70,12 +85,12 @@ func (web *Web) sagaMembers(family string, lang string) []TitleItem {
 		return nil
 	}
 	index := web.sagas()
-	hideDemos := settings.ReadSettings(web.dataFolder).HideDemoGames
 	wished := web.wishes().snapshot()
 	items := []TitleItem{}
 	for _, prefix := range index.membersOf[family] {
 		title := switchDB.TitlesMap[prefix]
-		if title == nil || title.Attributes.Id == "" || (hideDemos && isDemo(title, title.Attributes.Name)) || notAGame.MatchString(title.Attributes.Name) {
+		// demos are no game of the series, whatever the setting of the library
+		if title == nil || title.Attributes.Id == "" || isDemo(title, title.Attributes.Name) || sagaDemo.MatchString(title.Attributes.Name) || notAGame.MatchString(title.Attributes.Name) {
 			continue
 		}
 		item := TitleItem{
@@ -90,6 +105,7 @@ func (web *Web) sagaMembers(family string, lang string) []TitleItem {
 		if localDB != nil {
 			if local, ok := localDB.TitlesMap[prefix]; ok && local.BaseExist {
 				item.Missing = false
+				item.InLibrary = true
 			}
 		}
 		item.ReleaseDate, _ = intToTime(title.Attributes.ReleaseDate)
@@ -136,7 +152,7 @@ func (web *Web) sameSaga(titleId string, name string, lang string) SagaProgress 
 		}
 	}
 	self := regionalName(name)
-	progress := SagaProgress{Total: 1}
+	progress := SagaProgress{family: family, Total: 1}
 	if selfOwned {
 		progress.Owned = 1
 	}
@@ -257,6 +273,36 @@ func (web *Web) sagaProgress(lang string) []SagaProgress {
 	}).([]SagaProgress)
 }
 
+// SagaPageData is the page of a series, with all its games.
+type SagaPageData struct {
+	GlobalPageData
+	Saga SagaProgress
+}
+
+// sagaPage returns a series with all its games, from the key of its page.
+func (web *Web) sagaPage(id string, lang string) (SagaProgress, bool) {
+	raw, err := base64.RawURLEncoding.DecodeString(id)
+	if err != nil || len(raw) == 0 {
+		return SagaProgress{}, false
+	}
+	family := string(raw)
+	games := web.sagaMembers(family, lang)
+	if len(games) == 0 {
+		return SagaProgress{}, false
+	}
+	saga := SagaProgress{family: family, Total: len(games), Games: games}
+	for _, game := range games {
+		if !game.Missing {
+			saga.Owned++
+		}
+	}
+	saga.Name = web.sagas().known.seriesLabel(family, lang)
+	if saga.Name == "" {
+		saga.Name = sagaName(family, games)
+	}
+	return saga, true
+}
+
 // SagasPageData is the page of the series.
 type SagasPageData struct {
 	GlobalPageData
@@ -275,6 +321,17 @@ func (web *Web) HandleSagas() {
 		"resources/partials/components.html",
 		"resources/pages/sagas.html",
 	}
+
+	sagaTemplates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/partials/card.html",
+		"resources/partials/components.html", "resources/pages/saga.html")
+	web.router.HandleFunc("/saga/{id}.html", func(w http.ResponseWriter, r *http.Request) {
+		saga, ok := web.sagaPage(mux.Vars(r)["id"], web.requestLanguage(r))
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
+		web.render(w, r, sagaTemplates, SagaPageData{GlobalPageData: web.globalPageData("sagas"), Saga: saga})
+	}).Methods("GET")
 
 	web.HandleFiltered("/sagas.html", func(filter *TitleItemFilter, lang string) any {
 		data := SagasPageData{GlobalPageData: web.globalPageData("sagas"), Filter: filter}
