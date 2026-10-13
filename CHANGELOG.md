@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased
+## 1.28.0
+
+### New features
+
+- **Sagas from IGDB and Wikidata.** The series of the games now come from people who keep them: from IGDB (its
+  collections, with the keys of Times to beat) and from Wikidata (no keys needed, updated with the titles data), with
+  the name of the series in your language. The names and publishers only decide for the games neither knows, and an
+  edition, a demo or the copy of another store joins the series of its game.
 
 ### Fixes
 
@@ -24,16 +31,10 @@
 - Scanner: a DLC whose index is 0x800 is no longer taken for an update (the kind of a content comes from its metadata,
   or from the group digit of its title ID), and an older DLC replaced by a newer one is listed as an old file instead
   of vanishing from the library.
-
 - **Sagas: games of another series are no longer mixed in.** A series is now a name and its publisher: "Kingdom Two
   Crowns", "Kingdom Hearts" and "Kingdom Rush" are three series, not one "Kingdom", and a word many games begin with
   ("Escape", "Hidden", "Cat"...) is no series; games of one publisher that begin alike ("Sonic Forces", "Sonic
   Frontiers") are, when that word belongs to that publisher.
-
-- **Sagas from IGDB and Wikidata.** The series of the games now come from people who keep them: from IGDB (its
-  collections, with the keys of Times to beat) and from Wikidata (no keys needed, updated with the titles data), with
-  the name of the series in your language. The names and publishers only decide for the games neither knows, and an
-  edition, a demo or the copy of another store joins the series of its game.
 
 ### Security
 
