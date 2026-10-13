@@ -73,38 +73,27 @@ func (web *Web) sagaMembers(family string, lang string) []TitleItem {
 	hideDemos := settings.ReadSettings(web.dataFolder).HideDemoGames
 	wished := web.wishes().snapshot()
 	items := []TitleItem{}
-	key, _ := splitSagaId(family)
-	for i := sort.SearchStrings(index.keys, key); i < len(index.keys); i++ {
-		k := index.keys[i]
-		if k != key && !strings.HasPrefix(k, key+" ") {
-			break
+	for _, prefix := range index.membersOf[family] {
+		title := switchDB.TitlesMap[prefix]
+		if title == nil || title.Attributes.Id == "" || (hideDemos && isDemo(title, title.Attributes.Name)) || notAGame.MatchString(title.Attributes.Name) {
+			continue
 		}
-		for _, prefix := range index.byKey[k] {
-			// the same name from another publisher is another series
-			if index.familyOfId[prefix] != family {
-				continue
-			}
-			title := switchDB.TitlesMap[prefix]
-			if title == nil || title.Attributes.Id == "" || (hideDemos && isDemo(title, title.Attributes.Name)) || notAGame.MatchString(title.Attributes.Name) {
-				continue
-			}
-			item := TitleItem{
-				Id:           strings.ToUpper(title.Attributes.Id),
-				Name:         titleName(switchDB, lang, title.Attributes.Id, title.Attributes.Name),
-				OriginalName: title.Attributes.Name,
-				ImageUrl:     coverUrl(localDB, title.Attributes),
-				Region:       title.Attributes.Region,
-				Missing:      true,
-				Wished:       wished[strings.ToUpper(title.Attributes.Id)],
-			}
-			if localDB != nil {
-				if local, ok := localDB.TitlesMap[prefix]; ok && local.BaseExist {
-					item.Missing = false
-				}
-			}
-			item.ReleaseDate, _ = intToTime(title.Attributes.ReleaseDate)
-			items = append(items, item)
+		item := TitleItem{
+			Id:           strings.ToUpper(title.Attributes.Id),
+			Name:         titleName(switchDB, lang, title.Attributes.Id, title.Attributes.Name),
+			OriginalName: title.Attributes.Name,
+			ImageUrl:     coverUrl(localDB, title.Attributes),
+			Region:       title.Attributes.Region,
+			Missing:      true,
+			Wished:       wished[strings.ToUpper(title.Attributes.Id)],
 		}
+		if localDB != nil {
+			if local, ok := localDB.TitlesMap[prefix]; ok && local.BaseExist {
+				item.Missing = false
+			}
+		}
+		item.ReleaseDate, _ = intToTime(title.Attributes.ReleaseDate)
+		items = append(items, item)
 	}
 	items = withoutRegionalCopies(items, "")
 	sort.Slice(items, func(i, j int) bool {
@@ -246,7 +235,10 @@ func (web *Web) sagaProgress(lang string) []SagaProgress {
 			if saga.Owned == 0 {
 				continue
 			}
-			saga.Name = sagaName(family, games)
+			saga.Name = index.known.seriesLabel(family, lang)
+			if saga.Name == "" {
+				saga.Name = sagaName(family, games)
+			}
 			saga.searchKey = searchText(strings.Join(words, " "))
 			saga.searchWords = strings.Fields(saga.searchKey)
 			result = append(result, saga)

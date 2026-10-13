@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "Con las claves, las sagas también toman de IGDB la serie exacta de tus juegos.",
 		"A compression, conversion, pack or file check is running, try again when it has finished.": "Hay una compresión, conversión, pack o comprobación en marcha; inténtalo cuando termine.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "También contiene el juego, su última actualización o un DLC que la biblioteca conserva, así que no se borra.",
 		"The newer file is damaged: keep this one.": "El archivo más nuevo está dañado: conserva este.",

@@ -122,6 +122,8 @@ type Web struct {
 	// how long the games take to beat, from IGDB (see igdb.go)
 	timeToBeat        *timeToBeatStore
 	timeToBeatOnce    sync.Once
+	igdbSeriesOnce    sync.Once
+	igdbSeries        *igdbCollectionStore
 	timeToBeatRunning atomic.Bool
 	// the files waiting for the automations (see automation.go)
 	automationQueue *automationQueue
@@ -782,6 +784,7 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 		unchanged := *current
 		unchanged.Localized = web.loadLocalizedTitles(true)
 		web.downloadCoverFallbacks()
+		web.downloadSeries()
 		web.applyCoverFallbacks(&unchanged)
 		return &unchanged, nil
 	}
@@ -793,6 +796,7 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 	if err == nil {
 		switchTitleDB.Localized = web.loadLocalizedTitles(true)
 		web.downloadCoverFallbacks()
+		web.downloadSeries()
 		web.applyCoverFallbacks(switchTitleDB)
 	}
 

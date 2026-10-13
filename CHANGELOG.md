@@ -30,6 +30,11 @@
   ("Escape", "Hidden", "Cat"...) is no series; games of one publisher that begin alike ("Sonic Forces", "Sonic
   Frontiers") are, when that word belongs to that publisher.
 
+- **Sagas from IGDB and Wikidata.** The series of the games now come from people who keep them: from IGDB (its
+  collections, with the keys of Times to beat) and from Wikidata (no keys needed, updated with the titles data), with
+  the name of the series in your language. The names and publishers only decide for the games neither knows, and an
+  edition, a demo or the copy of another store joins the series of its game.
+
 ### Security
 
 - Save vault: even with the right password, it only keeps backups (ZIP files) in the folder of JKSV, refuses the

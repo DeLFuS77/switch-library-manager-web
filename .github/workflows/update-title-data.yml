@@ -79,6 +79,12 @@ jobs:
         run: |
           python .github/scripts/build_cover_fallbacks.py generated-data/titles.json nut/titledb generated-data/titles.covers.json
 
+      # the series of the games, from Wikidata; when Wikidata does not answer, the published
+      # file of the last run stays
+      - name: Generate series
+        continue-on-error: true
+        run: python .github/scripts/build_series.py generated-data/titles.series.json
+
       - name: Validate generated JSON files
         run: |
           python - <<'PY'
@@ -98,6 +104,14 @@ jobs:
               # NUT already fills most missing covers from other stores, so the fallbacks may be empty
               if not isinstance(payload, dict) or (not payload and filename != "titles.covers.json"):
                   raise SystemExit(f"Expected a non-empty JSON object: {path}")
+
+          series = Path("generated-data") / "titles.series.json"
+          if series.exists():
+              with series.open(encoding="utf-8") as source:
+                  payload = json.load(source)
+              if not payload.get("series"):
+                  series.unlink()
+                  print("The series from Wikidata are empty, the published file stays")
           PY
 
       - name: Publish data release
@@ -128,3 +142,6 @@ jobs:
               gh release upload data "generated-data/titles.$lang.json" --clobber
             fi
           done
+          if [ -f generated-data/titles.series.json ]; then
+            gh release upload data generated-data/titles.series.json --clobber
+          fi

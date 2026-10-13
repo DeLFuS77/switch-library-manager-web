@@ -2,6 +2,8 @@ package web
 
 import (
 	"regexp"
+
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"sort"
 	"strings"
 )
@@ -64,6 +66,9 @@ type sagaIndex struct {
 	// Sega, "escape" begins the names of games of hundreds of publishers
 	beginTotal map[string]int
 	beginBy    map[string]int
+	// the games of every series, and the series known to IGDB or Wikidata with their names
+	membersOf map[string][]string
+	known     *knownSeries
 }
 
 // publisherSuffixes are the words of a company form, left out to compare publishers.
@@ -138,8 +143,80 @@ func (web *Web) sagas() *sagaIndex {
 		for prefix, key := range index.keyOfId {
 			index.familyOfId[prefix] = index.family(key, index.publisherOf[prefix])
 		}
+		index.applyKnownSeries(web.buildKnownSeries(switchDB, index.byRegionalName(switchDB)))
+		index.membersOf = map[string][]string{}
+		for prefix, family := range index.familyOfId {
+			index.membersOf[family] = append(index.membersOf[family], prefix)
+		}
 		return index
 	}).(*sagaIndex)
+}
+
+// byRegionalName lists the groups of title ID of the games by regionalName.
+func (index *sagaIndex) byRegionalName(switchDB *db.SwitchTitlesDB) map[string][]string {
+	result := map[string][]string{}
+	for prefix := range index.keyOfId {
+		if title := switchDB.TitlesMap[prefix]; title != nil {
+			name := regionalName(title.Attributes.Name)
+			result[name] = append(result[name], prefix)
+		}
+	}
+	return result
+}
+
+// applyKnownSeries puts the games known to IGDB or Wikidata in their series. A game without
+// data joins the known series of the games of its guessed series, when they all agree on
+// it, and the guessed series has a name of two words or more ("kingdom hearts"), or their
+// names agree (one the beginning of the other): an edition, a demo or the copy of another
+// store is in the series of its game, while two games that only share a first word
+// ("Collection of Mana", "Collection of SaGa") stay apart.
+func (index *sagaIndex) applyKnownSeries(known *knownSeries) {
+	index.known = known
+	// the known games of every guessed series, when they all agree on one known series
+	agreed := map[string]string{}
+	knownKeys := map[string][]string{}
+	for prefix, family := range known.familyOf {
+		guessed, ok := index.familyOfId[prefix]
+		if !ok {
+			continue
+		}
+		if previous, seen := agreed[guessed]; !seen {
+			agreed[guessed] = family
+		} else if previous != family {
+			agreed[guessed] = ""
+		}
+		knownKeys[guessed] = append(knownKeys[guessed], index.keyOfId[prefix])
+	}
+	related := func(a, b string) bool {
+		return a == b || strings.HasPrefix(a, b+" ") || strings.HasPrefix(b, a+" ")
+	}
+	for prefix, guessed := range index.familyOfId {
+		if family, ok := known.familyOf[prefix]; ok {
+			index.familyOfId[prefix] = family
+			continue
+		}
+		family := agreed[guessed]
+		if family == "" {
+			continue
+		}
+		// a guessed series of two words or more ("kingdom hearts") is precise enough
+		if guessedKey, _ := splitSagaId(guessed); strings.Contains(guessedKey, " ") {
+			index.familyOfId[prefix] = family
+			continue
+		}
+		for _, key := range knownKeys[guessed] {
+			if related(index.keyOfId[prefix], key) {
+				index.familyOfId[prefix] = family
+				break
+			}
+		}
+	}
+	// games whose name is too short to guess a series, known all the same
+	for prefix, family := range known.familyOf {
+		if _, ok := index.familyOfId[prefix]; !ok {
+			index.familyOfId[prefix] = family
+		}
+	}
 }
 
 // family returns the series of a game from its key and publisher: the shortest beginning of

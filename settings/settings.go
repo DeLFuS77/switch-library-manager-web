@@ -36,6 +36,8 @@ const (
 	DEFAULT_VERSIONS_JSON_URL = "https://raw.githubusercontent.com/blawar/titledb/master/versions.json"
 	// covers of other stores for titles without one in the US store
 	DEFAULT_COVERS_JSON_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.covers.json"
+	// the series of Switch games, from Wikidata
+	DEFAULT_SERIES_JSON_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.series.json"
 	// %s is replaced by the interface language, e.g. titles.es.json
 	DEFAULT_LOCALIZED_TITLES_JSON_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.%s.json"
 	DEFAULT_TITLES_ETAG               = "W/\"a5b02845cf6bd61:0\""

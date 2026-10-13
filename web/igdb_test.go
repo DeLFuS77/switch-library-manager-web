@@ -37,7 +37,9 @@ func fakeIgdb(t *testing.T) (*httptest.Server, *atomic.Int32) {
 				io.WriteString(w, `[]`)
 				return
 			}
-			io.WriteString(w, `[{"id":1,"name":"Star Odyssey Deluxe","slug":"star-odyssey-deluxe"},{"id":2,"name":"Star Odyssey","slug":"star-odyssey"}]`)
+			io.WriteString(w, `[{"id":1,"name":"Star Odyssey Deluxe","slug":"star-odyssey-deluxe"},{"id":2,"name":"Star Odyssey","slug":"star-odyssey","collections":[77]}]`)
+		case r.URL.Path == "/v4/collections":
+			io.WriteString(w, `[{"id":77,"name":"Star Odyssey","games":[{"name":"Star Odyssey","platforms":[130]},{"name":"Star Odyssey II","platforms":[6,130]},{"name":"Star Odyssey PC","platforms":[6]}]}]`)
 		case r.URL.Path == "/v4/game_time_to_beats":
 			io.WriteString(w, `[{"hastily":36000,"normally":54000,"completely":90000,"count":12}]`)
 		default:
@@ -58,6 +60,9 @@ func TestIgdbLookup(t *testing.T) {
 	value, err := client.lookup(context.Background(), "Star Odyssey", now)
 	if err != nil || !value.Known() || value.GameId != 2 || value.Normally != 54000 || value.Count != 12 {
 		t.Fatalf("lookup: %+v %v", value, err)
+	}
+	if len(value.Collections) != 1 || value.Collections[0] != 77 || !value.SeriesChecked {
+		t.Fatalf("the series of the game: %+v", value)
 	}
 	if value.Main() != 54000 || value.Url() != "https://www.igdb.com/games/star-odyssey" || !value.Checked.Equal(now) {
 		t.Fatalf("main %d, url %s", value.Main(), value.Url())
@@ -163,5 +168,34 @@ func TestSortByDurationPutsUnknownLast(t *testing.T) {
 		if names != want {
 			t.Errorf("%s: %s, want %s", order, names, want)
 		}
+	}
+}
+
+func TestIgdbCollectionsAreKept(t *testing.T) {
+	fakeIgdb(t)
+	web := newTestWeb(t)
+	web.timesToBeat().set("0100000000010000", TimeToBeat{Found: true, Checked: time.Now(), SeriesChecked: true, Collections: []int{77, 78}})
+	if missing := web.missingIgdbCollections(time.Now()); len(missing) != 2 {
+		t.Fatalf("missing: %v", missing)
+	}
+	if err := web.lookupIgdbCollections(context.Background(), newIgdbClient("my-id", "good-secret")); err != nil {
+		t.Fatal(err)
+	}
+	collections := web.igdbCollections().snapshot()
+	if got := collections[77]; got.Name != "Star Odyssey" || len(got.Members) != 2 || got.Members[1] != "Star Odyssey II" {
+		t.Fatalf("only the Switch games of the collection: %+v", got)
+	}
+	// a collection IGDB does not know any more is not asked again soon
+	if _, ok := collections[78]; !ok || len(web.missingIgdbCollections(time.Now())) != 0 {
+		t.Fatalf("all asked: %v", collections)
+	}
+}
+
+// Games looked up before the series were asked are looked up once again.
+func TestOldLookupsAreRepeatedForTheSeries(t *testing.T) {
+	web := newTestWeb(t)
+	web.timesToBeat().set("0100000000010000", TimeToBeat{Found: true, Checked: time.Now()})
+	if !web.timesToBeat().needsLookup("0100000000010000", time.Now()) {
+		t.Fatal("a game without its series is looked up again")
 	}
 }

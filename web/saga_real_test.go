@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
@@ -27,6 +28,10 @@ func TestSagasOfTheRealTitles(t *testing.T) {
 		t.Fatal(err)
 	}
 	web := newTestWeb(t)
+	if series := os.Getenv("SLM_REAL_SERIES"); series != "" {
+		data, _ := os.ReadFile(series)
+		os.WriteFile(filepath.Join(web.dataFolder, SERIES_JSON_FILENAME), data, 0644)
+	}
 	web.state.set(switchDB, &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{}, Skipped: map[db.ExtendedFileInfo]db.SkippedFile{}})
 	index := web.sagas()
 	families := map[string]bool{}
@@ -55,8 +60,12 @@ func TestSagasOfTheRealTitles(t *testing.T) {
 		if len(r.names) > 12 {
 			r.names = append(r.names[:12], "...")
 		}
-		key, publisher := splitSagaId(r.family)
-		out = append(out, fmt.Sprintf("[%s / %s] %d: %s", key, publisher, len(r.names), strings.Join(r.names, " | ")))
+		label := index.known.seriesLabel(r.family, "es")
+		if label == "" {
+			key, publisher := splitSagaId(r.family)
+			label = key + " / " + publisher
+		}
+		out = append(out, fmt.Sprintf("[%s] %d: %s", label, len(r.names), strings.Join(r.names, " | ")))
 	}
 	os.WriteFile(os.Getenv("SLM_REAL_OUT"), []byte(strings.Join(out, "\n")), 0644)
 }
