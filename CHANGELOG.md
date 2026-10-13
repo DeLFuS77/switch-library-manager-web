@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.28.2
 
 ### New features
 
