@@ -11,6 +11,7 @@ function readTranslations() {
 // Bundled with Bootstrap by esbuild into resources/static/web.js (npm run build).
 // Importing Bootstrap also enables its data attributes (offcanvas, dismissible alerts, ...).
 import { Dropdown, Modal, Tooltip } from 'bootstrap';
+import qrcode from 'qrcode-generator';
 
 // Translations of the texts below are provided by the server in the page language.
 // "%v" placeholders are replaced by the arguments in order.
@@ -2106,6 +2107,68 @@ function initRegionRemove() {
 	});
 }
 
+// Settings > App on your phone: the install prompt of the browser when it offers one
+// (Chrome, Edge and Samsung Internet, over HTTPS), the code to open the server on the phone,
+// and the guide of the device first. The prompt is caught as soon as the page loads.
+let installPrompt = null;
+window.addEventListener('beforeinstallprompt', event => {
+	event.preventDefault();
+	installPrompt = event;
+	showMobileStatus();
+});
+window.addEventListener('appinstalled', () => {
+	installPrompt = null;
+	showMobileStatus(true);
+});
+
+function showMobileStatus(justInstalled = false) {
+	const section = document.querySelector('[data-mobile-app]');
+	if (!section) {
+		return;
+	}
+	const installed = justInstalled || window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+	section.querySelector('[data-mobile-installed]').hidden = !installed;
+	section.querySelector('[data-mobile-install]').hidden = installed || !installPrompt;
+	section.querySelector('[data-mobile-insecure]').hidden = installed || window.isSecureContext;
+}
+
+function initMobileApp() {
+	const section = document.querySelector('[data-mobile-app]');
+	if (!section) {
+		return;
+	}
+	showMobileStatus();
+	section.querySelector('[data-mobile-install-button]').addEventListener('click', () => {
+		if (!installPrompt) {
+			return;
+		}
+		installPrompt.prompt();
+		installPrompt.userChoice.finally(() => {
+			installPrompt = null;
+			showMobileStatus();
+		});
+	});
+
+	const address = window.location.origin + '/';
+	section.querySelector('[data-mobile-address]').textContent = address;
+	const local = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+	section.querySelector('[data-mobile-local]').hidden = !local;
+	const code = qrcode(0, 'M');
+	code.addData(address);
+	code.make();
+	section.querySelector('[data-mobile-qr]').innerHTML = code.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+
+	// the guide of this device open, and first
+	const agent = navigator.userAgent;
+	const device = /iPhone|iPad|iPod/.test(agent) || (/Macintosh/.test(agent) && navigator.maxTouchPoints > 1) ? 'ios'
+		: /Android/.test(agent) ? 'android' : 'desktop';
+	const guide = section.querySelector('[data-mobile-guide="' + device + '"]');
+	if (guide) {
+		guide.open = true;
+		guide.parentElement.prepend(guide);
+	}
+}
+
 // Settings > Save vault: the webdav.json file of JKSV, made in the browser with the address of
 // the server and the user and password written above (the password is never sent back by the
 // server, so it has to be written to be put in the file).
@@ -2475,6 +2538,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initPack();
 	initHeroMenus();
 	initVaultSettings();
+	initMobileApp();
 	initSaveDelete();
 
 	// forms that delete something ask first
