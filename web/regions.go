@@ -197,27 +197,14 @@ func (web *Web) removeRegionCopy(id string, lang string) (int, int64, error) {
 	if len(files) == 0 {
 		return 0, 0, errRegionCopy
 	}
-	if web.compressionRunning() || !web.state.startSync() {
-		return 0, 0, errRegionBusy
-	}
-	defer web.state.endSync()
 	reasons := make([]string, len(files))
 	for i := range reasons {
 		reasons[i] = "other region"
 	}
-	taskId := web.startTask(TASK_CLEANUP, TRIGGER_MANUAL)
-	deleted, freed := 0, int64(0)
-	var failure *TaskNote
-	for i, op := range process.RemoveFiles(files, reasons, false) {
-		if op.Error == "" {
-			deleted++
-			freed += files[i].Size
-		} else if failure == nil {
-			failure = &TaskNote{Text: NOTE_ORGANIZE_FAILED, Detail: op.From + ": " + op.Error}
-		}
+	deleted, freed, err := web.removeFilesAsTask(files, reasons)
+	if err != nil {
+		return 0, 0, err
 	}
-	web.taskLog().SetCompressResult(taskId, deleted, freed)
-	web.finishTask(taskId, failure)
 	web.sugarLogger.Infof("[Space] copy %s of another region deleted: %d files, %d bytes", target.Id, deleted, freed)
 	return deleted, freed, nil
 }
@@ -237,7 +224,7 @@ func (web *Web) soundCopyStays(target RegionCopy, others []RegionCopy) bool {
 		if err != nil || info.IsDir() {
 			continue
 		}
-		if record, ok := store.current(path, info); ok && record.OK {
+		if record, ok := store.current(path, info); ok && record.sound() {
 			return true
 		}
 	}
@@ -292,7 +279,7 @@ func (web *Web) handleRegionRemove() {
 		deleted, freed, err := web.removeRegionCopy(id, lang)
 		if err != nil {
 			status := http.StatusBadRequest
-			if err == errRegionBusy {
+			if err == errRegionBusy || err == errOrganizeBusy {
 				status = http.StatusConflict
 			}
 			writeGlobalError(w, status, lang, err.Error())

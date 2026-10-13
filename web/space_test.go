@@ -41,6 +41,8 @@ func spaceWeb(t *testing.T) (*Web, string) {
 	game := file("Game [0100000000010000][v0].nsp", 300)
 	file("Game [0100000000010000][v0].nsz", 100)
 	oldUpdate := file("Game [0100000000010800][v65536].nsp", 50)
+	// the newer update the old one is replaced by
+	file("Game [0100000000010800][v131072].nsp", 60)
 	duplicate := file("Other [0100000000020000][v0] (copy).nsp", 70)
 	other := file("Other [0100000000020000][v0].nsp", 70)
 
@@ -228,4 +230,37 @@ func testPfs0(names ...string) []byte {
 		binary.LittleEndian.PutUint32(header[0x10+0x18*i+16:], offsets[i])
 	}
 	return append(header, table...)
+}
+
+// An old update is only deleted while its newer version is still there and not damaged.
+func TestOldUpdateNeedsItsNewerVersion(t *testing.T) {
+	web, dir := spaceWeb(t)
+	newer := filepath.Join(dir, "Game [0100000000010800][v131072].nsp")
+	if file := spaceGroup(web.spaceGroups(), SPACE_OLD_UPDATES).Files[0]; !file.Deletable {
+		t.Fatalf("the newer update is there: %+v", file)
+	}
+	// found damaged by the older check: not trusted until checked again
+	info, _ := os.Stat(newer)
+	web.verifications().set(newer, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false})
+	if file := spaceGroup(web.spaceGroups(), SPACE_OLD_UPDATES).Files[0]; file.Deletable || file.Note != NOTE_SPACE_NEWER_DAMAGED {
+		t.Fatalf("a damage of the older check: %+v", file)
+	}
+	os.Remove(newer)
+	if file := spaceGroup(web.spaceGroups(), SPACE_OLD_UPDATES).Files[0]; file.Deletable || file.Note != NOTE_SPACE_KEPT_MISSING {
+		t.Fatalf("the newer update was deleted by hand: %+v", file)
+	}
+}
+
+// A copy checked only in part (an update whose romfs cannot be checked on its own) does not
+// let the original be deleted.
+func TestPartlyCheckedCopyKeepsTheOriginal(t *testing.T) {
+	web, dir := spaceWeb(t)
+	os.WriteFile(filepath.Join(dir, "Game [0100000000010000][v0].nsp"), testPfs0("game.nca"), 0644)
+	copyPath := filepath.Join(dir, "Game [0100000000010000][v0].nsz")
+	os.WriteFile(copyPath, testPfs0("game.ncz"), 0644)
+	info, _ := os.Stat(copyPath)
+	web.verifications().set(copyPath, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Partial: true, Checker: verifyChecker})
+	if file := spaceGroup(web.spaceGroups(), SPACE_COMPRESSED).Files[0]; file.Deletable {
+		t.Fatalf("a copy checked in part: %+v", file)
+	}
 }

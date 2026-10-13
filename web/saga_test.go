@@ -132,7 +132,9 @@ func TestRegionalCopiesAreShownOnce(t *testing.T) {
 
 func TestSagaDemos(t *testing.T) {
 	for name, want := range map[string]bool{"Super Mario Odyssey™ Demo for KIOSK": true, "Puzzle Puppers Demo": true, "Game Trial": true,
-		"モンスターハンターライズ 体験版": true, "Demolition Crew": false, "Demon Turf": false, "Super Mario Odyssey™": false} {
+		"モンスターハンターライズ 体験版": true, "Demolition Crew": false, "Demon Turf": false, "Super Mario Odyssey™": false,
+		"Trial of Mana": false, "Trials of Fire": false, "Demo Version": true, "Kirby Star Allies Demo": true, "DEMO (Special)": false,
+		"Game (Demo)": true} {
 		if sagaDemo.MatchString(name) != want {
 			t.Errorf("%q: %v", name, !want)
 		}

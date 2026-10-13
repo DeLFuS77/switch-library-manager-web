@@ -74,8 +74,9 @@ func (s SagaProgress) MoreMissing() int {
 }
 
 // sagaDemo matches the demos the titles database does not flag, as "Super Mario Odyssey Demo
-// for KIOSK" or "Puzzle Puppers Demo": a series lists games, not demos.
-var sagaDemo = regexp.MustCompile(`(?i)\b(demo|trial|kiosk)\b|体験版`)
+// for KIOSK" or "Puzzle Puppers Demo": a series lists games, not demos. Only the forms of a
+// demo count, so "Trial of Mana" stays a game.
+var sagaDemo = regexp.MustCompile(`(?i)\b(demo|trial)(\s+(version|edition))?\s*[)\]]?\s*$|\bdemo\s+(version|for\s+kiosk)\b|\bkiosk\b|体験版`)
 
 // sagaMembers returns the games of a series, one of each name (the copy in the library first),
 // the oldest first.
@@ -157,7 +158,7 @@ func (web *Web) sameSaga(titleId string, name string, lang string) SagaProgress 
 		progress.Owned = 1
 	}
 	for _, item := range web.sagaMembers(family, lang) {
-		if strings.EqualFold(item.Id[:13], titleId[:13]) || regionalName(item.Name) == self {
+		if len(item.Id) >= 13 && strings.EqualFold(item.Id[:13], titleId[:13]) || regionalName(item.Name) == self {
 			continue
 		}
 		progress.Total++
@@ -237,23 +238,13 @@ func (web *Web) sagaProgress(lang string) []SagaProgress {
 			if len(games) < 2 {
 				continue
 			}
-			saga := SagaProgress{family: family, Total: len(games), Games: games}
-			words := []string{family}
-			for _, game := range games {
-				words = append(words, game.Name, game.OriginalName)
-				if !game.Missing {
-					saga.Owned++
-					if saga.ImageUrl == "" {
-						saga.ImageUrl = game.ImageUrl
-					}
-				}
-			}
+			saga := newSagaProgress(family, games, index.known, lang)
 			if saga.Owned == 0 {
 				continue
 			}
-			saga.Name = index.known.seriesLabel(family, lang)
-			if saga.Name == "" {
-				saga.Name = sagaName(family, games)
+			words := []string{family}
+			for _, game := range games {
+				words = append(words, game.Name, game.OriginalName)
 			}
 			saga.searchKey = searchText(strings.Join(words, " "))
 			saga.searchWords = strings.Fields(saga.searchKey)
@@ -290,17 +281,26 @@ func (web *Web) sagaPage(id string, lang string) (SagaProgress, bool) {
 	if len(games) == 0 {
 		return SagaProgress{}, false
 	}
+	return newSagaProgress(family, games, web.sagas().known, lang), true
+}
+
+// newSagaProgress is a series with its games: how many the library has, the cover of the
+// first one it has, and its name, known or made from the names of its games.
+func newSagaProgress(family string, games []TitleItem, known *knownSeries, lang string) SagaProgress {
 	saga := SagaProgress{family: family, Total: len(games), Games: games}
 	for _, game := range games {
 		if !game.Missing {
 			saga.Owned++
+			if saga.ImageUrl == "" {
+				saga.ImageUrl = game.ImageUrl
+			}
 		}
 	}
-	saga.Name = web.sagas().known.seriesLabel(family, lang)
+	saga.Name = known.seriesLabel(family, lang)
 	if saga.Name == "" {
 		saga.Name = sagaName(family, games)
 	}
-	return saga, true
+	return saga
 }
 
 // SagasPageData is the page of the series.

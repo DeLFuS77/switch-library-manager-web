@@ -237,6 +237,10 @@ func TestVaultOnlyKeepsBackupsInTheFolderOfJksv(t *testing.T) {
 		{"PROPFIND", "/dav/JKSV/", []string{"Depth", "infinity"}, http.StatusForbidden},
 		{"MOVE", "/dav/JKSV/Game/a.zip", []string{"Destination", "http://example.com/dav/elsewhere.zip"}, http.StatusForbidden},
 		{"MOVE", "/dav/JKSV/Game/a.zip", []string{"Destination", "http://example.com/dav/JKSV/Game/a.exe"}, http.StatusForbidden},
+		{"LOCK", "/dav/JKSV/Game/new.txt", nil, http.StatusMethodNotAllowed},
+		{http.MethodDelete, "/dav/JKSV/Game/", nil, http.StatusForbidden},
+		{"MOVE", "/dav/JKSV/Game/", []string{"Destination", "http://example.com/dav/JKSV/Other/"}, http.StatusForbidden},
+		{http.MethodPut, "/dav/JKSV/Game/x.txt:s.zip", nil, http.StatusForbidden},
 	}
 	for _, c := range cases {
 		if r := davRequest(handler, c.method, c.path, []byte("x"), c.headers...); r.Code != c.want {

@@ -142,7 +142,7 @@ func sectionLayers(fsh *fsHeader, sectionStart int64, sectionSize int64) ([]*has
 	}
 	data := header[0x8:0x100]
 	layer := func(offset, size, blockSize uint64, padded bool) (*hashLayer, bool) {
-		if size == 0 || blockSize == 0 || blockSize > 64<<20 || offset+size > uint64(sectionSize) {
+		if size == 0 || blockSize == 0 || blockSize > 64<<20 || offset > uint64(sectionSize) || size > uint64(sectionSize)-offset {
 			return nil, false
 		}
 		return &hashLayer{start: sectionStart + int64(offset), size: int64(size), blockSize: int64(blockSize), padded: padded,
@@ -210,9 +210,8 @@ func isZero(data []byte) bool {
 	return true
 }
 
-// ncaIntegrity checks the hash trees of an NCA. plain gives the plain bytes of the NCA
-// from offset 0x4000 to its end, in order, to the function it is called with: decrypted
-// from an NSP, or straight from the stream of an NCZ.
+// ncaIntegrity checks the hash trees of an NCA. feed is given the plain bytes of the NCA,
+// in order: decrypted from an NSP, or straight from the stream of an NCZ.
 type ncaIntegrity struct {
 	sections []integritySection
 	result   IntegrityResult

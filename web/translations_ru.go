@@ -3,6 +3,7 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"The copy that is kept could not be checked whole: keep this one.": "Оставляемую копию не удалось проверить полностью: оставьте эту.",
 		"%v files at once": "%v файлов одновременно",
 		"%v threads": "%v потоков",
 		"Total": "Всего",
@@ -41,7 +42,7 @@ func init() {
 		"Tasks run on the server: you can close this page, the browser or this device and they go on. They only stop when the app itself stops (its Docker container or its program); a stopped file check goes on where it was the next time.": "Задачи выполняются на сервере: можно закрыть эту страницу, браузер или это устройство — они продолжатся. Они останавливаются только при остановке самого приложения (его контейнера Docker или программы); остановленная проверка файлов в следующий раз продолжится с того же места.",
 		"See the series": "Открыть серию",
 		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "С ключами серии также берут из IGDB точную серию ваших игр.",
-		"A compression, conversion, pack or file check is running, try again when it has finished.": "Выполняется сжатие, преобразование, создание пакета или проверка файлов, повторите попытку после завершения.",
+		"Another task is working on the files of the library (organizing, a cleanup, a compression, a pack or a check): try again when it has finished.": "Другая задача работает с файлами библиотеки (упорядочивание, очистка, сжатие, пакет или проверка): повторите попытку после её завершения.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "Он также содержит игру, её последнее обновление или DLC, которые библиотека сохраняет, поэтому он не удаляется.",
 		"The newer file is damaged: keep this one.": "Более новый файл повреждён: оставьте этот.",
 		"The compressed file does not hold everything this file holds: keep this one.": "Сжатый файл содержит не всё, что есть в этом файле: оставьте этот.",

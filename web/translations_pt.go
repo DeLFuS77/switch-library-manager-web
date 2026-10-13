@@ -3,6 +3,7 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"The copy that is kept could not be checked whole: keep this one.": "A cópia que fica não pôde ser verificada por inteiro: mantenha esta.",
 		"%v files at once": "%v arquivos ao mesmo tempo",
 		"%v threads": "%v threads",
 		"Total": "Total",
@@ -41,7 +42,7 @@ func init() {
 		"Tasks run on the server: you can close this page, the browser or this device and they go on. They only stop when the app itself stops (its Docker container or its program); a stopped file check goes on where it was the next time.": "As tarefas rodam no servidor: você pode fechar esta página, o navegador ou este dispositivo e elas continuam. Só param se o próprio app parar (seu contêiner Docker ou seu programa); uma verificação parada continua de onde estava na próxima vez.",
 		"See the series": "Ver a saga",
 		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "Com as chaves, as sagas também obtêm do IGDB a série exata dos seus jogos.",
-		"A compression, conversion, pack or file check is running, try again when it has finished.": "Há uma compressão, conversão, pacote ou verificação em andamento, tente novamente quando terminar.",
+		"Another task is working on the files of the library (organizing, a cleanup, a compression, a pack or a check): try again when it has finished.": "Outra tarefa está trabalhando com os arquivos da biblioteca (organizar, limpeza, compressão, pacote ou verificação): tente novamente quando terminar.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "Também contém o jogo, sua última atualização ou um DLC que a biblioteca mantém, por isso não é apagado.",
 		"The newer file is damaged: keep this one.": "O arquivo mais novo está danificado: mantenha este.",
 		"The compressed file does not hold everything this file holds: keep this one.": "O arquivo comprimido não contém tudo o que este contém: mantenha este.",

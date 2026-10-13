@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -53,13 +56,40 @@ func (web *Web) downloadSeries() {
 	web.invalidateDerived()
 }
 
-// loadSeries reads the saved titles.series.json.
-func (web *Web) loadSeries() *wikidataSeries {
+// seriesFile is titles.series.json as read, kept while the file does not change, with its
+// names made comparable.
+type seriesFile struct {
+	mutex   sync.Mutex
+	size    int64
+	modTime time.Time
+	data    *wikidataSeries
+	names   map[string]string
+}
+
+// loadSeries returns the saved titles.series.json and the series of its names by
+// regionalName, read again only when the file changed.
+func (web *Web) loadSeries() (*wikidataSeries, map[string]string) {
+	cache := &web.seriesFile
+	cache.mutex.Lock()
+	defer cache.mutex.Unlock()
+	path := filepath.Join(web.dataFolder, SERIES_JSON_FILENAME)
+	info, err := os.Stat(path)
+	if err != nil {
+		return &wikidataSeries{}, map[string]string{}
+	}
+	if cache.data != nil && info.Size() == cache.size && info.ModTime().Equal(cache.modTime) {
+		return cache.data, cache.names
+	}
 	data := &wikidataSeries{}
-	if bytes, err := os.ReadFile(filepath.Join(web.dataFolder, SERIES_JSON_FILENAME)); err == nil {
+	if bytes, err := os.ReadFile(path); err == nil {
 		json.Unmarshal(bytes, data)
 	}
-	return data
+	names := make(map[string]string, len(data.Names))
+	for name, id := range data.Names {
+		names[regionalName(name)] = id
+	}
+	cache.size, cache.modTime, cache.data, cache.names = info.Size(), info.ModTime(), data, names
+	return data, names
 }
 
 // knownSeries is the series of the games of the titles database known to IGDB or Wikidata,
@@ -72,6 +102,9 @@ type knownSeries struct {
 
 // seriesLabel is the name of a known series in a language, or "".
 func (k *knownSeries) seriesLabel(family string, lang string) string {
+	if k == nil {
+		return ""
+	}
 	names := k.labels[family]
 	if name := names[lang]; name != "" {
 		return name
@@ -82,20 +115,28 @@ func (k *knownSeries) seriesLabel(family string, lang string) string {
 	return names[""]
 }
 
-// broadest chooses the series of a game in several: the one with the most games, as
-// "Final Fantasy" rather than "Final Fantasy Pixel Remaster".
-func broadest(candidates []string, size func(string) int) string {
-	best := ""
-	for _, candidate := range candidates {
-		if best == "" || size(candidate) > size(best) || size(candidate) == size(best) && candidate < best {
-			best = candidate
+// broadestCollection chooses the series of a game in several: the one with the most
+// Switch games, as "Final Fantasy" rather than "Final Fantasy Pixel Remaster"; the lowest
+// number when they have as many. Collections without a name or games are left out.
+func broadestCollection(ids []int, collections map[int]igdbCollection) (int, bool) {
+	best, found := 0, false
+	for _, id := range ids {
+		collection, ok := collections[id]
+		if !ok || collection.Name == "" || len(collection.Members) == 0 {
+			continue
+		}
+		size, bestSize := len(collection.Members), len(collections[best].Members)
+		if !found || size > bestSize || size == bestSize && id < best {
+			best, found = id, true
 		}
 	}
-	return best
+	return best, found
 }
 
 // buildKnownSeries finds the series of the games of the titles database in IGDB and
-// Wikidata. byName lists the groups of title ID of the games by regionalName.
+// Wikidata. byName lists the groups of title ID of the games by regionalName. A game looked
+// up on IGDB is in its own series first; the other Switch games of a series join it next,
+// the broadest series first; the order never depends on the order of a map.
 func (web *Web) buildKnownSeries(switchDB *db.SwitchTitlesDB, byName map[string][]string) *knownSeries {
 	known := &knownSeries{familyOf: map[string]string{}, labels: map[string]map[string]string{}}
 	assign := func(prefix string, family string) {
@@ -104,31 +145,35 @@ func (web *Web) buildKnownSeries(switchDB *db.SwitchTitlesDB, byName map[string]
 		}
 	}
 
-	// IGDB: the collections of the games looked up, and the other Switch games in them
 	collections := web.igdbCollections().snapshot()
-	for id, game := range web.timesToBeat().snapshot() {
-		if len(game.Collections) == 0 || len(id) < 13 {
+	games := web.timesToBeat().snapshot()
+	ids := make([]string, 0, len(games))
+	for id := range games {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	chosen := map[int]bool{}
+	for _, id := range ids {
+		collection, ok := broadestCollection(games[id].Collections, collections)
+		if !ok || len(id) < 13 {
 			continue
 		}
-		candidates := []string{}
-		for _, collection := range game.Collections {
-			if _, ok := collections[collection]; ok {
-				candidates = append(candidates, strconv.Itoa(collection))
-			}
-		}
-		chosen := broadest(candidates, func(c string) int {
-			number, _ := strconv.Atoi(c)
-			return len(collections[number].Members)
-		})
-		if chosen == "" {
-			continue
-		}
-		number, _ := strconv.Atoi(chosen)
-		collection := collections[number]
-		family := "igdb:" + chosen
-		known.labels[family] = map[string]string{"": collection.Name}
+		family := "igdb:" + strconv.Itoa(collection)
+		known.labels[family] = map[string]string{"": collections[collection].Name}
 		assign(strings.ToLower(id[:13]), family)
-		for _, member := range collection.Members {
+		chosen[collection] = true
+	}
+	order := make([]int, 0, len(chosen))
+	for collection := range chosen {
+		order = append(order, collection)
+	}
+	sort.Slice(order, func(i, j int) bool {
+		a, b := len(collections[order[i]].Members), len(collections[order[j]].Members)
+		return a > b || a == b && order[i] < order[j]
+	})
+	for _, collection := range order {
+		family := "igdb:" + strconv.Itoa(collection)
+		for _, member := range collections[collection].Members {
 			for _, prefix := range byName[regionalName(member)] {
 				assign(prefix, family)
 			}
@@ -136,11 +181,7 @@ func (web *Web) buildKnownSeries(switchDB *db.SwitchTitlesDB, byName map[string]
 	}
 
 	// Wikidata: by title ID, else by name
-	series := web.loadSeries()
-	names := map[string]string{}
-	for name, id := range series.Names {
-		names[regionalName(name)] = id
-	}
+	series, names := web.loadSeries()
 	if switchDB != nil {
 		for prefix, title := range switchDB.TitlesMap {
 			if _, done := known.familyOf[prefix]; done || title.Attributes.Id == "" {

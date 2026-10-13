@@ -3,6 +3,7 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"The copy that is kept could not be checked whole: keep this one.": "De kopie die blijft kon niet volledig worden gecontroleerd: bewaar deze.",
 		"%v files at once": "%v bestanden tegelijk",
 		"%v threads": "%v threads",
 		"Total": "Totaal",
@@ -41,7 +42,7 @@ func init() {
 		"Tasks run on the server: you can close this page, the browser or this device and they go on. They only stop when the app itself stops (its Docker container or its program); a stopped file check goes on where it was the next time.": "Taken draaien op de server: je kunt deze pagina, de browser of dit apparaat sluiten en ze gaan door. Ze stoppen alleen als de app zelf stopt (zijn Docker-container of zijn programma); een gestopte bestandscontrole gaat de volgende keer verder waar hij was.",
 		"See the series": "Reeks bekijken",
 		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "Met de sleutels nemen de reeksen ook de precieze serie van je spellen over van IGDB.",
-		"A compression, conversion, pack or file check is running, try again when it has finished.": "Er loopt een compressie, conversie, pakket of bestandscontrole, probeer het opnieuw als die klaar is.",
+		"Another task is working on the files of the library (organizing, a cleanup, a compression, a pack or a check): try again when it has finished.": "Een andere taak werkt met de bestanden van de bibliotheek (ordenen, opschonen, comprimeren, pakket of controle): probeer het opnieuw als die klaar is.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "Het bevat ook het spel, de nieuwste update of een DLC die de bibliotheek bewaart, dus het wordt niet verwijderd.",
 		"The newer file is damaged: keep this one.": "Het nieuwere bestand is beschadigd: bewaar dit bestand.",
 		"The compressed file does not hold everything this file holds: keep this one.": "Het gecomprimeerde bestand bevat niet alles wat dit bestand bevat: bewaar dit bestand.",

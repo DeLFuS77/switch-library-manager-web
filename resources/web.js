@@ -2127,9 +2127,15 @@ function showMobileStatus(justInstalled = false) {
 		return;
 	}
 	const installed = justInstalled || window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-	section.querySelector('[data-mobile-installed]').hidden = !installed;
-	section.querySelector('[data-mobile-install]').hidden = installed || !installPrompt;
-	section.querySelector('[data-mobile-insecure]').hidden = installed || window.isSecureContext;
+	const toggle = (selector, hidden) => {
+		const element = section.querySelector(selector);
+		if (element) {
+			element.hidden = hidden;
+		}
+	};
+	toggle('[data-mobile-installed]', !installed);
+	toggle('[data-mobile-install]', installed || !installPrompt);
+	toggle('[data-mobile-insecure]', installed || window.isSecureContext);
 }
 
 function initMobileApp() {
@@ -2138,25 +2144,33 @@ function initMobileApp() {
 		return;
 	}
 	showMobileStatus();
-	section.querySelector('[data-mobile-install-button]').addEventListener('click', () => {
-		if (!installPrompt) {
+	section.querySelector('[data-mobile-install-button]')?.addEventListener('click', () => {
+		// the prompt can be shown once: a second tap does nothing
+		const prompt = installPrompt;
+		installPrompt = null;
+		if (!prompt) {
 			return;
 		}
-		installPrompt.prompt();
-		installPrompt.userChoice.finally(() => {
-			installPrompt = null;
-			showMobileStatus();
-		});
+		prompt.prompt();
+		prompt.userChoice.finally(() => showMobileStatus());
 	});
 
 	const address = window.location.origin + '/';
-	section.querySelector('[data-mobile-address]').textContent = address;
-	const local = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
-	section.querySelector('[data-mobile-local]').hidden = !local;
-	const code = qrcode(0, 'M');
-	code.addData(address);
-	code.make();
-	section.querySelector('[data-mobile-qr]').innerHTML = code.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+	const addressText = section.querySelector('[data-mobile-address]');
+	if (addressText) {
+		addressText.textContent = address;
+	}
+	const localNote = section.querySelector('[data-mobile-local]');
+	if (localNote) {
+		localNote.hidden = !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+	}
+	const qr = section.querySelector('[data-mobile-qr]');
+	if (qr) {
+		const code = qrcode(0, 'M');
+		code.addData(address);
+		code.make();
+		qr.innerHTML = code.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+	}
 
 	// the guide of this device open, and first
 	const agent = navigator.userAgent;

@@ -3,6 +3,7 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"The copy that is kept could not be checked whole: keep this one.": "남길 사본을 완전히 확인할 수 없었습니다. 이 파일을 유지하세요.",
 		"%v files at once": "동시에 %v개 파일",
 		"%v threads": "%v개 스레드",
 		"Total": "전체",
@@ -41,7 +42,7 @@ func init() {
 		"Tasks run on the server: you can close this page, the browser or this device and they go on. They only stop when the app itself stops (its Docker container or its program); a stopped file check goes on where it was the next time.": "작업은 서버에서 실행됩니다. 이 페이지, 브라우저 또는 이 기기를 닫아도 계속됩니다. 앱 자체(Docker 컨테이너 또는 프로그램)가 멈출 때만 멈추며, 멈춘 파일 확인은 다음에 이어서 진행합니다.",
 		"See the series": "시리즈 보기",
 		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "키가 있으면 시리즈도 IGDB에서 게임의 정확한 시리즈를 가져옵니다.",
-		"A compression, conversion, pack or file check is running, try again when it has finished.": "압축, 변환, 팩 만들기 또는 파일 확인이 진행 중입니다. 끝난 뒤 다시 시도하세요.",
+		"Another task is working on the files of the library (organizing, a cleanup, a compression, a pack or a check): try again when it has finished.": "다른 작업이 라이브러리 파일을 처리 중입니다(정리, 청소, 압축, 팩, 확인). 끝난 뒤 다시 시도하세요.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "라이브러리가 유지하는 게임, 최신 업데이트 또는 DLC도 들어 있어 삭제하지 않습니다.",
 		"The newer file is damaged: keep this one.": "더 새로운 파일이 손상되었습니다. 이 파일을 유지하세요.",
 		"The compressed file does not hold everything this file holds: keep this one.": "압축 파일에 이 파일의 내용이 모두 들어 있지 않습니다. 이 파일을 유지하세요.",

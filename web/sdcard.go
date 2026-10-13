@@ -371,7 +371,8 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 	}
 
 	web.compressor.mutex.Lock()
-	if web.compressor.cancel != nil {
+	// no copy while files are organized or deleted
+	if web.compressor.cancel != nil || web.organizing.Load() {
 		web.compressor.mutex.Unlock()
 		return false
 	}

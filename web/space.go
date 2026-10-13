@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -26,6 +27,7 @@ const (
 	NOTE_SPACE_KEPT_MISSING  = "The copy that is kept was not found; rescan the library."
 	NOTE_SPACE_NEWER_DAMAGED = "The newer file is damaged: keep this one."
 	NOTE_SPACE_NOT_SAME      = "The compressed file does not hold everything this file holds: keep this one."
+	NOTE_SPACE_KEPT_PARTIAL  = "The copy that is kept could not be checked whole: keep this one."
 )
 
 // SpaceFile is a file that takes space without being needed.
@@ -145,9 +147,9 @@ func (web *Web) spaceGroups() []SpaceGroup {
 		}
 		compressed[path] = true
 		entry := SpaceFile{Path: path, Name: name, Size: file.Size, KeptBy: copyPath, file: file}
-		if record, ok := web.verifications().current(copyPath, info); ok && record.OK {
+		if record, ok := web.verifications().current(copyPath, info); ok && record.sound() {
 			// the copy of the same name must hold everything the original holds
-			if same, err := switchfs.HoldsSameContents(path, copyPath); err == nil && same {
+			if web.holdsSameContents(path, copyPath, info) {
 				entry.Deletable = true
 			} else {
 				entry.Note = NOTE_SPACE_NOT_SAME
@@ -221,13 +223,32 @@ func (web *Web) spaceGroups() []SpaceGroup {
 	return result
 }
 
+// holdsSameContents is switchfs.HoldsSameContents, remembered while the two files do not
+// change: the Space page lists every pair each time it is shown.
+func (web *Web) holdsSameContents(original string, copyPath string, copyInfo os.FileInfo) bool {
+	originalInfo, err := os.Stat(original)
+	if err != nil {
+		return false
+	}
+	key := fmt.Sprintf("%s|%d|%d|%s|%d|%d", original, originalInfo.Size(), originalInfo.ModTime().UnixNano(),
+		copyPath, copyInfo.Size(), copyInfo.ModTime().UnixNano())
+	if same, ok := web.sameContents.Load(key); ok {
+		return same.(bool)
+	}
+	same, err := switchfs.HoldsSameContents(original, copyPath)
+	same = err == nil && same
+	web.sameContents.Store(key, same)
+	return same
+}
+
 // newerDamaged refuses to delete an old update or DLC whose newer version was found
 // damaged: the old one may be the only one that works.
 func (web *Web) newerDamaged(newer string) string {
-	if newer == "" {
-		return ""
+	// the newer file must still be there, moved or deleted by hand since the scan or not
+	if info, err := os.Stat(newer); newer == "" || err != nil || info.IsDir() {
+		return NOTE_SPACE_KEPT_MISSING
 	}
-	if _, damaged := web.verifications().damaged()[newer]; damaged {
+	if web.verifications().foundDamaged(newer) {
 		return NOTE_SPACE_NEWER_DAMAGED
 	}
 	return ""
@@ -274,6 +295,9 @@ func (web *Web) requireSoundKeptCopy(entry *SpaceFile) {
 	case !record.OK:
 		entry.Deletable = false
 		entry.Note = NOTE_SPACE_KEPT_DAMAGED
+	case record.Partial:
+		entry.Deletable = false
+		entry.Note = NOTE_SPACE_KEPT_PARTIAL
 	}
 }
 
@@ -389,26 +413,12 @@ func (web *Web) HandleSpace() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to delete.")
 			return
 		}
-		// never delete files while the library is being scanned or compressed
-		if web.compressionRunning() || !web.state.startSync() {
-			writeGlobalError(w, http.StatusConflict, lang, "A synchronization is running, try again when it has finished.")
+		// never delete files while the library is scanned, compressed or checked
+		deleted, freed, err := web.removeFilesAsTask(files, why)
+		if err != nil {
+			writeGlobalError(w, http.StatusConflict, lang, err.Error())
 			return
 		}
-		taskId := web.startTask(TASK_CLEANUP, TRIGGER_MANUAL)
-		operations := process.RemoveFiles(files, why, false)
-		deleted, freed := 0, int64(0)
-		var failure *TaskNote
-		for i, op := range operations {
-			if op.Error == "" {
-				deleted++
-				freed += files[i].Size
-			} else if failure == nil {
-				failure = &TaskNote{Text: NOTE_ORGANIZE_FAILED, Detail: op.From + ": " + op.Error}
-			}
-		}
-		web.taskLog().SetCompressResult(taskId, deleted, freed)
-		web.finishTask(taskId, failure)
-		web.state.endSync()
 		web.sugarLogger.Infof("[Space] %d files deleted, %d bytes freed", deleted, freed)
 
 		// the cached library no longer matches the files on disk

@@ -137,6 +137,12 @@ func (web *Web) vaultHandler() http.Handler {
 			http.Error(w, message, status)
 			return
 		}
+		// an upload without a declared size stops where the disk would be nearly full
+		if r.Method == http.MethodPut && r.ContentLength < 0 {
+			if free, ok := vaultFree(root); ok && free > vaultMinFree {
+				r.Body = http.MaxBytesReader(w, r.Body, int64(free-vaultMinFree))
+			}
+		}
 		if err := os.MkdirAll(filepath.Join(root, VAULT_BASE), 0755); err != nil {
 			http.Error(w, "the vault folder cannot be created", http.StatusInternalServerError)
 			return
@@ -155,12 +161,23 @@ func (web *Web) vaultHandler() http.Handler {
 	})
 }
 
+// vaultFree is the free space of the disk of the vault, measured on the folder or, before
+// the first backup, on the folder that holds it.
+func vaultFree(root string) (uint64, bool) {
+	for _, folder := range []string{root, filepath.Dir(root)} {
+		if free, err := diskFree(folder); err == nil {
+			return free, true
+		}
+	}
+	return 0, false
+}
+
 // vaultMinFree is the free space an upload must leave on the disk of the vault.
 var vaultMinFree uint64 = 2 << 30
 
 // vaultMethods are the WebDAV requests JKSV makes; the others are refused.
 var vaultMethods = map[string]bool{http.MethodOptions: true, http.MethodGet: true, http.MethodHead: true, "PROPFIND": true,
-	"MKCOL": true, http.MethodPut: true, http.MethodDelete: true, "MOVE": true, "LOCK": true, "UNLOCK": true}
+	"MKCOL": true, http.MethodPut: true, http.MethodDelete: true, "MOVE": true}
 
 // vaultAllowed limits what the vault accepts, even with the right password: backups (ZIP
 // files) in the folder of JKSV, never a file anywhere else, never a full disk. It returns
@@ -184,8 +201,9 @@ func vaultAllowed(r *http.Request, root string) (int, string) {
 		}
 		return 0, ""
 	}
-	// changes: only inside the folder of JKSV, never the folder itself
-	if !ok || rel == "/"+VAULT_BASE {
+	// changes: only inside the folder of JKSV, never the folder itself, and never a name
+	// with ":" (an alternate stream of a file on Windows)
+	if !ok || rel == "/"+VAULT_BASE || strings.Contains(rel, ":") {
 		return http.StatusForbidden, "only the folder of JKSV can be changed"
 	}
 	isZip := strings.EqualFold(path.Ext(rel), ".zip")
@@ -198,8 +216,13 @@ func vaultAllowed(r *http.Request, root string) (int, string) {
 		if r.ContentLength > 0 {
 			need += uint64(r.ContentLength)
 		}
-		if free, err := diskFree(root); err == nil && free < need {
+		if free, ok := vaultFree(root); ok && free < need {
 			return http.StatusInsufficientStorage, "not enough free space on the server"
+		}
+	case http.MethodDelete:
+		// one backup at a time, never the folder of a game with all its backups
+		if !isZip {
+			return http.StatusForbidden, "only backups (ZIP files) are deleted"
 		}
 	case "MOVE":
 		destination, err := url.Parse(r.Header.Get("Destination"))
@@ -207,7 +230,7 @@ func vaultAllowed(r *http.Request, root string) (int, string) {
 			return http.StatusBadRequest, "no destination"
 		}
 		target, ok := inside(destination.Path)
-		if !ok || target == "/"+VAULT_BASE || isZip != strings.EqualFold(path.Ext(target), ".zip") {
+		if !ok || !isZip || target == "/"+VAULT_BASE || strings.Contains(target, ":") || !strings.EqualFold(path.Ext(target), ".zip") {
 			return http.StatusForbidden, "backups stay in the folder of JKSV"
 		}
 	}

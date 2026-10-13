@@ -140,3 +140,33 @@ func TestExportCompatNcz(t *testing.T) {
 	rand.New(rand.NewSource(2)).Read(blocks[len(blocks)-1000:])
 	write(blocks, buildNcz(t, blocks, [][2]uint64{{nczHeaderSize, uint64(len(blocks) - nczHeaderSize)}}, true))
 }
+
+// Damaged or crafted NCZ files are refused, never decompressed into a short NCA nor allowed
+// to reserve memory from the sizes they claim.
+func TestDamagedNczIsRefused(t *testing.T) {
+	nca := compatNca(nczHeaderSize + 4*0x200)
+	decompress := func(ncz []byte) error {
+		var out bytes.Buffer
+		return decompressNcz(context.Background(), &out, bytes.NewReader(ncz), 0, int64(len(ncz)), nil)
+	}
+	// sections that leave a hole, or wrap around
+	if decompress(buildNcz(t, nca, [][2]uint64{{nczHeaderSize, 0x200}, {nczHeaderSize + 0x400, 0x400}}, false)) == nil {
+		t.Fatal("a hole between sections")
+	}
+	if decompress(buildNcz(t, nca, [][2]uint64{{nczHeaderSize, ^uint64(0) - nczHeaderSize + 2}}, false)) == nil {
+		t.Fatal("a section that wraps around")
+	}
+	// a block bigger than the block size
+	ncz := buildNcz(t, nca, [][2]uint64{{nczHeaderSize, uint64(len(nca) - nczHeaderSize)}}, true)
+	at := bytes.Index(ncz, []byte(nczBlockMagic)) + 8 + 4 + 4 + 8
+	binary.LittleEndian.PutUint32(ncz[at:], 1<<20)
+	if decompress(ncz) == nil {
+		t.Fatal("a block bigger than its size")
+	}
+	// a count of sections far beyond what the file holds
+	huge := buildNcz(t, nca, [][2]uint64{{nczHeaderSize, uint64(len(nca) - nczHeaderSize)}}, false)
+	binary.LittleEndian.PutUint64(huge[nczHeaderSize+8:], 1<<40)
+	if decompress(huge) == nil {
+		t.Fatal("a huge count of sections")
+	}
+}

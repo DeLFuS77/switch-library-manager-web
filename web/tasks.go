@@ -216,6 +216,13 @@ func (l *TaskLog) Progress(id int64, current int, total int, message string) {
 	})
 }
 
+// ProgressLanes is Progress with the files the task works on, in one update.
+func (l *TaskLog) ProgressLanes(id int64, current int, total int, message string, lanes []TaskLane) {
+	l.update(id, false, func(task *Task) {
+		task.Current, task.Total, task.Message, task.Lanes = current, total, message, lanes
+	})
+}
+
 // Lanes updates the files a running task is working on at the same time. Not saved to disk.
 func (l *TaskLog) Lanes(id int64, lanes []TaskLane) {
 	l.update(id, false, func(task *Task) {

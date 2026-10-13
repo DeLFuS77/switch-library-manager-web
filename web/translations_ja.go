@@ -3,6 +3,7 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"The copy that is kept could not be checked whole: keep this one.": "残すコピーを完全には確認できませんでした。こちらを残してください。",
 		"%v files at once": "同時に %v ファイル",
 		"%v threads": "%v スレッド",
 		"Total": "合計",
@@ -41,7 +42,7 @@ func init() {
 		"Tasks run on the server: you can close this page, the browser or this device and they go on. They only stop when the app itself stops (its Docker container or its program); a stopped file check goes on where it was the next time.": "タスクはサーバーで動きます。このページ、ブラウザ、このデバイスを閉じても続きます。止まるのはアプリ自体（Docker コンテナまたはプログラム）が止まったときだけで、止まったファイル確認は次回、続きから再開します。",
 		"See the series": "シリーズを見る",
 		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "キーがあれば、シリーズも IGDB からゲームの正確なシリーズを取得します。",
-		"A compression, conversion, pack or file check is running, try again when it has finished.": "圧縮、変換、パック作成、またはファイル確認を実行中です。終了してからもう一度お試しください。",
+		"Another task is working on the files of the library (organizing, a cleanup, a compression, a pack or a check): try again when it has finished.": "別のタスクがライブラリのファイルを処理中です（整理、クリーンアップ、圧縮、パック、確認）。終了してからもう一度お試しください。",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "ライブラリが残すゲーム本体、最新アップデート、または DLC も含んでいるため、削除しません。",
 		"The newer file is damaged: keep this one.": "新しいファイルが破損しています。こちらを残してください。",
 		"The compressed file does not hold everything this file holds: keep this one.": "圧縮ファイルにはこのファイルの内容がすべて含まれていません。こちらを残してください。",

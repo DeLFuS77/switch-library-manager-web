@@ -40,6 +40,8 @@ const (
 	nczSectionMagic = "NCZSECTN"
 	nczBlockMagic   = "NCZBLOCK"
 	nczChunkSize    = 4 << 20
+	// more sections than an update ever has means a damaged table
+	nczMaxSections = 1 << 20
 	// decoders on the console need a bounded window
 	nczWindowSize = 8 << 20
 )
@@ -548,22 +550,24 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 	// updates split their sections by the subsection table: thousands of entries of 0x40
 	// bytes are possible, but never more than the NCZ holds
 	var count uint64
-	if err := binary.Read(reader, binary.LittleEndian, &count); err != nil || count == 0 || count > uint64(size)/0x40 {
+	if err := binary.Read(reader, binary.LittleEndian, &count); err != nil || count == 0 || count > uint64(size)/0x40 || count > nczMaxSections {
 		return errors.New("invalid NCZ section table")
 	}
-	sections := make([]nczSection, count)
-	for i := range sections {
+	// read one by one: a damaged count must not reserve memory before the entries exist
+	sections := []nczSection{}
+	for i := uint64(0); i < count; i++ {
 		values := make([]uint64, 4)
 		if err := binary.Read(reader, binary.LittleEndian, values); err != nil {
 			return err
 		}
-		sections[i] = nczSection{offset: values[0], size: values[1], cryptoType: values[2], key: make([]byte, 16), counter: make([]byte, 16)}
-		if _, err := io.ReadFull(reader, sections[i].key); err != nil {
+		section := nczSection{offset: values[0], size: values[1], cryptoType: values[2], key: make([]byte, 16), counter: make([]byte, 16)}
+		if _, err := io.ReadFull(reader, section.key); err != nil {
 			return err
 		}
-		if _, err := io.ReadFull(reader, sections[i].counter); err != nil {
+		if _, err := io.ReadFull(reader, section.counter); err != nil {
 			return err
 		}
+		sections = append(sections, section)
 	}
 
 	// like nsz: the bytes between the copied header and a first section that starts later
@@ -580,6 +584,14 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 		sections[0].offset += skip
 		sections[0].size -= skip
 	}
+	// the sections follow each other from the end of the copied header, as nsz writes them
+	next := uint64(nczHeaderSize)
+	for _, section := range sections {
+		if section.offset != next || section.offset+section.size < section.offset {
+			return errors.New("invalid NCZ section table")
+		}
+		next = section.offset + section.size
+	}
 
 	position, _ := reader.Seek(0, io.SeekCurrent)
 	if _, err := io.ReadFull(reader, magic); err != nil {
@@ -591,6 +603,7 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 		if err != nil {
 			return err
 		}
+		defer blocks.Close()
 		stream = blocks
 	} else {
 		reader.Seek(position, io.SeekStart)
@@ -656,28 +669,42 @@ func newNczBlockReader(source io.Reader) (*nczBlockReader, error) {
 	}
 	exponent := header[3]
 	count := binary.LittleEndian.Uint32(header[4:8])
-	if exponent < 14 || exponent > 32 || count > 1<<24 {
+	if exponent < 14 || exponent > 30 || count > 1<<24 {
 		return nil, errors.New("invalid NCZ block header")
 	}
 	var decompressedSize uint64
 	if err := binary.Read(source, binary.LittleEndian, &decompressedSize); err != nil {
 		return nil, err
 	}
+	blockSize := uint64(1) << exponent
+	if (decompressedSize+blockSize-1)/blockSize != uint64(count) {
+		return nil, errors.New("invalid NCZ block header")
+	}
 	sizes := make([]uint32, count)
 	if err := binary.Read(source, binary.LittleEndian, sizes); err != nil {
 		return nil, err
 	}
-	decoder, err := zstd.NewReader(nil, zstd.WithDecoderConcurrency(1))
+	// a block is never bigger compressed than as it is: nsz stores it as it is then
+	for _, size := range sizes {
+		if uint64(size) > blockSize {
+			return nil, errors.New("invalid NCZ block size")
+		}
+	}
+	decoder, err := zstd.NewReader(nil, zstd.WithDecoderConcurrency(1), zstd.WithDecoderMaxMemory(blockSize))
 	if err != nil {
 		return nil, err
 	}
 	return &nczBlockReader{source: source, blockSize: 1 << exponent, sizes: sizes, decoder: decoder, remaining: decompressedSize}, nil
 }
 
+// Close frees the decoder.
+func (b *nczBlockReader) Close() {
+	b.decoder.Close()
+}
+
 func (b *nczBlockReader) Read(p []byte) (int, error) {
 	for len(b.current) == 0 {
 		if len(b.sizes) == 0 {
-			b.decoder.Close()
 			return 0, io.EOF
 		}
 		compressed := make([]byte, b.sizes[0])
@@ -697,9 +724,12 @@ func (b *nczBlockReader) Read(p []byte) (int, error) {
 			if err != nil {
 				return 0, err
 			}
+			if uint64(len(decoded)) != size {
+				return 0, errors.New("an NCZ block does not have its size")
+			}
 			b.current = decoded
 		} else {
-			b.current = compressed
+			b.current = compressed[:size]
 		}
 	}
 	n := copy(p, b.current)

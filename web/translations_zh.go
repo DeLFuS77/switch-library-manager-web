@@ -3,6 +3,7 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"The copy that is kept could not be checked whole: keep this one.": "保留的副本无法完整校验：请保留这个。",
 		"%v files at once": "同时处理 %v 个文件",
 		"%v threads": "%v 个线程",
 		"Total": "总计",
@@ -41,7 +42,7 @@ func init() {
 		"Tasks run on the server: you can close this page, the browser or this device and they go on. They only stop when the app itself stops (its Docker container or its program); a stopped file check goes on where it was the next time.": "任务在服务器上运行：你可以关闭此页面、浏览器或此设备，任务会继续。只有应用本身停止（其 Docker 容器或程序）时才会停止；停止的文件校验下次会从中断处继续。",
 		"See the series": "查看系列",
 		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "有了密钥，系列页面也会从 IGDB 获取你的游戏的准确系列。",
-		"A compression, conversion, pack or file check is running, try again when it has finished.": "正在进行压缩、转换、制作合集包或文件校验，请在完成后重试。",
+		"Another task is working on the files of the library (organizing, a cleanup, a compression, a pack or a check): try again when it has finished.": "另一个任务正在处理游戏库的文件（整理、清理、压缩、合集包或校验）：请在完成后重试。",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "它还包含游戏库保留的游戏本体、最新更新或 DLC，因此不会删除。",
 		"The newer file is damaged: keep this one.": "较新的文件已损坏：请保留这个。",
 		"The compressed file does not hold everything this file holds: keep this one.": "压缩文件没有包含此文件的全部内容：请保留这个。",

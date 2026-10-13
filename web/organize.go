@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -141,8 +142,38 @@ func (web *Web) runOrganizeAction(action string, trigger string) ([]process.Oper
 	return operations, err
 }
 
+// removeFilesAsTask deletes files of the library as a cleanup task, while no scan,
+// compression, conversion, pack, check or copy can start, and gives what was deleted.
+func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string) (int, int64, error) {
+	if !web.organizing.CompareAndSwap(false, true) {
+		return 0, 0, errOrganizeBusy
+	}
+	defer web.organizing.Store(false)
+	if web.compressionRunning() {
+		return 0, 0, errOrganizeBusy
+	}
+	if !web.state.startSync() {
+		return 0, 0, errRegionBusy
+	}
+	defer web.state.endSync()
+	taskId := web.startTask(TASK_CLEANUP, TRIGGER_MANUAL)
+	deleted, freed := 0, int64(0)
+	var failure *TaskNote
+	for i, op := range process.RemoveFiles(files, reasons, false) {
+		if op.Error == "" {
+			deleted++
+			freed += files[i].Size
+		} else if failure == nil {
+			failure = &TaskNote{Text: NOTE_ORGANIZE_FAILED, Detail: op.From + ": " + op.Error}
+		}
+	}
+	web.taskLog().SetCompressResult(taskId, deleted, freed)
+	web.finishTask(taskId, failure)
+	return deleted, freed, nil
+}
+
 // errOrganizeBusy is returned while another task reads or writes the files of the library.
-var errOrganizeBusy = errorString("A compression, conversion, pack or file check is running, try again when it has finished.")
+var errOrganizeBusy = errorString("Another task is working on the files of the library (organizing, a cleanup, a compression, a pack or a check): try again when it has finished.")
 
 func writeJSON(w http.ResponseWriter, status int, value any) {
 	w.Header().Set("Content-Type", "application/json")

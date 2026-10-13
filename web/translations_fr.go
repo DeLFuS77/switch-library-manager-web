@@ -3,6 +3,7 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"The copy that is kept could not be checked whole: keep this one.": "La copie conservée n'a pas pu être vérifiée en entier : garde celle-ci.",
 		"%v files at once": "%v fichiers à la fois",
 		"%v threads": "%v threads",
 		"Total": "Total",
@@ -41,7 +42,7 @@ func init() {
 		"Tasks run on the server: you can close this page, the browser or this device and they go on. They only stop when the app itself stops (its Docker container or its program); a stopped file check goes on where it was the next time.": "Les tâches tournent sur le serveur : tu peux fermer cette page, le navigateur ou cet appareil, elles continuent. Elles ne s'arrêtent que si l'appli elle-même s'arrête (son conteneur Docker ou son programme) ; une vérification arrêtée reprend là où elle en était la fois suivante.",
 		"See the series": "Voir la saga",
 		"With the keys, the sagas also take the series of your games from IGDB, exactly.": "Avec les clés, les sagas prennent aussi d'IGDB la série exacte de tes jeux.",
-		"A compression, conversion, pack or file check is running, try again when it has finished.": "Une compression, une conversion, un pack ou une vérification est en cours, réessaie quand elle sera terminée.",
+		"Another task is working on the files of the library (organizing, a cleanup, a compression, a pack or a check): try again when it has finished.": "Une autre tâche travaille sur les fichiers de la bibliothèque (organisation, nettoyage, compression, pack ou vérification) : réessaie quand elle sera terminée.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.": "Il contient aussi le jeu, sa dernière mise à jour ou un DLC que la bibliothèque garde, il n'est donc pas supprimé.",
 		"The newer file is damaged: keep this one.": "Le fichier plus récent est endommagé : garde celui-ci.",
 		"The compressed file does not hold everything this file holds: keep this one.": "Le fichier compressé ne contient pas tout ce que contient celui-ci : garde celui-ci.",
