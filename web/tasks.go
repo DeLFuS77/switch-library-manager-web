@@ -25,14 +25,14 @@ const (
 
 // what started a task
 const (
-	TRIGGER_MANUAL   = "manual"
-	TRIGGER_SCHEDULE = "schedule"
-	TRIGGER_WATCHER  = "watcher"
-	TRIGGER_SETTINGS = "settings"
-	TRIGGER_STARTUP  = "startup"
-	TRIGGER_ORGANIZE = "organize"
-	TRIGGER_COMPRESS = "compress"
-	TRIGGER_SCAN     = "scan"
+	TRIGGER_MANUAL     = "manual"
+	TRIGGER_SCHEDULE   = "schedule"
+	TRIGGER_WATCHER    = "watcher"
+	TRIGGER_SETTINGS   = "settings"
+	TRIGGER_STARTUP    = "startup"
+	TRIGGER_ORGANIZE   = "organize"
+	TRIGGER_COMPRESS   = "compress"
+	TRIGGER_SCAN       = "scan"
 	TRIGGER_AUTOMATION = "automation"
 )
 
@@ -84,6 +84,29 @@ type Task struct {
 	Saved int64 `json:"saved,omitempty"`
 	// damaged files found by a verification
 	Damaged int `json:"damaged,omitempty"`
+	// work done at the same time: the files being worked on, each with its progress, and
+	// how many workers or threads the task uses
+	Lanes   []TaskLane `json:"lanes,omitempty"`
+	Workers int        `json:"workers,omitempty"`
+	Threads int        `json:"threads,omitempty"`
+}
+
+// TaskLane is a file a running task is working on, with its own progress in bytes.
+type TaskLane struct {
+	Name  string `json:"name"`
+	Done  int64  `json:"done"`
+	Total int64  `json:"total"`
+}
+
+// Percent is the progress of the file.
+func (l TaskLane) Percent() int {
+	if l.Total <= 0 {
+		return 0
+	}
+	if l.Done >= l.Total {
+		return 100
+	}
+	return int(l.Done * 100 / l.Total)
 }
 
 // TaskNote is a problem of a task: Text is an English sentence translated by the
@@ -193,6 +216,21 @@ func (l *TaskLog) Progress(id int64, current int, total int, message string) {
 	})
 }
 
+// Lanes updates the files a running task is working on at the same time. Not saved to disk.
+func (l *TaskLog) Lanes(id int64, lanes []TaskLane) {
+	l.update(id, false, func(task *Task) {
+		task.Lanes = lanes
+	})
+}
+
+// SetWorkers tells how many files a task works on at the same time, and with how many
+// threads each one.
+func (l *TaskLog) SetWorkers(id int64, workers int, threads int) {
+	l.update(id, false, func(task *Task) {
+		task.Workers, task.Threads = workers, threads
+	})
+}
+
 // Warn adds a problem that did not stop the task.
 func (l *TaskLog) Warn(id int64, text string, detail string) {
 	l.update(id, false, func(task *Task) {
@@ -226,6 +264,7 @@ func (l *TaskLog) Finish(id int64, failure *TaskNote) {
 	l.update(id, true, func(task *Task) {
 		task.Finished = time.Now()
 		task.Message = ""
+		task.Lanes = nil
 		switch {
 		case failure != nil:
 			task.Status = TASK_FAILED

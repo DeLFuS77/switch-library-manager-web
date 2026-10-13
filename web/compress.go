@@ -283,6 +283,11 @@ func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, si
 	web.compressor.mutex.Unlock()
 
 	taskId := web.taskLog().Start(kind, trigger)
+	threads := 0
+	if kind == TASK_COMPRESS {
+		threads = compressWorkers()
+	}
+	web.taskLog().SetWorkers(taskId, 1, threads)
 	go func() {
 		defer func() {
 			web.compressor.mutex.Lock()
@@ -306,9 +311,11 @@ func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, si
 			}
 			name := filepath.Base(path)
 			base := done
+			fileSize := sizes[i] * passes
 			report := func(step int64) func(int64, int64) {
 				return func(fileDone int64, fileTotal int64) {
 					web.taskLog().Progress(taskId, int((base+step+fileDone)>>20), int(total>>20), fmt.Sprintf("%s (%d/%d)", name, i+1, len(paths)))
+					web.taskLog().Lanes(taskId, []TaskLane{{Name: name, Done: min(step+fileDone, fileSize), Total: fileSize}})
 				}
 			}
 			fileSaved, err := job(ctx, path, report)
