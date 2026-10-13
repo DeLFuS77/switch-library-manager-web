@@ -3,6 +3,10 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"%v files at once": "%v file alla volta",
+		"%v threads": "%v thread",
+		"Total": "Totale",
+		"Files being worked on": "File in lavorazione",
 		"Outside your home network": "Fuori dalla rete di casa",
 		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "Il codice apre l'indirizzo che stai usando ora: un indirizzo locale (come 192.168...) funziona solo a casa. Per usare l'app da fuori, il telefono deve poter raggiungere il server. Dal più semplice al più laborioso:",
 		"A VPN": "Una VPN",

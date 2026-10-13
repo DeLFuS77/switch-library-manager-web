@@ -255,6 +255,8 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 			mutex      sync.Mutex
 			completed  int64
 			partial    = make([]int64, workers)
+			laneNames  = make([]string, workers)
+			laneSizes  = make([]int64, workers)
 			started    int
 			checked    int
 			damaged    int
@@ -273,12 +275,20 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 				done += value
 			}
 			web.taskLog().Progress(taskId, int(done>>20), int(total>>20), fmt.Sprintf("%s (%d/%d)", name, started, len(files)))
+			lanes := []TaskLane{}
+			for i, laneName := range laneNames {
+				if laneName != "" {
+					lanes = append(lanes, TaskLane{Name: laneName, Done: partial[i], Total: laneSizes[i]})
+				}
+			}
+			web.taskLog().Lanes(taskId, lanes)
 		}
 		// a scheduled verification stops when the background hours end and goes on the next time
 		stopped := func() bool {
 			return ctx.Err() != nil || (trigger == TRIGGER_SCHEDULE && !web.backgroundAllowed())
 		}
 
+		web.taskLog().SetWorkers(taskId, workers, 0)
 		next := 0
 		var wait sync.WaitGroup
 		for worker := 0; worker < workers; worker++ {
@@ -295,6 +305,7 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 					next++
 					started++
 					name := filepath.Base(file.path)
+					laneNames[worker], laneSizes[worker] = name, file.info.Size()
 					report(name, true)
 					mutex.Unlock()
 
@@ -307,6 +318,7 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 
 					mutex.Lock()
 					partial[worker] = 0
+					laneNames[worker] = ""
 					completed += file.info.Size()
 					if errors.Is(err, context.Canceled) {
 						mutex.Unlock()

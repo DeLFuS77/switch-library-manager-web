@@ -3,6 +3,10 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"%v files at once": "同時に %v ファイル",
+		"%v threads": "%v スレッド",
+		"Total": "合計",
+		"Files being worked on": "処理中のファイル",
 		"Outside your home network": "自宅のネットワークの外",
 		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "コードは今使っているアドレスを開きます。ローカルアドレス（192.168... など）は自宅でしか使えません。外からアプリを使うには、スマホがサーバーに届く方法が必要です。簡単な順に:",
 		"A VPN": "VPN",

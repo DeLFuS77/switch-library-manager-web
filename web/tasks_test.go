@@ -219,3 +219,32 @@ func TestNavCountsIncludeFailedTasks(t *testing.T) {
 		t.Fatalf("failed tasks must be counted: %+v", web.navCounts())
 	}
 }
+
+// A running task shows every file it works on at the same time, each with its progress,
+// under the total; a finished one keeps none.
+func TestTaskShowsItsLanes(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleTasks()
+	id := web.taskLog().Start(TASK_VERIFY, TRIGGER_MANUAL)
+	web.taskLog().SetWorkers(id, 2, 0)
+	web.taskLog().Progress(id, 300, 1000, "Game A.nsp (2/9)")
+	web.taskLog().Lanes(id, []TaskLane{{Name: "Game A.nsp", Done: 512 << 20, Total: 1024 << 20}, {Name: "Game B.nsz", Done: 0, Total: 2048 << 20}})
+
+	page := httptest.NewRecorder()
+	request := httptest.NewRequest("GET", "/tasks.html?part=list", nil)
+	request.Header.Set("Accept-Language", "es")
+	web.router.ServeHTTP(page, request)
+	body := page.Body.String()
+	for _, want := range []string{"2 archivos a la vez", "Total", "Game A.nsp", "Game B.nsz", "50%", "task-lane"} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("%q in the running task: %s", want, body)
+		}
+	}
+	web.taskLog().Finish(id, nil)
+	for _, task := range web.taskLog().Snapshot() {
+		if task.Id == id && len(task.Lanes) != 0 {
+			t.Fatal("a finished task keeps no lanes")
+		}
+	}
+}

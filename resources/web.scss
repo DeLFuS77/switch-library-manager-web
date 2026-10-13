@@ -4666,3 +4666,47 @@ body:has(.wizard.show) #alert_sync {
 		cursor: pointer;
 	}
 }
+
+// Tasks: the message of a running task takes the room left, the numbers go below on phones
+.task-message {
+	flex: 1 1 12rem;
+	min-width: 0;
+}
+
+// Tasks: the files a running task works on at the same time
+.task-lanes {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+	padding-top: 0.75rem;
+	border-top: 1px solid var(--slm-border);
+}
+
+.task-lane {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+.task-lane-number {
+	flex-shrink: 0;
+	width: 1.5rem;
+	height: 1.5rem;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.75rem;
+	font-weight: 600;
+	background: rgba(127, 127, 127, 0.18);
+}
+
+.task-lane-main {
+	flex-grow: 1;
+	min-width: 0;
+}
+
+.task-lane-bar {
+	height: 0.4rem;
+	margin-top: 0.25rem;
+}

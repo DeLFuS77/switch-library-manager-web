@@ -3,6 +3,10 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"%v files at once": "同时处理 %v 个文件",
+		"%v threads": "%v 个线程",
+		"Total": "总计",
+		"Files being worked on": "正在处理的文件",
 		"Outside your home network": "在家庭网络之外",
 		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "此代码打开你当前使用的地址：本地地址（如 192.168...）只能在家使用。要在外面使用应用，手机需要能访问到服务器。按从易到难：",
 		"A VPN": "VPN",

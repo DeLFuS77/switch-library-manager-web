@@ -17,7 +17,7 @@
 							<span class="stat-icon task-icon"><span class="bi {{template "taskIcon" .Kind}}" aria-hidden="true"></span></span>
 							<div class="flex-grow-1 min-w-0">
 								<h3 class="h6 fw-semibold mb-0">{{template "taskKind" .Kind}}</h3>
-								<div class="small text-body-secondary">{{template "taskTrigger" .Trigger}} &middot; {{t "started %v" (formatDateTime .Started)}}</div>
+								<div class="small text-body-secondary">{{template "taskTrigger" .Trigger}} &middot; {{t "started %v" (formatDateTime .Started)}}{{if gt .Workers 1}} &middot; <span class="bi bi-diagram-3 me-1" aria-hidden="true"></span>{{t "%v files at once" .Workers}}{{end}}{{if gt .Threads 0}} &middot; <span class="bi bi-cpu me-1" aria-hidden="true"></span>{{t "%v threads" .Threads}}{{end}}</div>
 							</div>
 							{{- if or (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "convert") (eq .Kind "pack")}}
 							<button type="button" class="btn btn-sm btn-outline-danger rounded-pill admin-only" data-compress-cancel><span class="bi bi-x-circle me-1" aria-hidden="true"></span>{{t "Cancel"}}</button>
@@ -25,6 +25,7 @@
 							<span class="spinner-border spinner-border-sm text-primary flex-shrink-0" aria-hidden="true"></span>
 						</div>
 						{{- $pct := .Percent}}
+						{{- if .Lanes}}<div class="small fw-semibold mb-1">{{t "Total"}}</div>{{end}}
 						<div class="progress mb-2" role="progressbar" aria-label="{{t "Progress"}}"{{if ge $pct 0}} aria-valuenow="{{$pct}}" aria-valuemin="0" aria-valuemax="100"{{end}}>
 							{{- if ge $pct 0}}
 							<div class="progress-bar" style="width: {{$pct}}%"></div>
@@ -32,10 +33,26 @@
 							<div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div>
 							{{- end}}
 						</div>
-						<div class="d-flex justify-content-between gap-3 small text-body-secondary">
-							<span class="text-truncate">{{t .Message}}</span>
+						<div class="d-flex flex-wrap justify-content-between column-gap-3 small text-body-secondary">
+							<span class="text-truncate task-message">{{t .Message}}</span>
 							{{- if ge $pct 0}}<span class="text-nowrap">{{if or (eq .Kind "verify") (eq .Kind "copy")}}{{formatSize (mul .Current 1048576)}} / {{formatSize (mul .Total 1048576)}}{{else}}{{.Current}} / {{.Total}}{{end}} &middot; {{$pct}}%{{with .Speed}} &middot; {{.}} MB/s{{end}}{{with .Remaining}} &middot; {{t "%v left" .}}{{end}}</span>{{end}}
 						</div>
+						{{- with .Lanes}}
+						<ul class="task-lanes list-unstyled mb-0 mt-3" aria-label="{{t "Files being worked on"}}">
+							{{- range $i, $lane := .}}
+							<li class="task-lane">
+								<span class="task-lane-number" aria-hidden="true">{{add $i 1}}</span>
+								<div class="task-lane-main">
+									<div class="d-flex justify-content-between gap-2 small">
+										<span class="text-truncate" title="{{$lane.Name}}">{{$lane.Name}}</span>
+										<span class="text-nowrap text-body-secondary">{{formatSize $lane.Done}} / {{formatSize $lane.Total}} &middot; {{$lane.Percent}}%</span>
+									</div>
+									<div class="progress task-lane-bar" role="progressbar" aria-label="{{$lane.Name}}" aria-valuenow="{{$lane.Percent}}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar bg-info" style="width: {{$lane.Percent}}%"></div></div>
+								</div>
+							</li>
+							{{- end}}
+						</ul>
+						{{- end}}
 					</article>
 					{{- end}}
 				</section>

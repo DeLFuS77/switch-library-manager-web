@@ -3,6 +3,10 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"%v files at once": "%v bestanden tegelijk",
+		"%v threads": "%v threads",
+		"Total": "Totaal",
+		"Files being worked on": "Bestanden in bewerking",
 		"Outside your home network": "Buiten je thuisnetwerk",
 		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "De code opent het adres dat je nu gebruikt: een lokaal adres (zoals 192.168...) werkt alleen thuis. Om de app van buitenaf te gebruiken, moet de telefoon de server kunnen bereiken. Van het makkelijkst tot het meeste werk:",
 		"A VPN": "Een VPN",

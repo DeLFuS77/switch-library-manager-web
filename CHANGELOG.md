@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- **Tasks show their workers**: a running task tells how many files it works on at the same time (file checks) or
+  with how many threads (compression), and under the total bar, a line for each file being worked on with its own
+  progress.
+
 ## 1.28.2
 
 ### New features
