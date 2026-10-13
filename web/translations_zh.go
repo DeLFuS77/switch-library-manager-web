@@ -3,6 +3,15 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Outside your home network": "在家庭网络之外",
+		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "此代码打开你当前使用的地址：本地地址（如 192.168...）只能在家使用。要在外面使用应用，手机需要能访问到服务器。按从易到难：",
+		"A VPN": "VPN",
+		"Tailscale, WireGuard or the VPN of your router. The phone joins your network from anywhere and uses the same address as at home. No domain, no fixed IP and no open ports; the safest.": "Tailscale、WireGuard 或路由器的 VPN。手机可以在任何地方加入你的网络，并使用与家里相同的地址。无需域名、固定 IP 或开放端口，最安全。",
+		"A Cloudflare Tunnel": "Cloudflare Tunnel",
+		"a free Cloudflare account and a domain of yours give an HTTPS address, like https://switch.your-domain.com, without opening ports nor a fixed IP; the app can then be installed as an app. Turn on users in the app first.": "免费的 Cloudflare 账户加上你自己的域名，可获得 HTTPS 地址（如 https://switch.your-domain.com），无需开放端口或固定 IP，这样应用就能作为应用安装。请先在应用中启用用户。",
+		"A reverse proxy": "反向代理",
+		"Nginx Proxy Manager, Caddy or SWAG with a domain and a certificate, opening port 443 of the router. Without a fixed IP, a dynamic DNS (DuckDNS, No-IP) follows the IP of your home. With Cloudflare in front, set SLM_TRUSTED_PROXIES to cloudflare.": "使用 Nginx Proxy Manager、Caddy 或 SWAG，配置域名和证书，并在路由器上开放 443 端口。没有固定 IP 时，动态 DNS（DuckDNS、No-IP）会跟随你家的 IP。如果前面有 Cloudflare，请将 SLM_TRUSTED_PROXIES 设为 cloudflare。",
+		"Open the app once with that outside address: the code above then shows it, ready for the phone.": "用这个外部地址打开一次应用，上面的代码就会显示它，供手机使用。",
 		"App on your phone": "手机上的应用",
 		"Use it like any other app on your phone, tablet or computer: an icon on the home screen that opens it in its own window, without the bar of the browser.": "像其他应用一样在手机、平板或电脑上使用：主屏幕上的图标会在独立窗口中打开，没有浏览器的地址栏。",
 		"The app is installed on this device.": "此设备上已安装该应用。",

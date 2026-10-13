@@ -413,6 +413,16 @@
 								</div>
 							</div>
 						</div>
+						<details class="mobile-guide mt-4" data-mobile-remote>
+							<summary><span class="bi bi-globe2 me-2" aria-hidden="true"></span>{{t "Outside your home network"}}</summary>
+							<p class="small mt-2">{{t "The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:"}}</p>
+							<ol class="small mb-2">
+								<li><strong>{{t "A VPN"}}</strong>: {{t "Tailscale, WireGuard or the VPN of your router. The phone joins your network from anywhere and uses the same address as at home. No domain, no fixed IP and no open ports; the safest."}}</li>
+								<li><strong>{{t "A Cloudflare Tunnel"}}</strong>: {{t "a free Cloudflare account and a domain of yours give an HTTPS address, like https://switch.your-domain.com, without opening ports nor a fixed IP; the app can then be installed as an app. Turn on users in the app first."}}</li>
+								<li><strong>{{t "A reverse proxy"}}</strong>: {{t "Nginx Proxy Manager, Caddy or SWAG with a domain and a certificate, opening port 443 of the router. Without a fixed IP, a dynamic DNS (DuckDNS, No-IP) follows the IP of your home. With Cloudflare in front, set SLM_TRUSTED_PROXIES to cloudflare."}}</li>
+							</ol>
+							<p class="small text-body-secondary mb-0">{{t "Open the app once with that outside address: the code above then shows it, ready for the phone."}}</p>
+						</details>
 					</section>
 					<section class="surface mt-4 settings-section" id="backup" aria-labelledby="backupTitle">
 						<h2 class="section-title" id="backupTitle"><span class="bi bi-life-preserver" aria-hidden="true"></span>{{t "Backup"}}</h2>

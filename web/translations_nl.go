@@ -3,6 +3,15 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Outside your home network": "Buiten je thuisnetwerk",
+		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "De code opent het adres dat je nu gebruikt: een lokaal adres (zoals 192.168...) werkt alleen thuis. Om de app van buitenaf te gebruiken, moet de telefoon de server kunnen bereiken. Van het makkelijkst tot het meeste werk:",
+		"A VPN": "Een VPN",
+		"Tailscale, WireGuard or the VPN of your router. The phone joins your network from anywhere and uses the same address as at home. No domain, no fixed IP and no open ports; the safest.": "Tailscale, WireGuard of de VPN van je router. De telefoon komt overal je netwerk in en gebruikt hetzelfde adres als thuis. Geen domein, geen vast IP en geen open poorten; het veiligst.",
+		"A Cloudflare Tunnel": "Een Cloudflare-tunnel",
+		"a free Cloudflare account and a domain of yours give an HTTPS address, like https://switch.your-domain.com, without opening ports nor a fixed IP; the app can then be installed as an app. Turn on users in the app first.": "een gratis Cloudflare-account en een eigen domein geven een HTTPS-adres, zoals https://switch.jouw-domein.nl, zonder poorten te openen of vast IP; dan kan de app als app worden geïnstalleerd. Zet eerst gebruikers aan in de app.",
+		"A reverse proxy": "Een reverse proxy",
+		"Nginx Proxy Manager, Caddy or SWAG with a domain and a certificate, opening port 443 of the router. Without a fixed IP, a dynamic DNS (DuckDNS, No-IP) follows the IP of your home. With Cloudflare in front, set SLM_TRUSTED_PROXIES to cloudflare.": "Nginx Proxy Manager, Caddy of SWAG met een domein en een certificaat, met poort 443 van de router open. Zonder vast IP volgt een dynamische DNS (DuckDNS, No-IP) het IP van je huis. Met Cloudflare ervoor zet je SLM_TRUSTED_PROXIES op cloudflare.",
+		"Open the app once with that outside address: the code above then shows it, ready for the phone.": "Open de app één keer met dat adres van buiten: de code hierboven toont het dan, klaar voor de telefoon.",
 		"App on your phone": "App op je telefoon",
 		"Use it like any other app on your phone, tablet or computer: an icon on the home screen that opens it in its own window, without the bar of the browser.": "Gebruik hem zoals elke andere app op je telefoon, tablet of computer: een pictogram op het startscherm dat hem in een eigen venster opent, zonder de balk van de browser.",
 		"The app is installed on this device.": "De app is op dit apparaat geïnstalleerd.",

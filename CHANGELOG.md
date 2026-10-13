@@ -6,10 +6,12 @@
 
 - **App on your phone**, in Settings: an **Install the app** button where the browser allows it (Chrome, Edge and
   Samsung Internet), a code to open the server on the phone, and the steps for Android, iPhone and iPad (iOS 26 and
-  earlier) and computers, the ones of the device first. It tells when HTTPS is needed to install it as an app.
+  earlier) and computers, the ones of the device first. It tells when HTTPS is needed to install it as an app, and how to reach the
+  app from outside your home: a VPN, a Cloudflare Tunnel or a reverse proxy with a dynamic DNS.
 
 ### Improvements
 
+- Unraid template: the license is AGPL-3.0 (it still said MIT) and its screenshots are the current ones.
 - The Tasks page tells that tasks run on the server: the browser or the device can be closed, they only stop when the
   app itself stops.
 

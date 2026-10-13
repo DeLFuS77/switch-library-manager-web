@@ -5,6 +5,15 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Outside your home network": "Fuera de tu red de casa",
+		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "El código abre la dirección que estás usando ahora: una dirección local (como 192.168...) solo funciona en casa. Para usar la app desde fuera, el móvil necesita una forma de llegar al servidor. De lo más fácil a lo que más trabajo da:",
+		"A VPN": "Una VPN",
+		"Tailscale, WireGuard or the VPN of your router. The phone joins your network from anywhere and uses the same address as at home. No domain, no fixed IP and no open ports; the safest.": "Tailscale, WireGuard o la VPN de tu router. El móvil entra en tu red desde cualquier sitio y usa la misma dirección que en casa. Sin dominio, sin IP fija y sin abrir puertos; lo más seguro.",
+		"A Cloudflare Tunnel": "Un túnel de Cloudflare",
+		"a free Cloudflare account and a domain of yours give an HTTPS address, like https://switch.your-domain.com, without opening ports nor a fixed IP; the app can then be installed as an app. Turn on users in the app first.": "una cuenta gratuita de Cloudflare y un dominio tuyo dan una dirección HTTPS, como https://switch.tu-dominio.com, sin abrir puertos ni IP fija; así la app se puede instalar como app. Activa antes los usuarios en la app.",
+		"A reverse proxy": "Un proxy inverso",
+		"Nginx Proxy Manager, Caddy or SWAG with a domain and a certificate, opening port 443 of the router. Without a fixed IP, a dynamic DNS (DuckDNS, No-IP) follows the IP of your home. With Cloudflare in front, set SLM_TRUSTED_PROXIES to cloudflare.": "Nginx Proxy Manager, Caddy o SWAG con un dominio y un certificado, abriendo el puerto 443 del router. Sin IP fija, un DNS dinámico (DuckDNS, No-IP) sigue la IP de tu casa. Con Cloudflare delante, pon SLM_TRUSTED_PROXIES a cloudflare.",
+		"Open the app once with that outside address: the code above then shows it, ready for the phone.": "Abre la app una vez con esa dirección de fuera: el código de arriba la mostrará, lista para el móvil.",
 		"App on your phone": "App en el móvil",
 		"Use it like any other app on your phone, tablet or computer: an icon on the home screen that opens it in its own window, without the bar of the browser.": "Úsala como cualquier otra app en tu móvil, tablet u ordenador: un icono en la pantalla de inicio que la abre en su propia ventana, sin la barra del navegador.",
 		"The app is installed on this device.": "La app está instalada en este dispositivo.",
