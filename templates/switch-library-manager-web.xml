@@ -22,14 +22,13 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>MIT</License>
-  <Changes>### 1.28.0
+  <Changes>### 1.28.1
+- The page of each saga, with all its games in big cards
+- Sagas never list demos
+### 1.28.0
 - Sagas from IGDB and Wikidata, and no more games of other series mixed in
 - Safe deletions: a file that still holds a game is never deleted as old or duplicate
-- Organize, scanner and save vault fixes
-### 1.27.1
-- File check: no more good files reported as damaged (nsz updates, block compression, files rewritten by NSC_Builder)
-- Files found damaged before are checked again by themselves
-- Compression compares every file of the NSZ with the original</Changes>
+- Organize, scanner and save vault fixes</Changes>
   <Date>2026-10-13</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
