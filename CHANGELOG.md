@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- The log no longer fills with errors for updates whose date the versions database does not know, nor with a line for
+  every game that has updates or DLC without the game (they are listed on the Issues page).
+
 ## 1.28.3
 
 ### Improvements

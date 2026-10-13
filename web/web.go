@@ -516,7 +516,8 @@ func intToTime(value int) (time.Time, error) {
 }
 
 func strToTime(layout, value string) (time.Time, error) {
-	if value == "" {
+	// the versions database writes "-" for a date it does not know
+	if value = strings.TrimSpace(value); value == "" || value == "-" {
 		return time.Time{}, nil
 	}
 
