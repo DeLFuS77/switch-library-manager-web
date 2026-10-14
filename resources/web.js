@@ -852,12 +852,25 @@ function initTaskIndicator() {
 	window.addEventListener('pagehide', () => source.close());
 }
 
+// keepAnimationsInStep makes the spinners and striped bars just drawn go on where the ones
+// they replace were, as they all follow the clock of the page, instead of starting again
+function keepAnimationsInStep(root) {
+	const now = document.timeline ? document.timeline.currentTime : performance.now();
+	root.querySelectorAll('.spinner-border, .progress-bar-animated').forEach(element => {
+		const duration = parseFloat(getComputedStyle(element).animationDuration) * 1000;
+		if (duration > 0) {
+			element.style.animationDelay = `-${now % duration}ms`;
+		}
+	});
+}
+
 function initLiveTasks() {
 	const list = document.querySelector('[data-live-tasks]');
 	if (!list) {
 		return;
 	}
 
+	keepAnimationsInStep(list);
 	let rendered = Number(list.dataset.version || 0);
 	let loading = false;
 	let pending = false;
@@ -885,6 +898,7 @@ function initLiveTasks() {
 					folded[details.dataset.taskResults] = details.open;
 				});
 				list.innerHTML = html;
+				keepAnimationsInStep(list);
 				list.querySelectorAll('details[data-task-results]').forEach(details => {
 					if (details.dataset.taskResults in folded) {
 						details.open = folded[details.dataset.taskResults];
