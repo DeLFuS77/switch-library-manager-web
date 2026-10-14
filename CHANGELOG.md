@@ -4,6 +4,9 @@
 
 ### Improvements
 
+- XCZ files are compressed in blocks of 1 MB, as nsz does by default: a reader can start anywhere in the game without
+  decompressing it whole, and the blocks are compressed by every thread at once. A block that does not shrink is
+  written as it is. NSZ files stay in one stream, which saves a bit more. Checked with the decompressor of nsz.
 - Compression settings: the processor threads that compress each file (automatic as before, any number up to every
   processor) and the files compressed, decompressed or converted at the same time (1 to 4), each with its line on the
   Tasks page. Automatic threads are shared among the files at once: the disk sets the speed more than the processor
