@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Compression: games whose NCAs use AES-CTR sections without layer hash (type 5), have gaps between their sections or
+  a section the app cannot decrypt were refused with "nothing in this file can be compressed". Like nsz, those parts
+  are now kept in the stream as they are and the rest is compressed; the NSZ is still decompressed and compared with
+  the original before it replaces it. When a file still cannot be compressed, the message says why for each NCA.
+
 ## 1.28.4
 
 ### Fixes

@@ -112,15 +112,20 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 	}
 
 	plans := make([]*nczPlan, len(pkg.files))
+	// why the NCA files worth compressing were stored as they are, to tell when none is left
+	reasons := []string{}
 	names := make([]string, len(pkg.files))
 	for i, file := range pkg.files {
 		names[i] = file.name
 		if !isCompressibleNcaName(file.name) || file.size <= nczHeaderSize {
 			continue
 		}
-		plan, err := planNcz(input, file.offset, uint64(file.size), titleKeys)
+		plan, reason, err := planNcz(input, file.offset, uint64(file.size), titleKeys)
 		if err != nil {
 			return result, fmt.Errorf("%s: %w", file.name, err)
+		}
+		if plan == nil && reason != "" {
+			reasons = append(reasons, file.name+": "+reason)
 		}
 		if plan != nil {
 			plans[i] = plan
@@ -133,6 +138,9 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 		}
 	}
 	if result.Compressed == 0 {
+		if len(reasons) > 0 {
+			return result, fmt.Errorf("%w (%s)", ErrNotCompressible, strings.Join(reasons, "; "))
+		}
 		return result, ErrNotCompressible
 	}
 
@@ -197,31 +205,39 @@ func isCompressibleNcaName(name string) bool {
 	return strings.HasSuffix(lower, ".nca") && !strings.HasSuffix(lower, ".cnmt.nca")
 }
 
-// planNcz decides how an NCA is compressed, or returns nil to store it as it is.
-func planNcz(input io.ReaderAt, offset int64, size uint64, titleKeys map[string][]byte) (*nczPlan, error) {
+// planNcz decides how an NCA is compressed, or returns nil to store it as it is, with the
+// reason when the NCA was worth compressing. Like nsz, a section the app cannot decrypt, the
+// bytes between sections and after the last one are kept in the stream as they are: they are
+// rebuilt exactly, they only do not shrink, and the rest of the NCA is still compressed.
+func planNcz(input io.ReaderAt, offset int64, size uint64, titleKeys map[string][]byte) (*nczPlan, string, error) {
 	keys, _ := settings.SwitchKeys()
 	if keys == nil || keys.GetKey("header_key") == "" {
-		return nil, errors.New("prod.keys is needed to compress")
+		return nil, "", errors.New("prod.keys is needed to compress")
 	}
 	encHeader := make([]byte, 0xC00)
 	if err := readAtFull(input, encHeader, offset); err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	header, err := DecryptNcaHeader(keys.GetKey("header_key"), encHeader)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	// program and public data hold the game; the rest is small
 	if header.contentType != NcaContentType_Program && header.contentType != NcaContentType_PublicData {
-		return nil, nil
+		return nil, "", nil
 	}
 
 	sectionKey, err := ncaSectionKey(header, titleKeys)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
+	// as stored: the bytes are kept as they are, encrypted or not
+	asStored := func(start, length uint64) nczSection {
+		return nczSection{offset: start, size: length, cryptoType: 1, key: make([]byte, 16), counter: make([]byte, 16)}
+	}
 	sections := []nczSection{}
+	readable := false
 	for index := 0; index < 4; index++ {
 		entry := getFsEntry(header, index)
 		if entry.Size == 0 {
@@ -229,7 +245,7 @@ func planNcz(input io.ReaderAt, offset int64, size uint64, titleKeys map[string]
 		}
 		fsh, err := getFsHeader(header, index)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		counter := make([]byte, 16)
 		for i := 0; i < 8; i++ {
@@ -245,36 +261,67 @@ func planNcz(input io.ReaderAt, offset int64, size uint64, titleKeys map[string]
 		switch fsh.encType {
 		case 1, 3:
 			sections = append(sections, whole)
-		case 4:
+			readable = true
+		case 5:
+			// AES-CTR without the hash of a layer: encrypted like 3
+			whole.cryptoType = 3
+			sections = append(sections, whole)
+			readable = true
+		case 4, 6:
 			// update patches: every subsection has its own counter. Read with the wrong
 			// counter the data would still be rebuilt exactly, but not compress at all.
+			whole.cryptoType = 4
 			if subsections, err := bktrSections(input, offset, whole, fsh); err == nil {
 				sections = append(sections, subsections...)
-			} else {
+				readable = true
+			} else if fsh.encType == 4 {
 				sections = append(sections, whole)
+				readable = true
+			} else {
+				sections = append(sections, asStored(whole.offset, whole.size))
 			}
 		default:
-			return nil, nil
+			sections = append(sections, asStored(whole.offset, whole.size))
 		}
 	}
 	if len(sections) == 0 {
-		return nil, nil
+		return nil, "no sections", nil
+	}
+	if !readable {
+		return nil, "its sections use an encryption the app does not read", nil
 	}
 
-	// the stream starts right after the copied header and the sections must cover the
-	// rest of the NCA without gaps, otherwise decoders cannot rebuild it
+	// the stream starts right after the copied header and covers the rest of the NCA without
+	// gaps: the bytes between the sections and after the last one are kept as they are, and
+	// a first section that starts within the header goes on where the header ends, as nsz does
 	sort.Slice(sections, func(i, j int) bool { return sections[i].offset < sections[j].offset })
+	planned := []nczSection{}
 	next := uint64(nczHeaderSize)
 	for _, section := range sections {
-		if section.offset != next {
-			return nil, nil
+		end := section.offset + section.size
+		if end < section.offset || section.offset < next && len(planned) > 0 {
+			return nil, "its sections overlap", nil
 		}
-		next = section.offset + section.size
+		if end <= next {
+			continue
+		}
+		if section.offset < next {
+			section.size -= next - section.offset
+			section.offset = next
+		}
+		if section.offset > next {
+			planned = append(planned, asStored(next, section.offset-next))
+		}
+		planned = append(planned, section)
+		next = end
 	}
-	if next != size {
-		return nil, nil
+	if next > size {
+		return nil, "its sections go beyond its end", nil
 	}
-	return &nczPlan{sections: sections}, nil
+	if next < size {
+		planned = append(planned, asStored(next, size-next))
+	}
+	return &nczPlan{sections: planned}, "", nil
 }
 
 // bktrSections splits an AesCtrEx section of an update patch by its subsection table,
