@@ -1,9 +1,13 @@
 # Changelog
 
-## Unreleased
+## 1.28.5
 
 ### Fixes
 
+- Compression of games bigger than 4 GB: the sections of an NCA that lie past 4 GB were not seen, so the game was
+  refused with "nothing in this file can be compressed" (or not compressed at all). They are now read like any other,
+  and the NSZ of such a game is decompressed by nsz and matches the original. The file check also looks at the hashes
+  of those sections again.
 - Compression: games whose NCAs use AES-CTR sections without layer hash (type 5), have gaps between their sections or
   a section the app cannot decrypt were refused with "nothing in this file can be compressed". Like nsz, those parts
   are now kept in the stream as they are and the rest is compressed; the NSZ is still decompressed and compared with

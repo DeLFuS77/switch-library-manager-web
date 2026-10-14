@@ -22,14 +22,14 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.28.4
+  <Changes>### 1.28.5
+- Games bigger than 4 GB are compressed again, like nsz, and checked byte by byte
+- Games with gaps or unusual sections are compressed instead of refused
+### 1.28.4
 - File check: the bar of each file moves on while an NSZ is decompressed
 - The check tells it prepares its list at the start, now faster on a NAS
-- Cleaner log
-### 1.28.3
-- Tasks show their workers: a line with its progress for each file being worked on
-- Safer deletions and checks, sturdier NSZ reading, save vault and sagas fixes</Changes>
-  <Date>2026-10-13</Date>
+- Cleaner log</Changes>
+  <Date>2026-10-14</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>
