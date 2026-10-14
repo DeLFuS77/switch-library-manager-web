@@ -3,6 +3,15 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Calculating hashes": "해시 계산 중",
+		"Compressing": "압축 중",
+		"Decompressing": "압축 해제 중",
+		"Converting": "변환 중",
+		"Building the pack": "팩 만드는 중",
+		"Verifying": "검증 중",
+		"step %v of %v": "%v / %v 단계",
+		"Compressed size": "압축 후 크기",
+		"Saved": "절약",
 		"Files compressed": "압축한 파일",
 		"Preparing the list of files to check...": "확인할 파일 목록을 준비하는 중...",
 		"The copy that is kept could not be checked whole: keep this one.": "남길 사본을 완전히 확인할 수 없었습니다. 이 파일을 유지하세요.",

@@ -3,6 +3,15 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Calculating hashes": "Вычисление хешей",
+		"Compressing": "Сжатие",
+		"Decompressing": "Распаковка",
+		"Converting": "Преобразование",
+		"Building the pack": "Создание пакета",
+		"Verifying": "Проверка",
+		"step %v of %v": "шаг %v из %v",
+		"Compressed size": "Размер после сжатия",
+		"Saved": "Сэкономлено",
 		"Files compressed": "Сжатые файлы",
 		"Preparing the list of files to check...": "Подготовка списка файлов для проверки...",
 		"The copy that is kept could not be checked whole: keep this one.": "Оставляемую копию не удалось проверить полностью: оставьте эту.",

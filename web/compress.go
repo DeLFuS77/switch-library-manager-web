@@ -252,6 +252,24 @@ func (web *Web) startDecompression(paths []string, deleteCompressed bool) bool {
 	})
 }
 
+// filePhases are the passes over each file of the tasks on files, in their order.
+var filePhases = map[string][]string{
+	TASK_COMPRESS:   {PHASE_HASHING, PHASE_COMPRESSING, PHASE_VERIFYING},
+	TASK_DECOMPRESS: {PHASE_DECOMPRESSING, PHASE_VERIFYING},
+	TASK_CONVERT:    {PHASE_CONVERTING, PHASE_VERIFYING},
+	TASK_PACK:       {PHASE_PACKING, PHASE_VERIFYING},
+}
+
+// the passes over a file, translated by the interface
+const (
+	PHASE_HASHING       = "Calculating hashes"
+	PHASE_COMPRESSING   = "Compressing"
+	PHASE_DECOMPRESSING = "Decompressing"
+	PHASE_CONVERTING    = "Converting"
+	PHASE_PACKING       = "Building the pack"
+	PHASE_VERIFYING     = "Verifying"
+)
+
 // runFileTask runs job on every file as one cancellable task. passes is how many times
 // each file is read, for the progress.
 func (web *Web) runFileTask(kind string, paths []string, passes int64, job fileJob) bool {
@@ -313,9 +331,15 @@ func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, si
 			base := done
 			fileSize := sizes[i] * passes
 			report := func(step int64) func(int64, int64) {
+				lane := TaskLane{Name: name, Total: fileSize}
+				if phases := filePhases[kind]; len(phases) > 0 && sizes[i] > 0 {
+					index := min(int(step/sizes[i]), len(phases)-1)
+					lane.Phase, lane.Step, lane.Steps = phases[index], index+1, len(phases)
+				}
 				return func(fileDone int64, fileTotal int64) {
+					lane.Done = min(step+fileDone, fileSize)
 					web.taskLog().ProgressLanes(taskId, int((base+step+fileDone)>>20), int(total>>20), fmt.Sprintf("%s (%d/%d)", name, i+1, len(paths)),
-						[]TaskLane{{Name: name, Done: min(step+fileDone, fileSize), Total: fileSize}})
+						[]TaskLane{lane})
 				}
 			}
 			fileSaved, err := job(ctx, path, report)
@@ -545,7 +569,6 @@ func (web *Web) HandleCompress() {
 	web.router.HandleFunc("/compress/nsz-list", func(w http.ResponseWriter, r *http.Request) {
 		web.writeFileRows(w, r, templates, web.decompressCandidates())
 	}).Methods("GET")
-
 
 	web.router.HandleFunc("/compress/start", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)

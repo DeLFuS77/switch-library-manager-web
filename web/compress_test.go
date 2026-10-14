@@ -3,6 +3,7 @@ package web
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -128,7 +129,7 @@ func TestCompressPageAndRun(t *testing.T) {
 	web.HandleTasks()
 	history := httptest.NewRecorder()
 	web.router.ServeHTTP(history, httptest.NewRequest(http.MethodGet, "/tasks.html", nil))
-	if !strings.Contains(history.Body.String(), "task-results") || !strings.Contains(history.Body.String(), task.SavedPercent()) {
+	if !strings.Contains(history.Body.String(), "task-results") || !strings.Contains(history.Body.String(), task.SavedPercent()) || !strings.Contains(history.Body.String(), "saving-saved") {
 		t.Fatal("the tasks page shows the files compressed and the share saved")
 	}
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
@@ -294,5 +295,29 @@ func TestConvertGameCardToNsp(t *testing.T) {
 	}
 	if _, err := os.Stat(xci); !os.IsNotExist(err) {
 		t.Fatal("the checked card is deleted when asked")
+	}
+}
+
+// Each file of a compression tells what is done to it: its hashes, its compression, then
+// the check of the copy.
+func TestCompressionLanesTellTheirPhase(t *testing.T) {
+	web, path := compressWeb(t)
+	info, _ := os.Stat(path)
+	phases := []string{}
+	web.runFileTask(TASK_COMPRESS, []string{path}, 3, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		for step := int64(0); step < 3; step++ {
+			report(step*info.Size())(1, info.Size())
+			for _, task := range web.taskLog().Snapshot() {
+				if task.Running() && len(task.Lanes) == 1 {
+					lane := task.Lanes[0]
+					phases = append(phases, fmt.Sprintf("%s %d/%d", lane.Phase, lane.Step, lane.Steps))
+				}
+			}
+		}
+		return 0, nil
+	})
+	waitForCompression(t, web)
+	if strings.Join(phases, ", ") != PHASE_HASHING+" 1/3, "+PHASE_COMPRESSING+" 2/3, "+PHASE_VERIFYING+" 3/3" {
+		t.Fatalf("phases: %v", phases)
 	}
 }

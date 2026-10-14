@@ -3,6 +3,15 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Calculating hashes": "Hashes berekenen",
+		"Compressing": "Comprimeren",
+		"Decompressing": "Decomprimeren",
+		"Converting": "Converteren",
+		"Building the pack": "Pakket maken",
+		"Verifying": "Controleren",
+		"step %v of %v": "stap %v van %v",
+		"Compressed size": "Gecomprimeerde grootte",
+		"Saved": "Bespaard",
 		"Files compressed": "Gecomprimeerde bestanden",
 		"Preparing the list of files to check...": "Lijst met te controleren bestanden voorbereiden...",
 		"The copy that is kept could not be checked whole: keep this one.": "De kopie die blijft kon niet volledig worden gecontroleerd: bewaar deze.",
