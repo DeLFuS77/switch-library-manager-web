@@ -22,13 +22,13 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.29.0
-- Tasks say the step of each file: hashes, compressing, verifying
-- A finished compression shows what was kept and saved in two colours
-- Smoother spinners, long names fit a phone, the total size of the library is green
-### 1.28.5
-- Games bigger than 4 GB are compressed again, like nsz, and checked byte by byte
-- Tasks show each compressed file with its size before and after and the share saved</Changes>
+  <Changes>### 1.30.0
+- Compression: choose the threads and the files at once, or let "Measure this server" find the fastest
+- XCZ in blocks like nsz; no library scans while files are being compressed or cleaned
+- Big games with rewritten NCAs are checked again once
+### 1.29.0
+- Tasks say the step of each file; a finished compression shows what was kept and saved
+- Smoother spinners, long names fit a phone, the total size of the library is green</Changes>
   <Date>2026-10-14</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>

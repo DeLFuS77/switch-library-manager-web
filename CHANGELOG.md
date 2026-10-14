@@ -1,9 +1,14 @@
 # Changelog
 
-## Unreleased
+## 1.30.0
 
 ### Improvements
 
+- Settings › Compression › "Measure this server": for about half a minute it compresses parts of the biggest games of
+  the library with several settings (files at once × threads), as a real compression reads, decrypts, compresses and
+  writes them, into a hidden file deleted at the end, then shows the speed of each and chooses the fastest. It works
+  the same on a PC, a NAS or in Docker, where the kind of disk cannot be known; the processors are read from the
+  server. No scan or compression starts while it measures.
 - XCZ files are compressed in blocks of 1 MB, as nsz does by default: a reader can start anywhere in the game without
   decompressing it whole, and the blocks are compressed by every thread at once. A block that does not shrink is
   written as it is. NSZ files stay in one stream, which saves a bit more. Checked with the decompressor of nsz.
