@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+### Improvements
+
+- Library: the total size card is green, so each card of the overview has its own colour (missing DLC stays cyan).
+
 ### Fixes
 
+- The spinners of running tasks no longer start again with a jump each time the tasks page refreshes, and the tasks
+  icon of the menu turns around its centre without wobbling.
 - Tasks: the list of files compressed no longer folds again by itself a moment after opening it, when the page
   refreshes the tasks.
 

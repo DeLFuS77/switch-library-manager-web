@@ -318,9 +318,17 @@ h3,
 
 // the tasks icon turns while background work runs
 @media (prefers-reduced-motion: no-preference) {
+	// the box of the icon is its glyph alone, so it turns around its centre without wobbling
 	.nav-busy {
-		display: inline-block;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		line-height: 1;
 		animation: slm-spin 1.6s linear infinite;
+
+		&::before {
+			vertical-align: 0;
+		}
 	}
 }
 
@@ -1604,10 +1612,6 @@ h3,
 	}
 }
 
-@keyframes slm-spin {
-	to { transform: rotate(360deg); }
-}
-
 @keyframes slm-slide-in {
 	from { opacity: 0; transform: translateY(12px); }
 	to { opacity: 1; transform: none; }
@@ -1814,6 +1818,11 @@ h3,
 	&.kpi-warning {
 		--kpi-color: #{$warning};
 		--kpi-soft: #{rgba($warning, .16)};
+	}
+
+	&.kpi-success {
+		--kpi-color: #{$success};
+		--kpi-soft: #{rgba($success, .14)};
 	}
 
 	&.kpi-info,
