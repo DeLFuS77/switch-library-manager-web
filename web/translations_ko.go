@@ -3,6 +3,12 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "자동은 프로세서의 절반(최대 4)을 동시에 처리하는 파일들이 나눠 씁니다. 스레드를 늘려도 빨라지는 경우는 드뭅니다. 속도는 대개 디스크가 정하며, 서버의 다른 작업에 남는 프로세서가 줄어듭니다.",
+		"Processor threads per file": "파일당 프로세서 스레드",
+		"Automatic (%v)": "자동 (%v)",
+		"All (%v)": "모두 (%v)",
+		"Files at once": "동시에 처리할 파일",
+		"Compressions, decompressions and conversions work on this many files at the same time. Hashing and checking each file uses one thread, so a few files at once keep the processor busy; each one needs free space and memory.": "압축, 압축 해제, 변환이 동시에 처리하는 파일 수입니다. 파일마다 해시 계산과 검증은 스레드 하나를 쓰므로 여러 파일을 함께 처리하면 프로세서를 더 잘 활용합니다. 파일마다 여유 공간과 메모리가 필요합니다.",
 		"Calculating hashes": "해시 계산 중",
 		"Compressing": "압축 중",
 		"Decompressing": "압축 해제 중",

@@ -3,6 +3,12 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "自动使用一半的处理器(最多 4 个),由同时处理的文件分用。增加线程很少有帮助:速度通常取决于磁盘,而且会减少留给服务器其他任务的处理器。",
+		"Processor threads per file": "每个文件的处理器线程",
+		"Automatic (%v)": "自动 (%v)",
+		"All (%v)": "全部 (%v)",
+		"Files at once": "同时处理的文件",
+		"Compressions, decompressions and conversions work on this many files at the same time. Hashing and checking each file uses one thread, so a few files at once keep the processor busy; each one needs free space and memory.": "压缩、解压和转换同时处理的文件数。每个文件的哈希计算和校验只用一个线程,因此同时处理几个文件能更好地利用处理器;每个文件都需要可用空间和内存。",
 		"Calculating hashes": "正在计算哈希",
 		"Compressing": "正在压缩",
 		"Decompressing": "正在解压",

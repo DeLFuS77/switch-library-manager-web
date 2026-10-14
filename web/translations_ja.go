@@ -3,6 +3,12 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "自動ではプロセッサの半分(最大 4)を、同時に処理するファイルで分け合います。スレッドを増やしても速くなることはまれです。速度は多くの場合ディスクで決まり、サーバーの他の処理に使えるプロセッサが減ります。",
+		"Processor threads per file": "ファイルごとのプロセッサスレッド",
+		"Automatic (%v)": "自動 (%v)",
+		"All (%v)": "すべて (%v)",
+		"Files at once": "同時に処理するファイル",
+		"Compressions, decompressions and conversions work on this many files at the same time. Hashing and checking each file uses one thread, so a few files at once keep the processor busy; each one needs free space and memory.": "圧縮・展開・変換で同時に処理するファイル数です。各ファイルのハッシュ計算と検証は 1 スレッドなので、複数同時に処理するとプロセッサを有効に使えます。それぞれに空き容量とメモリが必要です。",
 		"Calculating hashes": "ハッシュを計算中",
 		"Compressing": "圧縮中",
 		"Decompressing": "展開中",

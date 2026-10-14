@@ -155,6 +155,10 @@ type AppSettings struct {
 	AutoCompressLevel string `json:"auto_compress_level"`
 	// keep the originals of automatic compressions
 	AutoCompressKeep bool `json:"auto_compress_keep"`
+	// the threads that compress each file (0: half of the processors, at most 4) and the
+	// files compressed, decompressed or converted at the same time (0: one)
+	CompressThreads     int `json:"compress_threads,omitempty"`
+	CompressFilesAtOnce int `json:"compress_files_at_once,omitempty"`
 	// ask GitHub once a day whether a newer version of the app was released
 	CheckForUpdates bool `json:"check_for_updates"`
 	// the setup wizard was finished or turned off, or put off until then

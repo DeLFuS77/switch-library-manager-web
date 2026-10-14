@@ -3,6 +3,12 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "Automatisch gebruikt de helft van de processors, hooguit 4, verdeeld over de bestanden tegelijk. Meer threads helpen zelden: meestal bepaalt de schijf de snelheid, en ze laten minder processor over voor de rest van de server.",
+		"Processor threads per file": "Processorthreads per bestand",
+		"Automatic (%v)": "Automatisch (%v)",
+		"All (%v)": "Alle (%v)",
+		"Files at once": "Bestanden tegelijk",
+		"Compressions, decompressions and conversions work on this many files at the same time. Hashing and checking each file uses one thread, so a few files at once keep the processor busy; each one needs free space and memory.": "Compressies, decompressies en conversies werken tegelijk aan zoveel bestanden. Hashen en controleren van elk bestand gebruikt één thread, dus meerdere bestanden tegelijk benutten de processor beter; elk bestand heeft vrije ruimte en geheugen nodig.",
 		"Calculating hashes": "Hashes berekenen",
 		"Compressing": "Comprimeren",
 		"Decompressing": "Decomprimeren",

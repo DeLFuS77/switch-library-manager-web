@@ -68,6 +68,8 @@ type CompressPageData struct {
 type compressor struct {
 	mutex  sync.Mutex
 	cancel context.CancelFunc
+	// the bytes the files being written will still take, for the space checks
+	reserved int64
 }
 
 // compressCandidates lists the NSP and XCI files of the library, biggest first.
@@ -127,9 +129,11 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 	if _, err := os.Stat(target); err == nil {
 		return errCompressExists
 	}
-	if free, err := diskFree(filepath.Dir(path)); err == nil && free < uint64(info.Size())+(64<<20) {
-		return errCompressSpace
+	release, err := web.reserveSpace(filepath.Dir(path), info.Size())
+	if err != nil {
+		return err
 	}
+	defer release()
 	temporary := filepath.Join(filepath.Dir(path), "."+filepath.Base(target)+".tmp")
 	defer os.Remove(temporary)
 	if err := switchfs.ConvertXciToNsp(ctx, path, temporary, report(0)); err != nil {
@@ -231,6 +235,52 @@ func compressWorkers() int {
 	return workers
 }
 
+// compressThreads is the number of threads that compress each file: as set, at most every
+// processor, or when not set compressWorkers shared among the files compressed at once. The
+// disk sets the speed more than the processor: on a game of 16 GB, 24 threads were slower
+// than 4, and two files with 2 threads each faster than one file after the other with 4.
+func compressThreads(setting int, files int) int {
+	if setting <= 0 {
+		return max(1, compressWorkers()/max(1, files))
+	}
+	return min(setting, runtime.NumCPU())
+}
+
+// maxFilesAtOnce is the most files a task on files works on at the same time.
+const maxFilesAtOnce = 4
+
+// filesAtOnce is how many files a task on files works on at the same time: one when not set.
+func filesAtOnce(setting int) int {
+	return max(1, min(setting, maxFilesAtOnce))
+}
+
+// compressThreadChoices are the numbers of threads offered on the settings page.
+func compressThreadChoices() []int {
+	choices := []int{}
+	for _, n := range []int{1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64} {
+		if n < runtime.NumCPU() {
+			choices = append(choices, n)
+		}
+	}
+	return append(choices, runtime.NumCPU())
+}
+
+// reserveSpace makes sure a volume can take need more bytes besides the ones the other
+// files being written at the same time will take; release gives them back.
+func (web *Web) reserveSpace(folder string, need int64) (release func(), err error) {
+	web.compressor.mutex.Lock()
+	defer web.compressor.mutex.Unlock()
+	if free, err := diskFree(folder); err == nil && int64(free) < web.compressor.reserved+need+(64<<20) {
+		return nil, errCompressSpace
+	}
+	web.compressor.reserved += need
+	return func() {
+		web.compressor.mutex.Lock()
+		web.compressor.reserved -= need
+		web.compressor.mutex.Unlock()
+	}, nil
+}
+
 // fileJob processes one file and returns the bytes saved; report returns the progress
 // callback of a pass over the file, given the bytes of the earlier passes.
 type fileJob func(ctx context.Context, path string, report func(step int64) func(int64, int64)) (int64, error)
@@ -301,11 +351,20 @@ func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, si
 	web.compressor.mutex.Unlock()
 
 	taskId := web.taskLog().Start(kind, trigger)
+	appSettings := settings.ReadSettings(web.dataFolder)
 	threads := 0
 	if kind == TASK_COMPRESS {
-		threads = compressWorkers()
 	}
-	web.taskLog().SetWorkers(taskId, 1, threads)
+	// several files at once, as set; a pack is one file
+	workers := 1
+	if kind == TASK_COMPRESS || kind == TASK_DECOMPRESS || kind == TASK_CONVERT {
+		workers = filesAtOnce(appSettings.CompressFilesAtOnce)
+	}
+	workers = max(1, min(workers, len(paths)))
+	if kind == TASK_COMPRESS {
+		threads = compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce))
+	}
+	web.taskLog().SetWorkers(taskId, workers, threads)
 	go func() {
 		defer func() {
 			web.compressor.mutex.Lock()
@@ -314,52 +373,100 @@ func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, si
 			cancel()
 		}()
 
-		var total, done int64
+		var total int64
 		for _, size := range sizes {
 			total += size * passes
 		}
 
-		processed := 0
-		var saved int64
-		var failure *TaskNote
-		for i, path := range paths {
-			if ctx.Err() != nil {
-				failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
-				break
-			}
-			name := filepath.Base(path)
-			base := done
-			fileSize := sizes[i] * passes
-			report := func(step int64) func(int64, int64) {
-				lane := TaskLane{Name: name, Total: fileSize}
-				if phases := filePhases[kind]; len(phases) > 0 && sizes[i] > 0 {
-					index := min(int(step/sizes[i]), len(phases)-1)
-					lane.Phase, lane.Step, lane.Steps = phases[index], index+1, len(phases)
-				}
-				return func(fileDone int64, fileTotal int64) {
-					lane.Done = min(step+fileDone, fileSize)
-					web.taskLog().ProgressLanes(taskId, int((base+step+fileDone)>>20), int(total>>20), fmt.Sprintf("%s (%d/%d)", name, i+1, len(paths)),
-						[]TaskLane{lane})
+		var (
+			mutex     sync.Mutex
+			completed int64
+			partial   = make([]int64, workers)
+			lanes     = make([]TaskLane, workers)
+			next      int
+			processed int
+			saved     int64
+			failure   *TaskNote
+			wait      sync.WaitGroup
+		)
+		// publish gives the progress of every file being worked on; called with the mutex held
+		publish := func(message string) {
+			done := completed
+			current := []TaskLane{}
+			for i, lane := range lanes {
+				done += partial[i]
+				if lane.Name != "" {
+					current = append(current, lane)
 				}
 			}
-			fileSaved, err := job(ctx, path, report)
-			done += sizes[i] * passes
-			if err != nil {
-				if errors.Is(err, context.Canceled) {
-					failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
-					break
-				}
-				web.sugarLogger.Warnf("%s of %s failed: %v", kind, path, err)
-				web.taskLog().Warn(taskId, compressNote(kind, err), name+": "+err.Error())
-				continue
-			}
-			processed++
-			saved += fileSaved
-			if kind == TASK_COMPRESS {
-				web.taskLog().AddFileResult(taskId, name, sizes[i], sizes[i]-fileSaved)
-			}
-			web.taskLog().SetCompressResult(taskId, processed, saved)
+			web.taskLog().ProgressLanes(taskId, int(done>>20), int(total>>20), message, current)
 		}
+		for worker := 0; worker < workers; worker++ {
+			wait.Add(1)
+			go func(worker int) {
+				defer wait.Done()
+				for {
+					mutex.Lock()
+					if next >= len(paths) || failure != nil {
+						mutex.Unlock()
+						return
+					}
+					if ctx.Err() != nil {
+						failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
+						mutex.Unlock()
+						return
+					}
+					i := next
+					next++
+					mutex.Unlock()
+
+					path := paths[i]
+					name := filepath.Base(path)
+					fileSize := sizes[i] * passes
+					message := fmt.Sprintf("%s (%d/%d)", name, i+1, len(paths))
+					report := func(step int64) func(int64, int64) {
+						lane := TaskLane{Name: name, Total: fileSize}
+						if phases := filePhases[kind]; len(phases) > 0 && sizes[i] > 0 {
+							index := min(int(step/sizes[i]), len(phases)-1)
+							lane.Phase, lane.Step, lane.Steps = phases[index], index+1, len(phases)
+						}
+						return func(fileDone int64, fileTotal int64) {
+							lane.Done = min(step+fileDone, fileSize)
+							mutex.Lock()
+							lanes[worker], partial[worker] = lane, lane.Done
+							publish(message)
+							mutex.Unlock()
+						}
+					}
+					report(0)(0, 0)
+					fileSaved, err := job(ctx, path, report)
+
+					mutex.Lock()
+					lanes[worker], partial[worker] = TaskLane{}, 0
+					completed += fileSize
+					switch {
+					case errors.Is(err, context.Canceled):
+						if failure == nil {
+							failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
+						}
+					case err != nil:
+						web.sugarLogger.Warnf("%s of %s failed: %v", kind, path, err)
+						web.taskLog().Warn(taskId, compressNote(kind, err), name+": "+err.Error())
+					default:
+						processed++
+						saved += fileSaved
+						if kind == TASK_COMPRESS {
+							web.taskLog().AddFileResult(taskId, name, sizes[i], sizes[i]-fileSaved)
+						}
+						web.taskLog().SetCompressResult(taskId, processed, saved)
+					}
+					publish(message)
+					mutex.Unlock()
+				}
+			}(worker)
+		}
+		wait.Wait()
+
 		if failure == nil && processed == 0 && len(paths) > 0 {
 			failure = &TaskNote{Text: NOTE_COMPRESS_FAILED}
 			if kind == TASK_DECOMPRESS {
@@ -416,6 +523,7 @@ func compressNote(kind string, err error) string {
 // temporary name, verified, and only then renamed; the original is deleted last, if
 // asked. It returns the bytes saved.
 func (web *Web) compressFile(ctx context.Context, path string, level string, deleteOriginal bool, report func(step int64) func(int64, int64)) (int64, error) {
+	appSettings := settings.ReadSettings(web.dataFolder)
 	info, err := os.Stat(path)
 	if err != nil {
 		return 0, err
@@ -424,9 +532,11 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	if _, err := os.Stat(target); err == nil {
 		return 0, errCompressExists
 	}
-	if free, err := diskFree(filepath.Dir(path)); err == nil && free < uint64(info.Size())+(64<<20) {
-		return 0, errCompressSpace
+	release, err := web.reserveSpace(filepath.Dir(path), info.Size())
+	if err != nil {
+		return 0, err
 	}
+	defer release()
 
 	expected, err := switchfs.HashNcas(ctx, path, report(0))
 	if err != nil {
@@ -437,7 +547,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	temporary := filepath.Join(filepath.Dir(path), "."+filepath.Base(target)+".tmp")
 	defer os.Remove(temporary)
 	result, err := switchfs.CompressGame(ctx, path, temporary, switchfs.CompressOptions{
-		Level: level, Workers: compressWorkers(), Progress: report(info.Size()),
+		Level: level, Workers: compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce)), Progress: report(info.Size()),
 	})
 	if err != nil {
 		return 0, err
@@ -473,9 +583,11 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 	if err != nil {
 		return err
 	}
-	if free, err := diskFree(filepath.Dir(path)); err == nil && free < uint64(size)+(64<<20) {
-		return errCompressSpace
+	release, err := web.reserveSpace(filepath.Dir(path), size)
+	if err != nil {
+		return err
 	}
+	defer release()
 
 	temporary := filepath.Join(filepath.Dir(path), "."+filepath.Base(target)+".tmp")
 	defer os.Remove(temporary)

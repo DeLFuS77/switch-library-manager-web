@@ -5,6 +5,12 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "Automático usa la mitad de los procesadores, como mucho 4, repartidos entre los archivos a la vez. Más hilos casi nunca ayudan: la velocidad suele marcarla el disco, y dejan menos procesador al resto del servidor.",
+		"Processor threads per file": "Hilos del procesador por archivo",
+		"Automatic (%v)": "Automático (%v)",
+		"All (%v)": "Todos (%v)",
+		"Files at once": "Archivos a la vez",
+		"Compressions, decompressions and conversions work on this many files at the same time. Hashing and checking each file uses one thread, so a few files at once keep the processor busy; each one needs free space and memory.": "Las compresiones, descompresiones y conversiones trabajan con este número de archivos a la vez. Calcular los hashes y verificar cada archivo usa un solo hilo, así que varios archivos a la vez aprovechan mejor el procesador; cada uno necesita espacio libre y memoria.",
 		"Calculating hashes": "Calculando hashes",
 		"Compressing": "Comprimiendo",
 		"Decompressing": "Descomprimiendo",
