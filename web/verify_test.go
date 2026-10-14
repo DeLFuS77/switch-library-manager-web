@@ -154,3 +154,30 @@ func TestOldDamageIsCheckedAgain(t *testing.T) {
 		t.Fatal("a damage found by the current check stays")
 	}
 }
+
+// A rewritten NCA found intact by version 2 was checked without the hashes of its sections
+// past 4 GB: it is checked again, and does not count as a sound copy until then. Files that
+// matched their content IDs keep their result.
+func TestModifiedFilesOfAnOlderCheckAreCheckedAgain(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "Game [0100000000010000][v0].nsp")
+	os.WriteFile(path, []byte("game"), 0o644)
+	info, _ := os.Stat(path)
+	store := &verifyStore{records: map[string]verifyRecord{}}
+	base := verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checker: 2}
+
+	store.set(path, base)
+	if record, ok := store.current(path, info); !ok || !record.sound() {
+		t.Fatal("a file that matched its content IDs keeps its result")
+	}
+	modified := base
+	modified.Modified = true
+	store.set(path, modified)
+	if _, ok := store.current(path, info); ok {
+		t.Fatal("a rewritten NCA of an older check is checked again")
+	}
+	modified.Checker = verifyChecker
+	store.set(path, modified)
+	if record, ok := store.current(path, info); !ok || !record.sound() {
+		t.Fatal("checked by this version, it stands")
+	}
+}

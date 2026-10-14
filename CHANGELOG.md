@@ -4,6 +4,10 @@
 
 ### Improvements
 
+- File check: the files with NCAs rewritten by a tool (found "modified" but intact) are checked again once. Before
+  1.28.5 the hashes of the sections past 4 GB of an NCA were not read, so such a big game could pass without its data
+  being checked; until it is checked again it does not count as a sound copy for a cleanup. The other files keep their
+  result, as they matched the SHA-256 of their content IDs.
 - No library scans while a task changes the files (a compression, decompression, conversion, pack, organizing or a
   cleanup): the folder watcher and the scheduled synchronization wait for it to end. A compression of several games
   used to start a scan after each one; now the library is scanned once, when the task ends, and the watcher does not
