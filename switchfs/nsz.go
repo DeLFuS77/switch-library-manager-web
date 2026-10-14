@@ -29,6 +29,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs/_crypto"
@@ -44,6 +45,8 @@ const (
 	nczMaxSections = 1 << 20
 	// decoders on the console need a bounded window
 	nczWindowSize = 8 << 20
+	// the blocks of a block compressed NCZ: 1 MB, as nsz writes them by default
+	nczBlockExponent = 20
 )
 
 // Compression levels offered to the user.
@@ -59,6 +62,9 @@ type CompressOptions struct {
 	Level string
 	// threads used by the encoder; 0 means 1
 	Workers int
+	// blocks compressed on their own instead of one stream, which lets a reader start
+	// anywhere: what nsz writes for XCZ by default. A game card is always compressed so.
+	Blocks bool
 	// called with the bytes of the source processed so far and the total
 	Progress func(done int64, total int64)
 }
@@ -166,7 +172,9 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 			break
 		}
 		writer.startFile()
-		if plans[i] != nil {
+		if plans[i] != nil && (options.Blocks || pkg.xci) {
+			err = writeNczBlocks(ctx, output, input, file.offset, file.size, plans[i], options, progress)
+		} else if plans[i] != nil {
 			err = writeNcz(ctx, output, input, file.offset, file.size, plans[i], options, progress)
 		} else {
 			result.Stored++
@@ -485,6 +493,14 @@ func ticketSignatureSize(signatureType uint32) int {
 
 // writeNcz writes the NCZ of an NCA.
 func writeNcz(ctx context.Context, output io.Writer, input io.ReaderAt, offset int64, size int64, plan *nczPlan, options CompressOptions, progress func(int64)) error {
+	if err := writeNczHeader(output, input, offset, plan, progress); err != nil {
+		return err
+	}
+	return writeNczStream(ctx, output, input, offset, plan, options, progress)
+}
+
+// writeNczHeader writes the header of the NCA as it is and the table of its sections.
+func writeNczHeader(output io.Writer, input io.ReaderAt, offset int64, plan *nczPlan, progress func(int64)) error {
 	header := make([]byte, nczHeaderSize)
 	if err := readAtFull(input, header, offset); err != nil {
 		return err
@@ -504,10 +520,12 @@ func writeNcz(ctx context.Context, output io.Writer, input io.ReaderAt, offset i
 		table.Write(section.key)
 		table.Write(section.counter)
 	}
-	if _, err := output.Write(table.Bytes()); err != nil {
-		return err
-	}
+	_, err := output.Write(table.Bytes())
+	return err
+}
 
+// writeNczStream writes the decrypted sections as one zstd stream.
+func writeNczStream(ctx context.Context, output io.Writer, input io.ReaderAt, offset int64, plan *nczPlan, options CompressOptions, progress func(int64)) error {
 	workers := options.Workers
 	if workers < 1 {
 		workers = 1
@@ -551,6 +569,146 @@ func writeNcz(ctx context.Context, output io.Writer, input io.ReaderAt, offset i
 		}
 	}
 	return encoder.Close()
+}
+
+// writeNczBlocks writes the NCZ of an NCA with its decrypted sections in blocks compressed
+// on their own: "NCZBLOCK", version 2, type 1, a byte unused, the exponent of the block
+// size, the number of blocks, the size of the data (little endian), the size of each block
+// as written, then the blocks. A block that does not shrink is written as it is, as nsz
+// does. The sizes are only known at the end, so the table is written again over its place.
+func writeNczBlocks(ctx context.Context, output *os.File, input io.ReaderAt, offset int64, size int64, plan *nczPlan, options CompressOptions, progress func(int64)) error {
+	if err := writeNczHeader(output, input, offset, plan, progress); err != nil {
+		return err
+	}
+	dataSize := uint64(size) - nczHeaderSize
+	blockSize := uint64(1) << nczBlockExponent
+	count := (dataSize + blockSize - 1) / blockSize
+	header := make([]byte, 24)
+	copy(header, nczBlockMagic)
+	header[8], header[9], header[11] = 2, 1, nczBlockExponent
+	binary.LittleEndian.PutUint32(header[12:], uint32(count))
+	binary.LittleEndian.PutUint64(header[16:], dataSize)
+	if _, err := output.Write(header); err != nil {
+		return err
+	}
+	tableAt, err := output.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return err
+	}
+	sizes := make([]uint32, count)
+	if err := binary.Write(output, binary.LittleEndian, sizes); err != nil {
+		return err
+	}
+
+	workers := options.Workers
+	if workers < 1 {
+		workers = 1
+	}
+	encoder, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(encoderLevel(options.Level)),
+		zstd.WithEncoderConcurrency(workers), zstd.WithWindowSize(int(blockSize)))
+	if err != nil {
+		return err
+	}
+	defer encoder.Close()
+	plain := nczPlainReader{input: input, offset: offset, sections: plan.sections}
+
+	// a batch of blocks is read, compressed by every worker at once, then written in order
+	type job struct {
+		data, out []byte
+	}
+	batch := make([]job, workers)
+	for i := range batch {
+		batch[i].data = make([]byte, blockSize)
+	}
+	for first := uint64(0); first < count; first += uint64(workers) {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		n := min(uint64(workers), count-first)
+		for i := uint64(0); i < n; i++ {
+			start := nczHeaderSize + (first+i)*blockSize
+			length := min(blockSize, uint64(size)-start)
+			batch[i].data = batch[i].data[:length]
+			if err := plain.read(batch[i].data, start); err != nil {
+				return err
+			}
+		}
+		var wait sync.WaitGroup
+		for i := uint64(0); i < n; i++ {
+			wait.Add(1)
+			go func(j *job) {
+				defer wait.Done()
+				j.out = encoder.EncodeAll(j.data, j.out[:0])
+			}(&batch[i])
+		}
+		wait.Wait()
+		for i := uint64(0); i < n; i++ {
+			block := batch[i].out
+			if len(block) >= len(batch[i].data) {
+				block = batch[i].data
+			}
+			if _, err := output.Write(block); err != nil {
+				return err
+			}
+			sizes[first+i] = uint32(len(block))
+			progress(int64(len(batch[i].data)))
+		}
+	}
+
+	end, err := output.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return err
+	}
+	if _, err := output.Seek(tableAt, io.SeekStart); err != nil {
+		return err
+	}
+	if err := binary.Write(output, binary.LittleEndian, sizes); err != nil {
+		return err
+	}
+	_, err = output.Seek(end, io.SeekStart)
+	return err
+}
+
+// nczPlainReader reads the NCA at offset in input as an NCZ stores it: decrypted by the
+// sections of its plan, which cover it from its header to its end.
+type nczPlainReader struct {
+	input    io.ReaderAt
+	offset   int64
+	sections []nczSection
+}
+
+// read fills data with the NCA from position on.
+func (r nczPlainReader) read(data []byte, position uint64) error {
+	for _, section := range r.sections {
+		end := section.offset + section.size
+		if len(data) == 0 {
+			return nil
+		}
+		if position >= end || position < section.offset {
+			continue
+		}
+		piece := data[:min(uint64(len(data)), end-position)]
+		if err := readAtFull(r.input, piece, r.offset+int64(position)); err != nil {
+			return err
+		}
+		if section.cryptoType == 3 || section.cryptoType == 4 {
+			block, err := aes.NewCipher(section.key)
+			if err != nil {
+				return err
+			}
+			stream := cipher.NewCTR(block, nczCounter(section.counter, position&^15))
+			if skip := position & 15; skip > 0 {
+				stream.XORKeyStream(make([]byte, skip), make([]byte, skip))
+			}
+			stream.XORKeyStream(piece, piece)
+		}
+		data = data[len(piece):]
+		position += uint64(len(piece))
+	}
+	if len(data) > 0 {
+		return errors.New("the sections do not cover the NCA")
+	}
+	return nil
 }
 
 func encoderLevel(level string) zstd.EncoderLevel {

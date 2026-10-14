@@ -9,6 +9,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -489,6 +490,16 @@ func TestCompressXciToXcz(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// a game card is compressed in blocks, as nsz does
+	for _, file := range pkg.files {
+		if strings.HasSuffix(file.name, ".ncz") {
+			data := make([]byte, file.size)
+			input.ReadAt(data, file.offset)
+			if !bytes.Contains(data[nczHeaderSize:nczHeaderSize+0x1000], []byte(nczBlockMagic)) {
+				t.Fatal("the NCZ of an XCZ is written in blocks")
+			}
+		}
+	}
 	if !pkg.xci || len(pkg.partitions) != 2 || pkg.partitions[0] != "update" || pkg.partitions[1] != "secure" {
 		t.Fatalf("the partitions must be kept in order: %+v", pkg.partitions)
 	}
@@ -574,6 +585,47 @@ func compressAndCheck(t *testing.T, source string) (CompressResult, error) {
 	return result, nil
 }
 
+// blocksNca is a program NCA of several blocks: a gap kept as it is before its section,
+// which then crosses the borders of the blocks, a last block that cannot shrink and is
+// written as it is, and a shorter last block.
+func blocksNca(t *testing.T) []byte {
+	t.Helper()
+	data := append(make([]byte, 0x1000), gameData(0x280000)...)
+	random := make([]byte, 0x123400)
+	rand.New(rand.NewSource(7)).Read(random)
+	data = append(data, random...)
+	return makeProgramNca(t, data, 3, "", func(header []byte) {
+		binary.LittleEndian.PutUint32(header[0x240:], 0x28)
+	})
+}
+
+// Compressed in blocks, a game comes back byte for byte: each block is decrypted across the
+// sections it crosses, and a block that does not shrink is written as it is.
+func TestBlockCompressedNsz(t *testing.T) {
+	initNszKeys(t, "")
+	source := writeOneNcaNsp(t, blocksNca(t))
+	expected, err := HashNcas(context.Background(), source, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	target := NszPath(source)
+	result, err := CompressGame(context.Background(), source, target, CompressOptions{Blocks: true, Workers: 3})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := VerifyCompressed(context.Background(), target, expected, nil); err != nil {
+		t.Fatalf("the copy in blocks differs: %v", err)
+	}
+	check, err := VerifyFile(context.Background(), target, nil)
+	if err != nil || len(check.Modified) != 0 {
+		t.Fatalf("on its own, the NSZ in blocks: %+v %v", check, err)
+	}
+	data, _ := os.ReadFile(target)
+	if !bytes.Contains(data, []byte(nczBlockMagic)) || result.OutputSize >= result.InputSize {
+		t.Fatalf("written in blocks and smaller: %+v", result)
+	}
+}
+
 // Newer games encrypt with AES-CTR without the hash of a layer (type 5): compressed like
 // AES-CTR, as it is the same encryption.
 func TestSectionsOfType5AreCompressed(t *testing.T) {
@@ -629,5 +681,8 @@ func TestExportNewSectionCases(t *testing.T) {
 		if _, err := CompressGame(context.Background(), source, filepath.Join(folder, name+".nsz"), CompressOptions{}); err != nil {
 			t.Fatal(name, err)
 		}
+	}
+	if _, err := CompressGame(context.Background(), writeOneNcaNsp(t, blocksNca(t)), filepath.Join(folder, "blocks.nsz"), CompressOptions{Blocks: true, Workers: 3}); err != nil {
+		t.Fatal(err)
 	}
 }
