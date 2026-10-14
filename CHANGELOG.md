@@ -4,6 +4,12 @@
 
 ### Improvements
 
+- Compression settings: the processor threads that compress each file (automatic as before, any number up to every
+  processor) and the files compressed, decompressed or converted at the same time (1 to 4), each with its line on the
+  Tasks page. Automatic threads are shared among the files at once: the disk sets the speed more than the processor
+  (on a game of 16 GB, two files at once with 2 threads each took 27% less time than one after the other, while 24
+  threads on one file were slower than 4). Files written at once each keep their free space, so none starts without
+  room to finish.
 - File check: the files with NCAs rewritten by a tool (found "modified" but intact) are checked again once. Before
   1.28.5 the hashes of the sections past 4 GB of an NCA were not read, so such a big game could pass without its data
   being checked; until it is checked again it does not count as a sound copy for a cleanup. The other files keep their

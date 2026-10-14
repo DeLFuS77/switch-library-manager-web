@@ -3,6 +3,7 @@ package web
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -320,4 +322,80 @@ func TestCompressionLanesTellTheirPhase(t *testing.T) {
 	if strings.Join(phases, ", ") != PHASE_HASHING+" 1/3, "+PHASE_COMPRESSING+" 2/3, "+PHASE_VERIFYING+" 3/3" {
 		t.Fatalf("phases: %v", phases)
 	}
+}
+
+// With several files at once, each one has its line and the results add up.
+func TestSeveralFilesAtOnce(t *testing.T) {
+	web, _ := compressWeb(t)
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.CompressFilesAtOnce = 2 })
+	folder := t.TempDir()
+	paths := []string{}
+	for _, name := range []string{"a.nsp", "b.nsp", "c.nsp"} {
+		path := filepath.Join(folder, name)
+		os.WriteFile(path, make([]byte, 1000), 0o644)
+		paths = append(paths, path)
+	}
+	var mutex sync.Mutex
+	running, most, lanes := 0, 0, 0
+	both := make(chan struct{})
+	var once sync.Once
+	started := web.runFileTask(TASK_COMPRESS, paths, 3, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		mutex.Lock()
+		running++
+		most = max(most, running)
+		if running == 2 {
+			once.Do(func() { close(both) })
+		}
+		mutex.Unlock()
+		select {
+		case <-both:
+		case <-time.After(5 * time.Second):
+		}
+		report(1000)(500, 1000)
+		for _, task := range web.taskLog().Snapshot() {
+			if task.Running() {
+				mutex.Lock()
+				lanes = max(lanes, len(task.Lanes))
+				mutex.Unlock()
+			}
+		}
+		mutex.Lock()
+		running--
+		mutex.Unlock()
+		return 100, nil
+	})
+	if !started {
+		t.Fatal("the task must start")
+	}
+	task := waitForCompression(t, web)
+	if most != 2 || lanes != 2 {
+		t.Fatalf("two files at once, each with its line: %d at once, %d lines", most, lanes)
+	}
+	if task.Status != TASK_SUCCESS || task.Files != 3 || task.Saved != 300 || len(task.Results) != 3 || task.Workers != 2 {
+		t.Fatalf("the results of the three files: %+v", task)
+	}
+}
+
+// Files written at the same time each need their space: the second one is refused when
+// the space left is taken by the first.
+func TestSpaceIsReservedForFilesWrittenAtOnce(t *testing.T) {
+	web := newTestWeb(t)
+	free, err := diskFree(web.dataFolder)
+	if err != nil {
+		t.Skip("no free space on this system")
+	}
+	half := int64(free/2) + 1
+	release, err := web.reserveSpace(web.dataFolder, half)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := web.reserveSpace(web.dataFolder, half); !errors.Is(err, errCompressSpace) {
+		t.Fatalf("the second file does not fit: %v", err)
+	}
+	release()
+	second, err := web.reserveSpace(web.dataFolder, half)
+	if err != nil {
+		t.Fatal("given back, the space is free again")
+	}
+	second()
 }

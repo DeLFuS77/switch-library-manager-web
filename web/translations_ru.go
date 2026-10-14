@@ -3,6 +3,12 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "Автоматически используется половина процессоров, не больше 4, поровну на одновременные файлы. Больше потоков помогают редко: скорость обычно задаёт диск, а остальному серверу остаётся меньше процессора.",
+		"Processor threads per file": "Потоков процессора на файл",
+		"Automatic (%v)": "Автоматически (%v)",
+		"All (%v)": "Все (%v)",
+		"Files at once": "Файлов одновременно",
+		"Compressions, decompressions and conversions work on this many files at the same time. Hashing and checking each file uses one thread, so a few files at once keep the processor busy; each one needs free space and memory.": "Сжатие, распаковка и преобразование обрабатывают столько файлов одновременно. Хеши и проверка каждого файла используют один поток, поэтому несколько файлов лучше загружают процессор; каждому нужны свободное место и память.",
 		"Calculating hashes": "Вычисление хешей",
 		"Compressing": "Сжатие",
 		"Decompressing": "Распаковка",

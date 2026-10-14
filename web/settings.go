@@ -26,6 +26,12 @@ type SettingsPageData struct {
 	NotificationsConfigured bool
 	// files waiting for the automations
 	AutomationPending int
+	// the threads offered to compress each file, the processors of this computer and the
+	// threads used when not set
+	CompressThreadChoices []int
+	Processors            int
+	DefaultThreads        int
+	FilesAtOnceChoices    []int
 }
 
 type SettingsForm struct {
@@ -60,6 +66,8 @@ type SettingsForm struct {
 	AutoCompress         string `in:"form=auto_compress"`
 	AutoCompressLevel    string `in:"form=auto_compress_level"`
 	AutoCompressKeep     bool   `in:"form=auto_compress_keep"`
+	CompressThreads      int    `in:"form=compress_threads"`
+	CompressFilesAtOnce  int    `in:"form=compress_files_at_once"`
 	SyncIntervalHours    int    `in:"form=sync_interval_hours"`
 	Language             string `in:"form=language"`
 	DiscordWebhookUrl    string `in:"form=discord_webhook_url"`
@@ -193,6 +201,19 @@ func (web *Web) HandleSettings() {
 			})
 		}
 
+		if settingsForm.CompressThreads < 0 || settingsForm.CompressThreads > runtime.NumCPU() {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
+				Field: "compress_threads",
+				Message: translate(lang, "Unknown option"),
+			})
+		}
+		if settingsForm.CompressFilesAtOnce < 0 || settingsForm.CompressFilesAtOnce > maxFilesAtOnce {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
+				Field: "compress_files_at_once",
+				Message: translate(lang, "Unknown option"),
+			})
+		}
+
 		if _, ok := allowedBackgroundHours[settingsForm.BackgroundHours]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
 				Field: "background_hours",
@@ -290,6 +311,8 @@ func (web *Web) HandleSettings() {
 			appSettings.AutoCompress = settingsForm.AutoCompress
 			appSettings.AutoCompressLevel = settingsForm.AutoCompressLevel
 			appSettings.AutoCompressKeep = settingsForm.AutoCompressKeep
+			appSettings.CompressThreads = settingsForm.CompressThreads
+			appSettings.CompressFilesAtOnce = settingsForm.CompressFilesAtOnce
 			appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
 			appSettings.Language = settingsForm.Language
 			appSettings.Notifications = settingsForm.notificationOptions()
@@ -349,5 +372,9 @@ func (web *Web) settingsPageData() SettingsPageData {
 		KeysAvailable:           settings.IsKeysFileAvailable(),
 		NotificationsConfigured: notificationsConfigured(current.Notifications),
 		AutomationPending:       web.automationPending(),
+		CompressThreadChoices:   compressThreadChoices(),
+		Processors:              runtime.NumCPU(),
+		DefaultThreads:          compressWorkers(),
+		FilesAtOnceChoices:      []int{1, 2, 3, maxFilesAtOnce},
 	}
 }
