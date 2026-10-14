@@ -139,6 +139,17 @@ func TestDecryptNcaHeaderSuccessAndBranches(t *testing.T) {
 	}
 }
 
+// The sections of a big game lie past 4 GB: their offsets do not fit in 32 bits.
+func TestFsEntryPast4GB(t *testing.T) {
+	headerBytes := make([]byte, 0x600)
+	binary.LittleEndian.PutUint32(headerBytes[0x250:], 0x20)
+	binary.LittleEndian.PutUint32(headerBytes[0x254:], 0x1FB5BA0)
+	got := getFsEntry(&ncaHeader{headerBytes: headerBytes}, 1)
+	if got.StartOffset != 0x4000 || got.EndOffset != 0x3F6B74000 || got.Size != 0x3F6B70000 {
+		t.Fatalf("a section that ends past 4 GB: %#v", got)
+	}
+}
+
 func TestFsHeaderAndEntry(t *testing.T) {
 	headerBytes := make([]byte, 0x600)
 	binary.LittleEndian.PutUint32(headerBytes[0x240:], 2)
@@ -211,11 +222,11 @@ func TestDecryptAesCtrSuccessAndTruncation(t *testing.T) {
 		t.Fatalf("unexpected key revision: %d", got)
 	}
 	encrypted := cryptCtr(t, contentKey, fs.generation, 0x30, plain)
-	decoded, err := decryptAesCtr(nca, fs, 0x30, uint32(len(plain)), encrypted)
+	decoded, err := decryptAesCtr(nca, fs, 0x30, uint64(len(plain)), encrypted)
 	if err != nil || !bytes.Equal(decoded, plain) {
 		t.Fatalf("CTR decryption failed: %v", err)
 	}
-	if _, err := decryptAesCtr(nca, fs, 0, uint32(len(encrypted)+1), encrypted); err == nil {
+	if _, err := decryptAesCtr(nca, fs, 0, uint64(len(encrypted)+1), encrypted); err == nil {
 		t.Fatal("expected truncated encoded section error")
 	}
 	shortKeys := *nca

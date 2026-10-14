@@ -15,10 +15,12 @@ type fsHeader struct {
 	generation    uint32
 }
 
+// fsEntry is where a section lies in its NCA. The offsets do not fit in 32 bits for the
+// sections past 4 GB of a big game.
 type fsEntry struct {
-	StartOffset uint32
-	EndOffset   uint32
-	Size        uint32
+	StartOffset uint64
+	EndOffset   uint64
+	Size        uint64
 }
 
 type hashInfo struct {
@@ -38,12 +40,12 @@ func getFsEntry(ncaHeader *ncaHeader, index int) fsEntry {
 
 	startSector := binary.LittleEndian.Uint32(fsEntryBytes[0x0:0x4])
 	endSector := binary.LittleEndian.Uint32(fsEntryBytes[0x4:0x8])
-	if startSector > ^uint32(0)/0x200 || endSector > ^uint32(0)/0x200 || endSector < startSector {
+	if endSector < startSector {
 		return fsEntry{}
 	}
 
-	entryStartOffset := startSector * 0x200
-	entryEndOffset := endSector * 0x200
+	entryStartOffset := uint64(startSector) * 0x200
+	entryEndOffset := uint64(endSector) * 0x200
 	return fsEntry{StartOffset: entryStartOffset, EndOffset: entryEndOffset, Size: entryEndOffset - entryStartOffset}
 }
 
