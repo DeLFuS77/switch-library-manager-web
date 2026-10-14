@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 func TestFolderFingerprintChangesWithFiles(t *testing.T) {
@@ -119,5 +121,40 @@ func TestWatchFingerprintIsKeptBetweenRuns(t *testing.T) {
 	w.scanIfChanged(1234567890123)
 	if web.state.IsSynchronizing() {
 		t.Fatal("unchanged folders are not scanned again after a restart")
+	}
+}
+
+// While a task changes the files the watcher does not scan; a scan done after the task
+// covers its changes, so the watcher does not scan them again.
+func TestWatcherWaitsForTasksOnTheFiles(t *testing.T) {
+	web := newTestWeb(t)
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.WatchFolders = true })
+	w := &folderWatcher{web: web, tree: newDirTree(), watched: map[string]struct{}{}}
+	current := w.fingerprint()
+
+	// the folders changed while a compression runs
+	web.organizing.Store(true)
+	w.lastCheck, w.scanned = current, current+1
+	w.checkPolled()
+	if web.state.IsSynchronizing() {
+		t.Fatal("no scan while a task changes the files")
+	}
+
+	// the task scanned the library when it ended
+	web.organizing.Store(false)
+	web.scansDone.Add(1)
+	if !w.waiting() || w.scanned != current || w.waited {
+		t.Fatalf("the scan of the task counts for the watcher: %d %v", w.scanned, w.waited)
+	}
+	if w.waiting() {
+		t.Fatal("the watcher works again")
+	}
+
+	// a task that did not scan: the watcher looks at the changes itself
+	web.organizing.Store(true)
+	w.waiting()
+	web.organizing.Store(false)
+	if w.waiting() {
+		t.Fatal("the watcher scans what the task changed")
 	}
 }

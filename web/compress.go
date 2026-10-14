@@ -508,6 +508,12 @@ func (web *Web) cancelCompression() bool {
 	return true
 }
 
+// filesBusy tells whether a task is changing the files of the library: a compression,
+// decompression, conversion, pack, organizing or cleanup. Scans wait for it to end.
+func (web *Web) filesBusy() bool {
+	return web.organizing.Load() || web.compressionRunning()
+}
+
 func (web *Web) compressionRunning() bool {
 	web.compressor.mutex.Lock()
 	defer web.compressor.mutex.Unlock()

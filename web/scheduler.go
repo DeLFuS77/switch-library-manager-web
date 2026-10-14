@@ -34,7 +34,8 @@ func (web *Web) StartScheduler() {
 		defer ticker.Stop()
 		for now := range ticker.C {
 			appSettings := settings.ReadSettings(web.dataFolder)
-			if syncDue(appSettings, now) && web.Synchronize(TRIGGER_SCHEDULE) {
+			// a task changing the files goes first: the synchronization stays due until it ends
+			if syncDue(appSettings, now) && !web.filesBusy() && web.Synchronize(TRIGGER_SCHEDULE) {
 				web.sugarLogger.Info("[Scheduled synchronization started]")
 			}
 			if web.nightlyCompressDue(now) && !web.state.IsSynchronizing() && web.autoCompress(TRIGGER_SCHEDULE) {

@@ -25,6 +25,11 @@ func (web *Web) Synchronize(trigger string) bool {
 			}
 		}()
 		defer web.state.endSync()
+		defer func() {
+			if failure == nil {
+				web.scansDone.Add(1)
+			}
+		}()
 		// recorded even if the synchronization fails, so a schedule does not retry every minute
 		defer settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
 			s.LastSyncTime = time.Now()
@@ -99,6 +104,11 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 			}
 		}()
 		defer web.state.endSync()
+		defer func() {
+			if failure == nil {
+				web.scansDone.Add(1)
+			}
+		}()
 
 		switchDB, _ := web.state.get()
 		localDB, err := web.buildLocalDB(switchDB, ignoreCache)
