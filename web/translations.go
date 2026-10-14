@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Files compressed": "Archivos comprimidos",
 		"Preparing the list of files to check...": "Preparando la lista de archivos a comprobar...",
 		"The copy that is kept could not be checked whole: keep this one.": "La copia que se queda no se ha podido comprobar entera: conserva esta.",
 		"%v files at once": "%v archivos a la vez",

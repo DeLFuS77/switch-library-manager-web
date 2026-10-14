@@ -3,6 +3,7 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Files compressed": "Gecomprimeerde bestanden",
 		"Preparing the list of files to check...": "Lijst met te controleren bestanden voorbereiden...",
 		"The copy that is kept could not be checked whole: keep this one.": "De kopie die blijft kon niet volledig worden gecontroleerd: bewaar deze.",
 		"%v files at once": "%v bestanden tegelijk",

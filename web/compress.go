@@ -331,6 +331,9 @@ func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, si
 			}
 			processed++
 			saved += fileSaved
+			if kind == TASK_COMPRESS {
+				web.taskLog().AddFileResult(taskId, name, sizes[i], sizes[i]-fileSaved)
+			}
 			web.taskLog().SetCompressResult(taskId, processed, saved)
 		}
 		if failure == nil && processed == 0 && len(paths) > 0 {

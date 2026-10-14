@@ -3,6 +3,7 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Files compressed": "압축한 파일",
 		"Preparing the list of files to check...": "확인할 파일 목록을 준비하는 중...",
 		"The copy that is kept could not be checked whole: keep this one.": "남길 사본을 완전히 확인할 수 없었습니다. 이 파일을 유지하세요.",
 		"%v files at once": "동시에 %v개 파일",

@@ -4691,6 +4691,23 @@ body:has(.wizard.show) #alert_sync {
 }
 
 // Tasks: the files a running task works on at the same time
+// the files a compression finished, with their size before and after
+.task-results {
+  summary {
+    cursor: pointer;
+    width: fit-content;
+  }
+  ul {
+    max-height: 14rem;
+    overflow-y: auto;
+  }
+  li {
+    padding: 0.15rem 0;
+    border-bottom: 1px solid var(--bs-border-color-translucent);
+    &:last-child { border-bottom: 0; }
+  }
+}
+
 .task-lanes {
 	display: flex;
 	flex-direction: column;
