@@ -546,3 +546,88 @@ func TestExportForOfficialNsz(t *testing.T) {
 		}
 	}
 }
+
+// writeOneNcaNsp writes an NSP with one program NCA, named by its content ID.
+func writeOneNcaNsp(t *testing.T, nca []byte) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "Game [0100000000010000][v0].nsp")
+	if err := os.WriteFile(path, makePFS0(pfs0Magic, []string{contentName(nca, ".nca")}, [][]byte{nca}), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+// compressAndCheck compresses an NSP, checks the copy against it and gives the result.
+func compressAndCheck(t *testing.T, source string) (CompressResult, error) {
+	t.Helper()
+	expected, err := HashNcas(context.Background(), source, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := CompressGame(context.Background(), source, NszPath(source), CompressOptions{})
+	if err != nil {
+		return result, err
+	}
+	if err := VerifyCompressed(context.Background(), NszPath(source), expected, nil); err != nil {
+		t.Fatalf("the copy differs: %v", err)
+	}
+	return result, nil
+}
+
+// Newer games encrypt with AES-CTR without the hash of a layer (type 5): compressed like
+// AES-CTR, as it is the same encryption.
+func TestSectionsOfType5AreCompressed(t *testing.T) {
+	initNszKeys(t, "")
+	nca := makeProgramNca(t, gameData(0x80000), 3, "", func(header []byte) { header[0x404] = 5 })
+	result, err := compressAndCheck(t, writeOneNcaNsp(t, nca))
+	if err != nil || result.Compressed != 1 || result.OutputSize > result.InputSize/2 {
+		t.Fatalf("type 5: %+v %v", result, err)
+	}
+}
+
+// A first section that starts after the header leaves bytes in between; they are kept as
+// they are, and the section is still compressed.
+func TestSectionAfterAGapIsCompressed(t *testing.T) {
+	initNszKeys(t, "")
+	plain := append(make([]byte, 0x1000), gameData(0x80000)...)
+	nca := makeProgramNca(t, plain, 3, "", func(header []byte) {
+		binary.LittleEndian.PutUint32(header[0x240:], 0x28)
+	})
+	result, err := compressAndCheck(t, writeOneNcaNsp(t, nca))
+	if err != nil || result.Compressed != 1 || result.OutputSize > result.InputSize/2 {
+		t.Fatalf("a gap: %+v %v", result, err)
+	}
+}
+
+// An NCA whose only section uses an encryption the app does not read is stored, and the
+// error tells why.
+func TestUnreadableEncryptionIsExplained(t *testing.T) {
+	initNszKeys(t, "")
+	nca := makeProgramNca(t, gameData(0x40000), 3, "", func(header []byte) { header[0x404] = 2 })
+	_, err := compressAndCheck(t, writeOneNcaNsp(t, nca))
+	if !errors.Is(err, ErrNotCompressible) || !strings.Contains(err.Error(), "encryption the app does not read") {
+		t.Fatalf("the reason: %v", err)
+	}
+}
+
+// TestExportNewSectionCases writes the NSZ of the cases above to SLM_NCZ_PLAN_EXPORT, to
+// check them with the decompressor of nsz.
+func TestExportNewSectionCases(t *testing.T) {
+	folder := os.Getenv("SLM_NCZ_PLAN_EXPORT")
+	if folder == "" {
+		t.Skip("set SLM_NCZ_PLAN_EXPORT")
+	}
+	initNszKeys(t, "")
+	cases := map[string][]byte{
+		"type5": makeProgramNca(t, gameData(0x80000), 3, "", func(header []byte) { header[0x404] = 5 }),
+		"gap": makeProgramNca(t, append(make([]byte, 0x1000), gameData(0x80000)...), 3, "", func(header []byte) {
+			binary.LittleEndian.PutUint32(header[0x240:], 0x28)
+		}),
+	}
+	for name, nca := range cases {
+		source := writeOneNcaNsp(t, nca)
+		if _, err := CompressGame(context.Background(), source, filepath.Join(folder, name+".nsz"), CompressOptions{}); err != nil {
+			t.Fatal(name, err)
+		}
+	}
+}
