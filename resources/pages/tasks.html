@@ -111,7 +111,7 @@
 
 {{define "taskResults"}}
 {{- with .Results}}
-<details class="task-results mt-2"{{if $.Running}} open{{end}}>
+<details class="task-results mt-2" data-task-results="{{$.Id}}"{{if $.Running}} open{{end}}>
 	<summary class="small fw-semibold">{{t "Files compressed"}} ({{len .}})</summary>
 	<ul class="list-unstyled small mb-0 mt-1">
 		{{- range .}}
