@@ -100,6 +100,11 @@ type TaskLane struct {
 	Name  string `json:"name"`
 	Done  int64  `json:"done"`
 	Total int64  `json:"total"`
+	// what is being done to the file, an English sentence translated by the interface, as
+	// the step out of the steps of the file
+	Phase string `json:"phase,omitempty"`
+	Step  int    `json:"step,omitempty"`
+	Steps int    `json:"steps,omitempty"`
 }
 
 // Percent is the progress of the file.
@@ -122,6 +127,37 @@ type TaskResult struct {
 
 // maxTaskResults is how many files a task lists, the last ones.
 const maxTaskResults = 200
+
+// SavedBytes is what the compression of the file saved.
+func (r TaskResult) SavedBytes() int64 { return r.Before - r.After }
+
+// KeptWidth and SavedWidth are the shares of the size before that the file keeps and
+// saved, as CSS widths in percent.
+func (r TaskResult) KeptWidth() string  { return keptWidth(r.After, r.Before) }
+func (r TaskResult) SavedWidth() string { return savedWidth(r.After, r.Before) }
+
+func keptWidth(after int64, before int64) string {
+	if before <= 0 {
+		return "100"
+	}
+	share := float64(after) * 100 / float64(before)
+	return fmt.Sprintf("%.2f", max(0, min(100, share)))
+}
+
+func savedWidth(after int64, before int64) string {
+	if before <= 0 {
+		return "0"
+	}
+	share := 100 - float64(after)*100/float64(before)
+	return fmt.Sprintf("%.2f", max(0, min(100, share)))
+}
+
+// Kept is the size of the files compressed after their compression.
+func (t Task) Kept() int64 { return t.Original - t.Saved }
+
+// KeptWidth and SavedWidth are the shares of the files compressed kept and saved.
+func (t Task) KeptWidth() string  { return keptWidth(t.Original-t.Saved, t.Original) }
+func (t Task) SavedWidth() string { return savedWidth(t.Original-t.Saved, t.Original) }
 
 // SavedPercent is the share of the file saved, as "3.0 %".
 func (r TaskResult) SavedPercent() string {

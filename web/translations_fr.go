@@ -3,6 +3,15 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Calculating hashes": "Calcul des hachages",
+		"Compressing": "Compression",
+		"Decompressing": "Décompression",
+		"Converting": "Conversion",
+		"Building the pack": "Création du pack",
+		"Verifying": "Vérification",
+		"step %v of %v": "étape %v sur %v",
+		"Compressed size": "Taille compressée",
+		"Saved": "Économisé",
 		"Files compressed": "Fichiers compressés",
 		"Preparing the list of files to check...": "Préparation de la liste des fichiers à vérifier...",
 		"The copy that is kept could not be checked whole: keep this one.": "La copie conservée n'a pas pu être vérifiée en entier : garde celle-ci.",

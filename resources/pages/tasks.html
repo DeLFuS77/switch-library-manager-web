@@ -43,8 +43,9 @@
 							<li class="task-lane">
 								<span class="task-lane-number" aria-hidden="true">{{add $i 1}}</span>
 								<div class="task-lane-main">
-									<div class="d-flex justify-content-between gap-2 small">
+									<div class="task-file-line small">
 										<span class="text-truncate" title="{{$lane.Name}}">{{$lane.Name}}</span>
+										{{- with $lane.Phase}}<span class="task-phase text-nowrap"><span class="bi bi-arrow-right-short" aria-hidden="true"></span>{{t .}} <span class="text-body-secondary">{{t "step %v of %v" $lane.Step $lane.Steps}}</span></span>{{end}}
 										<span class="text-nowrap text-body-secondary">{{formatSize $lane.Done}} / {{formatSize $lane.Total}} &middot; {{$lane.Percent}}%</span>
 									</div>
 									<div class="progress task-lane-bar" role="progressbar" aria-label="{{$lane.Name}}" aria-valuenow="{{$lane.Percent}}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar bg-info" style="width: {{$lane.Percent}}%"></div></div>
@@ -109,15 +110,34 @@
 				{{- end}}
 {{- end}}
 
+{{define "savingBar"}}
+<div class="progress-stacked saving-bar" role="img" aria-label="{{t "Compressed size"}} {{formatSize .Kept}}, {{t "Saved"}} {{formatSize .Saved}}">
+	<div class="progress" style="width: {{.KeptWidth}}%"><div class="progress-bar saving-kept"></div></div>
+	<div class="progress" style="width: {{.SavedWidth}}%"><div class="progress-bar saving-saved"></div></div>
+</div>
+{{- end}}
+
 {{define "taskResults"}}
+{{- if and (eq .Kind "compress") .Original}}
+<div class="saving mt-2" data-task-saving="{{.Id}}">
+	{{- template "savingBar" (dict "Kept" .Kept "Saved" .Saved "KeptWidth" .KeptWidth "SavedWidth" .SavedWidth)}}
+	<div class="d-flex flex-wrap column-gap-3 small text-body-secondary mt-1">
+		<span><span class="saving-key saving-kept" aria-hidden="true"></span>{{t "Compressed size"}} {{formatSize .Kept}}</span>
+		<span><span class="saving-key saving-saved" aria-hidden="true"></span>{{t "Saved"}} {{formatSize .Saved}}{{with .SavedPercent}} ({{.}}){{end}}</span>
+	</div>
+</div>
+{{- end}}
 {{- with .Results}}
 <details class="task-results mt-2" data-task-results="{{$.Id}}"{{if $.Running}} open{{end}}>
 	<summary class="small fw-semibold">{{t "Files compressed"}} ({{len .}})</summary>
 	<ul class="list-unstyled small mb-0 mt-1">
 		{{- range .}}
-		<li class="d-flex justify-content-between gap-2">
-			<span class="text-truncate" title="{{.Name}}">{{.Name}}</span>
-			<span class="text-nowrap text-body-secondary">{{formatSize .Before}} &rarr; {{formatSize .After}}{{with .SavedPercent}} &middot; <span class="fw-semibold text-success-emphasis">&minus;{{.}}</span>{{end}}</span>
+		<li>
+			<div class="task-file-line">
+				<span class="text-truncate" title="{{.Name}}">{{.Name}}</span>
+				<span class="text-nowrap text-body-secondary">{{formatSize .Before}} &rarr; {{formatSize .After}}{{with .SavedPercent}} &middot; <span class="fw-semibold text-success-emphasis">&minus;{{.}}</span>{{end}}</span>
+			</div>
+			{{- template "savingBar" (dict "Kept" .After "Saved" .SavedBytes "KeptWidth" .KeptWidth "SavedWidth" .SavedWidth)}}
 		</li>
 		{{- end}}
 	</ul>

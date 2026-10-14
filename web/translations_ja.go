@@ -3,6 +3,15 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Calculating hashes": "ハッシュを計算中",
+		"Compressing": "圧縮中",
+		"Decompressing": "展開中",
+		"Converting": "変換中",
+		"Building the pack": "パックを作成中",
+		"Verifying": "検証中",
+		"step %v of %v": "ステップ %v / %v",
+		"Compressed size": "圧縮後のサイズ",
+		"Saved": "節約",
 		"Files compressed": "圧縮したファイル",
 		"Preparing the list of files to check...": "確認するファイルのリストを準備しています...",
 		"The copy that is kept could not be checked whole: keep this one.": "残すコピーを完全には確認できませんでした。こちらを残してください。",

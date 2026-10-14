@@ -893,12 +893,21 @@ function initLiveTasks() {
 					});
 				});
 				// a list of files opened or folded stays as it was
+				// the bars of what a compression saved grow once, when they appear
+				const shown = new Set([...list.querySelectorAll('[data-task-saving]')].map(saving => saving.dataset.taskSaving));
 				const folded = {};
 				list.querySelectorAll('details[data-task-results]').forEach(details => {
 					folded[details.dataset.taskResults] = details.open;
 				});
 				list.innerHTML = html;
 				keepAnimationsInStep(list);
+				list.querySelectorAll('[data-task-saving]').forEach(saving => {
+					if (shown.has(saving.dataset.taskSaving)) {
+						saving.closest('li, article').querySelectorAll('.saving-bar .progress').forEach(part => {
+							part.style.animation = 'none';
+						});
+					}
+				});
 				list.querySelectorAll('details[data-task-results]').forEach(details => {
 					if (details.dataset.taskResults in folded) {
 						details.open = folded[details.dataset.taskResults];

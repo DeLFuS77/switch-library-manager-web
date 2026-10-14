@@ -524,6 +524,8 @@ h3,
 
 .task-history {
 	display: grid;
+	// a long file name is shortened instead of widening the page
+	grid-template-columns: minmax(0, 1fr);
 	gap: .6rem;
 }
 
@@ -4699,24 +4701,87 @@ body:has(.wizard.show) #alert_sync {
 	min-width: 0;
 }
 
-// Tasks: the files a running task works on at the same time
 // the files a compression finished, with their size before and after
 .task-results {
-  summary {
-    cursor: pointer;
-    width: fit-content;
-  }
-  ul {
-    max-height: 14rem;
-    overflow-y: auto;
-  }
-  li {
-    padding: 0.15rem 0;
-    border-bottom: 1px solid var(--bs-border-color-translucent);
-    &:last-child { border-bottom: 0; }
-  }
+	summary {
+		cursor: pointer;
+		width: fit-content;
+	}
+
+	ul {
+		max-height: 16rem;
+		overflow-y: auto;
+	}
+
+	li {
+		padding: 0.3rem 0;
+		border-bottom: 1px solid var(--bs-border-color-translucent);
+
+		&:last-child {
+			border-bottom: 0;
+		}
+	}
+
+	.saving-bar {
+		height: 0.3rem;
+		margin-top: 0.25rem;
+	}
 }
 
+// what a compression kept and saved: two colours on one bar
+.saving-bar {
+	height: 0.5rem;
+}
+
+.saving-kept {
+	background-color: #{$slm-cyan};
+}
+
+.saving-saved {
+	background-color: #{$success};
+}
+
+.saving-key {
+	display: inline-block;
+	width: 0.6rem;
+	height: 0.6rem;
+	border-radius: 2px;
+	margin-right: 0.35rem;
+	vertical-align: baseline;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.saving-bar .progress {
+		animation: slm-grow-x 0.8s ease-out both;
+		transform-origin: left;
+	}
+}
+
+@keyframes slm-grow-x {
+	from {
+		transform: scaleX(0);
+	}
+}
+
+// the name of a file and its numbers share a line, and the numbers go below it on a phone
+.task-file-line {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	column-gap: 0.5rem;
+
+	> .text-truncate {
+		flex: 1 1 12rem;
+		min-width: 0;
+	}
+}
+
+.task-phase {
+	font-weight: 600;
+	color: var(--bs-info-text-emphasis);
+}
+
+// Tasks: the files a running task works on at the same time
 .task-lanes {
 	display: flex;
 	flex-direction: column;

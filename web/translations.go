@@ -5,6 +5,15 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Calculating hashes": "Calculando hashes",
+		"Compressing": "Comprimiendo",
+		"Decompressing": "Descomprimiendo",
+		"Converting": "Convirtiendo",
+		"Building the pack": "Creando el pack",
+		"Verifying": "Verificando",
+		"step %v of %v": "paso %v de %v",
+		"Compressed size": "Tamaño comprimido",
+		"Saved": "Ahorrado",
 		"Files compressed": "Archivos comprimidos",
 		"Preparing the list of files to check...": "Preparando la lista de archivos a comprobar...",
 		"The copy that is kept could not be checked whole: keep this one.": "La copia que se queda no se ha podido comprobar entera: conserva esta.",
