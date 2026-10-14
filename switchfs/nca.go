@@ -73,10 +73,11 @@ func openMetaNcaDataSection(reader io.ReaderAt, ncaOffset int64) (*fsHeader, []b
 
 	entry := getFsEntry(ncaHeader, dataSectionIndex)
 
-	if entry.Size == 0 {
+	// the sections read whole here are those of the small control and meta NCAs
+	if entry.Size == 0 || entry.Size > maxReadSectionSize {
 		return nil, nil, errors.New("empty or invalid section")
 	}
-	if uint64(entry.StartOffset) > uint64(^uint64(0)>>1) || ncaOffset > int64(^uint64(0)>>1)-int64(entry.StartOffset) {
+	if entry.StartOffset > uint64(^uint64(0)>>1) || ncaOffset > int64(^uint64(0)>>1)-int64(entry.StartOffset) {
 		return nil, nil, errors.New("NCA section offset overflows")
 	}
 
@@ -119,7 +120,10 @@ func (e *MissingKeyError) Error() string {
 	return fmt.Sprintf("missing Key_area_key[%v]", e.KeyName)
 }
 
-func decryptAesCtr(ncaHeader *ncaHeader, fsHeader *fsHeader, offset uint32, size uint32, encoded []byte) ([]byte, error) {
+// maxReadSectionSize is the size of the biggest section read into memory at once.
+const maxReadSectionSize = 1 << 31
+
+func decryptAesCtr(ncaHeader *ncaHeader, fsHeader *fsHeader, offset uint64, size uint64, encoded []byte) ([]byte, error) {
 	keyRevision := fmt.Sprintf("%02x", ncaHeader.getKeyRevision())
 	cryptoType := ncaHeader.cryptoType
 
@@ -152,13 +156,13 @@ func decryptAesCtr(ncaHeader *ncaHeader, fsHeader *fsHeader, offset uint32, size
 
 	counter := make([]byte, 0x10)
 	binary.BigEndian.PutUint64(counter, uint64(fsHeader.generation))
-	binary.BigEndian.PutUint64(counter[8:], uint64(offset/0x10))
+	binary.BigEndian.PutUint64(counter[8:], offset/0x10)
 
 	c, err := aes.NewCipher(decKey)
 	if err != nil {
 		return nil, err
 	}
-	if uint64(size) > uint64(len(encoded)) {
+	if size > uint64(len(encoded)) {
 		return nil, errors.New("encoded NCA section is truncated")
 	}
 
