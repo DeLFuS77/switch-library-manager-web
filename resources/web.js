@@ -2122,6 +2122,60 @@ function initPack() {
 	});
 }
 
+// the measure of the server fills the compression settings with what compresses fastest here
+function initMeasure() {
+	const box = document.querySelector('[data-measure]');
+	if (!box) {
+		return;
+	}
+	const button = box.querySelector('[data-measure-start]');
+	const result = box.querySelector('[data-measure-result]');
+	const format = (text, ...args) => args.reduce((value, arg) => value.replace('%v', arg), text);
+	const line = (icon, text) => {
+		const row = document.createElement('div');
+		const glyph = document.createElement('span');
+		glyph.className = `bi ${icon} me-1`;
+		glyph.setAttribute('aria-hidden', 'true');
+		row.append(glyph, text);
+		return row;
+	};
+	button.addEventListener('click', () => {
+		button.disabled = true;
+		result.hidden = false;
+		result.classList.remove('text-danger-emphasis');
+		result.replaceChildren(line('bi-hourglass-split', result.dataset.textRunning));
+		fetch('/settings/measure', { method: 'POST' })
+			.then(response => response.json().catch(() => ({})).then(json => {
+				if (!response.ok) {
+					throw new Error(json.error || (json.globalError && json.globalError.message) || t('Unexpected server response (%v).', response.status));
+				}
+				return json;
+			}))
+			.then(measure => {
+				const speeds = measure.results
+					.map(trial => `${trial.files}×${trial.threads} → ${trial.speed} MB/s`).join(' · ');
+				result.replaceChildren(
+					line('bi-speedometer2', `${result.dataset.textTrials}: ${speeds}`),
+					line('bi-check2-circle', format(result.dataset.textChosen, measure.files_at_once, measure.threads)));
+				[['compress_threads', measure.threads], ['compress_files_at_once', measure.files_at_once]].forEach(([id, value]) => {
+					const select = document.getElementById(id);
+					if (select && [...select.options].some(option => option.value === String(value))) {
+						select.value = String(value);
+						select.dispatchEvent(new Event('input', { bubbles: true }));
+						select.dispatchEvent(new Event('change', { bubbles: true }));
+					}
+				});
+			})
+			.catch(error => {
+				result.classList.add('text-danger-emphasis');
+				result.replaceChildren(line('bi-exclamation-triangle', error.message));
+			})
+			.finally(() => {
+				button.disabled = false;
+			});
+	});
+}
+
 function initRegionRemove() {
 	document.querySelectorAll('[data-region-remove]').forEach(button => {
 		button.addEventListener('click', () => {
@@ -2585,6 +2639,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initWizard();
 	initRegionRemove();
 	initPack();
+	initMeasure();
 	initHeroMenus();
 	initVaultSettings();
 	initMobileApp();

@@ -3,6 +3,12 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here.": "Comprimeert ongeveer een halve minuut delen van de grootste games uit je bibliotheek met verschillende instellingen naar een verborgen bestand ernaast dat aan het eind wordt verwijderd, en kiest hier de snelste.",
+		"Files at once × threads": "Bestanden tegelijk × threads",
+		"Measure this server": "Deze server meten",
+		"Measuring the disk and the processor...": "Schijf en processor meten...",
+		"Chosen: %v files at once with %v threads each. Save to apply.": "Gekozen: %v bestanden tegelijk met elk %v threads. Sla op om toe te passen.",
+		"There is no game in the library to measure the disk with.": "Er staat geen game in de bibliotheek om de schijf mee te meten.",
 		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "Automatisch gebruikt de helft van de processors, hooguit 4, verdeeld over de bestanden tegelijk. Meer threads helpen zelden: meestal bepaalt de schijf de snelheid, en ze laten minder processor over voor de rest van de server.",
 		"Processor threads per file": "Processorthreads per bestand",
 		"Automatic (%v)": "Automatisch (%v)",

@@ -3,6 +3,12 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here.": "ライブラリの大きなゲームの一部を複数の設定で 30 秒ほど、隣の隠しファイル (最後に削除) に圧縮し、ここで最も速い設定を選びます。",
+		"Files at once × threads": "同時ファイル数 × スレッド",
+		"Measure this server": "このサーバーを測定",
+		"Measuring the disk and the processor...": "ディスクとプロセッサを測定中...",
+		"Chosen: %v files at once with %v threads each. Save to apply.": "選択: 同時 %v ファイル、各 %v スレッド。保存すると適用されます。",
+		"There is no game in the library to measure the disk with.": "ディスクを測定するためのゲームがライブラリにありません。",
 		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "自動ではプロセッサの半分(最大 4)を、同時に処理するファイルで分け合います。スレッドを増やしても速くなることはまれです。速度は多くの場合ディスクで決まり、サーバーの他の処理に使えるプロセッサが減ります。",
 		"Processor threads per file": "ファイルごとのプロセッサスレッド",
 		"Automatic (%v)": "自動 (%v)",

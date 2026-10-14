@@ -149,6 +149,8 @@ type Web struct {
 	// the scans of the library that ended well, for the watcher to know one followed a task
 	// on the files
 	scansDone atomic.Uint64
+	// a measure of the server is running
+	measuring atomic.Bool
 	fallbackMutex  sync.Mutex
 	thumbs         *thumbnails
 	thumbsOnce     sync.Once
@@ -582,6 +584,7 @@ func (web *Web) Start() {
 	web.HandleTasks()
 	web.HandleUsers()
 	web.HandleCompress()
+	web.HandleMeasure()
 	web.HandleVerify()
 	web.HandleBackup()
 	web.HandleSpace()
