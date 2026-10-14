@@ -47,7 +47,9 @@ type verifyRecord struct {
 // verifyChecker is the version of the check. Version 2 reads every NCZ that nsz writes
 // (updates with many sections, block compression) and tells NCA files rewritten by a tool
 // apart from damaged ones: files found damaged by an older version are checked again.
-const verifyChecker = 2
+// Version 3 reads the hashes of the sections past 4 GB of an NCA: rewritten NCA files of
+// big games found intact by an older version are checked again.
+const verifyChecker = 3
 
 // sound tells a file checked whole and found sound: only such a copy lets another one be
 // deleted.
@@ -55,9 +57,11 @@ func (r verifyRecord) sound() bool {
 	return r.OK && !r.Partial
 }
 
-// stale tells a damage found by an older version of the check.
+// stale tells a result an older version of the check may have got wrong: a damage, or a
+// rewritten NCA found intact without the hashes of its sections past 4 GB. Other sound files
+// matched the SHA-256 of their content IDs, which no version got wrong.
 func (r verifyRecord) stale() bool {
-	return !r.OK && r.Checker < verifyChecker
+	return (!r.OK || r.Modified) && r.Checker < verifyChecker
 }
 
 // verifyStore keeps the results in verify.json in the data folder.
