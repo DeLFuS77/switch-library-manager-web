@@ -146,6 +146,9 @@ type Web struct {
 	backgroundStarted atomic.Bool
 	// the fingerprint of the folders the watcher asked to scan (see saveWatchFingerprint)
 	watchFingerprint atomic.Uint64
+	// the scans of the library that ended well, for the watcher to know one followed a task
+	// on the files
+	scansDone atomic.Uint64
 	fallbackMutex  sync.Mutex
 	thumbs         *thumbnails
 	thumbsOnce     sync.Once

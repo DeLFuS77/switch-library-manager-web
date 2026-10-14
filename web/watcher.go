@@ -61,6 +61,9 @@ type folderWatcher struct {
 	lastCheck uint64
 	// the folders found by the last check
 	dirs []string
+	// a task changed the files while the watcher waited, and the scans done by then
+	waited     bool
+	waitedScan uint64
 }
 
 // StartFolderWatcher watches the library folders and rescans the library when files are
@@ -140,9 +143,40 @@ func (w *folderWatcher) run() {
 	}
 }
 
+// waiting tells whether the watcher leaves the folders alone: while a task changes the
+// files (a compression writes and renames them one after the other) a scan would only read
+// them halfway, and the task scans the library itself when it ends. A scan done after the
+// task covers what the task changed, so the watcher does not scan again.
+func (w *folderWatcher) waiting() bool {
+	if w.web.filesBusy() {
+		if !w.waited {
+			w.waited, w.waitedScan = true, w.web.scansDone.Load()
+		}
+		return true
+	}
+	if !w.waited {
+		return false
+	}
+	if w.web.scansDone.Load() > w.waitedScan {
+		w.waited = false
+		current := w.fingerprint()
+		w.lastCheck, w.scanned = current, current
+		w.web.watchFingerprint.Store(current)
+		w.web.saveWatchFingerprint()
+		return true
+	}
+	if w.web.state.IsSynchronizing() {
+		// the scan of the task is running
+		return true
+	}
+	// the task did not scan: the watcher does, if the files changed
+	w.waited = false
+	return false
+}
+
 // checkStable scans the library if the folders changed and stopped changing.
 func (w *folderWatcher) checkStable() {
-	if !w.enabled() {
+	if !w.enabled() || w.waiting() {
 		return
 	}
 	first := w.fingerprint()
@@ -157,7 +191,7 @@ func (w *folderWatcher) checkStable() {
 // checkPolled scans the library if the folders changed since the last scan and look the
 // same as at the previous check, so files still being copied are not scanned half-written.
 func (w *folderWatcher) checkPolled() {
-	if !w.enabled() {
+	if !w.enabled() || w.waiting() {
 		return
 	}
 	current := w.fingerprint()

@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- No library scans while a task changes the files (a compression, decompression, conversion, pack, organizing or a
+  cleanup): the folder watcher and the scheduled synchronization wait for it to end. A compression of several games
+  used to start a scan after each one; now the library is scanned once, when the task ends, and the watcher does not
+  scan the same changes again.
+
 ## 1.29.0
 
 ### Improvements
