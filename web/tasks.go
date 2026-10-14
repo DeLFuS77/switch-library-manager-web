@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -80,8 +81,11 @@ type Task struct {
 	// results, depending on the kind
 	Games int `json:"games,omitempty"`
 	Files int `json:"files,omitempty"`
-	// bytes saved by a compression
-	Saved int64 `json:"saved,omitempty"`
+	// bytes saved by a compression, out of the size of the files compressed
+	Saved    int64 `json:"saved,omitempty"`
+	Original int64 `json:"original,omitempty"`
+	// the size of each file before and after a compression
+	Results []TaskResult `json:"results,omitempty"`
 	// damaged files found by a verification
 	Damaged int `json:"damaged,omitempty"`
 	// work done at the same time: the files being worked on, each with its progress, and
@@ -107,6 +111,33 @@ func (l TaskLane) Percent() int {
 		return 100
 	}
 	return int(l.Done * 100 / l.Total)
+}
+
+// TaskResult is a file a task finished, with its size before and after.
+type TaskResult struct {
+	Name   string `json:"name"`
+	Before int64  `json:"before"`
+	After  int64  `json:"after"`
+}
+
+// maxTaskResults is how many files a task lists, the last ones.
+const maxTaskResults = 200
+
+// SavedPercent is the share of the file saved, as "3.0 %".
+func (r TaskResult) SavedPercent() string {
+	return savedPercent(r.Before-r.After, r.Before)
+}
+
+func savedPercent(saved int64, original int64) string {
+	if original <= 0 {
+		return ""
+	}
+	return fmt.Sprintf("%.1f %%", float64(saved)*100/float64(original))
+}
+
+// SavedPercent is the share of the files compressed that was saved, or "" when unknown.
+func (t Task) SavedPercent() string {
+	return savedPercent(t.Saved, t.Original)
 }
 
 // TaskNote is a problem of a task: Text is an English sentence translated by the
@@ -256,6 +287,17 @@ func (l *TaskLog) SetResult(id int64, games int, files int) {
 func (l *TaskLog) SetCompressResult(id int64, files int, saved int64) {
 	l.update(id, false, func(task *Task) {
 		task.Files, task.Saved = files, saved
+	})
+}
+
+// AddFileResult records a file compressed, with its size before and after.
+func (l *TaskLog) AddFileResult(id int64, name string, before int64, after int64) {
+	l.update(id, false, func(task *Task) {
+		task.Original += before
+		task.Results = append(task.Results, TaskResult{Name: name, Before: before, After: after})
+		if len(task.Results) > maxTaskResults {
+			task.Results = task.Results[len(task.Results)-maxTaskResults:]
+		}
 	})
 }
 

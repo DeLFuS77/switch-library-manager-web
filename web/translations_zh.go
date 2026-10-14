@@ -3,6 +3,7 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Files compressed": "已压缩的文件",
 		"Preparing the list of files to check...": "正在准备要校验的文件列表...",
 		"The copy that is kept could not be checked whole: keep this one.": "保留的副本无法完整校验：请保留这个。",
 		"%v files at once": "同时处理 %v 个文件",

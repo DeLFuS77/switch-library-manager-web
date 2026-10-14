@@ -119,6 +119,18 @@ func TestCompressPageAndRun(t *testing.T) {
 	if task.Status != TASK_SUCCESS || task.Files != 1 || task.Saved <= 0 {
 		t.Fatalf("task: %+v", task)
 	}
+	// each file is listed with its size before and after, and the share saved
+	nsz, _ := os.Stat(switchfs.NszPath(path))
+	if len(task.Results) != 1 || task.Results[0].Name != filepath.Base(path) || nsz == nil || task.Results[0].After != nsz.Size() ||
+		task.Original != task.Results[0].Before || task.Saved != task.Results[0].Before-task.Results[0].After || task.SavedPercent() == "" {
+		t.Fatalf("the result of the file: %+v", task)
+	}
+	web.HandleTasks()
+	history := httptest.NewRecorder()
+	web.router.ServeHTTP(history, httptest.NewRequest(http.MethodGet, "/tasks.html", nil))
+	if !strings.Contains(history.Body.String(), "task-results") || !strings.Contains(history.Body.String(), task.SavedPercent()) {
+		t.Fatal("the tasks page shows the files compressed and the share saved")
+	}
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
 		t.Fatal("the original must be deleted after the verification")
 	}
