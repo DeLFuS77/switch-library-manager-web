@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Tasks: the list of files compressed no longer folds again by itself a moment after opening it, when the page
+  refreshes the tasks.
+
 ## 1.28.5
 
 ### Improvements

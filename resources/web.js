@@ -879,7 +879,17 @@ function initLiveTasks() {
 						widths[barKey(card, bar)] = bar.style.width;
 					});
 				});
+				// a list of files opened or folded stays as it was
+				const folded = {};
+				list.querySelectorAll('details[data-task-results]').forEach(details => {
+					folded[details.dataset.taskResults] = details.open;
+				});
 				list.innerHTML = html;
+				list.querySelectorAll('details[data-task-results]').forEach(details => {
+					if (details.dataset.taskResults in folded) {
+						details.open = folded[details.dataset.taskResults];
+					}
+				});
 				updateTaskIndicator();
 				list.querySelectorAll('[data-task-id]').forEach(card => {
 					card.querySelectorAll('.progress-bar').forEach(bar => {
