@@ -2,6 +2,12 @@
 
 ## 1.28.5
 
+### Improvements
+
+- Tasks: a compression lists each file with its size before and after and the share saved (open while it runs, folded
+  in the history), and its total says the share saved too. The progress of compressions, decompressions, conversions
+  and packs is shown in sizes instead of bare numbers.
+
 ### Fixes
 
 - Compression of games bigger than 4 GB: the sections of an NCA that lie past 4 GB were not seen, so the game was

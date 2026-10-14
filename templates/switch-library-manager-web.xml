@@ -25,6 +25,7 @@
   <Changes>### 1.28.5
 - Games bigger than 4 GB are compressed again, like nsz, and checked byte by byte
 - Games with gaps or unusual sections are compressed instead of refused
+- Tasks show each compressed file with its size before and after and the share saved
 ### 1.28.4
 - File check: the bar of each file moves on while an NSZ is decompressed
 - The check tells it prepares its list at the start, now faster on a NAS
