@@ -3,6 +3,12 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here.": "라이브러리에서 가장 큰 게임의 일부를 여러 설정으로 30초 정도 옆의 숨김 파일(끝나면 삭제)에 압축한 뒤, 여기서 가장 빠른 설정을 고릅니다.",
+		"Files at once × threads": "동시 파일 × 스레드",
+		"Measure this server": "이 서버 측정",
+		"Measuring the disk and the processor...": "디스크와 프로세서를 측정하는 중...",
+		"Chosen: %v files at once with %v threads each. Save to apply.": "선택: 동시 %v개 파일, 파일마다 %v 스레드. 저장하면 적용됩니다.",
+		"There is no game in the library to measure the disk with.": "디스크를 측정할 게임이 라이브러리에 없습니다.",
 		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "자동은 프로세서의 절반(최대 4)을 동시에 처리하는 파일들이 나눠 씁니다. 스레드를 늘려도 빨라지는 경우는 드뭅니다. 속도는 대개 디스크가 정하며, 서버의 다른 작업에 남는 프로세서가 줄어듭니다.",
 		"Processor threads per file": "파일당 프로세서 스레드",
 		"Automatic (%v)": "자동 (%v)",

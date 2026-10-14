@@ -3,6 +3,12 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here.": "Comprime parti dei giochi più grandi della tua libreria per circa mezzo minuto con varie impostazioni, in un file nascosto accanto a loro che viene eliminato alla fine, e sceglie la più veloce qui.",
+		"Files at once × threads": "File contemporanei × thread",
+		"Measure this server": "Misura questo server",
+		"Measuring the disk and the processor...": "Misurazione del disco e del processore...",
+		"Chosen: %v files at once with %v threads each. Save to apply.": "Scelto: %v file contemporaneamente con %v thread ciascuno. Salva per applicarlo.",
+		"There is no game in the library to measure the disk with.": "Nella libreria non c'è nessun gioco con cui misurare il disco.",
 		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "Automatico usa metà dei processori, al massimo 4, divisi tra i file in contemporanea. Più thread aiutano di rado: di solito è il disco a dettare la velocità, e lasciano meno processore al resto del server.",
 		"Processor threads per file": "Thread del processore per file",
 		"Automatic (%v)": "Automatico (%v)",

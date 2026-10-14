@@ -4776,6 +4776,15 @@ body:has(.wizard.show) #alert_sync {
 	}
 }
 
+// the measure of the server, under the compression settings
+.measure {
+	border-top: 1px solid var(--slm-border);
+}
+
+.measure-result > div + div {
+	margin-top: 0.2rem;
+}
+
 .task-phase {
 	font-weight: 600;
 	color: var(--bs-info-text-emphasis);

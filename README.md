@@ -112,6 +112,7 @@ Linux, Docker, NAS and Raspberry Pi.
 - Compress NSP to NSZ and XCI to XCZ (10 to 60% smaller), installed directly by Tinfoil, DBI and other installers;
   convert XCI to NSP
 - Every file is verified before the original is deleted; NSZ files can be decompressed back to NSP
+- Several files at once, with the threads and files measured on your own server to compress as fast as it can
 - Complete packs: the game, its latest update and its DLC in one NSP (or NSZ) to install at once, without the
   delta fragments of the update; checked before the separate files are deleted, only if you choose it
 - Space page: see how much old updates, duplicates and already compressed originals take, and free it safely
@@ -293,6 +294,15 @@ Every file is handled safely:
 
 Nothing can be lost even with a wrong key: the data is decrypted and encrypted again with the same key, so the original
 comes back byte for byte (a wrong key only compresses worse).
+
+XCZ files are written in blocks of 1 MB, as nsz does, so they can be read without decompressing them whole; NSZ files
+are one stream, which saves a bit more. The Tasks page shows the step of each file and, at the end, what each one takes
+now and what was saved.
+
+**Speed**: in Settings › Compression choose the processor threads per file and how many files are worked on at once,
+or press **Measure this server**: for about half a minute it compresses parts of your biggest games with several
+settings and chooses the fastest. The disk usually sets the speed more than the processor, so several files with few
+threads each often beat one file with many.
 
 #### How files are checked
 

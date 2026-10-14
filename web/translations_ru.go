@@ -3,6 +3,12 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here.": "Около полуминуты сжимает части самых больших игр библиотеки с разными настройками в скрытый файл рядом с ними, который в конце удаляется, и выбирает самую быструю здесь.",
+		"Files at once × threads": "Файлов одновременно × потоков",
+		"Measure this server": "Измерить этот сервер",
+		"Measuring the disk and the processor...": "Измерение диска и процессора...",
+		"Chosen: %v files at once with %v threads each. Save to apply.": "Выбрано: %v файлов одновременно по %v потоков. Сохраните, чтобы применить.",
+		"There is no game in the library to measure the disk with.": "В библиотеке нет игры, чтобы измерить диск.",
 		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "Автоматически используется половина процессоров, не больше 4, поровну на одновременные файлы. Больше потоков помогают редко: скорость обычно задаёт диск, а остальному серверу остаётся меньше процессора.",
 		"Processor threads per file": "Потоков процессора на файл",
 		"Automatic (%v)": "Автоматически (%v)",

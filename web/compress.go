@@ -341,8 +341,8 @@ func (web *Web) runFileTaskWithTrigger(kind string, trigger string, paths []stri
 // read more than their path (a pack reads every file of the game).
 func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, sizes []int64, passes int64, job fileJob) bool {
 	web.compressor.mutex.Lock()
-	// files are being moved or deleted
-	if web.compressor.cancel != nil || web.organizing.Load() {
+	// files are being moved or deleted, or the server is being measured
+	if web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() {
 		web.compressor.mutex.Unlock()
 		return false
 	}
@@ -621,9 +621,10 @@ func (web *Web) cancelCompression() bool {
 }
 
 // filesBusy tells whether a task is changing the files of the library: a compression,
-// decompression, conversion, pack, organizing or cleanup. Scans wait for it to end.
+// decompression, conversion, pack, organizing, cleanup or the measure of the server. Scans
+// wait for it to end.
 func (web *Web) filesBusy() bool {
-	return web.organizing.Load() || web.compressionRunning()
+	return web.organizing.Load() || web.measuring.Load() || web.compressionRunning()
 }
 
 func (web *Web) compressionRunning() bool {

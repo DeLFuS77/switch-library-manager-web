@@ -222,6 +222,16 @@
 									</div>
 								</div>
 							</div>
+							<div class="measure mt-3 pt-3" data-measure>
+								<div class="d-flex flex-wrap align-items-center gap-2">
+									<button type="button" class="btn btn-sm btn-outline-primary rounded-pill flex-shrink-0" data-measure-start><span class="bi bi-speedometer2 me-1" aria-hidden="true"></span>{{t "Measure this server"}}</button>
+									<span class="small text-body-secondary">{{t "Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here."}}</span>
+								</div>
+								<div class="measure-result small mt-2" data-measure-result role="status" hidden
+									data-text-running="{{t "Measuring the disk and the processor..."}}"
+									data-text-trials="{{t "Files at once × threads"}}"
+									data-text-chosen="{{t "Chosen: %v files at once with %v threads each. Save to apply."}}"></div>
+							</div>
 						</section>
 						<section class="surface mb-4 settings-section" id="automation" aria-labelledby="automationTitle">
 							{{- $a := .Settings.Automation}}

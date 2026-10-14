@@ -5,6 +5,12 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here.": "Comprime partes de los juegos más grandes de tu biblioteca durante medio minuto aproximadamente con varias combinaciones, en un archivo oculto junto a ellos que se borra al terminar, y elige la más rápida aquí.",
+		"Files at once × threads": "Archivos a la vez × hilos",
+		"Measure this server": "Medir este servidor",
+		"Measuring the disk and the processor...": "Midiendo el disco y el procesador...",
+		"Chosen: %v files at once with %v threads each. Save to apply.": "Elegido: %v archivos a la vez con %v hilos cada uno. Guarda para aplicarlo.",
+		"There is no game in the library to measure the disk with.": "No hay ningún juego en la biblioteca con el que medir el disco.",
 		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "Automático usa la mitad de los procesadores, como mucho 4, repartidos entre los archivos a la vez. Más hilos casi nunca ayudan: la velocidad suele marcarla el disco, y dejan menos procesador al resto del servidor.",
 		"Processor threads per file": "Hilos del procesador por archivo",
 		"Automatic (%v)": "Automático (%v)",

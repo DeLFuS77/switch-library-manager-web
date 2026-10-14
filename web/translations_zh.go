@@ -3,6 +3,12 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here.": "用几种设置将库中最大游戏的部分内容压缩约半分钟,写入旁边的隐藏文件(结束后删除),然后选择在此最快的设置。",
+		"Files at once × threads": "同时文件数 × 线程",
+		"Measure this server": "测量此服务器",
+		"Measuring the disk and the processor...": "正在测量磁盘和处理器...",
+		"Chosen: %v files at once with %v threads each. Save to apply.": "已选择:同时 %v 个文件,每个 %v 个线程。保存后生效。",
+		"There is no game in the library to measure the disk with.": "库中没有可用于测量磁盘的游戏。",
 		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "自动使用一半的处理器(最多 4 个),由同时处理的文件分用。增加线程很少有帮助:速度通常取决于磁盘,而且会减少留给服务器其他任务的处理器。",
 		"Processor threads per file": "每个文件的处理器线程",
 		"Automatic (%v)": "自动 (%v)",
