@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type ErrorResponse struct {
@@ -63,6 +64,12 @@ func (web *Web) HandleFiltered(pattern string, filteredPageData FilteredPageData
 	web.router.Handle(pattern, alice.New(httpin.NewInput(TitleItemFilter{})).ThenFunc(func(w http.ResponseWriter, r *http.Request) {
 		filter := r.Context().Value(httpin.Input).(*TitleItemFilter)
 		filter.Normalize()
+		// pages of cards: whole rows of the columns the browser shows
+		if cookie, err := r.Cookie(columnsCookie); err == nil {
+			if columns, err := strconv.Atoi(cookie.Value); err == nil {
+				filter.FitColumns(columns)
+			}
+		}
 		web.render(w, r, templates, filteredPageData(filter, web.requestLanguage(r)))
 	}))
 }

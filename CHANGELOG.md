@@ -4,6 +4,8 @@
 
 ### Improvements
 
+- Pages of cards fill their last row: the cards per page are rounded up to whole rows of the columns your screen shows
+  (24 become 25 on 5 columns, 28 on 7), remembered by the browser. The per page menu keeps the value you chose.
 - More files that are never games are left out of the Issues page by themselves: downloads left halfway (part,
   partial, tmp, crdownload, download, aria2, !qb, !ut), backups (bak), documents (pdf, rtf, csv, diz), shortcuts (lnk),
   playlists (m3u), settings (cfg), more checksums (sha512, crc, par2) and svg images. Archives and loose parts of games

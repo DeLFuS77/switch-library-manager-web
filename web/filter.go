@@ -13,6 +13,8 @@ import (
 type TitleItemFilter struct {
 	Keyword   string `in:"form=q"`
 	PerPage   int    `in:"form=per_page;default=24"`
+	// the per page chosen, before PerPage was rounded to whole rows of cards (see FitColumns)
+	ChosenPerPage int
 	SortBy    string `in:"form=sort_by;default=name"`
 	SortOrder string `in:"form=sort_order;default=asc"`
 	Page      int    `in:"form=page;default=1"`
@@ -63,6 +65,32 @@ var (
 	allowedExtra   = map[string]struct{}{"": {}, EXTRA_NO_COVER: {}, EXTRA_UNKNOWN: {}, EXTRA_RECENT: {}, EXTRA_FAVORITES: {}}
 	regionPattern  = regexp.MustCompile(`^[A-Z]{2,4}$`)
 )
+
+// columnsCookie is the cookie in which a page of cards remembers how many cards fit in a row.
+const columnsCookie = "slm-columns"
+
+// FitColumns rounds the cards per page up to whole rows of the columns the browser shows,
+// so the last row of a full page has no gap: 24 cards are 25 on 5 columns, 28 on 7.
+func (f *TitleItemFilter) FitColumns(columns int) {
+	f.ChosenPerPage = f.PerPage
+	if columns < 2 || columns > 12 {
+		return
+	}
+	f.PerPage = (f.PerPage + columns - 1) / columns * columns
+}
+
+// chosenPerPage is the per page the user chose, which links keep.
+func (f *TitleItemFilter) chosenPerPage() int {
+	if f.ChosenPerPage > 0 {
+		return f.ChosenPerPage
+	}
+	return f.PerPage
+}
+
+// SelectedPerPage is the choice of the per page menu.
+func (f *TitleItemFilter) SelectedPerPage() int {
+	return f.chosenPerPage()
+}
 
 // Normalize replaces invalid values coming from the query string with the defaults.
 func (f *TitleItemFilter) Normalize() {
@@ -151,7 +179,7 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("genre", f.Genre)
 	values.Set("players", f.Players)
 	values.Set("languages", f.GameLanguage)
-	values.Set("per_page", strconv.Itoa(f.PerPage))
+	values.Set("per_page", strconv.Itoa(f.chosenPerPage()))
 	values.Set("sort_by", f.SortBy)
 	values.Set("sort_order", f.SortOrder)
 	values.Set("page", strconv.Itoa(f.Page))

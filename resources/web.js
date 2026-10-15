@@ -2289,6 +2289,50 @@ function initImageFallbacks() {
 	}, true);
 }
 
+// pages of cards tell the server how many cards fit in a row, which rounds the cards per
+// page to whole rows; the first time, or when the width changed, the page is drawn again
+function initFullRows() {
+	const grid = document.querySelector('.game-grid');
+	if (!grid) {
+		return;
+	}
+	const columns = () => getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length;
+	const stored = () => {
+		const match = document.cookie.match(/(?:^|;\s*)slm-columns=(\d+)/);
+		return match ? Number(match[1]) : 0;
+	};
+	const remember = count => {
+		document.cookie = `slm-columns=${count}; path=/; max-age=31536000; SameSite=Lax`;
+	};
+	const count = columns();
+	if (count < 2 || count === stored()) {
+		return;
+	}
+	remember(count);
+	// once per width, so a page that cannot fill its rows is never drawn again and again
+	const key = `slm-columns-reloaded-${count}`;
+	let reloaded = false;
+	try {
+		reloaded = sessionStorage.getItem(key) === '1';
+		sessionStorage.setItem(key, '1');
+	} catch (e) {
+		reloaded = true;
+	}
+	if (!reloaded && document.querySelector('.pagination')) {
+		window.location.reload();
+	}
+	let timer = null;
+	window.addEventListener('resize', () => {
+		clearTimeout(timer);
+		timer = setTimeout(() => {
+			const now = columns();
+			if (now >= 2 && now !== stored()) {
+				remember(now);
+			}
+		}, 300);
+	});
+}
+
 function initRegionRemove() {
 	document.querySelectorAll('[data-region-remove]').forEach(button => {
 		button.addEventListener('click', () => {
@@ -2751,6 +2795,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initAutomationSettings();
 	initWizard();
 	initRegionRemove();
+	initFullRows();
 	initImageFallbacks();
 	initScreenshots();
 	initSpacePreparing();
