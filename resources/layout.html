@@ -34,6 +34,9 @@
 					<a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 rounded-pill px-3 admin-only" href="/sync" id="sync" title="{{t "Download the latest titles database and rescan the library"}}">
 						<span class="bi bi-arrow-repeat" aria-hidden="true"></span><span class="d-none d-md-inline d-xxl-none">{{t "Synchronize"}}</span>
 					</a>
+					{{- if and .Auth.Enabled .Auth.IsAdmin}}
+					<a class="btn btn-link nav-link settings-shortcut d-none d-xxl-inline-flex{{if eq .Page "settings"}} active{{end}}" href="/settings.html" title="{{t "Settings"}}"{{if eq .Page "settings"}} aria-current="page"{{end}}><span class="bi bi-gear" aria-hidden="true"></span><span class="visually-hidden">{{t "Settings"}}</span></a>
+					{{- end}}
 					{{- if or .Auth.Enabled .Auth.IsAdmin}}
 					<div class="dropdown d-none d-xxl-block">
 						<button class="btn btn-link nav-link account-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="accountMenu" title="{{if .Auth.Enabled}}{{t "My account"}}: {{.Auth.User}}{{else}}{{t "Settings"}}{{end}}">

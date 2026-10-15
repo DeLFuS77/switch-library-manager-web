@@ -452,6 +452,21 @@ h3,
 	border-top: 1px solid var(--bs-border-color);
 }
 
+// Settings at one click, next to the account menu
+.settings-shortcut {
+	align-items: center;
+	padding: .35rem .5rem;
+	font-size: 1.15rem;
+	color: var(--bs-secondary-color);
+	border-radius: $border-radius;
+
+	&:hover,
+	&.active {
+		color: var(--bs-body-color);
+		background: var(--slm-surface-muted);
+	}
+}
+
 // the account menu at the end of the bar: the avatar alone
 .account-toggle {
 	display: flex;
