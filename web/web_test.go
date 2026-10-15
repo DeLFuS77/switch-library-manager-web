@@ -848,8 +848,16 @@ func TestStatistics(t *testing.T) {
 	if len(stats.ByFormat) != 2 || stats.ByFormat[0].Label != "NSP" || stats.ByFormat[0].Count != 4 || stats.ByFormat[1].Label != "?" {
 		t.Fatalf("unexpected space by format: %+v", stats.ByFormat)
 	}
-	if stats.GamesWithUpdate != 1 || stats.GamesUpToDate != 1 || stats.GamesUpToDatePct != 50 {
+	// up to date as the "Up to date" filter of the library: the known game misses an update,
+	// and the other one is unknown to the titles database
+	if stats.GamesWithUpdate != 1 || stats.GamesUpToDate != 0 || stats.GamesUpToDatePct != 0 || stats.UpdatesPending != 1 || stats.DlcWithUpdate != 0 {
 		t.Fatalf("unexpected update status: %+v", stats)
+	}
+	filter := &TitleItemFilter{}
+	filter.Normalize()
+	_, _, facets := web.getLibraryWithFacets(filter, "en")
+	if facets.All != stats.Games || facets.Update != stats.GamesWithUpdate || facets.Complete != stats.GamesUpToDate {
+		t.Fatalf("the statistics count as the library: %+v %+v", facets, stats)
 	}
 	if stats.MissingDlc != 1 || stats.GamesMissingDlc != 1 || stats.MissingGames != 1 || stats.Issues != 2 {
 		t.Fatalf("unexpected missing counts: %+v", stats)

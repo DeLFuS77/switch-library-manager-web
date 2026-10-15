@@ -5,6 +5,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -32,7 +33,7 @@ func getType(gameFile *db.SwitchGameFiles) string {
 // getLocalTitleName returns the best known name of a local title: the titles database,
 // then the NACP (American English first), then the file name.
 func getLocalTitleName(title *db.SwitchTitle, gameFile *db.SwitchGameFiles) string {
-	if title != nil && title.Attributes.Name != "" {
+	if title != nil && usableName(title.Attributes.Name) {
 		return title.Attributes.Name
 	}
 
@@ -62,11 +63,33 @@ func getLocalTitleName(title *db.SwitchTitle, gameFile *db.SwitchGameFiles) stri
 }
 
 // demoName matches names that mark a demo, for demos the titles database does not flag.
-var demoName = regexp.MustCompile(`(?i)[<(\[]\s*(demo|trial)( version)?\s*[>)\]]|\bdemo version\b|体験版`)
+// Besides English, the trial versions of the Japanese (体験版), Chinese (试玩版, 試玩版, 体验版,
+// 體驗版) and Korean (체험판) stores.
+var demoName = regexp.MustCompile(`(?i)[<(\[]\s*(demo|trial)( version)?\s*[>)\]]|\bdemo version\b|体験版|试玩版|試玩版|体验版|體驗版|체험판`)
 
 // isDemo reports whether a game of the library is a demo.
 func isDemo(title *db.SwitchTitle, name string) bool {
 	return (title != nil && title.Attributes.IsDemo) || demoName.MatchString(name)
+}
+
+// localDemo reports whether the names a game gives itself, in any language, mark a demo: the
+// titles database does not know every demo of every store.
+func localDemo(meta *switchfs.ContentMetaAttributes) bool {
+	if meta == nil || meta.Ncap == nil {
+		return false
+	}
+	for _, name := range meta.Ncap.TitleName {
+		if demoName.MatchString(name.Title) {
+			return true
+		}
+	}
+	return false
+}
+
+// usableName tells a name from a placeholder such as "-" that some entries of the titles
+// database have.
+func usableName(name string) bool {
+	return strings.Trim(name, " -_.?·") != ""
 }
 
 func (web *Web) HandleIndex() {
@@ -329,7 +352,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			Type:         strings.ToUpper(getType(v)),
 			Version:      version,
 			Known:        title != nil,
-			Demo:         isDemo(title, originalName),
+			Demo:         isDemo(title, originalName) || localDemo(v.File.Metadata),
 			Size:         v.File.ExtendedInfo.Size,
 		}
 		item.Added = added["game:"+item.Id]

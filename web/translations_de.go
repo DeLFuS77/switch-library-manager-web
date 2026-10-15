@@ -3,6 +3,8 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Pending updates": "Ausstehende Updates",
+		"%v games, %v DLC": "%v Spiele, %v DLC",
 		"Check new files": "Neue prüfen",
 		"Check everything again": "Alles erneut prüfen",
 		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "„Neue prüfen“ sieht sich nur die seit der letzten Prüfung hinzugefügten oder geänderten Dateien an und macht dort weiter, wo eine abgebrochene Prüfung stand; „Alles erneut prüfen“ liest die ganze Bibliothek noch einmal.",

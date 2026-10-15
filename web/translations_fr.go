@@ -3,6 +3,8 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Pending updates": "Mises à jour en attente",
+		"%v games, %v DLC": "%v jeux, %v DLC",
 		"Check new files": "Vérifier les nouveaux",
 		"Check everything again": "Tout revérifier",
 		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "« Vérifier les nouveaux » ne regarde que les fichiers ajoutés ou modifiés depuis la dernière vérification et reprend là où une vérification arrêtée s'était arrêtée ; « Tout revérifier » relit toute la bibliothèque.",

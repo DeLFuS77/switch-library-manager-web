@@ -914,7 +914,7 @@ func withoutDemos(titles map[string]process.IncompleteTitle, switchDB *db.Switch
 		if base != nil {
 			name = base.Attributes.Name
 		}
-		if isDemo(base, name) {
+		if isDemo(base, name) || localDemo(title.Meta) {
 			delete(titles, key)
 		}
 	}

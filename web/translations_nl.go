@@ -3,6 +3,8 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Pending updates": "Openstaande updates",
+		"%v games, %v DLC": "%v games, %v DLC",
 		"Check new files": "Nieuwe controleren",
 		"Check everything again": "Alles opnieuw controleren",
 		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "‘Nieuwe controleren’ bekijkt alleen de bestanden die sinds de laatste controle zijn toegevoegd of gewijzigd en gaat verder waar een gestopte controle was; ‘Alles opnieuw controleren’ leest de hele bibliotheek nog eens.",
