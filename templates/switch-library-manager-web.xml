@@ -22,13 +22,12 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.30.1
+  <Changes>### 1.30.2
+- The file check says why its files are checked; scans show their progress while walking the folders
+- Every task bar looks the same; a disclaimer page
+### 1.30.1
 - Organize shows its progress; the Space page opens at once
-- The numbers of the library match the filters and the menu
-- Chinese and Korean demos are hidden with the others; clearer file check buttons
-### 1.30.0
-- Compression: choose the threads and the files at once, or let "Measure this server" find the fastest
-- XCZ in blocks like nsz; no library scans while files are being compressed or cleaned</Changes>
+- The numbers of the library match the filters and the menu; Chinese and Korean demos are hidden</Changes>
   <Date>2026-10-15</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
