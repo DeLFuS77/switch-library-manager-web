@@ -4,6 +4,8 @@
 
 ### Fixes
 
+- Settings is at one click again: a gear next to the account menu of the main bar, for administrators (it is still in
+  the account menu too).
 - Tasks: the stripes of the bars move again, and smoothly: an old rule meant to remove their entrance animation stopped
   them, and they now slide on a layer the graphics card moves, instead of a background that stuttered while the page
   was redrawn.
