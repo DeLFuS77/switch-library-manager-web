@@ -3,6 +3,8 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"e.g. zip rar": "например, zip rar",
+		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "Изображения, заметки, контрольные суммы и недокачанные файлы (part, partial, tmp…) уже исключаются без указания здесь.",
 		"Count a game once when you have it from several regions": "Считать игру из нескольких регионов один раз",
 		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "Библиотека показывает одну карточку — копию, которую страница «Место» советует оставить, — с числом других регионов, а счётчики и статистика считают игру один раз. Файлы не меняются.",
 		"You also have this game from other regions: see them on the Space page.": "У вас есть эта игра и из других регионов: смотрите их на странице «Место».",
@@ -1156,7 +1158,6 @@ func init() {
 		"damaged file: %v":               "повреждённый файл: %v",
 		"done":                           "готово",
 		"duplicate %v file (%v)":         "дубликат файла %v (%v)",
-		"e.g. txt jpg nfo":               "например, txt jpg nfo",
 		"empty folder":                   "пустая папка",
 		"empty folders will be deleted":  "пустые папки будут удалены",
 		"failed to read %v [reason: %v]": "не удалось прочитать %v [причина: %v]",

@@ -132,9 +132,13 @@ func copySkipped(skipped map[ExtendedFileInfo]SkippedFile) map[ExtendedFileInfo]
 }
 
 // NonGameFileTypes are the extensions of files that are found next to games and are never
-// games: covers and screenshots of other tools, notes, checksums...
-var NonGameFileTypes = []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".ico", ".txt", ".nfo", ".md", ".json", ".xml",
-	".ini", ".url", ".html", ".htm", ".db", ".log", ".srt", ".sfv", ".md5", ".sha1", ".sha256", ".torrent", ".ds_store"}
+// games: covers and screenshots of other tools, notes, checksums, downloads left halfway by
+// a browser or a download client... Archives (zip, rar, 7z) and loose parts of games (nca)
+// are not among them: they may hold games, and the Issues page lists them.
+var NonGameFileTypes = []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".ico", ".svg", ".txt", ".nfo", ".diz", ".md",
+	".rtf", ".pdf", ".csv", ".json", ".xml", ".ini", ".cfg", ".url", ".lnk", ".html", ".htm", ".db", ".log", ".srt", ".m3u",
+	".sfv", ".md5", ".sha1", ".sha256", ".sha512", ".crc", ".par2", ".torrent", ".ds_store",
+	".part", ".partial", ".tmp", ".bak", ".crdownload", ".download", ".aria2", ".!qb", ".!ut"}
 
 // IsGameFileType reports whether files with this extension (with its dot) are games, which
 // can never be ignored.

@@ -3,6 +3,8 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"e.g. zip rar": "es. zip rar",
+		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "Immagini, note, checksum e download a metà (part, partial, tmp…) sono già esclusi senza scriverli qui.",
 		"Count a game once when you have it from several regions": "Conta una sola volta un gioco che hai di più regioni",
 		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "La libreria mostra una sola scheda, quella della copia che la pagina Spazio consiglia di tenere, con quante altre regioni hai, e contatori e statistiche lo contano una volta. Nessun file viene modificato.",
 		"You also have this game from other regions: see them on the Space page.": "Hai questo gioco anche di altre regioni: guardale nella pagina Spazio.",
@@ -1163,7 +1165,6 @@ func init() {
 		"damaged file: %v":               "file danneggiato: %v",
 		"done":                           "fatto",
 		"duplicate %v file (%v)":         "file %v duplicato (%v)",
-		"e.g. txt jpg nfo":               "es. txt jpg nfo",
 		"empty folder":                   "cartella vuota",
 		"empty folders will be deleted":  "le cartelle vuote verranno eliminate",
 		"failed to read %v [reason: %v]": "lettura di %v non riuscita [motivo: %v]",
