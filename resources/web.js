@@ -2220,6 +2220,24 @@ function initMeasure() {
 	});
 }
 
+// while the Space page is prepared on the server, it asks until it is ready and opens again
+function initSpacePreparing() {
+	if (!document.querySelector('[data-space-preparing]')) {
+		return;
+	}
+	const ask = () => fetch('/space/ready', { cache: 'no-store', headers: { Accept: 'application/json' } })
+		.then(response => (response.ok ? response.json() : { ready: false }))
+		.then(state => {
+			if (state.ready) {
+				window.location.reload();
+			} else {
+				setTimeout(ask, 1000);
+			}
+		})
+		.catch(() => setTimeout(ask, 3000));
+	setTimeout(ask, 800);
+}
+
 function initRegionRemove() {
 	document.querySelectorAll('[data-region-remove]').forEach(button => {
 		button.addEventListener('click', () => {
@@ -2682,6 +2700,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initAutomationSettings();
 	initWizard();
 	initRegionRemove();
+	initSpacePreparing();
 	initPack();
 	initMeasure();
 	initHeroMenus();

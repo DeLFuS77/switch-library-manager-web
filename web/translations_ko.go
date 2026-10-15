@@ -3,6 +3,8 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Looking at what can be freed...": "확보할 수 있는 공간을 찾는 중...",
+		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "원본마다 압축 사본과 비교하고 디스크의 모든 파일을 확인합니다. NAS에서는 잠시 걸립니다. 준비되면 페이지가 저절로 열리며, 다음부터는 바로 열립니다.",
 		"Applying the changes...": "변경 사항을 적용하는 중...",
 		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "파일을 하나씩 옮기거나 삭제합니다. NAS에서는 시간이 걸릴 수 있습니다. 이 페이지를 떠나도 작업은 계속됩니다.",
 		"See it in Tasks": "작업에서 보기",

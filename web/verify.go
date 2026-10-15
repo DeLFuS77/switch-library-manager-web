@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"sort"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -71,6 +72,13 @@ type verifyStore struct {
 	records map[string]verifyRecord
 	// when the last verification finished
 	LastRun time.Time
+	// changed with every result, for what is computed from them
+	version atomic.Uint64
+}
+
+// Version changes with every result recorded.
+func (s *verifyStore) Version() uint64 {
+	return s.version.Load()
 }
 
 type verifyFile struct {
@@ -128,6 +136,7 @@ func (s *verifyStore) set(path string, record verifyRecord) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.records[path] = record
+	s.version.Add(1)
 }
 
 // foundDamaged tells whether a file, unchanged since, was found damaged, also by an older

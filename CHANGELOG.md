@@ -4,6 +4,9 @@
 
 ### Fixes
 
+- Space: the page opens at once. What it shows (each original compared with its compressed copy, every file looked at
+  on the disk) is prepared after each scan and kept until the files or the checks change; when it is not ready yet,
+  the page says it is looking at what can be freed and opens by itself when it is ready, instead of seeming stuck.
 - Organize: applying the changes shows its progress instead of a page that seems stuck: a bar with the game or file
   being moved or deleted and how many are done, and a link to the task, which goes on if you leave the page.
 

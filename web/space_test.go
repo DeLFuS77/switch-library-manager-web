@@ -3,9 +3,11 @@ package web
 import (
 	"encoding/binary"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -262,5 +264,35 @@ func TestPartlyCheckedCopyKeepsTheOriginal(t *testing.T) {
 	web.verifications().set(copyPath, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Partial: true, Checker: verifyChecker})
 	if file := spaceGroup(web.spaceGroups(), SPACE_COMPRESSED).Files[0]; file.Deletable {
 		t.Fatalf("a copy checked in part: %+v", file)
+	}
+}
+
+// The Space page opens at once: while its content is prepared it says so, and once ready it
+// shows it, until the verification results change.
+func TestSpacePageOpensAtOnce(t *testing.T) {
+	web, _ := spaceWeb(t)
+	get := func(url string) string {
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, url, nil))
+		return recorder.Body.String()
+	}
+	if page := get("/space.html"); !strings.Contains(page, "data-space-preparing") {
+		t.Fatal("the first time, the page says its content is prepared")
+	}
+	for deadline := time.Now().Add(10 * time.Second); !strings.Contains(get("/space/ready"), "true"); {
+		if time.Now().After(deadline) {
+			t.Fatal("the content is never ready")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	if page := get("/space.html"); strings.Contains(page, "data-space-preparing") || !strings.Contains(page, "spaceForm") {
+		t.Fatal("once ready, the page shows its content")
+	}
+	web.verifications().set("other", verifyRecord{OK: true})
+	if strings.Contains(get("/space/ready"), "true") {
+		t.Fatal("a new verification result prepares the content again")
+	}
+	for deadline := time.Now().Add(10 * time.Second); web.spacePreparing.Load() && time.Now().Before(deadline); {
+		time.Sleep(20 * time.Millisecond)
 	}
 }

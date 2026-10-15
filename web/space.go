@@ -97,6 +97,8 @@ type SpacePageData struct {
 	CompressSize int64
 	// games of the library with copies of several stores
 	Regions []RegionGroup
+	// the content is being prepared: the page says so and loads it when it is ready
+	Preparing bool
 }
 
 // RemovablePercent is the share of the library that can be freed.
@@ -336,8 +338,41 @@ func isCopyOf(copy string, name string) bool {
 	return match != nil && strings.EqualFold(match[1]+match[5], name)
 }
 
+// spaceKey names the cached content of the Space page: it follows the library, the settings
+// (through derived) and the verification results.
+func (web *Web) spaceKey() string {
+	return fmt.Sprintf("space:%d", web.verifications().Version())
+}
+
+// spaceContent is the content of the Space page, computed once: it opens every original and
+// its compressed copy and looks at many files, which takes a while on a NAS.
+func (web *Web) spaceContent() SpacePageData {
+	return web.derived(web.spaceKey(), func() any { return web.buildSpaceContent() }).(SpacePageData)
+}
+
+// spaceReady tells whether the Space page can be shown at once; if not, its content is
+// prepared in the background, once at a time.
+func (web *Web) spaceReady() bool {
+	if _, ok := web.derivedCached(web.spaceKey()); ok {
+		return true
+	}
+	if web.spacePreparing.CompareAndSwap(false, true) {
+		go func() {
+			defer web.spacePreparing.Store(false)
+			web.spaceContent()
+		}()
+	}
+	return false
+}
+
 func (web *Web) spacePageData() SpacePageData {
-	data := SpacePageData{GlobalPageData: web.globalPageData("space"), Groups: web.spaceGroups()}
+	data := web.spaceContent()
+	data.GlobalPageData = web.globalPageData("space")
+	return data
+}
+
+func (web *Web) buildSpaceContent() SpacePageData {
+	data := SpacePageData{Groups: web.spaceGroups()}
 	for _, group := range data.Groups {
 		data.Reclaimable += group.DeletableSize
 		for _, file := range group.Files {
@@ -366,9 +401,19 @@ func (web *Web) HandleSpace() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/space.html")
 
 	web.router.HandleFunc("/space.html", func(w http.ResponseWriter, r *http.Request) {
+		// the page opens at once and says what it is doing while its content is prepared
+		if !web.spaceReady() {
+			web.render(w, r, templates, SpacePageData{GlobalPageData: web.globalPageData("space"), Preparing: true})
+			return
+		}
 		data := web.spacePageData()
 		data.Regions = web.regionalDuplicates(web.requestLanguage(r))
 		web.render(w, r, templates, data)
+	}).Methods("GET")
+
+	web.router.HandleFunc("/space/ready", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		writeJSON(w, http.StatusOK, map[string]bool{"ready": web.spaceReady()})
 	}).Methods("GET")
 
 	web.handleRegionRemove()

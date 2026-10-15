@@ -3,6 +3,8 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Looking at what can be freed...": "Поиск того, что можно освободить...",
+		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "Каждый оригинал сравнивается со сжатой копией, и каждый файл проверяется на диске; на NAS это занимает немного времени. Страница откроется сама, когда будет готова, а в следующий раз — сразу.",
 		"Applying the changes...": "Применение изменений...",
 		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "Файлы перемещаются или удаляются один за другим; на NAS это может занять время. Задача продолжится, даже если вы уйдёте с этой страницы.",
 		"See it in Tasks": "Посмотреть в задачах",

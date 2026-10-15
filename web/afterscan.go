@@ -25,6 +25,7 @@ func (web *Web) warmPages() {
 	}
 	web.navCounts()
 	web.compressedCopies()
+	web.spaceContent()
 	for _, lang := range web.titleLanguagesWithDefault() {
 		filter := &TitleItemFilter{}
 		filter.Normalize()

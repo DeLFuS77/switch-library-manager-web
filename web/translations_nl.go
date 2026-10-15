@@ -3,6 +3,8 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Looking at what can be freed...": "Zoeken wat vrijgemaakt kan worden...",
+		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "Elk origineel wordt vergeleken met zijn gecomprimeerde kopie en elk bestand wordt op de schijf bekeken; op een NAS duurt dat even. De pagina opent vanzelf zodra ze klaar is, en de volgende keer meteen.",
 		"Applying the changes...": "Wijzigingen toepassen...",
 		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "Bestanden worden een voor een verplaatst of verwijderd; op een NAS kan dat even duren. De taak gaat door, ook als je deze pagina verlaat.",
 		"See it in Tasks": "Bekijk in Taken",

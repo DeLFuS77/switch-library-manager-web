@@ -1,6 +1,18 @@
 {{define "title"}}{{t "Space"}}{{end}}
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Space") "Count" -1 "Subtitle" (t "Files that take space without being needed: old updates, duplicates and originals that already have a compressed copy. Nothing is deleted until you confirm it."))}}
+			{{- if .Preparing}}
+			<section class="surface space-preparing" data-space-preparing role="status" aria-live="polite">
+				<div class="d-flex align-items-center gap-3 mb-3">
+					<span class="spinner-border text-primary flex-shrink-0" aria-hidden="true"></span>
+					<div>
+						<h2 class="h6 fw-semibold mb-1">{{t "Looking at what can be freed..."}}</h2>
+						<div class="small text-body-secondary">{{t "Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once."}}</div>
+					</div>
+				</div>
+				<div class="progress" role="progressbar" aria-label="{{t "Progress"}}"><div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div></div>
+			</section>
+			{{- else}}
 			{{- if or .Reclaimable .Unverified}}
 			<section class="surface mb-4 space-overview">
 				<div class="row g-4 align-items-center">
@@ -113,6 +125,7 @@
 				{{- end}}
 			</section>
 			{{- end}}
+{{- end}}
 {{- end}}
 
 {{define "spaceGroupTitle"}}{{if eq . "old_updates"}}{{t "Old updates"}}{{else if eq . "duplicates"}}{{t "Duplicates"}}{{else}}{{t "Compressed originals"}}{{end}}{{end}}
