@@ -22,12 +22,12 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.33.0
-- A more visual DLC page: each DLC with its picture, date and size
-- Every check is kept; demos are told by the flag of the game itself
-- Smooth task bars, the total goes from red to green; Settings at one click
-### 1.32.0
-- Tune-up: the steps to put your library in order, in order, each with what is left to do</Changes>
+  <Changes>### 1.34.0
+- Count a game once when you have it from several regions (Settings)
+- Pages of cards fill their last row; tasks show their file counter in a fixed place
+- More non-game files left out of Issues by themselves
+### 1.33.0
+- A more visual DLC page: each DLC with its picture, date and size</Changes>
   <Date>2026-10-15</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
