@@ -316,6 +316,75 @@ h3,
 	}
 }
 
+// the tune-up: the steps in order, the first one waiting marked
+.maintenance-steps {
+	display: grid;
+	gap: .75rem;
+	counter-reset: step;
+}
+
+.maintenance-step {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	border-left: 4px solid transparent;
+
+	&.step-done {
+		border-left-color: #{$success};
+	}
+
+	&.is-next {
+		border-left-color: #{$warning};
+		box-shadow: 0 0 0 1px rgba($warning, .35);
+	}
+}
+
+.maintenance-number {
+	flex-shrink: 0;
+	display: inline-grid;
+	place-items: center;
+	width: 2.25rem;
+	height: 2.25rem;
+	border-radius: 50%;
+	font-weight: 800;
+	background: var(--slm-surface-muted);
+
+	.step-done & {
+		color: #fff;
+		background: #{$success};
+	}
+
+	.is-next & {
+		color: #000;
+		background: #{$warning};
+	}
+}
+
+.maintenance-action {
+	flex-shrink: 0;
+}
+
+@include media-breakpoint-down(sm) {
+	.maintenance-step {
+		flex-wrap: wrap;
+	}
+
+	.maintenance-action {
+		width: 100%;
+		padding-left: 3.25rem;
+	}
+}
+
+// the line of a tool page that tells its step of the tune-up
+.maintenance-hint {
+	display: inline-flex;
+	align-items: center;
+	gap: .4rem;
+	margin: -.5rem 0 1rem;
+	font-size: .875rem;
+	text-decoration: none;
+}
+
 // the menus of the bar (Discover, Tools): each page with a line that says what it is for
 .nav-menu {
 	min-width: 18rem;

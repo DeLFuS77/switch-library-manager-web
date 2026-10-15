@@ -1,0 +1,31 @@
+{{define "title"}}{{t "Tune-up"}}{{end}}
+{{define "main"}}
+			{{- template "pageHeader" (dict "Title" (t "Tune-up") "Count" -1 "Subtitle" (t "The steps to put your library in order, in the order they depend on each other. Each one shows what is left to do; the first one waiting is marked."))}}
+			<ol class="maintenance-steps list-unstyled">
+				{{- range .Steps}}
+				<li class="surface maintenance-step step-{{.Status}}{{if .Next}} is-next{{end}}">
+					<span class="maintenance-number" aria-hidden="true">{{if eq .Status "done"}}<span class="bi bi-check-lg"></span>{{else}}{{.Number}}{{end}}</span>
+					<div class="flex-grow-1 min-w-0">
+						<div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+							<h2 class="h6 fw-semibold mb-0"><span class="bi {{.Icon}} me-1" aria-hidden="true"></span>{{.Title}}</h2>
+							{{- if .Next}}<span class="chip chip-warning"><span class="bi bi-arrow-right-circle" aria-hidden="true"></span>{{t "Next step"}}</span>
+							{{- else if eq .Status "done"}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Done"}}</span>
+							{{- else if eq .Status "preparing"}}<span class="chip chip-muted"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span>{{t "Looking..."}}</span>
+							{{- else}}<span class="chip chip-muted">{{t "Waiting"}}</span>{{end}}
+						</div>
+						<p class="small text-body-secondary mb-1">{{.Why}}</p>
+						<p class="mb-0 fw-semibold small">{{.Detail}}</p>
+					</div>
+					<div class="maintenance-action admin-only">
+						{{- if eq .Action "sync"}}<a class="btn btn-sm {{if .Next}}btn-primary{{else}}btn-outline-secondary{{end}} rounded-pill" href="/sync" data-sync-action><span class="bi bi-arrow-repeat me-1" aria-hidden="true"></span>{{t "Synchronize"}}</a>
+						{{- else if eq .Action "verify"}}<button type="button" class="btn btn-sm {{if .Next}}btn-primary{{else}}btn-outline-secondary{{end}} rounded-pill" data-verify="changed"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Check new files"}}</button>
+						{{- else}}<a class="btn btn-sm {{if .Next}}btn-primary{{else}}btn-outline-secondary{{end}} rounded-pill" href="{{.Href}}">{{t "Open"}} <span class="bi bi-arrow-right" aria-hidden="true"></span></a>{{end}}
+					</div>
+				</li>
+				{{- end}}
+			</ol>
+			<div class="alert alert-info d-flex gap-2 align-items-start mt-4">
+				<span class="bi bi-magic mt-1" aria-hidden="true"></span>
+				<div>{{if .AutomationsOn}}{{t "The automations are on: new files are checked, compressed and the updates they replace deleted by themselves, in this same order."}}{{else}}{{t "For the files that come later, the automations can do these steps by themselves, in this same order."}} <a class="alert-link admin-only" href="/settings.html#automation">{{t "Set up the automations"}}</a>{{end}}</div>
+			</div>
+{{- end}}

@@ -2,6 +2,7 @@
 {{define "main"}}
 			{{- $o := .Settings.OrganizeOptions}}
 			{{- template "pageHeader" (dict "Title" (t "Organize") "Count" -1 "Subtitle" (t "Every action shows a preview first, nothing changes until you confirm it."))}}
+			{{- with maintenanceStep .Page}}<a class="maintenance-hint" href="/maintenance.html"><span class="bi bi-list-check" aria-hidden="true"></span>{{t "Step %v of 5 of the tune-up" .}} <span class="text-body-secondary">&middot; {{t "See the steps in order"}}</span></a>{{end}}
 			<div class="surface d-flex align-items-center gap-3 mb-4 py-3">
 				<span class="stat-icon flex-shrink-0"><span class="bi bi-folder2-open" aria-hidden="true"></span></span>
 				<div class="min-w-0">
