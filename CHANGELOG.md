@@ -1,9 +1,24 @@
 # Changelog
 
-## Unreleased
+## 1.33.0
+
+### Improvements
+
+- DLC: each missing DLC is a card with its own picture, its release date and its size, with its checkbox and its
+  Ignore button, under the cover of its game.
+- Tasks: the total bar of a running task goes from red to green as it advances, through orange and yellow, so it stands
+  apart from the bars of the files; the progress of Organize too.
+- Every check of a file is kept and used everywhere: a compression reads its original whole, and that is now its check
+  (the original and the NSZ count as checked); a decompression, a conversion and a pack check the file they write whole,
+  and that counts as its check too. The next file check does not read those files again.
+- Organize names a game that has no English name, in the titles database or in itself, by the name it gives itself in
+  another language (Latin letters first, then Japanese, Korean or Chinese) instead of by the name of its file; a
+  placeholder name such as "-" of the titles database does not count.
 
 ### Fixes
 
+- Game pages show their cover and banner from the server, like the cards, and a cover or picture that cannot be loaded
+  (a network that blocks Nintendo, a cover gone) shows the placeholder instead of a broken image.
 - Demos the titles database does not know (of the Chinese store, for example) are hidden with the others: the app reads
   the demo flag the game itself carries, whatever its name or store. Only the games the titles database does not know
   are read again once for it, not the whole library.
@@ -14,17 +29,6 @@
 - Tasks: the stripes of the bars move again, and smoothly: an old rule meant to remove their entrance animation stopped
   them, and they now slide on a layer the graphics card moves, instead of a background that stuttered while the page
   was redrawn.
-
-### Improvements
-
-- Tasks: the total bar of a running task goes from red to green as it advances, through orange and yellow, so it stands
-  apart from the bars of the files; the progress of Organize too.
-- Every check of a file is kept and used everywhere: a compression reads its original whole, and that is now its check
-  (the original and the NSZ count as checked); a decompression, a conversion and a pack check the file they write whole,
-  and that counts as its check too. The next file check does not read those files again.
-- Organize names a game that has no English name, in the titles database or in itself, by the name it gives itself in
-  another language (Latin letters first, then Japanese, Korean or Chinese) instead of by the name of its file; a
-  placeholder name such as "-" of the titles database does not count.
 
 ## 1.32.0
 
