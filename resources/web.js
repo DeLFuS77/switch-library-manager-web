@@ -907,11 +907,15 @@ function initTaskIndicator() {
 // they replace were, as they all follow the clock of the page, instead of starting again
 function keepAnimationsInStep(root) {
 	const now = document.timeline ? document.timeline.currentTime : performance.now();
-	root.querySelectorAll('.spinner-border, .progress-bar-animated').forEach(element => {
+	root.querySelectorAll('.spinner-border').forEach(element => {
 		const duration = parseFloat(getComputedStyle(element).animationDuration) * 1000;
 		if (duration > 0) {
 			element.style.animationDelay = `-${now % duration}ms`;
 		}
+	});
+	// the stripes move on a layer of their own, one second per stripe
+	root.querySelectorAll('.progress-bar-animated').forEach(element => {
+		element.style.setProperty('--stripe-delay', `-${now % 1000}ms`);
 	});
 }
 
