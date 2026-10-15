@@ -68,24 +68,17 @@
 							{{- template "navLink" (dict "Page" .Page "Id" "settings" "Href" "/settings.html" "Icon" "bi-gear" "Label" (t "Settings") "Count" 0 "Badge" "")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "users" "Href" "/users.html" "Icon" "bi-people" "Label" (t "Users") "Count" 0 "Badge" "")}}
 							{{- end}}
-							<li class="nav-item dropdown">
-								<button class="btn btn-link nav-link dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="themeMenu">
-									<span class="bi bi-circle-half" aria-hidden="true"></span><span class="d-xxl-none">{{t "Theme"}}</span><span class="visually-hidden d-none d-xxl-inline">{{t "Theme"}}</span>
-								</button>
-								<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeMenu">
-									<li><button type="button" class="dropdown-item" data-theme-value="light"><span class="bi bi-sun-fill me-2" aria-hidden="true"></span>{{t "Light"}}</button></li>
-									<li><button type="button" class="dropdown-item" data-theme-value="dark"><span class="bi bi-moon-stars-fill me-2" aria-hidden="true"></span>{{t "Dark"}}</button></li>
-									<li><button type="button" class="dropdown-item" data-theme-value="auto"><span class="bi bi-circle-half me-2" aria-hidden="true"></span>{{t "Automatic (system)"}}</button></li>
-								</ul>
-							</li>
 							{{- if .Auth.Enabled}}
 							<li class="nav-item dropdown">
 								<button class="btn btn-link nav-link dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="userMenu">
-									<span class="user-avatar user-avatar-sm" aria-hidden="true">{{initial .Auth.User}}</span><span class="d-xxl-none">{{.Auth.User}}</span><span class="visually-hidden d-none d-xxl-inline">{{t "My account"}}: {{.Auth.User}}</span>
+									<span class="user-avatar user-avatar-sm{{with .Auth.Color}} avatar-{{.}}{{end}}" aria-hidden="true">{{initial .Auth.User}}</span><span class="d-xxl-none">{{.Auth.User}}</span><span class="visually-hidden d-none d-xxl-inline">{{t "My account"}}: {{.Auth.User}}</span>
 								</button>
 								<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
 									<li><span class="dropdown-item-text small text-body-secondary">{{.Auth.User}} &middot; {{if .Auth.IsAdmin}}{{t "Administrator"}}{{else}}{{t "Read only"}}{{end}}</span></li>
 									<li><a class="dropdown-item" href="/account.html"><span class="bi bi-person-gear me-2" aria-hidden="true"></span>{{t "My account"}}</a></li>
+									<li><hr class="dropdown-divider"></li>
+									<li><h6 class="dropdown-header">{{t "Theme"}}</h6></li>
+									{{- template "themeChoices" "dropdown-item"}}
 									<li><hr class="dropdown-divider"></li>
 									<li>
 										<form method="post" action="/logout">
@@ -187,4 +180,10 @@
 									<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}} ms-auto ms-xxl-0">{{num .Count}}</span>{{end}}
 								</a>
 							</li>
+{{- end}}
+
+{{define "themeChoices"}}
+<li><button type="button" class="{{.}}" data-theme-value="light"><span class="bi bi-sun-fill me-2" aria-hidden="true"></span>{{t "Light"}}</button></li>
+<li><button type="button" class="{{.}}" data-theme-value="dark"><span class="bi bi-moon-stars-fill me-2" aria-hidden="true"></span>{{t "Dark"}}</button></li>
+<li><button type="button" class="{{.}}" data-theme-value="auto"><span class="bi bi-circle-half me-2" aria-hidden="true"></span>{{t "Automatic (system)"}}</button></li>
 {{- end}}

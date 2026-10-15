@@ -94,6 +94,13 @@
 						</section>
 						<section class="surface mb-4 settings-section" id="general" aria-labelledby="generalTitle">
 							<h2 class="section-title" id="generalTitle"><span class="bi bi-sliders" aria-hidden="true"></span>{{t "General"}}</h2>
+							<div class="mb-3">
+								<div class="form-label fw-semibold" id="themeChoicesLabel">{{t "Theme"}}</div>
+								<ul class="list-unstyled d-flex flex-wrap gap-2 mb-1 theme-choices" role="group" aria-labelledby="themeChoicesLabel">
+									{{- template "themeChoices" "btn btn-sm btn-outline-secondary rounded-pill"}}
+								</ul>
+								<div class="form-text">{{t "The theme is kept by each browser."}}</div>
+							</div>
 							<div class="row g-3">
 								<div class="col-md-6">
 									<label for="sync_interval_hours" class="form-label fw-semibold">{{t "Automatic synchronization"}}</label>

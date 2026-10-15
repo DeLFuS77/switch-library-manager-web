@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -43,8 +44,10 @@ type User struct {
 	Role         string `json:"role"`
 	PasswordHash string `json:"password_hash"`
 	// interface language of the user; empty for the language of the app
-	Language string    `json:"language,omitempty"`
-	Created  time.Time `json:"created"`
+	Language string `json:"language,omitempty"`
+	// colour of the avatar, one of avatarColors; empty for the colours of the app
+	Color   string    `json:"color,omitempty"`
+	Created time.Time `json:"created"`
 }
 
 func (u User) IsAdmin() bool {
@@ -181,6 +184,25 @@ func (s *UserStore) SetLanguage(name string, lang string) error {
 		return ErrUserNotFound
 	}
 	user.Language = lang
+	return s.save()
+}
+
+// avatarColors are the colours an avatar can take.
+var avatarColors = []string{"red", "orange", "yellow", "green", "teal", "cyan", "blue", "purple", "pink", "gray"}
+
+// SetColor changes the colour of the avatar of a user; an unknown colour gives the colours
+// of the app.
+func (s *UserStore) SetColor(name string, color string) error {
+	if !slices.Contains(avatarColors, color) {
+		color = ""
+	}
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	user, ok := s.users[strings.ToLower(name)]
+	if !ok {
+		return ErrUserNotFound
+	}
+	user.Color = color
 	return s.save()
 }
 

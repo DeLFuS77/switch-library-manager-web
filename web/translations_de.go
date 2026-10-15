@@ -3,6 +3,9 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Colour of my icon": "Farbe meines Symbols",
+		"The colours of the app": "Die Farben der App",
+		"The colour of your icon was saved.": "Die Farbe deines Symbols wurde gespeichert.",
 		"Disclaimer": "Haftungsausschluss",
 		"No warranty: keep a backup of your games.": "Keine Garantie: Behalte eine Sicherung deiner Spiele.",
 		"Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0) says.": "Switch Library Manager Web ist freie Software und wird so bereitgestellt, wie sie ist, ohne jede Garantie, wie es ihre Lizenz (AGPL-3.0) sagt.",

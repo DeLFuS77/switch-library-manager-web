@@ -34,6 +34,8 @@ type AccountPageData struct {
 	Languages []string
 	// the user is stored in users.json, so preferences can be kept
 	Stored bool
+	// the colours the avatar can take
+	AvatarColors []string
 }
 
 // messages shown after an action, by the key in the redirect
@@ -44,6 +46,7 @@ var userMessages = map[string]string{
 	"deleted":  "The user was deleted.",
 	"enabled":  "Login is now required. You are logged in as the new administrator.",
 	"language": "Your language was saved.",
+	"color":    "The colour of your icon was saved.",
 }
 
 func (web *Web) HandleUsers() {
@@ -113,7 +116,7 @@ func (web *Web) HandleUsers() {
 
 	web.router.HandleFunc("/account.html", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
-		data := AccountPageData{GlobalPageData: web.globalPageData("account"), Languages: supportedLanguages}
+		data := AccountPageData{GlobalPageData: web.globalPageData("account"), Languages: supportedLanguages, AvatarColors: avatarColors}
 		if principal := principalFrom(r); principal != nil && principal.Name != "" {
 			if user, ok := web.auth.users.Get(principal.Name); ok {
 				data.Stored, data.Language = true, user.Language
@@ -205,6 +208,19 @@ func (web *Web) HandleUsers() {
 			return
 		}
 		http.Redirect(w, r, "/account.html?done=language", http.StatusSeeOther)
+	}).Methods("POST")
+
+	web.router.HandleFunc("/account/color", func(w http.ResponseWriter, r *http.Request) {
+		principal := principalFrom(r)
+		if principal == nil || principal.Name == "" || principal.Source == "env" {
+			redirectWithError(w, r, "/account.html", ErrEnvironmentUser)
+			return
+		}
+		if err := web.auth.users.SetColor(principal.Name, r.FormValue("color")); err != nil {
+			redirectWithError(w, r, "/account.html", err)
+			return
+		}
+		http.Redirect(w, r, "/account.html?done=color", http.StatusSeeOther)
 	}).Methods("POST")
 
 	web.router.HandleFunc("/account/password", func(w http.ResponseWriter, r *http.Request) {

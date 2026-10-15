@@ -3,6 +3,9 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Colour of my icon": "내 아이콘 색",
+		"The colours of the app": "앱의 색",
+		"The colour of your icon was saved.": "아이콘 색을 저장했습니다.",
 		"Disclaimer": "면책 조항",
 		"No warranty: keep a backup of your games.": "보증하지 않습니다. 게임을 백업해 두세요.",
 		"Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0) says.": "Switch Library Manager Web은 자유 소프트웨어로, 라이선스(AGPL-3.0)에 따라 어떠한 보증도 없이 있는 그대로 제공됩니다.",

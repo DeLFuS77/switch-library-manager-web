@@ -3,6 +3,9 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Colour of my icon": "我的图标颜色",
+		"The colours of the app": "应用的颜色",
+		"The colour of your icon was saved.": "已保存你的图标颜色。",
 		"Disclaimer": "免责声明",
 		"No warranty: keep a backup of your games.": "不提供任何担保:请备份你的游戏。",
 		"Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0) says.": "Switch Library Manager Web 是自由软件,按原样提供,不附带任何担保,正如其许可证 (AGPL-3.0) 所述。",

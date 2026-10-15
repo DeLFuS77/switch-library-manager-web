@@ -67,6 +67,8 @@ type AuthInfo struct {
 	FromEnv bool
 	// the password of SLM_AUTH_PASSWORD is weak: shown to the administrators
 	WeakEnvPassword bool
+	// the colour of the avatar of the user, or "" for the colours of the app
+	Color string
 }
 
 type principalKey struct{}
@@ -283,7 +285,7 @@ func viewerAllowed(r *http.Request) bool {
 		return !adminOnly && !strings.HasPrefix(r.URL.Path, "/backup/")
 	case http.MethodPost:
 		// the list of files of the SD card planner is a download, as the pages are
-		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt"
+		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/account/color" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt"
 	}
 	return false
 }
@@ -537,7 +539,13 @@ func (web *Web) authInfo(r *http.Request) AuthInfo {
 	principal := principalFrom(r)
 	enabled := web.auth != nil && web.auth.Enabled()
 	weak := web.auth != nil && web.auth.envPasswordWeak != nil
-	return AuthInfo{Enabled: enabled, User: principal.Name, IsAdmin: principal.IsAdmin(), FromEnv: principal.Source == "env", WeakEnvPassword: weak && principal.IsAdmin()}
+	info := AuthInfo{Enabled: enabled, User: principal.Name, IsAdmin: principal.IsAdmin(), FromEnv: principal.Source == "env", WeakEnvPassword: weak && principal.IsAdmin()}
+	if web.auth != nil && web.auth.users != nil && principal.Name != "" {
+		if user, ok := web.auth.users.Get(principal.Name); ok {
+			info.Color = user.Color
+		}
+	}
+	return info
 }
 
 // loginLimiter slows and blocks failed logins. It keys on both the client address and the

@@ -335,8 +335,11 @@ h3,
 
 // the tasks icon turns while background work runs
 @media (prefers-reduced-motion: no-preference) {
-	.nav-busy {
-		@include spinning-icon(1.6s);
+	// only the glyph turns, a square of its own: the icon keeps its place on the line of the
+	// other icons of the menu
+	.nav-busy::before {
+		transform-origin: 50% 50%;
+		animation: slm-spin 1.6s linear infinite;
 	}
 }
 
@@ -1732,6 +1735,66 @@ h3,
 		width: 3.5rem;
 		height: 3.5rem;
 		font-size: 1.4rem;
+	}
+}
+
+// the colours an avatar can take, chosen by each user on their account page
+$avatar-colors: (
+	"red": #d62839,
+	"orange": #e8590c,
+	"yellow": #d4a106,
+	"green": #1f9d55,
+	"teal": #0c8f7a,
+	"cyan": #0fb5d8,
+	"blue": #3b6fe0,
+	"purple": #8a4fd8,
+	"pink": #d6338a,
+	"gray": #6c757d
+);
+
+@each $name, $color in $avatar-colors {
+	.user-avatar.avatar-#{$name} {
+		background: linear-gradient(135deg, $color, darken($color, 12%));
+	}
+}
+
+// the theme in Settings: the one in use is marked
+.theme-choices .btn.active {
+	color: var(--bs-btn-active-color);
+	background-color: var(--bs-btn-active-bg);
+	border-color: var(--bs-btn-active-border-color);
+}
+
+.avatar-colors {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .5rem;
+}
+
+.avatar-choice {
+	cursor: pointer;
+
+	input {
+		position: absolute;
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.user-avatar {
+		transition: transform .15s ease, box-shadow .15s ease;
+	}
+
+	&:hover .user-avatar {
+		transform: scale(1.08);
+	}
+
+	input:checked + .user-avatar {
+		box-shadow: 0 0 0 3px var(--bs-body-bg), 0 0 0 5px var(--bs-emphasis-color);
+	}
+
+	input:focus-visible + .user-avatar {
+		outline: 2px solid var(--bs-primary);
+		outline-offset: 4px;
 	}
 }
 

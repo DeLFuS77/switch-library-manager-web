@@ -3,6 +3,9 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Colour of my icon": "Цвет моего значка",
+		"The colours of the app": "Цвета приложения",
+		"The colour of your icon was saved.": "Цвет значка сохранён.",
 		"Disclaimer": "Отказ от ответственности",
 		"No warranty: keep a backup of your games.": "Без гарантий: храните резервную копию своих игр.",
 		"Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0) says.": "Switch Library Manager Web — свободная программа, предоставляемая как есть, без каких-либо гарантий, как сказано в её лицензии (AGPL-3.0).",

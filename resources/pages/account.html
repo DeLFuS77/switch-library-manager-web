@@ -6,7 +6,7 @@
 				<div class="col-lg-5">
 					<section class="surface h-100">
 						<div class="d-flex align-items-center gap-3">
-							<span class="user-avatar user-avatar-lg" aria-hidden="true">{{if .Auth.User}}{{initial .Auth.User}}{{else}}?{{end}}</span>
+							<span class="user-avatar user-avatar-lg{{with .Auth.Color}} avatar-{{.}}{{end}}" aria-hidden="true">{{if .Auth.User}}{{initial .Auth.User}}{{else}}?{{end}}</span>
 							<div>
 								<div class="h5 fw-bold mb-1">{{if .Auth.User}}{{.Auth.User}}{{else}}{{t "Guest"}}{{end}}</div>
 								{{- if .Auth.IsAdmin}}<span class="chip chip-success">{{t "Administrator"}}</span>{{else}}<span class="chip chip-muted">{{t "Read only"}}</span>{{end}}
@@ -25,6 +25,18 @@
 								<button class="btn btn-outline-primary rounded-pill text-nowrap" type="submit">{{t "Save"}}</button>
 							</div>
 							<div class="form-text">{{t "The theme is kept by each browser."}}</div>
+						</form>
+						<form class="mt-4" method="post" action="/account/color">
+							<fieldset>
+								<legend class="form-label fw-semibold fs-6">{{t "Colour of my icon"}}</legend>
+								<div class="avatar-colors" role="radiogroup">
+									<label class="avatar-choice" title="{{t "The colours of the app"}}"><input type="radio" name="color" value=""{{if eq $.Auth.Color ""}} checked{{end}}><span class="user-avatar" aria-hidden="true">{{initial $.Auth.User}}</span><span class="visually-hidden">{{t "The colours of the app"}}</span></label>
+									{{- range .AvatarColors}}
+									<label class="avatar-choice"><input type="radio" name="color" value="{{.}}"{{if eq $.Auth.Color .}} checked{{end}}><span class="user-avatar avatar-{{.}}" aria-hidden="true">{{initial $.Auth.User}}</span><span class="visually-hidden">{{.}}</span></label>
+									{{- end}}
+								</div>
+							</fieldset>
+							<button class="btn btn-outline-primary rounded-pill mt-2" type="submit">{{t "Save"}}</button>
 						</form>
 						{{- end}}
 						{{- if .Auth.Enabled}}

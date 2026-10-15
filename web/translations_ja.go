@@ -3,6 +3,9 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Colour of my icon": "アイコンの色",
+		"The colours of the app": "アプリの色",
+		"The colour of your icon was saved.": "アイコンの色を保存しました。",
 		"Disclaimer": "免責事項",
 		"No warranty: keep a backup of your games.": "保証はありません。ゲームのバックアップを保管してください。",
 		"Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0) says.": "Switch Library Manager Web はフリーソフトウェアであり、ライセンス (AGPL-3.0) のとおり、いかなる保証もなく現状のまま提供されます。",
