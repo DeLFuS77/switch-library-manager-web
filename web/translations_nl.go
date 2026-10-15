@@ -3,6 +3,8 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"e.g. zip rar": "bijv. zip rar",
+		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "Afbeeldingen, notities, controlesommen en half afgemaakte downloads (part, partial, tmp…) worden al weggelaten zonder ze hier te zetten.",
 		"Count a game once when you have it from several regions": "Een game uit meerdere regio's één keer tellen",
 		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "De bibliotheek toont één kaart, die van de kopie die de pagina Ruimte aanraadt te bewaren, met hoeveel andere regio's je hebt, en tellers en statistieken tellen het één keer. Er wordt geen bestand gewijzigd.",
 		"You also have this game from other regions: see them on the Space page.": "Je hebt deze game ook uit andere regio's: bekijk ze op de pagina Ruimte.",
@@ -1156,7 +1158,6 @@ func init() {
 		"damaged file: %v":               "beschadigd bestand: %v",
 		"done":                           "klaar",
 		"duplicate %v file (%v)":         "dubbel %v-bestand (%v)",
-		"e.g. txt jpg nfo":               "bijv. txt jpg nfo",
 		"empty folder":                   "lege map",
 		"empty folders will be deleted":  "lege mappen worden verwijderd",
 		"failed to read %v [reason: %v]": "kan %v niet lezen [reden: %v]",

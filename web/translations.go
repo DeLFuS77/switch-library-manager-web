@@ -5,6 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"e.g. zip rar": "p. ej. zip rar",
+		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "Las imágenes, notas, sumas de control y descargas a medias (part, partial, tmp…) ya se ignoran sin escribirlas aquí.",
 		"Count a game once when you have it from several regions": "Contar una sola vez un juego que tienes de varias regiones",
 		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "La biblioteca muestra una sola tarjeta, la de la copia que Espacio recomienda conservar, con cuántas regiones más tienes, y los contadores y las estadísticas lo cuentan una vez. No se cambia ningún archivo.",
 		"You also have this game from other regions: see them on the Space page.": "También tienes este juego de otras regiones: míralas en la página Espacio.",
@@ -1057,7 +1059,6 @@ var translations = map[string]map[string]string{
 		"Ignored Update Title IDs": "IDs con actualizaciones ignoradas",
 		"Games or DLC whose missing updates are not listed. One Title ID per Line": "Juegos o DLC cuyas actualizaciones no se listan. Un ID por línea",
 		"Ignored file types": "Tipos de archivo ignorados",
-		"e.g. txt jpg nfo":   "p. ej. txt jpg nfo",
 		"Unsupported files with these extensions are not reported as issues": "Los archivos no compatibles con estas extensiones no se muestran en Problemas",
 		"Do not list updates for DLC":                                        "No listar actualizaciones de DLC",
 		"Automatic synchronization":                                          "Sincronización automática",

@@ -3,6 +3,8 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"e.g. zip rar": "例: zip rar",
+		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "画像、メモ、チェックサム、途中のダウンロード (part、partial、tmp など) は、ここに書かなくても除外されます。",
 		"Count a game once when you have it from several regions": "複数の地域版があるゲームを 1 本として数える",
 		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "ライブラリには容量ページが残すよう勧めるコピーのカードを 1 枚だけ、他の地域の数とともに表示し、カウンターと統計では 1 本として数えます。ファイルは変更されません。",
 		"You also have this game from other regions: see them on the Space page.": "このゲームは他の地域版もあります。容量ページで確認できます。",
@@ -1156,7 +1158,6 @@ func init() {
 		"damaged file: %v":               "破損したファイル：%v",
 		"done":                           "完了",
 		"duplicate %v file (%v)":         "重複した%vファイル（%v）",
-		"e.g. txt jpg nfo":               "例: txt jpg nfo",
 		"empty folder":                   "空のフォルダー",
 		"empty folders will be deleted":  "空のフォルダーは削除されます",
 		"failed to read %v [reason: %v]": "%vを読み込めませんでした [理由: %v]",

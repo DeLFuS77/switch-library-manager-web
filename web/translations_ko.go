@@ -3,6 +3,8 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"e.g. zip rar": "예: zip rar",
+		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "이미지, 메모, 체크섬, 중간에 멈춘 다운로드(part, partial, tmp 등)는 여기에 쓰지 않아도 이미 제외됩니다.",
 		"Count a game once when you have it from several regions": "여러 지역판이 있는 게임을 한 번만 세기",
 		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "라이브러리는 공간 페이지가 남기라고 권하는 사본의 카드 하나를 다른 지역 수와 함께 보여 주고, 카운터와 통계에서는 한 번만 셉니다. 파일은 바뀌지 않습니다.",
 		"You also have this game from other regions: see them on the Space page.": "이 게임은 다른 지역판도 있습니다. 공간 페이지에서 보세요.",
@@ -1156,7 +1158,6 @@ func init() {
 		"damaged file: %v":               "손상된 파일: %v",
 		"done":                           "완료",
 		"duplicate %v file (%v)":         "중복된 %v 파일 (%v)",
-		"e.g. txt jpg nfo":               "예: txt jpg nfo",
 		"empty folder":                   "빈 폴더",
 		"empty folders will be deleted":  "빈 폴더가 삭제돼요",
 		"failed to read %v [reason: %v]": "%v 읽기 실패 [이유: %v]",

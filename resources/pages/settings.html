@@ -76,8 +76,8 @@
 								</div>
 								<div class="col-md-6">
 									<label for="ignore_file_types" class="form-label fw-semibold">{{t "Ignored file types"}}</label>
-									<input type="text" class="form-control" id="ignore_file_types" name="ignore_file_types" value="{{range $i, $e := .Settings.IgnoreFileTypes}}{{if $i}} {{end}}{{$e}}{{end}}" placeholder="{{t "e.g. txt jpg nfo"}}">
-									<div class="form-text">{{t "Unsupported files with these extensions are not reported as issues"}}</div>
+									<input type="text" class="form-control" id="ignore_file_types" name="ignore_file_types" value="{{range $i, $e := .Settings.IgnoreFileTypes}}{{if $i}} {{end}}{{$e}}{{end}}" placeholder="{{t "e.g. zip rar"}}">
+									<div class="form-text">{{t "Unsupported files with these extensions are not reported as issues"}}. {{t "Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here."}}</div>
 								</div>
 								<div class="col-md-6 d-flex flex-column justify-content-center gap-2">
 									<div class="form-check form-switch">

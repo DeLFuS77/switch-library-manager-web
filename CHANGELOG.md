@@ -4,6 +4,10 @@
 
 ### Improvements
 
+- More files that are never games are left out of the Issues page by themselves: downloads left halfway (part,
+  partial, tmp, crdownload, download, aria2, !qb, !ut), backups (bak), documents (pdf, rtf, csv, diz), shortcuts (lnk),
+  playlists (m3u), settings (cfg), more checksums (sha512, crc, par2) and svg images. Archives and loose parts of games
+  are still listed, as they may hold games. The setting of the ignored types says which ones are left out already.
 - Settings › Ignored items › "Count a game once when you have it from several regions": the library shows one card for
   such a game, the copy the Space page suggests to keep, with how many other regions you have, and the counters, the
   filters and the statistics count it once. Off by default; no file is changed.

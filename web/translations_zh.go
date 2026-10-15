@@ -3,6 +3,8 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"e.g. zip rar": "例如 zip rar",
+		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "图片、说明、校验文件和未下载完的文件(part、partial、tmp 等)无需在此填写,已自动忽略。",
 		"Count a game once when you have it from several regions": "拥有多个地区版本的游戏只计一次",
 		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "库中只显示一张卡片,即空间页面建议保留的副本,并注明你还有几个其他地区版本;计数和统计只算一次。不会更改任何文件。",
 		"You also have this game from other regions: see them on the Space page.": "你还有这个游戏的其他地区版本:可在空间页面查看。",
@@ -1156,7 +1158,6 @@ func init() {
 		"damaged file: %v":               "损坏的文件：%v",
 		"done":                           "完成",
 		"duplicate %v file (%v)":         "重复的 %v 文件（%v）",
-		"e.g. txt jpg nfo":               "例如 txt jpg nfo",
 		"empty folder":                   "空文件夹",
 		"empty folders will be deleted":  "空文件夹将被删除",
 		"failed to read %v [reason: %v]": "无法读取 %v [原因：%v]",
