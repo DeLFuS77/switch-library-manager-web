@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+### Fixes
+
+- Tasks: the stripes of the bars move again; an old rule meant to remove their entrance animation stopped them too.
+
 ### Improvements
 
+- Tasks: the total bar of a running task goes from red to green as it advances, through orange and yellow, so it stands
+  apart from the bars of the files; the progress of Organize too.
 - Every check of a file is kept and used everywhere: a compression reads its original whole, and that is now its check
   (the original and the NSZ count as checked); a decompression, a conversion and a pack check the file they write whole,
   and that counts as its check too. The next file check does not read those files again.
