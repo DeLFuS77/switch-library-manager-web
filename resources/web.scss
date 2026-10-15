@@ -4800,7 +4800,7 @@ body:has(.wizard.show) #alert_sync {
 }
 
 // why the files of a check are checked, as a list separated by dots
-.verify-breakdown > span + span::before {
+.verify-breakdown > span:not(.bi) + span::before {
 	content: "\00b7";
 	margin: 0 .4rem;
 }
@@ -4841,6 +4841,14 @@ body:has(.wizard.show) #alert_sync {
 .task-lane-main {
 	flex-grow: 1;
 	min-width: 0;
+}
+
+// the bar of each file in one of the colours of the library overview
+.task-lane-bar .progress-bar {
+	&.lane-red { background-color: #{$slm-red}; }
+	&.lane-yellow { background-color: #{$warning}; }
+	&.lane-cyan { background-color: #{$slm-cyan}; }
+	&.lane-green { background-color: #{$success}; }
 }
 
 .task-lane-bar {

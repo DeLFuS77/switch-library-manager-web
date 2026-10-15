@@ -132,6 +132,7 @@ func (web *Web) runOrganizeAction(action string, trigger string) ([]process.Oper
 	}
 	taskId := web.startTask(kind, trigger)
 	operations, err := web.organize(action, false)
+	web.verifications().follow(operations)
 	var failure *TaskNote
 	if err == nil {
 		web.taskLog().SetResult(taskId, 0, len(operations))
@@ -159,7 +160,9 @@ func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string)
 	taskId := web.startTask(TASK_CLEANUP, TRIGGER_MANUAL)
 	deleted, freed := 0, int64(0)
 	var failure *TaskNote
-	for i, op := range process.RemoveFiles(files, reasons, false) {
+	removed := process.RemoveFiles(files, reasons, false)
+	web.verifications().follow(removed)
+	for i, op := range removed {
 		if op.Error == "" {
 			deleted++
 			freed += files[i].Size
