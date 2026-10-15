@@ -3,6 +3,11 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"A copy of the same size is already at the destination: it is a duplicate, the Space page can free it.": "В месте назначения уже есть копия того же размера: это дубликат, страница «Место» может его освободить.",
+		"another file with the same name is already at the destination": "в месте назначения уже есть другой файл с тем же именем",
+		"%v files are kept until the copy that stays is checked, so a copy is never deleted for one that might be damaged. Check those copies, then preview again.": "%v файлов сохраняются, пока не проверена остающаяся копия, чтобы никогда не удалять копию ради возможно повреждённой. Проверьте эти копии и снова откройте предпросмотр.",
+		"Check now": "Проверить сейчас",
+		"The screenshots could not be loaded: the image server of Nintendo does not answer from your network. Networks that block Nintendo, to keep consoles away from it, block its images too.": "Не удалось загрузить скриншоты: сервер изображений Nintendo не отвечает из вашей сети. Сети, блокирующие Nintendo, чтобы консоли к ней не подключались, блокируют и её изображения.",
 		"How it works": "Работа",
 		"Maintenance": "Обслуживание",
 		"Discover": "Обзор",
@@ -1110,7 +1115,6 @@ func init() {
 		"breadcrumb":                     "навигационная цепочка",
 		"check this folder":              "проверьте эту папку",
 		"damaged file: %v":               "повреждённый файл: %v",
-		"destination already exists":     "место назначения уже существует",
 		"done":                           "готово",
 		"duplicate %v file (%v)":         "дубликат файла %v (%v)",
 		"e.g. txt jpg nfo":               "например, txt jpg nfo",

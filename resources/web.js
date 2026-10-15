@@ -449,9 +449,15 @@ function initOrganize() {
 		runButton.disabled = busy;
 	};
 
+	const verifyNote = document.querySelector('[data-organize-verify]');
 	const show = (response, action) => {
 		result.classList.remove('d-none');
 		renderOperations(response);
+		if (verifyNote) {
+			verifyNote.hidden = !response.needsVerify;
+			const text = verifyNote.querySelector('[data-organize-verify-text]');
+			text.textContent = text.dataset.text.replace('%v', response.needsVerify || 0);
+		}
 
 		if (response.dryRun) {
 			title.textContent = response.changes === 0 ? t('Preview: nothing to change') : t('Preview: %v change(s)', response.changes) + (response.errors ? t(', %v problem(s)', response.errors) : '');
@@ -2238,6 +2244,31 @@ function initSpacePreparing() {
 	setTimeout(ask, 800);
 }
 
+// screenshots that cannot be loaded are hidden; when none can, a note says why
+function initScreenshots() {
+	const strip = document.querySelector('[data-screenshots]');
+	if (!strip) {
+		return;
+	}
+	const images = [...strip.querySelectorAll('img')];
+	let failed = 0;
+	const fail = image => {
+		image.closest('a').hidden = true;
+		failed++;
+		if (failed === images.length) {
+			strip.hidden = true;
+			document.querySelector('[data-screenshot-note]').hidden = false;
+		}
+	};
+	images.forEach(image => {
+		if (image.complete && image.naturalWidth === 0) {
+			fail(image);
+		} else {
+			image.addEventListener('error', () => fail(image), { once: true });
+		}
+	});
+}
+
 function initRegionRemove() {
 	document.querySelectorAll('[data-region-remove]').forEach(button => {
 		button.addEventListener('click', () => {
@@ -2700,6 +2731,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initAutomationSettings();
 	initWizard();
 	initRegionRemove();
+	initScreenshots();
 	initSpacePreparing();
 	initPack();
 	initMeasure();

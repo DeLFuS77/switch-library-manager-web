@@ -169,9 +169,10 @@
 			{{- if $t.Screenshots}}
 			<section class="mb-4">
 				<h2 class="section-title"><span class="bi bi-images" aria-hidden="true"></span>{{t "Screenshots"}}</h2>
-				<div class="screenshot-strip">
+				<p class="small text-body-secondary" data-screenshot-note hidden><span class="bi bi-cloud-slash me-1" aria-hidden="true"></span>{{t "The screenshots could not be loaded: the image server of Nintendo does not answer from your network. Networks that block Nintendo, to keep consoles away from it, block its images too."}}</p>
+				<div class="screenshot-strip" data-screenshots>
 					{{- range $t.Screenshots}}
-					<a href="{{.}}" target="_blank" rel="noopener noreferrer"><img src="{{.}}" class="title-screenshot" alt="{{t "Screenshot"}}" loading="lazy"></a>
+					<a href="{{fullImage .}}" target="_blank" rel="noopener noreferrer"><img src="{{thumb .}}" class="title-screenshot" alt="{{t "Screenshot"}}" loading="lazy"></a>
 					{{- end}}
 				</div>
 			</section>

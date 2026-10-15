@@ -124,6 +124,11 @@
 					<h2 class="h4 mb-3 mb-md-0" id="organizeResultTitle"></h2>
 					<button type="button" class="btn btn-danger d-none" id="organizeRun"></button>
 				</div>
+				<div class="alert alert-info d-flex flex-wrap align-items-center gap-2" data-organize-verify hidden>
+					<span class="bi bi-shield-check" aria-hidden="true"></span>
+					<span class="flex-grow-1" data-organize-verify-text data-text="{{t "%v files are kept until the copy that stays is checked, so a copy is never deleted for one that might be damaged. Check those copies, then preview again."}}"></span>
+					<button type="button" class="btn btn-sm btn-primary rounded-pill text-nowrap" data-verify="space"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Check now"}}</button>
+				</div>
 				<p class="text-body-secondary small">{{t "Paths are relative to the library folder."}}</p>
 				<div class="table-responsive">
 					<table class="table table-hover table-sm align-middle mb-0">

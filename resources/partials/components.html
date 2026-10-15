@@ -112,7 +112,7 @@
 					<div class="game-cover">
 						{{- if .Wish}}<button type="button" class="wish-toggle admin-only{{if $i.Wished}} is-wished{{end}}" data-wish="{{$i.Id}}" data-wished="{{$i.Wished}}" aria-pressed="{{$i.Wished}}" title="{{if $i.Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if $i.Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>{{end}}
 						{{- with .Badge}}<span class="cover-date"><span class="bi bi-calendar3" aria-hidden="true"></span>{{.}}</span>{{end}}
-						<img src="{{if eq $i.ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb $i.ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
+						<a class="cover-link" href="/title/{{$i.Id}}.html" tabindex="-1" aria-hidden="true"><img src="{{if eq $i.ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb $i.ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async"></a>
 					</div>
 					<div class="game-body">
 						<h3 class="game-title"><a class="stretched-link" href="/title/{{$i.Id}}.html">{{$i.Name}}</a></h3>

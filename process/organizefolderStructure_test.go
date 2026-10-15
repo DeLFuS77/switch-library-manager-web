@@ -180,13 +180,59 @@ func TestOrganizeNeverOverwritesFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 	failed := failedOps(ops)
-	if len(failed) != 1 || !strings.Contains(failed[0].Error, "already exists") {
-		t.Fatalf("expected one 'already exists' error, got %+v", failed)
+	if len(failed) != 1 || !strings.Contains(failed[0].Error, "already at the destination") {
+		t.Fatalf("expected one 'already at the destination' error, got %+v", failed)
 	}
 	if data, _ := os.ReadFile(existing); string(data) != "another game" {
 		t.Fatal("existing file was overwritten")
 	}
 	assertExists(t, filepath.Join(source, "base.nsp"), true)
+}
+
+// A copy of the same size where a file would go is a duplicate: the file is left where it
+// is, without an error, and nothing is overwritten.
+func TestOrganizeLeavesDuplicatesWhereTheyAre(t *testing.T) {
+	baseFolder := t.TempDir()
+	source := filepath.Join(baseFolder, "incoming")
+	local, remote := fixtureLibrary(t, source)
+	options := organizeOptions()
+	options.RenameFiles = false
+	options.UpdatesFolder = ""
+	options.DlcFolder = ""
+
+	original, _ := os.ReadFile(filepath.Join(source, "base.nsp"))
+	existing := filepath.Join(baseFolder, gameTitle, "base.nsp")
+	writeFixture(t, existing, strings.Repeat("x", len(original)))
+
+	ops, err := OrganizeByFolders(baseFolder, local, remote, options, false, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if failed := failedOps(ops); len(failed) != 0 {
+		t.Fatalf("a duplicate is no error: %+v", failed)
+	}
+	skipped := false
+	for _, op := range ops {
+		if op.Kind == OP_SKIP && op.Reason == REASON_DUPLICATE_AT_DESTINATION {
+			skipped = true
+		}
+	}
+	if !skipped {
+		t.Fatalf("the duplicate is told: %+v", ops)
+	}
+	assertExists(t, filepath.Join(source, "base.nsp"), true)
+}
+
+// A file without a title ID in its name names its folder without its extension.
+func TestNameFromAFileWithoutTitleId(t *testing.T) {
+	files := &db.SwitchGameFiles{File: db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: "h0t0t g4m3 8453.nsp"}}}
+	if name := getTitleName(nil, files); name != "h0t0t g4m3 8453" {
+		t.Fatalf("name: %q", name)
+	}
+	files.File.ExtendedInfo.FileName = "Game [0100000000010000][v0].nsp"
+	if name := getTitleName(nil, files); name != "Game" {
+		t.Fatalf("name: %q", name)
+	}
 }
 
 func TestOrganizeSubfoldersWithoutGameFolders(t *testing.T) {

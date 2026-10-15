@@ -3,6 +3,11 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"A copy of the same size is already at the destination: it is a duplicate, the Space page can free it.": "目标位置已有一个大小相同的副本:这是重复文件,可在空间页面释放。",
+		"another file with the same name is already at the destination": "目标位置已有另一个同名文件",
+		"%v files are kept until the copy that stays is checked, so a copy is never deleted for one that might be damaged. Check those copies, then preview again.": "在保留的副本经过检查之前,会保留 %v 个文件,以免为了一个可能已损坏的副本而删除另一个。请检查这些副本,然后重新预览。",
+		"Check now": "立即检查",
+		"The screenshots could not be loaded: the image server of Nintendo does not answer from your network. Networks that block Nintendo, to keep consoles away from it, block its images too.": "无法加载截图:任天堂的图片服务器在你的网络中没有响应。为防止主机连接而屏蔽任天堂的网络,也会屏蔽其图片。",
 		"How it works": "运行方式",
 		"Maintenance": "维护",
 		"Discover": "发现",
@@ -1110,7 +1115,6 @@ func init() {
 		"breadcrumb":                     "面包屑导航",
 		"check this folder":              "请检查此文件夹",
 		"damaged file: %v":               "损坏的文件：%v",
-		"destination already exists":     "目标已存在",
 		"done":                           "完成",
 		"duplicate %v file (%v)":         "重复的 %v 文件（%v）",
 		"e.g. txt jpg nfo":               "例如 txt jpg nfo",
