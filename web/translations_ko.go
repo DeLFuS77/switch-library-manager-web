@@ -3,6 +3,10 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Applying the changes...": "변경 사항을 적용하는 중...",
+		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "파일을 하나씩 옮기거나 삭제합니다. NAS에서는 시간이 걸릴 수 있습니다. 이 페이지를 떠나도 작업은 계속됩니다.",
+		"See it in Tasks": "작업에서 보기",
+		"Deleting empty folders...": "빈 폴더를 삭제하는 중...",
 		"Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here.": "라이브러리에서 가장 큰 게임의 일부를 여러 설정으로 30초 정도 옆의 숨김 파일(끝나면 삭제)에 압축한 뒤, 여기서 가장 빠른 설정을 고릅니다.",
 		"Files at once × threads": "동시 파일 × 스레드",
 		"Measure this server": "이 서버 측정",

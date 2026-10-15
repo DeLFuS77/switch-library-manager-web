@@ -3,6 +3,10 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Applying the changes...": "Применение изменений...",
+		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "Файлы перемещаются или удаляются один за другим; на NAS это может занять время. Задача продолжится, даже если вы уйдёте с этой страницы.",
+		"See it in Tasks": "Посмотреть в задачах",
+		"Deleting empty folders...": "Удаление пустых папок...",
 		"Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here.": "Около полуминуты сжимает части самых больших игр библиотеки с разными настройками в скрытый файл рядом с ними, который в конце удаляется, и выбирает самую быструю здесь.",
 		"Files at once × threads": "Файлов одновременно × потоков",
 		"Measure this server": "Измерить этот сервер",

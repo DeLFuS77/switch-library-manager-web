@@ -5,6 +5,10 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Applying the changes...": "Aplicando los cambios...",
+		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "Los archivos se mueven o borran uno tras otro; en un NAS puede tardar un rato. La tarea sigue aunque salgas de esta página.",
+		"See it in Tasks": "Verla en Tareas",
+		"Deleting empty folders...": "Borrando carpetas vacías...",
 		"Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here.": "Comprime partes de los juegos más grandes de tu biblioteca durante medio minuto aproximadamente con varias combinaciones, en un archivo oculto junto a ellos que se borra al terminar, y elige la más rápida aquí.",
 		"Files at once × threads": "Archivos a la vez × hilos",
 		"Measure this server": "Medir este servidor",
@@ -1148,6 +1152,7 @@ var translations = map[string]map[string]string{
 
 // texts used by web.js, sent to the browser in the page language
 var jsTexts = []string{
+	"Deleting empty folders...",
 	"Close", "Synchronizing!", "The library is being updated.", "Synchronization progress", "Done!",
 	"The library has been updated.", "Error!", "Synchronization could not be started.", "Could not reach the server.",
 	"Unexpected server response (%v).", "Create folder", "Move", "Delete", "Skip", "Clean up", "Error: %v",

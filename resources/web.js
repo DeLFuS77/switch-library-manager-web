@@ -480,14 +480,58 @@ function initOrganize() {
 			.finally(() => setBusy(false));
 	}));
 
+	// while the changes are applied, the progress of the task: the file or game it is on and
+	// how many are done
+	const progress = document.getElementById('organizeProgress');
+	const bar = progress.querySelector('[data-organize-bar]');
+	const message = progress.querySelector('[data-organize-message]');
+	const count = progress.querySelector('[data-organize-count]');
+	let polling = null;
+	const follow = () => fetch('/api/tasks', { cache: 'no-store', headers: { Accept: 'application/json' } })
+		.then(response => (response.ok ? response.json() : []))
+		.then(tasks => {
+			const task = tasks.find(candidate => candidate.status === 'running' && (candidate.kind === 'organize' || candidate.kind === 'cleanup'));
+			if (!task || task.total <= 0 || task.current < 0) {
+				return;
+			}
+			const percent = Math.min(100, Math.round(task.current * 100 / task.total));
+			bar.classList.remove('progress-bar-striped', 'progress-bar-animated', 'w-100');
+			bar.style.width = `${percent}%`;
+			message.textContent = t(task.message);
+			count.textContent = `${task.current} / ${task.total} \u00b7 ${percent}%`;
+		})
+		.catch(() => {});
+	const startProgress = () => {
+		bar.classList.add('progress-bar-striped', 'progress-bar-animated', 'w-100');
+		bar.style.width = '';
+		message.textContent = '';
+		count.textContent = '';
+		progress.hidden = false;
+		result.classList.add('d-none');
+		progress.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		polling = setInterval(follow, 700);
+	};
+	const stopProgress = () => {
+		clearInterval(polling);
+		progress.hidden = true;
+		result.classList.remove('d-none');
+	};
+
 	runButton.addEventListener('click', () => {
 		if (!currentAction || !window.confirm(t('Apply the changes shown in the preview? Files will be moved or deleted.'))) {
 			return;
 		}
 		setBusy(true);
+		startProgress();
 		postForm('/organize/run', { action: currentAction })
-			.then(response => show(response, currentAction))
-			.catch(fail)
+			.then(response => {
+				stopProgress();
+				show(response, currentAction);
+			})
+			.catch(error => {
+				stopProgress();
+				fail(error);
+			})
 			.finally(() => setBusy(false));
 	});
 }
