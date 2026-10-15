@@ -379,6 +379,7 @@ var funcMap = template.FuncMap{
 	"thumb":           thumbUrl,
 	"fullImage":       fullImageUrl,
 	"maintenanceStep": maintenanceStepOf,
+	"formatBytes":     func(size int) string { return formatSize(int64(size)) },
 	"asset":           func(path string) string { return path + "?v=" + assetVersion },
 	"mod": func(a, b int) int {
 		if b == 0 {

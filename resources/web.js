@@ -2274,6 +2274,21 @@ function initScreenshots() {
 	});
 }
 
+// covers and pictures that cannot be loaded (a network that blocks Nintendo, a cover gone)
+// show the placeholder instead of a broken image
+function initImageFallbacks() {
+	document.addEventListener('error', e => {
+		const image = e.target;
+		if (!(image instanceof HTMLImageElement) || image.dataset.fallback || image.classList.contains('title-screenshot')) {
+			return;
+		}
+		if (image.closest('.game-cover, .dlc-tile-image, .title-hero, .dlc-game, .mini-card, .td-img') || image.classList.contains('td-img')) {
+			image.dataset.fallback = 'true';
+			image.src = '/resources/static/noimage.png';
+		}
+	}, true);
+}
+
 function initRegionRemove() {
 	document.querySelectorAll('[data-region-remove]').forEach(button => {
 		button.addEventListener('click', () => {
@@ -2736,6 +2751,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initAutomationSettings();
 	initWizard();
 	initRegionRemove();
+	initImageFallbacks();
 	initScreenshots();
 	initSpacePreparing();
 	initPack();

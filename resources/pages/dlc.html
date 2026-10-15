@@ -8,9 +8,10 @@
 			{{- template "bulkToolbar" "dlc"}}
 			<div class="d-flex flex-column gap-3">
 				{{- range .TitleItems}}
-				<article class="surface">
+				{{- $game := .}}
+				<article class="surface dlc-game">
 					<div class="d-flex align-items-center gap-3 mb-3">
-						<img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" class="td-img flex-shrink-0" alt="" loading="lazy" decoding="async">
+						<a href="/title/{{.Id}}.html" tabindex="-1" aria-hidden="true"><img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" class="dlc-game-cover flex-shrink-0" alt="" loading="lazy" decoding="async"></a>
 						<div class="flex-grow-1 min-w-0">
 							<h2 class="h5 mb-1 text-truncate"><a class="link-body-emphasis text-decoration-none" href="/title/{{.Id}}.html">{{.Name}}</a></h2>
 							<div class="d-flex flex-wrap align-items-center gap-2 small text-body-secondary">
@@ -20,14 +21,24 @@
 							</div>
 						</div>
 					</div>
-					<ul class="list-group list-group-flush">
+					<ul class="dlc-grid list-unstyled mb-0">
 						{{- range .MissingDLCItems}}
-						<li class="list-group-item bg-transparent d-flex align-items-center justify-content-between gap-3 px-0">
-							<label class="d-flex align-items-start gap-2 mb-0 min-w-0">
-								<input class="form-check-input mt-1 flex-shrink-0" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">
-								<span class="min-w-0">{{.Name}}<br><small class="text-body-secondary font-monospace">{{.Id}}</small></span>
+						<li class="dlc-tile">
+							<label class="dlc-tile-image">
+								<img src="{{if .BannerUrl}}{{thumb .BannerUrl}}{{else if $game.ImageUrl}}{{thumb $game.ImageUrl}}{{else}}/resources/static/noimage.png{{end}}" alt="" loading="lazy" decoding="async">
+								<input class="form-check-input dlc-select" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">
 							</label>
-							<button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="true">{{t "Ignore"}}</button>
+							<div class="dlc-tile-body">
+								<div class="dlc-tile-name" title="{{.Name}}">{{.Name}}</div>
+								<div class="dlc-tile-meta">
+									{{- with releaseDate .ReleaseDate}}<span><span class="bi bi-calendar3" aria-hidden="true"></span>{{.}}</span>{{end}}
+									{{- if gt .Size 0}}<span><span class="bi bi-hdd" aria-hidden="true"></span>{{formatBytes .Size}}</span>{{end}}
+								</div>
+								<div class="d-flex align-items-center justify-content-between gap-2 mt-auto">
+									<span class="font-monospace small text-body-secondary text-truncate">{{.Id}}</span>
+									<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill flex-shrink-0" data-ignore-kind="dlc" data-ignore-id="{{.Id}}" data-ignored="true"><span class="bi bi-eye-slash me-1" aria-hidden="true"></span>{{t "Ignore"}}</button>
+								</div>
+							</div>
 						</li>
 						{{- end}}
 					</ul>

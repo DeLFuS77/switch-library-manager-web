@@ -1,7 +1,7 @@
 {{define "title"}}{{.Title.Name}}{{end}}
 {{define "main"}}
 			{{- $t := .Title}}
-			{{- $cover := "/resources/static/noimage.png"}}{{if $t.ImageUrl}}{{$cover = $t.ImageUrl}}{{end}}
+			{{- $cover := "/resources/static/noimage.png"}}{{if $t.ImageUrl}}{{$cover = fullImage $t.ImageUrl}}{{end}}
 			<nav aria-label="{{t "breadcrumb"}}" class="mt-3">
 				<ol class="breadcrumb mb-0">
 					<li class="breadcrumb-item"><a class="link-secondary" href="{{if $t.Owned}}/index.html{{else}}/missing.html{{end}}">{{if $t.Owned}}{{t "Library"}}{{else}}{{t "Missing Games"}}{{end}}</a></li>
@@ -10,7 +10,7 @@
 			</nav>
 			<header class="title-hero{{if $t.BannerUrl}} has-banner{{end}}">
 				{{- if $t.BannerUrl}}
-				<div class="title-hero-bg" style="background-image: url('{{$t.BannerUrl}}')"></div>
+				<div class="title-hero-bg" style="background-image: url('{{fullImage $t.BannerUrl}}')"></div>
 				{{- else}}
 				<div class="title-hero-bg" style="background-image: url('{{thumb $cover}}')"></div>
 				{{- end}}
