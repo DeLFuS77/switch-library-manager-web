@@ -3,6 +3,8 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Pending updates": "未取得のアップデート",
+		"%v games, %v DLC": "ゲーム %v、DLC %v",
 		"Check new files": "新しいファイルを確認",
 		"Check everything again": "すべて再確認",
 		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "「新しいファイルを確認」は前回の確認以降に追加・変更されたファイルだけを調べ、止まった確認の続きから再開します。「すべて再確認」はライブラリ全体をもう一度読み込みます。",

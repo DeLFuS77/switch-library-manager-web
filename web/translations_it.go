@@ -3,6 +3,8 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Pending updates": "Aggiornamenti in sospeso",
+		"%v games, %v DLC": "%v giochi, %v DLC",
 		"Check new files": "Verifica i nuovi",
 		"Check everything again": "Verifica di nuovo tutto",
 		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "«Verifica i nuovi» guarda solo i file aggiunti o modificati dall'ultima verifica e riprende da dove si era fermata una verifica interrotta; «Verifica di nuovo tutto» rilegge l'intera libreria.",

@@ -36,6 +36,9 @@ type Statistics struct {
 	GamesUpToDate     int
 	GamesUpToDatePct  int
 	GamesWithUpdate   int
+	// the updates the Updates page lists: of games, and of DLC
+	UpdatesPending int
+	DlcWithUpdate  int
 	MissingDlc        int
 	GamesMissingDlc   int
 	MissingGames      int
@@ -184,17 +187,29 @@ func (web *Web) buildStatistics(lang string) Statistics {
 		// the same games as the "Update available" filter of the library, so both numbers match
 		hideDemos := settingsObj.HideDemoGames
 		library := web.derived("library:"+lang, func() any { return web.buildLibrary(lang) }).([]TitleItem)
+		// the games count as the library counts them: without the demos it hides, and up to
+		// date as its "Up to date" filter, with every update and DLC
+		games := 0
 		for _, item := range library {
-			if item.UpdateAvailable && !(hideDemos && item.Demo) {
-				stats.GamesWithUpdate++
-			}
 			if item.TimeToBeat > 0 {
 				stats.TimeToBeat += item.TimeToBeat
 				stats.TimeToBeatGames++
 			}
+			if item.Missing || (hideDemos && item.Demo) {
+				continue
+			}
+			games++
+			if item.UpdateAvailable {
+				stats.GamesWithUpdate++
+			}
+			if item.Known && !item.UpdateAvailable && item.MissingDlcCount == 0 {
+				stats.GamesUpToDate++
+			}
 		}
-		stats.GamesUpToDate = stats.Games - stats.GamesWithUpdate
+		stats.Games = games
 		stats.GamesUpToDatePct = percent(int64(stats.GamesUpToDate), int64(stats.Games))
+		stats.UpdatesPending = len(web.missingUpdates())
+		stats.DlcWithUpdate = max(0, stats.UpdatesPending-stats.GamesWithUpdate)
 
 		for _, title := range web.missingDLC() {
 			stats.GamesMissingDlc++

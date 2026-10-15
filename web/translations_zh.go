@@ -3,6 +3,8 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Pending updates": "待获取的更新",
+		"%v games, %v DLC": "%v 个游戏、%v 个 DLC",
 		"Check new files": "检查新文件",
 		"Check everything again": "全部重新检查",
 		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "「检查新文件」只检查上次检查后新增或更改的文件,并从中断的检查处继续;「全部重新检查」会重新读取整个库。",

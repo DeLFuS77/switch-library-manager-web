@@ -3,6 +3,8 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Pending updates": "대기 중인 업데이트",
+		"%v games, %v DLC": "게임 %v개, DLC %v개",
 		"Check new files": "새 파일 확인",
 		"Check everything again": "모두 다시 확인",
 		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "'새 파일 확인'은 마지막 확인 이후 추가되거나 바뀐 파일만 보고, 멈춘 확인은 이어서 진행합니다. '모두 다시 확인'은 라이브러리 전체를 다시 읽습니다.",

@@ -1862,6 +1862,12 @@ h3,
 		font-variant-numeric: tabular-nums;
 	}
 
+	.kpi-detail {
+		display: block;
+		font-size: .8em;
+		opacity: .75;
+	}
+
 	.kpi-label {
 		grid-area: label;
 		font-size: .8rem;

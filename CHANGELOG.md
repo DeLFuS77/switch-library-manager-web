@@ -4,6 +4,13 @@
 
 ### Fixes
 
+- Library: the numbers of the overview match the filters and the menu. The games card no longer counts the demos the
+  library hides; "Games up to date" counts as the "Up to date" filter (every update and DLC); the updates card shows the
+  same number as the menu, the updates of the Updates page, with how many are of games and of DLC. The Statistics page
+  counts the same way.
+- Demos of the Chinese (试玩版, 体验版) and Korean (체험판) stores are recognised and hidden with the others, also when only
+  the game itself names them so.
+- A game whose name in the titles database is a placeholder such as "-" shows the name it gives itself.
 - The icon of the Synchronize button turns around its centre while the library is synchronized or scanned, like the
   tasks icon of the menu, instead of drifting a little.
 - Issues: the two buttons of the file check say what they do, "Check new files" and "Check everything again", with a

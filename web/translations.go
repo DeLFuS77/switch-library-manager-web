@@ -5,6 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Pending updates": "Actualizaciones pendientes",
+		"%v games, %v DLC": "%v juegos y %v DLC",
 		"Check new files": "Comprobar los nuevos",
 		"Check everything again": "Volver a comprobar todo",
 		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "«Comprobar los nuevos» solo mira los archivos añadidos o cambiados desde la última comprobación y sigue por donde se quedó una comprobación parada; «Volver a comprobar todo» lee otra vez la biblioteca entera.",

@@ -3,6 +3,8 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Pending updates": "Ожидающие обновления",
+		"%v games, %v DLC": "игр: %v, DLC: %v",
 		"Check new files": "Проверить новые",
 		"Check everything again": "Проверить всё заново",
 		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "«Проверить новые» смотрит только файлы, добавленные или изменённые после последней проверки, и продолжает прерванную проверку с того места; «Проверить всё заново» снова читает всю библиотеку.",
