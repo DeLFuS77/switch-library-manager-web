@@ -3,6 +3,8 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Looking at what can be freed...": "正在查找可释放的空间...",
+		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "正在将每个原始文件与其压缩副本比较,并检查磁盘上的每个文件;在 NAS 上需要一点时间。准备好后页面会自动打开,下次将立即打开。",
 		"Applying the changes...": "正在应用更改...",
 		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "文件会逐个移动或删除;在 NAS 上可能需要一些时间。即使离开此页面,任务也会继续。",
 		"See it in Tasks": "在任务中查看",

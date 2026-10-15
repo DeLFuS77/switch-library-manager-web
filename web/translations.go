@@ -5,6 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Looking at what can be freed...": "Buscando lo que se puede liberar...",
+		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "Se compara cada original con su copia comprimida y se mira cada archivo en el disco; en un NAS tarda un momento. La página se abre sola cuando está lista, y la próxima vez se abrirá al instante.",
 		"Applying the changes...": "Aplicando los cambios...",
 		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "Los archivos se mueven o borran uno tras otro; en un NAS puede tardar un rato. La tarea sigue aunque salgas de esta página.",
 		"See it in Tasks": "Verla en Tareas",

@@ -3,6 +3,8 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Looking at what can be freed...": "解放できるものを調べています...",
+		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "各オリジナルを圧縮コピーと比較し、ディスク上のすべてのファイルを確認しています。NAS では少し時間がかかります。準備ができるとページは自動で開き、次回はすぐに開きます。",
 		"Applying the changes...": "変更を適用しています...",
 		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "ファイルを 1 つずつ移動または削除しています。NAS では時間がかかることがあります。このページを離れてもタスクは続きます。",
 		"See it in Tasks": "タスクで見る",

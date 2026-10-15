@@ -72,6 +72,19 @@ func (web *Web) sorted(name string, filter *TitleItemFilter, build func() []Titl
 	}).([]TitleItem)
 }
 
+// derivedCached gives a value of derived when it is computed for the library and the
+// settings as they are, without computing it.
+func (web *Web) derivedCached(name string) (any, bool) {
+	stateVersion, settingsVersion := web.state.Version(), settings.Version()
+	web.cache.mutex.Lock()
+	defer web.cache.mutex.Unlock()
+	if web.cache.values == nil || web.cache.stateVersion != stateVersion || web.cache.settingsVersion != settingsVersion {
+		return nil, false
+	}
+	value, ok := web.cache.values[name]
+	return value, ok
+}
+
 // invalidateDerived drops the cached results, after a change they do not follow
 // automatically (e.g. a verification).
 func (web *Web) invalidateDerived() {

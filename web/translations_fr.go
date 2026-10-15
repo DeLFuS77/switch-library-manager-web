@@ -3,6 +3,8 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Looking at what can be freed...": "Recherche de ce qui peut être libéré...",
+		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "Chaque original est comparé à sa copie compressée et chaque fichier est examiné sur le disque ; sur un NAS cela prend un moment. La page s'ouvre d'elle-même quand elle est prête, et la prochaine fois elle s'ouvrira tout de suite.",
 		"Applying the changes...": "Application des modifications...",
 		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "Les fichiers sont déplacés ou supprimés l'un après l'autre ; sur un NAS cela peut prendre un moment. La tâche continue même si vous quittez cette page.",
 		"See it in Tasks": "La voir dans Tâches",

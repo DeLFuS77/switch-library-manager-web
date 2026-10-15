@@ -151,6 +151,8 @@ type Web struct {
 	scansDone atomic.Uint64
 	// a measure of the server is running
 	measuring atomic.Bool
+	// the content of the Space page is being prepared
+	spacePreparing atomic.Bool
 	fallbackMutex  sync.Mutex
 	thumbs         *thumbnails
 	thumbsOnce     sync.Once
