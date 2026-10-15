@@ -156,6 +156,7 @@
 						<section class="wizard-step" data-step="welcome" data-icon="bi-stars" data-caption="{{t "Welcome"}}">
 							<h2 class="wizard-title" id="wizardTitle">{{if .Auto}}{{t "Welcome to Switch Library Manager"}}{{else}}{{t "Setup wizard"}}{{end}}</h2>
 							<p class="wizard-lead">{{if .Auto}}{{t "In a few steps your library will be ready, to your liking. Every step can be skipped, and everything can be changed later in Settings."}}{{else}}{{t "Go through every setting again. Each step shows how it is set now: keep it or change it."}}{{end}}</p>
+							<p class="small text-body-secondary"><span class="bi bi-shield-exclamation me-1" aria-hidden="true"></span>{{t "No warranty: keep a backup of your games."}} <a href="/disclaimer.html" target="_blank" rel="noopener">{{t "Disclaimer"}}</a></p>
 							<div class="row g-3">
 								<div class="col-md-6">
 									<label for="wizard_language" class="form-label fw-semibold">{{t "Language"}}</label>

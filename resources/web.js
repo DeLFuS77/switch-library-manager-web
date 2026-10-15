@@ -495,9 +495,9 @@ function initOrganize() {
 				return;
 			}
 			const percent = Math.min(100, Math.round(task.current * 100 / task.total));
-			bar.classList.remove('progress-bar-striped', 'progress-bar-animated', 'w-100');
+			bar.classList.remove('w-100');
 			bar.style.width = `${percent}%`;
-			message.textContent = t(task.message);
+			message.textContent = task.messageArg ? t(task.message, task.messageArg) : t(task.message);
 			count.textContent = `${task.current} / ${task.total} \u00b7 ${percent}%`;
 		})
 		.catch(() => {});

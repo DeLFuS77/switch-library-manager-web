@@ -132,6 +132,31 @@ func (s *verifyStore) current(path string, info os.FileInfo) (verifyRecord, bool
 	return record, true
 }
 
+// why tells why a file without a valid record is checked: it was never checked, it changed
+// since, or an older version of the check may have got it wrong.
+func (s *verifyStore) why(path string, info os.FileInfo) string {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	record, ok := s.records[path]
+	switch {
+	case !ok:
+		return VERIFY_WHY_NEW
+	case record.Size != info.Size() || record.ModTime != info.ModTime().UnixNano():
+		return VERIFY_WHY_CHANGED
+	case record.stale():
+		return VERIFY_WHY_IMPROVED
+	}
+	return VERIFY_WHY_AGAIN
+}
+
+// the reasons a file is checked
+const (
+	VERIFY_WHY_NEW      = "new"
+	VERIFY_WHY_CHANGED  = "changed"
+	VERIFY_WHY_IMPROVED = "improved"
+	VERIFY_WHY_AGAIN    = "again"
+)
+
 func (s *verifyStore) set(path string, record verifyRecord) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -292,6 +317,7 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 			checked time.Time
 		}
 		files := []pending{}
+		breakdown := VerifyBreakdown{}
 		var total int64
 		// making the list of a big library on a NAS takes a while: the task says so
 		web.taskLog().Progress(taskId, 0, 0, NOTE_VERIFY_PREPARING)
@@ -313,7 +339,23 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 			}
 			files = append(files, pending{path, info, record.Checked})
 			total += info.Size()
+			// the task says why its files are checked
+			why := VERIFY_WHY_AGAIN
+			if !ok {
+				why = store.why(path, info)
+			}
+			switch why {
+			case VERIFY_WHY_NEW:
+				breakdown.New++
+			case VERIFY_WHY_CHANGED:
+				breakdown.Changed++
+			case VERIFY_WHY_IMPROVED:
+				breakdown.Improved++
+			default:
+				breakdown.Again++
+			}
 		}
+		web.taskLog().SetBreakdown(taskId, breakdown)
 		sort.SliceStable(files, func(i, j int) bool { return files[i].checked.Before(files[j].checked) })
 
 		workers := min(verifyWorkers(settings.ReadSettings(web.dataFolder).VerifySpeed, runtime.NumCPU()), max(len(files), 1))

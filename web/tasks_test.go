@@ -248,3 +248,19 @@ func TestTaskShowsItsLanes(t *testing.T) {
 		}
 	}
 }
+
+// The steps of a scan are translated, with the file they name apart.
+func TestScanStepsAreTranslated(t *testing.T) {
+	key, arg := progressMessage("Found Game [0100000000010000][v0].nsz")
+	if key != "Looking at the folders: %v" || arg != "Game [0100000000010000][v0].nsz" {
+		t.Fatalf("%q %q", key, arg)
+	}
+	if key, arg := progressMessage("Downloading versions database..."); key != "Downloading versions database..." || arg != "" {
+		t.Fatalf("other messages stay: %q %q", key, arg)
+	}
+	for _, step := range progressSteps {
+		if _, ok := translations["es"][step.key]; !ok {
+			t.Errorf("no Spanish translation for %q", step.key)
+		}
+	}
+}

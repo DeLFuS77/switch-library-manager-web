@@ -4799,6 +4799,12 @@ body:has(.wizard.show) #alert_sync {
 	margin-top: 0.2rem;
 }
 
+// why the files of a check are checked, as a list separated by dots
+.verify-breakdown > span + span::before {
+	content: "\00b7";
+	margin: 0 .4rem;
+}
+
 .task-phase {
 	font-weight: 600;
 	color: var(--bs-info-text-emphasis);

@@ -181,3 +181,23 @@ func TestModifiedFilesOfAnOlderCheckAreCheckedAgain(t *testing.T) {
 		t.Fatal("checked by this version, it stands")
 	}
 }
+
+// The store tells why a file is checked: never checked, changed since, or checked once more
+// after an improvement of the check.
+func TestWhyAFileIsChecked(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "Game [0100000000010000][v0].nsp")
+	os.WriteFile(path, []byte("game"), 0o644)
+	info, _ := os.Stat(path)
+	store := &verifyStore{records: map[string]verifyRecord{}}
+	if why := store.why(path, info); why != VERIFY_WHY_NEW {
+		t.Fatalf("never checked: %s", why)
+	}
+	store.set(path, verifyRecord{Size: info.Size() + 1, ModTime: info.ModTime().UnixNano(), OK: true, Checker: verifyChecker})
+	if why := store.why(path, info); why != VERIFY_WHY_CHANGED {
+		t.Fatalf("changed: %s", why)
+	}
+	store.set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Modified: true, Checker: 2})
+	if why := store.why(path, info); why != VERIFY_WHY_IMPROVED {
+		t.Fatalf("modified, checked by an older version: %s", why)
+	}
+}

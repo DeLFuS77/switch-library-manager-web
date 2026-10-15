@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- File check: the task says why its files are checked: how many are new, changed, checked again once after an
+  improvement of the check (the files found modified by a tool, since 1.30.0) or checked again as asked.
+- Synchronization and scans: while the folders are walked the bar goes up to the number of files of the last scan
+  instead of staying full, and its steps are translated ("Looking at the folders", "Reading the new file").
+- Every progress bar of a running task looks the same, striped and moving like the one of the synchronization: the
+  total, the line of each file and the progress of Organize.
+- Disclaimer: the app is provided without warranty and its authors are not responsible for lost or deleted files. A
+  page linked from the footer of every page and from the setup wizard, a section of the README and a line of the
+  Unraid template say so; keep a backup of your games.
+
 ## 1.30.1
 
 ### Fixes
