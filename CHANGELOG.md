@@ -4,6 +4,8 @@
 
 ### Fixes
 
+- Issues: the two buttons of the file check say what they do, "Check new files" and "Check everything again", with a
+  line that explains the difference (the first one also goes on where a stopped check was). They fit a phone.
 - Space: the page opens at once. What it shows (each original compared with its compressed copy, every file looked at
   on the disk) is prepared after each scan and kept until the files or the checks change; when it is not ready yet,
   the page says it is looking at what can be freed and opens by itself when it is ready, instead of seeming stuck.

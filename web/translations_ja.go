@@ -3,6 +3,9 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Check new files": "新しいファイルを確認",
+		"Check everything again": "すべて再確認",
+		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "「新しいファイルを確認」は前回の確認以降に追加・変更されたファイルだけを調べ、止まった確認の続きから再開します。「すべて再確認」はライブラリ全体をもう一度読み込みます。",
 		"Looking at what can be freed...": "解放できるものを調べています...",
 		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "各オリジナルを圧縮コピーと比較し、ディスク上のすべてのファイルを確認しています。NAS では少し時間がかかります。準備ができるとページは自動で開き、次回はすぐに開きます。",
 		"Applying the changes...": "変更を適用しています...",
@@ -491,8 +494,6 @@ func init() {
 		"Changes are applied when you save.":    "変更は保存したときに適用されます。",
 		"Changes are applied when you save. Changing the folders or the keys rescans the library.": "変更は保存したときに適用されます。フォルダーやキーを変更すると、ライブラリを再スキャンします。",
 		"Channel settings > Integrations > Webhooks":                                               "チャンネルの設定 > 連携サービス > ウェブフック",
-		"Check all":                         "すべて確認",
-		"Check files":                       "ファイルを確認",
 		"Check the files":                   "ファイルを確認",
 		"Check the folders every":           "フォルダーを確認する間隔",
 		"Check your notification channels.": "通知チャンネルを確認してください。",

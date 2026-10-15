@@ -3,6 +3,9 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Check new files": "Neue prüfen",
+		"Check everything again": "Alles erneut prüfen",
+		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "„Neue prüfen“ sieht sich nur die seit der letzten Prüfung hinzugefügten oder geänderten Dateien an und macht dort weiter, wo eine abgebrochene Prüfung stand; „Alles erneut prüfen“ liest die ganze Bibliothek noch einmal.",
 		"Looking at what can be freed...": "Es wird gesucht, was freigegeben werden kann...",
 		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "Jedes Original wird mit seiner komprimierten Kopie verglichen und jede Datei auf der Festplatte geprüft; auf einem NAS dauert das einen Moment. Die Seite öffnet sich von selbst, sobald sie bereit ist, und beim nächsten Mal sofort.",
 		"Applying the changes...": "Änderungen werden angewendet...",
@@ -716,8 +719,6 @@ func init() {
 		"Changes are applied when you save.":                                                 "Änderungen werden beim Speichern übernommen.",
 		"Changes are applied when you save. Changing the folders or the keys rescans the library.": "Änderungen werden beim Speichern übernommen. Wenn du die Ordner oder die Schlüssel änderst, wird die Bibliothek neu gescannt.",
 		"Channel settings > Integrations > Webhooks":                                               "Kanaleinstellungen > Integrationen > Webhooks",
-		"Check all":                                   "Alle auswählen",
-		"Check files":                                 "Dateien prüfen",
 		"Check the files":                             "Dateien prüfen",
 		"Check your notification channels.":           "Prüfe deine Benachrichtigungskanäle.",
 		"Checks every file again":                     "Prüft jede Datei erneut",

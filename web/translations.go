@@ -5,6 +5,9 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Check new files": "Comprobar los nuevos",
+		"Check everything again": "Volver a comprobar todo",
+		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "«Comprobar los nuevos» solo mira los archivos añadidos o cambiados desde la última comprobación y sigue por donde se quedó una comprobación parada; «Volver a comprobar todo» lee otra vez la biblioteca entera.",
 		"Looking at what can be freed...": "Buscando lo que se puede liberar...",
 		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "Se compara cada original con su copia comprimida y se mira cada archivo en el disco; en un NAS tarda un momento. La página se abre sola cuando está lista, y la próxima vez se abrirá al instante.",
 		"Applying the changes...": "Aplicando los cambios...",
@@ -697,9 +700,7 @@ var translations = map[string]map[string]string{
 		"Every week":                           "Cada semana",
 		"Every month":                          "Cada mes",
 		"Checks the new and changed files for damage":                                 "Comprueba si los archivos nuevos o modificados están dañados",
-		"Check files":                  "Comprobar archivos",
 		"Checks every file again":      "Vuelve a comprobar todos los archivos",
-		"Check all":                    "Comprobar todo",
 		"Files last checked %v":        "Última comprobación de los archivos: %v",
 		"%v files checked, %v damaged": "%v archivos comprobados, %v dañados",
 		"File check":                   "Comprobación de archivos",
