@@ -418,3 +418,30 @@ func TestUserMessagesAreTranslated(t *testing.T) {
 		}
 	}
 }
+
+// Each user chooses the colour of their icon; an unknown colour gives the colours of the app,
+// and read-only users may choose it too.
+func TestAvatarColor(t *testing.T) {
+	store, err := loadUserStore(t.TempDir(), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	store.Add("bob", "bravo-secret-22", ROLE_VIEWER)
+	if err := store.SetColor("bob", "teal"); err != nil {
+		t.Fatal(err)
+	}
+	if user, _ := store.Get("bob"); user.Color != "teal" {
+		t.Fatalf("the colour is kept: %q", user.Color)
+	}
+	store.SetColor("bob", "url(evil)")
+	if user, _ := store.Get("bob"); user.Color != "" {
+		t.Fatalf("an unknown colour gives the colours of the app: %q", user.Color)
+	}
+	if err := store.SetColor("nobody", "red"); err == nil {
+		t.Fatal("an unknown user")
+	}
+	request := httptest.NewRequest(http.MethodPost, "/account/color", nil)
+	if !viewerAllowed(request) {
+		t.Fatal("read-only users choose their colour too")
+	}
+}

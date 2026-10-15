@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- My account: each user chooses the colour of their icon among ten, or keeps the colours of the app; the icon shows it
+  in the menu, on the account page and in Users. Read-only users can choose it too.
+- The theme (light, dark or automatic) moved out of the main bar, which is emptier: it is in the menu of the user and
+  in Settings › General.
+
+### Fixes
+
+- The tasks icon of the menu stays on the line of the other icons while it turns: only its glyph turns.
+
 ## 1.30.3
 
 ### Fixes

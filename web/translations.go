@@ -5,6 +5,9 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Colour of my icon": "Color de mi icono",
+		"The colours of the app": "Los colores de la app",
+		"The colour of your icon was saved.": "Se ha guardado el color de tu icono.",
 		"Disclaimer": "Aviso legal",
 		"No warranty: keep a backup of your games.": "Sin garantía: guarda una copia de seguridad de tus juegos.",
 		"Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0) says.": "Switch Library Manager Web es software libre que se ofrece tal cual, sin ninguna garantía, como dice su licencia (AGPL-3.0).",

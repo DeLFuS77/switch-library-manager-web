@@ -42,7 +42,7 @@
 					{{- $me := .Auth.User}}
 					{{- range .Users}}
 					<li class="surface user-row">
-						<span class="user-avatar" aria-hidden="true">{{initial .Name}}</span>
+						<span class="user-avatar{{with .Color}} avatar-{{.}}{{end}}" aria-hidden="true">{{initial .Name}}</span>
 						<div class="flex-grow-1 min-w-0">
 							<div class="fw-semibold">{{.Name}}{{if eq .Name $me}} <span class="text-body-secondary fw-normal">({{t "you"}})</span>{{end}}
 								{{- if .IsAdmin}} <span class="chip chip-success ms-1">{{t "Administrator"}}</span>{{else}} <span class="chip chip-muted ms-1">{{t "Read only"}}</span>{{end}}</div>
