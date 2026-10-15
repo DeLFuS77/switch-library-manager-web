@@ -145,6 +145,9 @@ type AppSettings struct {
 	IgnoreDLCUpdates       bool              `json:"ignore_dlc_updates"`
 	IgnoreFileTypes        []string          `json:"ignore_file_types"`
 	HideDemoGames          bool              `json:"hide_demo_games"`
+	// a game the library has from several regions shows and counts once, by the copy the
+	// Space page suggests to keep
+	CountRegionsOnce bool `json:"count_regions_once,omitempty"`
 	WatchFolders           bool              `json:"watch_folders"`
 	// hours of heavy background work, e.g. "1-7"; empty for any time
 	BackgroundHours string `json:"background_hours"`

@@ -3,6 +3,11 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Count a game once when you have it from several regions": "Contar uma só vez um jogo que você tem de várias regiões",
+		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "A biblioteca mostra um só cartão, o da cópia que a página Espaço recomenda manter, com quantas outras regiões você tem, e os contadores e estatísticas o contam uma vez. Nenhum arquivo é alterado.",
+		"You also have this game from other regions: see them on the Space page.": "Você também tem este jogo de outras regiões: veja-as na página Espaço.",
+		"+1 region": "+1 região",
+		"+%v regions": "+%v regiões",
 		"Tune-up": "Ajuste da biblioteca",
 		"The steps in order to put your library in order": "Os passos, em ordem, para ajustar sua biblioteca",
 		"The steps to put your library in order, in the order they depend on each other. Each one shows what is left to do; the first one waiting is marked.": "Os passos para ajustar sua biblioteca, na ordem em que dependem uns dos outros. Cada um mostra o que falta fazer, e o primeiro pendente aparece marcado.",

@@ -3,6 +3,11 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Count a game once when you have it from several regions": "여러 지역판이 있는 게임을 한 번만 세기",
+		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "라이브러리는 공간 페이지가 남기라고 권하는 사본의 카드 하나를 다른 지역 수와 함께 보여 주고, 카운터와 통계에서는 한 번만 셉니다. 파일은 바뀌지 않습니다.",
+		"You also have this game from other regions: see them on the Space page.": "이 게임은 다른 지역판도 있습니다. 공간 페이지에서 보세요.",
+		"+1 region": "+1 지역",
+		"+%v regions": "+%v 지역",
 		"Tune-up": "정리 단계",
 		"The steps in order to put your library in order": "라이브러리를 정리하는 단계를 순서대로",
 		"The steps to put your library in order, in the order they depend on each other. Each one shows what is left to do; the first one waiting is marked.": "라이브러리를 정리하는 단계를 서로 의존하는 순서대로 보여 줍니다. 단계마다 남은 일이 표시되고, 처음 대기 중인 단계가 표시됩니다.",

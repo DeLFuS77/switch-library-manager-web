@@ -9,6 +9,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/process"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 // The same game is sold in several stores with a different title ID for each one: the
@@ -57,6 +58,34 @@ const (
 
 func (web *Web) regionalDuplicates(lang string) []RegionGroup {
 	return web.derived("regionalDuplicates:"+lang, func() any { return web.buildRegionalDuplicates(lang) }).([]RegionGroup)
+}
+
+// regionCopies tells, for the games the library has from several regions, the copies left
+// out when each game counts once (all but the one suggested to keep) and, for the copy kept,
+// how many other regions there are. Nothing when the setting is off.
+func (web *Web) regionCopies(lang string) (leftOut map[string]bool, others map[string]int) {
+	leftOut, others = map[string]bool{}, map[string]int{}
+	if !settings.ReadSettings(web.dataFolder).CountRegionsOnce {
+		return leftOut, others
+	}
+	for _, group := range web.regionalDuplicates(lang) {
+		kept := ""
+		for _, copy := range group.Copies {
+			if copy.Keep && kept == "" {
+				kept = copy.Id
+			}
+		}
+		if kept == "" && len(group.Copies) > 0 {
+			kept = group.Copies[0].Id
+		}
+		for _, copy := range group.Copies {
+			if copy.Id != kept {
+				leftOut[copy.Id] = true
+			}
+		}
+		others[kept] = len(group.Copies) - 1
+	}
+	return leftOut, others
 }
 
 func (web *Web) buildRegionalDuplicates(lang string) []RegionGroup {

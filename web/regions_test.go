@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -135,5 +136,30 @@ func TestRegionCopyNeedsAnotherRegionAndKeepsSharedFiles(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(folder, "Known JP DLC.nsp")); err != nil {
 		t.Fatal("the shared file stays")
+	}
+}
+
+// With the setting on, a game the library has from two regions shows and counts once, by the
+// copy suggested to keep, with the other region told on its card; off, both count.
+func TestCountRegionsOnce(t *testing.T) {
+	web, _ := regionTestWeb(t)
+	filter := &TitleItemFilter{}
+	filter.Normalize()
+	_, _, before := web.getLibraryWithFacets(filter, "en")
+
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.CountRegionsOnce = true })
+	items, _, after := web.getLibraryWithFacets(filter, "en")
+	if after.All != before.All-1 {
+		t.Fatalf("the two regions count once: %d before, %d after", before.All, after.All)
+	}
+	others := 0
+	for _, item := range items {
+		others += item.OtherRegions
+	}
+	if others != 1 {
+		t.Fatalf("the copy kept tells the other region: %+v", items)
+	}
+	if stats := web.getStatistics("en"); stats.Games != after.All {
+		t.Fatalf("the statistics count as the library: %d and %d", stats.Games, after.All)
 	}
 }

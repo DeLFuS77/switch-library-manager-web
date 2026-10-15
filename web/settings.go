@@ -42,6 +42,7 @@ type SettingsForm struct {
 	IgnoreDLCUpdates     bool   `in:"form=ignore_dlc_updates"`
 	IgnoreFileTypes      string `in:"form=ignore_file_types"`
 	HideDemoGames        bool   `in:"form=hide_demo_games"`
+	CountRegionsOnce     bool   `in:"form=count_regions_once"`
 	WatchFolders         bool   `in:"form=watch_folders"`
 	WatchIntervalMinutes int    `in:"form=watch_interval_minutes"`
 	BackgroundHours      string `in:"form=background_hours"`
@@ -281,6 +282,7 @@ func (web *Web) HandleSettings() {
 			appSettings.IgnoreDLCUpdates = settingsForm.IgnoreDLCUpdates
 			appSettings.IgnoreFileTypes = SplitAndTrimSpaceArray(strings.ReplaceAll(settingsForm.IgnoreFileTypes, ",", " "), " ")
 			appSettings.HideDemoGames = settingsForm.HideDemoGames
+			appSettings.CountRegionsOnce = settingsForm.CountRegionsOnce
 			appSettings.WatchFolders = settingsForm.WatchFolders
 			appSettings.WatchIntervalMinutes = settingsForm.WatchIntervalMinutes
 			appSettings.BackgroundHours = settingsForm.BackgroundHours

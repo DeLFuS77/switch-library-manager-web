@@ -3,6 +3,11 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Count a game once when you have it from several regions": "拥有多个地区版本的游戏只计一次",
+		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "库中只显示一张卡片,即空间页面建议保留的副本,并注明你还有几个其他地区版本;计数和统计只算一次。不会更改任何文件。",
+		"You also have this game from other regions: see them on the Space page.": "你还有这个游戏的其他地区版本:可在空间页面查看。",
+		"+1 region": "+1 个地区",
+		"+%v regions": "+%v 个地区",
 		"Tune-up": "整理步骤",
 		"The steps in order to put your library in order": "按顺序整理你的库的步骤",
 		"The steps to put your library in order, in the order they depend on each other. Each one shows what is left to do; the first one waiting is marked.": "整理你的库的步骤,按彼此依赖的顺序排列。每一步都显示剩余的工作,第一个待办步骤会被标出。",

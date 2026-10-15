@@ -16,6 +16,7 @@
 					<div class="game-body">
 						{{- if and .Selectable (not .LatestUpdate)}}<button type="button" class="fav-toggle admin-only{{if .Favorite}} is-favorite{{end}}" data-fav="{{.Id}}" data-favorite="{{.Favorite}}" aria-pressed="{{.Favorite}}" title="{{if .Favorite}}{{t "Remove from favorites"}}{{else}}{{t "Add to favorites"}}{{end}}"><span class="bi {{if .Favorite}}bi-star-fill{{else}}bi-star{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Favorite"}}</span></button>{{end}}
 						<h2 class="game-title"><a class="stretched-link" href="/title/{{.Id}}.html">{{.Name}}</a></h2>
+						{{- if .OtherRegions}}<span class="chip chip-muted align-self-start" title="{{t "You also have this game from other regions: see them on the Space page."}}"><span class="bi bi-globe2" aria-hidden="true"></span>{{if eq .OtherRegions 1}}{{t "+1 region"}}{{else}}{{t "+%v regions" .OtherRegions}}{{end}}</span>{{end}}
 						{{- if .LatestUpdate}}
 						{{- /* Updates page */}}
 						<div class="d-flex flex-wrap gap-1"><span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span><span class="version-arrow">v{{.LocalUpdate}} &rarr; v{{.LatestUpdate}}</span></span></div>

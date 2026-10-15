@@ -146,10 +146,11 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	collectionCounts := map[string]int{}
 	genreCounts := map[string]int{}
 	languageCounts := map[string]int{}
+	leftOut, otherRegions := web.regionCopies(lang)
 
 	for index := range all {
 		item := &all[index]
-		if !filter.MatchesItem(item) {
+		if leftOut[item.Id] || !filter.MatchesItem(item) {
 			continue
 		}
 
@@ -284,7 +285,9 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	p := pagination.Calculate(filter.Page, filter.PerPage, len(matched))
 	items := make([]TitleItem, 0, p.End-p.Start)
 	for _, index := range matched[p.Start:p.End] {
-		items = append(items, all[index])
+		item := all[index]
+		item.OtherRegions = otherRegions[item.Id]
+		items = append(items, item)
 	}
 	return items, p, facets
 }

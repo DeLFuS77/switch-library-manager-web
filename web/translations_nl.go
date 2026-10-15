@@ -3,6 +3,11 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Count a game once when you have it from several regions": "Een game uit meerdere regio's één keer tellen",
+		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "De bibliotheek toont één kaart, die van de kopie die de pagina Ruimte aanraadt te bewaren, met hoeveel andere regio's je hebt, en tellers en statistieken tellen het één keer. Er wordt geen bestand gewijzigd.",
+		"You also have this game from other regions: see them on the Space page.": "Je hebt deze game ook uit andere regio's: bekijk ze op de pagina Ruimte.",
+		"+1 region": "+1 regio",
+		"+%v regions": "+%v regio's",
 		"Tune-up": "Onderhoud",
 		"The steps in order to put your library in order": "De stappen, op volgorde, om je bibliotheek op orde te brengen",
 		"The steps to put your library in order, in the order they depend on each other. Each one shows what is left to do; the first one waiting is marked.": "De stappen om je bibliotheek op orde te brengen, in de volgorde waarin ze van elkaar afhangen. Elke stap toont wat er nog te doen is; de eerste die wacht is gemarkeerd.",
