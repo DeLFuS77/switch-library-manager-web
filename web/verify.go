@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -550,7 +549,7 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 					lanes = append(lanes, TaskLane{Name: laneName, Done: partial[i], Total: laneSizes[i]})
 				}
 			}
-			web.taskLog().ProgressLanes(taskId, int(done>>20), int(total>>20), fmt.Sprintf("%s (%d/%d)", name, started, len(files)), lanes)
+			web.taskLog().ProgressFiles(taskId, int(done>>20), int(total>>20), name, started, len(files), lanes)
 		}
 		// a scheduled verification stops when the background hours end and goes on the next time
 		stopped := func() bool {

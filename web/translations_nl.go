@@ -3,6 +3,7 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"%v of %v files": "%v van %v bestanden",
 		"e.g. zip rar": "bijv. zip rar",
 		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "Afbeeldingen, notities, controlesommen en half afgemaakte downloads (part, partial, tmp…) worden al weggelaten zonder ze hier te zetten.",
 		"Count a game once when you have it from several regions": "Een game uit meerdere regio's één keer tellen",

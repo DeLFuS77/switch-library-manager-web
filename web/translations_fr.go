@@ -3,6 +3,7 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"%v of %v files": "%v fichiers sur %v",
 		"e.g. zip rar": "p. ex. zip rar",
 		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "Les images, notes, sommes de contrôle et téléchargements inachevés (part, partial, tmp…) sont déjà ignorés sans les écrire ici.",
 		"Count a game once when you have it from several regions": "Compter une seule fois un jeu que vous avez de plusieurs régions",

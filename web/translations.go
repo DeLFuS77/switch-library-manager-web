@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"%v of %v files": "%v de %v archivos",
 		"e.g. zip rar": "p. ej. zip rar",
 		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "Las imágenes, notas, sumas de control y descargas a medias (part, partial, tmp…) ya se ignoran sin escribirlas aquí.",
 		"Count a game once when you have it from several regions": "Contar una sola vez un juego que tienes de varias regiones",

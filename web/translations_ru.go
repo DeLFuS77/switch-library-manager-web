@@ -3,6 +3,7 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"%v of %v files": "%v из %v файлов",
 		"e.g. zip rar": "например, zip rar",
 		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "Изображения, заметки, контрольные суммы и недокачанные файлы (part, partial, tmp…) уже исключаются без указания здесь.",
 		"Count a game once when you have it from several regions": "Считать игру из нескольких регионов один раз",

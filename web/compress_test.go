@@ -313,6 +313,10 @@ func TestCompressionLanesTellTheirPhase(t *testing.T) {
 				if task.Running() && len(task.Lanes) == 1 {
 					lane := task.Lanes[0]
 					phases = append(phases, fmt.Sprintf("%s %d/%d", lane.Phase, lane.Step, lane.Steps))
+					// the file reached is told apart from its name, which stays as it is
+					if task.FileNumber != 1 || task.FileCount != 1 || task.Message != filepath.Base(path) {
+						t.Errorf("the counter of the files: %d of %d, %q", task.FileNumber, task.FileCount, task.Message)
+					}
 				}
 			}
 		}

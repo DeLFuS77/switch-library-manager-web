@@ -3,6 +3,7 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"%v of %v files": "%v / %v 파일",
 		"e.g. zip rar": "예: zip rar",
 		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "이미지, 메모, 체크섬, 중간에 멈춘 다운로드(part, partial, tmp 등)는 여기에 쓰지 않아도 이미 제외됩니다.",
 		"Count a game once when you have it from several regions": "여러 지역판이 있는 게임을 한 번만 세기",

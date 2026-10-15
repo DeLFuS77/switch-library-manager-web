@@ -3,6 +3,7 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"%v of %v files": "第 %v 个,共 %v 个文件",
 		"e.g. zip rar": "例如 zip rar",
 		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "图片、说明、校验文件和未下载完的文件(part、partial、tmp 等)无需在此填写,已自动忽略。",
 		"Count a game once when you have it from several regions": "拥有多个地区版本的游戏只计一次",
