@@ -22,12 +22,12 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.30.3
-- File check: results follow the files moved by Organize or made by a compression, and the ones of files moved before are found again
-- The bar of each file has one of the colours of the library
-### 1.30.2
-- The file check says why its files are checked; scans show their progress while walking the folders
-- Every task bar looks the same; a disclaimer page</Changes>
+  <Changes>### 1.31.0
+- A cleaner main bar: Discover and Tools menus, your account at the end; grouped Settings
+- Choose the colour of your icon; the theme is in your menu and in Settings
+- The container starts in seconds: the data folder is no longer gone through at every start
+### 1.30.3
+- File check: results follow the files moved by Organize or made by a compression</Changes>
   <Date>2026-10-15</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>

@@ -28,7 +28,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "1.30.3"
+	SLM_WEB_VERSION        = "1.31.0"
 	REPOSITORY_OWNER       = "DeLFuS77"
 	// titles.json and versions.json are generated from blawar/titledb by the
 	// "Update title data" workflow of this repository
