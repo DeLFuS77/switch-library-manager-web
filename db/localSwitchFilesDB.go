@@ -47,6 +47,8 @@ const (
 
 type LocalSwitchDBManager struct {
 	db *PersistentDB
+	// the titles database of the scan running, to tell the games it does not know
+	titles *SwitchTitlesDB
 	// the files the last scan found, for the progress of the next one
 	lastFileCount int
 }
@@ -186,6 +188,7 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 	titles := map[string]*SwitchGameFiles{}
 	skipped := map[ExtendedFileInfo]SkippedFile{}
 	files := []ExtendedFileInfo{}
+	ldb.titles = switchDB
 
 	if !ignoreCache {
 		err := ldb.db.GetEntry(DB_TABLE_LOCAL_LIBRARY, "files", &files)
@@ -538,6 +541,26 @@ type metadataResult struct {
 	cacheKey string
 }
 
+// needsAttributes tells cached data of a game the titles database does not know, read before
+// the app read the attributes of games: only the game itself can tell it is a demo, so it is
+// read again, once.
+func (ldb *LocalSwitchDBManager) needsAttributes(metadata map[string]*switchfs.ContentMetaAttributes) bool {
+	if ldb.titles == nil {
+		return false
+	}
+	for _, meta := range metadata {
+		if meta == nil || meta.Ncap == nil || meta.Ncap.AttributesRead {
+			continue
+		}
+		if prefix, err := TitleIDPrefix(meta.TitleId); err == nil {
+			if _, known := ldb.titles.TitlesMap[prefix]; !known {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // readGameMetadata identifies a file: from the cache, by reading it with the keys, or
 // from its name. It is safe to call from several goroutines.
 func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadataResult {
@@ -551,7 +574,7 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 		if err := ldb.db.GetEntry(DB_TABLE_FILE_SCAN_METADATA, fileKey, &metadata); err != nil {
 			zap.S().Warnf("%v", err)
 		}
-		if metadata != nil {
+		if metadata != nil && !ldb.needsAttributes(metadata) {
 			result.metadata = metadata
 			return result
 		}

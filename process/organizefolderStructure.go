@@ -566,7 +566,7 @@ func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles) string {
 		nacp = v.File.Metadata.Ncap.TitleName
 	}
 	for _, language := range latinTitleLanguages {
-		if name := strings.TrimSpace(nacp[language].Title); name != "" {
+		if name := strings.TrimSpace(nacp[language].Title); realName(name) {
 			return name
 		}
 	}
@@ -574,7 +574,7 @@ func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles) string {
 		return switchTitle.Attributes.Name
 	}
 	for _, language := range asianTitleLanguages {
-		if name := strings.TrimSpace(nacp[language].Title); name != "" {
+		if name := strings.TrimSpace(nacp[language].Title); realName(name) {
 			return name
 		}
 	}
