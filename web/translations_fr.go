@@ -3,6 +3,9 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Check new files": "Vérifier les nouveaux",
+		"Check everything again": "Tout revérifier",
+		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "« Vérifier les nouveaux » ne regarde que les fichiers ajoutés ou modifiés depuis la dernière vérification et reprend là où une vérification arrêtée s'était arrêtée ; « Tout revérifier » relit toute la bibliothèque.",
 		"Looking at what can be freed...": "Recherche de ce qui peut être libéré...",
 		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "Chaque original est comparé à sa copie compressée et chaque fichier est examiné sur le disque ; sur un NAS cela prend un moment. La page s'ouvre d'elle-même quand elle est prête, et la prochaine fois elle s'ouvrira tout de suite.",
 		"Applying the changes...": "Application des modifications...",
@@ -716,8 +719,6 @@ func init() {
 		"Changes are applied when you save.":                                                 "Les modifications sont appliquées à l'enregistrement.",
 		"Changes are applied when you save. Changing the folders or the keys rescans the library.": "Les modifications sont appliquées à l'enregistrement. Modifier les dossiers ou les clés relance une analyse de la bibliothèque.",
 		"Channel settings > Integrations > Webhooks":                                               "Paramètres du canal > Intégrations > Webhooks",
-		"Check all":                                   "Tout cocher",
-		"Check files":                                 "Vérifier les fichiers",
 		"Check the files":                             "Vérifier les fichiers",
 		"Check your notification channels.":           "Vérifiez vos canaux de notification.",
 		"Checks every file again":                     "Revérifie tous les fichiers",

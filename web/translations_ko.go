@@ -3,6 +3,9 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Check new files": "새 파일 확인",
+		"Check everything again": "모두 다시 확인",
+		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "'새 파일 확인'은 마지막 확인 이후 추가되거나 바뀐 파일만 보고, 멈춘 확인은 이어서 진행합니다. '모두 다시 확인'은 라이브러리 전체를 다시 읽습니다.",
 		"Looking at what can be freed...": "확보할 수 있는 공간을 찾는 중...",
 		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "원본마다 압축 사본과 비교하고 디스크의 모든 파일을 확인합니다. NAS에서는 잠시 걸립니다. 준비되면 페이지가 저절로 열리며, 다음부터는 바로 열립니다.",
 		"Applying the changes...": "변경 사항을 적용하는 중...",
@@ -491,8 +494,6 @@ func init() {
 		"Changes are applied when you save.":    "저장하면 변경 사항이 적용돼요.",
 		"Changes are applied when you save. Changing the folders or the keys rescans the library.": "저장하면 변경 사항이 적용돼요. 폴더나 키를 바꾸면 라이브러리를 다시 스캔해요.",
 		"Channel settings > Integrations > Webhooks":                                               "채널 설정 > 연동 > 웹후크",
-		"Check all":                         "모두 검사",
-		"Check files":                       "파일 검사",
 		"Check the files":                   "파일 검사하기",
 		"Check the folders every":           "폴더 확인 주기",
 		"Check your notification channels.": "알림 채널을 확인하세요.",

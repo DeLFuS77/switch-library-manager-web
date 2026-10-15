@@ -3,6 +3,9 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Check new files": "检查新文件",
+		"Check everything again": "全部重新检查",
+		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "「检查新文件」只检查上次检查后新增或更改的文件,并从中断的检查处继续;「全部重新检查」会重新读取整个库。",
 		"Looking at what can be freed...": "正在查找可释放的空间...",
 		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "正在将每个原始文件与其压缩副本比较,并检查磁盘上的每个文件;在 NAS 上需要一点时间。准备好后页面会自动打开,下次将立即打开。",
 		"Applying the changes...": "正在应用更改...",
@@ -491,8 +494,6 @@ func init() {
 		"Changes are applied when you save.":    "保存后生效。",
 		"Changes are applied when you save. Changing the folders or the keys rescans the library.": "保存后生效。更改文件夹或密钥会重新扫描游戏库。",
 		"Channel settings > Integrations > Webhooks":                                               "频道设置 > 整合 > Webhook",
-		"Check all":                         "全部检查",
-		"Check files":                       "检查文件",
 		"Check the files":                   "检查文件",
 		"Check the folders every":           "检查文件夹的间隔",
 		"Check your notification channels.": "请检查你的通知渠道。",

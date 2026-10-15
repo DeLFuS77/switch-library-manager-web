@@ -3,6 +3,9 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Check new files": "Проверить новые",
+		"Check everything again": "Проверить всё заново",
+		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "«Проверить новые» смотрит только файлы, добавленные или изменённые после последней проверки, и продолжает прерванную проверку с того места; «Проверить всё заново» снова читает всю библиотеку.",
 		"Looking at what can be freed...": "Поиск того, что можно освободить...",
 		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "Каждый оригинал сравнивается со сжатой копией, и каждый файл проверяется на диске; на NAS это занимает немного времени. Страница откроется сама, когда будет готова, а в следующий раз — сразу.",
 		"Applying the changes...": "Применение изменений...",
@@ -491,8 +494,6 @@ func init() {
 		"Changes are applied when you save.":    "Изменения применяются при сохранении.",
 		"Changes are applied when you save. Changing the folders or the keys rescans the library.": "Изменения применяются при сохранении. При изменении папок или ключей библиотека сканируется заново.",
 		"Channel settings > Integrations > Webhooks":                                               "Настройки канала > Интеграция > Вебхуки",
-		"Check all":                         "Проверить все",
-		"Check files":                       "Проверить файлы",
 		"Check the files":                   "Проверить файлы",
 		"Check the folders every":           "Проверять папки каждые",
 		"Check your notification channels.": "Проверьте каналы уведомлений.",

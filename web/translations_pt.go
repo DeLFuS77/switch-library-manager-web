@@ -3,6 +3,9 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Check new files": "Verificar os novos",
+		"Check everything again": "Verificar tudo de novo",
+		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "«Verificar os novos» só olha os arquivos adicionados ou alterados desde a última verificação e continua de onde uma verificação interrompida parou; «Verificar tudo de novo» lê a biblioteca inteira outra vez.",
 		"Looking at what can be freed...": "Procurando o que pode ser liberado...",
 		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "Cada original é comparado com sua cópia comprimida e cada arquivo é verificado no disco; num NAS leva um momento. A página abre sozinha quando estiver pronta, e na próxima vez abrirá na hora.",
 		"Applying the changes...": "Aplicando as alterações...",
@@ -716,8 +719,6 @@ func init() {
 		"Changes are applied when you save.":                                                 "As alterações são aplicadas ao salvar.",
 		"Changes are applied when you save. Changing the folders or the keys rescans the library.": "As alterações são aplicadas ao salvar. Alterar as pastas ou as chaves reescaneia a biblioteca.",
 		"Channel settings > Integrations > Webhooks":                                               "Configurações do canal > Integrações > Webhooks",
-		"Check all":                                   "Marcar todos",
-		"Check files":                                 "Verificar arquivos",
 		"Check the files":                             "Verificar os arquivos",
 		"Check your notification channels.":           "Verifique seus canais de notificação.",
 		"Checks every file again":                     "Verifica todos os arquivos novamente",

@@ -3,6 +3,9 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Check new files": "Verifica i nuovi",
+		"Check everything again": "Verifica di nuovo tutto",
+		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "«Verifica i nuovi» guarda solo i file aggiunti o modificati dall'ultima verifica e riprende da dove si era fermata una verifica interrotta; «Verifica di nuovo tutto» rilegge l'intera libreria.",
 		"Looking at what can be freed...": "Ricerca di ciò che si può liberare...",
 		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "Ogni originale viene confrontato con la sua copia compressa e ogni file viene controllato sul disco; su un NAS richiede un momento. La pagina si apre da sola quando è pronta, e la prossima volta si aprirà subito.",
 		"Applying the changes...": "Applicazione delle modifiche...",
@@ -716,8 +719,6 @@ func init() {
 		"Changes are applied when you save.":                                                 "Le modifiche vengono applicate al salvataggio.",
 		"Changes are applied when you save. Changing the folders or the keys rescans the library.": "Le modifiche vengono applicate al salvataggio. Se cambi le cartelle o le chiavi, la libreria viene riscansionata.",
 		"Channel settings > Integrations > Webhooks":                                               "Impostazioni del canale > Integrazioni > Webhook",
-		"Check all":                                   "Controlla tutto",
-		"Check files":                                 "Controlla i file",
 		"Check the files":                             "Controlla i file",
 		"Check your notification channels.":           "Controlla i tuoi canali di notifica.",
 		"Checks every file again":                     "Ricontrolla ogni file",

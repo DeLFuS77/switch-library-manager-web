@@ -3,6 +3,9 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Check new files": "Nieuwe controleren",
+		"Check everything again": "Alles opnieuw controleren",
+		"Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more.": "‘Nieuwe controleren’ bekijkt alleen de bestanden die sinds de laatste controle zijn toegevoegd of gewijzigd en gaat verder waar een gestopte controle was; ‘Alles opnieuw controleren’ leest de hele bibliotheek nog eens.",
 		"Looking at what can be freed...": "Zoeken wat vrijgemaakt kan worden...",
 		"Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once.": "Elk origineel wordt vergeleken met zijn gecomprimeerde kopie en elk bestand wordt op de schijf bekeken; op een NAS duurt dat even. De pagina opent vanzelf zodra ze klaar is, en de volgende keer meteen.",
 		"Applying the changes...": "Wijzigingen toepassen...",
@@ -491,8 +494,6 @@ func init() {
 		"Changes are applied when you save.":    "Wijzigingen worden toegepast wanneer je opslaat.",
 		"Changes are applied when you save. Changing the folders or the keys rescans the library.": "Wijzigingen worden toegepast wanneer je opslaat. Als je de mappen of de keys wijzigt, wordt de bibliotheek opnieuw gescand.",
 		"Channel settings > Integrations > Webhooks":                                               "Kanaalinstellingen > Integraties > Webhooks",
-		"Check all":                         "Alles controleren",
-		"Check files":                       "Bestanden controleren",
 		"Check the files":                   "Controleer de bestanden",
 		"Check the folders every":           "Controleer de mappen elke",
 		"Check your notification channels.": "Controleer je meldingskanalen.",
