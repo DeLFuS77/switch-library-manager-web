@@ -71,6 +71,13 @@ func i18nFuncs(lang string) template.FuncMap {
 		"jsTranslations": func() map[string]string { return jsTranslations(lang) },
 		"languageName":   func(code string) string { return languageNames[code] },
 		"formatTime":     func(value time.Time) string { return formatDate(lang, value) },
+		// a date of the titles database (20240131), or "" when it has none
+		"releaseDate": func(value int) string {
+			if date, err := intToTime(value); err == nil && value > 0 {
+				return formatDate(lang, date)
+			}
+			return ""
+		},
 		"formatMonth":    func(value time.Time) string { return formatMonth(lang, value) },
 		"formatDay":      func(value time.Time) string { return formatDay(lang, value) },
 		"num":            func(value int) string { return formatNumber(lang, value) },
