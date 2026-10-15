@@ -4,6 +4,8 @@
 
 ### Fixes
 
+- The icon of the Synchronize button turns around its centre while the library is synchronized or scanned, like the
+  tasks icon of the menu, instead of drifting a little.
 - Issues: the two buttons of the file check say what they do, "Check new files" and "Check everything again", with a
   line that explains the difference (the first one also goes on where a stopped check was). They fit a phone.
 - Space: the page opens at once. What it shows (each original compared with its compressed copy, every file looked at
