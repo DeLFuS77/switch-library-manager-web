@@ -127,3 +127,27 @@ func makeRomfsSection(t *testing.T, name string) []byte {
 	}
 	return data
 }
+
+// The game says it is a demo with bit 0 of its attributes, whatever its name.
+func TestNacpDemoFlag(t *testing.T) {
+	extract := func(demo bool) Nacp {
+		section := makeRomfsSection(t, "control.nacp")
+		if demo {
+			start := bytes.Index(section, []byte("Synthetic Game"))
+			section[start+0x3028] = 1
+		}
+		nca := makeSyntheticNCA(t, section, 0)
+		control := &PFS0{Files: []fileEntry{{Name: "control-id", StartOffset: 0}}}
+		got, err := ExtractNacp(&ContentMetaAttributes{Contents: map[string]Content{"Control": {ID: "control-id"}}}, bytes.NewReader(nca), control, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return *got
+	}
+	if got := extract(true); !got.Demo || !got.AttributesRead {
+		t.Fatalf("a demo: %+v", got)
+	}
+	if got := extract(false); got.Demo || !got.AttributesRead {
+		t.Fatalf("a game: %+v", got)
+	}
+}

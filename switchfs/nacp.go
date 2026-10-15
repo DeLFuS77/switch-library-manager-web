@@ -38,6 +38,10 @@ type Nacp struct {
 	Isbn                  string
 	DisplayVersion        string
 	SupportedLanguageFlag uint32
+	// the game says it is a demo (bit 0 of its attributes), whatever its name or store
+	Demo bool `json:"demo,omitempty"`
+	// the attributes were read; data read by older versions does not have them
+	AttributesRead bool `json:"attributes_read,omitempty"`
 }
 
 func (l Language) String() string {
@@ -173,8 +177,10 @@ func readNacp(data []byte, romFsHeader RomfsHeader, fileEntry RomfsFileEntry) (N
 	isbn := readBytesUntilZero(data[offset+0x3000 : offset+0x3000+0x25])
 	displayVersion := readBytesUntilZero(data[offset+0x3060 : offset+0x3060+0x10])
 	supportedLanguageFlag := binary.LittleEndian.Uint32(data[offset+0x302C : offset+0x302C+0x4])
+	attributes := binary.LittleEndian.Uint32(data[offset+0x3028 : offset+0x3028+0x4])
 
-	return Nacp{TitleName: titles, Isbn: string(isbn), DisplayVersion: string(displayVersion), SupportedLanguageFlag: supportedLanguageFlag}, nil
+	return Nacp{TitleName: titles, Isbn: string(isbn), DisplayVersion: string(displayVersion), SupportedLanguageFlag: supportedLanguageFlag,
+		Demo: attributes&1 != 0, AttributesRead: true}, nil
 	/*
 
 

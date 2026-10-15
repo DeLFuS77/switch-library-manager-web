@@ -43,7 +43,7 @@ func getLocalTitleName(title *db.SwitchTitle, gameFile *db.SwitchGameFiles) stri
 
 	if gameFile.File.Metadata != nil && gameFile.File.Metadata.Ncap != nil {
 		ncap := gameFile.File.Metadata.Ncap
-		if name := ncap.TitleName["AmericanEnglish"].Title; name != "" {
+		if name := ncap.TitleName["AmericanEnglish"].Title; usableName(name) {
 			return name
 		}
 
@@ -53,7 +53,7 @@ func getLocalTitleName(title *db.SwitchTitle, gameFile *db.SwitchGameFiles) stri
 		}
 		sort.Strings(languages)
 		for _, language := range languages {
-			if name := ncap.TitleName[language].Title; name != "" {
+			if name := ncap.TitleName[language].Title; usableName(name) {
 				return name
 			}
 		}
@@ -77,6 +77,9 @@ func isDemo(title *db.SwitchTitle, name string) bool {
 func localDemo(meta *switchfs.ContentMetaAttributes) bool {
 	if meta == nil || meta.Ncap == nil {
 		return false
+	}
+	if meta.Ncap.Demo {
+		return true
 	}
 	for _, name := range meta.Ncap.TitleName {
 		if demoName.MatchString(name.Title) {

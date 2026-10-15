@@ -4,6 +4,11 @@
 
 ### Fixes
 
+- Demos the titles database does not know (of the Chinese store, for example) are hidden with the others: the app reads
+  the demo flag the game itself carries, whatever its name or store. Only the games the titles database does not know
+  are read again once for it, not the whole library.
+- A game whose own name in a language is only a placeholder such as "-" (Chinese games fill so the languages they do
+  not have) shows its real name, in another language, instead of "-".
 - Settings is at one click again: a gear next to the account menu of the main bar, for administrators (it is still in
   the account menu too).
 - Tasks: the stripes of the bars move again, and smoothly: an old rule meant to remove their entrance animation stopped

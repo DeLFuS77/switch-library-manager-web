@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
 type stepRecorder struct{ steps [][2]int }
@@ -36,5 +38,23 @@ func TestWalkingTheFoldersShowsProgress(t *testing.T) {
 	scanFolder(folder, true, &[]ExtendedFileInfo{}, unknown, 0)
 	if unknown.steps[0] != [2]int{-1, -1} {
 		t.Fatalf("without a last scan the progress is unknown: %v", unknown.steps)
+	}
+}
+
+// Cached data of a game the titles database does not know is read again once, to learn
+// whether the game says it is a demo; known games and data with the attributes are kept.
+func TestUnknownGamesAreReadAgainForTheirAttributes(t *testing.T) {
+	ldb := &LocalSwitchDBManager{titles: &SwitchTitlesDB{TitlesMap: map[string]*SwitchTitle{"0100000000010": {}}}}
+	meta := func(id string, read bool) map[string]*switchfs.ContentMetaAttributes {
+		return map[string]*switchfs.ContentMetaAttributes{id: {TitleId: id, Ncap: &switchfs.Nacp{AttributesRead: read}}}
+	}
+	if !ldb.needsAttributes(meta("0100000000020000", false)) {
+		t.Fatal("an unknown game without attributes is read again")
+	}
+	if ldb.needsAttributes(meta("0100000000010000", false)) {
+		t.Fatal("a known game is not read again")
+	}
+	if ldb.needsAttributes(meta("0100000000020000", true)) {
+		t.Fatal("data with the attributes is kept")
 	}
 }
