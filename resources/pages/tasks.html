@@ -28,7 +28,7 @@
 						{{- if .Lanes}}<div class="small fw-semibold mb-1">{{t "Total"}}</div>{{end}}
 						<div class="progress mb-2" role="progressbar" aria-label="{{t "Progress"}}"{{if ge $pct 0}} aria-valuenow="{{$pct}}" aria-valuemin="0" aria-valuemax="100"{{end}}>
 							{{- if ge $pct 0}}
-							<div class="progress-bar progress-bar-striped progress-bar-animated" style="width: {{$pct}}%"></div>
+							<div class="progress-bar progress-bar-striped progress-bar-animated task-total-bar" style="width: {{$pct}}%; --pct: {{$pct}}"></div>
 							{{- else}}
 							<div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div>
 							{{- end}}
