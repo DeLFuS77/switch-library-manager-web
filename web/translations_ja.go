@@ -3,6 +3,7 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"%v of %v files": "%v / %v ファイル",
 		"e.g. zip rar": "例: zip rar",
 		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "画像、メモ、チェックサム、途中のダウンロード (part、partial、tmp など) は、ここに書かなくても除外されます。",
 		"Count a game once when you have it from several regions": "複数の地域版があるゲームを 1 本として数える",

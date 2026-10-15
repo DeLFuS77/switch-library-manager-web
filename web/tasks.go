@@ -79,6 +79,9 @@ type Task struct {
 	Message  string     `json:"message"`
 	// what the message names, when it is "... %v"
 	MessageArg string `json:"messageArg,omitempty"`
+	// the files of a task on files: the one it reached, out of how many
+	FileNumber int `json:"fileNumber,omitempty"`
+	FileCount  int `json:"fileCount,omitempty"`
 	Error    *TaskNote  `json:"error,omitempty"`
 	Warnings []TaskNote `json:"warnings,omitempty"`
 	// results, depending on the kind
@@ -317,6 +320,15 @@ func (l *TaskLog) ProgressArg(id int64, current int, total int, message string, 
 func (l *TaskLog) ProgressLanes(id int64, current int, total int, message string, lanes []TaskLane) {
 	l.update(id, false, func(task *Task) {
 		task.Current, task.Total, task.Message, task.MessageArg, task.Lanes = current, total, message, "", lanes
+	})
+}
+
+// ProgressFiles is ProgressLanes for a task on files, with the file it reached out of how
+// many, shown in a place of their own instead of after the name of the file.
+func (l *TaskLog) ProgressFiles(id int64, current int, total int, message string, number int, count int, lanes []TaskLane) {
+	l.update(id, false, func(task *Task) {
+		task.Current, task.Total, task.Message, task.MessageArg, task.Lanes = current, total, message, "", lanes
+		task.FileNumber, task.FileCount = number, count
 	})
 }
 

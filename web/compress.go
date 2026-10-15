@@ -396,7 +396,8 @@ func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, si
 					current = append(current, lane)
 				}
 			}
-			web.taskLog().ProgressLanes(taskId, int(done>>20), int(total>>20), message, current)
+			// the files reached so far, the ones done and the ones being worked on
+			web.taskLog().ProgressFiles(taskId, int(done>>20), int(total>>20), message, next, len(paths), current)
 		}
 		for worker := 0; worker < workers; worker++ {
 			wait.Add(1)
@@ -420,7 +421,7 @@ func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, si
 					path := paths[i]
 					name := filepath.Base(path)
 					fileSize := sizes[i] * passes
-					message := fmt.Sprintf("%s (%d/%d)", name, i+1, len(paths))
+					message := name
 					report := func(step int64) func(int64, int64) {
 						lane := TaskLane{Name: name, Total: fileSize}
 						if phases := filePhases[kind]; len(phases) > 0 && sizes[i] > 0 {
