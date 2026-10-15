@@ -5073,6 +5073,39 @@ body:has(.wizard.show) #alert_sync {
 	min-width: 0;
 }
 
+// the stripes of a moving bar: a layer slid sideways by the graphics card, smooth even while
+// the page is busy (Bootstrap moves the background, which stutters when the page is redrawn).
+// --stripe-delay keeps the stripes where they were when the bar is drawn again.
+.progress-bar-striped.progress-bar-animated {
+	position: relative;
+	overflow: hidden;
+	background-image: none;
+	animation: none;
+
+	&::after {
+		content: "";
+		position: absolute;
+		inset: 0 0 0 -2rem;
+		background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
+		background-size: 1rem 1rem;
+		animation: slm-stripes 1s linear infinite;
+		animation-delay: var(--stripe-delay, 0s);
+		will-change: transform;
+	}
+}
+
+@keyframes slm-stripes {
+	to {
+		transform: translateX(1rem);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.progress-bar-striped.progress-bar-animated::after {
+		animation: none;
+	}
+}
+
 // the total of a running task goes from red to green as it advances, through orange and
 // yellow: the hue follows the share done (--pct, 0 to 100)
 .task-total-bar {

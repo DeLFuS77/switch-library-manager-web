@@ -4,7 +4,9 @@
 
 ### Fixes
 
-- Tasks: the stripes of the bars move again; an old rule meant to remove their entrance animation stopped them too.
+- Tasks: the stripes of the bars move again, and smoothly: an old rule meant to remove their entrance animation stopped
+  them, and they now slide on a layer the graphics card moves, instead of a background that stuttered while the page
+  was redrawn.
 
 ### Improvements
 
