@@ -275,7 +275,7 @@ func isPublicPath(path string) bool {
 
 // pages and actions of administrators; read-only users can only look and download
 var adminOnlyPages = map[string]struct{}{"/settings.html": {}, "/wizard": {}, "/wizard/check": {}, "/saves.html": {}, "/saves/download": {}, "/organize.html": {}, "/users.html": {}, "/compress.html": {}, "/space.html": {}, "/update.html": {}, "/backup/download": {},
-	"/compress/xci-list": {}, "/compress/nsz-list": {}, "/diagnostics.html": {}}
+	"/compress/xci-list": {}, "/compress/nsz-list": {}, "/diagnostics.html": {}, "/maintenance.html": {}}
 
 func viewerAllowed(r *http.Request) bool {
 	switch r.Method {

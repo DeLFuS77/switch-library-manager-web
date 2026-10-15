@@ -1,9 +1,13 @@
 # Changelog
 
-## Unreleased
+## 1.32.0
 
 ### Improvements
 
+- Tune-up: a page, first in the Tools menu, with the five steps to put a library in order in the order they depend on
+  each other (synchronize, check the files, organize, free space, compress), each with what is left to do (files never
+  checked, changes of Organize waiting, space that can be freed, files not compressed) and the first one waiting marked,
+  with its button. Organize, Space and Compress say which step they are, with a link to it.
 - The cover of a game card opens the game too, not only its name.
 - Organize: when the cleanup keeps files because the copy that stays is not checked yet, it says how many and offers to
   check those copies at once.

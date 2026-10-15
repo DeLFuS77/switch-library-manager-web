@@ -70,7 +70,7 @@
 								</ul>
 							</li>
 							{{- if .Auth.IsAdmin}}
-							{{- $tools := or (eq .Page "organize") (eq .Page "compress") (eq .Page "space") (eq .Page "sd") (eq .Page "saves")}}
+							{{- $tools := or (eq .Page "maintenance") (eq .Page "organize") (eq .Page "compress") (eq .Page "space") (eq .Page "sd") (eq .Page "saves")}}
 							<li class="nav-item dropdown d-none d-xxl-block">
 								<button class="btn btn-link nav-link dropdown-toggle{{if $tools}} active{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="toolsMenu">
 									<span class="bi bi-tools" aria-hidden="true"></span><span class="nav-label">{{t "Tools"}}</span>
@@ -93,6 +93,7 @@
 							<hr>
 							<div class="nav-section-title">{{t "Tools"}}</div>
 							<ul class="navbar-nav app-nav">
+								{{- template "navLink" (dict "Page" .Page "Id" "maintenance" "Href" "/maintenance.html" "Icon" "bi-list-check" "Label" (t "Tune-up") "Count" 0 "Badge" "")}}
 								{{- template "navLink" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Count" 0 "Badge" "")}}
 								{{- template "navLink" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Count" 0 "Badge" "")}}
 								{{- template "navLink" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Count" 0 "Badge" "")}}
@@ -226,6 +227,8 @@
 {{- end}}
 
 {{define "toolItems"}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "maintenance" "Href" "/maintenance.html" "Icon" "bi-list-check" "Label" (t "Tune-up") "Text" (t "The steps in order to put your library in order"))}}
+<li><hr class="dropdown-divider"></li>
 {{- template "navMenuItem" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Text" (t "Rename your files and put them in folders"))}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Text" (t "Turn NSP into NSZ to save space"))}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Text" (t "Free the space of old updates and duplicates"))}}

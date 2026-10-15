@@ -1,9 +1,7 @@
 package web
 
 import (
-	"reflect"
 	"embed"
-	"io/fs"
 	"errors"
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/db"
@@ -13,10 +11,12 @@ import (
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"html/template"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -117,23 +117,23 @@ type Web struct {
 	wishOnce       sync.Once
 	activity       *activityLog
 	activityOnce   sync.Once
-	hist            *libraryHistory
-	historyOnce     sync.Once
+	hist           *libraryHistory
+	historyOnce    sync.Once
 	// how long the games take to beat, from IGDB (see igdb.go)
-	timeToBeat        *timeToBeatStore
-	timeToBeatOnce    sync.Once
-	igdbSeriesOnce    sync.Once
-	igdbSeries        *igdbCollectionStore
-	seriesFile        seriesFile
+	timeToBeat     *timeToBeatStore
+	timeToBeatOnce sync.Once
+	igdbSeriesOnce sync.Once
+	igdbSeries     *igdbCollectionStore
+	seriesFile     seriesFile
 	// results of switchfs.HoldsSameContents, see holdsSameContents
-	sameContents sync.Map
+	sameContents      sync.Map
 	timeToBeatRunning atomic.Bool
 	// the files waiting for the automations (see automation.go)
 	automationQueue *automationQueue
 	automationOnce  sync.Once
 	// the save vault: verified passwords and what was read from the backups (see vault.go)
-	vault      vaultAuth
-	vaultFiles vaultIndex
+	vault           vaultAuth
+	vaultFiles      vaultIndex
 	coll            *collectionStore
 	collectionsOnce sync.Once
 	fav             *favoriteStore
@@ -153,28 +153,30 @@ type Web struct {
 	measuring atomic.Bool
 	// the content of the Space page is being prepared
 	spacePreparing atomic.Bool
-	fallbackMutex  sync.Mutex
-	thumbs         *thumbnails
-	thumbsOnce     sync.Once
-	store          *db.TitleStore
-	storeOnce      sync.Once
-	remote         *remoteCovers
-	remoteOnce     sync.Once
-	languages      titleLanguages
-	auto           autoCompressor
-	updates        updateChecker
-	verify         *verifyStore
-	verifyOnce     sync.Once
-	compressor     compressor
+	// the changes of Organize are being counted for the tune-up
+	organizePreparing atomic.Bool
+	fallbackMutex     sync.Mutex
+	thumbs            *thumbnails
+	thumbsOnce        sync.Once
+	store             *db.TitleStore
+	storeOnce         sync.Once
+	remote            *remoteCovers
+	remoteOnce        sync.Once
+	languages         titleLanguages
+	auto              autoCompressor
+	updates           updateChecker
+	verify            *verifyStore
+	verifyOnce        sync.Once
+	compressor        compressor
 	// files are being organized or deleted by Organize: file tasks wait
 	organizing atomic.Bool
-	cache          derivedCache
-	auth           *Auth
-	tasks          *TaskLog
-	tasksOnce      sync.Once
+	cache      derivedCache
+	auth       *Auth
+	tasks      *TaskLog
+	tasksOnce  sync.Once
 	// the task that receives the progress of the running synchronization, 0 if none
-	currentTask    atomic.Int64
-	router         *mux.Router
+	currentTask atomic.Int64
+	router      *mux.Router
 	// templates and static files: embedded in the binary, read from disk in tests
 	embedFS        fs.FS
 	appSettings    *settings.AppSettings
@@ -249,9 +251,9 @@ func (t TitleItem) DlcPercent() int {
 
 type GlobalPageData struct {
 	// set by render for the user of the request
-	Auth                AuthInfo
+	Auth AuthInfo
 	// a newer version of the app, if one was released
-	Update              *AppUpdate
+	Update *AppUpdate
 	// a made-up library is shown (SLM_DEMO=true)
 	Demo                bool
 	IsKeysFileAvailable bool
@@ -262,11 +264,11 @@ type GlobalPageData struct {
 	Version             string
 	Counts              NavCounts
 	// some games have their time to beat (IGDB): the library can be sorted by it
-	TimesToBeat         bool
+	TimesToBeat bool
 	// the setup wizard opens by itself (first use), for an administrator
-	WizardAuto          bool
+	WizardAuto bool
 	// the save vault is on: its page is in the menu
-	VaultEnabled        bool
+	VaultEnabled bool
 }
 
 // NavCounts are shown next to the navigation links, so pending work is visible everywhere.
@@ -286,9 +288,9 @@ type TitleItemsPageData struct {
 	GlobalPageData
 	// games on the wishlist (Missing Games)
 	WishedCount int
-	TitleItems []TitleItem
-	Filter     *TitleItemFilter
-	Pagination pagination.Pagination
+	TitleItems  []TitleItem
+	Filter      *TitleItemFilter
+	Pagination  pagination.Pagination
 	// missing games like the ones the user likes, on the first page without filters
 	Recommendations []Recommendation
 }
@@ -302,23 +304,23 @@ type LibraryFacets struct {
 	Complete int
 	Formats  []string
 	// counted before the kind and extra filters; the regions found in the library
-	Games   int
-	Demos   int
-	NoCover int
-	Unknown int
+	Games     int
+	Demos     int
+	NoCover   int
+	Unknown   int
 	Recent    int
 	Favorites int
 	// games not in the library, shown with "missing=1"
 	Missing int
 	// genres and languages of the games, the most frequent first, and the games by players
-	Genres      []NamedCount
-	Languages   []NamedCount
+	Genres       []NamedCount
+	Languages    []NamedCount
 	SinglePlayer int
 	TwoPlayers   int
 	FourPlayers  int
 	// the collections with their number of games, before the collection filter
 	Collections []CollectionCount
-	Regions []string
+	Regions     []string
 	// the settings hide the demos unless the kind filter asks for them
 	DemosHidden bool
 }
@@ -331,7 +333,7 @@ type LibraryPageData struct {
 	Stats Statistics
 }
 
-var funcMap = template.FuncMap {
+var funcMap = template.FuncMap{
 	// mul multiplies, e.g. megabytes into bytes for formatSize
 	"mul": func(a, b int) int64 {
 		return int64(a) * int64(b)
@@ -339,10 +341,10 @@ var funcMap = template.FuncMap {
 	"add": func(a, b int) int {
 		return a + b
 	},
-	"fileBase": fileBase,
-	"fileDir":  fileDir,
+	"fileBase":   fileBase,
+	"fileDir":    fileDir,
 	"shortPaths": shortPaths,
-	"eq": templateEq,
+	"eq":         templateEq,
 	"gt": func(a, b int) bool {
 		return a > b
 	},
@@ -350,7 +352,7 @@ var funcMap = template.FuncMap {
 		return a < b
 	},
 	"mkRange": func(min, max int) []int {
-		a := make([]int, max - min + 1)
+		a := make([]int, max-min+1)
 		for i := range a {
 			a[i] = min + i
 		}
@@ -372,18 +374,19 @@ var funcMap = template.FuncMap {
 	"filterUrl": func(filter *TitleItemFilter, replace ...string) template.URL {
 		return template.URL("?" + filter.query(replace...).Encode())
 	},
-	"formatSize": formatSize,
-	"hours":      hoursText,
-	"thumb":      thumbUrl,
-	"fullImage":  fullImageUrl,
-	"asset":      func(path string) string { return path + "?v=" + assetVersion },
+	"formatSize":      formatSize,
+	"hours":           hoursText,
+	"thumb":           thumbUrl,
+	"fullImage":       fullImageUrl,
+	"maintenanceStep": maintenanceStepOf,
+	"asset":           func(path string) string { return path + "?v=" + assetVersion },
 	"mod": func(a, b int) int {
 		if b == 0 {
 			return 0
 		}
 		return a % b
 	},
-	"conic":      conicGradient,
+	"conic": conicGradient,
 	// the first letter of a name, for avatars
 	"initial": func(name string) string {
 		for _, r := range name {
@@ -391,7 +394,7 @@ var funcMap = template.FuncMap {
 		}
 		return "?"
 	},
-	"join": strings.Join,
+	"join":      strings.Join,
 	"issueIcon": issueIcon,
 	// dict builds named parameters for a sub-template: dict "Key" value "Key2" value2
 	"dict": func(values ...any) map[string]any {
@@ -452,19 +455,19 @@ var funcMap = template.FuncMap {
 
 func (web *Web) globalPageData(page string) GlobalPageData {
 	_, localDB := web.state.get()
-	return GlobalPageData {
+	return GlobalPageData{
 		IsKeysFileAvailable: settings.IsKeysFileAvailable() || isDemoMode(),
-		Demo: isDemoMode(),
-		IsSynchronizing: web.state.IsSynchronizing(),
-		HasLibrary: localDB != nil && len(localDB.TitlesMap) > 0,
-		Page: page,
-		SlmVersion: settings.SLM_VERSION,
-		Version: settings.SLM_WEB_VERSION,
-		Counts: web.navCounts(),
-		Update: web.availableUpdate(),
-		TimesToBeat: web.timesToBeat().hasKnown(),
-		WizardAuto: web.wizardAuto(),
-		VaultEnabled: vaultEnabled(settings.ReadSettings(web.dataFolder)) || isDemoMode(),
+		Demo:                isDemoMode(),
+		IsSynchronizing:     web.state.IsSynchronizing(),
+		HasLibrary:          localDB != nil && len(localDB.TitlesMap) > 0,
+		Page:                page,
+		SlmVersion:          settings.SLM_VERSION,
+		Version:             settings.SLM_WEB_VERSION,
+		Counts:              web.navCounts(),
+		Update:              web.availableUpdate(),
+		TimesToBeat:         web.timesToBeat().hasKnown(),
+		WizardAuto:          web.wizardAuto(),
+		VaultEnabled:        vaultEnabled(settings.ReadSettings(web.dataFolder)) || isDemoMode(),
 	}
 }
 
@@ -602,6 +605,7 @@ func (web *Web) Start() {
 	web.HandleAutoBackups()
 	web.HandleDiagnostics()
 	web.HandleDisclaimer()
+	web.HandleMaintenance()
 	web.HandleCovers()
 	web.HandleUpdateGuide()
 	web.HandleWishlist()
