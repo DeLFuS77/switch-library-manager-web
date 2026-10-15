@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Every check of a file is kept and used everywhere: a compression reads its original whole, and that is now its check
+  (the original and the NSZ count as checked); a decompression, a conversion and a pack check the file they write whole,
+  and that counts as its check too. The next file check does not read those files again.
+- Organize names a game that has no English name, in the titles database or in itself, by the name it gives itself in
+  another language (Latin letters first, then Japanese, Korean or Chinese) instead of by the name of its file; a
+  placeholder name such as "-" of the titles database does not count.
+
 ## 1.32.0
 
 ### Improvements

@@ -14,6 +14,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"go.uber.org/zap"
 	"robpike.io/nihongo"
 )
@@ -533,7 +534,23 @@ func getDlcName(switchTitle *db.SwitchTitle, file db.SwitchFileInfo) string {
 	return ""
 }
 
+// the languages of the names a game gives itself, in the order they are preferred for its
+// folder and file names
+var (
+	latinTitleLanguages = []string{"AmericanEnglish", "BritishEnglish", "Spanish", "LatinAmericanSpanish", "French",
+		"CanadianFrench", "German", "Italian", "Dutch", "Portuguese", "Russian"}
+	asianTitleLanguages = []string{"Japanese", "Korean", "Chinese", "Taiwanese"}
+)
+
+// realName tells a name from a placeholder such as "-" of some entries of the titles database.
+func realName(name string) bool {
+	return strings.Trim(name, " -_.?·") != ""
+}
+
 func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles) string {
+	if switchTitle != nil && !realName(switchTitle.Attributes.Name) {
+		switchTitle = nil
+	}
 	if switchTitle != nil && switchTitle.Attributes.Name != "" {
 		res := cjk.FindAllString(switchTitle.Attributes.Name, -1)
 		if len(res) == 0 {
@@ -541,9 +558,23 @@ func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles) string {
 		}
 	}
 
+	// the name the game gives itself: in English first, then in another language written in
+	// Latin letters, then the name of the titles database in Asian characters, then the
+	// game's own in Japanese, Korean or Chinese, before the name of the file
+	var nacp map[string]switchfs.NacpTitle
 	if v != nil && v.File.Metadata != nil && v.File.Metadata.Ncap != nil {
-		name := v.File.Metadata.Ncap.TitleName["AmericanEnglish"].Title
-		if name != "" {
+		nacp = v.File.Metadata.Ncap.TitleName
+	}
+	for _, language := range latinTitleLanguages {
+		if name := strings.TrimSpace(nacp[language].Title); name != "" {
+			return name
+		}
+	}
+	if switchTitle != nil && strings.TrimSpace(switchTitle.Attributes.Name) != "" {
+		return switchTitle.Attributes.Name
+	}
+	for _, language := range asianTitleLanguages {
+		if name := strings.TrimSpace(nacp[language].Title); name != "" {
 			return name
 		}
 	}

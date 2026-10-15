@@ -148,12 +148,14 @@ func (web *Web) makePack(ctx context.Context, sources []string, target string, s
 		return 0, err
 	}
 	// every NCA must match its content ID
-	if err := switchfs.VerifyCompressed(ctx, temporary, nil, report(size)); err != nil {
+	written, err := switchfs.VerifyFile(ctx, temporary, report(size))
+	if err != nil {
 		return 0, err
 	}
 	if err := os.Rename(temporary, target); err != nil {
 		return 0, err
 	}
+	web.verifications().remember(target, written)
 	web.sugarLogger.Infof("Made the pack %s of %d files", target, len(sources))
 	if deleteOriginals {
 		for _, source := range sources {

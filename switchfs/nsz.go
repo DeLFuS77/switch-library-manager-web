@@ -996,6 +996,12 @@ func HashNcas(ctx context.Context, path string, progress func(done int64, total 
 	return hashes, err
 }
 
+// HashAndCheck is HashNcas that also gives what the check of the file found: reading every
+// file of it is the whole check, so it is not done again.
+func HashAndCheck(ctx context.Context, path string, progress func(done int64, total int64)) (map[string][32]byte, FileCheck, error) {
+	return checkPackage(ctx, path, nil, progress)
+}
+
 // checkPackage hashes every file of a package (NCZ files decompressed) and checks them:
 // against expected when given, else every NCA against its content ID and, when that
 // fails, against the hash trees of its data.
