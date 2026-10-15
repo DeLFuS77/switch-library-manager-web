@@ -140,11 +140,7 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 		return err
 	}
 	// every NCA must match its content ID
-	if strings.EqualFold(filepath.Ext(target), ".nsz") {
-		err = switchfs.VerifyCompressed(ctx, temporary, nil, report(info.Size()))
-	} else {
-		_, err = switchfs.HashNcas(ctx, temporary, report(info.Size()))
-	}
+	written, err := switchfs.VerifyFile(ctx, temporary, report(info.Size()))
 	if err != nil {
 		return err
 	}
@@ -155,7 +151,7 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 	if err := os.Rename(temporary, target); err != nil {
 		return err
 	}
-	web.verifications().inherit(path, target)
+	web.verifications().remember(target, written)
 	if deleteOriginal {
 		if err := os.Remove(path); err != nil {
 			return fmt.Errorf("could not delete the original: %w", err)
@@ -539,10 +535,12 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	}
 	defer release()
 
-	expected, err := switchfs.HashNcas(ctx, path, report(0))
+	expected, originalCheck, err := switchfs.HashAndCheck(ctx, path, report(0))
 	if err != nil {
 		return 0, err
 	}
+	// reading the original whole was its check: the next file check does not read it again
+	web.verifications().remember(path, originalCheck)
 
 	// hidden, so scans ignore the file while it is written
 	temporary := filepath.Join(filepath.Dir(path), "."+filepath.Base(target)+".tmp")
@@ -597,13 +595,14 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 		return err
 	}
 	// every NCA must match its content ID
-	if _, err := switchfs.HashNcas(ctx, temporary, report(info.Size())); err != nil {
+	written, err := switchfs.VerifyFile(ctx, temporary, report(info.Size()))
+	if err != nil {
 		return err
 	}
 	if err := os.Rename(temporary, target); err != nil {
 		return err
 	}
-	web.verifications().inherit(path, target)
+	web.verifications().remember(target, written)
 	if deleteCompressed {
 		if err := os.Remove(path); err != nil {
 			return fmt.Errorf("could not delete the original: %w", err)

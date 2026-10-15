@@ -208,6 +208,20 @@ func (s *verifyStore) inherit(original string, made string) {
 	s.save()
 }
 
+// remember keeps the result of a check another task made of a file (a compression reads
+// its original whole, a decompression or conversion checks what it wrote), so it is not
+// checked again by the next file check. A failed check is left to the file check, which
+// tells modified files from damaged ones.
+func (s *verifyStore) remember(path string, check switchfs.FileCheck) {
+	info, err := os.Stat(path)
+	if err != nil || info.IsDir() {
+		return
+	}
+	s.set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checked: time.Now(),
+		Modified: len(check.Modified) > 0, Partial: check.Partial, Checker: verifyChecker})
+	s.save()
+}
+
 // adoptMoved gives the files of the library without a result the result of a file that is
 // gone, when both have exactly the same size and modification time (to the nanosecond): a
 // file moved on the same disk keeps them, as the organizer of older versions moved files

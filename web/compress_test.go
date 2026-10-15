@@ -399,3 +399,24 @@ func TestSpaceIsReservedForFilesWrittenAtOnce(t *testing.T) {
 	}
 	second()
 }
+
+// A compression reads its original whole: the original and the NSZ count as checked, and the
+// next file check does not read them again.
+func TestCompressionCountsAsACheck(t *testing.T) {
+	web, path := compressWeb(t)
+	if !web.startCompression([]string{path}, "fast", false) {
+		t.Fatal("the compression must start")
+	}
+	if task := waitForCompression(t, web); task.Status != TASK_SUCCESS {
+		t.Fatalf("task: %+v", task)
+	}
+	for _, file := range []string{path, switchfs.NszPath(path)} {
+		info, err := os.Stat(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if record, ok := web.verifications().current(file, info); !ok || !record.sound() {
+			t.Fatalf("%s counts as checked", filepath.Base(file))
+		}
+	}
+}

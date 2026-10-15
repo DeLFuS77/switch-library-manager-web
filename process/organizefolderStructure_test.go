@@ -223,6 +223,30 @@ func TestOrganizeLeavesDuplicatesWhereTheyAre(t *testing.T) {
 	assertExists(t, filepath.Join(source, "base.nsp"), true)
 }
 
+// A game without an English name in the titles database or in itself is named by its name in
+// another language before the name of its file; a placeholder name does not count.
+func TestNameInAnotherLanguage(t *testing.T) {
+	nacp := func(names map[string]string) *db.SwitchGameFiles {
+		titles := map[string]switchfs.NacpTitle{}
+		for language, name := range names {
+			titles[language] = switchfs.NacpTitle{Title: name}
+		}
+		return &db.SwitchGameFiles{File: db.SwitchFileInfo{
+			ExtendedInfo: db.ExtendedFileInfo{FileName: "d4r1k dun6630n 8453.nsp"},
+			Metadata:     &switchfs.ContentMetaAttributes{Ncap: &switchfs.Nacp{TitleName: titles}}}}
+	}
+	if name := getTitleName(nil, nacp(map[string]string{"Spanish": "Mazmorra Oscura", "Japanese": "暗いダンジョン"})); name != "Mazmorra Oscura" {
+		t.Fatalf("a Latin name first: %q", name)
+	}
+	if name := getTitleName(nil, nacp(map[string]string{"Japanese": "暗いダンジョン"})); name != "暗いダンジョン" {
+		t.Fatalf("the Japanese name before the file name: %q", name)
+	}
+	placeholder := &db.SwitchTitle{Attributes: db.TitleAttributes{Name: "-"}}
+	if name := getTitleName(placeholder, nacp(map[string]string{})); name != "d4r1k dun6630n 8453" {
+		t.Fatalf("a placeholder name does not count: %q", name)
+	}
+}
+
 // A file without a title ID in its name names its folder without its extension.
 func TestNameFromAFileWithoutTitleId(t *testing.T) {
 	files := &db.SwitchGameFiles{File: db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: "h0t0t g4m3 8453.nsp"}}}
