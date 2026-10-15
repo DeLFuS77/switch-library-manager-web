@@ -3,6 +3,18 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"How it works": "動作",
+		"Maintenance": "メンテナンス",
+		"Discover": "見つける",
+		"Tools": "ツール",
+		"The releases of the coming weeks": "今後数週間の発売予定",
+		"Your series and the games you miss of each": "あなたのシリーズと、それぞれの未所持のゲーム",
+		"Your library in numbers": "数字で見るライブラリ",
+		"Rename your files and put them in folders": "ファイルの名前を変更してフォルダーに整理",
+		"Turn NSP into NSZ to save space": "NSP を NSZ に変換して容量を節約",
+		"Free the space of old updates and duplicates": "古いアップデートや重複ファイルの容量を解放",
+		"Choose what fits on your SD card": "SD カードに入るものを選ぶ",
+		"The saves of your consoles": "本体のセーブデータ",
 		"Colour of my icon": "アイコンの色",
 		"The colours of the app": "アプリの色",
 		"The colour of your icon was saved.": "アイコンの色を保存しました。",

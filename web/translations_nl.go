@@ -3,6 +3,18 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"How it works": "Werking",
+		"Maintenance": "Onderhoud",
+		"Discover": "Ontdekken",
+		"Tools": "Hulpmiddelen",
+		"The releases of the coming weeks": "De releases van de komende weken",
+		"Your series and the games you miss of each": "Je reeksen en welke games je van elke reeks mist",
+		"Your library in numbers": "Je bibliotheek in cijfers",
+		"Rename your files and put them in folders": "Hernoem je bestanden en zet ze in mappen",
+		"Turn NSP into NSZ to save space": "Zet NSP om in NSZ om ruimte te besparen",
+		"Free the space of old updates and duplicates": "Maak de ruimte van oude updates en duplicaten vrij",
+		"Choose what fits on your SD card": "Kies wat op je SD-kaart past",
+		"The saves of your consoles": "De opslagbestanden van je consoles",
 		"Colour of my icon": "Kleur van mijn pictogram",
 		"The colours of the app": "De kleuren van de app",
 		"The colour of your icon was saved.": "De kleur van je pictogram is opgeslagen.",

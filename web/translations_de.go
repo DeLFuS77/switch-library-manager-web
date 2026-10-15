@@ -3,6 +3,18 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"How it works": "Funktionsweise",
+		"Maintenance": "Wartung",
+		"Discover": "Entdecken",
+		"Tools": "Werkzeuge",
+		"The releases of the coming weeks": "Die Neuerscheinungen der nächsten Wochen",
+		"Your series and the games you miss of each": "Deine Reihen und welche Spiele dir jeweils fehlen",
+		"Your library in numbers": "Deine Bibliothek in Zahlen",
+		"Rename your files and put them in folders": "Benenne deine Dateien um und ordne sie in Ordner",
+		"Turn NSP into NSZ to save space": "Wandle NSP in NSZ um und spare Platz",
+		"Free the space of old updates and duplicates": "Gib den Platz alter Updates und Duplikate frei",
+		"Choose what fits on your SD card": "Wähle, was auf deine SD-Karte passt",
+		"The saves of your consoles": "Die Spielstände deiner Konsolen",
 		"Colour of my icon": "Farbe meines Symbols",
 		"The colours of the app": "Die Farben der App",
 		"The colour of your icon was saved.": "Die Farbe deines Symbols wurde gespeichert.",

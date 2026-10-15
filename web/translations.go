@@ -5,6 +5,18 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"How it works": "Funcionamiento",
+		"Maintenance": "Mantenimiento",
+		"Discover": "Descubrir",
+		"Tools": "Herramientas",
+		"The releases of the coming weeks": "Los lanzamientos de las próximas semanas",
+		"Your series and the games you miss of each": "Tus sagas y los juegos que te faltan de cada una",
+		"Your library in numbers": "Tu biblioteca en cifras",
+		"Rename your files and put them in folders": "Renombra tus archivos y ponlos en carpetas",
+		"Turn NSP into NSZ to save space": "Convierte NSP en NSZ para ahorrar espacio",
+		"Free the space of old updates and duplicates": "Libera el espacio de actualizaciones antiguas y duplicados",
+		"Choose what fits on your SD card": "Elige lo que cabe en tu tarjeta SD",
+		"The saves of your consoles": "Las partidas guardadas de tus consolas",
 		"Colour of my icon": "Color de mi icono",
 		"The colours of the app": "Los colores de la app",
 		"The colour of your icon was saved.": "Se ha guardado el color de tu icono.",

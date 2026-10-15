@@ -4,6 +4,12 @@
 
 ### Improvements
 
+- The main bar is ordered by what it is for: the library (Library, Updates, DLC, Missing games), a Discover menu
+  (Upcoming, Series, Statistics) and a Tools menu (Organize, Compress, Space, SD card planner, Save backups), each page
+  with a line that says what it is for; on the right Issues and Tasks, then search, synchronize and the account menu at
+  the end, with My account, Settings, Users, Diagnostics and the theme (a gear without login). The side menu of phones
+  and tablets shows the same groups as sections.
+- Settings: its sections are grouped as Your library, How it works, Extras and Maintenance.
 - My account: each user chooses the colour of their icon among ten, or keeps the colours of the app; the icon shows it
   in the menu, on the account page and in Users. Read-only users can choose it too.
 - The theme (light, dark or automatic) moved out of the main bar, which is emptier: it is in the menu of the user and

@@ -83,15 +83,19 @@
 				{{- $base := ""}}{{if .}}{{$base = "/settings.html"}}{{end}}
 				<nav class="col-lg-3" aria-label="{{t "Settings sections"}}">
 					<ul class="nav flex-lg-column settings-nav">
+						<li class="settings-nav-heading d-none d-lg-block">{{t "Your library"}}</li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#library"><span class="bi bi-collection me-2" aria-hidden="true"></span>{{t "Library"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#ignored"><span class="bi bi-eye-slash me-2" aria-hidden="true"></span>{{t "Ignored items"}}</a></li>
+						<li class="settings-nav-heading d-none d-lg-block">{{t "How it works"}}</li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#general"><span class="bi bi-sliders me-2" aria-hidden="true"></span>{{t "General"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#background"><span class="bi bi-moon-stars me-2" aria-hidden="true"></span>{{t "Background work"}}</a></li>
-						<li class="nav-item"><a class="nav-link" href="{{$base}}#compression"><span class="bi bi-file-zip me-2" aria-hidden="true"></span>{{t "Compression"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#automation"><span class="bi bi-magic me-2" aria-hidden="true"></span>{{t "Automations"}}</a></li>
-						<li class="nav-item"><a class="nav-link" href="{{$base}}#vault"><span class="bi bi-safe me-2" aria-hidden="true"></span>{{t "Save vault"}}</a></li>
+						<li class="nav-item"><a class="nav-link" href="{{$base}}#compression"><span class="bi bi-file-zip me-2" aria-hidden="true"></span>{{t "Compression"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#notifications"><span class="bi bi-bell me-2" aria-hidden="true"></span>{{t "Notifications"}}</a></li>
+						<li class="settings-nav-heading d-none d-lg-block">{{t "Extras"}}</li>
+						<li class="nav-item"><a class="nav-link" href="{{$base}}#vault"><span class="bi bi-safe me-2" aria-hidden="true"></span>{{t "Save vault"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#mobile"><span class="bi bi-phone me-2" aria-hidden="true"></span>{{t "App on your phone"}}</a></li>
+						<li class="settings-nav-heading d-none d-lg-block">{{t "Maintenance"}}</li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#backup"><span class="bi bi-life-preserver me-2" aria-hidden="true"></span>{{t "Backup"}}</a></li>
 						<li class="nav-item"><a class="nav-link{{if eq . "diagnostics"}} active{{end}}" href="/diagnostics.html"{{if eq . "diagnostics"}} aria-current="page"{{end}}><span class="bi bi-heart-pulse me-2" aria-hidden="true"></span>{{t "Diagnostics"}}</a></li>
 					</ul>

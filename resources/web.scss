@@ -316,6 +316,82 @@ h3,
 	}
 }
 
+// the menus of the bar (Discover, Tools): each page with a line that says what it is for
+.nav-menu {
+	min-width: 18rem;
+	padding: .4rem;
+}
+
+.nav-menu-item {
+	display: flex;
+	align-items: flex-start;
+	gap: .7rem;
+	padding: .55rem .7rem;
+	border-radius: $border-radius;
+	white-space: normal;
+
+	> .bi {
+		font-size: 1.15rem;
+		margin-top: .1rem;
+		color: var(--bs-primary);
+	}
+}
+
+.nav-menu-label {
+	display: block;
+	font-weight: 600;
+}
+
+.nav-menu-text {
+	display: block;
+	font-size: .8rem;
+	color: var(--bs-secondary-color);
+}
+
+.nav-menu-item.active .nav-menu-text,
+.nav-menu-item:active .nav-menu-text {
+	color: inherit;
+	opacity: .85;
+}
+
+// the sections of the side menu of phones and tablets
+.nav-section-title {
+	padding: 0 .9rem .3rem;
+	font-size: .75rem;
+	font-weight: 700;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	color: var(--bs-secondary-color);
+}
+
+.nav-account .dropdown-item {
+	border-radius: $border-radius;
+	padding: .6rem .9rem;
+}
+
+.nav-account .dropdown-header {
+	padding: .6rem .9rem .3rem;
+	font-size: .75rem;
+	font-weight: 700;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	color: var(--bs-secondary-color);
+}
+
+.nav-account .dropdown-divider {
+	margin: .5rem 0;
+	border-top: 1px solid var(--bs-border-color);
+}
+
+// the account menu at the end of the bar: the avatar alone
+.account-toggle {
+	display: flex;
+	align-items: center;
+	gap: .3rem;
+	padding: .25rem .4rem;
+	color: var(--bs-secondary-color);
+}
+
 // an icon that turns: its box is a square around its glyph alone, so it turns around its
 // centre without wobbling
 @mixin spinning-icon($duration) {
@@ -1521,6 +1597,20 @@ h3,
 	--bs-progress-bg: var(--slm-surface-muted);
 	--bs-progress-height: .6rem;
 	--bs-progress-border-radius: 1rem;
+}
+
+// the groups of the sections of Settings
+.settings-nav-heading {
+	padding: .9rem 1rem .25rem;
+	font-size: .72rem;
+	font-weight: 700;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+	color: var(--bs-secondary-color);
+
+	&:first-child {
+		padding-top: 0;
+	}
 }
 
 .settings-nav {
