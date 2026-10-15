@@ -3,6 +3,18 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"How it works": "Работа",
+		"Maintenance": "Обслуживание",
+		"Discover": "Обзор",
+		"Tools": "Инструменты",
+		"The releases of the coming weeks": "Выход игр в ближайшие недели",
+		"Your series and the games you miss of each": "Ваши серии и игры, которых не хватает в каждой",
+		"Your library in numbers": "Ваша библиотека в цифрах",
+		"Rename your files and put them in folders": "Переименуйте файлы и разложите их по папкам",
+		"Turn NSP into NSZ to save space": "Превратите NSP в NSZ, чтобы сэкономить место",
+		"Free the space of old updates and duplicates": "Освободите место от старых обновлений и дубликатов",
+		"Choose what fits on your SD card": "Выберите, что поместится на SD-карту",
+		"The saves of your consoles": "Сохранения ваших консолей",
 		"Colour of my icon": "Цвет моего значка",
 		"The colours of the app": "Цвета приложения",
 		"The colour of your icon was saved.": "Цвет значка сохранён.",

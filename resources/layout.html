@@ -34,6 +34,17 @@
 					<a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 rounded-pill px-3 admin-only" href="/sync" id="sync" title="{{t "Download the latest titles database and rescan the library"}}">
 						<span class="bi bi-arrow-repeat" aria-hidden="true"></span><span class="d-none d-md-inline d-xxl-none">{{t "Synchronize"}}</span>
 					</a>
+					{{- if or .Auth.Enabled .Auth.IsAdmin}}
+					<div class="dropdown d-none d-xxl-block">
+						<button class="btn btn-link nav-link account-toggle dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="accountMenu" title="{{if .Auth.Enabled}}{{t "My account"}}: {{.Auth.User}}{{else}}{{t "Settings"}}{{end}}">
+							{{- if .Auth.Enabled}}<span class="user-avatar user-avatar-sm{{with .Auth.Color}} avatar-{{.}}{{end}}" aria-hidden="true">{{initial .Auth.User}}</span><span class="visually-hidden">{{t "My account"}}: {{.Auth.User}}</span>
+							{{- else}}<span class="bi bi-gear" aria-hidden="true"></span><span class="visually-hidden">{{t "Settings"}}</span>{{end}}
+						</button>
+						<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountMenu">
+							{{- template "accountItems" .}}
+						</ul>
+					</div>
+					{{- end}}
 					<button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="{{t "Toggle navigation"}}">
 						<span class="navbar-toggler-icon"></span>
 					</button>
@@ -49,46 +60,62 @@
 							{{- template "navLink" (dict "Page" .Page "Id" "updates" "Href" "/updates.html" "Icon" "bi-arrow-up-circle" "Label" (t "Updates") "Count" .Counts.Updates "Badge" "text-bg-warning")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "dlc" "Href" "/dlc.html" "Icon" "bi-puzzle" "Label" (t "DLC") "Count" .Counts.Dlc "Badge" "text-bg-info")}}
 							{{- template "navLink" (dict "Page" .Page "Id" "missing" "Href" "/missing.html" "Icon" "bi-search-heart" "Label" (t "Missing Games") "Count" .Counts.Wished "Badge" "text-bg-danger")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "upcoming" "Href" "/upcoming.html" "Icon" "bi-calendar-event" "Label" (t "Upcoming") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "sagas" "Href" "/sagas.html" "Icon" "bi-stack" "Label" (t "Series") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "statistics" "Href" "/statistics.html" "Icon" "bi-bar-chart" "Label" (t "Statistics") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "issues" "Href" "/issues.html" "Icon" "bi-exclamation-triangle" "Label" (t "Issues") "Count" .Counts.Issues "Badge" "text-bg-danger")}}
-						</ul>
-						<hr class="d-xxl-none">
-						<ul class="navbar-nav app-nav app-nav-compact me-xxl-2">
-							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "/tasks.html" "Icon" (or (and .Counts.RunningTasks "bi-arrow-repeat nav-busy") "bi-list-task") "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger")}}
-							{{- if .Auth.IsAdmin}}
-							{{- template "navLink" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "sd" "Href" "/sd.html" "Icon" "bi-sd-card" "Label" (t "SD card planner") "Count" 0 "Badge" "")}}
-							{{- if .VaultEnabled}}
-							{{- template "navLink" (dict "Page" .Page "Id" "saves" "Href" "/saves.html" "Icon" "bi-safe" "Label" (t "Save backups") "Count" 0 "Badge" "")}}
-							{{- end}}
-							{{- template "navLink" (dict "Page" .Page "Id" "settings" "Href" "/settings.html" "Icon" "bi-gear" "Label" (t "Settings") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "users" "Href" "/users.html" "Icon" "bi-people" "Label" (t "Users") "Count" 0 "Badge" "")}}
-							{{- end}}
-							{{- if .Auth.Enabled}}
-							<li class="nav-item dropdown">
-								<button class="btn btn-link nav-link dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="userMenu">
-									<span class="user-avatar user-avatar-sm{{with .Auth.Color}} avatar-{{.}}{{end}}" aria-hidden="true">{{initial .Auth.User}}</span><span class="d-xxl-none">{{.Auth.User}}</span><span class="visually-hidden d-none d-xxl-inline">{{t "My account"}}: {{.Auth.User}}</span>
+							{{- $discover := or (eq .Page "upcoming") (eq .Page "sagas") (eq .Page "statistics")}}
+							<li class="nav-item dropdown d-none d-xxl-block">
+								<button class="btn btn-link nav-link dropdown-toggle{{if $discover}} active{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="discoverMenu">
+									<span class="bi bi-compass" aria-hidden="true"></span><span class="nav-label">{{t "Discover"}}</span>
 								</button>
-								<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-									<li><span class="dropdown-item-text small text-body-secondary">{{.Auth.User}} &middot; {{if .Auth.IsAdmin}}{{t "Administrator"}}{{else}}{{t "Read only"}}{{end}}</span></li>
-									<li><a class="dropdown-item" href="/account.html"><span class="bi bi-person-gear me-2" aria-hidden="true"></span>{{t "My account"}}</a></li>
-									<li><hr class="dropdown-divider"></li>
-									<li><h6 class="dropdown-header">{{t "Theme"}}</h6></li>
-									{{- template "themeChoices" "dropdown-item"}}
-									<li><hr class="dropdown-divider"></li>
-									<li>
-										<form method="post" action="/logout">
-											<button type="submit" class="dropdown-item"><span class="bi bi-box-arrow-right me-2" aria-hidden="true"></span>{{t "Log out"}}</button>
-										</form>
-									</li>
+								<ul class="dropdown-menu nav-menu" aria-labelledby="discoverMenu">
+									{{- template "discoverItems" .}}
+								</ul>
+							</li>
+							{{- if .Auth.IsAdmin}}
+							{{- $tools := or (eq .Page "organize") (eq .Page "compress") (eq .Page "space") (eq .Page "sd") (eq .Page "saves")}}
+							<li class="nav-item dropdown d-none d-xxl-block">
+								<button class="btn btn-link nav-link dropdown-toggle{{if $tools}} active{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="toolsMenu">
+									<span class="bi bi-tools" aria-hidden="true"></span><span class="nav-label">{{t "Tools"}}</span>
+								</button>
+								<ul class="dropdown-menu nav-menu" aria-labelledby="toolsMenu">
+									{{- template "toolItems" .}}
 								</ul>
 							</li>
 							{{- end}}
 						</ul>
+						<div class="d-xxl-none">
+							<hr>
+							<div class="nav-section-title">{{t "Discover"}}</div>
+							<ul class="navbar-nav app-nav">
+								{{- template "navLink" (dict "Page" .Page "Id" "upcoming" "Href" "/upcoming.html" "Icon" "bi-calendar-event" "Label" (t "Upcoming") "Count" 0 "Badge" "")}}
+								{{- template "navLink" (dict "Page" .Page "Id" "sagas" "Href" "/sagas.html" "Icon" "bi-stack" "Label" (t "Series") "Count" 0 "Badge" "")}}
+								{{- template "navLink" (dict "Page" .Page "Id" "statistics" "Href" "/statistics.html" "Icon" "bi-bar-chart" "Label" (t "Statistics") "Count" 0 "Badge" "")}}
+							</ul>
+							{{- if .Auth.IsAdmin}}
+							<hr>
+							<div class="nav-section-title">{{t "Tools"}}</div>
+							<ul class="navbar-nav app-nav">
+								{{- template "navLink" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Count" 0 "Badge" "")}}
+								{{- template "navLink" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Count" 0 "Badge" "")}}
+								{{- template "navLink" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Count" 0 "Badge" "")}}
+								{{- template "navLink" (dict "Page" .Page "Id" "sd" "Href" "/sd.html" "Icon" "bi-sd-card" "Label" (t "SD card planner") "Count" 0 "Badge" "")}}
+								{{- if .VaultEnabled}}
+								{{- template "navLink" (dict "Page" .Page "Id" "saves" "Href" "/saves.html" "Icon" "bi-safe" "Label" (t "Save backups") "Count" 0 "Badge" "")}}
+								{{- end}}
+							</ul>
+							{{- end}}
+							<hr>
+						</div>
+						<ul class="navbar-nav app-nav app-nav-compact me-xxl-2">
+							{{- template "navLink" (dict "Page" .Page "Id" "issues" "Href" "/issues.html" "Icon" "bi-exclamation-triangle" "Label" (t "Issues") "Count" .Counts.Issues "Badge" "text-bg-danger")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "/tasks.html" "Icon" (or (and .Counts.RunningTasks "bi-arrow-repeat nav-busy") "bi-list-task") "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger")}}
+						</ul>
+						{{- if or .Auth.Enabled .Auth.IsAdmin}}
+						<div class="d-xxl-none">
+							<hr>
+							<ul class="list-unstyled nav-account mb-0">
+								{{- template "accountItems" .}}
+							</ul>
+						</div>
+						{{- end}}
 					</div>
 				</div>
 			</div>
@@ -186,4 +213,47 @@
 <li><button type="button" class="{{.}}" data-theme-value="light"><span class="bi bi-sun-fill me-2" aria-hidden="true"></span>{{t "Light"}}</button></li>
 <li><button type="button" class="{{.}}" data-theme-value="dark"><span class="bi bi-moon-stars-fill me-2" aria-hidden="true"></span>{{t "Dark"}}</button></li>
 <li><button type="button" class="{{.}}" data-theme-value="auto"><span class="bi bi-circle-half me-2" aria-hidden="true"></span>{{t "Automatic (system)"}}</button></li>
+{{- end}}
+
+{{define "navMenuItem"}}
+<li><a class="dropdown-item nav-menu-item{{if eq .Page .Id}} active{{end}}" href="{{.Href}}"{{if eq .Page .Id}} aria-current="page"{{end}}><span class="bi {{.Icon}}" aria-hidden="true"></span><span><span class="nav-menu-label">{{.Label}}</span><span class="nav-menu-text">{{.Text}}</span></span></a></li>
+{{- end}}
+
+{{define "discoverItems"}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "upcoming" "Href" "/upcoming.html" "Icon" "bi-calendar-event" "Label" (t "Upcoming") "Text" (t "The releases of the coming weeks"))}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "sagas" "Href" "/sagas.html" "Icon" "bi-stack" "Label" (t "Series") "Text" (t "Your series and the games you miss of each"))}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "statistics" "Href" "/statistics.html" "Icon" "bi-bar-chart" "Label" (t "Statistics") "Text" (t "Your library in numbers"))}}
+{{- end}}
+
+{{define "toolItems"}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Text" (t "Rename your files and put them in folders"))}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Text" (t "Turn NSP into NSZ to save space"))}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Text" (t "Free the space of old updates and duplicates"))}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "sd" "Href" "/sd.html" "Icon" "bi-sd-card" "Label" (t "SD card planner") "Text" (t "Choose what fits on your SD card"))}}
+{{- if .VaultEnabled}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "saves" "Href" "/saves.html" "Icon" "bi-safe" "Label" (t "Save backups") "Text" (t "The saves of your consoles"))}}
+{{- end}}
+{{- end}}
+
+{{define "accountItems"}}
+{{- if .Auth.Enabled}}
+<li><span class="dropdown-item-text small text-body-secondary">{{.Auth.User}} &middot; {{if .Auth.IsAdmin}}{{t "Administrator"}}{{else}}{{t "Read only"}}{{end}}</span></li>
+<li><a class="dropdown-item{{if eq .Page "account"}} active{{end}}" href="/account.html"><span class="bi bi-person-gear me-2" aria-hidden="true"></span>{{t "My account"}}</a></li>
+{{- end}}
+{{- if .Auth.IsAdmin}}
+<li><a class="dropdown-item{{if eq .Page "settings"}} active{{end}}" href="/settings.html"><span class="bi bi-gear me-2" aria-hidden="true"></span>{{t "Settings"}}</a></li>
+<li><a class="dropdown-item{{if eq .Page "users"}} active{{end}}" href="/users.html"><span class="bi bi-people me-2" aria-hidden="true"></span>{{t "Users"}}</a></li>
+<li><a class="dropdown-item{{if eq .Page "diagnostics"}} active{{end}}" href="/diagnostics.html"><span class="bi bi-heart-pulse me-2" aria-hidden="true"></span>{{t "Diagnostics"}}</a></li>
+{{- end}}
+<li><hr class="dropdown-divider"></li>
+<li><h6 class="dropdown-header">{{t "Theme"}}</h6></li>
+{{- template "themeChoices" "dropdown-item"}}
+{{- if .Auth.Enabled}}
+<li><hr class="dropdown-divider"></li>
+<li>
+	<form method="post" action="/logout">
+		<button type="submit" class="dropdown-item"><span class="bi bi-box-arrow-right me-2" aria-hidden="true"></span>{{t "Log out"}}</button>
+	</form>
+</li>
+{{- end}}
 {{- end}}

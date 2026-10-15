@@ -3,6 +3,18 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"How it works": "동작",
+		"Maintenance": "유지 관리",
+		"Discover": "둘러보기",
+		"Tools": "도구",
+		"The releases of the coming weeks": "앞으로 몇 주간의 출시작",
+		"Your series and the games you miss of each": "내 시리즈와 각 시리즈에서 없는 게임",
+		"Your library in numbers": "숫자로 보는 라이브러리",
+		"Rename your files and put them in folders": "파일 이름을 바꾸고 폴더로 정리",
+		"Turn NSP into NSZ to save space": "NSP를 NSZ로 바꿔 공간 절약",
+		"Free the space of old updates and duplicates": "오래된 업데이트와 중복 파일의 공간 확보",
+		"Choose what fits on your SD card": "SD 카드에 들어갈 것을 고르기",
+		"The saves of your consoles": "기기의 세이브 데이터",
 		"Colour of my icon": "내 아이콘 색",
 		"The colours of the app": "앱의 색",
 		"The colour of your icon was saved.": "아이콘 색을 저장했습니다.",

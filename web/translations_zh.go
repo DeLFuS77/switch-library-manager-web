@@ -3,6 +3,18 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"How it works": "运行方式",
+		"Maintenance": "维护",
+		"Discover": "发现",
+		"Tools": "工具",
+		"The releases of the coming weeks": "未来几周的新作",
+		"Your series and the games you miss of each": "你的系列以及每个系列中缺少的游戏",
+		"Your library in numbers": "用数字看你的库",
+		"Rename your files and put them in folders": "重命名文件并放入文件夹",
+		"Turn NSP into NSZ to save space": "将 NSP 转为 NSZ 以节省空间",
+		"Free the space of old updates and duplicates": "释放旧更新和重复文件占用的空间",
+		"Choose what fits on your SD card": "选择能放进 SD 卡的内容",
+		"The saves of your consoles": "你的主机存档",
 		"Colour of my icon": "我的图标颜色",
 		"The colours of the app": "应用的颜色",
 		"The colour of your icon was saved.": "已保存你的图标颜色。",
