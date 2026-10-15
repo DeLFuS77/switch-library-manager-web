@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Organize: applying the changes shows its progress instead of a page that seems stuck: a bar with the game or file
+  being moved or deleted and how many are done, and a link to the task, which goes on if you leave the page.
+
 ## 1.30.0
 
 ### Improvements

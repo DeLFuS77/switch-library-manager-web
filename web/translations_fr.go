@@ -3,6 +3,10 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Applying the changes...": "Application des modifications...",
+		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "Les fichiers sont déplacés ou supprimés l'un après l'autre ; sur un NAS cela peut prendre un moment. La tâche continue même si vous quittez cette page.",
+		"See it in Tasks": "La voir dans Tâches",
+		"Deleting empty folders...": "Suppression des dossiers vides...",
 		"Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here.": "Compresse des parties des plus gros jeux de votre bibliothèque pendant environ une demi-minute avec plusieurs réglages, dans un fichier caché à côté d'eux supprimé à la fin, et choisit le plus rapide ici.",
 		"Files at once × threads": "Fichiers simultanés × threads",
 		"Measure this server": "Mesurer ce serveur",

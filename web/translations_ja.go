@@ -3,6 +3,10 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Applying the changes...": "変更を適用しています...",
+		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "ファイルを 1 つずつ移動または削除しています。NAS では時間がかかることがあります。このページを離れてもタスクは続きます。",
+		"See it in Tasks": "タスクで見る",
+		"Deleting empty folders...": "空のフォルダーを削除しています...",
 		"Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here.": "ライブラリの大きなゲームの一部を複数の設定で 30 秒ほど、隣の隠しファイル (最後に削除) に圧縮し、ここで最も速い設定を選びます。",
 		"Files at once × threads": "同時ファイル数 × スレッド",
 		"Measure this server": "このサーバーを測定",

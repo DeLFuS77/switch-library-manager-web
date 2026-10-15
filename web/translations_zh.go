@@ -3,6 +3,10 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Applying the changes...": "正在应用更改...",
+		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "文件会逐个移动或删除;在 NAS 上可能需要一些时间。即使离开此页面,任务也会继续。",
+		"See it in Tasks": "在任务中查看",
+		"Deleting empty folders...": "正在删除空文件夹...",
 		"Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here.": "用几种设置将库中最大游戏的部分内容压缩约半分钟,写入旁边的隐藏文件(结束后删除),然后选择在此最快的设置。",
 		"Files at once × threads": "同时文件数 × 线程",
 		"Measure this server": "测量此服务器",

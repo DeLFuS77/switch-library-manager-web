@@ -3,6 +3,10 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Applying the changes...": "Wijzigingen toepassen...",
+		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "Bestanden worden een voor een verplaatst of verwijderd; op een NAS kan dat even duren. De taak gaat door, ook als je deze pagina verlaat.",
+		"See it in Tasks": "Bekijk in Taken",
+		"Deleting empty folders...": "Lege mappen verwijderen...",
 		"Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here.": "Comprimeert ongeveer een halve minuut delen van de grootste games uit je bibliotheek met verschillende instellingen naar een verborgen bestand ernaast dat aan het eind wordt verwijderd, en kiest hier de snelste.",
 		"Files at once × threads": "Bestanden tegelijk × threads",
 		"Measure this server": "Deze server meten",

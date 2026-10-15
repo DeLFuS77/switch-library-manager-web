@@ -254,7 +254,7 @@ func DeleteOldUpdates(baseFolder string, localDB *db.LocalSwitchFilesDB, options
 			continue
 		}
 		if updateProgress != nil {
-			updateProgress.UpdateProgress(i+1, len(files), "deleting "+file.FileName)
+			updateProgress.UpdateProgress(i+1, len(files), file.FileName)
 		}
 		if inUse[filepath.Join(file.BaseFolder, file.FileName)] {
 			ops.skip(filepath.Join(file.BaseFolder, file.FileName), REASON_IN_USE)
@@ -314,15 +314,14 @@ func OrganizeByFolders(baseFolder string,
 			continue
 		}
 
-		if updateProgress != nil {
-			updateProgress.UpdateProgress(i+1, tasksSize, k)
-		}
-
 		var title *db.SwitchTitle
 		if titlesDB != nil {
 			title = titlesDB.TitlesMap[k]
 		}
 		titleName := getTitleName(title, v)
+		if updateProgress != nil {
+			updateProgress.UpdateProgress(i+1, tasksSize, titleName)
+		}
 
 		templateData := map[string]string{}
 
@@ -466,7 +465,7 @@ func OrganizeByFolders(baseFolder string,
 
 	if options.DeleteEmptyFolders && baseFolder != "" {
 		if updateProgress != nil {
-			updateProgress.UpdateProgress(tasksSize, tasksSize, "deleting empty folders...")
+			updateProgress.UpdateProgress(tasksSize, tasksSize, "Deleting empty folders...")
 		}
 		ops.deleteEmptyFolders(baseFolder)
 	}
