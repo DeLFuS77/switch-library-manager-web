@@ -17,6 +17,10 @@
 
 ### Fixes
 
+- Docker: the container starts in seconds again. On every start it went through every file of the data folder (covers,
+  thumbnails, caches: tens of thousands in a big library) to give them to PUID/PGID, which took about two minutes on an
+  Unraid user share before the app even started. It is now done once for each owner, remembered in the data folder,
+  and done again only when PUID or PGID change; the first start after this update still does it once.
 - The tasks icon of the menu stays on the line of the other icons while it turns: only its glyph turns.
 
 ## 1.30.3
