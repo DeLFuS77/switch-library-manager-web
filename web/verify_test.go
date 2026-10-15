@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -199,5 +200,82 @@ func TestWhyAFileIsChecked(t *testing.T) {
 	store.set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Modified: true, Checker: 2})
 	if why := store.why(path, info); why != VERIFY_WHY_IMPROVED {
 		t.Fatalf("modified, checked by an older version: %s", why)
+	}
+}
+
+// A file the organizer moves keeps its result; a file it deletes loses it.
+func TestResultsFollowTheFilesTheOrganizerMoves(t *testing.T) {
+	dir := t.TempDir()
+	from, to, gone := filepath.Join(dir, "a.nsz"), filepath.Join(dir, "Game", "a.nsz"), filepath.Join(dir, "old.nsp")
+	os.WriteFile(from, []byte("game"), 0o644)
+	info, _ := os.Stat(from)
+	store := &verifyStore{path: filepath.Join(dir, "verify.json"), records: map[string]verifyRecord{}}
+	store.set(from, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checker: verifyChecker})
+	store.set(gone, verifyRecord{OK: true})
+	os.MkdirAll(filepath.Dir(to), 0o755)
+	os.Rename(from, to)
+	store.follow([]process.Operation{{Kind: process.OP_MOVE, From: from, To: to}, {Kind: process.OP_DELETE, From: gone}})
+	movedInfo, _ := os.Stat(to)
+	if record, ok := store.current(to, movedInfo); !ok || !record.sound() {
+		t.Fatal("the moved file keeps its result")
+	}
+	if _, ok := store.records[from]; ok {
+		t.Fatal("the old path is forgotten")
+	}
+	if _, ok := store.records[gone]; ok {
+		t.Fatal("a deleted file loses its result")
+	}
+}
+
+// A file made from another one and checked against it gets its result.
+func TestAFileMadeFromAnotherGetsItsResult(t *testing.T) {
+	dir := t.TempDir()
+	nsp, nsz := filepath.Join(dir, "a.nsp"), filepath.Join(dir, "a.nsz")
+	os.WriteFile(nsp, []byte("original"), 0o644)
+	os.WriteFile(nsz, []byte("smaller"), 0o644)
+	info, _ := os.Stat(nsp)
+	store := &verifyStore{path: filepath.Join(dir, "verify.json"), records: map[string]verifyRecord{}}
+	store.inherit(nsp, nsz)
+	if _, ok := store.records[nsz]; ok {
+		t.Fatal("an original never checked gives nothing")
+	}
+	store.set(nsp, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checker: verifyChecker})
+	store.inherit(nsp, nsz)
+	nszInfo, _ := os.Stat(nsz)
+	if record, ok := store.current(nsz, nszInfo); !ok || !record.sound() {
+		t.Fatal("the NSZ gets the result of its original")
+	}
+}
+
+// Files moved by an older version get their results back when nothing else has the same
+// size and time; two candidates leave them alone.
+func TestResultsOfFilesMovedBeforeAreFound(t *testing.T) {
+	dir := t.TempDir()
+	write := func(name, content string) (string, os.FileInfo) {
+		path := filepath.Join(dir, name)
+		os.WriteFile(path, []byte(content), 0o644)
+		info, _ := os.Stat(path)
+		return path, info
+	}
+	moved, movedInfo := write("Game/a.nsz", "")
+	os.MkdirAll(filepath.Join(dir, "Game"), 0o755)
+	moved, movedInfo = write("Game/a.nsz", "unique")
+	twinA, twinInfoA := write("b1.nsz", "twin")
+	twinB, twinInfoB := write("b2.nsz", "twin")
+	os.Chtimes(twinB, twinInfoA.ModTime(), twinInfoA.ModTime())
+	twinInfoB, _ = os.Stat(twinB)
+	store := &verifyStore{records: map[string]verifyRecord{
+		filepath.Join(dir, "a.nsz"):    {Size: movedInfo.Size(), ModTime: movedInfo.ModTime().UnixNano(), OK: true, Checker: verifyChecker},
+		filepath.Join(dir, "twin.nsz"): {Size: twinInfoA.Size(), ModTime: twinInfoA.ModTime().UnixNano(), OK: true, Checker: verifyChecker},
+	}}
+	found := store.adoptMoved([]string{moved, twinA, twinB}, []os.FileInfo{movedInfo, twinInfoA, twinInfoB})
+	if found != 1 {
+		t.Fatalf("one file found: %d", found)
+	}
+	if _, ok := store.current(moved, movedInfo); !ok {
+		t.Fatal("the moved file has its result back")
+	}
+	if _, ok := store.records[twinA]; ok {
+		t.Fatal("two files of the same size and time get nothing")
 	}
 }

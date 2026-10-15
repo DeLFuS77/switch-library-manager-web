@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- File check: the results follow the files. A file moved or renamed by Organize keeps its result instead of being
+  checked again as a new file, a file deleted by a cleanup loses it, and the NSZ, NSP or XCZ made by a compression,
+  decompression or conversion gets the result of its original, as it was checked byte by byte against it. The files
+  moved by older versions get their results back at the next check of the whole library, when exactly one file has the
+  same size and modification time as a result left behind.
+
+### Improvements
+
+- Tasks: the bar of each file being worked on takes one of the colours of the library overview, always the same for
+  the same file.
+
 ## 1.30.2
 
 ### Improvements

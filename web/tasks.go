@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"hash/fnv"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -108,6 +109,16 @@ type TaskLane struct {
 	Phase string `json:"phase,omitempty"`
 	Step  int    `json:"step,omitempty"`
 	Steps int    `json:"steps,omitempty"`
+}
+
+// laneTones are the colours of the library overview, one for each file being worked on.
+var laneTones = []string{"red", "yellow", "cyan", "green"}
+
+// Tone is the colour of the bar of the file, always the same for the same name.
+func (l TaskLane) Tone() string {
+	hash := fnv.New32a()
+	hash.Write([]byte(l.Name))
+	return laneTones[hash.Sum32()%uint32(len(laneTones))]
 }
 
 // Percent is the progress of the file.

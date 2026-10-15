@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -130,6 +131,146 @@ func (s *verifyStore) current(path string, info os.FileInfo) (verifyRecord, bool
 		return verifyRecord{}, false
 	}
 	return record, true
+}
+
+// follow keeps the results of the files the organizer moved, under their new path, and
+// forgets the ones it deleted: a file moved keeps its content, and would otherwise be
+// checked again as a new file.
+func (s *verifyStore) follow(operations []process.Operation) {
+	changed := false
+	for _, op := range operations {
+		if op.Error != "" {
+			continue
+		}
+		switch op.Kind {
+		case process.OP_MOVE:
+			changed = s.carry(op.From, op.To, true) || changed
+		case process.OP_DELETE:
+			s.mutex.Lock()
+			if _, ok := s.records[op.From]; ok {
+				delete(s.records, op.From)
+				s.version.Add(1)
+				changed = true
+			}
+			s.mutex.Unlock()
+		}
+	}
+	if changed {
+		s.save()
+	}
+}
+
+// carry gives the file at to the result of the file at from, when the result is still
+// valid for from as it was and to has the same size: the same content, written by the app
+// (moved, or compressed and checked byte by byte against it). With moved the result of
+// from is forgotten.
+func (s *verifyStore) carry(from string, to string, moved bool) bool {
+	info, err := os.Stat(to)
+	if err != nil || info.IsDir() {
+		return false
+	}
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	record, ok := s.records[from]
+	if !ok {
+		return false
+	}
+	if moved {
+		delete(s.records, from)
+		if record.Size != info.Size() {
+			s.version.Add(1)
+			return true
+		}
+	}
+	record.Size, record.ModTime = info.Size(), info.ModTime().UnixNano()
+	s.records[to] = record
+	s.version.Add(1)
+	return true
+}
+
+// inherit gives a file the app made from another one and checked against it (an NSZ of an
+// NSP, an NSP of an XCI) the result of that one, while it is still valid.
+func (s *verifyStore) inherit(original string, made string) {
+	info, err := os.Stat(original)
+	if err != nil {
+		return
+	}
+	record, ok := s.current(original, info)
+	if !ok {
+		return
+	}
+	madeInfo, err := os.Stat(made)
+	if err != nil {
+		return
+	}
+	record.Size, record.ModTime = madeInfo.Size(), madeInfo.ModTime().UnixNano()
+	s.set(made, record)
+	s.save()
+}
+
+// adoptMoved gives the files of the library without a result the result of a file that is
+// gone, when both have exactly the same size and modification time (to the nanosecond): a
+// file moved on the same disk keeps them, as the organizer of older versions moved files
+// without their results. A size and time shared by several files are left alone. It gives
+// how many files got their result back.
+func (s *verifyStore) adoptMoved(paths []string, infos []os.FileInfo) int {
+	type key struct{ size, time int64 }
+	current := make(map[string]bool, len(paths))
+	for _, path := range paths {
+		current[path] = true
+	}
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	// the results of files gone, by size and time; nil when several share them
+	orphans := map[key]*string{}
+	for path, record := range s.records {
+		if current[path] {
+			continue
+		}
+		k := key{record.Size, record.ModTime}
+		if _, seen := orphans[k]; seen {
+			orphans[k] = nil
+			continue
+		}
+		owner := path
+		orphans[k] = &owner
+	}
+	if len(orphans) == 0 {
+		return 0
+	}
+	// the files without a result, by size and time; two of the same are left alone too
+	homeless := map[key]int{}
+	for i, path := range paths {
+		if infos[i] == nil {
+			continue
+		}
+		if _, ok := s.records[path]; !ok {
+			homeless[key{infos[i].Size(), infos[i].ModTime().UnixNano()}]++
+		}
+	}
+	adopted := 0
+	for i, path := range paths {
+		info := infos[i]
+		if info == nil || info.IsDir() {
+			continue
+		}
+		if _, ok := s.records[path]; ok {
+			continue
+		}
+		k := key{info.Size(), info.ModTime().UnixNano()}
+		owner := orphans[k]
+		if owner == nil || homeless[k] != 1 {
+			continue
+		}
+		s.records[path] = s.records[*owner]
+		delete(s.records, *owner)
+		delete(orphans, k)
+		adopted++
+	}
+	if adopted > 0 {
+		s.version.Add(1)
+	}
+	return adopted
 }
 
 // why tells why a file without a valid record is checked: it was never checked, it changed
@@ -321,6 +462,8 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 		var total int64
 		// making the list of a big library on a NAS takes a while: the task says so
 		web.taskLog().Progress(taskId, 0, 0, NOTE_VERIFY_PREPARING)
+		// the files of a whole library: results of files gone may belong to files moved
+		whole := paths == nil
 		if paths == nil {
 			for _, candidate := range web.libraryFiles(".nsp", ".nsz", ".xci", ".xcz") {
 				paths = append(paths, candidate.Path)
@@ -328,6 +471,11 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 		}
 		now := time.Now()
 		infos := statFiles(paths, 16)
+		if whole {
+			if found := store.adoptMoved(paths, infos); found > 0 {
+				web.sugarLogger.Infof("[File check] %d files moved by an older version keep their results", found)
+			}
+		}
 		for i, path := range paths {
 			info := infos[i]
 			if info == nil || info.IsDir() {

@@ -155,6 +155,7 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 	if err := os.Rename(temporary, target); err != nil {
 		return err
 	}
+	web.verifications().inherit(path, target)
 	if deleteOriginal {
 		if err := os.Remove(path); err != nil {
 			return fmt.Errorf("could not delete the original: %w", err)
@@ -558,6 +559,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	if err := os.Rename(temporary, target); err != nil {
 		return 0, err
 	}
+	web.verifications().inherit(path, target)
 	if deleteOriginal {
 		if err := os.Remove(path); err != nil {
 			return 0, fmt.Errorf("could not delete the original: %w", err)
@@ -601,6 +603,7 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 	if err := os.Rename(temporary, target); err != nil {
 		return err
 	}
+	web.verifications().inherit(path, target)
 	if deleteCompressed {
 		if err := os.Remove(path); err != nil {
 			return fmt.Errorf("could not delete the original: %w", err)
