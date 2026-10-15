@@ -3,6 +3,20 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Disclaimer": "Esclusione di responsabilità",
+		"No warranty: keep a backup of your games.": "Nessuna garanzia: tieni un backup dei tuoi giochi.",
+		"Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0) says.": "Switch Library Manager Web è software libero fornito così com'è, senza alcuna garanzia, come dice la sua licenza (AGPL-3.0).",
+		"It moves, renames, compresses and deletes files only when you ask it to or turn on an automation, and it checks the files before deleting originals or copies. Even so, no program is free of mistakes and disks fail: keep a backup of anything you could not get again, and look at the previews before applying changes.": "Sposta, rinomina, comprime ed elimina file solo quando lo chiedi o attivi un'automazione, e verifica i file prima di eliminare originali o copie. Anche così, nessun programma è privo di errori e i dischi si guastano: tieni un backup di ciò che non potresti riottenere e guarda le anteprime prima di applicare le modifiche.",
+		"The authors and contributors are not responsible for files lost, damaged or deleted, nor for any other harm that comes from using the app. Using it means accepting this.": "Gli autori e i collaboratori non sono responsabili di file persi, danneggiati o eliminati, né di qualsiasi altro danno derivante dall'uso dell'app. Usarla significa accettarlo.",
+		"Use it only with games you own and with keys dumped from your own console. The app does not download games, and it is not affiliated with Nintendo or endorsed by it.": "Usala solo con giochi che possiedi e con chiavi estratte dalla tua console. L'app non scarica giochi e non è affiliata a Nintendo né approvata da Nintendo.",
+		"Looking at the folders: %v": "Esame delle cartelle: %v",
+		"Reading the new file %v": "Lettura del nuovo file %v",
+		"Folder looked at: %v": "Cartella esaminata: %v",
+		"%v new": "%v nuovi",
+		"%v changed": "%v modificati",
+		"%v checked again once after an improvement of the check": "%v riverificati una volta dopo un miglioramento della verifica",
+		"%v checked again as asked": "%v riverificati come richiesto",
+		"Files found modified by a tool (NSC_Builder and the like) are checked again once since version 1.30.0: an older check did not read the hashes of their sections past 4 GB.": "I file risultati modificati da uno strumento (NSC_Builder e simili) vengono riverificati una volta dalla versione 1.30.0: una verifica precedente non leggeva gli hash delle loro sezioni oltre i 4 GB.",
 		"Pending updates": "Aggiornamenti in sospeso",
 		"%v games, %v DLC": "%v giochi, %v DLC",
 		"Check new files": "Verifica i nuovi",

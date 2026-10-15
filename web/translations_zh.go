@@ -3,6 +3,20 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Disclaimer": "免责声明",
+		"No warranty: keep a backup of your games.": "不提供任何担保:请备份你的游戏。",
+		"Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0) says.": "Switch Library Manager Web 是自由软件,按原样提供,不附带任何担保,正如其许可证 (AGPL-3.0) 所述。",
+		"It moves, renames, compresses and deletes files only when you ask it to or turn on an automation, and it checks the files before deleting originals or copies. Even so, no program is free of mistakes and disks fail: keep a backup of anything you could not get again, and look at the previews before applying changes.": "它只会在你要求或开启自动化时移动、重命名、压缩和删除文件,并在删除原始文件或副本之前检查文件。即便如此,没有程序是完全没有错误的,磁盘也会损坏:请备份无法再次获得的内容,并在应用更改前查看预览。",
+		"The authors and contributors are not responsible for files lost, damaged or deleted, nor for any other harm that comes from using the app. Using it means accepting this.": "作者和贡献者不对文件的丢失、损坏或删除,以及因使用本应用造成的任何其他损害负责。使用本应用即表示接受这一点。",
+		"Use it only with games you own and with keys dumped from your own console. The app does not download games, and it is not affiliated with Nintendo or endorsed by it.": "仅将其用于你拥有的游戏和从你自己的主机提取的密钥。本应用不下载游戏,与任天堂无关,也未获得任天堂认可。",
+		"Looking at the folders: %v": "正在查看文件夹:%v",
+		"Reading the new file %v": "正在读取新文件 %v",
+		"Folder looked at: %v": "已查看文件夹:%v",
+		"%v new": "%v 个新文件",
+		"%v changed": "%v 个已更改",
+		"%v checked again once after an improvement of the check": "因检查改进而重新检查一次的 %v 个",
+		"%v checked again as asked": "按要求重新检查 %v 个",
+		"Files found modified by a tool (NSC_Builder and the like) are checked again once since version 1.30.0: an older check did not read the hashes of their sections past 4 GB.": "被工具(如 NSC_Builder)修改过的文件自 1.30.0 版起会重新检查一次:以前的检查没有读取其超过 4 GB 部分的哈希。",
 		"Pending updates": "待获取的更新",
 		"%v games, %v DLC": "%v 个游戏、%v 个 DLC",
 		"Check new files": "检查新文件",

@@ -1,0 +1,10 @@
+{{define "title"}}{{t "Disclaimer"}}{{end}}
+{{define "main"}}
+			{{- template "pageHeader" (dict "Title" (t "Disclaimer") "Count" -1 "Subtitle" "")}}
+			<section class="surface disclaimer">
+				<p><span class="bi bi-shield-exclamation me-2 text-warning" aria-hidden="true"></span>{{t "Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0) says."}}</p>
+				<p>{{t "It moves, renames, compresses and deletes files only when you ask it to or turn on an automation, and it checks the files before deleting originals or copies. Even so, no program is free of mistakes and disks fail: keep a backup of anything you could not get again, and look at the previews before applying changes."}}</p>
+				<p>{{t "The authors and contributors are not responsible for files lost, damaged or deleted, nor for any other harm that comes from using the app. Using it means accepting this."}}</p>
+				<p class="mb-0">{{t "Use it only with games you own and with keys dumped from your own console. The app does not download games, and it is not affiliated with Nintendo or endorsed by it."}}</p>
+			</section>
+{{- end}}

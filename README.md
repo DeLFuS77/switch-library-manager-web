@@ -65,6 +65,7 @@ Linux, Docker, NAS and Raspberry Pi.
 - [Demo mode](#demo-mode)
 - [Troubleshooting](#troubleshooting)
 - [Building](#building)
+- [Disclaimer](#disclaimer)
 - [License](#license)
 
 ## Features
@@ -560,6 +561,19 @@ The programs are written to `build`. The web interface is embedded in the progra
 `npm run build` must run first. Without `make` (e.g. on Windows): `go build -o build/switch-library-manager-web.exe .`
 
 `.github/scripts/build_release.sh <version>` builds and packs the programs of every system in `dist`, as the releases do.
+
+## Disclaimer
+
+Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0,
+sections 15 and 16) says. It moves, renames, compresses and deletes files only when you ask it to or turn on an
+automation, and it checks the files before deleting originals or copies. Even so, no program is free of mistakes and
+disks fail: **keep a backup of anything you could not get again**, and look at the previews before applying changes.
+
+The authors and contributors are not responsible for files lost, damaged or deleted, nor for any other harm that comes
+from using the app. Using it means accepting this. Use it only with games you own and with keys dumped from your own
+console. The app does not download games, and it is not affiliated with Nintendo or endorsed by it.
+
+The same text is in the app, linked from the footer of every page.
 
 ## License
 

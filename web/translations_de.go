@@ -3,6 +3,20 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Disclaimer": "Haftungsausschluss",
+		"No warranty: keep a backup of your games.": "Keine Garantie: Behalte eine Sicherung deiner Spiele.",
+		"Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0) says.": "Switch Library Manager Web ist freie Software und wird so bereitgestellt, wie sie ist, ohne jede Garantie, wie es ihre Lizenz (AGPL-3.0) sagt.",
+		"It moves, renames, compresses and deletes files only when you ask it to or turn on an automation, and it checks the files before deleting originals or copies. Even so, no program is free of mistakes and disks fail: keep a backup of anything you could not get again, and look at the previews before applying changes.": "Sie verschiebt, benennt um, komprimiert und löscht Dateien nur, wenn du es verlangst oder eine Automatisierung einschaltest, und prüft die Dateien, bevor sie Originale oder Kopien löscht. Trotzdem ist kein Programm fehlerfrei und Festplatten fallen aus: Behalte eine Sicherung von allem, was du nicht wieder beschaffen könntest, und sieh dir die Vorschau an, bevor du Änderungen anwendest.",
+		"The authors and contributors are not responsible for files lost, damaged or deleted, nor for any other harm that comes from using the app. Using it means accepting this.": "Die Autoren und Mitwirkenden haften nicht für verlorene, beschädigte oder gelöschte Dateien und auch nicht für andere Schäden durch die Nutzung der App. Wer sie nutzt, akzeptiert das.",
+		"Use it only with games you own and with keys dumped from your own console. The app does not download games, and it is not affiliated with Nintendo or endorsed by it.": "Nutze sie nur mit Spielen, die dir gehören, und mit Schlüsseln aus deiner eigenen Konsole. Die App lädt keine Spiele herunter und ist weder mit Nintendo verbunden noch von Nintendo unterstützt.",
+		"Looking at the folders: %v": "Ordner werden durchsucht: %v",
+		"Reading the new file %v": "Neue Datei wird gelesen: %v",
+		"Folder looked at: %v": "Ordner durchsucht: %v",
+		"%v new": "%v neu",
+		"%v changed": "%v geändert",
+		"%v checked again once after an improvement of the check": "%v werden nach einer Verbesserung der Prüfung einmal erneut geprüft",
+		"%v checked again as asked": "%v werden wie gewünscht erneut geprüft",
+		"Files found modified by a tool (NSC_Builder and the like) are checked again once since version 1.30.0: an older check did not read the hashes of their sections past 4 GB.": "Von einem Werkzeug (NSC_Builder u. ä.) verändert gefundene Dateien werden seit Version 1.30.0 einmal erneut geprüft: Eine ältere Prüfung las die Hashes ihrer Abschnitte jenseits von 4 GB nicht.",
 		"Pending updates": "Ausstehende Updates",
 		"%v games, %v DLC": "%v Spiele, %v DLC",
 		"Check new files": "Neue prüfen",

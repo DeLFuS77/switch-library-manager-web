@@ -76,6 +76,8 @@ type Task struct {
 	Current  int        `json:"current"`
 	Total    int        `json:"total"`
 	Message  string     `json:"message"`
+	// what the message names, when it is "... %v"
+	MessageArg string `json:"messageArg,omitempty"`
 	Error    *TaskNote  `json:"error,omitempty"`
 	Warnings []TaskNote `json:"warnings,omitempty"`
 	// results, depending on the kind
@@ -86,8 +88,9 @@ type Task struct {
 	Original int64 `json:"original,omitempty"`
 	// the size of each file before and after a compression
 	Results []TaskResult `json:"results,omitempty"`
-	// damaged files found by a verification
-	Damaged int `json:"damaged,omitempty"`
+	// damaged files found by a verification, and why its files are checked
+	Damaged   int              `json:"damaged,omitempty"`
+	Breakdown *VerifyBreakdown `json:"breakdown,omitempty"`
 	// work done at the same time: the files being worked on, each with its progress, and
 	// how many workers or threads the task uses
 	Lanes   []TaskLane `json:"lanes,omitempty"`
@@ -116,6 +119,16 @@ func (l TaskLane) Percent() int {
 		return 100
 	}
 	return int(l.Done * 100 / l.Total)
+}
+
+// VerifyBreakdown is why the files of a verification are checked: never checked before,
+// changed since, checked again once because an older version of the check may have got them
+// wrong, or checked again as asked (everything, or the files checked longest ago).
+type VerifyBreakdown struct {
+	New      int `json:"new"`
+	Changed  int `json:"changed"`
+	Improved int `json:"improved"`
+	Again    int `json:"again"`
 }
 
 // TaskResult is a file a task finished, with its size before and after.
@@ -278,15 +291,21 @@ func (l *TaskLog) Start(kind string, trigger string) int64 {
 
 // Progress updates a running task. Progress is not saved to disk.
 func (l *TaskLog) Progress(id int64, current int, total int, message string) {
+	l.ProgressArg(id, current, total, message, "")
+}
+
+// ProgressArg is Progress with a message "... %v" and what it names apart, so the message is
+// translated.
+func (l *TaskLog) ProgressArg(id int64, current int, total int, message string, arg string) {
 	l.update(id, false, func(task *Task) {
-		task.Current, task.Total, task.Message = current, total, message
+		task.Current, task.Total, task.Message, task.MessageArg = current, total, message, arg
 	})
 }
 
 // ProgressLanes is Progress with the files the task works on, in one update.
 func (l *TaskLog) ProgressLanes(id int64, current int, total int, message string, lanes []TaskLane) {
 	l.update(id, false, func(task *Task) {
-		task.Current, task.Total, task.Message, task.Lanes = current, total, message, lanes
+		task.Current, task.Total, task.Message, task.MessageArg, task.Lanes = current, total, message, "", lanes
 	})
 }
 
@@ -334,6 +353,13 @@ func (l *TaskLog) AddFileResult(id int64, name string, before int64, after int64
 		if len(task.Results) > maxTaskResults {
 			task.Results = task.Results[len(task.Results)-maxTaskResults:]
 		}
+	})
+}
+
+// SetBreakdown records why the files of a verification are checked.
+func (l *TaskLog) SetBreakdown(id int64, breakdown VerifyBreakdown) {
+	l.update(id, false, func(task *Task) {
+		task.Breakdown = &breakdown
 	})
 }
 

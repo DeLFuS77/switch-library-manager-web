@@ -3,6 +3,20 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Disclaimer": "면책 조항",
+		"No warranty: keep a backup of your games.": "보증하지 않습니다. 게임을 백업해 두세요.",
+		"Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0) says.": "Switch Library Manager Web은 자유 소프트웨어로, 라이선스(AGPL-3.0)에 따라 어떠한 보증도 없이 있는 그대로 제공됩니다.",
+		"It moves, renames, compresses and deletes files only when you ask it to or turn on an automation, and it checks the files before deleting originals or copies. Even so, no program is free of mistakes and disks fail: keep a backup of anything you could not get again, and look at the previews before applying changes.": "파일 이동, 이름 변경, 압축, 삭제는 사용자가 요청하거나 자동화를 켰을 때만 하며, 원본이나 사본을 삭제하기 전에 파일을 확인합니다. 그래도 오류 없는 프로그램은 없고 디스크는 고장 납니다. 다시 구할 수 없는 것은 백업해 두고, 변경을 적용하기 전에 미리 보기를 확인하세요.",
+		"The authors and contributors are not responsible for files lost, damaged or deleted, nor for any other harm that comes from using the app. Using it means accepting this.": "작성자와 기여자는 파일의 손실, 손상, 삭제 및 앱 사용으로 인한 어떠한 피해에도 책임지지 않습니다. 앱을 사용하면 이에 동의하는 것으로 봅니다.",
+		"Use it only with games you own and with keys dumped from your own console. The app does not download games, and it is not affiliated with Nintendo or endorsed by it.": "소유한 게임과 본인 기기에서 추출한 키로만 사용하세요. 이 앱은 게임을 다운로드하지 않으며 Nintendo와 제휴하거나 Nintendo의 승인을 받지 않았습니다.",
+		"Looking at the folders: %v": "폴더 확인 중: %v",
+		"Reading the new file %v": "새 파일 읽는 중: %v",
+		"Folder looked at: %v": "확인한 폴더: %v",
+		"%v new": "새 파일 %v",
+		"%v changed": "변경 %v",
+		"%v checked again once after an improvement of the check": "확인 개선으로 한 번 다시 확인 %v",
+		"%v checked again as asked": "요청대로 다시 확인 %v",
+		"Files found modified by a tool (NSC_Builder and the like) are checked again once since version 1.30.0: an older check did not read the hashes of their sections past 4 GB.": "도구(NSC_Builder 등)로 수정된 것으로 확인된 파일은 버전 1.30.0부터 한 번 다시 확인합니다. 이전 확인은 4GB를 넘는 섹션의 해시를 읽지 않았습니다.",
 		"Pending updates": "대기 중인 업데이트",
 		"%v games, %v DLC": "게임 %v개, DLC %v개",
 		"Check new files": "새 파일 확인",

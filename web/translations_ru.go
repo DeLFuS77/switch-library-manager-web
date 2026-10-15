@@ -3,6 +3,20 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Disclaimer": "Отказ от ответственности",
+		"No warranty: keep a backup of your games.": "Без гарантий: храните резервную копию своих игр.",
+		"Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0) says.": "Switch Library Manager Web — свободная программа, предоставляемая как есть, без каких-либо гарантий, как сказано в её лицензии (AGPL-3.0).",
+		"It moves, renames, compresses and deletes files only when you ask it to or turn on an automation, and it checks the files before deleting originals or copies. Even so, no program is free of mistakes and disks fail: keep a backup of anything you could not get again, and look at the previews before applying changes.": "Она перемещает, переименовывает, сжимает и удаляет файлы только по вашей команде или при включённой автоматизации и проверяет файлы перед удалением оригиналов или копий. И всё же безошибочных программ не бывает, а диски выходят из строя: храните резервную копию всего, что не сможете получить снова, и просматривайте предпросмотр перед применением изменений.",
+		"The authors and contributors are not responsible for files lost, damaged or deleted, nor for any other harm that comes from using the app. Using it means accepting this.": "Авторы и участники не несут ответственности за потерянные, повреждённые или удалённые файлы, а также за любой другой ущерб от использования приложения. Используя его, вы с этим соглашаетесь.",
+		"Use it only with games you own and with keys dumped from your own console. The app does not download games, and it is not affiliated with Nintendo or endorsed by it.": "Используйте его только с играми, которые у вас есть, и с ключами, извлечёнными из вашей собственной консоли. Приложение не скачивает игры и не связано с Nintendo и не одобрено ею.",
+		"Looking at the folders: %v": "Просмотр папок: %v",
+		"Reading the new file %v": "Чтение нового файла %v",
+		"Folder looked at: %v": "Папка просмотрена: %v",
+		"%v new": "новых: %v",
+		"%v changed": "изменённых: %v",
+		"%v checked again once after an improvement of the check": "%v проверяются ещё раз однократно после улучшения проверки",
+		"%v checked again as asked": "%v проверяются заново по запросу",
+		"Files found modified by a tool (NSC_Builder and the like) are checked again once since version 1.30.0: an older check did not read the hashes of their sections past 4 GB.": "Файлы, изменённые инструментом (NSC_Builder и подобными), начиная с версии 1.30.0 проверяются ещё раз однократно: прежняя проверка не читала хеши их разделов за пределами 4 ГБ.",
 		"Pending updates": "Ожидающие обновления",
 		"%v games, %v DLC": "игр: %v, DLC: %v",
 		"Check new files": "Проверить новые",

@@ -600,6 +600,7 @@ func (web *Web) Start() {
 	web.HandleSaves()
 	web.HandleAutoBackups()
 	web.HandleDiagnostics()
+	web.HandleDisclaimer()
 	web.HandleCovers()
 	web.HandleUpdateGuide()
 	web.HandleWishlist()
@@ -737,8 +738,30 @@ func (web *Web) UpdateProgress(curr int, total int, message string) {
 	web.sugarLogger.Debugf("%v (%v/%v)", message, curr, total)
 	web.state.setProgress(curr, total, message)
 	if id := web.currentTask.Load(); id != 0 {
-		web.taskLog().Progress(id, curr, total, message)
+		key, arg := progressMessage(message)
+		web.taskLog().ProgressArg(id, curr, total, key, arg)
 	}
+}
+
+// the steps of a scan, with what they name apart so the tasks page translates them
+var progressSteps = []struct{ prefix, key string }{
+	{"Found ", "Looking at the folders: %v"},
+	{"Reading ", "Reading the new file %v"},
+	{"Scanned ", "Folder looked at: %v"},
+}
+
+// progressMessage splits a message of the scan into the sentence to translate and the file
+// or folder it names.
+func progressMessage(message string) (string, string) {
+	for _, step := range progressSteps {
+		if strings.HasPrefix(message, step.prefix) {
+			return step.key, strings.TrimPrefix(message, step.prefix)
+		}
+	}
+	if message == "Complete" {
+		return "Done", ""
+	}
+	return message, ""
 }
 
 // taskLog returns the task history, loading it on first use.

@@ -3,6 +3,20 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Disclaimer": "免責事項",
+		"No warranty: keep a backup of your games.": "保証はありません。ゲームのバックアップを保管してください。",
+		"Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0) says.": "Switch Library Manager Web はフリーソフトウェアであり、ライセンス (AGPL-3.0) のとおり、いかなる保証もなく現状のまま提供されます。",
+		"It moves, renames, compresses and deletes files only when you ask it to or turn on an automation, and it checks the files before deleting originals or copies. Even so, no program is free of mistakes and disks fail: keep a backup of anything you could not get again, and look at the previews before applying changes.": "ファイルの移動・名前変更・圧縮・削除は、あなたが指示したときか自動化をオンにしたときだけ行い、オリジナルやコピーを削除する前にファイルを確認します。それでも、誤りのないプログラムはなく、ディスクは故障します。再入手できないものはバックアップを保管し、変更を適用する前にプレビューを確認してください。",
+		"The authors and contributors are not responsible for files lost, damaged or deleted, nor for any other harm that comes from using the app. Using it means accepting this.": "作者および貢献者は、ファイルの紛失・破損・削除、その他アプリの使用によって生じたいかなる損害についても責任を負いません。使用することでこれに同意したものとみなされます。",
+		"Use it only with games you own and with keys dumped from your own console. The app does not download games, and it is not affiliated with Nintendo or endorsed by it.": "所有しているゲームと、自分の本体から吸い出したキーでのみ使用してください。このアプリはゲームをダウンロードせず、任天堂とは無関係で、任天堂の承認も受けていません。",
+		"Looking at the folders: %v": "フォルダーを確認中: %v",
+		"Reading the new file %v": "新しいファイルを読み込み中: %v",
+		"Folder looked at: %v": "確認したフォルダー: %v",
+		"%v new": "新規 %v",
+		"%v changed": "変更 %v",
+		"%v checked again once after an improvement of the check": "確認の改善により 1 回だけ再確認 %v",
+		"%v checked again as asked": "指定どおり再確認 %v",
+		"Files found modified by a tool (NSC_Builder and the like) are checked again once since version 1.30.0: an older check did not read the hashes of their sections past 4 GB.": "ツール (NSC_Builder など) で変更されたと判定されたファイルは、バージョン 1.30.0 から 1 回だけ再確認されます。以前の確認では 4 GB を超えるセクションのハッシュを読んでいませんでした。",
 		"Pending updates": "未取得のアップデート",
 		"%v games, %v DLC": "ゲーム %v、DLC %v",
 		"Check new files": "新しいファイルを確認",

@@ -47,6 +47,8 @@ const (
 
 type LocalSwitchDBManager struct {
 	db *PersistentDB
+	// the files the last scan found, for the progress of the next one
+	lastFileCount int
 }
 
 func NewLocalSwitchDBManager(dataFolder string) (*LocalSwitchDBManager, error) {
@@ -202,12 +204,22 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 	}
 
 	if len(titles) == 0 {
+		// the folders are walked before the number of files is known: the last scan found
+		// about as many, so the progress goes up to that number instead of staying unknown
+		estimate := ldb.lastFileCount
+		if estimate == 0 {
+			var previous []ExtendedFileInfo
+			if ldb.db.GetEntry(DB_TABLE_LOCAL_LIBRARY, "files", &previous) == nil {
+				estimate = len(previous)
+			}
+		}
+
 		// start from scratch, a cache without titles must not add its files a second time
 		files = []ExtendedFileInfo{}
 		skipped = map[ExtendedFileInfo]SkippedFile{}
 
 		for _, folder := range folders {
-			err := scanFolder(folder, recursive, &files, progress)
+			err := scanFolder(folder, recursive, &files, progress, estimate)
 			if progress != nil {
 				progress.UpdateProgress(-1, -1, "Scanned "+folder)
 			}
@@ -227,11 +239,14 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 	if progress != nil {
 		progress.UpdateProgress(len(files), len(files), "Complete")
 	}
+	ldb.lastFileCount = len(files)
 
 	return &LocalSwitchFilesDB{TitlesMap: titles, Skipped: skipped, NumFiles: len(files)}, nil
 }
 
-func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, progress ProgressUpdater) error {
+// scanFolder adds the files of a folder; estimate is how many files the folders are thought
+// to hold, for the progress, or 0 when unknown.
+func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, progress ProgressUpdater, estimate int) error {
 	if _, err := os.Stat(folder); err != nil {
 		return err
 	}
@@ -264,7 +279,12 @@ func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, progre
 			return nil
 		}
 		if progress != nil {
-			progress.UpdateProgress(-1, -1, "Found "+info.Name())
+			if found := len(*files) + 1; estimate > 0 {
+				// never full before the walk ends: there may be more files than last time
+				progress.UpdateProgress(min(found, estimate*99/100), estimate, "Found "+info.Name())
+			} else {
+				progress.UpdateProgress(-1, -1, "Found "+info.Name())
+			}
 		}
 		*files = append(*files, ExtendedFileInfo{FileName: info.Name(), BaseFolder: base, Size: info.Size(), IsDir: info.IsDir()})
 
