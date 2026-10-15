@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The cover of a game card opens the game too, not only its name.
+- Organize: when the cleanup keeps files because the copy that stays is not checked yet, it says how many and offers to
+  check those copies at once.
+
+### Fixes
+
+- Game pages: the screenshots are fetched once by the server and shown from it, like the covers, instead of each
+  browser loading them from Nintendo; when they cannot be loaded at all (networks that block Nintendo block its images
+  too) a note says why instead of broken images.
+- Organize: a file whose name has no title ID got a folder named after the file with its extension, which could not be
+  made next to it ("not a directory"); the extension is left out now. A file whose copy of the same size is already where
+  it would go is left where it is as a duplicate, instead of an error, and a different file with the same name gives a
+  clearer message.
+
 ## 1.31.0
 
 ### Improvements

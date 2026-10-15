@@ -3,6 +3,11 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"A copy of the same size is already at the destination: it is a duplicate, the Space page can free it.": "Op de bestemming staat al een kopie van dezelfde grootte: het is een duplicaat, de pagina Ruimte kan het vrijmaken.",
+		"another file with the same name is already at the destination": "op de bestemming staat al een ander bestand met dezelfde naam",
+		"%v files are kept until the copy that stays is checked, so a copy is never deleted for one that might be damaged. Check those copies, then preview again.": "%v bestanden blijven staan tot de kopie die blijft is gecontroleerd, zodat nooit een kopie wordt verwijderd voor een die beschadigd kan zijn. Controleer die kopieën en bekijk het voorbeeld opnieuw.",
+		"Check now": "Nu controleren",
+		"The screenshots could not be loaded: the image server of Nintendo does not answer from your network. Networks that block Nintendo, to keep consoles away from it, block its images too.": "De schermafbeeldingen konden niet worden geladen: de afbeeldingsserver van Nintendo antwoordt niet vanuit je netwerk. Netwerken die Nintendo blokkeren, om consoles er weg van te houden, blokkeren ook de afbeeldingen.",
 		"How it works": "Werking",
 		"Maintenance": "Onderhoud",
 		"Discover": "Ontdekken",
@@ -1110,7 +1115,6 @@ func init() {
 		"breadcrumb":                     "kruimelpad",
 		"check this folder":              "controleer deze map",
 		"damaged file: %v":               "beschadigd bestand: %v",
-		"destination already exists":     "bestemming bestaat al",
 		"done":                           "klaar",
 		"duplicate %v file (%v)":         "dubbel %v-bestand (%v)",
 		"e.g. txt jpg nfo":               "bijv. txt jpg nfo",

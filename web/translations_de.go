@@ -3,6 +3,11 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"A copy of the same size is already at the destination: it is a duplicate, the Space page can free it.": "Am Ziel liegt schon eine gleich große Kopie: Es ist ein Duplikat, die Seite Speicherplatz kann es freigeben.",
+		"another file with the same name is already at the destination": "am Ziel liegt schon eine andere Datei mit demselben Namen",
+		"%v files are kept until the copy that stays is checked, so a copy is never deleted for one that might be damaged. Check those copies, then preview again.": "%v Dateien bleiben, bis die verbleibende Kopie geprüft ist, damit nie eine Kopie für eine möglicherweise beschädigte gelöscht wird. Prüfe diese Kopien und zeige die Vorschau erneut an.",
+		"Check now": "Jetzt prüfen",
+		"The screenshots could not be loaded: the image server of Nintendo does not answer from your network. Networks that block Nintendo, to keep consoles away from it, block its images too.": "Die Screenshots konnten nicht geladen werden: Der Bildserver von Nintendo antwortet aus deinem Netzwerk nicht. Netzwerke, die Nintendo sperren, damit sich Konsolen nicht verbinden, sperren auch seine Bilder.",
 		"How it works": "Funktionsweise",
 		"Maintenance": "Wartung",
 		"Discover": "Entdecken",
@@ -1117,7 +1122,6 @@ func init() {
 		"based on":                       "basierend auf",
 		"breadcrumb":                     "Brotkrumennavigation",
 		"damaged file: %v":               "beschädigte Datei: %v",
-		"destination already exists":     "Ziel existiert bereits",
 		"done":                           "fertig",
 		"duplicate %v file (%v)":         "doppelte %v-Datei (%v)",
 		"e.g. txt jpg nfo":               "z. B. txt jpg nfo",

@@ -63,6 +63,8 @@ type OrganizeResponse struct {
 	Operations []ApiOperation `json:"operations"`
 	Changes    int            `json:"changes"`
 	Errors     int            `json:"errors"`
+	// files kept because the copy that stays was not checked yet
+	NeedsVerify int `json:"needsVerify,omitempty"`
 }
 
 // displayPath shortens paths inside the library folder to keep the preview readable.
@@ -85,6 +87,9 @@ func newOrganizeResponse(operations []process.Operation, dryRun bool, libraryFol
 		apiOp.Error = translate(lang, op.Error)
 		apiOp.Reason = translate(lang, op.Reason)
 		response.Operations = append(response.Operations, apiOp)
+		if op.Reason == NOTE_SPACE_VERIFY_KEPT || op.Reason == NOTE_SPACE_VERIFY {
+			response.NeedsVerify++
+		}
 		if op.Error != "" {
 			response.Errors++
 		} else if op.Kind != process.OP_SKIP && op.Kind != process.OP_CLEANUP {

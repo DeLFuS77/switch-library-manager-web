@@ -5,6 +5,11 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"A copy of the same size is already at the destination: it is a duplicate, the Space page can free it.": "En el destino ya hay una copia del mismo tamaño: es un duplicado, la página Espacio puede liberarlo.",
+		"another file with the same name is already at the destination": "en el destino ya hay otro archivo con el mismo nombre",
+		"%v files are kept until the copy that stays is checked, so a copy is never deleted for one that might be damaged. Check those copies, then preview again.": "%v archivos se conservan hasta que se compruebe la copia que se queda, para no borrar nunca una copia a cambio de otra que podría estar dañada. Comprueba esas copias y vuelve a ver la vista previa.",
+		"Check now": "Comprobar ahora",
+		"The screenshots could not be loaded: the image server of Nintendo does not answer from your network. Networks that block Nintendo, to keep consoles away from it, block its images too.": "No se han podido cargar las capturas: el servidor de imágenes de Nintendo no responde desde tu red. Las redes que bloquean Nintendo, para que las consolas no se conecten, bloquean también sus imágenes.",
 		"How it works": "Funcionamiento",
 		"Maintenance": "Mantenimiento",
 		"Discover": "Descubrir",
@@ -1083,7 +1088,6 @@ var translations = map[string]map[string]string{
 		"file name template needs to contain {TITLE_NAME} or {TITLE_ID}":   "la plantilla del nombre de archivo debe contener {TITLE_NAME} o {TITLE_ID}",
 		"folder name template cannot be empty":                             "la plantilla del nombre de carpeta no puede estar vacía",
 		"folder name template needs to contain {TITLE_NAME} or {TITLE_ID}": "la plantilla del nombre de carpeta debe contener {TITLE_NAME} o {TITLE_ID}",
-		"destination already exists":                                       "el destino ya existe",
 		"another file is moved to the same destination":                    "otro archivo se mueve al mismo destino",
 		"file changed since the last scan, rescan the library":             "el archivo cambió desde el último escaneo, vuelve a escanear la biblioteca",
 		"split files are not organized":                                    "los archivos divididos no se organizan",

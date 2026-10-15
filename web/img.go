@@ -102,7 +102,17 @@ func (web *Web) HandleImages() {
 	thumbs := web.thumbnails()
 
 	http.HandleFunc("/i/", func(w http.ResponseWriter, r *http.Request) {
-		path, ok := web.imagePath(strings.TrimPrefix(r.URL.Path, "/i/"))
+		name := strings.TrimPrefix(r.URL.Path, "/i/")
+		path, ok := web.imagePath(name)
+		if !ok && remoteCoverName.MatchString(name) {
+			// a screenshot or a cover of the titles database: fetched once by the server
+			fetched, err := web.fetchRemoteCover(name)
+			if err != nil {
+				http.Redirect(w, r, remoteCoverBase+name, http.StatusFound)
+				return
+			}
+			path, ok = fetched, true
+		}
 		if !ok {
 			http.NotFound(w, r)
 			return
@@ -273,6 +283,15 @@ func thumbUrl(url string) string {
 	// shown as small thumbnails, instead of every browser loading the full images
 	if name, ok := strings.CutPrefix(url, remoteCoverBase); ok && remoteCoverName.MatchString(name) {
 		return "/t/" + name
+	}
+	return url
+}
+
+// fullImageUrl turns the URL of an image of the titles database into the URL the server
+// shows it from, fetching it once; other URLs are left as they are.
+func fullImageUrl(url string) string {
+	if name, ok := strings.CutPrefix(url, remoteCoverBase); ok && remoteCoverName.MatchString(name) {
+		return "/i/" + name
 	}
 	return url
 }

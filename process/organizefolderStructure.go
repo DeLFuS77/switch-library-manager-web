@@ -122,7 +122,10 @@ func (f *fileOperations) move(from string, to string) error {
 		}
 		// renaming only the case of a file on a case-insensitive file system is fine
 		if toInfo, err := os.Stat(to); err == nil && !os.SameFile(fromInfo, toInfo) {
-			return errors.New("destination already exists")
+			if toInfo.Size() == fromInfo.Size() {
+				return errDuplicateAtDestination
+			}
+			return errors.New("another file with the same name is already at the destination")
 		}
 		if err := f.mkdir(filepath.Dir(to)); err != nil {
 			return err
@@ -139,9 +142,21 @@ func (f *fileOperations) move(from string, to string) error {
 		return nil
 	}()
 
+	if errors.Is(err, errDuplicateAtDestination) {
+		// left where it is: Space and the cleanup of duplicates take care of it
+		f.skip(from, REASON_DUPLICATE_AT_DESTINATION)
+		return nil
+	}
 	f.record(Operation{Kind: OP_MOVE, From: from, To: to}, err)
 	return err
 }
+
+// errDuplicateAtDestination is a move to a file of the same size: a copy of the same game.
+var errDuplicateAtDestination = errors.New("a copy is already at the destination")
+
+// REASON_DUPLICATE_AT_DESTINATION explains a file left where it is because a copy of it is
+// already where it would go.
+const REASON_DUPLICATE_AT_DESTINATION = "A copy of the same size is already at the destination: it is a duplicate, the Space page can free it."
 
 // remove deletes a file found by the last scan, unless it changed since then.
 func (f *fileOperations) remove(file db.ExtendedFileInfo, reason string) error {
@@ -535,7 +550,15 @@ func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles) string {
 
 	//for non eshop games (cartridge only), grab the name from the file
 	if v != nil && v.File.ExtendedInfo.FileName != "" {
-		return strings.TrimSpace(db.ParseTitleNameFromFileName(v.File.ExtendedInfo.FileName))
+		name := db.ParseTitleNameFromFileName(v.File.ExtendedInfo.FileName)
+		// a name without [TitleID] is the whole file name: without its extension, or the
+		// folder of the game would be named like the file and could not be made next to it
+		if name == v.File.ExtendedInfo.FileName {
+			name = strings.TrimSuffix(name, filepath.Ext(name))
+		}
+		if name = strings.TrimSpace(name); name != "" {
+			return name
+		}
 	}
 
 	return "Unknown Title"

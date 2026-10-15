@@ -3,6 +3,11 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"A copy of the same size is already at the destination: it is a duplicate, the Space page can free it.": "대상에 같은 크기의 사본이 이미 있습니다. 중복 파일이며 공간 페이지에서 확보할 수 있습니다.",
+		"another file with the same name is already at the destination": "대상에 같은 이름의 다른 파일이 이미 있습니다",
+		"%v files are kept until the copy that stays is checked, so a copy is never deleted for one that might be damaged. Check those copies, then preview again.": "남길 사본을 확인할 때까지 %v개 파일을 보관합니다. 손상되었을지도 모르는 사본 때문에 다른 사본을 지우지 않기 위해서입니다. 그 사본들을 확인한 뒤 다시 미리 보세요.",
+		"Check now": "지금 확인",
+		"The screenshots could not be loaded: the image server of Nintendo does not answer from your network. Networks that block Nintendo, to keep consoles away from it, block its images too.": "스크린샷을 불러오지 못했습니다. 네트워크에서 Nintendo 이미지 서버가 응답하지 않습니다. 기기가 Nintendo에 연결되지 않도록 차단한 네트워크는 그 이미지도 차단합니다.",
 		"How it works": "동작",
 		"Maintenance": "유지 관리",
 		"Discover": "둘러보기",
@@ -1110,7 +1115,6 @@ func init() {
 		"breadcrumb":                     "이동 경로",
 		"check this folder":              "이 폴더를 확인하세요",
 		"damaged file: %v":               "손상된 파일: %v",
-		"destination already exists":     "대상이 이미 있어요",
 		"done":                           "완료",
 		"duplicate %v file (%v)":         "중복된 %v 파일 (%v)",
 		"e.g. txt jpg nfo":               "예: txt jpg nfo",

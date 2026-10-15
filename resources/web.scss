@@ -770,6 +770,13 @@ h3,
 		overflow: hidden;
 		background: var(--slm-surface-muted);
 
+		// the cover is a link to the game, under the buttons drawn on it
+		.cover-link {
+			display: block;
+			width: 100%;
+			height: 100%;
+		}
+
 		img {
 			width: 100%;
 			height: 100%;

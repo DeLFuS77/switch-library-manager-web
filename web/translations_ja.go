@@ -3,6 +3,11 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"A copy of the same size is already at the destination: it is a duplicate, the Space page can free it.": "移動先に同じサイズのコピーがすでにあります。重複ファイルなので、容量ページで解放できます。",
+		"another file with the same name is already at the destination": "移動先に同じ名前の別のファイルがすでにあります",
+		"%v files are kept until the copy that stays is checked, so a copy is never deleted for one that might be damaged. Check those copies, then preview again.": "残すコピーが確認されるまで %v 個のファイルを保持します。破損しているかもしれないコピーのために別のコピーを削除しないためです。それらのコピーを確認してから、もう一度プレビューしてください。",
+		"Check now": "今すぐ確認",
+		"The screenshots could not be loaded: the image server of Nintendo does not answer from your network. Networks that block Nintendo, to keep consoles away from it, block its images too.": "スクリーンショットを読み込めませんでした。お使いのネットワークから任天堂の画像サーバーに接続できません。本体を任天堂に接続させないよう任天堂をブロックしているネットワークでは、その画像もブロックされます。",
 		"How it works": "動作",
 		"Maintenance": "メンテナンス",
 		"Discover": "見つける",
@@ -1110,7 +1115,6 @@ func init() {
 		"breadcrumb":                     "パンくずリスト",
 		"check this folder":              "このフォルダーを確認してください",
 		"damaged file: %v":               "破損したファイル：%v",
-		"destination already exists":     "移動先がすでに存在します",
 		"done":                           "完了",
 		"duplicate %v file (%v)":         "重複した%vファイル（%v）",
 		"e.g. txt jpg nfo":               "例: txt jpg nfo",
