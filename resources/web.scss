@@ -316,19 +316,27 @@ h3,
 	}
 }
 
+// an icon that turns: its box is a square around its glyph alone, so it turns around its
+// centre without wobbling
+@mixin spinning-icon($duration) {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1em;
+	height: 1em;
+	line-height: 1;
+	transform-origin: 50% 50%;
+	animation: slm-spin $duration linear infinite;
+
+	&::before {
+		vertical-align: 0;
+	}
+}
+
 // the tasks icon turns while background work runs
 @media (prefers-reduced-motion: no-preference) {
-	// the box of the icon is its glyph alone, so it turns around its centre without wobbling
 	.nav-busy {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		line-height: 1;
-		animation: slm-spin 1.6s linear infinite;
-
-		&::before {
-			vertical-align: 0;
-		}
+		@include spinning-icon(1.6s);
 	}
 }
 
@@ -1610,7 +1618,7 @@ h3,
 	pointer-events: none;
 
 	.bi {
-		animation: slm-spin 1s linear infinite;
+		@include spinning-icon(1s);
 	}
 }
 
