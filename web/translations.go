@@ -5,6 +5,11 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Count a game once when you have it from several regions": "Contar una sola vez un juego que tienes de varias regiones",
+		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "La biblioteca muestra una sola tarjeta, la de la copia que Espacio recomienda conservar, con cuántas regiones más tienes, y los contadores y las estadísticas lo cuentan una vez. No se cambia ningún archivo.",
+		"You also have this game from other regions: see them on the Space page.": "También tienes este juego de otras regiones: míralas en la página Espacio.",
+		"+1 region": "+1 región",
+		"+%v regions": "+%v regiones",
 		"Tune-up": "Puesta a punto",
 		"The steps in order to put your library in order": "Los pasos, en orden, para poner tu biblioteca a punto",
 		"The steps to put your library in order, in the order they depend on each other. Each one shows what is left to do; the first one waiting is marked.": "Los pasos para poner tu biblioteca a punto, en el orden en que dependen unos de otros. Cada uno muestra lo que queda por hacer, y el primero pendiente aparece marcado.",

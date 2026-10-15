@@ -3,6 +3,11 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Count a game once when you have it from several regions": "複数の地域版があるゲームを 1 本として数える",
+		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "ライブラリには容量ページが残すよう勧めるコピーのカードを 1 枚だけ、他の地域の数とともに表示し、カウンターと統計では 1 本として数えます。ファイルは変更されません。",
+		"You also have this game from other regions: see them on the Space page.": "このゲームは他の地域版もあります。容量ページで確認できます。",
+		"+1 region": "+1 地域",
+		"+%v regions": "+%v 地域",
 		"Tune-up": "整理の手順",
 		"The steps in order to put your library in order": "ライブラリを整える手順を順番に",
 		"The steps to put your library in order, in the order they depend on each other. Each one shows what is left to do; the first one waiting is marked.": "ライブラリを整える手順を、互いに依存する順に並べています。各手順に残りの作業が表示され、最初の未完了の手順に印が付きます。",

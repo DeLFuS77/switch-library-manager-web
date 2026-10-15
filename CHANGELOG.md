@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Settings › Ignored items › "Count a game once when you have it from several regions": the library shows one card for
+  such a game, the copy the Space page suggests to keep, with how many other regions you have, and the counters, the
+  filters and the statistics count it once. Off by default; no file is changed.
+
 ## 1.33.0
 
 ### Improvements

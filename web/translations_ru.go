@@ -3,6 +3,11 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Count a game once when you have it from several regions": "Считать игру из нескольких регионов один раз",
+		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "Библиотека показывает одну карточку — копию, которую страница «Место» советует оставить, — с числом других регионов, а счётчики и статистика считают игру один раз. Файлы не меняются.",
+		"You also have this game from other regions: see them on the Space page.": "У вас есть эта игра и из других регионов: смотрите их на странице «Место».",
+		"+1 region": "+1 регион",
+		"+%v regions": "+%v региона",
 		"Tune-up": "Наведение порядка",
 		"The steps in order to put your library in order": "Шаги по порядку, чтобы навести порядок в библиотеке",
 		"The steps to put your library in order, in the order they depend on each other. Each one shows what is left to do; the first one waiting is marked.": "Шаги наведения порядка в библиотеке в том порядке, в каком они зависят друг от друга. Каждый показывает, что осталось сделать; первый ожидающий отмечен.",

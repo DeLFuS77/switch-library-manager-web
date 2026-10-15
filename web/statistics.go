@@ -190,12 +190,13 @@ func (web *Web) buildStatistics(lang string) Statistics {
 		// the games count as the library counts them: without the demos it hides, and up to
 		// date as its "Up to date" filter, with every update and DLC
 		games := 0
+		leftOut, _ := web.regionCopies(lang)
 		for _, item := range library {
 			if item.TimeToBeat > 0 {
 				stats.TimeToBeat += item.TimeToBeat
 				stats.TimeToBeatGames++
 			}
-			if item.Missing || (hideDemos && item.Demo) {
+			if item.Missing || (hideDemos && item.Demo) || leftOut[item.Id] {
 				continue
 			}
 			games++

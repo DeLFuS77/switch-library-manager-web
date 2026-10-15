@@ -226,6 +226,8 @@ type TitleItem struct {
 	// library: the game is a favorite, or it is not in the library (shown with the others)
 	Favorite bool
 	Missing  bool
+	// other regions of the game in the library, when each game counts once
+	OtherRegions int
 	// games without their base game: the updates and DLC the library has of them
 	OrphanUpdates int
 	OrphanDlc     int

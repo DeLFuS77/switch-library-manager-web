@@ -89,6 +89,11 @@
 										<label class="form-check-label" for="hide_demo_games">{{t "Hide demos"}}</label>
 										<div class="form-text">{{t "In the library (unless its filter asks for them), missing updates, DLC and games, statistics and notifications."}}</div>
 									</div>
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="count_regions_once" name="count_regions_once" value="true"{{if .Settings.CountRegionsOnce}} checked{{end}}>
+										<label class="form-check-label" for="count_regions_once">{{t "Count a game once when you have it from several regions"}}</label>
+										<div class="form-text">{{t "The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed."}}</div>
+									</div>
 								</div>
 							</div>
 						</section>
