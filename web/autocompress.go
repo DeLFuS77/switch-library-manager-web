@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"errors"
 	"os"
 	"sync"
 	"time"
@@ -49,6 +50,10 @@ func (web *Web) autoCompressCandidates() []string {
 		if failedAt, ok := web.auto.failed[candidate.Path]; ok && failedAt.Equal(info.ModTime()) {
 			continue
 		}
+		// waits until its volume has room for the compressed copy
+		if !roomToCompress(candidate.Path, info.Size()) {
+			continue
+		}
 		paths = append(paths, candidate.Path)
 	}
 	return paths
@@ -90,7 +95,7 @@ func (web *Web) compressPaths(paths []string, trigger string) bool {
 	web.auto.mutex.Unlock()
 	return web.runFileTaskWithTrigger(TASK_COMPRESS, trigger, paths, 3, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		saved, err := web.compressFile(ctx, path, level, !appSettings.AutoCompressKeep, report)
-		if err != nil {
+		if err != nil && !errors.Is(err, errCompressSpace) {
 			if info, statErr := os.Stat(path); statErr == nil {
 				web.auto.mutex.Lock()
 				web.auto.failed[path] = info.ModTime()

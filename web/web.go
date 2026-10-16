@@ -159,6 +159,8 @@ type Web struct {
 	// (-1: none yet), shown while newer ones are worked out
 	lastSpace    atomic.Pointer[SpacePageData]
 	lastOrganize atomic.Int64
+	// the volumes of the library short of free space
+	disks diskWatch
 	fallbackMutex     sync.Mutex
 	thumbs            *thumbnails
 	thumbsOnce        sync.Once
@@ -275,6 +277,8 @@ type GlobalPageData struct {
 	WizardAuto bool
 	// the save vault is on: its page is in the menu
 	VaultEnabled bool
+	// the volumes of the library short of free space
+	LowDisks []LowDisk
 }
 
 // NavCounts are shown next to the navigation links, so pending work is visible everywhere.
@@ -477,6 +481,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 		TimesToBeat:         web.timesToBeat().hasKnown(),
 		WizardAuto:          web.wizardAuto(),
 		VaultEnabled:        vaultEnabled(settings.ReadSettings(web.dataFolder)) || isDemoMode(),
+		LowDisks:            web.lowDisks(),
 	}
 }
 

@@ -1,9 +1,17 @@
 # Changelog
 
-## Unreleased
+## 1.35.0
 
 ### Improvements
 
+- A warning of disk space: when a disk of the library has less than 10% free, every page says so at the top, with its
+  free space and a link to the Space page, and a notification is sent (Discord, Telegram or webhook) once, until the
+  disk has room again. Automatic compression waits until a file's disk has room for its compressed copy, and a file
+  that failed for lack of space is tried again once there is room.
+- Tune-up: Organize and Free space no longer stay on "Looking…" while the library changes (during a check of a large
+  library they were worked out again with every file, never finishing). They show their last figures, marked
+  "(updating…)", while new ones are worked out; Free space follows the results of a running check as they are saved,
+  every two minutes. The Space page does the same, with a note, instead of waiting.
 - Tune-up: "Review again" scans the library (only new or changed files are read) and works every step out again, for
   after changing files outside the app; the page says when it was last reviewed and updates itself while the figures
   of Organize and Space are worked out.

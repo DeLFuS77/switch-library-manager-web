@@ -50,6 +50,7 @@ func (web *Web) StartScheduler() {
 				}
 			}
 			web.resumeBackgroundWork(now)
+			web.checkDiskSpace()
 		}
 	}()
 }

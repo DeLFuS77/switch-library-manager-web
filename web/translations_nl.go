@@ -3,6 +3,12 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Little free space left on %v: %v (%v%%).": "Weinig vrije ruimte op %v: %v (%v%%).",
+		"Compressions wait until there is room. Free duplicates and old versions, or move files to another disk.": "Comprimeren wacht tot er ruimte is. Ruim duplicaten en oude versies op, of verplaats bestanden naar een andere schijf.",
+		"%v free (%v%%)": "%v vrij (%v%%)",
+		"Switch Library Manager: little free space left": "Switch Library Manager: weinig vrije ruimte",
+		"%v: %v": "%v: %v",
+		"Free space from the Space page of the app; compressions wait until there is room.": "Maak ruimte vrij via de pagina Ruimte van de app; comprimeren wacht tot er ruimte is.",
 		"(updating...)": "(wordt bijgewerkt…)",
 		"Updating: this is what the page found last, the newer figures come with the next visit.": "Wordt bijgewerkt: dit vond de pagina het laatst, de nieuwere cijfers komen bij het volgende bezoek.",
 		"Review again": "Opnieuw bekijken",

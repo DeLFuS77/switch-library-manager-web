@@ -3,6 +3,12 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Little free space left on %v: %v (%v%%).": "%v의 여유 공간이 부족합니다: %v (%v%%).",
+		"Compressions wait until there is room. Free duplicates and old versions, or move files to another disk.": "압축은 공간이 생길 때까지 기다립니다. 중복과 오래된 버전을 정리하거나 파일을 다른 디스크로 옮기세요.",
+		"%v free (%v%%)": "%v 남음 (%v%%)",
+		"Switch Library Manager: little free space left": "Switch Library Manager: 여유 공간 부족",
+		"%v: %v": "%v: %v",
+		"Free space from the Space page of the app; compressions wait until there is room.": "앱의 공간 페이지에서 공간을 확보하세요. 압축은 공간이 생길 때까지 기다립니다.",
 		"(updating...)": "(업데이트 중…)",
 		"Updating: this is what the page found last, the newer figures come with the next visit.": "업데이트 중: 페이지가 마지막으로 찾은 내용입니다. 새 수치는 다음 방문 때 나옵니다.",
 		"Review again": "다시 검토",

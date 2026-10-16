@@ -141,6 +141,12 @@
 				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{t "Close"}}"></button>
 			</div>
 			{{- end}}
+			{{- range .LowDisks}}
+			<div class="alert alert-danger d-flex align-items-start gap-2 mt-3 mb-0" role="alert">
+				<span class="bi bi-device-hdd flex-shrink-0 mt-1" aria-hidden="true"></span>
+				<div><strong>{{t "Little free space left on %v: %v (%v%%)." .Folder (formatSize .Free) .Percent}}</strong> {{t "Compressions wait until there is room. Free duplicates and old versions, or move files to another disk."}} <a class="alert-link" href="/space.html">{{t "Free space"}}</a></div>
+			</div>
+			{{- end}}
 			{{- if .Auth.WeakEnvPassword}}
 			<div class="alert alert-warning d-flex align-items-start gap-2 mt-3 mb-0" role="status">
 				<span class="bi bi-shield-exclamation flex-shrink-0 mt-1" aria-hidden="true"></span>
