@@ -3,6 +3,8 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Running.": "Bezig.",
+		"It goes on in the background; this page updates by itself when it ends.": "Het gaat op de achtergrond door; deze pagina werkt zichzelf bij als het klaar is.",
 		"Showing them": "Alleen deze",
 		"show all": "alles tonen",
 		"Delete them": "Verwijderen",

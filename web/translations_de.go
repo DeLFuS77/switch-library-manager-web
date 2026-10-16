@@ -3,6 +3,8 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Running.": "Läuft.",
+		"It goes on in the background; this page updates by itself when it ends.": "Es läuft im Hintergrund weiter; diese Seite aktualisiert sich, wenn es fertig ist.",
 		"Showing them": "Nur diese",
 		"show all": "alle zeigen",
 		"Delete them": "Löschen",

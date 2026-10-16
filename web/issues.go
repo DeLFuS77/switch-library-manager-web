@@ -120,6 +120,8 @@ func (web *Web) HandleIssues() {
 			writeGlobalError(w, http.StatusConflict, lang, err.Error())
 			return
 		}
+		// the issues are listed again at once, without the files deleted
+		web.invalidateDerived()
 		web.Rescan(TRIGGER_MANUAL)
 		writeJSON(w, http.StatusOK, map[string]any{"deleted": deleted, "freed": freed, "failed": len(files) - deleted})
 	}).Methods("POST")
