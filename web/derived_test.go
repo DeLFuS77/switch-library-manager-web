@@ -149,8 +149,8 @@ func TestDesignShowsOverviewDlcProgressAndRings(t *testing.T) {
 	if !strings.Contains(title, "1 of 2 DLC") || !strings.Contains(title, `class="dlc-progress-bar"`) || !strings.Contains(title, "width: 50%") {
 		t.Error("the game page must show the DLC progress")
 	}
-	if !strings.Contains(title, `class="fact-value font-monospace fact-id">0100000000010000<`) || !strings.Contains(title, `class="item-list"`) {
-		t.Error("the game page shows the title ID on one line and the files as a list")
+	if !strings.Contains(title, `class="fact-value fact-id"><button type="button" class="copy-inline" data-copy="0100000000010000"`) || !strings.Contains(title, `class="item-list"`) {
+		t.Error("the game page shows the title ID, which copies itself, and the files as a list")
 	}
 	stats := get("/statistics.html")
 	if !strings.Contains(stats, "conic-gradient(var(--slm-chart-1)") || !strings.Contains(stats, "--pct:") {
