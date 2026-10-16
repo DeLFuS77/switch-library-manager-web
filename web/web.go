@@ -293,6 +293,8 @@ type NavCounts struct {
 	RunningTasks int
 	// games on the wishlist
 	Wished int
+	// games of the titles database that are not in the library, as the Missing Games page counts them
+	Missing int
 	// a step of the tune-up is waiting: files never checked, changes of Organize, space to free
 	TuneUp bool
 	// the issues by kind, for the panel of the header
@@ -503,6 +505,7 @@ func (web *Web) navCounts() NavCounts {
 		return counts
 	}
 	counts.TuneUp = web.tuneUpWaiting()
+	counts.Missing = web.missingGamesCount()
 	counts.Updates = len(web.missingUpdates())
 	for _, title := range web.missingDLC() {
 		counts.Dlc += len(title.MissingDLCItems)

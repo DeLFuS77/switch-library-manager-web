@@ -47,6 +47,29 @@ func (web *Web) getMissingGames(filter *TitleItemFilter, lang string) ([]TitleIt
 }
 
 // buildMissingGames lists every game of the titles database that is not in the library.
+// missingGamesCount counts the games of the titles database that are not in the library, with
+// the filters of the Missing Games page, for the header and the statistics.
+func (web *Web) missingGamesCount() int {
+	return web.derived("missingGamesCount", func() any {
+		switchDB, localDB := web.state.get()
+		if switchDB == nil || localDB == nil {
+			return 0
+		}
+		hideDemoGames := settings.ReadSettings(web.dataFolder).HideDemoGames
+		count := 0
+		for k, v := range switchDB.TitlesMap {
+			if local, ok := localDB.TitlesMap[k]; ok && local.BaseExist {
+				continue
+			}
+			if v.Attributes.Name == "" || v.Attributes.Id == "" || (hideDemoGames && isDemo(v, v.Attributes.Name)) {
+				continue
+			}
+			count++
+		}
+		return count
+	}).(int)
+}
+
 func (web *Web) buildMissingGames(lang string) []TitleItem {
 	items := []TitleItem{}
 
