@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list.": "Se ven uno a uno los %v archivos más grandes; los otros %v, más pequeños, van juntos en la última fila de la lista.",
 		"Left to solve": "Por resolver",
 		"Show the files of a kind": "Mostrar los archivos de un tipo",
 		"Empty folders": "Carpetas vacías",

@@ -3,6 +3,7 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list.": "Самые большие файлы (%v) показаны по одному; остальные %v, поменьше, собраны в последней строке списка.",
 		"Left to solve": "Осталось решить",
 		"Show the files of a kind": "Показать файлы одного типа",
 		"Empty folders": "Пустые папки",

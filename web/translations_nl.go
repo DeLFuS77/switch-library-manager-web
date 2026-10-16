@@ -3,6 +3,7 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list.": "De %v grootste bestanden staan er los; de andere %v, kleinere, staan samen op de laatste regel van de lijst.",
 		"Left to solve": "Nog op te lossen",
 		"Show the files of a kind": "Bestanden van één soort tonen",
 		"Empty folders": "Lege mappen",

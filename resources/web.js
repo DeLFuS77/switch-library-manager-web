@@ -1364,7 +1364,8 @@ function bindFileForm(form, url) {
 		const icons = { all: 'bi-list-ul', game: 'bi-controller', update: 'bi-arrow-up-circle', dlc: 'bi-puzzle' };
 		const buttons = [];
 		['all', 'game', 'update', 'dlc'].forEach(key => {
-			const total = key === 'all' ? { count: rows.length } : totals[key];
+			// "All" counts the smaller files listed together in the last row too
+			const total = key === 'all' ? { count: rows.length + Number(chips.dataset.rest || 0) } : totals[key];
 			if (!total || (key !== 'all' && Object.keys(totals).length < 2)) {
 				return;
 			}

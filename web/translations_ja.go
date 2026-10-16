@@ -3,6 +3,7 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list.": "大きい順に %v 個のファイルを個別に表示しています。残りの小さな %v 個はリストの最後の行にまとめています。",
 		"Left to solve": "未解決",
 		"Show the files of a kind": "種類ごとにファイルを表示",
 		"Empty folders": "空のフォルダー",

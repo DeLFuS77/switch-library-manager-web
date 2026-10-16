@@ -3,6 +3,7 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list.": "逐个列出最大的 %v 个文件;其余 %v 个较小的文件合并在列表最后一行。",
 		"Left to solve": "待解决",
 		"Show the files of a kind": "按类型显示文件",
 		"Empty folders": "空文件夹",

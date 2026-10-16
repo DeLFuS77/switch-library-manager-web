@@ -15,6 +15,8 @@
 
 ### Fixes
 
+- Compress: the "All" chip counts every file to compress, also the smaller ones listed together in the last row (it
+  said 300 while 1,787 were selected), and a note says the biggest files are listed one by one.
 - "Hide demos" hides the demos whose name ends with the word ("… Demo", "… - Demo", "…-DEMO", "… Demo for KIOSK",
   "… DEMO EDITION", "… DEMO!"), says it in brackets ("【DEMO】", "(Demo!)") or is a special demo ("Special Demo
   2020"): the titles database does not flag many of them, and about a hundred showed in a large library. They are
