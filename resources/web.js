@@ -406,31 +406,171 @@ function postForm(url, params) {
 	}));
 }
 
+// the kinds of changes of the preview, in the order of the summary: what needs a look first
+const OPERATION_KINDS = [
+	{ key: 'error', label: t('Error'), icon: 'bi-x-octagon' },
+	{ key: 'review', label: t('Review'), icon: 'bi-exclamation-triangle' },
+	{ key: 'move', label: t('Move'), icon: 'bi-arrow-right-circle' },
+	{ key: 'rename', label: t('Rename'), icon: 'bi-input-cursor-text' },
+	{ key: 'mkdir', label: t('Create folder'), icon: 'bi-folder-plus' },
+	{ key: 'delete', label: t('Delete'), icon: 'bi-trash3' },
+	{ key: 'skip', label: t('Skip'), icon: 'bi-skip-forward-circle' }
+];
+
+const splitPath = path => {
+	const index = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+	return index < 0 ? ['', path] : [path.slice(0, index), path.slice(index + 1)];
+};
+const nameId = name => (name.match(/\[([0-9A-Fa-f]{16})\]/) || [])[1];
+const nameVersion = name => (name.match(/\[v(\d+)\]/) || [])[1];
+
+// operationKind tells the kind of a change: a move within its folder renames, and a move
+// that changes the title ID of the name needs a look
+function operationKind(op) {
+	if (op.error) {
+		return 'error';
+	}
+	if (op.kind === 'cleanup') {
+		return 'delete';
+	}
+	if (op.kind !== 'move' || !op.from || !op.to) {
+		return op.kind;
+	}
+	const [fromFolder, fromName] = splitPath(op.from);
+	const [toFolder, toName] = splitPath(op.to);
+	const fromId = nameId(fromName);
+	const toId = nameId(toName);
+	if (fromId && toId && fromId.toUpperCase() !== toId.toUpperCase()) {
+		return 'review';
+	}
+	return fromFolder === toFolder ? 'rename' : 'move';
+}
+
+// a file as its name, with its folder below
+function pathCell(path, className) {
+	const [folder, name] = splitPath(path || '');
+	const cell = document.createElement('div');
+	cell.className = `op-path ${className || ''}`;
+	const strong = document.createElement('div');
+	strong.className = 'op-name';
+	strong.textContent = name;
+	cell.append(strong);
+	if (folder) {
+		const small = document.createElement('div');
+		small.className = 'op-folder';
+		small.innerHTML = '<span class="bi bi-folder2 me-1" aria-hidden="true"></span>';
+		small.append(folder);
+		cell.append(small);
+	}
+	return cell;
+}
+
 function renderOperations(result) {
-	const tbody = document.getElementById('organizeOperations');
-	tbody.replaceChildren();
+	const list = document.getElementById('organizeOperations');
+	const summary = document.getElementById('organizeSummary');
+	list.replaceChildren();
+	summary.replaceChildren();
+	const kinds = Object.fromEntries(OPERATION_KINDS.map(kind => [kind.key, kind]));
+	const counts = {};
 
 	result.operations.forEach(op => {
-		const row = document.createElement('tr');
-		if (op.error) {
-			row.classList.add('table-danger');
+		const key = operationKind(op);
+		const kind = kinds[key] || { key, label: OPERATION_LABELS[op.kind] || op.kind, icon: 'bi-dot' };
+		counts[key] = (counts[key] || 0) + 1;
+
+		const row = document.createElement('li');
+		row.className = `op-row op-${key}`;
+		row.dataset.opKind = key;
+
+		const badge = document.createElement('span');
+		badge.className = 'op-badge';
+		badge.innerHTML = `<span class="bi ${kind.icon}" aria-hidden="true"></span>`;
+		badge.append(kind.label);
+
+		const body = document.createElement('div');
+		body.className = 'op-body';
+		if (op.kind === 'mkdir') {
+			body.append(pathCell(op.to || op.from));
+		} else {
+			body.append(pathCell(op.from || op.to));
+		}
+		if ((key === 'move' || key === 'rename' || key === 'review') && op.to) {
+			const [fromFolder, fromName] = splitPath(op.from);
+			const [toFolder, toName] = splitPath(op.to);
+			const target = document.createElement('div');
+			target.className = 'op-target';
+			target.innerHTML = '<span class="bi bi-arrow-return-right" aria-hidden="true"></span>';
+			const name = document.createElement('div');
+			name.className = 'op-path';
+			const strong = document.createElement('div');
+			strong.className = 'op-name';
+			strong.textContent = toName === fromName ? t('Same name') : toName;
+			name.append(strong);
+			if (toFolder !== fromFolder && toFolder) {
+				const small = document.createElement('div');
+				small.className = 'op-folder';
+				small.innerHTML = '<span class="bi bi-folder2-open me-1" aria-hidden="true"></span>';
+				small.append(toFolder);
+				name.append(small);
+			}
+			target.append(name);
+			body.append(target);
+			const notes = [];
+			if (key === 'review') {
+				notes.push(t('The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.', nameId(fromName), nameId(toName)));
+			} else if (nameVersion(fromName) && nameVersion(toName) && nameVersion(fromName) !== nameVersion(toName)) {
+				notes.push(t('The version of the name changes: v%v → v%v (the update the file holds).', nameVersion(fromName), nameVersion(toName)));
+			}
+			notes.forEach(text => {
+				const note = document.createElement('div');
+				note.className = 'op-note';
+				note.textContent = text;
+				body.append(note);
+			});
+		} else if (op.error || op.reason) {
+			const note = document.createElement('div');
+			note.className = 'op-note';
+			note.textContent = op.error ? t('Error: %v', op.error) : op.reason;
+			body.append(note);
 		}
 
-		const kind = document.createElement('td');
-		kind.classList.add('text-nowrap');
-		kind.textContent = OPERATION_LABELS[op.kind] || op.kind;
-
-		const from = document.createElement('td');
-		from.classList.add('text-break');
-		from.textContent = op.from || op.to || '';
-
-		const detail = document.createElement('td');
-		detail.classList.add('text-break');
-		detail.textContent = op.error ? t('Error: %v', op.error) : (op.kind === 'mkdir' ? '' : (op.to && op.from ? op.to : (op.reason || '')));
-
-		row.append(kind, from, detail);
-		tbody.appendChild(row);
+		row.append(badge, body);
+		list.appendChild(row);
 	});
+
+	// the summary filters the list by kind
+	const chips = [];
+	const filter = key => {
+		chips.forEach(chip => chip.setAttribute('aria-pressed', String(chip.dataset.opFilter === key)));
+		list.querySelectorAll('.op-row').forEach(row => {
+			row.hidden = key !== 'all' && row.dataset.opKind !== key;
+		});
+	};
+	const chip = (key, label, icon, count) => {
+		const button = document.createElement('button');
+		button.type = 'button';
+		button.className = `op-chip op-${key}`;
+		button.dataset.opFilter = key;
+		button.setAttribute('aria-pressed', String(key === 'all'));
+		button.innerHTML = `<span class="bi ${icon}" aria-hidden="true"></span>`;
+		button.append(label);
+		const number = document.createElement('span');
+		number.className = 'op-chip-count';
+		number.textContent = count;
+		button.append(number);
+		button.addEventListener('click', () => filter(key));
+		chips.push(button);
+		summary.append(button);
+	};
+	if (result.operations.length > 0) {
+		chip('all', t('All'), 'bi-list-ul', result.operations.length);
+		OPERATION_KINDS.forEach(kind => {
+			if (counts[kind.key]) {
+				chip(kind.key, kind.label, kind.icon, counts[kind.key]);
+			}
+		});
+	}
+	summary.hidden = result.operations.length === 0;
 }
 
 function initOrganize() {
@@ -455,6 +595,7 @@ function initOrganize() {
 		renderOperations(response);
 		if (verifyNote) {
 			verifyNote.hidden = !response.needsVerify;
+			verifyNote.classList.toggle('d-none', !response.needsVerify);
 			const text = verifyNote.querySelector('[data-organize-verify-text]');
 			text.textContent = text.dataset.text.replace('%v', response.needsVerify || 0);
 		}
@@ -2347,6 +2488,22 @@ function initCopyButtons() {
 	});
 }
 
+// Issues: delete the files of a kind of issue that are of no use, after a confirmation
+function initIssueDelete() {
+	document.querySelectorAll('[data-issue-delete]').forEach(button => button.addEventListener('click', () => {
+		if (!window.confirm(button.dataset.confirm)) {
+			return;
+		}
+		button.disabled = true;
+		postForm('/issues/delete', { kind: button.dataset.issueDelete })
+			.then(() => setTimeout(() => window.location.reload(), 1200))
+			.catch(error => {
+				button.disabled = false;
+				insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+			});
+	}));
+}
+
 // the charts of the history: the values of the day under the pointer
 function initHistoryCharts() {
 	document.querySelectorAll('.history-charts [data-bs-toggle="pill"]').forEach((button) => {
@@ -2900,6 +3057,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initRegionRemove();
 	initMaintenance();
 	initHistoryCharts();
+	initIssueDelete();
 	initCopyButtons();
 	initFullRows();
 	initImageFallbacks();

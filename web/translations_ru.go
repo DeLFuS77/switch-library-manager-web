@@ -3,6 +3,17 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Showing them": "Показаны эти",
+		"show all": "показать все",
+		"Delete them": "Удалить",
+		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "Удалить %v файлов из «%v» (%v)? Их нельзя восстановить. Потом получите их заново.",
+		"Error": "Ошибка",
+		"Review": "Проверить",
+		"Rename": "Переименовать",
+		"Same name": "То же имя",
+		"Show the changes of a kind": "Показать изменения одного типа",
+		"The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.": "ID в имени меняется (%v → %v): файл содержит несколько материалов или имел неверное имя. Проверьте перед применением.",
+		"The version of the name changes: v%v → v%v (the update the file holds).": "Версия в имени меняется: v%v → v%v (обновление внутри файла).",
 		"Content": "Содержимое",
 		"Disk used": "Занято на диске",
 		"Disk size": "Размер диска",
@@ -30,7 +41,6 @@ func init() {
 		"of %v games": "из %v игр",
 		"Unknown game": "Неизвестная игра",
 		"%v updates": "обновлений: %v",
-		"Show every issue": "Показать все проблемы",
 		"See the files": "Показать файлы",
 		"Damaged files": "Повреждённые файлы",
 		"Their data does not match what they should hold: they will not install or play well. Get them again.": "Их данные не совпадают с тем, что должно быть: они не установятся или будут работать плохо. Получите их заново.",
@@ -700,7 +710,6 @@ func init() {
 		"Demos only":                       "Только демоверсии",
 		"Descending":                       "По убыванию",
 		"Description":                      "Описание",
-		"Destination / Reason":             "Назначение / Причина",
 		"Disabled":                         "Отключено",
 		"Discord webhook URL":              "URL вебхука Discord",
 		"Dismiss":                          "Скрыть",

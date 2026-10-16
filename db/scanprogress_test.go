@@ -46,7 +46,7 @@ func TestWalkingTheFoldersShowsProgress(t *testing.T) {
 func TestUnknownGamesAreReadAgainForTheirAttributes(t *testing.T) {
 	ldb := &LocalSwitchDBManager{titles: &SwitchTitlesDB{TitlesMap: map[string]*SwitchTitle{"0100000000010": {}}}}
 	meta := func(id string, read bool) map[string]*switchfs.ContentMetaAttributes {
-		return map[string]*switchfs.ContentMetaAttributes{id: {TitleId: id, Ncap: &switchfs.Nacp{AttributesRead: read}}}
+		return map[string]*switchfs.ContentMetaAttributes{id: {TitleId: id, Ncap: &switchfs.Nacp{AttributesRead: read, NamesRead: read}}}
 	}
 	if !ldb.needsAttributes(meta("0100000000020000", false)) {
 		t.Fatal("an unknown game without attributes is read again")
@@ -56,5 +56,11 @@ func TestUnknownGamesAreReadAgainForTheirAttributes(t *testing.T) {
 	}
 	if ldb.needsAttributes(meta("0100000000020000", true)) {
 		t.Fatal("data with the attributes is kept")
+	}
+	// data read before the names were read apart is read again too
+	older := meta("0100000000020000", true)
+	older["0100000000020000"].Ncap.NamesRead = false
+	if !ldb.needsAttributes(older) {
+		t.Fatal("an unknown game read with the names mixed up is read again")
 	}
 }

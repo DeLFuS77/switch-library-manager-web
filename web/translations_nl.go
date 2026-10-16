@@ -3,6 +3,17 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Showing them": "Alleen deze",
+		"show all": "alles tonen",
+		"Delete them": "Verwijderen",
+		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "De %v bestanden van ‘%v’ (%v) verwijderen? Ze kunnen niet worden hersteld. Haal ze daarna opnieuw.",
+		"Error": "Fout",
+		"Review": "Controleren",
+		"Rename": "Hernoemen",
+		"Same name": "Zelfde naam",
+		"Show the changes of a kind": "Wijzigingen van één soort tonen",
+		"The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.": "De titel-ID in de naam verandert (%v → %v): het bestand bevat meerdere inhouden of had een verkeerde naam. Controleer het vóór het toepassen.",
+		"The version of the name changes: v%v → v%v (the update the file holds).": "De versie in de naam verandert: v%v → v%v (de update in het bestand).",
 		"Content": "Inhoud",
 		"Disk used": "Schijf gebruikt",
 		"Disk size": "Schijfgrootte",
@@ -30,7 +41,6 @@ func init() {
 		"of %v games": "van %v games",
 		"Unknown game": "Onbekende game",
 		"%v updates": "%v updates",
-		"Show every issue": "Alle problemen tonen",
 		"See the files": "Bekijk de bestanden",
 		"Damaged files": "Beschadigde bestanden",
 		"Their data does not match what they should hold: they will not install or play well. Get them again.": "Hun gegevens kloppen niet met wat ze moeten bevatten: ze installeren of spelen niet goed. Haal ze opnieuw.",
@@ -700,7 +710,6 @@ func init() {
 		"Demos only":                       "Alleen demo's",
 		"Descending":                       "Aflopend",
 		"Description":                      "Beschrijving",
-		"Destination / Reason":             "Bestemming / Reden",
 		"Disabled":                         "Uitgeschakeld",
 		"Discord webhook URL":              "Discord-webhook-URL",
 		"Dismiss":                          "Verbergen",

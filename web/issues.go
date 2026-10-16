@@ -101,6 +101,29 @@ func (web *Web) HandleIssues() {
 		}
 	}, web.embedFS, fsPatterns...)
 
+	// delete the files of a kind of issue that are of no use (damaged, cut short), then scan
+	// the library again
+	web.router.HandleFunc("/issues/delete", func(w http.ResponseWriter, r *http.Request) {
+		lang := web.requestLanguage(r)
+		kind := r.FormValue("kind")
+		if !deletableIssueKinds[kind] {
+			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
+			return
+		}
+		files := issueFiles(web.getIssues(), kind)
+		reasons := make([]string, len(files))
+		for i := range reasons {
+			reasons[i] = "deleted from Issues: " + kind
+		}
+		deleted, freed, err := web.removeFilesAsTask(files, reasons)
+		if err != nil {
+			writeGlobalError(w, http.StatusConflict, lang, err.Error())
+			return
+		}
+		web.Rescan(TRIGGER_MANUAL)
+		writeJSON(w, http.StatusOK, map[string]any{"deleted": deleted, "freed": freed, "failed": len(files) - deleted})
+	}).Methods("POST")
+
 	// ignore a type of file: its files are no longer reported, and the library is scanned again
 	web.router.HandleFunc("/issues/ignore-type", func(w http.ResponseWriter, r *http.Request) {
 		extension := strings.ToLower(strings.TrimSpace(r.FormValue("type")))

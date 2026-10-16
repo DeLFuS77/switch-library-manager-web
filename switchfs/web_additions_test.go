@@ -63,7 +63,9 @@ func TestLanguageToLanguageTag(t *testing.T) {
 		AmericanEnglish:      "en-US",
 		LatinAmericanSpanish: "es-419",
 		Spanish:              "es",
-		Language(15):         "zh-Hans",
+		Language(13):         "zh-Hant",
+		Language(14):         "zh-Hans",
+		Language(15):         "pt-BR",
 		Language(16):         "und",
 		Language(-1):         "und",
 	}

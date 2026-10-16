@@ -3,6 +3,17 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Showing them": "표시 중",
+		"show all": "모두 보기",
+		"Delete them": "삭제",
+		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "「%v」의 파일 %v개(%v)를 삭제할까요? 복구할 수 없습니다. 나중에 다시 구하세요.",
+		"Error": "오류",
+		"Review": "확인 필요",
+		"Rename": "이름 변경",
+		"Same name": "같은 이름",
+		"Show the changes of a kind": "종류별 변경 보기",
+		"The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.": "이름의 타이틀 ID가 바뀝니다 (%v → %v): 파일에 여러 콘텐츠가 들어 있거나 이름이 잘못되었습니다. 적용하기 전에 확인하세요.",
+		"The version of the name changes: v%v → v%v (the update the file holds).": "이름의 버전이 바뀝니다: v%v → v%v (파일에 들어 있는 업데이트).",
 		"Content": "콘텐츠",
 		"Disk used": "디스크 사용량",
 		"Disk size": "디스크 크기",
@@ -30,7 +41,6 @@ func init() {
 		"of %v games": "(게임 %v개)",
 		"Unknown game": "알 수 없는 게임",
 		"%v updates": "업데이트 %v개",
-		"Show every issue": "모든 문제 보기",
 		"See the files": "파일 보기",
 		"Damaged files": "손상된 파일",
 		"Their data does not match what they should hold: they will not install or play well. Get them again.": "데이터가 원래 내용과 맞지 않습니다. 제대로 설치되거나 실행되지 않습니다. 다시 받으세요.",
@@ -700,7 +710,6 @@ func init() {
 		"Demos only":                       "체험판만",
 		"Descending":                       "내림차순",
 		"Description":                      "설명",
-		"Destination / Reason":             "대상 / 이유",
 		"Disabled":                         "꺼짐",
 		"Discord webhook URL":              "Discord 웹후크 URL",
 		"Dismiss":                          "닫기",

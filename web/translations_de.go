@@ -3,6 +3,17 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Showing them": "Nur diese",
+		"show all": "alle zeigen",
+		"Delete them": "Löschen",
+		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "Die %v Dateien von „%v“ (%v) löschen? Sie lassen sich nicht wiederherstellen. Besorge sie danach neu.",
+		"Error": "Fehler",
+		"Review": "Prüfen",
+		"Rename": "Umbenennen",
+		"Same name": "Gleicher Name",
+		"Show the changes of a kind": "Änderungen einer Art zeigen",
+		"The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.": "Die Titel-ID im Namen ändert sich (%v → %v): Die Datei enthält mehrere Inhalte oder hatte einen falschen Namen. Prüfe sie vor dem Anwenden.",
+		"The version of the name changes: v%v → v%v (the update the file holds).": "Die Version im Namen ändert sich: v%v → v%v (das Update in der Datei).",
 		"Content": "Inhalt",
 		"Disk used": "Belegte Platte",
 		"Disk size": "Plattengröße",
@@ -30,7 +41,6 @@ func init() {
 		"of %v games": "aus %v Spielen",
 		"Unknown game": "Unbekanntes Spiel",
 		"%v updates": "%v Updates",
-		"Show every issue": "Alle Probleme zeigen",
 		"See the files": "Dateien ansehen",
 		"Damaged files": "Beschädigte Dateien",
 		"Their data does not match what they should hold: they will not install or play well. Get them again.": "Ihre Daten stimmen nicht mit dem überein, was sie enthalten sollten: Sie lassen sich nicht gut installieren oder spielen. Besorge sie neu.",
@@ -887,7 +897,6 @@ func init() {
 		"Delete user":                 "Benutzer löschen",
 		"Descending":                  "Absteigend",
 		"Description":                 "Beschreibung",
-		"Destination / Reason":        "Ziel / Grund",
 		"Disabled":                    "Deaktiviert",
 		"Discord webhook URL":         "Discord-Webhook-URL",
 		"Dismiss":                     "Ausblenden",

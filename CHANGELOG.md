@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Organize: the preview of the changes is a list colored by kind (move, rename, create folder, delete, skip, error),
+  each file with its name first and its folder below, and the new name and folder after an arrow. A summary at the top
+  counts each kind and shows only its changes with a click. A move that changes the title ID of the name is marked
+  "Review", and a name whose version changes says so.
+- Cleanup: of two copies of the same content, the compressed one (NSZ, XCZ) is kept when it was checked, is sound and
+  holds the same contents, and the NSP or XCI goes, whichever the scan found first.
+- Issues: the cards of the summary are sized to their content (they all stretched to the tallest one), with the count
+  large, the icon in the color of the kind and the actions at the bottom. Damaged files and files that cannot be read
+  can be deleted from their card, with their size and a confirmation; the library is scanned again after.
+
+### Fixes
+
+- Organize: a file holding several contents (a collection of several games, an update with its DLC) that already had
+  the name of one of them was renamed after another, and back on the next run (Etrian Odyssey II HD became III HD).
+- A game that names itself in Simplified Chinese only (games of the Chinese store) had no name and was not recognized
+  as a demo: its name was lost under the empty Brazilian Portuguese one. The files the titles database does not know
+  are read again once with the next scan.
+- Organize: the note about files kept until the copy that stays is checked showed "0 files" when there were none.
+
 ## 1.36.0
 
 ### Improvements

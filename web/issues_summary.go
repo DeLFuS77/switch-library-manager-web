@@ -1,8 +1,11 @@
 package web
 
 import (
+	"os"
 	"sort"
 	"strings"
+
+	"github.com/dtrunk90/switch-library-manager-web/db"
 )
 
 // the kinds of issues, for the summary at the top of the Issues page and its filter
@@ -19,6 +22,14 @@ const (
 
 // issueKinds are the kinds in the order of the summary: what needs doing first.
 var issueKinds = []string{ISSUE_DAMAGED, ISSUE_KEYS, ISSUE_UNREADABLE, ISSUE_ORPHAN, ISSUE_DUPLICATE, ISSUE_OLD, ISSUE_FILENAME, ISSUE_UNSUPPORTED}
+
+// dirOf is the folder of a path.
+func dirOf(path string) string {
+	if i := strings.LastIndexAny(path, `/\`); i >= 0 {
+		return path[:i]
+	}
+	return "."
+}
 
 // issueKind tells the kind of an issue from its reason.
 func issueKind(reason string) string {
@@ -55,6 +66,32 @@ type IssueSummary struct {
 	// the games without their base game, the ones with the most files first
 	Games      []TitleItem
 	GamesCount int
+	// its files are of no use and can be deleted from the summary, with their size
+	Deletable bool
+	Size      int64
+}
+
+// deletableIssueKinds are the kinds whose files are of no use as they are: damaged or cut
+// short, they are got again.
+var deletableIssueKinds = map[string]bool{ISSUE_DAMAGED: true, ISSUE_UNREADABLE: true}
+
+// issueFiles lists the files of the issues of a kind as they are now on the disk; files
+// gone or no longer files are left out.
+func issueFiles(issues []Issue, kind string) []db.ExtendedFileInfo {
+	files := []db.ExtendedFileInfo{}
+	seen := map[string]bool{}
+	for _, issue := range issues {
+		if issueKind(issue.Reason) != kind || seen[issue.File] {
+			continue
+		}
+		seen[issue.File] = true
+		info, err := os.Stat(issue.File)
+		if err != nil || info.IsDir() {
+			continue
+		}
+		files = append(files, db.ExtendedFileInfo{FileName: info.Name(), BaseFolder: dirOf(issue.File), Size: info.Size()})
+	}
+	return files
 }
 
 // issueSummaries counts the issues by kind; the kinds without issues are left out.
@@ -71,6 +108,16 @@ func (web *Web) issueSummaries(issues []Issue, lang string) []IssueSummary {
 			continue
 		}
 		summary := IssueSummary{Kind: kind, Count: count}
+		if deletableIssueKinds[kind] {
+			summary.Deletable = true
+			summary.Size = web.derived("issueSize:"+kind, func() any {
+				size := int64(0)
+				for _, file := range issueFiles(issues, kind) {
+					size += file.Size
+				}
+				return size
+			}).(int64)
+		}
 		switch kind {
 		case ISSUE_DAMAGED:
 			summary.Icon, summary.Tone, summary.Title = "bi-heartbreak", "danger", t("Damaged files")

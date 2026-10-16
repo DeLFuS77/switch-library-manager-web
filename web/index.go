@@ -43,8 +43,10 @@ func getLocalTitleName(title *db.SwitchTitle, gameFile *db.SwitchGameFiles) stri
 
 	if gameFile.File.Metadata != nil && gameFile.File.Metadata.Ncap != nil {
 		ncap := gameFile.File.Metadata.Ncap
-		if name := ncap.TitleName["AmericanEnglish"].Title; usableName(name) {
-			return name
+		for _, language := range []string{"AmericanEnglish", "BritishEnglish"} {
+			if name := ncap.TitleName[language].Title; usableName(name) {
+				return name
+			}
 		}
 
 		languages := make([]string, 0, len(ncap.TitleName))

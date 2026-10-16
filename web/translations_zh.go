@@ -3,6 +3,17 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Showing them": "正在显示",
+		"show all": "显示全部",
+		"Delete them": "删除",
+		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "删除“%v”中的 %v 个文件(%v)?删除后无法恢复,之后请重新获取。",
+		"Error": "错误",
+		"Review": "需检查",
+		"Rename": "重命名",
+		"Same name": "名称不变",
+		"Show the changes of a kind": "按类型显示更改",
+		"The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.": "名称中的标题 ID 会改变(%v → %v):该文件包含多个内容或名称有误。应用前请检查。",
+		"The version of the name changes: v%v → v%v (the update the file holds).": "名称中的版本会改变:v%v → v%v(文件中包含的更新)。",
 		"Content": "内容",
 		"Disk used": "磁盘已用",
 		"Disk size": "磁盘容量",
@@ -30,7 +41,6 @@ func init() {
 		"of %v games": "(%v 个游戏)",
 		"Unknown game": "未知游戏",
 		"%v updates": "%v 个更新",
-		"Show every issue": "显示所有问题",
 		"See the files": "查看文件",
 		"Damaged files": "损坏的文件",
 		"Their data does not match what they should hold: they will not install or play well. Get them again.": "其数据与应有内容不符:无法正常安装或运行。请重新获取。",
@@ -700,7 +710,6 @@ func init() {
 		"Demos only":                       "仅试玩版",
 		"Descending":                       "降序",
 		"Description":                      "描述",
-		"Destination / Reason":             "目标 / 原因",
 		"Disabled":                         "已禁用",
 		"Discord webhook URL":              "Discord Webhook URL",
 		"Dismiss":                          "知道了",

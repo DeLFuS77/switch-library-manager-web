@@ -113,7 +113,8 @@ func (web *Web) organize(action string, dryRun bool) ([]process.Operation, error
 	case ORGANIZE_ACTION_ORGANIZE:
 		return process.OrganizeByFolders(settingsObj.Folder, localDB, switchDB, options, dryRun, web)
 	case ORGANIZE_ACTION_CLEANUP:
-		return process.DeleteOldUpdates(settingsObj.Folder, localDB, options, dryRun, web, web.cleanupRefusal), nil
+		// of two copies the compressed one stays, when it was checked and is sound
+		return process.DeleteOldUpdates(settingsObj.Folder, web.preferCompressed(localDB), options, dryRun, web, web.cleanupRefusal), nil
 	default:
 		return nil, errors.New("unknown action")
 	}

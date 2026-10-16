@@ -3,6 +3,17 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Showing them": "Affichés",
+		"show all": "tout afficher",
+		"Delete them": "Les supprimer",
+		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "Supprimer les %v fichiers de « %v » (%v) ? Ils ne peuvent pas être récupérés. Procurez-les-vous de nouveau ensuite.",
+		"Error": "Erreur",
+		"Review": "À vérifier",
+		"Rename": "Renommer",
+		"Same name": "Même nom",
+		"Show the changes of a kind": "Afficher les changements d'un type",
+		"The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.": "L'ID du nom change (%v → %v) : le fichier contient plusieurs contenus ou avait un mauvais nom. Vérifiez-le avant d'appliquer.",
+		"The version of the name changes: v%v → v%v (the update the file holds).": "La version du nom change : v%v → v%v (la mise à jour contenue dans le fichier).",
 		"Content": "Contenu",
 		"Disk used": "Disque utilisé",
 		"Disk size": "Taille du disque",
@@ -30,7 +41,6 @@ func init() {
 		"of %v games": "de %v jeux",
 		"Unknown game": "Jeu inconnu",
 		"%v updates": "%v mises à jour",
-		"Show every issue": "Voir tous les problèmes",
 		"See the files": "Voir les fichiers",
 		"Damaged files": "Fichiers endommagés",
 		"Their data does not match what they should hold: they will not install or play well. Get them again.": "Leurs données ne correspondent pas à ce qu'ils devraient contenir : ils ne s'installeront pas ou ne fonctionneront pas bien. Récupérez-les à nouveau.",
@@ -887,7 +897,6 @@ func init() {
 		"Delete user":                 "Supprimer l'utilisateur",
 		"Descending":                  "Décroissant",
 		"Description":                 "Description",
-		"Destination / Reason":        "Destination / Raison",
 		"Disabled":                    "Désactivé",
 		"Discord webhook URL":         "URL du webhook Discord",
 		"Dismiss":                     "Ignorer",
