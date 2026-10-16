@@ -25,7 +25,7 @@ Linux, Docker, NAS and Raspberry Pi.
 > [!IMPORTANT]
 > This project contains **no keys, no games and no copyrighted content**, and it never downloads them. Use it only
 > with backups of games you own. The few features that read the content of your files use **your own** `prod.keys`,
-> which you dump from **your own console** (for example with Lockpick_RCM) and keep on your computer: keys are never
+> which you dump from **your own console** with a key dumping tool and keep on your computer: keys are never
 > included, uploaded or shared. Never post your keys anywhere, also not in issues, logs or screenshots.
 
 <p align="center">
@@ -110,7 +110,7 @@ Linux, Docker, NAS and Raspberry Pi.
   and the library organized by itself, with a message of what was done
 
 **Save space**
-- Compress NSP to NSZ and XCI to XCZ (10 to 60% smaller), installed directly by Tinfoil, DBI and other installers;
+- Compress NSP to NSZ and XCI to XCZ (10 to 60% smaller), installed directly by installers such as DBI;
   convert XCI to NSP
 - Every file is verified before the original is deleted; NSZ files can be decompressed back to NSP
 - Several files at once, with the threads and files measured on your own server to compress as fast as it can
@@ -282,7 +282,7 @@ Templates must contain `{TITLE_NAME}` or `{TITLE_ID}`.
 ### Compress
 
 The Compress page turns NSP files into NSZ files and XCI files into XCZ files. They take 10 to 60% less space and are
-installed directly by Tinfoil, DBI and other installers. It uses your `prod.keys` (and `title.keys` for games without a
+installed directly by installers such as DBI. It uses your `prod.keys` (and `title.keys` for games without a
 ticket).
 
 Every file is handled safely:

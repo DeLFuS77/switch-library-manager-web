@@ -1,7 +1,7 @@
 package switchfs
 
 // NSZ compression, compatible with the format of nsz (https://github.com/nicoboss/nsz),
-// read by Tinfoil, DBI and other installers. An NSZ is an NSP whose large NCA files are
+// read by installers such as DBI. An NSZ is an NSP whose large NCA files are
 // replaced by NCZ files:
 //
 //	0x0000  the first 0x4000 bytes of the NCA, unchanged (encrypted header)

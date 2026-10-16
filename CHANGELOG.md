@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- Wording: the texts name installers "such as DBI", and the README speaks of a key dumping tool without naming one.
+
 ### Fixes
 
 - The menu shows next to Missing Games how many games are missing, as the page counts them, in grey; it showed the

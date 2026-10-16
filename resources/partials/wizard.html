@@ -282,7 +282,7 @@
 						<!-- 7. compression -->
 						<section class="wizard-step" data-step="compression" data-icon="bi-file-zip" data-caption="{{t "Compression"}}" hidden>
 							<h2 class="wizard-title">{{t "Save space by itself"}}</h2>
-							<p class="wizard-lead">{{t "NSP and XCI files can be compressed to NSZ and XCZ, 10 to 60% smaller, and installers like Tinfoil and DBI install them directly. Every file is checked before the original is deleted."}}{{if not .KeysAvailable}} <span class="text-warning-emphasis">{{t "Needs your own prod.keys."}}</span>{{end}}</p>
+							<p class="wizard-lead">{{t "NSP and XCI files can be compressed to NSZ and XCZ, 10 to 60% smaller, and installers such as DBI install them directly. Every file is checked before the original is deleted."}}{{if not .KeysAvailable}} <span class="text-warning-emphasis">{{t "Needs your own prod.keys."}}</span>{{end}}</p>
 							<div class="wizard-choices wizard-choices-cards" role="radiogroup" aria-label="{{t "Compress automatically"}}">
 								<label class="wizard-card"><input type="radio" name="auto_compress" value=""{{if eq $s.AutoCompress ""}} checked{{end}}><span class="wizard-card-icon bi bi-hand-index" aria-hidden="true"></span><span class="wizard-card-label">{{t "Only when I ask"}}</span></label>
 								<label class="wizard-card"><input type="radio" name="auto_compress" value="new"{{if eq $s.AutoCompress "new"}} checked{{end}}><span class="wizard-card-icon bi bi-lightning-charge" aria-hidden="true"></span><span class="wizard-card-label">{{t "As soon as new files appear"}}</span></label>
