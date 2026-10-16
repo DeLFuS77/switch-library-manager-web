@@ -53,3 +53,27 @@ func TestIgnoreAFileTypeFromTheIssues(t *testing.T) {
 		t.Fatalf("a type is ignored once: %v", settings.ReadSettings(web.dataFolder).IgnoreFileTypes)
 	}
 }
+
+// The issues are summed up by kind, the most urgent first, and the list can show one kind.
+func TestIssueKinds(t *testing.T) {
+	cases := map[string]string{
+		"damaged file: NCA does not match":                                    ISSUE_DAMAGED,
+		"failed to read NSP: prod.keys has no key_area_key_application_12...": ISSUE_KEYS,
+		"base file is missing":                                                ISSUE_ORPHAN,
+		"duplicate base file (x.nsp)":                                         ISSUE_DUPLICATE,
+		"old update file, newer update exist locally (x.nsp)":                 ISSUE_OLD,
+		"identified by file name only":                                        ISSUE_FILENAME,
+		"file type is not supported":                                          ISSUE_UNSUPPORTED,
+		"failed to read NSP [reason: unexpected EOF]":                         ISSUE_UNREADABLE,
+	}
+	for reason, want := range cases {
+		if got := issueKind(reason); got != want {
+			t.Errorf("%q: %s, want %s", reason, got, want)
+		}
+	}
+	web := newTestWeb(t)
+	summaries := web.issueSummaries([]Issue{{File: "a.txt", Reason: "file type is not supported"}, {File: "b.nsp", Reason: "damaged file: x"}, {File: "c.nsp", Reason: "damaged file: y"}}, "en")
+	if len(summaries) != 2 || summaries[0].Kind != ISSUE_DAMAGED || summaries[0].Count != 2 || summaries[1].Kind != ISSUE_UNSUPPORTED {
+		t.Fatalf("the summary: %+v", summaries)
+	}
+}

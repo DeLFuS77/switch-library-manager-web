@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Issues: a summary at the top with a card for each kind of issue found (damaged files, keys too old, files that cannot
+  be read, updates and DLC without their game, duplicates, old versions, files recognized by their name only, files
+  that are not games), with how many files, what it means and what to do, a button that shows only its files and a
+  link to where it is solved. The card of the updates and DLC without their game lists the games with the most of them,
+  each with its name and the ID of its base game, which a click copies to look for it.
+
 ## 1.34.0
 
 ### Improvements

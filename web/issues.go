@@ -30,6 +30,9 @@ type IssuesPageData struct {
 	UnsupportedTypes []NamedCount
 	// games of which the library has updates or DLC but not the game
 	Orphans int
+	// the issues by kind, and the kind the list shows
+	Summaries []IssueSummary
+	Kind      string
 }
 
 // unsupportedTypes counts the files of the issues that are of a type the app does not read,
@@ -56,10 +59,28 @@ func (web *Web) HandleIssues() {
 	web.HandleFiltered("/issues.html", func(filter *TitleItemFilter, lang string) any {
 		all := web.getIssues()
 		matching := all
-		if filter.Keyword != "" {
-			keyword := strings.ToLower(filter.Keyword)
+		kind := ""
+		if filter.IssueKind != "" {
+			for _, known := range issueKinds {
+				if known == filter.IssueKind {
+					kind = known
+				}
+			}
+			filter.IssueKind = kind
+		}
+		if kind != "" {
 			matching = []Issue{}
 			for _, issue := range all {
+				if issueKind(issue.Reason) == kind {
+					matching = append(matching, issue)
+				}
+			}
+		}
+		if filter.Keyword != "" {
+			byKind := matching
+			keyword := strings.ToLower(filter.Keyword)
+			matching = []Issue{}
+			for _, issue := range byKind {
 				if strings.Contains(strings.ToLower(issue.File), keyword) || strings.Contains(strings.ToLower(translateIssue(lang, issue.Reason)), keyword) {
 					matching = append(matching, issue)
 				}
@@ -74,6 +95,8 @@ func (web *Web) HandleIssues() {
 			Pagination:       p,
 			LastVerified:     web.verifications().lastRun(),
 			Orphans: web.orphanCount(),
+			Summaries: web.issueSummaries(all, lang),
+			Kind: kind,
 			UnsupportedTypes: web.derived("unsupportedTypes", func() any { return unsupportedTypes(all, 5) }).([]NamedCount),
 		}
 	}, web.embedFS, fsPatterns...)
