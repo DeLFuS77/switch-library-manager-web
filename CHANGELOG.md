@@ -4,6 +4,8 @@
 
 ### Improvements
 
+- On the widest screens (1700 pixels and more), the search of the header is a small field with its shortcut instead of
+  the magnifier alone, in the room the menu leaves.
 - Tasks: each file being compressed, decompressed or converted says which format it becomes ("NSP → NSZ",
   "XCI → XCZ", "NSZ → NSP", "XCI → NSP").
 - Statistics: the bars look like those of the tasks, thin and round, in the colours of the library one after the
