@@ -3,6 +3,10 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Review again": "Opnieuw bekijken",
+		"Working out the steps; the page updates by itself.": "De stappen worden bepaald; de pagina werkt zichzelf bij.",
+		"Last reviewed %v. After changing files outside the app, review again.": "Laatst bekeken: %v. Bekijk opnieuw na het wijzigen van bestanden buiten de app.",
+		"After changing files outside the app, review again.": "Bekijk opnieuw na het wijzigen van bestanden buiten de app.",
 		"A step of the tune-up is waiting": "Er wacht een stap van het onderhoud",
 		"Copy ID": "ID kopiëren",
 		"Summary": "Overzicht",

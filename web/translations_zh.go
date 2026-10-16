@@ -3,6 +3,10 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Review again": "重新检查",
+		"Working out the steps; the page updates by itself.": "正在计算步骤;页面会自动更新。",
+		"Last reviewed %v. After changing files outside the app, review again.": "上次检查:%v。在应用外更改文件后,请重新检查。",
+		"After changing files outside the app, review again.": "在应用外更改文件后,请重新检查。",
 		"A step of the tune-up is waiting": "有待处理的整理步骤",
 		"Copy ID": "复制 ID",
 		"Summary": "概要",

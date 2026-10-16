@@ -3,6 +3,10 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Review again": "Ricontrolla",
+		"Working out the steps; the page updates by itself.": "Calcolo dei passi; la pagina si aggiorna da sola.",
+		"Last reviewed %v. After changing files outside the app, review again.": "Ultimo controllo: %v. Se cambi file fuori dall'app, ricontrolla.",
+		"After changing files outside the app, review again.": "Se cambi file fuori dall'app, ricontrolla.",
 		"A step of the tune-up is waiting": "Un passo della messa a punto è in attesa",
 		"Copy ID": "Copia ID",
 		"Summary": "Riepilogo",

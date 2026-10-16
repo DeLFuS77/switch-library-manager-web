@@ -3,6 +3,10 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Review again": "Revoir",
+		"Working out the steps; the page updates by itself.": "Calcul des étapes ; la page se met à jour toute seule.",
+		"Last reviewed %v. After changing files outside the app, review again.": "Dernière revue : %v. Après avoir changé des fichiers hors de l'app, revoyez.",
+		"After changing files outside the app, review again.": "Après avoir changé des fichiers hors de l'app, revoyez.",
 		"A step of the tune-up is waiting": "Une étape de la mise au point est en attente",
 		"Copy ID": "Copier l'ID",
 		"Summary": "Résumé",
