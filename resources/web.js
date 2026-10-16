@@ -485,7 +485,8 @@ const OPERATION_KINDS = [
 	{ key: 'rename', label: t('Rename'), icon: 'bi-input-cursor-text' },
 	{ key: 'mkdir', label: t('Create folder'), icon: 'bi-folder-plus' },
 	{ key: 'delete', label: t('Delete'), icon: 'bi-trash3' },
-	{ key: 'skip', label: t('Skip'), icon: 'bi-skip-forward-circle' }
+	{ key: 'skip', label: t('Skip'), icon: 'bi-skip-forward-circle' },
+	{ key: 'cleanup', label: t('Empty folders'), icon: 'bi-folder-x' }
 ];
 
 const splitPath = path => {
@@ -500,9 +501,6 @@ const nameVersion = name => (name.match(/\[v(\d+)\]/) || [])[1];
 function operationKind(op) {
 	if (op.error) {
 		return 'error';
-	}
-	if (op.kind === 'cleanup') {
-		return 'delete';
 	}
 	if (op.kind !== 'move' || !op.from || !op.to) {
 		return op.kind;
@@ -560,7 +558,13 @@ function renderOperations(result) {
 
 		const body = document.createElement('div');
 		body.className = 'op-body';
-		if (op.kind === 'mkdir') {
+		if (op.kind === 'cleanup') {
+			// the folders that are left empty, found when the changes are applied
+			const note = document.createElement('div');
+			note.className = 'op-name';
+			note.textContent = op.reason || '';
+			body.append(note);
+		} else if (op.kind === 'mkdir') {
 			body.append(pathCell(op.to || op.from));
 		} else {
 			body.append(pathCell(op.from || op.to));
@@ -598,7 +602,7 @@ function renderOperations(result) {
 				note.textContent = text;
 				body.append(note);
 			});
-		} else if (op.error || op.reason) {
+		} else if (op.kind !== 'cleanup' && (op.error || op.reason)) {
 			const note = document.createElement('div');
 			note.className = 'op-note';
 			note.textContent = op.error ? t('Error: %v', op.error) : op.reason;

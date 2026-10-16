@@ -3,6 +3,7 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Empty folders": "Dossiers vides",
 		"of %v": "sur %v",
 		"Running.": "En cours.",
 		"It goes on in the background; this page updates by itself when it ends.": "Cela continue en arrière-plan ; cette page se met à jour toute seule à la fin.",

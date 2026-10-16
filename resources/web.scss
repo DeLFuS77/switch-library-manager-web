@@ -2877,7 +2877,8 @@ $avatar-colors: (
 	.op-rename { --op-color: var(--slm-chart-2); }
 	.op-mkdir { --op-color: var(--slm-chart-5); }
 	.op-delete { --op-color: var(--slm-chart-1); }
-	.op-skip { --op-color: var(--slm-chart-6); }
+	.op-skip,
+	.op-cleanup { --op-color: var(--slm-chart-6); }
 	.op-all { --op-color: var(--bs-body-color); }
 }
 

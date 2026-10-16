@@ -275,7 +275,10 @@ func DeleteOldUpdates(baseFolder string, localDB *db.LocalSwitchFilesDB, options
 			updateProgress.UpdateProgress(i+1, len(files), file.FileName)
 		}
 		if inUse[filepath.Join(file.BaseFolder, file.FileName)] {
-			ops.skip(filepath.Join(file.BaseFolder, file.FileName), REASON_IN_USE)
+			// an old update in a file that holds the game is the game: not listed every time
+			if skipped.ReasonCode != db.REASON_OLD_UPDATE {
+				ops.skip(filepath.Join(file.BaseFolder, file.FileName), REASON_IN_USE)
+			}
 			continue
 		}
 		refused := ""
@@ -391,12 +394,11 @@ func OrganizeByFolders(baseFolder string,
 			destinationPath = ""
 		}
 
-		//create folder if needed
+		// the folder of the game is created when a file moves into it: a file of several
+		// games stays in the folder of the first one, and an empty folder would be created and
+		// deleted again on every run
 		if options.CreateFolderPerGame {
 			destinationPath = filepath.Join(baseFolder, getFolderName(options, templateData))
-			if err := ops.mkdir(destinationPath); err != nil {
-				continue
-			}
 		}
 
 		//process base title
