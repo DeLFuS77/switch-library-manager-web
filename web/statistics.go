@@ -208,6 +208,8 @@ func (web *Web) buildStatistics(lang string) Statistics {
 			}
 		}
 		stats.Games = games
+		// the share of the games counts them as the library does, next to its count
+		stats.ByContent[0].Count = games
 		stats.GamesUpToDatePct = percent(int64(stats.GamesUpToDate), int64(stats.Games))
 		stats.UpdatesPending = len(web.missingUpdates())
 		stats.DlcWithUpdate = max(0, stats.UpdatesPending-stats.GamesWithUpdate)

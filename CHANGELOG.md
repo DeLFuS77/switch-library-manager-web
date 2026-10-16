@@ -10,6 +10,12 @@
   "Review", and a name whose version changes says so.
 - Cleanup: of two copies of the same content, the compressed one (NSZ, XCZ) is kept when it was checked, is sound and
   holds the same contents, and the NSP or XCI goes, whichever the scan found first.
+- Names: a game the titles database knows only from the Japanese, Korean or Chinese store, or only by a placeholder
+  such as "-", shows the name it gives itself in the language of the interface or in English, when it has one
+  (Japanese, Korean and Chinese keep the name of the database).
+- Statistics: the share of the games in the space counts them as the library does, so both numbers match.
+- Space: the bar under what can be freed shows how it splits between old updates, duplicates and compressed originals,
+  in the colors of the legend; as a share of the whole library it was often too thin to be seen.
 - Issues: the cards of the summary are sized to their content (they all stretched to the tallest one), with the count
   large, the icon in the color of the kind and the actions at the bottom. Damaged files and files that cannot be read
   can be deleted from their card, with their size and a confirmation; the library is scanned again after.

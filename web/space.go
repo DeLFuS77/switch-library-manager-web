@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -109,6 +110,31 @@ func (d SpacePageData) RemovablePercent() int {
 		return 0
 	}
 	return int(d.Reclaimable * 100 / d.LibrarySize)
+}
+
+// SpaceShare is the part of a group in the space listed, for the stacked bar.
+type SpaceShare struct {
+	Id      string
+	Percent float64
+}
+
+// Shares splits the bar between the groups by their size, the colors of the legend: the share
+// of the library is often too small to be seen.
+func (d SpacePageData) Shares() []SpaceShare {
+	total := int64(0)
+	for _, group := range d.Groups {
+		total += group.Size
+	}
+	shares := []SpaceShare{}
+	if total == 0 {
+		return shares
+	}
+	for _, group := range d.Groups {
+		if group.Size > 0 {
+			shares = append(shares, SpaceShare{Id: group.Id, Percent: math.Round(float64(group.Size)*1000/float64(total)) / 10})
+		}
+	}
+	return shares
 }
 
 // spaceGroups finds old updates, duplicates and originals that already have a compressed
