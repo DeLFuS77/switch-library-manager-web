@@ -3,6 +3,8 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Left to solve": "Nog op te lossen",
+		"Show the files of a kind": "Bestanden van één soort tonen",
 		"Empty folders": "Lege mappen",
 		"of %v": "van %v",
 		"Running.": "Bezig.",

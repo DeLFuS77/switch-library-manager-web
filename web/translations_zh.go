@@ -3,6 +3,8 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Left to solve": "待解决",
+		"Show the files of a kind": "按类型显示文件",
 		"Empty folders": "空文件夹",
 		"of %v": "(共 %v)",
 		"Running.": "正在进行。",

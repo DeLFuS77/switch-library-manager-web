@@ -3,6 +3,8 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Left to solve": "Noch zu lösen",
+		"Show the files of a kind": "Dateien einer Art zeigen",
 		"Empty folders": "Leere Ordner",
 		"of %v": "von %v",
 		"Running.": "Läuft.",

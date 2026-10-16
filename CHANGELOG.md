@@ -4,12 +4,22 @@
 
 ### Improvements
 
+- Compress: the list of files is colored by kind (game, update, DLC), each file with its format and a bar of its size
+  next to the biggest one, and chips at the top show only the files of a kind; "Select all" picks the files shown.
+- The Issues icon of the header shows, under the mouse, a small panel with the kinds of issues left to solve and how
+  many files each has, in the colors of the cards of the Issues page.
 - Starting a check, a compression or decompression, a pack, a new search of covers or a copy to the SD card no longer
   takes you to Tasks: you stay on the page, a note says it is running with its progress and a link to Tasks, and the
   page updates by itself when it ends.
 
 ### Fixes
 
+- Organize no longer shows the same changes after applying them: the folder of a game is created only when a file moves
+  into it (a file of two games stays in the folder of the first one, and the folder of the second was created and
+  deleted as empty on every run), so the tune-up marks Organize as done.
+- A file that holds the game besides an old update (a game card with its update) is no longer listed as an old update
+  in the cleanup, Issues and Space: it is never deleted, and it showed as skipped on every run.
+- The deletion of empty folders shows in the previews as a row of its own, "Empty folders", not as a deletion of ".".
 - A game read by an older version that was left without any name of its own (its Simplified Chinese name lost) is
   read again with the next scan also when the titles database knows it, e.g. with a placeholder name such as "-".
 - Space: the legend and the bar count what can be freed of each group, with the whole group after it when part of it

@@ -3,6 +3,8 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Left to solve": "Por resolver",
+		"Show the files of a kind": "Mostrar os arquivos de um tipo",
 		"Empty folders": "Pastas vazias",
 		"of %v": "de %v",
 		"Running.": "Em andamento.",

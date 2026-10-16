@@ -40,6 +40,34 @@ type CompressCandidate struct {
 	Size int64
 }
 
+// KindKey is the kind for the colors and the filter of the list: game, update or dlc.
+func (c CompressCandidate) KindKey() string {
+	switch c.Kind {
+	case "Base":
+		return "game"
+	case "Update":
+		return "update"
+	}
+	return "dlc"
+}
+
+// Format is the type of the file, e.g. NSP or XCI.
+func (c CompressCandidate) Format() string {
+	return strings.ToUpper(strings.TrimPrefix(filepath.Ext(c.Path), "."))
+}
+
+// Weight is the size of a file as a share of the biggest one listed, for its bar.
+func (d CompressPageData) Weight(size int64) int {
+	biggest := int64(0)
+	for _, candidate := range d.Candidates {
+		biggest = max(biggest, candidate.Size)
+	}
+	if biggest == 0 {
+		return 0
+	}
+	return int(max(2, size*100/biggest))
+}
+
 // NszListData is a page of the NSZ files that can be decompressed.
 type NszListData struct {
 	Files   []CompressCandidate

@@ -294,6 +294,8 @@ type NavCounts struct {
 	Wished int
 	// a step of the tune-up is waiting: files never checked, changes of Organize, space to free
 	TuneUp bool
+	// the issues by kind, for the panel of the header
+	IssueKinds []IssueKindCount
 }
 
 type TitleItemsPageData struct {
@@ -493,6 +495,7 @@ func (web *Web) navCounts() NavCounts {
 		return counts
 	}
 	counts.Issues = len(web.getIssues())
+	counts.IssueKinds = web.issueKindCounts()
 	if switchDB == nil {
 		return counts
 	}
