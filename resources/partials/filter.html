@@ -4,9 +4,6 @@
 					<span class="bi bi-search" aria-hidden="true"></span>
 					<input type="search" class="form-control" name="q" value="{{.Filter.Keyword}}" placeholder="{{t "Search by name or ID..."}}" aria-label="{{t "Search"}}">
 				</div>
-				{{- if .Filter.Keyword}}
-				<a class="btn btn-link text-decoration-none px-2" href="{{filterUrl .Filter "q" ""}}">{{t "Clear"}}</a>
-				{{- end}}
 				<label class="visually-hidden" for="sortBy">{{t "Sort by"}}</label>
 				<select class="form-select" id="sortBy" name="sort_by" data-autosubmit>
 					{{- if eq .Page "dlc"}}

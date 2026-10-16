@@ -2594,6 +2594,22 @@ function initFullRows() {
 	});
 }
 
+// emptying a search of a page, with the cross of the field or by deleting the text, shows
+// everything again at once
+function initSearchClear() {
+	document.addEventListener('input', e => {
+		const input = e.target;
+		if (!input.matches || !input.matches('form input[type="search"][name="q"]') || input.value !== '' || input.defaultValue === '') {
+			return;
+		}
+		if (input.form.requestSubmit) {
+			input.form.requestSubmit();
+		} else {
+			input.form.submit();
+		}
+	});
+}
+
 // buttons that copy a text, such as the ID of a game
 function initCopyButtons() {
 	document.addEventListener('click', e => {
@@ -3174,6 +3190,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initMaintenance();
 	initHistoryCharts();
 	initIssueDelete();
+	initSearchClear();
 	initCopyButtons();
 	initFullRows();
 	initImageFallbacks();
