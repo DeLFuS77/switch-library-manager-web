@@ -8,6 +8,40 @@
 				</div>
 			</div>
 			<p class="small text-body-secondary mt-n2 admin-only">{{- if not .LastVerified.IsZero}}{{t "Files last checked %v" (formatDateTime .LastVerified)}}. {{end}}{{t "Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more."}}</p>
+			{{- if .Summaries}}
+			<section class="issue-summary mb-4" aria-label="{{t "Summary"}}">
+				{{- range .Summaries}}
+				<article class="surface issue-kind tone-{{.Tone}}{{if eq $.Kind .Kind}} is-active{{end}}">
+					<div class="d-flex align-items-start gap-3">
+						<span class="issue-kind-icon bi {{.Icon}}" aria-hidden="true"></span>
+						<div class="min-w-0 flex-grow-1">
+							<div class="d-flex flex-wrap align-items-baseline gap-2">
+								<h2 class="h6 fw-semibold mb-0">{{.Title}}</h2>
+								<span class="issue-kind-count">{{num .Count}}</span>
+								{{- if .GamesCount}}<span class="small text-body-secondary">{{t "of %v games" (num .GamesCount)}}</span>{{end}}
+							</div>
+							<p class="small text-body-secondary mb-2">{{.Text}}</p>
+							{{- with .Games}}
+							<ul class="list-unstyled orphan-preview mb-2">
+								{{- range .}}
+								<li>
+									<a class="text-truncate" href="/title/{{.Id}}.html" title="{{.Name}}">{{if .Name}}{{.Name}}{{else}}{{t "Unknown game"}}{{end}}</a>
+									<button type="button" class="btn btn-link btn-sm p-0 font-monospace orphan-id" data-copy="{{.Id}}" title="{{t "Copy ID"}}">{{.Id}} <span class="bi bi-clipboard" aria-hidden="true"></span></button>
+									<span class="small text-body-secondary text-nowrap">{{if .OrphanUpdates}}{{t "%v updates" .OrphanUpdates}}{{end}}{{if and .OrphanUpdates .OrphanDlc}} &middot; {{end}}{{if .OrphanDlc}}{{t "%v DLC" .OrphanDlc}}{{end}}</span>
+								</li>
+								{{- end}}
+							</ul>
+							{{- end}}
+							<div class="d-flex flex-wrap gap-2">
+								<a class="btn btn-sm {{if eq $.Kind .Kind}}btn-primary{{else}}btn-outline-secondary{{end}} rounded-pill" href="{{if eq $.Kind .Kind}}{{filterUrl $.Filter "kind_of_issue" ""}}{{else}}{{filterUrl $.Filter "kind_of_issue" .Kind}}{{end}}">{{if eq $.Kind .Kind}}<span class="bi bi-x-lg me-1" aria-hidden="true"></span>{{t "Show every issue"}}{{else}}<span class="bi bi-funnel me-1" aria-hidden="true"></span>{{t "See the files"}}{{end}}</a>
+								{{- if .Href}}<a class="btn btn-sm btn-outline-primary rounded-pill" href="{{.Href}}">{{.Action}} <span class="bi bi-arrow-right" aria-hidden="true"></span></a>{{end}}
+							</div>
+						</div>
+					</div>
+				</article>
+				{{- end}}
+			</section>
+			{{- end}}
 			{{- if .Orphans}}
 			<a class="alert alert-secondary d-flex align-items-center gap-2 text-decoration-none" href="/orphans.html">
 				<span class="bi bi-collection flex-shrink-0" aria-hidden="true"></span>
@@ -34,6 +68,7 @@
 				<a class="btn btn-link text-decoration-none px-2" href="{{filterUrl .Filter "q" ""}}">{{t "Clear"}}</a>
 				{{- end}}
 				<input type="hidden" name="per_page" value="{{.Filter.PerPage}}">
+				{{- if .Kind}}<input type="hidden" name="kind_of_issue" value="{{.Kind}}">{{end}}
 			</form>
 			{{- end}}
 			{{- if gt (len .Issues) 0}}

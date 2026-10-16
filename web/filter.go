@@ -27,6 +27,8 @@ type TitleItemFilter struct {
 	Extra  string `in:"form=extra"`
 	// library only: one of the user's collections
 	Collection string `in:"form=collection"`
+	// issues only: a kind of issue
+	IssueKind string `in:"form=kind_of_issue"`
 	// library only: "1" shows the games that are not in the library too, greyed out
 	WithMissing string `in:"form=missing"`
 	// library only: a genre, the players ("1", "2" or "4") and a language of the games
@@ -175,6 +177,7 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("region", strings.ToLower(f.Region))
 	values.Set("extra", f.Extra)
 	values.Set("collection", f.Collection)
+	values.Set("kind_of_issue", f.IssueKind)
 	values.Set("missing", f.WithMissing)
 	values.Set("genre", f.Genre)
 	values.Set("players", f.Players)

@@ -2333,6 +2333,20 @@ function initFullRows() {
 	});
 }
 
+// buttons that copy a text, such as the ID of a game
+function initCopyButtons() {
+	document.addEventListener('click', e => {
+		const button = e.target.closest('[data-copy]');
+		if (!button || !navigator.clipboard) {
+			return;
+		}
+		navigator.clipboard.writeText(button.dataset.copy).then(() => {
+			button.classList.add('is-copied');
+			setTimeout(() => button.classList.remove('is-copied'), 1200);
+		}).catch(() => {});
+	});
+}
+
 function initRegionRemove() {
 	document.querySelectorAll('[data-region-remove]').forEach(button => {
 		button.addEventListener('click', () => {
@@ -2795,6 +2809,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initAutomationSettings();
 	initWizard();
 	initRegionRemove();
+	initCopyButtons();
 	initFullRows();
 	initImageFallbacks();
 	initScreenshots();

@@ -316,6 +316,69 @@ h3,
 	}
 }
 
+// Issues: a card for each kind of issue, with how many files and what to do
+.issue-summary {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+	gap: .75rem;
+}
+
+.issue-kind {
+	border-left: 4px solid var(--slm-border);
+
+	&.tone-danger { border-left-color: var(--bs-danger); }
+	&.tone-warning { border-left-color: var(--bs-warning); }
+	&.tone-info { border-left-color: var(--bs-info); }
+
+	&.is-active {
+		box-shadow: 0 0 0 1px var(--bs-primary);
+	}
+}
+
+.issue-kind-icon {
+	font-size: 1.4rem;
+	line-height: 1;
+
+	.tone-danger & { color: var(--bs-danger); }
+	.tone-warning & { color: var(--bs-warning); }
+	.tone-info & { color: var(--bs-info); }
+	.tone-muted & { color: var(--bs-secondary-color); }
+}
+
+.issue-kind-count {
+	font-size: 1.25rem;
+	font-weight: 800;
+}
+
+.orphan-preview li {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	column-gap: .6rem;
+	padding: .2rem 0;
+	border-bottom: 1px solid var(--bs-border-color-translucent);
+
+	&:last-child {
+		border-bottom: 0;
+	}
+
+	> a {
+		flex: 1 1 10rem;
+		min-width: 0;
+		font-weight: 600;
+		text-decoration: none;
+	}
+}
+
+.orphan-id {
+	font-size: .8rem;
+	text-decoration: none;
+
+	&.is-copied .bi::before {
+		content: "\F26E";
+	}
+}
+
 // the DLC page: the cover of the game, and a card for each DLC with its own picture
 .dlc-game-cover {
 	width: 4.5rem;
