@@ -4363,6 +4363,21 @@ html[data-section="backup"] #settingsForm .save-bar {
 			display: none !important;
 		}
 	}
+
+	// on the widest screens the menu leaves room for a small search field
+	@media (min-width: 1700px) {
+		min-width: 14rem;
+		padding-inline: .8rem .45rem;
+
+		.search-trigger-label,
+		.search-kbd {
+			display: inline !important;
+		}
+
+		.search-kbd {
+			margin-left: auto;
+		}
+	}
 }
 
 .search-kbd,
