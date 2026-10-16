@@ -64,10 +64,13 @@ func getLocalTitleName(title *db.SwitchTitle, gameFile *db.SwitchGameFiles) stri
 	return strings.TrimSpace(db.ParseTitleNameFromFileName(gameFile.File.ExtendedInfo.FileName))
 }
 
-// demoName matches names that mark a demo, for demos the titles database does not flag.
-// Besides English, the trial versions of the Japanese (体験版), Chinese (试玩版, 試玩版, 体验版,
-// 體驗版) and Korean (체험판) stores.
-var demoName = regexp.MustCompile(`(?i)[<(\[]\s*(demo|trial)( version)?\s*[>)\]]|\bdemo version\b|体験版|试玩版|試玩版|体验版|體驗版|체험판`)
+// demoName matches names that mark a demo, for demos the titles database does not flag: the
+// word in brackets ("(Demo)", "【DEMO】"), "demo version", a name that ends with it ("… Demo",
+// "… - Demo", "…-DEMO", "… Demo for KIOSK", "… DEMO EDITION", "… DEMO!"), a special demo
+// ("Special Demo 2020", "Demo especial 2020") and the trial versions of the Japanese (体験版),
+// Chinese (试玩版, 試玩版, 体验版, 體驗版) and Korean (체험판) stores. A word such as "Demon" is
+// not the word demo.
+var demoName = regexp.MustCompile(`(?i)[<(\[【]\s*(demo|trial)( version)?\s*!?\s*[>)\]】]|\bdemo version\b|(^|[\s\-–—:])(demo|démo|trial version)(\s+(edition|for kiosk|ver\.?))?\s*!?\s*$|\bspecial demo\b|(^|[\s:])demo especial\b|体験版|试玩版|試玩版|体验版|體驗版|체험판`)
 
 // isDemo reports whether a game of the library is a demo.
 func isDemo(title *db.SwitchTitle, name string) bool {

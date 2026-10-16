@@ -7,6 +7,14 @@
 - Searches of the pages: emptying the field, with its cross or by deleting the text, shows everything again at once,
   so the separate "Clear" link is gone.
 
+### Fixes
+
+- "Hide demos" hides the demos whose name ends with the word ("… Demo", "… - Demo", "…-DEMO", "… Demo for KIOSK",
+  "… DEMO EDITION", "… DEMO!"), says it in brackets ("【DEMO】", "(Demo!)") or is a special demo ("Special Demo
+  2020"): the titles database does not flag many of them, and about a hundred showed in a large library. They are
+  left out of the recommendations too. Names such as "100 Demon Fantasia" are not taken for demos.
+
+
 ## 1.38.0
 
 ### Improvements
