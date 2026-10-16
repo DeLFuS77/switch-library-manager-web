@@ -3,6 +3,15 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Content": "Содержимое",
+		"Disk used": "Занято на диске",
+		"Disk size": "Размер диска",
+		"Saved by compressing": "Сэкономлено сжатием",
+		"%v days": "%v дн.",
+		"%v weeks": "%v нед.",
+		"%v months": "%v мес.",
+		"The library grows about %v a month.": "Библиотека растёт примерно на %v в месяц.",
+		"At this rate the disk will be full around %v (in about %v).": "При таком темпе диск заполнится около %v (примерно через %v).",
 		"Little free space left on %v: %v (%v%%).": "Мало свободного места на %v: %v (%v%%).",
 		"Compressions wait until there is room. Free duplicates and old versions, or move files to another disk.": "Сжатие ждёт, пока появится место. Удалите дубликаты и старые версии или перенесите файлы на другой диск.",
 		"%v free (%v%%)": "свободно %v (%v%%)",
@@ -776,7 +785,6 @@ func init() {
 		"Games by publisher":             "Игры по издателям",
 		"Games by year of release":       "Игры по году выпуска",
 		"Games for several players":      "Игры для нескольких игроков",
-		"Games in the library over time": "Игры в библиотеке со временем",
 		"Games in your library with DLC that you do not have. Ignore the ones you do not want.": "Игры из вашей библиотеки с DLC, которых у вас нет. Игнорируйте те, что вам не нужны.",
 		"Games of the Nintendo eShop that are not in your library.":                             "Игры из Nintendo eShop, которых нет в вашей библиотеке.",
 		"Games of the eShop you do not have, greyed out with the others.":                       "Игры из eShop, которых у вас нет, показаны серым среди остальных.",
@@ -1208,7 +1216,6 @@ func init() {
 		"folder name template needs to contain {TITLE_NAME} or {TITLE_ID}": "шаблон имени папки должен содержать {TITLE_NAME} или {TITLE_ID}",
 		"games on the card":                                                "игр на карте",
 		"identified by file name only, %v":                                 "распознано только по имени файла, %v",
-		"maximum %v":                                                       "максимум %v",
 		"never":                                                            "никогда",
 		"next:":                                                            "следующая:",
 		"no library folder configured":                                     "папка библиотеки не настроена",

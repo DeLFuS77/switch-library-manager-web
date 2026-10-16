@@ -5,6 +5,15 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Content": "Contenido",
+		"Disk used": "Disco usado",
+		"Disk size": "Tamaño del disco",
+		"Saved by compressing": "Ahorrado al comprimir",
+		"%v days": "%v días",
+		"%v weeks": "%v semanas",
+		"%v months": "%v meses",
+		"The library grows about %v a month.": "La biblioteca crece unos %v al mes.",
+		"At this rate the disk will be full around %v (in about %v).": "A este ritmo el disco se llenará hacia el %v (en unos %v).",
 		"Little free space left on %v: %v (%v%%).": "Queda poco espacio en %v: %v (%v%%).",
 		"Compressions wait until there is room. Free duplicates and old versions, or move files to another disk.": "Las compresiones esperan a que haya sitio. Libera duplicados y versiones viejas, o pasa archivos a otro disco.",
 		"%v free (%v%%)": "%v libres (%v%%)",
@@ -646,9 +655,7 @@ var translations = map[string]map[string]string{
 		"New in your library: %v": "Nuevo en tu biblioteca: %v",
 		"New DLC in your library: %v": "DLC nuevo en tu biblioteca: %v",
 		"Library history": "Historial de la biblioteca",
-		"Games in the library over time": "Juegos en la biblioteca a lo largo del tiempo",
 		"%v games": "%v juegos",
-		"maximum %v": "máximo %v",
 		"added": "añadido",
 		"removed": "quitado",
 		"The games, updates and DLC added to or removed from your folders appear here after the next scans.": "Aquí aparecen los juegos, actualizaciones y DLC que se añadan o quiten de tus carpetas a partir de los próximos escaneos.",

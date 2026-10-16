@@ -115,13 +115,46 @@
 			{{- end}}
 			<section class="surface mb-4" aria-labelledby="historyTitle">
 				<h2 class="section-title" id="historyTitle"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "Library history"}}</h2>
-				{{- with .Chart}}
-				<figure class="mb-3">
-					<svg class="history-chart" viewBox="0 0 600 120" preserveAspectRatio="none" role="img" aria-label="{{t "Games in the library over time"}}">
-						<polyline points="{{.Points}}" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
-					</svg>
-					<figcaption class="d-flex justify-content-between small text-body-secondary"><span>{{.From}}</span><span>{{t "%v games" .Last}} &middot; {{t "maximum %v" .Max}}</span><span>{{.To}}</span></figcaption>
-				</figure>
+				{{- with .Charts}}
+				<div class="history-charts mb-4">
+					<ul class="nav nav-pills nav-sm gap-1 mb-2" role="tablist">
+						{{- range $i, $g := .Graphs}}
+						<li class="nav-item" role="presentation"><button type="button" class="nav-link py-1 px-3{{if eq $i 0}} active{{end}}" data-bs-toggle="pill" data-bs-target="#chart-{{$g.Key}}" role="tab" aria-controls="chart-{{$g.Key}}" aria-selected="{{if eq $i 0}}true{{else}}false{{end}}">{{$g.Title}}</button></li>
+						{{- end}}
+					</ul>
+					<div class="tab-content">
+						{{- range $i, $g := .Graphs}}
+						<figure class="tab-pane fade{{if eq $i 0}} show active{{end}} mb-0" id="chart-{{$g.Key}}" role="tabpanel">
+							<div class="history-chart-box" data-history-chart="{{$g.Days}}">
+								<span class="history-chart-max small text-body-secondary">{{$g.Max}}</span>
+								<svg class="history-chart" viewBox="0 0 600 140" preserveAspectRatio="none" role="img" aria-label="{{$g.Title}}">
+									<line class="history-chart-grid" x1="0" y1="4" x2="600" y2="4" vector-effect="non-scaling-stroke"/>
+									<line class="history-chart-grid" x1="0" y1="136" x2="600" y2="136" vector-effect="non-scaling-stroke"/>
+									{{- range $g.Series}}
+									<polyline points="{{.Points}}" fill="none" stroke="var(--slm-chart-{{.Color}})" stroke-width="2"{{if .Dashed}} stroke-dasharray="6 4"{{end}} vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+									{{- end}}
+									<line class="history-chart-cursor" x1="0" y1="0" x2="0" y2="140" vector-effect="non-scaling-stroke" hidden/>
+								</svg>
+								<div class="history-chart-tip small" hidden></div>
+							</div>
+							<figcaption>
+								<div class="d-flex justify-content-between small text-body-secondary"><span>{{$g.From}}</span><span>{{$g.To}}</span></div>
+								<ul class="chart-legend list-unstyled d-flex flex-wrap gap-3 small mt-2 mb-0">
+									{{- range $g.Series}}
+									<li data-series-label><span class="chart-dot chart-dot-{{.Color}}" aria-hidden="true"></span>{{.Label}} <span class="fw-semibold">{{.Last}}</span></li>
+									{{- end}}
+								</ul>
+							</figcaption>
+						</figure>
+						{{- end}}
+					</div>
+					{{- if or .GrowthPerMonth .FullOn}}
+					<p class="small text-body-secondary mt-3 mb-0"><span class="bi bi-graph-up-arrow me-1" aria-hidden="true"></span>
+						{{- with .GrowthPerMonth}}{{t "The library grows about %v a month." .}}{{end}}
+						{{- with .FullOn}} <strong class="text-body">{{t "At this rate the disk will be full around %v (in about %v)." . $.Charts.FullIn}}</strong>{{end}}
+					</p>
+					{{- end}}
+				</div>
 				{{- end}}
 				{{- if .History}}
 				<ul class="list-group list-group-flush">

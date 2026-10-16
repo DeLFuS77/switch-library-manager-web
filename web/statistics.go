@@ -61,9 +61,9 @@ type Statistics struct {
 type StatisticsPageData struct {
 	GlobalPageData
 	Stats Statistics
-	// what changed in the folders, newest first, and the number of games over time
+	// what changed in the folders, newest first, and the library over time
 	History []HistoryEvent
-	Chart   *HistoryChart
+	Charts  *HistoryCharts
 }
 
 func percent(part int64, total int64) int {
@@ -239,7 +239,7 @@ func (web *Web) HandleStatistics() {
 	web.router.HandleFunc("/statistics.html", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
 		web.render(w, r, templates, StatisticsPageData{GlobalPageData: web.globalPageData("statistics"), Stats: web.getStatistics(lang),
-			History: web.history().recent(50), Chart: historyChart(web.history().days())})
+			History: web.history().recent(50), Charts: historyCharts(web.history().days(), lang)})
 	}).Methods("GET")
 }
 

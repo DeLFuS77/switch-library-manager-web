@@ -57,8 +57,8 @@ func TestLibraryHistory(t *testing.T) {
 	if days := history.days(); len(days) != 2 || days[1].Dlc != 2 {
 		t.Fatalf("one entry per day: %+v", days)
 	}
-	if chart := historyChart(history.days()); chart == nil || chart.Points == "" || chart.Max == 0 {
-		t.Fatalf("two days draw a chart: %+v", chart)
+	if charts := historyCharts(history.days(), "en"); charts == nil || len(charts.Graphs) == 0 || charts.Graphs[0].Series[0].Points == "" {
+		t.Fatalf("two days draw a chart: %+v", charts)
 	}
 
 	// the history survives a restart
@@ -132,5 +132,34 @@ func TestLibrarySortsBySizeAndDateAdded(t *testing.T) {
 	filter.Extra = EXTRA_RECENT
 	if items, _, _ := web.getLibraryWithFacets(filter, "en"); len(items) != 1 || items[0].Id != "0100000000030000" {
 		t.Fatalf("recently added: %+v", items)
+	}
+}
+
+// The charts tell how much the library grows and when the disk would be full.
+func TestHistoryChartsForecast(t *testing.T) {
+	days := []HistoryDay{}
+	start := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	for i := 0; i < 31; i++ {
+		// 1 GiB more every day, on a disk of 100 GiB with 70 free at first
+		used := int64(30+i) << 30
+		days = append(days, HistoryDay{Date: start.AddDate(0, 0, i).Format("2006-01-02"), Games: 10 + i, Size: int64(i) << 30, Disk: 100 << 30, Free: 100<<30 - used})
+	}
+	charts := historyCharts(days, "en")
+	if charts == nil || len(charts.Graphs) != 2 {
+		t.Fatalf("content and space, nothing saved: %+v", charts)
+	}
+	if charts.GrowthPerMonth != formatSize(30<<30) {
+		t.Errorf("grows %q a month", charts.GrowthPerMonth)
+	}
+	// 40 GiB free on January 31: full on March 12
+	if charts.FullIn != "6 weeks" || charts.FullOn != formatDate("en", time.Date(2026, 3, 12, 0, 0, 0, 0, time.UTC)) {
+		t.Errorf("full in %q, on %q", charts.FullIn, charts.FullOn)
+	}
+	// a library that does not grow does not fill the disk
+	for i := range days {
+		days[i].Size, days[i].Free = 0, 50<<30
+	}
+	if charts := historyCharts(days, "en"); charts.FullOn != "" || charts.GrowthPerMonth != "" {
+		t.Errorf("no growth: %+v", charts)
 	}
 }

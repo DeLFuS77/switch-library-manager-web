@@ -3,6 +3,15 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Content": "콘텐츠",
+		"Disk used": "디스크 사용량",
+		"Disk size": "디스크 크기",
+		"Saved by compressing": "압축으로 절약",
+		"%v days": "%v일",
+		"%v weeks": "%v주",
+		"%v months": "%v개월",
+		"The library grows about %v a month.": "라이브러리가 한 달에 약 %v씩 늘고 있습니다.",
+		"At this rate the disk will be full around %v (in about %v).": "이 속도라면 디스크는 %v쯤(약 %v 후) 가득 찹니다.",
 		"Little free space left on %v: %v (%v%%).": "%v의 여유 공간이 부족합니다: %v (%v%%).",
 		"Compressions wait until there is room. Free duplicates and old versions, or move files to another disk.": "압축은 공간이 생길 때까지 기다립니다. 중복과 오래된 버전을 정리하거나 파일을 다른 디스크로 옮기세요.",
 		"%v free (%v%%)": "%v 남음 (%v%%)",
@@ -776,7 +785,6 @@ func init() {
 		"Games by publisher":             "배급사별 게임",
 		"Games by year of release":       "출시 연도별 게임",
 		"Games for several players":      "여러 명이 즐기는 게임",
-		"Games in the library over time": "시간에 따른 라이브러리 게임 수",
 		"Games in your library with DLC that you do not have. Ignore the ones you do not want.": "가지고 있지 않은 DLC가 있는 라이브러리 게임이에요. 원하지 않는 항목은 무시하세요.",
 		"Games of the Nintendo eShop that are not in your library.":                             "라이브러리에 없는 Nintendo eShop 게임이에요.",
 		"Games of the eShop you do not have, greyed out with the others.":                       "가지고 있지 않은 eShop 게임을 다른 게임과 함께 흐리게 표시해요.",
@@ -1208,7 +1216,6 @@ func init() {
 		"folder name template needs to contain {TITLE_NAME} or {TITLE_ID}": "폴더 이름 템플릿에 {TITLE_NAME} 또는 {TITLE_ID}가 있어야 해요",
 		"games on the card":                                                "카드에 넣을 게임",
 		"identified by file name only, %v":                                 "파일 이름으로만 식별됨, %v",
-		"maximum %v":                                                       "최대 %v",
 		"never":                                                            "없음",
 		"next:":                                                            "다음:",
 		"no library folder configured":                                     "라이브러리 폴더가 설정되지 않았어요",

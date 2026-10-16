@@ -50,6 +50,23 @@ func (web *Web) lowDisks() []LowDisk {
 	return web.disks.low
 }
 
+// librarySpace is the free space and the size of the disks of the library folders, each
+// disk counted once.
+func (web *Web) librarySpace() (int64, int64) {
+	var free, total int64
+	seen := map[[2]uint64]bool{}
+	for _, folder := range scanFolders(settings.ReadSettings(web.dataFolder)) {
+		available, size, err := diskSpace(folder)
+		if err != nil || size == 0 || seen[[2]uint64{available, size}] {
+			continue
+		}
+		seen[[2]uint64{available, size}] = true
+		free += int64(available)
+		total += int64(size)
+	}
+	return free, total
+}
+
 // measureLowDisks measures the volumes of the folders and lists the ones with less than
 // percent free.
 func measureLowDisks(folders []string, percent int) []LowDisk {

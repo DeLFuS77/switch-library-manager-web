@@ -10,7 +10,7 @@ function readTranslations() {
 
 // Bundled with Bootstrap by esbuild into resources/static/web.js (npm run build).
 // Importing Bootstrap also enables its data attributes (offcanvas, dismissible alerts, ...).
-import { Dropdown, Modal, Tooltip } from 'bootstrap';
+import { Dropdown, Modal, Tab, Tooltip } from 'bootstrap';
 import qrcode from 'qrcode-generator';
 
 // Translations of the texts below are provided by the server in the page language.
@@ -2347,6 +2347,70 @@ function initCopyButtons() {
 	});
 }
 
+// the charts of the history: the values of the day under the pointer
+function initHistoryCharts() {
+	document.querySelectorAll('.history-charts [data-bs-toggle="pill"]').forEach((button) => {
+		button.addEventListener('click', (event) => {
+			event.preventDefault();
+			Tab.getOrCreateInstance(button).show();
+		});
+	});
+	document.querySelectorAll('[data-history-chart]').forEach((box) => {
+		let days;
+		try {
+			days = JSON.parse(box.dataset.historyChart);
+		} catch {
+			return;
+		}
+		const svg = box.querySelector('svg');
+		const cursor = box.querySelector('.history-chart-cursor');
+		const tip = box.querySelector('.history-chart-tip');
+		const labels = Array.from(box.closest('figure').querySelectorAll('[data-series-label]'));
+		if (!svg || !cursor || !tip || !days.length) {
+			return;
+		}
+		const show = (event) => {
+			const rect = svg.getBoundingClientRect();
+			const x = ((event.clientX - rect.left) / rect.width) * 600;
+			let day = days[0];
+			for (const candidate of days) {
+				if (Math.abs(candidate.x - x) < Math.abs(day.x - x)) {
+					day = candidate;
+				}
+			}
+			cursor.setAttribute('x1', day.x);
+			cursor.setAttribute('x2', day.x);
+			cursor.hidden = false;
+			tip.replaceChildren();
+			const date = document.createElement('div');
+			date.className = 'fw-semibold';
+			date.textContent = day.d;
+			tip.append(date);
+			day.v.forEach((value, i) => {
+				const row = document.createElement('div');
+				const dot = labels[i] ? labels[i].querySelector('.chart-dot') : null;
+				if (dot) {
+					row.append(dot.cloneNode());
+					row.append(' ');
+				}
+				row.append(value);
+				tip.append(row);
+			});
+			tip.hidden = false;
+			const left = (day.x / 600) * rect.width;
+			const width = tip.offsetWidth;
+			tip.style.left = `${Math.min(Math.max(left - width / 2, 0), rect.width - width)}px`;
+		};
+		const hide = () => {
+			cursor.hidden = true;
+			tip.hidden = true;
+		};
+		svg.addEventListener('pointermove', show);
+		svg.addEventListener('pointerdown', show);
+		svg.addEventListener('pointerleave', hide);
+	});
+}
+
 // the tune-up: "Review again" scans the library, and while steps are worked out the page
 // asks again by itself
 function initMaintenance() {
@@ -2835,6 +2899,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initWizard();
 	initRegionRemove();
 	initMaintenance();
+	initHistoryCharts();
 	initCopyButtons();
 	initFullRows();
 	initImageFallbacks();
