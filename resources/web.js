@@ -1503,6 +1503,13 @@ function setMark(button, mark, marked) {
 	button.dataset[mark.state] = String(marked);
 	button.setAttribute('aria-pressed', String(marked));
 	button.classList.toggle(mark.active, marked);
+	// the card of a favorite has its aura
+	if (mark.state === 'favorite') {
+		const card = button.closest('.game-card');
+		if (card) {
+			card.classList.toggle('is-fav-card', marked);
+		}
+	}
 	button.title = t(marked ? mark.remove : mark.add);
 	const icon = button.querySelector('.bi');
 	if (icon) {
