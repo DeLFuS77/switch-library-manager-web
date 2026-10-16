@@ -51,6 +51,9 @@ type MaintenancePageData struct {
 	Steps []MaintenanceStep
 	// the automations take care of new files in the same order
 	AutomationsOn bool
+	// when the library was last looked at, and whether a step is still being worked out
+	LastReview time.Time
+	Preparing  bool
 }
 
 // stepOfPage is the step a tool page is, for the line that points to the tune-up.
@@ -237,8 +240,28 @@ func (web *Web) HandleMaintenance() {
 			Steps:          web.maintenanceSteps(web.requestLanguage(r)),
 			AutomationsOn:  automation.Enabled,
 		}
+		// the page asks again by itself while the quick figures are worked out; not for the
+		// hours a check of the files may run
+		for _, step := range data.Steps {
+			if step.Status == STEP_PREPARING && (step.Id == STEP_ORGANIZE || step.Id == STEP_SPACE) {
+				data.Preparing = true
+			}
+		}
+		tasks := web.taskLog().Snapshot()
+		for _, kind := range []string{TASK_SCAN, TASK_SYNC} {
+			if task := lastTask(tasks, kind); task != nil && task.Finished.After(data.LastReview) {
+				data.LastReview = task.Finished
+			}
+		}
 		web.render(w, r, templates, data)
 	}).Methods("GET")
+
+	// look at the library again: a scan (quick, only new or changed files are read) after
+	// which every step is worked out again
+	web.router.HandleFunc("/maintenance/review", func(w http.ResponseWriter, r *http.Request) {
+		web.Rescan(TRIGGER_MANUAL)
+		writeJSON(w, http.StatusAccepted, map[string]bool{"started": true})
+	}).Methods("POST")
 }
 
 // maintenanceStepOf is the number of the step a tool page is, or 0.

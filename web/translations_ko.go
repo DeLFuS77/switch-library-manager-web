@@ -3,6 +3,10 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Review again": "다시 검토",
+		"Working out the steps; the page updates by itself.": "단계를 계산하는 중입니다. 페이지가 저절로 새로 고쳐집니다.",
+		"Last reviewed %v. After changing files outside the app, review again.": "마지막 검토: %v. 앱 밖에서 파일을 바꿨다면 다시 검토하세요.",
+		"After changing files outside the app, review again.": "앱 밖에서 파일을 바꿨다면 다시 검토하세요.",
 		"A step of the tune-up is waiting": "정리 단계 중 대기 중인 것이 있습니다",
 		"Copy ID": "ID 복사",
 		"Summary": "요약",

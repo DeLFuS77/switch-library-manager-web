@@ -1,6 +1,14 @@
 {{define "title"}}{{t "Tune-up"}}{{end}}
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Tune-up") "Count" -1 "Subtitle" (t "The steps to put your library in order, in the order they depend on each other. Each one shows what is left to do; the first one waiting is marked."))}}
+			<div class="d-flex flex-wrap align-items-center gap-2 mb-3"{{if .Preparing}} data-maintenance-preparing{{end}}>
+				<button type="button" class="btn btn-sm btn-outline-primary rounded-pill admin-only" data-maintenance-review><span class="bi bi-arrow-clockwise me-1" aria-hidden="true"></span>{{t "Review again"}}</button>
+				<span class="small text-body-secondary">
+					{{- if .Preparing}}<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{t "Working out the steps; the page updates by itself."}}
+					{{- else if not .LastReview.IsZero}}{{t "Last reviewed %v. After changing files outside the app, review again." (formatDateTime .LastReview)}}
+					{{- else}}{{t "After changing files outside the app, review again."}}{{end}}
+				</span>
+			</div>
 			<ol class="maintenance-steps list-unstyled">
 				{{- range .Steps}}
 				<li class="surface maintenance-step step-{{.Status}}{{if .Next}} is-next{{end}}">

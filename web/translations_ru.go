@@ -3,6 +3,10 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Review again": "Проверить снова",
+		"Working out the steps; the page updates by itself.": "Шаги вычисляются; страница обновится сама.",
+		"Last reviewed %v. After changing files outside the app, review again.": "Последняя проверка: %v. Если вы меняли файлы вне приложения, проверьте снова.",
+		"After changing files outside the app, review again.": "Если вы меняли файлы вне приложения, проверьте снова.",
 		"A step of the tune-up is waiting": "Есть ожидающий шаг наведения порядка",
 		"Copy ID": "Копировать ID",
 		"Summary": "Сводка",

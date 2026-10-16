@@ -5,6 +5,10 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Review again": "Revisar de nuevo",
+		"Working out the steps; the page updates by itself.": "Calculando los pasos; la página se actualiza sola.",
+		"Last reviewed %v. After changing files outside the app, review again.": "Última revisión: %v. Si cambias archivos fuera de la app, revisa de nuevo.",
+		"After changing files outside the app, review again.": "Si cambias archivos fuera de la app, revisa de nuevo.",
 		"A step of the tune-up is waiting": "Hay un paso de la puesta a punto pendiente",
 		"Copy ID": "Copiar ID",
 		"Summary": "Resumen",

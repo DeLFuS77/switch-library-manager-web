@@ -59,3 +59,20 @@ func TestTuneUpDot(t *testing.T) {
 		t.Fatalf("every file checked: %d left", unchecked)
 	}
 }
+
+// "Review again" scans the library, after which the steps are worked out again.
+func TestMaintenanceReview(t *testing.T) {
+	web, _ := spaceWeb(t)
+	web.HandleMaintenance()
+	recorder := httptest.NewRecorder()
+	web.router.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "/maintenance/review", nil))
+	if recorder.Code != http.StatusAccepted {
+		t.Fatalf("review: %d", recorder.Code)
+	}
+	for deadline := time.Now().Add(10 * time.Second); web.state.IsSynchronizing() && time.Now().Before(deadline); {
+		time.Sleep(20 * time.Millisecond)
+	}
+	if task := lastTask(web.taskLog().Snapshot(), TASK_SCAN); task == nil {
+		t.Fatal("the library was scanned")
+	}
+}

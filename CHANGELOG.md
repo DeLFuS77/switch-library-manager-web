@@ -4,6 +4,9 @@
 
 ### Improvements
 
+- Tune-up: "Review again" scans the library (only new or changed files are read) and works every step out again, for
+  after changing files outside the app; the page says when it was last reviewed and updates itself while the figures
+  of Organize and Space are worked out.
 - Issues: the games without their base game have a heart to add the game to the wishlist at once, so it shows on
   Missing games and in the notifications.
 - The Tools menu shows a dot while a step of the tune-up worth doing is waiting (files never checked, changes of

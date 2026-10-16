@@ -2347,6 +2347,31 @@ function initCopyButtons() {
 	});
 }
 
+// the tune-up: "Review again" scans the library, and while steps are worked out the page
+// asks again by itself
+function initMaintenance() {
+	const button = document.querySelector('[data-maintenance-review]');
+	if (button) {
+		button.addEventListener('click', () => {
+			button.disabled = true;
+			fetch('/maintenance/review', { method: 'POST' })
+				.then(() => setTimeout(() => window.location.reload(), 1500))
+				.catch(() => {
+					button.disabled = false;
+				});
+		});
+	}
+	if (document.querySelector('[data-maintenance-preparing]')) {
+		setTimeout(() => {
+			if (document.visibilityState === 'visible') {
+				window.location.reload();
+			} else {
+				document.addEventListener('visibilitychange', () => window.location.reload(), { once: true });
+			}
+		}, 3000);
+	}
+}
+
 function initRegionRemove() {
 	document.querySelectorAll('[data-region-remove]').forEach(button => {
 		button.addEventListener('click', () => {
@@ -2809,6 +2834,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initAutomationSettings();
 	initWizard();
 	initRegionRemove();
+	initMaintenance();
 	initCopyButtons();
 	initFullRows();
 	initImageFallbacks();
