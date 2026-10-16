@@ -11,7 +11,7 @@ import (
 // the health check is not ready, and the script of the page is served.
 func TestStartingScreen(t *testing.T) {
 	setStartingStep("Preparing the pages...")
-	handler := withSecurityHeaders(startingHandler())
+	handler := withSecurityHeaders(startingHandler([]byte("<svg/>")))
 	get := func(path string, accept string) *httptest.ResponseRecorder {
 		request := httptest.NewRequest(http.MethodGet, path, nil)
 		request.Header.Set("Accept", accept)
@@ -26,6 +26,12 @@ func TestStartingScreen(t *testing.T) {
 	}
 	if health := get("/healthz", "*/*"); health.Code != http.StatusServiceUnavailable || health.Body.String() != "Preparando las páginas…" {
 		t.Errorf("health: %d %q", health.Code, health.Body.String())
+	}
+	if detail := get("/healthz?detail=1", "*/*"); detail.Code != http.StatusServiceUnavailable || !strings.Contains(detail.Body.String(), `"step":3`) {
+		t.Errorf("detail: %d %s", detail.Code, detail.Body.String())
+	}
+	if icon := get("/resources/static/icon.svg", "image/*"); icon.Code != http.StatusOK {
+		t.Errorf("icon: %d", icon.Code)
 	}
 	if script := get("/starting.js", "*/*"); script.Code != http.StatusOK || !strings.Contains(script.Body.String(), "/healthz") {
 		t.Errorf("script: %d", script.Code)

@@ -3,6 +3,7 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Your library, games and settings are safe; nothing is changed while the app starts.": "Deine Bibliothek, Spiele und Einstellungen sind sicher: Beim Start wird nichts geändert.",
 		"Opening the local database...": "Lokale Datenbank wird geöffnet…",
 		"Loading the keys...": "Schlüssel werden geladen…",
 		"Checking the users...": "Benutzer werden geprüft…",

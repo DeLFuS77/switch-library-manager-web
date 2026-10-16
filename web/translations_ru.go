@@ -3,6 +3,7 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Your library, games and settings are safe; nothing is changed while the app starts.": "Ваша библиотека, игры и настройки в безопасности: при запуске ничего не меняется.",
 		"Opening the local database...": "Открывается локальная база данных…",
 		"Loading the keys...": "Загружаются ключи…",
 		"Checking the users...": "Проверяются пользователи…",

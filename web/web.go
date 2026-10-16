@@ -579,7 +579,8 @@ func (web *Web) Start() {
 		log.Fatal(err)
 	}
 	front := &switchHandler{}
-	front.set(withSecurityHeaders(startingHandler()))
+	icon, _ := fs.ReadFile(web.embedFS, "resources/static/icon.svg")
+	front.set(withSecurityHeaders(startingHandler(icon)))
 	// timeouts so slow or idle connections cannot pile up; no write timeout, because game
 	// downloads and the live task events can take long
 	server := &http.Server{
