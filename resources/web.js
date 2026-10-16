@@ -1165,8 +1165,15 @@ function initLiveTasks() {
 				// the bars of what a compression saved grow once, when they appear
 				const shown = new Set([...list.querySelectorAll('[data-task-saving]')].map(saving => saving.dataset.taskSaving));
 				const folded = {};
+				// and so does where a long list was scrolled to
+				const scrolled = {};
+				const scroller = details => [...details.querySelectorAll('*')].find(element => element.scrollHeight > element.clientHeight + 1 && getComputedStyle(element).overflowY !== 'visible');
 				list.querySelectorAll('details[data-task-results]').forEach(details => {
 					folded[details.dataset.taskResults] = details.open;
+					const box = scroller(details);
+					if (box && box.scrollTop > 0) {
+						scrolled[details.dataset.taskResults] = box.scrollTop;
+					}
 				});
 				list.innerHTML = html;
 				keepAnimationsInStep(list);
@@ -1180,6 +1187,12 @@ function initLiveTasks() {
 				list.querySelectorAll('details[data-task-results]').forEach(details => {
 					if (details.dataset.taskResults in folded) {
 						details.open = folded[details.dataset.taskResults];
+					}
+					if (details.dataset.taskResults in scrolled) {
+						const box = scroller(details);
+						if (box) {
+							box.scrollTop = scrolled[details.dataset.taskResults];
+						}
 					}
 				});
 				updateTaskIndicator();
