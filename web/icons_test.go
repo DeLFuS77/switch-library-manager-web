@@ -47,16 +47,18 @@ func TestFilesWithoutAnIconAreNotReadAgain(t *testing.T) {
 		t.Fatal("a file without an icon is not read again after every scan")
 	}
 
-	// "Search covers again" forgets it
+	// "Search covers again" forgets it: the file is read again. Checked by the task that reads
+	// it, as the search runs in the background and remembers the file again once it is read.
 	web.HandleCovers()
+	before := len(web.taskLog().Snapshot())
 	if response := postForm(web, "/covers/retry", url.Values{}); response.Code != http.StatusAccepted {
 		t.Fatalf("retry: %d", response.Code)
 	}
-	if len(web.readNoIcon()) != 0 {
-		t.Fatal("the files without an icon are tried again")
-	}
-	for deadline := 0; coversRunning(web) && deadline < 200; deadline++ {
+	for deadline := 0; (coversRunning(web) || len(web.taskLog().Snapshot()) == before) && deadline < 200; deadline++ {
 		waitShort()
+	}
+	if len(web.taskLog().Snapshot()) == before {
+		t.Fatal("the files without an icon are tried again")
 	}
 }
 
