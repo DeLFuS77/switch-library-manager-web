@@ -3,6 +3,7 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list.": "Os %v maiores arquivos aparecem um a um; os outros %v, menores, vão juntos na última linha da lista.",
 		"Left to solve": "Por resolver",
 		"Show the files of a kind": "Mostrar os arquivos de um tipo",
 		"Empty folders": "Pastas vazias",
