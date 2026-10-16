@@ -14,16 +14,16 @@ import (
 
 func isolateSettings(t *testing.T) {
 	t.Helper()
-	oldSettings, oldKeys := settingsInstance.Load(), keysInstance
+	oldSettings, oldKeys := settingsInstance.Load(), keysInstance.Load()
 	settingsInstance.Store(nil)
-	keysInstance = nil
+	keysInstance.Store(nil)
 	// never pick up a real ~/.switch/prod.keys from the machine running the tests
 	home := t.TempDir()
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("HOME", home)
 	t.Cleanup(func() {
 		settingsInstance.Store(oldSettings)
-		keysInstance = oldKeys
+		keysInstance.Store(oldKeys)
 	})
 }
 

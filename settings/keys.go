@@ -10,14 +10,14 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync/atomic"
 
 	"github.com/magiconair/properties"
 	"go.uber.org/zap"
 )
 
-var (
-	keysInstance *switchKeys
-)
+// the keys loaded, read by tasks running in the background while they are loaded again
+var keysInstance atomic.Pointer[switchKeys]
 
 type switchKeys struct {
 	keys map[string]string
@@ -40,7 +40,7 @@ func (k *switchKeys) GetKey(keyName string) string {
 }
 
 func SwitchKeys() (*switchKeys, error) {
-	return keysInstance, nil
+	return keysInstance.Load(), nil
 }
 
 // lastKeysReport is what was last reported about the keys, so it is not repeated
@@ -48,7 +48,7 @@ var lastKeysReport string
 
 func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
 	// A failed lookup must not leave keys from a previous base folder active.
-	keysInstance = nil
+	keysInstance.Store(nil)
 	var (
 		path string
 		p    *properties.Properties
@@ -97,10 +97,10 @@ func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
 		return nil, errors.New("Error trying to read prod.keys [reason:" + err.Error() + "]")
 	}
 
-	keysInstance = &switchKeys{keys: map[string]string{}, titleKeys: map[string]string{}}
+	loaded := &switchKeys{keys: map[string]string{}, titleKeys: map[string]string{}}
 	for _, key := range p.Keys() {
 		value, _ := p.Get(key)
-		keysInstance.keys[key] = value
+		loaded.keys[key] = value
 	}
 
 	// optional: title keys for games whose NSP has no ticket
@@ -108,20 +108,22 @@ func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
 	if titleKeys, err := properties.LoadFile(titleKeysPath, properties.UTF8); err == nil {
 		for _, rightsId := range titleKeys.Keys() {
 			value, _ := titleKeys.Get(rightsId)
-			keysInstance.titleKeys[strings.ToLower(strings.TrimSpace(rightsId))] = strings.TrimSpace(value)
+			loaded.titleKeys[strings.ToLower(strings.TrimSpace(rightsId))] = strings.TrimSpace(value)
 		}
 	}
 
+	keysInstance.Store(loaded)
+
 	// the keys are read again before every synchronization: they are reported when they change
-	report := fmt.Sprintf("%s|%d|%d|%s", path, len(keysInstance.keys), len(keysInstance.titleKeys), KeysFingerprint())
+	report := fmt.Sprintf("%s|%d|%d|%s", path, len(loaded.keys), len(loaded.titleKeys), KeysFingerprint())
 	if report != lastKeysReport {
 		lastKeysReport = report
 		logger.Infof("Loaded prod.keys from: %v", path)
-		if len(keysInstance.titleKeys) > 0 {
-			logger.Infof("Loaded %v title keys from: %v", len(keysInstance.titleKeys), titleKeysPath)
+		if len(loaded.titleKeys) > 0 {
+			logger.Infof("Loaded %v title keys from: %v", len(loaded.titleKeys), titleKeysPath)
 		}
 	}
-	return keysInstance, nil
+	return loaded, nil
 }
 
 // resolveKeysPath accepts either a path to a .keys file or a folder containing prod.keys.
@@ -162,17 +164,18 @@ func IsKeysFileAvailable() bool {
 // names and values, or "" when no keys are loaded. It changes when keys are added,
 // removed or updated, e.g. to rescan files that could not be decrypted before.
 func KeysFingerprint() string {
-	if keysInstance == nil || len(keysInstance.keys) == 0 {
+	loaded := keysInstance.Load()
+	if loaded == nil || len(loaded.keys) == 0 {
 		return ""
 	}
-	names := make([]string, 0, len(keysInstance.keys))
-	for name := range keysInstance.keys {
+	names := make([]string, 0, len(loaded.keys))
+	for name := range loaded.keys {
 		names = append(names, name)
 	}
 	sort.Strings(names)
 	hash := sha256.New()
 	for _, name := range names {
-		hash.Write([]byte(name + "=" + keysInstance.keys[name] + "\n"))
+		hash.Write([]byte(name + "=" + loaded.keys[name] + "\n"))
 	}
 	return hex.EncodeToString(hash.Sum(nil))[:16]
 }
@@ -180,16 +183,17 @@ func KeysFingerprint() string {
 // KeysSummary tells how many keys and title keys are loaded and the newest key generation,
 // without revealing any key: newer games need keys of newer generations.
 func KeysSummary() (keys int, titleKeys int, generation int) {
-	if keysInstance == nil {
+	loaded := keysInstance.Load()
+	if loaded == nil {
 		return 0, 0, -1
 	}
 	generation = -1
-	for name := range keysInstance.keys {
+	for name := range loaded.keys {
 		if suffix, ok := strings.CutPrefix(name, "key_area_key_application_"); ok {
 			if value, err := strconv.ParseInt(suffix, 16, 32); err == nil && int(value) > generation {
 				generation = int(value)
 			}
 		}
 	}
-	return len(keysInstance.keys), len(keysInstance.titleKeys), generation
+	return len(loaded.keys), len(loaded.titleKeys), generation
 }
