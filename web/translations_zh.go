@@ -3,6 +3,7 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"A step of the tune-up is waiting": "有待处理的整理步骤",
 		"Copy ID": "复制 ID",
 		"Summary": "概要",
 		"of %v games": "(%v 个游戏)",

@@ -284,6 +284,8 @@ type NavCounts struct {
 	RunningTasks int
 	// games on the wishlist
 	Wished int
+	// a step of the tune-up is waiting: files never checked, changes of Organize, space to free
+	TuneUp bool
 }
 
 type TitleItemsPageData struct {
@@ -485,6 +487,7 @@ func (web *Web) navCounts() NavCounts {
 	if switchDB == nil {
 		return counts
 	}
+	counts.TuneUp = web.tuneUpWaiting()
 	counts.Updates = len(web.missingUpdates())
 	for _, title := range web.missingDLC() {
 		counts.Dlc += len(title.MissingDLCItems)

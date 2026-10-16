@@ -4,6 +4,10 @@
 
 ### Improvements
 
+- Issues: the games without their base game have a heart to add the game to the wishlist at once, so it shows on
+  Missing games and in the notifications.
+- The Tools menu shows a dot while a step of the tune-up worth doing is waiting (files never checked, changes of
+  Organize, space that can be freed), and so does the Tune-up in it.
 - Issues: a summary at the top with a card for each kind of issue found (damaged files, keys too old, files that cannot
   be read, updates and DLC without their game, duplicates, old versions, files recognized by their name only, files
   that are not games), with how many files, what it means and what to do, a button that shows only its files and a

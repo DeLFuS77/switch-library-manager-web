@@ -156,6 +156,22 @@ func (web *Web) maintenanceSteps(lang string) []MaintenanceStep {
 	return steps
 }
 
+// tuneUpWaiting tells whether a step of the tune-up worth doing is waiting, from what is
+// known already (nothing is computed for it): files never checked, changes of Organize,
+// space that can be freed.
+func (web *Web) tuneUpWaiting() bool {
+	if unchecked, _ := web.uncheckedFiles(); unchecked > 0 {
+		return true
+	}
+	if value, ok := web.derivedCached("organizeChanges"); ok && value.(int) > 0 {
+		return true
+	}
+	if value, ok := web.derivedCached(web.spaceKey()); ok && value.(SpacePageData).Reclaimable > 0 {
+		return true
+	}
+	return false
+}
+
 // uncheckedFiles counts the files of the library never checked (or found modified by an
 // older check), and the ones found damaged, from the results alone: nothing is read.
 func (web *Web) uncheckedFiles() (unchecked int, damaged int) {

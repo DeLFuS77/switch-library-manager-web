@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"A step of the tune-up is waiting": "Hay un paso de la puesta a punto pendiente",
 		"Copy ID": "Copiar ID",
 		"Summary": "Resumen",
 		"of %v games": "de %v juegos",
