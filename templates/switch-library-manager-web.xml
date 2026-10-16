@@ -20,7 +20,7 @@
   <Screenshot>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/docs/screenshots/statistics.png</Screenshot>
   <Screenshot>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/docs/screenshots/upcoming.png</Screenshot>
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
-  <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
+  <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
   <Changes>### 1.39.1
 - Fix: the app no longer waits minutes on the starting screen with a large library; the starting screen looks like the app
