@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- The menu shows next to Missing Games how many games are missing, as the page counts them, in grey; it showed the
+  games on the wishlist in red, which read as "only 2 games missing". The wishlist keeps its hearts and its filter on
+  the page.
+
 ## 1.39.1
 
 ### Improvements
