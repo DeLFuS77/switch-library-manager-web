@@ -22,13 +22,13 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.38.0
+  <Changes>### 1.39.0
+- A starting screen with what the app is doing after an update or a restart, which opens the app by itself
+- Hide demos also hides demos named "… Demo", "【DEMO】" and the like; the Tune-up page opens at once on a NAS
+- Tasks say which format each file becomes; Statistics bars like those of the tasks; the cross of a search clears it
+### 1.38.0
 - Tasks started from a page stay on it with their progress; Organize no longer repeats the same changes
-- Compress list colored by kind, Issues panel under the mouse in the header, golden and red auras for favorites and wishes
-- The title ID copies itself on a click; names read again for games left without one
-### 1.37.0
-- Organize: a preview colored by kind with a summary that filters it; files with several contents keep their name
-- Cleanup keeps the checked compressed copy of a duplicate; Issues cards can delete damaged and unreadable files</Changes>
+- Compress list colored by kind, Issues panel under the mouse in the header, golden and red auras for favorites and wishes</Changes>
   <Date>2026-10-16</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
