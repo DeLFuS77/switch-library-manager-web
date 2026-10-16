@@ -186,12 +186,14 @@
 {{- end}}
 
 {{define "statShare"}}
-						<div class="d-flex justify-content-between small mb-1">
-							<span>{{t .Label}} <span class="text-body-secondary">({{num .Count}})</span></span>
-							<span class="text-body-secondary">{{formatSize .Size}} &middot; <span class="fw-semibold text-body">{{.Percent}}%</span></span>
-						</div>
-						<div class="progress mb-3" role="progressbar" aria-label="{{t .Label}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100">
-							<div class="progress-bar" style="width: {{.Percent}}%"></div>
+						<div class="stat-share">
+							<div class="d-flex justify-content-between small mb-1">
+								<span>{{t .Label}} <span class="text-body-secondary">({{num .Count}})</span></span>
+								<span class="text-body-secondary">{{formatSize .Size}} &middot; <span class="fw-semibold text-body">{{.Percent}}%</span></span>
+							</div>
+							<div class="progress stat-bar mb-3" role="progressbar" aria-label="{{t .Label}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100">
+								<div class="progress-bar" style="width: {{.Percent}}%"></div>
+							</div>
 						</div>
 {{- end}}
 

@@ -2,10 +2,11 @@ package web
 
 import (
 	"encoding/json"
-	"hash/fnv"
 	"fmt"
+	"hash/fnv"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
@@ -66,24 +67,37 @@ const (
 	maxFinishedTasks = 30
 )
 
+// formatChanges are the formats a task on files turns a file into, by kind and extension.
+var formatChanges = map[string]map[string]string{
+	TASK_COMPRESS:   {".nsp": "NSP → NSZ", ".xci": "XCI → XCZ"},
+	TASK_DECOMPRESS: {".nsz": "NSZ → NSP", ".xcz": "XCZ → XCI"},
+	TASK_CONVERT:    {".xci": "XCI → NSP", ".xcz": "XCZ → NSZ"},
+}
+
+// formatChange is the change of format of a file in a task on files, e.g. "NSP → NSZ", or ""
+// when the task does not change it.
+func formatChange(kind string, name string) string {
+	return formatChanges[kind][strings.ToLower(filepath.Ext(name))]
+}
+
 // Task is a synchronization, scan or organize run, as shown on the Tasks page.
 type Task struct {
-	Id       int64      `json:"id"`
-	Kind     string     `json:"kind"`
-	Trigger  string     `json:"trigger"`
-	Status   string     `json:"status"`
-	Started  time.Time  `json:"started"`
-	Finished time.Time  `json:"finished,omitempty"`
-	Current  int        `json:"current"`
-	Total    int        `json:"total"`
-	Message  string     `json:"message"`
+	Id       int64     `json:"id"`
+	Kind     string    `json:"kind"`
+	Trigger  string    `json:"trigger"`
+	Status   string    `json:"status"`
+	Started  time.Time `json:"started"`
+	Finished time.Time `json:"finished,omitempty"`
+	Current  int       `json:"current"`
+	Total    int       `json:"total"`
+	Message  string    `json:"message"`
 	// what the message names, when it is "... %v"
 	MessageArg string `json:"messageArg,omitempty"`
 	// the files of a task on files: the one it reached, out of how many
-	FileNumber int `json:"fileNumber,omitempty"`
-	FileCount  int `json:"fileCount,omitempty"`
-	Error    *TaskNote  `json:"error,omitempty"`
-	Warnings []TaskNote `json:"warnings,omitempty"`
+	FileNumber int        `json:"fileNumber,omitempty"`
+	FileCount  int        `json:"fileCount,omitempty"`
+	Error      *TaskNote  `json:"error,omitempty"`
+	Warnings   []TaskNote `json:"warnings,omitempty"`
 	// results, depending on the kind
 	Games int `json:"games,omitempty"`
 	Files int `json:"files,omitempty"`

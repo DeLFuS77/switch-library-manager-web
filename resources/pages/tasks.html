@@ -38,6 +38,7 @@
 							{{- if ge $pct 0}}<span class="text-nowrap">{{if or (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "convert") (eq .Kind "pack")}}{{formatSize (mul .Current 1048576)}} / {{formatSize (mul .Total 1048576)}}{{else}}{{.Current}} / {{.Total}}{{end}} &middot; {{$pct}}%{{with .Speed}} &middot; {{.}} MB/s{{end}}{{with .Remaining}} &middot; {{t "%v left" .}}{{end}}</span>{{end}}
 						</div>
 						{{- template "verifyBreakdown" .Breakdown}}
+						{{- $kind := .Kind}}
 						{{- with .Lanes}}
 						<ul class="task-lanes list-unstyled mb-0 mt-3" aria-label="{{t "Files being worked on"}}">
 							{{- range $i, $lane := .}}
@@ -46,6 +47,7 @@
 								<div class="task-lane-main">
 									<div class="task-file-line small">
 										<span class="text-truncate" title="{{$lane.Name}}">{{$lane.Name}}</span>
+										{{- with formatChange $kind $lane.Name}}<span class="format-change text-nowrap">{{.}}</span>{{end}}
 										{{- with $lane.Phase}}<span class="task-phase text-nowrap"><span class="bi bi-arrow-right-short" aria-hidden="true"></span>{{t .}} <span class="text-body-secondary">{{t "step %v of %v" $lane.Step $lane.Steps}}</span></span>{{end}}
 										<span class="text-nowrap text-body-secondary">{{formatSize $lane.Done}} / {{formatSize $lane.Total}} &middot; {{$lane.Percent}}%</span>
 									</div>

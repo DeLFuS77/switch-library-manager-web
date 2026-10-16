@@ -264,3 +264,18 @@ func TestScanStepsAreTranslated(t *testing.T) {
 		}
 	}
 }
+
+// The files of a compression, decompression or conversion say which format they become.
+func TestFormatChange(t *testing.T) {
+	for _, c := range []struct{ kind, name, want string }{
+		{TASK_COMPRESS, "Game [v0].nsp", "NSP → NSZ"},
+		{TASK_COMPRESS, "Game [v0].XCI", "XCI → XCZ"},
+		{TASK_DECOMPRESS, "Game [v0].nsz", "NSZ → NSP"},
+		{TASK_CONVERT, "Game [v0].xci", "XCI → NSP"},
+		{TASK_VERIFY, "Game [v0].nsp", ""},
+	} {
+		if got := formatChange(c.kind, c.name); got != c.want {
+			t.Errorf("%s %s: %q, want %q", c.kind, c.name, got, c.want)
+		}
+	}
+}
