@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Tasks: the list of the files a running compression has done no longer jumps back to the top every second while it
+  is scrolled; it stays where it was each time the progress is drawn again.
+
 ## 1.39.0
 
 ### Improvements
