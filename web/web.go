@@ -555,6 +555,9 @@ func CreateWeb(router *mux.Router, embedFS embed.FS, appSettings *settings.AppSe
 }
 
 func (web *Web) Start() {
+	// the names the games give themselves, for names the titles database has only in another script
+	lookup := web.libraryNacp
+	fileNacp.Store(&lookup)
 	localDbManager, err := db.NewLocalSwitchDBManager(web.dataFolder)
 	if err != nil {
 		web.sugarLogger.Error("Failed to create local files db\n", err)

@@ -328,10 +328,21 @@ func translateIssue(lang string, text string) string {
 }
 
 // titleName returns the name of a title in the interface language, or fallback when the
-// titles database has no translation.
+// titles database has no translation. A fallback in a script of another language (the
+// Japanese name of a game the database knows from the Japanese store only) gives way to the
+// name the game gives itself in the interface language or in English, when it has one, and
+// so does a placeholder such as "-".
 func titleName(switchDB *db.SwitchTitlesDB, lang string, titleId string, fallback string) string {
 	if localized, ok := switchDB.LocalizedTitle(lang, titleId); ok && usableName(localized.Name) {
 		return localized.Name
+	}
+	// a placeholder such as "-" gives way too
+	if !fitsLanguage(lang, fallback) || (fallback != "" && !usableName(fallback)) {
+		if lookup := fileNacp.Load(); lookup != nil {
+			if name := nacpName((*lookup)(titleId), lang); name != "" {
+				return name
+			}
+		}
 	}
 	return fallback
 }

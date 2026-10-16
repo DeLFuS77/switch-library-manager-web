@@ -26,8 +26,8 @@
 						<div class="text-body-secondary">{{t "%v%% of a library of %v" .RemovablePercent (formatSize .LibrarySize)}}</div>
 					</div>
 					<div class="col-md-7">
-						<div class="space-bar" role="img" aria-label="{{t "%v%% of a library of %v" .RemovablePercent (formatSize .LibrarySize)}}">
-							<span class="space-bar-fill" style="--pct: {{.RemovablePercent}}"></span>
+						<div class="space-bar space-stack" role="img" aria-label="{{t "%v%% of a library of %v" .RemovablePercent (formatSize .LibrarySize)}}">
+							{{- range .Shares}}<span class="space-dot-{{.Id}}" style="width: {{.Percent}}%"></span>{{end}}
 						</div>
 						<ul class="list-unstyled d-flex flex-wrap gap-3 small mt-3 mb-0">
 							{{- range .Groups}}
