@@ -4,6 +4,10 @@
 
 ### Improvements
 
+- Tasks: each file being compressed, decompressed or converted says which format it becomes ("NSP → NSZ",
+  "XCI → XCZ", "NSZ → NSP", "XCI → NSP").
+- Statistics: the bars look like those of the tasks, thin and round, in the colours of the library one after the
+  other and with stripes; the bars of the years of release too.
 - Searches of the pages: emptying the field, with its cross or by deleting the text, shows everything again at once,
   so the separate "Clear" link is gone.
 

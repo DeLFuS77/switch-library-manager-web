@@ -3294,6 +3294,49 @@ $avatar-colors: (
 	}
 }
 
+// the change of format of a file being compressed, decompressed or converted
+.format-change {
+	flex: 0 0 auto;
+	padding: .05rem .5rem;
+	border: 1px solid color-mix(in srgb, var(--slm-chart-2) 50%, transparent);
+	border-radius: 1rem;
+	background: color-mix(in srgb, var(--slm-chart-2) 14%, transparent);
+	color: var(--slm-chart-2);
+	font-size: .75rem;
+	font-weight: 600;
+	letter-spacing: .02em;
+}
+
+// the bars of the statistics look like those of the tasks: thin and round, in the colours of
+// the library one after the other, with the stripes still
+.stat-bar {
+	height: .6rem;
+	border-radius: 1rem;
+	background: var(--slm-surface-muted);
+
+	.progress-bar {
+		border-radius: inherit;
+		background-color: #{$slm-red};
+		background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
+		background-size: 1rem 1rem;
+	}
+}
+
+.stat-share,
+.count-bar {
+	&:nth-of-type(4n + 2) .stat-bar .progress-bar { background-color: #{$warning}; }
+	&:nth-of-type(4n + 3) .stat-bar .progress-bar { background-color: #{$slm-cyan}; }
+	&:nth-of-type(4n + 4) .stat-bar .progress-bar { background-color: #{$success}; }
+}
+
+.year-bar span {
+	background-color: #{$slm-red};
+	background-image:
+		linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent),
+		linear-gradient(to top, #{$slm-red}, #{$warning});
+	background-size: 1rem 1rem, 100% 100%;
+}
+
 .history-chart-box {
 	position: relative;
 	padding-top: 1.1rem;
