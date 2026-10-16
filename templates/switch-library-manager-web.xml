@@ -22,14 +22,12 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz tinfoil dbi backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.35.0
+  <Changes>### 1.36.0
+- Statistics: charts of the content, the space and the bytes saved over time, and when the disk would be full at this rate
+### 1.35.0
 - Warning at the top and a notification when a library disk has less than 10% free; automatic compression waits for room
 - Tune-up: Organize and Free space show their last figures while they update, and "Review again" scans the library
-- Issues: a summary by kind of issue, and a heart to wish the game of orphan updates and DLC
-### 1.34.0
-- Count a game once when you have it from several regions (Settings)
-- Pages of cards fill their last row; tasks show their file counter in a fixed place
-- More non-game files left out of Issues by themselves</Changes>
+- Issues: a summary by kind of issue, and a heart to wish the game of orphan updates and DLC</Changes>
   <Date>2026-10-16</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
