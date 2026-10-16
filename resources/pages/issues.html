@@ -11,16 +11,20 @@
 			{{- if .Summaries}}
 			<section class="issue-summary mb-4" aria-label="{{t "Summary"}}">
 				{{- range .Summaries}}
-				<article class="surface issue-kind tone-{{.Tone}}{{if eq $.Kind .Kind}} is-active{{end}}">
-					<div class="d-flex align-items-start gap-3">
-						<span class="issue-kind-icon bi {{.Icon}}" aria-hidden="true"></span>
+				<article class="issue-kind tone-{{.Tone}}{{if eq $.Kind .Kind}} is-active{{end}}">
+					<header class="issue-kind-head">
+						<span class="issue-kind-icon" aria-hidden="true"><span class="bi {{.Icon}}"></span></span>
 						<div class="min-w-0 flex-grow-1">
-							<div class="d-flex flex-wrap align-items-baseline gap-2">
-								<h2 class="h6 fw-semibold mb-0">{{.Title}}</h2>
-								<span class="issue-kind-count">{{num .Count}}</span>
-								{{- if .GamesCount}}<span class="small text-body-secondary">{{t "of %v games" (num .GamesCount)}}</span>{{end}}
+							<h2 class="issue-kind-title">{{.Title}}</h2>
+							<div class="issue-kind-meta">
+								{{- if .GamesCount}}{{t "of %v games" (num .GamesCount)}}{{end}}
+								{{- if .Size}}{{formatSize .Size}}{{end}}
 							</div>
-							<p class="small text-body-secondary mb-2">{{.Text}}</p>
+						</div>
+						<span class="issue-kind-count">{{num .Count}}</span>
+					</header>
+					<div class="issue-kind-body">
+							<p class="small text-body-secondary mb-3">{{.Text}}</p>
 							{{- with .Games}}
 							<ul class="list-unstyled orphan-preview mb-2">
 								{{- range .}}
@@ -33,12 +37,12 @@
 								{{- end}}
 							</ul>
 							{{- end}}
-							<div class="d-flex flex-wrap gap-2">
-								<a class="btn btn-sm {{if eq $.Kind .Kind}}btn-primary{{else}}btn-outline-secondary{{end}} rounded-pill" href="{{if eq $.Kind .Kind}}{{filterUrl $.Filter "kind_of_issue" ""}}{{else}}{{filterUrl $.Filter "kind_of_issue" .Kind}}{{end}}">{{if eq $.Kind .Kind}}<span class="bi bi-x-lg me-1" aria-hidden="true"></span>{{t "Show every issue"}}{{else}}<span class="bi bi-funnel me-1" aria-hidden="true"></span>{{t "See the files"}}{{end}}</a>
-								{{- if .Href}}<a class="btn btn-sm btn-outline-primary rounded-pill" href="{{.Href}}">{{.Action}} <span class="bi bi-arrow-right" aria-hidden="true"></span></a>{{end}}
-							</div>
-						</div>
 					</div>
+					<footer class="issue-kind-actions">
+						<a class="btn btn-sm rounded-pill issue-kind-filter" href="{{if eq $.Kind .Kind}}{{filterUrl $.Filter "kind_of_issue" ""}}{{else}}{{filterUrl $.Filter "kind_of_issue" .Kind}}{{end}}" aria-pressed="{{if eq $.Kind .Kind}}true{{else}}false{{end}}">{{if eq $.Kind .Kind}}<span class="bi bi-funnel-fill me-1" aria-hidden="true"></span>{{t "Showing them"}} &middot; {{t "show all"}}{{else}}<span class="bi bi-funnel me-1" aria-hidden="true"></span>{{t "See the files"}}{{end}}</a>
+						{{- if .Href}}<a class="btn btn-sm btn-glass rounded-pill" href="{{.Href}}">{{.Action}} <span class="bi bi-arrow-right" aria-hidden="true"></span></a>{{end}}
+						{{- if .Deletable}}<button type="button" class="btn btn-sm btn-outline-danger rounded-pill ms-auto admin-only" data-issue-delete="{{.Kind}}" data-confirm="{{t "Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards." (num .Count) .Title (formatSize .Size)}}"><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{t "Delete them"}}</button>{{end}}
+					</footer>
 				</article>
 				{{- end}}
 			</section>

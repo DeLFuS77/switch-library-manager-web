@@ -5,6 +5,10 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Showing them": "Mostrando estos",
+		"show all": "ver todos",
+		"Delete them": "Borrarlos",
+		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "¿Borrar los %v archivos de «%v» (%v)? No se pueden recuperar. Vuelve a conseguirlos después.",
 		"Error": "Error",
 		"Review": "Revisar",
 		"Rename": "Renombrar",
@@ -39,7 +43,6 @@ var translations = map[string]map[string]string{
 		"of %v games": "de %v juegos",
 		"Unknown game": "Juego desconocido",
 		"%v updates": "%v actualizaciones",
-		"Show every issue": "Ver todos los problemas",
 		"See the files": "Ver los archivos",
 		"Damaged files": "Archivos dañados",
 		"Their data does not match what they should hold: they will not install or play well. Get them again.": "Sus datos no coinciden con lo que deberían contener: no se instalarán o no funcionarán bien. Vuelve a conseguirlos.",

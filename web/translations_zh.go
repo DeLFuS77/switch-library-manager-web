@@ -3,6 +3,10 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Showing them": "正在显示",
+		"show all": "显示全部",
+		"Delete them": "删除",
+		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "删除“%v”中的 %v 个文件(%v)?删除后无法恢复,之后请重新获取。",
 		"Error": "错误",
 		"Review": "需检查",
 		"Rename": "重命名",
@@ -37,7 +41,6 @@ func init() {
 		"of %v games": "(%v 个游戏)",
 		"Unknown game": "未知游戏",
 		"%v updates": "%v 个更新",
-		"Show every issue": "显示所有问题",
 		"See the files": "查看文件",
 		"Damaged files": "损坏的文件",
 		"Their data does not match what they should hold: they will not install or play well. Get them again.": "其数据与应有内容不符:无法正常安装或运行。请重新获取。",

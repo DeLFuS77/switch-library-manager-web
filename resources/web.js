@@ -595,6 +595,7 @@ function initOrganize() {
 		renderOperations(response);
 		if (verifyNote) {
 			verifyNote.hidden = !response.needsVerify;
+			verifyNote.classList.toggle('d-none', !response.needsVerify);
 			const text = verifyNote.querySelector('[data-organize-verify-text]');
 			text.textContent = text.dataset.text.replace('%v', response.needsVerify || 0);
 		}
@@ -2487,6 +2488,22 @@ function initCopyButtons() {
 	});
 }
 
+// Issues: delete the files of a kind of issue that are of no use, after a confirmation
+function initIssueDelete() {
+	document.querySelectorAll('[data-issue-delete]').forEach(button => button.addEventListener('click', () => {
+		if (!window.confirm(button.dataset.confirm)) {
+			return;
+		}
+		button.disabled = true;
+		postForm('/issues/delete', { kind: button.dataset.issueDelete })
+			.then(() => setTimeout(() => window.location.reload(), 1200))
+			.catch(error => {
+				button.disabled = false;
+				insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+			});
+	}));
+}
+
 // the charts of the history: the values of the day under the pointer
 function initHistoryCharts() {
 	document.querySelectorAll('.history-charts [data-bs-toggle="pill"]').forEach((button) => {
@@ -3040,6 +3057,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initRegionRemove();
 	initMaintenance();
 	initHistoryCharts();
+	initIssueDelete();
 	initCopyButtons();
 	initFullRows();
 	initImageFallbacks();

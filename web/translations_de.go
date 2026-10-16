@@ -3,6 +3,10 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Showing them": "Nur diese",
+		"show all": "alle zeigen",
+		"Delete them": "Löschen",
+		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "Die %v Dateien von „%v“ (%v) löschen? Sie lassen sich nicht wiederherstellen. Besorge sie danach neu.",
 		"Error": "Fehler",
 		"Review": "Prüfen",
 		"Rename": "Umbenennen",
@@ -37,7 +41,6 @@ func init() {
 		"of %v games": "aus %v Spielen",
 		"Unknown game": "Unbekanntes Spiel",
 		"%v updates": "%v Updates",
-		"Show every issue": "Alle Probleme zeigen",
 		"See the files": "Dateien ansehen",
 		"Damaged files": "Beschädigte Dateien",
 		"Their data does not match what they should hold: they will not install or play well. Get them again.": "Ihre Daten stimmen nicht mit dem überein, was sie enthalten sollten: Sie lassen sich nicht gut installieren oder spielen. Besorge sie neu.",

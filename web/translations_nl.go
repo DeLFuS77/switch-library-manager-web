@@ -3,6 +3,10 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Showing them": "Alleen deze",
+		"show all": "alles tonen",
+		"Delete them": "Verwijderen",
+		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "De %v bestanden van ‘%v’ (%v) verwijderen? Ze kunnen niet worden hersteld. Haal ze daarna opnieuw.",
 		"Error": "Fout",
 		"Review": "Controleren",
 		"Rename": "Hernoemen",
@@ -37,7 +41,6 @@ func init() {
 		"of %v games": "van %v games",
 		"Unknown game": "Onbekende game",
 		"%v updates": "%v updates",
-		"Show every issue": "Alle problemen tonen",
 		"See the files": "Bekijk de bestanden",
 		"Damaged files": "Beschadigde bestanden",
 		"Their data does not match what they should hold: they will not install or play well. Get them again.": "Hun gegevens kloppen niet met wat ze moeten bevatten: ze installeren of spelen niet goed. Haal ze opnieuw.",

@@ -3,6 +3,10 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Showing them": "Показаны эти",
+		"show all": "показать все",
+		"Delete them": "Удалить",
+		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "Удалить %v файлов из «%v» (%v)? Их нельзя восстановить. Потом получите их заново.",
 		"Error": "Ошибка",
 		"Review": "Проверить",
 		"Rename": "Переименовать",
@@ -37,7 +41,6 @@ func init() {
 		"of %v games": "из %v игр",
 		"Unknown game": "Неизвестная игра",
 		"%v updates": "обновлений: %v",
-		"Show every issue": "Показать все проблемы",
 		"See the files": "Показать файлы",
 		"Damaged files": "Повреждённые файлы",
 		"Their data does not match what they should hold: they will not install or play well. Get them again.": "Их данные не совпадают с тем, что должно быть: они не установятся или будут работать плохо. Получите их заново.",
