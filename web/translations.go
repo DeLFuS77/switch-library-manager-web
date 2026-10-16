@@ -5,6 +5,12 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Opening the local database...": "Abriendo la base de datos local…",
+		"Loading the keys...": "Cargando las claves…",
+		"Checking the users...": "Comprobando los usuarios…",
+		"Preparing the pages...": "Preparando las páginas…",
+		"Starting the app...": "Iniciando la aplicación…",
+		"After an update or a restart this takes a moment. The page opens by itself when the app is ready.": "Tras una actualización o un reinicio tarda un poco. La página se abrirá sola cuando la aplicación esté lista.",
 		"The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list.": "Se ven uno a uno los %v archivos más grandes; los otros %v, más pequeños, van juntos en la última fila de la lista.",
 		"Left to solve": "Por resolver",
 		"Show the files of a kind": "Mostrar los archivos de un tipo",

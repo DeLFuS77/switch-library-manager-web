@@ -3,6 +3,12 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Opening the local database...": "正在打开本地数据库…",
+		"Loading the keys...": "正在加载密钥…",
+		"Checking the users...": "正在检查用户…",
+		"Preparing the pages...": "正在准备页面…",
+		"Starting the app...": "正在启动应用…",
+		"After an update or a restart this takes a moment. The page opens by itself when the app is ready.": "更新或重启后需要一点时间。应用就绪后页面会自动打开。",
 		"The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list.": "逐个列出最大的 %v 个文件;其余 %v 个较小的文件合并在列表最后一行。",
 		"Left to solve": "待解决",
 		"Show the files of a kind": "按类型显示文件",
