@@ -1341,7 +1341,56 @@ function bindFileForm(form, url) {
 		});
 	}
 
+	// the rows shown: those that match the filter by name and the kind chosen
 	const filter = form.querySelector('[data-file-filter]');
+	let kind = 'all';
+	const applyFilters = () => {
+		const text = filter ? filter.value.trim().toLowerCase() : '';
+		form.querySelectorAll('[data-file-row]').forEach(row => {
+			row.hidden = (text !== '' && !row.textContent.toLowerCase().includes(text)) || (kind !== 'all' && row.dataset.kind !== kind);
+		});
+		update();
+	};
+	const chips = form.querySelector('[data-kind-chips]');
+	if (chips) {
+		const rows = [...form.querySelectorAll('[data-file-row]')];
+		const totals = {};
+		rows.forEach(row => {
+			const box = row.querySelector('input[name="path"]');
+			const total = totals[row.dataset.kind] || (totals[row.dataset.kind] = { count: 0, size: 0 });
+			total.count++;
+			total.size += Number(box ? box.dataset.size : 0);
+		});
+		const icons = { all: 'bi-list-ul', game: 'bi-controller', update: 'bi-arrow-up-circle', dlc: 'bi-puzzle' };
+		const buttons = [];
+		['all', 'game', 'update', 'dlc'].forEach(key => {
+			const total = key === 'all' ? { count: rows.length } : totals[key];
+			if (!total || (key !== 'all' && Object.keys(totals).length < 2)) {
+				return;
+			}
+			const button = document.createElement('button');
+			button.type = 'button';
+			button.className = `op-chip op-${key}`;
+			button.setAttribute('aria-pressed', String(key === 'all'));
+			button.innerHTML = `<span class="bi ${icons[key]}" aria-hidden="true"></span>`;
+			button.append(chips.dataset[key]);
+			const count = document.createElement('span');
+			count.className = 'op-chip-count';
+			count.textContent = total.count;
+			button.append(count);
+			if (total.size) {
+				button.title = formatSize(total.size);
+			}
+			button.addEventListener('click', () => {
+				kind = key;
+				buttons.forEach(other => other.setAttribute('aria-pressed', String(other === button)));
+				applyFilters();
+			});
+			buttons.push(button);
+			chips.append(button);
+		});
+		chips.hidden = buttons.length < 2;
+	}
 	if (filter) {
 		let timer;
 		filter.addEventListener('input', () => {
@@ -1351,10 +1400,7 @@ function bindFileForm(form, url) {
 				timer = setTimeout(() => load(text), 300);
 				return;
 			}
-			form.querySelectorAll('[data-file-row]').forEach(row => {
-				row.hidden = text !== '' && !row.textContent.toLowerCase().includes(text);
-			});
-			update();
+			applyFilters();
 		});
 		// Enter in the filter must not submit the form
 		filter.addEventListener('keydown', e => {

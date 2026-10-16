@@ -67,25 +67,33 @@
 						</div>
 						<div class="small text-body-secondary ms-sm-auto" data-file-summary id="compressSummary" data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" (len .Candidates) (formatSize .TotalSize)}}</div>
 					</div>
-					<ul class="item-list">
+					<div class="op-summary mb-2" data-kind-chips data-all="{{t "All"}}" data-game="{{t "Games"}}" data-update="{{t "Updates"}}" data-dlc="DLC" role="group" aria-label="{{t "Show the files of a kind"}}"></div>
+					<ul class="file-list list-unstyled mb-0">
 						{{- range $i, $c := .Candidates}}
-						<li class="item-row item-row-check" data-file-row>
+						<li class="file-row kind-{{$c.KindKey}}" data-file-row data-kind="{{$c.KindKey}}">
 							<input class="form-check-input" type="checkbox" name="path" value="{{$c.Path}}" data-size="{{$c.Size}}" id="file{{$i}}" checked>
-							<label class="item-main" for="file{{$i}}">
-								<span class="item-name d-block">{{$c.Name}}</span>
-								<span class="item-meta"><span class="chip chip-muted">{{if eq $c.Kind "Base"}}{{t "Game"}}{{else if eq $c.Kind "Update"}}{{t "Update"}}{{else}}DLC{{end}}</span><span class="font-monospace text-break" title="{{$c.Path}}">{{fileBase $c.Path}}</span></span>
+							<label class="file-row-main" for="file{{$i}}">
+								<span class="file-row-name">{{$c.Name}}</span>
+								<span class="file-row-meta">
+									<span class="file-kind"><span class="bi {{if eq $c.KindKey "game"}}bi-controller{{else if eq $c.KindKey "update"}}bi-arrow-up-circle{{else}}bi-puzzle{{end}}" aria-hidden="true"></span>{{if eq $c.KindKey "game"}}{{t "Game"}}{{else if eq $c.KindKey "update"}}{{t "Update"}}{{else}}DLC{{end}}</span>
+									<span class="file-format">{{$c.Format}}</span>
+									<span class="file-row-file" title="{{$c.Path}}">{{fileBase $c.Path}}</span>
+								</span>
 							</label>
-							<span class="item-size">{{formatSize $c.Size}}</span>
+							<span class="file-row-size">
+								<span class="fw-semibold">{{formatSize $c.Size}}</span>
+								<span class="file-row-bar" aria-hidden="true"><span style="width: {{$.Weight $c.Size}}%"></span></span>
+							</span>
 						</li>
 						{{- end}}
 						{{- if .RestCount}}
-						<li class="item-row item-row-check item-row-rest">
+						<li class="file-row kind-rest">
 							<input class="form-check-input" type="checkbox" name="rest" value="compress" data-size="{{.RestSize}}" data-count="{{.RestCount}}" id="compressRest" checked>
-							<label class="item-main" for="compressRest">
-								<span class="item-name d-block">{{t "And %v more files" .RestCount}}</span>
-								<span class="item-meta">{{t "Smaller files, not listed one by one."}}</span>
+							<label class="file-row-main" for="compressRest">
+								<span class="file-row-name">{{t "And %v more files" .RestCount}}</span>
+								<span class="file-row-meta">{{t "Smaller files, not listed one by one."}}</span>
 							</label>
-							<span class="item-size">{{formatSize .RestSize}}</span>
+							<span class="file-row-size"><span class="fw-semibold">{{formatSize .RestSize}}</span></span>
 						</li>
 						{{- end}}
 					</ul>

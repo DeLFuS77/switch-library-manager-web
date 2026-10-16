@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strings"
 	"sync"
@@ -1112,7 +1113,7 @@ func TestOpenApiDocumentsEveryEndpoint(t *testing.T) {
 
 func TestNavCountsAndCardStatus(t *testing.T) {
 	web := newTestWeb(t)
-	if counts := web.navCounts(); counts != (NavCounts{}) {
+	if counts := web.navCounts(); !reflect.DeepEqual(counts, NavCounts{}) {
 		t.Fatalf("empty state: %+v", counts)
 	}
 	web.state.set(testDatabases(t))
@@ -1122,7 +1123,7 @@ func TestNavCountsAndCardStatus(t *testing.T) {
 		t.Fatalf("unexpected counts: %+v", counts)
 	}
 	page := web.globalPageData("index")
-	if !page.HasLibrary || page.Counts != counts {
+	if !page.HasLibrary || !reflect.DeepEqual(page.Counts, counts) {
 		t.Fatalf("unexpected page data: %+v", page)
 	}
 

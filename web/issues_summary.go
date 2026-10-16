@@ -31,6 +31,49 @@ func dirOf(path string) string {
 	return "."
 }
 
+// IssueKindLook is how a kind of issue shows: its icon, its tone (the color of its card) and
+// its title, to translate.
+type IssueKindLook struct {
+	Icon  string
+	Tone  string
+	Title string
+}
+
+var issueKindLooks = map[string]IssueKindLook{
+	ISSUE_DAMAGED:     {"bi-heartbreak", "danger", "Damaged files"},
+	ISSUE_KEYS:        {"bi-key", "danger", "Keys too old"},
+	ISSUE_UNREADABLE:  {"bi-exclamation-octagon", "danger", "Files that cannot be read"},
+	ISSUE_ORPHAN:      {"bi-question-diamond", "warning", "Updates and DLC without their game"},
+	ISSUE_DUPLICATE:   {"bi-files", "info", "Duplicates"},
+	ISSUE_OLD:         {"bi-clock-history", "warning", "Old updates and DLC"},
+	ISSUE_FILENAME:    {"bi-tag", "info", "Recognized by their name only"},
+	ISSUE_UNSUPPORTED: {"bi-file-earmark-x", "muted", "Files that are not games"},
+}
+
+// IssueKindCount is a kind of issue and how many files it has, for the header.
+type IssueKindCount struct {
+	IssueKindLook
+	Kind  string
+	Count int
+}
+
+// issueKindCounts counts the issues by kind, in the order of the summary.
+func (web *Web) issueKindCounts() []IssueKindCount {
+	return web.derived("issueKindCounts", func() any {
+		counts := map[string]int{}
+		for _, issue := range web.getIssues() {
+			counts[issueKind(issue.Reason)]++
+		}
+		result := []IssueKindCount{}
+		for _, kind := range issueKinds {
+			if counts[kind] > 0 {
+				result = append(result, IssueKindCount{IssueKindLook: issueKindLooks[kind], Kind: kind, Count: counts[kind]})
+			}
+		}
+		return result
+	}).([]IssueKindCount)
+}
+
 // issueKind tells the kind of an issue from its reason.
 func issueKind(reason string) string {
 	switch {
@@ -107,7 +150,8 @@ func (web *Web) issueSummaries(issues []Issue, lang string) []IssueSummary {
 		if count == 0 {
 			continue
 		}
-		summary := IssueSummary{Kind: kind, Count: count}
+		look := issueKindLooks[kind]
+		summary := IssueSummary{Kind: kind, Count: count, Icon: look.Icon, Tone: look.Tone, Title: t(look.Title)}
 		if deletableIssueKinds[kind] {
 			summary.Deletable = true
 			summary.Size = web.derived("issueSize:"+kind, func() any {
@@ -120,17 +164,13 @@ func (web *Web) issueSummaries(issues []Issue, lang string) []IssueSummary {
 		}
 		switch kind {
 		case ISSUE_DAMAGED:
-			summary.Icon, summary.Tone, summary.Title = "bi-heartbreak", "danger", t("Damaged files")
 			summary.Text = t("Their data does not match what they should hold: they will not install or play well. Get them again.")
 		case ISSUE_KEYS:
-			summary.Icon, summary.Tone, summary.Title = "bi-key", "danger", t("Keys too old")
 			summary.Text = t("They need keys of a newer firmware than your prod.keys. Dump the keys of your console again, updated.")
 			summary.Href, summary.Action = "/settings.html#library", t("Keys")
 		case ISSUE_UNREADABLE:
-			summary.Icon, summary.Tone, summary.Title = "bi-exclamation-octagon", "danger", t("Files that cannot be read")
 			summary.Text = t("They are not complete NSP, NSZ, XCI or XCZ files: a download cut short or a damaged copy.")
 		case ISSUE_ORPHAN:
-			summary.Icon, summary.Tone, summary.Title = "bi-question-diamond", "warning", t("Updates and DLC without their game")
 			summary.Text = t("The library has them, but not the game they belong to. Look for the game by its ID, or delete them if you do not want it.")
 			summary.Href, summary.Action = "/orphans.html", t("See them by game")
 			orphans := web.derived("orphans:"+lang, func() any { return web.buildOrphans(lang) }).([]TitleItem)
@@ -145,18 +185,14 @@ func (web *Web) issueSummaries(issues []Issue, lang string) []IssueSummary {
 			})
 			summary.Games = games[:min(len(games), 6)]
 		case ISSUE_DUPLICATE:
-			summary.Icon, summary.Tone, summary.Title = "bi-files", "info", t("Duplicates")
 			summary.Text = t("The same content more than once. The Space page frees them, keeping the copy that is checked.")
 			summary.Href, summary.Action = "/space.html", t("Free them")
 		case ISSUE_OLD:
-			summary.Icon, summary.Tone, summary.Title = "bi-clock-history", "warning", t("Old updates and DLC")
 			summary.Text = t("A newer version of them is in the library. The Space page frees them.")
 			summary.Href, summary.Action = "/space.html", t("Free them")
 		case ISSUE_FILENAME:
-			summary.Icon, summary.Tone, summary.Title = "bi-tag", "info", t("Recognized by their name only")
 			summary.Text = t("The app could not read them inside and trusts their file name. With your prod.keys they are read whole.")
 		case ISSUE_UNSUPPORTED:
-			summary.Icon, summary.Tone, summary.Title = "bi-file-earmark-x", "muted", t("Files that are not games")
 			summary.Text = t("Images, notes, archives... in your folders. Ignore their types below to stop listing them.")
 		}
 		summaries = append(summaries, summary)

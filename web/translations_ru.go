@@ -3,6 +3,8 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Left to solve": "Осталось решить",
+		"Show the files of a kind": "Показать файлы одного типа",
 		"Empty folders": "Пустые папки",
 		"of %v": "из %v",
 		"Running.": "Выполняется.",

@@ -3,6 +3,8 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Left to solve": "해결할 문제",
+		"Show the files of a kind": "종류별 파일 보기",
 		"Empty folders": "빈 폴더",
 		"of %v": "(전체 %v)",
 		"Running.": "실행 중.",

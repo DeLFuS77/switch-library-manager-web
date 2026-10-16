@@ -5,6 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Left to solve": "Por resolver",
+		"Show the files of a kind": "Mostrar los archivos de un tipo",
 		"Empty folders": "Carpetas vacías",
 		"of %v": "de %v",
 		"Running.": "En marcha.",

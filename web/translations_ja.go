@@ -3,6 +3,8 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Left to solve": "未解決",
+		"Show the files of a kind": "種類ごとにファイルを表示",
 		"Empty folders": "空のフォルダー",
 		"of %v": "(全体 %v)",
 		"Running.": "実行中。",

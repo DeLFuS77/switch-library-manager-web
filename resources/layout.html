@@ -109,7 +109,23 @@
 							<hr>
 						</div>
 						<ul class="navbar-nav app-nav app-nav-compact me-xxl-2">
+							{{- if .Counts.IssueKinds}}
+							<li class="nav-item nav-hint">
+								<a class="nav-link{{if eq .Page "issues"}} active{{end}}" href="/issues.html" aria-describedby="issueHint"{{if eq .Page "issues"}} aria-current="page"{{end}}>
+									<span class="bi bi-exclamation-triangle" aria-hidden="true"></span><span class="nav-label">{{t "Issues"}}</span><span class="badge rounded-pill nav-count text-bg-danger ms-auto ms-xxl-0">{{num .Counts.Issues}}</span>
+								</a>
+								<div class="nav-hint-panel" id="issueHint" role="tooltip">
+									<div class="nav-hint-title">{{t "Left to solve"}}</div>
+									<ul class="list-unstyled mb-0">
+										{{- range .Counts.IssueKinds}}
+										<li class="tone-{{.Tone}}"><span class="nav-hint-icon bi {{.Icon}}" aria-hidden="true"></span><span class="flex-grow-1">{{t .Title}}</span><span class="nav-hint-count">{{num .Count}}</span></li>
+										{{- end}}
+									</ul>
+								</div>
+							</li>
+							{{- else}}
 							{{- template "navLink" (dict "Page" .Page "Id" "issues" "Href" "/issues.html" "Icon" "bi-exclamation-triangle" "Label" (t "Issues") "Count" .Counts.Issues "Badge" "text-bg-danger")}}
+							{{- end}}
 							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "/tasks.html" "Icon" (or (and .Counts.RunningTasks "bi-arrow-repeat nav-busy") "bi-list-task") "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger")}}
 						</ul>
 						{{- if or .Auth.Enabled .Auth.IsAdmin}}
