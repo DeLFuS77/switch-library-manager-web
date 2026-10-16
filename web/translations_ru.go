@@ -671,7 +671,6 @@ func init() {
 		"Convert selected":            "Преобразовать выбранные",
 		"Copied":                      "Скопировано",
 		"Copy":                        "Копировать",
-		"Copy title ID":               "Копировать Title ID",
 		"Copy to the card":            "Скопировать на карту",
 		"Could not reach the server.": "Не удалось связаться с сервером.",
 		"Cover downloads":             "Загрузка обложек",

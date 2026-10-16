@@ -671,7 +671,6 @@ func init() {
 		"Convert selected":            "转换所选",
 		"Copied":                      "已复制",
 		"Copy":                        "复制",
-		"Copy title ID":               "复制 Title ID",
 		"Copy to the card":            "复制到存储卡",
 		"Could not reach the server.": "无法连接到服务器。",
 		"Cover downloads":             "封面下载",

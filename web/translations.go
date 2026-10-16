@@ -776,7 +776,6 @@ var translations = map[string]map[string]string{
 		"No DLC": "Sin DLC",
 		"There are no passwords while login is disabled. Create an administrator to protect the app.": "No hay contraseñas mientras el inicio de sesión esté desactivado. Crea un administrador para proteger la app.",
 		"Filter by name...": "Filtrar por nombre...",
-		"Copy title ID":     "Copiar ID",
 		"Copied":            "Copiado",
 		"No updates have been released for this game.": "No se han publicado actualizaciones para este juego.",
 		"Space": "Espacio",

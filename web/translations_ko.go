@@ -671,7 +671,6 @@ func init() {
 		"Convert selected":            "선택 항목 변환",
 		"Copied":                      "복사됨",
 		"Copy":                        "복사",
-		"Copy title ID":               "타이틀 ID 복사",
 		"Copy to the card":            "카드에 복사",
 		"Could not reach the server.": "서버에 연결할 수 없어요.",
 		"Cover downloads":             "커버 다운로드",

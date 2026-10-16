@@ -671,7 +671,6 @@ func init() {
 		"Convert selected":            "選択したファイルを変換",
 		"Copied":                      "コピーしました",
 		"Copy":                        "コピー",
-		"Copy title ID":               "タイトルIDをコピー",
 		"Copy to the card":            "カードにコピー",
 		"Could not reach the server.": "サーバーに接続できませんでした。",
 		"Cover downloads":             "カバー画像のダウンロード",
