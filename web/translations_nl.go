@@ -3,6 +3,15 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Content": "Inhoud",
+		"Disk used": "Schijf gebruikt",
+		"Disk size": "Schijfgrootte",
+		"Saved by compressing": "Bespaard door comprimeren",
+		"%v days": "%v dagen",
+		"%v weeks": "%v weken",
+		"%v months": "%v maanden",
+		"The library grows about %v a month.": "De bibliotheek groeit ongeveer %v per maand.",
+		"At this rate the disk will be full around %v (in about %v).": "In dit tempo is de schijf rond %v vol (over ongeveer %v).",
 		"Little free space left on %v: %v (%v%%).": "Weinig vrije ruimte op %v: %v (%v%%).",
 		"Compressions wait until there is room. Free duplicates and old versions, or move files to another disk.": "Comprimeren wacht tot er ruimte is. Ruim duplicaten en oude versies op, of verplaats bestanden naar een andere schijf.",
 		"%v free (%v%%)": "%v vrij (%v%%)",
@@ -776,7 +785,6 @@ func init() {
 		"Games by publisher":             "Games per uitgever",
 		"Games by year of release":       "Games per jaar van uitgave",
 		"Games for several players":      "Games voor meerdere spelers",
-		"Games in the library over time": "Games in de bibliotheek door de tijd",
 		"Games in your library with DLC that you do not have. Ignore the ones you do not want.": "Games in je bibliotheek met DLC die je niet hebt. Negeer de DLC die je niet wilt.",
 		"Games of the Nintendo eShop that are not in your library.":                             "Games uit de Nintendo eShop die niet in je bibliotheek staan.",
 		"Games of the eShop you do not have, greyed out with the others.":                       "Games uit de eShop die je niet hebt, grijs weergegeven tussen de andere.",
@@ -1208,7 +1216,6 @@ func init() {
 		"folder name template needs to contain {TITLE_NAME} or {TITLE_ID}": "sjabloon voor mapnaam moet {TITLE_NAME} of {TITLE_ID} bevatten",
 		"games on the card":                                                "games op de kaart",
 		"identified by file name only, %v":                                 "alleen herkend aan bestandsnaam, %v",
-		"maximum %v":                                                       "maximaal %v",
 		"never":                                                            "nooit",
 		"next:":                                                            "volgende:",
 		"no library folder configured":                                     "geen bibliotheekmap ingesteld",

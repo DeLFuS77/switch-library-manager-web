@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Statistics: the history of the library has three charts, Content (games, DLC and updates), Space (the library, the
+  disk used and the size of the disk) and Saved (the bytes compressing saved), with the values of the day under the
+  pointer or the finger. Below, how much the library grows a month and, when it keeps growing, around which date the
+  disk would be full at this rate. The free space of the disk and the bytes saved are recorded from this version on.
+
 ## 1.35.0
 
 ### Improvements

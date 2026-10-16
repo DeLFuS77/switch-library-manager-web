@@ -3,6 +3,15 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Content": "コンテンツ",
+		"Disk used": "ディスク使用量",
+		"Disk size": "ディスク容量",
+		"Saved by compressing": "圧縮で節約",
+		"%v days": "%v 日",
+		"%v weeks": "%v 週間",
+		"%v months": "%v か月",
+		"The library grows about %v a month.": "ライブラリは月に約 %v 増えています。",
+		"At this rate the disk will be full around %v (in about %v).": "このペースだと、ディスクは %v ごろ(約 %v 後)にいっぱいになります。",
 		"Little free space left on %v: %v (%v%%).": "%v の空き容量が少なくなっています: %v (%v%%)。",
 		"Compressions wait until there is room. Free duplicates and old versions, or move files to another disk.": "圧縮は空きができるまで待ちます。重複や古いバージョンを削除するか、ファイルを別のディスクへ移してください。",
 		"%v free (%v%%)": "空き %v (%v%%)",
@@ -776,7 +785,6 @@ func init() {
 		"Games by publisher":             "パブリッシャー別のゲーム",
 		"Games by year of release":       "発売年別のゲーム",
 		"Games for several players":      "複数人で遊べるゲーム",
-		"Games in the library over time": "ライブラリのゲーム数の推移",
 		"Games in your library with DLC that you do not have. Ignore the ones you do not want.": "ライブラリにあるゲームのうち、所持していないDLCがあるもの。不要なものは無視してください。",
 		"Games of the Nintendo eShop that are not in your library.":                             "ライブラリにないニンテンドーeShopのゲーム。",
 		"Games of the eShop you do not have, greyed out with the others.":                       "所持していないeShopのゲームを、他のゲームと一緒にグレーで表示します。",
@@ -1208,7 +1216,6 @@ func init() {
 		"folder name template needs to contain {TITLE_NAME} or {TITLE_ID}": "フォルダー名のテンプレートには{TITLE_NAME}または{TITLE_ID}を含める必要があります",
 		"games on the card":                                                "カードに入れるゲーム",
 		"identified by file name only, %v":                                 "ファイル名のみで識別、%v",
-		"maximum %v":                                                       "最大%v",
 		"never":                                                            "なし",
 		"next:":                                                            "次回:",
 		"no library folder configured":                                     "ライブラリフォルダーが設定されていません",

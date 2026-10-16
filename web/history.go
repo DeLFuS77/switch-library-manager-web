@@ -2,7 +2,6 @@ package web
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -48,6 +47,11 @@ type HistoryDay struct {
 	Updates int    `json:"updates"`
 	Dlc     int    `json:"dlc"`
 	Size    int64  `json:"size"`
+	// the free space and the size of the disks of the library, and the bytes saved by
+	// compressing so far (0 on the days before they were recorded)
+	Free  int64 `json:"free,omitempty"`
+	Disk  int64 `json:"disk,omitempty"`
+	Saved int64 `json:"saved,omitempty"`
 }
 
 // historyEntry is a content of the library: when it was found and its name, for the event
@@ -65,17 +69,21 @@ type historyData struct {
 	// newest first
 	Events []HistoryEvent `json:"events"`
 	Days   []HistoryDay   `json:"days"`
+	// the bytes saved by compressing, since the history began
+	Saved int64 `json:"saved,omitempty"`
 }
 
 type libraryHistory struct {
 	mutex sync.Mutex
 	path  string
 	data  historyData
+	// measures the free space and the size of the disks of the library, if set
+	measure func() (free int64, total int64)
 }
 
 func (web *Web) history() *libraryHistory {
 	web.historyOnce.Do(func() {
-		history := &libraryHistory{path: filepath.Join(web.dataFolder, HISTORY_FILENAME)}
+		history := &libraryHistory{path: filepath.Join(web.dataFolder, HISTORY_FILENAME), measure: web.librarySpace}
 		history.reload()
 		web.hist = history
 	})
@@ -224,7 +232,11 @@ func (h *libraryHistory) record(contents map[string]libraryContent, now time.Tim
 		}
 		day.Size += content.size
 	}
-	daysChanged := len(h.data.Days) == 0 || h.data.Days[len(h.data.Days)-1] != day
+	day.Saved = h.data.Saved
+	if h.measure != nil {
+		day.Free, day.Disk = h.measure()
+	}
+	daysChanged := len(h.data.Days) == 0 || dayChanged(h.data.Days[len(h.data.Days)-1], day)
 	if len(h.data.Days) > 0 && h.data.Days[len(h.data.Days)-1].Date == day.Date {
 		h.data.Days[len(h.data.Days)-1] = day
 	} else {
@@ -245,6 +257,39 @@ func (h *libraryHistory) record(contents map[string]libraryContent, now time.Tim
 }
 
 // added returns when a content was found in the folders, or the zero time.
+// dayChanged tells whether a day is worth saving again: its contents changed, or its free
+// space by more than half a percent of the disk.
+func dayChanged(before HistoryDay, after HistoryDay) bool {
+	space := func(day HistoryDay) HistoryDay {
+		day.Free, day.Disk = 0, 0
+		return day
+	}
+	if space(before) != space(after) || before.Disk != after.Disk {
+		return true
+	}
+	difference := before.Free - after.Free
+	if difference < 0 {
+		difference = -difference
+	}
+	return difference*200 > after.Disk
+}
+
+// addSaved counts bytes saved by compressing, for the chart of the Statistics page.
+func (h *libraryHistory) addSaved(bytes int64) {
+	if bytes <= 0 {
+		return
+	}
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
+	h.data.Saved += bytes
+	if len(h.data.Days) > 0 {
+		h.data.Days[len(h.data.Days)-1].Saved = h.data.Saved
+	}
+	if data, err := json.Marshal(h.data); err == nil {
+		writeFileAtomic(h.path, data)
+	}
+}
+
 func (h *libraryHistory) added(key string) time.Time {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
@@ -295,43 +340,4 @@ func (web *Web) recordHistory() {
 		web.notifyNewContent(events)
 		web.queueAutomation(events)
 	}
-}
-
-// HistoryChart is the number of games over time, drawn as a line.
-type HistoryChart struct {
-	Points string
-	Max    int
-	Last   int
-	From   string
-	To     string
-}
-
-const (
-	historyChartWidth  = 600
-	historyChartHeight = 120
-)
-
-// historyChart draws the number of games of each day; it needs two days at least.
-func historyChart(days []HistoryDay) *HistoryChart {
-	if len(days) < 2 {
-		return nil
-	}
-	chart := &HistoryChart{From: days[0].Date, To: days[len(days)-1].Date, Last: days[len(days)-1].Games}
-	for _, day := range days {
-		if day.Games > chart.Max {
-			chart.Max = day.Games
-		}
-	}
-	scale := chart.Max
-	if scale == 0 {
-		scale = 1
-	}
-	points := make([]string, len(days))
-	for i, day := range days {
-		x := float64(i) * historyChartWidth / float64(len(days)-1)
-		y := historyChartHeight - 4 - float64(day.Games)*(historyChartHeight-8)/float64(scale)
-		points[i] = fmt.Sprintf("%.1f,%.1f", x, y)
-	}
-	chart.Points = strings.Join(points, " ")
-	return chart
 }

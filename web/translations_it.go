@@ -3,6 +3,15 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Content": "Contenuto",
+		"Disk used": "Disco usato",
+		"Disk size": "Dimensione del disco",
+		"Saved by compressing": "Risparmiato comprimendo",
+		"%v days": "%v giorni",
+		"%v weeks": "%v settimane",
+		"%v months": "%v mesi",
+		"The library grows about %v a month.": "La libreria cresce di circa %v al mese.",
+		"At this rate the disk will be full around %v (in about %v).": "Di questo passo il disco sarà pieno verso il %v (tra circa %v).",
 		"Little free space left on %v: %v (%v%%).": "Poco spazio libero su %v: %v (%v%%).",
 		"Compressions wait until there is room. Free duplicates and old versions, or move files to another disk.": "Le compressioni aspettano che ci sia spazio. Libera duplicati e versioni vecchie, o sposta file su un altro disco.",
 		"%v free (%v%%)": "%v liberi (%v%%)",
@@ -644,9 +653,7 @@ func init() {
 		"New in your library: %v": "Nuovo nella tua libreria: %v",
 		"New DLC in your library: %v": "Nuovo DLC nella tua libreria: %v",
 		"Library history": "Cronologia della libreria",
-		"Games in the library over time": "Giochi nella libreria nel tempo",
 		"%v games": "%v giochi",
-		"maximum %v": "massimo %v",
 		"added": "aggiunto",
 		"removed": "rimosso",
 		"The games, updates and DLC added to or removed from your folders appear here after the next scans.": "Giochi, aggiornamenti e DLC aggiunti o rimossi dalle tue cartelle compaiono qui dopo le prossime scansioni.",

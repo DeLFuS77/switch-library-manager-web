@@ -366,6 +366,17 @@ func (web *Web) writeDemoHistory(switchDB *db.SwitchTitlesDB, localDB *db.LocalS
 		}
 		data.Days = append(data.Days, entry)
 	}
+	// a made-up disk, with room for the library and other files, and the bytes compressing saved
+	if len(data.Days) > 0 {
+		final := data.Days[len(data.Days)-1].Size
+		disk := ((final*8/5)>>40 + 1) << 40
+		for i := range data.Days {
+			data.Days[i].Disk = disk
+			data.Days[i].Free = disk - disk*3/20 - data.Days[i].Size
+			data.Days[i].Saved = int64(i) * final / 60
+		}
+		data.Saved = data.Days[len(data.Days)-1].Saved
+	}
 	if bytes, err := json.Marshal(data); err == nil {
 		os.WriteFile(filepath.Join(web.dataFolder, HISTORY_FILENAME), bytes, 0600)
 		web.history().reload()

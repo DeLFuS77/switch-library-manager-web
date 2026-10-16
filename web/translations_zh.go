@@ -3,6 +3,15 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Content": "内容",
+		"Disk used": "磁盘已用",
+		"Disk size": "磁盘容量",
+		"Saved by compressing": "压缩节省",
+		"%v days": "%v 天",
+		"%v weeks": "%v 周",
+		"%v months": "%v 个月",
+		"The library grows about %v a month.": "游戏库每月增长约 %v。",
+		"At this rate the disk will be full around %v (in about %v).": "按这个速度,磁盘将在 %v 左右(约 %v 后)写满。",
 		"Little free space left on %v: %v (%v%%).": "%v 的可用空间不足:%v(%v%%)。",
 		"Compressions wait until there is room. Free duplicates and old versions, or move files to another disk.": "压缩会等到有空间时再进行。请清理重复文件和旧版本,或把文件移到其他磁盘。",
 		"%v free (%v%%)": "可用 %v(%v%%)",
@@ -776,7 +785,6 @@ func init() {
 		"Games by publisher":             "按发行商统计游戏",
 		"Games by year of release":       "按发行年份统计游戏",
 		"Games for several players":      "多人游戏",
-		"Games in the library over time": "游戏库中的游戏数量变化",
 		"Games in your library with DLC that you do not have. Ignore the ones you do not want.": "游戏库中有你尚未拥有的 DLC 的游戏。不想要的可以忽略。",
 		"Games of the Nintendo eShop that are not in your library.":                             "Nintendo eShop 中不在你游戏库里的游戏。",
 		"Games of the eShop you do not have, greyed out with the others.":                       "你没有的 eShop 游戏，以灰色与其他游戏一同显示。",
@@ -1208,7 +1216,6 @@ func init() {
 		"folder name template needs to contain {TITLE_NAME} or {TITLE_ID}": "文件夹名模板必须包含 {TITLE_NAME} 或 {TITLE_ID}",
 		"games on the card":                                                "卡上的游戏",
 		"identified by file name only, %v":                                 "仅通过文件名识别，%v",
-		"maximum %v":                                                       "最多 %v",
 		"never":                                                            "从未",
 		"next:":                                                            "下次：",
 		"no library folder configured":                                     "未配置游戏库文件夹",
