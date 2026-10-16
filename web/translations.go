@@ -5,6 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"(updating...)": "(actualizando…)",
+		"Updating: this is what the page found last, the newer figures come with the next visit.": "Actualizando: esto es lo último que encontró la página; las cifras nuevas saldrán en la próxima visita.",
 		"Review again": "Revisar de nuevo",
 		"Working out the steps; the page updates by itself.": "Calculando los pasos; la página se actualiza sola.",
 		"Last reviewed %v. After changing files outside the app, review again.": "Última revisión: %v. Si cambias archivos fuera de la app, revisa de nuevo.",

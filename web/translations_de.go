@@ -3,6 +3,8 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"(updating...)": "(wird aktualisiert…)",
+		"Updating: this is what the page found last, the newer figures come with the next visit.": "Wird aktualisiert: Das hat die Seite zuletzt gefunden, die neueren Zahlen kommen beim nächsten Besuch.",
 		"Review again": "Erneut prüfen",
 		"Working out the steps; the page updates by itself.": "Die Schritte werden ermittelt; die Seite aktualisiert sich von selbst.",
 		"Last reviewed %v. After changing files outside the app, review again.": "Zuletzt geprüft: %v. Wenn du Dateien außerhalb der App änderst, prüfe erneut.",

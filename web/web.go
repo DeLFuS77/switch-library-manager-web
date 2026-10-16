@@ -155,6 +155,10 @@ type Web struct {
 	spacePreparing atomic.Bool
 	// the changes of Organize are being counted for the tune-up
 	organizePreparing atomic.Bool
+	// the last content of the Space page and the last count of the changes of Organize
+	// (-1: none yet), shown while newer ones are worked out
+	lastSpace    atomic.Pointer[SpacePageData]
+	lastOrganize atomic.Int64
 	fallbackMutex     sync.Mutex
 	thumbs            *thumbnails
 	thumbsOnce        sync.Once

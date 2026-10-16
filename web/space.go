@@ -97,8 +97,10 @@ type SpacePageData struct {
 	CompressSize int64
 	// games of the library with copies of several stores
 	Regions []RegionGroup
-	// the content is being prepared: the page says so and loads it when it is ready
+	// the content is being prepared: the page says so and loads it when it is ready; or the
+	// content shown is the last one, while a newer one is prepared
 	Preparing bool
+	Updating  bool
 }
 
 // RemovablePercent is the share of the library that can be freed.
@@ -341,7 +343,19 @@ func isCopyOf(copy string, name string) bool {
 // spaceKey names the cached content of the Space page: it follows the library, the settings
 // (through derived) and the verification results.
 func (web *Web) spaceKey() string {
-	return fmt.Sprintf("space:%d", web.verifications().Version())
+	store := web.verifications()
+	// while a check runs its results change with every file: the content would be worked
+	// out again before it is ever done, so it follows the results as they are saved
+	if web.verifying() {
+		return fmt.Sprintf("space:%d", store.SavedVersion())
+	}
+	return fmt.Sprintf("space:%d", store.Version())
+}
+
+// lastSpaceContent is the content of the Space page last worked out, shown while a newer
+// one is prepared, or nil.
+func (web *Web) lastSpaceContent() *SpacePageData {
+	return web.lastSpace.Load()
 }
 
 // spaceContent is the content of the Space page, computed once: it opens every original and
@@ -394,6 +408,8 @@ func (web *Web) buildSpaceContent() SpacePageData {
 		data.Compressible++
 		data.CompressSize += candidate.Size
 	}
+	last := data
+	web.lastSpace.Store(&last)
 	return data
 }
 
@@ -403,6 +419,15 @@ func (web *Web) HandleSpace() {
 	web.router.HandleFunc("/space.html", func(w http.ResponseWriter, r *http.Request) {
 		// the page opens at once and says what it is doing while its content is prepared
 		if !web.spaceReady() {
+			// the content last worked out, while the newer one is prepared
+			if last := web.lastSpaceContent(); last != nil {
+				data := *last
+				data.GlobalPageData = web.globalPageData("space")
+				data.Updating = true
+				data.Regions = web.regionalDuplicates(web.requestLanguage(r))
+				web.render(w, r, templates, data)
+				return
+			}
 			web.render(w, r, templates, SpacePageData{GlobalPageData: web.globalPageData("space"), Preparing: true})
 			return
 		}

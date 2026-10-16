@@ -72,8 +72,15 @@ type verifyStore struct {
 	records map[string]verifyRecord
 	// when the last verification finished
 	LastRun time.Time
-	// changed with every result, for what is computed from them
+	// changed with every result, for what is computed from them, and the one last saved
 	version atomic.Uint64
+	saved   atomic.Uint64
+}
+
+// SavedVersion is the version of the results last saved: while a check runs, every two
+// minutes instead of with every file.
+func (s *verifyStore) SavedVersion() uint64 {
+	return s.saved.Load()
 }
 
 // Version changes with every result recorded.
@@ -110,7 +117,9 @@ func (s *verifyStore) reload() {
 func (s *verifyStore) save() error {
 	s.mutex.Lock()
 	data, err := json.MarshalIndent(verifyFile{LastRun: s.LastRun, Records: s.records}, "", " ")
+	version := s.version.Load()
 	s.mutex.Unlock()
+	defer s.saved.Store(version)
 	if err != nil {
 		return err
 	}

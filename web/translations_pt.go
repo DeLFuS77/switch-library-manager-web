@@ -3,6 +3,8 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"(updating...)": "(atualizando…)",
+		"Updating: this is what the page found last, the newer figures come with the next visit.": "Atualizando: isto é o que a página encontrou por último; os números novos virão na próxima visita.",
 		"Review again": "Revisar de novo",
 		"Working out the steps; the page updates by itself.": "Calculando os passos; a página se atualiza sozinha.",
 		"Last reviewed %v. After changing files outside the app, review again.": "Última revisão: %v. Se mudar arquivos fora do app, revise de novo.",
