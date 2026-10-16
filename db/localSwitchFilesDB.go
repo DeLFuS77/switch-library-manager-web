@@ -556,10 +556,25 @@ func (ldb *LocalSwitchDBManager) needsAttributes(metadata map[string]*switchfs.C
 		if meta == nil || meta.Ncap == nil || (meta.Ncap.AttributesRead && meta.Ncap.NamesRead) {
 			continue
 		}
+		// read before the names were read apart and left without any name: the Simplified
+		// Chinese one was lost, whatever the titles database knows of the game
+		if !meta.Ncap.NamesRead && !hasName(meta.Ncap) {
+			return true
+		}
 		if prefix, err := TitleIDPrefix(meta.TitleId); err == nil {
 			if _, known := ldb.titles.TitlesMap[prefix]; !known {
 				return true
 			}
+		}
+	}
+	return false
+}
+
+// hasName tells whether a game gives itself a name in any language.
+func hasName(nacp *switchfs.Nacp) bool {
+	for _, title := range nacp.TitleName {
+		if strings.Trim(title.Title, " -_.?·") != "" {
+			return true
 		}
 	}
 	return false

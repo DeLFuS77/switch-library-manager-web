@@ -3,6 +3,7 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"of %v": "su %v",
 		"Running.": "In corso.",
 		"It goes on in the background; this page updates by itself when it ends.": "Continua in background; questa pagina si aggiorna da sola quando finisce.",
 		"Showing them": "Mostrati",

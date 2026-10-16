@@ -3,6 +3,7 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"of %v": "(全体 %v)",
 		"Running.": "実行中。",
 		"It goes on in the background; this page updates by itself when it ends.": "バックグラウンドで続きます。終わるとこのページは自動で更新されます。",
 		"Showing them": "表示中",

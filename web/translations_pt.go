@@ -3,6 +3,7 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"of %v": "de %v",
 		"Running.": "Em andamento.",
 		"It goes on in the background; this page updates by itself when it ends.": "Continua em segundo plano; esta página se atualiza sozinha quando terminar.",
 		"Showing them": "Mostrando estes",

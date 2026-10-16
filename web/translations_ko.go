@@ -3,6 +3,7 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"of %v": "(전체 %v)",
 		"Running.": "실행 중.",
 		"It goes on in the background; this page updates by itself when it ends.": "백그라운드에서 계속됩니다. 끝나면 이 페이지가 저절로 새로 고쳐집니다.",
 		"Showing them": "표시 중",
