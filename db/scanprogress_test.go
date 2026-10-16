@@ -46,7 +46,7 @@ func TestWalkingTheFoldersShowsProgress(t *testing.T) {
 func TestUnknownGamesAreReadAgainForTheirAttributes(t *testing.T) {
 	ldb := &LocalSwitchDBManager{titles: &SwitchTitlesDB{TitlesMap: map[string]*SwitchTitle{"0100000000010": {}}}}
 	meta := func(id string, read bool) map[string]*switchfs.ContentMetaAttributes {
-		return map[string]*switchfs.ContentMetaAttributes{id: {TitleId: id, Ncap: &switchfs.Nacp{AttributesRead: read, NamesRead: read}}}
+		return map[string]*switchfs.ContentMetaAttributes{id: {TitleId: id, Ncap: &switchfs.Nacp{AttributesRead: read, NamesRead: read, TitleName: map[string]switchfs.NacpTitle{"AmericanEnglish": {Title: "Game"}}}}}
 	}
 	if !ldb.needsAttributes(meta("0100000000020000", false)) {
 		t.Fatal("an unknown game without attributes is read again")
@@ -62,5 +62,16 @@ func TestUnknownGamesAreReadAgainForTheirAttributes(t *testing.T) {
 	older["0100000000020000"].Ncap.NamesRead = false
 	if !ldb.needsAttributes(older) {
 		t.Fatal("an unknown game read with the names mixed up is read again")
+	}
+	// a known game left without any name is read again too; one with a name is kept
+	known := meta("0100000000010000", true)
+	known["0100000000010000"].Ncap.NamesRead = false
+	known["0100000000010000"].Ncap.TitleName = map[string]switchfs.NacpTitle{"BrazilianPortuguese": {Title: ""}}
+	if !ldb.needsAttributes(known) {
+		t.Fatal("a known game without a name is read again")
+	}
+	known["0100000000010000"].Ncap.TitleName = map[string]switchfs.NacpTitle{"AmericanEnglish": {Title: "Known Game"}}
+	if ldb.needsAttributes(known) {
+		t.Fatal("a known game with a name is kept")
 	}
 }

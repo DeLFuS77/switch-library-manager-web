@@ -118,20 +118,20 @@ type SpaceShare struct {
 	Percent float64
 }
 
-// Shares splits the bar between the groups by their size, the colors of the legend: the share
-// of the library is often too small to be seen.
+// Shares splits the bar between the groups by what can be freed of each, the colors of the
+// legend: the share of the library is often too small to be seen.
 func (d SpacePageData) Shares() []SpaceShare {
 	total := int64(0)
 	for _, group := range d.Groups {
-		total += group.Size
+		total += group.DeletableSize
 	}
 	shares := []SpaceShare{}
 	if total == 0 {
 		return shares
 	}
 	for _, group := range d.Groups {
-		if group.Size > 0 {
-			shares = append(shares, SpaceShare{Id: group.Id, Percent: math.Round(float64(group.Size)*1000/float64(total)) / 10})
+		if group.DeletableSize > 0 {
+			shares = append(shares, SpaceShare{Id: group.Id, Percent: math.Round(float64(group.DeletableSize)*1000/float64(total)) / 10})
 		}
 	}
 	return shares

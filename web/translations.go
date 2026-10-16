@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"of %v": "de %v",
 		"Running.": "En marcha.",
 		"It goes on in the background; this page updates by itself when it ends.": "Sigue en segundo plano; esta página se actualiza sola cuando acabe.",
 		"Showing them": "Mostrando estos",

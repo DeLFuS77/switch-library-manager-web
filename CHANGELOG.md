@@ -10,6 +10,10 @@
 
 ### Fixes
 
+- A game read by an older version that was left without any name of its own (its Simplified Chinese name lost) is
+  read again with the next scan also when the titles database knows it, e.g. with a placeholder name such as "-".
+- Space: the legend and the bar count what can be freed of each group, with the whole group after it when part of it
+  cannot go; "0 B can be freed" sat next to "Old updates: 9.0 GB".
 - Issues: after deleting the damaged files or the files that cannot be read, the page showed them until it was
   reloaded by hand; it now updates once the scan after the deletion ends.
 
