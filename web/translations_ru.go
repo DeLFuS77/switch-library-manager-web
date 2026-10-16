@@ -3,6 +3,8 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"(updating...)": "(обновляется…)",
+		"Updating: this is what the page found last, the newer figures come with the next visit.": "Обновление: это последнее, что нашла страница; новые цифры появятся при следующем посещении.",
 		"Review again": "Проверить снова",
 		"Working out the steps; the page updates by itself.": "Шаги вычисляются; страница обновится сама.",
 		"Last reviewed %v. After changing files outside the app, review again.": "Последняя проверка: %v. Если вы меняли файлы вне приложения, проверьте снова.",

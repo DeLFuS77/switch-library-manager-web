@@ -2,6 +2,9 @@
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Space") "Count" -1 "Subtitle" (t "Files that take space without being needed: old updates, duplicates and originals that already have a compressed copy. Nothing is deleted until you confirm it."))}}
 			{{- with maintenanceStep .Page}}<a class="maintenance-hint" href="/maintenance.html"><span class="bi bi-list-check" aria-hidden="true"></span>{{t "Step %v of 5 of the tune-up" .}} <span class="text-body-secondary">&middot; {{t "See the steps in order"}}</span></a>{{end}}
+			{{- if .Updating}}
+			<div class="alert alert-secondary d-flex align-items-center gap-2 py-2 small" role="status"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span>{{t "Updating: this is what the page found last, the newer figures come with the next visit."}}</div>
+			{{- end}}
 			{{- if .Preparing}}
 			<section class="surface space-preparing" data-space-preparing role="status" aria-live="polite">
 				<div class="d-flex align-items-center gap-3 mb-3">

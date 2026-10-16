@@ -3,6 +3,8 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"(updating...)": "(更新中…)",
+		"Updating: this is what the page found last, the newer figures come with the next visit.": "更新中: これは前回ページが見つけた内容です。新しい数字は次回表示されます。",
 		"Review again": "もう一度確認",
 		"Working out the steps; the page updates by itself.": "手順を計算中です。ページは自動で更新されます。",
 		"Last reviewed %v. After changing files outside the app, review again.": "最終確認: %v。アプリの外でファイルを変更したら、もう一度確認してください。",

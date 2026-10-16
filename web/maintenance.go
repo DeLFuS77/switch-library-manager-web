@@ -109,6 +109,16 @@ func (web *Web) maintenanceSteps(lang string) []MaintenanceStep {
 			}
 		case STEP_ORGANIZE:
 			changes, ready := web.organizeChanges()
+			updating := false
+			if !ready && web.lastOrganize.Load() > 0 {
+				// the last count, while it is counted again
+				changes, ready, updating = int(web.lastOrganize.Load()-1), true, true
+			}
+			defer func(step *MaintenanceStep) {
+				if updating {
+					step.Detail += " " + t("(updating...)")
+				}
+			}(step)
 			switch {
 			case localDB == nil || !ready:
 				step.Status, step.Detail = STEP_PREPARING, t("Looking at what would change...")
@@ -118,11 +128,16 @@ func (web *Web) maintenanceSteps(lang string) []MaintenanceStep {
 				step.Status, step.Detail = STEP_DONE, t("Every file is in its place.")
 			}
 		case STEP_SPACE:
+			ready := web.spaceReady()
+			last := web.lastSpaceContent()
 			switch {
-			case localDB == nil || !web.spaceReady():
+			case localDB == nil || (!ready && last == nil):
 				step.Status, step.Detail = STEP_PREPARING, t("Looking at what can be freed...")
 			default:
-				data := web.spaceContent()
+				data := *last
+				if ready {
+					data = web.spaceContent()
+				}
 				if data.Reclaimable > 0 {
 					step.Status, step.Detail = STEP_TODO, t("%v can be freed now.", formatSize(data.Reclaimable))
 				} else {
@@ -130,6 +145,9 @@ func (web *Web) maintenanceSteps(lang string) []MaintenanceStep {
 				}
 				if data.Unverified > 0 {
 					step.Detail += " " + t("%v more once their other copy is checked.", formatNumber(lang, data.Unverified))
+				}
+				if !ready {
+					step.Detail += " " + t("(updating...)")
 				}
 			}
 		case STEP_COMPRESS:
@@ -224,6 +242,8 @@ func (web *Web) organizeChanges() (int, bool) {
 						changes++
 					}
 				}
+				// kept even if the library changed meanwhile, to show while it is counted again
+				web.lastOrganize.Store(int64(changes) + 1)
 				return changes
 			})
 		}()
