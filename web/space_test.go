@@ -42,6 +42,8 @@ func spaceWeb(t *testing.T) (*Web, string) {
 	}
 	game := file("Game [0100000000010000][v0].nsp", 300)
 	file("Game [0100000000010000][v0].nsz", 100)
+	// the compressed copy was just written: the next scan would find it
+	web.rememberWritten(filepath.Join(dir, "Game [0100000000010000][v0].nsz"))
 	oldUpdate := file("Game [0100000000010800][v65536].nsp", 50)
 	// the newer update the old one is replaced by
 	file("Game [0100000000010800][v131072].nsp", 60)

@@ -15,6 +15,8 @@
 
 ### Fixes
 
+- Tune-up: the page could take more than ten seconds to open on a NAS, while it asked the disk whether every NSP and
+  XCI had a compressed copy next to it; it now looks among the files of the last scan and the copies written since.
 - Compress: the "All" chip counts every file to compress, also the smaller ones listed together in the last row (it
   said 300 while 1,787 were selected), and a note says the biggest files are listed one by one.
 - "Hide demos" hides the demos whose name ends with the word ("… Demo", "… - Demo", "…-DEMO", "… Demo for KIOSK",
