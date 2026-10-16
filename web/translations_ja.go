@@ -3,6 +3,7 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Your library, games and settings are safe; nothing is changed while the app starts.": "ライブラリ、ゲーム、設定は安全です。起動中に何も変更されません。",
 		"Opening the local database...": "ローカルデータベースを開いています…",
 		"Loading the keys...": "キーを読み込んでいます…",
 		"Checking the users...": "ユーザーを確認しています…",

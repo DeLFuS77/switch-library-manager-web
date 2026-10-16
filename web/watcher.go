@@ -77,14 +77,17 @@ func (web *Web) StartFolderWatcher() {
 	}
 
 	w := &folderWatcher{web: web, tree: newDirTree(), notify: notify, watched: map[string]struct{}{}}
-	// the library may come from the cache of the previous run: files changed while the app
-	// was stopped are picked up by the first check, as nothing counts as scanned yet
-	w.lastCheck = w.fingerprint()
-	// folders that did not change since the last scan of the previous run need no scan
-	w.scanned = web.savedWatchFingerprint()
-	w.updateWatches()
-
-	go w.run()
+	// the first look at the folders walks every file of the library, which takes minutes on
+	// a NAS: it is done in the background, so the app opens meanwhile
+	go func() {
+		// the library may come from the cache of the previous run: files changed while the
+		// app was stopped are picked up by the first check, as nothing counts as scanned yet
+		w.lastCheck = w.fingerprint()
+		// folders that did not change since the last scan of the previous run need no scan
+		w.scanned = web.savedWatchFingerprint()
+		w.updateWatches()
+		w.run()
+	}()
 }
 
 // fingerprint checks the library folders (see dirTree) and returns their fingerprint.

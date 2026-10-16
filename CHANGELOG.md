@@ -1,9 +1,17 @@
 # Changelog
 
-## Unreleased
+## 1.39.1
+
+### Improvements
+
+- The page of the start looks like the app: its mark and colours, the steps with a check once done and a striped bar,
+  in the theme chosen in the app.
 
 ### Fixes
 
+- The app could stay for minutes on the page of the start ("Preparing the pages...") on a large library on a NAS: it
+  first walked every file of the folders to watch them. That walk is now done in the background, after the app opens;
+  it was also the cause of the minute it took to answer after an update or a restart.
 - Tasks: the list of the files a running compression has done no longer jumps back to the top every second while it
   is scrolled; it stays where it was each time the progress is drawn again.
 
