@@ -774,7 +774,6 @@ func init() {
 		"No DLC": "Nessun DLC",
 		"There are no passwords while login is disabled. Create an administrator to protect the app.": "Non ci sono password finché l'accesso è disattivato. Crea un amministratore per proteggere l'app.",
 		"Filter by name...": "Filtra per nome...",
-		"Copy title ID":     "Copia ID",
 		"Copied":            "Copiato",
 		"No updates have been released for this game.": "Non sono stati pubblicati aggiornamenti per questo gioco.",
 		"Space": "Spazio",

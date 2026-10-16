@@ -4,6 +4,8 @@
 
 ### Improvements
 
+- Game page: the title ID copies itself on a click, with the clipboard icon next to it (a check for a moment once
+  copied), and so do the IDs of the DLC; the separate "Copy title ID" button is gone.
 - Compress: the list of files is colored by kind (game, update, DLC), each file with its format and a bar of its size
   next to the biggest one, and chips at the top show only the files of a kind; "Select all" picks the files shown.
 - The Issues icon of the header shows, under the mouse, a small panel with the kinds of issues left to solve and how

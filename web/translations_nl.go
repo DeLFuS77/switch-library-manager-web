@@ -671,7 +671,6 @@ func init() {
 		"Convert selected":            "Selectie converteren",
 		"Copied":                      "Gekopieerd",
 		"Copy":                        "Kopiëren",
-		"Copy title ID":               "Title ID kopiëren",
 		"Copy to the card":            "Naar de kaart kopiëren",
 		"Could not reach the server.": "Kan de server niet bereiken.",
 		"Cover downloads":             "Covers downloaden",

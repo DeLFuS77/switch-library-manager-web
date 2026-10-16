@@ -80,14 +80,13 @@
 									</div>
 								</form>
 							</div>
-							<button type="button" class="btn btn-glass rounded-pill" data-copy="{{$t.Id}}" data-copied="{{t "Copied"}}"><span class="bi bi-clipboard me-2" aria-hidden="true"></span><span data-copy-label>{{t "Copy title ID"}}</span></button>
 						</div>
 					</div>
 				</div>
 				<dl class="fact-grid">
 					<div class="fact fact-wide">
 						<dt class="fact-label"><span class="bi bi-upc" aria-hidden="true"></span>{{t "Title ID"}}</dt>
-						<dd class="fact-value font-monospace fact-id">{{$t.Id}}</dd>
+						<dd class="fact-value fact-id">{{template "copyId" $t.Id}}</dd>
 					</div>
 					{{- if not $t.ReleaseDate.IsZero}}
 					<div class="fact">
@@ -262,7 +261,7 @@
 					<li class="item-row item-row-wide">
 						<div class="item-main">
 							<div class="item-name">{{.Name}}</div>
-							<div class="item-meta"><span class="font-monospace">{{.Id}}</span>{{if .File}}<span>{{formatSize .File.Size}}</span>{{end}}</div>
+							<div class="item-meta">{{template "copyId" .Id}}{{if .File}}<span>{{formatSize .File.Size}}</span>{{end}}</div>
 						</div>
 						<div class="item-end">
 							{{- if .Owned}}
@@ -335,3 +334,5 @@
 						<a class="btn btn-sm btn-outline-secondary rounded-pill flex-shrink-0" href="{{.NotesUrl}}" target="_blank" rel="noopener noreferrer"><span class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></span>{{t "What is new"}}</a>
 					</li>
 {{- end}}
+
+{{define "copyId"}}<button type="button" class="copy-inline" data-copy="{{.}}" title="{{t "Copy ID"}}" aria-label="{{t "Copy ID"}} {{.}}"><span class="font-monospace">{{.}}</span><span class="bi bi-clipboard copy-icon" aria-hidden="true"></span><span class="bi bi-check-lg copied-icon" aria-hidden="true"></span></button>{{end}}
