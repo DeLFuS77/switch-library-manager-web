@@ -3,6 +3,12 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Opening the local database...": "Открывается локальная база данных…",
+		"Loading the keys...": "Загружаются ключи…",
+		"Checking the users...": "Проверяются пользователи…",
+		"Preparing the pages...": "Готовятся страницы…",
+		"Starting the app...": "Приложение запускается…",
+		"After an update or a restart this takes a moment. The page opens by itself when the app is ready.": "После обновления или перезапуска это занимает немного времени. Страница откроется сама, когда приложение будет готово.",
 		"The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list.": "Самые большие файлы (%v) показаны по одному; остальные %v, поменьше, собраны в последней строке списка.",
 		"Left to solve": "Осталось решить",
 		"Show the files of a kind": "Показать файлы одного типа",

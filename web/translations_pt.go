@@ -3,6 +3,12 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Opening the local database...": "Abrindo o banco de dados local…",
+		"Loading the keys...": "Carregando as chaves…",
+		"Checking the users...": "Verificando os usuários…",
+		"Preparing the pages...": "Preparando as páginas…",
+		"Starting the app...": "Iniciando o aplicativo…",
+		"After an update or a restart this takes a moment. The page opens by itself when the app is ready.": "Depois de uma atualização ou reinício leva um momento. A página abre sozinha quando o aplicativo estiver pronto.",
 		"The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list.": "Os %v maiores arquivos aparecem um a um; os outros %v, menores, vão juntos na última linha da lista.",
 		"Left to solve": "Por resolver",
 		"Show the files of a kind": "Mostrar os arquivos de um tipo",

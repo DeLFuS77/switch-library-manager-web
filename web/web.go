@@ -13,6 +13,7 @@ import (
 	"html/template"
 	"io/fs"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -160,20 +161,20 @@ type Web struct {
 	lastSpace    atomic.Pointer[SpacePageData]
 	lastOrganize atomic.Int64
 	// the volumes of the library short of free space
-	disks diskWatch
-	fallbackMutex     sync.Mutex
-	thumbs            *thumbnails
-	thumbsOnce        sync.Once
-	store             *db.TitleStore
-	storeOnce         sync.Once
-	remote            *remoteCovers
-	remoteOnce        sync.Once
-	languages         titleLanguages
-	auto              autoCompressor
-	updates           updateChecker
-	verify            *verifyStore
-	verifyOnce        sync.Once
-	compressor        compressor
+	disks         diskWatch
+	fallbackMutex sync.Mutex
+	thumbs        *thumbnails
+	thumbsOnce    sync.Once
+	store         *db.TitleStore
+	storeOnce     sync.Once
+	remote        *remoteCovers
+	remoteOnce    sync.Once
+	languages     titleLanguages
+	auto          autoCompressor
+	updates       updateChecker
+	verify        *verifyStore
+	verifyOnce    sync.Once
+	compressor    compressor
 	// files are being organized or deleted by Organize: file tasks wait
 	organizing atomic.Bool
 	cache      derivedCache
@@ -560,15 +561,51 @@ func CreateWeb(router *mux.Router, embedFS embed.FS, appSettings *settings.AppSe
 }
 
 func (web *Web) Start() {
+	// the app answers at once: while it gets ready, every page says it is starting and opens
+	// by itself once it is ready (opening the local database and preparing the pages can
+	// take a while on a NAS)
+	listener, err := net.Listen("tcp", fmt.Sprint(":", web.appSettings.Port))
+	if err != nil {
+		// started twice with a double click: the app is already open, show it instead
+		if portInUse(err) {
+			url := fmt.Sprintf("http://localhost:%d/", web.appSettings.Port)
+			web.sugarLogger.Warnf("Port %d is already in use: the app may be running already. Open %s, or set another \"port\" in settings.json.", web.appSettings.Port, url)
+			if shouldOpenBrowser() {
+				openUrl(url)
+			}
+			os.Exit(1)
+		}
+		web.sugarLogger.Error(fmt.Errorf("running http server failed: %w", err))
+		log.Fatal(err)
+	}
+	front := &switchHandler{}
+	front.set(withSecurityHeaders(startingHandler()))
+	// timeouts so slow or idle connections cannot pile up; no write timeout, because game
+	// downloads and the live task events can take long
+	server := &http.Server{
+		Handler:           front,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       5 * time.Minute,
+		IdleTimeout:       2 * time.Minute,
+		MaxHeaderBytes:    64 << 10,
+	}
+	served := make(chan error, 1)
+	go func() { served <- server.Serve(listener) }()
+	if shouldOpenBrowser() && !isDemoMode() {
+		go web.openBrowserWhenReady(web.appSettings.Port)
+	}
+
 	// the names the games give themselves, for names the titles database has only in another script
 	lookup := web.libraryNacp
 	fileNacp.Store(&lookup)
+	setStartingStep("Opening the local database...")
 	localDbManager, err := db.NewLocalSwitchDBManager(web.dataFolder)
 	if err != nil {
 		web.sugarLogger.Error("Failed to create local files db\n", err)
 		return
 	}
 
+	setStartingStep("Loading the keys...")
 	_, err = settings.InitSwitchKeys(web.dataFolder)
 	if err != nil {
 		// running without keys is supported, files are then identified by their name
@@ -584,6 +621,7 @@ func (web *Web) Start() {
 		web.startInBackground()
 	}
 
+	setStartingStep("Checking the users...")
 	web.auth, err = newAuth(web.dataFolder)
 	if err != nil {
 		web.sugarLogger.Error(err)
@@ -591,6 +629,7 @@ func (web *Web) Start() {
 	}
 
 	// Run http server
+	setStartingStep("Preparing the pages...")
 	web.router.Use(sameOriginOnly)
 	web.HandleResources()
 	web.HandleImages()
@@ -659,31 +698,10 @@ func (web *Web) Start() {
 		web.sugarLogger.Warn("[Authentication disabled] The app only answers on the local network until an administrator is created in Users.")
 	}
 
+	// the app is ready: the pages take the place of the page of the start
+	front.set(withSecurityHeaders(withBodyLimit(withCompression(withHealthCheck(web.withVault(handler))))))
 	web.sugarLogger.Info("[SLM started]")
-
-	// timeouts so slow or idle connections cannot pile up; no write timeout, because game
-	// downloads and the live task events can take long
-	server := &http.Server{
-		Addr:              fmt.Sprint(":", web.appSettings.Port),
-		Handler:           withSecurityHeaders(withBodyLimit(withCompression(withHealthCheck(web.withVault(handler))))),
-		ReadHeaderTimeout: 10 * time.Second,
-		ReadTimeout:       5 * time.Minute,
-		IdleTimeout:       2 * time.Minute,
-		MaxHeaderBytes:    64 << 10,
-	}
-	if shouldOpenBrowser() && !isDemoMode() {
-		go web.openBrowserWhenReady(web.appSettings.Port)
-	}
-	if err := server.ListenAndServe(); err != nil {
-		// started twice with a double click: the app is already open, show it instead
-		if portInUse(err) {
-			url := fmt.Sprintf("http://localhost:%d/", web.appSettings.Port)
-			web.sugarLogger.Warnf("Port %d is already in use: the app may be running already. Open %s, or set another \"port\" in settings.json.", web.appSettings.Port, url)
-			if shouldOpenBrowser() {
-				openUrl(url)
-			}
-			os.Exit(1)
-		}
+	if err := <-served; err != nil {
 		web.sugarLogger.Error(fmt.Errorf("running http server failed: %w", err))
 		log.Fatal(err)
 	}

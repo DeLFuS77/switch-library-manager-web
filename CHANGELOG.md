@@ -4,6 +4,9 @@
 
 ### Improvements
 
+- The app answers as soon as it starts: while it gets ready after an update or a restart, every page shows "Starting
+  the app..." with what it is doing (opening the local database, loading the keys, preparing the pages) and opens by
+  itself once it is ready, instead of failing to load. The health check says it is not ready until then.
 - On the widest screens (1700 pixels and more), the search of the header is a small field with its shortcut instead of
   the magnifier alone, in the room the menu leaves.
 - Tasks: each file being compressed, decompressed or converted says which format it becomes ("NSP → NSZ",

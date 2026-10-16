@@ -3,6 +3,12 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Opening the local database...": "로컬 데이터베이스를 여는 중…",
+		"Loading the keys...": "키를 불러오는 중…",
+		"Checking the users...": "사용자를 확인하는 중…",
+		"Preparing the pages...": "페이지를 준비하는 중…",
+		"Starting the app...": "앱을 시작하는 중…",
+		"After an update or a restart this takes a moment. The page opens by itself when the app is ready.": "업데이트나 재시작 후에는 잠시 걸립니다. 앱이 준비되면 페이지가 저절로 열립니다.",
 		"The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list.": "가장 큰 파일 %v개를 하나씩 보여 줍니다. 나머지 작은 파일 %v개는 목록 마지막 줄에 함께 있습니다.",
 		"Left to solve": "해결할 문제",
 		"Show the files of a kind": "종류별 파일 보기",

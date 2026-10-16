@@ -3,6 +3,12 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Opening the local database...": "ローカルデータベースを開いています…",
+		"Loading the keys...": "キーを読み込んでいます…",
+		"Checking the users...": "ユーザーを確認しています…",
+		"Preparing the pages...": "ページを準備しています…",
+		"Starting the app...": "アプリを起動しています…",
+		"After an update or a restart this takes a moment. The page opens by itself when the app is ready.": "アップデートや再起動の後は少し時間がかかります。準備ができるとページが自動で開きます。",
 		"The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list.": "大きい順に %v 個のファイルを個別に表示しています。残りの小さな %v 個はリストの最後の行にまとめています。",
 		"Left to solve": "未解決",
 		"Show the files of a kind": "種類ごとにファイルを表示",
