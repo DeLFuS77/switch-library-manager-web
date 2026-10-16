@@ -646,7 +646,6 @@ func init() {
 		"Choose your game folders": "Выберите папки с играми",
 		"Clean up":                 "Очистить",
 		"Cleanup":                  "Очистка",
-		"Clear":                    "Очистить",
 		"Clear filters":            "Сбросить фильтры",
 		"Clear history":            "Очистить историю",
 		"Clear selection":          "Снять выделение",

@@ -863,7 +863,6 @@ func init() {
 		"Choose your game folders":                    "Choisissez vos dossiers de jeux",
 		"Clean up":                                    "Nettoyer",
 		"Cleanup":                                     "Nettoyage",
-		"Clear":                                       "Effacer",
 		"Clear filters":                               "Effacer les filtres",
 		"Clear history":                               "Effacer l'historique",
 		"Close":                                       "Fermer",

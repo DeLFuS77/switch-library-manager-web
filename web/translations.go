@@ -1015,7 +1015,6 @@ var translations = map[string]map[string]string{
 		"Every file in your folders was recognized.": "Se han reconocido todos los archivos de tus carpetas.",
 		"Up to date":          "Al día",
 		"Released %v":         "Publicada el %v",
-		"Clear":               "Borrar",
 		"Per page":            "Por página",
 		"Showing %v–%v of %v": "Mostrando %v–%v de %v",
 		"No results":          "Sin resultados",

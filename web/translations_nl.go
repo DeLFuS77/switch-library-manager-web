@@ -646,7 +646,6 @@ func init() {
 		"Choose your game folders": "Kies je gamemappen",
 		"Clean up":                 "Opruimen",
 		"Cleanup":                  "Opruiming",
-		"Clear":                    "Wissen",
 		"Clear filters":            "Filters wissen",
 		"Clear history":            "Geschiedenis wissen",
 		"Clear selection":          "Selectie wissen",

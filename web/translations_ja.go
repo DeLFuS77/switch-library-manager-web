@@ -646,7 +646,6 @@ func init() {
 		"Choose your game folders": "ゲームフォルダーを選択",
 		"Clean up":                 "整理する",
 		"Cleanup":                  "クリーンアップ",
-		"Clear":                    "クリア",
 		"Clear filters":            "フィルターをクリア",
 		"Clear history":            "履歴をクリア",
 		"Clear selection":          "選択を解除",

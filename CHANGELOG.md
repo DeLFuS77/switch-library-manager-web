@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Searches of the pages: emptying the field, with its cross or by deleting the text, shows everything again at once,
+  so the separate "Clear" link is gone.
+
 ## 1.38.0
 
 ### Improvements

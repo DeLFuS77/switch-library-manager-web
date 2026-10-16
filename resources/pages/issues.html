@@ -69,9 +69,6 @@
 					<span class="bi bi-search" aria-hidden="true"></span>
 					<input type="search" class="form-control" name="q" value="{{.Filter.Keyword}}" placeholder="{{t "Search by file or reason..."}}" aria-label="{{t "Search"}}">
 				</div>
-				{{- if .Filter.Keyword}}
-				<a class="btn btn-link text-decoration-none px-2" href="{{filterUrl .Filter "q" ""}}">{{t "Clear"}}</a>
-				{{- end}}
 				<input type="hidden" name="per_page" value="{{.Filter.PerPage}}">
 				{{- if .Kind}}<input type="hidden" name="kind_of_issue" value="{{.Kind}}">{{end}}
 			</form>
