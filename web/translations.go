@@ -5,6 +5,12 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Little free space left on %v: %v (%v%%).": "Queda poco espacio en %v: %v (%v%%).",
+		"Compressions wait until there is room. Free duplicates and old versions, or move files to another disk.": "Las compresiones esperan a que haya sitio. Libera duplicados y versiones viejas, o pasa archivos a otro disco.",
+		"%v free (%v%%)": "%v libres (%v%%)",
+		"Switch Library Manager: little free space left": "Switch Library Manager: queda poco espacio",
+		"%v: %v": "%v: %v",
+		"Free space from the Space page of the app; compressions wait until there is room.": "Libera espacio desde la página Espacio de la app; las compresiones esperan a que haya sitio.",
 		"(updating...)": "(actualizando…)",
 		"Updating: this is what the page found last, the newer figures come with the next visit.": "Actualizando: esto es lo último que encontró la página; las cifras nuevas saldrán en la próxima visita.",
 		"Review again": "Revisar de nuevo",

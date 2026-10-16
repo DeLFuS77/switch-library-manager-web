@@ -3,6 +3,12 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Little free space left on %v: %v (%v%%).": "Poco spazio libero su %v: %v (%v%%).",
+		"Compressions wait until there is room. Free duplicates and old versions, or move files to another disk.": "Le compressioni aspettano che ci sia spazio. Libera duplicati e versioni vecchie, o sposta file su un altro disco.",
+		"%v free (%v%%)": "%v liberi (%v%%)",
+		"Switch Library Manager: little free space left": "Switch Library Manager: poco spazio libero",
+		"%v: %v": "%v: %v",
+		"Free space from the Space page of the app; compressions wait until there is room.": "Libera spazio dalla pagina Spazio dell'app; le compressioni aspettano che ci sia spazio.",
 		"(updating...)": "(aggiornamento…)",
 		"Updating: this is what the page found last, the newer figures come with the next visit.": "Aggiornamento: questo è ciò che la pagina ha trovato l'ultima volta, i nuovi dati arriveranno alla prossima visita.",
 		"Review again": "Ricontrolla",

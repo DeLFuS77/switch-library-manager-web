@@ -3,6 +3,12 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Little free space left on %v: %v (%v%%).": "%v の空き容量が少なくなっています: %v (%v%%)。",
+		"Compressions wait until there is room. Free duplicates and old versions, or move files to another disk.": "圧縮は空きができるまで待ちます。重複や古いバージョンを削除するか、ファイルを別のディスクへ移してください。",
+		"%v free (%v%%)": "空き %v (%v%%)",
+		"Switch Library Manager: little free space left": "Switch Library Manager: 空き容量が少なくなっています",
+		"%v: %v": "%v: %v",
+		"Free space from the Space page of the app; compressions wait until there is room.": "アプリの「容量」ページで空きを作ってください。圧縮は空きができるまで待ちます。",
 		"(updating...)": "(更新中…)",
 		"Updating: this is what the page found last, the newer figures come with the next visit.": "更新中: これは前回ページが見つけた内容です。新しい数字は次回表示されます。",
 		"Review again": "もう一度確認",

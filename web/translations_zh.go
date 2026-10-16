@@ -3,6 +3,12 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Little free space left on %v: %v (%v%%).": "%v 的可用空间不足:%v(%v%%)。",
+		"Compressions wait until there is room. Free duplicates and old versions, or move files to another disk.": "压缩会等到有空间时再进行。请清理重复文件和旧版本,或把文件移到其他磁盘。",
+		"%v free (%v%%)": "可用 %v(%v%%)",
+		"Switch Library Manager: little free space left": "Switch Library Manager:可用空间不足",
+		"%v: %v": "%v:%v",
+		"Free space from the Space page of the app; compressions wait until there is room.": "请在应用的“空间”页面释放空间;压缩会等到有空间时再进行。",
 		"(updating...)": "(更新中…)",
 		"Updating: this is what the page found last, the newer figures come with the next visit.": "更新中:这是页面上次找到的内容,新的数字会在下次访问时显示。",
 		"Review again": "重新检查",

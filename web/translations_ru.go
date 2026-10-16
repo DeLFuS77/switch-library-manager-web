@@ -3,6 +3,12 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Little free space left on %v: %v (%v%%).": "Мало свободного места на %v: %v (%v%%).",
+		"Compressions wait until there is room. Free duplicates and old versions, or move files to another disk.": "Сжатие ждёт, пока появится место. Удалите дубликаты и старые версии или перенесите файлы на другой диск.",
+		"%v free (%v%%)": "свободно %v (%v%%)",
+		"Switch Library Manager: little free space left": "Switch Library Manager: мало свободного места",
+		"%v: %v": "%v: %v",
+		"Free space from the Space page of the app; compressions wait until there is room.": "Освободите место на странице «Место» в приложении; сжатие ждёт, пока появится место.",
 		"(updating...)": "(обновляется…)",
 		"Updating: this is what the page found last, the newer figures come with the next visit.": "Обновление: это последнее, что нашла страница; новые цифры появятся при следующем посещении.",
 		"Review again": "Проверить снова",
