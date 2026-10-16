@@ -205,6 +205,11 @@ func (web *Web) spaceGroups() []SpaceGroup {
 		}
 		switch skipped.ReasonCode {
 		case db.REASON_OLD_UPDATE:
+			// a file that also holds the game, its latest update or a DLC is not an old update
+			// to free: it is never listed
+			if inUse[path] {
+				continue
+			}
 			entry := SpaceFile{Path: path, Name: name, Size: file.Size, KeptBy: keptBy(skipped.ReasonText), Deletable: true, file: file}
 			if note := web.newerDamaged(entry.KeptBy); note != "" {
 				entry.Deletable = false

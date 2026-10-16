@@ -156,3 +156,29 @@ func relocate(local *db.LocalSwitchFilesDB, from string, to string) {
 		}
 	}
 }
+
+// Once organized, a second run has nothing to do: folders are created only for the files
+// that move into them, so none is created and deleted again as empty on every run.
+func TestSecondOrganizeRunIsQuiet(t *testing.T) {
+	source, target := t.TempDir(), t.TempDir()
+	local, remote := fixtureLibrary(t, source)
+	ops, err := OrganizeByFolders(target, local, remote, organizeOptions(), false, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// the next run finds every file in place
+	for _, op := range ops {
+		if op.Kind == OP_MOVE {
+			relocate(local, op.From, op.To)
+		}
+	}
+	ops, err = OrganizeByFolders(target, local, remote, organizeOptions(), true, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, op := range ops {
+		if op.Kind == OP_MKDIR || op.Kind == OP_MOVE {
+			t.Errorf("nothing to do on the second run: %+v", op)
+		}
+	}
+}

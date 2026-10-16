@@ -58,12 +58,11 @@ func TestFilesHoldingKeptContentAreNeverDeleted(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(folder, oldUpdate.FileName)); !os.IsNotExist(err) {
 		t.Fatalf("the old update alone is deleted: %+v", operations)
 	}
-	skipped := false
+	// the pack is the game: it is not listed as an old update kept, run after run
 	for _, op := range operations {
-		skipped = skipped || op.Kind == OP_SKIP && op.From == filepath.Join(folder, pack.FileName)
-	}
-	if !skipped {
-		t.Fatalf("the pack is reported as kept: %+v", operations)
+		if op.From == filepath.Join(folder, pack.FileName) {
+			t.Fatalf("the pack is not listed: %+v", operations)
+		}
 	}
 }
 

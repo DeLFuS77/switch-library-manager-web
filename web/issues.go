@@ -9,6 +9,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
+	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -94,9 +95,9 @@ func (web *Web) HandleIssues() {
 			Filter:           filter,
 			Pagination:       p,
 			LastVerified:     web.verifications().lastRun(),
-			Orphans: web.orphanCount(),
-			Summaries: web.issueSummaries(all, lang),
-			Kind: kind,
+			Orphans:          web.orphanCount(),
+			Summaries:        web.issueSummaries(all, lang),
+			Kind:             kind,
 			UnsupportedTypes: web.derived("unsupportedTypes", func() any { return unsupportedTypes(all, 5) }).([]NamedCount),
 		}
 	}, web.embedFS, fsPatterns...)
@@ -175,8 +176,15 @@ func (web *Web) buildIssues() []Issue {
 		}
 	}
 
+	// an old update in a file that also holds content the library keeps (the game, its
+	// latest update, a DLC) is that content, not an issue
+	inUse := process.FilesInUse(localDB)
 	for k, v := range localDB.Skipped {
-		issues = append(issues, Issue{File: filepath.Join(k.BaseFolder, k.FileName), Reason: v.ReasonText})
+		path := filepath.Join(k.BaseFolder, k.FileName)
+		if v.ReasonCode == db.REASON_OLD_UPDATE && inUse[path] {
+			continue
+		}
+		issues = append(issues, Issue{File: path, Reason: v.ReasonText})
 	}
 
 	// files a verification found damaged, while they did not change

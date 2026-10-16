@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Empty folders": "Carpetas vacías",
 		"of %v": "de %v",
 		"Running.": "En marcha.",
 		"It goes on in the background; this page updates by itself when it ends.": "Sigue en segundo plano; esta página se actualiza sola cuando acabe.",
@@ -1292,7 +1293,7 @@ var jsTexts = []string{
 	"The library has been updated.", "Error!", "Synchronization could not be started.", "Could not reach the server.",
 	"Unexpected server response (%v).", "Create folder", "Move", "Delete", "Skip", "Clean up", "Error: %v",
 	"Preview: nothing to change", "Preview: %v change(s)", ", %v problem(s)", "Apply %v change(s)",
-	"Done: %v change(s)", ", %v failed", "Running.", "It goes on in the background; this page updates by itself when it ends.", "See it in Tasks", "Error", "Review", "Rename", "All", "Same name",
+	"Done: %v change(s)", ", %v failed", "Running.", "It goes on in the background; this page updates by itself when it ends.", "See it in Tasks", "Error", "Review", "Rename", "All", "Same name", "Empty folders",
 	"The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.",
 	"The version of the name changes: v%v → v%v (the update the file holds).",
 	"Apply the changes shown in the preview? Files will be moved or deleted.",

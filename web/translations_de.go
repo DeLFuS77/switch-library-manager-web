@@ -3,6 +3,7 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Empty folders": "Leere Ordner",
 		"of %v": "von %v",
 		"Running.": "Läuft.",
 		"It goes on in the background; this page updates by itself when it ends.": "Es läuft im Hintergrund weiter; diese Seite aktualisiert sich, wenn es fertig ist.",
