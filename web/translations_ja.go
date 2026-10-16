@@ -3,6 +3,13 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Error": "エラー",
+		"Review": "要確認",
+		"Rename": "名前変更",
+		"Same name": "同じ名前",
+		"Show the changes of a kind": "種類ごとに変更を表示",
+		"The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.": "名前のタイトルIDが変わります (%v → %v)。ファイルに複数のコンテンツが入っているか、名前が誤っていました。適用前に確認してください。",
+		"The version of the name changes: v%v → v%v (the update the file holds).": "名前のバージョンが変わります: v%v → v%v (ファイルに含まれるアップデート)。",
 		"Content": "コンテンツ",
 		"Disk used": "ディスク使用量",
 		"Disk size": "ディスク容量",
@@ -700,7 +707,6 @@ func init() {
 		"Demos only":                       "体験版のみ",
 		"Descending":                       "降順",
 		"Description":                      "説明",
-		"Destination / Reason":             "移動先 / 理由",
 		"Disabled":                         "無効",
 		"Discord webhook URL":              "DiscordのウェブフックURL",
 		"Dismiss":                          "閉じる",

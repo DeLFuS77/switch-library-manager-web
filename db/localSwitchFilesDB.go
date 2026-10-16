@@ -546,14 +546,14 @@ type metadataResult struct {
 }
 
 // needsAttributes tells cached data of a game the titles database does not know, read before
-// the app read the attributes of games: only the game itself can tell it is a demo, so it is
-// read again, once.
+// the app read the attributes of games or every language of their names apart: only the game
+// itself can tell its name and that it is a demo, so it is read again, once.
 func (ldb *LocalSwitchDBManager) needsAttributes(metadata map[string]*switchfs.ContentMetaAttributes) bool {
 	if ldb.titles == nil {
 		return false
 	}
 	for _, meta := range metadata {
-		if meta == nil || meta.Ncap == nil || meta.Ncap.AttributesRead {
+		if meta == nil || meta.Ncap == nil || (meta.Ncap.AttributesRead && meta.Ncap.NamesRead) {
 			continue
 		}
 		if prefix, err := TitleIDPrefix(meta.TitleId); err == nil {

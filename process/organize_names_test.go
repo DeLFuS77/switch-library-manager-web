@@ -91,3 +91,68 @@ func TestPackIsNamedWithTheUpdateItHolds(t *testing.T) {
 	}
 	t.Fatalf("the pack is moved: %+v", ops)
 }
+
+// A file with several contents already named after its first one stays where it is: the
+// other contents must not move it to their own names, which a second run would undo.
+func TestBundleFileInPlaceStays(t *testing.T) {
+	source, target := t.TempDir(), t.TempDir()
+	local, remote := fixtureLibrary(t, source)
+	game := local.TitlesMap[groupID]
+	bundle := writeFixture(t, filepath.Join(source, "dlc-bundle.nsp"), "both")
+	game.Dlc[dlcOneID] = db.SwitchFileInfo{ExtendedInfo: bundle, Metadata: metadataForID(dlcOneID, 0)}
+	game.Dlc[dlcTwoID] = db.SwitchFileInfo{ExtendedInfo: bundle, Metadata: metadataForID(dlcTwoID, 0)}
+	ops, err := OrganizeByFolders(target, local, remote, organizeOptions(), false, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	moved := ""
+	for _, op := range ops {
+		if op.Kind == OP_MOVE && op.From == filepath.Join(source, "dlc-bundle.nsp") {
+			moved = op.To
+		}
+	}
+	if moved == "" {
+		t.Fatalf("the bundle is moved: %+v", ops)
+	}
+
+	// the next scan finds every file where the first run put it
+	for id, dlc := range game.Dlc {
+		dlc.ExtendedInfo.BaseFolder, dlc.ExtendedInfo.FileName = filepath.Dir(moved), filepath.Base(moved)
+		game.Dlc[id] = dlc
+	}
+	for _, op := range ops {
+		if op.Kind != OP_MOVE || op.From == filepath.Join(source, "dlc-bundle.nsp") {
+			continue
+		}
+		relocate(local, op.From, op.To)
+	}
+	ops, err = OrganizeByFolders(target, local, remote, organizeOptions(), true, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, op := range ops {
+		if op.Kind == OP_MOVE && op.From == moved {
+			t.Errorf("the bundle in place is moved again: %+v", op)
+		}
+	}
+}
+
+// relocate points the files of the library found at from to their new path.
+func relocate(local *db.LocalSwitchFilesDB, from string, to string) {
+	fix := func(info *db.ExtendedFileInfo) {
+		if filepath.Join(info.BaseFolder, info.FileName) == from {
+			info.BaseFolder, info.FileName = filepath.Dir(to), filepath.Base(to)
+		}
+	}
+	for _, title := range local.TitlesMap {
+		fix(&title.File.ExtendedInfo)
+		for version, update := range title.Updates {
+			fix(&update.ExtendedInfo)
+			title.Updates[version] = update
+		}
+		for id, dlc := range title.Dlc {
+			fix(&dlc.ExtendedInfo)
+			title.Dlc[id] = dlc
+		}
+	}
+}

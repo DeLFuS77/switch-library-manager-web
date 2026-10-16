@@ -2794,6 +2794,148 @@ $avatar-colors: (
 }
 
 /* number of games over time, on the Statistics page */
+// the changes of the preview of Organize, colored by kind
+.op-list,
+.op-summary {
+	.op-error { --op-color: var(--bs-danger); }
+	.op-review { --op-color: var(--slm-chart-3); }
+	.op-move { --op-color: var(--slm-chart-4); }
+	.op-rename { --op-color: var(--slm-chart-2); }
+	.op-mkdir { --op-color: var(--slm-chart-5); }
+	.op-delete { --op-color: var(--slm-chart-1); }
+	.op-skip { --op-color: var(--slm-chart-6); }
+	.op-all { --op-color: var(--bs-body-color); }
+}
+
+.op-summary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .5rem;
+}
+
+.op-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: .4rem;
+	padding: .3rem .4rem .3rem .75rem;
+	border: 1px solid color-mix(in srgb, var(--op-color) 45%, transparent);
+	border-radius: 2rem;
+	background: color-mix(in srgb, var(--op-color) 10%, transparent);
+	color: var(--bs-body-color);
+	font-size: .875rem;
+	transition: background-color .15s, box-shadow .15s;
+
+	.bi {
+		color: var(--op-color);
+	}
+
+	&:hover {
+		background: color-mix(in srgb, var(--op-color) 18%, transparent);
+	}
+
+	&[aria-pressed="true"] {
+		background: color-mix(in srgb, var(--op-color) 26%, transparent);
+		box-shadow: 0 0 0 1px var(--op-color);
+	}
+}
+
+.op-chip-count {
+	min-width: 1.6rem;
+	padding: .05rem .45rem;
+	border-radius: 1rem;
+	background: color-mix(in srgb, var(--op-color) 30%, transparent);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	text-align: center;
+}
+
+.op-list {
+	display: flex;
+	flex-direction: column;
+	gap: .5rem;
+}
+
+.op-row {
+	display: flex;
+	align-items: flex-start;
+	gap: .9rem;
+	padding: .7rem .9rem;
+	border: 1px solid var(--bs-border-color-translucent);
+	border-left: 4px solid var(--op-color);
+	border-radius: .6rem;
+	background: color-mix(in srgb, var(--op-color) 5%, transparent);
+
+	&[hidden] {
+		display: none;
+	}
+}
+
+.op-badge {
+	display: inline-flex;
+	flex: 0 0 8.5rem;
+	align-items: center;
+	gap: .4rem;
+	color: var(--op-color);
+	font-size: .8rem;
+	font-weight: 600;
+	letter-spacing: .02em;
+	text-transform: uppercase;
+	padding-top: .1rem;
+}
+
+.op-body {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: .35rem;
+	min-width: 0;
+}
+
+.op-path {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.op-name {
+	font-weight: 500;
+}
+
+.op-folder {
+	color: var(--bs-secondary-color);
+	font-size: .8rem;
+}
+
+.op-target {
+	display: flex;
+	gap: .5rem;
+
+	> .bi {
+		color: var(--op-color);
+		flex: 0 0 auto;
+	}
+}
+
+.op-note {
+	color: var(--bs-secondary-color);
+	font-size: .85rem;
+
+	.op-review &,
+	.op-error & {
+		color: var(--op-color);
+	}
+}
+
+@media (max-width: 575.98px) {
+	.op-row {
+		flex-direction: column;
+		gap: .4rem;
+	}
+
+	.op-badge {
+		flex-basis: auto;
+	}
+}
+
 .history-chart-box {
 	position: relative;
 	padding-top: 1.1rem;

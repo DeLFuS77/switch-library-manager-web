@@ -26,6 +26,7 @@ const (
 	Korean
 	Taiwanese
 	Chinese
+	BrazilianPortuguese
 )
 
 type NacpTitle struct {
@@ -42,6 +43,9 @@ type Nacp struct {
 	Demo bool `json:"demo,omitempty"`
 	// the attributes were read; data read by older versions does not have them
 	AttributesRead bool `json:"attributes_read,omitempty"`
+	// the names were read with every language apart: older versions lost the Simplified
+	// Chinese name under the Brazilian Portuguese one
+	NamesRead bool `json:"names_read,omitempty"`
 }
 
 func (l Language) String() string {
@@ -61,7 +65,7 @@ func (l Language) String() string {
 		"Korean",
 		"Taiwanese",
 		"Chinese",
-		"Chinese"}
+		"BrazilianPortuguese"}
 	if l < 0 || int(l) >= len(names) {
 		return "Unknown"
 	}
@@ -83,9 +87,9 @@ func (l Language) ToLanguageTag() string {
 		"pt",
 		"ru",
 		"ko",
-		"zh-TW",
 		"zh-Hant",
-		"zh-Hans"}
+		"zh-Hans",
+		"pt-BR"}
 	if l < 0 || int(l) >= len(tags) {
 		return "und"
 	}
@@ -180,7 +184,7 @@ func readNacp(data []byte, romFsHeader RomfsHeader, fileEntry RomfsFileEntry) (N
 	attributes := binary.LittleEndian.Uint32(data[offset+0x3028 : offset+0x3028+0x4])
 
 	return Nacp{TitleName: titles, Isbn: string(isbn), DisplayVersion: string(displayVersion), SupportedLanguageFlag: supportedLanguageFlag,
-		Demo: attributes&1 != 0, AttributesRead: true}, nil
+		Demo: attributes&1 != 0, AttributesRead: true, NamesRead: true}, nil
 	/*
 
 

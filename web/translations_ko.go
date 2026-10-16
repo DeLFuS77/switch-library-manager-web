@@ -3,6 +3,13 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Error": "오류",
+		"Review": "확인 필요",
+		"Rename": "이름 변경",
+		"Same name": "같은 이름",
+		"Show the changes of a kind": "종류별 변경 보기",
+		"The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.": "이름의 타이틀 ID가 바뀝니다 (%v → %v): 파일에 여러 콘텐츠가 들어 있거나 이름이 잘못되었습니다. 적용하기 전에 확인하세요.",
+		"The version of the name changes: v%v → v%v (the update the file holds).": "이름의 버전이 바뀝니다: v%v → v%v (파일에 들어 있는 업데이트).",
 		"Content": "콘텐츠",
 		"Disk used": "디스크 사용량",
 		"Disk size": "디스크 크기",
@@ -700,7 +707,6 @@ func init() {
 		"Demos only":                       "체험판만",
 		"Descending":                       "내림차순",
 		"Description":                      "설명",
-		"Destination / Reason":             "대상 / 이유",
 		"Disabled":                         "꺼짐",
 		"Discord webhook URL":              "Discord 웹후크 URL",
 		"Dismiss":                          "닫기",

@@ -3,6 +3,13 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Error": "Fout",
+		"Review": "Controleren",
+		"Rename": "Hernoemen",
+		"Same name": "Zelfde naam",
+		"Show the changes of a kind": "Wijzigingen van één soort tonen",
+		"The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.": "De titel-ID in de naam verandert (%v → %v): het bestand bevat meerdere inhouden of had een verkeerde naam. Controleer het vóór het toepassen.",
+		"The version of the name changes: v%v → v%v (the update the file holds).": "De versie in de naam verandert: v%v → v%v (de update in het bestand).",
 		"Content": "Inhoud",
 		"Disk used": "Schijf gebruikt",
 		"Disk size": "Schijfgrootte",
@@ -700,7 +707,6 @@ func init() {
 		"Demos only":                       "Alleen demo's",
 		"Descending":                       "Aflopend",
 		"Description":                      "Beschrijving",
-		"Destination / Reason":             "Bestemming / Reden",
 		"Disabled":                         "Uitgeschakeld",
 		"Discord webhook URL":              "Discord-webhook-URL",
 		"Dismiss":                          "Verbergen",

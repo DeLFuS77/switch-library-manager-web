@@ -3,6 +3,13 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Error": "错误",
+		"Review": "需检查",
+		"Rename": "重命名",
+		"Same name": "名称不变",
+		"Show the changes of a kind": "按类型显示更改",
+		"The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.": "名称中的标题 ID 会改变(%v → %v):该文件包含多个内容或名称有误。应用前请检查。",
+		"The version of the name changes: v%v → v%v (the update the file holds).": "名称中的版本会改变:v%v → v%v(文件中包含的更新)。",
 		"Content": "内容",
 		"Disk used": "磁盘已用",
 		"Disk size": "磁盘容量",
@@ -700,7 +707,6 @@ func init() {
 		"Demos only":                       "仅试玩版",
 		"Descending":                       "降序",
 		"Description":                      "描述",
-		"Destination / Reason":             "目标 / 原因",
 		"Disabled":                         "已禁用",
 		"Discord webhook URL":              "Discord Webhook URL",
 		"Dismiss":                          "知道了",

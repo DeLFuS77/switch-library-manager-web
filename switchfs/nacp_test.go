@@ -151,3 +151,28 @@ func TestNacpDemoFlag(t *testing.T) {
 		t.Fatalf("a game: %+v", got)
 	}
 }
+
+// A game of the Chinese store names itself in Simplified Chinese only: the name is not lost
+// under the empty Brazilian Portuguese one, the last of the sixteen.
+func TestReadNacpKeepsEveryLanguage(t *testing.T) {
+	const nacpSize = 0x3080
+	data := make([]byte, nacpSize)
+	copy(data[14*0x300:], []byte("疯狂兔子：奇遇派对 试玩版"))
+	copy(data[13*0x300:], []byte("瘋狂兔子"))
+	nacp, err := readNacp(data, RomfsHeader{}, RomfsFileEntry{size: nacpSize})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := nacp.TitleName["Chinese"]; got.Title != "疯狂兔子：奇遇派对 试玩版" || got.Language.ToLanguageTag() != "zh-Hans" {
+		t.Errorf("Simplified Chinese: %+v", got)
+	}
+	if got := nacp.TitleName["Taiwanese"]; got.Title != "瘋狂兔子" || got.Language.ToLanguageTag() != "zh-Hant" {
+		t.Errorf("Traditional Chinese: %+v", got)
+	}
+	if got := nacp.TitleName["BrazilianPortuguese"]; got.Title != "" || got.Language.ToLanguageTag() != "pt-BR" {
+		t.Errorf("Brazilian Portuguese: %+v", got)
+	}
+	if !nacp.NamesRead {
+		t.Error("the names are marked as read apart")
+	}
+}

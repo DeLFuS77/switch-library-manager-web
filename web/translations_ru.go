@@ -3,6 +3,13 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Error": "Ошибка",
+		"Review": "Проверить",
+		"Rename": "Переименовать",
+		"Same name": "То же имя",
+		"Show the changes of a kind": "Показать изменения одного типа",
+		"The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.": "ID в имени меняется (%v → %v): файл содержит несколько материалов или имел неверное имя. Проверьте перед применением.",
+		"The version of the name changes: v%v → v%v (the update the file holds).": "Версия в имени меняется: v%v → v%v (обновление внутри файла).",
 		"Content": "Содержимое",
 		"Disk used": "Занято на диске",
 		"Disk size": "Размер диска",
@@ -700,7 +707,6 @@ func init() {
 		"Demos only":                       "Только демоверсии",
 		"Descending":                       "По убыванию",
 		"Description":                      "Описание",
-		"Destination / Reason":             "Назначение / Причина",
 		"Disabled":                         "Отключено",
 		"Discord webhook URL":              "URL вебхука Discord",
 		"Dismiss":                          "Скрыть",

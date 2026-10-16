@@ -103,11 +103,13 @@ func samePath(a, b string) bool {
 
 func (f *fileOperations) move(from string, to string) error {
 	from, to = filepath.Clean(from), filepath.Clean(to)
-	if from == to {
+	if _, moved := f.movedFrom[from]; moved {
+		// moved already with another of its contents, or in place with it
 		return nil
 	}
-	if _, moved := f.movedFrom[from]; moved {
-		// moved already with another of its contents
+	if from == to {
+		// in place: its other contents must not move it to their own names
+		f.movedFrom[from] = to
 		return nil
 	}
 

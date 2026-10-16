@@ -3,6 +3,13 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Error": "Erro",
+		"Review": "Revisar",
+		"Rename": "Renomear",
+		"Same name": "Mesmo nome",
+		"Show the changes of a kind": "Mostrar as mudanças de um tipo",
+		"The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.": "O ID do nome muda (%v → %v): o arquivo contém vários conteúdos ou tinha um nome errado. Revise antes de aplicar.",
+		"The version of the name changes: v%v → v%v (the update the file holds).": "A versão do nome muda: v%v → v%v (a atualização que o arquivo contém).",
 		"Content": "Conteúdo",
 		"Disk used": "Disco usado",
 		"Disk size": "Tamanho do disco",
@@ -887,7 +894,6 @@ func init() {
 		"Delete user":                 "Excluir usuário",
 		"Descending":                  "Decrescente",
 		"Description":                 "Descrição",
-		"Destination / Reason":        "Destino / Motivo",
 		"Disabled":                    "Desativado",
 		"Discord webhook URL":         "URL do webhook do Discord",
 		"Dismiss":                     "Dispensar",
