@@ -2422,17 +2422,21 @@ $avatar-colors: (
 	}
 }
 
-// the cards of the favorites have a golden aura: a light that goes round their edge and a
-// glow that breathes, still when the system asks for less motion
+// the cards of the favorites have a golden aura, and those of the games on the wishlist a red
+// one: a light that goes round their edge and a glow that breathes, still when the system
+// asks for less motion
 @property --aura-angle {
 	syntax: "<angle>";
 	inherits: false;
 	initial-value: 0deg;
 }
 
-.game-card.is-fav-card {
-	box-shadow: 0 0 0 1px rgba(255, 196, 0, .5), 0 0 1.2rem -.25rem rgba(255, 196, 0, .4);
-	animation: fav-breathe 3.6s ease-in-out infinite;
+.game-card.is-fav-card,
+.game-card.is-wish-card {
+	--aura: 255, 196, 0;
+	--aura-light: #fff1a8;
+	box-shadow: 0 0 0 1px rgba(var(--aura), .5), 0 0 1.2rem -.25rem rgba(var(--aura), .4);
+	animation: aura-breathe 3.6s ease-in-out infinite;
 
 	&::after {
 		content: "";
@@ -2441,35 +2445,42 @@ $avatar-colors: (
 		z-index: 3;
 		border-radius: inherit;
 		padding: 2px;
-		background: conic-gradient(from var(--aura-angle), transparent 0deg, transparent 60deg, rgba(255, 179, 0, .9) 110deg, #fff1a8 135deg, rgba(255, 179, 0, .9) 160deg, transparent 210deg, transparent 360deg);
+		background: conic-gradient(from var(--aura-angle), transparent 0deg, transparent 60deg, rgba(var(--aura), .9) 110deg, var(--aura-light) 135deg, rgba(var(--aura), .9) 160deg, transparent 210deg, transparent 360deg);
 		-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
 		-webkit-mask-composite: xor;
 		mask-composite: exclude;
-		animation: fav-spin 5s linear infinite;
+		animation: aura-spin 5s linear infinite;
 		pointer-events: none;
 	}
 }
 
-@keyframes fav-spin {
+.game-card.is-wish-card {
+	--aura: 255, 70, 92;
+	--aura-light: #ffd6db;
+}
+
+@keyframes aura-spin {
 	to {
 		--aura-angle: 360deg;
 	}
 }
 
-@keyframes fav-breathe {
+@keyframes aura-breathe {
 	0%,
 	100% {
-		box-shadow: 0 0 0 1px rgba(255, 196, 0, .4), 0 0 .9rem -.3rem rgba(255, 196, 0, .3);
+		box-shadow: 0 0 0 1px rgba(var(--aura), .4), 0 0 .9rem -.3rem rgba(var(--aura), .3);
 	}
 
 	50% {
-		box-shadow: 0 0 0 1px rgba(255, 196, 0, .7), 0 0 1.7rem -.1rem rgba(255, 196, 0, .5);
+		box-shadow: 0 0 0 1px rgba(var(--aura), .7), 0 0 1.7rem -.1rem rgba(var(--aura), .5);
 	}
 }
 
 @media (prefers-reduced-motion: reduce) {
 	.game-card.is-fav-card,
-	.game-card.is-fav-card::after {
+	.game-card.is-fav-card::after,
+	.game-card.is-wish-card,
+	.game-card.is-wish-card::after {
 		animation: none;
 	}
 }
