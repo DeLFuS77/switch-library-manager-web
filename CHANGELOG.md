@@ -14,7 +14,6 @@
   2020"): the titles database does not flag many of them, and about a hundred showed in a large library. They are
   left out of the recommendations too. Names such as "100 Demon Fantasia" are not taken for demos.
 
-
 ## 1.38.0
 
 ### Improvements
