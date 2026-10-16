@@ -4,6 +4,8 @@
 
 ### Improvements
 
+- The cards of the favorites have a golden aura, a light that goes round their edge and a glow that breathes, so they
+  stand out at a glance; it stays still when the system asks for less motion, and comes and goes with the star.
 - Game page: the title ID copies itself on a click, with the clipboard icon next to it (a check for a moment once
   copied), and so do the IDs of the DLC; the separate "Copy title ID" button is gone.
 - Compress: the list of files is colored by kind (game, update, DLC), each file with its format and a bar of its size
