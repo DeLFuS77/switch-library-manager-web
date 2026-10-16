@@ -5,6 +5,8 @@ import "github.com/dtrunk90/switch-library-manager-web/db"
 // afterScan runs the background work that follows a new library: covers, thumbnails and
 // the lists the pages show, so opening a page for the first time is fast.
 func (web *Web) afterScan() {
+	// the scan knows the compressed copies written before it (scans wait for compressions)
+	web.forgetWritten()
 	web.startCoverDownloads()
 	web.afterScanWork.Add(1)
 	web.backgroundWork.Add(1)

@@ -165,6 +165,15 @@ func TestCompressKeepsOriginalsWhenAsked(t *testing.T) {
 	}
 
 	restore()
+	// as the rescan found it: the compressed copy is a duplicate of the original
+	_, library := web.state.get()
+	compressed := switchfs.CompressedPath(path)
+	info, err := os.Stat(compressed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	library.Skipped[db.ExtendedFileInfo{FileName: filepath.Base(compressed), BaseFolder: filepath.Dir(compressed), Size: info.Size()}] = db.SkippedFile{ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + path + ")"}
+	web.invalidateDerived()
 	// a file with a compressed copy is not offered again
 	if code := postForm(web, "/compress/start", url.Values{"path": {path}}).Code; code != http.StatusBadRequest {
 		t.Fatalf("a file that already has an NSZ must not be compressed again: %v", code)

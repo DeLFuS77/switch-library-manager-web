@@ -98,6 +98,32 @@ type compressor struct {
 	cancel context.CancelFunc
 	// the bytes the files being written will still take, for the space checks
 	reserved int64
+	// the compressed copies written since the last scan, which does not know them yet
+	written map[string]bool
+}
+
+// rememberWritten keeps a compressed copy just written, until the scan that follows.
+func (web *Web) rememberWritten(path string) {
+	web.compressor.mutex.Lock()
+	if web.compressor.written == nil {
+		web.compressor.written = map[string]bool{}
+	}
+	web.compressor.written[filepath.Clean(path)] = true
+	web.compressor.mutex.Unlock()
+	web.invalidateDerived()
+}
+
+// forgetWritten forgets the copies written before a scan, which knows them now.
+func (web *Web) forgetWritten() {
+	web.compressor.mutex.Lock()
+	web.compressor.written = nil
+	web.compressor.mutex.Unlock()
+}
+
+func (web *Web) writtenCopy(path string) bool {
+	web.compressor.mutex.Lock()
+	defer web.compressor.mutex.Unlock()
+	return web.compressor.written[filepath.Clean(path)]
 }
 
 // compressCandidates lists the NSP and XCI files of the library, biggest first.
@@ -105,19 +131,46 @@ func (web *Web) compressCandidates() []CompressCandidate {
 	return web.derived("compressCandidates", func() any { return web.libraryFiles(".nsp", ".xci") }).([]CompressCandidate)
 }
 
-// compressedCopies are the compress candidates that have a compressed copy next to them.
-// Asking the disk for every file is slow on NAS shares, so the answer is kept until the
-// library changes (a compression or the folder watcher rescans it).
+// compressedCopies are the compress candidates that have a compressed copy next to them,
+// among the files the last scan found and the copies written since: asking the disk for every
+// file took seconds on NAS shares.
 func (web *Web) compressedCopies() map[string]bool {
 	return web.derived("compressedCopies", func() any {
+		scanned := web.scannedPaths()
 		copies := map[string]bool{}
 		for _, candidate := range web.compressCandidates() {
-			if _, err := os.Stat(switchfs.CompressedPath(candidate.Path)); err == nil {
+			if target := filepath.Clean(switchfs.CompressedPath(candidate.Path)); scanned[target] || web.writtenCopy(target) {
 				copies[candidate.Path] = true
 			}
 		}
 		return copies
 	}).(map[string]bool)
+}
+
+// scannedPaths are the paths of every file the last scan found: those of the library and
+// those it left out (duplicates, old versions, files it could not read).
+func (web *Web) scannedPaths() map[string]bool {
+	_, localDB := web.state.get()
+	paths := map[string]bool{}
+	if localDB == nil {
+		return paths
+	}
+	add := func(file db.ExtendedFileInfo) {
+		paths[filepath.Clean(filepath.Join(file.BaseFolder, file.FileName))] = true
+	}
+	for _, title := range localDB.TitlesMap {
+		add(title.File.ExtendedInfo)
+		for _, update := range title.Updates {
+			add(update.ExtendedInfo)
+		}
+		for _, dlc := range title.Dlc {
+			add(dlc.ExtendedInfo)
+		}
+	}
+	for file := range localDB.Skipped {
+		add(file)
+	}
+	return paths
 }
 
 // uncompressedCandidates are the compress candidates without a compressed copy next to
@@ -587,6 +640,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	if err := os.Rename(temporary, target); err != nil {
 		return 0, err
 	}
+	web.rememberWritten(target)
 	web.verifications().inherit(path, target)
 	if deleteOriginal {
 		if err := os.Remove(path); err != nil {
