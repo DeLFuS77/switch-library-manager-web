@@ -169,6 +169,77 @@ function insertAlert(element, contextualClass, iconClass, strongMessage, message
 const SYNC_ALERT_ID = 'alert_sync';
 const SYNC_POLL_INTERVAL = 1000;
 
+// the tasks of the server, newest first
+function fetchTasks() {
+	return fetch('/api/tasks', { cache: 'no-store', headers: { Accept: 'application/json' } })
+		.then(response => (response.ok ? response.json() : []));
+}
+
+// runAsTask starts work that runs as tasks and stays on the page: a note says it is running,
+// with a link to Tasks, and the page reloads with the new data when the tasks it started end.
+// start returns the promise of the request; its result is passed on.
+function runAsTask(start) {
+	return fetchTasks().catch(() => []).then(tasks => {
+		const known = Math.max(0, ...tasks.map(task => task.id));
+		return start().then(result => {
+			followTasks(known);
+			return result;
+		});
+	});
+}
+
+const TASK_NOTE_ID = 'taskRunning';
+
+function followTasks(known) {
+	let note = document.getElementById(TASK_NOTE_ID);
+	if (!note) {
+		note = document.createElement('div');
+		note.id = TASK_NOTE_ID;
+		note.className = 'alert alert-info d-flex flex-wrap align-items-center gap-2 mt-3';
+		note.setAttribute('role', 'status');
+		const spinner = document.createElement('span');
+		spinner.className = 'spinner-border spinner-border-sm flex-shrink-0';
+		spinner.setAttribute('aria-hidden', 'true');
+		const text = document.createElement('div');
+		text.className = 'flex-grow-1 min-w-0';
+		const strong = document.createElement('strong');
+		strong.textContent = t('Running.');
+		const message = document.createElement('span');
+		message.dataset.taskMessage = '';
+		message.textContent = t('It goes on in the background; this page updates by itself when it ends.');
+		text.append(strong, ' ', message);
+		const link = document.createElement('a');
+		link.className = 'alert-link text-nowrap';
+		link.href = '/tasks.html';
+		link.textContent = t('See it in Tasks');
+		note.append(spinner, text, link);
+		mainContainer().prepend(note);
+	}
+	const message = note.querySelector('[data-task-message]');
+	let waited = 0;
+	const poll = () => fetchTasks().then(tasks => {
+		const started = tasks.filter(task => task.id > known);
+		const running = started.filter(task => task.status === 'running');
+		if (running.length > 0) {
+			const task = running[0];
+			const text = task.messageArg ? t(task.message, task.messageArg) : t(task.message || '');
+			const percent = task.total > 0 && task.current >= 0 ? ` · ${Math.min(100, Math.round(task.current * 100 / task.total))}%` : '';
+			if (text) {
+				message.textContent = text + percent;
+			}
+		} else if (started.length > 0) {
+			window.location.reload();
+			return;
+		} else if ((waited += 1) > 10) {
+			// nothing was started, e.g. nothing to do
+			note.remove();
+			return;
+		}
+		setTimeout(poll, 2000);
+	}).catch(() => setTimeout(poll, 4000));
+	setTimeout(poll, 1000);
+}
+
 function mainContainer() {
 	return document.querySelector('main > .container-xxl');
 }
@@ -964,9 +1035,7 @@ function initSdPlanner() {
 		values.append('target', form.elements.target.value);
 		const button = form.querySelector('[type=submit]');
 		button.disabled = true;
-		postForm('/sd/copy', values).then(() => {
-			window.location.href = '/tasks.html';
-		}).catch(error => {
+		runAsTask(() => postForm('/sd/copy', values)).catch(error => {
 			button.disabled = false;
 			insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
 		});
@@ -1307,13 +1376,12 @@ function bindFileForm(form, url) {
 			}
 		}
 		submit.disabled = true;
-		fetch(url, {
+		runAsTask(() => fetch(url, {
 			method: 'POST',
 			body: new URLSearchParams(new FormData(form)).toString(),
 			headers: { 'Content-type': 'application/x-www-form-urlencoded' }
-		}).then(response => {
+		})).then(response => {
 			if (response.ok) {
-				window.location.href = '/tasks.html';
 				return;
 			}
 			return response.json().then(json => {
@@ -2306,10 +2374,7 @@ function initPack() {
 				return;
 			}
 			submit.disabled = true;
-			postForm('/title/pack', { id: form.dataset.pack, delete_originals: choice })
-				.then(() => {
-					window.location.href = '/tasks.html';
-				})
+			runAsTask(() => postForm('/title/pack', { id: form.dataset.pack, delete_originals: choice }))
 				.catch(error => {
 					submit.disabled = false;
 					insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
@@ -2495,8 +2560,7 @@ function initIssueDelete() {
 			return;
 		}
 		button.disabled = true;
-		postForm('/issues/delete', { kind: button.dataset.issueDelete })
-			.then(() => setTimeout(() => window.location.reload(), 1200))
+		runAsTask(() => postForm('/issues/delete', { kind: button.dataset.issueDelete }))
 			.catch(error => {
 				button.disabled = false;
 				insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
@@ -2965,10 +3029,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	document.querySelectorAll('[data-covers-retry]').forEach(button => {
 		button.addEventListener('click', () => {
 			button.disabled = true;
-			fetch('/covers/retry', { method: 'POST' }).then(response => {
-				if (response.ok) {
-					window.location.href = '/tasks.html';
-				} else {
+			runAsTask(() => fetch('/covers/retry', { method: 'POST' })).then(response => {
+				if (!response.ok) {
 					button.disabled = false;
 				}
 			}).catch(() => {
@@ -3032,9 +3094,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		button.addEventListener('click', () => {
 			button.disabled = true;
 			const body = new URLSearchParams({ all: button.dataset.verify === 'all' ? 'true' : 'false', scope: button.dataset.verify });
-			fetch('/verify/start', { method: 'POST', body }).then(response => {
+			runAsTask(() => fetch('/verify/start', { method: 'POST', body })).then(response => {
 				if (response.ok) {
-					window.location.href = '/tasks.html';
 					return;
 				}
 				return response.json().then(json => {

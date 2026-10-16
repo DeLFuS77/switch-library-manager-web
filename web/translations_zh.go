@@ -3,6 +3,8 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Running.": "正在进行。",
+		"It goes on in the background; this page updates by itself when it ends.": "将在后台继续;完成后本页会自动更新。",
 		"Showing them": "正在显示",
 		"show all": "显示全部",
 		"Delete them": "删除",

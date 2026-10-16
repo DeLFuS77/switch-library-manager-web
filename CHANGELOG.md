@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Starting a check, a compression or decompression, a pack, a new search of covers or a copy to the SD card no longer
+  takes you to Tasks: you stay on the page, a note says it is running with its progress and a link to Tasks, and the
+  page updates by itself when it ends.
+
+### Fixes
+
+- Issues: after deleting the damaged files or the files that cannot be read, the page showed them until it was
+  reloaded by hand; it now updates once the scan after the deletion ends.
+
 ## 1.37.0
 
 ### Improvements
