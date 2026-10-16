@@ -3,6 +3,7 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"A step of the tune-up is waiting": "整理の手順に未完了のものがあります",
 		"Copy ID": "ID をコピー",
 		"Summary": "概要",
 		"of %v games": "(%v 本のゲーム)",

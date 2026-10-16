@@ -3,6 +3,7 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"A step of the tune-up is waiting": "정리 단계 중 대기 중인 것이 있습니다",
 		"Copy ID": "ID 복사",
 		"Summary": "요약",
 		"of %v games": "(게임 %v개)",

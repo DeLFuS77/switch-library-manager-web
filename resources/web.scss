@@ -370,6 +370,16 @@ h3,
 	}
 }
 
+.orphan-wish {
+	color: var(--bs-secondary-color);
+	text-decoration: none;
+
+	&:hover,
+	&.is-wished {
+		color: var(--bs-danger);
+	}
+}
+
 .orphan-id {
 	font-size: .8rem;
 	text-decoration: none;
@@ -540,6 +550,21 @@ h3,
 	margin: -.5rem 0 1rem;
 	font-size: .875rem;
 	text-decoration: none;
+}
+
+// a dot on a menu: something is waiting there
+.nav-dot {
+	display: inline-block;
+	width: .5rem;
+	height: .5rem;
+	border-radius: 50%;
+	background: var(--bs-warning);
+	box-shadow: 0 0 0 2px var(--bs-body-bg);
+	vertical-align: middle;
+}
+
+.dropdown-toggle .nav-dot {
+	margin-left: .15rem;
 }
 
 // the menus of the bar (Discover, Tools): each page with a line that says what it is for

@@ -3,6 +3,7 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"A step of the tune-up is waiting": "Há um passo do ajuste pendente",
 		"Copy ID": "Copiar ID",
 		"Summary": "Resumo",
 		"of %v games": "de %v jogos",

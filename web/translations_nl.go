@@ -3,6 +3,7 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"A step of the tune-up is waiting": "Er wacht een stap van het onderhoud",
 		"Copy ID": "ID kopiëren",
 		"Summary": "Overzicht",
 		"of %v games": "van %v games",

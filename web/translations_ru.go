@@ -3,6 +3,7 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"A step of the tune-up is waiting": "Есть ожидающий шаг наведения порядка",
 		"Copy ID": "Копировать ID",
 		"Summary": "Сводка",
 		"of %v games": "из %v игр",

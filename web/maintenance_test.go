@@ -45,3 +45,17 @@ func TestMaintenancePage(t *testing.T) {
 		time.Sleep(20 * time.Millisecond)
 	}
 }
+
+// The menu marks the tune-up while a step is waiting, here files never checked.
+func TestTuneUpDot(t *testing.T) {
+	web, _ := spaceWeb(t)
+	if !web.navCounts().TuneUp {
+		t.Fatal("files never checked: the tune-up is waiting")
+	}
+	for _, file := range web.libraryFiles(".nsp", ".nsz", ".xci", ".xcz") {
+		web.verifications().set(file.Path, verifyRecord{OK: true, Checker: verifyChecker})
+	}
+	if unchecked, _ := web.uncheckedFiles(); unchecked != 0 {
+		t.Fatalf("every file checked: %d left", unchecked)
+	}
+}
