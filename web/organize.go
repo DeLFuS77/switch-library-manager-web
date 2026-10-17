@@ -108,13 +108,18 @@ func (web *Web) organize(action string, dryRun bool) ([]process.Operation, error
 
 	settingsObj := settings.ReadSettings(web.dataFolder)
 	options := settingsObj.OrganizeOptions
+	// a preview shows no progress: it would take over the one of a scan running meanwhile
+	var progress db.ProgressUpdater = web
+	if dryRun {
+		progress = nil
+	}
 
 	switch action {
 	case ORGANIZE_ACTION_ORGANIZE:
-		return process.OrganizeByFolders(settingsObj.Folder, localDB, switchDB, options, dryRun, web)
+		return process.OrganizeByFolders(settingsObj.Folder, localDB, switchDB, options, dryRun, progress)
 	case ORGANIZE_ACTION_CLEANUP:
 		// of two copies the compressed one stays, when it was checked and is sound
-		return process.DeleteOldUpdates(settingsObj.Folder, web.preferCompressed(localDB), options, dryRun, web, web.cleanupRefusal), nil
+		return process.DeleteOldUpdates(settingsObj.Folder, web.preferCompressed(localDB), options, dryRun, progress, web.cleanupRefusal), nil
 	default:
 		return nil, errors.New("unknown action")
 	}
@@ -133,7 +138,7 @@ func (web *Web) runOrganizeAction(action string, trigger string) ([]process.Oper
 		return nil, errOrganizeBusy
 	}
 	defer web.organizing.Store(false)
-	if web.compressionRunning() {
+	if web.compressionRunning() || web.measuring.Load() {
 		return nil, errOrganizeBusy
 	}
 	taskId := web.startTask(kind, trigger)
@@ -156,7 +161,7 @@ func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string)
 		return 0, 0, errOrganizeBusy
 	}
 	defer web.organizing.Store(false)
-	if web.compressionRunning() {
+	if web.compressionRunning() || web.measuring.Load() {
 		return 0, 0, errOrganizeBusy
 	}
 	if !web.state.startSync() {

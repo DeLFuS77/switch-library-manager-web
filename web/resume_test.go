@@ -98,3 +98,26 @@ func TestInterruptedTaskGoesOnOnce(t *testing.T) {
 		t.Fatal("a running task is not interrupted")
 	}
 }
+
+// A rescan asked while a scan runs (a compression ended, files were organized) is done once
+// that scan ends, not lost; the copies written while it ran are not forgotten by it.
+func TestRescanAskedDuringAScanIsNotLost(t *testing.T) {
+	web := newTestWeb(t)
+	if !web.state.startSync() {
+		t.Fatal("no scan running")
+	}
+	web.scanStarted.Store(time.Now().UnixNano())
+	if web.Rescan(TRIGGER_COMPRESS) {
+		t.Fatal("a scan is running")
+	}
+	if !web.rescanPending.Load() {
+		t.Fatal("the rescan is kept for when the scan ends")
+	}
+	before := time.Now().Add(-time.Hour)
+	web.compressor.written = map[string]time.Time{"old.nsz": before, "new.nsz": time.Now()}
+	web.forgetWritten(time.Unix(0, web.scanStarted.Load()))
+	if web.writtenCopy("old.nsz") || !web.writtenCopy("new.nsz") {
+		t.Fatalf("only the copies written before the scan are forgotten: %v", web.compressor.written)
+	}
+	web.state.endSync()
+}

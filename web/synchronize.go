@@ -15,8 +15,11 @@ func (web *Web) Synchronize(trigger string) bool {
 		return false
 	}
 	taskId := web.startTask(TASK_SYNC, trigger)
+	web.scanStarted.Store(time.Now().UnixNano())
 
 	go func() {
+		// the last thing done: a rescan asked meanwhile
+		defer web.rescanIfPending()
 		var failure *TaskNote
 		defer func() {
 			web.finishTask(taskId, failure)
@@ -72,9 +75,21 @@ func (web *Web) Synchronize(trigger string) bool {
 }
 
 // Rescan rescans the library in the background without downloading the titles database.
-// It returns false if a synchronization is already running.
+// It returns false if a synchronization is already running: the rescan is then done once it
+// ends, as the files changed after it looked at them.
 func (web *Web) Rescan(trigger string) bool {
-	return web.scanInBackground(true, trigger)
+	if web.scanInBackground(true, trigger) {
+		return true
+	}
+	web.rescanPending.Store(true)
+	return false
+}
+
+// rescanIfPending does the rescan asked while a scan ran, once it ends.
+func (web *Web) rescanIfPending() {
+	if web.rescanPending.CompareAndSwap(true, false) {
+		web.Rescan(TRIGGER_WATCHER)
+	}
 }
 
 // scanInBackground loads the library (from the cache unless ignoreCache) without blocking,
@@ -84,12 +99,14 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 		return false
 	}
 	taskId := web.startTask(TASK_SCAN, trigger)
+	web.scanStarted.Store(time.Now().UnixNano())
 
 	web.backgroundWork.Add(1)
 	web.backgroundStarted.Store(true)
 	go func() {
 		// the last thing done: after the task, the work after the scan has been started
 		defer web.backgroundWork.Add(-1)
+		defer web.rescanIfPending()
 		var failure *TaskNote
 		// files that just appeared are compressed afterwards, if asked
 		defer func() {

@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -98,32 +99,39 @@ type compressor struct {
 	cancel context.CancelFunc
 	// the bytes the files being written will still take, for the space checks
 	reserved int64
-	// the compressed copies written since the last scan, which does not know them yet
-	written map[string]bool
+	// the compressed copies written since the last scan, which does not know them yet, with
+	// when they were written
+	written map[string]time.Time
 }
 
 // rememberWritten keeps a compressed copy just written, until the scan that follows.
 func (web *Web) rememberWritten(path string) {
 	web.compressor.mutex.Lock()
 	if web.compressor.written == nil {
-		web.compressor.written = map[string]bool{}
+		web.compressor.written = map[string]time.Time{}
 	}
-	web.compressor.written[filepath.Clean(path)] = true
+	web.compressor.written[filepath.Clean(path)] = time.Now()
 	web.compressor.mutex.Unlock()
 	web.invalidateDerived()
 }
 
-// forgetWritten forgets the copies written before a scan, which knows them now.
-func (web *Web) forgetWritten() {
+// forgetWritten forgets the copies written before a scan started, which knows them now; the
+// ones written while it ran may have been missed by it.
+func (web *Web) forgetWritten(scanStarted time.Time) {
 	web.compressor.mutex.Lock()
-	web.compressor.written = nil
+	for path, written := range web.compressor.written {
+		if written.Before(scanStarted) {
+			delete(web.compressor.written, path)
+		}
+	}
 	web.compressor.mutex.Unlock()
 }
 
 func (web *Web) writtenCopy(path string) bool {
 	web.compressor.mutex.Lock()
 	defer web.compressor.mutex.Unlock()
-	return web.compressor.written[filepath.Clean(path)]
+	_, written := web.compressor.written[filepath.Clean(path)]
+	return written
 }
 
 // compressCandidates lists the NSP and XCI files of the library, biggest first.
@@ -612,7 +620,14 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 						}
 					}
 					report(0)(0, 0)
-					fileSaved, err := job(ctx, path, report)
+					fileSaved, err := func() (saved int64, err error) {
+						defer func() {
+							if recovered := recover(); recovered != nil {
+								err = fmt.Errorf("unexpected error: %v", recovered)
+							}
+						}()
+						return job(ctx, path, report)
+					}()
 
 					mutex.Lock()
 					lanes[worker], partial[worker] = TaskLane{}, 0

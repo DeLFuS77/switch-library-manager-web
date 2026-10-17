@@ -66,17 +66,20 @@ func (web *Web) applyCoverFallbacks(switchDB *db.SwitchTitlesDB) {
 	if len(fallbacks) == 0 || switchDB == nil {
 		return
 	}
-	for _, title := range switchDB.TitlesMap {
+	for id, title := range switchDB.TitlesMap {
 		found, ok := fallbacks[strings.ToUpper(title.Attributes.Id)]
-		if !ok {
+		if !ok || (title.Attributes.IconUrl != "" && title.Attributes.BannerUrl != "") {
 			continue
 		}
-		if title.Attributes.IconUrl == "" {
-			title.Attributes.IconUrl = found.IconUrl
+		// a copy of the title: the one in the map may be read by pages at the same time
+		copied := *title
+		if copied.Attributes.IconUrl == "" {
+			copied.Attributes.IconUrl = found.IconUrl
 		}
-		if title.Attributes.BannerUrl == "" {
-			title.Attributes.BannerUrl = found.BannerUrl
+		if copied.Attributes.BannerUrl == "" {
+			copied.Attributes.BannerUrl = found.BannerUrl
 		}
+		switchDB.TitlesMap[id] = &copied
 	}
 }
 

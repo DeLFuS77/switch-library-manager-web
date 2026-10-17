@@ -37,6 +37,8 @@ type automationQueue struct {
 	Names   []string `json:"names"`
 	Updates int      `json:"updates"`
 	running bool
+	// files were queued while it ran: it looks at the queue again before it stops
+	again bool
 }
 
 func (web *Web) automation() *automationQueue {
@@ -154,18 +156,25 @@ func (web *Web) startAutomation() {
 	queue := web.automation()
 	queue.mutex.Lock()
 	if queue.running {
+		// files queued while it runs: it looks at the queue again before it stops
+		queue.again = true
 		queue.mutex.Unlock()
 		return
 	}
 	queue.running = true
 	queue.mutex.Unlock()
 	go func() {
-		defer func() {
+		for {
+			for web.runAutomationOnce() {
+			}
 			queue.mutex.Lock()
-			queue.running = false
+			if !queue.again {
+				queue.running = false
+				queue.mutex.Unlock()
+				return
+			}
+			queue.again = false
 			queue.mutex.Unlock()
-		}()
-		for web.runAutomationOnce() {
 		}
 	}()
 }

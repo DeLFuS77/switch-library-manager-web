@@ -150,6 +150,10 @@ type Web struct {
 	// the scans of the library that ended well, for the watcher to know one followed a task
 	// on the files
 	scansDone atomic.Uint64
+	// when the scan running or last run started, and a rescan asked while it ran (the files
+	// changed meanwhile, e.g. a compression ended), done once it ends
+	scanStarted   atomic.Int64
+	rescanPending atomic.Bool
 	// a measure of the server is running
 	measuring atomic.Bool
 	// the content of the Space page is being prepared
@@ -717,7 +721,9 @@ func (web *Web) startInBackground() {
 	if !web.state.startSync() {
 		return
 	}
+	web.scanStarted.Store(time.Now().UnixNano())
 	go func() {
+		defer web.rescanIfPending()
 		web.UpdateProgress(-1, -1, "Loading titles database...")
 		switchDB := web.loadSavedTitles()
 		if switchDB == nil {
@@ -871,8 +877,13 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 	if current != nil && !titles.Updated && !versions.Updated {
 		web.sugarLogger.Info("The titles database did not change")
 		web.UpdateProgress(3, 4, "Scanning library...")
-		// a copy, so pages reading the current database are not affected
+		// a copy, so pages reading the current database are not affected: its map too, as the
+		// cover fallbacks replace titles in it
 		unchanged := *current
+		unchanged.TitlesMap = make(map[string]*db.SwitchTitle, len(current.TitlesMap))
+		for id, title := range current.TitlesMap {
+			unchanged.TitlesMap[id] = title
+		}
 		unchanged.Localized = web.loadLocalizedTitles(true)
 		web.downloadCoverFallbacks()
 		web.downloadSeries()

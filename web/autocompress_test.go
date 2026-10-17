@@ -71,7 +71,12 @@ func TestNightlyCompressRunsOncePerNight(t *testing.T) {
 	web := newTestWeb(t)
 	setAutoCompress(t, web, AUTO_COMPRESS_NIGHT, false)
 	night := time.Date(2026, 10, 6, autoCompressHour, 5, 0, 0, time.Local)
-	if !web.nightlyCompressDue(night) || web.nightlyCompressDue(night.Add(10*time.Minute)) {
+	if !web.nightlyCompressDue(night) {
+		t.Fatal("due at night")
+	}
+	// nothing to compress: done for the night
+	web.nightlyCompress(night)
+	if web.nightlyCompressDue(night.Add(10 * time.Minute)) {
 		t.Fatal("once per night")
 	}
 	if web.nightlyCompressDue(night.Add(3 * time.Hour)) {
@@ -79,5 +84,13 @@ func TestNightlyCompressRunsOncePerNight(t *testing.T) {
 	}
 	if !web.nightlyCompressDue(night.Add(24 * time.Hour)) {
 		t.Fatal("again the next night")
+	}
+	// kept from starting by another task: tried again within the hour
+	web.auto.lastDay = ""
+	web.state.startSync()
+	web.nightlyCompress(night)
+	web.state.endSync()
+	if !web.nightlyCompressDue(night.Add(time.Minute)) {
+		t.Fatal("tried again while a scan kept it from starting")
 	}
 }

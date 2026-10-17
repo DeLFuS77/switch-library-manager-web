@@ -112,12 +112,23 @@ func (web *Web) nightlyCompressDue(now time.Time) bool {
 	if settings.ReadSettings(web.dataFolder).AutoCompress != AUTO_COMPRESS_NIGHT || now.Hour() != autoCompressHour {
 		return false
 	}
-	day := now.Format("2006-01-02")
 	web.auto.mutex.Lock()
 	defer web.auto.mutex.Unlock()
-	if web.auto.lastDay == day {
+	return web.auto.lastDay != now.Format("2006-01-02")
+}
+
+// nightlyCompress starts the nightly compression when it is due: it counts as done for the
+// day once it started or there is nothing to compress, and is tried again within the hour
+// while another task keeps it from starting.
+func (web *Web) nightlyCompress(now time.Time) bool {
+	if !web.nightlyCompressDue(now) || web.state.IsSynchronizing() {
 		return false
 	}
-	web.auto.lastDay = day
-	return true
+	started := web.autoCompress(TRIGGER_SCHEDULE)
+	if started || len(web.autoCompressCandidates()) == 0 {
+		web.auto.mutex.Lock()
+		web.auto.lastDay = now.Format("2006-01-02")
+		web.auto.mutex.Unlock()
+	}
+	return started
 }

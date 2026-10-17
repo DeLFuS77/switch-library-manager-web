@@ -38,7 +38,7 @@ func (web *Web) StartScheduler() {
 			if syncDue(appSettings, now) && !web.filesBusy() && web.Synchronize(TRIGGER_SCHEDULE) {
 				web.sugarLogger.Info("[Scheduled synchronization started]")
 			}
-			if web.nightlyCompressDue(now) && !web.state.IsSynchronizing() && web.autoCompress(TRIGGER_SCHEDULE) {
+			if web.nightlyCompress(now) {
 				web.sugarLogger.Info("[Nightly compression started]")
 			}
 			if verifyDue(appSettings, web.verifications().lastRun(), now) && inBackgroundHours(appSettings, now) && !web.state.IsSynchronizing() && web.startVerificationOf(nil, time.Duration(appSettings.VerifyIntervalDays)*24*time.Hour, TRIGGER_SCHEDULE) {
@@ -50,6 +50,11 @@ func (web *Web) StartScheduler() {
 				}
 			}
 			web.resumeBackgroundWork(now)
+			// a task on files the app was stopped in the middle of, kept from going on at the
+			// start by another task
+			if !web.filesBusy() && !web.state.IsSynchronizing() {
+				web.resumeInterrupted()
+			}
 			web.checkDiskSpace()
 		}
 	}()
