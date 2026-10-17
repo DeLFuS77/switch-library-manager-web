@@ -750,12 +750,15 @@ func (web *Web) startInBackground() {
 		if failure == nil {
 			web.afterScan()
 		}
+		// the task the app was stopped in the middle of goes first, before the new files
+		if failure == nil {
+			web.resumeInterrupted()
+		}
 		if failure == nil && settings.ReadSettings(web.dataFolder).AutoCompress == AUTO_COMPRESS_NEW {
 			web.autoCompress(TRIGGER_STARTUP)
 		}
 		if failure == nil {
 			web.resumeAutomation()
-			web.resumeInterrupted()
 		}
 	}()
 }
