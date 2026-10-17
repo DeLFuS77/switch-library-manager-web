@@ -613,9 +613,9 @@ watchdog==2.1.9 \
     --hash=sha256:ed80a1628cee19f5cfc6bb74e173f1b4189eb532e705e2a13e3250312a62e0c9 \
     --hash=sha256:ee3e38a6cc050a8830089f79cbec8a3878ec2fe5160cdb2dc8ccb6def8552658
     # via -r requirements.txt (NUT)
-werkzeug==2.1.2 \
-    --hash=sha256:1ce08e8093ed67d638d63879fd1ba3735817f7a80de3674d293f5984f25fb6e6 \
-    --hash=sha256:72a4b735692dd3135217911cbeaa1be5fa3f62bffb8745c5215420a03dc55255
+werkzeug==3.1.9 \
+    --hash=sha256:55ca7c70a75689be937aa27f8ff4b018f06ff4838fc73045560bf0f5a1291060 \
+    --hash=sha256:6392e50c78460ba618e5b21f08a71f59c99ce99cdc6cf6e3dd7e6ccca8754fab
     # via flask
 zstandard==0.15.2 \
     --hash=sha256:1c5ef399f81204fbd9f0df3debf80389fd8aa9660fe1746d37c80b0d45f809e9 \
