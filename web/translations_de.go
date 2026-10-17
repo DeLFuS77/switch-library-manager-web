@@ -3,6 +3,9 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.": "Dieses Spiel nutzt ein neues Format (Sparse Storage), das noch kein Kompressor verkleinern kann: Es bleibt, wie es ist, und lässt sich normal installieren.",
+		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v Dateien lassen sich nicht komprimieren und werden nicht aufgeführt: Nichts darin ließ sich verkleinern. Sie bleiben, wie sie sind, und lassen sich normal installieren.",
+		"Sparse storage": "Sparse Storage",
 		"Going on after a restart": "Fortsetzung nach Neustart",
 		"Your library, games and settings are safe; nothing is changed while the app starts.": "Deine Bibliothek, Spiele und Einstellungen sind sicher: Beim Start wird nichts geändert.",
 		"Opening the local database...": "Lokale Datenbank wird geöffnet…",

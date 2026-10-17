@@ -3,6 +3,9 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.": "このゲームは、まだどの圧縮ツールも小さくできない新しい形式（スパースストレージ）を使っています。そのまま残り、通常どおりインストールできます。",
+		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v 個のファイルは圧縮できないため表示していません。小さくできる部分がありませんでした。そのまま残り、通常どおりインストールできます。",
+		"Sparse storage": "スパースストレージ",
 		"Going on after a restart": "再起動後の再開",
 		"Your library, games and settings are safe; nothing is changed while the app starts.": "ライブラリ、ゲーム、設定は安全です。起動中に何も変更されません。",
 		"Opening the local database...": "ローカルデータベースを開いています…",

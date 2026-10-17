@@ -133,6 +133,9 @@ type Web struct {
 	// the files waiting for the automations (see automation.go)
 	automationQueue *automationQueue
 	automationOnce  sync.Once
+	// files that could not be compressed (see uncompressible.go)
+	uncompressibleStore *uncompressibleStore
+	uncompressibleOnce  sync.Once
 	// the save vault: verified passwords and what was read from the backups (see vault.go)
 	vault           vaultAuth
 	vaultFiles      vaultIndex

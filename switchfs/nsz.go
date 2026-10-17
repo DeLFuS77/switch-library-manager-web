@@ -81,6 +81,14 @@ type CompressResult struct {
 // ErrNotCompressible is returned when no NCA of an NSP can be compressed.
 var ErrNotCompressible = errors.New("nothing in this file can be compressed")
 
+// ErrSparseStorage is ErrNotCompressible for a game in sparse storage: a layout of some recent
+// games whose sections are mapped through a table onto less data than they cover. No
+// compressor reads it yet (nsz neither); the game stays as it is and installs normally.
+var ErrSparseStorage = fmt.Errorf("%w: it uses sparse storage, which cannot be compressed yet", ErrNotCompressible)
+
+// reasonSparse is the reason of planNcz for an NCA in sparse storage.
+const reasonSparse = "sparse storage"
+
 type nczSection struct {
 	offset     uint64
 	size       uint64
@@ -144,6 +152,11 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 		}
 	}
 	if result.Compressed == 0 {
+		for _, reason := range reasons {
+			if strings.HasSuffix(reason, ": "+reasonSparse) {
+				return result, ErrSparseStorage
+			}
+		}
 		if len(reasons) > 0 {
 			return result, fmt.Errorf("%w (%s)", ErrNotCompressible, strings.Join(reasons, "; "))
 		}
@@ -254,6 +267,10 @@ func planNcz(input io.ReaderAt, offset int64, size uint64, titleKeys map[string]
 		fsh, err := getFsHeader(header, index)
 		if err != nil {
 			return nil, "", err
+		}
+		// the size of the table of a sparse section: its range is not where its data is
+		if !isZero(fsh.fsHeaderBytes[0x148+0x8 : 0x148+0x10]) {
+			return nil, reasonSparse, nil
 		}
 		counter := make([]byte, 16)
 		for i := 0; i < 8; i++ {

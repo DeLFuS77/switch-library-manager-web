@@ -26,12 +26,13 @@ const (
 	NOTE_COMPRESS_SPACE    = "Not enough free space to compress the file."
 	NOTE_COMPRESS_EXISTS   = "A compressed file with the same name already exists."
 	NOTE_COMPRESS_NOTHING  = "Nothing in the file can be compressed."
+	NOTE_COMPRESS_SPARSE   = "This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally."
 	NOTE_COMPRESS_CANCELED = "The compression was cancelled."
 	NOTE_COMPRESS_DELETE   = "The original could not be deleted."
 	NOTE_DECOMPRESS_FAILED = "The file could not be decompressed, the compressed file is kept."
 )
 
-var compressNoteTexts = []string{NOTE_PACK_FAILED, NOTE_PACK_EXISTS, NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_DELETE}
+var compressNoteTexts = []string{NOTE_PACK_FAILED, NOTE_PACK_EXISTS, NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_SPARSE, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_DELETE}
 
 // CompressCandidate is an NSP of the library that can be compressed.
 type CompressCandidate struct {
@@ -89,7 +90,9 @@ type CompressPageData struct {
 	CardCount int
 	// NSP and XCI files that already have a compressed copy (listed on the Space page)
 	AlreadyCompressed int
-	TotalSize         int64
+	// files tried before that nothing could shrink, not listed
+	Uncompressible []UncompressibleEntry
+	TotalSize      int64
 	// compressed files that can be decompressed
 	Running bool
 }
@@ -152,9 +155,11 @@ func (web *Web) compressCandidates() []CompressCandidate {
 				}
 			}
 		}
+		// a file tried before that nothing could shrink is not offered again
+		store := web.uncompressible()
 		candidates := []CompressCandidate{}
 		for _, candidate := range web.libraryFiles(".nsp", ".xci") {
-			if !old[candidate.Path] {
+			if _, uncompressible := store.get(candidate.Path, candidate.Size); !old[candidate.Path] && !uncompressible {
 				candidates = append(candidates, candidate)
 			}
 		}
@@ -696,6 +701,11 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 					case err != nil:
 						web.sugarLogger.Warnf("%s of %s failed: %v", kind, path, err)
 						web.taskLog().Warn(taskId, compressNote(kind, err), name+": "+err.Error())
+						// nothing in it can be compressed: no longer offered while it stays the same
+						if kind == TASK_COMPRESS && errors.Is(err, switchfs.ErrNotCompressible) {
+							web.uncompressible().add(path, fileSize, errors.Is(err, switchfs.ErrSparseStorage))
+							web.invalidateDerived()
+						}
 					default:
 						processed++
 						saved += fileSaved
@@ -755,6 +765,8 @@ func compressNote(kind string, err error) string {
 		return NOTE_COMPRESS_SPACE
 	case errors.Is(err, errCompressExists):
 		return NOTE_COMPRESS_EXISTS
+	case errors.Is(err, switchfs.ErrSparseStorage):
+		return NOTE_COMPRESS_SPARSE
 	case errors.Is(err, switchfs.ErrNotCompressible):
 		return NOTE_COMPRESS_NOTHING
 	case strings.Contains(err.Error(), "damaged"):
@@ -895,6 +907,7 @@ func (web *Web) HandleCompress() {
 		candidates := web.uncompressedCandidates()
 		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, CompressedCount: len(web.decompressCandidates()), CardCount: len(web.convertCandidates()), Running: web.compressionRunning()}
 		data.AlreadyCompressed = len(web.compressCandidates()) - len(candidates)
+		data.Uncompressible = web.uncompressibleFiles()
 		for i, candidate := range candidates {
 			data.TotalSize += candidate.Size
 			if i >= shownFiles {

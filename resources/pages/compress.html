@@ -25,6 +25,16 @@
 			{{- if .AlreadyCompressed}}
 			<p class="small text-body-secondary d-flex align-items-start gap-2 mb-4"><span class="bi bi-info-circle flex-shrink-0 mt-1" aria-hidden="true"></span><span>{{t "%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified." .AlreadyCompressed}} <a href="/space.html">{{t "Space"}}</a></span></p>
 			{{- end}}
+			{{- if .Uncompressible}}
+			<details class="small text-body-secondary mb-4 uncompressible-list">
+				<summary class="d-flex align-items-start gap-2"><span class="bi bi-slash-circle flex-shrink-0 mt-1" aria-hidden="true"></span><span>{{t "%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally." (len .Uncompressible)}}</span></summary>
+				<ul class="list-unstyled ms-4 mt-2 mb-0">
+					{{- range .Uncompressible}}
+					<li class="d-flex flex-wrap gap-2"><span class="text-body">{{.Name}}</span><span>{{formatSize .Size}}</span>{{if .Sparse}}<span class="badge text-bg-secondary">{{t "Sparse storage"}}</span>{{end}}</li>
+					{{- end}}
+				</ul>
+			</details>
+			{{- end}}
 			{{- if not .Candidates}}
 			{{- template "emptyState" (dict "Icon" "bi-file-zip" "Tone" "success" "Title" (t "Nothing to compress") "Text" (t "Your library has no NSP or XCI files to compress.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 			{{- else}}

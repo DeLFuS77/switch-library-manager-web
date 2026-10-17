@@ -3,6 +3,9 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.": "Эта игра использует новый формат (разреженное хранение), который пока не умеет сжимать ни один компрессор: она остаётся как есть и устанавливается как обычно.",
+		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v файлов нельзя сжать, и они не показаны: в них нечего уменьшить. Они остаются как есть и устанавливаются как обычно.",
+		"Sparse storage": "Разреженное хранение",
 		"Going on after a restart": "Продолжение после перезапуска",
 		"Your library, games and settings are safe; nothing is changed while the app starts.": "Ваша библиотека, игры и настройки в безопасности: при запуске ничего не меняется.",
 		"Opening the local database...": "Открывается локальная база данных…",

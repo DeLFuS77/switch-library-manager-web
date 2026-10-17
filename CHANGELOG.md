@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Compress: a game in sparse storage, a layout of some recent games that no compressor can shrink yet (nsz neither),
+  is now told as such instead of with a technical message; it stays as it is and installs normally. A file nothing
+  could be compressed in is remembered and no longer offered, so compressing the whole library does not stop at it
+  each time; the page lists those files apart, and one replaced by another file is offered again.
+
+### Fixes
+
+- Tasks: the list of the files a running compression has done is no longer drawn again while it is scrolled (the bar
+  dragged or a finger sliding), which cut the gesture every second and kept it from going down.
+
 ## 1.40.1
 
 ### Fixes

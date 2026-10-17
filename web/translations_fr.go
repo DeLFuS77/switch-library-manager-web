@@ -3,6 +3,9 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.": "Ce jeu utilise un format récent (stockage clairsemé) qu’aucun compresseur ne sait encore réduire : il reste tel quel et s’installe normalement.",
+		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v fichiers ne peuvent pas être compressés et ne sont pas listés : rien en eux n’a pu être réduit. Ils restent tels quels et s’installent normalement.",
+		"Sparse storage": "Stockage clairsemé",
 		"Going on after a restart": "Reprise après redémarrage",
 		"Your library, games and settings are safe; nothing is changed while the app starts.": "Votre bibliothèque, vos jeux et vos réglages sont en sécurité : rien n'est modifié pendant le démarrage.",
 		"Opening the local database...": "Ouverture de la base de données locale…",

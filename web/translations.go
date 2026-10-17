@@ -5,6 +5,9 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.": "Este juego usa un formato reciente (almacenamiento disperso) que ningún compresor puede reducir todavía: se queda como está y se instala con normalidad.",
+		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v archivos no se pueden comprimir y no se muestran: no hay nada en ellos que se pueda reducir. Se quedan como están y se instalan con normalidad.",
+		"Sparse storage": "Almacenamiento disperso",
 		"Going on after a restart": "Continuación tras reinicio",
 		"Your library, games and settings are safe; nothing is changed while the app starts.": "Tu biblioteca, tus juegos y tus ajustes están a salvo: mientras arranca no se cambia nada.",
 		"Opening the local database...": "Abriendo la base de datos local…",

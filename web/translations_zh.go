@@ -3,6 +3,9 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.": "此游戏使用一种较新的格式（稀疏存储），目前还没有压缩工具能缩小它：它会保持原样，可以正常安装。",
+		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v 个文件无法压缩，未列出：其中没有可以缩小的内容。它们保持原样，可以正常安装。",
+		"Sparse storage": "稀疏存储",
 		"Going on after a restart": "重启后继续",
 		"Your library, games and settings are safe; nothing is changed while the app starts.": "你的游戏库、游戏和设置都很安全:启动期间不会更改任何内容。",
 		"Opening the local database...": "正在打开本地数据库…",

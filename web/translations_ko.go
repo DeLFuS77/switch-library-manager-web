@@ -3,6 +3,9 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.": "이 게임은 아직 어떤 압축 도구도 줄일 수 없는 새로운 형식(스파스 스토리지)을 사용해요. 그대로 유지되며 정상적으로 설치돼요.",
+		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v개 파일은 압축할 수 없어 표시하지 않아요. 줄일 수 있는 부분이 없었어요. 그대로 유지되며 정상적으로 설치돼요.",
+		"Sparse storage": "스파스 스토리지",
 		"Going on after a restart": "재시작 후 계속",
 		"Your library, games and settings are safe; nothing is changed while the app starts.": "라이브러리, 게임, 설정은 안전합니다. 시작하는 동안 아무것도 바뀌지 않습니다.",
 		"Opening the local database...": "로컬 데이터베이스를 여는 중…",

@@ -1170,9 +1170,39 @@ function initLiveTasks() {
 	let rendered = Number(list.dataset.version || 0);
 	let loading = false;
 	let pending = false;
+	// while a list of files is being scrolled (the bar dragged, a finger sliding) it is not
+	// drawn again: the new list would end the gesture every second
+	let scrolledAt = 0;
+	let holding = false;
+	let waiting = null;
+	// the scroll the page puts back after drawing the list is not the user's
+	let restoredAt = 0;
+	list.addEventListener('scroll', () => {
+		if (Date.now() - restoredAt > 250) {
+			scrolledAt = Date.now();
+		}
+	}, true);
+	list.addEventListener('pointerdown', e => {
+		holding = Boolean(e.target.closest('details[data-task-results]'));
+	});
+	list.addEventListener('touchstart', e => {
+		holding = Boolean(e.target.closest('details[data-task-results]'));
+	}, { passive: true });
+	['pointerup', 'pointercancel', 'touchend', 'touchcancel'].forEach(name => window.addEventListener(name, () => {
+		holding = false;
+	}, { passive: true }));
 	const refresh = () => {
 		if (loading) {
 			pending = true;
+			return;
+		}
+		if (holding || Date.now() - scrolledAt < 1500) {
+			if (!waiting) {
+				waiting = setTimeout(() => {
+					waiting = null;
+					refresh();
+				}, 700);
+			}
 			return;
 		}
 		loading = true;
@@ -1218,6 +1248,7 @@ function initLiveTasks() {
 					if (details.dataset.taskResults in scrolled) {
 						const box = scroller(details);
 						if (box) {
+							restoredAt = Date.now();
 							box.scrollTop = scrolled[details.dataset.taskResults];
 						}
 					}
