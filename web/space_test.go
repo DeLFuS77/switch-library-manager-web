@@ -202,19 +202,28 @@ func TestSpaceDeletesTheCopyNotTheCleanName(t *testing.T) {
 	dir := t.TempDir()
 	clean := filepath.Join(dir, "Game [0100000000010000][v0].nsz")
 	copy := filepath.Join(dir, "Game [0100000000010000][v0](2).nsz")
-	os.WriteFile(clean, make([]byte, 40), 0644)
-	os.WriteFile(copy, make([]byte, 40), 0644)
+	os.WriteFile(clean, testPfs0("a.nca", "b.tik"), 0644)
+	os.WriteFile(copy, testPfs0("a.nca", "b.tik"), 0644)
+	size := int64(len(testPfs0("a.nca", "b.tik")))
 	localDB := &db.LocalSwitchFilesDB{
 		TitlesMap: map[string]*db.SwitchGameFiles{},
 		// the copy was found first and is in the library; the clean name is the duplicate
 		Skipped: map[db.ExtendedFileInfo]db.SkippedFile{
-			{FileName: filepath.Base(clean), BaseFolder: dir, Size: 40}: {ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + copy + ")"},
+			{FileName: filepath.Base(clean), BaseFolder: dir, Size: size}: {ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + copy + ")"},
 		},
 	}
 	web.state.set(&db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{}}, localDB)
 	duplicates := spaceGroup(web.spaceGroups(), SPACE_DUPLICATES)
 	if len(duplicates.Files) != 1 || duplicates.Files[0].Path != copy || duplicates.Files[0].KeptBy != clean {
 		t.Fatalf("the copy must be the file to delete: %+v", duplicates.Files)
+	}
+
+	// a copy that holds more (a bundle with an update) stays: the clean name is the one to delete
+	os.WriteFile(copy, testPfs0("a.nca", "b.tik", "c.nca"), 0644)
+	web.invalidateDerived()
+	duplicates = spaceGroup(web.spaceGroups(), SPACE_DUPLICATES)
+	if len(duplicates.Files) != 1 || duplicates.Files[0].Path != clean || duplicates.Files[0].KeptBy != copy {
+		t.Fatalf("the copy that holds more must stay: %+v", duplicates.Files)
 	}
 }
 

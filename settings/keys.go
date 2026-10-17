@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 
 	"github.com/magiconair/properties"
@@ -44,11 +45,14 @@ func SwitchKeys() (*switchKeys, error) {
 }
 
 // lastKeysReport is what was last reported about the keys, so it is not repeated
-var lastKeysReport string
+var (
+	lastKeysReport  string
+	keysReportMutex sync.Mutex
+)
 
 func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
-	// A failed lookup must not leave keys from a previous base folder active.
-	keysInstance.Store(nil)
+	// the keys in use stay while the new ones are read: a compression running meanwhile
+	// does not find them missing. A failed lookup clears them below.
 	var (
 		path string
 		p    *properties.Properties
@@ -90,6 +94,10 @@ func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
 	}
 
 	if err != nil {
+		// a failed lookup must not leave keys from a previous base folder active
+		keysInstance.Store(nil)
+		keysReportMutex.Lock()
+		defer keysReportMutex.Unlock()
 		if lastKeysReport != "none" {
 			lastKeysReport = "none"
 			logger.Info("Unable to find prod.keys")
@@ -116,6 +124,8 @@ func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
 
 	// the keys are read again before every synchronization: they are reported when they change
 	report := fmt.Sprintf("%s|%d|%d|%s", path, len(loaded.keys), len(loaded.titleKeys), KeysFingerprint())
+	keysReportMutex.Lock()
+	defer keysReportMutex.Unlock()
 	if report != lastKeysReport {
 		lastKeysReport = report
 		logger.Infof("Loaded prod.keys from: %v", path)

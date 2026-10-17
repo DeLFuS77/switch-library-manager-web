@@ -10,6 +10,19 @@
   "1 change is waiting" in the singular.
 - Without HTTPS the browser console no longer fills with warnings about the opener policy on every page, nor with an
   error when a transition between pages is skipped.
+- Save vault: an upload cut in the middle (the console going to sleep, the Wi-Fi) leaves the previous save as it
+  was, instead of a cut file in its place.
+- Automations: the new files they are working on are kept until they are done, so a restart in the middle or the
+  automations turned off meanwhile put them back in the queue instead of losing them.
+- Reloading the keys before a synchronization no longer leaves a moment without keys for a compression that is
+  running.
+- Space deletes the copy with the extra name ("Game (2).nsz") instead of the clean one also when the copy is the file
+  in the library, and only when the clean file holds all the copy holds; before, it was always shown as in use.
+- A download of the titles database that fails because the disk is full is not downloaded again and again.
+- Restoring a backup says why it failed also when the answer is not the app's (a file too large for a proxy), the
+  errors of a form are shown even for a field the page does not have, the Tasks page and the task indicator go on
+  updating when the page is opened again with the browser's Back button, and filtering a long list of files fast no
+  longer shows the rows of an older filter.
 
 ## 1.40.0
 

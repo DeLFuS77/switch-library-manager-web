@@ -4,6 +4,8 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/binary"
+	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -259,3 +261,27 @@ func TestVaultRefusesUploadsThatWouldFillTheDisk(t *testing.T) {
 		t.Fatalf("a full disk: %d", r.Code)
 	}
 }
+
+// An upload cut in the middle leaves the previous save as it was.
+func TestVaultKeepsTheSaveWhenAnUploadIsCut(t *testing.T) {
+	web, handler := vaultTestServer(t)
+	davRequest(handler, "MKCOL", "/dav/JKSV/Cut/", nil)
+	if r := davRequest(handler, http.MethodPut, "/dav/JKSV/Cut/save.zip", []byte("the whole save")); r.Code != http.StatusCreated {
+		t.Fatalf("first upload: %d", r.Code)
+	}
+	request := httptest.NewRequest(http.MethodPut, "/dav/JKSV/Cut/save.zip", io.MultiReader(bytes.NewReader([]byte("half")), errorReader{}))
+	request.ContentLength = 100
+	request.SetBasicAuth("jksv", "vault-secret-42")
+	handler.ServeHTTP(httptest.NewRecorder(), request)
+	matches, _ := filepath.Glob(filepath.Join(web.vaultRoot(), "*", "Cut", "*"))
+	if len(matches) != 1 {
+		t.Fatalf("files left: %v", matches)
+	}
+	if data, _ := os.ReadFile(matches[0]); string(data) != "the whole save" {
+		t.Fatalf("save: %q", data)
+	}
+}
+
+type errorReader struct{}
+
+func (errorReader) Read([]byte) (int, error) { return 0, errors.New("connection cut") }

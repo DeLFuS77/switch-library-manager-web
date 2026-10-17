@@ -432,16 +432,22 @@ function onSubmit(form) {
 		}
 
 		error.json().then(jsonResponse => {
-			if (jsonResponse.globalError.strongMessage || jsonResponse.globalError.message) {
-				insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', jsonResponse.globalError.strongMessage, jsonResponse.globalError.message);
-			} else if (jsonResponse.fieldErrors) {
+			const globalError = jsonResponse.globalError || {};
+			if (globalError.strongMessage || globalError.message) {
+				insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', globalError.strongMessage, globalError.message);
+			} else if (jsonResponse.fieldErrors && jsonResponse.fieldErrors.length) {
 				jsonResponse.fieldErrors.forEach(fieldError => {
+					const field = form.querySelector(`[name="${CSS.escape(fieldError.field)}"]`);
+					// a field the page does not have: the message is still shown
+					if (!field) {
+						insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), fieldError.message);
+						return;
+					}
 					const validationFeedback = document.createElement('div');
 					validationFeedback.id = `validation-feedback-${fieldError.field}`;
 					validationFeedback.classList.add('invalid-feedback');
 					validationFeedback.appendChild(document.createTextNode(fieldError.message));
 
-					const field = form.querySelector(`[name="${fieldError.field}"]`);
 					field.setAttribute('aria-describedby', `validation-feedback-${fieldError.field}`);
 					field.classList.add('is-invalid');
 
@@ -1116,15 +1122,26 @@ function initTaskIndicator() {
 	if (!busy) {
 		return;
 	}
-	const source = new EventSource('/api/tasks/events');
-	source.addEventListener('tasks', () => {
-		updateTaskIndicator().then(running => {
-			if (running === 0) {
-				source.close();
-			}
+	let source = null;
+	const open = () => {
+		source = new EventSource('/api/tasks/events');
+		const current = source;
+		current.addEventListener('tasks', () => {
+			updateTaskIndicator().then(running => {
+				if (running === 0) {
+					current.close();
+				}
+			});
 		});
-	});
+	};
+	open();
 	window.addEventListener('pagehide', () => source.close());
+	// back to the page from the history of the browser: the connection was closed on leaving
+	window.addEventListener('pageshow', e => {
+		if (e.persisted) {
+			open();
+		}
+	});
 }
 
 // keepAnimationsInStep makes the spinners and striped bars just drawn go on where the ones
@@ -1234,15 +1251,27 @@ function initLiveTasks() {
 	};
 
 	if (window.EventSource) {
-		const source = new EventSource('/api/tasks/events');
-		source.addEventListener('tasks', e => {
-			const version = Number(e.data);
-			if (version !== rendered) {
-				rendered = version;
+		let source = null;
+		const open = () => {
+			source = new EventSource('/api/tasks/events');
+			source.addEventListener('tasks', e => {
+				const version = Number(e.data);
+				if (version !== rendered) {
+					rendered = version;
+					refresh();
+				}
+			});
+		};
+		open();
+		window.addEventListener('pagehide', () => source.close());
+		// back to the page from the history of the browser: the connection was closed on
+		// leaving, and the tasks went on meanwhile
+		window.addEventListener('pageshow', e => {
+			if (e.persisted) {
+				open();
 				refresh();
 			}
 		});
-		window.addEventListener('pagehide', () => source.close());
 	} else {
 		setInterval(refresh, 3000);
 	}
@@ -1336,12 +1365,25 @@ function bindFileForm(form, url) {
 	// a list loaded from the server, e.g. thousands of NSZ files: only the rows that
 	// match the filter are sent
 	const list = form.querySelector('[data-file-list]');
+	// only the answer to the last filter is drawn: typed fast, an older answer that arrives
+	// later would show the rows of an old filter
+	let loading = null;
 	const load = query => {
 		if (!list) {
 			return Promise.resolve();
 		}
-		return fetch(list.dataset.fileList + '?q=' + encodeURIComponent(query || ''))
-			.then(response => response.text())
+		if (loading) {
+			loading.abort();
+		}
+		const controller = new AbortController();
+		loading = controller;
+		return fetch(list.dataset.fileList + '?q=' + encodeURIComponent(query || ''), { signal: controller.signal })
+			.then(response => {
+				if (!response.ok) {
+					throw new Error(String(response.status));
+				}
+				return response.text();
+			})
 			.then(html => {
 				list.innerHTML = html;
 				list.dataset.loaded = 'true';
@@ -3081,6 +3123,16 @@ document.addEventListener('DOMContentLoaded', () => {
 	initLiveTasks();
 	initCompress();
 
+	// the answer of a backup request; one that is not JSON (a file too large for the server,
+	// a proxy in between) is still an answer, with its status
+	const readBackupAnswer = response => response.json()
+		.catch(() => ({ globalError: { message: t('Unexpected server response (%v).', response.status) } }))
+		.then(json => ({ ok: response.ok, json }));
+	const backupFailed = json => {
+		const error = (json && json.globalError) || {};
+		insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', error.strongMessage || t('Error!'), error.message || t('Could not reach the server.'));
+	};
+
 	const restoreForm = document.getElementById('restoreForm');
 	if (restoreForm) {
 		restoreForm.addEventListener('submit', e => {
@@ -3091,18 +3143,19 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 			button.disabled = true;
 			fetch('/backup/restore', { method: 'POST', body: new FormData(restoreForm) })
-				.then(response => response.json().then(json => ({ ok: response.ok, json })))
+				.then(readBackupAnswer)
 				.then(({ ok, json }) => {
 					button.disabled = false;
 					if (ok) {
 						insertAlert(mainContainer(), 'alert-success', 'bi-check-circle-fill', json.strongMessage, json.message);
 						setTimeout(() => window.location.reload(), 1500);
 					} else {
-						insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', json.globalError.strongMessage, json.globalError.message);
+						backupFailed(json);
 					}
 				})
 				.catch(() => {
 					button.disabled = false;
+					backupFailed();
 				});
 		});
 	}
@@ -3116,18 +3169,19 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 			button.disabled = true;
 			fetch(name ? `/backup/auto/${encodeURIComponent(name)}/restore` : '/backup/auto', { method: 'POST' })
-				.then(response => response.json().then(json => ({ ok: response.ok, json })))
+				.then(readBackupAnswer)
 				.then(({ ok, json }) => {
 					if (ok) {
 						insertAlert(mainContainer(), 'alert-success', 'bi-check-circle-fill', json.strongMessage, json.message);
 						setTimeout(() => window.location.reload(), 1500);
 					} else {
 						button.disabled = false;
-						insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', json.globalError.strongMessage, json.globalError.message);
+						backupFailed(json);
 					}
 				})
 				.catch(() => {
 					button.disabled = false;
+					backupFailed();
 				});
 		});
 	});

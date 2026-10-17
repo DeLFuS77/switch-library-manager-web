@@ -226,9 +226,14 @@ func downloadToFile(url string, etag string, target string) (string, error) {
 	if err != nil {
 		return "", errPermanent{err}
 	}
-	written, copyErr := io.Copy(file, resp.Body)
+	output := &recordingWriter{writer: file}
+	written, copyErr := io.Copy(output, resp.Body)
 	closeErr := file.Close()
 	if copyErr != nil {
+		// a disk that is full or cannot be written is not mended by downloading again
+		if output.err != nil {
+			return "", errPermanent{output.err}
+		}
 		return "", copyErr
 	}
 	if closeErr != nil {
@@ -239,6 +244,20 @@ func downloadToFile(url string, etag string, target string) (string, error) {
 	}
 
 	return resp.Header.Get("Etag"), nil
+}
+
+// recordingWriter keeps the error of a write, to tell it from an error of the download.
+type recordingWriter struct {
+	writer io.Writer
+	err    error
+}
+
+func (w *recordingWriter) Write(p []byte) (int, error) {
+	n, err := w.writer.Write(p)
+	if err != nil {
+		w.err = err
+	}
+	return n, err
 }
 
 // validateJsonObjectFile checks that the file holds one non-empty JSON object. The

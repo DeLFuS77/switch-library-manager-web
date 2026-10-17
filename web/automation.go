@@ -36,9 +36,19 @@ type automationQueue struct {
 	Paths   []string `json:"paths"`
 	Names   []string `json:"names"`
 	Updates int      `json:"updates"`
+	// the files the automations are working on: kept until they are done, so a restart in the
+	// middle, or automations stopped meanwhile, put them back in the queue instead of losing them
+	Running *automationBatch `json:"running,omitempty"`
 	running bool
 	// files were queued while it ran: it looks at the queue again before it stops
 	again bool
+}
+
+// automationBatch is a part of the queue taken by the automations.
+type automationBatch struct {
+	Paths   []string `json:"paths"`
+	Names   []string `json:"names"`
+	Updates int      `json:"updates"`
 }
 
 func (web *Web) automation() *automationQueue {
@@ -47,14 +57,36 @@ func (web *Web) automation() *automationQueue {
 		if data, err := os.ReadFile(queue.path); err == nil {
 			parseStore(queue.path, data, queue)
 		}
+		// the app stopped while the automations were working on these files
+		queue.giveBack()
 		web.automationQueue = queue
 	})
 	return web.automationQueue
 }
 
+// giveBack puts the files being worked on back at the front of the queue; the mutex must be
+// held (or the queue not shared yet).
+func (q *automationQueue) giveBack() {
+	if q.Running == nil {
+		return
+	}
+	known := map[string]bool{}
+	paths := []string{}
+	for _, path := range append(append([]string{}, q.Running.Paths...), q.Paths...) {
+		if !known[path] {
+			known[path] = true
+			paths = append(paths, path)
+		}
+	}
+	q.Paths = paths
+	q.Names = append(append([]string{}, q.Running.Names...), q.Names...)
+	q.Updates += q.Running.Updates
+	q.Running = nil
+}
+
 // save writes the queue; the mutex must be held.
 func (q *automationQueue) save() {
-	if len(q.Paths) == 0 && len(q.Names) == 0 {
+	if len(q.Paths) == 0 && len(q.Names) == 0 && q.Running == nil {
 		os.Remove(q.path)
 		return
 	}
@@ -242,12 +274,26 @@ func (web *Web) runAutomationOnce() bool {
 	queue := web.automation()
 	queue.mutex.Lock()
 	paths, names, updates := queue.Paths, queue.Names, queue.Updates
-	queue.Paths, queue.Names, queue.Updates = nil, nil, 0
-	queue.save()
-	queue.mutex.Unlock()
 	if len(paths) == 0 && len(names) == 0 {
+		queue.mutex.Unlock()
 		return false
 	}
+	queue.Paths, queue.Names, queue.Updates = nil, nil, 0
+	queue.Running = &automationBatch{Paths: paths, Names: names, Updates: updates}
+	queue.save()
+	queue.mutex.Unlock()
+	// done, the files leave the queue; stopped in the middle, they go back to it
+	done := false
+	defer func() {
+		queue.mutex.Lock()
+		if done {
+			queue.Running = nil
+		} else {
+			queue.giveBack()
+		}
+		queue.save()
+		queue.mutex.Unlock()
+	}()
 	existing := []string{}
 	for _, path := range paths {
 		if _, err := os.Stat(path); err == nil {
@@ -345,6 +391,7 @@ func (web *Web) runAutomationOnce() bool {
 	}
 	web.sugarLogger.Infof("Automation: %d new games and DLC, %d updates, %d files checked (%d damaged), %d compressed, %d old updates deleted, %d files organized",
 		len(result.Games), result.Updates, result.Checked, result.Damaged, result.Compressed, result.Removed, result.Moved)
+	done = true
 	return true
 }
 

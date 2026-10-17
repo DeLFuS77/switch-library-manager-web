@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -143,5 +145,18 @@ func TestAutomationRunsTheChosenSteps(t *testing.T) {
 	}
 	if task, ok := web.latestTask(TASK_VERIFY); !ok || task.Trigger != TRIGGER_AUTOMATION {
 		t.Fatalf("the check is a task of the automations: %+v", task)
+	}
+}
+
+// Files the automations were working on when the app stopped go back to the queue.
+func TestAutomationKeepsFilesOfAnInterruptedRun(t *testing.T) {
+	web := newTestWeb(t)
+	data := `{"paths":["/b.nsp"],"names":["B"],"updates":1,"running":{"paths":["/a.nsp","/b.nsp"],"names":["A"],"updates":2}}`
+	if err := os.WriteFile(filepath.Join(web.dataFolder, AUTOMATION_FILENAME), []byte(data), 0600); err != nil {
+		t.Fatal(err)
+	}
+	queue := web.automation()
+	if len(queue.Paths) != 2 || queue.Paths[0] != "/a.nsp" || queue.Updates != 3 || len(queue.Names) != 2 || queue.Running != nil {
+		t.Fatalf("queue: %+v", queue)
 	}
 }

@@ -128,6 +128,7 @@ type Web struct {
 	seriesFile     seriesFile
 	// results of switchfs.HoldsSameContents, see holdsSameContents
 	sameContents      sync.Map
+	sameContentsCount atomic.Int64
 	timeToBeatRunning atomic.Bool
 	// the files waiting for the automations (see automation.go)
 	automationQueue *automationQueue

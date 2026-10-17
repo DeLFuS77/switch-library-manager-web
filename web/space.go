@@ -215,10 +215,6 @@ func (web *Web) spaceGroups() []SpaceGroup {
 				entry.Deletable = false
 				entry.Note = note
 			}
-			if inUse[path] {
-				entry.Deletable = false
-				entry.Note = process.REASON_IN_USE
-			}
 			add(SPACE_OLD_UPDATES, entry)
 		case db.REASON_DUPLICATE:
 			checkCompressed(file, name, false)
@@ -232,16 +228,20 @@ func (web *Web) spaceGroups() []SpaceGroup {
 			}
 			entry := SpaceFile{Path: path, Name: name, Size: file.Size, KeptBy: keptBy(skipped.ReasonText), Deletable: true, file: file}
 			// the copy is deleted, not the file with the clean name, even when the copy was
-			// found first and is the one in the library
+			// found first and is the one in the library: when the file with the clean name holds
+			// all the copy holds (a copy with more in it, a bundle, is the one that stays)
+			swapped := false
 			if entry.KeptBy != "" && isCopyOf(fileBase(entry.KeptBy), file.FileName) {
-				if info, err := os.Stat(entry.KeptBy); err == nil && !info.IsDir() {
+				if info, err := os.Stat(entry.KeptBy); err == nil && !info.IsDir() && web.holdsSameContents(entry.KeptBy, path, fileInfoOf(path)) {
 					entry.Path, entry.KeptBy = entry.KeptBy, path
 					entry.Size = info.Size()
 					entry.file = db.ExtendedFileInfo{FileName: filepath.Base(entry.Path), BaseFolder: filepath.Dir(entry.Path), Size: info.Size()}
+					swapped = true
 				}
 			}
 			web.requireSoundKeptCopy(&entry)
-			if inUse[entry.Path] {
+			// the copy is in use only as the file the scan took: the clean one holds the same
+			if inUse[entry.Path] && !swapped {
 				entry.Deletable = false
 				entry.Note = process.REASON_IN_USE
 			}
@@ -263,11 +263,23 @@ func (web *Web) spaceGroups() []SpaceGroup {
 	return result
 }
 
+// the pairs of files remembered at most by holdsSameContents
+const maxSameContents = 20000
+
+// fileInfoOf is the information of a file, or nil when it cannot be read.
+func fileInfoOf(path string) os.FileInfo {
+	info, err := os.Stat(path)
+	if err != nil {
+		return nil
+	}
+	return info
+}
+
 // holdsSameContents is switchfs.HoldsSameContents, remembered while the two files do not
 // change: the Space page lists every pair each time it is shown.
 func (web *Web) holdsSameContents(original string, copyPath string, copyInfo os.FileInfo) bool {
 	originalInfo, err := os.Stat(original)
-	if err != nil {
+	if err != nil || copyInfo == nil {
 		return false
 	}
 	key := fmt.Sprintf("%s|%d|%d|%s|%d|%d", original, originalInfo.Size(), originalInfo.ModTime().UnixNano(),
@@ -277,6 +289,12 @@ func (web *Web) holdsSameContents(original string, copyPath string, copyInfo os.
 	}
 	same, err := switchfs.HoldsSameContents(original, copyPath)
 	same = err == nil && same
+	// a pair that changed has a new key: forgotten all at once now and then, so the old keys
+	// do not pile up while the app runs for months
+	if web.sameContentsCount.Add(1) > maxSameContents {
+		web.sameContents.Clear()
+		web.sameContentsCount.Store(1)
+	}
 	web.sameContents.Store(key, same)
 	return same
 }

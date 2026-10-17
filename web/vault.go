@@ -147,7 +147,11 @@ func (web *Web) vaultHandler() http.Handler {
 			http.Error(w, "the vault folder cannot be created", http.StatusInternalServerError)
 			return
 		}
-		handler := &webdav.Handler{Prefix: VAULT_PREFIX, FileSystem: webdav.Dir(root), LockSystem: locks,
+		// an upload takes the place of the save only once it arrived whole
+		if r.Method == http.MethodPut {
+			r = withUpload(r)
+		}
+		handler := &webdav.Handler{Prefix: VAULT_PREFIX, FileSystem: atomicDir{webdav.Dir(root)}, LockSystem: locks,
 			Logger: func(r *http.Request, err error) {
 				if err != nil {
 					web.sugarLogger.Debugf("Save vault %s %s: %v", r.Method, r.URL.Path, err)
