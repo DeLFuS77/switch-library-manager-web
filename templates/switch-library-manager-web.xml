@@ -22,11 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.41.0
-- Security: built with Go 1.27.2 (fixes in the HTTP server, TLS and templates), connections and heavy requests limited, signed provenance for the images and programs
-- Backups can be downloaded encrypted with a password
-### 1.40.2
-- Compress: games in sparse storage are told clearly and no longer offered again; the list of compressed files can be scrolled while a compression runs</Changes>
+  <Changes>### 1.41.1
+- Compressions say how long is left and about when they end; a window tells what is new after each update
+- More life across the app: drifting colors in the cards, charts that fill as you scroll, golden aura for complete sagas
+### 1.41.0
+- Security: built with Go 1.27.2, connections and heavy requests limited, signed provenance; backups can be encrypted with a password</Changes>
   <Date>2026-10-17</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
