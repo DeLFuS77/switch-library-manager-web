@@ -29,6 +29,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+      # signed provenance of the image (Sigstore)
+      id-token: write
+      attestations: write
     env:
       DOCKERHUB_ENABLED: ${{ secrets.DOCKERHUB_TOKEN != '' }}
     steps:
@@ -99,6 +102,8 @@ jobs:
               echo "docker.io/${DOCKERHUB_USERNAME}/${DOCKERHUB_REPOSITORY}"
             fi
             echo "EOF"
+            # registries take names in lower case only
+            echo "ghcr=$(printf '%s' "${REGISTRY}/${IMAGE_NAME}" | tr '[:upper:]' '[:lower:]')"
           } >> "$GITHUB_OUTPUT"
 
       - name: Extract metadata (tags, labels) for Docker
@@ -112,6 +117,7 @@ jobs:
             latest=true
 
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
@@ -119,6 +125,27 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # the list of what is in the image, and how it was built, kept with it
+          sbom: true
+          provenance: mode=max
+
+      # the image is already published: an attestation that fails does not undo it
+      - name: Attest the image (GitHub)
+        continue-on-error: true
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: ${{ steps.images.outputs.ghcr }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Attest the image (Docker Hub)
+        if: env.DOCKERHUB_ENABLED == 'true'
+        continue-on-error: true
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPOSITORY }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
 
       - name: Prepare the README for Docker Hub
         if: env.DOCKERHUB_ENABLED == 'true'

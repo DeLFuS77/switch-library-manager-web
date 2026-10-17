@@ -13,6 +13,9 @@
   change what is built; the checkouts keep no credentials; the titles data is generated with NUT at a fixed commit in
   a job that can only read, and published by another job that runs no code of other projects; a new Security
   workflow looks for known vulnerabilities of Go and npm on every change and every week.
+- Every program of a release and every Docker image comes with a signed provenance (Sigstore, through GitHub) that
+  proves it was built by this repository from the tagged source, and the images carry their SBOM; the README tells
+  how to check them with `gh attestation verify`.
 
 ## 1.40.2
 

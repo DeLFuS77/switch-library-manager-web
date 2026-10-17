@@ -365,6 +365,17 @@ Cloudflare. If Cloudflare connects to the app directly (a proxied DNS record poi
 `SLM_TRUSTED_PROXIES` also takes other proxy addresses or ranges, separated by commas. Cloudflare's own protections
 (for example a WAF rate limiting rule on `/login.html`, or Cloudflare Access) can be added on top.
 
+**Verifying the downloads.** Every program of a release and every Docker image comes with a signed provenance
+(Sigstore, through GitHub) that proves it was built by this repository's workflows from the tagged source, and the
+images carry the list of what is in them (SBOM). With the [GitHub CLI](https://cli.github.com/):
+
+```bash
+gh attestation verify switch-library-manager-web-<version>-windows-x64.zip -R DeLFuS77/switch-library-manager-web
+gh attestation verify oci://docker.io/delfus77/switch-library-manager-web:latest -R DeLFuS77/switch-library-manager-web
+```
+
+`SHA256SUMS.txt` in each release has the checksums of the files.
+
 Other protections: other web sites cannot send actions to the app (CSRF), pages cannot be shown inside other sites,
 only the app's own scripts run, request sizes and slow connections are limited, covers are only downloaded from the
 internet (never from addresses of your network) and the settings, users and session files are readable only by the
