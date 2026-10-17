@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Deleting the empty folders after organizing is fast also with a few of them: the app asked the disk about every
+  file of the library and then opened every folder again to find them, which took minutes on a NAS; now one walk of
+  the folders tells which ones are empty.
+
 ## 1.41.2
 
 ### Fixes
