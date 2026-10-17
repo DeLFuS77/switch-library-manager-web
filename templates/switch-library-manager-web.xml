@@ -24,7 +24,7 @@
   <License>AGPL-3.0</License>
   <Changes>### 1.39.2
 - A compression stopped by a restart or a night backup goes on by itself, and keeps what it did
-- The menu counts the missing games next to Missing Games; the list of compressed files keeps its scroll
+- The menu counts the missing games next to Missing Games; texts name installers such as DBI
 ### 1.39.1
 - Fix: the app no longer waits minutes on the starting screen with a large library; the starting screen looks like the app</Changes>
   <Date>2026-10-17</Date>
