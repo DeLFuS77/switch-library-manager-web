@@ -4,6 +4,7 @@
 [![Release](https://img.shields.io/github/v/release/DeLFuS77/switch-library-manager-web?sort=semver)](https://github.com/DeLFuS77/switch-library-manager-web/releases)
 [![Docker Hub](https://img.shields.io/docker/pulls/delfus77/switch-library-manager-web?logo=docker)](https://hub.docker.com/r/delfus77/switch-library-manager-web)
 [![Tests](https://github.com/DeLFuS77/switch-library-manager-web/actions/workflows/test.yml/badge.svg)](https://github.com/DeLFuS77/switch-library-manager-web/actions/workflows/test.yml)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15629/badge)](https://www.bestpractices.dev/projects/15629)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/DeLFuS77/switch-library-manager-web/badge)](https://scorecard.dev/viewer/?uri=github.com/DeLFuS77/switch-library-manager-web)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/LICENSE)
 
