@@ -16,17 +16,24 @@ concurrency:
   group: update-title-data
   cancel-in-progress: false
 
+# NUT is code of another project, run with its own dependencies: it runs in a job that can
+# only read, at a fixed commit, and the job that publishes runs nothing but the upload of the
+# files it made. A change to NUT is taken on purpose, by changing NUT_COMMIT.
+env:
+  NUT_COMMIT: b4b9377b5113d00675c40c28b1c218c10ac66838
+
 jobs:
   generate:
     runs-on: ubuntu-24.04
     permissions:
-      contents: write
+      contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
-
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.10"
 
@@ -37,7 +44,10 @@ jobs:
 
       - name: Clone NUT and titledb
         run: |
-          git clone --depth 1 https://github.com/blawar/nut.git "$GITHUB_WORKSPACE/nut"
+          git init -q "$GITHUB_WORKSPACE/nut"
+          git -C "$GITHUB_WORKSPACE/nut" fetch -q --depth 1 https://github.com/blawar/nut.git "$NUT_COMMIT"
+          git -C "$GITHUB_WORKSPACE/nut" checkout -q FETCH_HEAD
+          # the titles are data, followed as they change
           git clone --depth 1 https://github.com/blawar/titledb.git "$GITHUB_WORKSPACE/nut/titledb"
 
       - name: Install NUT Python dependencies
@@ -112,6 +122,41 @@ jobs:
               if not payload.get("series"):
                   series.unlink()
                   print("The series from Wikidata are empty, the published file stays")
+          PY
+
+      - name: Keep the generated files
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: title-data
+          path: generated-data/*.json
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    needs: generate
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Get the generated files
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: title-data
+          path: generated-data
+
+      # only JSON objects are published, whatever the job before left
+      - name: Check the files
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          for path in Path("generated-data").iterdir():
+              if path.suffix != ".json" or not path.name.startswith("titles") and path.name != "versions.json":
+                  raise SystemExit(f"Unexpected file: {path}")
+              with path.open(encoding="utf-8") as source:
+                  if not isinstance(json.load(source), dict):
+                      raise SystemExit(f"Expected a JSON object: {path}")
           PY
 
       - name: Publish data release

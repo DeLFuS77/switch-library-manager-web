@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Security
+
+- The app is built with Go 1.27.2 instead of 1.26.0, which fixes known vulnerabilities of the standard library in the
+  HTTP server, TLS and the page templates; `golang.org/x/net`, `golang.org/x/crypto` and `klauspost/compress` are
+  updated for the same reason.
+- At most 1024 connections are kept open at once, and the heavy requests (the exports and the preview of Organize)
+  run two at a time: clicking again and again, or a script, no longer leaves a NAS without disk or processor.
+- Supply chain: the GitHub Actions are pinned by commit and the base image of Docker by digest, so a moved tag cannot
+  change what is built; the checkouts keep no credentials; the titles data is generated with NUT at a fixed commit in
+  a job that can only read, and published by another job that runs no code of other projects; a new Security
+  workflow looks for known vulnerabilities of Go and npm on every change and every week.
+
 ## 1.40.2
 
 ### Improvements

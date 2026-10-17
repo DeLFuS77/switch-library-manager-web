@@ -21,15 +21,16 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
-
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       # Docker Hub shows the README outside the repository: images and links need full URLs
       - name: Prepare the README for Docker Hub
         run: python3 .github/scripts/dockerhub_readme.py README.md README.dockerhub.md
 
       - name: Update Docker Hub description
         if: env.DOCKERHUB_TOKEN != ''
-        uses: peter-evans/dockerhub-description@v5
+        uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa # v5.0.0
         with:
           username: delfus77
           password: ${{ env.DOCKERHUB_TOKEN }}

@@ -1,4 +1,5 @@
-FROM alpine:3
+# pinned by digest: every build uses the same base image; Dependabot updates it
+FROM alpine:3@sha256:d56c381f961d307a21b3ca004cf1e3910f106644aefb1f43e654c8a56c4fd395
 
 RUN apk add --no-cache tzdata su-exec
 

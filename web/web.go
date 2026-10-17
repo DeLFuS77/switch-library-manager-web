@@ -13,7 +13,6 @@ import (
 	"html/template"
 	"io/fs"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -575,7 +574,7 @@ func (web *Web) Start() {
 	// the app answers at once: while it gets ready, every page says it is starting and opens
 	// by itself once it is ready (opening the local database and preparing the pages can
 	// take a while on a NAS)
-	listener, err := net.Listen("tcp", fmt.Sprint(":", web.appSettings.Port))
+	listener, err := listenLimited(fmt.Sprint(":", web.appSettings.Port))
 	if err != nil {
 		// started twice with a double click: the app is already open, show it instead
 		if portInUse(err) {
@@ -695,7 +694,7 @@ func (web *Web) Start() {
 
 	http.Handle("/", web.router)
 
-	handler := web.auth.middleware(web.withActivityLog(http.DefaultServeMux))
+	handler := web.auth.middleware(web.withActivityLog(limitHeavy(http.DefaultServeMux)))
 	if isDemoMode() {
 		handler = web.demoReadOnly(handler)
 	}
