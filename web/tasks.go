@@ -404,24 +404,19 @@ func (l *TaskLog) SetResume(id int64, resume *TaskResume) {
 	})
 }
 
-// takeInterrupted gives what the last task on files the app was stopped in the middle of
-// still had to do, and forgets it, so it goes on once.
-func (l *TaskLog) takeInterrupted() (string, *TaskResume) {
+// interrupted gives the last task on files the app was stopped in the middle of that still
+// has files left, with what it had left; tasks running now are not looked at.
+func (l *TaskLog) interrupted() (int64, string, *TaskResume) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	for _, task := range l.tasks {
-		if task.Resume == nil {
-			continue
+		if task.Resume != nil && task.Status == TASK_FAILED && task.Error != nil && task.Error.Text == NOTE_INTERRUPTED {
+			resume := *task.Resume
+			resume.Paths = append([]string(nil), task.Resume.Paths...)
+			return task.Id, task.Kind, &resume
 		}
-		resume := task.Resume
-		task.Resume = nil
-		l.changed(true)
-		if task.Status == TASK_FAILED && task.Error != nil && task.Error.Text == NOTE_INTERRUPTED {
-			return task.Kind, resume
-		}
-		return "", nil
 	}
-	return "", nil
+	return 0, "", nil
 }
 
 // AddFileResult records a file compressed, with its size before and after.

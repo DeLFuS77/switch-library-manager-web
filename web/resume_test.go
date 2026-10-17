@@ -79,14 +79,22 @@ func TestInterruptedTaskGoesOnOnce(t *testing.T) {
 	saved.SetResume(id, &TaskResume{Paths: []string{"/games/b.nsp"}, Level: "max"})
 
 	log := loadTaskLog(dir)
-	kind, resume := log.takeInterrupted()
-	if kind != TASK_COMPRESS || resume == nil || resume.Paths[0] != "/games/b.nsp" || resume.Level != "max" {
-		t.Fatalf("the interrupted compression goes on: %q %+v", kind, resume)
+	taskId, kind, resume := log.interrupted()
+	if taskId != id || kind != TASK_COMPRESS || resume == nil || resume.Paths[0] != "/games/b.nsp" || resume.Level != "max" {
+		t.Fatalf("the interrupted compression goes on: %d %q %+v", taskId, kind, resume)
 	}
-	if _, again := log.takeInterrupted(); again != nil {
-		t.Fatal("it goes on once")
+	// kept until it goes on, also after another restart
+	if _, _, again := loadTaskLog(dir).interrupted(); again == nil {
+		t.Fatal("kept while it did not go on")
 	}
-	if _, again := loadTaskLog(dir).takeInterrupted(); again != nil {
-		t.Fatal("once also after another restart")
+	log.SetResume(id, nil)
+	if _, _, again := log.interrupted(); again != nil {
+		t.Fatal("forgotten once it went on")
+	}
+	// a task running now is not taken for an interrupted one
+	running := log.Start(TASK_COMPRESS, TRIGGER_STARTUP)
+	log.SetResume(running, &TaskResume{Paths: []string{"/games/c.nsp"}})
+	if _, _, again := log.interrupted(); again != nil {
+		t.Fatal("a running task is not interrupted")
 	}
 }

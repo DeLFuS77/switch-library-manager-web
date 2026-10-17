@@ -406,7 +406,7 @@ func (web *Web) runResumableTask(kind string, trigger string, paths []string, pa
 // resumeInterrupted goes on with the compression, decompression or conversion the app was
 // stopped in the middle of, with the files it had left that still need it.
 func (web *Web) resumeInterrupted() {
-	kind, resume := web.taskLog().takeInterrupted()
+	id, kind, resume := web.taskLog().interrupted()
 	if resume == nil {
 		return
 	}
@@ -431,6 +431,7 @@ func (web *Web) resumeInterrupted() {
 		paths = append(paths, path)
 	}
 	if len(paths) == 0 {
+		web.taskLog().SetResume(id, nil)
 		return
 	}
 	started := false
@@ -442,7 +443,10 @@ func (web *Web) resumeInterrupted() {
 	case TASK_CONVERT:
 		started = web.startConversionBy(paths, resume.Delete, TRIGGER_RESUME)
 	}
+	// forgotten once it goes on: kept while another task on files keeps it from starting,
+	// for the next start of the app
 	if started {
+		web.taskLog().SetResume(id, nil)
 		web.sugarLogger.Infof("[%s goes on after a restart with %d files]", kind, len(paths))
 	}
 }

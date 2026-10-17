@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- The compression that goes on after a restart goes before the automatic compression of new files, and is kept for
+  the next start when another task keeps it from starting; with the automatic compression on, it could be lost.
+
 ## 1.39.2
 
 ### Improvements
