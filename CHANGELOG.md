@@ -24,6 +24,9 @@
   how to check them with `gh attestation verify`.
 - CodeQL looks for security mistakes in the Go and JavaScript code on every change and every week, OpenSSF Scorecard
   rates the practices of the project weekly, and SECURITY.md tells how to report a vulnerability privately.
+- The titles database is downloaded from addresses on the internet only, as the covers already were, so an address
+  set in settings.json cannot make the app call services of the local network; the in-memory caches of the logins
+  that passed are keyed with a secret made at each start; the workflows give no permissions by default.
 
 ## 1.40.2
 

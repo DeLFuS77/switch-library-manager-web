@@ -142,6 +142,23 @@ func (a *Auth) Enabled() bool {
 	return a.envUser != "" || a.users.Count() > 0
 }
 
+// cacheKeySecret keys the in-memory caches of the logins that passed: made at each start and
+// never stored, so a key seen in the memory cannot be checked against guessed passwords.
+var cacheKeySecret = func() []byte {
+	secret := make([]byte, 32)
+	if _, err := rand.Read(secret); err != nil {
+		panic(err)
+	}
+	return secret
+}()
+
+// cacheKey is the key of a login in the in-memory caches.
+func cacheKey(value string) string {
+	mac := hmac.New(sha256.New, cacheKeySecret)
+	mac.Write([]byte(value))
+	return hex.EncodeToString(mac.Sum(nil))
+}
+
 // verify checks a user name and password.
 func (a *Auth) verify(name string, password string) (*Principal, bool) {
 	if a.envUser != "" {
@@ -245,7 +262,7 @@ func (a *Auth) fromBasicAuth(r *http.Request) (principal *Principal, attempted b
 	if !ok {
 		return nil, false
 	}
-	key := sha256.Sum256([]byte(name + "\x00" + password))
+	key := cacheKey(name + "\x00" + password)
 	if expiry, ok := a.basicCache.Load(key); ok && time.Now().Before(expiry.(time.Time)) {
 		if principal, _, ok := a.lookup(name); ok {
 			return principal, true

@@ -2,10 +2,8 @@ package web
 
 import (
 	"archive/zip"
-	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/binary"
-	"encoding/hex"
 	"io"
 	"net/http"
 	"net/url"
@@ -74,8 +72,7 @@ func (v *vaultAuth) check(s *settings.AppSettings, user string, password string)
 	if subtle.ConstantTimeCompare([]byte(user), []byte(s.Vault.User)) != 1 {
 		return false
 	}
-	sum := sha256.Sum256([]byte(s.Vault.PasswordHash + "\x00" + password))
-	key := hex.EncodeToString(sum[:])
+	key := cacheKey(s.Vault.PasswordHash + "\x00" + password)
 	v.mutex.Lock()
 	if v.known == nil {
 		v.known = map[string]time.Time{}

@@ -68,6 +68,8 @@ func publicAddressOnly(network string, address string, _ syscall.RawConn) error 
 	return nil
 }
 
+// httpClient downloads the titles database: from the internet only too, so an address set in
+// settings.json cannot make the app call services of the local network.
 var httpClient = &http.Client{
 	// titles.json is >100MB, so allow slow connections to finish the download
 	Timeout: 10 * time.Minute,
@@ -75,6 +77,7 @@ var httpClient = &http.Client{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
 			Timeout: 5 * time.Second,
+			Control: publicAddressOnly,
 		}).DialContext,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ResponseHeaderTimeout: 30 * time.Second,
