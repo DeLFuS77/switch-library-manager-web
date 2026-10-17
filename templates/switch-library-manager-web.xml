@@ -22,12 +22,12 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.39.1
-- Fix: the app no longer waits minutes on the starting screen with a large library; the starting screen looks like the app
-### 1.39.0
-- A starting screen with what the app is doing after an update or a restart, which opens the app by itself
-- Hide demos also hides demos named "… Demo", "【DEMO】" and the like; the Tune-up page opens at once on a NAS</Changes>
-  <Date>2026-10-16</Date>
+  <Changes>### 1.39.2
+- A compression stopped by a restart or a night backup goes on by itself, and keeps what it did
+- The menu counts the missing games next to Missing Games; the list of compressed files keeps its scroll
+### 1.39.1
+- Fix: the app no longer waits minutes on the starting screen with a large library; the starting screen looks like the app</Changes>
+  <Date>2026-10-17</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>
