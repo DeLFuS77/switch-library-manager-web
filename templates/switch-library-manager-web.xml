@@ -22,12 +22,12 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.40.1
+  <Changes>### 1.40.2
+- Compress: games in sparse storage (a recent layout no compressor shrinks yet) are told clearly and, like any file nothing could be compressed in, no longer offered again
+- Tasks: the list of compressed files can be scrolled while a compression runs
+### 1.40.1
 - Save vault: an upload cut in the middle keeps the previous save; automations no longer lose files on a restart
-- Organize no longer keeps moving a game named only in Chinese or Korean; Space can delete "Game (2)" copies in the library
-### 1.40.0
-- Safer: originals are kept unless the new file was checked whole, data files are never cut or written over, a missing share no longer empties the library
-- Security: without login the app answers only to local names (new Allowed names setting); stronger login protection</Changes>
+- Organize no longer keeps moving a game named only in Chinese or Korean; Space can delete "Game (2)" copies in the library</Changes>
   <Date>2026-10-17</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
