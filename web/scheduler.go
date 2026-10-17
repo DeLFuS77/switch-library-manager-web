@@ -32,6 +32,8 @@ func (web *Web) StartScheduler() {
 	go func() {
 		ticker := time.NewTicker(time.Minute)
 		defer ticker.Stop()
+		// a backup that failed (a full disk) is tried again an hour later, not every minute
+		var backupFailed time.Time
 		for now := range ticker.C {
 			appSettings := settings.ReadSettings(web.dataFolder)
 			// a task changing the files goes first: the synchronization stays due until it ends
@@ -44,8 +46,9 @@ func (web *Web) StartScheduler() {
 			if verifyDue(appSettings, web.verifications().lastRun(), now) && inBackgroundHours(appSettings, now) && !web.state.IsSynchronizing() && web.startVerificationOf(nil, time.Duration(appSettings.VerifyIntervalDays)*24*time.Hour, TRIGGER_SCHEDULE) {
 				web.sugarLogger.Info("[Scheduled verification started]")
 			}
-			if web.autoBackupDue(now) {
+			if now.Sub(backupFailed) >= time.Hour && web.autoBackupDue(now) {
 				if err := web.makeAutoBackup(now); err != nil {
+					backupFailed = now
 					web.sugarLogger.Errorf("Automatic backup failed: %v", err)
 				}
 			}

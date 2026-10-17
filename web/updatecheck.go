@@ -94,8 +94,9 @@ func (web *Web) checkForUpdate() {
 	web.updates.latest = nil
 	if newerVersion(release.TagName, settings.SLM_WEB_VERSION) {
 		notes := strings.TrimSpace(release.Body)
-		if len(notes) > releaseNotesLength {
-			notes = notes[:releaseNotesLength] + "…"
+		// cut at a character, not in the middle of one written with several bytes
+		if runes := []rune(notes); len(runes) > releaseNotesLength {
+			notes = string(runes[:releaseNotesLength]) + "…"
 		}
 		web.updates.latest = &AppUpdate{Version: strings.TrimPrefix(release.TagName, "v"), Url: release.HtmlUrl, Notes: notes}
 		web.sugarLogger.Infof("Version %s is available", release.TagName)
