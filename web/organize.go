@@ -235,6 +235,8 @@ func (web *Web) HandleOrganize() {
 		settings.UpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
 			appSettings.OrganizeOptions = form.toOptions(appSettings.OrganizeOptions)
 		})
+		// the tune-up counts the changes of Organize with the new options
+		web.invalidateDerived()
 
 		return SuccessResponse {
 			StrongMessage: translate(lang, "Saved!"),

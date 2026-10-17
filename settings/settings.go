@@ -400,7 +400,13 @@ func SaveSettings(settings *AppSettings, dataFolder string) *AppSettings {
 	file, _ := json.MarshalIndent(settings, "", " ")
 	// the settings hold notification tokens: only the app reads them
 	path := filepath.Join(dataFolder, SETTINGS_FILENAME)
-	if err := os.WriteFile(path, file, 0600); err != nil {
+	// written aside and put in place at once: a full disk or a power cut while it is written
+	// must not leave it half written, which would lose every setting
+	temporary := path + ".tmp"
+	if err := os.WriteFile(temporary, file, 0600); err != nil {
+		zap.S().Errorf("Failed to save settings - %v", err)
+		os.Remove(temporary)
+	} else if err := os.Rename(temporary, path); err != nil {
 		zap.S().Errorf("Failed to save settings - %v", err)
 	}
 	// a file written by an older version keeps its permissions otherwise

@@ -185,7 +185,9 @@ func (s *verifyStore) carry(from string, to string, moved bool) bool {
 	}
 	if moved {
 		delete(s.records, from)
-		if record.Size != info.Size() {
+		// a move keeps the size and the time of the file: a file changed after it was checked,
+		// even to the same size, or a result too old, does not count as checked
+		if record.Size != info.Size() || record.ModTime != info.ModTime().UnixNano() || record.stale() {
 			s.version.Add(1)
 			return true
 		}

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -134,9 +135,30 @@ func (web *Web) writtenCopy(path string) bool {
 	return written
 }
 
-// compressCandidates lists the NSP and XCI files of the library, biggest first.
+// compressCandidates lists the NSP and XCI files of the library, biggest first, but the old
+// updates and DLC the cleanup deletes: compressing them would be work thrown away (a file
+// that also holds the game or a newer content stays).
 func (web *Web) compressCandidates() []CompressCandidate {
-	return web.derived("compressCandidates", func() any { return web.libraryFiles(".nsp", ".xci") }).([]CompressCandidate)
+	return web.derived("compressCandidates", func() any {
+		_, localDB := web.state.get()
+		old := map[string]bool{}
+		if localDB != nil {
+			inUse := process.FilesInUse(localDB)
+			for file, skipped := range localDB.Skipped {
+				path := filepath.Join(file.BaseFolder, file.FileName)
+				if skipped.ReasonCode == db.REASON_OLD_UPDATE && !inUse[path] {
+					old[path] = true
+				}
+			}
+		}
+		candidates := []CompressCandidate{}
+		for _, candidate := range web.libraryFiles(".nsp", ".xci") {
+			if !old[candidate.Path] {
+				candidates = append(candidates, candidate)
+			}
+		}
+		return candidates
+	}).([]CompressCandidate)
 }
 
 // compressedCopies are the compress candidates that have a compressed copy next to them,

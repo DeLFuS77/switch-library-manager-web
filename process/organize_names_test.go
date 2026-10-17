@@ -182,3 +182,23 @@ func TestSecondOrganizeRunIsQuiet(t *testing.T) {
 		}
 	}
 }
+
+// A part of a split file is never moved or deleted alone, whatever it holds: the other
+// parts would be left behind.
+func TestSplitPartsStay(t *testing.T) {
+	folder := t.TempDir()
+	part := writeFixture(t, filepath.Join(folder, "Game Update.nsp.00"), "both")
+	ops := newFileOperations(false)
+	if err := ops.move(filepath.Join(folder, "Game Update.nsp.00"), filepath.Join(folder, "Updates", "Game [v1].nsp")); err != nil {
+		t.Fatal(err)
+	}
+	if err := ops.remove(part, "old update"); err != nil {
+		t.Fatal(err)
+	}
+	assertExists(t, filepath.Join(folder, "Game Update.nsp.00"), true)
+	for _, op := range ops.operations {
+		if op.Kind != OP_SKIP || op.Reason != REASON_SPLIT {
+			t.Errorf("only skipped: %+v", op)
+		}
+	}
+}

@@ -188,8 +188,13 @@ func (web *Web) buildIssues() []Issue {
 	}
 
 	// files a verification found damaged, while they did not change
+	// only those of the library folders: a folder taken out of the settings is no longer
+	// the library, and its files are not deleted from Issues
+	scanned := web.scannedPaths()
 	for path, reason := range web.verifications().damaged() {
-		issues = append(issues, Issue{File: path, Reason: reason})
+		if scanned[filepath.Clean(path)] {
+			issues = append(issues, Issue{File: path, Reason: reason})
+		}
 	}
 
 	sort.Slice(issues, func(i, j int) bool {

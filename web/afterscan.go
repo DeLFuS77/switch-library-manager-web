@@ -11,6 +11,8 @@ import (
 func (web *Web) afterScan() {
 	// the scan knows the compressed copies written before it started
 	web.forgetWritten(time.Unix(0, web.scanStarted.Load()))
+	// games bought since leave the wishlist
+	web.forgetOwnedWishes()
 	web.startCoverDownloads()
 	web.afterScanWork.Add(1)
 	web.backgroundWork.Add(1)

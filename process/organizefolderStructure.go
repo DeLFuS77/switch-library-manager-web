@@ -101,8 +101,28 @@ func samePath(a, b string) bool {
 	return a == b
 }
 
+// REASON_SPLIT explains a part of a split file left where it is.
+const REASON_SPLIT = "split files are not organized"
+
+// isSplitPart tells the parts of a split file ("00", "01"...): the first one stands for the
+// whole file in the library, and moving or deleting it alone would leave the others behind.
+func isSplitPart(name string) bool {
+	if len(name) < 2 {
+		return false
+	}
+	_, err := strconv.Atoi(name[len(name)-2:])
+	return err == nil
+}
+
 func (f *fileOperations) move(from string, to string) error {
 	from, to = filepath.Clean(from), filepath.Clean(to)
+	if from != to && isSplitPart(filepath.Base(from)) {
+		if _, moved := f.movedFrom[from]; !moved {
+			f.movedFrom[from] = from
+			f.skip(from, REASON_SPLIT)
+		}
+		return nil
+	}
 	if _, moved := f.movedFrom[from]; moved {
 		// moved already with another of its contents, or in place with it
 		return nil
@@ -164,6 +184,10 @@ const REASON_DUPLICATE_AT_DESTINATION = "A copy of the same size is already at t
 // remove deletes a file found by the last scan, unless it changed since then.
 func (f *fileOperations) remove(file db.ExtendedFileInfo, reason string) error {
 	filePath := filepath.Join(file.BaseFolder, file.FileName)
+	if isSplitPart(file.FileName) {
+		f.skip(filePath, REASON_SPLIT)
+		return nil
+	}
 	err := func() error {
 		info, err := os.Stat(filePath)
 		if err != nil {
@@ -385,7 +409,7 @@ func OrganizeByFolders(baseFolder string,
 
 		if v.IsSplit {
 			// the parts of a split file must stay together in their folder
-			ops.skip(filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName), "split files are not organized")
+			ops.skip(filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName), REASON_SPLIT)
 			continue
 		}
 

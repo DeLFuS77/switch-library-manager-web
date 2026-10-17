@@ -94,7 +94,7 @@ func (w *wishlist) set(id string, wanted bool) bool {
 }
 
 // removeOwned drops the games that are now in the library.
-func (w *wishlist) removeOwned(owned func(id string) bool) {
+func (w *wishlist) removeOwned(owned func(id string) bool) bool {
 	w.mutex.Lock()
 	defer w.mutex.Unlock()
 	changed := false
@@ -107,6 +107,7 @@ func (w *wishlist) removeOwned(owned func(id string) bool) {
 	if changed {
 		w.saveLocked()
 	}
+	return changed
 }
 
 func (w *wishlist) saveLocked() {
@@ -132,10 +133,13 @@ func (web *Web) forgetOwnedWishes() {
 	if localDB == nil {
 		return
 	}
-	web.wishes().removeOwned(func(id string) bool {
+	if web.wishes().removeOwned(func(id string) bool {
 		local, ok := localDB.TitlesMap[strings.ToLower(id[:13])]
 		return ok && local.BaseExist
-	})
+	}) {
+		// the lists and counts show the hearts
+		web.invalidateDerived()
+	}
 }
 
 func (web *Web) HandleWishlist() {
