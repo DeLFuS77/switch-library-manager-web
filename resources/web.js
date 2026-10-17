@@ -182,7 +182,10 @@ function runAsTask(start) {
 	return fetchTasks().catch(() => []).then(tasks => {
 		const known = Math.max(0, ...tasks.map(task => task.id));
 		return start().then(result => {
-			followTasks(known);
+			// a request that failed started nothing
+			if (!(result instanceof Response) || result.ok) {
+				followTasks(known);
+			}
 			return result;
 		});
 	});
@@ -339,7 +342,7 @@ function onSyncFinished() {
 		syncAlert.remove();
 	}
 
-	if (document.querySelector('form[method="post"]')) {
+	if (document.querySelector('form[method="post"]:not([action="/logout"])')) {
 		// do not reload pages with forms, it could discard unsaved changes
 		insertAlert(mainContainer(), 'alert-success', 'bi-check-circle-fill', t('Done!'), t('The library has been updated.'));
 	} else {
@@ -350,7 +353,14 @@ function onSyncFinished() {
 function watchSync() {
 	setTimeout(() => {
 		fetch('/sync', { method: 'GET', cache: 'no-store' })
-			.then(response => response.json())
+			.then(response => {
+				// the session ended: the page is opened again, through the login
+				if (response.status === 401 || response.status === 403) {
+					window.location.reload();
+					return new Promise(() => {});
+				}
+				return response.json();
+			})
 			.then(status => {
 				if (status.synchronizing) {
 					updateSyncAlert(status);
@@ -1270,15 +1280,9 @@ function formatSize(size) {
 }
 
 function initCompress() {
-	document.querySelectorAll('[data-compress-cancel]').forEach(button => {
-		button.addEventListener('click', () => {
-			button.disabled = true;
-			fetch('/compress/cancel', { method: 'POST' });
-		});
-	});
-	// the cancel button of the tasks page is rendered again by the live list
+	// one handler for every cancel button, also those the live list of tasks draws again
 	document.addEventListener('click', e => {
-		const button = e.target.closest('#taskList [data-compress-cancel]');
+		const button = e.target.closest('[data-compress-cancel]');
 		if (button) {
 			button.disabled = true;
 			fetch('/compress/cancel', { method: 'POST' });
@@ -2625,15 +2629,48 @@ function initSearchClear() {
 }
 
 // buttons that copy a text, such as the ID of a game
+// copyText puts a text in the clipboard; without HTTPS (a NAS opened by its address) the
+// browser has no clipboard API, and a selected field is copied instead
+function copyText(text) {
+	if (navigator.clipboard && window.isSecureContext) {
+		return navigator.clipboard.writeText(text);
+	}
+	return new Promise((resolve, reject) => {
+		const field = document.createElement('textarea');
+		field.value = text;
+		field.setAttribute('readonly', '');
+		field.style.position = 'fixed';
+		field.style.opacity = '0';
+		document.body.appendChild(field);
+		field.select();
+		const copied = document.execCommand('copy');
+		field.remove();
+		if (copied) {
+			resolve();
+		} else {
+			reject(new Error('not copied'));
+		}
+	});
+}
+
+// buttons that copy a text, such as the ID of a game, and say so for a moment
 function initCopyButtons() {
 	document.addEventListener('click', e => {
 		const button = e.target.closest('[data-copy]');
-		if (!button || !navigator.clipboard) {
+		if (!button) {
 			return;
 		}
-		navigator.clipboard.writeText(button.dataset.copy).then(() => {
+		copyText(button.dataset.copy).then(() => {
 			button.classList.add('is-copied');
 			setTimeout(() => button.classList.remove('is-copied'), 1200);
+			const label = button.querySelector('[data-copy-label]');
+			if (label && button.dataset.copied) {
+				const text = label.textContent;
+				label.textContent = button.dataset.copied;
+				setTimeout(() => {
+					label.textContent = text;
+				}, 1500);
+			}
 		}).catch(() => {});
 	});
 }
@@ -2686,7 +2723,7 @@ function initHistoryCharts() {
 			}
 			cursor.setAttribute('x1', day.x);
 			cursor.setAttribute('x2', day.x);
-			cursor.hidden = false;
+			cursor.removeAttribute('hidden');
 			tip.replaceChildren();
 			const date = document.createElement('div');
 			date.className = 'fw-semibold';
@@ -2708,7 +2745,7 @@ function initHistoryCharts() {
 			tip.style.left = `${Math.min(Math.max(left - width / 2, 0), rect.width - width)}px`;
 		};
 		const hide = () => {
-			cursor.hidden = true;
+			cursor.setAttribute('hidden', '');
 			tip.hidden = true;
 		};
 		svg.addEventListener('pointermove', show);
@@ -3091,25 +3128,6 @@ document.addEventListener('DOMContentLoaded', () => {
 		navigator.serviceWorker.register('/sw.js').catch(() => undefined);
 	}
 
-	// copies a value, e.g. the title ID, and says so on the button for a moment
-	document.querySelectorAll('[data-copy]').forEach(button => {
-		const label = button.querySelector('[data-copy-label]');
-		const text = label ? label.textContent : '';
-		button.addEventListener('click', () => {
-			if (!navigator.clipboard) {
-				return;
-			}
-			navigator.clipboard.writeText(button.dataset.copy).then(() => {
-				if (label) {
-					label.textContent = button.dataset.copied;
-					setTimeout(() => {
-						label.textContent = text;
-					}, 1500);
-				}
-			}).catch(() => undefined);
-		});
-	});
-
 	// searches every missing cover again; the progress is shown in Tasks
 	document.querySelectorAll('[data-covers-retry]').forEach(button => {
 		button.addEventListener('click', () => {
@@ -3183,10 +3201,14 @@ document.addEventListener('DOMContentLoaded', () => {
 				if (response.ok) {
 					return;
 				}
-				return response.json().then(json => {
+				return response.json().catch(() => ({})).then(json => {
 					button.disabled = false;
-					insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', json.globalError.strongMessage, json.globalError.message);
+					const error = json.globalError || {};
+					insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', error.strongMessage || t('Error!'), error.message || t('Unexpected server response (%v).', response.status));
 				});
+			}).catch(() => {
+				button.disabled = false;
+				insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), t('Could not reach the server.'));
 			});
 		});
 	});

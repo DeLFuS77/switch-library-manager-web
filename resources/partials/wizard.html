@@ -1,6 +1,6 @@
 {{- define "wizard"}}
 {{- $s := .Settings}}
-<div class="modal fade wizard" id="setupWizard" tabindex="-1" aria-labelledby="wizardTitle" aria-hidden="true" data-bs-backdrop="static" data-wizard data-auto="{{.Auto}}" data-auth="{{.AuthEnabled}}">
+<div class="modal fade wizard" id="setupWizard" tabindex="-1" aria-labelledby="wizardTitle" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" data-wizard data-auto="{{.Auto}}" data-auth="{{.AuthEnabled}}">
 	<div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen-md-down">
 		<div class="modal-content">
 			<form id="wizardForm" class="wizard-shell" novalidate autocomplete="off">
