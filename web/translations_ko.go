@@ -3,6 +3,12 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Password for the backup (optional)": "백업 비밀번호(선택)",
+		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "비밀번호를 넣으면 백업이 암호화되어 서버 밖에 보관할 수 있어요. 비밀번호를 잘 보관하세요. 없으면 백업을 복원할 수 없어요.",
+		"Password of the backup, if it has one": "백업 비밀번호(있는 경우)",
+		"This backup is encrypted: enter its password.": "이 백업은 암호화되어 있어요. 비밀번호를 입력하세요.",
+		"The password of the backup is not right.": "백업 비밀번호가 올바르지 않아요.",
+		"The password of the backup needs at least 10 characters.": "백업 비밀번호는 10자 이상이어야 해요.",
 		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.": "이 게임은 아직 어떤 압축 도구도 줄일 수 없는 새로운 형식(스파스 스토리지)을 사용해요. 그대로 유지되며 정상적으로 설치돼요.",
 		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v개 파일은 압축할 수 없어 표시하지 않아요. 줄일 수 있는 부분이 없었어요. 그대로 유지되며 정상적으로 설치돼요.",
 		"Sparse storage": "스파스 스토리지",

@@ -3,6 +3,12 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Password for the backup (optional)": "Пароль для копии (необязательно)",
+		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "С паролем копия шифруется, чтобы хранить её вне сервера. Сохраните пароль: без него копию не восстановить.",
+		"Password of the backup, if it has one": "Пароль копии, если он есть",
+		"This backup is encrypted: enter its password.": "Эта копия зашифрована: введите её пароль.",
+		"The password of the backup is not right.": "Неверный пароль копии.",
+		"The password of the backup needs at least 10 characters.": "Пароль копии должен содержать не менее 10 символов.",
 		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.": "Эта игра использует новый формат (разреженное хранение), который пока не умеет сжимать ни один компрессор: она остаётся как есть и устанавливается как обычно.",
 		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v файлов нельзя сжать, и они не показаны: в них нечего уменьшить. Они остаются как есть и устанавливаются как обычно.",
 		"Sparse storage": "Разреженное хранение",

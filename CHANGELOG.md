@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Improvements
+
+- Settings → Backup: a backup can be downloaded with a password, encrypted (AES-256 with a key derived by Argon2id),
+  for keeping it outside the server; it holds the password hashes of the users and the tokens of the notifications.
+  Restoring asks for the password of an encrypted backup; one without a password works as before.
+
 ### Security
 
 - The app is built with Go 1.27.2 instead of 1.26.0, which fixes known vulnerabilities of the standard library in the

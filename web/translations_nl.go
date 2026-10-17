@@ -3,6 +3,12 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Password for the backup (optional)": "Wachtwoord voor de back-up (optioneel)",
+		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "Met een wachtwoord wordt de back-up versleuteld, om hem buiten de server te bewaren. Bewaar het wachtwoord: zonder kan de back-up niet worden hersteld.",
+		"Password of the backup, if it has one": "Wachtwoord van de back-up, als die er een heeft",
+		"This backup is encrypted: enter its password.": "Deze back-up is versleuteld: voer het wachtwoord in.",
+		"The password of the backup is not right.": "Het wachtwoord van de back-up klopt niet.",
+		"The password of the backup needs at least 10 characters.": "Het wachtwoord van de back-up moet minstens 10 tekens hebben.",
 		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.": "Dit spel gebruikt een recent formaat (sparse storage) dat nog geen enkele compressor kan verkleinen: het blijft zoals het is en installeert normaal.",
 		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v bestanden kunnen niet worden gecomprimeerd en worden niet getoond: er viel niets aan te verkleinen. Ze blijven zoals ze zijn en installeren normaal.",
 		"Sparse storage": "Sparse storage",

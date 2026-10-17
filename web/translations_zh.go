@@ -3,6 +3,12 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Password for the backup (optional)": "备份密码（可选）",
+		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "设置密码后备份会被加密，便于保存在服务器以外。请保管好密码：没有密码就无法恢复备份。",
+		"Password of the backup, if it has one": "备份密码（如有）",
+		"This backup is encrypted: enter its password.": "此备份已加密：请输入其密码。",
+		"The password of the backup is not right.": "备份密码不正确。",
+		"The password of the backup needs at least 10 characters.": "备份密码至少需要 10 个字符。",
 		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.": "此游戏使用一种较新的格式（稀疏存储），目前还没有压缩工具能缩小它：它会保持原样，可以正常安装。",
 		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v 个文件无法压缩，未列出：其中没有可以缩小的内容。它们保持原样，可以正常安装。",
 		"Sparse storage": "稀疏存储",

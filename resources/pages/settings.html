@@ -468,11 +468,18 @@
 					<section class="surface mt-4 settings-section" id="backup" aria-labelledby="backupTitle">
 						<h2 class="section-title" id="backupTitle"><span class="bi bi-life-preserver" aria-hidden="true"></span>{{t "Backup"}}</h2>
 						<p class="text-body-secondary">{{t "Save the settings, users, verification results and notified versions in a ZIP file, to move the app or to undo a mistake. Your keys are never included."}}</p>
-						<div class="d-flex flex-wrap align-items-center gap-2">
-							<a class="btn btn-outline-primary rounded-pill" href="/backup/download" download><span class="bi bi-download me-2" aria-hidden="true"></span>{{t "Download a backup"}}</a>
+						<div class="d-flex flex-column gap-3">
+							<form class="d-flex flex-wrap align-items-center gap-2" method="post" action="/backup/download">
+								<label class="visually-hidden" for="backupPassword">{{t "Password for the backup (optional)"}}</label>
+								<input class="form-control form-control-sm w-auto" type="password" id="backupPassword" name="password" minlength="10" autocomplete="new-password" placeholder="{{t "Password for the backup (optional)"}}">
+								<button type="submit" class="btn btn-outline-primary rounded-pill"><span class="bi bi-download me-2" aria-hidden="true"></span>{{t "Download a backup"}}</button>
+								<div class="form-text w-100 mt-0">{{t "With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored."}}</div>
+							</form>
 							<form id="restoreForm" class="d-flex flex-wrap align-items-center gap-2" enctype="multipart/form-data">
 								<label class="visually-hidden" for="backupFile">{{t "Backup file"}}</label>
-								<input class="form-control form-control-sm w-auto" type="file" id="backupFile" name="backup" accept=".zip,application/zip" required>
+								<input class="form-control form-control-sm w-auto" type="file" id="backupFile" name="backup" accept=".zip,.slmbackup,application/zip" required>
+								<label class="visually-hidden" for="restorePassword">{{t "Password of the backup, if it has one"}}</label>
+								<input class="form-control form-control-sm w-auto" type="password" id="restorePassword" name="password" autocomplete="off" placeholder="{{t "Password of the backup, if it has one"}}">
 								<button type="submit" class="btn btn-outline-danger rounded-pill" data-confirm="{{t "Restoring replaces the current settings and users. Continue?"}}"><span class="bi bi-upload me-2" aria-hidden="true"></span>{{t "Restore"}}</button>
 							</form>
 						</div>

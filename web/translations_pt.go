@@ -3,6 +3,12 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Password for the backup (optional)": "Senha do backup (opcional)",
+		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "Com uma senha o backup é criptografado, para guardá-lo fora do servidor. Guarde a senha: sem ela o backup não pode ser restaurado.",
+		"Password of the backup, if it has one": "Senha do backup, se tiver",
+		"This backup is encrypted: enter its password.": "Este backup está criptografado: digite a senha.",
+		"The password of the backup is not right.": "A senha do backup não está correta.",
+		"The password of the backup needs at least 10 characters.": "A senha do backup precisa de pelo menos 10 caracteres.",
 		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.": "Este jogo usa um formato recente (armazenamento esparso) que nenhum compressor consegue reduzir ainda: fica como está e instala normalmente.",
 		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v arquivos não podem ser comprimidos e não são listados: nada neles pôde ser reduzido. Ficam como estão e instalam normalmente.",
 		"Sparse storage": "Armazenamento esparso",

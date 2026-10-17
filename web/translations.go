@@ -5,6 +5,12 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Password for the backup (optional)": "Contraseña para la copia (opcional)",
+		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "Con contraseña la copia va cifrada, para guardarla fuera del servidor. Guarda la contraseña: sin ella la copia no se puede restaurar.",
+		"Password of the backup, if it has one": "Contraseña de la copia, si tiene",
+		"This backup is encrypted: enter its password.": "Esta copia está cifrada: escribe su contraseña.",
+		"The password of the backup is not right.": "La contraseña de la copia no es correcta.",
+		"The password of the backup needs at least 10 characters.": "La contraseña de la copia necesita al menos 10 caracteres.",
 		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.": "Este juego usa un formato reciente (almacenamiento disperso) que ningún compresor puede reducir todavía: se queda como está y se instala con normalidad.",
 		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v archivos no se pueden comprimir y no se muestran: no hay nada en ellos que se pueda reducir. Se quedan como están y se instalan con normalidad.",
 		"Sparse storage": "Almacenamiento disperso",

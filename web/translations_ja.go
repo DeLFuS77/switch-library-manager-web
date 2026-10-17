@@ -3,6 +3,12 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Password for the backup (optional)": "バックアップのパスワード（任意）",
+		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "パスワードを付けるとバックアップは暗号化され、サーバーの外に保管できます。パスワードは保管してください。ないとバックアップを復元できません。",
+		"Password of the backup, if it has one": "バックアップのパスワード（ある場合）",
+		"This backup is encrypted: enter its password.": "このバックアップは暗号化されています。パスワードを入力してください。",
+		"The password of the backup is not right.": "バックアップのパスワードが正しくありません。",
+		"The password of the backup needs at least 10 characters.": "バックアップのパスワードは 10 文字以上必要です。",
 		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.": "このゲームは、まだどの圧縮ツールも小さくできない新しい形式（スパースストレージ）を使っています。そのまま残り、通常どおりインストールできます。",
 		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v 個のファイルは圧縮できないため表示していません。小さくできる部分がありませんでした。そのまま残り、通常どおりインストールできます。",
 		"Sparse storage": "スパースストレージ",

@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"errors"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -172,5 +173,55 @@ func TestSecurityHeaders(t *testing.T) {
 	}
 	if recorder.Header().Get("X-Frame-Options") != "DENY" || recorder.Header().Get("X-Content-Type-Options") != "nosniff" {
 		t.Fatal("missing headers")
+	}
+}
+
+// A backup downloaded with a password is restored with it, through the pages.
+func TestEncryptedBackupThroughThePages(t *testing.T) {
+	web := usersWeb(t)
+	if err := web.auth.users.Add("ana", "alpha-secret-11", ROLE_ADMIN); err != nil {
+		t.Fatal(err)
+	}
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.ConsoleFirmware = "18.1.0" })
+	web.HandleBackup()
+
+	download := httptest.NewRequest("POST", "/backup/download", strings.NewReader("password=a+long+enough+password"))
+	download.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	downloaded := httptest.NewRecorder()
+	web.router.ServeHTTP(downloaded, download)
+	if downloaded.Code != http.StatusOK || !isEncryptedBackup(downloaded.Body.Bytes()) || !strings.Contains(downloaded.Header().Get("Content-Disposition"), ".slmbackup") {
+		t.Fatalf("download: %d %q", downloaded.Code, downloaded.Header().Get("Content-Disposition"))
+	}
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.ConsoleFirmware = "19.0.0" })
+
+	restore := func(password string) *httptest.ResponseRecorder {
+		body := &bytes.Buffer{}
+		form := multipart.NewWriter(body)
+		part, _ := form.CreateFormFile("backup", "slm-backup.slmbackup")
+		part.Write(downloaded.Body.Bytes())
+		form.WriteField("password", password)
+		form.Close()
+		request := httptest.NewRequest("POST", "/backup/restore", body)
+		request.Header.Set("Content-Type", form.FormDataContentType())
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, request)
+		return recorder
+	}
+	if r := restore(""); r.Code != http.StatusBadRequest {
+		t.Fatalf("without the password: %d", r.Code)
+	}
+	if r := restore("not the password at all"); r.Code != http.StatusBadRequest {
+		t.Fatalf("wrong password: %d", r.Code)
+	}
+	// the page then rescans the library, which this test web cannot: the same steps directly
+	plain, err := decryptBackup(downloaded.Body.Bytes(), "a long enough password")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := web.restoreBackup(plain); err != nil {
+		t.Fatal(err)
+	}
+	if got := settings.ReadSettings(web.dataFolder).ConsoleFirmware; got != "18.1.0" {
+		t.Fatalf("settings not restored: %q", got)
 	}
 }

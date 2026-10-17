@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -34,7 +35,7 @@ var (
 	ErrBackupAdmin   = errors.New("The backup has users but no administrator.")
 )
 
-var backupErrors = []error{ErrBackupInvalid, ErrBackupFile, ErrBackupAdmin}
+var backupErrors = []error{ErrBackupInvalid, ErrBackupFile, ErrBackupAdmin, ErrBackupPasswordNeeded, ErrBackupPasswordWrong, ErrBackupPasswordShort}
 
 // writeBackup writes a ZIP file with the backup files that exist.
 func (web *Web) writeBackup(w io.Writer) error {
@@ -195,18 +196,29 @@ func (web *Web) restoreBackup(data []byte) error {
 }
 
 func (web *Web) HandleBackup() {
-	web.router.HandleFunc("/backup/download", func(w http.ResponseWriter, r *http.Request) {
+	// a backup as a ZIP file, or sealed with a password when one is given (sent in the body of
+	// the form, never in the address)
+	download := func(w http.ResponseWriter, r *http.Request) {
 		buffer := &bytes.Buffer{}
 		if err := web.writeBackup(buffer); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		name := "slm-backup-" + time.Now().Format("2006-01-02") + ".zip"
-		w.Header().Set("Content-Type", "application/zip")
+		data, name, kind := buffer.Bytes(), "slm-backup-"+time.Now().Format("2006-01-02")+".zip", "application/zip"
+		if password := r.PostFormValue("password"); r.Method == http.MethodPost && password != "" {
+			sealed, err := encryptBackup(data, password)
+			if err != nil {
+				http.Error(w, translate(web.requestLanguage(r), err.Error()), http.StatusBadRequest)
+				return
+			}
+			data, name, kind = sealed, strings.TrimSuffix(name, ".zip")+".slmbackup", "application/octet-stream"
+		}
+		w.Header().Set("Content-Type", kind)
 		w.Header().Set("Content-Disposition", `attachment; filename="`+name+`"`)
 		w.Header().Set("Cache-Control", "no-store")
-		w.Write(buffer.Bytes())
-	}).Methods("GET")
+		w.Write(data)
+	}
+	web.router.HandleFunc("/backup/download", download).Methods("GET", "POST")
 
 	web.router.HandleFunc("/backup/restore", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
@@ -222,7 +234,11 @@ func (web *Web) HandleBackup() {
 			writeGlobalError(w, http.StatusBadRequest, lang, ErrBackupInvalid.Error())
 			return
 		}
-		if err := web.restoreBackup(data); err != nil {
+		// a backup sealed with a password is opened first
+		if data, err = decryptBackup(data, r.FormValue("password")); err == nil {
+			err = web.restoreBackup(data)
+		}
+		if err != nil {
 			for _, known := range backupErrors {
 				if errors.Is(err, known) {
 					writeGlobalError(w, http.StatusBadRequest, lang, err.Error())
