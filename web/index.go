@@ -127,6 +127,7 @@ func (web *Web) HandleIndex() {
 			Facets: facets,
 			Setup: web.setupStatus(),
 			Stats: web.getStatistics(lang),
+			WhatsNew: web.whatsNew(lang),
 		}
 	}, web.embedFS, fsPatterns...)
 }

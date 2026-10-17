@@ -3,6 +3,10 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Do not show what is new again": "Ne plus afficher les nouveautés",
+		"Got it": "Compris",
+		"Updated to %v": "Mis à jour vers la %v",
+		"See all the changes": "Voir tous les changements",
 		"Password for the backup (optional)": "Mot de passe de la sauvegarde (facultatif)",
 		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "Avec un mot de passe, la sauvegarde est chiffrée, pour la garder hors du serveur. Conservez le mot de passe : sans lui, la sauvegarde ne peut pas être restaurée.",
 		"Password of the backup, if it has one": "Mot de passe de la sauvegarde, s’il y en a un",

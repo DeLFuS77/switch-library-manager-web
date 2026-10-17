@@ -11,6 +11,9 @@
   with a second glow in the other corner, and pointing at one makes its glow grow and its icon turn a little (still
   when the system asks for reduced motion).
 - Settings → Backup: the password fields show their whole hint, also on a phone.
+- After an update, the library opens a small window with what is new in that version, in the language of the
+  interface, and a link to all the changes; it shows once per version, and a box stops it for good. A new
+  installation shows nothing.
 
 ## 1.41.0
 

@@ -5,6 +5,10 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Do not show what is new again": "No volver a mostrar las novedades",
+		"Got it": "Entendido",
+		"Updated to %v": "Actualizado a la %v",
+		"See all the changes": "Ver todos los cambios",
 		"Password for the backup (optional)": "Contraseña para la copia (opcional)",
 		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "Con contraseña la copia va cifrada, para guardarla fuera del servidor. Guarda la contraseña: sin ella la copia no se puede restaurar.",
 		"Password of the backup, if it has one": "Contraseña de la copia, si tiene",

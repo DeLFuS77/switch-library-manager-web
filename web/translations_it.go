@@ -3,6 +3,10 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Do not show what is new again": "Non mostrare più le novità",
+		"Got it": "Ho capito",
+		"Updated to %v": "Aggiornato alla %v",
+		"See all the changes": "Vedi tutte le modifiche",
 		"Password for the backup (optional)": "Password del backup (facoltativa)",
 		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "Con una password il backup è cifrato, per conservarlo fuori dal server. Conserva la password: senza, il backup non si può ripristinare.",
 		"Password of the backup, if it has one": "Password del backup, se ne ha una",

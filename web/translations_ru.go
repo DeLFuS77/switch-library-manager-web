@@ -3,6 +3,10 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Do not show what is new again": "Больше не показывать новинки",
+		"Got it": "Понятно",
+		"Updated to %v": "Обновлено до %v",
+		"See all the changes": "Все изменения",
 		"Password for the backup (optional)": "Пароль для копии (необязательно)",
 		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "С паролем копия шифруется, чтобы хранить её вне сервера. Сохраните пароль: без него копию не восстановить.",
 		"Password of the backup, if it has one": "Пароль копии, если он есть",

@@ -355,6 +355,8 @@ type LibraryPageData struct {
 	Setup  SetupStatus
 	// the overview at the top of the library
 	Stats Statistics
+	// what is new, once after an update
+	WhatsNew *WhatsNew
 }
 
 var funcMap = template.FuncMap{
@@ -571,6 +573,8 @@ func CreateWeb(router *mux.Router, embedFS embed.FS, appSettings *settings.AppSe
 }
 
 func (web *Web) Start() {
+	// before the library database is opened: an installation that had one was updated
+	web.recordVersion()
 	// the app answers at once: while it gets ready, every page says it is starting and opens
 	// by itself once it is ready (opening the local database and preparing the pages can
 	// take a while on a NAS)

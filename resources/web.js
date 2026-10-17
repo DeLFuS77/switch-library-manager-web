@@ -1640,6 +1640,48 @@ function initMarks() {
 	});
 }
 
+// the window of what is new after an update: once per version and browser, unless the box to
+// stop seeing it was ticked (without storage it shows each time, which is harmless)
+function initWhatsNew() {
+	const element = document.querySelector('[data-whats-new]');
+	if (!element) {
+		return;
+	}
+	const seenKey = 'slm-whats-new';
+	const offKey = 'slm-whats-new-off';
+	const read = key => {
+		try {
+			return localStorage.getItem(key) || '';
+		} catch (e) {
+			return '';
+		}
+	};
+	const write = (key, value) => {
+		try {
+			localStorage.setItem(key, value);
+		} catch (e) {
+			// not kept: it shows again next time
+		}
+	};
+	if (read(offKey) === '1' || read(seenKey) === element.dataset.whatsNew) {
+		element.remove();
+		return;
+	}
+	element.addEventListener('hidden.bs.modal', () => {
+		write(seenKey, element.dataset.whatsNew);
+		if (element.querySelector('[data-whats-new-off]').checked) {
+			write(offKey, '1');
+		}
+		element.remove();
+	});
+	// after the page has appeared, and never over another window (the setup wizard)
+	setTimeout(() => {
+		if (!wizardLoading && !document.querySelector('.modal.show')) {
+			Modal.getOrCreateInstance(element).show();
+		}
+	}, 700);
+}
+
 // the cover of the game that is opened flies to the cover of its page (see the view
 // transitions in web.scss); only that cover takes part, so the names never repeat
 function initCoverTransition() {
@@ -3237,6 +3279,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 
 	initMarks();
+	initWhatsNew();
 
 	// selects and radio buttons that apply their form at once
 	document.querySelectorAll('[data-autosubmit]').forEach(input => {

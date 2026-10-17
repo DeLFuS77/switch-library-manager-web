@@ -3,6 +3,10 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Do not show what is new again": "Nieuwigheden niet meer tonen",
+		"Got it": "Begrepen",
+		"Updated to %v": "Bijgewerkt naar %v",
+		"See all the changes": "Alle wijzigingen bekijken",
 		"Password for the backup (optional)": "Wachtwoord voor de back-up (optioneel)",
 		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "Met een wachtwoord wordt de back-up versleuteld, om hem buiten de server te bewaren. Bewaar het wachtwoord: zonder kan de back-up niet worden hersteld.",
 		"Password of the backup, if it has one": "Wachtwoord van de back-up, als die er een heeft",

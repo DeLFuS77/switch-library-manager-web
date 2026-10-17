@@ -6027,3 +6027,83 @@ body:has(.wizard.show) #alert_sync {
 .backup-password {
 	width: min(100%, 19rem);
 }
+
+// the window of what is new after an update
+.whats-new {
+	gap: .75rem;
+	padding: 1.25rem 1.35rem;
+	border-radius: $border-radius-xl;
+	background:
+		linear-gradient(135deg, var(--slm-accent-soft), transparent 60%),
+		var(--slm-surface);
+	border: 1px solid var(--slm-border);
+
+	.whats-new-head {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		gap: .8rem;
+		align-items: center;
+	}
+
+	.whats-new-icon {
+		display: grid;
+		place-items: center;
+		width: 2.6rem;
+		height: 2.6rem;
+		border-radius: $border-radius-lg;
+		font-size: 1.25rem;
+		color: #{$slm-red};
+		background: var(--slm-accent-soft);
+	}
+
+	.whats-new-title {
+		margin: 0;
+		font-size: 1.1rem;
+		font-weight: 700;
+	}
+
+	.whats-new-list {
+		margin: 0;
+		padding-left: 1.2rem;
+		font-size: .925rem;
+
+		li + li {
+			margin-top: .35rem;
+		}
+	}
+
+	.whats-new-link {
+		font-size: .875rem;
+		text-decoration: none;
+	}
+
+	.whats-new-foot {
+		display: flex;
+		flex-wrap: wrap;
+		gap: .75rem;
+		align-items: center;
+		justify-content: space-between;
+		margin-top: .25rem;
+		padding-top: .85rem;
+		border-top: 1px solid var(--slm-border);
+		font-size: .875rem;
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.whats-new .whats-new-icon .bi {
+		display: inline-block;
+		animation: slm-twinkle 2.4s ease-in-out .4s 3;
+	}
+}
+
+@keyframes slm-twinkle {
+	0%,
+	100% {
+		transform: scale(1) rotate(0);
+	}
+
+	50% {
+		transform: scale(1.18) rotate(12deg);
+	}
+}

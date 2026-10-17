@@ -3,6 +3,10 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Do not show what is new again": "新機能のお知らせを今後表示しない",
+		"Got it": "OK",
+		"Updated to %v": "%v に更新しました",
+		"See all the changes": "すべての変更を見る",
 		"Password for the backup (optional)": "バックアップのパスワード（任意）",
 		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "パスワードを付けるとバックアップは暗号化され、サーバーの外に保管できます。パスワードは保管してください。ないとバックアップを復元できません。",
 		"Password of the backup, if it has one": "バックアップのパスワード（ある場合）",

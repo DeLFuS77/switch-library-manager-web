@@ -3,6 +3,10 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Do not show what is new again": "不再显示新内容",
+		"Got it": "知道了",
+		"Updated to %v": "已更新到 %v",
+		"See all the changes": "查看全部更改",
 		"Password for the backup (optional)": "备份密码（可选）",
 		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "设置密码后备份会被加密，便于保存在服务器以外。请保管好密码：没有密码就无法恢复备份。",
 		"Password of the backup, if it has one": "备份密码（如有）",

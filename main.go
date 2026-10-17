@@ -19,6 +19,7 @@ import (
 //go:embed resources/partials/*.html
 //go:embed resources/pages/*.html
 //go:embed resources/export/*.html
+//go:embed resources/whatsnew.json
 var embedFS embed.FS
 
 func main() {

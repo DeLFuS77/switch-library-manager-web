@@ -3,6 +3,10 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Do not show what is new again": "새로운 점을 다시 표시하지 않기",
+		"Got it": "확인",
+		"Updated to %v": "%v(으)로 업데이트했어요",
+		"See all the changes": "모든 변경 사항 보기",
 		"Password for the backup (optional)": "백업 비밀번호(선택)",
 		"With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored.": "비밀번호를 넣으면 백업이 암호화되어 서버 밖에 보관할 수 있어요. 비밀번호를 잘 보관하세요. 없으면 백업을 복원할 수 없어요.",
 		"Password of the backup, if it has one": "백업 비밀번호(있는 경우)",

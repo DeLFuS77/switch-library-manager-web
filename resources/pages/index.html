@@ -15,6 +15,34 @@
 			</div>
 			{{- if .HasLibrary}}
 			{{- $s := .Stats}}
+			{{- with .WhatsNew}}
+			<div class="modal fade" id="whatsNew" tabindex="-1" aria-labelledby="whatsNewTitle" aria-hidden="true" data-whats-new="{{.Version}}">
+				<div class="modal-dialog modal-dialog-centered">
+					<div class="modal-content whats-new">
+						<div class="whats-new-head">
+							<span class="whats-new-icon" aria-hidden="true"><span class="bi bi-stars"></span></span>
+							<h2 class="whats-new-title" id="whatsNewTitle">{{t "Updated to %v" .Version}}</h2>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+						</div>
+						{{- with .Items}}
+						<ul class="whats-new-list">
+							{{- range .}}
+							<li>{{.}}</li>
+							{{- end}}
+						</ul>
+						{{- end}}
+						<a class="whats-new-link" href="{{.Url}}" target="_blank" rel="noopener">{{t "See all the changes"}} <span class="bi bi-box-arrow-up-right" aria-hidden="true"></span></a>
+						<div class="whats-new-foot">
+							<div class="form-check mb-0">
+								<input class="form-check-input" type="checkbox" id="whatsNewOff" data-whats-new-off>
+								<label class="form-check-label" for="whatsNewOff">{{t "Do not show what is new again"}}</label>
+							</div>
+							<button type="button" class="btn btn-primary rounded-pill" data-bs-dismiss="modal">{{t "Got it"}}</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			{{- end}}
 			<section class="library-overview" aria-label="{{t "Overview"}}">
 				<a class="kpi" href="/statistics.html">
 					<span class="kpi-icon"><span class="bi bi-controller" aria-hidden="true"></span></span>
