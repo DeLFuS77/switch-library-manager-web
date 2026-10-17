@@ -18,7 +18,8 @@ concurrency:
 
 # NUT is code of another project, run with its own dependencies: it runs in a job that can
 # only read, at a fixed commit, and the job that publishes runs nothing but the upload of the
-# files it made. A change to NUT is taken on purpose, by changing NUT_COMMIT.
+# files it made. A change to NUT is taken on purpose, by changing NUT_COMMIT and making
+# .github/nut-requirements.txt again for it.
 env:
   NUT_COMMIT: b4b9377b5113d00675c40c28b1c218c10ac66838
 
@@ -52,7 +53,8 @@ jobs:
 
       - name: Install NUT Python dependencies
         working-directory: ${{ github.workspace }}/nut
-        run: python -m pip install -r requirements.txt
+        # the versions of that commit, with their hashes (see .github/nut-requirements.txt)
+        run: python -m pip install --require-hashes -r "$GITHUB_WORKSPACE/.github/nut-requirements.txt"
 
       - name: Generate US English titles and stage data
         working-directory: ${{ github.workspace }}/nut
