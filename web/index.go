@@ -371,11 +371,19 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 		item.Collections = collections[item.Id]
 		item.Selectable = true
 		item.Favorite = favorites[item.Id]
+		// every file once: a game card can hold the game, its update and DLC
+		counted := map[string]bool{filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName): true}
+		addSize := func(file db.ExtendedFileInfo) {
+			if path := filepath.Join(file.BaseFolder, file.FileName); !counted[path] {
+				counted[path] = true
+				item.Size += file.Size
+			}
+		}
 		for _, update := range v.Updates {
-			item.Size += update.ExtendedInfo.Size
+			addSize(update.ExtendedInfo)
 		}
 		for _, dlc := range v.Dlc {
-			item.Size += dlc.ExtendedInfo.Size
+			addSize(dlc.ExtendedInfo)
 		}
 
 		if required := installedRequirement(v); web.firmwareTooNew(required) {

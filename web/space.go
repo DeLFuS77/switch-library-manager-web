@@ -433,11 +433,16 @@ func (web *Web) buildSpaceContent() SpacePageData {
 	}
 	_, localDB := web.state.get()
 	if localDB != nil {
+		// every file once: old updates are in the library and among the files left out
+		counted := map[string]bool{}
 		for _, candidate := range web.libraryFiles(".nsp", ".nsz", ".xci", ".xcz") {
+			counted[candidate.Path] = true
 			data.LibrarySize += candidate.Size
 		}
 		for file := range localDB.Skipped {
-			data.LibrarySize += file.Size
+			if !counted[filepath.Join(file.BaseFolder, file.FileName)] {
+				data.LibrarySize += file.Size
+			}
 		}
 	}
 	for _, candidate := range web.uncompressedCandidates() {

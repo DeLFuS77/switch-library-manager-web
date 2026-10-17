@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -88,6 +89,16 @@ func (web *Web) buildStatistics(lang string) Statistics {
 
 	var baseSize, updateSize, dlcSize int64
 	formats := map[string]*SizeShare{}
+	// every file once in the sizes: a game card can hold the game, its update and DLC
+	counted := map[string]bool{}
+	firstTime := func(file db.ExtendedFileInfo) bool {
+		path := filepath.Join(file.BaseFolder, file.FileName)
+		if counted[path] {
+			return false
+		}
+		counted[path] = true
+		return true
+	}
 	addFile := func(fileName string, size int64) {
 		format := strings.ToUpper(strings.TrimPrefix(filepath.Ext(fileName), "."))
 		if format == "" || len(format) > 4 {
@@ -107,21 +118,27 @@ func (web *Web) buildStatistics(lang string) Statistics {
 		var gameSize int64
 		if local.BaseExist {
 			stats.Games++
-			baseSize += local.File.ExtendedInfo.Size
-			gameSize += local.File.ExtendedInfo.Size
-			addFile(local.File.ExtendedInfo.FileName, local.File.ExtendedInfo.Size)
+			if firstTime(local.File.ExtendedInfo) {
+				baseSize += local.File.ExtendedInfo.Size
+				gameSize += local.File.ExtendedInfo.Size
+				addFile(local.File.ExtendedInfo.FileName, local.File.ExtendedInfo.Size)
+			}
 		}
 		for _, update := range local.Updates {
 			stats.Updates++
-			updateSize += update.ExtendedInfo.Size
-			gameSize += update.ExtendedInfo.Size
-			addFile(update.ExtendedInfo.FileName, update.ExtendedInfo.Size)
+			if firstTime(update.ExtendedInfo) {
+				updateSize += update.ExtendedInfo.Size
+				gameSize += update.ExtendedInfo.Size
+				addFile(update.ExtendedInfo.FileName, update.ExtendedInfo.Size)
+			}
 		}
 		for _, dlc := range local.Dlc {
 			stats.Dlc++
-			dlcSize += dlc.ExtendedInfo.Size
-			gameSize += dlc.ExtendedInfo.Size
-			addFile(dlc.ExtendedInfo.FileName, dlc.ExtendedInfo.Size)
+			if firstTime(dlc.ExtendedInfo) {
+				dlcSize += dlc.ExtendedInfo.Size
+				gameSize += dlc.ExtendedInfo.Size
+				addFile(dlc.ExtendedInfo.FileName, dlc.ExtendedInfo.Size)
+			}
 		}
 
 		if local.BaseExist && local.File.Metadata != nil {
