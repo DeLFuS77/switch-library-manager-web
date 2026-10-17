@@ -22,11 +22,12 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.39.2
-- A compression stopped by a restart or a night backup goes on by itself, and keeps what it did
-- The menu counts the missing games next to Missing Games; texts name installers such as DBI
-### 1.39.1
-- Fix: the app no longer waits minutes on the starting screen with a large library; the starting screen looks like the app</Changes>
+  <Changes>### 1.40.0
+- Safer: originals are kept unless the new file was checked whole, data files are never cut or written over, a missing share no longer empties the library
+- Security: without login the app answers only to local names (new Allowed names setting); stronger login protection
+- Faster pages on large libraries; notifications, backups and scans more reliable
+### 1.39.2
+- A compression stopped by a restart or a night backup goes on by itself, and keeps what it did</Changes>
   <Date>2026-10-17</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
