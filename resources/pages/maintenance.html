@@ -9,6 +9,12 @@
 					{{- else}}{{t "After changing files outside the app, review again."}}{{end}}
 				</span>
 			</div>
+			{{- with .Steps}}
+			<div class="maintenance-progress" role="img" aria-label="{{t "%v of %v steps done" $.DoneCount (len .)}}">
+				<span class="maintenance-ring" style="--pct: {{$.DonePercent}}"><span>{{$.DoneCount}}/{{len .}}</span></span>
+				<span class="small fw-semibold">{{t "%v of %v steps done" $.DoneCount (len .)}}</span>
+			</div>
+			{{- end}}
 			<ol class="maintenance-steps list-unstyled">
 				{{- range .Steps}}
 				<li class="surface maintenance-step step-{{.Status}}{{if .Next}} is-next{{end}}">

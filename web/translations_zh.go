@@ -3,6 +3,9 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"%v of %v steps done": "已完成 %v/%v 步",
+		"Show more": "显示更多",
+		"Show less": "收起",
 		"Do not show what is new again": "不再显示新内容",
 		"Got it": "知道了",
 		"Updated to %v": "已更新到 %v",

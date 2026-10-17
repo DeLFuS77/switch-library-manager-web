@@ -56,6 +56,25 @@ type MaintenancePageData struct {
 	Preparing  bool
 }
 
+// DoneCount is how many steps are done, for the ring at the top of the page.
+func (d MaintenancePageData) DoneCount() int {
+	done := 0
+	for _, step := range d.Steps {
+		if step.Status == STEP_DONE {
+			done++
+		}
+	}
+	return done
+}
+
+// DonePercent is the share of the steps that are done.
+func (d MaintenancePageData) DonePercent() int {
+	if len(d.Steps) == 0 {
+		return 0
+	}
+	return d.DoneCount() * 100 / len(d.Steps)
+}
+
 // stepOfPage is the step a tool page is, for the line that points to the tune-up.
 var stepOfPage = map[string]int{"organize": 3, "space": 4, "compress": 5}
 

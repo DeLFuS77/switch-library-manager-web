@@ -3,6 +3,9 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"%v of %v steps done": "%v von %v Schritten erledigt",
+		"Show more": "Mehr anzeigen",
+		"Show less": "Weniger anzeigen",
 		"Do not show what is new again": "Neuigkeiten nicht mehr anzeigen",
 		"Got it": "Verstanden",
 		"Updated to %v": "Aktualisiert auf %v",

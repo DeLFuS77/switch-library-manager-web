@@ -2381,10 +2381,34 @@ $avatar-colors: (
 	padding: .2rem .2rem 0;
 }
 
-// the cards of the overview of the library, the first thing of the home: the color drifts
-// slowly behind each one at its own pace, a second glow answers from the other corner, and
-// pointing at a card makes its glow grow and its icon turn a little
-.library-overview > .kpi {
+// the cards with a number (the overview of the library, the stat cards of Statistics and of
+// the other pages): the color drifts slowly behind each one at its own pace, a second glow
+// answers from the other corner, and pointing at a card makes its glow grow and its icon turn
+.stat-card {
+	--kpi-soft: var(--slm-accent-soft);
+	position: relative;
+	overflow: hidden;
+
+	&.is-cyan {
+		--kpi-soft: var(--slm-cyan-soft);
+	}
+
+	&::after {
+		content: "";
+		position: absolute;
+		right: -2.5rem;
+		top: -2.5rem;
+		width: 7rem;
+		height: 7rem;
+		border-radius: 50%;
+		background: var(--kpi-soft);
+		filter: blur(6px);
+		pointer-events: none;
+	}
+}
+
+.kpi-live,
+.stat-card {
 	isolation: isolate;
 
 	> * {
@@ -2413,7 +2437,8 @@ $avatar-colors: (
 		transition: scale .6s ease, opacity .6s ease;
 	}
 
-	.kpi-icon {
+	.kpi-icon,
+	.stat-icon {
 		transition: transform .35s cubic-bezier(.3, 1.6, .5, 1);
 	}
 
@@ -2428,14 +2453,16 @@ $avatar-colors: (
 			opacity: 1;
 		}
 
-		.kpi-icon {
+		.kpi-icon,
+		.stat-icon {
 			transform: rotate(-8deg) scale(1.1);
 		}
 	}
 }
 
 @media (prefers-reduced-motion: no-preference) {
-	.library-overview > .kpi {
+	.kpi-live,
+	.stat-card {
 		&::after {
 			animation: slm-kpi-drift 9s ease-in-out infinite alternate;
 		}
@@ -2443,14 +2470,17 @@ $avatar-colors: (
 		&::before {
 			animation: slm-kpi-drift-back 12s ease-in-out infinite alternate;
 		}
+	}
 
-		// each card at another moment of the drift, so they never move together
-		@for $i from 1 through 4 {
-			&:nth-child(#{$i})::after {
+	// each card at another moment of the drift, so they never move together
+	@for $i from 1 through 4 {
+		.library-overview > .kpi-live:nth-child(#{$i}),
+		.row > .col:nth-child(#{$i}) > .stat-card {
+			&::after {
 				animation-delay: -#{$i * 2.3}s;
 			}
 
-			&:nth-child(#{$i})::before {
+			&::before {
 				animation-delay: -#{$i * 3.7}s;
 			}
 		}
@@ -6105,5 +6135,165 @@ body:has(.wizard.show) #alert_sync {
 
 	50% {
 		transform: scale(1.18) rotate(12deg);
+	}
+}
+
+// what is below the screen waits to be seen: its animations (bars that fill, rings, cards that
+// come up) start when it scrolls into view instead of at the load of the page, unseen
+.is-waiting,
+.is-waiting *,
+.is-waiting *::before,
+.is-waiting *::after {
+	animation-play-state: paused !important;
+}
+
+// Tune-up: how many steps are done, the next step breathes and a done step pops its check
+.maintenance-progress {
+	display: flex;
+	align-items: center;
+	gap: .75rem;
+	margin-bottom: 1rem;
+}
+
+.maintenance-ring {
+	--pct: 0;
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 3rem;
+	height: 3rem;
+	border-radius: 50%;
+	background: conic-gradient(#{$success} calc(var(--pct) * 1%), var(--slm-border) 0);
+	font-size: .75rem;
+	font-weight: 700;
+
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 4px;
+		border-radius: 50%;
+		background: var(--slm-surface);
+	}
+
+	> span {
+		position: relative;
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.maintenance-ring {
+		animation: slm-gauge-fill 1.1s cubic-bezier(.2, .7, .2, 1) both;
+	}
+
+	.maintenance-step.is-next {
+		--aura: 255, 193, 7;
+		animation: aura-breathe 3.2s ease-in-out infinite;
+	}
+
+	.maintenance-step.step-done .maintenance-number .bi {
+		display: inline-block;
+		animation: slm-mark-pop .5s cubic-bezier(.3, 1.6, .5, 1) .3s both;
+	}
+}
+
+// a complete saga wears the golden aura of the favorites
+.saga-card.is-complete {
+	position: relative;
+	--aura: 255, 196, 0;
+	--aura-light: #fff1a8;
+	box-shadow: 0 0 0 1px rgba(var(--aura), .45), 0 0 1.1rem -.3rem rgba(var(--aura), .35);
+
+	&::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		padding: 2px;
+		background: conic-gradient(from var(--aura-angle), transparent 0deg, transparent 60deg, rgba(var(--aura), .8) 110deg, var(--aura-light) 135deg, rgba(var(--aura), .8) 160deg, transparent 210deg, transparent 360deg);
+		-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		pointer-events: none;
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.saga-card.is-complete {
+		animation: aura-breathe 4s ease-in-out infinite;
+
+		&::after {
+			animation: aura-spin 6s linear infinite;
+		}
+	}
+}
+
+// the countdown of the next release: a ring that closes as the day comes near
+.featured-countdown .countdown-number {
+	position: relative;
+	display: grid;
+	place-items: center;
+	min-width: 4.6rem;
+	min-height: 4.6rem;
+}
+
+.countdown-ring {
+	position: absolute;
+	inset: 0;
+	border-radius: 50%;
+	background: conic-gradient(#{$slm-red} calc(var(--pct, 0) * 1%), rgba(255, 255, 255, .12) 0);
+	-webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+	mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.countdown-ring {
+		animation: slm-gauge-fill 1.2s cubic-bezier(.2, .7, .2, 1) .2s both;
+	}
+
+	.featured-countdown .countdown-label:only-child {
+		animation: slm-twinkle 2.4s ease-in-out infinite;
+	}
+}
+
+// a long description shows its start, and the rest on demand
+.title-description-wrap {
+	position: relative;
+	overflow: hidden;
+	transition: max-height .45s ease;
+
+	&.is-collapsed {
+		max-height: 11rem;
+
+		&::after {
+			content: "";
+			position: absolute;
+			inset: auto 0 0;
+			height: 4rem;
+			background: linear-gradient(to bottom, transparent, var(--slm-surface));
+			pointer-events: none;
+		}
+	}
+}
+
+.collapsible-toggle {
+	text-decoration: none;
+	font-weight: 600;
+}
+
+// small touches: the check of an up to date game pops in, the arrow of a new version nudges
+@media (prefers-reduced-motion: no-preference) {
+	.game-card .chip-success .bi {
+		display: inline-block;
+		animation: slm-mark-pop .45s cubic-bezier(.3, 1.6, .5, 1) .5s both;
+	}
+
+	.version-arrow {
+		display: inline-block;
+		transition: transform .25s ease;
+	}
+
+	.game-card:hover .version-arrow,
+	.chip:hover .version-arrow {
+		transform: translateX(3px);
 	}
 }

@@ -148,7 +148,7 @@
 
 {{- define "statCard"}}
 				<div class="col">
-					<div class="surface stat-card h-100">
+					<div class="surface stat-card {{.Tone}} h-100">
 						<div class="stat-icon {{.Tone}}"><span class="bi {{.Icon}}" aria-hidden="true"></span></div>
 						<div>
 							<div class="stat-value"{{if .Count}} data-count="{{.Value}}"{{end}}>{{.Value}}</div>

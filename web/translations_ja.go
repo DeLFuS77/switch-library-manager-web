@@ -3,6 +3,9 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"%v of %v steps done": "%v / %v ステップ完了",
+		"Show more": "もっと見る",
+		"Show less": "閉じる",
 		"Do not show what is new again": "新機能のお知らせを今後表示しない",
 		"Got it": "OK",
 		"Updated to %v": "%v に更新しました",

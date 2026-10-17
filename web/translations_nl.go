@@ -3,6 +3,9 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"%v of %v steps done": "%v van %v stappen klaar",
+		"Show more": "Meer tonen",
+		"Show less": "Minder tonen",
 		"Do not show what is new again": "Nieuwigheden niet meer tonen",
 		"Got it": "Begrepen",
 		"Updated to %v": "Bijgewerkt naar %v",

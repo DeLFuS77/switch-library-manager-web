@@ -29,10 +29,10 @@
 					<h2 class="featured-name" id="featuredRelease"><a class="stretched-link" href="/title/{{$i.Id}}.html">{{$i.Name}}</a></h2>
 					<p class="featured-when mb-0"><span class="bi bi-calendar3" aria-hidden="true"></span>{{formatTime $i.ReleaseDate}}{{with .Saga}} &middot; <span class="bi bi-collection" aria-hidden="true"></span>{{.Name}} &middot; {{t "you have %v of %v" .Owned .Total}}{{end}}</p>
 				</div>
-				<div class="featured-countdown" aria-label="{{if eq $.FeaturedDays 0}}{{t "Out today"}}{{else if eq $.FeaturedDays 1}}{{t "Tomorrow"}}{{else}}{{t "In %v days" $.FeaturedDays}}{{end}}">
+				<div class="featured-countdown" style="--pct: {{$.FeaturedProgress}}" aria-label="{{if eq $.FeaturedDays 0}}{{t "Out today"}}{{else if eq $.FeaturedDays 1}}{{t "Tomorrow"}}{{else}}{{t "In %v days" $.FeaturedDays}}{{end}}">
 					{{- if eq $.FeaturedDays 0}}<span class="countdown-label">{{t "Out today"}}</span>
 					{{- else if eq $.FeaturedDays 1}}<span class="countdown-label">{{t "Tomorrow"}}</span>
-					{{- else}}<span class="countdown-number">{{$.FeaturedDays}}</span><span class="countdown-label">{{t "days left"}}</span>{{end}}
+					{{- else}}<span class="countdown-number"><span class="countdown-ring" aria-hidden="true"></span>{{$.FeaturedDays}}</span><span class="countdown-label">{{t "days left"}}</span>{{end}}
 				</div>
 				<button type="button" class="wish-toggle admin-only{{if $i.Wished}} is-wished{{end}}" data-wish="{{$i.Id}}" data-wished="{{$i.Wished}}" aria-pressed="{{$i.Wished}}" title="{{if $i.Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if $i.Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>
 			</section>

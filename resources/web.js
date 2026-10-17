@@ -1640,6 +1640,60 @@ function initMarks() {
 	});
 }
 
+// what is below the screen at the load waits until it scrolls into view: its animations (bars,
+// rings, cards that come up) start then, instead of running unseen
+function initRevealOnScroll() {
+	if (!('IntersectionObserver' in window) || reducedMotion()) {
+		return;
+	}
+	const below = window.innerHeight;
+	const items = [...document.querySelectorAll('main .surface, main .saga-card')]
+		.filter(element => !element.closest('.is-waiting') && element.getBoundingClientRect().top > below);
+	if (!items.length) {
+		return;
+	}
+	const observer = new IntersectionObserver(entries => {
+		entries.forEach(entry => {
+			if (entry.isIntersecting) {
+				entry.target.classList.remove('is-waiting');
+				observer.unobserve(entry.target);
+			}
+		});
+	}, { rootMargin: '0px 0px -8% 0px' });
+	items.forEach(element => {
+		element.classList.add('is-waiting');
+		observer.observe(element);
+	});
+}
+
+// a long text shows its start, with a button for the rest
+function initCollapsibleText() {
+	document.querySelectorAll('[data-collapsible]').forEach(wrap => {
+		const button = wrap.parentElement.querySelector('[data-collapsible-toggle]');
+		if (!button) {
+			return;
+		}
+		wrap.classList.add('is-collapsed');
+		// short enough: shown whole, without a button
+		if (wrap.scrollHeight <= wrap.clientHeight + 24) {
+			wrap.classList.remove('is-collapsed');
+			return;
+		}
+		button.hidden = false;
+		button.addEventListener('click', () => {
+			const collapsed = wrap.classList.contains('is-collapsed');
+			if (collapsed) {
+				wrap.style.maxHeight = wrap.scrollHeight + 'px';
+				wrap.classList.remove('is-collapsed');
+			} else {
+				wrap.style.maxHeight = '';
+				wrap.classList.add('is-collapsed');
+			}
+			button.textContent = collapsed ? button.dataset.less : button.dataset.more;
+		});
+	});
+}
+
 // the window of what is new after an update: once per version and browser, unless the box to
 // stop seeing it was ticked (without storage it shows each time, which is harmless)
 function initWhatsNew() {
@@ -3280,6 +3334,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	initMarks();
 	initWhatsNew();
+	initRevealOnScroll();
+	initCollapsibleText();
 
 	// selects and radio buttons that apply their form at once
 	document.querySelectorAll('[data-autosubmit]').forEach(input => {

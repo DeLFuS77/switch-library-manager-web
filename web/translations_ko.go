@@ -3,6 +3,9 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"%v of %v steps done": "%v/%v 단계 완료",
+		"Show more": "더 보기",
+		"Show less": "접기",
 		"Do not show what is new again": "새로운 점을 다시 표시하지 않기",
 		"Got it": "확인",
 		"Updated to %v": "%v(으)로 업데이트했어요",

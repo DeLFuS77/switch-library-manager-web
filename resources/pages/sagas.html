@@ -18,7 +18,7 @@
 			{{- if .Sagas}}
 			<div class="saga-list">
 				{{- range .Sagas}}
-				<section class="surface saga-card">
+				<section class="surface saga-card{{if .Complete}} is-complete{{end}}">
 					<img class="saga-cover" src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
 					<div class="saga-body">
 						<div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">

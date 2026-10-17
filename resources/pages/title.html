@@ -162,7 +162,10 @@
 			{{- if $t.Description}}
 			<section class="surface mb-4">
 				<h2 class="section-title"><span class="bi bi-card-text" aria-hidden="true"></span>{{t "Description"}}</h2>
-				<p class="title-description mb-0">{{$t.Description}}</p>
+				<div class="title-description-wrap" data-collapsible>
+					<p class="title-description mb-0">{{$t.Description}}</p>
+				</div>
+				<button type="button" class="btn btn-sm btn-link px-0 mt-1 collapsible-toggle" data-collapsible-toggle data-more="{{t "Show more"}}" data-less="{{t "Show less"}}" hidden>{{t "Show more"}}</button>
 			</section>
 			{{- end}}
 			{{- if $t.Screenshots}}

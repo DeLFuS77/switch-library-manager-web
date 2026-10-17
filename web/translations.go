@@ -5,6 +5,9 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"%v of %v steps done": "%v de %v pasos hechos",
+		"Show more": "Ver más",
+		"Show less": "Ver menos",
 		"Do not show what is new again": "No volver a mostrar las novedades",
 		"Got it": "Entendido",
 		"Updated to %v": "Actualizado a la %v",

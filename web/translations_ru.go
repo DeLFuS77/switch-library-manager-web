@@ -3,6 +3,9 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"%v of %v steps done": "Выполнено шагов: %v из %v",
+		"Show more": "Показать больше",
+		"Show less": "Свернуть",
 		"Do not show what is new again": "Больше не показывать новинки",
 		"Got it": "Понятно",
 		"Updated to %v": "Обновлено до %v",

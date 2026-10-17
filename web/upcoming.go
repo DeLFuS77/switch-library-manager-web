@@ -48,6 +48,8 @@ type UpcomingPageData struct {
 	// the next game for the user, or the next one, and the days until it comes out
 	Featured     *UpcomingGame
 	FeaturedDays int
+	// how close the release is, 0 to 100, over the last month before it: the ring of the countdown
+	FeaturedProgress int
 	// upcoming games, of them on the wishlist or of a series of the library, and shown
 	Total  int
 	ForYou int
@@ -213,6 +215,7 @@ func upcomingPage(games []UpcomingGame, filter *TitleItemFilter, now time.Time) 
 		}
 		if data.Featured != nil {
 			data.FeaturedDays = int(data.Featured.Item.ReleaseDate.Sub(day).Hours() / 24)
+			data.FeaturedProgress = max(4, min(100, 100-data.FeaturedDays*100/30))
 		}
 	}
 	// the last released first

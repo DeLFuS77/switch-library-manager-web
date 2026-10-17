@@ -44,22 +44,22 @@
 			</div>
 			{{- end}}
 			<section class="library-overview" aria-label="{{t "Overview"}}">
-				<a class="kpi" href="/statistics.html">
+				<a class="kpi kpi-live" href="/statistics.html">
 					<span class="kpi-icon"><span class="bi bi-controller" aria-hidden="true"></span></span>
 					<span class="kpi-value" data-count="{{$s.Games}}">{{$s.Games}}</span>
 					<span class="kpi-label">{{t "Games"}}</span>
 				</a>
-				<a class="kpi kpi-warning" href="/updates.html">
+				<a class="kpi kpi-live kpi-warning" href="/updates.html">
 					<span class="kpi-icon"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span></span>
 					<span class="kpi-value" data-count="{{$s.UpdatesPending}}">{{$s.UpdatesPending}}</span>
 					<span class="kpi-label">{{t "Pending updates"}}{{if $s.DlcWithUpdate}}<span class="kpi-detail">{{t "%v games, %v DLC" $s.GamesWithUpdate $s.DlcWithUpdate}}</span>{{end}}</span>
 				</a>
-				<a class="kpi kpi-info" href="/dlc.html">
+				<a class="kpi kpi-live kpi-info" href="/dlc.html">
 					<span class="kpi-icon"><span class="bi bi-puzzle" aria-hidden="true"></span></span>
 					<span class="kpi-value" data-count="{{$s.MissingDlc}}">{{$s.MissingDlc}}</span>
 					<span class="kpi-label">{{t "Missing DLC"}}</span>
 				</a>
-				<a class="kpi kpi-success" href="/statistics.html">
+				<a class="kpi kpi-live kpi-success" href="/statistics.html">
 					<span class="kpi-icon"><span class="bi bi-hdd-stack" aria-hidden="true"></span></span>
 					<span class="kpi-value">{{formatSize $s.TotalSize}}</span>
 					<span class="kpi-label">{{t "Total size"}}</span>
