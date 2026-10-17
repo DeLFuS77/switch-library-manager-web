@@ -98,6 +98,7 @@ func init() {
 		"A check is running.": "正在进行检查。",
 		"%v files were never checked.": "%v 个文件从未检查过。",
 		"Everything checked; %v damaged files are on the Issues page.": "全部已检查;%v 个损坏的文件在问题页面。",
+		"Everything checked; 1 damaged file is on the Issues page.": "全部已检查;1 个损坏的文件在问题页面。",
 		"Every file is checked.": "所有文件都已检查。",
 		"Looking at what would change...": "正在查看会有哪些更改...",
 		"%v changes are waiting.": "有 %v 项更改待处理。",

@@ -7,7 +7,7 @@
 - Organize no longer wants to move a game whose name has no letter for the Switch-safe names (a name only in Chinese
   or Korean) into a folder called `_`, again and again: it keeps the name of its file, or Unknown Title.
 - Compress shows from the start how many files are selected, the small ones in the last row too, and Tune-up says
-  "1 change is waiting" in the singular.
+  "1 change is waiting" and "1 damaged file" in the singular.
 - Without HTTPS the browser console no longer fills with warnings about the opener policy on every page, nor with an
   error when a transition between pages is skipped.
 - Save vault: an upload cut in the middle (the console going to sleep, the Wi-Fi) leaves the previous save as it

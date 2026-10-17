@@ -98,6 +98,7 @@ func init() {
 		"A check is running.": "確認を実行中です。",
 		"%v files were never checked.": "%v 個のファイルが未確認です。",
 		"Everything checked; %v damaged files are on the Issues page.": "すべて確認済み。破損したファイル %v 個は問題ページにあります。",
+		"Everything checked; 1 damaged file is on the Issues page.": "すべて確認済み。破損したファイル 1 個は問題ページにあります。",
 		"Every file is checked.": "すべてのファイルを確認済みです。",
 		"Looking at what would change...": "変更される内容を調べています...",
 		"%v changes are waiting.": "%v 件の変更が待機中です。",

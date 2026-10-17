@@ -104,6 +104,9 @@ func (web *Web) maintenanceSteps(lang string) []MaintenanceStep {
 				step.Status, step.Detail, step.Action = STEP_TODO, t("%v files were never checked.", formatNumber(lang, unchecked)), "verify"
 			case damaged > 0:
 				step.Status, step.Detail = STEP_DONE, t("Everything checked; %v damaged files are on the Issues page.", formatNumber(lang, damaged))
+				if damaged == 1 {
+					step.Detail = t("Everything checked; 1 damaged file is on the Issues page.")
+				}
 			default:
 				step.Status, step.Detail = STEP_DONE, t("Every file is checked.")
 			}

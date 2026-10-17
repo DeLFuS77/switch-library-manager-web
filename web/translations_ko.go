@@ -98,6 +98,7 @@ func init() {
 		"A check is running.": "확인이 진행 중입니다.",
 		"%v files were never checked.": "%v개 파일을 한 번도 확인하지 않았습니다.",
 		"Everything checked; %v damaged files are on the Issues page.": "모두 확인했습니다. 손상된 파일 %v개는 문제 페이지에 있습니다.",
+		"Everything checked; 1 damaged file is on the Issues page.": "모두 확인했습니다. 손상된 파일 1개는 문제 페이지에 있습니다.",
 		"Every file is checked.": "모든 파일을 확인했습니다.",
 		"Looking at what would change...": "바뀔 내용을 살펴보는 중...",
 		"%v changes are waiting.": "%v개의 변경이 대기 중입니다.",

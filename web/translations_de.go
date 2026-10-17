@@ -98,6 +98,7 @@ func init() {
 		"A check is running.": "Eine Prüfung läuft.",
 		"%v files were never checked.": "%v Dateien wurden noch nie geprüft.",
 		"Everything checked; %v damaged files are on the Issues page.": "Alles geprüft; %v beschädigte Dateien stehen auf der Seite Probleme.",
+		"Everything checked; 1 damaged file is on the Issues page.": "Alles geprüft; 1 beschädigte Datei steht auf der Seite Probleme.",
 		"Every file is checked.": "Alle Dateien sind geprüft.",
 		"Looking at what would change...": "Es wird geprüft, was sich ändern würde...",
 		"%v changes are waiting.": "%v Änderungen stehen aus.",

@@ -100,6 +100,7 @@ var translations = map[string]map[string]string{
 		"A check is running.": "Hay una comprobación en marcha.",
 		"%v files were never checked.": "%v archivos no se han comprobado nunca.",
 		"Everything checked; %v damaged files are on the Issues page.": "Todo comprobado; hay %v archivos dañados en la página Problemas.",
+		"Everything checked; 1 damaged file is on the Issues page.": "Todo comprobado; hay 1 archivo dañado en la página Problemas.",
 		"Every file is checked.": "Todos los archivos están comprobados.",
 		"Looking at what would change...": "Mirando qué cambiaría...",
 		"%v changes are waiting.": "Hay %v cambios pendientes.",
