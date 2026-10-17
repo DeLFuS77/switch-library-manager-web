@@ -2381,6 +2381,106 @@ $avatar-colors: (
 	padding: .2rem .2rem 0;
 }
 
+// the cards of the overview of the library, the first thing of the home: the color drifts
+// slowly behind each one at its own pace, a second glow answers from the other corner, and
+// pointing at a card makes its glow grow and its icon turn a little
+.library-overview > .kpi {
+	isolation: isolate;
+
+	> * {
+		position: relative;
+		z-index: 1;
+	}
+
+	&::after {
+		z-index: 0;
+		transition: scale .6s ease, opacity .6s ease;
+	}
+
+	&::before {
+		content: "";
+		position: absolute;
+		left: -3rem;
+		bottom: -3.75rem;
+		width: 8rem;
+		height: 8rem;
+		border-radius: 50%;
+		background: var(--kpi-soft);
+		filter: blur(16px);
+		opacity: .65;
+		pointer-events: none;
+		z-index: 0;
+		transition: scale .6s ease, opacity .6s ease;
+	}
+
+	.kpi-icon {
+		transition: transform .35s cubic-bezier(.3, 1.6, .5, 1);
+	}
+
+	&:hover,
+	&:focus-visible {
+		&::after {
+			scale: 1.45;
+		}
+
+		&::before {
+			scale: 1.3;
+			opacity: 1;
+		}
+
+		.kpi-icon {
+			transform: rotate(-8deg) scale(1.1);
+		}
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.library-overview > .kpi {
+		&::after {
+			animation: slm-kpi-drift 9s ease-in-out infinite alternate;
+		}
+
+		&::before {
+			animation: slm-kpi-drift-back 12s ease-in-out infinite alternate;
+		}
+
+		// each card at another moment of the drift, so they never move together
+		@for $i from 1 through 4 {
+			&:nth-child(#{$i})::after {
+				animation-delay: -#{$i * 2.3}s;
+			}
+
+			&:nth-child(#{$i})::before {
+				animation-delay: -#{$i * 3.7}s;
+			}
+		}
+	}
+}
+
+@keyframes slm-kpi-drift {
+	0% {
+		transform: translate(0, 0) scale(1);
+	}
+
+	50% {
+		transform: translate(-1.6rem, 1.3rem) scale(1.3);
+	}
+
+	100% {
+		transform: translate(-3.2rem, .3rem) scale(1.1);
+	}
+}
+
+@keyframes slm-kpi-drift-back {
+	0% {
+		transform: translate(0, 0) scale(1);
+	}
+
+	100% {
+		transform: translate(2.6rem, -1.6rem) scale(1.35);
+	}
+}
+
 .health-bar {
 	height: .5rem;
 	border-radius: 1rem;
@@ -5921,4 +6021,9 @@ body:has(.wizard.show) #alert_sync {
 .task-lane-bar {
 	height: 0.4rem;
 	margin-top: 0.25rem;
+}
+
+// the passwords of a backup: their whole hint shows, also on a phone
+.backup-password {
+	width: min(100%, 19rem);
 }

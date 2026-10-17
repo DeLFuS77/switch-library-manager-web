@@ -471,7 +471,7 @@
 						<div class="d-flex flex-column gap-3">
 							<form class="d-flex flex-wrap align-items-center gap-2" method="post" action="/backup/download">
 								<label class="visually-hidden" for="backupPassword">{{t "Password for the backup (optional)"}}</label>
-								<input class="form-control form-control-sm w-auto" type="password" id="backupPassword" name="password" minlength="10" autocomplete="new-password" placeholder="{{t "Password for the backup (optional)"}}">
+								<input class="form-control form-control-sm backup-password" type="password" id="backupPassword" name="password" minlength="10" autocomplete="new-password" placeholder="{{t "Password for the backup (optional)"}}">
 								<button type="submit" class="btn btn-outline-primary rounded-pill"><span class="bi bi-download me-2" aria-hidden="true"></span>{{t "Download a backup"}}</button>
 								<div class="form-text w-100 mt-0">{{t "With a password the backup is encrypted, for keeping it outside the server. Keep the password: without it the backup cannot be restored."}}</div>
 							</form>
@@ -479,7 +479,7 @@
 								<label class="visually-hidden" for="backupFile">{{t "Backup file"}}</label>
 								<input class="form-control form-control-sm w-auto" type="file" id="backupFile" name="backup" accept=".zip,.slmbackup,application/zip" required>
 								<label class="visually-hidden" for="restorePassword">{{t "Password of the backup, if it has one"}}</label>
-								<input class="form-control form-control-sm w-auto" type="password" id="restorePassword" name="password" autocomplete="off" placeholder="{{t "Password of the backup, if it has one"}}">
+								<input class="form-control form-control-sm backup-password" type="password" id="restorePassword" name="password" autocomplete="off" placeholder="{{t "Password of the backup, if it has one"}}">
 								<button type="submit" class="btn btn-outline-danger rounded-pill" data-confirm="{{t "Restoring replaces the current settings and users. Continue?"}}"><span class="bi bi-upload me-2" aria-hidden="true"></span>{{t "Restore"}}</button>
 							</form>
 						</div>

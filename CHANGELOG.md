@@ -7,6 +7,10 @@
 - Tasks: a compression, decompression, conversion or packing says its speed, how long is left and about when it ends
   ("2h 15m · 18:40", with the day when it ends another day), as the checks and the copies to the SD card already did;
   the time left reads as hours and minutes instead of "2h15m0s".
+- The cards at the top of the library come alive: the color of each one drifts slowly behind it at its own pace,
+  with a second glow in the other corner, and pointing at one makes its glow grow and its icon turn a little (still
+  when the system asks for reduced motion).
+- Settings → Backup: the password fields show their whole hint, also on a phone.
 
 ## 1.41.0
 
