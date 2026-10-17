@@ -4,6 +4,7 @@
 [![Release](https://img.shields.io/github/v/release/DeLFuS77/switch-library-manager-web?sort=semver)](https://github.com/DeLFuS77/switch-library-manager-web/releases)
 [![Docker Hub](https://img.shields.io/docker/pulls/delfus77/switch-library-manager-web?logo=docker)](https://hub.docker.com/r/delfus77/switch-library-manager-web)
 [![Tests](https://github.com/DeLFuS77/switch-library-manager-web/actions/workflows/test.yml/badge.svg)](https://github.com/DeLFuS77/switch-library-manager-web/actions/workflows/test.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/DeLFuS77/switch-library-manager-web/badge)](https://scorecard.dev/viewer/?uri=github.com/DeLFuS77/switch-library-manager-web)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/LICENSE)
 
 Manage the backups of your Nintendo Switch games from the browser: see which updates, DLC and games you are missing,
@@ -375,6 +376,8 @@ gh attestation verify oci://docker.io/delfus77/switch-library-manager-web:latest
 ```
 
 `SHA256SUMS.txt` in each release has the checksums of the files.
+
+To report a security problem privately, see [SECURITY.md](SECURITY.md).
 
 Other protections: other web sites cannot send actions to the app (CSRF), pages cannot be shown inside other sites,
 only the app's own scripts run, request sizes and slow connections are limited, covers are only downloaded from the

@@ -16,6 +16,8 @@
 - Every program of a release and every Docker image comes with a signed provenance (Sigstore, through GitHub) that
   proves it was built by this repository from the tagged source, and the images carry their SBOM; the README tells
   how to check them with `gh attestation verify`.
+- CodeQL looks for security mistakes in the Go and JavaScript code on every change and every week, OpenSSF Scorecard
+  rates the practices of the project weekly, and SECURITY.md tells how to report a vulnerability privately.
 
 ## 1.40.2
 
