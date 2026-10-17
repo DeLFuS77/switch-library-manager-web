@@ -35,7 +35,7 @@
 						</div>
 						<div class="d-flex flex-wrap justify-content-between column-gap-3 small text-body-secondary">
 							<span class="text-truncate task-message">{{if .MessageArg}}{{t .Message .MessageArg}}{{else}}{{t .Message}}{{end}}</span>
-							{{- if ge $pct 0}}<span class="text-nowrap">{{if or (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "convert") (eq .Kind "pack")}}{{formatSize (mul .Current 1048576)}} / {{formatSize (mul .Total 1048576)}}{{else}}{{.Current}} / {{.Total}}{{end}} &middot; {{$pct}}%{{with .Speed}} &middot; {{.}} MB/s{{end}}{{with .Remaining}} &middot; {{t "%v left" .}}{{end}}</span>{{end}}
+							{{- if ge $pct 0}}<span class="text-nowrap">{{if or (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "convert") (eq .Kind "pack")}}{{formatSize (mul .Current 1048576)}} / {{formatSize (mul .Total 1048576)}}{{else}}{{.Current}} / {{.Total}}{{end}} &middot; {{$pct}}%{{with .Speed}} &middot; {{.}} MB/s{{end}}{{with .RemainingText}} &middot; {{t "%v left" .}}{{end}}</span>{{end}}
 						</div>
 						{{- template "verifyBreakdown" .Breakdown}}
 						{{- $kind := .Kind}}

@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Tasks: a compression, decompression, conversion or packing says its speed, how long is left and about when it ends
+  ("2h 15m · 18:40", with the day when it ends another day), as the checks and the copies to the SD card already did;
+  the time left reads as hours and minutes instead of "2h15m0s".
+
 ## 1.41.0
 
 ### Improvements

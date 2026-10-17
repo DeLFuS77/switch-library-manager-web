@@ -252,20 +252,50 @@ func (t Task) Percent() int {
 	return t.Current * 100 / t.Total
 }
 
-// Speed returns the megabytes checked per second by a running verification, or 0.
+// Speed returns the megabytes per second of a running task that reads files (a check, a copy
+// to the SD card, a compression and the like), or 0.
 func (t Task) Speed() int {
 	return t.speedAt(time.Now())
 }
 
 func (t Task) speedAt(now time.Time) int {
 	elapsed := now.Sub(t.Started).Seconds()
-	if (t.Kind != TASK_VERIFY && t.Kind != TASK_COPY) || t.Current <= 0 || elapsed < 10 {
+	if !measuredInMegabytes(t.Kind) || t.Current <= 0 || elapsed < 10 {
 		return 0
 	}
 	return int(float64(t.Current) / elapsed)
 }
 
-// Remaining estimates the time left of a running verification, or 0.
+// measuredInMegabytes tells the tasks whose progress counts megabytes of files.
+func measuredInMegabytes(kind string) bool {
+	switch kind {
+	case TASK_VERIFY, TASK_COPY, TASK_COMPRESS, TASK_DECOMPRESS, TASK_CONVERT, TASK_PACK:
+		return true
+	}
+	return false
+}
+
+// RemainingText is the time left of a running task and about when it ends ("2h 15m · 18:40"),
+// or "" while it is not known yet.
+func (t Task) RemainingText() string {
+	return t.remainingTextAt(time.Now())
+}
+
+func (t Task) remainingTextAt(now time.Time) string {
+	left := t.remainingAt(now)
+	if left <= 0 {
+		return ""
+	}
+	end := now.Add(left)
+	clock := end.Format("15:04")
+	// a task that ends another day says which
+	if end.Format("2006-01-02") != now.Format("2006-01-02") {
+		clock = end.Format("02/01 15:04")
+	}
+	return formatDuration(left) + " · " + clock
+}
+
+// Remaining estimates the time left of a running task that reads files, or 0.
 func (t Task) Remaining() time.Duration {
 	return t.remainingAt(time.Now())
 }

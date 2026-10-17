@@ -279,3 +279,19 @@ func TestResultsOfFilesMovedBeforeAreFound(t *testing.T) {
 		t.Fatal("two files of the same size and time get nothing")
 	}
 }
+
+// A compression says how long is left and about when it ends, another day too.
+func TestCompressionTimeLeft(t *testing.T) {
+	now := time.Date(2026, 10, 17, 22, 0, 0, 0, time.Local)
+	task := Task{Kind: TASK_COMPRESS, Started: now.Add(-100 * time.Second), Current: 10000, Total: 7210000}
+	if got := task.remainingTextAt(now); got != "20h 0m · 18/10 18:00" {
+		t.Fatalf("time left: %q", got)
+	}
+	task.Total = 22000
+	if got := task.remainingTextAt(now); got != "2m · 22:02" {
+		t.Fatalf("time left: %q", got)
+	}
+	if got := (Task{Kind: TASK_COMPRESS, Started: now.Add(-5 * time.Second), Current: 10, Total: 100}).remainingTextAt(now); got != "" {
+		t.Fatalf("not known in the first seconds: %q", got)
+	}
+}
