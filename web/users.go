@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"slices"
 	"sort"
 	"strings"
@@ -136,10 +137,21 @@ func (s *UserStore) Verify(name string, password string) (User, bool) {
 	if ok {
 		hash = []byte(user.PasswordHash)
 	}
-	if bcrypt.CompareHashAndPassword(hash, []byte(password)) != nil || !ok {
+	if compareHash(hash, password) != nil || !ok {
 		return User{}, false
 	}
 	return user, true
+}
+
+// hashSlots limits the bcrypt checks going on at the same time: each takes a processor for a
+// while, and a flood of passwords would leave none for the app.
+var hashSlots = make(chan struct{}, max(2, runtime.NumCPU()/2))
+
+// compareHash checks a password against its bcrypt hash, a few at a time.
+func compareHash(hash []byte, password string) error {
+	hashSlots <- struct{}{}
+	defer func() { <-hashSlots }()
+	return bcrypt.CompareHashAndPassword(hash, []byte(password))
 }
 
 func (s *UserStore) Add(name string, password string, role string) error {

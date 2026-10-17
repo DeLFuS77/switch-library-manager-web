@@ -304,6 +304,10 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 				http.Error(w, remoteWithoutLoginMessage, http.StatusForbidden)
 				return
 			}
+			if !a.remoteWithoutLogin && !allowedHost(r.Host) {
+				http.Error(w, hostNotAllowedMessage, http.StatusForbidden)
+				return
+			}
 			principal = &Principal{Role: ROLE_ADMIN}
 		default:
 			principal = a.fromSession(r)
@@ -389,6 +393,43 @@ func remoteHost(r *http.Request) string {
 		return r.RemoteAddr
 	}
 	return host
+}
+
+// ALLOWED_HOSTS_ENV lists more names the app answers to without login, besides addresses and
+// names of the local network: names, ".domain" for all the names under a domain, or "*" for any.
+const ALLOWED_HOSTS_ENV = "SLM_ALLOWED_HOSTS"
+
+const hostNotAllowedMessage = "Login is disabled, so this app only answers to addresses and names of the local network. To open it by this name, add it to " + ALLOWED_HOSTS_ENV + " (names separated by commas), or create an administrator in Users."
+
+// localSuffixes are the endings of names of the local network and of VPNs, never given by
+// a public site
+var localSuffixes = []string{".localhost", ".local", ".lan", ".home", ".home.arpa", ".internal", ".localdomain", ".ts.net"}
+
+// allowedHosts are the names set in SLM_ALLOWED_HOSTS.
+var allowedHosts = strings.FieldsFunc(strings.ToLower(os.Getenv(ALLOWED_HOSTS_ENV)), func(r rune) bool { return r == ',' || r == ' ' || r == ';' })
+
+// allowedHost reports whether the app answers to a name without login: an address, a name
+// without a domain (as a NAS is called), a name of the local network or one set in
+// SLM_ALLOWED_HOSTS. A public name pointed at the address of the app by another site is not.
+func allowedHost(host string) bool {
+	if name, _, err := net.SplitHostPort(host); err == nil {
+		host = name
+	}
+	host = strings.TrimSuffix(strings.ToLower(strings.Trim(host, "[]")), ".")
+	if host == "" || net.ParseIP(host) != nil || !strings.Contains(host, ".") {
+		return true
+	}
+	for _, suffix := range localSuffixes {
+		if strings.HasSuffix(host, suffix) {
+			return true
+		}
+	}
+	for _, allowed := range allowedHosts {
+		if allowed == "*" || allowed == host || (strings.HasPrefix(allowed, ".") && strings.HasSuffix(host, allowed)) {
+			return true
+		}
+	}
+	return false
 }
 
 // isLocalAddress reports whether an address is of this computer or of a private network.
@@ -520,19 +561,71 @@ func clientIp(r *http.Request) string {
 	if !trustedProxy(host) {
 		return host
 	}
-	for _, header := range []string{"Cf-Connecting-Ip", "True-Client-Ip"} {
-		if value := strings.Trim(strings.TrimSpace(r.Header.Get(header)), "[]"); net.ParseIP(value) != nil {
-			return value
+	// the last forwarded address that is not a proxy, from the headers proxies add to
+	forwarded := ""
+	seen := false
+	for _, value := range r.Header.Values("X-Forwarded-For") {
+		for _, part := range strings.Split(value, ",") {
+			if address := strings.Trim(strings.TrimSpace(part), "[]"); net.ParseIP(address) != nil {
+				seen = true
+				if !trustedProxy(address) {
+					forwarded = address
+				}
+			}
 		}
 	}
-	addresses := forwardedAddresses(r)
-	for i := len(addresses) - 1; i >= 0; i-- {
-		address := strings.Trim(addresses[i], "[]")
-		if address != "" && net.ParseIP(address) != nil && !trustedProxy(address) {
-			return address
+	if !seen {
+		for _, address := range forwardedAddresses(r) {
+			if address = strings.Trim(address, "[]"); net.ParseIP(address) != nil && !trustedProxy(address) {
+				forwarded = address
+			}
 		}
+	}
+	// Cloudflare's headers, set by Cloudflare itself: believed from a proxy set in
+	// SLM_TRUSTED_PROXIES, from a tunnel that adds no address of its own, or when the proxy in
+	// front was reached from a Cloudflare address. Else any client could add them through a
+	// proxy that keeps them, with another address on every attempt.
+	if configuredProxy(host) || !seen || fromCloudflare(forwarded) {
+		for _, header := range []string{"Cf-Connecting-Ip", "True-Client-Ip"} {
+			if value := strings.Trim(strings.TrimSpace(r.Header.Get(header)), "[]"); net.ParseIP(value) != nil {
+				return value
+			}
+		}
+	}
+	if forwarded != "" {
+		return forwarded
 	}
 	return host
+}
+
+// configuredProxy reports whether an address is one set in SLM_TRUSTED_PROXIES.
+func configuredProxy(address string) bool {
+	ip := net.ParseIP(strings.Trim(strings.TrimSpace(address), "[]"))
+	if ip == nil {
+		return false
+	}
+	for _, network := range trustedProxyNets {
+		if network.Contains(ip) {
+			return true
+		}
+	}
+	return false
+}
+
+var cloudflareNets = parseTrustedProxies("cloudflare")
+
+// fromCloudflare reports whether an address is one Cloudflare connects from.
+func fromCloudflare(address string) bool {
+	ip := net.ParseIP(address)
+	if ip == nil {
+		return false
+	}
+	for _, network := range cloudflareNets {
+		if network.Contains(ip) {
+			return true
+		}
+	}
+	return false
 }
 
 func (web *Web) authInfo(r *http.Request) AuthInfo {
@@ -678,12 +771,16 @@ func (l *loginLimiter) fail(keys ...string) {
 	}
 }
 
-// evictOldest drops the entry that has been quiet the longest, to make room.
+// evictOldest drops the entry that has been quiet the longest, to make room: one that blocks
+// nothing first, so an attack from many addresses does not free the ones it got blocked.
 func (l *loginLimiter) evictOldest() {
+	now := time.Now()
 	oldest := ""
+	oldestBlocked := false
 	for key, entry := range l.failures {
-		if oldest == "" || entry.last.Before(l.failures[oldest].last) {
-			oldest = key
+		blocked := entry.blockUntil.After(now)
+		if oldest == "" || (oldestBlocked && !blocked) || (blocked == oldestBlocked && entry.last.Before(l.failures[oldest].last)) {
+			oldest, oldestBlocked = key, blocked
 		}
 	}
 	delete(l.failures, oldest)

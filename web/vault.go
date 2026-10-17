@@ -85,7 +85,7 @@ func (v *vaultAuth) check(s *settings.AppSettings, user string, password string)
 		return true
 	}
 	v.mutex.Unlock()
-	if bcrypt.CompareHashAndPassword([]byte(s.Vault.PasswordHash), []byte(password)) != nil {
+	if compareHash([]byte(s.Vault.PasswordHash), password) != nil {
 		return false
 	}
 	v.mutex.Lock()

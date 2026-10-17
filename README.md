@@ -350,6 +350,10 @@ administrator to require a login; you are logged in as that administrator right 
 
 - If another service already protects the app (a reverse proxy with its own login, a VPN) and you want no users, set
   `SLM_ALLOW_REMOTE_WITHOUT_LOGIN=true` so it also answers outside the local network.
+- Without login the app answers only to addresses (`192.168.1.2:3030`), names without a domain (`tower:3030`) and
+  names of the local network (`.local`, `.lan`, `.home.arpa`, `.internal`, `.ts.net`…), so a web site cannot point
+  a name of its own at the app and use it (DNS rebinding). To open it by another name, list it in
+  `SLM_ALLOWED_HOSTS` (names separated by commas, `.example.com` for every name under a domain).
 
 Use HTTPS (for example behind a reverse proxy) when the app can be reached from outside your network: the app then
 marks its cookies as secure and tells the browser to keep using HTTPS.

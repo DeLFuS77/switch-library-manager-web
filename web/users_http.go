@@ -229,10 +229,19 @@ func (web *Web) HandleUsers() {
 			redirectWithError(w, r, "/account.html", ErrEnvironmentUser)
 			return
 		}
-		if _, ok := web.auth.users.Verify(principal.Name, r.FormValue("current")); !ok {
+		// guessed from an open session, it is limited as the logins are
+		keys := loginKeys(clientIp(r), principal.Name)
+		if retryAfter, _ := web.auth.limiter.check(keys...); retryAfter > 0 {
+			// a blocked attempt is not even checked
 			redirectWithError(w, r, "/account.html", ErrWrongPassword)
 			return
 		}
+		if _, ok := web.auth.users.Verify(principal.Name, r.FormValue("current")); !ok {
+			web.auth.limiter.fail(keys...)
+			redirectWithError(w, r, "/account.html", ErrWrongPassword)
+			return
+		}
+		web.auth.limiter.succeed(keys...)
 		if err := web.auth.users.SetPassword(principal.Name, r.FormValue("password")); err != nil {
 			redirectWithError(w, r, "/account.html", err)
 			return
