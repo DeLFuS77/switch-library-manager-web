@@ -2,10 +2,69 @@
 
 ## Unreleased
 
+### Security
+
+- Without login the app answers only to addresses, names without a domain and names of the local network (`.local`,
+  `.lan`, `.home.arpa`, `.internal`, `.ts.net`…): a web site could point a name of its own at the address of the app
+  (DNS rebinding) and use it from the browser of someone on the network. Other names can be listed in the new
+  `SLM_ALLOWED_HOSTS` setting (also in the Unraid template).
+- Cloudflare's `CF-Connecting-IP` header is believed only when the request came through Cloudflare (a tunnel, a proxy
+  reached from a Cloudflare address, or `SLM_TRUSTED_PROXIES`): through another proxy a client could send a new
+  address with each attempt and dodge the login protection.
+- When the login protection remembers too many addresses, it makes room with the ones that block nothing: an attack
+  from many addresses no longer frees the ones it got blocked. Password checks run a few at a time, so a flood of
+  logins leaves the server responsive, and a wrong current password in My account counts as a failed login.
+
+### Improvements
+
+- Faster pages on large libraries: the files still to check, the files of each game and the tasks list are worked out
+  once per change instead of on every request, sizes are measured outside the locks, and the progress of a long
+  compression is saved every 30 seconds instead of after each file.
+
 ### Fixes
 
-- The compression that goes on after a restart goes before the automatic compression of new files, and is kept for
-  the next start when another task keeps it from starting; with the automatic compression on, it could be lost.
+- **Files of the library**
+  - Originals are deleted after a compression, decompression or conversion only when the new file was checked whole;
+    one checked only in part keeps them. A task that goes on after a restart removes the half written file first.
+  - Copies to the SD card are written to the card before they count as copied.
+  - Space never offers an NSZ as a duplicate of the NSP it was made from, and its cleaning never deletes a file
+    together with the copy that should be kept. Issues offers deletion only for damaged files.
+  - The parts of a split game (`00`, `01`…) are never moved or deleted one by one, and the compression list leaves out
+    old updates that are not in use.
+  - A library folder that is missing (a disk or a share not mounted) stops the scan instead of emptying the library.
+- **Scans and background work**
+  - A scan asked for while another task runs is done right after it, instead of being forgotten; files the app wrote
+    itself during a scan are no longer reported as changed by the folder watcher.
+  - The compression that goes on after a restart goes before the automatic compression of new files, and is kept for
+    the next start when another task keeps it from starting; with the automatic compression on, it could be lost. The
+    nightly compression marks the night as done only once it started or there is nothing left, and the automatic
+    compression of new files is also resumed after a restart.
+  - Covers found from other copies of a game are used, and the covers no longer start again in a loop when paused for
+    a scan.
+- **Data files**
+  - Settings, favorites, wishlist, collections, history, activity, tasks, verifications and the other files of the data
+    folder are saved through a temporary file of their own, on the disk before it takes the place of the old one: two
+    saves never mix and a crash leaves the previous version. A file that cannot be read is kept aside as
+    `name.corrupt-date` and reported, instead of being taken for empty and written over; settings that cannot be opened
+    are no longer replaced by the defaults.
+  - Backups take the verification results of large libraries (up to 64 MB per file), refuse files repeated inside,
+    and restoring one no longer reports the games added since as new.
+  - The versions of the titles database are kept only once the files were read: a download cut in the middle is
+    downloaded whole the next time instead of being taken as current.
+- **Notifications**
+  - A notification reaches the channels that work even if another one fails, and is not sent again to them each time;
+    long messages are cut to fit Discord and Telegram. Nothing is reported as new right after the start, before the
+    library is loaded, and turning a kind of notification back on does not report everything missed meanwhile.
+  - The low disk space warning is tried again when it could not be sent.
+- **Pages**
+  - Pages reload after a synchronization also with login on, and go to the login when the session ended.
+  - Copying a title ID works without HTTPS (a NAS opened by its address).
+  - Buttons come back after a request that failed, and a task that did not start is not followed.
+  - The cursor of the Statistics charts shows again, and Esc no longer brings back the first-run wizard.
+  - Regions of the same game are grouped only when they are really different regions, and demos are told apart.
+  - Statistics, a game and Space count each file once in their sizes.
+- Update notes are cut at a whole character, and a failed automatic backup is tried again an hour later instead of
+  every minute.
 
 ## 1.39.2
 
