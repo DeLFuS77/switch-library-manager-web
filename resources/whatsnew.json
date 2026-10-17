@@ -1,4 +1,50 @@
 {
+  "1.41.2": {
+    "en": [
+      "Temporary files left halfway by a stopped compression are now removed by themselves, freeing their space.",
+      "A damaged game file can no longer bring the app down."
+    ],
+    "es": [
+      "Los archivos temporales que deja a medias una compresión cortada ahora se borran solos y liberan su espacio.",
+      "Un archivo de juego dañado ya no puede tumbar la app."
+    ],
+    "de": [
+      "Temporäre Dateien einer abgebrochenen Komprimierung werden jetzt von selbst entfernt und geben ihren Platz frei.",
+      "Eine beschädigte Spieldatei kann die App nicht mehr zum Absturz bringen."
+    ],
+    "fr": [
+      "Les fichiers temporaires laissés par une compression interrompue sont désormais supprimés d’eux-mêmes, libérant leur espace.",
+      "Un fichier de jeu endommagé ne peut plus faire tomber l’app."
+    ],
+    "it": [
+      "I file temporanei lasciati da una compressione interrotta ora si cancellano da soli e liberano spazio.",
+      "Un file di gioco danneggiato non può più bloccare l’app."
+    ],
+    "pt": [
+      "Os arquivos temporários deixados por uma compressão interrompida agora são apagados sozinhos, liberando espaço.",
+      "Um arquivo de jogo danificado não pode mais derrubar a app."
+    ],
+    "nl": [
+      "Tijdelijke bestanden van een afgebroken compressie worden nu vanzelf verwijderd en geven hun ruimte vrij.",
+      "Een beschadigd spelbestand kan de app niet meer laten vastlopen."
+    ],
+    "ru": [
+      "Временные файлы прерванного сжатия теперь удаляются сами и освобождают место.",
+      "Повреждённый файл игры больше не может обрушить приложение."
+    ],
+    "ja": [
+      "中断された圧縮が残した一時ファイルが自動で削除され、容量が空くようになりました。",
+      "破損したゲームファイルでアプリが落ちることはなくなりました。"
+    ],
+    "ko": [
+      "중단된 압축이 남긴 임시 파일이 이제 자동으로 삭제되어 공간을 확보해요.",
+      "손상된 게임 파일 때문에 앱이 멈추지 않아요."
+    ],
+    "zh": [
+      "中断的压缩留下的临时文件现在会自动删除并释放空间。",
+      "损坏的游戏文件不会再让应用崩溃。"
+    ]
+  },
   "1.41.1": {
     "en": [
       "Compressions say how long is left and about when they end.",
