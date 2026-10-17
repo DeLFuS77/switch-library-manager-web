@@ -379,6 +379,8 @@ gh attestation verify oci://docker.io/delfus77/switch-library-manager-web:latest
 
 To report a security problem privately, see [SECURITY.md](SECURITY.md).
 
+To report bugs, ask for features or contribute code, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 Other protections: other web sites cannot send actions to the app (CSRF), pages cannot be shown inside other sites,
 only the app's own scripts run, request sizes and slow connections are limited, covers are only downloaded from the
 internet (never from addresses of your network) and the settings, users and session files are readable only by the
