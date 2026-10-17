@@ -37,6 +37,8 @@ const (
 	TRIGGER_COMPRESS   = "compress"
 	TRIGGER_SCAN       = "scan"
 	TRIGGER_AUTOMATION = "automation"
+	// a task on files the app was stopped in the middle of goes on once it is started again
+	TRIGGER_RESUME = "resume"
 )
 
 // task results
@@ -80,17 +82,28 @@ func formatChange(kind string, name string) string {
 	return formatChanges[kind][strings.ToLower(filepath.Ext(name))]
 }
 
+// TaskResume is what a task on files still has to do and how, saved as it goes: a task the
+// app was stopped in the middle of (a restart, an update, a backup of the server at night)
+// goes on with it once the app is started again.
+type TaskResume struct {
+	Paths  []string `json:"paths"`
+	Level  string   `json:"level,omitempty"`
+	Delete bool     `json:"delete,omitempty"`
+}
+
 // Task is a synchronization, scan or organize run, as shown on the Tasks page.
 type Task struct {
-	Id       int64     `json:"id"`
-	Kind     string    `json:"kind"`
-	Trigger  string    `json:"trigger"`
-	Status   string    `json:"status"`
-	Started  time.Time `json:"started"`
-	Finished time.Time `json:"finished,omitempty"`
-	Current  int       `json:"current"`
-	Total    int       `json:"total"`
-	Message  string    `json:"message"`
+	Id int64 `json:"id"`
+	// the files a compression, decompression or conversion has left, while it runs
+	Resume   *TaskResume `json:"resume,omitempty"`
+	Kind     string      `json:"kind"`
+	Trigger  string      `json:"trigger"`
+	Status   string      `json:"status"`
+	Started  time.Time   `json:"started"`
+	Finished time.Time   `json:"finished,omitempty"`
+	Current  int         `json:"current"`
+	Total    int         `json:"total"`
+	Message  string      `json:"message"`
 	// what the message names, when it is "... %v"
 	MessageArg string `json:"messageArg,omitempty"`
 	// the files of a task on files: the one it reached, out of how many
@@ -375,11 +388,40 @@ func (l *TaskLog) SetResult(id int64, games int, files int) {
 	})
 }
 
-// SetCompressResult records the files compressed so far and the bytes saved.
+// SetCompressResult records the files compressed so far and the bytes saved. It is saved
+// at once, so a task the app is stopped in the middle of still says what it did.
 func (l *TaskLog) SetCompressResult(id int64, files int, saved int64) {
-	l.update(id, false, func(task *Task) {
+	l.update(id, true, func(task *Task) {
 		task.Files, task.Saved = files, saved
 	})
+}
+
+// SetResume records what a task on files still has to do; nil when it ended by itself or
+// was cancelled, so it is not started again.
+func (l *TaskLog) SetResume(id int64, resume *TaskResume) {
+	l.update(id, true, func(task *Task) {
+		task.Resume = resume
+	})
+}
+
+// takeInterrupted gives what the last task on files the app was stopped in the middle of
+// still had to do, and forgets it, so it goes on once.
+func (l *TaskLog) takeInterrupted() (string, *TaskResume) {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+	for _, task := range l.tasks {
+		if task.Resume == nil {
+			continue
+		}
+		resume := task.Resume
+		task.Resume = nil
+		l.changed(true)
+		if task.Status == TASK_FAILED && task.Error != nil && task.Error.Text == NOTE_INTERRUPTED {
+			return task.Kind, resume
+		}
+		return "", nil
+	}
+	return "", nil
 }
 
 // AddFileResult records a file compressed, with its size before and after.

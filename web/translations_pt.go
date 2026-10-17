@@ -3,6 +3,7 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Going on after a restart": "Continuação após reinício",
 		"Your library, games and settings are safe; nothing is changed while the app starts.": "Sua biblioteca, seus jogos e suas configurações estão seguros: nada é alterado durante a inicialização.",
 		"Opening the local database...": "Abrindo o banco de dados local…",
 		"Loading the keys...": "Carregando as chaves…",

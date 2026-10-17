@@ -8,6 +8,10 @@
 
 ### Fixes
 
+- A compression, decompression or conversion the app is stopped in the middle of (a restart, an update, a backup of
+  the server at night) goes on by itself with the files it had left once the app is started again, shown in Tasks as
+  "Going on after a restart"; one cancelled by hand does not. The task also keeps what it did as it goes: it said
+  nothing of the files it had compressed before it was stopped.
 - The menu shows next to Missing Games how many games are missing, as the page counts them, in grey; it showed the
   games on the wishlist in red, which read as "only 2 games missing". The wishlist keeps its hearts and its filter on
   the page.

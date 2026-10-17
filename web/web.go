@@ -755,6 +755,7 @@ func (web *Web) startInBackground() {
 		}
 		if failure == nil {
 			web.resumeAutomation()
+			web.resumeInterrupted()
 		}
 	}()
 }
