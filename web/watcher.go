@@ -64,6 +64,8 @@ type folderWatcher struct {
 	// a task changed the files while the watcher waited, and the scans done by then
 	waited     bool
 	waitedScan uint64
+	// the last time the watcher saw a task on the files running
+	busySeen time.Time
 }
 
 // StartFolderWatcher watches the library folders and rescans the library when files are
@@ -155,12 +157,15 @@ func (w *folderWatcher) waiting() bool {
 		if !w.waited {
 			w.waited, w.waitedScan = true, w.web.scansDone.Load()
 		}
+		w.busySeen = time.Now()
 		return true
 	}
 	if !w.waited {
 		return false
 	}
-	if w.web.scansDone.Load() > w.waitedScan {
+	// only a scan that started once the task had ended covers what it changed: one started
+	// meanwhile (a synchronization asked during a long check) missed what came after it
+	if w.web.scansDone.Load() > w.waitedScan && time.Unix(0, w.web.scanStarted.Load()).After(w.busySeen) {
 		w.waited = false
 		current := w.fingerprint()
 		w.lastCheck, w.scanned = current, current

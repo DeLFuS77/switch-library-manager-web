@@ -105,6 +105,10 @@ func (web *Web) buildRegionalDuplicates(lang string) []RegionGroup {
 		if key == "" {
 			continue
 		}
+		// a demo is never a copy of the full game
+		if isDemo(title, original) || localDemo(local.File.Metadata) {
+			key += " |demo"
+		}
 		copy := RegionCopy{
 			Id:          strings.ToUpper(local.File.Metadata.TitleId),
 			Name:        titleName(switchDB, lang, local.File.Metadata.TitleId, original),
@@ -143,13 +147,27 @@ func (web *Web) buildRegionalDuplicates(lang string) []RegionGroup {
 
 	groups := []RegionGroup{}
 	for _, copies := range byName {
-		if len(copies) < 2 {
+		if len(copies) < 2 || !distinctRegions(copies) {
 			continue
 		}
 		groups = append(groups, suggestRegionCopy(copies))
 	}
 	sort.Slice(groups, func(i, j int) bool { return strings.ToLower(groups[i].Name) < strings.ToLower(groups[j].Name) })
 	return groups
+}
+
+// distinctRegions tells copies of one game from several stores: each of another region.
+// Games of one region with a name alike ("DOOM" and "DOOM (1993)") are different games, and
+// a copy without a known region cannot be told apart either.
+func distinctRegions(copies []RegionCopy) bool {
+	seen := map[string]bool{}
+	for _, copy := range copies {
+		if copy.Region == "" || seen[copy.Region] {
+			return false
+		}
+		seen[copy.Region] = true
+	}
+	return true
 }
 
 // suggestRegionCopy marks the copy to keep: never a damaged one, then the one in the language

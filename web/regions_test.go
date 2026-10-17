@@ -121,10 +121,14 @@ func TestRegionCopyNeedsAnotherRegionAndKeepsSharedFiles(t *testing.T) {
 	region := switchDB.TitlesMap["0100000000050"].Attributes.Region
 	switchDB.TitlesMap["0100000000050"].Attributes.Region = switchDB.TitlesMap["0100000000010"].Attributes.Region
 	web.invalidateDerived()
-	if _, _, err := web.removeRegionCopy("0100000000050000", "en"); err != errRegionVerify {
+	if _, _, err := web.removeRegionCopy("0100000000050000", "en"); err != errRegionCopy {
 		t.Fatalf("same region: %v", err)
 	}
+	if leftOut, _ := web.regionCopies("en"); len(leftOut) != 0 {
+		t.Fatalf("neither is left out of the library: %v", leftOut)
+	}
 	switchDB.TitlesMap["0100000000050"].Attributes.Region = region
+	web.invalidateDerived()
 
 	// the DLC file also holds a DLC of another game: it stays
 	shared := localDB.TitlesMap["0100000000050"].Dlc["0100000000051001"]

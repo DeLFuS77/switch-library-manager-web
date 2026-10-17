@@ -140,8 +140,20 @@ func TestWatcherWaitsForTasksOnTheFiles(t *testing.T) {
 		t.Fatal("no scan while a task changes the files")
 	}
 
+	// a scan started while the task ran (a synchronization asked meanwhile) does not cover
+	// what came after it
+	web.scanStarted.Store(w.busySeen.Add(-time.Minute).UnixNano())
+	web.scansDone.Add(1)
+	web.organizing.Store(false)
+	if w.waiting() || w.scanned == current {
+		t.Fatalf("a scan started during the task does not count: %d %v", w.scanned, w.waited)
+	}
+	web.organizing.Store(true)
+	w.waiting()
+
 	// the task scanned the library when it ended
 	web.organizing.Store(false)
+	web.scanStarted.Store(time.Now().Add(time.Millisecond).UnixNano())
 	web.scansDone.Add(1)
 	if !w.waiting() || w.scanned != current || w.waited {
 		t.Fatalf("the scan of the task counts for the watcher: %d %v", w.scanned, w.waited)
