@@ -205,7 +205,12 @@ func TestScanWithFilenameFallback(t *testing.T) {
 	defer manager.Close()
 
 	// no titles database and no keys: classification is based on file names only
-	localDB, err := manager.CreateLocalSwitchFilesDB(nil, t.TempDir(), []string{romDir, filepath.Join(romDir, "missing")}, nil, true, true)
+	// a folder that cannot be reached fails the scan: scanned as empty, its games would
+	// count as deleted
+	if _, err := manager.CreateLocalSwitchFilesDB(nil, t.TempDir(), []string{romDir, filepath.Join(romDir, "missing")}, nil, true, true); err == nil {
+		t.Fatal("a missing library folder fails the scan")
+	}
+	localDB, err := manager.CreateLocalSwitchFilesDB(nil, t.TempDir(), []string{romDir}, nil, true, true)
 	if err != nil {
 		t.Fatal(err)
 	}

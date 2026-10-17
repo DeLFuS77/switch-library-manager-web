@@ -225,6 +225,19 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 		files = []ExtendedFileInfo{}
 		skipped = map[ExtendedFileInfo]SkippedFile{}
 
+		// a folder that cannot be reached (a share not mounted, a disk unplugged) fails the
+		// scan, so the library is kept: scanned as empty, every game would count as deleted,
+		// and as new when the folder is back, for the history, the notifications and the
+		// automations
+		for _, folder := range folders {
+			if info, err := os.Stat(folder); err != nil || !info.IsDir() {
+				if err == nil {
+					err = errors.New("not a folder")
+				}
+				return nil, fmt.Errorf("the library folder %s cannot be reached: %w", folder, err)
+			}
+		}
+
 		for _, folder := range folders {
 			err := scanFolder(folder, recursive, &files, progress, estimate)
 			if progress != nil {
