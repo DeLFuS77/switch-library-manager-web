@@ -471,6 +471,13 @@ func copyFileTo(ctx context.Context, source string, target string, progress func
 			return readErr
 		}
 	}
+	// on the card before it counts as copied: a card taken out right after would hold a
+	// file cut short
+	if err := output.Sync(); err != nil {
+		output.Close()
+		os.Remove(temporary)
+		return err
+	}
 	if err := output.Close(); err != nil {
 		os.Remove(temporary)
 		return err

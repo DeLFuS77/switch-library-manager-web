@@ -157,7 +157,7 @@ func (web *Web) makePack(ctx context.Context, sources []string, target string, s
 	}
 	web.verifications().remember(target, written)
 	web.sugarLogger.Infof("Made the pack %s of %d files", target, len(sources))
-	if deleteOriginals {
+	if deleteOriginals && fullyChecked(written) {
 		for _, source := range sources {
 			if err := os.Remove(source); err != nil {
 				return skipped, fmt.Errorf("could not delete the original: %w", err)

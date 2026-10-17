@@ -220,7 +220,17 @@ func (web *Web) uncompressedCandidates() []CompressCandidate {
 	return result
 }
 
-// decompressCandidates lists the NSZ files of the library, biggest first.
+// fullyChecked tells a file written by the app that was checked whole and found as it should
+// be: only then does the file it was made from go.
+func fullyChecked(check switchfs.FileCheck) bool {
+	return !check.Partial && len(check.Modified) == 0
+}
+
+// temporaryOf is the file a task writes before it puts the result in place.
+func temporaryOf(source string, target string) string {
+	return filepath.Join(filepath.Dir(source), "."+filepath.Base(target)+".tmp")
+}
+
 // convertCandidates are the game cards (XCI, XCZ) of the library.
 func (web *Web) convertCandidates() []CompressCandidate {
 	return web.derived("convertCandidates", func() any { return web.libraryFiles(".xci", ".xcz") }).([]CompressCandidate)
@@ -253,7 +263,7 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 		return err
 	}
 	defer release()
-	temporary := filepath.Join(filepath.Dir(path), "."+filepath.Base(target)+".tmp")
+	temporary := temporaryOf(path, target)
 	defer os.Remove(temporary)
 	if err := switchfs.ConvertXciToNsp(ctx, path, temporary, report(0)); err != nil {
 		return err
@@ -271,7 +281,7 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 		return err
 	}
 	web.verifications().remember(target, written)
-	if deleteOriginal {
+	if deleteOriginal && fullyChecked(written) {
 		if err := os.Remove(path); err != nil {
 			return fmt.Errorf("could not delete the original: %w", err)
 		}
@@ -457,18 +467,21 @@ func (web *Web) resumeInterrupted() {
 		if _, err := os.Stat(path); err != nil {
 			continue
 		}
-		// done just before the app stopped
 		target := ""
 		switch kind {
 		case TASK_COMPRESS:
 			target = switchfs.CompressedPath(path)
 		case TASK_DECOMPRESS:
 			target = switchfs.DecompressedPath(path)
+		case TASK_CONVERT:
+			target = switchfs.ConvertedPath(path)
 		}
-		if target != "" {
-			if _, err := os.Stat(target); err == nil {
-				continue
-			}
+		// the file being written when the app stopped is left half written: it would keep the
+		// file from being written again
+		os.Remove(temporaryOf(path, target))
+		// done just before the app stopped
+		if _, err := os.Stat(target); err == nil {
+			continue
 		}
 		paths = append(paths, path)
 	}
@@ -781,7 +794,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	web.verifications().remember(path, originalCheck)
 
 	// hidden, so scans ignore the file while it is written
-	temporary := filepath.Join(filepath.Dir(path), "."+filepath.Base(target)+".tmp")
+	temporary := temporaryOf(path, target)
 	defer os.Remove(temporary)
 	result, err := switchfs.CompressGame(ctx, path, temporary, switchfs.CompressOptions{
 		Level: level, Workers: compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce)), Progress: report(info.Size()),
@@ -828,7 +841,7 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 	}
 	defer release()
 
-	temporary := filepath.Join(filepath.Dir(path), "."+filepath.Base(target)+".tmp")
+	temporary := temporaryOf(path, target)
 	defer os.Remove(temporary)
 	if err := switchfs.DecompressNsz(ctx, path, temporary, report(0)); err != nil {
 		return err
@@ -842,7 +855,7 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 		return err
 	}
 	web.verifications().remember(target, written)
-	if deleteCompressed {
+	if deleteCompressed && fullyChecked(written) {
 		if err := os.Remove(path); err != nil {
 			return fmt.Errorf("could not delete the original: %w", err)
 		}
