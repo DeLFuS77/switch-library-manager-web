@@ -65,7 +65,7 @@
 							<span class="bi bi-search" aria-hidden="true"></span>
 							<input type="search" class="form-control form-control-sm" data-file-filter placeholder="{{t "Filter by name..."}}" aria-label="{{t "Filter by name..."}}">
 						</div>
-						<div class="small text-body-secondary ms-sm-auto" data-file-summary id="compressSummary" data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" (len .Candidates) (formatSize .TotalSize)}}</div>
+						<div class="small text-body-secondary ms-sm-auto" data-file-summary id="compressSummary" data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" (add (len .Candidates) .RestCount) (formatSize .TotalSize)}}</div>
 					</div>
 					{{- if .RestCount}}
 					<p class="small text-body-secondary mb-2"><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list." (len .Candidates) (num .RestCount)}}</p>

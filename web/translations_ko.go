@@ -101,6 +101,7 @@ func init() {
 		"Every file is checked.": "모든 파일을 확인했습니다.",
 		"Looking at what would change...": "바뀔 내용을 살펴보는 중...",
 		"%v changes are waiting.": "%v개의 변경이 대기 중입니다.",
+		"1 change is waiting.": "1개의 변경이 대기 중입니다.",
 		"Every file is in its place.": "모든 파일이 제자리에 있습니다.",
 		"%v can be freed now.": "지금 %v를 확보할 수 있습니다.",
 		"Nothing to free now.": "지금 확보할 공간이 없습니다.",

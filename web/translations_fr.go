@@ -101,6 +101,7 @@ func init() {
 		"Every file is checked.": "Tous les fichiers sont vérifiés.",
 		"Looking at what would change...": "Examen de ce qui changerait...",
 		"%v changes are waiting.": "%v modifications sont en attente.",
+		"1 change is waiting.": "1 modification est en attente.",
 		"Every file is in its place.": "Chaque fichier est à sa place.",
 		"%v can be freed now.": "%v peuvent être libérés maintenant.",
 		"Nothing to free now.": "Rien à libérer pour l'instant.",

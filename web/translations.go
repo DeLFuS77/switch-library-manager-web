@@ -103,6 +103,7 @@ var translations = map[string]map[string]string{
 		"Every file is checked.": "Todos los archivos están comprobados.",
 		"Looking at what would change...": "Mirando qué cambiaría...",
 		"%v changes are waiting.": "Hay %v cambios pendientes.",
+		"1 change is waiting.": "Hay 1 cambio pendiente.",
 		"Every file is in its place.": "Cada archivo está en su sitio.",
 		"%v can be freed now.": "Se pueden liberar %v ahora.",
 		"Nothing to free now.": "No hay nada que liberar ahora.",

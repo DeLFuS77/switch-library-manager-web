@@ -101,6 +101,7 @@ func init() {
 		"Every file is checked.": "所有文件都已检查。",
 		"Looking at what would change...": "正在查看会有哪些更改...",
 		"%v changes are waiting.": "有 %v 项更改待处理。",
+		"1 change is waiting.": "有 1 项更改待处理。",
 		"Every file is in its place.": "每个文件都在正确的位置。",
 		"%v can be freed now.": "现在可以释放 %v。",
 		"Nothing to free now.": "目前没有可释放的空间。",

@@ -1585,6 +1585,15 @@ function initCoverTransition() {
 			image.classList.add('is-flying');
 		}
 	});
+	// a transition between pages skipped (another click, the page hidden) is not an error
+	const quiet = e => {
+		if (e.viewTransition) {
+			e.viewTransition.ready.catch(() => {});
+			e.viewTransition.finished.catch(() => {});
+		}
+	};
+	window.addEventListener('pageswap', quiet);
+	window.addEventListener('pagereveal', quiet);
 	// back on the list, the cover that flew is a plain cover again
 	window.addEventListener('pageshow', () => {
 		setTimeout(() => document.querySelectorAll('.is-flying').forEach(image => image.classList.remove('is-flying')), 600);

@@ -364,6 +364,11 @@ func OrganizeByFolders(baseFolder string,
 			title = titlesDB.TitlesMap[k]
 		}
 		titleName := getTitleName(title, v)
+		// a name in Chinese or Korean is left with no letter by the names for the Switch: the
+		// file's own name, or Unknown Title, instead of a folder called "_"
+		if options.SwitchSafeFileNames && strings.Trim(safeName(titleName), " -_.") == "" {
+			titleName = asciiFallbackName(v)
+		}
 		if updateProgress != nil {
 			updateProgress.UpdateProgress(i+1, tasksSize, titleName)
 		}
@@ -735,6 +740,27 @@ func applyTemplate(templateData map[string]string, useSafeNames bool, template s
 		result = "_"
 	}
 	return avoidReserved(result)
+}
+
+// safeName is a name as the names for the Switch write it: in romaji and in ASCII only.
+func safeName(name string) string {
+	name = strings.ReplaceAll(nihongo.RomajiString(name), "ō", "o")
+	return strings.Join(nonAscii.FindAllString(name, -1), "")
+}
+
+// asciiFallbackName is the name of a game whose name has no letter for the Switch: the one in
+// its file name when it has some, else Unknown Title.
+func asciiFallbackName(v *db.SwitchGameFiles) string {
+	if v != nil && v.File.ExtendedInfo.FileName != "" {
+		name := db.ParseTitleNameFromFileName(v.File.ExtendedInfo.FileName)
+		if name == v.File.ExtendedInfo.FileName {
+			name = strings.TrimSuffix(name, filepath.Ext(name))
+		}
+		if name = strings.TrimSpace(safeName(name)); strings.Trim(name, " -_.") != "" {
+			return name
+		}
+	}
+	return "Unknown Title"
 }
 
 // RemoveFiles deletes the given files, each with its reason, refusing files that changed

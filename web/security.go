@@ -84,11 +84,12 @@ func withSecurityHeaders(next http.Handler) http.Handler {
 		headers.Set("X-Frame-Options", "DENY")
 		headers.Set("Referrer-Policy", "same-origin")
 		headers.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
-		headers.Set("Cross-Origin-Opener-Policy", "same-origin")
 		headers.Set("Cross-Origin-Resource-Policy", "same-origin")
-		// served over https (directly or through a proxy): browsers keep using https
+		// served over https (directly or through a proxy): browsers keep using https. Without
+		// https the browser ignores the opener policy and says so in the console of every page
 		if isHttps(r) {
 			headers.Set("Strict-Transport-Security", "max-age=31536000")
+			headers.Set("Cross-Origin-Opener-Policy", "same-origin")
 		}
 		next.ServeHTTP(w, r)
 	})

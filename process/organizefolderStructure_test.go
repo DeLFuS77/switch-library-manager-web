@@ -259,6 +259,22 @@ func TestNameFromAFileWithoutTitleId(t *testing.T) {
 	}
 }
 
+// A name with no letter left by the names for the Switch (Chinese, Korean) takes the one of
+// its file, or Unknown Title, instead of a folder called "_".
+func TestAsciiFallbackName(t *testing.T) {
+	if name := safeName("暗黑地牢"); name != "" {
+		t.Fatalf("safe name: %q", name)
+	}
+	files := &db.SwitchGameFiles{File: db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: "Unknown Title [0100CF6011A2C000][v0].nsz"}}}
+	if name := asciiFallbackName(files); name != "Unknown Title" {
+		t.Fatalf("from the file: %q", name)
+	}
+	files.File.ExtendedInfo.FileName = "暗黑地牢 [0100CF6011A2C000][v0].nsz"
+	if name := asciiFallbackName(files); name != "Unknown Title" {
+		t.Fatalf("no letter in the file either: %q", name)
+	}
+}
+
 func TestOrganizeSubfoldersWithoutGameFolders(t *testing.T) {
 	baseFolder := t.TempDir()
 	source := filepath.Join(baseFolder, "incoming")

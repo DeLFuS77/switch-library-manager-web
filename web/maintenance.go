@@ -124,6 +124,9 @@ func (web *Web) maintenanceSteps(lang string) []MaintenanceStep {
 				step.Status, step.Detail = STEP_PREPARING, t("Looking at what would change...")
 			case changes > 0:
 				step.Status, step.Detail = STEP_TODO, t("%v changes are waiting.", formatNumber(lang, changes))
+				if changes == 1 {
+					step.Detail = t("1 change is waiting.")
+				}
 			default:
 				step.Status, step.Detail = STEP_DONE, t("Every file is in its place.")
 			}
