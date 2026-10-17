@@ -93,7 +93,8 @@ func (web *Web) compressPaths(paths []string, trigger string) bool {
 		web.auto.failed = map[string]time.Time{}
 	}
 	web.auto.mutex.Unlock()
-	return web.runFileTaskWithTrigger(TASK_COMPRESS, trigger, paths, 3, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	// goes on after a restart too, like a compression started by hand
+	return web.runResumableTask(TASK_COMPRESS, trigger, paths, 3, &TaskResume{Level: level, Delete: !appSettings.AutoCompressKeep}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		saved, err := web.compressFile(ctx, path, level, !appSettings.AutoCompressKeep, report)
 		if err != nil && !errors.Is(err, errCompressSpace) {
 			if info, statErr := os.Stat(path); statErr == nil {

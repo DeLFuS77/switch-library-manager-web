@@ -46,7 +46,6 @@ func (web *Web) getMissingGames(filter *TitleItemFilter, lang string) ([]TitleIt
 	return web.filterPage(filter, items)
 }
 
-// buildMissingGames lists every game of the titles database that is not in the library.
 // missingGamesCount counts the games of the titles database that are not in the library, with
 // the filters of the Missing Games page, for the header and the statistics.
 func (web *Web) missingGamesCount() int {
@@ -70,6 +69,7 @@ func (web *Web) missingGamesCount() int {
 	}).(int)
 }
 
+// buildMissingGames lists every game of the titles database that is not in the library.
 func (web *Web) buildMissingGames(lang string) []TitleItem {
 	items := []TitleItem{}
 

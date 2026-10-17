@@ -455,9 +455,9 @@ var funcMap = template.FuncMap{
 	"sdTerabytes": func(gigabytes int) string {
 		return strings.TrimSuffix(strings.TrimSuffix(fmt.Sprintf("%.1f", float64(gigabytes)/1000), "0"), ".")
 	},
-	// percentOf is part of total in percent, for bars
 	// the change of format of a file in a task on files, e.g. "NSP → NSZ", or ""
 	"formatChange": formatChange,
+	// percentOf is part of total in percent, for bars
 	"percentOf": func(part int, total int) int {
 		if total <= 0 {
 			return 0

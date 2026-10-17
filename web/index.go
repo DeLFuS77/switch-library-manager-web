@@ -436,8 +436,6 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 	return items
 }
 
-// localImageUrl returns the cover of a game from the local image cache, if it was
-// downloaded during a scan, so pages work without access to the Nintendo servers.
 // localTitleName is the name of a title of the library taken from its files, for titles
 // the titles database has no name for.
 func localTitleName(localDB *db.LocalSwitchFilesDB, titleId string) string {
@@ -478,6 +476,8 @@ func coverUrl(localDB *db.LocalSwitchFilesDB, attributes db.TitleAttributes) str
 	return attributes.BannerUrl
 }
 
+// localImageUrl returns the cover of a game from the local image cache, if it was
+// downloaded during a scan, so pages work without access to the Nintendo servers.
 func localImageUrl(localDB *db.LocalSwitchFilesDB, titleId string) string {
 	if localDB == nil {
 		return ""

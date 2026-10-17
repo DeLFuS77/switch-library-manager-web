@@ -291,10 +291,6 @@ func decodeToJsonObject(reader io.Reader, target interface{}) error {
 
 var errNotModified = errors.New("no new updates")
 
-func downloadBytesFromUrl(url string, etag string) ([]byte, string, error) {
-	return download(httpClient, url, etag, maxDownloadSize)
-}
-
 // download gets a URL, refusing answers larger than limit.
 func download(client *http.Client, url string, etag string, limit int64) ([]byte, string, error) {
 	req, err := http.NewRequest("GET", url, nil)

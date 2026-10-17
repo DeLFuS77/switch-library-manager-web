@@ -290,6 +290,7 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 	return nil
 }
 
+// decompressCandidates lists the NSZ files of the library, biggest first.
 func (web *Web) decompressCandidates() []CompressCandidate {
 	return web.derived("decompressCandidates", func() any { return web.libraryFiles(".nsz") }).([]CompressCandidate)
 }
