@@ -391,7 +391,7 @@ func (l *TaskLog) SetResult(id int64, games int, files int) {
 // SetCompressResult records the files compressed so far and the bytes saved. It is saved
 // at once, so a task the app is stopped in the middle of still says what it did.
 func (l *TaskLog) SetCompressResult(id int64, files int, saved int64) {
-	l.update(id, true, func(task *Task) {
+	l.update(id, false, func(task *Task) {
 		task.Files, task.Saved = files, saved
 	})
 }

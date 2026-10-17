@@ -29,6 +29,10 @@ func TestCompressionKeepsWhatIsLeft(t *testing.T) {
 		manager.Close()
 	})
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.CompressFilesAtOnce = 1 })
+	// saved after every file, to look at it
+	saved := resumeSaveInterval
+	resumeSaveInterval = 0
+	t.Cleanup(func() { resumeSaveInterval = saved })
 	dir := t.TempDir()
 	paths := []string{}
 	for _, name := range []string{"a.nsp", "b.nsp", "c.nsp"} {

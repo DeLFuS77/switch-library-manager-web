@@ -18,7 +18,15 @@ type TasksPageData struct {
 }
 
 func (web *Web) tasksPageData() TasksPageData {
-	data := TasksPageData{GlobalPageData: web.globalPageData("tasks"), Running: []Task{}, ListVersion: web.taskLog().Version()}
+	data := web.taskListData()
+	data.GlobalPageData = web.globalPageData("tasks")
+	return data
+}
+
+// taskListData is the list of tasks alone, refreshed by the page while tasks run: it needs
+// none of the header.
+func (web *Web) taskListData() TasksPageData {
+	data := TasksPageData{Running: []Task{}, ListVersion: web.taskLog().Version()}
 	finished := []Task{}
 	for _, task := range web.taskLog().Snapshot() {
 		if task.Running() {
@@ -73,7 +81,7 @@ func (web *Web) HandleTasks() {
 			// the list alone, refreshed by the page while tasks run
 			w.Header().Set("Cache-Control", "no-store")
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			if err := templates.executeTemplate(w, web.requestLanguage(r), "taskList", web.tasksPageData()); err != nil {
+			if err := templates.executeTemplate(w, web.requestLanguage(r), "taskList", web.taskListData()); err != nil {
 				web.sugarLogger.Error(fmt.Errorf("executing template failed: %w", err))
 			}
 			return
@@ -83,7 +91,13 @@ func (web *Web) HandleTasks() {
 
 	web.router.HandleFunc("/api/tasks", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
-		writeJSON(w, http.StatusOK, web.taskLog().Snapshot())
+		// the pages ask it every second or two: without the files a task has left or the size
+		// of every file it compressed, which can be thousands of lines
+		tasks := web.taskLog().Snapshot()
+		for i := range tasks {
+			tasks[i].Resume, tasks[i].Results = nil, nil
+		}
+		writeJSON(w, http.StatusOK, tasks)
 	}).Methods("GET")
 
 	// server-sent events: the version of the task list after every change

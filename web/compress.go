@@ -101,8 +101,9 @@ type compressor struct {
 	// the bytes the files being written will still take, for the space checks
 	reserved int64
 	// the compressed copies written since the last scan, which does not know them yet, with
-	// when they were written
-	written map[string]time.Time
+	// when they were written, and how many were written, for the list of the copies
+	written        map[string]time.Time
+	writtenVersion int
 }
 
 // rememberWritten keeps a compressed copy just written, until the scan that follows.
@@ -112,8 +113,8 @@ func (web *Web) rememberWritten(path string) {
 		web.compressor.written = map[string]time.Time{}
 	}
 	web.compressor.written[filepath.Clean(path)] = time.Now()
+	web.compressor.writtenVersion++
 	web.compressor.mutex.Unlock()
-	web.invalidateDerived()
 }
 
 // forgetWritten forgets the copies written before a scan started, which knows them now; the
@@ -165,7 +166,10 @@ func (web *Web) compressCandidates() []CompressCandidate {
 // among the files the last scan found and the copies written since: asking the disk for every
 // file took seconds on NAS shares.
 func (web *Web) compressedCopies() map[string]bool {
-	return web.derived("compressedCopies", func() any {
+	web.compressor.mutex.Lock()
+	written := web.compressor.writtenVersion
+	web.compressor.mutex.Unlock()
+	return web.derived(fmt.Sprintf("compressedCopies:%d", written), func() any {
 		scanned := web.scannedPaths()
 		copies := map[string]bool{}
 		for _, candidate := range web.compressCandidates() {
@@ -422,15 +426,23 @@ func (web *Web) startDecompressionBy(paths []string, deleteCompressed bool, trig
 	})
 }
 
+// resumeSaveInterval is how often a task on files saves what it did and has left.
+var resumeSaveInterval = 30 * time.Second
+
 // runResumableTask is runFileTaskWithTrigger for a task that goes on after a restart.
 func (web *Web) runResumableTask(kind string, trigger string, paths []string, passes int64, resume *TaskResume, job fileJob) bool {
+	return web.runFileTaskFull(kind, trigger, paths, nil, passes, resume, job)
+}
+
+// fileSizes asks the disk the size of every file.
+func fileSizes(paths []string) []int64 {
 	sizes := make([]int64, len(paths))
 	for i, path := range paths {
 		if info, err := os.Stat(path); err == nil {
 			sizes[i] = info.Size()
 		}
 	}
-	return web.runFileTaskFull(kind, trigger, paths, sizes, passes, resume, job)
+	return sizes
 }
 
 // resumeInterrupted goes on with the compression, decompression or conversion the app was
@@ -507,13 +519,7 @@ func (web *Web) runFileTask(kind string, paths []string, passes int64, job fileJ
 
 // runFileTaskWithTrigger is runFileTask for a task started by something else than the user.
 func (web *Web) runFileTaskWithTrigger(kind string, trigger string, paths []string, passes int64, job fileJob) bool {
-	sizes := make([]int64, len(paths))
-	for i, path := range paths {
-		if info, err := os.Stat(path); err == nil {
-			sizes[i] = info.Size()
-		}
-	}
-	return web.runFileTaskSized(kind, trigger, paths, sizes, passes, job)
+	return web.runFileTaskSized(kind, trigger, paths, nil, passes, job)
 }
 
 func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, sizes []int64, passes int64, job fileJob) bool {
@@ -547,6 +553,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 		}
 		return &left
 	}
+	resumeSaved := time.Now()
 	if resume != nil {
 		for i := range paths {
 			pending[i] = true
@@ -575,6 +582,10 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 			cancel()
 		}()
 
+		// the sizes not given are asked here, in the background
+		if sizes == nil {
+			sizes = fileSizes(paths)
+		}
 		var total int64
 		for _, size := range sizes {
 			total += size * passes
@@ -656,7 +667,12 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 					completed += fileSize
 					if resume != nil && !errors.Is(err, context.Canceled) {
 						delete(pending, i)
-						web.taskLog().SetResume(taskId, leftResume())
+						// saved every half minute with what the task did: at most that is done
+						// again after a restart
+						if time.Since(resumeSaved) >= resumeSaveInterval {
+							resumeSaved = time.Now()
+							web.taskLog().SetResume(taskId, leftResume())
+						}
 					}
 					switch {
 					case errors.Is(err, context.Canceled):

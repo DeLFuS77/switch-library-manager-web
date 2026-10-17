@@ -197,18 +197,29 @@ func (web *Web) tuneUpWaiting() bool {
 // older check), and the ones found damaged, from the results alone: nothing is read.
 func (web *Web) uncheckedFiles() (unchecked int, damaged int) {
 	store := web.verifications()
-	store.mutex.Lock()
-	defer store.mutex.Unlock()
-	for _, candidate := range web.libraryFiles(".nsp", ".nsz", ".xci", ".xcz") {
-		record, ok := store.records[candidate.Path]
-		switch {
-		case !ok || record.stale():
-			unchecked++
-		case !record.OK:
-			damaged++
-		}
+	// asked by the header of every page: counted again when the results change, as they are
+	// saved while a check runs (every file would count it again before it is shown)
+	version := store.Version()
+	if web.verifying() {
+		version = store.SavedVersion()
 	}
-	return unchecked, damaged
+	counts := web.derived(fmt.Sprintf("unchecked:%d", version), func() any {
+		files := web.derived("gameFiles", func() any { return web.libraryFiles(".nsp", ".nsz", ".xci", ".xcz") }).([]CompressCandidate)
+		store.mutex.Lock()
+		defer store.mutex.Unlock()
+		counts := [2]int{}
+		for _, candidate := range files {
+			record, ok := store.records[candidate.Path]
+			switch {
+			case !ok || record.stale():
+				counts[0]++
+			case !record.OK:
+				counts[1]++
+			}
+		}
+		return counts
+	}).([2]int)
+	return counts[0], counts[1]
 }
 
 // verifying tells whether a check of the files is running.
