@@ -3,6 +3,7 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Going on after a restart": "재시작 후 계속",
 		"Your library, games and settings are safe; nothing is changed while the app starts.": "라이브러리, 게임, 설정은 안전합니다. 시작하는 동안 아무것도 바뀌지 않습니다.",
 		"Opening the local database...": "로컬 데이터베이스를 여는 중…",
 		"Loading the keys...": "키를 불러오는 중…",

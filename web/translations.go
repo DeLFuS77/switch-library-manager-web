@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Going on after a restart": "Continuación tras reinicio",
 		"Your library, games and settings are safe; nothing is changed while the app starts.": "Tu biblioteca, tus juegos y tus ajustes están a salvo: mientras arranca no se cambia nada.",
 		"Opening the local database...": "Abriendo la base de datos local…",
 		"Loading the keys...": "Cargando las claves…",

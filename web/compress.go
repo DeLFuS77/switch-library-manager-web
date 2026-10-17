@@ -195,8 +195,12 @@ func (web *Web) convertCandidates() []CompressCandidate {
 // startConversion turns game cards into NSP (or NSZ) files, each one checked before the
 // original is deleted, if asked.
 func (web *Web) startConversion(paths []string, deleteOriginals bool) bool {
+	return web.startConversionBy(paths, deleteOriginals, TRIGGER_MANUAL)
+}
+
+func (web *Web) startConversionBy(paths []string, deleteOriginals bool, trigger string) bool {
 	// every file is copied, then the result is checked
-	return web.runFileTask(TASK_CONVERT, paths, 2, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	return web.runResumableTask(TASK_CONVERT, trigger, paths, 2, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		return 0, web.convertFile(ctx, path, deleteOriginals, report)
 	})
 }
@@ -366,18 +370,81 @@ type fileJob func(ctx context.Context, path string, report func(step int64) func
 // startCompression compresses the files in the background. It returns false if a
 // compression or decompression is already running.
 func (web *Web) startCompression(paths []string, level string, deleteOriginals bool) bool {
+	return web.startCompressionBy(paths, level, deleteOriginals, TRIGGER_MANUAL)
+}
+
+func (web *Web) startCompressionBy(paths []string, level string, deleteOriginals bool, trigger string) bool {
 	// every file is read three times: hashed, compressed and verified
-	return web.runFileTask(TASK_COMPRESS, paths, 3, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	return web.runResumableTask(TASK_COMPRESS, trigger, paths, 3, &TaskResume{Level: level, Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		return web.compressFile(ctx, path, level, deleteOriginals, report)
 	})
 }
 
 // startDecompression decompresses NSZ files to NSP in the background.
 func (web *Web) startDecompression(paths []string, deleteCompressed bool) bool {
+	return web.startDecompressionBy(paths, deleteCompressed, TRIGGER_MANUAL)
+}
+
+func (web *Web) startDecompressionBy(paths []string, deleteCompressed bool, trigger string) bool {
 	// every file is decompressed, then the result is hashed
-	return web.runFileTask(TASK_DECOMPRESS, paths, 2, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	return web.runResumableTask(TASK_DECOMPRESS, trigger, paths, 2, &TaskResume{Delete: deleteCompressed}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		return 0, web.decompressFile(ctx, path, deleteCompressed, report)
 	})
+}
+
+// runResumableTask is runFileTaskWithTrigger for a task that goes on after a restart.
+func (web *Web) runResumableTask(kind string, trigger string, paths []string, passes int64, resume *TaskResume, job fileJob) bool {
+	sizes := make([]int64, len(paths))
+	for i, path := range paths {
+		if info, err := os.Stat(path); err == nil {
+			sizes[i] = info.Size()
+		}
+	}
+	return web.runFileTaskFull(kind, trigger, paths, sizes, passes, resume, job)
+}
+
+// resumeInterrupted goes on with the compression, decompression or conversion the app was
+// stopped in the middle of, with the files it had left that still need it.
+func (web *Web) resumeInterrupted() {
+	kind, resume := web.taskLog().takeInterrupted()
+	if resume == nil {
+		return
+	}
+	paths := []string{}
+	for _, path := range resume.Paths {
+		if _, err := os.Stat(path); err != nil {
+			continue
+		}
+		// done just before the app stopped
+		target := ""
+		switch kind {
+		case TASK_COMPRESS:
+			target = switchfs.CompressedPath(path)
+		case TASK_DECOMPRESS:
+			target = switchfs.DecompressedPath(path)
+		}
+		if target != "" {
+			if _, err := os.Stat(target); err == nil {
+				continue
+			}
+		}
+		paths = append(paths, path)
+	}
+	if len(paths) == 0 {
+		return
+	}
+	started := false
+	switch kind {
+	case TASK_COMPRESS:
+		started = web.startCompressionBy(paths, resume.Level, resume.Delete, TRIGGER_RESUME)
+	case TASK_DECOMPRESS:
+		started = web.startDecompressionBy(paths, resume.Delete, TRIGGER_RESUME)
+	case TASK_CONVERT:
+		started = web.startConversionBy(paths, resume.Delete, TRIGGER_RESUME)
+	}
+	if started {
+		web.sugarLogger.Infof("[%s goes on after a restart with %d files]", kind, len(paths))
+	}
 }
 
 // filePhases are the passes over each file of the tasks on files, in their order.
@@ -415,9 +482,14 @@ func (web *Web) runFileTaskWithTrigger(kind string, trigger string, paths []stri
 	return web.runFileTaskSized(kind, trigger, paths, sizes, passes, job)
 }
 
-// runFileTaskSized is runFileTaskWithTrigger with the size each job reads, for jobs that
-// read more than their path (a pack reads every file of the game).
 func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, sizes []int64, passes int64, job fileJob) bool {
+	return web.runFileTaskFull(kind, trigger, paths, sizes, passes, nil, job)
+}
+
+// runFileTaskFull is runFileTaskWithTrigger with the size each job reads, for jobs that read
+// more than their path (a pack reads every file of the game), and, unless resume is nil,
+// how the task goes on after a restart: it keeps the files it has left as it goes.
+func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, sizes []int64, passes int64, resume *TaskResume, job fileJob) bool {
 	web.compressor.mutex.Lock()
 	// files are being moved or deleted, or the server is being measured
 	if web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() {
@@ -429,6 +501,24 @@ func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, si
 	web.compressor.mutex.Unlock()
 
 	taskId := web.taskLog().Start(kind, trigger)
+	// the files left, kept as the task goes, for a restart in the middle of it
+	pending := map[int]bool{}
+	leftResume := func() *TaskResume {
+		left := *resume
+		left.Paths = []string{}
+		for i, path := range paths {
+			if pending[i] {
+				left.Paths = append(left.Paths, path)
+			}
+		}
+		return &left
+	}
+	if resume != nil {
+		for i := range paths {
+			pending[i] = true
+		}
+		web.taskLog().SetResume(taskId, leftResume())
+	}
 	appSettings := settings.ReadSettings(web.dataFolder)
 	threads := 0
 	if kind == TASK_COMPRESS {
@@ -523,6 +613,10 @@ func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, si
 					mutex.Lock()
 					lanes[worker], partial[worker] = TaskLane{}, 0
 					completed += fileSize
+					if resume != nil && !errors.Is(err, context.Canceled) {
+						delete(pending, i)
+						web.taskLog().SetResume(taskId, leftResume())
+					}
 					switch {
 					case errors.Is(err, context.Canceled):
 						if failure == nil {
@@ -554,6 +648,10 @@ func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, si
 			} else if kind == TASK_PACK {
 				failure = &TaskNote{Text: NOTE_PACK_FAILED}
 			}
+		}
+		// ended by itself or cancelled: nothing goes on after a restart
+		if resume != nil {
+			web.taskLog().SetResume(taskId, nil)
 		}
 		web.taskLog().Finish(taskId, failure)
 		if processed > 0 {

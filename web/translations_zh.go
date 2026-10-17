@@ -3,6 +3,7 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Going on after a restart": "重启后继续",
 		"Your library, games and settings are safe; nothing is changed while the app starts.": "你的游戏库、游戏和设置都很安全:启动期间不会更改任何内容。",
 		"Opening the local database...": "正在打开本地数据库…",
 		"Loading the keys...": "正在加载密钥…",
