@@ -47,7 +47,7 @@ func (web *Web) collections() *collectionStore {
 func (c *collectionStore) reload() {
 	games := map[string][]string{}
 	if data, err := os.ReadFile(c.path); err == nil {
-		json.Unmarshal(data, &games)
+		parseStore(c.path, data, &games)
 	}
 	c.mutex.Lock()
 	c.games = games

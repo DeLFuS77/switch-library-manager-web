@@ -45,7 +45,7 @@ func (web *Web) automation() *automationQueue {
 	web.automationOnce.Do(func() {
 		queue := &automationQueue{path: filepath.Join(web.dataFolder, AUTOMATION_FILENAME)}
 		if data, err := os.ReadFile(queue.path); err == nil {
-			json.Unmarshal(data, queue)
+			parseStore(queue.path, data, queue)
 		}
 		web.automationQueue = queue
 	})

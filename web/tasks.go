@@ -302,7 +302,7 @@ func loadTaskLog(dataFolder string) *TaskLog {
 	log := &TaskLog{path: filepath.Join(dataFolder, TASKS_FILENAME), subscribers: map[chan int64]struct{}{}}
 	if data, err := os.ReadFile(log.path); err == nil {
 		saved := []*Task{}
-		if json.Unmarshal(data, &saved) == nil {
+		if parseStore(log.path, data, &saved) == nil {
 			log.tasks = saved
 		}
 	}
@@ -601,8 +601,5 @@ func (l *TaskLog) save() {
 	if err != nil {
 		return
 	}
-	tmp := l.path + ".tmp"
-	if os.WriteFile(tmp, data, 0600) == nil {
-		os.Rename(tmp, l.path)
-	}
+	writeFileAtomic(l.path, data)
 }

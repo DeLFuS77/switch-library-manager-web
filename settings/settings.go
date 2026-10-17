@@ -148,7 +148,7 @@ type AppSettings struct {
 	// a game the library has from several regions shows and counts once, by the copy the
 	// Space page suggests to keep
 	CountRegionsOnce bool `json:"count_regions_once,omitempty"`
-	WatchFolders           bool              `json:"watch_folders"`
+	WatchFolders     bool `json:"watch_folders"`
 	// hours of heavy background work, e.g. "1-7"; empty for any time
 	BackgroundHours string `json:"background_hours"`
 	// how often the folders are checked for changes notifications do not report
@@ -204,13 +204,19 @@ func ReadSettings(dataFolder string) *AppSettings {
 	if _, err := os.Stat(filepath.Join(dataFolder, SETTINGS_FILENAME)); err == nil {
 		file, err := os.Open(filepath.Join(dataFolder, SETTINGS_FILENAME))
 		if err != nil {
-			zap.S().Warnf("Missing or corrupted config file, creating a new one")
-			return saveDefaultSettings(dataFolder)
+			// e.g. a file of another user after PUID changed: never written over, it holds the
+			// folders, the tokens and every choice; the defaults are used meanwhile
+			zap.S().Errorf("The settings file cannot be opened, the defaults are used until it can - %v", err)
+			settingsInstance.Store(loaded)
+			return loaded
 		} else {
 			err = json.NewDecoder(file).Decode(loaded)
 			file.Close()
 			if err != nil {
-				zap.S().Warnf("Corrupted config file, creating a new one - %v", err)
+				// kept aside, so what it holds can be recovered by hand
+				aside := filepath.Join(dataFolder, SETTINGS_FILENAME+".corrupt-"+time.Now().Format("20060102-150405"))
+				os.Rename(filepath.Join(dataFolder, SETTINGS_FILENAME), aside)
+				zap.S().Errorf("The settings file could not be read, it was kept as %s and a new one is created - %v", filepath.Base(aside), err)
 				return saveDefaultSettings(dataFolder)
 			}
 			verified := verifySettings(dataFolder, loaded)

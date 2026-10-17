@@ -77,6 +77,8 @@ type libraryHistory struct {
 	mutex sync.Mutex
 	path  string
 	data  historyData
+	// the next record brings the history up to date without events (a backup was restored)
+	quiet bool
 	// measures the free space and the size of the disks of the library, if set
 	measure func() (free int64, total int64)
 }
@@ -94,7 +96,7 @@ func (web *Web) history() *libraryHistory {
 func (h *libraryHistory) reload() {
 	data := historyData{}
 	if bytes, err := os.ReadFile(h.path); err == nil {
-		json.Unmarshal(bytes, &data)
+		parseStore(h.path, bytes, &data)
 	}
 	h.mutex.Lock()
 	h.data = data
@@ -179,6 +181,8 @@ func (h *libraryHistory) record(contents map[string]libraryContent, now time.Tim
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 
+	quiet := h.quiet
+	h.quiet = false
 	first := h.data.Contents == nil
 	if first {
 		h.data.Contents = map[string]historyEntry{}
@@ -190,7 +194,7 @@ func (h *libraryHistory) record(contents map[string]libraryContent, now time.Tim
 			continue
 		}
 		h.data.Contents[key] = historyEntry{Time: now, Name: content.name}
-		if !first {
+		if !first && !quiet {
 			events = append(events, HistoryEvent{Time: now, Added: true, Kind: content.kind, Id: content.id, Name: content.name, Version: content.version})
 		}
 	}
@@ -199,6 +203,9 @@ func (h *libraryHistory) record(contents map[string]libraryContent, now time.Tim
 			continue
 		}
 		delete(h.data.Contents, key)
+		if quiet {
+			continue
+		}
 		kind, id, version := historyKind(key)
 		events = append(events, HistoryEvent{Time: now, Kind: kind, Id: id, Name: entry.Name, Version: version})
 	}
@@ -288,6 +295,13 @@ func (h *libraryHistory) addSaved(bytes int64) {
 	if data, err := json.Marshal(h.data); err == nil {
 		writeFileAtomic(h.path, data)
 	}
+}
+
+// quietNext makes the next record bring the history up to date without events.
+func (h *libraryHistory) quietNext() {
+	h.mutex.Lock()
+	h.quiet = true
+	h.mutex.Unlock()
 }
 
 func (h *libraryHistory) added(key string) time.Time {

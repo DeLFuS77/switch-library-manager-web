@@ -869,12 +869,17 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 	}
 	defer versions.File.Close()
 
-	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
-		s.TitlesEtag = titles.Etag
-		s.VersionsEtag = versions.Etag
-	})
+	// the versions of the files are kept once they were read: kept for a file that cannot be
+	// read, the server would answer "not changed" and the app would never get it again
+	keepVersions := func(titlesEtag string, versionsEtag string) {
+		settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+			s.TitlesEtag = titlesEtag
+			s.VersionsEtag = versionsEtag
+		})
+	}
 
 	if current != nil && !titles.Updated && !versions.Updated {
+		keepVersions(titles.Etag, versions.Etag)
 		web.sugarLogger.Info("The titles database did not change")
 		web.UpdateProgress(3, 4, "Scanning library...")
 		// a copy, so pages reading the current database are not affected: its map too, as the
@@ -895,7 +900,11 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 	titles.File.Close()
 	versions.File.Close()
 	switchTitleDB, err := web.readTitles()
-	if err == nil {
+	if err != nil {
+		// downloaded whole the next time
+		keepVersions("", "")
+	} else {
+		keepVersions(titles.Etag, versions.Etag)
 		switchTitleDB.Localized = web.loadLocalizedTitles(true)
 		web.downloadCoverFallbacks()
 		web.downloadSeries()

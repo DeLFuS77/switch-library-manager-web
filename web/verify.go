@@ -75,6 +75,8 @@ type verifyStore struct {
 	// changed with every result, for what is computed from them, and the one last saved
 	version atomic.Uint64
 	saved   atomic.Uint64
+	// one save at a time
+	saving sync.Mutex
 }
 
 // SavedVersion is the version of the results last saved: while a check runs, every two
@@ -97,7 +99,7 @@ func loadVerifyStore(dataFolder string) *verifyStore {
 	store := &verifyStore{path: filepath.Join(dataFolder, VERIFY_FILENAME), records: map[string]verifyRecord{}}
 	if data, err := os.ReadFile(store.path); err == nil {
 		saved := verifyFile{}
-		if json.Unmarshal(data, &saved) == nil && saved.Records != nil {
+		if parseStore(store.path, data, &saved) == nil && saved.Records != nil {
 			store.records = saved.Records
 			store.LastRun = saved.LastRun
 		}
@@ -115,19 +117,19 @@ func (s *verifyStore) reload() {
 }
 
 func (s *verifyStore) save() error {
+	// one save at a time: an older one never ends after a newer one
+	s.saving.Lock()
+	defer s.saving.Unlock()
 	s.mutex.Lock()
-	data, err := json.MarshalIndent(verifyFile{LastRun: s.LastRun, Records: s.records}, "", " ")
+	// without indentation: tens of thousands of records, read only by the app
+	data, err := json.Marshal(verifyFile{LastRun: s.LastRun, Records: s.records})
 	version := s.version.Load()
 	s.mutex.Unlock()
 	defer s.saved.Store(version)
 	if err != nil {
 		return err
 	}
-	tmp := s.path + ".tmp"
-	if err := os.WriteFile(tmp, data, 0600); err != nil {
-		return err
-	}
-	return os.Rename(tmp, s.path)
+	return writeFileAtomic(s.path, data)
 }
 
 // current returns the record of a file if it is still valid for the file as it is now.

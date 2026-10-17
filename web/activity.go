@@ -64,7 +64,7 @@ func (web *Web) activities() *activityLog {
 func (l *activityLog) reload() {
 	entries := []Activity{}
 	if data, err := os.ReadFile(l.path); err == nil {
-		json.Unmarshal(data, &entries)
+		parseStore(l.path, data, &entries)
 	}
 	l.mutex.Lock()
 	l.entries = entries

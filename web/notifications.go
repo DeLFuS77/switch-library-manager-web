@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"go.uber.org/zap"
 )
 
 const NOTIFICATIONS_STATE_FILENAME = "notifications.json"
@@ -159,6 +160,11 @@ func (web *Web) notifyChanges() error {
 	if !isSupportedLanguage(lang) {
 		lang = DEFAULT_LANGUAGE
 	}
+	// without the titles or the library nothing is known: saved as empty, every update and
+	// DLC would be reported as new by the next synchronization
+	if switchDB, localDB := web.state.get(); switchDB == nil || localDB == nil {
+		return nil
+	}
 
 	current := web.availableItems(lang)
 	notified := web.loadNotifiedKeys()
@@ -180,7 +186,16 @@ func (web *Web) notifyChanges() error {
 		}
 	}
 
-	if err := web.saveNotifiedKeys(current); err != nil {
+	// the items of a kind turned off are kept as reported: turned on again, it does not report
+	// at once everything that was missing meanwhile
+	kept := append([]NotificationItem{}, current...)
+	enabled := map[string]bool{"update": options.NotifyUpdates, "dlc": options.NotifyDlc, "wish": options.NotifyWishlist, "wishdlc": options.NotifyWishlist}
+	for key := range notified {
+		if kind, _, ok := strings.Cut(key, ":"); ok && !enabled[kind] {
+			kept = append(kept, NotificationItem{Key: key, Kind: kind})
+		}
+	}
+	if err := web.saveNotifiedKeys(kept); err != nil {
 		web.sugarLogger.Warnf("Failed to save notification state: %v", err)
 	}
 	return nil
@@ -276,28 +291,61 @@ func sendNotification(options settings.NotificationOptions, lang string, items [
 	return sendMessage(options, title, text, items)
 }
 
-// sendMessage sends a message to every configured channel; items go to the JSON webhook.
+// the longest message each channel takes, with room for the title
+const (
+	discordMessageLimit  = 1900
+	telegramMessageLimit = 4000
+)
+
+// fitMessage cuts a message to a number of characters at the end of a line, saying more
+// followed: a message too long is refused by Discord and Telegram.
+func fitMessage(text string, limit int) string {
+	runes := []rune(text)
+	if len(runes) <= limit {
+		return text
+	}
+	cut := string(runes[:limit])
+	if i := strings.LastIndex(cut, "\n"); i > 0 {
+		cut = cut[:i]
+	}
+	return cut + "\n…"
+}
+
+// sendMessage sends a message to every configured channel; items go to the JSON webhook. It
+// fails only when no channel took it: a channel that failed is reported in the log, and the
+// others do not get the same message again and again because of it.
 func sendMessage(options settings.NotificationOptions, title string, text string, items any) error {
 	errs := []string{}
+	sent := 0
 
 	if options.DiscordWebhookUrl != "" {
-		if err := postJSON(options.DiscordWebhookUrl, map[string]string{"content": "**" + title + "**\n" + text}); err != nil {
+		if err := postJSON(options.DiscordWebhookUrl, map[string]string{"content": fitMessage("**"+title+"**\n"+text, discordMessageLimit)}); err != nil {
 			errs = append(errs, "Discord: "+err.Error())
+		} else {
+			sent++
 		}
 	}
 	if options.TelegramBotToken != "" && options.TelegramChatId != "" {
 		url := telegramApiUrl + "/bot" + options.TelegramBotToken + "/sendMessage"
-		if err := postJSON(url, map[string]string{"chat_id": options.TelegramChatId, "text": title + "\n" + text}); err != nil {
+		if err := postJSON(url, map[string]string{"chat_id": options.TelegramChatId, "text": fitMessage(title+"\n"+text, telegramMessageLimit)}); err != nil {
 			errs = append(errs, "Telegram: "+err.Error())
+		} else {
+			sent++
 		}
 	}
 	if options.WebhookUrl != "" {
 		if err := postJSON(options.WebhookUrl, map[string]any{"title": title, "message": text, "items": items}); err != nil {
 			errs = append(errs, "Webhook: "+err.Error())
+		} else {
+			sent++
 		}
 	}
 
 	if len(errs) > 0 {
+		if sent > 0 {
+			zap.S().Warnf("Notification not sent to every channel: %s", strings.Join(errs, "; "))
+			return nil
+		}
 		return errors.New(strings.Join(errs, "; "))
 	}
 	return nil

@@ -70,7 +70,7 @@ func (web *Web) migrateFavoriteCollection(store *favoriteStore) {
 func (f *favoriteStore) reload() {
 	games := map[string]time.Time{}
 	if data, err := os.ReadFile(f.path); err == nil {
-		json.Unmarshal(data, &games)
+		parseStore(f.path, data, &games)
 	}
 	f.mutex.Lock()
 	f.games = games

@@ -119,8 +119,13 @@ func (web *Web) checkDiskSpace() {
 		}
 	}
 	web.disks.mutex.Unlock()
-	if len(fresh) > 0 {
-		web.notifyLowDisks(fresh)
+	// reported once the message went out: tried again while it cannot be sent
+	if len(fresh) > 0 && !web.notifyLowDisks(fresh) {
+		web.disks.mutex.Lock()
+		for _, disk := range fresh {
+			delete(web.disks.reported, disk.Folder)
+		}
+		web.disks.mutex.Unlock()
 	}
 }
 
@@ -131,11 +136,11 @@ func (d *diskWatch) anyReported() bool {
 }
 
 // notifyLowDisks reports the volumes short of space to the configured channels.
-func (web *Web) notifyLowDisks(disks []LowDisk) {
+func (web *Web) notifyLowDisks(disks []LowDisk) bool {
 	settingsObj := settings.ReadSettings(web.dataFolder)
 	options := settingsObj.Notifications
 	if !notificationsConfigured(options) {
-		return
+		return false
 	}
 	lang := settingsObj.Language
 	if !isSupportedLanguage(lang) {
@@ -153,9 +158,10 @@ func (web *Web) notifyLowDisks(disks []LowDisk) {
 	text += translate(lang, "Free space from the Space page of the app; compressions wait until there is room.")
 	if err := sendMessage(options, title, text, items); err != nil {
 		web.sugarLogger.Warnf("Failed to send notification: %v", err)
-		return
+		return false
 	}
 	web.sugarLogger.Infof("Notification sent: little free space left on %d volume(s)", len(disks))
+	return true
 }
 
 // roomToCompress tells whether the volume of a file can take its compressed copy, written

@@ -15,9 +15,11 @@ import (
 )
 
 const (
-	// the largest backup accepted, and the largest file in it
-	maxBackupSize     = 16 << 20
-	maxBackupFileSize = 8 << 20
+	// the largest backup accepted, the largest file in it (the verification results of a large
+	// library) and all its files together
+	maxBackupSize      = 16 << 20
+	maxBackupFileSize  = 64 << 20
+	maxBackupTotalSize = 256 << 20
 )
 
 // backupFiles are the files of the data folder kept in a backup: the configuration, the
@@ -68,9 +70,14 @@ func readBackup(data []byte) (map[string][]byte, error) {
 		allowed[name] = struct{}{}
 	}
 	files := map[string][]byte{}
+	total := 0
 	for _, entry := range archive.File {
-		if _, ok := allowed[entry.Name]; !ok || entry.UncompressedSize64 > maxBackupFileSize {
+		if _, ok := allowed[entry.Name]; !ok {
 			continue
+		}
+		// a file too large or twice is not a backup of the app
+		if _, twice := files[entry.Name]; twice || entry.UncompressedSize64 > maxBackupFileSize {
+			return nil, ErrBackupFile
 		}
 		reader, err := entry.Open()
 		if err != nil {
@@ -79,6 +86,9 @@ func readBackup(data []byte) (map[string][]byte, error) {
 		content, err := io.ReadAll(io.LimitReader(reader, maxBackupFileSize+1))
 		reader.Close()
 		if err != nil || len(content) > maxBackupFileSize {
+			return nil, ErrBackupFile
+		}
+		if total += len(content); total > maxBackupTotalSize {
 			return nil, ErrBackupFile
 		}
 		files[entry.Name] = content
@@ -174,6 +184,8 @@ func (web *Web) restoreBackup(data []byte) error {
 	}
 	if _, ok := files[HISTORY_FILENAME]; ok {
 		web.history().reload()
+		// what came after the backup is not new: no notifications, no automations
+		web.history().quietNext()
 	}
 	if _, ok := files[WISHLIST_FILENAME]; ok {
 		web.wishes().reload()
