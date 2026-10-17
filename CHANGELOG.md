@@ -9,6 +9,14 @@
   after the next scan once nothing writes it for half an hour; so are the uploads to the save vault that were cut.
   It took gigabytes nobody could see. The activity log says how many files and how much space; only files with the
   names the app gives its temporary files are touched.
+- A damaged game file that claims a table of names of gigabytes is refused before that memory is taken, instead of
+  being able to bring the app down; containers are read up to 65,536 files, far more than any game has. Found by
+  the new fuzz tests, which throw random bytes at the readers of NSP, XCI, RomFS, the content metadata and the file
+  names, a little on every change and every week.
+
+### Security
+
+- Each release carries its signed provenance as a file (`.intoto.jsonl`), to check the programs offline.
 
 ## 1.41.1
 

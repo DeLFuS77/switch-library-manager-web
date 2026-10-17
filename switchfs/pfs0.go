@@ -13,7 +13,7 @@ const (
 	HfsfileEntryTableSize = 0x40
 	pfs0Magic             = "PFS0"
 	hfs0Magic             = "HFS0"
-	maxPfs0FileCount      = 1 << 20
+	maxPfs0FileCount      = 1 << 16
 )
 
 type fileEntry struct {
@@ -47,6 +47,10 @@ func ReadPfs0File(filePath string) (*PFS0, error) {
 	p.Filepath = filePath
 	return p, nil
 }
+
+// maxPfs0StringTable is the largest table of file names read: far more than the names of
+// maxPfs0FileCount files.
+const maxPfs0StringTable = 4 << 20
 
 func readPfs0(reader io.ReaderAt, offset int64) (*PFS0, error) {
 	if reader == nil {
@@ -82,7 +86,9 @@ func readPfs0(reader io.ReaderAt, offset int64) (*PFS0, error) {
 		return nil, errors.New("PFS0 header size overflows reader offset")
 	}
 	p.HeaderLen = fileEntryTableOffset + stringsLen
-	if stringsLen > uint64(maxInt()) {
+	// the names of the files take a few bytes each: a damaged header asking for gigabytes would
+	// take that memory before the read fails
+	if stringsLen > uint64(maxInt()) || stringsLen > maxPfs0StringTable {
 		return nil, errors.New("PFS0 string table is too large")
 	}
 	fileNamesBuffer := make([]byte, int(stringsLen))
