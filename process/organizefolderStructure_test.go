@@ -1,6 +1,7 @@
 package process
 
 import (
+	"go.uber.org/zap"
 	"os"
 	"path/filepath"
 	"strings"
@@ -390,5 +391,31 @@ func TestApplyTemplate(t *testing.T) {
 	}
 	if got := applyTemplate(data, false, "{TITLE_NAME}", 2); !strings.HasSuffix(got, "(2)") {
 		t.Fatalf("name try suffix missing: %q", got)
+	}
+}
+
+// Empty folders go, deepest first with the parents they leave empty; a folder with a file, a
+// hidden one too, stays with its parents.
+func TestDeleteEmptyFolders(t *testing.T) {
+	root := t.TempDir()
+	for _, dir := range []string{"a/b/c", "d", "e/f", "g"} {
+		os.MkdirAll(filepath.Join(root, dir), 0755)
+	}
+	os.WriteFile(filepath.Join(root, "e", "f", "game.nsp"), []byte("x"), 0644)
+	os.WriteFile(filepath.Join(root, "g", ".DS_Store"), []byte("x"), 0644)
+	ops := &fileOperations{logger: zap.NewNop().Sugar()}
+	ops.deleteEmptyFolders(root)
+	for _, gone := range []string{"a", "d"} {
+		if _, err := os.Stat(filepath.Join(root, gone)); !os.IsNotExist(err) {
+			t.Errorf("%s stays", gone)
+		}
+	}
+	for _, kept := range []string{"e/f", "g"} {
+		if _, err := os.Stat(filepath.Join(root, kept)); err != nil {
+			t.Errorf("%s was deleted", kept)
+		}
+	}
+	if len(ops.operations) != 4 {
+		t.Fatalf("operations: %+v", ops.operations)
 	}
 }
