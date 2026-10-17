@@ -51,6 +51,8 @@ type LocalSwitchDBManager struct {
 	titles *SwitchTitlesDB
 	// the files the last scan found, for the progress of the next one
 	lastFileCount int
+	// the temporary files of the app the last walk of the folders found
+	leftovers []LeftoverFile
 }
 
 func NewLocalSwitchDBManager(dataFolder string) (*LocalSwitchDBManager, error) {
@@ -184,7 +186,22 @@ type LocalSwitchFilesDB struct {
 	TitlesMap map[string]*SwitchGameFiles
 	Skipped   map[ExtendedFileInfo]SkippedFile
 	NumFiles  int
+	// temporary files of the app found by the walk of the folders (see LeftoverFile)
+	Leftovers []LeftoverFile
 }
+
+// LeftoverFile is a hidden temporary file the app writes next to a game before it takes its
+// place (a compression, a conversion, a measure of the disk): one left behind by a task the
+// app was stopped in the middle of, and that did not go on, takes space without being seen.
+type LeftoverFile struct {
+	Path    string
+	Size    int64
+	ModTime time.Time
+}
+
+// leftoverName matches the names of the temporary files of the app, and only those:
+// ".<game>.nsz.tmp" and the like, and ".slm-measure-*.tmp"
+var leftoverName = regexp.MustCompile(`(?i)^\..+\.(nsp|nsz|xci|xcz)\.tmp$|^\.slm-measure-.*\.tmp$`)
 
 func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitlesDB, dataFolder string,
 	folders []string, progress ProgressUpdater, recursive bool, ignoreCache bool) (*LocalSwitchFilesDB, error) {
@@ -238,8 +255,9 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 			}
 		}
 
+		ldb.leftovers = nil
 		for _, folder := range folders {
-			err := scanFolder(folder, recursive, &files, progress, estimate)
+			err := scanFolder(folder, recursive, &files, &ldb.leftovers, progress, estimate)
 			if progress != nil {
 				progress.UpdateProgress(-1, -1, "Scanned "+folder)
 			}
@@ -261,12 +279,12 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 	}
 	ldb.lastFileCount = len(files)
 
-	return &LocalSwitchFilesDB{TitlesMap: titles, Skipped: skipped, NumFiles: len(files)}, nil
+	return &LocalSwitchFilesDB{TitlesMap: titles, Skipped: skipped, NumFiles: len(files), Leftovers: ldb.leftovers}, nil
 }
 
 // scanFolder adds the files of a folder; estimate is how many files the folders are thought
 // to hold, for the progress, or 0 when unknown.
-func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, progress ProgressUpdater, estimate int) error {
+func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, leftovers *[]LeftoverFile, progress ProgressUpdater, estimate int) error {
 	if _, err := os.Stat(folder); err != nil {
 		return err
 	}
@@ -286,6 +304,11 @@ func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, progre
 
 		//skip hidden files (including macOS "._" resource forks)
 		if strings.HasPrefix(entry.Name(), ".") {
+			if leftovers != nil && leftoverName.MatchString(entry.Name()) {
+				if info, err := entry.Info(); err == nil {
+					*leftovers = append(*leftovers, LeftoverFile{Path: path, Size: info.Size(), ModTime: info.ModTime()})
+				}
+			}
 			return nil
 		}
 		info, err := entry.Info()

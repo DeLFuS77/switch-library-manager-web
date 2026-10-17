@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Removed temporary files left halfway": "Borró archivos temporales que quedaron a medias",
 		"%v of %v steps done": "%v de %v pasos hechos",
 		"Show more": "Ver más",
 		"Show less": "Ver menos",

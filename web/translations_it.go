@@ -3,6 +3,7 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Removed temporary files left halfway": "Rimossi i file temporanei rimasti a metà",
 		"%v of %v steps done": "%v passaggi su %v completati",
 		"Show more": "Mostra di più",
 		"Show less": "Mostra di meno",

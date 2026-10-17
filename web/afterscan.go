@@ -21,6 +21,8 @@ func (web *Web) afterScan() {
 		defer web.afterScanWork.Done()
 		// first: the lists show the dates the games were added
 		web.recordHistory()
+		// temporary files of tasks stopped in the middle that did not go on
+		web.cleanLeftovers()
 		web.warmPages()
 		web.lookupTimesToBeat(TRIGGER_SCAN)
 	}()

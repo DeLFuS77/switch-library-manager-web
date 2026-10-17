@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- The hidden temporary file a compression, decompression or conversion leaves when the app is stopped in the middle,
+  and that no task going on removes (a task cancelled, from an older version, or whose game was moved), is removed
+  after the next scan once nothing writes it for half an hour; so are the uploads to the save vault that were cut.
+  It took gigabytes nobody could see. The activity log says how many files and how much space; only files with the
+  names the app gives its temporary files are touched.
+
 ## 1.41.1
 
 ### Improvements

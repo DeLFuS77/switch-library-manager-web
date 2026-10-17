@@ -3,6 +3,7 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Removed temporary files left halfway": "已删除中途留下的临时文件",
 		"%v of %v steps done": "已完成 %v/%v 步",
 		"Show more": "显示更多",
 		"Show less": "收起",

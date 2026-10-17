@@ -3,6 +3,7 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Removed temporary files left halfway": "중간에 남은 임시 파일을 삭제했어요",
 		"%v of %v steps done": "%v/%v 단계 완료",
 		"Show more": "더 보기",
 		"Show less": "접기",

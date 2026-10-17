@@ -3,6 +3,7 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Removed temporary files left halfway": "Halfvoltooide tijdelijke bestanden verwijderd",
 		"%v of %v steps done": "%v van %v stappen klaar",
 		"Show more": "Meer tonen",
 		"Show less": "Minder tonen",

@@ -23,7 +23,7 @@ func TestWalkingTheFoldersShowsProgress(t *testing.T) {
 	}
 	recorder := &stepRecorder{}
 	files := []ExtendedFileInfo{}
-	if err := scanFolder(folder, true, &files, recorder, 3); err != nil {
+	if err := scanFolder(folder, true, &files, nil, recorder, 3); err != nil {
 		t.Fatal(err)
 	}
 	if len(recorder.steps) != 4 || recorder.steps[0] != [2]int{1, 3} {
@@ -35,7 +35,7 @@ func TestWalkingTheFoldersShowsProgress(t *testing.T) {
 		}
 	}
 	unknown := &stepRecorder{}
-	scanFolder(folder, true, &[]ExtendedFileInfo{}, unknown, 0)
+	scanFolder(folder, true, &[]ExtendedFileInfo{}, nil, unknown, 0)
 	if unknown.steps[0] != [2]int{-1, -1} {
 		t.Fatalf("without a last scan the progress is unknown: %v", unknown.steps)
 	}
@@ -73,5 +73,20 @@ func TestUnknownGamesAreReadAgainForTheirAttributes(t *testing.T) {
 	known["0100000000010000"].Ncap.TitleName = map[string]switchfs.NacpTitle{"AmericanEnglish": {Title: "Known Game"}}
 	if ldb.needsAttributes(known) {
 		t.Fatal("a known game with a name is kept")
+	}
+}
+
+// The walk notes the temporary files of the app, and only those.
+func TestScanFindsLeftovers(t *testing.T) {
+	folder := t.TempDir()
+	for _, name := range []string{".Game [0100000000010000][v0].nsz.tmp", ".slm-measure-123.tmp", ".hidden.tmp", "Game.nsp", ".DS_Store"} {
+		os.WriteFile(filepath.Join(folder, name), []byte("x"), 0644)
+	}
+	leftovers := []LeftoverFile{}
+	if err := scanFolder(folder, true, &[]ExtendedFileInfo{}, &leftovers, nil, 0); err != nil {
+		t.Fatal(err)
+	}
+	if len(leftovers) != 2 {
+		t.Fatalf("leftovers: %+v", leftovers)
 	}
 }
