@@ -298,3 +298,41 @@ func TestSpacePageOpensAtOnce(t *testing.T) {
 		time.Sleep(20 * time.Millisecond)
 	}
 }
+
+// An original and its compressed copy found as duplicates of each other: the original can
+// go as a compressed original, the compressed copy is never offered as its duplicate, so
+// both are never deleted.
+func TestSpaceNeverOffersBothCopies(t *testing.T) {
+	web := newTestWeb(t)
+	dir := t.TempDir()
+	nspPath := filepath.Join(dir, "Game [0100000000010000][v0].nsp")
+	nszPath := filepath.Join(dir, "Game [0100000000010000][v0].nsz")
+	os.WriteFile(nspPath, testPfs0("game.nca"), 0644)
+	os.WriteFile(nszPath, testPfs0("game.ncz"), 0644)
+	nspInfo, _ := os.Stat(nspPath)
+	nszInfo, _ := os.Stat(nszPath)
+	nsp := db.ExtendedFileInfo{FileName: filepath.Base(nspPath), BaseFolder: dir, Size: nspInfo.Size()}
+	nsz := db.ExtendedFileInfo{FileName: filepath.Base(nszPath), BaseFolder: dir, Size: nszInfo.Size()}
+	for path, info := range map[string]os.FileInfo{nspPath: nspInfo, nszPath: nszInfo} {
+		web.verifications().set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checked: time.Now(), Checker: verifyChecker})
+	}
+	web.state.set(&db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{}}, &db.LocalSwitchFilesDB{
+		TitlesMap: map[string]*db.SwitchGameFiles{
+			"0100000000010": {BaseExist: true, File: db.SwitchFileInfo{ExtendedInfo: nsp, Metadata: &switchfs.ContentMetaAttributes{TitleId: "0100000000010000"}},
+				Updates: map[int]db.SwitchFileInfo{}, Dlc: map[string]db.SwitchFileInfo{}},
+		},
+		Skipped: map[db.ExtendedFileInfo]db.SkippedFile{
+			nsz: {ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + nspPath + ")"},
+		},
+	})
+	groups := web.spaceGroups()
+	for _, file := range spaceGroup(groups, SPACE_DUPLICATES).Files {
+		if file.Path == nszPath {
+			t.Fatalf("the compressed copy is offered as a duplicate of its original: %+v", file)
+		}
+	}
+	compressed := spaceGroup(groups, SPACE_COMPRESSED)
+	if len(compressed.Files) != 1 || compressed.Files[0].Path != nspPath || !compressed.Files[0].Deletable {
+		t.Fatalf("the original goes, the compressed copy stays: %+v", compressed)
+	}
+}

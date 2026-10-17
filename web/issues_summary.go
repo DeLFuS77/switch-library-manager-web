@@ -114,9 +114,11 @@ type IssueSummary struct {
 	Size      int64
 }
 
-// deletableIssueKinds are the kinds whose files are of no use as they are: damaged or cut
-// short, they are got again.
-var deletableIssueKinds = map[string]bool{ISSUE_DAMAGED: true, ISSUE_UNREADABLE: true}
+// deletableIssueKinds are the kinds whose files are of no use as they are and can go at
+// once: the damaged ones, found so by a check of their contents while they did not change.
+// Files that could not be read are not: a passing error of the NAS, missing keys or a format
+// the app does not know also leave a file unread.
+var deletableIssueKinds = map[string]bool{ISSUE_DAMAGED: true}
 
 // issueFiles lists the files of the issues of a kind as they are now on the disk; files
 // gone or no longer files are left out.

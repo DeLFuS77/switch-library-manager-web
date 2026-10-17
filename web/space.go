@@ -225,6 +225,11 @@ func (web *Web) spaceGroups() []SpaceGroup {
 			if compressed[path] {
 				continue
 			}
+			// the compressed copy of the file it is kept by: the pair is the original and its
+			// compressed copy, and the original goes (Compressed originals), never both
+			if kept := keptBy(skipped.ReasonText); kept != "" && filepath.Clean(switchfs.CompressedPath(kept)) == filepath.Clean(path) {
+				continue
+			}
 			entry := SpaceFile{Path: path, Name: name, Size: file.Size, KeptBy: keptBy(skipped.ReasonText), Deletable: true, file: file}
 			// the copy is deleted, not the file with the clean name, even when the copy was
 			// found first and is the one in the library
@@ -500,15 +505,27 @@ func (web *Web) HandleSpace() {
 				}
 			}
 		}
+		chosen := map[string]SpaceFile{}
+		for _, path := range requested {
+			if file, ok := deletable[path]; ok {
+				chosen[path] = file
+			}
+		}
 		files, why := []db.ExtendedFileInfo{}, []string{}
 		var size int64
 		for _, path := range requested {
-			if file, ok := deletable[path]; ok {
-				files = append(files, file.file)
-				why = append(why, reasons[path])
-				size += file.Size
-				delete(deletable, path)
+			file, ok := chosen[path]
+			if !ok {
+				continue
 			}
+			// never a file together with the one it is kept by: both would be gone
+			if _, alsoChosen := chosen[file.KeptBy]; alsoChosen && file.KeptBy != "" {
+				continue
+			}
+			files = append(files, file.file)
+			why = append(why, reasons[path])
+			size += file.Size
+			delete(chosen, path)
 		}
 		if len(files) == 0 {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to delete.")

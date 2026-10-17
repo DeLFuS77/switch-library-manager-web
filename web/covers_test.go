@@ -86,8 +86,13 @@ func TestCoverDownloadsStopForAScan(t *testing.T) {
 	web.state.set(switchDB, &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{"0100000000010": {BaseExist: true}}})
 	web.state.startSync()
 	web.downloadMissingCovers()
-	if !web.covers.again {
-		t.Fatal("covers are downloaded again after the scan")
+	// the scan starts them again once it ends: asked again now, they would start over
+	// at once, again and again while it runs
+	if web.covers.again {
+		t.Fatal("covers are not asked again while the scan runs")
+	}
+	if task := web.taskLog().Snapshot()[0]; task.Kind != TASK_COVERS || len(task.Warnings) == 0 || task.Warnings[0].Text != NOTE_PAUSED_FOR_SCAN {
+		t.Fatalf("the task says it paused for the scan: %+v", task)
 	}
 }
 

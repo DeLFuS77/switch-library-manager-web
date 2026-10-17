@@ -186,12 +186,10 @@ func (web *Web) downloadMissingCovers() {
 		return
 	}
 	if web.state.IsSynchronizing() {
-		// continue after the scan that interrupted the downloads
+		// the scan that interrupted the downloads starts them again once it ends (afterScan):
+		// asked again now, they would start over at once, again and again while it runs
 		web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_SCAN, "")
 		web.taskLog().Finish(taskId, nil)
-		web.covers.mutex.Lock()
-		web.covers.again = true
-		web.covers.mutex.Unlock()
 		return
 	}
 	// games still without a cover take the icon stored in their files
