@@ -1,4 +1,39 @@
 {
+  "1.41.3": {
+    "en": [
+      "Deleting the empty folders after organizing is now fast, also on a NAS with thousands of folders."
+    ],
+    "es": [
+      "Borrar las carpetas vacías después de organizar ahora es rápido, también en un NAS con miles de carpetas."
+    ],
+    "de": [
+      "Das Löschen leerer Ordner nach dem Organisieren geht jetzt schnell, auch auf einem NAS mit Tausenden von Ordnern."
+    ],
+    "fr": [
+      "La suppression des dossiers vides après l’organisation est désormais rapide, même sur un NAS avec des milliers de dossiers."
+    ],
+    "it": [
+      "Eliminare le cartelle vuote dopo l’organizzazione ora è veloce, anche su un NAS con migliaia di cartelle."
+    ],
+    "pt": [
+      "Apagar as pastas vazias depois de organizar agora é rápido, também num NAS com milhares de pastas."
+    ],
+    "nl": [
+      "Lege mappen verwijderen na het organiseren gaat nu snel, ook op een NAS met duizenden mappen."
+    ],
+    "ru": [
+      "Удаление пустых папок после упорядочивания теперь быстрое, даже на NAS с тысячами папок."
+    ],
+    "ja": [
+      "整理後の空フォルダーの削除が、数千のフォルダーがある NAS でも速くなりました。"
+    ],
+    "ko": [
+      "정리 후 빈 폴더 삭제가 수천 개의 폴더가 있는 NAS에서도 빨라졌어요."
+    ],
+    "zh": [
+      "整理后删除空文件夹现在很快，即使在有数千个文件夹的 NAS 上也是如此。"
+    ]
+  },
   "1.41.2": {
     "en": [
       "Temporary files left halfway by a stopped compression are now removed by themselves, freeing their space.",

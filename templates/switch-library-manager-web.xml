@@ -22,11 +22,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.41.2
-- Temporary files left halfway by a stopped compression are removed by themselves, freeing the space they took
-- A damaged game file can no longer bring the app down; each release carries its signed provenance
-### 1.41.1
-- Compressions say how long is left and about when they end; a window tells what is new after each update</Changes>
+  <Changes>### 1.41.3
+- Deleting the empty folders after organizing is fast also on a NAS with thousands of folders
+### 1.41.2
+- Temporary files left halfway by a stopped compression are removed by themselves; a damaged game file can no longer bring the app down</Changes>
   <Date>2026-10-17</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
