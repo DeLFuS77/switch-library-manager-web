@@ -22,6 +22,13 @@
 - The Library opens on All, your games and the ones you are missing (greyed out), and the switch under its title
   reads All, My games and Missing ones, in that order. My games has an address of its own (`/index.html?missing=0`);
   the links to All of before still open it.
+- Library: the count next to its title goes, as the switch of the views already shows the number of each one.
+
+### Fixes
+
+- Library: My games counts as the list does, without the demos when they are hidden and with the copies of a game
+  from other regions once when Settings say so; it could show more games than the list, the big number and the
+  filters (12,604 against 12,356 on a big library).
 
 ## 1.45.0
 
