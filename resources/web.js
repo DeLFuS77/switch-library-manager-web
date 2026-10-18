@@ -1813,6 +1813,11 @@ function setCouch(on, fullscreen = true) {
 		pill.className = 'couch-pill';
 		pill.innerHTML = '<span class="bi bi-tv" aria-hidden="true"></span>';
 		pill.append(t('Couch mode: Select or Esc to leave'));
+		// still being tried: it may change
+		const testing = document.createElement('span');
+		testing.className = 'chip chip-info';
+		testing.textContent = t('In testing');
+		pill.append(testing);
 		pill.addEventListener('click', () => setCouch(false));
 		document.body.append(pill);
 	} else if (!on && pill) {

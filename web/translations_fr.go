@@ -3,6 +3,7 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"In testing": "En test",
 		"Couch mode": "Mode canapé",
 		"Couch mode: Select or Esc to leave": "Mode canapé : Select ou Échap pour quitter",
 		"Interface sounds": "Sons de l’interface",

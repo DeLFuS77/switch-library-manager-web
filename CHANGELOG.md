@@ -15,7 +15,7 @@
 - Interface sounds, like the menu of a console: a soft tick to move between the cards (with the keyboard or a
   controller), two notes to open and to go back, a pop for the star and the heart and a chime when a task ends. They are
   made by the browser, with no sound file, and stay off until turned on from the menu of the header, on each device.
-- Couch mode, for a TV seen from the sofa: everything is a quarter bigger (half on a very wide screen), the page takes
+- Couch mode (in testing), for a TV seen from the sofa: everything is a quarter bigger (half on a very wide screen), the page takes
   the whole width and the whole screen, the covers take the room, the secondary texts go and the cursor of the cards is
   thicker. It is turned on from the menu of the header or with the Select button of a controller, and left with Select,
   Esc or the pill it shows in a corner.
@@ -27,6 +27,7 @@
   what was saved, so that they are no longer taken for the progress of the task.
 - The boxes to choose the games of the SD planner and the IDs copied with a click on the page of a game are targets
   of 24px.
+- The screenshots and the tour of the README and of the Unraid template show the new look of the app.
 - Every change of the app is now checked for accessibility: each page of the demo, in both themes, on a wide screen
   and on a phone of 320px, must keep the contrast of WCAG AA, no text under 12px, controls of 24px, no sideways scroll
   and no endless animation when the system asks for less motion.

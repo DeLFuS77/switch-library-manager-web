@@ -31,7 +31,7 @@ Linux, Docker, NAS and Raspberry Pi.
 > included, uploaded or shared. Never post your keys anywhere, also not in issues, logs or screenshots.
 
 <p align="center">
-  <img src="docs/tour.gif" alt="A short tour: the library, a game page, upcoming releases, series and statistics" width="880">
+  <img src="docs/tour.gif" alt="A short tour: the library with the card cursor, a game page, updates, upcoming releases, series, statistics and Compress" width="880">
 </p>
 
 <table>
@@ -103,6 +103,12 @@ Linux, Docker, NAS and Raspberry Pi.
   favorite genre and more), ready to download as an image and share
 - Export as CSV, JSON or a web page to share
 
+**Like a console**
+- Move through the app with a **game controller**: the D-pad or the stick go from card to card, A opens, B goes back
+  and Start searches, with a cursor on the chosen card that breathes like on a console
+- **Couch mode** (in testing) for a TV: everything bigger, the whole screen and the covers first
+- Optional interface sounds, like the menu of a console, off until you turn them on
+
 **Keep it tidy**
 - Issues: unsupported, duplicate, old, damaged or unidentified files
 - Organize files in folders and rename them from templates, always with a preview first
@@ -115,6 +121,8 @@ Linux, Docker, NAS and Raspberry Pi.
 - Compress NSP to NSZ and XCI to XCZ (10 to 60% smaller), installed directly by installers such as DBI;
   convert XCI to NSP
 - Every file is verified before the original is deleted; NSZ files can be decompressed back to NSP
+- See how much each file will likely save before compressing it, from what your earlier compressions saved
+- Pause a compression and resume it later, from the same point in the middle of a file
 - Several files at once, with the threads and files measured on your own server to compress as fast as it can
 - Complete packs: the game, its latest update and its DLC in one NSP (or NSZ) to install at once, without the
   delta fragments of the update; checked before the separate files are deleted, only if you choose it
@@ -134,6 +142,8 @@ Linux, Docker, NAS and Raspberry Pi.
 - Weekly backups of your configuration, and a Diagnostics page that checks everything at a glance
 - JSON API with OpenAPI description, e.g. for Home Assistant
 - Installable on your phone's home screen like an app
+- Accessible: the contrast of WCAG AA in both themes, full use with the keyboard and texts of 12px at least, checked
+  on every change
 
 **Safe to reach from the internet**
 - User accounts with administrator and read-only roles, a language per user and an activity log
