@@ -1,4 +1,39 @@
 {
+  "1.41.5": {
+    "en": [
+      "The Tasks link of the menu shows at once any task you start, with a turning fan and a ring that fills with its progress."
+    ],
+    "es": [
+      "El enlace de Tareas del menú muestra al momento cualquier tarea que lances, con un ventilador que gira y un anillo que se llena con su progreso."
+    ],
+    "de": [
+      "Der Link Aufgaben im Menü zeigt jede gestartete Aufgabe sofort an, mit einem drehenden Lüfter und einem Ring, der sich mit dem Fortschritt füllt."
+    ],
+    "fr": [
+      "Le lien Tâches du menu affiche aussitôt toute tâche lancée, avec un ventilateur qui tourne et un anneau qui se remplit avec sa progression."
+    ],
+    "it": [
+      "Il collegamento Attività del menu mostra subito ogni attività avviata, con una ventola che gira e un anello che si riempie con l’avanzamento."
+    ],
+    "pt": [
+      "O link Tarefas do menu mostra logo qualquer tarefa iniciada, com uma ventoinha a girar e um anel que se enche com o progresso."
+    ],
+    "nl": [
+      "De link Taken in het menu toont meteen elke gestarte taak, met een draaiende ventilator en een ring die vol loopt met de voortgang."
+    ],
+    "ru": [
+      "Ссылка «Задачи» в меню сразу показывает любую запущенную задачу: вращающийся вентилятор и кольцо, которое заполняется по мере выполнения."
+    ],
+    "ja": [
+      "メニューのタスクに、開始したタスクがすぐ表示されます。回るファンと進捗で満ちるリング付きです。"
+    ],
+    "ko": [
+      "메뉴의 작업 링크가 시작한 작업을 바로 보여줘요. 돌아가는 팬과 진행률로 채워지는 링이 표시돼요."
+    ],
+    "zh": [
+      "菜单中的“任务”会立即显示你启动的任何任务，带有旋转的风扇和随进度填充的圆环。"
+    ]
+  },
   "1.41.4": {
     "en": [
       "Compress no longer offers again the files that cannot be compressed: they are listed apart."

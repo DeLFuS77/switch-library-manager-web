@@ -22,10 +22,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.41.4
-- Compress no longer offers again the files nothing could be compressed in (games in sparse storage)
-### 1.41.3
-- Deleting the empty folders after organizing is fast also on a NAS with thousands of folders</Changes>
+  <Changes>### 1.41.5
+- The Tasks link of the menu shows at once a task started from any page, with a turning fan and a ring that fills with its progress
+### 1.41.4
+- Compress no longer offers again the files nothing could be compressed in (games in sparse storage)</Changes>
   <Date>2026-10-17</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
