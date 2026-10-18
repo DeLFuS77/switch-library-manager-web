@@ -126,7 +126,7 @@
 							{{- else}}
 							{{- template "navLink" (dict "Page" .Page "Id" "issues" "Href" "/issues.html" "Icon" "bi-exclamation-triangle" "Label" (t "Issues") "Count" .Counts.Issues "Badge" "text-bg-danger")}}
 							{{- end}}
-							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "/tasks.html" "Icon" (or (and .Counts.RunningTasks "bi-arrow-repeat nav-busy") "bi-list-task") "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "/tasks.html" "Icon" (or (and .Counts.RunningTasks "bi-fan nav-busy") "bi-list-task") "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger")}}
 						</ul>
 						{{- if or .Auth.Enabled .Auth.IsAdmin}}
 						<div class="d-xxl-none">

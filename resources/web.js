@@ -1087,15 +1087,22 @@ function updateTaskIndicator() {
 	return fetch('/api/tasks', { cache: 'no-store', headers: { Accept: 'application/json' } })
 		.then(response => (response.ok ? response.json() : Promise.reject(response)))
 		.then(tasks => {
-			const running = tasks.filter(task => task.status === 'running').length;
+			const active = tasks.filter(task => task.status === 'running');
+			const running = active.length;
 			const failed = tasks.filter(task => task.status === 'failed').length;
+			// the progress of the first task that knows it, for the ring around the icon
+			const measured = active.find(task => task.total > 0 && task.current >= 0);
+			const percent = measured ? Math.min(100, Math.round(measured.current * 100 / measured.total)) : -1;
 			taskLinks().forEach(link => {
 				const icon = link.querySelector('.bi');
 				if (icon) {
-					icon.classList.toggle('bi-arrow-repeat', running > 0);
+					icon.classList.toggle('bi-fan', running > 0);
 					icon.classList.toggle('nav-busy', running > 0);
 					icon.classList.toggle('bi-list-task', running === 0);
 				}
+				link.classList.toggle('is-working', running > 0);
+				link.classList.toggle('is-measured', percent >= 0);
+				link.style.setProperty('--task-pct', String(Math.max(percent, 0)));
 				let badge = link.querySelector('.nav-count');
 				if (failed > 0) {
 					if (!badge) {
@@ -1115,25 +1122,37 @@ function updateTaskIndicator() {
 
 function initTaskIndicator() {
 	// the Tasks page updates it with its list (initLiveTasks)
-	if (document.querySelector('[data-live-tasks]') || !window.EventSource) {
+	if (document.querySelector('[data-live-tasks]') || !window.EventSource || taskLinks().length === 0) {
 		return;
 	}
-	const busy = taskLinks().some(link => link.querySelector('.nav-busy'));
-	if (!busy) {
-		return;
-	}
+	// always followed: a task started after the page was drawn (a button of the page, a
+	// synchronization, a scheduled or automatic one) shows too. The events come with every
+	// change of a task, several a second during a compression: the icon follows them at most
+	// every second and a half.
+	let waiting = null;
+	let again = false;
+	const update = () => {
+		if (waiting) {
+			again = true;
+			return;
+		}
+		updateTaskIndicator();
+		waiting = setTimeout(() => {
+			waiting = null;
+			if (again) {
+				again = false;
+				update();
+			}
+		}, 1500);
+	};
 	let source = null;
 	const open = () => {
 		source = new EventSource('/api/tasks/events');
-		const current = source;
-		current.addEventListener('tasks', () => {
-			updateTaskIndicator().then(running => {
-				if (running === 0) {
-					current.close();
-				}
-			});
-		});
+		source.addEventListener('tasks', update);
 	};
+	if (taskLinks().some(link => link.querySelector('.nav-busy'))) {
+		update();
+	}
 	open();
 	window.addEventListener('pagehide', () => source.close());
 	// back to the page from the history of the browser: the connection was closed on leaving
