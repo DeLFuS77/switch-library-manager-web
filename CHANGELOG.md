@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The mark of the page in the menu glides from the link of the page before to the new one, like the cursor of a
+  console menu, and so does the red of the view of the Library (All, My games, Missing ones); with less motion asked
+  by the system they just change.
+
 ## 1.45.0
 
 ### Improvements
