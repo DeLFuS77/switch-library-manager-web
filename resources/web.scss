@@ -6015,9 +6015,16 @@ body:has(.wizard.show) #alert_sync {
 	height: 0.5rem;
 }
 
-// the size left after compressing is grey, so that it is not taken for the cyan of the progress
+// the bars of what is compressed wear the stripes of the progress bars, but still: done, not
+// working
+.saving-kept,
+.saving-saved {
+	background-image: linear-gradient(45deg, rgba(255, 255, 255, .18) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .18) 50%, rgba(255, 255, 255, .18) 75%, transparent 75%, transparent);
+	background-size: .75rem .75rem;
+}
+
 .saving-kept {
-	background-color: var(--slm-chart-6);
+	background-color: #{$slm-cyan};
 }
 
 .saving-saved {
