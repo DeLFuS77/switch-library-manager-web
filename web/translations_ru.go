@@ -3,6 +3,9 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Which games": "Какие игры",
+		"My games": "Мои игры",
+		"Missing ones": "Недостающие",
 		"In testing": "Тестируется",
 		"Couch mode": "Режим дивана",
 		"Couch mode: Select or Esc to leave": "Режим дивана: Select или Esc для выхода",
@@ -845,7 +848,6 @@ func init() {
 		"Games for several players":      "Игры для нескольких игроков",
 		"Games in your library with DLC that you do not have. Ignore the ones you do not want.": "Игры из вашей библиотеки с DLC, которых у вас нет. Игнорируйте те, что вам не нужны.",
 		"Games of the Nintendo eShop that are not in your library.":                             "Игры из Nintendo eShop, которых нет в вашей библиотеке.",
-		"Games of the eShop you do not have, greyed out with the others.":                       "Игры из eShop, которых у вас нет, показаны серым среди остальных.",
 		"Games only": "Только игры",
 		"Games or DLC whose missing updates are not listed. One Title ID per Line": "Игры или DLC, недостающие обновления которых не показываются. Один Title ID на строку",
 		"Games the titles database does not know":                                  "Игры, неизвестные базе названий",
@@ -1090,7 +1092,6 @@ func init() {
 		"Setup progress":             "Ход настройки",
 		"Shooter":                    "Шутер",
 		"Show missing updates again": "Снова показывать недостающие обновления",
-		"Show the missing games too": "Показывать и недостающие игры",
 		"Showing %v–%v of %v":        "Показаны %v–%v из %v",
 		"Simulation":                 "Симулятор",
 		"Size":                       "Размер",
@@ -1233,7 +1234,6 @@ func init() {
 		"Windows, macOS and Linux": "Windows, macOS и Linux",
 		"Wishlist":                 "Список желаемого",
 		"Wishlist: games you want and do not have yet":                         "Список желаемого: игры, которые вы хотите, но которых ещё нет",
-		"With the missing games":                                               "С недостающими играми",
 		"With their DLC":                                                       "С их DLC",
 		"Without a cover":                                                      "Без обложки",
 		"Write the firmware like 18.1.0":                                       "Укажите прошивку в виде 18.1.0",

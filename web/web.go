@@ -319,6 +319,21 @@ type TitleItemsPageData struct {
 	Pagination  pagination.Pagination
 	// missing games like the ones the user likes, on the first page without filters
 	Recommendations []Recommendation
+	// the views of the library: your games, the ones you do not have, or all of them
+	Views LibraryViews
+}
+
+// LibraryViews are the numbers of the three views of the Library, and the one shown: "mine",
+// "missing" (the page that was Missing Games) or "all" (both, the missing ones greyed out).
+type LibraryViews struct {
+	Current string
+	Mine    int
+	Missing int
+}
+
+// All is every game, those of the library and those it does not have.
+func (v LibraryViews) All() int {
+	return v.Mine + v.Missing
 }
 
 // LibraryFacets are the numbers shown on the status filters of the library, counted

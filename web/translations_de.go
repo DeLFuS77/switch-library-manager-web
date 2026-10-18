@@ -3,6 +3,9 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Which games": "Welche Spiele",
+		"My games": "Meine Spiele",
+		"Missing ones": "Fehlende",
 		"In testing": "In Erprobung",
 		"Couch mode": "Sofa-Modus",
 		"Couch mode: Select or Esc to leave": "Sofa-Modus: Select oder Esc zum Verlassen",
@@ -686,9 +689,6 @@ func init() {
 		"Add to favorites": "Zu den Favoriten",
 		"Favorite": "Favorit",
 		"Favorites only": "Nur Favoriten",
-		"Show the missing games too": "Auch fehlende Spiele zeigen",
-		"Games of the eShop you do not have, greyed out with the others.": "Spiele aus dem eShop, die du nicht hast, ausgegraut zwischen deinen.",
-		"With the missing games": "Mit fehlenden Spielen",
 		"Favorite: the games you like most": "Favorit: die Spiele, die dir am besten gefallen",
 		"Wishlist: games you want and do not have yet": "Wunschliste: Spiele, die du willst und noch nicht hast",
 		"Greyed out: not in your library": "Ausgegraut: nicht in deiner Bibliothek",

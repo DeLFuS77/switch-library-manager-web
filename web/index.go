@@ -123,6 +123,7 @@ func (web *Web) HandleIndex() {
 				Filter: filter,
 				Pagination: p,
 				Recommendations: recommendations,
+				Views: web.libraryViews(map[bool]string{true: "all", false: "mine"}[filter.WithMissing != ""], lang),
 			},
 			Facets: facets,
 			Setup: web.setupStatus(),
@@ -296,6 +297,12 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		items = append(items, item)
 	}
 	return items, p, facets
+}
+
+// libraryViews counts the games of each view of the Library.
+func (web *Web) libraryViews(current string, lang string) LibraryViews {
+	library := web.derived("library:"+lang, func() any { return web.buildLibrary(lang) }).([]TitleItem)
+	return LibraryViews{Current: current, Mine: len(library), Missing: web.missingGamesCount()}
 }
 
 // buildLibraryWithMissing lists the games of the library and, greyed out, the games of the

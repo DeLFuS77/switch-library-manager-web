@@ -13,6 +13,7 @@
 				</div>
 				{{- end}}
 			</div>
+			{{- template "libraryViews" .Views}}
 			{{- if .HasLibrary}}
 			{{- $s := .Stats}}
 			{{- with .WhatsNew}}
@@ -89,15 +90,6 @@
 				<div class="dropdown filter-panel">
 					<button class="btn btn-sm rounded-pill dropdown-toggle {{if .Filter.SecondaryCount}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false"><span class="bi bi-sliders me-1" aria-hidden="true"></span>{{t "Filters"}}{{with .Filter.SecondaryCount}} <span class="badge text-bg-light ms-1">{{.}}</span>{{end}}</button>
 					<div class="dropdown-menu dropdown-menu-end filter-panel-menu">
-						<section class="filter-group">
-							<div class="form-check form-switch mb-0">
-								<a class="stretched-toggle" role="switch" aria-checked="{{if $f.WithMissing}}true{{else}}false{{end}}" href="{{if $f.WithMissing}}{{filterUrl $f "missing" ""}}{{else}}{{filterUrl $f "missing" "1"}}{{end}}">
-									<input class="form-check-input" type="checkbox" role="switch" tabindex="-1" aria-hidden="true"{{if $f.WithMissing}} checked{{end}}>
-									<span class="form-check-label">{{t "Show the missing games too"}}</span>
-								</a>
-								<div class="form-text">{{t "Games of the eShop you do not have, greyed out with the others."}}</div>
-							</div>
-						</section>
 						{{- if or $fc.Collections $f.Collection}}
 						<section class="filter-group">
 							<h3 class="filter-group-title"><span class="bi bi-bookmark" aria-hidden="true"></span>{{t "Collections"}}</h3>
@@ -196,9 +188,8 @@
 				{{- with $f.Genre}}<a class="active-filter" href="{{filterUrl $f "genre" ""}}"><span class="bi bi-tags" aria-hidden="true"></span>{{t .}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Players}}<a class="active-filter" href="{{filterUrl $f "players" ""}}"><span class="bi bi-people" aria-hidden="true"></span>{{if eq . "1"}}{{t "1 player"}}{{else if eq . "2"}}{{t "2 or more"}}{{else}}{{t "4 or more"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.GameLanguage}}<a class="active-filter" href="{{filterUrl $f "languages" ""}}"><span class="bi bi-translate" aria-hidden="true"></span>{{t (gameLanguage .)}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
-				{{- if $f.WithMissing}}<a class="active-filter" href="{{filterUrl $f "missing" ""}}"><span class="bi bi-eye" aria-hidden="true"></span>{{t "With the missing games"}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- if $f.Extra}}<a class="active-filter" href="{{filterUrl $f "extra" ""}}"><span class="bi bi-funnel" aria-hidden="true"></span>{{if eq $f.Extra "recent"}}{{t "Added in the last 30 days"}}{{else if eq $f.Extra "no_cover"}}{{t "Without a cover"}}{{else if eq $f.Extra "favorites"}}{{t "Favorites only"}}{{else}}{{t "Not recognized"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
-				<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "missing" "" "genre" "" "players" "" "languages" ""}}">{{t "Clear filters"}}</a>
+				<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "genre" "" "players" "" "languages" ""}}">{{t "Clear filters"}}</a>
 			</div>
 			{{- end}}
 			{{- end}}
