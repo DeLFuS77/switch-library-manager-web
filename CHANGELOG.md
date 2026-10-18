@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+
+- Tasks: during a compression the files already compressed are in a panel of their own, under the files being worked
+  on, with the total saved at its top; the size left after compressing is grey instead of cyan, so that those bars are
+  no longer taken for the progress of the task.
+
 ## 1.42.0
 
 ### New

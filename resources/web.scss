@@ -6015,8 +6015,9 @@ body:has(.wizard.show) #alert_sync {
 	height: 0.5rem;
 }
 
+// the size left after compressing is grey, so that it is not taken for the cyan of the progress
 .saving-kept {
-	background-color: #{$slm-cyan};
+	background-color: var(--slm-chart-6);
 }
 
 .saving-saved {
@@ -6986,5 +6987,31 @@ html {
 @media (prefers-reduced-motion: no-preference) {
 	.is-gamepad .game-card:has(.stretched-link:focus)::before {
 		animation: slm-cursor 1.6s ease-in-out infinite;
+	}
+}
+
+// Tasks: the files already compressed in a panel of their own, under the files being worked on,
+// so that their bars are not taken for the progress of the task
+.task-done-panel {
+	margin-top: 1rem;
+	padding: .75rem 1rem;
+	border: 1px solid color-mix(in srgb, var(--bs-success) 25%, var(--slm-border));
+	border-radius: $border-radius-lg;
+	background: color-mix(in srgb, var(--bs-success) 6%, var(--slm-surface-muted));
+
+	.task-results {
+		margin-top: .75rem !important;
+	}
+}
+
+.task-done-head {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	font-size: var(--slm-text-sm);
+
+	> .bi {
+		color: var(--bs-success);
+		font-size: var(--slm-text-md);
 	}
 }

@@ -57,7 +57,6 @@
 							{{- end}}
 						</ul>
 						{{- end}}
-						{{- if .Files}}{{if eq .Kind "compress"}}<div class="small text-body-secondary mt-2"><span class="bi bi-file-zip me-1" aria-hidden="true"></span>{{t "%v files compressed, %v saved" .Files (formatSize .Saved)}}{{with .SavedPercent}} ({{.}}){{end}}</div>{{end}}{{end}}
 						{{- template "taskResults" .}}
 					</article>
 					{{- end}}
@@ -134,6 +133,14 @@
 {{- end}}
 
 {{define "taskResults"}}
+{{- if and (eq .Kind "compress") (or .Original .Results)}}
+{{- /* what is already done, apart from the files being worked on */}}
+<div class="task-done-panel">
+	<div class="task-done-head">
+		<span class="bi bi-check2-circle" aria-hidden="true"></span>
+		<span class="fw-semibold">{{t "%v files compressed, %v saved" .Files (formatSize .Saved)}}{{with .SavedPercent}} ({{.}}){{end}}</span>
+	</div>
+{{- end}}
 {{- if and (eq .Kind "compress") .Original}}
 <div class="saving mt-2" data-task-saving="{{.Id}}">
 	{{- template "savingBar" (dict "Kept" .Kept "Saved" .Saved "KeptWidth" .KeptWidth "SavedWidth" .SavedWidth)}}
@@ -158,6 +165,9 @@
 		{{- end}}
 	</ul>
 </details>
+{{- end}}
+{{- if and (eq .Kind "compress") (or .Original .Results)}}
+</div>
 {{- end}}
 {{- end}}
 
