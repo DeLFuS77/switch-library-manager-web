@@ -4,6 +4,11 @@
 
 ### Improvements
 
+- On the Tasks page the turning fan of the Tasks link, its ring and its glow wear the violet of the tools, the color
+  of the header of the page, instead of white: the white was meant for the red background the active link used to
+  have, and on its soft background of now it hardly stood out. On the other pages they stay red.
+- The icon of an empty page wears the color of the header of the page too: violet on the tools (an empty Tasks page,
+  for instance), cyan on what there is to discover, and the red of before on the library and the pages of the app.
 - Library on a phone: the switch of My games, Missing ones and All stays on one line instead of breaking in two, and
   the four numbers on top slide sideways in one row, so the games start higher up.
 - Couch mode: the Library opens on the covers; its numbers and its bar of games up to date, which are on the
