@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+
+- Tasks: during a compression the files already compressed are in a panel of their own, under the files being worked
+  on, with the total saved at its top; their bars wear still diagonal stripes, blue for the size left and green for
+  what was saved, so that they are no longer taken for the progress of the task.
+
 ## 1.42.0
 
 ### New

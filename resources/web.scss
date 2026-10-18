@@ -6015,6 +6015,14 @@ body:has(.wizard.show) #alert_sync {
 	height: 0.5rem;
 }
 
+// the bars of what is compressed wear the stripes of the progress bars, but still: done, not
+// working
+.saving-kept,
+.saving-saved {
+	background-image: linear-gradient(45deg, rgba(255, 255, 255, .18) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .18) 50%, rgba(255, 255, 255, .18) 75%, transparent 75%, transparent);
+	background-size: .75rem .75rem;
+}
+
 .saving-kept {
 	background-color: #{$slm-cyan};
 }
@@ -6986,5 +6994,31 @@ html {
 @media (prefers-reduced-motion: no-preference) {
 	.is-gamepad .game-card:has(.stretched-link:focus)::before {
 		animation: slm-cursor 1.6s ease-in-out infinite;
+	}
+}
+
+// Tasks: the files already compressed in a panel of their own, under the files being worked on,
+// so that their bars are not taken for the progress of the task
+.task-done-panel {
+	margin-top: 1rem;
+	padding: .75rem 1rem;
+	border: 1px solid color-mix(in srgb, var(--bs-success) 25%, var(--slm-border));
+	border-radius: $border-radius-lg;
+	background: color-mix(in srgb, var(--bs-success) 6%, var(--slm-surface-muted));
+
+	.task-results {
+		margin-top: .75rem !important;
+	}
+}
+
+.task-done-head {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	font-size: var(--slm-text-sm);
+
+	> .bi {
+		color: var(--bs-success);
+		font-size: var(--slm-text-md);
 	}
 }
