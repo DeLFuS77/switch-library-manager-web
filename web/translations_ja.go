@@ -3,6 +3,7 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"%v files wait for the verification": "%v 個のファイルが検証待ちです",
 		"1 result": "1 件の結果",
 		"%v results": "%v 件の結果",
 		"Removed temporary files left halfway": "途中で残った一時ファイルを削除しました",

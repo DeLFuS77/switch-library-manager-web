@@ -123,13 +123,13 @@
 				<form class="row g-2 align-items-end" data-sd-copy data-sd-dlc="{{if $o.Dlc}}1{{end}}">
 					<div class="col-md-8">
 						<label class="form-label fw-semibold" for="sdTarget">{{t "Folder of the card or USB drive"}}</label>
-						<input class="form-control font-monospace" id="sdTarget" name="target" placeholder="E:\ &middot; /mnt/disks/SD" required>
-						<div class="form-text">{{t "A folder of the server where the app runs. A folder per game is made there; files already copied are skipped and nothing is deleted."}}</div>
+						<input class="form-control font-monospace" id="sdTarget" name="target" placeholder="E:\ &middot; /mnt/disks/SD" required aria-describedby="sdTargetHelp">
 					</div>
 					<div class="col-md-4 d-flex gap-2">
 						<button class="btn btn-primary rounded-pill flex-grow-1" type="submit"><span class="bi bi-copy me-1" aria-hidden="true"></span>{{t "Copy"}}</button>
-						<button class="btn btn-outline-secondary rounded-pill" type="button" data-sd-download title="{{t "Download the list"}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download the list"}}</span></button>
+						<button class="btn btn-outline-secondary rounded-pill" type="button" data-sd-download title="{{t "Download the list"}}"><span class="bi bi-download me-md-1" aria-hidden="true"></span><span class="visually-hidden">{{t "Download the list"}}</span></button>
 					</div>
+					<div class="col-12 form-text mt-1" id="sdTargetHelp">{{t "A folder of the server where the app runs. A folder per game is made there; files already copied are skipped and nothing is deleted."}}</div>
 				</form>
 			</section>
 			{{- else}}

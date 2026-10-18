@@ -23,7 +23,11 @@
 					<div class="col-md-5">
 						<div class="small text-body-secondary text-uppercase fw-semibold">{{t "Can be freed now"}}</div>
 						<div class="display-6 fw-bold">{{formatSize .Reclaimable}}</div>
+						{{- if and (eq .Reclaimable 0) .Unverified}}
+						<div class="text-body-secondary"><span class="bi bi-hourglass-split me-1" aria-hidden="true"></span>{{t "%v files wait for the verification" .Unverified}}</div>
+						{{- else}}
 						<div class="text-body-secondary">{{t "%v%% of a library of %v" .RemovablePercent (formatSize .LibrarySize)}}</div>
+						{{- end}}
 					</div>
 					<div class="col-md-7">
 						<div class="space-bar space-stack" role="img" aria-label="{{t "%v%% of a library of %v" .RemovablePercent (formatSize .LibrarySize)}}">

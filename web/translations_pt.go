@@ -3,6 +3,7 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"%v files wait for the verification": "%v arquivos aguardam a verificação",
 		"1 result": "1 resultado",
 		"%v results": "%v resultados",
 		"Removed temporary files left halfway": "Removeu arquivos temporários que ficaram pela metade",

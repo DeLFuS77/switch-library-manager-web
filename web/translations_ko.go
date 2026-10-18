@@ -3,6 +3,7 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"%v files wait for the verification": "파일 %v개가 검증을 기다리고 있습니다",
 		"1 result": "결과 1개",
 		"%v results": "결과 %v개",
 		"Removed temporary files left halfway": "중간에 남은 임시 파일을 삭제했어요",
