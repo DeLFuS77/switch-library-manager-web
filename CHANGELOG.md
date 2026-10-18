@@ -20,6 +20,15 @@
   results it found and gives the focus back where it was when it closes; the box to choose a cover is a target of
   24px; at a width of 320px the page no longer scrolls sideways; and the bottom bar of the phone does not hide the
   control with the focus. The details under the numbers of the overview are no longer faded.
+- The chart "Games by year of release" of the statistics is drawn again as a row of bars: the chart of "Your year
+  in Switch" had the same name and turned each year into a red bar across the whole width.
+- The keyboard focus ring is a darker cyan in the light theme, where the light cyan could hardly be seen on white.
+- Texts that were too faint for their background now reach the contrast of WCAG AA: the saga line under the cards of
+  Upcoming and the active label of the bottom bar of the phone in the dark theme, the kinds of file of Compress and
+  the counts of Issues in the light theme, the breadcrumb of the page of a game, the links under the fields of
+  Settings and the red outlined buttons of the dark theme.
+- The charts of the statistics are calmer: one color for each chart instead of a different color on each row, no
+  stripes (in the rest of the app they mean that something is working) and numbers of the same width.
 
 ## 1.41.5
 
