@@ -6712,3 +6712,250 @@ body {
 		color: var(--slm-chart-2);
 	}
 }
+
+// 9: Upcoming: a tile opens each month in the grid of the games
+.month-tile {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	gap: .2rem;
+	min-height: 8rem;
+	margin: 0;
+	padding: 1rem;
+	border-radius: $border-radius-lg;
+	background:
+		radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--slm-chart-2) 22%, transparent), transparent 70%),
+		var(--slm-surface);
+	border: 1px solid color-mix(in srgb, var(--slm-chart-2) 30%, var(--slm-border));
+
+	> .bi {
+		margin-bottom: auto;
+		color: var(--slm-chart-2);
+		font-size: var(--slm-text-lg);
+	}
+}
+
+.month-tile-name {
+	display: block;
+	font-size: var(--slm-text-lg);
+	font-weight: 700;
+	line-height: 1.15;
+
+	&::first-letter {
+		text-transform: uppercase;
+	}
+}
+
+.month-tile-count {
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-sm);
+	font-weight: 500;
+}
+
+// 10: DLC: the games side by side, two or three in a row on a wide screen
+.dlc-games {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr));
+	align-items: start;
+	gap: 1rem;
+
+	.dlc-game-cover {
+		width: 5.5rem;
+		height: 5.5rem;
+	}
+
+	.dlc-progress {
+		max-width: 16rem;
+	}
+
+	.dlc-grid {
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+	}
+}
+
+// 11: Compress: the files of a game together under its name
+.file-group + .file-group {
+	margin-top: .35rem;
+}
+
+.file-group-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: .25rem .75rem;
+	padding: .6rem .25rem .3rem;
+	border-top: 1px solid var(--slm-border);
+
+	.file-group:first-child > & {
+		border-top: 0;
+	}
+}
+
+.file-group-name {
+	font-weight: 700;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.file-group-total {
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-sm);
+	font-variant-numeric: tabular-nums;
+}
+
+// the name of a file stays on one line, its full path is in its title
+.file-row-file {
+	display: inline-block;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	vertical-align: bottom;
+}
+
+.file-bar-legend {
+	display: inline-block;
+	width: 2rem;
+	height: .3rem;
+	margin-right: .5rem;
+	vertical-align: middle;
+	border-radius: 1rem;
+	background: var(--slm-surface-muted);
+
+	> span {
+		display: block;
+		width: 60%;
+		height: 100%;
+		border-radius: inherit;
+		background: var(--slm-chart-2);
+	}
+}
+
+// 16: the header of a page wears the icon of the page in the color of its group of the menu:
+// red for the library, cyan for what to discover, violet for the tools, grey for the app
+$section-colors: (
+	library: $slm-red,
+	discover: $slm-cyan,
+	tools: #7c5cff,
+	app: #8a94a6,
+);
+$page-sections: (
+	index: library collection,
+	updates: library arrow-up-circle,
+	dlc: library puzzle,
+	missing: library search-heart,
+	upcoming: discover calendar-event,
+	sagas: discover stack,
+	saga: discover stack,
+	statistics: discover bar-chart,
+	maintenance: tools list-check,
+	organize: tools folder-symlink,
+	compress: tools file-zip,
+	space: tools hdd,
+	sd: tools sd-card,
+	saves: tools safe,
+	issues: tools exclamation-triangle,
+	orphans: tools exclamation-triangle,
+	tasks: tools list-task,
+	settings: app gear,
+	users: app people,
+	account: app person-gear,
+	diagnostics: app heart-pulse,
+	disclaimer: app shield-exclamation,
+	update: app stars,
+);
+
+.page-header {
+	position: relative;
+	isolation: isolate;
+
+	// a soft light of the color of the group behind the title
+	&::before {
+		content: "";
+		position: absolute;
+		z-index: -1;
+		top: -2.5rem;
+		left: -3rem;
+		width: 22rem;
+		height: 9rem;
+		border-radius: 50%;
+		background: radial-gradient(closest-side, color-mix(in srgb, var(--section-color, transparent) 18%, transparent), transparent);
+		pointer-events: none;
+	}
+
+	h1::before {
+		display: inline-grid;
+		place-items: center;
+		width: 1.6em;
+		height: 1.6em;
+		margin-right: .45em;
+		border-radius: .45em;
+		background: color-mix(in srgb, var(--section-color) 16%, transparent);
+		color: var(--section-color);
+		font-family: bootstrap-icons !important;
+		font-size: .7em;
+		font-weight: normal;
+		line-height: 1;
+		vertical-align: .2em;
+	}
+}
+
+@each $page, $info in $page-sections {
+	body[data-page="#{$page}"] .page-header {
+		--section-color: #{map-get($section-colors, nth($info, 1))};
+
+		h1::before {
+			content: map-get($bootstrap-icons-map, nth($info, 2)) / "";
+		}
+	}
+}
+
+// 17: Series: bigger covers in a fan, the missing ones as silhouettes, the bar in the cyan of
+// what to discover (green once complete)
+.saga-list {
+	.saga-cover {
+		width: 5.5rem;
+		height: 5.5rem;
+		border-radius: $border-radius-lg;
+		box-shadow: var(--slm-shadow);
+	}
+
+	.saga-strip {
+		gap: .5rem 0;
+		padding-left: .5rem;
+	}
+
+	.saga-thumb {
+		position: relative;
+		margin-left: -.5rem;
+		transition: transform .15s ease;
+
+		&:hover,
+		&:focus-visible {
+			z-index: 1;
+			transform: translateY(-3px);
+		}
+	}
+
+	.saga-thumb img {
+		width: 3.25rem;
+		height: 3.25rem;
+		border-radius: .5rem;
+		box-shadow: 0 0 0 2px var(--slm-surface), 0 4px 10px -4px rgba(0, 0, 0, .5);
+	}
+
+	.saga-thumb.is-missing img {
+		filter: grayscale(1) brightness(.45) contrast(.8);
+		outline: 0;
+		opacity: .7;
+	}
+
+	.saga-more {
+		margin-left: .6rem;
+	}
+
+	.progress-bar:not(.bg-success) {
+		background-color: var(--slm-chart-2);
+	}
+}

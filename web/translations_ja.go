@@ -3,6 +3,8 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"1 game": "1 本のゲーム",
+		"The bar under each size compares the file with the biggest one of the list.": "各サイズの下のバーは、そのファイルを一覧で最大のファイルと比べたものです。",
 		"%v files wait for the verification": "%v 個のファイルが検証待ちです",
 		"1 result": "1 件の結果",
 		"%v results": "%v 件の結果",

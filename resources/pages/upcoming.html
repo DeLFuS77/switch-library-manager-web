@@ -45,13 +45,13 @@
 				</div>
 			</section>
 			{{- end}}
-			{{- range .Months}}
-			<section class="mb-4 upcoming-month">
-				<h2 class="section-title"><span class="bi bi-calendar-event" aria-hidden="true"></span>{{formatMonth .Month}} <span class="badge rounded-pill text-bg-secondary">{{len .Games}}</span></h2>
-				<div class="saga-grid">
-					{{- range .Games}}{{template "upcomingGame" .}}{{end}}
-				</div>
-			</section>
+			{{- if .Months}}
+			<div class="saga-grid upcoming-timeline mb-4">
+				{{- range .Months}}
+				<h2 class="month-tile"><span class="bi bi-calendar-event" aria-hidden="true"></span><span class="month-tile-name">{{formatMonth .Month}}</span><span class="month-tile-count">{{if eq (len .Games) 1}}{{t "1 game"}}{{else}}{{t "%v games" (len .Games)}}{{end}}</span></h2>
+				{{- range .Games}}{{template "upcomingGame" .}}{{end}}
+				{{- end}}
+			</div>
 			{{- end}}
 			{{- if and (not .Months) (not .JustReleased)}}
 			{{- if $f.Keyword}}

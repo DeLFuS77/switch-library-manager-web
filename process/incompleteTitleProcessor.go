@@ -19,6 +19,8 @@ type IncompleteTitle struct {
 	MissingDLC       []string `json:"missing_dlc"`
 	// the same DLC as MissingDLC, sorted by name
 	MissingDLCItems []db.TitleAttributes `json:"-"`
+	// the DLC of the game in the library
+	OwnedDLC int `json:"-"`
 }
 
 func ScanForMissingUpdates(localDB map[string]*db.SwitchGameFiles,
@@ -144,11 +146,15 @@ func ScanForMissingDLC(localDB map[string]*db.SwitchGameFiles,
 		//process dlc
 		if len(switchDB[idPrefix].Dlc) != 0 {
 			for k, v := range switchDB[idPrefix].Dlc {
+				if _, ok := switchFile.Dlc[k]; ok {
+					switchTitle.OwnedDLC++
+					continue
+				}
 				if _, ok := ignoreTitleIds[k]; ok {
 					continue
 				}
 
-				if _, ok := switchFile.Dlc[k]; !ok {
+				{
 					switchTitle.MissingDLCItems = append(switchTitle.MissingDLCItems, v)
 				}
 			}

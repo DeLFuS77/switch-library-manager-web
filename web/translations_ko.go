@@ -3,6 +3,8 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"1 game": "게임 1개",
+		"The bar under each size compares the file with the biggest one of the list.": "각 크기 아래의 막대는 파일을 목록에서 가장 큰 파일과 비교합니다.",
 		"%v files wait for the verification": "파일 %v개가 검증을 기다리고 있습니다",
 		"1 result": "결과 1개",
 		"%v results": "결과 %v개",
