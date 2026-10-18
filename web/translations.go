@@ -309,7 +309,7 @@ var translations = map[string]map[string]string{
 		"Open the wizard": "Abrir el asistente",
 		"Show the %v older changes": "Ver los %v cambios anteriores",
 		"Setup wizard": "Asistente de configuración",
-		"Welcome": "Bienvenida",
+		"Welcome": "Bienvenido",
 		"Welcome to Switch Library Manager": "Te damos la bienvenida a Switch Library Manager",
 		"In a few steps your library will be ready, to your liking. Every step can be skipped, and everything can be changed later in Settings.": "En unos pocos pasos tu biblioteca estará lista, a tu gusto. Cada paso se puede saltar y todo se puede cambiar después en Ajustes.",
 		"Go through every setting again. Each step shows how it is set now: keep it or change it.": "Repasa todos los ajustes. Cada paso muestra cómo está ahora: déjalo así o cámbialo.",
