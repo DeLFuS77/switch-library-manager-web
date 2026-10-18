@@ -3,6 +3,8 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Couch mode": "Modo sofá",
+		"Couch mode: Select or Esc to leave": "Modo sofá: Select ou Esc para sair",
 		"Interface sounds": "Sons da interface",
 		"Pause": "Pausar",
 		"Resume": "Retomar",

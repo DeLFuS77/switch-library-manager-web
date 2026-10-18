@@ -278,6 +278,7 @@
 <li><h6 class="dropdown-header">{{t "Theme"}}</h6></li>
 {{- template "themeChoices" "dropdown-item"}}
 <li><hr class="dropdown-divider"></li>
+<li><button type="button" class="dropdown-item" role="switch" aria-checked="false" data-couch-toggle><span class="bi bi-tv me-2" aria-hidden="true"></span>{{t "Couch mode"}}</button></li>
 <li><button type="button" class="dropdown-item" role="switch" aria-checked="false" data-sound-toggle><span class="bi bi-volume-mute me-2" aria-hidden="true"></span>{{t "Interface sounds"}}</button></li>
 {{- if .Auth.Enabled}}
 <li><hr class="dropdown-divider"></li>

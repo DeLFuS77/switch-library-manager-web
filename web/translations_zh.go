@@ -3,6 +3,8 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Couch mode": "沙发模式",
+		"Couch mode: Select or Esc to leave": "沙发模式：按 Select 或 Esc 退出",
 		"Interface sounds": "界面音效",
 		"Pause": "暂停",
 		"Resume": "继续",

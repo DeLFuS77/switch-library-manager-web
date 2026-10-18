@@ -3,6 +3,8 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Couch mode": "Sofa-Modus",
+		"Couch mode: Select or Esc to leave": "Sofa-Modus: Select oder Esc zum Verlassen",
 		"Interface sounds": "Oberflächentöne",
 		"Pause": "Pausieren",
 		"Resume": "Fortsetzen",

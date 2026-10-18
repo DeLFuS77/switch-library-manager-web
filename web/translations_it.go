@@ -3,6 +3,8 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Couch mode": "Modalità divano",
+		"Couch mode: Select or Esc to leave": "Modalità divano: Select o Esc per uscire",
 		"Interface sounds": "Suoni dell’interfaccia",
 		"Pause": "Pausa",
 		"Resume": "Riprendi",
