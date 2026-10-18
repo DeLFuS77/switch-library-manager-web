@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The Tasks link of the menu shows work going on with a turning fan inside a ring that fills with the progress of
+  the task, and glows; the arrows of before were the ones of Synchronize.
+
+### Fixes
+
+- The Tasks link of the menu shows a task started after the page was opened (a button of the page, a
+  synchronization, a scheduled or automatic task): it only followed the tasks when one was already running.
+- The turning icon of Tasks in the side menu is no longer out of shape: it turns in a square box, around its center.
+- Spanish: the first step of the setup wizard is headed "Bienvenido".
+
 ## 1.41.4
 
 ### Fixes
