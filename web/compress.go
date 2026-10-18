@@ -491,6 +491,38 @@ func (web *Web) runResumableTask(kind string, trigger string, paths []string, pa
 	return web.runFileTaskFull(kind, trigger, paths, nil, passes, resume, job)
 }
 
+// sortedByName orders files by their name, case aside, then by their folder; the sizes, when
+// given, follow their files.
+func sortedByName(paths []string, sizes []int64) ([]string, []int64) {
+	order := make([]int, len(paths))
+	for i := range order {
+		order[i] = i
+	}
+	key := func(path string) string { return strings.ToLower(filepath.Base(path)) }
+	sort.SliceStable(order, func(a, b int) bool {
+		pa, pb := paths[order[a]], paths[order[b]]
+		if ka, kb := key(pa), key(pb); ka != kb {
+			return ka < kb
+		}
+		return pa < pb
+	})
+	sortedPaths := make([]string, len(paths))
+	var sortedSizes []int64
+	if len(sizes) == len(paths) {
+		sortedSizes = make([]int64, len(sizes))
+	}
+	for i, from := range order {
+		sortedPaths[i] = paths[from]
+		if sortedSizes != nil {
+			sortedSizes[i] = sizes[from]
+		}
+	}
+	if sortedSizes == nil {
+		sortedSizes = sizes
+	}
+	return sortedPaths, sortedSizes
+}
+
 // fileSizes asks the disk the size of every file.
 func fileSizes(paths []string) []int64 {
 	sizes := make([]int64, len(paths))
@@ -600,6 +632,11 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	web.compressor.cancel = cancel
 	web.compressor.mutex.Unlock()
 
+	// the files go by name, not the biggest first: the count moves from the start and the list
+	// reads in order; a task resumed keeps the order it had
+	if trigger != TRIGGER_RESUME && (kind == TASK_COMPRESS || kind == TASK_DECOMPRESS || kind == TASK_CONVERT) {
+		paths, sizes = sortedByName(paths, sizes)
+	}
 	taskId := web.taskLog().Start(kind, trigger)
 	web.compressor.mutex.Lock()
 	web.compressor.taskId = taskId

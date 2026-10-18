@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Compressing, decompressing, converting and checking files go through them by name instead of the biggest first, so
+  the count of files moves from the start instead of waiting for the largest games. The check still starts with the
+  files never checked or checked longest ago, and a task resumed after a restart keeps its order.
+
 ## 1.45.0
 
 ### Improvements
