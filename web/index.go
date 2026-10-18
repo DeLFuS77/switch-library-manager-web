@@ -299,10 +299,24 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	return items, p, facets
 }
 
-// libraryViews counts the games of each view of the Library.
+// libraryViews counts the games of each view of the Library. My games counts as the list of the
+// Library does: without the demos when they are hidden, and the copies of a game from other
+// regions once when the settings say so.
 func (web *Web) libraryViews(current string, lang string) LibraryViews {
-	library := web.derived("library:"+lang, func() any { return web.buildLibrary(lang) }).([]TitleItem)
-	return LibraryViews{Current: current, Mine: len(library), Missing: web.missingGamesCount()}
+	mine := web.derived("libraryCount:"+lang, func() any {
+		library := web.derived("library:"+lang, func() any { return web.buildLibrary(lang) }).([]TitleItem)
+		hideDemos := settings.ReadSettings(web.dataFolder).HideDemoGames
+		leftOut, _ := web.regionCopies(lang)
+		count := 0
+		for _, item := range library {
+			if leftOut[item.Id] || (hideDemos && item.Demo) {
+				continue
+			}
+			count++
+		}
+		return count
+	}).(int)
+	return LibraryViews{Current: current, Mine: mine, Missing: web.missingGamesCount()}
 }
 
 // buildLibraryWithMissing lists the games of the library and, greyed out, the games of the

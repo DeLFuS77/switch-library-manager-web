@@ -1,7 +1,7 @@
 {{define "title"}}{{t "Library"}}{{end}}
 {{define "main"}}
 			<div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
-				{{- template "pageHeader" (dict "Title" (t "Library") "Count" .Pagination.NumItems "Subtitle" (t "The games in your folders. Open a game to see its updates, DLC and files."))}}
+				{{- template "pageHeader" (dict "Title" (t "Library") "Count" -1 "Subtitle" (t "The games in your folders. Open a game to see its updates, DLC and files."))}}
 				{{- if gt .Pagination.NumItems 0}}
 				<div class="dropdown mb-3">
 					<button class="btn btn-outline-secondary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false"><span class="bi bi-download me-2" aria-hidden="true"></span>{{t "Export"}}</button>

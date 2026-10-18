@@ -1,6 +1,6 @@
 {{define "title"}}{{t "Library"}} &middot; {{t "Missing ones"}}{{end}}
 {{define "main"}}
-			{{- template "pageHeader" (dict "Title" (t "Library") "Count" .Pagination.NumItems "Subtitle" (t "Games of the Nintendo eShop that are not in your library."))}}
+			{{- template "pageHeader" (dict "Title" (t "Library") "Count" -1 "Subtitle" (t "Games of the Nintendo eShop that are not in your library."))}}
 			{{- template "libraryViews" .Views}}
 			{{- if or (gt (len .TitleItems) 0) .Filter.Keyword .Filter.Status}}
 			{{- template "filter" .}}

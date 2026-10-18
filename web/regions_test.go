@@ -166,4 +166,7 @@ func TestCountRegionsOnce(t *testing.T) {
 	if stats := web.getStatistics("en"); stats.Games != after.All {
 		t.Fatalf("the statistics count as the library: %d and %d", stats.Games, after.All)
 	}
+	if views := web.libraryViews("mine", "en"); views.Mine != after.All {
+		t.Fatalf("My games counts as the library: %d and %d", views.Mine, after.All)
+	}
 }

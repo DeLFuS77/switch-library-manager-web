@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Library: My games counts as the list does, without the demos when they are hidden and with the copies of a game
+  from other regions once when Settings say so; it could show more games than the list, the big number and the
+  filters (12,604 against 12,356 on a big library).
+
+### Changes
+
+- Library: the count next to its title goes, as the switch of the views already shows the number of each one.
+
 ## 1.45.0
 
 ### Improvements
