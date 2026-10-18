@@ -22,11 +22,12 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.41.5
-- The Tasks link of the menu shows at once a task started from any page, with a turning fan and a ring that fills with its progress
-### 1.41.4
-- Compress no longer offers again the files nothing could be compressed in (games in sparse storage)</Changes>
-  <Date>2026-10-17</Date>
+  <Changes>### 1.42.0
+- Play with a game controller like on a console, a cursor on the cards, clearer colors and texts of 12px at least
+- Pages redone: Upcoming, DLC, Compress, Updates, Series, Statistics and Settings on the phone
+### 1.41.5
+- The Tasks link of the menu shows at once a task started from any page, with a turning fan and a ring that fills with its progress</Changes>
+  <Date>2026-10-18</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>

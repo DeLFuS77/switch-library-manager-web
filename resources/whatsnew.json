@@ -1,4 +1,83 @@
 {
+  "1.42.0": {
+    "en": [
+      "You can move through the app with a game controller: D-pad to move, A to open, B to go back, Start to search.",
+      "The card chosen with the keyboard or the controller wears a cursor that breathes, like on a console.",
+      "Updates are amber and favorites gold, and no text is smaller than 12px.",
+      "Upcoming, DLC, Compress, Updates, Series and Statistics are clearer, and Settings shows every section on a phone.",
+      "Better contrast and keyboard use everywhere, in both themes."
+    ],
+    "es": [
+      "Puedes moverte por la app con un mando: cruceta para moverte, A para abrir, B para volver y Start para buscar.",
+      "La tarjeta elegida con el teclado o el mando lleva un cursor que respira, como en una consola.",
+      "Las actualizaciones van en ámbar y los favoritos en dorado, y ningún texto baja de 12 px.",
+      "Próximos, DLC, Comprimir, Actualizaciones, Sagas y Estadísticas son más claros, y Ajustes muestra todas las secciones en el móvil.",
+      "Mejor contraste y manejo con teclado en toda la app, en los dos temas."
+    ],
+    "de": [
+      "Du kannst die App mit einem Controller bedienen: Steuerkreuz zum Bewegen, A zum Öffnen, B zurück, Start zum Suchen.",
+      "Die mit Tastatur oder Controller gewählte Karte trägt einen atmenden Cursor, wie auf einer Konsole.",
+      "Updates sind bernsteinfarben, Favoriten golden, und kein Text ist kleiner als 12 px.",
+      "Demnächst, DLC, Komprimieren, Updates, Reihen und Statistiken sind übersichtlicher, und die Einstellungen zeigen am Handy alle Bereiche.",
+      "Besserer Kontrast und bessere Tastaturbedienung überall, in beiden Designs."
+    ],
+    "fr": [
+      "Tu peux parcourir l’app avec une manette : croix pour se déplacer, A pour ouvrir, B pour revenir, Start pour rechercher.",
+      "La carte choisie au clavier ou à la manette porte un curseur qui respire, comme sur une console.",
+      "Les mises à jour sont ambre et les favoris dorés, et aucun texte ne fait moins de 12 px.",
+      "À venir, DLC, Compresser, Mises à jour, Séries et Statistiques sont plus clairs, et les Réglages montrent toutes les sections sur mobile.",
+      "Meilleur contraste et meilleure utilisation au clavier partout, dans les deux thèmes."
+    ],
+    "it": [
+      "Puoi muoverti nell’app con un controller: croce per spostarti, A per aprire, B per tornare, Start per cercare.",
+      "La scheda scelta con tastiera o controller ha un cursore che respira, come su una console.",
+      "Gli aggiornamenti sono ambra e i preferiti oro, e nessun testo è più piccolo di 12 px.",
+      "In arrivo, DLC, Comprimi, Aggiornamenti, Serie e Statistiche sono più chiari, e le Impostazioni mostrano tutte le sezioni sul telefono.",
+      "Contrasto e uso da tastiera migliori ovunque, in entrambi i temi."
+    ],
+    "pt": [
+      "Pode navegar na app com um comando: direcional para mover, A para abrir, B para voltar, Start para pesquisar.",
+      "O cartão escolhido com o teclado ou o comando tem um cursor que respira, como numa consola.",
+      "As atualizações são âmbar e os favoritos dourados, e nenhum texto tem menos de 12 px.",
+      "Próximos, DLC, Comprimir, Atualizações, Séries e Estatísticas estão mais claros, e as Definições mostram todas as secções no telemóvel.",
+      "Melhor contraste e uso com teclado em toda a app, nos dois temas."
+    ],
+    "nl": [
+      "Je kunt de app met een controller bedienen: D-pad om te bewegen, A om te openen, B om terug te gaan, Start om te zoeken.",
+      "De kaart die je met toetsenbord of controller kiest, krijgt een ademende cursor, zoals op een console.",
+      "Updates zijn amber en favorieten goud, en geen tekst is kleiner dan 12 px.",
+      "Binnenkort, DLC, Comprimeren, Updates, Reeksen en Statistieken zijn duidelijker, en Instellingen toont op de telefoon alle onderdelen.",
+      "Beter contrast en betere bediening met het toetsenbord overal, in beide thema’s."
+    ],
+    "ru": [
+      "Приложением можно управлять геймпадом: крестовина — перемещение, A — открыть, B — назад, Start — поиск.",
+      "У карточки, выбранной клавиатурой или геймпадом, «дышащий» курсор, как на консоли.",
+      "Обновления — янтарные, избранное — золотое, и нет текста мельче 12 px.",
+      "Скоро, DLC, Сжатие, Обновления, Серии и Статистика стали понятнее, а Настройки на телефоне показывают все разделы.",
+      "Лучше контраст и работа с клавиатурой везде, в обеих темах."
+    ],
+    "ja": [
+      "コントローラーでアプリを操作できます。十字ボタンで移動、A で開く、B で戻る、Start で検索。",
+      "キーボードやコントローラーで選んだカードには、ゲーム機のように呼吸するカーソルが付きます。",
+      "アップデートはアンバー、お気に入りはゴールドになり、12px より小さい文字はなくなりました。",
+      "近日発売、DLC、圧縮、アップデート、シリーズ、統計が見やすくなり、スマホの設定では全セクションが表示されます。",
+      "両方のテーマで、コントラストとキーボード操作が全体的に向上しました。"
+    ],
+    "ko": [
+      "컨트롤러로 앱을 조작할 수 있습니다. 방향 패드로 이동, A로 열기, B로 돌아가기, Start로 검색.",
+      "키보드나 컨트롤러로 고른 카드에는 콘솔처럼 숨 쉬는 커서가 표시됩니다.",
+      "업데이트는 호박색, 즐겨찾기는 금색이며 12px보다 작은 글자는 없습니다.",
+      "출시 예정, DLC, 압축, 업데이트, 시리즈, 통계가 더 알아보기 쉬워졌고, 휴대폰의 설정에서 모든 섹션이 보입니다.",
+      "두 테마 모두에서 대비와 키보드 사용이 전반적으로 개선되었습니다."
+    ],
+    "zh": [
+      "可以用手柄操作应用：十字键移动，A 打开，B 返回，Start 搜索。",
+      "用键盘或手柄选中的卡片会显示会呼吸的光标，就像在游戏机上一样。",
+      "更新为琥珀色，收藏为金色，且所有文字都不小于 12px。",
+      "即将推出、DLC、压缩、更新、系列和统计更清晰，手机上的设置会显示所有分区。",
+      "两种主题下的对比度和键盘操作全面改进。"
+    ]
+  },
   "1.41.5": {
     "en": [
       "The Tasks link of the menu shows at once any task you start, with a turning fan and a ring that fills with its progress."
