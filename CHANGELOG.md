@@ -40,6 +40,9 @@
   library to find them, minutes for a big one even when a handful of files moved (two minutes for 13 files on a
   library of 40,000). Now it looks only at the folders the run took files from, and their parents, one entry of
   each at most. Empty folders the run did not touch stay where they are.
+- A library folder listed twice in Settings, or inside another one listed, is scanned once: its files were read
+  twice and each one counted as a duplicate of itself, which Space could offer to delete with the only copy. Each
+  file is also kept once by its path, whatever the folders.
 
 ## 1.45.0
 

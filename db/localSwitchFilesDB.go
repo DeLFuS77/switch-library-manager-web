@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -256,7 +257,7 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 		}
 
 		ldb.leftovers = nil
-		for _, folder := range folders {
+		for _, folder := range distinctFolders(folders, recursive) {
 			err := scanFolder(folder, recursive, &files, &ldb.leftovers, progress, estimate)
 			if progress != nil {
 				progress.UpdateProgress(-1, -1, "Scanned "+folder)
@@ -267,6 +268,7 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 			}
 		}
 
+		files = distinctFiles(files)
 		ldb.processLocalFiles(switchDB, dataFolder, files, progress, titles, skipped)
 
 		if err := ldb.db.AddEntries(DB_TABLE_LOCAL_LIBRARY, map[string]interface{}{"files": files, "skipped": skipped, "titles": titles}); err != nil {
@@ -280,6 +282,65 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 	ldb.lastFileCount = len(files)
 
 	return &LocalSwitchFilesDB{TitlesMap: titles, Skipped: skipped, NumFiles: len(files), Leftovers: ldb.leftovers}, nil
+}
+
+// distinctFolders leaves out a folder listed twice and, when the folders are scanned with their
+// subfolders, a folder inside another one listed: its files would be read twice, and each one
+// would count as a duplicate of itself, offered to be deleted with its only copy.
+func distinctFolders(folders []string, recursive bool) []string {
+	cleaned := []string{}
+	seen := map[string]bool{}
+	for _, folder := range folders {
+		folder = filepath.Clean(folder)
+		key := folderKey(folder)
+		if !seen[key] {
+			seen[key] = true
+			cleaned = append(cleaned, folder)
+		}
+	}
+	if !recursive {
+		return cleaned
+	}
+	distinct := []string{}
+	for _, folder := range cleaned {
+		inside := false
+		for _, other := range cleaned {
+			if other == folder {
+				continue
+			}
+			if rel, err := filepath.Rel(folderKey(other), folderKey(folder)); err == nil && rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+				inside = true
+				break
+			}
+		}
+		if !inside {
+			distinct = append(distinct, folder)
+		}
+	}
+	return distinct
+}
+
+// folderKey compares folders the way the system does: Windows and macOS ignore the case.
+func folderKey(folder string) string {
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+		return strings.ToLower(folder)
+	}
+	return folder
+}
+
+// distinctFiles keeps each file once, by its path.
+func distinctFiles(files []ExtendedFileInfo) []ExtendedFileInfo {
+	seen := map[string]bool{}
+	distinct := files[:0]
+	for _, file := range files {
+		key := folderKey(filepath.Join(file.BaseFolder, file.FileName))
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		distinct = append(distinct, file)
+	}
+	return distinct
 }
 
 // scanFolder adds the files of a folder; estimate is how many files the folders are thought
