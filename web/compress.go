@@ -59,6 +59,37 @@ func (c CompressCandidate) Format() string {
 	return strings.ToUpper(strings.TrimPrefix(filepath.Ext(c.Path), "."))
 }
 
+// CompressGroup is a game of the list of Compress with its files, the biggest first.
+type CompressGroup struct {
+	Name string
+	Size int64
+	Rows []CompressRow
+}
+
+// CompressRow is a file of the list with its place in it, for the id of its box.
+type CompressRow struct {
+	CompressCandidate
+	Index int
+}
+
+// Groups puts the files of the same game together; the games come in the order of their
+// biggest file.
+func (d CompressPageData) Groups() []CompressGroup {
+	groups := []CompressGroup{}
+	at := map[string]int{}
+	for i, candidate := range d.Candidates {
+		g, ok := at[candidate.Name]
+		if !ok {
+			g = len(groups)
+			at[candidate.Name] = g
+			groups = append(groups, CompressGroup{Name: candidate.Name})
+		}
+		groups[g].Size += candidate.Size
+		groups[g].Rows = append(groups[g].Rows, CompressRow{CompressCandidate: candidate, Index: i})
+	}
+	return groups
+}
+
 // Weight is the size of a file as a share of the biggest one listed, for its bar.
 func (d CompressPageData) Weight(size int64) int {
 	biggest := int64(0)

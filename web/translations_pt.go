@@ -3,6 +3,8 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"1 game": "1 jogo",
+		"The bar under each size compares the file with the biggest one of the list.": "A barra sob cada tamanho compara o arquivo com o maior da lista.",
 		"%v files wait for the verification": "%v arquivos aguardam a verificação",
 		"1 result": "1 resultado",
 		"%v results": "%v resultados",

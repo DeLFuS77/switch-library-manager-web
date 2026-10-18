@@ -1462,6 +1462,10 @@ function bindFileForm(form, url) {
 		form.querySelectorAll('[data-file-row]').forEach(row => {
 			row.hidden = (text !== '' && !row.textContent.toLowerCase().includes(text)) || (kind !== 'all' && row.dataset.kind !== kind);
 		});
+		// a game without any file shown is hidden with its name
+		form.querySelectorAll('[data-file-group]').forEach(group => {
+			group.hidden = !group.querySelector('[data-file-row]:not([hidden])');
+		});
 		update();
 	};
 	const chips = form.querySelector('[data-kind-chips]');

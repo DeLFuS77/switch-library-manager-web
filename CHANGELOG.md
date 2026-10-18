@@ -49,6 +49,16 @@
 - Space says how many files wait for the verification when nothing can be freed yet, instead of a lonely "0 B"; the
   buttons to copy to the SD card sit on the line of the folder; the note of Tasks on the server is a short line
   instead of a box larger than the page.
+- Upcoming: the months follow one another in the same grid, each one opened by a tile with its name and how many
+  games come out, instead of a row of the whole width for each month with often a single game.
+- DLC: the games sit side by side on a wide screen, with a bigger cover and the bar of the DLC you have, as in the
+  library.
+- Compress: the files of the same game are listed together under its name, with how many there are and their size; the
+  name of a file stays on one line (its full path shows on hover) and a line explains the bar under each size.
+- The header of each page wears the icon of the page and a soft light in the color of its group of the menu: red for
+  the library, cyan for what to discover, violet for the tools and grey for the settings of the app.
+- Series: bigger covers laid out as a fan, the missing games as dark silhouettes and the bar in cyan (green once the
+  series is complete) instead of the red of the actions.
 
 ## 1.41.5
 

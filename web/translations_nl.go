@@ -3,6 +3,8 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"1 game": "1 game",
+		"The bar under each size compares the file with the biggest one of the list.": "De balk onder elke grootte vergelijkt het bestand met het grootste van de lijst.",
 		"%v files wait for the verification": "%v bestanden wachten op de controle",
 		"1 result": "1 resultaat",
 		"%v results": "%v resultaten",

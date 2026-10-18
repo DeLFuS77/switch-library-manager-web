@@ -71,6 +71,8 @@ func (web *Web) buildMissingDLC(lang string) []TitleItem {
 				OriginalName:     v.Attributes.Name,
 				Region:           v.Attributes.Region,
 				Known:            true,
+				DlcOwned:         v.OwnedDLC,
+				DlcTotal:         v.OwnedDLC + len(missingDlc),
 			})
 		}
 	}

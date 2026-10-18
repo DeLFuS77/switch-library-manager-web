@@ -81,12 +81,20 @@
 					<p class="small text-body-secondary mb-2"><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list." (len .Candidates) (num .RestCount)}}</p>
 					{{- end}}
 					<div class="op-summary mb-2" data-kind-chips data-rest="{{.RestCount}}" data-all="{{t "All"}}" data-game="{{t "Games"}}" data-update="{{t "Updates"}}" data-dlc="DLC" role="group" aria-label="{{t "Show the files of a kind"}}"></div>
+					<p class="small text-body-secondary mb-2"><span class="file-bar-legend" aria-hidden="true"><span></span></span>{{t "The bar under each size compares the file with the biggest one of the list."}}</p>
 					<ul class="file-list list-unstyled mb-0">
-						{{- range $i, $c := .Candidates}}
+						{{- range $g := .Groups}}
+						<li class="file-group" data-file-group>
+							{{- if gt (len $g.Rows) 1}}
+							<div class="file-group-head"><span class="file-group-name">{{$g.Name}}</span><span class="file-group-total">{{t "%v files" (len $g.Rows)}} &middot; {{formatSize $g.Size}}</span></div>
+							{{- end}}
+							<ul class="list-unstyled mb-0">
+						{{- range $g.Rows}}
+						{{- $i := .Index}}{{$c := .CompressCandidate}}
 						<li class="file-row kind-{{$c.KindKey}}" data-file-row data-kind="{{$c.KindKey}}">
 							<input class="form-check-input" type="checkbox" name="path" value="{{$c.Path}}" data-size="{{$c.Size}}" id="file{{$i}}" checked>
 							<label class="file-row-main" for="file{{$i}}">
-								<span class="file-row-name">{{$c.Name}}</span>
+								<span class="file-row-name{{if gt (len $g.Rows) 1}} visually-hidden{{end}}">{{$c.Name}}</span>
 								<span class="file-row-meta">
 									<span class="file-kind"><span class="bi {{if eq $c.KindKey "game"}}bi-controller{{else if eq $c.KindKey "update"}}bi-arrow-up-circle{{else}}bi-puzzle{{end}}" aria-hidden="true"></span>{{if eq $c.KindKey "game"}}{{t "Game"}}{{else if eq $c.KindKey "update"}}{{t "Update"}}{{else}}DLC{{end}}</span>
 									<span class="file-format">{{$c.Format}}</span>
@@ -97,6 +105,9 @@
 								<span class="fw-semibold">{{formatSize $c.Size}}</span>
 								<span class="file-row-bar" aria-hidden="true"><span style="width: {{$.Weight $c.Size}}%"></span></span>
 							</span>
+						</li>
+						{{- end}}
+							</ul>
 						</li>
 						{{- end}}
 						{{- if .RestCount}}

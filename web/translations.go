@@ -5,6 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"1 game": "1 juego",
+		"The bar under each size compares the file with the biggest one of the list.": "La barra bajo cada tamaño compara el archivo con el más grande de la lista.",
 		"%v files wait for the verification": "%v archivos esperan la verificación",
 		"1 result": "1 resultado",
 		"%v results": "%v resultados",

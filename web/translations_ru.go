@@ -3,6 +3,8 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"1 game": "1 игра",
+		"The bar under each size compares the file with the biggest one of the list.": "Полоса под каждым размером сравнивает файл с самым большим в списке.",
 		"%v files wait for the verification": "Файлов ждут проверки: %v",
 		"1 result": "1 результат",
 		"%v results": "Результатов: %v",

@@ -3,6 +3,8 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"1 game": "1 款游戏",
+		"The bar under each size compares the file with the biggest one of the list.": "每个大小下方的条形将该文件与列表中最大的文件进行比较。",
 		"%v files wait for the verification": "%v 个文件等待验证",
 		"1 result": "1 个结果",
 		"%v results": "%v 个结果",

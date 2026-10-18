@@ -6,7 +6,7 @@
 			{{- end}}
 			{{- if gt (len .TitleItems) 0}}
 			{{- template "bulkToolbar" "dlc"}}
-			<div class="d-flex flex-column gap-3">
+			<div class="dlc-games">
 				{{- range .TitleItems}}
 				{{- $game := .}}
 				<article class="surface dlc-game">
@@ -19,6 +19,12 @@
 								{{- if .Region}}<span class="fi fi-{{.Region | toLower}}" title="{{.Region}}"></span>{{end}}
 								<span class="font-monospace">{{.Id}}</span>
 							</div>
+							{{- if gt .DlcTotal 0}}
+							<div class="dlc-progress mt-2" title="{{t "%v of %v DLC" .DlcOwned .DlcTotal}}">
+								<div class="dlc-progress-bar" role="progressbar" aria-label="{{t "%v of %v DLC" .DlcOwned .DlcTotal}}" aria-valuenow="{{.DlcPercent}}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{.DlcPercent}}%"></span></div>
+								<span class="dlc-progress-label">DLC {{.DlcOwned}}/{{.DlcTotal}}</span>
+							</div>
+							{{- end}}
 						</div>
 					</div>
 					<ul class="dlc-grid list-unstyled mb-0">
