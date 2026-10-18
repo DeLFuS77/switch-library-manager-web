@@ -41,6 +41,9 @@ type CompressCandidate struct {
 	// Base, Update or DLC
 	Kind string
 	Size int64
+	// the share it will likely save, from the files compressed before (see ratioStore)
+	Estimate    int
+	HasEstimate bool
 }
 
 // KindKey is the kind for the colors and the filter of the list: game, update or dlc.
@@ -123,6 +126,9 @@ type CompressPageData struct {
 	AlreadyCompressed int
 	// files tried before that nothing could shrink, not listed
 	Uncompressible []UncompressibleEntry
+	// what each kind saved before, and what all the files listed would likely save
+	Ratios    []RatioSummary
+	Estimated int64
 	TotalSize      int64
 	// compressed files that can be decompressed
 	Running bool
@@ -743,6 +749,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 						saved += fileSaved
 						if kind == TASK_COMPRESS {
 							web.taskLog().AddFileResult(taskId, name, sizes[i], sizes[i]-fileSaved)
+							web.ratios().add(contentKind(path), path, sizes[i], sizes[i]-fileSaved)
 							web.history().addSaved(fileSaved)
 						}
 						web.taskLog().SetCompressResult(taskId, processed, saved)
@@ -940,6 +947,15 @@ func (web *Web) HandleCompress() {
 		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, CompressedCount: len(web.decompressCandidates()), CardCount: len(web.convertCandidates()), Running: web.compressionRunning()}
 		data.AlreadyCompressed = len(web.compressCandidates()) - len(candidates)
 		data.Uncompressible = web.uncompressibleFiles()
+		// the candidates are shared: the estimates go on a copy
+		ratios := web.ratios()
+		candidates = append([]CompressCandidate(nil), candidates...)
+		for i := range candidates {
+			candidates[i].Estimate, candidates[i].HasEstimate = ratios.estimate(candidates[i].Kind, candidates[i].Path)
+			data.Estimated += candidates[i].EstimateBytes()
+		}
+		data.Ratios = ratios.summary()
+		data.Candidates = candidates
 		for i, candidate := range candidates {
 			data.TotalSize += candidate.Size
 			if i >= shownFiles {

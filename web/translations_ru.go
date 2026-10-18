@@ -3,6 +3,9 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Estimated from the files of this kind you compressed before": "Оценка по уже сжатым файлам этого типа",
+		"Estimated from the files you compressed before:": "Оценка по прошлым сжатиям:",
+		"About %v could be saved with all of them.": "Со всеми можно сэкономить около %v.",
 		"Controller connected": "Геймпад подключён",
 		"D-pad to move, A to open, B to go back, Start to search.": "Крестовина — перемещение, A — открыть, B — назад, Start — поиск.",
 		"1 game": "1 игра",

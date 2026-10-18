@@ -135,6 +135,8 @@ type Web struct {
 	// files that could not be compressed (see uncompressible.go)
 	uncompressibleStore *uncompressibleStore
 	uncompressibleOnce  sync.Once
+	ratiosStore         *ratioStore
+	ratiosOnce          sync.Once
 	// the save vault: verified passwords and what was read from the backups (see vault.go)
 	vault           vaultAuth
 	vaultFiles      vaultIndex

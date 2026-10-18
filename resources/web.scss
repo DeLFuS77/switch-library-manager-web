@@ -7033,3 +7033,27 @@ html {
 .copy-inline {
 	min-height: 1.5rem;
 }
+
+// Compress: what a file will likely save, from the files compressed before
+.file-estimate {
+	color: var(--bs-success-text-emphasis);
+	font-size: var(--slm-text-xs);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.file-estimates {
+	display: flex;
+	align-items: flex-start;
+	gap: .5rem;
+	padding: .5rem .75rem;
+	border-radius: $border-radius;
+	background: color-mix(in srgb, var(--bs-success) 8%, transparent);
+
+	> .bi {
+		flex-shrink: 0;
+		margin-top: .1rem;
+		color: var(--bs-success-text-emphasis);
+	}
+}

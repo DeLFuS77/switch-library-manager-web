@@ -3,6 +3,9 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Estimated from the files of this kind you compressed before": "Geschat op basis van de bestanden van dit soort die je al comprimeerde",
+		"Estimated from the files you compressed before:": "Geschat op basis van je eerdere compressies:",
+		"About %v could be saved with all of them.": "Met allemaal kan ongeveer %v worden bespaard.",
 		"Controller connected": "Controller verbonden",
 		"D-pad to move, A to open, B to go back, Start to search.": "D-pad om te bewegen, A om te openen, B om terug te gaan, Start om te zoeken.",
 		"1 game": "1 game",

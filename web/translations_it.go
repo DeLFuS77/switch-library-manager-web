@@ -3,6 +3,9 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Estimated from the files of this kind you compressed before": "Stimato dai file di questo tipo che hai già compresso",
+		"Estimated from the files you compressed before:": "Stimato dalle compressioni precedenti:",
+		"About %v could be saved with all of them.": "Con tutti si potrebbero risparmiare circa %v.",
 		"Controller connected": "Controller collegato",
 		"D-pad to move, A to open, B to go back, Start to search.": "Croce direzionale per muoverti, A per aprire, B per tornare indietro, Start per cercare.",
 		"1 game": "1 gioco",
