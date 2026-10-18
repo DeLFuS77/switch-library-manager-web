@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The save buttons of the preferences are on only when something changed: the bar of Settings slides away once all
+  is saved and comes back with the next change, and the Save buttons of Organize and My account stay dim until a
+  field changes; undoing a change turns them off again. A field filled by the app itself (the folder picker) counts
+  as a change too.
+
 ## 1.45.0
 
 ### Improvements
