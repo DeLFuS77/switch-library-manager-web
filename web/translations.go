@@ -5,6 +5,8 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Controller connected": "Mando conectado",
+		"D-pad to move, A to open, B to go back, Start to search.": "Cruceta para moverte, A para abrir, B para volver y Start para buscar.",
 		"1 game": "1 juego",
 		"The bar under each size compares the file with the biggest one of the list.": "La barra bajo cada tamaño compara el archivo con el más grande de la lista.",
 		"%v files wait for the verification": "%v archivos esperan la verificación",
@@ -1331,4 +1333,5 @@ var jsTexts = []string{
 	"The version of the name changes: v%v → v%v (the update the file holds).",
 	"Apply the changes shown in the preview? Files will be moved or deleted.",
 	"Add to the wishlist", "Remove from the wishlist", "Add to favorites", "Remove from favorites",
+	"Controller connected", "D-pad to move, A to open, B to go back, Start to search.",
 }

@@ -6959,3 +6959,32 @@ $page-sections: (
 		background-color: var(--slm-chart-2);
 	}
 }
+
+// what is brought into sight stops under the header that stays at the top
+html {
+	scroll-padding-top: 5rem;
+}
+
+// 18: with a game controller the focus is always seen, the card cursor too
+.is-gamepad {
+	:focus {
+		outline: 2px solid var(--slm-focus);
+		outline-offset: 2px;
+	}
+
+	.game-card .stretched-link:focus {
+		outline: none;
+	}
+
+	.game-card:has(.stretched-link:focus)::before {
+		padding: 3px;
+		background: var(--slm-focus);
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.is-gamepad .game-card:has(.stretched-link:focus)::before {
+		animation: slm-cursor 1.6s ease-in-out infinite;
+	}
+}

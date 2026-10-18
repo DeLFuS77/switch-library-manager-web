@@ -3,6 +3,8 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Controller connected": "コントローラーが接続されました",
+		"D-pad to move, A to open, B to go back, Start to search.": "十字ボタンで移動、A で開く、B で戻る、Start で検索します。",
 		"1 game": "1 本のゲーム",
 		"The bar under each size compares the file with the biggest one of the list.": "各サイズの下のバーは、そのファイルを一覧で最大のファイルと比べたものです。",
 		"%v files wait for the verification": "%v 個のファイルが検証待ちです",

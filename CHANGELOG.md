@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### New
+
+- The app can be used with a game controller connected to the computer, the phone or the TV, like a console: the
+  D-pad or the left stick go to the nearest card or control in that direction, A opens it, B closes a window or goes
+  back, and Start opens the quick search. The card chosen wears the cursor of the keyboard, and a short notice the
+  first time explains the buttons.
+
 ### Fixes
 
 - The fan of the Tasks link turns around its center in every browser and at every scale of the screen: it is drawn
