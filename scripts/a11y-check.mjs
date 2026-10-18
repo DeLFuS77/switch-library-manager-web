@@ -41,8 +41,9 @@ function findChrome() {
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+// up to 30 seconds: the first start of Chrome on a busy runner of the CI can take more than 10
 async function connect() {
-	for (let i = 0; i < 50; i++) {
+	for (let i = 0; i < 150; i++) {
 		try {
 			const targets = await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json();
 			const page = targets.find(target => target.type === 'page');
