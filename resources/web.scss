@@ -12,6 +12,12 @@
 // ---------------------------------------------------------------------------------------
 // Design tokens (before Bootstrap's variables, which derive their colors from them)
 // ---------------------------------------------------------------------------------------
+// The colors of the app, one meaning each:
+//   red    actions, errors and the active page
+//   cyan   information, DLC and the keyboard focus
+//   green  done, up to date
+//   amber  waits for you: updates, steps to do
+//   gold   favorites, and the sagas you completed
 $slm-red:  #d62839; // 4.9:1 on white, primary actions
 $slm-cyan: #0fb5d8; // secondary accent, information
 $slm-ink:  #0d1117;
@@ -19,7 +25,10 @@ $slm-ink:  #0d1117;
 $primary:   $slm-red;
 $info:      $slm-cyan;
 $success:   #1f9d55;
-$warning:   #f2b51d;
+// amber: something waits for you (an update, a step to do); the gold of the favorites is
+// another color, so that a star and an update never look alike
+$warning:   #f59a23;
+$slm-gold:  #f2b51d;
 $danger:    #dc3545;
 $secondary: #6b7280;
 
@@ -121,6 +130,28 @@ $flag-icons-path: "/resources/vendor/flag-icons/flags";
 }
 
 // ---------------------------------------------------------------------------------------
+// Type scale: six steps, never under 12px
+// ---------------------------------------------------------------------------------------
+:root {
+	--slm-text-xs: .75rem;
+	--slm-text-sm: .875rem;
+	--slm-text-md: 1rem;
+	--slm-text-lg: 1.25rem;
+	--slm-text-xl: 1.75rem;
+	--slm-text-2xl: 2.5rem;
+}
+
+// small texts inside small texts stay readable
+small,
+.small {
+	font-size: max(var(--slm-text-xs), .875em);
+}
+
+.badge {
+	font-size: max(var(--slm-text-xs), .75em);
+}
+
+// ---------------------------------------------------------------------------------------
 // Theme surfaces
 // ---------------------------------------------------------------------------------------
 :root,
@@ -138,7 +169,7 @@ $flag-icons-path: "/resources/vendor/flag-icons/flags";
 	--slm-glow-cyan: rgba(15, 181, 216, .07);
 	--slm-chart-1: #{$slm-red};
 	--slm-chart-2: #{$slm-cyan};
-	--slm-chart-3: #f2a900;
+	--slm-chart-3: #{$warning};
 	--slm-chart-4: #7c5cff;
 	--slm-chart-5: #2bb673;
 	--slm-chart-6: #8a94a6;
@@ -272,7 +303,7 @@ h3,
 	}
 
 	.bi {
-		font-size: 1.05rem;
+		font-size: var(--slm-text-md);
 	}
 
 	&:hover {
@@ -317,7 +348,7 @@ h3,
 	.app-nav:not(.app-nav-compact) .nav-link {
 		gap: .3rem;
 		padding-inline: .4rem;
-		font-size: .9rem;
+		font-size: var(--slm-text-sm);
 	}
 }
 
@@ -368,12 +399,12 @@ h3,
 	border-radius: 50%;
 	background: color-mix(in srgb, var(--issue-color) 18%, transparent);
 	color: var(--issue-color);
-	font-size: 1.2rem;
+	font-size: var(--slm-text-lg);
 }
 
 .issue-kind-title {
 	margin: 0;
-	font-size: 1rem;
+	font-size: var(--slm-text-md);
 	font-weight: 600;
 	line-height: 1.3;
 }
@@ -383,7 +414,7 @@ h3,
 	flex-wrap: wrap;
 	gap: .15rem .6rem;
 	color: var(--bs-secondary-color);
-	font-size: .8rem;
+	font-size: var(--slm-text-xs);
 
 	&:empty {
 		display: none;
@@ -393,7 +424,7 @@ h3,
 .issue-kind-count {
 	flex: 0 0 auto;
 	color: var(--issue-color);
-	font-size: 1.75rem;
+	font-size: var(--slm-text-xl);
 	font-weight: 700;
 	font-variant-numeric: tabular-nums;
 	line-height: 1;
@@ -460,7 +491,7 @@ h3,
 }
 
 .orphan-id {
-	font-size: .8rem;
+	font-size: var(--slm-text-xs);
 	text-decoration: none;
 
 	&.is-copied .bi::before {
@@ -554,7 +585,7 @@ h3,
 	display: flex;
 	flex-wrap: wrap;
 	gap: .2rem .8rem;
-	font-size: .8rem;
+	font-size: var(--slm-text-xs);
 	color: var(--bs-secondary-color);
 
 	.bi {
@@ -627,7 +658,7 @@ h3,
 	align-items: center;
 	gap: .4rem;
 	margin: -.5rem 0 1rem;
-	font-size: .875rem;
+	font-size: var(--slm-text-sm);
 	text-decoration: none;
 }
 
@@ -661,7 +692,7 @@ h3,
 	white-space: normal;
 
 	> .bi {
-		font-size: 1.15rem;
+		font-size: var(--slm-text-lg);
 		margin-top: .1rem;
 		color: var(--bs-primary);
 	}
@@ -674,7 +705,7 @@ h3,
 
 .nav-menu-text {
 	display: block;
-	font-size: .8rem;
+	font-size: var(--slm-text-xs);
 	color: var(--bs-secondary-color);
 }
 
@@ -687,7 +718,7 @@ h3,
 // the sections of the side menu of phones and tablets
 .nav-section-title {
 	padding: 0 .9rem .3rem;
-	font-size: .75rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 700;
 	letter-spacing: .04em;
 	text-transform: uppercase;
@@ -701,7 +732,7 @@ h3,
 
 .nav-account .dropdown-header {
 	padding: .6rem .9rem .3rem;
-	font-size: .75rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 700;
 	letter-spacing: .04em;
 	text-transform: uppercase;
@@ -717,7 +748,7 @@ h3,
 .settings-shortcut {
 	align-items: center;
 	padding: .35rem .5rem;
-	font-size: 1.15rem;
+	font-size: var(--slm-text-lg);
 	color: var(--bs-secondary-color);
 	border-radius: $border-radius;
 
@@ -851,7 +882,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 .nav-count {
 	min-width: 1.4rem;
 	padding: .2em .5em;
-	font-size: .7rem;
+	font-size: var(--slm-text-xs);
 	line-height: 1.2;
 }
 
@@ -871,7 +902,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	}
 
 	.page-count {
-		font-size: .95rem;
+		font-size: var(--slm-text-md);
 		vertical-align: middle;
 		background: var(--slm-surface-muted);
 		color: var(--bs-body-color);
@@ -940,7 +971,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 }
 
 .section-title {
-	font-size: 1.15rem;
+	font-size: var(--slm-text-lg);
 	font-weight: 700;
 	display: flex;
 	align-items: center;
@@ -1061,7 +1092,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 
 .task-note {
 	margin-top: .4rem;
-	font-size: .85rem;
+	font-size: var(--slm-text-sm);
 }
 
 .task-detail {
@@ -1087,7 +1118,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	border: 1px solid var(--slm-border);
 	background: var(--slm-surface);
 	color: var(--bs-secondary-color);
-	font-size: .85rem;
+	font-size: var(--slm-text-sm);
 	font-weight: 600;
 	text-decoration: none;
 	transition: color .15s ease, background-color .15s ease, border-color .15s ease;
@@ -1113,7 +1144,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 		padding: .05rem .4rem;
 		border-radius: 1rem;
 		background: var(--slm-surface-muted);
-		font-size: .75rem;
+		font-size: var(--slm-text-xs);
 		text-align: center;
 		font-variant-numeric: tabular-nums;
 	}
@@ -1157,7 +1188,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 		}
 
 		.game-title {
-			font-size: .8rem;
+			font-size: var(--slm-text-xs);
 		}
 
 		.game-meta,
@@ -1166,7 +1197,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 		}
 
 		.chip {
-			font-size: .68rem;
+			font-size: var(--slm-text-xs);
 			padding: .2rem .45rem;
 		}
 	}
@@ -1247,7 +1278,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	}
 
 	.game-title {
-		font-size: 1rem;
+		font-size: var(--slm-text-md);
 		font-weight: 700;
 		line-height: 1.3;
 		margin: 0;
@@ -1263,7 +1294,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	}
 
 	.game-meta {
-		font-size: .85rem;
+		font-size: var(--slm-text-sm);
 		color: var(--bs-secondary-color);
 	}
 
@@ -1293,7 +1324,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 
 @include media-breakpoint-down(sm) {
 	.game-card .chip:has(.version-arrow) {
-		font-size: .7rem;
+		font-size: var(--slm-text-xs);
 		padding-inline: .5rem;
 	}
 }
@@ -1303,7 +1334,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	white-space: nowrap;
 
 	@include media-breakpoint-down(sm) {
-		font-size: .875rem;
+		font-size: var(--slm-text-sm);
 		padding-inline: .85rem;
 	}
 }
@@ -1322,7 +1353,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	border-radius: 50%;
 	background: rgba(0, 0, 0, .55);
 	color: #fff;
-	font-size: 1rem;
+	font-size: var(--slm-text-md);
 	backdrop-filter: blur(4px);
 	transition: transform .15s ease, background-color .15s ease;
 
@@ -1347,7 +1378,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	gap: .35rem;
 	padding: .3rem .65rem;
 	border-radius: 2rem;
-	font-size: .78rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 600;
 	line-height: 1.2;
 	max-width: 100%;
@@ -1425,7 +1456,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	}
 
 	h2 {
-		font-size: 1.35rem;
+		font-size: var(--slm-text-lg);
 	}
 
 	p {
@@ -1597,7 +1628,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 
 		// the download label with its size fits on one line on phones
 		@include media-breakpoint-down(sm) {
-			font-size: .875rem;
+			font-size: var(--slm-text-sm);
 			padding-inline: .9rem;
 		}
 	}
@@ -1648,7 +1679,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 		display: flex;
 		align-items: center;
 		gap: .4rem;
-		font-size: .72rem;
+		font-size: var(--slm-text-xs);
 		font-weight: 600;
 		text-transform: uppercase;
 		letter-spacing: .05em;
@@ -1664,7 +1695,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 
 	.fact-value {
 		margin: 0;
-		font-size: 1.05rem;
+		font-size: var(--slm-text-md);
 		font-weight: 700;
 		line-height: 1.25;
 		white-space: nowrap;
@@ -1674,14 +1705,14 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 
 	// a 16 digit ID fits on one line
 	.fact-id {
-		font-size: 1rem;
+		font-size: var(--slm-text-md);
 		letter-spacing: .02em;
 	}
 
 	.fact-sub {
 		display: block;
 		margin-top: .15rem;
-		font-size: .8rem;
+		font-size: var(--slm-text-xs);
 		font-weight: 500;
 		color: var(--bs-secondary-color);
 		overflow: hidden;
@@ -1707,7 +1738,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	margin-bottom: 1rem;
 
 	.section-title .badge {
-		font-size: .75rem;
+		font-size: var(--slm-text-xs);
 	}
 }
 
@@ -1780,13 +1811,13 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	height: 2.4rem;
 	border-radius: $border-radius-lg;
 	background: var(--slm-surface-muted);
-	font-size: 1.15rem;
+	font-size: var(--slm-text-lg);
 	align-self: start;
 }
 
 .issue-reason {
 	margin-top: .15rem;
-	font-size: .9rem;
+	font-size: var(--slm-text-sm);
 	overflow-wrap: anywhere;
 }
 
@@ -1906,7 +1937,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	flex-wrap: wrap;
 	gap: .15rem .9rem;
 	margin-top: .2rem;
-	font-size: .82rem;
+	font-size: var(--slm-text-sm);
 	color: var(--bs-secondary-color);
 }
 
@@ -1967,7 +1998,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	}
 
 	thead th {
-		font-size: .78rem;
+		font-size: var(--slm-text-xs);
 		text-transform: uppercase;
 		letter-spacing: .04em;
 		color: var(--bs-secondary-color);
@@ -1982,7 +2013,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	width: 3rem;
 	height: 3rem;
 	border-radius: $border-radius-lg;
-	font-size: 1.35rem;
+	font-size: var(--slm-text-lg);
 	background: var(--slm-accent-soft);
 	color: $primary;
 
@@ -1994,7 +2025,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	&.task-icon {
 		width: 2.5rem;
 		height: 2.5rem;
-		font-size: 1.1rem;
+		font-size: var(--slm-text-md);
 	}
 }
 
@@ -2011,7 +2042,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	}
 
 	.stat-value {
-		font-size: 1.6rem;
+		font-size: var(--slm-text-xl);
 		font-weight: 800;
 		line-height: 1.1;
 		font-variant-numeric: tabular-nums;
@@ -2019,7 +2050,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 
 	.stat-label {
 		color: var(--bs-secondary-color);
-		font-size: .85rem;
+		font-size: var(--slm-text-sm);
 	}
 }
 
@@ -2032,7 +2063,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 // the groups of the sections of Settings
 .settings-nav-heading {
 	padding: .9rem 1rem .25rem;
-	font-size: .72rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 700;
 	letter-spacing: .05em;
 	text-transform: uppercase;
@@ -2153,7 +2184,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 .app-footer {
 	border-top: 1px solid var(--slm-border);
 	color: var(--bs-secondary-color);
-	font-size: .85rem;
+	font-size: var(--slm-text-sm);
 
 	a {
 		color: inherit;
@@ -2248,7 +2279,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	&.user-avatar-sm {
 		width: 1.6rem;
 		height: 1.6rem;
-		font-size: .8rem;
+		font-size: var(--slm-text-xs);
 	}
 
 	&.user-avatar-lg {
@@ -2431,14 +2462,14 @@ $avatar-colors: (
 		width: 2.9rem;
 		height: 2.9rem;
 		border-radius: $border-radius-lg;
-		font-size: 1.3rem;
+		font-size: var(--slm-text-lg);
 		color: var(--kpi-color);
 		background: var(--kpi-soft);
 	}
 
 	.kpi-value {
 		grid-area: value;
-		font-size: 1.55rem;
+		font-size: var(--slm-text-xl);
 		font-weight: 800;
 		line-height: 1.1;
 		letter-spacing: -.02em;
@@ -2447,13 +2478,13 @@ $avatar-colors: (
 
 	.kpi-detail {
 		display: block;
-		font-size: .8em;
+		font-size: max(var(--slm-text-xs), .8em);
 		color: var(--bs-secondary-color);
 	}
 
 	.kpi-label {
 		grid-area: label;
-		font-size: .8rem;
+		font-size: var(--slm-text-xs);
 		line-height: 1.25;
 		color: var(--bs-secondary-color);
 	}
@@ -2708,7 +2739,7 @@ $avatar-colors: (
 	width: 2rem;
 	height: 2rem;
 	border-radius: 50%;
-	font-size: 1.05rem;
+	font-size: var(--slm-text-md);
 	color: #1a1300;
 	background: $warning;
 	box-shadow: 0 4px 12px -2px rgba(0, 0, 0, .45);
@@ -2735,7 +2766,7 @@ $avatar-colors: (
 	}
 
 	.dlc-progress-label {
-		font-size: .72rem;
+		font-size: var(--slm-text-xs);
 		font-weight: 600;
 		// the full color of the text: the row it is in is dimmed when there is no DLC
 		color: var(--bs-body-color);
@@ -2847,12 +2878,12 @@ $avatar-colors: (
 
 	.donut-value {
 		font-weight: 800;
-		font-size: 1.05rem;
+		font-size: var(--slm-text-md);
 		letter-spacing: -.02em;
 	}
 
 	.donut-label {
-		font-size: .7rem;
+		font-size: var(--slm-text-xs);
 		color: var(--bs-secondary-color);
 	}
 }
@@ -2867,7 +2898,7 @@ $avatar-colors: (
 		display: flex;
 		align-items: center;
 		gap: .6rem;
-		font-size: .9rem;
+		font-size: var(--slm-text-sm);
 	}
 }
 
@@ -2907,7 +2938,7 @@ $avatar-colors: (
 	.gauge-value {
 		position: relative;
 		font-weight: 800;
-		font-size: 1.1rem;
+		font-size: var(--slm-text-md);
 		font-variant-numeric: tabular-nums;
 	}
 
@@ -2921,7 +2952,7 @@ $avatar-colors: (
 		}
 
 		.gauge-value {
-			font-size: .72rem;
+			font-size: var(--slm-text-xs);
 		}
 	}
 }
@@ -3174,7 +3205,7 @@ $avatar-colors: (
 	border-radius: 2rem;
 	background: color-mix(in srgb, var(--op-color) 10%, transparent);
 	color: var(--bs-body-color);
-	font-size: .875rem;
+	font-size: var(--slm-text-sm);
 	transition: background-color .15s, box-shadow .15s;
 
 	.bi {
@@ -3228,7 +3259,7 @@ $avatar-colors: (
 	align-items: center;
 	gap: .4rem;
 	color: var(--op-color);
-	font-size: .8rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 600;
 	letter-spacing: .02em;
 	text-transform: uppercase;
@@ -3254,7 +3285,7 @@ $avatar-colors: (
 
 .op-folder {
 	color: var(--bs-secondary-color);
-	font-size: .8rem;
+	font-size: var(--slm-text-xs);
 }
 
 .op-target {
@@ -3269,7 +3300,7 @@ $avatar-colors: (
 
 .op-note {
 	color: var(--bs-secondary-color);
-	font-size: .85rem;
+	font-size: var(--slm-text-sm);
 
 	.op-review &,
 	.op-error & {
@@ -3354,7 +3385,7 @@ $avatar-colors: (
 	align-items: center;
 	gap: .35rem .6rem;
 	color: var(--bs-secondary-color);
-	font-size: .8rem;
+	font-size: var(--slm-text-xs);
 }
 
 .file-kind {
@@ -3372,7 +3403,7 @@ $avatar-colors: (
 	padding: .05rem .4rem;
 	border: 1px solid var(--bs-border-color);
 	border-radius: .35rem;
-	font-size: .72rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 600;
 	letter-spacing: .03em;
 }
@@ -3380,7 +3411,7 @@ $avatar-colors: (
 .file-row-file {
 	min-width: 0;
 	font-family: var(--bs-font-monospace);
-	font-size: .75rem;
+	font-size: var(--slm-text-xs);
 	overflow-wrap: anywhere;
 }
 
@@ -3425,7 +3456,7 @@ $avatar-colors: (
 	border-radius: .8rem;
 	background: var(--slm-surface);
 	box-shadow: 0 .75rem 2rem rgba(0, 0, 0, .35);
-	font-size: .85rem;
+	font-size: var(--slm-text-sm);
 
 	li {
 		--hint-color: var(--slm-chart-6);
@@ -3449,7 +3480,7 @@ $avatar-colors: (
 .nav-hint-title {
 	margin-bottom: .5rem;
 	color: var(--bs-secondary-color);
-	font-size: .75rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 600;
 	letter-spacing: .04em;
 	text-transform: uppercase;
@@ -3486,7 +3517,7 @@ $avatar-colors: (
 
 	.copy-icon,
 	.copied-icon {
-		font-size: .85em;
+		font-size: max(var(--slm-text-xs), .85em);
 		opacity: .6;
 		transition: opacity .15s;
 	}
@@ -3516,7 +3547,7 @@ $avatar-colors: (
 	border-radius: 1rem;
 	background: color-mix(in srgb, var(--slm-chart-2) 14%, transparent);
 	color: var(--slm-chart-2);
-	font-size: .75rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 600;
 	letter-spacing: .02em;
 }
@@ -3556,7 +3587,7 @@ $avatar-colors: (
 	position: absolute;
 	top: 0;
 	left: 0;
-	font-size: .75rem;
+	font-size: var(--slm-text-xs);
 }
 
 .history-chart {
@@ -3687,11 +3718,11 @@ $avatar-colors: (
 	.kpi .kpi-icon {
 		width: 2rem;
 		height: 2rem;
-		font-size: 1rem;
+		font-size: var(--slm-text-md);
 	}
 
 	.kpi .kpi-value {
-		font-size: 1.3rem;
+		font-size: var(--slm-text-lg);
 	}
 }
 
@@ -3714,7 +3745,7 @@ $avatar-colors: (
 	align-items: center;
 	gap: .4rem;
 	margin-bottom: .5rem;
-	font-size: .75rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 700;
 	letter-spacing: .04em;
 	text-transform: uppercase;
@@ -3737,7 +3768,7 @@ $avatar-colors: (
 	border: 1px solid var(--slm-border);
 	background: var(--slm-surface-muted);
 	color: var(--bs-body-color);
-	font-size: .85rem;
+	font-size: var(--slm-text-sm);
 	text-decoration: none;
 	transition: border-color .15s ease, background-color .15s ease;
 
@@ -3756,7 +3787,7 @@ $avatar-colors: (
 
 .filter-count {
 	color: var(--bs-secondary-color);
-	font-size: .8em;
+	font-size: max(var(--slm-text-xs), .8em);
 	font-variant-numeric: tabular-nums;
 }
 
@@ -3766,7 +3797,7 @@ $avatar-colors: (
 
 	.bi-x {
 		margin-right: -.25rem;
-		font-size: 1rem;
+		font-size: var(--slm-text-md);
 		opacity: .7;
 	}
 }
@@ -3785,7 +3816,7 @@ $avatar-colors: (
 	border: 0;
 	background: none;
 	color: var(--bs-secondary-color);
-	font-size: 1rem;
+	font-size: var(--slm-text-md);
 	line-height: 1;
 	opacity: .55;
 	transition: opacity .15s ease, transform .15s ease, color .15s ease;
@@ -3794,12 +3825,12 @@ $avatar-colors: (
 	&:focus-visible {
 		opacity: 1;
 		transform: scale(1.15);
-		color: $warning;
+		color: $slm-gold;
 	}
 
 	&.is-favorite {
 		opacity: 1;
-		color: $warning;
+		color: $slm-gold;
 	}
 }
 
@@ -3829,7 +3860,7 @@ $avatar-colors: (
 	flex-wrap: wrap;
 	gap: .35rem 1.1rem;
 	margin: 0 0 .9rem;
-	font-size: .8rem;
+	font-size: var(--slm-text-xs);
 	color: var(--bs-secondary-color);
 
 	> span {
@@ -3874,7 +3905,7 @@ $avatar-colors: (
 
 
 .saga-state {
-	font-size: .75rem;
+	font-size: var(--slm-text-xs);
 	color: var(--bs-secondary-color);
 }
 
@@ -3892,7 +3923,7 @@ $avatar-colors: (
 	align-content: flex-start;
 	align-items: flex-start;
 	gap: .3rem;
-	font-size: .85rem;
+	font-size: var(--slm-text-sm);
 }
 
 /* games by year of release */
@@ -3923,7 +3954,7 @@ $avatar-colors: (
 
 	small {
 		margin-top: .25rem;
-		font-size: .65rem;
+		font-size: var(--slm-text-xs);
 		color: var(--bs-secondary-color);
 	}
 }
@@ -3950,7 +3981,7 @@ $avatar-colors: (
 }
 
 .sd-game .item-meta .chip {
-	font-size: .72rem;
+	font-size: var(--slm-text-xs);
 }
 
 .sd-options .btn-check:checked + .filter-choice {
@@ -4004,7 +4035,7 @@ $avatar-colors: (
 }
 
 .saga-title {
-	font-size: 1rem;
+	font-size: var(--slm-text-md);
 	font-weight: 700;
 	margin: 0;
 	min-width: 0;
@@ -4039,7 +4070,7 @@ $avatar-colors: (
 }
 
 .saga-more {
-	font-size: .8rem;
+	font-size: var(--slm-text-xs);
 	color: var(--bs-secondary-color);
 }
 
@@ -4056,12 +4087,12 @@ $avatar-colors: (
 	}
 
 	.game-title {
-		font-size: .85rem;
+		font-size: var(--slm-text-sm);
 		-webkit-line-clamp: 2;
 	}
 
 	.game-meta {
-		font-size: .75rem;
+		font-size: var(--slm-text-xs);
 		display: flex;
 		gap: .3rem;
 		align-items: baseline;
@@ -4079,7 +4110,7 @@ $avatar-colors: (
 		right: .45rem;
 		width: 1.9rem;
 		height: 1.9rem;
-		font-size: .9rem;
+		font-size: var(--slm-text-sm);
 	}
 
 	&.is-for-you {
@@ -4100,7 +4131,7 @@ $avatar-colors: (
 	border-radius: 999px;
 	background: rgba(0, 0, 0, .7);
 	color: #fff;
-	font-size: .72rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 700;
 	backdrop-filter: blur(4px);
 }
@@ -4268,7 +4299,7 @@ $avatar-colors: (
 	align-items: center;
 	gap: .35rem;
 	color: var(--bs-secondary-color);
-	font-size: .9rem;
+	font-size: var(--slm-text-sm);
 }
 
 .featured-countdown {
@@ -4280,7 +4311,7 @@ $avatar-colors: (
 	margin-right: 2.5rem;
 
 	.countdown-number {
-		font-size: 2.6rem;
+		font-size: var(--slm-text-2xl);
 		font-weight: 800;
 		line-height: 1;
 		color: var(--bs-emphasis-color);
@@ -4288,7 +4319,7 @@ $avatar-colors: (
 	}
 
 	.countdown-label {
-		font-size: .8rem;
+		font-size: var(--slm-text-xs);
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: .04em;
@@ -4300,7 +4331,7 @@ $avatar-colors: (
 		align-items: baseline;
 
 		.countdown-number {
-			font-size: 1.6rem;
+			font-size: var(--slm-text-xl);
 		}
 	}
 }
@@ -4345,14 +4376,14 @@ $avatar-colors: (
 	border-radius: $border-radius;
 	background: none;
 	color: var(--bs-secondary-color);
-	font-size: .68rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 600;
 	text-decoration: none;
 	transition: color .15s ease;
 
 	> .bi {
 		position: relative;
-		font-size: 1.25rem;
+		font-size: var(--slm-text-lg);
 		line-height: 1.2;
 		transition: transform .2s cubic-bezier(.3, 1.6, .5, 1);
 	}
@@ -4392,13 +4423,13 @@ $avatar-colors: (
 	position: absolute;
 	top: -.25rem;
 	left: 70%;
-	min-width: 1.05rem;
+	min-width: 1.25rem;
 	padding: 0 .3rem;
 	border-radius: 999px;
 	background: $warning;
 	color: #000;
 	font-family: $font-family-base;
-	font-size: .6rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 800;
 	line-height: 1.05rem;
 	text-align: center;
@@ -4478,18 +4509,18 @@ $avatar-colors: (
 
 .check-label {
 	font-weight: 600;
-	font-size: .9rem;
+	font-size: var(--slm-text-sm);
 }
 
 .check-value {
-	font-size: .9rem;
+	font-size: var(--slm-text-sm);
 	color: var(--bs-secondary-color);
 	text-align: right;
 }
 
 .check-hint {
 	margin-top: .25rem;
-	font-size: .8rem;
+	font-size: var(--slm-text-xs);
 	color: var(--bs-secondary-color);
 }
 
@@ -4599,7 +4630,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	background: var(--slm-surface);
 	color: var(--bs-secondary-color);
 	font-family: inherit;
-	font-size: .7rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 600;
 	line-height: 1.4;
 	box-shadow: none;
@@ -4638,7 +4669,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 
 .quick-search-icon {
 	color: var(--bs-secondary-color);
-	font-size: 1.1rem;
+	font-size: var(--slm-text-md);
 }
 
 .quick-search-input,
@@ -4646,7 +4677,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	padding: .45rem 0;
 	border: 0;
 	background: transparent;
-	font-size: 1.05rem;
+	font-size: var(--slm-text-md);
 	box-shadow: none !important;
 
 	&::-webkit-search-cancel-button {
@@ -4671,7 +4702,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	padding: .7rem .6rem .3rem;
 	background: var(--slm-surface-raised);
 	color: var(--bs-secondary-color);
-	font-size: .7rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 700;
 	letter-spacing: .06em;
 	text-transform: uppercase;
@@ -4710,7 +4741,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	border-radius: .5rem;
 	background: var(--slm-surface-muted);
 	color: var(--bs-secondary-color);
-	font-size: 1rem;
+	font-size: var(--slm-text-md);
 
 	img {
 		width: 100%;
@@ -4736,7 +4767,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 .quick-search-meta {
 	overflow: hidden;
 	color: var(--bs-secondary-color);
-	font-size: .78rem;
+	font-size: var(--slm-text-xs);
 	font-variant-numeric: tabular-nums;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -4769,7 +4800,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	gap: 1.25rem;
 	padding: .5rem 1rem;
 	color: var(--bs-secondary-color);
-	font-size: .78rem;
+	font-size: var(--slm-text-xs);
 
 	span {
 		display: inline-flex;
@@ -4852,7 +4883,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	align-items: center;
 	gap: .4rem;
 	margin-bottom: .35rem;
-	font-size: .8rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 700;
 	letter-spacing: .08em;
 	text-transform: uppercase;
@@ -4870,7 +4901,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 .year-lead {
 	max-width: 36rem;
 	margin-bottom: 0;
-	font-size: 1.05rem;
+	font-size: var(--slm-text-md);
 	opacity: .9;
 }
 
@@ -4934,7 +4965,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 .year-month-count {
 	min-height: 1rem;
 	color: var(--bs-secondary-color);
-	font-size: .72rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 600;
 	font-variant-numeric: tabular-nums;
 }
@@ -4961,7 +4992,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	overflow: hidden;
 	max-width: 100%;
 	color: var(--bs-secondary-color);
-	font-size: .7rem;
+	font-size: var(--slm-text-xs);
 	text-overflow: ellipsis;
 	white-space: nowrap;
 }
@@ -4993,12 +5024,12 @@ html[data-section="backup"] #settingsForm .save-bar {
 	border-radius: .75rem;
 	background: var(--slm-accent-soft);
 	color: var(--bs-primary-text-emphasis);
-	font-size: 1.05rem;
+	font-size: var(--slm-text-md);
 }
 
 .year-fact-label {
 	color: var(--bs-secondary-color);
-	font-size: .75rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 600;
 	letter-spacing: .03em;
 	text-transform: uppercase;
@@ -5019,7 +5050,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 
 .year-fact-sub {
 	color: var(--bs-secondary-color);
-	font-size: .78rem;
+	font-size: var(--slm-text-xs);
 }
 
 // the link from Statistics
@@ -5036,7 +5067,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 
 	.bi-stars {
 		color: $slm-red;
-		font-size: 1.25rem;
+		font-size: var(--slm-text-lg);
 	}
 
 	&:hover {
@@ -5126,7 +5157,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 
 .version-code {
 	color: var(--bs-secondary-color);
-	font-size: .78rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 500;
 	font-variant-numeric: tabular-nums;
 }
@@ -5137,7 +5168,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	align-items: center;
 	gap: .6rem;
 	color: var(--bs-secondary-color);
-	font-size: .8rem;
+	font-size: var(--slm-text-xs);
 
 	.bi {
 		margin-right: .3rem;
@@ -5148,7 +5179,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	summary {
 		padding: .4rem 0 .4rem 1.7rem;
 		color: var(--bs-link-color);
-		font-size: .85rem;
+		font-size: var(--slm-text-sm);
 		font-weight: 600;
 		cursor: pointer;
 	}
@@ -5178,7 +5209,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 .time-to-beat-source {
 	flex-basis: 100%;
 	color: var(--bs-secondary-color);
-	font-size: .72rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 500;
 	text-decoration: none;
 
@@ -5189,13 +5220,13 @@ html[data-section="backup"] #settingsForm .save-bar {
 
 .time-teaser .bi-hourglass-split {
 	color: $slm-cyan;
-	font-size: 1.25rem;
+	font-size: var(--slm-text-lg);
 }
 
 .igdb-settings legend {
 	float: none;
 	margin-bottom: .25rem;
-	font-size: 1rem;
+	font-size: var(--slm-text-md);
 }
 
 // Settings > Automations: the steps, in the order they run
@@ -5233,7 +5264,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	border-radius: 50%;
 	background: var(--slm-accent-soft);
 	color: var(--bs-primary-text-emphasis);
-	font-size: .78rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 700;
 }
 
@@ -5336,13 +5367,13 @@ html[data-section="backup"] #settingsForm .save-bar {
 		width: 3.4rem;
 		height: 3.4rem;
 		border-radius: 1rem;
-		font-size: 1.6rem;
+		font-size: var(--slm-text-xl);
 	}
 }
 
 .wizard-art-caption {
 	margin: 0;
-	font-size: 1.15rem;
+	font-size: var(--slm-text-lg);
 	font-weight: 800;
 	letter-spacing: -.01em;
 	text-align: center;
@@ -5408,7 +5439,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 .wizard-counter {
 	margin: 0 0 .35rem;
 	color: var(--bs-secondary-color);
-	font-size: .75rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 700;
 	letter-spacing: .06em;
 	text-transform: uppercase;
@@ -5430,7 +5461,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	border-radius: $border-radius;
 	background: rgba($danger, .14);
 	color: var(--bs-danger-text-emphasis);
-	font-size: .88rem;
+	font-size: var(--slm-text-sm);
 	font-weight: 500;
 }
 
@@ -5461,10 +5492,10 @@ html[data-section="backup"] #settingsForm .save-bar {
 	padding: .35rem .75rem;
 	border-radius: 2rem;
 	background: var(--slm-cyan-soft);
-	font-size: .82rem;
+	font-size: var(--slm-text-sm);
 
 	code {
-		font-size: .8rem;
+		font-size: var(--slm-text-xs);
 	}
 
 	&.wizard-now-ok {
@@ -5498,7 +5529,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	border-radius: $border-radius-lg;
 	background: var(--slm-surface-muted);
 	color: var(--bs-body-color);
-	font-size: .86rem;
+	font-size: var(--slm-text-sm);
 	font-weight: 600;
 	text-align: center;
 	cursor: pointer;
@@ -5551,7 +5582,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 
 .wizard-check-line {
 	margin: .35rem 0 0;
-	font-size: .85rem;
+	font-size: var(--slm-text-sm);
 
 	&.is-ok .bi {
 		color: var(--bs-success);
@@ -5587,7 +5618,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	border: 2px solid var(--slm-border);
 	border-radius: 2rem;
 	background: var(--slm-surface-muted);
-	font-size: .82rem;
+	font-size: var(--slm-text-sm);
 	font-weight: 600;
 	cursor: pointer;
 	transition: border-color .15s ease, background-color .15s ease;
@@ -5604,7 +5635,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 
 .wizard-flow-arrow {
 	color: var(--bs-secondary-color);
-	font-size: .8rem;
+	font-size: var(--slm-text-xs);
 }
 
 .wizard-summary {
@@ -5624,13 +5655,13 @@ html[data-section="backup"] #settingsForm .save-bar {
 
 .wizard-summary-icon {
 	color: var(--bs-primary-text-emphasis);
-	font-size: 1.1rem;
+	font-size: var(--slm-text-md);
 	text-align: center;
 }
 
 .wizard-summary-label {
 	color: var(--bs-secondary-color);
-	font-size: .82rem;
+	font-size: var(--slm-text-sm);
 }
 
 .wizard-summary-value {
@@ -5689,7 +5720,7 @@ body:has(.wizard.show) #alert_sync {
 
 .wizard-teaser .bi-signpost-split {
 	color: $slm-red;
-	font-size: 1.25rem;
+	font-size: var(--slm-text-lg);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -5884,7 +5915,7 @@ body:has(.wizard.show) #alert_sync {
 
 .save-game-meta {
 	color: var(--bs-secondary-color);
-	font-size: .82rem;
+	font-size: var(--slm-text-sm);
 
 	.bi {
 		margin-right: .3rem;
@@ -6070,7 +6101,7 @@ body:has(.wizard.show) #alert_sync {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 0.75rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 600;
 	background: rgba(127, 127, 127, 0.18);
 }
@@ -6161,21 +6192,21 @@ body:has(.wizard.show) #alert_sync {
 		width: 2.6rem;
 		height: 2.6rem;
 		border-radius: $border-radius-lg;
-		font-size: 1.25rem;
+		font-size: var(--slm-text-lg);
 		color: #{$slm-red};
 		background: var(--slm-accent-soft);
 	}
 
 	.whats-new-title {
 		margin: 0;
-		font-size: 1.1rem;
+		font-size: var(--slm-text-md);
 		font-weight: 700;
 	}
 
 	.whats-new-list {
 		margin: 0;
 		padding-left: 1.2rem;
-		font-size: .925rem;
+		font-size: var(--slm-text-sm);
 
 		li + li {
 			margin-top: .35rem;
@@ -6183,7 +6214,7 @@ body:has(.wizard.show) #alert_sync {
 	}
 
 	.whats-new-link {
-		font-size: .875rem;
+		font-size: var(--slm-text-sm);
 		text-decoration: none;
 	}
 
@@ -6196,7 +6227,7 @@ body:has(.wizard.show) #alert_sync {
 		margin-top: .25rem;
 		padding-top: .85rem;
 		border-top: 1px solid var(--slm-border);
-		font-size: .875rem;
+		font-size: var(--slm-text-sm);
 	}
 }
 
@@ -6244,7 +6275,7 @@ body:has(.wizard.show) #alert_sync {
 	height: 3rem;
 	border-radius: 50%;
 	background: conic-gradient(#{$success} calc(var(--pct) * 1%), var(--slm-border) 0);
-	font-size: .75rem;
+	font-size: var(--slm-text-xs);
 	font-weight: 700;
 
 	&::before {
@@ -6514,5 +6545,54 @@ body {
 
 	.issue-kind-count {
 		color: color-mix(in srgb, var(--issue-color) 60%, #000);
+	}
+}
+
+// The selection cursor of a console: the game card with the keyboard focus wears a ring of 3px in
+// the color of the focus that breathes, drawn inside the card by its ring of the pointer (so the
+// rows that scroll sideways do not cut it, and the animations of the card stay its own). The
+// other cards that are links show a still ring of 3px.
+.game-card:has(.stretched-link:focus-visible)::before {
+	padding: 3px;
+	background: var(--slm-focus);
+	opacity: 1;
+}
+
+.game-card .stretched-link:focus-visible {
+	outline: none;
+}
+
+.saga-card:has(.saga-title a:focus-visible),
+.setup-step:has(:focus-visible),
+.maintenance-step:has(:focus-visible),
+.kpi:focus-visible {
+	outline: 3px solid var(--slm-focus);
+	outline-offset: 3px;
+}
+
+.saga-card .saga-title a:focus-visible {
+	outline: none;
+}
+
+@keyframes slm-cursor {
+	50% {
+		padding: 2px;
+		opacity: .55;
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.game-card:has(.stretched-link:focus-visible)::before {
+		animation: slm-cursor 1.6s ease-in-out infinite;
+	}
+}
+
+// 8: the space of the SD card is information, not an alarm
+.sd-meter .progress-bar {
+	background-color: var(--slm-chart-2);
+	transition: width .4s ease, background-color .3s ease;
+
+	&.is-near {
+		background-color: $warning;
 	}
 }

@@ -30,6 +30,18 @@
 - The charts of the statistics are calmer: one color for each chart instead of a different color on each row, no
   stripes (in the rest of the app they mean that something is working) and numbers of the same width.
 
+### Changes
+
+- One color for each meaning: the updates (the circle on the covers, the chips and the counts) are amber now, and
+  the gold stays for the favorites and the completed sagas, so that an update no longer looks like a favorite.
+- The texts follow one scale of six sizes and none is smaller than 12px: the badges on the covers, the details of the
+  cards, the counts and the labels of the bottom bar of the phone are easier to read.
+- The bar of the SD card planner is cyan while the games fit, amber when the card is nearly full and red only when
+  they do not fit, instead of red all the time.
+- The game card chosen with the keyboard wears a ring in the color of the focus that breathes, like the cursor of a
+  console (still when the system asks for less motion); the numbers of the overview, the sagas and the steps of the
+  setup show a ring of the same color.
+
 ## 1.41.5
 
 ### Improvements
