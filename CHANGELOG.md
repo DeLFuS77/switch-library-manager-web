@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- A library folder listed twice in Settings, or inside another one listed, is scanned once: its files were read
+  twice and each one counted as a duplicate of itself, which Space could offer to delete with the only copy. Each
+  file is also kept once by its path, whatever the folders.
+
 ## 1.45.0
 
 ### Improvements
