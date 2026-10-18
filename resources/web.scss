@@ -22,6 +22,8 @@ $slm-red:  #d62839; // 4.9:1 on white, primary actions
 $slm-cyan: #0fb5d8; // secondary accent, information
 $slm-ink:  #0d1117;
 $slm-violet: #7c5cff; // the tools of the menu and their pages
+$slm-violet-light: #a78bfa; // the violet on dark backgrounds, where #7c5cff is too faint
+$slm-violet-deep: #6a48f0; // the violet for the text and icons of the light theme
 
 $primary:   $slm-red;
 $info:      $slm-cyan;
@@ -819,40 +821,36 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 // while background work runs the tasks link wears the accent, with a ring around its icon that
 // fills with the progress of the task (or glows when the progress is not known)
 .app-nav .nav-link.is-working {
+	// the violet of the tools on every page, the color of the header of Tasks: lighter on the
+	// dark theme so that it stands out on the dark of the menu (6.6:1 on the active link) and
+	// deeper on the light one (4.7:1)
+	--task-color: #{$slm-violet-light};
+	--task-color-rgb: #{red($slm-violet-light)}, #{green($slm-violet-light)}, #{blue($slm-violet-light)};
+	--task-glow: rgba(var(--task-color-rgb), .75);
 	color: var(--bs-emphasis-color);
 
-	// on the dark of the menu the fan and its ring wear the accent; on the Tasks page they wear the
-	// violet of the tools, the color of the header of the page (3.7:1 on the active link)
+	[data-bs-theme="light"] & {
+		--task-color: #{$slm-violet-deep};
+		--task-color-rgb: #{red($slm-violet-deep)}, #{green($slm-violet-deep)}, #{blue($slm-violet-deep)};
+	}
+
 	.bi {
 		position: relative;
-		color: #{$slm-red};
+		color: var(--task-color);
 
 		&::after {
 			content: "";
 			position: absolute;
 			inset: -.32em;
 			border-radius: 50%;
-			background: conic-gradient(#{$slm-red} calc(var(--task-pct, 0) * 1%), rgba($slm-red, .18) 0);
+			background: conic-gradient(var(--task-color) calc(var(--task-pct, 0) * 1%), rgba(var(--task-color-rgb), .25) 0);
 			-webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
 			mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
 		}
 	}
 
 	&:not(.is-measured) .bi::after {
-		background: rgba($slm-red, .55);
-	}
-
-	&.active .bi {
-		--task-glow: #{rgba($slm-violet, .75)};
-		color: #{$slm-violet};
-
-		&::after {
-			background: conic-gradient(#{$slm-violet} calc(var(--task-pct, 0) * 1%), rgba($slm-violet, .22) 0);
-		}
-	}
-
-	&.active:not(.is-measured) .bi::after {
-		background: rgba($slm-violet, .55);
+		background: rgba(var(--task-color-rgb), .6);
 	}
 }
 
@@ -6967,6 +6965,24 @@ $page-sections: (
 			$color: map-get($section-colors, nth($info, 1));
 			background: rgba($color, .14);
 			color: $color;
+		}
+	}
+
+	// the violet of the tools is too faint on the dark theme: a lighter one there
+	@if nth($info, 1) == tools {
+		[data-bs-theme="dark"] body[data-page="#{$page}"] {
+			.page-header {
+				--section-color: #{$slm-violet-light};
+			}
+
+			.empty-state .empty-icon:not(.is-success) {
+				background: rgba($slm-violet-light, .14);
+				color: $slm-violet-light;
+			}
+		}
+
+		[data-bs-theme="light"] body[data-page="#{$page}"] .empty-state .empty-icon:not(.is-success) {
+			color: $slm-violet-deep;
 		}
 	}
 }
