@@ -1,4 +1,61 @@
 {
+  "1.45.0": {
+    "en": [
+      "Couch mode fits the TV: the whole header is on screen, the Library opens on the covers and the corner pill no longer hides Save.",
+      "On a phone the Library is shorter: the views fit on one line and the numbers slide in one row.",
+      "Tasks wears the violet of the tools, and the games you are missing read better in the light theme."
+    ],
+    "es": [
+      "El modo sofá se ajusta a la tele: la cabecera cabe entera, la Biblioteca empieza por las portadas y la píldora ya no tapa «Guardar».",
+      "En el móvil la Biblioteca es más corta: las vistas caben en una línea y las cifras se deslizan en una fila.",
+      "Tareas lleva el violeta de las herramientas, y los juegos que te faltan se leen mejor en el tema claro."
+    ],
+    "de": [
+      "Der Sofa-Modus passt auf den Fernseher: die ganze Kopfleiste ist sichtbar, die Bibliothek beginnt mit den Covern und die Pille verdeckt Speichern nicht mehr.",
+      "Auf dem Handy ist die Bibliothek kürzer: die Ansichten passen in eine Zeile und die Zahlen gleiten in einer Reihe.",
+      "Aufgaben trägt das Violett der Werkzeuge, und fehlende Spiele sind im hellen Design besser lesbar."
+    ],
+    "fr": [
+      "Le mode canapé s'adapte à la télé : tout l'en-tête est visible, la Bibliothèque commence par les jaquettes et la pastille ne cache plus Enregistrer.",
+      "Sur téléphone, la Bibliothèque est plus courte : les vues tiennent sur une ligne et les chiffres défilent sur une rangée.",
+      "Tâches prend le violet des outils, et les jeux manquants se lisent mieux en thème clair."
+    ],
+    "it": [
+      "La modalità divano si adatta alla TV: l'intestazione è tutta visibile, la Libreria parte dalle copertine e la pillola non copre più Salva.",
+      "Sul telefono la Libreria è più corta: le viste stanno su una riga e i numeri scorrono in una fila.",
+      "Attività prende il viola degli strumenti, e i giochi mancanti si leggono meglio nel tema chiaro."
+    ],
+    "pt": [
+      "O modo sofá ajusta-se à TV: o cabeçalho cabe inteiro, a Biblioteca começa pelas capas e a pílula já não tapa Salvar.",
+      "No telemóvel a Biblioteca é mais curta: as vistas cabem numa linha e os números deslizam numa fila.",
+      "Tarefas usa o violeta das ferramentas, e os jogos em falta leem-se melhor no tema claro."
+    ],
+    "nl": [
+      "De bankmodus past op de tv: de hele kopbalk staat in beeld, de Bibliotheek begint met de covers en het label verbergt Opslaan niet meer.",
+      "Op een telefoon is de Bibliotheek korter: de weergaven passen op één regel en de cijfers schuiven in één rij.",
+      "Taken krijgt het violet van de hulpmiddelen, en ontbrekende games zijn beter leesbaar in het lichte thema."
+    ],
+    "ru": [
+      "Режим дивана подстраивается под телевизор: шапка видна целиком, Библиотека начинается с обложек, а значок больше не закрывает «Сохранить».",
+      "На телефоне Библиотека короче: вкладки помещаются в одну строку, а цифры прокручиваются в один ряд.",
+      "«Задачи» окрашены в фиолетовый цвет инструментов, а недостающие игры лучше читаются в светлой теме."
+    ],
+    "ja": [
+      "ソファモードがテレビに合うようになりました。ヘッダー全体が表示され、ライブラリはカバーから始まり、隅の表示が「保存」を隠さなくなりました。",
+      "スマートフォンではライブラリが短くなりました。表示の切り替えが1行に収まり、数字は1列で横にスライドします。",
+      "タスクはツールの紫になり、持っていないゲームはライトテーマで読みやすくなりました。"
+    ],
+    "ko": [
+      "소파 모드가 TV에 맞춰졌습니다. 머리글이 모두 보이고, 라이브러리가 표지부터 시작하며, 구석의 표시가 더 이상 저장 버튼을 가리지 않습니다.",
+      "휴대폰에서 라이브러리가 짧아졌습니다. 보기 전환이 한 줄에 들어가고 숫자는 한 줄로 옆으로 넘깁니다.",
+      "작업은 도구의 보라색을 쓰고, 없는 게임은 밝은 테마에서 더 잘 읽힙니다."
+    ],
+    "zh": [
+      "沙发模式适配电视：页眉完整显示，游戏库从封面开始，角落的提示不再遮住“保存”。",
+      "在手机上游戏库更短：视图切换放在一行，数字在一行中横向滑动。",
+      "任务使用工具的紫色，缺少的游戏在浅色主题中更易阅读。"
+    ]
+  },
   "1.44.0": {
     "en": [
       "The missing games are part of the Library now: choose My games, Missing or All under its title.",

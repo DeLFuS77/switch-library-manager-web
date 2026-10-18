@@ -22,10 +22,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.44.0
-- The missing games are a view of the Library (my games, the missing ones or all), so the menu is shorter
-### 1.43.0
-- Compress tells how much each file will likely save, and a compression can be paused and resumed</Changes>
+  <Changes>### 1.45.0
+- Couch mode fits the TV and opens on the covers, the Library is shorter on a phone, and fixes of contrast and motion
+### 1.44.0
+- The missing games are a view of the Library (my games, the missing ones or all), so the menu is shorter</Changes>
   <Date>2026-10-18</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
