@@ -1,4 +1,72 @@
 {
+  "1.46.0": {
+    "en": [
+      "Faster on big libraries: Space and Compress draw only what is on screen, and the pages load a lighter style sheet.",
+      "The Library opens on All, with My games and Missing ones next to it, and My games counts as the list does.",
+      "Issues: the files cut short can be deleted, and each file says its size and why it could not be read.",
+      "Deleting empty folders no longer takes minutes on a NAS, and the save buttons light up only when something changed."
+    ],
+    "es": [
+      "Más rápida con bibliotecas grandes: Espacio y Comprimir pintan solo lo que se ve, y las páginas cargan un estilo más ligero.",
+      "La Biblioteca empieza en Todos, con Mis juegos y Me faltan al lado, y Mis juegos cuenta igual que la lista.",
+      "Problemas: los archivos cortados se pueden borrar, y cada archivo dice su tamaño y por qué no se pudo leer.",
+      "Borrar las carpetas vacías ya no tarda minutos en un NAS, y los botones de guardar solo se encienden si hay cambios."
+    ],
+    "de": [
+      "Schneller bei großen Bibliotheken: Speicherplatz und Komprimieren zeichnen nur das Sichtbare, und die Seiten laden weniger Stile.",
+      "Die Bibliothek öffnet mit Alle, daneben Meine Spiele und Fehlende, und Meine Spiele zählt wie die Liste.",
+      "Probleme: abgeschnittene Dateien lassen sich löschen, und jede Datei nennt ihre Größe und warum sie nicht lesbar war.",
+      "Leere Ordner zu löschen dauert auf einem NAS keine Minuten mehr, und die Speichern-Knöpfe leuchten nur bei Änderungen."
+    ],
+    "fr": [
+      "Plus rapide avec une grande bibliothèque : Espace et Compresser n'affichent que ce qui est à l'écran, et les pages chargent moins de styles.",
+      "La Bibliothèque s'ouvre sur Tous, avec Mes jeux et Manquants à côté, et Mes jeux compte comme la liste.",
+      "Problèmes : les fichiers tronqués peuvent être supprimés, et chaque fichier indique sa taille et pourquoi il n'a pas pu être lu.",
+      "Supprimer les dossiers vides ne prend plus des minutes sur un NAS, et les boutons d'enregistrement ne s'allument que s'il y a des changements."
+    ],
+    "it": [
+      "Più veloce con librerie grandi: Spazio e Comprimi disegnano solo ciò che si vede, e le pagine caricano meno stili.",
+      "La Libreria si apre su Tutti, con I miei giochi e Mancanti accanto, e I miei giochi conta come la lista.",
+      "Problemi: i file troncati si possono eliminare, e ogni file indica la sua dimensione e perché non si è potuto leggere.",
+      "Eliminare le cartelle vuote non richiede più minuti su un NAS, e i pulsanti Salva si accendono solo se ci sono modifiche."
+    ],
+    "pt": [
+      "Mais rápida com bibliotecas grandes: Espaço e Comprimir desenham só o que se vê, e as páginas carregam menos estilos.",
+      "A Biblioteca abre em Todos, com Meus jogos e Em falta ao lado, e Meus jogos conta como a lista.",
+      "Problemas: os arquivos cortados podem ser apagados, e cada arquivo diz o tamanho e porque não pôde ser lido.",
+      "Apagar as pastas vazias já não demora minutos num NAS, e os botões de guardar só acendem quando há alterações."
+    ],
+    "nl": [
+      "Sneller met grote bibliotheken: Ruimte en Comprimeren tekenen alleen wat in beeld is, en de pagina's laden minder opmaak.",
+      "De Bibliotheek opent op Alle, met Mijn games en Ontbrekend ernaast, en Mijn games telt zoals de lijst.",
+      "Problemen: afgebroken bestanden kunnen worden verwijderd, en elk bestand toont zijn grootte en waarom het niet te lezen was.",
+      "Lege mappen verwijderen duurt op een NAS geen minuten meer, en de opslaan-knoppen lichten alleen op bij wijzigingen."
+    ],
+    "ru": [
+      "Быстрее с большой библиотекой: «Место» и «Сжать» рисуют только видимое, а страницы загружают меньше стилей.",
+      "Библиотека открывается на «Все», рядом «Мои игры» и «Недостающие», и «Мои игры» считаются как в списке.",
+      "Проблемы: обрезанные файлы можно удалить, и у каждого файла указаны размер и причина, почему он не прочитан.",
+      "Удаление пустых папок на NAS больше не занимает минуты, а кнопки сохранения загораются только при изменениях."
+    ],
+    "ja": [
+      "大きなライブラリでも速く：容量と圧縮は見えている部分だけを描画し、ページの読み込むスタイルも軽くなりました。",
+      "ライブラリは「すべて」から開き、横に「持っているゲーム」と「持っていないゲーム」があります。数もリストと一致します。",
+      "問題：途中で切れたファイルを削除できるようになり、各ファイルにサイズと読み込めなかった理由が表示されます。",
+      "NAS での空のフォルダーの削除に何分もかからなくなり、保存ボタンは変更があるときだけ点灯します。"
+    ],
+    "ko": [
+      "큰 라이브러리에서 더 빨라졌습니다. 공간과 압축은 화면에 보이는 것만 그리고, 페이지가 더 가벼운 스타일을 불러옵니다.",
+      "라이브러리가 전체 보기로 열리고, 옆에 내 게임과 없는 게임이 있으며, 내 게임 수가 목록과 같아졌습니다.",
+      "문제: 잘린 파일을 삭제할 수 있고, 각 파일에 크기와 읽지 못한 이유가 표시됩니다.",
+      "NAS에서 빈 폴더 삭제가 더 이상 몇 분씩 걸리지 않고, 저장 버튼은 변경이 있을 때만 켜집니다."
+    ],
+    "zh": [
+      "大型游戏库更快：空间和压缩只绘制屏幕上可见的内容，页面加载的样式也更轻。",
+      "游戏库默认打开“全部”，旁边是“我的游戏”和“缺少的”，“我的游戏”的数量与列表一致。",
+      "问题：被截断的文件可以删除，每个文件都显示大小和无法读取的原因。",
+      "在 NAS 上删除空文件夹不再需要几分钟，保存按钮只在有更改时亮起。"
+    ]
+  },
   "1.45.0": {
     "en": [
       "Couch mode fits the TV: the whole header is on screen, the Library opens on the covers and the corner pill no longer hides Save.",

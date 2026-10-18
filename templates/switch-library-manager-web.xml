@@ -22,11 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.45.0
-- Couch mode fits the TV and opens on the covers, the Library is shorter on a phone, and fixes of contrast and motion
-### 1.44.0
-- The missing games are a view of the Library (my games, the missing ones or all), so the menu is shorter</Changes>
-  <Date>2026-10-18</Date>
+  <Changes>### 1.46.0
+- Faster on big libraries, the Library opens on All, files cut short can be deleted from Issues, and empty folders are deleted at once
+### 1.45.0
+- Couch mode fits the TV and opens on the covers, the Library is shorter on a phone, and fixes of contrast and motion</Changes>
+  <Date>2026-10-19</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.46.0
 
 ### Improvements
 
