@@ -21,6 +21,7 @@
 $slm-red:  #d62839; // 4.9:1 on white, primary actions
 $slm-cyan: #0fb5d8; // secondary accent, information
 $slm-ink:  #0d1117;
+$slm-violet: #7c5cff; // the tools of the menu and their pages
 
 $primary:   $slm-red;
 $info:      $slm-cyan;
@@ -820,8 +821,8 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 .app-nav .nav-link.is-working {
 	color: var(--bs-emphasis-color);
 
-	// on the dark of the menu the fan and its ring wear the accent; on the Tasks page, where the
-	// link has the red background of the active page, they are white, as on the red buttons
+	// on the dark of the menu the fan and its ring wear the accent; on the Tasks page they wear the
+	// violet of the tools, the color of the header of the page (3.7:1 on the active link)
 	.bi {
 		position: relative;
 		color: #{$slm-red};
@@ -842,16 +843,16 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	}
 
 	&.active .bi {
-		--task-glow: rgba(255, 255, 255, .7);
-		color: #fff;
+		--task-glow: #{rgba($slm-violet, .75)};
+		color: #{$slm-violet};
 
 		&::after {
-			background: conic-gradient(#fff calc(var(--task-pct, 0) * 1%), rgba(255, 255, 255, .28) 0);
+			background: conic-gradient(#{$slm-violet} calc(var(--task-pct, 0) * 1%), rgba($slm-violet, .22) 0);
 		}
 	}
 
 	&.active:not(.is-measured) .bi::after {
-		background: rgba(255, 255, 255, .7);
+		background: rgba($slm-violet, .55);
 	}
 }
 
@@ -6845,7 +6846,7 @@ body {
 $section-colors: (
 	library: $slm-red,
 	discover: $slm-cyan,
-	tools: #7c5cff,
+	tools: $slm-violet,
 	app: #8a94a6,
 );
 $page-sections: (

@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- On the Tasks page the turning fan of the Tasks link, its ring and its glow wear the violet of the tools, the color
+  of the header of the page, instead of white: the white was meant for the red background the active link used to
+  have, and on its soft background of now it hardly stood out. On the other pages they stay red.
+
 ## 1.44.0
 
 ### Changes
