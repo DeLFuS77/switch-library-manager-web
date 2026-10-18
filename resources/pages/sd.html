@@ -138,7 +138,7 @@
 {{- end}}
 {{define "sdGame"}}
 					<li class="item-row sd-game">
-						<input class="form-check-input flex-shrink-0" type="checkbox" data-sd-game value="{{.Id}}" data-size="{{.Size}}" aria-label="{{.Name}}"{{if .Selected}} checked{{end}}>
+						<input class="form-check-input flex-shrink-0 sd-check" type="checkbox" data-sd-game value="{{.Id}}" data-size="{{.Size}}" aria-label="{{.Name}}"{{if .Selected}} checked{{end}}>
 						<img class="sd-cover" src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">
 						<div class="item-main">
 							<div class="item-name"><a class="link-body-emphasis text-decoration-none" href="/title/{{.Id}}.html">{{.Name}}</a></div>

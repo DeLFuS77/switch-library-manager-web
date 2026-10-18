@@ -7022,3 +7022,14 @@ html {
 		font-size: var(--slm-text-md);
 	}
 }
+
+// targets of 24px: the box of a game of the SD planner and the IDs copied with a click
+.sd-check {
+	width: 1.5rem;
+	height: 1.5rem;
+	margin: 0;
+}
+
+.copy-inline {
+	min-height: 1.5rem;
+}

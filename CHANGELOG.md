@@ -7,6 +7,11 @@
 - Tasks: during a compression the files already compressed are in a panel of their own, under the files being worked
   on, with the total saved at its top; their bars wear still diagonal stripes, blue for the size left and green for
   what was saved, so that they are no longer taken for the progress of the task.
+- The boxes to choose the games of the SD planner and the IDs copied with a click on the page of a game are targets
+  of 24px.
+- Every change of the app is now checked for accessibility: each page of the demo, in both themes, on a wide screen
+  and on a phone of 320px, must keep the contrast of WCAG AA, no text under 12px, controls of 24px, no sideways scroll
+  and no endless animation when the system asks for less motion.
 
 ## 1.42.0
 
