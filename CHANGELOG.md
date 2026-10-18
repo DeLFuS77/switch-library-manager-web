@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.44.0
 
 ### Changes
 

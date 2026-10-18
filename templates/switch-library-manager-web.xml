@@ -22,11 +22,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.43.0
-- Compress tells how much each file will likely save, and a compression can be paused and resumed
-- Couch mode for a TV (in testing), optional console sounds and an accessibility check on every change
-### 1.42.0
-- Play with a game controller like on a console, a cursor on the cards, clearer colors and texts of 12px at least</Changes>
+  <Changes>### 1.44.0
+- The missing games are a view of the Library (my games, the missing ones or all), so the menu is shorter
+### 1.43.0
+- Compress tells how much each file will likely save, and a compression can be paused and resumed</Changes>
   <Date>2026-10-18</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>

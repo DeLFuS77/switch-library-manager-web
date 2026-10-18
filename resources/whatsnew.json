@@ -1,4 +1,50 @@
 {
+  "1.44.0": {
+    "en": [
+      "The missing games are part of the Library now: choose My games, Missing or All under its title.",
+      "Missing Games leaves the menu, which is shorter; your wishlist is in the Missing view."
+    ],
+    "es": [
+      "Los juegos que faltan ya forman parte de la Biblioteca: elige Mis juegos, Me faltan o Todos bajo el título.",
+      "«Juegos que faltan» sale del menú, que queda más corto; tu lista de deseos está en la vista Me faltan."
+    ],
+    "de": [
+      "Die fehlenden Spiele gehören jetzt zur Bibliothek: Wähle unter dem Titel Meine Spiele, Fehlende oder Alle.",
+      "Fehlende Spiele verschwindet aus dem Menü, das kürzer wird; deine Wunschliste ist in der Ansicht Fehlende."
+    ],
+    "fr": [
+      "Les jeux manquants font désormais partie de la Bibliothèque : choisis Mes jeux, Manquants ou Tous sous le titre.",
+      "Jeux manquants quitte le menu, qui est plus court ; ta liste de souhaits est dans la vue Manquants."
+    ],
+    "it": [
+      "I giochi mancanti fanno ora parte della Libreria: scegli I miei giochi, Mancanti o Tutti sotto il titolo.",
+      "Giochi mancanti esce dal menu, che è più corto; la lista dei desideri è nella vista Mancanti."
+    ],
+    "pt": [
+      "Os jogos em falta fazem agora parte da Biblioteca: escolhe Meus jogos, Em falta ou Todos sob o título.",
+      "Jogos em falta sai do menu, que fica mais curto; a tua lista de desejos está na vista Em falta."
+    ],
+    "nl": [
+      "De ontbrekende games horen nu bij de Bibliotheek: kies onder de titel Mijn games, Ontbrekend of Alle.",
+      "Ontbrekende games verdwijnt uit het menu, dat korter wordt; je verlanglijst staat in de weergave Ontbrekend."
+    ],
+    "ru": [
+      "Недостающие игры теперь часть Библиотеки: под заголовком выберите «Мои игры», «Недостающие» или «Все».",
+      "Пункт «Недостающие игры» убран из меню, оно стало короче; список желаний — во вкладке «Недостающие»."
+    ],
+    "ja": [
+      "持っていないゲームはライブラリの一部になりました。タイトルの下で「持っているゲーム」「持っていないゲーム」「すべて」を選べます。",
+      "「足りないゲーム」はメニューから外れ、メニューが短くなりました。ほしいものリストは「持っていないゲーム」にあります。"
+    ],
+    "ko": [
+      "없는 게임이 이제 라이브러리에 포함됩니다. 제목 아래에서 내 게임, 없는 게임, 전체를 고르세요.",
+      "없는 게임 메뉴가 빠져 메뉴가 짧아졌습니다. 위시리스트는 없는 게임 보기에 있습니다."
+    ],
+    "zh": [
+      "缺少的游戏现已并入游戏库：在标题下方选择“我的游戏”“缺少的”或“全部”。",
+      "“缺少的游戏”已从菜单移除，菜单更简洁；愿望单在“缺少的”视图中。"
+    ]
+  },
   "1.43.0": {
     "en": [
       "Compress shows how much each file will likely save, from what you compressed before.",
