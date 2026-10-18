@@ -4,7 +4,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -64,12 +66,39 @@ func TestIssueKinds(t *testing.T) {
 		"old update file, newer update exist locally (x.nsp)":                 ISSUE_OLD,
 		"identified by file name only":                                        ISSUE_FILENAME,
 		"file type is not supported":                                          ISSUE_UNSUPPORTED,
-		"failed to read NSP [reason: unexpected EOF]":                         ISSUE_UNREADABLE,
+		"failed to read NSP [reason: unexpected EOF]":                         ISSUE_TRUNCATED,
+		"unable to determine title-Id / version - Invalid NSP file, reason - [failed to read PFS0 header: read 0 of 12 bytes: EOF]": ISSUE_TRUNCATED,
+		"unable to determine title-Id / version - failed to read NCA header EOF":                                                    ISSUE_TRUNCATED,
+		"unable to determine title-Id / version - invalid NCA magic":                                                                ISSUE_UNREADABLE,
 	}
 	for reason, want := range cases {
 		if got := issueKind(reason); got != want {
 			t.Errorf("%q: %s, want %s", reason, got, want)
 		}
+	}
+	// the files cut short can be deleted, not the others that could not be read; both say why
+	if !deletableIssueKinds[ISSUE_TRUNCATED] || deletableIssueKinds[ISSUE_UNREADABLE] {
+		t.Fatal("only the files cut short are deleted among the unread ones")
+	}
+	if issueCause("unable to determine title-Id / version - failed to read NCA header EOF", "en") == "" ||
+		issueCause("unable to determine title-Id / version - invalid NCA magic", "en") == "" ||
+		issueCause("unable to determine title-Id / version - something else", "en") != "" {
+		t.Fatal("the cause in plain words, only when it is known")
+	}
+	// a file still being written is cut short too: it is not deleted until it rests
+	dir := t.TempDir()
+	for _, name := range []string{"old.nsp", "new.nsp"} {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	past := time.Now().Add(-time.Hour)
+	if err := os.Chtimes(filepath.Join(dir, "old.nsp"), past, past); err != nil {
+		t.Fatal(err)
+	}
+	files := []db.ExtendedFileInfo{{FileName: "old.nsp", BaseFolder: dir}, {FileName: "new.nsp", BaseFolder: dir}}
+	if settled := settledFiles(files, 10*time.Minute); len(settled) != 1 || settled[0].FileName != "old.nsp" {
+		t.Fatalf("only the file at rest: %+v", settled)
 	}
 	web := newTestWeb(t)
 	summaries := web.issueSummaries([]Issue{{File: "a.txt", Reason: "file type is not supported"}, {File: "b.nsp", Reason: "damaged file: x"}, {File: "c.nsp", Reason: "damaged file: y"}}, "en")
