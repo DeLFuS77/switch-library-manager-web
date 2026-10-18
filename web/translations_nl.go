@@ -3,6 +3,9 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Pause": "Pauzeren",
+		"Resume": "Hervatten",
+		"Paused": "Gepauzeerd",
 		"Estimated from the files of this kind you compressed before": "Geschat op basis van de bestanden van dit soort die je al comprimeerde",
 		"Estimated from the files you compressed before:": "Geschat op basis van je eerdere compressies:",
 		"About %v could be saved with all of them.": "Met allemaal kan ongeveer %v worden bespaard.",

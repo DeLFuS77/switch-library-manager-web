@@ -1370,6 +1370,14 @@ function initCompress() {
 			button.disabled = true;
 			fetch('/compress/cancel', { method: 'POST' });
 		}
+		// pause or resume: the live list of tasks draws the other button
+		const pause = e.target.closest('[data-compress-pause]');
+		if (pause) {
+			pause.disabled = true;
+			postForm('/compress/pause', { paused: pause.dataset.compressPause }).catch(() => {
+				pause.disabled = false;
+			});
+		}
 	});
 
 	bindFileForm(document.getElementById('compressForm'), '/compress/start');

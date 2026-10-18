@@ -8,6 +8,10 @@
   before saved: a game −17 %, an update −5 %, a DLC −40 %... with a line on top with the average of each kind and what
   all the files listed would save. It shows once three files of a kind have been compressed, and is kept apart from the
   history of the tasks, so clearing it does not lose it.
+- A compression (and a decompression, conversion or pack) can be paused from Tasks and resumed later: it stops where
+  it is, in the middle of a file too, and goes on from the same point, for instance while you play or download. The
+  card says it is paused, its bars stand still, and the speed and the time left count only the time it worked. A
+  paused task can still be cancelled.
 
 ### Changes
 

@@ -125,6 +125,11 @@ type Task struct {
 	// work done at the same time: the files being worked on, each with its progress, and
 	// how many workers or threads the task uses
 	Lanes   []TaskLane `json:"lanes,omitempty"`
+	// a running compression held by the user until it is resumed, since when, and how long
+	// it was held before: the speed counts only the time it worked
+	Paused    bool          `json:"paused,omitempty"`
+	PausedAt  time.Time     `json:"pausedAt,omitempty"`
+	PausedFor time.Duration `json:"pausedFor,omitempty"`
 	Workers int        `json:"workers,omitempty"`
 	Threads int        `json:"threads,omitempty"`
 }
@@ -259,7 +264,10 @@ func (t Task) Speed() int {
 }
 
 func (t Task) speedAt(now time.Time) int {
-	elapsed := now.Sub(t.Started).Seconds()
+	if t.Paused {
+		return 0
+	}
+	elapsed := (now.Sub(t.Started) - t.PausedFor).Seconds()
 	if !measuredInMegabytes(t.Kind) || t.Current <= 0 || elapsed < 10 {
 		return 0
 	}
@@ -447,6 +455,22 @@ func (l *TaskLog) interrupted() (int64, string, *TaskResume) {
 		}
 	}
 	return 0, "", nil
+}
+
+// SetPaused records that a running task is held, or goes on again.
+func (l *TaskLog) SetPaused(id int64, paused bool) {
+	l.update(id, false, func(task *Task) {
+		if task.Paused == paused {
+			return
+		}
+		task.Paused = paused
+		if paused {
+			task.PausedAt = time.Now()
+		} else {
+			task.PausedFor += time.Since(task.PausedAt)
+			task.PausedAt = time.Time{}
+		}
+	})
 }
 
 // AddFileResult records a file compressed, with its size before and after.
