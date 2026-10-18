@@ -1822,6 +1822,20 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	overflow-wrap: anywhere;
 }
 
+// under the cause in plain words, the error of the reader, for whoever wants the detail
+.issue-detail {
+	margin-top: .1rem;
+	color: var(--bs-secondary-color);
+	font-family: var(--bs-font-monospace);
+	font-size: var(--slm-text-xs);
+	overflow-wrap: anywhere;
+}
+
+.issue-size {
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
 // a selectable row: checkbox, name and details, size
 .item-row-check {
 	grid-template-columns: auto minmax(0, 1fr) auto;

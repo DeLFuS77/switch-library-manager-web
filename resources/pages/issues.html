@@ -80,8 +80,16 @@
 					<span class="issue-icon bi {{issueIcon .Reason}}" aria-hidden="true"></span>
 					<div class="item-main">
 						<div class="item-name" title="{{.File}}">{{fileBase .File}}</div>
+						{{- if .Cause}}
+						<div class="issue-reason">{{.Cause}}</div>
+						<div class="issue-detail" title="{{issue .Reason}}">{{shortPaths (issue .Reason)}}</div>
+						{{- else}}
 						<div class="issue-reason" title="{{issue .Reason}}">{{shortPaths (issue .Reason)}}</div>
-						{{- with fileDir .File}}<div class="item-meta"><span class="font-monospace text-break"><span class="bi bi-folder2 me-1" aria-hidden="true"></span>{{.}}</span></div>{{end}}
+						{{- end}}
+						<div class="item-meta">
+							{{- with fileDir .File}}<span class="font-monospace text-break"><span class="bi bi-folder2 me-1" aria-hidden="true"></span>{{.}}</span>{{end}}
+							{{- if ge .Size 0}}<span class="issue-size">{{formatSize .Size}}</span>{{end}}
+						</div>
 					</div>
 				</li>
 				{{- end}}

@@ -2,8 +2,10 @@ package web
 
 import (
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 )
@@ -11,6 +13,7 @@ import (
 // the kinds of issues, for the summary at the top of the Issues page and its filter
 const (
 	ISSUE_DAMAGED     = "damaged"
+	ISSUE_TRUNCATED   = "truncated"
 	ISSUE_KEYS        = "keys"
 	ISSUE_UNREADABLE  = "unreadable"
 	ISSUE_ORPHAN      = "orphan"
@@ -21,7 +24,7 @@ const (
 )
 
 // issueKinds are the kinds in the order of the summary: what needs doing first.
-var issueKinds = []string{ISSUE_DAMAGED, ISSUE_KEYS, ISSUE_UNREADABLE, ISSUE_ORPHAN, ISSUE_DUPLICATE, ISSUE_OLD, ISSUE_FILENAME, ISSUE_UNSUPPORTED}
+var issueKinds = []string{ISSUE_DAMAGED, ISSUE_TRUNCATED, ISSUE_KEYS, ISSUE_UNREADABLE, ISSUE_ORPHAN, ISSUE_DUPLICATE, ISSUE_OLD, ISSUE_FILENAME, ISSUE_UNSUPPORTED}
 
 // dirOf is the folder of a path.
 func dirOf(path string) string {
@@ -41,6 +44,7 @@ type IssueKindLook struct {
 
 var issueKindLooks = map[string]IssueKindLook{
 	ISSUE_DAMAGED:     {"bi-heartbreak", "danger", "Damaged files"},
+	ISSUE_TRUNCATED:   {"bi-scissors", "danger", "Files cut short"},
 	ISSUE_KEYS:        {"bi-key", "danger", "Keys too old"},
 	ISSUE_UNREADABLE:  {"bi-exclamation-octagon", "danger", "Files that cannot be read"},
 	ISSUE_ORPHAN:      {"bi-question-diamond", "warning", "Updates and DLC without their game"},
@@ -91,8 +95,29 @@ func issueKind(reason string) string {
 		return ISSUE_FILENAME
 	case strings.HasPrefix(reason, "file type is not supported"):
 		return ISSUE_UNSUPPORTED
+	case isCutShort(reason):
+		return ISSUE_TRUNCATED
 	}
 	return ISSUE_UNREADABLE
+}
+
+// isCutShort tells a file that could not be read because it ends before its contents do: the
+// reader met the end of the file (EOF) while the headers still asked for more. A passing error
+// of the disk or of the network is an error of reading, never an end of file.
+func isCutShort(reason string) bool {
+	return strings.Contains(reason, "EOF")
+}
+
+// issueCause says in plain words why a file could not be read, from the error of its reader;
+// empty when the error itself is the clearest thing to show.
+func issueCause(reason, lang string) string {
+	switch kind := issueKind(reason); {
+	case kind == ISSUE_TRUNCATED:
+		return translatef(lang, "Cut short: the file ends before its contents do.")
+	case kind == ISSUE_UNREADABLE && strings.Contains(reason, "invalid NCA magic"):
+		return translatef(lang, "Its contents cannot be decrypted: a damaged copy, or encrypted with keys other than yours.")
+	}
+	return ""
 }
 
 // IssueSummary is a kind of issue: how many files, what it means and what to do.
@@ -115,10 +140,10 @@ type IssueSummary struct {
 }
 
 // deletableIssueKinds are the kinds whose files are of no use as they are and can go at
-// once: the damaged ones, found so by a check of their contents while they did not change.
-// Files that could not be read are not: a passing error of the NAS, missing keys or a format
-// the app does not know also leave a file unread.
-var deletableIssueKinds = map[string]bool{ISSUE_DAMAGED: true}
+// once: the damaged ones, found so by a check of their contents while they did not change, and
+// the ones cut short, which end before their contents do. The other files that could not be read
+// are not: missing keys or a format the app does not know also leave a file unread.
+var deletableIssueKinds = map[string]bool{ISSUE_DAMAGED: true, ISSUE_TRUNCATED: true}
 
 // issueFiles lists the files of the issues of a kind as they are now on the disk; files
 // gone or no longer files are left out.
@@ -137,6 +162,19 @@ func issueFiles(issues []Issue, kind string) []db.ExtendedFileInfo {
 		files = append(files, db.ExtendedFileInfo{FileName: info.Name(), BaseFolder: dirOf(issue.File), Size: info.Size()})
 	}
 	return files
+}
+
+// settledFiles leaves out the files changed in the last while: a file still being downloaded or
+// copied is cut short too, until it is finished.
+func settledFiles(files []db.ExtendedFileInfo, quiet time.Duration) []db.ExtendedFileInfo {
+	settled := []db.ExtendedFileInfo{}
+	for _, file := range files {
+		info, err := os.Stat(filepath.Join(file.BaseFolder, file.FileName))
+		if err == nil && time.Since(info.ModTime()) >= quiet {
+			settled = append(settled, file)
+		}
+	}
+	return settled
 }
 
 // issueSummaries counts the issues by kind; the kinds without issues are left out.
@@ -170,8 +208,10 @@ func (web *Web) issueSummaries(issues []Issue, lang string) []IssueSummary {
 		case ISSUE_KEYS:
 			summary.Text = t("They need keys of a newer firmware than your prod.keys. Dump the keys of your console again, updated.")
 			summary.Href, summary.Action = "/settings.html#library", t("Keys")
+		case ISSUE_TRUNCATED:
+			summary.Text = t("They end before their contents do: a download or a copy that did not finish. They are of no use: delete them and get them again.")
 		case ISSUE_UNREADABLE:
-			summary.Text = t("They are not complete NSP, NSZ, XCI or XCZ files: a download cut short or a damaged copy.")
+			summary.Text = t("Their contents cannot be read: a damaged copy, a format the app does not know, or keys other than your prod.keys. Check them on your computer before deleting them.")
 		case ISSUE_ORPHAN:
 			summary.Text = t("The library has them, but not the game they belong to. Look for the game by its ID, or delete them if you do not want it.")
 			summary.Href, summary.Action = "/orphans.html", t("See them by game")

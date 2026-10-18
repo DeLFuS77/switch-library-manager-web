@@ -2,6 +2,7 @@ package web
 
 import (
 	"net/http"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -16,6 +17,10 @@ import (
 type Issue struct {
 	File   string
 	Reason string
+	// on the shown page only: the size of the file (-1 when it cannot be known; an empty file
+	// shows 0 B), and why it could not be read in plain words
+	Size  int64
+	Cause string
 }
 
 type IssuesPageData struct {
@@ -88,9 +93,17 @@ func (web *Web) HandleIssues() {
 			}
 		}
 		p := pagination.Calculate(filter.Page, filter.PerPage, len(matching))
+		shown := append([]Issue(nil), matching[p.Start:p.End]...)
+		for i := range shown {
+			shown[i].Size = -1
+			if info, err := os.Stat(shown[i].File); err == nil && !info.IsDir() {
+				shown[i].Size = info.Size()
+			}
+			shown[i].Cause = issueCause(shown[i].Reason, lang)
+		}
 		return IssuesPageData{
 			GlobalPageData:   web.globalPageData("issues"),
-			Issues:           matching[p.Start:p.End],
+			Issues:           shown,
 			Total:            len(all),
 			Filter:           filter,
 			Pagination:       p,
@@ -112,6 +125,9 @@ func (web *Web) HandleIssues() {
 			return
 		}
 		files := issueFiles(web.getIssues(), kind)
+		if kind == ISSUE_TRUNCATED {
+			files = settledFiles(files, 10*time.Minute)
+		}
 		reasons := make([]string, len(files))
 		for i := range reasons {
 			reasons[i] = "deleted from Issues: " + kind

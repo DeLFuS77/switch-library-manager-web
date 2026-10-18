@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Issues: the files cut short (a download or a copy that did not finish, an empty file) have a card of their own,
+  "Files cut short", and can be deleted from it like the damaged ones, after a confirmation that tells how many and
+  how much space; a file changed in the last 10 minutes is left alone, as it may still be arriving. The other files
+  that cannot be read stay listed, with what may be wrong and the advice to check them before deleting them.
+- Issues: each file shows its size, and the files that could not be read say why in plain words ("Cut short", "Its
+  contents cannot be decrypted"), with the error of the reader below for whoever wants the detail.
+
 ## 1.45.0
 
 ### Improvements
