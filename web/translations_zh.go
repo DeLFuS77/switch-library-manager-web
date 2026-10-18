@@ -3,6 +3,7 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"%v files wait for the verification": "%v 个文件等待验证",
 		"1 result": "1 个结果",
 		"%v results": "%v 个结果",
 		"Removed temporary files left halfway": "已删除中途留下的临时文件",

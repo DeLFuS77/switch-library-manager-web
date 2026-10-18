@@ -3,6 +3,7 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"%v files wait for the verification": "%v fichiers attendent la vérification",
 		"1 result": "1 résultat",
 		"%v results": "%v résultats",
 		"Removed temporary files left halfway": "Fichiers temporaires laissés à moitié supprimés",

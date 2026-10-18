@@ -1,7 +1,7 @@
 {{define "title"}}{{t "Tasks"}}{{end}}
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Tasks") "Count" -1 "Subtitle" (t "Synchronizations, scans, compressions, checks and cleanups with their progress and result. Failed tasks stay here until you dismiss them."))}}
-			<div class="alert alert-info d-flex gap-2 align-items-start"><span class="bi bi-hdd-network mt-1" aria-hidden="true"></span><div>{{t "Tasks run on the server: you can close this page, the browser or this device and they go on. They only stop when the app itself stops (its Docker container or its program); a stopped file check goes on where it was the next time."}}</div></div>
+			<div class="page-note"><span class="bi bi-hdd-network" aria-hidden="true"></span><div>{{t "Tasks run on the server: you can close this page, the browser or this device and they go on. They only stop when the app itself stops (its Docker container or its program); a stopped file check goes on where it was the next time."}}</div></div>
 			<div id="taskList" data-live-tasks data-version="{{.ListVersion}}" aria-live="polite">
 				{{- template "taskList" .}}
 			</div>

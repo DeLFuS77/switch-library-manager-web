@@ -3,6 +3,7 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"%v files wait for the verification": "%v bestanden wachten op de controle",
 		"1 result": "1 resultaat",
 		"%v results": "%v resultaten",
 		"Removed temporary files left halfway": "Halfvoltooide tijdelijke bestanden verwijderd",

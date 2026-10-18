@@ -6596,3 +6596,119 @@ body {
 		background-color: $warning;
 	}
 }
+
+// 14: Updates: the jump of version is what the card is about
+.update-jump {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .2rem .45rem;
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+
+	.bi {
+		color: $warning;
+	}
+}
+
+.update-jump-from {
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-sm);
+}
+
+.update-jump-to {
+	font-size: var(--slm-text-md);
+	font-weight: 700;
+}
+
+.update-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: .5rem;
+
+	.game-meta {
+		min-width: 0;
+	}
+}
+
+.update-ignore {
+	flex-shrink: 0;
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+	border-radius: 50%;
+	color: var(--bs-secondary-color);
+
+	&:hover,
+	&:focus-visible {
+		color: var(--bs-body-color);
+		background: var(--slm-surface-muted);
+	}
+}
+
+// 12: Settings on a phone: every section in sight, as pills that wrap
+@include media-breakpoint-down(lg) {
+	.settings-nav {
+		flex-wrap: wrap;
+		gap: .35rem;
+		overflow: visible;
+
+		.nav-link {
+			padding: .35rem .75rem;
+			border: 1px solid var(--bs-border-color);
+			border-radius: 2rem;
+			font-size: var(--slm-text-sm);
+
+			&.active {
+				border-color: transparent;
+			}
+		}
+	}
+}
+
+// 12: the notice of the wizard: its button under the text on a phone
+@include media-breakpoint-down(sm) {
+	.wizard-teaser {
+		flex-wrap: wrap;
+
+		> .btn {
+			width: 100%;
+		}
+	}
+}
+
+// 13: the strip of suggestions has the measures of the grid of the library
+.rec-strip {
+	grid-auto-columns: calc(50% - .375rem);
+
+	@include media-breakpoint-up(sm) {
+		grid-auto-columns: 10.5rem;
+	}
+
+	@include media-breakpoint-up(md) {
+		grid-auto-columns: 13rem;
+		gap: 1.25rem;
+	}
+}
+
+// the cards of the strip keep the same height, with or without a second line
+.mini-card .game-body {
+	min-height: 5.6rem;
+}
+
+// a short note of a page, on one line with its icon
+.page-note {
+	display: flex;
+	align-items: flex-start;
+	gap: .5rem;
+	margin-bottom: 1rem;
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-sm);
+
+	> .bi {
+		flex-shrink: 0;
+		margin-top: .1rem;
+		color: var(--slm-chart-2);
+	}
+}

@@ -41,6 +41,14 @@
 - The game card chosen with the keyboard wears a ring in the color of the focus that breathes, like the cursor of a
   console (still when the system asks for less motion); the numbers of the overview, the sagas and the steps of the
   setup show a ring of the same color.
+- Updates: each card shows the jump of version in large (the version you have, an arrow and the new one) and ignoring
+  its updates is a small button with an eye at the side of the date, instead of a full-width button on every card.
+- Settings on a phone: all the sections are in sight as pills on two or three rows, instead of a row where only two
+  of ten could be seen; the notice of the setup wizard puts its button under the text.
+- The cards of "You may like" have the width of the cards of the library and all the same height.
+- Space says how many files wait for the verification when nothing can be freed yet, instead of a lonely "0 B"; the
+  buttons to copy to the SD card sit on the line of the folder; the note of Tasks on the server is a short line
+  instead of a box larger than the page.
 
 ## 1.41.5
 

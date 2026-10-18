@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"%v files wait for the verification": "%v archivos esperan la verificación",
 		"1 result": "1 resultado",
 		"%v results": "%v resultados",
 		"Removed temporary files left halfway": "Borró archivos temporales que quedaron a medias",
