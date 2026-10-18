@@ -4,6 +4,7 @@ import (
 	"runtime"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -163,6 +164,13 @@ func (web *Web) HandleSettings() {
 
 					break
 				}
+			}
+			// a folder twice, or one inside another, would have its files read twice
+			if message := repeatedFolders(scanFolders, lang); message != "" {
+				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
+					Field: "scan_folders",
+					Message: message,
+				})
 			}
 		}
 
@@ -379,4 +387,33 @@ func (web *Web) settingsPageData() SettingsPageData {
 		DefaultThreads:          compressWorkers(),
 		FilesAtOnceChoices:      []int{1, 2, 3, maxFilesAtOnce},
 	}
+}
+
+// repeatedFolders tells, in the language of the page, the first folder listed twice or inside
+// another listed folder (the library is scanned with its subfolders); empty when there is none.
+func repeatedFolders(folders []string, lang string) string {
+	key := func(folder string) string {
+		folder = filepath.Clean(folder)
+		if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+			return strings.ToLower(folder)
+		}
+		return folder
+	}
+	for i, folder := range folders {
+		for j, other := range folders {
+			if i == j {
+				continue
+			}
+			if key(folder) == key(other) {
+				if i < j {
+					return translatef(lang, "This folder is listed twice: %v", folder)
+				}
+				continue
+			}
+			if rel, err := filepath.Rel(key(other), key(folder)); err == nil && rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+				return translatef(lang, "%v is inside %v: its files would be read twice. Keep only one of them.", folder, other)
+			}
+		}
+	}
+	return ""
 }

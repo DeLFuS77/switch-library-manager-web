@@ -992,6 +992,8 @@ func init() {
 		"Firmware of your console": "Firmware do seu console",
 		"Folder name template":     "Modelo de nome de pasta",
 		"Folder not found: %v":     "Pasta não encontrada: %v",
+		"This folder is listed twice: %v": "Esta pasta está duas vezes: %v",
+		"%v is inside %v: its files would be read twice. Keep only one of them.": "%v está dentro de %v: os arquivos seriam lidos duas vezes. Deixa só uma das duas.",
 		"Folders":                  "Pastas",
 		"Folders to scan":          "Pastas a escanear",
 		"Follow its progress in Tasks. You can leave this page.":                       "Acompanhe o progresso em Tarefas. Você pode sair desta página.",

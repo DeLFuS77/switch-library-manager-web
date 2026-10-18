@@ -1189,6 +1189,8 @@ var translations = map[string]map[string]string{
 		"Please provide a valid Product Keys Path":                                         "Indica una ruta de claves válida",
 		"Please provide at least one Folder to scan":                                       "Indica al menos una carpeta a escanear",
 		"Folder not found: %v":                                                             "No se encontró la carpeta: %v",
+		"This folder is listed twice: %v": "Esta carpeta está dos veces: %v",
+		"%v is inside %v: its files would be read twice. Keep only one of them.": "%v está dentro de %v: sus archivos se leerían dos veces. Deja solo una de las dos.",
 		"Invalid Title ID (16 hexadecimal characters): %v":                                 "ID no válido (16 caracteres hexadecimales): %v",
 		"Invalid Title ID (16 hexadecimal characters)":                                     "ID no válido (16 caracteres hexadecimales)",
 		"Invalid synchronization interval":                                                 "Intervalo de sincronización no válido",

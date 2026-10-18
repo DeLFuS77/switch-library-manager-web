@@ -829,6 +829,8 @@ func init() {
 		"First-Person Shooter":            "Шутер от первого лица",
 		"Folder name template":            "Шаблон имени папки",
 		"Folder not found: %v":            "Папка не найдена: %v",
+		"This folder is listed twice: %v": "Эта папка указана дважды: %v",
+		"%v is inside %v: its files would be read twice. Keep only one of them.": "%v находится внутри %v: её файлы будут прочитаны дважды. Оставьте только одну из них.",
 		"Folder of the card or USB drive": "Папка карты или USB-накопителя",
 		"Folders":                         "Папки",
 		"Folders to scan":                 "Папки для сканирования",

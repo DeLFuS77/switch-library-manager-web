@@ -829,6 +829,8 @@ func init() {
 		"First-Person Shooter":            "First-person shooter",
 		"Folder name template":            "Sjabloon voor mapnaam",
 		"Folder not found: %v":            "Map niet gevonden: %v",
+		"This folder is listed twice: %v": "Deze map staat er twee keer in: %v",
+		"%v is inside %v: its files would be read twice. Keep only one of them.": "%v staat in %v: de bestanden zouden twee keer gelezen worden. Houd er maar één van over.",
 		"Folder of the card or USB drive": "Map van de kaart of USB-stick",
 		"Folders":                         "Mappen",
 		"Folders to scan":                 "Te scannen mappen",

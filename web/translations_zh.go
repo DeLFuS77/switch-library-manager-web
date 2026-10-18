@@ -829,6 +829,8 @@ func init() {
 		"First-Person Shooter":            "第一人称射击",
 		"Folder name template":            "文件夹名模板",
 		"Folder not found: %v":            "找不到文件夹：%v",
+		"This folder is listed twice: %v": "此文件夹列出了两次:%v",
+		"%v is inside %v: its files would be read twice. Keep only one of them.": "%v 位于 %v 之内:其中的文件会被读取两次。只保留其中一个。",
 		"Folder of the card or USB drive": "存储卡或 U 盘的文件夹",
 		"Folders":                         "文件夹",
 		"Folders to scan":                 "要扫描的文件夹",

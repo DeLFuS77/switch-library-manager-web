@@ -829,6 +829,8 @@ func init() {
 		"First-Person Shooter":            "1인칭 슈팅",
 		"Folder name template":            "폴더 이름 템플릿",
 		"Folder not found: %v":            "폴더를 찾을 수 없음: %v",
+		"This folder is listed twice: %v": "이 폴더가 두 번 들어 있습니다: %v",
+		"%v is inside %v: its files would be read twice. Keep only one of them.": "%v 폴더가 %v 안에 있습니다. 파일을 두 번 읽게 됩니다. 둘 중 하나만 남기세요.",
 		"Folder of the card or USB drive": "카드 또는 USB 드라이브 폴더",
 		"Folders":                         "폴더",
 		"Folders to scan":                 "스캔할 폴더",
