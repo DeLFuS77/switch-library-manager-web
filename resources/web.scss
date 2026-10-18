@@ -2732,7 +2732,8 @@ $avatar-colors: (
 	.dlc-progress-label {
 		font-size: .72rem;
 		font-weight: 600;
-		color: var(--bs-secondary-color);
+		// the full color of the text: the row it is in is dimmed when there is no DLC
+		color: var(--bs-body-color);
 		font-variant-numeric: tabular-nums;
 		white-space: nowrap;
 	}
@@ -6395,5 +6396,64 @@ body:has(.wizard.show) #alert_sync {
 
 	50% {
 		opacity: 1;
+	}
+}
+
+// ------------------------------------------------------------------
+// accessibility: text of at least 4.5:1 against its background (WCAG 1.4.3) and targets of at
+// least 24px (WCAG 2.5.8), in both themes
+// ------------------------------------------------------------------
+
+// outlined buttons: the grey and the red of their text were too light on the light page and too
+// dark on the dark one
+.btn-outline-secondary {
+	--bs-btn-color: #565d69;
+}
+
+[data-bs-theme="dark"] {
+	.btn-outline-secondary {
+		--bs-btn-color: #a9b0bb;
+	}
+
+	.btn-outline-primary {
+		--bs-btn-color: #ff7a88;
+	}
+
+	// the section chosen in Settings
+	.settings-nav .nav-link.active {
+		color: #ff8592;
+	}
+}
+
+[data-bs-theme="light"] .settings-nav .nav-link.active {
+	color: #b01c2c;
+}
+
+// the count of the chosen filter: white on a darker red, not on a lighter one
+.filter-pill.active .filter-count,
+.active > .filter-count {
+	background: rgba(0, 0, 0, .22);
+}
+
+// the green of "Up to date" and "Done" on its light green, on the light page
+[data-bs-theme="light"] .chip.chip-success {
+	color: shade-color($success, 38%);
+}
+
+// the star and the heart of the cards: a target of 24px at least
+.fav-toggle,
+.wish-toggle {
+	min-width: 24px;
+	min-height: 24px;
+}
+
+[data-bs-theme="light"] {
+	.btn-outline-primary {
+		--bs-btn-color: #bd1f30;
+	}
+
+	// green text on the light page ("Keys found" and the like)
+	.text-success {
+		color: shade-color($success, 32%) !important;
 	}
 }

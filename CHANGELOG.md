@@ -8,6 +8,10 @@
   as a square picture instead of a letter of the icon font, which sits a bit differently in its box in each browser.
   On the dark of the menu the fan and its ring are red; on the Tasks page, where the link has the red background of
   the active page, they are white, as on the red buttons, instead of red on red.
+- Accessibility: texts that were too faint for their background now reach the contrast of WCAG AA (4.5:1) in both
+  themes: the outlined grey and red buttons, the chosen section of Settings, the count of the chosen filter, the
+  green "Up to date" and "Done" chips and the green texts of the light theme, and "No DLC" under the cards. The star
+  and the heart of the cards are targets of 24px at least.
 
 ## 1.41.5
 
