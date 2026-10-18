@@ -4,6 +4,13 @@
 
 ### Improvements
 
+- Space, Compress and the other long lists draw only the rows near the screen: on a library of 40,000 files Space
+  laid out its thousand rows in about a second, now in less than a tenth; the rows are still there for the search of
+  the browser and the selection.
+- The style sheet of the app is less than 60 % of its size (451 KB to 255 KB before compression): the icons, flags
+  and parts of Bootstrap the app never uses are left out when it is built, so the first paint comes sooner.
+- The SD card planner keeps its proposal until the library, the settings, the favorites or the collections change,
+  instead of working it out again on every visit; it was the slowest page of a big library.
 - Issues: the files cut short (a download or a copy that did not finish, an empty file) have a card of their own,
   "Files cut short", and can be deleted from it like the damaged ones, after a confirmation that tells how many and
   how much space; a file changed in the last 10 minutes is left alone, as it may still be arriving. The other files
