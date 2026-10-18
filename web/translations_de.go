@@ -3,6 +3,8 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"1 result": "1 Ergebnis",
+		"%v results": "%v Ergebnisse",
 		"Removed temporary files left halfway": "Halb geschriebene temporäre Dateien entfernt",
 		"%v of %v steps done": "%v von %v Schritten erledigt",
 		"Show more": "Mehr anzeigen",

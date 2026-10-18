@@ -3,6 +3,8 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"1 result": "1 résultat",
+		"%v results": "%v résultats",
 		"Removed temporary files left halfway": "Fichiers temporaires laissés à moitié supprimés",
 		"%v of %v steps done": "%v étapes sur %v terminées",
 		"Show more": "Voir plus",

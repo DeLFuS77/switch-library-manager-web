@@ -1876,7 +1876,19 @@ function initQuickSearch() {
 		return;
 	}
 	const empty = element.querySelector('.quick-search-empty');
+	const status = document.getElementById('quickSearchStatus');
 	const modal = Modal.getOrCreateInstance(element);
+	// the focus goes back where it was when the window closes (opened with Ctrl+K too)
+	let opener = null;
+	element.addEventListener('show.bs.modal', () => {
+		opener = document.activeElement;
+	});
+	element.addEventListener('hidden.bs.modal', () => {
+		if (opener && document.contains(opener) && typeof opener.focus === 'function') {
+			opener.focus();
+		}
+		opener = null;
+	});
 	if (/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) {
 		document.querySelectorAll('[data-search-kbd]').forEach(kbd => {
 			kbd.textContent = '⌘K';
@@ -1975,6 +1987,10 @@ function initQuickSearch() {
 		options = [...list.querySelectorAll('.quick-search-option')];
 		if (empty) {
 			empty.hidden = count > 0 || !query;
+		}
+		// read by screen readers once the typing stops
+		if (status && query) {
+			status.textContent = count === 0 ? status.dataset.none : count === 1 ? status.dataset.one : status.dataset.many.replace('%v', count);
 		}
 		setActive(0);
 	};
@@ -3356,9 +3372,62 @@ document.addEventListener('DOMContentLoaded', () => {
 	initRevealOnScroll();
 	initCollapsibleText();
 
-	// selects and radio buttons that apply their form at once
+	// selects and radio buttons that apply their form at once. With the keyboard the arrows of a
+	// list only choose (each one would load the page again and leave the focus nowhere): Enter
+	// or leaving the list applies the choice. The control has the focus again once the page is
+	// loaded again.
+	const REFOCUS_KEY = 'slm-refocus';
+	try {
+		const id = sessionStorage.getItem(REFOCUS_KEY);
+		sessionStorage.removeItem(REFOCUS_KEY);
+		const control = id && document.getElementById(id);
+		if (control) {
+			control.focus({ preventScroll: true });
+		}
+	} catch (e) {
+		// not kept: the focus starts at the top
+	}
+	const apply = input => {
+		if (!input.form) {
+			return;
+		}
+		try {
+			if (input.id) {
+				sessionStorage.setItem(REFOCUS_KEY, input.id);
+			}
+		} catch (e) {
+			// the focus is not given back
+		}
+		input.form.submit();
+	};
 	document.querySelectorAll('[data-autosubmit]').forEach(input => {
-		input.addEventListener('change', () => input.form && input.form.submit());
+		if (input.tagName !== 'SELECT') {
+			input.addEventListener('change', () => apply(input));
+			return;
+		}
+		let byKeyboard = false;
+		let chosen = input.value;
+		input.addEventListener('keydown', e => {
+			byKeyboard = true;
+			if (e.key === 'Enter' && input.value !== chosen) {
+				e.preventDefault();
+				apply(input);
+			}
+		});
+		input.addEventListener('pointerdown', () => {
+			byKeyboard = false;
+		});
+		input.addEventListener('change', () => {
+			if (!byKeyboard) {
+				apply(input);
+			}
+		});
+		input.addEventListener('blur', () => {
+			if (byKeyboard && input.value !== chosen) {
+				apply(input);
+			}
+			chosen = input.value;
+		});
 	});
 
 	// notices that stay closed once closed (for a week, so they are not forgotten for good)

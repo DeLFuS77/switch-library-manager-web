@@ -1273,8 +1273,8 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 		top: .6rem;
 		left: .6rem;
 		z-index: 3;
-		width: 1.35rem;
-		height: 1.35rem;
+		width: 1.5rem;
+		height: 1.5rem;
 		margin: 0;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, .45);
 		cursor: pointer;
@@ -2443,7 +2443,7 @@ $avatar-colors: (
 	.kpi-detail {
 		display: block;
 		font-size: .8em;
-		opacity: .75;
+		color: var(--bs-secondary-color);
 	}
 
 	.kpi-label {
@@ -6455,5 +6455,33 @@ body:has(.wizard.show) #alert_sync {
 	// green text on the light page ("Keys found" and the like)
 	.text-success {
 		color: shade-color($success, 32%) !important;
+	}
+}
+
+// 2, 6: the keyboard focus seen on every control, with the cyan ring of the app: Bootstrap's own
+// rings (a faint shadow, or none on some buttons) could hardly be seen
+.btn:focus-visible,
+.btn-check:focus-visible + .btn,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-check-input:focus-visible,
+.page-link:focus-visible,
+.cover-select:focus-visible,
+.search-trigger:focus-visible {
+	outline: 2px solid $slm-cyan;
+	outline-offset: 2px;
+}
+
+// 8: nothing wider than a phone of 320px: the closed side menu and the edges of the row of
+// filters do not widen the page
+html,
+body {
+	overflow-x: clip;
+}
+
+// 10: the bottom bar of the phone never hides the control with the focus
+@include media-breakpoint-down(md) {
+	html {
+		scroll-padding-bottom: 5rem;
 	}
 }
