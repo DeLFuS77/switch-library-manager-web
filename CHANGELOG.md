@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- The fan of the Tasks link turns around its center in every browser and at every scale of the screen: it is drawn
+  as a square picture instead of a letter of the icon font, which sits a bit differently in its box in each browser.
+  On the dark of the menu the fan and its ring are red; on the Tasks page, where the link has the red background of
+  the active page, they are white, as on the red buttons, instead of red on red.
+
 ## 1.41.5
 
 ### Improvements
