@@ -76,7 +76,7 @@
 					<span class="fw-semibold"><span data-sd-count>{{$p.SelectedCount}}</span> {{t "games on the card"}}</span>
 					<span class="text-body-secondary" data-sd-total>{{t "%v of %v" (formatSize $p.Total) (formatSize $p.Usable)}}</span>
 				</div>
-				<div class="progress" role="progressbar" aria-label="{{t "Space of the card"}}">
+				<div class="progress sd-meter" role="progressbar" aria-label="{{t "Space of the card"}}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{percentOf64 $p.Total $p.Usable}}">
 					<div class="progress-bar" data-sd-bar style="width: {{percentOf64 $p.Total $p.Usable}}%"></div>
 				</div>
 				<div class="small text-danger mt-1" data-sd-over hidden>{{t "The chosen games do not fit on the card."}}</div>

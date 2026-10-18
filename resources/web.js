@@ -1013,7 +1013,11 @@ function initSdPlanner() {
 		summary.querySelector('[data-sd-count]').textContent = chosen().length + hiddenCount;
 		summary.querySelector('[data-sd-total]').textContent = summary.dataset.sdTemplate.replace('%v', formatSize(total)).replace('%v', formatSize(usable));
 		const bar = summary.querySelector('[data-sd-bar]');
-		bar.style.width = Math.min(100, usable > 0 ? total * 100 / usable : 100) + '%';
+		const pct = Math.min(100, usable > 0 ? total * 100 / usable : 100);
+		bar.style.width = pct + '%';
+		bar.parentElement.setAttribute('aria-valuenow', Math.round(pct));
+		// amber when the card is nearly full, red only when the games do not fit
+		bar.classList.toggle('is-near', total <= usable && pct >= 90);
 		bar.classList.toggle('bg-danger', total > usable);
 		summary.querySelector('[data-sd-over]').hidden = total <= usable;
 	};
