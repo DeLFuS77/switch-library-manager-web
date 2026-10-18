@@ -32,6 +32,10 @@
 - Library: My games counts as the list does, without the demos when they are hidden and with the copies of a game
   from other regions once when Settings say so; it could show more games than the list, the big number and the
   filters (12,604 against 12,356 on a big library).
+- Organizing and cleaning up with "Delete the empty folders" no longer seem stuck on a NAS: the app walked the whole
+  library to find them, minutes for a big one even when a handful of files moved (two minutes for 13 files on a
+  library of 40,000). Now it looks only at the folders the run took files from, and their parents, one entry of
+  each at most. Empty folders the run did not touch stay where they are.
 
 ## 1.45.0
 

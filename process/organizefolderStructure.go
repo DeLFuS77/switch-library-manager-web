@@ -3,7 +3,7 @@ package process
 import (
 	"errors"
 	"fmt"
-	"io/fs"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -56,7 +56,9 @@ type fileOperations struct {
 	// files already moved, by their old path: a file with several contents is listed once
 	// for each of them
 	movedFrom map[string]string
-	logger    *zap.SugaredLogger
+	// the folders files were moved or deleted from: the only ones the run can leave empty
+	vacated map[string]bool
+	logger  *zap.SugaredLogger
 }
 
 func newFileOperations(dryRun bool) *fileOperations {
@@ -69,6 +71,12 @@ func (f *fileOperations) record(op Operation, err error) {
 		f.logger.Errorf("%v %v -> %v failed: %v", op.Kind, op.From, op.To, err)
 	} else if !f.dryRun {
 		f.logger.Infof("%v %v -> %v", op.Kind, op.From, op.To)
+		if (op.Kind == OP_MOVE || op.Kind == OP_DELETE) && op.From != "" {
+			if f.vacated == nil {
+				f.vacated = map[string]bool{}
+			}
+			f.vacated[filepath.Dir(op.From)] = true
+		}
 	}
 	f.operations = append(f.operations, op)
 }
@@ -217,48 +225,53 @@ func (f *fileOperations) deleteEmptyFolders(root string) {
 		return
 	}
 
-	// one walk tells what each folder holds, from the listings of the folders alone: neither
-	// every file nor every folder is asked for again, which took minutes on a NAS for a few
-	// empty folders among thousands
-	folders := []string{}
-	files := map[string]int{}
-	subfolders := map[string][]string{}
-	_ = filepath.WalkDir(root, func(p string, entry fs.DirEntry, err error) error {
-		if err != nil || p == root {
-			return nil
-		}
-		parent := filepath.Dir(p)
-		if entry.IsDir() {
-			folders = append(folders, p)
-			subfolders[parent] = append(subfolders[parent], p)
-		} else {
-			files[parent]++
-		}
-		return nil
-	})
-	// deepest folders first, so parents that become empty are deleted as well
-	sort.Slice(folders, func(i, j int) bool { return len(folders[i]) > len(folders[j]) })
-
-	removed := map[string]bool{}
-	for _, folder := range folders {
-		if files[folder] > 0 {
-			continue
-		}
-		empty := true
-		for _, sub := range subfolders[folder] {
-			if !removed[sub] {
-				empty = false
+	// only the folders this run took files from can have become empty, and their parents: they
+	// are looked at one by one, instead of walking the whole library, which took minutes on a NAS
+	// for a few folders among thousands
+	root = filepath.Clean(root)
+	candidates := map[string]bool{}
+	for folder := range f.vacated {
+		for dir := filepath.Clean(folder); ; dir = filepath.Dir(dir) {
+			rel, err := filepath.Rel(root, dir)
+			if err != nil || rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
 				break
 			}
+			candidates[dir] = true
 		}
-		if !empty {
+	}
+	folders := make([]string, 0, len(candidates))
+	for folder := range candidates {
+		folders = append(folders, folder)
+	}
+	// deepest folders first, so parents that become empty are deleted as well
+	sort.Slice(folders, func(i, j int) bool {
+		di, dj := strings.Count(folders[i], string(filepath.Separator)), strings.Count(folders[j], string(filepath.Separator))
+		if di != dj {
+			return di > dj
+		}
+		return folders[i] < folders[j]
+	})
+
+	for _, folder := range folders {
+		if !isEmptyFolder(folder) {
 			continue
 		}
-		// os.Remove refuses a folder that got a file since the walk
+		// os.Remove refuses a folder that got a file in the meantime
 		err := os.Remove(folder)
-		removed[folder] = err == nil
 		f.record(Operation{Kind: OP_DELETE, From: folder, Reason: "empty folder"}, err)
 	}
+}
+
+// isEmptyFolder tells a folder with nothing in it, a hidden file neither; it reads one entry
+// of its listing at most.
+func isEmptyFolder(folder string) bool {
+	dir, err := os.Open(folder)
+	if err != nil {
+		return false
+	}
+	defer dir.Close()
+	names, err := dir.Readdirnames(1)
+	return len(names) == 0 && errors.Is(err, io.EOF)
 }
 
 func sortedKeys[V any](m map[string]V) []string {
