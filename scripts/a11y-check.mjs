@@ -16,7 +16,7 @@ const BASE = (process.argv[2] || process.env.SLM_URL || 'http://localhost:3000')
 const PORT = 9333;
 
 const PAGES = [
-	'index.html', 'updates.html', 'dlc.html', 'missing.html', 'upcoming.html', 'sagas.html',
+	'index.html', 'index.html?missing=1', 'updates.html', 'dlc.html', 'missing.html', 'upcoming.html', 'sagas.html',
 	'statistics.html', 'year.html', 'compress.html', 'issues.html', 'space.html', 'sd.html',
 	'tasks.html', 'settings.html', 'organize.html', 'maintenance.html', 'saves.html',
 	'title/0100D00000150000.html',

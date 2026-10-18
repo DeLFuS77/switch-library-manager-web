@@ -1,5 +1,31 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Library on a phone: the switch of My games, Missing ones and All stays on one line instead of breaking in two, and
+  the four numbers on top slide sideways in one row, so the games start higher up.
+- Couch mode: the Library opens on the covers; its numbers and its bar of games up to date, which are on the
+  Statistics page too, leave the top of the page.
+- Your year on Switch: the chart of the months has one color, the cyan of what to discover; the busiest months are
+  the solid bars with their number in bold, instead of a red that read as an error.
+
+### Fixes
+
+- Couch mode: the header fits the screen of the TV. Search, Synchronize and the account went past its right edge;
+  now the logo goes without its name, the search is a magnifier and, below a screen of 1900px, the links of the menu
+  show their icons and counts (their names stay for screen readers).
+- Couch mode: the pill in the corner no longer covers the Save button of Settings and the other bars at the bottom of
+  the page, which sit above it.
+- The shimmer of a cover still loading stands still when the system asks for less motion; a cover further down the
+  page could keep it moving forever.
+- The games you do not have, shown in grey among yours (All), keep the contrast of WCAG AA in the light theme: the
+  card was veiled as a whole, which took their date and the "Not in your library" chip below it; now only the name is
+  quieter. The accessibility check of each change looks at that view too.
+- The page of a game you do not have is under Library › Missing ones in its path, instead of Missing Games, which
+  left the menu.
+
 ## 1.44.0
 
 ### Changes

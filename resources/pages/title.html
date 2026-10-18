@@ -4,7 +4,10 @@
 			{{- $cover := "/resources/static/noimage.png"}}{{if $t.ImageUrl}}{{$cover = fullImage $t.ImageUrl}}{{end}}
 			<nav aria-label="{{t "breadcrumb"}}" class="mt-3">
 				<ol class="breadcrumb mb-0">
-					<li class="breadcrumb-item"><a class="link-secondary" href="{{if $t.Owned}}/index.html{{else}}/missing.html{{end}}">{{if $t.Owned}}{{t "Library"}}{{else}}{{t "Missing Games"}}{{end}}</a></li>
+					<li class="breadcrumb-item"><a class="link-secondary" href="/index.html">{{t "Library"}}</a></li>
+					{{- if not $t.Owned}}
+					<li class="breadcrumb-item"><a class="link-secondary" href="/missing.html">{{t "Missing ones"}}</a></li>
+					{{- end}}
 					<li class="breadcrumb-item active text-truncate" aria-current="page">{{$t.Name}}</li>
 				</ol>
 			</nav>
