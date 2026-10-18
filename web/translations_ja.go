@@ -3,6 +3,7 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Interface sounds": "インターフェースの効果音",
 		"Pause": "一時停止",
 		"Resume": "再開",
 		"Paused": "一時停止中",

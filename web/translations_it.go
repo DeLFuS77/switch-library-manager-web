@@ -3,6 +3,7 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		"Interface sounds": "Suoni dell’interfaccia",
 		"Pause": "Pausa",
 		"Resume": "Riprendi",
 		"Paused": "In pausa",

@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Interface sounds": "Sonidos de la interfaz",
 		"Pause": "Pausar",
 		"Resume": "Reanudar",
 		"Paused": "En pausa",

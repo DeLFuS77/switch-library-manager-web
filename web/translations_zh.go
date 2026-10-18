@@ -3,6 +3,7 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Interface sounds": "界面音效",
 		"Pause": "暂停",
 		"Resume": "继续",
 		"Paused": "已暂停",

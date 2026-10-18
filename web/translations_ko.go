@@ -3,6 +3,7 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Interface sounds": "인터페이스 효과음",
 		"Pause": "일시 정지",
 		"Resume": "재개",
 		"Paused": "일시 정지됨",
