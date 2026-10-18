@@ -3,6 +3,8 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Controller connected": "已连接手柄",
+		"D-pad to move, A to open, B to go back, Start to search.": "十字键移动，A 打开，B 返回，Start 搜索。",
 		"1 game": "1 款游戏",
 		"The bar under each size compares the file with the biggest one of the list.": "每个大小下方的条形将该文件与列表中最大的文件进行比较。",
 		"%v files wait for the verification": "%v 个文件等待验证",

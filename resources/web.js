@@ -1693,6 +1693,189 @@ function initRevealOnScroll() {
 	});
 }
 
+// A game controller moves through the page like on a console: the D-pad or the left stick go to
+// the nearest control in that direction, A opens it, B closes a window or goes back, Start opens
+// the quick search. The page is only read while a controller is connected and the page is seen.
+const GAMEPAD_HINT_KEY = 'slm-gamepad-hint';
+const PAD = { a: 0, b: 1, start: 9, up: 12, down: 13, left: 14, right: 15 };
+
+function gamepadTargets() {
+	const scope = document.querySelector('.modal.show, .offcanvas.show') || document;
+	return [...scope.querySelectorAll('a[href], button, input, select, textarea, [tabindex]')].filter(element => {
+		if (element.disabled || element.tabIndex < 0 || element.closest('[hidden], [aria-hidden="true"], .d-none')) {
+			return false;
+		}
+		const rect = element.getBoundingClientRect();
+		return rect.width > 0 && rect.height > 0 && getComputedStyle(element).visibility !== 'hidden';
+	});
+}
+
+// the box a control stands for: a game card for the link that covers it
+function gamepadBox(element) {
+	return (element.closest('.game-card, .saga-card') || element).getBoundingClientRect();
+}
+
+function gamepadMove(direction) {
+	const targets = gamepadTargets();
+	const current = document.activeElement;
+	if (!targets.includes(current)) {
+		// the first control in sight, or the first one of the page
+		const inSight = targets.find(element => {
+			const rect = gamepadBox(element);
+			return rect.top >= 0 && rect.bottom <= window.innerHeight;
+		});
+		gamepadFocus(inSight || targets[0]);
+		return;
+	}
+	const from = gamepadBox(current);
+	const fromX = from.left + from.width / 2;
+	const fromY = from.top + from.height / 2;
+	const card = current.closest('.game-card, .saga-card');
+	// the bars fixed at the bottom of the screen are only chosen when nothing else lies that way
+	const bars = '.bottom-nav, .save-bar';
+	const inBar = element => Boolean(element.closest(bars));
+	const forward = direction === 'down' || direction === 'right';
+	let best = null;
+	let bestScore = Infinity;
+	let bar = null;
+	let barScore = Infinity;
+	targets.forEach(element => {
+		if (element === current || (card && card.contains(element))) {
+			return;
+		}
+		// what comes after in the page for down and right, before for up and left: the sticky
+		// bars move on the screen, the order of the page does not
+		const following = Boolean(current.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING);
+		if (following !== forward) {
+			return;
+		}
+		const rect = gamepadBox(element);
+		const x = rect.left + rect.width / 2;
+		const y = rect.top + rect.height / 2;
+		const dx = x - fromX;
+		const dy = y - fromY;
+		// only what lies in the direction asked, the nearest first and the most in line
+		const along = { up: -dy, down: dy, left: -dx, right: dx }[direction];
+		const across = direction === 'up' || direction === 'down' ? Math.abs(dx) : Math.abs(dy);
+		if (along <= 1) {
+			return;
+		}
+		const score = along + across * 2;
+		if (inBar(element) && !inBar(current)) {
+			if (score < barScore) {
+				barScore = score;
+				bar = element;
+			}
+		} else if (score < bestScore) {
+			bestScore = score;
+			best = element;
+		}
+	});
+	best = best || bar;
+	if (best) {
+		// a card is entered by its link, not by the buttons drawn on it
+		const target = best.closest('.game-card')?.querySelector('.stretched-link') || best;
+		gamepadFocus(target);
+	} else if (direction === 'up' || direction === 'down') {
+		window.scrollBy({ top: (direction === 'up' ? -1 : 1) * window.innerHeight * .6, behavior: reducedMotion() ? 'auto' : 'smooth' });
+	}
+}
+
+function gamepadFocus(element) {
+	if (!element) {
+		return;
+	}
+	element.focus({ preventScroll: true, focusVisible: true });
+	(element.closest('.game-card, .saga-card') || element).scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reducedMotion() ? 'auto' : 'smooth' });
+}
+
+function gamepadBack() {
+	const open = document.querySelector('.modal.show, .offcanvas.show');
+	if (open) {
+		const close = open.querySelector('[data-bs-dismiss]');
+		if (close) {
+			close.click();
+			return;
+		}
+	}
+	if (history.length > 1) {
+		history.back();
+	}
+}
+
+function initGamepad() {
+	if (!('getGamepads' in navigator)) {
+		return;
+	}
+	let frame = 0;
+	const held = {};
+	const press = (name, pressed, action, now) => {
+		const state = held[name] || (held[name] = { down: false, next: 0 });
+		if (!pressed) {
+			state.down = false;
+			return;
+		}
+		// a held direction repeats, slowly first
+		if (!state.down) {
+			state.down = true;
+			state.next = now + 380;
+			action();
+		} else if (now >= state.next && ['up', 'down', 'left', 'right'].includes(name)) {
+			state.next = now + 130;
+			action();
+		}
+	};
+	const read = now => {
+		frame = 0;
+		const pad = [...navigator.getGamepads()].find(Boolean);
+		if (!pad || document.hidden) {
+			return;
+		}
+		const button = index => Boolean(pad.buttons[index] && pad.buttons[index].pressed);
+		const [x = 0, y = 0] = pad.axes;
+		const using = pad.buttons.some(b => b.pressed) || Math.abs(x) > .5 || Math.abs(y) > .5;
+		if (using) {
+			document.documentElement.classList.add('is-gamepad');
+		}
+		press('up', button(PAD.up) || y < -.5, () => gamepadMove('up'), now);
+		press('down', button(PAD.down) || y > .5, () => gamepadMove('down'), now);
+		press('left', button(PAD.left) || x < -.5, () => gamepadMove('left'), now);
+		press('right', button(PAD.right) || x > .5, () => gamepadMove('right'), now);
+		press('a', button(PAD.a), () => document.activeElement && document.activeElement !== document.body && document.activeElement.click(), now);
+		press('b', button(PAD.b), gamepadBack, now);
+		press('start', button(PAD.start), () => document.querySelector('.search-trigger')?.click(), now);
+		frame = requestAnimationFrame(read);
+	};
+	const start = () => {
+		if (!frame) {
+			frame = requestAnimationFrame(read);
+		}
+	};
+	window.addEventListener('gamepadconnected', () => {
+		start();
+		let shown = false;
+		try {
+			shown = localStorage.getItem(GAMEPAD_HINT_KEY) === '1';
+			localStorage.setItem(GAMEPAD_HINT_KEY, '1');
+		} catch (e) {
+			// the hint shows again next time
+		}
+		if (!shown) {
+			showToast('alert-info', 'bi-controller', t('Controller connected'), t('D-pad to move, A to open, B to go back, Start to search.'));
+		}
+	});
+	document.addEventListener('visibilitychange', () => {
+		if (!document.hidden && [...navigator.getGamepads()].some(Boolean)) {
+			start();
+		}
+	});
+	// the mouse or the keyboard take over again
+	['pointerdown', 'keydown'].forEach(type => document.addEventListener(type, () => document.documentElement.classList.remove('is-gamepad'), { passive: true }));
+	if ([...navigator.getGamepads()].some(Boolean)) {
+		start();
+	}
+}
+
 // a long text shows its start, with a button for the rest
 function initCollapsibleText() {
 	document.querySelectorAll('[data-collapsible]').forEach(wrap => {
@@ -3377,6 +3560,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	initMarks();
 	initWhatsNew();
+	initGamepad();
 	initRevealOnScroll();
 	initCollapsibleText();
 

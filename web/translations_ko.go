@@ -3,6 +3,8 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Controller connected": "컨트롤러가 연결되었습니다",
+		"D-pad to move, A to open, B to go back, Start to search.": "방향 패드로 이동, A로 열기, B로 돌아가기, Start로 검색합니다.",
 		"1 game": "게임 1개",
 		"The bar under each size compares the file with the biggest one of the list.": "각 크기 아래의 막대는 파일을 목록에서 가장 큰 파일과 비교합니다.",
 		"%v files wait for the verification": "파일 %v개가 검증을 기다리고 있습니다",

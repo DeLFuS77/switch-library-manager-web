@@ -3,6 +3,8 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Controller connected": "Геймпад подключён",
+		"D-pad to move, A to open, B to go back, Start to search.": "Крестовина — перемещение, A — открыть, B — назад, Start — поиск.",
 		"1 game": "1 игра",
 		"The bar under each size compares the file with the biggest one of the list.": "Полоса под каждым размером сравнивает файл с самым большим в списке.",
 		"%v files wait for the verification": "Файлов ждут проверки: %v",

@@ -3,6 +3,8 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Controller connected": "Controle conectado",
+		"D-pad to move, A to open, B to go back, Start to search.": "Direcional para mover, A para abrir, B para voltar, Start para pesquisar.",
 		"1 game": "1 jogo",
 		"The bar under each size compares the file with the biggest one of the list.": "A barra sob cada tamanho compara o arquivo com o maior da lista.",
 		"%v files wait for the verification": "%v arquivos aguardam a verificação",
