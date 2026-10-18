@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+
+- The Library opens on All, your games and the ones you are missing (greyed out), and the switch under its title
+  reads All, My games and Missing ones, in that order. My games has an address of its own (`/index.html?missing=0`);
+  the links to All of before still open it.
+
 ## 1.45.0
 
 ### Improvements

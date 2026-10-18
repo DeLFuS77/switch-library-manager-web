@@ -29,7 +29,9 @@ type TitleItemFilter struct {
 	Collection string `in:"form=collection"`
 	// issues only: a kind of issue
 	IssueKind string `in:"form=kind_of_issue"`
-	// library only: "1" shows the games that are not in the library too, greyed out
+	// library only: the games that are not in the library are shown too, greyed out, unless it is
+	// "0" (My games); the "1" of the links of before, when they were not shown by default, is the same
+	// as empty
 	WithMissing string `in:"form=missing"`
 	// library only: a genre, the players ("1", "2" or "4") and a language of the games
 	Genre        string `in:"form=genre"`
@@ -124,7 +126,7 @@ func (f *TitleItemFilter) Normalize() {
 		f.Extra = ""
 	}
 	f.Collection = cleanCollectionName(f.Collection)
-	if f.WithMissing != "1" {
+	if f.WithMissing != "0" {
 		f.WithMissing = ""
 	}
 	if !knownGenreSet[f.Genre] {
@@ -149,9 +151,15 @@ func (f *TitleItemFilter) Active() bool {
 	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Region != "" || f.Extra != "" || f.Collection != ""
 }
 
-// Plain reports whether the first page is shown without any filter.
+// Plain reports whether the first page is shown without any filter (in any view of the Library).
 func (f *TitleItemFilter) Plain() bool {
-	return !f.Active() && f.Genre == "" && f.Players == "" && f.GameLanguage == "" && f.WithMissing == "" && f.Page <= 1
+	return !f.Active() && f.Genre == "" && f.Players == "" && f.GameLanguage == "" && f.Page <= 1
+}
+
+// ShowsMissing reports whether the Library shows the games it does not have too: All, its view
+// by default, and not My games.
+func (f *TitleItemFilter) ShowsMissing() bool {
+	return f.WithMissing != "0"
 }
 
 // SecondaryCount is the number of library filters set besides the keyword and the status:
