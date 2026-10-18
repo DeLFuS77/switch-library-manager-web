@@ -3,7 +3,7 @@
   "scripts": {
     "build": "npm run build:css && npm run build:js && node scripts/purge-css.mjs",
     "build:css": "sass --style=compressed --no-source-map --quiet-deps --silence-deprecation=import --silence-deprecation=global-builtin --silence-deprecation=color-functions --silence-deprecation=if-function --silence-deprecation=abs-percent resources/web.scss resources/static/web.css",
-    "build:js": "esbuild resources/web.js --bundle --minify --format=iife --target=es2020 --outfile=resources/static/web.js",
+    "build:js": "node scripts/build-js.mjs",
     "watch:css": "npm run build:css -- --watch",
     "watch:js": "npm run build:js -- --watch",
     "clean": "node -e \"for (const f of ['resources/static/web.css', 'resources/static/web.js']) require('fs').rmSync(f, {force: true})\""

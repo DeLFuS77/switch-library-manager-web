@@ -1,0 +1,188 @@
+// ---------------------------------------------------------------------------------------
+// Card details
+// ---------------------------------------------------------------------------------------
+.game-card {
+	// a brand colored ring appears around the hovered card
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: 3;
+		border-radius: inherit;
+		padding: 1px;
+		background: linear-gradient(135deg, $slm-red, $slm-cyan);
+		-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		opacity: 0;
+		transition: opacity .2s ease;
+		pointer-events: none;
+	}
+
+	&:hover::before,
+	&:focus-within::before {
+		opacity: 1;
+	}
+}
+
+// the cards of the favorites have a golden aura, and those of the games on the wishlist a red
+// one: a light that goes round their edge and a glow that breathes, still when the system
+// asks for less motion
+@property --aura-angle {
+	syntax: "<angle>";
+	inherits: false;
+	initial-value: 0deg;
+}
+
+.game-card.is-fav-card,
+.game-card.is-wish-card {
+	--aura: 255, 196, 0;
+	--aura-light: #fff1a8;
+	box-shadow: 0 0 0 1px rgba(var(--aura), .5), 0 0 1.2rem -.25rem rgba(var(--aura), .4);
+	animation: aura-breathe 3.6s ease-in-out infinite;
+
+	&::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: 3;
+		border-radius: inherit;
+		padding: 2px;
+		background: conic-gradient(from var(--aura-angle), transparent 0deg, transparent 60deg, rgba(var(--aura), .9) 110deg, var(--aura-light) 135deg, rgba(var(--aura), .9) 160deg, transparent 210deg, transparent 360deg);
+		-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		animation: aura-spin 5s linear infinite;
+		pointer-events: none;
+	}
+}
+
+.game-card.is-wish-card {
+	--aura: 255, 70, 92;
+	--aura-light: #ffd6db;
+}
+
+@keyframes aura-spin {
+	to {
+		--aura-angle: 360deg;
+	}
+}
+
+@keyframes aura-breathe {
+	0%,
+	100% {
+		box-shadow: 0 0 0 1px rgba(var(--aura), .4), 0 0 .9rem -.3rem rgba(var(--aura), .3);
+	}
+
+	50% {
+		box-shadow: 0 0 0 1px rgba(var(--aura), .7), 0 0 1.7rem -.1rem rgba(var(--aura), .5);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.game-card.is-fav-card,
+	.game-card.is-fav-card::after,
+	.game-card.is-wish-card,
+	.game-card.is-wish-card::after {
+		animation: none;
+	}
+}
+
+.cover-ribbon {
+	position: absolute;
+	top: .55rem;
+	right: .55rem;
+	z-index: 1;
+	display: grid;
+	place-items: center;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 50%;
+	font-size: var(--slm-text-md);
+	color: #1a1300;
+	background: $warning;
+	box-shadow: 0 4px 12px -2px rgba(0, 0, 0, .45);
+}
+
+.dlc-progress {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+
+	.dlc-progress-bar {
+		flex: 1;
+		height: .35rem;
+		border-radius: 1rem;
+		background: var(--slm-surface-muted);
+		overflow: hidden;
+
+		span {
+			display: block;
+			height: 100%;
+			border-radius: inherit;
+			background: linear-gradient(90deg, $slm-cyan, #7c5cff);
+		}
+	}
+
+	.dlc-progress-label {
+		font-size: var(--slm-text-xs);
+		font-weight: 600;
+		// the full color of the text: the row it is in is dimmed when there is no DLC
+		color: var(--bs-body-color);
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+}
+
+.game-grid.is-compact .dlc-progress-label {
+	display: none;
+}
+
+// cards fade in one after the other
+@media (prefers-reduced-motion: no-preference) {
+	.game-grid > *,
+	.library-overview > .kpi,
+	.saga-list > .saga-card,
+	.save-list > .save-game {
+		animation: slm-fade-up .45s cubic-bezier(.2, .7, .2, 1) both;
+	}
+
+	@for $i from 1 through 12 {
+		.game-grid > :nth-child(#{$i}),
+		.library-overview > .kpi:nth-child(#{$i}),
+		.saga-list > .saga-card:nth-child(#{$i}),
+		.save-list > .save-game:nth-child(#{$i}) {
+			animation-delay: #{$i * 35}ms;
+		}
+	}
+
+	.game-grid > :nth-child(n + 13),
+	.saga-list > .saga-card:nth-child(n + 13),
+	.save-list > .save-game:nth-child(n + 13) {
+		animation-delay: 450ms;
+	}
+
+	// the covers of a series lift a little under the pointer
+	@media (hover: hover) and (pointer: fine) {
+		.saga-thumb {
+			transition: transform .15s ease;
+		}
+
+		.saga-thumb:hover {
+			transform: translateY(-3px);
+		}
+	}
+}
+
+@keyframes slm-fade-up {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+

@@ -1,0 +1,291 @@
+// ---------------------------------------------------------------------------------------
+// Library overview
+// ---------------------------------------------------------------------------------------
+.library-overview {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: .75rem;
+	margin-bottom: 1.25rem;
+
+	@include media-breakpoint-up(lg) {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 1rem;
+	}
+
+	// phones: the four numbers in one row that slides sideways, so the games start higher up; the
+	// third one peeks at the edge to show there is more
+	@include media-breakpoint-down(sm) {
+		grid-template-columns: none;
+		grid-auto-flow: column;
+		grid-auto-columns: 42%;
+		gap: .6rem;
+		overflow-x: auto;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+		margin-inline: -1rem;
+		padding: 0 1rem .25rem;
+		scroll-padding-inline: 1rem;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+
+		> .kpi {
+			scroll-snap-align: start;
+			padding: .75rem .85rem;
+		}
+	}
+}
+
+.kpi {
+	--kpi-color: #{$slm-red};
+	--kpi-soft: var(--slm-accent-soft);
+	position: relative;
+	overflow: hidden;
+	display: grid;
+	grid-template-columns: auto 1fr;
+	grid-template-areas: "icon value" "icon label";
+	column-gap: .85rem;
+	align-items: center;
+	padding: 1rem 1.1rem;
+	border-radius: $border-radius-xl;
+
+	// on phones a small icon goes next to the number, so labels have the whole width and
+	// the cards stay short
+	@include media-breakpoint-down(sm) {
+		grid-template-columns: 1fr auto;
+		grid-template-areas: "value icon" "label label";
+		row-gap: .3rem;
+		column-gap: .5rem;
+		align-items: center;
+		padding: .75rem .85rem;
+	}
+	background: var(--slm-surface);
+	border: 1px solid var(--slm-border);
+	box-shadow: var(--slm-shadow);
+	color: inherit;
+	text-decoration: none;
+	transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+
+	// a soft blob of the color in the corner
+	&::after {
+		content: "";
+		position: absolute;
+		right: -2.5rem;
+		top: -2.5rem;
+		width: 7rem;
+		height: 7rem;
+		border-radius: 50%;
+		background: var(--kpi-soft);
+		filter: blur(6px);
+		pointer-events: none;
+	}
+
+	&:hover,
+	&:focus-visible {
+		transform: translateY(-3px);
+		box-shadow: var(--slm-shadow-hover);
+		border-color: var(--kpi-color);
+		color: inherit;
+	}
+
+	&.kpi-warning {
+		--kpi-color: #{$warning};
+		--kpi-soft: #{rgba($warning, .16)};
+	}
+
+	&.kpi-success {
+		--kpi-color: #{$success};
+		--kpi-soft: #{rgba($success, .14)};
+	}
+
+	&.kpi-info,
+	&.kpi-cyan {
+		--kpi-color: #{$slm-cyan};
+		--kpi-soft: var(--slm-cyan-soft);
+	}
+
+	.kpi-icon {
+		grid-area: icon;
+		display: grid;
+		place-items: center;
+		width: 2.9rem;
+		height: 2.9rem;
+		border-radius: $border-radius-lg;
+		font-size: var(--slm-text-lg);
+		color: var(--kpi-color);
+		background: var(--kpi-soft);
+	}
+
+	.kpi-value {
+		grid-area: value;
+		font-size: var(--slm-text-xl);
+		font-weight: 800;
+		line-height: 1.1;
+		letter-spacing: -.02em;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.kpi-detail {
+		display: block;
+		font-size: max(var(--slm-text-xs), .8em);
+		color: var(--bs-secondary-color);
+	}
+
+	.kpi-label {
+		grid-area: label;
+		font-size: var(--slm-text-xs);
+		line-height: 1.25;
+		color: var(--bs-secondary-color);
+	}
+}
+
+.library-health {
+	grid-column: 1 / -1;
+	padding: .2rem .2rem 0;
+}
+
+// the cards with a number (the overview of the library, the stat cards of Statistics and of
+// the other pages): the color drifts slowly behind each one at its own pace, a second glow
+// answers from the other corner, and pointing at a card makes its glow grow and its icon turn
+.stat-card {
+	--kpi-soft: var(--slm-accent-soft);
+	position: relative;
+	overflow: hidden;
+
+	&.is-cyan {
+		--kpi-soft: var(--slm-cyan-soft);
+	}
+
+	&::after {
+		content: "";
+		position: absolute;
+		right: -2.5rem;
+		top: -2.5rem;
+		width: 7rem;
+		height: 7rem;
+		border-radius: 50%;
+		background: var(--kpi-soft);
+		filter: blur(6px);
+		pointer-events: none;
+	}
+}
+
+.kpi-live,
+.stat-card {
+	isolation: isolate;
+
+	> * {
+		position: relative;
+		z-index: 1;
+	}
+
+	&::after {
+		z-index: 0;
+		transition: scale .6s ease, opacity .6s ease;
+	}
+
+	&::before {
+		content: "";
+		position: absolute;
+		left: -3rem;
+		bottom: -3.75rem;
+		width: 8rem;
+		height: 8rem;
+		border-radius: 50%;
+		background: var(--kpi-soft);
+		filter: blur(16px);
+		opacity: .65;
+		pointer-events: none;
+		z-index: 0;
+		transition: scale .6s ease, opacity .6s ease;
+	}
+
+	.kpi-icon,
+	.stat-icon {
+		transition: transform .35s cubic-bezier(.3, 1.6, .5, 1);
+	}
+
+	&:hover,
+	&:focus-visible {
+		&::after {
+			scale: 1.45;
+		}
+
+		&::before {
+			scale: 1.3;
+			opacity: 1;
+		}
+
+		.kpi-icon,
+		.stat-icon {
+			transform: rotate(-8deg) scale(1.1);
+		}
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.kpi-live,
+	.stat-card {
+		&::after {
+			animation: slm-kpi-drift 9s ease-in-out infinite alternate;
+		}
+
+		&::before {
+			animation: slm-kpi-drift-back 12s ease-in-out infinite alternate;
+		}
+	}
+
+	// each card at another moment of the drift, so they never move together
+	@for $i from 1 through 4 {
+		.library-overview > .kpi-live:nth-child(#{$i}),
+		.row > .col:nth-child(#{$i}) > .stat-card {
+			&::after {
+				animation-delay: -#{$i * 2.3}s;
+			}
+
+			&::before {
+				animation-delay: -#{$i * 3.7}s;
+			}
+		}
+	}
+}
+
+@keyframes slm-kpi-drift {
+	0% {
+		transform: translate(0, 0) scale(1);
+	}
+
+	50% {
+		transform: translate(-1.6rem, 1.3rem) scale(1.3);
+	}
+
+	100% {
+		transform: translate(-3.2rem, .3rem) scale(1.1);
+	}
+}
+
+@keyframes slm-kpi-drift-back {
+	0% {
+		transform: translate(0, 0) scale(1);
+	}
+
+	100% {
+		transform: translate(2.6rem, -1.6rem) scale(1.35);
+	}
+}
+
+.health-bar {
+	height: .5rem;
+	border-radius: 1rem;
+	background: var(--slm-surface-muted);
+	overflow: hidden;
+
+	span {
+		display: block;
+		height: 100%;
+		border-radius: inherit;
+		background: linear-gradient(90deg, $slm-cyan, $success);
+	}
+}
+

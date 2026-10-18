@@ -1,0 +1,1648 @@
+// ---------------------------------------------------------------------------------------
+// Motion
+// ---------------------------------------------------------------------------------------
+
+// smooth cross-fade between pages where the browser supports it; the header stays put
+@view-transition {
+	navigation: auto;
+}
+
+.app-header {
+	view-transition-name: app-header;
+}
+
+// the mark of the page in the menu and the one of the view of the Library glide from where they
+// were to where they are now, like the cursor of a console; with less motion they just change
+@media (prefers-reduced-motion: no-preference) {
+	.nav-indicator {
+		view-transition-name: nav-indicator;
+	}
+
+	.view-indicator {
+		view-transition-name: view-indicator;
+	}
+
+	::view-transition-group(nav-indicator),
+	::view-transition-group(view-indicator) {
+		animation-duration: .32s;
+		animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+	}
+
+	// the same piece before and after: it moves and stretches, without fading through itself
+	::view-transition-old(nav-indicator),
+	::view-transition-old(view-indicator) {
+		display: none;
+	}
+
+	::view-transition-new(nav-indicator),
+	::view-transition-new(view-indicator) {
+		animation: none;
+		width: 100%;
+		height: 100%;
+	}
+}
+
+::view-transition-old(root) {
+	animation: slm-page-out .18s ease both;
+}
+
+::view-transition-new(root) {
+	animation: slm-page-in .28s cubic-bezier(.2, .7, .2, 1) both;
+}
+
+@keyframes slm-page-out {
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes slm-page-in {
+	from {
+		opacity: 0;
+	}
+}
+
+// the share of the library that can be freed (Space page)
+.space-bar {
+	height: .9rem;
+	border-radius: 999px;
+	background: var(--slm-surface-muted);
+	overflow: hidden;
+}
+
+.space-stack {
+	display: flex;
+	gap: 2px;
+
+	> span {
+		height: 100%;
+		min-width: .4rem;
+	}
+}
+
+.space-dot {
+	display: inline-block;
+	width: .6rem;
+	height: .6rem;
+	border-radius: 50%;
+	margin-right: .4rem;
+	vertical-align: middle;
+	flex-shrink: 0;
+}
+
+.space-dot-old_updates {
+	background: $warning;
+}
+
+.space-dot-duplicates {
+	background: $slm-red;
+}
+
+.space-dot-compressed {
+	background: $slm-cyan;
+}
+
+// a registered property, so gauges can fill up smoothly
+@property --pct {
+	syntax: "<number>";
+	inherits: false;
+	initial-value: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.gauge {
+		animation: slm-gauge-fill 1.1s cubic-bezier(.2, .7, .2, 1) both;
+	}
+
+	.donut::before {
+		animation: slm-donut-in 1.1s cubic-bezier(.3, .7, .2, 1) both;
+		animation-delay: .1s;
+	}
+
+	.health-bar span,
+	.space-stack > span,
+	.dlc-progress-bar span,
+	.progress-bar:not(.progress-bar-animated) {
+		transform-origin: left center;
+		animation: slm-grow .9s cubic-bezier(.2, .7, .2, 1) both;
+		animation-delay: .15s;
+	}
+
+	.empty-state .empty-icon {
+		animation: slm-float 4s ease-in-out infinite;
+	}
+
+	.alert {
+		animation: slm-slide-in .3s ease both;
+	}
+
+	.dropdown-menu.show {
+		animation: slm-pop .16s ease-out both;
+	}
+
+	.setup-step.is-done .setup-marker {
+		animation: slm-pop .4s cubic-bezier(.3, 1.6, .5, 1) both;
+	}
+
+	.cover-ribbon {
+		animation: slm-pulse 2.4s ease-in-out infinite;
+	}
+
+	// cards tilt slightly towards the pointer (set by script)
+	@media (hover: hover) and (pointer: fine) {
+		.game-card.is-tilting {
+			transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) translateY(-4px);
+			transition: transform .08s linear, box-shadow .2s ease;
+		}
+	}
+}
+
+@keyframes slm-gauge-fill {
+	from {
+		--pct: 0;
+	}
+}
+
+@keyframes slm-donut-in {
+	from {
+		--donut-reveal: 0deg;
+	}
+}
+
+@keyframes slm-grow {
+	from {
+		transform: scaleX(0);
+	}
+}
+
+@keyframes slm-float {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+
+	50% {
+		transform: translateY(-6px);
+	}
+}
+
+@keyframes slm-pop {
+	from {
+		opacity: 0;
+		transform: scale(.92);
+	}
+}
+
+@keyframes slm-pulse {
+	0%,
+	100% {
+		box-shadow: 0 4px 12px -2px rgba(0, 0, 0, .45), 0 0 0 0 rgba($warning, .55);
+	}
+
+	50% {
+		box-shadow: 0 4px 12px -2px rgba(0, 0, 0, .45), 0 0 0 7px rgba($warning, 0);
+	}
+}
+
+// buttons and pills give way when pressed
+.btn,
+.filter-pill,
+.kpi,
+.compress-level {
+	&:active {
+		transform: scale(.97);
+	}
+}
+
+.progress-bar,
+.task-card .progress-bar {
+	transition: width .4s ease;
+}
+
+// covers shimmer until they are loaded (the class is set by script)
+.game-cover {
+	img {
+		transition: opacity .35s ease, transform .35s ease;
+	}
+
+	img.is-loading {
+		opacity: 0;
+	}
+
+	&:has(img.is-loading) {
+		background: linear-gradient(100deg, var(--slm-surface-muted) 30%, var(--slm-surface) 50%, var(--slm-surface-muted) 70%);
+		background-size: 300% 100%;
+	}
+}
+
+// the shimmer only moves when the system does not ask for less motion: a cover further down the
+// page waits to be seen, and its shimmer would never stop
+@media (prefers-reduced-motion: no-preference) {
+	.game-cover:has(img.is-loading) {
+		animation: slm-shimmer 1.2s linear infinite;
+	}
+}
+
+@keyframes slm-shimmer {
+	from {
+		background-position: 100% 0;
+	}
+
+	to {
+		background-position: 0 0;
+	}
+}
+
+/* number of games over time, on the Statistics page */
+// the changes of the preview of Organize, colored by kind
+.op-list,
+.op-summary {
+	.op-error { --op-color: var(--bs-danger); }
+	.op-review { --op-color: var(--slm-chart-3); }
+	.op-move { --op-color: var(--slm-chart-4); }
+	.op-rename { --op-color: var(--slm-chart-2); }
+	.op-mkdir { --op-color: var(--slm-chart-5); }
+	.op-delete { --op-color: var(--slm-chart-1); }
+	.op-skip,
+	.op-cleanup { --op-color: var(--slm-chart-6); }
+	.op-all { --op-color: var(--bs-body-color); }
+}
+
+.op-summary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .5rem;
+}
+
+.op-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: .4rem;
+	padding: .3rem .4rem .3rem .75rem;
+	border: 1px solid color-mix(in srgb, var(--op-color) 45%, transparent);
+	border-radius: 2rem;
+	background: color-mix(in srgb, var(--op-color) 10%, transparent);
+	color: var(--bs-body-color);
+	font-size: var(--slm-text-sm);
+	transition: background-color .15s, box-shadow .15s;
+
+	.bi {
+		color: var(--op-color);
+	}
+
+	&:hover {
+		background: color-mix(in srgb, var(--op-color) 18%, transparent);
+	}
+
+	&[aria-pressed="true"] {
+		background: color-mix(in srgb, var(--op-color) 26%, transparent);
+		box-shadow: 0 0 0 1px var(--op-color);
+	}
+}
+
+.op-chip-count {
+	min-width: 1.6rem;
+	padding: .05rem .45rem;
+	border-radius: 1rem;
+	background: color-mix(in srgb, var(--op-color) 30%, transparent);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	text-align: center;
+}
+
+.op-list {
+	display: flex;
+	flex-direction: column;
+	gap: .5rem;
+}
+
+.op-row {
+	display: flex;
+	align-items: flex-start;
+	gap: .9rem;
+	padding: .7rem .9rem;
+	border: 1px solid var(--bs-border-color-translucent);
+	border-left: 4px solid var(--op-color);
+	border-radius: .6rem;
+	background: color-mix(in srgb, var(--op-color) 5%, transparent);
+
+	&[hidden] {
+		display: none;
+	}
+}
+
+.op-badge {
+	display: inline-flex;
+	flex: 0 0 8.5rem;
+	align-items: center;
+	gap: .4rem;
+	color: var(--op-color);
+	font-size: var(--slm-text-xs);
+	font-weight: 600;
+	letter-spacing: .02em;
+	text-transform: uppercase;
+	padding-top: .1rem;
+}
+
+.op-body {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: .35rem;
+	min-width: 0;
+}
+
+.op-path {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.op-name {
+	font-weight: 500;
+}
+
+.op-folder {
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-xs);
+}
+
+.op-target {
+	display: flex;
+	gap: .5rem;
+
+	> .bi {
+		color: var(--op-color);
+		flex: 0 0 auto;
+	}
+}
+
+.op-note {
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-sm);
+
+	.op-review &,
+	.op-error & {
+		color: var(--op-color);
+	}
+}
+
+@media (max-width: 575.98px) {
+	.op-row {
+		flex-direction: column;
+		gap: .4rem;
+	}
+
+	.op-badge {
+		flex-basis: auto;
+	}
+}
+
+// lists of files to choose, colored by kind (the compression)
+.op-summary {
+	.op-game { --op-color: var(--slm-chart-1); }
+	.op-update { --op-color: var(--slm-chart-3); }
+	.op-dlc { --op-color: var(--slm-chart-2); }
+}
+
+.file-list {
+	display: flex;
+	flex-direction: column;
+	gap: .45rem;
+}
+
+.file-row {
+	--kind-color: var(--slm-chart-6);
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: .5rem 1rem;
+	padding: .65rem 1rem;
+	border: 1px solid var(--bs-border-color-translucent);
+	border-left: 4px solid var(--kind-color);
+	border-radius: .6rem;
+	background: color-mix(in srgb, var(--kind-color) 4%, var(--slm-surface));
+	transition: background-color .15s, opacity .15s;
+
+	&.kind-game { --kind-color: var(--slm-chart-1); }
+	&.kind-update { --kind-color: var(--slm-chart-3); }
+	&.kind-dlc { --kind-color: var(--slm-chart-2); }
+
+	&:hover {
+		background: color-mix(in srgb, var(--kind-color) 9%, var(--slm-surface));
+	}
+
+	&:has(.form-check-input:not(:checked)) {
+		opacity: .6;
+	}
+
+	&[hidden] {
+		display: none;
+	}
+
+	.form-check-input {
+		margin: 0;
+	}
+}
+
+.file-row-main {
+	display: flex;
+	flex-direction: column;
+	gap: .25rem;
+	min-width: 0;
+	cursor: pointer;
+}
+
+.file-row-name {
+	font-weight: 600;
+	overflow-wrap: anywhere;
+}
+
+.file-row-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .35rem .6rem;
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-xs);
+}
+
+.file-kind {
+	display: inline-flex;
+	align-items: center;
+	gap: .3rem;
+	padding: .05rem .5rem;
+	border-radius: 1rem;
+	background: color-mix(in srgb, var(--kind-color) 16%, transparent);
+	color: var(--kind-color);
+	font-weight: 600;
+}
+
+.file-format {
+	padding: .05rem .4rem;
+	border: 1px solid var(--bs-border-color);
+	border-radius: .35rem;
+	font-size: var(--slm-text-xs);
+	font-weight: 600;
+	letter-spacing: .03em;
+}
+
+.file-row-file {
+	min-width: 0;
+	font-family: var(--bs-font-monospace);
+	font-size: var(--slm-text-xs);
+	overflow-wrap: anywhere;
+}
+
+.file-row-size {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: .3rem;
+	min-width: 5.5rem;
+	font-variant-numeric: tabular-nums;
+}
+
+.file-row-bar {
+	width: 5.5rem;
+	height: .3rem;
+	border-radius: 1rem;
+	background: var(--slm-surface-muted);
+	overflow: hidden;
+
+	> span {
+		display: block;
+		height: 100%;
+		border-radius: inherit;
+		background: var(--kind-color);
+	}
+}
+
+// the panel of a header link: what is left, shown on hover
+.nav-hint {
+	position: relative;
+}
+
+.nav-hint-panel {
+	display: none;
+	position: absolute;
+	top: 100%;
+	right: 0;
+	z-index: 1060;
+	min-width: 17rem;
+	padding: .75rem;
+	border: 1px solid var(--slm-border);
+	border-radius: .8rem;
+	background: var(--slm-surface);
+	box-shadow: 0 .75rem 2rem rgba(0, 0, 0, .35);
+	font-size: var(--slm-text-sm);
+
+	li {
+		--hint-color: var(--slm-chart-6);
+		display: flex;
+		align-items: center;
+		gap: .6rem;
+		padding: .35rem .5rem;
+		border-radius: .5rem;
+		background: color-mix(in srgb, var(--hint-color) 9%, transparent);
+
+		& + li {
+			margin-top: .3rem;
+		}
+
+		&.tone-danger { --hint-color: var(--bs-danger); }
+		&.tone-warning { --hint-color: var(--slm-chart-3); }
+		&.tone-info { --hint-color: var(--slm-chart-2); }
+	}
+}
+
+.nav-hint-title {
+	margin-bottom: .5rem;
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-xs);
+	font-weight: 600;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+}
+
+.nav-hint-icon {
+	color: var(--hint-color);
+}
+
+.nav-hint-count {
+	color: var(--hint-color);
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+@media (hover: hover) {
+	.nav-hint:hover .nav-hint-panel,
+	.nav-hint:focus-within .nav-hint-panel {
+		display: block;
+	}
+}
+
+// a value that copies itself on a click, with the clipboard icon next to it
+.copy-inline {
+	display: inline-flex;
+	align-items: center;
+	gap: .4rem;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+
+	.copy-icon,
+	.copied-icon {
+		font-size: max(var(--slm-text-xs), .85em);
+		opacity: .6;
+		transition: opacity .15s;
+	}
+
+	.copied-icon {
+		display: none;
+		color: var(--bs-success);
+		opacity: 1;
+	}
+
+	&:hover .copy-icon,
+	&:focus-visible .copy-icon {
+		opacity: 1;
+	}
+
+	&.is-copied {
+		.copy-icon { display: none; }
+		.copied-icon { display: inline; }
+	}
+}
+
+// the change of format of a file being compressed, decompressed or converted
+.format-change {
+	flex: 0 0 auto;
+	padding: .05rem .5rem;
+	border: 1px solid color-mix(in srgb, var(--slm-chart-2) 50%, transparent);
+	border-radius: 1rem;
+	background: color-mix(in srgb, var(--slm-chart-2) 14%, transparent);
+	color: var(--slm-chart-2);
+	font-size: var(--slm-text-xs);
+	font-weight: 600;
+	letter-spacing: .02em;
+}
+
+// the bars of the statistics: thin and round, one color for each chart (set by the chart with
+// --bar-color) and no stripes, which in the rest of the app mean something is working
+.stat-bar {
+	height: .6rem;
+	border-radius: 1rem;
+	background: var(--slm-surface-muted);
+
+	.progress-bar {
+		border-radius: inherit;
+		background: linear-gradient(to right, color-mix(in srgb, var(--bar-color, var(--slm-chart-1)) 70%, transparent), var(--bar-color, var(--slm-chart-1)));
+	}
+}
+
+.stat-share,
+.count-bar {
+	font-variant-numeric: tabular-nums;
+}
+
+.year-bar span {
+	background: linear-gradient(to top, rgba($slm-red, .6), $slm-red);
+}
+
+.year-bar small {
+	font-variant-numeric: tabular-nums;
+}
+
+.history-chart-box {
+	position: relative;
+	padding-top: 1.1rem;
+}
+
+.history-chart-max {
+	position: absolute;
+	top: 0;
+	left: 0;
+	font-size: var(--slm-text-xs);
+}
+
+.history-chart {
+	display: block;
+	width: 100%;
+	height: 160px;
+	color: var(--slm-chart-1);
+	touch-action: pan-y;
+}
+
+.history-chart-grid {
+	stroke: var(--bs-border-color);
+	stroke-width: 1;
+}
+
+.history-chart-cursor {
+	stroke: var(--bs-secondary-color);
+	stroke-width: 1;
+	stroke-dasharray: 3 3;
+}
+
+.history-chart-tip {
+	position: absolute;
+	top: 1.1rem;
+	padding: .35rem .6rem;
+	border-radius: .5rem;
+	background: var(--bs-body-bg);
+	border: 1px solid var(--bs-border-color);
+	box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .12);
+	pointer-events: none;
+	white-space: nowrap;
+	z-index: 2;
+}
+
+.history-chart-tip .chart-dot {
+	display: inline-block;
+	vertical-align: -.05rem;
+}
+
+/* games selected in the library */
+.game-card.is-selected {
+	outline: 2px solid var(--slm-chart-1);
+	outline-offset: 2px;
+}
+
+.collection-menu {
+	min-width: 16rem;
+}
+
+.pack-menu {
+	width: 22rem;
+	max-width: calc(100vw - 2rem);
+}
+
+.library-bulk[hidden] {
+	display: none !important;
+}
+
+/* notifications in a corner of the screen, see showToast in web.js */
+.toast-stack {
+	position: fixed;
+	top: 4.75rem;
+	right: 1rem;
+	z-index: 1090;
+	display: flex;
+	flex-direction: column;
+	gap: .5rem;
+	width: min(24rem, calc(100vw - 2rem));
+	pointer-events: none;
+}
+
+.toast-note {
+	margin: 0;
+	pointer-events: auto;
+	box-shadow: var(--slm-shadow);
+	backdrop-filter: blur(8px);
+}
+
+@media (max-width: 575.98px) {
+	.toast-stack {
+		top: auto;
+		bottom: 1rem;
+		right: 1rem;
+	}
+}
+
+/* the selection boxes of the library show on hover, on keyboard focus and while selecting;
+   touch screens always show them */
+.cover-select[data-library-item] {
+	opacity: 0;
+	transition: opacity .15s ease;
+}
+
+.game-card:hover .cover-select[data-library-item],
+.game-card:focus-within .cover-select[data-library-item],
+.is-selecting .cover-select[data-library-item] {
+	opacity: 1;
+}
+
+@media (hover: none) {
+	.cover-select[data-library-item] {
+		opacity: .85;
+	}
+}
+
+/* phones: the filters scroll sideways in one row instead of filling the screen */
+@media (max-width: 575.98px) {
+	.filter-scroll {
+		flex-wrap: nowrap !important;
+		overflow-x: auto;
+		scrollbar-width: none;
+		margin-inline: -1rem;
+		padding-inline: 1rem;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.filter-scroll::-webkit-scrollbar {
+		display: none;
+	}
+
+	.filter-scroll > * {
+		flex-shrink: 0;
+	}
+}
+
+/* phones: smaller icon and number in the overview cards (after the rules of .kpi) */
+@include media-breakpoint-down(sm) {
+	.kpi .kpi-icon {
+		width: 2rem;
+		height: 2rem;
+		font-size: var(--slm-text-md);
+	}
+
+	.kpi .kpi-value {
+		font-size: var(--slm-text-lg);
+	}
+}
+
+/* the library filters besides the status: one button opens a panel with a section for each */
+.filter-panel-menu {
+	width: min(26rem, calc(100vw - 2rem));
+	max-height: min(70vh, 34rem);
+	overflow-y: auto;
+	padding: .75rem;
+}
+
+.filter-group + .filter-group {
+	margin-top: .75rem;
+	padding-top: .75rem;
+	border-top: 1px solid var(--slm-border);
+}
+
+.filter-group-title {
+	display: flex;
+	align-items: center;
+	gap: .4rem;
+	margin-bottom: .5rem;
+	font-size: var(--slm-text-xs);
+	font-weight: 700;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	color: var(--bs-secondary-color);
+}
+
+.filter-choices {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .35rem;
+}
+
+.filter-choice,
+.active-filter {
+	display: inline-flex;
+	align-items: center;
+	gap: .35rem;
+	padding: .3rem .7rem;
+	border-radius: 999px;
+	border: 1px solid var(--slm-border);
+	background: var(--slm-surface-muted);
+	color: var(--bs-body-color);
+	font-size: var(--slm-text-sm);
+	text-decoration: none;
+	transition: border-color .15s ease, background-color .15s ease;
+
+	&:hover,
+	&:focus-visible {
+		border-color: var(--slm-chart-1);
+		color: var(--bs-body-color);
+	}
+}
+
+.filter-choice.active {
+	border-color: var(--slm-chart-1);
+	background: var(--slm-accent-soft);
+	font-weight: 600;
+}
+
+.filter-count {
+	color: var(--bs-secondary-color);
+	font-size: max(var(--slm-text-xs), .8em);
+	font-variant-numeric: tabular-nums;
+}
+
+.active-filter {
+	background: var(--slm-accent-soft);
+	border-color: var(--slm-chart-1);
+
+	.bi-x {
+		margin-right: -.25rem;
+		font-size: var(--slm-text-md);
+		opacity: .7;
+	}
+}
+
+/* favorites: a star next to the name of the games of the library */
+.game-card .game-body {
+	position: relative;
+}
+
+.fav-toggle {
+	position: absolute;
+	top: .55rem;
+	right: .5rem;
+	z-index: 3;
+	padding: .15rem .3rem;
+	border: 0;
+	background: none;
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-md);
+	line-height: 1;
+	opacity: .55;
+	transition: opacity .15s ease, transform .15s ease, color .15s ease;
+
+	&:hover,
+	&:focus-visible {
+		opacity: 1;
+		transform: scale(1.15);
+		color: $slm-gold;
+	}
+
+	&.is-favorite {
+		opacity: 1;
+		color: $slm-gold;
+	}
+}
+
+.game-card:has(.fav-toggle) .game-title {
+	padding-right: 1.6rem;
+}
+
+/* games not in the library, shown with the others */
+.game-card.is-missing {
+	.game-cover img {
+		filter: grayscale(1) brightness(.6);
+		transition: filter .2s ease;
+	}
+
+	// quieter than the games you have, through the color of the name rather than a veil on the whole
+	// card, which took the date and the chip below the contrast of WCAG AA
+	.game-title,
+	.game-title a {
+		color: var(--bs-secondary-color);
+	}
+
+	&:hover .game-cover img {
+		filter: grayscale(.3) brightness(.85);
+	}
+}
+
+/* what the star, the heart and the grey mean */
+.mark-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .35rem 1.1rem;
+	margin: 0 0 .9rem;
+	font-size: var(--slm-text-xs);
+	color: var(--bs-secondary-color);
+
+	> span {
+		display: inline-flex;
+		align-items: center;
+		gap: .35rem;
+	}
+}
+
+.mark-legend-missing {
+	display: inline-block;
+	width: .85rem;
+	height: .85rem;
+	border-radius: .2rem;
+	background: linear-gradient(135deg, #8a8a8a, #4a4a4a);
+}
+
+/* the switch of the filter panel is a link */
+.stretched-toggle {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	color: inherit;
+	text-decoration: none;
+
+	.form-check-input {
+		margin: 0;
+		pointer-events: none;
+	}
+}
+
+.filter-panel-menu .form-switch {
+	padding-left: 0;
+}
+
+/* the other games of the series of a game */
+.saga-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+	gap: .75rem;
+}
+
+
+.saga-state {
+	font-size: var(--slm-text-xs);
+	color: var(--bs-secondary-color);
+}
+
+/* the bars of running tasks are drawn again at every update: no entrance animation; the
+   stripes of the bars that move keep moving */
+[data-live-tasks] .progress-bar:not(.progress-bar-animated) {
+	animation: none !important;
+}
+
+/* chips of genres and languages on the game page */
+.fact-tags {
+	display: flex;
+	flex-wrap: wrap;
+	// the chips keep their height when the box is taller than they are
+	align-content: flex-start;
+	align-items: flex-start;
+	gap: .3rem;
+	font-size: var(--slm-text-sm);
+}
+
+/* games by year of release */
+.year-chart {
+	display: flex;
+	align-items: flex-end;
+	gap: .35rem;
+	height: 9rem;
+	overflow-x: auto;
+	padding-bottom: .25rem;
+}
+
+.year-bar {
+	flex: 1 0 1.8rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	align-items: center;
+	height: 100%;
+
+	span {
+		display: block;
+		width: 100%;
+		min-height: 2px;
+		border-radius: .3rem .3rem 0 0;
+		background: var(--slm-chart-1);
+	}
+
+	small {
+		margin-top: .25rem;
+		font-size: var(--slm-text-xs);
+		color: var(--bs-secondary-color);
+	}
+}
+
+/* the copy of a game suggested to keep among its regions */
+.region-keep {
+	background: var(--slm-accent-soft);
+	border-radius: $border-radius;
+}
+
+/* the SD card planner */
+.sd-summary {
+	position: sticky;
+	top: 4.5rem;
+	z-index: 5;
+}
+
+.sd-cover {
+	width: 2.75rem;
+	height: 2.75rem;
+	object-fit: cover;
+	border-radius: $border-radius;
+	flex-shrink: 0;
+}
+
+.sd-game .item-meta .chip {
+	font-size: var(--slm-text-xs);
+}
+
+.sd-options .btn-check:checked + .filter-choice {
+	border-color: var(--slm-chart-1);
+	background: var(--slm-accent-soft);
+	font-weight: 600;
+}
+
+/* a game of the SD card planner: box, cover, name and reasons, size */
+.item-row.sd-game {
+	grid-template-columns: auto auto minmax(0, 1fr) auto;
+}
+
+// "You might like": a row of games that scrolls sideways
+.rec-strip {
+	display: grid;
+	grid-auto-flow: column;
+	grid-auto-columns: minmax(9.5rem, 10.5rem);
+	gap: .75rem;
+	overflow-x: auto;
+	padding-bottom: .5rem;
+	scroll-snap-type: x proximity;
+	scrollbar-width: thin;
+}
+
+// the series of the library and how many games of each one it has
+.saga-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 26rem), 1fr));
+	gap: .75rem;
+}
+
+.saga-card {
+	display: flex;
+	gap: .9rem;
+	align-items: flex-start;
+	min-width: 0;
+}
+
+.saga-cover {
+	width: 4.5rem;
+	height: 4.5rem;
+	flex-shrink: 0;
+	object-fit: cover;
+	border-radius: $border-radius;
+}
+
+.saga-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.saga-title {
+	font-size: var(--slm-text-md);
+	font-weight: 700;
+	margin: 0;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.saga-strip {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .35rem;
+}
+
+.saga-thumb img {
+	width: 2.4rem;
+	height: 2.4rem;
+	object-fit: cover;
+	border-radius: .35rem;
+	display: block;
+	transition: transform .15s ease;
+}
+
+.saga-thumb:hover img,
+.saga-thumb:focus-visible img {
+	transform: scale(1.1);
+}
+
+.saga-thumb.is-missing img {
+	filter: grayscale(1) brightness(.6);
+	outline: 1px dashed var(--slm-border);
+	outline-offset: 1px;
+}
+
+.saga-more {
+	font-size: var(--slm-text-xs);
+	color: var(--bs-secondary-color);
+}
+
+.saga-progress .progress,
+.saga-card .progress {
+	height: .5rem;
+}
+
+// a small game card, the same as the cards of the lists: recommendations, series and upcoming games
+.mini-card {
+	.game-body {
+		padding: .6rem .7rem .7rem;
+		gap: .25rem;
+	}
+
+	.game-title {
+		font-size: var(--slm-text-sm);
+		-webkit-line-clamp: 2;
+	}
+
+	.game-meta {
+		font-size: var(--slm-text-xs);
+		display: flex;
+		gap: .3rem;
+		align-items: baseline;
+
+		> span:last-child {
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
+	}
+
+	.wish-toggle {
+		top: .45rem;
+		right: .45rem;
+		width: 1.9rem;
+		height: 1.9rem;
+		font-size: var(--slm-text-sm);
+	}
+
+	&.is-for-you {
+		box-shadow: 0 0 0 2px var(--bs-primary), var(--slm-shadow);
+	}
+}
+
+// the release date on the cover of an upcoming game
+.cover-date {
+	position: absolute;
+	top: .5rem;
+	left: .5rem;
+	z-index: 2;
+	display: inline-flex;
+	align-items: center;
+	gap: .3rem;
+	padding: .15rem .5rem;
+	border-radius: 999px;
+	background: rgba(0, 0, 0, .7);
+	color: #fff;
+	font-size: var(--slm-text-xs);
+	font-weight: 700;
+	backdrop-filter: blur(4px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.rec-strip > *,
+	.saga-grid > *,
+	.saga-list > * {
+		animation: slm-fade-up .45s cubic-bezier(.2, .7, .2, 1) both;
+	}
+
+	@for $i from 1 through 8 {
+		.rec-strip > :nth-child(#{$i}),
+		.saga-grid > :nth-child(#{$i}),
+		.saga-list > :nth-child(#{$i}) {
+			animation-delay: #{$i * 35}ms;
+		}
+	}
+
+	.rec-strip > :nth-child(n + 9),
+	.saga-grid > :nth-child(n + 9),
+	.saga-list > :nth-child(n + 9) {
+		animation-delay: 300ms;
+	}
+}
+
+// the cover of the opened game flies from its card to the page of the game
+.is-flying,
+.title-cover {
+	view-transition-name: slm-cover;
+}
+
+::view-transition-group(slm-cover) {
+	animation-duration: .38s;
+	animation-timing-function: cubic-bezier(.2, .7, .2, 1);
+	z-index: 10;
+}
+
+::view-transition-old(slm-cover),
+::view-transition-new(slm-cover) {
+	height: 100%;
+	object-fit: cover;
+	border-radius: 1rem;
+	overflow: hidden;
+}
+
+// back on a page, its cards appear at once
+.is-returning {
+	.game-grid > *,
+	.library-overview > .kpi,
+	.rec-strip > *,
+	.saga-grid > *,
+	.saga-list > * {
+		animation: none !important;
+	}
+}
+
+// the star and the heart pop when they are pressed
+.is-popping {
+	animation: slm-mark-pop .4s cubic-bezier(.3, 1.6, .5, 1);
+}
+
+@keyframes slm-mark-pop {
+	40% {
+		transform: scale(1.35);
+	}
+
+	100% {
+		transform: scale(1);
+	}
+}
+
+// Upcoming: the next game for the user, big, with the days left
+.featured-release {
+	position: relative;
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	gap: 1.25rem;
+	align-items: center;
+	padding: 1.25rem;
+	border-radius: $border-radius-xl;
+	border: 1px solid var(--slm-border);
+	background: var(--slm-surface);
+	box-shadow: var(--slm-shadow);
+	overflow: hidden;
+	isolation: isolate;
+
+	&.is-for-you {
+		border-color: rgba(214, 40, 57, .45);
+	}
+
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: linear-gradient(90deg, var(--slm-surface) 15%, transparent 80%),
+			linear-gradient(180deg, transparent 30%, var(--slm-surface) 100%);
+		opacity: .92;
+	}
+
+	.wish-toggle {
+		top: .75rem;
+		right: .75rem;
+	}
+
+	@include media-breakpoint-down(sm) {
+		grid-template-columns: auto minmax(0, 1fr);
+
+		.featured-countdown {
+			grid-column: 1 / -1;
+			flex-direction: row;
+			justify-content: flex-start;
+			gap: .5rem;
+		}
+	}
+}
+
+.featured-bg {
+	position: absolute;
+	inset: 0;
+	z-index: -2;
+	background-size: cover;
+	background-position: center 30%;
+	filter: blur(4px) saturate(120%);
+	opacity: .6;
+	transform: scale(1.05);
+}
+
+.featured-cover {
+	width: 7rem;
+	height: 7rem;
+	object-fit: cover;
+	border-radius: $border-radius-lg;
+	box-shadow: 0 12px 30px -12px rgba(0, 0, 0, .7);
+
+	@include media-breakpoint-down(sm) {
+		width: 5rem;
+		height: 5rem;
+	}
+}
+
+.featured-info {
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: .4rem;
+}
+
+.featured-name {
+	font-size: clamp(1.15rem, 2.5vw, 1.6rem);
+	font-weight: 800;
+	margin: 0;
+
+	a {
+		color: inherit;
+		text-decoration: none;
+	}
+}
+
+.featured-when {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .35rem;
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-sm);
+}
+
+.featured-countdown {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-width: 6rem;
+	margin-right: 2.5rem;
+
+	.countdown-number {
+		font-size: var(--slm-text-2xl);
+		font-weight: 800;
+		line-height: 1;
+		color: var(--bs-emphasis-color);
+		text-shadow: 0 2px 18px rgba(214, 40, 57, .55);
+	}
+
+	.countdown-label {
+		font-size: var(--slm-text-xs);
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: .04em;
+		color: var(--bs-secondary-color);
+	}
+
+	@include media-breakpoint-down(sm) {
+		margin-right: 0;
+		align-items: baseline;
+
+		.countdown-number {
+			font-size: var(--slm-text-xl);
+		}
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.featured-release {
+		animation: slm-fade-up .5s cubic-bezier(.2, .7, .2, 1) both;
+	}
+
+	.featured-release .featured-bg {
+		animation: slm-hero-drift 18s ease-in-out infinite alternate;
+	}
+
+	.is-returning .featured-release {
+		animation: none;
+	}
+}
+
+// phones: the main sections in a bar at the bottom, within reach of the thumb
+.bottom-nav {
+	position: fixed;
+	inset: auto 0 0 0;
+	z-index: 1030;
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	padding: .3rem .25rem calc(.3rem + env(safe-area-inset-bottom));
+	background: var(--slm-header-bg);
+	backdrop-filter: blur(14px) saturate(140%);
+	-webkit-backdrop-filter: blur(14px) saturate(140%);
+	border-top: 1px solid var(--slm-border);
+	view-transition-name: bottom-nav;
+}
+
+.bottom-link {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: .1rem;
+	padding: .3rem 0;
+	border: 0;
+	border-radius: $border-radius;
+	background: none;
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-xs);
+	font-weight: 600;
+	text-decoration: none;
+	transition: color .15s ease;
+
+	> .bi {
+		position: relative;
+		font-size: var(--slm-text-lg);
+		line-height: 1.2;
+		transition: transform .2s cubic-bezier(.3, 1.6, .5, 1);
+	}
+
+	&.active {
+		color: var(--bs-primary);
+
+		> .bi {
+			transform: translateY(-1px) scale(1.08);
+		}
+
+		&::before {
+			content: "";
+			position: absolute;
+			top: -.3rem;
+			left: 30%;
+			right: 30%;
+			height: 3px;
+			border-radius: 0 0 3px 3px;
+			background: var(--bs-primary);
+		}
+	}
+
+	&:active > .bi {
+		transform: scale(.9);
+	}
+}
+
+.bottom-label {
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.bottom-badge {
+	position: absolute;
+	top: -.25rem;
+	left: 70%;
+	min-width: 1.25rem;
+	padding: 0 .3rem;
+	border-radius: 999px;
+	background: $warning;
+	color: #000;
+	font-family: $font-family-base;
+	font-size: var(--slm-text-xs);
+	font-weight: 800;
+	line-height: 1.05rem;
+	text-align: center;
+}
+
+@include media-breakpoint-down(md) {
+	:root {
+		--slm-bottom-nav: calc(3.6rem + env(safe-area-inset-bottom));
+	}
+
+	body {
+		padding-bottom: var(--slm-bottom-nav);
+	}
+}
+
+// on the light theme the artwork stays behind a lighter veil, so the text keeps its contrast
+[data-bs-theme="light"] {
+	.title-hero.has-banner {
+		.title-hero-bg {
+			opacity: .28;
+			filter: blur(6px) saturate(110%);
+		}
+
+		&::before {
+			background: linear-gradient(180deg, rgba(255, 255, 255, .35) 0%, var(--slm-surface) 85%),
+				linear-gradient(90deg, var(--slm-surface) 10%, rgba(255, 255, 255, .4) 80%);
+			opacity: 1;
+		}
+	}
+
+	.featured-bg {
+		opacity: .3;
+	}
+
+	.featured-release::before {
+		opacity: 1;
+	}
+}
+
+// Diagnostics: the checks of each part, with their state
+.diagnostics-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+	gap: 1rem;
+	align-items: start;
+}
+
+.check-row {
+	display: flex;
+	gap: .65rem;
+	padding: .6rem 0;
+	border-top: 1px solid var(--slm-border);
+
+	&:first-child {
+		border-top: 0;
+		padding-top: 0;
+	}
+}
+
+.check-icon {
+	flex-shrink: 0;
+	margin-top: .15rem;
+	color: var(--bs-secondary-color);
+}
+
+.check-ok .check-icon {
+	color: var(--bs-success);
+}
+
+.check-warn .check-icon {
+	color: var(--bs-warning);
+}
+
+.check-error .check-icon {
+	color: var(--bs-danger);
+}
+
+.check-label {
+	font-weight: 600;
+	font-size: var(--slm-text-sm);
+}
+
+.check-value {
+	font-size: var(--slm-text-sm);
+	color: var(--bs-secondary-color);
+	text-align: right;
+}
+
+.check-hint {
+	margin-top: .25rem;
+	font-size: var(--slm-text-xs);
+	color: var(--bs-secondary-color);
+}
+
+.check-warn .check-hint {
+	color: var(--bs-warning-text-emphasis);
+}
+
+.check-error .check-hint {
+	color: var(--bs-danger-text-emphasis);
+}
+
+// the space of the scroll bar is always kept, so pages shorter than the window (and the
+// sections of Settings) do not move sideways when the bar appears or goes away
+html {
+	scrollbar-gutter: stable;
+}
+
+.closed-slm-no-login-notice [data-remember-close="slm-no-login-notice"] {
+	display: none !important;
+}
+
+// Settings: only the section in the address is shown, already in the first paint
+html[data-section] .settings-section {
+	display: none;
+}
+
+html[data-section="library"] #library,
+html[data-section="ignored"] #ignored,
+html[data-section="general"] #general,
+html[data-section="background"] #background,
+html[data-section="compression"] #compression,
+html[data-section="automation"] #automation,
+html[data-section="vault"] #vault,
+html[data-section="notifications"] #notifications,
+html[data-section="mobile"] #mobile,
+html[data-section="backup"] #backup {
+	display: block;
+}
+
+html[data-section="mobile"] #settingsForm .save-bar,
+html[data-section="backup"] #settingsForm .save-bar {
+	display: none !important;
+}
+
