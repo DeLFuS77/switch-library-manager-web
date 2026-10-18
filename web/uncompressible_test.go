@@ -34,3 +34,21 @@ func TestSparseStorageNote(t *testing.T) {
 		t.Fatalf("note: %q", note)
 	}
 }
+
+// A file noted by an older version, with its size times the passes of the task, is still
+// known; a file noted now needs its own size.
+func TestUncompressibleFromAnOlderVersion(t *testing.T) {
+	web := newTestWeb(t)
+	store := web.uncompressible()
+	store.files["/games/old.nsp"] = uncompressibleFile{Size: 300, Sparse: true}
+	if _, ok := store.get("/games/old.nsp", 100); !ok {
+		t.Fatal("a file noted with the size of the progress is offered again")
+	}
+	if _, ok := store.get("/games/old.nsp", 70); ok {
+		t.Fatal("another file of that name is taken for it")
+	}
+	store.add("/games/new.nsp", 100, false)
+	if _, ok := store.get("/games/new.nsp", 50); ok {
+		t.Fatal("a file noted with its own size matches another size")
+	}
+}

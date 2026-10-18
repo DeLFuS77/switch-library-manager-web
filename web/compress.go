@@ -703,7 +703,8 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 						web.taskLog().Warn(taskId, compressNote(kind, err), name+": "+err.Error())
 						// nothing in it can be compressed: no longer offered while it stays the same
 						if kind == TASK_COMPRESS && errors.Is(err, switchfs.ErrNotCompressible) {
-							web.uncompressible().add(path, fileSize, errors.Is(err, switchfs.ErrSparseStorage))
+							// the size of the file, not the one of its progress (read once per pass)
+							web.uncompressible().add(path, sizes[i], errors.Is(err, switchfs.ErrSparseStorage))
 							web.invalidateDerived()
 						}
 					default:

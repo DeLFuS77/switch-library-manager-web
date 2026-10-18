@@ -21,6 +21,9 @@ type uncompressibleStore struct {
 
 type uncompressibleFile struct {
 	Size int64 `json:"size"`
+	// the size is the one of the file; before 1.41.4 it was the one of the progress, the size
+	// times the passes of the task (see get)
+	Exact bool `json:"exact,omitempty"`
 	// a game in sparse storage, a layout no compressor reads yet
 	Sparse bool `json:"sparse,omitempty"`
 }
@@ -51,7 +54,7 @@ func (web *Web) uncompressible() *uncompressibleStore {
 func (s *uncompressibleStore) add(path string, size int64, sparse bool) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	s.files[path] = uncompressibleFile{Size: size, Sparse: sparse}
+	s.files[path] = uncompressibleFile{Size: size, Sparse: sparse, Exact: true}
 	if data, err := json.Marshal(s.files); err == nil {
 		writeFileAtomic(s.path, data)
 	}
@@ -63,7 +66,14 @@ func (s *uncompressibleStore) get(path string, size int64) (uncompressibleFile, 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	file, ok := s.files[path]
-	return file, ok && file.Size == size
+	if !ok || size <= 0 {
+		return file, false
+	}
+	if file.Size == size {
+		return file, true
+	}
+	// noted by an older version, with the size of the progress: the passes of a task are a few
+	return file, !file.Exact && file.Size%size == 0 && file.Size/size <= 4
 }
 
 // uncompressibleFiles are the files of the library that could not be compressed, the largest
