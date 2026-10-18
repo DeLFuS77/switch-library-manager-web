@@ -30,6 +30,7 @@
   is saved and comes back with the next change, and the Save buttons of Organize and My account stay dim until a
   field changes; undoing a change turns them off again. A field filled by the app itself (the folder picker) counts
   as a change too.
+- Settings refuse a library folder listed twice or inside another one, and say which: its files would be read twice.
 
 ### Changes
 

@@ -992,6 +992,8 @@ func init() {
 		"Firmware of your console": "Firmware de votre console",
 		"Folder name template":     "Modèle de nom de dossier",
 		"Folder not found: %v":     "Dossier introuvable : %v",
+		"This folder is listed twice: %v": "Ce dossier figure deux fois : %v",
+		"%v is inside %v: its files would be read twice. Keep only one of them.": "%v est dans %v : ses fichiers seraient lus deux fois. Garde un seul des deux.",
 		"Folders":                  "Dossiers",
 		"Folders to scan":          "Dossiers à analyser",
 		"Follow its progress in Tasks. You can leave this page.":                       "Suivez sa progression dans Tâches. Vous pouvez quitter cette page.",

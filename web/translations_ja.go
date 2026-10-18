@@ -829,6 +829,8 @@ func init() {
 		"First-Person Shooter":            "ファーストパーソンシューター",
 		"Folder name template":            "フォルダー名のテンプレート",
 		"Folder not found: %v":            "フォルダーが見つかりません：%v",
+		"This folder is listed twice: %v": "このフォルダーが2回指定されています: %v",
+		"%v is inside %v: its files would be read twice. Keep only one of them.": "%v は %v の中にあります。ファイルが2回読み込まれます。どちらか一方だけにしてください。",
 		"Folder of the card or USB drive": "カードまたはUSBドライブのフォルダー",
 		"Folders":                         "フォルダー",
 		"Folders to scan":                 "スキャンするフォルダー",
