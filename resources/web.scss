@@ -6918,6 +6918,16 @@ $page-sections: (
 			content: map-get($bootstrap-icons-map, nth($info, 2)) / "";
 		}
 	}
+
+	// the empty state of the page wears the color of its header too (the grey of the app pages
+	// would be too faint for an icon, so they keep the red)
+	@if nth($info, 1) != app {
+		body[data-page="#{$page}"] .empty-state .empty-icon:not(.is-success) {
+			$color: map-get($section-colors, nth($info, 1));
+			background: rgba($color, .14);
+			color: $color;
+		}
+	}
 }
 
 // 17: Series: bigger covers in a fan, the missing ones as silhouettes, the bar in the cyan of
