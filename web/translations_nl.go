@@ -3,6 +3,7 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Interface sounds": "Interfacegeluiden",
 		"Pause": "Pauzeren",
 		"Resume": "Hervatten",
 		"Paused": "Gepauzeerd",

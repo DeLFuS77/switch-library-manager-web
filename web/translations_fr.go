@@ -3,6 +3,7 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		"Interface sounds": "Sons de l’interface",
 		"Pause": "Pause",
 		"Resume": "Reprendre",
 		"Paused": "En pause",

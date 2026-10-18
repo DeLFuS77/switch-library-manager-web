@@ -12,6 +12,9 @@
   it is, in the middle of a file too, and goes on from the same point, for instance while you play or download. The
   card says it is paused, its bars stand still, and the speed and the time left count only the time it worked. A
   paused task can still be cancelled.
+- Interface sounds, like the menu of a console: a soft tick to move between the cards (with the keyboard or a
+  controller), two notes to open and to go back, a pop for the star and the heart and a chime when a task ends. They are
+  made by the browser, with no sound file, and stay off until turned on from the menu of the header, on each device.
 
 ### Changes
 

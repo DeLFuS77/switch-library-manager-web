@@ -65,6 +65,9 @@ function showToast(contextualClass, iconClass, strongMessage, message) {
 
 	const toast = document.createElement('div');
 	toast.className = 'alert toast-note d-flex align-items-start gap-2 fade ' + contextualClass;
+	if (contextualClass === 'alert-success') {
+		playSound('done');
+	}
 	toast.setAttribute('role', contextualClass === 'alert-danger' ? 'alert' : 'status');
 	toast.dataset.toastKey = key;
 	toast.toastDuration = contextualClass === 'alert-danger' ? TOAST_ERROR_MS : TOAST_SUCCESS_MS;
@@ -1663,6 +1666,7 @@ function initMarks() {
 				// every button of the same game on the page
 				const buttons = [...document.querySelectorAll(`[data-${key}="${CSS.escape(id)}"]`)];
 				buttons.forEach(other => setMark(other, mark, marked));
+				playSound(marked ? 'on' : 'off');
 				if (!reducedMotion()) {
 					button.classList.remove('is-popping');
 					void button.offsetWidth;
@@ -1699,6 +1703,88 @@ function initRevealOnScroll() {
 		element.classList.add('is-waiting');
 		observer.observe(element);
 	});
+}
+
+// Short sounds of a console menu, made by the browser (no sound file): a tick to move, two
+// notes up to open, two down to go back, a chime when a task ends. Off unless turned on, on
+// each device, from the menu of the header.
+const SOUND_KEY = 'slm-sounds';
+const SOUNDS = {
+	move: [[1320, 0, .045, 'triangle', .03]],
+	open: [[660, 0, .07, 'triangle', .045], [990, .06, .09, 'triangle', .045]],
+	back: [[880, 0, .07, 'triangle', .04], [587, .06, .09, 'triangle', .04]],
+	on: [[784, 0, .06, 'sine', .05], [1175, .05, .09, 'sine', .05]],
+	off: [[1175, 0, .06, 'sine', .04], [784, .05, .09, 'sine', .04]],
+	done: [[784, 0, .12, 'sine', .045], [988, .1, .12, 'sine', .045], [1319, .2, .22, 'sine', .045]],
+};
+let soundContext = null;
+
+function soundsOn() {
+	try {
+		return localStorage.getItem(SOUND_KEY) === '1';
+	} catch (e) {
+		return false;
+	}
+}
+
+function playSound(name, force = false) {
+	if (!force && !soundsOn()) {
+		return;
+	}
+	try {
+		soundContext = soundContext || new (window.AudioContext || window.webkitAudioContext)();
+		if (soundContext.state === 'suspended') {
+			soundContext.resume();
+		}
+		const now = soundContext.currentTime;
+		SOUNDS[name].forEach(([frequency, start, length, type, volume]) => {
+			const oscillator = soundContext.createOscillator();
+			const gain = soundContext.createGain();
+			oscillator.type = type;
+			oscillator.frequency.setValueAtTime(frequency, now + start);
+			gain.gain.setValueAtTime(.0001, now + start);
+			gain.gain.exponentialRampToValueAtTime(volume, now + start + .01);
+			gain.gain.exponentialRampToValueAtTime(.0001, now + start + length);
+			oscillator.connect(gain).connect(soundContext.destination);
+			oscillator.start(now + start);
+			oscillator.stop(now + start + length + .02);
+		});
+	} catch (e) {
+		// no sound in this browser
+	}
+}
+
+function initSounds() {
+	const toggles = [...document.querySelectorAll('[data-sound-toggle]')];
+	const show = on => toggles.forEach(toggle => {
+		toggle.setAttribute('aria-checked', String(on));
+		const icon = toggle.querySelector('.bi');
+		if (icon) {
+			icon.classList.toggle('bi-volume-up', on);
+			icon.classList.toggle('bi-volume-mute', !on);
+		}
+	});
+	show(soundsOn());
+	toggles.forEach(toggle => toggle.addEventListener('click', e => {
+		// the menu stays open, to see the switch change
+		e.stopPropagation();
+		const on = !soundsOn();
+		try {
+			localStorage.setItem(SOUND_KEY, on ? '1' : '0');
+		} catch (err) {
+			// not kept on this device
+		}
+		show(on);
+		playSound(on ? 'on' : 'off', true);
+	}));
+	// the keyboard moving from card to card ticks, like the controller
+	document.addEventListener('focusin', e => {
+		if (e.target.matches('.game-card .stretched-link:focus-visible')) {
+			playSound('move');
+		}
+	});
+	document.addEventListener('show.bs.modal', () => playSound('open'));
+	document.addEventListener('hide.bs.modal', () => playSound('back'));
 }
 
 // A game controller moves through the page like on a console: the D-pad or the left stick go to
@@ -1784,6 +1870,10 @@ function gamepadMove(direction) {
 		// a card is entered by its link, not by the buttons drawn on it
 		const target = best.closest('.game-card')?.querySelector('.stretched-link') || best;
 		gamepadFocus(target);
+		// a card ticks by itself when it takes the focus
+		if (!target.closest('.game-card')) {
+			playSound('move');
+		}
 	} else if (direction === 'up' || direction === 'down') {
 		window.scrollBy({ top: (direction === 'up' ? -1 : 1) * window.innerHeight * .6, behavior: reducedMotion() ? 'auto' : 'smooth' });
 	}
@@ -1798,6 +1888,7 @@ function gamepadFocus(element) {
 }
 
 function gamepadBack() {
+	playSound('back');
 	const open = document.querySelector('.modal.show, .offcanvas.show');
 	if (open) {
 		const close = open.querySelector('[data-bs-dismiss]');
@@ -1849,7 +1940,12 @@ function initGamepad() {
 		press('down', button(PAD.down) || y > .5, () => gamepadMove('down'), now);
 		press('left', button(PAD.left) || x < -.5, () => gamepadMove('left'), now);
 		press('right', button(PAD.right) || x > .5, () => gamepadMove('right'), now);
-		press('a', button(PAD.a), () => document.activeElement && document.activeElement !== document.body && document.activeElement.click(), now);
+		press('a', button(PAD.a), () => {
+			if (document.activeElement && document.activeElement !== document.body) {
+				playSound('open');
+				document.activeElement.click();
+			}
+		}, now);
 		press('b', button(PAD.b), gamepadBack, now);
 		press('start', button(PAD.start), () => document.querySelector('.search-trigger')?.click(), now);
 		frame = requestAnimationFrame(read);
@@ -3569,6 +3665,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initMarks();
 	initWhatsNew();
 	initGamepad();
+	initSounds();
 	initRevealOnScroll();
 	initCollapsibleText();
 

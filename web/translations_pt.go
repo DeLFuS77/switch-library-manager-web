@@ -3,6 +3,7 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		"Interface sounds": "Sons da interface",
 		"Pause": "Pausar",
 		"Resume": "Retomar",
 		"Paused": "Em pausa",
