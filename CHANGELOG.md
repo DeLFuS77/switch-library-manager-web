@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### New
+
+- Compress tells how much each file will likely save, from what the files of the same kind (and format) you compressed
+  before saved: a game −17 %, an update −5 %, a DLC −40 %... with a line on top with the average of each kind and what
+  all the files listed would save. It shows once three files of a kind have been compressed, and is kept apart from the
+  history of the tasks, so clearing it does not lose it.
+
 ### Changes
 
 - Tasks: during a compression the files already compressed are in a panel of their own, under the files being worked

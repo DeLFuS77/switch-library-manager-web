@@ -3,6 +3,9 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Estimated from the files of this kind you compressed before": "根据你之前压缩过的同类文件估算",
+		"Estimated from the files you compressed before:": "根据之前的压缩估算：",
+		"About %v could be saved with all of them.": "全部压缩约可节省 %v。",
 		"Controller connected": "已连接手柄",
 		"D-pad to move, A to open, B to go back, Start to search.": "十字键移动，A 打开，B 返回，Start 搜索。",
 		"1 game": "1 款游戏",

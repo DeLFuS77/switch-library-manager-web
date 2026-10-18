@@ -3,6 +3,9 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Estimated from the files of this kind you compressed before": "これまでに圧縮した同じ種類のファイルからの推定",
+		"Estimated from the files you compressed before:": "これまでの圧縮からの推定:",
+		"About %v could be saved with all of them.": "すべて圧縮すると約 %v 節約できます。",
 		"Controller connected": "コントローラーが接続されました",
 		"D-pad to move, A to open, B to go back, Start to search.": "十字ボタンで移動、A で開く、B で戻る、Start で検索します。",
 		"1 game": "1 本のゲーム",

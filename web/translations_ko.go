@@ -3,6 +3,9 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Estimated from the files of this kind you compressed before": "이전에 압축한 같은 종류의 파일로 추정",
+		"Estimated from the files you compressed before:": "이전 압축 기준 추정:",
+		"About %v could be saved with all of them.": "모두 압축하면 약 %v를 절약할 수 있습니다.",
 		"Controller connected": "컨트롤러가 연결되었습니다",
 		"D-pad to move, A to open, B to go back, Start to search.": "방향 패드로 이동, A로 열기, B로 돌아가기, Start로 검색합니다.",
 		"1 game": "게임 1개",
