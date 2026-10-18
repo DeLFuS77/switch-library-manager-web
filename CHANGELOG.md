@@ -12,6 +12,14 @@
   themes: the outlined grey and red buttons, the chosen section of Settings, the count of the chosen filter, the
   green "Up to date" and "Done" chips and the green texts of the light theme, and "No DLC" under the cards. The star
   and the heart of the cards are targets of 24px at least.
+- Accessibility with the keyboard: the lists "Sort by" and "Per page" no longer load the page again at each arrow:
+  the arrows only choose, and Enter or leaving the list applies the choice. After the page is loaded again the focus
+  is back on the list (also on the ascending/descending buttons). Every button, field and page number shows the cyan
+  ring of the app when it has the focus, the search button of the header too.
+- Accessibility: the switch "Show the missing games too" says whether it is on; the quick search says how many
+  results it found and gives the focus back where it was when it closes; the box to choose a cover is a target of
+  24px; at a width of 320px the page no longer scrolls sideways; and the bottom bar of the phone does not hide the
+  control with the focus. The details under the numbers of the overview are no longer faded.
 
 ## 1.41.5
 

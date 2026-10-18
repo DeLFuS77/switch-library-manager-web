@@ -91,7 +91,7 @@
 					<div class="dropdown-menu dropdown-menu-end filter-panel-menu">
 						<section class="filter-group">
 							<div class="form-check form-switch mb-0">
-								<a class="stretched-toggle" href="{{if $f.WithMissing}}{{filterUrl $f "missing" ""}}{{else}}{{filterUrl $f "missing" "1"}}{{end}}">
+								<a class="stretched-toggle" role="switch" aria-checked="{{if $f.WithMissing}}true{{else}}false{{end}}" href="{{if $f.WithMissing}}{{filterUrl $f "missing" ""}}{{else}}{{filterUrl $f "missing" "1"}}{{end}}">
 									<input class="form-check-input" type="checkbox" role="switch" tabindex="-1" aria-hidden="true"{{if $f.WithMissing}} checked{{end}}>
 									<span class="form-check-label">{{t "Show the missing games too"}}</span>
 								</a>
