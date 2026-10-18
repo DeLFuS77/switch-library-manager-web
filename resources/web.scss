@@ -2386,6 +2386,30 @@ $avatar-colors: (
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 1rem;
 	}
+
+	// phones: the four numbers in one row that slides sideways, so the games start higher up; the
+	// third one peeks at the edge to show there is more
+	@include media-breakpoint-down(sm) {
+		grid-template-columns: none;
+		grid-auto-flow: column;
+		grid-auto-columns: 42%;
+		gap: .6rem;
+		overflow-x: auto;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+		margin-inline: -1rem;
+		padding: 0 1rem .25rem;
+		scroll-padding-inline: 1rem;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+
+		> .kpi {
+			scroll-snap-align: start;
+			padding: .75rem .85rem;
+		}
+	}
 }
 
 .kpi {
@@ -3162,6 +3186,13 @@ $avatar-colors: (
 	&:has(img.is-loading) {
 		background: linear-gradient(100deg, var(--slm-surface-muted) 30%, var(--slm-surface) 50%, var(--slm-surface-muted) 70%);
 		background-size: 300% 100%;
+	}
+}
+
+// the shimmer only moves when the system does not ask for less motion: a cover further down the
+// page waits to be seen, and its shimmer would never stop
+@media (prefers-reduced-motion: no-preference) {
+	.game-cover:has(img.is-loading) {
 		animation: slm-shimmer 1.2s linear infinite;
 	}
 }
@@ -3846,8 +3877,11 @@ $avatar-colors: (
 		transition: filter .2s ease;
 	}
 
-	.game-body {
-		opacity: .7;
+	// quieter than the games you have, through the color of the name rather than a veil on the whole
+	// card, which took the date and the chip below the contrast of WCAG AA
+	.game-title,
+	.game-title a {
+		color: var(--bs-secondary-color);
 	}
 
 	&:hover .game-cover img {
@@ -4980,13 +5014,20 @@ html[data-section="backup"] #settingsForm .save-bar {
 	background: var(--slm-surface-muted);
 	transform-origin: bottom;
 
+	// one color for the whole chart, the cyan of what to discover: the busiest months are the
+	// solid ones, with their number in bold, instead of a red that read as an error
 	.year-month.has-games & {
-		background: linear-gradient(to top, rgba($slm-cyan, .55), $slm-cyan);
+		background: rgba($slm-cyan, .45);
 	}
 
 	.year-month.has-games.is-top & {
-		background: linear-gradient(to top, rgba($slm-red, .6), $slm-red);
+		background: linear-gradient(to top, rgba($slm-cyan, .75), $slm-cyan);
 	}
+}
+
+.year-month.is-top .year-month-count {
+	color: var(--bs-body-color);
+	font-weight: 800;
 }
 
 .year-month-label {
@@ -7084,11 +7125,15 @@ html {
 		font-size: 150%;
 	}
 
+	// the covers first: the numbers of the Library and its bar of games up to date are on the
+	// Statistics page, a click away
 	.page-subtitle,
 	.mark-legend,
 	.app-footer,
 	.bottom-nav,
-	.page-note {
+	.page-note,
+	.library-overview,
+	.library-health {
 		display: none !important;
 	}
 
@@ -7096,13 +7141,37 @@ html {
 		padding-bottom: 5rem !important;
 	}
 
+	// the bars that stay at the bottom of the page (Save, Compress...) sit above the pill of the
+	// couch mode instead of under it
+	--slm-bottom-nav: 4.5rem;
+
 	// the whole width of the TV
 	.container,
 	.container-xxl,
 	.container-xl,
-	.container-lg {
+	.container-lg,
+	.app-header > .navbar > .container-xxl {
 		max-width: none;
 		padding-inline: 2.5vw;
+	}
+
+	// the header fits the screen: the logo without its name, the search as a magnifier (no
+	// keyboard shortcut on a TV) and, below a screen of 1900px, the links of the menu as icons
+	// with their counts; their names stay for screen readers and in the side menu
+	.brand-text,
+	.search-trigger-label,
+	.search-kbd {
+		display: none !important;
+	}
+
+	.search-trigger {
+		min-width: 0;
+	}
+
+	@media (min-width: 1400px) and (max-width: 1899.98px) {
+		.app-nav .nav-label {
+			@include visually-hidden();
+		}
 	}
 
 	.game-grid {
@@ -7154,6 +7223,24 @@ html {
 	border-radius: 2rem;
 	background: var(--slm-surface);
 	box-shadow: var(--slm-shadow);
+
+	// phones: the three views share one row instead of breaking into two
+	@include media-breakpoint-down(sm) {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		width: 100%;
+
+		.library-view {
+			justify-content: center;
+			gap: .3rem;
+			padding-inline: .4rem;
+			white-space: nowrap;
+		}
+
+		.library-view > .bi {
+			display: none;
+		}
+	}
 }
 
 .library-view {

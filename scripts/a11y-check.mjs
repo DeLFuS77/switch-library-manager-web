@@ -16,7 +16,7 @@ const BASE = (process.argv[2] || process.env.SLM_URL || 'http://localhost:3000')
 const PORT = 9333;
 
 const PAGES = [
-	'index.html', 'updates.html', 'dlc.html', 'missing.html', 'upcoming.html', 'sagas.html',
+	'index.html', 'index.html?missing=1', 'updates.html', 'dlc.html', 'missing.html', 'upcoming.html', 'sagas.html',
 	'statistics.html', 'year.html', 'compress.html', 'issues.html', 'space.html', 'sd.html',
 	'tasks.html', 'settings.html', 'organize.html', 'maintenance.html', 'saves.html',
 	'title/0100D00000150000.html',
@@ -41,8 +41,9 @@ function findChrome() {
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+// up to 30 seconds: the first start of Chrome on a busy runner of the CI can take more than 10
 async function connect() {
-	for (let i = 0; i < 50; i++) {
+	for (let i = 0; i < 150; i++) {
 		try {
 			const targets = await (await fetch(`http://127.0.0.1:${PORT}/json/list`)).json();
 			const page = targets.find(target => target.type === 'page');
