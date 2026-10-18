@@ -22,6 +22,11 @@ Thanks for wanting to help. Switch Library Manager Web is free software under th
    go test ./...
    ```
 
+   The pages are Go templates in `resources/pages`, `resources/partials` and `resources/layout.html`. Their styles
+   are in `resources/web.scss` and its partials in `resources/scss`, and their script in the files of `resources/js`,
+   one per subject, joined in the order of their names into one script by `scripts/build-js.mjs`. `npm run build`
+   also leaves out of the style sheet the classes the app never uses (`scripts/purge-css.mjs`).
+
 3. Open a pull request against `master`, saying what it changes and why. The checks of the pull request (tests with
    the race detector, `go vet`, CodeQL, govulncheck and npm audit) must pass before it is merged.
 

@@ -1,0 +1,537 @@
+// The visual review: console cursor, SD meter, Updates, Settings on a phone, Upcoming, DLC, Compress, page headers, Series.
+
+// The selection cursor of a console: the game card with the keyboard focus wears a ring of 3px in
+// the color of the focus that breathes, drawn inside the card by its ring of the pointer (so the
+// rows that scroll sideways do not cut it, and the animations of the card stay its own). The
+// other cards that are links show a still ring of 3px.
+.game-card:has(.stretched-link:focus-visible)::before {
+	padding: 3px;
+	background: var(--slm-focus);
+	opacity: 1;
+}
+
+.game-card .stretched-link:focus-visible {
+	outline: none;
+}
+
+.saga-card:has(.saga-title a:focus-visible),
+.setup-step:has(:focus-visible),
+.maintenance-step:has(:focus-visible),
+.kpi:focus-visible {
+	outline: 3px solid var(--slm-focus);
+	outline-offset: 3px;
+}
+
+.saga-card .saga-title a:focus-visible {
+	outline: none;
+}
+
+@keyframes slm-cursor {
+	50% {
+		padding: 2px;
+		opacity: .55;
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.game-card:has(.stretched-link:focus-visible)::before {
+		animation: slm-cursor 1.6s ease-in-out infinite;
+	}
+}
+
+// 8: the space of the SD card is information, not an alarm
+.sd-meter .progress-bar {
+	background-color: var(--slm-chart-2);
+	transition: width .4s ease, background-color .3s ease;
+
+	&.is-near {
+		background-color: $warning;
+	}
+}
+
+// 14: Updates: the jump of version is what the card is about
+.update-jump {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .2rem .45rem;
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+
+	.bi {
+		color: $warning;
+	}
+}
+
+.update-jump-from {
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-sm);
+}
+
+.update-jump-to {
+	font-size: var(--slm-text-md);
+	font-weight: 700;
+}
+
+.update-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: .5rem;
+
+	.game-meta {
+		min-width: 0;
+	}
+}
+
+.update-ignore {
+	flex-shrink: 0;
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+	border-radius: 50%;
+	color: var(--bs-secondary-color);
+
+	&:hover,
+	&:focus-visible {
+		color: var(--bs-body-color);
+		background: var(--slm-surface-muted);
+	}
+}
+
+// 12: Settings on a phone: every section in sight, as pills that wrap
+@include media-breakpoint-down(lg) {
+	.settings-nav {
+		flex-wrap: wrap;
+		gap: .35rem;
+		overflow: visible;
+
+		.nav-link {
+			padding: .35rem .75rem;
+			border: 1px solid var(--bs-border-color);
+			border-radius: 2rem;
+			font-size: var(--slm-text-sm);
+
+			&.active {
+				border-color: transparent;
+			}
+		}
+	}
+}
+
+// 12: the notice of the wizard: its button under the text on a phone
+@include media-breakpoint-down(sm) {
+	.wizard-teaser {
+		flex-wrap: wrap;
+
+		> .btn {
+			width: 100%;
+		}
+	}
+}
+
+// 13: the strip of suggestions has the measures of the grid of the library
+.rec-strip {
+	grid-auto-columns: calc(50% - .375rem);
+
+	@include media-breakpoint-up(sm) {
+		grid-auto-columns: 10.5rem;
+	}
+
+	@include media-breakpoint-up(md) {
+		grid-auto-columns: 13rem;
+		gap: 1.25rem;
+	}
+}
+
+// the cards of the strip keep the same height, with or without a second line
+.mini-card .game-body {
+	min-height: 5.6rem;
+}
+
+// a short note of a page, on one line with its icon
+.page-note {
+	display: flex;
+	align-items: flex-start;
+	gap: .5rem;
+	margin-bottom: 1rem;
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-sm);
+
+	> .bi {
+		flex-shrink: 0;
+		margin-top: .1rem;
+		color: var(--slm-chart-2);
+	}
+}
+
+// 9: Upcoming: a tile opens each month in the grid of the games
+.month-tile {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	gap: .2rem;
+	min-height: 8rem;
+	margin: 0;
+	padding: 1rem;
+	border-radius: $border-radius-lg;
+	background:
+		radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--slm-chart-2) 22%, transparent), transparent 70%),
+		var(--slm-surface);
+	border: 1px solid color-mix(in srgb, var(--slm-chart-2) 30%, var(--slm-border));
+
+	> .bi {
+		margin-bottom: auto;
+		color: var(--slm-chart-2);
+		font-size: var(--slm-text-lg);
+	}
+}
+
+.month-tile-name {
+	display: block;
+	font-size: var(--slm-text-lg);
+	font-weight: 700;
+	line-height: 1.15;
+
+	&::first-letter {
+		text-transform: uppercase;
+	}
+}
+
+.month-tile-count {
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-sm);
+	font-weight: 500;
+}
+
+// 10: DLC: the games side by side, two or three in a row on a wide screen
+.dlc-games {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 30rem), 1fr));
+	align-items: start;
+	gap: 1rem;
+
+	.dlc-game-cover {
+		width: 5.5rem;
+		height: 5.5rem;
+	}
+
+	.dlc-progress {
+		max-width: 16rem;
+	}
+
+	.dlc-grid {
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+	}
+}
+
+// 11: Compress: the files of a game together under its name
+.file-group + .file-group {
+	margin-top: .35rem;
+}
+
+.file-group-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: .25rem .75rem;
+	padding: .6rem .25rem .3rem;
+	border-top: 1px solid var(--slm-border);
+
+	.file-group:first-child > & {
+		border-top: 0;
+	}
+}
+
+.file-group-name {
+	font-weight: 700;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.file-group-total {
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-sm);
+	font-variant-numeric: tabular-nums;
+}
+
+// the name of a file stays on one line, its full path is in its title
+.file-row-file {
+	display: inline-block;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	vertical-align: bottom;
+}
+
+.file-bar-legend {
+	display: inline-block;
+	width: 2rem;
+	height: .3rem;
+	margin-right: .5rem;
+	vertical-align: middle;
+	border-radius: 1rem;
+	background: var(--slm-surface-muted);
+
+	> span {
+		display: block;
+		width: 60%;
+		height: 100%;
+		border-radius: inherit;
+		background: var(--slm-chart-2);
+	}
+}
+
+// 16: the header of a page wears the icon of the page in the color of its group of the menu:
+// red for the library, cyan for what to discover, violet for the tools, grey for the app
+$section-colors: (
+	library: $slm-red,
+	discover: $slm-cyan,
+	tools: $slm-violet,
+	app: #8a94a6,
+);
+$page-sections: (
+	index: library collection,
+	updates: library arrow-up-circle,
+	dlc: library puzzle,
+	missing: library collection,
+	upcoming: discover calendar-event,
+	sagas: discover stack,
+	saga: discover stack,
+	statistics: discover bar-chart,
+	maintenance: tools list-check,
+	organize: tools folder-symlink,
+	compress: tools file-zip,
+	space: tools hdd,
+	sd: tools sd-card,
+	saves: tools safe,
+	issues: tools exclamation-triangle,
+	orphans: tools exclamation-triangle,
+	tasks: tools list-task,
+	settings: app gear,
+	users: app people,
+	account: app person-gear,
+	diagnostics: app heart-pulse,
+	disclaimer: app shield-exclamation,
+	update: app stars,
+);
+
+.page-header {
+	position: relative;
+	isolation: isolate;
+
+	// a soft light of the color of the group behind the title
+	&::before {
+		content: "";
+		position: absolute;
+		z-index: -1;
+		top: -2.5rem;
+		left: -3rem;
+		width: 22rem;
+		height: 9rem;
+		border-radius: 50%;
+		background: radial-gradient(closest-side, color-mix(in srgb, var(--section-color, transparent) 18%, transparent), transparent);
+		pointer-events: none;
+	}
+
+	h1::before {
+		display: inline-grid;
+		place-items: center;
+		width: 1.6em;
+		height: 1.6em;
+		margin-right: .45em;
+		border-radius: .45em;
+		background: color-mix(in srgb, var(--section-color) 16%, transparent);
+		color: var(--section-color);
+		font-family: bootstrap-icons !important;
+		font-size: .7em;
+		font-weight: normal;
+		line-height: 1;
+		vertical-align: .2em;
+	}
+}
+
+@each $page, $info in $page-sections {
+	body[data-page="#{$page}"] .page-header {
+		--section-color: #{map-get($section-colors, nth($info, 1))};
+
+		h1::before {
+			content: map-get($bootstrap-icons-map, nth($info, 2)) / "";
+		}
+	}
+
+	// the empty state of the page wears the color of its header too (the grey of the app pages
+	// would be too faint for an icon, so they keep the red)
+	@if nth($info, 1) != app {
+		body[data-page="#{$page}"] .empty-state .empty-icon:not(.is-success) {
+			$color: map-get($section-colors, nth($info, 1));
+			background: rgba($color, .14);
+			color: $color;
+		}
+	}
+
+	// the violet of the tools is too faint on the dark theme: a lighter one there
+	@if nth($info, 1) == tools {
+		[data-bs-theme="dark"] body[data-page="#{$page}"] {
+			.page-header {
+				--section-color: #{$slm-violet-light};
+			}
+
+			.empty-state .empty-icon:not(.is-success) {
+				background: rgba($slm-violet-light, .14);
+				color: $slm-violet-light;
+			}
+		}
+
+		[data-bs-theme="light"] body[data-page="#{$page}"] .empty-state .empty-icon:not(.is-success) {
+			color: $slm-violet-deep;
+		}
+	}
+}
+
+// 17: Series: bigger covers in a fan, the missing ones as silhouettes, the bar in the cyan of
+// what to discover (green once complete)
+.saga-list {
+	.saga-cover {
+		width: 5.5rem;
+		height: 5.5rem;
+		border-radius: $border-radius-lg;
+		box-shadow: var(--slm-shadow);
+	}
+
+	.saga-strip {
+		gap: .5rem 0;
+		padding-left: .5rem;
+	}
+
+	.saga-thumb {
+		position: relative;
+		margin-left: -.5rem;
+		transition: transform .15s ease;
+
+		&:hover,
+		&:focus-visible {
+			z-index: 1;
+			transform: translateY(-3px);
+		}
+	}
+
+	.saga-thumb img {
+		width: 3.25rem;
+		height: 3.25rem;
+		border-radius: .5rem;
+		box-shadow: 0 0 0 2px var(--slm-surface), 0 4px 10px -4px rgba(0, 0, 0, .5);
+	}
+
+	.saga-thumb.is-missing img {
+		filter: grayscale(1) brightness(.45) contrast(.8);
+		outline: 0;
+		opacity: .7;
+	}
+
+	.saga-more {
+		margin-left: .6rem;
+	}
+
+	.progress-bar:not(.bg-success) {
+		background-color: var(--slm-chart-2);
+	}
+}
+
+// what is brought into sight stops under the header that stays at the top
+html {
+	scroll-padding-top: 5rem;
+}
+
+// 18: with a game controller the focus is always seen, the card cursor too
+.is-gamepad {
+	:focus {
+		outline: 2px solid var(--slm-focus);
+		outline-offset: 2px;
+	}
+
+	.game-card .stretched-link:focus {
+		outline: none;
+	}
+
+	.game-card:has(.stretched-link:focus)::before {
+		padding: 3px;
+		background: var(--slm-focus);
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.is-gamepad .game-card:has(.stretched-link:focus)::before {
+		animation: slm-cursor 1.6s ease-in-out infinite;
+	}
+}
+
+// Tasks: the files already compressed in a panel of their own, under the files being worked on,
+// so that their bars are not taken for the progress of the task
+.task-done-panel {
+	margin-top: 1rem;
+	padding: .75rem 1rem;
+	border: 1px solid color-mix(in srgb, var(--bs-success) 25%, var(--slm-border));
+	border-radius: $border-radius-lg;
+	background: color-mix(in srgb, var(--bs-success) 6%, var(--slm-surface-muted));
+
+	.task-results {
+		margin-top: .75rem !important;
+	}
+}
+
+.task-done-head {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	font-size: var(--slm-text-sm);
+
+	> .bi {
+		color: var(--bs-success);
+		font-size: var(--slm-text-md);
+	}
+}
+
+// targets of 24px: the box of a game of the SD planner and the IDs copied with a click
+.sd-check {
+	width: 1.5rem;
+	height: 1.5rem;
+	margin: 0;
+}
+
+.copy-inline {
+	min-height: 1.5rem;
+}
+
+// Compress: what a file will likely save, from the files compressed before
+.file-estimate {
+	color: var(--bs-success-text-emphasis);
+	font-size: var(--slm-text-xs);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+.file-estimates {
+	display: flex;
+	align-items: flex-start;
+	gap: .5rem;
+	padding: .5rem .75rem;
+	border-radius: $border-radius;
+	background: color-mix(in srgb, var(--bs-success) 8%, transparent);
+
+	> .bi {
+		flex-shrink: 0;
+		margin-top: .1rem;
+		color: var(--bs-success-text-emphasis);
+	}
+}
+
+// a paused task: its bars stand still
+.task-card.is-paused .progress-bar-animated {
+	animation: none;
+}
+

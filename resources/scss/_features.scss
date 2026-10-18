@@ -1,0 +1,589 @@
+// Pages and features added along the way: Space, save backups, Tasks, compression, what is new, Tune-up, sagas.
+
+// Space: a copy of another region that was just deleted
+.item-row.is-removed {
+	opacity: .35;
+	text-decoration: line-through;
+	transition: opacity .3s ease;
+}
+
+// Save backups: a game with its backups, folded
+.save-list {
+	display: grid;
+	gap: .75rem;
+}
+
+.save-game {
+	padding: .85rem 1rem;
+
+	&[open] .save-game-toggle {
+		transform: rotate(180deg);
+	}
+}
+
+.save-game-head {
+	display: flex;
+	align-items: center;
+	gap: .9rem;
+	list-style: none;
+	cursor: pointer;
+
+	&::-webkit-details-marker {
+		display: none;
+	}
+}
+
+.save-game-cover {
+	flex-shrink: 0;
+	width: 3.25rem;
+	height: 3.25rem;
+	border-radius: .7rem;
+	object-fit: cover;
+	background: var(--slm-surface-muted);
+}
+
+.save-game-main {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.save-game-name {
+	overflow: hidden;
+	font-weight: 700;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.save-game-meta {
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-sm);
+
+	.bi {
+		margin-right: .3rem;
+	}
+}
+
+.save-game-toggle {
+	color: var(--bs-secondary-color);
+	transition: transform .2s ease;
+}
+
+.saves-missing summary {
+	cursor: pointer;
+}
+
+[data-vault-fields] {
+	transition: opacity .2s ease;
+
+	&.is-off {
+		opacity: .5;
+	}
+}
+
+.vault-setup {
+	padding: 1rem;
+	border-radius: $border-radius-lg;
+	background: var(--slm-surface-muted);
+}
+
+// Settings > App on your phone
+.mobile-qr {
+	width: 11rem;
+	max-width: 100%;
+	padding: 0.5rem;
+	border-radius: $border-radius-lg;
+	background: #fff;
+
+	svg {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+}
+
+.mobile-guides {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.mobile-guide {
+	border: 1px solid var(--slm-border);
+	border-radius: $border-radius-lg;
+	padding: 0.6rem 0.9rem;
+
+	summary {
+		font-weight: 600;
+		cursor: pointer;
+	}
+}
+
+// Tasks: the message of a running task takes the room left, the numbers go below on phones
+.task-message {
+	flex: 1 1 12rem;
+	min-width: 0;
+}
+
+// the files a compression finished, with their size before and after
+.task-results {
+	summary {
+		cursor: pointer;
+		width: fit-content;
+	}
+
+	ul {
+		max-height: 16rem;
+		overflow-y: auto;
+	}
+
+	li {
+		padding: 0.3rem 0;
+		border-bottom: 1px solid var(--bs-border-color-translucent);
+
+		&:last-child {
+			border-bottom: 0;
+		}
+	}
+
+	.saving-bar {
+		height: 0.3rem;
+		margin-top: 0.25rem;
+	}
+}
+
+// what a compression kept and saved: two colours on one bar
+.saving-bar {
+	height: 0.5rem;
+}
+
+// the bars of what is compressed wear the stripes of the progress bars, but still: done, not
+// working
+.saving-kept,
+.saving-saved {
+	background-image: linear-gradient(45deg, rgba(255, 255, 255, .18) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .18) 50%, rgba(255, 255, 255, .18) 75%, transparent 75%, transparent);
+	background-size: .75rem .75rem;
+}
+
+.saving-kept {
+	background-color: #{$slm-cyan};
+}
+
+.saving-saved {
+	background-color: #{$success};
+}
+
+.saving-key {
+	display: inline-block;
+	width: 0.6rem;
+	height: 0.6rem;
+	border-radius: 2px;
+	margin-right: 0.35rem;
+	vertical-align: baseline;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.saving-bar .progress {
+		animation: slm-grow-x 0.8s ease-out both;
+		transform-origin: left;
+	}
+}
+
+@keyframes slm-grow-x {
+	from {
+		transform: scaleX(0);
+	}
+}
+
+// the name of a file and its numbers share a line, and the numbers go below it on a phone
+.task-file-line {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	column-gap: 0.5rem;
+
+	> .text-truncate {
+		flex: 1 1 12rem;
+		min-width: 0;
+	}
+}
+
+// the measure of the server, under the compression settings
+.measure {
+	border-top: 1px solid var(--slm-border);
+}
+
+.measure-result > div + div {
+	margin-top: 0.2rem;
+}
+
+// why the files of a check are checked, as a list separated by dots
+.verify-breakdown > span:not(.bi) + span::before {
+	content: "\00b7";
+	margin: 0 .4rem;
+}
+
+.task-phase {
+	font-weight: 600;
+	color: var(--bs-info-text-emphasis);
+}
+
+// Tasks: the files a running task works on at the same time
+.task-lanes {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+	padding-top: 0.75rem;
+	border-top: 1px solid var(--slm-border);
+}
+
+.task-lane {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+}
+
+.task-lane-number {
+	flex-shrink: 0;
+	width: 1.5rem;
+	height: 1.5rem;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: var(--slm-text-xs);
+	font-weight: 600;
+	background: rgba(127, 127, 127, 0.18);
+}
+
+.task-lane-main {
+	flex-grow: 1;
+	min-width: 0;
+}
+
+// the stripes of a moving bar: a layer slid sideways by the graphics card, smooth even while
+// the page is busy (Bootstrap moves the background, which stutters when the page is redrawn).
+// --stripe-delay keeps the stripes where they were when the bar is drawn again.
+.progress-bar-striped.progress-bar-animated {
+	position: relative;
+	overflow: hidden;
+	background-image: none;
+	animation: none;
+
+	&::after {
+		content: "";
+		position: absolute;
+		inset: 0 0 0 -2rem;
+		background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
+		background-size: 1rem 1rem;
+		animation: slm-stripes 1s linear infinite;
+		animation-delay: var(--stripe-delay, 0s);
+		will-change: transform;
+	}
+}
+
+@keyframes slm-stripes {
+	to {
+		transform: translateX(1rem);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.progress-bar-striped.progress-bar-animated::after {
+		animation: none;
+	}
+}
+
+// the total of a running task goes from red to green as it advances, through orange and
+// yellow: the hue follows the share done (--pct, 0 to 100)
+.task-total-bar {
+	background-color: hsl(calc(var(--pct, 0) * 1.35) 72% 46%);
+	transition: width .6s ease, background-color .6s ease;
+}
+
+// the bar of each file in one of the colours of the library overview
+.task-lane-bar .progress-bar {
+	&.lane-red { background-color: #{$slm-red}; }
+	&.lane-yellow { background-color: #{$warning}; }
+	&.lane-cyan { background-color: #{$slm-cyan}; }
+	&.lane-green { background-color: #{$success}; }
+}
+
+.task-lane-bar {
+	height: 0.4rem;
+	margin-top: 0.25rem;
+}
+
+// the passwords of a backup: their whole hint shows, also on a phone
+.backup-password {
+	width: min(100%, 19rem);
+}
+
+// the window of what is new after an update
+.whats-new {
+	gap: .75rem;
+	padding: 1.25rem 1.35rem;
+	border-radius: $border-radius-xl;
+	background:
+		linear-gradient(135deg, var(--slm-accent-soft), transparent 60%),
+		var(--slm-surface);
+	border: 1px solid var(--slm-border);
+
+	.whats-new-head {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		gap: .8rem;
+		align-items: center;
+	}
+
+	.whats-new-icon {
+		display: grid;
+		place-items: center;
+		width: 2.6rem;
+		height: 2.6rem;
+		border-radius: $border-radius-lg;
+		font-size: var(--slm-text-lg);
+		color: #{$slm-red};
+		background: var(--slm-accent-soft);
+	}
+
+	.whats-new-title {
+		margin: 0;
+		font-size: var(--slm-text-md);
+		font-weight: 700;
+	}
+
+	.whats-new-list {
+		margin: 0;
+		padding-left: 1.2rem;
+		font-size: var(--slm-text-sm);
+
+		li + li {
+			margin-top: .35rem;
+		}
+	}
+
+	.whats-new-link {
+		font-size: var(--slm-text-sm);
+		text-decoration: none;
+	}
+
+	.whats-new-foot {
+		display: flex;
+		flex-wrap: wrap;
+		gap: .75rem;
+		align-items: center;
+		justify-content: space-between;
+		margin-top: .25rem;
+		padding-top: .85rem;
+		border-top: 1px solid var(--slm-border);
+		font-size: var(--slm-text-sm);
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.whats-new .whats-new-icon .bi {
+		display: inline-block;
+		animation: slm-twinkle 2.4s ease-in-out .4s 3;
+	}
+}
+
+@keyframes slm-twinkle {
+	0%,
+	100% {
+		transform: scale(1) rotate(0);
+	}
+
+	50% {
+		transform: scale(1.18) rotate(12deg);
+	}
+}
+
+// what is below the screen waits to be seen: its animations (bars that fill, rings, cards that
+// come up) start when it scrolls into view instead of at the load of the page, unseen
+.is-waiting,
+.is-waiting *,
+.is-waiting *::before,
+.is-waiting *::after {
+	animation-play-state: paused !important;
+}
+
+// Tune-up: how many steps are done, the next step breathes and a done step pops its check
+.maintenance-progress {
+	display: flex;
+	align-items: center;
+	gap: .75rem;
+	margin-bottom: 1rem;
+}
+
+.maintenance-ring {
+	--pct: 0;
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 3rem;
+	height: 3rem;
+	border-radius: 50%;
+	background: conic-gradient(#{$success} calc(var(--pct) * 1%), var(--slm-border) 0);
+	font-size: var(--slm-text-xs);
+	font-weight: 700;
+
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 4px;
+		border-radius: 50%;
+		background: var(--slm-surface);
+	}
+
+	> span {
+		position: relative;
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.maintenance-ring {
+		animation: slm-gauge-fill 1.1s cubic-bezier(.2, .7, .2, 1) both;
+	}
+
+	.maintenance-step.is-next {
+		--aura: 255, 193, 7;
+		animation: aura-breathe 3.2s ease-in-out infinite;
+	}
+
+	.maintenance-step.step-done .maintenance-number .bi {
+		display: inline-block;
+		animation: slm-mark-pop .5s cubic-bezier(.3, 1.6, .5, 1) .3s both;
+	}
+}
+
+// a complete saga wears the golden aura of the favorites
+.saga-card.is-complete {
+	position: relative;
+	--aura: 255, 196, 0;
+	--aura-light: #fff1a8;
+	box-shadow: 0 0 0 1px rgba(var(--aura), .45), 0 0 1.1rem -.3rem rgba(var(--aura), .35);
+
+	&::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		padding: 2px;
+		background: conic-gradient(from var(--aura-angle), transparent 0deg, transparent 60deg, rgba(var(--aura), .8) 110deg, var(--aura-light) 135deg, rgba(var(--aura), .8) 160deg, transparent 210deg, transparent 360deg);
+		-webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		pointer-events: none;
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.saga-card.is-complete {
+		animation: aura-breathe 4s ease-in-out infinite;
+
+		&::after {
+			animation: aura-spin 6s linear infinite;
+		}
+	}
+}
+
+// the countdown of the next release: a ring that closes as the day comes near
+.featured-countdown .countdown-number {
+	position: relative;
+	display: grid;
+	place-items: center;
+	min-width: 4.6rem;
+	min-height: 4.6rem;
+}
+
+.countdown-ring {
+	position: absolute;
+	inset: 0;
+	border-radius: 50%;
+	background: conic-gradient(#{$slm-red} calc(var(--pct, 0) * 1%), rgba(255, 255, 255, .12) 0);
+	-webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+	mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.countdown-ring {
+		animation: slm-gauge-fill 1.2s cubic-bezier(.2, .7, .2, 1) .2s both;
+	}
+
+	.featured-countdown .countdown-label:only-child {
+		animation: slm-twinkle 2.4s ease-in-out infinite;
+	}
+}
+
+// a long description shows its start, and the rest on demand
+.title-description-wrap {
+	position: relative;
+	overflow: hidden;
+	transition: max-height .45s ease;
+
+	&.is-collapsed {
+		max-height: 11rem;
+
+		&::after {
+			content: "";
+			position: absolute;
+			inset: auto 0 0;
+			height: 4rem;
+			background: linear-gradient(to bottom, transparent, var(--slm-surface));
+			pointer-events: none;
+		}
+	}
+}
+
+.collapsible-toggle {
+	text-decoration: none;
+	font-weight: 600;
+}
+
+// small touches: the check of an up to date game pops in, the arrow of a new version nudges
+@media (prefers-reduced-motion: no-preference) {
+	.game-card .chip-success .bi {
+		display: inline-block;
+		animation: slm-mark-pop .45s cubic-bezier(.3, 1.6, .5, 1) .5s both;
+	}
+
+	.version-arrow {
+		display: inline-block;
+		transition: transform .25s ease;
+	}
+
+	.game-card:hover .version-arrow,
+	.chip:hover .version-arrow {
+		transform: translateX(3px);
+	}
+}
+
+@keyframes slm-task-glow {
+	0%,
+	100% {
+		filter: drop-shadow(0 0 0 rgba($slm-red, 0));
+	}
+
+	50% {
+		filter: drop-shadow(0 0 .35em var(--task-glow, rgba($slm-red, .75)));
+	}
+}
+
+@keyframes slm-task-breathe {
+	0%,
+	100% {
+		opacity: .35;
+	}
+
+	50% {
+		opacity: 1;
+	}
+}
+
+// ------------------------------------------------------------------
+// accessibility: text of at least 4.5:1 against its background (WCAG 1.4.3) and targets of at
+// least 24px (WCAG 2.5.8), in both themes
+// ------------------------------------------------------------------
+

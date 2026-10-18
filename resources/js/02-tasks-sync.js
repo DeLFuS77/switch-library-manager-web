@@ -1,0 +1,225 @@
+// Tasks run on the server, and the synchronization of the library.
+// One of the files joined into resources/static/web.js by scripts/build-js.mjs, in the order of their names.
+
+// the tasks of the server, newest first
+function fetchTasks() {
+	return fetch('/api/tasks', { cache: 'no-store', headers: { Accept: 'application/json' } })
+		.then(response => (response.ok ? response.json() : []));
+}
+
+// runAsTask starts work that runs as tasks and stays on the page: a note says it is running,
+// with a link to Tasks, and the page reloads with the new data when the tasks it started end.
+// start returns the promise of the request; its result is passed on.
+function runAsTask(start) {
+	return fetchTasks().catch(() => []).then(tasks => {
+		const known = Math.max(0, ...tasks.map(task => task.id));
+		return start().then(result => {
+			// a request that failed started nothing
+			if (!(result instanceof Response) || result.ok) {
+				followTasks(known);
+			}
+			return result;
+		});
+	});
+}
+
+const TASK_NOTE_ID = 'taskRunning';
+
+function followTasks(known) {
+	let note = document.getElementById(TASK_NOTE_ID);
+	if (!note) {
+		note = document.createElement('div');
+		note.id = TASK_NOTE_ID;
+		note.className = 'alert alert-info d-flex flex-wrap align-items-center gap-2 mt-3';
+		note.setAttribute('role', 'status');
+		const spinner = document.createElement('span');
+		spinner.className = 'spinner-border spinner-border-sm flex-shrink-0';
+		spinner.setAttribute('aria-hidden', 'true');
+		const text = document.createElement('div');
+		text.className = 'flex-grow-1 min-w-0';
+		const strong = document.createElement('strong');
+		strong.textContent = t('Running.');
+		const message = document.createElement('span');
+		message.dataset.taskMessage = '';
+		message.textContent = t('It goes on in the background; this page updates by itself when it ends.');
+		text.append(strong, ' ', message);
+		const link = document.createElement('a');
+		link.className = 'alert-link text-nowrap';
+		link.href = '/tasks.html';
+		link.textContent = t('See it in Tasks');
+		note.append(spinner, text, link);
+		mainContainer().prepend(note);
+	}
+	const message = note.querySelector('[data-task-message]');
+	let waited = 0;
+	const poll = () => fetchTasks().then(tasks => {
+		const started = tasks.filter(task => task.id > known);
+		const running = started.filter(task => task.status === 'running');
+		if (running.length > 0) {
+			const task = running[0];
+			const text = task.messageArg ? t(task.message, task.messageArg) : t(task.message || '');
+			const percent = task.total > 0 && task.current >= 0 ? ` · ${Math.min(100, Math.round(task.current * 100 / task.total))}%` : '';
+			if (text) {
+				message.textContent = text + percent;
+			}
+		} else if (started.length > 0) {
+			window.location.reload();
+			return;
+		} else if ((waited += 1) > 10) {
+			// nothing was started, e.g. nothing to do
+			note.remove();
+			return;
+		}
+		setTimeout(poll, 2000);
+	}).catch(() => setTimeout(poll, 4000));
+	setTimeout(poll, 1000);
+}
+
+function mainContainer() {
+	return document.querySelector('main > .container-xxl');
+}
+
+// the synchronize button spins while a synchronization is running
+function setSyncBusy(busy) {
+	const sync = document.getElementById('sync');
+	if (!sync) {
+		return;
+	}
+	sync.classList.toggle('is-syncing', busy);
+	sync.setAttribute('aria-disabled', busy ? 'true' : 'false');
+	if (busy) {
+		sync.setAttribute('aria-busy', 'true');
+	} else {
+		sync.removeAttribute('aria-busy');
+	}
+}
+
+function showSyncAlert() {
+	setSyncBusy(true);
+	if (document.getElementById(SYNC_ALERT_ID)) {
+		return;
+	}
+
+	// same markup as the alert rendered by layout.html
+	const alert = document.createElement('div');
+	alert.classList.add('alert');
+	alert.setAttribute('role', 'status');
+	alert.id = SYNC_ALERT_ID;
+
+	const header = document.createElement('div');
+	header.classList.add('d-flex', 'align-items-center');
+	const spinner = document.createElement('span');
+	spinner.classList.add('spinner-border', 'spinner-border-sm', 'text-primary', 'flex-shrink-0', 'me-2');
+	spinner.setAttribute('aria-hidden', 'true');
+	const text = document.createElement('div');
+	text.classList.add('text-truncate');
+	const strong = document.createElement('strong');
+	strong.textContent = t('Synchronizing!');
+	const message = document.createElement('span');
+	message.dataset.syncMessage = '';
+	message.textContent = t('The library is being updated.');
+	text.append(strong, ' ', message);
+	header.append(spinner, text);
+
+	const progress = document.createElement('div');
+	progress.classList.add('progress', 'mt-2');
+	progress.setAttribute('role', 'progressbar');
+	progress.setAttribute('aria-label', t('Synchronization progress'));
+	const bar = document.createElement('div');
+	bar.classList.add('progress-bar', 'progress-bar-striped', 'progress-bar-animated', 'w-100');
+	progress.appendChild(bar);
+
+	alert.append(header, progress);
+	mainContainer().appendChild(alert);
+}
+
+function updateSyncAlert(status) {
+	const alert = document.getElementById(SYNC_ALERT_ID);
+	if (!alert) {
+		return;
+	}
+
+	const message = alert.querySelector('[data-sync-message]');
+	if (message && status.message) {
+		message.textContent = status.message;
+	}
+
+	const progress = alert.querySelector('.progress');
+	const bar = alert.querySelector('.progress-bar');
+	if (!progress || !bar) {
+		return;
+	}
+
+	if (status.total > 0) {
+		const percent = Math.min(100, Math.round(status.current * 100 / status.total));
+		bar.classList.remove('w-100', 'progress-bar-animated');
+		bar.style.width = `${percent}%`;
+		bar.textContent = `${percent}%`;
+		progress.setAttribute('aria-valuenow', percent);
+		progress.setAttribute('aria-valuemin', 0);
+		progress.setAttribute('aria-valuemax', 100);
+	} else {
+		// unknown number of steps
+		bar.classList.add('w-100', 'progress-bar-animated');
+		bar.style.width = '';
+		bar.textContent = '';
+		progress.removeAttribute('aria-valuenow');
+	}
+}
+
+function onSyncFinished() {
+	setSyncBusy(false);
+	const syncAlert = document.getElementById(SYNC_ALERT_ID);
+	if (syncAlert) {
+		syncAlert.remove();
+	}
+
+	if (document.querySelector('form[method="post"]:not([action="/logout"])')) {
+		// do not reload pages with forms, it could discard unsaved changes
+		insertAlert(mainContainer(), 'alert-success', 'bi-check-circle-fill', t('Done!'), t('The library has been updated.'));
+	} else {
+		window.location.reload();
+	}
+}
+
+function watchSync() {
+	setTimeout(() => {
+		fetch('/sync', { method: 'GET', cache: 'no-store' })
+			.then(response => {
+				// the session ended: the page is opened again, through the login
+				if (response.status === 401 || response.status === 403) {
+					window.location.reload();
+					return new Promise(() => {});
+				}
+				return response.json();
+			})
+			.then(status => {
+				if (status.synchronizing) {
+					updateSyncAlert(status);
+					watchSync();
+				} else {
+					onSyncFinished();
+				}
+			})
+			// the server may be restarting, keep trying
+			.catch(() => watchSync());
+	}, SYNC_POLL_INTERVAL);
+}
+
+function startSync(url) {
+	if (document.getElementById(SYNC_ALERT_ID)) {
+		return;
+	}
+	setSyncBusy(true);
+	fetch(url, { method: 'POST' }).then(response => {
+		if (!response.ok) {
+			throw new Error(response.statusText);
+		}
+		showSyncAlert();
+		watchSync();
+	}).catch(() => {
+		setSyncBusy(false);
+		insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), t('Synchronization could not be started.'));
+	});
+}
+

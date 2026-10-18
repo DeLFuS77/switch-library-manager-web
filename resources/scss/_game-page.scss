@@ -1,0 +1,547 @@
+// ---------------------------------------------------------------------------------------
+// Game page
+// ---------------------------------------------------------------------------------------
+.title-hero {
+	position: relative;
+	overflow: hidden;
+	border-radius: $border-radius-xl;
+	padding: 1.25rem;
+	margin: 1.25rem 0 1.5rem;
+	background: var(--slm-surface);
+	border: 1px solid var(--slm-border);
+	box-shadow: var(--slm-shadow);
+	isolation: isolate;
+
+	@include media-breakpoint-up(md) {
+		padding: 1.75rem;
+	}
+
+	.title-hero-bg {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background-size: cover;
+		background-position: center;
+		filter: blur(32px) saturate(140%);
+		opacity: .35;
+		transform: scale(1.2);
+	}
+
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: linear-gradient(180deg, transparent 0%, var(--slm-surface) 92%),
+			linear-gradient(90deg, var(--slm-surface) 10%, transparent 70%);
+		opacity: .9;
+	}
+
+	// the artwork of the game, like a store page: sharper and brighter than the cover
+	&.has-banner {
+		.title-hero-bg {
+			filter: blur(3px) saturate(120%);
+			opacity: .55;
+			transform: scale(1.04);
+			background-position: center 30%;
+		}
+
+		&::before {
+			background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--slm-surface) 88%),
+				linear-gradient(90deg, var(--slm-surface) 0%, transparent 75%);
+			opacity: .95;
+		}
+	}
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.title-hero.has-banner .title-hero-bg {
+		animation: slm-hero-drift 18s ease-in-out infinite alternate;
+	}
+}
+
+@keyframes slm-hero-drift {
+	from {
+		transform: scale(1.04) translateX(0);
+	}
+
+	to {
+		transform: scale(1.1) translateX(-1.5%);
+	}
+}
+
+// cover and the main information side by side, stacked on phones
+.title-hero-main {
+	display: grid;
+	gap: 1.25rem;
+	align-items: center;
+
+	@include media-breakpoint-up(sm) {
+		grid-template-columns: 11rem minmax(0, 1fr);
+	}
+
+	@include media-breakpoint-up(lg) {
+		grid-template-columns: 14rem minmax(0, 1fr);
+		gap: 2rem;
+	}
+}
+
+.title-cover {
+	width: 100%;
+	max-width: 13rem;
+	margin: 0 auto;
+	aspect-ratio: 1;
+	object-fit: cover;
+	border-radius: $border-radius-lg;
+	box-shadow: 0 18px 40px -16px rgba(0, 0, 0, .6);
+
+	@include media-breakpoint-up(sm) {
+		max-width: none;
+	}
+}
+
+.title-hero-info {
+	min-width: 0;
+	text-align: center;
+
+	@include media-breakpoint-up(sm) {
+		text-align: start;
+	}
+
+	.d-flex {
+		justify-content: center;
+
+		@include media-breakpoint-up(sm) {
+			justify-content: flex-start;
+		}
+	}
+}
+
+.title-name {
+	font-weight: 800;
+	font-size: clamp(1.6rem, 1.1rem + 2vw, 2.6rem);
+	line-height: 1.1;
+	letter-spacing: -.02em;
+	margin-bottom: .35rem;
+	text-wrap: balance;
+	overflow-wrap: anywhere;
+}
+
+.title-publisher {
+	display: inline-flex;
+	align-items: center;
+	gap: .4rem;
+	color: var(--bs-secondary-color);
+	margin-bottom: 1rem;
+}
+
+// a translucent button that stays readable on the colored header
+.btn-glass {
+	--bs-btn-color: var(--bs-body-color);
+	--bs-btn-bg: color-mix(in srgb, var(--slm-surface) 70%, transparent);
+	--bs-btn-border-color: var(--slm-border);
+	--bs-btn-hover-color: var(--bs-body-color);
+	--bs-btn-hover-bg: var(--slm-surface);
+	--bs-btn-hover-border-color: var(--bs-border-color);
+	--bs-btn-active-bg: var(--slm-surface);
+	--bs-btn-active-color: var(--bs-body-color);
+	backdrop-filter: blur(6px);
+}
+
+.title-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .5rem;
+	justify-content: center;
+
+	.btn {
+		white-space: nowrap;
+		padding-inline: 1.25rem;
+
+		// the download label with its size fits on one line on phones
+		@include media-breakpoint-down(sm) {
+			font-size: var(--slm-text-sm);
+			padding-inline: .9rem;
+		}
+	}
+
+	@include media-breakpoint-up(sm) {
+		justify-content: flex-start;
+	}
+}
+
+// the facts span the whole width of the header, each box as wide as it needs
+.fact-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+	gap: .6rem;
+	margin: 1.5rem 0 0;
+
+	// the wide boxes (title ID, languages, times to beat) take two columns, so their values
+	// are not cut; on phones, two columns with the wide boxes across both
+	.fact-wide {
+		grid-column: span 2;
+	}
+
+	@include media-breakpoint-down(sm) {
+		grid-template-columns: 1fr 1fr;
+
+		.fact-wide {
+			grid-column: 1 / -1;
+		}
+	}
+
+	// label and value rows are shared by the boxes of a row (subgrid), so the values stay
+	// aligned when a long label takes two lines
+	.fact {
+		display: grid;
+		grid-row: span 2;
+		grid-template-rows: subgrid;
+		row-gap: .3rem;
+		align-content: start;
+		min-width: 0;
+		padding: .75rem .9rem;
+		border-radius: $border-radius-lg;
+		background: color-mix(in srgb, var(--slm-surface-muted) 80%, transparent);
+		border: 1px solid var(--slm-border);
+		backdrop-filter: blur(6px);
+	}
+
+	.fact-label {
+		display: flex;
+		align-items: center;
+		gap: .4rem;
+		font-size: var(--slm-text-xs);
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: .05em;
+		line-height: 1.25;
+		color: var(--bs-secondary-color);
+		align-self: start;
+
+		.bi {
+			color: $primary;
+			flex-shrink: 0;
+		}
+	}
+
+	.fact-value {
+		margin: 0;
+		font-size: var(--slm-text-md);
+		font-weight: 700;
+		line-height: 1.25;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	// a 16 digit ID fits on one line
+	.fact-id {
+		font-size: var(--slm-text-md);
+		letter-spacing: .02em;
+	}
+
+	.fact-sub {
+		display: block;
+		margin-top: .15rem;
+		font-size: var(--slm-text-xs);
+		font-weight: 500;
+		color: var(--bs-secondary-color);
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.fact-danger {
+		border-color: rgba($danger, .5);
+
+		.fact-value {
+			color: $danger;
+		}
+	}
+}
+
+// a heading with a summary on the right, wrapping under it on phones
+.section-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: .5rem 1rem;
+	margin-bottom: 1rem;
+
+	.section-title .badge {
+		font-size: var(--slm-text-xs);
+	}
+}
+
+.dlc-summary {
+	display: flex;
+	align-items: center;
+	gap: .75rem;
+
+	.dlc-progress-bar {
+		width: 8rem;
+		height: .45rem;
+		border-radius: 1rem;
+		background: var(--slm-surface-muted);
+		overflow: hidden;
+
+		span {
+			display: block;
+			height: 100%;
+			border-radius: inherit;
+			background: linear-gradient(90deg, $slm-cyan, #7c5cff);
+		}
+	}
+}
+
+// files and DLC of a game: a list that works at any width
+.item-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	background: var(--slm-surface);
+	border: 1px solid var(--slm-border);
+	border-radius: $border-radius-lg;
+	box-shadow: var(--slm-shadow);
+	overflow: hidden;
+}
+
+// long lists (Space, Compress, Issues: a thousand rows on a big library) lay out and paint only
+// the rows near the screen; the others keep their room, stay in the page for the search of the
+// browser and the selection, and are drawn when scrolled to (976 ms to 89 ms on Space)
+.item-list > li,
+.file-group {
+	content-visibility: auto;
+	contain-intrinsic-size: auto 4.5rem;
+}
+
+.file-group {
+	contain-intrinsic-size: auto 9rem;
+}
+
+.item-row {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: .5rem 1rem;
+	padding: .85rem 1rem;
+	transition: background-color .15s ease;
+
+	& + & {
+		border-top: 1px solid var(--slm-border);
+	}
+
+	&:hover {
+		background: var(--slm-surface-muted);
+	}
+
+	&.item-row-wide {
+		grid-template-columns: minmax(0, 1fr) auto;
+
+		@include media-breakpoint-down(sm) {
+			grid-template-columns: minmax(0, 1fr);
+
+			.item-end {
+				justify-content: flex-start;
+			}
+		}
+	}
+}
+
+.issue-icon {
+	display: grid;
+	place-items: center;
+	width: 2.4rem;
+	height: 2.4rem;
+	border-radius: $border-radius-lg;
+	background: var(--slm-surface-muted);
+	font-size: var(--slm-text-lg);
+	align-self: start;
+}
+
+.issue-reason {
+	margin-top: .15rem;
+	font-size: var(--slm-text-sm);
+	overflow-wrap: anywhere;
+}
+
+// under the cause in plain words, the error of the reader, for whoever wants the detail
+.issue-detail {
+	margin-top: .1rem;
+	color: var(--bs-secondary-color);
+	font-family: var(--bs-font-monospace);
+	font-size: var(--slm-text-xs);
+	overflow-wrap: anywhere;
+}
+
+.issue-size {
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+// a selectable row: checkbox, name and details, size
+.item-row-check {
+	grid-template-columns: auto minmax(0, 1fr) auto;
+
+	.item-main {
+		cursor: pointer;
+	}
+
+	.form-check-input {
+		margin: 0;
+	}
+
+	&[hidden] {
+		display: none;
+	}
+}
+
+.item-row-rest {
+	background: var(--slm-surface-muted);
+}
+
+.covers-box {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .75rem 1rem;
+	padding: .9rem 1rem;
+	border-radius: $border-radius-lg;
+	background: var(--slm-surface-muted);
+	border: 1px solid var(--slm-border);
+}
+
+.update-command {
+	margin: .5rem 0 0;
+	padding: .75rem 1rem;
+	border-radius: $border-radius-lg;
+	background: var(--slm-surface-muted);
+	border: 1px solid var(--slm-border);
+	white-space: pre-wrap;
+	word-break: break-all;
+	user-select: all;
+}
+
+.item-size {
+	font-weight: 600;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+.file-list-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .5rem 1rem;
+	margin-bottom: .75rem;
+}
+
+.file-filter {
+	flex: 1 1 14rem;
+	max-width: 22rem;
+	position: relative;
+
+	.bi-search {
+		position: absolute;
+		left: .75rem;
+		top: 50%;
+		transform: translateY(-50%);
+		color: var(--bs-secondary-color);
+		pointer-events: none;
+	}
+
+	.form-control {
+		padding-left: 2.1rem;
+	}
+}
+
+// a collapsible section (Compress page)
+.details-section {
+	summary {
+		cursor: pointer;
+		list-style: none;
+
+		&::-webkit-details-marker {
+			display: none;
+		}
+	}
+
+	.details-chevron {
+		transition: transform .2s ease;
+	}
+
+	&[open] .details-chevron {
+		transform: rotate(180deg);
+	}
+}
+
+.item-type {
+	min-width: 3.4rem;
+	justify-content: center;
+}
+
+.item-main {
+	min-width: 0;
+}
+
+.item-name {
+	font-weight: 600;
+	overflow-wrap: anywhere;
+	line-height: 1.35;
+}
+
+.item-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .15rem .9rem;
+	margin-top: .2rem;
+	font-size: var(--slm-text-sm);
+	color: var(--bs-secondary-color);
+}
+
+.item-end {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: .5rem;
+}
+
+.title-description {
+	white-space: pre-line;
+	color: var(--bs-secondary-color);
+	line-height: 1.65;
+}
+
+.screenshot-strip {
+	display: flex;
+	gap: .75rem;
+	overflow-x: auto;
+	scroll-snap-type: x mandatory;
+	padding-bottom: .5rem;
+
+	a {
+		flex: 0 0 auto;
+		scroll-snap-align: start;
+	}
+}
+
+.title-screenshot {
+	height: 190px;
+	width: auto;
+	border-radius: $border-radius-lg;
+	transition: transform .2s ease;
+
+	&:hover {
+		transform: scale(1.02);
+	}
+}
+
+.td-img {
+	width: 3.25rem;
+	height: 3.25rem;
+	object-fit: cover;
+	border-radius: $border-radius;
+}
+

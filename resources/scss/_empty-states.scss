@@ -1,0 +1,35 @@
+// ---------------------------------------------------------------------------------------
+// Empty states
+// ---------------------------------------------------------------------------------------
+.empty-state {
+	text-align: center;
+	padding: 3.5rem 1.5rem;
+
+	.empty-icon {
+		display: inline-grid;
+		place-items: center;
+		width: 4.5rem;
+		height: 4.5rem;
+		border-radius: 50%;
+		font-size: 2rem;
+		margin-bottom: 1rem;
+		background: var(--slm-accent-soft);
+		color: $primary;
+
+		&.is-success {
+			background: rgba($success, .14);
+			color: $success;
+		}
+	}
+
+	h2 {
+		font-size: var(--slm-text-lg);
+	}
+
+	p {
+		color: var(--bs-secondary-color);
+		max-width: 32rem;
+		margin: .5rem auto 1.25rem;
+	}
+}
+

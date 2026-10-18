@@ -1,0 +1,114 @@
+// Accessibility: contrast of WCAG AA, targets of 24px, keyboard focus and phones of 320px.
+
+// outlined buttons: the grey and the red of their text were too light on the light page and too
+// dark on the dark one
+.btn-outline-secondary {
+	--bs-btn-color: #565d69;
+}
+
+[data-bs-theme="dark"] {
+	.btn-outline-secondary {
+		--bs-btn-color: #a9b0bb;
+	}
+
+	.btn-outline-primary {
+		--bs-btn-color: #ff7a88;
+	}
+
+	// the section chosen in Settings
+	.settings-nav .nav-link.active {
+		color: #ff8592;
+	}
+}
+
+[data-bs-theme="light"] .settings-nav .nav-link.active {
+	color: #b01c2c;
+}
+
+// the count of the chosen filter: white on a darker red, not on a lighter one
+.filter-pill.active .filter-count,
+.active > .filter-count {
+	background: rgba(0, 0, 0, .22);
+}
+
+// the green of "Up to date" and "Done" on its light green, on the light page
+[data-bs-theme="light"] .chip.chip-success {
+	color: shade-color($success, 38%);
+}
+
+// the star and the heart of the cards: a target of 24px at least
+.fav-toggle,
+.wish-toggle {
+	min-width: 24px;
+	min-height: 24px;
+}
+
+[data-bs-theme="light"] {
+	.btn-outline-primary {
+		--bs-btn-color: #bd1f30;
+	}
+
+	// green text on the light page ("Keys found" and the like)
+	.text-success {
+		color: shade-color($success, 32%) !important;
+	}
+}
+
+// 2, 6: the keyboard focus seen on every control, with the cyan ring of the app: Bootstrap's own
+// rings (a faint shadow, or none on some buttons) could hardly be seen
+.btn:focus-visible,
+.btn-check:focus-visible + .btn,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-check-input:focus-visible,
+.page-link:focus-visible,
+.cover-select:focus-visible,
+.search-trigger:focus-visible {
+	outline: 2px solid var(--slm-focus);
+	outline-offset: 2px;
+}
+
+// 8: nothing wider than a phone of 320px: the closed side menu and the edges of the row of
+// filters do not widen the page
+html,
+body {
+	overflow-x: clip;
+}
+
+// 10: the bottom bar of the phone never hides the control with the focus
+@include media-breakpoint-down(md) {
+	html {
+		scroll-padding-bottom: 5rem;
+	}
+}
+
+// texts in a color that keep the contrast of WCAG AA on the background of each theme
+.bottom-link.active .bottom-label,
+.game-meta.text-primary {
+	color: var(--slm-red-text) !important;
+}
+
+// the links of the help under a field
+.form-text a {
+	color: var(--slm-red-text);
+}
+
+.breadcrumb .link-secondary {
+	color: var(--bs-secondary-color) !important;
+}
+
+[data-bs-theme="dark"] .btn-outline-danger {
+	--bs-btn-color: var(--slm-red-text);
+}
+
+// the colored kinds of file and of issue: their light color, darker on a light background
+[data-bs-theme="light"] {
+	.file-kind {
+		color: color-mix(in srgb, var(--kind-color) 60%, #000);
+	}
+
+	.issue-kind-count {
+		color: color-mix(in srgb, var(--issue-color) 60%, #000);
+	}
+}
+

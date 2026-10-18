@@ -1,0 +1,243 @@
+// ---------------------------------------------------------------------------------------
+// Tables, statistics, settings
+// ---------------------------------------------------------------------------------------
+.table {
+	--bs-table-bg: transparent;
+	margin-bottom: 0;
+
+	> :not(caption) > * > * {
+		padding: .8rem .9rem;
+	}
+
+	thead th {
+		font-size: var(--slm-text-xs);
+		text-transform: uppercase;
+		letter-spacing: .04em;
+		color: var(--bs-secondary-color);
+		font-weight: 600;
+	}
+}
+
+.stat-icon {
+	flex: 0 0 auto;
+	display: grid;
+	place-items: center;
+	width: 3rem;
+	height: 3rem;
+	border-radius: $border-radius-lg;
+	font-size: var(--slm-text-lg);
+	background: var(--slm-accent-soft);
+	color: $primary;
+
+	&.is-cyan {
+		background: var(--slm-cyan-soft);
+		color: $slm-cyan;
+	}
+
+	&.task-icon {
+		width: 2.5rem;
+		height: 2.5rem;
+		font-size: var(--slm-text-md);
+	}
+}
+
+.stat-card {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+
+	@include media-breakpoint-down(sm) {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: .6rem;
+		padding: 1rem;
+	}
+
+	.stat-value {
+		font-size: var(--slm-text-xl);
+		font-weight: 800;
+		line-height: 1.1;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.stat-label {
+		color: var(--bs-secondary-color);
+		font-size: var(--slm-text-sm);
+	}
+}
+
+.progress {
+	--bs-progress-bg: var(--slm-surface-muted);
+	--bs-progress-height: .6rem;
+	--bs-progress-border-radius: 1rem;
+}
+
+// the groups of the sections of Settings
+.settings-nav-heading {
+	padding: .9rem 1rem .25rem;
+	font-size: var(--slm-text-xs);
+	font-weight: 700;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+	color: var(--bs-secondary-color);
+
+	&:first-child {
+		padding-top: 0;
+	}
+}
+
+.settings-nav {
+	position: sticky;
+	top: 5.5rem;
+	gap: .15rem;
+
+	.nav-link {
+		display: flex;
+		align-items: center;
+		border-radius: $border-radius;
+		color: var(--bs-secondary-color);
+		white-space: nowrap;
+		transition: color .15s ease, background-color .15s ease;
+
+		&:hover {
+			color: var(--bs-body-color);
+			background: var(--slm-surface-muted);
+		}
+
+		&.active {
+			color: var(--bs-primary);
+			background: var(--slm-accent-soft);
+			font-weight: 600;
+		}
+	}
+
+	// phones and tablets: the sections in a row that scrolls sideways, above the content
+	@include media-breakpoint-down(lg) {
+		position: static;
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		padding-bottom: .4rem;
+		scrollbar-width: thin;
+	}
+}
+
+// each section appears as a page of its own
+@media (prefers-reduced-motion: no-preference) {
+	.has-settings-sections .settings-section:not([hidden]) {
+		animation: slm-fade-in .2s ease both;
+	}
+}
+
+@keyframes slm-fade-in {
+	from {
+		opacity: 0;
+	}
+}
+
+.has-settings-sections .settings-section {
+	margin-top: 0 !important;
+}
+
+.settings-section {
+	scroll-margin-top: 5.5rem;
+}
+
+.save-bar {
+	position: sticky;
+	bottom: var(--slm-bottom-nav, 0px);
+	z-index: 10;
+	margin-top: 1.5rem;
+	padding: .85rem 1rem;
+	background: var(--slm-header-bg);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border: 1px solid var(--slm-border);
+	border-radius: $border-radius-lg $border-radius-lg 0 0;
+	box-shadow: 0 -8px 24px -16px rgba(0, 0, 0, .5);
+
+	// the action takes the whole width on phones instead of overflowing
+	@include media-breakpoint-down(sm) {
+		flex-wrap: wrap;
+
+		.btn[type="submit"] {
+			width: 100%;
+		}
+	}
+}
+
+// the bar of Settings is there only when something changed: it slides away once all is saved and
+// comes back with the next change (see initSaveWhenChanged); its room stays, so nothing jumps
+.save-bar.is-unchanged {
+	visibility: hidden;
+	opacity: 0;
+	transform: translateY(1.5rem);
+	pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.save-bar {
+		transition: opacity .2s ease, transform .25s cubic-bezier(.2, .8, .2, 1), visibility 0s;
+	}
+
+	.save-bar.is-unchanged {
+		transition: opacity .2s ease, transform .25s ease, visibility 0s .25s;
+	}
+}
+
+// the synchronization status floats above the page instead of pushing it down
+#alert_sync {
+	position: fixed;
+	right: 1rem;
+	bottom: calc(1rem + var(--slm-bottom-nav, 0px));
+	z-index: 1080;
+	width: min(24rem, calc(100vw - 2rem));
+	margin: 0;
+	background: var(--slm-surface-raised);
+	color: var(--bs-body-color);
+	border: 1px solid var(--slm-border);
+	box-shadow: var(--slm-shadow-hover);
+	animation: slm-slide-in .25s ease;
+}
+
+#sync.is-syncing {
+	pointer-events: none;
+
+	.bi {
+		@include spinning-icon(1s);
+	}
+}
+
+@keyframes slm-slide-in {
+	from { opacity: 0; transform: translateY(12px); }
+	to { opacity: 1; transform: none; }
+}
+
+.app-footer {
+	border-top: 1px solid var(--slm-border);
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-sm);
+
+	a {
+		color: inherit;
+	}
+}
+
+// the logo is white, make it dark on the light theme (outside the colored brand mark)
+[data-bs-theme="light"] .invert-on-light {
+	filter: invert(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: .01ms !important;
+		transition-duration: .01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+.min-w-0 {
+	min-width: 0;
+}
+

@@ -1,0 +1,186 @@
+// The couch mode and the views of the Library.
+
+// The couch mode: the app for a TV, seen from afar. Everything is a quarter bigger (half on a
+// very wide screen), the covers take the room, the secondary texts go and the cursor of the cards
+// is thicker.
+.is-couch {
+	font-size: 125%;
+
+	@include media-breakpoint-up(xxl) {
+		font-size: 150%;
+	}
+
+	// the covers first: the numbers of the Library and its bar of games up to date are on the
+	// Statistics page, a click away
+	.page-subtitle,
+	.mark-legend,
+	.app-footer,
+	.bottom-nav,
+	.page-note,
+	.library-overview,
+	.library-health {
+		display: none !important;
+	}
+
+	main {
+		padding-bottom: 5rem !important;
+	}
+
+	// the bars that stay at the bottom of the page (Save, Compress...) sit above the pill of the
+	// couch mode instead of under it
+	--slm-bottom-nav: 4.5rem;
+
+	// the whole width of the TV
+	.container,
+	.container-xxl,
+	.container-xl,
+	.container-lg,
+	.app-header > .navbar > .container-xxl {
+		max-width: none;
+		padding-inline: 2.5vw;
+	}
+
+	// the header fits the screen: the logo without its name, the search as a magnifier (no
+	// keyboard shortcut on a TV) and, below a screen of 1900px, the links of the menu as icons
+	// with their counts; their names stay for screen readers and in the side menu
+	.brand-text,
+	.search-trigger-label,
+	.search-kbd {
+		display: none !important;
+	}
+
+	.search-trigger {
+		min-width: 0;
+	}
+
+	@media (min-width: 1400px) and (max-width: 1899.98px) {
+		.app-nav .nav-label {
+			@include visually-hidden();
+		}
+	}
+
+	.game-grid {
+		gap: 1.5rem;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+	}
+
+	.game-card:has(.stretched-link:focus-visible),
+	&.is-gamepad .game-card:has(.stretched-link:focus) {
+		z-index: 2;
+		transform: translateY(-6px) scale(1.03);
+
+		&::before {
+			padding: 4px;
+		}
+	}
+}
+
+.couch-pill {
+	position: fixed;
+	right: 1.25rem;
+	bottom: 1.25rem;
+	z-index: 1040;
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	padding: .5rem 1rem;
+	border: 1px solid var(--slm-border);
+	border-radius: 2rem;
+	background: var(--slm-header-bg);
+	backdrop-filter: blur(10px);
+	color: var(--bs-body-color);
+	font-size: var(--slm-text-sm);
+	box-shadow: var(--slm-shadow-hover);
+
+	> .bi {
+		color: var(--slm-focus);
+	}
+}
+
+// the views of the Library: your games, the ones you do not have, or all of them
+.library-views {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: .25rem;
+	max-width: 100%;
+	padding: .25rem;
+	border: 1px solid var(--slm-border);
+	border-radius: 2rem;
+	background: var(--slm-surface);
+	box-shadow: var(--slm-shadow);
+
+	// phones: the three views share one row instead of breaking into two
+	@include media-breakpoint-down(sm) {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		width: 100%;
+
+		.library-view {
+			justify-content: center;
+			gap: .3rem;
+			padding-inline: .4rem;
+			white-space: nowrap;
+		}
+
+		.library-view > .bi {
+			display: none;
+		}
+	}
+}
+
+.library-view {
+	display: inline-flex;
+	align-items: center;
+	gap: .45rem;
+	min-height: 2.25rem;
+	padding: .3rem .9rem;
+	border-radius: 2rem;
+	color: var(--bs-secondary-color);
+	font-weight: 600;
+	text-decoration: none;
+	transition: color .15s ease, background-color .15s ease;
+
+	&:hover {
+		color: var(--bs-body-color);
+		background: var(--slm-surface-muted);
+	}
+
+	&.active {
+		color: #fff;
+		background: $slm-red;
+	}
+}
+
+// while the page changes the red is only the gliding piece, which then stays under the view
+:root:active-view-transition .library-view.active {
+	background: transparent;
+}
+
+// the red of the view shown, a piece of its own that glides between the views
+.library-view {
+	position: relative;
+	isolation: isolate;
+}
+
+.view-indicator {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	background: $slm-red;
+	pointer-events: none;
+}
+
+.library-view-count {
+	padding: 0 .45rem;
+	border-radius: 1rem;
+	background: var(--slm-surface-muted);
+	color: var(--bs-body-color);
+	font-size: var(--slm-text-xs);
+	font-variant-numeric: tabular-nums;
+
+	.active > & {
+		background: rgba(0, 0, 0, .22);
+		color: #fff;
+	}
+}
