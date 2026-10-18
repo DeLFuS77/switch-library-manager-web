@@ -784,11 +784,11 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 .app-nav .nav-link.is-working {
 	color: var(--bs-emphasis-color);
 
-	// the fan in the color of the text, the ring and the glow in the accent: on the Tasks page
-	// the link is already tinted with the accent, and a red fan on it could hardly be seen
+	// on the dark of the menu the fan and its ring wear the accent; on the Tasks page, where the
+	// link has the red background of the active page, they are white, as on the red buttons
 	.bi {
 		position: relative;
-		color: var(--bs-emphasis-color);
+		color: #{$slm-red};
 
 		&::after {
 			content: "";
@@ -803,6 +803,19 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 
 	&:not(.is-measured) .bi::after {
 		background: rgba($slm-red, .55);
+	}
+
+	&.active .bi {
+		--task-glow: rgba(255, 255, 255, .7);
+		color: #fff;
+
+		&::after {
+			background: conic-gradient(#fff calc(var(--task-pct, 0) * 1%), rgba(255, 255, 255, .28) 0);
+		}
+	}
+
+	&.active:not(.is-measured) .bi::after {
+		background: rgba(255, 255, 255, .7);
 	}
 }
 
@@ -6370,7 +6383,7 @@ body:has(.wizard.show) #alert_sync {
 	}
 
 	50% {
-		filter: drop-shadow(0 0 .35em rgba($slm-red, .75));
+		filter: drop-shadow(0 0 .35em var(--task-glow, rgba($slm-red, .75)));
 	}
 }
 
