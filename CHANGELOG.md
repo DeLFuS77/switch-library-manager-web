@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Compress: the files nothing could be compressed in (games in sparse storage and the like) are no longer offered
+  again after a compression. They were noted with the size of their progress, the size times the passes of the
+  task, so they never matched again; the ones noted that way are recognized too, without trying them once more.
+
 ## 1.41.3
 
 ### Fixes
