@@ -24,6 +24,7 @@ func (web *Web) HandleMissing() {
 			TitleItems: items,
 			Filter: filter,
 			Pagination: p,
+			Views: web.libraryViews("missing", lang),
 		}
 		if filter.Plain() {
 			data.Recommendations = web.recommendations(lang)

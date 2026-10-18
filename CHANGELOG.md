@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+
+- The missing games are part of the Library now: a switch under its title shows your games, the ones you are missing
+  (what was the Missing Games page, with its wishlist and suggestions) or all of them, each with its number. Missing
+  Games leaves the menu, which is shorter; its address still works and opens the Library on the missing games.
+
 ## 1.43.0
 
 ### New

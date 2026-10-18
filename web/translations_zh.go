@@ -3,6 +3,9 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		"Which games": "显示哪些游戏",
+		"My games": "我的游戏",
+		"Missing ones": "缺少的",
 		"In testing": "测试中",
 		"Couch mode": "沙发模式",
 		"Couch mode: Select or Esc to leave": "沙发模式：按 Select 或 Esc 退出",
@@ -845,7 +848,6 @@ func init() {
 		"Games for several players":      "多人游戏",
 		"Games in your library with DLC that you do not have. Ignore the ones you do not want.": "游戏库中有你尚未拥有的 DLC 的游戏。不想要的可以忽略。",
 		"Games of the Nintendo eShop that are not in your library.":                             "Nintendo eShop 中不在你游戏库里的游戏。",
-		"Games of the eShop you do not have, greyed out with the others.":                       "你没有的 eShop 游戏，以灰色与其他游戏一同显示。",
 		"Games only": "仅游戏",
 		"Games or DLC whose missing updates are not listed. One Title ID per Line": "不列出缺失更新的游戏或 DLC。每行一个 Title ID",
 		"Games the titles database does not know":                                  "游戏数据库无法识别的游戏",
@@ -1090,7 +1092,6 @@ func init() {
 		"Setup progress":             "设置进度",
 		"Shooter":                    "射击",
 		"Show missing updates again": "重新显示缺失的更新",
-		"Show the missing games too": "同时显示缺失的游戏",
 		"Showing %v–%v of %v":        "显示第 %v–%v 项，共 %v 项",
 		"Simulation":                 "模拟",
 		"Size":                       "大小",
@@ -1233,7 +1234,6 @@ func init() {
 		"Windows, macOS and Linux": "Windows、macOS 和 Linux",
 		"Wishlist":                 "愿望单",
 		"Wishlist: games you want and do not have yet":                         "愿望单：你想要但还没有的游戏",
-		"With the missing games":                                               "包含缺失的游戏",
 		"With their DLC":                                                       "包含其 DLC",
 		"Without a cover":                                                      "没有封面",
 		"Write the firmware like 18.1.0":                                       "固件版本格式如 18.1.0",

@@ -5,6 +5,9 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Which games": "Qué juegos",
+		"My games": "Mis juegos",
+		"Missing ones": "Me faltan",
 		"In testing": "En pruebas",
 		"Couch mode": "Modo sofá",
 		"Couch mode: Select or Esc to leave": "Modo sofá: Select o Esc para salir",
@@ -688,9 +691,6 @@ var translations = map[string]map[string]string{
 		"Add to favorites": "Añadir a favoritos",
 		"Favorite": "Favorito",
 		"Favorites only": "Solo favoritos",
-		"Show the missing games too": "Mostrar también los que faltan",
-		"Games of the eShop you do not have, greyed out with the others.": "Los juegos de la eShop que no tienes, en gris junto a los tuyos.",
-		"With the missing games": "Con los que faltan",
 		"Favorite: the games you like most": "Favorito: los juegos que más te gustan",
 		"Wishlist: games you want and do not have yet": "Lista de deseos: juegos que quieres y aún no tienes",
 		"Greyed out: not in your library": "En gris: no están en tu biblioteca",

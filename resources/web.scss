@@ -6852,7 +6852,7 @@ $page-sections: (
 	index: library collection,
 	updates: library arrow-up-circle,
 	dlc: library puzzle,
-	missing: library search-heart,
+	missing: library collection,
 	upcoming: discover calendar-event,
 	sagas: discover stack,
 	saga: discover stack,
@@ -7129,5 +7129,55 @@ html {
 
 	> .bi {
 		color: var(--slm-focus);
+	}
+}
+
+// the views of the Library: your games, the ones you do not have, or all of them
+.library-views {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: .25rem;
+	max-width: 100%;
+	padding: .25rem;
+	border: 1px solid var(--slm-border);
+	border-radius: 2rem;
+	background: var(--slm-surface);
+	box-shadow: var(--slm-shadow);
+}
+
+.library-view {
+	display: inline-flex;
+	align-items: center;
+	gap: .45rem;
+	min-height: 2.25rem;
+	padding: .3rem .9rem;
+	border-radius: 2rem;
+	color: var(--bs-secondary-color);
+	font-weight: 600;
+	text-decoration: none;
+	transition: color .15s ease, background-color .15s ease;
+
+	&:hover {
+		color: var(--bs-body-color);
+		background: var(--slm-surface-muted);
+	}
+
+	&.active {
+		color: #fff;
+		background: $slm-red;
+	}
+}
+
+.library-view-count {
+	padding: 0 .45rem;
+	border-radius: 1rem;
+	background: var(--slm-surface-muted);
+	color: var(--bs-body-color);
+	font-size: var(--slm-text-xs);
+	font-variant-numeric: tabular-nums;
+
+	.active > & {
+		background: rgba(0, 0, 0, .22);
+		color: #fff;
 	}
 }

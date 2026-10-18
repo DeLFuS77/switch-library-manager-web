@@ -3,6 +3,9 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Which games": "표시할 게임",
+		"My games": "내 게임",
+		"Missing ones": "없는 게임",
 		"In testing": "테스트 중",
 		"Couch mode": "소파 모드",
 		"Couch mode: Select or Esc to leave": "소파 모드: Select 또는 Esc로 나가기",
@@ -845,7 +848,6 @@ func init() {
 		"Games for several players":      "여러 명이 즐기는 게임",
 		"Games in your library with DLC that you do not have. Ignore the ones you do not want.": "가지고 있지 않은 DLC가 있는 라이브러리 게임이에요. 원하지 않는 항목은 무시하세요.",
 		"Games of the Nintendo eShop that are not in your library.":                             "라이브러리에 없는 Nintendo eShop 게임이에요.",
-		"Games of the eShop you do not have, greyed out with the others.":                       "가지고 있지 않은 eShop 게임을 다른 게임과 함께 흐리게 표시해요.",
 		"Games only": "게임만",
 		"Games or DLC whose missing updates are not listed. One Title ID per Line": "누락된 업데이트를 표시하지 않을 게임 또는 DLC. 한 줄에 타이틀 ID 하나",
 		"Games the titles database does not know":                                  "타이틀 데이터베이스에 없는 게임",
@@ -1090,7 +1092,6 @@ func init() {
 		"Setup progress":             "설정 진행 상황",
 		"Shooter":                    "슈팅",
 		"Show missing updates again": "누락된 업데이트 다시 표시",
-		"Show the missing games too": "누락된 게임도 표시",
 		"Showing %v–%v of %v":        "%v–%v 표시 중 (전체 %v)",
 		"Simulation":                 "시뮬레이션",
 		"Size":                       "크기",
@@ -1233,7 +1234,6 @@ func init() {
 		"Windows, macOS and Linux": "Windows, macOS, Linux",
 		"Wishlist":                 "위시리스트",
 		"Wishlist: games you want and do not have yet":                         "위시리스트: 원하지만 아직 없는 게임",
-		"With the missing games":                                               "누락된 게임 포함",
 		"With their DLC":                                                       "DLC 포함",
 		"Without a cover":                                                      "커버 없음",
 		"Write the firmware like 18.1.0":                                       "펌웨어를 18.1.0처럼 입력하세요",

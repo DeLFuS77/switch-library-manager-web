@@ -158,7 +158,7 @@ func (f *TitleItemFilter) Plain() bool {
 // collection, kind, region, format and the others.
 func (f *TitleItemFilter) SecondaryCount() int {
 	count := 0
-	for _, value := range []string{f.Collection, f.Kind, f.Region, f.Format, f.Extra, f.WithMissing, f.Genre, f.Players, f.GameLanguage} {
+	for _, value := range []string{f.Collection, f.Kind, f.Region, f.Format, f.Extra, f.Genre, f.Players, f.GameLanguage} {
 		if value != "" {
 			count++
 		}

@@ -3,6 +3,9 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Which games": "Welke games",
+		"My games": "Mijn games",
+		"Missing ones": "Ontbrekend",
 		"In testing": "In test",
 		"Couch mode": "Bankmodus",
 		"Couch mode: Select or Esc to leave": "Bankmodus: Select of Esc om te verlaten",
@@ -845,7 +848,6 @@ func init() {
 		"Games for several players":      "Games voor meerdere spelers",
 		"Games in your library with DLC that you do not have. Ignore the ones you do not want.": "Games in je bibliotheek met DLC die je niet hebt. Negeer de DLC die je niet wilt.",
 		"Games of the Nintendo eShop that are not in your library.":                             "Games uit de Nintendo eShop die niet in je bibliotheek staan.",
-		"Games of the eShop you do not have, greyed out with the others.":                       "Games uit de eShop die je niet hebt, grijs weergegeven tussen de andere.",
 		"Games only": "Alleen games",
 		"Games or DLC whose missing updates are not listed. One Title ID per Line": "Games of DLC waarvan ontbrekende updates niet worden getoond. Eén Title ID per regel",
 		"Games the titles database does not know":                                  "Games die de titeldatabase niet kent",
@@ -1090,7 +1092,6 @@ func init() {
 		"Setup progress":             "Voortgang van de installatie",
 		"Shooter":                    "Shooter",
 		"Show missing updates again": "Ontbrekende updates weer tonen",
-		"Show the missing games too": "Ook de ontbrekende games tonen",
 		"Showing %v–%v of %v":        "%v–%v van %v",
 		"Simulation":                 "Simulatie",
 		"Size":                       "Grootte",
@@ -1233,7 +1234,6 @@ func init() {
 		"Windows, macOS and Linux": "Windows, macOS en Linux",
 		"Wishlist":                 "Verlanglijst",
 		"Wishlist: games you want and do not have yet":                         "Verlanglijst: games die je wilt en nog niet hebt",
-		"With the missing games":                                               "Met de ontbrekende games",
 		"With their DLC":                                                       "Met hun DLC",
 		"Without a cover":                                                      "Zonder cover",
 		"Write the firmware like 18.1.0":                                       "Schrijf de firmware als 18.1.0",
