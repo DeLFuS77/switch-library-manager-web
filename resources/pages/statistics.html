@@ -83,7 +83,7 @@
 			<div class="row g-3 mb-4">
 				{{- if $s.ByGenre}}
 				<div class="col-lg-6">
-					<section class="surface h-100">
+					<section class="surface h-100" style="--bar-color: var(--slm-chart-2)">
 						<h2 class="section-title"><span class="bi bi-tags" aria-hidden="true"></span>{{t "Games by genre"}}</h2>
 						{{- range $s.ByGenre}}
 						{{- template "countBar" (dict "Label" (t .Name) "Count" .Count "Max" $s.MaxGenre "Href" (printf "/index.html?genre=%s" .Name))}}
@@ -93,7 +93,7 @@
 				{{- end}}
 				{{- if $s.ByPublisher}}
 				<div class="col-lg-6">
-					<section class="surface h-100">
+					<section class="surface h-100" style="--bar-color: var(--slm-chart-4)">
 						<h2 class="section-title"><span class="bi bi-building" aria-hidden="true"></span>{{t "Games by publisher"}}</h2>
 						{{- range $s.ByPublisher}}
 						{{- template "countBar" (dict "Label" .Name "Count" .Count "Max" $s.MaxPublisher "Href" "")}}

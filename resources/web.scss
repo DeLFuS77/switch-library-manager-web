@@ -142,6 +142,9 @@ $flag-icons-path: "/resources/vendor/flag-icons/flags";
 	--slm-chart-4: #7c5cff;
 	--slm-chart-5: #2bb673;
 	--slm-chart-6: #8a94a6;
+	// the keyboard focus ring and the red texts, dark enough for a light background
+	--slm-focus: #0a7d96;
+	--slm-red-text: #b81f2f;
 }
 
 [data-bs-theme="dark"] {
@@ -158,6 +161,8 @@ $flag-icons-path: "/resources/vendor/flag-icons/flags";
 	--bs-link-hover-color-rgb: 255, 160, 170;
 	--slm-glow-red: rgba(214, 40, 57, .13);
 	--slm-glow-cyan: rgba(15, 181, 216, .11);
+	--slm-focus: #{$slm-cyan};
+	--slm-red-text: rgb(255, 128, 140);
 }
 
 body {
@@ -187,7 +192,7 @@ h3,
 
 // keyboard users always see where they are
 :focus-visible {
-	outline: 2px solid $slm-cyan;
+	outline: 2px solid var(--slm-focus);
 	outline-offset: 2px;
 }
 
@@ -1022,7 +1027,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	}
 
 	.btn-check:focus-visible + & {
-		outline: 2px solid $primary;
+		outline: 2px solid var(--slm-focus);
 		outline-offset: 2px;
 	}
 }
@@ -2308,7 +2313,7 @@ $avatar-colors: (
 	}
 
 	input:focus-visible + .user-avatar {
-		outline: 2px solid var(--bs-primary);
+		outline: 2px solid var(--slm-focus);
 		outline-offset: 4px;
 	}
 }
@@ -3516,8 +3521,8 @@ $avatar-colors: (
 	letter-spacing: .02em;
 }
 
-// the bars of the statistics look like those of the tasks: thin and round, in the colours of
-// the library one after the other, with the stripes still
+// the bars of the statistics: thin and round, one color for each chart (set by the chart with
+// --bar-color) and no stripes, which in the rest of the app mean something is working
 .stat-bar {
 	height: .6rem;
 	border-radius: 1rem;
@@ -3525,25 +3530,21 @@ $avatar-colors: (
 
 	.progress-bar {
 		border-radius: inherit;
-		background-color: #{$slm-red};
-		background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
-		background-size: 1rem 1rem;
+		background: linear-gradient(to right, color-mix(in srgb, var(--bar-color, var(--slm-chart-1)) 70%, transparent), var(--bar-color, var(--slm-chart-1)));
 	}
 }
 
 .stat-share,
 .count-bar {
-	&:nth-of-type(4n + 2) .stat-bar .progress-bar { background-color: #{$warning}; }
-	&:nth-of-type(4n + 3) .stat-bar .progress-bar { background-color: #{$slm-cyan}; }
-	&:nth-of-type(4n + 4) .stat-bar .progress-bar { background-color: #{$success}; }
+	font-variant-numeric: tabular-nums;
 }
 
 .year-bar span {
-	background-color: #{$slm-red};
-	background-image:
-		linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent),
-		linear-gradient(to top, #{$slm-red}, #{$warning});
-	background-size: 1rem 1rem, 100% 100%;
+	background: linear-gradient(to top, rgba($slm-red, .6), $slm-red);
+}
+
+.year-bar small {
+	font-variant-numeric: tabular-nums;
 }
 
 .history-chart-box {
@@ -4908,7 +4909,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	min-height: 11rem;
 }
 
-.year-chart {
+.year-month-chart {
 	display: flex;
 	flex-direction: column;
 	align-items: stretch;
@@ -5518,7 +5519,7 @@ html[data-section="backup"] #settingsForm .save-bar {
 	}
 
 	&:has(input:focus-visible) {
-		outline: 2px solid $slm-cyan;
+		outline: 2px solid var(--slm-focus);
 		outline-offset: 2px;
 	}
 
@@ -6468,7 +6469,7 @@ body:has(.wizard.show) #alert_sync {
 .page-link:focus-visible,
 .cover-select:focus-visible,
 .search-trigger:focus-visible {
-	outline: 2px solid $slm-cyan;
+	outline: 2px solid var(--slm-focus);
 	outline-offset: 2px;
 }
 
@@ -6483,5 +6484,35 @@ body {
 @include media-breakpoint-down(md) {
 	html {
 		scroll-padding-bottom: 5rem;
+	}
+}
+
+// texts in a color that keep the contrast of WCAG AA on the background of each theme
+.bottom-link.active .bottom-label,
+.game-meta.text-primary {
+	color: var(--slm-red-text) !important;
+}
+
+// the links of the help under a field
+.form-text a {
+	color: var(--slm-red-text);
+}
+
+.breadcrumb .link-secondary {
+	color: var(--bs-secondary-color) !important;
+}
+
+[data-bs-theme="dark"] .btn-outline-danger {
+	--bs-btn-color: var(--slm-red-text);
+}
+
+// the colored kinds of file and of issue: their light color, darker on a light background
+[data-bs-theme="light"] {
+	.file-kind {
+		color: color-mix(in srgb, var(--kind-color) 60%, #000);
+	}
+
+	.issue-kind-count {
+		color: color-mix(in srgb, var(--issue-color) 60%, #000);
 	}
 }
