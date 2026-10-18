@@ -1,4 +1,39 @@
 {
+  "1.41.4": {
+    "en": [
+      "Compress no longer offers again the files that cannot be compressed: they are listed apart."
+    ],
+    "es": [
+      "Comprimir ya no vuelve a ofrecer los archivos que no se pueden comprimir: salen en una lista aparte."
+    ],
+    "de": [
+      "Komprimieren bietet Dateien, die sich nicht komprimieren lassen, nicht mehr erneut an: Sie stehen in einer eigenen Liste."
+    ],
+    "fr": [
+      "Compresser ne propose plus les fichiers qui ne peuvent pas être compressés : ils sont listés à part."
+    ],
+    "it": [
+      "Comprimi non propone più i file che non si possono comprimere: sono elencati a parte."
+    ],
+    "pt": [
+      "Comprimir já não volta a oferecer os arquivos que não podem ser comprimidos: aparecem numa lista à parte."
+    ],
+    "nl": [
+      "Comprimeren biedt bestanden die niet gecomprimeerd kunnen worden niet meer opnieuw aan: ze staan in een aparte lijst."
+    ],
+    "ru": [
+      "Сжатие больше не предлагает снова файлы, которые нельзя сжать: они показаны отдельным списком."
+    ],
+    "ja": [
+      "圧縮できないファイルは再び候補に出なくなり、別の一覧に表示されます。"
+    ],
+    "ko": [
+      "압축할 수 없는 파일을 다시 제안하지 않고 별도 목록에 표시해요."
+    ],
+    "zh": [
+      "压缩不再重复列出无法压缩的文件：它们会单独列出。"
+    ]
+  },
   "1.41.3": {
     "en": [
       "Deleting the empty folders after organizing is now fast, also on a NAS with thousands of folders."
