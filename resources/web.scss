@@ -7062,3 +7062,72 @@ html {
 .task-card.is-paused .progress-bar-animated {
 	animation: none;
 }
+
+// The couch mode: the app for a TV, seen from afar. Everything is a quarter bigger (half on a
+// very wide screen), the covers take the room, the secondary texts go and the cursor of the cards
+// is thicker.
+.is-couch {
+	font-size: 125%;
+
+	@include media-breakpoint-up(xxl) {
+		font-size: 150%;
+	}
+
+	.page-subtitle,
+	.mark-legend,
+	.app-footer,
+	.bottom-nav,
+	.page-note {
+		display: none !important;
+	}
+
+	main {
+		padding-bottom: 5rem !important;
+	}
+
+	// the whole width of the TV
+	.container,
+	.container-xxl,
+	.container-xl,
+	.container-lg {
+		max-width: none;
+		padding-inline: 2.5vw;
+	}
+
+	.game-grid {
+		gap: 1.5rem;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+	}
+
+	.game-card:has(.stretched-link:focus-visible),
+	&.is-gamepad .game-card:has(.stretched-link:focus) {
+		z-index: 2;
+		transform: translateY(-6px) scale(1.03);
+
+		&::before {
+			padding: 4px;
+		}
+	}
+}
+
+.couch-pill {
+	position: fixed;
+	right: 1.25rem;
+	bottom: 1.25rem;
+	z-index: 1040;
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	padding: .5rem 1rem;
+	border: 1px solid var(--slm-border);
+	border-radius: 2rem;
+	background: var(--slm-header-bg);
+	backdrop-filter: blur(10px);
+	color: var(--bs-body-color);
+	font-size: var(--slm-text-sm);
+	box-shadow: var(--slm-shadow-hover);
+
+	> .bi {
+		color: var(--slm-focus);
+	}
+}

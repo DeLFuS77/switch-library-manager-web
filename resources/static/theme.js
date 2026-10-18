@@ -21,6 +21,12 @@
 			document.documentElement.classList.add('closed-slm-no-login-notice');
 		}
 	} catch (e) {}
+	// the couch mode, from the first paint (see initCouchMode in web.js)
+	try {
+		if (localStorage.getItem('slm-couch') === '1') {
+			document.documentElement.classList.add('is-couch');
+		}
+	} catch (e) {}
 	// coming back to a page, its cards are already known: they appear without the cascade
 	try {
 		var navigation = performance.getEntriesByType('navigation')[0];

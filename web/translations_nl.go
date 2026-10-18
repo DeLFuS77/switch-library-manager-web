@@ -3,6 +3,8 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		"Couch mode": "Bankmodus",
+		"Couch mode: Select or Esc to leave": "Bankmodus: Select of Esc om te verlaten",
 		"Interface sounds": "Interfacegeluiden",
 		"Pause": "Pauzeren",
 		"Resume": "Hervatten",

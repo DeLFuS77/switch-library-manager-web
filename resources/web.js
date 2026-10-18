@@ -1787,11 +1787,72 @@ function initSounds() {
 	document.addEventListener('hide.bs.modal', () => playSound('back'));
 }
 
+// The couch mode is the app for a TV, seen from afar and used with a controller: everything is
+// bigger, the covers take the room, what is secondary goes and the page fills the screen. It is
+// turned on from the menu of the header or with the Select button of a controller, and left
+// with Select, Esc or the pill it shows.
+const COUCH_KEY = 'slm-couch';
+
+function couchOn() {
+	return document.documentElement.classList.contains('is-couch');
+}
+
+function setCouch(on, fullscreen = true) {
+	document.documentElement.classList.toggle('is-couch', on);
+	try {
+		localStorage.setItem(COUCH_KEY, on ? '1' : '0');
+	} catch (e) {
+		// only for this page
+	}
+	document.querySelectorAll('[data-couch-toggle]').forEach(toggle => toggle.setAttribute('aria-checked', String(on)));
+	let pill = document.getElementById('couchPill');
+	if (on && !pill) {
+		pill = document.createElement('button');
+		pill.type = 'button';
+		pill.id = 'couchPill';
+		pill.className = 'couch-pill';
+		pill.innerHTML = '<span class="bi bi-tv" aria-hidden="true"></span>';
+		pill.append(t('Couch mode: Select or Esc to leave'));
+		pill.addEventListener('click', () => setCouch(false));
+		document.body.append(pill);
+	} else if (!on && pill) {
+		pill.remove();
+	}
+	// the whole screen, when the browser lets it (it needs a click or a button of the controller)
+	try {
+		if (!fullscreen) {
+			// back from another page: the screen stays as the browser left it
+		} else if (on && !document.fullscreenElement && document.documentElement.requestFullscreen) {
+			document.documentElement.requestFullscreen().catch(() => undefined);
+		} else if (!on && document.fullscreenElement) {
+			document.exitFullscreen().catch(() => undefined);
+		}
+	} catch (e) {
+		// not in this browser
+	}
+}
+
+function initCouchMode() {
+	if (couchOn()) {
+		// back from another page: the pill and the switches again
+		setCouch(true, false);
+	}
+	document.querySelectorAll('[data-couch-toggle]').forEach(toggle => toggle.addEventListener('click', () => {
+		playSound(couchOn() ? 'back' : 'open');
+		setCouch(!couchOn());
+	}));
+	document.addEventListener('keydown', e => {
+		if (e.key === 'Escape' && couchOn() && !document.querySelector('.modal.show, .offcanvas.show, .dropdown-menu.show')) {
+			setCouch(false);
+		}
+	});
+}
+
 // A game controller moves through the page like on a console: the D-pad or the left stick go to
 // the nearest control in that direction, A opens it, B closes a window or goes back, Start opens
 // the quick search. The page is only read while a controller is connected and the page is seen.
 const GAMEPAD_HINT_KEY = 'slm-gamepad-hint';
-const PAD = { a: 0, b: 1, start: 9, up: 12, down: 13, left: 14, right: 15 };
+const PAD = { a: 0, b: 1, select: 8, start: 9, up: 12, down: 13, left: 14, right: 15 };
 
 function gamepadTargets() {
 	const scope = document.querySelector('.modal.show, .offcanvas.show') || document;
@@ -1948,6 +2009,10 @@ function initGamepad() {
 		}, now);
 		press('b', button(PAD.b), gamepadBack, now);
 		press('start', button(PAD.start), () => document.querySelector('.search-trigger')?.click(), now);
+		press('select', button(PAD.select), () => {
+			playSound(couchOn() ? 'back' : 'open');
+			setCouch(!couchOn());
+		}, now);
 		frame = requestAnimationFrame(read);
 	};
 	const start = () => {
@@ -3666,6 +3731,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initWhatsNew();
 	initGamepad();
 	initSounds();
+	initCouchMode();
 	initRevealOnScroll();
 	initCollapsibleText();
 

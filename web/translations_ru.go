@@ -3,6 +3,8 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		"Couch mode": "Режим дивана",
+		"Couch mode: Select or Esc to leave": "Режим дивана: Select или Esc для выхода",
 		"Interface sounds": "Звуки интерфейса",
 		"Pause": "Пауза",
 		"Resume": "Продолжить",

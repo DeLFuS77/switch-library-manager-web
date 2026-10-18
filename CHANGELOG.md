@@ -15,6 +15,10 @@
 - Interface sounds, like the menu of a console: a soft tick to move between the cards (with the keyboard or a
   controller), two notes to open and to go back, a pop for the star and the heart and a chime when a task ends. They are
   made by the browser, with no sound file, and stay off until turned on from the menu of the header, on each device.
+- Couch mode, for a TV seen from the sofa: everything is a quarter bigger (half on a very wide screen), the page takes
+  the whole width and the whole screen, the covers take the room, the secondary texts go and the cursor of the cards is
+  thicker. It is turned on from the menu of the header or with the Select button of a controller, and left with Select,
+  Esc or the pill it shows in a corner.
 
 ### Changes
 
