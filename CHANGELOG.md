@@ -19,6 +19,10 @@
 - The mark of the page in the menu glides from the link of the page before to the new one, like the cursor of a
   console menu, and so does the red of the view of the Library (All, My games, Missing ones); with less motion asked
   by the system they just change.
+- The save buttons of the preferences are on only when something changed: the bar of Settings slides away once all
+  is saved and comes back with the next change, and the Save buttons of Organize and My account stay dim until a
+  field changes; undoing a change turns them off again. A field filled by the app itself (the folder picker) counts
+  as a change too.
 
 ### Changes
 

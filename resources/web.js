@@ -394,6 +394,54 @@ function startSync(url) {
 	});
 }
 
+// The save buttons of the preferences (Settings, Organize, My account) are on only when something
+// changed since the page was opened or last saved: the bar of Settings slides away, the other
+// buttons go dim. A field filled by the app itself (the folder picker...) is noticed too, as the
+// form is looked at again every second.
+function formState(form) {
+	const values = [];
+	for (const field of form.elements) {
+		if (!field.name || field.disabled || field.type === 'submit' || field.type === 'button' || field.type === 'file') {
+			continue;
+		}
+		values.push(field.name + '=' + ((field.type === 'checkbox' || field.type === 'radio') ? field.checked : field.value));
+	}
+	return JSON.stringify(values);
+}
+
+function initSaveWhenChanged() {
+	document.querySelectorAll('form[data-save-when-changed]').forEach(form => {
+		let saved = formState(form);
+		const buttons = [...form.querySelectorAll('button[type="submit"]')];
+		const bar = form.querySelector('.save-bar');
+		const update = () => {
+			const changed = formState(form) !== saved;
+			form.classList.toggle('is-unchanged', !changed);
+			if (bar) {
+				bar.classList.toggle('is-unchanged', !changed);
+				bar.inert = !changed;
+			} else {
+				buttons.forEach(button => {
+					button.disabled = !changed;
+				});
+			}
+		};
+		form.addEventListener('input', update);
+		form.addEventListener('change', update);
+		form.addEventListener('slm:recheck', update);
+		form.addEventListener('slm:saved', () => {
+			saved = formState(form);
+			update();
+		});
+		setInterval(() => {
+			if (!document.hidden) {
+				update();
+			}
+		}, 1000);
+		update();
+	});
+}
+
 function onSubmit(form) {
 	const feedbackAlert = form.querySelector('.alert');
 	if (feedbackAlert) {
@@ -422,6 +470,8 @@ function onSubmit(form) {
 
 		return response.json().then(jsonResponse => {
 			insertAlert(form, 'alert-success', 'bi-check-circle-fill', jsonResponse.strongMessage, jsonResponse.message);
+			// what is saved is the new starting point: the save button goes off until the next change
+			form.dispatchEvent(new CustomEvent('slm:saved'));
 			if (form.dataset.rescan) {
 				// saving the settings rescans the library
 				showSyncAlert();
@@ -468,6 +518,7 @@ function onSubmit(form) {
 	}).finally(() => {
 		if (submitButton) {
 			submitButton.disabled = false;
+			form.dispatchEvent(new CustomEvent('slm:recheck'));
 		}
 	});
 }
@@ -3640,6 +3691,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 
 	initFlashMessages();
+	initSaveWhenChanged();
 	initOrganize();
 	initIgnoreButtons();
 	initLibraryBulk();

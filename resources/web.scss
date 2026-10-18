@@ -2181,6 +2181,25 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	}
 }
 
+// the bar of Settings is there only when something changed: it slides away once all is saved and
+// comes back with the next change (see initSaveWhenChanged); its room stays, so nothing jumps
+.save-bar.is-unchanged {
+	visibility: hidden;
+	opacity: 0;
+	transform: translateY(1.5rem);
+	pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.save-bar {
+		transition: opacity .2s ease, transform .25s cubic-bezier(.2, .8, .2, 1), visibility 0s;
+	}
+
+	.save-bar.is-unchanged {
+		transition: opacity .2s ease, transform .25s ease, visibility 0s .25s;
+	}
+}
+
 // the synchronization status floats above the page instead of pushing it down
 #alert_sync {
 	position: fixed;
