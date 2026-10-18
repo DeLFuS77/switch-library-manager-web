@@ -394,28 +394,34 @@ func TestApplyTemplate(t *testing.T) {
 	}
 }
 
-// Empty folders go, deepest first with the parents they leave empty; a folder with a file, a
-// hidden one too, stays with its parents.
+// The folders the run took files from go when they are left empty, deepest first with the
+// parents they leave empty; a folder with a file, a hidden one too, stays with its parents, and
+// a folder the run did not touch is not looked at.
 func TestDeleteEmptyFolders(t *testing.T) {
 	root := t.TempDir()
-	for _, dir := range []string{"a/b/c", "d", "e/f", "g"} {
+	for _, dir := range []string{"a/b/c", "d", "e/f", "g", "untouched"} {
 		os.MkdirAll(filepath.Join(root, dir), 0755)
 	}
 	os.WriteFile(filepath.Join(root, "e", "f", "game.nsp"), []byte("x"), 0644)
 	os.WriteFile(filepath.Join(root, "g", ".DS_Store"), []byte("x"), 0644)
 	ops := &fileOperations{logger: zap.NewNop().Sugar()}
+	// files moved out of these folders
+	for _, dir := range []string{"a/b/c", "d", "e/f", "g"} {
+		ops.record(Operation{Kind: OP_MOVE, From: filepath.Join(root, dir, "x.nsp"), To: filepath.Join(root, "x.nsp")}, nil)
+	}
+	moves := len(ops.operations)
 	ops.deleteEmptyFolders(root)
 	for _, gone := range []string{"a", "d"} {
 		if _, err := os.Stat(filepath.Join(root, gone)); !os.IsNotExist(err) {
 			t.Errorf("%s stays", gone)
 		}
 	}
-	for _, kept := range []string{"e/f", "g"} {
+	for _, kept := range []string{"e/f", "g", "untouched"} {
 		if _, err := os.Stat(filepath.Join(root, kept)); err != nil {
 			t.Errorf("%s was deleted", kept)
 		}
 	}
-	if len(ops.operations) != 4 {
-		t.Fatalf("operations: %+v", ops.operations)
+	if len(ops.operations)-moves != 4 {
+		t.Fatalf("operations: %+v", ops.operations[moves:])
 	}
 }
