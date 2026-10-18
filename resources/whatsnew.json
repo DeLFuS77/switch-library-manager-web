@@ -1,4 +1,83 @@
 {
+  "1.43.0": {
+    "en": [
+      "Compress shows how much each file will likely save, from what you compressed before.",
+      "A compression can be paused and resumed from Tasks, in the middle of a file too.",
+      "Couch mode (in testing) for a TV: bigger, full screen and the covers first.",
+      "Optional interface sounds, like the menu of a console.",
+      "The files already compressed get a panel of their own during a compression."
+    ],
+    "es": [
+      "Comprimir muestra cuánto ahorrará cada archivo, según lo que ya comprimiste.",
+      "Una compresión se puede pausar y reanudar desde Tareas, también en mitad de un archivo.",
+      "Modo sofá (en pruebas) para la tele: más grande, a pantalla completa y con las portadas primero.",
+      "Sonidos de interfaz opcionales, como el menú de una consola.",
+      "Los archivos ya comprimidos tienen su propio panel durante una compresión."
+    ],
+    "de": [
+      "Komprimieren zeigt, wie viel jede Datei voraussichtlich spart, anhand deiner bisherigen Komprimierungen.",
+      "Eine Komprimierung lässt sich unter Aufgaben pausieren und fortsetzen, auch mitten in einer Datei.",
+      "Sofa-Modus (in Erprobung) für den Fernseher: größer, Vollbild und die Cover zuerst.",
+      "Optionale Oberflächentöne wie im Menü einer Konsole.",
+      "Bereits komprimierte Dateien haben während einer Komprimierung einen eigenen Bereich."
+    ],
+    "fr": [
+      "Compresser indique combien chaque fichier devrait économiser, d’après tes compressions précédentes.",
+      "Une compression peut être mise en pause et reprise depuis Tâches, même au milieu d’un fichier.",
+      "Mode canapé (en test) pour la télé : plus grand, plein écran et les jaquettes d’abord.",
+      "Sons d’interface facultatifs, comme le menu d’une console.",
+      "Les fichiers déjà compressés ont leur propre panneau pendant une compression."
+    ],
+    "it": [
+      "Comprimi mostra quanto farà risparmiare ogni file, in base alle compressioni precedenti.",
+      "Una compressione si può mettere in pausa e riprendere da Attività, anche a metà di un file.",
+      "Modalità divano (in prova) per la TV: più grande, a schermo intero e con le copertine in primo piano.",
+      "Suoni dell’interfaccia facoltativi, come il menu di una console.",
+      "I file già compressi hanno un riquadro tutto loro durante una compressione."
+    ],
+    "pt": [
+      "Comprimir mostra quanto cada ficheiro deverá poupar, com base no que já comprimiste.",
+      "Uma compressão pode ser pausada e retomada em Tarefas, também a meio de um ficheiro.",
+      "Modo sofá (em testes) para a TV: maior, em ecrã inteiro e com as capas primeiro.",
+      "Sons de interface opcionais, como o menu de uma consola.",
+      "Os ficheiros já comprimidos têm um painel próprio durante uma compressão."
+    ],
+    "nl": [
+      "Comprimeren toont hoeveel elk bestand waarschijnlijk bespaart, op basis van eerdere compressies.",
+      "Een compressie kan bij Taken worden gepauzeerd en hervat, ook midden in een bestand.",
+      "Bankmodus (in test) voor de tv: groter, schermvullend en de covers eerst.",
+      "Optionele interfacegeluiden, zoals het menu van een console.",
+      "Al gecomprimeerde bestanden krijgen tijdens een compressie een eigen paneel."
+    ],
+    "ru": [
+      "Сжатие показывает, сколько, вероятно, сэкономит каждый файл, по прошлым сжатиям.",
+      "Сжатие можно поставить на паузу и продолжить в «Задачах», даже посреди файла.",
+      "Режим дивана (тестируется) для телевизора: крупнее, во весь экран, обложки на первом плане.",
+      "Необязательные звуки интерфейса, как в меню консоли.",
+      "Уже сжатые файлы во время сжатия показываются на отдельной панели."
+    ],
+    "ja": [
+      "圧縮画面に、これまでの圧縮をもとに各ファイルの節約見込みが表示されます。",
+      "圧縮はタスクから一時停止・再開でき、ファイルの途中からでも続けられます。",
+      "テレビ向けのソファモード（テスト中）：大きく、全画面で、カバーが主役です。",
+      "ゲーム機のメニューのような効果音（任意）。",
+      "圧縮中、圧縮済みのファイルは専用のパネルに表示されます。"
+    ],
+    "ko": [
+      "압축 화면에 이전 압축 결과를 바탕으로 파일마다 예상 절약량이 표시됩니다.",
+      "압축은 작업에서 일시 정지하고 재개할 수 있으며, 파일 중간에서도 이어집니다.",
+      "TV용 소파 모드(테스트 중): 더 크게, 전체 화면, 표지 중심.",
+      "콘솔 메뉴 같은 선택형 인터페이스 효과음.",
+      "압축 중 이미 압축된 파일은 별도 패널에 표시됩니다."
+    ],
+    "zh": [
+      "压缩页面会根据之前的压缩，显示每个文件预计能节省多少。",
+      "压缩可以在任务中暂停和继续，即使在文件中途也可以。",
+      "适合电视的沙发模式（测试中）：更大、全屏、封面优先。",
+      "可选的界面音效，就像游戏机的菜单。",
+      "压缩时，已压缩的文件会显示在单独的面板中。"
+    ]
+  },
   "1.42.0": {
     "en": [
       "You can move through the app with a game controller: D-pad to move, A to open, B to go back, Start to search.",

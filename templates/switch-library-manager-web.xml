@@ -22,11 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.42.0
-- Play with a game controller like on a console, a cursor on the cards, clearer colors and texts of 12px at least
-- Pages redone: Upcoming, DLC, Compress, Updates, Series, Statistics and Settings on the phone
-### 1.41.5
-- The Tasks link of the menu shows at once a task started from any page, with a turning fan and a ring that fills with its progress</Changes>
+  <Changes>### 1.43.0
+- Compress tells how much each file will likely save, and a compression can be paused and resumed
+- Couch mode for a TV (in testing), optional console sounds and an accessibility check on every change
+### 1.42.0
+- Play with a game controller like on a console, a cursor on the cards, clearer colors and texts of 12px at least</Changes>
   <Date>2026-10-18</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
