@@ -3,6 +3,7 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"In testing": "テスト中",
 		"Couch mode": "ソファモード",
 		"Couch mode: Select or Esc to leave": "ソファモード: Select または Esc で終了",
 		"Interface sounds": "インターフェースの効果音",

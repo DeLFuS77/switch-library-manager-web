@@ -5,6 +5,7 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"In testing": "En pruebas",
 		"Couch mode": "Modo sofá",
 		"Couch mode: Select or Esc to leave": "Modo sofá: Select o Esc para salir",
 		"Interface sounds": "Sonidos de la interfaz",
@@ -1343,5 +1344,5 @@ var jsTexts = []string{
 	"Apply the changes shown in the preview? Files will be moved or deleted.",
 	"Add to the wishlist", "Remove from the wishlist", "Add to favorites", "Remove from favorites",
 	"Controller connected", "D-pad to move, A to open, B to go back, Start to search.",
-	"Couch mode: Select or Esc to leave",
+	"Couch mode: Select or Esc to leave", "In testing",
 }

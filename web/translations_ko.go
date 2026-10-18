@@ -3,6 +3,7 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"In testing": "테스트 중",
 		"Couch mode": "소파 모드",
 		"Couch mode: Select or Esc to leave": "소파 모드: Select 또는 Esc로 나가기",
 		"Interface sounds": "인터페이스 효과음",
