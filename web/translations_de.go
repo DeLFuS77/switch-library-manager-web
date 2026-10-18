@@ -3,6 +3,9 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		"Pause": "Pausieren",
+		"Resume": "Fortsetzen",
+		"Paused": "Pausiert",
 		"Estimated from the files of this kind you compressed before": "Geschätzt anhand der Dateien dieser Art, die du bereits komprimiert hast",
 		"Estimated from the files you compressed before:": "Geschätzt anhand deiner bisherigen Komprimierungen:",
 		"About %v could be saved with all of them.": "Mit allen ließen sich etwa %v sparen.",

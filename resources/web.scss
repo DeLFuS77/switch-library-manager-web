@@ -7057,3 +7057,8 @@ html {
 		color: var(--bs-success-text-emphasis);
 	}
 }
+
+// a paused task: its bars stand still
+.task-card.is-paused .progress-bar-animated {
+	animation: none;
+}

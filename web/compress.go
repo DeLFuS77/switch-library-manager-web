@@ -138,6 +138,10 @@ type CompressPageData struct {
 type compressor struct {
 	mutex  sync.Mutex
 	cancel context.CancelFunc
+	// a pause holds the work where it is until resume is closed; taskId is the task paused
+	paused bool
+	resume chan struct{}
+	taskId int64
 	// the bytes the files being written will still take, for the space checks
 	reserved int64
 	// the compressed copies written since the last scan, which does not know them yet, with
@@ -597,6 +601,9 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	web.compressor.mutex.Unlock()
 
 	taskId := web.taskLog().Start(kind, trigger)
+	web.compressor.mutex.Lock()
+	web.compressor.taskId = taskId
+	web.compressor.mutex.Unlock()
 	// the files left, kept as the task goes, for a restart in the middle of it
 	pending := map[int]bool{}
 	leftResume := func() *TaskResume {
@@ -634,6 +641,11 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 		defer func() {
 			web.compressor.mutex.Lock()
 			web.compressor.cancel = nil
+			if web.compressor.paused {
+				web.compressor.paused = false
+				close(web.compressor.resume)
+				web.taskLog().SetPaused(taskId, false)
+			}
 			web.compressor.mutex.Unlock()
 			cancel()
 		}()
@@ -676,6 +688,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 			go func(worker int) {
 				defer wait.Done()
 				for {
+					web.waitIfPaused(ctx)
 					mutex.Lock()
 					if next >= len(paths) || failure != nil {
 						mutex.Unlock()
@@ -701,6 +714,8 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 							lane.Phase, lane.Step, lane.Steps = phases[index], index+1, len(phases)
 						}
 						return func(fileDone int64, fileTotal int64) {
+							// a pause holds the reading, compressing or checking where it is
+							web.waitIfPaused(ctx)
 							lane.Done = min(step+fileDone, fileSize)
 							mutex.Lock()
 							lanes[worker], partial[worker] = lane, lane.Done
@@ -916,6 +931,41 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 	return nil
 }
 
+// pauseCompression holds the running compression (or decompression, conversion, pack) where
+// it is, in the middle of a file too, or lets it go on; a cancel still stops it while paused.
+func (web *Web) pauseCompression(paused bool) bool {
+	c := &web.compressor
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	if c.cancel == nil || c.paused == paused {
+		return false
+	}
+	c.paused = paused
+	if paused {
+		c.resume = make(chan struct{})
+	} else {
+		close(c.resume)
+	}
+	web.taskLog().SetPaused(c.taskId, paused)
+	return true
+}
+
+// waitIfPaused returns at once, or when the paused task is resumed or cancelled.
+func (web *Web) waitIfPaused(ctx context.Context) {
+	c := &web.compressor
+	c.mutex.Lock()
+	if !c.paused {
+		c.mutex.Unlock()
+		return
+	}
+	resume := c.resume
+	c.mutex.Unlock()
+	select {
+	case <-resume:
+	case <-ctx.Done():
+	}
+}
+
 func (web *Web) cancelCompression() bool {
 	web.compressor.mutex.Lock()
 	defer web.compressor.mutex.Unlock()
@@ -1077,6 +1127,11 @@ func (web *Web) HandleCompress() {
 
 	web.router.HandleFunc("/compress/cancel", func(w http.ResponseWriter, r *http.Request) {
 		web.cancelCompression()
+		w.WriteHeader(http.StatusNoContent)
+	}).Methods("POST")
+
+	web.router.HandleFunc("/compress/pause", func(w http.ResponseWriter, r *http.Request) {
+		web.pauseCompression(r.FormValue("paused") != "false")
 		w.WriteHeader(http.StatusNoContent)
 	}).Methods("POST")
 }

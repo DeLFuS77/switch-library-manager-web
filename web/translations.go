@@ -5,6 +5,9 @@ package web
 var translations = map[string]map[string]string{
 	"es": {
 		// redesigned interface
+		"Pause": "Pausar",
+		"Resume": "Reanudar",
+		"Paused": "En pausa",
 		"Estimated from the files of this kind you compressed before": "Estimado con los archivos de este tipo que ya comprimiste",
 		"Estimated from the files you compressed before:": "Estimado con lo que ya comprimiste:",
 		"About %v could be saved with all of them.": "Con todos ellos se podrían ahorrar unos %v.",

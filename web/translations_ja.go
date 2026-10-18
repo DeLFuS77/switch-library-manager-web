@@ -3,6 +3,9 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		"Pause": "一時停止",
+		"Resume": "再開",
+		"Paused": "一時停止中",
 		"Estimated from the files of this kind you compressed before": "これまでに圧縮した同じ種類のファイルからの推定",
 		"Estimated from the files you compressed before:": "これまでの圧縮からの推定:",
 		"About %v could be saved with all of them.": "すべて圧縮すると約 %v 節約できます。",

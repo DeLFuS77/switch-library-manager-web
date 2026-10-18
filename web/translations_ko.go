@@ -3,6 +3,9 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		"Pause": "일시 정지",
+		"Resume": "재개",
+		"Paused": "일시 정지됨",
 		"Estimated from the files of this kind you compressed before": "이전에 압축한 같은 종류의 파일로 추정",
 		"Estimated from the files you compressed before:": "이전 압축 기준 추정:",
 		"About %v could be saved with all of them.": "모두 압축하면 약 %v를 절약할 수 있습니다.",

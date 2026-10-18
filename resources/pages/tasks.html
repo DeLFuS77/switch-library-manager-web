@@ -12,17 +12,28 @@
 				<section class="mb-4">
 					<h2 class="section-title"><span class="bi bi-activity" aria-hidden="true"></span>{{t "Running"}}</h2>
 					{{- range .Running}}
-					<article class="surface task-card mb-3" data-task-id="{{.Id}}">
+					<article class="surface task-card mb-3{{if .Paused}} is-paused{{end}}" data-task-id="{{.Id}}">
 						<div class="d-flex align-items-center gap-3 mb-3">
 							<span class="stat-icon task-icon"><span class="bi {{template "taskIcon" .Kind}}" aria-hidden="true"></span></span>
 							<div class="flex-grow-1 min-w-0">
 								<h3 class="h6 fw-semibold mb-0">{{template "taskKind" .Kind}}</h3>
 								<div class="small text-body-secondary">{{template "taskTrigger" .Trigger}} &middot; {{t "started %v" (formatDateTime .Started)}}{{if gt .Workers 1}} &middot; <span class="bi bi-diagram-3 me-1" aria-hidden="true"></span>{{t "%v files at once" .Workers}}{{end}}{{if gt .Threads 0}} &middot; <span class="bi bi-cpu me-1" aria-hidden="true"></span>{{t "%v threads" .Threads}}{{end}}</div>
 							</div>
+							{{- if or (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "convert") (eq .Kind "pack")}}
+							{{- if .Paused}}
+							<button type="button" class="btn btn-sm btn-primary rounded-pill admin-only" data-compress-pause="false"><span class="bi bi-play-fill me-1" aria-hidden="true"></span>{{t "Resume"}}</button>
+							{{- else}}
+							<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill admin-only" data-compress-pause="true"><span class="bi bi-pause-fill me-1" aria-hidden="true"></span>{{t "Pause"}}</button>
+							{{- end}}
+							{{- end}}
 							{{- if or (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "convert") (eq .Kind "pack")}}
 							<button type="button" class="btn btn-sm btn-outline-danger rounded-pill admin-only" data-compress-cancel><span class="bi bi-x-circle me-1" aria-hidden="true"></span>{{t "Cancel"}}</button>
 							{{- end}}
+							{{- if .Paused}}
+							<span class="chip chip-warning flex-shrink-0"><span class="bi bi-pause-circle" aria-hidden="true"></span>{{t "Paused"}}</span>
+							{{- else}}
 							<span class="spinner-border spinner-border-sm text-primary flex-shrink-0" aria-hidden="true"></span>
+							{{- end}}
 						</div>
 						{{- $pct := .Percent}}
 						{{- if or .Lanes .FileCount}}<div class="d-flex justify-content-between gap-2 small fw-semibold mb-1"><span>{{t "Total"}}</span>{{if .FileCount}}<span class="text-body-secondary text-nowrap task-file-count">{{t "%v of %v files" (num .FileNumber) (num .FileCount)}}</span>{{end}}</div>{{end}}

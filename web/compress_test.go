@@ -433,3 +433,73 @@ func TestCompressionCountsAsACheck(t *testing.T) {
 		}
 	}
 }
+
+// A pause holds a compression in the middle of a file until it is resumed, and a cancel still
+// stops it while paused.
+func TestCompressionPause(t *testing.T) {
+	web, path := compressWeb(t)
+	reached := make(chan int64, 10)
+	// the job waits at the gate after its first report, so the pause comes before the next one
+	gate := make(chan struct{})
+	started := web.runFileTask(TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		progress := report(0)
+		for done := int64(1); done <= 3; done++ {
+			progress(done, 3)
+			reached <- done
+			if done == 1 {
+				<-gate
+			}
+		}
+		return 0, ctx.Err()
+	})
+	if !started {
+		t.Fatal("the compression must start")
+	}
+	// the first report goes through before the pause
+	<-reached
+	if !web.pauseCompression(true) {
+		t.Fatal("a running compression can be paused")
+	}
+	if web.pauseCompression(true) {
+		t.Fatal("a paused compression is not paused twice")
+	}
+	close(gate)
+	paused := false
+	for _, task := range web.taskLog().Snapshot() {
+		if task.Running() && task.Paused {
+			paused = true
+		}
+	}
+	if !paused {
+		t.Fatal("the task says it is paused")
+	}
+	select {
+	case done := <-reached:
+		t.Fatalf("the work went on while paused: %d", done)
+	case <-time.After(300 * time.Millisecond):
+	}
+	web.pauseCompression(false)
+	select {
+	case <-reached:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the work goes on once resumed")
+	}
+	<-reached
+	waitForCompression(t, web)
+
+	// cancelled while paused: the work ends
+	web.runFileTask(TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		progress := report(0)
+		reached <- 0
+		progress(1, 2)
+		return 0, ctx.Err()
+	})
+	<-reached
+	web.pauseCompression(true)
+	web.cancelCompression()
+	waitForCompression(t, web)
+	task := waitForTask(t, web, TASK_COMPRESS)
+	if task.Paused {
+		t.Fatal("a task that ended is no longer paused")
+	}
+}
