@@ -351,7 +351,7 @@ type LibraryFacets struct {
 	Unknown   int
 	Recent    int
 	Favorites int
-	// games not in the library, shown with "missing=1"
+	// games not in the library, shown in the All view
 	Missing int
 	// genres and languages of the games, the most frequent first, and the games by players
 	Genres       []NamedCount

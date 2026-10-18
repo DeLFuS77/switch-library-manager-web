@@ -42,8 +42,10 @@ func newTestWeb(t *testing.T) *Web {
 	return web
 }
 
+// defaultFilter is the Library without filters in its My games view: the games of the library
+// only (All, the view by default, adds the missing ones)
 func defaultFilter() *TitleItemFilter {
-	f := &TitleItemFilter{}
+	f := &TitleItemFilter{WithMissing: "0"}
 	f.Normalize()
 	return f
 }
@@ -854,9 +856,7 @@ func TestStatistics(t *testing.T) {
 	if stats.GamesWithUpdate != 1 || stats.GamesUpToDate != 0 || stats.GamesUpToDatePct != 0 || stats.UpdatesPending != 1 || stats.DlcWithUpdate != 0 {
 		t.Fatalf("unexpected update status: %+v", stats)
 	}
-	filter := &TitleItemFilter{}
-	filter.Normalize()
-	_, _, facets := web.getLibraryWithFacets(filter, "en")
+	_, _, facets := web.getLibraryWithFacets(defaultFilter(), "en")
 	if facets.All != stats.Games || facets.Update != stats.GamesWithUpdate || facets.Complete != stats.GamesUpToDate {
 		t.Fatalf("the statistics count as the library: %+v %+v", facets, stats)
 	}

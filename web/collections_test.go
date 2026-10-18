@@ -92,13 +92,22 @@ func TestFavorites(t *testing.T) {
 		t.Fatal("invalid IDs are refused")
 	}
 
-	// the missing games show with the others when asked
-	filter = defaultFilter()
-	filter.WithMissing = "1"
-	items, _, facets = web.getLibraryWithFacets(filter, "en")
-	if facets.Missing != 1 || len(items) != 3 {
-		t.Fatalf("one missing game with the two of the library: %+v", facets)
+	// All, the view by default, shows the missing games with the others; so does the "1" of the
+	// links of before, and "0" (My games) does not
+	for _, view := range []string{"", "1", "0"} {
+		filter = &TitleItemFilter{WithMissing: view}
+		filter.Normalize()
+		items, _, facets = web.getLibraryWithFacets(filter, "en")
+		if view == "0" {
+			if filter.ShowsMissing() || len(items) != 2 {
+				t.Fatalf("My games shows the two of the library only: %+v", items)
+			}
+		} else if !filter.ShowsMissing() || facets.Missing != 1 || len(items) != 3 {
+			t.Fatalf("view %q: one missing game with the two of the library: %+v", view, facets)
+		}
 	}
+	filter = &TitleItemFilter{}
+	filter.Normalize()
 	filter.Status = STATUS_UPDATE
 	if items, _, _ := web.getLibraryWithFacets(filter, "en"); len(items) != 1 || items[0].Missing {
 		t.Fatalf("missing games have no status: %+v", items)

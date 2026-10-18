@@ -123,7 +123,7 @@ func (web *Web) HandleIndex() {
 				Filter: filter,
 				Pagination: p,
 				Recommendations: recommendations,
-				Views: web.libraryViews(map[bool]string{true: "all", false: "mine"}[filter.WithMissing != ""], lang),
+				Views: web.libraryViews(map[bool]string{true: "all", false: "mine"}[filter.ShowsMissing()], lang),
 			},
 			Facets: facets,
 			Setup: web.setupStatus(),
@@ -140,7 +140,7 @@ func (web *Web) getLibrary(filter *TitleItemFilter, lang string) ([]TitleItem, p
 
 func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination, LibraryFacets) {
 	all := web.sorted("library:"+lang, filter, func() []TitleItem { return web.buildLibrary(lang) })
-	if filter.WithMissing != "" {
+	if filter.ShowsMissing() {
 		all = web.sorted("library+missing:"+lang, filter, func() []TitleItem { return web.buildLibraryWithMissing(lang) })
 	}
 

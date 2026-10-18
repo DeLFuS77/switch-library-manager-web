@@ -147,7 +147,7 @@ func TestRegionCopyNeedsAnotherRegionAndKeepsSharedFiles(t *testing.T) {
 // copy suggested to keep, with the other region told on its card; off, both count.
 func TestCountRegionsOnce(t *testing.T) {
 	web, _ := regionTestWeb(t)
-	filter := &TitleItemFilter{}
+	filter := &TitleItemFilter{WithMissing: "0"}
 	filter.Normalize()
 	_, _, before := web.getLibraryWithFacets(filter, "en")
 
