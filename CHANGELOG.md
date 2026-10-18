@@ -10,6 +10,9 @@
   that cannot be read stay listed, with what may be wrong and the advice to check them before deleting them.
 - Issues: each file shows its size, and the files that could not be read say why in plain words ("Cut short", "Its
   contents cannot be decrypted"), with the error of the reader below for whoever wants the detail.
+- The turning fan of the Tasks link, its ring and its glow are violet on every page, not only on Tasks, and a lighter
+  violet on the dark theme, where the one of before could hardly be seen; the header and the empty page of the tools
+  wear that lighter violet too.
 
 ### Changes
 
