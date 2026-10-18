@@ -65,6 +65,7 @@
 							{{- $discover := or (eq .Page "upcoming") (eq .Page "sagas") (eq .Page "statistics")}}
 							<li class="nav-item dropdown d-none d-xxl-block">
 								<button class="btn btn-link nav-link dropdown-toggle{{if $discover}} active{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="discoverMenu">
+									{{- if $discover}}<span class="nav-indicator" aria-hidden="true"></span>{{end}}
 									<span class="bi bi-compass" aria-hidden="true"></span><span class="nav-label">{{t "Discover"}}</span>
 								</button>
 								<ul class="dropdown-menu nav-menu" aria-labelledby="discoverMenu">
@@ -75,6 +76,7 @@
 							{{- $tools := or (eq .Page "maintenance") (eq .Page "organize") (eq .Page "compress") (eq .Page "space") (eq .Page "sd") (eq .Page "saves")}}
 							<li class="nav-item dropdown d-none d-xxl-block">
 								<button class="btn btn-link nav-link dropdown-toggle{{if $tools}} active{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="toolsMenu">
+									{{- if $tools}}<span class="nav-indicator" aria-hidden="true"></span>{{end}}
 									<span class="bi bi-tools" aria-hidden="true"></span><span class="nav-label">{{t "Tools"}}</span>{{if .Counts.TuneUp}}<span class="nav-dot" title="{{t "A step of the tune-up is waiting"}}"><span class="visually-hidden">{{t "A step of the tune-up is waiting"}}</span></span>{{end}}
 								</button>
 								<ul class="dropdown-menu nav-menu" aria-labelledby="toolsMenu">
@@ -230,7 +232,7 @@
 {{define "navLink"}}
 							<li class="nav-item">
 								<a class="nav-link{{if eq .Page .Id}} active{{end}}" href="{{.Href}}" title="{{.Label}}"{{if eq .Page .Id}} aria-current="page"{{end}}>
-									<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{if .Dot}}<span class="nav-dot" aria-hidden="true"></span>{{end}}{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}} ms-auto ms-xxl-0">{{num .Count}}</span>{{end}}
+									{{if eq .Page .Id}}<span class="nav-indicator" aria-hidden="true"></span>{{end}}<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{if .Dot}}<span class="nav-dot" aria-hidden="true"></span>{{end}}{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}} ms-auto ms-xxl-0">{{num .Count}}</span>{{end}}
 								</a>
 							</li>
 {{- end}}

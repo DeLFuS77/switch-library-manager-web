@@ -16,6 +16,9 @@
 - Compressing, decompressing, converting and checking files go through them by name instead of the biggest first, so
   the count of files moves from the start instead of waiting for the largest games. The check still starts with the
   files never checked or checked longest ago, and a task resumed after a restart keeps its order.
+- The mark of the page in the menu glides from the link of the page before to the new one, like the cursor of a
+  console menu, and so does the red of the view of the Library (All, My games, Missing ones); with less motion asked
+  by the system they just change.
 
 ### Changes
 

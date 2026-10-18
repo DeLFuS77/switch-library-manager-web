@@ -316,18 +316,33 @@ h3,
 
 	&.active {
 		color: var(--bs-body-color);
-		background: var(--slm-accent-soft);
-		box-shadow: inset 0 -2px 0 $primary;
 	}
+}
+
+// the mark of the page shown: a piece of its own, so that between two pages it glides from the
+// link of the page before to the new one (see the view transition below)
+.app-nav .nav-link {
+	position: relative;
+	isolation: isolate;
+}
+
+.nav-indicator {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	background: var(--slm-accent-soft);
+	box-shadow: inset 0 -2px 0 $primary;
+	pointer-events: none;
 }
 
 @include media-breakpoint-down(xxl) {
 	.app-nav .nav-link {
 		padding: .7rem .9rem;
+	}
 
-		&.active {
-			box-shadow: inset 3px 0 0 $primary;
-		}
+	.nav-indicator {
+		box-shadow: inset 3px 0 0 $primary;
 	}
 }
 
@@ -3006,6 +3021,37 @@ $avatar-colors: (
 
 .app-header {
 	view-transition-name: app-header;
+}
+
+// the mark of the page in the menu and the one of the view of the Library glide from where they
+// were to where they are now, like the cursor of a console; with less motion they just change
+@media (prefers-reduced-motion: no-preference) {
+	.nav-indicator {
+		view-transition-name: nav-indicator;
+	}
+
+	.view-indicator {
+		view-transition-name: view-indicator;
+	}
+
+	::view-transition-group(nav-indicator),
+	::view-transition-group(view-indicator) {
+		animation-duration: .32s;
+		animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+	}
+
+	// the same piece before and after: it moves and stretches, without fading through itself
+	::view-transition-old(nav-indicator),
+	::view-transition-old(view-indicator) {
+		display: none;
+	}
+
+	::view-transition-new(nav-indicator),
+	::view-transition-new(view-indicator) {
+		animation: none;
+		width: 100%;
+		height: 100%;
+	}
 }
 
 ::view-transition-old(root) {
@@ -7294,6 +7340,26 @@ html {
 		color: #fff;
 		background: $slm-red;
 	}
+}
+
+// while the page changes the red is only the gliding piece, which then stays under the view
+:root:active-view-transition .library-view.active {
+	background: transparent;
+}
+
+// the red of the view shown, a piece of its own that glides between the views
+.library-view {
+	position: relative;
+	isolation: isolate;
+}
+
+.view-indicator {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	border-radius: inherit;
+	background: $slm-red;
+	pointer-events: none;
 }
 
 .library-view-count {
