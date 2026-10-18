@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"sort"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -530,7 +531,14 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 			}
 		}
 		web.taskLog().SetBreakdown(taskId, breakdown)
-		sort.SliceStable(files, func(i, j int) bool { return files[i].checked.Before(files[j].checked) })
+		// the files never checked or checked longest ago first, and among them by name: the count
+		// moves from the start, instead of waiting for the biggest files
+		sort.SliceStable(files, func(i, j int) bool {
+			if !files[i].checked.Equal(files[j].checked) {
+				return files[i].checked.Before(files[j].checked)
+			}
+			return strings.ToLower(filepath.Base(files[i].path)) < strings.ToLower(filepath.Base(files[j].path))
+		})
 
 		workers := min(verifyWorkers(settings.ReadSettings(web.dataFolder).VerifySpeed, runtime.NumCPU()), max(len(files), 1))
 		var (

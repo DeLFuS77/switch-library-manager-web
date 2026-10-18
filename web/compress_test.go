@@ -503,3 +503,23 @@ func TestCompressionPause(t *testing.T) {
 		t.Fatal("a task that ended is no longer paused")
 	}
 }
+
+// The files of a compression go by name, not the biggest first, and their sizes follow them.
+func TestSortedByName(t *testing.T) {
+	paths := []string{"/b/Zelda.nsp", "/a/mario.nsp", "/c/Animal.nsp", "/a/Mario.nsp"}
+	sizes := []int64{30, 10, 20, 11}
+	gotPaths, gotSizes := sortedByName(paths, sizes)
+	want := []string{"/c/Animal.nsp", "/a/Mario.nsp", "/a/mario.nsp", "/b/Zelda.nsp"}
+	wantSizes := []int64{20, 11, 10, 30}
+	for i := range want {
+		if gotPaths[i] != want[i] || gotSizes[i] != wantSizes[i] {
+			t.Fatalf("by name: %v %v", gotPaths, gotSizes)
+		}
+	}
+	if paths[0] != "/b/Zelda.nsp" {
+		t.Fatal("the list given is left as it was")
+	}
+	if got, sizes := sortedByName([]string{"b.nsp", "a.nsp"}, nil); got[0] != "a.nsp" || sizes != nil {
+		t.Fatalf("without sizes: %v %v", got, sizes)
+	}
+}

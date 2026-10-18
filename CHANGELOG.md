@@ -13,6 +13,9 @@
 - The turning fan of the Tasks link, its ring and its glow are violet on every page, not only on Tasks, and a lighter
   violet on the dark theme, where the one of before could hardly be seen; the header and the empty page of the tools
   wear that lighter violet too.
+- Compressing, decompressing, converting and checking files go through them by name instead of the biggest first, so
+  the count of files moves from the start instead of waiting for the largest games. The check still starts with the
+  files never checked or checked longest ago, and a task resumed after a restart keeps its order.
 
 ### Changes
 
