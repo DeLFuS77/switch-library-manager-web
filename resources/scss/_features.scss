@@ -633,3 +633,19 @@
 .cheat-update-switch:has(> .form-check-input:not(:checked)) .cheat-update-warning {
 	display: block;
 }
+
+// the bar of the synchronization notice and how far it is, next to it
+.sync-progress-row {
+	display: flex;
+	align-items: center;
+	gap: .6rem;
+}
+
+.sync-percent {
+	min-width: 2.75rem;
+	font-size: var(--slm-text-xs);
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+	text-align: right;
+	color: var(--bs-secondary-color);
+}
