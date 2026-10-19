@@ -1,4 +1,50 @@
 {
+  "1.48.2": {
+    "en": [
+      "The cheats are downloaded as soon as the app starts, without waiting for the next synchronization.",
+      "In Tasks, the next file moves up smoothly into the place of the one that ended."
+    ],
+    "es": [
+      "Los trucos se descargan nada más arrancar la app, sin esperar a la próxima sincronización.",
+      "En Tareas, el siguiente archivo sube suavemente al sitio del que terminó."
+    ],
+    "de": [
+      "Die Cheats werden gleich beim Start der App geladen, ohne auf die nächste Synchronisierung zu warten.",
+      "Unter Aufgaben rückt die nächste Datei sanft an die Stelle der fertigen nach."
+    ],
+    "fr": [
+      "Les codes de triche sont téléchargés dès le démarrage de l’app, sans attendre la prochaine synchronisation.",
+      "Dans Tâches, le fichier suivant remonte en douceur à la place de celui qui vient de finir."
+    ],
+    "it": [
+      "I trucchi vengono scaricati appena l’app si avvia, senza aspettare la prossima sincronizzazione.",
+      "In Attività, il file successivo sale dolcemente al posto di quello finito."
+    ],
+    "pt": [
+      "Os truques são descarregados assim que a app arranca, sem esperar pela próxima sincronização.",
+      "Em Tarefas, o ficheiro seguinte sobe suavemente para o lugar do que terminou."
+    ],
+    "nl": [
+      "De cheats worden meteen bij het starten van de app gedownload, zonder op de volgende synchronisatie te wachten.",
+      "Bij Taken schuift het volgende bestand soepel op naar de plek van het bestand dat klaar is."
+    ],
+    "ru": [
+      "Читы загружаются сразу при запуске приложения, не дожидаясь следующей синхронизации.",
+      "В «Задачах» следующий файл плавно поднимается на место завершённого."
+    ],
+    "ja": [
+      "チートはアプリの起動直後にダウンロードされ、次の同期を待つ必要はありません。",
+      "タスクでは、次のファイルが終わったファイルの位置へなめらかに上がります。"
+    ],
+    "ko": [
+      "치트는 다음 동기화를 기다리지 않고 앱이 시작되자마자 다운로드됩니다.",
+      "작업에서 다음 파일이 끝난 파일의 자리로 부드럽게 올라갑니다."
+    ],
+    "zh": [
+      "金手指会在应用启动后立即下载,无需等待下一次同步。",
+      "在任务中,下一个文件会平滑地上移到已完成文件的位置。"
+    ]
+  },
   "1.48.1": {
     "en": [
       "The bar of a task changes colour little by little, from red to green, and every bar is seen reaching its end before it goes.",
