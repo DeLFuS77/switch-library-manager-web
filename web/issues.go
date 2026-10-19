@@ -341,10 +341,18 @@ func (web *Web) buildIssues() []Issue {
 		issues = append(issues, Issue{File: path, Reason: v.ReasonText, Kept: inUse[path]})
 	}
 
-	// files a verification found damaged, while they did not change
-	// only those of the library folders: a folder taken out of the settings is no longer
+	// only the files of the library folders: a folder taken out of the settings is no longer
 	// the library, and its files are not deleted from Issues
 	scanned := web.scannedPaths()
+
+	// games without their title key (see titlekeys.go)
+	for path, rightsId := range web.missingTitleKeys() {
+		if scanned[filepath.Clean(path)] {
+			issues = append(issues, Issue{File: path, Reason: "no title key (rights ID " + rightsId + "): the file has no ticket and title.keys does not list it"})
+		}
+	}
+
+	// files a verification found damaged, while they did not change
 	for path, reason := range web.verifications().damaged() {
 		if scanned[filepath.Clean(path)] {
 			issues = append(issues, Issue{File: path, Reason: reason})
@@ -366,6 +374,8 @@ func issueIcon(reason string) string {
 	switch {
 	case strings.HasPrefix(reason, "duplicate"):
 		return "bi-files text-info"
+	case strings.HasPrefix(reason, "no title key"):
+		return "bi-key text-warning"
 	case strings.HasPrefix(reason, "old "):
 		return "bi-clock-history text-warning"
 	case strings.HasPrefix(reason, "base file is missing"):

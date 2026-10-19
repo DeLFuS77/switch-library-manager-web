@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Games without their title key are found before they are compressed: after a scan the NSP and NSZ files are looked at once (the headers of their contents and their tickets only, again only when a file changes), Issues lists those without a ticket whose key title.keys does not have either, with how to fix it, and Compress and the automations leave them out instead of failing halfway
+
 ## 1.50.1
 
 ### Fixes
