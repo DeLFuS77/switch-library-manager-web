@@ -5,6 +5,7 @@
 ### Fixes
 
 - Settings and Organize saved nothing since 1.49.0: the note of the switch to keep the updates with cheats was taken for the message of the last save, and removing it stopped the save. Saving works again, and the save button goes off once saved
+- The small covers of the files of a task no longer blink each time the bar or the percent are updated
 
 ## 1.49.2
 
