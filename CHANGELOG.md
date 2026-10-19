@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- A game whose NSP has no ticket, and whose title key title.keys does not have, cannot be compressed: the task now says so in your language, with how to fix it, instead of a technical message in English
+
 ## 1.49.3
 
 ### Fixes

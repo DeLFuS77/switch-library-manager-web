@@ -27,6 +27,9 @@ func TestUncompressibleFilesAreRemembered(t *testing.T) {
 }
 
 func TestSparseStorageNote(t *testing.T) {
+	if note := compressNote(TASK_COMPRESS, fmt.Errorf("game.nsp: x.nca: rights ID 01: %w", switchfs.ErrNoTitleKey)); note != NOTE_COMPRESS_NO_KEY {
+		t.Fatalf("a game without its title key is told so: %q", note)
+	}
 	if note := compressNote(TASK_COMPRESS, fmt.Errorf("x: %w", switchfs.ErrSparseStorage)); note != NOTE_COMPRESS_SPARSE {
 		t.Fatalf("note: %q", note)
 	}

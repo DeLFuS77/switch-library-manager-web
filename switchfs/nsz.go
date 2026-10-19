@@ -81,6 +81,10 @@ type CompressResult struct {
 // ErrNotCompressible is returned when no NCA of an NSP can be compressed.
 var ErrNotCompressible = errors.New("nothing in this file can be compressed")
 
+// ErrNoTitleKey is returned for an NSP without a ticket whose title key title.keys does not
+// have either: its contents cannot be decrypted.
+var ErrNoTitleKey = errors.New("the NSP has no ticket and title.keys does not list its title key")
+
 // ErrSparseStorage is ErrNotCompressible for a game in sparse storage: a layout of some recent
 // games whose sections are mapped through a table onto less data than they cover. No
 // compressor reads it yet (nsz neither); the game stays as it is and installs normally.
@@ -435,7 +439,7 @@ func ncaSectionKey(header *ncaHeader, titleKeys map[string][]byte) ([]byte, erro
 			}
 		}
 		if len(encrypted) != 16 {
-			return nil, fmt.Errorf("no title key for rights ID %s: the NSP has no ticket and title.keys does not list it", rightsId)
+			return nil, fmt.Errorf("rights ID %s: %w", rightsId, ErrNoTitleKey)
 		}
 		kekName := "titlekek_" + revision
 		kek, _ := hex.DecodeString(keys.GetKey(kekName))
