@@ -794,6 +794,8 @@ func (web *Web) startInBackground() {
 		web.finishTask(taskId, failure)
 		if failure == nil {
 			web.afterScan()
+			// the cheats are not waited for until the next synchronization, which can be hours away
+			go web.downloadCheats()
 		}
 		// the task the app was stopped in the middle of goes first, before the new files
 		if failure == nil {

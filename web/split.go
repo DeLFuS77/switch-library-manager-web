@@ -85,7 +85,11 @@ func (web *Web) splitCandidates() []CompressCandidate {
 			if isCardDump(path) && len(games[path]) < 2 {
 				continue
 			}
-			candidates = append(candidates, CompressCandidate{Path: path, Name: web.gameName(switchDB, owner[path], path), Kind: "Base", Size: sizes[path], Titles: count})
+			candidate := CompressCandidate{Path: path, Name: web.gameName(switchDB, owner[path], path), Kind: "Base", Size: sizes[path], Titles: count}
+			if isCardDump(path) {
+				candidate.Games = len(games[path])
+			}
+			candidates = append(candidates, candidate)
 		}
 		sort.Slice(candidates, func(i, j int) bool {
 			if candidates[i].Size == candidates[j].Size {

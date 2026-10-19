@@ -255,7 +255,7 @@
 							<input class="form-check-input" type="checkbox" name="path" value="{{$c.Path}}" data-size="{{$c.Size}}" id="{{$.Prefix}}{{$i}}">
 							<label class="item-main" for="{{$.Prefix}}{{$i}}">
 								<span class="item-name d-block">{{$c.Name}}</span>
-								<span class="item-meta">{{if $c.Titles}}<span class="text-nowrap">{{t "%v titles" $c.Titles}}</span> &middot; {{else if $c.Files}}<span class="text-nowrap">{{t "%v files" $c.Files}}</span> &middot; {{end}}<span class="font-monospace text-break" title="{{$c.Path}}">{{fileBase $c.Path}}</span></span>
+								<span class="item-meta">{{if $c.Games}}<span class="text-nowrap">{{t "%v games" $c.Games}}</span> &middot; {{end}}{{if $c.Titles}}<span class="text-nowrap">{{t "%v titles" $c.Titles}}</span> &middot; {{else if $c.Files}}<span class="text-nowrap">{{t "%v files" $c.Files}}</span> &middot; {{end}}<span class="font-monospace text-break" title="{{$c.Path}}">{{fileBase $c.Path}}</span></span>
 							</label>
 							<span class="item-size">{{formatSize $c.Size}}</span>
 						</li>
