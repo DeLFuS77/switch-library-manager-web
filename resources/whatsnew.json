@@ -1,4 +1,50 @@
 {
+  "1.49.3": {
+    "en": [
+      "Settings and Organize save again: since 1.49.0 their changes were not kept. Check the ones you changed since then.",
+      "The small covers of Tasks no longer blink while a task runs."
+    ],
+    "es": [
+      "Ajustes y Organizar vuelven a guardar: desde la 1.49.0 sus cambios no se conservaban. Revisa los que hayas cambiado desde entonces.",
+      "Las carátulas pequeñas de Tareas ya no parpadean mientras una tarea avanza."
+    ],
+    "de": [
+      "Einstellungen und Organisieren speichern wieder: Seit 1.49.0 wurden ihre Änderungen nicht übernommen. Prüfe, was du seitdem geändert hast.",
+      "Die kleinen Cover unter Aufgaben blinken nicht mehr, während eine Aufgabe läuft."
+    ],
+    "fr": [
+      "Les Paramètres et Organiser enregistrent à nouveau : depuis la 1.49.0, leurs changements n’étaient pas gardés. Vérifie ceux que tu as changés depuis.",
+      "Les petites jaquettes de Tâches ne clignotent plus pendant qu’une tâche avance."
+    ],
+    "it": [
+      "Impostazioni e Organizza salvano di nuovo: dalla 1.49.0 le modifiche non venivano tenute. Controlla quelle cambiate da allora.",
+      "Le copertine piccole di Attività non lampeggiano più mentre un’attività avanza."
+    ],
+    "pt": [
+      "As Configurações e Organizar voltam a guardar: desde a 1.49.0 as alterações não eram mantidas. Revê as que mudaste desde então.",
+      "As capas pequenas de Tarefas já não piscam enquanto uma tarefa avança."
+    ],
+    "nl": [
+      "Instellingen en Organiseren slaan weer op: sinds 1.49.0 werden wijzigingen niet bewaard. Controleer wat je sindsdien hebt gewijzigd.",
+      "De kleine covers bij Taken knipperen niet meer terwijl een taak loopt."
+    ],
+    "ru": [
+      "«Настройки» и «Организация» снова сохраняются: с версии 1.49.0 изменения не сохранялись. Проверьте то, что вы меняли с тех пор.",
+      "Маленькие обложки в «Задачах» больше не мигают во время выполнения задачи."
+    ],
+    "ja": [
+      "設定と整理が再び保存されるようになりました。1.49.0 以降の変更は保存されていなかったので、変更した項目を確認してください。",
+      "タスクの小さなカバーが、タスクの進行中に点滅しなくなりました。"
+    ],
+    "ko": [
+      "설정과 정리가 다시 저장됩니다. 1.49.0부터 변경 사항이 저장되지 않았으니 그 이후 바꾼 항목을 확인하세요.",
+      "작업이 진행되는 동안 작업의 작은 표지가 더 이상 깜박이지 않습니다."
+    ],
+    "zh": [
+      "设置和整理恢复保存:自 1.49.0 起其更改未被保存,请检查此后更改过的选项。",
+      "任务中的小封面在任务进行时不再闪烁。"
+    ]
+  },
   "1.49.2": {
     "en": [
       "Cartridges with several games get readable names, also with Japanese games, and the mark of the games with cheats is violet."
