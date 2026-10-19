@@ -36,6 +36,45 @@ type OrganizeForm struct {
 	KeepDuplicate              string `in:"form=keep_duplicate"`
 }
 
+// duplicatesChanging counts the duplicates whose other copy is kept with the choice keep,
+// from the library as it is: with the first one found, the order of the scan decides.
+func (web *Web) duplicatesChanging(keep string) int {
+	_, localDB := web.state.get()
+	if localDB == nil || keep == settings.KEEP_FIRST_FOUND {
+		return 0
+	}
+	files := map[string]db.ExtendedFileInfo{}
+	titles := map[string]int{}
+	add := func(file db.ExtendedFileInfo) {
+		path := filepath.Join(file.BaseFolder, file.FileName)
+		files[path] = file
+		titles[path]++
+	}
+	for _, local := range localDB.TitlesMap {
+		if local.BaseExist {
+			add(local.File.ExtendedInfo)
+		}
+		for _, update := range local.Updates {
+			add(update.ExtendedInfo)
+		}
+		for _, dlc := range local.Dlc {
+			add(dlc.ExtendedInfo)
+		}
+	}
+	count := 0
+	for file, skipped := range localDB.Skipped {
+		if skipped.ReasonCode != db.REASON_DUPLICATE {
+			continue
+		}
+		kept, ok := files[keptBy(skipped.ReasonText)]
+		path := filepath.Join(file.BaseFolder, file.FileName)
+		if ok && db.PreferDuplicate(keep, kept, titles[keptBy(skipped.ReasonText)], file, max(titles[path], 1)) {
+			count++
+		}
+	}
+	return count
+}
+
 func (f *OrganizeForm) toOptions(current settings.OrganizeOptions) settings.OrganizeOptions {
 	current.CreateFolderPerGame = f.CreateFolderPerGame
 	current.FolderNameTemplate = strings.TrimSpace(f.FolderNameTemplate)
@@ -246,8 +285,13 @@ func (web *Web) HandleOrganize() {
 		// the tune-up counts the changes of Organize with the new options
 		web.invalidateDerived()
 		// the scan decides which copy of a duplicate is kept
-		if settings.ReadSettings(web.dataFolder).OrganizeOptions.KeepDuplicate != keptBefore {
+		if keep := settings.ReadSettings(web.dataFolder).OrganizeOptions.KeepDuplicate; keep != keptBefore {
+			changing := web.duplicatesChanging(keep)
 			web.Rescan(TRIGGER_SETTINGS)
+			return SuccessResponse{
+				StrongMessage: translate(lang, "Saved!"),
+				Message:       translatef(lang, "The library is scanned again: %v duplicates keep the other copy now.", changing),
+			}
 		}
 
 		return SuccessResponse{

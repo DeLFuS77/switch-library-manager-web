@@ -323,6 +323,9 @@
 								<span>{{formatSize .Size}}</span>
 								{{- if .RequiredFirmware}}<span title="{{t "Required firmware"}}"><span class="bi bi-cpu me-1" aria-hidden="true"></span>{{.RequiredFirmware}}</span>{{end}}
 							</div>
+							{{- with .GamesInFile}}
+							<div class="item-meta"><span><span class="bi bi-collection me-1" aria-hidden="true"></span>{{t "This file holds %v games: %v" (len .) (join . ", ")}}</span></div>
+							{{- end}}
 						</div>
 						<a class="btn btn-sm btn-outline-secondary" href="{{.DownloadUrl}}" title="{{t "Download %v" .FileName}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download %v" .FileName}}</span></a>
 					</li>

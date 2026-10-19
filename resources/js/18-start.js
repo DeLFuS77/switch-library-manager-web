@@ -268,6 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initMaintenance();
 	initHistoryCharts();
 	initIssueDelete();
+	initIssueKeep();
 	initSearchClear();
 	initCopyButtons();
 	initFullRows();

@@ -6,10 +6,13 @@
 
 - **Split game cards with several games**: an XCI or XCZ that holds a collection of games on one cartridge (like the KEMCO RPG Selection) is listed in Compress > Split multi-title files and splits into one XCI or XCZ per game, with its update and DLC, each named after its own game. The files of each game are copied as they are, under the header of the original card, and every part is checked before the original is deleted. A usual card, with one game and its update, is not listed
 - Organize lets you choose which copy of a duplicate the library keeps: the NSP or NSZ, the XCI or XCZ, or the one the app picks (a file with several titles, which stays anyway, otherwise the smaller file). Changing it scans the library again
+- **Keep this one**: each duplicate in Issues has a button to keep that copy instead of the other one; the choice wins over the one of Organize and the library is scanned again
 
 ### Improvements
 
 - Issues tells, as Space does, when a duplicate or old file also holds the game, its latest update or a DLC that the library keeps (a file with several titles, like a cartridge with a collection of games), so it is not deleted
+- A file that holds several games (a collection on one cartridge, a pack of several games) says which ones, on the game page and in Issues
+- Saving which copy of a duplicate is kept tells how many duplicates keep the other copy now
 
 ## 1.47.0
 

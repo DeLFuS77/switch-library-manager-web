@@ -24,6 +24,10 @@ type Issue struct {
 	// the file also holds content the library keeps (the game, its latest update, a DLC), as a
 	// file with several titles does: it is not deleted as old or duplicate
 	Kept bool
+	// on the shown page only: the games the file holds, when it holds several (a collection on
+	// one cartridge), and whether the copy can be chosen to be kept (a duplicate)
+	GamesInFile []string
+	CanKeep     bool
 }
 
 type IssuesPageData struct {
@@ -97,12 +101,15 @@ func (web *Web) HandleIssues() {
 		}
 		p := pagination.Calculate(filter.Page, filter.PerPage, len(matching))
 		shown := append([]Issue(nil), matching[p.Start:p.End]...)
+		gamesInFiles := web.gamesInFiles()
 		for i := range shown {
 			shown[i].Size = -1
 			if info, err := os.Stat(shown[i].File); err == nil && !info.IsDir() {
 				shown[i].Size = info.Size()
 			}
 			shown[i].Cause = issueCause(shown[i].Reason, lang)
+			shown[i].GamesInFile = gamesInFiles[shown[i].File]
+			shown[i].CanKeep = issueKind(shown[i].Reason) == ISSUE_DUPLICATE
 		}
 		return IssuesPageData{
 			GlobalPageData:   web.globalPageData("issues"),
@@ -146,6 +153,29 @@ func (web *Web) HandleIssues() {
 		writeJSON(w, http.StatusOK, map[string]any{"deleted": deleted, "freed": freed, "failed": len(files) - deleted})
 	}).Methods("POST")
 
+	// keep this copy of a duplicate: the other one becomes the duplicate, and the library is
+	// scanned again
+	web.router.HandleFunc("/issues/keep", func(w http.ResponseWriter, r *http.Request) {
+		lang := web.requestLanguage(r)
+		requested := r.FormValue("path")
+		// the path of the issue the library lists, never the one of the request
+		path, other := "", ""
+		for _, issue := range web.getIssues() {
+			if requested != "" && issue.File == requested && issueKind(issue.Reason) == ISSUE_DUPLICATE {
+				path, other = issue.File, keptBy(issue.Reason)
+			}
+		}
+		if path == "" || other == "" {
+			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
+			return
+		}
+		settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+			s.OrganizeOptions.KeepFiles = keptChoices(s.OrganizeOptions.KeepFiles, path, other)
+		})
+		web.Rescan(TRIGGER_SETTINGS)
+		writeJSON(w, http.StatusAccepted, map[string]any{"kept": path})
+	}).Methods("POST")
+
 	// ignore a type of file: its files are no longer reported, and the library is scanned again
 	web.router.HandleFunc("/issues/ignore-type", func(w http.ResponseWriter, r *http.Request) {
 		extension := strings.ToLower(strings.TrimSpace(r.FormValue("type")))
@@ -167,6 +197,75 @@ func (web *Web) HandleIssues() {
 		web.Rescan(TRIGGER_SETTINGS)
 		writeJSON(w, http.StatusAccepted, map[string]any{"ignored": extension})
 	}).Methods("POST")
+}
+
+// keptChoices are the copies chosen to be kept with path added: the other copy of the same
+// duplicate is no longer chosen, and the files that are gone are left out.
+func keptChoices(choices []string, path string, other string) []string {
+	result := []string{}
+	for _, choice := range choices {
+		if choice == path || filepath.Clean(choice) == filepath.Clean(other) {
+			continue
+		}
+		if _, err := os.Stat(choice); err == nil {
+			result = append(result, choice)
+		}
+	}
+	return append(result, path)
+}
+
+// gamesInFiles are the names of the games of each file that holds several games, by path,
+// sorted: a collection on one cartridge, or a pack of several games.
+func (web *Web) gamesInFiles() map[string][]string {
+	return web.derived("gamesInFiles", func() any {
+		switchDB, localDB := web.state.get()
+		games := map[string]map[string]bool{}
+		if localDB == nil {
+			return map[string][]string{}
+		}
+		for _, local := range localDB.TitlesMap {
+			files := []db.ExtendedFileInfo{}
+			if local.BaseExist {
+				files = append(files, local.File.ExtendedInfo)
+			}
+			for _, update := range local.Updates {
+				files = append(files, update.ExtendedInfo)
+			}
+			for _, dlc := range local.Dlc {
+				files = append(files, dlc.ExtendedInfo)
+			}
+			for _, file := range files {
+				path := filepath.Join(file.BaseFolder, file.FileName)
+				name := web.gameName(switchDB, local, "")
+				if name == "" {
+					name = local.File.ExtendedInfo.FileName
+				}
+				if name == "" {
+					continue
+				}
+				if games[path] == nil {
+					games[path] = map[string]bool{}
+				}
+				games[path][name] = true
+			}
+		}
+		result := map[string][]string{}
+		for path, names := range games {
+			if len(names) > 1 {
+				result[path] = sortedKeysOf(names)
+			}
+		}
+		return result
+	}).(map[string][]string)
+}
+
+func sortedKeysOf(set map[string]bool) []string {
+	keys := make([]string, 0, len(set))
+	for key := range set {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 // getIssues lists the problems of the library, sorted by file. The result is shared, it
