@@ -1,7 +1,7 @@
 # Installing on a NAS
 
 Switch Library Manager Web runs as one container on any NAS with Docker. Below are the steps for Synology and
-Portainer; [Unraid](../../README.md#unraid) has its own template in Community Applications, and on any other system
+Portainer; [Unraid](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Installation#unraid) has its own template in Community Applications, and on any other system
 with Docker Compose the [docker-compose.yml](../../docker-compose.yml) of the repository works as it is.
 
 On every system you need:
