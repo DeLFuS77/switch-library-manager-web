@@ -80,6 +80,7 @@ func init() {
 		"Showing them": "正在显示",
 		"show all":     "显示全部",
 		"Delete them":  "删除",
+		"Delete “%v” (%v)? It cannot be recovered.":                                              "删除“%v”(%v)?删除后无法恢复。",
 		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "删除“%v”中的 %v 个文件(%v)?删除后无法恢复,之后请重新获取。",
 		"Error":                      "错误",
 		"Review":                     "需检查",

@@ -8,6 +8,7 @@
 
 ### Improvements
 
+- Issues: each file that cannot be read, is damaged or cut short has its own Delete button, after a confirmation. The files that cannot be read could not be deleted from the app before
 - A game whose NSP has no ticket, and whose title key title.keys does not have, cannot be compressed: the task now says so in your language, with how to fix it, instead of a technical message in English
 
 ### Development

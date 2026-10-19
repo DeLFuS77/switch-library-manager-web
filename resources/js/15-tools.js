@@ -269,6 +269,21 @@ function initIssueDelete() {
 	}));
 }
 
+// Issues: delete one file, after a confirmation; the library is scanned again
+function initIssueDeleteFile() {
+	document.querySelectorAll('[data-issue-delete-file]').forEach(button => button.addEventListener('click', () => {
+		if (!window.confirm(button.dataset.confirm)) {
+			return;
+		}
+		button.disabled = true;
+		runAsTask(() => postForm('/issues/delete-file', { path: button.dataset.issueDeleteFile }))
+			.catch(error => {
+				button.disabled = false;
+				insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+			});
+	}));
+}
+
 // Issues: keep this copy of a duplicate, the library is scanned again
 function initIssueKeep() {
 	document.querySelectorAll('[data-issue-keep]').forEach(button => button.addEventListener('click', () => {

@@ -82,6 +82,7 @@ var translations = map[string]map[string]string{
 		"Showing them": "Mostrando estos",
 		"show all":     "ver todos",
 		"Delete them":  "Borrarlos",
+		"Delete “%v” (%v)? It cannot be recovered.":                                              "¿Borrar «%v» (%v)? No se puede recuperar.",
 		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "¿Borrar los %v archivos de «%v» (%v)? No se pueden recuperar. Vuelve a conseguirlos después.",
 		"Error":                      "Error",
 		"Review":                     "Revisar",

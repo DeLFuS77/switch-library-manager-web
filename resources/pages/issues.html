@@ -92,6 +92,9 @@
 						</div>
 						{{- with .GamesInFile}}<div class="small text-body-secondary mt-1"><span class="bi bi-collection me-1" aria-hidden="true"></span>{{t "This file holds %v games: %v" (len .) (join . ", ")}}</div>{{end}}
 						{{- if .Kept}}<span class="chip chip-warning mt-1"><span class="bi bi-shield-exclamation" aria-hidden="true"></span>{{t "It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted."}}</span>{{end}}
+						{{- if .CanDelete}}
+						<div class="mt-2 admin-only"><button type="button" class="btn btn-sm btn-outline-danger rounded-pill" data-issue-delete-file="{{.File}}" data-confirm="{{t "Delete “%v” (%v)? It cannot be recovered." (fileBase .File) (formatSize .Size)}}"><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{t "Delete"}}</button></div>
+						{{- end}}
 						{{- if .CanKeep}}
 						<div class="mt-2 admin-only"><button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-issue-keep="{{.File}}" title="{{t "Keep this copy: the other one becomes the duplicate."}}"><span class="bi bi-pin-angle me-1" aria-hidden="true"></span>{{t "Keep this one"}}</button></div>
 						{{- end}}

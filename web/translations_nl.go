@@ -80,6 +80,7 @@ func init() {
 		"Showing them": "Alleen deze",
 		"show all":     "alles tonen",
 		"Delete them":  "Verwijderen",
+		"Delete “%v” (%v)? It cannot be recovered.":                                              "„%v” (%v) verwijderen? Dit kan niet worden hersteld.",
 		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "De %v bestanden van ‘%v’ (%v) verwijderen? Ze kunnen niet worden hersteld. Haal ze daarna opnieuw.",
 		"Error":                      "Fout",
 		"Review":                     "Controleren",

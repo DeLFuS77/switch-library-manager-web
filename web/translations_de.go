@@ -80,6 +80,7 @@ func init() {
 		"Showing them": "Nur diese",
 		"show all":     "alle zeigen",
 		"Delete them":  "Löschen",
+		"Delete “%v” (%v)? It cannot be recovered.":                                              "„%v“ (%v) löschen? Das lässt sich nicht rückgängig machen.",
 		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "Die %v Dateien von „%v“ (%v) löschen? Sie lassen sich nicht wiederherstellen. Besorge sie danach neu.",
 		"Error":                      "Fehler",
 		"Review":                     "Prüfen",
