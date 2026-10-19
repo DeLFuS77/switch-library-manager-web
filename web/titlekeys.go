@@ -114,8 +114,19 @@ func (web *Web) checkTitleKeys() {
 	}
 }
 
-// noteMissingTitleKey keeps a file a compression found without its title key.
-func (web *Web) noteMissingTitleKey(path string) {
+// noteMissingTitleKey keeps a file a compression found without its title key. The file is
+// the one of the library with that path, never a path from elsewhere.
+func (web *Web) noteMissingTitleKey(asked string) {
+	path := ""
+	for _, file := range web.libraryFiles(".nsp", ".nsz") {
+		if file.Path == asked {
+			path = file.Path
+			break
+		}
+	}
+	if path == "" {
+		return
+	}
 	info, err := os.Stat(path)
 	if err != nil {
 		return
