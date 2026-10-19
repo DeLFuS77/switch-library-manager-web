@@ -101,6 +101,8 @@ type Auth struct {
 	remoteWithoutLogin bool
 	// why the password of SLM_AUTH_PASSWORD is weak, or nil
 	envPasswordWeak error
+	// told of each sign-in attempt (user, ip, result, whether the password was long enough)
+	onLogin func(user, ip, result string, longEnough bool)
 }
 
 func newAuth(dataFolder string) (*Auth, error) {
@@ -296,7 +298,7 @@ func isPublicPath(path string) bool {
 }
 
 // pages and actions of administrators; read-only users can only look and download
-var adminOnlyPages = map[string]struct{}{"/settings.html": {}, "/wizard": {}, "/wizard/check": {}, "/saves.html": {}, "/saves/download": {}, "/organize.html": {}, "/users.html": {}, "/compress.html": {}, "/space.html": {}, "/update.html": {}, "/backup/download": {},
+var adminOnlyPages = map[string]struct{}{"/settings.html": {}, "/wizard": {}, "/wizard/check": {}, "/saves.html": {}, "/saves/download": {}, "/organize.html": {}, "/users.html": {}, "/activity.html": {}, "/activity.csv": {}, "/compress.html": {}, "/space.html": {}, "/update.html": {}, "/backup/download": {},
 	"/compress/xci-list": {}, "/compress/nsz-list": {}, "/diagnostics.html": {}, "/maintenance.html": {}}
 
 // downloadPath matches what takes a file of the library out of it: games, updates, DLC, their
@@ -386,6 +388,9 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 				keys := loginKeys(ip, name)
 				retryAfter, delay := a.limiter.check(keys...)
 				if retryAfter > 0 {
+					if _, password, had := r.BasicAuth(); had {
+						a.loginAttempt(name, ip, "blocked", password)
+					}
 					w.Header().Set("Retry-After", strconv.Itoa(int(retryAfter.Seconds())+1))
 					http.Error(w, "too many failed logins, try again later", http.StatusTooManyRequests)
 					return
@@ -398,11 +403,14 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 				if principal == nil {
 					if attempted {
 						a.limiter.fail(keys...)
+						_, password, _ := r.BasicAuth()
+						a.loginAttempt(name, ip, "fail", password)
 					}
 					a.unauthorized(w, r)
 					return
 				}
 				a.limiter.succeed(keys...)
+				a.loginAttempt(principal.Name, ip, "ok", "")
 			}
 		}
 
@@ -413,6 +421,13 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), principalKey{}, principal)))
 	})
+}
+
+// loginAttempt tells the hook of a sign-in attempt, never passing the password itself.
+func (a *Auth) loginAttempt(user, ip, result, password string) {
+	if a.onLogin != nil {
+		a.onLogin(user, ip, result, len(password) >= minPasswordLength)
+	}
 }
 
 // unauthorized sends browsers to the login page and asks other clients for credentials.
