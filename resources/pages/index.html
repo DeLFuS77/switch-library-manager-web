@@ -116,6 +116,20 @@
 				{{- template "filterPanel" (dict "Filter" .Filter "Facets" .Facets "Library" true)}}
 			</div>
 			{{- template "activeFilters" (dict "Filter" .Filter "Library" true)}}
+			{{- if or .SmartCollections .SmartSavable}}
+			<div class="smart-collections d-flex flex-wrap align-items-center gap-2 mb-3" data-smart-collections data-ask-name="{{t "Name of the smart collection"}}" data-ask-delete="{{t "Delete the smart collection “%v”? Its games stay in the library."}}">
+				{{- if .SmartCollections}}<span class="small fw-semibold text-body-secondary me-1"><span class="bi bi-lightning-charge me-1" aria-hidden="true"></span>{{t "Smart collections"}}</span>{{end}}
+				{{- range .SmartCollections}}
+				<span class="smart-collection{{if .Active}} active{{end}}">
+					<a href="{{.Href}}"{{if .Active}} aria-current="page"{{end}}>{{.Name}} <span class="filter-count">{{num .Count}}</span></a>
+					<button type="button" class="btn btn-link btn-sm p-0 admin-only" data-smart-delete="{{.Name}}" aria-label="{{t "Delete"}}: {{.Name}}"><span class="bi bi-x" aria-hidden="true"></span></button>
+				</span>
+				{{- end}}
+				{{- if .SmartSavable}}
+				<button type="button" class="btn btn-sm btn-outline-primary rounded-pill admin-only" data-smart-save><span class="bi bi-lightning-charge me-1" aria-hidden="true"></span>{{t "Save these filters as a smart collection"}}</button>
+				{{- end}}
+			</div>
+			{{- end}}
 			{{- if and (eq .Filter.Extra "cheats") .Facets.Cheats}}
 			<p class="mb-3"><a class="btn btn-sm btn-outline-primary rounded-pill" href="/api/cheats.zip"><span class="bi bi-sd-card me-1" aria-hidden="true"></span>{{t "Download the cheats of your library for the SD card (zip)"}}</a></p>
 			{{- end}}

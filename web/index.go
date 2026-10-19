@@ -125,11 +125,13 @@ func (web *Web) HandleIndex() {
 				Recommendations: recommendations,
 				Views:           web.libraryViews(map[bool]string{true: "all", false: "mine"}[filter.ShowsMissing()], lang),
 			},
-			Facets:        facets,
-			Setup:         web.setupStatus(),
-			Stats:         web.getStatistics(lang),
-			WhatsNew:      web.whatsNew(lang),
-			UploadFolders: web.uploadFolders(),
+			Facets:           facets,
+			Setup:            web.setupStatus(),
+			Stats:            web.getStatistics(lang),
+			WhatsNew:         web.whatsNew(lang),
+			UploadFolders:    web.uploadFolders(),
+			SmartCollections: web.smartCollectionViews(filter, lang),
+			SmartSavable:     filter.Filters(),
 		}
 	}, web.embedFS, fsPatterns...)
 }

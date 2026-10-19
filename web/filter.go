@@ -163,6 +163,12 @@ func (f *TitleItemFilter) Active() bool {
 	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Region != "" || f.Extra != "" || f.Collection != "" || f.Play != ""
 }
 
+// Filters reports whether the Library shows only some of its games: what a smart collection
+// keeps.
+func (f *TitleItemFilter) Filters() bool {
+	return f.Active() || f.Genre != "" || f.Players != "" || f.GameLanguage != ""
+}
+
 // Plain reports whether the first page is shown without any filter (in any view of the Library).
 func (f *TitleItemFilter) Plain() bool {
 	return !f.Active() && f.Genre == "" && f.Players == "" && f.GameLanguage == "" && f.Page <= 1

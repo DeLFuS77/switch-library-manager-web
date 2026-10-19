@@ -344,3 +344,29 @@
 		cursor: pointer;
 	}
 }
+
+// the smart collections of the Library, above the cards
+.smart-collection {
+	display: inline-flex;
+	align-items: center;
+	gap: .15rem;
+	padding: .2rem .35rem .2rem .7rem;
+	border: 1px solid var(--slm-border);
+	border-radius: 999px;
+	font-size: var(--slm-text-sm, .875rem);
+
+	a {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	&.active {
+		border-color: var(--bs-primary);
+		background: rgba(var(--bs-primary-rgb), .15);
+	}
+
+	.btn-link {
+		color: var(--bs-secondary-color);
+		line-height: 1;
+	}
+}
