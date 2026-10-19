@@ -126,6 +126,8 @@ type Web struct {
 	igdbSeries     *igdbCollectionStore
 	seriesFile     seriesFile
 	cheatsFile     cheatsFile
+	// the games being uploaded from the browser (see upload.go)
+	uploads uploadStore
 	// one check of the notifications at a time: two would send the same items
 	notifying sync.Mutex
 	// results of switchfs.HoldsSameContents, see holdsSameContents
@@ -690,6 +692,7 @@ func (web *Web) Start() {
 	web.HandleIssues()
 	web.HandleSettings()
 	web.HandleKeysUpload()
+	web.HandleUploads()
 	web.HandleSynchronize()
 	web.HandleOrganize()
 	web.HandleApi()

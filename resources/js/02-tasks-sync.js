@@ -211,7 +211,8 @@ function finishSync() {
 		syncAlert.remove();
 	}
 
-	if (document.querySelector('form[method="post"]:not([action="/logout"])')) {
+	// nor while games are being uploaded from the page: the reload would stop them
+	if (document.querySelector('form[method="post"]:not([action="/logout"])') || gameUploadsBusy()) {
 		// do not reload pages with forms, it could discard unsaved changes
 		insertAlert(mainContainer(), 'alert-success', 'bi-check-circle-fill', t('Done!'), t('The library has been updated.'));
 	} else {

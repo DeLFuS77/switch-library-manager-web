@@ -1063,7 +1063,7 @@ func (web *Web) cancelCompression() bool {
 // decompression, conversion, pack, organizing, cleanup or the measure of the server. Scans
 // wait for it to end.
 func (web *Web) filesBusy() bool {
-	return web.organizing.Load() || web.measuring.Load() || web.compressionRunning()
+	return web.organizing.Load() || web.measuring.Load() || web.compressionRunning() || web.uploads.writing()
 }
 
 func (web *Web) compressionRunning() bool {

@@ -4,6 +4,7 @@
 
 ### Features
 
+- Upload games from the browser: the Upload games button of the Library, or files dropped on the page, send NSP, NSZ, XCI and XCZ files to the library folder. They go in pieces, so a cut connection goes on where it stopped, also when the same file is chosen again after the page was closed; the free space is checked first, a name already in the folder is refused, and the library is scanned once each file is whole, with the automations as for any new file. Administrators only
 - Notifications for new cheats: when the cheats database gets cheats for the version of a game you have, it is told by Discord, Telegram or the webhook, like new updates and DLC. On by default, with a switch in Settings and in the setup assistant. The games that have cheats already are only recorded the first time, not sent all at once
 
 ### Improvements

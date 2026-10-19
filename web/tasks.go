@@ -29,13 +29,15 @@ const (
 
 // what started a task
 const (
-	TRIGGER_MANUAL     = "manual"
-	TRIGGER_SCHEDULE   = "schedule"
-	TRIGGER_WATCHER    = "watcher"
-	TRIGGER_SETTINGS   = "settings"
-	TRIGGER_STARTUP    = "startup"
-	TRIGGER_ORGANIZE   = "organize"
-	TRIGGER_COMPRESS   = "compress"
+	TRIGGER_MANUAL   = "manual"
+	TRIGGER_SCHEDULE = "schedule"
+	TRIGGER_WATCHER  = "watcher"
+	TRIGGER_SETTINGS = "settings"
+	TRIGGER_STARTUP  = "startup"
+	TRIGGER_ORGANIZE = "organize"
+	TRIGGER_COMPRESS = "compress"
+	// a game uploaded from the browser
+	TRIGGER_UPLOAD     = "upload"
 	TRIGGER_SCAN       = "scan"
 	TRIGGER_AUTOMATION = "automation"
 	// a task on files the app was stopped in the middle of goes on once it is started again
