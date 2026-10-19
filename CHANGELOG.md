@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Uploads show in Tasks, with the file, its progress and its size, so they can be followed from another device; an upload nothing comes to for three minutes ends there with how to go on, and its file is kept for a day to go on where it stopped
+- With several library folders, the Library asks which one to upload to
+
 ## 1.50.1
 
 ### Fixes

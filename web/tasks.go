@@ -109,6 +109,8 @@ type Task struct {
 	Message  string      `json:"message"`
 	// what the message names, when it is "... %v"
 	MessageArg string `json:"messageArg,omitempty"`
+	// the file a task is about, kept once it ended (an upload)
+	Subject string `json:"subject,omitempty"`
 	// the files of a task on files: the one it reached, out of how many
 	FileNumber int        `json:"fileNumber,omitempty"`
 	FileCount  int        `json:"fileCount,omitempty"`
@@ -489,6 +491,13 @@ func (l *TaskLog) SetPaused(id int64, paused bool) {
 			task.PausedFor += time.Since(task.PausedAt)
 			task.PausedAt = time.Time{}
 		}
+	})
+}
+
+// SetSubject sets the file a task is about.
+func (l *TaskLog) SetSubject(id int64, subject string) {
+	l.update(id, false, func(task *Task) {
+		task.Subject = subject
 	})
 }
 

@@ -21,6 +21,16 @@
 			{{- if not .Demo}}
 			<div class="admin-only">
 				<input type="file" id="uploadInput" accept=".nsp,.nsz,.xci,.xcz" multiple hidden>
+				{{- if gt (len .UploadFolders) 1}}
+				<div class="upload-folder mb-3">
+					<label class="form-label small fw-semibold mb-1" for="uploadFolder">{{t "Upload to"}}</label>
+					<select class="form-select form-select-sm" id="uploadFolder">
+						{{- range .UploadFolders}}
+						<option value="{{.}}">{{.}}</option>
+						{{- end}}
+					</select>
+				</div>
+				{{- end}}
 				<section class="upload-panel surface" id="uploadPanel" aria-live="polite" aria-labelledby="uploadPanelTitle" hidden
 					data-waiting="{{t "Waiting"}}" data-starting="{{t "Starting..."}}" data-progress="{{t "%v of %v"}}" data-retrying="{{t "Connection lost, trying again..."}}"
 					data-done="{{t "Uploaded: the library is being scanned"}}" data-failed="{{t "The upload failed. Choose the file again to go on where it stopped."}}"

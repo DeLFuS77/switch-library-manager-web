@@ -41,7 +41,9 @@ function initGameUpload() {
 		cancel.setAttribute('aria-label', text('cancel') + ': ' + file.name);
 		list.appendChild(item);
 		panel.hidden = false;
-		const job = { file, item, cancelled: false, id: null };
+		// the folder chosen when the file was added
+		const folderField = document.getElementById('uploadFolder');
+		const job = { file, item, cancelled: false, id: null, folder: folderField ? folderField.value : '' };
 		cancel.addEventListener('click', () => {
 			job.cancelled = true;
 			if (job.id) {
@@ -103,7 +105,7 @@ function initGameUpload() {
 	const upload = async job => {
 		const started = await fetch('/uploads/start', {
 			method: 'POST',
-			body: new URLSearchParams({ name: job.file.name, size: String(job.file.size) }).toString(),
+			body: new URLSearchParams({ name: job.file.name, size: String(job.file.size), folder: job.folder }).toString(),
 			headers: { 'Content-type': 'application/x-www-form-urlencoded' }
 		}).then(answer);
 		if (!started.ok) {
