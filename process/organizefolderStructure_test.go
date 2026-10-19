@@ -452,3 +452,39 @@ func TestRemoveEmptyFolders(t *testing.T) {
 		t.Error("nothing outside the library is deleted")
 	}
 }
+
+// A cartridge with several games is named after all of them, once, in a folder of its own,
+// and not moved again as the update of one of them.
+func TestOrganizeNamesACartridgeWithSeveralGames(t *testing.T) {
+	baseFolder := t.TempDir()
+	card := writeFixture(t, filepath.Join(baseFolder, "Second", "Updates", "Second [0100000000020800][v65536].xcz"), "card")
+	game := func(id string) *db.SwitchGameFiles {
+		return &db.SwitchGameFiles{BaseExist: true, MultiContent: true, File: db.SwitchFileInfo{ExtendedInfo: card, Metadata: metadataForID(id, 0)},
+			Updates: map[int]db.SwitchFileInfo{65536: {ExtendedInfo: card, Metadata: metadataForID(id[:13]+"800", 65536)}}, Dlc: map[string]db.SwitchFileInfo{}}
+	}
+	local := &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{
+		"0100000000010": game("0100000000010000"),
+		"0100000000020": game("0100000000020000"),
+	}}
+	remote := &db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{
+		"0100000000010": {Attributes: db.TitleAttributes{Id: "0100000000010000", Name: "First Game"}},
+		"0100000000020": {Attributes: db.TitleAttributes{Id: "0100000000020000", Name: "Second Game"}},
+	}}
+	result, err := OrganizeByFolders(baseFolder, local, remote, organizeOptions(), false, nil)
+	if err != nil || len(failedOps(result)) != 0 {
+		t.Fatalf("organize: %v %+v", err, failedOps(result))
+	}
+	if countKind(result, OP_MOVE) != 1 {
+		t.Fatalf("the card is moved once: %+v", result)
+	}
+	assertExists(t, filepath.Join(baseFolder, "First Game + Second Game", "First Game + Second Game [0100000000010000][2 games].xcz"), true)
+	assertExists(t, filepath.Join(card.BaseFolder, card.FileName), false)
+
+	if got := collectionName([]string{"Alphadia Genesis 2", "Asdivine Cross", "Chroma Quaternion", "Ruinverse"}); got != "Alphadia Genesis 2 + Asdivine Cross + Chroma Quaternion + Ruinverse" {
+		t.Fatalf("four short names fit: %s", got)
+	}
+	long := []string{strings.Repeat("A", 40), strings.Repeat("B", 40), strings.Repeat("C", 40), strings.Repeat("D", 40)}
+	if got := collectionName(long); got != long[0]+" + "+long[1]+" + 2 more" {
+		t.Fatalf("long names: %s", got)
+	}
+}
