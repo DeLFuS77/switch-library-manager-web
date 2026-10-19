@@ -279,3 +279,24 @@ func TestFormatChange(t *testing.T) {
 		}
 	}
 }
+
+// The Tasks link counts the tasks running, in violet, apart from the failed ones, in red.
+func TestNavShowsRunningAndFailedTasks(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleTasks()
+	web.taskLog().Finish(web.taskLog().Start(TASK_SCAN, TRIGGER_MANUAL), &TaskNote{Text: NOTE_SCAN_FAILED})
+	web.taskLog().Start(TASK_VERIFY, TRIGGER_MANUAL)
+	web.taskLog().Start(TASK_COMPRESS, TRIGGER_MANUAL)
+
+	page := httptest.NewRecorder()
+	request := httptest.NewRequest("GET", "/tasks.html", nil)
+	request.Header.Set("Accept-Language", "es")
+	web.router.ServeHTTP(page, request)
+	body := page.Body.String()
+	for _, want := range []string{"nav-running", ">2<span class=\"visually-hidden\"> Tareas en marcha: 2</span>", ">1<span class=\"visually-hidden\"> Tareas fallidas: 1</span>"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("the menu shows %q", want)
+		}
+	}
+}

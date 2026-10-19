@@ -129,7 +129,7 @@
 .issue-summary {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr));
-	align-items: start;
+	align-items: stretch;
 	gap: .9rem;
 }
 
@@ -248,8 +248,14 @@
 	> a {
 		flex: 1 1 10rem;
 		min-width: 0;
+		color: var(--bs-body-color);
 		font-weight: 600;
 		text-decoration: none;
+
+		&:hover {
+			color: var(--bs-emphasis-color);
+			text-decoration: underline;
+		}
 	}
 }
 
@@ -653,5 +659,20 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	padding: .2em .5em;
 	font-size: var(--slm-text-xs);
 	line-height: 1.2;
+}
+
+// the tasks running, in the violet of the tools (the red count next to it is the failed ones)
+.nav-running {
+	background: $slm-violet-deep;
+	color: #fff;
+
+	[data-bs-theme="dark"] & {
+		background: $slm-violet-light;
+		color: $slm-ink;
+	}
+
+	+ .nav-count {
+		margin-left: .25rem;
+	}
 }
 

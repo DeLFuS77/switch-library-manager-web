@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	initFlashMessages();
 	initSaveWhenChanged();
+	initKeysUpload();
 	initOrganize();
 	initIgnoreButtons();
 	initLibraryBulk();
@@ -254,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 	initCountUp();
 	initCoverLoading();
+	initPauseOffscreen();
 	initCardTilt();
 	initSettingsSections();
 	initCoverTransition();

@@ -11,13 +11,13 @@ import (
 )
 
 type TitleItemFilter struct {
-	Keyword   string `in:"form=q"`
-	PerPage   int    `in:"form=per_page;default=24"`
+	Keyword string `in:"form=q"`
+	PerPage int    `in:"form=per_page;default=24"`
 	// the per page chosen, before PerPage was rounded to whole rows of cards (see FitColumns)
 	ChosenPerPage int
-	SortBy    string `in:"form=sort_by;default=name"`
-	SortOrder string `in:"form=sort_order;default=asc"`
-	Page      int    `in:"form=page;default=1"`
+	SortBy        string `in:"form=sort_by;default=name"`
+	SortOrder     string `in:"form=sort_order;default=asc"`
+	Page          int    `in:"form=page;default=1"`
 	// library only: status of the games and file format
 	Status string `in:"form=status"`
 	Format string `in:"form=format"`
@@ -50,10 +50,10 @@ const (
 
 // library kind and extra filters
 const (
-	KIND_GAME      = "game"
-	KIND_DEMO      = "demo"
-	EXTRA_NO_COVER = "no_cover"
-	EXTRA_UNKNOWN  = "unknown"
+	KIND_GAME       = "game"
+	KIND_DEMO       = "demo"
+	EXTRA_NO_COVER  = "no_cover"
+	EXTRA_UNKNOWN   = "unknown"
 	EXTRA_RECENT    = "recent"
 	EXTRA_FAVORITES = "favorites"
 )
@@ -240,15 +240,15 @@ func (f *TitleItemFilter) Matches(id string, names ...string) bool {
 	return false
 }
 
-type TitleItemById               []TitleItem
+type TitleItemById []TitleItem
 type TitleItemByLatestUpdateDate []TitleItem
-type TitleItemByMissingLen       []TitleItem
-type TitleItemByName             []TitleItem
-type TitleItemByRegion           []TitleItem
-type TitleItemByReleaseDate      []TitleItem
-type TitleItemByType             []TitleItem
-type TitleItemByFavorite         []TitleItem
-type TitleItemBySize             []TitleItem
+type TitleItemByMissingLen []TitleItem
+type TitleItemByName []TitleItem
+type TitleItemByRegion []TitleItem
+type TitleItemByReleaseDate []TitleItem
+type TitleItemByType []TitleItem
+type TitleItemByFavorite []TitleItem
+type TitleItemBySize []TitleItem
 
 func (a TitleItemByFavorite) Len() int      { return len(a) }
 func (a TitleItemByFavorite) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
@@ -259,7 +259,7 @@ func (a TitleItemByFavorite) Less(i, j int) bool {
 	return lessName(a[i], a[j])
 }
 
-type TitleItemByAdded            []TitleItem
+type TitleItemByAdded []TitleItem
 
 // TitleItemByDuration sorts by the time to beat; games without one go last, whatever the order.
 type TitleItemByDuration []TitleItem
@@ -291,14 +291,14 @@ func (a TitleItemByAdded) Less(i, j int) bool {
 	return a[i].Added.Before(a[j].Added)
 }
 
-func (a TitleItemById) Len() int           { return len(a) }
-func (a TitleItemById) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a TitleItemById) Len() int      { return len(a) }
+func (a TitleItemById) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a TitleItemById) Less(i, j int) bool {
 	return a[i].Id < a[j].Id
 }
 
-func (a TitleItemByLatestUpdateDate) Len() int           { return len(a) }
-func (a TitleItemByLatestUpdateDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a TitleItemByLatestUpdateDate) Len() int      { return len(a) }
+func (a TitleItemByLatestUpdateDate) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a TitleItemByLatestUpdateDate) Less(i, j int) bool {
 	if a[i].LatestUpdateDate == a[j].LatestUpdateDate {
 		return lessName(a[i], a[j])
@@ -307,8 +307,8 @@ func (a TitleItemByLatestUpdateDate) Less(i, j int) bool {
 	return a[i].LatestUpdateDate.Before(a[j].LatestUpdateDate)
 }
 
-func (a TitleItemByMissingLen) Len() int           { return len(a) }
-func (a TitleItemByMissingLen) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a TitleItemByMissingLen) Len() int      { return len(a) }
+func (a TitleItemByMissingLen) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a TitleItemByMissingLen) Less(i, j int) bool {
 	if len(a[i].MissingDLC) == len(a[j].MissingDLC) {
 		return lessName(a[i], a[j])
@@ -317,8 +317,8 @@ func (a TitleItemByMissingLen) Less(i, j int) bool {
 	return len(a[i].MissingDLC) < len(a[j].MissingDLC)
 }
 
-func (a TitleItemByName) Len() int           { return len(a) }
-func (a TitleItemByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a TitleItemByName) Len() int      { return len(a) }
+func (a TitleItemByName) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a TitleItemByName) Less(i, j int) bool {
 	return lessName(a[i], a[j])
 }
@@ -344,8 +344,8 @@ func lessName(a, b TitleItem) bool {
 	return nameA < nameB
 }
 
-func (a TitleItemByRegion) Len() int           { return len(a) }
-func (a TitleItemByRegion) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a TitleItemByRegion) Len() int      { return len(a) }
+func (a TitleItemByRegion) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a TitleItemByRegion) Less(i, j int) bool {
 	if a[i].Region == a[j].Region {
 		return lessName(a[i], a[j])
@@ -354,8 +354,8 @@ func (a TitleItemByRegion) Less(i, j int) bool {
 	return a[i].Region < a[j].Region
 }
 
-func (a TitleItemByReleaseDate) Len() int           { return len(a) }
-func (a TitleItemByReleaseDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a TitleItemByReleaseDate) Len() int      { return len(a) }
+func (a TitleItemByReleaseDate) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a TitleItemByReleaseDate) Less(i, j int) bool {
 	if a[i].ReleaseDate == a[j].ReleaseDate {
 		return lessName(a[i], a[j])
@@ -364,8 +364,8 @@ func (a TitleItemByReleaseDate) Less(i, j int) bool {
 	return a[i].ReleaseDate.Before(a[j].ReleaseDate)
 }
 
-func (a TitleItemByType) Len() int           { return len(a) }
-func (a TitleItemByType) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a TitleItemByType) Len() int      { return len(a) }
+func (a TitleItemByType) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a TitleItemByType) Less(i, j int) bool {
 	if a[i].Type == a[j].Type {
 		return lessName(a[i], a[j])
@@ -378,47 +378,47 @@ func sortItems(filter *TitleItemFilter, items []TitleItem) error {
 	var data sort.Interface
 
 	switch filter.SortBy {
-		case "id":
-			data = TitleItemById(items)
-		case "latest_update_date":
-			data = TitleItemByLatestUpdateDate(items)
-		case "missing":
-			data = TitleItemByMissingLen(items)
-		case "name":
-			data = TitleItemByName(items)
-		case "region":
-			data = TitleItemByRegion(items)
-		case "release_date":
-			data = TitleItemByReleaseDate(items)
-		case "type":
-			data = TitleItemByType(items)
-		case "size":
-			data = TitleItemBySize(items)
-		case "added":
-			data = TitleItemByAdded(items)
-		case "favorite":
-			data = TitleItemByFavorite(items)
-		case "duration":
-			// the games without a time go last in both orders
-			known := items[:0:0]
-			unknown := []TitleItem{}
-			for _, item := range items {
-				if item.TimeToBeat > 0 {
-					known = append(known, item)
-				} else {
-					unknown = append(unknown, item)
-				}
+	case "id":
+		data = TitleItemById(items)
+	case "latest_update_date":
+		data = TitleItemByLatestUpdateDate(items)
+	case "missing":
+		data = TitleItemByMissingLen(items)
+	case "name":
+		data = TitleItemByName(items)
+	case "region":
+		data = TitleItemByRegion(items)
+	case "release_date":
+		data = TitleItemByReleaseDate(items)
+	case "type":
+		data = TitleItemByType(items)
+	case "size":
+		data = TitleItemBySize(items)
+	case "added":
+		data = TitleItemByAdded(items)
+	case "favorite":
+		data = TitleItemByFavorite(items)
+	case "duration":
+		// the games without a time go last in both orders
+		known := items[:0:0]
+		unknown := []TitleItem{}
+		for _, item := range items {
+			if item.TimeToBeat > 0 {
+				known = append(known, item)
+			} else {
+				unknown = append(unknown, item)
 			}
-			var sorter sort.Interface = TitleItemByDuration(known)
-			if filter.SortOrder == "desc" {
-				sorter = sort.Reverse(sorter)
-			}
-			sort.Sort(sorter)
-			sort.Sort(TitleItemByName(unknown))
-			copy(items, append(known, unknown...))
-			return nil
-		default:
-			return errors.New("Unknown value for parameter sort_by")
+		}
+		var sorter sort.Interface = TitleItemByDuration(known)
+		if filter.SortOrder == "desc" {
+			sorter = sort.Reverse(sorter)
+		}
+		sort.Sort(sorter)
+		sort.Sort(TitleItemByName(unknown))
+		copy(items, append(known, unknown...))
+		return nil
+	default:
+		return errors.New("Unknown value for parameter sort_by")
 	}
 
 	if filter.SortOrder == "desc" {

@@ -184,7 +184,17 @@ function setupWizard(element) {
 		if (folders.length === 0) {
 			return Promise.resolve(false);
 		}
-		return Promise.all(folders.map(folder => {
+		// a folder twice or inside another one: told before the folders themselves
+		const repeated = check('folders', folders.join('\n')).then(result => {
+			if (result.ok) {
+				return true;
+			}
+			const line = document.createElement('li');
+			checkLine(line, result);
+			folderResults.prepend(line);
+			return false;
+		}).catch(() => true);
+		return Promise.all([repeated, ...folders.map(folder => {
 			const line = document.createElement('li');
 			line.className = 'wizard-check-line';
 			line.textContent = `${folder} · ${say('checking')}`;
@@ -194,12 +204,17 @@ function setupWizard(element) {
 				line.prepend(Object.assign(document.createElement('code'), { textContent: folder }), document.createTextNode(' '));
 				return result.ok;
 			}).catch(() => false);
-		})).then(results => results.every(Boolean));
+		})]).then(results => results.every(Boolean));
 	};
 	element.querySelector('[data-wizard-check-folders]').addEventListener('click', checkFolders);
 	const keysResult = element.querySelector('[data-wizard-keys-result]');
 	const checkKeys = () => check('keys', form.elements.prod_keys.value).then(result => checkLine(keysResult, result)).catch(() => {});
 	element.querySelector('[data-wizard-check-keys]').addEventListener('click', checkKeys);
+	// keys uploaded from here: the field points to them, and they are checked at once
+	setupKeysUpload(element.querySelector('[data-keys-upload]'), json => {
+		form.elements.prod_keys.value = json.folder || '';
+		checkKeys();
+	});
 
 	// the automations look off while their main switch is off
 	const master = element.querySelector('[data-automation-master]');

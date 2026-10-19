@@ -40,13 +40,13 @@ type ApiDlcItem struct {
 type ApiTitleItem struct {
 	ApiFileInfo
 	ApiSystemInfo
-	BannerUrl     string                `json:"bannerUrl,omitempty"`
-	IconUrl       string                `json:"iconUrl,omitempty"`
-	ThumbnailUrl  string                `json:"thumbnailUrl,omitempty"`
-	LatestUpdate  ApiUpdateItem         `json:"latestUpdate"`
-	Name          map[string]string     `json:"name"`
-	Region        string                `json:"region,omitempty"`
-	Dlc           map[string]ApiDlcItem `json:"dlc,omitempty"`
+	BannerUrl    string                `json:"bannerUrl,omitempty"`
+	IconUrl      string                `json:"iconUrl,omitempty"`
+	ThumbnailUrl string                `json:"thumbnailUrl,omitempty"`
+	LatestUpdate ApiUpdateItem         `json:"latestUpdate"`
+	Name         map[string]string     `json:"name"`
+	Region       string                `json:"region,omitempty"`
+	Dlc          map[string]ApiDlcItem `json:"dlc,omitempty"`
 }
 
 func fileType(fileName string) string {
@@ -68,7 +68,7 @@ func findLocalTitle(localDB *db.LocalSwitchFilesDB, titleId string) *db.SwitchGa
 
 func serveDownload(w http.ResponseWriter, r *http.Request, file db.ExtendedFileInfo) {
 	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Header().Set("Content-Disposition", "attachment; filename=" + strconv.Quote(file.FileName))
+	w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote(file.FileName))
 	http.ServeFile(w, r, filepath.Join(file.BaseFolder, file.FileName))
 }
 
@@ -88,7 +88,7 @@ func (web *Web) HandleApi() {
 					}
 
 					titleId := strings.ToUpper(v.File.Metadata.TitleId)
-					latestUpdate := ApiUpdateItem{ ApiExtendedFileInfo: ApiExtendedFileInfo { Version: v.LatestUpdate } }
+					latestUpdate := ApiUpdateItem{ApiExtendedFileInfo: ApiExtendedFileInfo{Version: v.LatestUpdate}}
 					name := map[string]string{}
 
 					if v.File.Metadata.Ncap != nil {
@@ -118,17 +118,17 @@ func (web *Web) HandleApi() {
 						name["unknown"] = db.ParseTitleNameFromFileName(v.File.ExtendedInfo.FileName)
 					}
 
-					items[titleId] = ApiTitleItem {
-						ApiFileInfo:   ApiFileInfo {
-							DownloadUrl:  "/api/titles/" + titleId,
-							Size:         v.File.ExtendedInfo.Size,
-							Type:         fileType(v.File.ExtendedInfo.FileName),
+					items[titleId] = ApiTitleItem{
+						ApiFileInfo: ApiFileInfo{
+							DownloadUrl: "/api/titles/" + titleId,
+							Size:        v.File.ExtendedInfo.Size,
+							Type:        fileType(v.File.ExtendedInfo.FileName),
 						},
-						ApiSystemInfo: ApiSystemInfo {
-							RequiredSystemVersion:        v.File.Metadata.RequiredTitleVersion,
+						ApiSystemInfo: ApiSystemInfo{
+							RequiredSystemVersion: v.File.Metadata.RequiredTitleVersion,
 						},
-						LatestUpdate:  latestUpdate,
-						Name:          name,
+						LatestUpdate: latestUpdate,
+						Name:         name,
 					}
 
 					if switchTitle != nil {
@@ -161,14 +161,14 @@ func (web *Web) HandleApi() {
 							}
 							dlcTitleId := strings.ToUpper(id)
 
-							item.Dlc[dlcTitleId] = ApiDlcItem {
-								ApiExtendedFileInfo:        ApiExtendedFileInfo {
-									ApiFileInfo:    ApiFileInfo {
+							item.Dlc[dlcTitleId] = ApiDlcItem{
+								ApiExtendedFileInfo: ApiExtendedFileInfo{
+									ApiFileInfo: ApiFileInfo{
 										DownloadUrl: "/api/titles/" + titleId + "/dlc/" + dlcTitleId,
 										Size:        dlc.ExtendedInfo.Size,
 										Type:        fileType(dlc.ExtendedInfo.FileName),
 									},
-									Version:        dlc.Metadata.Version,
+									Version: dlc.Metadata.Version,
 								},
 								RequiredApplicationVersion: dlc.Metadata.RequiredTitleVersion,
 							}

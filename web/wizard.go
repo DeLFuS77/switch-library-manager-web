@@ -151,6 +151,10 @@ func (web *Web) HandleWizard() {
 			result = checkWizardFolder(value, lang)
 		case "keys":
 			result = checkWizardKeys(value, lang)
+		case "folders":
+			// a folder twice, or one inside another: what Settings refuse when saving
+			message := repeatedFolders(SplitAndTrimSpaceArray(value, "\n"), lang)
+			result = WizardCheck{Ok: message == "", Message: message}
 		default:
 			http.Error(w, "unknown check", http.StatusBadRequest)
 			return

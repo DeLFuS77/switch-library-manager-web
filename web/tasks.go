@@ -124,14 +124,14 @@ type Task struct {
 	Breakdown *VerifyBreakdown `json:"breakdown,omitempty"`
 	// work done at the same time: the files being worked on, each with its progress, and
 	// how many workers or threads the task uses
-	Lanes   []TaskLane `json:"lanes,omitempty"`
+	Lanes []TaskLane `json:"lanes,omitempty"`
 	// a running compression held by the user until it is resumed, since when, and how long
 	// it was held before: the speed counts only the time it worked
 	Paused    bool          `json:"paused,omitempty"`
 	PausedAt  time.Time     `json:"pausedAt,omitempty"`
 	PausedFor time.Duration `json:"pausedFor,omitempty"`
-	Workers int        `json:"workers,omitempty"`
-	Threads int        `json:"threads,omitempty"`
+	Workers   int           `json:"workers,omitempty"`
+	Threads   int           `json:"threads,omitempty"`
 }
 
 // TaskLane is a file a running task is working on, with its own progress in bytes.

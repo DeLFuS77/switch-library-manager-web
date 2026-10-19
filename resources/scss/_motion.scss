@@ -243,6 +243,13 @@
 	}
 }
 
+// what is out of the window stands still (see initPauseOffscreen)
+[data-offscreen],
+[data-offscreen]::before,
+[data-offscreen]::after {
+	animation-play-state: paused !important;
+}
+
 @keyframes slm-shimmer {
 	from {
 		background-position: 100% 0;

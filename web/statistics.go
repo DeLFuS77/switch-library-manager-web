@@ -1,12 +1,12 @@
 package web
 
 import (
-	"strconv"
 	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
@@ -28,18 +28,18 @@ type LargestGame struct {
 }
 
 type Statistics struct {
-	Games             int
-	Updates           int
-	Dlc               int
-	TotalSize         int64
-	ByContent         []SizeShare
-	ByFormat          []SizeShare
-	GamesUpToDate     int
-	GamesUpToDatePct  int
-	GamesWithUpdate   int
+	Games            int
+	Updates          int
+	Dlc              int
+	TotalSize        int64
+	ByContent        []SizeShare
+	ByFormat         []SizeShare
+	GamesUpToDate    int
+	GamesUpToDatePct int
+	GamesWithUpdate  int
 	// the updates the Updates page lists: of games, and of DLC
-	UpdatesPending int
-	DlcWithUpdate  int
+	UpdatesPending    int
+	DlcWithUpdate     int
 	MissingDlc        int
 	GamesMissingDlc   int
 	MissingGames      int

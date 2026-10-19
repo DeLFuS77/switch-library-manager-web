@@ -1,11 +1,11 @@
 package web
 
 import (
-	"runtime"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -36,8 +36,8 @@ type SettingsPageData struct {
 }
 
 type SettingsForm struct {
-	Prodkeys          string `in:"form=prod_keys"`
-	ScanFolders       string `in:"form=scan_folders"`
+	Prodkeys             string `in:"form=prod_keys"`
+	ScanFolders          string `in:"form=scan_folders"`
 	IgnoreDLCTitleIds    string `in:"form=ignore_dlc_title_ids"`
 	IgnoreUpdateTitleIds string `in:"form=ignore_update_title_ids"`
 	IgnoreDLCUpdates     bool   `in:"form=ignore_dlc_updates"`
@@ -119,7 +119,7 @@ func toLowerSet(values []string) map[string]struct{} {
 }
 
 func (web *Web) HandleSettings() {
-	fsPatterns := []string {
+	fsPatterns := []string{
 		"resources/layout.html",
 		"resources/pages/settings.html",
 	}
@@ -135,13 +135,13 @@ func (web *Web) HandleSettings() {
 		if strings.TrimSpace(settingsForm.Prodkeys) != "" {
 			keys, err := settings.GetSwitchKeys(settingsForm.Prodkeys)
 			if err != nil {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-					Field: "prod_keys",
+				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+					Field:   "prod_keys",
 					Message: translatef(lang, "Error trying to read Product Keys (%v)", err),
 				})
 			} else if keys["header_key"] == "" {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-					Field: "prod_keys",
+				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+					Field:   "prod_keys",
 					Message: translate(lang, "Please provide a valid Product Keys Path"),
 				})
 			}
@@ -150,15 +150,15 @@ func (web *Web) HandleSettings() {
 		scanFolders := SplitAndTrimSpaceArray(settingsForm.ScanFolders, "\n")
 
 		if len(scanFolders) == 0 {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-				Field: "scan_folders",
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+				Field:   "scan_folders",
 				Message: translate(lang, "Please provide at least one Folder to scan"),
 			})
 		} else {
 			for _, value := range scanFolders {
 				if _, err := os.Stat(value); os.IsNotExist(err) || os.IsPermission(err) {
-					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-						Field: "scan_folders",
+					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+						Field:   "scan_folders",
 						Message: translatef(lang, "Folder not found: %v", value),
 					})
 
@@ -167,8 +167,8 @@ func (web *Web) HandleSettings() {
 			}
 			// a folder twice, or one inside another, would have its files read twice
 			if message := repeatedFolders(scanFolders, lang); message != "" {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-					Field: "scan_folders",
+				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+					Field:   "scan_folders",
 					Message: message,
 				})
 			}
@@ -177,8 +177,8 @@ func (web *Web) HandleSettings() {
 		for field, ids := range map[string]string{"ignore_dlc_title_ids": settingsForm.IgnoreDLCTitleIds, "ignore_update_title_ids": settingsForm.IgnoreUpdateTitleIds} {
 			for _, value := range SplitAndTrimSpaceArray(ids, "\n") {
 				if !titleIdRegex.MatchString(value) {
-					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-						Field: field,
+					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+						Field:   field,
 						Message: translatef(lang, "Invalid Title ID (16 hexadecimal characters): %v", value),
 					})
 
@@ -188,58 +188,58 @@ func (web *Web) HandleSettings() {
 		}
 
 		if _, ok := allowedSyncIntervals[settingsForm.SyncIntervalHours]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-				Field: "sync_interval_hours",
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+				Field:   "sync_interval_hours",
 				Message: translate(lang, "Invalid synchronization interval"),
 			})
 		}
 
 		if firmware := strings.TrimSpace(settingsForm.ConsoleFirmware); firmware != "" {
 			if _, ok := parseFirmware(firmware); !ok {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-					Field: "console_firmware",
+				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+					Field:   "console_firmware",
 					Message: translate(lang, "Write the firmware like 18.1.0"),
 				})
 			}
 		}
 
 		if _, ok := allowedAutoCompress[settingsForm.AutoCompress]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-				Field: "auto_compress",
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+				Field:   "auto_compress",
 				Message: translate(lang, "Unknown option"),
 			})
 		}
 
 		if settingsForm.CompressThreads < 0 || settingsForm.CompressThreads > runtime.NumCPU() {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-				Field: "compress_threads",
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+				Field:   "compress_threads",
 				Message: translate(lang, "Unknown option"),
 			})
 		}
 		if settingsForm.CompressFilesAtOnce < 0 || settingsForm.CompressFilesAtOnce > maxFilesAtOnce {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-				Field: "compress_files_at_once",
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+				Field:   "compress_files_at_once",
 				Message: translate(lang, "Unknown option"),
 			})
 		}
 
 		if _, ok := allowedBackgroundHours[settingsForm.BackgroundHours]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-				Field: "background_hours",
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+				Field:   "background_hours",
 				Message: translate(lang, "Unknown option"),
 			})
 		}
 
 		if _, ok := allowedWatchIntervals[settingsForm.WatchIntervalMinutes]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-				Field: "watch_interval_minutes",
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+				Field:   "watch_interval_minutes",
 				Message: translate(lang, "Unknown option"),
 			})
 		}
 
 		if _, ok := allowedVerifySpeeds[settingsForm.VerifySpeed]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-				Field: "verify_speed",
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+				Field:   "verify_speed",
 				Message: translate(lang, "Unknown option"),
 			})
 		}
@@ -263,8 +263,8 @@ func (web *Web) HandleSettings() {
 		}
 
 		if _, ok := allowedVerifyIntervals[settingsForm.VerifyIntervalDays]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-				Field: "verify_interval_days",
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+				Field:   "verify_interval_days",
 				Message: translate(lang, "Invalid verification interval"),
 			})
 		}
@@ -272,8 +272,8 @@ func (web *Web) HandleSettings() {
 		errorResponse.FieldErrors = append(errorResponse.FieldErrors, validateNotifications(settingsForm.notificationOptions(), lang)...)
 
 		if settingsForm.Language != "" && !isSupportedLanguage(settingsForm.Language) {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError {
-				Field: "language",
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+				Field:   "language",
 				Message: translate(lang, "Unsupported language"),
 			})
 		}
@@ -343,9 +343,9 @@ func (web *Web) HandleSettings() {
 			message = translate(lang, "Settings changed successfully. They will be applied by the next synchronization.")
 		}
 
-		return SuccessResponse {
+		return SuccessResponse{
 			StrongMessage: translate(lang, "Success!"),
-			Message: message,
+			Message:       message,
 		}
 	}, web.embedFS, fsPatterns...)
 }

@@ -4,6 +4,13 @@
 
 ### New
 
+- Settings > Library: your prod.keys (and title.keys, if you have them) can be uploaded from the page, from any
+  computer, instead of copied to the server by hand. The app checks they are keys of a console before keeping them in
+  its data folder, readable by itself only, points the settings to them and scans the library again; their contents
+  are never shown nor written to the log, and backups still leave them out. Only administrators can do it.
+- The setup wizard can upload your keys too, in its step of the keys: the field then points to them and they are
+  checked at once. Its step of the folders warns of a folder listed twice or inside another one when they are checked,
+  instead of only when everything is saved at the end.
 - **Split multi-title files** (asked by switchsv on GBAtemp): Compress has a section that lists the NSP and NSZ files
   holding several titles (a "SuperNSP" with a game, its updates and its DLC, or a complete pack) and turns them back
   into one file per title, in bulk. Each title keeps its own Meta NCA, the NCAs it lists, its ticket and its
@@ -15,8 +22,22 @@
   each one chosen, or of all of them, as one task that shows its progress, can be paused and goes on after a restart,
   like a compression. The pack of a game page is made the same way.
 
+### Improvements
+
+- The endless animations (the shimmer of a cover loading, the drift of the numbers, the pulse of the ribbons, the
+  auras, the cursor of the cards) stand still while they are out of the window, and go on when they come back:
+  nothing changes on screen, and the browser no longer works for what nobody sees, on a phone or a TV above all.
+- Issues: the cards of a row have the same height with their buttons on one line, and the card of the updates and DLC
+  without their game shows the three games with the most files, their names in the colour of the text.
+
 ### Fixes
 
+- The Tasks link of the menu shows how many tasks are running, in violet, next to the red count of the failed ones;
+  with two tasks running it showed only the red 1 of a task that had failed, which looked like a count that did not
+  go up.
+- A compression (or decompression, conversion) resumed after a restart goes through its files by name too, as the new
+  ones do since 1.46.0; it kept the biggest first, so one started before the update still took the largest games
+  first. The file it was writing starts again in any case.
 - Complete packs kept only one of a ticket and its certificate, and left out the XML of each CNMT, as they share the
   ID in their names: every file of the packages is in the pack now, only the NCAs found in two packages go once.
 

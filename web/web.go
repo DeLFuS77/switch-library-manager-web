@@ -671,6 +671,7 @@ func (web *Web) Start() {
 	web.HandleDLC()
 	web.HandleIssues()
 	web.HandleSettings()
+	web.HandleKeysUpload()
 	web.HandleSynchronize()
 	web.HandleOrganize()
 	web.HandleApi()
