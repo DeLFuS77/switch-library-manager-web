@@ -42,16 +42,30 @@ function updateTaskIndicator() {
 				link.classList.toggle('is-working', running > 0);
 				link.classList.toggle('is-measured', percent >= 0);
 				link.style.setProperty('--task-pct', String(Math.max(percent, 0)));
-				let badge = link.querySelector('.nav-count');
-				if (failed > 0) {
-					if (!badge) {
-						badge = document.createElement('span');
-						badge.className = 'badge rounded-pill nav-count text-bg-danger ms-auto ms-xxl-0';
-						link.appendChild(badge);
+				// how many tasks run, in violet, and how many failed, in red
+				const setBadge = (selector, className, count, label, before) => {
+					let badge = link.querySelector(selector);
+					if (count > 0) {
+						if (!badge) {
+							badge = document.createElement('span');
+							badge.className = className;
+							link.insertBefore(badge, before ? link.querySelector('.nav-count') : null);
+						}
+						badge.textContent = String(count);
+						badge.title = label;
+						const hidden = document.createElement('span');
+						hidden.className = 'visually-hidden';
+						hidden.textContent = ' ' + label;
+						badge.appendChild(hidden);
+					} else if (badge) {
+						badge.remove();
 					}
-					badge.textContent = String(failed);
-				} else if (badge) {
-					badge.remove();
+				};
+				setBadge('.nav-running', 'badge rounded-pill nav-count nav-running ms-auto ms-xxl-0', running, t('Tasks running: %v', running), true);
+				setBadge('.nav-count.text-bg-danger', 'badge rounded-pill nav-count text-bg-danger ms-xxl-0', failed, t('Failed tasks: %v', failed), false);
+				const failedBadge = link.querySelector('.nav-count.text-bg-danger');
+				if (failedBadge) {
+					failedBadge.classList.toggle('ms-auto', running === 0);
 				}
 			});
 			return running;

@@ -10,6 +10,12 @@
 - Issues: the cards of a row have the same height with their buttons on one line, and the card of the updates and DLC
   without their game shows the three games with the most files, their names in the colour of the text.
 
+### Fixes
+
+- The Tasks link of the menu shows how many tasks are running, in violet, next to the red count of the failed ones;
+  with two tasks running it showed only the red 1 of a task that had failed, which looked like a count that did not
+  go up.
+
 ## 1.46.0
 
 ### Improvements
