@@ -152,6 +152,9 @@ type Web struct {
 	collectionsOnce sync.Once
 	fav             *favoriteStore
 	favoritesOnce   sync.Once
+	// how the games go for each user (see play.go)
+	playStore *playStore
+	playOnce  sync.Once
 	// the history and the lists prepared after a scan (tests wait for them)
 	afterScanWork sync.WaitGroup
 	// scans and the work after them that are still running, for the tests to wait for them
@@ -249,7 +252,9 @@ type TitleItem struct {
 	Selectable  bool
 	// library: the game is a favorite, or it is not in the library (shown with the others)
 	Favorite bool
-	Missing  bool
+	// how the game goes for the user who looks (set on the shown page only)
+	Play    PlayEntry
+	Missing bool
 	// library: there are cheats for the version of the game the library has, or only for
 	// other versions
 	Cheats      bool
@@ -368,6 +373,8 @@ type LibraryFacets struct {
 	CheatsOther int
 	// games that need a newer firmware than the console has
 	FirmwareTooNew int
+	// the games of the user by how they go, and those without a state ("none")
+	Play map[string]int
 	// games not in the library, shown in the All view
 	Missing int
 	// genres and languages of the games, the most frequent first, and the games by players
@@ -436,6 +443,8 @@ var funcMap = template.FuncMap{
 		return template.URL("?" + values.Encode())
 	},
 	// filterUrl links to the current list with some filter values replaced: filterUrl .Filter "status" "dlc"
+	"playStates":    PlayStates,
+	"playStateName": func(state string) string { return playStateLooks[state].Name },
 	"filterUrl": func(filter *TitleItemFilter, replace ...string) template.URL {
 		return template.URL("?" + filter.query(replace...).Encode())
 	},
@@ -737,6 +746,7 @@ func (web *Web) Start() {
 	web.HandleUpdateGuide()
 	web.HandleWishlist()
 	web.HandleCollections()
+	web.HandlePlay()
 	web.HandleFavorites()
 	if !isDemoMode() {
 		web.StartScheduler()

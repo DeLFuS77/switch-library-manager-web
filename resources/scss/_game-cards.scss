@@ -287,3 +287,60 @@
 	z-index: 2;
 }
 
+
+// how the game goes for the user: a mark on the cover, and the panel of the game page
+.game-cover-meta .badge-play {
+	background: rgba(13, 110, 253, .85);
+
+	&.play-finished,
+	&.play-completed {
+		background: linear-gradient(135deg, #22c55e, #15803d);
+	}
+
+	&.play-abandoned {
+		background: rgba(108, 117, 125, .9);
+	}
+
+	&.play-backlog {
+		background: rgba(245, 158, 11, .9);
+	}
+}
+
+.play-states {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .4rem;
+}
+
+// the stars fill up to the one chosen, and up to the one under the pointer
+.play-stars {
+	display: inline-flex;
+	align-items: center;
+
+	> label:not(.play-stars-clear) {
+		padding: 0 .1rem;
+		font-size: 1.35rem;
+		color: var(--bs-secondary-color);
+		cursor: pointer;
+		opacity: .45;
+	}
+
+	&:has(input[value="1"]:checked) > label[for="rating-1"],
+	&:has(input[value="2"]:checked) > label:is([for="rating-1"], [for="rating-2"]),
+	&:has(input[value="3"]:checked) > label:is([for="rating-1"], [for="rating-2"], [for="rating-3"]),
+	&:has(input[value="4"]:checked) > label:is([for="rating-1"], [for="rating-2"], [for="rating-3"], [for="rating-4"]),
+	&:has(input[value="5"]:checked) > label:not(.play-stars-clear) {
+		color: #f59e0b;
+		opacity: 1;
+	}
+
+	input:focus-visible + label {
+		outline: 2px solid var(--bs-primary);
+		outline-offset: 2px;
+		border-radius: .25rem;
+	}
+
+	.play-stars-clear {
+		cursor: pointer;
+	}
+}

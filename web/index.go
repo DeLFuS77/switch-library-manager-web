@@ -155,6 +155,8 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	genreCounts := map[string]int{}
 	languageCounts := map[string]int{}
 	leftOut, otherRegions := web.regionCopies(lang)
+	plays := web.play().all(filter.player)
+	facets.Play = map[string]int{}
 
 	for index := range all {
 		item := &all[index]
@@ -241,6 +243,20 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 			continue
 		}
 
+		// how the game goes for the user: counted whatever is chosen, then chosen
+		if !item.Missing {
+			state := plays[item.Id].Status
+			if state == "" {
+				state = "none"
+			}
+			facets.Play[state]++
+			if filter.Play != "" && state != filter.Play {
+				continue
+			}
+		} else if filter.Play != "" {
+			continue
+		}
+
 		if item.Missing {
 			// games not in the library have no status: they show with "All" only
 			if filter.Status != "" {
@@ -304,6 +320,7 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	for _, index := range matched[p.Start:p.End] {
 		item := all[index]
 		item.OtherRegions = otherRegions[item.Id]
+		item.Play = plays[item.Id]
 		items = append(items, item)
 	}
 	return items, p, facets

@@ -5,6 +5,7 @@
 ### Features
 
 - Notifications for failed tasks: a compression, a file check, a synchronization or any other task that fails is told by Discord, Telegram or the webhook, with its reason. On by default, with a switch in Settings and in the setup assistant; what you cancel is not told
+- My game: each user keeps how their games go (pending, playing, finished, completed 100% or abandoned), a rating of 1 to 5 stars and a note, on the page of each game; the cards show the state, and the Library filters by it with how many games each state has. Without login it is one for everyone; read-only users keep their own too
 
 ### Improvements
 
