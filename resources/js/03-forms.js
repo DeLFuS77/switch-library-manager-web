@@ -101,10 +101,8 @@ function initSaveWhenChanged() {
 }
 
 function onSubmit(form) {
-	const feedbackAlert = form.querySelector('.alert');
-	if (feedbackAlert) {
-		form.removeChild(feedbackAlert);
-	}
+	// only the messages of an earlier save, never a note that belongs to a field
+	form.querySelectorAll(':scope > .alert[role="alert"]').forEach(alert => alert.remove());
 
 	form.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
 	form.querySelectorAll('.invalid-feedback').forEach(e => e.parentNode.removeChild(e));

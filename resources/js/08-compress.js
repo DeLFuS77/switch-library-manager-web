@@ -194,10 +194,7 @@ function bindFileForm(form, url) {
 
 	form.addEventListener('submit', e => {
 		e.preventDefault();
-		const feedback = form.querySelector('.alert');
-		if (feedback) {
-			feedback.remove();
-		}
+		form.querySelectorAll(':scope > .alert[role="alert"]').forEach(alert => alert.remove());
 		const submit = form.querySelector('[type="submit"]');
 		// deleting asks first, with the number and size of the files
 		if (submit.dataset.confirm) {
