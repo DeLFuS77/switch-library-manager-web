@@ -389,6 +389,8 @@ type LibraryPageData struct {
 	Stats Statistics
 	// what is new, once after an update
 	WhatsNew *WhatsNew
+	// the folders games can be uploaded to
+	UploadFolders []string
 }
 
 var funcMap = template.FuncMap{

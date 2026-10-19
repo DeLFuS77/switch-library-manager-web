@@ -32,6 +32,17 @@ const (
 	uploadSuffix = ".part"
 	// the uploads count as files being written for this long after their last piece
 	uploadWriting = time.Minute
+	// an upload nothing came to for this long ends its task: the page was closed, or lost the
+	// connection. Its file is kept, and the same file chosen again goes on (see uploadIdle)
+	uploadStalled = 3 * time.Minute
+)
+
+const TASK_UPLOAD = "upload"
+
+// notes of the task of an upload, translated by the interface
+const (
+	NOTE_UPLOAD_CANCELED = "The upload was cancelled."
+	NOTE_UPLOAD_STOPPED  = "The upload stopped: the page was closed or lost the connection. Choose the same file again to go on where it stopped."
 )
 
 // the extensions of the games that can be uploaded
@@ -58,12 +69,15 @@ type gameUpload struct {
 	final    string
 	touched  time.Time
 	release  func()
+	// the task that shows it in Tasks, 0 while nothing comes
+	taskId int64
 }
 
 type uploadStore struct {
 	mutex     sync.Mutex
 	items     map[string]*gameUpload
 	lastWrite atomic.Int64
+	watching  sync.Once
 }
 
 // writing tells whether a game is being uploaded: the folders change all the time meanwhile.
@@ -106,16 +120,85 @@ func uploadName(name string) string {
 	return name
 }
 
-// uploadFolder is the folder the games are uploaded to: the library folder of the settings.
-func (web *Web) uploadFolder() string {
-	folder := settings.ReadSettings(web.dataFolder).Folder
-	if folder == "" {
+// uploadFolders are the folders games can be uploaded to: those of the library that exist, the
+// main one first.
+func (web *Web) uploadFolders() []string {
+	folders := []string{}
+	for _, folder := range scanFolders(settings.ReadSettings(web.dataFolder)) {
+		if info, err := os.Stat(folder); err == nil && info.IsDir() {
+			folders = append(folders, folder)
+		}
+	}
+	return folders
+}
+
+// uploadFolder is the folder asked for, when it is one of the library, else the main one; ""
+// when there is none.
+func (web *Web) uploadFolder(asked string) string {
+	folders := web.uploadFolders()
+	for _, folder := range folders {
+		if asked != "" && folder == asked {
+			return folder
+		}
+	}
+	if len(folders) == 0 {
 		return ""
 	}
-	if info, err := os.Stat(folder); err != nil || !info.IsDir() {
-		return ""
+	return folders[0]
+}
+
+// uploadTask starts the task that shows an upload in Tasks, from where it is.
+func (web *Web) uploadTask(upload *gameUpload) {
+	if upload.taskId != 0 {
+		return
 	}
-	return folder
+	upload.taskId = web.taskLog().Start(TASK_UPLOAD, TRIGGER_MANUAL)
+	web.taskLog().SetSubject(upload.taskId, upload.Name)
+	web.taskLog().Progress(upload.taskId, int(upload.Received>>20), int(upload.Size>>20), upload.Name)
+}
+
+// endUploadTask ends the task of an upload, with what happened.
+func (web *Web) endUploadTask(upload *gameUpload, failure *TaskNote) {
+	if upload.taskId == 0 {
+		return
+	}
+	if failure == nil {
+		web.taskLog().Progress(upload.taskId, int(upload.Size>>20), int(upload.Size>>20), upload.Name)
+		web.taskLog().SetCompressResult(upload.taskId, 1, upload.Size)
+	}
+	web.taskLog().Finish(upload.taskId, failure)
+	upload.taskId = 0
+}
+
+// watchUploads ends the tasks of the uploads nothing comes to any more.
+func (web *Web) watchUploads() {
+	store := &web.uploads
+	store.watching.Do(func() {
+		go func() {
+			ticker := time.NewTicker(30 * time.Second)
+			defer ticker.Stop()
+			for range ticker.C {
+				web.endStalledUploads()
+			}
+		}()
+	})
+}
+
+func (web *Web) endStalledUploads() {
+	store := &web.uploads
+	store.mutex.Lock()
+	uploads := make([]*gameUpload, 0, len(store.items))
+	for _, upload := range store.items {
+		uploads = append(uploads, upload)
+	}
+	store.mutex.Unlock()
+	for _, upload := range uploads {
+		upload.mutex.Lock()
+		if upload.taskId != 0 && time.Since(upload.touched) >= uploadStalled {
+			web.endUploadTask(upload, &TaskNote{Text: NOTE_UPLOAD_STOPPED})
+		}
+		upload.mutex.Unlock()
+	}
 }
 
 // forgetIdleUploads gives up the uploads nobody sent anything to for a day, and removes the
@@ -129,6 +212,9 @@ func (web *Web) forgetIdleUploads(folder string) {
 		idle := time.Since(upload.touched) >= uploadIdle
 		upload.mutex.Unlock()
 		if idle {
+			upload.mutex.Lock()
+			web.endUploadTask(upload, &TaskNote{Text: NOTE_UPLOAD_STOPPED})
+			upload.mutex.Unlock()
 			delete(store.items, id)
 			os.Remove(upload.part)
 			if upload.release != nil {
@@ -167,6 +253,7 @@ func uploadStatus(upload *gameUpload) map[string]any {
 }
 
 func (web *Web) HandleUploads() {
+	web.watchUploads()
 	// start an upload, or go on with the one of the same file
 	web.router.HandleFunc("/uploads/start", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
@@ -176,7 +263,7 @@ func (web *Web) HandleUploads() {
 			writeGlobalError(w, http.StatusBadRequest, lang, UPLOAD_BAD_NAME)
 			return
 		}
-		folder := web.uploadFolder()
+		folder := web.uploadFolder(r.FormValue("folder"))
 		if folder == "" {
 			writeGlobalError(w, http.StatusConflict, lang, UPLOAD_NO_DIR)
 			return
@@ -198,6 +285,8 @@ func (web *Web) HandleUploads() {
 			if upload.final == final && upload.Size == size {
 				upload.mutex.Lock()
 				upload.touched = time.Now()
+				// gone on after it stopped: in Tasks again
+				web.uploadTask(upload)
 				status := uploadStatus(upload)
 				upload.mutex.Unlock()
 				writeJSON(w, http.StatusOK, status)
@@ -224,6 +313,7 @@ func (web *Web) HandleUploads() {
 		}
 		file.Close()
 		upload := &gameUpload{Id: id, Name: name, Size: size, part: part, final: final, touched: time.Now(), release: release}
+		web.uploadTask(upload)
 		store.items[id] = upload
 		web.sugarLogger.Infof("[Upload] %s started (%d bytes)", name, size)
 		writeJSON(w, http.StatusOK, uploadStatus(upload))
@@ -274,6 +364,8 @@ func (web *Web) HandleUploads() {
 		upload.Received += written
 		upload.touched = time.Now()
 		web.uploads.lastWrite.Store(time.Now().UnixNano())
+		web.uploadTask(upload)
+		web.taskLog().Progress(upload.taskId, int(upload.Received>>20), int(upload.Size>>20), upload.Name)
 		// what was written of a piece cut short is kept: the next one starts after it
 		if err != nil {
 			var tooBig *http.MaxBytesError
@@ -308,12 +400,14 @@ func (web *Web) HandleUploads() {
 			return
 		}
 		err := os.Rename(upload.part, upload.final)
-		upload.mutex.Unlock()
 		if err != nil {
+			upload.mutex.Unlock()
 			web.sugarLogger.Errorf("[Upload] %s could not take its name: %v", upload.final, err)
 			writeGlobalError(w, http.StatusInternalServerError, lang, UPLOAD_FAILED)
 			return
 		}
+		web.endUploadTask(upload, nil)
+		upload.mutex.Unlock()
 		// the store is always locked before an upload, never while one is
 		web.uploads.remove(upload)
 		web.sugarLogger.Infof("[Upload] %s saved in %s", upload.Name, filepath.Dir(upload.final))
@@ -331,6 +425,7 @@ func (web *Web) HandleUploads() {
 		}
 		upload.mutex.Lock()
 		os.Remove(upload.part)
+		web.endUploadTask(upload, &TaskNote{Text: NOTE_UPLOAD_CANCELED})
 		upload.mutex.Unlock()
 		web.uploads.remove(upload)
 		web.sugarLogger.Infof("[Upload] %s cancelled", upload.Name)

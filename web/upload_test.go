@@ -202,3 +202,84 @@ func TestUploadNamesWithDots(t *testing.T) {
 		}
 	}
 }
+
+func uploadTaskOf(web *Web, id int64) *Task {
+	for _, task := range web.taskLog().Snapshot() {
+		if task.Id == id {
+			return &task
+		}
+	}
+	return nil
+}
+
+// An upload shows in Tasks while pieces come, ends with the file, and ends as stopped when
+// nothing comes any more; the same file chosen again shows again.
+func TestUploadsInTasks(t *testing.T) {
+	web, _ := uploadWeb(t)
+	content := make([]byte, 3<<20)
+	response := postForm(web, "/uploads/start", url.Values{"name": {"Game.nsp"}, "size": {strconv.Itoa(len(content))}})
+	upload := web.uploads.get(uploadAnswer(t, response)["id"].(string))
+	first := upload.taskId
+	if task := uploadTaskOf(web, first); task == nil || task.Kind != TASK_UPLOAD || !task.Running() || task.Message != "Game.nsp" {
+		t.Fatalf("the upload is a task: %+v", task)
+	}
+	putPiece(web, upload.Id, 0, content[:2<<20])
+	if task := uploadTaskOf(web, first); task.Current != 2 || task.Total != 3 {
+		t.Fatalf("its progress: %d of %d", task.Current, task.Total)
+	}
+
+	// nothing comes: the task ends, the file is kept
+	upload.touched = time.Now().Add(-uploadStalled - time.Second)
+	web.endStalledUploads()
+	if task := uploadTaskOf(web, first); task.Running() || task.Error == nil || task.Error.Text != NOTE_UPLOAD_STOPPED {
+		t.Fatalf("a stopped upload: %+v", task)
+	}
+	// the same file again goes on, in a new task
+	again := uploadAnswer(t, postForm(web, "/uploads/start", url.Values{"name": {"Game.nsp"}, "size": {strconv.Itoa(len(content))}}))
+	if again["received"].(float64) != 2<<20 || upload.taskId == 0 || upload.taskId == first {
+		t.Fatalf("goes on in a new task: %v %d", again, upload.taskId)
+	}
+	second := upload.taskId
+	putPiece(web, upload.Id, 2<<20, content[2<<20:])
+	if response := postForm(web, "/uploads/finish", url.Values{"id": {upload.Id}}); response.Code != http.StatusOK {
+		t.Fatalf("finish: %d", response.Code)
+	}
+	if task := uploadTaskOf(web, second); task.Running() || task.Status != TASK_SUCCESS || task.Subject != "Game.nsp" || task.Files != 1 || task.Saved != int64(len(content)) {
+		t.Fatalf("a finished upload: %+v", task)
+	}
+
+	// cancelled
+	response = postForm(web, "/uploads/start", url.Values{"name": {"Other.nsp"}, "size": {"10"}})
+	other := web.uploads.get(uploadAnswer(t, response)["id"].(string))
+	id := other.taskId
+	postForm(web, "/uploads/cancel", url.Values{"id": {other.Id}})
+	if task := uploadTaskOf(web, id); task.Running() || task.Error == nil || task.Error.Text != NOTE_UPLOAD_CANCELED {
+		t.Fatalf("a cancelled upload: %+v", task)
+	}
+	for _, text := range []string{NOTE_UPLOAD_CANCELED, NOTE_UPLOAD_STOPPED, "Upload", "Upload to"} {
+		if translate("es", text) == text {
+			t.Errorf("not translated: %q", text)
+		}
+	}
+}
+
+// the folder asked for must be one of the library
+func TestUploadToAnotherFolderOfTheLibrary(t *testing.T) {
+	web, main := uploadWeb(t)
+	second := t.TempDir()
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.ScanFolders = []string{second} })
+	elsewhere := t.TempDir()
+	start := func(name, folder string) string {
+		response := postForm(web, "/uploads/start", url.Values{"name": {name}, "size": {"10"}, "folder": {folder}})
+		return filepath.Dir(web.uploads.get(uploadAnswer(t, response)["id"].(string)).final)
+	}
+	if got := start("A.nsp", second); got != second {
+		t.Fatalf("a folder of the library: %s", got)
+	}
+	if got := start("B.nsp", elsewhere); got != main {
+		t.Fatalf("any other folder is the main one: %s", got)
+	}
+	if folders := web.uploadFolders(); len(folders) != 2 || folders[0] != main {
+		t.Fatalf("the folders offered: %v", folders)
+	}
+}
