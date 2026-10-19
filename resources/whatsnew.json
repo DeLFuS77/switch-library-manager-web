@@ -1,4 +1,94 @@
 {
+  "1.50.0": {
+    "en": [
+      "Tasks shows again the files a compression works on, with their covers, steps and sizes: since 1.49.0 only the total bar was left once a file had saved something.",
+      "Tasks no longer stays stuck on a task that ended when several tabs of the app are open.",
+      "Upload games from the browser: the Upload games button of the Library, or files dropped on the page, send them to the library folder, and a cut connection goes on where it stopped.",
+      "New cheats for the version of your games are notified by Discord, Telegram or the webhook, like new updates and DLC (a switch in Settings).",
+      "Issues: each file that cannot be read has its own Delete button, after a confirmation.",
+      "A game without a ticket that cannot be compressed now says why, and how to fix it."
+    ],
+    "es": [
+      "Tareas vuelve a mostrar los archivos que comprime una compresión, con sus carátulas, pasos y tamaños: desde la 1.49.0 solo quedaba la barra total en cuanto un archivo ahorraba algo.",
+      "Tareas ya no se queda congelada en una tarea terminada cuando hay varias pestañas de la app abiertas.",
+      "Sube juegos desde el navegador: el botón Subir juegos de la Biblioteca, o los archivos soltados sobre la página, los envían a la carpeta de la biblioteca, y si se corta la conexión sigue por donde iba.",
+      "Los trucos nuevos para la versión de tus juegos se avisan por Discord, Telegram o webhook, como las actualizaciones y DLC nuevos (un interruptor en Ajustes).",
+      "Problemas: cada archivo que no se puede leer tiene su botón Borrar, con confirmación.",
+      "Un juego sin ticket que no se puede comprimir ahora dice por qué y cómo arreglarlo."
+    ],
+    "de": [
+      "Aufgaben zeigt wieder die Dateien einer Komprimierung mit Cover, Schritten und Größen: Seit 1.49.0 blieb nur der Gesamtbalken, sobald eine Datei etwas gespart hatte.",
+      "Aufgaben bleibt nicht mehr bei einer beendeten Aufgabe hängen, wenn mehrere Tabs der App offen sind.",
+      "Spiele aus dem Browser hochladen: Der Knopf Spiele hochladen der Bibliothek oder auf die Seite gezogene Dateien senden sie in den Bibliotheksordner, und eine unterbrochene Verbindung macht dort weiter, wo sie aufgehört hat.",
+      "Neue Cheats für die Version deiner Spiele werden über Discord, Telegram oder den Webhook gemeldet, wie neue Updates und DLC (ein Schalter in den Einstellungen).",
+      "Probleme: Jede Datei, die nicht gelesen werden kann, hat einen eigenen Löschen-Knopf mit Bestätigung.",
+      "Ein Spiel ohne Ticket, das nicht komprimiert werden kann, sagt jetzt warum und wie es sich beheben lässt."
+    ],
+    "fr": [
+      "Tâches affiche à nouveau les fichiers d’une compression, avec leurs jaquettes, étapes et tailles : depuis la 1.49.0, seule la barre totale restait dès qu’un fichier avait économisé quelque chose.",
+      "Tâches ne reste plus figée sur une tâche terminée quand plusieurs onglets de l’application sont ouverts.",
+      "Envoie des jeux depuis le navigateur : le bouton Envoyer des jeux de la Bibliothèque, ou les fichiers déposés sur la page, les envoient dans le dossier de la bibliothèque, et une connexion coupée reprend là où elle s’est arrêtée.",
+      "Les nouveaux codes pour la version de tes jeux sont signalés par Discord, Telegram ou le webhook, comme les nouvelles mises à jour et DLC (un interrupteur dans les Paramètres).",
+      "Problèmes : chaque fichier illisible a son bouton Supprimer, après confirmation.",
+      "Un jeu sans ticket qui ne peut pas être compressé dit maintenant pourquoi et comment corriger."
+    ],
+    "it": [
+      "Attività mostra di nuovo i file di una compressione, con copertine, passaggi e dimensioni: dalla 1.49.0 restava solo la barra totale appena un file aveva risparmiato qualcosa.",
+      "Attività non resta più bloccata su un’attività finita quando sono aperte più schede dell’app.",
+      "Carica giochi dal browser: il pulsante Carica giochi della Libreria, o i file trascinati sulla pagina, li inviano alla cartella della libreria, e una connessione interrotta riprende da dove si era fermata.",
+      "I nuovi trucchi per la versione dei tuoi giochi vengono segnalati via Discord, Telegram o webhook, come i nuovi aggiornamenti e DLC (un interruttore nelle Impostazioni).",
+      "Problemi: ogni file che non si può leggere ha il suo pulsante Elimina, con conferma.",
+      "Un gioco senza ticket che non si può comprimere ora dice perché e come rimediare."
+    ],
+    "pt": [
+      "As Tarefas voltam a mostrar os ficheiros de uma compressão, com capas, passos e tamanhos: desde a 1.49.0 só ficava a barra total assim que um ficheiro poupava algo.",
+      "As Tarefas já não ficam presas numa tarefa terminada quando há vários separadores da app abertos.",
+      "Envia jogos a partir do navegador: o botão Enviar jogos da Biblioteca, ou os ficheiros largados na página, enviam-nos para a pasta da biblioteca, e uma ligação cortada continua onde parou.",
+      "Os novos truques para a versão dos teus jogos são avisados por Discord, Telegram ou webhook, como as novas atualizações e DLC (um interruptor nas Configurações).",
+      "Problemas: cada ficheiro que não se pode ler tem o seu botão Apagar, com confirmação.",
+      "Um jogo sem ticket que não se pode comprimir agora diz porquê e como resolver."
+    ],
+    "nl": [
+      "Taken toont weer de bestanden van een compressie, met covers, stappen en groottes: sinds 1.49.0 bleef alleen de totaalbalk over zodra een bestand iets had bespaard.",
+      "Taken blijft niet meer hangen op een afgeronde taak als er meerdere tabbladen van de app open zijn.",
+      "Games uploaden vanuit de browser: de knop Games uploaden in de Bibliotheek, of bestanden die je op de pagina neerzet, sturen ze naar de bibliotheekmap, en een verbroken verbinding gaat verder waar hij stopte.",
+      "Nieuwe cheats voor de versie van je games worden gemeld via Discord, Telegram of de webhook, zoals nieuwe updates en DLC (een schakelaar bij Instellingen).",
+      "Problemen: elk bestand dat niet gelezen kan worden heeft een eigen Verwijderen-knop, met bevestiging.",
+      "Een game zonder ticket die niet gecomprimeerd kan worden, zegt nu waarom en hoe je het oplost."
+    ],
+    "ru": [
+      "«Задачи» снова показывают файлы сжатия с обложками, шагами и размерами: с версии 1.49.0 оставалась только общая полоса, как только файл что-то экономил.",
+      "«Задачи» больше не зависают на завершённой задаче, когда открыто несколько вкладок приложения.",
+      "Загрузка игр из браузера: кнопка «Загрузить игры» в «Библиотеке» или перетащенные на страницу файлы отправляют их в папку библиотеки, а оборванное соединение продолжает с места остановки.",
+      "О новых читах для версии ваших игр сообщается через Discord, Telegram или вебхук, как о новых обновлениях и DLC (переключатель в «Настройках»).",
+      "«Проблемы»: у каждого нечитаемого файла есть своя кнопка «Удалить» с подтверждением.",
+      "Игра без тикета, которую нельзя сжать, теперь объясняет причину и как это исправить."
+    ],
+    "ja": [
+      "タスクに圧縮中のファイルがカバー、ステップ、サイズ付きで再び表示されます。1.49.0 以降、ファイルが少しでも節約すると合計バーしか残りませんでした。",
+      "アプリのタブを複数開いていても、タスクが終わったタスクのまま止まらなくなりました。",
+      "ブラウザーからゲームをアップロード:ライブラリの「ゲームをアップロード」ボタンか、ページにドロップしたファイルをライブラリフォルダーに送ります。接続が切れても止まったところから続けます。",
+      "ゲームのバージョン向けの新しいチートが、新しいアップデートやDLCと同じくDiscord、Telegram、Webhookで通知されます(設定のスイッチ)。",
+      "問題:読み取れない各ファイルに、確認付きの削除ボタンがつきました。",
+      "圧縮できないチケットなしのゲームは、理由と対処法を表示するようになりました。"
+    ],
+    "ko": [
+      "작업에 압축 중인 파일이 표지, 단계, 크기와 함께 다시 보여요. 1.49.0부터 파일이 조금이라도 절약하면 전체 막대만 남았어요.",
+      "앱 탭을 여러 개 열어 두어도 작업이 끝난 작업에서 멈추지 않아요.",
+      "브라우저에서 게임 업로드: 라이브러리의 게임 업로드 버튼이나 페이지에 놓은 파일을 라이브러리 폴더로 보내고, 연결이 끊겨도 멈춘 곳부터 이어서 해요.",
+      "내 게임 버전용 새 치트가 새 업데이트와 DLC처럼 Discord, Telegram, 웹훅으로 알려져요(설정의 스위치).",
+      "문제: 읽을 수 없는 각 파일에 확인 후 삭제하는 버튼이 생겼어요.",
+      "압축할 수 없는 티켓 없는 게임은 이제 이유와 해결 방법을 알려줘요."
+    ],
+    "zh": [
+      "任务中再次显示压缩正在处理的文件及其封面、步骤和大小:自 1.49.0 起,一旦某个文件节省了空间,就只剩总进度条。",
+      "打开多个应用标签页时,任务页不再卡在已结束的任务上。",
+      "从浏览器上传游戏:游戏库的“上传游戏”按钮或拖放到页面上的文件会被发送到游戏库文件夹,连接中断后会从中断处继续。",
+      "你的游戏版本有新金手指时,会像新的更新和 DLC 一样通过 Discord、Telegram 或 Webhook 通知(设置中的开关)。",
+      "问题:每个无法读取的文件都有自己的删除按钮,需确认。",
+      "无法压缩的无票据游戏现在会说明原因和解决方法。"
+    ]
+  },
   "1.49.3": {
     "en": [
       "Settings and Organize save again: since 1.49.0 their changes were not kept. Check the ones you changed since then.",
