@@ -25,6 +25,8 @@ type TitleFile struct {
 	DownloadUrl    string
 	// the firmware the file needs, e.g. 12.1.0
 	RequiredFirmware string
+	// the games the file holds, when it holds several (a collection on one cartridge)
+	GamesInFile []string
 }
 
 // TitleVersion is an update released for a game, for the version history of the game page.
@@ -237,6 +239,14 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		}
 	}
 	detail.UpdateMissing = detail.Owned && detail.LocalUpdate < detail.LatestUpdate
+	if gamesInFiles := web.gamesInFiles(); len(gamesInFiles) > 0 {
+		if detail.Base != nil {
+			detail.Base.GamesInFile = gamesInFiles[detail.Base.Path]
+		}
+		for i := range detail.Updates {
+			detail.Updates[i].GamesInFile = gamesInFiles[detail.Updates[i].Path]
+		}
+	}
 	if title != nil {
 		detail.Versions = titleVersions(detail.Name, title.Updates, local)
 	}

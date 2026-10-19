@@ -557,8 +557,35 @@ func TestPreferDuplicate(t *testing.T) {
 		{settings.KEEP_AUTO, nsz, 1, nsp, 1, false},
 	}
 	for _, c := range cases {
-		if got := preferDuplicate(c.keep, c.found, c.foundTitles, c.file, c.fileTitles); got != c.want {
+		if got := PreferDuplicate(c.keep, c.found, c.foundTitles, c.file, c.fileTitles); got != c.want {
 			t.Errorf("%q %s over %s: %v", c.keep, c.file.FileName, c.found.FileName, got)
 		}
+	}
+}
+
+// A copy chosen in Issues wins over the choice of the settings.
+func TestScanKeepsTheCopyChosenOneByOne(t *testing.T) {
+	romDir := t.TempDir()
+	for name, size := range map[string]int{"Game [0100000000010000][v0].xci": 30, "Game [0100000000010000][v0].nsz": 20} {
+		if err := os.WriteFile(filepath.Join(romDir, name), make([]byte, size), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	manager, err := NewLocalSwitchDBManager(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer manager.Close()
+	dataFolder := t.TempDir()
+	settings.UpdateSettings(dataFolder, func(s *settings.AppSettings) {
+		s.OrganizeOptions.KeepDuplicate = settings.KEEP_XCI
+		s.OrganizeOptions.KeepFiles = []string{filepath.Join(romDir, "Game [0100000000010000][v0].nsz")}
+	})
+	localDB, err := manager.CreateLocalSwitchFilesDB(nil, dataFolder, []string{romDir}, nil, true, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if game := localDB.TitlesMap["0100000000010"]; game == nil || filepath.Ext(game.File.ExtendedInfo.FileName) != ".nsz" {
+		t.Fatalf("the copy chosen is kept: %#v", game)
 	}
 }

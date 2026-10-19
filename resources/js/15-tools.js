@@ -269,6 +269,18 @@ function initIssueDelete() {
 	}));
 }
 
+// Issues: keep this copy of a duplicate, the library is scanned again
+function initIssueKeep() {
+	document.querySelectorAll('[data-issue-keep]').forEach(button => button.addEventListener('click', () => {
+		button.disabled = true;
+		runAsTask(() => postForm('/issues/keep', { path: button.dataset.issueKeep }))
+			.catch(error => {
+				button.disabled = false;
+				insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+			});
+	}));
+}
+
 // the charts of the history: the values of the day under the pointer
 function initHistoryCharts() {
 	document.querySelectorAll('.history-charts [data-bs-toggle="pill"]').forEach((button) => {

@@ -414,7 +414,12 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 	for _, ext := range NonGameFileTypes {
 		ignoreFileTypes[ext] = struct{}{}
 	}
-	keepDuplicate := settings.ReadSettings(dataFolder).OrganizeOptions.KeepDuplicate
+	organizeOptions := settings.ReadSettings(dataFolder).OrganizeOptions
+	keepDuplicate := organizeOptions.KeepDuplicate
+	chosen := map[string]bool{}
+	for _, path := range organizeOptions.KeepFiles {
+		chosen[filepath.Clean(path)] = true
+	}
 	// the number of titles of each file read, to tell the files with several titles
 	titlesInFile := map[ExtendedFileInfo]int{}
 	// flagged tells whether a file is listed as an issue for another reason than being a copy
@@ -426,10 +431,14 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 	// keepInstead tells whether file is kept instead of the copy found first, as chosen in
 	// the settings; a file with an issue is never preferred to one without
 	keepInstead := func(found ExtendedFileInfo, file ExtendedFileInfo) bool {
+		// a copy chosen in Issues wins
+		if chosen[fullPath(file)] != chosen[fullPath(found)] {
+			return chosen[fullPath(file)]
+		}
 		if flagged(file) && !flagged(found) {
 			return false
 		}
-		return preferDuplicate(keepDuplicate, found, titlesInFile[found], file, titlesInFile[file])
+		return PreferDuplicate(keepDuplicate, found, titlesInFile[found], file, titlesInFile[file])
 	}
 	for _, ext := range settings.ReadSettings(dataFolder).IgnoreFileTypes {
 		ext = strings.ToLower(strings.TrimSpace(ext))
@@ -663,11 +672,11 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 	assignCachedCovers(dataFolder, covers)
 }
 
-// preferDuplicate tells whether the copy file is kept instead of found, the copy of the same
+// PreferDuplicate tells whether the copy file is kept instead of found, the copy of the same
 // title found first, by the choice of the settings (keep). A file with several titles holds
 // other content too: it is never deleted while it holds anything the library keeps, so
 // letting the app choose keeps it and makes the separate copy the duplicate.
-func preferDuplicate(keep string, found ExtendedFileInfo, foundTitles int, file ExtendedFileInfo, fileTitles int) bool {
+func PreferDuplicate(keep string, found ExtendedFileInfo, foundTitles int, file ExtendedFileInfo, fileTitles int) bool {
 	cartridge := func(f ExtendedFileInfo) bool {
 		name := strings.ToLower(f.FileName)
 		return strings.HasSuffix(name, ".xci") || strings.HasSuffix(name, ".xcz")
