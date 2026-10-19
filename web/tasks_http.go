@@ -52,7 +52,9 @@ type TaskGroup struct {
 // another; the first of each group is shown.
 func groupTasks(tasks []Task) []TaskGroup {
 	groups := []TaskGroup{}
-	quiet := func(task Task) bool { return task.Status == TASK_SUCCESS && task.Error == nil && len(task.Warnings) == 0 }
+	quiet := func(task Task) bool {
+		return task.Status == TASK_SUCCESS && task.Error == nil && len(task.Warnings) == 0
+	}
 	for _, task := range tasks {
 		if n := len(groups); n > 0 {
 			last := &groups[n-1]

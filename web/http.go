@@ -1,7 +1,6 @@
 package web
 
 import (
-	"reflect"
 	"encoding/json"
 	"fmt"
 	"github.com/ggicci/httpin"
@@ -9,6 +8,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"reflect"
 	"strconv"
 )
 
@@ -79,25 +79,25 @@ func (web *Web) HandleValidated(pattern string, inputStruct interface{}, pageDat
 
 	web.router.Handle(pattern, alice.New(httpin.NewInput(inputStruct)).ThenFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
-			case "GET":
-				web.render(w, r, templates, pageData())
-			case "POST":
-				w.Header().Set("Content-Type", "application/json")
+		case "GET":
+			web.render(w, r, templates, pageData())
+		case "POST":
+			w.Header().Set("Content-Type", "application/json")
 
-				value := r.Context().Value(httpin.Input)
-				jsonEncoder := json.NewEncoder(w)
-				lang := web.requestLanguage(r)
+			value := r.Context().Value(httpin.Input)
+			jsonEncoder := json.NewEncoder(w)
+			lang := web.requestLanguage(r)
 
-				if errorResponse := validate(value, lang); hasErrors(errorResponse) {
-					w.WriteHeader(http.StatusBadRequest)
-					jsonEncoder.Encode(errorResponse)
-					return
-				}
+			if errorResponse := validate(value, lang); hasErrors(errorResponse) {
+				w.WriteHeader(http.StatusBadRequest)
+				jsonEncoder.Encode(errorResponse)
+				return
+			}
 
-				jsonEncoder.Encode(onSuccess(value, lang))
-			default:
-				web.sugarLogger.Error(fmt.Errorf("Unsupported method: %s", r.Method))
-				w.WriteHeader(http.StatusMethodNotAllowed)
+			jsonEncoder.Encode(onSuccess(value, lang))
+		default:
+			web.sugarLogger.Error(fmt.Errorf("Unsupported method: %s", r.Method))
+			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
 	}))
 }

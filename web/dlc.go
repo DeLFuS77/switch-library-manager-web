@@ -7,7 +7,7 @@ import (
 )
 
 func (web *Web) HandleDLC() {
-	fsPatterns := []string {
+	fsPatterns := []string{
 		"resources/layout.html",
 		"resources/partials/filter.html",
 		"resources/partials/pagination.html",
@@ -17,11 +17,11 @@ func (web *Web) HandleDLC() {
 
 	web.HandleFiltered("/dlc.html", func(filter *TitleItemFilter, lang string) any {
 		items, p := web.getMissingDLC(filter, lang)
-		return TitleItemsPageData {
+		return TitleItemsPageData{
 			GlobalPageData: web.globalPageData("dlc"),
-			TitleItems: items,
-			Filter: filter,
-			Pagination: p,
+			TitleItems:     items,
+			Filter:         filter,
+			Pagination:     p,
 		}
 	}, web.embedFS, fsPatterns...)
 }
@@ -62,17 +62,17 @@ func (web *Web) buildMissingDLC(lang string) []TitleItem {
 
 			imageUrl := coverUrl(localDB, v.Attributes)
 
-			items = append(items, TitleItem {
-				ImageUrl:         imageUrl,
-				Id:               strings.ToUpper(v.Attributes.Id),
-				MissingDLC:       v.MissingDLC,
-				MissingDLCItems:  missingDlc,
-				Name:             name,
-				OriginalName:     v.Attributes.Name,
-				Region:           v.Attributes.Region,
-				Known:            true,
-				DlcOwned:         v.OwnedDLC,
-				DlcTotal:         v.OwnedDLC + len(missingDlc),
+			items = append(items, TitleItem{
+				ImageUrl:        imageUrl,
+				Id:              strings.ToUpper(v.Attributes.Id),
+				MissingDLC:      v.MissingDLC,
+				MissingDLCItems: missingDlc,
+				Name:            name,
+				OriginalName:    v.Attributes.Name,
+				Region:          v.Attributes.Region,
+				Known:           true,
+				DlcOwned:        v.OwnedDLC,
+				DlcTotal:        v.OwnedDLC + len(missingDlc),
 			})
 		}
 	}

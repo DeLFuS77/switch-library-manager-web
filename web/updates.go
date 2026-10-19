@@ -7,7 +7,7 @@ import (
 )
 
 func (web *Web) HandleUpdates() {
-	fsPatterns := []string {
+	fsPatterns := []string{
 		"resources/layout.html",
 		"resources/partials/card.html",
 		"resources/partials/filter.html",
@@ -18,11 +18,11 @@ func (web *Web) HandleUpdates() {
 
 	web.HandleFiltered("/updates.html", func(filter *TitleItemFilter, lang string) any {
 		items, p := web.getMissingUpdates(filter, lang)
-		return TitleItemsPageData {
+		return TitleItemsPageData{
 			GlobalPageData: web.globalPageData("updates"),
-			TitleItems: items,
-			Filter: filter,
-			Pagination: p,
+			TitleItems:     items,
+			Filter:         filter,
+			Pagination:     p,
 		}
 	}, web.embedFS, fsPatterns...)
 }
@@ -69,7 +69,7 @@ func (web *Web) buildMissingUpdates(lang string) []TitleItem {
 				itemType = strings.ToUpper(v.Meta.Type)
 			}
 
-			items = append(items, TitleItem {
+			items = append(items, TitleItem{
 				ImageUrl:         imageUrl,
 				Id:               strings.ToUpper(v.Attributes.Id),
 				LatestUpdate:     v.LatestUpdate,

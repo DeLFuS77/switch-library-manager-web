@@ -8,7 +8,7 @@ import (
 )
 
 func (web *Web) HandleMissing() {
-	fsPatterns := []string {
+	fsPatterns := []string{
 		"resources/layout.html",
 		"resources/partials/card.html",
 		"resources/partials/filter.html",
@@ -18,13 +18,13 @@ func (web *Web) HandleMissing() {
 
 	web.HandleFiltered("/missing.html", func(filter *TitleItemFilter, lang string) any {
 		items, p := web.getMissingGames(filter, lang)
-		data := TitleItemsPageData {
+		data := TitleItemsPageData{
 			GlobalPageData: web.globalPageData("missing"),
-			WishedCount: web.wishes().count(),
-			TitleItems: items,
-			Filter: filter,
-			Pagination: p,
-			Views: web.libraryViews("missing", lang),
+			WishedCount:    web.wishes().count(),
+			TitleItems:     items,
+			Filter:         filter,
+			Pagination:     p,
+			Views:          web.libraryViews("missing", lang),
 		}
 		if filter.Plain() {
 			data.Recommendations = web.recommendations(lang)
@@ -105,19 +105,19 @@ func (web *Web) buildMissingGames(lang string) []TitleItem {
 				web.sugarLogger.Error(fmt.Errorf("parsing time failed: %w", err))
 			}
 
-			items = append(items, TitleItem {
-				ImageUrl:    imageUrl,
-				Id:          strings.ToUpper(v.Attributes.Id),
-				Name:        name,
+			items = append(items, TitleItem{
+				ImageUrl:     imageUrl,
+				Id:           strings.ToUpper(v.Attributes.Id),
+				Name:         name,
 				OriginalName: v.Attributes.Name,
-				Region:      v.Attributes.Region,
-				ReleaseDate: release,
-				Known:       true,
-				Wished:      wished[strings.ToUpper(v.Attributes.Id)],
-				Demo:        isDemo(v, v.Attributes.Name),
-				Genres:      v.Attributes.Genres,
-				Players:     v.Attributes.Players,
-				Languages:   v.Attributes.Languages,
+				Region:       v.Attributes.Region,
+				ReleaseDate:  release,
+				Known:        true,
+				Wished:       wished[strings.ToUpper(v.Attributes.Id)],
+				Demo:         isDemo(v, v.Attributes.Name),
+				Genres:       v.Attributes.Genres,
+				Players:      v.Attributes.Players,
+				Languages:    v.Attributes.Languages,
 			})
 		}
 	}

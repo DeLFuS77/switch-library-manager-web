@@ -101,7 +101,7 @@ func usableName(name string) bool {
 }
 
 func (web *Web) HandleIndex() {
-	fsPatterns := []string {
+	fsPatterns := []string{
 		"resources/layout.html",
 		"resources/partials/card.html",
 		"resources/partials/filter.html",
@@ -116,18 +116,18 @@ func (web *Web) HandleIndex() {
 		if filter.Plain() && facets.Favorites > 0 {
 			recommendations = web.recommendations(lang)
 		}
-		return LibraryPageData {
-			TitleItemsPageData: TitleItemsPageData {
-				GlobalPageData: web.globalPageData("index"),
-				TitleItems: items,
-				Filter: filter,
-				Pagination: p,
+		return LibraryPageData{
+			TitleItemsPageData: TitleItemsPageData{
+				GlobalPageData:  web.globalPageData("index"),
+				TitleItems:      items,
+				Filter:          filter,
+				Pagination:      p,
 				Recommendations: recommendations,
-				Views: web.libraryViews(map[bool]string{true: "all", false: "mine"}[filter.ShowsMissing()], lang),
+				Views:           web.libraryViews(map[bool]string{true: "all", false: "mine"}[filter.ShowsMissing()], lang),
 			},
-			Facets: facets,
-			Setup: web.setupStatus(),
-			Stats: web.getStatistics(lang),
+			Facets:   facets,
+			Setup:    web.setupStatus(),
+			Stats:    web.getStatistics(lang),
 			WhatsNew: web.whatsNew(lang),
 		}
 	}, web.embedFS, fsPatterns...)
@@ -254,18 +254,18 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		}
 
 		switch filter.Status {
-			case STATUS_UPDATE:
-				if !item.UpdateAvailable {
-					continue
-				}
-			case STATUS_DLC:
-				if item.MissingDlcCount == 0 {
-					continue
-				}
-			case STATUS_COMPLETE:
-				if !complete {
-					continue
-				}
+		case STATUS_UPDATE:
+			if !item.UpdateAvailable {
+				continue
+			}
+		case STATUS_DLC:
+			if item.MissingDlcCount == 0 {
+				continue
+			}
+		case STATUS_COMPLETE:
+			if !complete {
+				continue
+			}
 		}
 
 		matched = append(matched, index)
@@ -377,7 +377,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			}
 		}
 
-		item := TitleItem {
+		item := TitleItem{
 			Id:           strings.ToUpper(v.File.Metadata.TitleId),
 			LocalUpdate:  v.LatestUpdate,
 			Name:         name,

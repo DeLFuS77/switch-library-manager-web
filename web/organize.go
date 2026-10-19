@@ -1,9 +1,9 @@
 package web
 
 import (
-	"github.com/dtrunk90/switch-library-manager-web/db"
 	"encoding/json"
 	"errors"
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -60,9 +60,9 @@ type ApiOperation struct {
 type OrganizeResponse struct {
 	DryRun        bool           `json:"dryRun"`
 	LibraryFolder string         `json:"libraryFolder"`
-	Operations []ApiOperation `json:"operations"`
-	Changes    int            `json:"changes"`
-	Errors     int            `json:"errors"`
+	Operations    []ApiOperation `json:"operations"`
+	Changes       int            `json:"changes"`
+	Errors        int            `json:"errors"`
 	// files kept because the copy that stays was not checked yet
 	NeedsVerify int `json:"needsVerify,omitempty"`
 }
@@ -200,15 +200,15 @@ func writeGlobalError(w http.ResponseWriter, status int, lang string, message st
 }
 
 func (web *Web) HandleOrganize() {
-	fsPatterns := []string {
+	fsPatterns := []string{
 		"resources/layout.html",
 		"resources/pages/organize.html",
 	}
 
 	web.HandleValidated("/organize.html", OrganizeForm{}, func() any {
-		return OrganizePageData {
+		return OrganizePageData{
 			GlobalPageData: web.globalPageData("organize"),
-			Settings: settings.ReadSettings(web.dataFolder),
+			Settings:       settings.ReadSettings(web.dataFolder),
 		}
 	}, func(value any, lang string) ErrorResponse {
 		form := value.(*OrganizeForm)
@@ -238,9 +238,9 @@ func (web *Web) HandleOrganize() {
 		// the tune-up counts the changes of Organize with the new options
 		web.invalidateDerived()
 
-		return SuccessResponse {
+		return SuccessResponse{
 			StrongMessage: translate(lang, "Saved!"),
-			Message: translate(lang, "Use Preview to see what will change."),
+			Message:       translate(lang, "Use Preview to see what will change."),
 		}
 	}, web.embedFS, fsPatterns...)
 
