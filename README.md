@@ -97,6 +97,11 @@ Linux, Docker, NAS and Raspberry Pi.
   matched to the games of your library, with their history, downloads, a limit of backups per game and a message for
   every new one. Off until you turn it on
 
+**Cheats**
+- The games with cheats for the version you have are marked, with a filter; the game page lists them and gives them
+  ready for the SD card, and the whole library at once in one ZIP. From [switch-cheats-db](https://github.com/HamletDuFromage/switch-cheats-db),
+  downloaded once a day at most; it can be turned off in Settings
+
 **Statistics**
 - Charts of your library: space by content and format, genres, publishers, years, the largest games and its history
 - **Your year on Switch**: what came to your library in a year (games, updates, DLC, the busiest month, your
@@ -652,5 +657,7 @@ help too.
   [dtrunk90's switch-library-manager-web](https://github.com/dtrunk90/switch-library-manager-web)
 - Parsing, organizing and title data fixes from [trembon's switch-library-manager](https://github.com/trembon/switch-library-manager)
 - Title data from [blawar's titledb](https://github.com/blawar/titledb)
+- Cheats from [HamletDuFromage's switch-cheats-db](https://github.com/HamletDuFromage/switch-cheats-db), mirrored from GBAtemp and
+  the authors of each cheat
 - NSZ format of [nsz](https://github.com/nicoboss/nsz) and the [Inter](https://github.com/rsms/inter) font
 - Everyone who reports bugs, like [@LonelyTV](https://github.com/LonelyTV) ([#3](https://github.com/DeLFuS77/switch-library-manager-web/issues/3))

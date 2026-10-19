@@ -227,7 +227,10 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		if (filter.Kind == KIND_GAME && item.Demo) || (filter.Kind == KIND_DEMO && !item.Demo) || (filter.Kind == "" && facets.DemosHidden && item.Demo) {
 			continue
 		}
-		if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) || (filter.Extra == EXTRA_RECENT && !recent) || (filter.Extra == EXTRA_FAVORITES && !item.Favorite) {
+		if item.Cheats {
+			facets.Cheats++
+		}
+		if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) || (filter.Extra == EXTRA_RECENT && !recent) || (filter.Extra == EXTRA_FAVORITES && !item.Favorite) || (filter.Extra == EXTRA_CHEATS && !item.Cheats) {
 			continue
 		}
 
@@ -351,6 +354,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 	collections := web.collections().snapshot()
 	favorites := web.favorites().snapshot()
 	timesToBeat := web.timesToBeat().snapshot()
+	cheats := web.cheats()
 
 	for k, v := range localDB.TitlesMap {
 		if !v.BaseExist || v.File.Metadata == nil {
@@ -393,6 +397,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 		item.Collections = collections[item.Id]
 		item.Selectable = true
 		item.Favorite = favorites[item.Id]
+		item.Cheats = cheats.has(item.Id, v.LatestUpdate)
 		// every file once: a game card can hold the game, its update and DLC
 		counted := map[string]bool{filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName): true}
 		addSize := func(file db.ExtendedFileInfo) {

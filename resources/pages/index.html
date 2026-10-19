@@ -88,6 +88,9 @@
 				{{- template "filterPanel" (dict "Filter" .Filter "Facets" .Facets "Library" true)}}
 			</div>
 			{{- template "activeFilters" (dict "Filter" .Filter "Library" true)}}
+			{{- if and (eq .Filter.Extra "cheats") .Facets.Cheats}}
+			<p class="mb-3"><a class="btn btn-sm btn-outline-primary rounded-pill" href="/api/cheats.zip"><span class="bi bi-sd-card me-1" aria-hidden="true"></span>{{t "Download the cheats of your library for the SD card (zip)"}}</a></p>
+			{{- end}}
 			{{- end}}
 			{{- if gt (len .TitleItems) 0}}
 			{{- with .Recommendations}}{{template "recommendations" .}}{{end}}

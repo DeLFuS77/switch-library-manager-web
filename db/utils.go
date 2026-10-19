@@ -118,7 +118,36 @@ func LoadAndUpdateAllowingEmpty(urls []string, filePath string, etag string) (Up
 	return loadAndUpdate(urls, filePath, etag, true)
 }
 
+// LoadAndUpdateChecked is LoadAndUpdate for files that are not JSON: check tells whether a
+// download is good before it replaces the local copy.
+func LoadAndUpdateChecked(urls []string, filePath string, etag string, check func(path string) error) (UpdateResult, error) {
+	return loadAndUpdateWith(urls, filePath, etag, check)
+}
+
+// FetchSmall downloads a small text file, at most limit bytes.
+func FetchSmall(url string, limit int64) (string, error) {
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return "", errors.New("got a non 200 response - " + resp.Status)
+	}
+	data, err := io.ReadAll(io.LimitReader(resp.Body, limit))
+	return string(data), err
+}
+
 func loadAndUpdate(urls []string, filePath string, etag string, allowEmpty bool) (UpdateResult, error) {
+	return loadAndUpdateWith(urls, filePath, etag, func(path string) error {
+		if err := validateJsonObjectFile(path); err != nil && !(allowEmpty && errors.Is(err, errEmptyJsonObject)) {
+			return fmt.Errorf("malformed json file: %w", err)
+		}
+		return nil
+	})
+}
+
+func loadAndUpdateWith(urls []string, filePath string, etag string, check func(path string) error) (UpdateResult, error) {
 	tmpName := filePath + ".tmp"
 	defer os.Remove(tmpName)
 
@@ -141,8 +170,8 @@ func loadAndUpdate(urls []string, filePath string, etag string, allowEmpty bool)
 			continue
 		}
 
-		if err := validateJsonObjectFile(tmpName); err != nil && !(allowEmpty && errors.Is(err, errEmptyJsonObject)) {
-			zap.S().Infof("ignoring new update [%v], reason - [malformed json file: %v]", url, err)
+		if err := check(tmpName); err != nil {
+			zap.S().Infof("ignoring new update [%v], reason - [%v]", url, err)
 			continue
 		}
 
