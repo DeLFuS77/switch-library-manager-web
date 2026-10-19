@@ -29,10 +29,11 @@ const (
 	NOTE_COMPRESS_SPARSE   = "This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally."
 	NOTE_COMPRESS_CANCELED = "The compression was cancelled."
 	NOTE_COMPRESS_DELETE   = "The original could not be deleted."
+	NOTE_COMPRESS_NO_KEY   = "This NSP has no ticket, and title.keys does not have its title key: without it the game cannot be read to compress it. Add the title.keys dumped from your console in Settings, or use a copy of the game with its ticket."
 	NOTE_DECOMPRESS_FAILED = "The file could not be decompressed, the compressed file is kept."
 )
 
-var compressNoteTexts = []string{NOTE_SPLIT_FAILED, NOTE_SPLIT_EXISTS, NOTE_SPLIT_KEPT, NOTE_PACK_FAILED, NOTE_PACK_EXISTS, NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_SPARSE, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_DELETE}
+var compressNoteTexts = []string{NOTE_SPLIT_FAILED, NOTE_SPLIT_EXISTS, NOTE_SPLIT_KEPT, NOTE_PACK_FAILED, NOTE_PACK_EXISTS, NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_SPARSE, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_DELETE, NOTE_COMPRESS_NO_KEY}
 
 // CompressCandidate is an NSP of the library that can be compressed.
 type CompressCandidate struct {
@@ -903,6 +904,8 @@ func compressNote(kind string, err error) string {
 		return NOTE_COMPRESS_SPARSE
 	case errors.Is(err, switchfs.ErrNotCompressible):
 		return NOTE_COMPRESS_NOTHING
+	case errors.Is(err, switchfs.ErrNoTitleKey):
+		return NOTE_COMPRESS_NO_KEY
 	case strings.Contains(err.Error(), "damaged"):
 		return NOTE_COMPRESS_DAMAGED
 	case strings.Contains(err.Error(), "could not delete"):
