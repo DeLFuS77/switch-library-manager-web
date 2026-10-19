@@ -175,3 +175,39 @@ func TestMakePacksInBulk(t *testing.T) {
 		t.Fatalf("already packed: %+v", candidates)
 	}
 }
+
+// A game card with several games is listed to split, one with a game and its update is not,
+// and each game of a card is named after itself.
+func TestSplitCandidatesWithGameCards(t *testing.T) {
+	web := newTestWeb(t)
+	folder := t.TempDir()
+	collection := db.ExtendedFileInfo{FileName: "Collection [0100000000030000].xcz", BaseFolder: folder, Size: 900}
+	single := db.ExtendedFileInfo{FileName: "Single [0100000000050000].xci", BaseFolder: folder, Size: 500}
+	game := func(id string, file db.ExtendedFileInfo) *db.SwitchGameFiles {
+		return &db.SwitchGameFiles{BaseExist: true, File: db.SwitchFileInfo{ExtendedInfo: file, Metadata: &switchfs.ContentMetaAttributes{TitleId: id}},
+			Updates: map[int]db.SwitchFileInfo{65536: {ExtendedInfo: file, Metadata: &switchfs.ContentMetaAttributes{TitleId: id[:13] + "800", Version: 65536}}}, LatestUpdate: 65536, Dlc: map[string]db.SwitchFileInfo{}}
+	}
+	library := &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{
+		"0100000000030": game("0100000000030000", collection),
+		"0100000000040": game("0100000000040000", collection),
+		"0100000000050": game("0100000000050000", single),
+	}, Skipped: map[db.ExtendedFileInfo]db.SkippedFile{}}
+	known := map[string]*db.SwitchTitle{}
+	for prefix, name := range map[string]string{"0100000000030": "First", "0100000000040": "Second", "0100000000050": "Single"} {
+		known[prefix] = &db.SwitchTitle{Attributes: db.TitleAttributes{Name: name}}
+	}
+	web.state.set(&db.SwitchTitlesDB{TitlesMap: known}, library)
+
+	candidates := web.splitCandidates()
+	if len(candidates) != 1 || candidates[0].Path != filepath.Join(folder, collection.FileName) || candidates[0].Titles != 4 {
+		t.Fatalf("only the card with several games: %+v", candidates)
+	}
+	part := switchfs.SplitPart{TitleId: "0100000000040000", Type: "BASE", Version: 65536, Cartridge: true, Compressed: true}
+	if name := web.splitPartName(part, "First"); name != "Second [0100000000040000][v65536].xcz" {
+		t.Fatalf("a game of a card is named after itself: %s", name)
+	}
+	part.Compressed = false
+	if name := web.splitPartName(part, "First"); !strings.HasSuffix(name, ".xci") {
+		t.Fatalf("an XCI: %s", name)
+	}
+}

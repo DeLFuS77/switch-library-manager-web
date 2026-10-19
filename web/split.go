@@ -32,8 +32,8 @@ const (
 
 var errSplitExists = errors.New("a file with the name of a part already exists")
 
-// splitCandidates are the NSP and NSZ files of the library that hold several titles, as the
-// scan found them, biggest first.
+// splitCandidates are the NSP and NSZ files of the library that hold several titles, and the
+// game card dumps (XCI, XCZ) that hold several games, as the scan found them, biggest first.
 func (web *Web) splitCandidates() []CompressCandidate {
 	return web.derived("splitCandidates", func() any {
 		switchDB, localDB := web.state.get()
@@ -42,11 +42,12 @@ func (web *Web) splitCandidates() []CompressCandidate {
 			return candidates
 		}
 		titles := map[string]int{}
+		games := map[string]map[*db.SwitchGameFiles]bool{}
 		owner := map[string]*db.SwitchGameFiles{}
 		sizes := map[string]int64{}
 		add := func(local *db.SwitchGameFiles, file db.ExtendedFileInfo) {
 			switch strings.ToLower(filepath.Ext(file.FileName)) {
-			case ".nsp", ".nsz":
+			case ".nsp", ".nsz", ".xci", ".xcz":
 			default:
 				return
 			}
@@ -55,6 +56,10 @@ func (web *Web) splitCandidates() []CompressCandidate {
 			}
 			path := filepath.Join(file.BaseFolder, file.FileName)
 			titles[path]++
+			if games[path] == nil {
+				games[path] = map[*db.SwitchGameFiles]bool{}
+			}
+			games[path][local] = true
 			sizes[path] = file.Size
 			// the name of the game, when the file holds it
 			if owner[path] == nil || local.BaseExist && local.File.ExtendedInfo == file {
@@ -76,6 +81,10 @@ func (web *Web) splitCandidates() []CompressCandidate {
 			if count < 2 {
 				continue
 			}
+			// a game card with one game and its update is the usual card: it splits by game
+			if isCardDump(path) && len(games[path]) < 2 {
+				continue
+			}
 			candidates = append(candidates, CompressCandidate{Path: path, Name: web.gameName(switchDB, owner[path], path), Kind: "Base", Size: sizes[path], Titles: count})
 		}
 		sort.Slice(candidates, func(i, j int) bool {
@@ -86,6 +95,12 @@ func (web *Web) splitCandidates() []CompressCandidate {
 		})
 		return candidates
 	}).([]CompressCandidate)
+}
+
+// isCardDump tells whether a file is a game card dump (XCI or XCZ).
+func isCardDump(path string) bool {
+	extension := strings.ToLower(filepath.Ext(path))
+	return extension == ".xci" || extension == ".xcz"
 }
 
 // gameName is the name of a game of the library, or the one in the name of its file.
@@ -107,8 +122,16 @@ func (web *Web) gameName(switchDB *db.SwitchTitlesDB, local *db.SwitchGameFiles,
 // splitPartName is the name of the file of a part: the name of the title, its ID and its
 // version, like the files of the game shops.
 func (web *Web) splitPartName(part switchfs.SplitPart, game string) string {
-	switchDB, _ := web.state.get()
+	switchDB, localDB := web.state.get()
 	name := game
+	// each game of a game card has its own name
+	if part.Cartridge && localDB != nil {
+		if prefix, err := db.TitleIDPrefix(part.TitleId); err == nil {
+			if own := web.gameName(switchDB, localDB.TitlesMap[prefix], ""); own != "" {
+				name = own
+			}
+		}
+	}
 	if part.Type == "DLC" && switchDB != nil {
 		if prefix, err := db.TitleIDPrefix(part.TitleId); err == nil && switchDB.TitlesMap[prefix] != nil {
 			dlcs := switchDB.TitlesMap[prefix].Dlc
@@ -121,7 +144,12 @@ func (web *Web) splitPartName(part switchfs.SplitPart, game string) string {
 		}
 	}
 	extension := ".nsp"
-	if part.Compressed {
+	switch {
+	case part.Cartridge && part.Compressed:
+		extension = ".xcz"
+	case part.Cartridge:
+		extension = ".xci"
+	case part.Compressed:
 		extension = ".nsz"
 	}
 	return fmt.Sprintf("%s [%s][v%d]%s", safeFileName(name), strings.ToUpper(part.TitleId), part.Version, extension)

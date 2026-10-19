@@ -5,6 +5,7 @@ func init() {
 	translations["fr"] = map[string]string{
 		// split and bulk packs
 		"Split multi-title files": "Séparer les fichiers à plusieurs titres",
+		"A game card dump with several games (a collection on one cartridge) splits into one XCI or XCZ per game, with its update and DLC, so the files made for a game card stay as they are.":                                                                                   "Une copie de cartouche avec plusieurs jeux (une compilation sur une seule cartouche) se sépare en un XCI ou XCZ par jeu, avec sa mise à jour et ses DLC, pour que les fichiers faits pour une cartouche restent tels quels.",
 		"Turn files that hold several titles (a game with its updates and DLC in one NSP or NSZ) back into one file per title. Nothing is decompressed or changed: each part keeps the files of its title as they are, and every part is checked before the original is deleted.": "Remet les fichiers qui contiennent plusieurs titres (un jeu avec ses mises à jour et ses DLC dans un seul NSP ou NSZ) en un fichier par titre. Rien n'est décompressé ni modifié : chaque partie garde tels quels les fichiers de son titre, et chaque partie est vérifiée avant la suppression de l'original.",
 		"Delete each original after its parts are checked": "Supprimer chaque original une fois ses parties vérifiées",
 		"Split selected":      "Séparer la sélection",

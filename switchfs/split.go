@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -17,6 +18,12 @@ import (
 // first). Splitting it writes one package per CNMT with the files of that title, copied as
 // they are: nothing is decrypted, decompressed or changed, so every part holds the same bytes
 // as the original had for it, and an NSZ gives NSZ parts with the same NCZ files.
+//
+// A game card dump (XCI or XCZ) with several games, like a collection on one cartridge,
+// splits into one XCI (or XCZ) per game, with its update and DLC: the NCAs of a game card
+// are made for a game card, and an NSP of them would need them signed again to install.
+// Each part keeps the header of the original card and a secure partition with the files of
+// its game, as an XCZ written by this app does.
 
 // SplitPart is a title of a multi-title package and the files of the package it is made of.
 type SplitPart struct {
@@ -26,9 +33,16 @@ type SplitPart struct {
 	Version int
 	// the size of the package of the part, once written
 	Size int64
-	// it holds compressed files (NCZ): it is an NSZ
+	// it holds compressed files (NCZ): it is an NSZ (or an XCZ)
 	Compressed bool
-	files      []packedFile
+	// a game of a game card dump: its part is an XCI (or an XCZ) with the game, its update
+	// and its DLC, under the title ID of the game
+	Cartridge bool
+	// the titles of the part: one, or those of a game of a game card
+	Titles int
+	files  []packedFile
+	// the layout of the game card the part keeps
+	card *gamePackage
 }
 
 // Files are the names of the files of the part, in the order of the original.
@@ -81,10 +95,86 @@ func PlanSplit(path string) (*SplitPlan, error) {
 	if err != nil {
 		return nil, err
 	}
-	if pkg.xci {
-		return nil, errors.New("only NSP and NSZ files can be split")
+	plan, err := planSplit(reader, pkg)
+	if err != nil || !pkg.xci {
+		return plan, err
 	}
-	return planSplit(reader, pkg)
+	return byGame(plan, pkg)
+}
+
+// byGame joins the titles of a game card into one part per game: the game, its updates and
+// its DLC. A card with one game is not split.
+func byGame(plan *SplitPlan, pkg *gamePackage) (*SplitPlan, error) {
+	games := map[string]*SplitPart{}
+	order := []string{}
+	for _, part := range plan.Parts {
+		game, err := gameOf(part)
+		if err != nil {
+			return nil, err
+		}
+		joined, ok := games[game]
+		if !ok {
+			joined = &SplitPart{TitleId: game, Type: part.Type, Cartridge: true, card: pkg}
+			games[game] = joined
+			order = append(order, game)
+		}
+		joined.Titles++
+		joined.Compressed = joined.Compressed || part.Compressed
+		if part.Type == "BASE" {
+			joined.Type = "BASE"
+		}
+		// named after the version it brings, as the shops name a card with its update
+		if part.Type != "DLC" && part.Version > joined.Version {
+			joined.Version = part.Version
+		}
+		joined.files = append(joined.files, part.files...)
+	}
+	if len(games) < 2 {
+		return nil, ErrSingleTitle
+	}
+	sort.Strings(order)
+	result := &SplitPlan{Unclaimed: plan.Unclaimed}
+	for _, game := range order {
+		part := games[game]
+		// in the order of the original card
+		sort.SliceStable(part.files, func(i, j int) bool { return part.files[i].offset < part.files[j].offset })
+		part.Size = cardSize(pkg, part.files)
+		result.Parts = append(result.Parts, *part)
+	}
+	return result, nil
+}
+
+// gameOf is the title ID of the game a title belongs to: an update is the ID of its game
+// plus 0x800, a DLC the ID of its game plus 0x1000 and its number.
+func gameOf(part SplitPart) (string, error) {
+	id, err := strconv.ParseUint(part.TitleId, 16, 64)
+	if err != nil {
+		return "", fmt.Errorf("invalid title ID %q", part.TitleId)
+	}
+	if part.Type == "DLC" {
+		id -= 0x1000
+	}
+	return fmt.Sprintf("%016x", id&^0xFFF), nil
+}
+
+// cardSize is the size of the game card xczWriter writes with these files: the header of
+// the original card, the root HFS0, the other partitions left empty and the secure one.
+func cardSize(pkg *gamePackage, files []packedFile) int64 {
+	align := func(position int64) int64 { return (position + 0x1FF) &^ 0x1FF }
+	position := pkg.rootOffset + hfs0ReservedHeader
+	secure := indexOf(pkg.partitions, "secure")
+	for i := range pkg.partitions {
+		if i == secure {
+			position += hfs0ReservedHeader
+			for _, file := range files {
+				position += file.size
+			}
+		} else {
+			position += 0x200
+		}
+		position = align(position)
+	}
+	return position
 }
 
 func planSplit(reader io.ReaderAt, pkg *gamePackage) (*SplitPlan, error) {
@@ -119,7 +209,7 @@ func planSplit(reader io.ReaderAt, pkg *gamePackage) (*SplitPlan, error) {
 			continue
 		}
 		seen[key] = true
-		t := &title{part: SplitPart{TitleId: attributes.TitleId, Type: attributes.Type, Version: attributes.Version}, ids: map[string]bool{}, meta: file.name}
+		t := &title{part: SplitPart{TitleId: attributes.TitleId, Type: attributes.Type, Version: attributes.Version, Titles: 1}, ids: map[string]bool{}, meta: file.name}
 		if id := contentId(file.name); id != "" {
 			t.ids[id] = true
 		}
@@ -221,14 +311,17 @@ func WriteSplitPart(ctx context.Context, source string, part SplitPart, target s
 	if err != nil {
 		return err
 	}
-	writer := &pfs0Writer{file: output, names: part.Files()}
+	var writer packageWriter = &pfs0Writer{file: output, names: part.Files()}
+	if part.card != nil {
+		writer = &xczWriter{file: output, input: reader, pkg: part.card, names: part.Files()}
+	}
 	err = writer.begin()
 	for _, file := range part.files {
 		if err != nil {
 			break
 		}
 		writer.startFile()
-		err = copyRange(ctx, writer.file, reader, file.offset, file.size, report)
+		err = copyRange(ctx, output, reader, file.offset, file.size, report)
 		if err == nil {
 			err = writer.endFile()
 		}
