@@ -125,7 +125,10 @@ Linux, Docker, NAS and Raspberry Pi.
 - Pause a compression and resume it later, from the same point in the middle of a file
 - Several files at once, with the threads and files measured on your own server to compress as fast as it can
 - Complete packs: the game, its latest update and its DLC in one NSP (or NSZ) to install at once, without the
-  delta fragments of the update; checked before the separate files are deleted, only if you choose it
+  delta fragments of the update, from a game page or for many games at once; checked before the separate files are
+  deleted, only if you choose it
+- Split multi-title files ("SuperNSP", packs made here or by other tools) back into one NSP or NSZ per game, update
+  and DLC, in bulk, without decompressing or changing what they hold
 - Space page: see how much old updates, duplicates and already compressed originals take, and free it safely
 - The same game from several regions (each with its own title ID): the copy to keep is suggested (your language,
   more languages, newer update, more DLC, not damaged, already compressed) and the others are deleted in one click
@@ -251,7 +254,9 @@ when the names are wrong, and you can compress and decompress them.
 | `title.keys` | Only to compress games whose NSP has no ticket. Dumped together with `prod.keys` |
 
 Put them in the data folder (with Docker, the folder mounted on `/usr/local/share/switch-library-manager-web`), or set
-another folder in **Settings**. You can also mount `prod.keys` read-only:
+another folder in **Settings**. You can also upload them from the browser, in **Settings › Library** or in the setup
+wizard: the app checks they are keys of a console, keeps them in its data folder (readable by itself only) and never
+shows them nor writes them to its log. You can also mount `prod.keys` read-only:
 `-v /path/to/prod.keys:/usr/local/share/switch-library-manager-web/prod.keys:ro`.
 
 The app looks for `prod.keys` in this order: the path in **Settings**, the data folder, then `~/.switch/prod.keys`.
@@ -329,9 +334,26 @@ The romfs of an update cannot be checked on its own (it patches the game), the r
 Compression runs in the background as a task, can be cancelled and uses at most half of the processors. Update
 patches are compressed too. Like nsz, an XCZ keeps only the secure partition, the one installers use.
 
-NSZ files can be decompressed back to NSP on the same page, for tools that do not read NSZ. The NSP is the original
-byte for byte. The format is the one of [nsz](https://github.com/nicoboss/nsz), written in Go for this project:
+NSZ files can be decompressed back to NSP on the same page, for tools that do not read NSZ. Every file inside the NSP
+(NCA, ticket, certificate) is the original byte for byte; the container around them can differ in a few kilobytes of
+padding, which installers do not read. The format is the one of [nsz](https://github.com/nicoboss/nsz), written in Go for this project:
 nothing else needs to be installed.
+
+#### Complete packs and splitting
+
+A **complete pack** is one NSP (or NSZ, when its files are compressed) with a game, its latest update and all its DLC,
+for installers that take several titles at once. Older updates and the delta fragments of the update are left out.
+Make one from the **Complete pack** button of a game page, or many at once in **Compress › Make complete packs**: tick
+the games and choose whether the separate files are deleted. The pack is written under a hidden name, every file in it
+is checked, and only then it gets its name (`Game [TitleID][v65536][+2 DLC] (pack).nsp`) and the separate files go.
+
+**Compress › Split multi-title files** does the opposite with the packs of this app and the "SuperNSP" files of other
+tools: each game, update and DLC gets its own NSP (or NSZ), named like the files of the shops, next to the original.
+Nothing is decompressed or changed: each title keeps its NCA files, its ticket and its certificate as they are, since
+each one carries its own metadata (CNMT). Every part is checked before the original is deleted, and the original stays
+when it holds anything no title claims. Splitting needs your `prod.keys`, to read that metadata.
+
+Both run as tasks that can be paused and resumed, also after a restart.
 
 ### Users and password protection
 
