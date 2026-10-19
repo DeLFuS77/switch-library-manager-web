@@ -112,9 +112,11 @@ func MergePackages(ctx context.Context, sources []string, target string, without
 			deltas = deltaFragmentNames(reader, pkg)
 		}
 		for _, file := range pkg.files {
-			// the same content once, also as an NCA in one package and an NCZ in another
-			key := file.name
-			if id := contentId(file.name); id != "" {
+			// the same content once, also as an NCA in one package and an NCZ in another; a
+			// ticket and its certificate share their rights ID, and an NCA and its XML their ID,
+			// but they are different files
+			key := strings.ToLower(file.name)
+			if id := contentId(file.name); id != "" && (strings.HasSuffix(key, ".nca") || strings.HasSuffix(key, ".ncz")) {
 				key = id
 			}
 			if seen[key] {

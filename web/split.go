@@ -1,0 +1,274 @@
+package web
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"net/http"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+
+	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
+)
+
+// Splitting turns a file that holds several titles (a "SuperNSP", or a complete pack) back
+// into one file per title: the game, each update and each DLC, as installers and tools that
+// take one title per file expect. Each part is written under a hidden name, checked whole,
+// and only then gets its name; the original goes last, if asked, and only when every NCA,
+// ticket and certificate it holds is in a part that was checked.
+
+const TASK_SPLIT = "split"
+
+const (
+	NOTE_SPLIT_FAILED = "The file could not be split, the original is kept."
+	NOTE_SPLIT_EXISTS = "A file with the name of a part already exists."
+	NOTE_SPLIT_KEPT   = "Some files of the original are in no part: the original is kept."
+	PHASE_SPLITTING   = "Splitting"
+)
+
+var errSplitExists = errors.New("a file with the name of a part already exists")
+
+// splitCandidates are the NSP and NSZ files of the library that hold several titles, as the
+// scan found them, biggest first.
+func (web *Web) splitCandidates() []CompressCandidate {
+	return web.derived("splitCandidates", func() any {
+		switchDB, localDB := web.state.get()
+		candidates := []CompressCandidate{}
+		if localDB == nil {
+			return candidates
+		}
+		titles := map[string]int{}
+		owner := map[string]*db.SwitchGameFiles{}
+		sizes := map[string]int64{}
+		add := func(local *db.SwitchGameFiles, file db.ExtendedFileInfo) {
+			switch strings.ToLower(filepath.Ext(file.FileName)) {
+			case ".nsp", ".nsz":
+			default:
+				return
+			}
+			if file.IsDir {
+				return
+			}
+			path := filepath.Join(file.BaseFolder, file.FileName)
+			titles[path]++
+			sizes[path] = file.Size
+			// the name of the game, when the file holds it
+			if owner[path] == nil || local.BaseExist && local.File.ExtendedInfo == file {
+				owner[path] = local
+			}
+		}
+		for _, local := range localDB.TitlesMap {
+			if local.BaseExist {
+				add(local, local.File.ExtendedInfo)
+			}
+			for _, update := range local.Updates {
+				add(local, update.ExtendedInfo)
+			}
+			for _, dlc := range local.Dlc {
+				add(local, dlc.ExtendedInfo)
+			}
+		}
+		for path, count := range titles {
+			if count < 2 {
+				continue
+			}
+			candidates = append(candidates, CompressCandidate{Path: path, Name: web.gameName(switchDB, owner[path], path), Kind: "Base", Size: sizes[path], Titles: count})
+		}
+		sort.Slice(candidates, func(i, j int) bool {
+			if candidates[i].Size == candidates[j].Size {
+				return candidates[i].Path < candidates[j].Path
+			}
+			return candidates[i].Size > candidates[j].Size
+		})
+		return candidates
+	}).([]CompressCandidate)
+}
+
+// gameName is the name of a game of the library, or the one in the name of its file.
+func (web *Web) gameName(switchDB *db.SwitchTitlesDB, local *db.SwitchGameFiles, path string) string {
+	name := ""
+	if local != nil && local.File.Metadata != nil {
+		var known *db.SwitchTitle
+		if prefix, err := db.TitleIDPrefix(local.File.Metadata.TitleId); err == nil && switchDB != nil {
+			known = switchDB.TitlesMap[prefix]
+		}
+		name = getLocalTitleName(known, local)
+	}
+	if name == "" {
+		name = strings.TrimSpace(db.ParseTitleNameFromFileName(filepath.Base(path)))
+	}
+	return name
+}
+
+// splitPartName is the name of the file of a part: the name of the title, its ID and its
+// version, like the files of the game shops.
+func (web *Web) splitPartName(part switchfs.SplitPart, game string) string {
+	switchDB, _ := web.state.get()
+	name := game
+	if part.Type == "DLC" && switchDB != nil {
+		if prefix, err := db.TitleIDPrefix(part.TitleId); err == nil && switchDB.TitlesMap[prefix] != nil {
+			dlcs := switchDB.TitlesMap[prefix].Dlc
+			for _, id := range []string{strings.ToUpper(part.TitleId), strings.ToLower(part.TitleId)} {
+				if dlc, ok := dlcs[id]; ok && usableName(dlc.Name) {
+					name = dlc.Name
+					break
+				}
+			}
+		}
+	}
+	extension := ".nsp"
+	if part.Compressed {
+		extension = ".nsz"
+	}
+	return fmt.Sprintf("%s [%s][v%d]%s", safeFileName(name), strings.ToUpper(part.TitleId), part.Version, extension)
+}
+
+// startSplit splits the files in the background, one after the other.
+func (web *Web) startSplit(paths []string, deleteOriginals bool) bool {
+	return web.startSplitBy(paths, deleteOriginals, TRIGGER_MANUAL)
+}
+
+func (web *Web) startSplitBy(paths []string, deleteOriginals bool, trigger string) bool {
+	names := map[string]string{}
+	for _, candidate := range web.splitCandidates() {
+		names[candidate.Path] = candidate.Name
+	}
+	// every file is copied into its parts, then the parts are checked
+	return web.runResumableTask(TASK_SPLIT, trigger, paths, 2, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		name := names[path]
+		if name == "" {
+			name = strings.TrimSpace(db.ParseTitleNameFromFileName(filepath.Base(path)))
+		}
+		return 0, web.splitFile(ctx, path, name, deleteOriginals, report)
+	})
+}
+
+// splitFile writes the parts of a file next to it. A part already there with the size it
+// would have was written before the app stopped: it is kept as it is.
+func (web *Web) splitFile(ctx context.Context, path string, game string, deleteOriginal bool, report func(step int64) func(int64, int64)) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	plan, err := switchfs.PlanSplit(path)
+	if err != nil {
+		return err
+	}
+	folder := filepath.Dir(path)
+	targets := make([]string, len(plan.Parts))
+	var need int64
+	for i, part := range plan.Parts {
+		targets[i] = filepath.Join(folder, web.splitPartName(part, game))
+		if existing, err := os.Stat(targets[i]); err == nil {
+			if existing.Size() != part.Size {
+				return fmt.Errorf("%w: %s", errSplitExists, filepath.Base(targets[i]))
+			}
+			continue
+		}
+		need += part.Size
+	}
+	release, err := web.reserveSpace(folder, need)
+	if err != nil {
+		return err
+	}
+	defer release()
+
+	checked := true
+	var done int64
+	for i, part := range plan.Parts {
+		target := targets[i]
+		if _, err := os.Stat(target); err == nil {
+			done += part.Size
+			continue
+		}
+		temporary := temporaryOf(path, target)
+		// left half written when the app stopped
+		os.Remove(temporary)
+		err := switchfs.WriteSplitPart(ctx, path, part, temporary, report(done))
+		if err == nil {
+			// every NCA must match its content ID
+			var written switchfs.FileCheck
+			written, err = switchfs.VerifyFile(ctx, temporary, report(info.Size()+done))
+			if err == nil {
+				checked = checked && fullyChecked(written)
+				if err = os.Rename(temporary, target); err == nil {
+					web.verifications().remember(target, written)
+				}
+			}
+		}
+		if err != nil {
+			os.Remove(temporary)
+			return err
+		}
+		done += part.Size
+	}
+	web.sugarLogger.Infof("Split %s into %d files", path, len(plan.Parts))
+	if !plan.Complete() {
+		web.warnRunningTask(NOTE_SPLIT_KEPT, filepath.Base(path)+": "+strings.Join(plan.Unclaimed, ", "))
+		return nil
+	}
+	if deleteOriginal && checked {
+		if err := os.Remove(path); err != nil {
+			return fmt.Errorf("could not delete the original: %w", err)
+		}
+	}
+	return nil
+}
+
+// warnRunningTask adds a note to the task on files that is running.
+func (web *Web) warnRunningTask(text string, detail string) {
+	web.compressor.mutex.Lock()
+	id := web.compressor.taskId
+	web.compressor.mutex.Unlock()
+	web.taskLog().Warn(id, text, detail)
+}
+
+func (web *Web) handleSplit() {
+	web.router.HandleFunc("/split/start", func(w http.ResponseWriter, r *http.Request) {
+		lang := web.requestLanguage(r)
+		if err := r.ParseForm(); err != nil {
+			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
+			return
+		}
+		if keys, _ := settings.SwitchKeys(); keys == nil || keys.GetKey("header_key") == "" {
+			writeGlobalError(w, http.StatusBadRequest, lang, "prod.keys is needed to split files.")
+			return
+		}
+		paths := selectedPaths(r, web.splitCandidates())
+		if len(paths) == 0 {
+			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to split.")
+			return
+		}
+		if !web.startSplit(paths, r.FormValue("delete_originals") == "true") {
+			writeGlobalError(w, http.StatusConflict, lang, "A compression is already running.")
+			return
+		}
+		writeJSON(w, http.StatusAccepted, map[string]any{"started": len(paths)})
+	}).Methods("POST")
+}
+
+// selectedPaths are the paths of the request among the candidates, each one once; with
+// rest=all, every candidate, also those the list does not show.
+func selectedPaths(r *http.Request, candidates []CompressCandidate) []string {
+	known := map[string]bool{}
+	requested := r.Form["path"]
+	for _, candidate := range candidates {
+		known[candidate.Path] = true
+		if r.FormValue("rest") == "all" {
+			requested = append(requested, candidate.Path)
+		}
+	}
+	paths := []string{}
+	seen := map[string]bool{}
+	for _, path := range requested {
+		if known[path] && !seen[path] {
+			seen[path] = true
+			paths = append(paths, path)
+		}
+	}
+	return paths
+}

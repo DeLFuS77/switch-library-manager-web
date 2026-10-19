@@ -11,6 +11,16 @@
 - The setup wizard can upload your keys too, in its step of the keys: the field then points to them and they are
   checked at once. Its step of the folders warns of a folder listed twice or inside another one when they are checked,
   instead of only when everything is saved at the end.
+- **Split multi-title files** (asked by switchsv on GBAtemp): Compress has a section that lists the NSP and NSZ files
+  holding several titles (a "SuperNSP" with a game, its updates and its DLC, or a complete pack) and turns them back
+  into one file per title, in bulk. Each title keeps its own Meta NCA, the NCAs it lists, its ticket and its
+  certificate, copied as they are: nothing is decrypted, decompressed or changed, an NSZ gives NSZ parts with the same
+  NCZ files, and the parts merged again give the original byte for byte. Every part is written under a hidden name
+  and checked whole before it gets its name; the original is deleted only if asked, once all its parts are checked,
+  and it is kept when some NCA of it belongs to no title.
+- **Complete packs in bulk**: Compress lists the games with an update or DLC in separate files and makes the pack of
+  each one chosen, or of all of them, as one task that shows its progress, can be paused and goes on after a restart,
+  like a compression. The pack of a game page is made the same way.
 
 ### Improvements
 
@@ -28,6 +38,8 @@
 - A compression (or decompression, conversion) resumed after a restart goes through its files by name too, as the new
   ones do since 1.46.0; it kept the biggest first, so one started before the update still took the largest games
   first. The file it was writing starts again in any case.
+- Complete packs kept only one of a ticket and its certificate, and left out the XML of each CNMT, as they share the
+  ID in their names: every file of the packages is in the pack now, only the NCAs found in two packages go once.
 
 ## 1.46.0
 

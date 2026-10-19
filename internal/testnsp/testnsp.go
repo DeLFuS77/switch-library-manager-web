@@ -174,3 +174,47 @@ func hfs0(names []string, payloads [][]byte) []byte {
 	}
 	return header
 }
+
+// Title is a title of a multi-title NSP: a game (0x80), an update (0x81) or a DLC (0x82).
+type Title struct {
+	Id      uint64
+	Type    byte
+	Version uint32
+	// the text the program NCA of the title is made of
+	Content string
+}
+
+// WriteMultiTitleNsp writes an NSP holding several titles, like a SuperNSP: for each one a
+// program NCA, a Meta NCA whose CNMT lists it, and a ticket and a certificate named after
+// its rights ID. Every NCA is named after its SHA-256, as the check of files expects.
+func WriteMultiTitleNsp(path string, titles []Title) ([]byte, error) {
+	names := []string{}
+	payloads := [][]byte{}
+	for _, title := range titles {
+		plain := make([]byte, 0x40000)
+		text := []byte(title.Content)
+		for i := range plain {
+			plain[i] = text[i%len(text)]
+		}
+		program := programNca(plain)
+		programSum := sha256.Sum256(program)
+
+		cnmt := make([]byte, 0x20+0x38)
+		binary.LittleEndian.PutUint64(cnmt[0:8], title.Id)
+		binary.LittleEndian.PutUint32(cnmt[8:12], title.Version)
+		cnmt[0xC] = title.Type
+		binary.LittleEndian.PutUint16(cnmt[0x10:0x12], 1)
+		copy(cnmt[0x20+0x20:0x20+0x30], programSum[:16])
+		cnmt[0x20+0x36] = 1
+		section := pfs0([]string{"Title.cnmt"}, [][]byte{cnmt})
+		section = append(section, make([]byte, (0x200-len(section)%0x200)%0x200)...)
+		meta := programNca(section)
+		metaSum := sha256.Sum256(meta)
+
+		rights := hex.EncodeToString(binary.BigEndian.AppendUint64(nil, title.Id)) + "0000000000000000"
+		names = append(names, hex.EncodeToString(metaSum[:16])+".cnmt.nca", hex.EncodeToString(programSum[:16])+".nca", rights+".tik", rights+".cert")
+		payloads = append(payloads, meta, program, []byte("ticket "+rights), []byte("certificate "+rights))
+	}
+	nsp := pfs0(names, payloads)
+	return nsp, os.WriteFile(path, nsp, 0o644)
+}
