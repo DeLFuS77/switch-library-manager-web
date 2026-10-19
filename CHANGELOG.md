@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Safari on iPhone could close the Library while going from page to page ("a problem repeatedly occurred"), after reloading it once: on phones and tablets the pages no longer fade into each other, which made the browser keep a picture of the whole page, and the marks of the cards have no blur behind them, which made a layer of its own for each card
+
 ## 1.50.0
 
 ### Features
