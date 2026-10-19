@@ -343,7 +343,7 @@ func init() {
 		"no folder yet": "папок пока нет",
 		"Check the folders": "Проверить папки",
 		"Your keys": "Твои ключи",
-		"With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Keys stay on your computer and are never uploaded.": "С prod.keys со своей консоли приложение читает содержимое файлов: узнаёт игры независимо от имени, находит повреждённые файлы и сжимает. Без них оно тоже работает — по именам файлов. Ключи остаются на компьютере и никуда не отправляются.",
+		"With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Write where they are on the server, or upload them from this computer: they stay on the server of the app and are never sent anywhere else.": "С prod.keys со своей консоли приложение читает содержимое файлов: узнаёт игры независимо от имени, находит повреждённые файлы и сжимает. Без них приложение всё равно работает, по именам файлов. Укажите, где они лежат на сервере, или загрузите их с этого компьютера: они остаются на сервере приложения и никуда больше не отправляются.",
 		"Empty: the data folder": "Пусто: папка данных",
 		"Check": "Проверить",
 		"Your console": "Твоя консоль",

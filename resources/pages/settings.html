@@ -19,10 +19,10 @@
 									{{t "The folder with your prod.keys (and optionally title.keys), or the path to the file. Empty: the data folder, then ~/.switch. Keys stay on the server of the app and are never sent anywhere else."}}
 								</div>
 								<div class="keys-upload mt-2" data-keys-upload>
-									<input type="file" class="visually-hidden" id="prodKeysFile" accept=".keys,.txt" data-keys-file="prod_keys" tabindex="-1">
-									<input type="file" class="visually-hidden" id="titleKeysFile" accept=".keys,.txt" data-keys-file="title_keys" tabindex="-1">
-									<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-keys-pick="prodKeysFile"><span class="bi bi-upload me-1" aria-hidden="true"></span>{{t "Upload my prod.keys"}}</button>
-									<button type="button" class="btn btn-sm btn-link" data-keys-pick="titleKeysFile">{{t "Add title.keys (optional)"}}</button>
+									<input type="file" class="visually-hidden" accept=".keys,.txt" data-keys-file="prod_keys" tabindex="-1" aria-hidden="true">
+									<input type="file" class="visually-hidden" accept=".keys,.txt" data-keys-file="title_keys" tabindex="-1" aria-hidden="true">
+									<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-keys-pick="prod_keys"><span class="bi bi-upload me-1" aria-hidden="true"></span>{{t "Upload my prod.keys"}}</button>
+									<button type="button" class="btn btn-sm btn-link" data-keys-pick="title_keys">{{t "Add title.keys (optional)"}}</button>
 									<span class="small text-body-secondary" data-keys-chosen aria-live="polite"></span>
 									<button type="button" class="btn btn-sm btn-primary rounded-pill" data-keys-send hidden><span class="bi bi-check-lg me-1" aria-hidden="true"></span>{{t "Save the keys"}}</button>
 								</div>

@@ -154,6 +154,7 @@ func (web *Web) HandleKeysUpload() {
 		if !web.Rescan(TRIGGER_SETTINGS) {
 			message = translate(lang, "Your keys are saved in the data folder of the app. They will be used by the next synchronization.")
 		}
-		writeJSON(w, http.StatusOK, SuccessResponse{StrongMessage: translate(lang, "Success!"), Message: message})
+		// the folder of the keys now, for the field of the wizard
+		writeJSON(w, http.StatusOK, map[string]string{"strongMessage": translate(lang, "Success!"), "message": message, "folder": web.dataFolder})
 	}).Methods("POST")
 }
