@@ -68,11 +68,12 @@
 					<ul class="item-list">
 						{{- range $i, $f := $g.Shown}}
 						<li class="item-row item-row-check">
-							<input class="form-check-input" type="checkbox" name="path" value="{{$f.Path}}" data-size="{{$f.Size}}" id="{{$g.Id}}{{$i}}"{{if $f.Deletable}} checked{{else}} disabled{{end}}>
+							<input class="form-check-input" type="checkbox" name="path" value="{{$f.Path}}" data-size="{{$f.Size}}" id="{{$g.Id}}{{$i}}"{{if $f.Deletable}} checked{{else if $f.OnRequest}} data-ask="{{t "The copy that is kept, %v, was checked without errors but not whole. Delete %v anyway? It cannot be undone." (fileBase $f.KeptBy) (fileBase $f.Path)}}"{{else}} disabled{{end}}>
 							<label class="item-main" for="{{$g.Id}}{{$i}}">
 								<span class="item-name d-block">{{$f.Name}}</span>
 								<span class="item-meta"><span class="font-monospace text-break" title="{{$f.Path}}"><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{fileBase $f.Path}}</span>{{with $f.KeptBy}}<span class="font-monospace text-break text-success-emphasis" title="{{.}}"><span class="bi bi-check2-circle me-1" aria-hidden="true"></span>{{fileBase .}}</span>{{end}}</span>
-								{{- with $f.Note}}<span class="chip chip-warning mt-1"><span class="bi bi-shield-exclamation" aria-hidden="true"></span>{{t .}}</span>{{end}}
+								{{- if $f.OnRequest}}<span class="chip chip-warning mt-1"><span class="bi bi-shield-exclamation" aria-hidden="true"></span>{{t "The copy that is kept was checked without errors, but not whole: an update needs its game for that. Select this one to delete it anyway."}}</span>
+								{{- else}}{{with $f.Note}}<span class="chip chip-warning mt-1"><span class="bi bi-shield-exclamation" aria-hidden="true"></span>{{t .}}</span>{{end}}{{end}}
 							</label>
 							<span class="item-size">{{formatSize $f.Size}}</span>
 						</li>

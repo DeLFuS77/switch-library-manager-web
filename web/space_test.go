@@ -345,3 +345,49 @@ func TestSpaceNeverOffersBothCopies(t *testing.T) {
 		t.Fatalf("the original goes, the compressed copy stays: %+v", compressed)
 	}
 }
+
+// A duplicate whose kept copy was checked without errors but not whole (an update) is not
+// deleted with the others, but the user can choose it on its own; Organize and the
+// automations still keep it.
+func TestDuplicateOfAPartlyCheckedCopyOnRequest(t *testing.T) {
+	web, dir := spaceWeb(t)
+	duplicate := filepath.Join(dir, "Other [0100000000020000][v0] (copy).nsp")
+	kept := filepath.Join(dir, "Other [0100000000020000][v0].nsp")
+	info, _ := os.Stat(kept)
+	web.verifications().set(kept, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Partial: true, Checked: time.Now(), Checker: verifyChecker})
+	file := spaceGroup(web.spaceGroups(), SPACE_DUPLICATES).Files[0]
+	if file.Deletable || !file.OnRequest || file.Note != NOTE_SPACE_KEPT_PARTIAL {
+		t.Fatalf("on request only: %+v", file)
+	}
+	_, localDB := web.state.get()
+	for info, skipped := range localDB.Skipped {
+		if skipped.ReasonCode == db.REASON_DUPLICATE && web.cleanupRefusal(info, skipped) != NOTE_SPACE_KEPT_PARTIAL {
+			t.Fatal("Organize and the automations keep it")
+		}
+	}
+
+	page := httptest.NewRecorder()
+	web.spacePreparing.Store(false)
+	for deadline := time.Now().Add(10 * time.Second); !web.spaceReady() && time.Now().Before(deadline); {
+		web.router.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/space.html", nil))
+		time.Sleep(20 * time.Millisecond)
+	}
+	web.router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/space.html", nil))
+	if body := page.Body.String(); !strings.Contains(body, "data-ask=") {
+		t.Fatal("its box asks before it is chosen")
+	}
+
+	// "the rest of the group" does not take it, only its own path
+	if response := postForm(web, "/space/clean", url.Values{"rest": {SPACE_DUPLICATES}}); response.Code != http.StatusBadRequest {
+		t.Fatalf("not taken with the rest of the group: %d", response.Code)
+	}
+	if response := postForm(web, "/space/clean", url.Values{"path": {duplicate}}); response.Code != http.StatusOK {
+		t.Fatalf("chosen: %d %s", response.Code, response.Body.String())
+	}
+	if _, err := os.Stat(duplicate); err == nil {
+		t.Fatal("deleted once chosen")
+	}
+	if _, err := os.Stat(kept); err != nil {
+		t.Fatal("the kept copy stays")
+	}
+}

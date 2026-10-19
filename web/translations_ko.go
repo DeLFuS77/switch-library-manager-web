@@ -250,6 +250,8 @@ func init() {
 		"Files compressed":   "압축한 파일",
 		"Preparing the list of files to check...":                          "확인할 파일 목록을 준비하는 중...",
 		"The copy that is kept could not be checked whole: keep this one.": "남길 사본을 완전히 확인할 수 없었습니다. 이 파일을 유지하세요.",
+		"The copy that is kept was checked without errors, but not whole: an update needs its game for that. Select this one to delete it anyway.": "남기는 사본은 오류 없이 확인되었지만 전체는 아니에요. 업데이트는 전체 확인에 게임 본편이 필요해요. 그래도 삭제하려면 이 항목을 선택하세요.",
+		"The copy that is kept, %v, was checked without errors but not whole. Delete %v anyway? It cannot be undone.":                              "남기는 사본 %v은(는) 오류 없이 확인되었지만 전체는 아니에요. 그래도 %v을(를) 삭제할까요? 되돌릴 수 없어요.",
 		"%v files at once":          "동시에 %v개 파일",
 		"%v threads":                "%v개 스레드",
 		"Total":                     "전체",

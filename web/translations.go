@@ -252,6 +252,8 @@ var translations = map[string]map[string]string{
 		"Files compressed":   "Archivos comprimidos",
 		"Preparing the list of files to check...":                          "Preparando la lista de archivos a comprobar...",
 		"The copy that is kept could not be checked whole: keep this one.": "La copia que se queda no se ha podido comprobar entera: conserva esta.",
+		"The copy that is kept was checked without errors, but not whole: an update needs its game for that. Select this one to delete it anyway.": "La copia que se queda se comprobó sin errores, pero no entera: una actualización necesita su juego para eso. Selecciona esta para borrarla igualmente.",
+		"The copy that is kept, %v, was checked without errors but not whole. Delete %v anyway? It cannot be undone.":                              "La copia que se queda, %v, se comprobó sin errores pero no entera. ¿Borrar %v igualmente? No se puede deshacer.",
 		"%v files at once":          "%v archivos a la vez",
 		"%v threads":                "%v hilos",
 		"Total":                     "Total",

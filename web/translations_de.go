@@ -250,6 +250,8 @@ func init() {
 		"Files compressed":   "Komprimierte Dateien",
 		"Preparing the list of files to check...":                          "Liste der zu prüfenden Dateien wird erstellt...",
 		"The copy that is kept could not be checked whole: keep this one.": "Die Kopie, die bleibt, konnte nicht vollständig geprüft werden: Behalte diese.",
+		"The copy that is kept was checked without errors, but not whole: an update needs its game for that. Select this one to delete it anyway.": "Die Kopie, die bleibt, wurde ohne Fehler geprüft, aber nicht vollständig: Ein Update braucht dafür sein Spiel. Wähle diese aus, um sie trotzdem zu löschen.",
+		"The copy that is kept, %v, was checked without errors but not whole. Delete %v anyway? It cannot be undone.":                              "Die Kopie, die bleibt, %v, wurde ohne Fehler, aber nicht vollständig geprüft. %v trotzdem löschen? Das lässt sich nicht rückgängig machen.",
 		"%v files at once":          "%v Dateien gleichzeitig",
 		"%v threads":                "%v Threads",
 		"Total":                     "Gesamt",
