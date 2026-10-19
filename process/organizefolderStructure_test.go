@@ -425,3 +425,30 @@ func TestDeleteEmptyFolders(t *testing.T) {
 		t.Fatalf("operations: %+v", ops.operations[moves:])
 	}
 }
+
+// The folders left empty go with the parents they leave empty, up to the library folder, which
+// stays; a folder with a hidden file stays, and nothing outside the library is touched.
+func TestRemoveEmptyFolders(t *testing.T) {
+	library := t.TempDir()
+	outside := t.TempDir()
+	for _, dir := range []string{"Game/Updates", "Game/DLC", "Other/DLC", "Kept"} {
+		os.MkdirAll(filepath.Join(library, dir), 0o755)
+	}
+	os.WriteFile(filepath.Join(library, "Kept", ".DS_Store"), []byte("x"), 0o644)
+	os.MkdirAll(filepath.Join(outside, "empty"), 0o755)
+	removed := RemoveEmptyFolders([]string{
+		filepath.Join(library, "Game", "Updates"), filepath.Join(library, "Game", "DLC"),
+		filepath.Join(library, "Kept"), filepath.Join(outside, "empty"), library,
+	}, []string{library})
+	if len(removed) != 3 {
+		t.Fatalf("Game/Updates, Game/DLC and Game: %v", removed)
+	}
+	for _, kept := range []string{"", "Other/DLC", "Kept"} {
+		if _, err := os.Stat(filepath.Join(library, kept)); err != nil {
+			t.Errorf("%q stays", kept)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(outside, "empty")); err != nil {
+		t.Error("nothing outside the library is deleted")
+	}
+}

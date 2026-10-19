@@ -32,6 +32,9 @@
 
 ### Fixes
 
+- A complete pack that deletes the separate files deletes the folders they leave empty too (an Updates or DLC
+  folder of the game), when "Delete the empty folders" of Organize is on; the library folder and anything outside it
+  always stay.
 - The Tasks link of the menu shows how many tasks are running, in violet, next to the red count of the failed ones;
   with two tasks running it showed only the red 1 of a task that had failed, which looked like a count that did not
   go up.
