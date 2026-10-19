@@ -6,6 +6,7 @@
 // Usage: node scripts/save-check.mjs [address of an app that is not in demo mode]
 // Needs Chrome (or Chromium, or Edge); set CHROME to its path if it is not found.
 import { spawn } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -104,7 +105,7 @@ const CHECKS = [
 // must show it. The first one creates an administrator, which logs the browser in for the
 // ones that follow.
 const USER = 'savecheck';
-const PASSWORD = 'Sv-' + Math.random().toString(36).slice(2) + '-' + Date.now().toString(36);
+const PASSWORD = 'Sv-' + randomBytes(12).toString('hex');
 const RELOADS = [
 	{
 		name: 'users.html: require login with a first administrator',
