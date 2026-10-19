@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- A compression (or decompression, conversion) resumed after a restart goes through its files by name too, as the new
+  ones do since 1.46.0; it kept the biggest first, so one started before the update still took the largest games
+  first. The file it was writing starts again in any case.
+
 ## 1.46.0
 
 ### Improvements
