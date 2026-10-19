@@ -343,7 +343,7 @@ func init() {
 		"no folder yet":     "nessuna cartella",
 		"Check the folders": "Controlla le cartelle",
 		"Your keys":         "Le tue chiavi",
-		"With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Keys stay on your computer and are never uploaded.": "Con le prod.keys estratte dalla tua console, l'app legge il contenuto dei file: riconosce i giochi qualunque sia il nome, trova i file danneggiati e comprime. Senza funziona comunque, dai nomi dei file. Le chiavi restano sul tuo computer e non vengono mai caricate.",
+		"With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Write where they are on the server, or upload them from this computer: they stay on the server of the app and are never sent anywhere else.": "Con le prod.keys estratte dalla tua console, l'app legge il contenuto dei file: riconosce i giochi qualunque sia il nome, trova i file danneggiati e comprime. Senza funziona comunque, dai nomi dei file. Scrivi dove si trovano sul server, o caricale da questo computer: restano sul server dell'app e non vengono mai inviate altrove.",
 		"Empty: the data folder": "Vuoto: la cartella dei dati",
 		"Check":                  "Controlla",
 		"Your console":           "La tua console",

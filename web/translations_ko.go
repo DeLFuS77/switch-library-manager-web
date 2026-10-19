@@ -343,7 +343,7 @@ func init() {
 		"no folder yet":     "아직 폴더 없음",
 		"Check the folders": "폴더 확인",
 		"Your keys":         "내 키",
-		"With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Keys stay on your computer and are never uploaded.": "자신의 콘솔에서 추출한 prod.keys가 있으면 앱이 파일 내용을 읽습니다. 이름과 상관없이 게임을 인식하고, 손상된 파일을 찾고, 압축합니다. 없어도 파일 이름으로 작동합니다. 키는 컴퓨터에만 있고 업로드되지 않습니다.",
+		"With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Write where they are on the server, or upload them from this computer: they stay on the server of the app and are never sent anywhere else.": "자신의 콘솔에서 추출한 prod.keys가 있으면 앱이 파일 내용을 읽습니다. 없어도 파일 이름으로 계속 동작합니다. 서버에서의 위치를 적거나 이 컴퓨터에서 올리세요. 키는 앱 서버에 남고 다른 곳으로 보내지지 않습니다.",
 		"Empty: the data folder": "비워 두기: 데이터 폴더",
 		"Check":                  "확인",
 		"Your console":           "내 콘솔",

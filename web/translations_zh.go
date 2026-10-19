@@ -343,7 +343,7 @@ func init() {
 		"no folder yet":     "还没有文件夹",
 		"Check the folders": "检查文件夹",
 		"Your keys":         "你的密钥",
-		"With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Keys stay on your computer and are never uploaded.": "有了从你自己的主机导出的 prod.keys，应用就能读取文件内容：无论文件名如何都能识别游戏、找出损坏的文件并进行压缩。没有密钥也能工作，只是依据文件名。密钥只保存在你的电脑上，绝不会上传。",
+		"With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Write where they are on the server, or upload them from this computer: they stay on the server of the app and are never sent anywhere else.": "有了从你自己的主机导出的 prod.keys，应用就能读取文件内容：无论文件名如何都能识别游戏、找出损坏的文件并进行压缩。没有密钥也能根据文件名工作。填写它们在服务器上的位置,或从这台电脑上传:密钥保存在应用的服务器上,不会发送到其他任何地方。",
 		"Empty: the data folder": "留空：数据文件夹",
 		"Check":                  "检查",
 		"Your console":           "你的主机",

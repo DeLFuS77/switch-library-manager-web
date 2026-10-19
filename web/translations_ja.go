@@ -343,7 +343,7 @@ func init() {
 		"no folder yet":     "まだフォルダーがありません",
 		"Check the folders": "フォルダーを確認",
 		"Your keys":         "あなたのキー",
-		"With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Keys stay on your computer and are never uploaded.": "自分の本体から取り出した prod.keys があれば、ファイルの中身を読み取れます。名前に関係なくゲームを認識し、壊れたファイルを見つけ、圧縮もできます。なくてもファイル名から動作します。キーはパソコンに残り、アップロードされることはありません。",
+		"With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Write where they are on the server, or upload them from this computer: they stay on the server of the app and are never sent anywhere else.": "自分の本体から取り出した prod.keys があれば、ファイルの中身を読み取れます。なくてもファイル名から動作します。サーバー上の場所を入力するか、このパソコンからアップロードしてください。キーはアプリのサーバーに保存され、他の場所には送信されません。",
 		"Empty: the data folder": "空欄: データフォルダー",
 		"Check":                  "確認",
 		"Your console":           "あなたの本体",

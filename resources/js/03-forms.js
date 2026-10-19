@@ -16,46 +16,55 @@ function formState(form) {
 	return JSON.stringify(values);
 }
 
-// Settings > Library: the prod.keys (and title.keys) of the console are sent to the server of the
-// app, which checks them and keeps them in its data folder; the page then shows the keys found.
-function initKeysUpload() {
-	const box = document.querySelector('[data-keys-upload]');
-	if (!box) {
+// Settings > Library and the wizard: the prod.keys (and title.keys) of the console are sent to the
+// server of the app, which checks them and keeps them in its data folder; saved() is told where.
+function setupKeysUpload(box, saved) {
+	if (!box || box.dataset.keysReady) {
 		return;
 	}
+	box.dataset.keysReady = 'true';
 	const chosen = box.querySelector('[data-keys-chosen]');
 	const send = box.querySelector('[data-keys-send]');
 	const inputs = [...box.querySelectorAll('[data-keys-file]')];
+	const input = name => box.querySelector(`[data-keys-file="${name}"]`);
 	const update = () => {
-		const names = inputs.filter(input => input.files.length).map(input => input.files[0].name);
-		chosen.textContent = names.join(' · ');
-		send.hidden = !box.querySelector('#prodKeysFile').files.length;
+		chosen.textContent = inputs.filter(file => file.files.length).map(file => file.files[0].name).join(' · ');
+		send.hidden = !input('prod_keys').files.length;
 	};
 	box.querySelectorAll('[data-keys-pick]').forEach(button => {
-		button.addEventListener('click', () => document.getElementById(button.dataset.keysPick).click());
+		button.addEventListener('click', () => input(button.dataset.keysPick).click());
 	});
-	inputs.forEach(input => input.addEventListener('change', update));
+	inputs.forEach(file => file.addEventListener('change', update));
 	send.addEventListener('click', () => {
 		const data = new FormData();
-		inputs.filter(input => input.files.length).forEach(input => data.append(input.dataset.keysFile, input.files[0]));
+		inputs.filter(file => file.files.length).forEach(file => data.append(file.dataset.keysFile, file.files[0]));
 		send.disabled = true;
 		fetch('/settings/keys', { method: 'POST', body: data })
 			.then(response => response.json().then(json => ({ ok: response.ok, json })))
 			.then(({ ok, json }) => {
+				send.disabled = false;
 				if (!ok) {
 					const error = json.globalError || {};
 					showToast('alert-danger', 'bi-exclamation-triangle-fill', error.strongMessage || t('Error!'), error.message || t('Could not reach the server.'));
-					send.disabled = false;
 					return;
 				}
 				showToast('alert-success', 'bi-check-circle-fill', json.strongMessage, json.message);
-				setTimeout(() => window.location.reload(), 1500);
+				inputs.forEach(file => {
+					file.value = '';
+				});
+				update();
+				saved(json);
 			})
 			.catch(() => {
-				showToast('alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), t('Could not reach the server.'));
 				send.disabled = false;
+				showToast('alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), t('Could not reach the server.'));
 			});
 	});
+}
+
+// on the Settings page the new state of the keys shows after a reload
+function initKeysUpload() {
+	setupKeysUpload(document.querySelector('#settingsForm [data-keys-upload]'), () => setTimeout(() => window.location.reload(), 1500));
 }
 
 function initSaveWhenChanged() {

@@ -345,7 +345,7 @@ var translations = map[string]map[string]string{
 		"no folder yet":     "aún ninguna carpeta",
 		"Check the folders": "Comprobar las carpetas",
 		"Your keys":         "Tus claves",
-		"With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Keys stay on your computer and are never uploaded.": "Con las prod.keys volcadas de tu propia consola, la app lee el contenido de tus archivos: reconoce los juegos se llamen como se llamen, encuentra archivos dañados y comprime. Sin ellas sigue funcionando, a partir de los nombres de archivo. Las claves se quedan en tu ordenador y nunca se suben.",
+		"With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Write where they are on the server, or upload them from this computer: they stay on the server of the app and are never sent anywhere else.": "Con las prod.keys volcadas de tu propia consola, la app lee el contenido de tus archivos: reconoce los juegos se llamen como se llamen, encuentra archivos dañados y comprime. Sin ellas sigue funcionando, a partir de los nombres de archivo. Escribe dónde están en el servidor, o súbelas desde este ordenador: se quedan en el servidor de la app y nunca se envían a ningún otro sitio.",
 		"Empty: the data folder": "Vacío: la carpeta de datos",
 		"Check":                  "Comprobar",
 		"Your console":           "Tu consola",

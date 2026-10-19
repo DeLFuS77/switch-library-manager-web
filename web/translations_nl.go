@@ -343,7 +343,7 @@ func init() {
 		"no folder yet":     "nog geen map",
 		"Check the folders": "Mappen controleren",
 		"Your keys":         "Je sleutels",
-		"With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Keys stay on your computer and are never uploaded.": "Met de prod.keys van je eigen console leest de app de inhoud van je bestanden: hij herkent games ongeacht hun naam, vindt beschadigde bestanden en comprimeert. Zonder sleutels werkt hij ook, op basis van de bestandsnamen. De sleutels blijven op je computer en worden nooit geüpload.",
+		"With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Write where they are on the server, or upload them from this computer: they stay on the server of the app and are never sent anywhere else.": "Met de prod.keys van je eigen console leest de app de inhoud van je bestanden: hij herkent games ongeacht hun naam, vindt beschadigde bestanden en comprimeert. Zonder werkt het nog steeds, op basis van de bestandsnamen. Geef aan waar ze op de server staan, of upload ze vanaf deze computer: ze blijven op de server van de app en worden nergens anders heen gestuurd.",
 		"Empty: the data folder": "Leeg: de gegevensmap",
 		"Check":                  "Controleren",
 		"Your console":           "Je console",
