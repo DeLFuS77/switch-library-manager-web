@@ -83,19 +83,21 @@ type SettingsForm struct {
 	NotifyWishlist        bool   `in:"form=notify_wishlist"`
 	NotifyCheats          bool   `in:"form=notify_cheats"`
 	NotifyNewGames        bool   `in:"form=notify_new_games"`
+	NotifyTaskFailures    bool   `in:"form=notify_task_failures"`
 }
 
 func (f *SettingsForm) notificationOptions() settings.NotificationOptions {
 	return settings.NotificationOptions{
-		DiscordWebhookUrl: strings.TrimSpace(f.DiscordWebhookUrl),
-		TelegramBotToken:  strings.TrimSpace(f.TelegramBotToken),
-		TelegramChatId:    strings.TrimSpace(f.TelegramChatId),
-		WebhookUrl:        strings.TrimSpace(f.WebhookUrl),
-		NotifyUpdates:     f.NotifyUpdates,
-		NotifyDlc:         f.NotifyDlc,
-		NotifyWishlist:    f.NotifyWishlist,
-		NotifyCheats:      f.NotifyCheats,
-		NotifyNewGames:    f.NotifyNewGames,
+		DiscordWebhookUrl:  strings.TrimSpace(f.DiscordWebhookUrl),
+		TelegramBotToken:   strings.TrimSpace(f.TelegramBotToken),
+		TelegramChatId:     strings.TrimSpace(f.TelegramChatId),
+		WebhookUrl:         strings.TrimSpace(f.WebhookUrl),
+		NotifyUpdates:      f.NotifyUpdates,
+		NotifyDlc:          f.NotifyDlc,
+		NotifyWishlist:     f.NotifyWishlist,
+		NotifyCheats:       f.NotifyCheats,
+		NotifyNewGames:     f.NotifyNewGames,
+		NotifyTaskFailures: f.NotifyTaskFailures,
 	}
 }
 

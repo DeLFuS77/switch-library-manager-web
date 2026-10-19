@@ -889,6 +889,7 @@ func (web *Web) taskLog() *TaskLog {
 		if web.tasks == nil {
 			web.tasks = loadTaskLog(web.dataFolder)
 		}
+		web.tasks.onFailed = web.notifyTaskFailed
 	})
 	return web.tasks
 }

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Notifications for failed tasks: a compression, a file check, a synchronization or any other task that fails is told by Discord, Telegram or the webhook, with its reason. On by default, with a switch in Settings and in the setup assistant; what you cancel is not told
+
 ### Improvements
 
 - Library: a filter lists the games whose version needs a newer firmware than the one of your console (set in Settings), with how many they are; it shows when there are some
