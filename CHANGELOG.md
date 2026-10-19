@@ -4,9 +4,10 @@
 
 ### Improvements
 
-- Organize names a cartridge with several games after all of them, like Alphadia Genesis 2 + Asdivine Cross + 2 more [01005CE015080000][4 games].xcz, in a folder of its own, instead of as the update of the game it met last
 - Cheats for versions the database does not know yet: the build ID is read from the game itself (a few kilobytes of the file, kept while the file stays the same), so newer updates find their cheats too
 - **With cheats for another version**, a new choice in Filters > Other: the games with cheats only for other versions than the one you have
+- An old update with cheats is kept when the newer one has none, so the game can be installed at the version its cheats are for: in Delete old updates, the automations and Space. The switch is in Settings (next to the cheats), in the setup wizard and in Organize > Cleanup; turned off, a warning says these updates will be deleted
+- Organize names a cartridge with several games after all of them, like Alphadia Genesis 2 + Asdivine Cross + 2 more [01005CE015080000][4 games].xcz, in a folder of its own, instead of as the update of the game it met last
 - The bar of a long task shows that it started from the first megabytes, not only from its first whole percent
 - Under the total of a task that works on several files, the space saved so far (compressions) instead of the name of a file its lane already shows
 

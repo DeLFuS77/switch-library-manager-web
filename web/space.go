@@ -214,6 +214,9 @@ func (web *Web) spaceGroups() []SpaceGroup {
 			if note := web.newerDamaged(entry.KeptBy); note != "" {
 				entry.Deletable = false
 				entry.Note = note
+			} else if note := web.keptForCheats(file); note != "" {
+				entry.Deletable = false
+				entry.Note = note
 			}
 			add(SPACE_OLD_UPDATES, entry)
 		case db.REASON_DUPLICATE:
@@ -325,7 +328,10 @@ func (web *Web) cleanupRefusal(file db.ExtendedFileInfo, skipped db.SkippedFile)
 			return entry.Note
 		}
 	case db.REASON_OLD_UPDATE:
-		return web.newerDamaged(kept)
+		if note := web.newerDamaged(kept); note != "" {
+			return note
+		}
+		return web.keptForCheats(file)
 	}
 	return ""
 }
