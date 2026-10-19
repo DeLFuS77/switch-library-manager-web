@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- Notifications for new cheats: when the cheats database gets cheats for the version of a game you have, it is told by Discord, Telegram or the webhook, like new updates and DLC. On by default, with a switch in Settings and in the setup assistant. The games that have cheats already are only recorded the first time, not sent all at once
+
+### Development
+
+- The tests press the save buttons of Settings and Organize in a real browser and check that the server kept the new value
+
 ## 1.49.3
 
 ### Fixes

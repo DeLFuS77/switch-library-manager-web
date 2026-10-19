@@ -1038,6 +1038,8 @@ func init() {
 		"Notifications":                                       "通知",
 		"Notify games added to my folders":                    "フォルダーに追加されたゲームを通知",
 		"Notify my wishlist":                                  "ウィッシュリストを通知",
+		"Notify new cheats for my games":                      "自分のゲームの新しいチートを通知",
+		"Cheats for %v (%v, the version you have)":            "%v のチート(%v、お持ちのバージョン)",
 		"Notify new DLC":                                      "新しいDLCを通知",
 		"Notify new updates":                                  "新しい更新データを通知",
 		"Off":                                                 "オフ",

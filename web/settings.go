@@ -81,6 +81,7 @@ type SettingsForm struct {
 	NotifyUpdates         bool   `in:"form=notify_updates"`
 	NotifyDlc             bool   `in:"form=notify_dlc"`
 	NotifyWishlist        bool   `in:"form=notify_wishlist"`
+	NotifyCheats          bool   `in:"form=notify_cheats"`
 	NotifyNewGames        bool   `in:"form=notify_new_games"`
 }
 
@@ -93,6 +94,7 @@ func (f *SettingsForm) notificationOptions() settings.NotificationOptions {
 		NotifyUpdates:     f.NotifyUpdates,
 		NotifyDlc:         f.NotifyDlc,
 		NotifyWishlist:    f.NotifyWishlist,
+		NotifyCheats:      f.NotifyCheats,
 		NotifyNewGames:    f.NotifyNewGames,
 	}
 }
