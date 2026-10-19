@@ -22,10 +22,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.50.0
-- Compressions show their files again in Tasks (broken since 1.49.0), games can be uploaded from the browser, and new cheats are notified
-### 1.49.3
-- Settings and Organize save again (broken since 1.49.0), and the small covers of Tasks no longer blink</Changes>
+  <Changes>### 1.50.1
+- Lighter Library pages on phones, which Safari on iPhone could close while going from page to page
+### 1.50.0
+- Compressions show their files again in Tasks (broken since 1.49.0), games can be uploaded from the browser, and new cheats are notified</Changes>
   <Date>2026-10-19</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>

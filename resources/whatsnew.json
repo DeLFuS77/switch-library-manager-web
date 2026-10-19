@@ -1,4 +1,39 @@
 {
+  "1.50.1": {
+    "en": [
+      "Lighter Library pages on phones and tablets: Safari on iPhone could close them while going from page to page (\"a problem repeatedly occurred\")."
+    ],
+    "es": [
+      "Páginas de la Biblioteca más ligeras en móviles y tabletas: Safari en el iPhone podía cerrarlas al pasar de página («ha generado problemas repetidamente»)."
+    ],
+    "de": [
+      "Leichtere Bibliotheksseiten auf Handys und Tablets: Safari auf dem iPhone konnte sie beim Blättern schließen („wiederholt ein Problem aufgetreten“)."
+    ],
+    "fr": [
+      "Pages de la Bibliothèque plus légères sur téléphones et tablettes : Safari sur iPhone pouvait les fermer en changeant de page (« un problème est survenu à plusieurs reprises »)."
+    ],
+    "it": [
+      "Pagine della Libreria più leggere su telefoni e tablet: Safari su iPhone poteva chiuderle cambiando pagina («si è verificato ripetutamente un problema»)."
+    ],
+    "pt": [
+      "Páginas da Biblioteca mais leves em telemóveis e tablets: o Safari no iPhone podia fechá-las ao mudar de página («ocorreu um problema repetidamente»)."
+    ],
+    "nl": [
+      "Lichtere bibliotheekpagina’s op telefoons en tablets: Safari op de iPhone kon ze sluiten bij het bladeren („er is herhaaldelijk een probleem opgetreden”)."
+    ],
+    "ru": [
+      "Более лёгкие страницы «Библиотеки» на телефонах и планшетах: Safari на iPhone мог закрывать их при перелистывании («неоднократно возникала проблема»)."
+    ],
+    "ja": [
+      "スマートフォンとタブレットでライブラリのページを軽くしました。iPhoneのSafariがページ送り中に閉じることがありました(「問題が繰り返し発生しました」)。"
+    ],
+    "ko": [
+      "휴대폰과 태블릿에서 라이브러리 페이지를 가볍게 했어요. iPhone의 Safari가 페이지를 넘길 때 닫힐 수 있었어요(\"문제가 반복적으로 발생함\")."
+    ],
+    "zh": [
+      "手机和平板上的游戏库页面更轻量:iPhone 上的 Safari 翻页时可能会关闭页面(“反复出现问题”)。"
+    ]
+  },
   "1.50.0": {
     "en": [
       "Tasks shows again the files a compression works on, with their covers, steps and sizes: since 1.49.0 only the total bar was left once a file had saved something.",
