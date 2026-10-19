@@ -300,3 +300,22 @@ func TestNavShowsRunningAndFailedTasks(t *testing.T) {
 		}
 	}
 }
+
+// A compression that saved something already: the size saved is an int64, which once stopped
+// the drawing of the card halfway, without its files nor its sizes.
+func TestCompressionCardWithSomethingSaved(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleTasks()
+	id := web.taskLog().Start(TASK_COMPRESS, TRIGGER_MANUAL)
+	web.taskLog().ProgressFiles(id, 21117, 705567, "Game.nsp", 3, 294, []TaskLane{{Name: "Game.nsp", Done: 2 << 30, Total: 4 << 30, Phase: "Compressing", Step: 2, Steps: 3}})
+	web.taskLog().SetCompressResult(id, 2, 1326285249)
+	page := httptest.NewRecorder()
+	web.router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/tasks.html?part=list", nil))
+	body := page.Body.String()
+	for _, want := range []string{"bi-piggy-bank", "task-lane", "Game.nsp", "%"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("the card shows %q", want)
+		}
+	}
+}

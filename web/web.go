@@ -398,11 +398,14 @@ var funcMap = template.FuncMap{
 	"fileDir":    fileDir,
 	"shortPaths": shortPaths,
 	"eq":         templateEq,
-	"gt": func(a, b int) bool {
-		return a > b
+	// any integers: a size (int64) against 0 stopped the page halfway with "wrong type"
+	"gt": func(a, b any) (bool, error) {
+		x, y, err := templateInts(a, b)
+		return x > y, err
 	},
-	"lt": func(a, b int) bool {
-		return a < b
+	"lt": func(a, b any) (bool, error) {
+		x, y, err := templateInts(a, b)
+		return x < y, err
 	},
 	"mkRange": func(min, max int) []int {
 		a := make([]int, max-min+1)
@@ -1079,4 +1082,24 @@ func (web *Web) missingDLC() map[string]process.IncompleteTitle {
 		missing := process.ScanForMissingDLC(localDB.TitlesMap, switchDB.TitlesMap, toLowerSet(settingsObj.IgnoreDLCTitleIds))
 		return withoutDemos(missing, switchDB, settingsObj.HideDemoGames)
 	}).(map[string]process.IncompleteTitle)
+}
+
+// templateInts reads two integers of any size for the comparisons of the templates.
+func templateInts(a, b any) (int64, int64, error) {
+	read := func(value any) (int64, error) {
+		v := reflect.ValueOf(value)
+		switch v.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return v.Int(), nil
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			return int64(v.Uint()), nil
+		}
+		return 0, fmt.Errorf("not an integer: %v", value)
+	}
+	x, err := read(a)
+	if err != nil {
+		return 0, 0, err
+	}
+	y, err := read(b)
+	return x, y, err
 }

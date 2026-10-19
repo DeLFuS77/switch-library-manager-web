@@ -10,6 +10,10 @@
 
 - A game whose NSP has no ticket, and whose title key title.keys does not have, cannot be compressed: the task now says so in your language, with how to fix it, instead of a technical message in English
 
+### Fixes
+
+- A compression showed only its total bar, without the files being compressed, their covers, their steps nor the sizes, since 1.49.0: once a file had saved something, the size saved (a big number) stopped the drawing of the card halfway. The comparisons of the pages now take numbers of any size
+
 ### Development
 
 - The tests press the save buttons of Settings and Organize in a real browser and check that the server kept the new value
