@@ -245,7 +245,14 @@
 					<h2 class="section-title mb-0"><span class="bi bi-magic" aria-hidden="true"></span>{{t "Cheats"}}{{if .Names}} <span class="badge rounded-pill text-bg-secondary">{{len .Names}}</span>{{end}}</h2>
 					{{- if .BuildID}}
 					<div class="d-flex flex-wrap gap-2">
-						<a class="btn btn-sm btn-outline-primary rounded-pill" href="/api/titles/{{$t.Id}}/cheats.zip"><span class="bi bi-sd-card me-1" aria-hidden="true"></span>{{t "For the SD card (zip)"}}</a>
+						<div class="dropdown">
+							<button type="button" class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false"><span class="bi bi-download me-1" aria-hidden="true"></span>{{t "Cheats (ZIP)"}}</button>
+							<ul class="dropdown-menu">
+								{{- range cheatTargets}}
+								<li><a class="dropdown-item" href="/api/titles/{{$t.Id}}/cheats.zip{{with .Value}}?for={{.}}{{end}}"><span class="bi bi-file-earmark-zip me-2" aria-hidden="true"></span>{{.Name}}</a></li>
+								{{- end}}
+							</ul>
+						</div>
 						<a class="btn btn-sm btn-outline-secondary rounded-pill" href="/api/titles/{{$t.Id}}/cheats.txt"><span class="bi bi-file-earmark-text me-1" aria-hidden="true"></span>{{.BuildID}}.txt</a>
 					</div>
 					{{- end}}
