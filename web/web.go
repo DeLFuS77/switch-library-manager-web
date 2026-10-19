@@ -366,6 +366,8 @@ type LibraryFacets struct {
 	// games with cheats for the version the library has, and for other versions only
 	Cheats      int
 	CheatsOther int
+	// games that need a newer firmware than the console has
+	FirmwareTooNew int
 	// games not in the library, shown in the All view
 	Missing int
 	// genres and languages of the games, the most frequent first, and the games by players

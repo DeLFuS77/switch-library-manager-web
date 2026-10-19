@@ -59,6 +59,8 @@ const (
 	EXTRA_CHEATS    = "cheats"
 	// games with cheats for other versions than the one the library has
 	EXTRA_CHEATS_OTHER = "cheats_other"
+	// games whose installed version needs a newer firmware than the console has
+	EXTRA_FIRMWARE = "firmware"
 )
 
 // games found in the folders in the last days count as recently added
@@ -69,7 +71,7 @@ var (
 	allowedSortBy  = map[string]struct{}{"added": {}, "favorite": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}, "duration": {}}
 	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}, STATUS_WANTED: {}}
 	allowedKind    = map[string]struct{}{"": {}, KIND_GAME: {}, KIND_DEMO: {}}
-	allowedExtra   = map[string]struct{}{"": {}, EXTRA_NO_COVER: {}, EXTRA_UNKNOWN: {}, EXTRA_RECENT: {}, EXTRA_FAVORITES: {}, EXTRA_CHEATS: {}, EXTRA_CHEATS_OTHER: {}}
+	allowedExtra   = map[string]struct{}{"": {}, EXTRA_NO_COVER: {}, EXTRA_UNKNOWN: {}, EXTRA_RECENT: {}, EXTRA_FAVORITES: {}, EXTRA_CHEATS: {}, EXTRA_CHEATS_OTHER: {}, EXTRA_FIRMWARE: {}}
 	regionPattern  = regexp.MustCompile(`^[A-Z]{2,4}$`)
 )
 

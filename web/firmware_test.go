@@ -53,6 +53,12 @@ func TestGamesNeedingNewerFirmwareAreMarked(t *testing.T) {
 	if !marked {
 		t.Fatalf("the card must warn: %+v", library)
 	}
+	// the filter lists them, with how many they are
+	filter := defaultFilter()
+	filter.Extra = EXTRA_FIRMWARE
+	if items, _, facets := web.getLibraryWithFacets(filter, "en"); len(items) != 1 || items[0].Name != "Known Game" || facets.FirmwareTooNew != 1 {
+		t.Fatalf("the games that need a newer firmware: %+v %d", items, facets.FirmwareTooNew)
+	}
 
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.ConsoleFirmware = "18.1.0" })
 	if detail, _ := web.getTitleDetail("0100000000010000", "en"); detail.FirmwareTooNew {
