@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- The Tasks link of the menu shows how many tasks are running, in violet, next to the red count of the failed ones;
+  with two tasks running it showed only the red 1 of a task that had failed, which looked like a count that did not
+  go up.
+
 ## 1.46.0
 
 ### Improvements

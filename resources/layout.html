@@ -127,7 +127,7 @@
 							{{- else}}
 							{{- template "navLink" (dict "Page" .Page "Id" "issues" "Href" "/issues.html" "Icon" "bi-exclamation-triangle" "Label" (t "Issues") "Count" .Counts.Issues "Badge" "text-bg-danger")}}
 							{{- end}}
-							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "/tasks.html" "Icon" (or (and .Counts.RunningTasks "bi-fan nav-busy") "bi-list-task") "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "/tasks.html" "Icon" (or (and .Counts.RunningTasks "bi-fan nav-busy") "bi-list-task") "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger" "Running" .Counts.RunningTasks "CountLabel" (t "Failed tasks: %v" (num .Counts.FailedTasks)))}}
 						</ul>
 						{{- if or .Auth.Enabled .Auth.IsAdmin}}
 						<div class="d-xxl-none">
@@ -232,7 +232,7 @@
 {{define "navLink"}}
 							<li class="nav-item">
 								<a class="nav-link{{if eq .Page .Id}} active{{end}}" href="{{.Href}}" title="{{.Label}}"{{if eq .Page .Id}} aria-current="page"{{end}}>
-									{{if eq .Page .Id}}<span class="nav-indicator" aria-hidden="true"></span>{{end}}<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{if .Dot}}<span class="nav-dot" aria-hidden="true"></span>{{end}}{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}} ms-auto ms-xxl-0">{{num .Count}}</span>{{end}}
+									{{if eq .Page .Id}}<span class="nav-indicator" aria-hidden="true"></span>{{end}}<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{if .Dot}}<span class="nav-dot" aria-hidden="true"></span>{{end}}{{with .Running}}<span class="badge rounded-pill nav-count nav-running ms-auto ms-xxl-0" title="{{t "Tasks running: %v" (num .)}}">{{num .}}<span class="visually-hidden"> {{t "Tasks running: %v" (num .)}}</span></span>{{end}}{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}}{{if not .Running}} ms-auto{{end}} ms-xxl-0"{{with .CountLabel}} title="{{.}}"{{end}}>{{num .Count}}{{with .CountLabel}}<span class="visually-hidden"> {{.}}</span>{{end}}</span>{{end}}
 								</a>
 							</li>
 {{- end}}
