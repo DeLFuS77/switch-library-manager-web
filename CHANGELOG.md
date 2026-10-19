@@ -6,7 +6,7 @@
 
 - Cheats for versions the database does not know yet: the build ID is read from the game itself (a few kilobytes of the file, kept while the file stays the same), so newer updates find their cheats too
 - **With cheats for another version**, a new choice in Filters > Other: the games with cheats only for other versions than the one you have
-- An old update with cheats is kept when the newer one has none, so the game can be installed at the version its cheats are for: in Delete old updates, the automations and Space. A switch in Organize > Cleanup deletes them too
+- An old update with cheats is kept when the newer one has none, so the game can be installed at the version its cheats are for: in Delete old updates, the automations and Space. The switch is in Settings (next to the cheats), in the setup wizard and in Organize > Cleanup; turned off, a warning says these updates will be deleted
 
 ## 1.48.2
 

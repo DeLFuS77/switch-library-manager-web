@@ -622,3 +622,12 @@
 // least 24px (WCAG 2.5.8), in both themes
 // ------------------------------------------------------------------
 
+
+// the warning of what happens with the switch off, shown only then
+.cheat-update-warning {
+	display: none;
+}
+
+.cheat-update-switch:has(> .form-check-input:not(:checked)) .cheat-update-warning {
+	display: block;
+}
