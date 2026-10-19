@@ -19,7 +19,7 @@ import (
 // ServerMeasure is what the measure of the server found: how fast each setting compressed
 // games of the library, and the setting chosen.
 type ServerMeasure struct {
-	Processors int           `json:"processors"`
+	Processors int            `json:"processors"`
 	Results    []MeasureTrial `json:"results"`
 	// the settings chosen
 	Threads     int `json:"threads"`

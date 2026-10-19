@@ -129,7 +129,7 @@ type CompressPageData struct {
 	// what each kind saved before, and what all the files listed would likely save
 	Ratios    []RatioSummary
 	Estimated int64
-	TotalSize      int64
+	TotalSize int64
 	// compressed files that can be decompressed
 	Running bool
 }
