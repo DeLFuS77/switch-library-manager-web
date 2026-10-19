@@ -147,6 +147,16 @@
 						{{- end}}
 						{{- if .Library}}
 						<section class="filter-group">
+							<h3 class="filter-group-title"><span class="bi bi-joystick" aria-hidden="true"></span>{{t "My game"}}</h3>
+							<div class="filter-choices">
+								<a class="filter-choice{{if not $f.Play}} active{{end}}" href="{{filterUrl $f "play" ""}}">{{t "Any"}}</a>
+								{{- range playStates}}
+								<a class="filter-choice{{if eq $f.Play .Value}} active{{end}}" href="{{filterUrl $f "play" .Value}}"><span class="bi {{.Icon}}" aria-hidden="true"></span> {{t .Name}} <span class="filter-count">{{num (index $fc.Play .Value)}}</span></a>
+								{{- end}}
+								<a class="filter-choice{{if eq $f.Play "none"}} active{{end}}" href="{{filterUrl $f "play" "none"}}">{{t "Without a state"}} <span class="filter-count">{{num (index $fc.Play "none")}}</span></a>
+							</div>
+						</section>
+						<section class="filter-group">
 							<h3 class="filter-group-title"><span class="bi bi-funnel" aria-hidden="true"></span>{{t "Other"}}</h3>
 							<div class="filter-choices">
 								<a class="filter-choice{{if not $f.Extra}} active{{end}}" href="{{filterUrl $f "extra" ""}}">{{t "No other filter"}}</a>
@@ -174,7 +184,8 @@
 				{{- with $f.Players}}<a class="active-filter" href="{{filterUrl $f "players" ""}}"><span class="bi bi-people" aria-hidden="true"></span>{{if eq . "1"}}{{t "1 player"}}{{else if eq . "2"}}{{t "2 or more"}}{{else}}{{t "4 or more"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.GameLanguage}}<a class="active-filter" href="{{filterUrl $f "languages" ""}}"><span class="bi bi-translate" aria-hidden="true"></span>{{t (gameLanguage .)}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- if $f.Extra}}<a class="active-filter" href="{{filterUrl $f "extra" ""}}"><span class="bi bi-funnel" aria-hidden="true"></span>{{if eq $f.Extra "recent"}}{{t "Added in the last 30 days"}}{{else if eq $f.Extra "no_cover"}}{{t "Without a cover"}}{{else if eq $f.Extra "favorites"}}{{t "Favorites only"}}{{else if eq $f.Extra "cheats"}}{{t "With cheats for my version"}}{{else if eq $f.Extra "cheats_other"}}{{t "With cheats for another version"}}{{else}}{{t "Not recognized"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
-				<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "genre" "" "players" "" "languages" ""}}">{{t "Clear filters"}}</a>
+				{{- with $f.Play}}<a class="active-filter" href="{{filterUrl $f "play" ""}}"><span class="bi bi-joystick" aria-hidden="true"></span>{{if eq . "none"}}{{t "Without a state"}}{{else}}{{t (playStateName .)}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "genre" "" "players" "" "languages" "" "play" ""}}">{{t "Clear filters"}}</a>
 			</div>
 			{{- end}}
 {{- end}}

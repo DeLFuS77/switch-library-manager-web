@@ -37,6 +37,10 @@ type TitleItemFilter struct {
 	Genre        string `in:"form=genre"`
 	Players      string `in:"form=players"`
 	GameLanguage string `in:"form=languages"`
+	// library only: how the games go for the user who looks ("none" for the games without)
+	Play string `in:"form=play"`
+	// the user who looks, for Play (set by the handler)
+	player string
 	// the keyword prepared for searching, set by MatchesItem
 	search *searchQuery
 }
@@ -142,6 +146,9 @@ func (f *TitleItemFilter) Normalize() {
 	if _, ok := gameLanguageNames[f.GameLanguage]; !ok {
 		f.GameLanguage = ""
 	}
+	if _, ok := playStateLooks[f.Play]; !ok && f.Play != "none" {
+		f.Play = ""
+	}
 	f.Region = strings.ToUpper(strings.TrimSpace(f.Region))
 	if !regionPattern.MatchString(f.Region) {
 		f.Region = ""
@@ -151,7 +158,7 @@ func (f *TitleItemFilter) Normalize() {
 // Active reports whether the items are filtered by a keyword, a status, a format or another
 // library filter.
 func (f *TitleItemFilter) Active() bool {
-	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Region != "" || f.Extra != "" || f.Collection != ""
+	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Region != "" || f.Extra != "" || f.Collection != "" || f.Play != ""
 }
 
 // Plain reports whether the first page is shown without any filter (in any view of the Library).
@@ -169,7 +176,7 @@ func (f *TitleItemFilter) ShowsMissing() bool {
 // collection, kind, region, format and the others.
 func (f *TitleItemFilter) SecondaryCount() int {
 	count := 0
-	for _, value := range []string{f.Collection, f.Kind, f.Region, f.Format, f.Extra, f.Genre, f.Players, f.GameLanguage} {
+	for _, value := range []string{f.Collection, f.Kind, f.Region, f.Format, f.Extra, f.Genre, f.Players, f.GameLanguage, f.Play} {
 		if value != "" {
 			count++
 		}
@@ -193,6 +200,7 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("genre", f.Genre)
 	values.Set("players", f.Players)
 	values.Set("languages", f.GameLanguage)
+	values.Set("play", f.Play)
 	values.Set("per_page", strconv.Itoa(f.chosenPerPage()))
 	values.Set("sort_by", f.SortBy)
 	values.Set("sort_order", f.SortOrder)

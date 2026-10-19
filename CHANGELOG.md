@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- My game: each user keeps how their games go (pending, playing, finished, completed 100% or abandoned), a rating of 1 to 5 stars and a note, on the page of each game; the cards show the state, and the Library filters by it with how many games each state has. Without login it is one for everyone; read-only users keep their own too
+
 ### Improvements
 
 - Games without their title key are found before they are compressed: after a scan the NSP and NSZ files are looked at once (the headers of their contents and their tickets only, again only when a file changes), Issues lists those without a ticket whose key title.keys does not have either, with how to fix it, and Compress and the automations leave them out instead of failing halfway

@@ -217,3 +217,38 @@ function initSdPlanner() {
 	});
 }
 
+
+// how the game goes for the user, on its page: the state and the stars are kept at once, the
+// note with its button
+function initPlay() {
+	const form = document.querySelector('[data-play]');
+	if (!form) {
+		return;
+	}
+	const button = form.querySelector('button[type="submit"]');
+	const note = form.querySelector('textarea[name="note"]');
+	let savedNote = note.value;
+	const save = () => {
+		const data = new FormData(form);
+		const params = { id: form.dataset.play, status: data.get('status') || '', rating: data.get('rating') || '0', note: note.value };
+		return postForm('/play', params).then(() => {
+			savedNote = note.value;
+			button.disabled = true;
+			showToast('text-bg-success', 'bi-check-circle-fill', form.dataset.saved, '');
+		}).catch(error => {
+			insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+		});
+	};
+	form.addEventListener('change', e => {
+		if (e.target.name === 'status' || e.target.name === 'rating') {
+			save();
+		}
+	});
+	note.addEventListener('input', () => {
+		button.disabled = note.value === savedNote;
+	});
+	form.addEventListener('submit', e => {
+		e.preventDefault();
+		save();
+	});
+}

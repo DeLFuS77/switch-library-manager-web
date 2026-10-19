@@ -269,6 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initHistoryCharts();
 	initIssueDelete();
 	initIssueKeep();
+	initPlay();
 	initIssueDeleteFile();
 	initGameUpload();
 	initSearchClear();

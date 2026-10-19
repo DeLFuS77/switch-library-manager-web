@@ -302,7 +302,7 @@ func viewerAllowed(r *http.Request) bool {
 		return !adminOnly && !strings.HasPrefix(r.URL.Path, "/backup/")
 	case http.MethodPost:
 		// the list of files of the SD card planner is a download, as the pages are
-		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/account/color" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt"
+		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/account/color" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt" || r.URL.Path == "/play"
 	}
 	return false
 }

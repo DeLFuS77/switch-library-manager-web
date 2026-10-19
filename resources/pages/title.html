@@ -86,6 +86,35 @@
 						</div>
 					</div>
 				</div>
+				{{- if $t.Owned}}
+				<section class="surface play-panel mb-4" aria-labelledby="playTitle">
+					<h2 class="section-title" id="playTitle"><span class="bi bi-joystick" aria-hidden="true"></span>{{t "My game"}}</h2>
+					<form class="play-form" data-play="{{$t.Id}}" data-saved="{{t "Saved!"}}">
+						<div class="play-states" role="radiogroup" aria-label="{{t "How it goes"}}">
+							<input type="radio" class="btn-check" name="status" id="play-none" value=""{{if not .Play.Status}} checked{{end}}>
+							<label class="btn btn-sm btn-outline-secondary rounded-pill" for="play-none">{{t "No state"}}</label>
+							{{- range .PlayStates}}
+							<input type="radio" class="btn-check" name="status" id="play-{{.Value}}" value="{{.Value}}"{{if eq .Value $.Play.Status}} checked{{end}}>
+							<label class="btn btn-sm btn-outline-primary rounded-pill" for="play-{{.Value}}"><span class="bi {{.Icon}} me-1" aria-hidden="true"></span>{{t .Name}}</label>
+							{{- end}}
+						</div>
+						<fieldset class="play-rating mt-3">
+							<legend class="form-label small fw-semibold mb-1">{{t "My rating"}}</legend>
+							<div class="play-stars">
+								{{- range $star := mkRange 1 5}}
+								<input type="radio" class="visually-hidden" name="rating" id="rating-{{$star}}" value="{{$star}}"{{if eq $star $.Play.Rating}} checked{{end}}>
+								<label for="rating-{{$star}}" title="{{t "%v of 5" $star}}"><span class="bi bi-star-fill" aria-hidden="true"></span><span class="visually-hidden">{{t "%v of 5" $star}}</span></label>
+								{{- end}}
+								<input type="radio" class="visually-hidden" name="rating" id="rating-0" value="0"{{if not .Play.Rating}} checked{{end}}>
+								<label for="rating-0" class="play-stars-clear small text-body-secondary ms-2">{{t "No rating"}}</label>
+							</div>
+						</fieldset>
+						<label class="form-label small fw-semibold mt-3" for="play-note">{{t "My note"}}</label>
+						<textarea class="form-control" id="play-note" name="note" rows="2" maxlength="1000" placeholder="{{t "Where I am, what I thought of it..."}}">{{.Play.Note}}</textarea>
+						<button type="submit" class="btn btn-sm btn-outline-primary rounded-pill mt-2" disabled>{{t "Save the note"}}</button>
+					</form>
+				</section>
+				{{- end}}
 				<dl class="fact-grid">
 					<div class="fact fact-wide">
 						<dt class="fact-label"><span class="bi bi-upc" aria-hidden="true"></span>{{t "Title ID"}}</dt>

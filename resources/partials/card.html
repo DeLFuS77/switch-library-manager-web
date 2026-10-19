@@ -6,9 +6,9 @@
 						{{- if and (not .Type) (not .LatestUpdate) (not .InLibrary)}}<button type="button" class="wish-toggle admin-only{{if .Wished}} is-wished{{end}}" data-wish="{{.Id}}" data-wished="{{.Wished}}" aria-pressed="{{.Wished}}" title="{{if .Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if .Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>{{end}}
 						{{- if .UpdateAvailable}}<span class="cover-ribbon" title="{{t "Update available"}}"><span class="bi bi-arrow-up-circle-fill" aria-hidden="true"></span></span>{{end}}
 						<a class="cover-link" href="/title/{{.Id}}.html" tabindex="-1" aria-hidden="true"><img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async"></a>
-						{{- if or .Type .Region}}
+						{{- if or .Type .Region .Play.Status}}
 						<div class="game-cover-meta">
-							{{- if or $type .Demo .Cheats}}<span class="d-inline-flex gap-1">{{if $type}}<span class="badge">{{$type}}</span>{{end}}{{if .Demo}}<span class="badge">{{t "Demo"}}</span>{{end}}{{if .Cheats}}<span class="badge badge-cheats" title="{{t "Cheats for your version"}}"><span class="bi bi-magic" aria-hidden="true"></span><span class="visually-hidden">{{t "Cheats for your version"}}</span></span>{{end}}</span>{{else}}<span></span>{{end}}
+							{{- if or $type .Demo .Cheats .Play.Status}}<span class="d-inline-flex gap-1">{{if $type}}<span class="badge">{{$type}}</span>{{end}}{{if .Demo}}<span class="badge">{{t "Demo"}}</span>{{end}}{{if .Cheats}}<span class="badge badge-cheats" title="{{t "Cheats for your version"}}"><span class="bi bi-magic" aria-hidden="true"></span><span class="visually-hidden">{{t "Cheats for your version"}}</span></span>{{end}}{{with .Play.Status}}<span class="badge badge-play play-{{.}}" title="{{t $.Play.Look.Name}}"><span class="bi {{$.Play.Look.Icon}}" aria-hidden="true"></span><span class="visually-hidden">{{t $.Play.Look.Name}}</span></span>{{end}}</span>{{else}}<span></span>{{end}}
 							{{- if .Region}}<span class="fi fi-{{.Region | toLower}}" title="{{.Region}}"><span class="visually-hidden">{{.Region}}</span></span>{{end}}
 						</div>
 						{{- end}}
