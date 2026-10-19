@@ -4,6 +4,7 @@
 
 ### Features
 
+- Smart collections: the filters shown in the Library (state of the game, genre, players, language, collection, status...) can be kept under a name; they show above the cards with how many games they have now, and fill and empty by themselves. Kept in the backups
 - My game: each user keeps how their games go (pending, playing, finished, completed 100% or abandoned), a rating of 1 to 5 stars and a note, on the page of each game; the cards show the state, and the Library filters by it with how many games each state has. Without login it is one for everyone; read-only users keep their own too
 
 ### Improvements

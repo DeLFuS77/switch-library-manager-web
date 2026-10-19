@@ -252,3 +252,33 @@ function initPlay() {
 		save();
 	});
 }
+
+// smart collections: the filters shown kept under a name, and deleted
+function initSmartCollections() {
+	const row = document.querySelector('[data-smart-collections]');
+	if (!row) {
+		return;
+	}
+	const fail = error => insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+	const save = row.querySelector('[data-smart-save]');
+	if (save) {
+		save.addEventListener('click', () => {
+			const name = window.prompt(row.dataset.askName, '');
+			if (!name || !name.trim()) {
+				return;
+			}
+			postForm('/smart-collections', { name: name.trim(), query: window.location.search })
+				.then(() => window.location.reload())
+				.catch(fail);
+		});
+	}
+	row.querySelectorAll('[data-smart-delete]').forEach(button => button.addEventListener('click', () => {
+		const name = button.dataset.smartDelete;
+		if (!window.confirm(row.dataset.askDelete.replace('%v', name))) {
+			return;
+		}
+		postForm('/smart-collections', { name, action: 'delete' })
+			.then(() => window.location.reload())
+			.catch(fail);
+	}));
+}

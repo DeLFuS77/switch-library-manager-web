@@ -155,6 +155,9 @@ type Web struct {
 	// how the games go for each user (see play.go)
 	playStore *playStore
 	playOnce  sync.Once
+	// the filters of the Library kept under a name (see smartcollections.go)
+	smartCollectionsStore *smartCollectionStore
+	smartCollectionsOnce  sync.Once
 	// the history and the lists prepared after a scan (tests wait for them)
 	afterScanWork sync.WaitGroup
 	// scans and the work after them that are still running, for the tests to wait for them
@@ -398,6 +401,9 @@ type LibraryPageData struct {
 	WhatsNew *WhatsNew
 	// the folders games can be uploaded to
 	UploadFolders []string
+	// the smart collections, and whether the filters shown can become one
+	SmartCollections []SmartCollectionView
+	SmartSavable     bool
 }
 
 var funcMap = template.FuncMap{
@@ -745,6 +751,7 @@ func (web *Web) Start() {
 	web.HandleWishlist()
 	web.HandleCollections()
 	web.HandlePlay()
+	web.HandleSmartCollections()
 	web.HandleFavorites()
 	if !isDemoMode() {
 		web.StartScheduler()

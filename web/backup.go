@@ -26,7 +26,7 @@ const (
 // backupFiles are the files of the data folder kept in a backup: the configuration, the
 // users, the verification results and the notified versions. Console keys, the session
 // key and the caches are never included.
-var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, WISHLIST_FILENAME, ACTIVITY_FILENAME, HISTORY_FILENAME, COLLECTIONS_FILENAME, FAVORITES_FILENAME, PLAY_FILENAME}
+var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, WISHLIST_FILENAME, ACTIVITY_FILENAME, HISTORY_FILENAME, COLLECTIONS_FILENAME, FAVORITES_FILENAME, PLAY_FILENAME, SMART_COLLECTIONS_FILENAME}
 
 // errors shown to the user, translated by the interface
 var (
@@ -185,6 +185,9 @@ func (web *Web) restoreBackup(data []byte) error {
 	}
 	if _, ok := files[PLAY_FILENAME]; ok {
 		web.play().reload()
+	}
+	if _, ok := files[SMART_COLLECTIONS_FILENAME]; ok {
+		web.smartCollections().reload()
 	}
 	if _, ok := files[HISTORY_FILENAME]; ok {
 		web.history().reload()
