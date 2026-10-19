@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The name of a cartridge with several games uses the English names of its games, and with names for the Switch leaves out those with kanji or hangul, which came out in pieces (they count in "N more"); up to 110 characters, so the two volumes of a collection fit
+- The mark of the games with cheats for your version is violet and pulses like the mark of an update, seen at a glance on the covers
+
 ## 1.49.1
 
 ### Improvements

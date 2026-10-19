@@ -480,11 +480,32 @@ func TestOrganizeNamesACartridgeWithSeveralGames(t *testing.T) {
 	assertExists(t, filepath.Join(baseFolder, "First Game + Second Game", "First Game + Second Game [0100000000010000][2 games].xcz"), true)
 	assertExists(t, filepath.Join(card.BaseFolder, card.FileName), false)
 
-	if got := collectionName([]string{"Alphadia Genesis 2", "Asdivine Cross", "Chroma Quaternion", "Ruinverse"}); got != "Alphadia Genesis 2 + Asdivine Cross + Chroma Quaternion + Ruinverse" {
+	if got := collectionName([]string{"Alphadia Genesis 2", "Asdivine Cross", "Chroma Quaternion", "Ruinverse"}, 0); got != "Alphadia Genesis 2 + Asdivine Cross + Chroma Quaternion + Ruinverse" {
 		t.Fatalf("four short names fit: %s", got)
 	}
-	long := []string{strings.Repeat("A", 40), strings.Repeat("B", 40), strings.Repeat("C", 40), strings.Repeat("D", 40)}
-	if got := collectionName(long); got != long[0]+" + "+long[1]+" + 2 more" {
+	long := []string{strings.Repeat("A", 50), strings.Repeat("B", 50), strings.Repeat("C", 50), strings.Repeat("D", 50)}
+	if got := collectionName(long, 0); got != long[0]+" + "+long[1]+" + 2 more" {
 		t.Fatalf("long names: %s", got)
+	}
+	// the two volumes of a collection fit
+	if got := collectionName([]string{"Mega Man Battle Network Legacy Collection Vol. 1", "Mega Man Battle Network Legacy Collection Vol. 2"}, 0); strings.Contains(got, "more") {
+		t.Fatalf("two volumes: %s", got)
+	}
+	// a game without a name that can be written counts in the more, and none at all is a Collection
+	if got := collectionName([]string{"Mom Hid My Game 2"}, 1); got != "Mom Hid My Game 2 + 1 more" {
+		t.Fatalf("unnamed: %s", got)
+	}
+	if got := collectionName(nil, 2); got != "Collection" {
+		t.Fatalf("no names: %s", got)
+	}
+	// a Japanese name that loses its letters is not used, unless the English one is known
+	japanese := &db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{"0100e8b01eb54": {Attributes: db.TitleAttributes{Name: "ファミコン探偵倶楽部"}}},
+		Localized: map[string]map[string]db.LocalizedTitle{}}
+	if got := collectionGameName(japanese, "0100e8b01eb54", nil, true); got != "" {
+		t.Fatalf("a name that loses its letters: %q", got)
+	}
+	japanese.Localized["en"] = map[string]db.LocalizedTitle{"0100E8B01EB54000": {Name: "Famicom Detective Club"}}
+	if got := collectionGameName(japanese, "0100e8b01eb54", nil, true); got != "Famicom Detective Club" {
+		t.Fatalf("the English name: %q", got)
 	}
 }

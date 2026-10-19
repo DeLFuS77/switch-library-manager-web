@@ -109,6 +109,14 @@
 			background: rgba(0, 0, 0, .55);
 			backdrop-filter: blur(6px);
 			color: #fff;
+
+			// cheats for the version you have: violet, apart from the gold of an update, and it
+			// pulses like it (see _motion)
+			&.badge-cheats {
+				background: linear-gradient(135deg, #a855f7, #7c3aed);
+				color: #fff;
+				box-shadow: 0 2px 8px -1px rgba(0, 0, 0, .45);
+			}
 		}
 
 		.fi {

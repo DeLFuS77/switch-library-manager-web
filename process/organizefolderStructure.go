@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -430,34 +431,27 @@ func OrganizeByFolders(baseFolder string,
 	collections := multiGameFiles(localDB)
 	for _, path := range sortedKeys(collections) {
 		games := collections[path]
-		names := []string{}
-		firstId := ""
+		type named struct{ name, key string }
+		named_ := []named{}
+		unnamed := 0
 		for _, key := range games {
-			var title *db.SwitchTitle
-			if titlesDB != nil {
-				title = titlesDB.TitlesMap[key]
+			if name := collectionGameName(titlesDB, key, localDB.TitlesMap[key], options.SwitchSafeFileNames); name != "" {
+				named_ = append(named_, named{name, key})
+			} else {
+				unnamed++
 			}
-			name := getTitleName(title, localDB.TitlesMap[key])
-			if options.SwitchSafeFileNames && strings.Trim(safeName(name), " -_.") == "" {
-				name = asciiFallbackName(localDB.TitlesMap[key])
-			}
-			names = append(names, name)
 		}
-		sort.Strings(names)
+		sort.Slice(named_, func(i, j int) bool { return named_[i].name < named_[j].name })
+		names := make([]string, len(named_))
+		for i, game := range named_ {
+			names[i] = game.name
+		}
 		// the ID of the game named first, so the file is still found by its name
-		for _, key := range games {
-			var title *db.SwitchTitle
-			if titlesDB != nil {
-				title = titlesDB.TitlesMap[key]
-			}
-			if getTitleName(title, localDB.TitlesMap[key]) == names[0] || firstId == "" {
-				firstId = strings.ToUpper(key) + "000"
-			}
+		firstId := strings.ToUpper(games[0]) + "000"
+		if len(named_) > 0 {
+			firstId = strings.ToUpper(named_[0].key) + "000"
 		}
-		collection := collectionName(names)
-		if options.SwitchSafeFileNames {
-			collection = safeName(collection)
-		}
+		collection := collectionName(names, unnamed)
 		folder := filepath.Dir(path)
 		if options.CreateFolderPerGame {
 			folder = filepath.Join(baseFolder, avoidReserved(strings.TrimRight(collection, " .")))
@@ -680,17 +674,72 @@ func multiGameFiles(localDB *db.LocalSwitchFilesDB) map[string][]string {
 }
 
 // collectionName is the name of a file with several games: their names, the first ones and
-// how many more when they do not fit.
-func collectionName(names []string) string {
-	const budget = 90
+// how many more when they do not fit, or have no name that can be written.
+func collectionName(names []string, unnamed int) string {
+	const budget = 110
+	if len(names) == 0 {
+		return "Collection"
+	}
 	name := names[0]
 	for i, next := range names[1:] {
 		if len(name)+len(next)+3 > budget {
-			return fmt.Sprintf("%s + %d more", name, len(names)-1-i)
+			return fmt.Sprintf("%s + %d more", name, len(names)-1-i+unnamed)
 		}
 		name += " + " + next
 	}
+	if unnamed > 0 {
+		name += fmt.Sprintf(" + %d more", unnamed)
+	}
 	return name
+}
+
+// collectionGameName is the name of a game in the name of a collection: its English name
+// when the titles database has one, and with names for the Switch only one without kanji or
+// hangul, which they would cut to pieces, else "" (the game counts in "N more").
+func collectionGameName(titlesDB *db.SwitchTitlesDB, key string, local *db.SwitchGameFiles, safe bool) string {
+	var title *db.SwitchTitle
+	if titlesDB != nil {
+		title = titlesDB.TitlesMap[key]
+	}
+	name := getTitleName(title, local)
+	if !safe {
+		return name
+	}
+	if english, ok := titlesDB.LocalizedTitle("en", strings.ToUpper(key)+"000"); ok && readableAscii(english.Name) {
+		name = english.Name
+	}
+	// kanji and hangul have no letters for the Switch: a name with them would be cut to pieces
+	for _, r := range name {
+		if unicode.Is(unicode.Han, r) || unicode.Is(unicode.Hangul, r) {
+			return ""
+		}
+	}
+	clean := strings.Join(strings.Fields(safeName(name)), " ")
+	if letters(clean) == 0 {
+		return ""
+	}
+	return strings.Trim(clean, " -_.")
+}
+
+// readableAscii tells whether a name is written in latin letters only.
+func readableAscii(name string) bool {
+	for _, r := range name {
+		if r > unicode.MaxLatin1 && unicode.IsLetter(r) {
+			return false
+		}
+	}
+	return strings.TrimSpace(name) != ""
+}
+
+// letters counts the letters and digits of a name.
+func letters(name string) int {
+	count := 0
+	for _, r := range name {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			count++
+		}
+	}
+	return count
 }
 
 func sortedIntKeys[V any](m map[int]V) []int {

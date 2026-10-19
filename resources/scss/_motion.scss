@@ -148,6 +148,10 @@
 		animation: slm-pulse 2.4s ease-in-out infinite;
 	}
 
+	.game-cover-meta .badge-cheats {
+		animation: slm-pulse-cheats 2.4s ease-in-out infinite;
+	}
+
 	// cards tilt slightly towards the pointer (set by script)
 	@media (hover: hover) and (pointer: fine) {
 		.game-card.is-tilting {
@@ -190,6 +194,17 @@
 	from {
 		opacity: 0;
 		transform: scale(.92);
+	}
+}
+
+@keyframes slm-pulse-cheats {
+	0%,
+	100% {
+		box-shadow: 0 2px 8px -1px rgba(0, 0, 0, .45), 0 0 0 0 rgba(168, 85, 247, .6);
+	}
+
+	50% {
+		box-shadow: 0 2px 8px -1px rgba(0, 0, 0, .45), 0 0 0 6px rgba(168, 85, 247, 0);
 	}
 }
 
