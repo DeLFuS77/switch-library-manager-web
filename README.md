@@ -58,17 +58,10 @@ Linux, Docker, NAS and Raspberry Pi.
 ## Contents
 
 - [Features](#features)
-- [Quick start](#quick-start): [Docker](#docker), [Synology and Portainer](#synology-and-portainer), [Unraid](#unraid), [Windows, macOS and Linux](#windows-macos-and-linux)
+- [Quick start](#quick-start): [Docker](#docker), [NAS](#synology-portainer-and-unraid), [Windows, macOS and Linux](#windows-macos-and-linux)
 - [Your keys](#your-keys)
-- [First start](#first-start)
-- [Guides](#guides): [Organize](#organize), [Compress](#compress), [Users](#users-and-password-protection),
-  [Times to beat](#times-to-beat), [Save vault](#save-vault-jksv), [Notifications](#notifications), [API](#api), [Settings](#settings)
-- [Updating](#updating)
-- [Demo mode](#demo-mode)
-- [Troubleshooting](#troubleshooting)
-- [Building](#building)
-- [Disclaimer](#disclaimer)
-- [License](#license)
+- [Documentation](#documentation): the [wiki](https://github.com/DeLFuS77/switch-library-manager-web/wiki) has every guide
+- [Disclaimer](#disclaimer), [License](#license) and [Thanks](#thanks)
 
 ## Features
 
@@ -198,433 +191,57 @@ Then open http://localhost:3000 (or the address of your server).
 
 To update, pull the new image and recreate the container: `docker compose pull && docker compose up -d`.
 
-### Synology and Portainer
-
-Ready-made files and step-by-step instructions are in [Installing on a NAS](docs/install/nas.md):
+### Synology, Portainer and Unraid
 
 | System | How |
 |---|---|
 | Synology (DSM 7.2+) | Container Manager project: [templates/synology/docker-compose.yml](templates/synology/docker-compose.yml) |
 | Portainer | App template URL: `https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/templates/portainer.json` |
+| Unraid | Search for **Switch Library Manager** in the **Apps** tab |
 
-### Unraid
+Step by step for each one in [Installing on a NAS](docs/install/nas.md) and in the [wiki](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Installation).
 
-Search for **Switch Library Manager** in the **Apps** tab and install it. The port, folders and user (`99:100`) are
-filled in, and can be changed when installing or later with **Edit**. Set **Switch library** to the share with your
-games, for example `/mnt/user/switch`, and copy your keys to `/mnt/user/appdata/switch-library-manager-web/`.
-
-The template can also be installed by hand: in a terminal on the server run
-
-```
-wget -O /boot/config/plugins/dockerMan/templates-user/my-switch-library-manager-web.xml https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/templates/switch-library-manager-web.xml
-```
-
-then choose **Docker > Add Container** and pick `switch-library-manager-web` in **Template**. Do not install the
-image from the Docker Hub search: the port and folders would be empty.
+On **Unraid**, set **Switch library** to the share with your games (for example `/mnt/user/switch`) and copy
+your keys to `/mnt/user/appdata/switch-library-manager-web/`. Do not install the image from the Docker Hub search: the
+port and folders would be empty.
 
 ### Windows, macOS and Linux
 
 Download the file for your system from the [latest release](https://github.com/DeLFuS77/switch-library-manager-web/releases/latest),
-unpack it and run the program; nothing has to be installed.
+unpack it and run the program; nothing has to be installed. There are files for Windows (x64 and ARM), macOS (Apple and
+Intel chips), Linux and the Raspberry Pi (64 and 32 bit). The programs are not signed, so the first time Windows or macOS
+asks before opening them: see [the steps for each system](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Installation#windows-macos-and-linux).
 
-| System | File |
-|---|---|
-| Windows (most PCs) | `…-windows-x64.zip` |
-| Windows on ARM | `…-windows-arm64.zip` |
-| macOS with Apple chip (M1 or newer) | `…-macos-apple.tar.gz` |
-| macOS with Intel chip | `…-macos-intel.tar.gz` |
-| Linux, PC | `…-linux-x64.tar.gz` |
-| Raspberry Pi 4/5 with a 64-bit system, other ARM 64-bit | `…-linux-arm64.tar.gz` |
-| Raspberry Pi with a 32-bit system | `…-linux-armv7.tar.gz` |
-
-- **Windows**: double-click `switch-library-manager-web.exe`; the app opens in the browser. The first time, Windows
-  may show "Windows protected your PC" because the program is not signed: click **More info → Run anyway**.
-- **macOS**: double-click `switch-library-manager-web`, or run it from the Terminal. The program is not signed by Apple,
-  so the first time macOS refuses to open it: right-click it, choose **Open** and confirm, or run
-  `xattr -d com.apple.quarantine switch-library-manager-web` in its folder.
-- **Linux and Raspberry Pi**: run `./switch-library-manager-web` and open http://localhost:3000 (or the address of the
-  computer from another device).
-
-The program keeps its settings and data next to itself, or in the folder set in the `SLM_DATA_DIR` environment
-variable. Set your folders in **Settings**. To update, replace the program with the one of the new version: the data
-stays. `SLM_OPEN_BROWSER=false` stops it from opening the browser, `true` makes it open it on Linux too.
+The program keeps its settings and data next to itself, or in the folder set in `SLM_DATA_DIR`. To update, replace it
+with the one of the new version: the data stays.
 
 ## Your keys
 
-Keys are optional. Without them the app still works: games are recognized by their file name, for example
-`Super Mario Odyssey [0100000000010000][v0].nsp`. With your keys it reads the files themselves, so games are found even
-when the names are wrong, and you can compress and decompress them.
+Keys are optional. Without them games are recognized by their file names, like
+`Super Mario Odyssey [0100000000010000][v0].nsp`. With **your own** `prod.keys`, dumped from **your own** console, the
+app reads the files themselves, checks them, and can compress, split and pack them. Put it in the data folder, or
+upload it from **Settings › Library** or the setup wizard. More in [Keys and first start](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Keys-and-first-start).
 
-| File | Needed for |
+## Documentation
+
+The [wiki](https://github.com/DeLFuS77/switch-library-manager-web/wiki) has a guide for everything:
+
+| | |
 |---|---|
-| `prod.keys` | Reading your files and compressing them. Dump it from your own console |
-| `title.keys` | Only to compress games whose NSP has no ticket. Dumped together with `prod.keys` |
-
-Put them in the data folder (with Docker, the folder mounted on `/usr/local/share/switch-library-manager-web`), or set
-another folder in **Settings**. You can also upload them from the browser, in **Settings › Library** or in the setup
-wizard: the app checks they are keys of a console, keeps them in its data folder (readable by itself only) and never
-shows them nor writes them to its log. You can also mount `prod.keys` read-only:
-`-v /path/to/prod.keys:/usr/local/share/switch-library-manager-web/prod.keys:ro`.
-
-The app looks for `prod.keys` in this order: the path in **Settings**, the data folder, then `~/.switch/prod.keys`.
-`title.keys` is read from the same folder as `prod.keys`.
-
-Games made for a newer firmware need keys dumped from a console with that firmware: the Issues page tells you when a
-key is missing.
-
-## First start
-
-1. On the first start the titles database is downloaded (names, covers, updates and DLC of every game).
-2. A **setup wizard** opens: your folders (checked as you type), your keys, the firmware of your console, the
-   background hours, compression, automations, notifications, times to beat and an administrator, one step at a
-   time. Every step can be skipped, and the wizard can be put off or turned off. Run it again at any time from
-   **Settings**: each step shows how it is set now.
-3. Your games appear once the folders are scanned. New, removed or replaced files are picked up by themselves.
-
-## Guides
-
-### Organize
-
-The Organize page moves and renames files according to its options. Every action shows the exact list of changes
-first, and nothing happens until you apply them. Existing files are never overwritten, files that changed since the
-last scan are not deleted, and split files are left untouched.
-
-Templates for folder and file names can use:
-
-| Placeholder | Value |
-|---|---|
-| `{TITLE_NAME}` | Game name |
-| `{TITLE_ID}` | Title ID |
-| `{VERSION}` | Version number of the file, like `65536` |
-| `{VERSION_TXT}` | Version as shown on the console, like `1.0.1` |
-| `{REGION}` | Region |
-| `{TYPE}` | `BASE`, `UPD` or `DLC` |
-| `{DLC_NAME}` | DLC name |
-
-Templates must contain `{TITLE_NAME}` or `{TITLE_ID}`.
-
-### Compress
-
-The Compress page turns NSP files into NSZ files and XCI files into XCZ files. They take 10 to 60% less space and are
-installed directly by installers such as DBI. It uses your `prod.keys` (and `title.keys` for games without a
-ticket).
-
-Every file is handled safely:
-
-1. The files inside the NSP are checked against their content IDs, so damaged files are not compressed.
-2. The NSZ is written next to the NSP under a hidden temporary name.
-3. The NSZ is decompressed again and every file (also tickets and certificates) must give back the original SHA-256,
-   and none may be missing.
-4. Only then is the NSZ renamed and, if you choose so, the NSP deleted.
-
-Nothing can be lost even with a wrong key: the data is decrypted and encrypted again with the same key, so the original
-comes back byte for byte (a wrong key only compresses worse).
-
-XCZ files are written in blocks of 1 MB, as nsz does, so they can be read without decompressing them whole; NSZ files
-are one stream, which saves a bit more. The Tasks page shows the step of each file and, at the end, what each one takes
-now and what was saved.
-
-**Speed**: in Settings › Compression choose the processor threads per file and how many files are worked on at once,
-or press **Measure this server**: for about half a minute it compresses parts of your biggest games with several
-settings and chooses the fastest. The disk usually sets the speed more than the processor, so several files with few
-threads each often beat one file with many.
-
-#### How files are checked
-
-The file check (on its own, before deleting copies, or in automations) reads every NCA, decompressing NSZ and XCZ
-files the way nsz does it, and compares its SHA-256 with its content ID. Tools such as NSC_Builder rewrite the header of
-the NCA files (to remove the title rights, or when converting a card to NSP): the content ID no longer matches, yet the
-game installs and plays like the original. Such an NCA is then checked by the hash tree of its data, the one stored in
-its header, like hactool does: when every hash matches the file is fine (rewritten, not damaged), else it is damaged.
-The romfs of an update cannot be checked on its own (it patches the game), the rest of the update is.
-
-Compression runs in the background as a task, can be cancelled and uses at most half of the processors. Update
-patches are compressed too. Like nsz, an XCZ keeps only the secure partition, the one installers use.
-
-NSZ files can be decompressed back to NSP on the same page, for tools that do not read NSZ. Every file inside the NSP
-(NCA, ticket, certificate) is the original byte for byte; the container around them can differ in a few kilobytes of
-padding, which installers do not read. The format is the one of [nsz](https://github.com/nicoboss/nsz), written in Go for this project:
-nothing else needs to be installed.
-
-#### Complete packs and splitting
-
-A **complete pack** is one NSP (or NSZ, when its files are compressed) with a game, its latest update and all its DLC,
-for installers that take several titles at once. Older updates and the delta fragments of the update are left out.
-Make one from the **Complete pack** button of a game page, or many at once in **Compress › Make complete packs**: tick
-the games and choose whether the separate files are deleted. The pack is written under a hidden name, every file in it
-is checked, and only then it gets its name (`Game [TitleID][v65536][+2 DLC] (pack).nsp`) and the separate files go.
-
-**Compress › Split multi-title files** does the opposite with the packs of this app and the "SuperNSP" files of other
-tools: each game, update and DLC gets its own NSP (or NSZ), named like the files of the shops, next to the original.
-Nothing is decompressed or changed: each title keeps its NCA files, its ticket and its certificate as they are, since
-each one carries its own metadata (CNMT). Every part is checked before the original is deleted, and the original stays
-when it holds anything no title claims. Splitting needs your `prod.keys`, to read that metadata.
-
-A game card dump (XCI or XCZ) with several games, like a collection of games on one cartridge, splits into one XCI
-(or XCZ) per game, with its update and DLC: the files of a game card are made for a game card, and turning them into
-NSP would mean signing them again. Each part keeps the header of the original card.
-
-Both run as tasks that can be paused and resumed, also after a restart.
-
-### Users and password protection
-
-Without users, anyone on your local network who can open the app has full access, and every page shows a reminder.
-Requests from outside the local network (the internet, also through a reverse proxy) are refused until an
-administrator exists, so an app published by mistake is not open to everyone. Open **Users** and create an
-administrator to require a login; you are logged in as that administrator right away. Then add more users with one of two roles:
-
-| Role | Can |
-|---|---|
-| Administrator | Everything: synchronize, organize, compress, ignore items, change settings and manage users |
-| Read only | Browse the library and download files; the controls that change something are hidden |
-
-- Passwords are stored as bcrypt hashes in `users.json` in the data folder. Every user can change their own password
-  in **My account**; a new password ends the other sessions of that user. A password needs at least 10 characters and
-  cannot be a very common one or the user name.
-- Logins last 30 days; **Log out** ends the session for good, also on a copied cookie.
-- **Protection against brute force and bots** (a botnet trying lists of user names and passwords): after a few failed
-  logins each attempt is slowed down a little, and after 10 the address **and** the account are blocked, so guessing
-  one account from many addresses, or many accounts from one address, are both stopped. The block grows with each
-  further failure (up to a day for an address, an hour for an account), and a flood from many addresses at once slows
-  every attempt. Behind a reverse proxy the real client address is used, not the proxy's, and forged forwarded
-  addresses from outside the local network are ignored.
-- An administrator can also be set with the environment variables `SLM_AUTH_USERNAME` and `SLM_AUTH_PASSWORD`, which
-  is useful when a password was forgotten. A weak `SLM_AUTH_PASSWORD` (shorter than 10
-  characters or very common) still works, so nobody is locked out, but the log and the pages of the administrators ask
-  to change it.
-
-- If another service already protects the app (a reverse proxy with its own login, a VPN) and you want no users, set
-  `SLM_ALLOW_REMOTE_WITHOUT_LOGIN=true` so it also answers outside the local network.
-- Without login the app answers only to addresses (`192.168.1.2:3030`), names without a domain (`tower:3030`) and
-  names of the local network (`.local`, `.lan`, `.home.arpa`, `.internal`, `.ts.net`…), so a web site cannot point
-  a name of its own at the app and use it (DNS rebinding). To open it by another name, list it in
-  `SLM_ALLOWED_HOSTS` (names separated by commas, `.example.com` for every name under a domain).
-
-Use HTTPS (for example behind a reverse proxy) when the app can be reached from outside your network: the app then
-marks its cookies as secure and tells the browser to keep using HTTPS.
-
-**Behind Cloudflare.** With a Cloudflare Tunnel (`cloudflared` on your network) nothing needs to be set: the app reads
-the visitor's address from Cloudflare's `CF-Connecting-IP` header, so the login protection blocks the attacker and not
-Cloudflare. If Cloudflare connects to the app directly (a proxied DNS record pointing at your public address), set
-`SLM_TRUSTED_PROXIES=cloudflare` so its headers are believed only from [Cloudflare's addresses](https://www.cloudflare.com/ips/).
-`SLM_TRUSTED_PROXIES` also takes other proxy addresses or ranges, separated by commas. Cloudflare's own protections
-(for example a WAF rate limiting rule on `/login.html`, or Cloudflare Access) can be added on top.
-
-**Verifying the downloads.** Every program of a release and every Docker image comes with a signed provenance
-(Sigstore, through GitHub) that proves it was built by this repository's workflows from the tagged source, and the
-images carry the list of what is in them (SBOM). With the [GitHub CLI](https://cli.github.com/):
-
-```bash
-gh attestation verify switch-library-manager-web-<version>-windows-x64.zip -R DeLFuS77/switch-library-manager-web
-gh attestation verify oci://docker.io/delfus77/switch-library-manager-web:latest -R DeLFuS77/switch-library-manager-web
-```
-
-`SHA256SUMS.txt` in each release has the checksums of the files.
-
-To report a security problem privately, see [SECURITY.md](SECURITY.md).
-
-To report bugs, ask for features or contribute code, see [CONTRIBUTING.md](CONTRIBUTING.md).
-
-Other protections: other web sites cannot send actions to the app (CSRF), pages cannot be shown inside other sites,
-only the app's own scripts run, request sizes and slow connections are limited, covers are only downloaded from the
-internet (never from addresses of your network) and the settings, users and session files are readable only by the
-app.
-
-### Times to beat
-
-Optional: the game pages can show how long each game takes to beat (quick, story and 100%), the library can be
-sorted by it and Statistics adds up the hours of your games. The times come from [IGDB](https://www.igdb.com), free
-for non-commercial use, through your own Twitch application:
-
-1. Have a Twitch account with two-step verification enabled.
-2. In [dev.twitch.tv/console](https://dev.twitch.tv/console), **Register Your Application**: any name,
-   OAuth Redirect URL `http://localhost`, category *Application Integration*, client type **Confidential**.
-3. Copy its **Client ID**, create a **Client Secret**, and paste both in **Settings > General > Times to beat**
-   (or set `SLM_IGDB_CLIENT_ID` and `SLM_IGDB_CLIENT_SECRET`).
-
-After the next scan, the games are looked up in the background, a few a second as IGDB asks, and the times are kept
-in `timetobeat.json` in the data folder, so each game is looked up once (again after some months). The secret stays
-on the server and is never shown again. Games that nobody reported on IGDB have no time.
-
-The same keys give the **Sagas** the series of your games from IGDB, its *collections*, kept in `igdbseries.json`.
-
-### Sagas
-
-The Sagas page and each game page show the series of your games, "4 of 6", with the games you are missing. The
-series come, in this order, from IGDB (with your keys, see above), from [Wikidata](https://www.wikidata.org) (the
-series of the known Switch games, made with the titles data and free to reuse, no keys needed) and, for the games
-neither knows, from their names and publishers: "Kingdom Two Crowns", "Kingdom Hearts" and "Kingdom Rush" share a
-word, not a series.
-
-### App on your phone
-
-The app installs like any other on a phone, tablet or computer: an icon on the home screen that opens it in its own
-window. **Settings > App on your phone** has a code to open the server on the phone and the steps for Android, iPhone
-and iPad and computers; in Chrome, Edge and Samsung Internet an **Install the app** button does it in one step.
-
-To install it as an app the address must be HTTPS (a reverse proxy, Tailscale or a Cloudflare Tunnel); with
-`http://192.168...` the icon also works, but opens like a page of the browser. Apple does not let a web page install
-itself, so on iPhone and iPad it is always done from the Share button, Add to Home Screen.
-
-The code opens the address in use, so a local one (`192.168...`) only works at home. From outside, the phone needs a
-way to reach the server: a **VPN** (Tailscale, WireGuard or the one of your router; no domain, fixed IP nor open
-ports, the safest), a **Cloudflare Tunnel** (a domain of yours and a free account give an HTTPS address without
-opening ports) or a **reverse proxy** (Nginx Proxy Manager, Caddy or SWAG with a domain and port 443 open; a dynamic
-DNS such as DuckDNS replaces a fixed IP). Turn on users in the app before opening it to the internet.
-
-### Tasks keep running
-
-Synchronizations, scans, compressions, file checks and the other tasks run on the server: the browser, the phone or
-the computer where you started them can be closed or turned off. They only stop when the app itself stops (its Docker
-container or its program), and a stopped file check goes on where it was the next time.
-
-### Save vault (JKSV)
-
-The save vault keeps the backups of your saves on the server, so a broken SD card or console does not take them. It is
-off until you turn it on in **Settings > Save vault**:
-
-1. Turn it on, choose a user and a password for JKSV (not those of the web interface) and save.
-2. Write the address of the server as the console sees it (like `http://192.168.1.10:3000`) and download
-   **webdav.json**. Copy it to the SD card of the console as `sdmc:/config/JKSV/webdav.json`.
-3. Open [JKSV](https://github.com/J-D-K/JKSV) on the console: it says WebDAV is ready. Make a backup of a save and
-   choose to upload it.
-
-The backups appear on the **Save backups** page and on the page of each game, matched by the title ID JKSV writes in
-each ZIP. They are kept in the `saves` folder of the data folder (include it in the backups of your server). WebDAV
-answers at `/dav/` on the same port, with its own password and the same protection against guessing as the login;
-from outside your home use it through a VPN. **Backups kept per game** deletes the oldest ones automatically. Even
-with the right password the vault only keeps backups (ZIP files) in the folder of JKSV, and refuses an upload that
-would leave less than 2 GB free on the disk.
-
-### Notifications
-
-After every synchronization the app can tell you about new updates and DLC of your games, through a Discord webhook,
-a Telegram bot or any webhook that accepts JSON (ntfy, Home Assistant, n8n...). Set them in **Settings >
-Notifications**; only new items are reported.
-
-### API
-
-The JSON API lists the library and its statistics and downloads files. It is described in
-[OpenAPI](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/resources/static/openapi.json) format, also served by the app at `/api/openapi.json`.
-
-| Endpoint | Description |
-|---|---|
-| `GET /api/titles` | Games in the library with their updates and DLC |
-| `GET /api/statistics` | The numbers of the Statistics page |
-| `GET /api/titles/{titleId}/archive.zip` | All files of a game as one ZIP |
-| `GET /export/library.csv`, `/export/library.json` | Library export |
-| `GET /sync`, `POST /sync` | Synchronization status, start a synchronization |
-| `GET /api/tasks`, `GET /api/tasks/events` | Running and recent tasks, and their live updates |
-| `GET /healthz` | Health check, without login |
-
-When a login is required, API clients use HTTP basic authentication (a read-only user is enough to read). Example
-Home Assistant sensor:
-
-```yaml
-rest:
-  - resource: http://192.168.1.10:3000/api/statistics
-    # username: viewer
-    # password: !secret switch_library_password
-    scan_interval: 3600
-    sensor:
-      - name: Switch games
-        value_template: "{{ value_json.games }}"
-      - name: Switch games with a missing update
-        value_template: "{{ value_json.gamesWithUpdate }}"
-      - name: Switch missing DLC
-        value_template: "{{ value_json.missingDlc }}"
-```
-
-### Settings
-
-Most settings are in the web interface. `settings.json` in the data folder also has:
-
-| Setting | Description |
-|---|---|
-| `port` | Port of the web interface, `3000` by default |
-| `debug` | Detailed log, useful when reporting a problem |
-| `scan_workers` | Files read at the same time when scanning. `0` (default) uses up to 4; more for fast network storage, `1` for one slow disk |
-| `titles_json_url` | Titles database. Default: the `data` release of this repository |
-| `versions_json_url` | Versions database. Default: [blawar/titledb](https://github.com/blawar/titledb) |
-| `localized_titles_json_url` | Translated game names and descriptions; `%s` is the language |
-
-The titles database is built every 6 hours from [blawar/titledb](https://github.com/blawar/titledb) by the
-[Update title data](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/.github/workflows/update-title-data.yml) workflow and published in the `data` release. If it
-cannot be downloaded, a mirror is used.
-
-Every week the app keeps a copy of its configuration (settings, users, favorites, collections, wishlist and history)
-in the `backups` folder of the data folder, the last 5. **Settings > Backup** lists them to download or restore, and
-makes one at any moment.
-
-## Updating
-
-- **Unraid, installed from the Apps tab:** Docker tab > Check for Updates > update.
-- **Created with `docker run`** (on Unraid also when the template could not be saved, which shows "Configuration not
-  found" when updating): download the new image and create the container again with the same folders. Your settings,
-  keys, covers and caches stay, because they are in the data folder. The app shows these commands with your folders
-  already filled in under **How to update** (from the update notice or Settings).
-
-```bash
-docker pull delfus77/switch-library-manager-web:latest && docker stop switch-library-manager-web && docker rm switch-library-manager-web
-```
-
-  Then run your `docker run` command again.
-- **Windows, macOS, Linux:** stop the app, replace the file with the new version and start it.
-
-## Demo mode
-
-To look around without any games, start the app with the environment variable `SLM_DEMO=true`. It shows a made-up
-library (invented titles and generated covers), does not read your folders or download anything, and refuses every
-change:
-
-```bash
-docker run --rm -p 3000:3000 -e SLM_DEMO=true delfus77/switch-library-manager-web
-```
-
-## Troubleshooting
-
-**Diagnostics** (in the footer and in Settings) checks at a glance the keys, the library folders, the titles database,
-the free space, the automatic copies and the protection, and tells what to do about what is wrong. **Copy the report**
-to ask for help: it holds no key and no password.
-
-**The web interface does not open.** Check that the port is published (`-p 3000:3000`, or the WebUI port on Unraid) and
-open `http://<address of the server>:3000`. `docker logs switch-library-manager-web` shows why the app stopped, if it
-did.
-
-**"The data folder is not writable".** Set `PUID` and `PGID` to the owner of the folders on the host (on Unraid
-`99` and `100`).
-
-**Keys not found.** Put `prod.keys` in the data folder, or set its folder in **Settings**, and save the settings. The
-first step of the checklist and the Settings page tell you whether the keys were found.
-
-**A game is missing or shown as an issue.** Open **Issues**: it explains every file that could not be added, for
-example a key missing from an old `prod.keys` or a damaged file.
-
-**No covers.** Covers are downloaded from the Nintendo servers during the scan. If your network blocks them, the
-placeholder is shown and the next scan tries again.
-
-**Reporting a problem.** Use the [issue tracker](https://github.com/DeLFuS77/switch-library-manager-web/issues). Set
-`debug` to `true` in `settings.json` and attach the log, but **never your keys**.
-
-## Building
-
-Requirements: [Go](https://go.dev) 1.25+ and [Node.js](https://nodejs.org) (for the web interface).
-
-```
-git clone https://github.com/DeLFuS77/switch-library-manager-web.git
-cd switch-library-manager-web
-npm ci
-npm run build       # web interface (sass + esbuild)
-make build          # Linux
-make build-windows  # Windows
-make build-mac      # macOS (Apple Silicon)
-make test
-```
-
-The programs are written to `build`. The web interface is embedded in the program, so `npm ci` and
-`npm run build` must run first. Without `make` (e.g. on Windows): `go build -o build/switch-library-manager-web.exe .`
-
-`.github/scripts/build_release.sh <version>` builds and packs the programs of every system in `dist`, as the releases do.
+| [Getting started](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Getting-started) | From installing to a library that keeps itself up to date, step by step |
+| [Tour of the app](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Tour-of-the-app) | Every page, with a screenshot and what it is for |
+| [Installation](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Installation) | Docker, Synology, Portainer, Unraid, Windows, macOS, Linux, Raspberry Pi |
+| [Organize and duplicates](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Organize-and-duplicates) | Folders, names, old updates and which copy of a duplicate stays |
+| [Compression](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Compression) | NSZ and XCZ, how files are checked, complete packs and splitting |
+| [Cheats](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Cheats) | The cheats of your games for the version you have, ready for the SD card |
+| [Users and security](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Users-and-security) | Accounts, the internet, Cloudflare and verifying the downloads |
+| [Save vault](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Save-vault), [Times to beat and sagas](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Times-to-beat-and-sagas), [App on your phone](https://github.com/DeLFuS77/switch-library-manager-web/wiki/App-on-your-phone) | The extras |
+| [Notifications and API](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Notifications-and-API), [Settings and backups](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Settings-and-backups) | Messages, Home Assistant, `settings.json` |
+| [Updating](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Updating), [Troubleshooting](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Troubleshooting), [FAQ](https://github.com/DeLFuS77/switch-library-manager-web/wiki/FAQ), [Glossary](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Glossary) | Help |
+| [Demo mode](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Demo-mode), [Building](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Building) | Look around without games, build it yourself |
+
+To report a security problem privately, see [SECURITY.md](SECURITY.md). To report bugs, ask for features or contribute
+code, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Disclaimer
 
