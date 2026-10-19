@@ -452,6 +452,7 @@ var funcMap = template.FuncMap{
 	"playStates":    PlayStates,
 	"roleName":      func(role string) string { return roleNames[role] },
 	"roleChoices":   RoleChoices,
+	"cheatTargets":  func() []cheatTarget { return cheatTargets },
 	"playStateName": func(state string) string { return playStateLooks[state].Name },
 	"filterUrl": func(filter *TitleItemFilter, replace ...string) template.URL {
 		return template.URL("?" + filter.query(replace...).Encode())

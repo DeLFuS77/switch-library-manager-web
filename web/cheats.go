@@ -479,20 +479,141 @@ func (web *Web) ownedCheats(lang string) []ownedCheat {
 	return result
 }
 
-// writeCheatsZip writes the cheats as the SD card holds them, for Atmosphère.
-func writeCheatsZip(w io.Writer, cheats *cheatsDB, owned []ownedCheat) error {
+// cheatTarget is where the cheats of a console or an emulator go inside the zip.
+type cheatTarget struct {
+	// the value of the "for" parameter, the name shown, and where to extract it
+	Value, Name, Into string
+	// yuzu-style emulators take a folder per cheat; the others one file with every cheat
+	perCheat bool
+	// path is the file of the cheats of a game (cheatFolder is used only when perCheat)
+	path func(id, build, cheatFolder string) string
+}
+
+// cheatTargets are the consoles and emulators the cheats can be packed for, Atmosphère first.
+var cheatTargets = []cheatTarget{
+	{Value: "", Name: "Switch (Atmosphère)", Into: "the root of your SD card", path: func(id, build, _ string) string {
+		return "atmosphere/contents/" + id + "/cheats/" + build + ".txt"
+	}},
+	{Value: "ryujinx", Name: "Ryujinx (and forks)", Into: "the data folder of Ryujinx", path: func(id, build, _ string) string {
+		return "mods/contents/" + id + "/cheats/" + build + ".txt"
+	}},
+	{Value: "yuzu", Name: "Yuzu / Eden / Citron", Into: "the load folder of the emulator", perCheat: true, path: func(id, build, folder string) string {
+		return "load/" + id + "/" + folder + "/cheats/" + build + ".txt"
+	}},
+}
+
+// cheatTargetFor is the target of a "for" value, or the first one (Atmosphère) when it is
+// empty or unknown, so old links keep working.
+func cheatTargetFor(value string) cheatTarget {
+	for _, target := range cheatTargets {
+		if target.Value == value {
+			return target
+		}
+	}
+	return cheatTargets[0]
+}
+
+// cheatZipSuffix names the target in the file name, so the zips of a game do not share one.
+func cheatZipSuffix(target cheatTarget) string {
+	if target.Value == "" {
+		return ""
+	}
+	return " " + target.Value
+}
+
+// cheatBlock is a named cheat of a text file, with the lines below its name.
+type cheatBlock struct {
+	Name   string
+	Master bool
+	Text   string
+}
+
+// splitCheats breaks a cheat text into its blocks, leaving out the line that names the game
+// (the one with TID: and BID:); a master code is kept apart, the others need it.
+func splitCheats(text string) []cheatBlock {
+	blocks := []cheatBlock{}
+	var current *cheatBlock
+	for _, line := range strings.Split(text, "\n") {
+		if match := cheatName.FindStringSubmatch(line); match != nil {
+			name := strings.TrimSpace(match[1])
+			upper := strings.ToUpper(name)
+			if strings.Contains(upper, "TID:") || strings.Contains(upper, "BID:") {
+				current = nil
+				continue
+			}
+			master := strings.HasPrefix(strings.TrimSpace(line), "{")
+			blocks = append(blocks, cheatBlock{Name: name, Master: master, Text: line})
+			current = &blocks[len(blocks)-1]
+			continue
+		}
+		if current != nil {
+			current.Text += "\n" + line
+		}
+	}
+	return blocks
+}
+
+// invalidFolderChars are the characters a folder name of Windows cannot hold.
+var invalidFolderChars = regexp.MustCompile(`[<>:"/\\|?*\x00-\x1f]`)
+
+// cheatFolderName makes a cheat name into a folder name every system accepts; empty or dotted
+// names, and the ones taken already, are numbered.
+func cheatFolderName(name string, taken map[string]bool) string {
+	name = strings.TrimSpace(invalidFolderChars.ReplaceAllString(name, " "))
+	name = strings.Trim(strings.Join(strings.Fields(name), " "), ". ")
+	if len(name) > 100 {
+		name = strings.TrimSpace(name[:100])
+	}
+	if name == "" {
+		name = "Cheat"
+	}
+	candidate := name
+	for i := 2; taken[strings.ToLower(candidate)]; i++ {
+		candidate = name + " " + strconv.Itoa(i)
+	}
+	taken[strings.ToLower(candidate)] = true
+	return candidate
+}
+
+// writeCheatsZip writes the cheats of the games for a target (a console or an emulator).
+func writeCheatsZip(w io.Writer, cheats *cheatsDB, owned []ownedCheat, target cheatTarget) error {
 	archive := zip.NewWriter(w)
 	for _, game := range owned {
 		text, err := cheats.text(game.Id, game.Build)
 		if err != nil {
 			continue
 		}
-		entry, err := archive.Create("atmosphere/contents/" + game.Id + "/cheats/" + game.Build + ".txt")
-		if err != nil {
-			return err
+		if !target.perCheat {
+			entry, err := archive.Create(target.path(game.Id, game.Build, ""))
+			if err != nil {
+				return err
+			}
+			if _, err := io.WriteString(entry, text); err != nil {
+				return err
+			}
+			continue
 		}
-		if _, err := io.WriteString(entry, text); err != nil {
-			return err
+		// a folder per cheat, each with the master code the cheats need
+		blocks := splitCheats(text)
+		master := ""
+		for _, block := range blocks {
+			if block.Master {
+				master += block.Text + "\n" + "\n"
+			}
+		}
+		taken := map[string]bool{}
+		for _, block := range blocks {
+			if block.Master {
+				continue
+			}
+			folder := cheatFolderName(block.Name, taken)
+			entry, err := archive.Create(target.path(game.Id, game.Build, folder))
+			if err != nil {
+				return err
+			}
+			if _, err := io.WriteString(entry, master+block.Text+"\n"); err != nil {
+				return err
+			}
 		}
 	}
 	return archive.Close()
@@ -536,9 +657,10 @@ func (web *Web) HandleCheats() {
 		if !ok {
 			return
 		}
+		target := cheatTargetFor(r.URL.Query().Get("for"))
 		w.Header().Set("Content-Type", "application/zip")
-		w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote("cheats "+game.Id+".zip"))
-		if err := writeCheatsZip(w, cheats, []ownedCheat{game}); err != nil {
+		w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote("cheats "+game.Id+cheatZipSuffix(target)+".zip"))
+		if err := writeCheatsZip(w, cheats, []ownedCheat{game}, target); err != nil {
 			web.sugarLogger.Warnf("Writing the cheats failed: %v", err)
 		}
 	}).Methods("GET")
@@ -551,9 +673,10 @@ func (web *Web) HandleCheats() {
 			http.NotFound(w, r)
 			return
 		}
+		target := cheatTargetFor(r.URL.Query().Get("for"))
 		w.Header().Set("Content-Type", "application/zip")
-		w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote("cheats.zip"))
-		if err := writeCheatsZip(w, cheats, owned); err != nil {
+		w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote("cheats"+cheatZipSuffix(target)+".zip"))
+		if err := writeCheatsZip(w, cheats, owned, target); err != nil {
 			web.sugarLogger.Warnf("Writing the cheats failed: %v", err)
 		}
 	}).Methods("GET")
