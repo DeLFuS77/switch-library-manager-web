@@ -132,6 +132,8 @@ type Task struct {
 	PausedFor time.Duration `json:"pausedFor,omitempty"`
 	Workers   int           `json:"workers,omitempty"`
 	Threads   int           `json:"threads,omitempty"`
+	// on the Tasks page only: the next file a task on files will take, and its cover
+	Next *TaskLane `json:"-"`
 }
 
 // TaskLane is a file a running task is working on, with its own progress in bytes.
@@ -144,6 +146,8 @@ type TaskLane struct {
 	Phase string `json:"phase,omitempty"`
 	Step  int    `json:"step,omitempty"`
 	Steps int    `json:"steps,omitempty"`
+	// on the Tasks page only: the cover of the game of the file
+	Cover string `json:"-"`
 }
 
 // laneTones are the colours of the library overview, one for each file being worked on.

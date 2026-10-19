@@ -254,6 +254,7 @@ func init() {
 		"%v threads":                "%v потоков",
 		"Total":                     "Всего",
 		"Files being worked on":     "Обрабатываемые файлы",
+		"Next: %v":                  "Далее: %v",
 		"Outside your home network": "Вне домашней сети",
 		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "Код открывает адрес, который вы используете сейчас: локальный адрес (например, 192.168...) работает только дома. Чтобы пользоваться приложением извне, телефону нужен способ добраться до сервера. От самого простого к самому трудоёмкому:",
 		"A VPN": "VPN",

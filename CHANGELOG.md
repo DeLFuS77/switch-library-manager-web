@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Improvements
+
+- Tasks shows the cover of the game of each file being compressed, decompressed, checked or split, and the next file the task takes
+
+## Unreleased
+
 ### New
 
 - **Split game cards with several games**: an XCI or XCZ that holds a collection of games on one cartridge (like the KEMCO RPG Selection) is listed in Compress > Split multi-title files and splits into one XCI or XCZ per game, with its update and DLC, each named after its own game. The files of each game are copied as they are, under the header of the original card, and every part is checked before the original is deleted. A usual card, with one game and its update, is not listed

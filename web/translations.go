@@ -256,6 +256,7 @@ var translations = map[string]map[string]string{
 		"%v threads":                "%v hilos",
 		"Total":                     "Total",
 		"Files being worked on":     "Archivos en curso",
+		"Next: %v":                  "Siguiente: %v",
 		"Outside your home network": "Fuera de tu red de casa",
 		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "El código abre la dirección que estás usando ahora: una dirección local (como 192.168...) solo funciona en casa. Para usar la app desde fuera, el móvil necesita una forma de llegar al servidor. De lo más fácil a lo que más trabajo da:",
 		"A VPN": "Una VPN",
