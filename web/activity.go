@@ -34,9 +34,14 @@ const (
 	ACTION_USER_PASS  = "Changed the password of a user"
 	ACTION_USER_DEL   = "Deleted a user"
 	ACTION_UPLOAD     = "Uploaded a game"
+	ACTION_SYNC       = "Updated the titles database"
+	ACTION_VERIFY     = "Started a file check"
+	ACTION_LOGIN_OK   = "Signed in"
+	ACTION_LOGIN_FAIL = "Failed sign-in"
+	ACTION_LOGIN_LOCK = "Sign-in blocked (too many tries)"
 )
 
-var activityActions = []string{ACTION_SETTINGS, ACTION_ORGANIZE, ACTION_SPACE, ACTION_COMPRESS, ACTION_DECOMPRESS, ACTION_RESTORE, ACTION_USER_NEW, ACTION_USER_ROLE, ACTION_USER_PASS, ACTION_USER_DEL, ACTION_LEFTOVERS, ACTION_UPLOAD}
+var activityActions = []string{ACTION_SETTINGS, ACTION_ORGANIZE, ACTION_SPACE, ACTION_COMPRESS, ACTION_DECOMPRESS, ACTION_RESTORE, ACTION_USER_NEW, ACTION_USER_ROLE, ACTION_USER_PASS, ACTION_USER_DEL, ACTION_LEFTOVERS, ACTION_UPLOAD, ACTION_SYNC, ACTION_VERIFY, ACTION_LOGIN_OK, ACTION_LOGIN_FAIL, ACTION_LOGIN_LOCK}
 
 // Activity is an action of a user.
 type Activity struct {
@@ -44,6 +49,32 @@ type Activity struct {
 	User   string    `json:"user,omitempty"`
 	Action string    `json:"action"`
 	Detail string    `json:"detail,omitempty"`
+	// the address the action came from, when it is known
+	IP string `json:"ip,omitempty"`
+}
+
+// loginResults are the actions of a sign-in attempt, by result.
+var loginResults = map[string]string{"ok": ACTION_LOGIN_OK, "fail": ACTION_LOGIN_FAIL, "blocked": ACTION_LOGIN_LOCK}
+
+// recordLogin notes a sign-in attempt: who, from where, and how it went. The password tried is
+// never kept; only whether it had the length a real one needs, to tell a typo from a probe.
+func (web *Web) recordLogin(user, ip, result string, longEnough bool) {
+	if isDemoMode() {
+		return
+	}
+	action, ok := loginResults[result]
+	if !ok {
+		return
+	}
+	detail := ""
+	if result != "ok" {
+		if longEnough {
+			detail = "password of the usual length"
+		} else {
+			detail = "password too short to be real"
+		}
+	}
+	web.activities().add(Activity{Time: time.Now(), User: user, Action: action, Detail: detail, IP: ip})
 }
 
 type activityLog struct {
@@ -83,6 +114,14 @@ func (l *activityLog) add(entry Activity) {
 	if data, err := json.MarshalIndent(l.entries, "", " "); err == nil {
 		writeFileAtomic(l.path, data)
 	}
+}
+
+// activityPreview is the newest entries, at most n.
+func activityPreview(entries []Activity, n int) []Activity {
+	if len(entries) > n {
+		return entries[:n]
+	}
+	return entries
 }
 
 func (l *activityLog) list() []Activity {
@@ -125,6 +164,8 @@ var recordedActions = map[string]func(r *http.Request) (string, string){
 	"/users/password": func(r *http.Request) (string, string) { return ACTION_USER_PASS, r.FormValue("name") },
 	"/users/delete":   func(r *http.Request) (string, string) { return ACTION_USER_DEL, r.FormValue("name") },
 	"/uploads/finish": func(r *http.Request) (string, string) { return ACTION_UPLOAD, r.FormValue("name") },
+	"/sync":           func(r *http.Request) (string, string) { return ACTION_SYNC, "" },
+	"/verify/start":   func(r *http.Request) (string, string) { return ACTION_VERIFY, r.FormValue("action") },
 }
 
 // statusRecorder remembers the status of a response.
@@ -167,7 +208,7 @@ func (web *Web) withActivityLog(next http.Handler) http.Handler {
 		if principal := principalFrom(r); principal != nil {
 			user = principal.Name
 		}
-		web.activities().add(Activity{Time: time.Now(), User: user, Action: action, Detail: detail})
+		web.activities().add(Activity{Time: time.Now(), User: user, Action: action, Detail: detail, IP: clientIp(r)})
 	})
 }
 
@@ -175,13 +216,17 @@ var (
 	activityFilesPattern = regexp.MustCompile(`^(\d+) files`)
 	// values of the forms, shown with the name of what they do
 	activityValues = map[string]string{
-		ORGANIZE_ACTION_ORGANIZE: "Organize files",
-		ORGANIZE_ACTION_CLEANUP:  "Delete old updates",
-		SPACE_OLD_UPDATES:        "Old updates",
-		SPACE_DUPLICATES:         "Duplicates",
-		SPACE_COMPRESSED:         "Compressed originals",
-		"admin":                  "Administrator",
-		"viewer":                 "Read only",
+		ORGANIZE_ACTION_ORGANIZE:        "Organize files",
+		ORGANIZE_ACTION_CLEANUP:         "Delete old updates",
+		SPACE_OLD_UPDATES:               "Old updates",
+		SPACE_DUPLICATES:                "Duplicates",
+		SPACE_COMPRESSED:                "Compressed originals",
+		"admin":                         "Administrator",
+		"viewer":                        "Player",
+		"guest":                         "Guest",
+		"editor":                        "Editor",
+		"password of the usual length":  "password of the usual length",
+		"password too short to be real": "password too short to be real",
 	}
 	activityPhrases = []string{", originals deleted after the check", ", NSZ deleted after the check"}
 )

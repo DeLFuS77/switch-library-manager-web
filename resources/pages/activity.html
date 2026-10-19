@@ -1,0 +1,37 @@
+{{define "title"}}{{t "Activity"}}{{end}}
+{{define "main"}}
+			<div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
+				{{- template "pageHeader" (dict "Title" (t "Activity") "Count" -1 "Subtitle" (t "Who changed what in the app, and the sign-in attempts. The newest first."))}}
+				<a class="btn btn-outline-secondary rounded-pill mb-3" href="/activity.csv"><span class="bi bi-filetype-csv me-2" aria-hidden="true"></span>{{t "Export (CSV)"}}</a>
+			</div>
+			{{- if .Activity}}
+			<div class="activity-filters d-flex flex-wrap gap-2 mb-3" data-activity-filters>
+				<input type="search" class="form-control form-control-sm w-auto" placeholder="{{t "Search..."}}" aria-label="{{t "Search"}}" data-activity-search>
+				<select class="form-select form-select-sm w-auto" data-activity-user aria-label="{{t "User"}}">
+					<option value="">{{t "Any user"}}</option>
+					{{- range .Users}}<option value="{{.}}">{{.}}</option>{{end}}
+				</select>
+				<select class="form-select form-select-sm w-auto" data-activity-action aria-label="{{t "Action"}}">
+					<option value="">{{t "Any action"}}</option>
+					{{- range .Actions}}<option value="{{.Value}}">{{.Name}}</option>{{end}}
+				</select>
+			</div>
+			<ul class="item-list" data-activity-list>
+				{{- range .Activity}}
+				<li class="item-row item-row-wide" data-activity-row data-user="{{.User}}" data-action="{{.Action}}">
+					<div class="item-main">
+						<div class="item-name">{{t .Action}}{{with .Detail}} <span class="fw-normal text-body-secondary">&middot; {{.}}</span>{{end}}</div>
+						<div class="item-meta">
+							<span><span class="bi bi-person me-1" aria-hidden="true"></span>{{if .User}}{{.User}}{{else}}{{t "Login disabled"}}{{end}}</span>
+							{{- with .IP}}<span><span class="bi bi-hdd-network me-1" aria-hidden="true"></span>{{.}}</span>{{end}}
+							<span>{{formatDateTime .Time}}</span>
+						</div>
+					</div>
+				</li>
+				{{- end}}
+			</ul>
+			<p class="text-body-secondary d-none" data-activity-empty>{{t "No activity matches the filters."}}</p>
+			{{- else}}
+			{{- template "emptyState" (dict "Icon" "bi-journal-text" "Tone" "" "Title" (t "No activity yet") "Text" (t "Who changed what in the app, and the sign-in attempts, will appear here.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+			{{- end}}
+{{- end}}

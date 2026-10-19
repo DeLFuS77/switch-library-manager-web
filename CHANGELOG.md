@@ -4,6 +4,7 @@
 
 ### Features
 
+- Activity log on its own page (administrators), with filters by user, kind of action and text, and export to CSV. It now records more: sign-in attempts (who, from which address and when, and whether it worked, was wrong or was blocked — never the password tried), synchronizations, file checks and uploads, each with the address it came from
 - Four roles for the users: Guest (looks, downloads nothing), Player (the read-only users of before: also downloads games, updates, DLC and cheats), Editor (also uploads, synchronizes, checks and compresses games without deleting the originals, and keeps favorites, the wishlist and collections) and Administrator. The Users page explains each one
 - Cheats can be downloaded packed for Ryujinx (and its forks) and for Yuzu, Eden and Citron, besides the Atmosphère ZIP for the Switch: the game page and the library's cheats download now offer the three, each with the folders the target expects. For the Yuzu-style emulators each cheat gets its own folder so they can be turned on one by one, with the master code included. Suggested by LonelyTV in #85
 - Notifications for failed tasks: a compression, a file check, a synchronization or any other task that fails is told by Discord, Telegram or the webhook, with its reason. On by default, with a switch in Settings and in the setup assistant; what you cancel is not told

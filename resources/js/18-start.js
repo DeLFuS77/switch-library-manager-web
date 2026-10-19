@@ -271,6 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initIssueKeep();
 	initPlay();
 	initSmartCollections();
+	initActivityFilter();
 	initIssueDeleteFile();
 	initGameUpload();
 	initSearchClear();

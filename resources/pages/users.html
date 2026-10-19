@@ -123,13 +123,14 @@
 					<li class="item-row item-row-wide">
 						<div class="item-main">
 							<div class="item-name">{{t .Action}}{{with .Detail}} <span class="fw-normal text-body-secondary">&middot; {{.}}</span>{{end}}</div>
-							<div class="item-meta"><span><span class="bi bi-person me-1" aria-hidden="true"></span>{{if .User}}{{.User}}{{else}}{{t "Login disabled"}}{{end}}</span><span>{{formatDateTime .Time}}</span></div>
+							<div class="item-meta"><span><span class="bi bi-person me-1" aria-hidden="true"></span>{{if .User}}{{.User}}{{else}}{{t "Login disabled"}}{{end}}</span>{{with .IP}}<span><span class="bi bi-hdd-network me-1" aria-hidden="true"></span>{{.}}</span>{{end}}<span>{{formatDateTime .Time}}</span></div>
 						</div>
 					</li>
 					{{- end}}
 				</ul>
+				<a class="btn btn-sm btn-outline-secondary rounded-pill mt-2" href="/activity.html"><span class="bi bi-journal-text me-1" aria-hidden="true"></span>{{t "See all the activity"}}</a>
 				{{- else}}
-				<p class="text-body-secondary">{{t "Deleted, organized or compressed files, restored backups, saved settings and changes of users appear here."}}</p>
+				<p class="text-body-secondary">{{t "Deleted, organized or compressed files, restored backups, saved settings, changes of users and sign-in attempts appear here."}} <a href="/activity.html">{{t "See all the activity"}}</a></p>
 				{{- end}}
 			</section>
 {{- end}}

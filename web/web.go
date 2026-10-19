@@ -707,6 +707,7 @@ func (web *Web) Start() {
 		web.sugarLogger.Error(err)
 		log.Fatal(err)
 	}
+	web.auth.onLogin = web.recordLogin
 
 	// Run http server
 	setStartingStep("Preparing the pages...")
@@ -734,6 +735,7 @@ func (web *Web) Start() {
 	web.HandleApiDocs()
 	web.HandleTasks()
 	web.HandleUsers()
+	web.HandleActivity()
 	web.HandleCompress()
 	web.HandleMeasure()
 	web.HandleVerify()

@@ -55,7 +55,7 @@ func TestActivityDetailsAreTranslated(t *testing.T) {
 		{Action: ACTION_USER_NEW, Detail: "pedro"},
 	}
 	got := translateActivity("es", entries)
-	want := []string{"Borrar actualizaciones antiguas", "3 archivos + Duplicados", "2 archivos, originales borrados tras la comprobación", "ana: " + translate("es", "Read only"), "pedro"}
+	want := []string{"Borrar actualizaciones antiguas", "3 archivos + Duplicados", "2 archivos, originales borrados tras la comprobación", "ana: " + translate("es", "Player"), "pedro"}
 	for i := range want {
 		if got[i].Detail != want[i] {
 			t.Errorf("%q: got %q, want %q", entries[i].Detail, got[i].Detail, want[i])

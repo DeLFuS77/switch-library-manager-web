@@ -282,3 +282,36 @@ function initSmartCollections() {
 			.catch(fail);
 	}));
 }
+
+// the activity page: filter the rows by user, kind of action and text, in the browser
+function initActivityFilter() {
+	const box = document.querySelector('[data-activity-filters]');
+	if (!box) {
+		return;
+	}
+	const search = box.querySelector('[data-activity-search]');
+	const userSel = box.querySelector('[data-activity-user]');
+	const actionSel = box.querySelector('[data-activity-action]');
+	const rows = [...document.querySelectorAll('[data-activity-row]')];
+	const empty = document.querySelector('[data-activity-empty]');
+	const apply = () => {
+		const text = search.value.trim().toLowerCase();
+		const user = userSel.value;
+		const action = actionSel.value;
+		let shown = 0;
+		rows.forEach(row => {
+			const ok = (!user || row.dataset.user === user) && (!action || row.dataset.action === action) && (!text || row.textContent.toLowerCase().includes(text));
+			row.hidden = !ok;
+			if (ok) {
+				shown++;
+			}
+		});
+		if (empty) {
+			empty.classList.toggle('d-none', shown > 0);
+		}
+	};
+	[search, userSel, actionSel].forEach(el => {
+		el.addEventListener('input', apply);
+		el.addEventListener('change', apply);
+	});
+}
