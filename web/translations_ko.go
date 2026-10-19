@@ -1038,6 +1038,8 @@ func init() {
 		"Notifications":                                       "알림",
 		"Notify games added to my folders":                    "내 폴더에 추가된 게임 알림",
 		"Notify my wishlist":                                  "위시리스트 알림",
+		"Notify new cheats for my games":                      "내 게임의 새 치트 알림",
+		"Cheats for %v (%v, the version you have)":            "%v 치트 (%v, 내 버전)",
 		"Notify new DLC":                                      "새 DLC 알림",
 		"Notify new updates":                                  "새 업데이트 알림",
 		"Off":                                                 "끄기",

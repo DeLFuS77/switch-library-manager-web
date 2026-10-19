@@ -329,6 +329,10 @@ func (web *Web) downloadCheats() {
 	cache.mutex.Unlock()
 	web.invalidateDerived()
 	web.learnBuildIds()
+	// games of the library that got cheats are told now, not at the next synchronization
+	if err := web.notifyChanges(); err != nil {
+		web.sugarLogger.Infof("The notifications were not sent: %v", err)
+	}
 }
 
 // readBuild is a build ID read from a file of the library, kept while the file stays the same.

@@ -1038,6 +1038,8 @@ func init() {
 		"Notifications":                                       "通知",
 		"Notify games added to my folders":                    "通知添加到文件夹中的游戏",
 		"Notify my wishlist":                                  "通知愿望单动态",
+		"Notify new cheats for my games":                      "通知我的游戏有新金手指",
+		"Cheats for %v (%v, the version you have)":            "%v 的金手指(%v,你拥有的版本)",
 		"Notify new DLC":                                      "通知新 DLC",
 		"Notify new updates":                                  "通知新更新",
 		"Off":                                                 "关闭",

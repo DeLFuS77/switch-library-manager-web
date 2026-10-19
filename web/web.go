@@ -126,6 +126,8 @@ type Web struct {
 	igdbSeries     *igdbCollectionStore
 	seriesFile     seriesFile
 	cheatsFile     cheatsFile
+	// one check of the notifications at a time: two would send the same items
+	notifying sync.Mutex
 	// results of switchfs.HoldsSameContents, see holdsSameContents
 	sameContents      sync.Map
 	sameContentsCount atomic.Int64

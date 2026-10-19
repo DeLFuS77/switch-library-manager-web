@@ -1038,6 +1038,8 @@ func init() {
 		"Notifications":                                       "Meldingen",
 		"Notify games added to my folders":                    "Melden wanneer games aan mijn mappen worden toegevoegd",
 		"Notify my wishlist":                                  "Mijn verlanglijst melden",
+		"Notify new cheats for my games":                      "Nieuwe cheats voor mijn games melden",
+		"Cheats for %v (%v, the version you have)":            "Cheats voor %v (%v, jouw versie)",
 		"Notify new DLC":                                      "Nieuwe DLC melden",
 		"Notify new updates":                                  "Nieuwe updates melden",
 		"Off":                                                 "Uit",
