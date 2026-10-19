@@ -353,6 +353,8 @@ type TaskLog struct {
 	nextId      int64
 	version     int64
 	subscribers map[chan int64]struct{}
+	// told of each task that fails, in the background
+	onFailed func(Task)
 }
 
 // loadTaskLog reads the history saved in the data folder. Tasks that were running when
@@ -528,7 +530,19 @@ func (l *TaskLog) SetVerifyResult(id int64, checked int, damaged int) {
 
 // Finish ends a task; a failure makes it failed, warnings make it a warning.
 func (l *TaskLog) Finish(id int64, failure *TaskNote) {
+	var failed *Task
+	defer func() {
+		if failed != nil && l.onFailed != nil {
+			go l.onFailed(*failed)
+		}
+	}()
 	l.update(id, true, func(task *Task) {
+		defer func() {
+			if task.Status == TASK_FAILED {
+				copied := *task
+				failed = &copied
+			}
+		}()
 		task.Finished = time.Now()
 		task.Message = ""
 		task.Lanes = nil

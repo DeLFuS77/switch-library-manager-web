@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Features
+
+- Notifications for failed tasks: a compression, a file check, a synchronization or any other task that fails is told by Discord, Telegram or the webhook, with its reason. On by default, with a switch in Settings and in the setup assistant; what you cancel is not told
+
 ### Improvements
 
 - Games without their title key are found before they are compressed: after a scan the NSP and NSZ files are looked at once (the headers of their contents and their tickets only, again only when a file changes), Issues lists those without a ticket whose key title.keys does not have either, with how to fix it, and Compress and the automations leave them out instead of failing halfway
