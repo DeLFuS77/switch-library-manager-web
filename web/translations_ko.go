@@ -255,6 +255,7 @@ func init() {
 		"Total":                     "전체",
 		"Files being worked on":     "작업 중인 파일",
 		"Next: %v":                  "다음: %v",
+		"%v saved so far":           "지금까지 %v 절약",
 		"Outside your home network": "집 네트워크 밖에서",
 		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "코드는 지금 사용 중인 주소를 엽니다. 로컬 주소(192.168... 등)는 집에서만 작동합니다. 밖에서 앱을 쓰려면 휴대폰이 서버에 닿을 방법이 필요합니다. 쉬운 순서대로:",
 		"A VPN": "VPN",

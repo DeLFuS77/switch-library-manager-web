@@ -334,6 +334,8 @@
 	background-image: linear-gradient(90deg in oklch, #{$slm-red}, #e4502e 16%, #{$warning} 34%, #f7b232 52%, #f2c94c 70%, #e6d04b 85%, #9ccc4c 93%, #{$success});
 	background-size: calc(100% * 100 / max(var(--pct, 100), 1)) 100%;
 	background-repeat: no-repeat;
+	// a long task shows that it started before its first percent
+	min-width: .5rem;
 	transition: width .6s ease, --pct .6s ease;
 }
 

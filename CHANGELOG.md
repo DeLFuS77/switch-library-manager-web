@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The bar of a long task shows that it started from the first megabytes, not only from its first whole percent
+- Under the total of a task that works on several files, the space saved so far (compressions) instead of the name of a file its lane already shows
+
 ## 1.48.2
 
 ### Improvements

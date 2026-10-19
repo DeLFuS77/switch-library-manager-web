@@ -39,13 +39,18 @@
 						{{- if or .Lanes .FileCount}}<div class="d-flex justify-content-between gap-2 small fw-semibold mb-1"><span>{{t "Total"}}</span>{{if .FileCount}}<span class="text-body-secondary text-nowrap task-file-count">{{t "%v of %v files" (num .FileNumber) (num .FileCount)}}</span>{{end}}</div>{{end}}
 						<div class="progress mb-2" role="progressbar" aria-label="{{t "Progress"}}"{{if ge $pct 0}} aria-valuenow="{{$pct}}" aria-valuemin="0" aria-valuemax="100"{{end}}>
 							{{- if ge $pct 0}}
-							<div class="progress-bar progress-bar-striped progress-bar-animated task-total-bar" style="width: {{$pct}}%; --pct: {{$pct}}"></div>
+							<div class="progress-bar progress-bar-striped progress-bar-animated task-total-bar" style="width: {{.PercentExact}}%; --pct: {{.PercentExact}}"></div>
 							{{- else}}
 							<div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div>
 							{{- end}}
 						</div>
 						<div class="d-flex flex-wrap justify-content-between column-gap-3 small text-body-secondary">
+							{{- if .Lanes}}
+							{{- /* the files are in their lanes: what the task did so far instead */}}
+							<span class="text-truncate task-message">{{if and (eq .Kind "compress") (gt .Saved 0)}}<span class="bi bi-piggy-bank me-1" aria-hidden="true"></span>{{t "%v saved so far" (formatSize .Saved)}}{{end}}</span>
+							{{- else}}
 							<span class="text-truncate task-message">{{if .MessageArg}}{{t .Message .MessageArg}}{{else}}{{t .Message}}{{end}}</span>
+							{{- end}}
 							{{- if ge $pct 0}}<span class="text-nowrap">{{if or (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split")}}{{formatSize (mul .Current 1048576)}} / {{formatSize (mul .Total 1048576)}}{{else}}{{.Current}} / {{.Total}}{{end}} &middot; {{$pct}}%{{with .Speed}} &middot; {{.}} MB/s{{end}}{{with .RemainingText}} &middot; {{t "%v left" .}}{{end}}</span>{{end}}
 						</div>
 						{{- template "verifyBreakdown" .Breakdown}}
