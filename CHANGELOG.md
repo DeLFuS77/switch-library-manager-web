@@ -17,6 +17,7 @@
 ### Fixes
 
 - The Tasks page could stop updating and show a task still running long after it ended: each page of the app open in a tab kept a connection to the server, and with several tabs the browser had none left for the page seen. A tab in the background now closes its connection and looks again once it is seen, and a list that never comes or fails to draw no longer stops the next updates
+- A compression showed only its total bar, without the files being compressed, their covers, their steps nor the sizes, since 1.49.0: once a file had saved something, the size saved (a big number) stopped the drawing of the card halfway. The comparisons of the pages now take numbers of any size
 
 ### Development
 
