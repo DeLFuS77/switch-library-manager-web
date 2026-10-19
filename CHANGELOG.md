@@ -4,6 +4,16 @@
 
 ### New
 
+- **Filters in Missing ones**, like in the Library: games or demos, genre, players, language of the game and region, each with how many games it leaves (asked on the original project)
+
+### Fixes
+
+- A search in the Library no longer drops the filters of genre, players and language
+
+## Unreleased
+
+### New
+
 - Organize lets you choose which copy of a duplicate the library keeps: the NSP or NSZ, the XCI or XCZ, or the one the app picks (a file with several titles, which stays anyway, otherwise the smaller file). Changing it scans the library again
 
 ### Improvements
