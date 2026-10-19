@@ -253,6 +253,7 @@ func init() {
 		"%v threads":                "%v threads",
 		"Total":                     "Total",
 		"Files being worked on":     "Fichiers en cours",
+		"Next: %v":                  "Ensuite : %v",
 		"Outside your home network": "Hors de ton réseau domestique",
 		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "Le code ouvre l'adresse que tu utilises maintenant : une adresse locale (comme 192.168...) ne marche qu'à la maison. Pour utiliser l'appli de l'extérieur, le téléphone doit pouvoir joindre le serveur. Du plus simple au plus laborieux :",
 		"A VPN": "Un VPN",

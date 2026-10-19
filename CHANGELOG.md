@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Improvements
+
+- Tasks shows the cover of the game of each file being compressed, decompressed, checked or split, and the next file the task takes
+
+## Unreleased
+
 ### New
 
 - Organize lets you choose which copy of a duplicate the library keeps: the NSP or NSZ, the XCI or XCZ, or the one the app picks (a file with several titles, which stays anyway, otherwise the smaller file). Changing it scans the library again

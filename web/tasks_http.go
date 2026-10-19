@@ -3,9 +3,11 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/gorilla/mux"
 )
 
@@ -30,13 +32,78 @@ func (web *Web) taskListData() TasksPageData {
 	finished := []Task{}
 	for _, task := range web.taskLog().Snapshot() {
 		if task.Running() {
-			data.Running = append(data.Running, task)
+			data.Running = append(data.Running, web.withCovers(task))
 		} else {
 			finished = append(finished, task)
 		}
 	}
 	data.Finished = groupTasks(finished)
 	return data
+}
+
+// withCovers gives a running task on files with the cover of the game of each file it works
+// on, and the next file it takes from those it has left.
+func (web *Web) withCovers(task Task) Task {
+	if len(task.Lanes) == 0 && task.Resume == nil {
+		return task
+	}
+	covers := web.fileCovers()
+	// the lanes of the snapshot are shared with the running task: a copy is changed
+	lanes := make([]TaskLane, len(task.Lanes))
+	working := map[string]bool{}
+	for i, lane := range task.Lanes {
+		lane.Cover = covers[lane.Name]
+		lanes[i] = lane
+		working[lane.Name] = true
+	}
+	task.Lanes = lanes
+	if task.Resume != nil && !task.Paused {
+		for _, path := range task.Resume.Paths {
+			if name := filepath.Base(path); !working[name] {
+				task.Next = &TaskLane{Name: name, Cover: covers[name]}
+				break
+			}
+		}
+	}
+	return task
+}
+
+// fileCovers are the small covers of the games of the library, by the name of each file.
+func (web *Web) fileCovers() map[string]string {
+	return web.derived("fileCovers", func() any {
+		switchDB, localDB := web.state.get()
+		covers := map[string]string{}
+		if localDB == nil {
+			return covers
+		}
+		for prefix, local := range localDB.TitlesMap {
+			cover := ""
+			if local.Icon != "" {
+				cover = "/i/" + local.Icon
+			} else if switchDB != nil && switchDB.TitlesMap[prefix] != nil {
+				cover = coverUrl(localDB, switchDB.TitlesMap[prefix].Attributes)
+			}
+			if cover == "" {
+				continue
+			}
+			cover = thumbUrl(cover)
+			add := func(file db.ExtendedFileInfo) {
+				if _, ok := covers[file.FileName]; !ok || local.BaseExist && file == local.File.ExtendedInfo {
+					covers[file.FileName] = cover
+				}
+			}
+			if local.BaseExist {
+				add(local.File.ExtendedInfo)
+			}
+			for _, update := range local.Updates {
+				add(update.ExtendedInfo)
+			}
+			for _, dlc := range local.Dlc {
+				add(dlc.ExtendedInfo)
+			}
+		}
+		return covers
+	}).(map[string]string)
 }
 
 // TaskGroup is a finished task, or several of the same kind that followed one another and

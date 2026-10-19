@@ -54,7 +54,11 @@
 						<ul class="task-lanes list-unstyled mb-0 mt-3" aria-label="{{t "Files being worked on"}}">
 							{{- range $i, $lane := .}}
 							<li class="task-lane">
+								{{- if $lane.Cover}}
+								<img class="task-lane-cover" src="{{$lane.Cover}}" alt="" width="36" height="36" loading="lazy" decoding="async">
+								{{- else}}
 								<span class="task-lane-number" aria-hidden="true">{{add $i 1}}</span>
+								{{- end}}
 								<div class="task-lane-main">
 									<div class="task-file-line small">
 										<span class="text-truncate" title="{{$lane.Name}}">{{$lane.Name}}</span>
@@ -67,6 +71,12 @@
 							</li>
 							{{- end}}
 						</ul>
+						{{- end}}
+						{{- with .Next}}
+						<div class="task-next small text-body-secondary mt-2">
+							{{- if .Cover}}<img class="task-next-cover" src="{{.Cover}}" alt="" width="24" height="24" loading="lazy" decoding="async">{{else}}<span class="bi bi-skip-forward" aria-hidden="true"></span>{{end}}
+							<span class="text-truncate" title="{{.Name}}">{{t "Next: %v" .Name}}</span>
+						</div>
 						{{- end}}
 						{{- template "taskResults" .}}
 					</article>

@@ -244,6 +244,33 @@
 	gap: 0.6rem;
 }
 
+.task-lane-cover,
+.task-next-cover {
+	flex-shrink: 0;
+	object-fit: cover;
+	background: rgba(127, 127, 127, 0.18);
+}
+
+.task-lane-cover {
+	width: 2.25rem;
+	height: 2.25rem;
+	border-radius: var(--bs-border-radius);
+}
+
+.task-next {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	min-width: 0;
+}
+
+.task-next-cover {
+	width: 1.5rem;
+	height: 1.5rem;
+	border-radius: var(--bs-border-radius-sm);
+	opacity: 0.85;
+}
+
 .task-lane-number {
 	flex-shrink: 0;
 	width: 1.5rem;
