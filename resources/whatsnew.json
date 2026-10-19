@@ -1,4 +1,50 @@
 {
+  "1.48.1": {
+    "en": [
+      "The bar of a task changes colour little by little, from red to green, and every bar is seen reaching its end before it goes.",
+      "The guides, a tour of every page and a FAQ are now in the wiki of the project."
+    ],
+    "es": [
+      "La barra de una tarea cambia de color poco a poco, de rojo a verde, y cada barra se ve llegar al final antes de irse.",
+      "Las guías, un recorrido por cada página y unas preguntas frecuentes están ahora en la wiki del proyecto."
+    ],
+    "de": [
+      "Der Balken einer Aufgabe wechselt nach und nach die Farbe, von Rot zu Grün, und jeder Balken erreicht sichtbar sein Ende, bevor er verschwindet.",
+      "Die Anleitungen, ein Rundgang durch jede Seite und häufige Fragen stehen jetzt im Wiki des Projekts."
+    ],
+    "fr": [
+      "La barre d’une tâche change de couleur peu à peu, du rouge au vert, et chaque barre atteint sa fin avant de disparaître.",
+      "Les guides, une visite de chaque page et une FAQ sont maintenant dans le wiki du projet."
+    ],
+    "it": [
+      "La barra di un’attività cambia colore poco a poco, dal rosso al verde, e ogni barra arriva alla fine prima di sparire.",
+      "Le guide, un giro di ogni pagina e le domande frequenti sono ora nella wiki del progetto."
+    ],
+    "pt": [
+      "A barra de uma tarefa muda de cor pouco a pouco, do vermelho ao verde, e cada barra chega ao fim antes de desaparecer.",
+      "Os guias, uma visita a cada página e as perguntas frequentes estão agora na wiki do projeto."
+    ],
+    "nl": [
+      "De balk van een taak verandert geleidelijk van kleur, van rood naar groen, en elke balk loopt zichtbaar vol voordat hij verdwijnt.",
+      "De handleidingen, een rondleiding langs elke pagina en veelgestelde vragen staan nu in de wiki van het project."
+    ],
+    "ru": [
+      "Полоса задачи постепенно меняет цвет от красного к зелёному, и каждая полоса доходит до конца, прежде чем исчезнуть.",
+      "Руководства, обзор каждой страницы и ответы на частые вопросы теперь в вики проекта."
+    ],
+    "ja": [
+      "タスクのバーは赤から緑へ少しずつ色が変わり、どのバーも最後まで届いてから消えます。",
+      "ガイド、各ページの紹介、よくある質問はプロジェクトの Wiki にまとめました。"
+    ],
+    "ko": [
+      "작업 막대가 빨간색에서 초록색으로 조금씩 색이 바뀌고, 모든 막대가 끝까지 찬 뒤에 사라집니다.",
+      "가이드, 각 페이지 둘러보기, 자주 묻는 질문은 이제 프로젝트 위키에 있습니다."
+    ],
+    "zh": [
+      "任务进度条会从红色逐渐变为绿色,每个进度条都会先走到尽头再消失。",
+      "指南、各页面导览和常见问题现在都在项目的 Wiki 中。"
+    ]
+  },
   "1.48.0": {
     "en": [
       "Cheats: the games with cheats for the version you have are marked, and the game page gives them ready for the SD card, or the whole library at once.",

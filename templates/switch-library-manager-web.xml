@@ -22,10 +22,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.48.0
-- Cheats for the version of each game, ready for the SD card; split cartridges with several games; choose which copy of a duplicate stays; filters in Missing ones
-### 1.47.0
-- Split multi-title files (SuperNSP) and make complete packs in bulk, upload your keys from Settings, and a lighter app on big libraries</Changes>
+  <Changes>### 1.48.1
+- The task bars change colour little by little and reach their end before they go; the guides moved to the wiki
+### 1.48.0
+- Cheats for the version of each game, ready for the SD card; split cartridges with several games; choose which copy of a duplicate stays; filters in Missing ones</Changes>
   <Date>2026-10-19</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>

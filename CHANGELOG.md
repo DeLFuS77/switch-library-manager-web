@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.48.1
 
 ### Improvements
 
