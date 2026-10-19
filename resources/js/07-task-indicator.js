@@ -180,78 +180,116 @@ function initLiveTasks() {
 		loading = true;
 		fetch('/tasks.html?part=list', { cache: 'no-store' })
 			.then(response => response.ok ? response.text() : Promise.reject(response))
-			.then(html => {
-				// every bar (the total and the one of each file) goes on from where it was
-				// instead of jumping: by task, the total first, then the files by name
-				const barKey = (card, bar) => card.dataset.taskId + '|' + (bar.closest('.task-lane')?.querySelector('[title]')?.title || '');
-				const widths = {};
-				const shares = {};
-				list.querySelectorAll('[data-task-id]').forEach(card => {
-					card.querySelectorAll('.progress-bar').forEach(bar => {
-						widths[barKey(card, bar)] = bar.style.width;
-						// the share done, which sets the colours of the total
-						shares[barKey(card, bar)] = bar.style.getPropertyValue('--pct');
-					});
-				});
-				// a list of files opened or folded stays as it was
-				// the bars of what a compression saved grow once, when they appear
-				const shown = new Set([...list.querySelectorAll('[data-task-saving]')].map(saving => saving.dataset.taskSaving));
-				const folded = {};
-				// and so does where a long list was scrolled to
-				const scrolled = {};
-				const scroller = details => [...details.querySelectorAll('*')].find(element => element.scrollHeight > element.clientHeight + 1 && getComputedStyle(element).overflowY !== 'visible');
-				list.querySelectorAll('details[data-task-results]').forEach(details => {
-					folded[details.dataset.taskResults] = details.open;
-					const box = scroller(details);
-					if (box && box.scrollTop > 0) {
-						scrolled[details.dataset.taskResults] = box.scrollTop;
-					}
-				});
-				list.innerHTML = html;
-				keepAnimationsInStep(list);
-				list.querySelectorAll('[data-task-saving]').forEach(saving => {
-					if (shown.has(saving.dataset.taskSaving)) {
-						saving.closest('li, article').querySelectorAll('.saving-bar .progress').forEach(part => {
-							part.style.animation = 'none';
+			.then(html => new Promise(drawn => {
+				const draw = () => {
+					// every bar (the total and the one of each file) goes on from where it was
+					// instead of jumping: by task, the total first, then the files by name
+					const barKey = (card, bar) => card.dataset.taskId + '|' + (bar.closest('.task-lane')?.querySelector('[title]')?.title || '');
+					const widths = {};
+					const shares = {};
+					list.querySelectorAll('[data-task-id]').forEach(card => {
+						card.querySelectorAll('.progress-bar').forEach(bar => {
+							widths[barKey(card, bar)] = bar.style.width;
+							// the share done, which sets the colours of the total
+							shares[barKey(card, bar)] = bar.style.getPropertyValue('--pct');
 						});
-					}
-				});
-				list.querySelectorAll('details[data-task-results]').forEach(details => {
-					if (details.dataset.taskResults in folded) {
-						details.open = folded[details.dataset.taskResults];
-					}
-					if (details.dataset.taskResults in scrolled) {
+					});
+					// a list of files opened or folded stays as it was
+					// the bars of what a compression saved grow once, when they appear
+					const shown = new Set([...list.querySelectorAll('[data-task-saving]')].map(saving => saving.dataset.taskSaving));
+					const folded = {};
+					// and so does where a long list was scrolled to
+					const scrolled = {};
+					const scroller = details => [...details.querySelectorAll('*')].find(element => element.scrollHeight > element.clientHeight + 1 && getComputedStyle(element).overflowY !== 'visible');
+					list.querySelectorAll('details[data-task-results]').forEach(details => {
+						folded[details.dataset.taskResults] = details.open;
 						const box = scroller(details);
-						if (box) {
-							restoredAt = Date.now();
-							box.scrollTop = scrolled[details.dataset.taskResults];
+						if (box && box.scrollTop > 0) {
+							scrolled[details.dataset.taskResults] = box.scrollTop;
 						}
-					}
+					});
+					list.innerHTML = html;
+					keepAnimationsInStep(list);
+					list.querySelectorAll('[data-task-saving]').forEach(saving => {
+						if (shown.has(saving.dataset.taskSaving)) {
+							saving.closest('li, article').querySelectorAll('.saving-bar .progress').forEach(part => {
+								part.style.animation = 'none';
+							});
+						}
+					});
+					list.querySelectorAll('details[data-task-results]').forEach(details => {
+						if (details.dataset.taskResults in folded) {
+							details.open = folded[details.dataset.taskResults];
+						}
+						if (details.dataset.taskResults in scrolled) {
+							const box = scroller(details);
+							if (box) {
+								restoredAt = Date.now();
+								box.scrollTop = scrolled[details.dataset.taskResults];
+							}
+						}
+					});
+					updateTaskIndicator();
+					list.querySelectorAll('[data-task-id]').forEach(card => {
+						card.querySelectorAll('.progress-bar').forEach(bar => {
+							const before = widths[barKey(card, bar)];
+							if (!before || before === bar.style.width) {
+								return;
+							}
+							const after = bar.style.width;
+							const share = bar.style.getPropertyValue('--pct');
+							const shareBefore = shares[barKey(card, bar)];
+							bar.style.transition = 'none';
+							bar.style.width = before;
+							if (share && shareBefore) {
+								bar.style.setProperty('--pct', shareBefore);
+							}
+							void bar.offsetWidth;
+							bar.style.transition = '';
+							bar.style.width = after;
+							if (share && shareBefore) {
+								bar.style.setProperty('--pct', share);
+							}
+						});
+					});
+					drawn();
+				};
+				// a bar that goes away because its file or its task ended well is seen reaching the
+				// end first: the file a worker finished, or the whole task. Not a task cancelled,
+				// failed or paused
+				const next = document.createElement('template');
+				next.innerHTML = html;
+				const barKey = (card, bar) => card.dataset.taskId + '|' + (bar.closest('.task-lane')?.querySelector('[title]')?.title || '');
+				const nextBars = new Set();
+				next.content.querySelectorAll('[data-task-id]').forEach(card => {
+					card.querySelectorAll('.progress-bar').forEach(bar => nextBars.add(barKey(card, bar)));
 				});
-				updateTaskIndicator();
+				const endedWell = id => [...next.content.querySelectorAll('[data-task-dismiss]')].some(button =>
+					button.dataset.taskDismiss.split(',').includes(id) && button.closest('.task-success, .task-warning'));
+				const ending = [];
 				list.querySelectorAll('[data-task-id]').forEach(card => {
+					const running = next.content.querySelector('[data-task-id="' + card.dataset.taskId + '"]');
+					if (card.classList.contains('is-paused') || (!running && !endedWell(card.dataset.taskId))) {
+						return;
+					}
 					card.querySelectorAll('.progress-bar').forEach(bar => {
-						const before = widths[barKey(card, bar)];
-						if (!before || before === bar.style.width) {
-							return;
-						}
-						const after = bar.style.width;
-						const share = bar.style.getPropertyValue('--pct');
-						const shareBefore = shares[barKey(card, bar)];
-						bar.style.transition = 'none';
-						bar.style.width = before;
-						if (share && shareBefore) {
-							bar.style.setProperty('--pct', shareBefore);
-						}
-						void bar.offsetWidth;
-						bar.style.transition = '';
-						bar.style.width = after;
-						if (share && shareBefore) {
-							bar.style.setProperty('--pct', share);
+						if (!nextBars.has(barKey(card, bar)) && bar.style.width && parseFloat(bar.style.width) < 100) {
+							ending.push(bar);
 						}
 					});
 				});
-			})
+				if (!ending.length || document.hidden) {
+					draw();
+					return;
+				}
+				ending.forEach(bar => {
+					bar.style.width = '100%';
+					if (bar.style.getPropertyValue('--pct')) {
+						bar.style.setProperty('--pct', '100');
+					}
+				});
+				setTimeout(draw, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 250 : 750);
+			}))
 			.catch(() => {
 				// the next event tries again
 			})
