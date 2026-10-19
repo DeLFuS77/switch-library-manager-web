@@ -1,4 +1,39 @@
 {
+  "1.49.1": {
+    "en": [
+      "The bar of a synchronization changes colour from red to green like the bar of a task, with its percent beside it."
+    ],
+    "es": [
+      "La barra de la sincronización cambia de color de rojo a verde como la de una tarea, con su porcentaje al lado."
+    ],
+    "de": [
+      "Der Balken einer Synchronisierung wechselt wie der einer Aufgabe von Rot zu Grün, mit dem Prozentwert daneben."
+    ],
+    "fr": [
+      "La barre d’une synchronisation passe du rouge au vert comme celle d’une tâche, avec son pourcentage à côté."
+    ],
+    "it": [
+      "La barra della sincronizzazione passa dal rosso al verde come quella di un’attività, con la percentuale accanto."
+    ],
+    "pt": [
+      "A barra da sincronização muda de vermelho para verde como a de uma tarefa, com a percentagem ao lado."
+    ],
+    "nl": [
+      "De balk van een synchronisatie kleurt van rood naar groen zoals die van een taak, met het percentage ernaast."
+    ],
+    "ru": [
+      "Полоса синхронизации меняет цвет от красного к зелёному, как у задачи, а процент показан рядом."
+    ],
+    "ja": [
+      "同期のバーはタスクのバーと同じく赤から緑へ色が変わり、横にパーセントが表示されます。"
+    ],
+    "ko": [
+      "동기화 막대가 작업 막대처럼 빨간색에서 초록색으로 바뀌고, 옆에 백분율이 표시됩니다."
+    ],
+    "zh": [
+      "同步进度条会像任务进度条一样由红变绿,百分比显示在旁边。"
+    ]
+  },
   "1.49.0": {
     "en": [
       "Cheats also for versions the database does not know yet: the app reads the build from the game itself. A new filter shows the games with cheats for another version.",
