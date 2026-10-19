@@ -6,6 +6,7 @@ import (
 	"hash/fnv"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -251,6 +252,18 @@ func (t Task) Running() bool {
 }
 
 // Percent is the progress of a running task, or -1 when the number of steps is unknown.
+// PercentExact is Percent with two decimals, for the width of the bar: a long task shows
+// that it moved before its first whole percent.
+func (t Task) PercentExact() string {
+	if t.Total <= 0 || t.Current < 0 {
+		return "0"
+	}
+	if t.Current >= t.Total {
+		return "100"
+	}
+	return strconv.FormatFloat(float64(t.Current)*100/float64(t.Total), 'f', 2, 64)
+}
+
 func (t Task) Percent() int {
 	if t.Total <= 0 || t.Current < 0 {
 		return -1

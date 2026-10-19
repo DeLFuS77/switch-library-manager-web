@@ -255,6 +255,7 @@ func init() {
 		"Total":                     "合計",
 		"Files being worked on":     "処理中のファイル",
 		"Next: %v":                  "次: %v",
+		"%v saved so far":           "これまでに %v 節約",
 		"Outside your home network": "自宅のネットワークの外",
 		"The code opens the address you are using now: a local address (like 192.168...) only works at home. To use the app from outside, the phone needs a way to reach the server. From the easiest to the most work:": "コードは今使っているアドレスを開きます。ローカルアドレス（192.168... など）は自宅でしか使えません。外からアプリを使うには、スマホがサーバーに届く方法が必要です。簡単な順に:",
 		"A VPN": "VPN",
