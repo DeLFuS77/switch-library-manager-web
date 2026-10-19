@@ -38,6 +38,11 @@ const (
 	DEFAULT_COVERS_JSON_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.covers.json"
 	// the series of Switch games, from Wikidata
 	DEFAULT_SERIES_JSON_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.series.json"
+	// the cheats of switch-cheats-db: the build ID of every version of every game, the cheats
+	// of the last release as the SD card holds them, and the name of that release
+	DEFAULT_CHEATS_VERSIONS_URL = "https://raw.githubusercontent.com/HamletDuFromage/switch-cheats-db/master/versions.json"
+	DEFAULT_CHEATS_ZIP_URL      = "https://github.com/HamletDuFromage/switch-cheats-db/releases/latest/download/contents_complete.zip"
+	DEFAULT_CHEATS_RELEASE_URL  = "https://github.com/HamletDuFromage/switch-cheats-db/releases/latest/download/VERSION"
 	// %s is replaced by the interface language, e.g. titles.es.json
 	DEFAULT_LOCALIZED_TITLES_JSON_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.%s.json"
 	DEFAULT_TITLES_ETAG               = "W/\"a5b02845cf6bd61:0\""
@@ -161,6 +166,8 @@ type AppSettings struct {
 	IgnoreDLCUpdates       bool              `json:"ignore_dlc_updates"`
 	IgnoreFileTypes        []string          `json:"ignore_file_types"`
 	HideDemoGames          bool              `json:"hide_demo_games"`
+	// the cheats of the games are not downloaded nor shown
+	CheatsDisabled bool `json:"cheats_disabled,omitempty"`
 	// a game the library has from several regions shows and counts once, by the copy the
 	// Space page suggests to keep
 	CountRegionsOnce bool `json:"count_regions_once,omitempty"`

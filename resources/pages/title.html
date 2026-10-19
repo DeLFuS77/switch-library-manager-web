@@ -210,6 +210,30 @@
 					{{- end}}
 				</ul>
 			</section>
+			{{- with $t.Cheats}}
+			<section class="mb-4">
+				<div class="section-head">
+					<h2 class="section-title mb-0"><span class="bi bi-magic" aria-hidden="true"></span>{{t "Cheats"}}{{if .Names}} <span class="badge rounded-pill text-bg-secondary">{{len .Names}}</span>{{end}}</h2>
+					{{- if .BuildID}}
+					<div class="d-flex flex-wrap gap-2">
+						<a class="btn btn-sm btn-outline-primary rounded-pill" href="/api/titles/{{$t.Id}}/cheats.zip"><span class="bi bi-sd-card me-1" aria-hidden="true"></span>{{t "For the SD card (zip)"}}</a>
+						<a class="btn btn-sm btn-outline-secondary rounded-pill" href="/api/titles/{{$t.Id}}/cheats.txt"><span class="bi bi-file-earmark-text me-1" aria-hidden="true"></span>{{.BuildID}}.txt</a>
+					</div>
+					{{- end}}
+				</div>
+				{{- if .BuildID}}
+				<p class="small text-body-secondary">{{t "For the version you have (v%v, build %v). Unzip it at the root of the SD card: Atmosphère loads them from atmosphere/contents." .Version .BuildID}}</p>
+				<ul class="cheat-list list-unstyled mb-0">
+					{{- range .Names}}
+					<li><span class="bi bi-dot" aria-hidden="true"></span>{{.}}</li>
+					{{- end}}
+				</ul>
+				{{- else}}
+				<p class="text-body-secondary mb-0">{{t "There are cheats for other versions of the game (%v), not for the one you have (v%v). A cheat only works with the version it was made for." (versionList .OtherVersions) .Version}}</p>
+				{{- end}}
+				<p class="small text-body-secondary mt-2 mb-0">{{t "From switch-cheats-db, made by the community."}}</p>
+			</section>
+			{{- end}}
 			{{- end}}
 			{{- if $t.Versions}}
 			<section class="mb-4">

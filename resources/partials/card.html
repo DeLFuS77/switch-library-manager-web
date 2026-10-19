@@ -8,7 +8,7 @@
 						<a class="cover-link" href="/title/{{.Id}}.html" tabindex="-1" aria-hidden="true"><img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async"></a>
 						{{- if or .Type .Region}}
 						<div class="game-cover-meta">
-							{{- if or $type .Demo}}<span class="d-inline-flex gap-1">{{if $type}}<span class="badge">{{$type}}</span>{{end}}{{if .Demo}}<span class="badge">{{t "Demo"}}</span>{{end}}</span>{{else}}<span></span>{{end}}
+							{{- if or $type .Demo .Cheats}}<span class="d-inline-flex gap-1">{{if $type}}<span class="badge">{{$type}}</span>{{end}}{{if .Demo}}<span class="badge">{{t "Demo"}}</span>{{end}}{{if .Cheats}}<span class="badge badge-cheats" title="{{t "Cheats for your version"}}"><span class="bi bi-magic" aria-hidden="true"></span><span class="visually-hidden">{{t "Cheats for your version"}}</span></span>{{end}}</span>{{else}}<span></span>{{end}}
 							{{- if .Region}}<span class="fi fi-{{.Region | toLower}}" title="{{.Region}}"><span class="visually-hidden">{{.Region}}</span></span>{{end}}
 						</div>
 						{{- end}}

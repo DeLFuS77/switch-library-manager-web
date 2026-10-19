@@ -155,6 +155,90 @@
         }
       }
     },
+    "/api/titles/{titleId}/cheats.txt": {
+      "get": {
+        "summary": "Download the cheats of a game",
+        "description": "The cheats of the version the library has (the game or its latest update), as the text file Atmosphère reads, named after its build ID.",
+        "tags": [
+          "Downloads"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/titleId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cheats",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not in the library, or no cheats for its version"
+          }
+        }
+      }
+    },
+    "/api/titles/{titleId}/cheats.zip": {
+      "get": {
+        "summary": "Download the cheats of a game for the SD card",
+        "description": "The cheats of the version the library has, as atmosphere/contents/<title ID>/cheats/<build ID>.txt in a ZIP archive.",
+        "tags": [
+          "Downloads"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/titleId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ZIP archive",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not in the library, or no cheats for its version"
+          }
+        }
+      }
+    },
+    "/api/cheats.zip": {
+      "get": {
+        "summary": "Download the cheats of the library for the SD card",
+        "description": "The cheats of every game of the library at the version it has, as atmosphere/contents/<title ID>/cheats/<build ID>.txt in a ZIP archive.",
+        "tags": [
+          "Downloads"
+        ],
+        "responses": {
+          "200": {
+            "description": "ZIP archive",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No cheats for the games of the library"
+          }
+        }
+      }
+    },
     "/api/statistics": {
       "get": {
         "summary": "Library statistics",
@@ -210,11 +294,15 @@
     "/export/library-site.zip": {
       "get": {
         "summary": "Export the library as a web page",
-        "tags": ["Library"],
+        "tags": [
+          "Library"
+        ],
         "responses": {
           "200": {
             "description": "ZIP with an index.html that opens without the app and the thumbnails of the covers",
-            "content": {"application/zip": {}}
+            "content": {
+              "application/zip": {}
+            }
           }
         }
       }

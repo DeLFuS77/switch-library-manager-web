@@ -244,6 +244,10 @@
 									<label class="form-check-label" for="wizard_hide_demo_games">{{t "Hide demos"}}</label>
 								</div>
 								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" id="wizard_cheats" name="cheats" value="true"{{if not $s.CheatsDisabled}} checked{{end}}>
+									<label class="form-check-label" for="wizard_cheats">{{t "Show the cheats of your games"}}</label>
+								</div>
+								<div class="form-check form-switch">
 									<input class="form-check-input" type="checkbox" role="switch" id="wizard_ignore_dlc_updates" name="ignore_dlc_updates" value="true"{{if $s.IgnoreDLCUpdates}} checked{{end}}>
 									<label class="form-check-label" for="wizard_ignore_dlc_updates">{{t "Do not list updates for DLC"}}</label>
 								</div>

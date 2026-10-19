@@ -125,6 +125,7 @@ type Web struct {
 	igdbSeriesOnce sync.Once
 	igdbSeries     *igdbCollectionStore
 	seriesFile     seriesFile
+	cheatsFile     cheatsFile
 	// results of switchfs.HoldsSameContents, see holdsSameContents
 	sameContents      sync.Map
 	sameContentsCount atomic.Int64
@@ -242,6 +243,8 @@ type TitleItem struct {
 	// library: the game is a favorite, or it is not in the library (shown with the others)
 	Favorite bool
 	Missing  bool
+	// library: there are cheats for the version of the game the library has
+	Cheats bool
 	// other regions of the game in the library, when each game counts once
 	OtherRegions int
 	// games without their base game: the updates and DLC the library has of them
@@ -351,6 +354,8 @@ type LibraryFacets struct {
 	Unknown   int
 	Recent    int
 	Favorites int
+	// games with cheats for the version the library has
+	Cheats int
 	// games not in the library, shown in the All view
 	Missing int
 	// genres and languages of the games, the most frequent first, and the games by players
@@ -417,7 +422,15 @@ var funcMap = template.FuncMap{
 	"filterUrl": func(filter *TitleItemFilter, replace ...string) template.URL {
 		return template.URL("?" + filter.query(replace...).Encode())
 	},
-	"formatSize":      formatSize,
+	"formatSize": formatSize,
+	// versions as v0, v65536
+	"versionList": func(versions []int) string {
+		texts := make([]string, len(versions))
+		for i, version := range versions {
+			texts[i] = "v" + strconv.Itoa(version)
+		}
+		return strings.Join(texts, ", ")
+	},
 	"hours":           hoursText,
 	"thumb":           thumbUrl,
 	"fullImage":       fullImageUrl,
@@ -681,6 +694,7 @@ func (web *Web) Start() {
 	web.HandleStatistics()
 	web.HandleNotifications()
 	web.HandleArchive()
+	web.HandleCheats()
 	web.HandleApiDocs()
 	web.HandleTasks()
 	web.HandleUsers()
@@ -917,6 +931,8 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 		unchanged.Localized = web.loadLocalizedTitles(true)
 		web.downloadCoverFallbacks()
 		web.downloadSeries()
+		// a few megabytes, not waited for: the library shows its cheats once they are here
+		go web.downloadCheats()
 		web.applyCoverFallbacks(&unchanged)
 		return &unchanged, nil
 	}
@@ -933,6 +949,8 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 		switchTitleDB.Localized = web.loadLocalizedTitles(true)
 		web.downloadCoverFallbacks()
 		web.downloadSeries()
+		// a few megabytes, not waited for: the library shows its cheats once they are here
+		go web.downloadCheats()
 		web.applyCoverFallbacks(switchTitleDB)
 	}
 

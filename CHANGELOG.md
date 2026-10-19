@@ -4,6 +4,12 @@
 
 ### New
 
+- **Cheats**: the games with cheats for the version you have get a mark on their cover and a filter in the Library (Filters > Other). The game page lists the cheats of your version and gives them ready for the SD card (a ZIP with atmosphere/contents/<title ID>/cheats/<build ID>.txt) or as the text file; when there are cheats for other versions only, it says which. The Library gives the cheats of every game at once. They come from switch-cheats-db, downloaded once a day at most during a synchronization, and can be turned off in Settings
+
+## Unreleased
+
+### New
+
 - Organize lets you choose which copy of a duplicate the library keeps: the NSP or NSZ, the XCI or XCZ, or the one the app picks (a file with several titles, which stays anyway, otherwise the smaller file). Changing it scans the library again
 
 ### Improvements

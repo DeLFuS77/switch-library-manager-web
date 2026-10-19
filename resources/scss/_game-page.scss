@@ -545,3 +545,14 @@
 	border-radius: $border-radius;
 }
 
+
+.cheat-list {
+	columns: 2 16rem;
+	column-gap: 1.5rem;
+	font-size: var(--slm-text-sm);
+
+	li {
+		break-inside: avoid;
+		padding: 0.1rem 0;
+	}
+}

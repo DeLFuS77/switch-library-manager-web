@@ -53,6 +53,8 @@ type TitleDlc struct {
 }
 
 type TitleDetail struct {
+	// the cheats of the version the library has, or of others
+	Cheats *CheatsInfo
 	// the game is on the wishlist
 	Wished    bool
 	Id        string
@@ -237,6 +239,9 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		}
 	}
 	detail.UpdateMissing = detail.Owned && detail.LocalUpdate < detail.LatestUpdate
+	if detail.Owned {
+		detail.Cheats = web.cheatsInfo(detail.Id, detail.LocalUpdate)
+	}
 	if title != nil {
 		detail.Versions = titleVersions(detail.Name, title.Updates, local)
 	}
