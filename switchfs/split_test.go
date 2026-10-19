@@ -225,3 +225,95 @@ func TestSplitReportsUnclaimedFiles(t *testing.T) {
 		t.Fatal("no part left behind")
 	}
 }
+
+// writeCard writes a game card dump whose secure partition holds the files of packages.
+func writeCard(t *testing.T, path string, packages []string) {
+	t.Helper()
+	names := []string{}
+	payloads := [][]byte{}
+	for _, pkg := range packages {
+		pkgNames, data := entriesOf(t, pkg)
+		for _, name := range pkgNames {
+			names = append(names, name)
+			payloads = append(payloads, data[name])
+		}
+	}
+	secure := makePFS0(hfs0Magic, names, payloads)
+	update := makePFS0(hfs0Magic, []string{"firmware.nca"}, [][]byte{bytes.Repeat([]byte{7}, 0x400)})
+	root := makePFS0(hfs0Magic, []string{"update", "normal", "secure"}, [][]byte{update, makePFS0(hfs0Magic, nil, nil), secure})
+	header := make([]byte, 0xF000)
+	copy(header[0x100:], "HEAD")
+	binary.LittleEndian.PutUint64(header[0x130:], 0xF000)
+	if err := os.WriteFile(path, append(header, root...), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// A game card with several games splits into one card per game, with its update and DLC:
+// the files of each game as they were, under the header of the original card.
+func TestSplitCartridgeByGame(t *testing.T) {
+	folder := t.TempDir()
+	one, two := [16]byte{0xa1}, [16]byte{0xa2}
+	three, four := [16]byte{0xb1}, [16]byte{0xb2}
+	gameA := syntheticTitle(t, folder, 0x0100000000010000, ContentMetaType_Application, 0, map[[16]byte][]byte{one: []byte("game A")}, map[[16]byte]byte{one: 1}, ".nsp")
+	updateA := syntheticTitle(t, folder, 0x0100000000010800, ContentMetaType_Patch, 65536, map[[16]byte][]byte{two: []byte("update A")}, map[[16]byte]byte{two: 1}, ".nsp")
+	gameB := syntheticTitle(t, folder, 0x0100000000020000, ContentMetaType_Application, 0, map[[16]byte][]byte{three: []byte("game B")}, map[[16]byte]byte{three: 1}, ".nsp")
+	dlcB := syntheticTitle(t, folder, 0x0100000000021001, ContentMetaType_AddOnContent, 0, map[[16]byte][]byte{four: []byte("DLC B")}, map[[16]byte]byte{four: 2}, ".nsp")
+	card := filepath.Join(folder, "Collection.xci")
+	// mixed, as a card may hold them
+	writeCard(t, card, []string{gameB, gameA, dlcB, updateA})
+
+	plan, err := PlanSplit(card)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(plan.Parts) != 2 || !plan.Complete() {
+		t.Fatalf("two games: %+v", plan)
+	}
+	want := []struct {
+		id       string
+		version  int
+		packages []string
+	}{{"0100000000010000", 65536, []string{gameA, updateA}}, {"0100000000020000", 0, []string{gameB, dlcB}}}
+	cardBytes, _ := os.ReadFile(card)
+	for i, part := range plan.Parts {
+		if !part.Cartridge || part.TitleId != want[i].id || part.Type != "BASE" || part.Version != want[i].version || part.Titles != 2 {
+			t.Fatalf("part %d: %+v", i, part)
+		}
+		target := filepath.Join(folder, "part"+strconv.Itoa(i)+".xci")
+		if err := WriteSplitPart(context.Background(), card, part, target, nil); err != nil {
+			t.Fatal(err)
+		}
+		if info, _ := os.Stat(target); info.Size() != part.Size {
+			t.Fatalf("size %d, planned %d", info.Size(), part.Size)
+		}
+		written, _ := os.ReadFile(target)
+		if !bytes.Equal(written[:0xF000], cardBytes[:0xF000]) {
+			t.Fatal("the header of the card is kept")
+		}
+		_, got := entriesOf(t, target)
+		count := 0
+		for _, pkg := range want[i].packages {
+			names, data := entriesOf(t, pkg)
+			for _, name := range names {
+				count++
+				if !bytes.Equal(got[name], data[name]) {
+					t.Fatalf("part %d: %s differs", i, name)
+				}
+			}
+		}
+		if len(got) != count {
+			t.Fatalf("part %d holds its game only: %d files, want %d", i, len(got), count)
+		}
+		// one game: nothing more to split
+		if _, err := PlanSplit(target); !errors.Is(err, ErrSingleTitle) {
+			t.Fatalf("part %d split again: %v", i, err)
+		}
+	}
+	// a card with one game and its update is not split
+	single := filepath.Join(folder, "Game.xci")
+	writeCard(t, single, []string{gameA, updateA})
+	if _, err := PlanSplit(single); !errors.Is(err, ErrSingleTitle) {
+		t.Fatalf("one game: %v", err)
+	}
+}

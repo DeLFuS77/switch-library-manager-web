@@ -6,6 +6,7 @@ var translations = map[string]map[string]string{
 	"es": {
 		// split and bulk packs
 		"Split multi-title files": "Separar archivos con varios títulos",
+		"A game card dump with several games (a collection on one cartridge) splits into one XCI or XCZ per game, with its update and DLC, so the files made for a game card stay as they are.":                                                                                   "Un volcado de cartucho con varios juegos (una colección en un solo cartucho) se separa en un XCI o XCZ por juego, con su actualización y sus DLC, así los archivos hechos para un cartucho quedan como están.",
 		"Turn files that hold several titles (a game with its updates and DLC in one NSP or NSZ) back into one file per title. Nothing is decompressed or changed: each part keeps the files of its title as they are, and every part is checked before the original is deleted.": "Convierte los archivos que guardan varios títulos (un juego con sus actualizaciones y DLC en un solo NSP o NSZ) en un archivo por título. No se descomprime ni se cambia nada: cada parte conserva tal cual los archivos de su título, y todas se comprueban antes de borrar el original.",
 		"Delete each original after its parts are checked": "Borrar cada original cuando sus partes estén comprobadas",
 		"Split selected":      "Separar los elegidos",

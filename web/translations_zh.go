@@ -5,6 +5,7 @@ func init() {
 	translations["zh"] = map[string]string{
 		// split and bulk packs
 		"Split multi-title files": "拆分多标题文件",
+		"A game card dump with several games (a collection on one cartridge) splits into one XCI or XCZ per game, with its update and DLC, so the files made for a game card stay as they are.":                                                                                   "含多个游戏的卡带转储(一张卡带上的合集)会按游戏拆分为各自的 XCI 或 XCZ,连同其更新和 DLC,卡带专用的文件保持原样。",
 		"Turn files that hold several titles (a game with its updates and DLC in one NSP or NSZ) back into one file per title. Nothing is decompressed or changed: each part keeps the files of its title as they are, and every part is checked before the original is deleted.": "把包含多个标题的文件（一个 NSP 或 NSZ 中的游戏及其更新和 DLC）拆回为每个标题一个文件。不会解压或修改任何内容：每个部分原样保留其标题的文件，删除原文件前会校验每个部分。",
 		"Delete each original after its parts are checked": "部分校验后删除原文件",
 		"Split selected":      "拆分所选",

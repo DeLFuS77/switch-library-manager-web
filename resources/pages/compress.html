@@ -168,6 +168,7 @@
 				<summary class="section-title mb-0"><span class="bi bi-scissors" aria-hidden="true"></span>{{t "Split multi-title files"}} <span class="badge rounded-pill text-bg-secondary">{{.SplitCount}}</span><span class="bi bi-chevron-down ms-auto details-chevron" aria-hidden="true"></span></summary>
 				<form id="splitForm" class="mt-3">
 					<p class="text-body-secondary">{{t "Turn files that hold several titles (a game with its updates and DLC in one NSP or NSZ) back into one file per title. Nothing is decompressed or changed: each part keeps the files of its title as they are, and every part is checked before the original is deleted."}}</p>
+					<p class="text-body-secondary">{{t "A game card dump with several games (a collection on one cartridge) splits into one XCI or XCZ per game, with its update and DLC, so the files made for a game card stay as they are."}}</p>
 					<div class="file-list-head">
 						<div class="form-check mb-0">
 							<input class="form-check-input" type="checkbox" id="splitAll" data-file-all>

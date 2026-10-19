@@ -130,7 +130,7 @@ Linux, Docker, NAS and Raspberry Pi.
   delta fragments of the update, from a game page or for many games at once; checked before the separate files are
   deleted, only if you choose it
 - Split multi-title files ("SuperNSP", packs made here or by other tools) back into one NSP or NSZ per game, update
-  and DLC, in bulk, without decompressing or changing what they hold
+  and DLC, in bulk, without decompressing or changing what they hold; a cartridge with several games into one XCI or XCZ per game
 - Space page: see how much old updates, duplicates and already compressed originals take, and free it safely
 - The same game from several regions (each with its own title ID): the copy to keep is suggested (your language,
   more languages, newer update, more DLC, not damaged, already compressed) and the others are deleted in one click
@@ -354,6 +354,10 @@ tools: each game, update and DLC gets its own NSP (or NSZ), named like the files
 Nothing is decompressed or changed: each title keeps its NCA files, its ticket and its certificate as they are, since
 each one carries its own metadata (CNMT). Every part is checked before the original is deleted, and the original stays
 when it holds anything no title claims. Splitting needs your `prod.keys`, to read that metadata.
+
+A game card dump (XCI or XCZ) with several games, like a collection of games on one cartridge, splits into one XCI
+(or XCZ) per game, with its update and DLC: the files of a game card are made for a game card, and turning them into
+NSP would mean signing them again. Each part keeps the header of the original card.
 
 Both run as tasks that can be paused and resumed, also after a restart.
 
