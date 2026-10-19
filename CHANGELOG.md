@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The endless animations (the shimmer of a cover loading, the drift of the numbers, the pulse of the ribbons, the
+  auras, the cursor of the cards) stand still while they are out of the window, and go on when they come back:
+  nothing changes on screen, and the browser no longer works for what nobody sees, on a phone or a TV above all.
+- Issues: the cards of a row have the same height with their buttons on one line, and the card of the updates and DLC
+  without their game shows the three games with the most files, their names in the colour of the text.
+
 ## 1.46.0
 
 ### Improvements

@@ -3,6 +3,43 @@
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// The endless animations (the shimmer of a cover loading, the drift of the numbers, the pulse of
+// the ribbons, the auras, the cursor of the cards...) stand still while their element is out of
+// the window, and go on where they were when it comes back: what is seen does not change, and
+// the browser does not work for what nobody sees, on a phone or a TV above all. Animations that
+// start later (a cover that starts loading, a task that starts) are found again every two seconds.
+function initPauseOffscreen() {
+	if (!('IntersectionObserver' in window) || !document.getAnimations) {
+		return;
+	}
+	const observer = new IntersectionObserver(entries => {
+		entries.forEach(entry => {
+			entry.target.toggleAttribute('data-offscreen', !entry.isIntersecting);
+		});
+	}, { rootMargin: '100px' });
+	const observed = new WeakSet();
+	const scan = () => {
+		document.getAnimations().forEach(animation => {
+			const target = animation.effect && animation.effect.target;
+			if (!target || observed.has(target) || animation.effect.getTiming().iterations !== Infinity) {
+				return;
+			}
+			// the header stays at the top: its animations are always in sight
+			if (target.closest('.app-header, .bottom-nav, .modal')) {
+				return;
+			}
+			observed.add(target);
+			observer.observe(target);
+		});
+	};
+	scan();
+	setInterval(() => {
+		if (!document.hidden) {
+			scan();
+		}
+	}, 2000);
+}
+
 // numbers count up from zero when the page opens
 function initCountUp() {
 	if (reducedMotion()) {
