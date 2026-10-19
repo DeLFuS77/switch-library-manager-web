@@ -5,6 +5,8 @@
 ### Improvements
 
 - Games without their title key are found before they are compressed: after a scan the NSP and NSZ files are looked at once (the headers of their contents and their tickets only, again only when a file changes), Issues lists those without a ticket whose key title.keys does not have either, with how to fix it, and Compress and the automations leave them out instead of failing halfway
+- Uploads show in Tasks, with the file, its progress and its size, so they can be followed from another device; an upload nothing comes to for three minutes ends there with how to go on, and its file is kept for a day to go on where it stopped
+- With several library folders, the Library asks which one to upload to
 
 ### Fixes
 
@@ -13,8 +15,6 @@
 ### Development
 
 - The check that presses the save buttons in a real browser also covers a field of another section of Settings, the first administrator, adding a user and changing their role, and the language and the colour of the account
-- Uploads show in Tasks, with the file, its progress and its size, so they can be followed from another device; an upload nothing comes to for three minutes ends there with how to go on, and its file is kept for a day to go on where it stopped
-- With several library folders, the Library asks which one to upload to
 
 ## 1.50.1
 
