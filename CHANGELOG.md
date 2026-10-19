@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixes
+
+- The Tasks page could stop updating and show a task still running long after it ended: each page of the app open in a tab kept a connection to the server, and with several tabs the browser had none left for the page seen. A tab in the background now closes its connection and looks again once it is seen, and a list that never comes or fails to draw no longer stops the next updates
+
 ### Features
 
 - Notifications for new cheats: when the cheats database gets cheats for the version of a game you have, it is told by Discord, Telegram or the webhook, like new updates and DLC. On by default, with a switch in Settings and in the setup assistant. The games that have cheats already are only recorded the first time, not sent all at once
