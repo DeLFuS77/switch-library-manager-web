@@ -106,7 +106,7 @@
 										<input class="form-check-input" type="checkbox" role="switch" id="keep_updates_with_cheats" name="keep_updates_with_cheats" value="true"{{if not .Settings.OrganizeOptions.DeleteUpdatesWithCheats}} checked{{end}}>
 										<label class="form-check-label" for="keep_updates_with_cheats">{{t "Keep the old updates that have cheats"}}</label>
 										<div class="form-text">{{t "When the newer update of a game has no cheats yet, the older one that has them stays, so you can install the game at that version."}}</div>
-										<div class="cheat-update-warning alert alert-warning small py-2 px-3 mt-2 mb-0" role="note"><span class="bi bi-exclamation-triangle me-1" aria-hidden="true"></span>{{t "Off: Delete old updates, Space and the automations delete these updates like any other, and their cheats are lost until you get that version again."}}</div>
+										<div class="cheat-update-warning small py-2 px-3 mt-2 mb-0" role="note"><span class="bi bi-exclamation-triangle me-1" aria-hidden="true"></span>{{t "Off: Delete old updates, Space and the automations delete these updates like any other, and their cheats are lost until you get that version again."}}</div>
 									</div>
 									<div class="form-check form-switch">
 										<input class="form-check-input" type="checkbox" role="switch" id="count_regions_once" name="count_regions_once" value="true"{{if .Settings.CountRegionsOnce}} checked{{end}}>

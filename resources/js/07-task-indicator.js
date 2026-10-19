@@ -218,7 +218,25 @@ function initLiveTasks() {
 							scrolled[details.dataset.taskResults] = box.scrollTop;
 						}
 					});
+					// the covers already drawn stay: new images of the same cover would be drawn again on
+					// every update, and blink
+					const covers = new Map();
+					list.querySelectorAll('img.task-lane-cover, img.task-next-cover').forEach(image => {
+						if (image.complete && image.naturalWidth > 0) {
+							const key = image.className + ' ' + image.getAttribute('src');
+							if (!covers.has(key)) {
+								covers.set(key, []);
+							}
+							covers.get(key).push(image);
+						}
+					});
 					list.innerHTML = html;
+					list.querySelectorAll('img.task-lane-cover, img.task-next-cover').forEach(image => {
+						const kept = covers.get(image.className + ' ' + image.getAttribute('src'));
+						if (kept && kept.length) {
+							image.replaceWith(kept.shift());
+						}
+					});
 					keepAnimationsInStep(list);
 					list.querySelectorAll('[data-task-saving]').forEach(saving => {
 						if (shown.has(saving.dataset.taskSaving)) {
