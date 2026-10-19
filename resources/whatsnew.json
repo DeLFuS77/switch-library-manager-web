@@ -1,4 +1,61 @@
 {
+  "1.49.0": {
+    "en": [
+      "Cheats also for versions the database does not know yet: the app reads the build from the game itself. A new filter shows the games with cheats for another version.",
+      "The old update that has cheats stays when the newer one has none; a switch in Settings decides it.",
+      "Organize names a cartridge with several games after all of them, and the total of a long task moves from the start."
+    ],
+    "es": [
+      "Trucos también para versiones que la base de datos aún no conoce: la app lee la versión del propio juego. Un filtro nuevo muestra los juegos con trucos para otra versión.",
+      "La actualización antigua que tiene trucos se conserva si la más nueva no los tiene; lo decide un interruptor en Ajustes.",
+      "Organizar nombra un cartucho con varios juegos por todos ellos, y el total de una tarea larga se mueve desde el principio."
+    ],
+    "de": [
+      "Cheats auch für Versionen, die die Datenbank noch nicht kennt: Die App liest den Build aus dem Spiel selbst. Ein neuer Filter zeigt Spiele mit Cheats für eine andere Version.",
+      "Das alte Update mit Cheats bleibt, wenn das neuere keine hat; ein Schalter in den Einstellungen entscheidet das.",
+      "Organisieren benennt ein Modul mit mehreren Spielen nach allen, und der Gesamtbalken einer langen Aufgabe bewegt sich von Anfang an."
+    ],
+    "fr": [
+      "Des codes aussi pour les versions que la base ne connaît pas encore : l’app lit le build du jeu lui-même. Un nouveau filtre montre les jeux avec des codes pour une autre version.",
+      "L’ancienne mise à jour qui a des codes est gardée si la plus récente n’en a pas ; un interrupteur dans les Paramètres le décide.",
+      "Organiser nomme une cartouche à plusieurs jeux d’après tous, et le total d’une longue tâche avance dès le début."
+    ],
+    "it": [
+      "Trucchi anche per versioni che il database non conosce ancora: l’app legge la build dal gioco stesso. Un nuovo filtro mostra i giochi con trucchi per un’altra versione.",
+      "L’aggiornamento vecchio con trucchi resta se quello più nuovo non ne ha; lo decide un interruttore nelle Impostazioni.",
+      "Organizza dà a una cartuccia con più giochi il nome di tutti, e il totale di un’attività lunga si muove dall’inizio."
+    ],
+    "pt": [
+      "Truques também para versões que a base de dados ainda não conhece: a app lê a build do próprio jogo. Um novo filtro mostra os jogos com truques para outra versão.",
+      "A atualização antiga com truques fica se a mais recente não tiver; um interruptor nas Configurações decide.",
+      "Organizar dá a um cartucho com vários jogos o nome de todos, e o total de uma tarefa longa avança desde o início."
+    ],
+    "nl": [
+      "Cheats ook voor versies die de database nog niet kent: de app leest de build uit de game zelf. Een nieuw filter toont games met cheats voor een andere versie.",
+      "De oude update met cheats blijft als de nieuwere er geen heeft; een schakelaar in Instellingen beslist dat.",
+      "Organiseren noemt een cartridge met meerdere games naar alle games, en het totaal van een lange taak beweegt vanaf het begin."
+    ],
+    "ru": [
+      "Читы и для версий, которых база ещё не знает: приложение читает сборку из самой игры. Новый фильтр показывает игры с читами для другой версии.",
+      "Старое обновление с читами остаётся, если в новом их нет; это решает переключатель в «Настройках».",
+      "«Организация» называет картридж с несколькими играми по всем им, а общий прогресс долгой задачи движется с самого начала."
+    ],
+    "ja": [
+      "データベースがまだ知らないバージョンにもチート: アプリがゲーム自体からビルドを読み取ります。新しいフィルターで他のバージョン用のチートがあるゲームを表示できます。",
+      "新しいアップデートにチートがない場合、チートのある古いアップデートを残します。設定のスイッチで選べます。",
+      "整理では複数のゲームが入ったカートリッジに全ゲームの名前を付け、長いタスクの合計は最初から進みます。"
+    ],
+    "ko": [
+      "데이터베이스가 아직 모르는 버전에도 치트: 앱이 게임에서 직접 빌드를 읽습니다. 새 필터로 다른 버전용 치트가 있는 게임을 볼 수 있습니다.",
+      "새 업데이트에 치트가 없으면 치트가 있는 이전 업데이트를 남깁니다. 설정의 스위치로 정합니다.",
+      "정리에서 여러 게임이 든 카트리지에 모든 게임의 이름을 붙이고, 긴 작업의 전체 진행이 처음부터 움직입니다."
+    ],
+    "zh": [
+      "数据库尚不认识的版本也有金手指:应用会从游戏本身读取构建。新的筛选可显示有适用于其他版本金手指的游戏。",
+      "若较新的更新没有金手指,则保留有金手指的旧更新;由设置中的开关决定。",
+      "整理会用所有游戏的名称命名含多个游戏的卡带,长任务的总进度从一开始就会移动。"
+    ]
+  },
   "1.48.2": {
     "en": [
       "The cheats are downloaded as soon as the app starts, without waiting for the next synchronization.",

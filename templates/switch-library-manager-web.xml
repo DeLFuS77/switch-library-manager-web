@@ -22,10 +22,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.48.2
-- The cheats come right after an update, the next file of a task moves up smoothly, and small fixes in Issues and the list to split
-### 1.48.1
-- The task bars change colour little by little and reach their end before they go; the guides moved to the wiki</Changes>
+  <Changes>### 1.49.0
+- Cheats for versions the database does not know yet, keep the old update that has cheats, cartridges with several games named after them, and the total of a long task moves from the start
+### 1.48.2
+- The cheats come right after an update, the next file of a task moves up smoothly, and small fixes in Issues and the list to split</Changes>
   <Date>2026-10-19</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
