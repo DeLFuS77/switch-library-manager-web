@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### New
+
+- Settings > Library: your prod.keys (and title.keys, if you have them) can be uploaded from the page, from any
+  computer, instead of copied to the server by hand. The app checks they are keys of a console before keeping them in
+  its data folder, readable by itself only, points the settings to them and scans the library again; their contents
+  are never shown nor written to the log, and backups still leave them out. Only administrators can do it.
+
 ### Improvements
 
 - The endless animations (the shimmer of a cover loading, the drift of the numbers, the pulse of the ribbons, the

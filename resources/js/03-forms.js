@@ -16,6 +16,48 @@ function formState(form) {
 	return JSON.stringify(values);
 }
 
+// Settings > Library: the prod.keys (and title.keys) of the console are sent to the server of the
+// app, which checks them and keeps them in its data folder; the page then shows the keys found.
+function initKeysUpload() {
+	const box = document.querySelector('[data-keys-upload]');
+	if (!box) {
+		return;
+	}
+	const chosen = box.querySelector('[data-keys-chosen]');
+	const send = box.querySelector('[data-keys-send]');
+	const inputs = [...box.querySelectorAll('[data-keys-file]')];
+	const update = () => {
+		const names = inputs.filter(input => input.files.length).map(input => input.files[0].name);
+		chosen.textContent = names.join(' · ');
+		send.hidden = !box.querySelector('#prodKeysFile').files.length;
+	};
+	box.querySelectorAll('[data-keys-pick]').forEach(button => {
+		button.addEventListener('click', () => document.getElementById(button.dataset.keysPick).click());
+	});
+	inputs.forEach(input => input.addEventListener('change', update));
+	send.addEventListener('click', () => {
+		const data = new FormData();
+		inputs.filter(input => input.files.length).forEach(input => data.append(input.dataset.keysFile, input.files[0]));
+		send.disabled = true;
+		fetch('/settings/keys', { method: 'POST', body: data })
+			.then(response => response.json().then(json => ({ ok: response.ok, json })))
+			.then(({ ok, json }) => {
+				if (!ok) {
+					const error = json.globalError || {};
+					showToast('alert-danger', 'bi-exclamation-triangle-fill', error.strongMessage || t('Error!'), error.message || t('Could not reach the server.'));
+					send.disabled = false;
+					return;
+				}
+				showToast('alert-success', 'bi-check-circle-fill', json.strongMessage, json.message);
+				setTimeout(() => window.location.reload(), 1500);
+			})
+			.catch(() => {
+				showToast('alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), t('Could not reach the server.'));
+				send.disabled = false;
+			});
+	});
+}
+
 function initSaveWhenChanged() {
 	document.querySelectorAll('form[data-save-when-changed]').forEach(form => {
 		let saved = formState(form);
