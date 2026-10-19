@@ -34,6 +34,7 @@ type OrganizeForm struct {
 	DeleteEmptyFolders         bool   `in:"form=delete_empty_folders"`
 	DeleteDuplicateFiles       bool   `in:"form=delete_duplicate_files"`
 	KeepDuplicate              string `in:"form=keep_duplicate"`
+	KeepUpdatesWithCheats      bool   `in:"form=keep_updates_with_cheats"`
 }
 
 // duplicatesChanging counts the duplicates whose other copy is kept with the choice keep,
@@ -86,6 +87,7 @@ func (f *OrganizeForm) toOptions(current settings.OrganizeOptions) settings.Orga
 	current.ProcessWhenMissingBaseGame = f.ProcessWhenMissingBaseGame
 	current.DeleteEmptyFolders = f.DeleteEmptyFolders
 	current.DeleteDuplicateFiles = f.DeleteDuplicateFiles
+	current.DeleteUpdatesWithCheats = !f.KeepUpdatesWithCheats
 	current.KeepDuplicate = settings.KEEP_FIRST_FOUND
 	for _, choice := range settings.KeepDuplicateChoices {
 		if f.KeepDuplicate == choice {

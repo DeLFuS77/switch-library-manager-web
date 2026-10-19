@@ -179,3 +179,26 @@ func TestCheatNames(t *testing.T) {
 		t.Fatalf("names: %v", names)
 	}
 }
+
+// An old update with cheats stays when the newer one has none, unless the settings say so.
+func TestOldUpdateWithCheatsIsKept(t *testing.T) {
+	web := cheatsWeb(t)
+	web.downloadCheats()
+	// the database does not know v65536 of the other game: its build was read from the file
+	os.WriteFile(web.dataFolder+"/"+CHEATS_BUILDS_FILENAME, []byte(`{"/roms/old.nsp":{"id":"0100000000020000","version":65536,"size":1,"modTime":1,"build":"3333333333333333"}}`), 0o644)
+	old := db.ExtendedFileInfo{FileName: "Other [0100000000020800][v65536].nsp", BaseFolder: "/roms"}
+	if note := web.keptForCheats(old); note != NOTE_KEPT_FOR_CHEATS {
+		t.Fatalf("the old update with cheats is kept: %q", note)
+	}
+	if note := web.cleanupRefusal(old, db.SkippedFile{ReasonCode: db.REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally (" + os.TempDir() + ")"}); note == "" {
+		t.Fatal("the cleanup keeps it too")
+	}
+	// the newer one of the first game has cheats: its old update goes
+	if note := web.keptForCheats(db.ExtendedFileInfo{FileName: "Game [0100000000010800][v0].nsp"}); note != "" {
+		t.Fatalf("the newer one has cheats: %q", note)
+	}
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.OrganizeOptions.DeleteUpdatesWithCheats = true })
+	if note := web.keptForCheats(old); note != "" {
+		t.Fatalf("turned off: %q", note)
+	}
+}

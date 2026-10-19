@@ -89,6 +89,8 @@ type OrganizeOptions struct {
 	// which copy of a duplicate the library keeps: KEEP_FIRST_FOUND (empty), KEEP_NSP, KEEP_XCI
 	// or KEEP_AUTO; the other one is the duplicate
 	KeepDuplicate string `json:"keep_duplicate"`
+	// old updates with cheats when the newer one has none are deleted too
+	DeleteUpdatesWithCheats bool `json:"delete_updates_with_cheats,omitempty"`
 	// the copies of duplicates chosen one by one to be kept, by path: they win over KeepDuplicate
 	KeepFiles []string `json:"keep_files,omitempty"`
 }

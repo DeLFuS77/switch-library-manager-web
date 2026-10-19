@@ -80,6 +80,10 @@
 								</select>
 							</div>
 							<div class="form-text mb-2" id="keep_duplicate_help">{{t "Letting the app choose keeps a file with several titles, and otherwise the smaller file. A file with several titles is never deleted while it holds something the library keeps."}}</div>
+							<div class="form-check form-switch mb-2">
+								<input class="form-check-input" type="checkbox" role="switch" id="keep_updates_with_cheats" name="keep_updates_with_cheats" value="true"{{if not $o.DeleteUpdatesWithCheats}} checked{{end}}>
+								<label class="form-check-label" for="keep_updates_with_cheats">{{t "Keep an old update that has cheats when the newer one has none"}}</label>
+							</div>
 							<div class="form-check form-switch">
 								<input class="form-check-input" type="checkbox" role="switch" id="delete_empty_folders" name="delete_empty_folders" value="true"{{if $o.DeleteEmptyFolders}} checked{{end}}>
 								<label class="form-check-label" for="delete_empty_folders">{{t "Delete empty folders afterwards"}}</label>
