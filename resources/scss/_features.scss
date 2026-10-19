@@ -322,11 +322,19 @@
 	}
 }
 
-// the total of a running task goes from red to green as it advances, through orange and
-// yellow: the hue follows the share done (--pct, 0 to 100)
-.task-total-bar {
+// the total of a running task goes from red to green as it advances, through orange, amber
+// and yellow; green comes only at the end, from 85%. The colours span the whole track and the bar shows them up to where it is: its
+// end changes colour little by little as it grows, mixed in OKLCH so the colours between
+// stay clear. The gradient is as wide as the track (the bar is --pct of it), and --pct
+// moves with the width, so it stays still while the bar grows. Over the moving stripes,
+// which take the background away from the other bars.
+.progress-bar.task-total-bar {
 	background-color: hsl(calc(var(--pct, 0) * 1.35) 72% 46%);
-	transition: width .6s ease, background-color .6s ease;
+	background-image: linear-gradient(90deg, #{$slm-red}, #e4502e 16%, #{$warning} 34%, #f7b232 52%, #f2c94c 70%, #e6d04b 85%, #9ccc4c 93%, #{$success});
+	background-image: linear-gradient(90deg in oklch, #{$slm-red}, #e4502e 16%, #{$warning} 34%, #f7b232 52%, #f2c94c 70%, #e6d04b 85%, #9ccc4c 93%, #{$success});
+	background-size: calc(100% * 100 / max(var(--pct, 100), 1)) 100%;
+	background-repeat: no-repeat;
+	transition: width .6s ease, --pct .6s ease;
 }
 
 // the bar of each file in one of the colours of the library overview

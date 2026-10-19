@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The bar of a running task changes colour little by little as it advances: red, orange, amber and yellow, and green only at the end. The colours span the whole bar and blend smoothly, also between the updates of the page
+
 ## 1.48.0
 
 ### New

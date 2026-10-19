@@ -185,9 +185,12 @@ function initLiveTasks() {
 				// instead of jumping: by task, the total first, then the files by name
 				const barKey = (card, bar) => card.dataset.taskId + '|' + (bar.closest('.task-lane')?.querySelector('[title]')?.title || '');
 				const widths = {};
+				const shares = {};
 				list.querySelectorAll('[data-task-id]').forEach(card => {
 					card.querySelectorAll('.progress-bar').forEach(bar => {
 						widths[barKey(card, bar)] = bar.style.width;
+						// the share done, which sets the colours of the total
+						shares[barKey(card, bar)] = bar.style.getPropertyValue('--pct');
 					});
 				});
 				// a list of files opened or folded stays as it was
@@ -233,11 +236,19 @@ function initLiveTasks() {
 							return;
 						}
 						const after = bar.style.width;
+						const share = bar.style.getPropertyValue('--pct');
+						const shareBefore = shares[barKey(card, bar)];
 						bar.style.transition = 'none';
 						bar.style.width = before;
+						if (share && shareBefore) {
+							bar.style.setProperty('--pct', shareBefore);
+						}
 						void bar.offsetWidth;
 						bar.style.transition = '';
 						bar.style.width = after;
+						if (share && shareBefore) {
+							bar.style.setProperty('--pct', share);
+						}
 					});
 				});
 			})
