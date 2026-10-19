@@ -106,3 +106,30 @@ func TestIssueKinds(t *testing.T) {
 		t.Fatalf("the summary: %+v", summaries)
 	}
 }
+
+// A duplicate in a file that also holds content the library keeps (a file with several
+// titles) says so in Issues, as in Space; the other duplicates do not.
+func TestIssuesTellAFileHoldsKeptContent(t *testing.T) {
+	web := newTestWeb(t)
+	dir := t.TempDir()
+	pack := db.ExtendedFileInfo{FileName: "Pack [0100000000010800][v65536].xcz", BaseFolder: dir}
+	copied := db.ExtendedFileInfo{FileName: "Other [0100000000020000][v0] (copy).nsp", BaseFolder: dir}
+	localDB := &db.LocalSwitchFilesDB{
+		TitlesMap: map[string]*db.SwitchGameFiles{
+			"0100000000010": {BaseExist: true, File: db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: "Game.nsz", BaseFolder: dir}},
+				LatestUpdate: 65536, Updates: map[int]db.SwitchFileInfo{65536: {ExtendedInfo: pack}}, Dlc: map[string]db.SwitchFileInfo{}},
+		},
+		Skipped: map[db.ExtendedFileInfo]db.SkippedFile{
+			pack:   {ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + filepath.Join(dir, "Game.nsz") + ")"},
+			copied: {ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + filepath.Join(dir, "Other.nsp") + ")"},
+		},
+	}
+	web.state.set(&db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{}}, localDB)
+	kept := map[string]bool{}
+	for _, issue := range web.buildIssues() {
+		kept[filepath.Base(issue.File)] = issue.Kept
+	}
+	if len(kept) != 2 || !kept[pack.FileName] || kept[copied.FileName] {
+		t.Fatalf("only the file that holds the latest update is kept: %v", kept)
+	}
+}

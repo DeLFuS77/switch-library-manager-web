@@ -21,6 +21,9 @@ type Issue struct {
 	// shows 0 B), and why it could not be read in plain words
 	Size  int64
 	Cause string
+	// the file also holds content the library keeps (the game, its latest update, a DLC), as a
+	// file with several titles does: it is not deleted as old or duplicate
+	Kept bool
 }
 
 type IssuesPageData struct {
@@ -200,7 +203,7 @@ func (web *Web) buildIssues() []Issue {
 		if v.ReasonCode == db.REASON_OLD_UPDATE && inUse[path] {
 			continue
 		}
-		issues = append(issues, Issue{File: path, Reason: v.ReasonText})
+		issues = append(issues, Issue{File: path, Reason: v.ReasonText, Kept: inUse[path]})
 	}
 
 	// files a verification found damaged, while they did not change
