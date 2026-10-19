@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Organize names a cartridge with several games after all of them, like Alphadia Genesis 2 + Asdivine Cross + 2 more [01005CE015080000][4 games].xcz, in a folder of its own, instead of as the update of the game it met last
+
 ## 1.48.2
 
 ### Improvements

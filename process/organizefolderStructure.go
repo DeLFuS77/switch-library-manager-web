@@ -425,6 +425,50 @@ func OrganizeByFolders(baseFolder string,
 	keys := sortedKeys(localDB.TitlesMap)
 	tasksSize := len(keys) + 1
 
+	// a file with several games (a collection on one cartridge) is named after all of them,
+	// once, instead of after the game that comes last
+	collections := multiGameFiles(localDB)
+	for _, path := range sortedKeys(collections) {
+		games := collections[path]
+		names := []string{}
+		firstId := ""
+		for _, key := range games {
+			var title *db.SwitchTitle
+			if titlesDB != nil {
+				title = titlesDB.TitlesMap[key]
+			}
+			name := getTitleName(title, localDB.TitlesMap[key])
+			if options.SwitchSafeFileNames && strings.Trim(safeName(name), " -_.") == "" {
+				name = asciiFallbackName(localDB.TitlesMap[key])
+			}
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		// the ID of the game named first, so the file is still found by its name
+		for _, key := range games {
+			var title *db.SwitchTitle
+			if titlesDB != nil {
+				title = titlesDB.TitlesMap[key]
+			}
+			if getTitleName(title, localDB.TitlesMap[key]) == names[0] || firstId == "" {
+				firstId = strings.ToUpper(key) + "000"
+			}
+		}
+		collection := collectionName(names)
+		if options.SwitchSafeFileNames {
+			collection = safeName(collection)
+		}
+		folder := filepath.Dir(path)
+		if options.CreateFolderPerGame {
+			folder = filepath.Join(baseFolder, avoidReserved(strings.TrimRight(collection, " .")))
+		}
+		fileName := filepath.Base(path)
+		if options.RenameFiles {
+			fileName = avoidReserved(fmt.Sprintf("%s [%s][%d games]%s", collection, firstId, len(games), strings.ToLower(filepath.Ext(path))))
+		}
+		ops.move(path, filepath.Join(folder, fileName))
+	}
+
 	for i, k := range keys {
 		v := localDB.TitlesMap[k]
 		if !v.BaseExist && !options.ProcessWhenMissingBaseGame {
@@ -503,7 +547,7 @@ func OrganizeByFolders(baseFolder string,
 		}
 
 		//process base title
-		if v.BaseExist {
+		if v.BaseExist && collections[filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)] == nil {
 			templateData[settings.TEMPLATE_TYPE] = "BASE"
 			from := filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)
 			to := filepath.Join(destinationPath, getFileName(options, v.File.ExtendedInfo.FileName, templateData, 0))
@@ -546,6 +590,9 @@ func OrganizeByFolders(baseFolder string,
 			}
 
 			from := filepath.Join(updateInfo.ExtendedInfo.BaseFolder, updateInfo.ExtendedInfo.FileName)
+			if collections[from] != nil {
+				continue
+			}
 			to := filepath.Join(targetFolder(updateInfo.ExtendedInfo, options.UpdatesFolder), getFileName(options, updateInfo.ExtendedInfo.FileName, templateData, 0))
 			ops.move(from, to)
 		}
@@ -568,6 +615,9 @@ func OrganizeByFolders(baseFolder string,
 			templateData[settings.TEMPLATE_TITLE_ID] = id
 			templateData[settings.TEMPLATE_DLC_NAME] = getDlcName(title, dlc)
 			from := filepath.Join(dlc.ExtendedInfo.BaseFolder, dlc.ExtendedInfo.FileName)
+			if collections[from] != nil {
+				continue
+			}
 			folder := targetFolder(dlc.ExtendedInfo, options.DlcFolder)
 
 			// DLC with different IDs can share a name, number them instead of colliding
@@ -592,6 +642,55 @@ func OrganizeByFolders(baseFolder string,
 	}
 
 	return ops.operations, nil
+}
+
+// multiGameFiles are the files that hold titles of several games, a collection on one
+// cartridge, with the keys of the games in each. Split files stay where they are.
+func multiGameFiles(localDB *db.LocalSwitchFilesDB) map[string][]string {
+	games := map[string]map[string]bool{}
+	split := map[string]bool{}
+	for key, local := range localDB.TitlesMap {
+		add := func(file db.ExtendedFileInfo) {
+			path := filepath.Join(file.BaseFolder, file.FileName)
+			if games[path] == nil {
+				games[path] = map[string]bool{}
+			}
+			games[path][key] = true
+			if file.IsDir || local.IsSplit {
+				split[path] = true
+			}
+		}
+		if local.BaseExist {
+			add(local.File.ExtendedInfo)
+		}
+		for _, update := range local.Updates {
+			add(update.ExtendedInfo)
+		}
+		for _, dlc := range local.Dlc {
+			add(dlc.ExtendedInfo)
+		}
+	}
+	result := map[string][]string{}
+	for path, keys := range games {
+		if len(keys) > 1 && !split[path] {
+			result[path] = sortedKeys(keys)
+		}
+	}
+	return result
+}
+
+// collectionName is the name of a file with several games: their names, the first ones and
+// how many more when they do not fit.
+func collectionName(names []string) string {
+	const budget = 90
+	name := names[0]
+	for i, next := range names[1:] {
+		if len(name)+len(next)+3 > budget {
+			return fmt.Sprintf("%s + %d more", name, len(names)-1-i)
+		}
+		name += " + " + next
+	}
+	return name
 }
 
 func sortedIntKeys[V any](m map[int]V) []int {
