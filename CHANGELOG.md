@@ -1,16 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.47.0
 
 ### New
 
-- Settings > Library: your prod.keys (and title.keys, if you have them) can be uploaded from the page, from any
-  computer, instead of copied to the server by hand. The app checks they are keys of a console before keeping them in
-  its data folder, readable by itself only, points the settings to them and scans the library again; their contents
-  are never shown nor written to the log, and backups still leave them out. Only administrators can do it.
-- The setup wizard can upload your keys too, in its step of the keys: the field then points to them and they are
-  checked at once. Its step of the folders warns of a folder listed twice or inside another one when they are checked,
-  instead of only when everything is saved at the end.
 - **Split multi-title files** (asked by switchsv on GBAtemp): Compress has a section that lists the NSP and NSZ files
   holding several titles (a "SuperNSP" with a game, its updates and its DLC, or a complete pack) and turns them back
   into one file per title, in bulk. Each title keeps its own Meta NCA, the NCAs it lists, its ticket and its
@@ -21,6 +14,13 @@
 - **Complete packs in bulk**: Compress lists the games with an update or DLC in separate files and makes the pack of
   each one chosen, or of all of them, as one task that shows its progress, can be paused and goes on after a restart,
   like a compression. The pack of a game page is made the same way.
+- Settings > Library: your prod.keys (and title.keys, if you have them) can be uploaded from the page, from any
+  computer, instead of copied to the server by hand. The app checks they are keys of a console before keeping them in
+  its data folder, readable by itself only, points the settings to them and scans the library again; their contents
+  are never shown nor written to the log, and backups still leave them out. Only administrators can do it.
+- The setup wizard can upload your keys too, in its step of the keys: the field then points to them and they are
+  checked at once. Its step of the folders warns of a folder listed twice or inside another one when they are checked,
+  instead of only when everything is saved at the end.
 
 ### Improvements
 

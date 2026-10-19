@@ -1,4 +1,61 @@
 {
+  "1.47.0": {
+    "en": [
+      "Compress can split multi-title files (SuperNSP) back into one file per game, update and DLC, and make complete packs of many games at once.",
+      "Your prod.keys can be uploaded from Settings or the setup wizard, without copying them to the server by hand.",
+      "The Tasks link counts the tasks running, and the animations stop while they are out of sight."
+    ],
+    "es": [
+      "Comprimir puede separar los archivos con varios títulos (SuperNSP) en un archivo por juego, actualización y DLC, y hacer paquetes completos de muchos juegos a la vez.",
+      "Tu prod.keys se puede subir desde Ajustes o el asistente, sin copiarlo a mano al servidor.",
+      "El enlace de Tareas cuenta las tareas en marcha, y las animaciones se paran mientras no se ven."
+    ],
+    "de": [
+      "Komprimieren kann Dateien mit mehreren Titeln (SuperNSP) wieder in eine Datei pro Spiel, Update und DLC aufteilen und Komplettpakete für viele Spiele auf einmal erstellen.",
+      "Deine prod.keys lassen sich in den Einstellungen oder im Einrichtungsassistenten hochladen, ohne sie von Hand auf den Server zu kopieren.",
+      "Der Link Aufgaben zählt die laufenden Aufgaben, und Animationen halten an, solange sie nicht zu sehen sind."
+    ],
+    "fr": [
+      "Compresser peut séparer les fichiers à plusieurs titres (SuperNSP) en un fichier par jeu, mise à jour et DLC, et créer des packs complets de nombreux jeux à la fois.",
+      "Ton prod.keys peut être envoyé depuis les Paramètres ou l'assistant, sans le copier à la main sur le serveur.",
+      "Le lien Tâches compte les tâches en cours, et les animations s'arrêtent tant qu'elles ne sont pas visibles."
+    ],
+    "it": [
+      "Comprimi può dividere i file con più titoli (SuperNSP) in un file per gioco, aggiornamento e DLC, e creare pacchetti completi di molti giochi insieme.",
+      "Il tuo prod.keys si può caricare dalle Impostazioni o dalla procedura guidata, senza copiarlo a mano sul server.",
+      "Il link Attività conta le attività in corso, e le animazioni si fermano finché non sono visibili."
+    ],
+    "pt": [
+      "Comprimir pode separar os arquivos com vários títulos (SuperNSP) num arquivo por jogo, atualização e DLC, e criar pacotes completos de muitos jogos de uma vez.",
+      "O teu prod.keys pode ser enviado a partir das Configurações ou do assistente, sem o copiar à mão para o servidor.",
+      "A ligação Tarefas conta as tarefas em curso, e as animações param enquanto não estão à vista."
+    ],
+    "nl": [
+      "Comprimeren kan bestanden met meerdere titels (SuperNSP) weer opsplitsen in één bestand per game, update en DLC, en complete pakketten van veel games tegelijk maken.",
+      "Je prod.keys kun je uploaden via Instellingen of de installatiewizard, zonder ze met de hand naar de server te kopiëren.",
+      "De link Taken telt de lopende taken, en animaties stoppen zolang ze niet in beeld zijn."
+    ],
+    "ru": [
+      "«Сжать» умеет разделять файлы с несколькими тайтлами (SuperNSP) на отдельные файлы игры, обновления и DLC, а также собирать полные пакеты сразу для многих игр.",
+      "prod.keys можно загрузить в «Настройках» или в мастере настройки, не копируя его на сервер вручную.",
+      "Ссылка «Задачи» показывает число выполняемых задач, а анимации останавливаются, пока их не видно."
+    ],
+    "ja": [
+      "圧縮で、複数のタイトルを含むファイル(SuperNSP)をゲーム・アップデート・DLC ごとのファイルに分けたり、多くのゲームの完全パックを一度に作ったりできます。",
+      "prod.keys は設定またはセットアップウィザードからアップロードでき、サーバーに手でコピーする必要はありません。",
+      "タスクのリンクに実行中のタスク数が表示され、見えていないアニメーションは止まります。"
+    ],
+    "ko": [
+      "압축에서 여러 타이틀이 든 파일(SuperNSP)을 게임, 업데이트, DLC별 파일로 나누고, 여러 게임의 완전한 팩을 한 번에 만들 수 있습니다.",
+      "prod.keys를 설정이나 설정 마법사에서 올릴 수 있어 서버에 직접 복사하지 않아도 됩니다.",
+      "작업 링크에 실행 중인 작업 수가 표시되고, 보이지 않는 애니메이션은 멈춥니다."
+    ],
+    "zh": [
+      "压缩页面可以把含多个标题的文件(SuperNSP)拆分为游戏、更新和 DLC 各一个文件,也可以一次为多个游戏制作完整包。",
+      "你的 prod.keys 可以在设置或设置向导中上传,无需手动复制到服务器。",
+      "任务链接会显示正在运行的任务数,看不见的动画会暂停。"
+    ]
+  },
   "1.46.0": {
     "en": [
       "Faster on big libraries: Space and Compress draw only what is on screen, and the pages load a lighter style sheet.",
