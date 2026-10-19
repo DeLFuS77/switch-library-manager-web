@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Users: the hint of the password said 8 characters, while 10 are needed
+
+### Development
+
+- The check that presses the save buttons in a real browser also covers a field of another section of Settings, the first administrator, adding a user and changing their role, and the language and the colour of the account
+
 ## 1.50.1
 
 ### Fixes

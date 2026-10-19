@@ -6,6 +6,7 @@
 // Usage: node scripts/save-check.mjs [address of an app that is not in demo mode]
 // Needs Chrome (or Chromium, or Edge); set CHROME to its path if it is not found.
 import { spawn } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -90,6 +91,57 @@ const CHECKS = [
 		change: `(field => { field.checked = !field.checked; return String(field.checked); })`,
 		saved: `(form => form.querySelector('.save-bar').classList.contains('is-unchanged'))`,
 	},
+	// a field of another section of Settings (each one is shown on its own)
+	{
+		page: 'settings.html',
+		form: '#settingsForm',
+		field: '#notify_dlc',
+		change: `(field => { field.checked = !field.checked; return String(field.checked); })`,
+		saved: `(form => form.querySelector('.save-bar').classList.contains('is-unchanged'))`,
+	},
+];
+
+// forms that send the page again: a value is set, the form sent, and the page that comes back
+// must show it. The first one creates an administrator, which logs the browser in for the
+// ones that follow.
+const USER = 'savecheck';
+const PASSWORD = 'Sv-' + randomBytes(12).toString('hex');
+const RELOADS = [
+	{
+		name: 'users.html: require login with a first administrator',
+		page: 'users.html',
+		fill: `(() => { document.querySelector('#firstName').value = '${USER}'; document.querySelector('#firstPassword').value = '${PASSWORD}'; return 'admin'; })()`,
+		submit: '#firstName',
+		read: `(document.querySelector('#role-${USER}') || {}).value || ''`,
+	},
+	{
+		name: 'users.html: add a user',
+		page: 'users.html',
+		fill: `(() => { document.querySelector('#newName').value = 'viewer1'; document.querySelector('#newPassword').value = '${PASSWORD}x'; document.querySelector('#newRole').value = 'viewer'; return 'viewer'; })()`,
+		submit: '#newName',
+		read: `(document.querySelector('#role-viewer1') || {}).value || ''`,
+	},
+	{
+		name: 'users.html: change the role of a user',
+		page: 'users.html',
+		fill: `(() => { document.querySelector('#role-viewer1').value = 'admin'; return 'admin'; })()`,
+		submit: '#role-viewer1',
+		read: `(document.querySelector('#role-viewer1') || {}).value || ''`,
+	},
+	{
+		name: 'account.html: my language',
+		page: 'account.html',
+		fill: `(() => { const field = document.querySelector('#language'); field.value = field.value === 'en' ? 'de' : 'en'; field.dispatchEvent(new Event('change', { bubbles: true })); return field.value; })()`,
+		submit: '#language',
+		read: `(document.querySelector('#language') || {}).value || ''`,
+	},
+	{
+		name: 'account.html: the colour of my icon',
+		page: 'account.html',
+		fill: `(() => { const choice = [...document.querySelectorAll('input[name="color"]')].find(input => !input.checked && input.value); choice.checked = true; choice.dispatchEvent(new Event('change', { bubbles: true })); return choice.value; })()`,
+		submit: 'input[name="color"]',
+		read: `(document.querySelector('input[name="color"]:checked') || {}).value || ''`,
+	},
 ];
 
 async function main() {
@@ -165,10 +217,35 @@ async function main() {
 			}
 			if (problems.length) {
 				failures += problems.length;
-				console.log(`✗ ${check.page}`);
+				console.log(`✗ ${check.page} ${check.field}`);
 				problems.forEach(problem => console.log(`    ${problem}`));
 			} else {
-				console.log(`✓ ${check.page}`);
+				console.log(`✓ ${check.page} ${check.field}`);
+			}
+		}
+		for (const check of RELOADS) {
+			await go(`${BASE}/${check.page}`);
+			const problems = [];
+			try {
+				const wanted = await evaluate(check.fill);
+				// the save button of the form of that field is pressed, and the page comes back
+				const loaded = cdp.once('Page.loadEventFired');
+				await evaluate(`(() => { const form = document.querySelector('${check.submit}').form; const button = form.querySelector('button[type="submit"]'); button.disabled = false; button.click(); })()`);
+				await Promise.race([loaded, sleep(15000)]);
+				await sleep(300);
+				const shown = await evaluate(check.read);
+				if (shown !== wanted) {
+					problems.push(`not saved: the page shows ${JSON.stringify(shown)}, not ${JSON.stringify(wanted)}`);
+				}
+			} catch (error) {
+				problems.push(error.message);
+			}
+			if (problems.length) {
+				failures += problems.length;
+				console.log(`✗ ${check.name}`);
+				problems.forEach(problem => console.log(`    ${problem}`));
+			} else {
+				console.log(`✓ ${check.name}`);
 			}
 		}
 		cdp.close();
