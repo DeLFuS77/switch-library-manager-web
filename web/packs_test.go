@@ -11,6 +11,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -101,5 +102,51 @@ func TestMakePackFromTheTitlePage(t *testing.T) {
 	}
 	if hashes, err := switchfs.HashNcas(t.Context(), matches[0], nil); err != nil || len(hashes) != 3 {
 		t.Fatalf("three NCAs: %d %v", len(hashes), err)
+	}
+}
+
+// With "Delete the empty folders" of Organize on, the folders of the update and the DLC a pack
+// leaves empty go too, never the library folder; with it off they stay.
+func TestPackDeletesTheFoldersLeftEmpty(t *testing.T) {
+	for _, deleteEmpty := range []bool{true, false} {
+		web, path, _ := compressWebWithLibrary(t)
+		folder := filepath.Dir(path)
+		settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+			s.Folder = folder
+			s.OrganizeOptions.DeleteEmptyFolders = deleteEmpty
+		})
+		update := filepath.Join(folder, "Updates", "Game [0100000000010800][v65536].nsp")
+		dlc := filepath.Join(folder, "DLC", "Game DLC [0100000000011001][v0].nsp")
+		for file, content := range map[string]string{update: "the update of the test game ", dlc: "the dlc of the test game "} {
+			os.MkdirAll(filepath.Dir(file), 0o755)
+			if _, err := testnsp.WriteNspOf(file, content); err != nil {
+				t.Fatal(err)
+			}
+		}
+		_, library := web.state.get()
+		local := library.TitlesMap["0100000000010"]
+		local.Updates[65536] = db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: filepath.Base(update), BaseFolder: filepath.Dir(update)}, Metadata: &switchfs.ContentMetaAttributes{TitleId: "0100000000010800", Version: 65536}}
+		local.LatestUpdate = 65536
+		local.Dlc["0100000000011001"] = db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: filepath.Base(dlc), BaseFolder: filepath.Dir(dlc)}, Metadata: &switchfs.ContentMetaAttributes{TitleId: "0100000000011001"}}
+		web.invalidateDerived()
+
+		if !web.startPacks([]string{path}, nil, true, TRIGGER_MANUAL) {
+			t.Fatal("the pack starts")
+		}
+		if task := waitForTask(t, web, TASK_PACK); task.Status != TASK_SUCCESS {
+			t.Fatalf("pack: %+v", task)
+		}
+		for _, sub := range []string{"Updates", "DLC"} {
+			_, err := os.Stat(filepath.Join(folder, sub))
+			if deleteEmpty && !os.IsNotExist(err) {
+				t.Errorf("the empty folder %s goes", sub)
+			}
+			if !deleteEmpty && err != nil {
+				t.Errorf("the folder %s stays when Organize keeps empty folders", sub)
+			}
+		}
+		if _, err := os.Stat(folder); err != nil {
+			t.Fatal("the library folder always stays")
+		}
 	}
 }

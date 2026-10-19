@@ -274,6 +274,39 @@ func isEmptyFolder(folder string) bool {
 	return len(names) == 0 && errors.Is(err, io.EOF)
 }
 
+// RemoveEmptyFolders deletes the folders that are left empty, and the parents they leave empty,
+// up to the library folders (roots), which are never deleted, nor anything outside them. It
+// gives the folders deleted. Used after files were taken out of their folders, as a pack does.
+func RemoveEmptyFolders(folders []string, roots []string) []string {
+	inside := func(dir string) bool {
+		for _, root := range roots {
+			rel, err := filepath.Rel(filepath.Clean(root), dir)
+			if err == nil && rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+				return true
+			}
+		}
+		return false
+	}
+	candidates := map[string]bool{}
+	for _, folder := range folders {
+		for dir := filepath.Clean(folder); inside(dir); dir = filepath.Dir(dir) {
+			candidates[dir] = true
+		}
+	}
+	sorted := sortedKeys(candidates)
+	// deepest folders first, so a parent is looked at once its children are gone
+	sort.SliceStable(sorted, func(i, j int) bool {
+		return strings.Count(sorted[i], string(filepath.Separator)) > strings.Count(sorted[j], string(filepath.Separator))
+	})
+	removed := []string{}
+	for _, folder := range sorted {
+		if isEmptyFolder(folder) && os.Remove(folder) == nil {
+			removed = append(removed, folder)
+		}
+	}
+	return removed
+}
+
 func sortedKeys[V any](m map[string]V) []string {
 	keys := make([]string, 0, len(m))
 	for k := range m {

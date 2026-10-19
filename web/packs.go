@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/process"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -252,9 +254,18 @@ func (web *Web) makePack(ctx context.Context, sources []string, target string, s
 	web.verifications().remember(target, written)
 	web.sugarLogger.Infof("Made the pack %s of %d files", target, len(sources))
 	if deleteOriginals && fullyChecked(written) {
+		folders := []string{}
 		for _, source := range sources {
 			if err := os.Remove(source); err != nil {
 				return skipped, fmt.Errorf("could not delete the original: %w", err)
+			}
+			folders = append(folders, filepath.Dir(source))
+		}
+		// the folders of the update and the DLC left empty go too, when Organize is set so
+		appSettings := settings.ReadSettings(web.dataFolder)
+		if appSettings.OrganizeOptions.DeleteEmptyFolders {
+			if removed := process.RemoveEmptyFolders(folders, scanFolders(appSettings)); len(removed) > 0 {
+				web.sugarLogger.Infof("Deleted %d empty folders left by the pack %s", len(removed), target)
 			}
 		}
 	}
