@@ -99,6 +99,10 @@ func uploadName(name string) string {
 			return ""
 		}
 	}
+	// a name alone, never a way out of the library folder
+	if !filepath.IsLocal(name) || strings.ContainsAny(name, `/\`) {
+		return ""
+	}
 	return name
 }
 
@@ -179,6 +183,10 @@ func (web *Web) HandleUploads() {
 		}
 		web.forgetIdleUploads(folder)
 		final := filepath.Join(folder, name)
+		if filepath.Dir(final) != filepath.Clean(folder) {
+			writeGlobalError(w, http.StatusBadRequest, lang, UPLOAD_BAD_NAME)
+			return
+		}
 
 		store := &web.uploads
 		store.mutex.Lock()

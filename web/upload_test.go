@@ -191,3 +191,14 @@ func TestUploadPieceGetsPastTheBodyLimit(t *testing.T) {
 		t.Fatal("other requests keep their limit")
 	}
 }
+
+func TestUploadNamesWithDots(t *testing.T) {
+	if uploadName("Wait... What [0100000000010000][v0].nsp") == "" {
+		t.Fatal("dots in a name are fine")
+	}
+	for _, name := range []string{"..", "../..", `..\`} {
+		if uploadName(name) != "" {
+			t.Fatalf("%q is refused", name)
+		}
+	}
+}
