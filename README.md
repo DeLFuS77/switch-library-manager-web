@@ -112,7 +112,9 @@ Linux, Docker, NAS and Raspberry Pi.
 **Keep it tidy**
 - Issues: unsupported, duplicate, old, damaged or unidentified files
 - Organize files in folders and rename them from templates, always with a preview first
-- Delete old updates, duplicates and empty folders
+- Delete old updates, duplicates and empty folders, choosing which copy of a duplicate stays: the NSP or NSZ, the XCI
+  or XCZ, or the one the app picks (a file with several titles is never deleted while it holds something the
+  library keeps)
 - Ignore lists for DLC, updates and file types; hide demos
 - **Automations** (off until you turn them on): new files are checked, compressed, the updates they replace deleted
   and the library organized by itself, with a message of what was done

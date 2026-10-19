@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### New
+
+- Organize lets you choose which copy of a duplicate the library keeps: the NSP or NSZ, the XCI or XCZ, or the one the app picks (a file with several titles, which stays anyway, otherwise the smaller file). Changing it scans the library again
+
 ### Improvements
 
 - Issues tells, as Space does, when a duplicate or old file also holds the game, its latest update or a DLC that the library keeps (a file with several titles, like a cartridge with a collection of games), so it is not deleted
