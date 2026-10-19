@@ -10,7 +10,7 @@ import (
 // library without deleting, an administrator does everything.
 func TestRoles(t *testing.T) {
 	type check struct {
-		method, path string
+		method, path                 string
 		guest, player, editor, admin bool
 	}
 	checks := []check{
