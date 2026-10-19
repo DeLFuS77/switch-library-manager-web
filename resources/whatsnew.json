@@ -1,4 +1,61 @@
 {
+  "1.48.0": {
+    "en": [
+      "Cheats: the games with cheats for the version you have are marked, and the game page gives them ready for the SD card, or the whole library at once.",
+      "A cartridge with several games (a collection) can be split into one XCI or XCZ per game, from Compress.",
+      "Choose which copy of a duplicate stays, in Organize or one by one in Issues, and filter Missing ones by genre, players, language and region."
+    ],
+    "es": [
+      "Trucos: se marcan los juegos con trucos para la versión que tienes, y la ficha del juego te los da listos para la SD, o los de toda la biblioteca a la vez.",
+      "Un cartucho con varios juegos (una colección) se puede separar en un XCI o XCZ por juego, desde Comprimir.",
+      "Elige qué copia de un duplicado se queda, en Organizar o una a una en Problemas, y filtra Me faltan por género, jugadores, idioma y región."
+    ],
+    "de": [
+      "Cheats: Spiele mit Cheats für deine Version werden markiert, und die Spielseite gibt sie fertig für die SD-Karte, oder die der ganzen Bibliothek auf einmal.",
+      "Ein Modul mit mehreren Spielen (eine Sammlung) lässt sich unter Komprimieren in ein XCI oder XCZ pro Spiel aufteilen.",
+      "Wähle, welche Kopie eines Duplikats bleibt, unter Organisieren oder einzeln unter Probleme, und filtere Fehlende nach Genre, Spielern, Sprache und Region."
+    ],
+    "fr": [
+      "Codes de triche : les jeux qui ont des codes pour ta version sont marqués, et la page du jeu te les donne prêts pour la carte SD, ou ceux de toute la bibliothèque d’un coup.",
+      "Une cartouche avec plusieurs jeux (une compilation) peut être séparée en un XCI ou XCZ par jeu, depuis Compresser.",
+      "Choisis quelle copie d’un doublon reste, dans Organiser ou une par une dans Problèmes, et filtre les jeux manquants par genre, joueurs, langue et région."
+    ],
+    "it": [
+      "Trucchi: i giochi con trucchi per la tua versione sono segnati, e la pagina del gioco te li dà pronti per la scheda SD, o quelli di tutta la libreria insieme.",
+      "Una cartuccia con più giochi (una raccolta) si può dividere in un XCI o XCZ per gioco, da Comprimi.",
+      "Scegli quale copia di un duplicato resta, in Organizza o una a una in Problemi, e filtra i giochi mancanti per genere, giocatori, lingua e regione."
+    ],
+    "pt": [
+      "Truques: os jogos com truques para a versão que tens ficam marcados, e a página do jogo dá-tos prontos para o cartão SD, ou os de toda a biblioteca de uma vez.",
+      "Um cartucho com vários jogos (uma coleção) pode ser separado num XCI ou XCZ por jogo, a partir de Comprimir.",
+      "Escolhe que cópia de um duplicado fica, em Organizar ou uma a uma em Problemas, e filtra os jogos em falta por género, jogadores, idioma e região."
+    ],
+    "nl": [
+      "Cheats: games met cheats voor jouw versie worden gemarkeerd, en de gamepagina geeft ze klaar voor de SD-kaart, of die van de hele bibliotheek in één keer.",
+      "Een cartridge met meerdere games (een verzameling) kan in Comprimeren worden gesplitst in één XCI of XCZ per game.",
+      "Kies welke kopie van een duplicaat blijft, in Organiseren of één voor één in Problemen, en filter ontbrekende games op genre, spelers, taal en regio."
+    ],
+    "ru": [
+      "Читы: игры с читами для вашей версии отмечены, а страница игры даёт их готовыми для SD-карты, или читы всей библиотеки сразу.",
+      "Картридж с несколькими играми (сборник) можно разделить на XCI или XCZ для каждой игры в разделе «Сжать».",
+      "Выбирайте, какая копия дубликата остаётся, в «Организации» или по одной в «Проблемах», и фильтруйте недостающие игры по жанру, игрокам, языку и региону."
+    ],
+    "ja": [
+      "チート: お持ちのバージョン用のチートがあるゲームに印が付き、ゲームページから SD カード用にそのまま、またはライブラリ全体のものを一度に取得できます。",
+      "複数のゲームが入ったカートリッジ(コレクション)を、圧縮からゲームごとの XCI または XCZ に分けられます。",
+      "重複のどちらを残すかを整理で、または問題で 1 つずつ選べます。足りないゲームもジャンル、プレイ人数、言語、地域で絞り込めます。"
+    ],
+    "ko": [
+      "치트: 내 버전용 치트가 있는 게임이 표시되고, 게임 페이지에서 SD 카드용으로 바로, 또는 라이브러리 전체를 한 번에 받을 수 있습니다.",
+      "여러 게임이 든 카트리지(모음집)를 압축에서 게임별 XCI 또는 XCZ로 나눌 수 있습니다.",
+      "중복 중 남길 사본을 정리에서 또는 문제에서 하나씩 고르고, 없는 게임을 장르, 플레이어 수, 언어, 지역으로 필터링하세요."
+    ],
+    "zh": [
+      "金手指:有适用于你版本的金手指的游戏会被标记,游戏页面可直接提供用于 SD 卡的文件,也可一次获取整个库的金手指。",
+      "含多个游戏的卡带(合集)可以在压缩页面中拆分为每个游戏各一个 XCI 或 XCZ。",
+      "在整理中或在问题中逐个选择重复文件保留哪一份,并按类型、玩家人数、语言和地区筛选缺少的游戏。"
+    ]
+  },
   "1.47.0": {
     "en": [
       "Compress can split multi-title files (SuperNSP) back into one file per game, update and DLC, and make complete packs of many games at once.",
