@@ -4,13 +4,13 @@
 
 ### New
 
-- The setup wizard can upload your keys too, in its step of the keys: the field then points to them and they are
-  checked at once. Its step of the folders warns of a folder listed twice or inside another one when they are checked,
-  instead of only when everything is saved at the end.
 - Settings > Library: your prod.keys (and title.keys, if you have them) can be uploaded from the page, from any
   computer, instead of copied to the server by hand. The app checks they are keys of a console before keeping them in
   its data folder, readable by itself only, points the settings to them and scans the library again; their contents
   are never shown nor written to the log, and backups still leave them out. Only administrators can do it.
+- The setup wizard can upload your keys too, in its step of the keys: the field then points to them and they are
+  checked at once. Its step of the folders warns of a folder listed twice or inside another one when they are checked,
+  instead of only when everything is saved at the end.
 
 ### Improvements
 
