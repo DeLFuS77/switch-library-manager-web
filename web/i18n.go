@@ -305,6 +305,7 @@ var issuePatterns = []struct {
 	{regexp.MustCompile(`^failed to read (NSP|XCI|split files) \[reason: (.*)\]$`), "failed to read %v [reason: %v]"},
 	{regexp.MustCompile(`^unable to determine title-Id / version - (.*)$`), "unable to determine title ID / version - %v"},
 	{regexp.MustCompile(`^damaged file: (.*)$`), "damaged file: %v"},
+	{regexp.MustCompile(`^no title key \(rights ID (\w+)\): the file has no ticket and title\.keys does not list it$`), "no title key (rights ID %v): the file has no ticket and title.keys does not list it"},
 }
 
 // translateIssue translates an issue text created by the scanner.

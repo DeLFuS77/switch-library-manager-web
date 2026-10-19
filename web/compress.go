@@ -212,9 +212,11 @@ func (web *Web) compressCandidates() []CompressCandidate {
 		}
 		// a file tried before that nothing could shrink is not offered again
 		store := web.uncompressible()
+		// nor a game without its title key: it cannot be read to compress it
+		noKey := web.missingTitleKeys()
 		candidates := []CompressCandidate{}
 		for _, candidate := range web.libraryFiles(".nsp", ".xci") {
-			if _, uncompressible := store.get(candidate.Path, candidate.Size); !old[candidate.Path] && !uncompressible {
+			if _, uncompressible := store.get(candidate.Path, candidate.Size); !old[candidate.Path] && !uncompressible && noKey[candidate.Path] == "" {
 				candidates = append(candidates, candidate)
 			}
 		}
@@ -825,6 +827,11 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 						if kind == TASK_COMPRESS && errors.Is(err, switchfs.ErrNotCompressible) {
 							// the size of the file, not the one of its progress (read once per pass)
 							web.uncompressible().add(path, sizes[i], errors.Is(err, switchfs.ErrSparseStorage))
+							web.invalidateDerived()
+						}
+						// a game without its title key: told in Issues, and no longer offered
+						if errors.Is(err, switchfs.ErrNoTitleKey) {
+							web.noteMissingTitleKey(path)
 							web.invalidateDerived()
 						}
 					default:

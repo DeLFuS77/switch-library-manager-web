@@ -25,6 +25,8 @@ func (web *Web) afterScan() {
 		web.cleanLeftovers()
 		web.warmPages()
 		web.lookupTimesToBeat(TRIGGER_SCAN)
+		// the games without their title key, for Issues and Compress
+		web.checkTitleKeys()
 	}()
 }
 

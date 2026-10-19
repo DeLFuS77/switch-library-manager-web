@@ -15,6 +15,7 @@ const (
 	ISSUE_DAMAGED     = "damaged"
 	ISSUE_TRUNCATED   = "truncated"
 	ISSUE_KEYS        = "keys"
+	ISSUE_NO_KEY      = "nokey"
 	ISSUE_UNREADABLE  = "unreadable"
 	ISSUE_ORPHAN      = "orphan"
 	ISSUE_DUPLICATE   = "duplicate"
@@ -24,7 +25,7 @@ const (
 )
 
 // issueKinds are the kinds in the order of the summary: what needs doing first.
-var issueKinds = []string{ISSUE_DAMAGED, ISSUE_TRUNCATED, ISSUE_KEYS, ISSUE_UNREADABLE, ISSUE_ORPHAN, ISSUE_DUPLICATE, ISSUE_OLD, ISSUE_FILENAME, ISSUE_UNSUPPORTED}
+var issueKinds = []string{ISSUE_DAMAGED, ISSUE_TRUNCATED, ISSUE_KEYS, ISSUE_NO_KEY, ISSUE_UNREADABLE, ISSUE_ORPHAN, ISSUE_DUPLICATE, ISSUE_OLD, ISSUE_FILENAME, ISSUE_UNSUPPORTED}
 
 // dirOf is the folder of a path.
 func dirOf(path string) string {
@@ -46,6 +47,7 @@ var issueKindLooks = map[string]IssueKindLook{
 	ISSUE_DAMAGED:     {"bi-heartbreak", "danger", "Damaged files"},
 	ISSUE_TRUNCATED:   {"bi-scissors", "danger", "Files cut short"},
 	ISSUE_KEYS:        {"bi-key", "danger", "Keys too old"},
+	ISSUE_NO_KEY:      {"bi-key", "warning", "Without their title key"},
 	ISSUE_UNREADABLE:  {"bi-exclamation-octagon", "danger", "Files that cannot be read"},
 	ISSUE_ORPHAN:      {"bi-question-diamond", "warning", "Updates and DLC without their game"},
 	ISSUE_DUPLICATE:   {"bi-files", "info", "Duplicates"},
@@ -85,6 +87,8 @@ func issueKind(reason string) string {
 		return ISSUE_DAMAGED
 	case strings.Contains(reason, "prod.keys has no"):
 		return ISSUE_KEYS
+	case strings.HasPrefix(reason, "no title key"):
+		return ISSUE_NO_KEY
 	case strings.HasPrefix(reason, "base file is missing"):
 		return ISSUE_ORPHAN
 	case strings.HasPrefix(reason, "duplicate"):
@@ -211,6 +215,9 @@ func (web *Web) issueSummaries(issues []Issue, lang string) []IssueSummary {
 			summary.Text = t("Their data does not match what they should hold: they will not install or play well. Get them again.")
 		case ISSUE_KEYS:
 			summary.Text = t("They need keys of a newer firmware than your prod.keys. Dump the keys of your console again, updated.")
+			summary.Href, summary.Action = "/settings.html#library", t("Keys")
+		case ISSUE_NO_KEY:
+			summary.Text = t("These games have no ticket, and title.keys does not have their key: they cannot be compressed nor checked whole, and Compress leaves them out. Add the title.keys of your console in Settings, or get copies with their ticket.")
 			summary.Href, summary.Action = "/settings.html#library", t("Keys")
 		case ISSUE_TRUNCATED:
 			summary.Text = t("They end before their contents do: a download or a copy that did not finish. They are of no use: delete them and get them again.")
