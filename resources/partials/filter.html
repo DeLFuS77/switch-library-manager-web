@@ -56,5 +56,123 @@
 				{{- if .Filter.Region}}<input type="hidden" name="region" value="{{.Filter.Region | toLower}}">{{end}}
 				{{- if .Filter.Extra}}<input type="hidden" name="extra" value="{{.Filter.Extra}}">{{end}}
 				{{- if .Filter.Collection}}<input type="hidden" name="collection" value="{{.Filter.Collection}}">{{end}}
+				{{- if .Filter.Genre}}<input type="hidden" name="genre" value="{{.Filter.Genre}}">{{end}}
+				{{- if .Filter.Players}}<input type="hidden" name="players" value="{{.Filter.Players}}">{{end}}
+				{{- if .Filter.GameLanguage}}<input type="hidden" name="languages" value="{{.Filter.GameLanguage}}">{{end}}
 			</form>
+{{- end}}
+
+{{- /* the panel of filters of a list of games: the Library, or Missing (without its collections, formats and others) */}}
+{{- define "filterPanel"}}
+				{{- $f := .Filter}}
+				{{- $fc := .Facets}}
+				<div class="dropdown filter-panel">
+					<button class="btn btn-sm rounded-pill dropdown-toggle {{if $f.SecondaryCount}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false"><span class="bi bi-sliders me-1" aria-hidden="true"></span>{{t "Filters"}}{{with $f.SecondaryCount}} <span class="badge text-bg-light ms-1">{{.}}</span>{{end}}</button>
+					<div class="dropdown-menu dropdown-menu-end filter-panel-menu">
+						{{- if or $fc.Collections $f.Collection}}
+						<section class="filter-group">
+							<h3 class="filter-group-title"><span class="bi bi-bookmark" aria-hidden="true"></span>{{t "Collections"}}</h3>
+							<div class="filter-choices">
+								<a class="filter-choice{{if not $f.Collection}} active{{end}}" href="{{filterUrl $f "collection" ""}}">{{t "All collections"}}</a>
+								{{- range $fc.Collections}}
+								<a class="filter-choice{{if eq $f.Collection .Name}} active{{end}}" href="{{filterUrl $f "collection" .Name}}">{{.Name}} <span class="filter-count">{{num .Count}}</span></a>
+								{{- end}}
+							</div>
+						</section>
+						{{- end}}
+						{{- if or $fc.Games $fc.Demos $f.Kind}}
+						<section class="filter-group">
+							<h3 class="filter-group-title"><span class="bi bi-controller" aria-hidden="true"></span>{{t "Type"}}</h3>
+							<div class="filter-choices">
+								<a class="filter-choice{{if not $f.Kind}} active{{end}}" href="{{filterUrl $f "kind" ""}}">{{if $fc.DemosHidden}}{{t "Games (demos hidden)"}}{{else}}{{t "Games and demos"}}{{end}}</a>
+								<a class="filter-choice{{if eq $f.Kind "game"}} active{{end}}" href="{{filterUrl $f "kind" "game"}}">{{t "Games only"}} <span class="filter-count">{{num $fc.Games}}</span></a>
+								<a class="filter-choice{{if eq $f.Kind "demo"}} active{{end}}" href="{{filterUrl $f "kind" "demo"}}">{{t "Demos only"}} <span class="filter-count">{{num $fc.Demos}}</span></a>
+							</div>
+						</section>
+						{{- end}}
+						{{- if or $fc.Genres $f.Genre}}
+						<section class="filter-group">
+							<h3 class="filter-group-title"><span class="bi bi-tags" aria-hidden="true"></span>{{t "Genre"}}</h3>
+							<div class="filter-choices">
+								<a class="filter-choice{{if not $f.Genre}} active{{end}}" href="{{filterUrl $f "genre" ""}}">{{t "All genres"}}</a>
+								{{- range $fc.Genres}}
+								<a class="filter-choice{{if eq $f.Genre .Name}} active{{end}}" href="{{filterUrl $f "genre" .Name}}">{{t .Name}} <span class="filter-count">{{num .Count}}</span></a>
+								{{- end}}
+							</div>
+						</section>
+						{{- end}}
+						{{- if or $fc.SinglePlayer $fc.TwoPlayers $f.Players}}
+						<section class="filter-group">
+							<h3 class="filter-group-title"><span class="bi bi-people" aria-hidden="true"></span>{{t "Players"}}</h3>
+							<div class="filter-choices">
+								<a class="filter-choice{{if not $f.Players}} active{{end}}" href="{{filterUrl $f "players" ""}}">{{t "Any number"}}</a>
+								<a class="filter-choice{{if eq $f.Players "1"}} active{{end}}" href="{{filterUrl $f "players" "1"}}">{{t "1 player"}} <span class="filter-count">{{num $fc.SinglePlayer}}</span></a>
+								<a class="filter-choice{{if eq $f.Players "2"}} active{{end}}" href="{{filterUrl $f "players" "2"}}">{{t "2 or more"}} <span class="filter-count">{{num $fc.TwoPlayers}}</span></a>
+								<a class="filter-choice{{if eq $f.Players "4"}} active{{end}}" href="{{filterUrl $f "players" "4"}}">{{t "4 or more"}} <span class="filter-count">{{num $fc.FourPlayers}}</span></a>
+							</div>
+						</section>
+						{{- end}}
+						{{- if or $fc.Languages $f.GameLanguage}}
+						<section class="filter-group">
+							<h3 class="filter-group-title"><span class="bi bi-translate" aria-hidden="true"></span>{{t "Language of the game"}}</h3>
+							<div class="filter-choices">
+								<a class="filter-choice{{if not $f.GameLanguage}} active{{end}}" href="{{filterUrl $f "languages" ""}}">{{t "Any language"}}</a>
+								{{- range $fc.Languages}}
+								<a class="filter-choice{{if eq $f.GameLanguage .Name}} active{{end}}" href="{{filterUrl $f "languages" .Name}}">{{t (gameLanguage .Name)}} <span class="filter-count">{{num .Count}}</span></a>
+								{{- end}}
+							</div>
+						</section>
+						{{- end}}
+						{{- if or (gt (len $fc.Regions) 1) $f.Region}}
+						<section class="filter-group">
+							<h3 class="filter-group-title"><span class="bi bi-globe2" aria-hidden="true"></span>{{t "Region"}}</h3>
+							<div class="filter-choices">
+								<a class="filter-choice{{if not $f.Region}} active{{end}}" href="{{filterUrl $f "region" ""}}">{{t "All regions"}}</a>
+								{{- range $fc.Regions}}
+								<a class="filter-choice{{if eq $f.Region .}} active{{end}}" href="{{filterUrl $f "region" (toLower .)}}"><span class="fi fi-{{. | toLower}}" aria-hidden="true"></span> {{.}}</a>
+								{{- end}}
+							</div>
+						</section>
+						{{- end}}
+						{{- if gt (len $fc.Formats) 1}}
+						<section class="filter-group">
+							<h3 class="filter-group-title"><span class="bi bi-file-earmark" aria-hidden="true"></span>{{t "Format"}}</h3>
+							<div class="filter-choices">
+								<a class="filter-choice{{if not $f.Format}} active{{end}}" href="{{filterUrl $f "format" ""}}">{{t "All formats"}}</a>
+								{{- range $fc.Formats}}
+								<a class="filter-choice{{if eq $f.Format .}} active{{end}}" href="{{filterUrl $f "format" (toLower .)}}">{{.}}</a>
+								{{- end}}
+							</div>
+						</section>
+						{{- end}}
+						{{- if .Library}}
+						<section class="filter-group">
+							<h3 class="filter-group-title"><span class="bi bi-funnel" aria-hidden="true"></span>{{t "Other"}}</h3>
+							<div class="filter-choices">
+								<a class="filter-choice{{if not $f.Extra}} active{{end}}" href="{{filterUrl $f "extra" ""}}">{{t "No other filter"}}</a>
+								<a class="filter-choice{{if eq $f.Extra "favorites"}} active{{end}}" href="{{filterUrl $f "extra" "favorites"}}"><span class="bi bi-star-fill text-warning" aria-hidden="true"></span> {{t "Favorites only"}} <span class="filter-count">{{num $fc.Favorites}}</span></a>
+								<a class="filter-choice{{if eq $f.Extra "recent"}} active{{end}}" href="{{filterUrl $f "extra" "recent"}}">{{t "Added in the last 30 days"}} <span class="filter-count">{{num $fc.Recent}}</span></a>
+								<a class="filter-choice{{if eq $f.Extra "no_cover"}} active{{end}}" href="{{filterUrl $f "extra" "no_cover"}}">{{t "Without a cover"}} <span class="filter-count">{{num $fc.NoCover}}</span></a>
+								<a class="filter-choice{{if eq $f.Extra "unknown"}} active{{end}}" href="{{filterUrl $f "extra" "unknown"}}" title="{{t "Games the titles database does not know"}}">{{t "Not recognized"}} <span class="filter-count">{{num $fc.Unknown}}</span></a>
+							</div>
+						</section>
+						{{- end}}
+					</div>
+				</div>
+{{- end}}
+{{- define "activeFilters"}}
+			{{- $f := .Filter}}
+			{{- if $f.SecondaryCount}}
+			<div class="active-filters d-flex flex-wrap align-items-center gap-2 mb-3" aria-label="{{t "Filters"}}">
+				{{- with $f.Collection}}<a class="active-filter" href="{{filterUrl $f "collection" ""}}"><span class="bi bi-bookmark" aria-hidden="true"></span>{{.}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				{{- if $f.Kind}}<a class="active-filter" href="{{filterUrl $f "kind" ""}}"><span class="bi bi-controller" aria-hidden="true"></span>{{if eq $f.Kind "demo"}}{{t "Demos only"}}{{else}}{{t "Games only"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				{{- with $f.Region}}<a class="active-filter" href="{{filterUrl $f "region" ""}}"><span class="fi fi-{{. | toLower}}" aria-hidden="true"></span>{{.}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				{{- with $f.Format}}<a class="active-filter" href="{{filterUrl $f "format" ""}}"><span class="bi bi-file-earmark" aria-hidden="true"></span>{{.}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				{{- with $f.Genre}}<a class="active-filter" href="{{filterUrl $f "genre" ""}}"><span class="bi bi-tags" aria-hidden="true"></span>{{t .}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				{{- with $f.Players}}<a class="active-filter" href="{{filterUrl $f "players" ""}}"><span class="bi bi-people" aria-hidden="true"></span>{{if eq . "1"}}{{t "1 player"}}{{else if eq . "2"}}{{t "2 or more"}}{{else}}{{t "4 or more"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				{{- with $f.GameLanguage}}<a class="active-filter" href="{{filterUrl $f "languages" ""}}"><span class="bi bi-translate" aria-hidden="true"></span>{{t (gameLanguage .)}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				{{- if $f.Extra}}<a class="active-filter" href="{{filterUrl $f "extra" ""}}"><span class="bi bi-funnel" aria-hidden="true"></span>{{if eq $f.Extra "recent"}}{{t "Added in the last 30 days"}}{{else if eq $f.Extra "no_cover"}}{{t "Without a cover"}}{{else if eq $f.Extra "favorites"}}{{t "Favorites only"}}{{else}}{{t "Not recognized"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "genre" "" "players" "" "languages" ""}}">{{t "Clear filters"}}</a>
+			</div>
+			{{- end}}
 {{- end}}

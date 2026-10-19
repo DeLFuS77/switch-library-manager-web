@@ -2,7 +2,7 @@
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Library") "Count" -1 "Subtitle" (t "Games of the Nintendo eShop that are not in your library."))}}
 			{{- template "libraryViews" .Views}}
-			{{- if or (gt (len .TitleItems) 0) .Filter.Keyword .Filter.Status}}
+			{{- if or (gt (len .TitleItems) 0) .Filter.Keyword .Filter.Status .Filter.SecondaryCount}}
 			{{- template "filter" .}}
 			{{- end}}
 			<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
@@ -11,7 +11,9 @@
 					{{- template "statusFilter" (dict "Filter" .Filter "Value" "wanted" "Label" (t "Wishlist") "Icon" "bi-heart" "Count" .WishedCount)}}
 				</ul>
 				<a class="btn btn-sm btn-outline-secondary rounded-pill" href="/upcoming.html"><span class="bi bi-calendar-event me-1" aria-hidden="true"></span>{{t "Upcoming releases"}}</a>
+				{{- template "filterPanel" (dict "Filter" .Filter "Facets" .Facets "Library" false)}}
 			</div>
+			{{- template "activeFilters" (dict "Filter" .Filter "Library" false)}}
 			{{- if gt (len .TitleItems) 0}}
 			{{- with .Recommendations}}{{template "recommendations" .}}{{end}}
 			{{- template "markLegend" (dict "Missing" "" "Favorites" false)}}
@@ -23,7 +25,7 @@
 			{{- template "pagination" .}}
 			{{- else if eq .Filter.Status "wanted"}}
 			{{- template "emptyState" (dict "Icon" "bi-heart" "Tone" "" "Title" (t "Your wishlist is empty") "Text" (t "Tap the heart of a missing game to be told when it is released or gets new DLC.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
-			{{- else if .Filter.Keyword}}
+			{{- else if or .Filter.Keyword .Filter.SecondaryCount}}
 			{{- template "noResults" .Filter}}
 			{{- else}}
 			{{- template "emptyState" (dict "Icon" "bi-trophy" "Tone" "success" "Title" (t "You have them all!") "Text" (t "There is no game missing from your library.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
