@@ -22,10 +22,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.49.1
-- The synchronization bar changes colour from red to green, with its percent beside it
-### 1.49.0
-- Cheats for versions the database does not know yet, keep the old update that has cheats, cartridges with several games named after them, and the total of a long task moves from the start</Changes>
+  <Changes>### 1.49.2
+- Readable names for cartridges with several games, and a violet mark for the games with cheats
+### 1.49.1
+- The synchronization bar changes colour from red to green, with its percent beside it</Changes>
   <Date>2026-10-19</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>

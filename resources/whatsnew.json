@@ -1,4 +1,39 @@
 {
+  "1.49.2": {
+    "en": [
+      "Cartridges with several games get readable names, also with Japanese games, and the mark of the games with cheats is violet."
+    ],
+    "es": [
+      "Los cartuchos con varios juegos reciben nombres legibles, también con juegos japoneses, y la marca de los juegos con trucos es violeta."
+    ],
+    "de": [
+      "Module mit mehreren Spielen bekommen lesbare Namen, auch mit japanischen Spielen, und die Markierung der Spiele mit Cheats ist violett."
+    ],
+    "fr": [
+      "Les cartouches à plusieurs jeux reçoivent des noms lisibles, aussi avec des jeux japonais, et la marque des jeux avec des codes est violette."
+    ],
+    "it": [
+      "Le cartucce con più giochi ricevono nomi leggibili, anche con giochi giapponesi, e il segno dei giochi con trucchi è viola."
+    ],
+    "pt": [
+      "Os cartuchos com vários jogos recebem nomes legíveis, também com jogos japoneses, e a marca dos jogos com truques é violeta."
+    ],
+    "nl": [
+      "Cartridges met meerdere games krijgen leesbare namen, ook met Japanse games, en de markering van games met cheats is paars."
+    ],
+    "ru": [
+      "Картриджи с несколькими играми получают читаемые названия, в том числе с японскими играми, а значок игр с читами стал фиолетовым."
+    ],
+    "ja": [
+      "複数のゲームが入ったカートリッジに日本語のゲームでも読みやすい名前が付き、チートがあるゲームの印は紫色になりました。"
+    ],
+    "ko": [
+      "여러 게임이 든 카트리지에 일본 게임도 읽기 쉬운 이름이 붙고, 치트가 있는 게임의 표시는 보라색입니다."
+    ],
+    "zh": [
+      "含多个游戏的卡带会得到易读的名称(包括日本游戏),有金手指的游戏标记改为紫色。"
+    ]
+  },
   "1.49.1": {
     "en": [
       "The bar of a synchronization changes colour from red to green like the bar of a task, with its percent beside it."
