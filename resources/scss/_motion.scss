@@ -2,9 +2,13 @@
 // Motion
 // ---------------------------------------------------------------------------------------
 
-// smooth cross-fade between pages where the browser supports it; the header stays put
-@view-transition {
-	navigation: auto;
+// smooth cross-fade between pages where the browser supports it; the header stays put. Not
+// on phones and tablets: Safari on iOS keeps a picture of the whole page for it, and with a
+// page of covers it ran out of memory and closed the tab ("a problem repeatedly occurred")
+@media (hover: hover) and (pointer: fine) {
+	@view-transition {
+		navigation: auto;
+	}
 }
 
 .app-header {
@@ -1681,3 +1685,17 @@ html[data-section="backup"] #settingsForm .save-bar {
 	display: none !important;
 }
 
+
+// phones and tablets: no blur behind the marks of each card. Every blur is a layer of its own
+// for the graphics of the device, and a page of cards made dozens of them, which iOS paid
+// for in memory until it closed the tab. A darker background reads as well.
+@media (hover: none), (pointer: coarse) {
+	.game-card * {
+		-webkit-backdrop-filter: none !important;
+		backdrop-filter: none !important;
+	}
+
+	.game-cover-meta .badge:not(.badge-cheats) {
+		background: rgba(0, 0, 0, .72);
+	}
+}
