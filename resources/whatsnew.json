@@ -1,4 +1,83 @@
 {
+  "1.51.0": {
+    "en": [
+      "Four user roles: Guest (looks only), Player (also downloads), Editor (also uploads, syncs, checks and compresses) and Administrator.",
+      "My game: keep each game's status (playing, finished...), a rating and a note, per user, and filter the Library by it.",
+      "Smart collections: save the Library filters under a name; they fill by themselves.",
+      "Cheats can now be downloaded for Ryujinx and for Yuzu, Eden and Citron, besides the Atmosphère ZIP.",
+      "Uploads show in Tasks, a filter lists games that need a newer firmware, and an activity log (with sign-in attempts) gets its own page."
+    ],
+    "es": [
+      "Cuatro perfiles de usuario: Invitado (solo mira), Jugador (también descarga), Colaborador (además sube, sincroniza, comprueba y comprime) y Administrador.",
+      "Mi partida: guarda el estado de cada juego (jugando, terminado...), una nota y un comentario, por usuario, y filtra la biblioteca por ello.",
+      "Colecciones inteligentes: guarda los filtros de la biblioteca con un nombre; se rellenan solas.",
+      "Los trucos ya se pueden descargar para Ryujinx y para Yuzu, Eden y Citron, además del ZIP de Atmosphère.",
+      "Las subidas salen en Tareas, un filtro muestra los juegos que necesitan un firmware más nuevo, y el registro de actividad (con los intentos de inicio de sesión) tiene su propia página."
+    ],
+    "de": [
+      "Vier Benutzerrollen: Gast (nur ansehen), Spieler (auch herunterladen), Mitarbeiter (auch hochladen, synchronisieren, prüfen und komprimieren) und Administrator.",
+      "Mein Spiel: Status jedes Spiels (Spiele ich, beendet...), eine Bewertung und eine Notiz pro Benutzer, und die Bibliothek danach filtern.",
+      "Intelligente Sammlungen: die Bibliotheksfilter unter einem Namen speichern; sie füllen sich von selbst.",
+      "Cheats lassen sich jetzt auch für Ryujinx und für Yuzu, Eden und Citron herunterladen, neben dem Atmosphère-ZIP.",
+      "Uploads erscheinen in Aufgaben, ein Filter zeigt Spiele, die eine neuere Firmware brauchen, und das Aktivitätsprotokoll (mit Anmeldeversuchen) hat eine eigene Seite."
+    ],
+    "fr": [
+      "Quatre rôles d'utilisateur : Invité (consulte), Joueur (télécharge aussi), Collaborateur (envoie, synchronise, vérifie et compresse aussi) et Administrateur.",
+      "Ma partie : garde l'état de chaque jeu (en cours, terminé...), une note et un commentaire, par utilisateur, et filtre la bibliothèque selon cela.",
+      "Collections intelligentes : enregistre les filtres de la bibliothèque sous un nom ; elles se remplissent seules.",
+      "Les codes peuvent maintenant être téléchargés pour Ryujinx et pour Yuzu, Eden et Citron, en plus du ZIP Atmosphère.",
+      "Les envois apparaissent dans Tâches, un filtre liste les jeux qui nécessitent un firmware plus récent, et le journal d'activité (avec les tentatives de connexion) a sa propre page."
+    ],
+    "it": [
+      "Quattro ruoli utente: Ospite (guarda), Giocatore (scarica anche), Collaboratore (carica, sincronizza, controlla e comprime anche) e Amministratore.",
+      "La mia partita: tieni lo stato di ogni gioco (in corso, finito...), un voto e una nota, per utente, e filtra la libreria in base ad esso.",
+      "Raccolte intelligenti: salva i filtri della libreria con un nome; si riempiono da sole.",
+      "I trucchi ora si possono scaricare per Ryujinx e per Yuzu, Eden e Citron, oltre allo ZIP di Atmosphère.",
+      "I caricamenti appaiono in Attività, un filtro elenca i giochi che richiedono un firmware più recente, e il registro attività (con i tentativi di accesso) ha una pagina propria."
+    ],
+    "pt": [
+      "Quatro perfis de utilizador: Convidado (só vê), Jogador (também descarrega), Colaborador (também envia, sincroniza, verifica e comprime) e Administrador.",
+      "O meu jogo: guarda o estado de cada jogo (a jogar, terminado...), uma nota e um comentário, por utilizador, e filtra a biblioteca por isso.",
+      "Coleções inteligentes: guarda os filtros da biblioteca com um nome; enchem-se sozinhas.",
+      "Os truques já podem ser descarregados para Ryujinx e para Yuzu, Eden e Citron, além do ZIP de Atmosphère.",
+      "Os envios aparecem em Tarefas, um filtro mostra os jogos que precisam de um firmware mais recente, e o registo de atividade (com as tentativas de início de sessão) tem a sua própria página."
+    ],
+    "nl": [
+      "Vier gebruikersrollen: Gast (kijkt), Speler (downloadt ook), Medewerker (uploadt, synchroniseert, controleert en comprimeert ook) en Administrator.",
+      "Mijn spel: houd van elke game de status bij (bezig, uitgespeeld...), een beoordeling en een notitie, per gebruiker, en filter de bibliotheek erop.",
+      "Slimme collecties: bewaar de bibliotheekfilters onder een naam; ze vullen zichzelf.",
+      "Cheats zijn nu ook te downloaden voor Ryujinx en voor Yuzu, Eden en Citron, naast de Atmosphère-ZIP.",
+      "Uploads verschijnen in Taken, een filter toont games die nieuwere firmware nodig hebben, en het activiteitenlogboek (met aanmeldpogingen) krijgt een eigen pagina."
+    ],
+    "ru": [
+      "Четыре роли пользователей: Гость (только смотрит), Игрок (также скачивает), Помощник (также загружает, синхронизирует, проверяет и сжимает) и Администратор.",
+      "Моя игра: храните статус каждой игры (играю, пройдена...), оценку и заметку для каждого пользователя и фильтруйте библиотеку по ним.",
+      "Умные коллекции: сохраняйте фильтры библиотеки под именем; они наполняются сами.",
+      "Читы теперь можно скачать для Ryujinx и для Yuzu, Eden и Citron, помимо ZIP для Atmosphère.",
+      "Загрузки видны в «Задачах», фильтр показывает игры, которым нужна более новая прошивка, а журнал активности (с попытками входа) получил свою страницу."
+    ],
+    "ja": [
+      "4つのユーザー権限:ゲスト(閲覧のみ)、プレイヤー(ダウンロードも)、協力者(アップロード・同期・確認・圧縮も)、管理者。",
+      "マイプレイ:各ゲームの状態(プレイ中、クリアなど)、評価、メモをユーザーごとに保存し、ライブラリを絞り込めます。",
+      "スマートコレクション:ライブラリのフィルターに名前を付けて保存。自動で中身が入ります。",
+      "チートが Atmosphère の ZIP に加え、Ryujinx と Yuzu・Eden・Citron 向けにもダウンロードできます。",
+      "アップロードがタスクに表示され、より新しいファームウェアが必要なゲームを絞り込むフィルターが追加され、操作ログ(サインイン試行つき)が専用ページになりました。"
+    ],
+    "ko": [
+      "사용자 권한 네 가지: 게스트(보기만), 플레이어(다운로드도), 협력자(업로드·동기화·확인·압축도), 관리자.",
+      "내 플레이: 각 게임의 상태(플레이 중, 엔딩 봄...), 평점, 메모를 사용자별로 저장하고 라이브러리를 그걸로 필터링해요.",
+      "스마트 컬렉션: 라이브러리 필터를 이름으로 저장하면 알아서 채워져요.",
+      "치트를 Atmosphère ZIP 외에 Ryujinx와 Yuzu·Eden·Citron용으로도 내려받을 수 있어요.",
+      "업로드가 작업에 표시되고, 더 새로운 펌웨어가 필요한 게임을 거르는 필터가 생기고, 활동 로그(로그인 시도 포함)가 전용 페이지가 됐어요."
+    ],
+    "zh": [
+      "四种用户角色:访客(仅浏览)、玩家(还可下载)、协作者(还可上传、同步、检查和压缩)和管理员。",
+      "我的游戏进度:按用户保存每个游戏的状态(在玩、已通关...)、评分和笔记,并据此筛选游戏库。",
+      "智能收藏:将游戏库的筛选条件保存为一个名称,它会自动填充。",
+      "除 Atmosphère 的 ZIP 外,金手指现在还能下载用于 Ryujinx 以及 Yuzu、Eden 和 Citron。",
+      "上传会显示在任务中,新增筛选需要更新固件的游戏,活动日志(含登录尝试)有了自己的页面。"
+    ]
+  },
   "1.50.1": {
     "en": [
       "Lighter Library pages on phones and tablets: Safari on iPhone could close them while going from page to page (\"a problem repeatedly occurred\")."
