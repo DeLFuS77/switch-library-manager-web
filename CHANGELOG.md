@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- When a file of a task ends, its bar fills up, it rises and fades, and the next file moves up into its place instead of jumping; the new next file slides in
+- The cheats are downloaded when the app starts and when they are turned on, not only with the next synchronization
+- In Issues, a duplicate tells the games its file holds and why it stays before the button to keep it
+- The list to split says how many games a cartridge with several games holds
+
 ## 1.48.1
 
 ### Improvements

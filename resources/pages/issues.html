@@ -90,11 +90,11 @@
 							{{- with fileDir .File}}<span class="font-monospace text-break"><span class="bi bi-folder2 me-1" aria-hidden="true"></span>{{.}}</span>{{end}}
 							{{- if ge .Size 0}}<span class="issue-size">{{formatSize .Size}}</span>{{end}}
 						</div>
-						{{- if .CanKeep}}
-						<div class="mt-1 admin-only"><button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-issue-keep="{{.File}}" title="{{t "Keep this copy: the other one becomes the duplicate."}}"><span class="bi bi-pin-angle me-1" aria-hidden="true"></span>{{t "Keep this one"}}</button></div>
-						{{- end}}
+						{{- with .GamesInFile}}<div class="small text-body-secondary mt-1"><span class="bi bi-collection me-1" aria-hidden="true"></span>{{t "This file holds %v games: %v" (len .) (join . ", ")}}</div>{{end}}
 						{{- if .Kept}}<span class="chip chip-warning mt-1"><span class="bi bi-shield-exclamation" aria-hidden="true"></span>{{t "It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted."}}</span>{{end}}
-						{{- with .GamesInFile}}<div class="issue-detail"><span class="bi bi-collection me-1" aria-hidden="true"></span>{{t "This file holds %v games: %v" (len .) (join . ", ")}}</div>{{end}}
+						{{- if .CanKeep}}
+						<div class="mt-2 admin-only"><button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-issue-keep="{{.File}}" title="{{t "Keep this copy: the other one becomes the duplicate."}}"><span class="bi bi-pin-angle me-1" aria-hidden="true"></span>{{t "Keep this one"}}</button></div>
+						{{- end}}
 					</div>
 				</li>
 				{{- end}}

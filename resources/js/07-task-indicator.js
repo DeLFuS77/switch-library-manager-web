@@ -181,7 +181,17 @@ function initLiveTasks() {
 		fetch('/tasks.html?part=list', { cache: 'no-store' })
 			.then(response => response.ok ? response.text() : Promise.reject(response))
 			.then(html => new Promise(drawn => {
+				const moving = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 				const draw = () => {
+					// where the next file of each task was shown, and the files being worked on: the
+					// next file moves up into the place of the one that ended, instead of jumping
+					const nextRows = {};
+					const lanesBefore = new Set();
+					list.querySelectorAll('[data-task-id]').forEach(card => {
+						const row = card.querySelector('.task-next');
+						nextRows[card.dataset.taskId] = row ? { name: row.querySelector('[title]')?.title, top: row.getBoundingClientRect().top } : null;
+						card.querySelectorAll('.task-lane [title]').forEach(name => lanesBefore.add(card.dataset.taskId + '|' + name.title));
+					});
 					// every bar (the total and the one of each file) goes on from where it was
 					// instead of jumping: by task, the total first, then the files by name
 					const barKey = (card, bar) => card.dataset.taskId + '|' + (bar.closest('.task-lane')?.querySelector('[title]')?.title || '');
@@ -252,6 +262,30 @@ function initLiveTasks() {
 							}
 						});
 					});
+					if (moving) {
+						list.querySelectorAll('[data-task-id]').forEach(card => {
+							if (!(card.dataset.taskId in nextRows)) {
+								return;
+							}
+							const before = nextRows[card.dataset.taskId];
+							card.querySelectorAll('.task-lane').forEach(lane => {
+								const name = lane.querySelector('[title]')?.title;
+								if (!name || lanesBefore.has(card.dataset.taskId + '|' + name)) {
+									return;
+								}
+								if (before && before.name === name) {
+									const rise = before.top - lane.getBoundingClientRect().top;
+									lane.animate([{ transform: `translateY(${rise}px)`, opacity: 0.6 }, { transform: 'none', opacity: 1 }], { duration: 480, easing: 'cubic-bezier(.2, .7, .2, 1)' });
+								} else {
+									lane.animate([{ transform: 'translateY(10px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 360, easing: 'ease-out' });
+								}
+							});
+							const row = card.querySelector('.task-next');
+							if (row && (!before || before.name !== row.querySelector('[title]')?.title)) {
+								row.animate([{ transform: 'translateY(10px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 360, delay: 180, easing: 'ease-out', fill: 'backwards' });
+							}
+						});
+					}
 					drawn();
 				};
 				// a bar that goes away because its file or its task ended well is seen reaching the
@@ -287,8 +321,14 @@ function initLiveTasks() {
 					if (bar.style.getPropertyValue('--pct')) {
 						bar.style.setProperty('--pct', '100');
 					}
+					// the file that ended rises and fades once its bar is full, making room for the next
+					const lane = bar.closest('.task-lane');
+					const card = bar.closest('[data-task-id]');
+					if (moving && lane && next.content.querySelector('[data-task-id="' + card.dataset.taskId + '"]')) {
+						lane.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(-14px)', opacity: 0 }], { duration: 260, delay: 520, easing: 'ease-in', fill: 'forwards' });
+					}
 				});
-				setTimeout(draw, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 250 : 750);
+				setTimeout(draw, moving ? 800 : 250);
 			}))
 			.catch(() => {
 				// the next event tries again

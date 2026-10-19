@@ -282,6 +282,7 @@ func (web *Web) HandleSettings() {
 		return errorResponse
 	}, func(value any, lang string) SuccessResponse {
 		settingsForm := value.(*SettingsForm)
+		cheatsWereOff := settings.ReadSettings(web.dataFolder).CheatsDisabled
 		scanFolders := SplitAndTrimSpaceArray(settingsForm.ScanFolders, "\n")
 
 		settings.UpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
@@ -335,6 +336,10 @@ func (web *Web) HandleSettings() {
 				appSettings.ScanFolders = []string{}
 			}
 		})
+		// turned on: the cheats come now, not with the next synchronization
+		if cheatsWereOff && settingsForm.Cheats {
+			go web.downloadCheats()
+		}
 
 		if _, err := settings.InitSwitchKeys(web.dataFolder); err != nil {
 			web.sugarLogger.Debugf("prod.keys not loaded: %s", err)

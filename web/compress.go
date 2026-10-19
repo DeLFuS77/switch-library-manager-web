@@ -47,6 +47,8 @@ type CompressCandidate struct {
 	// in the lists to split and to pack: the titles in the file, the files of the pack
 	Titles int
 	Files  int
+	// in the list to split: the games of a game card with several games
+	Games int
 }
 
 // KindKey is the kind for the colors and the filter of the list: game, update or dlc.

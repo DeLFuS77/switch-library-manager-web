@@ -199,7 +199,7 @@ func TestSplitCandidatesWithGameCards(t *testing.T) {
 	web.state.set(&db.SwitchTitlesDB{TitlesMap: known}, library)
 
 	candidates := web.splitCandidates()
-	if len(candidates) != 1 || candidates[0].Path != filepath.Join(folder, collection.FileName) || candidates[0].Titles != 4 {
+	if len(candidates) != 1 || candidates[0].Path != filepath.Join(folder, collection.FileName) || candidates[0].Titles != 4 || candidates[0].Games != 2 {
 		t.Fatalf("only the card with several games: %+v", candidates)
 	}
 	part := switchfs.SplitPart{TitleId: "0100000000040000", Type: "BASE", Version: 65536, Cartridge: true, Compressed: true}
