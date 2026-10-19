@@ -68,8 +68,18 @@
 							<h3 class="h6 fw-semibold mb-3 pt-3 border-top"><span class="bi bi-trash3 me-2 text-primary" aria-hidden="true"></span>{{t "Cleanup"}}</h3>
 							<div class="form-check form-switch mb-2">
 								<input class="form-check-input" type="checkbox" role="switch" id="delete_duplicate_files" name="delete_duplicate_files" value="true"{{if $o.DeleteDuplicateFiles}} checked{{end}}>
-								<label class="form-check-label" for="delete_duplicate_files">{{t "Also delete duplicate files (the first file found is kept)"}}</label>
+								<label class="form-check-label" for="delete_duplicate_files">{{t "Also delete duplicate files"}}</label>
 							</div>
+							<div class="mb-2">
+								<label for="keep_duplicate" class="form-label">{{t "Copy of a duplicate to keep"}}</label>
+								<select class="form-select" id="keep_duplicate" name="keep_duplicate" aria-describedby="keep_duplicate_help">
+									<option value=""{{if eq $o.KeepDuplicate ""}} selected{{end}}>{{t "The first one found"}}</option>
+									<option value="nsp"{{if eq $o.KeepDuplicate "nsp"}} selected{{end}}>{{t "NSP or NSZ"}}</option>
+									<option value="xci"{{if eq $o.KeepDuplicate "xci"}} selected{{end}}>{{t "XCI or XCZ"}}</option>
+									<option value="auto"{{if eq $o.KeepDuplicate "auto"}} selected{{end}}>{{t "Let the app choose"}}</option>
+								</select>
+							</div>
+							<div class="form-text mb-2" id="keep_duplicate_help">{{t "Letting the app choose keeps a file with several titles, and otherwise the smaller file. A file with several titles is never deleted while it holds something the library keeps."}}</div>
 							<div class="form-check form-switch">
 								<input class="form-check-input" type="checkbox" role="switch" id="delete_empty_folders" name="delete_empty_folders" value="true"{{if $o.DeleteEmptyFolders}} checked{{end}}>
 								<label class="form-check-label" for="delete_empty_folders">{{t "Delete empty folders afterwards"}}</label>

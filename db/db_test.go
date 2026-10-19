@@ -491,3 +491,74 @@ func TestOlderDlcIsListedAsOld(t *testing.T) {
 		t.Fatalf("the older DLC is listed: %v", localDB.Skipped)
 	}
 }
+
+// The copy of a duplicate kept is the one chosen in the settings; the other is the duplicate.
+func TestScanKeepsTheChosenCopyOfADuplicate(t *testing.T) {
+	romDir := t.TempDir()
+	for name, size := range map[string]int{"Game [0100000000010000][v0].xci": 30, "Game [0100000000010000][v0].nsz": 20} {
+		if err := os.WriteFile(filepath.Join(romDir, name), make([]byte, size), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	manager, err := NewLocalSwitchDBManager(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer manager.Close()
+	for keep, kept := range map[string]string{settings.KEEP_NSP: ".nsz", settings.KEEP_XCI: ".xci", settings.KEEP_AUTO: ".nsz"} {
+		dataFolder := t.TempDir()
+		settings.UpdateSettings(dataFolder, func(s *settings.AppSettings) { s.OrganizeOptions.KeepDuplicate = keep })
+		localDB, err := manager.CreateLocalSwitchFilesDB(nil, dataFolder, []string{romDir}, nil, true, true)
+		if err != nil {
+			t.Fatal(err)
+		}
+		game := localDB.TitlesMap["0100000000010"]
+		if game == nil || filepath.Ext(game.File.ExtendedInfo.FileName) != kept {
+			t.Fatalf("%q keeps the %s: %#v", keep, kept, game)
+		}
+		// with keys loaded by other tests, both are also identified by their names only
+		duplicates := 0
+		for file, reason := range localDB.Skipped {
+			if reason.ReasonCode == REASON_DUPLICATE {
+				duplicates++
+				if filepath.Ext(file.FileName) == kept {
+					t.Fatalf("%q: the copy kept is not the duplicate: %v", keep, file)
+				}
+			}
+		}
+		if duplicates != 1 {
+			t.Fatalf("%q: the other copy is the duplicate: %v", keep, localDB.Skipped)
+		}
+	}
+}
+
+func TestPreferDuplicate(t *testing.T) {
+	xcz := ExtendedFileInfo{FileName: "Collection.xcz", Size: 900}
+	nsz := ExtendedFileInfo{FileName: "Game.nsz", Size: 100}
+	nsp := ExtendedFileInfo{FileName: "Game.nsp", Size: 300}
+	cases := []struct {
+		keep        string
+		found       ExtendedFileInfo
+		foundTitles int
+		file        ExtendedFileInfo
+		fileTitles  int
+		want        bool
+	}{
+		{settings.KEEP_FIRST_FOUND, nsp, 1, nsz, 1, false},
+		{settings.KEEP_NSP, xcz, 8, nsz, 1, true},
+		{settings.KEEP_NSP, nsz, 1, xcz, 8, false},
+		{settings.KEEP_XCI, nsz, 1, xcz, 8, true},
+		{settings.KEEP_XCI, xcz, 8, nsz, 1, false},
+		// a file with several titles stays anyway: the separate copy is the duplicate
+		{settings.KEEP_AUTO, nsz, 1, xcz, 8, true},
+		{settings.KEEP_AUTO, xcz, 8, nsz, 1, false},
+		// otherwise the smaller file
+		{settings.KEEP_AUTO, nsp, 1, nsz, 1, true},
+		{settings.KEEP_AUTO, nsz, 1, nsp, 1, false},
+	}
+	for _, c := range cases {
+		if got := preferDuplicate(c.keep, c.found, c.foundTitles, c.file, c.fileTitles); got != c.want {
+			t.Errorf("%q %s over %s: %v", c.keep, c.file.FileName, c.found.FileName, got)
+		}
+	}
+}

@@ -33,6 +33,7 @@ type OrganizeForm struct {
 	ProcessWhenMissingBaseGame bool   `in:"form=process_when_missing_base_game"`
 	DeleteEmptyFolders         bool   `in:"form=delete_empty_folders"`
 	DeleteDuplicateFiles       bool   `in:"form=delete_duplicate_files"`
+	KeepDuplicate              string `in:"form=keep_duplicate"`
 }
 
 func (f *OrganizeForm) toOptions(current settings.OrganizeOptions) settings.OrganizeOptions {
@@ -46,6 +47,12 @@ func (f *OrganizeForm) toOptions(current settings.OrganizeOptions) settings.Orga
 	current.ProcessWhenMissingBaseGame = f.ProcessWhenMissingBaseGame
 	current.DeleteEmptyFolders = f.DeleteEmptyFolders
 	current.DeleteDuplicateFiles = f.DeleteDuplicateFiles
+	current.KeepDuplicate = settings.KEEP_FIRST_FOUND
+	for _, choice := range settings.KeepDuplicateChoices {
+		if f.KeepDuplicate == choice {
+			current.KeepDuplicate = choice
+		}
+	}
 	return current
 }
 
@@ -232,11 +239,16 @@ func (web *Web) HandleOrganize() {
 		return errorResponse
 	}, func(value any, lang string) SuccessResponse {
 		form := value.(*OrganizeForm)
+		keptBefore := settings.ReadSettings(web.dataFolder).OrganizeOptions.KeepDuplicate
 		settings.UpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
 			appSettings.OrganizeOptions = form.toOptions(appSettings.OrganizeOptions)
 		})
 		// the tune-up counts the changes of Organize with the new options
 		web.invalidateDerived()
+		// the scan decides which copy of a duplicate is kept
+		if settings.ReadSettings(web.dataFolder).OrganizeOptions.KeepDuplicate != keptBefore {
+			web.Rescan(TRIGGER_SETTINGS)
+		}
 
 		return SuccessResponse{
 			StrongMessage: translate(lang, "Saved!"),

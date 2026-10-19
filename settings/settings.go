@@ -81,7 +81,23 @@ type OrganizeOptions struct {
 	FolderNameTemplate         string `json:"folder_name_template"`
 	SwitchSafeFileNames        bool   `json:"switch_safe_file_names"`
 	FileNameTemplate           string `json:"file_name_template"`
+	// which copy of a duplicate the library keeps: KEEP_FIRST_FOUND (empty), KEEP_NSP, KEEP_XCI
+	// or KEEP_AUTO; the other one is the duplicate
+	KeepDuplicate string `json:"keep_duplicate"`
 }
+
+// The copies of a duplicate the library can keep.
+const (
+	KEEP_FIRST_FOUND = ""
+	// the NSP or NSZ over the XCI or XCZ, and the other way round
+	KEEP_NSP = "nsp"
+	KEEP_XCI = "xci"
+	// a file with several titles (it stays anyway), otherwise the smaller file
+	KEEP_AUTO = "auto"
+)
+
+// KeepDuplicateChoices are the valid values of KeepDuplicate.
+var KeepDuplicateChoices = []string{KEEP_FIRST_FOUND, KEEP_NSP, KEEP_XCI, KEEP_AUTO}
 
 // NotificationOptions configures the messages sent when updates or DLC become available.
 type NotificationOptions struct {

@@ -414,6 +414,23 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 	for _, ext := range NonGameFileTypes {
 		ignoreFileTypes[ext] = struct{}{}
 	}
+	keepDuplicate := settings.ReadSettings(dataFolder).OrganizeOptions.KeepDuplicate
+	// the number of titles of each file read, to tell the files with several titles
+	titlesInFile := map[ExtendedFileInfo]int{}
+	// flagged tells whether a file is listed as an issue for another reason than being a copy
+	// (it was identified by its name only...)
+	flagged := func(file ExtendedFileInfo) bool {
+		reason, ok := skipped[file]
+		return ok && reason.ReasonCode != REASON_DUPLICATE && reason.ReasonCode != REASON_OLD_UPDATE
+	}
+	// keepInstead tells whether file is kept instead of the copy found first, as chosen in
+	// the settings; a file with an issue is never preferred to one without
+	keepInstead := func(found ExtendedFileInfo, file ExtendedFileInfo) bool {
+		if flagged(file) && !flagged(found) {
+			return false
+		}
+		return preferDuplicate(keepDuplicate, found, titlesInFile[found], file, titlesInFile[file])
+	}
 	for _, ext := range settings.ReadSettings(dataFolder).IgnoreFileTypes {
 		ext = strings.ToLower(strings.TrimSpace(ext))
 		if ext != "" {
@@ -522,6 +539,7 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 				continue
 			}
 
+			titlesInFile[file] = len(contentMap)
 			for _, metadata := range contentMap {
 
 				id := strings.ToLower(metadata.TitleId)
@@ -552,7 +570,11 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 				if kind == KIND_UPDATE {
 					metadata.Type = "Update"
 
-					if update, ok := switchTitle.Updates[metadata.Version]; ok {
+					if update, ok := switchTitle.Updates[metadata.Version]; ok && keepInstead(update.ExtendedInfo, file) {
+						skipped[update.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate update file (" + fullPath(file) + ")"}
+						switchTitle.Updates[metadata.Version] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
+						continue
+					} else if ok {
 						skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate update file (" + fullPath(update.ExtendedInfo) + ")"}
 						zap.S().Warnf("-->Duplicate update file found [%v] and [%v]", update.ExtendedInfo.FileName, file.FileName)
 						continue
@@ -572,6 +594,11 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 				//process base
 				if kind == KIND_BASE {
 					metadata.Type = "Base"
+					if switchTitle.BaseExist && keepInstead(switchTitle.File.ExtendedInfo, file) {
+						skipped[switchTitle.File.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate base file (" + fullPath(file) + ")"}
+						switchTitle.File = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
+						continue
+					}
 					if switchTitle.BaseExist {
 						skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate base file (" + fullPath(switchTitle.File.ExtendedInfo) + ")"}
 						zap.S().Warnf("-->Duplicate base file found [%v] and [%v]", file.FileName, switchTitle.File.ExtendedInfo.FileName)
@@ -601,6 +628,11 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 						skipped[file] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old DLC file, newer version exist locally (" + fullPath(dlc.ExtendedInfo) + ")"}
 						zap.S().Warnf("-->Old DLC file found [%v] and [%v]", file.FileName, dlc.ExtendedInfo.FileName)
 						continue
+					} else if metadata.Version == dlc.Metadata.Version && keepInstead(dlc.ExtendedInfo, file) {
+						skipped[dlc.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate DLC file (" + fullPath(file) + ")"}
+						metadata.Type = "DLC"
+						switchTitle.Dlc[metadata.TitleId] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
+						continue
 					} else if metadata.Version == dlc.Metadata.Version {
 						skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate DLC file (" + fullPath(dlc.ExtendedInfo) + ")"}
 						zap.S().Warnf("-->Duplicate DLC file found [%v] and [%v]", file.FileName, dlc.ExtendedInfo.FileName)
@@ -629,6 +661,29 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 	// covers not cached yet are downloaded after the scan, so a big library is shown
 	// without waiting for thousands of downloads
 	assignCachedCovers(dataFolder, covers)
+}
+
+// preferDuplicate tells whether the copy file is kept instead of found, the copy of the same
+// title found first, by the choice of the settings (keep). A file with several titles holds
+// other content too: it is never deleted while it holds anything the library keeps, so
+// letting the app choose keeps it and makes the separate copy the duplicate.
+func preferDuplicate(keep string, found ExtendedFileInfo, foundTitles int, file ExtendedFileInfo, fileTitles int) bool {
+	cartridge := func(f ExtendedFileInfo) bool {
+		name := strings.ToLower(f.FileName)
+		return strings.HasSuffix(name, ".xci") || strings.HasSuffix(name, ".xcz")
+	}
+	switch keep {
+	case settings.KEEP_NSP:
+		return cartridge(found) && !cartridge(file)
+	case settings.KEEP_XCI:
+		return !cartridge(found) && cartridge(file)
+	case settings.KEEP_AUTO:
+		if (foundTitles > 1) != (fileTitles > 1) {
+			return fileTitles > 1
+		}
+		return file.Size > 0 && file.Size < found.Size
+	}
+	return false
 }
 
 // metadataResult is what reading one file found. Workers fill it in parallel; it is applied
