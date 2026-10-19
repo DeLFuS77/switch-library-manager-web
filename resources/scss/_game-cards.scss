@@ -109,6 +109,13 @@
 			background: rgba(0, 0, 0, .55);
 			backdrop-filter: blur(6px);
 			color: #fff;
+
+			// cheats for the version you have: gold, seen at a glance among the other badges
+			&.badge-cheats {
+				background: linear-gradient(135deg, #f7c948, #f59a23);
+				color: #2b1a00;
+				box-shadow: 0 0 0 1px rgba(255, 255, 255, .4), 0 2px 8px rgba(245, 154, 35, .45);
+			}
 		}
 
 		.fi {
