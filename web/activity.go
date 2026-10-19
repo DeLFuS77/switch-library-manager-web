@@ -33,9 +33,10 @@ const (
 	ACTION_USER_ROLE  = "Changed the role of a user"
 	ACTION_USER_PASS  = "Changed the password of a user"
 	ACTION_USER_DEL   = "Deleted a user"
+	ACTION_UPLOAD     = "Uploaded a game"
 )
 
-var activityActions = []string{ACTION_SETTINGS, ACTION_ORGANIZE, ACTION_SPACE, ACTION_COMPRESS, ACTION_DECOMPRESS, ACTION_RESTORE, ACTION_USER_NEW, ACTION_USER_ROLE, ACTION_USER_PASS, ACTION_USER_DEL, ACTION_LEFTOVERS}
+var activityActions = []string{ACTION_SETTINGS, ACTION_ORGANIZE, ACTION_SPACE, ACTION_COMPRESS, ACTION_DECOMPRESS, ACTION_RESTORE, ACTION_USER_NEW, ACTION_USER_ROLE, ACTION_USER_PASS, ACTION_USER_DEL, ACTION_LEFTOVERS, ACTION_UPLOAD}
 
 // Activity is an action of a user.
 type Activity struct {
@@ -123,6 +124,7 @@ var recordedActions = map[string]func(r *http.Request) (string, string){
 	},
 	"/users/password": func(r *http.Request) (string, string) { return ACTION_USER_PASS, r.FormValue("name") },
 	"/users/delete":   func(r *http.Request) (string, string) { return ACTION_USER_DEL, r.FormValue("name") },
+	"/uploads/finish": func(r *http.Request) (string, string) { return ACTION_UPLOAD, r.FormValue("name") },
 }
 
 // statusRecorder remembers the status of a response.

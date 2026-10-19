@@ -1,0 +1,107 @@
+// Uploads of games from the browser (Library): the panel of the files being sent, in a corner,
+// and the veil shown while files are dragged over the page.
+
+.upload-panel {
+	position: fixed;
+	right: 1rem;
+	// above the bar of the phones
+	bottom: calc(1rem + var(--slm-bottom-nav, 0px));
+	z-index: 1080;
+	width: min(26rem, calc(100vw - 2rem));
+	max-height: min(60vh, 32rem);
+	display: flex;
+	flex-direction: column;
+	border-radius: var(--bs-border-radius-xl);
+
+	&[hidden] {
+		display: none;
+	}
+}
+
+.upload-panel-head {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	padding: .75rem 1rem;
+	border-bottom: 1px solid var(--slm-border);
+	font-weight: 600;
+}
+
+.upload-list {
+	overflow-y: auto;
+	margin: 0;
+	padding: .5rem 1rem .75rem;
+	list-style: none;
+
+	> li + li {
+		margin-top: .65rem;
+	}
+}
+
+.upload-item-line {
+	display: flex;
+	align-items: baseline;
+	gap: .5rem;
+	font-size: var(--slm-text-sm, .875rem);
+
+	.upload-name {
+		flex: 1 1 auto;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
+.upload-item .progress {
+	height: .4rem;
+	margin-top: .3rem;
+}
+
+.upload-item.is-done .progress-bar {
+	background: var(--bs-success);
+}
+
+.upload-item.is-failed .progress-bar {
+	background: var(--bs-danger);
+}
+
+.upload-state {
+	font-size: var(--slm-text-xs, .75rem);
+	color: var(--bs-secondary-color);
+
+	.is-failed & {
+		color: var(--bs-danger-text-emphasis);
+	}
+}
+
+.upload-drop {
+	position: fixed;
+	inset: 0;
+	z-index: 1090;
+	display: grid;
+	place-items: center;
+	background: rgba(10, 12, 20, .72);
+	backdrop-filter: blur(4px);
+	pointer-events: none;
+
+	&[hidden] {
+		display: none;
+	}
+
+	> div {
+		padding: 2rem 2.5rem;
+		border: 2px dashed rgba(255, 255, 255, .55);
+		border-radius: var(--bs-border-radius-xl);
+		color: #fff;
+		font-size: 1.15rem;
+		font-weight: 600;
+		text-align: center;
+	}
+
+	.bi {
+		display: block;
+		font-size: 2.5rem;
+		margin-bottom: .5rem;
+	}
+}
