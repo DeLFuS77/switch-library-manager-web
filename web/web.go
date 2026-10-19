@@ -243,8 +243,10 @@ type TitleItem struct {
 	// library: the game is a favorite, or it is not in the library (shown with the others)
 	Favorite bool
 	Missing  bool
-	// library: there are cheats for the version of the game the library has
-	Cheats bool
+	// library: there are cheats for the version of the game the library has, or only for
+	// other versions
+	Cheats      bool
+	CheatsOther bool
 	// other regions of the game in the library, when each game counts once
 	OtherRegions int
 	// games without their base game: the updates and DLC the library has of them
@@ -354,8 +356,9 @@ type LibraryFacets struct {
 	Unknown   int
 	Recent    int
 	Favorites int
-	// games with cheats for the version the library has
-	Cheats int
+	// games with cheats for the version the library has, and for other versions only
+	Cheats      int
+	CheatsOther int
 	// games not in the library, shown in the All view
 	Missing int
 	// genres and languages of the games, the most frequent first, and the games by players

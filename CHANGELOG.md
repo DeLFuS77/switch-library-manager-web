@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Cheats for versions the database does not know yet: the build ID is read from the game itself (a few kilobytes of the file, kept while the file stays the same), so newer updates find their cheats too
+- **With cheats for another version**, a new choice in Filters > Other: the games with cheats only for other versions than the one you have
+
 ## 1.48.2
 
 ### Improvements
