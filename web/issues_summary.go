@@ -225,7 +225,7 @@ func (web *Web) issueSummaries(issues []Issue, lang string) []IssueSummary {
 				}
 				return games[i].Name < games[j].Name
 			})
-			summary.Games = games[:min(len(games), 6)]
+			summary.Games = games[:min(len(games), 3)]
 		case ISSUE_DUPLICATE:
 			summary.Text = t("The same content more than once. The Space page frees them, keeping the copy that is checked.")
 			summary.Href, summary.Action = "/space.html", t("Free them")

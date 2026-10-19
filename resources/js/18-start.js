@@ -254,6 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	});
 	initCountUp();
 	initCoverLoading();
+	initPauseOffscreen();
 	initCardTilt();
 	initSettingsSections();
 	initCoverTransition();
