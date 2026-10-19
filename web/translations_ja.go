@@ -251,6 +251,8 @@ func init() {
 		"Files compressed":   "圧縮したファイル",
 		"Preparing the list of files to check...":                          "確認するファイルのリストを準備しています...",
 		"The copy that is kept could not be checked whole: keep this one.": "残すコピーを完全には確認できませんでした。こちらを残してください。",
+		"The copy that is kept was checked without errors, but not whole: an update needs its game for that. Select this one to delete it anyway.": "残すコピーはエラーなしで確認されましたが、全体ではありません。アップデートの全体確認にはゲーム本体が必要です。それでも削除するにはこれを選択してください。",
+		"The copy that is kept, %v, was checked without errors but not whole. Delete %v anyway? It cannot be undone.":                              "残すコピー %v はエラーなしで確認されましたが、全体ではありません。それでも %v を削除しますか?元に戻せません。",
 		"%v files at once":          "同時に %v ファイル",
 		"%v threads":                "%v スレッド",
 		"Total":                     "合計",

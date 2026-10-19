@@ -67,14 +67,18 @@ function bindFileForm(form, url) {
 		all.indeterminate = shownSelected.length > 0 && shownSelected.length < shown.length;
 	};
 	// "select all" changes the rows the filter shows
+	// "select all" leaves out the files that ask first: they are chosen one by one
 	all.addEventListener('change', () => {
-		boxes().filter(visible).forEach(box => {
+		boxes().filter(visible).filter(box => !box.dataset.ask).forEach(box => {
 			box.checked = all.checked;
 		});
 		update();
 	});
 	form.addEventListener('change', e => {
 		if (e.target.matches('input[name="path"], input[name="rest"]')) {
+			if (e.target.checked && e.target.dataset.ask && !window.confirm(e.target.dataset.ask)) {
+				e.target.checked = false;
+			}
 			update();
 		}
 	});

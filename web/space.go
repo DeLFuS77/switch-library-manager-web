@@ -29,6 +29,8 @@ const (
 	NOTE_SPACE_NEWER_DAMAGED = "The newer file is damaged: keep this one."
 	NOTE_SPACE_NOT_SAME      = "The compressed file does not hold everything this file holds: keep this one."
 	NOTE_SPACE_KEPT_PARTIAL  = "The copy that is kept could not be checked whole: keep this one."
+	// the same, on the Space page, where the user can still choose to delete it
+	NOTE_SPACE_KEPT_PARTIAL_ASK = "The copy that is kept was checked without errors, but not whole: an update needs its game for that. Select this one to delete it anyway."
 )
 
 // SpaceFile is a file that takes space without being needed.
@@ -39,6 +41,9 @@ type SpaceFile struct {
 	// the file the space is kept by, e.g. the newer update or the compressed copy
 	KeptBy    string
 	Deletable bool
+	// not deleted with the others, but the user can choose it: the copy that stays was
+	// checked without errors, only not whole
+	OnRequest bool
 	Note      string
 	file      db.ExtendedFileInfo
 }
@@ -362,6 +367,7 @@ func (web *Web) requireSoundKeptCopy(entry *SpaceFile) {
 	case record.Partial:
 		entry.Deletable = false
 		entry.Note = NOTE_SPACE_KEPT_PARTIAL
+		entry.OnRequest = true
 	}
 }
 
@@ -522,8 +528,17 @@ func (web *Web) HandleSpace() {
 		for _, id := range r.Form["rest"] {
 			wholeGroups[id] = true
 		}
+		// a file deletable on request only goes when it was chosen on its own
+		explicit := map[string]bool{}
+		for _, path := range requested {
+			explicit[path] = true
+		}
 		for _, group := range web.spaceGroups() {
 			for i, file := range group.Files {
+				if file.OnRequest && explicit[file.Path] {
+					deletable[file.Path] = file
+					reasons[file.Path] = group.Id
+				}
 				if file.Deletable {
 					deletable[file.Path] = file
 					reasons[file.Path] = group.Id

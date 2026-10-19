@@ -142,6 +142,7 @@
 			<p class="mark-legend">
 				{{- if .Favorites}}<span><span class="bi bi-star-fill text-warning" aria-hidden="true"></span>{{t "Favorite: the games you like most"}}</span>{{end}}
 				<span><span class="bi bi-heart-fill text-danger" aria-hidden="true"></span>{{t "Wishlist: games you want and do not have yet"}}</span>
+				{{- if .Cheats}}<span><span class="mark-legend-cheats" aria-hidden="true"><span class="bi bi-magic"></span></span>{{t "Cheats for your version"}}</span>{{end}}
 				{{- if .Missing}}<span><span class="mark-legend-missing" aria-hidden="true"></span>{{t "Greyed out: not in your library"}}</span>{{end}}
 			</p>
 {{- end}}

@@ -251,6 +251,8 @@ func init() {
 		"Files compressed":   "Сжатые файлы",
 		"Preparing the list of files to check...":                          "Подготовка списка файлов для проверки...",
 		"The copy that is kept could not be checked whole: keep this one.": "Оставляемую копию не удалось проверить полностью: оставьте эту.",
+		"The copy that is kept was checked without errors, but not whole: an update needs its game for that. Select this one to delete it anyway.": "Остающаяся копия проверена без ошибок, но не полностью: для этого обновлению нужна его игра. Выберите эту, чтобы всё равно удалить её.",
+		"The copy that is kept, %v, was checked without errors but not whole. Delete %v anyway? It cannot be undone.":                              "Остающаяся копия, %v, проверена без ошибок, но не полностью. Всё равно удалить %v? Это нельзя отменить.",
 		"%v files at once":          "%v файлов одновременно",
 		"%v threads":                "%v потоков",
 		"Total":                     "Всего",

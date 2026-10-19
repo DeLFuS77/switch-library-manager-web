@@ -251,6 +251,8 @@ func init() {
 		"Files compressed":   "Gecomprimeerde bestanden",
 		"Preparing the list of files to check...":                          "Lijst met te controleren bestanden voorbereiden...",
 		"The copy that is kept could not be checked whole: keep this one.": "De kopie die blijft kon niet volledig worden gecontroleerd: bewaar deze.",
+		"The copy that is kept was checked without errors, but not whole: an update needs its game for that. Select this one to delete it anyway.": "De kopie die blijft is zonder fouten gecontroleerd, maar niet volledig: een update heeft daarvoor zijn game nodig. Selecteer deze om hem toch te verwijderen.",
+		"The copy that is kept, %v, was checked without errors but not whole. Delete %v anyway? It cannot be undone.":                              "De kopie die blijft, %v, is zonder fouten maar niet volledig gecontroleerd. %v toch verwijderen? Dit kan niet ongedaan worden gemaakt.",
 		"%v files at once":          "%v bestanden tegelijk",
 		"%v threads":                "%v threads",
 		"Total":                     "Totaal",

@@ -251,6 +251,8 @@ func init() {
 		"Files compressed":   "已压缩的文件",
 		"Preparing the list of files to check...":                          "正在准备要校验的文件列表...",
 		"The copy that is kept could not be checked whole: keep this one.": "保留的副本无法完整校验：请保留这个。",
+		"The copy that is kept was checked without errors, but not whole: an update needs its game for that. Select this one to delete it anyway.": "保留的副本已检查且无错误,但未完整检查:更新需要其游戏才能完整检查。选择此项仍可删除。",
+		"The copy that is kept, %v, was checked without errors but not whole. Delete %v anyway? It cannot be undone.":                              "保留的副本 %v 已检查且无错误,但未完整检查。仍要删除 %v 吗?此操作无法撤销。",
 		"%v files at once":          "同时处理 %v 个文件",
 		"%v threads":                "%v 个线程",
 		"Total":                     "总计",
