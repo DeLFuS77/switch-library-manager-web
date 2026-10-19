@@ -121,15 +121,22 @@ function showSyncAlert() {
 	text.append(strong, ' ', message);
 	header.append(spinner, text);
 
+	// the bar and, next to it, how far it is: the number does not squeeze inside the bar
+	const row = document.createElement('div');
+	row.classList.add('sync-progress-row', 'mt-2');
 	const progress = document.createElement('div');
-	progress.classList.add('progress', 'mt-2');
+	progress.classList.add('progress', 'flex-grow-1');
 	progress.setAttribute('role', 'progressbar');
 	progress.setAttribute('aria-label', t('Synchronization progress'));
 	const bar = document.createElement('div');
 	bar.classList.add('progress-bar', 'progress-bar-striped', 'progress-bar-animated', 'w-100');
 	progress.appendChild(bar);
+	const percent = document.createElement('span');
+	percent.classList.add('sync-percent');
+	percent.dataset.syncPercent = '';
+	row.append(progress, percent);
 
-	alert.append(header, progress);
+	alert.append(header, row);
 	mainContainer().appendChild(alert);
 }
 
@@ -150,25 +157,55 @@ function updateSyncAlert(status) {
 		return;
 	}
 
+	const label = alert.querySelector('[data-sync-percent]');
 	if (status.total > 0) {
-		const percent = Math.min(100, Math.round(status.current * 100 / status.total));
+		// from red to green as it advances, like the bar of a task
+		const exact = Math.min(100, status.current * 100 / status.total);
+		const percent = Math.round(exact);
 		bar.classList.remove('w-100', 'progress-bar-animated');
-		bar.style.width = `${percent}%`;
-		bar.textContent = `${percent}%`;
+		bar.classList.add('task-total-bar');
+		bar.style.width = `${exact.toFixed(2)}%`;
+		bar.style.setProperty('--pct', exact.toFixed(2));
+		bar.textContent = '';
+		if (label) {
+			label.textContent = `${percent}%`;
+		}
 		progress.setAttribute('aria-valuenow', percent);
 		progress.setAttribute('aria-valuemin', 0);
 		progress.setAttribute('aria-valuemax', 100);
 	} else {
 		// unknown number of steps
+		bar.classList.remove('task-total-bar');
 		bar.classList.add('w-100', 'progress-bar-animated');
 		bar.style.width = '';
+		bar.style.removeProperty('--pct');
 		bar.textContent = '';
+		if (label) {
+			label.textContent = '';
+		}
 		progress.removeAttribute('aria-valuenow');
 	}
 }
 
 function onSyncFinished() {
 	setSyncBusy(false);
+	const syncAlert = document.getElementById(SYNC_ALERT_ID);
+	// the bar is seen reaching its end before the notice goes
+	const bar = syncAlert?.querySelector('.task-total-bar');
+	if (bar && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		bar.style.width = '100%';
+		bar.style.setProperty('--pct', '100');
+		const label = syncAlert.querySelector('[data-sync-percent]');
+		if (label) {
+			label.textContent = '100%';
+		}
+		setTimeout(finishSync, 750);
+		return;
+	}
+	finishSync();
+}
+
+function finishSync() {
 	const syncAlert = document.getElementById(SYNC_ALERT_ID);
 	if (syncAlert) {
 		syncAlert.remove();

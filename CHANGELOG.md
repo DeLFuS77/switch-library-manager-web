@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The bar of a synchronization changes colour from red to green like the bar of a task, shows how far it is next to it instead of squeezed inside, and is seen reaching its end before the notice goes
+
 ## 1.49.0
 
 ### Improvements
