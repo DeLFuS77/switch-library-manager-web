@@ -32,7 +32,7 @@ const (
 	NOTE_DECOMPRESS_FAILED = "The file could not be decompressed, the compressed file is kept."
 )
 
-var compressNoteTexts = []string{NOTE_PACK_FAILED, NOTE_PACK_EXISTS, NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_SPARSE, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_DELETE}
+var compressNoteTexts = []string{NOTE_SPLIT_FAILED, NOTE_SPLIT_EXISTS, NOTE_SPLIT_KEPT, NOTE_PACK_FAILED, NOTE_PACK_EXISTS, NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_SPARSE, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_DELETE}
 
 // CompressCandidate is an NSP of the library that can be compressed.
 type CompressCandidate struct {
@@ -44,6 +44,9 @@ type CompressCandidate struct {
 	// the share it will likely save, from the files compressed before (see ratioStore)
 	Estimate    int
 	HasEstimate bool
+	// in the lists to split and to pack: the titles in the file, the files of the pack
+	Titles int
+	Files  int
 }
 
 // KindKey is the kind for the colors and the filter of the list: game, update or dlc.
@@ -110,6 +113,11 @@ type NszListData struct {
 	Files   []CompressCandidate
 	Matches int
 	Total   int
+	// the start of the ids of the boxes, one per list of the page
+	Prefix string
+	// the files not shown, chosen together with one box, in the lists that allow it
+	Rest     int
+	RestSize int64
 }
 
 type CompressPageData struct {
@@ -122,6 +130,9 @@ type CompressPageData struct {
 	CompressedCount int
 	// XCI and XCZ files that can be converted to NSP and NSZ
 	CardCount int
+	// files that hold several titles, and games a complete pack can be made of
+	SplitCount int
+	PackCount  int
 	// NSP and XCI files that already have a compressed copy (listed on the Space page)
 	AlreadyCompressed int
 	// files tried before that nothing could shrink, not listed
@@ -554,13 +565,24 @@ func (web *Web) resumeInterrupted() {
 			target = switchfs.DecompressedPath(path)
 		case TASK_CONVERT:
 			target = switchfs.ConvertedPath(path)
+		case TASK_PACK:
+			// the path is the one of the base file of the game, which writes its pack next to it
+			packed, _, _, err := web.packTarget(path, "")
+			if err != nil {
+				continue
+			}
+			target = packed
 		}
-		// the file being written when the app stopped is left half written: it would keep the
-		// file from being written again
-		os.Remove(temporaryOf(path, target))
-		// done just before the app stopped
-		if _, err := os.Stat(target); err == nil {
-			continue
+		// a split writes several files: it removes what it left half written and keeps the
+		// parts it wrote whole
+		if target != "" {
+			// the file being written when the app stopped is left half written: it would keep
+			// the file from being written again
+			os.Remove(temporaryOf(path, target))
+			// done just before the app stopped
+			if _, err := os.Stat(target); err == nil {
+				continue
+			}
 		}
 		paths = append(paths, path)
 	}
@@ -576,6 +598,10 @@ func (web *Web) resumeInterrupted() {
 		started = web.startDecompressionBy(paths, resume.Delete, TRIGGER_RESUME)
 	case TASK_CONVERT:
 		started = web.startConversionBy(paths, resume.Delete, TRIGGER_RESUME)
+	case TASK_PACK:
+		started = web.startPacks(paths, nil, resume.Delete, TRIGGER_RESUME)
+	case TASK_SPLIT:
+		started = web.startSplitBy(paths, resume.Delete, TRIGGER_RESUME)
 	}
 	// forgotten once it goes on: kept while another task on files keeps it from starting,
 	// for the next start of the app
@@ -591,6 +617,7 @@ var filePhases = map[string][]string{
 	TASK_DECOMPRESS: {PHASE_DECOMPRESSING, PHASE_VERIFYING},
 	TASK_CONVERT:    {PHASE_CONVERTING, PHASE_VERIFYING},
 	TASK_PACK:       {PHASE_PACKING, PHASE_VERIFYING},
+	TASK_SPLIT:      {PHASE_SPLITTING, PHASE_VERIFYING},
 }
 
 // the passes over a file, translated by the interface
@@ -634,7 +661,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 
 	// the files go by name, not the biggest first: the count moves from the start and the list
 	// reads in order; a task resumed keeps the order it had
-	if trigger != TRIGGER_RESUME && (kind == TASK_COMPRESS || kind == TASK_DECOMPRESS || kind == TASK_CONVERT) {
+	if trigger != TRIGGER_RESUME && (kind == TASK_COMPRESS || kind == TASK_DECOMPRESS || kind == TASK_CONVERT || kind == TASK_PACK || kind == TASK_SPLIT) {
 		paths, sizes = sortedByName(paths, sizes)
 	}
 	taskId := web.taskLog().Start(kind, trigger)
@@ -819,6 +846,8 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 				failure = &TaskNote{Text: NOTE_DECOMPRESS_FAILED}
 			} else if kind == TASK_PACK {
 				failure = &TaskNote{Text: NOTE_PACK_FAILED}
+			} else if kind == TASK_SPLIT {
+				failure = &TaskNote{Text: NOTE_SPLIT_FAILED}
 			}
 		}
 		// ended by itself or cancelled: nothing goes on after a restart
@@ -840,6 +869,17 @@ var (
 )
 
 func compressNote(kind string, err error) string {
+	if kind == TASK_SPLIT {
+		switch {
+		case errors.Is(err, errCompressSpace):
+			return NOTE_COMPRESS_SPACE
+		case errors.Is(err, errSplitExists):
+			return NOTE_SPLIT_EXISTS
+		case strings.Contains(err.Error(), "could not delete"):
+			return NOTE_COMPRESS_DELETE
+		}
+		return NOTE_SPLIT_FAILED
+	}
 	if kind == TASK_PACK {
 		switch {
 		case errors.Is(err, errCompressSpace):
@@ -1031,7 +1071,7 @@ func (web *Web) HandleCompress() {
 
 	web.router.HandleFunc("/compress.html", func(w http.ResponseWriter, r *http.Request) {
 		candidates := web.uncompressedCandidates()
-		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, CompressedCount: len(web.decompressCandidates()), CardCount: len(web.convertCandidates()), Running: web.compressionRunning()}
+		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, CompressedCount: len(web.decompressCandidates()), CardCount: len(web.convertCandidates()), SplitCount: len(web.splitCandidates()), PackCount: len(web.packCandidates()), Running: web.compressionRunning()}
 		data.AlreadyCompressed = len(web.compressCandidates()) - len(candidates)
 		data.Uncompressible = web.uncompressibleFiles()
 		// the candidates are shared: the estimates go on a copy
@@ -1058,7 +1098,7 @@ func (web *Web) HandleCompress() {
 
 	// the NSZ files that match a search, for the Decompress section
 	web.router.HandleFunc("/compress/xci-list", func(w http.ResponseWriter, r *http.Request) {
-		web.writeFileRows(w, r, templates, web.convertCandidates())
+		web.writeFileRows(w, r, templates, "xci", false, web.convertCandidates())
 	}).Methods("GET")
 
 	web.router.HandleFunc("/convert/start", func(w http.ResponseWriter, r *http.Request) {
@@ -1089,8 +1129,18 @@ func (web *Web) HandleCompress() {
 	}).Methods("POST")
 
 	web.router.HandleFunc("/compress/nsz-list", func(w http.ResponseWriter, r *http.Request) {
-		web.writeFileRows(w, r, templates, web.decompressCandidates())
+		web.writeFileRows(w, r, templates, "nsz", false, web.decompressCandidates())
 	}).Methods("GET")
+
+	// the files that hold several titles, and the games a pack can be made of
+	web.router.HandleFunc("/compress/split-list", func(w http.ResponseWriter, r *http.Request) {
+		web.writeFileRows(w, r, templates, "split", true, web.splitCandidates())
+	}).Methods("GET")
+	web.router.HandleFunc("/compress/pack-list", func(w http.ResponseWriter, r *http.Request) {
+		web.writeFileRows(w, r, templates, "pack", true, web.packCandidates())
+	}).Methods("GET")
+	web.handleSplit()
+	web.handlePacks()
 
 	web.router.HandleFunc("/compress/start", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
@@ -1174,10 +1224,11 @@ func (web *Web) HandleCompress() {
 }
 
 // writeFileRows writes the rows of a list of files of the Compress page, the ones matching
-// the search, at most shownFiles.
-func (web *Web) writeFileRows(w http.ResponseWriter, r *http.Request, templates templateSet, all []CompressCandidate) {
+// the search, at most shownFiles. With rest, the others can be chosen together while there is
+// no search.
+func (web *Web) writeFileRows(w http.ResponseWriter, r *http.Request, templates templateSet, prefix string, rest bool, all []CompressCandidate) {
 	query := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("q")))
-	data := NszListData{Total: len(all)}
+	data := NszListData{Total: len(all), Prefix: prefix}
 	for _, candidate := range all {
 		if query != "" && !strings.Contains(strings.ToLower(candidate.Name+" "+filepath.Base(candidate.Path)), query) {
 			continue
@@ -1185,6 +1236,9 @@ func (web *Web) writeFileRows(w http.ResponseWriter, r *http.Request, templates 
 		data.Matches++
 		if len(data.Files) < shownFiles {
 			data.Files = append(data.Files, candidate)
+		} else if rest && query == "" {
+			data.Rest++
+			data.RestSize += candidate.Size
 		}
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

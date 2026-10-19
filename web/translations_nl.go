@@ -3,6 +3,27 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		// split and bulk packs
+		"Split multi-title files": "Bestanden met meerdere titels splitsen",
+		"Turn files that hold several titles (a game with its updates and DLC in one NSP or NSZ) back into one file per title. Nothing is decompressed or changed: each part keeps the files of its title as they are, and every part is checked before the original is deleted.": "Zet bestanden met meerdere titels (een game met zijn updates en DLC in één NSP of NSZ) terug naar één bestand per titel. Er wordt niets uitgepakt of gewijzigd: elk deel houdt de bestanden van zijn titel zoals ze zijn, en elk deel wordt gecontroleerd voordat het origineel wordt verwijderd.",
+		"Delete each original after its parts are checked": "Elk origineel verwijderen zodra zijn delen gecontroleerd zijn",
+		"Split selected": "Selectie splitsen",
+		"Make complete packs": "Complete pakketten maken",
+		"Put each game with its latest update and its DLC into one NSP (or NSZ), for installers that take several titles at once. Older updates and delta fragments are left out. Every pack is checked before the separate files are deleted.": "Zet elke game met zijn nieuwste update en zijn DLC in één NSP (of NSZ), voor installers die meerdere titels tegelijk aannemen. Oudere updates en deltafragmenten worden weggelaten. Elk pakket wordt gecontroleerd voordat de losse bestanden worden verwijderd.",
+		"%v games selected, %v": "%v games geselecteerd, %v",
+		"Delete the separate files after each pack is checked": "De losse bestanden verwijderen zodra elk pakket gecontroleerd is",
+		"Make packs": "Pakketten maken",
+		"%v titles": "%v titels",
+		"Not listed one by one.": "Niet één voor één getoond.",
+		"%v files split": "%v bestanden gesplitst",
+		"Split files": "Bestanden splitsen",
+		"Splitting": "Splitsen",
+		"The file could not be split, the original is kept.": "Het bestand kon niet worden gesplitst, het origineel blijft bewaard.",
+		"A file with the name of a part already exists.": "Er bestaat al een bestand met de naam van een deel.",
+		"Some files of the original are in no part: the original is kept.": "Sommige bestanden van het origineel zitten in geen enkel deel: het origineel blijft bewaard.",
+		"prod.keys is needed to split files.": "prod.keys is nodig om bestanden te splitsen.",
+		"Select the files to split.": "Kies de bestanden om te splitsen.",
+		"Select the games to pack.": "Kies de games voor de pakketten.",
 		"Which games": "Welke games",
 		"My games": "Mijn games",
 		"Missing ones": "Ontbrekend",

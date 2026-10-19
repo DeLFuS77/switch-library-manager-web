@@ -3,6 +3,27 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		// split and bulk packs
+		"Split multi-title files": "複数タイトルのファイルを分割",
+		"Turn files that hold several titles (a game with its updates and DLC in one NSP or NSZ) back into one file per title. Nothing is decompressed or changed: each part keeps the files of its title as they are, and every part is checked before the original is deleted.": "複数のタイトル（1つのNSPまたはNSZに入ったゲームとアップデート、DLC）を含むファイルを、タイトルごとのファイルに戻します。展開も変更もしません。各パートはそのタイトルのファイルをそのまま保ち、元のファイルを削除する前にすべて検証されます。",
+		"Delete each original after its parts are checked": "パートの検証後に元のファイルを削除",
+		"Split selected": "選択したものを分割",
+		"Make complete packs": "完全パックを作成",
+		"Put each game with its latest update and its DLC into one NSP (or NSZ), for installers that take several titles at once. Older updates and delta fragments are left out. Every pack is checked before the separate files are deleted.": "各ゲームを最新のアップデートとDLCと一緒に1つのNSP（またはNSZ）にまとめます。複数タイトルを一度にインストールできるインストーラー向けです。古いアップデートとデルタフラグメントは含めません。各パックは個別のファイルを削除する前に検証されます。",
+		"%v games selected, %v": "%v 本のゲームを選択、%v",
+		"Delete the separate files after each pack is checked": "各パックの検証後に個別のファイルを削除",
+		"Make packs": "パックを作成",
+		"%v titles": "%v タイトル",
+		"Not listed one by one.": "個別には表示されません。",
+		"%v files split": "%v 個のファイルを分割",
+		"Split files": "ファイルの分割",
+		"Splitting": "分割中",
+		"The file could not be split, the original is kept.": "ファイルを分割できませんでした。元のファイルは残っています。",
+		"A file with the name of a part already exists.": "パートと同じ名前のファイルがすでにあります。",
+		"Some files of the original are in no part: the original is kept.": "元のファイルの一部がどのパートにも含まれません。元のファイルは残します。",
+		"prod.keys is needed to split files.": "ファイルの分割には prod.keys が必要です。",
+		"Select the files to split.": "分割するファイルを選んでください。",
+		"Select the games to pack.": "パックにするゲームを選んでください。",
 		"Which games": "表示するゲーム",
 		"My games": "持っているゲーム",
 		"Missing ones": "持っていないゲーム",

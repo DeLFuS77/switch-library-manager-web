@@ -277,7 +277,7 @@ func (t Task) speedAt(now time.Time) int {
 // measuredInMegabytes tells the tasks whose progress counts megabytes of files.
 func measuredInMegabytes(kind string) bool {
 	switch kind {
-	case TASK_VERIFY, TASK_COPY, TASK_COMPRESS, TASK_DECOMPRESS, TASK_CONVERT, TASK_PACK:
+	case TASK_VERIFY, TASK_COPY, TASK_COMPRESS, TASK_DECOMPRESS, TASK_CONVERT, TASK_PACK, TASK_SPLIT:
 		return true
 	}
 	return false

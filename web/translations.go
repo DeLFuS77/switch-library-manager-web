@@ -4,6 +4,27 @@ package web
 // translate() calls and in web.js; "%v" placeholders are kept in the translation.
 var translations = map[string]map[string]string{
 	"es": {
+		// split and bulk packs
+		"Split multi-title files": "Separar archivos con varios títulos",
+		"Turn files that hold several titles (a game with its updates and DLC in one NSP or NSZ) back into one file per title. Nothing is decompressed or changed: each part keeps the files of its title as they are, and every part is checked before the original is deleted.": "Convierte los archivos que guardan varios títulos (un juego con sus actualizaciones y DLC en un solo NSP o NSZ) en un archivo por título. No se descomprime ni se cambia nada: cada parte conserva tal cual los archivos de su título, y todas se comprueban antes de borrar el original.",
+		"Delete each original after its parts are checked": "Borrar cada original cuando sus partes estén comprobadas",
+		"Split selected": "Separar los elegidos",
+		"Make complete packs": "Crear packs completos",
+		"Put each game with its latest update and its DLC into one NSP (or NSZ), for installers that take several titles at once. Older updates and delta fragments are left out. Every pack is checked before the separate files are deleted.": "Junta cada juego con su última actualización y sus DLC en un solo NSP (o NSZ), para los instaladores que aceptan varios títulos a la vez. Se dejan fuera las actualizaciones antiguas y los fragmentos delta. Cada pack se comprueba antes de borrar los archivos sueltos.",
+		"%v games selected, %v": "%v juegos elegidos, %v",
+		"Delete the separate files after each pack is checked": "Borrar los archivos sueltos cuando cada pack esté comprobado",
+		"Make packs": "Crear packs",
+		"%v titles": "%v títulos",
+		"Not listed one by one.": "No se muestran uno a uno.",
+		"%v files split": "%v archivos separados",
+		"Split files": "Separar archivos",
+		"Splitting": "Separando",
+		"The file could not be split, the original is kept.": "No se pudo separar el archivo; se conserva el original.",
+		"A file with the name of a part already exists.": "Ya existe un archivo con el nombre de una de las partes.",
+		"Some files of the original are in no part: the original is kept.": "Algunos archivos del original no están en ninguna parte: se conserva el original.",
+		"prod.keys is needed to split files.": "Hace falta prod.keys para separar archivos.",
+		"Select the files to split.": "Elige los archivos a separar.",
+		"Select the games to pack.": "Elige los juegos para los packs.",
 		// redesigned interface
 		"Which games": "Qué juegos",
 		"My games": "Mis juegos",

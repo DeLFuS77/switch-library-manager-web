@@ -3,6 +3,27 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		// split and bulk packs
+		"Split multi-title files": "Разделить файлы с несколькими тайтлами",
+		"Turn files that hold several titles (a game with its updates and DLC in one NSP or NSZ) back into one file per title. Nothing is decompressed or changed: each part keeps the files of its title as they are, and every part is checked before the original is deleted.": "Превращает файлы с несколькими тайтлами (игра с обновлениями и DLC в одном NSP или NSZ) обратно в отдельный файл для каждого тайтла. Ничего не распаковывается и не меняется: каждая часть сохраняет файлы своего тайтла как есть, и каждая часть проверяется перед удалением оригинала.",
+		"Delete each original after its parts are checked": "Удалять оригинал после проверки его частей",
+		"Split selected": "Разделить выбранные",
+		"Make complete packs": "Создать полные пакеты",
+		"Put each game with its latest update and its DLC into one NSP (or NSZ), for installers that take several titles at once. Older updates and delta fragments are left out. Every pack is checked before the separate files are deleted.": "Объединяет каждую игру с её последним обновлением и DLC в один NSP (или NSZ) для установщиков, которые принимают несколько тайтлов сразу. Старые обновления и дельта-фрагменты не включаются. Каждый пакет проверяется перед удалением отдельных файлов.",
+		"%v games selected, %v": "Выбрано игр: %v, %v",
+		"Delete the separate files after each pack is checked": "Удалять отдельные файлы после проверки каждого пакета",
+		"Make packs": "Создать пакеты",
+		"%v titles": "Тайтлов: %v",
+		"Not listed one by one.": "Не показаны по одному.",
+		"%v files split": "Разделено файлов: %v",
+		"Split files": "Разделение файлов",
+		"Splitting": "Разделение",
+		"The file could not be split, the original is kept.": "Не удалось разделить файл, оригинал сохранён.",
+		"A file with the name of a part already exists.": "Файл с именем одной из частей уже существует.",
+		"Some files of the original are in no part: the original is kept.": "Некоторые файлы оригинала не вошли ни в одну часть: оригинал сохранён.",
+		"prod.keys is needed to split files.": "Для разделения файлов нужен prod.keys.",
+		"Select the files to split.": "Выберите файлы для разделения.",
+		"Select the games to pack.": "Выберите игры для пакетов.",
 		"Which games": "Какие игры",
 		"My games": "Мои игры",
 		"Missing ones": "Недостающие",

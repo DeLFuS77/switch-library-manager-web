@@ -143,9 +143,14 @@ func readXmlCnmt(xmlBytes []byte) (*ContentMetaAttributes, error) {
 	return &ContentMetaAttributes{Version: cmt.Version, TitleId: titleId, Type: cmt.Type}, nil
 }
 
-// cnmtDeltaFragments gives the NCA IDs of the delta fragments a CNMT lists: an update has
-// them to patch an older update over the network, and installs from a file never use them.
-func cnmtDeltaFragments(pfs0 *PFS0, data []byte) []string {
+// cnmtEntry is a content a CNMT lists: its NCA ID and its type (6 for a delta fragment).
+type cnmtEntry struct {
+	id   string
+	kind byte
+}
+
+// cnmtEntries gives every content a CNMT lists, in its order, or nil if it cannot be read.
+func cnmtEntries(pfs0 *PFS0, data []byte) []cnmtEntry {
 	if pfs0 == nil || len(pfs0.Files) != 1 {
 		return nil
 	}
@@ -163,11 +168,21 @@ func cnmtDeltaFragments(pfs0 *PFS0, data []byte) []string {
 	if entriesOffset > uint64(len(cnmt)) || uint64(count)*0x38 > uint64(len(cnmt))-entriesOffset {
 		return nil
 	}
-	ids := []string{}
+	entries := []cnmtEntry{}
 	for i := uint64(0); i < uint64(count); i++ {
 		entry := cnmt[entriesOffset+i*0x38:]
-		if entry[0x36] == 6 {
-			ids = append(ids, fmt.Sprintf("%x", entry[0x20:0x30]))
+		entries = append(entries, cnmtEntry{id: fmt.Sprintf("%x", entry[0x20:0x30]), kind: entry[0x36]})
+	}
+	return entries
+}
+
+// cnmtDeltaFragments gives the NCA IDs of the delta fragments a CNMT lists: an update has
+// them to patch an older update over the network, and installs from a file never use them.
+func cnmtDeltaFragments(pfs0 *PFS0, data []byte) []string {
+	ids := []string{}
+	for _, entry := range cnmtEntries(pfs0, data) {
+		if entry.kind == 6 {
+			ids = append(ids, entry.id)
 		}
 	}
 	return ids

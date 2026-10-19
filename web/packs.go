@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
@@ -97,6 +98,92 @@ func packName(name string, titleId string, local *db.SwitchGameFiles, compressed
 	return result + ".nsp"
 }
 
+// packCandidates are the games of the library with a pack to make and no pack yet, biggest
+// first: the path of a candidate is the one of the base file of the game.
+func (web *Web) packCandidates() []CompressCandidate {
+	return web.derived("packCandidates", func() any {
+		switchDB, localDB := web.state.get()
+		candidates := []CompressCandidate{}
+		if localDB == nil {
+			return candidates
+		}
+		scanned := web.scannedPaths()
+		for _, local := range localDB.TitlesMap {
+			files := packFiles(local)
+			if files == nil || local.File.Metadata == nil {
+				continue
+			}
+			base := filepath.Join(files[0].BaseFolder, files[0].FileName)
+			name := web.gameName(switchDB, local, base)
+			made := false
+			for _, compressed := range []bool{false, true} {
+				if scanned[filepath.Clean(filepath.Join(files[0].BaseFolder, packName(name, local.File.Metadata.TitleId, local, compressed)))] {
+					made = true
+				}
+			}
+			if made {
+				continue
+			}
+			var size int64
+			for _, file := range files {
+				size += file.Size
+			}
+			candidates = append(candidates, CompressCandidate{Path: base, Name: name, Kind: "Base", Size: size, Files: len(files)})
+		}
+		sort.Slice(candidates, func(i, j int) bool {
+			if candidates[i].Size == candidates[j].Size {
+				return candidates[i].Path < candidates[j].Path
+			}
+			return candidates[i].Size > candidates[j].Size
+		})
+		return candidates
+	}).([]CompressCandidate)
+}
+
+// packGame is the game of the library whose base file is at path, with its title ID.
+func (web *Web) packGame(path string) (*db.SwitchGameFiles, string) {
+	_, localDB := web.state.get()
+	if localDB == nil {
+		return nil, ""
+	}
+	for _, local := range localDB.TitlesMap {
+		if !local.BaseExist || local.File.Metadata == nil {
+			continue
+		}
+		if filepath.Join(local.File.ExtendedInfo.BaseFolder, local.File.ExtendedInfo.FileName) == path {
+			return local, local.File.Metadata.TitleId
+		}
+	}
+	return nil, ""
+}
+
+// packTarget is where the pack of the game whose base file is at path goes, with the files
+// it is made of and their size.
+func (web *Web) packTarget(path string, name string) (target string, sources []string, size int64, err error) {
+	local, titleId := web.packGame(path)
+	if local == nil {
+		return "", nil, 0, errorString("The game is not in your library.")
+	}
+	sources = packSources(local)
+	if len(sources) == 0 {
+		return "", nil, 0, errorString("This game has nothing to put in a pack.")
+	}
+	for _, source := range sources {
+		if info, err := os.Stat(source); err == nil {
+			size += info.Size()
+		}
+	}
+	if name == "" {
+		switchDB, _ := web.state.get()
+		name = web.gameName(switchDB, local, path)
+	}
+	compressed, err := switchfs.PackHasCompressedFiles(sources)
+	if err != nil {
+		return "", nil, 0, errorString(NOTE_PACK_FAILED)
+	}
+	return filepath.Join(filepath.Dir(sources[0]), packName(name, titleId, local, compressed)), sources, size, nil
+}
+
 // startPack makes the pack of a game in the background: the files are merged into a hidden
 // temporary file, every NCA of it is checked, and only then it gets its name. The files it
 // is made of are deleted last, if asked.
@@ -106,31 +193,38 @@ func (web *Web) startPack(titleId string, name string, deleteOriginals bool) err
 	if err != nil || localDB == nil || localDB.TitlesMap[prefix] == nil {
 		return errorString("The game is not in your library.")
 	}
-	local := localDB.TitlesMap[prefix]
-	sources := packSources(local)
+	sources := packSources(localDB.TitlesMap[prefix])
 	if len(sources) == 0 {
 		return errorString("This game has nothing to put in a pack.")
 	}
-	var size int64
-	for _, source := range sources {
-		if info, err := os.Stat(source); err == nil {
-			size += info.Size()
-		}
-	}
-	compressed, err := switchfs.PackHasCompressedFiles(sources)
-	if err != nil {
-		return errorString(NOTE_PACK_FAILED)
-	}
-	target := filepath.Join(filepath.Dir(sources[0]), packName(name, titleId, local, compressed))
-
-	// the files are read twice: merged, then the pack is checked
-	started := web.runFileTaskSized(TASK_PACK, TRIGGER_MANUAL, []string{target}, []int64{size}, 2, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
-		return web.makePack(ctx, sources, path, size, deleteOriginals, report)
-	})
-	if !started {
+	if !web.startPacks([]string{sources[0]}, map[string]string{sources[0]: name}, deleteOriginals, TRIGGER_MANUAL) {
 		return errPackBusy
 	}
 	return nil
+}
+
+// startPacks makes the packs of the games whose base files are at paths, one after the other,
+// as one task that goes on after a restart. names gives the name of a pack, when known.
+func (web *Web) startPacks(paths []string, names map[string]string, deleteOriginals bool, trigger string) bool {
+	// a pack reads every file of its game
+	sizes := make([]int64, len(paths))
+	for i, path := range paths {
+		if local, _ := web.packGame(path); local != nil {
+			for _, source := range packSources(local) {
+				if info, err := os.Stat(source); err == nil {
+					sizes[i] += info.Size()
+				}
+			}
+		}
+	}
+	// the files are read twice: merged, then the pack is checked
+	return web.runFileTaskFull(TASK_PACK, trigger, paths, sizes, 2, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		target, sources, size, err := web.packTarget(path, names[path])
+		if err != nil {
+			return 0, err
+		}
+		return web.makePack(ctx, sources, target, size, deleteOriginals, report)
+	})
 }
 
 // makePack writes the pack and gives the bytes of delta fragments left out.
@@ -195,5 +289,25 @@ func (web *Web) handlePack() {
 			return
 		}
 		writeJSON(w, http.StatusAccepted, map[string]any{"started": true})
+	}).Methods("POST")
+}
+
+func (web *Web) handlePacks() {
+	web.router.HandleFunc("/packs/start", func(w http.ResponseWriter, r *http.Request) {
+		lang := web.requestLanguage(r)
+		if err := r.ParseForm(); err != nil {
+			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
+			return
+		}
+		paths := selectedPaths(r, web.packCandidates())
+		if len(paths) == 0 {
+			writeGlobalError(w, http.StatusBadRequest, lang, "Select the games to pack.")
+			return
+		}
+		if !web.startPacks(paths, nil, r.FormValue("delete_originals") == "true", TRIGGER_MANUAL) {
+			writeGlobalError(w, http.StatusConflict, lang, "A compression is already running.")
+			return
+		}
+		writeJSON(w, http.StatusAccepted, map[string]any{"started": len(paths)})
 	}).Methods("POST")
 }

@@ -3,6 +3,27 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		// split and bulk packs
+		"Split multi-title files": "Dividir arquivos com vários títulos",
+		"Turn files that hold several titles (a game with its updates and DLC in one NSP or NSZ) back into one file per title. Nothing is decompressed or changed: each part keeps the files of its title as they are, and every part is checked before the original is deleted.": "Transforma os arquivos que contêm vários títulos (um jogo com suas atualizações e DLC em um só NSP ou NSZ) de volta em um arquivo por título. Nada é descompactado ou alterado: cada parte mantém os arquivos do seu título como estão, e cada parte é verificada antes de o original ser apagado.",
+		"Delete each original after its parts are checked": "Apagar cada original depois que suas partes forem verificadas",
+		"Split selected": "Dividir selecionados",
+		"Make complete packs": "Criar pacotes completos",
+		"Put each game with its latest update and its DLC into one NSP (or NSZ), for installers that take several titles at once. Older updates and delta fragments are left out. Every pack is checked before the separate files are deleted.": "Junta cada jogo com sua atualização mais recente e suas DLC em um só NSP (ou NSZ), para instaladores que aceitam vários títulos de uma vez. Atualizações antigas e fragmentos delta ficam de fora. Cada pacote é verificado antes de os arquivos separados serem apagados.",
+		"%v games selected, %v": "%v jogos selecionados, %v",
+		"Delete the separate files after each pack is checked": "Apagar os arquivos separados depois que cada pacote for verificado",
+		"Make packs": "Criar pacotes",
+		"%v titles": "%v títulos",
+		"Not listed one by one.": "Não listados um a um.",
+		"%v files split": "%v arquivos divididos",
+		"Split files": "Divisão de arquivos",
+		"Splitting": "Dividindo",
+		"The file could not be split, the original is kept.": "Não foi possível dividir o arquivo; o original foi mantido.",
+		"A file with the name of a part already exists.": "Já existe um arquivo com o nome de uma das partes.",
+		"Some files of the original are in no part: the original is kept.": "Alguns arquivos do original não estão em nenhuma parte: o original foi mantido.",
+		"prod.keys is needed to split files.": "É preciso o prod.keys para dividir arquivos.",
+		"Select the files to split.": "Escolha os arquivos para dividir.",
+		"Select the games to pack.": "Escolha os jogos para os pacotes.",
 		"Which games": "Quais jogos",
 		"My games": "Meus jogos",
 		"Missing ones": "Em falta",
