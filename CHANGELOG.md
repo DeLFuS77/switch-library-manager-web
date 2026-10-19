@@ -22,6 +22,9 @@
 - The Tasks link of the menu shows how many tasks are running, in violet, next to the red count of the failed ones;
   with two tasks running it showed only the red 1 of a task that had failed, which looked like a count that did not
   go up.
+- A compression (or decompression, conversion) resumed after a restart goes through its files by name too, as the new
+  ones do since 1.46.0; it kept the biggest first, so one started before the update still took the largest games
+  first. The file it was writing starts again in any case.
 
 ## 1.46.0
 

@@ -633,8 +633,9 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	web.compressor.mutex.Unlock()
 
 	// the files go by name, not the biggest first: the count moves from the start and the list
-	// reads in order; a task resumed keeps the order it had
-	if trigger != TRIGGER_RESUME && (kind == TASK_COMPRESS || kind == TASK_DECOMPRESS || kind == TASK_CONVERT) {
+	// reads in order. A task resumed after a restart too: the file it was writing starts again
+	// anyway (its half written copy is removed), so its place in the list loses nothing
+	if kind == TASK_COMPRESS || kind == TASK_DECOMPRESS || kind == TASK_CONVERT {
 		paths, sizes = sortedByName(paths, sizes)
 	}
 	taskId := web.taskLog().Start(kind, trigger)
