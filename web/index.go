@@ -230,7 +230,10 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		if item.Cheats {
 			facets.Cheats++
 		}
-		if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) || (filter.Extra == EXTRA_RECENT && !recent) || (filter.Extra == EXTRA_FAVORITES && !item.Favorite) || (filter.Extra == EXTRA_CHEATS && !item.Cheats) {
+		if item.CheatsOther {
+			facets.CheatsOther++
+		}
+		if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) || (filter.Extra == EXTRA_RECENT && !recent) || (filter.Extra == EXTRA_FAVORITES && !item.Favorite) || (filter.Extra == EXTRA_CHEATS && !item.Cheats) || (filter.Extra == EXTRA_CHEATS_OTHER && !item.CheatsOther) {
 			continue
 		}
 
@@ -398,6 +401,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 		item.Selectable = true
 		item.Favorite = favorites[item.Id]
 		item.Cheats = cheats.has(item.Id, v.LatestUpdate)
+		item.CheatsOther = !item.Cheats && cheats.hasAny(item.Id)
 		// every file once: a game card can hold the game, its update and DLC
 		counted := map[string]bool{filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName): true}
 		addSize := func(file db.ExtendedFileInfo) {

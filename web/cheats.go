@@ -19,6 +19,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"github.com/gorilla/mux"
 )
 
@@ -31,6 +32,9 @@ import (
 const (
 	CHEATS_ZIP_FILENAME      = "cheats.zip"
 	CHEATS_VERSIONS_FILENAME = "cheats.versions.json"
+	// the build IDs read from the games of the library, for the versions the database does
+	// not know
+	CHEATS_BUILDS_FILENAME = "cheats.builds.json"
 	// the database is looked at again after this long at most once
 	cheatsRefreshInterval = 20 * time.Hour
 )
@@ -45,6 +49,8 @@ type cheatsDB struct {
 	builds map[string]map[int]string
 	// title ID → build ID → the text file of its cheats
 	files map[string]map[string]*zip.File
+	// title ID → version → build ID read from the files of the library
+	read map[string]map[int]string
 }
 
 // cheatsFile keeps the database read while its files do not change.
@@ -54,6 +60,8 @@ type cheatsFile struct {
 	db       *cheatsDB
 	checked  time.Time
 	fetching bool
+	// one reading of the build IDs of the library at a time
+	learning sync.Mutex
 }
 
 // cheats returns the cheats database, or nil when it was not downloaded or is turned off.
@@ -75,6 +83,9 @@ func (web *Web) cheats() *cheatsDB {
 		return nil
 	}
 	stamp := fmt.Sprint(zipInfo.Size(), zipInfo.ModTime().UnixNano(), versionsInfo.Size(), versionsInfo.ModTime().UnixNano())
+	if readInfo, err := os.Stat(filepath.Join(web.dataFolder, CHEATS_BUILDS_FILENAME)); err == nil {
+		stamp += fmt.Sprint(" ", readInfo.Size(), readInfo.ModTime().UnixNano())
+	}
 	if cache.db != nil && cache.stamp == stamp {
 		return cache.db
 	}
@@ -83,6 +94,7 @@ func (web *Web) cheats() *cheatsDB {
 		web.sugarLogger.Warnf("The cheats database cannot be read: %v", err)
 		return nil
 	}
+	loaded.read = web.readBuilds().byTitle()
 	cache.db, cache.stamp = loaded, stamp
 	return loaded
 }
@@ -148,7 +160,16 @@ func (c *cheatsDB) buildID(id string, version int) string {
 	if c == nil {
 		return ""
 	}
-	return c.builds[strings.ToUpper(id)][version]
+	id = strings.ToUpper(id)
+	if build := c.builds[id][version]; build != "" {
+		return build
+	}
+	return c.read[id][version]
+}
+
+// hasAny tells whether there are cheats for some version of a game.
+func (c *cheatsDB) hasAny(id string) bool {
+	return c != nil && len(c.files[strings.ToUpper(id)]) > 0
 }
 
 // has tells whether there are cheats for a version of a game.
@@ -254,6 +275,8 @@ func (web *Web) downloadCheats() {
 	cache.mutex.Lock()
 	if cache.fetching || time.Since(cache.checked) < cheatsRefreshInterval {
 		cache.mutex.Unlock()
+		// the files of the library may have changed since
+		web.learnBuildIds()
 		return
 	}
 	cache.fetching = true
@@ -304,6 +327,105 @@ func (web *Web) downloadCheats() {
 	cache.mutex.Lock()
 	cache.checked = time.Now()
 	cache.mutex.Unlock()
+	web.invalidateDerived()
+	web.learnBuildIds()
+}
+
+// readBuild is a build ID read from a file of the library, kept while the file stays the same.
+type readBuild struct {
+	Id      string `json:"id"`
+	Version int    `json:"version"`
+	Size    int64  `json:"size"`
+	ModTime int64  `json:"modTime"`
+	Build   string `json:"build"`
+}
+
+// readBuilds are the build IDs read from the files, by path.
+type readBuilds map[string]readBuild
+
+func (r readBuilds) byTitle() map[string]map[int]string {
+	result := map[string]map[int]string{}
+	for _, build := range r {
+		if build.Build == "" {
+			continue
+		}
+		if result[build.Id] == nil {
+			result[build.Id] = map[int]string{}
+		}
+		result[build.Id][build.Version] = build.Build
+	}
+	return result
+}
+
+func (web *Web) readBuilds() readBuilds {
+	builds := readBuilds{}
+	if data, err := os.ReadFile(filepath.Join(web.dataFolder, CHEATS_BUILDS_FILENAME)); err == nil {
+		json.Unmarshal(data, &builds)
+	}
+	return builds
+}
+
+// learnBuildIds reads the build ID of the games of the library that have cheats for some
+// version, when the database does not know the build of the version the library has. Only
+// a few kilobytes of each file are read; the result is kept while the file stays the same.
+func (web *Web) learnBuildIds() {
+	if !web.cheatsFile.learning.TryLock() {
+		return
+	}
+	defer web.cheatsFile.learning.Unlock()
+	cheats := web.cheats()
+	_, localDB := web.state.get()
+	if cheats == nil || localDB == nil {
+		return
+	}
+	if keys, _ := settings.SwitchKeys(); keys == nil || keys.GetKey("header_key") == "" {
+		return
+	}
+	known := web.readBuilds()
+	changed := false
+	for _, local := range localDB.TitlesMap {
+		if !local.BaseExist || local.File.Metadata == nil {
+			continue
+		}
+		id := strings.ToUpper(local.File.Metadata.TitleId)
+		if !cheats.hasAny(id) || cheats.builds[id][local.LatestUpdate] != "" {
+			continue
+		}
+		// the program of the version: the latest update carries the whole ExeFS
+		file, programId := local.File, id
+		if update, ok := local.Updates[local.LatestUpdate]; ok && local.LatestUpdate > 0 {
+			file = update
+			if update.Metadata != nil {
+				programId = strings.ToUpper(update.Metadata.TitleId)
+			}
+		}
+		path := filepath.Join(file.ExtendedInfo.BaseFolder, file.ExtendedInfo.FileName)
+		info, err := os.Stat(path)
+		if err != nil || info.IsDir() {
+			continue
+		}
+		if seen, ok := known[path]; ok && seen.Size == info.Size() && seen.ModTime == info.ModTime().UnixNano() && seen.Version == local.LatestUpdate {
+			continue
+		}
+		build, err := switchfs.ReadBuildID(path, programId)
+		if err != nil {
+			web.sugarLogger.Debugf("The build ID of %s cannot be read: %v", path, err)
+		}
+		// kept also when it cannot be read, so the file is not read again until it changes
+		known[path] = readBuild{Id: id, Version: local.LatestUpdate, Size: info.Size(), ModTime: info.ModTime().UnixNano(), Build: build}
+		changed = true
+	}
+	if !changed {
+		return
+	}
+	data, err := json.Marshal(known)
+	if err == nil {
+		err = os.WriteFile(filepath.Join(web.dataFolder, CHEATS_BUILDS_FILENAME), data, 0o644)
+	}
+	if err != nil {
+		web.sugarLogger.Warnf("The build IDs read cannot be saved: %v", err)
+		return
+	}
 	web.invalidateDerived()
 }
 

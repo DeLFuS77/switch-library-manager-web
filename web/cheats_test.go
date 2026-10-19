@@ -112,6 +112,20 @@ func TestCheatsAreDownloadedAndMatchTheVersion(t *testing.T) {
 		t.Fatalf("the games with cheats for their version: %+v %d", items, facets.Cheats)
 	}
 
+	// the other game has cheats for another version only
+	filter.Extra = EXTRA_CHEATS_OTHER
+	items, _, facets = web.getLibraryWithFacets(filter, "en")
+	if len(items) != 1 || items[0].Id != "0100000000020000" || !items[0].CheatsOther || facets.CheatsOther != 1 {
+		t.Fatalf("the games with cheats for another version: %+v %d", items, facets.CheatsOther)
+	}
+
+	// a build ID read from the game itself fills a version the database does not know
+	os.WriteFile(web.dataFolder+"/"+CHEATS_BUILDS_FILENAME, []byte(`{"/roms/other.nsp":{"id":"0100000000020000","version":196608,"size":1,"modTime":1,"build":"3333333333333333"}}`), 0o644)
+	if !web.cheats().has("0100000000020000", 196608) {
+		t.Fatal("the build read from the file finds its cheats")
+	}
+	os.Remove(web.dataFolder + "/" + CHEATS_BUILDS_FILENAME)
+
 	// the cheats are given as Atmosphère reads them
 	web.HandleCheats()
 	get := func(url string) *httptest.ResponseRecorder {
