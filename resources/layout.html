@@ -18,7 +18,7 @@
 	<link rel="shortcut icon" href="/resources/static/favicon.ico">
 	<meta name="theme-color" content="#0d1117">
 </head>
-<body class="d-flex flex-column min-vh-100" data-page="{{.Page}}" data-role="{{if .Auth.IsAdmin}}admin{{else}}viewer{{end}}" data-wizard-auto="{{and .Auth.IsAdmin .WizardAuto}}">
+<body class="d-flex flex-column min-vh-100" data-page="{{.Page}}" data-role="{{.Auth.Role}}" data-wizard-auto="{{and .Auth.IsAdmin .WizardAuto}}">
 	<a class="skip-link btn btn-primary" href="#main">{{t "Skip to content"}}</a>
 	<header class="app-header sticky-top">
 		<nav class="navbar navbar-expand-xxl" aria-label="{{t "Main navigation"}}">
@@ -31,7 +31,7 @@
 					<button type="button" class="btn btn-sm search-trigger rounded-pill" data-search-open aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K /" title="{{t "Search"}} (Ctrl K)">
 						<span class="bi bi-search" aria-hidden="true"></span><span class="search-trigger-label d-none d-lg-inline">{{t "Search"}}</span><kbd class="search-kbd d-none d-lg-inline" data-search-kbd>Ctrl K</kbd>
 					</button>
-					<a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 rounded-pill px-3 admin-only" href="/sync" id="sync" title="{{t "Download the latest titles database and rescan the library"}}">
+					<a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 rounded-pill px-3 editor-only" href="/sync" id="sync" title="{{t "Download the latest titles database and rescan the library"}}">
 						<span class="bi bi-arrow-repeat" aria-hidden="true"></span><span class="d-none d-md-inline d-xxl-none">{{t "Synchronize"}}</span>
 					</a>
 					{{- if and .Auth.Enabled .Auth.IsAdmin}}
@@ -72,7 +72,7 @@
 									{{- template "discoverItems" .}}
 								</ul>
 							</li>
-							{{- if .Auth.IsAdmin}}
+							{{- if .Auth.CanEdit}}
 							{{- $tools := or (eq .Page "maintenance") (eq .Page "organize") (eq .Page "compress") (eq .Page "space") (eq .Page "sd") (eq .Page "saves")}}
 							<li class="nav-item dropdown d-none d-xxl-block">
 								<button class="btn btn-link nav-link dropdown-toggle{{if $tools}} active{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="toolsMenu">
@@ -93,17 +93,21 @@
 								{{- template "navLink" (dict "Page" .Page "Id" "sagas" "Href" "/sagas.html" "Icon" "bi-stack" "Label" (t "Series") "Count" 0 "Badge" "")}}
 								{{- template "navLink" (dict "Page" .Page "Id" "statistics" "Href" "/statistics.html" "Icon" "bi-bar-chart" "Label" (t "Statistics") "Count" 0 "Badge" "")}}
 							</ul>
-							{{- if .Auth.IsAdmin}}
+							{{- if .Auth.CanEdit}}
 							<hr>
 							<div class="nav-section-title">{{t "Tools"}}</div>
 							<ul class="navbar-nav app-nav">
+								{{- if .Auth.IsAdmin}}
 								{{- template "navLink" (dict "Page" .Page "Id" "maintenance" "Href" "/maintenance.html" "Icon" "bi-list-check" "Label" (t "Tune-up") "Count" 0 "Badge" "" "Dot" .Counts.TuneUp)}}
 								{{- template "navLink" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Count" 0 "Badge" "")}}
+								{{- end}}
 								{{- template "navLink" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Count" 0 "Badge" "")}}
+								{{- if .Auth.IsAdmin}}
 								{{- template "navLink" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Count" 0 "Badge" "")}}
 								{{- template "navLink" (dict "Page" .Page "Id" "sd" "Href" "/sd.html" "Icon" "bi-sd-card" "Label" (t "SD card planner") "Count" 0 "Badge" "")}}
 								{{- if .VaultEnabled}}
 								{{- template "navLink" (dict "Page" .Page "Id" "saves" "Href" "/saves.html" "Icon" "bi-safe" "Label" (t "Save backups") "Count" 0 "Badge" "")}}
+								{{- end}}
 								{{- end}}
 							</ul>
 							{{- end}}
@@ -257,20 +261,24 @@
 {{- end}}
 
 {{define "toolItems"}}
+{{- if .Auth.IsAdmin}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "maintenance" "Href" "/maintenance.html" "Icon" "bi-list-check" "Label" (t "Tune-up") "Text" (t "The steps in order to put your library in order") "Dot" .Counts.TuneUp)}}
 <li><hr class="dropdown-divider"></li>
 {{- template "navMenuItem" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Text" (t "Rename your files and put them in folders"))}}
+{{- end}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Text" (t "Turn NSP into NSZ to save space"))}}
+{{- if .Auth.IsAdmin}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Text" (t "Free the space of old updates and duplicates"))}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "sd" "Href" "/sd.html" "Icon" "bi-sd-card" "Label" (t "SD card planner") "Text" (t "Choose what fits on your SD card"))}}
 {{- if .VaultEnabled}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "saves" "Href" "/saves.html" "Icon" "bi-safe" "Label" (t "Save backups") "Text" (t "The saves of your consoles"))}}
 {{- end}}
 {{- end}}
+{{- end}}
 
 {{define "accountItems"}}
 {{- if .Auth.Enabled}}
-<li><span class="dropdown-item-text small text-body-secondary">{{.Auth.User}} &middot; {{if .Auth.IsAdmin}}{{t "Administrator"}}{{else}}{{t "Read only"}}{{end}}</span></li>
+<li><span class="dropdown-item-text small text-body-secondary">{{.Auth.User}} &middot; {{t (roleName .Auth.Role)}}</span></li>
 <li><a class="dropdown-item{{if eq .Page "account"}} active{{end}}" href="/account.html"><span class="bi bi-person-gear me-2" aria-hidden="true"></span>{{t "My account"}}</a></li>
 {{- end}}
 {{- if .Auth.IsAdmin}}

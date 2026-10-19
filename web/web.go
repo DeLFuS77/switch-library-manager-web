@@ -450,6 +450,8 @@ var funcMap = template.FuncMap{
 	},
 	// filterUrl links to the current list with some filter values replaced: filterUrl .Filter "status" "dlc"
 	"playStates":    PlayStates,
+	"roleName":      func(role string) string { return roleNames[role] },
+	"roleChoices":   RoleChoices,
 	"playStateName": func(state string) string { return playStateLooks[state].Name },
 	"filterUrl": func(filter *TitleItemFilter, replace ...string) template.URL {
 		return template.URL("?" + filter.query(replace...).Encode())
