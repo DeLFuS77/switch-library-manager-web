@@ -157,11 +157,12 @@ func (web *Web) HandleIssues() {
 	// scanned again
 	web.router.HandleFunc("/issues/keep", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
-		path := r.FormValue("path")
-		other := ""
+		requested := r.FormValue("path")
+		// the path of the issue the library lists, never the one of the request
+		path, other := "", ""
 		for _, issue := range web.getIssues() {
-			if issue.File == path && issueKind(issue.Reason) == ISSUE_DUPLICATE {
-				other = keptBy(issue.Reason)
+			if requested != "" && issue.File == requested && issueKind(issue.Reason) == ISSUE_DUPLICATE {
+				path, other = issue.File, keptBy(issue.Reason)
 			}
 		}
 		if path == "" || other == "" {
