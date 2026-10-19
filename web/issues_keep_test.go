@@ -90,3 +90,42 @@ func TestIssuesKeepThisCopy(t *testing.T) {
 		t.Fatalf("choices: %v", got)
 	}
 }
+
+func TestIssuesDeleteOneUnreadableFile(t *testing.T) {
+	web, card, _ := keepWeb(t)
+	t.Cleanup(func() {
+		for deadline := 0; web.state.IsSynchronizing() && deadline < 200; deadline++ {
+			waitShort()
+		}
+	})
+	dir := filepath.Dir(card)
+	unreadable := db.ExtendedFileInfo{FileName: "Odd.nsp", BaseFolder: dir, Size: 1}
+	os.WriteFile(filepath.Join(dir, unreadable.FileName), []byte("x"), 0o644)
+	_, library := web.state.get()
+	library.Skipped[unreadable] = db.SkippedFile{ReasonCode: db.REASON_MALFORMED_FILE, ReasonText: "failed to read NSP [reason: invalid NCA magic]"}
+	web.invalidateDerived()
+	path := filepath.Join(dir, unreadable.FileName)
+
+	page := httptest.NewRecorder()
+	web.router.ServeHTTP(page, httptest.NewRequest("GET", "/issues.html", nil))
+	body := page.Body.String()
+	if !strings.Contains(body, `data-issue-delete-file="`+path+`"`) || strings.Contains(body, `data-issue-delete-file="`+card+`"`) {
+		t.Fatalf("only the unreadable file can be deleted on its own: %d", page.Code)
+	}
+
+	// a duplicate is not deleted this way, nor a file that is not an issue
+	for _, other := range []string{card, filepath.Join(dir, "First.nsz")} {
+		if response := postForm(web, "/issues/delete-file", url.Values{"path": {other}}); response.Code != http.StatusBadRequest {
+			t.Fatalf("%s is not deleted: %d", other, response.Code)
+		}
+	}
+	if response := postForm(web, "/issues/delete-file", url.Values{"path": {path}}); response.Code != http.StatusOK {
+		t.Fatalf("delete: %d %s", response.Code, response.Body.String())
+	}
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		t.Fatal("the file is deleted")
+	}
+	if _, err := os.Stat(card); err != nil {
+		t.Fatal("the other files stay")
+	}
+}

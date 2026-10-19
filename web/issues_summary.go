@@ -145,6 +145,10 @@ type IssueSummary struct {
 // are not: missing keys or a format the app does not know also leave a file unread.
 var deletableIssueKinds = map[string]bool{ISSUE_DAMAGED: true, ISSUE_TRUNCATED: true}
 
+// fileDeletableIssueKinds are the kinds whose files can be deleted one by one, each after a
+// confirmation: the ones that cannot be read are too, once the user knows what they are.
+var fileDeletableIssueKinds = map[string]bool{ISSUE_DAMAGED: true, ISSUE_TRUNCATED: true, ISSUE_UNREADABLE: true}
+
 // issueFiles lists the files of the issues of a kind as they are now on the disk; files
 // gone or no longer files are left out.
 func issueFiles(issues []Issue, kind string) []db.ExtendedFileInfo {

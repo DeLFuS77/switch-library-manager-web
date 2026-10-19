@@ -28,6 +28,8 @@ type Issue struct {
 	// one cartridge), and whether the copy can be chosen to be kept (a duplicate)
 	GamesInFile []string
 	CanKeep     bool
+	// on the shown page only: the file can be deleted on its own (see fileDeletableIssueKinds)
+	CanDelete bool
 }
 
 type IssuesPageData struct {
@@ -110,6 +112,7 @@ func (web *Web) HandleIssues() {
 			shown[i].Cause = issueCause(shown[i].Reason, lang)
 			shown[i].GamesInFile = gamesInFiles[shown[i].File]
 			shown[i].CanKeep = issueKind(shown[i].Reason) == ISSUE_DUPLICATE
+			shown[i].CanDelete = fileDeletableIssueKinds[issueKind(shown[i].Reason)] && !shown[i].Kept && shown[i].Size >= 0
 		}
 		return IssuesPageData{
 			GlobalPageData:   web.globalPageData("issues"),
@@ -148,6 +151,39 @@ func (web *Web) HandleIssues() {
 			return
 		}
 		// the issues are listed again at once, without the files deleted
+		web.invalidateDerived()
+		web.Rescan(TRIGGER_MANUAL)
+		writeJSON(w, http.StatusOK, map[string]any{"deleted": deleted, "freed": freed, "failed": len(files) - deleted})
+	}).Methods("POST")
+
+	// delete one file that could not be read, after the user looked at it, then scan the
+	// library again
+	web.router.HandleFunc("/issues/delete-file", func(w http.ResponseWriter, r *http.Request) {
+		lang := web.requestLanguage(r)
+		requested := r.FormValue("path")
+		// the path of the issue the library lists, never the one of the request
+		var found *Issue
+		for _, issue := range web.getIssues() {
+			if requested != "" && issue.File == requested && fileDeletableIssueKinds[issueKind(issue.Reason)] && !issue.Kept {
+				found = &issue
+				break
+			}
+		}
+		if found == nil {
+			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
+			return
+		}
+		kind := issueKind(found.Reason)
+		files := issueFiles([]Issue{*found}, kind)
+		if len(files) == 0 {
+			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
+			return
+		}
+		deleted, freed, err := web.removeFilesAsTask(files, []string{"deleted from Issues: " + kind})
+		if err != nil {
+			writeGlobalError(w, http.StatusConflict, lang, err.Error())
+			return
+		}
 		web.invalidateDerived()
 		web.Rescan(TRIGGER_MANUAL)
 		writeJSON(w, http.StatusOK, map[string]any{"deleted": deleted, "freed": freed, "failed": len(files) - deleted})

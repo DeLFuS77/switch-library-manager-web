@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Issues: each file that cannot be read, is damaged or cut short has its own Delete button, after a confirmation. The files that cannot be read could not be deleted from the app before
+
 ## 1.49.3
 
 ### Fixes

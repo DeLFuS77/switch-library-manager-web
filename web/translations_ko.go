@@ -80,6 +80,7 @@ func init() {
 		"Showing them": "표시 중",
 		"show all":     "모두 보기",
 		"Delete them":  "삭제",
+		"Delete “%v” (%v)? It cannot be recovered.":                                              "“%v”(%v)을(를) 삭제할까요? 복구할 수 없어요.",
 		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "「%v」의 파일 %v개(%v)를 삭제할까요? 복구할 수 없습니다. 나중에 다시 구하세요.",
 		"Error":                      "오류",
 		"Review":                     "확인 필요",

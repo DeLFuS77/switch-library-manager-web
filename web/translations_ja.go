@@ -80,6 +80,7 @@ func init() {
 		"Showing them": "表示中",
 		"show all":     "すべて表示",
 		"Delete them":  "削除する",
+		"Delete “%v” (%v)? It cannot be recovered.":                                              "「%v」(%v)を削除しますか?元に戻せません。",
 		"Delete the %v files of “%v” (%v)? They cannot be recovered. Get them again afterwards.": "「%v」の %v 個のファイル (%v) を削除しますか?元に戻せません。後で入手し直してください。",
 		"Error":                      "エラー",
 		"Review":                     "要確認",

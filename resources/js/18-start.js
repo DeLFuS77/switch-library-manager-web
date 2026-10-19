@@ -269,6 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initHistoryCharts();
 	initIssueDelete();
 	initIssueKeep();
+	initIssueDeleteFile();
 	initSearchClear();
 	initCopyButtons();
 	initFullRows();
