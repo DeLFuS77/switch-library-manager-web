@@ -98,20 +98,47 @@ function initTaskIndicator() {
 			}
 		}, 1500);
 	};
-	let source = null;
-	const open = () => {
-		source = new EventSource('/api/tasks/events');
-		source.addEventListener('tasks', update);
-	};
 	if (taskLinks().some(link => link.querySelector('.nav-busy'))) {
 		update();
 	}
+	followTaskEvents(update);
+}
+
+// followTaskEvents calls changed on every change of the tasks, while the page is seen. A
+// browser opens few connections at once to the same server (six), and each page of the app
+// left open in a tab would keep one: with several tabs, the requests of the page seen waited
+// for good. A tab in the background closes its connection, and looks again once it is seen.
+function followTaskEvents(changed) {
+	let source = null;
+	const open = () => {
+		if (source || document.hidden) {
+			return;
+		}
+		source = new EventSource('/api/tasks/events');
+		source.addEventListener('tasks', changed);
+	};
+	const close = () => {
+		if (source) {
+			source.close();
+			source = null;
+		}
+	};
 	open();
-	window.addEventListener('pagehide', () => source.close());
+	document.addEventListener('visibilitychange', () => {
+		if (document.hidden) {
+			close();
+		} else {
+			open();
+			// what changed meanwhile
+			changed();
+		}
+	});
+	window.addEventListener('pagehide', close);
 	// back to the page from the history of the browser: the connection was closed on leaving
 	window.addEventListener('pageshow', e => {
 		if (e.persisted) {
 			open();
+			changed();
 		}
 	});
 }
@@ -178,7 +205,10 @@ function initLiveTasks() {
 			return;
 		}
 		loading = true;
-		fetch('/tasks.html?part=list', { cache: 'no-store' })
+		// an answer that never comes is given up: the next change asks again
+		const controller = new AbortController();
+		const timeout = setTimeout(() => controller.abort(), 20000);
+		fetch('/tasks.html?part=list', { cache: 'no-store', signal: controller.signal })
 			.then(response => response.ok ? response.text() : Promise.reject(response))
 			.then(html => new Promise(drawn => {
 				const moving = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -330,8 +360,17 @@ function initLiveTasks() {
 						}
 					});
 				});
+				// a drawing that fails still lets the next ones happen
+				const drawSafely = () => {
+					try {
+						draw();
+					} catch (error) {
+						drawn();
+						throw error;
+					}
+				};
 				if (!ending.length || document.hidden) {
-					draw();
+					drawSafely();
 					return;
 				}
 				ending.forEach(bar => {
@@ -346,12 +385,13 @@ function initLiveTasks() {
 						lane.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(-14px)', opacity: 0 }], { duration: 260, delay: 520, easing: 'ease-in', fill: 'forwards' });
 					}
 				});
-				setTimeout(draw, moving ? 800 : 250);
+				setTimeout(drawSafely, moving ? 800 : 250);
 			}))
 			.catch(() => {
 				// the next event tries again
 			})
 			.finally(() => {
+				clearTimeout(timeout);
 				loading = false;
 				if (pending) {
 					pending = false;
@@ -361,24 +401,15 @@ function initLiveTasks() {
 	};
 
 	if (window.EventSource) {
-		let source = null;
-		const open = () => {
-			source = new EventSource('/api/tasks/events');
-			source.addEventListener('tasks', e => {
-				const version = Number(e.data);
-				if (version !== rendered) {
-					rendered = version;
-					refresh();
-				}
-			});
-		};
-		open();
-		window.addEventListener('pagehide', () => source.close());
-		// back to the page from the history of the browser: the connection was closed on
-		// leaving, and the tasks went on meanwhile
-		window.addEventListener('pageshow', e => {
-			if (e.persisted) {
-				open();
+		followTaskEvents(e => {
+			// seen again: the list is drawn anew, the version is not known
+			if (!e || !e.data) {
+				refresh();
+				return;
+			}
+			const version = Number(e.data);
+			if (version !== rendered) {
+				rendered = version;
 				refresh();
 			}
 		});

@@ -2,21 +2,20 @@
 
 ## Unreleased
 
-### Improvements
-
-- Space: a duplicate whose kept copy was checked without errors but not whole (an update, whose game is needed to check everything) can now be selected and deleted, after a confirmation that says so. Select all leaves it out, and Organize and the automations still keep it. Damaged or unverified copies stay blocked
-- The legend of the library explains the violet wand of the games with cheats for your version
-
-## Unreleased
-
 ### Features
 
 - Notifications for new cheats: when the cheats database gets cheats for the version of a game you have, it is told by Discord, Telegram or the webhook, like new updates and DLC. On by default, with a switch in Settings and in the setup assistant. The games that have cheats already are only recorded the first time, not sent all at once
 
 ### Improvements
 
+- Space: a duplicate whose kept copy was checked without errors but not whole (an update, whose game is needed to check everything) can now be selected and deleted, after a confirmation that says so. Select all leaves it out, and Organize and the automations still keep it. Damaged or unverified copies stay blocked
+- The legend of the library explains the violet wand of the games with cheats for your version
 - Issues: each file that cannot be read, is damaged or cut short has its own Delete button, after a confirmation. The files that cannot be read could not be deleted from the app before
 - A game whose NSP has no ticket, and whose title key title.keys does not have, cannot be compressed: the task now says so in your language, with how to fix it, instead of a technical message in English
+
+### Fixes
+
+- The Tasks page could stop updating and show a task still running long after it ended: each page of the app open in a tab kept a connection to the server, and with several tabs the browser had none left for the page seen. A tab in the background now closes its connection and looks again once it is seen, and a list that never comes or fails to draw no longer stops the next updates
 
 ### Development
 
