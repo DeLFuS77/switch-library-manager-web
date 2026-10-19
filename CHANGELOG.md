@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Issues tells, as Space does, when a duplicate or old file also holds the game, its latest update or a DLC that the library keeps (a file with several titles, like a cartridge with a collection of games), so it is not deleted
+
 ## 1.47.0
 
 ### New
