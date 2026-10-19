@@ -2,9 +2,18 @@
 
 ## Unreleased
 
+### Features
+
+- Notifications for new cheats: when the cheats database gets cheats for the version of a game you have, it is told by Discord, Telegram or the webhook, like new updates and DLC. On by default, with a switch in Settings and in the setup assistant. The games that have cheats already are only recorded the first time, not sent all at once
+
 ### Improvements
 
 - Issues: each file that cannot be read, is damaged or cut short has its own Delete button, after a confirmation. The files that cannot be read could not be deleted from the app before
+- A game whose NSP has no ticket, and whose title key title.keys does not have, cannot be compressed: the task now says so in your language, with how to fix it, instead of a technical message in English
+
+### Development
+
+- The tests press the save buttons of Settings and Organize in a real browser and check that the server kept the new value
 
 ## 1.49.3
 

@@ -20,6 +20,9 @@ import (
 
 const NOTIFICATIONS_STATE_FILENAME = "notifications.json"
 
+// cheatsRecordedKey tells in the state that the cheats of the library were looked at once.
+const cheatsRecordedKey = "cheats:recorded"
+
 var (
 	// redirects are not followed: a webhook answering with one could send the request
 	// to an address of the local network
@@ -103,6 +106,22 @@ func (web *Web) availableItems(lang string) []NotificationItem {
 		}
 	}
 
+	if options.NotifyCheats {
+		// the build is in the key: cheats for a newer version the library got are new too
+		cheats := web.cheats()
+		for prefix, local := range localDB.TitlesMap {
+			if !local.BaseExist || local.File.Metadata == nil {
+				continue
+			}
+			id := strings.ToUpper(local.File.Metadata.TitleId)
+			if !cheats.has(id, local.LatestUpdate) {
+				continue
+			}
+			name := titleName(switchDB, lang, id, getLocalTitleName(switchDB.TitlesMap[prefix], local))
+			items = append(items, NotificationItem{Key: "cheats:" + id + ":" + cheats.buildID(id, local.LatestUpdate), Kind: "cheats", TitleId: id, Name: name, Detail: fmt.Sprintf("v%d", local.LatestUpdate)})
+		}
+	}
+
 	sort.Slice(items, func(i, j int) bool { return items[i].Key < items[j].Key })
 	return items
 }
@@ -152,7 +171,7 @@ func (web *Web) notifyChanges() error {
 	options := settingsObj.Notifications
 	// games bought since the last check leave the wishlist
 	web.forgetOwnedWishes()
-	if !notificationsConfigured(options) || (!options.NotifyUpdates && !options.NotifyDlc && !options.NotifyWishlist) {
+	if !notificationsConfigured(options) || (!options.NotifyUpdates && !options.NotifyDlc && !options.NotifyWishlist && !options.NotifyCheats) {
 		return nil
 	}
 
@@ -165,14 +184,25 @@ func (web *Web) notifyChanges() error {
 	if switchDB, localDB := web.state.get(); switchDB == nil || localDB == nil {
 		return nil
 	}
+	web.notifying.Lock()
+	defer web.notifying.Unlock()
 
 	current := web.availableItems(lang)
 	notified := web.loadNotifiedKeys()
 
 	if notified != nil {
+		// the first time cheats are looked at, the games that have them already are only
+		// recorded: the next ones are reported, not hundreds at once
+		cheatsKnown := false
+		for key := range notified {
+			if strings.HasPrefix(key, "cheats:") || key == cheatsRecordedKey {
+				cheatsKnown = true
+				break
+			}
+		}
 		newItems := []NotificationItem{}
 		for _, item := range current {
-			if _, ok := notified[item.Key]; !ok {
+			if _, ok := notified[item.Key]; !ok && (item.Kind != "cheats" || cheatsKnown) {
 				newItems = append(newItems, item)
 			}
 		}
@@ -189,7 +219,11 @@ func (web *Web) notifyChanges() error {
 	// the items of a kind turned off are kept as reported: turned on again, it does not report
 	// at once everything that was missing meanwhile
 	kept := append([]NotificationItem{}, current...)
-	enabled := map[string]bool{"update": options.NotifyUpdates, "dlc": options.NotifyDlc, "wish": options.NotifyWishlist, "wishdlc": options.NotifyWishlist}
+	enabled := map[string]bool{"update": options.NotifyUpdates, "dlc": options.NotifyDlc, "wish": options.NotifyWishlist, "wishdlc": options.NotifyWishlist, "cheats": options.NotifyCheats}
+	// the cheats were looked at, also when no game has any yet
+	if options.NotifyCheats && web.cheats() != nil {
+		kept = append(kept, NotificationItem{Key: cheatsRecordedKey, Kind: "cheats"})
+	}
 	for key := range notified {
 		if kind, _, ok := strings.Cut(key, ":"); ok && !enabled[kind] {
 			kept = append(kept, NotificationItem{Key: key, Kind: kind})
@@ -261,6 +295,8 @@ func notificationText(lang string, items []NotificationItem) (string, string) {
 			lines = append(lines, "• "+translatef(lang, "New in your library: %v", item.Name))
 		case "newdlc":
 			lines = append(lines, "• "+translatef(lang, "New DLC in your library: %v", item.Name))
+		case "cheats":
+			lines = append(lines, "• "+translatef(lang, "Cheats for %v (%v, the version you have)", item.Name, item.Detail))
 		default:
 			lines = append(lines, "• "+item.Name)
 		}
