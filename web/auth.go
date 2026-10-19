@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -64,7 +65,11 @@ type AuthInfo struct {
 	Enabled bool
 	User    string
 	IsAdmin bool
-	FromEnv bool
+	// the role of the user, and whether it may look after the library or download from it
+	Role        string
+	CanEdit     bool
+	CanDownload bool
+	FromEnv     bool
 	// the password of SLM_AUTH_PASSWORD is weak: shown to the administrators
 	WeakEnvPassword bool
 	// the colour of the avatar of the user, or "" for the colours of the app
@@ -294,6 +299,53 @@ func isPublicPath(path string) bool {
 var adminOnlyPages = map[string]struct{}{"/settings.html": {}, "/wizard": {}, "/wizard/check": {}, "/saves.html": {}, "/saves/download": {}, "/organize.html": {}, "/users.html": {}, "/compress.html": {}, "/space.html": {}, "/update.html": {}, "/backup/download": {},
 	"/compress/xci-list": {}, "/compress/nsz-list": {}, "/diagnostics.html": {}, "/maintenance.html": {}}
 
+// downloadPath matches what takes a file of the library out of it: games, updates, DLC, their
+// archives, cheats and the lists of the library
+var downloadPath = regexp.MustCompile(`^/api/titles/[^/]+(/updates/[^/]+|/dlc/[^/]+|/archive\.zip|/cheats\.(txt|zip))?$|^/api/cheats\.zip$|^/export/|^/sd/list\.txt$`)
+
+// editorPages are the pages of the tools an editor uses besides the ones of everybody
+var editorPages = map[string]struct{}{"/compress.html": {}, "/compress/xci-list": {}, "/compress/nsz-list": {}}
+
+// editorActions are what an editor may do besides looking and downloading: none deletes a file
+// or changes a setting (a compression keeps the originals for them, see /compress/start)
+var editorActions = map[string]struct{}{"/sync": {}, "/verify/start": {}, "/compress/start": {}, "/compress/pause": {}, "/compress/cancel": {},
+	"/favorites": {}, "/wishlist": {}, "/collections": {}, "/smart-collections": {}, "/covers/retry": {}, "/api/tasks/clear": {},
+	"/uploads/start": {}, "/uploads/finish": {}, "/uploads/cancel": {}, "/uploads/chunk": {}}
+
+// roleAllows reports whether a role may make a request.
+func roleAllows(role string, r *http.Request) bool {
+	switch role {
+	case ROLE_ADMIN:
+		return true
+	case ROLE_EDITOR:
+		return viewerAllowed(r) || editorAllowed(r)
+	case ROLE_VIEWER:
+		return viewerAllowed(r)
+	}
+	// a guest, or a role this version does not know: looks, without downloading
+	return viewerAllowed(r) && !downloadPath.MatchString(r.URL.Path)
+}
+
+func editorAllowed(r *http.Request) bool {
+	switch r.Method {
+	case http.MethodGet, http.MethodHead:
+		_, ok := editorPages[r.URL.Path]
+		return ok
+	case http.MethodPost, http.MethodPut:
+		if _, ok := editorActions[r.URL.Path]; ok {
+			return true
+		}
+		return strings.HasPrefix(r.URL.Path, "/api/tasks/") && strings.HasSuffix(r.URL.Path, "/dismiss")
+	}
+	return false
+}
+
+// isAdminRequest tells a request of an administrator, or of anyone when login is off.
+func isAdminRequest(r *http.Request) bool {
+	principal := principalFrom(r)
+	return principal == nil || principal.IsAdmin()
+}
+
 func viewerAllowed(r *http.Request) bool {
 	switch r.Method {
 	case http.MethodGet, http.MethodHead:
@@ -354,7 +406,7 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 			}
 		}
 
-		if principal != nil && !principal.IsAdmin() && !viewerAllowed(r) {
+		if principal != nil && !roleAllows(principal.Role, r) {
 			http.Error(w, "this action needs an administrator", http.StatusForbidden)
 			return
 		}
@@ -650,6 +702,12 @@ func (web *Web) authInfo(r *http.Request) AuthInfo {
 	enabled := web.auth != nil && web.auth.Enabled()
 	weak := web.auth != nil && web.auth.envPasswordWeak != nil
 	info := AuthInfo{Enabled: enabled, User: principal.Name, IsAdmin: principal.IsAdmin(), FromEnv: principal.Source == "env", WeakEnvPassword: weak && principal.IsAdmin()}
+	info.Role = principal.Role
+	if !validRole(info.Role) {
+		info.Role = ROLE_GUEST
+	}
+	info.CanEdit = info.Role == ROLE_ADMIN || info.Role == ROLE_EDITOR
+	info.CanDownload = info.Role != ROLE_GUEST
 	if web.auth != nil && web.auth.users != nil && principal.Name != "" {
 		if user, ok := web.auth.users.Get(principal.Name); ok {
 			info.Color = user.Color

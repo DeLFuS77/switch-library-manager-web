@@ -45,7 +45,7 @@
 						<span class="user-avatar{{with .Color}} avatar-{{.}}{{end}}" aria-hidden="true">{{initial .Name}}</span>
 						<div class="flex-grow-1 min-w-0">
 							<div class="fw-semibold">{{.Name}}{{if eq .Name $me}} <span class="text-body-secondary fw-normal">({{t "you"}})</span>{{end}}
-								{{- if .IsAdmin}} <span class="chip chip-success ms-1">{{t "Administrator"}}</span>{{else}} <span class="chip chip-muted ms-1">{{t "Read only"}}</span>{{end}}</div>
+								{{- if .IsAdmin}} <span class="chip chip-success ms-1">{{t "Administrator"}}</span>{{else}} <span class="chip chip-muted ms-1">{{t (roleName .Role)}}</span>{{end}}</div>
 							<div class="small text-body-secondary">{{t "Created %v" (formatDateTime .Created)}}</div>
 						</div>
 						<details class="user-actions">
@@ -56,8 +56,10 @@
 									<label class="form-label small fw-semibold" for="role-{{.Name}}">{{t "Role"}}</label>
 									<div class="input-group input-group-sm">
 										<select class="form-select" id="role-{{.Name}}" name="role">
-											<option value="admin"{{if .IsAdmin}} selected{{end}}>{{t "Administrator"}}</option>
-											<option value="viewer"{{if not .IsAdmin}} selected{{end}}>{{t "Read only"}}</option>
+											{{- $role := .Role}}
+											{{- range roleChoices}}
+											<option value="{{.Value}}"{{if eq .Value $role}} selected{{end}}>{{t .Name}}</option>
+											{{- end}}
 										</select>
 										<button class="btn btn-outline-primary" type="submit">{{t "Change"}}</button>
 									</div>
@@ -96,8 +98,9 @@
 					<div class="col-md-3">
 						<label class="form-label fw-semibold" for="newRole">{{t "Role"}}</label>
 						<select class="form-select" id="newRole" name="role">
-							<option value="viewer">{{t "Read only"}}</option>
-							<option value="admin">{{t "Administrator"}}</option>
+							{{- range roleChoices}}
+							<option value="{{.Value}}"{{if eq .Value "viewer"}} selected{{end}}>{{t .Name}}</option>
+							{{- end}}
 						</select>
 					</div>
 					<div class="col-md-2">
@@ -105,6 +108,11 @@
 					</div>
 					<div class="col-12 form-text mt-1">{{t "At least 10 characters, not a common one and not the user name."}}</div>
 				</form>
+				<ul class="role-list small text-body-secondary mt-3 mb-0">
+					{{- range roleChoices}}
+					<li><strong class="text-body">{{t .Name}}</strong>: {{t .Text}}</li>
+					{{- end}}
+				</ul>
 			</section>
 			{{- end}}
 			<section class="mt-4" aria-labelledby="activityTitle">

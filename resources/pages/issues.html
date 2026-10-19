@@ -30,7 +30,7 @@
 								{{- range .}}
 								<li>
 									<a class="text-truncate" href="/title/{{.Id}}.html" title="{{.Name}}">{{if .Name}}{{.Name}}{{else}}{{t "Unknown game"}}{{end}}</a>
-									<button type="button" class="btn btn-link btn-sm p-0 orphan-wish admin-only{{if .Wished}} is-wished{{end}}" data-wish="{{.Id}}" data-wished="{{.Wished}}" aria-pressed="{{.Wished}}" title="{{if .Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if .Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>
+									<button type="button" class="btn btn-link btn-sm p-0 orphan-wish editor-only{{if .Wished}} is-wished{{end}}" data-wish="{{.Id}}" data-wished="{{.Wished}}" aria-pressed="{{.Wished}}" title="{{if .Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if .Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>
 									<button type="button" class="btn btn-link btn-sm p-0 font-monospace orphan-id" data-copy="{{.Id}}" title="{{t "Copy ID"}}">{{.Id}} <span class="bi bi-clipboard" aria-hidden="true"></span></button>
 									<span class="small text-body-secondary text-nowrap">{{if .OrphanUpdates}}{{t "%v updates" .OrphanUpdates}}{{end}}{{if and .OrphanUpdates .OrphanDlc}} &middot; {{end}}{{if .OrphanDlc}}{{t "%v DLC" .OrphanDlc}}{{end}}</span>
 								</li>

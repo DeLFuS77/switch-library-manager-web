@@ -4,12 +4,32 @@
 
 // read-only users do not see the controls that change something; the server refuses the
 // actions anyway
-[data-role="viewer"] {
+[data-role="viewer"],
+[data-role="guest"] {
 	.admin-only,
+	.editor-only,
 	[data-ignore-kind],
 	[data-bulk-item],
 	.bulk-toolbar,
 	[data-sync-action] {
+		display: none !important;
+	}
+}
+
+// an editor sees the controls marked for editors, not the other ones of the administrators
+[data-role="editor"] {
+	.admin-only:not(.editor-only),
+	[data-ignore-kind] {
+		display: none !important;
+	}
+}
+
+// a guest downloads nothing
+[data-role="guest"] {
+	a[href^="/api/titles/"],
+	a[href^="/api/cheats"],
+	a[href^="/export/"],
+	.download-only {
 		display: none !important;
 	}
 }

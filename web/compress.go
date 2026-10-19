@@ -1191,7 +1191,8 @@ func (web *Web) HandleCompress() {
 		if level != switchfs.LevelFast && level != switchfs.LevelMax {
 			level = switchfs.LevelBalanced
 		}
-		if !web.startCompression(paths, level, r.FormValue("delete_originals") == "true") {
+		// only an administrator deletes the originals
+		if !web.startCompression(paths, level, r.FormValue("delete_originals") == "true" && isAdminRequest(r)) {
 			writeGlobalError(w, http.StatusConflict, lang, "A compression is already running.")
 			return
 		}

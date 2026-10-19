@@ -34,7 +34,7 @@
 					{{- else if eq $.FeaturedDays 1}}<span class="countdown-label">{{t "Tomorrow"}}</span>
 					{{- else}}<span class="countdown-number"><span class="countdown-ring" aria-hidden="true"></span>{{$.FeaturedDays}}</span><span class="countdown-label">{{t "days left"}}</span>{{end}}
 				</div>
-				<button type="button" class="wish-toggle admin-only{{if $i.Wished}} is-wished{{end}}" data-wish="{{$i.Id}}" data-wished="{{$i.Wished}}" aria-pressed="{{$i.Wished}}" title="{{if $i.Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if $i.Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>
+				<button type="button" class="wish-toggle editor-only{{if $i.Wished}} is-wished{{end}}" data-wish="{{$i.Id}}" data-wished="{{$i.Wished}}" aria-pressed="{{$i.Wished}}" title="{{if $i.Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if $i.Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>
 			</section>
 			{{- end}}
 			{{- with .JustReleased}}

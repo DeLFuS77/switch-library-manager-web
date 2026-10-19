@@ -2,8 +2,8 @@
 				{{- $type := .Type}}{{if or (eq $type "BASEGAME") (eq $type "BASE")}}{{$type = t "Game"}}{{else if eq $type "ADDONCONTENT"}}{{$type = "DLC"}}{{else if eq $type "UPDATE"}}{{$type = t "Update"}}{{end}}
 				<article class="card game-card h-100{{if .Missing}} is-missing{{end}}{{if .Favorite}} is-fav-card{{else if .Wished}} is-wish-card{{end}}">
 					<div class="game-cover">
-						{{- if .LatestUpdate}}<input class="form-check-input cover-select" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">{{else if .Selectable}}<input class="form-check-input cover-select admin-only" type="checkbox" data-library-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">{{end}}
-						{{- if and (not .Type) (not .LatestUpdate) (not .InLibrary)}}<button type="button" class="wish-toggle admin-only{{if .Wished}} is-wished{{end}}" data-wish="{{.Id}}" data-wished="{{.Wished}}" aria-pressed="{{.Wished}}" title="{{if .Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if .Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>{{end}}
+						{{- if .LatestUpdate}}<input class="form-check-input cover-select" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">{{else if .Selectable}}<input class="form-check-input cover-select editor-only" type="checkbox" data-library-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">{{end}}
+						{{- if and (not .Type) (not .LatestUpdate) (not .InLibrary)}}<button type="button" class="wish-toggle editor-only{{if .Wished}} is-wished{{end}}" data-wish="{{.Id}}" data-wished="{{.Wished}}" aria-pressed="{{.Wished}}" title="{{if .Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if .Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>{{end}}
 						{{- if .UpdateAvailable}}<span class="cover-ribbon" title="{{t "Update available"}}"><span class="bi bi-arrow-up-circle-fill" aria-hidden="true"></span></span>{{end}}
 						<a class="cover-link" href="/title/{{.Id}}.html" tabindex="-1" aria-hidden="true"><img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async"></a>
 						{{- if or .Type .Region .Play.Status}}
@@ -14,7 +14,7 @@
 						{{- end}}
 					</div>
 					<div class="game-body">
-						{{- if and .Selectable (not .LatestUpdate)}}<button type="button" class="fav-toggle admin-only{{if .Favorite}} is-favorite{{end}}" data-fav="{{.Id}}" data-favorite="{{.Favorite}}" aria-pressed="{{.Favorite}}" title="{{if .Favorite}}{{t "Remove from favorites"}}{{else}}{{t "Add to favorites"}}{{end}}"><span class="bi {{if .Favorite}}bi-star-fill{{else}}bi-star{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Favorite"}}</span></button>{{end}}
+						{{- if and .Selectable (not .LatestUpdate)}}<button type="button" class="fav-toggle editor-only{{if .Favorite}} is-favorite{{end}}" data-fav="{{.Id}}" data-favorite="{{.Favorite}}" aria-pressed="{{.Favorite}}" title="{{if .Favorite}}{{t "Remove from favorites"}}{{else}}{{t "Add to favorites"}}{{end}}"><span class="bi {{if .Favorite}}bi-star-fill{{else}}bi-star{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Favorite"}}</span></button>{{end}}
 						<h2 class="game-title"><a class="stretched-link" href="/title/{{.Id}}.html">{{.Name}}</a></h2>
 						{{- if .OtherRegions}}<span class="chip chip-muted align-self-start" title="{{t "You also have this game from other regions: see them on the Space page."}}"><span class="bi bi-globe2" aria-hidden="true"></span>{{if eq .OtherRegions 1}}{{t "+1 region"}}{{else}}{{t "+%v regions" .OtherRegions}}{{end}}</span>{{end}}
 						{{- if .LatestUpdate}}

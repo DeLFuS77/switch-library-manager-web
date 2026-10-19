@@ -4,7 +4,7 @@
 				{{- template "pageHeader" (dict "Title" (t "Library") "Count" -1 "Subtitle" (t "The games in your folders. Open a game to see its updates, DLC and files."))}}
 				<div class="d-flex flex-wrap gap-2 mb-3">
 				{{- if not .Demo}}
-				<button type="button" class="btn btn-outline-secondary rounded-pill admin-only" data-upload-open title="{{t "Send NSP, NSZ, XCI or XCZ files from this device to the library folder. You can also drop them on the page."}}"><span class="bi bi-upload me-2" aria-hidden="true"></span>{{t "Upload games"}}</button>
+				<button type="button" class="btn btn-outline-secondary rounded-pill editor-only" data-upload-open title="{{t "Send NSP, NSZ, XCI or XCZ files from this device to the library folder. You can also drop them on the page."}}"><span class="bi bi-upload me-2" aria-hidden="true"></span>{{t "Upload games"}}</button>
 				{{- end}}
 				{{- if gt .Pagination.NumItems 0}}
 				<div class="dropdown">
@@ -19,7 +19,7 @@
 				</div>
 			</div>
 			{{- if not .Demo}}
-			<div class="admin-only">
+			<div class="editor-only">
 				<input type="file" id="uploadInput" accept=".nsp,.nsz,.xci,.xcz" multiple hidden>
 				{{- if gt (len .UploadFolders) 1}}
 				<div class="upload-folder mb-3">
@@ -122,11 +122,11 @@
 				{{- range .SmartCollections}}
 				<span class="smart-collection{{if .Active}} active{{end}}">
 					<a href="{{.Href}}"{{if .Active}} aria-current="page"{{end}}>{{.Name}} <span class="filter-count">{{num .Count}}</span></a>
-					<button type="button" class="btn btn-link btn-sm p-0 admin-only" data-smart-delete="{{.Name}}" aria-label="{{t "Delete"}}: {{.Name}}"><span class="bi bi-x" aria-hidden="true"></span></button>
+					<button type="button" class="btn btn-link btn-sm p-0 editor-only" data-smart-delete="{{.Name}}" aria-label="{{t "Delete"}}: {{.Name}}"><span class="bi bi-x" aria-hidden="true"></span></button>
 				</span>
 				{{- end}}
 				{{- if .SmartSavable}}
-				<button type="button" class="btn btn-sm btn-outline-primary rounded-pill admin-only" data-smart-save><span class="bi bi-lightning-charge me-1" aria-hidden="true"></span>{{t "Save these filters as a smart collection"}}</button>
+				<button type="button" class="btn btn-sm btn-outline-primary rounded-pill editor-only" data-smart-save><span class="bi bi-lightning-charge me-1" aria-hidden="true"></span>{{t "Save these filters as a smart collection"}}</button>
 				{{- end}}
 			</div>
 			{{- end}}
@@ -137,7 +137,7 @@
 			{{- if gt (len .TitleItems) 0}}
 			{{- with .Recommendations}}{{template "recommendations" .}}{{end}}
 			{{- template "markLegend" (dict "Missing" .Filter.ShowsMissing "Favorites" true "Cheats" .Facets.Cheats)}}
-			<div class="library-bulk admin-only d-flex flex-wrap align-items-center gap-2 mb-3" hidden>
+			<div class="library-bulk editor-only d-flex flex-wrap align-items-center gap-2 mb-3" hidden>
 				<span class="fw-semibold me-1"><span data-library-count>0</span> {{t "selected"}}</span>
 				<button type="button" class="btn btn-sm btn-link px-1" data-library-all>{{t "Select all on this page"}}</button>
 				<button type="button" class="btn btn-sm btn-link px-1" data-library-none>{{t "Clear selection"}}</button>
@@ -146,7 +146,7 @@
 					<button type="button" class="btn btn-outline-primary" data-library-action="add"><span class="bi bi-bookmark-plus me-1" aria-hidden="true"></span>{{t "Add"}}</button>
 					<button type="button" class="btn btn-outline-secondary" data-library-action="remove"><span class="bi bi-bookmark-dash me-1" aria-hidden="true"></span>{{t "Remove"}}</button>
 				</div>
-				<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-library-action="ignore"><span class="bi bi-eye-slash me-1" aria-hidden="true"></span>{{t "Ignore their updates"}}</button>
+				<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill admin-only" data-library-action="ignore"><span class="bi bi-eye-slash me-1" aria-hidden="true"></span>{{t "Ignore their updates"}}</button>
 				<datalist id="collectionNames">
 					{{- range .Facets.Collections}}
 					<option value="{{.Name}}"></option>

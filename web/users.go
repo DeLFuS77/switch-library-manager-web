@@ -16,9 +16,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// the roles, from the one that may do the least: a guest looks, a player (the read-only
+// users of before) also downloads, an editor also looks after the library without deleting
+// anything, and an administrator does everything
 const (
-	ROLE_ADMIN  = "admin"
+	ROLE_GUEST  = "guest"
 	ROLE_VIEWER = "viewer"
+	ROLE_EDITOR = "editor"
+	ROLE_ADMIN  = "admin"
 
 	USERS_FILENAME = "users.json"
 )
@@ -163,7 +168,7 @@ func (s *UserStore) add(name string, password string, role string, onlyFirst boo
 	if !validUserName.MatchString(name) {
 		return ErrUserName
 	}
-	if role != ROLE_ADMIN && role != ROLE_VIEWER {
+	if !validRole(role) {
 		return ErrRole
 	}
 	if err := checkPassword(name, password); err != nil {
@@ -219,7 +224,7 @@ func (s *UserStore) SetColor(name string, color string) error {
 }
 
 func (s *UserStore) SetRole(name string, role string) error {
-	if role != ROLE_ADMIN && role != ROLE_VIEWER {
+	if !validRole(role) {
 		return ErrRole
 	}
 	s.mutex.Lock()
@@ -304,4 +309,41 @@ func hashPassword(password string) (string, error) {
 		return "", err
 	}
 	return string(hash), nil
+}
+
+// roles are the roles in the order they are offered.
+var roles = []string{ROLE_GUEST, ROLE_VIEWER, ROLE_EDITOR, ROLE_ADMIN}
+
+func validRole(role string) bool {
+	for _, known := range roles {
+		if role == known {
+			return true
+		}
+	}
+	return false
+}
+
+// roleNames are the names of the roles, translated by the interface.
+var roleNames = map[string]string{ROLE_GUEST: "Guest", ROLE_VIEWER: "Player", ROLE_EDITOR: "Editor", ROLE_ADMIN: "Administrator"}
+
+// RoleChoice is a role with its name and what it may do, for the pages.
+type RoleChoice struct {
+	Value string
+	Name  string
+	Text  string
+}
+
+var roleTexts = map[string]string{
+	ROLE_GUEST:  "Looks at the library, without downloading anything.",
+	ROLE_VIEWER: "Looks at the library and downloads games, updates, DLC and cheats.",
+	ROLE_EDITOR: "Also uploads, synchronizes, checks and compresses games, and keeps favorites, the wishlist and collections; deletes nothing and changes no settings.",
+	ROLE_ADMIN:  "Everything, also deleting files, organizing them, the settings, the users and the backups.",
+}
+
+func RoleChoices() []RoleChoice {
+	choices := make([]RoleChoice, len(roles))
+	for i, role := range roles {
+		choices[i] = RoleChoice{Value: role, Name: roleNames[role], Text: roleTexts[role]}
+	}
+	return choices
 }

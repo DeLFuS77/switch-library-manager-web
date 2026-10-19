@@ -9,7 +9,7 @@
 							<span class="user-avatar user-avatar-lg{{with .Auth.Color}} avatar-{{.}}{{end}}" aria-hidden="true">{{if .Auth.User}}{{initial .Auth.User}}{{else}}?{{end}}</span>
 							<div>
 								<div class="h5 fw-bold mb-1">{{if .Auth.User}}{{.Auth.User}}{{else}}{{t "Guest"}}{{end}}</div>
-								{{- if .Auth.IsAdmin}}<span class="chip chip-success">{{t "Administrator"}}</span>{{else}}<span class="chip chip-muted">{{t "Read only"}}</span>{{end}}
+								{{- if .Auth.IsAdmin}}<span class="chip chip-success">{{t "Administrator"}}</span>{{else}}<span class="chip chip-muted">{{t (roleName .Auth.Role)}}</span>{{end}}
 							</div>
 						</div>
 						{{- if .Stored}}
