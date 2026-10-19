@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	initFlashMessages();
 	initSaveWhenChanged();
+	initKeysUpload();
 	initOrganize();
 	initIgnoreButtons();
 	initLibraryBulk();
