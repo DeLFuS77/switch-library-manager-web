@@ -3,6 +3,7 @@ package web
 import (
 	"archive/zip"
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -200,5 +201,64 @@ func TestOldUpdateWithCheatsIsKept(t *testing.T) {
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.OrganizeOptions.DeleteUpdatesWithCheats = true })
 	if note := web.keptForCheats(old); note != "" {
 		t.Fatalf("turned off: %q", note)
+	}
+}
+
+func TestNewCheatsAreNotified(t *testing.T) {
+	web := cheatsWeb(t)
+	var messages []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var body map[string]any
+		json.NewDecoder(r.Body).Decode(&body)
+		messages = append(messages, body["message"].(string))
+	}))
+	t.Cleanup(server.Close)
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+		s.Notifications = settings.NotificationOptions{WebhookUrl: server.URL, NotifyUpdates: true}
+	})
+
+	// the notifications were in use before the cheats were
+	web.notifyChanges()
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.Notifications.NotifyCheats = true })
+	web.downloadCheats()
+	items := web.availableItems("en")
+	if len(items) != 1 || items[0].Kind != "cheats" || items[0].Key != "cheats:0100000000010000:2222222222222222" {
+		t.Fatalf("the game with cheats for its version: %+v", items)
+	}
+	// the games that had cheats already are not told at once
+	if len(messages) != 0 {
+		t.Fatalf("nothing is told the first time: %q", messages)
+	}
+
+	// the other game goes back to the version with cheats
+	_, localDB := web.state.get()
+	localDB.TitlesMap["0100000000020"].LatestUpdate = 0
+	web.invalidateDerived()
+	web.notifyChanges()
+	if len(messages) != 1 || !strings.Contains(messages[0], "Cheats for") || !strings.Contains(messages[0], "v0") || strings.Contains(messages[0], "v65536") {
+		t.Fatalf("the new cheats are told: %q", messages)
+	}
+	web.notifyChanges()
+	if len(messages) != 1 {
+		t.Fatal("told only once")
+	}
+
+	// turned off, nothing is told
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.Notifications.NotifyCheats = false })
+	if items := web.availableItems("en"); len(items) != 0 {
+		t.Fatalf("no cheats items when turned off: %+v", items)
+	}
+}
+
+func TestCheatsAreRecordedWhenNoGameHasAny(t *testing.T) {
+	web := cheatsWeb(t)
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+		s.Notifications = settings.NotificationOptions{WebhookUrl: "http://127.0.0.1:1", NotifyCheats: true}
+	})
+	_, localDB := web.state.get()
+	localDB.TitlesMap["0100000000010"].LatestUpdate = 0
+	web.downloadCheats()
+	if _, ok := web.loadNotifiedKeys()[cheatsRecordedKey]; !ok {
+		t.Fatal("the cheats were looked at: a game that gets them later is told")
 	}
 }

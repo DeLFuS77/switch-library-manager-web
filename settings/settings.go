@@ -118,6 +118,8 @@ type NotificationOptions struct {
 	NotifyDlc         bool   `json:"notify_dlc"`
 	// wished games that are released or get new DLC
 	NotifyWishlist bool `json:"notify_wishlist"`
+	// games of the library that get cheats for the version they have
+	NotifyCheats bool `json:"notify_cheats"`
 	// games and DLC that appear in the folders
 	NotifyNewGames bool `json:"notify_new_games"`
 }
@@ -226,7 +228,7 @@ func ReadSettings(dataFolder string) *AppSettings {
 	}
 	// defaults for keys missing from settings files written by older versions
 	loaded := &AppSettings{Debug: false, ScanFolders: []string{}, WatchFolders: true, CheckForUpdates: true,
-		Notifications:   NotificationOptions{NotifyUpdates: true, NotifyDlc: true, NotifyWishlist: true, NotifyNewGames: true},
+		Notifications:   NotificationOptions{NotifyUpdates: true, NotifyDlc: true, NotifyWishlist: true, NotifyNewGames: true, NotifyCheats: true},
 		OrganizeOptions: OrganizeOptions{SwitchSafeFileNames: true}, Prodkeys: "", IgnoreDLCTitleIds: []string{"01007F600B135007"}}
 	if _, err := os.Stat(filepath.Join(dataFolder, SETTINGS_FILENAME)); err == nil {
 		file, err := os.Open(filepath.Join(dataFolder, SETTINGS_FILENAME))
@@ -365,7 +367,7 @@ func saveDefaultSettings(dataFolder string) *AppSettings {
 		IgnoreFileTypes:        []string{},
 		WatchFolders:           true,
 		CheckForUpdates:        true,
-		Notifications:          NotificationOptions{NotifyUpdates: true, NotifyDlc: true, NotifyWishlist: true, NotifyNewGames: true},
+		Notifications:          NotificationOptions{NotifyUpdates: true, NotifyDlc: true, NotifyWishlist: true, NotifyNewGames: true, NotifyCheats: true},
 		Port:                   3000,
 		Debug:                  false,
 		OrganizeOptions: OrganizeOptions{
