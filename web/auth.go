@@ -298,7 +298,7 @@ func isPublicPath(path string) bool {
 }
 
 // pages and actions of administrators; read-only users can only look and download
-var adminOnlyPages = map[string]struct{}{"/settings.html": {}, "/wizard": {}, "/wizard/check": {}, "/saves.html": {}, "/saves/download": {}, "/organize.html": {}, "/users.html": {}, "/activity.html": {}, "/activity.csv": {}, "/compress.html": {}, "/space.html": {}, "/update.html": {}, "/backup/download": {},
+var adminOnlyPages = map[string]struct{}{"/settings.html": {}, "/wizard": {}, "/wizard/check": {}, "/wizard/folders": {}, "/wizard/admin": {}, "/saves.html": {}, "/saves/download": {}, "/organize.html": {}, "/users.html": {}, "/activity.html": {}, "/activity.csv": {}, "/compress.html": {}, "/space.html": {}, "/update.html": {}, "/backup/download": {},
 	"/compress/xci-list": {}, "/compress/nsz-list": {}, "/diagnostics.html": {}, "/maintenance.html": {}}
 
 // downloadPath matches what takes a file of the library out of it: games, updates, DLC, their
