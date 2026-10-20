@@ -69,9 +69,9 @@
 										<span class="text-truncate" title="{{$lane.Name}}">{{$lane.Name}}</span>
 										{{- with formatChange $kind $lane.Name}}<span class="format-change text-nowrap">{{.}}</span>{{end}}
 										{{- with $lane.Phase}}<span class="task-phase text-nowrap"><span class="bi bi-arrow-right-short" aria-hidden="true"></span>{{t .}} <span class="text-body-secondary">{{t "step %v of %v" $lane.Step $lane.Steps}}</span></span>{{end}}
-										<span class="text-nowrap text-body-secondary">{{formatSize $lane.Done}} / {{formatSize $lane.Total}} &middot; {{$lane.Percent}}%</span>
+										<span class="text-nowrap text-body-secondary">{{formatSize $lane.StepDone}} / {{formatSize $lane.StepTotal}} &middot; {{$lane.StepPercent}}%</span>
 									</div>
-									<div class="progress task-lane-bar" role="progressbar" aria-label="{{$lane.Name}}" aria-valuenow="{{$lane.Percent}}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar progress-bar-striped progress-bar-animated lane-{{$lane.Tone}}" style="width: {{$lane.Percent}}%"></div></div>
+									<div class="progress task-lane-bar" role="progressbar" aria-label="{{$lane.Name}}" aria-valuenow="{{$lane.StepPercent}}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar progress-bar-striped progress-bar-animated lane-{{$lane.Tone}}" style="width: {{$lane.StepPercent}}%"></div></div>
 								</div>
 							</li>
 							{{- end}}
