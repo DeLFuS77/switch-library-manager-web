@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### New
+
+- Organize can put each update and DLC in a folder named with its own ID: Game [ID] › Update [ID of the update], and DLC › name of the DLC [ID of the DLC]. The game folder gets its ID too when its template has none. Off by default, a switch under Folders
+
 ## 1.51.1
 
 ### Improvements
