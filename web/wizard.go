@@ -113,7 +113,15 @@ func browseFolders(path string, lang string) WizardFolders {
 		path = result.Places[0]
 	}
 	path = filepath.Clean(path)
-	if !filepath.IsAbs(path) {
+	// only inside the places it starts from: a drive on Windows, the root elsewhere (a network
+	// path of Windows is written by hand instead)
+	inside := false
+	for _, place := range result.Places {
+		if strings.HasPrefix(path, filepath.Clean(place)) {
+			inside = true
+		}
+	}
+	if !filepath.IsAbs(path) || !inside {
 		result.Error = translatef(lang, "Folder not found: %v", path)
 		return result
 	}
