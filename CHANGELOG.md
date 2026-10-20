@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### New
+
+- Organize can put each update and DLC in a folder named with its own ID: Game [ID] › Update [ID of the update], and DLC › name of the DLC [ID of the DLC]. The game folder gets its ID too when its template has none. Off by default, a switch under Folders
+
 ### Improvements
 
 - The time left of a compression, decompression, conversion, pack or split follows the speed of each of its steps: the hashes go at hundreds of MB/s and the max compression at a few, and their average said "2 minutes left" for a compression that took an hour. Until a step was measured, no time is shown instead of a wrong one
