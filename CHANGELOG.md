@@ -6,6 +6,13 @@
 
 - Organize can put each update and DLC in a folder named with its own ID: Game [ID] › Update [ID of the update], and DLC › name of the DLC [ID of the DLC]. The game folder gets its ID too when its template has none. Off by default, a switch under Folders
 
+### Improvements
+
+- The time left of a compression, decompression, conversion, pack or split follows the speed of each of its steps: the hashes go at hundreds of MB/s and the max compression at a few, and their average said "2 minutes left" for a compression that took an hour. Until a step was measured, no time is shown instead of a wrong one
+- A complete pack takes the NSZ (or XCZ) of a game when the library holds it next to the NSP of the same name: the pack comes out compressed, half the size, instead of a 20 GB NSP made of the separate NSP
+- The warning of little free space counts the space left, not only its share: a disk of 1 TB with 89 GB free was told short of space. A volume is short of space below 10% free and below 50 GB
+- The Compress page and Settings tell that Maximum is about 10 times slower than Balanced (each file on one core) for files a few % smaller, and that installers read every level the same
+
 ## 1.51.1
 
 ### Improvements

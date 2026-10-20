@@ -137,6 +137,11 @@ type Task struct {
 	PausedFor time.Duration `json:"pausedFor,omitempty"`
 	Workers   int           `json:"workers,omitempty"`
 	Threads   int           `json:"threads,omitempty"`
+	// a task on files estimates its time left from the speed of each of its steps, as of
+	// LeftAt: Left is 0 while a step it still has to do was not measured
+	Estimated bool          `json:"estimated,omitempty"`
+	Left      time.Duration `json:"left,omitempty"`
+	LeftAt    time.Time     `json:"leftAt,omitempty"`
 	// on the Tasks page only: the next file a task on files will take, and its cover
 	Next *TaskLane `json:"-"`
 }
@@ -353,6 +358,14 @@ func (t Task) Remaining() time.Duration {
 }
 
 func (t Task) remainingAt(now time.Time) time.Duration {
+	// the steps of a task on files go at very different speeds (hashes at hundreds of MB/s,
+	// the max compression at a few): the average of all of them said 2 minutes for an hour
+	if t.Estimated {
+		if t.Paused || t.Left <= 0 {
+			return 0
+		}
+		return max(t.Left-now.Sub(t.LeftAt), time.Minute).Round(time.Minute)
+	}
 	speed := t.speedAt(now)
 	if speed <= 0 || t.Total <= t.Current {
 		return 0
@@ -440,6 +453,16 @@ func (l *TaskLog) ProgressFiles(id int64, current int, total int, message string
 	l.update(id, false, func(task *Task) {
 		task.Current, task.Total, task.Message, task.MessageArg, task.Lanes = current, total, message, "", lanes
 		task.FileNumber, task.FileCount = number, count
+	})
+}
+
+// ProgressFilesLeft is ProgressFiles with the time left estimated from the speed of each step,
+// or 0 while it is not known.
+func (l *TaskLog) ProgressFilesLeft(id int64, current int, total int, message string, number int, count int, lanes []TaskLane, left time.Duration) {
+	l.update(id, false, func(task *Task) {
+		task.Current, task.Total, task.Message, task.MessageArg, task.Lanes = current, total, message, "", lanes
+		task.FileNumber, task.FileCount = number, count
+		task.Estimated, task.Left, task.LeftAt = true, left, time.Now()
 	})
 }
 

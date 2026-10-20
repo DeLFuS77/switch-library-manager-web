@@ -637,6 +637,41 @@ const (
 	PHASE_VERIFYING     = "Verifying"
 )
 
+// stepMeasureMin is how long a step must have run before its speed is trusted.
+const stepMeasureMin = 5 * time.Second
+
+// estimateLeft is the time left of a task on files: the bytes each of its steps still has to
+// read, at the speed measured for that step on one file (read bytes over the time it took),
+// shared among the files worked on at once. A step not measured yet makes it unknown (0),
+// except a check, which goes no slower than the slowest step measured.
+func estimateLeft(phases []string, read []int64, spent []time.Duration, remaining []int64, workers int) time.Duration {
+	speeds := make([]float64, len(phases))
+	slowest := 0.0
+	for step := range phases {
+		if spent[step] >= stepMeasureMin && read[step] > 0 {
+			speeds[step] = float64(read[step]) / spent[step].Seconds()
+			if slowest == 0 || speeds[step] < slowest {
+				slowest = speeds[step]
+			}
+		}
+	}
+	seconds := 0.0
+	for step, phase := range phases {
+		if remaining[step] <= 0 {
+			continue
+		}
+		speed := speeds[step]
+		if speed == 0 && phase == PHASE_VERIFYING {
+			speed = slowest
+		}
+		if speed == 0 {
+			return 0
+		}
+		seconds += float64(remaining[step]) / speed
+	}
+	return time.Duration(seconds / float64(max(workers, 1)) * float64(time.Second))
+}
+
 // runFileTask runs job on every file as one cancellable task. passes is how many times
 // each file is read, for the progress.
 func (web *Web) runFileTask(kind string, paths []string, passes int64, job fileJob) bool {
@@ -742,6 +777,11 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 			failure   *TaskNote
 			wait      sync.WaitGroup
 		)
+		// the bytes each step read and the time it took, over every file, for the time left
+		phases := filePhases[kind]
+		phased := len(phases) > 0 && int64(len(phases)) == passes
+		stepRead := make([]int64, len(phases))
+		stepSpent := make([]time.Duration, len(phases))
 		// publish gives the progress of every file being worked on; called with the mutex held
 		publish := func(message string) {
 			done := completed
@@ -753,7 +793,29 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 				}
 			}
 			// the files reached so far, the ones done and the ones being worked on
-			web.taskLog().ProgressFiles(taskId, int(done>>20), int(total>>20), message, next, len(paths), current)
+			if !phased {
+				web.taskLog().ProgressFiles(taskId, int(done>>20), int(total>>20), message, next, len(paths), current)
+				return
+			}
+			// what each step has left: every step of the files not started, and the steps
+			// to go of the ones being worked on
+			remaining := make([]int64, len(phases))
+			for _, size := range sizes[min(next, len(sizes)):] {
+				for step := range remaining {
+					remaining[step] += size
+				}
+			}
+			for _, lane := range current {
+				if lane.Steps != len(phases) || lane.Step < 1 {
+					continue
+				}
+				remaining[lane.Step-1] += lane.StepTotal() - lane.StepDone()
+				for step := lane.Step; step < len(phases); step++ {
+					remaining[step] += lane.StepTotal()
+				}
+			}
+			left := estimateLeft(phases, stepRead, stepSpent, remaining, workers)
+			web.taskLog().ProgressFilesLeft(taskId, int(done>>20), int(total>>20), message, next, len(paths), current, left)
 		}
 		for worker := 0; worker < workers; worker++ {
 			wait.Add(1)
@@ -781,15 +843,29 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 					message := name
 					report := func(step int64) func(int64, int64) {
 						lane := TaskLane{Name: name, Total: fileSize}
-						if phases := filePhases[kind]; len(phases) > 0 && sizes[i] > 0 {
-							index := min(int(step/sizes[i]), len(phases)-1)
+						index := -1
+						if len(phases) > 0 && sizes[i] > 0 {
+							index = min(int(step/sizes[i]), len(phases)-1)
 							lane.Phase, lane.Step, lane.Steps = phases[index], index+1, len(phases)
 						}
+						// the last report of this step, to measure its speed
+						var last time.Time
+						var lastDone int64
 						return func(fileDone int64, fileTotal int64) {
+							reached := time.Now()
 							// a pause holds the reading, compressing or checking where it is
 							web.waitIfPaused(ctx)
+							resumed := time.Now()
 							lane.Done = min(step+fileDone, fileSize)
 							mutex.Lock()
+							if phased && index >= 0 {
+								// the time held by a pause is not the step's
+								if !last.IsZero() {
+									stepRead[index] += max(lane.Done-lastDone, 0)
+									stepSpent[index] += reached.Sub(last)
+								}
+								last, lastDone = resumed, lane.Done
+							}
 							lanes[worker], partial[worker] = lane, lane.Done
 							publish(message)
 							mutex.Unlock()

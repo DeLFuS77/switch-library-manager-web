@@ -351,3 +351,47 @@ func TestCompressionCardWithSomethingSaved(t *testing.T) {
 		}
 	}
 }
+
+// The time left of a compression follows the speed of each step: hashes at 450 MB/s and the
+// max compression at 5 MB/s said "2 minutes left" for an hour when they were averaged.
+func TestTimeLeftFollowsEachStep(t *testing.T) {
+	phases := filePhases[TASK_COMPRESS]
+	const mb = int64(1) << 20
+	// 13 GB to compress: the hashes measured, the compression not yet
+	read := []int64{450 * mb * 20, 0, 0}
+	spent := []time.Duration{20 * time.Second, 0, 0}
+	remaining := []int64{0, 13000 * mb, 13000 * mb}
+	if left := estimateLeft(phases, read, spent, remaining, 1); left != 0 {
+		t.Fatalf("a step not measured yet: %v", left)
+	}
+	// the compression measured at 5 MB/s: the check, not measured, goes no slower than it
+	read[1], spent[1] = 5*mb*60, time.Minute
+	remaining[1] = 12000 * mb
+	if left := estimateLeft(phases, read, spent, remaining, 1); left < 83*time.Minute || left > 84*time.Minute {
+		t.Fatalf("12000 MB at 5 MB/s and 13000 MB checked at 5 MB/s at most: %v", left)
+	}
+	// the check measured too, at 200 MB/s
+	read[2], spent[2] = 200*mb*10, 10*time.Second
+	if left := estimateLeft(phases, read, spent, remaining, 1); left < 41*time.Minute || left > 42*time.Minute {
+		t.Fatalf("12000 MB at 5 MB/s and 13000 MB at 200 MB/s: %v", left)
+	}
+	// two files at once share it
+	if left := estimateLeft(phases, read, spent, remaining, 2); left < 20*time.Minute || left > 21*time.Minute {
+		t.Fatalf("two files at once: %v", left)
+	}
+	// a few seconds are not enough to trust a speed
+	if left := estimateLeft(phases, []int64{450 * mb, 0, 0}, []time.Duration{time.Second, 0, 0}, []int64{1000 * mb, 0, 0}, 1); left != 0 {
+		t.Fatalf("one second measured: %v", left)
+	}
+
+	now := time.Now()
+	task := Task{Kind: TASK_COMPRESS, Started: now.Add(-time.Hour), Current: 9000, Total: 10000, Estimated: true, Left: 40 * time.Minute, LeftAt: now.Add(-10 * time.Minute)}
+	if got := task.remainingAt(now); got != 30*time.Minute {
+		t.Fatalf("estimated 40 minutes 10 minutes ago: %v", got)
+	}
+	// unknown while a step was not measured, instead of the average of the others
+	task.Left = 0
+	if got := task.remainingAt(now); got != 0 {
+		t.Fatalf("not known yet: %v", got)
+	}
+}

@@ -72,10 +72,35 @@ func packFiles(local *db.SwitchGameFiles) []db.ExtendedFileInfo {
 	return result
 }
 
-// packSources gives the paths of the files of the pack of the game.
-func packSources(local *db.SwitchGameFiles) []string {
+// withCompressedCopies swaps each NSP or XCI of a pack for its compressed copy, the NSZ or XCZ
+// of the same name the library holds as its duplicate: the copy was checked when it was made,
+// and the pack is compressed too, half the size, instead of all the separate NSP added up.
+func withCompressedCopies(files []db.ExtendedFileInfo, skipped map[db.ExtendedFileInfo]db.SkippedFile) []db.ExtendedFileInfo {
+	if files == nil {
+		return nil
+	}
+	copies := map[string]db.ExtendedFileInfo{}
+	for file, reason := range skipped {
+		if reason.ReasonCode == db.REASON_DUPLICATE && !file.IsDir {
+			copies[filepath.Clean(filepath.Join(file.BaseFolder, file.FileName))] = file
+		}
+	}
+	result := make([]db.ExtendedFileInfo, 0, len(files))
+	for _, file := range files {
+		path := filepath.Join(file.BaseFolder, file.FileName)
+		if compressed, ok := copies[filepath.Clean(switchfs.CompressedPath(path))]; ok && !strings.EqualFold(filepath.Ext(path), filepath.Ext(compressed.FileName)) {
+			file = compressed
+		}
+		result = append(result, file)
+	}
+	return result
+}
+
+// packSources gives the paths of the files of the pack of the game, the compressed copies when
+// the library holds them (see withCompressedCopies).
+func packSources(local *db.SwitchGameFiles, skipped map[db.ExtendedFileInfo]db.SkippedFile) []string {
 	sources := []string{}
-	for _, file := range packFiles(local) {
+	for _, file := range withCompressedCopies(packFiles(local), skipped) {
 		sources = append(sources, filepath.Join(file.BaseFolder, file.FileName))
 	}
 	if len(sources) == 0 {
@@ -111,7 +136,7 @@ func (web *Web) packCandidates() []CompressCandidate {
 		}
 		scanned := web.scannedPaths()
 		for _, local := range localDB.TitlesMap {
-			files := packFiles(local)
+			files := withCompressedCopies(packFiles(local), localDB.Skipped)
 			if files == nil || local.File.Metadata == nil {
 				continue
 			}
@@ -142,6 +167,14 @@ func (web *Web) packCandidates() []CompressCandidate {
 	}).([]CompressCandidate)
 }
 
+// skippedFiles are the files the library left aside (duplicates, old updates), or nil.
+func (web *Web) skippedFiles() map[db.ExtendedFileInfo]db.SkippedFile {
+	if _, localDB := web.state.get(); localDB != nil {
+		return localDB.Skipped
+	}
+	return nil
+}
+
 // packGame is the game of the library whose base file is at path, with its title ID.
 func (web *Web) packGame(path string) (*db.SwitchGameFiles, string) {
 	_, localDB := web.state.get()
@@ -166,7 +199,7 @@ func (web *Web) packTarget(path string, name string) (target string, sources []s
 	if local == nil {
 		return "", nil, 0, errorString("The game is not in your library.")
 	}
-	sources = packSources(local)
+	sources = packSources(local, web.skippedFiles())
 	if len(sources) == 0 {
 		return "", nil, 0, errorString("This game has nothing to put in a pack.")
 	}
@@ -195,7 +228,7 @@ func (web *Web) startPack(titleId string, name string, deleteOriginals bool) err
 	if err != nil || localDB == nil || localDB.TitlesMap[prefix] == nil {
 		return errorString("The game is not in your library.")
 	}
-	sources := packSources(localDB.TitlesMap[prefix])
+	sources := packSources(localDB.TitlesMap[prefix], localDB.Skipped)
 	if len(sources) == 0 {
 		return errorString("This game has nothing to put in a pack.")
 	}
@@ -212,7 +245,7 @@ func (web *Web) startPacks(paths []string, names map[string]string, deleteOrigin
 	sizes := make([]int64, len(paths))
 	for i, path := range paths {
 		if local, _ := web.packGame(path); local != nil {
-			for _, source := range packSources(local) {
+			for _, source := range packSources(local, web.skippedFiles()) {
 				if info, err := os.Stat(source); err == nil {
 					sizes[i] += info.Size()
 				}
