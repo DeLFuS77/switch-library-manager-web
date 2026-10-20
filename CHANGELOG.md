@@ -2,12 +2,25 @@
 
 ## Unreleased
 
+### New
+
+- The setup wizard can browse the folders of the server to choose the folder of the games, instead of writing its path: the drives on Windows, the root, the home folder and the usual places of disks and shares (/mnt, /media, /Volumes...) elsewhere. Administrators only
+
 ### Improvements
 
+- The setup wizard checks the administrator before saving anything: a password the app refuses (too short, too common, or the user name) made "Save and start" fail again and again with only the word "Administrator". Now the security step says why and does not go on; "Show the password" helps to see what was typed
+- The steps of the setup wizard scroll inside, so the title and the buttons stay in place on long steps (notifications); on phones Back, Skip and Next stay together
+- The summary of the setup wizard has a "Change" button on each row to go back to its step, says whether the keys were found, and shows whole paths on phones
+- The setup wizard tells which folder is missing in plain words, clears the warning once the folders are right, checks the keys as soon as their step opens, writes the example folder the way of the system of the server (with the Docker hint only in a container), and keeps "Check the folders every" next to the switch it depends on
+- The compression level and "Keep the originals" of the wizard look off while it only compresses when asked
 - The time left of a compression, decompression, conversion, pack or split follows the speed of each of its steps: the hashes go at hundreds of MB/s and the max compression at a few, and their average said "2 minutes left" for a compression that took an hour. Until a step was measured, no time is shown instead of a wrong one
 - A complete pack takes the NSZ (or XCZ) of a game when the library holds it next to the NSP of the same name: the pack comes out compressed, half the size, instead of a 20 GB NSP made of the separate NSP
 - The warning of little free space counts the space left, not only its share: a disk of 1 TB with 89 GB free was told short of space. A volume is short of space below 10% free and below 50 GB
 - The Compress page and Settings tell that Maximum is about 10 times slower than Balanced (each file on one core) for files a few % smaller, and that installers read every level the same
+
+### Fixes
+
+- The last screen of the setup wizard closed by itself as soon as the first scan ended, with a small library in a second
 
 ## 1.51.1
 

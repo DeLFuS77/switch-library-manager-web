@@ -90,6 +90,9 @@ function setupWizard(element) {
 	const showAlert = message => {
 		alert.textContent = message || '';
 		alert.hidden = !message;
+		if (message) {
+			alert.scrollIntoView({ block: 'nearest' });
+		}
 	};
 
 	const show = (index, direction) => {
@@ -134,6 +137,9 @@ function setupWizard(element) {
 		if (step.dataset.step === 'summary') {
 			buildSummary();
 		}
+		if (step.dataset.step === 'keys' && previous !== step) {
+			checkKeys();
+		}
 		showAlert('');
 		if (previous !== step) {
 			const focusable = step.querySelector('input:not([type=hidden]), select, textarea');
@@ -152,7 +158,11 @@ function setupWizard(element) {
 		} catch (e) {
 			// the default
 		}
-		themeButtons.forEach(button => button.classList.toggle('is-active', button.dataset.wizardTheme === theme));
+		themeButtons.forEach(button => {
+			const chosen = button.dataset.wizardTheme === theme;
+			button.classList.toggle('is-active', chosen);
+			button.setAttribute('aria-checked', String(chosen));
+		});
 	};
 	themeButtons.forEach(button => button.addEventListener('click', () => {
 		applyTheme(button.dataset.wizardTheme);
@@ -182,6 +192,7 @@ function setupWizard(element) {
 		const folders = folderField.value.split('\n').map(line => line.trim()).filter(Boolean);
 		folderResults.replaceChildren();
 		if (folders.length === 0) {
+			showAlert(say('noFolder'));
 			return Promise.resolve(false);
 		}
 		// a folder twice or inside another one: told before the folders themselves
@@ -204,11 +215,126 @@ function setupWizard(element) {
 				line.prepend(Object.assign(document.createElement('code'), { textContent: folder }), document.createTextNode(' '));
 				return result.ok;
 			}).catch(() => false);
-		})]).then(results => results.every(Boolean));
+		})]).then(results => {
+			const ok = results.every(Boolean);
+			if (ok) {
+				showAlert('');
+			}
+			return ok;
+		});
 	};
 	element.querySelector('[data-wizard-check-folders]').addEventListener('click', checkFolders);
+	folderField.addEventListener('input', () => showAlert(''));
+
+	// the folders of the server, to choose one instead of writing it
+	const browser = element.querySelector('[data-wizard-browser]');
+	const browseButton = element.querySelector('[data-wizard-browse]');
+	const browserPath = element.querySelector('[data-wizard-browser-path]');
+	const browserList = element.querySelector('[data-wizard-browser-list]');
+	const browserPlaces = element.querySelector('[data-wizard-browser-places]');
+	const browserUp = element.querySelector('[data-wizard-browser-up]');
+	let browsing = '';
+	const browse = path => fetch(`/wizard/folders?path=${encodeURIComponent(path)}`, { cache: 'no-store' })
+		.then(response => (response.ok ? response.json() : Promise.reject(response.status)))
+		.then(result => {
+			browsing = result.path || '';
+			browserPath.textContent = result.error || browsing;
+			browserPath.classList.toggle('text-danger', Boolean(result.error));
+			browserUp.disabled = !result.parent;
+			browserUp.dataset.path = result.parent || '';
+			browserPlaces.replaceChildren(...(result.places || []).map(place => {
+				const option = new Option(place, place);
+				option.selected = browsing === place || browsing.startsWith(place.endsWith('/') || place.endsWith('\\') ? place : `${place}/`);
+				return option;
+			}));
+			const items = (result.folders || []).map(name => {
+				const item = document.createElement('li');
+				const button = document.createElement('button');
+				button.type = 'button';
+				button.className = 'wizard-browser-item';
+				const mark = document.createElement('span');
+				mark.className = 'bi bi-folder-fill';
+				mark.setAttribute('aria-hidden', 'true');
+				button.append(mark, document.createTextNode(` ${name}`));
+				button.addEventListener('click', () => browse(`${browsing}${/[\\/]$/.test(browsing) ? '' : (browsing.includes('\\') ? '\\' : '/')}${name}`));
+				item.appendChild(button);
+				return item;
+			});
+			if (items.length === 0 && !result.error) {
+				const empty = document.createElement('li');
+				empty.className = 'text-body-secondary small';
+				empty.textContent = say('noFolders');
+				items.push(empty);
+			}
+			if (result.more) {
+				const more = document.createElement('li');
+				more.className = 'text-body-secondary small';
+				more.textContent = say('more', (result.folders || []).length);
+				items.push(more);
+			}
+			browserList.replaceChildren(...items);
+			browserList.scrollTop = 0;
+		})
+		.catch(() => {
+			browserPath.textContent = say('unreachable');
+		});
+	const closeBrowser = () => {
+		browser.hidden = true;
+		browseButton.setAttribute('aria-expanded', 'false');
+	};
+	browseButton.addEventListener('click', () => {
+		if (!browser.hidden) {
+			closeBrowser();
+			return;
+		}
+		browser.hidden = false;
+		browseButton.setAttribute('aria-expanded', 'true');
+		// it starts at the last folder written, or at the first place of the server
+		const written = folderField.value.split('\n').map(line => line.trim()).filter(Boolean);
+		browse(written[written.length - 1] || '');
+	});
+	browserUp.addEventListener('click', () => browse(browserUp.dataset.path || ''));
+	browserPlaces.addEventListener('change', () => browse(browserPlaces.value));
+	element.querySelector('[data-wizard-browser-cancel]').addEventListener('click', closeBrowser);
+	element.querySelector('[data-wizard-browser-use]').addEventListener('click', () => {
+		if (!browsing) {
+			return;
+		}
+		const written = folderField.value.split('\n').map(line => line.trim()).filter(Boolean);
+		if (!written.includes(browsing)) {
+			written.push(browsing);
+		}
+		folderField.value = written.join('\n');
+		closeBrowser();
+		checkFolders();
+	});
+
+	// the interval of the checks of the folders only counts while they are watched
+	const watchSwitch = form.elements.watch_folders;
+	const watchInterval = element.querySelector('[data-wizard-watch-interval]');
+	const updateWatch = () => {
+		watchInterval.classList.toggle('is-off', !watchSwitch.checked);
+		// inert, not disabled: a disabled field is not saved
+		watchInterval.toggleAttribute('inert', !watchSwitch.checked);
+	};
+	watchSwitch.addEventListener('change', updateWatch);
+	updateWatch();
+
+	// the level and the originals only count when the app compresses by itself
+	const compressOptions = element.querySelector('[data-wizard-compress-options]');
+	const updateCompress = () => {
+		const manual = !form.elements.auto_compress.value;
+		compressOptions.classList.toggle('is-off', manual);
+		compressOptions.toggleAttribute('inert', manual);
+	};
+	[...form.elements.auto_compress].forEach(input => input.addEventListener('change', updateCompress));
+	updateCompress();
 	const keysResult = element.querySelector('[data-wizard-keys-result]');
-	const checkKeys = () => check('keys', form.elements.prod_keys.value).then(result => checkLine(keysResult, result)).catch(() => {});
+	let keysFound = null;
+	const checkKeys = () => check('keys', form.elements.prod_keys.value).then(result => {
+		keysFound = result.ok;
+		checkLine(keysResult, result);
+	}).catch(() => {});
 	element.querySelector('[data-wizard-check-keys]').addEventListener('click', checkKeys);
 	// keys uploaded from here: the field points to them, and they are checked at once
 	setupKeysUpload(element.querySelector('[data-keys-upload]'), json => {
@@ -223,19 +349,68 @@ function setupWizard(element) {
 	master.addEventListener('change', updateFlow);
 	updateFlow();
 
+	// the first administrator, checked by the server before anything is saved: a wrong password
+	// made "Save and start" fail again and again without saying why
+	const adminName = form.elements.wizard_admin_name;
+	const adminPassword = form.elements.wizard_admin_password;
+	const adminResult = element.querySelector('[data-wizard-admin-result]');
+	let adminOk = true;
+	const checkAdmin = () => {
+		if (authEnabled || !adminName) {
+			return Promise.resolve(true);
+		}
+		const name = adminName.value.trim();
+		const password = adminPassword.value;
+		if (!name && !password) {
+			adminResult.replaceChildren();
+			adminResult.className = 'wizard-check-line';
+			adminOk = true;
+			return Promise.resolve(true);
+		}
+		return fetch('/wizard/admin', { method: 'POST', body: new URLSearchParams({ name, password }) })
+			.then(response => (response.ok ? response.json() : Promise.reject(response.status)))
+			.then(result => {
+				adminOk = result.ok;
+				if (result.ok) {
+					adminResult.replaceChildren();
+					adminResult.className = 'wizard-check-line';
+				} else {
+					checkLine(adminResult, result);
+				}
+				return result.ok;
+			})
+			.catch(() => {
+				adminOk = false;
+				showAlert(say('unreachable'));
+				return false;
+			});
+	};
+	element.querySelector('[data-wizard-show-password]')?.addEventListener('change', e => {
+		adminPassword.type = e.target.checked ? 'text' : 'password';
+	});
+	[adminName, adminPassword].forEach(field => field?.addEventListener('input', () => {
+		adminResult.replaceChildren();
+		showAlert('');
+	}));
+
 	// a step goes on only when what it asks is right
 	const validate = () => {
 		const step = steps[current].dataset.step;
 		if (step === 'folders') {
 			return checkFolders().then(ok => {
 				if (!ok) {
-					showAlert(folderResults.querySelector('.is-bad')?.textContent.trim() || say('folders'));
+					showAlert(folderResults.querySelector('.is-bad')?.textContent.trim() || say('noFolder'));
 				}
 				return ok;
 			});
 		}
-		if (step === 'keys') {
-			checkKeys();
+		if (step === 'security') {
+			return checkAdmin().then(ok => {
+				if (!ok) {
+					showAlert(adminResult.textContent.trim() || say('adminFailed'));
+				}
+				return ok;
+			});
 		}
 		return Promise.resolve(true);
 	};
@@ -263,7 +438,7 @@ function setupWizard(element) {
 		const rows = [
 			['bi-translate', say('language'), choice('language')],
 			['bi-folder2-open', say('folders'), folders.join(', ') || say('none')],
-			['bi-key', say('keys'), form.elements.prod_keys.value.trim() || say('default')],
+			['bi-key', say('keys'), [form.elements.prod_keys.value.trim() || say('default'), keysFound === null ? '' : say(keysFound ? 'found' : 'notFound')].filter(Boolean).join(' · ')],
 			['bi-nintendo-switch', say('firmware'), form.elements.console_firmware.value.trim() || '—'],
 			['bi-moon-stars', say('background'), choice('background_hours')],
 			['bi-file-zip', say('compress'), choice('auto_compress')],
@@ -272,10 +447,12 @@ function setupWizard(element) {
 			['bi-hourglass-split', say('igdb'), form.elements.igdb_client_id.value.trim() ? say('set') : say('none')],
 		];
 		if (!authEnabled) {
-			rows.push(['bi-shield-lock', say('admin'), form.elements.wizard_admin_name.value.trim() || say('none')]);
+			rows.push(['bi-shield-lock', say('admin'), (adminOk && form.elements.wizard_admin_name.value.trim()) || say('none')]);
 		}
+		const stepNames = ['welcome', 'folders', 'keys', 'console', 'background', 'compression', 'automation', 'notifications', 'extras', 'security'];
 		list.replaceChildren(...rows.map(([iconName, label, value], i) => {
 			const row = document.createElement('li');
+			const target = steps.findIndex(item => item.dataset.step === stepNames[i]);
 			row.style.setProperty('--i', i);
 			const mark = document.createElement('span');
 			mark.className = `wizard-summary-icon bi ${iconName}`;
@@ -286,13 +463,31 @@ function setupWizard(element) {
 			const text = document.createElement('span');
 			text.className = 'wizard-summary-value';
 			text.textContent = value;
+			text.title = value;
 			row.append(mark, name, text);
+			if (target >= 0) {
+				const edit = document.createElement('button');
+				edit.type = 'button';
+				edit.className = 'btn btn-sm btn-link wizard-summary-edit';
+				edit.textContent = say('change');
+				edit.setAttribute('aria-label', `${say('change')}: ${label}`);
+				edit.addEventListener('click', () => show(target, -1));
+				row.appendChild(edit);
+			}
 			return row;
 		}));
 	};
 
 	back.addEventListener('click', () => show(current - 1, -1));
-	skip.addEventListener('click', () => show(current + 1, 1));
+	skip.addEventListener('click', () => {
+		if (steps[current].dataset.step === 'security' && adminName) {
+			adminName.value = '';
+			adminPassword.value = '';
+			adminResult.replaceChildren();
+			adminOk = true;
+		}
+		show(current + 1, 1);
+	});
 	next.addEventListener('click', () => {
 		next.disabled = true;
 		validate().then(ok => {
@@ -319,6 +514,17 @@ function setupWizard(element) {
 	form.addEventListener('submit', e => {
 		e.preventDefault();
 		finish.disabled = true;
+		checkAdmin().then(ok => {
+			if (!ok) {
+				finish.disabled = false;
+				show(stepOf('wizard_admin_name'), -1);
+				showAlert(adminResult.textContent.trim() || say('adminFailed'));
+				return;
+			}
+			save();
+		});
+	});
+	const save = () => {
 		finish.dataset.label = finish.dataset.label || finish.innerHTML;
 		finish.textContent = say('saving');
 		const body = new FormData(form);
@@ -335,6 +541,7 @@ function setupWizard(element) {
 							show(index, -1);
 						}
 						showAlert(error.message);
+						finish.hidden = current !== last;
 					} else if (json.globalError) {
 						showAlert(json.globalError.message || json.globalError.strongMessage);
 					}
@@ -349,7 +556,7 @@ function setupWizard(element) {
 							const failed = !response.ok || /[?&]error=/.test(response.url);
 							if (failed) {
 								show(stepOf('wizard_admin_name'), -1);
-								showAlert(say('admin'));
+								showAlert(say('adminFailed'));
 								return false;
 							}
 							return true;
@@ -366,12 +573,12 @@ function setupWizard(element) {
 				fetch('/wizard/state', { method: 'POST', body: new URLSearchParams({ state: 'done', covers: '1' }) });
 				show(done, 1);
 			})
-			.catch(() => showAlert(t('The server could not be reached.')))
+			.catch(() => showAlert(say('unreachable')))
 			.finally(() => {
 				finish.disabled = false;
 				finish.innerHTML = finish.dataset.label;
 			});
-	});
+	};
 
 	const setState = state => fetch('/wizard/state', { method: 'POST', body: new URLSearchParams({ state }) }).catch(() => {});
 	element.querySelector('[data-wizard-close]').addEventListener('click', () => {

@@ -113,3 +113,71 @@ func TestWizardChecksAFolder(t *testing.T) {
 		t.Fatal("no folder")
 	}
 }
+
+// The administrator of the wizard is checked before the settings are saved: a password the
+// app refuses made "Save and start" fail again and again without a reason.
+func TestWizardChecksTheAdministratorFirst(t *testing.T) {
+	cases := []struct {
+		name, password string
+		ok             bool
+	}{
+		{"", "", true},
+		{"admin", "", false},
+		{"", "alpha-secret-11", false},
+		{"admin", "short", false},
+		{"admin", "password123", false},
+		{"bad name!", "alpha-secret-11", false},
+		{"admin", "alpha-secret-11", true},
+	}
+	for _, c := range cases {
+		if got := checkWizardAdmin(c.name, c.password, "es"); got.Ok != c.ok || (!got.Ok && got.Message == "") {
+			t.Errorf("%q / %q: %+v", c.name, c.password, got)
+		}
+	}
+
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleWizard()
+	request := httptest.NewRequest("POST", "/wizard/admin", strings.NewReader(url.Values{"name": {"admin"}, "password": {"short"}}.Encode()))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	recorder := httptest.NewRecorder()
+	web.router.ServeHTTP(recorder, request)
+	if recorder.Code != 200 || !strings.Contains(recorder.Body.String(), `"ok":false`) {
+		t.Fatalf("the check of a short password: %d %s", recorder.Code, recorder.Body.String())
+	}
+	// only administrators see the folders of the server or check an administrator
+	for _, path := range []string{"/wizard/folders", "/wizard/admin"} {
+		if roleAllows(ROLE_EDITOR, httptest.NewRequest("GET", path, nil)) {
+			t.Errorf("%s for an editor", path)
+		}
+	}
+}
+
+// The folder browser lists the subfolders of a folder of the server, the hidden ones left out,
+// with the way up and the places to start from.
+func TestWizardBrowsesTheFoldersOfTheServer(t *testing.T) {
+	folder := t.TempDir()
+	for _, name := range []string{"Switch", "backups", ".hidden", "$RECYCLE.BIN"} {
+		os.Mkdir(filepath.Join(folder, name), 0o755)
+	}
+	os.WriteFile(filepath.Join(folder, "game.nsp"), []byte("x"), 0o644)
+	got := browseFolders(folder, "en")
+	if got.Error != "" || got.Path != filepath.Clean(folder) || got.Parent != filepath.Dir(filepath.Clean(folder)) {
+		t.Fatalf("browse: %+v", got)
+	}
+	if !reflect.DeepEqual(got.Folders, []string{"backups", "Switch"}) {
+		t.Fatalf("the subfolders, in order and without hidden ones or files: %v", got.Folders)
+	}
+	if len(got.Places) == 0 {
+		t.Fatal("places to start from")
+	}
+	if missing := browseFolders(filepath.Join(folder, "missing"), "en"); missing.Error == "" {
+		t.Fatal("a missing folder is told")
+	}
+	if relative := browseFolders("games", "en"); relative.Error == "" {
+		t.Fatal("a relative path is refused")
+	}
+	if start := browseFolders("", "en"); start.Path == "" {
+		t.Fatalf("an empty path starts at the first place: %+v", start)
+	}
+}

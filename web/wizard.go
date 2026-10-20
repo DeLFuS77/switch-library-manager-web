@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
+	"sort"
 	"strings"
 	"time"
 
@@ -32,6 +34,142 @@ type WizardPageData struct {
 	AuthEnabled bool
 	// the wizard opened by itself: it offers "Later" and "Do not show again"
 	Auto bool
+	// the app runs in a container: its folders are the paths inside it
+	InContainer bool
+	// a folder of games written the way of the system of the server, as an example
+	FolderExample string
+}
+
+// runningInContainer tells an app started by Docker or Podman.
+func runningInContainer() bool {
+	for _, marker := range []string{"/.dockerenv", "/run/.containerenv"} {
+		if _, err := os.Stat(marker); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+// folderExample is a folder of games as the system of the server writes it.
+func folderExample(inContainer bool) string {
+	switch {
+	case inContainer:
+		return "/mnt/roms"
+	case runtime.GOOS == "windows":
+		return `D:\Switch`
+	case runtime.GOOS == "darwin":
+		return "/Volumes/Games/Switch"
+	}
+	return "/mnt/roms"
+}
+
+// WizardFolders is a folder of the server with its subfolders, for the folder browser.
+type WizardFolders struct {
+	Path    string   `json:"path"`
+	Parent  string   `json:"parent,omitempty"`
+	Folders []string `json:"folders"`
+	// where to start: the drives on Windows, the root and the usual places elsewhere
+	Places []string `json:"places"`
+	// more subfolders than are listed
+	More  bool   `json:"more,omitempty"`
+	Error string `json:"error,omitempty"`
+}
+
+// wizardFolderLimit is how many subfolders the browser lists at most.
+const wizardFolderLimit = 500
+
+// browsePlaces are the places the folder browser starts from: the drives of Windows, or the
+// root, the home folder and the usual places of disks and shares.
+func browsePlaces() []string {
+	places := []string{}
+	if runtime.GOOS == "windows" {
+		for letter := 'A'; letter <= 'Z'; letter++ {
+			drive := string(letter) + `:\`
+			if _, err := os.Stat(drive); err == nil {
+				places = append(places, drive)
+			}
+		}
+		return places
+	}
+	places = append(places, "/")
+	candidates := []string{"/mnt", "/media", "/Volumes", "/volume1", "/share", "/data"}
+	if home, err := os.UserHomeDir(); err == nil {
+		candidates = append([]string{home}, candidates...)
+	}
+	for _, place := range candidates {
+		if info, err := os.Stat(place); err == nil && info.IsDir() {
+			places = append(places, place)
+		}
+	}
+	return places
+}
+
+// browseFolders lists the subfolders of a folder of the server, hidden ones left out; an empty
+// path starts at the first place.
+func browseFolders(path string, lang string) WizardFolders {
+	result := WizardFolders{Places: browsePlaces(), Folders: []string{}}
+	path = strings.TrimSpace(path)
+	if path == "" && len(result.Places) > 0 {
+		path = result.Places[0]
+	}
+	path = filepath.Clean(path)
+	if !filepath.IsAbs(path) {
+		result.Error = translatef(lang, "Folder not found: %v", path)
+		return result
+	}
+	result.Path = path
+	if parent := filepath.Dir(path); parent != path {
+		result.Parent = parent
+	}
+	entries, err := os.ReadDir(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			result.Error = translatef(lang, "Folder not found: %v", path)
+		} else {
+			result.Error = translate(lang, "The folder exists but cannot be read: check the permissions.")
+		}
+		return result
+	}
+	for _, entry := range entries {
+		name := entry.Name()
+		if strings.HasPrefix(name, ".") || strings.HasPrefix(name, "$") {
+			continue
+		}
+		// a link to a folder counts as a folder
+		if !entry.IsDir() {
+			if info, err := os.Stat(filepath.Join(path, name)); err != nil || !info.IsDir() {
+				continue
+			}
+		}
+		if len(result.Folders) == wizardFolderLimit {
+			result.More = true
+			break
+		}
+		result.Folders = append(result.Folders, name)
+	}
+	sort.Slice(result.Folders, func(i, j int) bool {
+		return strings.ToLower(result.Folders[i]) < strings.ToLower(result.Folders[j])
+	})
+	return result
+}
+
+// checkWizardAdmin checks the first administrator the wizard creates, before anything is saved:
+// a wrong password made the last step fail again and again with no reason given.
+func checkWizardAdmin(name string, password string, lang string) WizardCheck {
+	name = strings.TrimSpace(name)
+	if name == "" && password == "" {
+		return WizardCheck{Ok: true}
+	}
+	if name == "" || password == "" {
+		return WizardCheck{Message: translate(lang, "Fill in the user name and the password, or leave both empty.")}
+	}
+	if !validUserName.MatchString(name) {
+		return WizardCheck{Message: translate(lang, ErrUserName.Error())}
+	}
+	if err := checkPassword(name, password); err != nil {
+		return WizardCheck{Message: translate(lang, err.Error())}
+	}
+	return WizardCheck{Ok: true}
 }
 
 // wizardAuto reports whether the wizard opens by itself: the first use, not put off nor turned off.
@@ -126,10 +264,13 @@ func (web *Web) HandleWizard() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/partials/wizard.html")
 
 	web.router.HandleFunc("/wizard", func(w http.ResponseWriter, r *http.Request) {
+		inContainer := runningInContainer()
 		data := WizardPageData{
 			SettingsPageData: web.settingsPageData(),
 			AuthEnabled:      web.auth != nil && web.auth.Enabled(),
 			Auto:             r.URL.Query().Get("auto") == "1",
+			InContainer:      inContainer,
+			FolderExample:    folderExample(inContainer),
 		}
 		data.SettingsPageData.GlobalPageData.Auth = web.authInfo(r)
 		w.Header().Set("Cache-Control", "no-store")
@@ -162,6 +303,27 @@ func (web *Web) HandleWizard() {
 		w.Header().Set("Cache-Control", "no-store")
 		writeJSON(w, http.StatusOK, result)
 	}).Methods("GET")
+
+	// the folders of the server, to choose the folder of the games instead of writing it
+	web.router.HandleFunc("/wizard/folders", func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Query().Get("path")
+		if len(path) > 4096 {
+			path = path[:4096]
+		}
+		w.Header().Set("Cache-Control", "no-store")
+		writeJSON(w, http.StatusOK, browseFolders(path, web.requestLanguage(r)))
+	}).Methods("GET")
+
+	// the administrator is checked before the settings are saved; the password goes in the
+	// body of a POST, never in an address
+	web.router.HandleFunc("/wizard/admin", func(w http.ResponseWriter, r *http.Request) {
+		result := checkWizardAdmin(r.FormValue("name"), r.FormValue("password"), web.requestLanguage(r))
+		if result.Ok && strings.TrimSpace(r.FormValue("name")) != "" && web.auth != nil && web.auth.Enabled() {
+			result = WizardCheck{Message: translate(web.requestLanguage(r), "Login is on")}
+		}
+		w.Header().Set("Cache-Control", "no-store")
+		writeJSON(w, http.StatusOK, result)
+	}).Methods("POST")
 
 	// "later" puts the wizard off for a day, "done" stops it from opening by itself
 	web.router.HandleFunc("/wizard/state", func(w http.ResponseWriter, r *http.Request) {

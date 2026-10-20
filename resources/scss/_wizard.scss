@@ -12,15 +12,18 @@
 	}
 }
 
+// the step scrolls inside, so the header and the buttons stay in sight: a long step (the
+// notifications) scrolled the whole window and pushed the buttons out of their place
 .wizard-shell {
 	display: grid;
 	grid-template-columns: minmax(14rem, 34%) 1fr;
-	min-height: min(40rem, 88vh);
+	height: min(42rem, calc(100vh - 3.5rem));
+	height: min(42rem, calc(100dvh - 3.5rem));
 
 	@include media-breakpoint-down(md) {
 		grid-template-columns: 1fr;
-		grid-template-rows: auto 1fr;
-		min-height: 100%;
+		grid-template-rows: auto minmax(0, 1fr);
+		height: 100%;
 	}
 }
 
@@ -152,6 +155,7 @@
 	display: flex;
 	flex-direction: column;
 	min-width: 0;
+	min-height: 0;
 	padding: 1.25rem 1.75rem;
 
 	@include media-breakpoint-down(md) {
@@ -197,6 +201,7 @@
 
 .wizard-steps {
 	flex: 1;
+	min-height: 0;
 	overflow-x: hidden;
 	overflow-y: auto;
 	padding: .25rem .25rem 1rem;
@@ -374,7 +379,7 @@
 
 	li {
 		display: grid;
-		grid-template-columns: 2rem minmax(8rem, 40%) 1fr;
+		grid-template-columns: 2rem minmax(8rem, 40%) minmax(0, 1fr) auto;
 		align-items: center;
 		gap: .75rem;
 		padding: .5rem .75rem;
@@ -399,6 +404,95 @@
 	font-weight: 600;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+.wizard-summary-edit {
+	padding: 0 .25rem;
+	font-size: var(--slm-text-sm);
+}
+
+// on phones the value goes under its name, whole: paths were cut to a few letters
+@include media-breakpoint-down(sm) {
+	.wizard-summary li {
+		grid-template-columns: 2rem minmax(0, 1fr) auto;
+		row-gap: .1rem;
+	}
+
+	.wizard-summary-label {
+		grid-column: 2;
+	}
+
+	.wizard-summary-value {
+		grid-column: 2;
+		grid-row: 2;
+		white-space: normal;
+		overflow-wrap: anywhere;
+	}
+
+	.wizard-summary-edit {
+		grid-column: 3;
+		grid-row: 1 / span 2;
+	}
+}
+
+// options that only count with another choice look off
+.wizard-steps .is-off {
+	opacity: .45;
+	transition: opacity .2s ease;
+}
+
+// the folders of the server
+.wizard-browser {
+	margin-top: .75rem;
+	padding: .75rem;
+	border: 1px solid var(--slm-border);
+	border-radius: $border-radius-lg;
+	background: var(--slm-surface-muted);
+}
+
+.wizard-browser-bar {
+	display: flex;
+	gap: .5rem;
+
+	.form-select {
+		width: auto;
+		min-width: 0;
+		flex: 1;
+	}
+}
+
+.wizard-browser-path {
+	margin: .5rem 0;
+	font-size: var(--slm-text-xs);
+	overflow-wrap: anywhere;
+}
+
+.wizard-browser-list {
+	max-height: 14rem;
+	margin-bottom: .5rem;
+	overflow-y: auto;
+}
+
+.wizard-browser-item {
+	display: block;
+	width: 100%;
+	padding: .3rem .5rem;
+	border: 0;
+	border-radius: $border-radius;
+	background: none;
+	color: var(--bs-body-color);
+	font-size: var(--slm-text-sm);
+	text-align: left;
+	overflow-wrap: anywhere;
+
+	.bi {
+		color: #ffd166;
+	}
+
+	&:hover,
+	&:focus-visible {
+		background: var(--slm-accent-soft);
+	}
 }
 
 .wizard-done {
@@ -432,7 +526,7 @@
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: .5rem;
+	gap: .5rem 1rem;
 	padding-top: 1rem;
 	border-top: 1px solid var(--slm-border);
 }
@@ -441,6 +535,31 @@
 	display: flex;
 	gap: 1rem;
 	margin-right: auto;
+
+	&:empty {
+		display: none;
+	}
+}
+
+// Back, Skip and Next stay together on the right, also when the row wraps on a phone
+.wizard-footer-nav {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: .5rem;
+	margin-left: auto;
+}
+
+@include media-breakpoint-down(sm) {
+	.wizard-footer-left {
+		width: 100%;
+		justify-content: space-between;
+	}
+
+	.wizard-footer-nav {
+		width: 100%;
+		justify-content: flex-end;
+	}
 }
 
 // the floating status of a synchronization waits behind the wizard
