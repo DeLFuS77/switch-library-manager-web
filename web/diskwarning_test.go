@@ -13,14 +13,35 @@ func TestMeasureLowDisks(t *testing.T) {
 		t.Fatalf("diskSpace = %v, %v, %v", free, total, err)
 	}
 	// every volume is short of space below 101%, and none below 0%
-	if low := measureLowDisks([]string{folder, folder}, 101); len(low) != 1 || low[0].Total != int64(total) {
+	if low := measureLowDisks([]string{folder, folder}, 101, ^uint64(0)); len(low) != 1 || low[0].Total != int64(total) {
 		t.Errorf("a volume below 101%% free: %+v", low)
 	}
-	if low := measureLowDisks([]string{folder}, 0); len(low) != 0 {
+	if low := measureLowDisks([]string{folder}, 0, ^uint64(0)); len(low) != 0 {
 		t.Errorf("a volume below 0%% free: %+v", low)
 	}
-	if low := measureLowDisks([]string{folder + string(os.PathSeparator) + "missing"}, 101); len(low) != 0 {
+	if low := measureLowDisks([]string{folder + string(os.PathSeparator) + "missing"}, 101, ^uint64(0)); len(low) != 0 {
 		t.Errorf("a missing folder: %+v", low)
+	}
+}
+
+// A big disk with a small share free still has room: 89 GB free on 1 TB was told short of
+// space. A small disk is, below 10%; and any disk is with little left.
+func TestShortOfSpaceOnBigDisks(t *testing.T) {
+	const gb = uint64(1) << 30
+	cases := []struct {
+		free, total uint64
+		short       bool
+	}{
+		{89 * gb, 1000 * gb, false},
+		{1500 * gb, 20000 * gb, false},
+		{40 * gb, 1000 * gb, true},
+		{20 * gb, 256 * gb, true},
+		{30 * gb, 256 * gb, false},
+	}
+	for _, c := range cases {
+		if got := shortOfSpace(c.free, c.total, lowDiskPercent, lowDiskCeiling); got != c.short {
+			t.Errorf("%d GB free of %d GB: short %v", c.free/gb, c.total/gb, got)
+		}
 	}
 }
 

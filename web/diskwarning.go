@@ -14,6 +14,10 @@ const (
 	// and it is fine again above this one, so a volume around the margin is not reported
 	// again and again
 	lowDiskRecoveredPercent = 12
+	// but never with more than this free: 10% of a disk of 1 TB is still 100 GB, room for any
+	// game, and the warning said it was short of space with 89 GB free
+	lowDiskCeiling          = 50 << 30
+	lowDiskRecoveredCeiling = 60 << 30
 	// how long a measure of the volumes is kept
 	diskCheckInterval = time.Minute
 )
@@ -34,7 +38,7 @@ type diskWatch struct {
 	reported map[string]bool
 }
 
-// lowDisks lists the volumes of the library folders with less than lowDiskPercent free,
+// lowDisks lists the volumes of the library folders short of space (see shortOfSpace),
 // measured at most once a minute; every volume is listed once, under its first folder.
 func (web *Web) lowDisks() []LowDisk {
 	if isDemoMode() {
@@ -46,7 +50,7 @@ func (web *Web) lowDisks() []LowDisk {
 		return web.disks.low
 	}
 	web.disks.checked = time.Now()
-	web.disks.low = measureLowDisks(scanFolders(settings.ReadSettings(web.dataFolder)), lowDiskPercent)
+	web.disks.low = measureLowDisks(scanFolders(settings.ReadSettings(web.dataFolder)), lowDiskPercent, lowDiskCeiling)
 	return web.disks.low
 }
 
@@ -67,9 +71,14 @@ func (web *Web) librarySpace() (int64, int64) {
 	return free, total
 }
 
-// measureLowDisks measures the volumes of the folders and lists the ones with less than
-// percent free.
-func measureLowDisks(folders []string, percent int) []LowDisk {
+// shortOfSpace tells a volume with less than percent of it free, and less than ceiling bytes.
+func shortOfSpace(free uint64, total uint64, percent int, ceiling uint64) bool {
+	return free*100 < total*uint64(percent) && free < ceiling
+}
+
+// measureLowDisks measures the volumes of the folders and lists the ones short of space: with
+// less than percent free and less than ceiling bytes.
+func measureLowDisks(folders []string, percent int, ceiling uint64) []LowDisk {
 	low := []LowDisk{}
 	seen := map[[2]uint64]bool{}
 	for _, folder := range folders {
@@ -83,7 +92,7 @@ func measureLowDisks(folders []string, percent int) []LowDisk {
 			continue
 		}
 		seen[volume] = true
-		if free*100 < total*uint64(percent) {
+		if shortOfSpace(free, total, percent, ceiling) {
 			low = append(low, LowDisk{Folder: filepath.Clean(folder), Free: int64(free), Total: int64(total), Percent: int(free * 100 / total)})
 		}
 	}
@@ -98,7 +107,7 @@ func (web *Web) checkDiskSpace() {
 	// the volumes reported stay so until they are above the higher margin
 	stillLow := map[string]bool{}
 	if len(low) > 0 || web.disks.anyReported() {
-		for _, disk := range measureLowDisks(scanFolders(settings.ReadSettings(web.dataFolder)), lowDiskRecoveredPercent) {
+		for _, disk := range measureLowDisks(scanFolders(settings.ReadSettings(web.dataFolder)), lowDiskRecoveredPercent, lowDiskRecoveredCeiling) {
 			stillLow[disk.Folder] = true
 		}
 	}

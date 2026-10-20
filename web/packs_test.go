@@ -26,7 +26,7 @@ func TestPackSourcesTakeTheLatestUpdateAndTheDlc(t *testing.T) {
 		LatestUpdate: 131072,
 		Dlc:          map[string]db.SwitchFileInfo{"0100000000011001": file("DLC.nsp")},
 	}
-	sources := packSources(local)
+	sources := packSources(local, nil)
 	want := []string{"Game.nsp", "Update v2.nsz", "DLC.nsp"}
 	if len(sources) != len(want) {
 		t.Fatalf("sources: %v", sources)
@@ -41,12 +41,50 @@ func TestPackSourcesTakeTheLatestUpdateAndTheDlc(t *testing.T) {
 	}
 
 	// one file, or a game split in a folder, has no pack
-	if packSources(&db.SwitchGameFiles{BaseExist: true, File: file("Game.nsp")}) != nil {
+	if packSources(&db.SwitchGameFiles{BaseExist: true, File: file("Game.nsp")}, nil) != nil {
 		t.Fatal("a game alone")
 	}
 	local.Dlc["0100000000011001"] = db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: "DLC", BaseFolder: "games", IsDir: true}}
-	if packSources(local) != nil {
+	if packSources(local, nil) != nil {
 		t.Fatal("a split folder")
+	}
+}
+
+// A game kept both as NSP and as the NSZ the app made of them is packed from the NSZ: the
+// library keeps the NSP it found first, and the pack came out as a 20 GB NSP.
+func TestPackTakesTheCompressedCopies(t *testing.T) {
+	info := func(name string) db.ExtendedFileInfo {
+		return db.ExtendedFileInfo{FileName: name, BaseFolder: "games"}
+	}
+	local := &db.SwitchGameFiles{
+		BaseExist:    true,
+		File:         db.SwitchFileInfo{ExtendedInfo: info("Game [v0].nsp")},
+		Updates:      map[int]db.SwitchFileInfo{131072: {ExtendedInfo: info("Game [v131072].nsp")}},
+		LatestUpdate: 131072,
+		Dlc:          map[string]db.SwitchFileInfo{"0100000000011001": {ExtendedInfo: info("DLC [v0].nsp")}},
+	}
+	skipped := map[db.ExtendedFileInfo]db.SkippedFile{
+		info("Game [v0].nsz"):       {ReasonCode: db.REASON_DUPLICATE},
+		info("Game [v131072].nsz"):  {ReasonCode: db.REASON_DUPLICATE},
+		info("DLC [v0].nsz"):        {ReasonCode: db.REASON_DUPLICATE},
+		info("Game [v65536].nsz"):   {ReasonCode: db.REASON_OLD_UPDATE},
+		info("Other game [v0].nsz"): {ReasonCode: db.REASON_DUPLICATE},
+	}
+	sources := packSources(local, skipped)
+	want := []string{"Game [v0].nsz", "Game [v131072].nsz", "DLC [v0].nsz"}
+	if len(sources) != len(want) {
+		t.Fatalf("sources: %v", sources)
+	}
+	for i, name := range want {
+		if sources[i] != filepath.Join("games", name) {
+			t.Fatalf("sources: %v", sources)
+		}
+	}
+	// only a duplicate of the same name: an old update or another game is never taken
+	delete(skipped, info("DLC [v0].nsz"))
+	skipped[info("DLC [v0].nsz")] = db.SkippedFile{ReasonCode: db.REASON_OLD_UPDATE}
+	if sources := packSources(local, skipped); sources[2] != filepath.Join("games", "DLC [v0].nsp") {
+		t.Fatalf("the DLC without a compressed copy: %v", sources)
 	}
 }
 

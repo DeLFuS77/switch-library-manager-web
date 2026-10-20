@@ -213,7 +213,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		entries := archiveEntries(local)
 		detail.ArchiveFiles = len(entries)
 		detail.ArchiveSize = archiveSize(entries)
-		for _, file := range packFiles(local) {
+		for _, file := range withCompressedCopies(packFiles(local), localDB.Skipped) {
 			detail.PackFiles++
 			detail.PackSize += file.Size
 		}
