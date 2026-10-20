@@ -5,6 +5,7 @@
 ### Improvements
 
 - The help of the compression threads in Settings tells that a normal NSZ is compressed on about one core whatever the threads (one zstd stream per file), that the threads only speed up game cards (XCZ, in blocks), and that compressing more files at once is what uses more cores
+- Each file in Tasks shows the step being done with the size of the file, the one seen in its folder: a 13 GB game being compressed showed "15.7 GB / 39.0 GB", the bytes of its three steps (hashes, compression, check) added up. The Total bar still counts every step
 
 ### Fixes
 

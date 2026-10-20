@@ -176,6 +176,29 @@ func (l TaskLane) Percent() int {
 	return int(l.Done * 100 / l.Total)
 }
 
+// StepTotal is the size of the file, read once in each step: its progress counts every step,
+// so 13 GB read three times showed as 39 GB, which is not the size anyone sees in the folder.
+func (l TaskLane) StepTotal() int64 {
+	if l.Steps <= 1 {
+		return l.Total
+	}
+	return l.Total / int64(l.Steps)
+}
+
+// StepDone is how far the step being done is, out of StepTotal.
+func (l TaskLane) StepDone() int64 {
+	if l.Steps <= 1 {
+		return l.Done
+	}
+	total := l.StepTotal()
+	return min(max(l.Done-int64(l.Step-1)*total, 0), total)
+}
+
+// StepPercent is the progress of the step being done.
+func (l TaskLane) StepPercent() int {
+	return TaskLane{Done: l.StepDone(), Total: l.StepTotal()}.Percent()
+}
+
 // VerifyBreakdown is why the files of a verification are checked: never checked before,
 // changed since, checked again once because an older version of the check may have got them
 // wrong, or checked again as asked (everything, or the files checked longest ago).

@@ -301,6 +301,38 @@ func TestNavShowsRunningAndFailedTasks(t *testing.T) {
 	}
 }
 
+// A file read in three steps shows the step being done with the size of the file, the one
+// seen in its folder: 13 GB compressed showed as "15.7 GB / 39.0 GB".
+func TestLaneShowsTheStepWithTheSizeOfTheFile(t *testing.T) {
+	lane := TaskLane{Name: "Game.nsp", Done: 6 << 30, Total: 12 << 30, Phase: "Compressing", Step: 2, Steps: 3}
+	if lane.StepTotal() != 4<<30 || lane.StepDone() != 2<<30 || lane.StepPercent() != 50 {
+		t.Fatalf("step: %d of %d, %d%%", lane.StepDone(), lane.StepTotal(), lane.StepPercent())
+	}
+	// at the very start of a step the report of the step before may still be the last one
+	if early := (TaskLane{Done: 3 << 30, Total: 12 << 30, Step: 2, Steps: 3}); early.StepDone() != 0 {
+		t.Fatalf("before the step: %d", early.StepDone())
+	}
+	if single := (TaskLane{Done: 1 << 30, Total: 4 << 30}); single.StepTotal() != 4<<30 || single.StepDone() != 1<<30 {
+		t.Fatalf("one step: %d of %d", single.StepDone(), single.StepTotal())
+	}
+
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleTasks()
+	id := web.taskLog().Start(TASK_COMPRESS, TRIGGER_MANUAL)
+	// the whole task, other files with it, in MB
+	web.taskLog().ProgressFiles(id, 20<<10, 50<<10, "Game.nsp", 2, 3, []TaskLane{lane})
+	page := httptest.NewRecorder()
+	web.router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/tasks.html?part=list", nil))
+	body := page.Body.String()
+	if want := formatSize(2<<30) + " / " + formatSize(4<<30); !strings.Contains(body, want) {
+		t.Errorf("the file shows %q", want)
+	}
+	if strings.Contains(body, formatSize(6<<30)+" / "+formatSize(12<<30)) {
+		t.Error("the file shows the bytes of every step")
+	}
+}
+
 // A compression that saved something already: the size saved is an int64, which once stopped
 // the drawing of the card halfway, without its files nor its sizes.
 func TestCompressionCardWithSomethingSaved(t *testing.T) {
