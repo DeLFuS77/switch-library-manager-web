@@ -509,3 +509,48 @@ func TestOrganizeNamesACartridgeWithSeveralGames(t *testing.T) {
 		t.Fatalf("the English name: %q", got)
 	}
 }
+
+// With folders by ID, the game folder has its ID, the update goes to a folder with the ID of
+// the update and each DLC to its own folder with its ID, inside the DLC folder.
+func TestOrganizeFoldersWithIds(t *testing.T) {
+	for _, named := range []bool{true, false} {
+		baseFolder := t.TempDir()
+		local, remote := fixtureLibrary(t, filepath.Join(baseFolder, "incoming"))
+		options := organizeOptions()
+		options.FoldersWithIds = true
+		updates, dlc := "Updates [0100E95004039800]", "DLC"
+		if !named {
+			options.UpdatesFolder, options.DlcFolder = "", ""
+			updates = "Update [0100E95004039800]"
+		}
+		ops, err := OrganizeByFolders(baseFolder, local, remote, options, true, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		game := filepath.Join(baseFolder, "Test Game [0100E95004039000]")
+		want := map[string]bool{
+			game:                         true,
+			filepath.Join(game, updates): true,
+			filepath.Join(game, dlc, "Expansion [0100E9500403A001]"): true,
+			filepath.Join(game, dlc, "Expansion [0100E9500403A002]"): true,
+		}
+		for _, op := range ops {
+			if op.Kind != OP_MOVE {
+				continue
+			}
+			if !want[filepath.Dir(op.To)] {
+				t.Errorf("named %v: %s goes to %s", named, filepath.Base(op.From), filepath.Dir(op.To))
+			}
+			delete(want, filepath.Dir(op.To))
+		}
+		if len(want) != 0 {
+			t.Errorf("named %v: folders without a file: %v", named, want)
+		}
+	}
+	// a template with the ID already is left as it is
+	options := organizeOptions()
+	options.FoldersWithIds, options.FolderNameTemplate = true, "[{TITLE_ID}] {TITLE_NAME}"
+	if name := getFolderName(options, map[string]string{settings.TEMPLATE_TITLE_NAME: "Game", settings.TEMPLATE_TITLE_ID: baseID}); name != "[0100E95004039000] Game" {
+		t.Fatalf("the template with the ID: %s", name)
+	}
+}

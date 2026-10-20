@@ -5,6 +5,7 @@
 ### New
 
 - The setup wizard can browse the folders of the server to choose the folder of the games, instead of writing its path: the drives on Windows, the root, the home folder and the usual places of disks and shares (/mnt, /media, /Volumes...) elsewhere. Administrators only
+- Organize can put each update and DLC in a folder named with its own ID: Game [ID] › Update [ID of the update], and DLC › name of the DLC [ID of the DLC]. The game folder gets its ID too when its template has none. Off by default, a switch under Folders
 
 ### Improvements
 

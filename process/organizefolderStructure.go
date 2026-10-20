@@ -539,6 +539,15 @@ func OrganizeByFolders(baseFolder string,
 		if options.CreateFolderPerGame {
 			destinationPath = filepath.Join(baseFolder, getFolderName(options, templateData))
 		}
+		// with folders by ID, the folder of an update or DLC, named after its own ID (in the
+		// template data when it is asked)
+		idFolder := func(parent string, fallback string, template string) string {
+			if parent == "" {
+				parent = fallback
+			}
+			name := strings.TrimSpace(fittingTemplate(templateData, options.SwitchSafeFileNames, template, 0, maxNameBytes))
+			return filepath.Join(parent, avoidReserved(strings.TrimRight(name, " .")))
+		}
 
 		//process base title
 		if v.BaseExist && collections[filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)] == nil {
@@ -587,7 +596,14 @@ func OrganizeByFolders(baseFolder string,
 			if collections[from] != nil {
 				continue
 			}
-			to := filepath.Join(targetFolder(updateInfo.ExtendedInfo, options.UpdatesFolder), getFileName(options, updateInfo.ExtendedInfo.FileName, templateData, 0))
+			updatesFolder := options.UpdatesFolder
+			if options.FoldersWithIds {
+				updatesFolder = idFolder("", options.UpdatesFolder, "Update [{"+settings.TEMPLATE_TITLE_ID+"}]")
+				if options.UpdatesFolder != "" {
+					updatesFolder = idFolder("", "", options.UpdatesFolder+" [{"+settings.TEMPLATE_TITLE_ID+"}]")
+				}
+			}
+			to := filepath.Join(targetFolder(updateInfo.ExtendedInfo, updatesFolder), getFileName(options, updateInfo.ExtendedInfo.FileName, templateData, 0))
 			ops.move(from, to)
 		}
 
@@ -612,7 +628,11 @@ func OrganizeByFolders(baseFolder string,
 			if collections[from] != nil {
 				continue
 			}
-			folder := targetFolder(dlc.ExtendedInfo, options.DlcFolder)
+			dlcFolder := options.DlcFolder
+			if options.FoldersWithIds {
+				dlcFolder = idFolder(options.DlcFolder, "DLC", "{"+settings.TEMPLATE_DLC_NAME+"} [{"+settings.TEMPLATE_TITLE_ID+"}]")
+			}
+			folder := targetFolder(dlc.ExtendedInfo, dlcFolder)
 
 			// DLC with different IDs can share a name, number them instead of colliding
 			var to string
@@ -853,7 +873,12 @@ func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles) string {
 const maxNameBytes = 240
 
 func getFolderName(options settings.OrganizeOptions, templateData map[string]string) string {
-	return fittingTemplate(templateData, options.SwitchSafeFileNames, options.FolderNameTemplate, 0, maxNameBytes)
+	template := options.FolderNameTemplate
+	// folders by ID name the game folder by its ID too
+	if options.FoldersWithIds && !strings.Contains(template, "{"+settings.TEMPLATE_TITLE_ID+"}") {
+		template += " [{" + settings.TEMPLATE_TITLE_ID + "}]"
+	}
+	return fittingTemplate(templateData, options.SwitchSafeFileNames, template, 0, maxNameBytes)
 }
 
 func getFileName(options settings.OrganizeOptions, originalName string, templateData map[string]string, nameTry int) string {

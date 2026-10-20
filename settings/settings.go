@@ -86,6 +86,9 @@ type OrganizeOptions struct {
 	FolderNameTemplate         string `json:"folder_name_template"`
 	SwitchSafeFileNames        bool   `json:"switch_safe_file_names"`
 	FileNameTemplate           string `json:"file_name_template"`
+	// each update and DLC goes to a folder named with its own ID, and the game folder has its
+	// ID too: Game [ID] › Update [ID of the update], DLC › name [ID of the DLC]
+	FoldersWithIds bool `json:"folders_with_ids,omitempty"`
 	// which copy of a duplicate the library keeps: KEEP_FIRST_FOUND (empty), KEEP_NSP, KEEP_XCI
 	// or KEEP_AUTO; the other one is the duplicate
 	KeepDuplicate string `json:"keep_duplicate"`
