@@ -171,3 +171,28 @@ func TestCheckOfAnNszMovesOnSmoothly(t *testing.T) {
 		t.Fatalf("%d steps, %d of %d", steps, last, total)
 	}
 }
+
+// The decompression of an NSZ moves on while each NCZ is decompressed too: it stayed at 0%
+// for minutes on a big game, as if it had hung.
+func TestDecompressionOfAnNszMovesOnSmoothly(t *testing.T) {
+	initNszKeys(t, "")
+	folder := t.TempDir()
+	source, _ := writeTestNsp(t, folder)
+	compressed := NszPath(source)
+	if _, err := CompressGame(context.Background(), source, compressed, CompressOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	steps, last, total := 0, int64(0), int64(0)
+	if err := DecompressNsz(context.Background(), compressed, filepath.Join(folder, "back.nsp"), func(done, all int64) {
+		if done < last {
+			t.Fatalf("the progress goes back: %d after %d", done, last)
+		}
+		steps++
+		last, total = done, all
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if last != total || steps < 10 {
+		t.Fatalf("%d steps, %d of %d", steps, last, total)
+	}
+}

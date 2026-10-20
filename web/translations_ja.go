@@ -1285,6 +1285,7 @@ func init() {
 		"The backup was restored. The library is being rescanned.":                 "バックアップを復元しました。ライブラリを再スキャンしています。",
 		"The chosen games do not fit on the card.":                                 "選んだゲームがカードに入りません。",
 		"The compression was cancelled.":                                           "圧縮はキャンセルされました。",
+		"The task was cancelled.":                                                  "タスクはキャンセルされました。",
 		"The copy that is kept is damaged: keep this one.":                         "残す側のファイルが破損しています。こちらを残してください。",
 		"The copy that is kept was not found; rescan the library.":                 "残す側のファイルが見つかりません。ライブラリを再スキャンしてください。",
 		"The current password is wrong.":                                           "現在のパスワードが正しくありません。",

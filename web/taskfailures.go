@@ -18,7 +18,7 @@ var taskKindNames = map[string]string{
 }
 
 // notWorthTelling are the ends that are not failures to tell: what the user stopped.
-var notWorthTelling = map[string]bool{NOTE_COMPRESS_CANCELED: true, NOTE_UPLOAD_CANCELED: true, NOTE_UPLOAD_STOPPED: true}
+var notWorthTelling = map[string]bool{NOTE_COMPRESS_CANCELED: true, NOTE_COMPRESS_CANCELED_OLD: true, NOTE_UPLOAD_CANCELED: true, NOTE_UPLOAD_STOPPED: true}
 
 func (web *Web) notifyTaskFailed(task Task) {
 	if isDemoMode() || task.Error == nil || notWorthTelling[task.Error.Text] {

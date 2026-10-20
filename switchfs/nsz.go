@@ -15,6 +15,7 @@ package switchfs
 // Implemented here from the format, without code of nsz.
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/aes"
@@ -833,7 +834,12 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 		stream = blocks
 	} else {
 		reader.Seek(position, io.SeekStart)
-		decoder, err := zstd.NewReader(reader, zstd.WithDecoderConcurrency(1), zstd.WithDecoderMaxWindow(1<<30))
+		// zstd asks for a few bytes at a time: read the file in big pieces, one system call
+		// each, or the reads take more time than the decompression. With low memory on (its
+		// default) zstd keeps the window plus 1 MiB and moves the whole window down every
+		// MiB: on the 128 MiB window of other tools that was 4 times slower. Off, it keeps
+		// twice the window (16 MiB for the 8 MiB of this app) and moves it once per window.
+		decoder, err := zstd.NewReader(bufio.NewReaderSize(reader, nczChunkSize), zstd.WithDecoderConcurrency(1), zstd.WithDecoderMaxWindow(1<<30), zstd.WithDecoderLowmem(false))
 		if err != nil {
 			return err
 		}
@@ -1210,8 +1216,14 @@ func DecompressNsz(ctx context.Context, source string, target string, progress f
 		}
 		writer.startFile()
 		if names[i] != file.Name {
-			err = decompressNcz(ctx, writer.file, input, int64(file.StartOffset), int64(file.Size), nil)
-			report(int64(file.Size))
+			// the progress follows the compressed bytes read, like the check: a big NCZ moves
+			// on while it is decompressed instead of all at once at its end
+			start, size := int64(file.StartOffset), int64(file.Size)
+			counter := &countingReaderAt{reader: input, start: start, end: start + size, report: report}
+			err = decompressNcz(ctx, writer.file, counter, start, size, nil)
+			if rest := size - counter.counted; err == nil && rest > 0 {
+				report(rest)
+			}
 		} else {
 			err = copyRange(ctx, writer.file, input, int64(file.StartOffset), int64(file.Size), report)
 		}

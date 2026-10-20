@@ -1285,6 +1285,7 @@ func init() {
 		"The backup was restored. The library is being rescanned.":                 "Резервная копия восстановлена. Библиотека сканируется заново.",
 		"The chosen games do not fit on the card.":                                 "Выбранные игры не помещаются на карту.",
 		"The compression was cancelled.":                                           "Сжатие отменено.",
+		"The task was cancelled.":                                                  "Задача отменена.",
 		"The copy that is kept is damaged: keep this one.":                         "Сохраняемая копия повреждена: оставьте эту.",
 		"The copy that is kept was not found; rescan the library.":                 "Сохраняемая копия не найдена; просканируйте библиотеку заново.",
 		"The current password is wrong.":                                           "Неверный текущий пароль.",

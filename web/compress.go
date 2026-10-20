@@ -21,19 +21,21 @@ import (
 
 // problems of a compression, translated by the interface
 const (
-	NOTE_COMPRESS_FAILED   = "The file could not be compressed, the original is kept."
-	NOTE_COMPRESS_DAMAGED  = "The file is damaged or was modified, it was not compressed."
-	NOTE_COMPRESS_SPACE    = "Not enough free space to compress the file."
-	NOTE_COMPRESS_EXISTS   = "A compressed file with the same name already exists."
-	NOTE_COMPRESS_NOTHING  = "Nothing in the file can be compressed."
-	NOTE_COMPRESS_SPARSE   = "This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally."
-	NOTE_COMPRESS_CANCELED = "The compression was cancelled."
-	NOTE_COMPRESS_DELETE   = "The original could not be deleted."
-	NOTE_COMPRESS_NO_KEY   = "This NSP has no ticket, and title.keys does not have its title key: without it the game cannot be read to compress it. Add the title.keys dumped from your console in Settings, or use a copy of the game with its ticket."
-	NOTE_DECOMPRESS_FAILED = "The file could not be decompressed, the compressed file is kept."
+	NOTE_COMPRESS_FAILED  = "The file could not be compressed, the original is kept."
+	NOTE_COMPRESS_DAMAGED = "The file is damaged or was modified, it was not compressed."
+	NOTE_COMPRESS_SPACE   = "Not enough free space to compress the file."
+	NOTE_COMPRESS_EXISTS  = "A compressed file with the same name already exists."
+	NOTE_COMPRESS_NOTHING = "Nothing in the file can be compressed."
+	NOTE_COMPRESS_SPARSE  = "This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally."
+	// every task on files that the user stops; the old text stays in the history saved before
+	NOTE_COMPRESS_CANCELED     = "The task was cancelled."
+	NOTE_COMPRESS_CANCELED_OLD = "The compression was cancelled."
+	NOTE_COMPRESS_DELETE       = "The original could not be deleted."
+	NOTE_COMPRESS_NO_KEY       = "This NSP has no ticket, and title.keys does not have its title key: without it the game cannot be read to compress it. Add the title.keys dumped from your console in Settings, or use a copy of the game with its ticket."
+	NOTE_DECOMPRESS_FAILED     = "The file could not be decompressed, the compressed file is kept."
 )
 
-var compressNoteTexts = []string{NOTE_SPLIT_FAILED, NOTE_SPLIT_EXISTS, NOTE_SPLIT_KEPT, NOTE_PACK_FAILED, NOTE_PACK_EXISTS, NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_SPARSE, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_DELETE, NOTE_COMPRESS_NO_KEY}
+var compressNoteTexts = []string{NOTE_SPLIT_FAILED, NOTE_SPLIT_EXISTS, NOTE_SPLIT_KEPT, NOTE_PACK_FAILED, NOTE_PACK_EXISTS, NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_SPARSE, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_CANCELED_OLD, NOTE_COMPRESS_DELETE, NOTE_COMPRESS_NO_KEY}
 
 // CompressCandidate is an NSP of the library that can be compressed.
 type CompressCandidate struct {
