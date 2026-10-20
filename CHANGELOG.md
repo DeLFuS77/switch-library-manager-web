@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.51.1
 
 ### Improvements
 
@@ -18,6 +18,7 @@
 
 - Tests of the edge cases of the block format that corrupted data in nsz: a size that is an exact multiple of the block size (nsz #210), and a short last block that does not compress and is stored as it is (nsz #79, #190)
 - Tests cover a multi-content NSP (a "SuperNSP": base, update and DLC in one file): with tickets, and ticketless with the keys in title.keys, it compresses to NSZ, verifies and decompresses back byte for byte; without the keys it is refused clearly instead of making a bad file
+- Tested on a Switch with DBI (firmware 22.1.0): a game with its update and DLC, compressed by the app at the max level, installs from separate NSZ files and from one complete pack, every NCA with TRANSFER OK and SIGNATURE OK, and the game boots with the update. The update's NCZ had 866 sections
 
 ## 1.51.0
 

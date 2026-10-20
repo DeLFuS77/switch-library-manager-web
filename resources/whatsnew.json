@@ -1,4 +1,61 @@
 {
+  "1.51.1": {
+    "en": [
+      "Decompressing an NSZ from the Compress page works again with big updates, and is more than 3 times faster with NSZ made by other tools.",
+      "In Tasks, each file shows the step being done with its real size, and the bar moves on while decompressing instead of staying at 0%.",
+      "Tested on the console with DBI: a game, its update and DLC compressed with the app install separately and as one pack."
+    ],
+    "es": [
+      "Descomprimir un NSZ desde la página Comprimir vuelve a funcionar con las actualizaciones grandes, y va más de 3 veces más rápido con los NSZ hechos por otras herramientas.",
+      "En Tareas, cada archivo muestra el paso en curso con su tamaño real, y la barra avanza mientras descomprime en vez de quedarse en 0 %.",
+      "Probado en la consola con DBI: juego, actualización y DLC comprimidos con la app se instalan por separado y en un solo pack."
+    ],
+    "de": [
+      "Das Entpacken eines NSZ auf der Seite Komprimieren funktioniert wieder mit großen Updates und ist bei NSZ anderer Werkzeuge mehr als 3-mal so schnell.",
+      "In Aufgaben zeigt jede Datei den laufenden Schritt mit ihrer echten Größe, und der Balken bewegt sich beim Entpacken, statt bei 0 % zu bleiben.",
+      "Auf der Konsole mit DBI getestet: Spiel, Update und DLC, mit der App komprimiert, lassen sich einzeln und als ein Paket installieren."
+    ],
+    "fr": [
+      "La décompression d'un NSZ depuis la page Compresser fonctionne de nouveau avec les grosses mises à jour, et elle est plus de 3 fois plus rapide avec les NSZ créés par d'autres outils.",
+      "Dans Tâches, chaque fichier affiche l'étape en cours avec sa taille réelle, et la barre avance pendant la décompression au lieu de rester à 0 %.",
+      "Testé sur la console avec DBI : un jeu, sa mise à jour et son DLC compressés avec l'app s'installent séparément et en un seul pack."
+    ],
+    "it": [
+      "La decompressione di un NSZ dalla pagina Comprimi funziona di nuovo con gli aggiornamenti grandi, ed è più di 3 volte più veloce con gli NSZ creati da altri strumenti.",
+      "In Attività, ogni file mostra il passo in corso con la sua dimensione reale, e la barra avanza durante la decompressione invece di restare a 0%.",
+      "Provato sulla console con DBI: gioco, aggiornamento e DLC compressi con l'app si installano separati e in un unico pacchetto."
+    ],
+    "pt": [
+      "Descomprimir um NSZ a partir da página Comprimir volta a funcionar com as atualizações grandes, e é mais de 3 vezes mais rápido com os NSZ feitos por outras ferramentas.",
+      "Em Tarefas, cada ficheiro mostra o passo em curso com o seu tamanho real, e a barra avança enquanto descomprime em vez de ficar em 0%.",
+      "Testado na consola com DBI: jogo, atualização e DLC comprimidos com a app instalam-se separados e num só pacote."
+    ],
+    "nl": [
+      "Een NSZ uitpakken vanaf de pagina Comprimeren werkt weer met grote updates, en is meer dan 3 keer zo snel met NSZ van andere tools.",
+      "In Taken toont elk bestand de huidige stap met zijn echte grootte, en de balk loopt door tijdens het uitpakken in plaats van op 0% te blijven.",
+      "Getest op de console met DBI: een game met update en DLC, gecomprimeerd met de app, installeert los en als één pakket."
+    ],
+    "ru": [
+      "Распаковка NSZ со страницы «Сжатие» снова работает с большими обновлениями и более чем в 3 раза быстрее для NSZ, созданных другими инструментами.",
+      "В «Задачах» каждый файл показывает текущий шаг с реальным размером, а полоса движется во время распаковки, а не стоит на 0%.",
+      "Проверено на консоли с DBI: игра, обновление и DLC, сжатые приложением, устанавливаются по отдельности и одним пакетом."
+    ],
+    "ja": [
+      "「圧縮」ページからのNSZの展開が大きなアップデートでも再び動作し、他のツールで作られたNSZでは3倍以上速くなりました。",
+      "タスクでは、各ファイルが実行中のステップを実際のサイズで表示し、展開中もバーが0%のままにならず進みます。",
+      "DBIを使い実機で確認済み:アプリで圧縮したゲーム本体・アップデート・DLCは、個別でも1つのパックでもインストールできます。"
+    ],
+    "ko": [
+      "압축 페이지에서 NSZ 압축 풀기가 큰 업데이트에서도 다시 작동하고, 다른 도구로 만든 NSZ는 3배 이상 빨라졌어요.",
+      "작업에서 각 파일이 진행 중인 단계를 실제 크기로 보여 주고, 압축을 푸는 동안 막대가 0%에 머물지 않고 움직여요.",
+      "DBI로 실기기에서 확인했어요: 앱으로 압축한 게임, 업데이트, DLC가 따로도, 하나의 팩으로도 설치돼요."
+    ],
+    "zh": [
+      "从“压缩”页面解压 NSZ 对大型更新重新可用,对其他工具制作的 NSZ 速度提高了 3 倍以上。",
+      "在任务中,每个文件以实际大小显示当前步骤,解压时进度条会前进,不再停在 0%。",
+      "已在主机上用 DBI 测试:用本应用压缩的游戏、更新和 DLC 可分别安装,也可作为一个合集安装。"
+    ]
+  },
   "1.51.0": {
     "en": [
       "Four user roles: Guest (looks only), Player (also downloads), Editor (also uploads, syncs, checks and compresses) and Administrator.",
