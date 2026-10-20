@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Development
+
+- Tests cover a multi-content NSP (a "SuperNSP": base, update and DLC in one file): with tickets, and ticketless with the keys in title.keys, it compresses to NSZ, verifies and decompresses back byte for byte; without the keys it is refused clearly instead of making a bad file
+
 ## 1.51.0
 
 ### Features
