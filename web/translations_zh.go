@@ -257,7 +257,7 @@ func init() {
 		"Measuring the disk and the processor...":                       "正在测量磁盘和处理器...",
 		"Chosen: %v files at once with %v threads each. Save to apply.": "已选择:同时 %v 个文件,每个 %v 个线程。保存后生效。",
 		"There is no game in the library to measure the disk with.":     "库中没有可用于测量磁盘的游戏。",
-		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "自动使用一半的处理器(最多 4 个),由同时处理的文件分用。增加线程很少有帮助:速度通常取决于磁盘,而且会减少留给服务器其他任务的处理器。",
+		"Automatic uses half of the processors, at most 4, shared among the files at once. A normal NSZ is one stream per file, which zstd compresses on about one core whatever the threads: they only speed up game cards (XCZ), which are compressed in blocks. To use more cores with NSZ, compress more files at once. More threads also leave less of the processor to the rest of the server.": "自动会使用一半的处理器(最多 4 个),由同时处理的文件分享。普通 NSZ 每个文件是一个数据流,无论设置多少线程,zstd 都大约只用一个核心压缩:线程只会加快按块压缩的游戏卡带(XCZ)。要让 NSZ 用上更多核心,请同时压缩更多文件。线程越多,留给服务器其他工作的处理器也越少。",
 		"Processor threads per file": "每个文件的处理器线程",
 		"Automatic (%v)":             "自动 (%v)",
 		"All (%v)":                   "全部 (%v)",

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- The help of the compression threads in Settings tells that a normal NSZ is compressed on about one core whatever the threads (one zstd stream per file), that the threads only speed up game cards (XCZ, in blocks), and that compressing more files at once is what uses more cores
+
 ### Fixes
 
 - Decompressing an NSZ from the Compress page failed for updates with many subsections (more than 64 sections in an NCZ, as the app's own compression writes them for real updates): the size needed was refused before starting. It now uses the same limits as the decompression itself

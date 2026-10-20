@@ -257,7 +257,7 @@ func init() {
 		"Measuring the disk and the processor...":                       "디스크와 프로세서를 측정하는 중...",
 		"Chosen: %v files at once with %v threads each. Save to apply.": "선택: 동시 %v개 파일, 파일마다 %v 스레드. 저장하면 적용됩니다.",
 		"There is no game in the library to measure the disk with.":     "디스크를 측정할 게임이 라이브러리에 없습니다.",
-		"Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server.": "자동은 프로세서의 절반(최대 4)을 동시에 처리하는 파일들이 나눠 씁니다. 스레드를 늘려도 빨라지는 경우는 드뭅니다. 속도는 대개 디스크가 정하며, 서버의 다른 작업에 남는 프로세서가 줄어듭니다.",
+		"Automatic uses half of the processors, at most 4, shared among the files at once. A normal NSZ is one stream per file, which zstd compresses on about one core whatever the threads: they only speed up game cards (XCZ), which are compressed in blocks. To use more cores with NSZ, compress more files at once. More threads also leave less of the processor to the rest of the server.": "자동은 프로세서의 절반(최대 4개)을 동시에 처리하는 파일끼리 나눠 써요. 일반 NSZ는 파일마다 하나의 스트림이라, 스레드 수와 상관없이 zstd가 거의 코어 하나로 압축해요. 스레드는 블록 단위로 압축되는 게임 카드(XCZ)만 빠르게 해요. NSZ에서 코어를 더 쓰려면 동시에 압축하는 파일 수를 늘리세요. 스레드가 많을수록 서버의 다른 작업에 남는 프로세서도 줄어요.",
 		"Processor threads per file": "파일당 프로세서 스레드",
 		"Automatic (%v)":             "자동 (%v)",
 		"All (%v)":                   "모두 (%v)",
