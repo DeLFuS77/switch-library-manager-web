@@ -221,11 +221,12 @@
 								</div>
 								<div class="col-md-6">
 									<label for="auto_compress_level" class="form-label fw-semibold">{{t "Compression level"}}</label>
-									<select class="form-select" id="auto_compress_level" name="auto_compress_level">
+									<select class="form-select" id="auto_compress_level" name="auto_compress_level" aria-describedby="autoCompressLevelHelp">
 										<option value="fast"{{if eq .Settings.AutoCompressLevel "fast"}} selected{{end}}>{{t "Fast"}}</option>
 										<option value="balanced"{{if or (eq .Settings.AutoCompressLevel "balanced") (eq .Settings.AutoCompressLevel "")}} selected{{end}}>{{t "Balanced"}}</option>
 										<option value="max"{{if eq .Settings.AutoCompressLevel "max"}} selected{{end}}>{{t "Maximum"}}</option>
 									</select>
+									<div class="form-text" id="autoCompressLevelHelp">{{t "Maximum is about 10 times slower than Balanced (each file on one core) for files a few % smaller. Installers read every level the same."}}</div>
 								</div>
 								<div class="col-md-6">
 									<label for="compress_threads" class="form-label fw-semibold">{{t "Processor threads per file"}}</label>

@@ -43,7 +43,7 @@
 					<div class="col-lg-7">
 						<section class="surface h-100">
 							<h2 class="section-title"><span class="bi bi-speedometer2" aria-hidden="true"></span>{{t "Compression"}}</h2>
-							<div class="compress-levels" role="radiogroup" aria-label="{{t "Compression level"}}">
+							<div class="compress-levels" role="radiogroup" aria-label="{{t "Compression level"}}" aria-describedby="compressLevelsHelp">
 								<input type="radio" class="btn-check" name="level" id="levelFast" value="fast">
 								<label class="compress-level" for="levelFast"><span class="fw-semibold">{{t "Fast"}}</span><span class="small text-body-secondary">{{t "Quick, saves a bit less"}}</span></label>
 								<input type="radio" class="btn-check" name="level" id="levelBalanced" value="balanced" checked>
@@ -51,6 +51,7 @@
 								<input type="radio" class="btn-check" name="level" id="levelMax" value="max">
 								<label class="compress-level" for="levelMax"><span class="fw-semibold">{{t "Maximum"}}</span><span class="small text-body-secondary">{{t "Smallest files, slower"}}</span></label>
 							</div>
+							<p class="form-text mb-0 mt-2" id="compressLevelsHelp">{{t "Maximum is about 10 times slower than Balanced (each file on one core) for files a few % smaller. Installers read every level the same."}}</p>
 						</section>
 					</div>
 					<div class="col-lg-5">
