@@ -1285,6 +1285,7 @@ func init() {
 		"The backup was restored. The library is being rescanned.":                 "De back-up is hersteld. De bibliotheek wordt opnieuw gescand.",
 		"The chosen games do not fit on the card.":                                 "De gekozen games passen niet op de kaart.",
 		"The compression was cancelled.":                                           "De compressie is geannuleerd.",
+		"The task was cancelled.":                                                  "De taak is geannuleerd.",
 		"The copy that is kept is damaged: keep this one.":                         "De kopie die blijft is beschadigd: bewaar deze.",
 		"The copy that is kept was not found; rescan the library.":                 "De kopie die blijft is niet gevonden; scan de bibliotheek opnieuw.",
 		"The current password is wrong.":                                           "Het huidige wachtwoord is onjuist.",

@@ -1285,6 +1285,7 @@ func init() {
 		"The backup was restored. The library is being rescanned.":                 "备份已恢复。正在重新扫描游戏库。",
 		"The chosen games do not fit on the card.":                                 "所选游戏放不进存储卡。",
 		"The compression was cancelled.":                                           "压缩已取消。",
+		"The task was cancelled.":                                                  "任务已取消。",
 		"The copy that is kept is damaged: keep this one.":                         "保留的副本已损坏：请保留此副本。",
 		"The copy that is kept was not found; rescan the library.":                 "找不到保留的副本；请重新扫描游戏库。",
 		"The current password is wrong.":                                           "当前密码错误。",

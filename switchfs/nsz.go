@@ -835,8 +835,11 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 	} else {
 		reader.Seek(position, io.SeekStart)
 		// zstd asks for a few bytes at a time: read the file in big pieces, one system call
-		// each, or the reads take more time than the decompression
-		decoder, err := zstd.NewReader(bufio.NewReaderSize(reader, nczChunkSize), zstd.WithDecoderConcurrency(1), zstd.WithDecoderMaxWindow(1<<30))
+		// each, or the reads take more time than the decompression. With low memory on (its
+		// default) zstd keeps the window plus 1 MiB and moves the whole window down every
+		// MiB: on the 128 MiB window of other tools that was 4 times slower. Off, it keeps
+		// twice the window (16 MiB for the 8 MiB of this app) and moves it once per window.
+		decoder, err := zstd.NewReader(bufio.NewReaderSize(reader, nczChunkSize), zstd.WithDecoderConcurrency(1), zstd.WithDecoderMaxWindow(1<<30), zstd.WithDecoderLowmem(false))
 		if err != nil {
 			return err
 		}

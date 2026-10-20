@@ -1055,6 +1055,7 @@ var translations = map[string]map[string]string{
 		"A compressed file with the same name already exists.":                      "Ya existe un archivo comprimido con el mismo nombre.",
 		"Nothing in the file can be compressed.":                                    "No hay nada en el archivo que se pueda comprimir.",
 		"The compression was cancelled.":                                            "Se ha cancelado la compresión.",
+		"The task was cancelled.":                                                   "Se ha cancelado la tarea.",
 		"The original could not be deleted.":                                        "No se ha podido borrar el original.",
 		"This NSP has no ticket, and title.keys does not have its title key: without it the game cannot be read to compress it. Add the title.keys dumped from your console in Settings, or use a copy of the game with its ticket.": "Este NSP no tiene ticket y title.keys no tiene su title key: sin ella no se puede leer el juego para comprimirlo. Añade en Ajustes el title.keys extraído de tu consola, o usa una copia del juego con su ticket.",
 		"Search by file or reason...": "Buscar por archivo o motivo...",

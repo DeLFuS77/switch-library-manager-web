@@ -1327,6 +1327,7 @@ func init() {
 		"The backup has users but no administrator.":                       "O backup tem usuários, mas nenhum administrador.",
 		"The backup was restored. The library is being rescanned.":         "O backup foi restaurado. A biblioteca está sendo reescaneada.",
 		"The compression was cancelled.":                                   "A compressão foi cancelada.",
+		"The task was cancelled.":                                          "A tarefa foi cancelada.",
 		"The current password is wrong.":                                   "A senha atual está incorreta.",
 		"The file could not be compressed, the original is kept.":          "Não foi possível comprimir o arquivo; o original foi mantido.",
 		"The file could not be decompressed, the compressed file is kept.": "Não foi possível descomprimir o arquivo; o arquivo comprimido foi mantido.",

@@ -6,7 +6,8 @@
 
 - Decompressing an NSZ from the Compress page failed for updates with many subsections (more than 64 sections in an NCZ, as the app's own compression writes them for real updates): the size needed was refused before starting. It now uses the same limits as the decompression itself
 - Decompressing an NSZ stayed at 0% in Tasks until each file was done, as if it had hung on a big game: the progress now moves on while it decompresses
-- Decompressing an NSZ (and checking one) is faster: the compressed data is read in big pieces instead of a few bytes at a time (from 20 to 32 MB/s on a 3 GB DLC made by another tool)
+- Decompressing an NSZ (and checking one) is more than 3 times faster on files made by other tools: the compressed data is read in big pieces instead of a few bytes at a time, and the large window of those files (128 MiB) is no longer moved in memory every MiB (from 20 to 67 MB/s on a 3 GB DLC)
+- A stopped decompression, check or copy to the SD card said "The compression was cancelled"; it now says the task was cancelled
 
 ### Development
 
