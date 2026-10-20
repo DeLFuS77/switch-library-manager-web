@@ -2,8 +2,13 @@
 
 ## Unreleased
 
+### Fixes
+
+- Decompressing an NSZ from the Compress page failed for updates with many subsections (more than 64 sections in an NCZ, as the app's own compression writes them for real updates): the size needed was refused before starting. It now uses the same limits as the decompression itself
+
 ### Development
 
+- Tests of the edge cases of the block format that corrupted data in nsz: a size that is an exact multiple of the block size (nsz #210), and a short last block that does not compress and is stored as it is (nsz #79, #190)
 - Tests cover a multi-content NSP (a "SuperNSP": base, update and DLC in one file): with tickets, and ticketless with the keys in title.keys, it compresses to NSZ, verifies and decompresses back byte for byte; without the keys it is refused clearly instead of making a bad file
 
 ## 1.51.0

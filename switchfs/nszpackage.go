@@ -310,7 +310,9 @@ func DecompressedSize(path string) (int64, error) {
 			return 0, err
 		}
 		count := binary.LittleEndian.Uint64(table[8:16])
-		if string(table[:8]) != nczSectionMagic || count == 0 || count > 64 {
+		// the same bounds as the decompression: updates split their sections by the
+		// subsection table, hundreds of them, but never more than the NCZ can hold
+		if string(table[:8]) != nczSectionMagic || count == 0 || count > nczMaxSections || count > uint64(file.size)/0x40 {
 			return 0, errors.New("invalid NCZ section table")
 		}
 		last := make([]byte, 0x10)
