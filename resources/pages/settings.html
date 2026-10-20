@@ -235,7 +235,7 @@
 										<option value="{{.}}"{{if eq $.Settings.CompressThreads .}} selected{{end}}>{{if eq . $.Processors}}{{t "All (%v)" .}}{{else}}{{.}}{{end}}</option>
 										{{- end}}
 									</select>
-									<div class="form-text" id="compressThreadsHelp">{{t "Automatic uses half of the processors, at most 4, shared among the files at once. More threads rarely help: the disk usually sets the speed, and they leave less of the processor to the rest of the server."}}</div>
+									<div class="form-text" id="compressThreadsHelp">{{t "Automatic uses half of the processors, at most 4, shared among the files at once. A normal NSZ is one stream per file, which zstd compresses on about one core whatever the threads: they only speed up game cards (XCZ), which are compressed in blocks. To use more cores with NSZ, compress more files at once. More threads also leave less of the processor to the rest of the server."}}</div>
 								</div>
 								<div class="col-md-6">
 									<label for="compress_files_at_once" class="form-label fw-semibold">{{t "Files at once"}}</label>
