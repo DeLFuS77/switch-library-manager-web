@@ -12,6 +12,7 @@
 
 ### Development
 
+- Tested on a Switch with DBI (firmware 22.1.0): a game with its update and DLC compressed at the max level with 8 threads (zstd in C, level 19) installs, every NCA with TRANSFER OK and SIGNATURE OK, and the game boots with the update. It took 17 minutes instead of 54 and the files came out 6% smaller
 - The programs are built with Zig 0.16.0 (checked against its SHA-256) as the C compiler, static on Linux; every pull request builds the programs of a release and starts the one of Linux. The tests run with the zstd library in C and in Go only
 
 ## 1.52.0
