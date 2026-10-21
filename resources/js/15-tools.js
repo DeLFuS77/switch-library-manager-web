@@ -67,17 +67,28 @@ function initMeasure() {
 			.then(measure => {
 				const speeds = measure.results
 					.map(trial => `${trial.files}×${trial.threads} → ${trial.speed} MB/s`).join(' · ');
-				result.replaceChildren(
+				const lines = [
 					line('bi-speedometer2', `${result.dataset.textTrials}: ${speeds}`),
-					line('bi-check2-circle', format(result.dataset.textChosen, measure.files_at_once, measure.threads)));
+					line('bi-check2-circle', format(result.dataset.textChosen, measure.files_at_once, measure.threads))];
+				// what each level costs here, to choose one knowing it
+				const level = name => (measure.levels || []).find(measured => measured.level === name);
+				if (level('balanced') && level('max')) {
+					lines.push(line('bi-stopwatch', format(result.dataset.textLevels, level('balanced').minutes_per_10gb, level('max').minutes_per_10gb)));
+				}
+				result.replaceChildren(...lines);
+				// the server saved them: the fields show them, and a form with nothing else changed
+				// stays with nothing to save
+				const form = document.getElementById('compress_threads')?.form;
+				const unchanged = form ? form.classList.contains('is-unchanged') : false;
 				[['compress_threads', measure.threads], ['compress_files_at_once', measure.files_at_once]].forEach(([id, value]) => {
 					const select = document.getElementById(id);
 					if (select && [...select.options].some(option => option.value === String(value))) {
 						select.value = String(value);
-						select.dispatchEvent(new Event('input', { bubbles: true }));
-						select.dispatchEvent(new Event('change', { bubbles: true }));
 					}
 				});
+				if (form && unchanged) {
+					form.dispatchEvent(new Event('slm:saved'));
+				}
 			})
 			.catch(error => {
 				result.classList.add('text-danger-emphasis');

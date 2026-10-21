@@ -25,6 +25,8 @@ type SettingsPageData struct {
 	// what the automations need: the keys (to compress) and a notification channel
 	KeysAvailable           bool
 	NotificationsConfigured bool
+	// the last measure of the server, nil when there is none
+	LastMeasure *ServerMeasure
 	// files waiting for the automations
 	AutomationPending int
 	// the threads offered to compress each file, the processors of this computer and the
@@ -399,6 +401,7 @@ func (web *Web) settingsPageData() SettingsPageData {
 		Processors:              runtime.NumCPU(),
 		DefaultThreads:          compressWorkers(),
 		FilesAtOnceChoices:      []int{1, 2, 3, maxFilesAtOnce},
+		LastMeasure:             web.lastMeasure(),
 	}
 }
 

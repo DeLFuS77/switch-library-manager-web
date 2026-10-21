@@ -10,6 +10,7 @@
 
 ### Improvements
 
+- The measure of the server in Settings saves the fastest setting by itself, instead of filling the fields to save, and is remembered with its date. It also measures Balanced and Maximum with that setting and tells how many minutes 10 GB of games take with each here, to choose the level knowing what it costs
 - Pages open faster: the styles, scripts, fonts and icons were loaded again on every page, about 280 KB and a third of a second on a NAS, as no answer said they could be kept. Now browsers keep them (the styles and scripts of a version for good), the service worker asks for a page while it starts instead of after, and a list opened from the menu comes filtered at once instead of loading twice
 - The page shown while the app starts stays at least two and a half seconds, ticking its steps one by one, instead of flashing by after a restart
 ### Fixes

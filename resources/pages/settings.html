@@ -257,12 +257,21 @@
 							<div class="measure mt-3 pt-3" data-measure>
 								<div class="d-flex flex-wrap align-items-center gap-2">
 									<button type="button" class="btn btn-sm btn-outline-primary rounded-pill flex-shrink-0" data-measure-start><span class="bi bi-speedometer2 me-1" aria-hidden="true"></span>{{t "Measure this server"}}</button>
-									<span class="small text-body-secondary">{{t "Compresses parts of the biggest games of your library for about half a minute with several settings, into a hidden file next to them that is deleted at the end, and chooses the fastest one here."}}</span>
+									<span class="small text-body-secondary">{{t "Compresses parts of the biggest games of your library for about 40 seconds with several settings and both levels, into a hidden file next to them that is deleted at the end, and saves the fastest one."}}</span>
 								</div>
-								<div class="measure-result small mt-2" data-measure-result role="status" hidden
+								<div class="measure-result small mt-2" data-measure-result role="status"{{if not .LastMeasure}} hidden{{end}}
 									data-text-running="{{t "Measuring the disk and the processor..."}}"
 									data-text-trials="{{t "Files at once × threads"}}"
-									data-text-chosen="{{t "Chosen: %v files at once with %v threads each. Save to apply."}}"></div>
+									data-text-chosen="{{t "Saved: %v files at once with %v threads each."}}"
+									data-text-levels="{{t "Balanced: about %v min per 10 GB · Maximum: about %v min per 10 GB."}}">
+									{{- with .LastMeasure}}
+									<div><span class="bi bi-clock-history me-1" aria-hidden="true"></span>{{t "Last measure: %v, up to %v MB/s." (formatDateTime .Measured) .Best}}</div>
+									<div><span class="bi bi-check2-circle me-1" aria-hidden="true"></span>{{t "Saved: %v files at once with %v threads each." .FilesAtOnce .Threads}}</div>
+									{{- if .Levels}}
+									<div><span class="bi bi-stopwatch me-1" aria-hidden="true"></span>{{t "Balanced: about %v min per 10 GB · Maximum: about %v min per 10 GB." (.Level "balanced").MinutesPer10 (.Level "max").MinutesPer10}}</div>
+									{{- end}}
+									{{- end}}
+								</div>
 							</div>
 						</section>
 						<section class="surface mb-4 settings-section" id="automation" aria-labelledby="automationTitle">
