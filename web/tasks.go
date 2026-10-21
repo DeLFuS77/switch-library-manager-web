@@ -156,6 +156,9 @@ type TaskLane struct {
 	Phase string `json:"phase,omitempty"`
 	Step  int    `json:"step,omitempty"`
 	Steps int    `json:"steps,omitempty"`
+	// what the file holds, from its name: Base, Update or DLC by the title ID, Pack for a
+	// complete pack ("" unknown)
+	Kind string `json:"kind,omitempty"`
 	// on the Tasks page only: the cover of the game of the file
 	Cover string `json:"-"`
 }
@@ -163,11 +166,54 @@ type TaskLane struct {
 // laneTones are the colours of the library overview, one for each file being worked on.
 var laneTones = []string{"red", "yellow", "cyan", "green"}
 
-// Tone is the colour of the bar of the file, always the same for the same name.
+// the colours of the steps of a file: the hashes, the work itself, the check
+var phaseTones = map[string]string{PHASE_HASHING: "cyan", PHASE_VERIFYING: "green"}
+
+// the colours of what a file holds, as in the library overview
+var kindTones = map[string]string{"Base": "red", "Update": "yellow", "DLC": "cyan", "Pack": "green"}
+
+// Tone is the colour of the bar of the file: the step it is in for a task in steps
+// (compression, decompression...), what it holds for a check (game, update or DLC), or else
+// always the same for the same name.
 func (l TaskLane) Tone() string {
+	if l.Phase != "" {
+		if tone, ok := phaseTones[l.Phase]; ok {
+			return tone
+		}
+		return "yellow"
+	}
+	if tone, ok := kindTones[l.Kind]; ok {
+		return tone
+	}
 	hash := fnv.New32a()
 	hash.Write([]byte(l.Name))
 	return laneTones[hash.Sum32()%uint32(len(laneTones))]
+}
+
+// laneKind is what a file holds for its bar: a complete pack, named after its base game, is a
+// pack and not a game.
+func laneKind(name string) string {
+	if strings.Contains(strings.ToLower(name), "(pack)") {
+		return "Pack"
+	}
+	return contentKind(name)
+}
+
+// KindName is what the file holds, to translate, shown while it is checked: "Game", "Update"
+// or "DLC"; "" when unknown or when the file goes through steps.
+func (l TaskLane) KindName() string {
+	if l.Phase != "" {
+		return ""
+	}
+	switch l.Kind {
+	case "Base":
+		return "Game"
+	case "Pack":
+		return "Complete pack"
+	case "Update", "DLC":
+		return l.Kind
+	}
+	return ""
 }
 
 // Percent is the progress of the file.

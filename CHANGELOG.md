@@ -9,6 +9,7 @@
 
 ### Improvements
 
+- The bar of each file in Tasks has a meaning: in a compression, decompression, conversion, pack or split, the colour of its step (cyan for the hashes, yellow for the work, green for the check); in a check of the files, the colour of what it holds (red for a game, yellow for an update, cyan for a DLC, green for a complete pack), with a dot of that colour and its name next to the size. They were taken from the name of the file
 - The setup wizard checks the administrator before saving anything: a password the app refuses (too short, too common, or the user name) made "Save and start" fail again and again with only the word "Administrator". Now the security step says why and does not go on; "Show the password" helps to see what was typed
 - The steps of the setup wizard scroll inside, so the title and the buttons stay in place on long steps (notifications); on phones Back, Skip and Next stay together
 - The summary of the setup wizard has a "Change" button on each row to go back to its step, says whether the keys were found, and shows whole paths on phones

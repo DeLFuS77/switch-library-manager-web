@@ -567,7 +567,7 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 			lanes := []TaskLane{}
 			for i, laneName := range laneNames {
 				if laneName != "" {
-					lanes = append(lanes, TaskLane{Name: laneName, Done: partial[i], Total: laneSizes[i]})
+					lanes = append(lanes, TaskLane{Name: laneName, Done: partial[i], Total: laneSizes[i], Kind: laneKind(laneName)})
 				}
 			}
 			web.taskLog().ProgressFiles(taskId, int(done>>20), int(total>>20), name, started, len(files), lanes)
