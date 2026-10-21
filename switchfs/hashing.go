@@ -14,19 +14,20 @@ import (
 
 // hashingReaderAt hashes the bytes of one file of a package as a compression reads them, in
 // order from its start to its end: the compression reads every byte of the original anyway,
-// so its hashes come without reading it a second time. A read out of that order leaves the
-// hash incomplete, and the file is hashed on its own instead.
+// so its hashes come without reading it a second time. The hashing runs on a goroutine of its
+// own, beside the compression instead of in its way. A read out of that order leaves the hash
+// incomplete, and the file is hashed on its own instead.
 type hashingReaderAt struct {
 	input      io.ReaderAt
 	start, end int64
 	// the next byte to hash
 	next   int64
-	hash   hash.Hash
+	hash   *backgroundHash
 	broken bool
 }
 
-func newHashingReaderAt(input io.ReaderAt, offset int64, size int64, hash hash.Hash) *hashingReaderAt {
-	return &hashingReaderAt{input: input, start: offset, end: offset + size, next: offset, hash: hash}
+func newHashingReaderAt(input io.ReaderAt, offset int64, size int64) *hashingReaderAt {
+	return &hashingReaderAt{input: input, start: offset, end: offset + size, next: offset, hash: newBackgroundHash()}
 }
 
 func (h *hashingReaderAt) ReadAt(p []byte, offset int64) (int, error) {
@@ -47,9 +48,58 @@ func (h *hashingReaderAt) ReadAt(p []byte, offset int64) (int, error) {
 	return n, err
 }
 
-// complete tells the hash covers the whole file, read once in order.
-func (h *hashingReaderAt) complete() bool {
-	return !h.broken && h.next == h.end
+// finish stops the hashing and gives the hash, and whether it covers the whole file, read
+// once in order. It is called once the file is read, also after an error.
+func (h *hashingReaderAt) finish() ([32]byte, bool) {
+	sum := h.hash.Sum()
+	return sum, !h.broken && h.next == h.end
+}
+
+// backgroundHash takes the SHA-256 of what is written to it on a goroutine of its own; each
+// write is copied, so the caller can use its buffer again at once. Sum ends the goroutine.
+type backgroundHash struct {
+	chunks chan []byte
+	free   chan []byte
+	sum    chan [32]byte
+	result *[32]byte
+}
+
+func newBackgroundHash() *backgroundHash {
+	b := &backgroundHash{chunks: make(chan []byte, 4), free: make(chan []byte, 6), sum: make(chan [32]byte, 1)}
+	go func() {
+		hash := sha256.New()
+		for chunk := range b.chunks {
+			hash.Write(chunk)
+			select {
+			case b.free <- chunk[:0]:
+			default:
+			}
+		}
+		var sum [32]byte
+		copy(sum[:], hash.Sum(nil))
+		b.sum <- sum
+	}()
+	return b
+}
+
+func (b *backgroundHash) Write(p []byte) (int, error) {
+	var chunk []byte
+	select {
+	case chunk = <-b.free:
+	default:
+	}
+	b.chunks <- append(chunk, p...)
+	return len(p), nil
+}
+
+// Sum waits for what was written and gives its hash; nothing can be written after it.
+func (b *backgroundHash) Sum() [32]byte {
+	if b.result == nil {
+		close(b.chunks)
+		sum := <-b.sum
+		b.result = &sum
+	}
+	return *b.result
 }
 
 // writtenEdge is how much of the start and of the end of a written file is kept, to read

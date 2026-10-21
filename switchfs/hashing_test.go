@@ -75,7 +75,7 @@ func TestHashingReaderNeedsTheFileInOrder(t *testing.T) {
 	data := bytes.Repeat([]byte("switch library "), 4096)
 	file := bytes.NewReader(append(append([]byte("before"), data...), []byte("after")...))
 	in := func(reads [][2]int64) *hashingReaderAt {
-		reader := newHashingReaderAt(file, 6, int64(len(data)), sha256.New())
+		reader := newHashingReaderAt(file, 6, int64(len(data)))
 		for _, read := range reads {
 			buffer := make([]byte, read[1])
 			reader.ReadAt(buffer, read[0])
@@ -84,13 +84,13 @@ func TestHashingReaderNeedsTheFileInOrder(t *testing.T) {
 	}
 	whole := in([][2]int64{{6, 1000}, {6, 500}, {1006, int64(len(data)) - 1000}})
 	want := sha256.Sum256(data)
-	if !whole.complete() || !bytes.Equal(whole.hash.Sum(nil), want[:]) {
+	if sum, complete := whole.finish(); !complete || sum != want {
 		t.Fatal("read in order, with a part read again")
 	}
-	if in([][2]int64{{6, 1000}, {2000, 1000}}).complete() {
+	if _, complete := in([][2]int64{{6, 1000}, {2000, 1000}}).finish(); complete {
 		t.Fatal("a gap")
 	}
-	if in([][2]int64{{6, int64(len(data)) - 10}}).complete() {
+	if _, complete := in([][2]int64{{6, int64(len(data)) - 10}}).finish(); complete {
 		t.Fatal("read short of its end")
 	}
 }

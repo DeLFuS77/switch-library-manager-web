@@ -194,7 +194,7 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 		}
 		writer.startFile()
 		// the original is hashed as it is read, instead of in a pass of its own
-		reader := newHashingReaderAt(input, file.offset, file.size, sha256.New())
+		reader := newHashingReaderAt(input, file.offset, file.size)
 		if plans[i] != nil && (options.Blocks || pkg.xci) {
 			err = writeNczBlocks(ctx, output, reader, file.offset, file.size, plans[i], options, progress)
 		} else if plans[i] != nil {
@@ -203,14 +203,12 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 			result.Stored++
 			err = copyRange(ctx, output, reader, file.offset, file.size, progress)
 		}
+		sum, complete := reader.finish()
 		if err == nil {
 			err = writer.endFile()
 		}
 		if err == nil {
-			var sum [32]byte
-			if reader.complete() {
-				copy(sum[:], reader.hash.Sum(nil))
-			} else {
+			if !complete {
 				// not read whole in order: hashed on its own
 				whole := sha256.New()
 				if err = copyRange(ctx, whole, input, file.offset, file.size, nil); err == nil {
