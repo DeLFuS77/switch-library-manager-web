@@ -1112,7 +1112,8 @@ func checkPackage(ctx context.Context, path string, expected map[string][32]byte
 		if compressed {
 			original = file.name[:len(file.name)-4] + ".nca"
 		}
-		hash := sha256.New()
+		// hashed beside the reading and the decompression, not after them
+		hash := newBackgroundHash()
 		if compressed {
 			// the progress follows the compressed bytes read, so a big NCZ moves on while it
 			// is decompressed instead of all at once at its end
@@ -1124,11 +1125,10 @@ func checkPackage(ctx context.Context, path string, expected map[string][32]byte
 		} else {
 			err = copyRange(ctx, hash, input, file.offset, file.size, report)
 		}
+		sum := hash.Sum()
 		if err != nil {
 			return nil, check, fmt.Errorf("%s: %w", file.name, err)
 		}
-		var sum [32]byte
-		copy(sum[:], hash.Sum(nil))
 		hashes[original] = sum
 
 		if expected != nil {
