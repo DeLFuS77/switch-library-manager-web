@@ -185,11 +185,35 @@ const startingScript = `(function () {
 			bar.style.width = state.percent + '%';
 		}
 	}
+	// a start of a second or two would only flash: the page stays at least this long, and its
+	// steps are ticked one by one before the app opens
+	var shown = Date.now();
+	var least = 2500;
+	function finish() {
+		var steps = document.querySelectorAll('#steps li');
+		var from = 0;
+		for (var i = 0; i < steps.length; i++) {
+			if (steps[i].className !== 'done') {
+				from = i;
+				break;
+			}
+			from = steps.length;
+		}
+		var tick = 350;
+		for (var step = from + 1; step <= steps.length; step++) {
+			(function (step) {
+				setTimeout(function () {
+					show({ step: step, percent: Math.round(step * 100 / steps.length) });
+				}, (step - from) * tick);
+			})(step);
+		}
+		var wait = Math.max((steps.length - from) * tick + 400, least - (Date.now() - shown));
+		setTimeout(function () { window.location.reload(); }, wait);
+	}
 	function check() {
 		fetch('/healthz?detail=1', { cache: 'no-store' }).then(function (response) {
 			if (response.ok) {
-				show({ step: document.querySelectorAll('#steps li').length, percent: 100 });
-				setTimeout(function () { window.location.reload(); }, 250);
+				finish();
 				return;
 			}
 			return response.json().then(function (state) {
@@ -200,7 +224,7 @@ const startingScript = `(function () {
 			setTimeout(check, 1500);
 		});
 	}
-	setTimeout(check, 1000);
+	setTimeout(check, 600);
 })();
 `
 

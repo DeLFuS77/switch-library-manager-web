@@ -60,19 +60,21 @@ function initViewToggle() {
 }
 
 // The filters of each list are remembered by the browser: coming back to a list from another
-// page (the menu, a game page) shows it as it was left, from its first page. On the list itself,
-// removing the filters shows everything.
+// page (the menu, a game page) shows it with its order and filters, from its first page and
+// without a search made before (going back keeps it, from the history of the browser). On the
+// list itself, removing the filters shows everything.
 const FILTER_PAGES = ['/index.html', '/updates.html', '/dlc.html', '/missing.html'];
 
 function listPath(pathname) {
 	return pathname === '/' ? '/index.html' : pathname;
 }
 
-// filtersOf is the query of a list without its page: going back to a list starts at its
-// first page, with its search, order and filters
+// filtersOf is the query of a list without its page and its search: going back to a list
+// starts at its first page, with its order and filters, and a search made before is not kept
 function filtersOf(query) {
 	const params = new URLSearchParams(query);
 	params.delete('page');
+	params.delete('q');
 	const rest = params.toString();
 	return rest ? '?' + rest : '';
 }
@@ -131,5 +133,61 @@ function linkRememberedFilters() {
 		if (stored) {
 			link.setAttribute('href', listPath(href) + stored);
 		}
+	});
+}
+
+// Page tabs: the parts of a long page (Organize, Compress) one at a time, like the tabs of a
+// folder, instead of one under the other. The tab shown is in the address (#name), so a reload
+// or a link opens it again. A panel shown tells it (slm:tab-shown), for what it loads then.
+function initPageTabs() {
+	document.querySelectorAll('[data-page-tabs]').forEach(list => {
+		const tabs = [...list.querySelectorAll('[role="tab"]')];
+		if (tabs.length === 0) {
+			return;
+		}
+		const show = (tab, focus, remember) => {
+			tabs.forEach(other => {
+				const selected = other === tab;
+				other.setAttribute('aria-selected', String(selected));
+				other.tabIndex = selected ? 0 : -1;
+				other.classList.toggle('active', selected);
+				const panel = document.getElementById(other.getAttribute('aria-controls'));
+				if (panel) {
+					const wasHidden = panel.hidden;
+					panel.hidden = !selected;
+					if (selected && wasHidden) {
+						panel.dispatchEvent(new CustomEvent('slm:tab-shown'));
+					}
+				}
+			});
+			// on phones the row scrolls sideways: the tab shown comes into view
+			if (typeof tab.scrollIntoView === 'function') {
+				tab.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+			}
+			if (focus) {
+				tab.focus();
+			}
+			if (remember) {
+				history.replaceState(history.state, '', '#' + tab.dataset.tab);
+			}
+		};
+		const named = tabs.find(tab => '#' + tab.dataset.tab === window.location.hash);
+		show(named || tabs.find(tab => tab.getAttribute('aria-selected') === 'true') || tabs[0], false, false);
+		tabs.forEach((tab, i) => {
+			tab.addEventListener('click', () => show(tab, false, true));
+			// the arrows go from tab to tab, as in the tabs of the system
+			tab.addEventListener('keydown', e => {
+				const next = {
+					ArrowRight: tabs[(i + 1) % tabs.length],
+					ArrowLeft: tabs[(i - 1 + tabs.length) % tabs.length],
+					Home: tabs[0],
+					End: tabs[tabs.length - 1],
+				}[e.key];
+				if (next) {
+					e.preventDefault();
+					show(next, true, true);
+				}
+			});
+		});
 	});
 }

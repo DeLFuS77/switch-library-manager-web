@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initFlashMessages();
 	initSaveWhenChanged();
 	initKeysUpload();
+	initPageTabs();
 	initOrganize();
 	initIgnoreButtons();
 	initLibraryBulk();

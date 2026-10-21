@@ -202,3 +202,60 @@
 		color: #fff;
 	}
 }
+
+// the parts of a long page one at a time, like the tabs of a folder: the one shown joins the
+// page below it, with the red of the app on its top; on phones the row scrolls sideways
+.page-tabs {
+	display: flex;
+	gap: .25rem;
+	margin-bottom: 1.25rem;
+	overflow-x: auto;
+	border-bottom: 1px solid var(--slm-border);
+	scrollbar-width: none;
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
+}
+
+.page-tab {
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: .45rem;
+	margin-bottom: -1px;
+	padding: .6rem 1rem;
+	border: 1px solid transparent;
+	border-radius: $border-radius $border-radius 0 0;
+	background: none;
+	color: var(--bs-secondary-color);
+	font-weight: 600;
+	white-space: nowrap;
+	transition: color .15s ease, background-color .15s ease;
+
+	&:hover {
+		color: var(--bs-body-color);
+		background: var(--slm-surface-muted);
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--bs-primary);
+		outline-offset: -2px;
+	}
+
+	&.active {
+		border-color: var(--slm-border);
+		border-bottom-color: var(--bs-body-bg);
+		background: var(--bs-body-bg);
+		box-shadow: inset 0 2px 0 $primary;
+		color: var(--bs-body-color);
+	}
+
+	.badge {
+		font-size: var(--slm-text-xs);
+	}
+
+	@include media-breakpoint-down(sm) {
+		padding-inline: .75rem;
+	}
+}

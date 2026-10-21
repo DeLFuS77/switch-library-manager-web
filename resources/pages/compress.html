@@ -33,11 +33,30 @@
 					<li class="d-flex flex-wrap gap-2"><span class="text-body">{{.Name}}</span><span>{{formatSize .Size}}</span>{{if .Sparse}}<span class="badge text-bg-secondary">{{t "Sparse storage"}}</span>{{end}}</li>
 					{{- end}}
 				</ul>
-			</details>
+			</div>
 			{{- end}}
 			{{- if .Damaged}}
 			<p class="small text-body-secondary d-flex align-items-start gap-2 mb-4"><span class="bi bi-exclamation-triangle flex-shrink-0 mt-1 text-warning" aria-hidden="true"></span><span>{{t "%v damaged files are not listed: they cannot be compressed until they are replaced with a sound copy." .Damaged}} <a href="/issues.html?kind=damaged">{{t "Issues"}}</a></span></p>
 			{{- end}}
+			{{- $tabs := or .CardCount .SplitCount .PackCount .CompressedCount}}
+			{{- if $tabs}}
+			<div class="page-tabs" role="tablist" aria-label="{{t "Compress"}}" data-page-tabs>
+				<button type="button" class="page-tab active" role="tab" id="tabCompress" data-tab="compress" aria-controls="panelCompress" aria-selected="true"><span class="bi bi-file-zip" aria-hidden="true"></span>{{t "Compress"}}{{with add (len .Candidates) .RestCount}} <span class="badge rounded-pill text-bg-secondary">{{num .}}</span>{{end}}</button>
+				{{- if .CardCount}}
+				<button type="button" class="page-tab" role="tab" id="tabConvert" data-tab="convert" aria-controls="panelConvert" aria-selected="false" tabindex="-1"><span class="bi bi-arrow-left-right" aria-hidden="true"></span>{{t "Convert"}} <span class="badge rounded-pill text-bg-secondary">{{num .CardCount}}</span></button>
+				{{- end}}
+				{{- if .SplitCount}}
+				<button type="button" class="page-tab" role="tab" id="tabSplit" data-tab="split" aria-controls="panelSplit" aria-selected="false" tabindex="-1"><span class="bi bi-scissors" aria-hidden="true"></span>{{t "Split"}} <span class="badge rounded-pill text-bg-secondary">{{num .SplitCount}}</span></button>
+				{{- end}}
+				{{- if .PackCount}}
+				<button type="button" class="page-tab" role="tab" id="tabPacks" data-tab="packs" aria-controls="panelPacks" aria-selected="false" tabindex="-1"><span class="bi bi-box-seam" aria-hidden="true"></span>{{t "Packs"}} <span class="badge rounded-pill text-bg-secondary">{{num .PackCount}}</span></button>
+				{{- end}}
+				{{- if .CompressedCount}}
+				<button type="button" class="page-tab" role="tab" id="tabDecompress" data-tab="decompress" aria-controls="panelDecompress" aria-selected="false" tabindex="-1"><span class="bi bi-box-arrow-up" aria-hidden="true"></span>{{t "Decompress"}} <span class="badge rounded-pill text-bg-secondary">{{num .CompressedCount}}</span></button>
+				{{- end}}
+			</div>
+			{{- end}}
+			<div{{if $tabs}} role="tabpanel" id="panelCompress" aria-labelledby="tabCompress"{{end}}>
 			{{- if not .Candidates}}
 			{{- template "emptyState" (dict "Icon" "bi-file-zip" "Tone" "success" "Title" (t "Nothing to compress") "Text" (t "Your library has no NSP or XCI files to compress.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 			{{- else}}
@@ -139,11 +158,12 @@
 				</div>
 			</form>
 			{{- end}}
+			</div>
 
 			{{- if .CardCount}}
-			<details class="surface details-section mt-5">
-				<summary class="section-title mb-0"><span class="bi bi-arrow-left-right" aria-hidden="true"></span>{{t "Convert XCI to NSP"}} <span class="badge rounded-pill text-bg-secondary">{{.CardCount}}</span><span class="bi bi-chevron-down ms-auto details-chevron" aria-hidden="true"></span></summary>
-				<form id="convertForm" class="mt-3">
+			<div class="surface" role="tabpanel" id="panelConvert" aria-labelledby="tabConvert" hidden>
+				<form id="convertForm">
+					<h2 class="section-title"><span class="bi bi-arrow-left-right" aria-hidden="true"></span>{{t "Convert XCI to NSP"}}</h2>
 					<p class="text-body-secondary">{{t "Turn game card files (XCI, XCZ) into NSP and NSZ files with the same content, for installers and tools that prefer them. Every new file is checked before the original is deleted."}}</p>
 					<div class="file-list-head">
 						<div class="form-check mb-0">
@@ -165,12 +185,12 @@
 						<button type="submit" class="btn btn-outline-primary rounded-pill px-4 text-nowrap"{{if .Running}} disabled{{end}}><span class="bi bi-arrow-left-right me-2" aria-hidden="true"></span>{{t "Convert selected"}}</button>
 					</div>
 				</form>
-			</details>
+			</div>
 			{{- end}}
 			{{- if .SplitCount}}
-			<details class="surface details-section mt-5">
-				<summary class="section-title mb-0"><span class="bi bi-scissors" aria-hidden="true"></span>{{t "Split multi-title files"}} <span class="badge rounded-pill text-bg-secondary">{{.SplitCount}}</span><span class="bi bi-chevron-down ms-auto details-chevron" aria-hidden="true"></span></summary>
-				<form id="splitForm" class="mt-3">
+			<div class="surface" role="tabpanel" id="panelSplit" aria-labelledby="tabSplit" hidden>
+				<form id="splitForm">
+					<h2 class="section-title"><span class="bi bi-scissors" aria-hidden="true"></span>{{t "Split multi-title files"}}</h2>
 					<p class="text-body-secondary">{{t "Turn files that hold several titles (a game with its updates and DLC in one NSP or NSZ) back into one file per title. Nothing is decompressed or changed: each part keeps the files of its title as they are, and every part is checked before the original is deleted."}}</p>
 					<p class="text-body-secondary">{{t "A game card dump with several games (a collection on one cartridge) splits into one XCI or XCZ per game, with its update and DLC, so the files made for a game card stay as they are."}}</p>
 					<div class="file-list-head">
@@ -193,12 +213,12 @@
 						<button type="submit" class="btn btn-outline-primary rounded-pill px-4 text-nowrap"{{if or .Running (not .IsKeysFileAvailable)}} disabled{{end}}><span class="bi bi-scissors me-2" aria-hidden="true"></span>{{t "Split selected"}}</button>
 					</div>
 				</form>
-			</details>
+			</div>
 			{{- end}}
 			{{- if .PackCount}}
-			<details class="surface details-section mt-5">
-				<summary class="section-title mb-0"><span class="bi bi-box-seam" aria-hidden="true"></span>{{t "Make complete packs"}} <span class="badge rounded-pill text-bg-secondary">{{.PackCount}}</span><span class="bi bi-chevron-down ms-auto details-chevron" aria-hidden="true"></span></summary>
-				<form id="packForm" class="mt-3">
+			<div class="surface" role="tabpanel" id="panelPacks" aria-labelledby="tabPacks" hidden>
+				<form id="packForm">
+					<h2 class="section-title"><span class="bi bi-box-seam" aria-hidden="true"></span>{{t "Make complete packs"}}</h2>
 					<p class="text-body-secondary">{{t "Put each game with its latest update and its DLC into one NSP (or NSZ), for installers that take several titles at once. Older updates and delta fragments are left out. Every pack is checked before the separate files are deleted."}}</p>
 					<div class="file-list-head">
 						<div class="form-check mb-0">
@@ -220,12 +240,12 @@
 						<button type="submit" class="btn btn-outline-primary rounded-pill px-4 text-nowrap"{{if .Running}} disabled{{end}}><span class="bi bi-box-seam me-2" aria-hidden="true"></span>{{t "Make packs"}}</button>
 					</div>
 				</form>
-			</details>
+			</div>
 			{{- end}}
 			{{- if .CompressedCount}}
-			<details class="surface details-section mt-5">
-				<summary class="section-title mb-0"><span class="bi bi-box-arrow-up" aria-hidden="true"></span>{{t "Decompress"}} <span class="badge rounded-pill text-bg-secondary">{{.CompressedCount}}</span><span class="bi bi-chevron-down ms-auto details-chevron" aria-hidden="true"></span></summary>
-				<form id="decompressForm" class="mt-3">
+			<div class="surface" role="tabpanel" id="panelDecompress" aria-labelledby="tabDecompress" hidden>
+				<form id="decompressForm">
+					<h2 class="section-title"><span class="bi bi-box-arrow-up" aria-hidden="true"></span>{{t "Decompress"}}</h2>
 					<p class="text-body-secondary">{{t "Turn NSZ files back into NSP files, for tools that do not read NSZ. Every NSP is checked before the NSZ is deleted."}}</p>
 					<div class="file-list-head">
 						<div class="form-check mb-0">
@@ -247,7 +267,7 @@
 						<button type="submit" class="btn btn-outline-primary rounded-pill px-4 text-nowrap"{{if .Running}} disabled{{end}}><span class="bi bi-box-arrow-up me-2" aria-hidden="true"></span>{{t "Decompress selected"}}</button>
 					</div>
 				</form>
-			</details>
+			</div>
 			{{- end}}
 {{- end}}
 
