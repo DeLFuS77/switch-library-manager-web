@@ -842,7 +842,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 					fileSize := sizes[i] * passes
 					message := name
 					report := func(step int64) func(int64, int64) {
-						lane := TaskLane{Name: name, Total: fileSize}
+						lane := TaskLane{Name: name, Total: fileSize, Kind: laneKind(name)}
 						index := -1
 						if len(phases) > 0 && sizes[i] > 0 {
 							index = min(int(step/sizes[i]), len(phases)-1)

@@ -339,12 +339,24 @@
 	transition: width .6s ease, --pct .6s ease;
 }
 
-// the bar of each file in one of the colours of the library overview
-.task-lane-bar .progress-bar {
+// the bar of each file in one of the colours of the library overview: by the step it is in
+// (hashes, work, check), or by what it holds (game, update, DLC); the dot by its step or kind
+// says which
+.task-lane-bar .progress-bar,
+.lane-dot {
 	&.lane-red { background-color: #{$slm-red}; }
 	&.lane-yellow { background-color: #{$warning}; }
 	&.lane-cyan { background-color: #{$slm-cyan}; }
 	&.lane-green { background-color: #{$success}; }
+}
+
+.lane-dot {
+	display: inline-block;
+	width: .55rem;
+	height: .55rem;
+	margin-right: .3rem;
+	border-radius: 50%;
+	vertical-align: .05rem;
 }
 
 .task-lane-bar {

@@ -395,3 +395,34 @@ func TestTimeLeftFollowsEachStep(t *testing.T) {
 		t.Fatalf("not known yet: %v", got)
 	}
 }
+
+// The bar of a file has the colour of its step in a compression (hashes, work, check), and of
+// what it holds in a check (game, update, DLC), instead of a colour taken from its name.
+func TestLaneColoursFollowTheStepOrTheKind(t *testing.T) {
+	steps := map[string]string{PHASE_HASHING: "cyan", PHASE_COMPRESSING: "yellow", PHASE_DECOMPRESSING: "yellow", PHASE_VERIFYING: "green"}
+	for phase, tone := range steps {
+		if got := (TaskLane{Name: "Game [0100000000010000][v0].nsp", Phase: phase, Kind: "Base"}).Tone(); got != tone {
+			t.Errorf("%s: %s", phase, got)
+		}
+	}
+	kinds := map[string][2]string{
+		"Game [0100000000010000][v0].nsp":                    {"red", "Game"},
+		"Game [0100000000010800][v65536].nsz":                {"yellow", "Update"},
+		"Game DLC [0100000000011001][v0].nsp":                {"cyan", "DLC"},
+		"Game [0100000000010000][v65536][+1 DLC] (pack).nsz": {"green", "Complete pack"},
+	}
+	for name, want := range kinds {
+		lane := TaskLane{Name: name, Kind: laneKind(name)}
+		if lane.Tone() != want[0] || lane.KindName() != want[1] {
+			t.Errorf("%s: %s %s", name, lane.Tone(), lane.KindName())
+		}
+	}
+	// a name without a title ID keeps a colour of its own, and no kind
+	if lane := (TaskLane{Name: "game.nsp"}); lane.KindName() != "" || lane.Tone() == "" {
+		t.Errorf("unknown: %+v", lane)
+	}
+	// in steps the kind is not shown, the step is
+	if (TaskLane{Kind: "DLC", Phase: PHASE_VERIFYING}).KindName() != "" {
+		t.Error("the kind of a file in steps")
+	}
+}
