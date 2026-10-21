@@ -1,4 +1,72 @@
 {
+  "1.54.0": {
+    "en": [
+      "Tasks wait in a queue instead of being refused while another one works, and you can take them out of it in Tasks before they start.",
+      "Organize, Compress and Statistics show their parts as tabs, pages open faster, and a compression started right after Organize finds the files it renamed.",
+      "On phones a turning fan next to Synchronize shows the tasks at work, and the menus and selectors fit without overlapping.",
+      "The measure of the server in Settings saves the fastest setting by itself and tells how long each level takes here."
+    ],
+    "es": [
+      "Las tareas esperan en una cola en vez de rechazarse mientras otra trabaja, y puedes quitarlas en Tareas antes de que empiecen.",
+      "Organizar, Comprimir y Estadísticas muestran sus partes en pestañas, las páginas abren más rápido y una compresión lanzada justo después de Organizar encuentra los archivos que renombró.",
+      "En el móvil, una rueda junto a Sincronizar muestra las tareas en marcha, y los menús y selectores caben sin solaparse.",
+      "La medición del servidor en Ajustes guarda sola el ajuste más rápido y dice cuánto tarda aquí cada nivel."
+    ],
+    "de": [
+      "Aufgaben warten in einer Warteschlange, statt abgelehnt zu werden, während eine andere läuft, und du kannst sie in Aufgaben herausnehmen, bevor sie starten.",
+      "Organisieren, Komprimieren und Statistiken zeigen ihre Teile als Tabs, Seiten öffnen schneller, und eine Komprimierung direkt nach dem Organisieren findet die umbenannten Dateien.",
+      "Auf dem Handy zeigt ein drehender Lüfter neben Synchronisieren die laufenden Aufgaben, und Menüs und Auswahlen passen ohne Überlappung.",
+      "Die Messung des Servers in den Einstellungen speichert die schnellste Einstellung selbst und zeigt, wie lange jede Stufe hier braucht."
+    ],
+    "fr": [
+      "Les tâches attendent dans une file au lieu d'être refusées pendant qu'une autre travaille, et vous pouvez les retirer dans Tâches avant qu'elles ne démarrent.",
+      "Organiser, Compresser et Statistiques affichent leurs parties en onglets, les pages s'ouvrent plus vite et une compression lancée juste après Organiser trouve les fichiers renommés.",
+      "Sur téléphone, un ventilateur qui tourne à côté de Synchroniser montre les tâches en cours, et les menus et sélecteurs tiennent sans se chevaucher.",
+      "La mesure du serveur dans Paramètres enregistre seule le réglage le plus rapide et indique combien de temps chaque niveau prend ici."
+    ],
+    "it": [
+      "Le attività aspettano in coda invece di essere rifiutate mentre un'altra lavora, e puoi toglierle in Attività prima che partano.",
+      "Organizza, Comprimi e Statistiche mostrano le loro parti in schede, le pagine si aprono più in fretta e una compressione avviata subito dopo Organizza trova i file rinominati.",
+      "Sul telefono una ventola che gira accanto a Sincronizza mostra le attività in corso, e menu e selettori stanno senza sovrapporsi.",
+      "La misurazione del server nelle Impostazioni salva da sola l'impostazione più veloce e dice quanto impiega qui ogni livello."
+    ],
+    "pt": [
+      "As tarefas esperam numa fila em vez de serem recusadas enquanto outra trabalha, e podes tirá-las em Tarefas antes de começarem.",
+      "Organizar, Comprimir e Estatísticas mostram as suas partes em separadores, as páginas abrem mais depressa e uma compressão iniciada logo depois de Organizar encontra os ficheiros renomeados.",
+      "No telemóvel, uma ventoinha a girar junto a Sincronizar mostra as tarefas em curso, e os menus e seletores cabem sem se sobrepor.",
+      "A medição do servidor nas Definições guarda sozinha a definição mais rápida e diz quanto tempo cada nível demora aqui."
+    ],
+    "nl": [
+      "Taken wachten in een wachtrij in plaats van geweigerd te worden terwijl een andere loopt, en je kunt ze in Taken eruit halen voordat ze starten.",
+      "Organiseren, Comprimeren en Statistieken tonen hun delen als tabbladen, pagina's openen sneller en een compressie direct na Organiseren vindt de hernoemde bestanden.",
+      "Op de telefoon toont een draaiende ventilator naast Synchroniseren de lopende taken, en menu's en keuzes passen zonder te overlappen.",
+      "De meting van de server in Instellingen slaat zelf de snelste instelling op en vertelt hoe lang elk niveau hier duurt."
+    ],
+    "ru": [
+      "Задачи ждут в очереди, а не отклоняются, пока работает другая, и их можно убрать из очереди в «Задачах» до начала.",
+      "«Упорядочивание», «Сжатие» и «Статистика» показывают свои части на вкладках, страницы открываются быстрее, а сжатие сразу после упорядочивания находит переименованные файлы.",
+      "На телефоне вращающийся вентилятор рядом с «Синхронизировать» показывает идущие задачи, а меню и переключатели помещаются без наложений.",
+      "Измерение сервера в настройках само сохраняет самую быструю настройку и показывает, сколько здесь занимает каждый уровень."
+    ],
+    "ja": [
+      "別のタスクの実行中でも、タスクは拒否されずにキューで待機し、開始前ならタスク画面で外せます。",
+      "整理・圧縮・統計はタブで表示され、ページが速く開き、整理の直後に始めた圧縮も名前の変わったファイルを見つけます。",
+      "スマホでは同期ボタンの横で回るファンが実行中のタスクを示し、メニューや切り替えが重ならずに収まります。",
+      "設定のサーバー測定は最速の設定を自動で保存し、各レベルがここでどれくらいかかるかを表示します。"
+    ],
+    "ko": [
+      "다른 작업이 진행 중이면 새 작업은 거절되지 않고 대기열에서 기다리며, 시작 전에 작업 화면에서 뺄 수 있어요.",
+      "정리, 압축, 통계가 탭으로 나뉘고 페이지가 더 빨리 열리며, 정리 직후 시작한 압축도 이름이 바뀐 파일을 찾아요.",
+      "휴대폰에서는 동기화 옆에서 도는 팬이 진행 중인 작업을 보여 주고, 메뉴와 선택 항목이 겹치지 않아요.",
+      "설정의 서버 측정이 가장 빠른 설정을 알아서 저장하고, 여기서 단계마다 얼마나 걸리는지 알려 줘요."
+    ],
+    "zh": [
+      "有其他任务运行时,新任务会进入队列等待而不再被拒绝,开始前可以在“任务”中将其移出。",
+      "整理、压缩和统计以标签页显示,页面打开更快,整理后立即开始的压缩也能找到被重命名的文件。",
+      "在手机上,“同步”旁旋转的风扇显示正在运行的任务,菜单和选择器不再重叠。",
+      "设置中的服务器测量会自动保存最快的设置,并显示每个级别在这里需要多长时间。"
+    ]
+  },
   "1.53.0": {
     "en": [
       "Balanced and Maximum compress each file on several threads: Maximum is about twice as fast and makes files about 6% smaller. The programs for macOS keep compressing as before.",

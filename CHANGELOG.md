@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.54.0
 
 ### New
 
@@ -13,6 +13,7 @@
 - The measure of the server in Settings saves the fastest setting by itself, instead of filling the fields to save, and is remembered with its date. It also measures Balanced and Maximum with that setting and tells how many minutes 10 GB of games take with each here, to choose the level knowing what it costs
 - Pages open faster: the styles, scripts, fonts and icons were loaded again on every page, about 280 KB and a third of a second on a NAS, as no answer said they could be kept. Now browsers keep them (the styles and scripts of a version for good), the service worker asks for a page while it starts instead of after, and a list opened from the menu comes filtered at once instead of loading twice
 - The page shown while the app starts stays at least two and a half seconds, ticking its steps one by one, instead of flashing by after a restart
+
 ### Fixes
 
 - Phones: the step of the tune-up on top of Organize, Compress and Space is one line of text that wraps, instead of two narrow columns
@@ -24,6 +25,7 @@
 - Phones: the views of the Library (All, My games, Missing) take the room of their names instead of equal thirds, where "My games" ran out of its own and touched the red of All
 - The mark of the page shown in the menu of phones is a short rounded bar inside the corners of the link; it stuck out above and below them
 - The section shown in Settings keeps a border in its red on phones, instead of losing the border the others have
+
 ## 1.53.0
 
 ### Improvements
