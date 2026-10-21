@@ -162,7 +162,11 @@ func (web *Web) HandleMeasure() {
 			writeJSON(w, http.StatusConflict, map[string]string{"error": translate(lang, string(errOrganizeBusy))})
 			return
 		}
-		defer web.measuring.Store(false)
+		// once the measure ends, the next task of the queue
+		defer func() {
+			web.measuring.Store(false)
+			go web.runQueue()
+		}()
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Minute)
 		defer cancel()
 		result, err := web.measureServer(ctx)

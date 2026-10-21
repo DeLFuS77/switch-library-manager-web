@@ -187,7 +187,11 @@ func (web *Web) runOrganizeAction(action string, trigger string) ([]process.Oper
 	if !web.organizing.CompareAndSwap(false, true) {
 		return nil, errOrganizeBusy
 	}
-	defer web.organizing.Store(false)
+	defer func() {
+		web.organizing.Store(false)
+		// the files are free: the next task of the queue
+		go web.runQueue()
+	}()
 	if web.compressionRunning() || web.measuring.Load() {
 		return nil, errOrganizeBusy
 	}
@@ -211,7 +215,11 @@ func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string)
 	if !web.organizing.CompareAndSwap(false, true) {
 		return 0, 0, errOrganizeBusy
 	}
-	defer web.organizing.Store(false)
+	defer func() {
+		web.organizing.Store(false)
+		// the files are free: the next task of the queue
+		go web.runQueue()
+	}()
 	if web.compressionRunning() || web.measuring.Load() {
 		return 0, 0, errOrganizeBusy
 	}

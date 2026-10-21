@@ -4,6 +4,7 @@
 
 ### New
 
+- A queue of tasks: a compression, decompression, conversion, pack, split or check of the files asked for while another one works waits its turn, instead of being refused with "A compression is already running". They start one after the other as the files get free, also after a restart. Tasks shows the queue in its order, and the ones marked with their box are taken out before they start
 - Organize, Compress and Statistics show their parts as tabs, like the tabs of a folder, instead of one under the other: Actions and Options in Organize; Compress, Convert, Split, Packs and Decompress (each with its count) in Compress; Space, Games and Library history in Statistics, which on a phone was five screens long. The tab shown is in the address, so a reload keeps it, and the arrow keys go from tab to tab
 - On phones and tablets a turning fan next to Synchronize shows that tasks are at work, with how many when there are several, and opens Tasks: the menu with the link of Tasks is closed there. It goes away when the last task ends
 

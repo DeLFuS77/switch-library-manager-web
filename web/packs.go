@@ -30,7 +30,6 @@ const (
 
 var (
 	errPackExists = errors.New("the pack already exists")
-	errPackBusy   = errorString("A compression is already running.")
 )
 
 // packFiles gives the files a pack of the game is made of: the base game, its latest
@@ -222,23 +221,20 @@ func (web *Web) packTarget(path string, name string) (target string, sources []s
 	return filepath.Join(filepath.Dir(sources[0]), packName(name, titleId, local, compressed)), sources, size, nil
 }
 
-// startPack makes the pack of a game in the background: the files are merged into a hidden
-// temporary file, every NCA of it is checked, and only then it gets its name. The files it
-// is made of are deleted last, if asked.
-func (web *Web) startPack(titleId string, name string, deleteOriginals bool) error {
+// packTask is the pack of a game to make in the background, from its page: the files are merged
+// into a hidden temporary file, every NCA of it is checked, and only then it gets its name. The
+// files it is made of are deleted last, if asked.
+func (web *Web) packTask(titleId string, name string, deleteOriginals bool) (QueuedTask, error) {
 	_, localDB := web.state.get()
 	prefix, err := db.TitleIDPrefix(titleId)
 	if err != nil || localDB == nil || localDB.TitlesMap[prefix] == nil {
-		return errorString("The game is not in your library.")
+		return QueuedTask{}, errorString("The game is not in your library.")
 	}
 	sources := packSources(localDB.TitlesMap[prefix], localDB.Skipped)
 	if len(sources) == 0 {
-		return errorString("This game has nothing to put in a pack.")
+		return QueuedTask{}, errorString("This game has nothing to put in a pack.")
 	}
-	if !web.startPacks([]string{sources[0]}, map[string]string{sources[0]: name}, deleteOriginals, TRIGGER_MANUAL) {
-		return errPackBusy
-	}
-	return nil
+	return QueuedTask{Kind: TASK_PACK, Paths: []string{sources[0]}, Names: map[string]string{sources[0]: name}, Delete: deleteOriginals}, nil
 }
 
 // startPacks makes the packs of the games whose base files are at paths, one after the other,
@@ -332,15 +328,12 @@ func (web *Web) handlePack() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Choose whether to keep or delete the separate files.")
 			return
 		}
-		if err := web.startPack(detail.Id, detail.Name, choice == "true"); err != nil {
-			status := http.StatusBadRequest
-			if err == errPackBusy {
-				status = http.StatusConflict
-			}
-			writeGlobalError(w, status, lang, err.Error())
+		task, err := web.packTask(detail.Id, detail.Name, choice == "true")
+		if err != nil {
+			writeGlobalError(w, http.StatusBadRequest, lang, err.Error())
 			return
 		}
-		writeJSON(w, http.StatusAccepted, map[string]any{"started": true})
+		web.startOrQueue(w, task)
 	}).Methods("POST")
 }
 
@@ -356,10 +349,6 @@ func (web *Web) handlePacks() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the games to pack.")
 			return
 		}
-		if !web.startPacks(paths, nil, r.FormValue("delete_originals") == "true", TRIGGER_MANUAL) {
-			writeGlobalError(w, http.StatusConflict, lang, "A compression is already running.")
-			return
-		}
-		writeJSON(w, http.StatusAccepted, map[string]any{"started": len(paths)})
+		web.startOrQueue(w, QueuedTask{Kind: TASK_PACK, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
 	}).Methods("POST")
 }

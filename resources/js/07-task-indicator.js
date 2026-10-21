@@ -269,7 +269,13 @@ function initLiveTasks() {
 							covers.get(key).push(image);
 						}
 					});
+					// the tasks of the queue marked to take out stay marked
+					const marked = new Set([...list.querySelectorAll('[data-queue-item]:checked')].map(box => box.value));
 					list.innerHTML = html;
+					list.querySelectorAll('[data-queue-item]').forEach(box => {
+						box.checked = marked.has(box.value);
+					});
+					updateQueueButton(list);
 					list.querySelectorAll('img.task-lane-cover, img.task-next-cover').forEach(image => {
 						const kept = covers.get(image.className + ' ' + image.getAttribute('src'));
 						if (kept && kept.length) {
@@ -444,3 +450,34 @@ function initLiveTasks() {
 	});
 }
 
+// The queue of the tasks: the ones marked are taken out before they start.
+function updateQueueButton(scope) {
+	const button = scope.querySelector('[data-queue-remove]');
+	if (button) {
+		button.disabled = scope.querySelectorAll('[data-queue-item]:checked').length === 0;
+	}
+}
+
+function initQueue() {
+	document.addEventListener('change', e => {
+		if (e.target.matches('[data-queue-item]')) {
+			updateQueueButton(document);
+		}
+	});
+	document.addEventListener('click', e => {
+		const button = e.target.closest('[data-queue-remove]');
+		if (!button) {
+			return;
+		}
+		const ids = [...document.querySelectorAll('[data-queue-item]:checked')].map(box => box.value);
+		if (ids.length === 0) {
+			return;
+		}
+		button.disabled = true;
+		// the list is drawn again without them once the server has taken them out
+		postForm('/api/queue/remove', { id: ids.join(',') }).catch(error => {
+			button.disabled = false;
+			insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message || t('Could not reach the server.'));
+		});
+	});
+}

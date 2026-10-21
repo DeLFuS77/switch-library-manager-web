@@ -15,10 +15,20 @@ function runAsTask(start) {
 		const known = Math.max(0, ...tasks.map(task => task.id));
 		return start().then(result => {
 			// a request that failed started nothing
-			if (!(result instanceof Response) || result.ok) {
+			if (!(result instanceof Response)) {
 				followTasks(known);
+				return result;
 			}
-			return result;
+			if (!result.ok) {
+				return result;
+			}
+			// a task put in the queue starts later: the page says so instead of waiting for it
+			return result.clone().json().catch(() => ({})).then(json => {
+				if (!json || !json.queued) {
+					followTasks(known);
+				}
+				return result;
+			});
 		});
 	});
 }
@@ -262,3 +272,7 @@ function startSync(url) {
 	});
 }
 
+// insertQueuedNote tells that a task waits in the queue, with its place and a link to Tasks.
+function insertQueuedNote(container, position) {
+	insertAlert(container, 'alert-info', 'bi-hourglass-split', t('Added to the queue.'), t('It starts when the tasks before it end: number %v in the queue.', position));
+}

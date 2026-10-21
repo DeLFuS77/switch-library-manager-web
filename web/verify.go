@@ -489,6 +489,8 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 			web.compressor.cancel = nil
 			web.compressor.mutex.Unlock()
 			cancel()
+			// the files are free: the next task of the queue
+			go web.runQueue()
 		}()
 
 		type pending struct {
@@ -685,7 +687,6 @@ func verifyDue(s *settings.AppSettings, lastRun time.Time, now time.Time) bool {
 
 func (web *Web) HandleVerify() {
 	web.router.HandleFunc("/verify/start", func(w http.ResponseWriter, r *http.Request) {
-		lang := web.requestLanguage(r)
 		var paths []string
 		if r.FormValue("scope") == "space" {
 			// only the files the Space page needs checked before deleting
@@ -695,11 +696,7 @@ func (web *Web) HandleVerify() {
 		if r.FormValue("all") == "true" {
 			recheck = verifyRecheckAll
 		}
-		if !web.startVerificationOf(paths, recheck, TRIGGER_MANUAL) {
-			writeGlobalError(w, http.StatusConflict, lang, "A compression is already running.")
-			return
-		}
-		writeJSON(w, http.StatusAccepted, map[string]any{"started": true})
+		web.startOrQueue(w, QueuedTask{Kind: TASK_VERIFY, Paths: paths, Recheck: recheck})
 	}).Methods("POST")
 }
 

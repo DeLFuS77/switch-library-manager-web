@@ -89,6 +89,30 @@
 					{{- end}}
 				</section>
 				{{- end}}
+				{{- if .Queue}}
+				<section class="mb-4" aria-labelledby="queueTitle">
+					<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+						<h2 class="section-title mb-0" id="queueTitle"><span class="bi bi-hourglass-split" aria-hidden="true"></span>{{t "Waiting in the queue"}} <span class="badge rounded-pill text-bg-secondary">{{len .Queue}}</span></h2>
+						<button type="button" class="btn btn-sm btn-outline-danger rounded-pill" data-queue-remove disabled><span class="bi bi-x-circle me-1" aria-hidden="true"></span>{{t "Remove from the queue"}}</button>
+					</div>
+					<p class="small text-body-secondary mb-2">{{t "They start one after the other when the task running ends. Mark the ones you do not want and take them out."}}</p>
+					<ul class="list-unstyled queue-list mb-0">
+						{{- range .Queue}}
+						<li class="surface queue-item">
+							<input class="form-check-input flex-shrink-0" type="checkbox" id="queue{{.Id}}" value="{{.Id}}" data-queue-item>
+							<label class="queue-main" for="queue{{.Id}}">
+								<span class="queue-position" aria-hidden="true">{{.Position}}</span>
+								<span class="stat-icon task-icon"><span class="bi {{template "taskIcon" .Kind}}" aria-hidden="true"></span></span>
+								<span class="min-w-0">
+									<span class="d-block fw-semibold">{{template "taskKind" .Kind}}</span>
+									<span class="d-block small text-body-secondary">{{if not .Files}}{{t "the whole library"}}{{else if eq .Kind "pack"}}{{t "%v games" .Files}}{{else}}{{t "%v files" .Files}}{{end}} &middot; {{t "added %v" (formatDateTime .Added)}}</span>
+								</span>
+							</label>
+						</li>
+						{{- end}}
+					</ul>
+				</section>
+				{{- end}}
 				{{- if .Finished}}
 				<section>
 					<div class="d-flex align-items-center justify-content-between gap-2 mb-3">
@@ -137,7 +161,7 @@
 						{{- end}}
 					</ul>
 				</section>
-				{{- else if not .Running}}
+				{{- else if not (or .Running .Queue)}}
 				{{- template "emptyState" (dict "Icon" "bi-list-task" "Tone" "" "Title" (t "No tasks yet") "Text" (t "Synchronizations, scans, compressions, checks and cleanups appear here.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 				{{- end}}
 {{- end}}

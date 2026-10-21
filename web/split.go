@@ -272,11 +272,7 @@ func (web *Web) handleSplit() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to split.")
 			return
 		}
-		if !web.startSplit(paths, r.FormValue("delete_originals") == "true") {
-			writeGlobalError(w, http.StatusConflict, lang, "A compression is already running.")
-			return
-		}
-		writeJSON(w, http.StatusAccepted, map[string]any{"started": len(paths)})
+		web.startOrQueue(w, QueuedTask{Kind: TASK_SPLIT, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
 	}).Methods("POST")
 }
 
