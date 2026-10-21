@@ -187,15 +187,9 @@ func checkWritten(ctx context.Context, path string, written []*writtenFile) (Fil
 				continue
 			}
 			result, err := checkNczIntegrity(ctx, input, file.offset, file.size)
-			if err != nil || result.Checked == 0 {
-				reason := "it cannot be checked further"
-				if err != nil {
-					reason = err.Error()
-				}
-				return check, fmt.Errorf("%s does not match its content ID: the file is damaged or was modified (%s)", file.name, reason)
+			if err := check.addMismatch(file.name, original, result, err); err != nil {
+				return check, err
 			}
-			check.Modified = append(check.Modified, original)
-			check.Partial = check.Partial || result.Unchecked > 0
 			continue
 		}
 		if !strings.HasSuffix(strings.ToLower(file.name), ".nca") {
@@ -211,15 +205,25 @@ func checkWritten(ctx context.Context, path string, written []*writtenFile) (Fil
 			}
 		}
 		result, err := checkNcaIntegrity(ctx, input, file.offset, file.size, titleKeys)
-		if err != nil || result.Checked == 0 {
-			reason := "it cannot be checked further"
-			if err != nil {
-				reason = err.Error()
-			}
-			return check, fmt.Errorf("%s does not match its content ID: the file is damaged or was modified (%s)", file.name, reason)
+		if err := check.addMismatch(file.name, file.name, result, err); err != nil {
+			return check, err
 		}
-		check.Modified = append(check.Modified, file.name)
-		check.Partial = check.Partial || result.Unchecked > 0
 	}
 	return check, nil
+}
+
+// addMismatch adds to the check an NCA that does not match its content ID, from what the hash
+// trees of its data tell: all of them right, it was rewritten by a tool (name is the NCA as the
+// check tells it); one wrong, or none to check, the file is damaged.
+func (check *FileCheck) addMismatch(file string, name string, result IntegrityResult, err error) error {
+	if err != nil || result.Checked == 0 {
+		reason := "it cannot be checked further"
+		if err != nil {
+			reason = err.Error()
+		}
+		return fmt.Errorf("%s does not match its content ID: the file is damaged or was modified (%s)", file, reason)
+	}
+	check.Modified = append(check.Modified, name)
+	check.Partial = check.Partial || result.Unchecked > 0
+	return nil
 }

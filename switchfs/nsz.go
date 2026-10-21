@@ -1058,15 +1058,9 @@ func CheckHashes(ctx context.Context, path string, hashes map[string][32]byte) (
 			}
 		}
 		result, err := checkNcaIntegrity(ctx, input, file.offset, file.size, titleKeys)
-		if err != nil || result.Checked == 0 {
-			reason := "it cannot be checked further"
-			if err != nil {
-				reason = err.Error()
-			}
-			return check, fmt.Errorf("%s does not match its content ID: the file is damaged or was modified (%s)", file.name, reason)
+		if err := check.addMismatch(file.name, file.name, result, err); err != nil {
+			return check, err
 		}
-		check.Modified = append(check.Modified, file.name)
-		check.Partial = check.Partial || result.Unchecked > 0
 	}
 	return check, nil
 }
@@ -1166,15 +1160,9 @@ func checkPackage(ctx context.Context, path string, expected map[string][32]byte
 			}
 			result, err = checkNcaIntegrity(ctx, input, file.offset, file.size, titleKeys)
 		}
-		if err != nil || result.Checked == 0 {
-			reason := "it cannot be checked further"
-			if err != nil {
-				reason = err.Error()
-			}
-			return nil, check, fmt.Errorf("%s does not match its content ID: the file is damaged or was modified (%s)", file.name, reason)
+		if err := check.addMismatch(file.name, original, result, err); err != nil {
+			return nil, check, err
 		}
-		check.Modified = append(check.Modified, original)
-		check.Partial = check.Partial || result.Unchecked > 0
 	}
 	for name := range expected {
 		if _, ok := hashes[name]; !ok {
