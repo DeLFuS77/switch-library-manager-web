@@ -313,7 +313,8 @@ func (web *Web) startConversion(paths []string, deleteOriginals bool) bool {
 
 func (web *Web) startConversionBy(paths []string, deleteOriginals bool, trigger string) bool {
 	// every file is copied, then the result is checked
-	return web.runResumableTask(TASK_CONVERT, trigger, paths, 2, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	// read once: converted, and checked while it is written
+	return web.runResumableTask(TASK_CONVERT, trigger, paths, 1, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		return 0, web.convertFile(ctx, path, deleteOriginals, report)
 	})
 }
@@ -334,11 +335,9 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 	defer release()
 	temporary := temporaryOf(path, target)
 	defer os.Remove(temporary)
-	if err := switchfs.ConvertXciToNsp(ctx, path, temporary, report(0)); err != nil {
-		return err
-	}
-	// every NCA must match its content ID
-	written, err := switchfs.VerifyFile(ctx, temporary, report(info.Size()))
+	// every NCA must match its content ID: checked while it is written, then the NSP is read
+	// back for its files, their sizes and their ends
+	written, err := switchfs.ConvertAndCheck(ctx, path, temporary, report(0))
 	if err != nil {
 		return err
 	}
@@ -488,8 +487,8 @@ func (web *Web) startCompression(paths []string, level string, deleteOriginals b
 }
 
 func (web *Web) startCompressionBy(paths []string, level string, deleteOriginals bool, trigger string) bool {
-	// every file is read three times: hashed, compressed and verified
-	return web.runResumableTask(TASK_COMPRESS, trigger, paths, 3, &TaskResume{Level: level, Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	// every file is read twice: compressed (and hashed meanwhile), then verified
+	return web.runResumableTask(TASK_COMPRESS, trigger, paths, 2, &TaskResume{Level: level, Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		return web.compressFile(ctx, path, level, deleteOriginals, report)
 	})
 }
@@ -500,8 +499,8 @@ func (web *Web) startDecompression(paths []string, deleteCompressed bool) bool {
 }
 
 func (web *Web) startDecompressionBy(paths []string, deleteCompressed bool, trigger string) bool {
-	// every file is decompressed, then the result is hashed
-	return web.runResumableTask(TASK_DECOMPRESS, trigger, paths, 2, &TaskResume{Delete: deleteCompressed}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	// every file is read once: decompressed, and checked while it is written
+	return web.runResumableTask(TASK_DECOMPRESS, trigger, paths, 1, &TaskResume{Delete: deleteCompressed}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		return 0, web.decompressFile(ctx, path, deleteCompressed, report)
 	})
 }
@@ -625,11 +624,11 @@ func (web *Web) resumeInterrupted() {
 
 // filePhases are the passes over each file of the tasks on files, in their order.
 var filePhases = map[string][]string{
-	TASK_COMPRESS:   {PHASE_HASHING, PHASE_COMPRESSING, PHASE_VERIFYING},
-	TASK_DECOMPRESS: {PHASE_DECOMPRESSING, PHASE_VERIFYING},
-	TASK_CONVERT:    {PHASE_CONVERTING, PHASE_VERIFYING},
-	TASK_PACK:       {PHASE_PACKING, PHASE_VERIFYING},
-	TASK_SPLIT:      {PHASE_SPLITTING, PHASE_VERIFYING},
+	TASK_COMPRESS:   {PHASE_COMPRESSING, PHASE_VERIFYING},
+	TASK_DECOMPRESS: {PHASE_DECOMPRESSING},
+	TASK_CONVERT:    {PHASE_CONVERTING},
+	TASK_PACK:       {PHASE_PACKING},
+	TASK_SPLIT:      {PHASE_SPLITTING},
 }
 
 // the passes over a file, translated by the interface
@@ -1044,23 +1043,24 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	}
 	defer release()
 
-	expected, originalCheck, err := switchfs.HashAndCheck(ctx, path, report(0))
+	// hidden, so scans ignore the file while it is written
+	temporary := temporaryOf(path, target)
+	defer os.Remove(temporary)
+	// the original is hashed while it is compressed: it is read once, not twice
+	result, err := switchfs.CompressGame(ctx, path, temporary, switchfs.CompressOptions{
+		Level: level, Workers: switchfs.LimitThreads(level, compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce)), filesAtOnce(appSettings.CompressFilesAtOnce)), Progress: report(0),
+	})
+	if err != nil {
+		return 0, err
+	}
+	// an NCA whose hash is not its content ID: rewritten by a tool, or damaged
+	originalCheck, err := switchfs.CheckHashes(ctx, path, result.Hashes)
 	if err != nil {
 		return 0, err
 	}
 	// reading the original whole was its check: the next file check does not read it again
 	web.verifications().remember(path, originalCheck)
-
-	// hidden, so scans ignore the file while it is written
-	temporary := temporaryOf(path, target)
-	defer os.Remove(temporary)
-	result, err := switchfs.CompressGame(ctx, path, temporary, switchfs.CompressOptions{
-		Level: level, Workers: switchfs.LimitThreads(level, compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce)), filesAtOnce(appSettings.CompressFilesAtOnce)), Progress: report(info.Size()),
-	})
-	if err != nil {
-		return 0, err
-	}
-	if err := switchfs.VerifyCompressed(ctx, temporary, expected, report(2*info.Size())); err != nil {
+	if err := switchfs.VerifyCompressed(ctx, temporary, result.Hashes, report(info.Size())); err != nil {
 		return 0, err
 	}
 	if err := os.Rename(temporary, target); err != nil {
@@ -1081,8 +1081,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 // checks every NCA against its content ID, and only then renames it; the NSZ is deleted
 // last, if asked.
 func (web *Web) decompressFile(ctx context.Context, path string, deleteCompressed bool, report func(step int64) func(int64, int64)) error {
-	info, err := os.Stat(path)
-	if err != nil {
+	if _, err := os.Stat(path); err != nil {
 		return err
 	}
 	target := switchfs.DecompressedPath(path)
@@ -1101,11 +1100,9 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 
 	temporary := temporaryOf(path, target)
 	defer os.Remove(temporary)
-	if err := switchfs.DecompressNsz(ctx, path, temporary, report(0)); err != nil {
-		return err
-	}
-	// every NCA must match its content ID
-	written, err := switchfs.VerifyFile(ctx, temporary, report(info.Size()))
+	// every NCA must match its content ID: checked while it is written, then the NSP is read
+	// back for its files, their sizes and their ends
+	written, err := switchfs.DecompressAndCheck(ctx, path, temporary, report(0))
 	if err != nil {
 		return err
 	}

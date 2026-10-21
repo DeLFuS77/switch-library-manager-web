@@ -79,8 +79,29 @@ func deltaFragmentNames(reader io.ReaderAt, pkg *gamePackage) map[string]bool {
 // delta fragments of the updates when withoutDeltas is set. The target is removed if the
 // pack cannot be made. It gives how many bytes of delta fragments were left out.
 func MergePackages(ctx context.Context, sources []string, target string, withoutDeltas bool, progress func(done int64, total int64)) (int64, error) {
+	skipped, _, err := mergePackages(ctx, sources, target, withoutDeltas, progress)
+	return skipped, err
+}
+
+// MergeAndCheck is MergePackages that checks the pack while writing it, instead of reading it
+// again (see DecompressAndCheck); its NCZ files are still decompressed from the disk to be
+// checked. On an error the pack is removed.
+func MergeAndCheck(ctx context.Context, sources []string, target string, withoutDeltas bool, progress func(done int64, total int64)) (int64, FileCheck, error) {
+	skipped, written, err := mergePackages(ctx, sources, target, withoutDeltas, progress)
+	if err != nil {
+		return 0, FileCheck{}, err
+	}
+	check, err := checkWritten(ctx, target, written)
+	if err != nil {
+		os.Remove(target)
+		return 0, check, err
+	}
+	return skipped, check, nil
+}
+
+func mergePackages(ctx context.Context, sources []string, target string, withoutDeltas bool, progress func(done int64, total int64)) (int64, []*writtenFile, error) {
 	if len(sources) < 2 {
-		return 0, errors.New("a pack needs at least two packages")
+		return 0, nil, errors.New("a pack needs at least two packages")
 	}
 	opened := []packSource{}
 	defer func() {
@@ -99,12 +120,12 @@ func MergePackages(ctx context.Context, sources []string, target string, without
 	for _, path := range sources {
 		reader, err := OpenFile(path)
 		if err != nil {
-			return 0, err
+			return 0, nil, err
 		}
 		pkg, err := openGamePackage(reader)
 		if err != nil {
 			reader.Close()
-			return 0, err
+			return 0, nil, err
 		}
 		opened = append(opened, packSource{path: path, reader: reader, pkg: pkg})
 		deltas := map[string]bool{}
@@ -133,7 +154,7 @@ func MergePackages(ctx context.Context, sources []string, target string, without
 		}
 	}
 	if len(parts) == 0 {
-		return 0, errors.New("the packages are empty")
+		return 0, nil, errors.New("the packages are empty")
 	}
 
 	var done int64
@@ -145,16 +166,18 @@ func MergePackages(ctx context.Context, sources []string, target string, without
 	}
 	output, err := CreateNew(target)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	writer := &pfs0Writer{file: output, names: names}
+	written := make([]*writtenFile, len(parts))
 	err = writer.begin()
-	for _, p := range parts {
+	for i, p := range parts {
 		if err != nil {
 			break
 		}
 		writer.startFile()
-		err = copyRange(ctx, writer.file, opened[p.source].reader, p.file.offset, p.file.size, report)
+		written[i] = newWrittenFile(names[i])
+		err = copyRange(ctx, io.MultiWriter(writer.file, written[i]), opened[p.source].reader, p.file.offset, p.file.size, report)
 		if err == nil {
 			err = writer.endFile()
 		}
@@ -168,7 +191,7 @@ func MergePackages(ctx context.Context, sources []string, target string, without
 	}
 	if err != nil {
 		os.Remove(target)
-		return 0, err
+		return 0, nil, err
 	}
-	return skipped, nil
+	return skipped, written, nil
 }

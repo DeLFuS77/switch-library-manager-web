@@ -3,6 +3,7 @@ package switchfs
 import (
 	"context"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -27,20 +28,39 @@ func ConvertedPath(path string) string {
 // ConvertXciToNsp writes the files of the secure partition of an XCI or XCZ to an NSP or
 // NSZ at target; the target is removed if the conversion fails.
 func ConvertXciToNsp(ctx context.Context, source string, target string, progress func(done int64, total int64)) error {
+	_, err := convertXciToNsp(ctx, source, target, progress)
+	return err
+}
+
+// ConvertAndCheck is ConvertXciToNsp that checks the NSP while writing it, instead of reading
+// it again (see DecompressAndCheck). On an error the NSP is removed.
+func ConvertAndCheck(ctx context.Context, source string, target string, progress func(done int64, total int64)) (FileCheck, error) {
+	written, err := convertXciToNsp(ctx, source, target, progress)
+	if err != nil {
+		return FileCheck{}, err
+	}
+	check, err := checkWritten(ctx, target, written)
+	if err != nil {
+		os.Remove(target)
+	}
+	return check, err
+}
+
+func convertXciToNsp(ctx context.Context, source string, target string, progress func(done int64, total int64)) ([]*writtenFile, error) {
 	input, err := os.Open(source)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer input.Close()
 	pkg, err := openGamePackage(input)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !pkg.xci {
-		return errors.New("not an XCI or XCZ file")
+		return nil, errors.New("not an XCI or XCZ file")
 	}
 	if len(pkg.files) == 0 {
-		return errors.New("the secure partition of the game card is empty")
+		return nil, errors.New("the secure partition of the game card is empty")
 	}
 
 	names := make([]string, len(pkg.files))
@@ -58,17 +78,19 @@ func ConvertXciToNsp(ctx context.Context, source string, target string, progress
 
 	output, err := CreateNew(target)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// a header just big enough for the names, as in the NSP files of the eShop
 	writer := &pfs0Writer{file: output, names: names}
+	written := make([]*writtenFile, len(pkg.files))
 	err = writer.begin()
-	for _, file := range pkg.files {
+	for i, file := range pkg.files {
 		if err != nil {
 			break
 		}
 		writer.startFile()
-		err = copyRange(ctx, writer.file, input, file.offset, file.size, report)
+		written[i] = newWrittenFile(names[i])
+		err = copyRange(ctx, io.MultiWriter(writer.file, written[i]), input, file.offset, file.size, report)
 		if err == nil {
 			err = writer.endFile()
 		}
@@ -82,6 +104,7 @@ func ConvertXciToNsp(ctx context.Context, source string, target string, progress
 	}
 	if err != nil {
 		os.Remove(target)
+		return nil, err
 	}
-	return err
+	return written, nil
 }

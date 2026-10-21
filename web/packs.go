@@ -252,8 +252,8 @@ func (web *Web) startPacks(paths []string, names map[string]string, deleteOrigin
 			}
 		}
 	}
-	// the files are read twice: merged, then the pack is checked
-	return web.runFileTaskFull(TASK_PACK, trigger, paths, sizes, 2, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	// the files are read once: merged, and checked while the pack is written
+	return web.runFileTaskFull(TASK_PACK, trigger, paths, sizes, 1, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		target, sources, size, err := web.packTarget(path, names[path])
 		if err != nil {
 			return 0, err
@@ -272,12 +272,9 @@ func (web *Web) makePack(ctx context.Context, sources []string, target string, s
 	}
 	temporary := filepath.Join(filepath.Dir(target), "."+filepath.Base(target)+".tmp")
 	defer os.Remove(temporary)
-	skipped, err := switchfs.MergePackages(ctx, sources, temporary, true, report(0))
-	if err != nil {
-		return 0, err
-	}
-	// every NCA must match its content ID
-	written, err := switchfs.VerifyFile(ctx, temporary, report(size))
+	// every NCA must match its content ID: checked while the pack is written, its NCZ files
+	// decompressed from the disk
+	skipped, written, err := switchfs.MergeAndCheck(ctx, sources, temporary, true, report(0))
 	if err != nil {
 		return 0, err
 	}

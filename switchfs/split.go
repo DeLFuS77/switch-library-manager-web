@@ -289,12 +289,32 @@ func pfs0Size(files []packedFile) int64 {
 // copied as they are in the order of the original. The target is removed if it cannot be
 // written.
 func WriteSplitPart(ctx context.Context, source string, part SplitPart, target string, progress func(done int64, total int64)) error {
+	_, err := writeSplitPart(ctx, source, part, target, progress)
+	return err
+}
+
+// WriteSplitPartAndCheck is WriteSplitPart that checks the part while writing it, instead of
+// reading it again (see DecompressAndCheck); its NCZ files are still decompressed from the
+// disk to be checked. On an error the part is removed.
+func WriteSplitPartAndCheck(ctx context.Context, source string, part SplitPart, target string, progress func(done int64, total int64)) (FileCheck, error) {
+	written, err := writeSplitPart(ctx, source, part, target, progress)
+	if err != nil {
+		return FileCheck{}, err
+	}
+	check, err := checkWritten(ctx, target, written)
+	if err != nil {
+		os.Remove(target)
+	}
+	return check, err
+}
+
+func writeSplitPart(ctx context.Context, source string, part SplitPart, target string, progress func(done int64, total int64)) ([]*writtenFile, error) {
 	if len(part.files) == 0 {
-		return errors.New("the part has no files")
+		return nil, errors.New("the part has no files")
 	}
 	reader, err := OpenFile(source)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer reader.Close()
 	var total, done int64
@@ -309,19 +329,22 @@ func WriteSplitPart(ctx context.Context, source string, part SplitPart, target s
 	}
 	output, err := CreateNew(target)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var writer packageWriter = &pfs0Writer{file: output, names: part.Files()}
 	if part.card != nil {
 		writer = &xczWriter{file: output, input: reader, pkg: part.card, names: part.Files()}
 	}
+	names := part.Files()
+	written := make([]*writtenFile, len(part.files))
 	err = writer.begin()
-	for _, file := range part.files {
+	for i, file := range part.files {
 		if err != nil {
 			break
 		}
 		writer.startFile()
-		err = copyRange(ctx, output, reader, file.offset, file.size, report)
+		written[i] = newWrittenFile(names[i])
+		err = copyRange(ctx, io.MultiWriter(output, written[i]), reader, file.offset, file.size, report)
 		if err == nil {
 			err = writer.endFile()
 		}
@@ -335,6 +358,7 @@ func WriteSplitPart(ctx context.Context, source string, part SplitPart, target s
 	}
 	if err != nil {
 		os.Remove(target)
+		return nil, err
 	}
-	return err
+	return written, nil
 }
