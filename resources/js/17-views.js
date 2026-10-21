@@ -60,12 +60,29 @@ function initViewToggle() {
 }
 
 // The filters of each list are remembered by the browser: coming back to a list from another
-// page (the menu, a game page) shows it as it was left. On the list itself, removing the
-// filters shows everything.
+// page (the menu, a game page) shows it as it was left, from its first page. On the list itself,
+// removing the filters shows everything.
 const FILTER_PAGES = ['/index.html', '/updates.html', '/dlc.html', '/missing.html'];
 
 function listPath(pathname) {
 	return pathname === '/' ? '/index.html' : pathname;
+}
+
+// filtersOf is the query of a list without its page: going back to a list starts at its
+// first page, with its search, order and filters
+function filtersOf(query) {
+	const params = new URLSearchParams(query);
+	params.delete('page');
+	const rest = params.toString();
+	return rest ? '?' + rest : '';
+}
+
+function storedFilters(path) {
+	try {
+		return filtersOf(localStorage.getItem('slm-filters:' + path) || '');
+	} catch (e) {
+		return '';
+	}
 }
 
 // restoreFilters returns true when the page is replaced by the remembered filters.
@@ -87,16 +104,32 @@ function restoreFilters() {
 	try {
 		const query = window.location.search;
 		if (!query && from !== path) {
-			const stored = localStorage.getItem(key);
+			const stored = storedFilters(path);
 			if (stored) {
 				window.location.replace(path + stored);
 				return true;
 			}
 		}
-		localStorage.setItem(key, query);
+		localStorage.setItem(key, filtersOf(query));
 	} catch (e) {
 		// storage is not available: the lists start without filters
 	}
 	return false;
 }
 
+// linkRememberedFilters makes the links to the other lists carry their remembered filters:
+// the list opens filtered at once, instead of opening and then loading again with them. The
+// links to the list shown stay as they are, to show it without filters.
+function linkRememberedFilters() {
+	const here = listPath(window.location.pathname);
+	document.querySelectorAll('a[href]').forEach(link => {
+		const href = link.getAttribute('href');
+		if (href === here || !FILTER_PAGES.includes(listPath(href))) {
+			return;
+		}
+		const stored = storedFilters(listPath(href));
+		if (stored) {
+			link.setAttribute('href', listPath(href) + stored);
+		}
+	});
+}

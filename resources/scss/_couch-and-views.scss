@@ -101,9 +101,10 @@
 .library-views {
 	display: inline-flex;
 	flex-wrap: wrap;
-	gap: .25rem;
+	// room around the red of the view shown and between the views, so they do not touch
+	gap: .5rem;
 	max-width: 100%;
-	padding: .25rem;
+	padding: .375rem;
 	border: 1px solid var(--slm-border);
 	border-radius: 2rem;
 	background: var(--slm-surface);
@@ -115,10 +116,12 @@
 		// each view as wide as its name and count, the room left shared out: equal thirds
 		// made "My games" run out of its own
 		grid-template-columns: repeat(3, minmax(0, auto));
+		gap: .4rem;
 		width: 100%;
 
 		.library-view {
 			justify-content: center;
+			font-size: var(--slm-text-sm);
 			gap: .3rem;
 			padding-inline: .4rem;
 			white-space: nowrap;
@@ -127,7 +130,20 @@
 		.library-view > .bi {
 			display: none;
 		}
+
+		// a count of five figures or more, short: the full one stays for screen readers
+		.count-full {
+			@include visually-hidden;
+		}
+
+		.count-short {
+			display: inline;
+		}
 	}
+}
+
+.count-short {
+	display: none;
 }
 
 .library-view {

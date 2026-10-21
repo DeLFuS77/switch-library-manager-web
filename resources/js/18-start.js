@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	if (restoreFilters()) {
 		return;
 	}
+	linkRememberedFilters();
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 	[...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
 
