@@ -22,11 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.51.1
-- Decompressing big updates from the Compress page works again and is over 3 times faster for NSZ made by other tools; Tasks shows each file's real size; tested on a Switch with DBI
-### 1.51.0
-- Four user roles, My game (status, rating and note), smart collections, uploads in Tasks, cheats for Ryujinx and Yuzu/Eden, an activity log with sign-in attempts, and notifications for failed tasks</Changes>
-  <Date>2026-10-20</Date>
+  <Changes>### 1.52.0
+- Setup wizard with a folder browser and clear errors, folders with the ID of each update and DLC, file bars coloured by step or kind, a reliable time left, packs from NSZ, and a Go security fix
+### 1.51.1
+- Decompressing big updates from the Compress page works again and is over 3 times faster for NSZ made by other tools; Tasks shows each file's real size; tested on a Switch with DBI</Changes>
+  <Date>2026-10-21</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>

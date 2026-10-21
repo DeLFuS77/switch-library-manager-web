@@ -1,4 +1,83 @@
 {
+  "1.52.0": {
+    "en": [
+      "The setup wizard can browse the folders of the server to choose the one of your games, tells clearly when the administrator's password is not valid, and no longer gets stuck when saving.",
+      "Organize can put each update and DLC in a folder of its own, named with its ID.",
+      "In Tasks, the bar of each file has the colour of its step (or of game, update, DLC or pack while checking), and the time left is much more reliable.",
+      "A complete pack uses your NSZ when you have them, and the warning of little free space no longer shows on big disks with plenty of room.",
+      "A security fix of Go (crypto/x509)."
+    ],
+    "es": [
+      "El asistente de instalación permite explorar las carpetas del servidor para elegir la de los juegos, avisa claro si la contraseña del administrador no vale y ya no se queda atascado al guardar.",
+      "Organizar puede poner cada actualización y DLC en su propia carpeta con su ID.",
+      "En Tareas, la barra de cada archivo tiene color según su fase (o según si es juego, actualización, DLC o pack al comprobar), y el tiempo restante es mucho más fiable.",
+      "El pack completo usa los NSZ cuando los tienes, y el aviso de poco espacio ya no salta en discos grandes con espacio de sobra.",
+      "Arreglo de seguridad de Go (crypto/x509)."
+    ],
+    "de": [
+      "Der Einrichtungsassistent kann die Ordner des Servers durchsuchen, um den deiner Spiele zu wählen, meldet klar, wenn das Passwort des Administrators nicht gültig ist, und hängt beim Speichern nicht mehr.",
+      "Organisieren kann jedes Update und DLC in einen eigenen Ordner mit seiner ID legen.",
+      "In Aufgaben hat der Balken jeder Datei die Farbe ihres Schritts (oder von Spiel, Update, DLC oder Paket beim Prüfen), und die Restzeit ist viel zuverlässiger.",
+      "Ein Komplettpaket nutzt deine NSZ, wenn du sie hast, und die Warnung wegen wenig Speicherplatz erscheint nicht mehr auf großen Platten mit genug Platz.",
+      "Eine Sicherheitskorrektur von Go (crypto/x509)."
+    ],
+    "fr": [
+      "L'assistant de configuration peut parcourir les dossiers du serveur pour choisir celui de vos jeux, indique clairement quand le mot de passe de l'administrateur n'est pas valide et ne reste plus bloqué à l'enregistrement.",
+      "Organiser peut placer chaque mise à jour et chaque DLC dans son propre dossier, nommé avec son ID.",
+      "Dans Tâches, la barre de chaque fichier a la couleur de son étape (ou de jeu, mise à jour, DLC ou pack pendant la vérification), et le temps restant est bien plus fiable.",
+      "Un pack complet utilise vos NSZ quand vous les avez, et l'avertissement de faible espace libre n'apparaît plus sur les gros disques qui ont de la place.",
+      "Un correctif de sécurité de Go (crypto/x509)."
+    ],
+    "it": [
+      "La procedura guidata può sfogliare le cartelle del server per scegliere quella dei tuoi giochi, avvisa chiaramente quando la password dell'amministratore non è valida e non si blocca più al salvataggio.",
+      "Organizza può mettere ogni aggiornamento e DLC in una cartella propria, con il suo ID nel nome.",
+      "In Attività, la barra di ogni file ha il colore della sua fase (o di gioco, aggiornamento, DLC o pacchetto durante il controllo), e il tempo rimanente è molto più affidabile.",
+      "Un pacchetto completo usa i tuoi NSZ quando li hai, e l'avviso di poco spazio libero non compare più sui dischi grandi con spazio a sufficienza.",
+      "Una correzione di sicurezza di Go (crypto/x509)."
+    ],
+    "pt": [
+      "O assistente de configuração pode explorar as pastas do servidor para escolher a dos teus jogos, avisa claramente quando a palavra-passe do administrador não é válida e já não fica preso ao guardar.",
+      "Organizar pode pôr cada atualização e DLC na sua própria pasta, com o seu ID no nome.",
+      "Em Tarefas, a barra de cada ficheiro tem a cor da sua fase (ou de jogo, atualização, DLC ou pacote ao verificar), e o tempo restante é muito mais fiável.",
+      "Um pacote completo usa os teus NSZ quando os tens, e o aviso de pouco espaço livre já não aparece em discos grandes com espaço de sobra.",
+      "Uma correção de segurança do Go (crypto/x509)."
+    ],
+    "nl": [
+      "De installatiewizard kan de mappen van de server doorbladeren om die van je games te kiezen, meldt duidelijk wanneer het wachtwoord van de beheerder niet geldig is en blijft niet meer hangen bij het opslaan.",
+      "Organiseren kan elke update en DLC in een eigen map zetten, met zijn ID in de naam.",
+      "In Taken heeft de balk van elk bestand de kleur van zijn stap (of van game, update, DLC of pakket tijdens het controleren), en de resterende tijd is veel betrouwbaarder.",
+      "Een volledig pakket gebruikt je NSZ als je die hebt, en de waarschuwing voor weinig vrije ruimte verschijnt niet meer op grote schijven met ruimte genoeg.",
+      "Een beveiligingsoplossing van Go (crypto/x509)."
+    ],
+    "ru": [
+      "Мастер настройки может просматривать папки сервера, чтобы выбрать папку с играми, ясно сообщает, если пароль администратора не подходит, и больше не зависает при сохранении.",
+      "«Упорядочивание» может класть каждое обновление и DLC в отдельную папку с его ID.",
+      "В «Задачах» полоса каждого файла окрашена по этапу (или по типу — игра, обновление, DLC или пакет — при проверке), а оставшееся время стало гораздо точнее.",
+      "Полный пакет использует ваши NSZ, если они есть, а предупреждение о нехватке места больше не появляется на больших дисках, где места достаточно.",
+      "Исправление безопасности Go (crypto/x509)."
+    ],
+    "ja": [
+      "セットアップウィザードでサーバーのフォルダーを参照してゲームのフォルダーを選べるようになり、管理者のパスワードが無効なときははっきり知らせ、保存時に止まらなくなりました。",
+      "整理で、アップデートとDLCをそれぞれIDつきの専用フォルダーに入れられます。",
+      "タスクでは各ファイルのバーがステップごと(確認時はゲーム・アップデート・DLC・パックごと)の色になり、残り時間がずっと正確になりました。",
+      "フルパックはNSZがあればそれを使い、空き容量の警告は十分な空きがある大容量ディスクでは出なくなりました。",
+      "Goのセキュリティ修正(crypto/x509)。"
+    ],
+    "ko": [
+      "설치 마법사에서 서버 폴더를 찾아 게임 폴더를 고를 수 있고, 관리자 비밀번호가 맞지 않으면 분명히 알려 주며, 저장할 때 더 이상 멈추지 않아요.",
+      "정리에서 업데이트와 DLC를 각각 ID가 붙은 폴더에 넣을 수 있어요.",
+      "작업에서 각 파일 막대가 단계별 색(확인할 때는 게임·업데이트·DLC·팩별 색)으로 표시되고, 남은 시간이 훨씬 정확해졌어요.",
+      "전체 팩은 NSZ가 있으면 그걸 쓰고, 공간이 넉넉한 큰 디스크에서는 여유 공간 경고가 더 이상 뜨지 않아요.",
+      "Go 보안 수정(crypto/x509)."
+    ],
+    "zh": [
+      "设置向导可以浏览服务器的文件夹来选择游戏文件夹,管理员密码无效时会明确提示,保存时也不会再卡住。",
+      "整理可以把每个更新和 DLC 放进各自带 ID 的文件夹。",
+      "在任务中,每个文件的进度条按步骤着色(检查时按游戏、更新、DLC 或合集着色),剩余时间也准确多了。",
+      "完整合集在你有 NSZ 时会使用 NSZ,大容量磁盘空间充足时不再弹出空间不足警告。",
+      "Go 的安全修复(crypto/x509)。"
+    ]
+  },
   "1.51.1": {
     "en": [
       "Decompressing an NSZ from the Compress page works again with big updates, and is more than 3 times faster with NSZ made by other tools.",

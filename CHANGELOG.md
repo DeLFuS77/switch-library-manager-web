@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.52.0
 
 ### New
 
@@ -24,6 +24,10 @@
 
 - Built with Go 1.27.3, which fixes a security problem of the Go standard library (GO-2026-6809: compromised intermediate certificates trusted by crypto/x509)
 - The last screen of the setup wizard closed by itself as soon as the first scan ended, with a small library in a second
+
+### Development
+
+- The tools that update the title database use Pillow 13.0.0 and certifi 2026.10.19 (security fixes in both), and Python 3.12, which Pillow 13 needs
 
 ## 1.51.1
 
