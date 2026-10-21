@@ -226,7 +226,7 @@
 										<option value="balanced"{{if or (eq .Settings.AutoCompressLevel "balanced") (eq .Settings.AutoCompressLevel "")}} selected{{end}}>{{t "Balanced"}}</option>
 										<option value="max"{{if eq .Settings.AutoCompressLevel "max"}} selected{{end}}>{{t "Maximum"}}</option>
 									</select>
-									<div class="form-text" id="autoCompressLevelHelp">{{t "Maximum is about 10 times slower than Balanced (each file on one core) for files a few % smaller. Installers read every level the same."}}</div>
+									<div class="form-text" id="autoCompressLevelHelp">{{if nativeZstd}}{{t "Maximum is about 8 times slower than Balanced for files about 4% smaller; both use several threads on each file. Installers read every level the same."}}{{else}}{{t "Maximum is about 10 times slower than Balanced (each file on one core) for files a few % smaller. Installers read every level the same."}}{{end}}</div>
 								</div>
 								<div class="col-md-6">
 									<label for="compress_threads" class="form-label fw-semibold">{{t "Processor threads per file"}}</label>
@@ -236,7 +236,7 @@
 										<option value="{{.}}"{{if eq $.Settings.CompressThreads .}} selected{{end}}>{{if eq . $.Processors}}{{t "All (%v)" .}}{{else}}{{.}}{{end}}</option>
 										{{- end}}
 									</select>
-									<div class="form-text" id="compressThreadsHelp">{{t "Automatic uses half of the processors, at most 4, shared among the files at once. A normal NSZ is one stream per file, which zstd compresses on about one core whatever the threads: they only speed up game cards (XCZ), which are compressed in blocks. To use more cores with NSZ, compress more files at once. More threads also leave less of the processor to the rest of the server."}}</div>
+									<div class="form-text" id="compressThreadsHelp">{{if nativeZstd}}{{t "Automatic uses half of the processors, at most 4, shared among the files at once. Balanced, Maximum and game cards (XCZ) use these threads on each file; Fast compresses each NSZ on about one core. Fewer are used when little memory is free (Maximum takes about 190 MB per thread). More threads also leave less of the processor to the rest of the server."}}{{else}}{{t "Automatic uses half of the processors, at most 4, shared among the files at once. A normal NSZ is one stream per file, which zstd compresses on about one core whatever the threads: they only speed up game cards (XCZ), which are compressed in blocks. To use more cores with NSZ, compress more files at once. More threads also leave less of the processor to the rest of the server."}}{{end}}</div>
 								</div>
 								<div class="col-md-6">
 									<label for="compress_files_at_once" class="form-label fw-semibold">{{t "Files at once"}}</label>

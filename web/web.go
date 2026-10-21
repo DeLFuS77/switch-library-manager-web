@@ -8,6 +8,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"html/template"
@@ -409,6 +410,8 @@ type LibraryPageData struct {
 }
 
 var funcMap = template.FuncMap{
+	// the program has the zstd library in C: several threads on each NSZ
+	"nativeZstd": func() bool { return switchfs.NativeZstd },
 	// mul multiplies, e.g. megabytes into bytes for formatSize
 	"mul": func(a, b int) int64 {
 		return int64(a) * int64(b)

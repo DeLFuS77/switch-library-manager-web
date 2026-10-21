@@ -56,6 +56,10 @@ jobs:
             exit 1
           fi
 
+      # the C compiler of the zstd library in C, checked against its SHA-256
+      - name: Set up Zig
+        run: bash .github/scripts/setup_zig.sh
+
       - name: Build the programs
         run: bash .github/scripts/build_release.sh "${GITHUB_REF_NAME}"
 

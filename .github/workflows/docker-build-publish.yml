@@ -55,7 +55,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Build application
-        run: npm ci && make assets docker-binaries
+        run: bash .github/scripts/setup_zig.sh && export PATH="${RUNNER_TEMP}/zig-0.16.0:${PATH}" && npm ci && make assets docker-binaries
 
       # arm64 images (Raspberry Pi, most NAS) are built with emulation
       - name: Set up QEMU
