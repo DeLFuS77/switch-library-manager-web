@@ -125,6 +125,29 @@ func checkWritten(ctx context.Context, path string, written []*writtenFile) (Fil
 		if !bytes.Equal(head, want.head) || !bytes.Equal(tail, want.tail) {
 			return check, fmt.Errorf("%s on the disk differs from what was written", file.name)
 		}
+		// an NCZ is checked by what it decompresses to, from the disk: its own bytes are not
+		// what its content ID tells
+		if strings.HasSuffix(strings.ToLower(file.name), ".ncz") {
+			original := strings.TrimSuffix(file.name, ".ncz") + ".nca"
+			plain := sha256.New()
+			if err := decompressNcz(ctx, plain, input, file.offset, file.size, nil); err != nil {
+				return check, fmt.Errorf("%s: %w", file.name, err)
+			}
+			if id := contentId(file.name); id == "" || hex.EncodeToString(plain.Sum(nil)[:16]) == id {
+				continue
+			}
+			result, err := checkNczIntegrity(ctx, input, file.offset, file.size)
+			if err != nil || result.Checked == 0 {
+				reason := "it cannot be checked further"
+				if err != nil {
+					reason = err.Error()
+				}
+				return check, fmt.Errorf("%s does not match its content ID: the file is damaged or was modified (%s)", file.name, reason)
+			}
+			check.Modified = append(check.Modified, original)
+			check.Partial = check.Partial || result.Unchecked > 0
+			continue
+		}
 		if !strings.HasSuffix(strings.ToLower(file.name), ".nca") {
 			continue
 		}

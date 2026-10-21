@@ -170,7 +170,8 @@ func (web *Web) startSplitBy(paths []string, deleteOriginals bool, trigger strin
 		names[candidate.Path] = candidate.Name
 	}
 	// every file is copied into its parts, then the parts are checked
-	return web.runResumableTask(TASK_SPLIT, trigger, paths, 2, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	// read once: split, and each part checked while it is written
+	return web.runResumableTask(TASK_SPLIT, trigger, paths, 1, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		name := names[path]
 		if name == "" {
 			name = strings.TrimSpace(db.ParseTitleNameFromFileName(filepath.Base(path)))
@@ -182,8 +183,7 @@ func (web *Web) startSplitBy(paths []string, deleteOriginals bool, trigger strin
 // splitFile writes the parts of a file next to it. A part already there with the size it
 // would have was written before the app stopped: it is kept as it is.
 func (web *Web) splitFile(ctx context.Context, path string, game string, deleteOriginal bool, report func(step int64) func(int64, int64)) error {
-	info, err := os.Stat(path)
-	if err != nil {
+	if _, err := os.Stat(path); err != nil {
 		return err
 	}
 	plan, err := switchfs.PlanSplit(path)
@@ -220,16 +220,12 @@ func (web *Web) splitFile(ctx context.Context, path string, game string, deleteO
 		temporary := temporaryOf(path, target)
 		// left half written when the app stopped
 		os.Remove(temporary)
-		err := switchfs.WriteSplitPart(ctx, path, part, temporary, report(done))
+		// every NCA must match its content ID: checked while the part is written
+		written, err := switchfs.WriteSplitPartAndCheck(ctx, path, part, temporary, report(done))
 		if err == nil {
-			// every NCA must match its content ID
-			var written switchfs.FileCheck
-			written, err = switchfs.VerifyFile(ctx, temporary, report(info.Size()+done))
-			if err == nil {
-				checked = checked && fullyChecked(written)
-				if err = os.Rename(temporary, target); err == nil {
-					web.verifications().remember(target, written)
-				}
+			checked = checked && fullyChecked(written)
+			if err = os.Rename(temporary, target); err == nil {
+				web.verifications().remember(target, written)
 			}
 		}
 		if err != nil {

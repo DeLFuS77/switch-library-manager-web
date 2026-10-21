@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -170,4 +172,92 @@ func TestCheckWrittenComparesTheDisk(t *testing.T) {
 	if _, err := checkWritten(context.Background(), back, written[1:]); err == nil {
 		t.Error("a file missing")
 	}
+}
+
+// Converting, packing and splitting check what they write while writing it: the same result as
+// reading the new file again with VerifyFile; the NCZ of a pack of NSZ are decompressed from the
+// disk, so a damaged one is refused.
+func TestWritersCheckWhatTheyWrite(t *testing.T) {
+	initNszKeys(t, "")
+	same := func(name string, path string, check FileCheck, err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatalf("%s: %v", name, err)
+		}
+		again, err := VerifyFile(context.Background(), path, nil)
+		if err != nil || !reflect.DeepEqual(check, again) {
+			t.Fatalf("%s: %+v, reading it again %+v (%v)", name, check, again, err)
+		}
+	}
+
+	// a game card to an NSP
+	xci := writeTestXci(t, t.TempDir())
+	nsp := filepath.Join(t.TempDir(), "card.nsp")
+	check, err := ConvertAndCheck(context.Background(), xci, nsp, nil)
+	same("convert", nsp, check, err)
+
+	// packs of NSP and of NSZ, with an NCA rewritten by a tool
+	section, tree := pfs0TreeSection()
+	plain, _ := writeTestNsp(t, t.TempDir())
+	rewritten := writeRewrittenNsp(t, section, tree, false)
+	for _, compressed := range []bool{false, true} {
+		sources := []string{plain, rewritten}
+		extension := ".nsp"
+		if compressed {
+			extension = ".nsz"
+			for i, source := range sources {
+				nsz := filepath.Join(t.TempDir(), "game.nsz")
+				if _, err := CompressGame(context.Background(), source, nsz, CompressOptions{}); err != nil {
+					t.Fatal(err)
+				}
+				sources[i] = nsz
+			}
+		}
+		pack := filepath.Join(t.TempDir(), "pack"+extension)
+		_, check, err := MergeAndCheck(context.Background(), sources, pack, true, nil)
+		same("pack"+extension, pack, check, err)
+		if len(check.Modified) != 1 {
+			t.Fatalf("pack%s: the rewritten NCA is told: %+v", extension, check)
+		}
+	}
+
+	// a damaged NCA in a pack of NSZ is found in its NCZ, decompressed from the disk
+	damaged := filepath.Join(t.TempDir(), "damaged.nsz")
+	if _, err := CompressGame(context.Background(), writeRewrittenNsp(t, section, tree, true), damaged, CompressOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	other := filepath.Join(t.TempDir(), "other.nsz")
+	if _, err := CompressGame(context.Background(), plain, other, CompressOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	pack := filepath.Join(t.TempDir(), "damaged-pack.nsz")
+	if _, _, err := MergeAndCheck(context.Background(), []string{other, damaged}, pack, true, nil); err == nil || !strings.Contains(err.Error(), "damaged or was modified") {
+		t.Fatalf("a damaged NCZ in a pack: %v", err)
+	}
+	if _, err := os.Stat(pack); !os.IsNotExist(err) {
+		t.Fatal("the pack of a damaged NCZ is removed")
+	}
+
+	// the parts of a SuperNSP and of a SuperNSZ: their NCA are made up, so the check of always
+	// refuses them too; checking while writing must tell the same
+	for _, extension := range []string{".nsp", ".nsz"} {
+		folder, _, super := splitFixture(t, extension)
+		plan, err := PlanSplit(super)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for i, part := range plan.Parts {
+			target := filepath.Join(folder, "checked"+strconv.Itoa(i)+extension)
+			check, err := WriteSplitPartAndCheck(context.Background(), super, part, target, nil)
+			plain := filepath.Join(folder, "plain"+strconv.Itoa(i)+extension)
+			if err := WriteSplitPart(context.Background(), super, part, plain, nil); err != nil {
+				t.Fatal(err)
+			}
+			again, errAgain := VerifyFile(context.Background(), plain, nil)
+			if fmt.Sprint(err) != fmt.Sprint(errAgain) || !reflect.DeepEqual(check, again) {
+				t.Fatalf("split%s part %d: %+v %v, reading it again %+v %v", extension, i, check, err, again, errAgain)
+			}
+		}
+	}
+
 }

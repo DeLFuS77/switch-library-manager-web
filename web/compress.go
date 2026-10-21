@@ -313,7 +313,8 @@ func (web *Web) startConversion(paths []string, deleteOriginals bool) bool {
 
 func (web *Web) startConversionBy(paths []string, deleteOriginals bool, trigger string) bool {
 	// every file is copied, then the result is checked
-	return web.runResumableTask(TASK_CONVERT, trigger, paths, 2, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	// read once: converted, and checked while it is written
+	return web.runResumableTask(TASK_CONVERT, trigger, paths, 1, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		return 0, web.convertFile(ctx, path, deleteOriginals, report)
 	})
 }
@@ -334,11 +335,9 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 	defer release()
 	temporary := temporaryOf(path, target)
 	defer os.Remove(temporary)
-	if err := switchfs.ConvertXciToNsp(ctx, path, temporary, report(0)); err != nil {
-		return err
-	}
-	// every NCA must match its content ID
-	written, err := switchfs.VerifyFile(ctx, temporary, report(info.Size()))
+	// every NCA must match its content ID: checked while it is written, then the NSP is read
+	// back for its files, their sizes and their ends
+	written, err := switchfs.ConvertAndCheck(ctx, path, temporary, report(0))
 	if err != nil {
 		return err
 	}
@@ -627,9 +626,9 @@ func (web *Web) resumeInterrupted() {
 var filePhases = map[string][]string{
 	TASK_COMPRESS:   {PHASE_COMPRESSING, PHASE_VERIFYING},
 	TASK_DECOMPRESS: {PHASE_DECOMPRESSING},
-	TASK_CONVERT:    {PHASE_CONVERTING, PHASE_VERIFYING},
-	TASK_PACK:       {PHASE_PACKING, PHASE_VERIFYING},
-	TASK_SPLIT:      {PHASE_SPLITTING, PHASE_VERIFYING},
+	TASK_CONVERT:    {PHASE_CONVERTING},
+	TASK_PACK:       {PHASE_PACKING},
+	TASK_SPLIT:      {PHASE_SPLITTING},
 }
 
 // the passes over a file, translated by the interface
