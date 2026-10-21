@@ -169,6 +169,7 @@ func (web *Web) startSplitBy(paths []string, deleteOriginals bool, trigger strin
 	for _, candidate := range web.splitCandidates() {
 		names[candidate.Path] = candidate.Name
 	}
+	names = web.moves.resolveKeys(names)
 	// every file is copied into its parts, then the parts are checked
 	// read once: split, and each part checked while it is written
 	return web.runResumableTask(TASK_SPLIT, trigger, paths, 1, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
@@ -266,7 +267,7 @@ func (web *Web) handleSplit() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "prod.keys is needed to split files.")
 			return
 		}
-		paths := selectedPaths(r, web.splitCandidates())
+		paths := web.selectedPaths(r, web.splitCandidates())
 		if len(paths) == 0 {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to split.")
 			return
@@ -281,23 +282,12 @@ func (web *Web) handleSplit() {
 
 // selectedPaths are the paths of the request among the candidates, each one once; with
 // rest=all, every candidate, also those the list does not show.
-func selectedPaths(r *http.Request, candidates []CompressCandidate) []string {
-	// the path as the library has it, never the one sent: only files of the library are touched
-	known := map[string]string{}
+func (web *Web) selectedPaths(r *http.Request, candidates []CompressCandidate) []string {
 	requested := r.Form["path"]
-	for _, candidate := range candidates {
-		known[candidate.Path] = candidate.Path
-		if r.FormValue("rest") == "all" {
+	if r.FormValue("rest") == "all" {
+		for _, candidate := range candidates {
 			requested = append(requested, candidate.Path)
 		}
 	}
-	paths := []string{}
-	seen := map[string]bool{}
-	for _, path := range requested {
-		if library, ok := known[path]; ok && !seen[library] {
-			seen[library] = true
-			paths = append(paths, library)
-		}
-	}
-	return paths
+	return web.libraryPaths(requested, candidates)
 }

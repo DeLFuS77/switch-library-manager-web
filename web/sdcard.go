@@ -366,9 +366,11 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 		}
 		folder := filepath.Join(target, sdFolderName(titleName(switchDB, lang, id, getLocalTitleName(title, local))))
 		for _, file := range sdGameFiles(local, dlc) {
+			// where the file is now, with its name: Organize may have moved it since the scan
+			source := web.moves.resolve(filepath.Join(file.BaseFolder, file.FileName))
 			files = append(files, sdCopyFile{
-				source: filepath.Join(file.BaseFolder, file.FileName),
-				target: filepath.Join(folder, file.FileName),
+				source: source,
+				target: filepath.Join(folder, filepath.Base(source)),
 				size:   file.Size,
 			})
 			total += file.Size

@@ -181,11 +181,14 @@ func (web *Web) packGame(path string) (*db.SwitchGameFiles, string) {
 	if localDB == nil {
 		return nil, ""
 	}
+	// the library may still have the paths from before Organize moved the files, and path the
+	// new ones, or the other way round: both where the files are now
+	path = web.moves.resolve(path)
 	for _, local := range localDB.TitlesMap {
 		if !local.BaseExist || local.File.Metadata == nil {
 			continue
 		}
-		if filepath.Join(local.File.ExtendedInfo.BaseFolder, local.File.ExtendedInfo.FileName) == path {
+		if web.moves.resolve(filepath.Join(local.File.ExtendedInfo.BaseFolder, local.File.ExtendedInfo.FileName)) == path {
 			return local, local.File.Metadata.TitleId
 		}
 	}
@@ -199,7 +202,7 @@ func (web *Web) packTarget(path string, name string) (target string, sources []s
 	if local == nil {
 		return "", nil, 0, errorString("The game is not in your library.")
 	}
-	sources = packSources(local, web.skippedFiles())
+	sources = web.moves.resolveAll(packSources(local, web.skippedFiles()))
 	if len(sources) == 0 {
 		return "", nil, 0, errorString("This game has nothing to put in a pack.")
 	}
@@ -245,13 +248,14 @@ func (web *Web) startPacks(paths []string, names map[string]string, deleteOrigin
 	sizes := make([]int64, len(paths))
 	for i, path := range paths {
 		if local, _ := web.packGame(path); local != nil {
-			for _, source := range packSources(local, web.skippedFiles()) {
+			for _, source := range web.moves.resolveAll(packSources(local, web.skippedFiles())) {
 				if info, err := os.Stat(source); err == nil {
 					sizes[i] += info.Size()
 				}
 			}
 		}
 	}
+	names = web.moves.resolveKeys(names)
 	// the files are read once: merged, and checked while the pack is written
 	return web.runFileTaskFull(TASK_PACK, trigger, paths, sizes, 1, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		target, sources, size, err := web.packTarget(path, names[path])
@@ -347,7 +351,7 @@ func (web *Web) handlePacks() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
 			return
 		}
-		paths := selectedPaths(r, web.packCandidates())
+		paths := web.selectedPaths(r, web.packCandidates())
 		if len(paths) == 0 {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the games to pack.")
 			return

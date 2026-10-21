@@ -508,6 +508,8 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 				paths = append(paths, candidate.Path)
 			}
 		}
+		// the library may still have the paths from before Organize moved the files
+		paths = web.moves.resolveAll(paths)
 		now := time.Now()
 		infos := statFiles(paths, 16)
 		if whole {

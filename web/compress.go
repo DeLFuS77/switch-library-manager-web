@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -705,6 +706,8 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	web.compressor.cancel = cancel
 	web.compressor.mutex.Unlock()
 
+	// a list made before Organize moved files, or before a restart: each file where it is now
+	paths = web.moves.resolveAll(paths)
 	// the files go by name, not the biggest first: the count moves from the start and the list
 	// reads in order. A task resumed after a restart too: the file it was writing starts again
 	// anyway (its half written copy is removed), so its place in the list loses nothing
@@ -781,9 +784,11 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 			lanes     = make([]TaskLane, workers)
 			next      int
 			processed int
-			saved     int64
-			failure   *TaskNote
-			wait      sync.WaitGroup
+			// files of the list no longer there
+			gone    int
+			saved   int64
+			failure *TaskNote
+			wait    sync.WaitGroup
 		)
 		// the bytes each step read and the time it took, over every file, for the time left
 		phases := filePhases[kind]
@@ -880,14 +885,20 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 						}
 					}
 					report(0)(0, 0)
-					fileSaved, err := func() (saved int64, err error) {
-						defer func() {
-							if recovered := recover(); recovered != nil {
-								err = fmt.Errorf("unexpected error: %v", recovered)
-							}
+					// a file deleted or moved by something else since the list was made: told
+					// as such, not as a file that failed
+					var fileSaved int64
+					err := web.fileThere(path)
+					if err == nil {
+						fileSaved, err = func() (saved int64, err error) {
+							defer func() {
+								if recovered := recover(); recovered != nil {
+									err = fmt.Errorf("unexpected error: %v", recovered)
+								}
+							}()
+							return job(ctx, path, report)
 						}()
-						return job(ctx, path, report)
-					}()
+					}
 
 					mutex.Lock()
 					lanes[worker], partial[worker] = TaskLane{}, 0
@@ -907,6 +918,9 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 							failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
 						}
 					case err != nil:
+						if fileGone(err) {
+							gone++
+						}
 						web.sugarLogger.Warnf("%s of %s failed: %v", kind, path, err)
 						web.taskLog().Warn(taskId, compressNote(kind, err), name+": "+err.Error())
 						// nothing in it can be compressed: no longer offered while it stays the same
@@ -943,6 +957,9 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 		}
 		wait.Wait()
 
+		if failure == nil && processed == 0 && len(paths) > 0 && gone == len(paths) {
+			failure = &TaskNote{Text: NOTE_FILE_GONE}
+		}
 		if failure == nil && processed == 0 && len(paths) > 0 {
 			failure = &TaskNote{Text: NOTE_COMPRESS_FAILED}
 			if kind == TASK_DECOMPRESS {
@@ -958,11 +975,28 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 			web.taskLog().SetResume(taskId, nil)
 		}
 		web.taskLog().Finish(taskId, failure)
-		if processed > 0 {
+		// files were written, or the library still lists files that are gone
+		if processed > 0 || gone > 0 {
 			web.Rescan(TRIGGER_COMPRESS)
 		}
 	}()
 	return true
+}
+
+// NOTE_FILE_GONE is told of a file of the list that is no longer where the list had it, and
+// that the app did not see move: deleted, or moved by something else.
+const NOTE_FILE_GONE = "The file is no longer there: it was moved, renamed or deleted after the list was made. Try again once the library has been scanned."
+
+// errFileGone is a file of the list of a task that is no longer there.
+var errFileGone = errors.New("the file is no longer there")
+
+// fileGone tells an error of a file of the list that is no longer there, not one of a file
+// that was there and failed (an original that could not be deleted has its own note).
+func fileGone(err error) bool {
+	if errors.Is(err, errFileGone) {
+		return true
+	}
+	return errors.Is(err, fs.ErrNotExist) && !strings.Contains(err.Error(), "could not delete")
 }
 
 // errors of compressFile, mapped to notes
@@ -978,6 +1012,9 @@ func compressDamage(err error) bool {
 }
 
 func compressNote(kind string, err error) string {
+	if fileGone(err) {
+		return NOTE_FILE_GONE
+	}
 	if kind == TASK_SPLIT {
 		switch {
 		case errors.Is(err, errCompressSpace):
@@ -1237,17 +1274,7 @@ func (web *Web) HandleCompress() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
 			return
 		}
-		// the path as the library has it, never the one sent: only files of the library are touched
-		known := map[string]string{}
-		for _, candidate := range web.convertCandidates() {
-			known[candidate.Path] = candidate.Path
-		}
-		paths := []string{}
-		for _, path := range r.Form["path"] {
-			if library, ok := known[path]; ok {
-				paths = append(paths, library)
-			}
-		}
+		paths := web.libraryPaths(r.Form["path"], web.convertCandidates())
 		if len(paths) == 0 {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to convert.")
 			return
@@ -1283,25 +1310,17 @@ func (web *Web) HandleCompress() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "prod.keys is needed to compress games.")
 			return
 		}
-		// only files of the library can be compressed
-		// the path as the library has it, never the one sent: only files of the library are touched
-		known := map[string]string{}
+		candidates := web.uncompressedCandidates()
 		requested := r.Form["path"]
-		for i, candidate := range web.uncompressedCandidates() {
-			known[candidate.Path] = candidate.Path
-			// "the rest": the files not listed one by one
-			if i >= shownFiles && r.FormValue("rest") == "compress" {
-				requested = append(requested, candidate.Path)
+		// "the rest": the files not listed one by one
+		if r.FormValue("rest") == "compress" {
+			for i, candidate := range candidates {
+				if i >= shownFiles {
+					requested = append(requested, candidate.Path)
+				}
 			}
 		}
-		paths := []string{}
-		seen := map[string]bool{}
-		for _, path := range requested {
-			if library, ok := known[path]; ok && !seen[library] {
-				seen[library] = true
-				paths = append(paths, library)
-			}
-		}
+		paths := web.libraryPaths(requested, candidates)
 		if len(paths) == 0 {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to compress.")
 			return
@@ -1324,17 +1343,7 @@ func (web *Web) HandleCompress() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
 			return
 		}
-		// the path as the library has it, never the one sent: only files of the library are touched
-		known := map[string]string{}
-		for _, candidate := range web.decompressCandidates() {
-			known[candidate.Path] = candidate.Path
-		}
-		paths := []string{}
-		for _, path := range r.Form["path"] {
-			if library, ok := known[path]; ok {
-				paths = append(paths, library)
-			}
-		}
+		paths := web.libraryPaths(r.Form["path"], web.decompressCandidates())
 		if len(paths) == 0 {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to decompress.")
 			return
