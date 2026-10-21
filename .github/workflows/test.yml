@@ -49,7 +49,8 @@ jobs:
         run: go test -race -timeout 20m ./... ./switchfs/_crypto/
 
       - name: The zstd library in C is the one tested
-        run: go test -count=1 -run TestStreamEncoderWindowAndRoundTrip -v ./switchfs/ | grep -q "zstd library in C: true"
+        run: |
+          go test -count=1 -run TestStreamEncoderWindowAndRoundTrip -v ./switchfs/ | grep -q "zstd library in C: true"
 
       # the programs in Go only (macOS, and any build without cgo) work the same
       - name: Test in Go only
@@ -167,6 +168,10 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
+
+      # the static programs with the zstd library in C, as the published image has them
+      - name: Set up Zig
+        run: bash .github/scripts/setup_zig.sh
 
       - name: Build application
         run: npm ci && make assets docker-binaries
