@@ -22,6 +22,7 @@
 
 ### Fixes
 
+- Built with Go 1.27.3, which fixes a security problem of the Go standard library (GO-2026-6809: compromised intermediate certificates trusted by crypto/x509)
 - The last screen of the setup wizard closed by itself as soon as the first scan ended, with a small library in a second
 
 ## 1.51.1
