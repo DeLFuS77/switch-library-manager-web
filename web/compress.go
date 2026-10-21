@@ -488,8 +488,8 @@ func (web *Web) startCompression(paths []string, level string, deleteOriginals b
 }
 
 func (web *Web) startCompressionBy(paths []string, level string, deleteOriginals bool, trigger string) bool {
-	// every file is read three times: hashed, compressed and verified
-	return web.runResumableTask(TASK_COMPRESS, trigger, paths, 3, &TaskResume{Level: level, Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	// every file is read twice: compressed (and hashed meanwhile), then verified
+	return web.runResumableTask(TASK_COMPRESS, trigger, paths, 2, &TaskResume{Level: level, Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		return web.compressFile(ctx, path, level, deleteOriginals, report)
 	})
 }
@@ -625,7 +625,7 @@ func (web *Web) resumeInterrupted() {
 
 // filePhases are the passes over each file of the tasks on files, in their order.
 var filePhases = map[string][]string{
-	TASK_COMPRESS:   {PHASE_HASHING, PHASE_COMPRESSING, PHASE_VERIFYING},
+	TASK_COMPRESS:   {PHASE_COMPRESSING, PHASE_VERIFYING},
 	TASK_DECOMPRESS: {PHASE_DECOMPRESSING, PHASE_VERIFYING},
 	TASK_CONVERT:    {PHASE_CONVERTING, PHASE_VERIFYING},
 	TASK_PACK:       {PHASE_PACKING, PHASE_VERIFYING},
@@ -1044,23 +1044,24 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	}
 	defer release()
 
-	expected, originalCheck, err := switchfs.HashAndCheck(ctx, path, report(0))
+	// hidden, so scans ignore the file while it is written
+	temporary := temporaryOf(path, target)
+	defer os.Remove(temporary)
+	// the original is hashed while it is compressed: it is read once, not twice
+	result, err := switchfs.CompressGame(ctx, path, temporary, switchfs.CompressOptions{
+		Level: level, Workers: switchfs.LimitThreads(level, compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce)), filesAtOnce(appSettings.CompressFilesAtOnce)), Progress: report(0),
+	})
+	if err != nil {
+		return 0, err
+	}
+	// an NCA whose hash is not its content ID: rewritten by a tool, or damaged
+	originalCheck, err := switchfs.CheckHashes(ctx, path, result.Hashes)
 	if err != nil {
 		return 0, err
 	}
 	// reading the original whole was its check: the next file check does not read it again
 	web.verifications().remember(path, originalCheck)
-
-	// hidden, so scans ignore the file while it is written
-	temporary := temporaryOf(path, target)
-	defer os.Remove(temporary)
-	result, err := switchfs.CompressGame(ctx, path, temporary, switchfs.CompressOptions{
-		Level: level, Workers: switchfs.LimitThreads(level, compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce)), filesAtOnce(appSettings.CompressFilesAtOnce)), Progress: report(info.Size()),
-	})
-	if err != nil {
-		return 0, err
-	}
-	if err := switchfs.VerifyCompressed(ctx, temporary, expected, report(2*info.Size())); err != nil {
+	if err := switchfs.VerifyCompressed(ctx, temporary, result.Hashes, report(info.Size())); err != nil {
 		return 0, err
 	}
 	if err := os.Rename(temporary, target); err != nil {

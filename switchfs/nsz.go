@@ -77,6 +77,9 @@ type CompressResult struct {
 	// NCA files compressed, and stored as they are (small, metadata or update patches)
 	Compressed int
 	Stored     int
+	// the SHA-256 of every file of the original by name, taken while it was read to compress
+	// it: what its compressed copy must give back (see CheckHashes and VerifyCompressed)
+	Hashes map[string][32]byte
 }
 
 // ErrNotCompressible is returned when no NCA of an NSP can be compressed.
@@ -109,7 +112,7 @@ type nczPlan struct {
 // CompressGame writes the NSZ of an NSP, or the XCZ of an XCI, to target. It does not
 // verify the result, see VerifyCompressed.
 func CompressGame(ctx context.Context, source string, target string, options CompressOptions) (CompressResult, error) {
-	result := CompressResult{}
+	result := CompressResult{Hashes: map[string][32]byte{}}
 	input, err := os.Open(source)
 	if err != nil {
 		return result, err
@@ -190,16 +193,31 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 			break
 		}
 		writer.startFile()
+		// the original is hashed as it is read, instead of in a pass of its own
+		reader := newHashingReaderAt(input, file.offset, file.size, sha256.New())
 		if plans[i] != nil && (options.Blocks || pkg.xci) {
-			err = writeNczBlocks(ctx, output, input, file.offset, file.size, plans[i], options, progress)
+			err = writeNczBlocks(ctx, output, reader, file.offset, file.size, plans[i], options, progress)
 		} else if plans[i] != nil {
-			err = writeNcz(ctx, output, input, file.offset, file.size, plans[i], options, progress)
+			err = writeNcz(ctx, output, reader, file.offset, file.size, plans[i], options, progress)
 		} else {
 			result.Stored++
-			err = copyRange(ctx, output, input, file.offset, file.size, progress)
+			err = copyRange(ctx, output, reader, file.offset, file.size, progress)
 		}
 		if err == nil {
 			err = writer.endFile()
+		}
+		if err == nil {
+			var sum [32]byte
+			if reader.complete() {
+				copy(sum[:], reader.hash.Sum(nil))
+			} else {
+				// not read whole in order: hashed on its own
+				whole := sha256.New()
+				if err = copyRange(ctx, whole, input, file.offset, file.size, nil); err == nil {
+					copy(sum[:], whole.Sum(nil))
+				}
+			}
+			result.Hashes[file.name] = sum
 		}
 	}
 	if err == nil {
@@ -1008,6 +1026,51 @@ func contentId(name string) string {
 		return ""
 	}
 	return id
+}
+
+// CheckHashes is what checkPackage tells of an original from the hashes of its files, taken
+// while it was compressed: an NCA whose hash is not its content ID is checked by the hash
+// trees of its data, rewritten by a tool or damaged. Only those are read again.
+func CheckHashes(ctx context.Context, path string, hashes map[string][32]byte) (FileCheck, error) {
+	check := FileCheck{}
+	input, err := os.Open(path)
+	if err != nil {
+		return check, err
+	}
+	defer input.Close()
+	pkg, err := openGamePackage(input)
+	if err != nil {
+		return check, err
+	}
+	var titleKeys map[string][]byte
+	for _, file := range pkg.files {
+		sum, ok := hashes[file.name]
+		if !ok {
+			return check, fmt.Errorf("%s was not hashed", file.name)
+		}
+		if !strings.HasSuffix(strings.ToLower(file.name), ".nca") {
+			continue
+		}
+		if id := contentId(file.name); id == "" || hex.EncodeToString(sum[:16]) == id {
+			continue
+		}
+		if titleKeys == nil {
+			if titleKeys, err = readTickets(input, pkg.files); err != nil {
+				return check, err
+			}
+		}
+		result, err := checkNcaIntegrity(ctx, input, file.offset, file.size, titleKeys)
+		if err != nil || result.Checked == 0 {
+			reason := "it cannot be checked further"
+			if err != nil {
+				reason = err.Error()
+			}
+			return check, fmt.Errorf("%s does not match its content ID: the file is damaged or was modified (%s)", file.name, reason)
+		}
+		check.Modified = append(check.Modified, file.name)
+		check.Partial = check.Partial || result.Unchecked > 0
+	}
+	return check, nil
 }
 
 // HashNcas returns the SHA-256 of every file of an NSP or XCI by name, to compare with

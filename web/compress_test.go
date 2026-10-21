@@ -346,14 +346,14 @@ func TestConvertGameCardToNsp(t *testing.T) {
 	}
 }
 
-// Each file of a compression tells what is done to it: its hashes, its compression, then
-// the check of the copy.
+// Each file of a compression tells what is done to it: its compression (with its hashes taken
+// meanwhile), then the check of the copy.
 func TestCompressionLanesTellTheirPhase(t *testing.T) {
 	web, path := compressWeb(t)
 	info, _ := os.Stat(path)
 	phases := []string{}
-	web.runFileTask(TASK_COMPRESS, []string{path}, 3, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
-		for step := int64(0); step < 3; step++ {
+	web.runFileTask(TASK_COMPRESS, []string{path}, 2, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		for step := int64(0); step < 2; step++ {
 			report(step*info.Size())(1, info.Size())
 			for _, task := range web.taskLog().Snapshot() {
 				if task.Running() && len(task.Lanes) == 1 {
@@ -369,7 +369,7 @@ func TestCompressionLanesTellTheirPhase(t *testing.T) {
 		return 0, nil
 	})
 	waitForCompression(t, web)
-	if strings.Join(phases, ", ") != PHASE_HASHING+" 1/3, "+PHASE_COMPRESSING+" 2/3, "+PHASE_VERIFYING+" 3/3" {
+	if strings.Join(phases, ", ") != PHASE_COMPRESSING+" 1/2, "+PHASE_VERIFYING+" 2/2" {
 		t.Fatalf("phases: %v", phases)
 	}
 }

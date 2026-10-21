@@ -355,7 +355,8 @@ func TestCompressionCardWithSomethingSaved(t *testing.T) {
 // The time left of a compression follows the speed of each step: hashes at 450 MB/s and the
 // max compression at 5 MB/s said "2 minutes left" for an hour when they were averaged.
 func TestTimeLeftFollowsEachStep(t *testing.T) {
-	phases := filePhases[TASK_COMPRESS]
+	// three steps of different speeds, as a compression had them
+	phases := []string{PHASE_HASHING, PHASE_COMPRESSING, PHASE_VERIFYING}
 	const mb = int64(1) << 20
 	// 13 GB to compress: the hashes measured, the compression not yet
 	read := []int64{450 * mb * 20, 0, 0}
