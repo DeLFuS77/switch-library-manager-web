@@ -96,8 +96,21 @@
 		padding: .7rem .9rem;
 	}
 
+	// in the menu of phones a short bar of its own at the left, inside the rounded corners: a
+	// shadow there followed the corners and stuck out above and below them
 	.nav-indicator {
-		box-shadow: inset 3px 0 0 $primary;
+		box-shadow: none;
+
+		&::before {
+			content: "";
+			position: absolute;
+			top: .55rem;
+			bottom: .55rem;
+			left: 0;
+			width: 3px;
+			border-radius: 3px;
+			background: $primary;
+		}
 	}
 }
 
@@ -676,3 +689,92 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	}
 }
 
+// phones and tablets: the fan of a task at work next to Synchronize, as the menu is closed
+.header-tasks {
+	--task-color: #{$slm-violet-light};
+	display: inline-flex;
+	align-items: center;
+	gap: .3rem;
+	padding-inline: .6rem;
+	border: 1px solid var(--slm-border);
+	background: var(--slm-surface-muted);
+	color: var(--task-color);
+	font-weight: 600;
+
+	[data-bs-theme="light"] & {
+		--task-color: #{$slm-violet-deep};
+	}
+
+	&:hover,
+	&:focus-visible {
+		color: var(--task-color);
+		background: var(--slm-surface);
+	}
+
+	.nav-busy {
+		display: grid;
+		place-items: center;
+		width: 1em;
+		height: 1em;
+		line-height: 1;
+	}
+
+	.nav-busy.bi-fan::before {
+		content: "";
+		display: block;
+		width: 1em;
+		height: 1em;
+		background-color: currentColor;
+		-webkit-mask: $task-fan center / contain no-repeat;
+		mask: $task-fan center / contain no-repeat;
+	}
+}
+
+.header-tasks-count:empty {
+	display: none;
+}
+
+// phones: the brand, Search, Synchronize, the fan of the tasks and the menu on one line. The
+// buttons keep their size; on the narrowest screens the name of the app gives way first
+@include media-breakpoint-down(sm) {
+	.app-header .navbar > .container-xxl {
+		flex-wrap: nowrap;
+	}
+
+	.app-header .navbar-brand {
+		flex-shrink: 1;
+		min-width: 0;
+		// over the gap-2 and me-3 of the markup
+		gap: .4rem !important;
+		margin-right: .5rem !important;
+	}
+
+	.app-header .brand-mark {
+		width: 2.1rem;
+		height: 2.1rem;
+	}
+
+	.app-header .brand-text {
+		overflow: hidden;
+		font-size: 1.1rem;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.app-header .order-xxl-last {
+		flex-shrink: 0;
+		gap: .375rem !important;
+	}
+
+	.app-header .navbar-toggler {
+		padding-inline: .35rem;
+	}
+
+	#sync {
+		padding-inline: .8rem !important;
+	}
+
+	.header-tasks {
+		padding-inline: .5rem;
+	}
+}

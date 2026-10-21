@@ -32,6 +32,15 @@ function updateTaskIndicator() {
 			// the progress of the first task that knows it, for the ring around the icon
 			const measured = active.find(task => task.total > 0 && task.current >= 0);
 			const percent = measured ? Math.min(100, Math.round(measured.current * 100 / measured.total)) : -1;
+			// on phones the menu is closed: the fan next to Synchronize says work goes on
+			document.querySelectorAll('[data-header-tasks]').forEach(link => {
+				link.hidden = running === 0;
+				link.title = t('Tasks running: %v', running);
+				const count = link.querySelector('[data-header-tasks-count]');
+				if (count) {
+					count.textContent = running > 1 ? String(running) : '';
+				}
+			});
 			taskLinks().forEach(link => {
 				const icon = link.querySelector('.bi');
 				if (icon) {

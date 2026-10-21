@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### New
+
+- On phones and tablets a turning fan next to Synchronize shows that tasks are at work, with how many when there are several, and opens Tasks: the menu with the link of Tasks is closed there. It goes away when the last task ends
+
+### Fixes
+
+- The bar of a file in Tasks reaches its end: each step fills its share. The check of an NSZ counts the files inside it, fewer bytes than the original, and the bar of a compression stopped around three quarters before jumping to the next file; converting a game card with padding, decompressing and packs fell short the same way
+- Phones: the bar at the bottom gives each section the room of its name, so a long one (Updates in Spanish) no longer runs into the ones beside it, and the mark of the section shown is the same short line on each
+- Phones: the views of the Library (All, My games, Missing) take the room of their names instead of equal thirds, where "My games" ran out of its own and touched the red of All
+- The mark of the page shown in the menu of phones is a short rounded bar inside the corners of the link; it stuck out above and below them
+- The section shown in Settings keeps a border in its red on phones, instead of losing the border the others have
 ## 1.53.0
 
 ### Improvements

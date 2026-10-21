@@ -112,7 +112,9 @@
 	// phones: the three views share one row instead of breaking into two
 	@include media-breakpoint-down(sm) {
 		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
+		// each view as wide as its name and count, the room left shared out: equal thirds
+		// made "My games" run out of its own
+		grid-template-columns: repeat(3, minmax(0, auto));
 		width: 100%;
 
 		.library-view {

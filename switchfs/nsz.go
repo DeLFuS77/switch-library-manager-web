@@ -232,6 +232,11 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 	if info, statErr := os.Stat(target); statErr == nil {
 		result.OutputSize = info.Size()
 	}
+	// the files are counted as they are read, the header of the package with them at the end:
+	// the progress reaches its total
+	if options.Progress != nil && done < result.InputSize {
+		options.Progress(result.InputSize, result.InputSize)
+	}
 	return result, nil
 }
 

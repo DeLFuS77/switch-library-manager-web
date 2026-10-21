@@ -560,3 +560,31 @@ func TestSortedByName(t *testing.T) {
 		t.Fatalf("without sizes: %v %v", got, sizes)
 	}
 }
+
+// The bar of a file reaches its end: each step fills its share, the size of the file, though
+// the check of the NSZ counts the files inside it, fewer bytes than the original.
+func TestCompressionBarReachesItsEnd(t *testing.T) {
+	web, path := compressWeb(t)
+	info, _ := os.Stat(path)
+	var mutex sync.Mutex
+	reached := map[int64]int64{}
+	web.runFileTask(TASK_COMPRESS, []string{path}, 2, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		return web.compressFile(ctx, path, switchfs.LevelFast, false, func(step int64) func(int64, int64) {
+			progress := report(step)
+			return func(done int64, total int64) {
+				mutex.Lock()
+				reached[step] = max(reached[step], done)
+				mutex.Unlock()
+				progress(done, total)
+			}
+		})
+	})
+	waitForCompression(t, web)
+	mutex.Lock()
+	defer mutex.Unlock()
+	for _, step := range []int64{0, info.Size()} {
+		if reached[step] != info.Size() {
+			t.Fatalf("the step from %d reached %d of %d", step, reached[step], info.Size())
+		}
+	}
+}
