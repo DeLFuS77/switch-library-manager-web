@@ -8,6 +8,7 @@
 
 ### Fixes
 
+- The bar of a file in Tasks reaches its end: each step fills its share. The check of an NSZ counts the files inside it, fewer bytes than the original, and the bar of a compression stopped around three quarters before jumping to the next file; converting a game card with padding, decompressing and packs fell short the same way
 - Phones: the bar at the bottom gives each section the room of its name, so a long one (Updates in Spanish) no longer runs into the ones beside it, and the mark of the section shown is the same short line on each
 - Phones: the views of the Library (All, My games, Missing) take the room of their names instead of equal thirds, where "My games" ran out of its own and touched the red of All
 - The mark of the page shown in the menu of phones is a short rounded bar inside the corners of the link; it stuck out above and below them

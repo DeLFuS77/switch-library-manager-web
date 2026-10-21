@@ -274,7 +274,14 @@ func (web *Web) makePack(ctx context.Context, sources []string, target string, s
 	defer os.Remove(temporary)
 	// every NCA must match its content ID: checked while the pack is written, its NCZ files
 	// decompressed from the disk
-	skipped, written, err := switchfs.MergeAndCheck(ctx, sources, temporary, true, report(0))
+	// the bar of the pack is the size of its sources, the delta fragments left out included
+	var read int64
+	for _, source := range sources {
+		if info, err := os.Stat(source); err == nil {
+			read += info.Size()
+		}
+	}
+	skipped, written, err := switchfs.MergeAndCheck(ctx, sources, temporary, true, filling(read, report(0)))
 	if err != nil {
 		return 0, err
 	}

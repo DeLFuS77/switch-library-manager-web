@@ -337,7 +337,7 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 	defer os.Remove(temporary)
 	// every NCA must match its content ID: checked while it is written, then the NSP is read
 	// back for its files, their sizes and their ends
-	written, err := switchfs.ConvertAndCheck(ctx, path, temporary, report(0))
+	written, err := switchfs.ConvertAndCheck(ctx, path, temporary, filling(info.Size(), report(0)))
 	if err != nil {
 		return err
 	}
@@ -1048,7 +1048,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	defer os.Remove(temporary)
 	// the original is hashed while it is compressed: it is read once, not twice
 	result, err := switchfs.CompressGame(ctx, path, temporary, switchfs.CompressOptions{
-		Level: level, Workers: switchfs.LimitThreads(level, compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce)), filesAtOnce(appSettings.CompressFilesAtOnce)), Progress: report(0),
+		Level: level, Workers: switchfs.LimitThreads(level, compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce)), filesAtOnce(appSettings.CompressFilesAtOnce)), Progress: filling(info.Size(), report(0)),
 	})
 	if err != nil {
 		return 0, err
@@ -1060,7 +1060,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	}
 	// reading the original whole was its check: the next file check does not read it again
 	web.verifications().remember(path, originalCheck)
-	if err := switchfs.VerifyCompressed(ctx, temporary, result.Hashes, report(info.Size())); err != nil {
+	if err := switchfs.VerifyCompressed(ctx, temporary, result.Hashes, filling(info.Size(), report(info.Size()))); err != nil {
 		return 0, err
 	}
 	if err := os.Rename(temporary, target); err != nil {
@@ -1077,11 +1077,24 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	return result.InputSize - result.OutputSize, nil
 }
 
+// filling makes the progress of one step fill its share of the bar of a file, the size of the
+// file: a step counts its own bytes (the files inside an NSZ, the NSP inside a game card, the
+// files a pack keeps), fewer than the file holds, and the bar stopped short of its end.
+func filling(size int64, progress func(int64, int64)) func(int64, int64) {
+	return func(done int64, total int64) {
+		if total > 0 && total != size {
+			done = int64(float64(done) / float64(total) * float64(size))
+		}
+		progress(min(done, size), size)
+	}
+}
+
 // decompressFile writes the NSP of an NSZ next to it under a hidden temporary name,
 // checks every NCA against its content ID, and only then renames it; the NSZ is deleted
 // last, if asked.
 func (web *Web) decompressFile(ctx context.Context, path string, deleteCompressed bool, report func(step int64) func(int64, int64)) error {
-	if _, err := os.Stat(path); err != nil {
+	info, err := os.Stat(path)
+	if err != nil {
 		return err
 	}
 	target := switchfs.DecompressedPath(path)
@@ -1102,7 +1115,7 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 	defer os.Remove(temporary)
 	// every NCA must match its content ID: checked while it is written, then the NSP is read
 	// back for its files, their sizes and their ends
-	written, err := switchfs.DecompressAndCheck(ctx, path, temporary, report(0))
+	written, err := switchfs.DecompressAndCheck(ctx, path, temporary, filling(info.Size(), report(0)))
 	if err != nil {
 		return err
 	}
