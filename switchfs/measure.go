@@ -6,8 +6,6 @@ import (
 	"io"
 	"os"
 	"time"
-
-	"github.com/klauspost/compress/zstd"
 )
 
 // ErrNothingToMeasure is returned when a game holds no NCA that would be compressed.
@@ -48,12 +46,8 @@ func MeasureCompression(ctx context.Context, source string, from float64, option
 		return 0, ErrNothingToMeasure
 	}
 
-	workers := options.Workers
-	if workers < 1 {
-		workers = 1
-	}
-	encoder, err := zstd.NewWriter(output, zstd.WithEncoderLevel(encoderLevel(options.Level)),
-		zstd.WithEncoderConcurrency(workers), zstd.WithWindowSize(nczWindowSize))
+	// the encoder a compression uses, so the measure tells the speed it will have
+	encoder, err := newStreamEncoder(output, options.Level, options.Workers)
 	if err != nil {
 		return 0, err
 	}

@@ -548,12 +548,7 @@ func writeNczHeader(output io.Writer, input io.ReaderAt, offset int64, plan *ncz
 
 // writeNczStream writes the decrypted sections as one zstd stream.
 func writeNczStream(ctx context.Context, output io.Writer, input io.ReaderAt, offset int64, plan *nczPlan, options CompressOptions, progress func(int64)) error {
-	workers := options.Workers
-	if workers < 1 {
-		workers = 1
-	}
-	encoder, err := zstd.NewWriter(output, zstd.WithEncoderLevel(encoderLevel(options.Level)),
-		zstd.WithEncoderConcurrency(workers), zstd.WithWindowSize(nczWindowSize))
+	encoder, err := newStreamEncoder(output, options.Level, options.Workers)
 	if err != nil {
 		return err
 	}
