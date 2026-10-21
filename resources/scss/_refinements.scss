@@ -112,8 +112,9 @@
 			border-radius: 2rem;
 			font-size: var(--slm-text-sm);
 
+			// the section shown keeps a border, of its red, so it stands out from the others
 			&.active {
-				border-color: transparent;
+				border-color: rgba(var(--bs-primary-rgb), .55);
 			}
 		}
 	}

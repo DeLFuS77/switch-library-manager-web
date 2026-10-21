@@ -34,6 +34,9 @@
 					<a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 rounded-pill px-3 editor-only" href="/sync" id="sync" title="{{t "Download the latest titles database and rescan the library"}}">
 						<span class="bi bi-arrow-repeat" aria-hidden="true"></span><span class="d-none d-md-inline d-xxl-none">{{t "Synchronize"}}</span>
 					</a>
+						{{- if ne .Page "tasks"}}
+						<a class="btn btn-sm header-tasks rounded-pill d-xxl-none" href="/tasks.html" data-header-tasks title="{{t "Tasks running: %v" (num .Counts.RunningTasks)}}"{{if not .Counts.RunningTasks}} hidden{{end}}><span class="bi bi-fan nav-busy" aria-hidden="true"></span><span class="header-tasks-count" data-header-tasks-count>{{if gt .Counts.RunningTasks 1}}{{.Counts.RunningTasks}}{{end}}</span><span class="visually-hidden">{{t "Tasks"}}</span></a>
+						{{- end}}
 					{{- if and .Auth.Enabled .Auth.IsAdmin}}
 					<a class="btn btn-link nav-link settings-shortcut d-none d-xxl-inline-flex{{if eq .Page "settings"}} active{{end}}" href="/settings.html" title="{{t "Settings"}}"{{if eq .Page "settings"}} aria-current="page"{{end}}><span class="bi bi-gear" aria-hidden="true"></span><span class="visually-hidden">{{t "Settings"}}</span></a>
 					{{- end}}
