@@ -23,7 +23,7 @@
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
   <Changes>### 1.53.0
-- Balanced and Maximum compress on several threads (Maximum about twice as fast, files about 6% smaller), every task reads each file once, the check of the files is faster, and damaged files are no longer offered again on every compression; tested on a Switch with DBI
+- Balanced and Maximum compress on several threads (Maximum about twice as fast, files about 6% smaller), every task reads each file once, the check of the files is faster, and damaged files are no longer offered again on every compression; tested with DBI
 ### 1.52.0
 - Setup wizard with a folder browser and clear errors, folders with the ID of each update and DLC, file bars coloured by step or kind, a reliable time left, packs from NSZ, and a Go security fix</Changes>
   <Date>2026-10-21</Date>
