@@ -1234,17 +1234,40 @@ func checkNczIntegrity(ctx context.Context, input io.ReaderAt, offset int64, siz
 
 // DecompressNsz writes the NSP of an NSZ to target.
 func DecompressNsz(ctx context.Context, source string, target string, progress func(done int64, total int64)) error {
+	_, err := decompressNsz(ctx, source, target, progress)
+	return err
+}
+
+// DecompressAndCheck is DecompressNsz that checks the NSP while writing it, instead of
+// reading it again: the SHA-256 of every file is taken as it is written, and an NCA whose
+// hash is not its content ID is checked by the hash trees of its data (rewritten by a tool,
+// or damaged), as VerifyFile does. The NSP is then opened again: its list of files, their
+// sizes and the start and the end of each one, read back from the disk, must be what was
+// written. On an error the NSP is removed.
+func DecompressAndCheck(ctx context.Context, source string, target string, progress func(done int64, total int64)) (FileCheck, error) {
+	written, err := decompressNsz(ctx, source, target, progress)
+	if err != nil {
+		return FileCheck{}, err
+	}
+	check, err := checkWritten(ctx, target, written)
+	if err != nil {
+		os.Remove(target)
+	}
+	return check, err
+}
+
+func decompressNsz(ctx context.Context, source string, target string, progress func(done int64, total int64)) ([]*writtenFile, error) {
 	input, err := os.Open(source)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer input.Close()
 	if string(mustRead(input, 0, 4)) != pfs0Magic {
-		return errors.New("only NSZ files can be decompressed")
+		return nil, errors.New("only NSZ files can be decompressed")
 	}
 	pfs0, err := readPfs0(input, 0)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	names := make([]string, len(pfs0.Files))
 	var total, done int64
@@ -1264,8 +1287,9 @@ func DecompressNsz(ctx context.Context, source string, target string, progress f
 
 	output, err := CreateNew(target)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	written := make([]*writtenFile, len(pfs0.Files))
 	writer := &pfs0Writer{file: output, names: names, headerLen: int64(pfs0.HeaderLen)}
 	err = writer.begin()
 	for i, file := range pfs0.Files {
@@ -1273,17 +1297,20 @@ func DecompressNsz(ctx context.Context, source string, target string, progress f
 			break
 		}
 		writer.startFile()
+		// what is written of the file is hashed meanwhile, with its start and its end kept
+		written[i] = newWrittenFile(names[i])
+		out := io.MultiWriter(writer.file, written[i])
 		if names[i] != file.Name {
 			// the progress follows the compressed bytes read, like the check: a big NCZ moves
 			// on while it is decompressed instead of all at once at its end
 			start, size := int64(file.StartOffset), int64(file.Size)
 			counter := &countingReaderAt{reader: input, start: start, end: start + size, report: report}
-			err = decompressNcz(ctx, writer.file, counter, start, size, nil)
+			err = decompressNcz(ctx, out, counter, start, size, nil)
 			if rest := size - counter.counted; err == nil && rest > 0 {
 				report(rest)
 			}
 		} else {
-			err = copyRange(ctx, writer.file, input, int64(file.StartOffset), int64(file.Size), report)
+			err = copyRange(ctx, out, input, int64(file.StartOffset), int64(file.Size), report)
 		}
 		if err == nil {
 			err = writer.endFile()
@@ -1298,8 +1325,9 @@ func DecompressNsz(ctx context.Context, source string, target string, progress f
 	}
 	if err != nil {
 		os.Remove(target)
+		return nil, err
 	}
-	return err
+	return written, nil
 }
 
 // pfs0Writer writes a PFS0 container: the header space is reserved first and written

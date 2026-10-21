@@ -500,8 +500,8 @@ func (web *Web) startDecompression(paths []string, deleteCompressed bool) bool {
 }
 
 func (web *Web) startDecompressionBy(paths []string, deleteCompressed bool, trigger string) bool {
-	// every file is decompressed, then the result is hashed
-	return web.runResumableTask(TASK_DECOMPRESS, trigger, paths, 2, &TaskResume{Delete: deleteCompressed}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	// every file is read once: decompressed, and checked while it is written
+	return web.runResumableTask(TASK_DECOMPRESS, trigger, paths, 1, &TaskResume{Delete: deleteCompressed}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		return 0, web.decompressFile(ctx, path, deleteCompressed, report)
 	})
 }
@@ -626,7 +626,7 @@ func (web *Web) resumeInterrupted() {
 // filePhases are the passes over each file of the tasks on files, in their order.
 var filePhases = map[string][]string{
 	TASK_COMPRESS:   {PHASE_COMPRESSING, PHASE_VERIFYING},
-	TASK_DECOMPRESS: {PHASE_DECOMPRESSING, PHASE_VERIFYING},
+	TASK_DECOMPRESS: {PHASE_DECOMPRESSING},
 	TASK_CONVERT:    {PHASE_CONVERTING, PHASE_VERIFYING},
 	TASK_PACK:       {PHASE_PACKING, PHASE_VERIFYING},
 	TASK_SPLIT:      {PHASE_SPLITTING, PHASE_VERIFYING},
@@ -1082,8 +1082,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 // checks every NCA against its content ID, and only then renames it; the NSZ is deleted
 // last, if asked.
 func (web *Web) decompressFile(ctx context.Context, path string, deleteCompressed bool, report func(step int64) func(int64, int64)) error {
-	info, err := os.Stat(path)
-	if err != nil {
+	if _, err := os.Stat(path); err != nil {
 		return err
 	}
 	target := switchfs.DecompressedPath(path)
@@ -1102,11 +1101,9 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 
 	temporary := temporaryOf(path, target)
 	defer os.Remove(temporary)
-	if err := switchfs.DecompressNsz(ctx, path, temporary, report(0)); err != nil {
-		return err
-	}
-	// every NCA must match its content ID
-	written, err := switchfs.VerifyFile(ctx, temporary, report(info.Size()))
+	// every NCA must match its content ID: checked while it is written, then the NSP is read
+	// back for its files, their sizes and their ends
+	written, err := switchfs.DecompressAndCheck(ctx, path, temporary, report(0))
 	if err != nil {
 		return err
 	}
