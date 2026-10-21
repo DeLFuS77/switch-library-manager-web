@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -142,6 +143,8 @@ type CompressPageData struct {
 	AlreadyCompressed int
 	// files tried before that nothing could shrink, not listed
 	Uncompressible []UncompressibleEntry
+	// NSP and XCI files found damaged, not listed (they are in Issues)
+	Damaged int
 	// what each kind saved before, and what all the files listed would likely save
 	Ratios    []RatioSummary
 	Estimated int64
@@ -216,9 +219,11 @@ func (web *Web) compressCandidates() []CompressCandidate {
 		store := web.uncompressible()
 		// nor a game without its title key: it cannot be read to compress it
 		noKey := web.missingTitleKeys()
+		// nor a file found damaged, while it does not change: it failed on every run
+		damaged := web.verifications().damaged()
 		candidates := []CompressCandidate{}
 		for _, candidate := range web.libraryFiles(".nsp", ".xci") {
-			if _, uncompressible := store.get(candidate.Path, candidate.Size); !old[candidate.Path] && !uncompressible && noKey[candidate.Path] == "" {
+			if _, uncompressible := store.get(candidate.Path, candidate.Size); !old[candidate.Path] && !uncompressible && noKey[candidate.Path] == "" && damaged[candidate.Path] == "" {
 				candidates = append(candidates, candidate)
 			}
 		}
@@ -907,6 +912,12 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 							web.uncompressible().add(path, sizes[i], errors.Is(err, switchfs.ErrSparseStorage))
 							web.invalidateDerived()
 						}
+						// a damaged file: told in Issues like a check finds it, and no longer offered
+						// to compress while it does not change; it failed again on every run
+						if kind == TASK_COMPRESS && compressDamage(err) {
+							web.verifications().markDamaged(path, err.Error())
+							web.invalidateDerived()
+						}
 						// a game without its title key: told in Issues, and no longer offered
 						if errors.Is(err, switchfs.ErrNoTitleKey) {
 							web.noteMissingTitleKey(path)
@@ -957,6 +968,12 @@ var (
 	errCompressExists = errors.New("the compressed file already exists")
 )
 
+// compressDamage tells a compression that failed on the file itself: an NCA that does not
+// match its content ID and fails its hash trees, or a file cut short.
+func compressDamage(err error) bool {
+	return strings.Contains(err.Error(), "damaged") || errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)
+}
+
 func compressNote(kind string, err error) string {
 	if kind == TASK_SPLIT {
 		switch {
@@ -992,6 +1009,8 @@ func compressNote(kind string, err error) string {
 	case errors.Is(err, switchfs.ErrNoTitleKey):
 		return NOTE_COMPRESS_NO_KEY
 	case strings.Contains(err.Error(), "damaged"):
+		return NOTE_COMPRESS_DAMAGED
+	case kind == TASK_COMPRESS && compressDamage(err):
 		return NOTE_COMPRESS_DAMAGED
 	case strings.Contains(err.Error(), "could not delete"):
 		return NOTE_COMPRESS_DELETE
@@ -1165,6 +1184,12 @@ func (web *Web) HandleCompress() {
 		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, CompressedCount: len(web.decompressCandidates()), CardCount: len(web.convertCandidates()), SplitCount: len(web.splitCandidates()), PackCount: len(web.packCandidates()), Running: web.compressionRunning()}
 		data.AlreadyCompressed = len(web.compressCandidates()) - len(candidates)
 		data.Uncompressible = web.uncompressibleFiles()
+		damaged := web.verifications().damaged()
+		for _, file := range web.libraryFiles(".nsp", ".xci") {
+			if damaged[file.Path] != "" {
+				data.Damaged++
+			}
+		}
 		// the candidates are shared: the estimates go on a copy
 		ratios := web.ratios()
 		candidates = append([]CompressCandidate(nil), candidates...)
@@ -1198,14 +1223,15 @@ func (web *Web) HandleCompress() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
 			return
 		}
-		known := map[string]bool{}
+		// the path as the library has it, never the one sent: only files of the library are touched
+		known := map[string]string{}
 		for _, candidate := range web.convertCandidates() {
-			known[candidate.Path] = true
+			known[candidate.Path] = candidate.Path
 		}
 		paths := []string{}
 		for _, path := range r.Form["path"] {
-			if known[path] {
-				paths = append(paths, path)
+			if library, ok := known[path]; ok {
+				paths = append(paths, library)
 			}
 		}
 		if len(paths) == 0 {
@@ -1244,10 +1270,11 @@ func (web *Web) HandleCompress() {
 			return
 		}
 		// only files of the library can be compressed
-		known := map[string]bool{}
+		// the path as the library has it, never the one sent: only files of the library are touched
+		known := map[string]string{}
 		requested := r.Form["path"]
 		for i, candidate := range web.uncompressedCandidates() {
-			known[candidate.Path] = true
+			known[candidate.Path] = candidate.Path
 			// "the rest": the files not listed one by one
 			if i >= shownFiles && r.FormValue("rest") == "compress" {
 				requested = append(requested, candidate.Path)
@@ -1256,9 +1283,9 @@ func (web *Web) HandleCompress() {
 		paths := []string{}
 		seen := map[string]bool{}
 		for _, path := range requested {
-			if known[path] && !seen[path] {
-				seen[path] = true
-				paths = append(paths, path)
+			if library, ok := known[path]; ok && !seen[library] {
+				seen[library] = true
+				paths = append(paths, library)
 			}
 		}
 		if len(paths) == 0 {
@@ -1283,14 +1310,15 @@ func (web *Web) HandleCompress() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
 			return
 		}
-		known := map[string]bool{}
+		// the path as the library has it, never the one sent: only files of the library are touched
+		known := map[string]string{}
 		for _, candidate := range web.decompressCandidates() {
-			known[candidate.Path] = true
+			known[candidate.Path] = candidate.Path
 		}
 		paths := []string{}
 		for _, path := range r.Form["path"] {
-			if known[path] {
-				paths = append(paths, path)
+			if library, ok := known[path]; ok {
+				paths = append(paths, library)
 			}
 		}
 		if len(paths) == 0 {

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -196,6 +197,42 @@ func TestDamagedFilesAreNotCompressed(t *testing.T) {
 	}
 	if _, err := os.Stat(path); err != nil {
 		t.Fatal("a damaged original must be kept")
+	}
+	// it is remembered as damaged, like a check finds it: told in Issues and not offered to
+	// compress again while it does not change (it failed again on every run)
+	if web.verifications().damaged()[path] == "" {
+		t.Fatal("the damage is remembered")
+	}
+	if len(web.compressCandidates()) != 0 {
+		t.Fatal("a damaged file is not offered to compress again")
+	}
+	web.HandleCompress()
+	page := httptest.NewRecorder()
+	web.router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/compress.html", nil))
+	if !strings.Contains(page.Body.String(), "/issues.html?kind=damaged") {
+		t.Fatal("the Compress page tells the damaged files are not listed")
+	}
+	// a new copy of the file is offered again
+	data[len(data)-100] ^= 0xFF
+	os.WriteFile(path, data, 0o644)
+	os.Chtimes(path, time.Now(), time.Now().Add(time.Minute))
+	web.invalidateDerived()
+	if len(web.compressCandidates()) != 1 {
+		t.Fatal("a file replaced since is offered again")
+	}
+}
+
+// A file cut short is damaged too: its compression failed with "read … bytes: EOF" and it was
+// offered again every time.
+func TestCompressDamageIncludesFilesCutShort(t *testing.T) {
+	if !compressDamage(fmt.Errorf("x.nca: read 103872 of 114688 bytes: %w", io.EOF)) || !compressDamage(errors.New("x.nca does not match its content ID: the file is damaged or was modified")) {
+		t.Fatal("damage")
+	}
+	if compressDamage(errCompressSpace) || compressDamage(context.Canceled) {
+		t.Fatal("not damage")
+	}
+	if compressNote(TASK_COMPRESS, fmt.Errorf("read 1 of 2 bytes: %w", io.EOF)) != NOTE_COMPRESS_DAMAGED {
+		t.Fatal("the note of a file cut short")
 	}
 }
 

@@ -286,10 +286,11 @@ func (web *Web) handleSplit() {
 // selectedPaths are the paths of the request among the candidates, each one once; with
 // rest=all, every candidate, also those the list does not show.
 func selectedPaths(r *http.Request, candidates []CompressCandidate) []string {
-	known := map[string]bool{}
+	// the path as the library has it, never the one sent: only files of the library are touched
+	known := map[string]string{}
 	requested := r.Form["path"]
 	for _, candidate := range candidates {
-		known[candidate.Path] = true
+		known[candidate.Path] = candidate.Path
 		if r.FormValue("rest") == "all" {
 			requested = append(requested, candidate.Path)
 		}
@@ -297,9 +298,9 @@ func selectedPaths(r *http.Request, candidates []CompressCandidate) []string {
 	paths := []string{}
 	seen := map[string]bool{}
 	for _, path := range requested {
-		if known[path] && !seen[path] {
-			seen[path] = true
-			paths = append(paths, path)
+		if library, ok := known[path]; ok && !seen[library] {
+			seen[library] = true
+			paths = append(paths, library)
 		}
 	}
 	return paths

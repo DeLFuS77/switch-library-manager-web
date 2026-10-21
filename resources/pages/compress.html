@@ -35,6 +35,9 @@
 				</ul>
 			</details>
 			{{- end}}
+			{{- if .Damaged}}
+			<p class="small text-body-secondary d-flex align-items-start gap-2 mb-4"><span class="bi bi-exclamation-triangle flex-shrink-0 mt-1 text-warning" aria-hidden="true"></span><span>{{t "%v damaged files are not listed: they cannot be compressed until they are replaced with a sound copy." .Damaged}} <a href="/issues.html?kind=damaged">{{t "Issues"}}</a></span></p>
+			{{- end}}
 			{{- if not .Candidates}}
 			{{- template "emptyState" (dict "Icon" "bi-file-zip" "Tone" "success" "Title" (t "Nothing to compress") "Text" (t "Your library has no NSP or XCI files to compress.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 			{{- else}}

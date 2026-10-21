@@ -61,6 +61,7 @@ func init() {
 		"The password of the backup needs at least 10 characters.": "백업 비밀번호는 10자 이상이어야 해요.",
 		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.":   "이 게임은 아직 어떤 압축 도구도 줄일 수 없는 새로운 형식(스파스 스토리지)을 사용해요. 그대로 유지되며 정상적으로 설치돼요.",
 		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v개 파일은 압축할 수 없어 표시하지 않아요. 줄일 수 있는 부분이 없었어요. 그대로 유지되며 정상적으로 설치돼요.",
+		"%v damaged files are not listed: they cannot be compressed until they are replaced with a sound copy.":                          "손상된 파일 %v개는 표시하지 않아요: 정상 사본으로 바꾸기 전에는 압축할 수 없어요.",
 		"Sparse storage":           "스파스 스토리지",
 		"Going on after a restart": "재시작 후 계속",
 		"Your library, games and settings are safe; nothing is changed while the app starts.": "라이브러리, 게임, 설정은 안전합니다. 시작하는 동안 아무것도 바뀌지 않습니다.",

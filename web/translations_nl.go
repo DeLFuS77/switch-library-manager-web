@@ -61,6 +61,7 @@ func init() {
 		"The password of the backup needs at least 10 characters.": "Het wachtwoord van de back-up moet minstens 10 tekens hebben.",
 		"This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally.":   "Dit spel gebruikt een recent formaat (sparse storage) dat nog geen enkele compressor kan verkleinen: het blijft zoals het is en installeert normaal.",
 		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v bestanden kunnen niet worden gecomprimeerd en worden niet getoond: er viel niets aan te verkleinen. Ze blijven zoals ze zijn en installeren normaal.",
+		"%v damaged files are not listed: they cannot be compressed until they are replaced with a sound copy.":                          "%v beschadigde bestanden worden niet getoond: ze kunnen pas worden gecomprimeerd als je ze vervangt door een goede kopie.",
 		"Sparse storage":           "Sparse storage",
 		"Going on after a restart": "Voortgezet na herstart",
 		"Your library, games and settings are safe; nothing is changed while the app starts.": "Je bibliotheek, games en instellingen zijn veilig: tijdens het starten verandert er niets.",

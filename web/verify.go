@@ -235,6 +235,18 @@ func (s *verifyStore) remember(path string, check switchfs.FileCheck) {
 	s.save()
 }
 
+// markDamaged keeps a file another task found damaged while reading it whole (a compression
+// hashes every NCA of the original with the check of the files), so it is listed in Issues and
+// not offered again to compress while it does not change.
+func (s *verifyStore) markDamaged(path string, reason string) {
+	info, err := os.Stat(path)
+	if err != nil || info.IsDir() {
+		return
+	}
+	s.set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Reason: reason, Checked: time.Now(), Checker: verifyChecker})
+	s.save()
+}
+
 // adoptMoved gives the files of the library without a result the result of a file that is
 // gone, when both have exactly the same size and modification time (to the nanosecond): a
 // file moved on the same disk keeps them, as the organizer of older versions moved files
