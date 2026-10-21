@@ -1,4 +1,61 @@
 {
+  "1.53.0": {
+    "en": [
+      "Balanced and Maximum compress each file on several threads: Maximum is about twice as fast and makes files about 6% smaller. The programs for macOS keep compressing as before.",
+      "Compressing, decompressing, converting, packs and splitting read each file once instead of two or three times, and checking files is about 25% faster, with the same checks as always.",
+      "A file found damaged while compressing shows in Issues and is no longer offered again on every compression."
+    ],
+    "es": [
+      "Equilibrada y Máxima comprimen cada archivo con varios hilos: Máxima va casi el doble de rápido y deja los archivos un 6 % más pequeños. Los programas de macOS siguen comprimiendo como antes.",
+      "Comprimir, descomprimir, convertir, crear packs y dividir leen cada archivo una vez en lugar de dos o tres, y comprobar archivos es un 25 % más rápido, con las mismas comprobaciones de siempre.",
+      "Un archivo que sale dañado al comprimir aparece en Problemas y ya no se vuelve a ofrecer en cada compresión."
+    ],
+    "de": [
+      "Ausgewogen und Maximal komprimieren jede Datei mit mehreren Threads: Maximal ist etwa doppelt so schnell und macht die Dateien etwa 6 % kleiner. Die Programme für macOS komprimieren wie bisher.",
+      "Komprimieren, Dekomprimieren, Konvertieren, Pakete und Aufteilen lesen jede Datei einmal statt zwei- oder dreimal, und das Prüfen von Dateien ist etwa 25 % schneller, mit denselben Prüfungen wie immer.",
+      "Eine Datei, die beim Komprimieren als beschädigt erkannt wird, erscheint unter Probleme und wird nicht mehr bei jeder Komprimierung erneut angeboten."
+    ],
+    "fr": [
+      "Équilibré et Maximum compressent chaque fichier sur plusieurs threads : Maximum est environ deux fois plus rapide et donne des fichiers environ 6 % plus petits. Les programmes pour macOS compressent comme avant.",
+      "Compresser, décompresser, convertir, créer des packs et diviser lisent chaque fichier une seule fois au lieu de deux ou trois, et la vérification des fichiers est environ 25 % plus rapide, avec les mêmes contrôles que toujours.",
+      "Un fichier trouvé endommagé pendant la compression apparaît dans Problèmes et n'est plus proposé à chaque compression."
+    ],
+    "it": [
+      "Bilanciata e Massima comprimono ogni file su più thread: Massima è circa due volte più veloce e crea file più piccoli di circa il 6%. I programmi per macOS comprimono come prima.",
+      "Comprimere, decomprimere, convertire, creare pacchetti e dividere leggono ogni file una volta sola invece di due o tre, e il controllo dei file è circa il 25% più veloce, con gli stessi controlli di sempre.",
+      "Un file trovato danneggiato durante la compressione compare in Problemi e non viene più riproposto a ogni compressione."
+    ],
+    "pt": [
+      "Equilibrado e Máximo comprimem cada ficheiro em vários threads: o Máximo é cerca de duas vezes mais rápido e deixa os ficheiros cerca de 6% mais pequenos. Os programas para macOS comprimem como antes.",
+      "Comprimir, descomprimir, converter, criar pacotes e dividir leem cada ficheiro uma vez em vez de duas ou três, e verificar ficheiros é cerca de 25% mais rápido, com as mesmas verificações de sempre.",
+      "Um ficheiro encontrado danificado ao comprimir aparece em Problemas e já não é oferecido de novo em cada compressão."
+    ],
+    "nl": [
+      "Gebalanceerd en Maximaal comprimeren elk bestand met meerdere threads: Maximaal is ongeveer twee keer zo snel en maakt bestanden ongeveer 6% kleiner. De programma's voor macOS comprimeren zoals voorheen.",
+      "Comprimeren, decomprimeren, converteren, pakketten maken en splitsen lezen elk bestand één keer in plaats van twee of drie keer, en bestanden controleren is ongeveer 25% sneller, met dezelfde controles als altijd.",
+      "Een bestand dat bij het comprimeren beschadigd blijkt, staat bij Problemen en wordt niet meer bij elke compressie opnieuw aangeboden."
+    ],
+    "ru": [
+      "«Сбалансированно» и «Максимальная» сжимают каждый файл в несколько потоков: «Максимальная» стала примерно вдвое быстрее, а файлы — примерно на 6 % меньше. Программы для macOS сжимают как раньше.",
+      "Сжатие, распаковка, конвертация, пакеты и разделение читают каждый файл один раз вместо двух-трёх, а проверка файлов стала примерно на 25 % быстрее — с теми же проверками, что и всегда.",
+      "Файл, оказавшийся повреждённым при сжатии, отображается в «Проблемах» и больше не предлагается при каждом сжатии."
+    ],
+    "ja": [
+      "「標準」と「最大」は各ファイルを複数のスレッドで圧縮するようになりました。「最大」は約2倍速く、ファイルは約6%小さくなります。macOS版はこれまでどおり圧縮します。",
+      "圧縮・展開・変換・パック作成・分割は各ファイルを2〜3回ではなく1回だけ読むようになり、ファイルの確認も約25%速くなりました。確認内容はこれまでと同じです。",
+      "圧縮中に破損が見つかったファイルは「問題」に表示され、圧縮のたびに再び候補に出なくなりました。"
+    ],
+    "ko": [
+      "균형과 최대는 파일마다 여러 스레드로 압축해요. 최대는 약 두 배 빨라지고 파일은 약 6% 더 작아져요. macOS용 프로그램은 예전처럼 압축해요.",
+      "압축, 압축 해제, 변환, 팩 만들기, 분할이 각 파일을 두세 번이 아니라 한 번만 읽고, 파일 확인도 약 25% 빨라졌어요. 확인 내용은 그대로예요.",
+      "압축 중 손상이 발견된 파일은 문제에 표시되고, 압축할 때마다 다시 제안되지 않아요."
+    ],
+    "zh": [
+      "“均衡”和“最大”现在用多个线程压缩每个文件:“最大”快了约一倍,文件小约 6%。macOS 版本仍按原来的方式压缩。",
+      "压缩、解压、转换、制作合集和拆分时,每个文件只读取一次,而不是两三次;检查文件也快了约 25%,检查内容与以往相同。",
+      "压缩时发现损坏的文件会显示在“问题”中,不会在每次压缩时再次出现。"
+    ]
+  },
   "1.52.0": {
     "en": [
       "The setup wizard can browse the folders of the server to choose the one of your games, tells clearly when the administrator's password is not valid, and no longer gets stuck when saving.",
