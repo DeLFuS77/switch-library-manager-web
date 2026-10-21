@@ -2,7 +2,7 @@ module github.com/dtrunk90/switch-library-manager-web
 
 go 1.26.0
 
-toolchain go1.27.2
+toolchain go1.27.3
 
 require (
 	github.com/avast/retry-go/v5 v5.0.0
