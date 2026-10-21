@@ -44,11 +44,58 @@ jobs:
       - name: Vet
         run: go vet ./...
 
+      # with the zstd library in C (cgo, the default here), as the programs are built
       - name: Test
         run: go test -race -timeout 20m ./... ./switchfs/_crypto/
 
+      - name: The zstd library in C is the one tested
+        run: |
+          go test -count=1 -run TestStreamEncoderWindowAndRoundTrip -v ./switchfs/ | grep -q "zstd library in C: true"
+
+      # the programs in Go only (macOS, and any build without cgo) work the same
+      - name: Test in Go only
+        run: CGO_ENABLED=0 go test -tags slm_purego -timeout 20m ./switchfs/ ./web/
+
       - name: Build
         run: make build
+
+  # the programs of a release, built as the release builds them (Zig, the zstd library in C,
+  # static on Linux), so a change that breaks one shows here and not on the day of a release
+  programs:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Build assets
+        run: npm ci && npm run build
+      - name: Set up Zig
+        run: bash .github/scripts/setup_zig.sh
+      - name: Build the programs
+        run: bash .github/scripts/build_release.sh 0.0.0-test
+      # the program of Linux starts: it answers its health check
+      - name: The program of Linux starts
+        run: |
+          tar -xzf dist/switch-library-manager-web-0.0.0-test-linux-x64.tar.gz -C "${RUNNER_TEMP}"
+          program="${RUNNER_TEMP}/switch-library-manager-web-0.0.0-test-linux-x64/switch-library-manager-web"
+          mkdir -p "${RUNNER_TEMP}/data"
+          SLM_DATA_DIR="${RUNNER_TEMP}/data" "${program}" > "${RUNNER_TEMP}/log.txt" 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:3000/healthz > /dev/null; then echo "started"; kill %1; exit 0; fi
+            sleep 2
+          done
+          cat "${RUNNER_TEMP}/log.txt"
+          exit 1
 
   # contrast, text sizes, targets and motion of every page of the demo, in both themes
   accessibility:
@@ -122,6 +169,10 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
+
+      # the static programs with the zstd library in C, as the published image has them
+      - name: Set up Zig
+        run: bash .github/scripts/setup_zig.sh
 
       - name: Build application
         run: npm ci && make assets docker-binaries

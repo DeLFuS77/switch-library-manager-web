@@ -2,9 +2,18 @@
 
 ## Unreleased
 
+### Improvements
+
+- Balanced and Maximum compress each NSZ on several threads with the zstd library in C (zstd 1.5.7), in the programs for Windows and Linux and the Docker image: on a game measured, Maximum went from 13 to 25 MB/s with 8 threads and makes files about 6% smaller (the default level of nsz, 19), Balanced compresses as Maximum did and as fast as before (about 200 MB/s). The files are the same standard NSZ, with a window of 8 MiB at most, that every installer reads. Fewer threads are used when little memory is free (Maximum takes about 190 MB per thread). The programs for macOS keep the compression in Go, as before
+
 ### Fixes
 
 - A file found damaged by a compression (an NCA that does not match its content ID and fails its hash trees, or a file cut short) is remembered like the check of the files finds it: it shows in Issues and is no longer offered on the Compress page while it does not change, which says how many are left out. It failed again on every compression, so the same files kept coming back
+
+### Development
+
+- Tested on a Switch with DBI (firmware 22.1.0): a game with its update and DLC compressed at the max level with 8 threads (zstd in C, level 19) installs, every NCA with TRANSFER OK and SIGNATURE OK, and the game boots with the update. It took 17 minutes instead of 54 and the files came out 6% smaller
+- The programs are built with Zig 0.16.0 (checked against its SHA-256) as the C compiler, static on Linux; every pull request builds the programs of a release and starts the one of Linux. The tests run with the zstd library in C and in Go only
 
 ## 1.52.0
 

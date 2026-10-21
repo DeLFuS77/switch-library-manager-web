@@ -5,6 +5,7 @@ go 1.26.0
 toolchain go1.27.3
 
 require (
+	github.com/DataDog/zstd v1.5.7
 	github.com/avast/retry-go/v5 v5.0.0
 	github.com/disintegration/gift v1.2.0
 	github.com/fsnotify/fsnotify v1.10.1

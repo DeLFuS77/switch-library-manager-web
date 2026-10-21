@@ -747,6 +747,10 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	workers = max(1, min(workers, len(paths)))
 	if kind == TASK_COMPRESS {
 		threads = compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce))
+		// as many as fit in the memory free, with the level of the compression
+		if resume != nil {
+			threads = switchfs.LimitThreads(resume.Level, threads, workers)
+		}
 	}
 	web.taskLog().SetWorkers(taskId, workers, threads)
 	go func() {
@@ -1051,7 +1055,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	temporary := temporaryOf(path, target)
 	defer os.Remove(temporary)
 	result, err := switchfs.CompressGame(ctx, path, temporary, switchfs.CompressOptions{
-		Level: level, Workers: compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce)), Progress: report(info.Size()),
+		Level: level, Workers: switchfs.LimitThreads(level, compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce)), filesAtOnce(appSettings.CompressFilesAtOnce)), Progress: report(info.Size()),
 	})
 	if err != nil {
 		return 0, err
