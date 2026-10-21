@@ -1223,14 +1223,15 @@ func (web *Web) HandleCompress() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
 			return
 		}
-		known := map[string]bool{}
+		// the path as the library has it, never the one sent: only files of the library are touched
+		known := map[string]string{}
 		for _, candidate := range web.convertCandidates() {
-			known[candidate.Path] = true
+			known[candidate.Path] = candidate.Path
 		}
 		paths := []string{}
 		for _, path := range r.Form["path"] {
-			if known[path] {
-				paths = append(paths, path)
+			if library, ok := known[path]; ok {
+				paths = append(paths, library)
 			}
 		}
 		if len(paths) == 0 {
@@ -1269,10 +1270,11 @@ func (web *Web) HandleCompress() {
 			return
 		}
 		// only files of the library can be compressed
-		known := map[string]bool{}
+		// the path as the library has it, never the one sent: only files of the library are touched
+		known := map[string]string{}
 		requested := r.Form["path"]
 		for i, candidate := range web.uncompressedCandidates() {
-			known[candidate.Path] = true
+			known[candidate.Path] = candidate.Path
 			// "the rest": the files not listed one by one
 			if i >= shownFiles && r.FormValue("rest") == "compress" {
 				requested = append(requested, candidate.Path)
@@ -1281,9 +1283,9 @@ func (web *Web) HandleCompress() {
 		paths := []string{}
 		seen := map[string]bool{}
 		for _, path := range requested {
-			if known[path] && !seen[path] {
-				seen[path] = true
-				paths = append(paths, path)
+			if library, ok := known[path]; ok && !seen[library] {
+				seen[library] = true
+				paths = append(paths, library)
 			}
 		}
 		if len(paths) == 0 {
@@ -1308,14 +1310,15 @@ func (web *Web) HandleCompress() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
 			return
 		}
-		known := map[string]bool{}
+		// the path as the library has it, never the one sent: only files of the library are touched
+		known := map[string]string{}
 		for _, candidate := range web.decompressCandidates() {
-			known[candidate.Path] = true
+			known[candidate.Path] = candidate.Path
 		}
 		paths := []string{}
 		for _, path := range r.Form["path"] {
-			if known[path] {
-				paths = append(paths, path)
+			if library, ok := known[path]; ok {
+				paths = append(paths, library)
 			}
 		}
 		if len(paths) == 0 {
