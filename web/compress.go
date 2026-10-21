@@ -766,6 +766,8 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 			}
 			web.compressor.mutex.Unlock()
 			cancel()
+			// the files are free: the next task of the queue
+			go web.runQueue()
 		}()
 
 		// the sizes not given are asked here, in the background
@@ -1279,11 +1281,7 @@ func (web *Web) HandleCompress() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to convert.")
 			return
 		}
-		if !web.startConversion(paths, r.FormValue("delete_originals") == "true") {
-			writeGlobalError(w, http.StatusConflict, lang, "A compression is already running.")
-			return
-		}
-		writeJSON(w, http.StatusAccepted, map[string]any{"started": len(paths)})
+		web.startOrQueue(w, QueuedTask{Kind: TASK_CONVERT, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
 	}).Methods("POST")
 
 	web.router.HandleFunc("/compress/nsz-list", func(w http.ResponseWriter, r *http.Request) {
@@ -1330,11 +1328,7 @@ func (web *Web) HandleCompress() {
 			level = switchfs.LevelBalanced
 		}
 		// only an administrator deletes the originals
-		if !web.startCompression(paths, level, r.FormValue("delete_originals") == "true" && isAdminRequest(r)) {
-			writeGlobalError(w, http.StatusConflict, lang, "A compression is already running.")
-			return
-		}
-		writeJSON(w, http.StatusAccepted, map[string]any{"started": len(paths)})
+		web.startOrQueue(w, QueuedTask{Kind: TASK_COMPRESS, Paths: paths, Level: level, Delete: r.FormValue("delete_originals") == "true" && isAdminRequest(r)})
 	}).Methods("POST")
 
 	web.router.HandleFunc("/decompress/start", func(w http.ResponseWriter, r *http.Request) {
@@ -1348,11 +1342,7 @@ func (web *Web) HandleCompress() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to decompress.")
 			return
 		}
-		if !web.startDecompression(paths, r.FormValue("delete_compressed") == "true") {
-			writeGlobalError(w, http.StatusConflict, lang, "A compression is already running.")
-			return
-		}
-		writeJSON(w, http.StatusAccepted, map[string]any{"started": len(paths)})
+		web.startOrQueue(w, QueuedTask{Kind: TASK_DECOMPRESS, Paths: paths, Delete: r.FormValue("delete_compressed") == "true"})
 	}).Methods("POST")
 
 	web.router.HandleFunc("/compress/cancel", func(w http.ResponseWriter, r *http.Request) {

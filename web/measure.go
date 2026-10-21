@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -21,10 +22,26 @@ import (
 type ServerMeasure struct {
 	Processors int            `json:"processors"`
 	Results    []MeasureTrial `json:"results"`
-	// the settings chosen
+	// the settings chosen, saved at once
 	Threads     int `json:"threads"`
 	FilesAtOnce int `json:"files_at_once"`
+	// the MB per second of the levels with the settings chosen, to choose a level knowing what
+	// each costs here
+	Levels []LevelSpeed `json:"levels,omitempty"`
+	// when the measure was made
+	Measured time.Time `json:"measured"`
 }
+
+// LevelSpeed is the speed of a level of compression with the settings chosen, and the minutes
+// it takes for 10 GB of games.
+type LevelSpeed struct {
+	Level        string `json:"level"`
+	Speed        int    `json:"speed"`
+	MinutesPer10 int    `json:"minutes_per_10gb"`
+}
+
+// the levels measured once the settings are chosen, the default first
+var measuredLevels = []string{switchfs.LevelBalanced, switchfs.LevelMax}
 
 // MeasureTrial is a setting tried and the MB of games it compressed per second, all files
 // together.
@@ -34,7 +51,7 @@ type MeasureTrial struct {
 	Speed   int `json:"speed"`
 }
 
-// how long each setting is tried: seven settings make about half a minute
+// how long each setting is tried: seven settings and the two levels make about 40 seconds
 const measureTrialTime = 4 * time.Second
 
 var errNoGameToMeasure = errorString("There is no game in the library to measure the disk with.")
@@ -72,8 +89,10 @@ func (web *Web) measureServer(ctx context.Context) (ServerMeasure, error) {
 	for _, trial := range trials {
 		places += trial.Files
 	}
+	// the levels are measured after, each file of theirs at its own place too
+	places += len(measuredLevels) * maxFilesAtOnce
 	place := 0
-	for i, trial := range trials {
+	run := func(trial MeasureTrial, level string) (int, error) {
 		var (
 			total int64
 			mutex sync.Mutex
@@ -96,14 +115,80 @@ func (web *Web) measureServer(ctx context.Context) (ServerMeasure, error) {
 			place++
 		}
 		wait.Wait()
-		if first != nil {
-			return result, first
+		return megabytesPerSecond(total, time.Since(start)), first
+	}
+	for i, trial := range trials {
+		speed, err := run(trial, level)
+		if err != nil {
+			return result, err
 		}
-		trials[i].Speed = megabytesPerSecond(total, time.Since(start))
+		trials[i].Speed = speed
 	}
 	result.Results = trials
 	result.Threads, result.FilesAtOnce = chooseTrial(trials)
+	chosen := MeasureTrial{Files: result.FilesAtOnce, Threads: result.Threads}
+	for _, measured := range measuredLevels {
+		speed, err := run(chosen, measured)
+		if err != nil {
+			return result, err
+		}
+		result.Levels = append(result.Levels, LevelSpeed{Level: measured, Speed: speed, MinutesPer10: minutesPer10GB(speed)})
+	}
+	result.Measured = time.Now()
 	return result, nil
+}
+
+// Best is the speed of the fastest setting tried, in MB per second.
+func (m ServerMeasure) Best() int {
+	best := 0
+	for _, trial := range m.Results {
+		best = max(best, trial.Speed)
+	}
+	return best
+}
+
+// Level is the speed measured of a level, if it was.
+func (m ServerMeasure) Level(level string) LevelSpeed {
+	for _, measured := range m.Levels {
+		if measured.Level == level {
+			return measured
+		}
+	}
+	return LevelSpeed{}
+}
+
+// minutesPer10GB is how long 10 GB of games take at a speed in MB per second, at least one.
+func minutesPer10GB(speed int) int {
+	if speed <= 0 {
+		return 0
+	}
+	return max(1, int(10*1024/float64(speed)/60+.5))
+}
+
+// saveMeasure applies the settings chosen and keeps the measure, shown in Settings with when it
+// was made.
+func (web *Web) saveMeasure(measure ServerMeasure) {
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+		s.CompressThreads = measure.Threads
+		s.CompressFilesAtOnce = measure.FilesAtOnce
+	})
+	if data, err := json.Marshal(measure); err == nil {
+		writeFileAtomic(filepath.Join(web.dataFolder, "measure.json"), data)
+	}
+}
+
+// lastMeasure is the last measure of the server, nil when there is none.
+func (web *Web) lastMeasure() *ServerMeasure {
+	path := filepath.Join(web.dataFolder, "measure.json")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil
+	}
+	measure := ServerMeasure{}
+	if parseStore(path, data, &measure) != nil || measure.Measured.IsZero() {
+		return nil
+	}
+	return &measure
 }
 
 // measureMaxWrite is the most a trial may write: what a fast computer compresses in the
@@ -162,7 +247,11 @@ func (web *Web) HandleMeasure() {
 			writeJSON(w, http.StatusConflict, map[string]string{"error": translate(lang, string(errOrganizeBusy))})
 			return
 		}
-		defer web.measuring.Store(false)
+		// once the measure ends, the next task of the queue
+		defer func() {
+			web.measuring.Store(false)
+			go web.runQueue()
+		}()
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Minute)
 		defer cancel()
 		result, err := web.measureServer(ctx)
@@ -177,6 +266,7 @@ func (web *Web) HandleMeasure() {
 			writeJSON(w, status, map[string]string{"error": message})
 			return
 		}
+		web.saveMeasure(result)
 		writeJSON(w, http.StatusOK, result)
 	}).Methods("POST")
 }

@@ -207,6 +207,9 @@ type Web struct {
 	auth      *Auth
 	tasks     *TaskLog
 	tasksOnce sync.Once
+	// the tasks on files waiting for their turn
+	tasksQueue *taskQueue
+	queueOnce  sync.Once
 	// the task that receives the progress of the running synchronization, 0 if none
 	currentTask atomic.Int64
 	router      *mux.Router
@@ -845,6 +848,8 @@ func (web *Web) startInBackground() {
 		// the task the app was stopped in the middle of goes first, before the new files
 		if failure == nil {
 			web.resumeInterrupted()
+			// then the tasks that were waiting in the queue when the app stopped
+			web.runQueue()
 		}
 		if failure == nil && settings.ReadSettings(web.dataFolder).AutoCompress == AUTO_COMPRESS_NEW {
 			web.autoCompress(TRIGGER_STARTUP)

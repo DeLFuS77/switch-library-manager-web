@@ -4,15 +4,18 @@
 
 ### New
 
-- Organize and Compress show their parts as tabs, like the tabs of a folder, instead of one under the other: Actions and Options in Organize; Compress, Convert, Split, Packs and Decompress (each with its count) in Compress. The tab shown is in the address, so a reload keeps it, and the arrow keys go from tab to tab
+- A queue of tasks: a compression, decompression, conversion, pack, split or check of the files asked for while another one works waits its turn, instead of being refused with "A compression is already running". They start one after the other as the files get free, also after a restart. Tasks shows the queue in its order, and the ones marked with their box are taken out before they start
+- Organize, Compress and Statistics show their parts as tabs, like the tabs of a folder, instead of one under the other: Actions and Options in Organize; Compress, Convert, Split, Packs and Decompress (each with its count) in Compress; Space, Games and Library history in Statistics, which on a phone was five screens long. The tab shown is in the address, so a reload keeps it, and the arrow keys go from tab to tab
 - On phones and tablets a turning fan next to Synchronize shows that tasks are at work, with how many when there are several, and opens Tasks: the menu with the link of Tasks is closed there. It goes away when the last task ends
 
 ### Improvements
 
+- The measure of the server in Settings saves the fastest setting by itself, instead of filling the fields to save, and is remembered with its date. It also measures Balanced and Maximum with that setting and tells how many minutes 10 GB of games take with each here, to choose the level knowing what it costs
 - Pages open faster: the styles, scripts, fonts and icons were loaded again on every page, about 280 KB and a third of a second on a NAS, as no answer said they could be kept. Now browsers keep them (the styles and scripts of a version for good), the service worker asks for a page while it starts instead of after, and a list opened from the menu comes filtered at once instead of loading twice
 - The page shown while the app starts stays at least two and a half seconds, ticking its steps one by one, instead of flashing by after a restart
 ### Fixes
 
+- Phones: the step of the tune-up on top of Organize, Compress and Space is one line of text that wraps, instead of two narrow columns
 - Tasks follow the files Organize renamed or moved: a compression, decompression, conversion, pack, split, check or copy to an SD card started before the scan that follows (or resumed after a restart) works on each file where it is now, instead of failing with "no such file or directory" for every file. A file deleted or moved by something else is skipped with a note that says so, and the library is scanned again
 - Coming back to the Library (or Updates, DLC, Missing) from the menu starts at its first page and without the search made before; it kept the page and the search even after closing the app. Its order and filters stay, and going back from a game keeps everything
 - The views of the Library have room around the red of the one shown and between them, and on phones big counts are short (25k) so that the three fit

@@ -15,6 +15,8 @@ type TasksPageData struct {
 	GlobalPageData
 	Running  []Task
 	Finished []TaskGroup
+	// the tasks on files waiting for their turn
+	Queue []QueuedView
 	// the version of the task list, so the page knows when to refresh
 	ListVersion int64
 }
@@ -38,6 +40,7 @@ func (web *Web) taskListData() TasksPageData {
 		}
 	}
 	data.Finished = groupTasks(finished)
+	data.Queue = web.queuedViews()
 	return data
 }
 
@@ -219,6 +222,8 @@ func (web *Web) HandleTasks() {
 		}
 		w.WriteHeader(http.StatusNoContent)
 	}).Methods("POST")
+
+	web.handleQueue()
 
 	web.router.HandleFunc("/api/tasks/clear", func(w http.ResponseWriter, r *http.Request) {
 		web.taskLog().ClearFinished()

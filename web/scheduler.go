@@ -57,6 +57,7 @@ func (web *Web) StartScheduler() {
 			// start by another task
 			if !web.filesBusy() && !web.state.IsSynchronizing() {
 				web.resumeInterrupted()
+				web.runQueue()
 			}
 			web.checkDiskSpace()
 		}

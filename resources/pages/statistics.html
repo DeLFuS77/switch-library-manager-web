@@ -15,173 +15,189 @@
 				{{- template "statCard" (dict "Label" (t "DLC") "Value" $s.Dlc "Icon" "bi-puzzle" "Tone" "" "Count" true)}}
 				{{- template "statCard" (dict "Label" (t "Total size") "Value" (formatSize $s.TotalSize) "Icon" "bi-hdd-stack" "Tone" "is-cyan" "Count" false)}}
 			</div>
-			<div class="row g-3 mb-4">
-				<div class="col-lg-6">
-					<section class="surface h-100">
-						<h2 class="section-title"><span class="bi bi-pie-chart" aria-hidden="true"></span>{{t "Space by content"}}</h2>
-						<div class="donut-chart">
-							<div class="donut" style="{{conic $s.ByContent}}" role="img" aria-label="{{t "Space by content"}}">
-								<div class="donut-hole"><span class="donut-value">{{formatSize $s.TotalSize}}</span><span class="donut-label">{{t "Total size"}}</span></div>
-							</div>
-							<ul class="chart-legend list-unstyled mb-0">
-								{{- range $i, $share := $s.ByContent}}
-								<li><span class="chart-dot chart-dot-{{add (mod $i 6) 1}}" aria-hidden="true"></span><span class="flex-grow-1">{{t $share.Label}} <span class="text-body-secondary">({{$share.Count}})</span></span><span class="text-nowrap"><span class="fw-semibold">{{$share.Percent}}%</span> <span class="text-body-secondary small">{{formatSize $share.Size}}</span></span></li>
-								{{- end}}
-							</ul>
-						</div>
-					</section>
-				</div>
-				<div class="col-lg-6">
-					<section class="surface h-100">
-						<h2 class="section-title"><span class="bi bi-file-earmark-binary" aria-hidden="true"></span>{{t "Space by format"}}</h2>
-						{{- range $s.ByFormat}}
-						{{- template "statShare" .}}
-						{{- end}}
-					</section>
-				</div>
-			</div>
-			<div class="row g-3">
-				<div class="col-lg-6">
-					<section class="surface h-100">
-						<h2 class="section-title"><span class="bi bi-heart-pulse" aria-hidden="true"></span>{{t "Status"}}</h2>
-						{{- if $s.HasTitlesDatabase}}
-						<div class="d-flex align-items-center gap-3 mb-3">
-							<div class="gauge" style="--pct: {{$s.GamesUpToDatePct}}" role="img" aria-label="{{t "Games up to date"}}: {{$s.GamesUpToDatePct}}%">
-								<span class="gauge-value">{{$s.GamesUpToDatePct}}%</span>
-							</div>
-							<div>
-								<div class="fw-semibold">{{t "Games up to date"}}</div>
-								<div class="text-body-secondary small">{{$s.GamesUpToDate}} / {{$s.Games}}</div>
-							</div>
-						</div>
-						<div class="list-group list-group-flush">
-							<a class="list-group-item list-group-item-action bg-transparent d-flex justify-content-between align-items-center px-0" href="/updates.html"><span><span class="bi bi-arrow-up-circle text-warning me-2" aria-hidden="true"></span>{{t "Games with a missing update"}}</span><span class="badge text-bg-warning">{{$s.GamesWithUpdate}}</span></a>
-							<a class="list-group-item list-group-item-action bg-transparent d-flex justify-content-between align-items-center px-0" href="/dlc.html"><span><span class="bi bi-puzzle text-info me-2" aria-hidden="true"></span>{{t "Missing DLC"}}</span><span class="badge text-bg-info">{{t "%v in %v games" $s.MissingDlc $s.GamesMissingDlc}}</span></a>
-							<a class="list-group-item list-group-item-action bg-transparent d-flex justify-content-between align-items-center px-0" href="/missing.html"><span><span class="bi bi-search-heart me-2" aria-hidden="true"></span>{{t "Missing Games"}}</span><span class="badge text-bg-secondary">{{$s.MissingGames}}</span></a>
-							<a class="list-group-item list-group-item-action bg-transparent d-flex justify-content-between align-items-center px-0" href="/issues.html"><span><span class="bi bi-exclamation-triangle {{if gt $s.Issues 0}}text-danger{{else}}text-success{{end}} me-2" aria-hidden="true"></span>{{t "Issues"}}</span><span class="badge {{if gt $s.Issues 0}}text-bg-danger{{else}}text-bg-success{{end}}">{{$s.Issues}}</span></a>
-						</div>
-						{{- else}}
-						<p class="text-body-secondary mb-0">{{t "Synchronize to compare your library with the titles database."}}</p>
-						{{- end}}
-					</section>
-				</div>
-				<div class="col-lg-6">
-					<section class="surface h-100">
-						<h2 class="section-title"><span class="bi bi-trophy" aria-hidden="true"></span>{{t "Largest games"}}</h2>
-						<ol class="list-group list-group-flush list-group-numbered">
-							{{- range $s.Largest}}
-							<li class="list-group-item bg-transparent d-flex justify-content-between align-items-center gap-2 px-0">
-								<a class="link-body-emphasis text-decoration-none me-auto text-truncate" href="/title/{{.Id}}.html">{{.Name}}</a>
-								<span class="text-body-secondary text-nowrap small">{{formatSize .Size}}</span>
-							</li>
-							{{- end}}
-						</ol>
-					</section>
-				</div>
-			</div>
-			{{- if or $s.ByGenre $s.ByPublisher}}
-			<div class="row g-3 mb-4">
-				{{- if $s.ByGenre}}
-				<div class="col-lg-6">
-					<section class="surface h-100" style="--bar-color: var(--slm-chart-2)">
-						<h2 class="section-title"><span class="bi bi-tags" aria-hidden="true"></span>{{t "Games by genre"}}</h2>
-						{{- range $s.ByGenre}}
-						{{- template "countBar" (dict "Label" (t .Name) "Count" .Count "Max" $s.MaxGenre "Href" (printf "/index.html?genre=%s" .Name))}}
-						{{- end}}
-					</section>
-				</div>
+			{{- $games := or $s.ByGenre $s.ByPublisher $s.ByYear}}
+			<div class="page-tabs" role="tablist" aria-label="{{t "Statistics"}}" data-page-tabs>
+				<button type="button" class="page-tab active" role="tab" id="tabSpace" data-tab="space" aria-controls="panelSpace" aria-selected="true"><span class="bi bi-hdd-stack" aria-hidden="true"></span>{{t "Space"}}</button>
+				{{- if $games}}
+				<button type="button" class="page-tab" role="tab" id="tabGames" data-tab="games" aria-controls="panelGames" aria-selected="false" tabindex="-1"><span class="bi bi-controller" aria-hidden="true"></span>{{t "Games"}}</button>
 				{{- end}}
-				{{- if $s.ByPublisher}}
-				<div class="col-lg-6">
-					<section class="surface h-100" style="--bar-color: var(--slm-chart-4)">
-						<h2 class="section-title"><span class="bi bi-building" aria-hidden="true"></span>{{t "Games by publisher"}}</h2>
-						{{- range $s.ByPublisher}}
-						{{- template "countBar" (dict "Label" .Name "Count" .Count "Max" $s.MaxPublisher "Href" "")}}
-						{{- end}}
-					</section>
-				</div>
-				{{- end}}
+				<button type="button" class="page-tab" role="tab" id="tabHistory" data-tab="history" aria-controls="panelHistory" aria-selected="false" tabindex="-1"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "Library history"}}</button>
 			</div>
-			{{- end}}
-			{{- with $s.ByYear}}
-			<section class="surface mb-4">
-				<h2 class="section-title"><span class="bi bi-calendar3" aria-hidden="true"></span>{{t "Games by year of release"}}</h2>
-				<div class="year-chart" role="img" aria-label="{{t "Games by year of release"}}">
-					{{- range .}}
-					<div class="year-bar" title="{{.Name}}: {{.Count}}"><span style="height: {{percentOf .Count $s.MaxYear}}%"></span><small>{{.Name}}</small></div>
-					{{- end}}
-				</div>
-			</section>
-			{{- end}}
-			<section class="surface mb-4" aria-labelledby="historyTitle">
-				<h2 class="section-title" id="historyTitle"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "Library history"}}</h2>
-				{{- with .Charts}}
-				<div class="history-charts mb-4">
-					<ul class="nav nav-pills nav-sm gap-1 mb-2" role="tablist">
-						{{- range $i, $g := .Graphs}}
-						<li class="nav-item" role="presentation"><button type="button" class="nav-link py-1 px-3{{if eq $i 0}} active{{end}}" data-bs-toggle="pill" data-bs-target="#chart-{{$g.Key}}" role="tab" aria-controls="chart-{{$g.Key}}" aria-selected="{{if eq $i 0}}true{{else}}false{{end}}">{{$g.Title}}</button></li>
-						{{- end}}
-					</ul>
-					<div class="tab-content">
-						{{- range $i, $g := .Graphs}}
-						<figure class="tab-pane fade{{if eq $i 0}} show active{{end}} mb-0" id="chart-{{$g.Key}}" role="tabpanel">
-							<div class="history-chart-box" data-history-chart="{{$g.Days}}">
-								<span class="history-chart-max small text-body-secondary">{{$g.Max}}</span>
-								<svg class="history-chart" viewBox="0 0 600 140" preserveAspectRatio="none" role="img" aria-label="{{$g.Title}}">
-									<line class="history-chart-grid" x1="0" y1="4" x2="600" y2="4" vector-effect="non-scaling-stroke"/>
-									<line class="history-chart-grid" x1="0" y1="136" x2="600" y2="136" vector-effect="non-scaling-stroke"/>
-									{{- range $g.Series}}
-									<polyline points="{{.Points}}" fill="none" stroke="var(--slm-chart-{{.Color}})" stroke-width="2"{{if .Dashed}} stroke-dasharray="6 4"{{end}} vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
-									{{- end}}
-									<line class="history-chart-cursor" x1="0" y1="0" x2="0" y2="140" vector-effect="non-scaling-stroke" hidden/>
-								</svg>
-								<div class="history-chart-tip small" hidden></div>
-							</div>
-							<figcaption>
-								<div class="d-flex justify-content-between small text-body-secondary"><span>{{$g.From}}</span><span>{{$g.To}}</span></div>
-								<ul class="chart-legend list-unstyled d-flex flex-wrap gap-3 small mt-2 mb-0">
-									{{- range $g.Series}}
-									<li data-series-label><span class="chart-dot chart-dot-{{.Color}}" aria-hidden="true"></span>{{.Label}} <span class="fw-semibold">{{.Last}}</span></li>
+			<div role="tabpanel" id="panelSpace" aria-labelledby="tabSpace">
+				<div class="row g-3 mb-4">
+					<div class="col-lg-6">
+						<section class="surface h-100">
+							<h2 class="section-title"><span class="bi bi-pie-chart" aria-hidden="true"></span>{{t "Space by content"}}</h2>
+							<div class="donut-chart">
+								<div class="donut" style="{{conic $s.ByContent}}" role="img" aria-label="{{t "Space by content"}}">
+									<div class="donut-hole"><span class="donut-value">{{formatSize $s.TotalSize}}</span><span class="donut-label">{{t "Total size"}}</span></div>
+								</div>
+								<ul class="chart-legend list-unstyled mb-0">
+									{{- range $i, $share := $s.ByContent}}
+									<li><span class="chart-dot chart-dot-{{add (mod $i 6) 1}}" aria-hidden="true"></span><span class="flex-grow-1">{{t $share.Label}} <span class="text-body-secondary">({{$share.Count}})</span></span><span class="text-nowrap"><span class="fw-semibold">{{$share.Percent}}%</span> <span class="text-body-secondary small">{{formatSize $share.Size}}</span></span></li>
 									{{- end}}
 								</ul>
-							</figcaption>
-						</figure>
-						{{- end}}
+							</div>
+						</section>
 					</div>
-					{{- if or .GrowthPerMonth .FullOn}}
-					<p class="small text-body-secondary mt-3 mb-0"><span class="bi bi-graph-up-arrow me-1" aria-hidden="true"></span>
-						{{- with .GrowthPerMonth}}{{t "The library grows about %v a month." .}}{{end}}
-						{{- with .FullOn}} <strong class="text-body">{{t "At this rate the disk will be full around %v (in about %v)." . $.Charts.FullIn}}</strong>{{end}}
-					</p>
+					<div class="col-lg-6">
+						<section class="surface h-100">
+							<h2 class="section-title"><span class="bi bi-file-earmark-binary" aria-hidden="true"></span>{{t "Space by format"}}</h2>
+							{{- range $s.ByFormat}}
+							{{- template "statShare" .}}
+							{{- end}}
+						</section>
+					</div>
+				</div>
+				<div class="row g-3">
+					<div class="col-lg-6">
+						<section class="surface h-100">
+							<h2 class="section-title"><span class="bi bi-heart-pulse" aria-hidden="true"></span>{{t "Status"}}</h2>
+							{{- if $s.HasTitlesDatabase}}
+							<div class="d-flex align-items-center gap-3 mb-3">
+								<div class="gauge" style="--pct: {{$s.GamesUpToDatePct}}" role="img" aria-label="{{t "Games up to date"}}: {{$s.GamesUpToDatePct}}%">
+									<span class="gauge-value">{{$s.GamesUpToDatePct}}%</span>
+								</div>
+								<div>
+									<div class="fw-semibold">{{t "Games up to date"}}</div>
+									<div class="text-body-secondary small">{{$s.GamesUpToDate}} / {{$s.Games}}</div>
+								</div>
+							</div>
+							<div class="list-group list-group-flush">
+								<a class="list-group-item list-group-item-action bg-transparent d-flex justify-content-between align-items-center px-0" href="/updates.html"><span><span class="bi bi-arrow-up-circle text-warning me-2" aria-hidden="true"></span>{{t "Games with a missing update"}}</span><span class="badge text-bg-warning">{{$s.GamesWithUpdate}}</span></a>
+								<a class="list-group-item list-group-item-action bg-transparent d-flex justify-content-between align-items-center px-0" href="/dlc.html"><span><span class="bi bi-puzzle text-info me-2" aria-hidden="true"></span>{{t "Missing DLC"}}</span><span class="badge text-bg-info">{{t "%v in %v games" $s.MissingDlc $s.GamesMissingDlc}}</span></a>
+								<a class="list-group-item list-group-item-action bg-transparent d-flex justify-content-between align-items-center px-0" href="/missing.html"><span><span class="bi bi-search-heart me-2" aria-hidden="true"></span>{{t "Missing Games"}}</span><span class="badge text-bg-secondary">{{$s.MissingGames}}</span></a>
+								<a class="list-group-item list-group-item-action bg-transparent d-flex justify-content-between align-items-center px-0" href="/issues.html"><span><span class="bi bi-exclamation-triangle {{if gt $s.Issues 0}}text-danger{{else}}text-success{{end}} me-2" aria-hidden="true"></span>{{t "Issues"}}</span><span class="badge {{if gt $s.Issues 0}}text-bg-danger{{else}}text-bg-success{{end}}">{{$s.Issues}}</span></a>
+							</div>
+							{{- else}}
+							<p class="text-body-secondary mb-0">{{t "Synchronize to compare your library with the titles database."}}</p>
+							{{- end}}
+						</section>
+					</div>
+					<div class="col-lg-6">
+						<section class="surface h-100">
+							<h2 class="section-title"><span class="bi bi-trophy" aria-hidden="true"></span>{{t "Largest games"}}</h2>
+							<ol class="list-group list-group-flush list-group-numbered">
+								{{- range $s.Largest}}
+								<li class="list-group-item bg-transparent d-flex justify-content-between align-items-center gap-2 px-0">
+									<a class="link-body-emphasis text-decoration-none me-auto text-truncate" href="/title/{{.Id}}.html">{{.Name}}</a>
+									<span class="text-body-secondary text-nowrap small">{{formatSize .Size}}</span>
+								</li>
+								{{- end}}
+							</ol>
+						</section>
+					</div>
+				</div>
+			</div>
+			{{- if $games}}
+			<div role="tabpanel" id="panelGames" aria-labelledby="tabGames" hidden>
+				{{- if or $s.ByGenre $s.ByPublisher}}
+				<div class="row g-3 mb-4">
+					{{- if $s.ByGenre}}
+					<div class="col-lg-6">
+						<section class="surface h-100" style="--bar-color: var(--slm-chart-2)">
+							<h2 class="section-title"><span class="bi bi-tags" aria-hidden="true"></span>{{t "Games by genre"}}</h2>
+							{{- range $s.ByGenre}}
+							{{- template "countBar" (dict "Label" (t .Name) "Count" .Count "Max" $s.MaxGenre "Href" (printf "/index.html?genre=%s" .Name))}}
+							{{- end}}
+						</section>
+					</div>
+					{{- end}}
+					{{- if $s.ByPublisher}}
+					<div class="col-lg-6">
+						<section class="surface h-100" style="--bar-color: var(--slm-chart-4)">
+							<h2 class="section-title"><span class="bi bi-building" aria-hidden="true"></span>{{t "Games by publisher"}}</h2>
+							{{- range $s.ByPublisher}}
+							{{- template "countBar" (dict "Label" .Name "Count" .Count "Max" $s.MaxPublisher "Href" "")}}
+							{{- end}}
+						</section>
+					</div>
 					{{- end}}
 				</div>
 				{{- end}}
-				{{- if .History}}
-				<ul class="list-group list-group-flush">
-					{{- range $i, $e := .History}}
-					{{- if eq $i 10}}
-				</ul>
-				<details class="version-more history-more">
-					<summary>{{t "Show the %v older changes" $.OlderHistory}}</summary>
+				{{- with $s.ByYear}}
+				<section class="surface mb-4">
+					<h2 class="section-title"><span class="bi bi-calendar3" aria-hidden="true"></span>{{t "Games by year of release"}}</h2>
+					<div class="year-chart" role="img" aria-label="{{t "Games by year of release"}}">
+						{{- range .}}
+						<div class="year-bar" title="{{.Name}}: {{.Count}}"><span style="height: {{percentOf .Count $s.MaxYear}}%"></span><small>{{.Name}}</small></div>
+						{{- end}}
+					</div>
+				</section>
+				{{- end}}
+			</div>
+			{{- end}}
+			<div role="tabpanel" id="panelHistory" aria-labelledby="tabHistory" hidden>
+				<section class="surface mb-4" aria-labelledby="historyTitle">
+					<h2 class="section-title" id="historyTitle"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "Library history"}}</h2>
+					{{- with .Charts}}
+					<div class="history-charts mb-4">
+						<ul class="nav nav-pills nav-sm gap-1 mb-2" role="tablist">
+							{{- range $i, $g := .Graphs}}
+							<li class="nav-item" role="presentation"><button type="button" class="nav-link py-1 px-3{{if eq $i 0}} active{{end}}" data-bs-toggle="pill" data-bs-target="#chart-{{$g.Key}}" role="tab" aria-controls="chart-{{$g.Key}}" aria-selected="{{if eq $i 0}}true{{else}}false{{end}}">{{$g.Title}}</button></li>
+							{{- end}}
+						</ul>
+						<div class="tab-content">
+							{{- range $i, $g := .Graphs}}
+							<figure class="tab-pane fade{{if eq $i 0}} show active{{end}} mb-0" id="chart-{{$g.Key}}" role="tabpanel">
+								<div class="history-chart-box" data-history-chart="{{$g.Days}}">
+									<span class="history-chart-max small text-body-secondary">{{$g.Max}}</span>
+									<svg class="history-chart" viewBox="0 0 600 140" preserveAspectRatio="none" role="img" aria-label="{{$g.Title}}">
+										<line class="history-chart-grid" x1="0" y1="4" x2="600" y2="4" vector-effect="non-scaling-stroke"/>
+										<line class="history-chart-grid" x1="0" y1="136" x2="600" y2="136" vector-effect="non-scaling-stroke"/>
+										{{- range $g.Series}}
+										<polyline points="{{.Points}}" fill="none" stroke="var(--slm-chart-{{.Color}})" stroke-width="2"{{if .Dashed}} stroke-dasharray="6 4"{{end}} vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+										{{- end}}
+										<line class="history-chart-cursor" x1="0" y1="0" x2="0" y2="140" vector-effect="non-scaling-stroke" hidden/>
+									</svg>
+									<div class="history-chart-tip small" hidden></div>
+								</div>
+								<figcaption>
+									<div class="d-flex justify-content-between small text-body-secondary"><span>{{$g.From}}</span><span>{{$g.To}}</span></div>
+									<ul class="chart-legend list-unstyled d-flex flex-wrap gap-3 small mt-2 mb-0">
+										{{- range $g.Series}}
+										<li data-series-label><span class="chart-dot chart-dot-{{.Color}}" aria-hidden="true"></span>{{.Label}} <span class="fw-semibold">{{.Last}}</span></li>
+										{{- end}}
+									</ul>
+								</figcaption>
+							</figure>
+							{{- end}}
+						</div>
+						{{- if or .GrowthPerMonth .FullOn}}
+						<p class="small text-body-secondary mt-3 mb-0"><span class="bi bi-graph-up-arrow me-1" aria-hidden="true"></span>
+							{{- with .GrowthPerMonth}}{{t "The library grows about %v a month." .}}{{end}}
+							{{- with .FullOn}} <strong class="text-body">{{t "At this rate the disk will be full around %v (in about %v)." . $.Charts.FullIn}}</strong>{{end}}
+						</p>
+						{{- end}}
+					</div>
+					{{- end}}
+					{{- if .History}}
 					<ul class="list-group list-group-flush">
+						{{- range $i, $e := .History}}
+						{{- if eq $i 10}}
+					</ul>
+					<details class="version-more history-more">
+						<summary>{{t "Show the %v older changes" $.OlderHistory}}</summary>
+						<ul class="list-group list-group-flush">
+						{{- end}}
+						<li class="list-group-item bg-transparent d-flex align-items-center gap-2 px-0">
+							<span class="bi {{if .Added}}bi-plus-circle text-success{{else}}bi-dash-circle text-danger{{end}}" aria-hidden="true"></span>
+							<span class="me-auto text-truncate">
+								{{- if and .Added (eq .Kind "game")}}<a class="link-body-emphasis text-decoration-none" href="/title/{{.Id}}.html">{{.Name}}</a>{{else}}{{.Name}}{{end}}
+								<span class="text-body-secondary small">&middot; {{if eq .Kind "game"}}{{t "Game"}}{{else if eq .Kind "update"}}{{t "Update"}} v{{.Version}}{{else}}DLC{{end}} &middot; {{if .Added}}{{t "added"}}{{else}}{{t "removed"}}{{end}}</span>
+							</span>
+							<span class="text-body-secondary small text-nowrap">{{formatDateTime .Time}}</span>
+						</li>
+						{{- end}}
+					</ul>
+					{{- if gt $.OlderHistory 0}}
+					</details>
 					{{- end}}
-					<li class="list-group-item bg-transparent d-flex align-items-center gap-2 px-0">
-						<span class="bi {{if .Added}}bi-plus-circle text-success{{else}}bi-dash-circle text-danger{{end}}" aria-hidden="true"></span>
-						<span class="me-auto text-truncate">
-							{{- if and .Added (eq .Kind "game")}}<a class="link-body-emphasis text-decoration-none" href="/title/{{.Id}}.html">{{.Name}}</a>{{else}}{{.Name}}{{end}}
-							<span class="text-body-secondary small">&middot; {{if eq .Kind "game"}}{{t "Game"}}{{else if eq .Kind "update"}}{{t "Update"}} v{{.Version}}{{else}}DLC{{end}} &middot; {{if .Added}}{{t "added"}}{{else}}{{t "removed"}}{{end}}</span>
-						</span>
-						<span class="text-body-secondary small text-nowrap">{{formatDateTime .Time}}</span>
-					</li>
+					{{- else}}
+					<p class="text-body-secondary mb-0">{{t "The games, updates and DLC added to or removed from your folders appear here after the next scans."}}</p>
 					{{- end}}
-				</ul>
-				{{- if gt $.OlderHistory 0}}
-				</details>
-				{{- end}}
-				{{- else}}
-				<p class="text-body-secondary mb-0">{{t "The games, updates and DLC added to or removed from your folders appear here after the next scans."}}</p>
-				{{- end}}
-			</section>
+				</section>
+			</div>
 			{{- end}}
 {{- end}}
 

@@ -731,6 +731,13 @@ func (l *TaskLog) Subscribe() (<-chan int64, func()) {
 	}
 }
 
+// Touch tells the pages of the tasks that something they show changed (the queue).
+func (l *TaskLog) Touch() {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+	l.changed(false)
+}
+
 func (l *TaskLog) Version() int64 {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()

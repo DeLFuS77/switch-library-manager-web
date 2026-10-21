@@ -242,7 +242,12 @@ document.addEventListener('DOMContentLoaded', () => {
 			const body = new URLSearchParams({ all: button.dataset.verify === 'all' ? 'true' : 'false', scope: button.dataset.verify });
 			runAsTask(() => fetch('/verify/start', { method: 'POST', body })).then(response => {
 				if (response.ok) {
-					return;
+					return response.json().catch(() => ({})).then(json => {
+						if (json && json.queued) {
+							button.disabled = false;
+							insertQueuedNote(mainContainer(), json.queued);
+						}
+					});
 				}
 				return response.json().catch(() => ({})).then(json => {
 					button.disabled = false;
@@ -263,6 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initCoverTransition();
 	initQuickSearch();
 	initTaskIndicator();
+	initQueue();
 	initYearReview();
 	initAutomationSettings();
 	initWizard();

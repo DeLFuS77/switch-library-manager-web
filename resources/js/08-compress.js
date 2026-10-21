@@ -217,7 +217,12 @@ function bindFileForm(form, url) {
 			headers: { 'Content-type': 'application/x-www-form-urlencoded' }
 		})).then(response => {
 			if (response.ok) {
-				return;
+				return response.json().catch(() => ({})).then(json => {
+					if (json && json.queued) {
+						submit.disabled = false;
+						insertQueuedNote(form, json.queued);
+					}
+				});
 			}
 			return response.json().then(json => {
 				submit.disabled = false;

@@ -397,6 +397,8 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 			web.compressor.cancel = nil
 			web.compressor.mutex.Unlock()
 			cancel()
+			// the files are free: the next task of the queue
+			go web.runQueue()
 		}()
 		var done int64
 		copied := 0
