@@ -445,13 +445,17 @@
 }
 
 // the line of a tool page that tells its step of the tune-up
+// the step of the tune-up a page is: one line of text that wraps as text on phones, instead of
+// two columns (the step and the link to the steps) that each broke on their own
 .maintenance-hint {
-	display: inline-flex;
-	align-items: center;
-	gap: .4rem;
+	display: inline-block;
 	margin: -.5rem 0 1rem;
 	font-size: var(--slm-text-sm);
 	text-decoration: none;
+
+	> .bi {
+		margin-right: .4rem;
+	}
 }
 
 // a dot on a menu: something is waiting there
