@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- A file found damaged by a compression (an NCA that does not match its content ID and fails its hash trees, or a file cut short) is remembered like the check of the files finds it: it shows in Issues and is no longer offered on the Compress page while it does not change, which says how many are left out. It failed again on every compression, so the same files kept coming back
+
 ## 1.52.0
 
 ### New
