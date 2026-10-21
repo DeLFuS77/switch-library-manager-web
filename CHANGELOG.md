@@ -6,6 +6,7 @@
 
 - Balanced and Maximum compress each NSZ on several threads with the zstd library in C (zstd 1.5.7), in the programs for Windows and Linux and the Docker image: on a game measured, Maximum went from 13 to 25 MB/s with 8 threads and makes files about 6% smaller (the default level of nsz, 19), Balanced compresses as Maximum did and as fast as before (about 200 MB/s). The files are the same standard NSZ, with a window of 8 MiB at most, that every installer reads. Fewer threads are used when little memory is free (Maximum takes about 190 MB per thread). The programs for macOS keep the compression in Go, as before
 - Compressing, decompressing, converting, making packs and splitting read each file once instead of twice or three times: the original is hashed while it is compressed, and what is written is hashed and checked while it is written (the NCZ of a pack of NSZ are decompressed from the disk), then the new file is opened again for its files, their sizes and their start and end. The checks are the same as before, a damaged NCA is still found and its file removed; the steps of a compression go from three to two
+- Checking a file hashes its NCA beside reading and decompressing them, instead of after: on a DLC of 6.6 GB, the NSZ is checked in 8 seconds instead of 10.5 and the NSP in 3 instead of 4. It is the check of the files, the last step of a compression and the check of a pack. Still one read of each file at a time, as hard disks prefer
 
 ### Fixes
 
