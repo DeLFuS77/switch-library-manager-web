@@ -14,144 +14,150 @@
 					{{- end}}
 				</div>
 			</div>
-			<h2 class="section-title"><span class="bi bi-sliders" aria-hidden="true"></span>{{t "Options"}}</h2>
-			<form class="row g-3 mb-4" id="organizeForm" method="post" data-save-when-changed>
-				<div class="col-lg-6">
-					<div class="surface h-100">
-						<div>
-							<h3 class="h6 fw-semibold mb-3"><span class="bi bi-folder me-2 text-primary" aria-hidden="true"></span>{{t "Folders"}}</h3>
-							<div class="form-check form-switch mb-2">
-								<input class="form-check-input" type="checkbox" role="switch" id="create_folder_per_game" name="create_folder_per_game" value="true"{{if $o.CreateFolderPerGame}} checked{{end}}>
-								<label class="form-check-label" for="create_folder_per_game">{{t "Create a folder per game inside the library folder"}}</label>
-							</div>
-							<div class="mb-3">
-								<label for="folder_name_template" class="form-label">{{t "Folder name template"}}</label>
-								<input type="text" class="form-control font-monospace" id="folder_name_template" name="folder_name_template" value="{{$o.FolderNameTemplate}}">
-							</div>
-							<div class="row g-2 mb-2">
-								<div class="col-sm-6">
-									<label for="updates_folder" class="form-label">{{t "Updates subfolder"}}</label>
-									<input type="text" class="form-control" id="updates_folder" name="updates_folder" value="{{$o.UpdatesFolder}}" placeholder="{{t "optional, e.g. Updates"}}">
-								</div>
-								<div class="col-sm-6">
-									<label for="dlc_folder" class="form-label">{{t "DLC subfolder"}}</label>
-									<input type="text" class="form-control" id="dlc_folder" name="dlc_folder" value="{{$o.DlcFolder}}" placeholder="{{t "optional, e.g. DLC"}}">
-								</div>
-							</div>
-							<div class="form-text mb-3">{{t "Inside the game folder, or inside the library folder when no game folders are created."}}</div>
-							<div class="form-check form-switch mb-1">
-								<input class="form-check-input" type="checkbox" role="switch" id="folders_with_ids" name="folders_with_ids" value="true" aria-describedby="folders_with_ids_help"{{if $o.FoldersWithIds}} checked{{end}}>
-								<label class="form-check-label" for="folders_with_ids">{{t "A folder with its ID for each update and DLC"}}</label>
-							</div>
-							<div class="form-text mb-3" id="folders_with_ids_help">{{t "The game folder gets its ID too: Game [0100…000] › Update [0100…800], and DLC › name of the DLC [0100…001]."}}</div>
-							<div class="form-check form-switch">
-								<input class="form-check-input" type="checkbox" role="switch" id="process_when_missing_base_game" name="process_when_missing_base_game" value="true"{{if $o.ProcessWhenMissingBaseGame}} checked{{end}}>
-								<label class="form-check-label" for="process_when_missing_base_game">{{t "Also organize updates and DLC without base game"}}</label>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="col-lg-6">
-					<div class="surface h-100">
-						<div>
-							<h3 class="h6 fw-semibold mb-3"><span class="bi bi-input-cursor-text me-2 text-primary" aria-hidden="true"></span>{{t "File names"}}</h3>
-							<div class="form-check form-switch mb-2">
-								<input class="form-check-input" type="checkbox" role="switch" id="rename_files" name="rename_files" value="true"{{if $o.RenameFiles}} checked{{end}}>
-								<label class="form-check-label" for="rename_files">{{t "Rename files"}}</label>
-							</div>
-							<div class="mb-2">
-								<label for="file_name_template" class="form-label">{{t "File name template"}}</label>
-								<input type="text" class="form-control font-monospace" id="file_name_template" name="file_name_template" value="{{$o.FileNameTemplate}}">
-							</div>
-							<div class="form-text mb-3">
-								{{t "Available:"}} <code>{{t "{TITLE_NAME}"}}</code> <code>{{t "{TITLE_ID}"}}</code> <code>{{t "{VERSION}"}}</code> <code>{{t "{VERSION_TXT}"}}</code> <code>{{t "{REGION}"}}</code> <code>{{t "{TYPE}"}}</code> <code>{{t "{DLC_NAME}"}}</code>
-							</div>
-							<div class="form-check form-switch mb-3">
-								<input class="form-check-input" type="checkbox" role="switch" id="switch_safe_file_names" name="switch_safe_file_names" value="true"{{if $o.SwitchSafeFileNames}} checked{{end}}>
-								<label class="form-check-label" for="switch_safe_file_names">{{t "Switch safe names (ASCII only)"}}</label>
-							</div>
-							<h3 class="h6 fw-semibold mb-3 pt-3 border-top"><span class="bi bi-trash3 me-2 text-primary" aria-hidden="true"></span>{{t "Cleanup"}}</h3>
-							<div class="form-check form-switch mb-2">
-								<input class="form-check-input" type="checkbox" role="switch" id="delete_duplicate_files" name="delete_duplicate_files" value="true"{{if $o.DeleteDuplicateFiles}} checked{{end}}>
-								<label class="form-check-label" for="delete_duplicate_files">{{t "Also delete duplicate files"}}</label>
-							</div>
-							<div class="mb-2">
-								<label for="keep_duplicate" class="form-label">{{t "Copy of a duplicate to keep"}}</label>
-								<select class="form-select" id="keep_duplicate" name="keep_duplicate" aria-describedby="keep_duplicate_help">
-									<option value=""{{if eq $o.KeepDuplicate ""}} selected{{end}}>{{t "The first one found"}}</option>
-									<option value="nsp"{{if eq $o.KeepDuplicate "nsp"}} selected{{end}}>{{t "NSP or NSZ"}}</option>
-									<option value="xci"{{if eq $o.KeepDuplicate "xci"}} selected{{end}}>{{t "XCI or XCZ"}}</option>
-									<option value="auto"{{if eq $o.KeepDuplicate "auto"}} selected{{end}}>{{t "Let the app choose"}}</option>
-								</select>
-							</div>
-							<div class="form-text mb-2" id="keep_duplicate_help">{{t "Letting the app choose keeps a file with several titles, and otherwise the smaller file. A file with several titles is never deleted while it holds something the library keeps."}}</div>
-							<div class="form-check form-switch mb-2 cheat-update-switch">
-								<input class="form-check-input" type="checkbox" role="switch" id="keep_updates_with_cheats" name="keep_updates_with_cheats" value="true"{{if not $o.DeleteUpdatesWithCheats}} checked{{end}}>
-								<label class="form-check-label" for="keep_updates_with_cheats">{{t "Keep an old update that has cheats when the newer one has none"}}</label>
-								<div class="cheat-update-warning small py-2 px-3 mt-2 mb-0" role="note"><span class="bi bi-exclamation-triangle me-1" aria-hidden="true"></span>{{t "Off: Delete old updates, Space and the automations delete these updates like any other, and their cheats are lost until you get that version again."}}</div>
-							</div>
-							<div class="form-check form-switch">
-								<input class="form-check-input" type="checkbox" role="switch" id="delete_empty_folders" name="delete_empty_folders" value="true"{{if $o.DeleteEmptyFolders}} checked{{end}}>
-								<label class="form-check-label" for="delete_empty_folders">{{t "Delete empty folders afterwards"}}</label>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="col-12 text-end">
-					<button type="submit" class="btn btn-primary rounded-pill px-4"><span class="bi bi-check-lg me-2" aria-hidden="true"></span>{{t "Save"}}</button>
-				</div>
-			</form>
-			<h2 class="section-title"><span class="bi bi-play-circle" aria-hidden="true"></span>{{t "Actions"}}</h2>
-			<div class="row g-3 mb-4">
-				<div class="col-md-6">
-					<div class="surface stat-card h-100 align-items-start">
-						<div class="stat-icon"><span class="bi bi-folder-symlink" aria-hidden="true"></span></div>
-						<div class="d-flex flex-column h-100">
-							<h3 class="h6 fw-semibold mb-1">{{t "Organize files"}}</h3>
-							<p class="text-body-secondary small flex-fill">{{t "Move and rename games, updates and DLC according to the options above."}}</p>
-							<div><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="organize"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
-						</div>
-					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="surface stat-card h-100 align-items-start">
-						<div class="stat-icon is-cyan"><span class="bi bi-trash3" aria-hidden="true"></span></div>
-						<div class="d-flex flex-column h-100">
-							<h3 class="h6 fw-semibold mb-1">{{t "Delete old updates"}}</h3>
-							<p class="text-body-secondary small flex-fill">{{if $o.DeleteDuplicateFiles}}{{t "Delete update and DLC files replaced by a newer version, and duplicate files."}}{{else}}{{t "Delete update and DLC files replaced by a newer version."}}{{end}}</p>
-							<div><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="cleanup"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
-						</div>
-					</div>
-				</div>
+			<div class="page-tabs" role="tablist" aria-label="{{t "Organize"}}" data-page-tabs>
+				<button type="button" class="page-tab active" role="tab" id="tabActions" data-tab="actions" aria-controls="panelActions" aria-selected="true"><span class="bi bi-play-circle" aria-hidden="true"></span>{{t "Actions"}}</button>
+				<button type="button" class="page-tab" role="tab" id="tabOptions" data-tab="options" aria-controls="panelOptions" aria-selected="false" tabindex="-1"><span class="bi bi-sliders" aria-hidden="true"></span>{{t "Options"}}</button>
 			</div>
-			<div id="organizeProgress" hidden>
-				<section class="surface organize-progress mb-4" role="status" aria-live="polite">
-					<div class="d-flex align-items-center gap-3 mb-3">
-						<span class="spinner-border spinner-border-sm text-primary flex-shrink-0" aria-hidden="true"></span>
-						<div class="min-w-0">
-							<h2 class="h6 fw-semibold mb-0">{{t "Applying the changes..."}}</h2>
-							<div class="small text-body-secondary">{{t "Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page."}} <a href="/tasks.html">{{t "See it in Tasks"}}</a></div>
+			<div role="tabpanel" id="panelActions" aria-labelledby="tabActions">
+				<div class="row g-3 mb-4">
+					<div class="col-md-6">
+						<div class="surface stat-card h-100 align-items-start">
+							<div class="stat-icon"><span class="bi bi-folder-symlink" aria-hidden="true"></span></div>
+							<div class="d-flex flex-column h-100">
+								<h3 class="h6 fw-semibold mb-1">{{t "Organize files"}}</h3>
+								<p class="text-body-secondary small flex-fill">{{t "Move and rename games, updates and DLC according to the options."}}</p>
+								<div><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="organize"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
+							</div>
 						</div>
 					</div>
-					<div class="progress mb-2" role="progressbar" aria-label="{{t "Progress"}}"><div class="progress-bar progress-bar-striped progress-bar-animated task-total-bar w-100" data-organize-bar></div></div>
-					<div class="d-flex justify-content-between gap-3 small text-body-secondary">
-						<span class="text-truncate" data-organize-message></span>
-						<span class="text-nowrap" data-organize-count></span>
+					<div class="col-md-6">
+						<div class="surface stat-card h-100 align-items-start">
+							<div class="stat-icon is-cyan"><span class="bi bi-trash3" aria-hidden="true"></span></div>
+							<div class="d-flex flex-column h-100">
+								<h3 class="h6 fw-semibold mb-1">{{t "Delete old updates"}}</h3>
+								<p class="text-body-secondary small flex-fill">{{if $o.DeleteDuplicateFiles}}{{t "Delete update and DLC files replaced by a newer version, and duplicate files."}}{{else}}{{t "Delete update and DLC files replaced by a newer version."}}{{end}}</p>
+								<div><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="cleanup"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
+							</div>
+						</div>
 					</div>
+				</div>
+				<div id="organizeProgress" hidden>
+					<section class="surface organize-progress mb-4" role="status" aria-live="polite">
+						<div class="d-flex align-items-center gap-3 mb-3">
+							<span class="spinner-border spinner-border-sm text-primary flex-shrink-0" aria-hidden="true"></span>
+							<div class="min-w-0">
+								<h2 class="h6 fw-semibold mb-0">{{t "Applying the changes..."}}</h2>
+								<div class="small text-body-secondary">{{t "Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page."}} <a href="/tasks.html">{{t "See it in Tasks"}}</a></div>
+							</div>
+						</div>
+						<div class="progress mb-2" role="progressbar" aria-label="{{t "Progress"}}"><div class="progress-bar progress-bar-striped progress-bar-animated task-total-bar w-100" data-organize-bar></div></div>
+						<div class="d-flex justify-content-between gap-3 small text-body-secondary">
+							<span class="text-truncate" data-organize-message></span>
+							<span class="text-nowrap" data-organize-count></span>
+						</div>
+					</section>
+				</div>
+				<section id="organizeResult" class="surface d-none" aria-live="polite">
+					<div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center mb-3">
+						<h2 class="h4 mb-3 mb-md-0" id="organizeResultTitle"></h2>
+						<button type="button" class="btn btn-danger d-none" id="organizeRun"></button>
+					</div>
+					<div class="alert alert-info d-flex flex-wrap align-items-center gap-2" data-organize-verify hidden>
+						<span class="bi bi-shield-check" aria-hidden="true"></span>
+						<span class="flex-grow-1" data-organize-verify-text data-text="{{t "%v files are kept until the copy that stays is checked, so a copy is never deleted for one that might be damaged. Check those copies, then preview again."}}"></span>
+						<button type="button" class="btn btn-sm btn-primary rounded-pill text-nowrap" data-verify="space"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Check now"}}</button>
+					</div>
+					<div class="op-summary mb-3" id="organizeSummary" role="group" aria-label="{{t "Show the changes of a kind"}}" hidden></div>
+					<p class="text-body-secondary small mb-2">{{t "Paths are relative to the library folder."}}</p>
+					<ul class="op-list list-unstyled mb-0" id="organizeOperations"></ul>
 				</section>
 			</div>
-			<section id="organizeResult" class="surface d-none" aria-live="polite">
-				<div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center mb-3">
-					<h2 class="h4 mb-3 mb-md-0" id="organizeResultTitle"></h2>
-					<button type="button" class="btn btn-danger d-none" id="organizeRun"></button>
-				</div>
-				<div class="alert alert-info d-flex flex-wrap align-items-center gap-2" data-organize-verify hidden>
-					<span class="bi bi-shield-check" aria-hidden="true"></span>
-					<span class="flex-grow-1" data-organize-verify-text data-text="{{t "%v files are kept until the copy that stays is checked, so a copy is never deleted for one that might be damaged. Check those copies, then preview again."}}"></span>
-					<button type="button" class="btn btn-sm btn-primary rounded-pill text-nowrap" data-verify="space"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Check now"}}</button>
-				</div>
-				<div class="op-summary mb-3" id="organizeSummary" role="group" aria-label="{{t "Show the changes of a kind"}}" hidden></div>
-				<p class="text-body-secondary small mb-2">{{t "Paths are relative to the library folder."}}</p>
-				<ul class="op-list list-unstyled mb-0" id="organizeOperations"></ul>
-			</section>
+			<div role="tabpanel" id="panelOptions" aria-labelledby="tabOptions" hidden>
+				<form class="row g-3 mb-4" id="organizeForm" method="post" data-save-when-changed>
+					<div class="col-lg-6">
+						<div class="surface h-100">
+							<div>
+								<h3 class="h6 fw-semibold mb-3"><span class="bi bi-folder me-2 text-primary" aria-hidden="true"></span>{{t "Folders"}}</h3>
+								<div class="form-check form-switch mb-2">
+									<input class="form-check-input" type="checkbox" role="switch" id="create_folder_per_game" name="create_folder_per_game" value="true"{{if $o.CreateFolderPerGame}} checked{{end}}>
+									<label class="form-check-label" for="create_folder_per_game">{{t "Create a folder per game inside the library folder"}}</label>
+								</div>
+								<div class="mb-3">
+									<label for="folder_name_template" class="form-label">{{t "Folder name template"}}</label>
+									<input type="text" class="form-control font-monospace" id="folder_name_template" name="folder_name_template" value="{{$o.FolderNameTemplate}}">
+								</div>
+								<div class="row g-2 mb-2">
+									<div class="col-sm-6">
+										<label for="updates_folder" class="form-label">{{t "Updates subfolder"}}</label>
+										<input type="text" class="form-control" id="updates_folder" name="updates_folder" value="{{$o.UpdatesFolder}}" placeholder="{{t "optional, e.g. Updates"}}">
+									</div>
+									<div class="col-sm-6">
+										<label for="dlc_folder" class="form-label">{{t "DLC subfolder"}}</label>
+										<input type="text" class="form-control" id="dlc_folder" name="dlc_folder" value="{{$o.DlcFolder}}" placeholder="{{t "optional, e.g. DLC"}}">
+									</div>
+								</div>
+								<div class="form-text mb-3">{{t "Inside the game folder, or inside the library folder when no game folders are created."}}</div>
+								<div class="form-check form-switch mb-1">
+									<input class="form-check-input" type="checkbox" role="switch" id="folders_with_ids" name="folders_with_ids" value="true" aria-describedby="folders_with_ids_help"{{if $o.FoldersWithIds}} checked{{end}}>
+									<label class="form-check-label" for="folders_with_ids">{{t "A folder with its ID for each update and DLC"}}</label>
+								</div>
+								<div class="form-text mb-3" id="folders_with_ids_help">{{t "The game folder gets its ID too: Game [0100…000] › Update [0100…800], and DLC › name of the DLC [0100…001]."}}</div>
+								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" id="process_when_missing_base_game" name="process_when_missing_base_game" value="true"{{if $o.ProcessWhenMissingBaseGame}} checked{{end}}>
+									<label class="form-check-label" for="process_when_missing_base_game">{{t "Also organize updates and DLC without base game"}}</label>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<div class="surface h-100">
+							<div>
+								<h3 class="h6 fw-semibold mb-3"><span class="bi bi-input-cursor-text me-2 text-primary" aria-hidden="true"></span>{{t "File names"}}</h3>
+								<div class="form-check form-switch mb-2">
+									<input class="form-check-input" type="checkbox" role="switch" id="rename_files" name="rename_files" value="true"{{if $o.RenameFiles}} checked{{end}}>
+									<label class="form-check-label" for="rename_files">{{t "Rename files"}}</label>
+								</div>
+								<div class="mb-2">
+									<label for="file_name_template" class="form-label">{{t "File name template"}}</label>
+									<input type="text" class="form-control font-monospace" id="file_name_template" name="file_name_template" value="{{$o.FileNameTemplate}}">
+								</div>
+								<div class="form-text mb-3">
+									{{t "Available:"}} <code>{{t "{TITLE_NAME}"}}</code> <code>{{t "{TITLE_ID}"}}</code> <code>{{t "{VERSION}"}}</code> <code>{{t "{VERSION_TXT}"}}</code> <code>{{t "{REGION}"}}</code> <code>{{t "{TYPE}"}}</code> <code>{{t "{DLC_NAME}"}}</code>
+								</div>
+								<div class="form-check form-switch mb-3">
+									<input class="form-check-input" type="checkbox" role="switch" id="switch_safe_file_names" name="switch_safe_file_names" value="true"{{if $o.SwitchSafeFileNames}} checked{{end}}>
+									<label class="form-check-label" for="switch_safe_file_names">{{t "Switch safe names (ASCII only)"}}</label>
+								</div>
+								<h3 class="h6 fw-semibold mb-3 pt-3 border-top"><span class="bi bi-trash3 me-2 text-primary" aria-hidden="true"></span>{{t "Cleanup"}}</h3>
+								<div class="form-check form-switch mb-2">
+									<input class="form-check-input" type="checkbox" role="switch" id="delete_duplicate_files" name="delete_duplicate_files" value="true"{{if $o.DeleteDuplicateFiles}} checked{{end}}>
+									<label class="form-check-label" for="delete_duplicate_files">{{t "Also delete duplicate files"}}</label>
+								</div>
+								<div class="mb-2">
+									<label for="keep_duplicate" class="form-label">{{t "Copy of a duplicate to keep"}}</label>
+									<select class="form-select" id="keep_duplicate" name="keep_duplicate" aria-describedby="keep_duplicate_help">
+										<option value=""{{if eq $o.KeepDuplicate ""}} selected{{end}}>{{t "The first one found"}}</option>
+										<option value="nsp"{{if eq $o.KeepDuplicate "nsp"}} selected{{end}}>{{t "NSP or NSZ"}}</option>
+										<option value="xci"{{if eq $o.KeepDuplicate "xci"}} selected{{end}}>{{t "XCI or XCZ"}}</option>
+										<option value="auto"{{if eq $o.KeepDuplicate "auto"}} selected{{end}}>{{t "Let the app choose"}}</option>
+									</select>
+								</div>
+								<div class="form-text mb-2" id="keep_duplicate_help">{{t "Letting the app choose keeps a file with several titles, and otherwise the smaller file. A file with several titles is never deleted while it holds something the library keeps."}}</div>
+								<div class="form-check form-switch mb-2 cheat-update-switch">
+									<input class="form-check-input" type="checkbox" role="switch" id="keep_updates_with_cheats" name="keep_updates_with_cheats" value="true"{{if not $o.DeleteUpdatesWithCheats}} checked{{end}}>
+									<label class="form-check-label" for="keep_updates_with_cheats">{{t "Keep an old update that has cheats when the newer one has none"}}</label>
+									<div class="cheat-update-warning small py-2 px-3 mt-2 mb-0" role="note"><span class="bi bi-exclamation-triangle me-1" aria-hidden="true"></span>{{t "Off: Delete old updates, Space and the automations delete these updates like any other, and their cheats are lost until you get that version again."}}</div>
+								</div>
+								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" id="delete_empty_folders" name="delete_empty_folders" value="true"{{if $o.DeleteEmptyFolders}} checked{{end}}>
+									<label class="form-check-label" for="delete_empty_folders">{{t "Delete empty folders afterwards"}}</label>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-12 text-end">
+						<button type="submit" class="btn btn-primary rounded-pill px-4"><span class="bi bi-check-lg me-2" aria-hidden="true"></span>{{t "Save"}}</button>
+					</div>
+				</form>
+			</div>
 {{- end}}

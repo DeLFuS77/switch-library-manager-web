@@ -81,6 +81,7 @@ func i18nFuncs(lang string) template.FuncMap {
 		"formatMonth":    func(value time.Time) string { return formatMonth(lang, value) },
 		"formatDay":      func(value time.Time) string { return formatDay(lang, value) },
 		"num":            func(value int) string { return formatNumber(lang, value) },
+		"numShort":       func(value int) string { return formatShortNumber(lang, value) },
 		"formatDateTime": func(value time.Time) string { return formatDateTime(lang, value) },
 		"issue":          func(text string) string { return translateIssue(lang, text) },
 	}
@@ -202,6 +203,24 @@ func formatNumber(lang string, value int) string {
 		return "-" + builder.String()
 	}
 	return builder.String()
+}
+
+// formatShortNumber writes a big number short, for the room of a phone: 24943 is "25k", and
+// "2.5万" in Japanese and Chinese, "2.5만" in Korean, which count by ten thousands.
+func formatShortNumber(lang string, value int) string {
+	switch lang {
+	case "ja", "zh", "ko":
+		unit := "万"
+		if lang == "ko" {
+			unit = "만"
+		}
+		tenths := (value + 500) / 1000
+		if tenths%10 == 0 || tenths >= 1000 {
+			return formatNumber(lang, (tenths+5)/10) + unit
+		}
+		return strconv.Itoa(tenths/10) + "." + strconv.Itoa(tenths%10) + unit
+	}
+	return formatNumber(lang, (value+500)/1000) + "k"
 }
 
 var monthAbbreviations = map[string][12]string{

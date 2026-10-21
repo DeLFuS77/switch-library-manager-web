@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	if (restoreFilters()) {
 		return;
 	}
+	linkRememberedFilters();
 	const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
 	[...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
 
@@ -32,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initFlashMessages();
 	initSaveWhenChanged();
 	initKeysUpload();
+	initPageTabs();
 	initOrganize();
 	initIgnoreButtons();
 	initLibraryBulk();

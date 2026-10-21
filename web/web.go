@@ -201,10 +201,12 @@ type Web struct {
 	compressor    compressor
 	// files are being organized or deleted by Organize: file tasks wait
 	organizing atomic.Bool
-	cache      derivedCache
-	auth       *Auth
-	tasks      *TaskLog
-	tasksOnce  sync.Once
+	// where the files moved by Organize went, for the lists made before
+	moves     movedFiles
+	cache     derivedCache
+	auth      *Auth
+	tasks     *TaskLog
+	tasksOnce sync.Once
 	// the task that receives the progress of the running synchronization, 0 if none
 	currentTask atomic.Int64
 	router      *mux.Router

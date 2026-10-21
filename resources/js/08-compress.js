@@ -112,13 +112,16 @@ function bindFileForm(form, url) {
 			})
 			.catch(() => undefined);
 	};
-	const details = form.closest('details');
-	if (list && details) {
-		details.addEventListener('toggle', () => {
-			if (details.open && !list.dataset.loaded) {
+	// a list is loaded when its tab is first shown
+	const panel = form.closest('[role="tabpanel"]');
+	if (list && panel) {
+		const loadOnce = () => {
+			if (!panel.hidden && !list.dataset.loaded) {
 				load('');
 			}
-		});
+		};
+		panel.addEventListener('slm:tab-shown', loadOnce);
+		loadOnce();
 	}
 
 	// the rows shown: those that match the filter by name and the kind chosen

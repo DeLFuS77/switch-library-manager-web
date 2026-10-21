@@ -194,6 +194,7 @@ func (web *Web) runOrganizeAction(action string, trigger string) ([]process.Oper
 	taskId := web.startTask(kind, trigger)
 	operations, err := web.organize(action, false)
 	web.verifications().follow(operations)
+	web.moves.record(operations)
 	var failure *TaskNote
 	if err == nil {
 		web.taskLog().SetResult(taskId, 0, len(operations))
