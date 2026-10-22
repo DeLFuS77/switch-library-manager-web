@@ -267,3 +267,49 @@ func TestMergeKeepsTheNewest(t *testing.T) {
 		t.Fatalf("the same version: %v %v", replaced, err)
 	}
 }
+
+// Splitting a pack gives back the NSP files it was made of, byte for byte, when their headers
+// are aligned to 0x10 as the tools that make NSP files write them.
+func TestSplitGivesBackThePackedFiles(t *testing.T) {
+	initNszKeys(t, "")
+	folder := t.TempDir()
+	originals := []string{}
+	for i, title := range []struct {
+		id       uint64
+		version  uint32
+		metaType byte
+	}{{0x0100000000010800, 65536, ContentMetaType_Patch}, {0x0100000000011001, 0, ContentMetaType_AddOnContent}} {
+		made := writeTitleNsp(t, folder, title.id, title.version, title.metaType, 10+i)
+		original := filepath.Join(folder, fmt.Sprintf("original-%d.nsp", i))
+		// written again with the header the tools write
+		if _, _, err := StripDeltasAndCheck(context.Background(), made, original, nil); err != nil {
+			t.Fatal(err)
+		}
+		originals = append(originals, original)
+	}
+	pack := filepath.Join(folder, "pack.nsp")
+	if _, _, err := MergeAndCheck(context.Background(), originals, pack, true, nil); err != nil {
+		t.Fatal(err)
+	}
+	plan, err := PlanSplit(pack)
+	if err != nil || len(plan.Parts) != 2 {
+		t.Fatalf("parts: %+v %v", plan, err)
+	}
+	for i, part := range plan.Parts {
+		target := filepath.Join(folder, fmt.Sprintf("part-%d.nsp", i))
+		if _, err := WriteSplitPartAndCheck(context.Background(), pack, part, target, nil); err != nil {
+			t.Fatal(err)
+		}
+		got, _ := os.ReadFile(target)
+		matched := false
+		for _, original := range originals {
+			if want, _ := os.ReadFile(original); bytes.Equal(got, want) {
+				matched = true
+			}
+		}
+		info, _ := os.Stat(target)
+		if !matched || info.Size() != part.Size {
+			t.Fatalf("part %s is not its original NSP byte for byte (%d bytes, %d planned)", part.TitleId, info.Size(), part.Size)
+		}
+	}
+}

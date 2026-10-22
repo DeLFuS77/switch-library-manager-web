@@ -280,7 +280,7 @@ func pfs0Size(files []packedFile) int64 {
 	for _, file := range files {
 		header += int64(len(file.name)) + 1
 	}
-	size := (header + 0x1F) &^ 0x1F
+	size := pfs0HeaderLen(header)
 	for _, file := range files {
 		size += file.size
 	}

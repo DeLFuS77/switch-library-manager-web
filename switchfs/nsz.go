@@ -1375,11 +1375,18 @@ func (w *pfs0Writer) begin() error {
 		needed += int64(len(name)) + 1
 	}
 	if needed > w.headerLen {
-		// names got longer than in the original: use a bigger, aligned header
-		w.headerLen = (needed + 0x1F) &^ 0x1F
+		// a new header, or names longer than in the original: aligned to 0x10, as the tools that
+		// make NSP files from installed titles write it, so a part split from a pack is the NSP
+		// it was made of byte for byte
+		w.headerLen = pfs0HeaderLen(needed)
 	}
 	_, err := w.file.Write(make([]byte, w.headerLen))
 	return err
+}
+
+// pfs0HeaderLen is the length of a PFS0 header that needs the bytes given.
+func pfs0HeaderLen(needed int64) int64 {
+	return (needed + 0xF) &^ 0xF
 }
 
 func (w *pfs0Writer) startFile() {
