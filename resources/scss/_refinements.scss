@@ -576,3 +576,20 @@ html {
 	font-size: var(--slm-text-xs);
 	font-weight: 700;
 }
+
+// up and down in the queue, at the end of each task
+.queue-order {
+	display: flex;
+	flex-shrink: 0;
+	flex-direction: column;
+
+	.btn {
+		padding: 0 .4rem;
+		line-height: 1.2;
+		color: var(--bs-secondary-color);
+
+		&:hover:not(:disabled) {
+			color: var(--bs-body-color);
+		}
+	}
+}

@@ -5,10 +5,13 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 // The tasks on files run one at a time. One asked for while another works waits in a queue,
@@ -39,6 +42,9 @@ type taskQueue struct {
 	path   string
 	items  []QueuedTask
 	nextId int64
+	// when the run of the queue began: the task working when the first one was queued, or the
+	// first one started; zero while the queue is not used. Its end is told by the notifications.
+	started time.Time
 }
 
 func (web *Web) queue() *taskQueue {
@@ -51,8 +57,9 @@ func (web *Web) queue() *taskQueue {
 // queueFile is the queue on disk, with the last ID given: a page drawn before a restart must
 // never take out a task that got the ID of one it showed.
 type queueFile struct {
-	LastId int64        `json:"lastId"`
-	Items  []QueuedTask `json:"items"`
+	LastId  int64        `json:"lastId"`
+	Items   []QueuedTask `json:"items"`
+	Started time.Time    `json:"started,omitempty"`
 }
 
 func loadTaskQueue(path string) *taskQueue {
@@ -60,7 +67,7 @@ func loadTaskQueue(path string) *taskQueue {
 	if data, err := os.ReadFile(path); err == nil {
 		saved := queueFile{}
 		if parseStore(path, data, &saved) == nil {
-			queue.items, queue.nextId = saved.Items, saved.LastId
+			queue.items, queue.nextId, queue.started = saved.Items, saved.LastId, saved.Started
 		}
 	}
 	for _, item := range queue.items {
@@ -71,7 +78,7 @@ func loadTaskQueue(path string) *taskQueue {
 
 // save keeps the queue; the caller holds the mutex.
 func (q *taskQueue) save() {
-	data, err := json.Marshal(queueFile{LastId: q.nextId, Items: q.items})
+	data, err := json.Marshal(queueFile{LastId: q.nextId, Items: q.items, Started: q.started})
 	if err == nil {
 		writeFileAtomic(q.path, data)
 	}
@@ -121,6 +128,38 @@ func (q *taskQueue) remove(ids map[int64]bool) int {
 	return removed
 }
 
+// move puts a task one place earlier (up) or later in the queue, and tells whether it moved.
+func (q *taskQueue) move(id int64, up bool) bool {
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
+	for i, item := range q.items {
+		if item.Id != id {
+			continue
+		}
+		other := i + 1
+		if up {
+			other = i - 1
+		}
+		if other < 0 || other >= len(q.items) {
+			return false
+		}
+		q.items[i], q.items[other] = q.items[other], q.items[i]
+		q.save()
+		return true
+	}
+	return false
+}
+
+// begin marks the start of a run of the queue, when it is not marked yet.
+func (q *taskQueue) begin(at time.Time) {
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
+	if q.started.IsZero() {
+		q.started = at
+		q.save()
+	}
+}
+
 // list is the queue in its order.
 func (q *taskQueue) list() []QueuedTask {
 	q.mutex.Lock()
@@ -156,12 +195,70 @@ func (web *Web) runQueue() {
 	queue := web.queue()
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
-	if len(queue.items) == 0 || !web.startQueued(queue.items[0]) {
+	if len(queue.items) == 0 {
+		// the last task of a run of the queue ended: told once, with what each task did
+		if !queue.started.IsZero() && !web.filesBusy() {
+			since := queue.started
+			queue.started = time.Time{}
+			queue.save()
+			go web.notifyQueueDone(since)
+		}
 		return
+	}
+	now := time.Now()
+	if !web.startQueued(queue.items[0]) {
+		return
+	}
+	if queue.started.IsZero() {
+		queue.started = now
 	}
 	queue.items = queue.items[1:]
 	queue.save()
 	web.taskLog().Touch()
+}
+
+// queueKinds are the kinds of tasks the queue runs.
+var queueKinds = map[string]bool{TASK_COMPRESS: true, TASK_DECOMPRESS: true, TASK_CONVERT: true, TASK_PACK: true, TASK_SPLIT: true, TASK_VERIFY: true}
+
+// notifyQueueDone tells by the channels of the notifications that the queue is done, with each
+// task on files that ran since it began and how it ended.
+func (web *Web) notifyQueueDone(since time.Time) {
+	if isDemoMode() {
+		return
+	}
+	settingsObj := settings.ReadSettings(web.dataFolder)
+	options := settingsObj.Notifications
+	if !notificationsConfigured(options) || options.QueueDoneQuiet {
+		return
+	}
+	lang := settingsObj.Language
+	if !isSupportedLanguage(lang) {
+		lang = DEFAULT_LANGUAGE
+	}
+	tasks := []Task{}
+	for _, task := range web.taskLog().Snapshot() {
+		if queueKinds[task.Kind] && !task.Running() && !task.Started.Before(since) {
+			tasks = append(tasks, task)
+		}
+	}
+	if len(tasks) == 0 {
+		return
+	}
+	sort.Slice(tasks, func(i, j int) bool { return tasks[i].Started.Before(tasks[j].Started) })
+	lines := []string{}
+	items := []any{}
+	for _, task := range tasks {
+		kind := translate(lang, taskKindNames[task.Kind])
+		if task.Error != nil {
+			lines = append(lines, "✗ "+translatef(lang, "%v failed: %v", kind, translate(lang, task.Error.Text)))
+		} else {
+			lines = append(lines, "✓ "+translatef(lang, "%v: done", kind))
+		}
+		items = append(items, map[string]any{"kind": task.Kind, "id": task.Id, "status": task.Status})
+	}
+	if err := sendMessage(options, translate(lang, "The queue of tasks is done"), strings.Join(lines, "\n"), items); err != nil {
+		web.sugarLogger.Warnf("Failed to send the notification of the queue: %v", err)
+	}
 }
 
 // startOrQueue starts a task now when nothing works on the files, or puts it at the end of
@@ -170,6 +267,14 @@ func (web *Web) startOrQueue(w http.ResponseWriter, task QueuedTask) {
 	id := web.queue().add(task)
 	web.runQueue()
 	if position := web.queue().position(id); position > 0 {
+		// the run of the queue begins with the task working now
+		begun := time.Now()
+		for _, running := range web.taskLog().Snapshot() {
+			if running.Running() && running.Started.Before(begun) {
+				begun = running.Started
+			}
+		}
+		web.queue().begin(begun)
 		web.taskLog().Touch()
 		writeJSON(w, http.StatusAccepted, map[string]any{"queued": position})
 		return
@@ -211,5 +316,17 @@ func (web *Web) handleQueue() {
 		removed := web.queue().remove(ids)
 		web.taskLog().Touch()
 		writeJSON(w, http.StatusOK, map[string]any{"removed": removed})
+	}).Methods("POST")
+
+	// a task one place earlier or later in the queue
+	web.router.HandleFunc("/api/queue/move", func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.ParseInt(r.FormValue("id"), 10, 64)
+		if err != nil {
+			http.Error(w, "invalid request", http.StatusBadRequest)
+			return
+		}
+		moved := web.queue().move(id, r.FormValue("dir") == "up")
+		web.taskLog().Touch()
+		writeJSON(w, http.StatusOK, map[string]any{"moved": moved})
 	}).Methods("POST")
 }

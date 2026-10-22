@@ -319,6 +319,10 @@ func sortedKeys[V any](m map[string]V) []string {
 
 // REASON_IN_USE is why a file listed as old or duplicate is kept: a file with several
 // contents (a complete pack, a card with its update) is listed for one of them.
+// REASON_NO_BASE is an update or a DLC whose game is not in the library, with the option to organize
+// them off
+const REASON_NO_BASE = "Its game is not in the library, so it is left where it is: turn on \"Also organize updates and DLC without base game\" in the options to organize it."
+
 const REASON_IN_USE = "It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted."
 
 // FilesInUse are the paths of the files that hold content the library keeps: the game,
@@ -466,6 +470,15 @@ func OrganizeByFolders(baseFolder string,
 	for i, k := range keys {
 		v := localDB.TitlesMap[k]
 		if !v.BaseExist && !options.ProcessWhenMissingBaseGame {
+			// told, so that the files left where they are do not go unnoticed
+			for _, update := range sortedIntKeys(v.Updates) {
+				info := v.Updates[update].ExtendedInfo
+				ops.skip(filepath.Join(info.BaseFolder, info.FileName), REASON_NO_BASE)
+			}
+			for _, id := range sortedKeys(v.Dlc) {
+				info := v.Dlc[id].ExtendedInfo
+				ops.skip(filepath.Join(info.BaseFolder, info.FileName), REASON_NO_BASE)
+			}
 			continue
 		}
 

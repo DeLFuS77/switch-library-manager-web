@@ -464,6 +464,18 @@ function initQueue() {
 			updateQueueButton(document);
 		}
 	});
+	// one place earlier or later; the list is drawn again in its new order
+	document.addEventListener('click', e => {
+		const move = e.target.closest('[data-queue-move]');
+		if (!move) {
+			return;
+		}
+		move.disabled = true;
+		postForm('/api/queue/move', { id: move.dataset.queueId, dir: move.dataset.queueMove }).catch(error => {
+			move.disabled = false;
+			insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message || t('Could not reach the server.'));
+		});
+	});
 	document.addEventListener('click', e => {
 		const button = e.target.closest('[data-queue-remove]');
 		if (!button) {

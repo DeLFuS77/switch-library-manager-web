@@ -6,6 +6,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/process"
@@ -201,12 +202,49 @@ func (web *Web) runOrganizeAction(action string, trigger string) ([]process.Oper
 	web.moves.record(operations)
 	var failure *TaskNote
 	if err == nil {
-		web.taskLog().SetResult(taskId, 0, len(operations))
+		web.taskLog().SetResult(taskId, 0, web.noteOrganized(taskId, operations))
 	} else {
 		failure = &TaskNote{Text: NOTE_ORGANIZE_FAILED, Detail: err.Error()}
 	}
 	web.finishTask(taskId, failure)
 	return operations, err
+}
+
+// organizeNotesShown is how many files left out are told one by one in Tasks; the others are
+// counted, and the preview of Organize lists them all.
+const organizeNotesShown = 30
+
+// noteOrganized tells in the task the files that could not be changed and the ones left as they
+// are, each with why, and gives how many were changed.
+func (web *Web) noteOrganized(taskId int64, operations []process.Operation) int {
+	appSettings := settings.ReadSettings(web.dataFolder)
+	lang := appSettings.Language
+	if !isSupportedLanguage(lang) {
+		lang = DEFAULT_LANGUAGE
+	}
+	changed, told, untold := 0, 0, 0
+	tell := func(text string, op process.Operation, why string) {
+		if told == organizeNotesShown {
+			untold++
+			return
+		}
+		told++
+		web.taskLog().Warn(taskId, text, displayPath(appSettings.Folder, op.From)+": "+translate(lang, why))
+	}
+	for _, op := range operations {
+		switch {
+		case op.Error != "":
+			tell(NOTE_ORGANIZE_FILE_FAILED, op, op.Error)
+		case op.Kind == process.OP_SKIP:
+			tell(NOTE_ORGANIZE_FILE_KEPT, op, op.Reason)
+		case op.Kind != process.OP_CLEANUP:
+			changed++
+		}
+	}
+	if untold > 0 {
+		web.taskLog().Warn(taskId, NOTE_ORGANIZE_MORE, strconv.Itoa(untold))
+	}
+	return changed
 }
 
 // removeFilesAsTask deletes files of the library as a cleanup task, while no scan,

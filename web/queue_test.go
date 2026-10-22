@@ -8,9 +8,11 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -122,5 +124,74 @@ func TestTasksPageShowsTheQueue(t *testing.T) {
 	web.router.ServeHTTP(remove, form)
 	if remove.Code != http.StatusOK || len(web.queue().list()) != 2 {
 		t.Fatalf("remove: %d %s, %d left", remove.Code, remove.Body.String(), len(web.queue().list()))
+	}
+}
+
+// A task moves one place up or down in the queue, never out of it.
+func TestQueueMoves(t *testing.T) {
+	queue := loadTaskQueue(filepath.Join(t.TempDir(), "queue.json"))
+	a := queue.add(QueuedTask{Kind: TASK_COMPRESS})
+	b := queue.add(QueuedTask{Kind: TASK_PACK})
+	c := queue.add(QueuedTask{Kind: TASK_VERIFY})
+	order := func() []int64 {
+		ids := []int64{}
+		for _, item := range queue.list() {
+			ids = append(ids, item.Id)
+		}
+		return ids
+	}
+	if !queue.move(c, true) || queue.move(a, true) || queue.move(b, false) {
+		t.Fatalf("moves: %v", order())
+	}
+	if got := order(); got[0] != a || got[1] != c || got[2] != b {
+		t.Fatalf("order: %v", got)
+	}
+	if again := loadTaskQueue(queue.path).list(); again[1].Id != c {
+		t.Fatal("the new order is kept")
+	}
+}
+
+// When the last task of a run of the queue ends, the notifications tell it once, with each
+// task that ran, the one working when the first was queued included.
+func TestQueueDoneIsNotified(t *testing.T) {
+	web, path := compressWeb(t)
+	var mutex sync.Mutex
+	messages := []string{}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var body map[string]any
+		json.NewDecoder(r.Body).Decode(&body)
+		mutex.Lock()
+		messages = append(messages, body["title"].(string)+" | "+body["message"].(string))
+		mutex.Unlock()
+	}))
+	t.Cleanup(server.Close)
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+		s.Notifications = settings.NotificationOptions{WebhookUrl: server.URL}
+		s.Language = "es"
+	})
+
+	release := make(chan struct{})
+	web.runFileTask(TASK_DECOMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		<-release
+		return 0, nil
+	})
+	web.startOrQueue(httptest.NewRecorder(), QueuedTask{Kind: TASK_COMPRESS, Paths: []string{path}, Level: switchfs.LevelFast})
+	close(release)
+
+	deadline := time.Now().Add(20 * time.Second)
+	for {
+		mutex.Lock()
+		n := len(messages)
+		mutex.Unlock()
+		if n > 0 || time.Now().After(deadline) {
+			break
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	time.Sleep(300 * time.Millisecond)
+	mutex.Lock()
+	defer mutex.Unlock()
+	if len(messages) != 1 || !strings.Contains(messages[0], "La cola de tareas ha terminado") || !strings.Contains(messages[0], "Descompresión: hecho") || !strings.Contains(messages[0], "Compresión: hecho") {
+		t.Fatalf("messages: %q", messages)
 	}
 }

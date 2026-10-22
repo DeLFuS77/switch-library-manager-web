@@ -435,6 +435,10 @@
 										<input class="form-check-input" type="checkbox" role="switch" id="notify_task_failures" name="notify_task_failures" value="true"{{if .Settings.Notifications.NotifyTaskFailures}} checked{{end}}>
 										<label class="form-check-label" for="notify_task_failures">{{t "Notify the tasks that fail"}}</label>
 									</div>
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="notify_queue_done" name="notify_queue_done" value="true"{{if not .Settings.Notifications.QueueDoneQuiet}} checked{{end}}>
+										<label class="form-check-label" for="notify_queue_done">{{t "Notify when the queue of tasks is done"}}</label>
+									</div>
 									<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill ms-sm-auto" id="notificationTest"><span class="bi bi-send me-1" aria-hidden="true"></span>{{t "Send a test notification"}}</button>
 								</div>
 							</div>

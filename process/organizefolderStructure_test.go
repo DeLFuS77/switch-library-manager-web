@@ -309,8 +309,14 @@ func TestOrganizeSkipsSplitFilesAndMissingBase(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if countKind(ops, OP_SKIP) != 1 || countKind(ops, OP_MOVE) != 0 {
-		t.Fatalf("expected only the split file to be skipped: %+v", ops)
+	// the split file and the update without its game are left where they are, both told
+	if countKind(ops, OP_SKIP) != 2 || countKind(ops, OP_MOVE) != 0 {
+		t.Fatalf("expected the split file and the orphan update to be skipped: %+v", ops)
+	}
+	for _, op := range ops {
+		if op.From == filepath.Join(orphan.BaseFolder, orphan.FileName) && op.Reason != REASON_NO_BASE {
+			t.Fatalf("the orphan update without its reason: %+v", op)
+		}
 	}
 	assertExists(t, filepath.Join(baseFolder, "Split.nsp", "00"), true)
 
