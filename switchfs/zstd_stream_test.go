@@ -22,7 +22,7 @@ func TestStreamEncoderWindowAndRoundTrip(t *testing.T) {
 		piece := pattern[random.Intn(len(pattern)-4096):]
 		data = append(data, piece[:min(len(piece), 64<<10, cap(data)-len(data))]...)
 	}
-	for _, level := range []string{LevelFast, LevelBalanced, LevelMax} {
+	for _, level := range []string{LevelFast, LevelBalanced, LevelMax, "1", "9", "18", "19"} {
 		for _, workers := range []int{1, 4} {
 			var out bytes.Buffer
 			encoder, err := newStreamEncoder(&out, level, workers)
@@ -58,7 +58,7 @@ func TestStreamEncoderWindowAndRoundTrip(t *testing.T) {
 // The encoder is closed once even when its Close is called again, as a deferred Close after
 // the last one does: the encoder in C freed its memory twice.
 func TestStreamEncoderClosesOnce(t *testing.T) {
-	for _, level := range []string{LevelFast, LevelBalanced, LevelMax} {
+	for _, level := range []string{LevelFast, LevelBalanced, LevelMax, "1", "9", "18", "19"} {
 		var out bytes.Buffer
 		encoder, err := newStreamEncoder(&out, level, 2)
 		if err != nil {

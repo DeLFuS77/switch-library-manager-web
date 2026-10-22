@@ -29,6 +29,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -57,9 +58,22 @@ const (
 	LevelMax      = "max"
 )
 
+// MaxLevel is the highest numbered level ("1" to "19", as nsz numbers them): above it the
+// zstd window grows past the 8 MiB (nczWindowSize) the installers of the console decompress with.
+const MaxLevel = 19
+
+// levelNumber is the zstd level of a numbered level.
+func levelNumber(level string) (int, bool) {
+	n, err := strconv.Atoi(level)
+	if err != nil || n < 1 || n > MaxLevel {
+		return 0, false
+	}
+	return n, true
+}
+
 // CompressOptions tune a compression.
 type CompressOptions struct {
-	// LevelFast, LevelBalanced (default) or LevelMax
+	// LevelFast, LevelBalanced (default) or LevelMax, or a numbered level from "1" to "19"
 	Level string
 	// threads used by the encoder; 0 means 1
 	Workers int
@@ -750,6 +764,18 @@ func (r nczPlainReader) read(data []byte, position uint64) error {
 }
 
 func encoderLevel(level string) zstd.EncoderLevel {
+	// a numbered level, in the four levels of the encoder in Go
+	if n, ok := levelNumber(level); ok {
+		switch {
+		case n <= 3:
+			return zstd.SpeedFastest
+		case n <= 9:
+			return zstd.SpeedDefault
+		case n <= 15:
+			return zstd.SpeedBetterCompression
+		}
+		return zstd.SpeedBestCompression
+	}
 	switch level {
 	case LevelFast:
 		return zstd.SpeedDefault

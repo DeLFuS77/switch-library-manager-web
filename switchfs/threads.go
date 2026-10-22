@@ -12,6 +12,13 @@ func LimitThreads(level string, threads int, files int) int {
 		level = LevelBalanced
 	}
 	perThread, native := nativeThreadMemory[level]
+	// a numbered level takes the memory of the named level it is nearest to
+	if n, ok := levelNumber(level); ok {
+		perThread, native = nativeThreadMemory[LevelBalanced], true
+		if n > 13 {
+			perThread = nativeThreadMemory[LevelMax]
+		}
+	}
 	if !NativeZstd || !native || threads <= 1 {
 		return threads
 	}

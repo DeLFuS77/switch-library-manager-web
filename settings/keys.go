@@ -207,3 +207,34 @@ func KeysSummary() (keys int, titleKeys int, generation int) {
 	}
 	return len(loaded.keys), len(loaded.titleKeys), generation
 }
+
+// UseSwitchKeys makes the keys of a file the active ones: a prod.keys or a keys.txt as hactool
+// reads them, or a folder holding one, with the title.keys next to it when there is one. It is
+// for the tools that take the keys on their command line, as nsz does with --keys.
+func UseSwitchKeys(path string) error {
+	if info, err := os.Stat(path); err == nil && info.IsDir() {
+		for _, name := range []string{"prod.keys", "keys.txt"} {
+			if _, err := os.Stat(filepath.Join(path, name)); err == nil {
+				path = filepath.Join(path, name)
+				break
+			}
+		}
+	}
+	p, err := properties.LoadFile(path, properties.UTF8)
+	if err != nil {
+		return err
+	}
+	loaded := &switchKeys{keys: map[string]string{}, titleKeys: map[string]string{}}
+	for _, key := range p.Keys() {
+		value, _ := p.Get(key)
+		loaded.keys[key] = value
+	}
+	if titleKeys, err := properties.LoadFile(filepath.Join(filepath.Dir(path), "title.keys"), properties.UTF8); err == nil {
+		for _, rightsId := range titleKeys.Keys() {
+			value, _ := titleKeys.Get(rightsId)
+			loaded.titleKeys[strings.ToLower(strings.TrimSpace(rightsId))] = strings.TrimSpace(value)
+		}
+	}
+	keysInstance.Store(loaded)
+	return nil
+}
