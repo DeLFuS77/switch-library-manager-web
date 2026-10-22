@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/hex"
+	"fmt"
 	"image"
 	"image/jpeg"
 	"os"
@@ -150,5 +151,165 @@ func TestPackIsReadLikeItsPackages(t *testing.T) {
 	all := filepath.Join(t.TempDir(), "all.nsp")
 	if skipped, err := MergePackages(context.Background(), []string{base, update}, all, false, nil); err != nil || skipped != 0 {
 		t.Fatalf("with the deltas: %d %v", skipped, err)
+	}
+}
+
+// An update alone, without its delta fragments: what is left out is told first.
+func TestUpdateWithoutDeltas(t *testing.T) {
+	initNszKeys(t, "")
+	programNca := makeProgramNca(t, gameData(0x20000), 3, "")
+	programName := contentName(programNca, ".nca")
+	var program [16]byte
+	hex.Decode(program[:], []byte(strings.TrimSuffix(programName, ".nca")))
+	delta := [16]byte{0xde, 2}
+	cnmt := make([]byte, 0x20+2*0x38)
+	binary.LittleEndian.PutUint64(cnmt[0:8], 0x0100000000010800)
+	binary.LittleEndian.PutUint32(cnmt[8:12], 65536)
+	cnmt[0xC] = ContentMetaType_Patch
+	binary.LittleEndian.PutUint16(cnmt[0x10:0x12], 2)
+	copy(cnmt[0x20+0x20:], program[:])
+	cnmt[0x20+0x36] = 1
+	copy(cnmt[0x20+0x38+0x20:], delta[:])
+	cnmt[0x20+0x38+0x36] = 6
+	meta := makeSyntheticNCA(t, pad512(makePFS0(pfs0Magic, []string{"Patch.cnmt"}, [][]byte{cnmt})), 1)
+	deltaName := hex.EncodeToString(delta[:]) + ".nca"
+	folder := t.TempDir()
+	update := filepath.Join(folder, "Update.nsp")
+	os.WriteFile(update, makePFS0(pfs0Magic, []string{"update.cnmt.nca", programName, deltaName},
+		[][]byte{meta, programNca, []byte("delta fragment")}), 0o644)
+
+	if size, err := DeltaFragmentsSize(update); err != nil || size != int64(len("delta fragment")) {
+		t.Fatalf("delta fragments: %d %v", size, err)
+	}
+	stripped := filepath.Join(folder, "stripped.nsp")
+	skipped, _, err := StripDeltasAndCheck(context.Background(), update, stripped, nil)
+	if err != nil || skipped != int64(len("delta fragment")) {
+		t.Fatalf("an update alone: %d %v", skipped, err)
+	}
+	if size, err := DeltaFragmentsSize(stripped); err != nil || size != 0 {
+		t.Fatalf("delta fragments left: %d %v", size, err)
+	}
+	if contents, err := ReadNspMetadata(stripped); err != nil || contents["0100000000010800"] == nil {
+		t.Fatalf("the update is still read: %v %v", contents, err)
+	}
+}
+
+// writeTitleNsp writes an NSP with one title: its Meta NCA and a program NCA of its own.
+func writeTitleNsp(t *testing.T, folder string, titleID uint64, version uint32, metaType byte, seed int) string {
+	t.Helper()
+	programNca := makeProgramNca(t, gameData(0x10000+seed*0x200), 3, "")
+	programName := contentName(programNca, ".nca")
+	var program [16]byte
+	hex.Decode(program[:], []byte(strings.TrimSuffix(programName, ".nca")))
+	cnmt := make([]byte, 0x20+0x38)
+	binary.LittleEndian.PutUint64(cnmt[0:8], titleID)
+	binary.LittleEndian.PutUint32(cnmt[8:12], version)
+	cnmt[0xC] = metaType
+	binary.LittleEndian.PutUint16(cnmt[0x10:0x12], 1)
+	copy(cnmt[0x20+0x20:], program[:])
+	cnmt[0x20+0x36] = 1
+	meta := makeSyntheticNCA(t, pad512(makePFS0(pfs0Magic, []string{"Title.cnmt"}, [][]byte{cnmt})), 1)
+	path := filepath.Join(folder, fmt.Sprintf("%016x-v%d.nsp", titleID, version))
+	os.WriteFile(path, makePFS0(pfs0Magic, []string{contentName(meta, ".cnmt.nca"), programName}, [][]byte{meta, programNca}), 0o644)
+	return path
+}
+
+// A SuperNSP merged with a newer update of its game keeps the new update only.
+func TestMergeKeepsTheNewest(t *testing.T) {
+	initNszKeys(t, "")
+	folder := t.TempDir()
+	oldUpdate := writeTitleNsp(t, folder, 0x0100000000010800, 65536, ContentMetaType_Patch, 1)
+	dlc := writeTitleNsp(t, folder, 0x0100000000011001, 0, ContentMetaType_AddOnContent, 2)
+	super := filepath.Join(folder, "super.nsp")
+	if _, _, err := MergeAndCheck(context.Background(), []string{oldUpdate, dlc}, super, true, nil); err != nil {
+		t.Fatal(err)
+	}
+	newUpdate := writeTitleNsp(t, folder, 0x0100000000010800, 131072, ContentMetaType_Patch, 3)
+
+	updated := filepath.Join(folder, "updated.nsp")
+	_, replaced, _, err := MergeNewestAndCheck(context.Background(), []string{super, newUpdate}, updated, true, nil)
+	if err != nil || len(replaced) != 1 || replaced[0] != "0100000000010800 v65536" {
+		t.Fatalf("replaced %v: %v", replaced, err)
+	}
+	contents, err := ReadNspMetadata(updated)
+	if err != nil || len(contents) != 2 || contents["0100000000010800"] == nil || contents["0100000000010800"].Version != 131072 || contents["0100000000011001"] == nil {
+		t.Fatalf("the DLC and the new update: %v %v", contents, err)
+	}
+	plan, err := PlanSplit(updated)
+	if err != nil || len(plan.Parts) != 2 || !plan.Complete() {
+		t.Fatalf("parts: %+v %v", plan, err)
+	}
+	// the files of the old update are gone
+	old, _ := PlanSplit(super)
+	pkg, _ := ReadPfs0File(updated)
+	for _, part := range old.Parts {
+		if part.Type != "UPD" {
+			continue
+		}
+		for _, name := range part.Files() {
+			for _, file := range pkg.Files {
+				if file.Name == name {
+					t.Fatalf("%s of the old update is left", name)
+				}
+			}
+		}
+	}
+
+	// the order does not matter, and two packages with the newest already give it as it is
+	if _, replaced, _, err := MergeNewestAndCheck(context.Background(), []string{newUpdate, super}, filepath.Join(folder, "again.nsp"), true, nil); err != nil || len(replaced) != 1 {
+		t.Fatalf("other order: %v %v", replaced, err)
+	}
+	if _, replaced, _, err := MergeNewestAndCheck(context.Background(), []string{newUpdate, dlc}, filepath.Join(folder, "plain.nsp"), true, nil); err != nil || len(replaced) != 0 {
+		t.Fatalf("nothing to replace: %v %v", replaced, err)
+	}
+	// the same version twice replaces nothing
+	if _, replaced, _, err := MergeNewestAndCheck(context.Background(), []string{super, oldUpdate}, filepath.Join(folder, "same.nsp"), true, nil); err != nil || len(replaced) != 0 {
+		t.Fatalf("the same version: %v %v", replaced, err)
+	}
+}
+
+// Splitting a pack gives back the NSP files it was made of, byte for byte, when their headers
+// are aligned to 0x10 as the tools that make NSP files write them.
+func TestSplitGivesBackThePackedFiles(t *testing.T) {
+	initNszKeys(t, "")
+	folder := t.TempDir()
+	originals := []string{}
+	for i, title := range []struct {
+		id       uint64
+		version  uint32
+		metaType byte
+	}{{0x0100000000010800, 65536, ContentMetaType_Patch}, {0x0100000000011001, 0, ContentMetaType_AddOnContent}} {
+		made := writeTitleNsp(t, folder, title.id, title.version, title.metaType, 10+i)
+		original := filepath.Join(folder, fmt.Sprintf("original-%d.nsp", i))
+		// written again with the header the tools write
+		if _, _, err := StripDeltasAndCheck(context.Background(), made, original, nil); err != nil {
+			t.Fatal(err)
+		}
+		originals = append(originals, original)
+	}
+	pack := filepath.Join(folder, "pack.nsp")
+	if _, _, err := MergeAndCheck(context.Background(), originals, pack, true, nil); err != nil {
+		t.Fatal(err)
+	}
+	plan, err := PlanSplit(pack)
+	if err != nil || len(plan.Parts) != 2 {
+		t.Fatalf("parts: %+v %v", plan, err)
+	}
+	for i, part := range plan.Parts {
+		target := filepath.Join(folder, fmt.Sprintf("part-%d.nsp", i))
+		if _, err := WriteSplitPartAndCheck(context.Background(), pack, part, target, nil); err != nil {
+			t.Fatal(err)
+		}
+		got, _ := os.ReadFile(target)
+		matched := false
+		for _, original := range originals {
+			if want, _ := os.ReadFile(original); bytes.Equal(got, want) {
+				matched = true
+			}
+		}
+		info, _ := os.Stat(target)
+		if !matched || info.Size() != part.Size {
+			t.Fatalf("part %s is not its original NSP byte for byte (%d bytes, %d planned)", part.TitleId, info.Size(), part.Size)
+		}
 	}
 }

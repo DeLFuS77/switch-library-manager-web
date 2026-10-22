@@ -29,6 +29,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -57,9 +58,22 @@ const (
 	LevelMax      = "max"
 )
 
+// MaxLevel is the highest numbered level ("1" to "19", as nsz numbers them): above it the
+// zstd window grows past the 8 MiB (nczWindowSize) the installers of the console decompress with.
+const MaxLevel = 19
+
+// levelNumber is the zstd level of a numbered level.
+func levelNumber(level string) (int, bool) {
+	n, err := strconv.Atoi(level)
+	if err != nil || n < 1 || n > MaxLevel {
+		return 0, false
+	}
+	return n, true
+}
+
 // CompressOptions tune a compression.
 type CompressOptions struct {
-	// LevelFast, LevelBalanced (default) or LevelMax
+	// LevelFast, LevelBalanced (default) or LevelMax, or a numbered level from "1" to "19"
 	Level string
 	// threads used by the encoder; 0 means 1
 	Workers int
@@ -618,7 +632,19 @@ func writeNczBlocks(ctx context.Context, output *os.File, input io.ReaderAt, off
 	if err := writeNczHeader(output, input, offset, plan, progress); err != nil {
 		return err
 	}
-	dataSize := uint64(size) - nczHeaderSize
+	plain := nczPlainReader{input: input, offset: offset, sections: plan.sections}
+	next := uint64(nczHeaderSize)
+	fill := func(data []byte) error {
+		err := plain.read(data, next)
+		next += uint64(len(data))
+		return err
+	}
+	return writeNczBlockData(ctx, output, uint64(size)-nczHeaderSize, fill, options, progress)
+}
+
+// writeNczBlockData writes the blocks of an NCZ after its section table: the block header,
+// the table of their sizes and the blocks, of dataSize bytes taken in order from fill.
+func writeNczBlockData(ctx context.Context, output *os.File, dataSize uint64, fill func([]byte) error, options CompressOptions, progress func(int64)) error {
 	blockSize := uint64(1) << nczBlockExponent
 	count := (dataSize + blockSize - 1) / blockSize
 	header := make([]byte, 24)
@@ -648,7 +674,6 @@ func writeNczBlocks(ctx context.Context, output *os.File, input io.ReaderAt, off
 		return err
 	}
 	defer encoder.Close()
-	plain := nczPlainReader{input: input, offset: offset, sections: plan.sections}
 
 	// a batch of blocks is read, compressed by every worker at once, then written in order
 	type job struct {
@@ -664,10 +689,10 @@ func writeNczBlocks(ctx context.Context, output *os.File, input io.ReaderAt, off
 		}
 		n := min(uint64(workers), count-first)
 		for i := uint64(0); i < n; i++ {
-			start := nczHeaderSize + (first+i)*blockSize
-			length := min(blockSize, uint64(size)-start)
+			start := (first + i) * blockSize
+			length := min(blockSize, dataSize-start)
 			batch[i].data = batch[i].data[:length]
-			if err := plain.read(batch[i].data, start); err != nil {
+			if err := fill(batch[i].data); err != nil {
 				return err
 			}
 		}
@@ -750,6 +775,18 @@ func (r nczPlainReader) read(data []byte, position uint64) error {
 }
 
 func encoderLevel(level string) zstd.EncoderLevel {
+	// a numbered level, in the four levels of the encoder in Go
+	if n, ok := levelNumber(level); ok {
+		switch {
+		case n <= 3:
+			return zstd.SpeedFastest
+		case n <= 9:
+			return zstd.SpeedDefault
+		case n <= 15:
+			return zstd.SpeedBetterCompression
+		}
+		return zstd.SpeedBestCompression
+	}
 	switch level {
 	case LevelFast:
 		return zstd.SpeedDefault
@@ -1223,18 +1260,18 @@ func checkNczIntegrity(ctx context.Context, input io.ReaderAt, offset int64, siz
 	return check.finish()
 }
 
-// DecompressNsz writes the NSP of an NSZ to target.
+// DecompressNsz writes the NSP of an NSZ, or the XCI of an XCZ, to target.
 func DecompressNsz(ctx context.Context, source string, target string, progress func(done int64, total int64)) error {
 	_, err := decompressNsz(ctx, source, target, progress)
 	return err
 }
 
-// DecompressAndCheck is DecompressNsz that checks the NSP while writing it, instead of
-// reading it again: the SHA-256 of every file is taken as it is written, and an NCA whose
+// DecompressAndCheck is DecompressNsz that checks the NSP (or XCI) while writing it, instead
+// of reading it again: the SHA-256 of every file is taken as it is written, and an NCA whose
 // hash is not its content ID is checked by the hash trees of its data (rewritten by a tool,
-// or damaged), as VerifyFile does. The NSP is then opened again: its list of files, their
+// or damaged), as VerifyFile does. The file is then opened again: its list of files, their
 // sizes and the start and the end of each one, read back from the disk, must be what was
-// written. On an error the NSP is removed.
+// written. On an error the file is removed.
 func DecompressAndCheck(ctx context.Context, source string, target string, progress func(done int64, total int64)) (FileCheck, error) {
 	written, err := decompressNsz(ctx, source, target, progress)
 	if err != nil {
@@ -1247,27 +1284,28 @@ func DecompressAndCheck(ctx context.Context, source string, target string, progr
 	return check, err
 }
 
+// decompressNsz writes the files of an NSZ or an XCZ again with their NCZ decompressed: an
+// NSZ gives an NSP, an XCZ an XCI laid out as the XCZ is (the gamecard header and the area up
+// to the root partition kept, the secure partition holding the files, the other partitions
+// empty), as nsz does.
 func decompressNsz(ctx context.Context, source string, target string, progress func(done int64, total int64)) ([]*writtenFile, error) {
 	input, err := os.Open(source)
 	if err != nil {
 		return nil, err
 	}
 	defer input.Close()
-	if string(mustRead(input, 0, 4)) != pfs0Magic {
-		return nil, errors.New("only NSZ files can be decompressed")
-	}
-	pfs0, err := readPfs0(input, 0)
+	pkg, err := openGamePackage(input)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("only NSZ and XCZ files can be decompressed")
 	}
-	names := make([]string, len(pfs0.Files))
+	names := make([]string, len(pkg.files))
 	var total, done int64
-	for i, file := range pfs0.Files {
-		names[i] = file.Name
-		if strings.HasSuffix(strings.ToLower(file.Name), ".ncz") {
-			names[i] = strings.TrimSuffix(file.Name, ".ncz") + ".nca"
+	for i, file := range pkg.files {
+		names[i] = file.name
+		if strings.HasSuffix(strings.ToLower(file.name), ".ncz") {
+			names[i] = strings.TrimSuffix(file.name, ".ncz") + ".nca"
 		}
-		total += int64(file.Size)
+		total += file.size
 	}
 	report := func(n int64) {
 		done += n
@@ -1280,28 +1318,27 @@ func decompressNsz(ctx context.Context, source string, target string, progress f
 	if err != nil {
 		return nil, err
 	}
-	written := make([]*writtenFile, len(pfs0.Files))
-	writer := &pfs0Writer{file: output, names: names, headerLen: int64(pfs0.HeaderLen)}
+	written := make([]*writtenFile, len(pkg.files))
+	writer := newPackageWriter(output, input, pkg, names)
 	err = writer.begin()
-	for i, file := range pfs0.Files {
+	for i, file := range pkg.files {
 		if err != nil {
 			break
 		}
 		writer.startFile()
 		// what is written of the file is hashed meanwhile, with its start and its end kept
 		written[i] = newWrittenFile(names[i])
-		out := io.MultiWriter(writer.file, written[i])
-		if names[i] != file.Name {
+		out := io.MultiWriter(output, written[i])
+		if names[i] != file.name {
 			// the progress follows the compressed bytes read, like the check: a big NCZ moves
 			// on while it is decompressed instead of all at once at its end
-			start, size := int64(file.StartOffset), int64(file.Size)
-			counter := &countingReaderAt{reader: input, start: start, end: start + size, report: report}
-			err = decompressNcz(ctx, out, counter, start, size, nil)
-			if rest := size - counter.counted; err == nil && rest > 0 {
+			counter := &countingReaderAt{reader: input, start: file.offset, end: file.offset + file.size, report: report}
+			err = decompressNcz(ctx, out, counter, file.offset, file.size, nil)
+			if rest := file.size - counter.counted; err == nil && rest > 0 {
 				report(rest)
 			}
 		} else {
-			err = copyRange(ctx, out, input, int64(file.StartOffset), int64(file.Size), report)
+			err = copyRange(ctx, out, input, file.offset, file.size, report)
 		}
 		if err == nil {
 			err = writer.endFile()
@@ -1338,11 +1375,18 @@ func (w *pfs0Writer) begin() error {
 		needed += int64(len(name)) + 1
 	}
 	if needed > w.headerLen {
-		// names got longer than in the original: use a bigger, aligned header
-		w.headerLen = (needed + 0x1F) &^ 0x1F
+		// a new header, or names longer than in the original: aligned to 0x10, as the tools that
+		// make NSP files from installed titles write it, so a part split from a pack is the NSP
+		// it was made of byte for byte
+		w.headerLen = pfs0HeaderLen(needed)
 	}
 	_, err := w.file.Write(make([]byte, w.headerLen))
 	return err
+}
+
+// pfs0HeaderLen is the length of a PFS0 header that needs the bytes given.
+func pfs0HeaderLen(needed int64) int64 {
+	return (needed + 0xF) &^ 0xF
 }
 
 func (w *pfs0Writer) startFile() {
@@ -1417,7 +1461,11 @@ func NszPath(nspPath string) string {
 	return CompressedPath(nspPath)
 }
 
-// DecompressedPath is the name of the NSP of an NSZ.
+// DecompressedPath is the name of the NSP of an NSZ, or of the XCI of an XCZ.
 func DecompressedPath(nszPath string) string {
-	return strings.TrimSuffix(nszPath, filepath.Ext(nszPath)) + ".nsp"
+	extension := ".nsp"
+	if strings.EqualFold(filepath.Ext(nszPath), ".xcz") {
+		extension = ".xci"
+	}
+	return strings.TrimSuffix(nszPath, filepath.Ext(nszPath)) + extension
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -74,6 +75,31 @@ func deltaFragmentNames(reader io.ReaderAt, pkg *gamePackage) map[string]bool {
 	return names
 }
 
+// DeltaFragmentsSize gives how many bytes the delta fragments of an update take in a file, as
+// its CNMTs list them: what a pack, or MergeAndCheck of the file alone, leaves out.
+func DeltaFragmentsSize(path string) (int64, error) {
+	reader, err := OpenFile(path)
+	if err != nil {
+		return 0, err
+	}
+	defer reader.Close()
+	pkg, err := openGamePackage(reader)
+	if err != nil {
+		return 0, err
+	}
+	if pkg.xci {
+		return 0, nil
+	}
+	deltas := deltaFragmentNames(reader, pkg)
+	var size int64
+	for _, file := range pkg.files {
+		if deltas[file.name] {
+			size += file.size
+		}
+	}
+	return size, nil
+}
+
 // MergePackages writes the files of the packages into one NSP or NSZ at target, in their
 // order, each file once (the same certificate is in several packages), and without the
 // delta fragments of the updates when withoutDeltas is set. The target is removed if the
@@ -103,6 +129,88 @@ func mergePackages(ctx context.Context, sources []string, target string, without
 	if len(sources) < 2 {
 		return 0, nil, errors.New("a pack needs at least two packages")
 	}
+	return writePackages(ctx, sources, target, withoutDeltas, nil, progress)
+}
+
+// MergeNewestAndCheck is MergeAndCheck that keeps, of a title found in several packages, its
+// highest version only: a SuperNSP merged with a newer update of its game gets the new update
+// in place of the old one. It gives the bytes of delta fragments left out and the titles
+// replaced ("<title ID> v<version>").
+func MergeNewestAndCheck(ctx context.Context, sources []string, target string, withoutDeltas bool, progress func(done int64, total int64)) (int64, []string, FileCheck, error) {
+	if len(sources) < 2 {
+		return 0, nil, FileCheck{}, errors.New("a pack needs at least two packages")
+	}
+	type found struct {
+		source int
+		part   SplitPart
+	}
+	newest := map[string]found{}
+	all := []found{}
+	for i, path := range sources {
+		reader, err := OpenFile(path)
+		if err != nil {
+			return 0, nil, FileCheck{}, err
+		}
+		pkg, err := openGamePackage(reader)
+		if err == nil {
+			var plan *SplitPlan
+			if plan, err = planSplit(reader, pkg, 1); err == nil {
+				for _, part := range plan.Parts {
+					all = append(all, found{source: i, part: part})
+					if best, ok := newest[part.TitleId]; !ok || part.Version > best.part.Version {
+						newest[part.TitleId] = found{source: i, part: part}
+					}
+				}
+			}
+		}
+		reader.Close()
+		if err != nil {
+			return 0, nil, FileCheck{}, err
+		}
+	}
+	drop := make([]map[string]bool, len(sources))
+	replaced := []string{}
+	for _, f := range all {
+		// the same version in another package is the same files, given once by the merge
+		if f.part.Version >= newest[f.part.TitleId].part.Version {
+			continue
+		}
+		if drop[f.source] == nil {
+			drop[f.source] = map[string]bool{}
+		}
+		for _, file := range f.part.files {
+			drop[f.source][file.name] = true
+		}
+		replaced = append(replaced, fmt.Sprintf("%s v%d", strings.ToUpper(f.part.TitleId), f.part.Version))
+	}
+	skipped, written, err := writePackages(ctx, sources, target, withoutDeltas, drop, progress)
+	if err != nil {
+		return 0, nil, FileCheck{}, err
+	}
+	check, err := checkWritten(ctx, target, written)
+	if err != nil {
+		os.Remove(target)
+	}
+	return skipped, replaced, check, err
+}
+
+// StripDeltasAndCheck writes an NSP or NSZ again without the delta fragments of its updates,
+// checked as MergeAndCheck checks a pack. It gives how many bytes were left out.
+func StripDeltasAndCheck(ctx context.Context, source string, target string, progress func(done int64, total int64)) (int64, FileCheck, error) {
+	skipped, written, err := writePackages(ctx, []string{source}, target, true, nil, progress)
+	if err != nil {
+		return 0, FileCheck{}, err
+	}
+	check, err := checkWritten(ctx, target, written)
+	if err != nil {
+		os.Remove(target)
+	}
+	return skipped, check, err
+}
+
+// writePackages writes the files of the packages into one NSP or NSZ at target, but the ones
+// drop lists, by the index of their package.
+func writePackages(ctx context.Context, sources []string, target string, withoutDeltas bool, drop []map[string]bool, progress func(done int64, total int64)) (int64, []*writtenFile, error) {
 	opened := []packSource{}
 	defer func() {
 		for _, source := range opened {
@@ -140,7 +248,7 @@ func mergePackages(ctx context.Context, sources []string, target string, without
 			if id := contentId(file.name); id != "" && (strings.HasSuffix(key, ".nca") || strings.HasSuffix(key, ".ncz")) {
 				key = id
 			}
-			if seen[key] {
+			if seen[key] || (drop != nil && drop[len(opened)-1][file.name]) {
 				continue
 			}
 			if deltas[file.name] {

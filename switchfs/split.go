@@ -95,7 +95,7 @@ func PlanSplit(path string) (*SplitPlan, error) {
 	if err != nil {
 		return nil, err
 	}
-	plan, err := planSplit(reader, pkg)
+	plan, err := planSplit(reader, pkg, 2)
 	if err != nil || !pkg.xci {
 		return plan, err
 	}
@@ -177,7 +177,9 @@ func cardSize(pkg *gamePackage, files []packedFile) int64 {
 	return position
 }
 
-func planSplit(reader io.ReaderAt, pkg *gamePackage) (*SplitPlan, error) {
+// planSplit gives the titles of a package, with ErrSingleTitle when it holds fewer than
+// minTitles.
+func planSplit(reader io.ReaderAt, pkg *gamePackage, minTitles int) (*SplitPlan, error) {
 	type title struct {
 		part SplitPart
 		// the content IDs of the title: those its CNMT lists and the one of the Meta NCA itself
@@ -218,7 +220,7 @@ func planSplit(reader io.ReaderAt, pkg *gamePackage) (*SplitPlan, error) {
 		}
 		titles = append(titles, t)
 	}
-	if len(titles) < 2 {
+	if len(titles) < minTitles {
 		return nil, ErrSingleTitle
 	}
 
@@ -278,7 +280,7 @@ func pfs0Size(files []packedFile) int64 {
 	for _, file := range files {
 		header += int64(len(file.name)) + 1
 	}
-	size := (header + 0x1F) &^ 0x1F
+	size := pfs0HeaderLen(header)
 	for _, file := range files {
 		size += file.size
 	}

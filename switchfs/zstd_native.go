@@ -53,6 +53,9 @@ func newNativeStreamEncoder(output io.Writer, level string, workers int) (io.Wri
 	}
 	native, ok := nativeLevels[level]
 	if !ok {
+		native, ok = levelNumber(level)
+	}
+	if !ok {
 		return nil, false, nil
 	}
 	encoder := &nativeEncoder{writer: zstd.NewWriterLevel(output, native)}
