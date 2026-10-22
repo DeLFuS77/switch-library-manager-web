@@ -60,8 +60,12 @@ const (
 	NOTE_SCAN_FAILED       = "The library could not be scanned."
 	NOTE_NOTIFY_FAILED     = "The notification could not be sent."
 	NOTE_ORGANIZE_FAILED   = "The files could not be organized."
-	NOTE_PAUSED_FOR_SCAN   = "Paused for a scan; it continues afterwards."
-	NOTE_PAUSED_FOR_HOURS  = "Paused outside the background hours; it continues when they begin."
+	// a file Organize could not change, and one it left as it is, each with why
+	NOTE_ORGANIZE_FILE_FAILED = "A file could not be changed."
+	NOTE_ORGANIZE_FILE_KEPT   = "A file was left as it is."
+	NOTE_ORGANIZE_MORE        = "More files left as they are, all listed in the preview of Organize:"
+	NOTE_PAUSED_FOR_SCAN      = "Paused for a scan; it continues afterwards."
+	NOTE_PAUSED_FOR_HOURS     = "Paused outside the background hours; it continues when they begin."
 )
 
 var taskNoteTexts = []string{NOTE_SD_COPY_FAILED, NOTE_INTERRUPTED, NOTE_TITLES_DOWNLOAD, NOTE_TITLES_SAVED_COPY, NOTE_SCAN_FAILED, NOTE_NOTIFY_FAILED, NOTE_ORGANIZE_FAILED, NOTE_PAUSED_FOR_SCAN, NOTE_PAUSED_FOR_HOURS}

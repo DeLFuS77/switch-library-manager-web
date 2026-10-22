@@ -127,6 +127,9 @@ type NotificationOptions struct {
 	NotifyNewGames bool `json:"notify_new_games"`
 	// tasks that fail (a compression, a check, a synchronization...)
 	NotifyTaskFailures bool `json:"notify_task_failures"`
+	// no message when the queue of tasks is done: one is sent by default, also to the settings
+	// saved before it existed
+	QueueDoneQuiet bool `json:"queue_done_quiet,omitempty"`
 }
 
 // VaultOptions are the save vault: JKSV uploads the backups of the saves over WebDAV, with this

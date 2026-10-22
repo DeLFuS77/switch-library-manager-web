@@ -108,6 +108,10 @@
 									<span class="d-block small text-body-secondary">{{if not .Files}}{{t "the whole library"}}{{else if eq .Kind "pack"}}{{t "%v games" .Files}}{{else}}{{t "%v files" .Files}}{{end}} &middot; {{t "added %v" (formatDateTime .Added)}}</span>
 								</span>
 							</label>
+							<span class="queue-order">
+								<button type="button" class="btn btn-sm btn-link" data-queue-move="up" data-queue-id="{{.Id}}"{{if eq .Position 1}} disabled{{end}} title="{{t "Move up"}}"><span class="bi bi-chevron-up" aria-hidden="true"></span><span class="visually-hidden">{{t "Move up"}}</span></button>
+								<button type="button" class="btn btn-sm btn-link" data-queue-move="down" data-queue-id="{{.Id}}"{{if eq .Position (len $.Queue)}} disabled{{end}} title="{{t "Move down"}}"><span class="bi bi-chevron-down" aria-hidden="true"></span><span class="visually-hidden">{{t "Move down"}}</span></button>
+							</span>
 						</li>
 						{{- end}}
 					</ul>

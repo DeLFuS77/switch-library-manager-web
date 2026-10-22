@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### New
+
+- The queue of tasks can be put in order: each task has buttons to move it up or down before it starts
+- A message by the channels of the notifications when the queue of tasks is done, with each task that ran and how it ended: to leave long work for the night and know when it ended. On by default, a switch under Notifications
+
+### Improvements
+
+- Organize tells in Tasks each file it could not change and each one it left as it is, with why (up to 30, and how many more), as the preview already did; its count of files changed no longer counts the ones left. The updates and DLC whose game is not in the library, left where they are when the option to organize them is off, are listed with why instead of being left out silently
 ## 1.54.0
 
 ### New

@@ -86,6 +86,7 @@ type SettingsForm struct {
 	NotifyCheats          bool   `in:"form=notify_cheats"`
 	NotifyNewGames        bool   `in:"form=notify_new_games"`
 	NotifyTaskFailures    bool   `in:"form=notify_task_failures"`
+	NotifyQueueDone       bool   `in:"form=notify_queue_done"`
 }
 
 func (f *SettingsForm) notificationOptions() settings.NotificationOptions {
@@ -100,6 +101,7 @@ func (f *SettingsForm) notificationOptions() settings.NotificationOptions {
 		NotifyCheats:       f.NotifyCheats,
 		NotifyNewGames:     f.NotifyNewGames,
 		NotifyTaskFailures: f.NotifyTaskFailures,
+		QueueDoneQuiet:     !f.NotifyQueueDone,
 	}
 }
 

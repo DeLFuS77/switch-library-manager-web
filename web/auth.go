@@ -311,7 +311,7 @@ var editorPages = map[string]struct{}{"/compress.html": {}, "/compress/xci-list"
 // editorActions are what an editor may do besides looking and downloading: none deletes a file
 // or changes a setting (a compression keeps the originals for them, see /compress/start)
 var editorActions = map[string]struct{}{"/sync": {}, "/verify/start": {}, "/compress/start": {}, "/compress/pause": {}, "/compress/cancel": {},
-	"/favorites": {}, "/wishlist": {}, "/collections": {}, "/smart-collections": {}, "/covers/retry": {}, "/api/tasks/clear": {}, "/api/queue/remove": {},
+	"/favorites": {}, "/wishlist": {}, "/collections": {}, "/smart-collections": {}, "/covers/retry": {}, "/api/tasks/clear": {}, "/api/queue/remove": {}, "/api/queue/move": {},
 	"/uploads/start": {}, "/uploads/finish": {}, "/uploads/cancel": {}, "/uploads/chunk": {}}
 
 // roleAllows reports whether a role may make a request.
