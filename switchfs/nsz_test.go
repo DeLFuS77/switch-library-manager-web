@@ -520,8 +520,49 @@ func TestCompressXciToXcz(t *testing.T) {
 	if !bytes.Equal(original[:0xF000], converted[:0xF000]) {
 		t.Fatal("the gamecard header must be kept")
 	}
-	if err := DecompressNsz(context.Background(), target, filepath.Join(t.TempDir(), "x.nsp"), nil); err == nil {
-		t.Fatal("XCZ files are not decompressed")
+	if DecompressedPath(target) != strings.TrimSuffix(target, ".xcz")+".xci" {
+		t.Fatalf("an XCZ decompresses to an XCI: %s", DecompressedPath(target))
+	}
+
+	// an XCZ decompresses to an XCI laid out like it, with the files of the original
+	restored := filepath.Join(t.TempDir(), "back.xci")
+	size, err := DecompressedSize(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	check, err := DecompressAndCheck(context.Background(), target, restored, nil)
+	if err != nil || len(check.Modified) != 0 {
+		t.Fatalf("XCZ to XCI: %+v %v", check, err)
+	}
+	back, _ := os.ReadFile(restored)
+	if !bytes.Equal(original[:0xF000], back[:0xF000]) {
+		t.Fatal("the gamecard header must be kept")
+	}
+	if int64(len(back)) > size {
+		t.Fatalf("the XCI is %d bytes, more than the %d told", len(back), size)
+	}
+	hashes, err := HashNcas(context.Background(), restored, nil)
+	if err != nil || len(hashes) != len(expected) {
+		t.Fatalf("hashes of the XCI: %v %v", len(hashes), err)
+	}
+	for name, hash := range expected {
+		if hashes[name] != hash {
+			t.Fatalf("%s differs from the original", name)
+		}
+	}
+	restoredFile, _ := os.Open(restored)
+	defer restoredFile.Close()
+	again, err := openGamePackage(restoredFile)
+	if err != nil || !again.xci || len(again.partitions) != 2 || len(again.files) != 2 || !strings.HasSuffix(again.files[0].name, ".nca") {
+		t.Fatalf("the XCI: %+v %v", again, err)
+	}
+	// and it compresses again to the same XCZ
+	recompressed := filepath.Join(t.TempDir(), "again.xcz")
+	if _, err := CompressGame(context.Background(), restored, recompressed, CompressOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	if err := VerifyCompressed(context.Background(), recompressed, expected, nil); err != nil {
+		t.Fatal(err)
 	}
 }
 

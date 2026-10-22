@@ -287,8 +287,9 @@ func CompressedPath(path string) string {
 	return strings.TrimSuffix(path, filepath.Ext(path)) + extension
 }
 
-// DecompressedSize returns the size of the NSP an NSZ decompresses to, from the section
-// tables of its NCZ files, so free space can be checked first.
+// DecompressedSize returns the size of the NSP an NSZ (or the XCI an XCZ) decompresses to,
+// from the section tables of its NCZ files, so free space can be checked first. For an XCI
+// the headers of its partitions are counted at their most.
 func DecompressedSize(path string) (int64, error) {
 	input, err := os.Open(path)
 	if err != nil {
@@ -300,6 +301,9 @@ func DecompressedSize(path string) (int64, error) {
 		return 0, err
 	}
 	size := pkg.headerLen
+	if pkg.xci {
+		size = pkg.rootOffset + 2*hfs0ReservedHeader + int64(len(pkg.partitions))*0x400
+	}
 	for _, file := range pkg.files {
 		if !strings.HasSuffix(strings.ToLower(file.name), ".ncz") {
 			size += file.size
