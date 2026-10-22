@@ -632,7 +632,19 @@ func writeNczBlocks(ctx context.Context, output *os.File, input io.ReaderAt, off
 	if err := writeNczHeader(output, input, offset, plan, progress); err != nil {
 		return err
 	}
-	dataSize := uint64(size) - nczHeaderSize
+	plain := nczPlainReader{input: input, offset: offset, sections: plan.sections}
+	next := uint64(nczHeaderSize)
+	fill := func(data []byte) error {
+		err := plain.read(data, next)
+		next += uint64(len(data))
+		return err
+	}
+	return writeNczBlockData(ctx, output, uint64(size)-nczHeaderSize, fill, options, progress)
+}
+
+// writeNczBlockData writes the blocks of an NCZ after its section table: the block header,
+// the table of their sizes and the blocks, of dataSize bytes taken in order from fill.
+func writeNczBlockData(ctx context.Context, output *os.File, dataSize uint64, fill func([]byte) error, options CompressOptions, progress func(int64)) error {
 	blockSize := uint64(1) << nczBlockExponent
 	count := (dataSize + blockSize - 1) / blockSize
 	header := make([]byte, 24)
@@ -662,7 +674,6 @@ func writeNczBlocks(ctx context.Context, output *os.File, input io.ReaderAt, off
 		return err
 	}
 	defer encoder.Close()
-	plain := nczPlainReader{input: input, offset: offset, sections: plan.sections}
 
 	// a batch of blocks is read, compressed by every worker at once, then written in order
 	type job struct {
@@ -678,10 +689,10 @@ func writeNczBlocks(ctx context.Context, output *os.File, input io.ReaderAt, off
 		}
 		n := min(uint64(workers), count-first)
 		for i := uint64(0); i < n; i++ {
-			start := nczHeaderSize + (first+i)*blockSize
-			length := min(blockSize, uint64(size)-start)
+			start := (first + i) * blockSize
+			length := min(blockSize, dataSize-start)
 			batch[i].data = batch[i].data[:length]
-			if err := plain.read(batch[i].data, start); err != nil {
+			if err := fill(batch[i].data); err != nil {
 				return err
 			}
 		}
