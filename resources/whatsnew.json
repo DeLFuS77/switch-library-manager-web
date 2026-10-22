@@ -1,4 +1,61 @@
 {
+  "1.55.0": {
+    "en": [
+      "The queue of tasks can be put in order with the arrows of each task, and a notification tells when the whole queue is done.",
+      "Organize tells in Tasks the files it could not change or left as they are, and why.",
+      "Games the titles database does not list now learn of their updates, take their publisher from their files and, with the IGDB keys, get genres, release date, description and cover."
+    ],
+    "es": [
+      "La cola de tareas se puede ordenar con las flechas de cada tarea, y una notificación avisa cuando termina toda la cola.",
+      "Organizar dice en Tareas los archivos que no ha podido cambiar o ha dejado como estaban, y por qué.",
+      "Los juegos que no están en la base de datos ya saben de sus actualizaciones, toman la editora de sus archivos y, con las claves de IGDB, reciben géneros, fecha de lanzamiento, descripción y carátula."
+    ],
+    "de": [
+      "Die Warteschlange lässt sich mit den Pfeilen jeder Aufgabe ordnen, und eine Benachrichtigung meldet, wenn sie fertig ist.",
+      "Organisieren zeigt in Aufgaben die Dateien, die es nicht ändern konnte oder so gelassen hat, und warum.",
+      "Spiele, die die Titeldatenbank nicht kennt, erfahren jetzt von ihren Updates, übernehmen den Publisher aus ihren Dateien und erhalten mit den IGDB-Schlüsseln Genres, Erscheinungsdatum, Beschreibung und Cover."
+    ],
+    "fr": [
+      "La file des tâches peut être réordonnée avec les flèches de chaque tâche, et une notification prévient quand toute la file est terminée.",
+      "Organiser indique dans Tâches les fichiers qu'il n'a pas pu modifier ou qu'il a laissés tels quels, et pourquoi.",
+      "Les jeux absents de la base de titres connaissent désormais leurs mises à jour, prennent leur éditeur dans leurs fichiers et, avec les clés IGDB, reçoivent genres, date de sortie, description et jaquette."
+    ],
+    "it": [
+      "La coda delle attività si può riordinare con le frecce di ogni attività, e una notifica avvisa quando tutta la coda è finita.",
+      "Organizza indica in Attività i file che non ha potuto modificare o ha lasciato com'erano, e perché.",
+      "I giochi assenti dal database dei titoli ora conoscono i loro aggiornamenti, prendono l'editore dai loro file e, con le chiavi IGDB, ricevono generi, data di uscita, descrizione e copertina."
+    ],
+    "pt": [
+      "A fila de tarefas pode ser ordenada com as setas de cada tarefa, e uma notificação avisa quando toda a fila termina.",
+      "Organizar indica em Tarefas os ficheiros que não conseguiu alterar ou deixou como estavam, e porquê.",
+      "Os jogos que não estão na base de dados de títulos já sabem das suas atualizações, tiram a editora dos seus ficheiros e, com as chaves do IGDB, recebem géneros, data de lançamento, descrição e capa."
+    ],
+    "nl": [
+      "De wachtrij is te ordenen met de pijlen van elke taak, en een melding laat weten wanneer de hele wachtrij klaar is.",
+      "Organiseren toont in Taken de bestanden die het niet kon wijzigen of liet zoals ze waren, en waarom.",
+      "Games die de titeldatabase niet kent, weten nu van hun updates, halen hun uitgever uit hun bestanden en krijgen met de IGDB-sleutels genres, releasedatum, beschrijving en hoes."
+    ],
+    "ru": [
+      "Очередь задач можно упорядочить стрелками у каждой задачи, а уведомление сообщит, когда вся очередь завершится.",
+      "«Упорядочивание» показывает в «Задачах» файлы, которые не удалось изменить или которые остались как есть, и почему.",
+      "Игры, которых нет в базе данных, теперь узнают о своих обновлениях, берут издателя из своих файлов и с ключами IGDB получают жанры, дату выхода, описание и обложку."
+    ],
+    "ja": [
+      "タスクのキューは各タスクの矢印で並べ替えでき、キュー全体が終わると通知が届きます。",
+      "整理は、変更できなかったファイルやそのままにしたファイルとその理由をタスクに表示します。",
+      "タイトルデータベースにないゲームも更新データを把握し、ファイルから発売元を取得し、IGDBのキーがあればジャンル・発売日・説明・カバーを得られます。"
+    ],
+    "ko": [
+      "작업 대기열을 작업마다 있는 화살표로 정렬할 수 있고, 대기열이 모두 끝나면 알림이 와요.",
+      "정리가 바꾸지 못했거나 그대로 둔 파일과 그 이유를 작업에 보여 줘요.",
+      "타이틀 데이터베이스에 없는 게임도 이제 업데이트를 알고, 파일에서 배급사를 가져오며, IGDB 키가 있으면 장르, 출시일, 설명, 커버를 받아요."
+    ],
+    "zh": [
+      "任务队列可以用每个任务的箭头调整顺序,整个队列完成时会发送通知。",
+      "整理会在“任务”中列出无法更改或保持原样的文件及原因。",
+      "标题数据库中没有的游戏现在也能知道其更新,从文件中获取发行商,并在设置 IGDB 密钥后获得类型、发售日期、简介和封面。"
+    ]
+  },
   "1.54.0": {
     "en": [
       "Tasks wait in a queue instead of being refused while another one works, and you can take them out of it in Tasks before they start.",

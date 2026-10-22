@@ -22,10 +22,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.54.0
-- A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting
-### 1.53.0
-- Balanced and Maximum compress on several threads (Maximum about twice as fast, files about 6% smaller), every task reads each file once, the check of the files is faster, and damaged files are no longer offered again on every compression; tested with DBI</Changes>
+  <Changes>### 1.55.0
+- The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
+### 1.54.0
+- A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
   <Date>2026-10-21</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
