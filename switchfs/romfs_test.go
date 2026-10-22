@@ -82,12 +82,14 @@ func TestReadNacp(t *testing.T) {
 	copy(data[0x3060:], []byte("1.2.3"))
 	binary.LittleEndian.PutUint32(data[0x302C:], 0x11223344)
 	copy(data, []byte("Example Game"))
+	// the publisher follows the name in each entry
+	copy(data[0x200:], []byte("Example Publisher"))
 	entry := RomfsFileEntry{offset: 0, size: uint64(len(data))}
 	nacp, err := readNacp(data, RomfsHeader{DataOffset: 0}, entry)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if nacp.TitleName["AmericanEnglish"].Title != "Example Game" || nacp.Isbn != "123456789" || nacp.DisplayVersion != "1.2.3" || nacp.SupportedLanguageFlag != 0x11223344 {
+	if nacp.TitleName["AmericanEnglish"].Title != "Example Game" || nacp.TitleName["AmericanEnglish"].Publisher != "Example Publisher" || !nacp.PublishersRead || nacp.Isbn != "123456789" || nacp.DisplayVersion != "1.2.3" || nacp.SupportedLanguageFlag != 0x11223344 {
 		t.Fatalf("unexpected NACP: %#v", nacp)
 	}
 	for _, entry := range []RomfsFileEntry{{offset: 1, size: 0x3080}, {offset: 0, size: 0x307f}} {

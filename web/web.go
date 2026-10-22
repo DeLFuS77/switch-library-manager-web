@@ -210,6 +210,9 @@ type Web struct {
 	// the tasks on files waiting for their turn
 	tasksQueue *taskQueue
 	queueOnce  sync.Once
+	// what IGDB told of the games titles.json does not list
+	igdbTitlesStore *igdbTitleStore
+	igdbTitlesOnce  sync.Once
 	// the task that receives the progress of the running synchronization, 0 if none
 	currentTask atomic.Int64
 	router      *mux.Router
@@ -836,7 +839,7 @@ func (web *Web) startInBackground() {
 			failure = &TaskNote{Text: NOTE_SCAN_FAILED, Detail: err.Error()}
 		} else {
 			web.taskLog().SetResult(taskId, len(localDB.TitlesMap), localDB.NumFiles)
-			web.state.set(switchDB, localDB)
+			web.state.set(web.withLibraryTitles(switchDB, localDB), localDB)
 		}
 		web.state.endSync()
 		web.finishTask(taskId, failure)
