@@ -27,7 +27,7 @@ const (
 	storeCoreKey          = "core"
 	storeDetailsBucket    = "details"
 	// bump when the stored structures change
-	storeFormat = "3"
+	storeFormat = "4"
 )
 
 // values are stored compressed: descriptions and the processed titles are text that
@@ -103,7 +103,7 @@ func (s *TitleStore) LoadTitles(stamp string) (*SwitchTitlesDB, bool) {
 	if stamp == "" || s.stamp(storeCoreKey) != stamp {
 		return nil, false
 	}
-	var titles map[string]*SwitchTitle
+	var stored storedTitles
 	err := s.db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(storeInfoBucket))
 		if bucket == nil {
@@ -113,19 +113,26 @@ func (s *TitleStore) LoadTitles(stamp string) (*SwitchTitlesDB, bool) {
 		if err != nil {
 			return err
 		}
-		return gob.NewDecoder(bytes.NewReader(data)).Decode(&titles)
+		return gob.NewDecoder(bytes.NewReader(data)).Decode(&stored)
 	})
-	if err != nil || titles == nil {
+	if err != nil || stored.Titles == nil {
 		return nil, false
 	}
-	return &SwitchTitlesDB{TitlesMap: titles}, true
+	return &SwitchTitlesDB{TitlesMap: stored.Titles, Versions: stored.Versions}, true
+}
+
+// storedTitles are the titles kept in the store, with the versions of the games titles.json
+// does not list.
+type storedTitles struct {
+	Titles   map[string]*SwitchTitle
+	Versions map[string]map[int]string
 }
 
 // SaveTitles stores the titles (without their details) and the details, made from the
 // files with stamp.
 func (s *TitleStore) SaveTitles(stamp string, switchDB *SwitchTitlesDB, details map[string]TitleDetails) error {
 	var data bytes.Buffer
-	if err := gob.NewEncoder(&data).Encode(switchDB.TitlesMap); err != nil {
+	if err := gob.NewEncoder(&data).Encode(storedTitles{Titles: switchDB.TitlesMap, Versions: switchDB.Versions}); err != nil {
 		return err
 	}
 	return s.db.Update(func(tx *bolt.Tx) error {

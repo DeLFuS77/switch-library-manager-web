@@ -351,7 +351,7 @@ func (web *Web) lookupTimesToBeat(trigger string) bool {
 			games = append(games, pending{item.Id, name})
 		}
 	}
-	if len(games) == 0 && len(web.missingIgdbCollections(now)) == 0 {
+	if len(games) == 0 && len(web.missingIgdbCollections(now)) == 0 && len(web.libraryTitlesToLookUp(now)) == 0 {
 		web.timeToBeatRunning.Store(false)
 		return false
 	}
@@ -396,6 +396,13 @@ func (web *Web) lookupTimesToBeat(trigger string) bool {
 		// the Switch games of the collections of the games, for their series
 		if failure == nil && !web.state.IsSynchronizing() {
 			if err := web.lookupIgdbCollections(ctx, client); errors.Is(err, errIgdbCredentials) {
+				failure = &TaskNote{Text: NOTE_IGDB_CREDENTIALS}
+			}
+		}
+		// the genres, release date, description and cover of the games the titles database
+		// does not list
+		if failure == nil && !web.state.IsSynchronizing() {
+			if err := web.lookupLibraryTitles(ctx, client); errors.Is(err, errIgdbCredentials) {
 				failure = &TaskNote{Text: NOTE_IGDB_CREDENTIALS}
 			}
 		}

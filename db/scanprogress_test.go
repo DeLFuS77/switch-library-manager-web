@@ -42,11 +42,12 @@ func TestWalkingTheFoldersShowsProgress(t *testing.T) {
 }
 
 // Cached data of a game the titles database does not know is read again once, to learn
-// whether the game says it is a demo; known games and data with the attributes are kept.
+// whether the game says it is a demo and its publisher; known games and data with the
+// attributes are kept.
 func TestUnknownGamesAreReadAgainForTheirAttributes(t *testing.T) {
 	ldb := &LocalSwitchDBManager{titles: &SwitchTitlesDB{TitlesMap: map[string]*SwitchTitle{"0100000000010": {}}}}
 	meta := func(id string, read bool) map[string]*switchfs.ContentMetaAttributes {
-		return map[string]*switchfs.ContentMetaAttributes{id: {TitleId: id, Ncap: &switchfs.Nacp{AttributesRead: read, NamesRead: read, TitleName: map[string]switchfs.NacpTitle{"AmericanEnglish": {Title: "Game"}}}}}
+		return map[string]*switchfs.ContentMetaAttributes{id: {TitleId: id, Ncap: &switchfs.Nacp{AttributesRead: read, NamesRead: read, PublishersRead: read, TitleName: map[string]switchfs.NacpTitle{"AmericanEnglish": {Title: "Game"}}}}}
 	}
 	if !ldb.needsAttributes(meta("0100000000020000", false)) {
 		t.Fatal("an unknown game without attributes is read again")
@@ -56,6 +57,12 @@ func TestUnknownGamesAreReadAgainForTheirAttributes(t *testing.T) {
 	}
 	if ldb.needsAttributes(meta("0100000000020000", true)) {
 		t.Fatal("data with the attributes is kept")
+	}
+	// data read before the publishers were read: an unknown game is read again for its publisher
+	withoutPublisher := meta("0100000000020000", true)
+	withoutPublisher["0100000000020000"].Ncap.PublishersRead = false
+	if !ldb.needsAttributes(withoutPublisher) {
+		t.Fatal("an unknown game read without its publisher is read again")
 	}
 	// data read before the names were read apart is read again too
 	older := meta("0100000000020000", true)

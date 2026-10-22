@@ -714,7 +714,7 @@ func (ldb *LocalSwitchDBManager) needsAttributes(metadata map[string]*switchfs.C
 		return false
 	}
 	for _, meta := range metadata {
-		if meta == nil || meta.Ncap == nil || (meta.Ncap.AttributesRead && meta.Ncap.NamesRead) {
+		if meta == nil || meta.Ncap == nil || (meta.Ncap.AttributesRead && meta.Ncap.NamesRead && meta.Ncap.PublishersRead) {
 			continue
 		}
 		// read before the names were read apart and left without any name: the Simplified

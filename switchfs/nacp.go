@@ -32,6 +32,8 @@ const (
 type NacpTitle struct {
 	Language Language
 	Title    string
+	// the publisher the game gives in this language
+	Publisher string `json:",omitempty"`
 }
 
 type Nacp struct {
@@ -46,6 +48,8 @@ type Nacp struct {
 	// the names were read with every language apart: older versions lost the Simplified
 	// Chinese name under the Brazilian Portuguese one
 	NamesRead bool `json:"names_read,omitempty"`
+	// the publishers were read with the names; data read by older versions does not have them
+	PublishersRead bool `json:"publishers_read,omitempty"`
 }
 
 func (l Language) String() string {
@@ -173,9 +177,13 @@ func readNacp(data []byte, romFsHeader RomfsHeader, fileEntry RomfsFileEntry) (N
 	for i := 0; i < 16; i++ {
 		//lang := i
 		appTitleOffset := uint64(i) * titleStride
+		// each entry is the name, then the publisher, in the same proportions when the entries
+		// are the larger ones of the compressed titles
+		nameSize := titleStride * 2 / 3
 		appTitleBytes := titleData[appTitleOffset : appTitleOffset+0x200]
 		nameBytes := readBytesUntilZero(appTitleBytes)
-		titles[Language(i).String()] = NacpTitle{Language: Language(i), Title: string(nameBytes)}
+		publisherBytes := readBytesUntilZero(titleData[appTitleOffset+nameSize : appTitleOffset+titleStride])
+		titles[Language(i).String()] = NacpTitle{Language: Language(i), Title: string(nameBytes), Publisher: string(publisherBytes)}
 	}
 
 	isbn := readBytesUntilZero(data[offset+0x3000 : offset+0x3000+0x25])
@@ -184,7 +192,7 @@ func readNacp(data []byte, romFsHeader RomfsHeader, fileEntry RomfsFileEntry) (N
 	attributes := binary.LittleEndian.Uint32(data[offset+0x3028 : offset+0x3028+0x4])
 
 	return Nacp{TitleName: titles, Isbn: string(isbn), DisplayVersion: string(displayVersion), SupportedLanguageFlag: supportedLanguageFlag,
-		Demo: attributes&1 != 0, AttributesRead: true, NamesRead: true}, nil
+		Demo: attributes&1 != 0, AttributesRead: true, NamesRead: true, PublishersRead: true}, nil
 	/*
 
 

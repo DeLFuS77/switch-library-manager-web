@@ -9,6 +9,7 @@
 
 ### Improvements
 
+- Games of the library the titles database does not list (removed from the eShop, sold in one store only) are no longer second-class: they learn of their updates from the versions Nintendo published, which were dropped for them; their publisher comes from their own files (read again once); and with the IGDB keys set, IGDB adds their genres, release date, description and cover. They show in Statistics by genre, publisher and year, and Missing still lists only the games of the database
 - Organize tells in Tasks each file it could not change and each one it left as it is, with why (up to 30, and how many more), as the preview already did; its count of files changed no longer counts the ones left. The updates and DLC whose game is not in the library, left where they are when the option to organize them is off, are listed with why instead of being left out silently
 ## 1.54.0
 

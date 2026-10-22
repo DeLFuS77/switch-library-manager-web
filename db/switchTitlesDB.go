@@ -39,10 +39,16 @@ type SwitchTitle struct {
 	Attributes TitleAttributes
 	Updates    map[int]string
 	Dlc        map[string]TitleAttributes
+	// made for a game of the library titles.json does not list, from what its own files and
+	// IGDB tell; not a title of the database (Missing does not list it)
+	FromLibrary bool `json:",omitempty"`
 }
 
 type SwitchTitlesDB struct {
 	TitlesMap map[string]*SwitchTitle
+	// the versions published of the games titles.json does not list, by the prefix of their
+	// title ID: a game of the library missing from it still learns of its updates
+	Versions map[string]map[int]string
 	// names and descriptions per interface language, by upper case title ID
 	Localized map[string]map[string]LocalizedTitle
 }
@@ -125,6 +131,24 @@ func CreateSwitchTitleDB(titlesFile, versionsFile io.Reader) (*SwitchTitlesDB, e
 		attr.Description = ""
 		attr.Screenshots = nil
 		switchTitle.Dlc[id] = attr
+	}
+
+	// the versions Nintendo published come from its servers, titles.json from the eShop: a
+	// game titles.json lists without its update still gets its versions, and the versions of
+	// the games it does not list are kept for the games of the library (see Versions)
+	result.Versions = map[string]map[int]string{}
+	for id, published := range versions {
+		prefix, err := titleIDPrefix(strings.ToLower(id))
+		if err != nil {
+			continue
+		}
+		if title, ok := result.TitlesMap[prefix]; ok {
+			if title.Updates == nil {
+				title.Updates = published
+			}
+			continue
+		}
+		result.Versions[prefix] = published
 	}
 
 	normalizeTitles(&result)

@@ -65,7 +65,7 @@ func (web *Web) Synchronize(trigger string) bool {
 		}
 		web.taskLog().SetResult(taskId, len(localDB.TitlesMap), localDB.NumFiles)
 
-		web.state.set(switchDB, localDB)
+		web.state.set(web.withLibraryTitles(switchDB, localDB), localDB)
 		if err := web.notifyChanges(); err != nil {
 			web.taskLog().Warn(taskId, NOTE_NOTIFY_FAILED, err.Error())
 		}
@@ -136,7 +136,7 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 		}
 		web.taskLog().SetResult(taskId, len(localDB.TitlesMap), localDB.NumFiles)
 
-		web.state.set(switchDB, localDB)
+		web.state.set(web.withLibraryTitles(switchDB, localDB), localDB)
 		if trigger == TRIGGER_WATCHER {
 			web.saveWatchFingerprint()
 		}
