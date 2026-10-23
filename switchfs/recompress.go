@@ -144,7 +144,7 @@ func recompressNcz(ctx context.Context, output *os.File, input io.ReaderAt, offs
 		stream = blockReader
 	} else {
 		reader.Seek(position, io.SeekStart)
-		decoder, err := zstd.NewReader(bufio.NewReaderSize(reader, nczChunkSize), zstd.WithDecoderConcurrency(1), zstd.WithDecoderMaxWindow(1<<30), zstd.WithDecoderLowmem(false))
+		decoder, err := zstd.NewReader(bufio.NewReaderSize(reader, nczChunkSize), zstd.WithDecoderConcurrency(nczStreamDecoders), zstd.WithDecoderMaxWindow(1<<30), zstd.WithDecoderLowmem(false))
 		if err != nil {
 			return err
 		}

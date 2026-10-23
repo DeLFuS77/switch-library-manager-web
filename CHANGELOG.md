@@ -6,6 +6,7 @@
 
 - Block compression, and every XCZ, now uses the zstd library in C at the level chosen, as the solid NSZ already did: smaller files at the same level, and the estimate of the savings matches them
 - The measure of the server gives each thread of a trial whole pieces of work, so settings with many threads are no longer measured as slower than they are, and it measures block compression as it runs
+- Decompressing and checking NSZ and XCZ is faster: the zstd stream is decoded on several threads and ahead of the decryption, the blocks of a block compressed file several at once, and what is written is hashed beside the writing. On a game of 685 MB, a check went from 1.3 s to 0.4 to 0.8 s and a decompression from 2.7 s to 1.2 to 1.8 s
 
 ## 1.55.0
 
