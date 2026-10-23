@@ -252,7 +252,7 @@ func init() {
 		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "Os arquivos são movidos ou apagados um após o outro; num NAS pode demorar um pouco. A tarefa continua mesmo se você sair desta página.",
 		"See it in Tasks":           "Ver em Tarefas",
 		"Deleting empty folders...": "Apagando pastas vazias...",
-		"Compresses parts of the biggest games of your library for about 40 seconds with several settings and both levels, into a hidden file next to them that is deleted at the end, and saves the fastest one.": "Comprime partes dos maiores jogos da tua biblioteca durante cerca de 40 segundos com várias definições e os dois níveis, num ficheiro oculto ao lado deles que é apagado no fim, e guarda a mais rápida.",
+		"Compresses parts of the biggest games of your library for 1 to 3 minutes with several settings and both levels, into a hidden file next to them that is deleted at the end, and saves the fastest one.": "Comprime partes dos maiores jogos da tua biblioteca durante 1 a 3 minutos com várias definições e os dois níveis, num ficheiro oculto ao lado deles que é apagado no fim, e guarda a mais rápida.",
 		"Files at once × threads":                                             "Arquivos simultâneos × threads",
 		"Measure this server":                                                 "Medir este servidor",
 		"Measuring the disk and the processor...":                             "Medindo o disco e o processador...",

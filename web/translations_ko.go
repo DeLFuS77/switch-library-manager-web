@@ -252,7 +252,7 @@ func init() {
 		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "파일을 하나씩 옮기거나 삭제합니다. NAS에서는 시간이 걸릴 수 있습니다. 이 페이지를 떠나도 작업은 계속됩니다.",
 		"See it in Tasks":           "작업에서 보기",
 		"Deleting empty folders...": "빈 폴더를 삭제하는 중...",
-		"Compresses parts of the biggest games of your library for about 40 seconds with several settings and both levels, into a hidden file next to them that is deleted at the end, and saves the fastest one.": "라이브러리에서 가장 큰 게임의 일부를 여러 설정과 두 단계로 약 40초 동안 압축하고(옆에 만든 숨김 파일은 마지막에 삭제), 가장 빠른 설정을 저장해요.",
+		"Compresses parts of the biggest games of your library for 1 to 3 minutes with several settings and both levels, into a hidden file next to them that is deleted at the end, and saves the fastest one.": "라이브러리에서 가장 큰 게임의 일부를 여러 설정과 두 단계로 1~3분 동안 압축하고(옆에 만든 숨김 파일은 마지막에 삭제), 가장 빠른 설정을 저장해요.",
 		"Files at once × threads":                                             "동시 파일 × 스레드",
 		"Measure this server":                                                 "이 서버 측정",
 		"Measuring the disk and the processor...":                             "디스크와 프로세서를 측정하는 중...",

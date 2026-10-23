@@ -252,7 +252,7 @@ func init() {
 		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "ファイルを 1 つずつ移動または削除しています。NAS では時間がかかることがあります。このページを離れてもタスクは続きます。",
 		"See it in Tasks":           "タスクで見る",
 		"Deleting empty folders...": "空のフォルダーを削除しています...",
-		"Compresses parts of the biggest games of your library for about 40 seconds with several settings and both levels, into a hidden file next to them that is deleted at the end, and saves the fastest one.": "ライブラリ内の最大のゲームの一部を、複数の設定と2つのレベルで約40秒間圧縮し(隣に作る隠しファイルは最後に削除)、最も速い設定を保存します。",
+		"Compresses parts of the biggest games of your library for 1 to 3 minutes with several settings and both levels, into a hidden file next to them that is deleted at the end, and saves the fastest one.": "ライブラリ内の最大のゲームの一部を、複数の設定と2つのレベルで1〜3分間圧縮し(隣に作る隠しファイルは最後に削除)、最も速い設定を保存します。",
 		"Files at once × threads":                                             "同時ファイル数 × スレッド",
 		"Measure this server":                                                 "このサーバーを測定",
 		"Measuring the disk and the processor...":                             "ディスクとプロセッサを測定中...",

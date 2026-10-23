@@ -252,7 +252,7 @@ func init() {
 		"Files are moved or deleted one after the other; on a NAS it can take a while. The task goes on even if you leave this page.": "文件会逐个移动或删除;在 NAS 上可能需要一些时间。即使离开此页面,任务也会继续。",
 		"See it in Tasks":           "在任务中查看",
 		"Deleting empty folders...": "正在删除空文件夹...",
-		"Compresses parts of the biggest games of your library for about 40 seconds with several settings and both levels, into a hidden file next to them that is deleted at the end, and saves the fastest one.": "用多种设置和两个级别,将媒体库中最大游戏的部分内容压缩约 40 秒(写入旁边的隐藏文件,结束时删除),并保存最快的设置。",
+		"Compresses parts of the biggest games of your library for 1 to 3 minutes with several settings and both levels, into a hidden file next to them that is deleted at the end, and saves the fastest one.": "用多种设置和两个级别,将媒体库中最大游戏的部分内容压缩 1 到 3 分钟(写入旁边的隐藏文件,结束时删除),并保存最快的设置。",
 		"Files at once × threads":                                             "同时文件数 × 线程",
 		"Measure this server":                                                 "测量此服务器",
 		"Measuring the disk and the processor...":                             "正在测量磁盘和处理器...",
