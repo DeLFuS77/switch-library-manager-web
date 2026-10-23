@@ -1,4 +1,61 @@
 {
+  "1.56.0": {
+    "en": [
+      "Game cards (XCZ) and NSZ in blocks are 4 to 6 % smaller, and decompressing and checking NSZ and XCZ is up to twice as fast.",
+      "On macOS the compression uses the fast zstd library too, on several threads.",
+      "Compressions use all the processors but an eighth unless you choose, and Measure this server tries them all: a server with many processors compresses much faster."
+    ],
+    "es": [
+      "Los cartuchos (XCZ) y los NSZ por bloques ocupan entre un 4 y un 6 % menos, y descomprimir y comprobar NSZ y XCZ es hasta el doble de rápido.",
+      "En macOS la compresión también usa la librería rápida de zstd, con varios hilos.",
+      "Las compresiones usan todos los procesadores menos una octava parte si no eliges otra cosa, y Medir este servidor los prueba todos: un servidor con muchos procesadores comprime mucho más rápido."
+    ],
+    "de": [
+      "Spielkarten (XCZ) und NSZ in Blöcken sind 4 bis 6 % kleiner, und das Entpacken und Prüfen von NSZ und XCZ ist bis zu doppelt so schnell.",
+      "Unter macOS nutzt die Kompression jetzt auch die schnelle zstd-Bibliothek mit mehreren Threads.",
+      "Kompressionen nutzen alle Prozessoren außer einem Achtel, wenn du nichts anderes wählst, und Diesen Server messen probiert sie alle aus: Ein Server mit vielen Prozessoren komprimiert viel schneller."
+    ],
+    "fr": [
+      "Les cartouches (XCZ) et les NSZ par blocs sont 4 à 6 % plus petits, et décompresser et vérifier les NSZ et XCZ est jusqu'à deux fois plus rapide.",
+      "Sur macOS, la compression utilise aussi la bibliothèque zstd rapide, sur plusieurs threads.",
+      "Les compressions utilisent tous les processeurs sauf un huitième si vous ne choisissez rien d'autre, et Mesurer ce serveur les essaie tous : un serveur avec beaucoup de processeurs compresse bien plus vite."
+    ],
+    "it": [
+      "Le schede di gioco (XCZ) e gli NSZ a blocchi sono più piccoli del 4-6 %, e decomprimere e verificare NSZ e XCZ è fino a due volte più veloce.",
+      "Su macOS la compressione usa anche la libreria zstd veloce, su più thread.",
+      "Le compressioni usano tutti i processori tranne un ottavo se non scegli altro, e Misura questo server li prova tutti: un server con molti processori comprime molto più velocemente."
+    ],
+    "pt": [
+      "Os cartuchos (XCZ) e os NSZ por blocos ficam 4 a 6 % mais pequenos, e descomprimir e verificar NSZ e XCZ é até duas vezes mais rápido.",
+      "No macOS a compressão também usa a biblioteca zstd rápida, com vários threads.",
+      "As compressões usam todos os processadores menos um oitavo se não escolheres outra coisa, e Medir este servidor experimenta-os todos: um servidor com muitos processadores comprime muito mais depressa."
+    ],
+    "nl": [
+      "Gamekaarten (XCZ) en NSZ in blokken zijn 4 tot 6 % kleiner, en NSZ en XCZ uitpakken en controleren gaat tot twee keer zo snel.",
+      "Op macOS gebruikt de compressie nu ook de snelle zstd-bibliotheek, op meerdere threads.",
+      "Compressies gebruiken alle processors op een achtste na als je niets anders kiest, en Deze server meten probeert ze allemaal: een server met veel processors comprimeert veel sneller."
+    ],
+    "ru": [
+      "Картриджи (XCZ) и NSZ по блокам стали на 4–6 % меньше, а распаковка и проверка NSZ и XCZ — до двух раз быстрее.",
+      "В macOS сжатие теперь тоже использует быструю библиотеку zstd в несколько потоков.",
+      "Сжатие использует все процессоры, кроме восьмой части, если не выбрано иное, а «Измерить этот сервер» пробует их все: сервер с большим числом процессоров сжимает намного быстрее."
+    ],
+    "ja": [
+      "ゲームカード(XCZ)とブロック単位の NSZ が 4〜6 % 小さくなり、NSZ と XCZ の展開と検証が最大で2倍速くなりました。",
+      "macOS でも高速な zstd ライブラリを使い、複数のスレッドで圧縮します。",
+      "選ばない限り、圧縮はプロセッサの8分の1を残してすべてを使い、「このサーバーを測定」はそのすべてを試します。プロセッサの多いサーバーはずっと速く圧縮できます。"
+    ],
+    "ko": [
+      "게임 카드(XCZ)와 블록 단위 NSZ가 4~6% 더 작아지고, NSZ와 XCZ의 압축 해제와 검증이 최대 두 배 빨라졌어요.",
+      "macOS에서도 빠른 zstd 라이브러리로 여러 스레드를 써서 압축해요.",
+      "따로 고르지 않으면 압축은 프로세서의 8분의 1을 남기고 모두 쓰고, 이 서버 측정은 그 모두를 시험해요. 프로세서가 많은 서버는 훨씬 빠르게 압축해요."
+    ],
+    "zh": [
+      "游戏卡带(XCZ)和按块压缩的 NSZ 缩小 4% 到 6%，解压和校验 NSZ 与 XCZ 最快可达原来的两倍。",
+      "在 macOS 上压缩也使用快速的 zstd 库，并使用多个线程。",
+      "如未另行选择,压缩会使用除八分之一以外的全部处理器,“测试此服务器”也会全部尝试:处理器多的服务器压缩快得多。"
+    ]
+  },
   "1.55.0": {
     "en": [
       "The queue of tasks can be put in order with the arrows of each task, and a notification tells when the whole queue is done.",
