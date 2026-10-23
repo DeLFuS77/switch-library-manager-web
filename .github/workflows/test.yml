@@ -52,7 +52,7 @@ jobs:
         run: |
           go test -count=1 -run TestStreamEncoderWindowAndRoundTrip -v ./switchfs/ | grep -q "zstd library in C: true"
 
-      # the programs in Go only (macOS, and any build without cgo) work the same
+      # the programs in Go only (any build without cgo) work the same
       - name: Test in Go only
         run: CGO_ENABLED=0 go test -tags slm_purego -timeout 20m ./switchfs/ ./web/
 
@@ -90,6 +90,46 @@ jobs:
           program="${RUNNER_TEMP}/switch-library-manager-web-0.0.0-test-linux-x64/switch-library-manager-web"
           mkdir -p "${RUNNER_TEMP}/data"
           SLM_DATA_DIR="${RUNNER_TEMP}/data" "${program}" > "${RUNNER_TEMP}/log.txt" 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:3000/healthz > /dev/null; then echo "started"; kill %1; exit 0; fi
+            sleep 2
+          done
+          cat "${RUNNER_TEMP}/log.txt"
+          exit 1
+
+  # the programs of macOS, built on a Mac as the release builds them (the zstd library in C
+  # needs the libraries of Apple): the tests of the library there, and the program starts
+  macos:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - name: Build assets
+        run: npm ci && npm run build
+      - name: Test the library
+        run: |
+          go test -timeout 20m ./switchfs/
+          go test -count=1 -run TestStreamEncoderWindowAndRoundTrip -v ./switchfs/ | grep -q "zstd library in C: true"
+      - name: Build the programs
+        run: bash .github/scripts/build_release.sh 0.0.0-test macos-apple macos-intel
+      - name: The program of macOS starts
+        run: |
+          tar -xzf dist/switch-library-manager-web-0.0.0-test-macos-apple.tar.gz -C "${RUNNER_TEMP}"
+          program="${RUNNER_TEMP}/switch-library-manager-web-0.0.0-test-macos-apple/switch-library-manager-web"
+          lipo -archs "${program}"
+          mkdir -p "${RUNNER_TEMP}/data"
+          SLM_DATA_DIR="${RUNNER_TEMP}/data" SLM_OPEN_BROWSER=false "${program}" > "${RUNNER_TEMP}/log.txt" 2>&1 &
           for i in $(seq 1 30); do
             if curl -sf http://127.0.0.1:3000/healthz > /dev/null; then echo "started"; kill %1; exit 0; fi
             sleep 2

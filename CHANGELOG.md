@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.56.0
+
+### Improvements
+
+- Block compression, and every XCZ, now uses the zstd library in C at the level chosen, as the solid NSZ already did: smaller files at the same level, and the estimate of the savings matches them
+- The measure of the server gives each thread of a trial whole pieces of work, so settings with many threads are no longer measured as slower than they are, and it measures block compression as it runs
+- Decompressing and checking NSZ and XCZ is faster: the zstd stream is decoded on several threads and ahead of the decryption, the blocks of a block compressed file several at once, and what is written is hashed beside the writing. On a game of 685 MB, a check went from 1.3 s to 0.4 to 0.8 s and a decompression from 2.7 s to 1.2 to 1.8 s
+- The programs for macOS are built on a Mac with the zstd library in C, as the ones for Windows and Linux already were: the balanced and max levels compress one file on several threads there too, and the max level in blocks and XCZ files are smaller
+- Automatic threads use every processor but an eighth (at least one left free for the rest of the server), instead of half of them and 4 at most: the zstd library in C compresses one file on all of them, 38 % faster with 24 threads than with 12 on a processor of 24. Fewer are used when the memory is short
+- Measure this server tries half the processors and all the ones a compression works on, on one, two and four files at once, instead of three fourths of them and four threads at most. It takes 1 to 3 minutes
+
 ## 1.55.0
 
 ### New

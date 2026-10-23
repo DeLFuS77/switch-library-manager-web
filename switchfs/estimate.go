@@ -5,8 +5,6 @@ import (
 	"os"
 	"sync"
 	"time"
-
-	"github.com/klauspost/compress/zstd"
 )
 
 // Estimate is what a compression of a game would give, from samples of it.
@@ -141,7 +139,7 @@ func EstimateCompression(ctx context.Context, source string, options CompressOpt
 		var write func([]byte) error
 		var finish func() error
 		if options.Blocks || pkg.xci {
-			encoder, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(encoderLevel(options.Level)), zstd.WithEncoderConcurrency(1), zstd.WithWindowSize(1<<nczBlockExponent))
+			encoder, err := newBlockEncoder(options.Level, 1)
 			if err != nil {
 				return err
 			}
@@ -149,7 +147,9 @@ func EstimateCompression(ctx context.Context, source string, options CompressOpt
 			write = func(chunk []byte) error {
 				for len(chunk) > 0 {
 					block := chunk[:min(len(chunk), 1<<nczBlockExponent)]
-					out = encoder.EncodeAll(block, out[:0])
+					if out, err = encoder.encode(0, out[:0], block); err != nil {
+						return err
+					}
 					counter.n += int64(min(len(out), len(block)))
 					chunk = chunk[len(block):]
 				}

@@ -51,21 +51,35 @@ type MeasureTrial struct {
 	Speed   int `json:"speed"`
 }
 
-// how long each setting is tried: seven settings and the two levels make about 40 seconds
+// how long each setting is tried at least: a trial goes on until every thread of the zstd
+// library in C had whole pieces of work (see switchfs.MeasureCompression), so six settings
+// and the two levels take 1 to 3 minutes
 const measureTrialTime = 4 * time.Second
+
+// measureTimeout is the most a measure takes, its slowest trials at the max level included
+const measureTimeout = 6 * time.Minute
 
 var errNoGameToMeasure = errorString("There is no game in the library to measure the disk with.")
 
-// measureTrials are the settings tried, the lightest first.
-func measureTrials(processors int) []MeasureTrial {
-	// a fourth of the processors stays free for the rest of the server
-	budget := max(1, processors*3/4)
+// measureTrials are the settings tried, the lightest first: half the processors and all the
+// ones a compression works on (compressWorkers), on one, two and four files at once, each only when its threads fit in the memory at
+// the level measured. The zstd library in C compresses one stream on several threads, so
+// a server with many processors is measured with all of them too.
+func measureTrials(processors int, level string) []MeasureTrial {
 	trials := []MeasureTrial{}
-	for _, trial := range []MeasureTrial{{Files: 1, Threads: 1}, {Files: 1, Threads: 2}, {Files: 2, Threads: 1}, {Files: 1, Threads: 4},
-		{Files: 2, Threads: 2}, {Files: 3, Threads: 1}, {Files: 4, Threads: 1}} {
-		if trial.Files*trial.Threads <= budget {
+	seen := map[MeasureTrial]bool{}
+	for _, total := range []int{max(1, processors/2), processors} {
+		for _, files := range []int{1, 2, maxFilesAtOnce} {
+			trial := MeasureTrial{Files: files, Threads: total / files}
+			if trial.Threads < 1 || seen[trial] || switchfs.LimitThreads(level, trial.Threads, files) < trial.Threads {
+				continue
+			}
+			seen[trial] = true
 			trials = append(trials, trial)
 		}
+	}
+	if len(trials) == 0 {
+		trials = append(trials, MeasureTrial{Files: 1, Threads: 1})
 	}
 	return trials
 }
@@ -83,7 +97,7 @@ func (web *Web) measureServer(ctx context.Context) (ServerMeasure, error) {
 	games = games[:min(len(games), maxFilesAtOnce)]
 	level := settings.ReadSettings(web.dataFolder).AutoCompressLevel
 
-	trials := measureTrials(result.Processors)
+	trials := measureTrials(compressWorkers(), level)
 	// every file of every trial starts at its own place in its game
 	places := 0
 	for _, trial := range trials {
@@ -252,7 +266,7 @@ func (web *Web) HandleMeasure() {
 			web.measuring.Store(false)
 			go web.runQueue()
 		}()
-		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Minute)
+		ctx, cancel := context.WithTimeout(r.Context(), measureTimeout)
 		defer cancel()
 		result, err := web.measureServer(ctx)
 		if err != nil {

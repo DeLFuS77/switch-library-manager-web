@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"hash"
 	"io"
 	"os"
 	"strings"
@@ -106,18 +105,18 @@ func (b *backgroundHash) Sum() [32]byte {
 // them back from the disk.
 const writtenEdge = 64 << 10
 
-// writtenFile is a file of a package as it was written: its SHA-256, its size, its start and
-// its end.
+// writtenFile is a file of a package as it was written: its SHA-256, taken on a goroutine of
+// its own beside the writing, its size, its start and its end.
 type writtenFile struct {
 	name string
 	size int64
-	hash hash.Hash
+	hash *backgroundHash
 	head []byte
 	tail []byte
 }
 
 func newWrittenFile(name string) *writtenFile {
-	return &writtenFile{name: name, hash: sha256.New()}
+	return &writtenFile{name: name, hash: newBackgroundHash()}
 }
 
 func (w *writtenFile) Write(p []byte) (int, error) {
@@ -195,7 +194,7 @@ func checkWritten(ctx context.Context, path string, written []*writtenFile) (Fil
 		if !strings.HasSuffix(strings.ToLower(file.name), ".nca") {
 			continue
 		}
-		sum := want.hash.Sum(nil)
+		sum := want.hash.Sum()
 		if id := contentId(file.name); id == "" || hex.EncodeToString(sum[:16]) == id {
 			continue
 		}
