@@ -61,8 +61,8 @@ const measureTimeout = 6 * time.Minute
 
 var errNoGameToMeasure = errorString("There is no game in the library to measure the disk with.")
 
-// measureTrials are the settings tried, the lightest first: half the processors and all of
-// them, on one, two and four files at once, each only when its threads fit in the memory at
+// measureTrials are the settings tried, the lightest first: half the processors and all the
+// ones a compression works on (compressWorkers), on one, two and four files at once, each only when its threads fit in the memory at
 // the level measured. The zstd library in C compresses one stream on several threads, so
 // a server with many processors is measured with all of them too.
 func measureTrials(processors int, level string) []MeasureTrial {
@@ -97,7 +97,7 @@ func (web *Web) measureServer(ctx context.Context) (ServerMeasure, error) {
 	games = games[:min(len(games), maxFilesAtOnce)]
 	level := settings.ReadSettings(web.dataFolder).AutoCompressLevel
 
-	trials := measureTrials(result.Processors, level)
+	trials := measureTrials(compressWorkers(), level)
 	// every file of every trial starts at its own place in its game
 	places := 0
 	for _, trial := range trials {
