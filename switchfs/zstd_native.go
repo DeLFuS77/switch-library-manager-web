@@ -74,6 +74,28 @@ func newNativeStreamEncoder(output io.Writer, level string, workers int) (io.Wri
 	return encoder, true, nil
 }
 
+// nativeJobSize is the data each thread of the zstd library in C takes at once on one stream
+// at a level of the app, 0 for the levels left to the encoder in Go: 4 times the window of
+// the level (zstdmt_compress.c), which grows with the level (clevels.h).
+func nativeJobSize(level string) int64 {
+	native, ok := nativeLevel(level)
+	if !ok {
+		return 0
+	}
+	windowLog := 23
+	switch {
+	case native <= 1:
+		windowLog = 19
+	case native == 2:
+		windowLog = 20
+	case native <= 8:
+		windowLog = 21
+	case native <= 16:
+		windowLog = 22
+	}
+	return 1 << (windowLog + 2)
+}
+
 // nativeBlockEncoder compresses each block with the zstd library in C, one context per
 // worker. A block is 1 MiB and its size is known, so the library keeps the window to it.
 type nativeBlockEncoder struct {

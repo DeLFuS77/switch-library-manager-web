@@ -5,6 +5,7 @@
 ### Improvements
 
 - Block compression, and every XCZ, now uses the zstd library in C at the level chosen, as the solid NSZ already did: smaller files at the same level, and the estimate of the savings matches them
+- The measure of the server gives each thread of a trial whole pieces of work, so settings with many threads are no longer measured as slower than they are, and it measures block compression as it runs
 
 ## 1.55.0
 
