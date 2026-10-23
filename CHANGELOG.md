@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Block compression, and every XCZ, now uses the zstd library in C at the level chosen, as the solid NSZ already did: smaller files at the same level, and the estimate of the savings matches them
+
 ## 1.55.0
 
 ### New

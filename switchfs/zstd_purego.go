@@ -11,3 +11,7 @@ const NativeZstd = false
 func newNativeStreamEncoder(output io.Writer, level string, workers int) (io.WriteCloser, bool, error) {
 	return nil, false, nil
 }
+
+func newNativeBlockEncoder(level string, workers int) (blockEncoder, bool) {
+	return nil, false
+}

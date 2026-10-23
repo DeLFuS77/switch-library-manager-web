@@ -45,16 +45,22 @@ func (e *nativeEncoder) Close() error {
 	return e.err
 }
 
-// newNativeStreamEncoder gives the encoder of the zstd library in C for a level it covers,
-// with workers threads; ok is false for the levels left to the encoder in Go.
-func newNativeStreamEncoder(output io.Writer, level string, workers int) (io.WriteCloser, bool, error) {
+// nativeLevel is the level of the zstd library in C for a level of the app; ok is false for
+// the levels left to the encoder in Go.
+func nativeLevel(level string) (int, bool) {
 	if level == "" {
 		level = LevelBalanced
 	}
-	native, ok := nativeLevels[level]
-	if !ok {
-		native, ok = levelNumber(level)
+	if native, ok := nativeLevels[level]; ok {
+		return native, true
 	}
+	return levelNumber(level)
+}
+
+// newNativeStreamEncoder gives the encoder of the zstd library in C for a level it covers,
+// with workers threads; ok is false for the levels left to the encoder in Go.
+func newNativeStreamEncoder(output io.Writer, level string, workers int) (io.WriteCloser, bool, error) {
+	native, ok := nativeLevel(level)
 	if !ok {
 		return nil, false, nil
 	}
@@ -66,4 +72,34 @@ func newNativeStreamEncoder(output io.Writer, level string, workers int) (io.Wri
 		}
 	}
 	return encoder, true, nil
+}
+
+// nativeBlockEncoder compresses each block with the zstd library in C, one context per
+// worker. A block is 1 MiB and its size is known, so the library keeps the window to it.
+type nativeBlockEncoder struct {
+	level    int
+	contexts []zstd.Ctx
+}
+
+func (e nativeBlockEncoder) encode(worker int, dst, src []byte) ([]byte, error) {
+	return e.contexts[worker].CompressLevel(dst, src, e.level)
+}
+
+// Close leaves the memory of the contexts to their finalizers, which free it.
+func (e nativeBlockEncoder) Close() error {
+	return nil
+}
+
+// newNativeBlockEncoder gives the block encoder of the zstd library in C for a level it
+// covers, for workers goroutines; ok is false for the levels left to the encoder in Go.
+func newNativeBlockEncoder(level string, workers int) (blockEncoder, bool) {
+	native, ok := nativeLevel(level)
+	if !ok {
+		return nil, false
+	}
+	encoder := nativeBlockEncoder{level: native, contexts: make([]zstd.Ctx, workers)}
+	for i := range encoder.contexts {
+		encoder.contexts[i] = zstd.NewCtx()
+	}
+	return encoder, true
 }

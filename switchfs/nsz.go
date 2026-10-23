@@ -668,8 +668,7 @@ func writeNczBlockData(ctx context.Context, output *os.File, dataSize uint64, fi
 	if workers < 1 {
 		workers = 1
 	}
-	encoder, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(encoderLevel(options.Level)),
-		zstd.WithEncoderConcurrency(workers), zstd.WithWindowSize(int(blockSize)))
+	encoder, err := newBlockEncoder(options.Level, workers)
 	if err != nil {
 		return err
 	}
@@ -678,6 +677,7 @@ func writeNczBlockData(ctx context.Context, output *os.File, dataSize uint64, fi
 	// a batch of blocks is read, compressed by every worker at once, then written in order
 	type job struct {
 		data, out []byte
+		err       error
 	}
 	batch := make([]job, workers)
 	for i := range batch {
@@ -699,13 +699,16 @@ func writeNczBlockData(ctx context.Context, output *os.File, dataSize uint64, fi
 		var wait sync.WaitGroup
 		for i := uint64(0); i < n; i++ {
 			wait.Add(1)
-			go func(j *job) {
+			go func(worker int, j *job) {
 				defer wait.Done()
-				j.out = encoder.EncodeAll(j.data, j.out[:0])
-			}(&batch[i])
+				j.out, j.err = encoder.encode(worker, j.out[:0], j.data)
+			}(int(i), &batch[i])
 		}
 		wait.Wait()
 		for i := uint64(0); i < n; i++ {
+			if batch[i].err != nil {
+				return batch[i].err
+			}
 			block := batch[i].out
 			if len(block) >= len(batch[i].data) {
 				block = batch[i].data

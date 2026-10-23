@@ -72,3 +72,69 @@ func TestStreamEncoderClosesOnce(t *testing.T) {
 		encoder.Close()
 	}
 }
+
+// Each block of a block compressed NCZ is a zstd frame of its own with a window of at most a
+// block, at every level, from several workers at once; with the zstd
+// library in C, its max level saves more than the encoder in Go does.
+func TestBlockEncoderWindowAndRoundTrip(t *testing.T) {
+	random := rand.New(rand.NewSource(2))
+	pattern := make([]byte, 256<<10)
+	random.Read(pattern)
+	blocks := make([][]byte, 6)
+	for i := range blocks {
+		block := make([]byte, 0, 1<<nczBlockExponent)
+		for len(block) < cap(block) {
+			piece := pattern[random.Intn(len(pattern)-4096):]
+			block = append(block, piece[:min(len(piece), 16<<10, cap(block)-len(block))]...)
+		}
+		blocks[i] = block
+	}
+	sizes := map[string]int{}
+	for _, level := range []string{LevelFast, LevelBalanced, LevelMax, "1", "19"} {
+		encoder, err := newBlockEncoder(level, len(blocks))
+		if err != nil {
+			t.Fatal(err)
+		}
+		out := make([][]byte, len(blocks))
+		errs := make([]error, len(blocks))
+		done := make(chan struct{})
+		for i := range blocks {
+			go func(i int) {
+				out[i], errs[i] = encoder.encode(i, nil, blocks[i])
+				done <- struct{}{}
+			}(i)
+		}
+		for range blocks {
+			<-done
+		}
+		encoder.Close()
+		decoder, _ := zstd.NewReader(nil, zstd.WithDecoderMaxMemory(1<<nczBlockExponent))
+		for i := range blocks {
+			if errs[i] != nil {
+				t.Fatal(errs[i])
+			}
+			var header zstd.Header
+			if err := header.Decode(out[i]); err != nil || header.WindowSize > 1<<nczBlockExponent {
+				t.Fatalf("%s: window %d (%v)", level, header.WindowSize, err)
+			}
+			back, err := decoder.DecodeAll(out[i], nil)
+			if err != nil || !bytes.Equal(back, blocks[i]) {
+				t.Fatalf("%s: block %d back differs (%v)", level, i, err)
+			}
+			sizes[level] += len(out[i])
+		}
+		decoder.Close()
+	}
+	if NativeZstd {
+		goEncoder, _ := zstd.NewWriter(nil, zstd.WithEncoderLevel(encoderLevel(LevelMax)), zstd.WithWindowSize(1<<nczBlockExponent))
+		goSize := 0
+		for _, block := range blocks {
+			goSize += len(goEncoder.EncodeAll(block, nil))
+		}
+		goEncoder.Close()
+		if sizes[LevelMax] >= goSize {
+			t.Fatalf("max level in C %d bytes, in Go %d", sizes[LevelMax], goSize)
+		}
+		t.Logf("max level: %d bytes in C, %d in Go", sizes[LevelMax], goSize)
+	}
+}
