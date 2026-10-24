@@ -57,9 +57,13 @@ const (
 	NOTE_INTERRUPTED       = "Interrupted: the app stopped while the task was running."
 	NOTE_TITLES_DOWNLOAD   = "The titles database could not be downloaded."
 	NOTE_TITLES_SAVED_COPY = "The titles database could not be downloaded, the saved copy is used."
-	NOTE_SCAN_FAILED       = "The library could not be scanned."
-	NOTE_NOTIFY_FAILED     = "The notification could not be sent."
-	NOTE_ORGANIZE_FAILED   = "The files could not be organized."
+	// no server of the titles database answered, as when the server has no connection
+	NOTE_TITLES_OFFLINE      = "Offline: the titles database was not downloaded, the saved copy is used."
+	NOTE_TITLES_OFFLINE_NONE = "Offline: the titles database was not downloaded."
+	NOTE_COVERS_OFFLINE      = "Offline: the covers left are downloaded after the next scan."
+	NOTE_SCAN_FAILED         = "The library could not be scanned."
+	NOTE_NOTIFY_FAILED       = "The notification could not be sent."
+	NOTE_ORGANIZE_FAILED     = "The files could not be organized."
 	// a file Organize could not change, and one it left as it is, each with why
 	NOTE_ORGANIZE_FILE_FAILED = "A file could not be changed."
 	NOTE_ORGANIZE_FILE_KEPT   = "A file was left as it is."
@@ -68,7 +72,7 @@ const (
 	NOTE_PAUSED_FOR_HOURS     = "Paused outside the background hours; it continues when they begin."
 )
 
-var taskNoteTexts = []string{NOTE_SD_COPY_FAILED, NOTE_INTERRUPTED, NOTE_TITLES_DOWNLOAD, NOTE_TITLES_SAVED_COPY, NOTE_SCAN_FAILED, NOTE_NOTIFY_FAILED, NOTE_ORGANIZE_FAILED, NOTE_PAUSED_FOR_SCAN, NOTE_PAUSED_FOR_HOURS}
+var taskNoteTexts = []string{NOTE_SD_COPY_FAILED, NOTE_INTERRUPTED, NOTE_TITLES_DOWNLOAD, NOTE_TITLES_SAVED_COPY, NOTE_TITLES_OFFLINE, NOTE_TITLES_OFFLINE_NONE, NOTE_COVERS_OFFLINE, NOTE_SCAN_FAILED, NOTE_NOTIFY_FAILED, NOTE_ORGANIZE_FAILED, NOTE_PAUSED_FOR_SCAN, NOTE_PAUSED_FOR_HOURS}
 
 const (
 	TASKS_FILENAME = "tasks.json"

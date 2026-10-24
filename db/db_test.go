@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -322,7 +323,7 @@ func TestKeysChanged(t *testing.T) {
 
 func init() {
 	// keep the retries of failed downloads fast in tests
-	retryDelay = time.Millisecond
+	RetryDelay = time.Millisecond
 }
 
 func TestLoadAndUpdateRetriesTemporaryFailures(t *testing.T) {
@@ -588,4 +589,76 @@ func TestScanKeepsTheCopyChosenOneByOne(t *testing.T) {
 	if game := localDB.TitlesMap["0100000000010"]; game == nil || filepath.Ext(game.File.ExtendedInfo.FileName) != ".nsz" {
 		t.Fatalf("the copy chosen is kept: %#v", game)
 	}
+}
+
+// silentServer takes each request and closes the connection without an answer, as a server
+// that cannot be reached; calls counts the requests.
+func silentServer(t *testing.T, calls *atomic.Int64) *httptest.Server {
+	t.Helper()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
+		if connection, _, err := w.(http.Hijacker).Hijack(); err == nil {
+			connection.Close()
+		}
+	}))
+	t.Cleanup(server.Close)
+	return server
+}
+
+// With no answer from the first server, the mirror is tried once, and the saved copy is used
+// with a failure that tells there was no connection.
+func TestLoadAndUpdateWithNoConnection(t *testing.T) {
+	var first, mirror atomic.Int64
+	urls := []string{silentServer(t, &first).URL, silentServer(t, &mirror).URL}
+	path := filepath.Join(t.TempDir(), "titles.json")
+	if err := os.WriteFile(path, []byte(`{"saved": true}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := LoadAndUpdate(urls, path, `"v1"`)
+	if err != nil || result.Updated || !errors.Is(result.Failure, ErrNoConnection) || result.Etag != `"v1"` {
+		t.Fatalf("the saved copy with no connection: err=%v %+v", err, result)
+	}
+	if readAll(t, result.File) != `{"saved": true}` {
+		t.Fatal("not the saved copy")
+	}
+	if first.Load() != int64(downloadAttempts) || mirror.Load() != 1 {
+		t.Fatalf("the first server is retried, the mirror tried once: %v and %v requests", first.Load(), mirror.Load())
+	}
+
+	// without a saved copy, the error tells it too
+	if _, err := LoadAndUpdate(urls, filepath.Join(t.TempDir(), "titles.json"), ""); !errors.Is(err, ErrNoConnection) {
+		t.Fatalf("no copy and no connection: %v", err)
+	}
+}
+
+// A server that answers, even with an error, means there is a connection.
+func TestLoadAndUpdateWithAServerThatAnswers(t *testing.T) {
+	var first, mirror atomic.Int64
+	answering := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mirror.Add(1)
+		w.WriteHeader(http.StatusBadGateway)
+	}))
+	t.Cleanup(answering.Close)
+	path := filepath.Join(t.TempDir(), "titles.json")
+	if err := os.WriteFile(path, []byte(`{"saved": true}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := LoadAndUpdate([]string{silentServer(t, &first).URL, answering.URL}, path, "")
+	if err != nil || result.Failure == nil || errors.Is(result.Failure, ErrNoConnection) {
+		t.Fatalf("a failure that is not for lack of connection: err=%v %+v", err, result)
+	}
+	result.File.Close()
+	if mirror.Load() != 1 {
+		t.Fatalf("after a server with no answer, the mirror is tried once: %v requests", mirror.Load())
+	}
+
+	// a file that is up to date is no failure
+	unchanged := jsonServer(t, http.StatusOK, `{"a": 1}`, `"v1"`)
+	result, err = LoadAndUpdate([]string{unchanged.URL}, path, `"v1"`)
+	if err != nil || result.Failure != nil {
+		t.Fatalf("not modified: err=%v %+v", err, result)
+	}
+	result.File.Close()
 }

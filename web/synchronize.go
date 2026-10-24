@@ -2,9 +2,11 @@ package web
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -48,13 +50,21 @@ func (web *Web) Synchronize(trigger string) bool {
 		switchDB, err := web.buildSwitchDb(currentSwitchDB)
 		if err != nil {
 			web.sugarLogger.Error(err)
-			if currentSwitchDB == nil {
-				web.taskLog().Warn(taskId, NOTE_TITLES_DOWNLOAD, err.Error())
-			} else {
-				web.taskLog().Warn(taskId, NOTE_TITLES_SAVED_COPY, err.Error())
-			}
 			// keep working with the titles we already have
-			switchDB = currentSwitchDB
+			if switchDB == nil {
+				switchDB = currentSwitchDB
+			}
+			offline := errors.Is(err, db.ErrNoConnection)
+			switch {
+			case offline && switchDB != nil:
+				web.taskLog().Warn(taskId, NOTE_TITLES_OFFLINE, err.Error())
+			case offline:
+				web.taskLog().Warn(taskId, NOTE_TITLES_OFFLINE_NONE, err.Error())
+			case switchDB != nil:
+				web.taskLog().Warn(taskId, NOTE_TITLES_SAVED_COPY, err.Error())
+			default:
+				web.taskLog().Warn(taskId, NOTE_TITLES_DOWNLOAD, err.Error())
+			}
 		}
 
 		localDB, err := web.buildLocalDB(switchDB, true)
