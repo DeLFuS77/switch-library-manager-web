@@ -942,7 +942,10 @@ func (web *Web) finishTask(id int64, failure *TaskNote) {
 }
 
 // buildSwitchDb downloads the titles and versions databases if they changed. When neither
-// changed, the current database is reused instead of processing the files again.
+// changed, the current database is reused instead of processing the files again. When the
+// titles database could not be downloaded, the error says why, and the database returned, if
+// any, is the one of the saved copy. With no connection to the servers nothing else is
+// downloaded, so the scan does not wait for every other file to fail too.
 func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, error) {
 	settingsObj := settings.ReadSettings(web.dataFolder)
 
@@ -951,16 +954,30 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 	titles, err := db.LoadAndUpdate(settingsObj.TitlesJsonUrls(), filename, settingsObj.TitlesEtag)
 
 	if err != nil {
-		return nil, errors.New("failed to download switch titles [reason:" + err.Error() + "]")
+		return nil, fmt.Errorf("failed to download switch titles [reason:%w]", err)
 	}
 	defer titles.File.Close()
+	var notDownloaded error
+	if titles.Failure != nil {
+		notDownloaded = fmt.Errorf("failed to download switch titles, the saved copy is used [reason:%w]", titles.Failure)
+	}
+	offline := errors.Is(titles.Failure, db.ErrNoConnection)
+	if offline && current != nil {
+		// the titles the app has are the ones of the saved copy already
+		return nil, notDownloaded
+	}
 
 	web.UpdateProgress(1, 4, "Downloading versions database...")
 	filename = filepath.Join(web.dataFolder, settings.VERSIONS_JSON_FILENAME)
-	versions, err := db.LoadAndUpdate(settingsObj.VersionsJsonUrls(), filename, settingsObj.VersionsEtag)
+	var versions db.UpdateResult
+	if offline {
+		versions, err = db.LoadLocal(filename, settingsObj.VersionsEtag)
+	} else {
+		versions, err = db.LoadAndUpdate(settingsObj.VersionsJsonUrls(), filename, settingsObj.VersionsEtag)
+	}
 
 	if err != nil {
-		return nil, errors.New("failed to download switch updates [reason:" + err.Error() + "]")
+		return nil, errors.Join(notDownloaded, fmt.Errorf("failed to download switch updates [reason:%w]", err))
 	}
 	defer versions.File.Close()
 
@@ -990,7 +1007,7 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 		// a few megabytes, not waited for: the library shows its cheats once they are here
 		go web.downloadCheats()
 		web.applyCoverFallbacks(&unchanged)
-		return &unchanged, nil
+		return &unchanged, notDownloaded
 	}
 
 	web.UpdateProgress(2, 4, "Processing titles and updates...")
@@ -1002,17 +1019,19 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 		keepVersions("", "")
 	} else {
 		keepVersions(titles.Etag, versions.Etag)
-		switchTitleDB.Localized = web.loadLocalizedTitles(true)
-		web.downloadCoverFallbacks()
-		web.downloadSeries()
-		// a few megabytes, not waited for: the library shows its cheats once they are here
-		go web.downloadCheats()
+		switchTitleDB.Localized = web.loadLocalizedTitles(!offline)
+		if !offline {
+			web.downloadCoverFallbacks()
+			web.downloadSeries()
+			// a few megabytes, not waited for: the library shows its cheats once they are here
+			go web.downloadCheats()
+		}
 		web.applyCoverFallbacks(switchTitleDB)
 	}
 
 	web.UpdateProgress(3, 4, "Scanning library...")
 
-	return switchTitleDB, err
+	return switchTitleDB, errors.Join(notDownloaded, err)
 }
 
 // buildLocalDB scans the configured folders. It does not change the shared state.

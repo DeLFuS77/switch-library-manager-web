@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.56.1
+
+### Fixes
+
+- With no connection, a synchronization no longer spends minutes trying to download the titles database and the files that go with it (versions, names in other languages, covers, series, cheats), each one several times on each server: once the titles database gets no answer from its servers after a few attempts, the rest is not tried, the library is scanned with the saved copy, and the synchronization tells in the history of Tasks that the titles database could not be downloaded for lack of connection. A server that does answer, but with an error, still has the other servers tried as before
+- Downloading covers stops as soon as the cover server no longer answers, also when the connection is lost after some covers came, instead of trying every cover left; it tells in the history of Tasks that the covers left are downloaded after the next scan. A cover that got no answer is no longer marked as failed, which made it wait a day to be tried again once the connection was back
+
 ## 1.56.0
 
 ### Improvements

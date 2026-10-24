@@ -3,6 +3,10 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		// the titles database, with no connection to its servers
+		"Offline: the titles database was not downloaded, the saved copy is used.": "接続できません：タイトルデータベースをダウンロードできなかったため、保存済みのコピーを使用します。",
+		"Offline: the titles database was not downloaded.":                         "接続できません：タイトルデータベースをダウンロードできませんでした。",
+		"Offline: the covers left are downloaded after the next scan.":             "接続できません：残りのカバーは次回のスキャン後にダウンロードされます。",
 		// split and bulk packs
 		"Split multi-title files": "複数タイトルのファイルを分割",
 		"A game card dump with several games (a collection on one cartridge) splits into one XCI or XCZ per game, with its update and DLC, so the files made for a game card stay as they are.":                                                                                   "複数のゲームが入ったカートリッジのダンプ(1 本のカートリッジに入ったコレクション)は、アップデートと DLC を含めてゲームごとの XCI または XCZ に分けられ、カートリッジ用のファイルはそのまま残ります。",

@@ -103,12 +103,26 @@ type UpdateResult struct {
 	Etag string
 	// a new version was downloaded; false when the local copy is used
 	Updated bool
+	// why no URL gave the file, when the local copy is used because of a failure (nil when the
+	// local copy is up to date); it wraps ErrNoConnection when no server answered at all
+	Failure error
 }
+
+// ErrNoConnection is the failure of a download that got no answer at all from any of its
+// servers, as when the computer has no connection to the internet.
+var ErrNoConnection = errors.New("no connection to the servers")
+
+// unanswered is the failure of a request that got no answer from its server.
+type unanswered struct{ error }
+
+func (e unanswered) Unwrap() error { return e.error }
 
 // LoadAndUpdate is LoadAndUpdateFile, also telling whether a new version was downloaded.
 // Downloads are streamed to a temporary file, checked for truncation and for a valid JSON
 // document, and only then replace the local copy, so an interrupted download never
-// damages it. Temporary failures are retried before the next URL is tried.
+// damages it. Temporary failures are retried before the next URL is tried; when the first
+// URL got no answer at all, the next ones are tried once, as retrying them too would only make
+// a computer with no connection wait longer.
 func LoadAndUpdate(urls []string, filePath string, etag string) (UpdateResult, error) {
 	return loadAndUpdate(urls, filePath, etag, false)
 }
@@ -151,6 +165,9 @@ func loadAndUpdateWith(urls []string, filePath string, etag string, check func(p
 	tmpName := filePath + ".tmp"
 	defer os.Remove(tmpName)
 
+	attempts := downloadAttempts
+	var failure error
+	tried, unansweredUrls := 0, 0
 	for i, url := range urls {
 		if url == "" {
 			continue
@@ -161,17 +178,27 @@ func loadAndUpdateWith(urls []string, filePath string, etag string, check func(p
 			requestEtag = ""
 		}
 
-		newEtag, err := downloadWithRetries(url, requestEtag, tmpName)
+		newEtag, err := downloadWithRetries(url, requestEtag, tmpName, attempts)
 		if err != nil {
 			zap.S().Infof("file [%v] was not downloaded, reason - [%v]", url, err)
 			if errors.Is(err, errNotModified) {
+				failure = nil
 				break
+			}
+			tried++
+			failure = err
+			var noAnswer unanswered
+			if errors.As(err, &noAnswer) {
+				unansweredUrls++
+				attempts = 1
 			}
 			continue
 		}
 
 		if err := check(tmpName); err != nil {
 			zap.S().Infof("ignoring new update [%v], reason - [%v]", url, err)
+			tried++
+			failure = err
 			continue
 		}
 
@@ -185,9 +212,25 @@ func loadAndUpdateWith(urls []string, filePath string, etag string, check func(p
 		return UpdateResult{File: file, Etag: newEtag, Updated: true}, nil
 	}
 
+	if tried > 0 && unansweredUrls == tried {
+		failure = fmt.Errorf("%w: %v", ErrNoConnection, failure)
+	}
+	return localCopy(filePath, etag, failure)
+}
+
+// LoadLocal is LoadAndUpdate with no download: the local copy, as when there is no connection.
+func LoadLocal(filePath string, etag string) (UpdateResult, error) {
+	return localCopy(filePath, etag, nil)
+}
+
+// localCopy opens the local copy of a file that was not downloaded, because of failure if any.
+func localCopy(filePath string, etag string, failure error) (UpdateResult, error) {
 	fileInfo, err := os.Stat(filePath)
 	if err != nil || fileInfo.Size() == 0 {
 		zap.S().Infof("Local file [%v] is missing, empty or corrupted", filePath)
+		if failure != nil {
+			return UpdateResult{}, fmt.Errorf("unable to download %v: %w", filepath.Base(filePath), failure)
+		}
 		return UpdateResult{}, errors.New("unable to download " + filepath.Base(filePath))
 	}
 
@@ -195,31 +238,31 @@ func loadAndUpdateWith(urls []string, filePath string, etag string, check func(p
 	if err != nil {
 		return UpdateResult{}, err
 	}
-	return UpdateResult{File: file, Etag: etag}, nil
+	return UpdateResult{File: file, Etag: etag, Failure: failure}, nil
 }
 
-// downloadAttempts and retryDelay control how often a temporary failure is retried; the
-// delay doubles after every attempt.
+// downloadAttempts and RetryDelay control how often a temporary failure is retried; the
+// delay doubles after every attempt. The tests set a short delay.
 var (
 	downloadAttempts = 3
-	retryDelay       = 2 * time.Second
+	RetryDelay       = 2 * time.Second
 )
 
 // errPermanent marks failures that a retry cannot fix, such as a 404.
 type errPermanent struct{ error }
 
-func downloadWithRetries(url string, etag string, target string) (string, error) {
-	delay := retryDelay
+func downloadWithRetries(url string, etag string, target string, attempts int) (string, error) {
+	delay := RetryDelay
 	var err error
-	for attempt := 1; attempt <= downloadAttempts; attempt++ {
+	for attempt := 1; attempt <= attempts; attempt++ {
 		var newEtag string
 		newEtag, err = downloadToFile(url, etag, target)
 		var permanent errPermanent
 		if err == nil || errors.Is(err, errNotModified) || errors.As(err, &permanent) {
 			return newEtag, err
 		}
-		if attempt < downloadAttempts {
-			zap.S().Infof("downloading [%v] failed (attempt %v of %v), retrying in %v - %v", url, attempt, downloadAttempts, delay, err)
+		if attempt < attempts {
+			zap.S().Infof("downloading [%v] failed (attempt %v of %v), retrying in %v - %v", url, attempt, attempts, delay, err)
 			time.Sleep(delay)
 			delay *= 2
 		}
@@ -238,7 +281,7 @@ func downloadToFile(url string, etag string, target string) (string, error) {
 	}
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return "", err
+		return "", unanswered{err}
 	}
 	defer resp.Body.Close()
 
@@ -353,7 +396,7 @@ func download(client *http.Client, url string, etag string, limit int64) ([]byte
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, "", err
+		return nil, "", unanswered{err}
 	}
 	defer resp.Body.Close()
 

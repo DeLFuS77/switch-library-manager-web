@@ -2,6 +2,8 @@ package db
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -111,12 +113,15 @@ func CoversToTry(dataFolder string, urls []string) []string {
 // DownloadCovers stores the covers at urls in the image cache, a few at a time. done is
 // called after each cover that was downloaded; stop, when not nil, is checked between
 // downloads. Covers that failed recently are skipped, and when the cover server cannot be
-// reached at all the rest is left for later.
-func DownloadCovers(dataFolder string, urls []string, stop func() bool, done func(url string)) {
+// reached at all the rest is left for later. When the server stops answering, also after
+// some covers came (the connection was lost), the rest is left for later too and the error
+// wraps ErrNoConnection; a cover with no answer is not marked as failed, so it does not wait
+// a day to be tried again.
+func DownloadCovers(dataFolder string, urls []string, stop func() bool, done func(url string)) error {
 	folder := filepath.Join(dataFolder, "img")
 	if err := os.MkdirAll(folder, 0755); err != nil {
 		zap.S().Warnf("Covers are not cached: %v", err)
-		return
+		return nil
 	}
 
 	failuresPath := filepath.Join(folder, coverFailuresFilename)
@@ -139,7 +144,7 @@ func DownloadCovers(dataFolder string, urls []string, stop func() bool, done fun
 		order = append(order, url)
 	}
 	if len(order) == 0 {
-		return
+		return nil
 	}
 
 	var (
@@ -147,8 +152,11 @@ func DownloadCovers(dataFolder string, urls []string, stop func() bool, done fun
 		finished  atomic.Int64
 		inARow    atomic.Int64
 		succeeded atomic.Bool
-		jobs      = make(chan string)
-		workers   sync.WaitGroup
+		// failures in a row that got no answer from the server, also after covers came
+		unansweredInARow atomic.Int64
+		lastUnanswered   error
+		jobs             = make(chan string)
+		workers          sync.WaitGroup
 	)
 	for w := 0; w < coverWorkers; w++ {
 		workers.Add(1)
@@ -156,9 +164,13 @@ func DownloadCovers(dataFolder string, urls []string, stop func() bool, done fun
 			defer workers.Done()
 			for url := range jobs {
 				err := DownloadFile(url, filepath.Join(folder, filepath.Base(url)))
+				var noAnswer unanswered
+				gotNoAnswer := errors.As(err, &noAnswer)
 				mutex.Lock()
 				if err == nil {
 					delete(failures, url)
+				} else if gotNoAnswer {
+					lastUnanswered = err
 				} else {
 					failures[url] = time.Now().Unix()
 				}
@@ -167,17 +179,28 @@ func DownloadCovers(dataFolder string, urls []string, stop func() bool, done fun
 				if err == nil {
 					succeeded.Store(true)
 					inARow.Store(0)
+					unansweredInARow.Store(0)
 					if done != nil {
 						done(url)
 					}
 				} else {
 					inARow.Add(1)
+					if gotNoAnswer {
+						unansweredInARow.Add(1)
+					} else {
+						unansweredInARow.Store(0)
+					}
 				}
 			}
 		}()
 	}
-	stopped := false
+	stopped, offline := false, false
 	for _, url := range order {
+		// a cover that came late may set the count back to 0: the reason is kept here
+		if unansweredInARow.Load() >= coverMaxFailuresInARow {
+			stopped, offline = true, true
+			break
+		}
 		if (!succeeded.Load() && inARow.Load() >= coverMaxFailuresInARow) || (stop != nil && stop()) {
 			stopped = true
 			break
@@ -196,6 +219,11 @@ func DownloadCovers(dataFolder string, urls []string, stop func() bool, done fun
 	if err == nil {
 		os.WriteFile(failuresPath, data, 0644)
 	}
+	// the server stopped answering, or never answered the few covers tried
+	if noAnswers := unansweredInARow.Load(); offline || noAnswers >= coverMaxFailuresInARow || (noAnswers > 0 && noAnswers == finished.Load()) {
+		return fmt.Errorf("%w: %v", ErrNoConnection, lastUnanswered)
+	}
+	return nil
 }
 
 // downloadCovers sets the cached covers and downloads the others right away.

@@ -1,4 +1,50 @@
 {
+  "1.56.1": {
+    "en": [
+      "With no connection, a synchronization no longer spends minutes trying: after a few attempts it goes on with the saved titles database, and Tasks tells it could not be downloaded.",
+      "Covers stop as soon as the server no longer answers, and are tried again after the next scan instead of a day later."
+    ],
+    "es": [
+      "Sin conexión, la sincronización ya no se pasa minutos intentándolo: tras unos pocos intentos sigue con la base de títulos guardada, y Tareas dice que no se pudo descargar.",
+      "Las portadas se detienen en cuanto el servidor deja de responder, y se vuelven a intentar tras el próximo análisis en vez de al día siguiente."
+    ],
+    "de": [
+      "Ohne Verbindung verbringt eine Synchronisierung nicht mehr Minuten mit Versuchen: Nach einigen Versuchen macht sie mit der gespeicherten Titeldatenbank weiter, und Aufgaben zeigt, dass sie nicht heruntergeladen werden konnte.",
+      "Cover-Downloads stoppen, sobald der Server nicht mehr antwortet, und werden nach dem nächsten Scan erneut versucht statt erst einen Tag später."
+    ],
+    "fr": [
+      "Sans connexion, une synchronisation ne passe plus des minutes à essayer : après quelques tentatives, elle continue avec la base des titres enregistrée, et Tâches indique qu'elle n'a pas pu être téléchargée.",
+      "Les jaquettes s'arrêtent dès que le serveur ne répond plus, et sont réessayées après la prochaine analyse au lieu du lendemain."
+    ],
+    "it": [
+      "Senza connessione, una sincronizzazione non passa più minuti a riprovare: dopo pochi tentativi continua con il database dei titoli salvato, e Attività indica che non è stato possibile scaricarlo.",
+      "Le copertine si fermano appena il server non risponde più, e vengono riprovate dopo la prossima scansione invece che il giorno dopo."
+    ],
+    "pt": [
+      "Sem conexão, uma sincronização já não passa minutos a tentar: após algumas tentativas continua com a base de títulos guardada, e Tarefas indica que não foi possível baixá-la.",
+      "As capas param assim que o servidor deixa de responder, e voltam a ser tentadas após a próxima análise em vez de no dia seguinte."
+    ],
+    "nl": [
+      "Zonder verbinding blijft een synchronisatie niet meer minutenlang proberen: na een paar pogingen gaat hij verder met de opgeslagen titeldatabase, en Taken meldt dat die niet kon worden gedownload.",
+      "Covers stoppen zodra de server niet meer antwoordt, en worden na de volgende scan opnieuw geprobeerd in plaats van een dag later."
+    ],
+    "ru": [
+      "Без соединения синхронизация больше не тратит минуты на попытки: после нескольких попыток она продолжает с сохранённой базой названий, а в «Задачах» сказано, что скачать её не удалось.",
+      "Обложки перестают скачиваться, как только сервер не отвечает, и пробуются снова после следующего сканирования, а не через день."
+    ],
+    "ja": [
+      "接続がないとき、同期が何分も試し続けることはなくなりました。数回試したあとは保存済みのタイトルデータベースで続行し、ダウンロードできなかったことを「タスク」に表示します。",
+      "サーバーが応答しなくなるとカバーのダウンロードをすぐに止め、翌日ではなく次回のスキャン後にもう一度試します。"
+    ],
+    "ko": [
+      "연결이 없을 때 동기화가 몇 분씩 계속 시도하지 않아요. 몇 번 시도한 뒤 저장된 타이틀 데이터베이스로 계속하고, 다운로드할 수 없었다는 것을 작업에 알려요.",
+      "서버가 응답하지 않으면 표지 다운로드를 바로 멈추고, 하루 뒤가 아니라 다음 스캔 후에 다시 시도해요."
+    ],
+    "zh": [
+      "没有网络连接时，同步不再花几分钟反复尝试：几次尝试后会使用已保存的游戏数据库继续，并在“任务”中说明无法下载。",
+      "服务器不再响应时，封面下载会立即停止，并在下次扫描后重试，而不是等到第二天。"
+    ]
+  },
   "1.56.0": {
     "en": [
       "Game cards (XCZ) and NSZ in blocks are 4 to 6 % smaller, and decompressing and checking NSZ and XCZ is up to twice as fast.",

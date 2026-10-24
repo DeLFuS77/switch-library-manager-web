@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"path/filepath"
 	"sync"
 	"time"
@@ -151,7 +152,7 @@ func (web *Web) downloadMissingCovers() {
 		}
 		lastFlush = time.Now()
 	}
-	db.DownloadCovers(web.dataFolder, urls,
+	coversErr := db.DownloadCovers(web.dataFolder, urls,
 		// a scan replaces the library: stop, and start again after it
 		func() bool { return web.state.IsSynchronizing() || !web.backgroundAllowed() },
 		func(url string) {
@@ -177,6 +178,10 @@ func (web *Web) downloadMissingCovers() {
 	mutex.Unlock()
 	web.sugarLogger.Infof("[%d covers downloaded]", downloaded)
 	web.taskLog().SetResult(taskId, 0, downloaded)
+	if errors.Is(coversErr, db.ErrNoConnection) {
+		web.sugarLogger.Warnf("The cover server does not answer, the covers left are downloaded after the next scan: %v", coversErr)
+		web.taskLog().Warn(taskId, NOTE_COVERS_OFFLINE, coversErr.Error())
+	}
 	if !web.backgroundAllowed() && !web.state.IsSynchronizing() {
 		// the background hours ended: continue when they begin again
 		web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_HOURS, "")
