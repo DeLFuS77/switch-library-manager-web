@@ -565,6 +565,7 @@ func OrganizeByFolders(baseFolder string,
 		//process base title
 		if v.BaseExist && collections[filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)] == nil {
 			templateData[settings.TEMPLATE_TYPE] = "BASE"
+			fileTemplateData(templateData, v, v.File.ExtendedInfo)
 			from := filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)
 			to := filepath.Join(destinationPath, getFileName(options, v.File.ExtendedInfo.FileName, templateData, 0))
 			if err := ops.move(from, to); err != nil {
@@ -599,6 +600,7 @@ func OrganizeByFolders(baseFolder string,
 			}
 			templateData[settings.TEMPLATE_VERSION] = strconv.Itoa(update)
 			templateData[settings.TEMPLATE_TYPE] = "UPD"
+			fileTemplateData(templateData, v, updateInfo.ExtendedInfo)
 			if updateInfo.Metadata != nil && updateInfo.Metadata.Ncap != nil {
 				templateData[settings.TEMPLATE_VERSION_TXT] = updateInfo.Metadata.Ncap.DisplayVersion
 			} else {
@@ -635,6 +637,7 @@ func OrganizeByFolders(baseFolder string,
 				templateData[settings.TEMPLATE_VERSION] = strconv.Itoa(dlc.Metadata.Version)
 			}
 			templateData[settings.TEMPLATE_TYPE] = "DLC"
+			fileTemplateData(templateData, v, dlc.ExtendedInfo)
 			templateData[settings.TEMPLATE_TITLE_ID] = id
 			templateData[settings.TEMPLATE_DLC_NAME] = getDlcName(title, dlc)
 			from := filepath.Join(dlc.ExtendedInfo.BaseFolder, dlc.ExtendedInfo.FileName)
@@ -953,6 +956,42 @@ func avoidReserved(name string) string {
 	return name
 }
 
+// fileTemplateData puts in the data of a template what tells the file itself: the titles of
+// each kind it holds, as 1G+1U+2D (a SuperNSP holds several, a file of its own one), and its
+// size in decimal GB and MB, rounded half up.
+func fileTemplateData(templateData map[string]string, v *db.SwitchGameFiles, file db.ExtendedFileInfo) {
+	games, updates, dlcs := 0, 0, 0
+	if v.BaseExist && v.File.ExtendedInfo == file {
+		games++
+	}
+	for _, update := range v.Updates {
+		if update.ExtendedInfo == file {
+			updates++
+		}
+	}
+	for _, dlc := range v.Dlc {
+		if dlc.ExtendedInfo == file {
+			dlcs++
+		}
+	}
+	parts := []string{}
+	for _, kind := range []struct {
+		count  int
+		letter string
+	}{{games, "G"}, {updates, "U"}, {dlcs, "D"}} {
+		if kind.count > 0 {
+			parts = append(parts, strconv.Itoa(kind.count)+kind.letter)
+		}
+	}
+	templateData[settings.TEMPLATE_PACKAGE_CONTENTS] = strings.Join(parts, "+")
+	templateData[settings.TEMPLATE_SIZE_GB], templateData[settings.TEMPLATE_SIZE_MB] = "", ""
+	if file.Size > 0 && !file.IsDir {
+		tenths := (file.Size + 50_000_000) / 100_000_000
+		templateData[settings.TEMPLATE_SIZE_GB] = fmt.Sprintf("%d.%dGB", tenths/10, tenths%10)
+		templateData[settings.TEMPLATE_SIZE_MB] = fmt.Sprintf("%dMB", (file.Size+500_000)/1_000_000)
+	}
+}
+
 func applyTemplate(templateData map[string]string, useSafeNames bool, template string, nameTry int) string {
 	result := strings.ReplaceAll(template, "{"+settings.TEMPLATE_TITLE_NAME+"}", templateData[settings.TEMPLATE_TITLE_NAME])
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_TITLE_ID+"}", strings.ToUpper(templateData[settings.TEMPLATE_TITLE_ID]))
@@ -960,6 +999,9 @@ func applyTemplate(templateData map[string]string, useSafeNames bool, template s
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_TYPE+"}", templateData[settings.TEMPLATE_TYPE])
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_VERSION_TXT+"}", templateData[settings.TEMPLATE_VERSION_TXT])
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_REGION+"}", templateData[settings.TEMPLATE_REGION])
+	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_PACKAGE_CONTENTS+"}", templateData[settings.TEMPLATE_PACKAGE_CONTENTS])
+	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_SIZE_GB+"}", templateData[settings.TEMPLATE_SIZE_GB])
+	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_SIZE_MB+"}", templateData[settings.TEMPLATE_SIZE_MB])
 
 	//remove title name from dlc name
 	dlcName := strings.Replace(templateData[settings.TEMPLATE_DLC_NAME], templateData[settings.TEMPLATE_TITLE_NAME], "", 1)

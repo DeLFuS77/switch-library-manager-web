@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### New
+
+- Three fields for the names of files when organizing, as NXPress and Switch Library Manager have them: {PACKAGE_CONTENTS}, the titles of each kind a file holds (1G+1U+2D for a SuperNSP with the game, an update and two DLC), and {SIZE_GB} and {SIZE_MB}, its size (2.7GB, 2650MB)
+
 ## 1.56.0
 
 ### Improvements

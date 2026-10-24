@@ -122,7 +122,7 @@
 									<input type="text" class="form-control font-monospace" id="file_name_template" name="file_name_template" value="{{$o.FileNameTemplate}}">
 								</div>
 								<div class="form-text mb-3">
-									{{t "Available:"}} <code>{{t "{TITLE_NAME}"}}</code> <code>{{t "{TITLE_ID}"}}</code> <code>{{t "{VERSION}"}}</code> <code>{{t "{VERSION_TXT}"}}</code> <code>{{t "{REGION}"}}</code> <code>{{t "{TYPE}"}}</code> <code>{{t "{DLC_NAME}"}}</code>
+									{{t "Available:"}} <code>{{t "{TITLE_NAME}"}}</code> <code>{{t "{TITLE_ID}"}}</code> <code>{{t "{VERSION}"}}</code> <code>{{t "{VERSION_TXT}"}}</code> <code>{{t "{REGION}"}}</code> <code>{{t "{TYPE}"}}</code> <code>{{t "{DLC_NAME}"}}</code> <code>{PACKAGE_CONTENTS}</code> <code>{SIZE_GB}</code> <code>{SIZE_MB}</code>
 								</div>
 								<div class="form-check form-switch mb-3">
 									<input class="form-check-input" type="checkbox" role="switch" id="switch_safe_file_names" name="switch_safe_file_names" value="true"{{if $o.SwitchSafeFileNames}} checked{{end}}>
