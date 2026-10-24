@@ -41,8 +41,12 @@ import (
 const (
 	nczHeaderSize   = 0x4000
 	nczSectionMagic = "NCZSECTN"
-	nczBlockMagic   = "NCZBLOCK"
-	nczChunkSize    = 4 << 20
+	// the section table of an NCZ whose sections may move their AES-CTR counter
+	// (counterOffset): an NCA in sparse storage, see docs/ncz-sparse.md of NXPress. Written
+	// only when a section needs it; the tools that do not read it stop at this magic.
+	nczSectionMagicV2 = "NCZSECT2"
+	nczBlockMagic     = "NCZBLOCK"
+	nczChunkSize      = 4 << 20
 	// more sections than an update ever has means a damaged table
 	nczMaxSections = 1 << 20
 	// decoders on the console need a bounded window
@@ -85,6 +89,10 @@ type CompressOptions struct {
 	Blocks bool
 	// called with the bytes of the source processed so far and the total
 	Progress func(done int64, total int64)
+	// the NCA files in sparse storage are compressed too, in the experimental format NCZSECT2
+	// (docs/ncz-sparse.md of NXPress), which other tools do not read yet; else they are
+	// stored as they are
+	Sparse bool
 }
 
 // CompressResult describes a finished compression.
@@ -94,6 +102,8 @@ type CompressResult struct {
 	// NCA files compressed, and stored as they are (small, metadata or update patches)
 	Compressed int
 	Stored     int
+	// of the NCA compressed, the ones in sparse storage, written as NCZSECT2
+	Sparse int
 	// the SHA-256 of every file of the original by name, taken while it was read to compress
 	// it: what its compressed copy must give back (see CheckHashes and VerifyCompressed)
 	Hashes map[string][32]byte
@@ -107,9 +117,10 @@ var ErrNotCompressible = errors.New("nothing in this file can be compressed")
 var ErrNoTitleKey = errors.New("the NSP has no ticket and title.keys does not list its title key")
 
 // ErrSparseStorage is ErrNotCompressible for a game in sparse storage: a layout of some recent
-// games whose sections are mapped through a table onto less data than they cover. No
-// compressor reads it yet (nsz neither); the game stays as it is and installs normally.
-var ErrSparseStorage = fmt.Errorf("%w: it uses sparse storage, which cannot be compressed yet", ErrNotCompressible)
+// games whose sections are mapped through a table onto less data than they cover. NCZ cannot
+// hold it (nsz stores it as it is); only the experimental NCZSECT2 can (CompressOptions.Sparse).
+// Left as it is, the game installs normally.
+var ErrSparseStorage = fmt.Errorf("%w: it uses sparse storage, which only the experimental format NCZSECT2 compresses", ErrNotCompressible)
 
 // reasonSparse is the reason of planNcz for an NCA in sparse storage.
 const reasonSparse = "sparse storage"
@@ -130,6 +141,16 @@ type nczSection struct {
 	cryptoType uint64
 	key        []byte
 	counter    []byte
+	// added to the position of a byte to derive its counter: a piece of an NCA in sparse
+	// storage is encrypted at its place in the whole game, not where the NCA stores it
+	// (NCZSECT2); 0 for every other section
+	shift int64
+}
+
+// counterAt is the AES-CTR counter of the 16 byte block holding the byte at position of the
+// NCA: the upper half from the section, the lower half the position moved by its shift.
+func (s nczSection) counterAt(position uint64) []byte {
+	return nczCounter(s.counter, uint64(int64(position)+s.shift))
 }
 
 type nczPlan struct {
@@ -139,7 +160,7 @@ type nczPlan struct {
 // planGame plans the compression of each NCA of a game, and gives the names its files take
 // in the compressed package. When none can be compressed, the error tells why: compressed
 // already, sparse storage, an encryption or NCA files with no game data.
-func planGame(input io.ReaderAt, pkg *gamePackage, titleKeys map[string][]byte) ([]*nczPlan, []string, error) {
+func planGame(input io.ReaderAt, pkg *gamePackage, titleKeys map[string][]byte, sparse bool) ([]*nczPlan, []string, error) {
 	plans := make([]*nczPlan, len(pkg.files))
 	// why the NCA files worth compressing were stored as they are, to tell when none is left
 	reasons := []string{}
@@ -154,7 +175,7 @@ func planGame(input io.ReaderAt, pkg *gamePackage, titleKeys map[string][]byte) 
 			continue
 		}
 		ncas++
-		plan, reason, err := planNcz(input, file.offset, uint64(file.size), titleKeys)
+		plan, reason, err := planNcz(input, file.offset, uint64(file.size), titleKeys, sparse)
 		if err != nil {
 			return plans, names, fmt.Errorf("%s: %w", file.name, err)
 		}
@@ -203,7 +224,7 @@ func NotCompressible(source string) error {
 	if err != nil {
 		return err
 	}
-	_, _, err = planGame(input, pkg, titleKeys)
+	_, _, err = planGame(input, pkg, titleKeys, false)
 	return err
 }
 
@@ -231,10 +252,16 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 		return result, err
 	}
 
-	plans, names, err := planGame(input, pkg, titleKeys)
+	plans, names, err := planGame(input, pkg, titleKeys, options.Sparse)
 	for _, plan := range plans {
 		if plan != nil {
 			result.Compressed++
+			for _, section := range plan.sections {
+				if section.shift != 0 {
+					result.Sparse++
+					break
+				}
+			}
 		}
 	}
 	if err != nil {
@@ -328,7 +355,8 @@ func isCompressibleNcaName(name string) bool {
 // reason when the NCA was worth compressing. Like nsz, a section the app cannot decrypt, the
 // bytes between sections and after the last one are kept in the stream as they are: they are
 // rebuilt exactly, they only do not shrink, and the rest of the NCA is still compressed.
-func planNcz(input io.ReaderAt, offset int64, size uint64, titleKeys map[string][]byte) (*nczPlan, string, error) {
+// With sparse, an NCA in sparse storage is planned too, piece by piece (see sparseSections).
+func planNcz(input io.ReaderAt, offset int64, size uint64, titleKeys map[string][]byte, sparse bool) (*nczPlan, string, error) {
 	keys, _ := settings.SwitchKeys()
 	if keys == nil || keys.GetKey("header_key") == "" {
 		return nil, "", errors.New("prod.keys is needed to compress")
@@ -371,13 +399,23 @@ func planNcz(input io.ReaderAt, offset int64, size uint64, titleKeys map[string]
 		if err != nil {
 			return nil, "", err
 		}
-		// the size of the table of a sparse section: its range is not where its data is
-		if !isZero(fsh.fsHeaderBytes[0x148+0x8 : 0x148+0x10]) {
-			return nil, reasonSparse, nil
-		}
 		counter := make([]byte, 16)
 		for i := 0; i < 8; i++ {
 			counter[i] = fsh.fsHeaderBytes[0x147-i]
+		}
+		// a section in sparse storage (its sparse generation is set, or it has a sparse table):
+		// its range is not where its data is
+		if binary.LittleEndian.Uint16(fsh.fsHeaderBytes[0x170:]) != 0 || !isZero(fsh.fsHeaderBytes[0x148+0x8:0x148+0x10]) {
+			if !sparse {
+				return nil, reasonSparse, nil
+			}
+			pieces, err := sparseSections(input, offset, size, uint64(entry.StartOffset), fsh, sectionKey, counter)
+			if err != nil {
+				return nil, reasonSparse + ": " + err.Error(), nil
+			}
+			sections = append(sections, pieces...)
+			readable = true
+			continue
 		}
 		whole := nczSection{
 			offset:     uint64(entry.StartOffset),
@@ -643,13 +681,20 @@ func writeNczHeader(output io.Writer, input io.ReaderAt, offset int64, plan *ncz
 	}
 	progress(nczHeaderSize)
 
-	table := bytes.NewBufferString(nczSectionMagic)
+	// NCZSECT2 only when a section moves its counter: any other NCZ stays readable by every tool
+	magic := nczSectionMagic
+	for _, section := range plan.sections {
+		if section.shift != 0 {
+			magic = nczSectionMagicV2
+		}
+	}
+	table := bytes.NewBufferString(magic)
 	binary.Write(table, binary.LittleEndian, uint64(len(plan.sections)))
 	for _, section := range plan.sections {
 		binary.Write(table, binary.LittleEndian, section.offset)
 		binary.Write(table, binary.LittleEndian, section.size)
 		binary.Write(table, binary.LittleEndian, section.cryptoType)
-		binary.Write(table, binary.LittleEndian, uint64(0))
+		binary.Write(table, binary.LittleEndian, section.shift)
 		table.Write(section.key)
 		table.Write(section.counter)
 	}
@@ -686,7 +731,7 @@ func writeNczStream(ctx context.Context, output io.Writer, input io.ReaderAt, of
 				return err
 			}
 			if section.cryptoType == 3 || section.cryptoType == 4 {
-				cipher.NewCTR(block, nczCounter(section.counter, position)).XORKeyStream(chunk, chunk)
+				cipher.NewCTR(block, section.counterAt(position)).XORKeyStream(chunk, chunk)
 			}
 			if _, err := encoder.Write(chunk); err != nil {
 				encoder.Close()
@@ -838,7 +883,7 @@ func (r nczPlainReader) read(data []byte, position uint64) error {
 			if err != nil {
 				return err
 			}
-			stream := cipher.NewCTR(block, nczCounter(section.counter, position&^15))
+			stream := cipher.NewCTR(block, section.counterAt(position&^15))
 			if skip := position & 15; skip > 0 {
 				stream.XORKeyStream(make([]byte, skip), make([]byte, skip))
 			}
@@ -903,9 +948,10 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 	}
 
 	magic := make([]byte, 8)
-	if _, err := io.ReadFull(reader, magic); err != nil || string(magic) != nczSectionMagic {
+	if _, err := io.ReadFull(reader, magic); err != nil || string(magic) != nczSectionMagic && string(magic) != nczSectionMagicV2 {
 		return errors.New("not an NCZ file")
 	}
+	shifted := string(magic) == nczSectionMagicV2
 	// updates split their sections by the subsection table: thousands of entries of 0x40
 	// bytes are possible, but never more than the NCZ holds
 	var count uint64
@@ -920,6 +966,14 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 			return err
 		}
 		section := nczSection{offset: values[0], size: values[1], cryptoType: values[2], key: make([]byte, 16), counter: make([]byte, 16)}
+		// NCZSECT2: the counter of the section moves by its shift, a multiple of 16 and only on
+		// an encrypted section; NCZSECTN leaves the field unused
+		if shifted {
+			section.shift = int64(values[3])
+			if section.shift%16 != 0 || section.shift != 0 && section.cryptoType != 3 && section.cryptoType != 4 {
+				return errors.New("invalid NCZ section table")
+			}
+		}
 		if _, err := io.ReadFull(reader, section.key); err != nil {
 			return err
 		}
@@ -1005,7 +1059,7 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 				plain(int64(position), chunk)
 			}
 			if section.cryptoType == 3 || section.cryptoType == 4 {
-				cipher.NewCTR(block, nczCounter(section.counter, position)).XORKeyStream(chunk, chunk)
+				cipher.NewCTR(block, section.counterAt(position)).XORKeyStream(chunk, chunk)
 			}
 			if _, err := output.Write(chunk); err != nil {
 				return err

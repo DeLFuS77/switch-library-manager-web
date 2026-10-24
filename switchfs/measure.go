@@ -42,7 +42,7 @@ func MeasureCompression(ctx context.Context, source string, from float64, option
 	if biggest == nil {
 		return 0, ErrNothingToMeasure
 	}
-	plan, _, err := planNcz(input, biggest.offset, uint64(biggest.size), titleKeys)
+	plan, _, err := planNcz(input, biggest.offset, uint64(biggest.size), titleKeys, false)
 	if err != nil {
 		return 0, err
 	}

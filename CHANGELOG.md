@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The library reads NSZ files with base games in sparse storage compressed by NXPress in its experimental format (NCZSECT2): they decompress and check like any other NSZ
+
 ## 1.67.0
 
 ### New
