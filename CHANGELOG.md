@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- A game with nothing to compress tells why in Tasks and on the Compress page: a file compressed already (an NSZ or XCZ named as an NSP or XCI), NCA files with no game data, or an encryption no compressor reads, besides sparse storage, instead of only "Nothing in the file can be compressed"
+
 ## 1.56.0
 
 ### Improvements
