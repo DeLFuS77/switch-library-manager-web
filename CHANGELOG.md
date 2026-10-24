@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- A game with nothing to compress tells why in Tasks: a file compressed already (an NSZ or XCZ named as an NSP or XCI), NCA files with no game data, or an encryption no compressor reads, besides sparse storage, instead of only "Nothing in the file can be compressed"
+- Measure this server takes the biggest games of the library that can be compressed: a big one in sparse storage, or damaged, is passed over instead of failing the measure with "There is no game in the library to measure the disk with"
+
 ## 1.56.0
 
 ### Improvements

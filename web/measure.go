@@ -91,11 +91,11 @@ func (web *Web) measureServer(ctx context.Context) (ServerMeasure, error) {
 	result := ServerMeasure{Processors: runtime.NumCPU()}
 	games := web.libraryFiles(".nsp", ".xci")
 	sort.Slice(games, func(i, j int) bool { return games[i].Size > games[j].Size })
+	level := settings.ReadSettings(web.dataFolder).AutoCompressLevel
+	games = measurableGames(ctx, games, level, maxFilesAtOnce)
 	if len(games) == 0 {
 		return result, errNoGameToMeasure
 	}
-	games = games[:min(len(games), maxFilesAtOnce)]
-	level := settings.ReadSettings(web.dataFolder).AutoCompressLevel
 
 	trials := measureTrials(compressWorkers(), level)
 	// every file of every trial starts at its own place in its game
@@ -150,6 +150,23 @@ func (web *Web) measureServer(ctx context.Context) (ServerMeasure, error) {
 	}
 	result.Measured = time.Now()
 	return result, nil
+}
+
+// measurableGames are the first games, at most count, that a measure can compress, read without
+// compressing anything: a big game in sparse storage, or damaged, is passed over instead of
+// failing the measure while other games can be measured.
+func measurableGames(ctx context.Context, games []CompressCandidate, level string, count int) []CompressCandidate {
+	measurable := []CompressCandidate{}
+	options := switchfs.CompressOptions{Level: level, Workers: 1}
+	for _, game := range games {
+		if len(measurable) == count || ctx.Err() != nil {
+			break
+		}
+		if _, err := switchfs.MeasureCompression(ctx, game.Path, 0, options, 0, io.Discard); err == nil {
+			measurable = append(measurable, game)
+		}
+	}
+	return measurable
 }
 
 // Best is the speed of the fastest setting tried, in MB per second.

@@ -703,6 +703,30 @@ func TestUnreadableEncryptionIsExplained(t *testing.T) {
 	}
 }
 
+// A package whose NCA files hold no game data tells their content type, and one that holds
+// NCZ files already tells it is compressed: neither is just "nothing can be compressed".
+func TestWhyNothingIsCompressed(t *testing.T) {
+	initNszKeys(t, "")
+	control := makeProgramNca(t, gameData(0x40000), 3, "", func(header []byte) { header[0x205] = NcaContentType_Control })
+	_, err := compressAndCheck(t, writeOneNcaNsp(t, control))
+	if !errors.Is(err, ErrNotCompressible) || !strings.Contains(err.Error(), "it holds no game data (control)") {
+		t.Fatalf("a control NCA: %v", err)
+	}
+
+	folder := t.TempDir()
+	source, _ := writeTestNsp(t, folder)
+	if _, err := CompressGame(context.Background(), source, NszPath(source), CompressOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	renamed := filepath.Join(folder, "Renamed.nsp")
+	if err := os.Rename(NszPath(source), renamed); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := CompressGame(context.Background(), renamed, filepath.Join(folder, "Renamed.nsz"), CompressOptions{}); !errors.Is(err, ErrAlreadyCompressed) || !errors.Is(err, ErrNotCompressible) {
+		t.Fatalf("an NSZ named as an NSP: %v", err)
+	}
+}
+
 // TestExportNewSectionCases writes the NSZ of the cases above to SLM_NCZ_PLAN_EXPORT, to
 // check them with the decompressor of nsz.
 func TestExportNewSectionCases(t *testing.T) {
