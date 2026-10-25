@@ -54,6 +54,10 @@ type LocalSwitchDBManager struct {
 	lastFileCount int
 	// the temporary files of the app the last walk of the folders found
 	leftovers []LeftoverFile
+	// CheckedPartly tells the copies the last check of the files could not check whole (a tool
+	// rewrote their NCA files, and some sections cannot be checked on their own): a copy
+	// checked whole is kept instead. Nil when nothing is known of the checks.
+	CheckedPartly func(path string) bool
 }
 
 func NewLocalSwitchDBManager(dataFolder string) (*LocalSwitchDBManager, error) {
@@ -428,6 +432,9 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 		reason, ok := skipped[file]
 		return ok && reason.ReasonCode != REASON_DUPLICATE && reason.ReasonCode != REASON_OLD_UPDATE
 	}
+	partly := func(file ExtendedFileInfo) bool {
+		return ldb.CheckedPartly != nil && ldb.CheckedPartly(fullPath(file))
+	}
 	// keepInstead tells whether file is kept instead of the copy found first, as chosen in
 	// the settings; a file with an issue is never preferred to one without, and one without
 	// takes the place of one with an issue (a copy that could not be read, found first, kept
@@ -439,6 +446,11 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 		}
 		if flagged(file) != flagged(found) {
 			return flagged(found)
+		}
+		// a copy the check vouched for whole wins over one it checked only partly, which keeps
+		// the cleanup from deleting the other copies, unless the settings ask for a kind of file
+		if keepDuplicate != settings.KEEP_NSP && keepDuplicate != settings.KEEP_XCI && partly(file) != partly(found) {
+			return partly(found)
 		}
 		return PreferDuplicate(keepDuplicate, found, titlesInFile[found], file, titlesInFile[file])
 	}

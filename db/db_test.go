@@ -702,3 +702,45 @@ func TestSoundCopyIsKeptInsteadOfAnUnreadableOne(t *testing.T) {
 		}
 	}
 }
+
+// A copy the check vouched for whole is kept instead of one it could check only partly, found
+// first or not, unless the settings ask for a kind of file.
+func TestCopyCheckedWholeIsKept(t *testing.T) {
+	keysDir := t.TempDir()
+	if err := testnsp.WriteKeys(keysDir); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := settings.InitSwitchKeys(keysDir); err != nil {
+		t.Fatal(err)
+	}
+	defer settings.InitSwitchKeys(t.TempDir())
+
+	for _, names := range [][2]string{{"a.nsp", "b.nsp"}, {"b.nsp", "a.nsp"}} {
+		partly, whole := names[0], names[1]
+		folder := t.TempDir()
+		for _, name := range names {
+			if _, err := testnsp.WriteMultiTitleNsp(filepath.Join(folder, "Game [0100000000010000][v0] "+name), []testnsp.Title{
+				{Id: 0x0100000000010000, Type: switchfs.ContentMetaType_Application, Content: "the game " + name},
+			}); err != nil {
+				t.Fatal(err)
+			}
+		}
+		manager, err := NewLocalSwitchDBManager(t.TempDir())
+		if err != nil {
+			t.Fatal(err)
+		}
+		manager.CheckedPartly = func(path string) bool { return strings.HasSuffix(path, partly) }
+		// the app chooses the copy, as by default
+		dataFolder := t.TempDir()
+		settings.ReloadSettings(dataFolder)
+		settings.UpdateSettings(dataFolder, func(s *settings.AppSettings) { s.OrganizeOptions.KeepDuplicate = settings.KEEP_AUTO })
+		localDB, err := manager.CreateLocalSwitchFilesDB(nil, dataFolder, []string{folder}, nil, true, true)
+		manager.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if game := localDB.TitlesMap["0100000000010"]; game == nil || !strings.HasSuffix(game.File.ExtendedInfo.FileName, whole) {
+			t.Fatalf("the copy checked whole is the game (%s checked partly): %+v", partly, game)
+		}
+	}
+}

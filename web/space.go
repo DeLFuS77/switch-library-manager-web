@@ -248,6 +248,9 @@ func (web *Web) spaceGroups() []SpaceGroup {
 				}
 			}
 			web.requireSoundKeptCopy(&entry)
+			if entry.Deletable && !swapped {
+				web.requireSoundKeptCopies(&entry)
+			}
 			// the copy is in use only as the file the scan took: the clean one holds the same
 			if inUse[entry.Path] && !swapped {
 				entry.Deletable = false
@@ -332,6 +335,11 @@ func (web *Web) cleanupRefusal(file db.ExtendedFileInfo, skipped db.SkippedFile)
 		if !entry.Deletable {
 			return entry.Note
 		}
+		entry.file = file
+		web.requireSoundKeptCopies(&entry)
+		if !entry.Deletable {
+			return entry.Note
+		}
 	case db.REASON_OLD_UPDATE:
 		if note := web.newerDamaged(kept); note != "" {
 			return note
@@ -339,6 +347,94 @@ func (web *Web) cleanupRefusal(file db.ExtendedFileInfo, skipped db.SkippedFile)
 		return web.keptForCheats(file)
 	}
 	return ""
+}
+
+// requireSoundKeptCopies is requireSoundKeptCopy for a duplicate with several titles: its
+// reason names the copy kept of one of them only, and the copies kept of the others must be
+// sound too, or deleting it would lose what only it holds sound.
+func (web *Web) requireSoundKeptCopies(entry *SpaceFile) {
+	for _, other := range web.keptCopiesOf(entry.file) {
+		if other == entry.KeptBy || !entry.Deletable {
+			continue
+		}
+		kept := SpaceFile{KeptBy: other, Deletable: true}
+		web.requireSoundKeptCopy(&kept)
+		entry.Deletable, entry.Note, entry.OnRequest = kept.Deletable, kept.Note, kept.OnRequest
+	}
+}
+
+// heldTitle is a title a file holds, with its version.
+type heldTitle struct {
+	id      string
+	version int
+}
+
+// heldTitles are the titles a file holds, read once while it does not change.
+func (web *Web) heldTitles(path string) []heldTitle {
+	info, err := os.Stat(path)
+	if err != nil {
+		return nil
+	}
+	key := fmt.Sprintf("%s|%d|%d", path, info.Size(), info.ModTime().UnixNano())
+	if held, ok := web.titlesHeld.Load(key); ok {
+		return held.([]heldTitle)
+	}
+	var contents map[string]*switchfs.ContentMetaAttributes
+	switch strings.ToLower(filepath.Ext(path)) {
+	case ".nsp", ".nsz":
+		contents, err = switchfs.ReadNspMetadata(path)
+	case ".xci", ".xcz":
+		contents, err = switchfs.ReadXciMetadata(path)
+	}
+	held := []heldTitle{}
+	if err == nil {
+		for id, content := range contents {
+			held = append(held, heldTitle{id: id, version: content.Version})
+		}
+	}
+	web.titlesHeld.Store(key, held)
+	return held
+}
+
+// keptCopiesOf are the files the library keeps for the titles a file with several titles holds
+// (a cartridge with its update, a SuperNSP), other than the file itself; none for a file with
+// one title.
+func (web *Web) keptCopiesOf(file db.ExtendedFileInfo) []string {
+	path := filepath.Join(file.BaseFolder, file.FileName)
+	if file.FileName == "" {
+		return nil
+	}
+	held := web.heldTitles(path)
+	_, localDB := web.state.get()
+	if len(held) < 2 || localDB == nil {
+		return nil
+	}
+	copies := []string{}
+	for _, content := range held {
+		id := content.id
+		prefix, err := db.TitleIDPrefix(id)
+		if err != nil {
+			continue
+		}
+		title := localDB.TitlesMap[strings.ToLower(prefix)]
+		if title == nil {
+			continue
+		}
+		var kept db.SwitchFileInfo
+		var ok bool
+		switch kind, _ := db.ContentKind(id); kind {
+		case db.KIND_BASE:
+			kept, ok = title.File, title.BaseExist
+		case db.KIND_UPDATE:
+			kept, ok = title.Updates[content.version]
+		case db.KIND_DLC:
+			kept, ok = title.Dlc[strings.ToLower(id)]
+		}
+		if keptPath := filepath.Join(kept.ExtendedInfo.BaseFolder, kept.ExtendedInfo.FileName); ok && keptPath != path {
+			copies = append(copies, keptPath)
+		}
+	}
+	return copies
 }
 
 // requireSoundKeptCopy lets a duplicate be deleted only when the copy that stays was

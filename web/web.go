@@ -134,6 +134,8 @@ type Web struct {
 	// results of switchfs.HoldsSameContents, see holdsSameContents
 	sameContents      sync.Map
 	sameContentsCount atomic.Int64
+	// the titles a file holds, by its path, size and time: read once for the duplicates
+	titlesHeld        sync.Map
 	timeToBeatRunning atomic.Bool
 	// the files waiting for the automations (see automation.go)
 	automationQueue *automationQueue
@@ -704,6 +706,7 @@ func (web *Web) Start() {
 	}
 
 	web.localDbManager = localDbManager
+	localDbManager.CheckedPartly = web.checkedPartly
 	defer localDbManager.Close()
 
 	if isDemoMode() {
