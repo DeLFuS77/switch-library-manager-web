@@ -54,6 +54,8 @@ type LocalSwitchDBManager struct {
 	lastFileCount int
 	// the temporary files of the app the last walk of the folders found
 	leftovers []LeftoverFile
+	// the folders the last walk found with nothing in them but files of the system
+	emptyFolders []string
 	// CheckedPartly tells the copies the last check of the files could not check whole (a tool
 	// rewrote their NCA files, and some sections cannot be checked on their own): a copy
 	// checked whole is kept instead. Nil when nothing is known of the checks.
@@ -193,6 +195,9 @@ type LocalSwitchFilesDB struct {
 	NumFiles  int
 	// temporary files of the app found by the walk of the folders (see LeftoverFile)
 	Leftovers []LeftoverFile
+	// folders found by the walk with nothing in them but files Windows or macOS leave
+	// (SystemFile): deleted by the cleanup with the folders it empties, when asked
+	EmptyFolders []string
 }
 
 // LeftoverFile is a hidden temporary file the app writes next to a game before it takes its
@@ -260,9 +265,9 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 			}
 		}
 
-		ldb.leftovers = nil
+		ldb.leftovers, ldb.emptyFolders = nil, nil
 		for _, folder := range distinctFolders(folders, recursive) {
-			err := scanFolder(folder, recursive, &files, &ldb.leftovers, progress, estimate)
+			err := scanFolder(folder, recursive, &files, &ldb.leftovers, &ldb.emptyFolders, progress, estimate)
 			if progress != nil {
 				progress.UpdateProgress(-1, -1, "Scanned "+folder)
 			}
@@ -285,7 +290,7 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 	}
 	ldb.lastFileCount = len(files)
 
-	return &LocalSwitchFilesDB{TitlesMap: titles, Skipped: skipped, NumFiles: len(files), Leftovers: ldb.leftovers}, nil
+	return &LocalSwitchFilesDB{TitlesMap: titles, Skipped: skipped, NumFiles: len(files), Leftovers: ldb.leftovers, EmptyFolders: ldb.emptyFolders}, nil
 }
 
 // distinctFolders leaves out a folder listed twice and, when the folders are scanned with their
@@ -349,32 +354,50 @@ func distinctFiles(files []ExtendedFileInfo) []ExtendedFileInfo {
 
 // scanFolder adds the files of a folder; estimate is how many files the folders are thought
 // to hold, for the progress, or 0 when unknown.
-func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, leftovers *[]LeftoverFile, progress ProgressUpdater, estimate int) error {
+func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, leftovers *[]LeftoverFile, emptyFolders *[]string, progress ProgressUpdater, estimate int) error {
 	if _, err := os.Stat(folder); err != nil {
 		return err
 	}
+	// the folders below, and whether something else than files of the system is in them
+	held := map[string]bool{}
+	folders := []string{}
 	// WalkDir reads the entry types from the directory listing; only files are stat'ed
-	return filepath.WalkDir(folder, func(path string, entry fs.DirEntry, err error) error {
+	err := filepath.WalkDir(folder, func(path string, entry fs.DirEntry, err error) error {
 		if path == folder {
 			return nil
 		}
 		if err != nil {
 			zap.S().Error("Error while scanning folders", err)
+			// a folder that cannot be read is never taken for an empty one
+			held[path] = true
+			held[filepath.Dir(path)] = true
 			return nil
 		}
 
+		if !SystemFile(entry) {
+			held[filepath.Dir(path)] = true
+		}
 		if entry.IsDir() {
+			if _, seen := held[path]; !seen {
+				held[path] = false
+			}
+			folders = append(folders, path)
 			return nil
 		}
 
-		//skip hidden files (including macOS "._" resource forks)
-		if strings.HasPrefix(entry.Name(), ".") {
-			if leftovers != nil && leftoverName.MatchString(entry.Name()) {
+		// skip hidden files (including macOS "._" resource forks and the temporary files of the
+		// app), but not a game whose name starts with a dot (".hack//G.U.", named so by an older
+		// version or another tool): skipped, it was never in the library nor organized
+		if name := entry.Name(); strings.HasPrefix(name, ".") {
+			leftover := leftoverName.MatchString(name)
+			if leftovers != nil && leftover {
 				if info, err := entry.Info(); err == nil {
 					*leftovers = append(*leftovers, LeftoverFile{Path: path, Size: info.Size(), ModTime: info.ModTime()})
 				}
 			}
-			return nil
+			if leftover || strings.HasPrefix(name, "._") || !IsGameFileType(filepath.Ext(name)) {
+				return nil
+			}
 		}
 		info, err := entry.Info()
 		if err != nil {
@@ -398,6 +421,25 @@ func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, leftov
 
 		return nil
 	})
+	if emptyFolders != nil && recursive {
+		for _, path := range folders {
+			if !held[path] {
+				*emptyFolders = append(*emptyFolders, path)
+			}
+		}
+	}
+	return err
+}
+
+// systemFiles are the files Windows and macOS leave in the folders they show: thumbnails,
+// settings of the view, and the "._" files of macOS on other disks.
+var systemFiles = map[string]bool{"thumbs.db": true, "ehthumbs.db": true, "desktop.ini": true, ".ds_store": true}
+
+// SystemFile tells a file Windows or macOS leaves in a folder it shows, which does not make
+// the folder hold anything.
+func SystemFile(entry fs.DirEntry) bool {
+	name := strings.ToLower(entry.Name())
+	return !entry.IsDir() && (systemFiles[name] || strings.HasPrefix(name, "._"))
 }
 
 // SaveTitles stores the games of the library again, e.g. after their covers were

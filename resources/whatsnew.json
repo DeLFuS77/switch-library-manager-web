@@ -1,4 +1,50 @@
 {
+  "1.57.4": {
+    "en": [
+      "Games whose file name starts with a dot are in the library again, and Organize gives them names without the dot.",
+      "Deleting empty folders also takes the ones that were empty already and the ones with only Thumbs.db, desktop.ini or .DS_Store in them."
+    ],
+    "es": [
+      "Los juegos cuyo archivo empieza por un punto vuelven a estar en la biblioteca, y Organizar les da nombres sin el punto.",
+      "Borrar carpetas vacías también quita las que ya estaban vacías y las que solo tienen Thumbs.db, desktop.ini o .DS_Store."
+    ],
+    "de": [
+      "Spiele, deren Dateiname mit einem Punkt beginnt, sind wieder in der Bibliothek, und Organisieren gibt ihnen Namen ohne den Punkt.",
+      "Leere Ordner löschen entfernt auch die, die schon leer waren, und die mit nur Thumbs.db, desktop.ini oder .DS_Store."
+    ],
+    "fr": [
+      "Les jeux dont le nom de fichier commence par un point sont de nouveau dans la bibliothèque, et Organiser leur donne des noms sans le point.",
+      "Supprimer les dossiers vides retire aussi ceux qui étaient déjà vides et ceux qui ne contiennent que Thumbs.db, desktop.ini ou .DS_Store."
+    ],
+    "it": [
+      "I giochi il cui nome file inizia con un punto tornano nella libreria, e Organizza dà loro nomi senza il punto.",
+      "Eliminare le cartelle vuote toglie anche quelle già vuote e quelle con solo Thumbs.db, desktop.ini o .DS_Store."
+    ],
+    "pt": [
+      "Os jogos cujo nome de arquivo começa por um ponto voltam a estar na biblioteca, e Organizar dá-lhes nomes sem o ponto.",
+      "Apagar pastas vazias também remove as que já estavam vazias e as que só têm Thumbs.db, desktop.ini ou .DS_Store."
+    ],
+    "nl": [
+      "Spellen waarvan de bestandsnaam met een punt begint, staan weer in de bibliotheek, en Ordenen geeft ze namen zonder de punt.",
+      "Lege mappen verwijderen haalt ook de mappen weg die al leeg waren en die met alleen Thumbs.db, desktop.ini of .DS_Store."
+    ],
+    "ru": [
+      "Игры, имя файла которых начинается с точки, снова в библиотеке, а «Упорядочить» даёт им имена без точки.",
+      "Удаление пустых папок теперь убирает и те, что уже были пустыми, и те, где есть только Thumbs.db, desktop.ini или .DS_Store."
+    ],
+    "ja": [
+      "ファイル名がドットで始まるゲームが再びライブラリに入り、「整理」でドットのない名前になります。",
+      "空のフォルダーの削除で、以前から空だったフォルダーや Thumbs.db、desktop.ini、.DS_Store だけのフォルダーも削除します。"
+    ],
+    "ko": [
+      "파일 이름이 점으로 시작하는 게임이 다시 라이브러리에 들어오고, 정리하면 점이 없는 이름이 돼요.",
+      "빈 폴더 삭제가 이전부터 비어 있던 폴더와 Thumbs.db, desktop.ini, .DS_Store만 있는 폴더도 지워요."
+    ],
+    "zh": [
+      "文件名以点开头的游戏重新出现在库中，“整理”会给它们去掉点的名称。",
+      "删除空文件夹时，也会删除原本就是空的文件夹，以及只有 Thumbs.db、desktop.ini 或 .DS_Store 的文件夹。"
+    ]
+  },
   "1.57.3": {
     "en": [
       "With folders by ID, \"A folder for each DLC\" can be turned off: every DLC goes to the DLC folder and the paths stay short enough for Windows.",

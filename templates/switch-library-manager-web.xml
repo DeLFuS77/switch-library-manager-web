@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.57.3
+  <Changes>### 1.57.4
+- Games whose file name starts with a dot are in the library again, and empty folders that were empty already or hold only Thumbs.db, desktop.ini or .DS_Store are deleted too
+### 1.57.3
 - Folders by ID with every DLC in the DLC folder if chosen, shorter folders for DLC, and "DLC [ID]" for a DLC without a name
 ### 1.57.2
 - Old DLC versions deleted by the cleanup again, the sound copy kept instead of a damaged one, and the copy checked whole kept between duplicates

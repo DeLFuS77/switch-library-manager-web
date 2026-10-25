@@ -3,6 +3,8 @@ package db
 import (
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -23,7 +25,7 @@ func TestWalkingTheFoldersShowsProgress(t *testing.T) {
 	}
 	recorder := &stepRecorder{}
 	files := []ExtendedFileInfo{}
-	if err := scanFolder(folder, true, &files, nil, recorder, 3); err != nil {
+	if err := scanFolder(folder, true, &files, nil, nil, recorder, 3); err != nil {
 		t.Fatal(err)
 	}
 	if len(recorder.steps) != 4 || recorder.steps[0] != [2]int{1, 3} {
@@ -35,7 +37,7 @@ func TestWalkingTheFoldersShowsProgress(t *testing.T) {
 		}
 	}
 	unknown := &stepRecorder{}
-	scanFolder(folder, true, &[]ExtendedFileInfo{}, nil, unknown, 0)
+	scanFolder(folder, true, &[]ExtendedFileInfo{}, nil, nil, unknown, 0)
 	if unknown.steps[0] != [2]int{-1, -1} {
 		t.Fatalf("without a last scan the progress is unknown: %v", unknown.steps)
 	}
@@ -90,10 +92,56 @@ func TestScanFindsLeftovers(t *testing.T) {
 		os.WriteFile(filepath.Join(folder, name), []byte("x"), 0644)
 	}
 	leftovers := []LeftoverFile{}
-	if err := scanFolder(folder, true, &[]ExtendedFileInfo{}, &leftovers, nil, 0); err != nil {
+	if err := scanFolder(folder, true, &[]ExtendedFileInfo{}, &leftovers, nil, nil, 0); err != nil {
 		t.Fatal(err)
 	}
 	if len(leftovers) != 2 {
 		t.Fatalf("leftovers: %+v", leftovers)
+	}
+}
+
+// The walk of a scan finds the folders with nothing in them but files Windows or macOS leave;
+// a folder with a game, with another folder, with a file that cannot be read, or with a hidden
+// file of its own holds something.
+func TestScanFindsEmptyFolders(t *testing.T) {
+	folder := t.TempDir()
+	for _, sub := range []string{"Empty", "Thumbs", "Parent/Child", "Game", "Kept"} {
+		os.MkdirAll(filepath.Join(folder, sub), 0o755)
+	}
+	os.WriteFile(filepath.Join(folder, "Thumbs", "Thumbs.db"), []byte("x"), 0o644)
+	os.WriteFile(filepath.Join(folder, "Thumbs", ".DS_Store"), []byte("x"), 0o644)
+	os.WriteFile(filepath.Join(folder, "Game", "Game [0100000000010000][v0].nsp"), []byte("x"), 0o644)
+	os.WriteFile(filepath.Join(folder, "Kept", ".keep"), []byte("x"), 0o644)
+
+	empty := []string{}
+	if err := scanFolder(folder, true, &[]ExtendedFileInfo{}, nil, &empty, nil, 0); err != nil {
+		t.Fatal(err)
+	}
+	sort.Strings(empty)
+	want := []string{filepath.Join(folder, "Empty"), filepath.Join(folder, "Parent", "Child"), filepath.Join(folder, "Thumbs")}
+	if strings.Join(empty, "|") != strings.Join(want, "|") {
+		t.Fatalf("empty folders: %v, want %v", empty, want)
+	}
+}
+
+// A game whose name starts with a dot is a game; the "._" files of macOS, the temporary files
+// of the app and the other hidden files are not.
+func TestScanFindsGamesWhoseNameStartsWithADot(t *testing.T) {
+	folder := t.TempDir()
+	for _, name := range []string{".cat [0100000000010000][v0].nsz", "._.cat [0100000000010000][v0].nsz", ".keep", ".Game.nsp.tmp", "Game [0100000000020000][v0].nsp"} {
+		os.WriteFile(filepath.Join(folder, name), []byte("x"), 0o644)
+	}
+	files := []ExtendedFileInfo{}
+	leftovers := []LeftoverFile{}
+	if err := scanFolder(folder, true, &files, &leftovers, nil, nil, 0); err != nil {
+		t.Fatal(err)
+	}
+	names := []string{}
+	for _, file := range files {
+		names = append(names, file.FileName)
+	}
+	sort.Strings(names)
+	if strings.Join(names, "|") != ".cat [0100000000010000][v0].nsz|Game [0100000000020000][v0].nsp" || len(leftovers) != 1 {
+		t.Fatalf("files: %v, leftovers: %v", names, leftovers)
 	}
 }
