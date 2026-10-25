@@ -72,8 +72,8 @@ const (
 	TEMPLATE_REGION      = "REGION"
 	TEMPLATE_VERSION_TXT = "VERSION_TXT"
 	TEMPLATE_TYPE        = "TYPE"
-	// the titles of each kind a file holds (1G+1U+2D) and its size, as NXPress and Switch
-	// Library Manager write them
+	// the titles of each kind a file holds (1G+1U+2D) and its size, as Switch Library Manager
+	// writes them
 	TEMPLATE_PACKAGE_CONTENTS = "PACKAGE_CONTENTS"
 	TEMPLATE_SIZE_GB          = "SIZE_GB"
 	TEMPLATE_SIZE_MB          = "SIZE_MB"
