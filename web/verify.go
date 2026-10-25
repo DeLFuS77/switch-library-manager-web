@@ -378,6 +378,17 @@ func (s *verifyStore) damaged() map[string]string {
 	return result
 }
 
+// checkedPartly tells whether the last check of a file, still the same, could not check all of
+// it: a copy whose NCA files a tool rewrote, with sections that cannot be checked on their own.
+func (web *Web) checkedPartly(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	record, ok := web.verifications().current(path, info)
+	return ok && record.Partial
+}
+
 func (web *Web) verifications() *verifyStore {
 	web.verifyOnce.Do(func() {
 		if web.verify == nil {

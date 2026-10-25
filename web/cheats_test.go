@@ -198,6 +198,10 @@ func TestOldUpdateWithCheatsIsKept(t *testing.T) {
 	if note := web.keptForCheats(db.ExtendedFileInfo{FileName: "Game [0100000000010800][v0].nsp"}); note != "" {
 		t.Fatalf("the newer one has cheats: %q", note)
 	}
+	// an old DLC is no update: the cheats of the game at its version do not keep it
+	if note := web.keptForCheats(db.ExtendedFileInfo{FileName: "Other DLC [0100000000021001][v0].nsp", BaseFolder: "/roms"}); note != "" {
+		t.Fatalf("an old DLC is not kept for the cheats of the game: %q", note)
+	}
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.OrganizeOptions.DeleteUpdatesWithCheats = true })
 	if note := web.keptForCheats(old); note != "" {
 		t.Fatalf("turned off: %q", note)

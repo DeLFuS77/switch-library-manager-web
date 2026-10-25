@@ -6,6 +6,9 @@ import (
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
 func TestCleanupFollowsTheRulesOfTheSpacePage(t *testing.T) {
@@ -49,4 +52,48 @@ func TestOrganizeAndFileTasksNeverRunTogether(t *testing.T) {
 		t.Fatalf("no organizing while a file task runs: %v", err)
 	}
 	web.compressor.cancel = nil
+}
+
+// A duplicate with several titles (a cartridge with its update) goes only when the copies kept
+// of all of them are sound, not only the one its reason names.
+func TestCleanupChecksTheCopiesKeptOfEveryTitleOfADuplicate(t *testing.T) {
+	web := newTestWeb(t)
+	testnsp.WriteKeys(web.dataFolder)
+	if _, err := settings.InitSwitchKeys(web.dataFolder); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { settings.InitSwitchKeys(t.TempDir()) })
+
+	folder := t.TempDir()
+	both := filepath.Join(folder, "Game with its update.nsp")
+	if _, err := testnsp.WriteMultiTitleNsp(both, []testnsp.Title{
+		{Id: 0x0100000000010000, Type: switchfs.ContentMetaType_Application, Content: "the game "},
+		{Id: 0x0100000000010800, Type: switchfs.ContentMetaType_Patch, Version: 65536, Content: "its update "},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	game, update := filepath.Join(folder, "Game.nsz"), filepath.Join(folder, "Update.nsz")
+	os.WriteFile(game, []byte("game"), 0644)
+	os.WriteFile(update, []byte("update"), 0644)
+	file := func(path string) db.SwitchFileInfo {
+		return db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: filepath.Base(path), BaseFolder: folder}}
+	}
+	web.state.set(&db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{}}, &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{
+		"0100000000010": {BaseExist: true, File: file(game), Updates: map[int]db.SwitchFileInfo{65536: file(update)}, LatestUpdate: 65536},
+	}})
+	sound := func(path string) {
+		info, _ := os.Stat(path)
+		web.verifications().set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checker: verifyChecker})
+	}
+	duplicate := db.SkippedFile{ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + game + ")"}
+	info := db.ExtendedFileInfo{FileName: filepath.Base(both), BaseFolder: folder}
+
+	sound(game)
+	if reason := web.cleanupRefusal(info, duplicate); reason != NOTE_SPACE_VERIFY_KEPT {
+		t.Fatalf("the update kept was never checked: %q", reason)
+	}
+	sound(update)
+	if reason := web.cleanupRefusal(info, duplicate); reason != "" {
+		t.Fatalf("both copies kept are sound: %q", reason)
+	}
 }

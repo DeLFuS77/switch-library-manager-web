@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.57.2
+
+### Fixes
+
+- Old versions of a DLC are no longer kept "for the cheats": cheats are for a game and its updates, and a DLC at version 0 counted as the update 0 of its game, so the cleanup never deleted it
+- When a game has two copies and the one found first could not be read (identified by its name only, often a damaged file), the copy that could be read is the one the library keeps. Before, the sound copy was the duplicate: Organize left it where it was, and the cleanup kept both
+- Between copies of a game, the one the check vouched for whole is kept instead of one it could check only partly: a cartridge whose NCA files a tool rewrote to put the update in, with the romfs of the update, which cannot be checked on its own. The cleanup then deletes the other copies, which it refused while the copy kept could not be checked whole. Not when the settings ask for NSP or XCI, and a copy chosen in Issues still wins
+- A duplicate that holds several titles (a cartridge with its update, a SuperNSP) is deleted, by the cleanup or from the Space page, only when the copies kept of all its titles are sound, not only the one its reason names
+
 ## 1.57.1
 
 ### Fixes
