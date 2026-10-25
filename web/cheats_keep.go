@@ -20,7 +20,9 @@ const NOTE_KEPT_FOR_CHEATS = "There are cheats for this version and not for the 
 // updateInName is the title ID and the version in the name of a file, "[0100...800][v65536]".
 var updateInName = regexp.MustCompile(`(?i)\[([0-9a-f]{16})\]\s*\[v(\d+)\]`)
 
-// keptForCheats tells why an old update stays because of its cheats, or "".
+// keptForCheats tells why an old update stays because of its cheats, or "". The cheats need
+// one copy of the version, the one the library holds: another copy of it goes once that one
+// was checked sound.
 func (web *Web) keptForCheats(file db.ExtendedFileInfo) string {
 	if settings.ReadSettings(web.dataFolder).OrganizeOptions.DeleteUpdatesWithCheats {
 		return ""
@@ -44,13 +46,26 @@ func (web *Web) keptForCheats(file db.ExtendedFileInfo) string {
 	}
 	game := strings.ToUpper(prefix) + "000"
 	latest := 0
-	if local := localDB.TitlesMap[strings.ToLower(prefix)]; local != nil {
+	local := localDB.TitlesMap[strings.ToLower(prefix)]
+	if local != nil {
 		latest = local.LatestUpdate
 	}
-	if version != latest && cheats.has(game, version) && !cheats.has(game, latest) {
-		return NOTE_KEPT_FOR_CHEATS
+	if version == latest || !cheats.has(game, version) || cheats.has(game, latest) {
+		return ""
 	}
-	return ""
+	if local != nil {
+		if held, ok := local.Updates[version]; ok {
+			heldPath := filepath.Join(held.ExtendedInfo.BaseFolder, held.ExtendedInfo.FileName)
+			if heldPath != filepath.Join(file.BaseFolder, file.FileName) {
+				entry := SpaceFile{KeptBy: heldPath, Deletable: true}
+				web.requireSoundKeptCopy(&entry)
+				if entry.Deletable {
+					return ""
+				}
+			}
+		}
+	}
+	return NOTE_KEPT_FOR_CHEATS
 }
 
 // updateOf is the title ID and the version of an update file: from its name, or read from

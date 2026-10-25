@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Every copy of an old update kept for its cheats was kept: an NSP of the version the library holds as an NSZ stayed after the cleanup, at the root of the library or wherever it was. The cheats need one copy only: the one of the library stays, and the others go once it was checked sound
+
 ## 1.57.4
 
 ### Fixes

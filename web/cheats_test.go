@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -205,6 +206,40 @@ func TestOldUpdateWithCheatsIsKept(t *testing.T) {
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.OrganizeOptions.DeleteUpdatesWithCheats = true })
 	if note := web.keptForCheats(old); note != "" {
 		t.Fatalf("turned off: %q", note)
+	}
+}
+
+// Of a version kept for its cheats, the file the library holds stays; another copy of it (an
+// NSP of the version the library has as NSZ) goes once that file was checked sound.
+func TestCopyOfVersionKeptForCheatsGoes(t *testing.T) {
+	web := cheatsWeb(t)
+	web.downloadCheats()
+	os.WriteFile(web.dataFolder+"/"+CHEATS_BUILDS_FILENAME, []byte(`{"/roms/old.nsp":{"id":"0100000000020000","version":65536,"size":1,"modTime":1,"build":"3333333333333333"}}`), 0o644)
+	folder := t.TempDir()
+	held := db.ExtendedFileInfo{FileName: "Other [0100000000020800][v65536].nsz", BaseFolder: folder, Size: 3}
+	heldPath := filepath.Join(folder, held.FileName)
+	os.WriteFile(heldPath, []byte("nsz"), 0o644)
+	_, localDB := web.state.get()
+	localDB.TitlesMap["0100000000020"].Updates[65536] = db.SwitchFileInfo{ExtendedInfo: held, Metadata: &switchfs.ContentMetaAttributes{TitleId: "0100000000020800", Version: 65536}}
+	newest := filepath.Join(folder, "Other [0100000000020800][v131072].nsz")
+	os.WriteFile(newest, []byte("newest"), 0o644)
+	copied := db.ExtendedFileInfo{FileName: "Other [0100000000020800][v65536].nsp", BaseFolder: t.TempDir(), Size: 5}
+	old := db.SkippedFile{ReasonCode: db.REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally (" + newest + ")"}
+
+	if note := web.cleanupRefusal(copied, old); note != NOTE_KEPT_FOR_CHEATS {
+		t.Fatalf("the file of the library is not checked yet, the copy stays: %q", note)
+	}
+	info, _ := os.Stat(heldPath)
+	web.verifications().set(heldPath, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checker: verifyChecker})
+	if note := web.cleanupRefusal(copied, old); note != "" {
+		t.Fatalf("the file of the library is sound, the copy goes: %q", note)
+	}
+	if note := web.keptForCheats(held); note != NOTE_KEPT_FOR_CHEATS {
+		t.Fatalf("the file of the library stays for the cheats: %q", note)
+	}
+	web.verifications().set(heldPath, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Checker: verifyChecker})
+	if note := web.keptForCheats(copied); note != NOTE_KEPT_FOR_CHEATS {
+		t.Fatalf("the file of the library is damaged, the copy stays: %q", note)
 	}
 }
 
