@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### New
+
+- The bot of Telegram of the notifications can answer, with "Answer in the chat of Telegram" in Settings (or the wizard): written to in its chat, it tells whether a game is in your library (/have zelda), what was added this week and the updates and DLC waiting (/new), the space (/space) and the tasks at work (/status), and starts a synchronization (/sync). In Spanish it takes /tengo, /nuevo, /espacio, /estado and /sincroniza. Only the chat of the notifications gets answers, in the language of the app, and nothing has to reach the app from outside: it asks Telegram for the messages
+
 ## 1.61.0
 
 ### New

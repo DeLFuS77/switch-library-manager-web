@@ -436,6 +436,13 @@
 									<label for="telegram_chat_id" class="form-label fw-semibold">{{t "Telegram chat ID"}}</label>
 									<input type="text" class="form-control" id="telegram_chat_id" name="telegram_chat_id" value="{{.Settings.Notifications.TelegramChatId}}" autocomplete="off">
 								</div>
+								<div class="col-12">
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="telegram_commands" name="telegram_commands" value="true" aria-describedby="telegram_commands_help"{{if .Settings.Notifications.TelegramCommands}} checked{{end}}>
+										<label class="form-check-label" for="telegram_commands">{{t "Answer in the chat of Telegram"}}</label>
+										<div class="form-text" id="telegram_commands_help">{{t "Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app."}}</div>
+									</div>
+								</div>
 								<div class="col-12 d-flex flex-column flex-sm-row flex-sm-wrap gap-3 align-items-sm-center">
 									<div class="form-check form-switch">
 										<input class="form-check-input" type="checkbox" role="switch" id="notify_updates" name="notify_updates" value="true"{{if .Settings.Notifications.NotifyUpdates}} checked{{end}}>

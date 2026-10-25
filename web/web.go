@@ -802,6 +802,7 @@ func (web *Web) Start() {
 	web.HandleFavorites()
 	if !isDemoMode() {
 		web.StartScheduler()
+		web.startTelegramBot()
 		web.StartFolderWatcher()
 		web.StartUpdateChecker()
 	}
