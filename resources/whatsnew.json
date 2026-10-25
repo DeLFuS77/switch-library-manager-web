@@ -1,4 +1,50 @@
 {
+  "1.57.2": {
+    "en": [
+      "The cleanup deletes old DLC versions again, and when a game has a damaged copy and a sound one, the library keeps the sound one.",
+      "Between duplicates, the copy the check verified whole is kept, so a cartridge that can only be checked in part no longer blocks the cleanup of the other copies."
+    ],
+    "es": [
+      "La limpieza vuelve a borrar las versiones antiguas de los DLC, y cuando un juego tiene una copia dañada y otra sana, la biblioteca se queda con la sana.",
+      "Entre duplicados se conserva la copia que la comprobación verificó entera, así que un cartucho que solo se puede comprobar en parte ya no impide limpiar las demás copias."
+    ],
+    "de": [
+      "Die Bereinigung löscht wieder alte DLC-Versionen, und hat ein Spiel eine beschädigte und eine intakte Kopie, behält die Bibliothek die intakte.",
+      "Unter Duplikaten wird die Kopie behalten, die die Prüfung vollständig bestätigt hat, sodass eine nur teilweise prüfbare Spielkarte die Bereinigung der anderen Kopien nicht mehr blockiert."
+    ],
+    "fr": [
+      "Le nettoyage supprime de nouveau les anciennes versions des DLC, et quand un jeu a une copie endommagée et une saine, la bibliothèque garde la saine.",
+      "Entre doublons, la copie que la vérification a contrôlée entièrement est conservée : une cartouche vérifiable seulement en partie ne bloque plus le nettoyage des autres copies."
+    ],
+    "it": [
+      "La pulizia torna a eliminare le vecchie versioni dei DLC, e quando un gioco ha una copia danneggiata e una sana, la libreria tiene quella sana.",
+      "Tra i duplicati si tiene la copia che il controllo ha verificato per intero, così una scheda di gioco verificabile solo in parte non blocca più la pulizia delle altre copie."
+    ],
+    "pt": [
+      "A limpeza volta a apagar as versões antigas dos DLC, e quando um jogo tem uma cópia danificada e outra sã, a biblioteca fica com a sã.",
+      "Entre duplicados conserva-se a cópia que a verificação confirmou inteira, por isso um cartucho que só se verifica em parte já não impede limpar as outras cópias."
+    ],
+    "nl": [
+      "Opruimen verwijdert weer oude DLC-versies, en als een spel een beschadigde en een gave kopie heeft, houdt de bibliotheek de gave.",
+      "Tussen duplicaten blijft de kopie die de controle helemaal heeft bevestigd, zodat een gamekaart die maar gedeeltelijk te controleren is het opruimen van de andere kopieën niet meer tegenhoudt."
+    ],
+    "ru": [
+      "Очистка снова удаляет старые версии DLC, а если у игры есть повреждённая и исправная копии, библиотека оставляет исправную.",
+      "Среди дубликатов остаётся копия, которую проверка подтвердила целиком, поэтому картридж, который можно проверить лишь частично, больше не мешает очистке других копий."
+    ],
+    "ja": [
+      "整理で古い DLC のバージョンが再び削除されるようになり、ゲームに破損したコピーと正常なコピーがある場合はライブラリが正常なほうを残します。",
+      "重複の中では検証で全体を確認できたコピーを残すため、一部しか確認できないゲームカードが他のコピーの整理を妨げることはなくなりました。"
+    ],
+    "ko": [
+      "정리가 다시 오래된 DLC 버전을 삭제하고, 게임에 손상된 사본과 정상 사본이 있으면 라이브러리가 정상 사본을 남겨요.",
+      "중복 중에서는 검증으로 전체를 확인한 사본을 남기므로, 일부만 확인할 수 있는 게임 카드가 더 이상 다른 사본의 정리를 막지 않아요."
+    ],
+    "zh": [
+      "清理会再次删除旧版本的 DLC；当游戏既有损坏副本又有完好副本时，库会保留完好的那个。",
+      "在重复文件中，会保留经检查完整验证的副本，因此只能部分检查的卡带不再阻碍清理其他副本。"
+    ]
+  },
   "1.57.1": {
     "en": [
       "Games without an eShop cover keep the icon read from their files after every scan, instead of reading the files again each time.",
