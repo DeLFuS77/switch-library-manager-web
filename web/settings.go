@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -463,7 +464,7 @@ func (web *Web) settingsPageData() SettingsPageData {
 		AutomationPending:       web.automationPending(),
 		CompressThreadChoices:   compressThreadChoices(),
 		Processors:              runtime.NumCPU(),
-		DefaultThreads:          compressWorkers(),
+		DefaultThreads:          switchfs.UsableProcessors(),
 		FilesAtOnceChoices:      []int{1, 2, 3, maxFilesAtOnce},
 		SelfUpdatable:           selfUpdatable(),
 		LastMeasure:             web.lastMeasure(),

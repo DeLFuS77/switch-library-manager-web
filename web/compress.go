@@ -444,24 +444,12 @@ func (web *Web) libraryFiles(extensions ...string) []CompressCandidate {
 	return candidates
 }
 
-// compressWorkers are the processors a compression works on unless set: all but an eighth of
-// them, at least one left free so the rest of the server keeps going (4 of 3, 16 of 14). The
-// zstd library in C compresses one file on all of them: on a processor of 24, 24 threads
-// compressed 38 % faster than 12. The memory sets fewer when it is short (LimitThreads).
-func compressWorkers() int {
-	processors := runtime.NumCPU()
-	if processors <= 1 {
-		return 1
-	}
-	return processors - max(1, processors/8)
-}
-
 // compressThreads is the number of threads that compress each file: as set, at most every
-// processor, or when not set compressWorkers shared among the files compressed at once.
+// processor, or when not set switchfs.UsableProcessors shared among the files compressed at once.
 // Measure this server tells the fastest setting on its disk.
 func compressThreads(setting int, files int) int {
 	if setting <= 0 {
-		return max(1, compressWorkers()/max(1, files))
+		return max(1, switchfs.UsableProcessors()/max(1, files))
 	}
 	return min(setting, runtime.NumCPU())
 }

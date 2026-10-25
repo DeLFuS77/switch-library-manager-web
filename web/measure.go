@@ -20,8 +20,8 @@ import (
 // ServerMeasure is what the measure of the server found: how fast each setting compressed
 // games of the library, and the setting chosen.
 type ServerMeasure struct {
-	Processors int            `json:"processors"`
-	Results    []MeasureTrial `json:"results"`
+	Processors int                     `json:"processors"`
+	Results    []switchfs.MeasureTrial `json:"results"`
 	// the settings chosen, saved at once
 	Threads     int `json:"threads"`
 	FilesAtOnce int `json:"files_at_once"`
@@ -43,14 +43,6 @@ type LevelSpeed struct {
 // the levels measured once the settings are chosen, the default first
 var measuredLevels = []string{switchfs.LevelBalanced, switchfs.LevelMax}
 
-// MeasureTrial is a setting tried and the MB of games it compressed per second, all files
-// together.
-type MeasureTrial struct {
-	Files   int `json:"files"`
-	Threads int `json:"threads"`
-	Speed   int `json:"speed"`
-}
-
 // how long each setting is tried at least: a trial goes on until every thread of the zstd
 // library in C had whole pieces of work (see switchfs.MeasureCompression), so six settings
 // and the two levels take 1 to 3 minutes
@@ -60,29 +52,6 @@ const measureTrialTime = 4 * time.Second
 const measureTimeout = 6 * time.Minute
 
 var errNoGameToMeasure = errorString("There is no game in the library to measure the disk with.")
-
-// measureTrials are the settings tried, the lightest first: half the processors and all the
-// ones a compression works on (compressWorkers), on one, two and four files at once, each only when its threads fit in the memory at
-// the level measured. The zstd library in C compresses one stream on several threads, so
-// a server with many processors is measured with all of them too.
-func measureTrials(processors int, level string) []MeasureTrial {
-	trials := []MeasureTrial{}
-	seen := map[MeasureTrial]bool{}
-	for _, total := range []int{max(1, processors/2), processors} {
-		for _, files := range []int{1, 2, maxFilesAtOnce} {
-			trial := MeasureTrial{Files: files, Threads: total / files}
-			if trial.Threads < 1 || seen[trial] || switchfs.LimitThreads(level, trial.Threads, files) < trial.Threads {
-				continue
-			}
-			seen[trial] = true
-			trials = append(trials, trial)
-		}
-	}
-	if len(trials) == 0 {
-		trials = append(trials, MeasureTrial{Files: 1, Threads: 1})
-	}
-	return trials
-}
 
 // measureServer tries settings of the compression on the biggest games of the library, as
 // a compression reads, decrypts and compresses them, and chooses the fastest. Each trial
@@ -97,7 +66,7 @@ func (web *Web) measureServer(ctx context.Context) (ServerMeasure, error) {
 		return result, errNoGameToMeasure
 	}
 
-	trials := measureTrials(compressWorkers(), level)
+	trials := switchfs.MeasureTrials(switchfs.UsableProcessors(), level, maxFilesAtOnce)
 	// every file of every trial starts at its own place in its game
 	places := 0
 	for _, trial := range trials {
@@ -106,7 +75,7 @@ func (web *Web) measureServer(ctx context.Context) (ServerMeasure, error) {
 	// the levels are measured after, each file of theirs at its own place too
 	places += len(measuredLevels) * maxFilesAtOnce
 	place := 0
-	run := func(trial MeasureTrial, level string) (int, error) {
+	run := func(trial switchfs.MeasureTrial, level string) (int, error) {
 		var (
 			total int64
 			mutex sync.Mutex
@@ -139,8 +108,9 @@ func (web *Web) measureServer(ctx context.Context) (ServerMeasure, error) {
 		trials[i].Speed = speed
 	}
 	result.Results = trials
-	result.Threads, result.FilesAtOnce = chooseTrial(trials)
-	chosen := MeasureTrial{Files: result.FilesAtOnce, Threads: result.Threads}
+	best := switchfs.ChooseTrial(trials)
+	result.Threads, result.FilesAtOnce = best.Threads, best.Files
+	chosen := switchfs.MeasureTrial{Files: best.Files, Threads: best.Threads}
 	for _, measured := range measuredLevels {
 		speed, err := run(chosen, measured)
 		if err != nil {
@@ -250,22 +220,6 @@ func megabytesPerSecond(bytes int64, elapsed time.Duration) int {
 		return 0
 	}
 	return int(float64(bytes) / (1 << 20) / elapsed.Seconds())
-}
-
-// measureMargin is how much faster a heavier setting must be than a lighter one to be chosen,
-// as the measure varies a little from one run to the next: 5%.
-const measureMargin = 1.05
-
-// chooseTrial gives the fastest setting tried; a heavier one must be at least 5% faster than a
-// lighter one.
-func chooseTrial(trials []MeasureTrial) (threads int, files int) {
-	best := MeasureTrial{Files: 1, Threads: 1}
-	for _, trial := range trials {
-		if trial.Speed > 0 && float64(trial.Speed) >= float64(best.Speed)*measureMargin {
-			best = trial
-		}
-	}
-	return best.Threads, best.Files
 }
 
 func (web *Web) HandleMeasure() {

@@ -1342,21 +1342,10 @@ func fileTemplateData(templateData map[string]string, v *db.SwitchGameFiles, fil
 			dlcs++
 		}
 	}
-	parts := []string{}
-	for _, kind := range []struct {
-		count  int
-		letter string
-	}{{games, "G"}, {updates, "U"}, {dlcs, "D"}} {
-		if kind.count > 0 {
-			parts = append(parts, strconv.Itoa(kind.count)+kind.letter)
-		}
-	}
-	templateData[settings.TEMPLATE_PACKAGE_CONTENTS] = strings.Join(parts, "+")
+	templateData[settings.TEMPLATE_PACKAGE_CONTENTS] = switchfs.PackageContents(games, updates, dlcs)
 	templateData[settings.TEMPLATE_SIZE_GB], templateData[settings.TEMPLATE_SIZE_MB] = "", ""
-	if file.Size > 0 && !file.IsDir {
-		tenths := (file.Size + 50_000_000) / 100_000_000
-		templateData[settings.TEMPLATE_SIZE_GB] = fmt.Sprintf("%d.%dGB", tenths/10, tenths%10)
-		templateData[settings.TEMPLATE_SIZE_MB] = fmt.Sprintf("%dMB", (file.Size+500_000)/1_000_000)
+	if !file.IsDir {
+		templateData[settings.TEMPLATE_SIZE_GB], templateData[settings.TEMPLATE_SIZE_MB] = switchfs.SizeGB(file.Size), switchfs.SizeMB(file.Size)
 	}
 }
 

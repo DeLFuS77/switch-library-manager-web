@@ -160,3 +160,51 @@ func (w *measureBlockWriter) Write(p []byte) (int, error) {
 func (w *measureBlockWriter) Close() error {
 	return w.encoder.Close()
 }
+
+// MeasureTrial is a setting of the compression a measure tries, threads per file and files at
+// once, and the MB of games it compressed per second, all files together.
+type MeasureTrial struct {
+	Files   int `json:"files"`
+	Threads int `json:"threads"`
+	Speed   int `json:"speed"`
+}
+
+// MeasureTrials are the settings a measure tries, the lightest first: half the processors and
+// all of them, on one, two and maxFiles files at once, each only when its threads fit in the
+// memory at level (LimitThreads). The zstd library in C compresses one stream on several
+// threads, so a computer with many processors is measured with all of them too.
+func MeasureTrials(processors int, level string, maxFiles int) []MeasureTrial {
+	trials := []MeasureTrial{}
+	seen := map[MeasureTrial]bool{}
+	half := processors / 2
+	if half < 1 {
+		half = 1
+	}
+	for _, total := range []int{half, processors} {
+		for _, files := range []int{1, 2, maxFiles} {
+			trial := MeasureTrial{Files: files, Threads: total / files}
+			if trial.Threads < 1 || seen[trial] || LimitThreads(level, trial.Threads, files) < trial.Threads {
+				continue
+			}
+			seen[trial] = true
+			trials = append(trials, trial)
+		}
+	}
+	if len(trials) == 0 {
+		trials = append(trials, MeasureTrial{Files: 1, Threads: 1})
+	}
+	return trials
+}
+
+// ChooseTrial gives the fastest setting tried; a heavier one must be clearly faster than a
+// lighter one, as the measure varies a little. With none faster than nothing, one thread on
+// one file.
+func ChooseTrial(trials []MeasureTrial) MeasureTrial {
+	best := MeasureTrial{Files: 1, Threads: 1}
+	for _, trial := range trials {
+		if float64(trial.Speed) > float64(best.Speed)*1.1 {
+			best = trial
+		}
+	}
+	return best
+}
