@@ -574,7 +574,6 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 			partial    = make([]int64, workers)
 			laneNames  = make([]string, workers)
 			laneSizes  = make([]int64, workers)
-			started    int
 			checked    int
 			damaged    int
 			lastReport time.Time
@@ -597,7 +596,8 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 					lanes = append(lanes, TaskLane{Name: laneName, Done: partial[i], Total: laneSizes[i], Kind: laneKind(laneName)})
 				}
 			}
-			web.taskLog().ProgressFiles(taskId, int(done>>20), int(total>>20), name, started, len(files), lanes)
+			// the files checked: one being read is counted once it is done
+			web.taskLog().ProgressFiles(taskId, int(done>>20), int(total>>20), name, checked, len(files), lanes)
 		}
 		// a scheduled verification stops when the background hours end and goes on the next time
 		stopped := func() bool {
@@ -619,7 +619,6 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 					}
 					file := files[next]
 					next++
-					started++
 					name := filepath.Base(file.path)
 					laneNames[worker], laneSizes[worker] = name, file.info.Size()
 					report(name, true)
@@ -650,6 +649,7 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 					store.set(file.path, record)
 					checked++
 					web.taskLog().SetVerifyResult(taskId, checked, damaged)
+					report(name, true)
 					saveNow := time.Since(lastSave) >= verifySaveInterval
 					if saveNow {
 						lastSave = time.Now()

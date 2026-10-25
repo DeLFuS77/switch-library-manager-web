@@ -360,8 +360,9 @@ func TestCompressionLanesTellTheirPhase(t *testing.T) {
 				if task.Running() && len(task.Lanes) == 1 {
 					lane := task.Lanes[0]
 					phases = append(phases, fmt.Sprintf("%s %d/%d", lane.Phase, lane.Step, lane.Steps))
-					// the file reached is told apart from its name, which stays as it is
-					if task.FileNumber != 1 || task.FileCount != 1 || task.Message != filepath.Base(path) {
+					// the counter tells the files finished, apart from the name, which stays as it is:
+					// the file being compressed and checked is not counted yet
+					if task.FileNumber != 0 || task.FileCount != 1 || task.Message != filepath.Base(path) {
 						t.Errorf("the counter of the files: %d of %d, %q", task.FileNumber, task.FileCount, task.Message)
 					}
 				}
@@ -370,6 +371,11 @@ func TestCompressionLanesTellTheirPhase(t *testing.T) {
 		return 0, nil
 	})
 	waitForCompression(t, web)
+	for _, task := range web.taskLog().Snapshot() {
+		if task.Kind == TASK_COMPRESS && task.FileNumber != 1 {
+			t.Errorf("once compressed and checked, the file is counted: %d of %d", task.FileNumber, task.FileCount)
+		}
+	}
 	if strings.Join(phases, ", ") != PHASE_COMPRESSING+" 1/2, "+PHASE_VERIFYING+" 2/2" {
 		t.Fatalf("phases: %v", phases)
 	}
