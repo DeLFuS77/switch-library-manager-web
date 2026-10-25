@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"sort"
 	"sync"
+
+	"github.com/dtrunk90/switch-library-manager-web/process"
 )
 
 // UNCOMPRESSIBLE_FILENAME holds the files the app tried to compress and could not shrink at
@@ -55,6 +57,36 @@ func (s *uncompressibleStore) add(path string, size int64, sparse bool) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.files[path] = uncompressibleFile{Size: size, Sparse: sparse, Exact: true}
+	if data, err := json.Marshal(s.files); err == nil {
+		writeFileAtomic(s.path, data)
+	}
+}
+
+// follow keeps the files the organizer moved under their new path, and forgets the ones it
+// deleted: a file moved keeps its content, and would otherwise be offered and tried again
+// (every game in sparse storage, once Organize gave the library folders with IDs).
+func (s *uncompressibleStore) follow(operations []process.Operation) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	changed := false
+	for _, op := range operations {
+		file, ok := s.files[op.From]
+		if !ok || op.Error != "" {
+			continue
+		}
+		switch op.Kind {
+		case process.OP_MOVE:
+			s.files[op.To] = file
+			delete(s.files, op.From)
+			changed = true
+		case process.OP_DELETE:
+			delete(s.files, op.From)
+			changed = true
+		}
+	}
+	if !changed {
+		return
+	}
 	if data, err := json.Marshal(s.files); err == nil {
 		writeFileAtomic(s.path, data)
 	}

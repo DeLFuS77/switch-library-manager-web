@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -22,6 +23,39 @@ func TestUncompressibleFilesAreRemembered(t *testing.T) {
 	// saved: read again by a new start of the app
 	other := &Web{dataFolder: web.dataFolder}
 	if _, ok := other.uncompressible().get("/games/a.nsp", 100); !ok {
+		t.Fatal("not kept after a restart")
+	}
+}
+
+// A file nothing could shrink that Organize moves is remembered under its new path, and one it
+// deletes is forgotten: it is not offered again because its folder changed.
+func TestUncompressibleFilesFollowOrganize(t *testing.T) {
+	web := newTestWeb(t)
+	store := web.uncompressible()
+	store.add("/games/a.nsp", 100, true)
+	store.add("/games/b.nsp", 200, false)
+	store.add("/games/d.nsp", 300, false)
+	moved := "/games/A [0100000000010000]/A [0100000000010000][v0].nsp"
+	store.follow([]process.Operation{
+		{Kind: process.OP_MOVE, From: "/games/a.nsp", To: moved},
+		{Kind: process.OP_DELETE, From: "/games/b.nsp"},
+		{Kind: process.OP_MOVE, From: "/games/c.nsp", To: "/games/C/c.nsp"},
+		{Kind: process.OP_MOVE, From: "/games/d.nsp", To: "/games/D/d.nsp", Error: "access denied"},
+	})
+	if file, ok := store.get(moved, 100); !ok || !file.Sparse {
+		t.Fatalf("moved: %+v %v", file, ok)
+	}
+	if _, ok := store.get("/games/a.nsp", 100); ok {
+		t.Fatal("the old path is forgotten")
+	}
+	if _, ok := store.get("/games/b.nsp", 200); ok {
+		t.Fatal("a deleted file is forgotten")
+	}
+	if _, ok := store.get("/games/d.nsp", 300); !ok {
+		t.Fatal("a move that failed leaves it where it was")
+	}
+	other := &Web{dataFolder: web.dataFolder}
+	if _, ok := other.uncompressible().get(moved, 100); !ok {
 		t.Fatal("not kept after a restart")
 	}
 }

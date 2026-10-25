@@ -4,6 +4,7 @@
 
 ### Fixes
 
+- The games nothing can compress (in sparse storage, or compressed already under another name) were offered and tried again, each with a warning, by the first compression after Organize moved them into other folders: their mark now goes with them, as the results of the checks of the files already did
 - Every copy of an old update kept for its cheats was kept: an NSP of the version the library holds as an NSZ stayed after the cleanup, at the root of the library or wherever it was. The cheats need one copy only: the one of the library stays, and the others go once it was checked sound
 
 ## 1.57.4
