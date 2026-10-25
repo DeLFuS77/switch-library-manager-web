@@ -36,6 +36,17 @@ func TestSparseStorageNote(t *testing.T) {
 	if note := compressNote(TASK_COMPRESS, switchfs.ErrNotCompressible); note != NOTE_COMPRESS_NOTHING {
 		t.Fatalf("note: %q", note)
 	}
+	// the reasons the library tells, each with its own note
+	for err, want := range map[error]string{
+		fmt.Errorf("x: %w", switchfs.ErrAlreadyCompressed):                                                         NOTE_COMPRESS_ALREADY,
+		fmt.Errorf("%w: a.nca: it holds no game data (control)", switchfs.ErrNotCompressible):                      NOTE_COMPRESS_NO_DATA,
+		fmt.Errorf("%w: it holds no NCA file but metadata", switchfs.ErrNotCompressible):                           NOTE_COMPRESS_NO_DATA,
+		fmt.Errorf("%w: a.nca: its sections use an encryption the app does not read", switchfs.ErrNotCompressible): NOTE_COMPRESS_ENCRYPTION,
+	} {
+		if note := compressNote(TASK_COMPRESS, err); note != want {
+			t.Errorf("%v: %q", err, note)
+		}
+	}
 }
 
 // A file noted by an older version, with its size times the passes of the task, is still

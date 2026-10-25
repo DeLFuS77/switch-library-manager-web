@@ -1,13 +1,18 @@
 package web
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
 // The setting chosen is the fastest tried, unless a lighter one is almost as fast; the trials
@@ -84,5 +89,22 @@ func TestMinutesPer10GB(t *testing.T) {
 		if got := minutesPer10GB(speed); got != want {
 			t.Errorf("%d MB/s: %d min, want %d", speed, got, want)
 		}
+	}
+}
+
+// A game the measure cannot compress, however big, is passed over for the next ones.
+func TestMeasurableGames(t *testing.T) {
+	_, game := compressWeb(t)
+	broken := filepath.Join(filepath.Dir(game), "Broken [0100000000020000][v0].nsp")
+	if err := os.WriteFile(broken, bytes.Repeat([]byte("not a game "), 1<<16), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	games := []CompressCandidate{{Path: broken, Size: 1 << 20}, {Path: game, Size: 1 << 10}}
+	got := measurableGames(context.Background(), games, switchfs.LevelBalanced, maxFilesAtOnce)
+	if len(got) != 1 || got[0].Path != game {
+		t.Fatalf("the games measured: %+v", got)
+	}
+	if len(measurableGames(context.Background(), games[:1], switchfs.LevelBalanced, maxFilesAtOnce)) != 0 {
+		t.Fatal("a broken game alone is measured")
 	}
 }
