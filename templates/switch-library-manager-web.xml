@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.57.2
+  <Changes>### 1.57.3
+- Folders by ID with every DLC in the DLC folder if chosen, shorter folders for DLC, and "DLC [ID]" for a DLC without a name
+### 1.57.2
 - Old DLC versions deleted by the cleanup again, the sound copy kept instead of a damaged one, and the copy checked whole kept between duplicates
 ### 1.57.1
 - Icons read from the game files kept after every scan, interrupted tasks with the time they ran, and the cleanup of duplicates finds the copy that stays with three copies or versions
