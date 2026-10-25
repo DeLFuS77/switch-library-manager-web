@@ -910,7 +910,7 @@ func init() {
 		"check this folder":                                      "confira esta pasta",
 		"The folders were read from this container. If a folder is marked, see it with: docker inspect switch-library-manager-web. Use the name of your container if it is another one.": "As pastas foram lidas deste contêiner. Se alguma estiver marcada, confira com: docker inspect switch-library-manager-web. Use o nome do seu contêiner se for outro.",
 		"Windows, macOS and Linux": "Windows, macOS e Linux",
-		"Stop the app, replace it with the file of the new version and start it again.": "Feche o app, troque pelo arquivo da versão nova e abra de novo.",
+		"Stop the app, unpack the new version over its folder (switch-library-manager-web) and start it again: the program is replaced, and the settings and the library stay.": "Pare o app, descompacte a nova versão por cima da pasta dele (switch-library-manager-web) e abra-o de novo: o programa é substituído, e as configurações e a biblioteca ficam.",
 		"Download the latest version": "Baixar a versão mais recente",
 		"How to update":               "Como atualizar",
 		"Background work":             "Trabalho em segundo plano",

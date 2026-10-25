@@ -908,7 +908,7 @@ var translations = map[string]map[string]string{
 		"check this folder":                                      "revisa esta carpeta",
 		"The folders were read from this container. If a folder is marked, see it with: docker inspect switch-library-manager-web. Use the name of your container if it is another one.": "Las carpetas se han leído de este contenedor. Si alguna está marcada, compruébala con: docker inspect switch-library-manager-web. Usa el nombre de tu contenedor si es otro.",
 		"Windows, macOS and Linux": "Windows, macOS y Linux",
-		"Stop the app, replace it with the file of the new version and start it again.": "Cierra la app, sustitúyela por el archivo de la versión nueva y ábrela de nuevo.",
+		"Stop the app, unpack the new version over its folder (switch-library-manager-web) and start it again: the program is replaced, and the settings and the library stay.": "Detén la app, descomprime la versión nueva encima de su carpeta (switch-library-manager-web) y vuelve a abrirla: se sustituye el programa y se conservan los ajustes y la biblioteca.",
 		"Download the latest version": "Descargar la última versión",
 		"How to update":               "Cómo actualizar",
 		"Background work":             "Trabajo en segundo plano",

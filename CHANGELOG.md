@@ -8,6 +8,7 @@
 
 ### Fixes
 
+- The downloads for Windows, macOS and Linux had the version in their names, the file and the folder inside it (switch-library-manager-web-1.57.4-windows-x64): unpacked, each new version went into a folder of its own and started without the settings and the library, which the app keeps next to the program. They no longer have it: switch-library-manager-web-windows-x64.zip holds the folder switch-library-manager-web, and a new version unpacked over it replaces the program and keeps everything. This once, copy the files of the new folder into the folder you use now
 - The games nothing can compress (in sparse storage, or compressed already under another name) were offered and tried again, each with a warning, by the first compression after Organize moved them into other folders: their mark now goes with them, as the results of the checks of the files already did
 - Every copy of an old update kept for its cheats was kept: an NSP of the version the library holds as an NSZ stayed after the cleanup, at the root of the library or wherever it was. The cheats need one copy only: the one of the library stays, and the others go once it was checked sound
 

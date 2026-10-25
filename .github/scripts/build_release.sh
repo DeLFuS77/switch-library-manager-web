@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Builds the program for every system, or for the systems given, and packs each one with the
-# README, the license and the notice: dist/switch-library-manager-web-<version>-<system>.zip
-# (Windows) or .tar.gz. The web assets must be built first (npm run build).
+# README, the license and the notice: dist/switch-library-manager-web-<system>.zip (Windows) or
+# .tar.gz, holding the folder switch-library-manager-web. No name has the version: the app keeps
+# its data next to itself, and a new version unpacked over the folder of the one before replaces
+# the program and keeps the data, instead of starting without it in a folder of its own. The web
+# assets must be built first (npm run build).
 #
 # Usage: .github/scripts/build_release.sh 1.24.0 [system...]
 set -euo pipefail
@@ -60,7 +63,8 @@ for target in "${targets[@]}"; do
 	if ! chosen "${system}"; then
 		continue
 	fi
-	folder="dist/${name}-${version}-${system}"
+	stage="dist/${system}"
+	folder="${stage}/${name}"
 	mkdir -p "${folder}"
 	binary="${name}"
 	if [ "${goos}" = "windows" ]; then
@@ -92,15 +96,15 @@ for target in "${targets[@]}"; do
 	fi
 	cp README.md LICENSE NOTICE.md CHANGELOG.md "${folder}/"
 	(
-		cd dist
+		cd "${stage}"
 		if [ "${goos}" = "windows" ]; then
-			zip -qr "${name}-${version}-${system}.zip" "${name}-${version}-${system}"
+			zip -qr "../${name}-${system}.zip" "${name}"
 		else
-			chmod +x "${name}-${version}-${system}/${binary}"
-			tar -czf "${name}-${version}-${system}.tar.gz" "${name}-${version}-${system}"
+			chmod +x "${name}/${binary}"
+			tar -czf "../${name}-${system}.tar.gz" "${name}"
 		fi
 	)
-	rm -rf "${folder}"
+	rm -rf "${stage}"
 done
 
 rm -f rsrc_windows_*.syso

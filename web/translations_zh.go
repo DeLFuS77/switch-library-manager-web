@@ -1308,7 +1308,7 @@ func init() {
 		"Started by you":          "由你启动",
 		"Statistics":              "统计",
 		"Status":                  "状态",
-		"Stop the app, replace it with the file of the new version and start it again.": "停止应用，用新版本的文件替换它，然后重新启动。",
+		"Stop the app, unpack the new version over its folder (switch-library-manager-web) and start it again: the program is replaced, and the settings and the library stay.": "停止应用，将新版本解压到其文件夹（switch-library-manager-web）中覆盖，然后重新启动：程序会被替换，设置和游戏库会保留。",
 		"Strategy":                               "策略",
 		"Study":                                  "学习",
 		"Success!":                               "成功！",

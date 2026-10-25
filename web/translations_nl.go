@@ -1308,7 +1308,7 @@ func init() {
 		"Started by you":          "Door jou gestart",
 		"Statistics":              "Statistieken",
 		"Status":                  "Status",
-		"Stop the app, replace it with the file of the new version and start it again.": "Stop de app, vervang hem door het bestand van de nieuwe versie en start hem opnieuw.",
+		"Stop the app, unpack the new version over its folder (switch-library-manager-web) and start it again: the program is replaced, and the settings and the library stay.": "Stop de app, pak de nieuwe versie uit over de map ervan (switch-library-manager-web) en start hem opnieuw: het programma wordt vervangen, de instellingen en de bibliotheek blijven.",
 		"Strategy":                               "Strategie",
 		"Study":                                  "Studie",
 		"Success!":                               "Gelukt!",

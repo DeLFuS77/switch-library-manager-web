@@ -1308,7 +1308,7 @@ func init() {
 		"Started by you":          "직접 시작함",
 		"Statistics":              "통계",
 		"Status":                  "상태",
-		"Stop the app, replace it with the file of the new version and start it again.": "앱을 중지하고 새 버전 파일로 교체한 다음 다시 시작하세요.",
+		"Stop the app, unpack the new version over its folder (switch-library-manager-web) and start it again: the program is replaced, and the settings and the library stay.": "앱을 멈추고 새 버전을 기존 폴더(switch-library-manager-web)에 덮어써서 압축을 푼 뒤 다시 실행하세요. 프로그램은 바뀌고 설정과 라이브러리는 그대로 남습니다.",
 		"Strategy":                               "전략",
 		"Study":                                  "학습",
 		"Success!":                               "성공!",
