@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- A game whose file name starts with a dot (".cat [0100…][v0].nsz", named so by an older version or another tool for a game whose name starts with one) was taken for a hidden file: the scan passed over it, so it was neither in the library nor organized, and its folder stayed as it was. Such files are games now; Organize gives them names without the dot, which hides them on Linux and on many NAS. The "._" files of macOS and the other hidden files are still passed over
+- A game whose file name starts with a dot (".cat [0100…][v0].nsz", named so by an older version or another tool for a game whose name starts with one) was taken for a hidden file: the scan passed over it, so it was neither in the library nor organized, and its folder stayed as it was. Such files are games now; Organize gives them names without the dot, which hides them on Linux and on many NAS. The "._" files of macOS and the other hidden files are still passed over. Uploaded from the browser, such a game was refused; it is saved without the dot now
 
 ### Improvements
 

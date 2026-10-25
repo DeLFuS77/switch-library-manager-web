@@ -105,7 +105,10 @@ func (s *uploadStore) remove(upload *gameUpload) {
 // uploadName is the name a file is saved under, or "" when it cannot be uploaded.
 func uploadName(name string) string {
 	name = strings.TrimSpace(filepath.Base(strings.ReplaceAll(name, `\`, "/")))
-	if name == "" || name == "." || strings.HasPrefix(name, ".") || len(name) > 255 || !uploadExtensions[strings.ToLower(filepath.Ext(name))] {
+	// a game whose name starts with a dot is saved without it, as Organize names it: with it, the
+	// file would be hidden on Linux and on many NAS
+	name = strings.TrimSpace(strings.TrimLeft(name, "."))
+	if name == "" || len(name) > 255 || !uploadExtensions[strings.ToLower(filepath.Ext(name))] {
 		return ""
 	}
 	for _, r := range name {

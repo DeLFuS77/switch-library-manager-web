@@ -114,7 +114,7 @@ func TestUploadInPieces(t *testing.T) {
 
 func TestUploadRefusesOtherFiles(t *testing.T) {
 	web, folder := uploadWeb(t)
-	for _, name := range []string{"notes.txt", ".hidden.nsp", "../.hidden.nsp", "", "game.nsp.exe"} {
+	for _, name := range []string{"notes.txt", ".nsp", "../.nsp", "", "game.nsp.exe"} {
 		if response := postForm(web, "/uploads/start", url.Values{"name": {name}, "size": {"10"}}); response.Code != http.StatusBadRequest {
 			t.Errorf("%q is refused: %d", name, response.Code)
 		}
@@ -199,6 +199,12 @@ func TestUploadNamesWithDots(t *testing.T) {
 	for _, name := range []string{"..", "../..", `..\`} {
 		if uploadName(name) != "" {
 			t.Fatalf("%q is refused", name)
+		}
+	}
+	// a game whose name starts with a dot is saved without it, not hidden
+	for _, name := range []string{".cat [0100000000010000][v0].nsz", "../.cat [0100000000010000][v0].nsz", ". cat [0100000000010000][v0].nsz"} {
+		if got := uploadName(name); got != "cat [0100000000010000][v0].nsz" {
+			t.Fatalf("%q is saved as %q", name, got)
 		}
 	}
 }
