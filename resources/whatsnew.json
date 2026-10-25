@@ -1,4 +1,50 @@
 {
+  "1.57.1": {
+    "en": [
+      "Games without an eShop cover keep the icon read from their files after every scan, instead of reading the files again each time.",
+      "A task the app was stopped in the middle of shows how long it ran, and the cleanup of duplicates finds the copy that stays when a game had three copies or versions."
+    ],
+    "es": [
+      "Los juegos sin portada en la eShop conservan el icono sacado de sus archivos tras cada análisis, en vez de volver a leer los archivos cada vez.",
+      "Una tarea que se interrumpió al parar la app dice cuánto duró, y la limpieza de duplicados encuentra la copia que se conserva cuando un juego tenía tres copias o versiones."
+    ],
+    "de": [
+      "Spiele ohne eShop-Cover behalten das aus ihren Dateien gelesene Symbol nach jedem Scan, statt die Dateien jedes Mal neu zu lesen.",
+      "Eine Aufgabe, die beim Beenden der App unterbrochen wurde, zeigt, wie lange sie lief, und die Bereinigung von Duplikaten findet die behaltene Kopie, wenn ein Spiel drei Kopien oder Versionen hatte."
+    ],
+    "fr": [
+      "Les jeux sans jaquette sur l'eShop gardent l'icône lue dans leurs fichiers après chaque analyse, au lieu de relire les fichiers à chaque fois.",
+      "Une tâche interrompue par l'arrêt de l'application indique combien de temps elle a duré, et le nettoyage des doublons trouve la copie conservée quand un jeu avait trois copies ou versions."
+    ],
+    "it": [
+      "I giochi senza copertina nell'eShop conservano l'icona letta dai loro file dopo ogni scansione, invece di rileggere i file ogni volta.",
+      "Un'attività interrotta alla chiusura dell'app indica quanto è durata, e la pulizia dei duplicati trova la copia che resta quando un gioco aveva tre copie o versioni."
+    ],
+    "pt": [
+      "Os jogos sem capa na eShop mantêm o ícone lido dos seus arquivos após cada análise, em vez de voltar a ler os arquivos de cada vez.",
+      "Uma tarefa interrompida ao parar a app indica quanto tempo durou, e a limpeza de duplicados encontra a cópia que fica quando um jogo tinha três cópias ou versões."
+    ],
+    "nl": [
+      "Spellen zonder eShop-cover houden na elke scan het pictogram dat uit hun bestanden is gelezen, in plaats van de bestanden telkens opnieuw te lezen.",
+      "Een taak die werd onderbroken toen de app stopte, toont hoe lang hij liep, en het opruimen van duplicaten vindt de kopie die blijft als een spel drie kopieën of versies had."
+    ],
+    "ru": [
+      "Игры без обложки в eShop сохраняют значок, прочитанный из их файлов, после каждого сканирования, вместо того чтобы каждый раз читать файлы заново.",
+      "Задача, прерванная остановкой приложения, показывает, сколько она длилась, а очистка дубликатов находит оставляемую копию, когда у игры было три копии или версии."
+    ],
+    "ja": [
+      "eShop にカバーのないゲームは、ファイルから読み取ったアイコンをスキャンのたびに保持し、毎回ファイルを読み直さなくなりました。",
+      "アプリの停止で中断されたタスクは実行時間を表示し、ゲームに3つのコピーやバージョンがあっても、重複の整理で残すコピーを見つけられます。"
+    ],
+    "ko": [
+      "eShop 표지가 없는 게임은 스캔할 때마다 파일에서 읽은 아이콘을 유지하고, 매번 파일을 다시 읽지 않아요.",
+      "앱이 멈춰 중단된 작업은 얼마나 실행됐는지 보여 주고, 게임에 사본이나 버전이 세 개 있어도 중복 정리가 남길 사본을 찾아요."
+    ],
+    "zh": [
+      "eShop 中没有封面的游戏在每次扫描后都会保留从其文件读取的图标，不再每次重新读取文件。",
+      "因应用停止而中断的任务会显示运行了多久；当游戏有三个副本或版本时，清理重复文件也能找到要保留的副本。"
+    ]
+  },
   "1.57.0": {
     "en": [
       "Organize gives a file its new name in its own folder when that name is taken where it would go, and shows its changes in groups you open and close instead of one long list.",

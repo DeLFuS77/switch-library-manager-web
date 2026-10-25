@@ -69,3 +69,39 @@ func coversRunning(web *Web) bool {
 }
 
 func waitShort() { <-time.After(20 * time.Millisecond) }
+
+// The icon read from a game file comes back when a scan makes the library again, without
+// reading the file again or a task of covers after every scan.
+func TestReadIconsComeBackAfterAScan(t *testing.T) {
+	web := newTestWeb(t)
+	folder := t.TempDir()
+	game := filepath.Join(folder, "Game [0100000000010000][v0].nsp")
+	if err := os.WriteFile(game, []byte("game"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	os.MkdirAll(filepath.Join(web.dataFolder, "img"), 0755)
+	if err := os.WriteFile(filepath.Join(web.dataFolder, "img", extractedIconName("0100000000010")), []byte("icon"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	// the library as a scan makes it: the game has no cover
+	web.state.set(&db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{}}, &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{
+		"0100000000010": {BaseExist: true, File: db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: filepath.Base(game), BaseFolder: folder, Size: 4}}},
+	}})
+	coverTasks := func() int {
+		count := 0
+		for _, task := range web.taskLog().Snapshot() {
+			if task.Kind == TASK_COVERS {
+				count++
+			}
+		}
+		return count
+	}
+
+	web.downloadMissingCovers()
+	if _, localDB := web.state.get(); localDB.TitlesMap["0100000000010"].Icon != extractedIconName("0100000000010") {
+		t.Fatalf("the icon read before comes back: %+v", localDB.TitlesMap["0100000000010"])
+	}
+	if coverTasks() != 0 {
+		t.Fatalf("no task of covers is made for it: %+v", web.taskLog().Snapshot())
+	}
+}

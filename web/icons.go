@@ -58,7 +58,8 @@ func (web *Web) extractMissingIcons(taskId int64) int {
 		return 0
 	}
 	sort.Slice(candidates, func(i, j int) bool { return candidates[i].path < candidates[j].path })
-	if taskId == 0 {
+	ownTask := taskId == 0
+	if ownTask {
 		taskId = web.taskLog().Start(TASK_COVERS, TRIGGER_SCAN)
 		defer web.taskLog().Finish(taskId, nil)
 	}
@@ -66,6 +67,7 @@ func (web *Web) extractMissingIcons(taskId int64) int {
 	folder := filepath.Join(web.dataFolder, "img")
 	os.MkdirAll(folder, 0755)
 	found := map[string]coverUpdate{}
+	read := 0
 	for i, item := range candidates {
 		if web.state.IsSynchronizing() {
 			break
@@ -75,13 +77,14 @@ func (web *Web) extractMissingIcons(taskId int64) int {
 			break
 		}
 		web.taskLog().Progress(taskId, i, len(candidates), "Reading icons from the game files")
+		read = i + 1
 		icon, err := switchfs.ExtractIcon(item.path)
 		if err != nil {
 			web.sugarLogger.Debugf("No icon in %s: %v", item.path, err)
 			noIcon[item.path] = item.stamp
 			continue
 		}
-		name := "game-" + strings.ToLower(item.prefix) + ".jpg"
+		name := extractedIconName(item.prefix)
 		if err := os.WriteFile(filepath.Join(folder, name), icon, 0644); err != nil {
 			continue
 		}
@@ -90,12 +93,22 @@ func (web *Web) extractMissingIcons(taskId int64) int {
 			web.state.applyCovers(found)
 		}
 	}
+	web.taskLog().Progress(taskId, read, len(candidates), "Reading icons from the game files")
 	if len(found) > 0 {
 		web.state.applyCovers(found)
 		web.sugarLogger.Infof("[%d icons read from the game files]", len(found))
 	}
+	// in a task of its own, it tells what it found (a task that downloads too adds them up)
+	if ownTask {
+		web.taskLog().SetResult(taskId, 0, len(found))
+	}
 	web.writeNoIcon(noIcon)
 	return len(found)
+}
+
+// extractedIconName is the file of the image cache that holds the icon read from a game file.
+func extractedIconName(prefix string) string {
+	return "game-" + strings.ToLower(prefix) + ".jpg"
 }
 
 func (web *Web) readNoIcon() map[string]string {

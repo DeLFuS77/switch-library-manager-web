@@ -119,6 +119,16 @@ func (web *Web) downloadMissingCovers() {
 		if fallback, found := web.coverFallbackFor(id); found {
 			icon, banner = pick(icon, fallback.IconUrl), pick(banner, fallback.BannerUrl)
 		}
+		// the icon read from its own file before: a scan makes the library again without it,
+		// and reading every such file again after each scan took seconds and a task each time
+		if local.Icon == "" && (icon == "" || !db.CoverCached(web.dataFolder, icon)) {
+			if name := extractedIconName(prefix); db.CoverCached(web.dataFolder, name) {
+				update := ready[prefix]
+				update.icon = name
+				ready[prefix] = update
+				icon = ""
+			}
+		}
 		if local.Icon == "" && icon != "" {
 			need(prefix, icon, true)
 		}
