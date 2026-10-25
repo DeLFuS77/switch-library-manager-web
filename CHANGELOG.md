@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Deleting empty folders, in the cleanup and in Organize, also deletes the folders that were empty already, found by the scan as it walks the library, and the folders with nothing in them but files Windows or macOS leave (Thumbs.db, desktop.ini, .DS_Store, "._" files), which go with them. Before, only the folders the run itself emptied were looked at, and a Thumbs.db kept a folder. A folder with a hidden file of its own still stays. The preview lists the folders that are empty already
+
 ## 1.57.3
 
 ### New

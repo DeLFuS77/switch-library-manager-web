@@ -275,18 +275,40 @@ func (f *fileOperations) skip(file string, reason string) {
 	f.record(Operation{Kind: OP_SKIP, From: file, Reason: reason}, nil)
 }
 
-func (f *fileOperations) deleteEmptyFolders(root string) {
+// deleteEmptyFolders deletes the folders under root left with nothing in them but files of the
+// system (db.SystemFile), which go with them: the ones this run took files from, the ones the
+// last scan found so (known), and the parents they leave so. A preview lists the ones empty
+// already, and tells that the ones it empties go too.
+func (f *fileOperations) deleteEmptyFolders(root string, known []string) {
+	// only the folders this run took files from can have become empty, and their parents, with
+	// the ones the walk of the scan found empty: they are looked at one by one, instead of
+	// walking the whole library again, which took minutes on a NAS
+	root = filepath.Clean(root)
 	if f.dryRun {
+		// a folder the run moves files into is not left empty
+		filled := map[string]bool{}
+		for target := range f.plannedTargets {
+			for dir := filepath.Dir(target); dir != filepath.Dir(dir) && !filled[dir]; dir = filepath.Dir(dir) {
+				filled[dir] = true
+			}
+		}
+		for _, folder := range known {
+			if rel, err := filepath.Rel(root, folder); err == nil && rel != "." && !strings.HasPrefix(rel, "..") && !filled[filepath.Clean(folder)] {
+				if _, empty := systemFilesOnly(folder); empty {
+					f.record(Operation{Kind: OP_DELETE, From: folder, Reason: "empty folder"}, nil)
+				}
+			}
+		}
 		f.record(Operation{Kind: OP_CLEANUP, From: root, Reason: "empty folders will be deleted"}, nil)
 		return
 	}
-
-	// only the folders this run took files from can have become empty, and their parents: they
-	// are looked at one by one, instead of walking the whole library, which took minutes on a NAS
-	// for a few folders among thousands
-	root = filepath.Clean(root)
 	candidates := map[string]bool{}
+	vacated := make([]string, 0, len(f.vacated)+len(known))
 	for folder := range f.vacated {
+		vacated = append(vacated, folder)
+	}
+	vacated = append(vacated, known...)
+	for _, folder := range vacated {
 		for dir := filepath.Clean(folder); ; dir = filepath.Dir(dir) {
 			rel, err := filepath.Rel(root, dir)
 			if err != nil || rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
@@ -309,13 +331,34 @@ func (f *fileOperations) deleteEmptyFolders(root string) {
 	})
 
 	for _, folder := range folders {
-		if !isEmptyFolder(folder) {
+		system, empty := systemFilesOnly(folder)
+		if !empty {
 			continue
+		}
+		for _, file := range system {
+			os.Remove(filepath.Join(folder, file))
 		}
 		// os.Remove refuses a folder that got a file in the meantime
 		err := os.Remove(folder)
 		f.record(Operation{Kind: OP_DELETE, From: folder, Reason: "empty folder"}, err)
 	}
+}
+
+// systemFilesOnly tells a folder with nothing in it but files Windows or macOS leave, and
+// gives those files.
+func systemFilesOnly(folder string) ([]string, bool) {
+	entries, err := os.ReadDir(folder)
+	if err != nil {
+		return nil, false
+	}
+	system := []string{}
+	for _, entry := range entries {
+		if !db.SystemFile(entry) {
+			return nil, false
+		}
+		system = append(system, entry.Name())
+	}
+	return system, true
 }
 
 // isEmptyFolder tells a folder with nothing in it, a hidden file neither; it reads one entry
@@ -451,7 +494,7 @@ func DeleteOldUpdates(baseFolder string, localDB *db.LocalSwitchFilesDB, options
 	}
 
 	if options.DeleteEmptyFolders && baseFolder != "" {
-		ops.deleteEmptyFolders(baseFolder)
+		ops.deleteEmptyFolders(baseFolder, localDB.EmptyFolders)
 	}
 
 	return ops.operations
@@ -728,7 +771,7 @@ func OrganizeByFolders(baseFolder string,
 		if updateProgress != nil {
 			updateProgress.UpdateProgress(tasksSize, tasksSize, "Deleting empty folders...")
 		}
-		ops.deleteEmptyFolders(baseFolder)
+		ops.deleteEmptyFolders(baseFolder, localDB.EmptyFolders)
 	}
 
 	return ops.operations, nil

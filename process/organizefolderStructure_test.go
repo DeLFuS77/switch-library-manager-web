@@ -478,34 +478,36 @@ func TestApplyTemplate(t *testing.T) {
 	}
 }
 
-// The folders the run took files from go when they are left empty, deepest first with the
-// parents they leave empty; a folder with a file, a hidden one too, stays with its parents, and
-// a folder the run did not touch is not looked at.
+// The folders the run took files from go when they are left empty, or with nothing but files
+// Windows or macOS leave, deepest first with the parents they leave empty; a folder with a file,
+// a hidden one of its own too, stays with its parents, and a folder the run did not touch and
+// the scan did not find empty is not looked at.
 func TestDeleteEmptyFolders(t *testing.T) {
 	root := t.TempDir()
-	for _, dir := range []string{"a/b/c", "d", "e/f", "g", "untouched"} {
+	for _, dir := range []string{"a/b/c", "d", "e/f", "g", "h", "untouched"} {
 		os.MkdirAll(filepath.Join(root, dir), 0755)
 	}
 	os.WriteFile(filepath.Join(root, "e", "f", "game.nsp"), []byte("x"), 0644)
 	os.WriteFile(filepath.Join(root, "g", ".DS_Store"), []byte("x"), 0644)
+	os.WriteFile(filepath.Join(root, "h", ".hidden"), []byte("x"), 0644)
 	ops := &fileOperations{logger: zap.NewNop().Sugar()}
 	// files moved out of these folders
-	for _, dir := range []string{"a/b/c", "d", "e/f", "g"} {
+	for _, dir := range []string{"a/b/c", "d", "e/f", "g", "h"} {
 		ops.record(Operation{Kind: OP_MOVE, From: filepath.Join(root, dir, "x.nsp"), To: filepath.Join(root, "x.nsp")}, nil)
 	}
 	moves := len(ops.operations)
-	ops.deleteEmptyFolders(root)
-	for _, gone := range []string{"a", "d"} {
+	ops.deleteEmptyFolders(root, nil)
+	for _, gone := range []string{"a", "d", "g"} {
 		if _, err := os.Stat(filepath.Join(root, gone)); !os.IsNotExist(err) {
 			t.Errorf("%s stays", gone)
 		}
 	}
-	for _, kept := range []string{"e/f", "g", "untouched"} {
+	for _, kept := range []string{"e/f", "h", "untouched"} {
 		if _, err := os.Stat(filepath.Join(root, kept)); err != nil {
 			t.Errorf("%s was deleted", kept)
 		}
 	}
-	if len(ops.operations)-moves != 4 {
+	if len(ops.operations)-moves != 5 {
 		t.Fatalf("operations: %+v", ops.operations[moves:])
 	}
 }
@@ -717,5 +719,36 @@ func TestOrganizeFoldersWithIdsAndDlcInOneFolder(t *testing.T) {
 	}
 	if len(want) != 0 {
 		t.Errorf("not moved: %v", want)
+	}
+}
+
+// The cleanup deletes the folders the scan found empty, also the ones with nothing but files
+// Windows or macOS leave, which go with them, and the parents they leave empty; a folder with a
+// hidden file of its own stays. The preview lists them.
+func TestDeleteFoldersFoundEmpty(t *testing.T) {
+	root := t.TempDir()
+	for _, folder := range []string{"Empty", "Thumbs", "Parent/Child", "Kept"} {
+		os.MkdirAll(filepath.Join(root, folder), 0o755)
+	}
+	writeFixture(t, filepath.Join(root, "Thumbs", "Thumbs.db"), "x")
+	writeFixture(t, filepath.Join(root, "Thumbs", "._Game.nsp"), "x")
+	writeFixture(t, filepath.Join(root, "Kept", ".keep"), "x")
+	known := []string{filepath.Join(root, "Empty"), filepath.Join(root, "Thumbs"), filepath.Join(root, "Parent", "Child")}
+
+	preview := newFileOperations(true)
+	preview.deleteEmptyFolders(root, known)
+	if countKind(preview.operations, OP_DELETE) != 3 {
+		t.Fatalf("the preview lists the folders found empty: %+v", preview.operations)
+	}
+	assertExists(t, filepath.Join(root, "Empty"), true)
+
+	ops := newFileOperations(false)
+	ops.deleteEmptyFolders(root, known)
+	for _, folder := range []string{"Empty", "Thumbs", "Parent/Child", "Parent"} {
+		assertExists(t, filepath.Join(root, folder), false)
+	}
+	assertExists(t, filepath.Join(root, "Kept", ".keep"), true)
+	if len(failedOps(ops.operations)) != 0 {
+		t.Fatalf("no error: %+v", failedOps(ops.operations))
 	}
 }
