@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### New
+
+- The list of the files that cannot be compressed, on the Compress page, tells why for each one, not only for games in sparse storage: compressed already (an NSZ or XCZ under the name of an NSP or XCI), no game data, or an encryption no compressor reads. For the files noted by an older version without a reason, it is found in the background by reading their headers, without writing anything, and shown once known
+
 ### Improvements
 
 - Before Compress, Decompress, Convert, Split or Make packs start, the most their new files may take on each disk is weighed against what is free there, and when they may not fit the page says where and how much and asks before starting anyway. Files whose originals are deleted count only the ones written at once, as the app already gives their room back

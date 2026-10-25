@@ -30,7 +30,7 @@
 				<summary class="d-flex align-items-start gap-2"><span class="bi bi-slash-circle flex-shrink-0 mt-1" aria-hidden="true"></span><span>{{t "%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally." (len .Uncompressible)}}</span></summary>
 				<ul class="list-unstyled ms-4 mt-2 mb-0">
 					{{- range .Uncompressible}}
-					<li class="d-flex flex-wrap gap-2"><span class="text-body">{{.Name}}</span><span>{{formatSize .Size}}</span>{{if .Sparse}}<span class="badge text-bg-secondary">{{t "Sparse storage"}}</span>{{end}}</li>
+					<li class="d-flex flex-wrap gap-2"><span class="text-body">{{.Name}}</span><span>{{formatSize .Size}}</span>{{with .Label}}<span class="badge text-bg-secondary">{{t .}}</span>{{end}}</li>
 					{{- end}}
 				</ul>
 			</div>

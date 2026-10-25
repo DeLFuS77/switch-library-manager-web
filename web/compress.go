@@ -963,7 +963,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 						// nothing in it can be compressed: no longer offered while it stays the same
 						if kind == TASK_COMPRESS && errors.Is(err, switchfs.ErrNotCompressible) {
 							// the size of the file, not the one of its progress (read once per pass)
-							web.uncompressible().add(path, sizes[i], errors.Is(err, switchfs.ErrSparseStorage))
+							web.uncompressible().add(path, sizes[i], uncompressibleReason(err))
 							web.invalidateDerived()
 						}
 						// a damaged file: told in Issues like a check finds it, and no longer offered
@@ -1080,14 +1080,8 @@ func compressNote(kind string, err error) string {
 		return NOTE_COMPRESS_SPACE
 	case errors.Is(err, errCompressExists):
 		return NOTE_COMPRESS_EXISTS
-	case errors.Is(err, switchfs.ErrSparseStorage):
-		return NOTE_COMPRESS_SPARSE
-	case errors.Is(err, switchfs.ErrAlreadyCompressed):
-		return NOTE_COMPRESS_ALREADY
-	case errors.Is(err, switchfs.ErrNotCompressible) && strings.Contains(err.Error(), "encryption the app does not read"):
-		return NOTE_COMPRESS_ENCRYPTION
-	case errors.Is(err, switchfs.ErrNotCompressible) && (strings.Contains(err.Error(), "holds no game data") || strings.Contains(err.Error(), "no NCA file but metadata")):
-		return NOTE_COMPRESS_NO_DATA
+	case uncompressibleReason(err) != "":
+		return uncompressibleNotes[uncompressibleReason(err)]
 	case errors.Is(err, switchfs.ErrNotCompressible):
 		return NOTE_COMPRESS_NOTHING
 	case errors.Is(err, switchfs.ErrNoTitleKey):
