@@ -1502,6 +1502,9 @@ func init() {
 		"within a minute":                                                  "в течение минуты",
 		"you":                                                              "вы",
 		"yours included":                                                   "включая ваш",
+		// a folder for each DLC, or all of them in the DLC folder
+		"A folder for each DLC": "Отдельная папка для каждого DLC",
+		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "С ID каждый DLC попадает в свою папку. Без этого все они попадают в папку DLC: пути остаются короче, ведь многие программы Windows не читают пути длиннее 260 символов.",
 		// a file that stays in its folder because its name is taken where it would go
 		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "Не перемещён: в месте назначения уже есть копия того же размера. Это дубликат, страница «Место» может его освободить.",
 		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "В месте назначения уже есть другой файл с тем же именем, но другого размера: это два файла одной игры и одной версии, «Проверить» покажет, какой из них в порядке.",

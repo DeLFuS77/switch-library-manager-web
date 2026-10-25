@@ -1502,6 +1502,9 @@ func init() {
 		"v%v available":                                                    "v%v disponibile",
 		"within a minute":                                                  "entro un minuto",
 		"you":                                                              "tu",
+		// a folder for each DLC, or all of them in the DLC folder
+		"A folder for each DLC": "Una cartella per ogni DLC",
+		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "Con gli ID, ogni DLC va in una cartella propria. Senza, vanno tutti nella cartella dei DLC: i percorsi restano più corti, perché molti programmi di Windows non leggono più di 260 caratteri.",
 		// a file that stays in its folder because its name is taken where it would go
 		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "Non spostato: a destinazione c'è già una copia della stessa dimensione. È un duplicato, la pagina Spazio può liberarlo.",
 		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "A destinazione c'è già un altro file con lo stesso nome e un'altra dimensione: sono due file dello stesso gioco e della stessa versione, Controlla può dire quale è buono.",

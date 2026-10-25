@@ -638,3 +638,84 @@ func TestOrganizeFoldersWithIds(t *testing.T) {
 		t.Fatalf("the template with the ID: %s", name)
 	}
 }
+
+// The folder of a DLC takes away the name of its game when the DLC starts with it, written in
+// any case and with any signs, or with two of its words and a dash or a colon; a DLC without a
+// name gets "DLC".
+func TestDlcFolderName(t *testing.T) {
+	for _, test := range []struct{ dlc, game, want string }{
+		{"KonoSuba God's Blessing on this Wonderful World Love For These Clothes Of Desire - Darkness Special Swimsuit",
+			"KONOSUBA - God's Blessing on this Wonderful World Love For These Clothes Of Desire", "Darkness Special Swimsuit"},
+		{"WRC Generations - Porsche 911 GT3 RS RGT Extra liveries", "WRC Generations The Official Game", "Porsche 911 GT3 RS RGT Extra liveries"},
+		{"Dead Cells: Rise of the Giant", "Dead Cells", "Rise of the Giant"},
+		{"Test Game - Expansion", "Test Game", "Expansion"},
+		// a few words in common without a dash: another name, left whole
+		{"TT Isle of Man 2 Ducati 900SS TT - Mike Hailwood 1978", "TT Isle of Man Ride on the Edge 2", "TT Isle of Man 2 Ducati 900SS TT - Mike Hailwood 1978"},
+		{"Super Mario Bros. Wonder", "Super Mario Odyssey", "Super Mario Bros. Wonder"},
+		{"Special Soul Pact Quest", "Labyrinth of Galleria The Moon Society", "Special Soul Pact Quest"},
+		// nothing left once the game is taken away: the name stays
+		{"Dead Cells", "Dead Cells", "Dead Cells"},
+		{"", "Unknown Title", "DLC"},
+		{"  ", "Unknown Title", "DLC"},
+	} {
+		if got := dlcFolderName(test.dlc, test.game); got != test.want {
+			t.Errorf("%q of %q: %q, want %q", test.dlc, test.game, got, test.want)
+		}
+	}
+}
+
+// With folders by ID, a DLC the titles database does not name goes to a folder "DLC [ID]",
+// not to one named by its ID only.
+func TestOrganizeFoldersWithIdsNamesADlcWithoutName(t *testing.T) {
+	baseFolder := t.TempDir()
+	local, remote := fixtureLibrary(t, filepath.Join(baseFolder, "incoming"))
+	delete(remote.TitlesMap[groupID].Dlc, dlcTwoID)
+	options := organizeOptions()
+	options.FoldersWithIds = true
+	ops, err := OrganizeByFolders(baseFolder, local, remote, options, true, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := filepath.Join(baseFolder, "Test Game [0100E95004039000]", "DLC", "DLC [0100E9500403A002]")
+	for _, op := range ops {
+		if op.Kind == OP_MOVE && filepath.Base(op.From) == "dlc-two.nsp" {
+			if filepath.Dir(op.To) != want {
+				t.Fatalf("the DLC without a name goes to %s, want %s", filepath.Dir(op.To), want)
+			}
+			return
+		}
+	}
+	t.Fatalf("the DLC without a name is not moved: %+v", ops)
+}
+
+// With folders by ID but every DLC in the DLC folder, the game and its update get their ID and
+// the DLC go to the DLC folder without a folder each, which keeps the paths shorter.
+func TestOrganizeFoldersWithIdsAndDlcInOneFolder(t *testing.T) {
+	baseFolder := t.TempDir()
+	local, remote := fixtureLibrary(t, filepath.Join(baseFolder, "incoming"))
+	options := organizeOptions()
+	options.FoldersWithIds, options.DlcInOneFolder = true, true
+	ops, err := OrganizeByFolders(baseFolder, local, remote, options, true, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	game := filepath.Join(baseFolder, "Test Game [0100E95004039000]")
+	want := map[string]string{
+		"base.nsp":    game,
+		"update.nsp":  filepath.Join(game, "Updates [0100E95004039800]"),
+		"dlc-one.nsp": filepath.Join(game, "DLC"),
+		"dlc-two.nsp": filepath.Join(game, "DLC"),
+	}
+	for _, op := range ops {
+		if op.Kind != OP_MOVE {
+			continue
+		}
+		if folder := want[filepath.Base(op.From)]; filepath.Dir(op.To) != folder {
+			t.Errorf("%s goes to %s, want %s", filepath.Base(op.From), filepath.Dir(op.To), folder)
+		}
+		delete(want, filepath.Base(op.From))
+	}
+	if len(want) != 0 {
+		t.Errorf("not moved: %v", want)
+	}
+}

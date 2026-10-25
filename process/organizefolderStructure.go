@@ -700,8 +700,13 @@ func OrganizeByFolders(baseFolder string,
 				continue
 			}
 			dlcFolder := options.DlcFolder
-			if options.FoldersWithIds {
+			if options.FoldersWithIds && !options.DlcInOneFolder {
+				// the folder of the DLC tells its name without the one of its game, which the
+				// folder of the game says already, or "DLC" when it has none
+				name := templateData[settings.TEMPLATE_DLC_NAME]
+				templateData[settings.TEMPLATE_DLC_NAME] = dlcFolderName(name, templateData[settings.TEMPLATE_TITLE_NAME])
 				dlcFolder = idFolder(options.DlcFolder, "DLC", "{"+settings.TEMPLATE_DLC_NAME+"} [{"+settings.TEMPLATE_TITLE_ID+"}]")
+				templateData[settings.TEMPLATE_DLC_NAME] = name
 			}
 			folder := targetFolder(dlc.ExtendedInfo, dlcFolder)
 
@@ -864,6 +869,40 @@ func ValidateOptions(options settings.OrganizeOptions) error {
 		}
 	}
 	return nil
+}
+
+// words are the words of a name, letters and digits, without the case and the signs between them.
+var words = regexp.MustCompile(`[\p{L}\p{N}]+`)
+
+// dlcFolderName is the name of the folder of a DLC: its name without the name of its game in
+// front, which made paths longer than many programs of Windows read, or "DLC" when it has none.
+// The name of the game is taken away when the DLC starts with all its words, written in any
+// case and with any signs between them (KONOSUBA - God's... and KonoSuba God's...), or with at
+// least two of them followed by a dash or a colon (WRC Generations The Official Game and WRC
+// Generations - Porsche...).
+func dlcFolderName(dlcName string, gameName string) string {
+	dlcName = strings.TrimSpace(dlcName)
+	if dlcName == "" {
+		return "DLC"
+	}
+	dlcWords := words.FindAllStringIndex(dlcName, -1)
+	gameWords := words.FindAllString(gameName, -1)
+	same := 0
+	for same < len(dlcWords) && same < len(gameWords) && strings.EqualFold(dlcName[dlcWords[same][0]:dlcWords[same][1]], gameWords[same]) {
+		same++
+	}
+	if same == 0 || same == len(dlcWords) {
+		return dlcName
+	}
+	rest := dlcName[dlcWords[same-1][1]:]
+	separated := strings.IndexAny(strings.TrimLeft(rest, " "), "-–—:|") == 0
+	if same < len(gameWords) && (same < 2 || !separated) {
+		return dlcName
+	}
+	if short := strings.Trim(rest, " -–—:|,.·~"); words.MatchString(short) {
+		return short
+	}
+	return dlcName
 }
 
 func getDlcName(switchTitle *db.SwitchTitle, file db.SwitchFileInfo) string {

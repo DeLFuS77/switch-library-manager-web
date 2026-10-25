@@ -101,6 +101,11 @@
 									<label class="form-check-label" for="folders_with_ids">{{t "A folder with its ID for each update and DLC"}}</label>
 								</div>
 								<div class="form-text mb-3" id="folders_with_ids_help">{{t "The game folder gets its ID too: Game [0100…000] › Update [0100…800], and DLC › name of the DLC [0100…001]."}}</div>
+								<div class="form-check form-switch mb-1">
+									<input class="form-check-input" type="checkbox" role="switch" id="dlc_own_folders" name="dlc_own_folders" value="true" aria-describedby="dlc_own_folders_help"{{if not $o.DlcInOneFolder}} checked{{end}}>
+									<label class="form-check-label" for="dlc_own_folders">{{t "A folder for each DLC"}}</label>
+								</div>
+								<div class="form-text mb-3" id="dlc_own_folders_help">{{t "With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters."}}</div>
 								<div class="form-check form-switch">
 									<input class="form-check-input" type="checkbox" role="switch" id="process_when_missing_base_game" name="process_when_missing_base_game" value="true"{{if $o.ProcessWhenMissingBaseGame}} checked{{end}}>
 									<label class="form-check-label" for="process_when_missing_base_game">{{t "Also organize updates and DLC without base game"}}</label>

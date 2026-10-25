@@ -1,4 +1,50 @@
 {
+  "1.57.3": {
+    "en": [
+      "With folders by ID, \"A folder for each DLC\" can be turned off: every DLC goes to the DLC folder and the paths stay short enough for Windows.",
+      "The folder of a DLC no longer repeats the name of its game, and a DLC without a name goes to \"DLC [ID]\"."
+    ],
+    "es": [
+      "Con las carpetas por ID se puede desactivar «Una carpeta para cada DLC»: todos los DLC van a la carpeta DLC y las rutas quedan lo bastante cortas para Windows.",
+      "La carpeta de un DLC ya no repite el nombre de su juego, y un DLC sin nombre va a «DLC [ID]»."
+    ],
+    "de": [
+      "Mit Ordnern nach ID lässt sich „Ein Ordner für jeden DLC“ ausschalten: Alle DLC landen im DLC-Ordner, und die Pfade bleiben kurz genug für Windows.",
+      "Der Ordner eines DLC wiederholt nicht mehr den Namen seines Spiels, und ein DLC ohne Namen kommt nach „DLC [ID]“."
+    ],
+    "fr": [
+      "Avec les dossiers par ID, « Un dossier pour chaque DLC » peut être désactivé : tous les DLC vont dans le dossier DLC et les chemins restent assez courts pour Windows.",
+      "Le dossier d'un DLC ne répète plus le nom de son jeu, et un DLC sans nom va dans « DLC [ID] »."
+    ],
+    "it": [
+      "Con le cartelle per ID si può disattivare «Una cartella per ogni DLC»: tutti i DLC vanno nella cartella DLC e i percorsi restano abbastanza corti per Windows.",
+      "La cartella di un DLC non ripete più il nome del suo gioco, e un DLC senza nome va in «DLC [ID]»."
+    ],
+    "pt": [
+      "Com as pastas por ID pode desativar «Uma pasta para cada DLC»: todos os DLC vão para a pasta DLC e os caminhos ficam curtos o bastante para o Windows.",
+      "A pasta de um DLC já não repete o nome do seu jogo, e um DLC sem nome vai para «DLC [ID]»."
+    ],
+    "nl": [
+      "Met mappen per ID kan „Een map voor elke DLC” uit: alle DLC gaan naar de DLC-map en de paden blijven kort genoeg voor Windows.",
+      "De map van een DLC herhaalt niet meer de naam van zijn spel, en een DLC zonder naam gaat naar „DLC [ID]”."
+    ],
+    "ru": [
+      "С папками по ID можно отключить «Отдельная папка для каждого DLC»: все DLC попадают в папку DLC, а пути остаются достаточно короткими для Windows.",
+      "Папка DLC больше не повторяет название игры, а DLC без названия попадает в «DLC [ID]»."
+    ],
+    "ja": [
+      "ID 付きフォルダーで「DLC ごとにフォルダー」をオフにできます。すべての DLC が DLC フォルダーに入り、パスが Windows で扱える長さに収まります。",
+      "DLC のフォルダー名にゲーム名を繰り返さなくなり、名前のない DLC は「DLC [ID]」に入ります。"
+    ],
+    "ko": [
+      "ID가 붙은 폴더에서 'DLC마다 폴더'를 끌 수 있어요. 모든 DLC가 DLC 폴더에 들어가고 경로가 Windows에서 다룰 만큼 짧아져요.",
+      "DLC 폴더 이름에 게임 이름을 반복하지 않고, 이름 없는 DLC는 'DLC [ID]'에 들어가요."
+    ],
+    "zh": [
+      "使用按 ID 命名的文件夹时，可以关闭“每个 DLC 一个文件夹”：所有 DLC 都放进 DLC 文件夹，路径足够短，Windows 也能处理。",
+      "DLC 的文件夹不再重复其游戏的名称，没有名称的 DLC 会放进“DLC [ID]”。"
+    ]
+  },
   "1.57.2": {
     "en": [
       "The cleanup deletes old DLC versions again, and when a game has a damaged copy and a sound one, the library keeps the sound one.",

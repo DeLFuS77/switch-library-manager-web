@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.57.3
+
+### New
+
+- "A folder for each DLC", under the folders with their ID in Organize: turned off, the game and its updates still get their ID and every DLC goes to the DLC folder, without a folder each. The paths stay shorter: with a folder for each DLC, a library of 14,700 games had over 700 paths of more than 260 characters, which many programs of Windows cannot read; with every DLC in the DLC folder, 76. On by default, as before
+
+### Improvements
+
+- With a folder for each update and DLC, the folder of a DLC no longer repeats the name of its game when the DLC starts with it, written in any case and with any signs (KONOSUBA - God's... and KonoSuba God's...), or with two of its words and a dash (WRC Generations - Porsche...): DLC › Porsche 911 GT3 RS RGT Extra liveries [ID]. A DLC the titles database does not name goes to "DLC [ID]" instead of a folder named by its ID only
+
 ## 1.57.2
 
 ### Fixes

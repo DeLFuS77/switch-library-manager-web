@@ -1502,6 +1502,9 @@ func init() {
 		"within a minute":                                                  "一分钟内",
 		"you":                                                              "你",
 		"yours included":                                                   "包括你的",
+		// a folder for each DLC, or all of them in the DLC folder
+		"A folder for each DLC": "每个 DLC 一个文件夹",
+		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "使用 ID 时，每个 DLC 放进自己的文件夹。关闭后，全部放进 DLC 文件夹：路径更短，因为许多 Windows 程序无法读取超过 260 个字符的路径。",
 		// a file that stays in its folder because its name is taken where it would go
 		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "未移动:目标位置已有一个大小相同的副本。这是重复文件,可在空间页面释放。",
 		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "目标位置已有另一个同名但大小不同的文件:这是同一游戏同一版本的两个文件,“检查”可以判断哪个是好的。",
