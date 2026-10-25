@@ -852,6 +852,8 @@ func init() {
 		"Create folder":                          "Map maken",
 		"Create it again with the same folders:": "Maak hem opnieuw aan met dezelfde mappen:",
 		"Created %v":                             "Aangemaakt %v",
+		"Last sign-in %v":                        "Laatst aangemeld: %v",
+		"Never signed in":                        "Nog nooit aangemeld",
 		"Created a user":                         "Gebruiker aangemaakt",
 		"Current password":                       "Huidig wachtwoord",
 		"DLC":                                    "DLC",

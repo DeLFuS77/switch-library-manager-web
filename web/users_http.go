@@ -92,6 +92,7 @@ func (web *Web) HandleUsers() {
 			return
 		}
 		web.auth.limiter.succeed(keys...)
+		web.auth.signedIn(principal.Name)
 		http.SetCookie(w, web.auth.sessionCookie(r, principal.Name))
 		http.Redirect(w, r, safeNext(data.Next), http.StatusSeeOther)
 	}).Methods("POST")

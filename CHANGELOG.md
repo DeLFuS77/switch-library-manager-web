@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Improvements
+
+- Users shows, next to the date each user was created, the last time they signed in: in the login page, or as an API client with their name and password. Users who never did say so
+- Check new files, with no file new or changed since the last check, says there is nothing to check instead of starting a task that checks nothing, which looked as if the button did nothing and was pressed again. Check everything again still reads every file
+
 ### Fixes
 
 - Space said that files waited for the verification, and Maintenance that they could go once their other copy was checked, also for files that stay for another reason: old updates kept for their cheats, a file holding a part the library uses, an original its compressed copy does not hold whole. With every file checked, "Verify now" checked nothing and the files stayed. Only the files whose kept copy is still to be verified are counted now; with nothing to free, the page says the files below stay, each for the reason shown

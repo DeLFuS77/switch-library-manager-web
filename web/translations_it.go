@@ -1090,6 +1090,8 @@ func init() {
 		"Create a folder per game inside the library folder": "Crea una cartella per ogni gioco dentro la cartella della libreria",
 		"Create folder":                                      "Crea cartella",
 		"Created %v":                                         "Creato %v",
+		"Last sign-in %v":                                    "Ultimo accesso: %v",
+		"Never signed in":                                    "Nessun accesso",
 		"Current password":                                   "Password attuale",
 		"DLC":                                                "DLC",
 		"DLC %v for %v":                                      "DLC %v per %v",

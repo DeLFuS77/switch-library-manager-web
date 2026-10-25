@@ -852,6 +852,8 @@ func init() {
 		"Create folder":                          "Создать папку",
 		"Create it again with the same folders:": "Создайте его заново с теми же папками:",
 		"Created %v":                             "Создано: %v",
+		"Last sign-in %v":                        "Последний вход: %v",
+		"Never signed in":                        "Входов ещё не было",
 		"Created a user":                         "Создал пользователя",
 		"Current password":                       "Текущий пароль",
 		"DLC":                                    "DLC",

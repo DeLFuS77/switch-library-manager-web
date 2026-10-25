@@ -1123,6 +1123,8 @@ var translations = map[string]map[string]string{
 		"Change":                      "Cambiar",
 		"Change password":             "Cambiar contraseña",
 		"Created %v":                  "Creado %v",
+		"Last sign-in %v":             "Último inicio de sesión: %v",
+		"Never signed in":             "Nunca ha iniciado sesión",
 		"Current password":            "Contraseña actual",
 		"Delete the user %v?":         "¿Borrar el usuario %v?",
 		"Delete user":                 "Borrar usuario",

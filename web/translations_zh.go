@@ -852,6 +852,8 @@ func init() {
 		"Create folder":                          "创建文件夹",
 		"Create it again with the same folders:": "使用相同的文件夹重新创建：",
 		"Created %v":                             "创建于 %v",
+		"Last sign-in %v":                        "上次登录：%v",
+		"Never signed in":                        "从未登录",
 		"Created a user":                         "创建了用户",
 		"Current password":                       "当前密码",
 		"DLC":                                    "DLC",

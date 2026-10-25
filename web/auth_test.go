@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 )
 
 // envAuth returns an Auth with the user set in the environment.
@@ -443,5 +444,47 @@ func TestAvatarColor(t *testing.T) {
 	request := httptest.NewRequest(http.MethodPost, "/account/color", nil)
 	if !viewerAllowed(request) {
 		t.Fatal("read-only users choose their colour too")
+	}
+}
+
+// Users shows when each user signed in last, in the login page or as an API client, and the
+// date is written at most once every few minutes.
+func TestLastSignIn(t *testing.T) {
+	web := usersWeb(t)
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	web.auth.users.Add("bob", "bravo-secret-22", ROLE_VIEWER)
+	handler := web.auth.middleware(web.router)
+
+	admin := &client{t: t, handler: handler}
+	admin.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
+	if page := admin.do("GET", "/users.html", nil).Body.String(); !strings.Contains(page, "Last sign-in") || !strings.Contains(page, "Never signed in") {
+		t.Fatal("alice signed in, bob never did")
+	}
+	alice, _ := web.auth.users.Get("alice")
+	if time.Since(alice.LastLogin) > time.Minute {
+		t.Fatalf("the sign-in of the login page: %v", alice.LastLogin)
+	}
+
+	api := &client{t: t, handler: handler}
+	api.do("GET", "/index.html", nil, "Authorization", basic("bob", "bravo-secret-22"))
+	bob, _ := web.auth.users.Get("bob")
+	if bob.LastLogin.IsZero() {
+		t.Fatal("an API client signs in too")
+	}
+
+	// written again only after a while, and kept in users.json
+	if err := web.auth.users.NoteLogin("bob", bob.LastLogin.Add(time.Minute)); err != nil {
+		t.Fatal(err)
+	}
+	if again, _ := web.auth.users.Get("bob"); !again.LastLogin.Equal(bob.LastLogin) {
+		t.Fatal("a sign-in a minute later is not written")
+	}
+	later := bob.LastLogin.Add(loginNoteInterval)
+	web.auth.users.NoteLogin("bob", later)
+	if err := web.auth.users.reload(); err != nil {
+		t.Fatal(err)
+	}
+	if again, _ := web.auth.users.Get("bob"); !again.LastLogin.Equal(later) {
+		t.Fatalf("the later sign-in is saved: %v", again.LastLogin)
 	}
 }

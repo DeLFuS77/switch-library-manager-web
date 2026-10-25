@@ -411,6 +411,7 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 				}
 				a.limiter.succeed(keys...)
 				a.loginAttempt(principal.Name, ip, "ok", "")
+				a.signedIn(principal.Name)
 			}
 		}
 
@@ -427,6 +428,13 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 func (a *Auth) loginAttempt(user, ip, result, password string) {
 	if a.onLogin != nil {
 		a.onLogin(user, ip, result, len(password) >= minPasswordLength)
+	}
+}
+
+// signedIn notes the sign-in of a user, shown in Users. A failed write only loses the date.
+func (a *Auth) signedIn(name string) {
+	if a.users != nil {
+		a.users.NoteLogin(name, time.Now())
 	}
 }
 

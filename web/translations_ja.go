@@ -852,6 +852,8 @@ func init() {
 		"Create folder":                          "フォルダーを作成",
 		"Create it again with the same folders:": "同じフォルダーで作り直してください:",
 		"Created %v":                             "作成: %v",
+		"Last sign-in %v":                        "最終サインイン: %v",
+		"Never signed in":                        "サインインしたことがありません",
 		"Created a user":                         "ユーザーを作成しました",
 		"Current password":                       "現在のパスワード",
 		"DLC":                                    "DLC",

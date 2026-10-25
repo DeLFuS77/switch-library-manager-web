@@ -852,6 +852,8 @@ func init() {
 		"Create folder":                          "폴더 만들기",
 		"Create it again with the same folders:": "같은 폴더로 다시 만드세요:",
 		"Created %v":                             "%v 생성",
+		"Last sign-in %v":                        "마지막 로그인: %v",
+		"Never signed in":                        "로그인한 적 없음",
 		"Created a user":                         "사용자를 만듦",
 		"Current password":                       "현재 비밀번호",
 		"DLC":                                    "DLC",
