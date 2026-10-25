@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- The icons read from the game files, for games whose cover the eShop does not have, are kept when the library is scanned again, instead of being read again after every scan with a task of covers each time that told 0 covers. That task, when it only reads icons, tells how many it found and ends at 100 %
+- A task the app was stopped in the middle of shows how long it ran until it was last heard of, instead of "took 0s"
+- The cleanup of duplicates and old updates no longer leaves files with "The copy that is kept was not found; rescan the library" when a game had three copies or three versions: each one names the file the library keeps, not one deleted with it. A copy of an old update counts as an old update
+
 ## 1.57.0
 
 ### New

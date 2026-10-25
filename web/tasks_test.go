@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -425,5 +426,36 @@ func TestLaneColoursFollowTheStepOrTheKind(t *testing.T) {
 	// in steps the kind is not shown, the step is
 	if (TaskLane{Kind: "DLC", Phase: PHASE_VERIFYING}).KindName() != "" {
 		t.Error("the kind of a file in steps")
+	}
+}
+
+// A task the app stopped in the middle of ends when it was last heard of: the last estimate of
+// the time left, or the last save of the history, instead of when it began, which showed a
+// compression of hours as one that lasted no time.
+func TestInterruptedTaskEndsWhenLastHeardOf(t *testing.T) {
+	folder := t.TempDir()
+	log := loadTaskLog(folder)
+	estimated := log.Start(TASK_COMPRESS, TRIGGER_MANUAL)
+	silent := log.Start(TASK_SCAN, TRIGGER_WATCHER)
+	lastEstimate := time.Now().Add(-10 * time.Minute)
+	log.mutex.Lock()
+	for _, task := range log.tasks {
+		task.Started = time.Now().Add(-2 * time.Hour)
+		if task.Id == estimated {
+			task.LeftAt = lastEstimate
+		}
+	}
+	log.save()
+	log.mutex.Unlock()
+	saved := time.Now().Add(-20 * time.Minute)
+	if err := os.Chtimes(filepath.Join(folder, TASKS_FILENAME), saved, saved); err != nil {
+		t.Fatal(err)
+	}
+
+	want := map[int64]time.Time{estimated: lastEstimate, silent: saved}
+	for _, task := range loadTaskLog(folder).Snapshot() {
+		if at, ok := want[task.Id]; ok && task.Finished.Sub(at).Abs() > time.Second {
+			t.Errorf("task %d ends at %v, want %v", task.Id, task.Finished, at)
+		}
 	}
 }

@@ -670,6 +670,7 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 	// covers not cached yet are downloaded after the scan, so a big library is shown
 	// without waiting for thousands of downloads
 	assignCachedCovers(dataFolder, covers)
+	resolveKeptChains(skipped)
 }
 
 // PreferDuplicate tells whether the copy file is kept instead of found, the copy of the same

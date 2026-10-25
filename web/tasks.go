@@ -452,6 +452,11 @@ type TaskLog struct {
 // the app stopped are marked as failed.
 func loadTaskLog(dataFolder string) *TaskLog {
 	log := &TaskLog{path: filepath.Join(dataFolder, TASKS_FILENAME), subscribers: map[chan int64]struct{}{}}
+	// when the history was saved last: the app was still working then
+	var saved time.Time
+	if info, err := os.Stat(log.path); err == nil {
+		saved = info.ModTime()
+	}
 	if data, err := os.ReadFile(log.path); err == nil {
 		saved := []*Task{}
 		if parseStore(log.path, data, &saved) == nil {
@@ -465,7 +470,14 @@ func loadTaskLog(dataFolder string) *TaskLog {
 		if task.Status == TASK_RUNNING {
 			task.Status = TASK_FAILED
 			task.Error = &TaskNote{Text: NOTE_INTERRUPTED}
+			// the moment the app stopped is not known: the last one it is known to have
+			// worked on the task, instead of its start, which showed it lasted no time at all
 			task.Finished = task.Started
+			for _, at := range []time.Time{task.LeftAt, saved} {
+				if at.After(task.Finished) {
+					task.Finished = at
+				}
+			}
 		}
 	}
 	return log
