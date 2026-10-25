@@ -1536,6 +1536,9 @@ var translations = map[string]map[string]string{
 		"Done: %v change(s)":                    "Hecho: %v cambio(s)",
 		", %v failed":                           ", %v con error",
 		"Apply the changes shown in the preview? Files will be moved or deleted.": "¿Aplicar los cambios de la vista previa? Se moverán o borrarán archivos.",
+		// a check of the new files with nothing new to read
+		"Nothing to check": "Nada que comprobar",
+		"No file is new or changed since the last check.": "Ningún archivo es nuevo ni ha cambiado desde la última comprobación.",
 	},
 }
 
@@ -1553,4 +1556,5 @@ var jsTexts = []string{
 	"Add to the wishlist", "Remove from the wishlist", "Add to favorites", "Remove from favorites",
 	"Controller connected", "D-pad to move, A to open, B to go back, Start to search.",
 	"Couch mode: Select or Esc to leave", "In testing",
+	"Nothing to check", "No file is new or changed since the last check.",
 }

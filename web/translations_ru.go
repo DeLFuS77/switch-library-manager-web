@@ -1509,5 +1509,8 @@ func init() {
 		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "Не перемещён: в месте назначения уже есть копия того же размера. Это дубликат, страница «Место» может его освободить.",
 		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "В месте назначения уже есть другой файл с тем же именем, но другого размера: это два файла одной игры и одной версии, «Проверить» покажет, какой из них в порядке.",
 		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "Не перемещён: в месте назначения уже есть другой файл с тем же именем, но другого размера. Это два файла одной игры и одной версии, «Проверить» покажет, какой из них в порядке.",
+		// a check of the new files with nothing new to read
+		"Nothing to check": "Нечего проверять",
+		"No file is new or changed since the last check.": "С последней проверки нет новых или изменённых файлов.",
 	}
 }

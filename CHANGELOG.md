@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- Check new files, with no file new or changed since the last check, says there is nothing to check instead of starting a task that checks nothing, which looked as if the button did nothing and was pressed again. Check everything again still reads every file
+
 ### Fixes
 
 - The games nothing can compress (in sparse storage, or compressed already under another name) were offered and tried again, each with a warning, by the first compression after Organize moved them into other folders: their mark now goes with them, as the results of the checks of the files already did

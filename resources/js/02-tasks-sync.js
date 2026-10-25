@@ -22,9 +22,10 @@ function runAsTask(start) {
 			if (!result.ok) {
 				return result;
 			}
-			// a task put in the queue starts later: the page says so instead of waiting for it
+			// a task put in the queue starts later, and one with nothing to do does not start: the
+			// page says so instead of waiting for it
 			return result.clone().json().catch(() => ({})).then(json => {
-				if (!json || !json.queued) {
+				if (!json || (!json.queued && !json.nothing)) {
 					followTasks(known);
 				}
 				return result;

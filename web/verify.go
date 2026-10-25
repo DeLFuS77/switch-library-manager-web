@@ -707,8 +707,36 @@ func (web *Web) HandleVerify() {
 		if r.FormValue("all") == "true" {
 			recheck = verifyRecheckAll
 		}
+		// nothing new nor changed, and no task that could change files before the check: the
+		// page says so, instead of a task that checks nothing (pressed again, as it seemed to do
+		// nothing)
+		if recheck == verifyRecheckChanged && !web.filesBusy() && len(web.queue().list()) == 0 && web.nothingToVerify(paths) {
+			writeJSON(w, http.StatusOK, map[string]any{"nothing": true})
+			return
+		}
 		web.startOrQueue(w, QueuedTask{Kind: TASK_VERIFY, Paths: paths, Recheck: recheck})
 	}).Methods("POST")
+}
+
+// nothingToVerify tells whether a check of the new and changed files of paths (of the library
+// when nil) would find none: each of them was checked as it is now.
+func (web *Web) nothingToVerify(paths []string) bool {
+	if paths == nil {
+		for _, candidate := range web.libraryFiles(".nsp", ".nsz", ".xci", ".xcz") {
+			paths = append(paths, candidate.Path)
+		}
+	}
+	paths = web.moves.resolveAll(paths)
+	store := web.verifications()
+	for i, info := range statFiles(paths, 16) {
+		if info == nil || info.IsDir() {
+			continue
+		}
+		if _, ok := store.current(paths[i], info); !ok {
+			return false
+		}
+	}
+	return true
 }
 
 func (s *verifyStore) lastRun() time.Time {

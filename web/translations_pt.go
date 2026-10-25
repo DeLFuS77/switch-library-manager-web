@@ -1509,5 +1509,8 @@ func init() {
 		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "Não movido: já há uma cópia do mesmo tamanho no destino. É um duplicado, a página Espaço pode liberá-lo.",
 		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "Já há outro arquivo com o mesmo nome e outro tamanho no destino: são dois arquivos do mesmo jogo e versão, Verificar pode dizer qual está bom.",
 		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "Não movido: já há outro arquivo com o mesmo nome e outro tamanho no destino. São dois arquivos do mesmo jogo e versão, Verificar pode dizer qual está bom.",
+		// a check of the new files with nothing new to read
+		"Nothing to check": "Nada para verificar",
+		"No file is new or changed since the last check.": "Nenhum arquivo é novo ou mudou desde a última verificação.",
 	}
 }
