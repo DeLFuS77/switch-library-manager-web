@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Space said that files waited for the verification, and Maintenance that they could go once their other copy was checked, also for files that stay for another reason: old updates kept for their cheats, a file holding a part the library uses, an original its compressed copy does not hold whole. With every file checked, "Verify now" checked nothing and the files stayed. Only the files whose kept copy is still to be verified are counted now; with nothing to free, the page says the files below stay, each for the reason shown
+- While a compression ran, Space listed the originals already compressed and deleted, which the library keeps until the scan at the end of the task, as "The compressed file does not hold everything this file holds". They are no longer listed
+- In the same while, the download of such a game, and its ZIP, failed: the file of the library was gone. Its compressed copy is downloaded instead
+
 ## 1.57.5
 
 ### Improvements

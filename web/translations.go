@@ -930,6 +930,9 @@ var translations = map[string]map[string]string{
 		"1 hour":                  "1 hora",
 		"Only folders that changed are read again. A longer interval lets the disks of a NAS sleep.":              "Solo se vuelven a leer las carpetas que han cambiado. Un intervalo más largo deja dormir los discos de un NAS.",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v archivos solo se pueden borrar cuando las copias que se conservan estén verificadas. Solo se comprueban esas copias.",
+		// Space, when every file left stays for a reason
+		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Ahora no se puede liberar nada: los %v archivos de abajo se quedan, cada uno por el motivo que indica.",
+
 		"Verify the copy that is kept first.":                      "Verifica primero la copia que se conserva.",
 		"The copy that is kept is damaged: keep this one.":         "La copia que se conserva está dañada: conserva esta.",
 		"The copy that is kept was not found; rescan the library.": "No se encuentra la copia que se conserva; vuelve a analizar la biblioteca.",

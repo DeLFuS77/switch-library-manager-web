@@ -101,6 +101,9 @@ type SpacePageData struct {
 	Unverified   int
 	Compressible int
 	CompressSize int64
+	// the files that stay for another reason than a verification still to do: cheats for
+	// their version, a damaged newer file, a part the library uses...
+	Kept int
 	// games of the library with copies of several stores
 	Regions []RegionGroup
 	// the content is being prepared: the page says so and loads it when it is ready; or the
@@ -181,6 +184,10 @@ func (web *Web) spaceGroups() []SpaceGroup {
 			return
 		}
 		compressed[path] = true
+		// compressed and deleted since the scan, which still has it: nothing to free
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			return
+		}
 		entry := SpaceFile{Path: path, Name: name, Size: file.Size, KeptBy: copyPath, file: file}
 		if record, ok := web.verifications().current(copyPath, info); ok && record.sound() {
 			// the copy of the same name must hold everything the original holds
@@ -552,8 +559,12 @@ func (web *Web) buildSpaceContent() SpacePageData {
 	for _, group := range data.Groups {
 		data.Reclaimable += group.DeletableSize
 		for _, file := range group.Files {
-			if !file.Deletable {
+			switch {
+			case file.Deletable:
+			case file.Note == NOTE_SPACE_VERIFY || file.Note == NOTE_SPACE_VERIFY_KEPT:
 				data.Unverified++
+			default:
+				data.Kept++
 			}
 		}
 	}

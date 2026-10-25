@@ -932,6 +932,9 @@ func init() {
 		"1 hour":                  "1 ora",
 		"Only folders that changed are read again. A longer interval lets the disks of a NAS sleep.":              "Vengono rilette solo le cartelle cambiate. Un intervallo più lungo lascia dormire i dischi di un NAS.",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v file si possono eliminare solo quando le copie conservate sono verificate. Vengono controllate solo quelle copie.",
+		// Space, when every file left stays for a reason
+		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Per ora non si può liberare nulla: i %v file qui sotto restano, ciascuno per il motivo indicato.",
+
 		"Verify the copy that is kept first.":                      "Verifica prima la copia che viene conservata.",
 		"The copy that is kept is damaged: keep this one.":         "La copia conservata è danneggiata: tieni questa.",
 		"The copy that is kept was not found; rescan the library.": "La copia conservata non è stata trovata; analizza di nuovo la libreria.",

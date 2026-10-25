@@ -667,6 +667,9 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "파일 %v개는 이미 압축본이 있어 표시하지 않아요. 압축본이 검증되면 공간 페이지에서 원본을 삭제할 수 있어요.",
 		"%v files at a time": "한 번에 파일 %v개",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "파일 %v개는 남겨 둘 사본이 검증된 후에만 삭제할 수 있어요. 해당 사본만 검사해요.",
+		// Space, when every file left stays for a reason
+		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "지금은 비울 수 있는 것이 없습니다. 아래 %v개 파일은 각각 표시된 이유로 남습니다.",
+
 		"%v files changed":              "파일 %v개 변경됨",
 		"%v files checked, %v damaged":  "파일 %v개 검사, %v개 손상",
 		"%v files compressed, %v saved": "파일 %v개 압축, %v 절약",
