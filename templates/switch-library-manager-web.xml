@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.57.0
+  <Changes>### 1.57.1
+- Icons read from the game files kept after every scan, interrupted tasks with the time they ran, and the cleanup of duplicates finds the copy that stays with three copies or versions
+### 1.57.0
 - Organize renames in its folder a file whose name is taken at the destination and shows its changes in groups, new name fields {PACKAGE_CONTENTS}, {SIZE_GB} and {SIZE_MB}, why a game is not compressed, and the Compress page at the level of Settings
 ### 1.56.1
 - With no connection, synchronizations and covers stop trying after a few attempts, the saved titles database is used and Tasks tells why
