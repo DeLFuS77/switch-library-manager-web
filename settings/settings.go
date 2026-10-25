@@ -28,7 +28,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "1.56.1"
+	SLM_WEB_VERSION        = "1.57.0"
 	REPOSITORY_OWNER       = "DeLFuS77"
 	// titles.json and versions.json are generated from blawar/titledb by the
 	// "Update title data" workflow of this repository
@@ -72,6 +72,11 @@ const (
 	TEMPLATE_REGION      = "REGION"
 	TEMPLATE_VERSION_TXT = "VERSION_TXT"
 	TEMPLATE_TYPE        = "TYPE"
+	// the titles of each kind a file holds (1G+1U+2D) and its size, as Switch Library Manager
+	// writes them
+	TEMPLATE_PACKAGE_CONTENTS = "PACKAGE_CONTENTS"
+	TEMPLATE_SIZE_GB          = "SIZE_GB"
+	TEMPLATE_SIZE_MB          = "SIZE_MB"
 )
 
 type OrganizeOptions struct {

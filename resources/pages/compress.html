@@ -66,11 +66,11 @@
 						<section class="surface h-100">
 							<h2 class="section-title"><span class="bi bi-speedometer2" aria-hidden="true"></span>{{t "Compression"}}</h2>
 							<div class="compress-levels" role="radiogroup" aria-label="{{t "Compression level"}}" aria-describedby="compressLevelsHelp">
-								<input type="radio" class="btn-check" name="level" id="levelFast" value="fast">
+								<input type="radio" class="btn-check" name="level" id="levelFast" value="fast"{{if eq .Level "fast"}} checked{{end}}>
 								<label class="compress-level" for="levelFast"><span class="fw-semibold">{{t "Fast"}}</span><span class="small text-body-secondary">{{t "Quick, saves a bit less"}}</span></label>
-								<input type="radio" class="btn-check" name="level" id="levelBalanced" value="balanced" checked>
+								<input type="radio" class="btn-check" name="level" id="levelBalanced" value="balanced"{{if eq .Level "balanced"}} checked{{end}}>
 								<label class="compress-level" for="levelBalanced"><span class="fw-semibold">{{t "Balanced"}}</span><span class="small text-body-secondary">{{t "Recommended"}}</span></label>
-								<input type="radio" class="btn-check" name="level" id="levelMax" value="max">
+								<input type="radio" class="btn-check" name="level" id="levelMax" value="max"{{if eq .Level "max"}} checked{{end}}>
 								<label class="compress-level" for="levelMax"><span class="fw-semibold">{{t "Maximum"}}</span><span class="small text-body-secondary">{{t "Smallest files, slower"}}</span></label>
 							</div>
 							<p class="form-text mb-0 mt-2" id="compressLevelsHelp">{{if nativeZstd}}{{t "Maximum is about 8 times slower than Balanced for files about 4% smaller; both use several threads on each file. Installers read every level the same."}}{{else}}{{t "Maximum is about 10 times slower than Balanced (each file on one core) for files a few % smaller. Installers read every level the same."}}{{end}}</p>

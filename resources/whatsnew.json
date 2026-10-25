@@ -1,4 +1,61 @@
 {
+  "1.57.0": {
+    "en": [
+      "Organize gives a file its new name in its own folder when that name is taken where it would go, and shows its changes in groups you open and close instead of one long list.",
+      "New fields for the names of files: {PACKAGE_CONTENTS} (1G+1U+2D), {SIZE_GB} and {SIZE_MB}.",
+      "Tasks tells why a game is not compressed, and the Compress page starts at the level chosen in Settings."
+    ],
+    "es": [
+      "Organizar renombra un archivo en su propia carpeta cuando su nombre ya está ocupado en el destino, y enseña los cambios en grupos que se abren y cierran en vez de en una lista larguísima.",
+      "Campos nuevos para los nombres de archivo: {PACKAGE_CONTENTS} (1G+1U+2D), {SIZE_GB} y {SIZE_MB}.",
+      "Tareas explica por qué un juego no se comprime, y la página Comprimir empieza con el nivel elegido en Ajustes."
+    ],
+    "de": [
+      "Organisieren benennt eine Datei in ihrem eigenen Ordner um, wenn ihr Name am Ziel schon belegt ist, und zeigt die Änderungen in Gruppen zum Auf- und Zuklappen statt in einer langen Liste.",
+      "Neue Felder für die Dateinamen: {PACKAGE_CONTENTS} (1G+1U+2D), {SIZE_GB} und {SIZE_MB}.",
+      "Aufgaben sagt, warum ein Spiel nicht komprimiert wird, und die Seite Komprimieren beginnt mit der in den Einstellungen gewählten Stufe."
+    ],
+    "fr": [
+      "Organiser renomme un fichier dans son propre dossier quand son nom est déjà pris à la destination, et montre les changements dans des groupes à ouvrir et fermer au lieu d'une longue liste.",
+      "Nouveaux champs pour les noms de fichiers : {PACKAGE_CONTENTS} (1G+1U+2D), {SIZE_GB} et {SIZE_MB}.",
+      "Tâches explique pourquoi un jeu n'est pas compressé, et la page Compresser commence au niveau choisi dans les Paramètres."
+    ],
+    "it": [
+      "Organizza rinomina un file nella sua cartella quando il suo nome è già occupato a destinazione, e mostra le modifiche in gruppi da aprire e chiudere invece che in un lungo elenco.",
+      "Nuovi campi per i nomi dei file: {PACKAGE_CONTENTS} (1G+1U+2D), {SIZE_GB} e {SIZE_MB}.",
+      "Attività spiega perché un gioco non viene compresso, e la pagina Comprimi parte dal livello scelto nelle Impostazioni."
+    ],
+    "pt": [
+      "Organizar renomeia um arquivo na sua própria pasta quando o nome já está ocupado no destino, e mostra as alterações em grupos que se abrem e fecham em vez de uma lista enorme.",
+      "Novos campos para os nomes de arquivo: {PACKAGE_CONTENTS} (1G+1U+2D), {SIZE_GB} e {SIZE_MB}.",
+      "Tarefas explica porque um jogo não é comprimido, e a página Comprimir começa no nível escolhido nas Configurações."
+    ],
+    "nl": [
+      "Ordenen hernoemt een bestand in zijn eigen map als de naam op de bestemming al bezet is, en toont de wijzigingen in groepen die je open- en dichtklapt in plaats van één lange lijst.",
+      "Nieuwe velden voor bestandsnamen: {PACKAGE_CONTENTS} (1G+1U+2D), {SIZE_GB} en {SIZE_MB}.",
+      "Taken vertelt waarom een spel niet gecomprimeerd wordt, en de pagina Comprimeren begint bij het niveau dat in Instellingen gekozen is."
+    ],
+    "ru": [
+      "«Упорядочить» переименовывает файл в его же папке, если его имя в месте назначения уже занято, и показывает изменения в раскрывающихся группах вместо одного длинного списка.",
+      "Новые поля для имён файлов: {PACKAGE_CONTENTS} (1G+1U+2D), {SIZE_GB} и {SIZE_MB}.",
+      "«Задачи» объясняют, почему игра не сжимается, а страница «Сжать» открывается с уровнем, выбранным в «Настройках»."
+    ],
+    "ja": [
+      "「整理」は、移動先で名前がすでに使われているファイルを元のフォルダー内で名前変更し、変更内容を長い一覧ではなく開閉できるグループで表示します。",
+      "ファイル名に新しいフィールドが加わりました:{PACKAGE_CONTENTS}(1G+1U+2D)、{SIZE_GB}、{SIZE_MB}。",
+      "「タスク」でゲームが圧縮されない理由がわかり、「圧縮」ページは「設定」で選んだレベルで始まります。"
+    ],
+    "ko": [
+      "정리는 대상에 같은 이름이 이미 있으면 파일을 원래 폴더에서 이름만 바꾸고, 변경 내용을 긴 목록 대신 열고 닫는 그룹으로 보여줘요.",
+      "파일 이름에 새 필드가 생겼어요: {PACKAGE_CONTENTS}(1G+1U+2D), {SIZE_GB}, {SIZE_MB}.",
+      "작업에서 게임이 압축되지 않는 이유를 알려 주고, 압축 페이지는 설정에서 고른 수준으로 시작해요."
+    ],
+    "zh": [
+      "“整理”在目标位置的文件名已被占用时，会在原文件夹中重命名文件，并以可展开和收起的分组显示更改，而不是一长串列表。",
+      "文件名新增字段：{PACKAGE_CONTENTS}（1G+1U+2D）、{SIZE_GB} 和 {SIZE_MB}。",
+      "“任务”会说明游戏为何未被压缩，“压缩”页面会从“设置”中选择的级别开始。"
+    ]
+  },
   "1.56.1": {
     "en": [
       "With no connection, a synchronization no longer spends minutes trying: after a few attempts it goes on with the saved titles database, and Tasks tells it could not be downloaded.",

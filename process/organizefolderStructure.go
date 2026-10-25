@@ -158,7 +158,7 @@ func (f *fileOperations) move(from string, to string) error {
 			if toInfo.Size() == fromInfo.Size() {
 				return errDuplicateAtDestination
 			}
-			return errors.New("another file with the same name is already at the destination")
+			return errNameTakenAtDestination
 		}
 		if err := f.mkdir(filepath.Dir(to)); err != nil {
 			return err
@@ -175,21 +175,76 @@ func (f *fileOperations) move(from string, to string) error {
 		return nil
 	}()
 
+	// the name is taken where it would go: it stays in its folder, with its new name if it can
+	// have it there (Space and the cleanup of duplicates take care of a copy of the same size)
 	if errors.Is(err, errDuplicateAtDestination) {
-		// left where it is: Space and the cleanup of duplicates take care of it
-		f.skip(from, REASON_DUPLICATE_AT_DESTINATION)
+		f.renameInPlace(from, to, REASON_RENAMED_DUPLICATE, REASON_DUPLICATE_AT_DESTINATION)
+		return nil
+	}
+	if errors.Is(err, errNameTakenAtDestination) {
+		f.renameInPlace(from, to, REASON_RENAMED_NAME_TAKEN, REASON_NAME_TAKEN_AT_DESTINATION)
 		return nil
 	}
 	f.record(Operation{Kind: OP_MOVE, From: from, To: to}, err)
 	return err
 }
 
-// errDuplicateAtDestination is a move to a file of the same size: a copy of the same game.
-var errDuplicateAtDestination = errors.New("a copy is already at the destination")
+// renameInPlace gives a file that cannot go to its destination, as its name is taken there, its
+// new name in its own folder, telling why with renamed. It is left as it is, with kept, when
+// its name does not change or the new one is taken in its folder too.
+func (f *fileOperations) renameInPlace(from string, to string, renamed string, kept string) {
+	inPlace := filepath.Join(filepath.Dir(from), filepath.Base(to))
+	err := func() error {
+		if inPlace == from {
+			return errNameTakenInPlace
+		}
+		fromInfo, err := os.Stat(from)
+		if err != nil {
+			return err
+		}
+		for target, source := range f.plannedTargets {
+			if samePath(target, inPlace) && source != from {
+				return errNameTakenInPlace
+			}
+		}
+		// only its case changes on a case-insensitive file system: it is the same file
+		if inPlaceInfo, err := os.Stat(inPlace); err == nil && !os.SameFile(fromInfo, inPlaceInfo) {
+			return errNameTakenInPlace
+		}
+		f.plannedTargets[inPlace] = from
+		if !f.dryRun {
+			if err := os.Rename(from, inPlace); err != nil {
+				return err
+			}
+		}
+		f.movedFrom[from] = inPlace
+		return nil
+	}()
+	if err != nil {
+		f.movedFrom[from] = from
+		f.skip(from, kept)
+		return
+	}
+	f.record(Operation{Kind: OP_MOVE, From: from, To: inPlace, Reason: renamed}, nil)
+}
 
-// REASON_DUPLICATE_AT_DESTINATION explains a file left where it is because a copy of it is
-// already where it would go.
-const REASON_DUPLICATE_AT_DESTINATION = "A copy of the same size is already at the destination: it is a duplicate, the Space page can free it."
+var (
+	// errDuplicateAtDestination is a move to a file of the same size: a copy of the same game
+	errDuplicateAtDestination = errors.New("a copy is already at the destination")
+	// errNameTakenAtDestination is a move to a file of another size with the same name: another
+	// file of the same game and version
+	errNameTakenAtDestination = errors.New("another file with the same name is already at the destination")
+	errNameTakenInPlace       = errors.New("the new name is taken in its folder too")
+)
+
+// the files that stay in their folder because their name is taken where they would go, renamed
+// there or left as they are
+const (
+	REASON_DUPLICATE_AT_DESTINATION  = "A copy of the same size is already at the destination: it is a duplicate, the Space page can free it."
+	REASON_RENAMED_DUPLICATE         = "Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it."
+	REASON_NAME_TAKEN_AT_DESTINATION = "Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good."
+	REASON_RENAMED_NAME_TAKEN        = "Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good."
+)
 
 // remove deletes a file found by the last scan, unless it changed since then.
 func (f *fileOperations) remove(file db.ExtendedFileInfo, reason string) error {
@@ -565,6 +620,7 @@ func OrganizeByFolders(baseFolder string,
 		//process base title
 		if v.BaseExist && collections[filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)] == nil {
 			templateData[settings.TEMPLATE_TYPE] = "BASE"
+			fileTemplateData(templateData, v, v.File.ExtendedInfo)
 			from := filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)
 			to := filepath.Join(destinationPath, getFileName(options, v.File.ExtendedInfo.FileName, templateData, 0))
 			if err := ops.move(from, to); err != nil {
@@ -599,6 +655,7 @@ func OrganizeByFolders(baseFolder string,
 			}
 			templateData[settings.TEMPLATE_VERSION] = strconv.Itoa(update)
 			templateData[settings.TEMPLATE_TYPE] = "UPD"
+			fileTemplateData(templateData, v, updateInfo.ExtendedInfo)
 			if updateInfo.Metadata != nil && updateInfo.Metadata.Ncap != nil {
 				templateData[settings.TEMPLATE_VERSION_TXT] = updateInfo.Metadata.Ncap.DisplayVersion
 			} else {
@@ -635,6 +692,7 @@ func OrganizeByFolders(baseFolder string,
 				templateData[settings.TEMPLATE_VERSION] = strconv.Itoa(dlc.Metadata.Version)
 			}
 			templateData[settings.TEMPLATE_TYPE] = "DLC"
+			fileTemplateData(templateData, v, dlc.ExtendedInfo)
 			templateData[settings.TEMPLATE_TITLE_ID] = id
 			templateData[settings.TEMPLATE_DLC_NAME] = getDlcName(title, dlc)
 			from := filepath.Join(dlc.ExtendedInfo.BaseFolder, dlc.ExtendedInfo.FileName)
@@ -953,6 +1011,42 @@ func avoidReserved(name string) string {
 	return name
 }
 
+// fileTemplateData puts in the data of a template what tells the file itself: the titles of
+// each kind it holds, as 1G+1U+2D (a SuperNSP holds several, a file of its own one), and its
+// size in decimal GB and MB, rounded half up.
+func fileTemplateData(templateData map[string]string, v *db.SwitchGameFiles, file db.ExtendedFileInfo) {
+	games, updates, dlcs := 0, 0, 0
+	if v.BaseExist && v.File.ExtendedInfo == file {
+		games++
+	}
+	for _, update := range v.Updates {
+		if update.ExtendedInfo == file {
+			updates++
+		}
+	}
+	for _, dlc := range v.Dlc {
+		if dlc.ExtendedInfo == file {
+			dlcs++
+		}
+	}
+	parts := []string{}
+	for _, kind := range []struct {
+		count  int
+		letter string
+	}{{games, "G"}, {updates, "U"}, {dlcs, "D"}} {
+		if kind.count > 0 {
+			parts = append(parts, strconv.Itoa(kind.count)+kind.letter)
+		}
+	}
+	templateData[settings.TEMPLATE_PACKAGE_CONTENTS] = strings.Join(parts, "+")
+	templateData[settings.TEMPLATE_SIZE_GB], templateData[settings.TEMPLATE_SIZE_MB] = "", ""
+	if file.Size > 0 && !file.IsDir {
+		tenths := (file.Size + 50_000_000) / 100_000_000
+		templateData[settings.TEMPLATE_SIZE_GB] = fmt.Sprintf("%d.%dGB", tenths/10, tenths%10)
+		templateData[settings.TEMPLATE_SIZE_MB] = fmt.Sprintf("%dMB", (file.Size+500_000)/1_000_000)
+	}
+}
+
 func applyTemplate(templateData map[string]string, useSafeNames bool, template string, nameTry int) string {
 	result := strings.ReplaceAll(template, "{"+settings.TEMPLATE_TITLE_NAME+"}", templateData[settings.TEMPLATE_TITLE_NAME])
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_TITLE_ID+"}", strings.ToUpper(templateData[settings.TEMPLATE_TITLE_ID]))
@@ -960,6 +1054,9 @@ func applyTemplate(templateData map[string]string, useSafeNames bool, template s
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_TYPE+"}", templateData[settings.TEMPLATE_TYPE])
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_VERSION_TXT+"}", templateData[settings.TEMPLATE_VERSION_TXT])
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_REGION+"}", templateData[settings.TEMPLATE_REGION])
+	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_PACKAGE_CONTENTS+"}", templateData[settings.TEMPLATE_PACKAGE_CONTENTS])
+	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_SIZE_GB+"}", templateData[settings.TEMPLATE_SIZE_GB])
+	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_SIZE_MB+"}", templateData[settings.TEMPLATE_SIZE_MB])
 
 	//remove title name from dlc name
 	dlcName := strings.Replace(templateData[settings.TEMPLATE_DLC_NAME], templateData[settings.TEMPLATE_TITLE_NAME], "", 1)

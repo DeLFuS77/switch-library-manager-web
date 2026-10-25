@@ -180,14 +180,92 @@ func TestOrganizeNeverOverwritesFiles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	failed := failedOps(ops)
-	if len(failed) != 1 || !strings.Contains(failed[0].Error, "already at the destination") {
-		t.Fatalf("expected one 'already at the destination' error, got %+v", failed)
+	// with the same name it would have, it is left where it is, with a warning and no error
+	if failed := failedOps(ops); len(failed) != 0 {
+		t.Fatalf("a name taken at the destination is no error: %+v", failed)
+	}
+	if !hasOp(ops, OP_SKIP, REASON_NAME_TAKEN_AT_DESTINATION) {
+		t.Fatalf("the name taken is told: %+v", ops)
 	}
 	if data, _ := os.ReadFile(existing); string(data) != "another game" {
 		t.Fatal("existing file was overwritten")
 	}
 	assertExists(t, filepath.Join(source, "base.nsp"), true)
+}
+
+func hasOp(ops []Operation, kind string, reason string) bool {
+	for _, op := range ops {
+		if op.Kind == kind && op.Reason == reason && op.Error == "" {
+			return true
+		}
+	}
+	return false
+}
+
+// A file whose new name is taken where it would go gets the new name in its own folder: with a
+// warning, not an error, in the preview as in the run, and nothing is overwritten.
+func TestOrganizeRenamesInPlaceWhenTheNameIsTaken(t *testing.T) {
+	const name = "Test Game [0100E95004039000][BASE][v0].nsp"
+	for _, test := range []struct {
+		existing string
+		reason   string
+	}{
+		{"another game", REASON_RENAMED_NAME_TAKEN},
+		// "base" is the content of the file organized: a copy of the same size
+		{"copy", REASON_RENAMED_DUPLICATE},
+	} {
+		baseFolder := t.TempDir()
+		source := filepath.Join(baseFolder, "incoming")
+		local, remote := fixtureLibrary(t, source)
+		existing := filepath.Join(baseFolder, gameTitle, name)
+		writeFixture(t, existing, test.existing)
+
+		for _, dryRun := range []bool{true, false} {
+			ops, err := OrganizeByFolders(baseFolder, local, remote, organizeOptions(), dryRun, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if failed := failedOps(ops); len(failed) != 0 {
+				t.Fatalf("no error: %+v", failed)
+			}
+			renamed := false
+			for _, op := range ops {
+				if op.Kind == OP_MOVE && op.From == filepath.Join(source, "base.nsp") {
+					renamed = op.To == filepath.Join(source, name) && op.Reason == test.reason
+				}
+			}
+			if !renamed {
+				t.Fatalf("renamed in its folder (dry run %v): %+v", dryRun, ops)
+			}
+		}
+		assertExists(t, filepath.Join(source, name), true)
+		assertExists(t, filepath.Join(source, "base.nsp"), false)
+		if data, _ := os.ReadFile(existing); string(data) != test.existing {
+			t.Fatal("existing file was overwritten")
+		}
+	}
+}
+
+// When the new name is taken in its own folder too, the file is left as it is.
+func TestOrganizeLeavesAFileWhenItsNameIsTakenEverywhere(t *testing.T) {
+	const name = "Test Game [0100E95004039000][BASE][v0].nsp"
+	baseFolder := t.TempDir()
+	source := filepath.Join(baseFolder, "incoming")
+	local, remote := fixtureLibrary(t, source)
+	writeFixture(t, filepath.Join(baseFolder, gameTitle, name), "another game")
+	writeFixture(t, filepath.Join(source, name), "a third one")
+
+	ops, err := OrganizeByFolders(baseFolder, local, remote, organizeOptions(), false, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if failed := failedOps(ops); len(failed) != 0 || !hasOp(ops, OP_SKIP, REASON_NAME_TAKEN_AT_DESTINATION) {
+		t.Fatalf("left as it is, with a warning: %+v", ops)
+	}
+	assertExists(t, filepath.Join(source, "base.nsp"), true)
+	if data, _ := os.ReadFile(filepath.Join(source, name)); string(data) != "a third one" {
+		t.Fatal("the file in its folder was overwritten")
+	}
 }
 
 // A copy of the same size where a file would go is a duplicate: the file is left where it

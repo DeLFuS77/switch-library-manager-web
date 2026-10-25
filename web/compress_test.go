@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"testing"
@@ -585,6 +586,30 @@ func TestCompressionBarReachesItsEnd(t *testing.T) {
 	for _, step := range []int64{0, info.Size()} {
 		if reached[step] != info.Size() {
 			t.Fatalf("the step from %d reached %d of %d", step, reached[step], info.Size())
+		}
+	}
+}
+
+// The Compress page starts at the level chosen in Settings, which Measure this server measures,
+// and at Balanced when none is chosen.
+func TestCompressPageStartsAtTheLevelOfSettings(t *testing.T) {
+	web, _ := compressWeb(t)
+	checked := func() string {
+		page := httptest.NewRecorder()
+		web.router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/compress.html", nil))
+		found := regexp.MustCompile(`name="level" id="level\w+" value="(\w+)" checked`).FindAllStringSubmatch(page.Body.String(), -1)
+		if len(found) != 1 {
+			t.Fatalf("one level is chosen: %v", found)
+		}
+		return found[0][1]
+	}
+	if level := checked(); level != "balanced" {
+		t.Fatalf("none chosen in Settings: %q", level)
+	}
+	for _, level := range []string{"max", "fast", "balanced"} {
+		settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.AutoCompressLevel = level })
+		if got := checked(); got != level {
+			t.Fatalf("%q in Settings: %q", level, got)
 		}
 	}
 }
