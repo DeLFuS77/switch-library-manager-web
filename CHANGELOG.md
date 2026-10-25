@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Organize gives a file its new name in its own folder when that name is already taken where the file would go, instead of leaving it with its old name: a file of another size with that name was an error ("A file could not be changed"), and a copy of the same size was left as it was. Both are now a warning that tells why, in the preview and in Tasks; for a file of another size it adds that they are two files of the same game and version, and that Check can tell which one is good. When the new name is taken in its own folder too, the file is left as it is, with a warning instead of an error
+
 ## 1.56.1
 
 ### Fixes

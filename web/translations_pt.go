@@ -1092,6 +1092,7 @@ func init() {
 		"Its game is not in the library, so it is left where it is: turn on \"Also organize updates and DLC without base game\" in the options to organize it.": "O seu jogo não está na biblioteca, por isso fica onde está: ativa \"Organizar também atualizações e DLC sem o jogo base\" nas opções para o organizar.",
 		"A file could not be changed.":                                        "Não foi possível alterar um ficheiro.",
 		"A file was left as it is.":                                           "Um ficheiro ficou como estava.",
+		"A file was renamed in its folder.":                                   "Um ficheiro foi renomeado na sua pasta.",
 		"More files left as they are, all listed in the preview of Organize:": "Mais ficheiros que ficaram como estavam, todos na pré-visualização de Organizar:",
 		"Move up":                                "Subir",
 		"Move down":                              "Descer",
@@ -1496,5 +1497,9 @@ func init() {
 		"v%v available":                                                    "v%v disponível",
 		"within a minute":                                                  "em menos de um minuto",
 		"you":                                                              "você",
+		// a file that stays in its folder because its name is taken where it would go
+		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "Não movido: já há uma cópia do mesmo tamanho no destino. É um duplicado, a página Espaço pode liberá-lo.",
+		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "Já há outro arquivo com o mesmo nome e outro tamanho no destino: são dois arquivos do mesmo jogo e versão, Verificar pode dizer qual está bom.",
+		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "Não movido: já há outro arquivo com o mesmo nome e outro tamanho no destino. São dois arquivos do mesmo jogo e versão, Verificar pode dizer qual está bom.",
 	}
 }

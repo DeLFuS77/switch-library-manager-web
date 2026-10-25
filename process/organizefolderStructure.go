@@ -158,7 +158,7 @@ func (f *fileOperations) move(from string, to string) error {
 			if toInfo.Size() == fromInfo.Size() {
 				return errDuplicateAtDestination
 			}
-			return errors.New("another file with the same name is already at the destination")
+			return errNameTakenAtDestination
 		}
 		if err := f.mkdir(filepath.Dir(to)); err != nil {
 			return err
@@ -175,21 +175,76 @@ func (f *fileOperations) move(from string, to string) error {
 		return nil
 	}()
 
+	// the name is taken where it would go: it stays in its folder, with its new name if it can
+	// have it there (Space and the cleanup of duplicates take care of a copy of the same size)
 	if errors.Is(err, errDuplicateAtDestination) {
-		// left where it is: Space and the cleanup of duplicates take care of it
-		f.skip(from, REASON_DUPLICATE_AT_DESTINATION)
+		f.renameInPlace(from, to, REASON_RENAMED_DUPLICATE, REASON_DUPLICATE_AT_DESTINATION)
+		return nil
+	}
+	if errors.Is(err, errNameTakenAtDestination) {
+		f.renameInPlace(from, to, REASON_RENAMED_NAME_TAKEN, REASON_NAME_TAKEN_AT_DESTINATION)
 		return nil
 	}
 	f.record(Operation{Kind: OP_MOVE, From: from, To: to}, err)
 	return err
 }
 
-// errDuplicateAtDestination is a move to a file of the same size: a copy of the same game.
-var errDuplicateAtDestination = errors.New("a copy is already at the destination")
+// renameInPlace gives a file that cannot go to its destination, as its name is taken there, its
+// new name in its own folder, telling why with renamed. It is left as it is, with kept, when
+// its name does not change or the new one is taken in its folder too.
+func (f *fileOperations) renameInPlace(from string, to string, renamed string, kept string) {
+	inPlace := filepath.Join(filepath.Dir(from), filepath.Base(to))
+	err := func() error {
+		if inPlace == from {
+			return errNameTakenInPlace
+		}
+		fromInfo, err := os.Stat(from)
+		if err != nil {
+			return err
+		}
+		for target, source := range f.plannedTargets {
+			if samePath(target, inPlace) && source != from {
+				return errNameTakenInPlace
+			}
+		}
+		// only its case changes on a case-insensitive file system: it is the same file
+		if inPlaceInfo, err := os.Stat(inPlace); err == nil && !os.SameFile(fromInfo, inPlaceInfo) {
+			return errNameTakenInPlace
+		}
+		f.plannedTargets[inPlace] = from
+		if !f.dryRun {
+			if err := os.Rename(from, inPlace); err != nil {
+				return err
+			}
+		}
+		f.movedFrom[from] = inPlace
+		return nil
+	}()
+	if err != nil {
+		f.movedFrom[from] = from
+		f.skip(from, kept)
+		return
+	}
+	f.record(Operation{Kind: OP_MOVE, From: from, To: inPlace, Reason: renamed}, nil)
+}
 
-// REASON_DUPLICATE_AT_DESTINATION explains a file left where it is because a copy of it is
-// already where it would go.
-const REASON_DUPLICATE_AT_DESTINATION = "A copy of the same size is already at the destination: it is a duplicate, the Space page can free it."
+var (
+	// errDuplicateAtDestination is a move to a file of the same size: a copy of the same game
+	errDuplicateAtDestination = errors.New("a copy is already at the destination")
+	// errNameTakenAtDestination is a move to a file of another size with the same name: another
+	// file of the same game and version
+	errNameTakenAtDestination = errors.New("another file with the same name is already at the destination")
+	errNameTakenInPlace       = errors.New("the new name is taken in its folder too")
+)
+
+// the files that stay in their folder because their name is taken where they would go, renamed
+// there or left as they are
+const (
+	REASON_DUPLICATE_AT_DESTINATION  = "A copy of the same size is already at the destination: it is a duplicate, the Space page can free it."
+	REASON_RENAMED_DUPLICATE         = "Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it."
+	REASON_NAME_TAKEN_AT_DESTINATION = "Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good."
+	REASON_RENAMED_NAME_TAKEN        = "Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good."
+)
 
 // remove deletes a file found by the last scan, unless it changed since then.
 func (f *fileOperations) remove(file db.ExtendedFileInfo, reason string) error {

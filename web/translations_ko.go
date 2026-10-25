@@ -858,6 +858,7 @@ func init() {
 		"Its game is not in the library, so it is left where it is: turn on \"Also organize updates and DLC without base game\" in the options to organize it.": "게임이 라이브러리에 없어서 그대로 두었어요. 정리하려면 옵션에서 \"기본 게임이 없는 업데이트와 DLC도 정리\"를 켜세요.",
 		"A file could not be changed.":                                        "파일을 바꿀 수 없었어요.",
 		"A file was left as it is.":                                           "파일을 그대로 두었어요.",
+		"A file was renamed in its folder.":                                   "파일 이름을 원래 폴더에서 바꿨어요.",
 		"More files left as they are, all listed in the preview of Organize:": "그대로 둔 다른 파일(모두 정리 미리 보기에 있어요):",
 		"Move up":                                "위로",
 		"Move down":                              "아래로",
@@ -1496,5 +1497,9 @@ func init() {
 		"within a minute":                                                  "1분 이내",
 		"you":                                                              "나",
 		"yours included":                                                   "내 것 포함",
+		// a file that stays in its folder because its name is taken where it would go
+		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "옮기지 않았어요. 대상에 같은 크기의 사본이 이미 있어요. 중복 파일이며 공간 페이지에서 확보할 수 있어요.",
+		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "대상에 이름은 같고 크기가 다른 파일이 이미 있어요. 같은 게임, 같은 버전의 파일이 두 개이며, 확인으로 어느 쪽이 정상인지 알 수 있어요.",
+		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "옮기지 않았어요. 대상에 이름은 같고 크기가 다른 파일이 이미 있어요. 같은 게임, 같은 버전의 파일이 두 개이며, 확인으로 어느 쪽이 정상인지 알 수 있어요.",
 	}
 }

@@ -858,6 +858,7 @@ func init() {
 		"Its game is not in the library, so it is left where it is: turn on \"Also organize updates and DLC without base game\" in the options to organize it.": "Zijn game staat niet in de bibliotheek, dus het blijft waar het is: zet \"Ook updates en DLC zonder basisgame ordenen\" aan in de opties om het te ordenen.",
 		"A file could not be changed.":                                        "Een bestand kon niet worden gewijzigd.",
 		"A file was left as it is.":                                           "Een bestand is gelaten zoals het was.",
+		"A file was renamed in its folder.":                                   "Een bestand is in zijn eigen map hernoemd.",
 		"More files left as they are, all listed in the preview of Organize:": "Meer bestanden die zijn gelaten zoals ze waren, allemaal in het voorbeeld van Organiseren:",
 		"Move up":                                "Omhoog",
 		"Move down":                              "Omlaag",
@@ -1496,5 +1497,9 @@ func init() {
 		"within a minute":                                                  "binnen een minuut",
 		"you":                                                              "jij",
 		"yours included":                                                   "inclusief die van jou",
+		// a file that stays in its folder because its name is taken where it would go
+		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "Niet verplaatst: op de bestemming staat al een kopie van dezelfde grootte. Het is een duplicaat, de pagina Ruimte kan het vrijmaken.",
+		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "Op de bestemming staat al een ander bestand met dezelfde naam en een andere grootte: het zijn twee bestanden van hetzelfde spel en dezelfde versie, Controleren kan zeggen welke goed is.",
+		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "Niet verplaatst: op de bestemming staat al een ander bestand met dezelfde naam en een andere grootte. Het zijn twee bestanden van hetzelfde spel en dezelfde versie, Controleren kan zeggen welke goed is.",
 	}
 }

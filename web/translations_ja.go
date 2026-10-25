@@ -858,6 +858,7 @@ func init() {
 		"Its game is not in the library, so it is left where it is: turn on \"Also organize updates and DLC without base game\" in the options to organize it.": "本編がライブラリにないため、そのままにしました。整理するにはオプションで「本編のない更新データとDLCも整理する」をオンにしてください。",
 		"A file could not be changed.":                                        "ファイルを変更できませんでした。",
 		"A file was left as it is.":                                           "ファイルをそのままにしました。",
+		"A file was renamed in its folder.":                                   "ファイルを元のフォルダー内で名前変更しました。",
 		"More files left as they are, all listed in the preview of Organize:": "そのままにした他のファイル(すべて整理のプレビューに表示):",
 		"Move up":                                "上へ",
 		"Move down":                              "下へ",
@@ -1496,5 +1497,9 @@ func init() {
 		"within a minute":                                                  "1分以内",
 		"you":                                                              "自分",
 		"yours included":                                                   "自分を含む",
+		// a file that stays in its folder because its name is taken where it would go
+		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "移動していません。移動先に同じサイズのコピーがすでにあります。重複ファイルなので、容量ページで解放できます。",
+		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "移動先に同じ名前でサイズの違う別のファイルがすでにあります。同じゲームの同じバージョンのファイルが2つあり、どちらが正常かは「確認」でわかります。",
+		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "移動していません。移動先に同じ名前でサイズの違う別のファイルがすでにあります。同じゲームの同じバージョンのファイルが2つあり、どちらが正常かは「確認」でわかります。",
 	}
 }

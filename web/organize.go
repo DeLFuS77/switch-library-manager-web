@@ -237,6 +237,10 @@ func (web *Web) noteOrganized(taskId int64, operations []process.Operation) int 
 			tell(NOTE_ORGANIZE_FILE_FAILED, op, op.Error)
 		case op.Kind == process.OP_SKIP:
 			tell(NOTE_ORGANIZE_FILE_KEPT, op, op.Reason)
+		case op.Kind == process.OP_MOVE && op.Reason != "":
+			// renamed in its folder, as its name is taken where it would go
+			changed++
+			tell(NOTE_ORGANIZE_FILE_RENAMED, op, op.Reason)
 		case op.Kind != process.OP_CLEANUP:
 			changed++
 		}

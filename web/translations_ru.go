@@ -858,6 +858,7 @@ func init() {
 		"Its game is not in the library, so it is left where it is: turn on \"Also organize updates and DLC without base game\" in the options to organize it.": "Его игры нет в библиотеке, поэтому он остаётся на месте: включите «Также упорядочивать обновления и DLC без основной игры» в параметрах, чтобы упорядочить его.",
 		"A file could not be changed.":                                        "Не удалось изменить файл.",
 		"A file was left as it is.":                                           "Файл оставлен как есть.",
+		"A file was renamed in its folder.":                                   "Файл переименован в своей папке.",
 		"More files left as they are, all listed in the preview of Organize:": "Другие файлы, оставленные как есть, — все в предпросмотре упорядочивания:",
 		"Move up":                                "Выше",
 		"Move down":                              "Ниже",
@@ -1496,5 +1497,9 @@ func init() {
 		"within a minute":                                                  "в течение минуты",
 		"you":                                                              "вы",
 		"yours included":                                                   "включая ваш",
+		// a file that stays in its folder because its name is taken where it would go
+		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "Не перемещён: в месте назначения уже есть копия того же размера. Это дубликат, страница «Место» может его освободить.",
+		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "В месте назначения уже есть другой файл с тем же именем, но другого размера: это два файла одной игры и одной версии, «Проверить» покажет, какой из них в порядке.",
+		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "Не перемещён: в месте назначения уже есть другой файл с тем же именем, но другого размера. Это два файла одной игры и одной версии, «Проверить» покажет, какой из них в порядке.",
 	}
 }

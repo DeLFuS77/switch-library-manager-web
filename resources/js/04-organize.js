@@ -95,7 +95,8 @@ function renderOperations(result) {
 			}
 			target.append(name);
 			body.append(target);
-			const notes = [];
+			// why a file is renamed in its folder instead of moved
+			const notes = op.reason ? [op.reason] : [];
 			if (key === 'review') {
 				notes.push(t('The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.', nameId(fromName), nameId(toName)));
 			} else if (nameVersion(fromName) && nameVersion(toName) && nameVersion(fromName) !== nameVersion(toName)) {

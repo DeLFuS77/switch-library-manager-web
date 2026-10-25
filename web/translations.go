@@ -1036,6 +1036,7 @@ var translations = map[string]map[string]string{
 		"Its game is not in the library, so it is left where it is: turn on \"Also organize updates and DLC without base game\" in the options to organize it.": "Su juego no está en la biblioteca, así que se queda donde está: activa \"Organizar también actualizaciones y DLC sin juego base\" en las opciones para organizarlo.",
 		"A file could not be changed.":                                        "Un archivo no se ha podido cambiar.",
 		"A file was left as it is.":                                           "Un archivo se ha quedado como estaba.",
+		"A file was renamed in its folder.":                                   "Un archivo se ha renombrado en su carpeta.",
 		"More files left as they are, all listed in the preview of Organize:": "Más archivos que se han quedado como estaban, todos en la vista previa de Organizar:",
 		"Move up":                                "Subir",
 		"Move down":                              "Bajar",
@@ -1247,6 +1248,10 @@ var translations = map[string]map[string]string{
 		"General":                            "General",
 		"Keys found":                         "Claves encontradas",
 		"Keys not found":                     "Claves no encontradas",
+		// a file that stays in its folder because its name is taken where it would go
+		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "No se ha movido: en el destino ya hay una copia del mismo tamaño. Es un duplicado, la página Espacio puede liberarlo.",
+		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "En el destino ya hay otro archivo con el mismo nombre y otro tamaño: son dos archivos del mismo juego y versión, Comprobar puede decir cuál está bien.",
+		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "No se ha movido: en el destino ya hay otro archivo con el mismo nombre y otro tamaño. Son dos archivos del mismo juego y versión, Comprobar puede decir cuál está bien.",
 		// navigation and layout
 		"Library":                       "Biblioteca",
 		"Missing Games":                 "Juegos que faltan",

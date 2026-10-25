@@ -21,9 +21,10 @@ func TestOrganizeTellsTheFilesLeft(t *testing.T) {
 		{Kind: process.OP_MOVE, From: "/games/a.nsp", To: "/games/A/a.nsp"},
 		{Kind: process.OP_MOVE, From: "/games/b.nsp", To: "/games/B/b.nsp", Error: "another file is moved to the same destination"},
 		{Kind: process.OP_SKIP, From: "/games/orphan.nsp", Reason: process.REASON_NO_BASE},
+		{Kind: process.OP_MOVE, From: "/games/c.nsp", To: "/games/C [0100][v0].nsp", Reason: process.REASON_RENAMED_NAME_TAKEN},
 		{Kind: process.OP_CLEANUP, From: "/games", Reason: "empty folders will be deleted"},
 	}
-	if changed := web.noteOrganized(taskId, operations); changed != 1 {
+	if changed := web.noteOrganized(taskId, operations); changed != 2 {
 		t.Fatalf("changed: %d", changed)
 	}
 	var task Task
@@ -32,8 +33,9 @@ func TestOrganizeTellsTheFilesLeft(t *testing.T) {
 			task = each
 		}
 	}
-	if len(task.Warnings) != 2 || task.Warnings[0].Text != NOTE_ORGANIZE_FILE_FAILED || !strings.HasPrefix(task.Warnings[0].Detail, "b.nsp: ") ||
-		task.Warnings[1].Text != NOTE_ORGANIZE_FILE_KEPT || !strings.Contains(task.Warnings[1].Detail, "Su juego no está en la biblioteca") {
+	if len(task.Warnings) != 3 || task.Warnings[0].Text != NOTE_ORGANIZE_FILE_FAILED || !strings.HasPrefix(task.Warnings[0].Detail, "b.nsp: ") ||
+		task.Warnings[1].Text != NOTE_ORGANIZE_FILE_KEPT || !strings.Contains(task.Warnings[1].Detail, "Su juego no está en la biblioteca") ||
+		task.Warnings[2].Text != NOTE_ORGANIZE_FILE_RENAMED || !strings.HasPrefix(task.Warnings[2].Detail, "c.nsp: No se ha movido") {
 		t.Fatalf("the notes: %+v", task.Warnings)
 	}
 

@@ -858,6 +858,7 @@ func init() {
 		"Its game is not in the library, so it is left where it is: turn on \"Also organize updates and DLC without base game\" in the options to organize it.": "它的游戏不在媒体库中,因此保持原位:在选项中开启“同时整理没有本体游戏的更新和 DLC”即可整理它。",
 		"A file could not be changed.":                                        "有一个文件无法更改。",
 		"A file was left as it is.":                                           "有一个文件保持原样。",
+		"A file was renamed in its folder.":                                   "已在原文件夹中重命名一个文件。",
 		"More files left as they are, all listed in the preview of Organize:": "其他保持原样的文件,全部列在整理的预览中:",
 		"Move up":                                "上移",
 		"Move down":                              "下移",
@@ -1496,5 +1497,9 @@ func init() {
 		"within a minute":                                                  "一分钟内",
 		"you":                                                              "你",
 		"yours included":                                                   "包括你的",
+		// a file that stays in its folder because its name is taken where it would go
+		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "未移动:目标位置已有一个大小相同的副本。这是重复文件,可在空间页面释放。",
+		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "目标位置已有另一个同名但大小不同的文件:这是同一游戏同一版本的两个文件,“检查”可以判断哪个是好的。",
+		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "未移动:目标位置已有另一个同名但大小不同的文件。这是同一游戏同一版本的两个文件,“检查”可以判断哪个是好的。",
 	}
 }

@@ -1092,6 +1092,7 @@ func init() {
 		"Its game is not in the library, so it is left where it is: turn on \"Also organize updates and DLC without base game\" in the options to organize it.": "Son jeu n'est pas dans la bibliothèque, il reste donc où il est : activez \"Organiser aussi les mises à jour et DLC sans jeu de base\" dans les options pour l'organiser.",
 		"A file could not be changed.":                                        "Un fichier n'a pas pu être modifié.",
 		"A file was left as it is.":                                           "Un fichier a été laissé tel quel.",
+		"A file was renamed in its folder.":                                   "Un fichier a été renommé dans son dossier.",
 		"More files left as they are, all listed in the preview of Organize:": "D'autres fichiers laissés tels quels, tous dans l'aperçu d'Organiser :",
 		"Move up":                                "Monter",
 		"Move down":                              "Descendre",
@@ -1496,5 +1497,9 @@ func init() {
 		"v%v available":                                                    "v%v disponible",
 		"within a minute":                                                  "dans moins d'une minute",
 		"you":                                                              "vous",
+		// a file that stays in its folder because its name is taken where it would go
+		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "Non déplacé : une copie de même taille est déjà à la destination. C'est un doublon, la page Espace peut le libérer.",
+		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "Un autre fichier du même nom, d'une autre taille, est déjà à la destination : ce sont deux fichiers du même jeu et de la même version, Vérifier peut dire lequel est bon.",
+		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "Non déplacé : un autre fichier du même nom, d'une autre taille, est déjà à la destination. Ce sont deux fichiers du même jeu et de la même version, Vérifier peut dire lequel est bon.",
 	}
 }

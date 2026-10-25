@@ -1092,6 +1092,7 @@ func init() {
 		"Its game is not in the library, so it is left where it is: turn on \"Also organize updates and DLC without base game\" in the options to organize it.": "Il suo gioco non è nella libreria, quindi resta dov'è: attiva \"Organizza anche aggiornamenti e DLC senza gioco base\" nelle opzioni per organizzarlo.",
 		"A file could not be changed.":                                        "Un file non è stato modificato.",
 		"A file was left as it is.":                                           "Un file è stato lasciato com'era.",
+		"A file was renamed in its folder.":                                   "Un file è stato rinominato nella sua cartella.",
 		"More files left as they are, all listed in the preview of Organize:": "Altri file lasciati com'erano, tutti nell'anteprima di Organizza:",
 		"Move up":                                "Sposta su",
 		"Move down":                              "Sposta giù",
@@ -1496,5 +1497,9 @@ func init() {
 		"v%v available":                                                    "v%v disponibile",
 		"within a minute":                                                  "entro un minuto",
 		"you":                                                              "tu",
+		// a file that stays in its folder because its name is taken where it would go
+		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "Non spostato: a destinazione c'è già una copia della stessa dimensione. È un duplicato, la pagina Spazio può liberarlo.",
+		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "A destinazione c'è già un altro file con lo stesso nome e un'altra dimensione: sono due file dello stesso gioco e della stessa versione, Controlla può dire quale è buono.",
+		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "Non spostato: a destinazione c'è già un altro file con lo stesso nome e un'altra dimensione. Sono due file dello stesso gioco e della stessa versione, Controlla può dire quale è buono.",
 	}
 }
