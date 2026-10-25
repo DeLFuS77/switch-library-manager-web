@@ -39,119 +39,154 @@ function pathCell(path, className) {
 	return cell;
 }
 
-function renderOperations(result) {
-	const list = document.getElementById('organizeOperations');
-	const summary = document.getElementById('organizeSummary');
-	list.replaceChildren();
-	summary.replaceChildren();
-	const kinds = Object.fromEntries(OPERATION_KINDS.map(kind => [kind.key, kind]));
-	const counts = {};
+// the groups of the list, in this order: what needs a look first, then the changes by kind
+const OPERATION_GROUPS = ['error', 'review', 'move', 'rename', 'mkdir', 'delete', 'cleanup'];
+// the rows a group shows at once, and each time more are asked
+const OPERATION_ROWS_AT_ONCE = 100;
 
-	result.operations.forEach(op => {
-		const key = operationKind(op);
-		const kind = kinds[key] || { key, label: OPERATION_LABELS[op.kind] || op.kind, icon: 'bi-dot' };
-		counts[key] = (counts[key] || 0) + 1;
+// operationGroup tells the group of a change: a file left as it is, renamed in its folder
+// instead of moved, or whose title ID changes needs a look
+function operationGroup(op, key) {
+	if (key === 'skip' || key === 'review' || ((key === 'move' || key === 'rename') && op.reason)) {
+		return 'review';
+	}
+	return key;
+}
 
-		const row = document.createElement('li');
-		row.className = `op-row op-${key}`;
-		row.dataset.opKind = key;
+// operationRow is a change of the list, with its kind
+function operationRow(op, key, kinds) {
+	const kind = kinds[key] || { key, label: OPERATION_LABELS[op.kind] || op.kind, icon: 'bi-dot' };
+	const row = document.createElement('li');
+	row.className = `op-row op-${key}`;
+	row.dataset.opKind = key;
 
-		const badge = document.createElement('span');
-		badge.className = 'op-badge';
-		badge.innerHTML = `<span class="bi ${kind.icon}" aria-hidden="true"></span>`;
-		badge.append(kind.label);
+	const badge = document.createElement('span');
+	badge.className = 'op-badge';
+	badge.innerHTML = `<span class="bi ${kind.icon}" aria-hidden="true"></span>`;
+	badge.append(kind.label);
 
-		const body = document.createElement('div');
-		body.className = 'op-body';
-		if (op.kind === 'cleanup') {
-			// the folders that are left empty, found when the changes are applied
-			const note = document.createElement('div');
-			note.className = 'op-name';
-			note.textContent = op.reason || '';
-			body.append(note);
-		} else if (op.kind === 'mkdir') {
-			body.append(pathCell(op.to || op.from));
-		} else {
-			body.append(pathCell(op.from || op.to));
+	const body = document.createElement('div');
+	body.className = 'op-body';
+	if (op.kind === 'cleanup') {
+		// the folders that are left empty, found when the changes are applied
+		const note = document.createElement('div');
+		note.className = 'op-name';
+		note.textContent = op.reason || '';
+		body.append(note);
+	} else if (op.kind === 'mkdir') {
+		body.append(pathCell(op.to || op.from));
+	} else {
+		body.append(pathCell(op.from || op.to));
+	}
+	if ((key === 'move' || key === 'rename' || key === 'review') && op.to) {
+		const [fromFolder, fromName] = splitPath(op.from);
+		const [toFolder, toName] = splitPath(op.to);
+		const target = document.createElement('div');
+		target.className = 'op-target';
+		target.innerHTML = '<span class="bi bi-arrow-return-right" aria-hidden="true"></span>';
+		const name = document.createElement('div');
+		name.className = 'op-path';
+		const strong = document.createElement('div');
+		strong.className = 'op-name';
+		strong.textContent = toName === fromName ? t('Same name') : toName;
+		name.append(strong);
+		if (toFolder !== fromFolder && toFolder) {
+			const small = document.createElement('div');
+			small.className = 'op-folder';
+			small.innerHTML = '<span class="bi bi-folder2-open me-1" aria-hidden="true"></span>';
+			small.append(toFolder);
+			name.append(small);
 		}
-		if ((key === 'move' || key === 'rename' || key === 'review') && op.to) {
-			const [fromFolder, fromName] = splitPath(op.from);
-			const [toFolder, toName] = splitPath(op.to);
-			const target = document.createElement('div');
-			target.className = 'op-target';
-			target.innerHTML = '<span class="bi bi-arrow-return-right" aria-hidden="true"></span>';
-			const name = document.createElement('div');
-			name.className = 'op-path';
-			const strong = document.createElement('div');
-			strong.className = 'op-name';
-			strong.textContent = toName === fromName ? t('Same name') : toName;
-			name.append(strong);
-			if (toFolder !== fromFolder && toFolder) {
-				const small = document.createElement('div');
-				small.className = 'op-folder';
-				small.innerHTML = '<span class="bi bi-folder2-open me-1" aria-hidden="true"></span>';
-				small.append(toFolder);
-				name.append(small);
-			}
-			target.append(name);
-			body.append(target);
-			// why a file is renamed in its folder instead of moved
-			const notes = op.reason ? [op.reason] : [];
-			if (key === 'review') {
-				notes.push(t('The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.', nameId(fromName), nameId(toName)));
-			} else if (nameVersion(fromName) && nameVersion(toName) && nameVersion(fromName) !== nameVersion(toName)) {
-				notes.push(t('The version of the name changes: v%v → v%v (the update the file holds).', nameVersion(fromName), nameVersion(toName)));
-			}
-			notes.forEach(text => {
-				const note = document.createElement('div');
-				note.className = 'op-note';
-				note.textContent = text;
-				body.append(note);
-			});
-		} else if (op.kind !== 'cleanup' && (op.error || op.reason)) {
+		target.append(name);
+		body.append(target);
+		// why a file is renamed in its folder instead of moved
+		const notes = op.reason ? [op.reason] : [];
+		if (key === 'review') {
+			notes.push(t('The title ID of the name changes (%v → %v): the file holds several contents or had a wrong name. Check it before applying.', nameId(fromName), nameId(toName)));
+		} else if (nameVersion(fromName) && nameVersion(toName) && nameVersion(fromName) !== nameVersion(toName)) {
+			notes.push(t('The version of the name changes: v%v → v%v (the update the file holds).', nameVersion(fromName), nameVersion(toName)));
+		}
+		notes.forEach(text => {
 			const note = document.createElement('div');
 			note.className = 'op-note';
-			note.textContent = op.error ? t('Error: %v', op.error) : op.reason;
+			note.textContent = text;
 			body.append(note);
-		}
+		});
+	} else if (op.kind !== 'cleanup' && (op.error || op.reason)) {
+		const note = document.createElement('div');
+		note.className = 'op-note';
+		note.textContent = op.error ? t('Error: %v', op.error) : op.reason;
+		body.append(note);
+	}
 
-		row.append(badge, body);
-		list.appendChild(row);
+	row.append(badge, body);
+	return row;
+}
+
+// renderOperations lists the changes in groups that open and close, closed at first, with their
+// counts as the summary: only the problems are open, as they ask for something. The rows of a
+// group are made when it is opened, a hundred at a time, so a list of thousands stays fast.
+function renderOperations(result) {
+	const list = document.getElementById('organizeOperations');
+	list.replaceChildren();
+	const kinds = Object.fromEntries(OPERATION_KINDS.map(kind => [kind.key, kind]));
+	const heads = {
+		error: { label: t('With problems'), icon: 'bi-x-octagon' },
+		review: { label: t('Needs a look'), icon: 'bi-exclamation-triangle' }
+	};
+	const groups = {};
+	result.operations.forEach(op => {
+		const key = operationKind(op);
+		const group = operationGroup(op, key);
+		(groups[group] = groups[group] || []).push({ op, key });
 	});
 
-	// the summary filters the list by kind
-	const chips = [];
-	const filter = key => {
-		chips.forEach(chip => chip.setAttribute('aria-pressed', String(chip.dataset.opFilter === key)));
-		list.querySelectorAll('.op-row').forEach(row => {
-			row.hidden = key !== 'all' && row.dataset.opKind !== key;
-		});
-	};
-	const chip = (key, label, icon, count) => {
-		const button = document.createElement('button');
-		button.type = 'button';
-		button.className = `op-chip op-${key}`;
-		button.dataset.opFilter = key;
-		button.setAttribute('aria-pressed', String(key === 'all'));
-		button.innerHTML = `<span class="bi ${icon}" aria-hidden="true"></span>`;
-		button.append(label);
-		const number = document.createElement('span');
-		number.className = 'op-chip-count';
-		number.textContent = count;
-		button.append(number);
-		button.addEventListener('click', () => filter(key));
-		chips.push(button);
-		summary.append(button);
-	};
-	if (result.operations.length > 0) {
-		chip('all', t('All'), 'bi-list-ul', result.operations.length);
-		OPERATION_KINDS.forEach(kind => {
-			if (counts[kind.key]) {
-				chip(kind.key, kind.label, kind.icon, counts[kind.key]);
+	const order = OPERATION_GROUPS.concat(Object.keys(groups).filter(key => !OPERATION_GROUPS.includes(key)));
+	order.filter(key => groups[key]).forEach(key => {
+		const entries = groups[key];
+		const kind = heads[key] || kinds[key] || { label: key, icon: 'bi-dot' };
+		const item = document.createElement('li');
+		item.className = `op-group op-${key}`;
+		const details = document.createElement('details');
+		const head = document.createElement('summary');
+		head.className = 'op-group-head';
+		head.innerHTML = `<span class="bi ${kind.icon}" aria-hidden="true"></span>`;
+		head.append(kind.label);
+		const count = document.createElement('span');
+		count.className = 'op-chip-count';
+		count.textContent = entries.length;
+		const chevron = document.createElement('span');
+		chevron.className = 'bi bi-chevron-down op-group-chevron';
+		chevron.setAttribute('aria-hidden', 'true');
+		head.append(count, chevron);
+
+		const rows = document.createElement('ul');
+		rows.className = 'op-list list-unstyled';
+		const more = document.createElement('button');
+		more.type = 'button';
+		more.className = 'btn btn-sm btn-outline-secondary rounded-pill op-group-more';
+		let shown = 0;
+		const showMore = () => {
+			entries.slice(shown, shown + OPERATION_ROWS_AT_ONCE).forEach(entry => rows.append(operationRow(entry.op, entry.key, kinds)));
+			shown = Math.min(entries.length, shown + OPERATION_ROWS_AT_ONCE);
+			more.textContent = t('Show %v more', Math.min(OPERATION_ROWS_AT_ONCE, entries.length - shown));
+			more.hidden = shown >= entries.length;
+		};
+		more.hidden = true;
+		more.addEventListener('click', showMore);
+		details.addEventListener('toggle', () => {
+			if (details.open && shown === 0) {
+				showMore();
 			}
 		});
-	}
-	summary.hidden = result.operations.length === 0;
+		details.append(head, rows, more);
+		item.append(details);
+		list.append(item);
+		if (key === 'error') {
+			showMore();
+			details.open = true;
+		}
+	});
 }
 
 function initOrganize() {

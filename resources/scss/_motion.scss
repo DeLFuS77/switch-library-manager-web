@@ -342,6 +342,58 @@
 	gap: .5rem;
 }
 
+// the changes of Organize in groups that open and close, their counts as the summary
+.op-group > details {
+	border: 1px solid color-mix(in srgb, var(--op-color) 35%, transparent);
+	border-radius: .6rem;
+	background: color-mix(in srgb, var(--op-color) 4%, transparent);
+
+	> .op-list {
+		margin: 0 .6rem .6rem;
+	}
+
+	&[open] .op-group-chevron {
+		transform: rotate(180deg);
+	}
+}
+
+.op-group-head {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	padding: .6rem .8rem;
+	border-radius: .6rem;
+	cursor: pointer;
+	font-weight: 600;
+	list-style: none;
+
+	&::-webkit-details-marker {
+		display: none;
+	}
+
+	> .bi:first-child {
+		color: var(--op-color);
+	}
+
+	&:hover {
+		background: color-mix(in srgb, var(--op-color) 10%, transparent);
+	}
+}
+
+.op-group-chevron {
+	margin-left: auto;
+	color: var(--bs-secondary-color);
+	transition: transform .15s;
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
+}
+
+.op-group-more {
+	margin: 0 .6rem .6rem;
+}
+
 .op-row {
 	display: flex;
 	align-items: flex-start;
