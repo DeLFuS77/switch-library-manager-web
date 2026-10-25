@@ -41,7 +41,7 @@ func (web *Web) buildMissingUpdates(lang string) []TitleItem {
 		return items
 	}
 
-	missingUpdates := web.missingUpdates()
+	missingUpdates := web.shownMissingUpdates(lang)
 
 	for _, v := range missingUpdates {
 		name := titleName(switchDB, lang, v.Attributes.Id, v.Attributes.Name)

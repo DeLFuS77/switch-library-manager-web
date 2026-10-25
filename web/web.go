@@ -603,7 +603,9 @@ func (web *Web) navCounts() NavCounts {
 	}
 	counts.TuneUp = web.tuneUpWaiting()
 	counts.Missing = web.missingGamesCount()
-	counts.Updates = len(web.missingUpdates())
+	// as the Updates page lists them (the copies kept of games of several regions depend little
+	// on the language)
+	counts.Updates = len(web.shownMissingUpdates(DEFAULT_LANGUAGE))
 	for _, title := range web.missingDLC() {
 		counts.Dlc += len(title.MissingDLCItems)
 	}

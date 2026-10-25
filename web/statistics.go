@@ -208,6 +208,7 @@ func (web *Web) buildStatistics(lang string) Statistics {
 		// date as its "Up to date" filter, with every update and DLC
 		games := 0
 		leftOut, _ := web.regionCopies(lang)
+		merged := web.mergedStatus(lang)
 		for _, item := range library {
 			if item.TimeToBeat > 0 {
 				stats.TimeToBeat += item.TimeToBeat
@@ -217,6 +218,9 @@ func (web *Web) buildStatistics(lang string) Statistics {
 				continue
 			}
 			games++
+			if status, ok := merged[item.Id]; ok {
+				status.apply(&item)
+			}
 			if item.UpdateAvailable {
 				stats.GamesWithUpdate++
 			}
@@ -228,7 +232,7 @@ func (web *Web) buildStatistics(lang string) Statistics {
 		// the share of the games counts them as the library does, next to its count
 		stats.ByContent[0].Count = games
 		stats.GamesUpToDatePct = percent(int64(stats.GamesUpToDate), int64(stats.Games))
-		stats.UpdatesPending = len(web.missingUpdates())
+		stats.UpdatesPending = len(web.shownMissingUpdates(lang))
 		stats.DlcWithUpdate = max(0, stats.UpdatesPending-stats.GamesWithUpdate)
 
 		for _, title := range web.missingDLC() {

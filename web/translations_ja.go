@@ -1526,6 +1526,10 @@ func init() {
 		"Make it the main copy":      "メインのコピーにする",
 		"Back to the suggested copy": "おすすめのコピーに戻す",
 		"This game has no copy from another region in the library.": "このゲームの他の地域版はライブラリにありません。",
+		"Preferred region":                  "優先する地域",
+		"No preference: the suggested copy": "指定なし：おすすめのコピー",
+		"The copy of this country is the main one of each game you have from several regions, unless you choose another on its page.": "複数の地域版があるゲームでは、ゲームのページで別のコピーを選ばない限り、この国のコピーがメインになります。",
+		"Your preferred region": "優先する地域",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "ゲームごとに1枚のカードで、すべての地域の国旗を表示します（持っていない地域は薄く表示）。ゲームのページで選んだコピー、またはおすすめのコピーが表示され、カウンターではゲームを1つとして数えます。ファイルは変更されません。",
 	}
 }

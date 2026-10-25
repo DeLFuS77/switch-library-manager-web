@@ -194,6 +194,9 @@ type AppSettings struct {
 	// Space page suggests to keep
 	CountRegionsOnce bool `json:"count_regions_once,omitempty"`
 	WatchFolders     bool `json:"watch_folders"`
+	// the country whose copy is the main one of a game of several regions, unless one is chosen
+	// on the page of the game; empty for the copy suggested
+	PreferredRegion string `json:"preferred_region,omitempty"`
 	// hours of heavy background work, e.g. "1-7"; empty for any time
 	BackgroundHours string `json:"background_hours"`
 	// how often the folders are checked for changes notifications do not report

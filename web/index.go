@@ -157,6 +157,7 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	genreCounts := map[string]int{}
 	languageCounts := map[string]int{}
 	leftOut, otherRegions := web.regionCopies(lang)
+	merged := web.mergedStatus(lang)
 	// each game once: of a game the library has, no card of its other regions; of a game it does
 	// not have, one card of all of them
 	var regionsByName map[string][]string
@@ -177,6 +178,12 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		if leftOut[item.Id] || !filter.MatchesItem(item) {
 			continue
 		}
+		// a game of several regions is up to date when one of its copies is
+		if status, ok := merged[item.Id]; ok {
+			copied := *item
+			status.apply(&copied)
+			item = &copied
+		}
 
 		// the formats are offered whatever the other filters are
 		if item.Type != "" {
@@ -188,7 +195,11 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		if item.Region != "" {
 			regions[item.Region] = struct{}{}
 		}
-		if filter.Region != "" && item.Region != filter.Region {
+		// a game of several regions is of each of the regions of its copies
+		for _, region := range otherRegions[item.Id] {
+			regions[region] = struct{}{}
+		}
+		if filter.Region != "" && item.Region != filter.Region && !hasValue(otherRegions[item.Id], regionCode(filter.Region)) {
 			continue
 		}
 		if item.Missing && regionsByName != nil {
@@ -343,6 +354,9 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	for _, index := range matched[p.Start:p.End] {
 		item := all[index]
 		item.OtherRegions, item.OtherFlags = len(otherRegions[item.Id]), otherRegions[item.Id]
+		if status, ok := merged[item.Id]; ok {
+			status.apply(&item)
+		}
 		if regionsByName != nil {
 			item.MissingFlags = missingRegions(item, regionsByName)
 			if room := max(coverFlags-1-len(item.OtherFlags), 0); len(item.MissingFlags) > room {

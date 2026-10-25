@@ -1526,6 +1526,10 @@ func init() {
 		"Make it the main copy":      "Maak er de hoofdkopie van",
 		"Back to the suggested copy": "Terug naar de aanbevolen kopie",
 		"This game has no copy from another region in the library.": "Van deze game staat geen kopie uit een andere regio in de bibliotheek.",
+		"Preferred region":                  "Voorkeursregio",
+		"No preference: the suggested copy": "Geen voorkeur: de aanbevolen kopie",
+		"The copy of this country is the main one of each game you have from several regions, unless you choose another on its page.": "De kopie van dit land is de hoofdkopie van elke game die je uit meerdere regio's hebt, tenzij je op de pagina van de game een andere kiest.",
+		"Your preferred region": "Je voorkeursregio",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Eén kaart per game, met de vlaggen van al zijn regio's: die je niet hebt, gedimd. Hij toont de kopie die je op de pagina van de game kiest, of de aanbevolen, en de tellers tellen de game één keer. Er wordt geen bestand gewijzigd.",
 	}
 }

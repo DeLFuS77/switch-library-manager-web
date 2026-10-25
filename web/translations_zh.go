@@ -1526,6 +1526,10 @@ func init() {
 		"Make it the main copy":      "设为主副本",
 		"Back to the suggested copy": "恢复推荐的副本",
 		"This game has no copy from another region in the library.": "游戏库中没有这个游戏的其他地区版本。",
+		"Preferred region":                  "首选地区",
+		"No preference: the suggested copy": "无偏好：推荐的副本",
+		"The copy of this country is the main one of each game you have from several regions, unless you choose another on its page.": "对于你拥有多个地区版本的游戏，除非你在其页面选择了其他副本，否则此国家的副本为主副本。",
+		"Your preferred region": "你的首选地区",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "每个游戏一张卡片，显示其所有地区的国旗：你没有的地区显示为灰色。显示你在游戏页面选择的副本或推荐的副本，计数时每个游戏只算一次。不会更改任何文件。",
 	}
 }

@@ -1553,6 +1553,10 @@ var translations = map[string]map[string]string{
 		"Make it the main copy":      "Hacerla la principal",
 		"Back to the suggested copy": "Volver a la sugerida",
 		"This game has no copy from another region in the library.": "Este juego no tiene ninguna copia de otra región en la biblioteca.",
+		"Preferred region":                  "Región preferida",
+		"No preference: the suggested copy": "Sin preferencia: la copia sugerida",
+		"The copy of this country is the main one of each game you have from several regions, unless you choose another on its page.": "La copia de este país es la principal de cada juego que tienes de varias regiones, salvo que elijas otra en su ficha.",
+		"Your preferred region": "Tu región preferida",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Una tarjeta para cada juego, con las banderas de todas sus regiones: las que no tienes, apagadas. Muestra la copia que elijas en la ficha del juego, o la sugerida, y los contadores cuentan el juego una vez. No se cambia ningún archivo.",
 	},
 }

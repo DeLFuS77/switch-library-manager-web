@@ -35,6 +35,8 @@ type SettingsPageData struct {
 	Processors            int
 	DefaultThreads        int
 	FilesAtOnceChoices    []int
+	// the countries of the copies of the games the library has from several regions, to prefer one
+	PreferredRegions []string
 }
 
 type SettingsForm struct {
@@ -48,6 +50,7 @@ type SettingsForm struct {
 	Cheats                bool   `in:"form=cheats"`
 	KeepUpdatesWithCheats bool   `in:"form=keep_updates_with_cheats"`
 	CountRegionsOnce      bool   `in:"form=count_regions_once"`
+	PreferredRegion       string `in:"form=preferred_region"`
 	WatchFolders          bool   `in:"form=watch_folders"`
 	WatchIntervalMinutes  int    `in:"form=watch_interval_minutes"`
 	BackgroundHours       string `in:"form=background_hours"`
@@ -233,6 +236,13 @@ func (web *Web) HandleSettings() {
 			})
 		}
 
+		if region := strings.TrimSpace(settingsForm.PreferredRegion); region != "" && !regionPattern.MatchString(strings.ToUpper(region)) {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+				Field:   "preferred_region",
+				Message: translate(lang, "Unknown option"),
+			})
+		}
+
 		if _, ok := allowedBackgroundHours[settingsForm.BackgroundHours]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 				Field:   "background_hours",
@@ -304,6 +314,7 @@ func (web *Web) HandleSettings() {
 			appSettings.CheatsDisabled = !settingsForm.Cheats
 			appSettings.OrganizeOptions.DeleteUpdatesWithCheats = !settingsForm.KeepUpdatesWithCheats
 			appSettings.CountRegionsOnce = settingsForm.CountRegionsOnce
+			appSettings.PreferredRegion = strings.ToUpper(strings.TrimSpace(settingsForm.PreferredRegion))
 			appSettings.WatchFolders = settingsForm.WatchFolders
 			appSettings.WatchIntervalMinutes = settingsForm.WatchIntervalMinutes
 			appSettings.BackgroundHours = settingsForm.BackgroundHours
@@ -350,6 +361,8 @@ func (web *Web) HandleSettings() {
 		if cheatsWereOff && settingsForm.Cheats {
 			go web.downloadCheats()
 		}
+		// the copy kept of each game of several regions follows the preferred region
+		web.invalidateDerived()
 
 		if _, err := settings.InitSwitchKeys(web.dataFolder); err != nil {
 			web.sugarLogger.Debugf("prod.keys not loaded: %s", err)
@@ -404,6 +417,7 @@ func (web *Web) settingsPageData() SettingsPageData {
 		DefaultThreads:          compressWorkers(),
 		FilesAtOnceChoices:      []int{1, 2, 3, maxFilesAtOnce},
 		LastMeasure:             web.lastMeasure(),
+		PreferredRegions:        web.copyRegions(current.PreferredRegion),
 	}
 }
 

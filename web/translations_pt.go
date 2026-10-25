@@ -1526,6 +1526,10 @@ func init() {
 		"Make it the main copy":      "Tornar a cópia principal",
 		"Back to the suggested copy": "Voltar à cópia sugerida",
 		"This game has no copy from another region in the library.": "Este jogo não tem nenhuma cópia de outra região na biblioteca.",
+		"Preferred region":                  "Região preferida",
+		"No preference: the suggested copy": "Sem preferência: a cópia sugerida",
+		"The copy of this country is the main one of each game you have from several regions, unless you choose another on its page.": "A cópia deste país é a principal de cada jogo que você tem de várias regiões, a menos que escolha outra na página dele.",
+		"Your preferred region": "Sua região preferida",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Um cartão para cada jogo, com as bandeiras de todas as suas regiões: as que você não tem, apagadas. Mostra a cópia que você escolher na página do jogo, ou a sugerida, e os contadores contam o jogo uma vez. Nenhum arquivo é alterado.",
 	}
 }

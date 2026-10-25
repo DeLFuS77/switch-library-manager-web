@@ -316,3 +316,57 @@ func TestRegionFlagsByCountry(t *testing.T) {
 	}
 	t.Fatalf("no card of the game: %+v", items)
 }
+
+// The copy of the preferred country is the main one, but for the one chosen on the page of the
+// game; Settings offers the countries of the copies.
+func TestPreferredRegion(t *testing.T) {
+	web, _ := regionTestWeb(t)
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.PreferredRegion = "US" })
+	web.invalidateDerived()
+	// for a Spanish interface, the Japanese copy (in Spanish) would be suggested
+	if group := web.regionalDuplicates("es")[0]; group.Copies[0].Id != "0100000000010000" || group.Copies[0].Reasons[0] != REGION_REASON_PREFERRED {
+		t.Fatalf("the American copy, as preferred: %+v", group.Copies)
+	}
+	if regions := web.copyRegions(""); strings.Join(regions, ",") != "JP,US" {
+		t.Fatalf("the countries offered: %v", regions)
+	}
+	web.regionChoices().choose("0100000000050000", []string{"0100000000010000", "0100000000050000"})
+	web.invalidateDerived()
+	if group := web.regionalDuplicates("es")[0]; group.Copies[0].Id != "0100000000050000" {
+		t.Fatalf("the copy chosen wins: %+v", group.Copies)
+	}
+}
+
+// When each game counts once, a game of several regions is up to date when one of its copies
+// is, has the DLC of the copy that has the most, and is found by the region of any copy; the
+// Updates page and its counters leave out the updates of such a game.
+func TestRegionCopiesCountTogether(t *testing.T) {
+	web, _ := regionTestWeb(t)
+	if len(web.shownMissingUpdates("en")) != 1 {
+		t.Fatalf("each region apart: the update of the American copy is missing: %v", web.shownMissingUpdates("en"))
+	}
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.CountRegionsOnce = true })
+	web.invalidateDerived()
+	filter := &TitleItemFilter{WithMissing: "0"}
+	filter.Normalize()
+	items, _, facets := web.getLibraryWithFacets(filter, "en")
+	for _, item := range items {
+		if item.Id == "0100000000010000" && (item.UpdateAvailable || item.MissingDlcCount != 0) {
+			t.Fatalf("the Japanese copy is up to date, with all its DLC: %+v", item)
+		}
+	}
+	if facets.Update != 0 || !hasValue(facets.Regions, "JP") {
+		t.Fatalf("no game with an update, and Japan offered: %+v", facets)
+	}
+	if len(web.shownMissingUpdates("en")) != 0 || web.navCounts().Updates != 0 {
+		t.Fatalf("no update missing: %v", web.shownMissingUpdates("en"))
+	}
+	if stats := web.getStatistics("en"); stats.GamesWithUpdate != 0 || stats.UpdatesPending != 0 {
+		t.Fatalf("the statistics count as the library: %+v", stats)
+	}
+	japan := &TitleItemFilter{WithMissing: "0", Region: "JP"}
+	japan.Normalize()
+	if items, _, _ := web.getLibraryWithFacets(japan, "en"); len(items) != 1 || items[0].Id != "0100000000010000" {
+		t.Fatalf("the game is found by the region of its other copy: %+v", items)
+	}
+}

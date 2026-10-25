@@ -1526,6 +1526,10 @@ func init() {
 		"Make it the main copy":      "Сделать основной",
 		"Back to the suggested copy": "Вернуть рекомендуемую копию",
 		"This game has no copy from another region in the library.": "В библиотеке нет копии этой игры из другого региона.",
+		"Preferred region":                  "Предпочитаемый регион",
+		"No preference: the suggested copy": "Без предпочтения: рекомендуемая копия",
+		"The copy of this country is the main one of each game you have from several regions, unless you choose another on its page.": "Копия этой страны становится основной для каждой игры из нескольких регионов, если вы не выберете другую на её странице.",
+		"Your preferred region": "Ваш предпочитаемый регион",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Одна карточка на игру с флагами всех её регионов: тех, которых у вас нет, — приглушёнными. Показывается копия, выбранная вами на странице игры, или рекомендуемая, а счётчики учитывают игру один раз. Файлы не изменяются.",
 	}
 }
