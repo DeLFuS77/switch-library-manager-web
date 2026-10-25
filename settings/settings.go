@@ -94,6 +94,9 @@ type OrganizeOptions struct {
 	// each update and DLC goes to a folder named with its own ID, and the game folder has its
 	// ID too: Game [ID] › Update [ID of the update], DLC › name [ID of the DLC]
 	FoldersWithIds bool `json:"folders_with_ids,omitempty"`
+	// with FoldersWithIds, every DLC goes to the DLC folder instead of a folder of its own:
+	// paths stay shorter for the programs of Windows that read no more than 260 characters
+	DlcInOneFolder bool `json:"dlc_in_one_folder,omitempty"`
 	// which copy of a duplicate the library keeps: KEEP_FIRST_FOUND (empty), KEEP_NSP, KEEP_XCI
 	// or KEEP_AUTO; the other one is the duplicate
 	KeepDuplicate string `json:"keep_duplicate"`

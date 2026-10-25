@@ -700,7 +700,7 @@ func OrganizeByFolders(baseFolder string,
 				continue
 			}
 			dlcFolder := options.DlcFolder
-			if options.FoldersWithIds {
+			if options.FoldersWithIds && !options.DlcInOneFolder {
 				// the folder of the DLC tells its name without the one of its game, which the
 				// folder of the game says already, or "DLC" when it has none
 				name := templateData[settings.TEMPLATE_DLC_NAME]

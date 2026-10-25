@@ -1441,6 +1441,9 @@ var translations = map[string]map[string]string{
 		"split files are not organized":                                    "los archivos divididos no se organizan",
 		"empty folder":                                                     "carpeta vacía",
 		"empty folders will be deleted":                                    "se borrarán las carpetas vacías",
+		// a folder for each DLC, or all of them in the DLC folder
+		"A folder for each DLC": "Una carpeta para cada DLC",
+		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "Con los ID, cada DLC va a una carpeta propia. Sin esto, todos van a la carpeta de DLC: las rutas quedan más cortas, ya que muchos programas de Windows no leen más de 260 caracteres.",
 
 		// issues (translated by pattern, see translateIssue)
 		"file type is not supported": "tipo de archivo no compatible",

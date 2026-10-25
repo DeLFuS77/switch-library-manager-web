@@ -1502,6 +1502,9 @@ func init() {
 		"within a minute":                                                  "binnen een minuut",
 		"you":                                                              "jij",
 		"yours included":                                                   "inclusief die van jou",
+		// a folder for each DLC, or all of them in the DLC folder
+		"A folder for each DLC": "Een map voor elke DLC",
+		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "Met de ID's gaat elke DLC naar een eigen map. Zonder deze optie gaan ze allemaal naar de DLC-map: de paden blijven korter, want veel Windows-programma's lezen niet meer dan 260 tekens.",
 		// a file that stays in its folder because its name is taken where it would go
 		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "Niet verplaatst: op de bestemming staat al een kopie van dezelfde grootte. Het is een duplicaat, de pagina Ruimte kan het vrijmaken.",
 		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "Op de bestemming staat al een ander bestand met dezelfde naam en een andere grootte: het zijn twee bestanden van hetzelfde spel en dezelfde versie, Controleren kan zeggen welke goed is.",

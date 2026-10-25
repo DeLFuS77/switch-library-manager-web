@@ -1502,6 +1502,9 @@ func init() {
 		"within a minute":                                                  "1分以内",
 		"you":                                                              "自分",
 		"yours included":                                                   "自分を含む",
+		// a folder for each DLC, or all of them in the DLC folder
+		"A folder for each DLC": "DLC ごとにフォルダー",
+		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "ID を付ける場合、DLC ごとに専用のフォルダーに入れます。オフにすると、すべて DLC フォルダーに入り、パスが短くなります。多くの Windows のプログラムは 260 文字を超えるパスを読めません。",
 		// a file that stays in its folder because its name is taken where it would go
 		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "移動していません。移動先に同じサイズのコピーがすでにあります。重複ファイルなので、容量ページで解放できます。",
 		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "移動先に同じ名前でサイズの違う別のファイルがすでにあります。同じゲームの同じバージョンのファイルが2つあり、どちらが正常かは「確認」でわかります。",
