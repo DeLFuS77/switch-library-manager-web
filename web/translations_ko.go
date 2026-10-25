@@ -3,6 +3,10 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		// the titles database, with no connection to its servers
+		"Offline: the titles database was not downloaded, the saved copy is used.": "연결할 수 없어요: 타이틀 데이터베이스를 다운로드할 수 없어 저장된 사본을 사용해요.",
+		"Offline: the titles database was not downloaded.":                         "연결할 수 없어요: 타이틀 데이터베이스를 다운로드할 수 없어요.",
+		"Offline: the covers left are downloaded after the next scan.":             "연결할 수 없어요: 남은 표지는 다음 스캔 후에 다운로드돼요.",
 		// split and bulk packs
 		"Split multi-title files": "여러 타이틀 파일 나누기",
 		"A game card dump with several games (a collection on one cartridge) splits into one XCI or XCZ per game, with its update and DLC, so the files made for a game card stay as they are.":                                                                                   "여러 게임이 든 카트리지 덤프(카트리지 하나에 든 모음집)는 업데이트와 DLC를 포함해 게임별 XCI 또는 XCZ로 나뉘며, 카트리지용 파일은 그대로 유지됩니다.",

@@ -3,6 +3,10 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		// the titles database, with no connection to its servers
+		"Offline: the titles database was not downloaded, the saved copy is used.": "Geen verbinding: de titeldatabase kon niet worden gedownload, de opgeslagen kopie wordt gebruikt.",
+		"Offline: the titles database was not downloaded.":                         "Geen verbinding: de titeldatabase kon niet worden gedownload.",
+		"Offline: the covers left are downloaded after the next scan.":             "Geen verbinding: de ontbrekende covers worden na de volgende scan gedownload.",
 		// split and bulk packs
 		"Split multi-title files": "Bestanden met meerdere titels splitsen",
 		"A game card dump with several games (a collection on one cartridge) splits into one XCI or XCZ per game, with its update and DLC, so the files made for a game card stay as they are.":                                                                                   "Een cartridge-dump met meerdere games (een verzameling op één cartridge) wordt gesplitst in één XCI of XCZ per game, met de update en DLC, zodat de bestanden voor een cartridge blijven zoals ze zijn.",

@@ -3,6 +3,10 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		// the titles database, with no connection to its servers
+		"Offline: the titles database was not downloaded, the saved copy is used.": "Sem conexão: não foi possível baixar o banco de dados de títulos; a cópia salva é usada.",
+		"Offline: the titles database was not downloaded.":                         "Sem conexão: não foi possível baixar o banco de dados de títulos.",
+		"Offline: the covers left are downloaded after the next scan.":             "Sem conexão: as capas que faltam são baixadas após a próxima análise.",
 		// split and bulk packs
 		"Split multi-title files": "Dividir arquivos com vários títulos",
 		"A game card dump with several games (a collection on one cartridge) splits into one XCI or XCZ per game, with its update and DLC, so the files made for a game card stay as they are.":                                                                                   "Um dump de cartucho com vários jogos (uma coleção num só cartucho) é separado num XCI ou XCZ por jogo, com a sua atualização e DLC, para que os arquivos feitos para um cartucho fiquem como estão.",

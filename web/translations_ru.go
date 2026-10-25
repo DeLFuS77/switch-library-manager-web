@@ -3,6 +3,10 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		// the titles database, with no connection to its servers
+		"Offline: the titles database was not downloaded, the saved copy is used.": "Нет соединения: не удалось скачать базу названий, используется сохранённая копия.",
+		"Offline: the titles database was not downloaded.":                         "Нет соединения: не удалось скачать базу названий.",
+		"Offline: the covers left are downloaded after the next scan.":             "Нет соединения: оставшиеся обложки будут скачаны после следующего сканирования.",
 		// split and bulk packs
 		"Split multi-title files": "Разделить файлы с несколькими тайтлами",
 		"A game card dump with several games (a collection on one cartridge) splits into one XCI or XCZ per game, with its update and DLC, so the files made for a game card stay as they are.":                                                                                   "Дамп картриджа с несколькими играми (сборник на одном картридже) разделяется на XCI или XCZ для каждой игры, с её обновлением и DLC, так что файлы, сделанные для картриджа, остаются как есть.",

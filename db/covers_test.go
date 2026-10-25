@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -72,5 +73,42 @@ func TestCoversThatFailedRecentlyWait(t *testing.T) {
 	got := CoversToTry(dataFolder, []string{"https://x/failed.jpg", "https://x/old.jpg", "https://x/new.jpg"})
 	if len(got) != 2 || got[0] != "https://x/old.jpg" || got[1] != "https://x/new.jpg" {
 		t.Fatalf("got %v", got)
+	}
+}
+
+// When the connection is lost after some covers came, the rest is left for later at once,
+// and the covers that got no answer are not marked as failed.
+func TestDownloadCoversStopsWhenTheConnectionIsLost(t *testing.T) {
+	dataFolder := t.TempDir()
+	working := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("image " + r.URL.Path))
+	}))
+	defer working.Close()
+	var calls atomic.Int64
+	lost := silentServer(t, &calls)
+
+	urls := []string{}
+	for i := 0; i < 8; i++ {
+		urls = append(urls, fmt.Sprintf("%s/%d.jpg", working.URL, i))
+	}
+	unanswered := []string{}
+	for i := 0; i < 200; i++ {
+		unanswered = append(unanswered, fmt.Sprintf("%s/lost%d.jpg", lost.URL, i))
+	}
+	var downloaded atomic.Int64
+	err := DownloadCovers(dataFolder, append(urls, unanswered...), nil, func(string) { downloaded.Add(1) })
+	if !errors.Is(err, ErrNoConnection) {
+		t.Fatalf("the lost connection must be told: %v", err)
+	}
+	if downloaded.Load() != 8 || calls.Load() >= 20 {
+		t.Fatalf("8 covers come and the rest stops after a few: %v downloaded, %v tried with no answer", downloaded.Load(), calls.Load())
+	}
+	if len(CoversToTry(dataFolder, unanswered)) != len(unanswered) {
+		t.Fatal("covers with no answer must be tried again with the next scan, not after a day")
+	}
+
+	// a server that answers is no lack of connection
+	if err := DownloadCovers(dataFolder, []string{working.URL + "/more.jpg"}, nil, nil); err != nil {
+		t.Fatal(err)
 	}
 }

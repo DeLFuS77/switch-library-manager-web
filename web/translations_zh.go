@@ -3,6 +3,10 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		// the titles database, with no connection to its servers
+		"Offline: the titles database was not downloaded, the saved copy is used.": "无法连接：无法下载游戏数据库，将使用已保存的副本。",
+		"Offline: the titles database was not downloaded.":                         "无法连接：无法下载游戏数据库。",
+		"Offline: the covers left are downloaded after the next scan.":             "无法连接：剩余的封面将在下次扫描后下载。",
 		// split and bulk packs
 		"Split multi-title files": "拆分多标题文件",
 		"A game card dump with several games (a collection on one cartridge) splits into one XCI or XCZ per game, with its update and DLC, so the files made for a game card stay as they are.":                                                                                   "含多个游戏的卡带转储(一张卡带上的合集)会按游戏拆分为各自的 XCI 或 XCZ,连同其更新和 DLC,卡带专用的文件保持原样。",
