@@ -6,6 +6,8 @@
 
 - A game with nothing to compress tells why in Tasks: a file compressed already (an NSZ or XCZ named as an NSP or XCI), NCA files with no game data, or an encryption no compressor reads, besides sparse storage, instead of only "Nothing in the file can be compressed"
 - Measure this server takes the biggest games of the library that can be compressed: a big one in sparse storage, or damaged, is passed over instead of failing the measure with "There is no game in the library to measure the disk with"
+- Organize gives a file its new name in its own folder when that name is already taken where the file would go, instead of leaving it with its old name: a file of another size with that name was an error ("A file could not be changed"), and a copy of the same size was left as it was. Both are now a warning that tells why, in the preview and in Tasks; for a file of another size it adds that they are two files of the same game and version, and that Check can tell which one is good. When the new name is taken in its own folder too, the file is left as it is, with a warning instead of an error
+- The preview and the result of Organize show the changes in groups that open and close, closed at first with their counts as the summary: With problems (open when there are any), Needs a look (files left as they are, renamed in their folder, or whose title ID changes), then Move, Rename, Create folder, Delete and Empty folders. A group shows its first 100 changes and the next ones when asked, so a library of thousands of files no longer gives a list of thousands of rows at once
 
 ## 1.56.1
 
