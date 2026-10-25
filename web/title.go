@@ -57,6 +57,8 @@ type TitleDlc struct {
 type TitleDetail struct {
 	// the cheats of the version the library has, or of others
 	Cheats *CheatsInfo
+	// the copies of the game from other regions the library has, with the one that stands for it
+	Regions *RegionGroup
 	// the game is on the wishlist
 	Wished    bool
 	Id        string
@@ -193,6 +195,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		if detail.Id == "" {
 			detail.Id = baseId
 		}
+		detail.Regions = web.regionGroupOf(baseId, lang)
 		detail.Base = newTitleFile(local.File, strings.ToUpper(getType(local)), "/api/titles/"+baseId)
 		if local.Icon != "" {
 			detail.ImageUrl = "/i/" + local.Icon

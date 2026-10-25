@@ -174,10 +174,8 @@ func init() {
 		"Images, notes, archives... in your folders. Ignore their types below to stop listing them.":              "Afbeeldingen, notities, archieven… in je mappen. Negeer hieronder hun types om ze niet meer te zien.",
 		"%v of %v files": "%v van %v bestanden",
 		"e.g. zip rar":   "bijv. zip rar",
-		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.":                                                           "Afbeeldingen, notities, controlesommen en half afgemaakte downloads (part, partial, tmp…) worden al weggelaten zonder ze hier te zetten.",
-		"Count a game once when you have it from several regions":                                                                                                                               "Een game uit meerdere regio's één keer tellen",
-		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "De bibliotheek toont één kaart, die van de kopie die de pagina Ruimte aanraadt te bewaren, met hoeveel andere regio's je hebt, en tellers en statistieken tellen het één keer. Er wordt geen bestand gewijzigd.",
-		"You also have this game from other regions: see them on the Space page.":                                                                                                               "Je hebt deze game ook uit andere regio's: bekijk ze op de pagina Ruimte.",
+		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "Afbeeldingen, notities, controlesommen en half afgemaakte downloads (part, partial, tmp…) worden al weggelaten zonder ze hier te zetten.",
+		"Count a game once when you have it from several regions":                                                                     "Een game uit meerdere regio's één keer tellen",
 		"+1 region":   "+1 regio",
 		"+%v regions": "+%v regio's",
 		"Tune-up":     "Onderhoud",
@@ -1517,5 +1515,17 @@ func init() {
 		// a check of the new files with nothing new to read
 		"Nothing to check": "Niets te controleren",
 		"No file is new or changed since the last check.": "Geen enkel bestand is nieuw of gewijzigd sinds de laatste controle.",
+		// the main copy of a game of several regions, on the page of the game
+		"You also have this game from other regions: see them on its page.": "Je hebt deze game ook uit andere regio's: bekijk ze op de pagina van de game.",
+		"Other regions": "Andere regio's",
+		"You have this game from several regions: each one is a game of its own, with its own updates and DLC. The main copy is the one the library shows when each game counts once, with the flags of all, and the one Space keeps.": "Je hebt deze game uit meerdere regio's: elke is een aparte game, met eigen updates en DLC. De hoofdkopie is de kopie die de bibliotheek toont als elke game één keer telt, met de vlaggen van allemaal, en die Ruimte bewaart.",
+		"this page":                  "deze pagina",
+		"Main copy, chosen by you":   "Hoofdkopie, door jou gekozen",
+		"Main copy, suggested":       "Hoofdkopie, aanbevolen",
+		"Suggested":                  "Aanbevolen",
+		"Make it the main copy":      "Maak er de hoofdkopie van",
+		"Back to the suggested copy": "Terug naar de aanbevolen kopie",
+		"This game has no copy from another region in the library.": "Van deze game staat geen kopie uit een andere regio in de bibliotheek.",
+		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Eén kaart per game, met de vlaggen van al zijn regio's: die je niet hebt, gedimd. Hij toont de kopie die je op de pagina van de game kiest, of de aanbevolen, en de tellers tellen de game één keer. Er wordt geen bestand gewijzigd.",
 	}
 }

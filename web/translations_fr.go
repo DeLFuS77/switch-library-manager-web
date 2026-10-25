@@ -174,10 +174,8 @@ func init() {
 		"Images, notes, archives... in your folders. Ignore their types below to stop listing them.":              "Images, notes, archives… dans vos dossiers. Ignorez leurs types ci-dessous pour ne plus les voir.",
 		"%v of %v files": "%v fichiers sur %v",
 		"e.g. zip rar":   "p. ex. zip rar",
-		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.":                                                           "Les images, notes, sommes de contrôle et téléchargements inachevés (part, partial, tmp…) sont déjà ignorés sans les écrire ici.",
-		"Count a game once when you have it from several regions":                                                                                                                               "Compter une seule fois un jeu que vous avez de plusieurs régions",
-		"The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed.": "La bibliothèque affiche une seule carte, celle de la copie que la page Espace conseille de garder, avec le nombre d'autres régions, et les compteurs et statistiques le comptent une fois. Aucun fichier n'est modifié.",
-		"You also have this game from other regions: see them on the Space page.":                                                                                                               "Vous avez aussi ce jeu d'autres régions : voyez-les sur la page Espace.",
+		"Images, notes, checksums and downloads left halfway (part, partial, tmp...) are already left out without writing them here.": "Les images, notes, sommes de contrôle et téléchargements inachevés (part, partial, tmp…) sont déjà ignorés sans les écrire ici.",
+		"Count a game once when you have it from several regions":                                                                     "Compter une seule fois un jeu que vous avez de plusieurs régions",
 		"+1 region":   "+1 région",
 		"+%v regions": "+%v régions",
 		"Tune-up":     "Mise au point",
@@ -1517,5 +1515,17 @@ func init() {
 		// a check of the new files with nothing new to read
 		"Nothing to check": "Rien à vérifier",
 		"No file is new or changed since the last check.": "Aucun fichier n'est nouveau ni modifié depuis la dernière vérification.",
+		// the main copy of a game of several regions, on the page of the game
+		"You also have this game from other regions: see them on its page.": "Vous avez aussi ce jeu d'autres régions : voyez-les sur sa page.",
+		"Other regions": "Autres régions",
+		"You have this game from several regions: each one is a game of its own, with its own updates and DLC. The main copy is the one the library shows when each game counts once, with the flags of all, and the one Space keeps.": "Vous avez ce jeu de plusieurs régions : chacune est un jeu à part, avec ses propres mises à jour et DLC. La copie principale est celle que montre la bibliothèque quand chaque jeu compte une fois, avec les drapeaux de toutes, et celle que garde Espace.",
+		"this page":                  "cette page",
+		"Main copy, chosen by you":   "Copie principale, choisie par vous",
+		"Main copy, suggested":       "Copie principale, suggérée",
+		"Suggested":                  "Suggérée",
+		"Make it the main copy":      "En faire la copie principale",
+		"Back to the suggested copy": "Revenir à la copie suggérée",
+		"This game has no copy from another region in the library.": "Ce jeu n'a aucune copie d'une autre région dans la bibliothèque.",
+		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Une carte pour chaque jeu, avec les drapeaux de toutes ses régions : celles que vous n'avez pas, estompées. Elle montre la copie que vous choisissez sur la page du jeu, ou celle suggérée, et les compteurs comptent le jeu une fois. Aucun fichier n'est modifié.",
 	}
 }

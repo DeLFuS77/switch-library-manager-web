@@ -1,8 +1,12 @@
 package web
 
 import (
+	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
@@ -169,4 +173,146 @@ func TestCountRegionsOnce(t *testing.T) {
 	if views := web.libraryViews("mine", "en"); views.Mine != after.All {
 		t.Fatalf("My games counts as the library: %d and %d", views.Mine, after.All)
 	}
+}
+
+// The copy chosen of a game of several regions stands for it instead of the suggested one: the
+// library shows it with the flags of the others, Space keeps it, and the page of the game lists
+// the copies; the suggested one comes back when asked.
+func TestRegionMainCopy(t *testing.T) {
+	web, _ := regionTestWeb(t)
+	web.handleRegionMain()
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.CountRegionsOnce = true })
+	if group := web.buildRegionalDuplicates("es")[0]; group.Copies[0].Id != "0100000000050000" || !group.Copies[0].Suggested || group.Chosen {
+		t.Fatalf("the Spanish copy is suggested: %+v", group)
+	}
+
+	if response := postForm(web, "/regions/main", url.Values{"id": {"0100000000010000"}}); response.Code != http.StatusOK {
+		t.Fatalf("choose: %d %s", response.Code, response.Body.String())
+	}
+	group := web.regionalDuplicates("es")[0]
+	main, other := group.Copies[0], group.Copies[1]
+	if !group.Chosen || main.Id != "0100000000010000" || !main.Keep || !main.Chosen || other.Keep || !other.Suggested || group.Savable != other.Size {
+		t.Fatalf("the American copy is the main one: %+v", group)
+	}
+	leftOut, others := web.regionCopies("es")
+	if !leftOut["0100000000050000"] || leftOut["0100000000010000"] || len(others["0100000000010000"]) != 1 || others["0100000000010000"][0] != "JP" {
+		t.Fatalf("the library shows the chosen copy with the other flag: %v %v", leftOut, others)
+	}
+	filter := &TitleItemFilter{WithMissing: "0"}
+	filter.Normalize()
+	items, _, _ := web.getLibraryWithFacets(filter, "es")
+	found := false
+	for _, item := range items {
+		if item.Id == "0100000000050000" {
+			t.Fatal("the other copy is left out of the library")
+		}
+		if item.Id == "0100000000010000" {
+			found = item.OtherRegions == 1 && len(item.OtherFlags) == 1 && item.OtherFlags[0] == "JP"
+		}
+	}
+	if !found {
+		t.Fatalf("the card of the chosen copy has both flags: %+v", items)
+	}
+	detail, ok := web.getTitleDetail("0100000000050000", "es")
+	if !ok || detail.Regions == nil || len(detail.Regions.Copies) != 2 || !detail.Regions.Chosen {
+		t.Fatalf("the page of a copy lists the copies: %+v", detail.Regions)
+	}
+	if other := (&Web{dataFolder: web.dataFolder}).regionChoices().snapshot(); !other["0100000000010000"] {
+		t.Fatal("the choice is kept after a restart")
+	}
+
+	// back to the suggested copy
+	postForm(web, "/regions/main", url.Values{"id": {"0100000000010000"}, "suggested": {"true"}})
+	if group := web.regionalDuplicates("es")[0]; group.Chosen || group.Copies[0].Id != "0100000000050000" || !group.Copies[0].Keep {
+		t.Fatalf("the suggested copy again: %+v", group)
+	}
+	// a game of one region, or no title ID
+	for _, id := range []string{"0100000000020000", "nope"} {
+		if response := postForm(web, "/regions/main", url.Values{"id": {id}}); response.Code != http.StatusBadRequest {
+			t.Fatalf("%s: %d", id, response.Code)
+		}
+	}
+}
+
+// With each game counting once, the card has the flags of the regions the game was released in,
+// the ones of the library lit and the others dimmed; a name of two games of one region has none.
+func TestMissingRegionFlags(t *testing.T) {
+	web, _ := regionTestWeb(t)
+	switchDB, localDB := web.state.get()
+	switchDB.TitlesMap["0100000000060"] = &db.SwitchTitle{Attributes: db.TitleAttributes{Id: "0100000000060000", Name: "Known Game", Region: "KR"}}
+	web.state.set(switchDB, localDB)
+	filter := &TitleItemFilter{WithMissing: "0"}
+	filter.Normalize()
+	cardOf := func() TitleItem {
+		items, _, _ := web.getLibraryWithFacets(filter, "en")
+		for _, item := range items {
+			if item.Id == "0100000000010000" || item.Id == "0100000000050000" {
+				return item
+			}
+		}
+		t.Fatal("no card of the game")
+		return TitleItem{}
+	}
+	if card := cardOf(); card.MissingFlags != nil {
+		t.Fatalf("each region apart: no flags of other regions: %+v", card)
+	}
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.CountRegionsOnce = true })
+	web.invalidateDerived()
+	if card := cardOf(); len(card.OtherFlags) != 1 || len(card.MissingFlags) != 1 || card.MissingFlags[0] != "KR" {
+		t.Fatalf("one copy lit, Korea dimmed: %+v %+v", card.OtherFlags, card.MissingFlags)
+	}
+	// with the games you do not have: no card of Korea, which the card of the game shows dimmed
+	everything := &TitleItemFilter{}
+	everything.Normalize()
+	items, _, _ := web.getLibraryWithFacets(everything, "en")
+	for _, item := range items {
+		if item.Id == "0100000000060000" {
+			t.Fatal("no card of a region of a game you have")
+		}
+	}
+	// two American games of that name: they are not copies of one game
+	switchDB.TitlesMap["0100000000070"] = &db.SwitchTitle{Attributes: db.TitleAttributes{Id: "0100000000070000", Name: "Known Game", Region: "US"}}
+	web.invalidateDerived()
+	if card := cardOf(); len(card.MissingFlags) != 0 {
+		t.Fatalf("a name of two games: %+v", card.MissingFlags)
+	}
+}
+
+// A flag is a country: titles of one country in other languages ("US (Spanish)") add none, and
+// a name of several titles of one country adds no dimmed flags; a cover shows four at most.
+func TestRegionFlagsByCountry(t *testing.T) {
+	if regionCode("US (Spanish)") != "US" || regionCode(" jp ") != "JP" || regionCode("") != "" {
+		t.Fatal("regionCode")
+	}
+	web, _ := regionTestWeb(t)
+	switchDB, localDB := web.state.get()
+	for i, region := range []string{"KR", "GB", "HK", "AU"} {
+		prefix := fmt.Sprintf("01000000000%d0", 6+i)
+		switchDB.TitlesMap[prefix] = &db.SwitchTitle{Attributes: db.TitleAttributes{Id: prefix + "000", Name: "Known Game", Region: region}}
+	}
+	// the same game in English and in Spanish for America: no flags of other regions
+	switchDB.TitlesMap["0100000000110"] = &db.SwitchTitle{Attributes: db.TitleAttributes{Id: "0100000000110000", Name: "Pokémon Game", Region: "US (English)"}}
+	switchDB.TitlesMap["0100000000120"] = &db.SwitchTitle{Attributes: db.TitleAttributes{Id: "0100000000120000", Name: "Pokémon Game", Region: "US (Spanish)"}}
+	web.state.set(switchDB, localDB)
+	if regions, ok := web.buildRegionsByName()[regionalName("Pokémon Game")]; ok {
+		t.Fatalf("one country twice: %v", regions)
+	}
+	if regions := web.buildRegionsByName()[regionalName("Known Game")]; strings.Join(regions, ",") != "AU,GB,HK,JP,KR,US" {
+		t.Fatalf("by country: %v", regions)
+	}
+
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.CountRegionsOnce = true })
+	filter := &TitleItemFilter{WithMissing: "0"}
+	filter.Normalize()
+	items, _, _ := web.getLibraryWithFacets(filter, "en")
+	for _, item := range items {
+		if item.Id != "0100000000010000" {
+			continue
+		}
+		if strings.Join(item.OtherFlags, ",") != "JP" || strings.Join(item.MissingFlags, ",") != "AU,GB" || strings.Join(item.HiddenRegions, ",") != "HK,KR" {
+			t.Fatalf("four flags at most, the others on hover: %v %v %v", item.OtherFlags, item.MissingFlags, item.HiddenRegions)
+		}
+		return
+	}
+	t.Fatalf("no card of the game: %+v", items)
 }

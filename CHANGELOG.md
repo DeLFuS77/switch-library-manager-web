@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### New
+
+- A game you have from several regions, with "Count a game once when you have it from several regions" in Settings, has one card with the flags of all the regions it was released in: the ones you have lit and the others dimmed (a country once, also when it sells the game in several languages; more than four counted as +N, which shows them on hover); a game you do not have shows one card of all its regions, instead of one for each. The setting is in the wizard too, with the two ways shown side by side
+- The page of such a game lists its copies of each region (languages, update, DLC, size, damaged), and you can make one of them the main copy: the one the library shows and Space keeps, instead of the one suggested. "Back to the suggested copy" undoes it
+
 ## 1.58.1
 
 ### Improvements

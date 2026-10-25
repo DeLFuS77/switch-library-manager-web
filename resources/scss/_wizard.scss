@@ -309,6 +309,107 @@
 	}
 }
 
+// the same game from two regions: two cards apart, or one card with the flags of all of them
+// (the ones you do not have dimmed), as the switch above it is set
+.regions-demo {
+	position: relative;
+	height: 8.6rem;
+	margin: .8rem 0 .4rem;
+}
+
+.regions-demo-card {
+	position: absolute;
+	top: 0;
+	left: calc(50% - 2.75rem);
+	width: 5.5rem;
+	transition: transform .55s cubic-bezier(.2, .7, .2, 1), opacity .4s ease;
+}
+
+.regions-demo-us {
+	transform: translateX(-3.5rem);
+}
+
+.regions-demo-jp {
+	transform: translateX(3.5rem);
+}
+
+.regions-demo-merged {
+	opacity: 0;
+	transform: scale(.8);
+}
+
+.wizard-regions:has(.form-check-input:checked) {
+	.regions-demo-us,
+	.regions-demo-jp {
+		opacity: 0;
+		transform: translateX(0) scale(.9);
+	}
+
+	.regions-demo-merged {
+		opacity: 1;
+		transform: scale(1);
+		transition-delay: .25s;
+	}
+}
+
+.regions-demo-cover {
+	position: relative;
+	display: grid;
+	place-items: center;
+	aspect-ratio: 1;
+	border-radius: .6rem;
+	background: linear-gradient(135deg, $slm-red, #7c3aed);
+	color: #fff;
+	font-size: 1.6rem;
+	box-shadow: 0 6px 16px -8px rgba(0, 0, 0, .5);
+}
+
+.regions-demo-flags {
+	position: absolute;
+	right: .3rem;
+	bottom: .3rem;
+	display: flex;
+	gap: .2rem;
+	font-size: .7rem;
+
+	.fi {
+		border-radius: .15rem;
+		box-shadow: 0 0 0 1px rgba(255, 255, 255, .35);
+
+		&.is-missing {
+			opacity: .4;
+			filter: grayscale(1);
+		}
+	}
+}
+
+.regions-demo-line {
+	display: block;
+	width: 70%;
+	height: .45rem;
+	margin-top: .45rem;
+	border-radius: 1rem;
+	background: var(--bs-secondary-bg);
+}
+
+.regions-demo-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: .25rem;
+	margin-top: .35rem;
+	padding: .1rem .45rem;
+	border-radius: 1rem;
+	background: var(--bs-secondary-bg);
+	font-size: .7rem;
+	white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.regions-demo-card {
+		transition: none;
+	}
+}
+
 .wizard-checks {
 	display: grid;
 	gap: .3rem;

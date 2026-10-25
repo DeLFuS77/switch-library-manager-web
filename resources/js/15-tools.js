@@ -396,6 +396,26 @@ function initMaintenance() {
 	}
 }
 
+// the copy that stands for a game of several regions, chosen on the page of the game, or the
+// suggested one again
+function initRegionMain() {
+	document.querySelectorAll('[data-region-main]').forEach(button => {
+		button.addEventListener('click', () => {
+			button.disabled = true;
+			const body = { id: button.dataset.regionMain };
+			if (button.dataset.regionSuggested) {
+				body.suggested = 'true';
+			}
+			postForm('/regions/main', body)
+				.then(() => window.location.reload())
+				.catch(error => {
+					button.disabled = false;
+					insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+				});
+		});
+	});
+}
+
 function initRegionRemove() {
 	document.querySelectorAll('[data-region-remove]').forEach(button => {
 		button.addEventListener('click', () => {

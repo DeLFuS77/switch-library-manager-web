@@ -31,9 +31,12 @@ type RegionCopy struct {
 	// a file of the copy was found damaged by a check; all of its files are compressed
 	Damaged    bool
 	Compressed bool
-	// the copy to keep, and why
-	Keep    bool
-	Reasons []string
+	// the copy to keep, and why; the one suggested, and the one chosen by the user, which is
+	// kept instead (see applyRegionChoice)
+	Keep      bool
+	Reasons   []string
+	Suggested bool
+	Chosen    bool
 	// the game, its updates and DLC, deleted together
 	files []db.ExtendedFileInfo
 }
@@ -44,6 +47,8 @@ type RegionGroup struct {
 	Copies []RegionCopy
 	// the space of the copies that are not suggested to keep
 	Savable int64
+	// the user chose the copy kept
+	Chosen bool
 }
 
 // reasons to keep a copy, translated by the interface
@@ -61,32 +66,103 @@ func (web *Web) regionalDuplicates(lang string) []RegionGroup {
 }
 
 // regionCopies tells, for the games the library has from several regions, the copies left
-// out when each game counts once (all but the one suggested to keep) and, for the copy kept,
-// how many other regions there are. Nothing when the setting is off.
-func (web *Web) regionCopies(lang string) (leftOut map[string]bool, others map[string]int) {
-	leftOut, others = map[string]bool{}, map[string]int{}
+// out when each game counts once (all but the one kept: chosen, else suggested) and, for the
+// copy kept, the regions of the others. Nothing when the setting is off.
+func (web *Web) regionCopies(lang string) (leftOut map[string]bool, others map[string][]string) {
+	leftOut, others = map[string]bool{}, map[string][]string{}
 	if !settings.ReadSettings(web.dataFolder).CountRegionsOnce {
 		return leftOut, others
 	}
 	for _, group := range web.regionalDuplicates(lang) {
-		kept := ""
+		kept, keptRegion := "", ""
 		for _, copy := range group.Copies {
 			if copy.Keep && kept == "" {
-				kept = copy.Id
+				kept, keptRegion = copy.Id, regionCode(copy.Region)
 			}
 		}
 		if kept == "" && len(group.Copies) > 0 {
-			kept = group.Copies[0].Id
+			kept, keptRegion = group.Copies[0].Id, regionCode(group.Copies[0].Region)
 		}
+		// a flag for each country: copies of one country in other languages ("US (Spanish)") add none
+		regions := []string{}
 		for _, copy := range group.Copies {
 			if copy.Id != kept {
 				leftOut[copy.Id] = true
+				if region := regionCode(copy.Region); region != keptRegion && !hasValue(regions, region) {
+					regions = append(regions, region)
+				}
 			}
 		}
-		others[kept] = len(group.Copies) - 1
+		others[kept] = regions
 	}
 	return leftOut, others
 }
+
+// regionsByName are the regions the titles database has each game in, by its name without
+// the translation (regionalName): the flags of its card when each game counts once, the ones
+// of the library lit and the others dimmed. A name of two games of one region (two games, not
+// copies) has none.
+func (web *Web) regionsByName() map[string][]string {
+	return web.derived("regionsByName", func() any { return web.buildRegionsByName() }).(map[string][]string)
+}
+
+func (web *Web) buildRegionsByName() map[string][]string {
+	result := map[string][]string{}
+	switchDB, _ := web.state.get()
+	if switchDB == nil {
+		return result
+	}
+	ambiguous := map[string]bool{}
+	for _, title := range switchDB.TitlesMap {
+		name, region := title.Attributes.Name, regionCode(title.Attributes.Region)
+		key := regionalName(name)
+		if key == "" || region == "" || isDemo(title, name) {
+			continue
+		}
+		if hasValue(result[key], region) {
+			ambiguous[key] = true
+			continue
+		}
+		result[key] = append(result[key], region)
+	}
+	for key := range ambiguous {
+		delete(result, key)
+	}
+	for _, regions := range result {
+		sort.Strings(regions)
+	}
+	return result
+}
+
+// missingRegions are the regions the titles database has a game in that the library has no
+// copy of: the region of the card and the ones of its other copies are the library's.
+func missingRegions(item TitleItem, byName map[string][]string) []string {
+	all := byName[regionalName(item.OriginalName)]
+	own := regionCode(item.Region)
+	if own == "" || !hasValue(all, own) {
+		return nil
+	}
+	missing := []string{}
+	for _, region := range all {
+		if region != own && !hasValue(item.OtherFlags, region) {
+			missing = append(missing, region)
+		}
+	}
+	return missing
+}
+
+// regionCode is the country of a region of the titles database, without the language some
+// games are sold in there under titles of their own: "US (Spanish)" is US.
+func regionCode(region string) string {
+	region = strings.ToUpper(strings.TrimSpace(region))
+	if i := strings.IndexAny(region, " ("); i > 0 {
+		region = region[:i]
+	}
+	return region
+}
+
+// coverFlags is the most flags a cover shows: the others are counted
+const coverFlags = 4
 
 func (web *Web) buildRegionalDuplicates(lang string) []RegionGroup {
 	switchDB, localDB := web.state.get()
@@ -146,11 +222,14 @@ func (web *Web) buildRegionalDuplicates(lang string) []RegionGroup {
 	}
 
 	groups := []RegionGroup{}
+	chosen := web.regionChoices().snapshot()
 	for _, copies := range byName {
 		if len(copies) < 2 || !distinctRegions(copies) {
 			continue
 		}
-		groups = append(groups, suggestRegionCopy(copies))
+		group := suggestRegionCopy(copies)
+		applyRegionChoice(&group, chosen)
+		groups = append(groups, group)
 	}
 	sort.Slice(groups, func(i, j int) bool { return strings.ToLower(groups[i].Name) < strings.ToLower(groups[j].Name) })
 	return groups
@@ -196,7 +275,7 @@ func suggestRegionCopy(copies []RegionCopy) RegionGroup {
 		return copies[i].Id < copies[j].Id
 	})
 	best := &copies[0]
-	best.Keep = true
+	best.Keep, best.Suggested = true, true
 	others := copies[1:]
 	reason := func(text string, better func(other RegionCopy) bool) {
 		for _, other := range others {

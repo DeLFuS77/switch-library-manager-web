@@ -120,6 +120,9 @@ type Web struct {
 	activityOnce   sync.Once
 	hist           *libraryHistory
 	historyOnce    sync.Once
+	// the copies chosen of the games of several regions
+	regionChoice     *regionChoices
+	regionChoiceOnce sync.Once
 	// how long the games take to beat, from IGDB (see igdb.go)
 	timeToBeat     *timeToBeatStore
 	timeToBeatOnce sync.Once
@@ -275,8 +278,13 @@ type TitleItem struct {
 	// other versions
 	Cheats      bool
 	CheatsOther bool
-	// other regions of the game in the library, when each game counts once
+	// other regions of the game in the library, when each game counts once, and their flags;
+	// the regions it was released in that the library has no copy of
 	OtherRegions int
+	OtherFlags   []string
+	MissingFlags []string
+	// regions left out of the cover, to keep its flags few, shown on hover
+	HiddenRegions []string
 	// games without their base game: the updates and DLC the library has of them
 	OrphanUpdates int
 	OrphanDlc     int

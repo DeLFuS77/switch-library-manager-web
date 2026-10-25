@@ -239,6 +239,38 @@
 					{{- end}}
 				</ul>
 			</section>
+			{{- with $t.Regions}}
+			<section class="mb-4" id="regions" aria-labelledby="regionsTitle">
+				<h2 class="section-title" id="regionsTitle"><span class="bi bi-globe2" aria-hidden="true"></span>{{t "Other regions"}} <span class="badge rounded-pill text-bg-secondary">{{len .Copies}}</span></h2>
+				<p class="small text-body-secondary">{{t "You have this game from several regions: each one is a game of its own, with its own updates and DLC. The main copy is the one the library shows when each game counts once, with the flags of all, and the one Space keeps."}}</p>
+				<ul class="item-list mb-0">
+					{{- range .Copies}}
+					<li class="item-row{{if .Keep}} region-keep{{end}}">
+						{{- if .Region}}<span class="fi fi-{{.Region | toLower}} flex-shrink-0" title="{{.Region}}" aria-hidden="true"></span>{{end}}
+						<div class="item-main">
+							<div class="item-name">{{if eq .Id $t.Id}}<span class="fw-semibold">{{.Name}}</span> <span class="small text-body-secondary">({{t "this page"}})</span>{{else}}<a class="link-body-emphasis text-decoration-none" href="/title/{{.Id}}.html">{{.Name}}</a>{{end}} <span class="font-monospace small text-body-secondary">{{.Id}}</span></div>
+							<div class="item-meta">
+								<span>{{t "%v languages" (len .Languages)}}{{if .HasLanguage}} &middot; {{t "yours included"}}{{end}}</span>
+								{{- if .LocalUpdate}}<span>v{{.LocalUpdate}}</span>{{end}}
+								{{- if .Dlc}}<span>{{.Dlc}} DLC</span>{{end}}
+								<span>{{formatSize .Size}}</span>
+								{{- if and .Suggested (not .Keep)}}<span><span class="bi bi-lightbulb me-1" aria-hidden="true"></span>{{t "Suggested"}}{{with .Reasons}}: {{range $i, $r := .}}{{if $i}}, {{end}}{{t $r}}{{end}}{{end}}</span>{{end}}
+							</div>
+						</div>
+						{{- if .Damaged}}<span class="chip chip-danger flex-shrink-0"><span class="bi bi-exclamation-octagon" aria-hidden="true"></span>{{t "Damaged"}}</span>{{end}}
+						{{- if and .Keep .Chosen}}<span class="chip chip-success flex-shrink-0"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Main copy, chosen by you"}}</span>
+						{{- else if .Keep}}<span class="chip chip-success flex-shrink-0"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Main copy, suggested"}}{{with .Reasons}}: {{range $i, $r := .}}{{if $i}}, {{end}}{{t $r}}{{end}}{{end}}</span>
+						{{- else}}
+						<button type="button" class="btn btn-sm btn-outline-primary rounded-pill flex-shrink-0 admin-only" data-region-main="{{.Id}}"><span class="bi bi-pin-angle me-1" aria-hidden="true"></span>{{t "Make it the main copy"}}</button>
+						{{- end}}
+					</li>
+					{{- end}}
+				</ul>
+				{{- if .Chosen}}
+				<button type="button" class="btn btn-sm btn-link px-0 mt-2 admin-only" data-region-main="{{$t.Id}}" data-region-suggested="true">{{t "Back to the suggested copy"}}</button>
+				{{- end}}
+			</section>
+			{{- end}}
 			{{- with $t.Cheats}}
 			<section class="mb-4">
 				<div class="section-head">

@@ -1001,6 +1001,12 @@
 		transition: filter .2s ease;
 	}
 
+	// every region of a game you do not have, its own too
+	.game-cover-meta .fi {
+		opacity: .4;
+		filter: grayscale(1);
+	}
+
 	// quieter than the games you have, through the color of the name rather than a veil on the whole
 	// card, which took the date and the chip below the contrast of WCAG AA
 	.game-title,
