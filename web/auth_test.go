@@ -488,3 +488,55 @@ func TestLastSignIn(t *testing.T) {
 		t.Fatalf("the later sign-in is saved: %v", again.LastLogin)
 	}
 }
+
+// Activity is told of every sign-in of the login page, right or wrong, and of an API client or
+// a blocked attempt only now and then, not with every request.
+func TestSignInsToldToActivity(t *testing.T) {
+	web := usersWeb(t)
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	web.auth.users.Add("bob", "bravo-secret-22", ROLE_VIEWER)
+	told := []string{}
+	web.auth.onLogin = func(user, ip, result string, longEnough bool) {
+		told = append(told, user+" "+result)
+	}
+	handler := web.auth.middleware(web.router)
+	count := func(entry string) int {
+		n := 0
+		for _, each := range told {
+			if each == entry {
+				n++
+			}
+		}
+		return n
+	}
+
+	page := &client{t: t, handler: handler, ip: "192.168.1.20"}
+	page.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
+	if count("alice ok") != 1 {
+		t.Fatalf("a sign-in of the login page: %v", told)
+	}
+
+	api := &client{t: t, handler: handler, ip: "192.168.1.30"}
+	for range 3 {
+		api.do("GET", "/index.html", nil, "Authorization", basic("bob", "bravo-secret-22"))
+	}
+	if count("bob ok") != 1 {
+		t.Fatalf("an API client signs in with every request, told once: %v", told)
+	}
+
+	wrong := &client{t: t, handler: handler, ip: "192.168.1.40"}
+	failures := 0
+	for range 20 {
+		if wrong.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"guessed-wrong-1"}}).Code == http.StatusTooManyRequests {
+			break
+		}
+		failures++
+	}
+	if failures == 0 || count("alice fail") != failures {
+		t.Fatalf("every wrong password of the login page is told: %d of %d", count("alice fail"), failures)
+	}
+	wrong.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"guessed-wrong-2"}})
+	if count("alice blocked") != 1 {
+		t.Fatalf("a blocked login page is told once an hour: %v", told)
+	}
+}
