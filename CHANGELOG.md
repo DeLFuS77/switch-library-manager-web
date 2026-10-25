@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- With a folder for each update and DLC, the folder of a DLC no longer repeats the name of its game when the DLC starts with it, written in any case and with any signs (KONOSUBA - God's... and KonoSuba God's...), or with two of its words and a dash (WRC Generations - Porsche...): DLC › Porsche 911 GT3 RS RGT Extra liveries [ID]. A DLC the titles database does not name goes to "DLC [ID]" instead of a folder named by its ID only
+
 ## 1.57.2
 
 ### Fixes
