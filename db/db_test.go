@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"net/http"
@@ -661,4 +662,43 @@ func TestLoadAndUpdateWithAServerThatAnswers(t *testing.T) {
 		t.Fatalf("not modified: err=%v %+v", err, result)
 	}
 	result.File.Close()
+}
+
+// A copy that could be read takes the place of one identified by its name only, found first or
+// not: a damaged copy no longer keeps the sound one out of the library.
+func TestSoundCopyIsKeptInsteadOfAnUnreadableOne(t *testing.T) {
+	keysDir := t.TempDir()
+	if err := testnsp.WriteKeys(keysDir); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := settings.InitSwitchKeys(keysDir); err != nil {
+		t.Fatal(err)
+	}
+	defer settings.InitSwitchKeys(t.TempDir())
+
+	for _, names := range [][2]string{{"a.nsp", "b.nsp"}, {"b.nsp", "a.nsp"}} {
+		broken, sound := names[0], names[1]
+		folder := t.TempDir()
+		// a valid PFS0 without any NCA, named as the game: identified by its name only
+		os.WriteFile(filepath.Join(folder, "Game [0100000000010000][v0] "+broken), []byte("PFS0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"), 0o644)
+		if _, err := testnsp.WriteMultiTitleNsp(filepath.Join(folder, "Game [0100000000010000][v0] "+sound), []testnsp.Title{
+			{Id: 0x0100000000010000, Type: switchfs.ContentMetaType_Application, Content: "the game "},
+		}); err != nil {
+			t.Fatal(err)
+		}
+
+		manager, err := NewLocalSwitchDBManager(t.TempDir())
+		if err != nil {
+			t.Fatal(err)
+		}
+		localDB, err := manager.CreateLocalSwitchFilesDB(nil, t.TempDir(), []string{folder}, nil, true, true)
+		manager.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		game := localDB.TitlesMap["0100000000010"]
+		if game == nil || !strings.HasSuffix(game.File.ExtendedInfo.FileName, sound) {
+			t.Fatalf("the copy that could be read is the game (%s first): %+v", broken, game)
+		}
+	}
 }

@@ -429,14 +429,16 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 		return ok && reason.ReasonCode != REASON_DUPLICATE && reason.ReasonCode != REASON_OLD_UPDATE
 	}
 	// keepInstead tells whether file is kept instead of the copy found first, as chosen in
-	// the settings; a file with an issue is never preferred to one without
+	// the settings; a file with an issue is never preferred to one without, and one without
+	// takes the place of one with an issue (a copy that could not be read, found first, kept
+	// the sound one out of the library)
 	keepInstead := func(found ExtendedFileInfo, file ExtendedFileInfo) bool {
 		// a copy chosen in Issues wins
 		if chosen[fullPath(file)] != chosen[fullPath(found)] {
 			return chosen[fullPath(file)]
 		}
-		if flagged(file) && !flagged(found) {
-			return false
+		if flagged(file) != flagged(found) {
+			return flagged(found)
 		}
 		return PreferDuplicate(keepDuplicate, found, titlesInFile[found], file, titlesInFile[file])
 	}

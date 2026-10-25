@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Old versions of a DLC are no longer kept "for the cheats": cheats are for a game and its updates, and a DLC at version 0 counted as the update 0 of its game, so the cleanup never deleted it
+- When a game has two copies and the one found first could not be read (identified by its name only, often a damaged file), the copy that could be read is the one the library keeps. Before, the sound copy was the duplicate: Organize left it where it was, and the cleanup kept both
+
 ## 1.57.1
 
 ### Fixes

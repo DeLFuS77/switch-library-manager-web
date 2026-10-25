@@ -34,6 +34,10 @@ func (web *Web) keptForCheats(file db.ExtendedFileInfo) string {
 	if !ok {
 		return ""
 	}
+	// cheats are for a game and its updates: an old DLC (v0, as the game) is no update of it
+	if kind, err := db.ContentKind(id); err != nil || kind != db.KIND_UPDATE {
+		return ""
+	}
 	prefix, err := db.TitleIDPrefix(id)
 	if err != nil {
 		return ""
