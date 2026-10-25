@@ -156,6 +156,17 @@ type CompressPageData struct {
 	TotalSize int64
 	// compressed files that can be decompressed
 	Running bool
+	// the level chosen at first: the one of Settings, which Measure this server measures
+	Level string
+}
+
+// settingsLevel is the compression level chosen in Settings, balanced when none is.
+func settingsLevel(appSettings *settings.AppSettings) string {
+	switch appSettings.AutoCompressLevel {
+	case switchfs.LevelFast, switchfs.LevelMax:
+		return appSettings.AutoCompressLevel
+	}
+	return switchfs.LevelBalanced
 }
 
 // compressor runs one compression at a time and can cancel it.
@@ -1245,6 +1256,7 @@ func (web *Web) HandleCompress() {
 		candidates := web.uncompressedCandidates()
 		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, CompressedCount: len(web.decompressCandidates()), CardCount: len(web.convertCandidates()), SplitCount: len(web.splitCandidates()), PackCount: len(web.packCandidates()), Running: web.compressionRunning()}
 		data.AlreadyCompressed = len(web.compressCandidates()) - len(candidates)
+		data.Level = settingsLevel(settings.ReadSettings(web.dataFolder))
 		data.Uncompressible = web.uncompressibleFiles()
 		damaged := web.verifications().damaged()
 		for _, file := range web.libraryFiles(".nsp", ".xci") {
