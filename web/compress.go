@@ -29,6 +29,10 @@ const (
 	NOTE_COMPRESS_EXISTS  = "A compressed file with the same name already exists."
 	NOTE_COMPRESS_NOTHING = "Nothing in the file can be compressed."
 	NOTE_COMPRESS_SPARSE  = "This game uses a recent layout (sparse storage) that no compressor can shrink yet: it stays as it is, and installs normally."
+	// why nothing else of a file can be compressed, when the library tells it
+	NOTE_COMPRESS_ALREADY    = "This file is compressed already: it is an NSZ or XCZ under the name of an NSP or XCI. Give it its own extension to use it."
+	NOTE_COMPRESS_NO_DATA    = "Its NCA files hold no game data (only control, manual or meta files), so there is nothing to compress: it stays as it is."
+	NOTE_COMPRESS_ENCRYPTION = "Its sections use an encryption no compressor reads: it stays as it is, and installs normally."
 	// every task on files that the user stops; the old text stays in the history saved before
 	NOTE_COMPRESS_CANCELED     = "The task was cancelled."
 	NOTE_COMPRESS_CANCELED_OLD = "The compression was cancelled."
@@ -37,7 +41,7 @@ const (
 	NOTE_DECOMPRESS_FAILED     = "The file could not be decompressed, the compressed file is kept."
 )
 
-var compressNoteTexts = []string{NOTE_SPLIT_FAILED, NOTE_SPLIT_EXISTS, NOTE_SPLIT_KEPT, NOTE_PACK_FAILED, NOTE_PACK_EXISTS, NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_SPARSE, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_CANCELED_OLD, NOTE_COMPRESS_DELETE, NOTE_COMPRESS_NO_KEY}
+var compressNoteTexts = []string{NOTE_SPLIT_FAILED, NOTE_SPLIT_EXISTS, NOTE_SPLIT_KEPT, NOTE_PACK_FAILED, NOTE_PACK_EXISTS, NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_SPARSE, NOTE_COMPRESS_ALREADY, NOTE_COMPRESS_NO_DATA, NOTE_COMPRESS_ENCRYPTION, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_CANCELED_OLD, NOTE_COMPRESS_DELETE, NOTE_COMPRESS_NO_KEY}
 
 // CompressCandidate is an NSP of the library that can be compressed.
 type CompressCandidate struct {
@@ -1045,6 +1049,12 @@ func compressNote(kind string, err error) string {
 		return NOTE_COMPRESS_EXISTS
 	case errors.Is(err, switchfs.ErrSparseStorage):
 		return NOTE_COMPRESS_SPARSE
+	case errors.Is(err, switchfs.ErrAlreadyCompressed):
+		return NOTE_COMPRESS_ALREADY
+	case errors.Is(err, switchfs.ErrNotCompressible) && strings.Contains(err.Error(), "encryption the app does not read"):
+		return NOTE_COMPRESS_ENCRYPTION
+	case errors.Is(err, switchfs.ErrNotCompressible) && (strings.Contains(err.Error(), "holds no game data") || strings.Contains(err.Error(), "no NCA file but metadata")):
+		return NOTE_COMPRESS_NO_DATA
 	case errors.Is(err, switchfs.ErrNotCompressible):
 		return NOTE_COMPRESS_NOTHING
 	case errors.Is(err, switchfs.ErrNoTitleKey):

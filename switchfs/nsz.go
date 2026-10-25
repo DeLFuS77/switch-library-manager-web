@@ -114,6 +114,16 @@ var ErrSparseStorage = fmt.Errorf("%w: it uses sparse storage, which cannot be c
 // reasonSparse is the reason of planNcz for an NCA in sparse storage.
 const reasonSparse = "sparse storage"
 
+// ErrAlreadyCompressed is ErrNotCompressible for a package that holds NCZ files already: an
+// NSZ or XCZ named as an NSP or XCI.
+var ErrAlreadyCompressed = fmt.Errorf("%w: it is compressed already (it holds NCZ files), an NSZ or XCZ under another name", ErrNotCompressible)
+
+// ncaContentTypes name the content types of NCA files, to tell why one is not compressed.
+var ncaContentTypes = map[byte]string{
+	NcaContentType_Program: "program", NcaContentType_Meta: "meta", NcaContentType_Control: "control",
+	NcaContentType_Manual: "manual", NcaContentType_Data: "data", NcaContentType_PublicData: "public data",
+}
+
 type nczSection struct {
 	offset     uint64
 	size       uint64
@@ -154,11 +164,16 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 	// why the NCA files worth compressing were stored as they are, to tell when none is left
 	reasons := []string{}
 	names := make([]string, len(pkg.files))
+	ncas, nczs := 0, 0
 	for i, file := range pkg.files {
 		names[i] = file.name
+		if strings.HasSuffix(strings.ToLower(file.name), ".ncz") {
+			nczs++
+		}
 		if !isCompressibleNcaName(file.name) || file.size <= nczHeaderSize {
 			continue
 		}
+		ncas++
 		plan, reason, err := planNcz(input, file.offset, uint64(file.size), titleKeys)
 		if err != nil {
 			return result, fmt.Errorf("%s: %w", file.name, err)
@@ -177,13 +192,19 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 		}
 	}
 	if result.Compressed == 0 {
+		if nczs > 0 {
+			return result, ErrAlreadyCompressed
+		}
 		for _, reason := range reasons {
 			if strings.HasSuffix(reason, ": "+reasonSparse) {
 				return result, ErrSparseStorage
 			}
 		}
 		if len(reasons) > 0 {
-			return result, fmt.Errorf("%w (%s)", ErrNotCompressible, strings.Join(reasons, "; "))
+			return result, fmt.Errorf("%w: %s", ErrNotCompressible, strings.Join(reasons, "; "))
+		}
+		if ncas == 0 {
+			return result, fmt.Errorf("%w: it holds no NCA file but metadata", ErrNotCompressible)
 		}
 		return result, ErrNotCompressible
 	}
@@ -286,9 +307,14 @@ func planNcz(input io.ReaderAt, offset int64, size uint64, titleKeys map[string]
 	if err != nil {
 		return nil, "", err
 	}
-	// program and public data hold the game; the rest is small
+	// program and public data hold the game; the rest is small and stays as it is, told only
+	// when no NCA of the package is compressed
 	if header.contentType != NcaContentType_Program && header.contentType != NcaContentType_PublicData {
-		return nil, "", nil
+		name, ok := ncaContentTypes[header.contentType]
+		if !ok {
+			name = fmt.Sprintf("content type %d", header.contentType)
+		}
+		return nil, "it holds no game data (" + name + ")", nil
 	}
 
 	sectionKey, err := ncaSectionKey(header, titleKeys)
