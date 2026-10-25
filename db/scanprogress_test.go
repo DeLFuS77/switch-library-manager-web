@@ -123,3 +123,25 @@ func TestScanFindsEmptyFolders(t *testing.T) {
 		t.Fatalf("empty folders: %v, want %v", empty, want)
 	}
 }
+
+// A game whose name starts with a dot is a game; the "._" files of macOS, the temporary files
+// of the app and the other hidden files are not.
+func TestScanFindsGamesWhoseNameStartsWithADot(t *testing.T) {
+	folder := t.TempDir()
+	for _, name := range []string{".cat [0100000000010000][v0].nsz", "._.cat [0100000000010000][v0].nsz", ".keep", ".Game.nsp.tmp", "Game [0100000000020000][v0].nsp"} {
+		os.WriteFile(filepath.Join(folder, name), []byte("x"), 0o644)
+	}
+	files := []ExtendedFileInfo{}
+	leftovers := []LeftoverFile{}
+	if err := scanFolder(folder, true, &files, &leftovers, nil, nil, 0); err != nil {
+		t.Fatal(err)
+	}
+	names := []string{}
+	for _, file := range files {
+		names = append(names, file.FileName)
+	}
+	sort.Strings(names)
+	if strings.Join(names, "|") != ".cat [0100000000010000][v0].nsz|Game [0100000000020000][v0].nsp" || len(leftovers) != 1 {
+		t.Fatalf("files: %v, leftovers: %v", names, leftovers)
+	}
+}

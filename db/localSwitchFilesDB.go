@@ -385,14 +385,19 @@ func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, leftov
 			return nil
 		}
 
-		//skip hidden files (including macOS "._" resource forks)
-		if strings.HasPrefix(entry.Name(), ".") {
-			if leftovers != nil && leftoverName.MatchString(entry.Name()) {
+		// skip hidden files (including macOS "._" resource forks and the temporary files of the
+		// app), but not a game whose name starts with a dot (".hack//G.U.", named so by an older
+		// version or another tool): skipped, it was never in the library nor organized
+		if name := entry.Name(); strings.HasPrefix(name, ".") {
+			leftover := leftoverName.MatchString(name)
+			if leftovers != nil && leftover {
 				if info, err := entry.Info(); err == nil {
 					*leftovers = append(*leftovers, LeftoverFile{Path: path, Size: info.Size(), ModTime: info.ModTime()})
 				}
 			}
-			return nil
+			if leftover || strings.HasPrefix(name, "._") || !IsGameFileType(filepath.Ext(name)) {
+				return nil
+			}
 		}
 		info, err := entry.Info()
 		if err != nil {
