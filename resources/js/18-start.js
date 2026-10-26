@@ -128,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	initMarks();
 	initWhatsNew();
+	initSelfUpdate();
 	initGamepad();
 	initSounds();
 	initCouchMode();

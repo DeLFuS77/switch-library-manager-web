@@ -23,6 +23,11 @@ import (
 var embedFS embed.FS
 
 func main() {
+	// an update tries the new program with it before it replaces the one that runs
+	if len(os.Args) > 1 && os.Args[1] == "--version" {
+		fmt.Println(settings.SLM_WEB_VERSION)
+		return
+	}
 
 	exePath, err := os.Executable()
 	if err != nil {

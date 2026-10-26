@@ -418,6 +418,28 @@
 		text-decoration: none;
 	}
 
+	// a star on GitHub, asked once after each update
+	.whats-new-star {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		align-items: start;
+		gap: .45rem .6rem;
+		padding: .6rem .75rem;
+		border-radius: .6rem;
+		background: rgba($slm-gold, .1);
+		font-size: var(--slm-text-sm);
+
+		> .bi {
+			color: $slm-gold;
+		}
+
+		// below the text
+		> .btn {
+			grid-column: 2;
+			justify-self: start;
+		}
+	}
+
 	.whats-new-foot {
 		display: flex;
 		flex-wrap: wrap;

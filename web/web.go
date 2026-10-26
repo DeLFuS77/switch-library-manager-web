@@ -674,6 +674,11 @@ func (web *Web) Start() {
 	// by itself once it is ready (opening the local database and preparing the pages can
 	// take a while on a NAS)
 	listener, err := listenLimited(fmt.Sprint(":", web.appSettings.Port))
+	// started by an update: the program before leaves the port in a moment
+	for wait := 0; err != nil && portInUse(err) && restarted() && wait < 60; wait++ {
+		time.Sleep(500 * time.Millisecond)
+		listener, err = listenLimited(fmt.Sprint(":", web.appSettings.Port))
+	}
 	if err != nil {
 		// started twice with a double click: the app is already open, show it instead
 		if portInUse(err) {
@@ -751,6 +756,7 @@ func (web *Web) Start() {
 	web.HandleDLC()
 	web.HandleIssues()
 	web.HandleSettings()
+	web.HandleSelfUpdate()
 	web.HandleKeysUpload()
 	web.HandleUploads()
 	web.HandleSynchronize()

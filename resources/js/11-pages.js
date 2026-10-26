@@ -29,6 +29,54 @@ function initCollapsibleText() {
 	});
 }
 
+// Update now: the app downloads the new version, checks it and starts it (see selfupdate.go);
+// the page waits for the server to answer again, then opens the library, where the window of
+// what is new tells about the version.
+function initSelfUpdate() {
+	document.querySelectorAll('[data-update-install]').forEach(button => button.addEventListener('click', () => {
+		const status = document.querySelector('[data-update-status]');
+		const say = text => {
+			if (status) {
+				status.textContent = text;
+			} else {
+				showToast('alert-info', 'bi-cloud-arrow-down', t('Updating'), text);
+			}
+		};
+		document.querySelectorAll('[data-update-install]').forEach(other => (other.disabled = true));
+		say(t('Downloading and checking the new version...'));
+		fetch('/update/install', { method: 'POST' })
+			.then(response => response.json().then(json => ({ response, json })))
+			.then(({ response, json }) => {
+				if (!response.ok) {
+					const error = json.globalError || {};
+					throw new Error(error.message || t('Unexpected server response (%v).', response.status));
+				}
+				say(t('Installed: the app starts again...'));
+				const started = Date.now();
+				const wait = () => {
+					fetch('/healthz', { cache: 'no-store' })
+						.then(() => window.location.assign('/'))
+						.catch(() => {
+							if (Date.now() - started < 120000) {
+								setTimeout(wait, 1500);
+							} else {
+								say(t('The app does not answer: start it again by hand.'));
+							}
+						});
+				};
+				setTimeout(wait, 2500);
+			})
+			.catch(error => {
+				document.querySelectorAll('[data-update-install]').forEach(other => (other.disabled = false));
+				const message = error.message || t('Could not reach the server.');
+				if (status) {
+					status.textContent = message;
+				}
+				showToast('alert-danger', 'bi-exclamation-triangle', t('Error!'), message);
+			});
+	}));
+}
+
 // the window of what is new after an update: once per version and browser, unless the box to
 // stop seeing it was ticked (without storage it shows each time, which is harmless)
 function initWhatsNew() {

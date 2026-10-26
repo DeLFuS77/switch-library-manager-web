@@ -7,6 +7,12 @@
 					<div class="fw-semibold">{{t "Installed version"}}: {{.Version}}</div>
 					{{- with .Update}}
 					<div class="text-body-secondary">{{t "Version %v is available." .Version}} <a href="{{.Url}}" target="_blank" rel="noopener noreferrer">{{t "See what is new"}}</a></div>
+					{{- if .CanInstall}}
+					<div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+						<button type="button" class="btn btn-primary rounded-pill" data-update-install><span class="bi bi-cloud-arrow-down me-1" aria-hidden="true"></span>{{t "Update now"}}</button>
+						<span class="small text-body-secondary" data-update-status role="status">{{t "The app downloads it from GitHub, checks it, keeps the version of now as .old and starts again."}}</span>
+					</div>
+					{{- end}}
 					{{- else}}
 					<div class="text-body-secondary">{{t "No newer version is known."}}</div>
 					{{- end}}

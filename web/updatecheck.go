@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"net/http"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -25,6 +26,13 @@ type AppUpdate struct {
 	Version string
 	Url     string
 	Notes   string
+	// the files of the release for this system, to update by itself (see selfupdate.go)
+	files releaseFiles
+}
+
+// CanInstall tells whether the app can install this version by itself.
+func (u *AppUpdate) CanInstall() bool {
+	return u.files.archiveUrl != "" && selfUpdatable()
 }
 
 // updateChecker remembers the latest release found on GitHub.
@@ -79,6 +87,10 @@ func (web *Web) checkForUpdate() {
 		Body    string `json:"body"`
 		Draft   bool   `json:"draft"`
 		Pre     bool   `json:"prerelease"`
+		Assets  []struct {
+			Name string `json:"name"`
+			Url  string `json:"browser_download_url"`
+		} `json:"assets"`
 	}{}
 	if err := json.NewDecoder(response.Body).Decode(&release); err != nil || release.Draft || release.Pre {
 		return
@@ -98,7 +110,14 @@ func (web *Web) checkForUpdate() {
 		if runes := []rune(notes); len(runes) > releaseNotesLength {
 			notes = string(runes[:releaseNotesLength]) + "…"
 		}
+		assets := map[string]string{}
+		for _, asset := range release.Assets {
+			assets[asset.Name] = asset.Url
+		}
 		web.updates.latest = &AppUpdate{Version: strings.TrimPrefix(release.TagName, "v"), Url: release.HtmlUrl, Notes: notes}
+		if files, ok := filesOfRelease(assets, systemArchive(runtime.GOOS, runtime.GOARCH)); ok {
+			web.updates.latest.files = files
+		}
 		web.sugarLogger.Infof("Version %s is available", release.TagName)
 	}
 }
