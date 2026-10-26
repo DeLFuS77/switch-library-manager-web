@@ -453,6 +453,16 @@
 	}
 }
 
+// a star on GitHub, asked with each new version
+.update-star {
+	font-size: var(--slm-text-sm);
+
+	> .bi {
+		margin-right: .35rem;
+		color: $slm-gold;
+	}
+}
+
 @media (prefers-reduced-motion: no-preference) {
 	.whats-new .whats-new-icon .bi {
 		display: inline-block;

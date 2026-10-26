@@ -5,7 +5,8 @@
 ### New
 
 - Update now: on Windows, macOS and Linux the app installs a new version by itself, from the notice of a new version or the Update page. It downloads the file of its system from the release on GitHub, checks it against SHA256SUMS.txt of the release, tries the new program before it replaces the one that runs, keeps that one as .old and starts again. Nothing is changed when a check fails, and it waits while a task works on the files. Docker and Unraid keep updating the container
-- The window of what is new after an update asks, without insisting, for a star on GitHub
+- A star on GitHub is asked for in the notice of a new version and in the window of what is new after an update
+- The notice of a new version can no longer be put away for good: closing it hides it on that page only, and it shows again while the version is not installed
 
 ## 1.60.1
 
