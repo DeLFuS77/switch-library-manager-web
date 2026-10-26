@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.57.5
+  <Changes>### 1.58.0
+- Users shows the last sign-in of each user and Activity the sign-ins of the login page; Space waits only for files really waiting for their check; a game compressed during a task downloads as its compressed copy; the count of files of a task counts each file once done; Measure picks a heavier setting from 5% faster
+### 1.57.5
 - Downloads without the version in their names, one copy only of an old update kept for its cheats, marks of games nothing can compress kept after Organize, and Check new files says when there is nothing to check
 ### 1.57.4
 - Games whose file name starts with a dot are in the library again, and empty folders that were empty already or hold only Thumbs.db, desktop.ini or .DS_Store are deleted too

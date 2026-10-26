@@ -1,4 +1,61 @@
 {
+  "1.58.0": {
+    "en": [
+      "Users shows the last time each user signed in, and Activity notes the sign-ins of the login page: right, wrong or blocked.",
+      "Space waits only for files that really wait for their check, and a game compressed during a task downloads as its compressed copy.",
+      "The count of files of a task counts each file once it is done, and Measure this server picks a heavier setting when it is at least 5% faster."
+    ],
+    "es": [
+      "Usuarios muestra la última vez que entró cada usuario, y Actividad apunta los inicios de sesión de la página de entrada: correctos, fallidos o bloqueados.",
+      "Espacio solo espera a los archivos que de verdad esperan su comprobación, y un juego comprimido durante una tarea se descarga en su copia comprimida.",
+      "El contador de archivos de una tarea cuenta cada archivo cuando termina, y Medir este servidor elige un ajuste más pesado cuando es al menos un 5 % más rápido."
+    ],
+    "de": [
+      "Benutzer zeigt, wann sich jeder Benutzer zuletzt angemeldet hat, und Aktivität vermerkt die Anmeldungen der Anmeldeseite: richtig, falsch oder gesperrt.",
+      "Speicher wartet nur auf Dateien, die wirklich auf ihre Prüfung warten, und ein während einer Aufgabe komprimiertes Spiel wird als komprimierte Kopie heruntergeladen.",
+      "Der Dateizähler einer Aufgabe zählt jede Datei erst, wenn sie fertig ist, und Diesen Server messen wählt eine schwerere Einstellung, wenn sie mindestens 5 % schneller ist."
+    ],
+    "fr": [
+      "Utilisateurs montre la dernière connexion de chaque utilisateur, et Activité note les connexions de la page de connexion : réussies, échouées ou bloquées.",
+      "Espace n'attend que les fichiers qui attendent vraiment leur vérification, et un jeu compressé pendant une tâche se télécharge dans sa copie compressée.",
+      "Le compteur de fichiers d'une tâche compte chaque fichier une fois terminé, et Mesurer ce serveur choisit un réglage plus lourd s'il est au moins 5 % plus rapide."
+    ],
+    "it": [
+      "Utenti mostra l'ultimo accesso di ogni utente, e Attività annota gli accessi dalla pagina di accesso: riusciti, sbagliati o bloccati.",
+      "Spazio aspetta solo i file che aspettano davvero la verifica, e un gioco compresso durante un'attività si scarica nella sua copia compressa.",
+      "Il contatore dei file di un'attività conta ogni file quando è finito, e Misura questo server sceglie un'impostazione più pesante se è almeno del 5% più veloce."
+    ],
+    "pt": [
+      "Usuários mostra o último acesso de cada usuário, e Atividade registra os acessos da página de entrada: certos, errados ou bloqueados.",
+      "Espaço só espera pelos arquivos que realmente esperam a verificação, e um jogo comprimido durante uma tarefa é baixado na sua cópia comprimida.",
+      "O contador de arquivos de uma tarefa conta cada arquivo quando termina, e Medir este servidor escolhe uma configuração mais pesada quando é pelo menos 5% mais rápida."
+    ],
+    "nl": [
+      "Gebruikers toont wanneer elke gebruiker voor het laatst inlogde, en Activiteit noteert de aanmeldingen van de inlogpagina: gelukt, mislukt of geblokkeerd.",
+      "Opslag wacht alleen op bestanden die echt op hun controle wachten, en een spel dat tijdens een taak gecomprimeerd is, wordt gedownload als zijn gecomprimeerde kopie.",
+      "De bestandsteller van een taak telt elk bestand pas als het klaar is, en Deze server meten kiest een zwaardere instelling als die minstens 5% sneller is."
+    ],
+    "ru": [
+      "«Пользователи» показывает, когда каждый пользователь входил в последний раз, а «Активность» записывает входы со страницы входа: успешные, неудачные и заблокированные.",
+      "«Место» ждёт только файлы, которые действительно ждут проверки, а игра, сжатая во время задачи, скачивается в виде сжатой копии.",
+      "Счётчик файлов задачи учитывает файл, когда он готов, а «Измерить этот сервер» выбирает более тяжёлую настройку, если она быстрее хотя бы на 5 %."
+    ],
+    "ja": [
+      "「ユーザー」に各ユーザーの最終サインインを表示し、「アクティビティ」にログインページからのサインイン（成功・失敗・ブロック）を記録します。",
+      "「容量」は本当に確認待ちのファイルだけを待ち、タスク中に圧縮したゲームは圧縮したコピーでダウンロードされます。",
+      "タスクのファイル数は各ファイルが終わってから数え、「このサーバーを計測」は 5% 以上速ければ重い設定を選びます。"
+    ],
+    "ko": [
+      "사용자에 각 사용자의 마지막 로그인을 보여 주고, 활동에 로그인 페이지의 로그인(성공, 실패, 차단)을 기록해요.",
+      "공간은 정말 확인을 기다리는 파일만 기다리고, 작업 중에 압축한 게임은 압축된 사본으로 다운로드돼요.",
+      "작업의 파일 수는 각 파일이 끝난 뒤에 세고, 이 서버 측정은 5% 이상 빠르면 더 무거운 설정을 골라요."
+    ],
+    "zh": [
+      "“用户”显示每位用户最后一次登录的时间，“活动”记录登录页面的登录：成功、失败或被阻止。",
+      "“空间”只等待真正在等待校验的文件，任务期间压缩的游戏会以压缩副本下载。",
+      "任务的文件计数在每个文件完成后才计入，“测量此服务器”在至少快 5% 时选择更重的设置。"
+    ]
+  },
   "1.57.5": {
     "en": [
       "The downloads for Windows, macOS and Linux no longer have the version in their names: unpack each new version over the folder switch-library-manager-web. This once, copy the files of the new folder into the one you use now.",
