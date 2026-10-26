@@ -829,6 +829,10 @@ func (web *Web) Start() {
 	front.set(withSecurityHeaders(withBodyLimit(withCompression(withHealthCheck(web.withVault(handler))))))
 	web.sugarLogger.Info("[SLM started]")
 	if err := <-served; err != nil {
+		// closed by an update, which starts the new program and then stops this one
+		if errors.Is(err, http.ErrServerClosed) {
+			select {}
+		}
 		web.sugarLogger.Error(fmt.Errorf("running http server failed: %w", err))
 		log.Fatal(err)
 	}
