@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -206,6 +207,16 @@ func TestUploadNamesWithDots(t *testing.T) {
 		if got := uploadName(name); got != "cat [0100000000010000][v0].nsz" {
 			t.Fatalf("%q is saved as %q", name, got)
 		}
+	}
+}
+
+// A name too long for a disk that keeps names decomposed (ZFS on Unraid) is shortened before
+// its title ID, instead of failing when the file takes its name.
+func TestUploadNameTooLongForTheDisk(t *testing.T) {
+	name := "SDガンダム ジージェネレーション クロスレイズ プレミアムGサウンドエディション [換金オプションパーツ「GREEN INGOT」（プレミアムGサウンドエディション用）][010022900D3ED020][JP][v0].nsp"
+	got := uploadName(name)
+	if got == "" || got == name || process.NameBytes(got) > uploadNameBytes || !strings.HasSuffix(got, "[010022900D3ED020][JP][v0].nsp") {
+		t.Fatalf("%q (%d bytes)", got, process.NameBytes(got))
 	}
 }
 

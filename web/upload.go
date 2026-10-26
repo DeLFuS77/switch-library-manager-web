@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -102,13 +103,22 @@ func (s *uploadStore) remove(upload *gameUpload) {
 	}
 }
 
+// uploadNameBytes is the longest name a game is saved under, as the disk keeps it: a name too
+// long is shortened as Organize does (see process.FitFileName), or a disk that keeps names
+// decomposed (ZFS on Unraid) refuses it
+const uploadNameBytes = 240
+
 // uploadName is the name a file is saved under, or "" when it cannot be uploaded.
 func uploadName(name string) string {
 	name = strings.TrimSpace(filepath.Base(strings.ReplaceAll(name, `\`, "/")))
 	// a game whose name starts with a dot is saved without it, as Organize names it: with it, the
 	// file would be hidden on Linux and on many NAS
 	name = strings.TrimSpace(strings.TrimLeft(name, "."))
-	if name == "" || len(name) > 255 || !uploadExtensions[strings.ToLower(filepath.Ext(name))] {
+	if name == "" || !uploadExtensions[strings.ToLower(filepath.Ext(name))] {
+		return ""
+	}
+	name = process.FitFileName(name, uploadNameBytes)
+	if process.NameBytes(name) > uploadNameBytes {
 		return ""
 	}
 	for _, r := range name {
@@ -404,8 +414,13 @@ func (web *Web) HandleUploads() {
 		}
 		err := os.Rename(upload.part, upload.final)
 		if err != nil {
-			upload.mutex.Unlock()
+			// the task ends with the failure instead of staying at 100%, and the file sent is
+			// removed: sending it again starts over
 			web.sugarLogger.Errorf("[Upload] %s could not take its name: %v", upload.final, err)
+			os.Remove(upload.part)
+			web.endUploadTask(upload, &TaskNote{Text: UPLOAD_FAILED})
+			upload.mutex.Unlock()
+			web.uploads.remove(upload)
 			writeGlobalError(w, http.StatusInternalServerError, lang, UPLOAD_FAILED)
 			return
 		}

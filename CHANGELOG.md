@@ -7,6 +7,12 @@
 - Update now: on Windows, macOS and Linux the app installs a new version by itself, from the notice of a new version or the Update page. It downloads the file of its system from the release on GitHub, checks it against SHA256SUMS.txt of the release, tries the new program before it replaces the one that runs, keeps that one as .old and starts again. Nothing is changed when a check fails, and it waits while a task works on the files. Docker and Unraid keep updating the container
 - A star on GitHub is asked for in the notice of a new version and in the window of what is new after an update
 - The notice of a new version can no longer be put away for good: closing it hides it on that page only, and it shows again while the version is not installed
+- The Update page shows what the new version brings, has Check now to ask GitHub at once and a bar for the download, and Go back to the version of before, kept when the app updated itself
+- Install new versions by themselves at night, in Settings: between 3 and 5 in the morning, when no task works on the files (Windows, macOS and Linux)
+
+### Fixes
+
+- Uploading a game with a long name in Japanese (or with many accents) failed when the file took its name on Unraid, and its task stayed at 100%: the disks of ZFS keep names decomposed, where such a name takes more than the 255 bytes allowed. The name is now shortened before its title ID, as Organize does, and Organize measures names the same way. An upload that cannot take its name ends with the error
 
 ## 1.60.1
 
