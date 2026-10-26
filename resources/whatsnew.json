@@ -1,4 +1,61 @@
 {
+  "1.60.0": {
+    "en": [
+      "Up to three preferred regions, in order: Europe, the Americas, Japan and the other zones of the eShop by name, in Settings and in the wizard. The main copy of a game you have from several regions is the one of the first of them it has.",
+      "Game cards show the languages of the game as round flags on the cover, yours first. The region goes below the name, and only when it tells something: most games have one copy for every store.",
+      "The wizard plays a short welcome when it starts."
+    ],
+    "es": [
+      "Hasta tres regiones preferidas, por orden: Europa, América, Japón y las demás zonas del eShop por su nombre, en Ajustes y en el asistente. La copia principal de un juego que tienes de varias regiones es la de la primera de ellas que tenga.",
+      "Las tarjetas muestran los idiomas del juego como banderas redondas en la portada, el tuyo primero. La región pasa debajo del nombre, y solo cuando dice algo: casi todos los juegos tienen una sola copia para todas las tiendas.",
+      "El asistente suena con una pequeña bienvenida al empezar."
+    ],
+    "de": [
+      "Bis zu drei bevorzugte Regionen in Reihenfolge: Europa, Amerika, Japan und die anderen Zonen des eShops mit Namen, in den Einstellungen und im Assistenten. Die Hauptkopie eines Spiels aus mehreren Regionen ist die der ersten davon, die es hat.",
+      "Die Spielkarten zeigen die Sprachen des Spiels als runde Flaggen auf dem Cover, deine zuerst. Die Region steht unter dem Namen, und nur wenn sie etwas aussagt: Fast alle Spiele haben eine Kopie für alle Stores.",
+      "Der Assistent spielt beim Start eine kurze Begrüßung."
+    ],
+    "fr": [
+      "Jusqu'à trois régions préférées, dans l'ordre : l'Europe, les Amériques, le Japon et les autres zones de l'eShop par leur nom, dans les Réglages et l'assistant. La copie principale d'un jeu que vous avez de plusieurs régions est celle de la première qu'il possède.",
+      "Les cartes affichent les langues du jeu en drapeaux ronds sur la jaquette, la vôtre d'abord. La région passe sous le nom, et seulement quand elle apporte quelque chose : presque tous les jeux ont une seule copie pour toutes les boutiques.",
+      "L'assistant joue un petit accueil au démarrage."
+    ],
+    "it": [
+      "Fino a tre regioni preferite, in ordine: Europa, Americhe, Giappone e le altre zone dell'eShop per nome, nelle Impostazioni e nella procedura guidata. La copia principale di un gioco che hai di più regioni è quella della prima che ha.",
+      "Le schede mostrano le lingue del gioco come bandiere rotonde sulla copertina, la tua per prima. La regione va sotto il nome, e solo quando dice qualcosa: quasi tutti i giochi hanno una sola copia per tutti i negozi.",
+      "La procedura guidata suona un breve benvenuto all'avvio."
+    ],
+    "pt": [
+      "Até três regiões preferidas, em ordem: Europa, Américas, Japão e as outras zonas da eShop pelo nome, nas Configurações e no assistente. A cópia principal de um jogo que você tem de várias regiões é a da primeira delas que ele tiver.",
+      "Os cartões mostram os idiomas do jogo como bandeiras redondas na capa, o seu primeiro. A região fica abaixo do nome, e só quando diz algo: quase todos os jogos têm uma só cópia para todas as lojas.",
+      "O assistente toca uma pequena boas-vindas ao começar."
+    ],
+    "nl": [
+      "Tot drie voorkeursregio's op volgorde: Europa, Amerika, Japan en de andere zones van de eShop bij naam, in Instellingen en in de wizard. De hoofdkopie van een game die je uit meerdere regio's hebt, is die van de eerste die hij heeft.",
+      "Kaarten tonen de talen van de game als ronde vlaggen op de cover, die van jou eerst. De regio staat onder de naam, en alleen als die iets zegt: bijna alle games hebben één kopie voor alle winkels.",
+      "De wizard speelt bij het starten een korte begroeting."
+    ],
+    "ru": [
+      "До трёх предпочитаемых регионов по порядку: Европа, Америка, Япония и другие зоны eShop по названию, в настройках и в мастере. Основная копия игры из нескольких регионов — копия первого из них, который у неё есть.",
+      "Карточки показывают языки игры круглыми флагами на обложке, ваш первым. Регион перенесён под название и показывается, только когда что-то значит: почти у всех игр одна копия для всех магазинов.",
+      "Мастер настройки при запуске проигрывает короткое приветствие."
+    ],
+    "ja": [
+      "優先する地域を順番に最大 3 つまで選べます。ヨーロッパ、アメリカ大陸、日本など eShop の地域を名前で選べ、設定とセットアップウィザードにあります。複数の地域版があるゲームでは、その中で最初にある地域のコピーがメインになります。",
+      "カードではゲームの言語が表紙に丸い旗で表示され、あなたの言語が先頭です。地域は名前の下に移り、意味があるときだけ表示されます。ほとんどのゲームはすべてのストアで同じコピーです。",
+      "セットアップウィザードの開始時に短い歓迎のサウンドが鳴ります。"
+    ],
+    "ko": [
+      "선호 지역을 순서대로 최대 세 개까지 고를 수 있어요. 유럽, 아메리카, 일본 등 eShop 지역을 이름으로 고르며, 설정과 설정 마법사에 있습니다. 여러 지역판이 있는 게임은 그중 첫 번째로 있는 지역의 사본이 메인이 됩니다.",
+      "카드에 게임의 언어가 표지에 둥근 국기로 표시되며, 내 언어가 먼저 나옵니다. 지역은 이름 아래로 옮겨졌고 의미가 있을 때만 표시됩니다. 대부분의 게임은 모든 스토어에서 같은 사본입니다.",
+      "설정 마법사를 시작하면 짧은 환영 소리가 납니다."
+    ],
+    "zh": [
+      "最多可按顺序选择三个首选地区：欧洲、美洲、日本等 eShop 地区按名称显示，位于设置和设置向导中。拥有多个地区版本的游戏，以其中第一个拥有的地区的副本为主副本。",
+      "卡片在封面上以圆形旗帜显示游戏的语言，你的语言排在最前。地区移到名称下方，只在有意义时显示：几乎所有游戏在所有商店都是同一个副本。",
+      "设置向导启动时会播放一段简短的欢迎音。"
+    ]
+  },
   "1.59.0": {
     "en": [
       "A game you have from several regions can show as one card with the flags of all its regions: turn on \"Count a game once when you have it from several regions\" in Settings.",
