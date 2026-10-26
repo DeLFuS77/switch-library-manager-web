@@ -537,6 +537,9 @@ var funcMap = template.FuncMap{
 		return a - b
 	},
 	"toLower": strings.ToLower,
+	// the zones of the stores to prefer, and the ones chosen for each select (see regionZones)
+	"regionZones":      func() []RegionZone { return regionZones },
+	"preferredChoices": preferredChoices,
 	// percentOf64 is part of total in percent, for bars of sizes
 	"percentOf64": func(part int64, total int64) int64 {
 		if total <= 0 {

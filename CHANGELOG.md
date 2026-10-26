@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Preferred regions, in order: up to three, in Settings and in the wizard. They are the zones of the eShop that sell a game with its own title ID (Europe, the Americas, Australia and New Zealand, Japan, Korea, Hong Kong and Taiwan, China), by name instead of a country code; the copy of the first one a game has is its main copy. A country chosen before is kept as its zone
+- The wizard plays a short welcome when it starts
+
 ## 1.59.0
 
 ### New
