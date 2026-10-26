@@ -29,52 +29,116 @@ function initCollapsibleText() {
 	});
 }
 
-// Update now: the app downloads the new version, checks it and starts it (see selfupdate.go);
-// the page waits for the server to answer again, then opens the library, where the window of
-// what is new tells about the version.
+// Update now and Go back: the app puts the other version in place and starts it (see
+// selfupdate.go); the page shows the download, waits for the server to answer again and opens
+// the library. Check now asks GitHub at once.
 function initSelfUpdate() {
-	document.querySelectorAll('[data-update-install]').forEach(button => button.addEventListener('click', () => {
-		const status = document.querySelector('[data-update-status]');
-		const say = text => {
-			if (status) {
-				status.textContent = text;
-			} else {
-				showToast('alert-info', 'bi-cloud-arrow-down', t('Updating'), text);
-			}
-		};
-		document.querySelectorAll('[data-update-install]').forEach(other => (other.disabled = true));
-		say(t('Downloading and checking the new version...'));
-		fetch('/update/install', { method: 'POST' })
+	const status = document.querySelector('[data-update-status]');
+	const bar = document.querySelector('[data-update-progress]');
+	const buttons = () => document.querySelectorAll('[data-update-install], [data-update-rollback], [data-update-check]');
+	const say = text => {
+		if (status) {
+			status.textContent = text;
+		} else {
+			showToast('alert-info', 'bi-cloud-arrow-down', t('Updating'), text);
+		}
+	};
+	const fail = error => {
+		buttons().forEach(button => (button.disabled = false));
+		const message = error.message || t('Could not reach the server.');
+		if (status) {
+			status.textContent = message;
+		}
+		showToast('alert-danger', 'bi-exclamation-triangle', t('Error!'), message);
+	};
+	const post = url =>
+		fetch(url, { method: 'POST' })
 			.then(response => response.json().then(json => ({ response, json })))
 			.then(({ response, json }) => {
 				if (!response.ok) {
 					const error = json.globalError || {};
 					throw new Error(error.message || t('Unexpected server response (%v).', response.status));
 				}
-				say(t('Installed: the app starts again...'));
-				const started = Date.now();
-				const wait = () => {
-					fetch('/healthz', { cache: 'no-store' })
-						.then(() => window.location.assign('/'))
-						.catch(() => {
-							if (Date.now() - started < 120000) {
-								setTimeout(wait, 1500);
-							} else {
-								say(t('The app does not answer: start it again by hand.'));
-							}
-						});
-				};
-				setTimeout(wait, 2500);
-			})
-			.catch(error => {
-				document.querySelectorAll('[data-update-install]').forEach(other => (other.disabled = false));
-				const message = error.message || t('Could not reach the server.');
-				if (status) {
-					status.textContent = message;
-				}
-				showToast('alert-danger', 'bi-exclamation-triangle', t('Error!'), message);
+				return json;
 			});
-	}));
+	// the bytes downloaded, while the answer to install is awaited
+	let watching = null;
+	const watchProgress = () => {
+		if (!bar) {
+			return;
+		}
+		bar.hidden = false;
+		watching = setInterval(() => {
+			fetch('/update/progress', { cache: 'no-store' })
+				.then(response => response.json())
+				.then(progress => {
+					const percent = progress.total > 0 ? Math.min(100, Math.round((progress.done * 100) / progress.total)) : 0;
+					bar.firstElementChild.style.width = percent + '%';
+					bar.setAttribute('aria-valuenow', String(percent));
+					if (progress.step === 'check') {
+						say(t('Checking the new version...'));
+					}
+				})
+				.catch(() => {});
+		}, 500);
+	};
+	const restart = () => {
+		clearInterval(watching);
+		if (bar) {
+			bar.firstElementChild.style.width = '100%';
+		}
+		say(t('Installed: the app starts again...'));
+		const started = Date.now();
+		const wait = () => {
+			fetch('/healthz', { cache: 'no-store' })
+				.then(() => window.location.assign('/'))
+				.catch(() => {
+					if (Date.now() - started < 120000) {
+						setTimeout(wait, 1500);
+					} else {
+						say(t('The app does not answer: start it again by hand.'));
+					}
+				});
+		};
+		setTimeout(wait, 2500);
+	};
+	const run = (url, text) => {
+		buttons().forEach(button => (button.disabled = true));
+		say(text);
+		if (url === '/update/install') {
+			watchProgress();
+		}
+		post(url)
+			.then(restart)
+			.catch(error => {
+				clearInterval(watching);
+				if (bar) {
+					bar.hidden = true;
+				}
+				fail(error);
+			});
+	};
+	document.querySelectorAll('[data-update-install]').forEach(button =>
+		button.addEventListener('click', () => run('/update/install', t('Downloading the new version...')))
+	);
+	document.querySelectorAll('[data-update-rollback]').forEach(button =>
+		button.addEventListener('click', () => run('/update/rollback', t('Going back to the version of before...')))
+	);
+	document.querySelectorAll('[data-update-check]').forEach(button =>
+		button.addEventListener('click', () => {
+			button.disabled = true;
+			post('/update/check')
+				.then(json => {
+					if (json.version) {
+						window.location.reload();
+					} else {
+						button.disabled = false;
+						showToast('alert-success', 'bi-check-circle', t('Done!'), t('You have the latest version.'));
+					}
+				})
+				.catch(fail);
+		})
+	);
 }
 
 // the window of what is new after an update: once per version and browser, unless the box to

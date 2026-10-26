@@ -453,6 +453,35 @@
 	}
 }
 
+// what a new version brings, on the Update page, and the bar of its download
+.update-notes {
+	font-size: var(--slm-text-sm);
+
+	.update-notes-title {
+		margin: .5rem 0 .25rem;
+		font-size: var(--slm-text-sm);
+		font-weight: 600;
+	}
+
+	ul {
+		margin-bottom: .25rem;
+		padding-left: 1.2rem;
+	}
+
+	li + li {
+		margin-top: .25rem;
+	}
+}
+
+.update-progress {
+	height: .5rem;
+
+	.progress-bar {
+		width: 0;
+		transition: width .4s ease;
+	}
+}
+
 // a star on GitHub, asked with each new version
 .update-star {
 	font-size: var(--slm-text-sm);

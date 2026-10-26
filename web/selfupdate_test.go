@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -120,7 +121,7 @@ func updateTestWeb(t *testing.T, archive []byte, sum string) (*Web, string, *boo
 	program := filepath.Join(t.TempDir(), "switch-library-manager-web")
 	os.WriteFile(program, []byte("old"), 0o755)
 	started := false
-	saved := []any{currentProgram, tryProgram, startProgram, stopProgram}
+	saved := []any{currentProgram, tryProgram, startProgram, stopProgram, afterAnswer}
 	currentProgram = func() (string, error) { return program, nil }
 	tryProgram = func(path string) (string, error) {
 		data, _ := os.ReadFile(path)
@@ -131,12 +132,14 @@ func updateTestWeb(t *testing.T, archive []byte, sum string) (*Web, string, *boo
 	}
 	startProgram = func(string) error { started = true; return nil }
 	stopProgram = func() {}
+	afterAnswer = func(then func()) { then() }
 	t.Cleanup(func() {
 		releaseDownloads = downloads
 		currentProgram = saved[0].(func() (string, error))
 		tryProgram = saved[1].(func(string) (string, error))
 		startProgram = saved[2].(func(string) error)
 		stopProgram = saved[3].(func())
+		afterAnswer = saved[4].(func(func()))
 	})
 	files, ok := filesOfRelease(map[string]string{name: server.URL + "/1.70.0/" + name, "SHA256SUMS.txt": server.URL + "/1.70.0/SHA256SUMS.txt"}, name)
 	if !ok {
@@ -188,5 +191,58 @@ func TestInstallUpdateRefused(t *testing.T) {
 	web.organizing.Store(true)
 	if err := web.installUpdate(); err != errOrganizeBusy {
 		t.Fatalf("while a task runs: %v", err)
+	}
+}
+
+// Going back puts the program of before in place and keeps the newer one, to come back to it.
+func TestRollBack(t *testing.T) {
+	archive := tarArchive(t, map[string]string{"switch-library-manager-web/switch-library-manager-web": "new"})
+	sum := sha256.Sum256(archive)
+	web, program, started := updateTestWeb(t, archive, hex.EncodeToString(sum[:]))
+	if previousVersion() != "" {
+		t.Fatal("nothing to go back to before an update")
+	}
+	if err := web.installUpdate(); err != nil {
+		t.Fatal(err)
+	}
+	if previousVersion() != settings.SLM_WEB_VERSION || web.organizing.Load() {
+		t.Fatalf("the version of before: %q", previousVersion())
+	}
+	*started = false
+	if err := web.rollBack(); err != nil {
+		t.Fatal(err)
+	}
+	if data, _ := os.ReadFile(program); string(data) != "old" || !*started {
+		t.Fatalf("the program of before is back: %q", data)
+	}
+	if data, _ := os.ReadFile(program + ".old"); string(data) != "new" {
+		t.Fatalf("the newer one is kept: %q", data)
+	}
+}
+
+// The notes of a release are read up to its downloads.
+func TestReleaseSections(t *testing.T) {
+	body := "### New\r\n\r\n- One\r\n- Two\r\n\r\n### Fixes\n\n- Three\n\n### Downloads\n\n- not a change\n"
+	sections := releaseSections(body)
+	if len(sections) != 2 || sections[0].Title != "New" || len(sections[0].Items) != 2 || sections[1].Items[0] != "Three" {
+		t.Fatalf("%+v", sections)
+	}
+}
+
+// At night the new version is installed by itself, only with the setting on and between 3 and 5.
+func TestInstallAtNight(t *testing.T) {
+	archive := tarArchive(t, map[string]string{"switch-library-manager-web/switch-library-manager-web": "new"})
+	sum := sha256.Sum256(archive)
+	web, _, started := updateTestWeb(t, archive, hex.EncodeToString(sum[:]))
+	night := time.Date(2026, 10, 27, 3, 30, 0, 0, time.Local)
+	if web.installAtNight(night) || *started {
+		t.Fatal("installed with the setting off")
+	}
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.AutoInstallUpdates = true })
+	if web.installAtNight(night.Add(3 * time.Hour)) {
+		t.Fatal("installed in the day")
+	}
+	if selfUpdatable() && (!web.installAtNight(night) || !*started) {
+		t.Fatal("not installed at night")
 	}
 }

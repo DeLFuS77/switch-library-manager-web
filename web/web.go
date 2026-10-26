@@ -181,6 +181,8 @@ type Web struct {
 	rescanPending atomic.Bool
 	// a measure of the server is running
 	measuring atomic.Bool
+	// the server of the pages, closed before an update starts the new program
+	server *http.Server
 	// the content of the Space page is being prepared
 	spacePreparing atomic.Bool
 	// the changes of Organize are being counted for the tune-up
@@ -704,6 +706,7 @@ func (web *Web) Start() {
 		IdleTimeout:       2 * time.Minute,
 		MaxHeaderBytes:    64 << 10,
 	}
+	web.server = server
 	served := make(chan error, 1)
 	go func() { served <- server.Serve(listener) }()
 	if shouldOpenBrowser() && !isDemoMode() {

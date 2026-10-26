@@ -46,16 +46,18 @@ var releaseDownloads = "https://github.com/" + settings.REPOSITORY_OWNER + "/" +
 
 var appDownloadClient = &http.Client{Timeout: 10 * time.Minute}
 
-// the program that runs, how a program says its version, how the new one is started and how
-// this one stops; variables for the tests
+// the program that runs, how a program says its version, how the next one is started, how this
+// one stops and when, once the answer has left; variables for the tests
 var (
 	currentProgram = os.Executable
 	tryProgram     = programVersion
 	startProgram   = restartProgram
-	stopProgram    = func() {
-		// the answer reaches the browser, then the port is left to the new program
-		time.Sleep(time.Second)
-		os.Exit(0)
+	stopProgram    = func() { os.Exit(0) }
+	afterAnswer    = func(then func()) {
+		go func() {
+			time.Sleep(500 * time.Millisecond)
+			then()
+		}()
 	}
 )
 
@@ -115,97 +117,221 @@ var (
 	errUpdateChecksum = errorString("The download does not match the checksum of the release: nothing was changed.")
 	errUpdateProgram  = errorString("The new version does not start on this computer: nothing was changed.")
 	errUpdateReplace  = errorString("The program could not be replaced: nothing was changed. Update it by hand.")
+	errUpdateNoOld    = errorString("There is no version of before to go back to.")
 )
 
 // installing is set while an update is downloaded and installed
 var installing atomic.Bool
 
-// installUpdate downloads, checks and puts in place the newer version found, and starts it. The
-// program that runs stays as .old.
+// updateProgress is what the update does now, for the page that waits: the step, and the bytes
+// of the archive downloaded of all of them (0 when not known)
+var updateProgress struct {
+	step        atomic.Value
+	done, total atomic.Int64
+}
+
+const (
+	UPDATE_STEP_DOWNLOAD = "download"
+	UPDATE_STEP_CHECK    = "check"
+	UPDATE_STEP_RESTART  = "restart"
+)
+
+// countingReader counts the bytes downloaded in updateProgress.
+type countingReader struct {
+	reader io.Reader
+}
+
+func (c *countingReader) Read(p []byte) (int, error) {
+	n, err := c.reader.Read(p)
+	updateProgress.done.Add(int64(n))
+	return n, err
+}
+
+// oldVersionFile keeps the version of the program kept as .old, written by the update: only a
+// program kept so can be gone back to.
+func oldVersionFile(program string) string {
+	return program + ".old.version"
+}
+
+// previousVersion is the version the app can go back to, "" when there is none.
+func previousVersion() string {
+	program, err := runningProgram()
+	if err != nil {
+		return ""
+	}
+	if _, err := os.Stat(program + ".old"); err != nil {
+		return ""
+	}
+	data, err := os.ReadFile(oldVersionFile(program))
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(data))
+}
+
+func runningProgram() (string, error) {
+	program, err := currentProgram()
+	if err != nil {
+		return "", err
+	}
+	return filepath.EvalSymlinks(program)
+}
+
+// holdFiles keeps the files of the library still while the program is replaced: no task may
+// run, nor start, meanwhile. The function given ends it.
+func (web *Web) holdFiles() (func(), error) {
+	if !web.organizing.CompareAndSwap(false, true) {
+		return nil, errOrganizeBusy
+	}
+	if web.compressionRunning() || web.measuring.Load() || !installing.CompareAndSwap(false, true) {
+		web.organizing.Store(false)
+		return nil, errOrganizeBusy
+	}
+	return func() {
+		installing.Store(false)
+		web.organizing.Store(false)
+	}, nil
+}
+
+// installUpdate downloads, checks and puts in place the newer version found, and starts it once
+// the answer has left. The program that runs stays as .old.
 func (web *Web) installUpdate() error {
 	update := web.availableUpdate()
 	if update == nil || update.files.archiveUrl == "" {
 		return errUpdateNone
 	}
-	if !web.organizing.CompareAndSwap(false, true) {
-		return errOrganizeBusy
-	}
-	release := func() { web.organizing.Store(false) }
-	if web.compressionRunning() || web.measuring.Load() || !installing.CompareAndSwap(false, true) {
-		release()
-		return errOrganizeBusy
-	}
-	defer installing.Store(false)
-
-	program, err := currentProgram()
-	if err == nil {
-		program, err = filepath.EvalSymlinks(program)
-	}
+	end, err := web.holdFiles()
 	if err != nil {
-		release()
+		return err
+	}
+	updateProgress.step.Store(UPDATE_STEP_DOWNLOAD)
+	updateProgress.done.Store(0)
+	updateProgress.total.Store(0)
+	program, err := runningProgram()
+	if err != nil {
+		end()
 		return errUpdateReplace
 	}
-	sums, err := download(update.files.sumsUrl, maxSumsSize)
+	sums, err := download(update.files.sumsUrl, maxSumsSize, false)
 	if err != nil {
-		release()
+		end()
 		return errUpdateDownload
 	}
 	want, ok := checksumOf(sums, update.files.archive)
 	if !ok {
-		release()
+		end()
 		return errUpdateChecksum
 	}
-	archive, err := download(update.files.archiveUrl, maxArchiveSize)
+	archive, err := download(update.files.archiveUrl, maxArchiveSize, true)
 	if err != nil {
-		release()
+		end()
 		return errUpdateDownload
 	}
+	updateProgress.step.Store(UPDATE_STEP_CHECK)
 	if sum := sha256.Sum256(archive); hex.EncodeToString(sum[:]) != want {
-		release()
+		end()
 		return errUpdateChecksum
 	}
 	newProgram, err := programOf(archive, update.files.archive, filepath.Base(program))
 	if err != nil {
-		release()
+		end()
 		return errUpdateProgram
 	}
 	next := program + ".new"
 	if err := os.WriteFile(next, newProgram, 0o755); err != nil {
-		release()
+		end()
 		return errUpdateReplace
 	}
 	if version, err := tryProgram(next); err != nil || version != update.Version {
 		os.Remove(next)
 		web.sugarLogger.Warnf("[Update] the new program says version %q (%v)", version, err)
-		release()
+		end()
 		return errUpdateProgram
 	}
-	old := program + ".old"
-	os.Remove(old)
-	if err := os.Rename(program, old); err != nil {
+	if err := swapPrograms(program, next, settings.SLM_WEB_VERSION); err != nil {
 		os.Remove(next)
-		release()
-		return errUpdateReplace
-	}
-	if err := os.Rename(next, program); err != nil {
-		os.Rename(old, program)
-		release()
+		end()
 		return errUpdateReplace
 	}
 	web.sugarLogger.Infof("[Update] version %s installed, the app starts again", update.Version)
-	if err := startProgram(program); err != nil {
-		// the program of before, which still runs, stays
-		os.Remove(program)
-		os.Rename(old, program)
-		release()
-		return errUpdateReplace
-	}
-	go stopProgram()
+	web.restartWith(program, end)
 	return nil
 }
 
-// download reads a file of a release, refusing one heavier than limit.
-func download(url string, limit int64) ([]byte, error) {
+// rollBack puts back the program of before, kept as .old, and starts it once the answer has
+// left; the one that runs is kept as .old in turn, to come back to it.
+func (web *Web) rollBack() error {
+	previous := previousVersion()
+	if previous == "" {
+		return errUpdateNoOld
+	}
+	end, err := web.holdFiles()
+	if err != nil {
+		return err
+	}
+	program, err := runningProgram()
+	if err != nil {
+		end()
+		return errUpdateReplace
+	}
+	back := program + ".back"
+	os.Remove(back)
+	if err := os.Rename(program+".old", back); err != nil {
+		end()
+		return errUpdateReplace
+	}
+	if err := swapPrograms(program, back, settings.SLM_WEB_VERSION); err != nil {
+		os.Rename(back, program+".old")
+		end()
+		return errUpdateReplace
+	}
+	web.sugarLogger.Infof("[Update] back to version %s, the app starts again", previous)
+	web.restartWith(program, end)
+	return nil
+}
+
+// swapPrograms puts next in the place of program, which is kept as .old with its version.
+func swapPrograms(program string, next string, version string) error {
+	old := program + ".old"
+	os.Remove(old)
+	if err := os.Rename(program, old); err != nil {
+		return err
+	}
+	if err := os.Rename(next, program); err != nil {
+		os.Rename(old, program)
+		return err
+	}
+	os.WriteFile(oldVersionFile(program), []byte(version+"\n"), 0o644)
+	return nil
+}
+
+// restartWith starts the program put in place once the answer has left: this app leaves its
+// port first, so a version that does not wait for it starts too. If the program cannot be
+// started, the one of before is put back and started instead.
+func (web *Web) restartWith(program string, end func()) {
+	updateProgress.step.Store(UPDATE_STEP_RESTART)
+	afterAnswer(func() {
+		if web.server != nil {
+			web.server.Close()
+		}
+		if err := startProgram(program); err != nil {
+			web.sugarLogger.Errorf("[Update] the new program could not be started: %v", err)
+			old := program + ".old"
+			os.Remove(program)
+			os.Rename(old, program)
+			os.Remove(oldVersionFile(program))
+			if err := startProgram(program); err != nil {
+				web.sugarLogger.Errorf("[Update] the program of before could not be started either: %v", err)
+			}
+		}
+		end()
+		stopProgram()
+	})
+}
+
+// download reads a file of a release, refusing one heavier than limit; the bytes read are
+// counted in updateProgress when count is set.
+func download(url string, limit int64, count bool) ([]byte, error) {
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -219,7 +345,12 @@ func download(url string, limit int64) ([]byte, error) {
 	if response.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("status %d", response.StatusCode)
 	}
-	data, err := io.ReadAll(io.LimitReader(response.Body, limit+1))
+	var body io.Reader = response.Body
+	if count {
+		updateProgress.total.Store(response.ContentLength)
+		body = &countingReader{reader: body}
+	}
+	data, err := io.ReadAll(io.LimitReader(body, limit+1))
 	if err != nil {
 		return nil, err
 	}
@@ -310,24 +441,47 @@ func restarted() bool {
 }
 
 func (web *Web) HandleSelfUpdate() {
-	web.router.HandleFunc("/update/install", func(w http.ResponseWriter, r *http.Request) {
-		// read-only users cannot reach it (see viewerAllowed)
-		lang := web.requestLanguage(r)
-		if !selfUpdatable() {
-			writeGlobalError(w, http.StatusBadRequest, lang, errUpdateReplace.Error())
-			return
-		}
-		if err := web.installUpdate(); err != nil {
-			status := http.StatusBadGateway
-			if err == errOrganizeBusy || err == errUpdateNone {
-				status = http.StatusConflict
+	// read-only users cannot reach the requests that change something (see viewerAllowed)
+	install := func(path string, action func() error) {
+		web.router.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+			lang := web.requestLanguage(r)
+			if !selfUpdatable() {
+				writeGlobalError(w, http.StatusBadRequest, lang, errUpdateReplace.Error())
+				return
 			}
-			web.sugarLogger.Warnf("[Update] not installed: %v", err)
-			writeGlobalError(w, status, lang, err.Error())
+			if err := action(); err != nil {
+				status := http.StatusBadGateway
+				if err == errOrganizeBusy || err == errUpdateNone || err == errUpdateNoOld {
+					status = http.StatusConflict
+				}
+				web.sugarLogger.Warnf("[Update] %s: %v", path, err)
+				writeGlobalError(w, status, lang, err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, map[string]any{"restarting": true})
+		}).Methods("POST")
+	}
+	install("/update/install", web.installUpdate)
+	install("/update/rollback", web.rollBack)
+	// Check now: GitHub is asked at once instead of once a day
+	web.router.HandleFunc("/update/check", func(w http.ResponseWriter, r *http.Request) {
+		lang := web.requestLanguage(r)
+		if err := web.checkForUpdate(); err != nil {
+			writeGlobalError(w, http.StatusBadGateway, lang, "GitHub could not be reached: try again later.")
 			return
 		}
-		writeJSON(w, http.StatusOK, map[string]any{"restarting": true})
+		version := ""
+		if update := web.availableUpdate(); update != nil {
+			version = update.Version
+		}
+		writeJSON(w, http.StatusOK, map[string]string{"version": version})
 	}).Methods("POST")
+	// what the update does now, for the bar of the page
+	web.router.HandleFunc("/update/progress", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		step, _ := updateProgress.step.Load().(string)
+		writeJSON(w, http.StatusOK, map[string]any{"step": step, "done": updateProgress.done.Load(), "total": updateProgress.total.Load()})
+	}).Methods("GET")
 	// the version that runs, for the page that waits for the new one
 	web.router.HandleFunc("/update/version", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")

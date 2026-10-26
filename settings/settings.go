@@ -212,6 +212,8 @@ type AppSettings struct {
 	CompressFilesAtOnce int `json:"compress_files_at_once,omitempty"`
 	// ask GitHub once a day whether a newer version of the app was released
 	CheckForUpdates bool `json:"check_for_updates"`
+	// a new version is installed by itself at night, where the app can update itself
+	AutoInstallUpdates bool `json:"auto_install_updates,omitempty"`
 	// the setup wizard was finished or turned off, or put off until then
 	WizardDone  bool      `json:"wizard_done,omitempty"`
 	WizardLater time.Time `json:"wizard_later,omitempty"`

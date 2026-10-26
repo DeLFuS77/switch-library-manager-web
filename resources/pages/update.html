@@ -1,23 +1,49 @@
 {{define "title"}}{{t "Update the app"}}{{end}}
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Update the app") "Count" -1 "Subtitle" (t "Your settings, users, keys, covers and caches are in the data folder and stay when the app is updated."))}}
-			<section class="surface mb-4 d-flex flex-wrap align-items-center gap-3">
-				<span class="stat-icon flex-shrink-0"><span class="bi bi-stars" aria-hidden="true"></span></span>
-				<div class="flex-grow-1">
-					<div class="fw-semibold">{{t "Installed version"}}: {{.Version}}</div>
-					{{- with .Update}}
-					<div class="text-body-secondary">{{t "Version %v is available." .Version}} <a href="{{.Url}}" target="_blank" rel="noopener noreferrer">{{t "See what is new"}}</a></div>
-					{{- if .CanInstall}}
-					<div class="d-flex flex-wrap align-items-center gap-2 mt-2">
-						<button type="button" class="btn btn-primary rounded-pill" data-update-install><span class="bi bi-cloud-arrow-down me-1" aria-hidden="true"></span>{{t "Update now"}}</button>
-						<span class="small text-body-secondary" data-update-status role="status">{{t "The app downloads it from GitHub, checks it, keeps the version of now as .old and starts again."}}</span>
+			<section class="surface mb-4">
+				<div class="d-flex flex-wrap align-items-center gap-3">
+					<span class="stat-icon flex-shrink-0"><span class="bi bi-stars" aria-hidden="true"></span></span>
+					<div class="flex-grow-1">
+						<div class="fw-semibold">{{t "Installed version"}}: {{.Version}}</div>
+						{{- with .Update}}
+						<div class="text-body-secondary">{{t "Version %v is available." .Version}} <a href="{{.Url}}" target="_blank" rel="noopener noreferrer">{{t "See what is new"}}</a></div>
+						{{- else}}
+						<div class="text-body-secondary">{{t "No newer version is known."}}</div>
+						{{- end}}
 					</div>
-					{{- end}}
-					<div class="update-star mt-2"><span class="bi bi-star-fill" aria-hidden="true"></span>{{t "Do you like the app?"}} {{t "A star on GitHub helps other people find it."}} <a href="https://github.com/DeLFuS77/switch-library-manager-web" target="_blank" rel="noopener">{{t "Give it a star"}}</a></div>
-					{{- else}}
-					<div class="text-body-secondary">{{t "No newer version is known."}}</div>
+					{{- if .CheckOn}}
+					<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" data-update-check><span class="bi bi-arrow-repeat me-1" aria-hidden="true"></span>{{t "Look for a new version"}}</button>
 					{{- end}}
 				</div>
+				{{- with .Update}}
+				{{- with .Sections}}
+				<div class="update-notes mt-3">
+					{{- range .}}
+					<h3 class="update-notes-title">{{.Title}}</h3>
+					<ul>
+						{{- range .Items}}
+						<li>{{.}}</li>
+						{{- end}}
+					</ul>
+					{{- end}}
+				</div>
+				{{- end}}
+				{{- if .CanInstall}}
+				<div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+					<button type="button" class="btn btn-primary rounded-pill" data-update-install><span class="bi bi-cloud-arrow-down me-1" aria-hidden="true"></span>{{t "Update now"}}</button>
+					<span class="small text-body-secondary" data-update-status role="status">{{t "The app downloads it from GitHub, checks it, keeps the version of now as .old and starts again."}}</span>
+				</div>
+				<div class="progress update-progress mt-2" role="progressbar" aria-label="{{t "Download of the new version"}}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-update-progress hidden><div class="progress-bar"></div></div>
+				{{- end}}
+				<div class="update-star mt-3"><span class="bi bi-star-fill" aria-hidden="true"></span>{{t "Do you like the app?"}} {{t "A star on GitHub helps other people find it."}} <a href="https://github.com/DeLFuS77/switch-library-manager-web" target="_blank" rel="noopener">{{t "Give it a star"}}</a></div>
+				{{- end}}
+				{{- with .Previous}}
+				<div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-3 border-top">
+					<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" data-update-rollback><span class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></span>{{t "Go back to version %v" .}}</button>
+					<span class="small text-body-secondary">{{t "The version of before was kept when the app updated itself; going back keeps this one, to come back to it."}}</span>
+				</div>
+				{{- end}}
 			</section>
 
 			<section class="surface mb-4">
