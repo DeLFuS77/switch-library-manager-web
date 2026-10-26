@@ -142,7 +142,8 @@ jobs:
           | Raspberry Pi with a 32-bit system | `linux-armv7.tar.gz` |
 
           Unpack it and run the program: on Windows and macOS the app opens in the browser, on Linux open
-          http://localhost:3000. The settings and the library data are kept next to the program. Docker and Unraid
+          http://localhost:3000. The settings and the library data are kept next to the program: to update, unpack
+          the new version over the folder of the one you have (`switch-library-manager-web`). Docker and Unraid
           users update the container instead. `SHA256SUMS.txt` has the checksums of the files, and
           `gh attestation verify <file> -R DeLFuS77/switch-library-manager-web` proves a file was built here.
           EOF

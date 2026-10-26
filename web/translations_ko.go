@@ -1308,7 +1308,7 @@ func init() {
 		"Started by you":          "직접 시작함",
 		"Statistics":              "통계",
 		"Status":                  "상태",
-		"Stop the app, replace it with the file of the new version and start it again.": "앱을 중지하고 새 버전 파일로 교체한 다음 다시 시작하세요.",
+		"Stop the app, unpack the new version over its folder (switch-library-manager-web) and start it again: the program is replaced, and the settings and the library stay.": "앱을 멈추고 새 버전을 기존 폴더(switch-library-manager-web)에 덮어써서 압축을 푼 뒤 다시 실행하세요. 프로그램은 바뀌고 설정과 라이브러리는 그대로 남습니다.",
 		"Strategy":                               "전략",
 		"Study":                                  "학습",
 		"Success!":                               "성공!",
@@ -1509,5 +1509,8 @@ func init() {
 		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "옮기지 않았어요. 대상에 같은 크기의 사본이 이미 있어요. 중복 파일이며 공간 페이지에서 확보할 수 있어요.",
 		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "대상에 이름은 같고 크기가 다른 파일이 이미 있어요. 같은 게임, 같은 버전의 파일이 두 개이며, 확인으로 어느 쪽이 정상인지 알 수 있어요.",
 		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "옮기지 않았어요. 대상에 이름은 같고 크기가 다른 파일이 이미 있어요. 같은 게임, 같은 버전의 파일이 두 개이며, 확인으로 어느 쪽이 정상인지 알 수 있어요.",
+		// a check of the new files with nothing new to read
+		"Nothing to check": "확인할 것이 없어요",
+		"No file is new or changed since the last check.": "마지막 확인 이후 새로 생기거나 바뀐 파일이 없어요.",
 	}
 }

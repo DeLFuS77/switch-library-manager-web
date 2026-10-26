@@ -247,6 +247,10 @@ document.addEventListener('DOMContentLoaded', () => {
 							button.disabled = false;
 							insertQueuedNote(mainContainer(), json.queued);
 						}
+						if (json && json.nothing) {
+							button.disabled = false;
+							insertAlert(mainContainer(), 'alert-info', 'bi-check-circle-fill', t('Nothing to check'), t('No file is new or changed since the last check.'));
+						}
 					});
 				}
 				return response.json().catch(() => ({})).then(json => {

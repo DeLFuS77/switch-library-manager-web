@@ -910,7 +910,7 @@ func init() {
 		"check this folder":                                      "Ordner prüfen",
 		"The folders were read from this container. If a folder is marked, see it with: docker inspect switch-library-manager-web. Use the name of your container if it is another one.": "Die Ordner wurden aus diesem Container gelesen. Ist ein Ordner markiert, prüfe ihn mit: docker inspect switch-library-manager-web. Nutze den Namen deines Containers, falls er anders heißt.",
 		"Windows, macOS and Linux": "Windows, macOS und Linux",
-		"Stop the app, replace it with the file of the new version and start it again.": "Beende die App, ersetze sie durch die Datei der neuen Version und starte sie erneut.",
+		"Stop the app, unpack the new version over its folder (switch-library-manager-web) and start it again: the program is replaced, and the settings and the library stay.": "Beende die App, entpacke die neue Version über ihren Ordner (switch-library-manager-web) und starte sie wieder: Das Programm wird ersetzt, Einstellungen und Bibliothek bleiben erhalten.",
 		"Download the latest version": "Neueste Version herunterladen",
 		"How to update":               "So aktualisierst du",
 		"Background work":             "Hintergrundarbeit",
@@ -1509,5 +1509,8 @@ func init() {
 		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "Nicht verschoben: Am Ziel liegt schon eine gleich große Kopie. Es ist ein Duplikat, die Seite Speicherplatz kann es freigeben.",
 		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "Am Ziel liegt schon eine andere, anders große Datei mit demselben Namen: Es sind zwei Dateien desselben Spiels und derselben Version, Prüfen kann sagen, welche in Ordnung ist.",
 		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "Nicht verschoben: Am Ziel liegt schon eine andere, anders große Datei mit demselben Namen. Es sind zwei Dateien desselben Spiels und derselben Version, Prüfen kann sagen, welche in Ordnung ist.",
+		// a check of the new files with nothing new to read
+		"Nothing to check": "Nichts zu prüfen",
+		"No file is new or changed since the last check.": "Seit der letzten Prüfung ist keine Datei neu oder geändert.",
 	}
 }

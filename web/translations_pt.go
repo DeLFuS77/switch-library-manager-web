@@ -910,7 +910,7 @@ func init() {
 		"check this folder":                                      "confira esta pasta",
 		"The folders were read from this container. If a folder is marked, see it with: docker inspect switch-library-manager-web. Use the name of your container if it is another one.": "As pastas foram lidas deste contêiner. Se alguma estiver marcada, confira com: docker inspect switch-library-manager-web. Use o nome do seu contêiner se for outro.",
 		"Windows, macOS and Linux": "Windows, macOS e Linux",
-		"Stop the app, replace it with the file of the new version and start it again.": "Feche o app, troque pelo arquivo da versão nova e abra de novo.",
+		"Stop the app, unpack the new version over its folder (switch-library-manager-web) and start it again: the program is replaced, and the settings and the library stay.": "Pare o app, descompacte a nova versão por cima da pasta dele (switch-library-manager-web) e abra-o de novo: o programa é substituído, e as configurações e a biblioteca ficam.",
 		"Download the latest version": "Baixar a versão mais recente",
 		"How to update":               "Como atualizar",
 		"Background work":             "Trabalho em segundo plano",
@@ -1509,5 +1509,8 @@ func init() {
 		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "Não movido: já há uma cópia do mesmo tamanho no destino. É um duplicado, a página Espaço pode liberá-lo.",
 		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "Já há outro arquivo com o mesmo nome e outro tamanho no destino: são dois arquivos do mesmo jogo e versão, Verificar pode dizer qual está bom.",
 		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "Não movido: já há outro arquivo com o mesmo nome e outro tamanho no destino. São dois arquivos do mesmo jogo e versão, Verificar pode dizer qual está bom.",
+		// a check of the new files with nothing new to read
+		"Nothing to check": "Nada para verificar",
+		"No file is new or changed since the last check.": "Nenhum arquivo é novo ou mudou desde a última verificação.",
 	}
 }

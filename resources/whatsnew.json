@@ -1,4 +1,61 @@
 {
+  "1.57.5": {
+    "en": [
+      "The downloads for Windows, macOS and Linux no longer have the version in their names: unpack each new version over the folder switch-library-manager-web. This once, copy the files of the new folder into the one you use now.",
+      "An old update kept for its cheats keeps one copy only, the one of the library.",
+      "Games nothing can compress stay marked when Organize moves them, and Check new files says when there is nothing to check."
+    ],
+    "es": [
+      "Las descargas para Windows, macOS y Linux ya no llevan la versión en el nombre: cada versión nueva se descomprime encima de la carpeta switch-library-manager-web. Esta vez, copia los archivos de la carpeta nueva en la que usas ahora.",
+      "Una actualización vieja que se guarda por sus trucos conserva una sola copia, la de la biblioteca.",
+      "Los juegos que no se pueden comprimir siguen marcados cuando Organizar los mueve, y Comprobar los nuevos avisa cuando no hay nada que comprobar."
+    ],
+    "de": [
+      "Die Downloads für Windows, macOS und Linux haben keine Version mehr im Namen: Entpacke jede neue Version über den Ordner switch-library-manager-web. Dieses eine Mal kopiere die Dateien des neuen Ordners in den, den du jetzt nutzt.",
+      "Ein altes Update, das wegen seiner Cheats bleibt, behält nur eine Kopie: die der Bibliothek.",
+      "Spiele, die sich nicht komprimieren lassen, bleiben markiert, wenn Organisieren sie verschiebt, und Neue prüfen sagt, wenn es nichts zu prüfen gibt."
+    ],
+    "fr": [
+      "Les téléchargements pour Windows, macOS et Linux n'ont plus la version dans leur nom : décompressez chaque nouvelle version par-dessus le dossier switch-library-manager-web. Cette fois, copiez les fichiers du nouveau dossier dans celui que vous utilisez.",
+      "Une ancienne mise à jour gardée pour ses codes de triche ne garde qu'une copie : celle de la bibliothèque.",
+      "Les jeux impossibles à compresser restent marqués quand Organiser les déplace, et Vérifier les nouveaux indique quand il n'y a rien à vérifier."
+    ],
+    "it": [
+      "I download per Windows, macOS e Linux non hanno più la versione nel nome: estrai ogni nuova versione sopra la cartella switch-library-manager-web. Questa volta, copia i file della nuova cartella in quella che usi ora.",
+      "Un vecchio aggiornamento tenuto per i suoi trucchi conserva una sola copia, quella della libreria.",
+      "I giochi che non si possono comprimere restano segnati quando Organizza li sposta, e Verifica i nuovi avvisa quando non c'è niente da verificare."
+    ],
+    "pt": [
+      "Os downloads para Windows, macOS e Linux já não têm a versão no nome: descompacte cada nova versão por cima da pasta switch-library-manager-web. Desta vez, copie os arquivos da pasta nova para a que você usa agora.",
+      "Uma atualização antiga mantida pelos seus cheats guarda uma só cópia, a da biblioteca.",
+      "Os jogos que não podem ser comprimidos continuam marcados quando Organizar os move, e Verificar os novos avisa quando não há nada para verificar."
+    ],
+    "nl": [
+      "De downloads voor Windows, macOS en Linux hebben geen versie meer in hun naam: pak elke nieuwe versie uit over de map switch-library-manager-web. Kopieer deze ene keer de bestanden van de nieuwe map naar de map die je nu gebruikt.",
+      "Een oude update die blijft om zijn cheats, houdt nog maar één kopie: die van de bibliotheek.",
+      "Spellen die niet te comprimeren zijn, blijven gemarkeerd als Ordenen ze verplaatst, en Nieuwe controleren meldt wanneer er niets te controleren is."
+    ],
+    "ru": [
+      "В названиях загрузок для Windows, macOS и Linux больше нет версии: распаковывайте каждую новую версию поверх папки switch-library-manager-web. В этот раз скопируйте файлы новой папки в ту, которой пользуетесь сейчас.",
+      "Старое обновление, оставленное ради читов, хранится в одной копии — той, что в библиотеке.",
+      "Игры, которые нельзя сжать, остаются отмеченными, когда «Упорядочить» их перемещает, а «Проверить новые» сообщает, если проверять нечего."
+    ],
+    "ja": [
+      "Windows、macOS、Linux 向けのダウンロードの名前にバージョンが入らなくなりました。新しいバージョンは switch-library-manager-web フォルダーに上書きで展開してください。今回だけは、新しいフォルダーのファイルを今使っているフォルダーにコピーしてください。",
+      "チートのために残す古いアップデートは、ライブラリのコピー 1 つだけを残します。",
+      "圧縮できないゲームは「整理」で移動しても印が残り、「新しいファイルを確認」は確認するものがないときにそう伝えます。"
+    ],
+    "ko": [
+      "Windows, macOS, Linux용 다운로드 이름에 더 이상 버전이 들어가지 않아요. 새 버전은 switch-library-manager-web 폴더에 덮어써서 압축을 푸세요. 이번 한 번만 새 폴더의 파일을 지금 쓰는 폴더로 복사하세요.",
+      "치트 때문에 남겨 두는 이전 업데이트는 라이브러리의 사본 하나만 남겨요.",
+      "압축할 수 없는 게임은 정리로 옮겨도 표시가 남고, 새 파일 확인은 확인할 것이 없으면 알려 줘요."
+    ],
+    "zh": [
+      "Windows、macOS 和 Linux 的下载文件名不再包含版本号：每个新版本直接解压覆盖到 switch-library-manager-web 文件夹。仅这一次，请把新文件夹中的文件复制到你现在使用的文件夹。",
+      "为金手指保留的旧更新只保留一份副本，即库中的那份。",
+      "无法压缩的游戏在“整理”移动后仍保持标记，“检查新文件”在没有可检查的内容时会直接说明。"
+    ]
+  },
   "1.57.4": {
     "en": [
       "Games whose file name starts with a dot are in the library again, and Organize gives them names without the dot.",

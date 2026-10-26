@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.57.4
+  <Changes>### 1.57.5
+- Downloads without the version in their names, one copy only of an old update kept for its cheats, marks of games nothing can compress kept after Organize, and Check new files says when there is nothing to check
+### 1.57.4
 - Games whose file name starts with a dot are in the library again, and empty folders that were empty already or hold only Thumbs.db, desktop.ini or .DS_Store are deleted too
 ### 1.57.3
 - Folders by ID with every DLC in the DLC folder if chosen, shorter folders for DLC, and "DLC [ID]" for a DLC without a name
@@ -40,7 +42,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-10-25</Date>
+  <Date>2026-10-26</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>

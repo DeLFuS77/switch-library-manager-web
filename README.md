@@ -212,8 +212,8 @@ unpack it and run the program; nothing has to be installed. There are files for 
 Intel chips), Linux and the Raspberry Pi (64 and 32 bit). The programs are not signed, so the first time Windows or macOS
 asks before opening them: see [the steps for each system](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Installation#windows-macos-and-linux).
 
-The program keeps its settings and data next to itself, or in the folder set in `SLM_DATA_DIR`. To update, replace it
-with the one of the new version: the data stays.
+The program keeps its settings and data next to itself, or in the folder set in `SLM_DATA_DIR`. To update, unpack the
+new version over the folder of the one you have (`switch-library-manager-web`): the program is replaced and the data stays.
 
 ## Your keys
 

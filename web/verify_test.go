@@ -43,10 +43,15 @@ func TestVerifyFindsDamagedFiles(t *testing.T) {
 		t.Fatalf("a good file: %+v", task)
 	}
 
-	// unchanged files are not checked again
-	postForm(web, "/verify/start", url.Values{})
-	if task := waitForTask(t, web, TASK_VERIFY); task.Files != 0 {
-		t.Fatalf("an unchanged file must be skipped: %+v", task)
+	// unchanged files are not checked again: the page is told, no task checks nothing
+	before := len(web.taskLog().Snapshot())
+	if response := postForm(web, "/verify/start", url.Values{}); response.Code != http.StatusOK || !strings.Contains(response.Body.String(), `"nothing":true`) || len(web.taskLog().Snapshot()) != before {
+		t.Fatalf("an unchanged file must be skipped, without a task: %d %s", response.Code, response.Body.String())
+	}
+	// checking everything again reads it again
+	postForm(web, "/verify/start", url.Values{"all": {"true"}})
+	if task := waitForTask(t, web, TASK_VERIFY); task.Files != 1 || len(web.taskLog().Snapshot()) != before+1 {
+		t.Fatalf("everything is checked again: %+v", task)
 	}
 
 	data, _ := os.ReadFile(path)

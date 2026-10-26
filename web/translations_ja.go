@@ -1308,7 +1308,7 @@ func init() {
 		"Started by you":          "自分で開始",
 		"Statistics":              "統計",
 		"Status":                  "状態",
-		"Stop the app, replace it with the file of the new version and start it again.": "アプリを停止し、新しいバージョンのファイルに置き換えてから、再度起動してください。",
+		"Stop the app, unpack the new version over its folder (switch-library-manager-web) and start it again: the program is replaced, and the settings and the library stay.": "アプリを停止し、新しいバージョンをそのフォルダー（switch-library-manager-web）に上書きで展開して、もう一度起動します。プログラムは置き換わり、設定とライブラリはそのまま残ります。",
 		"Strategy":                               "ストラテジー",
 		"Study":                                  "学習",
 		"Success!":                               "成功しました！",
@@ -1509,5 +1509,8 @@ func init() {
 		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "移動していません。移動先に同じサイズのコピーがすでにあります。重複ファイルなので、容量ページで解放できます。",
 		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "移動先に同じ名前でサイズの違う別のファイルがすでにあります。同じゲームの同じバージョンのファイルが2つあり、どちらが正常かは「確認」でわかります。",
 		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "移動していません。移動先に同じ名前でサイズの違う別のファイルがすでにあります。同じゲームの同じバージョンのファイルが2つあり、どちらが正常かは「確認」でわかります。",
+		// a check of the new files with nothing new to read
+		"Nothing to check": "確認するものはありません",
+		"No file is new or changed since the last check.": "前回の確認以降、新しいファイルや変更されたファイルはありません。",
 	}
 }

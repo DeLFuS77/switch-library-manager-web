@@ -1308,7 +1308,7 @@ func init() {
 		"Started by you":          "由你启动",
 		"Statistics":              "统计",
 		"Status":                  "状态",
-		"Stop the app, replace it with the file of the new version and start it again.": "停止应用，用新版本的文件替换它，然后重新启动。",
+		"Stop the app, unpack the new version over its folder (switch-library-manager-web) and start it again: the program is replaced, and the settings and the library stay.": "停止应用，将新版本解压到其文件夹（switch-library-manager-web）中覆盖，然后重新启动：程序会被替换，设置和游戏库会保留。",
 		"Strategy":                               "策略",
 		"Study":                                  "学习",
 		"Success!":                               "成功！",
@@ -1509,5 +1509,8 @@ func init() {
 		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "未移动:目标位置已有一个大小相同的副本。这是重复文件,可在空间页面释放。",
 		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "目标位置已有另一个同名但大小不同的文件:这是同一游戏同一版本的两个文件,“检查”可以判断哪个是好的。",
 		"Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good.": "未移动:目标位置已有另一个同名但大小不同的文件。这是同一游戏同一版本的两个文件,“检查”可以判断哪个是好的。",
+		// a check of the new files with nothing new to read
+		"Nothing to check": "没有要检查的内容",
+		"No file is new or changed since the last check.": "自上次检查以来，没有新的或更改过的文件。",
 	}
 }
