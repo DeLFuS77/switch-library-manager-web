@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Space: the files deleted leave the list as they go, one by one, instead of all at the end of the cleanup
+
+### Fixes
+
+- Space counted as "waiting for the verification" originals whose compressed copy was already checked, but not whole (an update needs its game for that) or found damaged, and "Verify now" answered that there was nothing to check. Such a copy now says why: checked in part, the original can be selected and deleted on request, as for duplicates; damaged, the original stays
+
 ## 1.58.0
 
 ### Improvements

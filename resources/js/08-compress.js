@@ -42,6 +42,54 @@ function initCompress() {
 }
 
 // a list of files with "select all", a summary of the selection and a start request
+// followRemoval asks every second which files the cleanup has deleted so far and takes their
+// rows off the list, and a section with no row left; stop() asks once more and ends.
+function followRemoval(form, update) {
+	let known = 0;
+	let timer = 0;
+	const take = paths => {
+		paths.forEach(path => {
+			const box = [...form.querySelectorAll('input[name="path"]')].find(input => input.value === path);
+			const row = box && box.closest('li');
+			if (!row) {
+				return;
+			}
+			const list = row.parentElement;
+			row.remove();
+			if (list && !list.querySelector('li')) {
+				const section = list.closest('section');
+				if (section) {
+					section.remove();
+				}
+			}
+		});
+		update();
+	};
+	const ask = () => fetch('/space/clean/progress?from=' + known)
+		.then(response => (response.ok ? response.json() : { paths: [] }))
+		.then(json => {
+			const paths = json.paths || [];
+			known += paths.length;
+			take(paths);
+		})
+		.catch(() => undefined);
+	const tick = () => {
+		ask().then(() => {
+			if (timer) {
+				timer = setTimeout(tick, 1000);
+			}
+		});
+	};
+	timer = setTimeout(tick, 1000);
+	return {
+		stop() {
+			clearTimeout(timer);
+			timer = 0;
+			ask();
+		}
+	};
+}
+
 function bindFileForm(form, url) {
 	if (!form) {
 		return;
@@ -211,11 +259,13 @@ function bindFileForm(form, url) {
 			}
 		}
 		submit.disabled = true;
+		// Space: the files deleted leave the list as they go, not all at the end
+		const following = url === '/space/clean' ? followRemoval(form, update) : null;
 		runAsTask(() => fetch(url, {
 			method: 'POST',
 			body: new URLSearchParams(new FormData(form)).toString(),
 			headers: { 'Content-type': 'application/x-www-form-urlencoded' }
-		})).then(response => {
+		}).finally(() => following && following.stop())).then(response => {
 			if (response.ok) {
 				return response.json().catch(() => ({})).then(json => {
 					if (json && json.queued) {

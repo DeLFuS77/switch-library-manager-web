@@ -203,6 +203,8 @@ type Web struct {
 	compressor    compressor
 	// files are being organized or deleted by Organize: file tasks wait
 	organizing atomic.Bool
+	// the files deleted so far by the cleanup running, for the page to take them off its list
+	removing removedSoFar
 	// where the files moved by Organize went, for the lists made before
 	moves     movedFiles
 	cache     derivedCache

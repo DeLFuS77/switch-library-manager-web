@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
@@ -189,15 +190,23 @@ func (web *Web) spaceGroups() []SpaceGroup {
 			return
 		}
 		entry := SpaceFile{Path: path, Name: name, Size: file.Size, KeptBy: copyPath, file: file}
-		if record, ok := web.verifications().current(copyPath, info); ok && record.sound() {
-			// the copy of the same name must hold everything the original holds
-			if web.holdsSameContents(path, copyPath, info) {
-				entry.Deletable = true
-			} else {
-				entry.Note = NOTE_SPACE_NOT_SAME
-			}
-		} else {
+		// as for the copies kept of duplicates: only a copy never checked waits for the check;
+		// one checked damaged, or not whole (an update needs its game for that), says so,
+		// since checking it again finds the same
+		record, ok := web.verifications().current(copyPath, info)
+		switch {
+		case !ok:
 			entry.Note = NOTE_SPACE_VERIFY
+		case !record.OK:
+			entry.Note = NOTE_SPACE_KEPT_DAMAGED
+		case !web.holdsSameContents(path, copyPath, info):
+			// the copy of the same name must hold everything the original holds
+			entry.Note = NOTE_SPACE_NOT_SAME
+		case record.Partial:
+			entry.Note = NOTE_SPACE_KEPT_PARTIAL
+			entry.OnRequest = true
+		default:
+			entry.Deletable = true
 		}
 		add(SPACE_COMPRESSED, entry)
 	}
@@ -620,6 +629,13 @@ func (web *Web) HandleSpace() {
 	}).Methods("GET")
 
 	web.handleRegionRemove()
+
+	// the files deleted so far by the cleanup running: the page takes them off its list as
+	// they go, from the number of them it already took off ("from")
+	web.router.HandleFunc("/space/clean/progress", func(w http.ResponseWriter, r *http.Request) {
+		from, _ := strconv.Atoi(r.FormValue("from"))
+		writeJSON(w, http.StatusOK, map[string]any{"paths": web.removing.since(from), "running": web.organizing.Load()})
+	}).Methods("GET")
 
 	web.router.HandleFunc("/space/clean", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)

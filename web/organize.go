@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -275,7 +276,18 @@ func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string)
 	taskId := web.startTask(TASK_CLEANUP, TRIGGER_MANUAL)
 	deleted, freed := 0, int64(0)
 	var failure *TaskNote
-	removed := process.RemoveFiles(files, reasons, false)
+	// one file at a time, so the page can take each one off its list once it is gone
+	web.removing.reset()
+	removed := make([]process.Operation, 0, len(files))
+	for i := range files {
+		ops := process.RemoveFiles(files[i:i+1], reasons[i:i+1], false)
+		for _, op := range ops {
+			if op.Error == "" {
+				web.removing.add(op.From)
+			}
+		}
+		removed = append(removed, ops...)
+	}
 	web.verifications().follow(removed)
 	web.uncompressible().follow(removed)
 	for i, op := range removed {
@@ -289,6 +301,34 @@ func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string)
 	web.taskLog().SetCompressResult(taskId, deleted, freed)
 	web.finishTask(taskId, failure)
 	return deleted, freed, nil
+}
+
+// removedSoFar are the files deleted by the cleanup running (or the last one), in order.
+type removedSoFar struct {
+	mutex sync.Mutex
+	paths []string
+}
+
+func (r *removedSoFar) reset() {
+	r.mutex.Lock()
+	r.paths = nil
+	r.mutex.Unlock()
+}
+
+func (r *removedSoFar) add(path string) {
+	r.mutex.Lock()
+	r.paths = append(r.paths, path)
+	r.mutex.Unlock()
+}
+
+// since gives the files deleted after the first ones the page already knows of.
+func (r *removedSoFar) since(known int) []string {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	if known < 0 || known > len(r.paths) {
+		known = 0
+	}
+	return append([]string{}, r.paths[known:]...)
 }
 
 // errOrganizeBusy is returned while another task reads or writes the files of the library.

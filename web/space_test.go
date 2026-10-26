@@ -407,6 +407,53 @@ func TestSpaceWaitsOnlyForVerifications(t *testing.T) {
 	}
 }
 
+// A compressed copy already checked, damaged or not whole (an update needs its game for that),
+// does not wait for the check: "Verify now" would find nothing new to check. Not whole, the
+// original can be deleted on request; damaged, it stays.
+func TestCheckedCompressedCopyWaitsForNothing(t *testing.T) {
+	web, dir := spaceWeb(t)
+	os.WriteFile(filepath.Join(dir, "Game [0100000000010000][v0].nsp"), testPfs0("game.nca"), 0644)
+	copyPath := filepath.Join(dir, "Game [0100000000010000][v0].nsz")
+	os.WriteFile(copyPath, testPfs0("game.ncz"), 0644)
+	info, _ := os.Stat(copyPath)
+	web.verifications().set(copyPath, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Partial: true, Checked: time.Now(), Checker: verifyChecker})
+	file := spaceGroup(web.spaceGroups(), SPACE_COMPRESSED).Files[0]
+	if file.Deletable || !file.OnRequest || file.Note != NOTE_SPACE_KEPT_PARTIAL {
+		t.Fatalf("a copy checked in part: %+v", file)
+	}
+	if data := web.buildSpaceContent(); data.Unverified != 1 || data.Kept != 1 {
+		t.Fatalf("only the duplicate waits: %d waiting, %d kept", data.Unverified, data.Kept)
+	}
+	for _, path := range web.spaceVerifyPaths() {
+		if path == copyPath {
+			t.Fatalf("the copy checked in part is checked again: %v", web.spaceVerifyPaths())
+		}
+	}
+
+	web.verifications().set(copyPath, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Checked: time.Now(), Checker: verifyChecker})
+	web.invalidateDerived()
+	if file := spaceGroup(web.spaceGroups(), SPACE_COMPRESSED).Files[0]; file.Deletable || file.OnRequest || file.Note != NOTE_SPACE_KEPT_DAMAGED {
+		t.Fatalf("a damaged copy: %+v", file)
+	}
+}
+
+// The files a cleanup deleted so far are given from the number the page already knows of.
+func TestRemovedSoFar(t *testing.T) {
+	var removed removedSoFar
+	removed.add("a")
+	removed.add("b")
+	if got := removed.since(1); len(got) != 1 || got[0] != "b" {
+		t.Fatalf("since(1) = %v", got)
+	}
+	if got := removed.since(5); len(got) != 2 {
+		t.Fatalf("a count past the end gives them all: %v", got)
+	}
+	removed.reset()
+	if got := removed.since(0); len(got) != 0 {
+		t.Fatalf("after reset: %v", got)
+	}
+}
+
 // An original compressed and deleted since the scan is not listed: the library still has it
 // until the next scan, but there is nothing to free.
 func TestSpaceSkipsOriginalsDeletedSinceTheScan(t *testing.T) {
