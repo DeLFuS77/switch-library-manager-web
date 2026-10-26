@@ -1021,8 +1021,9 @@ func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles) string {
 	return "Unknown Title"
 }
 
-// maxNameBytes is the longest file or folder name written: Linux file systems take 255
-// bytes, and a hidden temporary copy (".name.tmp") needs a few more.
+// maxNameBytes is the longest file or folder name written, measured as the disk keeps it (see
+// NameBytes): Linux file systems take 255 bytes, and a hidden temporary copy (".name.tmp")
+// needs a few more.
 const maxNameBytes = 240
 
 func getFolderName(options settings.OrganizeOptions, templateData map[string]string) string {
@@ -1048,7 +1049,7 @@ func getFileName(options settings.OrganizeOptions, originalName string, template
 // identify the file.
 func fittingTemplate(templateData map[string]string, useSafeNames bool, template string, nameTry int, budget int) string {
 	result := applyTemplate(templateData, useSafeNames, template, nameTry)
-	if len(result) <= budget {
+	if NameBytes(result) <= budget {
 		return result
 	}
 	data := make(map[string]string, len(templateData))
@@ -1056,13 +1057,13 @@ func fittingTemplate(templateData map[string]string, useSafeNames bool, template
 		data[key] = value
 	}
 	for _, key := range []string{settings.TEMPLATE_DLC_NAME, settings.TEMPLATE_TITLE_NAME} {
-		for len(result) > budget {
+		for NameBytes(result) > budget {
 			runes := []rune(data[key])
 			if len(runes) == 0 {
 				break
 			}
 			// a few characters at a time: names made safe change length
-			cut := (len(result) - budget + 2) / 3
+			cut := (NameBytes(result) - budget + 2) / 3
 			if cut < 1 {
 				cut = 1
 			}

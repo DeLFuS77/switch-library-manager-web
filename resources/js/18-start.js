@@ -128,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	initMarks();
 	initWhatsNew();
+	initSelfUpdate();
 	initGamepad();
 	initSounds();
 	initCouchMode();
@@ -215,25 +216,16 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	});
 
+	// the notice of a new version, with its star on GitHub, shows on every page while there is
+	// one: closing it hides it on this page only
 	const updateNotice = document.querySelector('[data-update-version]');
 	if (updateNotice) {
-		const key = 'slm-update-dismissed';
-		let dismissed = '';
+		updateNotice.hidden = false;
 		try {
-			dismissed = localStorage.getItem(key) || '';
+			localStorage.removeItem('slm-update-dismissed');
 		} catch (e) {
-			// not remembered
+			// nothing kept
 		}
-		if (dismissed !== updateNotice.dataset.updateVersion) {
-			updateNotice.hidden = false;
-		}
-		updateNotice.addEventListener('closed.bs.alert', () => {
-			try {
-				localStorage.setItem(key, updateNotice.dataset.updateVersion);
-			} catch (e) {
-				// not remembered
-			}
-		});
 	}
 
 	document.querySelectorAll('[data-verify]').forEach(button => {

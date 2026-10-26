@@ -158,6 +158,15 @@
 										<label class="form-check-label" for="check_for_updates">{{t "Tell me when a new version of the app is available"}}</label> <a class="small ms-1" href="/update.html">{{t "How to update"}}</a>
 										<div class="form-text" id="updateHelp">{{t "Asks GitHub once a day for the latest release; nothing about your library is sent."}}</div>
 									</div>
+									{{- if .SelfUpdatable}}
+									<div class="form-check form-switch mt-2">
+										<input class="form-check-input" type="checkbox" role="switch" id="auto_install_updates" name="auto_install_updates" value="true" aria-describedby="autoInstallHelp"{{if .Settings.AutoInstallUpdates}} checked{{end}}>
+										<label class="form-check-label" for="auto_install_updates">{{t "Install new versions by themselves at night"}}</label>
+										<div class="form-text" id="autoInstallHelp">{{t "Between 3 and 5 in the morning, when no task is working on the files. The version of before is kept, to go back to it from the Update page."}}</div>
+									</div>
+									{{- else}}
+									{{- if .Settings.AutoInstallUpdates}}<input type="hidden" name="auto_install_updates" value="true">{{end}}
+									{{- end}}
 								</div>
 								<div class="col-md-6">
 									<label for="console_firmware" class="form-label fw-semibold">{{t "Firmware of your console"}}</label>

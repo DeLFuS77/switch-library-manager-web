@@ -22,7 +22,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.60.1
+  <Changes>### 1.61.0
+- Update now: on Windows, macOS and Linux the app installs a new version by itself, checked against the checksums of the release, and can go back to the one before (Docker and Unraid keep updating the container)
+- Uploading a game with a long name in Japanese no longer fails on the ZFS disks of Unraid
+### 1.60.1
 - The language flags of the cards have the shape and the size the region flags had
 ### 1.60.0
 - Up to three preferred regions, in order, by the zones of the eShop (Europe, the Americas, Japan...), in Settings and the wizard

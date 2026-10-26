@@ -41,6 +41,9 @@ type UpdatePageData struct {
 	Image       string
 	Command     string
 	Releases    string
+	// GitHub is asked for new versions; the version the app can go back to, if any
+	CheckOn  bool
+	Previous string
 }
 
 // mountEntry is a line of /proc/self/mountinfo.
@@ -119,6 +122,10 @@ func (web *Web) updatePageData() UpdatePageData {
 		Port:           appSettings.Port,
 		Image:          "delfus77/switch-library-manager-web:latest",
 		Releases:       "https://github.com/" + settings.REPOSITORY_OWNER + "/switch-library-manager-web/releases/latest",
+		CheckOn:        appSettings.CheckForUpdates,
+	}
+	if selfUpdatable() {
+		data.Previous = previousVersion()
 	}
 	if data.Port == 0 {
 		data.Port = 3000

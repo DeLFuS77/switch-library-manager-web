@@ -35,6 +35,8 @@ type SettingsPageData struct {
 	Processors            int
 	DefaultThreads        int
 	FilesAtOnceChoices    []int
+	// the app can install a new version by itself (not in a container)
+	SelfUpdatable bool
 }
 
 type SettingsForm struct {
@@ -58,6 +60,7 @@ type SettingsForm struct {
 	VerifySpeed           string `in:"form=verify_speed"`
 	ConsoleFirmware       string `in:"form=console_firmware"`
 	CheckForUpdates       bool   `in:"form=check_for_updates"`
+	AutoInstallUpdates    bool   `in:"form=auto_install_updates"`
 	AutomationEnabled     bool   `in:"form=automation_enabled"`
 	AutomationVerify      bool   `in:"form=automation_verify"`
 	AutomationCompress    bool   `in:"form=automation_compress"`
@@ -328,6 +331,7 @@ func (web *Web) HandleSettings() {
 			appSettings.VerifySpeed = settingsForm.VerifySpeed
 			appSettings.ConsoleFirmware = strings.TrimSpace(settingsForm.ConsoleFirmware)
 			appSettings.CheckForUpdates = settingsForm.CheckForUpdates
+			appSettings.AutoInstallUpdates = settingsForm.AutoInstallUpdates
 			appSettings.Automation = settings.AutomationOptions{Enabled: settingsForm.AutomationEnabled, Verify: settingsForm.AutomationVerify,
 				Compress: settingsForm.AutomationCompress, CleanupUpdates: settingsForm.AutomationCleanup, Organize: settingsForm.AutomationOrganize,
 				Notify: settingsForm.AutomationNotify, BackgroundHoursOnly: settingsForm.AutomationNight}
@@ -422,6 +426,7 @@ func (web *Web) settingsPageData() SettingsPageData {
 		Processors:              runtime.NumCPU(),
 		DefaultThreads:          compressWorkers(),
 		FilesAtOnceChoices:      []int{1, 2, 3, maxFilesAtOnce},
+		SelfUpdatable:           selfUpdatable(),
 		LastMeasure:             web.lastMeasure(),
 	}
 }

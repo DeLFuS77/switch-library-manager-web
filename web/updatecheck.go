@@ -2,7 +2,9 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -15,6 +17,7 @@ const (
 	// how often GitHub is asked for the latest release
 	updateCheckInterval = 24 * time.Hour
 	releaseNotesLength  = 600
+	maxNoteItems        = 20
 )
 
 // latestReleaseUrl is the GitHub API of the latest release; a variable for tests.
@@ -25,6 +28,15 @@ type AppUpdate struct {
 	Version string
 	Url     string
 	Notes   string
+	// what is new, by sections of the release notes, for the Update page
+	Sections []ReleaseSection
+	// the files of the release for this system, to update by itself (see selfupdate.go)
+	files releaseFiles
+}
+
+// CanInstall tells whether the app can install this version by itself.
+func (u *AppUpdate) CanInstall() bool {
+	return u.files.archiveUrl != "" && selfUpdatable()
 }
 
 // updateChecker remembers the latest release found on GitHub.
@@ -57,21 +69,21 @@ func newerVersion(version string, current string) bool {
 
 // checkForUpdate asks GitHub for the latest release. Only the version of the app is
 // sent, in the user agent, as GitHub requires one.
-func (web *Web) checkForUpdate() {
+func (web *Web) checkForUpdate() error {
 	request, err := http.NewRequest(http.MethodGet, latestReleaseUrl, nil)
 	if err != nil {
-		return
+		return err
 	}
 	request.Header.Set("Accept", "application/vnd.github+json")
 	request.Header.Set("User-Agent", "switch-library-manager-web/"+settings.SLM_WEB_VERSION)
 	response, err := appUpdateClient.Do(request)
 	if err != nil {
 		web.sugarLogger.Debugf("Checking for a new version failed: %v", err)
-		return
+		return err
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
-		return
+		return fmt.Errorf("GitHub answered %d", response.StatusCode)
 	}
 	release := struct {
 		TagName string `json:"tag_name"`
@@ -79,9 +91,16 @@ func (web *Web) checkForUpdate() {
 		Body    string `json:"body"`
 		Draft   bool   `json:"draft"`
 		Pre     bool   `json:"prerelease"`
+		Assets  []struct {
+			Name string `json:"name"`
+			Url  string `json:"browser_download_url"`
+		} `json:"assets"`
 	}{}
-	if err := json.NewDecoder(response.Body).Decode(&release); err != nil || release.Draft || release.Pre {
-		return
+	if err := json.NewDecoder(response.Body).Decode(&release); err != nil {
+		return err
+	}
+	if release.Draft || release.Pre {
+		return nil
 	}
 	// links must stay on GitHub
 	if !strings.HasPrefix(release.HtmlUrl, "https://github.com/") {
@@ -98,9 +117,46 @@ func (web *Web) checkForUpdate() {
 		if runes := []rune(notes); len(runes) > releaseNotesLength {
 			notes = string(runes[:releaseNotesLength]) + "…"
 		}
-		web.updates.latest = &AppUpdate{Version: strings.TrimPrefix(release.TagName, "v"), Url: release.HtmlUrl, Notes: notes}
+		assets := map[string]string{}
+		for _, asset := range release.Assets {
+			assets[asset.Name] = asset.Url
+		}
+		web.updates.latest = &AppUpdate{Version: strings.TrimPrefix(release.TagName, "v"), Url: release.HtmlUrl, Notes: notes, Sections: releaseSections(release.Body)}
+		if files, ok := filesOfRelease(assets, systemArchive(runtime.GOOS, runtime.GOARCH)); ok {
+			web.updates.latest.files = files
+		}
 		web.sugarLogger.Infof("Version %s is available", release.TagName)
 	}
+	return nil
+}
+
+// ReleaseSection is a heading of the notes of a release and its items.
+type ReleaseSection struct {
+	Title string
+	Items []string
+}
+
+// releaseSections reads the changes of the notes of a release (sections "### New" with items
+// "- ..."), up to the downloads; at most maxNoteItems items.
+func releaseSections(body string) []ReleaseSection {
+	sections := []ReleaseSection{}
+	items := 0
+	for _, line := range strings.Split(body, "\n") {
+		line = strings.TrimSpace(line)
+		switch {
+		case strings.HasPrefix(line, "#"):
+			title := strings.TrimSpace(strings.TrimLeft(line, "#"))
+			if strings.EqualFold(title, "Downloads") {
+				return sections
+			}
+			sections = append(sections, ReleaseSection{Title: title})
+		case strings.HasPrefix(line, "- ") && len(sections) > 0 && items < maxNoteItems:
+			last := &sections[len(sections)-1]
+			last.Items = append(last.Items, strings.TrimSpace(line[2:]))
+			items++
+		}
+	}
+	return sections
 }
 
 // availableUpdate returns the newer version found, or nil.
@@ -124,4 +180,31 @@ func (web *Web) StartUpdateChecker() {
 			time.Sleep(updateCheckInterval)
 		}
 	}()
+	go func() {
+		for {
+			time.Sleep(nightlyCheckEvery)
+			web.installAtNight(time.Now())
+		}
+	}()
+}
+
+// nightlyCheckEvery is how often the app looks whether it is time to install a new version
+const nightlyCheckEvery = 15 * time.Minute
+
+// installAtNight installs the new version found, by itself, between 3 and 5 in the morning when
+// the setting is on; a task that works on the files puts it off.
+func (web *Web) installAtNight(now time.Time) bool {
+	appSettings := settings.ReadSettings(web.dataFolder)
+	if !appSettings.AutoInstallUpdates || now.Hour() < 3 || now.Hour() >= 5 {
+		return false
+	}
+	update := web.availableUpdate()
+	if update == nil || !update.CanInstall() {
+		return false
+	}
+	if err := web.installUpdate(); err != nil {
+		web.sugarLogger.Infof("[Update] not installed at night: %v", err)
+		return false
+	}
+	return true
 }

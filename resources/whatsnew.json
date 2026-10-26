@@ -1,4 +1,61 @@
 {
+  "1.61.0": {
+    "en": [
+      "Update now: on Windows, macOS and Linux the app installs a new version by itself, checked against the checksums of the release, and can go back to the one before. The Update page shows what is new, checks GitHub at once and can install new versions at night. Docker and Unraid keep updating the container.",
+      "Uploading a game with a long name in Japanese no longer fails on the ZFS disks of Unraid: the name is shortened before its title ID.",
+      "Do you like the app? A star on GitHub helps other people find it."
+    ],
+    "es": [
+      "Actualizar ahora: en Windows, macOS y Linux la app instala sola una versión nueva, comprobada con las huellas de la versión, y puede volver a la anterior. La página Actualizar la app muestra las novedades, busca en GitHub al momento y puede instalar las versiones nuevas de madrugada. Docker y Unraid siguen actualizando el contenedor.",
+      "Subir un juego con un nombre largo en japonés ya no falla en los discos ZFS de Unraid: el nombre se acorta antes de su Title ID.",
+      "¿Te gusta la app? Una estrella en GitHub ayuda a que otros la encuentren."
+    ],
+    "de": [
+      "Jetzt aktualisieren: Unter Windows, macOS und Linux installiert die App eine neue Version selbst, geprüft mit den Prüfsummen der Version, und kann zur vorherigen zurückkehren. Die Seite App aktualisieren zeigt die Neuerungen, fragt GitHub sofort und kann neue Versionen nachts installieren. Docker und Unraid aktualisieren weiterhin den Container.",
+      "Das Hochladen eines Spiels mit langem japanischem Namen schlägt auf den ZFS-Platten von Unraid nicht mehr fehl: Der Name wird vor seiner Title ID gekürzt.",
+      "Gefällt dir die App? Ein Stern auf GitHub hilft anderen, sie zu finden."
+    ],
+    "fr": [
+      "Mettre à jour : sous Windows, macOS et Linux, l'app installe elle-même une nouvelle version, vérifiée avec les sommes de contrôle de la version, et peut revenir à la précédente. La page Mettre à jour l'app montre les nouveautés, interroge GitHub tout de suite et peut installer les nouvelles versions la nuit. Docker et Unraid continuent de mettre à jour le conteneur.",
+      "Envoyer un jeu au long nom japonais n'échoue plus sur les disques ZFS d'Unraid : le nom est raccourci avant son Title ID.",
+      "Vous aimez l'app ? Une étoile sur GitHub aide d'autres personnes à la trouver."
+    ],
+    "it": [
+      "Aggiorna ora: su Windows, macOS e Linux l'app installa da sola una nuova versione, verificata con i checksum della versione, e può tornare a quella precedente. La pagina Aggiorna l'app mostra le novità, interroga subito GitHub e può installare le nuove versioni di notte. Docker e Unraid continuano ad aggiornare il container.",
+      "Caricare un gioco con un nome giapponese lungo non fallisce più sui dischi ZFS di Unraid: il nome viene accorciato prima del suo Title ID.",
+      "Ti piace l'app? Una stella su GitHub aiuta altre persone a trovarla."
+    ],
+    "pt": [
+      "Atualizar agora: no Windows, macOS e Linux o app instala sozinho uma versão nova, verificada com os checksums da versão, e pode voltar à anterior. A página Atualizar o app mostra as novidades, consulta o GitHub na hora e pode instalar as versões novas de madrugada. Docker e Unraid continuam atualizando o contêiner.",
+      "Enviar um jogo com um nome longo em japonês não falha mais nos discos ZFS do Unraid: o nome é encurtado antes do Title ID.",
+      "Gosta do app? Uma estrela no GitHub ajuda outras pessoas a encontrá-lo."
+    ],
+    "nl": [
+      "Nu bijwerken: op Windows, macOS en Linux installeert de app zelf een nieuwe versie, gecontroleerd met de controlesommen van de versie, en kan hij terug naar de vorige. De pagina App bijwerken toont het nieuws, vraagt GitHub meteen en kan nieuwe versies 's nachts installeren. Docker en Unraid werken de container zelf bij.",
+      "Een game met een lange Japanse naam uploaden mislukt niet meer op de ZFS-schijven van Unraid: de naam wordt vóór zijn Title ID ingekort.",
+      "Vind je de app goed? Een ster op GitHub helpt anderen hem te vinden."
+    ],
+    "ru": [
+      "Обновить сейчас: в Windows, macOS и Linux приложение само устанавливает новую версию, проверенную по контрольным суммам выпуска, и может вернуться к предыдущей. Страница «Обновить приложение» показывает новое, сразу проверяет GitHub и может устанавливать новые версии ночью. Docker и Unraid по-прежнему обновляют контейнер.",
+      "Загрузка игры с длинным японским названием больше не завершается ошибкой на дисках ZFS в Unraid: название сокращается перед Title ID.",
+      "Нравится приложение? Звезда на GitHub помогает другим его найти."
+    ],
+    "ja": [
+      "今すぐ更新：Windows、macOS、Linux では、アプリがリリースのチェックサムで確認した新しいバージョンを自動でインストールし、以前のバージョンに戻すこともできます。「アプリを更新」ページでは新機能を表示し、すぐに GitHub を確認でき、夜間に新しいバージョンをインストールできます。Docker と Unraid では引き続きコンテナを更新します。",
+      "長い日本語名のゲームのアップロードが Unraid の ZFS ディスクで失敗しなくなりました。名前は Title ID の前で短縮されます。",
+      "このアプリは気に入りましたか？GitHub のスターは、ほかの人がアプリを見つける助けになります。"
+    ],
+    "ko": [
+      "지금 업데이트: Windows, macOS, Linux에서 앱이 릴리스의 체크섬으로 확인한 새 버전을 스스로 설치하고, 이전 버전으로 되돌릴 수도 있습니다. '앱 업데이트' 페이지에서 새 기능을 보여 주고, 바로 GitHub를 확인하며, 새 버전을 새벽에 설치할 수 있습니다. Docker와 Unraid는 계속 컨테이너를 업데이트합니다.",
+      "긴 일본어 이름의 게임을 올릴 때 Unraid의 ZFS 디스크에서 더 이상 실패하지 않습니다. 이름은 Title ID 앞에서 줄어듭니다.",
+      "앱이 마음에 드시나요? GitHub 별은 다른 사람이 앱을 찾는 데 도움이 됩니다."
+    ],
+    "zh": [
+      "立即更新：在 Windows、macOS 和 Linux 上，应用会自行安装新版本（按发布的校验和校验），并可返回旧版本。“更新应用”页面会显示新内容、立即检查 GitHub，并可在凌晨安装新版本。Docker 和 Unraid 仍通过更新容器来升级。",
+      "在 Unraid 的 ZFS 磁盘上上传日文长名称的游戏不再失败：名称会在 Title ID 之前缩短。",
+      "喜欢这个应用吗？在 GitHub 上点个星，能帮助更多人发现它。"
+    ]
+  },
   "1.60.1": {
     "en": [
       "The language flags of the cards have the shape and the size the region flags had on the cover, after the sign of a language."

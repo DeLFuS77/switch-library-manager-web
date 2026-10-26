@@ -181,6 +181,8 @@ type Web struct {
 	rescanPending atomic.Bool
 	// a measure of the server is running
 	measuring atomic.Bool
+	// the server of the pages, closed before an update starts the new program
+	server *http.Server
 	// the content of the Space page is being prepared
 	spacePreparing atomic.Bool
 	// the changes of Organize are being counted for the tune-up
@@ -674,6 +676,11 @@ func (web *Web) Start() {
 	// by itself once it is ready (opening the local database and preparing the pages can
 	// take a while on a NAS)
 	listener, err := listenLimited(fmt.Sprint(":", web.appSettings.Port))
+	// started by an update: the program before leaves the port in a moment
+	for wait := 0; err != nil && portInUse(err) && restarted() && wait < 60; wait++ {
+		time.Sleep(500 * time.Millisecond)
+		listener, err = listenLimited(fmt.Sprint(":", web.appSettings.Port))
+	}
 	if err != nil {
 		// started twice with a double click: the app is already open, show it instead
 		if portInUse(err) {
@@ -699,6 +706,7 @@ func (web *Web) Start() {
 		IdleTimeout:       2 * time.Minute,
 		MaxHeaderBytes:    64 << 10,
 	}
+	web.server = server
 	served := make(chan error, 1)
 	go func() { served <- server.Serve(listener) }()
 	if shouldOpenBrowser() && !isDemoMode() {
@@ -751,6 +759,7 @@ func (web *Web) Start() {
 	web.HandleDLC()
 	web.HandleIssues()
 	web.HandleSettings()
+	web.HandleSelfUpdate()
 	web.HandleKeysUpload()
 	web.HandleUploads()
 	web.HandleSynchronize()
@@ -820,6 +829,10 @@ func (web *Web) Start() {
 	front.set(withSecurityHeaders(withBodyLimit(withCompression(withHealthCheck(web.withVault(handler))))))
 	web.sugarLogger.Info("[SLM started]")
 	if err := <-served; err != nil {
+		// closed by an update, which starts the new program and then stops this one
+		if errors.Is(err, http.ErrServerClosed) {
+			select {}
+		}
 		web.sugarLogger.Error(fmt.Errorf("running http server failed: %w", err))
 		log.Fatal(err)
 	}
