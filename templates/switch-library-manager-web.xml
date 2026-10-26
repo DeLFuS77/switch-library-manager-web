@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.58.1
+  <Changes>### 1.59.0
+- A game you have from several regions can show as one card with the flags of all its regions; choose its main copy on its page, or a preferred region in Settings
+### 1.58.1
 - Space no longer waits for compressed copies already checked in part or damaged, so Verify now does what it says, and deleted files leave the list as they go
 ### 1.58.0
 - Users shows the last sign-in of each user and Activity the sign-ins of the login page; Space waits only for files really waiting for their check; a game compressed during a task downloads as its compressed copy; the count of files of a task counts each file once done; Measure picks a heavier setting from 5% faster

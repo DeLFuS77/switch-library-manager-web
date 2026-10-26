@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.59.0
 
 ### New
 

@@ -1,4 +1,50 @@
 {
+  "1.59.0": {
+    "en": [
+      "A game you have from several regions can show as one card with the flags of all its regions: turn on \"Count a game once when you have it from several regions\" in Settings.",
+      "On the page of such a game, choose which copy is the main one; or set a preferred region in Settings."
+    ],
+    "es": [
+      "Un juego que tienes de varias regiones puede verse como una sola tarjeta con las banderas de todas sus regiones: activa «Contar una sola vez un juego que tienes de varias regiones» en Ajustes.",
+      "En la página de ese juego eliges cuál es la copia principal, o pones una región preferida en Ajustes."
+    ],
+    "de": [
+      "Ein Spiel, das du aus mehreren Regionen hast, kann als eine Karte mit den Flaggen aller Regionen erscheinen: Schalte in den Einstellungen „Ein Spiel aus mehreren Regionen nur einmal zählen“ ein.",
+      "Auf der Seite des Spiels wählst du die Hauptkopie, oder du legst in den Einstellungen eine bevorzugte Region fest."
+    ],
+    "fr": [
+      "Un jeu que vous avez de plusieurs régions peut apparaître comme une seule carte avec les drapeaux de toutes ses régions : activez « Compter une seule fois un jeu que vous avez de plusieurs régions » dans les Réglages.",
+      "Sur la page de ce jeu, choisissez la copie principale, ou indiquez une région préférée dans les Réglages."
+    ],
+    "it": [
+      "Un gioco che hai di più regioni può apparire come una sola scheda con le bandiere di tutte le sue regioni: attiva «Conta una sola volta un gioco che hai di più regioni» nelle Impostazioni.",
+      "Nella pagina del gioco scegli la copia principale, oppure imposta una regione preferita nelle Impostazioni."
+    ],
+    "pt": [
+      "Um jogo que você tem de várias regiões pode aparecer como um só cartão com as bandeiras de todas as regiões: ative «Contar uma só vez um jogo que você tem de várias regiões» nas Configurações.",
+      "Na página desse jogo você escolhe a cópia principal, ou define uma região preferida nas Configurações."
+    ],
+    "nl": [
+      "Een spel dat je uit meerdere regio's hebt, kan als één kaart verschijnen met de vlaggen van al zijn regio's: zet in Instellingen „Een game uit meerdere regio's één keer tellen” aan.",
+      "Op de pagina van dat spel kies je de hoofdkopie, of stel je in Instellingen een voorkeursregio in."
+    ],
+    "ru": [
+      "Игра, которая есть у вас из нескольких регионов, может отображаться одной карточкой с флагами всех регионов: включите в настройках «Считать игру из нескольких регионов один раз».",
+      "На странице игры выберите основную копию или задайте предпочтительный регион в настройках."
+    ],
+    "ja": [
+      "複数の地域版を持っているゲームを、すべての地域の旗が付いた 1 枚のカードで表示できます。設定で「複数の地域版があるゲームを 1 本として数える」をオンにしてください。",
+      "そのゲームのページでメインのコピーを選ぶか、設定で優先する地域を指定します。"
+    ],
+    "ko": [
+      "여러 지역판을 가진 게임을 모든 지역의 국기가 있는 카드 하나로 볼 수 있어요. 설정에서 '여러 지역판이 있는 게임을 한 번만 세기'를 켜세요.",
+      "그 게임 페이지에서 기본 사본을 고르거나, 설정에서 선호 지역을 정하세요."
+    ],
+    "zh": [
+      "拥有多个地区版本的游戏可以显示为一张卡片，带有所有地区的旗帜：在设置中开启“拥有多个地区版本的游戏只计一次”。",
+      "在该游戏的页面选择主副本，或在设置中指定首选地区。"
+    ]
+  },
   "1.58.1": {
     "en": [
       "Space no longer waits for compressed copies already checked in part (an update needs its game) or found damaged: Verify now checks only what was never checked, and the originals of copies checked in part can be deleted on request.",
