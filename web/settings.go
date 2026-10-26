@@ -35,8 +35,6 @@ type SettingsPageData struct {
 	Processors            int
 	DefaultThreads        int
 	FilesAtOnceChoices    []int
-	// the countries of the copies of the games the library has from several regions, to prefer one
-	PreferredRegions []string
 }
 
 type SettingsForm struct {
@@ -51,6 +49,8 @@ type SettingsForm struct {
 	KeepUpdatesWithCheats bool   `in:"form=keep_updates_with_cheats"`
 	CountRegionsOnce      bool   `in:"form=count_regions_once"`
 	PreferredRegion       string `in:"form=preferred_region"`
+	PreferredRegion2      string `in:"form=preferred_region_2"`
+	PreferredRegion3      string `in:"form=preferred_region_3"`
 	WatchFolders          bool   `in:"form=watch_folders"`
 	WatchIntervalMinutes  int    `in:"form=watch_interval_minutes"`
 	BackgroundHours       string `in:"form=background_hours"`
@@ -236,11 +236,16 @@ func (web *Web) HandleSettings() {
 			})
 		}
 
-		if region := strings.TrimSpace(settingsForm.PreferredRegion); region != "" && !regionPattern.MatchString(strings.ToUpper(region)) {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-				Field:   "preferred_region",
-				Message: translate(lang, "Unknown option"),
-			})
+		for field, value := range map[string]string{"preferred_region": settingsForm.PreferredRegion, "preferred_region_2": settingsForm.PreferredRegion2, "preferred_region_3": settingsForm.PreferredRegion3} {
+			for _, region := range strings.Split(value, ",") {
+				if region = strings.TrimSpace(region); region != "" && !regionPattern.MatchString(strings.ToUpper(region)) {
+					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+						Field:   field,
+						Message: translate(lang, "Unknown option"),
+					})
+					break
+				}
+			}
 		}
 
 		if _, ok := allowedBackgroundHours[settingsForm.BackgroundHours]; !ok {
@@ -314,7 +319,8 @@ func (web *Web) HandleSettings() {
 			appSettings.CheatsDisabled = !settingsForm.Cheats
 			appSettings.OrganizeOptions.DeleteUpdatesWithCheats = !settingsForm.KeepUpdatesWithCheats
 			appSettings.CountRegionsOnce = settingsForm.CountRegionsOnce
-			appSettings.PreferredRegion = strings.ToUpper(strings.TrimSpace(settingsForm.PreferredRegion))
+			// the zones in order, each once: "EU,US,JP"
+			appSettings.PreferredRegion = strings.Join(preferredZones(strings.ToUpper(strings.Join([]string{settingsForm.PreferredRegion, settingsForm.PreferredRegion2, settingsForm.PreferredRegion3}, ","))), ",")
 			appSettings.WatchFolders = settingsForm.WatchFolders
 			appSettings.WatchIntervalMinutes = settingsForm.WatchIntervalMinutes
 			appSettings.BackgroundHours = settingsForm.BackgroundHours
@@ -417,7 +423,6 @@ func (web *Web) settingsPageData() SettingsPageData {
 		DefaultThreads:          compressWorkers(),
 		FilesAtOnceChoices:      []int{1, 2, 3, maxFilesAtOnce},
 		LastMeasure:             web.lastMeasure(),
-		PreferredRegions:        web.copyRegions(current.PreferredRegion),
 	}
 }
 

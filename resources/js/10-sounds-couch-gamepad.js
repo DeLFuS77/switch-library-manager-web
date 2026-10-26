@@ -65,7 +65,8 @@ function initSounds() {
 			playSound('move');
 		}
 	});
-	document.addEventListener('show.bs.modal', () => playSound('open'));
+	// the wizard has a welcome of its own
+	document.addEventListener('show.bs.modal', e => e.target.id !== 'setupWizard' && playSound('open'));
 	document.addEventListener('hide.bs.modal', () => playSound('back'));
 }
 

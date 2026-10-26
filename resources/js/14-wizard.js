@@ -18,10 +18,76 @@ function initAutomationSettings() {
 // Settings and the quick search), one step at a time, saved with the Settings form at the end.
 let wizardLoading = null;
 
+// The welcome of the wizard: a soft chord that swells under chimes going up, with an echo. It
+// plays when the wizard starts, or at the first touch when the browser keeps the page silent
+// until then (a wizard that opens by itself).
+function playWizardWelcome() {
+	try {
+		soundContext = soundContext || new (window.AudioContext || window.webkitAudioContext)();
+		if (soundContext.state === 'suspended') {
+			soundContext.resume();
+		}
+		const now = soundContext.currentTime + .05;
+		const out = soundContext.createGain();
+		out.gain.value = .5;
+		const echo = soundContext.createDelay();
+		echo.delayTime.value = .32;
+		const feedback = soundContext.createGain();
+		feedback.gain.value = .35;
+		echo.connect(feedback).connect(echo);
+		out.connect(soundContext.destination);
+		echo.connect(soundContext.destination);
+		const voice = (frequency, start, length, type, volume, attack, wet) => {
+			const oscillator = soundContext.createOscillator();
+			const gain = soundContext.createGain();
+			oscillator.type = type;
+			oscillator.frequency.value = frequency;
+			gain.gain.setValueAtTime(.0001, now + start);
+			gain.gain.exponentialRampToValueAtTime(volume, now + start + attack);
+			gain.gain.exponentialRampToValueAtTime(.0001, now + start + length);
+			oscillator.connect(gain).connect(out);
+			if (wet) {
+				gain.connect(echo);
+			}
+			oscillator.start(now + start);
+			oscillator.stop(now + start + length + .05);
+		};
+		// the chord under it (D, A, E, F sharp), slow in and slow out
+		[146.83, 220, 329.63, 369.99].forEach(frequency => {
+			voice(frequency, 0, 4.2, 'sine', .05, 1.2, false);
+			voice(frequency * 1.003, 0, 4.2, 'triangle', .015, 1.4, false);
+		});
+		// chimes going up, then two high notes that settle
+		[[440, .25], [587.33, .5], [739.99, .75], [880, 1], [1318.51, 1.45], [1174.66, 1.9]].forEach(([frequency, start], i) => {
+			const volume = i < 4 ? .11 : .08;
+			voice(frequency, start, 1.8, 'sine', volume, .008, true);
+			voice(frequency * 2, start, .6, 'sine', volume / 4, .005, true);
+		});
+	} catch (e) {
+		// no sound in this browser
+	}
+}
+
+function wizardWelcome(element) {
+	const silent = navigator.userActivation && !navigator.userActivation.hasBeenActive;
+	if (!silent) {
+		playWizardWelcome();
+		return;
+	}
+	const first = () => {
+		element.removeEventListener('pointerdown', first);
+		element.removeEventListener('keydown', first);
+		playWizardWelcome();
+	};
+	element.addEventListener('pointerdown', first);
+	element.addEventListener('keydown', first);
+}
+
 function openWizard(auto) {
 	const existing = document.getElementById('setupWizard');
 	if (existing) {
 		Modal.getOrCreateInstance(existing).show();
+		wizardWelcome(existing);
 		return Promise.resolve();
 	}
 	if (wizardLoading) {
@@ -36,6 +102,7 @@ function openWizard(auto) {
 			document.body.appendChild(element);
 			setupWizard(element);
 			Modal.getOrCreateInstance(element).show();
+			wizardWelcome(element);
 		})
 		.catch(() => {
 			// not an administrator, or the server could not be reached

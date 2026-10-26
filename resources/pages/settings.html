@@ -114,14 +114,21 @@
 										<div class="form-text">{{t "One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed."}}</div>
 									</div>
 									<div class="mt-2">
-										<label for="preferred_region" class="form-label fw-semibold">{{t "Preferred region"}}</label>
-										<select class="form-select" id="preferred_region" name="preferred_region" aria-describedby="preferred_region_help">
-											<option value="">{{t "No preference: the suggested copy"}}</option>
-											{{- range .PreferredRegions}}
-											<option value="{{.}}"{{if eq . $.Settings.PreferredRegion}} selected{{end}}>{{.}}</option>
+										<div class="form-label fw-semibold" id="preferred_region_label">{{t "Preferred regions, in order"}}</div>
+										<div class="row g-2" role="group" aria-labelledby="preferred_region_label" aria-describedby="preferred_region_help">
+											{{- range $i, $chosen := preferredChoices .Settings.PreferredRegion}}
+											<div class="col-sm-4">
+												<label class="form-label small text-body-secondary mb-1" for="preferred_region{{if $i}}_{{add $i 1}}{{end}}">{{t "Choice %v" (add $i 1)}}</label>
+												<select class="form-select" id="preferred_region{{if $i}}_{{add $i 1}}{{end}}" name="preferred_region{{if $i}}_{{add $i 1}}{{end}}">
+													<option value="">{{if $i}}{{t "None"}}{{else}}{{t "No preference: the suggested copy"}}{{end}}</option>
+													{{- range regionZones}}
+													<option value="{{.Code}}"{{if eq .Code $chosen}} selected{{end}}>{{t .Name}}</option>
+													{{- end}}
+												</select>
+											</div>
 											{{- end}}
-										</select>
-										<div class="form-text" id="preferred_region_help">{{t "The copy of this country is the main one of each game you have from several regions, unless you choose another on its page."}}</div>
+										</div>
+										<div class="form-text" id="preferred_region_help">{{t "The copy of the first of these regions the game has is the main one of each game you have from several regions, unless you choose another on its page. Europe and America share most games: a region only counts when the game has its own copy there."}}</div>
 									</div>
 								</div>
 							</div>

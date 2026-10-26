@@ -152,22 +152,78 @@ func missingRegions(item TitleItem, byName map[string][]string) []string {
 	return missing
 }
 
-// copyRegions are the countries of the copies of the games the library has from several
-// regions, sorted, with current among them: the regions Settings offers to prefer.
-func (web *Web) copyRegions(current string) []string {
-	regions := []string{}
-	if current != "" {
-		regions = append(regions, current)
+// RegionZone is a group of the stores of Nintendo that sell a game with the same title ID: a game
+// of Spain and one of the United Kingdom are one copy, a game of Japan another one. The titles
+// database gives each copy the country of one of its stores.
+type RegionZone struct {
+	Code string
+	Name string
+}
+
+// regionZones are the zones Settings offers to prefer, in this order; the name is translated.
+var regionZones = []RegionZone{
+	{"EU", "Europe"},
+	{"US", "Americas"},
+	{"AU", "Australia and New Zealand"},
+	{"JP", "Japan"},
+	{"KR", "Korea"},
+	{"HK", "Hong Kong and Taiwan"},
+	{"CN", "China"},
+}
+
+// preferredRegionsShown is how many zones Settings lets the user put in order
+const preferredRegionsShown = 3
+
+// regionZone is the zone of a country of the titles database, or of a zone; Europe for the
+// countries of the other stores of Nintendo of Europe.
+func regionZone(region string) string {
+	switch region = regionCode(region); region {
+	case "":
+		return ""
+	case "US", "CA", "MX", "BR", "AR", "CL", "CO", "PE":
+		return "US"
+	case "AU", "NZ":
+		return "AU"
+	case "JP", "KR", "CN":
+		return region
+	case "HK", "TW":
+		return "HK"
 	}
-	for _, group := range web.regionalDuplicates(DEFAULT_LANGUAGE) {
-		for _, copy := range group.Copies {
-			if region := regionCode(copy.Region); region != "" && !hasValue(regions, region) {
-				regions = append(regions, region)
-			}
+	return "EU"
+}
+
+// preferredZones are the zones of a preferred region setting, in order and each once: "EU,US,JP",
+// or a country saved by an older version ("GB" is Europe).
+func preferredZones(setting string) []string {
+	zones := []string{}
+	for _, region := range strings.Split(setting, ",") {
+		if zone := regionZone(region); zone != "" && !hasValue(zones, zone) {
+			zones = append(zones, zone)
 		}
 	}
-	sort.Strings(regions)
-	return regions
+	return zones
+}
+
+// zoneRank is the place of the zone of a region among the preferred ones: 0 the first, and
+// len(zones) for a zone not preferred.
+func zoneRank(region string, zones []string) int {
+	zone := regionZone(region)
+	for i, preferred := range zones {
+		if zone == preferred {
+			return i
+		}
+	}
+	return len(zones)
+}
+
+// preferredChoices are the zones of the preferred region setting for the selects of Settings: one
+// for each select, "" when it has none.
+func preferredChoices(setting string) []string {
+	choices := preferredZones(setting)
+	for len(choices) < preferredRegionsShown {
+		choices = append(choices, "")
+	}
+	return choices[:preferredRegionsShown]
 }
 
 // regionStatus is how up to date a game of several regions is when each game counts once: up to
@@ -320,7 +376,7 @@ func (web *Web) buildRegionalDuplicates(lang string) []RegionGroup {
 
 	groups := []RegionGroup{}
 	chosen := web.regionChoices().snapshot()
-	preferred := regionCode(settings.ReadSettings(web.dataFolder).PreferredRegion)
+	preferred := preferredZones(settings.ReadSettings(web.dataFolder).PreferredRegion)
 	for _, copies := range byName {
 		if len(copies) < 2 || !distinctRegions(copies) {
 			continue
@@ -347,20 +403,22 @@ func distinctRegions(copies []RegionCopy) bool {
 	return true
 }
 
-// suggestRegionCopy marks the copy to keep: never a damaged one, then the one of the preferred
-// region (a country, "" for none), the one in the language of the interface, with more
-// languages, the newer update, more DLC and already compressed.
-func suggestRegionCopy(copies []RegionCopy, preferred string) RegionGroup {
+// suggestRegionCopy marks the copy to keep: never a damaged one, then the one of the first
+// preferred zone the game has a copy of (zones in order, none for no preference), the one in the
+// language of the interface, with more languages, the newer update, more DLC and already
+// compressed.
+func suggestRegionCopy(copies []RegionCopy, preferred []string) RegionGroup {
 	score := func(c RegionCopy) int {
 		value := len(c.Languages)*10 + c.Dlc
-		if preferred != "" && regionCode(c.Region) == preferred {
-			value += 5000
+		// the order chosen weighs more than the language and the rest; a damaged copy, the most
+		if rank := zoneRank(c.Region, preferred); rank < len(preferred) {
+			value += 10000 - rank*2000
 		}
 		if c.HasLanguage {
 			value += 1000
 		}
 		if c.Damaged {
-			value -= 10000
+			value -= 100000
 		}
 		if c.LocalUpdate > 0 {
 			value += 5
@@ -389,7 +447,7 @@ func suggestRegionCopy(copies []RegionCopy, preferred string) RegionGroup {
 	}
 	reason(REGION_REASON_SOUND, func(other RegionCopy) bool { return !best.Damaged && other.Damaged })
 	reason(REGION_REASON_PREFERRED, func(other RegionCopy) bool {
-		return preferred != "" && regionCode(best.Region) == preferred && regionCode(other.Region) != preferred
+		return zoneRank(best.Region, preferred) < zoneRank(other.Region, preferred)
 	})
 	reason(REGION_REASON_LANGUAGE, func(other RegionCopy) bool { return best.HasLanguage && !other.HasLanguage })
 	reason(REGION_REASON_LANGUAGES, func(other RegionCopy) bool { return len(best.Languages) > len(other.Languages) })

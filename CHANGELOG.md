@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.60.0
+
+### Improvements
+
+- Preferred regions, in order: up to three, in Settings and in the wizard. They are the zones of the eShop that sell a game with its own title ID (Europe, the Americas, Australia and New Zealand, Japan, Korea, Hong Kong and Taiwan, China), by name instead of a country code; the copy of the first one a game has is its main copy. A country chosen before is kept as its zone
+- The wizard plays a short welcome when it starts
+- Game cards show the languages of the game as round flags in a pill on the cover, yours first, the others counted as +N and shown on hover. The region flags move below the name, right of the version and the year, and only when they tell something: most games have one title ID for every store, so the United States flag alone is no longer shown
+
 ## 1.59.0
 
 ### New

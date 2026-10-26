@@ -22,7 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.59.0
+  <Changes>### 1.60.0
+- Up to three preferred regions, in order, by the zones of the eShop (Europe, the Americas, Japan...), in Settings and the wizard
+- Game cards show the languages of the game as flags, and the region only when it tells something
+- The wizard plays a short welcome when it starts
+### 1.59.0
 - A game you have from several regions can show as one card with the flags of all its regions; choose its main copy on its page, or a preferred region in Settings
 ### 1.58.1
 - Space no longer waits for compressed copies already checked in part or damaged, so Verify now does what it says, and deleted files leave the list as they go

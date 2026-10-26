@@ -300,6 +300,21 @@
 									<div class="regions-demo-card regions-demo-merged"><div class="regions-demo-cover"><span class="bi bi-controller"></span><span class="regions-demo-flags"><span class="fi fi-us"></span><span class="fi fi-jp"></span><span class="fi fi-gb is-missing"></span></span></div><span class="regions-demo-chip"><span class="bi bi-globe2"></span>{{t "+1 region"}}</span></div>
 								</div>
 								<div class="form-text" id="wizard_regions_help">{{t "One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed."}}</div>
+								<div class="form-label fw-semibold mt-2 mb-1" id="wizard_preferred_region_label">{{t "Preferred regions, in order"}}</div>
+								<div class="row g-2" role="group" aria-labelledby="wizard_preferred_region_label" aria-describedby="wizard_preferred_region_help">
+									{{- range $i, $chosen := preferredChoices $s.PreferredRegion}}
+									<div class="col-sm-4">
+										<label class="form-label small text-body-secondary mb-1" for="wizard_preferred_region_{{add $i 1}}">{{t "Choice %v" (add $i 1)}}</label>
+										<select class="form-select" id="wizard_preferred_region_{{add $i 1}}" name="preferred_region{{if $i}}_{{add $i 1}}{{end}}">
+											<option value="">{{if $i}}{{t "None"}}{{else}}{{t "No preference: the suggested copy"}}{{end}}</option>
+											{{- range regionZones}}
+											<option value="{{.Code}}"{{if eq .Code $chosen}} selected{{end}}>{{t .Name}}</option>
+											{{- end}}
+										</select>
+									</div>
+									{{- end}}
+								</div>
+								<div class="form-text" id="wizard_preferred_region_help">{{t "The copy of the first of these regions the game has is the main one of each game you have from several regions, unless you choose another on its page. Europe and America share most games: a region only counts when the game has its own copy there."}}</div>
 							</div>
 							<div class="row g-3 mt-1">
 								<div class="col-md-6">
@@ -506,7 +521,6 @@
 						<input type="checkbox" name="vault_notify" value="true"{{if $s.Vault.Notify}} checked{{end}}>
 						<input type="text" name="compress_threads" value="{{$s.CompressThreads}}">
 						<input type="text" name="compress_files_at_once" value="{{$s.CompressFilesAtOnce}}">
-						<input type="text" name="preferred_region" value="{{$s.PreferredRegion}}">
 					</div>
 
 					<footer class="wizard-footer" data-wizard-footer>

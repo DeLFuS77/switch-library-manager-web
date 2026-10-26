@@ -537,6 +537,9 @@ var funcMap = template.FuncMap{
 		return a - b
 	},
 	"toLower": strings.ToLower,
+	// the zones of the stores to prefer, and the ones chosen for each select (see regionZones)
+	"regionZones":      func() []RegionZone { return regionZones },
+	"preferredChoices": preferredChoices,
 	// percentOf64 is part of total in percent, for bars of sizes
 	"percentOf64": func(part int64, total int64) int64 {
 		if total <= 0 {
@@ -558,7 +561,9 @@ var funcMap = template.FuncMap{
 		return part * 100 / total
 	},
 	// the English name of a language of a game, for t
-	"gameLanguage": gameLanguageName,
+	"gameLanguage":  gameLanguageName,
+	"languageFlags": languageFlags,
+	"showRegion":    showRegion,
 	// inList reports whether a list of strings contains a value
 	"inList": func(value string, list []string) bool {
 		for _, item := range list {

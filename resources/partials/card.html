@@ -6,10 +6,10 @@
 						{{- if and (not .Type) (not .LatestUpdate) (not .InLibrary)}}<button type="button" class="wish-toggle editor-only{{if .Wished}} is-wished{{end}}" data-wish="{{.Id}}" data-wished="{{.Wished}}" aria-pressed="{{.Wished}}" title="{{if .Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if .Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>{{end}}
 						{{- if .UpdateAvailable}}<span class="cover-ribbon" title="{{t "Update available"}}"><span class="bi bi-arrow-up-circle-fill" aria-hidden="true"></span></span>{{end}}
 						<a class="cover-link" href="/title/{{.Id}}.html" tabindex="-1" aria-hidden="true"><img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async"></a>
-						{{- if or .Type .Region .Play.Status}}
+						{{- if or .Type .Languages .Play.Status}}
 						<div class="game-cover-meta">
 							{{- if or $type .Demo .Cheats .Play.Status}}<span class="d-inline-flex gap-1">{{if $type}}<span class="badge">{{$type}}</span>{{end}}{{if .Demo}}<span class="badge">{{t "Demo"}}</span>{{end}}{{if .Cheats}}<span class="badge badge-cheats" title="{{t "Cheats for your version"}}"><span class="bi bi-magic" aria-hidden="true"></span><span class="visually-hidden">{{t "Cheats for your version"}}</span></span>{{end}}{{with .Play.Status}}<span class="badge badge-play play-{{.}}" title="{{t $.Play.Look.Name}}"><span class="bi {{$.Play.Look.Icon}}" aria-hidden="true"></span><span class="visually-hidden">{{t $.Play.Look.Name}}</span></span>{{end}}</span>{{else}}<span></span>{{end}}
-							{{- if .Region}}<span class="d-inline-flex gap-1"><span class="fi fi-{{.Region | toLower}}" title="{{.Region}}"><span class="visually-hidden">{{.Region}}</span></span>{{range .OtherFlags}}<span class="fi fi-{{. | toLower}}" title="{{.}}"><span class="visually-hidden">{{.}}</span></span>{{end}}{{range .MissingFlags}}<span class="fi fi-{{. | toLower}} flag-missing" title="{{.}}: {{t "Not in your library"}}"><span class="visually-hidden">{{.}}: {{t "Not in your library"}}</span></span>{{end}}{{with .HiddenRegions}}<span class="badge flags-more" tabindex="0" aria-label="{{range $i, $r := .}}{{if $i}}, {{end}}{{$r}}{{end}}: {{t "Not in your library"}}">+{{len .}}<span class="flags-more-list" aria-hidden="true"><span class="flags-more-caption">{{t "Not in your library"}}</span><span class="flags-more-row">{{range .}}<span class="fi fi-{{. | toLower}} flag-missing" title="{{.}}"></span>{{end}}</span></span></span>{{end}}</span>{{end}}
+							{{- with languageFlags .Languages lang}}{{if .Shown}}<span class="lang-flags"><span class="bi bi-translate" aria-hidden="true"></span><span class="visually-hidden">{{t "Languages"}}: {{range $i, $l := .Shown}}{{if $i}}, {{end}}{{t (gameLanguage $l.Code)}}{{end}}{{range .Hidden}}, {{t (gameLanguage .Code)}}{{end}}</span>{{range .Shown}}<span class="fi fis fi-{{.Flag}}" title="{{t (gameLanguage .Code)}}" aria-hidden="true"></span>{{end}}{{with .Hidden}}<span class="badge flags-more" tabindex="0" aria-hidden="true">+{{len .}}<span class="flags-more-list"><span class="flags-more-caption">{{t "Languages"}}</span><span class="flags-more-row">{{range .}}<span class="fi fis fi-{{.Flag}}" title="{{t (gameLanguage .Code)}}"></span>{{end}}</span></span></span>{{end}}</span>{{else}}<span></span>{{end}}{{end}}
 						</div>
 						{{- end}}
 					</div>
@@ -26,9 +26,12 @@
 						</div>
 						{{- else if .Type}}
 						{{- /* Library */}}
-						<div class="game-meta">
+						<div class="game-meta d-flex align-items-center gap-2">
+							<span class="me-auto">
 							{{- if .Version}}{{t "Version"}} {{.Version}}{{else if .LocalUpdate}}v{{.LocalUpdate}}{{end}}
 							{{- if not .ReleaseDate.IsZero}}{{if or .Version .LocalUpdate}} &middot; {{end}}{{.ReleaseDate.Year}}{{end}}
+							</span>
+							{{- template "regionFlags" .}}
 						</div>
 						<div class="game-status d-flex flex-wrap gap-1">
 							{{- if .UpdateAvailable}}<span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Update available"}}</span>{{end}}
@@ -49,10 +52,15 @@
 						{{- /* Missing games */}}
 						{{- if or .OrphanUpdates .OrphanDlc}}<div class="game-meta d-flex flex-wrap gap-1">{{if .OrphanUpdates}}<span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Updates: %v" .OrphanUpdates}}</span>{{end}}{{if .OrphanDlc}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC" .OrphanDlc}}</span>{{end}}</div>{{end}}
 						{{- if .Missing}}<div class="game-meta"><span class="chip chip-muted"><span class="bi bi-cart" aria-hidden="true"></span>{{t "Not in your library"}}</span></div>{{else if .InLibrary}}<div class="game-meta"><span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "In your library"}}</span></div>{{end}}
-						{{- if not .ReleaseDate.IsZero}}
-						<div class="game-meta game-footer"><span class="bi bi-calendar3 me-1" aria-hidden="true"></span>{{.ReleaseDate | formatTime}}</div>
+						{{- if or (not .ReleaseDate.IsZero) (showRegion .)}}
+						<div class="game-meta game-footer d-flex align-items-center gap-2"><span class="me-auto">{{if not .ReleaseDate.IsZero}}<span class="bi bi-calendar3 me-1" aria-hidden="true"></span>{{.ReleaseDate | formatTime}}{{end}}</span>{{template "regionFlags" .}}</div>
 						{{- end}}
 						{{- end}}
 					</div>
 				</article>
+{{- end}}
+
+{{- /* the flags of the region of a card and of its other copies; the ones the library has not, dimmed */}}
+{{- define "regionFlags"}}
+{{- if showRegion .}}<span class="card-region"><span class="d-inline-flex gap-1"><span class="fi fi-{{.Region | toLower}}" title="{{.Region}}"><span class="visually-hidden">{{.Region}}</span></span>{{range .OtherFlags}}<span class="fi fi-{{. | toLower}}" title="{{.}}"><span class="visually-hidden">{{.}}</span></span>{{end}}{{range .MissingFlags}}<span class="fi fi-{{. | toLower}} flag-missing" title="{{.}}: {{t "Not in your library"}}"><span class="visually-hidden">{{.}}: {{t "Not in your library"}}</span></span>{{end}}{{with .HiddenRegions}}<span class="badge flags-more" tabindex="0" aria-label="{{range $i, $r := .}}{{if $i}}, {{end}}{{$r}}{{end}}: {{t "Not in your library"}}">+{{len .}}<span class="flags-more-list" aria-hidden="true"><span class="flags-more-caption">{{t "Not in your library"}}</span><span class="flags-more-row">{{range .}}<span class="fi fi-{{. | toLower}} flag-missing" title="{{.}}"></span>{{end}}</span></span></span>{{end}}</span></span>{{end}}
 {{- end}}

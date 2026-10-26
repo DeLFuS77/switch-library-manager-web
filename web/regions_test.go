@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -317,8 +318,8 @@ func TestRegionFlagsByCountry(t *testing.T) {
 	t.Fatalf("no card of the game: %+v", items)
 }
 
-// The copy of the preferred country is the main one, but for the one chosen on the page of the
-// game; Settings offers the countries of the copies.
+// The copy of the first preferred zone the game has is the main one, but for the one chosen on
+// the page of the game.
 func TestPreferredRegion(t *testing.T) {
 	web, _ := regionTestWeb(t)
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.PreferredRegion = "US" })
@@ -327,9 +328,14 @@ func TestPreferredRegion(t *testing.T) {
 	if group := web.regionalDuplicates("es")[0]; group.Copies[0].Id != "0100000000010000" || group.Copies[0].Reasons[0] != REGION_REASON_PREFERRED {
 		t.Fatalf("the American copy, as preferred: %+v", group.Copies)
 	}
-	if regions := web.copyRegions(""); strings.Join(regions, ",") != "JP,US" {
-		t.Fatalf("the countries offered: %v", regions)
+	// zones in order: Europe first, which the game has no copy of, then Japan
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.PreferredRegion = "EU,JP,US" })
+	web.invalidateDerived()
+	if group := web.regionalDuplicates("en")[0]; group.Copies[0].Id != "0100000000050000" || group.Copies[0].Reasons[0] != REGION_REASON_PREFERRED {
+		t.Fatalf("the Japanese copy, as the first preferred zone the game has: %+v", group.Copies)
 	}
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.PreferredRegion = "US" })
+	web.invalidateDerived()
 	web.regionChoices().choose("0100000000050000", []string{"0100000000010000", "0100000000050000"})
 	web.invalidateDerived()
 	if group := web.regionalDuplicates("es")[0]; group.Copies[0].Id != "0100000000050000" {
@@ -368,5 +374,54 @@ func TestRegionCopiesCountTogether(t *testing.T) {
 	japan.Normalize()
 	if items, _, _ := web.getLibraryWithFacets(japan, "en"); len(items) != 1 || items[0].Id != "0100000000010000" {
 		t.Fatalf("the game is found by the region of its other copy: %+v", items)
+	}
+}
+
+// A preferred region is a zone of stores that share the title IDs; a country saved by an older
+// version is the zone of its store.
+func TestPreferredZones(t *testing.T) {
+	if zones := preferredZones("GB,es,US (Spanish),NZ,TW,EU"); strings.Join(zones, ",") != "EU,US,AU,HK" {
+		t.Fatalf("zones: %v", zones)
+	}
+	if choices := preferredChoices("JP"); strings.Join(choices, ",") != "JP,," {
+		t.Fatalf("one select for each place: %v", choices)
+	}
+	if rank := zoneRank("DE", []string{"US", "EU"}); rank != 1 {
+		t.Fatalf("Germany is the second zone: %d", rank)
+	}
+}
+
+// Settings saves the three preferred zones in order, each once, and shows them chosen.
+func TestPreferredZonesSaved(t *testing.T) {
+	web, _ := compressWeb(t)
+	web.HandleSettings()
+	form := url.Values{"scan_folders": {t.TempDir()}, "preferred_region": {"EU"}, "preferred_region_2": {"JP"}, "preferred_region_3": {"EU"}}
+	request := httptest.NewRequest(http.MethodPost, "/settings.html", strings.NewReader(form.Encode()))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	recorder := httptest.NewRecorder()
+	web.router.ServeHTTP(recorder, request)
+	if saved := settings.ReadSettings(web.dataFolder).PreferredRegion; saved != "EU,JP" {
+		t.Fatalf("saved %q: %d %s", saved, recorder.Code, recorder.Body.String())
+	}
+	page := httptest.NewRecorder()
+	web.router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/settings.html", nil))
+	body := page.Body.String()
+	if !strings.Contains(body, `<option value="EU" selected>`) || !strings.Contains(body, `<option value="JP" selected>`) {
+		t.Fatalf("the zones chosen are not shown")
+	}
+}
+
+// The card shows the language of the interface first among a few language flags, and the flag of
+// its region only when it says something.
+func TestCardFlags(t *testing.T) {
+	flags := languageFlags([]string{"en", "fr", "de", "es", "it", "xx"}, "es")
+	if len(flags.Shown) != 3 || flags.Shown[0].Flag != "es" || flags.Shown[1].Flag != "gb" || len(flags.Hidden) != 2 {
+		t.Fatalf("language flags: %+v", flags)
+	}
+	if few := languageFlags([]string{"ja", "ko", "zh", "en"}, "es"); len(few.Shown) != 4 || len(few.Hidden) != 0 {
+		t.Fatalf("one more is shown instead of +1: %+v", few)
+	}
+	if showRegion(TitleItem{Region: "US"}) || !showRegion(TitleItem{Region: "JP"}) || !showRegion(TitleItem{Region: "US", OtherFlags: []string{"JP"}}) {
+		t.Fatal("the region alone of most games, the United States, says nothing")
 	}
 }
