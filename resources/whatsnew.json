@@ -1,4 +1,50 @@
 {
+  "1.58.1": {
+    "en": [
+      "Space no longer waits for compressed copies already checked in part (an update needs its game) or found damaged: Verify now checks only what was never checked, and the originals of copies checked in part can be deleted on request.",
+      "Files deleted from Space leave the list one by one as they go."
+    ],
+    "es": [
+      "Espacio ya no espera a copias comprimidas que ya se comprobaron en parte (una actualización necesita su juego) o que están dañadas: Verificar ahora solo comprueba lo que nunca se comprobó, y los originales de copias comprobadas en parte se pueden borrar si los eliges.",
+      "Los archivos que se borran desde Espacio desaparecen de la lista uno a uno según se borran."
+    ],
+    "de": [
+      "Speicher wartet nicht mehr auf komprimierte Kopien, die schon teilweise (ein Update braucht sein Spiel) oder als beschädigt geprüft wurden: Jetzt prüfen prüft nur, was nie geprüft wurde, und Originale teilweise geprüfter Kopien lassen sich auf Wunsch löschen.",
+      "Dateien, die in Speicher gelöscht werden, verschwinden nacheinander aus der Liste."
+    ],
+    "fr": [
+      "Espace n'attend plus les copies compressées déjà vérifiées en partie (une mise à jour a besoin de son jeu) ou trouvées endommagées : Vérifier maintenant ne vérifie que ce qui ne l'a jamais été, et les originaux des copies vérifiées en partie peuvent être supprimés sur demande.",
+      "Les fichiers supprimés depuis Espace quittent la liste un par un."
+    ],
+    "it": [
+      "Spazio non aspetta più le copie compresse già verificate in parte (un aggiornamento ha bisogno del suo gioco) o danneggiate: Verifica ora controlla solo ciò che non è mai stato controllato, e gli originali delle copie verificate in parte si possono eliminare su richiesta.",
+      "I file eliminati da Spazio escono dalla lista uno alla volta."
+    ],
+    "pt": [
+      "Espaço já não espera por cópias comprimidas já verificadas em parte (uma atualização precisa do seu jogo) ou danificadas: Verificar agora só verifica o que nunca foi verificado, e os originais de cópias verificadas em parte podem ser apagados a pedido.",
+      "Os arquivos apagados em Espaço saem da lista um a um."
+    ],
+    "nl": [
+      "Opslag wacht niet meer op gecomprimeerde kopieën die al deels (een update heeft zijn spel nodig) of als beschadigd zijn gecontroleerd: Nu controleren controleert alleen wat nooit gecontroleerd is, en originelen van deels gecontroleerde kopieën kun je op verzoek verwijderen.",
+      "Bestanden die in Opslag worden verwijderd, verdwijnen een voor een uit de lijst."
+    ],
+    "ru": [
+      "«Место» больше не ждёт сжатые копии, уже проверенные частично (обновлению нужна игра) или повреждённые: «Проверить сейчас» проверяет только то, что ещё не проверялось, а оригиналы частично проверенных копий можно удалить по запросу.",
+      "Файлы, удаляемые в «Месте», исчезают из списка по одному."
+    ],
+    "ja": [
+      "「容量」は、一部だけ確認済み（アップデートにはゲームが必要）または破損と判明した圧縮コピーを待たなくなりました。「今すぐ確認」は未確認のものだけを確認し、一部確認済みのコピーの元ファイルは指定すれば削除できます。",
+      "「容量」で削除したファイルは、消えた順に一覧から外れます。"
+    ],
+    "ko": [
+      "공간은 이미 일부만 확인됐거나(업데이트는 게임이 필요해요) 손상된 압축 사본을 더 이상 기다리지 않아요. 지금 확인은 한 번도 확인하지 않은 것만 확인하고, 일부만 확인된 사본의 원본은 선택하면 삭제할 수 있어요.",
+      "공간에서 삭제한 파일은 삭제되는 대로 하나씩 목록에서 사라져요."
+    ],
+    "zh": [
+      "“空间”不再等待已部分校验（更新需要其游戏）或已损坏的压缩副本：“立即校验”只校验从未校验过的文件，部分校验副本的原始文件可按需删除。",
+      "在“空间”中删除的文件会逐个从列表中消失。"
+    ]
+  },
   "1.58.0": {
     "en": [
       "Users shows the last time each user signed in, and Activity notes the sign-ins of the login page: right, wrong or blocked.",
