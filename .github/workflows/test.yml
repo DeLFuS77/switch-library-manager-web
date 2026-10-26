@@ -86,8 +86,8 @@ jobs:
       # the program of Linux starts: it answers its health check
       - name: The program of Linux starts
         run: |
-          tar -xzf dist/switch-library-manager-web-0.0.0-test-linux-x64.tar.gz -C "${RUNNER_TEMP}"
-          program="${RUNNER_TEMP}/switch-library-manager-web-0.0.0-test-linux-x64/switch-library-manager-web"
+          tar -xzf dist/switch-library-manager-web-linux-x64.tar.gz -C "${RUNNER_TEMP}"
+          program="${RUNNER_TEMP}/switch-library-manager-web/switch-library-manager-web"
           mkdir -p "${RUNNER_TEMP}/data"
           SLM_DATA_DIR="${RUNNER_TEMP}/data" "${program}" > "${RUNNER_TEMP}/log.txt" 2>&1 &
           for i in $(seq 1 30); do
@@ -125,8 +125,8 @@ jobs:
         run: bash .github/scripts/build_release.sh 0.0.0-test macos-apple macos-intel
       - name: The program of macOS starts
         run: |
-          tar -xzf dist/switch-library-manager-web-0.0.0-test-macos-apple.tar.gz -C "${RUNNER_TEMP}"
-          program="${RUNNER_TEMP}/switch-library-manager-web-0.0.0-test-macos-apple/switch-library-manager-web"
+          tar -xzf dist/switch-library-manager-web-macos-apple.tar.gz -C "${RUNNER_TEMP}"
+          program="${RUNNER_TEMP}/switch-library-manager-web/switch-library-manager-web"
           lipo -archs "${program}"
           mkdir -p "${RUNNER_TEMP}/data"
           SLM_DATA_DIR="${RUNNER_TEMP}/data" SLM_OPEN_BROWSER=false "${program}" > "${RUNNER_TEMP}/log.txt" 2>&1 &
