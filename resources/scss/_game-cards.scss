@@ -190,32 +190,24 @@
 		}
 	}
 
-	// the languages of the game on the cover: round flags in a pill, told apart from the regions
+	// the languages of the game on the cover: flags as the regions had them, after the sign of a
+	// language that tells them apart
 	.game-cover-meta .lang-flags {
 		display: inline-flex;
 		align-items: center;
 		gap: .25rem;
-		padding: .2rem .4rem;
-		border-radius: 999px;
-		background: rgba(0, 0, 0, .55);
-		backdrop-filter: blur(6px);
-		color: #fff;
-		font-size: .8rem;
-		line-height: 1;
 
-		.fi {
-			width: 1em;
-			height: 1em;
-			border-radius: 50%;
-			background-size: cover;
-			box-shadow: 0 0 0 1px rgba(255, 255, 255, .5);
-		}
-
-		.flags-more {
-			padding: 0 0 0 .1rem;
-			background: none;
-			backdrop-filter: none;
+		.lang-sign {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			padding: .15rem .3rem;
+			border-radius: .3rem;
+			background: rgba(0, 0, 0, .55);
+			backdrop-filter: blur(6px);
+			color: #fff;
 			font-size: .75rem;
+			line-height: 1;
 		}
 	}
 

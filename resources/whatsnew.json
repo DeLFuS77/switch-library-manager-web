@@ -1,4 +1,39 @@
 {
+  "1.60.1": {
+    "en": [
+      "The language flags of the cards have the shape and the size the region flags had on the cover, after the sign of a language."
+    ],
+    "es": [
+      "Las banderas de idioma de las tarjetas tienen la forma y el tamaño que tenían las de región en la portada, tras el icono de idioma."
+    ],
+    "de": [
+      "Die Sprachflaggen der Karten haben die Form und Größe, die die Regionsflaggen auf dem Cover hatten, hinter dem Sprachsymbol."
+    ],
+    "fr": [
+      "Les drapeaux de langue des cartes ont la forme et la taille qu'avaient les drapeaux de région sur la jaquette, après le symbole de langue."
+    ],
+    "it": [
+      "Le bandiere delle lingue delle schede hanno la forma e la dimensione che avevano le bandiere della regione sulla copertina, dopo il simbolo della lingua."
+    ],
+    "pt": [
+      "As bandeiras de idioma dos cartões têm a forma e o tamanho que as bandeiras de região tinham na capa, depois do símbolo de idioma."
+    ],
+    "nl": [
+      "De taalvlaggen van de kaarten hebben de vorm en grootte die de regiovlaggen op de cover hadden, na het taalsymbool."
+    ],
+    "ru": [
+      "Флаги языков на карточках теперь той же формы и размера, что были у флагов регионов на обложке, после значка языка."
+    ],
+    "ja": [
+      "カードの言語の旗は、言語アイコンの後に、以前の地域の旗と同じ形と大きさで表紙に表示されます。"
+    ],
+    "ko": [
+      "카드의 언어 국기가 언어 아이콘 뒤에, 예전 지역 국기와 같은 모양과 크기로 표지에 표시됩니다."
+    ],
+    "zh": [
+      "卡片上的语言旗帜在语言图标之后，以原先地区旗帜的形状和大小显示在封面上。"
+    ]
+  },
   "1.60.0": {
     "en": [
       "Up to three preferred regions, in order: Europe, the Americas, Japan and the other zones of the eShop by name, in Settings and in the wizard. The main copy of a game you have from several regions is the one of the first of them it has.",

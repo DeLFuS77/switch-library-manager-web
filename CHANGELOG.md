@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.60.1
+
+### Improvements
+
+- The language flags of the cards have the shape and the size the region flags had on the cover, after the sign of a language
+
 ## 1.60.0
 
 ### Improvements
