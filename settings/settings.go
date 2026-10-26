@@ -28,7 +28,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "1.58.1"
+	SLM_WEB_VERSION        = "1.59.0"
 	REPOSITORY_OWNER       = "DeLFuS77"
 	// titles.json and versions.json are generated from blawar/titledb by the
 	// "Update title data" workflow of this repository
@@ -194,6 +194,9 @@ type AppSettings struct {
 	// Space page suggests to keep
 	CountRegionsOnce bool `json:"count_regions_once,omitempty"`
 	WatchFolders     bool `json:"watch_folders"`
+	// the country whose copy is the main one of a game of several regions, unless one is chosen
+	// on the page of the game; empty for the copy suggested
+	PreferredRegion string `json:"preferred_region,omitempty"`
 	// hours of heavy background work, e.g. "1-7"; empty for any time
 	BackgroundHours string `json:"background_hours"`
 	// how often the folders are checked for changes notifications do not report

@@ -99,7 +99,9 @@
 	.game-cover-meta {
 		position: absolute;
 		inset: auto .6rem .6rem .6rem;
-		z-index: 1;
+		// above the link of the card, which the clicks still reach through it (but on +N)
+		z-index: 2;
+		pointer-events: none;
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
@@ -122,6 +124,51 @@
 		.fi {
 			border-radius: .2rem;
 			box-shadow: 0 0 0 1px rgba(255, 255, 255, .35);
+
+			// a region the game was released in that the library has no copy of
+			&.flag-missing {
+				opacity: .4;
+				filter: grayscale(1);
+			}
+		}
+
+		// the regions left out of the cover, on hover or focus, above the link of the card
+		.flags-more {
+			position: relative;
+			cursor: default;
+			pointer-events: auto;
+
+			.flags-more-list {
+				position: absolute;
+				right: 0;
+				bottom: calc(100% + .35rem);
+				display: none;
+				flex-direction: column;
+				align-items: flex-end;
+				gap: .3rem;
+				padding: .4rem .5rem;
+				border-radius: .4rem;
+				background: rgba(0, 0, 0, .85);
+				font-weight: 400;
+				white-space: nowrap;
+			}
+
+			// the flags of the regions you do not have, still told apart from each other here
+			.flags-more-row {
+				display: flex;
+				gap: .3rem;
+				font-size: .95rem;
+
+				.fi.flag-missing {
+					opacity: .8;
+					filter: grayscale(.3);
+				}
+			}
+
+			&:hover .flags-more-list,
+			&:focus .flags-more-list {
+				display: flex;
+			}
 		}
 	}
 

@@ -157,6 +157,19 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	genreCounts := map[string]int{}
 	languageCounts := map[string]int{}
 	leftOut, otherRegions := web.regionCopies(lang)
+	merged := web.mergedStatus(lang)
+	// each game once: of a game the library has, no card of its other regions; of a game it does
+	// not have, one card of all of them
+	var regionsByName map[string][]string
+	ownedNames, shownMissing := map[string]bool{}, map[string]bool{}
+	if settings.ReadSettings(web.dataFolder).CountRegionsOnce {
+		regionsByName = web.regionsByName()
+		for i := range all {
+			if !all[i].Missing {
+				ownedNames[regionalName(all[i].OriginalName)] = true
+			}
+		}
+	}
 	plays := web.play().all(filter.player)
 	facets.Play = map[string]int{}
 
@@ -164,6 +177,12 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		item := &all[index]
 		if leftOut[item.Id] || !filter.MatchesItem(item) {
 			continue
+		}
+		// a game of several regions is up to date when one of its copies is
+		if status, ok := merged[item.Id]; ok {
+			copied := *item
+			status.apply(&copied)
+			item = &copied
 		}
 
 		// the formats are offered whatever the other filters are
@@ -176,8 +195,21 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		if item.Region != "" {
 			regions[item.Region] = struct{}{}
 		}
-		if filter.Region != "" && item.Region != filter.Region {
+		// a game of several regions is of each of the regions of its copies
+		for _, region := range otherRegions[item.Id] {
+			regions[region] = struct{}{}
+		}
+		if filter.Region != "" && item.Region != filter.Region && !hasValue(otherRegions[item.Id], regionCode(filter.Region)) {
 			continue
+		}
+		if item.Missing && regionsByName != nil {
+			name := regionalName(item.OriginalName)
+			if _, known := regionsByName[name]; known {
+				if ownedNames[name] || shownMissing[name] {
+					continue
+				}
+				shownMissing[name] = true
+			}
 		}
 
 		inCollection := filter.Collection == ""
@@ -321,7 +353,16 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	items := make([]TitleItem, 0, p.End-p.Start)
 	for _, index := range matched[p.Start:p.End] {
 		item := all[index]
-		item.OtherRegions = otherRegions[item.Id]
+		item.OtherRegions, item.OtherFlags = len(otherRegions[item.Id]), otherRegions[item.Id]
+		if status, ok := merged[item.Id]; ok {
+			status.apply(&item)
+		}
+		if regionsByName != nil {
+			item.MissingFlags = missingRegions(item, regionsByName)
+			if room := max(coverFlags-1-len(item.OtherFlags), 0); len(item.MissingFlags) > room {
+				item.MissingFlags, item.HiddenRegions = item.MissingFlags[:room], item.MissingFlags[room:]
+			}
+		}
 		item.Play = plays[item.Id]
 		items = append(items, item)
 	}

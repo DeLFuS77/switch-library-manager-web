@@ -127,7 +127,8 @@
 								</div>
 							</div>
 							{{- if .Damaged}}<span class="chip chip-danger flex-shrink-0"><span class="bi bi-exclamation-octagon" aria-hidden="true"></span>{{t "Damaged"}}</span>{{end}}
-							{{- if .Keep}}<span class="chip chip-success flex-shrink-0" title="{{range $i, $r := .Reasons}}{{if $i}}, {{end}}{{t $r}}{{end}}"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Suggested to keep"}}{{with .Reasons}}: {{range $i, $r := .}}{{if $i}}, {{end}}{{t $r}}{{end}}{{end}}</span>
+							{{- if and .Keep .Chosen}}<span class="chip chip-success flex-shrink-0"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Main copy, chosen by you"}}</span>
+							{{- else if .Keep}}<span class="chip chip-success flex-shrink-0" title="{{range $i, $r := .Reasons}}{{if $i}}, {{end}}{{t $r}}{{end}}"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Suggested to keep"}}{{with .Reasons}}: {{range $i, $r := .}}{{if $i}}, {{end}}{{t $r}}{{end}}{{end}}</span>
 							{{- else}}<button type="button" class="btn btn-sm btn-outline-danger rounded-pill flex-shrink-0 admin-only" data-region-remove="{{.Id}}" data-confirm-text="{{t "Delete this copy of %v, with its updates and DLC (%v)? The other copy stays in the library." .Name (formatSize .Size)}}"><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{t "Delete this copy"}}</button>{{end}}
 						</li>
 						{{- end}}

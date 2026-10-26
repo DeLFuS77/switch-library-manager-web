@@ -289,6 +289,18 @@
 									<label class="form-check-label" for="wizard_check_for_updates">{{t "Tell me when a new version of the app is available"}}</label>
 								</div>
 							</div>
+							<div class="wizard-regions mt-3">
+								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" id="wizard_count_regions_once" name="count_regions_once" value="true" aria-describedby="wizard_regions_help"{{if $s.CountRegionsOnce}} checked{{end}}>
+									<label class="form-check-label" for="wizard_count_regions_once">{{t "Count a game once when you have it from several regions"}}</label>
+								</div>
+								<div class="regions-demo" aria-hidden="true">
+									<div class="regions-demo-card regions-demo-us"><div class="regions-demo-cover"><span class="bi bi-controller"></span><span class="regions-demo-flags"><span class="fi fi-us"></span></span></div><span class="regions-demo-line"></span></div>
+									<div class="regions-demo-card regions-demo-jp"><div class="regions-demo-cover"><span class="bi bi-controller"></span><span class="regions-demo-flags"><span class="fi fi-jp"></span></span></div><span class="regions-demo-line"></span></div>
+									<div class="regions-demo-card regions-demo-merged"><div class="regions-demo-cover"><span class="bi bi-controller"></span><span class="regions-demo-flags"><span class="fi fi-us"></span><span class="fi fi-jp"></span><span class="fi fi-gb is-missing"></span></span></div><span class="regions-demo-chip"><span class="bi bi-globe2"></span>{{t "+1 region"}}</span></div>
+								</div>
+								<div class="form-text" id="wizard_regions_help">{{t "One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed."}}</div>
+							</div>
 							<div class="row g-3 mt-1">
 								<div class="col-md-6">
 									<label for="wizard_sync_interval_hours" class="form-label fw-semibold">{{t "Automatic synchronization"}}</label>
@@ -493,8 +505,8 @@
 						<input type="text" name="vault_keep" value="{{$s.Vault.Keep}}">
 						<input type="checkbox" name="vault_notify" value="true"{{if $s.Vault.Notify}} checked{{end}}>
 						<input type="text" name="compress_threads" value="{{$s.CompressThreads}}">
-						<input type="checkbox" name="count_regions_once" value="true"{{if $s.CountRegionsOnce}} checked{{end}}>
 						<input type="text" name="compress_files_at_once" value="{{$s.CompressFilesAtOnce}}">
+						<input type="text" name="preferred_region" value="{{$s.PreferredRegion}}">
 					</div>
 
 					<footer class="wizard-footer" data-wizard-footer>

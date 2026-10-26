@@ -629,6 +629,7 @@ func (web *Web) HandleSpace() {
 	}).Methods("GET")
 
 	web.handleRegionRemove()
+	web.handleRegionMain()
 
 	// the files deleted so far by the cleanup running: the page takes them off its list as
 	// they go, from the number of them it already took off ("from")

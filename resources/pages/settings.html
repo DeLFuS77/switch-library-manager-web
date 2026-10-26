@@ -111,7 +111,17 @@
 									<div class="form-check form-switch">
 										<input class="form-check-input" type="checkbox" role="switch" id="count_regions_once" name="count_regions_once" value="true"{{if .Settings.CountRegionsOnce}} checked{{end}}>
 										<label class="form-check-label" for="count_regions_once">{{t "Count a game once when you have it from several regions"}}</label>
-										<div class="form-text">{{t "The library shows one card for it, the copy the Space page suggests to keep, with how many other regions you have, and the counters and statistics count it once. No file is changed."}}</div>
+										<div class="form-text">{{t "One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed."}}</div>
+									</div>
+									<div class="mt-2">
+										<label for="preferred_region" class="form-label fw-semibold">{{t "Preferred region"}}</label>
+										<select class="form-select" id="preferred_region" name="preferred_region" aria-describedby="preferred_region_help">
+											<option value="">{{t "No preference: the suggested copy"}}</option>
+											{{- range .PreferredRegions}}
+											<option value="{{.}}"{{if eq . $.Settings.PreferredRegion}} selected{{end}}>{{.}}</option>
+											{{- end}}
+										</select>
+										<div class="form-text" id="preferred_region_help">{{t "The copy of this country is the main one of each game you have from several regions, unless you choose another on its page."}}</div>
 									</div>
 								</div>
 							</div>

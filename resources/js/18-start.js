@@ -277,6 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initAutomationSettings();
 	initWizard();
 	initRegionRemove();
+	initRegionMain();
 	initMaintenance();
 	initHistoryCharts();
 	initIssueDelete();

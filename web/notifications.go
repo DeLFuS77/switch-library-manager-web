@@ -58,7 +58,7 @@ func (web *Web) availableItems(lang string) []NotificationItem {
 
 	if options.NotifyUpdates {
 		// the same lists as the pages: ignored titles and hidden demos are left out
-		for _, title := range web.missingUpdates() {
+		for _, title := range web.shownMissingUpdates(lang) {
 			id := strings.ToUpper(title.Attributes.Id)
 			items = append(items, NotificationItem{
 				Key:     fmt.Sprintf("update:%s:%d", id, title.LatestUpdate),
