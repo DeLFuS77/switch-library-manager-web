@@ -800,6 +800,9 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 			lanes     = make([]TaskLane, workers)
 			next      int
 			processed int
+			// files finished, done or not: the counter of the task, which counts a file once it
+			// is compressed and its copy checked, not when it is started
+			finished int
 			// files of the list no longer there
 			gone    int
 			saved   int64
@@ -821,9 +824,8 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 					current = append(current, lane)
 				}
 			}
-			// the files reached so far, the ones done and the ones being worked on
 			if !phased {
-				web.taskLog().ProgressFiles(taskId, int(done>>20), int(total>>20), message, next, len(paths), current)
+				web.taskLog().ProgressFiles(taskId, int(done>>20), int(total>>20), message, finished, len(paths), current)
 				return
 			}
 			// what each step has left: every step of the files not started, and the steps
@@ -844,7 +846,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 				}
 			}
 			left := estimateLeft(phases, stepRead, stepSpent, remaining, workers)
-			web.taskLog().ProgressFilesLeft(taskId, int(done>>20), int(total>>20), message, next, len(paths), current, left)
+			web.taskLog().ProgressFilesLeft(taskId, int(done>>20), int(total>>20), message, finished, len(paths), current, left)
 		}
 		for worker := 0; worker < workers; worker++ {
 			wait.Add(1)
@@ -919,6 +921,9 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 					mutex.Lock()
 					lanes[worker], partial[worker] = TaskLane{}, 0
 					completed += fileSize
+					if !errors.Is(err, context.Canceled) {
+						finished++
+					}
 					if resume != nil && !errors.Is(err, context.Canceled) {
 						delete(pending, i)
 						// saved every half minute with what the task did: at most that is done

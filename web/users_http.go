@@ -74,6 +74,7 @@ func (web *Web) HandleUsers() {
 				minutes = 1
 			}
 			data.Error = translatef(lang, errTooManyLogins.Error(), minutes)
+			web.auth.loginAttempt(data.Name, ip, "blocked", r.FormValue("password"), retryTellInterval)
 			w.WriteHeader(http.StatusTooManyRequests)
 			web.renderLogin(w, r, login, data)
 			return
@@ -86,12 +87,15 @@ func (web *Web) HandleUsers() {
 		if !ok {
 			web.auth.limiter.fail(keys...)
 			web.sugarLogger.Warnf("Failed login for %q from %s", data.Name, ip)
+			web.auth.loginAttempt(data.Name, ip, "fail", r.FormValue("password"), 0)
 			data.Error = translate(lang, "Wrong user name or password.")
 			w.WriteHeader(http.StatusUnauthorized)
 			web.renderLogin(w, r, login, data)
 			return
 		}
 		web.auth.limiter.succeed(keys...)
+		web.auth.loginAttempt(principal.Name, ip, "ok", "", 0)
+		web.auth.signedIn(principal.Name)
 		http.SetCookie(w, web.auth.sessionCookie(r, principal.Name))
 		http.Redirect(w, r, safeNext(data.Next), http.StatusSeeOther)
 	}).Methods("POST")

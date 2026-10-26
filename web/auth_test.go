@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 )
 
 // envAuth returns an Auth with the user set in the environment.
@@ -443,5 +444,99 @@ func TestAvatarColor(t *testing.T) {
 	request := httptest.NewRequest(http.MethodPost, "/account/color", nil)
 	if !viewerAllowed(request) {
 		t.Fatal("read-only users choose their colour too")
+	}
+}
+
+// Users shows when each user signed in last, in the login page or as an API client, and the
+// date is written at most once every few minutes.
+func TestLastSignIn(t *testing.T) {
+	web := usersWeb(t)
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	web.auth.users.Add("bob", "bravo-secret-22", ROLE_VIEWER)
+	handler := web.auth.middleware(web.router)
+
+	admin := &client{t: t, handler: handler}
+	admin.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
+	if page := admin.do("GET", "/users.html", nil).Body.String(); !strings.Contains(page, "Last sign-in") || !strings.Contains(page, "Never signed in") {
+		t.Fatal("alice signed in, bob never did")
+	}
+	alice, _ := web.auth.users.Get("alice")
+	if time.Since(alice.LastLogin) > time.Minute {
+		t.Fatalf("the sign-in of the login page: %v", alice.LastLogin)
+	}
+
+	api := &client{t: t, handler: handler}
+	api.do("GET", "/index.html", nil, "Authorization", basic("bob", "bravo-secret-22"))
+	bob, _ := web.auth.users.Get("bob")
+	if bob.LastLogin.IsZero() {
+		t.Fatal("an API client signs in too")
+	}
+
+	// written again only after a while, and kept in users.json
+	if err := web.auth.users.NoteLogin("bob", bob.LastLogin.Add(time.Minute)); err != nil {
+		t.Fatal(err)
+	}
+	if again, _ := web.auth.users.Get("bob"); !again.LastLogin.Equal(bob.LastLogin) {
+		t.Fatal("a sign-in a minute later is not written")
+	}
+	later := bob.LastLogin.Add(loginNoteInterval)
+	web.auth.users.NoteLogin("bob", later)
+	if err := web.auth.users.reload(); err != nil {
+		t.Fatal(err)
+	}
+	if again, _ := web.auth.users.Get("bob"); !again.LastLogin.Equal(later) {
+		t.Fatalf("the later sign-in is saved: %v", again.LastLogin)
+	}
+}
+
+// Activity is told of every sign-in of the login page, right or wrong, and of an API client or
+// a blocked attempt only now and then, not with every request.
+func TestSignInsToldToActivity(t *testing.T) {
+	web := usersWeb(t)
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	web.auth.users.Add("bob", "bravo-secret-22", ROLE_VIEWER)
+	told := []string{}
+	web.auth.onLogin = func(user, ip, result string, longEnough bool) {
+		told = append(told, user+" "+result)
+	}
+	handler := web.auth.middleware(web.router)
+	count := func(entry string) int {
+		n := 0
+		for _, each := range told {
+			if each == entry {
+				n++
+			}
+		}
+		return n
+	}
+
+	page := &client{t: t, handler: handler, ip: "192.168.1.20"}
+	page.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
+	if count("alice ok") != 1 {
+		t.Fatalf("a sign-in of the login page: %v", told)
+	}
+
+	api := &client{t: t, handler: handler, ip: "192.168.1.30"}
+	for range 3 {
+		api.do("GET", "/index.html", nil, "Authorization", basic("bob", "bravo-secret-22"))
+	}
+	if count("bob ok") != 1 {
+		t.Fatalf("an API client signs in with every request, told once: %v", told)
+	}
+
+	wrong := &client{t: t, handler: handler, ip: "192.168.1.40"}
+	failures := 0
+	for range 20 {
+		if wrong.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"guessed-wrong-1"}}).Code == http.StatusTooManyRequests {
+			break
+		}
+		failures++
+	}
+	if failures == 0 || count("alice fail") != failures {
+		t.Fatalf("every wrong password of the login page is told: %d of %d", count("alice fail"), failures)
+	}
+	wrong.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"guessed-wrong-2"}})
+	if count("alice blocked") != 1 {
+		t.Fatalf("a blocked login page is told once an hour: %v", told)
 	}
 }

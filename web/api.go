@@ -3,8 +3,10 @@ package web
 import (
 	"encoding/json"
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"github.com/gorilla/mux"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -66,7 +68,24 @@ func findLocalTitle(localDB *db.LocalSwitchFilesDB, titleId string) *db.SwitchGa
 	return nil
 }
 
+// compressedSinceScan is the file of the library to read: its compressed copy when it was
+// compressed and deleted since the scan, which the library learns at the next one.
+func compressedSinceScan(file db.ExtendedFileInfo) db.ExtendedFileInfo {
+	path := filepath.Join(file.BaseFolder, file.FileName)
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		return file
+	}
+	copyPath := switchfs.CompressedPath(path)
+	info, err := os.Stat(copyPath)
+	if copyPath == path || err != nil || info.IsDir() {
+		return file
+	}
+	file.FileName, file.Size = filepath.Base(copyPath), info.Size()
+	return file
+}
+
 func serveDownload(w http.ResponseWriter, r *http.Request, file db.ExtendedFileInfo) {
+	file = compressedSinceScan(file)
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote(file.FileName))
 	http.ServeFile(w, r, filepath.Join(file.BaseFolder, file.FileName))

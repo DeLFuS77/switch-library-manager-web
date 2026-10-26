@@ -54,7 +54,13 @@ type User struct {
 	// colour of the avatar, one of avatarColors; empty for the colours of the app
 	Color   string    `json:"color,omitempty"`
 	Created time.Time `json:"created"`
+	// the last sign-in, in the login page or by an API client; zero if never
+	LastLogin time.Time `json:"last_login,omitzero"`
 }
+
+// loginNoteInterval is how often the last sign-in of a user is written: an API client signs in
+// with every request, and users.json is not written for each one.
+const loginNoteInterval = 10 * time.Minute
 
 func (u User) IsAdmin() bool {
 	return u.Role == ROLE_ADMIN
@@ -220,6 +226,19 @@ func (s *UserStore) SetColor(name string, color string) error {
 		return ErrUserNotFound
 	}
 	user.Color = color
+	return s.save()
+}
+
+// NoteLogin records a sign-in of a user, at most once every loginNoteInterval. The user of the
+// environment variables is not in the store and has none.
+func (s *UserStore) NoteLogin(name string, when time.Time) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	user, ok := s.users[strings.ToLower(name)]
+	if !ok || when.Sub(user.LastLogin) < loginNoteInterval {
+		return nil
+	}
+	user.LastLogin = when
 	return s.save()
 }
 

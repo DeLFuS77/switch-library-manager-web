@@ -667,6 +667,9 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "%v個のファイルはすでに圧縮済みのため表示されていません。圧縮ファイルの検証後、元のファイルは「容量」ページで削除できます。",
 		"%v files at a time": "同時に%v個のファイル",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v個のファイルは、残す側のファイルを検証した後でのみ削除できます。検証されるのは残す側のファイルだけです。",
+		// Space, when every file left stays for a reason
+		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "今は何も解放できません。以下の %v 個のファイルは、それぞれ示された理由で残ります。",
+
 		"%v files changed":              "%v個のファイルが変更されました",
 		"%v files checked, %v damaged":  "%v個のファイルを確認、%v個が破損",
 		"%v files compressed, %v saved": "%v個のファイルを圧縮、%v節約",
@@ -849,6 +852,8 @@ func init() {
 		"Create folder":                          "フォルダーを作成",
 		"Create it again with the same folders:": "同じフォルダーで作り直してください:",
 		"Created %v":                             "作成: %v",
+		"Last sign-in %v":                        "最終サインイン: %v",
+		"Never signed in":                        "サインインしたことがありません",
 		"Created a user":                         "ユーザーを作成しました",
 		"Current password":                       "現在のパスワード",
 		"DLC":                                    "DLC",

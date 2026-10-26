@@ -103,7 +103,19 @@ type Auth struct {
 	envPasswordWeak error
 	// told of each sign-in attempt (user, ip, result, whether the password was long enough)
 	onLogin func(user, ip, result string, longEnough bool)
+	// when an attempt that is told only now and then was told last, by user, address and result
+	toldMutex sync.Mutex
+	told      map[string]time.Time
 }
+
+const (
+	// an API client signs in with every request: told once a day
+	apiLoginTellInterval = 24 * time.Hour
+	// a failed or blocked API client, and a blocked login page, keep trying: told once an hour
+	retryTellInterval = time.Hour
+	// the attempts remembered; past that the oldest are forgotten, or all of them
+	maxToldAttempts = 1000
+)
 
 func newAuth(dataFolder string) (*Auth, error) {
 	envUser, envPassword, envEnabled, err := authFromEnv()
@@ -389,7 +401,7 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 				retryAfter, delay := a.limiter.check(keys...)
 				if retryAfter > 0 {
 					if _, password, had := r.BasicAuth(); had {
-						a.loginAttempt(name, ip, "blocked", password)
+						a.loginAttempt(name, ip, "blocked", password, retryTellInterval)
 					}
 					w.Header().Set("Retry-After", strconv.Itoa(int(retryAfter.Seconds())+1))
 					http.Error(w, "too many failed logins, try again later", http.StatusTooManyRequests)
@@ -404,13 +416,14 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 					if attempted {
 						a.limiter.fail(keys...)
 						_, password, _ := r.BasicAuth()
-						a.loginAttempt(name, ip, "fail", password)
+						a.loginAttempt(name, ip, "fail", password, retryTellInterval)
 					}
 					a.unauthorized(w, r)
 					return
 				}
 				a.limiter.succeed(keys...)
-				a.loginAttempt(principal.Name, ip, "ok", "")
+				a.loginAttempt(principal.Name, ip, "ok", "", apiLoginTellInterval)
+				a.signedIn(principal.Name)
 			}
 		}
 
@@ -423,10 +436,45 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 	})
 }
 
-// loginAttempt tells the hook of a sign-in attempt, never passing the password itself.
-func (a *Auth) loginAttempt(user, ip, result, password string) {
-	if a.onLogin != nil {
-		a.onLogin(user, ip, result, len(password) >= minPasswordLength)
+// loginAttempt tells the hook of a sign-in attempt, never passing the password itself. With
+// every, an attempt of the same user from the same address with the same result is told only
+// once in that time: an API client signs in with every request, and a blocked one keeps trying.
+func (a *Auth) loginAttempt(user, ip, result, password string, every time.Duration) {
+	if a.onLogin == nil {
+		return
+	}
+	if every > 0 {
+		now := time.Now()
+		key := user + "\x00" + ip + "\x00" + result
+		a.toldMutex.Lock()
+		if last, ok := a.told[key]; ok && now.Sub(last) < every {
+			a.toldMutex.Unlock()
+			return
+		}
+		if len(a.told) >= maxToldAttempts {
+			for other, last := range a.told {
+				if now.Sub(last) >= apiLoginTellInterval {
+					delete(a.told, other)
+				}
+			}
+			// many names or addresses tried within a day: they are told again
+			if len(a.told) >= maxToldAttempts {
+				clear(a.told)
+			}
+		}
+		if a.told == nil {
+			a.told = map[string]time.Time{}
+		}
+		a.told[key] = now
+		a.toldMutex.Unlock()
+	}
+	a.onLogin(user, ip, result, len(password) >= minPasswordLength)
+}
+
+// signedIn notes the sign-in of a user, shown in Users. A failed write only loses the date.
+func (a *Auth) signedIn(name string) {
+	if a.users != nil {
+		a.users.NoteLogin(name, time.Now())
 	}
 }
 

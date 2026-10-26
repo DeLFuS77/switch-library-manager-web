@@ -80,6 +80,7 @@ func safeFileName(name string) string {
 func writeArchive(w io.Writer, root string, entries []archiveEntry) error {
 	archive := zip.NewWriter(w)
 	for _, entry := range entries {
+		entry.file = compressedSinceScan(entry.file)
 		path := filepath.Join(entry.file.BaseFolder, entry.file.FileName)
 		file, err := os.Open(path)
 		if err != nil {

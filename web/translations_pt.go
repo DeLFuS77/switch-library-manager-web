@@ -932,6 +932,9 @@ func init() {
 		"1 hour":                  "1 hora",
 		"Only folders that changed are read again. A longer interval lets the disks of a NAS sleep.":              "Só as pastas que mudaram são lidas de novo. Um intervalo maior deixa os discos de um NAS dormirem.",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v arquivos só podem ser excluídos quando as cópias mantidas forem verificadas. Só essas cópias são verificadas.",
+		// Space, when every file left stays for a reason
+		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Agora não dá para liberar nada: os %v arquivos abaixo ficam, cada um pelo motivo indicado.",
+
 		"Verify the copy that is kept first.":                      "Verifique primeiro a cópia que será mantida.",
 		"The copy that is kept is damaged: keep this one.":         "A cópia mantida está danificada: mantenha esta.",
 		"The copy that is kept was not found; rescan the library.": "A cópia mantida não foi encontrada; analise a biblioteca novamente.",
@@ -1087,6 +1090,8 @@ func init() {
 		"Create a folder per game inside the library folder": "Criar uma pasta por jogo dentro da pasta da biblioteca",
 		"Create folder":                                      "Criar pasta",
 		"Created %v":                                         "Criado %v",
+		"Last sign-in %v":                                    "Último acesso: %v",
+		"Never signed in":                                    "Nenhum acesso",
 		"Current password":                                   "Senha atual",
 		"DLC":                                                "DLC",
 		"DLC %v for %v":                                      "DLC %v de %v",

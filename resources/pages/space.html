@@ -47,9 +47,11 @@
 			<p class="small text-body-secondary d-flex align-items-start gap-2 mb-4"><span class="bi bi-lightbulb flex-shrink-0 mt-1" aria-hidden="true"></span><span>{{t "%v files (%v) have no compressed copy yet. Compressing usually saves 10–60%%." .Compressible (formatSize .CompressSize)}} <a href="/compress.html">{{t "Compress"}}</a></span></p>
 			{{- end}}
 
-			{{- if eq .Reclaimable 0}}{{if eq .Unverified 0}}
+			{{- if eq .Reclaimable 0}}{{if eq .Unverified 0}}{{if eq .Kept 0}}
 			{{- template "emptyState" (dict "Icon" "bi-hdd" "Tone" "success" "Title" (t "Nothing to clean up") "Text" (t "Your library has no old updates, duplicates or compressed originals.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
-			{{- end}}{{end}}
+			{{- else}}
+			<p class="small text-body-secondary d-flex align-items-start gap-2 mb-4"><span class="bi bi-info-circle flex-shrink-0 mt-1" aria-hidden="true"></span><span>{{t "Nothing can be freed now: the %v files below stay, each for the reason shown." .Kept}}</span></p>
+			{{- end}}{{end}}{{end}}
 
 			{{- if .Unverified}}
 			<div class="alert alert-info d-flex flex-column flex-sm-row align-items-sm-center gap-3" role="status">
@@ -59,7 +61,7 @@
 			</div>
 			{{- end}}
 
-			{{- if or .Reclaimable .Unverified}}
+			{{- if or .Reclaimable .Unverified .Kept}}
 			<form id="spaceForm">
 				{{- range $g := .Groups}}{{if $g.Files}}
 				<section class="mb-4" aria-labelledby="space-{{$g.Id}}">

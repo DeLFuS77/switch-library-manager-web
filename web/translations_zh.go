@@ -667,6 +667,9 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "%v 个文件已有压缩副本，未在此列出。副本校验通过后，可在“空间”页面删除原始文件。",
 		"%v files at a time": "同时处理 %v 个文件",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v 个文件只有在保留的副本校验通过后才能删除。只会检查这些副本。",
+		// Space, when every file left stays for a reason
+		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "现在没有可以释放的空间：下面的 %v 个文件会保留，各自的原因已注明。",
+
 		"%v files changed":              "%v 个文件有变动",
 		"%v files checked, %v damaged":  "已检查 %v 个文件，%v 个已损坏",
 		"%v files compressed, %v saved": "已压缩 %v 个文件，节省 %v",
@@ -849,6 +852,8 @@ func init() {
 		"Create folder":                          "创建文件夹",
 		"Create it again with the same folders:": "使用相同的文件夹重新创建：",
 		"Created %v":                             "创建于 %v",
+		"Last sign-in %v":                        "上次登录：%v",
+		"Never signed in":                        "从未登录",
 		"Created a user":                         "创建了用户",
 		"Current password":                       "当前密码",
 		"DLC":                                    "DLC",

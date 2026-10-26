@@ -391,3 +391,61 @@ func TestDuplicateOfAPartlyCheckedCopyOnRequest(t *testing.T) {
 		t.Fatal("the kept copy stays")
 	}
 }
+
+// Only the files whose kept copy is still to be verified wait for the verification: the
+// others stay for their own reason, and the page lists them without asking to verify.
+func TestSpaceWaitsOnlyForVerifications(t *testing.T) {
+	web, dir := spaceWeb(t)
+	if data := web.buildSpaceContent(); data.Unverified != 2 || data.Kept != 0 {
+		t.Fatalf("the duplicate and the compressed original wait for their copies: %d waiting, %d kept", data.Unverified, data.Kept)
+	}
+	newer := filepath.Join(dir, "Game [0100000000010800][v131072].nsp")
+	info, _ := os.Stat(newer)
+	web.verifications().set(newer, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Checked: time.Now(), Checker: verifyChecker})
+	if data := web.buildSpaceContent(); data.Unverified != 2 || data.Kept != 1 {
+		t.Fatalf("an old update kept because its newer version is damaged waits for nothing: %d waiting, %d kept", data.Unverified, data.Kept)
+	}
+}
+
+// An original compressed and deleted since the scan is not listed: the library still has it
+// until the next scan, but there is nothing to free.
+func TestSpaceSkipsOriginalsDeletedSinceTheScan(t *testing.T) {
+	web, dir := spaceWeb(t)
+	if err := os.Remove(filepath.Join(dir, "Game [0100000000010000][v0].nsp")); err != nil {
+		t.Fatal(err)
+	}
+	if compressed := spaceGroup(web.spaceGroups(), SPACE_COMPRESSED); len(compressed.Files) != 0 {
+		t.Fatalf("a deleted original: %+v", compressed.Files)
+	}
+	if data := web.buildSpaceContent(); data.Unverified != 1 || data.Kept != 0 {
+		t.Fatalf("only the duplicate waits: %d waiting, %d kept", data.Unverified, data.Kept)
+	}
+}
+
+// With nothing to free and nothing to verify, the page lists the files that stay, each with
+// its reason, instead of saying that the library has nothing to clean up.
+func TestSpacePageListsTheFilesThatStay(t *testing.T) {
+	web, dir := spaceWeb(t)
+	os.Remove(filepath.Join(dir, "Game [0100000000010000][v0].nsp"))
+	for _, damaged := range []string{"Game [0100000000010800][v131072].nsp", "Other [0100000000020000][v0].nsp"} {
+		path := filepath.Join(dir, damaged)
+		info, _ := os.Stat(path)
+		web.verifications().set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Checked: time.Now(), Checker: verifyChecker})
+	}
+	get := func(url string) string {
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, url, nil))
+		return recorder.Body.String()
+	}
+	get("/space.html")
+	for deadline := time.Now().Add(10 * time.Second); !strings.Contains(get("/space/ready"), "true"); {
+		if time.Now().After(deadline) {
+			t.Fatal("the content is never ready")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	page := get("/space.html")
+	if !strings.Contains(page, "the 2 files below stay") || !strings.Contains(page, "spaceForm") || strings.Contains(page, "Nothing to clean up") || strings.Contains(page, `data-verify="space"`) {
+		t.Fatal("the files that stay are listed with their reasons, without asking to verify")
+	}
+}

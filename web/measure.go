@@ -252,12 +252,16 @@ func megabytesPerSecond(bytes int64, elapsed time.Duration) int {
 	return int(float64(bytes) / (1 << 20) / elapsed.Seconds())
 }
 
-// chooseTrial gives the fastest setting tried; a heavier one must be clearly faster than a
-// lighter one, as the measure varies a little.
+// measureMargin is how much faster a heavier setting must be than a lighter one to be chosen,
+// as the measure varies a little from one run to the next: 5%.
+const measureMargin = 1.05
+
+// chooseTrial gives the fastest setting tried; a heavier one must be at least 5% faster than a
+// lighter one.
 func chooseTrial(trials []MeasureTrial) (threads int, files int) {
 	best := MeasureTrial{Files: 1, Threads: 1}
 	for _, trial := range trials {
-		if float64(trial.Speed) > float64(best.Speed)*1.1 {
+		if trial.Speed > 0 && float64(trial.Speed) >= float64(best.Speed)*measureMargin {
 			best = trial
 		}
 	}

@@ -667,6 +667,9 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "%v bestanden hebben al een gecomprimeerde kopie en staan niet in de lijst. De originelen kun je op de pagina Ruimte verwijderen zodra hun kopieën zijn gecontroleerd.",
 		"%v files at a time": "%v bestanden tegelijk",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v bestanden kunnen pas worden verwijderd als de kopieën die blijven zijn gecontroleerd. Alleen die kopieën worden gecontroleerd.",
+		// Space, when every file left stays for a reason
+		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Er kan nu niets worden vrijgemaakt: de %v bestanden hieronder blijven, elk om de aangegeven reden.",
+
 		"%v files changed":              "%v bestanden gewijzigd",
 		"%v files checked, %v damaged":  "%v bestanden gecontroleerd, %v beschadigd",
 		"%v files compressed, %v saved": "%v bestanden gecomprimeerd, %v bespaard",
@@ -849,6 +852,8 @@ func init() {
 		"Create folder":                          "Map maken",
 		"Create it again with the same folders:": "Maak hem opnieuw aan met dezelfde mappen:",
 		"Created %v":                             "Aangemaakt %v",
+		"Last sign-in %v":                        "Laatst aangemeld: %v",
+		"Never signed in":                        "Nog nooit aangemeld",
 		"Created a user":                         "Gebruiker aangemaakt",
 		"Current password":                       "Huidig wachtwoord",
 		"DLC":                                    "DLC",

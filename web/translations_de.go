@@ -932,6 +932,9 @@ func init() {
 		"1 hour":                  "1 Stunde",
 		"Only folders that changed are read again. A longer interval lets the disks of a NAS sleep.":              "Nur geänderte Ordner werden neu gelesen. Ein längerer Abstand lässt die Festplatten eines NAS schlafen.",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v Dateien können erst gelöscht werden, wenn die behaltenen Kopien geprüft sind. Nur diese Kopien werden geprüft.",
+		// Space, when every file left stays for a reason
+		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Gerade lässt sich nichts freigeben: Die %v Dateien unten bleiben, jede aus dem angegebenen Grund.",
+
 		"Verify the copy that is kept first.":                      "Prüfe zuerst die Kopie, die behalten wird.",
 		"The copy that is kept is damaged: keep this one.":         "Die behaltene Kopie ist beschädigt: behalte diese.",
 		"The copy that is kept was not found; rescan the library.": "Die behaltene Kopie wurde nicht gefunden; scanne die Bibliothek erneut.",
@@ -1087,6 +1090,8 @@ func init() {
 		"Create a folder per game inside the library folder": "Pro Spiel einen Ordner im Bibliotheksordner anlegen",
 		"Create folder":                                      "Ordner erstellen",
 		"Created %v":                                         "%v erstellt",
+		"Last sign-in %v":                                    "Letzte Anmeldung: %v",
+		"Never signed in":                                    "Noch nie angemeldet",
 		"Current password":                                   "Aktuelles Passwort",
 		"DLC":                                                "DLC",
 		"DLC %v for %v":                                      "DLC %v für %v",
