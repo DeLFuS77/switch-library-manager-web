@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.60.1
 
 ### Improvements
 
