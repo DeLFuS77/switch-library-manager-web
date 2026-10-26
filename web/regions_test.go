@@ -410,3 +410,18 @@ func TestPreferredZonesSaved(t *testing.T) {
 		t.Fatalf("the zones chosen are not shown")
 	}
 }
+
+// The card shows the language of the interface first among a few language flags, and the flag of
+// its region only when it says something.
+func TestCardFlags(t *testing.T) {
+	flags := languageFlags([]string{"en", "fr", "de", "es", "it", "xx"}, "es")
+	if len(flags.Shown) != 3 || flags.Shown[0].Flag != "es" || flags.Shown[1].Flag != "gb" || len(flags.Hidden) != 2 {
+		t.Fatalf("language flags: %+v", flags)
+	}
+	if few := languageFlags([]string{"ja", "ko", "zh", "en"}, "es"); len(few.Shown) != 4 || len(few.Hidden) != 0 {
+		t.Fatalf("one more is shown instead of +1: %+v", few)
+	}
+	if showRegion(TitleItem{Region: "US"}) || !showRegion(TitleItem{Region: "JP"}) || !showRegion(TitleItem{Region: "US", OtherFlags: []string{"JP"}}) {
+		t.Fatal("the region alone of most games, the United States, says nothing")
+	}
+}

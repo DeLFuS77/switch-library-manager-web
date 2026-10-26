@@ -561,7 +561,9 @@ var funcMap = template.FuncMap{
 		return part * 100 / total
 	},
 	// the English name of a language of a game, for t
-	"gameLanguage": gameLanguageName,
+	"gameLanguage":  gameLanguageName,
+	"languageFlags": languageFlags,
+	"showRegion":    showRegion,
 	// inList reports whether a list of strings contains a value
 	"inList": func(value string, list []string) bool {
 		for _, item := range list {

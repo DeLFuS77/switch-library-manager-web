@@ -1001,8 +1001,9 @@
 		transition: filter .2s ease;
 	}
 
-	// every region of a game you do not have, its own too
-	.game-cover-meta .fi {
+	// every region and language of a game you do not have, its own region too
+	.game-cover-meta .fi,
+	.card-region .fi {
 		opacity: .4;
 		filter: grayscale(1);
 	}
