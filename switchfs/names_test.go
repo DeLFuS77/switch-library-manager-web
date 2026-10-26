@@ -70,13 +70,13 @@ func TestMeasureTrials(t *testing.T) {
 		t.Fatalf("one processor: %+v", got)
 	}
 
-	trials := []MeasureTrial{{1, 1, 100}, {1, 2, 180}, {2, 1, 190}, {1, 4, 260}, {2, 2, 280}, {3, 1, 200}}
+	trials := []MeasureTrial{{1, 1, 100}, {1, 2, 180}, {2, 1, 186}, {1, 4, 260}, {2, 2, 270}, {3, 1, 200}}
 	if best := ChooseTrial(trials); best != trials[3] {
-		t.Fatalf("2x2 is not clearly faster than 1x4: %+v", best)
+		t.Fatalf("2x2 is less than 5%% faster than 1x4: %+v", best)
 	}
-	trials[4].Speed = 330
+	trials[4].Speed = 274
 	if best := ChooseTrial(trials); best != trials[4] {
-		t.Fatalf("2x2 clearly faster: %+v", best)
+		t.Fatalf("2x2 is 5%% faster: %+v", best)
 	}
 	if best := ChooseTrial([]MeasureTrial{{Files: 2, Threads: 4}}); best != (MeasureTrial{Files: 1, Threads: 1}) {
 		t.Fatalf("nothing measured: %+v", best)
