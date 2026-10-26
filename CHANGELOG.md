@@ -4,8 +4,8 @@
 
 ### Improvements
 
+- Measure this server takes a heavier setting when it is at least 5% faster, not 10%: a measure varies little enough for it, and a setting clearly faster was left out
 - Users shows, next to the date each user was created, the last time they signed in: in the login page, or as an API client with their name and password. Users who never did say so
-- Check new files, with no file new or changed since the last check, says there is nothing to check instead of starting a task that checks nothing, which looked as if the button did nothing and was pressed again. Check everything again still reads every file
 
 ### Fixes
 
