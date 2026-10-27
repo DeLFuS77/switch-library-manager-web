@@ -19,6 +19,12 @@ func TestFitFileName(t *testing.T) {
 	if strings.Count(fitted, "[") != strings.Count(fitted, "]") {
 		t.Fatalf("a bracket left open: %q", fitted)
 	}
+	// a long name of the add-on in brackets is cut, before the name of the game
+	game := "SDガンダム ジージェネレーション クロスレイズ プレミアムGサウンドエディション"
+	addOn := game + " [追加ユニット「ガンダムアストレイ ゴールドフレームアマテラス」＆「ロードアストレイΩ」生産リスト登録権（プレミアムGサウンドエディション用）][010022900D3ED004][JP][v0].nsp"
+	if fitted := FitFileName(addOn, 240); NameBytes(fitted) > 240 || !strings.HasPrefix(fitted, game+" [追加ユニット") {
+		t.Fatalf("the name of the game is kept: %q", fitted)
+	}
 	if short := "Game [0100000000010000][v0].nsp"; FitFileName(short, 240) != short {
 		t.Fatal("a short name is kept")
 	}
