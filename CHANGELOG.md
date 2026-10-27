@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.63.1
+
+### Improvements
+
+- Tasks by covers shows every file of a compression, decompression, conversion, pack, split or file check, not only the ones at work: the files waiting under Waiting, those at work filling up with their progress and a bar, and the ones ended with OK or Error. The covers keep their colours, and a file that failed gets a red edge. A check of a whole library shows its files a few hundred at a time, from where it is
+- The parts of Tasks (Running, Waiting in the queue, History) fold and unfold with a click on their title, with how many tasks each one has, and stay as you left them
+
+### Fixes
+
+- In Tasks by bars, the cover of each file at work was darkened by its progress: it is shown as it is again, as its bar already tells the progress
+
 ## 1.63.0
 
 ### New

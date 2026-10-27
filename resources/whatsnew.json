@@ -1,4 +1,50 @@
 {
+  "1.63.1": {
+    "en": [
+      "Tasks by covers shows every file of the task: waiting, at work with its progress, and ended with OK or Error. The covers keep their colours.",
+      "Running, the queue and History fold with a click on their title, and stay as you left them. By bars, the covers are no longer darkened."
+    ],
+    "es": [
+      "Tareas por portadas muestra todos los archivos de la tarea: pendientes, en marcha con su progreso y terminados con OK o Error. Las portadas conservan sus colores.",
+      "En curso, la cola e Historial se pliegan con un clic en su título y se quedan como los dejes. Por barras, las portadas ya no salen oscurecidas."
+    ],
+    "de": [
+      "Aufgaben als Cover zeigt jetzt alle Dateien der Aufgabe: ausstehend, in Arbeit mit Fortschritt und fertig mit OK oder Fehler. Die Cover behalten ihre Farben.",
+      "Laufend, die Warteschlange und Verlauf lassen sich per Klick auf den Titel einklappen und bleiben so. In der Balkenansicht sind die Cover nicht mehr abgedunkelt."
+    ],
+    "fr": [
+      "Tâches par jaquettes montre tous les fichiers de la tâche : en attente, en cours avec leur progression, et terminés avec OK ou Erreur. Les jaquettes gardent leurs couleurs.",
+      "En cours, la file d'attente et Historique se replient d'un clic sur leur titre et restent comme vous les laissez. En barres, les jaquettes ne sont plus assombries."
+    ],
+    "it": [
+      "Attività per copertine mostra tutti i file dell'attività: in attesa, in corso con il loro avanzamento e terminati con OK o Errore. Le copertine mantengono i loro colori.",
+      "In corso, la coda e Cronologia si chiudono con un clic sul titolo e restano come le lasci. Nella vista a barre le copertine non sono più scurite."
+    ],
+    "pt": [
+      "Tarefas por capas mostra todos os ficheiros da tarefa: pendentes, em curso com o seu progresso e terminados com OK ou Erro. As capas mantêm as suas cores.",
+      "Em curso, a fila e Histórico recolhem-se com um clique no título e ficam como os deixar. Por barras, as capas já não aparecem escurecidas."
+    ],
+    "nl": [
+      "Taken als covers toont nu alle bestanden van de taak: wachtend, bezig met hun voortgang en klaar met OK of Fout. De covers houden hun kleuren.",
+      "Bezig, de wachtrij en Geschiedenis klappen in met een klik op hun titel en blijven zoals je ze laat. In de balkweergave zijn de covers niet meer donker."
+    ],
+    "ru": [
+      "Задачи в виде обложек показывают все файлы задачи: ожидающие, в работе с прогрессом и завершённые с OK или Ошибкой. Обложки сохраняют свои цвета.",
+      "Разделы «Выполняется», очередь и «История» сворачиваются щелчком по заголовку и остаются такими. В виде полос обложки больше не затемняются."
+    ],
+    "ja": [
+      "タスクのカバー表示で、待機中、進行中（進捗付き）、OKまたはエラーで終了したものまで、タスクのすべてのファイルが表示されます。カバーは本来の色のままです。",
+      "実行中、キュー、履歴はタイトルをクリックして折りたためて、その状態が保たれます。バー表示ではカバーが暗くならなくなりました。"
+    ],
+    "ko": [
+      "작업의 표지 보기에서 대기 중, 진행 중(진행률 표시), OK 또는 오류로 끝난 파일까지 작업의 모든 파일이 표시됩니다. 표지는 원래 색을 유지합니다.",
+      "실행 중, 대기열, 기록은 제목을 클릭해 접을 수 있고 그대로 유지됩니다. 막대 보기에서 표지가 더 이상 어둡게 표시되지 않습니다."
+    ],
+    "zh": [
+      "任务的封面视图现在显示任务的所有文件：等待中、进行中（带进度）以及以 OK 或错误结束的文件。封面保持原有颜色。",
+      "进行中、队列和历史记录可点击标题折叠，并保持你留下的状态。条形视图中的封面不再变暗。"
+    ]
+  },
   "1.63.0": {
     "en": [
       "Check signatures, on the Issues page: in seconds, it tells the files with an NCA a tool rewrote, which are not signed by Nintendo. Every whole check does it too.",

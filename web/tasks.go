@@ -135,6 +135,11 @@ type Task struct {
 	Results []TaskResult `json:"results,omitempty"`
 	// how each file of a task on files ended, for the view of the Tasks page by covers
 	Tiles []TaskTile `json:"tiles,omitempty"`
+	// every file of a running task on files, in its order, waiting or ended: the view by covers
+	// shows them all, as NXPress does. Not saved to disk.
+	Plan []TaskTile `json:"-"`
+	// on the Tasks page only: the files of the plan left out after those shown
+	HiddenAfter int `json:"-"`
 	// damaged files found by a verification, and why its files are checked
 	Damaged   int              `json:"damaged,omitempty"`
 	Breakdown *VerifyBreakdown `json:"breakdown,omitempty"`
@@ -284,8 +289,13 @@ type TaskTile struct {
 	Failed bool   `json:"failed,omitempty"`
 	// why it failed, an English sentence translated by the interface
 	Note string `json:"note,omitempty"`
-	// on the Tasks page only: the cover of the game of the file
-	Cover string `json:"-"`
+	// in the plan of a running task: the file is not done yet
+	Waiting bool `json:"-"`
+	// on the Tasks page only: the cover of the game of the file, and, for a file at work, its
+	// progress
+	Cover   string `json:"-"`
+	Working bool   `json:"-"`
+	Percent int    `json:"-"`
 }
 
 // maxTaskResults is how many files a task lists, the last ones.
@@ -639,12 +649,30 @@ func (l *TaskLog) AddFileResult(id int64, name string, before int64, after int64
 	})
 }
 
-// AddFileTile records how a file of a task on files ended.
+// SetPlan records every file a task on files has to do, in its order, all waiting.
+func (l *TaskLog) SetPlan(id int64, names []string) {
+	plan := make([]TaskTile, len(names))
+	for i, name := range names {
+		plan[i] = TaskTile{Name: name, Waiting: true}
+	}
+	l.update(id, false, func(task *Task) {
+		task.Plan = plan
+	})
+}
+
+// AddFileTile records how a file of a task on files ended, in its plan too.
 func (l *TaskLog) AddFileTile(id int64, name string, failed bool, note string) {
 	l.update(id, false, func(task *Task) {
-		task.Tiles = append(task.Tiles, TaskTile{Name: name, Failed: failed, Note: note})
+		tile := TaskTile{Name: name, Failed: failed, Note: note}
+		task.Tiles = append(task.Tiles, tile)
 		if len(task.Tiles) > maxTaskResults {
 			task.Tiles = task.Tiles[len(task.Tiles)-maxTaskResults:]
+		}
+		for i := range task.Plan {
+			if task.Plan[i].Waiting && task.Plan[i].Name == name {
+				task.Plan[i] = tile
+				break
+			}
 		}
 	})
 }
@@ -680,7 +708,7 @@ func (l *TaskLog) Finish(id int64, failure *TaskNote) {
 		}()
 		task.Finished = time.Now()
 		task.Message = ""
-		task.Lanes = nil
+		task.Lanes, task.Plan = nil, nil
 		switch {
 		case failure != nil:
 			task.Status = TASK_FAILED
@@ -743,6 +771,7 @@ func (l *TaskLog) Snapshot() []Task {
 		copied := *task
 		copied.Warnings = append([]TaskNote(nil), task.Warnings...)
 		copied.Tiles = append([]TaskTile(nil), task.Tiles...)
+		copied.Plan = append([]TaskTile(nil), task.Plan...)
 		tasks = append(tasks, copied)
 	}
 	return tasks

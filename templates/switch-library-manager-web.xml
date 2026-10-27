@@ -22,7 +22,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.63.0
+  <Changes>### 1.63.1
+- Tasks by covers shows every file of the task, waiting, at work or ended, with the covers in their colours
+- The parts of Tasks fold with a click on their title, and the covers of the bars are no longer darkened
+### 1.63.0
 - The signature of Nintendo on every NCA is checked, with Check signatures on the Issues page in seconds
 - Organize names a DLC by its number with {DLC_NUMBER}, and can keep the names that have their title ID
 - The list of packs tells what each pack holds and shows the games packed before
