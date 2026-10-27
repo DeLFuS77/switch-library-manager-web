@@ -1116,7 +1116,9 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 	defer ahead.Close()
 	stream = ahead
 	if rebuild != nil {
-		stream = &lz4Rebuilder{in: stream, blocks: rebuild, position: sections[0].offset}
+		rebuilder := newLz4Rebuilder(stream, rebuild, sections[0].offset, lz4RebuildWorkers())
+		defer rebuilder.Close()
+		stream = rebuilder
 	}
 
 	buffer := make([]byte, nczChunkSize)

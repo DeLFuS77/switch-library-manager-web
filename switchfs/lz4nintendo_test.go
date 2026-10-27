@@ -2,8 +2,10 @@ package switchfs
 
 import (
 	"bytes"
+	"io"
 	"math/rand"
 	"testing"
+	"time"
 )
 
 // studyData is 64 KiB that LZ4 finds matches in: text, runs, some noise.
@@ -104,11 +106,84 @@ func TestLz4BlocksKeptDecompressedComeBack(t *testing.T) {
 		t.Fatalf("table: %v %d %d", err, len(kept), end)
 	}
 	back := &bytes.Buffer{}
-	rebuilder := &lz4Rebuilder{in: bytes.NewReader(stream.Bytes()), blocks: kept, position: nczHeaderSize}
+	rebuilder := newLz4Rebuilder(bytes.NewReader(stream.Bytes()), kept, nczHeaderSize, 3)
+	defer rebuilder.Close()
 	if _, err := back.ReadFrom(rebuilder); err != nil {
 		t.Fatal(err)
 	}
 	if !bytes.Equal(back.Bytes(), nca) {
 		t.Fatal("the NCA does not come back")
+	}
+}
+
+// archiveOf builds an NCA of many LZ4 blocks with bytes between them, the stream an NCZSECT3
+// keeps of it and its table.
+func archiveOf(t *testing.T, count int) ([]byte, []byte, []lz4Block) {
+	nca, stream, blocks := []byte{}, []byte{}, []lz4Block{}
+	r := rand.New(rand.NewSource(7))
+	for i := 0; i < count; i++ {
+		gap := bytes.Repeat([]byte{byte(i)}, r.Intn(3000))
+		nca = append(nca, gap...)
+		stream = append(stream, gap...)
+		raw := studyData(int64(i))[:1000+r.Intn(64<<10-1000)]
+		level := int8(5 * (i % 2))
+		block, _ := nintendoLz4(raw, level)
+		blocks = append(blocks, lz4Block{offset: nczHeaderSize + uint64(len(nca)), size: uint32(len(block)), rawSize: uint32(len(raw)), level: level})
+		nca = append(nca, block...)
+		stream = append(stream, raw...)
+	}
+	tail := []byte("the end of the NCA")
+	return append(nca, tail...), append(stream, tail...), blocks
+}
+
+// Blocks made again on several workers come out in the order of the NCA, whatever the size of
+// the reads.
+func TestLz4RebuildOnWorkersKeepsTheOrder(t *testing.T) {
+	nca, stream, blocks := archiveOf(t, 40)
+	for _, workers := range []int{1, 8} {
+		rebuilder := newLz4Rebuilder(bytes.NewReader(stream), blocks, nczHeaderSize, workers)
+		back := &bytes.Buffer{}
+		if _, err := io.CopyBuffer(back, struct{ io.Reader }{rebuilder}, make([]byte, 777)); err != nil {
+			t.Fatal(err)
+		}
+		rebuilder.Close()
+		if !bytes.Equal(back.Bytes(), nca) {
+			t.Fatalf("%d workers: the NCA does not come back", workers)
+		}
+	}
+}
+
+// A block that is not made again to its size, or a stream that ends early, stops the reading
+// with an error.
+func TestLz4RebuildTellsWhatFails(t *testing.T) {
+	_, stream, blocks := archiveOf(t, 6)
+	wrong := append([]lz4Block(nil), blocks...)
+	wrong[3].size++
+	rebuilder := newLz4Rebuilder(bytes.NewReader(stream), wrong, nczHeaderSize, 4)
+	if _, err := io.Copy(io.Discard, rebuilder); err == nil {
+		t.Error("a block of the wrong size was accepted")
+	}
+	rebuilder.Close()
+	short := newLz4Rebuilder(bytes.NewReader(stream[:len(stream)/2]), blocks, nczHeaderSize, 4)
+	if _, err := io.Copy(io.Discard, short); err == nil {
+		t.Error("a stream that ends early was accepted")
+	}
+	short.Close()
+}
+
+// Closed halfway, as when a decompression is cancelled, the rebuilder stops its goroutines.
+func TestLz4RebuildClosesHalfway(t *testing.T) {
+	_, stream, blocks := archiveOf(t, 40)
+	rebuilder := newLz4Rebuilder(bytes.NewReader(stream), blocks, nczHeaderSize, 4)
+	io.ReadFull(rebuilder, make([]byte, 5000))
+	done := make(chan struct{})
+	go func() {
+		rebuilder.Close()
+		close(done)
+	}()
+	select {
+	case <-done:
+	case <-time.After(10 * time.Second):
+		t.Fatal("Close did not return")
 	}
 }

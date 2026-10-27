@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"runtime"
+	"sync"
 
 	"github.com/klauspost/compress/zstd"
 )
@@ -190,40 +192,170 @@ func readLz4Table(reader io.ReaderAt, size int64) ([]lz4Block, int64, error) {
 }
 
 // lz4Rebuilder reads the stream of an NCZSECT3 and gives the decrypted NCA: each block of the
-// table is read decompressed and made again. position is the place in the NCA of the next byte.
+// table is read decompressed and made again. A goroutine reads the stream ahead and hands the
+// blocks to workers, one per processor: LZ4HC makes about 55 MB a second on one core, so a game
+// of 7 GB of blocks would take two minutes on one. What comes out keeps the order of the NCA.
 type lz4Rebuilder struct {
-	in       io.Reader
-	blocks   []lz4Block
-	next     int
-	position uint64
-	pending  []byte
+	pieces  chan *lz4Piece
+	stop    chan struct{}
+	stopped sync.WaitGroup
+	once    sync.Once
+	// the piece being read, and what is left of it
+	current *lz4Piece
+	rest    []byte
+	err     error
+}
+
+// lz4Piece is a run of the NCA: bytes as they are, or a block to make again, done once its
+// channel is closed.
+type lz4Piece struct {
+	data []byte
+	err  error
+	done chan struct{}
+}
+
+// lz4RebuildAhead is how many pieces may wait to be read, per worker; the bytes between blocks
+// are read lz4RebuildGap at most at a time.
+const (
+	lz4RebuildAhead = 4
+	lz4RebuildGap   = 256 << 10
+)
+
+func newLz4Rebuilder(in io.Reader, blocks []lz4Block, position uint64, workers int) *lz4Rebuilder {
+	if workers < 1 {
+		workers = 1
+	}
+	r := &lz4Rebuilder{pieces: make(chan *lz4Piece, workers*lz4RebuildAhead), stop: make(chan struct{})}
+	type job struct {
+		piece *lz4Piece
+		block lz4Block
+		raw   []byte
+	}
+	jobs := make(chan job, workers*lz4RebuildAhead)
+	for i := 0; i < workers; i++ {
+		r.stopped.Add(1)
+		go func() {
+			defer r.stopped.Done()
+			for j := range jobs {
+				made, known := nintendoLz4(j.raw, j.block.level)
+				if !known || len(made) != int(j.block.size) {
+					j.piece.err = fmt.Errorf("the LZ4 block at %#x cannot be made again", j.block.offset)
+				}
+				j.piece.data = made
+				close(j.piece.done)
+			}
+		}()
+	}
+	r.stopped.Add(1)
+	go func() {
+		defer r.stopped.Done()
+		defer close(r.pieces)
+		defer close(jobs)
+		send := func(piece *lz4Piece) bool {
+			select {
+			case r.pieces <- piece:
+				return true
+			case <-r.stop:
+				return false
+			}
+		}
+		failed := func(err error) {
+			piece := &lz4Piece{err: err, done: make(chan struct{})}
+			close(piece.done)
+			send(piece)
+		}
+		next := 0
+		for {
+			if next < len(blocks) && blocks[next].offset == position {
+				block := blocks[next]
+				next++
+				raw := make([]byte, block.rawSize)
+				if _, err := io.ReadFull(in, raw); err != nil {
+					failed(err)
+					return
+				}
+				piece := &lz4Piece{done: make(chan struct{})}
+				if !send(piece) {
+					return
+				}
+				select {
+				case jobs <- job{piece, block, raw}:
+				case <-r.stop:
+					return
+				}
+				position += uint64(block.size)
+				continue
+			}
+			// the bytes up to the next block, or to the end, as they are: in small pieces, as
+			// many of them may wait to be read
+			size := uint64(lz4RebuildGap)
+			if next < len(blocks) {
+				size = min(size, blocks[next].offset-position)
+			}
+			data := make([]byte, size)
+			n, err := io.ReadFull(in, data)
+			if n > 0 {
+				piece := &lz4Piece{data: data[:n], done: make(chan struct{})}
+				close(piece.done)
+				if !send(piece) {
+					return
+				}
+				position += uint64(n)
+			}
+			if err == io.EOF || err == io.ErrUnexpectedEOF {
+				if next < len(blocks) {
+					failed(io.ErrUnexpectedEOF)
+				}
+				return
+			}
+			if err != nil {
+				failed(err)
+				return
+			}
+		}
+	}()
+	return r
 }
 
 func (r *lz4Rebuilder) Read(p []byte) (int, error) {
-	if len(r.pending) > 0 {
-		n := copy(p, r.pending)
-		r.pending = r.pending[n:]
-		r.position += uint64(n)
-		return n, nil
-	}
-	if r.next < len(r.blocks) && r.blocks[r.next].offset == r.position {
-		block := r.blocks[r.next]
-		r.next++
-		raw := make([]byte, block.rawSize)
-		if _, err := io.ReadFull(r.in, raw); err != nil {
-			return 0, err
+	for len(r.rest) == 0 {
+		if r.err != nil {
+			return 0, r.err
 		}
-		made, known := nintendoLz4(raw, block.level)
-		if !known || len(made) != int(block.size) {
-			return 0, fmt.Errorf("the LZ4 block at %#x cannot be made again", block.offset)
+		piece, ok := <-r.pieces
+		if !ok {
+			r.err = io.EOF
+			continue
 		}
-		r.pending = made
-		return r.Read(p)
+		<-piece.done
+		if piece.err != nil {
+			r.err = piece.err
+			continue
+		}
+		r.rest = piece.data
 	}
-	if r.next < len(r.blocks) {
-		p = p[:min(uint64(len(p)), r.blocks[r.next].offset-r.position)]
+	n := copy(p, r.rest)
+	r.rest = r.rest[n:]
+	return n, nil
+}
+
+// Close stops the goroutines; the reader of the stream is not read any more once it returns.
+func (r *lz4Rebuilder) Close() {
+	r.once.Do(func() { close(r.stop) })
+	// the workers end once the reader closes their jobs; pieces left are drained
+	go func() {
+		for range r.pieces {
+		}
+	}()
+	r.stopped.Wait()
+}
+
+// lz4RebuildWorkers is how many blocks are made again at once: every processor but one, which
+// decompresses, decrypts and writes meanwhile.
+func lz4RebuildWorkers() int {
+	// the package has a max of its own, for bytes
+	if n := runtime.NumCPU() - 1; n > 1 {
+		return n
 	}
-	n, err := r.in.Read(p)
-	r.position += uint64(n)
-	return n, err
+	return 1
 }
