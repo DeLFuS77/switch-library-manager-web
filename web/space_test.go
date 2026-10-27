@@ -496,3 +496,41 @@ func TestSpacePageListsTheFilesThatStay(t *testing.T) {
 		t.Fatal("the files that stay are listed with their reasons, without asking to verify")
 	}
 }
+
+// Each group of Space and the games of several regions open and close, so the page shows a
+// line for each with its count and size until one is opened.
+func TestSpaceGroupsCollapse(t *testing.T) {
+	set, err := parseTemplates(os.DirFS(".."), "resources/layout.html", "resources/partials/*.html", "resources/pages/space.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := SpacePageData{
+		GlobalPageData: GlobalPageData{IsKeysFileAvailable: true},
+		Groups:         []SpaceGroup{{Id: "old_updates", Files: []SpaceFile{{Path: "/g/old.nsp", Name: "Game", Size: 1 << 20, Deletable: true}}, Size: 1 << 20, DeletableSize: 1 << 20}},
+		Reclaimable:    1 << 20,
+		LibrarySize:    1 << 30,
+		Regions: []RegionGroup{{Name: "Bravely Default II", Savable: 1 << 30, Copies: []RegionCopy{
+			{Id: "0100000000010000", Name: "Bravely Default II", Region: "US", Keep: true},
+			{Id: "0100000000020000", Name: "Bravely Default II", Region: "JP"},
+		}}},
+	}
+	var out strings.Builder
+	if err := set["en"].ExecuteTemplate(&out, "layout", data); err != nil {
+		t.Fatal(err)
+	}
+	page := out.String()
+	for _, want := range []string{
+		`<details class="space-group space-group-old_updates">`,
+		`<details class="space-group space-group-regions">`,
+		`<details class="region-group">`,
+		`<span class="fi fi-us" title="US"></span><span class="fi fi-jp" title="JP"></span>`,
+		`value="/g/old.nsp"`,
+	} {
+		if !strings.Contains(page, want) {
+			t.Errorf("missing %s", want)
+		}
+	}
+	if strings.Contains(page, "<details class=\"space-group space-group-old_updates\" open") {
+		t.Error("a group starts open")
+	}
+}
