@@ -1318,6 +1318,7 @@ func init() {
 		"Suggested to keep":                      "建议保留",
 		"Switch Library Manager: %v new item(s)": "Switch Library Manager：%v 个新项目",
 		"Switch safe names (ASCII only)":         "Switch 安全文件名（仅限 ASCII）",
+		"Already packed":                         "已打包",
 		"Check signatures":                       "检查签名",
 		"Checks in seconds that every NCA has the signature of Nintendo, from its header: it does not read the data": "通过头部在几秒内检查每个 NCA 是否有 Nintendo 的签名：不读取数据",
 		"Not signed by Nintendo": "没有 Nintendo 签名",

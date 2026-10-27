@@ -6,6 +6,10 @@
 
 - The signature of Nintendo on every NCA is checked: with every whole check of a file (it reads the headers only), and on its own in seconds with Check signatures on the Issues page. The files with an NCA a tool rewrote (to take out its rights ID, for example) are listed in Issues as Not signed by Nintendo; they usually install and play
 
+### Improvements
+
+- The list of packs to make tells what each pack holds (1G+1U+2D: the game, its latest update and two DLC), and the games packed before follow it under Already packed, with the name of their pack, instead of being left out without a word
+
 ## 1.62.0
 
 ### New

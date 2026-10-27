@@ -1318,6 +1318,7 @@ func init() {
 		"Suggested to keep":                      "Рекомендуется сохранить",
 		"Switch Library Manager: %v new item(s)": "Switch Library Manager: новых элементов: %v",
 		"Switch safe names (ASCII only)":         "Безопасные для Switch имена (только ASCII)",
+		"Already packed":                         "Уже упаковано",
 		"Check signatures":                       "Проверить подписи",
 		"Checks in seconds that every NCA has the signature of Nintendo, from its header: it does not read the data": "За секунды проверяет по заголовку, есть ли у каждого NCA подпись Nintendo: данные не читаются",
 		"Not signed by Nintendo": "Без подписи Nintendo",

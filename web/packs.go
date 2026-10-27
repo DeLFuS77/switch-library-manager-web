@@ -124,6 +124,49 @@ func packName(name string, titleId string, local *db.SwitchGameFiles, compressed
 	return result + ".nsp"
 }
 
+// packContents tells what the pack of a game holds, as Switch Library Manager writes it: the
+// game, its latest update and its DLC (1G+1U+2D).
+func packContents(local *db.SwitchGameFiles) string {
+	contents := "1G"
+	if _, ok := local.Updates[local.LatestUpdate]; ok {
+		contents += "+1U"
+	}
+	if dlc := len(local.Dlc); dlc > 0 {
+		contents += fmt.Sprintf("+%dD", dlc)
+	}
+	return contents
+}
+
+// packedGames are the games of the library whose pack is made already, by name, with the name
+// of their pack.
+func (web *Web) packedGames() []CompressCandidate {
+	return web.derived("packedGames", func() any {
+		switchDB, localDB := web.state.get()
+		games := []CompressCandidate{}
+		if localDB == nil {
+			return games
+		}
+		scanned := web.scannedPaths()
+		for _, local := range localDB.TitlesMap {
+			files := withCompressedCopies(packFiles(local), localDB.Skipped)
+			if files == nil || local.File.Metadata == nil {
+				continue
+			}
+			base := filepath.Join(files[0].BaseFolder, files[0].FileName)
+			name := web.gameName(switchDB, local, base)
+			for _, compressed := range []bool{false, true} {
+				pack := packName(name, local.File.Metadata.TitleId, local, compressed)
+				if scanned[filepath.Clean(filepath.Join(files[0].BaseFolder, pack))] {
+					games = append(games, CompressCandidate{Path: base, Name: name, Kind: "Base", Files: len(files), Contents: packContents(local), Packed: pack})
+					break
+				}
+			}
+		}
+		sort.Slice(games, func(i, j int) bool { return strings.ToLower(games[i].Name) < strings.ToLower(games[j].Name) })
+		return games
+	}).([]CompressCandidate)
+}
+
 // packCandidates are the games of the library with a pack to make and no pack yet, biggest
 // first: the path of a candidate is the one of the base file of the game.
 func (web *Web) packCandidates() []CompressCandidate {
@@ -154,7 +197,7 @@ func (web *Web) packCandidates() []CompressCandidate {
 			for _, file := range files {
 				size += file.Size
 			}
-			candidates = append(candidates, CompressCandidate{Path: base, Name: name, Kind: "Base", Size: size, Files: len(files)})
+			candidates = append(candidates, CompressCandidate{Path: base, Name: name, Kind: "Base", Size: size, Files: len(files), Contents: packContents(local)})
 		}
 		sort.Slice(candidates, func(i, j int) bool {
 			if candidates[i].Size == candidates[j].Size {

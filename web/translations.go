@@ -1400,6 +1400,7 @@ var translations = map[string]map[string]string{
 		"File name template":             "Plantilla del nombre de archivo",
 		"Available:":                     "Disponibles:",
 		"Switch safe names (ASCII only)": "Nombres compatibles con Switch (solo ASCII)",
+		"Already packed":                 "Con su pack ya creado",
 		"Check signatures":               "Comprobar firmas",
 		"Checks in seconds that every NCA has the signature of Nintendo, from its header: it does not read the data": "Comprueba en segundos que cada NCA lleva la firma de Nintendo, por su cabecera: no lee los datos",
 		"Not signed by Nintendo": "Sin firma de Nintendo",

@@ -1318,6 +1318,7 @@ func init() {
 		"Suggested to keep":                      "유지 추천",
 		"Switch Library Manager: %v new item(s)": "Switch Library Manager: 새 항목 %v개",
 		"Switch safe names (ASCII only)":         "Switch 호환 이름 (ASCII만)",
+		"Already packed":                         "이미 묶음",
 		"Check signatures":                       "서명 확인",
 		"Checks in seconds that every NCA has the signature of Nintendo, from its header: it does not read the data": "각 NCA에 Nintendo 서명이 있는지 헤더로 몇 초 만에 확인합니다. 데이터는 읽지 않습니다",
 		"Not signed by Nintendo": "Nintendo 서명 없음",

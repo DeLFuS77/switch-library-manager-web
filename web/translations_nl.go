@@ -1318,6 +1318,7 @@ func init() {
 		"Suggested to keep":                      "Aanbevolen om te bewaren",
 		"Switch Library Manager: %v new item(s)": "Switch Library Manager: %v nieuw(e) item(s)",
 		"Switch safe names (ASCII only)":         "Switch-veilige namen (alleen ASCII)",
+		"Already packed":                         "Al gebundeld",
 		"Check signatures":                       "Handtekeningen controleren",
 		"Checks in seconds that every NCA has the signature of Nintendo, from its header: it does not read the data": "Controleert in seconden aan de header of elke NCA de handtekening van Nintendo heeft: de data worden niet gelezen",
 		"Not signed by Nintendo": "Niet ondertekend door Nintendo",

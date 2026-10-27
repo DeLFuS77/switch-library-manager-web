@@ -1366,6 +1366,7 @@ func init() {
 		"Success!":                               "Fatto!",
 		"Switch Library Manager: %v new item(s)": "Switch Library Manager: %v nuovi elementi",
 		"Switch safe names (ASCII only)":         "Nomi sicuri per Switch (solo ASCII)",
+		"Already packed":                         "Già uniti",
 		"Check signatures":                       "Controlla le firme",
 		"Checks in seconds that every NCA has the signature of Nintendo, from its header: it does not read the data": "Controlla in pochi secondi, dall'intestazione, che ogni NCA abbia la firma di Nintendo: i dati non vengono letti",
 		"Not signed by Nintendo": "Non firmati da Nintendo",
