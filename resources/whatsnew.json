@@ -1,4 +1,72 @@
 {
+  "1.63.0": {
+    "en": [
+      "Check signatures, on the Issues page: in seconds, it tells the files with an NCA a tool rewrote, which are not signed by Nintendo. Every whole check does it too.",
+      "Organize can name a DLC by its number with {DLC_NUMBER}, for short names like Game [DLC 1], and can keep the names that already have their title ID.",
+      "The list of packs tells what each pack holds (1G+1U+2D) and shows the games packed before.",
+      "Tasks by covers: choose Covers on the Tasks page and each file shows as its cover, filling up while at work and with OK or Error once done."
+    ],
+    "es": [
+      "Comprobar firmas, en Problemas: en segundos te dice qué archivos tienen un NCA reescrito por una herramienta, sin la firma de Nintendo. Cada comprobación entera también lo mira.",
+      "Organizar puede nombrar un DLC por su número con {DLC_NUMBER}, para nombres cortos como Juego [DLC 1], y puede conservar los nombres que ya llevan su Title ID.",
+      "La lista de packs dice qué lleva cada pack (1G+1U+2D) y muestra los juegos con su pack ya creado.",
+      "Tareas por portadas: elige Portadas en la página Tareas y cada archivo sale como su portada, que se llena mientras trabaja y queda con OK o Error al terminar."
+    ],
+    "de": [
+      "Signaturen prüfen, auf der Seite Probleme: In Sekunden zeigt es die Dateien mit einer von einem Tool umgeschriebenen NCA, die nicht von Nintendo signiert ist. Jede vollständige Prüfung tut das auch.",
+      "Organisieren kann einen DLC mit {DLC_NUMBER} nach seiner Nummer benennen, für kurze Namen wie Spiel [DLC 1], und Namen behalten, die ihre Title ID schon enthalten.",
+      "Die Paketliste zeigt, was jedes Paket enthält (1G+1U+2D), und die schon gepackten Spiele.",
+      "Aufgaben als Cover: Wähle Cover auf der Seite Aufgaben, und jede Datei erscheint als ihr Cover, das sich während der Arbeit füllt und am Ende OK oder Fehler zeigt."
+    ],
+    "fr": [
+      "Vérifier les signatures, dans la page Problèmes : en quelques secondes, il indique les fichiers avec une NCA réécrite par un outil, sans signature de Nintendo. Chaque vérification complète le fait aussi.",
+      "Organiser peut nommer un DLC par son numéro avec {DLC_NUMBER}, pour des noms courts comme Jeu [DLC 1], et garder les noms qui ont déjà leur Title ID.",
+      "La liste des packs indique ce que contient chaque pack (1G+1U+2D) et montre les jeux déjà regroupés.",
+      "Tâches en jaquettes : choisissez Jaquettes dans la page Tâches et chaque fichier apparaît comme sa jaquette, qui se remplit pendant le travail et finit avec OK ou Erreur."
+    ],
+    "it": [
+      "Controlla le firme, nella pagina Problemi: in pochi secondi indica i file con una NCA riscritta da uno strumento, senza la firma di Nintendo. Ogni controllo completo lo fa anche.",
+      "Organizza può chiamare un DLC con il suo numero tramite {DLC_NUMBER}, per nomi brevi come Gioco [DLC 1], e mantenere i nomi che hanno già il loro Title ID.",
+      "L'elenco dei pacchetti dice cosa contiene ogni pacchetto (1G+1U+2D) e mostra i giochi già uniti.",
+      "Attività per copertine: scegli Copertine nella pagina Attività e ogni file appare come la sua copertina, che si riempie durante il lavoro e finisce con OK o Errore."
+    ],
+    "pt": [
+      "Verificar assinaturas, na página Problemas: em segundos mostra os arquivos com uma NCA reescrita por uma ferramenta, sem a assinatura da Nintendo. Cada verificação completa também faz isso.",
+      "Organizar pode nomear uma DLC pelo número com {DLC_NUMBER}, para nomes curtos como Jogo [DLC 1], e manter os nomes que já têm o Title ID.",
+      "A lista de pacotes mostra o que cada pacote leva (1G+1U+2D) e os jogos já juntados.",
+      "Tarefas por capas: escolha Capas na página Tarefas e cada arquivo aparece como a sua capa, que se enche durante o trabalho e termina com OK ou Erro."
+    ],
+    "nl": [
+      "Handtekeningen controleren, op de pagina Problemen: in seconden toont het de bestanden met een door een tool herschreven NCA, zonder handtekening van Nintendo. Elke volledige controle doet het ook.",
+      "Ordenen kan een DLC naar zijn nummer noemen met {DLC_NUMBER}, voor korte namen zoals Game [DLC 1], en namen houden die hun Title ID al hebben.",
+      "De lijst met bundels toont wat elke bundel bevat (1G+1U+2D) en de al gebundelde games.",
+      "Taken als covers: kies Covers op de pagina Taken en elk bestand verschijnt als zijn cover, die zich vult tijdens het werk en eindigt met OK of Fout."
+    ],
+    "ru": [
+      "Проверка подписей на странице «Проблемы»: за секунды показывает файлы с NCA, переписанным инструментом, без подписи Nintendo. Каждая полная проверка тоже это делает.",
+      "Упорядочивание может называть DLC по номеру через {DLC_NUMBER}, для коротких имён вроде Игра [DLC 1], и оставлять имена, в которых уже есть Title ID.",
+      "Список пакетов показывает, что в каждом пакете (1G+1U+2D), и уже упакованные игры.",
+      "Задачи обложками: выберите «Обложки» на странице «Задачи», и каждый файл показан своей обложкой, которая заполняется во время работы и в конце показывает OK или Ошибка."
+    ],
+    "ja": [
+      "「問題」ページの「署名を確認」：ツールで書き換えられ Nintendo の署名がない NCA を含むファイルを数秒で示します。全体の確認でも毎回行います。",
+      "整理で {DLC_NUMBER} を使うと DLC を番号で名付けられ（例: ゲーム [DLC 1]）、Title ID を含む名前はそのままにできます。",
+      "パックの一覧に各パックの中身（1G+1U+2D）と、まとめ済みのゲームが表示されます。",
+      "タスクをカバー画像で表示：「タスク」ページで「カバー画像」を選ぶと、各ファイルがカバー画像で表示され、処理中は進捗で満たされ、終わると OK かエラーが付きます。"
+    ],
+    "ko": [
+      "문제 페이지의 서명 확인: 도구로 다시 쓴, Nintendo 서명이 없는 NCA가 있는 파일을 몇 초 만에 알려 줍니다. 전체 확인 때마다 함께 합니다.",
+      "정리에서 {DLC_NUMBER}로 DLC를 번호로 이름 붙일 수 있고(예: 게임 [DLC 1]), Title ID가 들어 있는 이름은 그대로 둘 수 있습니다.",
+      "팩 목록에 각 팩의 내용(1G+1U+2D)과 이미 묶은 게임이 표시됩니다.",
+      "작업을 커버로 보기: 작업 페이지에서 커버를 고르면 각 파일이 커버로 표시되고, 처리 중에는 진행만큼 채워지며 끝나면 OK 또는 오류가 붙습니다."
+    ],
+    "zh": [
+      "“问题”页面的“检查签名”：几秒内列出含有被工具改写、没有 Nintendo 签名的 NCA 的文件。每次完整检查也会进行。",
+      "整理可以用 {DLC_NUMBER} 按编号命名 DLC（如 游戏 [DLC 1]），并可保留已包含 Title ID 的名称。",
+      "打包列表显示每个包的内容（1G+1U+2D），以及已打包的游戏。",
+      "按封面查看任务：在“任务”页面选择“封面”，每个文件以其封面显示，处理时逐渐填满，完成后标上 OK 或错误。"
+    ]
+  },
   "1.62.0": {
     "en": [
       "The bot of Telegram can answer in its chat (\"Answer in the chat of Telegram\" in Settings): ask it whether a game is in your library (/have zelda), what is new (/new), the space (/space) and the tasks (/status), or start a synchronization (/sync).",

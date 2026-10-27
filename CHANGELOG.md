@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.63.0
 
 ### New
 
@@ -14,6 +14,9 @@
 - In Tasks, the cover of each file at work fills up from the bottom with the progress of its step, and a file without a cover gets a ring around its number
 - Tasks can be seen by bars, as before, or by covers: a grid of the files of each task, those at work filling up with their progress and the ones ended with OK or Error under them (the reason of an error on its label). The choice is kept by the browser
 
+### Fixes
+
+- The CHANGELOG of the repository listed every version twice since 1.61.0
 
 ## 1.62.0
 

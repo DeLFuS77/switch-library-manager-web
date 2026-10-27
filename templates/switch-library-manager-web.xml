@@ -22,7 +22,12 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.62.0
+  <Changes>### 1.63.0
+- The signature of Nintendo on every NCA is checked, with Check signatures on the Issues page in seconds
+- Organize names a DLC by its number with {DLC_NUMBER}, and can keep the names that have their title ID
+- The list of packs tells what each pack holds and shows the games packed before
+- Tasks can be seen by covers, each file filling up with its progress and with OK or Error once done
+### 1.62.0
 - The bot of Telegram answers in its chat: whether a game is in the library, what is new, the space, the tasks and a synchronization
 - Space shows each group as one line with its count and size, which opens to list its files
 ### 1.61.0
