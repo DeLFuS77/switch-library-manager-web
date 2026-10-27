@@ -22,7 +22,10 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.61.0
+  <Changes>### 1.62.0
+- The bot of Telegram answers in its chat: whether a game is in the library, what is new, the space, the tasks and a synchronization
+- Space shows each group as one line with its count and size, which opens to list its files
+### 1.61.0
 - Update now: on Windows, macOS and Linux the app installs a new version by itself, checked against the checksums of the release, and can go back to the one before (Docker and Unraid keep updating the container)
 - Uploading a game with a long name in Japanese no longer fails on the ZFS disks of Unraid
 ### 1.60.1
@@ -57,7 +60,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-10-26</Date>
+  <Date>2026-10-27</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>

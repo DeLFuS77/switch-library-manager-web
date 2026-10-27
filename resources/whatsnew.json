@@ -1,4 +1,50 @@
 {
+  "1.62.0": {
+    "en": [
+      "The bot of Telegram can answer in its chat (\"Answer in the chat of Telegram\" in Settings): ask it whether a game is in your library (/have zelda), what is new (/new), the space (/space) and the tasks (/status), or start a synchronization (/sync).",
+      "Space shows each group, and each game of several regions, as one line with its count and size: open it to see its files."
+    ],
+    "es": [
+      "El bot de Telegram puede contestar en su chat («Responder en el chat de Telegram» en Ajustes): pregúntale si un juego está en tu biblioteca (/tengo zelda), qué hay nuevo (/nuevo), el espacio (/espacio) y las tareas (/estado), o empieza una sincronización (/sincroniza).",
+      "Espacio muestra cada grupo, y cada juego de varias regiones, como una línea con su número y su tamaño: ábrela para ver sus archivos."
+    ],
+    "de": [
+      "Der Telegram-Bot kann in seinem Chat antworten („Im Telegram-Chat antworten“ in den Einstellungen): Frag ihn, ob ein Spiel in deiner Bibliothek ist (/have zelda), was neu ist (/new), nach dem Speicherplatz (/space) und den Aufgaben (/status), oder starte eine Synchronisierung (/sync).",
+      "Speicherplatz zeigt jede Gruppe und jedes Spiel aus mehreren Regionen als eine Zeile mit Anzahl und Größe: Öffne sie, um die Dateien zu sehen."
+    ],
+    "fr": [
+      "Le bot Telegram peut répondre dans son chat (« Répondre dans le chat Telegram » dans les Réglages) : demandez-lui si un jeu est dans votre bibliothèque (/have zelda), les nouveautés (/new), l'espace (/space) et les tâches (/status), ou lancez une synchronisation (/sync).",
+      "Espace affiche chaque groupe, et chaque jeu de plusieurs régions, sur une ligne avec son nombre et sa taille : ouvrez-la pour voir ses fichiers."
+    ],
+    "it": [
+      "Il bot di Telegram può rispondere nella sua chat (« Rispondi nella chat di Telegram » nelle Impostazioni): chiedigli se un gioco è nella tua libreria (/have zelda), le novità (/new), lo spazio (/space) e le attività (/status), oppure avvia una sincronizzazione (/sync).",
+      "Spazio mostra ogni gruppo, e ogni gioco di più regioni, come una riga con numero e dimensione: aprila per vedere i suoi file."
+    ],
+    "pt": [
+      "O bot do Telegram pode responder no seu chat (\"Responder no chat do Telegram\" nas Configurações): pergunte se um jogo está na sua biblioteca (/have zelda), o que há de novo (/new), o espaço (/space) e as tarefas (/status), ou inicie uma sincronização (/sync).",
+      "Espaço mostra cada grupo, e cada jogo de várias regiões, como uma linha com a contagem e o tamanho: abra-a para ver os arquivos."
+    ],
+    "nl": [
+      "De Telegram-bot kan in zijn chat antwoorden (\"Antwoorden in de Telegram-chat\" in Instellingen): vraag of een game in je bibliotheek staat (/have zelda), wat er nieuw is (/new), de ruimte (/space) en de taken (/status), of start een synchronisatie (/sync).",
+      "Ruimte toont elke groep, en elke game uit meerdere regio's, als één regel met aantal en grootte: open hem om de bestanden te zien."
+    ],
+    "ru": [
+      "Бот Telegram может отвечать в своём чате («Отвечать в чате Telegram» в настройках): спросите, есть ли игра в библиотеке (/have zelda), что нового (/new), про место (/space) и задачи (/status), или запустите синхронизацию (/sync).",
+      "На странице «Место» каждая группа и каждая игра из нескольких регионов — одна строка с количеством и размером: откройте её, чтобы увидеть файлы."
+    ],
+    "ja": [
+      "Telegram のボットがチャットで返信できるようになりました（設定の「Telegramのチャットで返信する」）。ゲームがライブラリにあるか（/have zelda）、新着（/new）、容量（/space）、タスク（/status）を尋ねたり、同期（/sync）を始めたりできます。",
+      "「容量」では各グループと複数リージョンの各ゲームが、件数とサイズ付きの1行で表示されます。開くとファイルが表示されます。"
+    ],
+    "ko": [
+      "텔레그램 봇이 채팅에서 답할 수 있습니다(설정의 '텔레그램 채팅에서 답하기'). 게임이 라이브러리에 있는지(/have zelda), 새 소식(/new), 공간(/space), 작업(/status)을 묻거나 동기화(/sync)를 시작할 수 있습니다.",
+      "'공간'에서 각 그룹과 여러 지역의 각 게임이 개수와 크기가 있는 한 줄로 표시됩니다. 열면 파일이 보입니다."
+    ],
+    "zh": [
+      "Telegram 机器人现在可以在聊天中回复（设置中的“在 Telegram 聊天中回复”）：询问某个游戏是否在库中（/have zelda）、新内容（/new）、空间（/space）和任务（/status），或开始同步（/sync）。",
+      "“空间”页面将每个分组以及每个多地区游戏显示为一行，带有数量和大小：展开即可查看文件。"
+    ]
+  },
   "1.61.0": {
     "en": [
       "Update now: on Windows, macOS and Linux the app installs a new version by itself, checked against the checksums of the release, and can go back to the one before. The Update page shows what is new, checks GitHub at once and can install new versions at night. Docker and Unraid keep updating the container.",
