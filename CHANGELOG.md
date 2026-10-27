@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### New
+
+- The signature of Nintendo on every NCA is checked: with every whole check of a file (it reads the headers only), and on its own in seconds with Check signatures on the Issues page. The files with an NCA a tool rewrote (to take out its rights ID, for example) are listed in Issues as Not signed by Nintendo; they usually install and play
+
 ## 1.62.0
 
 ### New

@@ -300,3 +300,31 @@ func TestCompressionTimeLeft(t *testing.T) {
 		t.Fatalf("not known in the first seconds: %q", got)
 	}
 }
+
+// A file with an NCA not signed by Nintendo is an issue of its own while it does not change.
+func TestUnsignedFilesAreAnIssue(t *testing.T) {
+	folder := t.TempDir()
+	path := filepath.Join(folder, "Game [0100000000010000][v0].nsp")
+	if err := os.WriteFile(path, []byte("game"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	info, _ := os.Stat(path)
+	store := loadVerifyStore(folder)
+	store.setSignatures(path, info, []string{"a.nca"})
+	if got := store.unsigned()[path]; len(got) != 1 || got[0] != "a.nca" {
+		t.Fatalf("unsigned: %v", got)
+	}
+	if kind := issueKind("not signed by Nintendo: a.nca"); kind != ISSUE_UNSIGNED {
+		t.Errorf("kind %s", kind)
+	}
+	if err := store.save(); err != nil {
+		t.Fatal(err)
+	}
+	if len(loadVerifyStore(folder).unsigned()) != 1 {
+		t.Error("the signatures are not kept")
+	}
+	os.WriteFile(path, []byte("game, changed"), 0o644)
+	if len(store.unsigned()) != 0 {
+		t.Error("a changed file keeps its old result")
+	}
+}

@@ -359,6 +359,13 @@ func (web *Web) buildIssues() []Issue {
 		}
 	}
 
+	// files with NCA files not signed by Nintendo, while they did not change
+	for path, names := range web.verifications().unsigned() {
+		if scanned[filepath.Clean(path)] {
+			issues = append(issues, Issue{File: path, Reason: "not signed by Nintendo: " + strings.Join(names, ", ")})
+		}
+	}
+
 	sort.Slice(issues, func(i, j int) bool {
 		if issues[i].File == issues[j].File {
 			return issues[i].Reason < issues[j].Reason
@@ -386,6 +393,8 @@ func issueIcon(reason string) string {
 		return "bi-tag text-info"
 	case strings.HasPrefix(reason, "damaged file"):
 		return "bi-heartbreak text-danger"
+	case strings.HasPrefix(reason, "not signed by Nintendo"):
+		return "bi-patch-question text-warning"
 	default:
 		return "bi-exclamation-octagon text-danger"
 	}
