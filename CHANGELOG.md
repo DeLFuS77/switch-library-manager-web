@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Before Compress, Decompress, Convert, Split or Make packs start, the most their new files may take on each disk is weighed against what is free there, and when they may not fit the page says where and how much and asks before starting anyway. Files whose originals are deleted count only the ones written at once, as the app already gives their room back
+- The list of packs warns of a game with a DLC that needs a newer version of the game than its newest update in the library: the pack would hold a DLC that asks for an update it does not have
+
 ## 1.63.1
 
 ### Improvements

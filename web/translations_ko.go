@@ -1600,5 +1600,10 @@ func init() {
 		// the Tasks page by covers
 		"View of the tasks": "작업 보기",
 		"Bars":              "막대",
+		// the free space before a task that writes files, and a DLC that needs a newer update
+		"The new files may not fit. A file that fills its disk fails, and its original stays as it was.": "새 파일이 들어가지 않을 수 있습니다. 디스크를 가득 채운 파일은 실패하고, 원본은 그대로 남습니다.",
+		"up to %v needed, %v free": "최대 %v 필요, 남은 공간 %v",
+		"Start anyway?":            "그래도 시작할까요?",
+		"A DLC needs the game at v%v; the newest update is v%v": "DLC에 게임 v%v 이(가) 필요합니다. 최신 업데이트는 v%v 입니다",
 	}
 }

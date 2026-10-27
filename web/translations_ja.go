@@ -1600,5 +1600,10 @@ func init() {
 		// the Tasks page by covers
 		"View of the tasks": "タスクの表示",
 		"Bars":              "バー",
+		// the free space before a task that writes files, and a DLC that needs a newer update
+		"The new files may not fit. A file that fills its disk fails, and its original stays as it was.": "新しいファイルが入りきらない可能性があります。ディスクがいっぱいになったファイルは失敗し、元のファイルはそのまま残ります。",
+		"up to %v needed, %v free": "最大 %v 必要、空き %v",
+		"Start anyway?":            "このまま開始しますか?",
+		"A DLC needs the game at v%v; the newest update is v%v": "DLC にはゲーム v%v が必要です。最新のアップデートは v%v です",
 	}
 }

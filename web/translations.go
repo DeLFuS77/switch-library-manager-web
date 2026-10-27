@@ -1627,6 +1627,11 @@ var translations = map[string]map[string]string{
 		// the Tasks page by covers
 		"View of the tasks": "Vista de las tareas",
 		"Bars":              "Barras",
+		// the free space before a task that writes files, and a DLC that needs a newer update
+		"The new files may not fit. A file that fills its disk fails, and its original stays as it was.": "Puede que los archivos nuevos no quepan. Si un archivo llena el disco, ese falla y su original queda como estaba.",
+		"up to %v needed, %v free": "hacen falta hasta %v, hay %v libres",
+		"Start anyway?":            "¿Empezar igual?",
+		"A DLC needs the game at v%v; the newest update is v%v": "Un DLC necesita el juego en v%v; la actualización más nueva es v%v",
 	},
 }
 
@@ -1646,4 +1651,5 @@ var jsTexts = []string{
 	"Controller connected", "D-pad to move, A to open, B to go back, Start to search.",
 	"Couch mode: Select or Esc to leave", "In testing",
 	"Nothing to check", "No file is new or changed since the last check.",
+	"The new files may not fit. A file that fills its disk fails, and its original stays as it was.", "up to %v needed, %v free", "Start anyway?",
 }

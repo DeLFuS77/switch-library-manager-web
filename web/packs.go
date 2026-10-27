@@ -137,6 +137,18 @@ func packContents(local *db.SwitchGameFiles) string {
 	return contents
 }
 
+// dlcNeedsNewer is the version of its game a DLC of the game needs when the newest update of
+// the library is older, 0 else: the DLC of the pack would ask for an update it does not hold.
+func dlcNeedsNewer(local *db.SwitchGameFiles) int {
+	need := 0
+	for _, dlc := range local.Dlc {
+		if dlc.Metadata != nil && dlc.Metadata.RequiredTitleVersion > local.LatestUpdate && dlc.Metadata.RequiredTitleVersion > need {
+			need = dlc.Metadata.RequiredTitleVersion
+		}
+	}
+	return need
+}
+
 // packedGames are the games of the library whose pack is made already, by name, with the name
 // of their pack.
 func (web *Web) packedGames() []CompressCandidate {
@@ -197,7 +209,7 @@ func (web *Web) packCandidates() []CompressCandidate {
 			for _, file := range files {
 				size += file.Size
 			}
-			candidates = append(candidates, CompressCandidate{Path: base, Name: name, Kind: "Base", Size: size, Files: len(files), Contents: packContents(local)})
+			candidates = append(candidates, CompressCandidate{Path: base, Name: name, Kind: "Base", Size: size, Files: len(files), Contents: packContents(local), NeedsGame: dlcNeedsNewer(local), Latest: local.LatestUpdate})
 		}
 		sort.Slice(candidates, func(i, j int) bool {
 			if candidates[i].Size == candidates[j].Size {
@@ -392,6 +404,6 @@ func (web *Web) handlePacks() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the games to pack.")
 			return
 		}
-		web.startOrQueue(w, QueuedTask{Kind: TASK_PACK, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
+		web.startWriting(w, r, QueuedTask{Kind: TASK_PACK, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
 	}).Methods("POST")
 }

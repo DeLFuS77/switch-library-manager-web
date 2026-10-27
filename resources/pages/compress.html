@@ -280,6 +280,9 @@
 							<label class="item-main" for="{{$.Prefix}}{{$i}}">
 								<span class="item-name d-block">{{$c.Name}}</span>
 								<span class="item-meta">{{if $c.Games}}<span class="text-nowrap">{{t "%v games" $c.Games}}</span> &middot; {{end}}{{if $c.Titles}}<span class="text-nowrap">{{t "%v titles" $c.Titles}}</span> &middot; {{else if $c.Contents}}<span class="text-nowrap" title="{{t "%v files" $c.Files}}">{{$c.Contents}}</span> &middot; {{else if $c.Files}}<span class="text-nowrap">{{t "%v files" $c.Files}}</span> &middot; {{end}}<span class="font-monospace text-break" title="{{$c.Path}}">{{fileBase $c.Path}}</span></span>
+								{{- if $c.NeedsGame}}
+								<span class="item-meta d-block text-warning-emphasis"><span class="bi bi-exclamation-triangle" aria-hidden="true"></span> {{t "A DLC needs the game at v%v; the newest update is v%v" $c.NeedsGame $c.Latest}}</span>
+								{{- end}}
 							</label>
 							<span class="item-size">{{formatSize $c.Size}}</span>
 						</li>

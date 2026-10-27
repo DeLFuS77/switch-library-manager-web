@@ -272,7 +272,7 @@ func (web *Web) handleSplit() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to split.")
 			return
 		}
-		web.startOrQueue(w, QueuedTask{Kind: TASK_SPLIT, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
+		web.startWriting(w, r, QueuedTask{Kind: TASK_SPLIT, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
 	}).Methods("POST")
 }
 

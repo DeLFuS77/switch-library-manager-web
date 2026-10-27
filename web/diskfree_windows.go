@@ -2,7 +2,12 @@
 
 package web
 
-import "golang.org/x/sys/windows"
+import (
+	"path/filepath"
+	"strings"
+
+	"golang.org/x/sys/windows"
+)
 
 // diskFree returns the bytes available to the user on the volume of path.
 func diskFree(path string) (uint64, error) {
@@ -21,4 +26,12 @@ func diskSpace(path string) (uint64, uint64, error) {
 		return 0, 0, err
 	}
 	return available, total, nil
+}
+
+// volumeOf names the volume of a folder, to add up what goes to the same disk: its letter or share.
+func volumeOf(folder string) string {
+	if volume := filepath.VolumeName(folder); volume != "" {
+		return strings.ToLower(volume)
+	}
+	return folder
 }

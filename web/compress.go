@@ -62,6 +62,10 @@ type CompressCandidate struct {
 	// before, for a game already packed
 	Contents string
 	Packed   string
+	// in the list to pack: the version of the game a DLC needs when the newest update of the
+	// library is older (0 else), and that newest update
+	NeedsGame int
+	Latest    int
 }
 
 // KindKey is the kind for the colors and the filter of the list: game, update or dlc.
@@ -1320,7 +1324,7 @@ func (web *Web) HandleCompress() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to convert.")
 			return
 		}
-		web.startOrQueue(w, QueuedTask{Kind: TASK_CONVERT, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
+		web.startWriting(w, r, QueuedTask{Kind: TASK_CONVERT, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
 	}).Methods("POST")
 
 	web.router.HandleFunc("/compress/nsz-list", func(w http.ResponseWriter, r *http.Request) {
@@ -1367,7 +1371,7 @@ func (web *Web) HandleCompress() {
 			level = switchfs.LevelBalanced
 		}
 		// only an administrator deletes the originals
-		web.startOrQueue(w, QueuedTask{Kind: TASK_COMPRESS, Paths: paths, Level: level, Delete: r.FormValue("delete_originals") == "true" && isAdminRequest(r)})
+		web.startWriting(w, r, QueuedTask{Kind: TASK_COMPRESS, Paths: paths, Level: level, Delete: r.FormValue("delete_originals") == "true" && isAdminRequest(r)})
 	}).Methods("POST")
 
 	web.router.HandleFunc("/decompress/start", func(w http.ResponseWriter, r *http.Request) {
@@ -1381,7 +1385,7 @@ func (web *Web) HandleCompress() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to decompress.")
 			return
 		}
-		web.startOrQueue(w, QueuedTask{Kind: TASK_DECOMPRESS, Paths: paths, Delete: r.FormValue("delete_compressed") == "true"})
+		web.startWriting(w, r, QueuedTask{Kind: TASK_DECOMPRESS, Paths: paths, Delete: r.FormValue("delete_compressed") == "true"})
 	}).Methods("POST")
 
 	web.router.HandleFunc("/compress/cancel", func(w http.ResponseWriter, r *http.Request) {

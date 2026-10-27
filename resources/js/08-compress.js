@@ -261,9 +261,9 @@ function bindFileForm(form, url) {
 		submit.disabled = true;
 		// Space: the files deleted leave the list as they go, not all at the end
 		const following = url === '/space/clean' ? followRemoval(form, update) : null;
-		runAsTask(() => fetch(url, {
+		const send = spaceOk => runAsTask(() => fetch(url, {
 			method: 'POST',
-			body: new URLSearchParams(new FormData(form)).toString(),
+			body: new URLSearchParams([...new FormData(form), ...(spaceOk ? [['space_ok', 'true']] : [])]).toString(),
 			headers: { 'Content-type': 'application/x-www-form-urlencoded' }
 		}).finally(() => following && following.stop())).then(response => {
 			if (response.ok) {
@@ -275,10 +275,20 @@ function bindFileForm(form, url) {
 				});
 			}
 			return response.json().then(json => {
+				// the new files may not fit: asked first, with where and how much
+				if (response.status === 409 && json.space) {
+					const lines = json.space.map(drive => '• ' + drive.folder + ': ' + t('up to %v needed, %v free').replace('%v', formatSize(drive.need)).replace('%v', formatSize(drive.free)));
+					if (window.confirm(t('The new files may not fit. A file that fills its disk fails, and its original stays as it was.') + '\n\n' + lines.join('\n') + '\n\n' + t('Start anyway?'))) {
+						return send(true);
+					}
+					submit.disabled = false;
+					return;
+				}
 				submit.disabled = false;
 				insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', json.globalError.strongMessage, json.globalError.message);
 			});
-		}).catch(() => {
+		});
+		send(false).catch(() => {
 			submit.disabled = false;
 			insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), t('Could not reach the server.'));
 		});

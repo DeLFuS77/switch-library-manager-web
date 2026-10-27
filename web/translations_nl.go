@@ -1600,5 +1600,10 @@ func init() {
 		// the Tasks page by covers
 		"View of the tasks": "Weergave van de taken",
 		"Bars":              "Balken",
+		// the free space before a task that writes files, and a DLC that needs a newer update
+		"The new files may not fit. A file that fills its disk fails, and its original stays as it was.": "De nieuwe bestanden passen misschien niet. Een bestand dat de schijf vult mislukt, en het origineel blijft zoals het was.",
+		"up to %v needed, %v free": "tot %v nodig, %v vrij",
+		"Start anyway?":            "Toch starten?",
+		"A DLC needs the game at v%v; the newest update is v%v": "Een DLC vereist de game op v%v; de nieuwste update is v%v",
 	}
 }

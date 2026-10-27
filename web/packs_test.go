@@ -188,3 +188,20 @@ func TestPackDeletesTheFoldersLeftEmpty(t *testing.T) {
 		}
 	}
 }
+
+// a DLC that needs a newer version of its game than the newest update of the library is told
+// in the list to pack
+func TestDlcNeedsNewer(t *testing.T) {
+	dlc := func(required int) db.SwitchFileInfo {
+		return db.SwitchFileInfo{Metadata: &switchfs.ContentMetaAttributes{Type: "DLC", RequiredTitleVersion: required}}
+	}
+	local := &db.SwitchGameFiles{LatestUpdate: 131072, Dlc: map[string]db.SwitchFileInfo{"a": dlc(65536), "b": dlc(131072)}}
+	if need := dlcNeedsNewer(local); need != 0 {
+		t.Errorf("every DLC has its update: %d", need)
+	}
+	local.Dlc["c"] = dlc(262144)
+	local.Dlc["d"] = dlc(196608)
+	if need := dlcNeedsNewer(local); need != 262144 {
+		t.Errorf("the newest version a DLC needs: %d", need)
+	}
+}
