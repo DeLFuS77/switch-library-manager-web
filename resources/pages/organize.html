@@ -126,7 +126,12 @@
 									<input type="text" class="form-control font-monospace" id="file_name_template" name="file_name_template" value="{{$o.FileNameTemplate}}">
 								</div>
 								<div class="form-text mb-3">
-									{{t "Available:"}} <code>{{t "{TITLE_NAME}"}}</code> <code>{{t "{TITLE_ID}"}}</code> <code>{{t "{VERSION}"}}</code> <code>{{t "{VERSION_TXT}"}}</code> <code>{{t "{REGION}"}}</code> <code>{{t "{TYPE}"}}</code> <code>{{t "{DLC_NAME}"}}</code> <code>{PACKAGE_CONTENTS}</code> <code>{SIZE_GB}</code> <code>{SIZE_MB}</code>
+									{{t "Available:"}} <code>{{t "{TITLE_NAME}"}}</code> <code>{{t "{TITLE_ID}"}}</code> <code>{{t "{VERSION}"}}</code> <code>{{t "{VERSION_TXT}"}}</code> <code>{{t "{REGION}"}}</code> <code>{{t "{TYPE}"}}</code> <code>{{t "{DLC_NAME}"}}</code> <code>{PACKAGE_CONTENTS}</code> <code>{SIZE_GB}</code> <code>{SIZE_MB}</code><br>{{t "{DLC_NUMBER}: the number of a DLC (1, 2...), for names like [DLC 1]"}}
+								</div>
+								<div class="form-check form-switch mb-2">
+									<input class="form-check-input" type="checkbox" role="switch" id="keep_names_with_id" name="keep_names_with_id" value="true" aria-describedby="keep_names_with_id_help"{{if $o.KeepNamesWithId}} checked{{end}}>
+									<label class="form-check-label" for="keep_names_with_id">{{t "Keep the names that already have their title ID"}}</label>
+									<div class="form-text" id="keep_names_with_id_help">{{t "A file whose name has its title ID in brackets, like [0100ABCD12345000], is only moved: the name you gave it stays."}}</div>
 								</div>
 								<div class="form-check form-switch mb-3">
 									<input class="form-check-input" type="checkbox" role="switch" id="switch_safe_file_names" name="switch_safe_file_names" value="true"{{if $o.SwitchSafeFileNames}} checked{{end}}>

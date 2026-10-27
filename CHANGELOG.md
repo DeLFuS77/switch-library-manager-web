@@ -5,6 +5,8 @@
 ### New
 
 - The signature of Nintendo on every NCA is checked: with every whole check of a file (it reads the headers only), and on its own in seconds with Check signatures on the Issues page. The files with an NCA a tool rewrote (to take out its rights ID, for example) are listed in Issues as Not signed by Nintendo; they usually install and play
+- Organize has a field {DLC_NUMBER}, the number of a DLC among the ones of its game (1, 2...), for short names like Game [DLC 1] [ID][v0] instead of the long name of the DLC
+- Keep the names that already have their title ID, in Organize: a file whose name has its title ID in brackets is only moved, and the name you gave it stays
 
 ### Improvements
 

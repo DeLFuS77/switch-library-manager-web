@@ -663,6 +663,7 @@ func OrganizeByFolders(baseFolder string,
 		//process base title
 		if v.BaseExist && collections[filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)] == nil {
 			templateData[settings.TEMPLATE_TYPE] = "BASE"
+			templateData[settings.TEMPLATE_DLC_NUMBER] = ""
 			fileTemplateData(templateData, v, v.File.ExtendedInfo)
 			from := filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)
 			to := filepath.Join(destinationPath, getFileName(options, v.File.ExtendedInfo.FileName, templateData, 0))
@@ -698,6 +699,7 @@ func OrganizeByFolders(baseFolder string,
 			}
 			templateData[settings.TEMPLATE_VERSION] = strconv.Itoa(update)
 			templateData[settings.TEMPLATE_TYPE] = "UPD"
+			templateData[settings.TEMPLATE_DLC_NUMBER] = ""
 			fileTemplateData(templateData, v, updateInfo.ExtendedInfo)
 			if updateInfo.Metadata != nil && updateInfo.Metadata.Ncap != nil {
 				templateData[settings.TEMPLATE_VERSION_TXT] = updateInfo.Metadata.Ncap.DisplayVersion
@@ -738,6 +740,7 @@ func OrganizeByFolders(baseFolder string,
 			fileTemplateData(templateData, v, dlc.ExtendedInfo)
 			templateData[settings.TEMPLATE_TITLE_ID] = id
 			templateData[settings.TEMPLATE_DLC_NAME] = getDlcName(title, dlc)
+			templateData[settings.TEMPLATE_DLC_NUMBER] = dlcNumber(id)
 			from := filepath.Join(dlc.ExtendedInfo.BaseFolder, dlc.ExtendedInfo.FileName)
 			if collections[from] != nil {
 				continue
@@ -1039,9 +1042,28 @@ func getFileName(options settings.OrganizeOptions, originalName string, template
 	if !options.RenameFiles {
 		return originalName
 	}
+	// a name the user gave, with the title ID in it, stays; a second try takes the template
+	if options.KeepNamesWithId && nameTry == 0 && hasTitleId(originalName, templateData[settings.TEMPLATE_TITLE_ID]) {
+		return originalName
+	}
 	ext := path.Ext(originalName)
 	result := fittingTemplate(templateData, options.SwitchSafeFileNames, options.FileNameTemplate, nameTry, maxNameBytes-len(ext))
 	return result + ext
+}
+
+// dlcNumber is the number of a DLC among the ones of its game: its title ID is the one of the
+// game with 0x1000 added and the number, 1 for the first. "" when id is not one.
+func dlcNumber(id string) string {
+	value, err := strconv.ParseUint(id, 16, 64)
+	if err != nil || value&0x1000 == 0 || value&0xFFF == 0 {
+		return ""
+	}
+	return strconv.FormatUint(value&0xFFF, 10)
+}
+
+// hasTitleId tells whether a file name has the title ID id in brackets, in any case.
+func hasTitleId(name string, id string) bool {
+	return id != "" && strings.Contains(strings.ToUpper(name), "["+strings.ToUpper(id)+"]")
 }
 
 // fittingTemplate is applyTemplate shortened to budget bytes: the names of the DLC and of
@@ -1140,6 +1162,7 @@ func applyTemplate(templateData map[string]string, useSafeNames bool, template s
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_PACKAGE_CONTENTS+"}", templateData[settings.TEMPLATE_PACKAGE_CONTENTS])
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_SIZE_GB+"}", templateData[settings.TEMPLATE_SIZE_GB])
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_SIZE_MB+"}", templateData[settings.TEMPLATE_SIZE_MB])
+	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_DLC_NUMBER+"}", templateData[settings.TEMPLATE_DLC_NUMBER])
 
 	//remove title name from dlc name
 	dlcName := strings.Replace(templateData[settings.TEMPLATE_DLC_NAME], templateData[settings.TEMPLATE_TITLE_NAME], "", 1)
