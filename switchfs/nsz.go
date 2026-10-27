@@ -764,21 +764,28 @@ func writeNczStream(ctx context.Context, output io.Writer, input io.ReaderAt, of
 	var sink io.Writer = encoder
 	var expander *lz4Expander
 	if len(plan.lz4) > 0 {
-		expander = &lz4Expander{out: encoder, blocks: plan.lz4, position: plan.sections[0].offset}
+		expander = newLz4Expander(encoder, plan.lz4, plan.sections[0].offset, lz4RebuildWorkers())
 		sink = expander
+	}
+	// on an error, the goroutines of the expander stop before the encoder is closed: they write
+	// into it
+	fail := func(err error) error {
+		if expander != nil {
+			expander.finish()
+		}
+		encoder.Close()
+		return err
 	}
 
 	buffer := make([]byte, nczChunkSize)
 	for _, section := range plan.sections {
 		block, err := aes.NewCipher(section.key)
 		if err != nil {
-			encoder.Close()
-			return err
+			return fail(err)
 		}
 		for position := section.offset; position < section.offset+section.size; {
 			if err := ctx.Err(); err != nil {
-				encoder.Close()
-				return err
+				return fail(err)
 			}
 			length := uint64(len(buffer))
 			if remaining := section.offset + section.size - position; remaining < length {
@@ -786,22 +793,24 @@ func writeNczStream(ctx context.Context, output io.Writer, input io.ReaderAt, of
 			}
 			chunk := buffer[:length]
 			if err := readAtFull(input, chunk, offset+int64(position)); err != nil {
-				encoder.Close()
-				return err
+				return fail(err)
 			}
 			if section.cryptoType == 3 || section.cryptoType == 4 {
 				cipher.NewCTR(block, section.counterAt(position)).XORKeyStream(chunk, chunk)
 			}
 			if _, err := sink.Write(chunk); err != nil {
-				encoder.Close()
-				return err
+				return fail(err)
 			}
 			progress(int64(length))
 			position += length
 		}
 	}
 	if expander != nil {
-		plan.lz4, plan.kept = expander.kept, len(expander.kept)
+		kept, err := expander.finish()
+		if err != nil {
+			return fail(err)
+		}
+		plan.lz4, plan.kept = kept, len(kept)
 	}
 	return encoder.Close()
 }

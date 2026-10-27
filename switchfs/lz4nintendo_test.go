@@ -80,7 +80,7 @@ func TestLz4BlocksKeptDecompressedComeBack(t *testing.T) {
 	add(foreign, rawFast, 0)
 
 	stream := &bytes.Buffer{}
-	expander := &lz4Expander{out: stream, blocks: blocks, position: nczHeaderSize}
+	expander := newLz4Expander(stream, blocks, nczHeaderSize, 3)
 	// written in pieces that cut the blocks anywhere
 	for rest := nca; len(rest) > 0; {
 		n := min(len(rest), 1000)
@@ -89,15 +89,16 @@ func TestLz4BlocksKeptDecompressedComeBack(t *testing.T) {
 		}
 		rest = rest[n:]
 	}
-	if len(expander.kept) != 2 || expander.kept[0].level != 0 || expander.kept[1].level != 5 {
-		t.Fatalf("kept %+v", expander.kept)
+	kept, err := expander.finish()
+	if err != nil || len(kept) != 2 || kept[0].level != 0 || kept[1].level != 5 {
+		t.Fatalf("kept %+v: %v", kept, err)
 	}
 	if stream.Len() != len(nca)-len(fast)-len(hc)+len(rawFast)+len(rawHC) {
 		t.Fatalf("stream of %d bytes", stream.Len())
 	}
 
 	table := &bytes.Buffer{}
-	if err := writeLz4Table(table, expander.kept, nczHeaderSize+int64(stream.Len())); err != nil {
+	if err := writeLz4Table(table, kept, nczHeaderSize+int64(stream.Len())); err != nil {
 		t.Fatal(err)
 	}
 	file := append(append(make([]byte, nczHeaderSize), stream.Bytes()...), table.Bytes()...)
@@ -185,5 +186,61 @@ func TestLz4RebuildClosesHalfway(t *testing.T) {
 	case <-done:
 	case <-time.After(10 * time.Second):
 		t.Fatal("Close did not return")
+	}
+}
+
+// Blocks checked on several workers go into the stream in the order of the NCA, and all the
+// ones made again are kept, whatever the size of the writes.
+func TestLz4ExpandOnWorkersKeepsTheOrder(t *testing.T) {
+	nca, want, blocks := archiveOf(t, 40)
+	for _, workers := range []int{1, 8} {
+		stream := &bytes.Buffer{}
+		expander := newLz4Expander(stream, blocks, nczHeaderSize, workers)
+		for rest := nca; len(rest) > 0; {
+			n := min(len(rest), 4321)
+			expander.Write(rest[:n])
+			rest = rest[n:]
+		}
+		kept, err := expander.finish()
+		if err != nil || len(kept) != len(blocks) {
+			t.Fatalf("%d workers: kept %d of %d: %v", workers, len(kept), len(blocks), err)
+		}
+		for i := range kept {
+			if kept[i] != blocks[i] {
+				t.Fatalf("%d workers: block %d out of order", workers, i)
+			}
+		}
+		if !bytes.Equal(stream.Bytes(), want) {
+			t.Fatalf("%d workers: the stream is not the NCA with its blocks decompressed", workers)
+		}
+	}
+}
+
+type failingWriter struct{ left int }
+
+func (w *failingWriter) Write(p []byte) (int, error) {
+	if w.left -= len(p); w.left < 0 {
+		return 0, io.ErrShortWrite
+	}
+	return len(p), nil
+}
+
+// A write that fails halfway is told by finish, which still stops every goroutine.
+func TestLz4ExpandTellsAFailedWrite(t *testing.T) {
+	nca, _, blocks := archiveOf(t, 20)
+	expander := newLz4Expander(&failingWriter{left: 100 << 10}, blocks, nczHeaderSize, 4)
+	expander.Write(nca)
+	done := make(chan error)
+	go func() {
+		_, err := expander.finish()
+		done <- err
+	}()
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Error("the failed write was not told")
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatal("finish did not return")
 	}
 }

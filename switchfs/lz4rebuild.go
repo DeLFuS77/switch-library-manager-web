@@ -47,15 +47,81 @@ func (c *countingWriter) Write(p []byte) (int, error) {
 }
 
 // lz4Expander passes the decrypted NCA on to the encoder, and every LZ4 block that is made again
-// byte for byte decompressed. position is the place in the NCA of the next byte written.
+// byte for byte decompressed. Each block is checked on one of the workers, one per processor but
+// one, and a goroutine writes what comes out in the order of the NCA. position is the place in
+// the NCA of the next byte written; finish waits for the rest and tells the blocks kept.
 type lz4Expander struct {
-	out      io.Writer
 	blocks   []lz4Block
 	next     int
 	position uint64
 	current  []byte
-	kept     []lz4Block
-	keptRaw  int64
+	pieces   chan *expandPiece
+	jobs     chan *expandPiece
+	written  chan struct{}
+	workers  sync.WaitGroup
+	once     sync.Once
+	// set by the writing goroutine, read once it is done
+	err  error
+	kept []lz4Block
+}
+
+// expandPiece is a run of the NCA: bytes to write as they are, or a whole block to check, done
+// once its channel is closed.
+type expandPiece struct {
+	data  []byte
+	block lz4Block
+	keep  bool
+	ready chan struct{}
+}
+
+func newLz4Expander(out io.Writer, blocks []lz4Block, position uint64, workers int) *lz4Expander {
+	if workers < 1 {
+		workers = 1
+	}
+	e := &lz4Expander{blocks: blocks, position: position, pieces: make(chan *expandPiece, workers*lz4RebuildAhead),
+		jobs: make(chan *expandPiece, workers*lz4RebuildAhead), written: make(chan struct{})}
+	for i := 0; i < workers; i++ {
+		e.workers.Add(1)
+		go func() {
+			defer e.workers.Done()
+			for piece := range e.jobs {
+				if raw, err := lz4Decompress(piece.data, int(piece.block.rawSize)); err == nil {
+					if made, known := nintendoLz4(raw, piece.block.level); known && bytes.Equal(made, piece.data) {
+						piece.data, piece.keep = raw, true
+					}
+				}
+				close(piece.ready)
+			}
+		}()
+	}
+	go func() {
+		defer close(e.written)
+		for piece := range e.pieces {
+			<-piece.ready
+			if e.err != nil {
+				continue
+			}
+			if _, err := out.Write(piece.data); err != nil {
+				e.err = err
+				continue
+			}
+			if piece.keep {
+				e.kept = append(e.kept, piece.block)
+			}
+		}
+	}()
+	return e
+}
+
+// pass hands bytes as they are to the writing goroutine, in pieces of lz4RebuildGap at most.
+func (e *lz4Expander) pass(p []byte) {
+	for len(p) > 0 {
+		n := min(len(p), lz4RebuildGap)
+		piece := &expandPiece{data: append([]byte(nil), p[:n]...), ready: make(chan struct{})}
+		close(piece.ready)
+		e.pieces <- piece
+		p = p[n:]
+	}
 }
 
 func (e *lz4Expander) Write(p []byte) (int, error) {
@@ -68,25 +134,22 @@ func (e *lz4Expander) Write(p []byte) (int, error) {
 			p = p[take:]
 			e.position += uint64(take)
 			if len(e.current) == int(block.size) {
-				if err := e.flushBlock(block); err != nil {
-					return 0, err
-				}
+				piece := &expandPiece{data: e.current, block: block, ready: make(chan struct{})}
+				e.current = nil
+				e.pieces <- piece
+				e.jobs <- piece
 			}
 			continue
 		}
 		if e.next >= len(e.blocks) || e.blocks[e.next].offset >= e.position+uint64(len(p)) {
-			if _, err := e.out.Write(p); err != nil {
-				return 0, err
-			}
+			e.pass(p)
 			e.position += uint64(len(p))
 			break
 		}
 		block := e.blocks[e.next]
 		if block.offset > e.position {
 			before := block.offset - e.position
-			if _, err := e.out.Write(p[:before]); err != nil {
-				return 0, err
-			}
+			e.pass(p[:before])
 			p = p[before:]
 			e.position += before
 		}
@@ -96,20 +159,16 @@ func (e *lz4Expander) Write(p []byte) (int, error) {
 	return written, nil
 }
 
-// flushBlock writes a whole block: decompressed when it is made again byte for byte, else as it is.
-func (e *lz4Expander) flushBlock(block lz4Block) error {
-	stored := e.current
-	e.current = nil
-	if raw, err := lz4Decompress(stored, int(block.rawSize)); err == nil {
-		if made, known := nintendoLz4(raw, block.level); known && bytes.Equal(made, stored) {
-			e.kept = append(e.kept, block)
-			e.keptRaw += int64(len(raw))
-			_, err := e.out.Write(raw)
-			return err
-		}
-	}
-	_, err := e.out.Write(stored)
-	return err
+// finish waits until everything handed is written, stops the goroutines and tells the blocks kept
+// decompressed, in the order of the NCA. It may be called more than once.
+func (e *lz4Expander) finish() ([]lz4Block, error) {
+	e.once.Do(func() {
+		close(e.jobs)
+		close(e.pieces)
+		<-e.written
+		e.workers.Wait()
+	})
+	return e.kept, e.err
 }
 
 // writeLz4Table writes the table of the blocks kept decompressed and the footer after the
