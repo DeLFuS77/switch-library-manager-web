@@ -257,6 +257,25 @@
 	border-radius: var(--bs-border-radius);
 }
 
+// the cover of a file at work fills up from the bottom with the progress of its step, and the
+// number of a lane without a cover gets a ring of it
+.task-lane-thumb {
+	position: relative;
+	flex-shrink: 0;
+	display: block;
+	line-height: 0;
+
+	&::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: var(--bs-border-radius);
+		pointer-events: none;
+		background: linear-gradient(to top, rgba(var(--bs-primary-rgb), 0.45) var(--lane-fill, 0%), rgba(0, 0, 0, 0.4) var(--lane-fill, 0%));
+		box-shadow: inset 0 0 0 1px rgba(var(--bs-primary-rgb), 0.5);
+	}
+}
+
 .task-next {
 	display: flex;
 	align-items: center;
@@ -281,7 +300,9 @@
 	justify-content: center;
 	font-size: var(--slm-text-xs);
 	font-weight: 600;
-	background: rgba(127, 127, 127, 0.18);
+	background:
+		radial-gradient(closest-side, var(--bs-card-bg, var(--bs-body-bg)) 78%, transparent 80%),
+		conic-gradient(var(--bs-primary) var(--lane-fill, 0%), rgba(127, 127, 127, 0.25) 0);
 }
 
 .task-lane-main {

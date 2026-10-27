@@ -60,9 +60,9 @@
 							{{- range $i, $lane := .}}
 							<li class="task-lane">
 								{{- if $lane.Cover}}
-								<img class="task-lane-cover" src="{{$lane.Cover}}" alt="" width="36" height="36" loading="lazy" decoding="async">
+								<span class="task-lane-thumb" style="--lane-fill: {{$lane.StepPercent}}%"><img class="task-lane-cover" src="{{$lane.Cover}}" alt="" width="36" height="36" loading="lazy" decoding="async"></span>
 								{{- else}}
-								<span class="task-lane-number" aria-hidden="true">{{add $i 1}}</span>
+								<span class="task-lane-number" aria-hidden="true" style="--lane-fill: {{$lane.StepPercent}}%">{{add $i 1}}</span>
 								{{- end}}
 								<div class="task-lane-main">
 									<div class="task-file-line small">
