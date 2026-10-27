@@ -133,6 +133,8 @@ type Task struct {
 	Original int64 `json:"original,omitempty"`
 	// the size of each file before and after a compression
 	Results []TaskResult `json:"results,omitempty"`
+	// how each file of a task on files ended, for the view of the Tasks page by covers
+	Tiles []TaskTile `json:"tiles,omitempty"`
 	// damaged files found by a verification, and why its files are checked
 	Damaged   int              `json:"damaged,omitempty"`
 	Breakdown *VerifyBreakdown `json:"breakdown,omitempty"`
@@ -274,6 +276,16 @@ type TaskResult struct {
 	Name   string `json:"name"`
 	Before int64  `json:"before"`
 	After  int64  `json:"after"`
+}
+
+// TaskTile is how a file of a task on files ended: done, or failed and why.
+type TaskTile struct {
+	Name   string `json:"name"`
+	Failed bool   `json:"failed,omitempty"`
+	// why it failed, an English sentence translated by the interface
+	Note string `json:"note,omitempty"`
+	// on the Tasks page only: the cover of the game of the file
+	Cover string `json:"-"`
 }
 
 // maxTaskResults is how many files a task lists, the last ones.
@@ -627,6 +639,16 @@ func (l *TaskLog) AddFileResult(id int64, name string, before int64, after int64
 	})
 }
 
+// AddFileTile records how a file of a task on files ended.
+func (l *TaskLog) AddFileTile(id int64, name string, failed bool, note string) {
+	l.update(id, false, func(task *Task) {
+		task.Tiles = append(task.Tiles, TaskTile{Name: name, Failed: failed, Note: note})
+		if len(task.Tiles) > maxTaskResults {
+			task.Tiles = task.Tiles[len(task.Tiles)-maxTaskResults:]
+		}
+	})
+}
+
 // SetBreakdown records why the files of a verification are checked.
 func (l *TaskLog) SetBreakdown(id int64, breakdown VerifyBreakdown) {
 	l.update(id, false, func(task *Task) {
@@ -720,6 +742,7 @@ func (l *TaskLog) Snapshot() []Task {
 	for _, task := range l.tasks {
 		copied := *task
 		copied.Warnings = append([]TaskNote(nil), task.Warnings...)
+		copied.Tiles = append([]TaskTile(nil), task.Tiles...)
 		tasks = append(tasks, copied)
 	}
 	return tasks

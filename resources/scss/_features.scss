@@ -276,6 +276,92 @@
 	}
 }
 
+// the tasks by covers: a grid of the files instead of their bars; the choice is a class of the
+// list (see initTaskView)
+.task-tiles {
+	display: none;
+	grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+	gap: 0.75rem;
+}
+
+.tasks-by-covers {
+	.task-tiles {
+		display: grid;
+	}
+
+	.task-lanes,
+	.task-next,
+	.task-lane-bar,
+	.task-results,
+	.saving {
+		display: none;
+	}
+}
+
+.task-tile {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+	min-width: 0;
+	font-size: var(--slm-text-xs);
+}
+
+.task-tile-cover {
+	position: relative;
+	display: grid;
+	place-items: center;
+	aspect-ratio: 1;
+	border-radius: var(--bs-border-radius);
+	overflow: hidden;
+	font-size: 1.75rem;
+	color: var(--bs-secondary-color);
+	background: rgba(127, 127, 127, 0.18);
+}
+
+.task-tile-img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+// a file at work: the cover is dark above its progress and lit below, with the share on it
+.task-tile.is-working .task-tile-cover::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(to top, rgba(var(--bs-primary-rgb), 0.4) var(--lane-fill, 0%), rgba(0, 0, 0, 0.55) var(--lane-fill, 0%));
+	box-shadow: inset 0 0 0 2px rgba(var(--bs-primary-rgb), 0.7);
+	border-radius: inherit;
+}
+
+.task-tile-pct {
+	position: relative;
+	z-index: 1;
+	font-size: 1.1rem;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	color: #fff;
+	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+
+// a file that failed keeps its cover grey
+.task-tile.is-failed .task-tile-img {
+	filter: grayscale(1);
+	opacity: 0.6;
+}
+
+.task-tile-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.task-tile-state {
+	align-self: flex-start;
+}
+
 .task-next {
 	display: flex;
 	align-items: center;

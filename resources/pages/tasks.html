@@ -2,6 +2,12 @@
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Tasks") "Count" -1 "Subtitle" (t "Synchronizations, scans, compressions, checks and cleanups with their progress and result. Failed tasks stay here until you dismiss them."))}}
 			<div class="page-note"><span class="bi bi-hdd-network" aria-hidden="true"></span><div>{{t "Tasks run on the server: you can close this page, the browser or this device and they go on. They only stop when the app itself stops (its Docker container or its program); a stopped file check goes on where it was the next time."}}</div></div>
+			<div class="d-flex justify-content-end mb-2">
+				<div class="btn-group btn-group-sm view-toggle" role="group" aria-label="{{t "View of the tasks"}}">
+					<button type="button" class="btn btn-outline-secondary" data-task-view="bars" title="{{t "Bars"}}" aria-pressed="true"><span class="bi bi-list-task me-1" aria-hidden="true"></span>{{t "Bars"}}</button>
+					<button type="button" class="btn btn-outline-secondary" data-task-view="covers" title="{{t "Covers"}}" aria-pressed="false"><span class="bi bi-grid-3x3-gap me-1" aria-hidden="true"></span>{{t "Covers"}}</button>
+				</div>
+			</div>
 			<div id="taskList" data-live-tasks data-version="{{.ListVersion}}" aria-live="polite">
 				{{- template "taskList" .}}
 			</div>
@@ -78,6 +84,7 @@
 							{{- end}}
 						</ul>
 						{{- end}}
+						{{- template "taskTiles" .}}
 						{{- with .Next}}
 						<div class="task-next small text-body-secondary mt-2">
 							{{- if .Cover}}<img class="task-next-cover" src="{{.Cover}}" alt="" width="24" height="24" loading="lazy" decoding="async">{{else}}<span class="bi bi-skip-forward" aria-hidden="true"></span>{{end}}
@@ -152,6 +159,7 @@
 									{{- else if or .Games .Files}} &middot; {{if or (eq .Kind "organize") (eq .Kind "cleanup")}}{{t "%v files changed" .Files}}{{else}}{{t "%v games, %v files" .Games .Files}}{{end}}{{end}}
 								</div>
 								{{- template "verifyBreakdown" .Breakdown}}
+								{{- template "taskTiles" .}}
 								{{- with .Error}}
 								<div class="task-note text-danger-emphasis"><span class="bi bi-x-octagon me-1" aria-hidden="true"></span>{{t .Text}}{{if .Detail}} <code class="task-detail">{{.Detail}}</code>{{end}}</div>
 								{{- end}}
@@ -175,6 +183,32 @@
 	<div class="progress" style="width: {{.KeptWidth}}%"><div class="progress-bar saving-kept"></div></div>
 	<div class="progress" style="width: {{.SavedWidth}}%"><div class="progress-bar saving-saved"></div></div>
 </div>
+{{- end}}
+
+{{define "taskTiles"}}
+{{- /* the view by covers: the files at work fill up with their progress, the files ended say
+   how they ended */}}
+{{- if or .Lanes .Tiles}}
+<ul class="task-tiles list-unstyled mb-0 mt-3" aria-label="{{t "Files"}}">
+	{{- range .Lanes}}
+	<li class="task-tile is-working" style="--lane-fill: {{.StepPercent}}%">
+		<span class="task-tile-cover">{{if .Cover}}<img class="task-tile-img" src="{{.Cover}}" alt="" loading="lazy" decoding="async">{{else}}<span class="bi bi-file-earmark-zip" aria-hidden="true"></span>{{end}}<span class="task-tile-pct">{{.StepPercent}}%</span></span>
+		<span class="task-tile-name" title="{{.Name}}">{{.Name}}</span>
+	</li>
+	{{- end}}
+	{{- range .Tiles}}
+	<li class="task-tile{{if .Failed}} is-failed{{end}}">
+		<span class="task-tile-cover">{{if .Cover}}<img class="task-tile-img" src="{{.Cover}}" alt="" loading="lazy" decoding="async">{{else}}<span class="bi bi-file-earmark-zip" aria-hidden="true"></span>{{end}}</span>
+		<span class="task-tile-name" title="{{.Name}}">{{.Name}}</span>
+		{{- if .Failed}}
+		<span class="chip chip-danger task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Error"}}</span>
+		{{- else}}
+		<span class="chip chip-success task-tile-state"><span class="bi bi-check-circle" aria-hidden="true"></span>OK</span>
+		{{- end}}
+	</li>
+	{{- end}}
+</ul>
+{{- end}}
 {{- end}}
 
 {{define "verifyBreakdown"}}

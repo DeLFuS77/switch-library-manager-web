@@ -1624,6 +1624,9 @@ var translations = map[string]map[string]string{
 		"A synchronization is already running.":          "Ya hay una sincronización en marcha.",
 		"The synchronization could not start now: a task works on the files. Try again later.": "La sincronización no puede empezar ahora: hay una tarea trabajando con los archivos. Prueba más tarde.",
 		"Synchronization started.": "Sincronización iniciada.",
+		// the Tasks page by covers
+		"View of the tasks": "Vista de las tareas",
+		"Bars":              "Barras",
 	},
 }
 

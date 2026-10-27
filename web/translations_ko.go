@@ -1597,5 +1597,8 @@ func init() {
 		"A synchronization is already running.":          "이미 동기화가 진행 중이에요.",
 		"The synchronization could not start now: a task works on the files. Try again later.": "지금은 동기화를 시작할 수 없어요. 작업이 파일을 처리 중이에요. 나중에 다시 해 보세요.",
 		"Synchronization started.": "동기화를 시작했어요.",
+		// the Tasks page by covers
+		"View of the tasks": "작업 보기",
+		"Bars":              "막대",
 	}
 }

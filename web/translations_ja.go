@@ -1597,5 +1597,8 @@ func init() {
 		"A synchronization is already running.":          "同期はすでに実行中です。",
 		"The synchronization could not start now: a task works on the files. Try again later.": "今は同期を開始できません。タスクがファイルを処理しています。後でもう一度お試しください。",
 		"Synchronization started.": "同期を開始しました。",
+		// the Tasks page by covers
+		"View of the tasks": "タスクの表示",
+		"Bars":              "バー",
 	}
 }

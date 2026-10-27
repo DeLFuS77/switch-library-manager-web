@@ -334,6 +334,26 @@ func TestLaneShowsTheStepWithTheSizeOfTheFile(t *testing.T) {
 	}
 }
 
+// The Tasks page by covers: a file at work fills its cover with the progress of its step, and
+// a file ended says whether it was done or failed, and why.
+func TestTasksByCoversShowEachFile(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleTasks()
+	id := web.taskLog().Start(TASK_COMPRESS, TRIGGER_MANUAL)
+	web.taskLog().ProgressFiles(id, 20<<10, 50<<10, "Game.nsp", 3, 3, []TaskLane{{Name: "Game.nsp", Done: 6 << 30, Total: 12 << 30, Phase: "Compressing", Step: 2, Steps: 3}})
+	web.taskLog().AddFileTile(id, "Done.nsp", false, "")
+	web.taskLog().AddFileTile(id, "Broken.nsp", true, NOTE_COMPRESS_FAILED)
+	page := httptest.NewRecorder()
+	web.router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/tasks.html?part=list", nil))
+	body := page.Body.String()
+	for _, want := range []string{`task-tile is-working" style="--lane-fill: 50%"`, `task-tile-pct">50%`, "Done.nsp", "chip-success task-tile-state", `task-tile is-failed`, "Broken.nsp", "chip-danger task-tile-state"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("the covers show %q", want)
+		}
+	}
+}
+
 // A compression that saved something already: the size saved is an int64, which once stopped
 // the drawing of the card halfway, without its files nor its sizes.
 func TestCompressionCardWithSomethingSaved(t *testing.T) {

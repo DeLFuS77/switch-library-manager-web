@@ -1597,5 +1597,8 @@ func init() {
 		"A synchronization is already running.":          "Eine Synchronisierung läuft bereits.",
 		"The synchronization could not start now: a task works on the files. Try again later.": "Die Synchronisierung kann jetzt nicht starten: Eine Aufgabe arbeitet mit den Dateien. Versuch es später noch einmal.",
 		"Synchronization started.": "Synchronisierung gestartet.",
+		// the Tasks page by covers
+		"View of the tasks": "Ansicht der Aufgaben",
+		"Bars":              "Balken",
 	}
 }

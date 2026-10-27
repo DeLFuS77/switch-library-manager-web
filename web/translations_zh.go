@@ -1597,5 +1597,8 @@ func init() {
 		"A synchronization is already running.":          "已有同步正在进行。",
 		"The synchronization could not start now: a task works on the files. Try again later.": "现在无法开始同步：有任务正在处理文件。请稍后再试。",
 		"Synchronization started.": "已开始同步。",
+		// the Tasks page by covers
+		"View of the tasks": "任务视图",
+		"Bars":              "进度条",
 	}
 }

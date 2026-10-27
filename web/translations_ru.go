@@ -1597,5 +1597,8 @@ func init() {
 		"A synchronization is already running.":          "Синхронизация уже идёт.",
 		"The synchronization could not start now: a task works on the files. Try again later.": "Синхронизацию сейчас нельзя запустить: задача работает с файлами. Попробуйте позже.",
 		"Synchronization started.": "Синхронизация запущена.",
+		// the Tasks page by covers
+		"View of the tasks": "Вид задач",
+		"Bars":              "Полосы",
 	}
 }

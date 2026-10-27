@@ -12,6 +12,7 @@
 
 - The list of packs to make tells what each pack holds (1G+1U+2D: the game, its latest update and two DLC), and the games packed before follow it under Already packed, with the name of their pack, instead of being left out without a word
 - In Tasks, the cover of each file at work fills up from the bottom with the progress of its step, and a file without a cover gets a ring around its number
+- Tasks can be seen by bars, as before, or by covers: a grid of the files of each task, those at work filling up with their progress and the ones ended with OK or Error under them (the reason of an error on its label). The choice is kept by the browser
 
 
 ## 1.62.0
