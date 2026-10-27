@@ -279,7 +279,7 @@
 							<input class="form-check-input" type="checkbox" name="path" value="{{$c.Path}}" data-size="{{$c.Size}}" id="{{$.Prefix}}{{$i}}">
 							<label class="item-main" for="{{$.Prefix}}{{$i}}">
 								<span class="item-name d-block">{{$c.Name}}</span>
-								<span class="item-meta">{{if $c.Games}}<span class="text-nowrap">{{t "%v games" $c.Games}}</span> &middot; {{end}}{{if $c.Titles}}<span class="text-nowrap">{{t "%v titles" $c.Titles}}</span> &middot; {{else if $c.Files}}<span class="text-nowrap">{{t "%v files" $c.Files}}</span> &middot; {{end}}<span class="font-monospace text-break" title="{{$c.Path}}">{{fileBase $c.Path}}</span></span>
+								<span class="item-meta">{{if $c.Games}}<span class="text-nowrap">{{t "%v games" $c.Games}}</span> &middot; {{end}}{{if $c.Titles}}<span class="text-nowrap">{{t "%v titles" $c.Titles}}</span> &middot; {{else if $c.Contents}}<span class="text-nowrap" title="{{t "%v files" $c.Files}}">{{$c.Contents}}</span> &middot; {{else if $c.Files}}<span class="text-nowrap">{{t "%v files" $c.Files}}</span> &middot; {{end}}<span class="font-monospace text-break" title="{{$c.Path}}">{{fileBase $c.Path}}</span></span>
 							</label>
 							<span class="item-size">{{formatSize $c.Size}}</span>
 						</li>
@@ -295,6 +295,20 @@
 						</li>
 						{{- end}}
 					</ul>
+					{{- with .Packed}}
+					<h3 class="h6 fw-semibold mt-4 mb-2 text-body-secondary">{{t "Already packed"}} <span class="badge rounded-pill text-bg-secondary">{{len .}}</span></h3>
+					<ul class="item-list item-list-done">
+						{{- range .}}
+						<li class="item-row">
+							<span class="bi bi-check2-circle text-success flex-shrink-0" aria-hidden="true"></span>
+							<div class="item-main">
+								<span class="item-name d-block">{{.Name}}</span>
+								<span class="item-meta"><span class="text-nowrap">{{.Contents}}</span> &middot; <span class="font-monospace text-break">{{.Packed}}</span></span>
+							</div>
+						</li>
+						{{- end}}
+					</ul>
+					{{- end}}
 					{{- if and (gt .Matches (len .Files)) (not .Rest)}}
 					<p class="small text-body-secondary mt-2 mb-0">{{t "The %v biggest of %v files are shown; use the filter to find the others." (len .Files) .Matches}}</p>
 					{{- end}}

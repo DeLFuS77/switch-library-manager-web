@@ -260,7 +260,7 @@ function initLiveTasks() {
 					// the covers already drawn stay: new images of the same cover would be drawn again on
 					// every update, and blink
 					const covers = new Map();
-					list.querySelectorAll('img.task-lane-cover, img.task-next-cover').forEach(image => {
+					list.querySelectorAll('img.task-lane-cover, img.task-next-cover, img.task-tile-img').forEach(image => {
 						if (image.complete && image.naturalWidth > 0) {
 							const key = image.className + ' ' + image.getAttribute('src');
 							if (!covers.has(key)) {
@@ -276,7 +276,7 @@ function initLiveTasks() {
 						box.checked = marked.has(box.value);
 					});
 					updateQueueButton(list);
-					list.querySelectorAll('img.task-lane-cover, img.task-next-cover').forEach(image => {
+					list.querySelectorAll('img.task-lane-cover, img.task-next-cover, img.task-tile-img').forEach(image => {
 						const kept = covers.get(image.className + ' ' + image.getAttribute('src'));
 						if (kept && kept.length) {
 							image.replaceWith(kept.shift());

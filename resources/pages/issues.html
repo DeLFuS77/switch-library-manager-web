@@ -5,6 +5,7 @@
 				<div class="d-flex flex-wrap gap-2 mb-3 admin-only page-actions">
 					<button type="button" class="btn btn-primary rounded-pill" data-verify="changed" title="{{t "Checks the new and changed files for damage"}}"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Check new files"}}</button>
 					<button type="button" class="btn btn-glass rounded-pill" data-verify="all" title="{{t "Checks every file again"}}"><span class="bi bi-arrow-repeat me-1" aria-hidden="true"></span>{{t "Check everything again"}}</button>
+					<button type="button" class="btn btn-glass rounded-pill" data-verify="signatures" title="{{t "Checks in seconds that every NCA has the signature of Nintendo, from its header: it does not read the data"}}"><span class="bi bi-patch-check me-1" aria-hidden="true"></span>{{t "Check signatures"}}</button>
 				</div>
 			</div>
 			<p class="small text-body-secondary mt-n2 admin-only">{{- if not .LastVerified.IsZero}}{{t "Files last checked %v" (formatDateTime .LastVerified)}}. {{end}}{{t "Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more."}}</p>

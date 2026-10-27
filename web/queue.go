@@ -35,6 +35,8 @@ type QueuedTask struct {
 	Names map[string]string `json:"names,omitempty"`
 	// a check: the files checked less than this ago are left out (see startVerificationOf)
 	Recheck time.Duration `json:"recheck,omitempty"`
+	// a check of the signatures only (see startSignatureCheck)
+	Signatures bool `json:"signatures,omitempty"`
 }
 
 type taskQueue struct {
@@ -182,6 +184,9 @@ func (web *Web) startQueued(task QueuedTask) bool {
 	case TASK_SPLIT:
 		return web.startSplitBy(task.Paths, task.Delete, TRIGGER_MANUAL)
 	case TASK_VERIFY:
+		if task.Signatures {
+			return web.startSignatureCheck(task.Recheck == verifyRecheckAll, TRIGGER_MANUAL)
+		}
 		return web.startVerificationOf(task.Paths, task.Recheck, TRIGGER_MANUAL)
 	}
 	// a kind this version does not know: dropped, not kept waiting for good

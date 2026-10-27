@@ -22,10 +22,11 @@ const (
 	ISSUE_OLD         = "old"
 	ISSUE_FILENAME    = "filename"
 	ISSUE_UNSUPPORTED = "unsupported"
+	ISSUE_UNSIGNED    = "unsigned"
 )
 
 // issueKinds are the kinds in the order of the summary: what needs doing first.
-var issueKinds = []string{ISSUE_DAMAGED, ISSUE_TRUNCATED, ISSUE_KEYS, ISSUE_NO_KEY, ISSUE_UNREADABLE, ISSUE_ORPHAN, ISSUE_DUPLICATE, ISSUE_OLD, ISSUE_FILENAME, ISSUE_UNSUPPORTED}
+var issueKinds = []string{ISSUE_DAMAGED, ISSUE_TRUNCATED, ISSUE_KEYS, ISSUE_NO_KEY, ISSUE_UNREADABLE, ISSUE_UNSIGNED, ISSUE_ORPHAN, ISSUE_DUPLICATE, ISSUE_OLD, ISSUE_FILENAME, ISSUE_UNSUPPORTED}
 
 // dirOf is the folder of a path.
 func dirOf(path string) string {
@@ -54,6 +55,7 @@ var issueKindLooks = map[string]IssueKindLook{
 	ISSUE_OLD:         {"bi-clock-history", "warning", "Old updates and DLC"},
 	ISSUE_FILENAME:    {"bi-tag", "info", "Recognized by their name only"},
 	ISSUE_UNSUPPORTED: {"bi-file-earmark-x", "muted", "Files that are not games"},
+	ISSUE_UNSIGNED:    {"bi-patch-question", "warning", "Not signed by Nintendo"},
 }
 
 // IssueKindCount is a kind of issue and how many files it has, for the header.
@@ -99,6 +101,8 @@ func issueKind(reason string) string {
 		return ISSUE_FILENAME
 	case strings.HasPrefix(reason, "file type is not supported"):
 		return ISSUE_UNSUPPORTED
+	case strings.HasPrefix(reason, "not signed by Nintendo"):
+		return ISSUE_UNSIGNED
 	case isCutShort(reason):
 		return ISSUE_TRUNCATED
 	}
@@ -223,6 +227,8 @@ func (web *Web) issueSummaries(issues []Issue, lang string) []IssueSummary {
 			summary.Text = t("They end before their contents do: a download or a copy that did not finish. They are of no use: delete them and get them again.")
 		case ISSUE_UNREADABLE:
 			summary.Text = t("Their contents cannot be read: a damaged copy, a format the app does not know, or keys other than your prod.keys. Check them on your computer before deleting them.")
+		case ISSUE_UNSIGNED:
+			summary.Text = t("An NCA of these files has no signature of Nintendo: a tool rewrote it, for example to take out its rights ID. They usually install and play; keep another copy if you want the dump as Nintendo made it.")
 		case ISSUE_ORPHAN:
 			summary.Text = t("The library has them, but not the game they belong to. Look for the game by its ID, or delete them if you do not want it.")
 			summary.Href, summary.Action = "/orphans.html", t("See them by game")

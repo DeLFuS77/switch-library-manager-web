@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initSdPlanner();
 	initIgnoreTypes();
 	initViewToggle();
+	initTaskView();
 	initLiveTasks();
 	initCompress();
 

@@ -23,6 +23,38 @@ function initCardTilt() {
 	});
 }
 
+// the Tasks page by bars or by covers, remembered by the browser
+function initTaskView() {
+	const list = document.getElementById('taskList');
+	const buttons = document.querySelectorAll('[data-task-view]');
+	if (!list || !buttons.length) {
+		return;
+	}
+	const apply = view => {
+		list.classList.toggle('tasks-by-covers', view === 'covers');
+		buttons.forEach(button => {
+			const active = button.dataset.taskView === view;
+			button.classList.toggle('active', active);
+			button.setAttribute('aria-pressed', active ? 'true' : 'false');
+		});
+	};
+	let view = 'bars';
+	try {
+		view = localStorage.getItem('slm-task-view') || 'bars';
+	} catch (e) {
+		// storage may be blocked, the bars are shown
+	}
+	apply(view);
+	buttons.forEach(button => button.addEventListener('click', () => {
+		apply(button.dataset.taskView);
+		try {
+			localStorage.setItem('slm-task-view', button.dataset.taskView);
+		} catch (e) {
+			// not remembered
+		}
+	}));
+}
+
 const VIEW_STORAGE_KEY = 'slm-view';
 
 // large or small covers, remembered by the browser

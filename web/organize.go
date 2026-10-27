@@ -30,6 +30,7 @@ type OrganizeForm struct {
 	RenameFiles                bool   `in:"form=rename_files"`
 	FileNameTemplate           string `in:"form=file_name_template"`
 	SwitchSafeFileNames        bool   `in:"form=switch_safe_file_names"`
+	KeepNamesWithId            bool   `in:"form=keep_names_with_id"`
 	DlcFolder                  string `in:"form=dlc_folder"`
 	UpdatesFolder              string `in:"form=updates_folder"`
 	FoldersWithIds             bool   `in:"form=folders_with_ids"`
@@ -86,6 +87,7 @@ func (f *OrganizeForm) toOptions(current settings.OrganizeOptions) settings.Orga
 	current.RenameFiles = f.RenameFiles
 	current.FileNameTemplate = strings.TrimSpace(f.FileNameTemplate)
 	current.SwitchSafeFileNames = f.SwitchSafeFileNames
+	current.KeepNamesWithId = f.KeepNamesWithId
 	current.DlcFolder = strings.TrimSpace(f.DlcFolder)
 	current.UpdatesFolder = strings.TrimSpace(f.UpdatesFolder)
 	current.FoldersWithIds = f.FoldersWithIds

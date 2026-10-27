@@ -58,6 +58,10 @@ type CompressCandidate struct {
 	Files  int
 	// in the list to split: the games of a game card with several games
 	Games int
+	// in the list to pack: the titles of each kind the pack holds (1G+1U+2D), and the pack made
+	// before, for a game already packed
+	Contents string
+	Packed   string
 }
 
 // KindKey is the kind for the colors and the filter of the list: game, update or dlc.
@@ -129,6 +133,8 @@ type NszListData struct {
 	// the files not shown, chosen together with one box, in the lists that allow it
 	Rest     int
 	RestSize int64
+	// in the list to pack: the games packed before, shown without a box
+	Packed []CompressCandidate
 }
 
 type CompressPageData struct {
@@ -944,6 +950,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 						}
 						web.sugarLogger.Warnf("%s of %s failed: %v", kind, path, err)
 						web.taskLog().Warn(taskId, compressNote(kind, err), name+": "+err.Error())
+						web.taskLog().AddFileTile(taskId, name, true, compressNote(kind, err))
 						// nothing in it can be compressed: no longer offered while it stays the same
 						if kind == TASK_COMPRESS && errors.Is(err, switchfs.ErrNotCompressible) {
 							// the size of the file, not the one of its progress (read once per pass)
@@ -964,6 +971,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 					default:
 						processed++
 						saved += fileSaved
+						web.taskLog().AddFileTile(taskId, name, false, "")
 						if kind == TASK_COMPRESS {
 							web.taskLog().AddFileResult(taskId, name, sizes[i], sizes[i]-fileSaved)
 							web.ratios().add(contentKind(path), path, sizes[i], sizes[i]-fileSaved)
@@ -1398,6 +1406,14 @@ func (web *Web) writeFileRows(w http.ResponseWriter, r *http.Request, templates 
 		} else if rest && query == "" {
 			data.Rest++
 			data.RestSize += candidate.Size
+		}
+	}
+	// the games packed before follow the list, so it tells why they are not in it
+	if prefix == "pack" {
+		for _, game := range web.packedGames() {
+			if query == "" || strings.Contains(strings.ToLower(game.Name+" "+game.Packed), query) {
+				data.Packed = append(data.Packed, game)
+			}
 		}
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

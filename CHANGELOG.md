@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.63.0
+
+### New
+
+- The signature of Nintendo on every NCA is checked: with every whole check of a file (it reads the headers only), and on its own in seconds with Check signatures on the Issues page. The files with an NCA a tool rewrote (to take out its rights ID, for example) are listed in Issues as Not signed by Nintendo; they usually install and play
+- Organize has a field {DLC_NUMBER}, the number of a DLC among the ones of its game (1, 2...), for short names like Game [DLC 1] [ID][v0] instead of the long name of the DLC
+- Keep the names that already have their title ID, in Organize: a file whose name has its title ID in brackets is only moved, and the name you gave it stays
+
+### Improvements
+
+- The list of packs to make tells what each pack holds (1G+1U+2D: the game, its latest update and two DLC), and the games packed before follow it under Already packed, with the name of their pack, instead of being left out without a word
+- In Tasks, the cover of each file at work fills up from the bottom with the progress of its step, and a file without a cover gets a ring around its number
+- Tasks can be seen by bars, as before, or by covers: a grid of the files of each task, those at work filling up with their progress and the ones ended with OK or Error under them (the reason of an error on its label). The choice is kept by the browser
+
+### Fixes
+
+- The CHANGELOG of the repository listed every version twice since 1.61.0
+
 ## 1.62.0
 
 ### New

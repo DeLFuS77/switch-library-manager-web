@@ -36,7 +36,7 @@ func (web *Web) taskListData() TasksPageData {
 		if task.Running() {
 			data.Running = append(data.Running, web.withCovers(task))
 		} else {
-			finished = append(finished, task)
+			finished = append(finished, web.withCovers(task))
 		}
 	}
 	data.Finished = groupTasks(finished)
@@ -44,13 +44,17 @@ func (web *Web) taskListData() TasksPageData {
 	return data
 }
 
-// withCovers gives a running task on files with the cover of the game of each file it works
-// on, and the next file it takes from those it has left.
+// withCovers gives a task on files with the cover of the game of each file it works on and
+// each file it ended, and the next file it takes from those it has left.
 func (web *Web) withCovers(task Task) Task {
-	if len(task.Lanes) == 0 && task.Resume == nil {
+	if len(task.Lanes) == 0 && len(task.Tiles) == 0 && task.Resume == nil {
 		return task
 	}
 	covers := web.fileCovers()
+	// the tiles of the snapshot are its own copy
+	for i := range task.Tiles {
+		task.Tiles[i].Cover = covers[task.Tiles[i].Name]
+	}
 	// the lanes of the snapshot are shared with the running task: a copy is changed
 	lanes := make([]TaskLane, len(task.Lanes))
 	working := map[string]bool{}

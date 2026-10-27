@@ -28,7 +28,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "1.62.0"
+	SLM_WEB_VERSION        = "1.63.0"
 	REPOSITORY_OWNER       = "DeLFuS77"
 	// titles.json and versions.json are generated from blawar/titledb by the
 	// "Update title data" workflow of this repository
@@ -77,6 +77,8 @@ const (
 	TEMPLATE_PACKAGE_CONTENTS = "PACKAGE_CONTENTS"
 	TEMPLATE_SIZE_GB          = "SIZE_GB"
 	TEMPLATE_SIZE_MB          = "SIZE_MB"
+	// the number of a DLC among the ones of its game, from its title ID: 1, 2...
+	TEMPLATE_DLC_NUMBER = "DLC_NUMBER"
 )
 
 type OrganizeOptions struct {
@@ -104,6 +106,8 @@ type OrganizeOptions struct {
 	DeleteUpdatesWithCheats bool `json:"delete_updates_with_cheats,omitempty"`
 	// the copies of duplicates chosen one by one to be kept, by path: they win over KeepDuplicate
 	KeepFiles []string `json:"keep_files,omitempty"`
+	// a file whose name has its title ID in brackets keeps its name: it is only moved
+	KeepNamesWithId bool `json:"keep_names_with_id,omitempty"`
 }
 
 // The copies of a duplicate the library can keep.
