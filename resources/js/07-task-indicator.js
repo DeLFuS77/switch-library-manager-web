@@ -272,6 +272,7 @@ function initLiveTasks() {
 					// the tasks of the queue marked to take out stay marked
 					const marked = new Set([...list.querySelectorAll('[data-queue-item]:checked')].map(box => box.value));
 					list.innerHTML = html;
+					applyTaskSections(list);
 					list.querySelectorAll('[data-queue-item]').forEach(box => {
 						box.checked = marked.has(box.value);
 					});

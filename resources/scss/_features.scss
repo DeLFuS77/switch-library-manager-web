@@ -257,36 +257,63 @@
 	border-radius: var(--bs-border-radius);
 }
 
-// the cover of a file at work fills up from the bottom with the progress of its step, and the
-// number of a lane without a cover gets a ring of it
+// the cover of a file at work, as it is: its bar beside it tells the progress; the number of a
+// lane without a cover gets a ring of it
 .task-lane-thumb {
-	position: relative;
 	flex-shrink: 0;
 	display: block;
 	line-height: 0;
+}
 
-	&::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		border-radius: var(--bs-border-radius);
-		pointer-events: none;
-		background: linear-gradient(to top, rgba(var(--bs-primary-rgb), 0.45) var(--lane-fill, 0%), rgba(0, 0, 0, 0.4) var(--lane-fill, 0%));
-		box-shadow: inset 0 0 0 1px rgba(var(--bs-primary-rgb), 0.5);
+// a part of the Tasks page, folded with a click on its title
+.task-section > summary {
+	cursor: pointer;
+	list-style: none;
+	user-select: none;
+
+	&::-webkit-details-marker {
+		display: none;
 	}
+
+	&:focus-visible {
+		outline: 2px solid var(--bs-primary);
+		outline-offset: 2px;
+		border-radius: var(--bs-border-radius-sm);
+	}
+}
+
+.task-section-chevron {
+	margin-left: auto;
+	transition: transform 0.2s ease;
+}
+
+.task-section:not([open]) .task-section-chevron {
+	transform: rotate(-90deg);
+}
+
+.task-section:not([open]) {
+	margin-bottom: 1rem;
 }
 
 // the tasks by covers: a grid of the files instead of their bars; the choice is a class of the
 // list (see initTaskView)
-.task-tiles {
+.task-tiles,
+.task-tiles-more {
 	display: none;
-	grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
-	gap: 0.75rem;
+}
+
+.task-tiles {
+	grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+	gap: 0.85rem;
 }
 
 .tasks-by-covers {
 	.task-tiles {
 		display: grid;
+	}
+
+	.task-tiles-more {
+		display: block;
 	}
 
 	.task-lanes,
@@ -326,14 +353,19 @@
 	object-fit: cover;
 }
 
-// a file at work: the cover is dark above its progress and lit below, with the share on it
+// a file at work: the cover fills up from the bottom with its progress, with the share on it,
+// as in NXPress; the files waiting and ended keep their covers as they are
 .task-tile.is-working .task-tile-cover::after {
 	content: '';
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(to top, rgba(var(--bs-primary-rgb), 0.4) var(--lane-fill, 0%), rgba(0, 0, 0, 0.55) var(--lane-fill, 0%));
-	box-shadow: inset 0 0 0 2px rgba(var(--bs-primary-rgb), 0.7);
+	background: linear-gradient(to top, rgba(var(--bs-primary-rgb), 0.35) var(--lane-fill, 0%), rgba(0, 0, 0, 0.35) var(--lane-fill, 0%));
+	box-shadow: inset 0 0 0 2px rgba(var(--bs-primary-rgb), 0.8);
 	border-radius: inherit;
+}
+
+.task-tile-bar {
+	height: 0.3rem;
 }
 
 .task-tile-pct {
@@ -346,10 +378,9 @@
 	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 }
 
-// a file that failed keeps its cover grey
-.task-tile.is-failed .task-tile-img {
-	filter: grayscale(1);
-	opacity: 0.6;
+// a file that failed keeps its cover, with a red edge
+.task-tile.is-failed .task-tile-cover {
+	box-shadow: 0 0 0 2px var(--bs-danger);
 }
 
 .task-tile-name {

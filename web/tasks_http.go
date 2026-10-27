@@ -44,10 +44,14 @@ func (web *Web) taskListData() TasksPageData {
 	return data
 }
 
+// maxShownTiles is how many files of a running task the view by covers shows at once: a check
+// of the whole library has thousands.
+const maxShownTiles = 240
+
 // withCovers gives a task on files with the cover of the game of each file it works on and
 // each file it ended, and the next file it takes from those it has left.
 func (web *Web) withCovers(task Task) Task {
-	if len(task.Lanes) == 0 && len(task.Tiles) == 0 && task.Resume == nil {
+	if len(task.Lanes) == 0 && len(task.Tiles) == 0 && len(task.Plan) == 0 && task.Resume == nil {
 		return task
 	}
 	covers := web.fileCovers()
@@ -55,6 +59,7 @@ func (web *Web) withCovers(task Task) Task {
 	for i := range task.Tiles {
 		task.Tiles[i].Cover = covers[task.Tiles[i].Name]
 	}
+	task.Plan, task.HiddenAfter = shownPlan(task.Plan, task.Lanes, covers)
 	// the lanes of the snapshot are shared with the running task: a copy is changed
 	lanes := make([]TaskLane, len(task.Lanes))
 	working := map[string]bool{}
@@ -73,6 +78,39 @@ func (web *Web) withCovers(task Task) Task {
 		}
 	}
 	return task
+}
+
+// shownPlan is the part of the plan of a running task the view by covers shows, each file with
+// its cover and, at work, its progress, and how many files are left out after it: a few of the
+// files ended, then those at work and those waiting. The files ended before them are left out.
+func shownPlan(plan []TaskTile, lanes []TaskLane, covers map[string]string) ([]TaskTile, int) {
+	if len(plan) == 0 {
+		return nil, 0
+	}
+	working := map[string]int{}
+	for _, lane := range lanes {
+		if lane.Name != "" {
+			working[lane.Name] = lane.StepPercent()
+		}
+	}
+	first := len(plan)
+	for i, tile := range plan {
+		if tile.Waiting {
+			first = i
+			break
+		}
+	}
+	start := max(0, min(first-maxShownTiles/10, len(plan)-maxShownTiles))
+	end := min(len(plan), start+maxShownTiles)
+	shown := make([]TaskTile, 0, end-start)
+	for _, tile := range plan[start:end] {
+		tile.Cover = covers[tile.Name]
+		if percent, ok := working[tile.Name]; ok && tile.Waiting {
+			tile.Working, tile.Percent = true, percent
+		}
+		shown = append(shown, tile)
+	}
+	return shown, len(plan) - end
 }
 
 // fileCovers are the small covers of the games of the library, by the name of each file.

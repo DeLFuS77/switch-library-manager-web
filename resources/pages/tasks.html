@@ -14,9 +14,11 @@
 {{- end}}
 
 {{define "taskList"}}
+				{{- /* each part folds with a click on its title, and stays as it was left (see
+				   initTaskSections) */}}
 				{{- if .Running}}
-				<section class="mb-4">
-					<h2 class="section-title"><span class="bi bi-activity" aria-hidden="true"></span>{{t "Running"}}</h2>
+				<details class="task-section mb-4" data-task-section="running" open>
+					<summary class="section-title"><span class="bi bi-activity" aria-hidden="true"></span>{{t "Running"}} <span class="badge rounded-pill text-bg-secondary">{{len .Running}}</span><span class="bi bi-chevron-down task-section-chevron" aria-hidden="true"></span></summary>
 					{{- range .Running}}
 					<article class="surface task-card mb-3{{if .Paused}} is-paused{{end}}" data-task-id="{{.Id}}">
 						<div class="d-flex align-items-center gap-3 mb-3">
@@ -94,12 +96,12 @@
 						{{- template "taskResults" .}}
 					</article>
 					{{- end}}
-				</section>
+				</details>
 				{{- end}}
 				{{- if .Queue}}
-				<section class="mb-4" aria-labelledby="queueTitle">
-					<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-						<h2 class="section-title mb-0" id="queueTitle"><span class="bi bi-hourglass-split" aria-hidden="true"></span>{{t "Waiting in the queue"}} <span class="badge rounded-pill text-bg-secondary">{{len .Queue}}</span></h2>
+				<details class="task-section mb-4" data-task-section="queue" open>
+					<summary class="section-title"><span class="bi bi-hourglass-split" aria-hidden="true"></span>{{t "Waiting in the queue"}} <span class="badge rounded-pill text-bg-secondary">{{len .Queue}}</span><span class="bi bi-chevron-down task-section-chevron" aria-hidden="true"></span></summary>
+					<div class="d-flex flex-wrap align-items-center justify-content-end gap-2 mb-2">
 						<button type="button" class="btn btn-sm btn-outline-danger rounded-pill" data-queue-remove disabled><span class="bi bi-x-circle me-1" aria-hidden="true"></span>{{t "Remove from the queue"}}</button>
 					</div>
 					<p class="small text-body-secondary mb-2">{{t "They start one after the other when the task running ends. Mark the ones you do not want and take them out."}}</p>
@@ -122,12 +124,12 @@
 						</li>
 						{{- end}}
 					</ul>
-				</section>
+				</details>
 				{{- end}}
 				{{- if .Finished}}
-				<section>
-					<div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-						<h2 class="section-title mb-0"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "History"}}</h2>
+				<details class="task-section" data-task-section="history" open>
+					<summary class="section-title"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "History"}} <span class="badge rounded-pill text-bg-secondary">{{len .Finished}}</span><span class="bi bi-chevron-down task-section-chevron" aria-hidden="true"></span></summary>
+					<div class="d-flex align-items-center justify-content-end gap-2 mb-3">
 						<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill admin-only" data-task-clear><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{t "Clear history"}}</button>
 					</div>
 					<ul class="list-unstyled task-history mb-0">
@@ -172,7 +174,7 @@
 						</li>
 						{{- end}}
 					</ul>
-				</section>
+				</details>
 				{{- else if not (or .Running .Queue)}}
 				{{- template "emptyState" (dict "Icon" "bi-list-task" "Tone" "" "Title" (t "No tasks yet") "Text" (t "Synchronizations, scans, compressions, checks and cleanups appear here.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 				{{- end}}
@@ -186,9 +188,31 @@
 {{- end}}
 
 {{define "taskTiles"}}
-{{- /* the view by covers: the files at work fill up with their progress, the files ended say
-   how they ended */}}
-{{- if or .Lanes .Tiles}}
+{{- /* the view by covers: every file of a running task, waiting, at work (filling up with its
+   progress) or ended (how it ended), as NXPress shows them; a task without its list of files,
+   and an ended one, show the files at work and the files ended */}}
+{{- if .Plan}}
+<ul class="task-tiles list-unstyled mb-0 mt-3" aria-label="{{t "Files"}}">
+	{{- range .Plan}}
+	<li class="task-tile{{if .Working}} is-working{{else if .Waiting}} is-waiting{{else if .Failed}} is-failed{{end}}"{{if .Working}} style="--lane-fill: {{.Percent}}%"{{end}}>
+		<span class="task-tile-cover">{{if .Cover}}<img class="task-tile-img" src="{{.Cover}}" alt="" loading="lazy" decoding="async">{{else}}<span class="bi bi-file-earmark-zip" aria-hidden="true"></span>{{end}}{{if .Working}}<span class="task-tile-pct">{{.Percent}}%</span>{{end}}</span>
+		<span class="task-tile-name" title="{{.Name}}">{{.Name}}</span>
+		{{- if .Working}}
+		<span class="progress task-tile-bar" role="progressbar" aria-label="{{.Name}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100"><span class="progress-bar" style="width: {{.Percent}}%"></span></span>
+		{{- else if .Waiting}}
+		<span class="chip chip-muted task-tile-state"><span class="bi bi-hourglass" aria-hidden="true"></span>{{t "Waiting"}}</span>
+		{{- else if .Failed}}
+		<span class="chip chip-danger task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Error"}}</span>
+		{{- else}}
+		<span class="chip chip-success task-tile-state"><span class="bi bi-check-circle" aria-hidden="true"></span>OK</span>
+		{{- end}}
+	</li>
+	{{- end}}
+</ul>
+{{- if .HiddenAfter}}
+<p class="task-tiles-more small text-body-secondary mb-0 mt-2">{{t "and %v more" (num .HiddenAfter)}}</p>
+{{- end}}
+{{- else if or .Lanes .Tiles}}
 <ul class="task-tiles list-unstyled mb-0 mt-3" aria-label="{{t "Files"}}">
 	{{- range .Lanes}}
 	<li class="task-tile is-working" style="--lane-fill: {{.StepPercent}}%">

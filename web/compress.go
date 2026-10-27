@@ -738,6 +738,11 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	web.compressor.mutex.Lock()
 	web.compressor.taskId = taskId
 	web.compressor.mutex.Unlock()
+	names := make([]string, len(paths))
+	for i, path := range paths {
+		names[i] = filepath.Base(path)
+	}
+	web.taskLog().SetPlan(taskId, names)
 	// the files left, kept as the task goes, for a restart in the middle of it
 	pending := map[int]bool{}
 	leftResume := func() *TaskResume {

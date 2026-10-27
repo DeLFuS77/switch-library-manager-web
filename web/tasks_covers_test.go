@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -39,6 +40,45 @@ func TestTaskCoversAndNextFile(t *testing.T) {
 	}
 	if web.withCovers(Task{}).Next != nil {
 		t.Fatal("a task without files has none")
+	}
+}
+
+// The view by covers shows every file of a running task: ended, at work and waiting.
+func TestTaskPlanShowsEveryFile(t *testing.T) {
+	log := newTestWeb(t).taskLog()
+	id := log.Start(TASK_VERIFY, TRIGGER_MANUAL)
+	log.SetPlan(id, []string{"A.nsp", "B.nsp", "C.nsp", "D.nsp"})
+	log.AddFileTile(id, "A.nsp", false, "")
+	log.AddFileTile(id, "B.nsp", true, NOTE_VERIFY_DAMAGED)
+	task := log.Snapshot()[0]
+	shown, more := shownPlan(task.Plan, []TaskLane{{Name: "C.nsp", Done: 1, Total: 4}}, map[string]string{"C.nsp": "/t/c.jpg"})
+	if more != 0 || len(shown) != 4 {
+		t.Fatalf("every file: %+v, %d more", shown, more)
+	}
+	if shown[0].Waiting || shown[0].Failed || !shown[1].Failed || shown[1].Note != NOTE_VERIFY_DAMAGED {
+		t.Fatalf("the files ended: %+v", shown[:2])
+	}
+	if !shown[2].Working || shown[2].Percent != 25 || shown[2].Cover != "/t/c.jpg" || !shown[3].Waiting || shown[3].Working {
+		t.Fatalf("at work and waiting: %+v", shown[2:])
+	}
+	log.Finish(id, nil)
+	if log.Snapshot()[0].Plan != nil {
+		t.Fatal("an ended task keeps no plan")
+	}
+
+	// a long plan: a few files ended, then those at work and waiting, and how many are left out
+	names := make([]string, 1000)
+	for i := range names {
+		names[i] = fmt.Sprintf("%04d.nsp", i)
+	}
+	id = log.Start(TASK_VERIFY, TRIGGER_MANUAL)
+	log.SetPlan(id, names)
+	for _, name := range names[:500] {
+		log.AddFileTile(id, name, false, "")
+	}
+	shown, more = shownPlan(log.Snapshot()[0].Plan, nil, nil)
+	if len(shown) != maxShownTiles || shown[0].Name != "0476.nsp" || more != 1000-476-maxShownTiles {
+		t.Fatalf("a long plan: from %s, %d shown, %d more", shown[0].Name, len(shown), more)
 	}
 }
 

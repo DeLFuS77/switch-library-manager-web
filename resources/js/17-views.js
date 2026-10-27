@@ -55,6 +55,52 @@ function initTaskView() {
 	}));
 }
 
+// The parts of the Tasks page (running, queue, history) fold with a click on their title and
+// stay as they were left, in this browser: also when the list is drawn again as tasks go on
+// (initLiveTasks calls applyTaskSections).
+const TASK_SECTIONS_KEY = 'slm-task-sections';
+
+function foldedTaskSections() {
+	try {
+		return JSON.parse(localStorage.getItem(TASK_SECTIONS_KEY) || '{}');
+	} catch (e) {
+		return {};
+	}
+}
+
+function applyTaskSections(list) {
+	const folded = foldedTaskSections();
+	list.querySelectorAll('details[data-task-section]').forEach(section => {
+		section.open = !folded[section.dataset.taskSection];
+	});
+}
+
+function initTaskSections() {
+	const list = document.getElementById('taskList');
+	if (!list) {
+		return;
+	}
+	applyTaskSections(list);
+	// toggle does not bubble: it is heard on its way down
+	list.addEventListener('toggle', e => {
+		const section = e.target;
+		if (!section.matches || !section.matches('details[data-task-section]')) {
+			return;
+		}
+		const folded = foldedTaskSections();
+		if (section.open) {
+			delete folded[section.dataset.taskSection];
+		} else {
+			folded[section.dataset.taskSection] = true;
+		}
+		try {
+			localStorage.setItem(TASK_SECTIONS_KEY, JSON.stringify(folded));
+		} catch (e) {
+			// not remembered
+		}
+	}, true);
+}
+
 const VIEW_STORAGE_KEY = 'slm-view';
 
 // large or small covers, remembered by the browser

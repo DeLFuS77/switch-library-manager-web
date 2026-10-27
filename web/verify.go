@@ -619,6 +619,12 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 			return strings.ToLower(filepath.Base(files[i].path)) < strings.ToLower(filepath.Base(files[j].path))
 		})
 
+		names := make([]string, len(files))
+		for i, file := range files {
+			names[i] = filepath.Base(file.path)
+		}
+		web.taskLog().SetPlan(taskId, names)
+
 		workers := min(verifyWorkers(settings.ReadSettings(web.dataFolder).VerifySpeed, runtime.NumCPU()), max(len(files), 1))
 		var (
 			mutex      sync.Mutex
@@ -700,11 +706,14 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 					}
 					record := verifyRecord{Size: file.info.Size(), ModTime: file.info.ModTime().UnixNano(), OK: err == nil, Checked: time.Now(),
 						Modified: err == nil && len(check.Modified) > 0, Partial: err == nil && check.Partial, Checker: verifyChecker}
+					note := ""
 					if err != nil {
 						damaged++
 						record.Reason = "damaged file: " + err.Error()
 						web.taskLog().Warn(taskId, NOTE_VERIFY_DAMAGED, name+": "+err.Error())
+						note = NOTE_VERIFY_DAMAGED
 					}
+					web.taskLog().AddFileTile(taskId, name, err != nil, note)
 					store.set(file.path, record)
 					checked++
 					web.taskLog().SetVerifyResult(taskId, checked, damaged)
