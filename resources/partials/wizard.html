@@ -426,6 +426,7 @@
 								<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="wizard_notify_new_games" name="notify_new_games" value="true"{{if $s.Notifications.NotifyNewGames}} checked{{end}}><label class="form-check-label" for="wizard_notify_new_games">{{t "Notify games added to my folders"}}</label></div>
 								<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="wizard_notify_task_failures" name="notify_task_failures" value="true"{{if $s.Notifications.NotifyTaskFailures}} checked{{end}}><label class="form-check-label" for="wizard_notify_task_failures">{{t "Notify the tasks that fail"}}</label></div>
 								<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="wizard_notify_queue_done" name="notify_queue_done" value="true"{{if not $s.Notifications.QueueDoneQuiet}} checked{{end}}><label class="form-check-label" for="wizard_notify_queue_done">{{t "Notify when the queue of tasks is done"}}</label></div>
+								<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="wizard_telegram_commands" name="telegram_commands" value="true"{{if $s.Notifications.TelegramCommands}} checked{{end}}><label class="form-check-label" for="wizard_telegram_commands">{{t "Answer in the chat of Telegram"}}</label></div>
 							</div>
 						</section>
 

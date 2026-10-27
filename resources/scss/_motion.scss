@@ -106,6 +106,85 @@
 	background: $slm-cyan;
 }
 
+// the groups of Space open and close, one line each with its count and size
+.space-group {
+	--space-color: var(--bs-secondary-color);
+	border: 1px solid color-mix(in srgb, var(--space-color) 35%, transparent);
+	border-radius: .6rem;
+	background: color-mix(in srgb, var(--space-color) 4%, transparent);
+
+	&[open] > .space-group-head .space-group-chevron {
+		transform: rotate(180deg);
+	}
+}
+
+.space-group-old_updates {
+	--space-color: #{$warning};
+}
+
+.space-group-duplicates {
+	--space-color: #{$slm-red};
+}
+
+.space-group-compressed {
+	--space-color: #{$slm-cyan};
+}
+
+.space-group-head,
+.region-group-head {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	padding: .7rem .9rem;
+	border-radius: .6rem;
+	cursor: pointer;
+	list-style: none;
+
+	&::-webkit-details-marker {
+		display: none;
+	}
+
+	&:hover {
+		background: color-mix(in srgb, var(--space-color, var(--bs-secondary-color)) 10%, transparent);
+	}
+
+	h2,
+	h3 {
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+}
+
+.space-group-chevron {
+	color: var(--bs-secondary-color);
+	transition: transform .15s;
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
+}
+
+.space-group-body {
+	padding: 0 .9rem .9rem;
+}
+
+// a game of several regions in the group of regions, its copies when opened
+.region-group {
+	border-top: 1px solid var(--bs-border-color-translucent);
+
+	&[open] > .region-group-head .space-group-chevron {
+		transform: rotate(180deg);
+	}
+
+	> .item-list {
+		margin: 0 .3rem .6rem;
+	}
+}
+
+.region-group-head {
+	padding: .55rem .3rem;
+}
+
 // a registered property, so gauges can fill up smoothly
 @property --pct {
 	syntax: "<number>";
