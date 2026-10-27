@@ -93,6 +93,10 @@ type CompressOptions struct {
 	// (docs/ncz-sparse.md of NXPress), which other tools do not read yet; else they are
 	// stored as they are
 	Sparse bool
+	// experimental, for archives only: the LZ4 blocks of the compressed storage of the NCA files
+	// are kept decompressed and made again when they are rebuilt (NCZSECT3, lz4rebuild.go), so
+	// zstd compresses what LZ4 hid. Installers do not read it. Not with Blocks nor game cards.
+	Rebuild bool
 }
 
 // CompressResult describes a finished compression.
@@ -104,6 +108,8 @@ type CompressResult struct {
 	Stored     int
 	// of the NCA compressed, the ones in sparse storage, written as NCZSECT2
 	Sparse int
+	// with Rebuild: the LZ4 blocks kept decompressed, of all the ones found
+	Rebuilt, Lz4Blocks int
 	// the SHA-256 of every file of the original by name, taken while it was read to compress
 	// it: what its compressed copy must give back (see CheckHashes and VerifyCompressed)
 	Hashes map[string][32]byte
@@ -155,6 +161,10 @@ func (s nczSection) counterAt(position uint64) []byte {
 
 type nczPlan struct {
 	sections []nczSection
+	// with CompressOptions.Rebuild: the LZ4 blocks of the compressed storage the NCA holds, and
+	// how many of them the NCZSECT3 written keeps decompressed
+	lz4  []lz4Block
+	kept int
 }
 
 // planGame plans the compression of each NCA of a game, and gives the names its files take
@@ -253,6 +263,9 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 	}
 
 	plans, names, err := planGame(input, pkg, titleKeys, options.Sparse)
+	if err == nil && options.Rebuild && !options.Blocks && !pkg.xci {
+		err = planRebuild(input, pkg, plans)
+	}
 	for _, plan := range plans {
 		if plan != nil {
 			result.Compressed++
@@ -303,6 +316,10 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 			err = copyRange(ctx, output, reader, file.offset, file.size, progress)
 		}
 		sum, complete := reader.finish()
+		if plans[i] != nil {
+			result.Rebuilt += plans[i].kept
+			result.Lz4Blocks += len(plans[i].lz4)
+		}
 		if err == nil {
 			err = writer.endFile()
 		}
@@ -664,10 +681,42 @@ func ticketSignatureSize(signatureType uint32) int {
 
 // writeNcz writes the NCZ of an NCA.
 func writeNcz(ctx context.Context, output io.Writer, input io.ReaderAt, offset int64, size int64, plan *nczPlan, options CompressOptions, progress func(int64)) error {
-	if err := writeNczHeader(output, input, offset, plan, progress); err != nil {
+	counted := &countingWriter{w: output}
+	if err := writeNczHeader(counted, input, offset, plan, progress); err != nil {
 		return err
 	}
-	return writeNczStream(ctx, output, input, offset, plan, options, progress)
+	if err := writeNczStream(ctx, counted, input, offset, plan, options, progress); err != nil {
+		return err
+	}
+	if len(plan.lz4) == 0 {
+		return nil
+	}
+	return writeLz4Table(counted, plan.lz4[:plan.kept], counted.n)
+}
+
+// planRebuild finds the LZ4 blocks of the NCA files planned, for an NCZSECT3.
+func planRebuild(input io.ReaderAt, pkg *gamePackage, plans []*nczPlan) error {
+	keys, _ := settings.SwitchKeys()
+	if keys == nil {
+		return errors.New("prod.keys is needed to compress")
+	}
+	for i, plan := range plans {
+		if plan == nil {
+			continue
+		}
+		encHeader := make([]byte, 0xC00)
+		if err := readAtFull(input, encHeader, pkg.files[i].offset); err != nil {
+			return err
+		}
+		header, err := DecryptNcaHeader(keys.GetKey("header_key"), encHeader)
+		if err != nil {
+			return err
+		}
+		if plan.lz4, err = findLz4Blocks(input, pkg.files[i].offset, header, plan); err != nil {
+			return fmt.Errorf("%s: %w", pkg.files[i].name, err)
+		}
+	}
+	return nil
 }
 
 // writeNczHeader writes the header of the NCA as it is and the table of its sections.
@@ -688,6 +737,9 @@ func writeNczHeader(output io.Writer, input io.ReaderAt, offset int64, plan *ncz
 			magic = nczSectionMagicV2
 		}
 	}
+	if len(plan.lz4) > 0 {
+		magic = nczSectionMagicV3
+	}
 	table := bytes.NewBufferString(magic)
 	binary.Write(table, binary.LittleEndian, uint64(len(plan.sections)))
 	for _, section := range plan.sections {
@@ -707,6 +759,13 @@ func writeNczStream(ctx context.Context, output io.Writer, input io.ReaderAt, of
 	encoder, err := newStreamEncoder(output, options.Level, options.Workers)
 	if err != nil {
 		return err
+	}
+	// NCZSECT3: the LZ4 blocks go into the stream decompressed when they are made again
+	var sink io.Writer = encoder
+	var expander *lz4Expander
+	if len(plan.lz4) > 0 {
+		expander = &lz4Expander{out: encoder, blocks: plan.lz4, position: plan.sections[0].offset}
+		sink = expander
 	}
 
 	buffer := make([]byte, nczChunkSize)
@@ -733,13 +792,16 @@ func writeNczStream(ctx context.Context, output io.Writer, input io.ReaderAt, of
 			if section.cryptoType == 3 || section.cryptoType == 4 {
 				cipher.NewCTR(block, section.counterAt(position)).XORKeyStream(chunk, chunk)
 			}
-			if _, err := encoder.Write(chunk); err != nil {
+			if _, err := sink.Write(chunk); err != nil {
 				encoder.Close()
 				return err
 			}
 			progress(int64(length))
 			position += length
 		}
+	}
+	if expander != nil {
+		plan.lz4, plan.kept = expander.kept, len(expander.kept)
 	}
 	return encoder.Close()
 }
@@ -948,10 +1010,19 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 	}
 
 	magic := make([]byte, 8)
-	if _, err := io.ReadFull(reader, magic); err != nil || string(magic) != nczSectionMagic && string(magic) != nczSectionMagicV2 {
+	if _, err := io.ReadFull(reader, magic); err != nil || string(magic) != nczSectionMagic && string(magic) != nczSectionMagicV2 && string(magic) != nczSectionMagicV3 {
 		return errors.New("not an NCZ file")
 	}
-	shifted := string(magic) == nczSectionMagicV2
+	shifted := string(magic) == nczSectionMagicV2 || string(magic) == nczSectionMagicV3
+	// NCZSECT3: the table of the LZ4 blocks to make again is after the stream
+	var rebuild []lz4Block
+	streamEnd := size
+	if string(magic) == nczSectionMagicV3 {
+		var err error
+		if rebuild, streamEnd, err = readLz4Table(reader, size); err != nil {
+			return err
+		}
+	}
 	// updates split their sections by the subsection table: thousands of entries of 0x40
 	// bytes are possible, but never more than the NCZ holds
 	var count uint64
@@ -1012,6 +1083,9 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 	}
 	var stream io.Reader
 	if string(magic) == nczBlockMagic {
+		if rebuild != nil {
+			return errors.New("invalid NCZSECT3: its data is in blocks")
+		}
 		blocks, err := newNczBlockReader(reader)
 		if err != nil {
 			return err
@@ -1020,12 +1094,17 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 		stream = blocks
 	} else {
 		reader.Seek(position, io.SeekStart)
+		// an NCZSECT3 ends its stream where its table starts
+		var data io.Reader = reader
+		if rebuild != nil {
+			data = io.NewSectionReader(input, offset+position, streamEnd-position)
+		}
 		// zstd asks for a few bytes at a time: read the file in big pieces, one system call
 		// each, or the reads take more time than the decompression. With low memory on (its
 		// default) zstd keeps the window plus 1 MiB and moves the whole window down every
 		// MiB: on the 128 MiB window of other tools that was 4 times slower. Off, it keeps
 		// twice the window (16 MiB for the 8 MiB of this app) and moves it once per window.
-		decoder, err := zstd.NewReader(bufio.NewReaderSize(reader, nczChunkSize), zstd.WithDecoderConcurrency(nczStreamDecoders), zstd.WithDecoderMaxWindow(1<<30), zstd.WithDecoderLowmem(false))
+		decoder, err := zstd.NewReader(bufio.NewReaderSize(data, nczChunkSize), zstd.WithDecoderConcurrency(nczStreamDecoders), zstd.WithDecoderMaxWindow(1<<30), zstd.WithDecoderLowmem(false))
 		if err != nil {
 			return err
 		}
@@ -1036,6 +1115,9 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 	ahead := newReadAhead(stream, nczChunkSize, 3)
 	defer ahead.Close()
 	stream = ahead
+	if rebuild != nil {
+		stream = &lz4Rebuilder{in: stream, blocks: rebuild, position: sections[0].offset}
+	}
 
 	buffer := make([]byte, nczChunkSize)
 	for _, section := range sections {

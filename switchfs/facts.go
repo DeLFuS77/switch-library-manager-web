@@ -18,6 +18,9 @@ type FileFacts struct {
 	// of them, the ones in the experimental format NCZSECT2 (an NCA in sparse storage), which
 	// only NXPress reads so far: the file must be decompressed with it to be installed
 	Sparse int
+	// the ones in the experimental archive format NCZSECT3 (LZ4 blocks of Nintendo kept
+	// decompressed), which only NXPress reads: decompressed with it to be installed
+	Archive int
 	// the size of the NSP or XCI it decompresses to; its own size when it holds no NCZ
 	DecompressedSize int64
 	// the padding after the data of an XCI, which trimming takes away
@@ -54,6 +57,9 @@ func DescribeFile(path string) (FileFacts, error) {
 		count := int64(binary.LittleEndian.Uint64(table[8:16]))
 		if string(table[:8]) == nczSectionMagicV2 {
 			facts.Sparse++
+		}
+		if string(table[:8]) == nczSectionMagicV3 {
+			facts.Archive++
 		}
 		magic := make([]byte, 8)
 		if count > 0 && count <= nczMaxSections && readAtFull(reader, magic, file.offset+nczHeaderSize+0x10+count*0x40) == nil && bytes.Equal(magic, []byte(nczBlockMagic)) {
