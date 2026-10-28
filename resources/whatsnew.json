@@ -1,4 +1,50 @@
 {
+  "1.65.1": {
+    "en": [
+      "In the view by covers of Tasks, a file worked on in steps says the step it is in, and its bar is split in the steps, each in its colour, so it no longer seems to start again.",
+      "The bars of work going on are blue with moving stripes instead of red, which tells errors: uploads, the download of a new version, and work whose length is not known yet. The progress of a series is blue until it is complete."
+    ],
+    "es": [
+      "En la vista por portadas de Tareas, un archivo que pasa por varios pasos dice en cuál va, y su barra se parte en los pasos, cada uno en su color, así que ya no parece volver a empezar.",
+      "Las barras del trabajo en marcha son azules con rayas en movimiento en vez de rojas, que indica errores: las subidas, la descarga de una versión nueva y el trabajo que aún no sabe cuánto dura. El progreso de una saga es azul hasta completarse."
+    ],
+    "de": [
+      "In der Ansicht nach Covern unter Aufgaben zeigt eine Datei mit mehreren Schritten, in welchem sie ist, und ihr Balken ist in die Schritte geteilt, jeder in seiner Farbe, sodass er nicht mehr neu zu beginnen scheint.",
+      "Die Balken laufender Arbeit sind blau mit bewegten Streifen statt rot, das für Fehler steht: Uploads, der Download einer neuen Version und Arbeit, deren Dauer noch unbekannt ist. Der Fortschritt einer Reihe ist blau, bis sie vollständig ist."
+    ],
+    "fr": [
+      "Dans la vue par jaquettes des Tâches, un fichier traité en plusieurs étapes indique l'étape en cours, et sa barre est découpée en étapes, chacune de sa couleur : elle ne semble plus repartir de zéro.",
+      "Les barres du travail en cours sont bleues avec des rayures animées au lieu de rouges, qui signalent les erreurs : les envois, le téléchargement d'une nouvelle version et le travail dont la durée n'est pas encore connue. La progression d'une série est bleue jusqu'à ce qu'elle soit complète."
+    ],
+    "it": [
+      "Nella vista per copertine di Attività, un file lavorato in più passaggi indica quello in corso, e la sua barra è divisa nei passaggi, ognuno del suo colore, così non sembra più ricominciare.",
+      "Le barre del lavoro in corso sono blu con strisce in movimento invece che rosse, che indicano errori: i caricamenti, il download di una nuova versione e il lavoro di cui non si conosce ancora la durata. L'avanzamento di una serie è blu finché non è completa."
+    ],
+    "pt": [
+      "Na vista por capas de Tarefas, um arquivo trabalhado em várias etapas diz em qual está, e sua barra é dividida nas etapas, cada uma em sua cor, então não parece mais recomeçar.",
+      "As barras do trabalho em andamento são azuis com listras em movimento em vez de vermelhas, que indicam erros: os envios, o download de uma nova versão e o trabalho cuja duração ainda não se sabe. O progresso de uma série é azul até ficar completa."
+    ],
+    "nl": [
+      "In de weergave met covers van Taken laat een bestand dat in stappen wordt bewerkt zien in welke stap het is, en de balk is verdeeld in de stappen, elk in een eigen kleur, zodat hij niet meer opnieuw lijkt te beginnen.",
+      "De balken van lopend werk zijn blauw met bewegende strepen in plaats van rood, dat voor fouten staat: uploads, de download van een nieuwe versie en werk waarvan de duur nog niet bekend is. De voortgang van een reeks is blauw tot hij compleet is."
+    ],
+    "ru": [
+      "В режиме обложек на странице «Задачи» файл, который обрабатывается в несколько шагов, показывает текущий шаг, а его полоса разделена на шаги, каждый своего цвета, поэтому она больше не кажется начинающейся заново.",
+      "Полосы идущей работы синие с движущимися полосками вместо красных, которые означают ошибки: загрузки, скачивание новой версии и работа, длительность которой ещё неизвестна. Прогресс серии синий, пока она не собрана полностью."
+    ],
+    "ja": [
+      "タスクのカバー画像表示で、複数の段階で処理されるファイルは今どの段階かを表示し、バーは段階ごとに分かれてそれぞれの色になるため、最初からやり直しているようには見えなくなりました。",
+      "進行中の作業のバーは、エラーを示す赤ではなく、動くストライプ付きの青になりました：アップロード、新しいバージョンのダウンロード、まだ長さが分からない作業。シリーズの進み具合は、揃うまで青で表示されます。"
+    ],
+    "ko": [
+      "작업의 커버 보기에서 여러 단계로 처리되는 파일은 현재 단계를 표시하고, 막대는 단계별로 나뉘어 각각의 색으로 표시되므로 더 이상 처음부터 다시 시작하는 것처럼 보이지 않습니다.",
+      "진행 중인 작업의 막대는 오류를 뜻하는 빨간색 대신 움직이는 줄무늬가 있는 파란색입니다: 업로드, 새 버전 다운로드, 아직 길이를 알 수 없는 작업. 시리즈의 진행률은 모두 모을 때까지 파란색입니다."
+    ],
+    "zh": [
+      "在任务的封面视图中，分多个步骤处理的文件会显示当前步骤，其进度条按步骤分段，每段有自己的颜色，因此不再像是重新开始。",
+      "进行中工作的进度条改为带移动条纹的蓝色，而不是表示错误的红色：上传、新版本下载以及尚不知道时长的工作。系列的进度在集齐之前显示为蓝色。"
+    ]
+  },
   "1.65.0": {
     "en": [
       "Organize has a new action, Place new files: the loose files of the library, like the uploaded ones, go to the folder their game already has, and nothing else moves. The automations can do the same with Only the new files.",
