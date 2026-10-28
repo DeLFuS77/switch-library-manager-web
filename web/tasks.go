@@ -304,6 +304,9 @@ type TaskResult struct {
 type TaskTile struct {
 	Name   string `json:"name"`
 	Failed bool   `json:"failed,omitempty"`
+	// left as it is, with why: nothing in it could be done (a game in sparse storage to
+	// compress), which is no failure
+	Skipped bool `json:"skipped,omitempty"`
 	// why it failed, an English sentence translated by the interface
 	Note string `json:"note,omitempty"`
 	// in the plan of a running task: the file is not done yet
@@ -712,8 +715,18 @@ func (l *TaskLog) SetPlan(id int64, names []string) {
 // ended before it, so the view by covers fills up in order, from the top left, even when
 // several files are worked on at once and end in another order than the plan's.
 func (l *TaskLog) AddFileTile(id int64, name string, failed bool, note string) {
+	l.addTile(id, TaskTile{Name: name, Failed: failed, Note: note})
+}
+
+// SkipFileTile records a file of a task on files left as it is, with why: neither done nor
+// failed.
+func (l *TaskLog) SkipFileTile(id int64, name string, note string) {
+	l.addTile(id, TaskTile{Name: name, Skipped: true, Note: note})
+}
+
+func (l *TaskLog) addTile(id int64, tile TaskTile) {
+	name := tile.Name
 	l.update(id, false, func(task *Task) {
-		tile := TaskTile{Name: name, Failed: failed, Note: note}
 		task.Tiles = append(task.Tiles, tile)
 		if len(task.Tiles) > maxTaskResults {
 			task.Tiles = task.Tiles[len(task.Tiles)-maxTaskResults:]

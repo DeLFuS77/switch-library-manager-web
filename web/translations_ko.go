@@ -212,6 +212,7 @@ func init() {
 		"Next step":                                                    "다음 단계",
 		"Looking...":                                                   "확인 중...",
 		"Waiting":                                                      "대기",
+		"Skipped":                                                      "건너뜀",
 		"The automations are on: new files are checked, compressed and the updates they replace deleted by themselves, in this same order.": "자동화가 켜져 있습니다. 새 파일은 같은 순서로 저절로 확인·압축되고, 대체된 업데이트는 삭제됩니다.",
 		"For the files that come later, the automations can do these steps by themselves, in this same order.":                              "나중에 들어오는 파일은 자동화가 이 단계를 같은 순서로 직접 할 수 있습니다.",
 		"Set up the automations":      "자동화 설정",

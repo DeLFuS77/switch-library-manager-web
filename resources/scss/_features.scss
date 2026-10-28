@@ -441,6 +441,12 @@
 	filter: brightness(0.45) saturate(0.6);
 }
 
+// a file left as it is (nothing in it could be done, as a game in sparse storage to compress)
+// keeps its cover, with an orange edge: it did not fail
+.task-tile.is-skipped .task-tile-cover {
+	box-shadow: 0 0 0 2px var(--bs-warning);
+}
+
 // a file that failed keeps its cover, with a red edge
 .task-tile.is-failed .task-tile-cover {
 	box-shadow: 0 0 0 2px var(--bs-danger);

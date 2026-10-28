@@ -212,6 +212,7 @@ func init() {
 		"Next step":                                                    "下一步",
 		"Looking...":                                                   "正在查看...",
 		"Waiting":                                                      "待处理",
+		"Skipped":                                                      "已跳过",
 		"The automations are on: new files are checked, compressed and the updates they replace deleted by themselves, in this same order.": "自动化已开启:新文件会按同样的顺序自动检查、压缩,并删除被替换的更新。",
 		"For the files that come later, the automations can do these steps by themselves, in this same order.":                              "对于之后加入的文件,自动化可以按同样的顺序自动完成这些步骤。",
 		"Set up the automations":      "设置自动化",
