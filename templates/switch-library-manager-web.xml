@@ -22,7 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.65.2
+  <Changes>### 1.66.0
+- The setup wizard asks how to order the games (a folder per game, Base, Updates and DLC subfolders, keeping your folders)
+- The wizard chooses Only the new files for the automations, measures the server and sends a test notification
+- Calm background music in the wizard, with a button to turn it off
+### 1.65.2
 - Tasks by covers says Skipped in orange for a game that cannot be compressed, as one in sparse storage, instead of Error
 ### 1.65.1
 - Tasks by covers tells the step of each file, with its bar split in steps, each in its colour

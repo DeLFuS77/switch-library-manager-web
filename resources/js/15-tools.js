@@ -35,14 +35,15 @@ function initPack() {
 	});
 }
 
-// the measure of the server fills the compression settings with what compresses fastest here
-function initMeasure() {
-	const box = document.querySelector('[data-measure]');
+// the measure of the server fills the compression settings with what compresses fastest here;
+// on the Settings page, or in the setup wizard with its own box
+function initMeasure(box = document.querySelector('[data-measure]')) {
 	if (!box) {
 		return;
 	}
 	const button = box.querySelector('[data-measure-start]');
 	const result = box.querySelector('[data-measure-result]');
+	const bar = box.querySelector('[data-measure-bar]');
 	const format = (text, ...args) => args.reduce((value, arg) => value.replace('%v', arg), text);
 	const line = (icon, text) => {
 		const row = document.createElement('div');
@@ -55,6 +56,9 @@ function initMeasure() {
 	button.addEventListener('click', () => {
 		button.disabled = true;
 		result.hidden = false;
+		if (bar) {
+			bar.hidden = false;
+		}
 		result.classList.remove('text-danger-emphasis');
 		result.replaceChildren(line('bi-hourglass-split', result.dataset.textRunning));
 		fetch('/settings/measure', { method: 'POST' })
@@ -78,12 +82,12 @@ function initMeasure() {
 				result.replaceChildren(...lines);
 				// the server saved them: the fields show them, and a form with nothing else changed
 				// stays with nothing to save
-				const form = document.getElementById('compress_threads')?.form;
+				const form = box.closest('form');
 				const unchanged = form ? form.classList.contains('is-unchanged') : false;
-				[['compress_threads', measure.threads], ['compress_files_at_once', measure.files_at_once]].forEach(([id, value]) => {
-					const select = document.getElementById(id);
-					if (select && [...select.options].some(option => option.value === String(value))) {
-						select.value = String(value);
+				[['compress_threads', measure.threads], ['compress_files_at_once', measure.files_at_once]].forEach(([name, value]) => {
+					const field = form ? form.elements[name] : null;
+					if (field && (field.tagName !== 'SELECT' || [...field.options].some(option => option.value === String(value)))) {
+						field.value = String(value);
 					}
 				});
 				if (form && unchanged) {
@@ -96,6 +100,9 @@ function initMeasure() {
 			})
 			.finally(() => {
 				button.disabled = false;
+				if (bar) {
+					bar.hidden = true;
+				}
 			});
 	});
 }

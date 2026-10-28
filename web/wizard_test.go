@@ -1,6 +1,7 @@
 package web
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
@@ -179,5 +180,84 @@ func TestWizardBrowsesTheFoldersOfTheServer(t *testing.T) {
 	}
 	if start := browseFolders("", "en"); start.Path == "" {
 		t.Fatalf("an empty path starts at the first place: %+v", start)
+	}
+}
+
+// The order chosen in the wizard sets the options of Organize it is about and leaves the others,
+// and the subfolders named by the user keep their names.
+func TestWizardOrganize(t *testing.T) {
+	current := settings.OrganizeOptions{FolderNameTemplate: "{TITLE_NAME}", FoldersWithIds: true, UpdatesFolder: "Patches"}
+	sub := wizardOrganize(current, WIZARD_LAYOUT_SUB, true, true, true, settings.KEEP_AUTO)
+	if !sub.CreateFolderPerGame || sub.BaseFolder != "Base" || sub.UpdatesFolder != "Patches" || sub.DlcFolder != "DLC" {
+		t.Fatalf("the subfolders: %+v", sub)
+	}
+	if !sub.KeepGameFolders || !sub.RenameFiles || !sub.DeleteEmptyFolders || sub.KeepDuplicate != settings.KEEP_AUTO || !sub.FoldersWithIds || sub.FolderNameTemplate != "{TITLE_NAME}" {
+		t.Fatalf("the other options: %+v", sub)
+	}
+	if wizardLayout(sub) != WIZARD_LAYOUT_SUB {
+		t.Fatalf("the layout of the subfolders: %q", wizardLayout(sub))
+	}
+	folder := wizardOrganize(sub, WIZARD_LAYOUT_FOLDER, false, false, false, "")
+	if !folder.CreateFolderPerGame || folder.BaseFolder != "" || folder.UpdatesFolder != "" || folder.DlcFolder != "" || folder.RenameFiles || wizardLayout(folder) != WIZARD_LAYOUT_FOLDER {
+		t.Fatalf("a folder per game: %+v", folder)
+	}
+	none := wizardOrganize(sub, WIZARD_LAYOUT_NONE, true, false, false, "")
+	if none.CreateFolderPerGame || none.BaseFolder != "" || wizardLayout(none) != WIZARD_LAYOUT_NONE {
+		t.Fatalf("the files as they are: %+v", none)
+	}
+	if !validWizardOrganize("", "anything") || !validWizardOrganize(WIZARD_LAYOUT_SUB, settings.KEEP_NSP) {
+		t.Fatal("valid orders")
+	}
+	if validWizardOrganize("tree", "") || validWizardOrganize(WIZARD_LAYOUT_FOLDER, "biggest") {
+		t.Fatal("an unknown order or copy is refused")
+	}
+}
+
+// Saving from the wizard applies the order; saving the Settings page, which has no order, leaves
+// the options of Organize as they are.
+func TestWizardSavesTheOrder(t *testing.T) {
+	web, _ := compressWeb(t)
+	web.HandleSettings()
+	post := func(form url.Values) {
+		request := httptest.NewRequest(http.MethodPost, "/settings.html", strings.NewReader(form.Encode()))
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, request)
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("saving: %d %s", recorder.Code, recorder.Body.String())
+		}
+	}
+	folder := t.TempDir()
+	post(url.Values{"scan_folders": {folder}, "organize_layout": {"sub"}, "keep_game_folders": {"true"}, "rename_files": {"true"}, "keep_duplicate": {"auto"}})
+	options := settings.ReadSettings(web.dataFolder).OrganizeOptions
+	if !options.CreateFolderPerGame || options.DlcFolder != "DLC" || !options.KeepGameFolders || !options.RenameFiles || options.KeepDuplicate != "auto" {
+		t.Fatalf("the order of the wizard: %+v", options)
+	}
+	post(url.Values{"scan_folders": {folder}})
+	if again := settings.ReadSettings(web.dataFolder).OrganizeOptions; !again.CreateFolderPerGame || !again.RenameFiles || again.KeepDuplicate != "auto" {
+		t.Fatalf("the Settings page changed the order: %+v", again)
+	}
+}
+
+// The test notification of the wizard uses the channels written in it, checked as when saving,
+// before they are saved.
+func TestWizardTestsTheChannelsWritten(t *testing.T) {
+	web := newTestWeb(t)
+	web.HandleNotifications()
+	send := func(form url.Values) *httptest.ResponseRecorder {
+		request := httptest.NewRequest(http.MethodPost, "/notifications/test", strings.NewReader(form.Encode()))
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, request)
+		return recorder
+	}
+	if recorder := send(url.Values{"draft": {"1"}}); recorder.Code != http.StatusBadRequest || !strings.Contains(recorder.Body.String(), "Write a channel first.") {
+		t.Fatalf("no channel: %d %s", recorder.Code, recorder.Body.String())
+	}
+	if recorder := send(url.Values{"draft": {"1"}, "discord_webhook_url": {"https://example.com/hook"}}); recorder.Code != http.StatusBadRequest || !strings.Contains(recorder.Body.String(), "Discord") {
+		t.Fatalf("a wrong Discord address: %d %s", recorder.Code, recorder.Body.String())
+	}
+	if recorder := send(url.Values{"draft": {"1"}, "telegram_bot_token": {"123:abc"}}); recorder.Code != http.StatusBadRequest {
+		t.Fatalf("a token without its chat: %d %s", recorder.Code, recorder.Body.String())
 	}
 }

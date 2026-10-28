@@ -1,4 +1,61 @@
 {
+  "1.66.0": {
+    "en": [
+      "The setup wizard asks how to order your games: as they are, a folder per game, or with Base, Updates and DLC subfolders, keeping the folders you have. A small tree shows what each choice does.",
+      "In the wizard, the automations can organize only the new files, the compression levels say what they cost and save, the server can be measured, and a test notification checks your channels before saving.",
+      "The wizard has calm background music now; the speaker button next to the close button turns it off."
+    ],
+    "es": [
+      "El asistente pregunta cómo ordenar tus juegos: como están, una carpeta por juego o con subcarpetas Base, Updates y DLC, conservando las carpetas que ya tienes. Un pequeño árbol enseña qué hace cada opción.",
+      "En el asistente, las automatizaciones pueden ordenar solo los archivos nuevos, los niveles de compresión dicen lo que tardan y ahorran, se puede medir el servidor y una notificación de prueba comprueba tus canales antes de guardar.",
+      "El asistente tiene ahora una música de fondo tranquila; el botón del altavoz, junto al de cerrar, la apaga."
+    ],
+    "de": [
+      "Der Einrichtungsassistent fragt, wie deine Spiele geordnet werden: wie sie sind, ein Ordner pro Spiel oder mit den Unterordnern Base, Updates und DLC, wobei deine Ordner bleiben. Ein kleiner Baum zeigt, was jede Wahl bewirkt.",
+      "Im Assistenten können die Automatisierungen nur die neuen Dateien ordnen, die Kompressionsstufen zeigen Dauer und Ersparnis, der Server lässt sich messen, und eine Testbenachrichtigung prüft deine Kanäle vor dem Speichern.",
+      "Der Assistent hat jetzt ruhige Hintergrundmusik; der Lautsprecher-Knopf neben dem Schließen-Knopf schaltet sie aus."
+    ],
+    "fr": [
+      "L'assistant demande comment ranger tes jeux : tels quels, un dossier par jeu ou avec les sous-dossiers Base, Updates et DLC, en gardant tes dossiers. Un petit arbre montre ce que fait chaque choix.",
+      "Dans l'assistant, les automatisations peuvent ranger seulement les nouveaux fichiers, les niveaux de compression disent ce qu'ils coûtent et font gagner, le serveur peut être mesuré, et une notification de test vérifie tes canaux avant d'enregistrer.",
+      "L'assistant a maintenant une musique de fond calme ; le bouton haut-parleur, à côté de celui de fermeture, la coupe."
+    ],
+    "it": [
+      "La procedura guidata chiede come ordinare i tuoi giochi: come sono, una cartella per gioco o con le sottocartelle Base, Updates e DLC, mantenendo le tue cartelle. Un piccolo albero mostra cosa fa ogni scelta.",
+      "Nella procedura, le automazioni possono ordinare solo i file nuovi, i livelli di compressione dicono quanto costano e risparmiano, si può misurare il server e una notifica di prova controlla i tuoi canali prima di salvare.",
+      "La procedura guidata ha ora una musica di sottofondo tranquilla; il pulsante dell'altoparlante, accanto a quello di chiusura, la spegne."
+    ],
+    "pt": [
+      "O assistente pergunta como organizar os teus jogos: como estão, uma pasta por jogo ou com subpastas Base, Updates e DLC, mantendo as pastas que já tens. Uma pequena árvore mostra o que faz cada opção.",
+      "No assistente, as automatizações podem organizar só os ficheiros novos, os níveis de compressão dizem quanto demoram e poupam, o servidor pode ser medido e uma notificação de teste verifica os teus canais antes de guardar.",
+      "O assistente tem agora uma música de fundo tranquila; o botão do altifalante, ao lado do de fechar, desliga-a."
+    ],
+    "nl": [
+      "De installatiewizard vraagt hoe je games geordend worden: zoals ze zijn, een map per game of met de submappen Base, Updates en DLC, met behoud van je mappen. Een kleine boom toont wat elke keuze doet.",
+      "In de wizard kunnen de automatiseringen alleen de nieuwe bestanden ordenen, tonen de compressieniveaus wat ze kosten en besparen, kan de server gemeten worden en controleert een testmelding je kanalen voor het opslaan.",
+      "De wizard heeft nu rustige achtergrondmuziek; de luidsprekerknop naast de sluitknop zet die uit."
+    ],
+    "ru": [
+      "Мастер настройки спрашивает, как упорядочить игры: как есть, папка для каждой игры или с подпапками Base, Updates и DLC, сохраняя твои папки. Небольшое дерево показывает, что делает каждый вариант.",
+      "В мастере автоматизации могут упорядочивать только новые файлы, уровни сжатия показывают время и экономию, можно измерить сервер, а тестовое уведомление проверяет каналы до сохранения.",
+      "В мастере теперь звучит спокойная фоновая музыка; кнопка динамика рядом с кнопкой закрытия выключает её."
+    ],
+    "ja": [
+      "セットアップウィザードでゲームの整理方法を選べます。そのまま、ゲームごとのフォルダー、または Base・Updates・DLC のサブフォルダー付きで、今あるフォルダーも残せます。小さなツリーで各選択の結果がわかります。",
+      "ウィザードでは、自動化で新しいファイルだけを整理でき、圧縮レベルごとの時間と節約量がわかり、サーバーを計測でき、保存前にテスト通知でチャンネルを確認できます。",
+      "ウィザードに落ち着いた BGM が流れるようになりました。閉じるボタンの横にあるスピーカーのボタンで消せます。"
+    ],
+    "ko": [
+      "설정 마법사가 게임 정리 방법을 묻습니다. 그대로, 게임마다 폴더, 또는 Base·Updates·DLC 하위 폴더와 함께, 지금 있는 폴더는 유지합니다. 작은 트리가 각 선택의 결과를 보여 줍니다.",
+      "마법사에서 자동화가 새 파일만 정리할 수 있고, 압축 수준별 시간과 절약량을 보여 주며, 서버를 측정하고, 저장 전에 테스트 알림으로 채널을 확인할 수 있습니다.",
+      "이제 마법사에서 잔잔한 배경 음악이 흐릅니다. 닫기 버튼 옆의 스피커 버튼으로 끌 수 있습니다."
+    ],
+    "zh": [
+      "设置向导会询问如何整理游戏:保持原样、每个游戏一个文件夹,或带 Base、Updates 和 DLC 子文件夹,并保留你已有的文件夹。一个小目录树会显示每个选项的效果。",
+      "在向导中,自动化可以只整理新文件,压缩级别会显示耗时和节省,可以测量服务器,并且在保存前用测试通知检查你的渠道。",
+      "向导现在会播放舒缓的背景音乐;关闭按钮旁的扬声器按钮可以将其关闭。"
+    ]
+  },
   "1.65.2": {
     "en": [
       "In the view by covers of Tasks, a game that cannot be compressed, as one in sparse storage, says Skipped in orange, with why, instead of Error: it did not fail."

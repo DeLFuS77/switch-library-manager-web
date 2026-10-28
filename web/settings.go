@@ -95,6 +95,13 @@ type SettingsForm struct {
 	NotifyTaskFailures    bool   `in:"form=notify_task_failures"`
 	NotifyQueueDone       bool   `in:"form=notify_queue_done"`
 	TelegramCommands      bool   `in:"form=telegram_commands"`
+	// the order of the files, sent by the setup wizard only: empty leaves the options of
+	// Organize as they are
+	OrganizeLayout     string `in:"form=organize_layout"`
+	KeepGameFolders    bool   `in:"form=keep_game_folders"`
+	RenameFiles        bool   `in:"form=rename_files"`
+	DeleteEmptyFolders bool   `in:"form=delete_empty_folders"`
+	KeepDuplicate      string `in:"form=keep_duplicate"`
 }
 
 func (f *SettingsForm) notificationOptions() settings.NotificationOptions {
@@ -302,6 +309,13 @@ func (web *Web) HandleSettings() {
 
 		errorResponse.FieldErrors = append(errorResponse.FieldErrors, validateNotifications(settingsForm.notificationOptions(), lang)...)
 
+		if !validWizardOrganize(settingsForm.OrganizeLayout, settingsForm.KeepDuplicate) {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+				Field:   "organize_layout",
+				Message: translate(lang, "Unknown option"),
+			})
+		}
+
 		if settingsForm.Language != "" && !isSupportedLanguage(settingsForm.Language) {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 				Field:   "language",
@@ -363,6 +377,10 @@ func (web *Web) HandleSettings() {
 			appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
 			appSettings.Language = settingsForm.Language
 			appSettings.Notifications = settingsForm.notificationOptions()
+			if settingsForm.OrganizeLayout != "" {
+				appSettings.OrganizeOptions = wizardOrganize(appSettings.OrganizeOptions, settingsForm.OrganizeLayout,
+					settingsForm.KeepGameFolders, settingsForm.RenameFiles, settingsForm.DeleteEmptyFolders, settingsForm.KeepDuplicate)
+			}
 			appSettings.Folder = scanFolders[0]
 			if len(scanFolders) > 1 {
 				appSettings.ScanFolders = scanFolders[1:]

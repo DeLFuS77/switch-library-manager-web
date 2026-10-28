@@ -413,6 +413,21 @@ func (web *Web) HandleNotifications() {
 	web.router.HandleFunc("/notifications/test", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
 		options := settings.ReadSettings(web.dataFolder).Notifications
+		// the wizard tests the channels written in it, before they are saved
+		if r.FormValue("draft") == "1" {
+			options.DiscordWebhookUrl = strings.TrimSpace(r.FormValue("discord_webhook_url"))
+			options.WebhookUrl = strings.TrimSpace(r.FormValue("webhook_url"))
+			options.TelegramBotToken = strings.TrimSpace(r.FormValue("telegram_bot_token"))
+			options.TelegramChatId = strings.TrimSpace(r.FormValue("telegram_chat_id"))
+			if errs := validateNotifications(options, lang); len(errs) > 0 {
+				writeGlobalError(w, http.StatusBadRequest, lang, errs[0].Message)
+				return
+			}
+			if !notificationsConfigured(options) {
+				writeGlobalError(w, http.StatusBadRequest, lang, "Write a channel first.")
+				return
+			}
+		}
 		if !notificationsConfigured(options) {
 			writeGlobalError(w, http.StatusBadRequest, lang, "No notification channel is configured. Save the settings first.")
 			return

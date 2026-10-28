@@ -88,6 +88,15 @@
 							<g class="wz-pop"><path d="M168 76 h28 l12 12 v60 a5 5 0 0 1 -5 5 H168 a5 5 0 0 1 -5 -5 V81 a5 5 0 0 1 5 -5z" fill="url(#wzGreen)"/><text x="186" y="124" text-anchor="middle" font-size="12" font-weight="800" fill="#fff" font-family="Inter Variable, system-ui, sans-serif">NSZ</text></g>
 						</svg>
 
+						<!-- organize: game cards that fly into a folder with its subfolders -->
+						<svg class="wizard-scene" data-scene="organize" viewBox="0 0 240 200" hidden>
+							<ellipse cx="120" cy="180" rx="80" ry="7" fill="#000" opacity=".18"/>
+							<path d="M52 82 h50 l12 12 h74 a8 8 0 0 1 8 8 v66 a8 8 0 0 1 -8 8 H52 a8 8 0 0 1 -8 -8 V90 a8 8 0 0 1 8 -8z" fill="#ffd166"/>
+							<g class="wz-fly"><rect x="70" y="70" width="30" height="40" rx="5" fill="url(#wzScreen)"/><rect x="105" y="62" width="30" height="40" rx="5" fill="url(#wzWarm)"/><rect x="140" y="70" width="30" height="40" rx="5" fill="url(#wzGreen)"/></g>
+							<path d="M44 110 h152 v58 a8 8 0 0 1 -8 8 H52 a8 8 0 0 1 -8 -8z" fill="#ffb238"/>
+							<g fill="#fff" opacity=".85"><rect x="60" y="134" width="34" height="8" rx="4"/><rect x="103" y="134" width="34" height="8" rx="4"/><rect x="146" y="134" width="34" height="8" rx="4"/></g>
+						</svg>
+
 						<!-- automations: gears and a belt of steps -->
 						<svg class="wizard-scene" data-scene="automation" viewBox="0 0 240 200" hidden>
 							<g class="wz-spin" style="transform-origin:88px 84px"><circle cx="88" cy="84" r="34" fill="none" stroke="#fff" stroke-width="14" stroke-dasharray="11 7"/><circle cx="88" cy="84" r="20" fill="#fff"/></g>
@@ -147,6 +156,7 @@
 							<p class="wizard-counter" data-wizard-counter></p>
 							<div class="progress wizard-progress" role="progressbar" aria-label="{{t "Setup wizard"}}"><div class="progress-bar" data-wizard-bar></div></div>
 						</div>
+						<button type="button" class="btn btn-sm btn-link wizard-music" data-wizard-music aria-pressed="true" aria-label="{{t "Music"}}" title="{{t "Music"}}"><span class="bi bi-volume-up-fill" aria-hidden="true"></span></button>
 						<button type="button" class="btn-close" data-wizard-close aria-label="{{t "Close"}}"></button>
 					</header>
 					<div class="wizard-alert" data-wizard-alert hidden role="alert"></div>
@@ -288,6 +298,13 @@
 									<input class="form-check-input" type="checkbox" role="switch" id="wizard_check_for_updates" name="check_for_updates" value="true"{{if $s.CheckForUpdates}} checked{{end}}>
 									<label class="form-check-label" for="wizard_check_for_updates">{{t "Tell me when a new version of the app is available"}}</label>
 								</div>
+								{{- if .SelfUpdatable}}
+								<div class="form-check form-switch ms-4" data-wizard-auto-install>
+									<input class="form-check-input" type="checkbox" role="switch" id="wizard_auto_install_updates" name="auto_install_updates" value="true" aria-describedby="wizard_auto_install_help"{{if $s.AutoInstallUpdates}} checked{{end}}>
+									<label class="form-check-label" for="wizard_auto_install_updates">{{t "Install new versions by themselves at night"}}</label>
+									<div class="form-text" id="wizard_auto_install_help">{{t "Between 3 and 5 in the morning, when no task is working on the files. The version of before is kept, to go back to it from the Update page."}}</div>
+								</div>
+								{{- end}}
 							</div>
 							<div class="wizard-regions mt-3">
 								<div class="form-check form-switch">
@@ -351,25 +368,88 @@
 								<label class="wizard-card"><input type="radio" name="auto_compress" value="new"{{if eq $s.AutoCompress "new"}} checked{{end}}><span class="wizard-card-icon bi bi-lightning-charge" aria-hidden="true"></span><span class="wizard-card-label">{{t "As soon as new files appear"}}</span></label>
 								<label class="wizard-card"><input type="radio" name="auto_compress" value="night"{{if eq $s.AutoCompress "night"}} checked{{end}}><span class="wizard-card-icon bi bi-moon-stars" aria-hidden="true"></span><span class="wizard-card-label">{{t "Every night at 3:00"}}</span></label>
 							</div>
-							<div class="row g-3 mt-1" data-wizard-compress-options>
-								<div class="col-md-6">
-									<label for="wizard_auto_compress_level" class="form-label fw-semibold">{{t "Compression level"}}</label>
-									<select class="form-select" id="wizard_auto_compress_level" name="auto_compress_level">
-										<option value="fast"{{if eq $s.AutoCompressLevel "fast"}} selected{{end}}>{{t "Fast"}}</option>
-										<option value="balanced"{{if or (eq $s.AutoCompressLevel "balanced") (eq $s.AutoCompressLevel "")}} selected{{end}}>{{t "Balanced"}}</option>
-										<option value="max"{{if eq $s.AutoCompressLevel "max"}} selected{{end}}>{{t "Maximum"}}</option>
-									</select>
+							<div class="mt-3" data-wizard-compress-options>
+								<div class="form-label fw-semibold mb-2" id="wizard_level_label">{{t "Compression level"}}</div>
+								<div class="wizard-levels" role="radiogroup" aria-labelledby="wizard_level_label" aria-describedby="wizard_level_help">
+									{{- $level := $s.AutoCompressLevel}}{{if eq $level ""}}{{$level = "balanced"}}{{end}}
+									<label class="wizard-card"><input type="radio" name="auto_compress_level" value="fast"{{if eq $level "fast"}} checked{{end}}><span class="wizard-card-label"><span class="bi bi-lightning-charge me-1" aria-hidden="true"></span>{{t "Fast"}}</span><span class="wizard-meter" style="--speed:100%;--saving:62%" aria-hidden="true"><span>{{t "Speed"}}</span><span class="is-speed"></span><span>{{t "Saving"}}</span><span class="is-saving"></span></span></label>
+									<label class="wizard-card"><input type="radio" name="auto_compress_level" value="balanced"{{if eq $level "balanced"}} checked{{end}}><span class="wizard-card-label"><span class="bi bi-speedometer2 me-1" aria-hidden="true"></span>{{t "Balanced"}}</span><span class="wizard-meter" style="--speed:70%;--saving:85%" aria-hidden="true"><span>{{t "Speed"}}</span><span class="is-speed"></span><span>{{t "Saving"}}</span><span class="is-saving"></span></span></label>
+									<label class="wizard-card"><input type="radio" name="auto_compress_level" value="max"{{if eq $level "max"}} checked{{end}}><span class="wizard-card-label"><span class="bi bi-gem me-1" aria-hidden="true"></span>{{t "Maximum"}}</span><span class="wizard-meter" style="--speed:12%;--saving:90%" aria-hidden="true"><span>{{t "Speed"}}</span><span class="is-speed"></span><span>{{t "Saving"}}</span><span class="is-saving"></span></span></label>
 								</div>
-								<div class="col-md-6 d-flex align-items-end">
-									<div class="form-check form-switch mb-2">
-										<input class="form-check-input" type="checkbox" role="switch" id="wizard_auto_compress_keep" name="auto_compress_keep" value="true"{{if $s.AutoCompressKeep}} checked{{end}}>
-										<label class="form-check-label" for="wizard_auto_compress_keep">{{t "Keep the originals"}}</label>
+								<div class="form-text" id="wizard_level_help">{{if nativeZstd}}{{t "Maximum is about 8 times slower than Balanced for files about 4% smaller; both use several threads on each file. Installers read every level the same."}}{{else}}{{t "Maximum is about 10 times slower than Balanced (each file on one core) for files a few % smaller. Installers read every level the same."}}{{end}}</div>
+								<div class="wizard-shrink" aria-hidden="true">
+									<span class="wizard-shrink-file is-nsp">NSP</span>
+									<div class="progress"><div class="progress-bar is-work progress-bar-striped progress-bar-animated"></div></div>
+									<span class="wizard-shrink-file is-nsz">NSZ</span>
+								</div>
+								<div class="measure mt-3" data-measure>
+									<div class="d-flex flex-wrap align-items-center gap-2">
+										<button type="button" class="btn btn-sm btn-outline-primary rounded-pill flex-shrink-0" data-measure-start><span class="bi bi-speedometer2 me-1" aria-hidden="true"></span>{{t "Measure this server"}}</button>
+										<span class="small text-body-secondary">{{t "Tries it for 1 to 3 minutes and keeps what compresses fastest on your server."}}</span>
 									</div>
+									<div class="progress mt-2" data-measure-bar hidden><div class="progress-bar is-work progress-bar-striped progress-bar-animated w-100"></div></div>
+									<div class="measure-result small mt-2" data-measure-result role="status"{{if not .LastMeasure}} hidden{{end}}
+										data-text-running="{{t "Measuring the disk and the processor..."}}"
+										data-text-trials="{{t "Files at once × threads"}}"
+										data-text-chosen="{{t "Saved: %v files at once with %v threads each."}}"
+										data-text-levels="{{t "Balanced: about %v min per 10 GB · Maximum: about %v min per 10 GB."}}">
+										{{- with .LastMeasure}}
+										<div><span class="bi bi-check2-circle me-1" aria-hidden="true"></span>{{t "Saved: %v files at once with %v threads each." .FilesAtOnce .Threads}}</div>
+										{{- end}}
+									</div>
+								</div>
+								<div class="form-check form-switch mt-3">
+									<input class="form-check-input" type="checkbox" role="switch" id="wizard_auto_compress_keep" name="auto_compress_keep" value="true"{{if $s.AutoCompressKeep}} checked{{end}}>
+									<label class="form-check-label" for="wizard_auto_compress_keep">{{t "Keep the originals"}}</label>
 								</div>
 							</div>
 						</section>
 
-						<!-- 8. automations -->
+						<!-- 8. the order of the files -->
+						<section class="wizard-step" data-step="organize" data-icon="bi-folder-symlink" data-caption="{{t "Order"}}" hidden>
+							{{- $o := $s.OrganizeOptions}}
+							<h2 class="wizard-title">{{t "How do you order your games?"}}</h2>
+							<p class="wizard-lead">{{t "The folders and names that Organize and the automations use. Nothing is moved now: Organize shows first what would change."}}</p>
+							<div class="wizard-choices wizard-choices-cards" role="radiogroup" aria-label="{{t "Order"}}">
+								<label class="wizard-card"><input type="radio" name="organize_layout" value="none"{{if eq .OrganizeLayout "none"}} checked{{end}}><span class="wizard-card-icon bi bi-files" aria-hidden="true"></span><span class="wizard-card-label">{{t "As they are"}}</span></label>
+								<label class="wizard-card"><input type="radio" name="organize_layout" value="folder"{{if eq .OrganizeLayout "folder"}} checked{{end}}><span class="wizard-card-icon bi bi-folder2" aria-hidden="true"></span><span class="wizard-card-label">{{t "A folder per game"}}</span><span class="wizard-card-tip">{{t "Recommended"}}</span></label>
+								<label class="wizard-card"><input type="radio" name="organize_layout" value="sub"{{if eq .OrganizeLayout "sub"}} checked{{end}}><span class="wizard-card-icon bi bi-diagram-3" aria-hidden="true"></span><span class="wizard-card-label">{{t "A folder per game, with Base, Updates and DLC"}}</span></label>
+							</div>
+							<div class="wizard-tree" data-wizard-tree="organize" aria-hidden="true">
+								<button type="button" class="btn btn-sm btn-link wizard-tree-again" data-wizard-tree-again tabindex="-1"><span class="bi bi-arrow-repeat me-1"></span>{{t "Again"}}</button>
+								<div class="wizard-tree-root"><span class="bi bi-hdd"></span>{{.FolderExample}}</div>
+								<div class="wizard-tree-rows" data-wizard-tree-rows></div>
+								<div class="wizard-tree-caption" data-wizard-tree-caption></div>
+							</div>
+							<div class="wizard-toggles mt-2">
+								<div class="form-check form-switch" data-wizard-keep-folders>
+									<input class="form-check-input" type="checkbox" role="switch" id="wizard_keep_game_folders" name="keep_game_folders" value="true" aria-describedby="wizard_keep_game_folders_help"{{if $o.KeepGameFolders}} checked{{end}}>
+									<label class="form-check-label" for="wizard_keep_game_folders">{{t "Keep the folder each game has"}}</label>
+									<div class="form-text" id="wizard_keep_game_folders_help">{{t "The files of a game go to the folder it has already, which keeps its name: the template names the folders of new games only."}}</div>
+								</div>
+								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" id="wizard_rename_files" name="rename_files" value="true" aria-describedby="wizard_rename_files_help"{{if $o.RenameFiles}} checked{{end}}>
+									<label class="form-check-label" for="wizard_rename_files">{{t "Rename files"}}</label>
+									<div class="form-text" id="wizard_rename_files_help"><code>{{$o.FileNameTemplate}}</code></div>
+								</div>
+								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" id="wizard_delete_empty_folders" name="delete_empty_folders" value="true"{{if $o.DeleteEmptyFolders}} checked{{end}}>
+									<label class="form-check-label" for="wizard_delete_empty_folders">{{t "Delete empty folders afterwards"}}</label>
+								</div>
+							</div>
+							<div class="col-md-7 px-0 mt-3">
+								<label for="wizard_keep_duplicate" class="form-label fw-semibold">{{t "Copy of a duplicate to keep"}}</label>
+								<select class="form-select" id="wizard_keep_duplicate" name="keep_duplicate" aria-describedby="wizard_keep_duplicate_help">
+									<option value=""{{if eq $o.KeepDuplicate ""}} selected{{end}}>{{t "The first one found"}}</option>
+									<option value="nsp"{{if eq $o.KeepDuplicate "nsp"}} selected{{end}}>{{t "NSP or NSZ"}}</option>
+									<option value="xci"{{if eq $o.KeepDuplicate "xci"}} selected{{end}}>{{t "XCI or XCZ"}}</option>
+									<option value="auto"{{if eq $o.KeepDuplicate "auto"}} selected{{end}}>{{t "Let the app choose"}}</option>
+								</select>
+								<div class="form-text" id="wizard_keep_duplicate_help">{{t "Letting the app choose keeps a file with several titles, and otherwise the smaller file. A file with several titles is never deleted while it holds something the library keeps."}}</div>
+							</div>
+						</section>
+
+						<!-- 9. automations -->
 						<section class="wizard-step" data-step="automation" data-icon="bi-magic" data-caption="{{t "Automations"}}" hidden>
 							{{- $a := $s.Automation}}
 							<h2 class="wizard-title">{{t "Let the library take care of itself"}}</h2>
@@ -381,22 +461,35 @@
 							<div class="wizard-flow" data-automation-steps>
 								<label class="wizard-flow-step"><input class="form-check-input" type="checkbox" name="automation_verify" value="true"{{if $a.Verify}} checked{{end}}><span class="bi bi-shield-check" aria-hidden="true"></span><span>{{t "Check the new files"}}</span></label>
 								<span class="wizard-flow-arrow bi bi-chevron-right" aria-hidden="true"></span>
-								<label class="wizard-flow-step"><input class="form-check-input" type="checkbox" name="automation_compress" value="true"{{if $a.Compress}} checked{{end}}><span class="bi bi-file-zip" aria-hidden="true"></span><span>{{t "Compress them"}}</span></label>
+								<label class="wizard-flow-step"><input class="form-check-input" type="checkbox" name="automation_compress" value="true" data-wizard-needs-keys{{if $a.Compress}} checked{{end}}><span class="bi bi-file-zip" aria-hidden="true"></span><span>{{t "Compress them"}}</span></label>
 								<span class="wizard-flow-arrow bi bi-chevron-right" aria-hidden="true"></span>
 								<label class="wizard-flow-step"><input class="form-check-input" type="checkbox" name="automation_cleanup" value="true"{{if $a.CleanupUpdates}} checked{{end}}><span class="bi bi-trash3" aria-hidden="true"></span><span>{{t "Delete the updates a new one replaces"}}</span></label>
 								<span class="wizard-flow-arrow bi bi-chevron-right" aria-hidden="true"></span>
-								<label class="wizard-flow-step"><input class="form-check-input" type="checkbox" name="automation_organize" value="true"{{if $a.Organize}} checked{{end}}><span class="bi bi-folder-symlink" aria-hidden="true"></span><span>{{t "Organize the library"}}</span></label>
-								<input type="checkbox" name="automation_organize_new_only" value="true" hidden{{if $a.OrganizeNewOnly}} checked{{end}}>
+								<label class="wizard-flow-step"><input class="form-check-input" type="checkbox" name="automation_organize" value="true" data-wizard-organize-step{{if $a.Organize}} checked{{end}}><span class="bi bi-folder-symlink" aria-hidden="true"></span><span>{{t "Organize the library"}}</span></label>
 								<span class="wizard-flow-arrow bi bi-chevron-right" aria-hidden="true"></span>
-								<label class="wizard-flow-step"><input class="form-check-input" type="checkbox" name="automation_notify" value="true"{{if $a.Notify}} checked{{end}}><span class="bi bi-bell" aria-hidden="true"></span><span>{{t "Tell me what was done"}}</span></label>
+								<label class="wizard-flow-step"><input class="form-check-input" type="checkbox" name="automation_notify" value="true" data-wizard-needs-channel{{if $a.Notify}} checked{{end}}><span class="bi bi-bell" aria-hidden="true"></span><span>{{t "Tell me what was done"}}</span></label>
 							</div>
+							<div class="wizard-organize-scope" data-wizard-organize-scope>
+								<div class="wizard-choices wizard-choices-inline" role="radiogroup" aria-label="{{t "Organize the library"}}">
+									<label class="wizard-choice"><input type="radio" name="automation_organize_new_only" value="true"{{if $a.OrganizeNewOnly}} checked{{end}}><span class="bi bi-box-arrow-in-down" aria-hidden="true"></span>{{t "Only the new files"}}</label>
+									<label class="wizard-choice"><input type="radio" name="automation_organize_new_only" value="false"{{if not $a.OrganizeNewOnly}} checked{{end}}><span class="bi bi-collection" aria-hidden="true"></span>{{t "The whole library"}}</label>
+								</div>
+								<div class="wizard-tree" data-wizard-tree="automation" aria-hidden="true">
+									<button type="button" class="btn btn-sm btn-link wizard-tree-again" data-wizard-tree-again tabindex="-1"><span class="bi bi-arrow-repeat me-1"></span>{{t "Again"}}</button>
+									<div class="wizard-tree-root"><span class="bi bi-hdd"></span>{{.FolderExample}}</div>
+									<div class="wizard-tree-rows" data-wizard-tree-rows></div>
+									<div class="wizard-tree-caption" data-wizard-tree-caption></div>
+								</div>
+							</div>
+							<p class="wizard-needs text-warning-emphasis" data-wizard-keys-needed hidden><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "Needs your own prod.keys."}}</p>
+							<p class="wizard-needs text-warning-emphasis" data-wizard-channel-needed hidden><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "To tell you, a channel is needed: set it up in the next step."}}</p>
 							<div class="form-check form-switch mt-3">
 								<input class="form-check-input" type="checkbox" role="switch" id="wizard_automation_night" name="automation_night" value="true"{{if $a.BackgroundHoursOnly}} checked{{end}}>
 								<label class="form-check-label" for="wizard_automation_night">{{t "Wait for the background hours"}}</label>
 							</div>
 						</section>
 
-						<!-- 9. notifications -->
+						<!-- 10. notifications -->
 						<section class="wizard-step" data-step="notifications" data-icon="bi-bell" data-caption="{{t "Notifications"}}" hidden>
 							<h2 class="wizard-title">{{t "Get a message when something new arrives"}}</h2>
 							<p class="wizard-lead">{{t "Optional. Updates, DLC, games of your wishlist and new games, on Discord, Telegram or any webhook."}}</p>
@@ -429,9 +522,13 @@
 								<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="wizard_notify_queue_done" name="notify_queue_done" value="true"{{if not $s.Notifications.QueueDoneQuiet}} checked{{end}}><label class="form-check-label" for="wizard_notify_queue_done">{{t "Notify when the queue of tasks is done"}}</label></div>
 								<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="wizard_telegram_commands" name="telegram_commands" value="true"{{if $s.Notifications.TelegramCommands}} checked{{end}}><label class="form-check-label" for="wizard_telegram_commands">{{t "Answer in the chat of Telegram"}}</label></div>
 							</div>
+							<div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+								<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-wizard-test-notification><span class="bi bi-send me-1" aria-hidden="true"></span>{{t "Send a test notification"}}</button>
+								<p class="wizard-check-line m-0" data-wizard-test-result aria-live="polite"></p>
+							</div>
 						</section>
 
-						<!-- 10. extras -->
+						<!-- 11. extras -->
 						<section class="wizard-step" data-step="extras" data-icon="bi-gem" data-caption="{{t "Extras"}}" hidden>
 							<h2 class="wizard-title">{{t "Extras"}}</h2>
 							<p class="wizard-lead">{{t "Regular checks of your files, and how long games take to beat. All optional."}}</p>
@@ -469,7 +566,7 @@
 							</fieldset>
 						</section>
 
-						<!-- 11. security -->
+						<!-- 12. security -->
 						<section class="wizard-step" data-step="security" data-icon="bi-shield-lock" data-caption="{{t "Security"}}" hidden>
 							<h2 class="wizard-title">{{t "Protect your library"}}</h2>
 							{{- if .AuthEnabled}}
@@ -493,7 +590,7 @@
 							{{- end}}
 						</section>
 
-						<!-- 12. summary -->
+						<!-- 13. summary -->
 						<section class="wizard-step" data-step="summary" data-icon="bi-flag" data-caption="{{t "Ready"}}" hidden>
 							<h2 class="wizard-title">{{t "All set?"}}</h2>
 							<p class="wizard-lead">{{t "This is what you chose. Saving starts reading your library."}}</p>
@@ -505,7 +602,11 @@
 							<div class="wizard-done-mark" aria-hidden="true"><span class="bi bi-check-lg"></span></div>
 							<h2 class="wizard-title">{{t "Your library is on its way!"}}</h2>
 							<p class="wizard-lead">{{t "The app is reading your folders now. You can follow it on the Tasks page, and change anything in Settings or with this wizard."}}</p>
-							<a class="btn btn-primary rounded-pill px-4" href="/index.html"><span class="bi bi-collection me-2" aria-hidden="true"></span>{{t "Go to the library"}}</a>
+							<div class="d-flex flex-wrap gap-2 justify-content-center">
+								<a class="btn btn-primary rounded-pill px-4" href="/index.html"><span class="bi bi-collection me-2" aria-hidden="true"></span>{{t "Go to the library"}}</a>
+								<a class="btn btn-outline-primary rounded-pill px-4" href="/organize.html" data-wizard-see-order hidden><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "See what ordering would change"}}</a>
+							</div>
+							<a class="small d-inline-block mt-3" href="/settings.html#mobile"><span class="bi bi-phone me-1" aria-hidden="true"></span>{{t "Install the app on your phone"}}</a>
 						</section>
 					</div>
 
@@ -523,7 +624,9 @@
 						<input type="checkbox" name="vault_notify" value="true"{{if $s.Vault.Notify}} checked{{end}}>
 						<input type="text" name="compress_threads" value="{{$s.CompressThreads}}">
 						<input type="text" name="compress_files_at_once" value="{{$s.CompressFilesAtOnce}}">
+						{{- if not .SelfUpdatable}}
 						<input type="checkbox" name="auto_install_updates" value="true"{{if $s.AutoInstallUpdates}} checked{{end}}>
+						{{- end}}
 					</div>
 
 					<footer class="wizard-footer" data-wizard-footer>
@@ -544,6 +647,6 @@
 			</form>
 		</div>
 	</div>
-	<script type="application/json" data-wizard-texts>{"step":{{t "Step %v of %v"}},"checking":{{t "Checking…"}},"saving":{{t "Saving…"}},"yes":{{t "Yes"}},"no":{{t "No"}},"none":{{t "None"}},"folders":{{t "Folders to scan"}},"keys":{{t "Your keys (prod.keys)"}},"firmware":{{t "Firmware of your console"}},"background":{{t "Do heavy work"}},"compress":{{t "Compress automatically"}},"automation":{{t "Automations"}},"notifications":{{t "Notifications"}},"admin":{{t "Administrator"}},"igdb":{{t "Times to beat (IGDB)"}},"theme":{{t "Theme"}},"language":{{t "Language"}},"default":{{t "Default"}},"stepsOn":{{t "%v steps on"}},"off":{{t "Off"}},"set":{{t "Set"}},"noFolder":{{t "Please provide at least one Folder to scan"}},"adminFailed":{{t "The administrator could not be created. Check the user name and the password."}},"unreachable":{{t "The server could not be reached."}},"found":{{t "Keys found"}},"notFound":{{t "Keys not found"}},"change":{{t "Change"}},"noFolders":{{t "No folders here"}},"more":{{t "Only the first %v folders are shown."}}}</script>
+	<script type="application/json" data-wizard-texts>{"step":{{t "Step %v of %v"}},"checking":{{t "Checking…"}},"saving":{{t "Saving…"}},"yes":{{t "Yes"}},"no":{{t "No"}},"none":{{t "None"}},"folders":{{t "Folders to scan"}},"keys":{{t "Your keys (prod.keys)"}},"firmware":{{t "Firmware of your console"}},"background":{{t "Do heavy work"}},"compress":{{t "Compress automatically"}},"automation":{{t "Automations"}},"notifications":{{t "Notifications"}},"admin":{{t "Administrator"}},"igdb":{{t "Times to beat (IGDB)"}},"theme":{{t "Theme"}},"language":{{t "Language"}},"default":{{t "Default"}},"stepsOn":{{t "%v steps on"}},"off":{{t "Off"}},"set":{{t "Set"}},"noFolder":{{t "Please provide at least one Folder to scan"}},"adminFailed":{{t "The administrator could not be created. Check the user name and the password."}},"unreachable":{{t "The server could not be reached."}},"found":{{t "Keys found"}},"notFound":{{t "Keys not found"}},"change":{{t "Change"}},"noFolders":{{t "No folders here"}},"more":{{t "Only the first %v folders are shown."}},"regions":{{t "Preferred regions, in order"}},"sync":{{t "Automatic synchronization"}},"order":{{t "Order"}},"rename":{{t "Rename files"}},"verify":{{t "Check the files"}},"newOnly":{{t "Only the new files"}},"sending":{{t "Sending…"}},"new":{{t "new"}},"untouched":{{t "untouched"}},"treeBefore":{{t "Before: the files as they came."}},"treeNone":{{t "Nothing changes its place."}},"treeNoneRenamed":{{t "Every file stays where it is, with the name of the template."}},"treeFolder":{{t "Each game in a folder with its name."}},"treeKeep":{{t "A game that has a folder keeps it; the others get one of their own."}},"treeSub":{{t "Inside each game, a subfolder for each kind."}},"treeEmpty":{{t "The empty folder is deleted."}},"treeArrives":{{t "A new update of a game arrives."}},"treeNewOnly":{{t "The update goes to the folder of its game; nothing else is touched."}},"treeAll":{{t "Everything is ordered, also what was loose."}}}</script>
 </div>
 {{- end}}
