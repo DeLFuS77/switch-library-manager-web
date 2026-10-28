@@ -68,16 +68,139 @@ function playWizardWelcome() {
 	}
 }
 
+// The music of the wizard: soft chords that change slowly under bells going up and down, with an
+// echo, made here while the wizard is open. It starts after the welcome, fades out when the
+// wizard closes or the page is hidden, and can be turned off (remembered by the browser).
+const WIZARD_MUSIC_KEY = 'slm-wizard-music';
+let wizardMusic = null;
+
+function wizardMusicOn() {
+	try {
+		return localStorage.getItem(WIZARD_MUSIC_KEY) !== 'off';
+	} catch (e) {
+		return true;
+	}
+}
+
+function startWizardMusic() {
+	if (wizardMusic || document.hidden) {
+		return;
+	}
+	try {
+		soundContext = soundContext || new (window.AudioContext || window.webkitAudioContext)();
+		if (soundContext.state === 'suspended') {
+			soundContext.resume();
+		}
+		const context = soundContext;
+		const note = midi => 440 * 2 ** ((midi - 69) / 12);
+		const out = context.createGain();
+		out.gain.setValueAtTime(.0001, context.currentTime);
+		out.gain.exponentialRampToValueAtTime(.55, context.currentTime + 5);
+		const soft = context.createBiquadFilter();
+		soft.type = 'lowpass';
+		soft.frequency.value = 2400;
+		soft.connect(out).connect(context.destination);
+		const echo = context.createDelay();
+		echo.delayTime.value = .42;
+		const feedback = context.createGain();
+		feedback.gain.value = .32;
+		const wet = context.createGain();
+		wet.gain.value = .4;
+		echo.connect(feedback).connect(echo);
+		echo.connect(wet).connect(soft);
+		const voice = (frequency, start, length, type, volume, attack, toEcho) => {
+			const oscillator = context.createOscillator();
+			const gain = context.createGain();
+			oscillator.type = type;
+			oscillator.frequency.value = frequency;
+			gain.gain.setValueAtTime(.0001, start);
+			gain.gain.exponentialRampToValueAtTime(volume, start + attack);
+			gain.gain.exponentialRampToValueAtTime(.0001, start + length);
+			oscillator.connect(gain).connect(soft);
+			if (toEcho) {
+				gain.connect(echo);
+			}
+			oscillator.start(start);
+			oscillator.stop(start + length + .05);
+		};
+		// D major 9, B minor 9, G major 9, A 6 sus: four bars that turn round and round
+		const chords = [[50, 57, 61, 64, 66], [47, 54, 57, 61, 62], [43, 50, 54, 57, 59], [45, 52, 59, 62, 66]];
+		// the bells of each bar, in eighths: up the chord, then a step down to settle
+		const bells = [[74, 78, 81, 85, 86, null, 81, null], [74, 78, 81, 83, 86, null, 78, null], [74, 78, 79, 83, 86, null, 83, 81], [76, 78, 81, 83, 86, 88, null, 85]];
+		const bar = 3.4;
+		const eighth = bar / 8;
+		let next = context.currentTime + .3;
+		let count = 0;
+		const schedule = () => {
+			while (next < context.currentTime + 1.6) {
+				const chord = chords[count % chords.length];
+				chord.forEach((midi, i) => {
+					voice(note(midi), next, bar + 1.4, 'sine', i ? .022 : .03, 1.3, false);
+					voice(note(midi) * 1.004, next, bar + 1.4, 'triangle', .008, 1.5, false);
+				});
+				voice(note(chord[0] - 12), next, bar + .6, 'sine', .035, .4, false);
+				// the first time round the bells wait, so the chords come in first
+				if (count >= 2) {
+					bells[count % bells.length].forEach((midi, i) => {
+						if (midi) {
+							voice(note(midi), next + i * eighth, 1.8, 'sine', .045, .008, true);
+							voice(note(midi) * 2, next + i * eighth, .5, 'sine', .008, .005, true);
+						}
+					});
+				}
+				next += bar;
+				count++;
+			}
+		};
+		schedule();
+		const timer = setInterval(schedule, 400);
+		wizardMusic = {
+			stop() {
+				clearInterval(timer);
+				const now = context.currentTime;
+				out.gain.cancelScheduledValues(now);
+				out.gain.setValueAtTime(Math.max(out.gain.value, .0001), now);
+				out.gain.exponentialRampToValueAtTime(.0001, now + 1.2);
+				setTimeout(() => out.disconnect(), 1500);
+			},
+		};
+	} catch (e) {
+		// no sound in this browser
+	}
+}
+
+function stopWizardMusic() {
+	if (wizardMusic) {
+		wizardMusic.stop();
+		wizardMusic = null;
+	}
+}
+
+// the music stops while the page is not seen, and comes back with it if the wizard is open
+document.addEventListener('visibilitychange', () => {
+	if (document.hidden) {
+		stopWizardMusic();
+	} else if (document.querySelector('#setupWizard.show') && wizardMusicOn() && navigator.userActivation?.hasBeenActive !== false) {
+		startWizardMusic();
+	}
+});
+
 function wizardWelcome(element) {
+	const begin = () => {
+		playWizardWelcome();
+		if (wizardMusicOn()) {
+			startWizardMusic();
+		}
+	};
 	const silent = navigator.userActivation && !navigator.userActivation.hasBeenActive;
 	if (!silent) {
-		playWizardWelcome();
+		begin();
 		return;
 	}
 	const first = () => {
 		element.removeEventListener('pointerdown', first);
 		element.removeEventListener('keydown', first);
-		playWizardWelcome();
+		begin();
 	};
 	element.addEventListener('pointerdown', first);
 	element.addEventListener('keydown', first);
@@ -842,6 +965,29 @@ function setupWizard(element) {
 			});
 	};
 
+	// the music can be turned off and on; the choice is kept for the next time
+	const musicButton = element.querySelector('[data-wizard-music]');
+	const markMusic = () => {
+		const on = wizardMusicOn();
+		musicButton.setAttribute('aria-pressed', String(on));
+		musicButton.querySelector('.bi').className = `bi ${on ? 'bi-volume-up-fill' : 'bi-volume-mute-fill'}`;
+	};
+	musicButton.addEventListener('click', () => {
+		const on = !wizardMusicOn();
+		try {
+			localStorage.setItem(WIZARD_MUSIC_KEY, on ? 'on' : 'off');
+		} catch (e) {
+			// for this visit only
+		}
+		if (on) {
+			startWizardMusic();
+		} else {
+			stopWizardMusic();
+		}
+		markMusic();
+	});
+	markMusic();
+
 	const setState = state => fetch('/wizard/state', { method: 'POST', body: new URLSearchParams({ state }) }).catch(() => {});
 	element.querySelector('[data-wizard-close]').addEventListener('click', () => {
 		// closed the first time without choosing: asked again another day
@@ -858,6 +1004,7 @@ function setupWizard(element) {
 		setState('done');
 		modal.hide();
 	});
+	element.addEventListener('hide.bs.modal', stopWizardMusic);
 	element.addEventListener('hidden.bs.modal', () => {
 		if (saved) {
 			window.location.reload();

@@ -1104,3 +1104,20 @@ body:has(.wizard.show) #alert_sync {
 
 @keyframes wz-fly { from { opacity: 0; transform: translate(-40px, -60px) rotate(-25deg); } 60% { opacity: 1; } }
 @keyframes wz-fly-right { from { opacity: 0; transform: translate(40px, -70px) rotate(25deg); } 60% { opacity: 1; } }
+
+// the button that turns the music of the wizard off and on
+.wizard-music {
+	padding: .1rem .35rem;
+	color: var(--bs-secondary-color);
+	font-size: 1.1rem;
+	line-height: 1;
+
+	&:hover,
+	&:focus-visible {
+		color: var(--bs-body-color);
+	}
+
+	&[aria-pressed="false"] {
+		opacity: .7;
+	}
+}
