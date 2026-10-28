@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.65.2
+
+### Fixes
+
+- In the view by covers of Tasks, a game that cannot be compressed (in sparse storage, compressed already under another name, with no game data, or with an encryption no compressor reads) said Error in red, as if it had failed: it says Skipped in orange now, with why when the pointer is on it, and keeps its cover with an orange edge. Red stays for what failed
+
 ## 1.65.1
 
 ### Improvements
