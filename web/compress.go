@@ -662,7 +662,7 @@ const (
 	PHASE_COMPRESSING   = "Compressing"
 	PHASE_DECOMPRESSING = "Decompressing"
 	PHASE_CONVERTING    = "Converting"
-	PHASE_PACKING       = "Building the pack"
+	PHASE_PACKING       = "Combining the files"
 	PHASE_VERIFYING     = "Verifying"
 )
 

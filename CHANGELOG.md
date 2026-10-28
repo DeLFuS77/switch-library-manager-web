@@ -8,8 +8,9 @@
 
 ### Improvements
 
-- Before Compress, Decompress, Convert, Split or Make packs start, the most their new files may take on each disk is weighed against what is free there, and when they may not fit the page says where and how much and asks before starting anyway. Files whose originals are deleted count only the ones written at once, as the app already gives their room back
-- The list of packs warns of a game with a DLC that needs a newer version of the game than its newest update in the library: the pack would hold a DLC that asks for an update it does not have
+- Before Compress, Decompress, Convert, Split or Combine start, the most their new files may take on each disk is weighed against what is free there, and when they may not fit the page says where and how much and asks before starting anyway. Files whose originals are deleted count only the ones written at once, as the app already gives their room back
+- The list of games to combine warns of a game with a DLC that needs a newer version of the game than its newest update in the library: the combined file would hold a DLC that asks for an update it does not have
+- Packs are called Combine now, a plainer word for what they do: the tab of the Compress page, its buttons, the one of the game page, the task and its notes, in every language. The files keep the (pack) in their names, so the ones already made are still found (thanks @NikoMuffin)
 
 ## 1.63.1
 

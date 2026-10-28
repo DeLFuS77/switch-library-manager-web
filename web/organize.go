@@ -334,7 +334,7 @@ func (r *removedSoFar) since(known int) []string {
 }
 
 // errOrganizeBusy is returned while another task reads or writes the files of the library.
-var errOrganizeBusy = errorString("Another task is working on the files of the library (organizing, a cleanup, a compression, a pack or a check): try again when it has finished.")
+var errOrganizeBusy = errorString("Another task is working on the files of the library (organizing, a cleanup, a compression, combining games or a check): try again when it has finished.")
 
 func writeJSON(w http.ResponseWriter, status int, value any) {
 	w.Header().Set("Content-Type", "application/json")

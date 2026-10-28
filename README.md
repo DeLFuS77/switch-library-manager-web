@@ -124,7 +124,7 @@ Linux, Docker, NAS and Raspberry Pi.
 - See how much each file will likely save before compressing it, from what your earlier compressions saved
 - Pause a compression and resume it later, from the same point in the middle of a file
 - Several files at once, with the threads and files measured on your own server to compress as fast as it can
-- Complete packs: the game, its latest update and its DLC in one NSP (or NSZ) to install at once, without the
+- Combine: the game, its latest update and its DLC in one NSP (or NSZ) to install at once, without the
   delta fragments of the update, from a game page or for many games at once; checked before the separate files are
   deleted, only if you choose it
 - Split multi-title files ("SuperNSP", packs made here or by other tools) back into one NSP or NSZ per game, update
@@ -232,7 +232,7 @@ The [wiki](https://github.com/DeLFuS77/switch-library-manager-web/wiki) has a gu
 | [Tour of the app](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Tour-of-the-app) | Every page, with a screenshot and what it is for |
 | [Installation](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Installation) | Docker, Synology, Portainer, Unraid, Windows, macOS, Linux, Raspberry Pi |
 | [Organize and duplicates](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Organize-and-duplicates) | Folders, names, old updates and which copy of a duplicate stays |
-| [Compression](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Compression) | NSZ and XCZ, how files are checked, complete packs and splitting |
+| [Compression](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Compression) | NSZ and XCZ, how files are checked, combining games and splitting |
 | [Cheats](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Cheats) | The cheats of your games for the version you have, ready for the SD card |
 | [Users and security](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Users-and-security) | Accounts, the internet, Cloudflare and verifying the downloads |
 | [Save vault](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Save-vault), [Times to beat and sagas](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Times-to-beat-and-sagas), [App on your phone](https://github.com/DeLFuS77/switch-library-manager-web/wiki/App-on-your-phone) | The extras |
