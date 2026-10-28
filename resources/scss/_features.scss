@@ -375,6 +375,22 @@
 	--tile-work-rgb: var(--slm-work-rgb);
 }
 
+// the share a cover (or the number of a lane) is filled with: a registered property, so it
+// rises smoothly between two updates of the list instead of jumping to the next value
+@property --lane-fill {
+	syntax: "<percentage>";
+	inherits: true;
+	initial-value: 0%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.task-tile,
+	.task-lane-thumb,
+	.task-lane-number {
+		transition: --lane-fill 1.2s linear;
+	}
+}
+
 .task-tile.is-working .task-tile-cover::after {
 	content: '';
 	position: absolute;

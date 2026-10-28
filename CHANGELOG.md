@@ -9,6 +9,7 @@
 
 ### Improvements
 
+- In Tasks, the cover of a file at work (and the number of its lane) fills up smoothly between two updates, instead of rising in jumps
 - A file written by the app (compressed, decompressed, converted, split, a pack, an upload, your keys) is on the disk before it takes its name, and before the original is deleted: a power cut at that moment no longer leaves an empty file with the original gone
 - The music of the setup wizard is a slow bossa nova now: a soft bass, short chords ahead of the beat and a quiet wooden click, calmer than the bells it had
 

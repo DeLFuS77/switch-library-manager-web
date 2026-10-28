@@ -246,6 +246,22 @@ function initLiveTasks() {
 					};
 					const widths = {};
 					const shares = {};
+					// the covers (and numbers of the lanes) filled with the share of their file rise from
+					// where they were too, keyed as the bars
+					const fills = {};
+					const fillKey = (card, element) => {
+						const file = element.closest('.task-lane, .task-tile');
+						const name = file?.querySelector('[title]')?.title;
+						return name ? `${card.dataset.taskId}|${name}|${file.dataset.step || ''}|${element.className}` : null;
+					};
+					list.querySelectorAll('[data-task-id]').forEach(card => {
+						card.querySelectorAll('[style*="--lane-fill"]').forEach(element => {
+							const key = fillKey(card, element);
+							if (key) {
+								fills[key] = getComputedStyle(element).getPropertyValue('--lane-fill').trim();
+							}
+						});
+					});
 					list.querySelectorAll('[data-task-id]').forEach(card => {
 						card.querySelectorAll('.progress-bar').forEach(bar => {
 							if (barKey(card, bar) === null) {
@@ -344,6 +360,21 @@ function initLiveTasks() {
 							if (share && shareBefore) {
 								bar.style.setProperty('--pct', share);
 							}
+						});
+					});
+					list.querySelectorAll('[data-task-id]').forEach(card => {
+						card.querySelectorAll('[style*="--lane-fill"]').forEach(element => {
+							const before = fills[fillKey(card, element)];
+							const after = element.style.getPropertyValue('--lane-fill').trim();
+							if (!before || before === after) {
+								return;
+							}
+							element.style.transition = 'none';
+							element.style.setProperty('--lane-fill', before);
+							// reading the value makes the browser take it as the start of the transition
+							void getComputedStyle(element).getPropertyValue('--lane-fill');
+							element.style.transition = '';
+							element.style.setProperty('--lane-fill', after);
 						});
 					});
 					if (moving) {
