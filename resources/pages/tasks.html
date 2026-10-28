@@ -194,11 +194,11 @@
 {{- if .Plan}}
 <ul class="task-tiles list-unstyled mb-0 mt-3" aria-label="{{t "Files"}}">
 	{{- range .Plan}}
-	<li class="task-tile{{if .Working}} is-working{{else if .Waiting}} is-waiting{{else if .Failed}} is-failed{{end}}"{{if .Working}} style="--lane-fill: {{.Percent}}%"{{end}}>
+	<li class="task-tile{{if .Working}} is-working{{else if .Waiting}} is-waiting{{else if .Failed}} is-failed{{end}}"{{if .Working}} style="--lane-fill: {{.Percent}}%"{{with .Step}} data-step="{{.}}"{{end}}{{end}}>
 		<span class="task-tile-cover">{{if .Cover}}<img class="task-tile-img" src="{{.Cover}}" alt="" loading="lazy" decoding="async">{{else}}<span class="bi bi-file-earmark-zip" aria-hidden="true"></span>{{end}}{{if .Working}}<span class="task-tile-pct">{{.Percent}}%</span>{{end}}</span>
 		<span class="task-tile-name" title="{{.Name}}">{{.Name}}</span>
 		{{- if .Working}}
-		<span class="progress task-tile-bar" role="progressbar" aria-label="{{.Name}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100"><span class="progress-bar" style="width: {{.Percent}}%"></span></span>
+		{{- template "tileProgress" .}}
 		{{- else if .Waiting}}
 		<span class="chip chip-muted task-tile-state"><span class="bi bi-hourglass" aria-hidden="true"></span>{{t "Waiting"}}</span>
 		{{- else if .Failed}}
@@ -215,10 +215,13 @@
 {{- else if or .Lanes .Tiles}}
 <ul class="task-tiles list-unstyled mb-0 mt-3" aria-label="{{t "Files"}}">
 	{{- range .Lanes}}
-	<li class="task-tile is-working" style="--lane-fill: {{.StepPercent}}%">
-		<span class="task-tile-cover">{{if .Cover}}<img class="task-tile-img" src="{{.Cover}}" alt="" loading="lazy" decoding="async">{{else}}<span class="bi bi-file-earmark-zip" aria-hidden="true"></span>{{end}}<span class="task-tile-pct">{{.StepPercent}}%</span></span>
+	{{- with .Tile}}
+	<li class="task-tile is-working" style="--lane-fill: {{.Percent}}%"{{with .Step}} data-step="{{.}}"{{end}}>
+		<span class="task-tile-cover">{{if .Cover}}<img class="task-tile-img" src="{{.Cover}}" alt="" loading="lazy" decoding="async">{{else}}<span class="bi bi-file-earmark-zip" aria-hidden="true"></span>{{end}}<span class="task-tile-pct">{{.Percent}}%</span></span>
 		<span class="task-tile-name" title="{{.Name}}">{{.Name}}</span>
+		{{- template "tileProgress" .}}
 	</li>
+	{{- end}}
 	{{- end}}
 	{{- range .Tiles}}
 	<li class="task-tile{{if .Failed}} is-failed{{end}}">
@@ -288,6 +291,18 @@
 
 {{define "taskKind"}}{{if eq . "sync"}}{{t "Synchronization"}}{{else if eq . "scan"}}{{t "Library scan"}}{{else if eq . "organize"}}{{t "Organize files"}}{{else if eq . "cleanup"}}{{t "Delete old updates"}}{{else if eq . "compress"}}{{t "Compression"}}{{else if eq . "decompress"}}{{t "Decompression"}}{{else if eq . "verify"}}{{t "File check"}}{{else if eq . "covers"}}{{t "Cover downloads"}}{{else if eq . "thumbnails"}}{{t "Thumbnails"}}{{else if eq . "copy"}}{{t "Copy to the card"}}{{else if eq . "convert"}}{{t "Conversion"}}{{else if eq . "pack"}}{{t "Combine"}}{{else if eq . "split"}}{{t "Split files"}}{{else if eq . "timetobeat"}}{{t "Times to beat (IGDB)"}}{{else if eq . "upload"}}{{t "Upload"}}{{else}}{{.}}{{end}}{{end}}
 
+{{/* the bar of a cover at work: whole, or split in the steps of the file (hashes, work, check)
+with the one it is in written above it, as in the view by bars */}}
+{{define "tileProgress"}}
+{{- if .Segments}}
+		<span class="task-tile-step"><span class="lane-dot lane-{{.Tone}}" aria-hidden="true"></span><span class="text-truncate">{{t .Phase}}</span>&nbsp;· {{.Step}}/{{.Steps}}</span>
+		<span class="task-tile-segs" role="progressbar" aria-label="{{.Name}}: {{t .Phase}}, {{t "step %v of %v" .Step .Steps}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100">
+			{{- range .Segments}}<span class="task-tile-seg{{if .Done}} is-done{{end}}">{{if .Current}}<span class="progress-bar" style="width: {{$.Percent}}%"></span>{{end}}</span>{{end -}}
+		</span>
+{{- else}}
+		<span class="progress task-tile-bar" role="progressbar" aria-label="{{.Name}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100"><span class="progress-bar" style="width: {{.Percent}}%"></span></span>
+{{- end}}
+{{- end}}
 {{define "taskIcon"}}{{if eq . "sync"}}bi-arrow-repeat{{else if eq . "scan"}}bi-search{{else if eq . "organize"}}bi-folder-symlink{{else if eq . "cleanup"}}bi-trash3{{else if eq . "compress"}}bi-file-zip{{else if eq . "decompress"}}bi-box-arrow-up{{else if eq . "verify"}}bi-shield-check{{else if eq . "covers"}}bi-images{{else if eq . "thumbnails"}}bi-aspect-ratio{{else if eq . "copy"}}bi-sd-card{{else if eq . "convert"}}bi-arrow-left-right{{else if eq . "pack"}}bi-box-seam{{else if eq . "split"}}bi-scissors{{else if eq . "timetobeat"}}bi-hourglass-split{{else if eq . "upload"}}bi-upload{{else}}bi-gear{{end}}{{end}}
 
 {{define "taskTrigger"}}{{if eq . "manual"}}{{t "Started by you"}}{{else if eq . "schedule"}}{{t "Scheduled"}}{{else if eq . "watcher"}}{{t "Files changed"}}{{else if eq . "settings"}}{{t "Settings saved"}}{{else if eq . "startup"}}{{t "App started"}}{{else if eq . "organize"}}{{t "After organizing"}}{{else if eq . "compress"}}{{t "After compressing"}}{{else if eq . "upload"}}{{t "After an upload"}}{{else if eq . "scan"}}{{t "After the scan"}}{{else if eq . "automation"}}{{t "Automations"}}{{else if eq . "resume"}}{{t "Going on after a restart"}}{{else}}{{.}}{{end}}{{end}}

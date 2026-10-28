@@ -261,6 +261,16 @@ func (l TaskLane) StepDone() int64 {
 	return min(max(l.Done-int64(l.Step-1)*total, 0), total)
 }
 
+// Tile is the file at work as a cover of the view by covers: its progress in the step it is
+// in, and the step.
+func (l TaskLane) Tile() TaskTile {
+	tile := TaskTile{Name: l.Name, Cover: l.Cover, Working: true, Percent: l.StepPercent()}
+	if l.Phase != "" && l.Steps > 1 {
+		tile.Phase, tile.Step, tile.Steps, tile.Tone = l.Phase, l.Step, l.Steps, l.Tone()
+	}
+	return tile
+}
+
 // StepPercent is the progress of the step being done.
 func (l TaskLane) StepPercent() int {
 	return TaskLane{Done: l.StepDone(), Total: l.StepTotal()}.Percent()
@@ -296,6 +306,32 @@ type TaskTile struct {
 	Cover   string `json:"-"`
 	Working bool   `json:"-"`
 	Percent int    `json:"-"`
+	// for a file at work in a task in steps (hashes, work, check): the step it is in, out of
+	// how many, and its colour, as in the view by bars
+	Phase string `json:"-"`
+	Step  int    `json:"-"`
+	Steps int    `json:"-"`
+	Tone  string `json:"-"`
+}
+
+// TileSegment is a step of a file at work, for the bar of its cover split in steps: done, the
+// one being done, or still to come.
+type TileSegment struct {
+	Done    bool
+	Current bool
+}
+
+// Segments are the steps of a file at work, for the bar of its cover; none for a task of one
+// step, whose bar is whole.
+func (t TaskTile) Segments() []TileSegment {
+	if t.Steps <= 1 {
+		return nil
+	}
+	segments := make([]TileSegment, t.Steps)
+	for i := range segments {
+		segments[i] = TileSegment{Done: i+1 < t.Step, Current: i+1 == t.Step}
+	}
+	return segments
 }
 
 // maxTaskResults is how many files a task lists, the last ones.

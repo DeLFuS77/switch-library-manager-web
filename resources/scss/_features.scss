@@ -381,6 +381,42 @@
 	}
 }
 
+// a file in steps: the step it is in, with the dot of its colour, and its bar split in the
+// steps, the ones done full and the one being done filling up
+.task-tile-step {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	color: var(--bs-secondary-color);
+	white-space: nowrap;
+
+	.lane-dot {
+		flex-shrink: 0;
+	}
+}
+
+.task-tile-segs {
+	display: flex;
+	gap: 3px;
+	height: 0.3rem;
+}
+
+.task-tile-seg {
+	flex: 1;
+	overflow: hidden;
+	border-radius: 2px;
+	background: rgba(127, 127, 127, 0.25);
+
+	&.is-done {
+		background: rgb(var(--tile-work-rgb));
+	}
+
+	.progress-bar {
+		height: 100%;
+		background-color: rgb(var(--tile-work-rgb));
+	}
+}
+
 .task-tile-pct {
 	position: relative;
 	z-index: 1;

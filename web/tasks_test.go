@@ -352,6 +352,31 @@ func TestTasksByCoversShowEachFile(t *testing.T) {
 			t.Errorf("the covers show %q", want)
 		}
 	}
+	// the step of the file, and its bar split in its three steps: the first done, the second filling
+	for _, want := range []string{`data-step="2"`, `task-tile-step`, "· 2/3", `task-tile-segs`, `task-tile-seg is-done"></span><span class="task-tile-seg"><span class="progress-bar" style="width: 50%"></span></span><span class="task-tile-seg"></span>`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("the cover at work shows its step: %q", want)
+		}
+	}
+}
+
+// A task of one step, as a verification, keeps the whole bar under its covers, with no step.
+func TestTasksByCoversOneStep(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleTasks()
+	id := web.taskLog().Start(TASK_VERIFY, TRIGGER_MANUAL)
+	web.taskLog().SetPlan(id, []string{"A.nsp", "B.nsp"})
+	web.taskLog().ProgressFiles(id, 1, 4, "A.nsp", 1, 2, []TaskLane{{Name: "A.nsp", Done: 1 << 30, Total: 4 << 30}})
+	page := httptest.NewRecorder()
+	web.router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/tasks.html?part=list", nil))
+	body := page.Body.String()
+	if !strings.Contains(body, `task-tile-bar`) || !strings.Contains(body, `style="width: 25%"`) {
+		t.Error("a file at work in one step has its whole bar")
+	}
+	if strings.Contains(body, "task-tile-segs") || strings.Contains(body, "task-tile-step") || strings.Contains(body, "data-step") {
+		t.Error("a task of one step shows no steps")
+	}
 }
 
 // A compression that saved something already: the size saved is an int64, which once stopped
