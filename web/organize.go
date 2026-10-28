@@ -220,7 +220,7 @@ func (web *Web) organizeFiles(action string, paths []string, dryRun bool) ([]pro
 		return process.OrganizeNewFiles(settingsObj.Folder, roots, paths, localDB, switchDB, options, dryRun, progress)
 	case ORGANIZE_ACTION_CLEANUP:
 		// of two copies the compressed one stays, when it was checked and is sound
-		return process.DeleteOldUpdates(settingsObj.Folder, web.preferCompressed(localDB), options, dryRun, progress, web.cleanupRefusal), nil
+		return process.DeleteOldUpdatesTo(web.discard, settingsObj.Folder, web.preferCompressed(localDB), options, dryRun, progress, web.cleanupRefusal), nil
 	default:
 		return nil, errors.New("unknown action")
 	}
@@ -332,7 +332,7 @@ func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string)
 	web.removing.reset()
 	removed := make([]process.Operation, 0, len(files))
 	for i := range files {
-		ops := process.RemoveFiles(files[i:i+1], reasons[i:i+1], false)
+		ops := process.RemoveFiles(files[i:i+1], reasons[i:i+1], false, web.discard)
 		for _, op := range ops {
 			if op.Error == "" {
 				web.removing.add(op.From)

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### New
+
+- Quarantine, in Settings: what the app deletes from the library (duplicates, old updates, copies of other regions) can wait in a hidden folder of its library folder for 48 hours, a week, 30 days or until you empty it, and be put back from the list, where each file says why it went and when it goes for good. It is moved, not copied, so it takes no more room; the quarantine has a largest size (the oldest goes first), gives its room to a task that needs it, and can also keep the originals after compressing, converting, splitting or making a pack. Off until you turn it on; the Space page and the automations say when files go to it
+- The setup wizard asks what happens to what is deleted, with a tree that shows the old update going to the quarantine or being deleted at once
+
 ### Improvements
 
 - A file written by the app (compressed, decompressed, converted, split, a pack, an upload, your keys) is on the disk before it takes its name, and before the original is deleted: a power cut at that moment no longer leaves an empty file with the original gone

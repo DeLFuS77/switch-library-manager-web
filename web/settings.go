@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 )
@@ -37,6 +38,9 @@ type SettingsPageData struct {
 	FilesAtOnceChoices    []int
 	// the app can install a new version by itself (not in a container)
 	SelfUpdatable bool
+	// the files deleted that wait in the quarantine, and the sizes it can hold
+	Quarantine       quarantineSummary
+	QuarantineLimits []int
 }
 
 type SettingsForm struct {
@@ -74,6 +78,10 @@ type SettingsForm struct {
 	VaultPassword         string `in:"form=vault_password"`
 	VaultKeep             int    `in:"form=vault_keep"`
 	VaultNotify           bool   `in:"form=vault_notify"`
+	QuarantineKeep        string `in:"form=quarantine_keep"`
+	QuarantineLimit       int    `in:"form=quarantine_limit"`
+	QuarantineMakeRoom    bool   `in:"form=quarantine_make_room"`
+	QuarantineOriginals   bool   `in:"form=quarantine_originals"`
 	IgdbClientId          string `in:"form=igdb_client_id"`
 	IgdbClientSecret      string `in:"form=igdb_client_secret"`
 	AutoCompress          string `in:"form=auto_compress"`
@@ -299,6 +307,12 @@ func (web *Web) HandleSettings() {
 		if _, ok := allowedVaultKeep[settingsForm.VaultKeep]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_keep", Message: translate(lang, "Unknown option")})
 		}
+		if _, ok := quarantineKeeps[settingsForm.QuarantineKeep]; !ok {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "quarantine_keep", Message: translate(lang, "Unknown option")})
+		}
+		if !slices.Contains(quarantineLimits, settingsForm.QuarantineLimit) {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "quarantine_limit", Message: translate(lang, "Unknown option")})
+		}
 
 		if _, ok := allowedVerifyIntervals[settingsForm.VerifyIntervalDays]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
@@ -357,6 +371,8 @@ func (web *Web) HandleSettings() {
 			appSettings.Vault.User = strings.TrimSpace(settingsForm.VaultUser)
 			appSettings.Vault.Keep = settingsForm.VaultKeep
 			appSettings.Vault.Notify = settingsForm.VaultNotify
+			appSettings.Quarantine = settings.QuarantineOptions{Keep: settingsForm.QuarantineKeep, LimitGB: settingsForm.QuarantineLimit,
+				MakeRoom: settingsForm.QuarantineMakeRoom, Originals: settingsForm.QuarantineOriginals}
 			if settingsForm.VaultPassword != "" {
 				if hash, err := hashVaultPassword(settingsForm.VaultPassword); err == nil {
 					appSettings.Vault.PasswordHash = hash
@@ -440,6 +456,8 @@ func (web *Web) settingsPageData() SettingsPageData {
 		MissingCovers:           web.missingCovers(),
 		VerifySpeeds:            verifySpeedOptions(),
 		AutoBackups:             web.autoBackups(),
+		Quarantine:              web.quarantineSummary(),
+		QuarantineLimits:        quarantineLimits,
 		KeysAvailable:           settings.IsKeysFileAvailable(),
 		NotificationsConfigured: notificationsConfigured(current.Notifications),
 		AutomationPending:       web.automationPending(),

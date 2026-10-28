@@ -60,6 +60,9 @@ func (web *Web) StartScheduler() {
 				web.runQueue()
 			}
 			web.checkDiskSpace()
+			if gone := web.quarantine().expire(appSettings.Quarantine, now); gone > 0 {
+				web.sugarLogger.Infof("[Quarantine] %d files expired", gone)
+			}
 		}
 	}()
 }

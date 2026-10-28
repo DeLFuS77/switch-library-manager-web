@@ -376,7 +376,7 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 	}
 	web.verifications().remember(target, written)
 	if deleteOriginal && fullyChecked(written) {
-		if err := os.Remove(path); err != nil {
+		if err := web.discardOriginal(path, QUARANTINE_CONVERTED); err != nil {
 			return fmt.Errorf("could not delete the original: %w", err)
 		}
 	}
@@ -491,7 +491,13 @@ func (web *Web) reserveSpace(folder string, need int64) (release func(), err err
 	web.compressor.mutex.Lock()
 	defer web.compressor.mutex.Unlock()
 	if free, err := diskFree(folder); err == nil && int64(free) < web.compressor.reserved+need+(64<<20) {
-		return nil, errCompressSpace
+		// the oldest files of the quarantine on that disk give their room first, when they may
+		if !web.makeRoom(folder, web.compressor.reserved+need+(64<<20)) {
+			return nil, errCompressSpace
+		}
+		if free, err := diskFree(folder); err == nil && int64(free) < web.compressor.reserved+need+(64<<20) {
+			return nil, errCompressSpace
+		}
 	}
 	web.compressor.reserved += need
 	return func() {
@@ -1150,7 +1156,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	web.rememberWritten(target)
 	web.verifications().inherit(path, target)
 	if deleteOriginal {
-		if err := os.Remove(path); err != nil {
+		if err := web.discardOriginal(path, QUARANTINE_COMPRESSED); err != nil {
 			return 0, fmt.Errorf("could not delete the original: %w", err)
 		}
 	}
@@ -1205,7 +1211,7 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 	}
 	web.verifications().remember(target, written)
 	if deleteCompressed && fullyChecked(written) {
-		if err := os.Remove(path); err != nil {
+		if err := web.discardOriginal(path, QUARANTINE_DECOMPRESSED); err != nil {
 			return fmt.Errorf("could not delete the original: %w", err)
 		}
 	}

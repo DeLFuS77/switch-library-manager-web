@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/dtrunk90/switch-library-manager-web/db"
 )
 
 // a folder changed this recently, or with files written this recently, is read file by file
@@ -106,7 +108,10 @@ func readDir(dir string, modTime int64, now time.Time) *dirInfo {
 	for _, entry := range entries {
 		path := filepath.Join(dir, entry.Name())
 		if entry.IsDir() {
-			result.subdirs = append(result.subdirs, path)
+			// the files waiting in the quarantine are not the library's
+			if entry.Name() != db.QUARANTINE_FOLDER {
+				result.subdirs = append(result.subdirs, path)
+			}
 			continue
 		}
 		info, err := entry.Info()

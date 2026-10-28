@@ -776,6 +776,7 @@ body:has(.wizard.show) #alert_sync {
 		.wz-belt { animation: wz-belt 3s linear infinite; }
 		.wz-ring { animation: wz-ring 2.8s ease-in-out infinite; transform-box: view-box; }
 		.wz-flip { animation: wz-flip 4s cubic-bezier(.6, 0, .2, 1) infinite; transform-box: view-box; }
+		.wz-drop { animation: wz-drop 4.4s cubic-bezier(.5, 0, .3, 1) infinite; }
 	}
 
 	.wizard-scene.is-playing {
@@ -804,6 +805,8 @@ body:has(.wizard.show) #alert_sync {
 @keyframes wz-ring { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(14deg); } 80% { transform: rotate(-12deg); } 90% { transform: rotate(8deg); } }
 @keyframes wz-flip { 0%, 40% { transform: rotate(0); } 55%, 90% { transform: rotate(180deg); } 100% { transform: rotate(360deg); } }
 @keyframes wz-pop { from { opacity: 0; transform: scale(.3); } }
+// a file goes into the box, waits there and comes back out
+@keyframes wz-drop { 0% { opacity: 0; transform: translateY(-28px); } 15% { opacity: 1; transform: translateY(0); } 35%, 65% { transform: translateY(44px); } 85% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-28px); } }
 @keyframes wz-rise { from { opacity: 0; transform: translateY(18px); } }
 @keyframes wz-confetti { from { opacity: 0; transform: translateY(-30px) rotate(-90deg); } }
 
@@ -1033,6 +1036,10 @@ body:has(.wizard.show) #alert_sync {
 
 	&.is-dlc .bi {
 		color: $success;
+	}
+
+	&.is-quarantine .bi {
+		color: rgb(var(--slm-work-rgb));
 	}
 
 	&.is-moving .wizard-tree-name {

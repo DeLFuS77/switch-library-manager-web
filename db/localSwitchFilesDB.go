@@ -373,6 +373,9 @@ func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, leftov
 			held[filepath.Dir(path)] = true
 			return nil
 		}
+		if entry.IsDir() && entry.Name() == QUARANTINE_FOLDER {
+			return filepath.SkipDir
+		}
 
 		if !SystemFile(entry) {
 			held[filepath.Dir(path)] = true
@@ -437,6 +440,10 @@ var systemFiles = map[string]bool{"thumbs.db": true, "ehthumbs.db": true, "deskt
 
 // SystemFile tells a file Windows or macOS leaves in a folder it shows, which does not make
 // the folder hold anything.
+// QUARANTINE_FOLDER holds the files deleted that can still be put back (see the quarantine of
+// the web interface): never part of the library.
+const QUARANTINE_FOLDER = ".slm-quarantine"
+
 func SystemFile(entry fs.DirEntry) bool {
 	name := strings.ToLower(entry.Name())
 	return !entry.IsDir() && (systemFiles[name] || strings.HasPrefix(name, "._"))

@@ -205,6 +205,9 @@ type Web struct {
 	updates       updateChecker
 	verify        *verifyStore
 	verifyOnce    sync.Once
+	// the files deleted that wait in the quarantine
+	quarantineItems *quarantineStore
+	quarantineOnce  sync.Once
 	compressor    compressor
 	// files are being organized or deleted by Organize: file tasks wait
 	organizing atomic.Bool
@@ -780,6 +783,7 @@ func (web *Web) Start() {
 	web.HandleMeasure()
 	web.HandleVerify()
 	web.HandleBackup()
+	web.HandleQuarantine()
 	web.HandleSpace()
 	web.HandleSdCard()
 	web.HandleOrphans()

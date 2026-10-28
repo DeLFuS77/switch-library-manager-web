@@ -241,7 +241,7 @@ func (web *Web) splitFile(ctx context.Context, path string, game string, deleteO
 		return nil
 	}
 	if deleteOriginal && checked {
-		if err := os.Remove(path); err != nil {
+		if err := web.discardOriginal(path, QUARANTINE_SPLIT); err != nil {
 			return fmt.Errorf("could not delete the original: %w", err)
 		}
 	}

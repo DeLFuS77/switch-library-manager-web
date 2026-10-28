@@ -63,6 +63,8 @@ type fileOperations struct {
 	// nothing is told of them
 	only   map[string]bool
 	logger *zap.SugaredLogger
+	// how a file to delete goes
+	discard Discard
 }
 
 // pathKey is a path as the list of files to move keeps it: in any case where the disk takes
@@ -81,7 +83,15 @@ func (f *fileOperations) leftOut(path string) bool {
 }
 
 func newFileOperations(dryRun bool) *fileOperations {
-	return &fileOperations{dryRun: dryRun, plannedDirs: map[string]bool{}, plannedTargets: map[string]string{}, movedFrom: map[string]string{}, logger: zap.S()}
+	return &fileOperations{dryRun: dryRun, plannedDirs: map[string]bool{}, plannedTargets: map[string]string{}, movedFrom: map[string]string{}, logger: zap.S(), discard: removeFile}
+}
+
+// Discard takes a file the library no longer wants off its folders: deleted, or kept aside for
+// a while by the web interface (its quarantine). The reason is why it goes.
+type Discard func(path string, reason string) error
+
+func removeFile(path string, _ string) error {
+	return os.Remove(path)
 }
 
 func (f *fileOperations) record(op Operation, err error) {
@@ -287,7 +297,7 @@ func (f *fileOperations) remove(file db.ExtendedFileInfo, reason string) error {
 		if f.dryRun {
 			return nil
 		}
-		return os.Remove(filePath)
+		return f.discard(filePath, reason)
 	}()
 
 	f.record(Operation{Kind: OP_DELETE, From: filePath, Reason: reason}, err)
@@ -479,8 +489,18 @@ func FilesInUse(localDB *db.LocalSwitchFilesDB) map[string]bool {
 // with the reason it returns (the file that stays was not checked, or is damaged).
 func DeleteOldUpdates(baseFolder string, localDB *db.LocalSwitchFilesDB, options settings.OrganizeOptions,
 	dryRun bool, updateProgress db.ProgressUpdater, keep ...func(db.ExtendedFileInfo, db.SkippedFile) string) []Operation {
+	return DeleteOldUpdatesTo(nil, baseFolder, localDB, options, dryRun, updateProgress, keep...)
+}
+
+// DeleteOldUpdatesTo is DeleteOldUpdates with the files going where discard takes them (nil
+// deletes them).
+func DeleteOldUpdatesTo(discard Discard, baseFolder string, localDB *db.LocalSwitchFilesDB, options settings.OrganizeOptions,
+	dryRun bool, updateProgress db.ProgressUpdater, keep ...func(db.ExtendedFileInfo, db.SkippedFile) string) []Operation {
 
 	ops := newFileOperations(dryRun)
+	if discard != nil {
+		ops.discard = discard
+	}
 	inUse := FilesInUse(localDB)
 
 	files := make([]db.ExtendedFileInfo, 0, len(localDB.Skipped))
@@ -1425,8 +1445,11 @@ func hasLetter(name string) bool {
 
 // RemoveFiles deletes the given files, each with its reason, refusing files that changed
 // since the last scan. With dryRun the deletions are only planned.
-func RemoveFiles(files []db.ExtendedFileInfo, reasons []string, dryRun bool) []Operation {
+func RemoveFiles(files []db.ExtendedFileInfo, reasons []string, dryRun bool, discard Discard) []Operation {
 	ops := newFileOperations(dryRun)
+	if discard != nil {
+		ops.discard = discard
+	}
 	for i, file := range files {
 		ops.remove(file, reasons[i])
 	}

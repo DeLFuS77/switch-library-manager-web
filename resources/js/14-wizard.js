@@ -250,7 +250,7 @@ function wizardTree(box, states) {
 	const shown = {};
 	const height = 25;
 	const indent = 18;
-	const icons = { folder: 'bi-folder-fill', sub: 'bi-folder', base: 'bi-controller', update: 'bi-arrow-up-circle-fill', dlc: 'bi-puzzle' };
+	const icons = { folder: 'bi-folder-fill', sub: 'bi-folder', base: 'bi-controller', update: 'bi-arrow-up-circle-fill', dlc: 'bi-puzzle', quarantine: 'bi-hourglass-split' };
 	const draw = (state, moving = []) => {
 		const ids = new Set(state.rows.map(row => row.id));
 		state.rows.forEach((row, i) => {
@@ -699,6 +699,29 @@ function setupWizard(element) {
 	[...form.elements.automation_organize_new_only].forEach(input => input.addEventListener('change', playScope));
 	updateScope();
 
+	// the quarantine: an old update goes at once, or waits in the hidden folder for a while
+	const quarantineOptions = element.querySelector('[data-wizard-quarantine-on]');
+	const quarantineStates = () => {
+		const keep = form.elements.quarantine_keep.value;
+		const game = [row('z', 'folder', 'The Legend of Zelda', 0), row('zb', 'base', 'zelda.nsp', 1), row('z3', 'update', 'zelda [v3].nsp', 1, { badge: say('new'), badgeNew: true })];
+		const start = { text: say('treeCleanup'), rows: [...game, row('z1', 'update', 'zelda [v1].nsp', 1, { badge: say('old') })] };
+		if (keep === '') {
+			return [start, { text: say('treeAtOnce'), rows: game }];
+		}
+		const label = choice('quarantine_keep');
+		return [start, { text: keep === 'never' ? say('treeKeptNever') : say('treeKept', label.toLowerCase()), moving: ['z1'],
+			rows: [...game, row('q', 'quarantine', '.slm-quarantine', 0), row('z1', 'update', 'zelda [v1].nsp', 1, { badge: keep === 'never' ? '∞' : label })] }];
+	};
+	trees.quarantine = wizardTree(element.querySelector('[data-wizard-tree="quarantine"]'), quarantineStates);
+	const updateQuarantine = () => {
+		quarantineOptions.hidden = form.elements.quarantine_keep.value === '';
+	};
+	[...form.elements.quarantine_keep].forEach(input => input.addEventListener('change', () => {
+		updateQuarantine();
+		trees.quarantine();
+	}));
+	updateQuarantine();
+
 	// a step of the automations that needs the keys or a channel says so
 	const channels = ['discord_webhook_url', 'webhook_url', 'telegram_bot_token'];
 	const keysNeeded = element.querySelector('[data-wizard-keys-needed]');
@@ -833,6 +856,7 @@ function setupWizard(element) {
 			['bi-file-zip', say('compress'), [choice('auto_compress'), form.elements.auto_compress.value ? choice('auto_compress_level') : ''].filter(Boolean).join(' · '), 'compression'],
 			['bi-folder-symlink', say('order'), order || say('none'), 'organize'],
 			['bi-magic', say('automation'), master.checked && automation ? [say('stepsOn', automation), organizeNewOnly ? say('newOnly') : ''].filter(Boolean).join(' · ') : say('off'), 'automation'],
+			['bi-hourglass-split', say('quarantine'), choice('quarantine_keep'), 'quarantine'],
 			['bi-bell', say('notifications'), notifications ? say('set') : say('none'), 'notifications'],
 			['bi-shield-check', say('verify'), choice('verify_interval_days'), 'extras'],
 			['bi-hourglass-split', say('igdb'), form.elements.igdb_client_id.value.trim() ? say('set') : say('none'), 'extras'],

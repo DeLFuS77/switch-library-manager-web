@@ -145,3 +145,23 @@ func TestScanFindsGamesWhoseNameStartsWithADot(t *testing.T) {
 		t.Fatalf("files: %v, leftovers: %v", names, leftovers)
 	}
 }
+
+// the files deleted that wait in the quarantine are never part of the library
+func TestScanSkipsTheQuarantine(t *testing.T) {
+	folder := t.TempDir()
+	kept := filepath.Join(folder, QUARANTINE_FOLDER, "1", "Zelda [01007EF00011E000][v0].nsp")
+	if err := os.MkdirAll(filepath.Dir(kept), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(kept, []byte("game"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	files := []ExtendedFileInfo{}
+	empty := []string{}
+	if err := scanFolder(folder, true, &files, nil, &empty, nil, 0); err != nil {
+		t.Fatal(err)
+	}
+	if len(files) != 0 {
+		t.Fatalf("the scan must not find the files of the quarantine: %+v", files)
+	}
+}

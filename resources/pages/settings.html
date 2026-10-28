@@ -481,6 +481,76 @@
 								</div>
 							</div>
 						</section>
+						<section class="surface mb-4 settings-section" id="quarantine" aria-labelledby="quarantineTitle" data-quarantine>
+							{{- $q := .Settings.Quarantine}}
+							<h2 class="section-title" id="quarantineTitle"><span class="bi bi-hourglass-split" aria-hidden="true"></span>{{t "Quarantine"}}</h2>
+							<p class="text-body-secondary">{{t "What the app deletes from the library (duplicates, old updates, copies of other regions) does not go at once: it waits in a hidden folder of the same library folder, on the same disk, without being copied, and you can put it back while it is there."}}</p>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label for="quarantine_keep" class="form-label fw-semibold">{{t "Keep what is deleted"}}</label>
+									<select class="form-select" id="quarantine_keep" name="quarantine_keep" data-quarantine-keep>
+										<option value=""{{if eq $q.Keep ""}} selected{{end}}>{{t "Off: deleted at once"}}</option>
+										<option value="48h"{{if eq $q.Keep "48h"}} selected{{end}}>{{t "48 hours"}}</option>
+										<option value="7d"{{if eq $q.Keep "7d"}} selected{{end}}>{{t "1 week"}}</option>
+										<option value="30d"{{if eq $q.Keep "30d"}} selected{{end}}>{{t "30 days"}}</option>
+										<option value="never"{{if eq $q.Keep "never"}} selected{{end}}>{{t "Until I empty it"}}</option>
+									</select>
+								</div>
+								<div class="col-md-6" data-quarantine-on>
+									<label for="quarantine_limit" class="form-label fw-semibold">{{t "Largest size"}}</label>
+									<select class="form-select" id="quarantine_limit" name="quarantine_limit">
+										{{- range .QuarantineLimits}}
+										<option value="{{.}}"{{if eq $q.LimitGB .}} selected{{end}}>{{if eq . 0}}{{t "No limit"}}{{else}}{{.}} GB{{end}}</option>
+										{{- end}}
+									</select>
+									<div class="form-text">{{t "Over it, the oldest goes first."}}</div>
+								</div>
+							</div>
+							<div class="d-flex flex-column gap-2 mt-3" data-quarantine-on>
+								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" id="quarantine_make_room" name="quarantine_make_room" value="true"{{if $q.MakeRoom}} checked{{end}}>
+									<label class="form-check-label" for="quarantine_make_room">{{t "When a task needs room, delete the oldest of the quarantine first"}}</label>
+								</div>
+								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" id="quarantine_originals" name="quarantine_originals" value="true"{{if $q.Originals}} checked{{end}}>
+									<label class="form-check-label" for="quarantine_originals">{{t "Also keep the originals after compressing, converting, splitting or making a pack"}}</label>
+									<div class="form-text mt-0">{{t "They are checked before they are deleted, and they take a lot of room: better off."}}</div>
+								</div>
+							</div>
+							<h3 class="h6 fw-semibold mt-4 mb-2">{{t "In the quarantine now"}}</h3>
+							{{- with .Quarantine}}
+							{{- if .Items}}
+							<div class="quarantine-summary mb-2">
+								<span><strong>{{t "%v files" (len .Items)}}</strong> · {{formatSize .Size}}{{if $q.LimitGB}} {{t "of %v GB" $q.LimitGB}}{{end}}</span>
+								{{- if not .NextExpiry.IsZero}}
+								<span class="text-body-secondary small">{{t "The oldest is deleted for good on %v" (formatDateTime .NextExpiry)}}</span>
+								{{- end}}
+								<button type="button" class="btn btn-sm btn-outline-danger rounded-pill ms-auto" data-quarantine-empty data-confirm="{{t "Empty the quarantine? Its %v files are deleted for good." (len .Items)}}"><span class="bi bi-trash3 me-1" aria-hidden="true"></span>{{t "Empty now"}}</button>
+								{{- if .Percent}}
+								<div class="quarantine-meter" role="progressbar" aria-label="{{t "Largest size"}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{.Percent}}%"></span></div>
+								{{- end}}
+							</div>
+							<ul class="item-list mb-2">
+								{{- range .Items}}
+								<li class="item-row" data-quarantine-row>
+									<span class="bi bi-file-earmark text-body-secondary" aria-hidden="true"></span>
+									<div class="item-main">
+										<div class="item-name">{{fileBase .Path}}</div>
+										<div class="item-meta"><span class="quarantine-reason">{{t .Label}}</span><span>{{formatSize .Size}}</span>{{with .Folder}}<span><span class="bi bi-folder2 me-1" aria-hidden="true"></span>{{.}}</span>{{end}}<span>{{formatDateTime .Time}}{{if not .Expires.IsZero}} · {{t "deleted for good on %v" (formatDateTime .Expires)}}{{end}}</span></div>
+									</div>
+									<div class="d-flex gap-1 flex-shrink-0">
+										<button type="button" class="btn btn-sm btn-outline-secondary" data-quarantine-restore="{{.Id}}" title="{{t "Put back in its folder"}}"><span class="bi bi-arrow-counterclockwise" aria-hidden="true"></span><span class="ms-1 d-none d-sm-inline">{{t "Put back"}}</span></button>
+										<button type="button" class="btn btn-sm btn-outline-danger" data-quarantine-delete="{{.Id}}" data-confirm="{{t "Delete %v for good? It cannot be undone." (fileBase .Path)}}" title="{{t "Delete for good"}}"><span class="bi bi-trash3" aria-hidden="true"></span><span class="visually-hidden">{{t "Delete for good"}}</span></button>
+									</div>
+								</li>
+								{{- end}}
+							</ul>
+							{{- else}}
+							<p class="small text-body-secondary mb-2">{{t "Nothing is waiting in the quarantine."}}</p>
+							{{- end}}
+							{{- end}}
+							<p class="small text-body-secondary mb-0">{{t "The hidden folder (%v) is in each library folder: the app does not scan it nor offer it to DBI." ".slm-quarantine"}}</p>
+						</section>
 						<div class="save-bar d-flex align-items-center justify-content-between gap-3">
 							<span class="text-body-secondary small d-none d-sm-inline">{{t "Changes are applied when you save."}}</span>
 							<button type="submit" class="btn btn-primary rounded-pill px-4 ms-auto"><span class="bi bi-check-lg me-2" aria-hidden="true"></span>{{t "Save"}}</button>

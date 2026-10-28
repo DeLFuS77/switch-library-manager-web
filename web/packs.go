@@ -323,7 +323,12 @@ func (web *Web) makePack(ctx context.Context, sources []string, target string, s
 		return 0, errPackExists
 	}
 	if free, err := diskFree(filepath.Dir(target)); err == nil && free < uint64(size)+(64<<20) {
-		return 0, errCompressSpace
+		if !web.makeRoom(filepath.Dir(target), size+(64<<20)) {
+			return 0, errCompressSpace
+		}
+		if free, err := diskFree(filepath.Dir(target)); err == nil && free < uint64(size)+(64<<20) {
+			return 0, errCompressSpace
+		}
 	}
 	temporary := filepath.Join(filepath.Dir(target), "."+filepath.Base(target)+".tmp")
 	defer os.Remove(temporary)
@@ -348,7 +353,7 @@ func (web *Web) makePack(ctx context.Context, sources []string, target string, s
 	if deleteOriginals && fullyChecked(written) {
 		folders := []string{}
 		for _, source := range sources {
-			if err := os.Remove(source); err != nil {
+			if err := web.discardOriginal(source, QUARANTINE_PACK); err != nil {
 				return skipped, fmt.Errorf("could not delete the original: %w", err)
 			}
 			folders = append(folders, filepath.Dir(source))

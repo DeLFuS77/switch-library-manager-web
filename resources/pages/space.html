@@ -108,7 +108,7 @@
 						<label class="form-check-label fw-semibold" for="spaceAll">{{t "Select all"}}</label>
 					</div>
 					<div class="small text-body-secondary d-none d-sm-block" data-file-summary data-template="{{t "%v files selected, %v"}}" aria-live="polite"></div>
-					<button type="submit" class="btn btn-danger rounded-pill px-4 text-nowrap" data-confirm="{{t "Delete %v files (%v)? This cannot be undone."}}"><span class="bi bi-trash3 me-2" aria-hidden="true"></span>{{t "Delete selected"}}</button>
+					<button type="submit" class="btn btn-danger rounded-pill px-4 text-nowrap" data-confirm="{{if .Quarantine}}{{t "Move %v files (%v) to the quarantine? You can put them back from Settings, Quarantine."}}{{else}}{{t "Delete %v files (%v)? This cannot be undone."}}{{end}}"><span class="bi bi-trash3 me-2" aria-hidden="true"></span>{{t "Delete selected"}}</button>
 				</div>
 			</form>
 			{{- end}}

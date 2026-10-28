@@ -13,6 +13,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/process"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -96,6 +97,8 @@ func (g SpaceGroup) RestSize() int64 {
 type SpacePageData struct {
 	GlobalPageData
 	Groups []SpaceGroup
+	// the files deleted go to the quarantine, and can be put back
+	Quarantine bool
 	// the size of the library and the space that can be freed now
 	LibrarySize  int64
 	Reclaimable  int64
@@ -612,6 +615,7 @@ func (web *Web) HandleSpace() {
 				data.GlobalPageData = web.globalPageData("space")
 				data.Updating = true
 				data.Regions = web.regionalDuplicates(web.requestLanguage(r))
+				data.Quarantine = quarantineOn(settings.ReadSettings(web.dataFolder).Quarantine)
 				web.render(w, r, templates, data)
 				return
 			}
@@ -620,6 +624,7 @@ func (web *Web) HandleSpace() {
 		}
 		data := web.spacePageData()
 		data.Regions = web.regionalDuplicates(web.requestLanguage(r))
+		data.Quarantine = quarantineOn(settings.ReadSettings(web.dataFolder).Quarantine)
 		web.render(w, r, templates, data)
 	}).Methods("GET")
 

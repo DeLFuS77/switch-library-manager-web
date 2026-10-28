@@ -162,6 +162,22 @@ type VaultOptions struct {
 	Notify bool `json:"notify,omitempty"`
 }
 
+// QuarantineOptions: the files the app deletes from the library (duplicates, old updates, the
+// copies of other regions) go first to a hidden folder of the same library folder, from where
+// they can be put back until they expire.
+type QuarantineOptions struct {
+	// how long they are kept: "" (off: deleted at once), "48h", "7d", "30d" or "never" (until
+	// emptied)
+	Keep string `json:"keep,omitempty"`
+	// the GB it holds at most, the oldest deleted first; 0 for no limit
+	LimitGB int `json:"limit_gb"`
+	// the oldest are deleted when a task needs room on their disk
+	MakeRoom bool `json:"make_room"`
+	// also the originals deleted after compressing, decompressing, converting, splitting or
+	// making a pack, already checked then
+	Originals bool `json:"originals,omitempty"`
+}
+
 // AutomationOptions are the steps run on the files that appear in the library, in this order:
 // check, compress, delete old updates, organize, and a message with what was done.
 type AutomationOptions struct {
@@ -233,6 +249,8 @@ type AppSettings struct {
 	Automation AutomationOptions `json:"automation"`
 	// the save vault for JKSV (off by default)
 	Vault VaultOptions `json:"vault"`
+	// where deleted files wait before they go (off by default)
+	Quarantine QuarantineOptions `json:"quarantine"`
 	// the Twitch application of the user, for the times to beat of IGDB (optional)
 	IgdbClientId     string `json:"igdb_client_id,omitempty"`
 	IgdbClientSecret string `json:"igdb_client_secret,omitempty"`
@@ -262,7 +280,7 @@ func ReadSettings(dataFolder string) *AppSettings {
 	// defaults for keys missing from settings files written by older versions
 	loaded := &AppSettings{Debug: false, ScanFolders: []string{}, WatchFolders: true, CheckForUpdates: true,
 		Notifications:   NotificationOptions{NotifyUpdates: true, NotifyDlc: true, NotifyWishlist: true, NotifyNewGames: true, NotifyCheats: true, NotifyTaskFailures: true},
-		OrganizeOptions: OrganizeOptions{SwitchSafeFileNames: true}, Prodkeys: "", IgnoreDLCTitleIds: []string{"01007F600B135007"}}
+		OrganizeOptions: OrganizeOptions{SwitchSafeFileNames: true}, Quarantine: QuarantineOptions{LimitGB: 100, MakeRoom: true}, Prodkeys: "", IgnoreDLCTitleIds: []string{"01007F600B135007"}}
 	if _, err := os.Stat(filepath.Join(dataFolder, SETTINGS_FILENAME)); err == nil {
 		file, err := os.Open(filepath.Join(dataFolder, SETTINGS_FILENAME))
 		if err != nil {
@@ -412,6 +430,7 @@ func saveDefaultSettings(dataFolder string) *AppSettings {
 			SwitchSafeFileNames:  true,
 			DeleteOldUpdateFiles: false,
 		},
+		Quarantine: QuarantineOptions{LimitGB: 100, MakeRoom: true},
 	}
 	return SaveSettings(defaults, dataFolder)
 }
