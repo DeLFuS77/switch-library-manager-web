@@ -1,11 +1,12 @@
 # Changelog
 
-## Unreleased
+## 1.66.0
 
 ### New
 
 - The setup wizard asks how to order the games, in a step of its own before the automations: the files as they are, a folder per game, or a folder per game with Base, Updates and DLC subfolders, with Keep the folder each game has, Rename files, Delete empty folders afterwards and the copy of a duplicate to keep. A small tree of folders shows what each choice does. Nothing moves then: Organize and the automations use it, and its Organize step did nearly nothing before, as these options are off by default
 - In the wizard, the Organize step of the automations offers Only the new files or The whole library, with a tree that shows the difference, and says when a step needs something: your prod.keys to compress, a channel to tell you what was done
+- Calm music plays in the background while the setup wizard is open, after its welcome: soft chords and bells, made by the browser itself. A button next to the close button turns it off, and the browser remembers it
 
 ### Improvements
 
