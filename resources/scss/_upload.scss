@@ -58,12 +58,13 @@
 	margin-top: .3rem;
 }
 
+// ended: green or red, with its stripes still (the colour only, so the stripes stay)
 .upload-item.is-done .progress-bar {
-	background: var(--bs-success);
+	background-color: var(--bs-success);
 }
 
 .upload-item.is-failed .progress-bar {
-	background: var(--bs-danger);
+	background-color: var(--bs-danger);
 }
 
 .upload-state {

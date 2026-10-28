@@ -140,7 +140,7 @@ function showSyncAlert() {
 	progress.setAttribute('role', 'progressbar');
 	progress.setAttribute('aria-label', t('Synchronization progress'));
 	const bar = document.createElement('div');
-	bar.classList.add('progress-bar', 'progress-bar-striped', 'progress-bar-animated', 'w-100');
+	bar.classList.add('progress-bar', 'progress-bar-striped', 'progress-bar-animated', 'is-work', 'w-100');
 	progress.appendChild(bar);
 	const percent = document.createElement('span');
 	percent.classList.add('sync-percent');
@@ -173,8 +173,9 @@ function updateSyncAlert(status) {
 		// from red to green as it advances, like the bar of a task
 		const exact = Math.min(100, status.current * 100 / status.total);
 		const percent = Math.round(exact);
-		bar.classList.remove('w-100', 'progress-bar-animated');
-		bar.classList.add('task-total-bar');
+		// its stripes keep moving, as on the total of a task
+		bar.classList.remove('w-100', 'is-work');
+		bar.classList.add('task-total-bar', 'progress-bar-animated');
 		bar.style.width = `${exact.toFixed(2)}%`;
 		bar.style.setProperty('--pct', exact.toFixed(2));
 		bar.textContent = '';
@@ -187,7 +188,7 @@ function updateSyncAlert(status) {
 	} else {
 		// unknown number of steps
 		bar.classList.remove('task-total-bar');
-		bar.classList.add('w-100', 'progress-bar-animated');
+		bar.classList.add('w-100', 'progress-bar-animated', 'is-work');
 		bar.style.width = '';
 		bar.style.removeProperty('--pct');
 		bar.textContent = '';

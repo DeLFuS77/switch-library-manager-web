@@ -9,7 +9,7 @@
 			</nav>
 			{{- template "pageHeader" (dict "Title" $s.Name "Count" $s.Total "Subtitle" (t "You have %v of %v games of the series" $s.Owned $s.Total))}}
 			<div class="saga-progress mb-4">
-				<div class="progress" role="progressbar" aria-label="{{$s.Name}}" aria-valuenow="{{$s.Percent}}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar{{if $s.Complete}} bg-success{{end}}" style="width: {{$s.Percent}}%"></div></div>
+				<div class="progress" role="progressbar" aria-label="{{$s.Name}}" aria-valuenow="{{$s.Percent}}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar progress-bar-striped {{if $s.Complete}}bg-success{{else}}is-work{{end}}" style="width: {{$s.Percent}}%"></div></div>
 				{{- if $s.Complete}}<p class="small fw-semibold mt-2 mb-0"><span class="bi bi-trophy-fill text-warning me-1" aria-hidden="true"></span>{{t "You have the whole series"}}</p>{{end}}
 			</div>
 			<div class="game-grid">

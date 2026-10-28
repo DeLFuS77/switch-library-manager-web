@@ -25,7 +25,7 @@
 							<h2 class="saga-title"><a class="link-body-emphasis text-decoration-none" href="{{.Url}}">{{.Name}}</a></h2>
 							<span class="small fw-semibold text-nowrap">{{if .Complete}}<span class="bi bi-trophy-fill text-warning me-1" aria-hidden="true"></span>{{end}}{{t "%v of %v" .Owned .Total}}</span>
 						</div>
-						<div class="progress my-2" role="progressbar" aria-label="{{.Name}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar{{if .Complete}} bg-success{{end}}" style="width: {{.Percent}}%"></div></div>
+						<div class="progress my-2" role="progressbar" aria-label="{{.Name}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar progress-bar-striped {{if .Complete}}bg-success{{else}}is-work{{end}}" style="width: {{.Percent}}%"></div></div>
 						<div class="saga-strip">
 							{{- range .Games}}{{if not .Missing}}
 							<a class="saga-thumb" href="/title/{{.Id}}.html" title="{{.Name}}"><img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="{{.Name}}" loading="lazy" decoding="async"></a>

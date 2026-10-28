@@ -33,7 +33,7 @@ function initGameUpload() {
 		item.className = 'upload-item';
 		item.innerHTML = '<div class="upload-item-line"><span class="upload-name"></span><span class="upload-state"></span>' +
 			'<button type="button" class="btn btn-link btn-sm p-0 text-body-secondary upload-cancel"><span class="bi bi-x-lg" aria-hidden="true"></span></button></div>' +
-			'<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="width: 0%"></div></div>';
+			'<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar progress-bar-striped progress-bar-animated is-work" style="width: 0%"></div></div>';
 		item.querySelector('.upload-name').textContent = file.name;
 		item.querySelector('.upload-name').title = file.name;
 		const cancel = item.querySelector('.upload-cancel');
@@ -75,6 +75,8 @@ function initGameUpload() {
 	};
 	const finishItem = (job, done, message) => {
 		job.item.classList.add(done ? 'is-done' : 'is-failed');
+		// ended: its stripes stop, in the colour of how it ended
+		job.item.querySelector('.progress-bar').classList.remove('progress-bar-animated', 'is-work');
 		job.item.querySelector('.upload-cancel').hidden = true;
 		setState(job, message, done ? job.file.size : undefined);
 		if (done) {

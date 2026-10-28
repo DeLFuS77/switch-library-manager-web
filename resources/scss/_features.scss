@@ -353,15 +353,26 @@
 	object-fit: cover;
 }
 
-// a file at work: the cover fills up from the bottom with its progress, with the share on it,
-// as in NXPress; the files waiting and ended keep their covers as they are. In the blue of
-// NXPress, not the red of the app, which tells errors
-.task-tile {
-	--tile-work-rgb: 10, 111, 176;
+// work going on, in the blue of NXPress, not the red of the app, which tells errors: the
+// bars of what is being done (uploads, downloads, work of unknown length, series not yet
+// complete) and the covers of Tasks
+:root,
+[data-bs-theme="light"] {
+	--slm-work-rgb: 10, 111, 176;
 }
 
-[data-bs-theme="dark"] .task-tile {
-	--tile-work-rgb: 61, 183, 234;
+[data-bs-theme="dark"] {
+	--slm-work-rgb: 61, 183, 234;
+}
+
+.progress-bar.is-work {
+	background-color: rgb(var(--slm-work-rgb));
+}
+
+// a file at work: the cover fills up from the bottom with its progress, with the share on it,
+// as in NXPress; the files waiting and ended keep their covers as they are
+.task-tile {
+	--tile-work-rgb: var(--slm-work-rgb);
 }
 
 .task-tile.is-working .task-tile-cover::after {
