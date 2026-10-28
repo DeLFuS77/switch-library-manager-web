@@ -68,9 +68,10 @@ function playWizardWelcome() {
 	}
 }
 
-// The music of the wizard: soft chords that change slowly under bells going up and down, with an
-// echo, made here while the wizard is open. It starts after the welcome, fades out when the
-// wizard closes or the page is hidden, and can be turned off (remembered by the browser).
+// The music of the wizard: a slow bossa nova of soft chords played short and ahead of the beat,
+// over a bass on one and the "and" of two, with a quiet wooden click. It is made here while the
+// wizard is open, starts after the welcome, fades out when the wizard closes or the page is
+// hidden, and can be turned off (remembered by the browser).
 const WIZARD_MUSIC_KEY = 'slm-wizard-music';
 let wizardMusic = null;
 
@@ -95,20 +96,12 @@ function startWizardMusic() {
 		const note = midi => 440 * 2 ** ((midi - 69) / 12);
 		const out = context.createGain();
 		out.gain.setValueAtTime(.0001, context.currentTime);
-		out.gain.exponentialRampToValueAtTime(.55, context.currentTime + 5);
+		out.gain.exponentialRampToValueAtTime(.7, context.currentTime + 5);
 		const soft = context.createBiquadFilter();
 		soft.type = 'lowpass';
 		soft.frequency.value = 2400;
 		soft.connect(out).connect(context.destination);
-		const echo = context.createDelay();
-		echo.delayTime.value = .42;
-		const feedback = context.createGain();
-		feedback.gain.value = .32;
-		const wet = context.createGain();
-		wet.gain.value = .4;
-		echo.connect(feedback).connect(echo);
-		echo.connect(wet).connect(soft);
-		const voice = (frequency, start, length, type, volume, attack, toEcho) => {
+		const voice = (frequency, start, length, type, volume, attack) => {
 			const oscillator = context.createOscillator();
 			const gain = context.createGain();
 			oscillator.type = type;
@@ -117,38 +110,51 @@ function startWizardMusic() {
 			gain.gain.exponentialRampToValueAtTime(volume, start + attack);
 			gain.gain.exponentialRampToValueAtTime(.0001, start + length);
 			oscillator.connect(gain).connect(soft);
-			if (toEcho) {
-				gain.connect(echo);
-			}
 			oscillator.start(start);
 			oscillator.stop(start + length + .05);
 		};
+		// the wooden click: a very short burst of noise through a narrow filter
+		const noise = context.createBuffer(1, context.sampleRate / 10, context.sampleRate);
+		const samples = noise.getChannelData(0);
+		for (let i = 0; i < samples.length; i++) {
+			samples[i] = Math.random() * 2 - 1;
+		}
+		const click = start => {
+			const source = context.createBufferSource();
+			const filter = context.createBiquadFilter();
+			const gain = context.createGain();
+			source.buffer = noise;
+			filter.type = 'bandpass';
+			filter.frequency.value = 1900;
+			gain.gain.setValueAtTime(.02, start);
+			gain.gain.exponentialRampToValueAtTime(.0001, start + .045);
+			source.connect(filter).connect(gain).connect(out);
+			source.start(start);
+			source.stop(start + .07);
+		};
 		// D major 9, B minor 9, G major 9, A 6 sus: four bars that turn round and round
 		const chords = [[50, 57, 61, 64, 66], [47, 54, 57, 61, 62], [43, 50, 54, 57, 59], [45, 52, 59, 62, 66]];
-		// the bells of each bar, in eighths: up the chord, then a step down to settle
-		const bells = [[74, 78, 81, 85, 86, null, 81, null], [74, 78, 81, 83, 86, null, 78, null], [74, 78, 79, 83, 86, null, 83, 81], [76, 78, 81, 83, 86, 88, null, 85]];
-		const bar = 3.4;
-		const eighth = bar / 8;
+		// each bar has 16 steps: where the bass plays (and for how many steps), the short chords and the clicks
+		const bass = [[0, 5], [6, 2], [8, 5], [14, 2]];
+		const stabs = [3, 6, 10, 13];
+		const clicks = [0, 3, 6, 10, 12];
+		const step = 60 / 72 / 4;
 		let next = context.currentTime + .3;
 		let count = 0;
 		const schedule = () => {
 			while (next < context.currentTime + 1.6) {
-				const chord = chords[count % chords.length];
-				chord.forEach((midi, i) => {
-					voice(note(midi), next, bar + 1.4, 'sine', i ? .022 : .03, 1.3, false);
-					voice(note(midi) * 1.004, next, bar + 1.4, 'triangle', .008, 1.5, false);
+				const chord = chords[Math.floor(count / 16) % chords.length];
+				const at = count % 16;
+				bass.filter(([start]) => start === at).forEach(([, length]) => {
+					voice(note(chord[0] - 12), next, Math.max(length * step, .5) + .3, 'sine', .05, .04);
 				});
-				voice(note(chord[0] - 12), next, bar + .6, 'sine', .035, .4, false);
-				// the first time round the bells wait, so the chords come in first
-				if (count >= 2) {
-					bells[count % bells.length].forEach((midi, i) => {
-						if (midi) {
-							voice(note(midi), next + i * eighth, 1.8, 'sine', .045, .008, true);
-							voice(note(midi) * 2, next + i * eighth, .5, 'sine', .008, .005, true);
-						}
-					});
+				if (stabs.includes(at)) {
+					chord.slice(1).forEach(midi => voice(note(midi), next, .55, 'triangle', .02, .02));
 				}
-				next += bar;
+				if (clicks.includes(at)) {
+					click(next);
+				}
+				next += step;
 				count++;
 			}
 		};

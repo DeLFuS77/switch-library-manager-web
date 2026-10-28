@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The music of the setup wizard is a slow bossa nova now: a soft bass, short chords ahead of the beat and a quiet wooden click, calmer than the bells it had
+
 ## 1.66.0
 
 ### New
