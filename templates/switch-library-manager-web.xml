@@ -22,7 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.63.1
+  <Changes>### 1.64.0
+- The Compress page tells why each file cannot be compressed
+- The free space is weighed before files are written, and the list of games to combine warns of a DLC that needs a newer update
+- Packs are called Combine now
+### 1.63.1
 - Tasks by covers shows every file of the task, waiting, at work or ended, with the covers in their colours
 - The parts of Tasks fold with a click on their title, and the covers of the bars are no longer darkened
 ### 1.63.0
@@ -68,7 +72,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-10-27</Date>
+  <Date>2026-10-28</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>

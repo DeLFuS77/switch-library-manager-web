@@ -1,4 +1,61 @@
 {
+  "1.64.0": {
+    "en": [
+      "The Compress page tells why each file cannot be compressed: sparse storage, compressed already, no game data, or an encryption no compressor reads.",
+      "Before a compression, conversion, split or combine starts, the free space of each disk is weighed, and the page asks before going on when the new files may not fit. The list of games to combine warns of a DLC that needs a newer update.",
+      "Packs are called Combine now, in every language."
+    ],
+    "es": [
+      "La página Comprimir dice por qué no se puede comprimir cada archivo: almacenamiento disperso, ya comprimido, sin datos de juego o un cifrado que ningún compresor lee.",
+      "Antes de comprimir, convertir, dividir o combinar se mira el espacio libre de cada disco, y si los archivos nuevos pueden no caber, la página pregunta antes de seguir. La lista de juegos para combinar avisa de un DLC que necesita una actualización más nueva.",
+      "Los packs ahora se llaman Combinar, en todos los idiomas."
+    ],
+    "de": [
+      "Die Seite Komprimieren sagt, warum sich jede Datei nicht komprimieren lässt: Sparse Storage, schon komprimiert, keine Spieldaten oder eine Verschlüsselung, die kein Kompressor liest.",
+      "Bevor Komprimieren, Konvertieren, Teilen oder Kombinieren beginnt, wird der freie Platz jedes Laufwerks geprüft, und die Seite fragt nach, wenn die neuen Dateien nicht passen könnten. Die Liste der zu kombinierenden Spiele warnt vor einem DLC, der ein neueres Update braucht.",
+      "Pakete heißen jetzt Kombinieren, in allen Sprachen."
+    ],
+    "fr": [
+      "La page Compresser indique pourquoi chaque fichier ne peut pas être compressé : stockage sparse, déjà compressé, aucune donnée de jeu, ou un chiffrement qu'aucun compresseur ne lit.",
+      "Avant une compression, une conversion, une découpe ou une combinaison, l'espace libre de chaque disque est vérifié, et la page demande avant de continuer si les nouveaux fichiers risquent de ne pas tenir. La liste des jeux à combiner signale un DLC qui demande une mise à jour plus récente.",
+      "Les packs s'appellent désormais Combiner, dans toutes les langues."
+    ],
+    "it": [
+      "La pagina Comprimi dice perché ogni file non si può comprimere: archiviazione sparse, già compresso, nessun dato di gioco o una cifratura che nessun compressore legge.",
+      "Prima di comprimere, convertire, dividere o combinare si controlla lo spazio libero di ogni disco, e la pagina chiede prima di proseguire se i nuovi file potrebbero non starci. L'elenco dei giochi da combinare avvisa di un DLC che richiede un aggiornamento più recente.",
+      "I pacchetti ora si chiamano Combina, in tutte le lingue."
+    ],
+    "pt": [
+      "A página Comprimir diz por que cada arquivo não pode ser comprimido: armazenamento esparso, já comprimido, sem dados de jogo ou uma criptografia que nenhum compressor lê.",
+      "Antes de comprimir, converter, dividir ou combinar, o espaço livre de cada disco é verificado, e a página pergunta antes de continuar quando os novos arquivos podem não caber. A lista de jogos para combinar avisa de um DLC que precisa de uma atualização mais recente.",
+      "Os pacotes agora se chamam Combinar, em todos os idiomas."
+    ],
+    "nl": [
+      "De pagina Comprimeren vertelt waarom elk bestand niet gecomprimeerd kan worden: sparse opslag, al gecomprimeerd, geen spelgegevens of een versleuteling die geen compressor leest.",
+      "Voordat comprimeren, converteren, splitsen of combineren begint, wordt de vrije ruimte van elke schijf gewogen, en de pagina vraagt eerst als de nieuwe bestanden misschien niet passen. De lijst van te combineren games waarschuwt voor een DLC die een nieuwere update nodig heeft.",
+      "Pakketten heten nu Combineren, in elke taal."
+    ],
+    "ru": [
+      "Страница «Сжатие» объясняет, почему каждый файл нельзя сжать: разреженное хранение, уже сжат, нет данных игры или шифрование, которое не читает ни один компрессор.",
+      "Перед сжатием, преобразованием, разделением или объединением проверяется свободное место на каждом диске, и если новые файлы могут не поместиться, страница спрашивает, продолжать ли. Список игр для объединения предупреждает о DLC, которому нужно более новое обновление.",
+      "Пакеты теперь называются «Объединить», на всех языках."
+    ],
+    "ja": [
+      "圧縮ページで、各ファイルを圧縮できない理由が表示されます：スパースストレージ、圧縮済み、ゲームデータなし、またはどの圧縮ツールも読めない暗号化。",
+      "圧縮、変換、分割、結合を始める前に各ディスクの空き容量を確認し、新しいファイルが収まらないおそれがあるときは続ける前に確認します。結合するゲームの一覧では、より新しいアップデートが必要な DLC を知らせます。",
+      "パックは「結合」という名前になりました（すべての言語）。"
+    ],
+    "ko": [
+      "압축 페이지에서 각 파일을 압축할 수 없는 이유를 알려 줍니다: 스파스 저장소, 이미 압축됨, 게임 데이터 없음, 또는 어떤 압축기도 읽지 못하는 암호화.",
+      "압축, 변환, 분할, 결합을 시작하기 전에 각 디스크의 여유 공간을 확인하고, 새 파일이 들어가지 않을 수 있으면 계속하기 전에 묻습니다. 결합할 게임 목록은 더 새로운 업데이트가 필요한 DLC를 알려 줍니다.",
+      "팩은 이제 모든 언어에서 '결합'이라고 부릅니다."
+    ],
+    "zh": [
+      "压缩页面会说明每个文件为何无法压缩：稀疏存储、已经压缩、没有游戏数据，或任何压缩器都读不了的加密。",
+      "在压缩、转换、拆分或合并开始前，会检查每个磁盘的可用空间；新文件可能放不下时，页面会先询问再继续。要合并的游戏列表会提示需要更新版本更新的 DLC。",
+      "合集包现在在所有语言中都叫“合并”。"
+    ]
+  },
   "1.63.1": {
     "en": [
       "Tasks by covers shows every file of the task: waiting, at work with its progress, and ended with OK or Error. The covers keep their colours.",
