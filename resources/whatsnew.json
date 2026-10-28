@@ -1,4 +1,39 @@
 {
+  "1.65.2": {
+    "en": [
+      "In the view by covers of Tasks, a game that cannot be compressed, as one in sparse storage, says Skipped in orange, with why, instead of Error: it did not fail."
+    ],
+    "es": [
+      "En la vista por portadas de Tareas, un juego que no se puede comprimir, como uno en almacenamiento disperso, dice Omitido en naranja, con el motivo, en vez de Error: no ha fallado."
+    ],
+    "de": [
+      "In der Ansicht nach Covern unter Aufgaben zeigt ein Spiel, das sich nicht komprimieren lässt, etwa eines mit Sparse Storage, Übersprungen in Orange mit dem Grund statt Fehler: Es ist nicht fehlgeschlagen."
+    ],
+    "fr": [
+      "Dans la vue par jaquettes des Tâches, un jeu qui ne peut pas être compressé, comme un jeu en sparse storage, indique Ignoré en orange, avec la raison, au lieu d'Erreur : il n'a pas échoué."
+    ],
+    "it": [
+      "Nella vista per copertine di Attività, un gioco che non si può comprimere, come uno in sparse storage, indica Saltato in arancione, con il motivo, invece di Errore: non è fallito."
+    ],
+    "pt": [
+      "Na vista por capas de Tarefas, um jogo que não pode ser comprimido, como um em sparse storage, diz Ignorado em laranja, com o motivo, em vez de Erro: não falhou."
+    ],
+    "nl": [
+      "In de weergave met covers van Taken toont een game die niet gecomprimeerd kan worden, zoals een met sparse storage, Overgeslagen in oranje, met de reden, in plaats van Fout: het is niet mislukt."
+    ],
+    "ru": [
+      "В режиме обложек на странице «Задачи» игра, которую нельзя сжать, например с sparse storage, отмечается оранжевым «Пропущен» с причиной вместо «Ошибка»: это не сбой."
+    ],
+    "ja": [
+      "タスクのカバー画像表示で、sparse storage のゲームなど圧縮できないゲームは、「エラー」ではなくオレンジ色の「スキップ」と理由を表示します。失敗ではありません。"
+    ],
+    "ko": [
+      "작업의 커버 보기에서 sparse storage 게임처럼 압축할 수 없는 게임은 '오류' 대신 주황색 '건너뜀'과 이유를 표시합니다. 실패가 아닙니다."
+    ],
+    "zh": [
+      "在任务的封面视图中，无法压缩的游戏（例如使用 sparse storage 的游戏）会以橙色显示“已跳过”及原因，而不是“错误”：它并没有失败。"
+    ]
+  },
   "1.65.1": {
     "en": [
       "In the view by covers of Tasks, a file worked on in steps says the step it is in, and its bar is split in the steps, each in its colour, so it no longer seems to start again.",

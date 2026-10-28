@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.65.1
+  <Changes>### 1.65.2
+- Tasks by covers says Skipped in orange for a game that cannot be compressed, as one in sparse storage, instead of Error
+### 1.65.1
 - Tasks by covers tells the step of each file, with its bar split in steps, each in its colour
 - The bars of work going on are blue with moving stripes, and series are blue until complete
 ### 1.65.0

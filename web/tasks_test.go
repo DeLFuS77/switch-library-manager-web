@@ -361,6 +361,32 @@ func TestTasksByCoversShowEachFile(t *testing.T) {
 	}
 }
 
+// A file left as it is, as a game in sparse storage to compress, is no failure on its cover:
+// it says it was skipped, in orange, with why.
+func TestTasksByCoversSkipped(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleTasks()
+	id := web.taskLog().Start(TASK_COMPRESS, TRIGGER_MANUAL)
+	web.taskLog().SetPlan(id, []string{"Sparse.nsp", "Next.nsp"})
+	web.taskLog().SkipFileTile(id, "Sparse.nsp", NOTE_COMPRESS_SPARSE)
+	task := web.taskLog().Snapshot()[0]
+	if !task.Plan[0].Skipped || task.Plan[0].Failed || task.Tiles[0].Failed || !task.Tiles[0].Skipped {
+		t.Fatalf("a file skipped: %+v %+v", task.Plan[0], task.Tiles)
+	}
+	page := httptest.NewRecorder()
+	web.router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/tasks.html?part=list", nil))
+	body := page.Body.String()
+	for _, want := range []string{"task-tile is-skipped", "chip-warning task-tile-state", "Skipped"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("the cover skipped shows %q", want)
+		}
+	}
+	if strings.Contains(body, "chip-danger task-tile-state") || strings.Contains(body, "is-failed") {
+		t.Error("a file skipped is no error")
+	}
+}
+
 // A task of one step, as a verification, keeps the whole bar under its covers, with no step.
 func TestTasksByCoversOneStep(t *testing.T) {
 	web := newTestWeb(t)

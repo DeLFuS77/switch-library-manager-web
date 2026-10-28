@@ -959,7 +959,13 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 						}
 						web.sugarLogger.Warnf("%s of %s failed: %v", kind, path, err)
 						web.taskLog().Warn(taskId, compressNote(kind, err), name+": "+err.Error())
-						web.taskLog().AddFileTile(taskId, name, true, compressNote(kind, err))
+						// nothing in it can be compressed (sparse storage, compressed already...): left
+						// as it is, which is no failure
+						if kind == TASK_COMPRESS && errors.Is(err, switchfs.ErrNotCompressible) {
+							web.taskLog().SkipFileTile(taskId, name, compressNote(kind, err))
+						} else {
+							web.taskLog().AddFileTile(taskId, name, true, compressNote(kind, err))
+						}
 						// nothing in it can be compressed: no longer offered while it stays the same
 						if kind == TASK_COMPRESS && errors.Is(err, switchfs.ErrNotCompressible) {
 							// the size of the file, not the one of its progress (read once per pass)

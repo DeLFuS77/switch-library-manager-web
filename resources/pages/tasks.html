@@ -194,7 +194,7 @@
 {{- if .Plan}}
 <ul class="task-tiles list-unstyled mb-0 mt-3" aria-label="{{t "Files"}}">
 	{{- range .Plan}}
-	<li class="task-tile{{if .Working}} is-working{{else if .Waiting}} is-waiting{{else if .Failed}} is-failed{{end}}"{{if .Working}} style="--lane-fill: {{.Percent}}%"{{with .Step}} data-step="{{.}}"{{end}}{{end}}>
+	<li class="task-tile{{if .Working}} is-working{{else if .Waiting}} is-waiting{{else if .Failed}} is-failed{{else if .Skipped}} is-skipped{{end}}"{{if .Working}} style="--lane-fill: {{.Percent}}%"{{with .Step}} data-step="{{.}}"{{end}}{{end}}>
 		<span class="task-tile-cover">{{if .Cover}}<img class="task-tile-img" src="{{.Cover}}" alt="" loading="lazy" decoding="async">{{else}}<span class="bi bi-file-earmark-zip" aria-hidden="true"></span>{{end}}{{if .Working}}<span class="task-tile-pct">{{.Percent}}%</span>{{end}}</span>
 		<span class="task-tile-name" title="{{.Name}}">{{.Name}}</span>
 		{{- if .Working}}
@@ -203,6 +203,8 @@
 		<span class="chip chip-muted task-tile-state"><span class="bi bi-hourglass" aria-hidden="true"></span>{{t "Waiting"}}</span>
 		{{- else if .Failed}}
 		<span class="chip chip-danger task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Error"}}</span>
+		{{- else if .Skipped}}
+		<span class="chip chip-warning task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-dash-circle" aria-hidden="true"></span>{{t "Skipped"}}</span>
 		{{- else}}
 		<span class="chip chip-success task-tile-state"><span class="bi bi-check-circle" aria-hidden="true"></span>OK</span>
 		{{- end}}
@@ -224,11 +226,13 @@
 	{{- end}}
 	{{- end}}
 	{{- range .Tiles}}
-	<li class="task-tile{{if .Failed}} is-failed{{end}}">
+	<li class="task-tile{{if .Failed}} is-failed{{else if .Skipped}} is-skipped{{end}}">
 		<span class="task-tile-cover">{{if .Cover}}<img class="task-tile-img" src="{{.Cover}}" alt="" loading="lazy" decoding="async">{{else}}<span class="bi bi-file-earmark-zip" aria-hidden="true"></span>{{end}}</span>
 		<span class="task-tile-name" title="{{.Name}}">{{.Name}}</span>
 		{{- if .Failed}}
 		<span class="chip chip-danger task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Error"}}</span>
+		{{- else if .Skipped}}
+		<span class="chip chip-warning task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-dash-circle" aria-hidden="true"></span>{{t "Skipped"}}</span>
 		{{- else}}
 		<span class="chip chip-success task-tile-state"><span class="bi bi-check-circle" aria-hidden="true"></span>OK</span>
 		{{- end}}

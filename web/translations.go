@@ -210,6 +210,7 @@ var translations = map[string]map[string]string{
 		"Next step":                                                    "Siguiente paso",
 		"Looking...":                                                   "Mirando...",
 		"Waiting":                                                      "Pendiente",
+		"Skipped":                                                      "Omitido",
 		"The automations are on: new files are checked, compressed and the updates they replace deleted by themselves, in this same order.": "Las automatizaciones están activadas: los archivos nuevos se comprueban, se comprimen y se borran las actualizaciones que sustituyen, solos y en este mismo orden.",
 		"For the files that come later, the automations can do these steps by themselves, in this same order.":                              "Para los archivos que lleguen después, las automatizaciones pueden hacer estos pasos solas, en este mismo orden.",
 		"Set up the automations":      "Configurar las automatizaciones",

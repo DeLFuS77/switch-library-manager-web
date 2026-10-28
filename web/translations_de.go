@@ -212,6 +212,7 @@ func init() {
 		"Next step":                                                    "Nächster Schritt",
 		"Looking...":                                                   "Wird geprüft...",
 		"Waiting":                                                      "Ausstehend",
+		"Skipped":                                                      "Übersprungen",
 		"The automations are on: new files are checked, compressed and the updates they replace deleted by themselves, in this same order.": "Die Automatisierungen sind an: Neue Dateien werden von selbst geprüft und komprimiert, und die ersetzten Updates gelöscht, in derselben Reihenfolge.",
 		"For the files that come later, the automations can do these steps by themselves, in this same order.":                              "Für spätere Dateien können die Automatisierungen diese Schritte selbst erledigen, in derselben Reihenfolge.",
 		"Set up the automations":      "Automatisierungen einrichten",
