@@ -4,7 +4,7 @@
 
 ### Improvements
 
-- In the view by covers of Tasks, the covers of the files at work and the bars under them fill up in blue instead of red, which tells errors elsewhere in the app
+- In the view by covers of Tasks, the covers of the files at work and the bars under them fill up in blue instead of red, which tells errors elsewhere in the app. The covers of the files still waiting are darkened and the ended ones are shown as they are, so what is left is seen at a glance
 
 ### Fixes
 

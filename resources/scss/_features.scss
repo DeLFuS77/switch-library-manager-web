@@ -391,6 +391,12 @@
 	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 }
 
+// a file waiting has its cover darkened, and an ended one shows it as it is: what is left is
+// seen at a glance
+.task-tile.is-waiting .task-tile-cover {
+	filter: brightness(0.45) saturate(0.6);
+}
+
 // a file that failed keeps its cover, with a red edge
 .task-tile.is-failed .task-tile-cover {
 	box-shadow: 0 0 0 2px var(--bs-danger);
