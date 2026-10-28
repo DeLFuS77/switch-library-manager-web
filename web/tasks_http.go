@@ -87,10 +87,10 @@ func shownPlan(plan []TaskTile, lanes []TaskLane, covers map[string]string) ([]T
 	if len(plan) == 0 {
 		return nil, 0
 	}
-	working := map[string]int{}
+	working := map[string]TaskLane{}
 	for _, lane := range lanes {
 		if lane.Name != "" {
-			working[lane.Name] = lane.StepPercent()
+			working[lane.Name] = lane
 		}
 	}
 	// the files at work come right after the ended ones, before those waiting, so the view
@@ -118,8 +118,10 @@ func shownPlan(plan []TaskTile, lanes []TaskLane, covers map[string]string) ([]T
 	shown := make([]TaskTile, 0, end-start)
 	for _, tile := range plan[start:end] {
 		tile.Cover = covers[tile.Name]
-		if percent, ok := working[tile.Name]; ok && tile.Waiting {
-			tile.Working, tile.Percent = true, percent
+		if lane, ok := working[tile.Name]; ok && tile.Waiting {
+			cover := tile.Cover
+			tile = lane.Tile()
+			tile.Cover, tile.Waiting = cover, true
 		}
 		shown = append(shown, tile)
 	}

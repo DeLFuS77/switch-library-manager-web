@@ -341,7 +341,7 @@ func TestTasksByCoversShowEachFile(t *testing.T) {
 	web.embedFS = os.DirFS("..")
 	web.HandleTasks()
 	id := web.taskLog().Start(TASK_COMPRESS, TRIGGER_MANUAL)
-	web.taskLog().ProgressFiles(id, 20<<10, 50<<10, "Game.nsp", 3, 3, []TaskLane{{Name: "Game.nsp", Done: 6 << 30, Total: 12 << 30, Phase: "Compressing", Step: 2, Steps: 3}})
+	web.taskLog().ProgressFiles(id, 20<<10, 50<<10, "Game.nsp", 3, 3, []TaskLane{{Name: "Game.nsp", Done: 6 << 30, Total: 12 << 30, Phase: PHASE_COMPRESSING, Step: 2, Steps: 3, Phases: []string{PHASE_HASHING, PHASE_COMPRESSING, PHASE_VERIFYING}}})
 	web.taskLog().AddFileTile(id, "Done.nsp", false, "")
 	web.taskLog().AddFileTile(id, "Broken.nsp", true, NOTE_COMPRESS_FAILED)
 	page := httptest.NewRecorder()
@@ -351,6 +351,32 @@ func TestTasksByCoversShowEachFile(t *testing.T) {
 		if !strings.Contains(body, want) {
 			t.Errorf("the covers show %q", want)
 		}
+	}
+	// the step of the file, and its bar split in its three steps, each in its colour: the hashes
+	// done, the compression filling with the moving stripes, the check to come
+	for _, want := range []string{`data-step="2"`, `task-tile-step`, "· 2/3", `task-tile-segs`, `task-tile-seg is-done lane-cyan"></span><span class="task-tile-seg"><span class="progress-bar progress-bar-striped progress-bar-animated lane-yellow" style="width: 50%"></span></span><span class="task-tile-seg"></span>`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("the cover at work shows its step: %q", want)
+		}
+	}
+}
+
+// A task of one step, as a verification, keeps the whole bar under its covers, with no step.
+func TestTasksByCoversOneStep(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleTasks()
+	id := web.taskLog().Start(TASK_VERIFY, TRIGGER_MANUAL)
+	web.taskLog().SetPlan(id, []string{"A.nsp", "B.nsp"})
+	web.taskLog().ProgressFiles(id, 1, 4, "A.nsp", 1, 2, []TaskLane{{Name: "A.nsp", Done: 1 << 30, Total: 4 << 30}})
+	page := httptest.NewRecorder()
+	web.router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/tasks.html?part=list", nil))
+	body := page.Body.String()
+	if !strings.Contains(body, `task-tile-bar`) || !strings.Contains(body, `style="width: 25%"`) {
+		t.Error("a file at work in one step has its whole bar")
+	}
+	if strings.Contains(body, "task-tile-segs") || strings.Contains(body, "task-tile-step") || strings.Contains(body, "data-step") {
+		t.Error("a task of one step shows no steps")
 	}
 }
 

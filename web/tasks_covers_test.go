@@ -105,6 +105,28 @@ func TestTaskPlanFillsInOrder(t *testing.T) {
 	}
 }
 
+// The covers of a file in steps say which step it is in: the steps before it done, its own
+// being done; a plan keeps its file at work in the steps as the lane says.
+func TestTileSegments(t *testing.T) {
+	segments := TaskTile{Step: 2, Steps: 3}.Segments()
+	if len(segments) != 3 || !segments[0].Done || segments[0].Current || !segments[1].Current || segments[1].Done || segments[2].Done || segments[2].Current {
+		t.Fatalf("steps: %+v", segments)
+	}
+	colours := TaskTile{Step: 3, Steps: 3, Tone: "green", Phases: []string{PHASE_HASHING, PHASE_COMPRESSING, PHASE_VERIFYING}}.Segments()
+	if colours[0].Tone != "cyan" || colours[1].Tone != "yellow" || colours[2].Tone != "green" {
+		t.Fatalf("each step in its colour: %+v", colours)
+	}
+	if (TaskTile{Step: 1, Steps: 1}).Segments() != nil || (TaskTile{}).Segments() != nil {
+		t.Fatal("one step: a whole bar")
+	}
+	lane := TaskLane{Name: "A.nsp", Done: 5, Total: 12, Phase: PHASE_COMPRESSING, Step: 2, Steps: 3}
+	shown, _ := shownPlan([]TaskTile{{Name: "A.nsp", Waiting: true}}, []TaskLane{lane}, map[string]string{"A.nsp": "/t/a.jpg"})
+	tile := shown[0]
+	if !tile.Working || tile.Phase != PHASE_COMPRESSING || tile.Step != 2 || tile.Steps != 3 || tile.Tone != lane.Tone() || tile.Percent != 25 || tile.Cover != "/t/a.jpg" {
+		t.Fatalf("the file at work: %+v", tile)
+	}
+}
+
 // A long task shows how far it is before its first whole percent.
 func TestTaskPercentExact(t *testing.T) {
 	cases := map[[2]int]string{{8, 1000}: "0.80", {0, 1000}: "0.00", {1000, 1000}: "100", {5, 0}: "0", {3, 2}: "100"}

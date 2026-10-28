@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.65.1
+
+### Improvements
+
+- In the view by covers of Tasks, a file worked on in steps, as in a compression (hashes, compression and check), says under its cover the step it is in, with its colour, and its bar is split in the steps, each in the colour it has in the view by bars (the hashes cyan, the work orange, the check green): the ones done stay full and only the one being done fills up, with the moving stripes, so the bar no longer seems to start again. A task of one step, as Verify, keeps its whole bar, with the moving stripes too
+- The bars of work going on are blue, the blue of the covers of Tasks, with the moving stripes, instead of the red that tells errors: each game uploaded, the download of a new version of the app, and the bars of work whose length is not known yet (Space while it measures, a task before it knows its size, Synchronize before its total). An upload ended stays green, or red when it failed, with its stripes still. The bar of Synchronize keeps its stripes moving once it knows its total, as the total of a task does
+- The progress of a series, on its page, on Sagas and on the page of a game, is blue with stripes until it is complete, and green then
+
 ## 1.65.0
 
 ### New

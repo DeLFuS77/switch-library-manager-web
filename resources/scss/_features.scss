@@ -353,15 +353,26 @@
 	object-fit: cover;
 }
 
-// a file at work: the cover fills up from the bottom with its progress, with the share on it,
-// as in NXPress; the files waiting and ended keep their covers as they are. In the blue of
-// NXPress, not the red of the app, which tells errors
-.task-tile {
-	--tile-work-rgb: 10, 111, 176;
+// work going on, in the blue of NXPress, not the red of the app, which tells errors: the
+// bars of what is being done (uploads, downloads, work of unknown length, series not yet
+// complete) and the covers of Tasks
+:root,
+[data-bs-theme="light"] {
+	--slm-work-rgb: 10, 111, 176;
 }
 
-[data-bs-theme="dark"] .task-tile {
-	--tile-work-rgb: 61, 183, 234;
+[data-bs-theme="dark"] {
+	--slm-work-rgb: 61, 183, 234;
+}
+
+.progress-bar.is-work {
+	background-color: rgb(var(--slm-work-rgb));
+}
+
+// a file at work: the cover fills up from the bottom with its progress, with the share on it,
+// as in NXPress; the files waiting and ended keep their covers as they are
+.task-tile {
+	--tile-work-rgb: var(--slm-work-rgb);
 }
 
 .task-tile.is-working .task-tile-cover::after {
@@ -378,6 +389,39 @@
 
 	.progress-bar {
 		background-color: rgb(var(--tile-work-rgb));
+	}
+}
+
+// a file in steps: the step it is in, with the dot of its colour, and its bar split in the
+// steps, the ones done full and the one being done filling up
+.task-tile-step {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	color: var(--bs-secondary-color);
+	white-space: nowrap;
+
+	.lane-dot {
+		flex-shrink: 0;
+	}
+}
+
+.task-tile-segs {
+	display: flex;
+	gap: 3px;
+	height: 0.3rem;
+}
+
+// each step in its colour, as in the view by bars: the hashes cyan, the work orange, the check
+// green; the one being done with the moving stripes
+.task-tile-seg {
+	flex: 1;
+	overflow: hidden;
+	border-radius: 2px;
+	background: rgba(127, 127, 127, 0.25);
+
+	.progress-bar {
+		height: 100%;
 	}
 }
 
@@ -500,6 +544,8 @@
 // (hashes, work, check), or by what it holds (game, update, DLC); the dot by its step or kind
 // says which
 .task-lane-bar .progress-bar,
+.task-tile-seg,
+.task-tile-seg .progress-bar,
 .lane-dot {
 	&.lane-red { background-color: #{$slm-red}; }
 	&.lane-yellow { background-color: #{$warning}; }

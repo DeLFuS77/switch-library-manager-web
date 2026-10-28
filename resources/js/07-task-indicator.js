@@ -239,7 +239,8 @@ function initLiveTasks() {
 						const file = bar.closest('.task-lane, .task-tile');
 						if (file) {
 							const name = file.querySelector('[title]')?.title;
-							return name ? card.dataset.taskId + '|' + name : null;
+							// a new step of a file starts its bar again: it does not shrink back from the last one
+							return name ? card.dataset.taskId + '|' + name + '|' + (file.dataset.step || '') : null;
 						}
 						return bar.classList.contains('task-total-bar') ? card.dataset.taskId + '|' : null;
 					};
