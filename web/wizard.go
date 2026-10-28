@@ -38,6 +38,8 @@ type WizardPageData struct {
 	InContainer bool
 	// a folder of games written the way of the system of the server, as an example
 	FolderExample string
+	// the order of the files the options of Organize have now (WIZARD_LAYOUT_...)
+	OrganizeLayout string
 }
 
 // runningInContainer tells an app started by Docker or Podman.
@@ -164,6 +166,80 @@ func browseFolders(path string, lang string) WizardFolders {
 	return result
 }
 
+// The orders of the files the wizard offers: the files where they are, a folder for each game,
+// or a folder for each game with a subfolder for each kind of file.
+const (
+	WIZARD_LAYOUT_NONE   = "none"
+	WIZARD_LAYOUT_FOLDER = "folder"
+	WIZARD_LAYOUT_SUB    = "sub"
+)
+
+// The subfolders a folder of a game gets when the wizard is asked for them and has none.
+const (
+	wizardBaseFolder    = "Base"
+	wizardUpdatesFolder = "Updates"
+	wizardDlcFolder     = "DLC"
+)
+
+// wizardLayout is the order the options of Organize have now, as the wizard offers it.
+func wizardLayout(options settings.OrganizeOptions) string {
+	switch {
+	case !options.CreateFolderPerGame:
+		return WIZARD_LAYOUT_NONE
+	case options.BaseFolder != "" || options.UpdatesFolder != "" || options.DlcFolder != "":
+		return WIZARD_LAYOUT_SUB
+	}
+	return WIZARD_LAYOUT_FOLDER
+}
+
+// validWizardOrganize tells an order and a copy of a duplicate the wizard can send; no order is
+// the Settings page, which leaves the options of Organize alone.
+func validWizardOrganize(layout string, keepDuplicate string) bool {
+	switch layout {
+	case "":
+		return true
+	case WIZARD_LAYOUT_NONE, WIZARD_LAYOUT_FOLDER, WIZARD_LAYOUT_SUB:
+	default:
+		return false
+	}
+	for _, choice := range settings.KeepDuplicateChoices {
+		if keepDuplicate == choice {
+			return true
+		}
+	}
+	return false
+}
+
+// wizardOrganize applies the order chosen in the wizard to the options of Organize; the rest of
+// them (the templates, the IDs in the folders...) stay as they are. Subfolders the user named
+// keep their names.
+func wizardOrganize(options settings.OrganizeOptions, layout string, keepFolders bool, rename bool, deleteEmpty bool, keepDuplicate string) settings.OrganizeOptions {
+	switch layout {
+	case WIZARD_LAYOUT_NONE:
+		options.CreateFolderPerGame = false
+		options.BaseFolder, options.UpdatesFolder, options.DlcFolder = "", "", ""
+	case WIZARD_LAYOUT_FOLDER:
+		options.CreateFolderPerGame = true
+		options.BaseFolder, options.UpdatesFolder, options.DlcFolder = "", "", ""
+	case WIZARD_LAYOUT_SUB:
+		options.CreateFolderPerGame = true
+		if options.BaseFolder == "" {
+			options.BaseFolder = wizardBaseFolder
+		}
+		if options.UpdatesFolder == "" {
+			options.UpdatesFolder = wizardUpdatesFolder
+		}
+		if options.DlcFolder == "" {
+			options.DlcFolder = wizardDlcFolder
+		}
+	}
+	options.KeepGameFolders = keepFolders
+	options.RenameFiles = rename
+	options.DeleteEmptyFolders = deleteEmpty
+	options.KeepDuplicate = keepDuplicate
+	return options
+}
+
 // checkWizardAdmin checks the first administrator the wizard creates, before anything is saved:
 // a wrong password made the last step fail again and again with no reason given.
 func checkWizardAdmin(name string, password string, lang string) WizardCheck {
@@ -283,6 +359,7 @@ func (web *Web) HandleWizard() {
 			InContainer:      inContainer,
 			FolderExample:    folderExample(inContainer),
 		}
+		data.OrganizeLayout = wizardLayout(data.Settings.OrganizeOptions)
 		data.SettingsPageData.GlobalPageData.Auth = web.authInfo(r)
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")

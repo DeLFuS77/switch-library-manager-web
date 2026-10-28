@@ -113,6 +113,55 @@ function openWizard(auto) {
 	return wizardLoading;
 }
 
+// A small tree of folders that shows what an order of the files does: the rows of the start move
+// to their place in the end, each row found by its id, so a file slides into its folder.
+function wizardTree(box, states) {
+	const rows = box.querySelector('[data-wizard-tree-rows]');
+	const caption = box.querySelector('[data-wizard-tree-caption]');
+	const shown = {};
+	const height = 25;
+	const indent = 18;
+	const icons = { folder: 'bi-folder-fill', sub: 'bi-folder', base: 'bi-controller', update: 'bi-arrow-up-circle-fill', dlc: 'bi-puzzle' };
+	const draw = (state, moving = []) => {
+		const ids = new Set(state.rows.map(row => row.id));
+		state.rows.forEach((row, i) => {
+			let line = shown[row.id];
+			if (!line) {
+				line = document.createElement('div');
+				line.className = 'wizard-tree-row is-hidden';
+				line.append(Object.assign(document.createElement('span'), { className: 'bi' }), Object.assign(document.createElement('span'), { className: 'wizard-tree-name' }));
+				line.style.transform = `translate(${row.depth * indent}px, ${i * height}px)`;
+				rows.appendChild(line);
+				shown[row.id] = line;
+				void line.offsetWidth;
+			}
+			line.className = `wizard-tree-row is-${row.kind}${moving.includes(row.id) ? ' is-moving' : ''}${row.renamed ? ' is-renamed' : ''}`;
+			line.firstChild.className = `bi ${icons[row.kind]}`;
+			line.lastChild.textContent = row.name;
+			if (row.badge) {
+				line.lastChild.append(' ', Object.assign(document.createElement('span'), { className: `wizard-tree-badge${row.badgeNew ? ' is-new' : ''}`, textContent: row.badge }));
+			}
+			line.style.transform = `translate(${row.depth * indent}px, ${i * height}px)`;
+		});
+		Object.keys(shown).forEach(id => shown[id].classList.toggle('is-hidden', !ids.has(id)));
+		rows.style.height = `${state.rows.length * height}px`;
+		caption.textContent = state.text;
+	};
+	let timer;
+	const play = () => {
+		clearTimeout(timer);
+		const [start, end] = states();
+		draw(start);
+		const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		timer = setTimeout(() => {
+			draw(end, end.moving || []);
+			timer = setTimeout(() => draw(end), 800);
+		}, still ? 0 : 900);
+	};
+	box.querySelector('[data-wizard-tree-again]').addEventListener('click', play);
+	return play;
+}
+
 function setupWizard(element) {
 	const form = element.querySelector('#wizardForm');
 	const steps = [...element.querySelectorAll('.wizard-step')];
@@ -147,6 +196,8 @@ function setupWizard(element) {
 	const modal = Modal.getOrCreateInstance(element);
 	let current = 0;
 	let saved = false;
+	// the trees of folders of the steps, played when their step is shown
+	const trees = {};
 
 	for (let i = 0; i <= last; i++) {
 		const dot = document.createElement('li');
@@ -206,6 +257,12 @@ function setupWizard(element) {
 		}
 		if (step.dataset.step === 'keys' && previous !== step) {
 			checkKeys();
+		}
+		if (previous !== step) {
+			trees[step.dataset.step]?.();
+		}
+		if (step.dataset.step === 'automation') {
+			updateNeeds();
 		}
 		showAlert('');
 		if (previous !== step) {
@@ -416,6 +473,135 @@ function setupWizard(element) {
 	master.addEventListener('change', updateFlow);
 	updateFlow();
 
+	// installing new versions by itself only counts while they are told
+	const autoInstall = element.querySelector('[data-wizard-auto-install]');
+	if (autoInstall) {
+		const told = form.elements.check_for_updates;
+		const updateInstall = () => {
+			autoInstall.classList.toggle('is-off', !told.checked);
+			autoInstall.toggleAttribute('inert', !told.checked);
+		};
+		told.addEventListener('change', updateInstall);
+		updateInstall();
+	}
+
+	// the order of the files: a tree shows it, made of a game with a folder of its own (MK8) and
+	// the loose files of another one
+	const layoutOf = () => form.elements.organize_layout.value;
+	const row = (id, kind, name, depth, more = {}) => ({ id, kind, name, depth, ...more });
+	const orderStates = () => {
+		const layout = layoutOf();
+		const keep = form.elements.keep_game_folders.checked;
+		const rename = form.elements.rename_files.checked;
+		const empty = form.elements.delete_empty_folders.checked;
+		const named = (plain, full) => (rename ? full : plain);
+		const files = depth => [
+			row('zb', 'base', named('zelda.nsp', 'The Legend of Zelda [01007EF00011E000][v0].nsp'), depth, { renamed: rename }),
+			row('zu', 'update', named('zelda-update.nsp', 'The Legend of Zelda [01007EF00011E800][v131072].nsp'), depth, { renamed: rename }),
+			row('zd', 'dlc', named('zelda-dlc.nsp', 'The Legend of Zelda (Expansion Pass)[01007EF00011F001][v0].nsp'), depth, { renamed: rename }),
+		];
+		const mk = named('mk8.nsp', 'Mario Kart 8 Deluxe [0100152000022000][v0].nsp');
+		const start = { text: say('treeBefore'), rows: [row('mk', 'folder', 'MK8', 0), row('mkb', 'base', 'mk8.nsp', 1), row('dl', 'folder', 'downloads', 0), ...files(0)] };
+		const mkFolder = row('mk', 'folder', keep ? 'MK8' : 'Mario Kart 8 Deluxe', 0);
+		const downloads = empty && layout !== 'none' ? [] : [row('dl', 'folder', 'downloads', 0)];
+		let rows;
+		let text;
+		if (layout === 'none') {
+			rows = [row('mk', 'folder', 'MK8', 0), row('mkb', 'base', mk, 1, { renamed: rename }), ...downloads, ...files(0)];
+			text = say(rename ? 'treeNoneRenamed' : 'treeNone');
+		} else if (layout === 'folder') {
+			rows = [mkFolder, row('mkb', 'base', mk, 1, { renamed: rename }), ...downloads, row('z', 'folder', 'The Legend of Zelda', 0), ...files(1)];
+			text = say(keep ? 'treeKeep' : 'treeFolder');
+		} else {
+			const [zb, zu, zd] = files(2);
+			rows = [mkFolder, row('mkB', 'sub', 'Base', 1), row('mkb', 'base', mk, 2, { renamed: rename }), ...downloads, row('z', 'folder', 'The Legend of Zelda', 0),
+				row('zB', 'sub', 'Base', 1), zb, row('zU', 'sub', 'Updates', 1), zu, row('zD', 'sub', 'DLC', 1), zd];
+			text = say('treeSub');
+		}
+		if (layout !== 'none' && empty) {
+			text += ` ${say('treeEmpty')}`;
+		}
+		return [start, { rows, text, moving: ['mkb', 'zb', 'zu', 'zd'] }];
+	};
+	trees.organize = wizardTree(element.querySelector('[data-wizard-tree="organize"]'), orderStates);
+	const keepFolders = element.querySelector('[data-wizard-keep-folders]');
+	const updateOrder = () => {
+		const loose = layoutOf() === 'none';
+		keepFolders.classList.toggle('is-off', loose);
+		keepFolders.toggleAttribute('inert', loose);
+	};
+	['organize_layout', 'keep_game_folders', 'rename_files', 'delete_empty_folders'].forEach(name => {
+		const field = form.elements[name];
+		(field instanceof RadioNodeList ? [...field] : [field]).forEach(input => input.addEventListener('change', () => {
+			updateOrder();
+			trees.organize();
+		}));
+	});
+	updateOrder();
+
+	// organizing by itself: only the new files, or the whole library
+	const organizeStep = element.querySelector('[data-wizard-organize-step]');
+	const scope = element.querySelector('[data-wizard-organize-scope]');
+	const scopeStates = () => {
+		const newOnly = form.elements.automation_organize_new_only.value === 'true';
+		const update = (depth, more = {}) => row('zu', 'update', 'zelda-update.nsp', depth, { badge: say('new'), badgeNew: true, ...more });
+		const start = { text: say('treeArrives'), rows: [row('mk', 'folder', 'MK8', 0), row('mkb', 'base', 'mk8.nsp', 1), row('z', 'folder', 'The Legend of Zelda', 0),
+			row('zb', 'base', 'zelda.nsp', 1), row('old', 'base', 'odyssey.xci', 0), update(0)] };
+		if (newOnly) {
+			return [start, { text: say('treeNewOnly'), moving: ['zu'], rows: [row('mk', 'folder', 'MK8', 0), row('mkb', 'base', 'mk8.nsp', 1), row('z', 'folder', 'The Legend of Zelda', 0),
+				row('zb', 'base', 'zelda.nsp', 1), update(1), row('old', 'base', 'odyssey.xci', 0, { badge: say('untouched') })] }];
+		}
+		return [start, { text: say('treeAll'), moving: ['zu', 'old'], rows: [row('mk', 'folder', 'MK8', 0), row('mkb', 'base', 'mk8.nsp', 1), row('z', 'folder', 'The Legend of Zelda', 0),
+			row('zb', 'base', 'zelda.nsp', 1), update(1), row('s', 'folder', 'Super Mario Odyssey', 0), row('old', 'base', 'odyssey.xci', 1)] }];
+	};
+	const playScope = wizardTree(element.querySelector('[data-wizard-tree="automation"]'), scopeStates);
+	trees.automation = () => {
+		if (organizeStep.checked) {
+			playScope();
+		}
+	};
+	const updateScope = () => {
+		scope.hidden = !organizeStep.checked;
+	};
+	organizeStep.addEventListener('change', () => {
+		updateScope();
+		trees.automation();
+	});
+	[...form.elements.automation_organize_new_only].forEach(input => input.addEventListener('change', playScope));
+	updateScope();
+
+	// a step of the automations that needs the keys or a channel says so
+	const channels = ['discord_webhook_url', 'webhook_url', 'telegram_bot_token'];
+	const keysNeeded = element.querySelector('[data-wizard-keys-needed]');
+	const channelNeeded = element.querySelector('[data-wizard-channel-needed]');
+	const updateNeeds = () => {
+		keysNeeded.hidden = !(element.querySelector('[data-wizard-needs-keys]').checked && keysFound === false);
+		channelNeeded.hidden = !element.querySelector('[data-wizard-needs-channel]').checked || channels.some(name => form.elements[name].value.trim());
+	};
+	element.querySelectorAll('[data-wizard-needs-keys], [data-wizard-needs-channel]').forEach(input => input.addEventListener('change', updateNeeds));
+
+	// a test notification with the channels written here, before they are saved
+	const testButton = element.querySelector('[data-wizard-test-notification]');
+	const testResult = element.querySelector('[data-wizard-test-result]');
+	testButton.addEventListener('click', () => {
+		testButton.disabled = true;
+		testResult.className = 'wizard-check-line m-0';
+		testResult.textContent = say('sending');
+		const body = new URLSearchParams({ draft: '1' });
+		[...channels, 'telegram_chat_id'].forEach(name => body.set(name, form.elements[name].value));
+		fetch('/notifications/test', { method: 'POST', body })
+			.then(response => response.json().catch(() => ({})).then(json => ({ ok: response.ok, json })))
+			.then(({ ok, json }) => checkLine(testResult, { ok, message: ok ? json.message : ((json.globalError && json.globalError.message) || say('unreachable')) }))
+			.catch(() => checkLine(testResult, { ok: false, message: say('unreachable') }))
+			.finally(() => {
+				testButton.disabled = false;
+			});
+	});
+
+	// the measure of the server, as on the Settings page: it fills the hidden fields of the
+	// threads, so saving keeps what it found
+	initMeasure(element.querySelector('[data-measure]'));
+
 	// the first administrator, checked by the server before anything is saved: a wrong password
 	// made "Save and start" fail again and again without saying why
 	const adminName = form.elements.wizard_admin_name;
@@ -489,7 +675,8 @@ function setupWizard(element) {
 		}
 		if (field instanceof RadioNodeList) {
 			const checked = [...field].find(input => input.checked);
-			return checked ? checked.closest('label').textContent.trim() : '';
+			const label = checked ? checked.closest('label').querySelector('.wizard-card-label') || checked.closest('label') : null;
+			return label ? label.textContent.trim() : '';
 		}
 		if (field.tagName === 'SELECT') {
 			return field.options[field.selectedIndex]?.textContent.trim() || '';
@@ -502,24 +689,31 @@ function setupWizard(element) {
 		const automation = ['automation_verify', 'automation_compress', 'automation_cleanup', 'automation_organize', 'automation_notify']
 			.filter(name => form.elements[name].checked).length;
 		const notifications = ['discord_webhook_url', 'webhook_url', 'telegram_bot_token'].some(name => form.elements[name].value.trim());
+		const regions = ['preferred_region', 'preferred_region_2', 'preferred_region_3']
+			.filter(name => form.elements[name].value).map(choice);
+		const order = [choice('organize_layout'), form.elements.rename_files.checked ? say('rename') : ''].filter(Boolean).join(' · ');
+		const organizeNewOnly = form.elements.automation_organize.checked && form.elements.automation_organize_new_only.value === 'true';
 		const rows = [
-			['bi-translate', say('language'), choice('language')],
-			['bi-folder2-open', say('folders'), folders.join(', ') || say('none')],
-			['bi-key', say('keys'), [form.elements.prod_keys.value.trim() || say('default'), keysFound === null ? '' : say(keysFound ? 'found' : 'notFound')].filter(Boolean).join(' · ')],
-			['bi-nintendo-switch', say('firmware'), form.elements.console_firmware.value.trim() || '—'],
-			['bi-moon-stars', say('background'), choice('background_hours')],
-			['bi-file-zip', say('compress'), choice('auto_compress')],
-			['bi-magic', say('automation'), master.checked && automation ? say('stepsOn', automation) : say('off')],
-			['bi-bell', say('notifications'), notifications ? say('set') : say('none')],
-			['bi-hourglass-split', say('igdb'), form.elements.igdb_client_id.value.trim() ? say('set') : say('none')],
+			['bi-translate', say('language'), choice('language'), 'welcome'],
+			['bi-folder2-open', say('folders'), folders.join(', ') || say('none'), 'folders'],
+			['bi-key', say('keys'), [form.elements.prod_keys.value.trim() || say('default'), keysFound === null ? '' : say(keysFound ? 'found' : 'notFound')].filter(Boolean).join(' · '), 'keys'],
+			['bi-nintendo-switch', say('firmware'), form.elements.console_firmware.value.trim() || '—', 'console'],
+			['bi-globe2', say('regions'), regions.join(', ') || say('none'), 'library'],
+			['bi-arrow-repeat', say('sync'), choice('sync_interval_hours'), 'library'],
+			['bi-moon-stars', say('background'), choice('background_hours'), 'background'],
+			['bi-file-zip', say('compress'), [choice('auto_compress'), form.elements.auto_compress.value ? choice('auto_compress_level') : ''].filter(Boolean).join(' · '), 'compression'],
+			['bi-folder-symlink', say('order'), order || say('none'), 'organize'],
+			['bi-magic', say('automation'), master.checked && automation ? [say('stepsOn', automation), organizeNewOnly ? say('newOnly') : ''].filter(Boolean).join(' · ') : say('off'), 'automation'],
+			['bi-bell', say('notifications'), notifications ? say('set') : say('none'), 'notifications'],
+			['bi-shield-check', say('verify'), choice('verify_interval_days'), 'extras'],
+			['bi-hourglass-split', say('igdb'), form.elements.igdb_client_id.value.trim() ? say('set') : say('none'), 'extras'],
 		];
 		if (!authEnabled) {
-			rows.push(['bi-shield-lock', say('admin'), (adminOk && form.elements.wizard_admin_name.value.trim()) || say('none')]);
+			rows.push(['bi-shield-lock', say('admin'), (adminOk && form.elements.wizard_admin_name.value.trim()) || say('none'), 'security']);
 		}
-		const stepNames = ['welcome', 'folders', 'keys', 'console', 'background', 'compression', 'automation', 'notifications', 'extras', 'security'];
-		list.replaceChildren(...rows.map(([iconName, label, value], i) => {
+		list.replaceChildren(...rows.map(([iconName, label, value, stepName], i) => {
 			const row = document.createElement('li');
-			const target = steps.findIndex(item => item.dataset.step === stepNames[i]);
+			const target = steps.findIndex(item => item.dataset.step === stepName);
 			row.style.setProperty('--i', i);
 			const mark = document.createElement('span');
 			mark.className = `wizard-summary-icon bi ${iconName}`;
@@ -636,6 +830,7 @@ function setupWizard(element) {
 					return;
 				}
 				saved = true;
+				element.querySelector('[data-wizard-see-order]').hidden = layoutOf() === 'none' && !form.elements.rename_files.checked;
 				// the covers of the games found are downloaded at once
 				fetch('/wizard/state', { method: 'POST', body: new URLSearchParams({ state: 'done', covers: '1' }) });
 				show(done, 1);

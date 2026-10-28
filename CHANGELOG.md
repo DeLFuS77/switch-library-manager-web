@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### New
+
+- The setup wizard asks how to order the games, in a step of its own before the automations: the files as they are, a folder per game, or a folder per game with Base, Updates and DLC subfolders, with Keep the folder each game has, Rename files, Delete empty folders afterwards and the copy of a duplicate to keep. A small tree of folders shows what each choice does. Nothing moves then: Organize and the automations use it, and its Organize step did nearly nothing before, as these options are off by default
+- In the wizard, the Organize step of the automations offers Only the new files or The whole library, with a tree that shows the difference, and says when a step needs something: your prod.keys to compress, a channel to tell you what was done
+
+### Improvements
+
+- The compression step of the wizard shows the levels as cards with what each one costs and saves, and can measure the server as on the Settings page, keeping the threads and the files at once it finds
+- The notifications step of the wizard sends a test notification with the channels written in it, before saving them
+- The wizard offers to install new versions by themselves at night, when the app can update itself
+- The summary of the wizard shows the preferred regions, the synchronization, the order of the files and the checks of the files, and the last screen leads to a preview of Organize and to the app on your phone
+
 ## 1.65.2
 
 ### Fixes
