@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### New
+
+- Place new files, on the Organize page: the files that lie loose in the library folders, like the uploaded ones, go to the folder their game has already, or to a new one for a new game, and nothing else of the library moves nor is renamed. The automations can do the same with Only the new files under their Organize step, so a game or update uploaded is put in its place without touching what is already organized (thanks @ChapeLu)
+- An option to keep the folder each game has: its files go there and the folder keeps its name, so the template names only the folders of new games (thanks @ChapeLu)
+- A subfolder for the base game, next to the ones of updates and DLC, such as Game › Base (thanks @ChapeLu)
+
+### Improvements
+
+- A collection whose file name already has the title ID of one of its games keeps it when Keep the names that already have their title ID is on, instead of taking the list of its games as a name
+
+### Fixes
+
+- With the names for the Switch, a game whose name is in Chinese or Korean with a number in it, like Rune Factory 4 Special, got a folder named only with the number (4): it takes the name of its file, or Unknown Title, as a name with no letter did (thanks @ChapeLu)
+
 ## 1.64.0
 
 ### New
