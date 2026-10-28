@@ -225,7 +225,7 @@ func (l TaskLane) KindName() string {
 	case "Base":
 		return "Game"
 	case "Pack":
-		return "Complete pack"
+		return "Combine"
 	case "Update", "DLC":
 		return l.Kind
 	}

@@ -30,7 +30,7 @@
 				<summary class="d-flex align-items-start gap-2"><span class="bi bi-slash-circle flex-shrink-0 mt-1" aria-hidden="true"></span><span>{{t "%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally." (len .Uncompressible)}}</span></summary>
 				<ul class="list-unstyled ms-4 mt-2 mb-0">
 					{{- range .Uncompressible}}
-					<li class="d-flex flex-wrap gap-2"><span class="text-body">{{.Name}}</span><span>{{formatSize .Size}}</span>{{if .Sparse}}<span class="badge text-bg-secondary">{{t "Sparse storage"}}</span>{{end}}</li>
+					<li class="d-flex flex-wrap gap-2"><span class="text-body">{{.Name}}</span><span>{{formatSize .Size}}</span>{{with .Label}}<span class="badge text-bg-secondary">{{t .}}</span>{{end}}</li>
 					{{- end}}
 				</ul>
 			</div>
@@ -49,7 +49,7 @@
 				<button type="button" class="page-tab" role="tab" id="tabSplit" data-tab="split" aria-controls="panelSplit" aria-selected="false" tabindex="-1"><span class="bi bi-scissors" aria-hidden="true"></span>{{t "Split"}} <span class="badge rounded-pill text-bg-secondary">{{num .SplitCount}}</span></button>
 				{{- end}}
 				{{- if .PackCount}}
-				<button type="button" class="page-tab" role="tab" id="tabPacks" data-tab="packs" aria-controls="panelPacks" aria-selected="false" tabindex="-1"><span class="bi bi-box-seam" aria-hidden="true"></span>{{t "Packs"}} <span class="badge rounded-pill text-bg-secondary">{{num .PackCount}}</span></button>
+				<button type="button" class="page-tab" role="tab" id="tabPacks" data-tab="packs" aria-controls="panelPacks" aria-selected="false" tabindex="-1"><span class="bi bi-box-seam" aria-hidden="true"></span>{{t "Combine"}} <span class="badge rounded-pill text-bg-secondary">{{num .PackCount}}</span></button>
 				{{- end}}
 				{{- if .CompressedCount}}
 				<button type="button" class="page-tab" role="tab" id="tabDecompress" data-tab="decompress" aria-controls="panelDecompress" aria-selected="false" tabindex="-1"><span class="bi bi-box-arrow-up" aria-hidden="true"></span>{{t "Decompress"}} <span class="badge rounded-pill text-bg-secondary">{{num .CompressedCount}}</span></button>
@@ -218,8 +218,8 @@
 			{{- if .PackCount}}
 			<div class="surface" role="tabpanel" id="panelPacks" aria-labelledby="tabPacks" hidden>
 				<form id="packForm">
-					<h2 class="section-title"><span class="bi bi-box-seam" aria-hidden="true"></span>{{t "Make complete packs"}}</h2>
-					<p class="text-body-secondary">{{t "Put each game with its latest update and its DLC into one NSP (or NSZ), for installers that take several titles at once. Older updates and delta fragments are left out. Every pack is checked before the separate files are deleted."}}</p>
+					<h2 class="section-title"><span class="bi bi-box-seam" aria-hidden="true"></span>{{t "Combine games"}}</h2>
+					<p class="text-body-secondary">{{t "Combine each game with its latest update and its DLC into one NSP (or NSZ), for installers that take several titles at once. Older updates and delta fragments are left out. Every combined file is checked before the separate files are deleted."}}</p>
 					<div class="file-list-head">
 						<div class="form-check mb-0">
 							<input class="form-check-input" type="checkbox" id="packAll" data-file-all>
@@ -235,9 +235,9 @@
 					<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
 						<div class="form-check form-switch">
 							<input class="form-check-input" type="checkbox" role="switch" id="deletePackFiles" name="delete_originals" value="true">
-							<label class="form-check-label" for="deletePackFiles">{{t "Delete the separate files after each pack is checked"}}</label>
+							<label class="form-check-label" for="deletePackFiles">{{t "Delete the separate files after each combined file is checked"}}</label>
 						</div>
-						<button type="submit" class="btn btn-outline-primary rounded-pill px-4 text-nowrap"><span class="bi bi-box-seam me-2" aria-hidden="true"></span>{{t "Make packs"}}</button>
+						<button type="submit" class="btn btn-outline-primary rounded-pill px-4 text-nowrap"><span class="bi bi-box-seam me-2" aria-hidden="true"></span>{{t "Combine the games"}}</button>
 					</div>
 				</form>
 			</div>
@@ -280,6 +280,9 @@
 							<label class="item-main" for="{{$.Prefix}}{{$i}}">
 								<span class="item-name d-block">{{$c.Name}}</span>
 								<span class="item-meta">{{if $c.Games}}<span class="text-nowrap">{{t "%v games" $c.Games}}</span> &middot; {{end}}{{if $c.Titles}}<span class="text-nowrap">{{t "%v titles" $c.Titles}}</span> &middot; {{else if $c.Contents}}<span class="text-nowrap" title="{{t "%v files" $c.Files}}">{{$c.Contents}}</span> &middot; {{else if $c.Files}}<span class="text-nowrap">{{t "%v files" $c.Files}}</span> &middot; {{end}}<span class="font-monospace text-break" title="{{$c.Path}}">{{fileBase $c.Path}}</span></span>
+								{{- if $c.NeedsGame}}
+								<span class="item-meta d-block text-warning-emphasis"><span class="bi bi-exclamation-triangle" aria-hidden="true"></span> {{t "A DLC needs the game at v%v; the newest update is v%v" $c.NeedsGame $c.Latest}}</span>
+								{{- end}}
 							</label>
 							<span class="item-size">{{formatSize $c.Size}}</span>
 						</li>
@@ -296,7 +299,7 @@
 						{{- end}}
 					</ul>
 					{{- with .Packed}}
-					<h3 class="h6 fw-semibold mt-4 mb-2 text-body-secondary">{{t "Already packed"}} <span class="badge rounded-pill text-bg-secondary">{{len .}}</span></h3>
+					<h3 class="h6 fw-semibold mt-4 mb-2 text-body-secondary">{{t "Already combined"}} <span class="badge rounded-pill text-bg-secondary">{{len .}}</span></h3>
 					<ul class="item-list item-list-done">
 						{{- range .}}
 						<li class="item-row">

@@ -136,6 +136,77 @@ type nczPlan struct {
 	sections []nczSection
 }
 
+// planGame plans the compression of each NCA of a game, and gives the names its files take
+// in the compressed package. When none can be compressed, the error tells why: compressed
+// already, sparse storage, an encryption or NCA files with no game data.
+func planGame(input io.ReaderAt, pkg *gamePackage, titleKeys map[string][]byte) ([]*nczPlan, []string, error) {
+	plans := make([]*nczPlan, len(pkg.files))
+	// why the NCA files worth compressing were stored as they are, to tell when none is left
+	reasons := []string{}
+	names := make([]string, len(pkg.files))
+	ncas, nczs, compressed := 0, 0, 0
+	for i, file := range pkg.files {
+		names[i] = file.name
+		if strings.HasSuffix(strings.ToLower(file.name), ".ncz") {
+			nczs++
+		}
+		if !isCompressibleNcaName(file.name) || file.size <= nczHeaderSize {
+			continue
+		}
+		ncas++
+		plan, reason, err := planNcz(input, file.offset, uint64(file.size), titleKeys)
+		if err != nil {
+			return plans, names, fmt.Errorf("%s: %w", file.name, err)
+		}
+		if plan == nil && reason != "" {
+			reasons = append(reasons, file.name+": "+reason)
+		}
+		if plan != nil {
+			plans[i] = plan
+			names[i] = strings.TrimSuffix(file.name, ".nca") + ".ncz"
+			compressed++
+		}
+	}
+	if compressed > 0 {
+		return plans, names, nil
+	}
+	if nczs > 0 {
+		return plans, names, ErrAlreadyCompressed
+	}
+	for _, reason := range reasons {
+		if strings.HasSuffix(reason, ": "+reasonSparse) {
+			return plans, names, ErrSparseStorage
+		}
+	}
+	if len(reasons) > 0 {
+		return plans, names, fmt.Errorf("%w: %s", ErrNotCompressible, strings.Join(reasons, "; "))
+	}
+	if ncas == 0 {
+		return plans, names, fmt.Errorf("%w: it holds no NCA file but metadata", ErrNotCompressible)
+	}
+	return plans, names, ErrNotCompressible
+}
+
+// NotCompressible tells why nothing of a game can be compressed, as a compression would,
+// without writing anything: nil when something can.
+func NotCompressible(source string) error {
+	input, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+	defer input.Close()
+	pkg, err := openGamePackage(input)
+	if err != nil {
+		return err
+	}
+	titleKeys, err := readTickets(input, pkg.files)
+	if err != nil {
+		return err
+	}
+	_, _, err = planGame(input, pkg, titleKeys)
+	return err
+}
+
 // CompressGame writes the NSZ of an NSP, or the XCZ of an XCI, to target. It does not
 // verify the result, see VerifyCompressed.
 func CompressGame(ctx context.Context, source string, target string, options CompressOptions) (CompressResult, error) {
@@ -160,53 +231,14 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 		return result, err
 	}
 
-	plans := make([]*nczPlan, len(pkg.files))
-	// why the NCA files worth compressing were stored as they are, to tell when none is left
-	reasons := []string{}
-	names := make([]string, len(pkg.files))
-	ncas, nczs := 0, 0
-	for i, file := range pkg.files {
-		names[i] = file.name
-		if strings.HasSuffix(strings.ToLower(file.name), ".ncz") {
-			nczs++
-		}
-		if !isCompressibleNcaName(file.name) || file.size <= nczHeaderSize {
-			continue
-		}
-		ncas++
-		plan, reason, err := planNcz(input, file.offset, uint64(file.size), titleKeys)
-		if err != nil {
-			return result, fmt.Errorf("%s: %w", file.name, err)
-		}
-		if plan == nil && reason != "" {
-			reasons = append(reasons, file.name+": "+reason)
-		}
-		if plan != nil {
-			plans[i] = plan
-			names[i] = strings.TrimSuffix(file.name, ".nca") + ".ncz"
-		}
-	}
+	plans, names, err := planGame(input, pkg, titleKeys)
 	for _, plan := range plans {
 		if plan != nil {
 			result.Compressed++
 		}
 	}
-	if result.Compressed == 0 {
-		if nczs > 0 {
-			return result, ErrAlreadyCompressed
-		}
-		for _, reason := range reasons {
-			if strings.HasSuffix(reason, ": "+reasonSparse) {
-				return result, ErrSparseStorage
-			}
-		}
-		if len(reasons) > 0 {
-			return result, fmt.Errorf("%w: %s", ErrNotCompressible, strings.Join(reasons, "; "))
-		}
-		if ncas == 0 {
-			return result, fmt.Errorf("%w: it holds no NCA file but metadata", ErrNotCompressible)
-		}
-		return result, ErrNotCompressible
+	if err != nil {
+		return result, err
 	}
 
 	output, err := CreateNew(target)

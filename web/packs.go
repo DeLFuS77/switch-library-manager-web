@@ -24,8 +24,8 @@ import (
 const TASK_PACK = "pack"
 
 const (
-	NOTE_PACK_FAILED = "The pack could not be made, the files of the game are kept."
-	NOTE_PACK_EXISTS = "A pack with the same name already exists."
+	NOTE_PACK_FAILED = "The game could not be combined, its files are kept."
+	NOTE_PACK_EXISTS = "A combined file with the same name already exists."
 )
 
 var (
@@ -137,6 +137,18 @@ func packContents(local *db.SwitchGameFiles) string {
 	return contents
 }
 
+// dlcNeedsNewer is the version of its game a DLC of the game needs when the newest update of
+// the library is older, 0 else: the DLC of the pack would ask for an update it does not hold.
+func dlcNeedsNewer(local *db.SwitchGameFiles) int {
+	need := 0
+	for _, dlc := range local.Dlc {
+		if dlc.Metadata != nil && dlc.Metadata.RequiredTitleVersion > local.LatestUpdate && dlc.Metadata.RequiredTitleVersion > need {
+			need = dlc.Metadata.RequiredTitleVersion
+		}
+	}
+	return need
+}
+
 // packedGames are the games of the library whose pack is made already, by name, with the name
 // of their pack.
 func (web *Web) packedGames() []CompressCandidate {
@@ -197,7 +209,7 @@ func (web *Web) packCandidates() []CompressCandidate {
 			for _, file := range files {
 				size += file.Size
 			}
-			candidates = append(candidates, CompressCandidate{Path: base, Name: name, Kind: "Base", Size: size, Files: len(files), Contents: packContents(local)})
+			candidates = append(candidates, CompressCandidate{Path: base, Name: name, Kind: "Base", Size: size, Files: len(files), Contents: packContents(local), NeedsGame: dlcNeedsNewer(local), Latest: local.LatestUpdate})
 		}
 		sort.Slice(candidates, func(i, j int) bool {
 			if candidates[i].Size == candidates[j].Size {
@@ -246,7 +258,7 @@ func (web *Web) packTarget(path string, name string) (target string, sources []s
 	}
 	sources = web.moves.resolveAll(packSources(local, web.skippedFiles()))
 	if len(sources) == 0 {
-		return "", nil, 0, errorString("This game has nothing to put in a pack.")
+		return "", nil, 0, errorString("This game has nothing to combine.")
 	}
 	for _, source := range sources {
 		if info, err := os.Stat(source); err == nil {
@@ -275,7 +287,7 @@ func (web *Web) packTask(titleId string, name string, deleteOriginals bool) (Que
 	}
 	sources := packSources(localDB.TitlesMap[prefix], localDB.Skipped)
 	if len(sources) == 0 {
-		return QueuedTask{}, errorString("This game has nothing to put in a pack.")
+		return QueuedTask{}, errorString("This game has nothing to combine.")
 	}
 	return QueuedTask{Kind: TASK_PACK, Paths: []string{sources[0]}, Names: map[string]string{sources[0]: name}, Delete: deleteOriginals}, nil
 }
@@ -389,9 +401,9 @@ func (web *Web) handlePacks() {
 		}
 		paths := web.selectedPaths(r, web.packCandidates())
 		if len(paths) == 0 {
-			writeGlobalError(w, http.StatusBadRequest, lang, "Select the games to pack.")
+			writeGlobalError(w, http.StatusBadRequest, lang, "Select the games to combine.")
 			return
 		}
-		web.startOrQueue(w, QueuedTask{Kind: TASK_PACK, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
+		web.startWriting(w, r, QueuedTask{Kind: TASK_PACK, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
 	}).Methods("POST")
 }

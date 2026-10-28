@@ -154,7 +154,7 @@
 									{{- else if eq .Kind "copy"}} &middot; {{t "%v files copied" .Files}}
 									{{- else if eq .Kind "upload"}} &middot; {{.Subject}}{{if .Files}} ({{formatSize .Saved}}){{end}}
 									{{- else if eq .Kind "convert"}}{{if .Files}} &middot; {{t "%v files converted" .Files}}{{end}}
-									{{- else if eq .Kind "pack"}}{{if .Files}} &middot; {{t "%v packs made, %v of delta fragments left out" .Files (formatSize .Saved)}}{{end}}
+									{{- else if eq .Kind "pack"}}{{if .Files}} &middot; {{t "%v games combined, %v of delta fragments left out" .Files (formatSize .Saved)}}{{end}}
 									{{- else if eq .Kind "split"}}{{if .Files}} &middot; {{t "%v files split" .Files}}{{end}}
 									{{- else if eq .Kind "thumbnails"}} &middot; {{t "%v thumbnails made" .Files}}
 									{{- else if eq .Kind "timetobeat"}} &middot; {{t "%v of %v games with times" .Games .Files}}
@@ -286,7 +286,7 @@
 {{- end}}
 {{- end}}
 
-{{define "taskKind"}}{{if eq . "sync"}}{{t "Synchronization"}}{{else if eq . "scan"}}{{t "Library scan"}}{{else if eq . "organize"}}{{t "Organize files"}}{{else if eq . "cleanup"}}{{t "Delete old updates"}}{{else if eq . "compress"}}{{t "Compression"}}{{else if eq . "decompress"}}{{t "Decompression"}}{{else if eq . "verify"}}{{t "File check"}}{{else if eq . "covers"}}{{t "Cover downloads"}}{{else if eq . "thumbnails"}}{{t "Thumbnails"}}{{else if eq . "copy"}}{{t "Copy to the card"}}{{else if eq . "convert"}}{{t "Conversion"}}{{else if eq . "pack"}}{{t "Complete pack"}}{{else if eq . "split"}}{{t "Split files"}}{{else if eq . "timetobeat"}}{{t "Times to beat (IGDB)"}}{{else if eq . "upload"}}{{t "Upload"}}{{else}}{{.}}{{end}}{{end}}
+{{define "taskKind"}}{{if eq . "sync"}}{{t "Synchronization"}}{{else if eq . "scan"}}{{t "Library scan"}}{{else if eq . "organize"}}{{t "Organize files"}}{{else if eq . "cleanup"}}{{t "Delete old updates"}}{{else if eq . "compress"}}{{t "Compression"}}{{else if eq . "decompress"}}{{t "Decompression"}}{{else if eq . "verify"}}{{t "File check"}}{{else if eq . "covers"}}{{t "Cover downloads"}}{{else if eq . "thumbnails"}}{{t "Thumbnails"}}{{else if eq . "copy"}}{{t "Copy to the card"}}{{else if eq . "convert"}}{{t "Conversion"}}{{else if eq . "pack"}}{{t "Combine"}}{{else if eq . "split"}}{{t "Split files"}}{{else if eq . "timetobeat"}}{{t "Times to beat (IGDB)"}}{{else if eq . "upload"}}{{t "Upload"}}{{else}}{{.}}{{end}}{{end}}
 
 {{define "taskIcon"}}{{if eq . "sync"}}bi-arrow-repeat{{else if eq . "scan"}}bi-search{{else if eq . "organize"}}bi-folder-symlink{{else if eq . "cleanup"}}bi-trash3{{else if eq . "compress"}}bi-file-zip{{else if eq . "decompress"}}bi-box-arrow-up{{else if eq . "verify"}}bi-shield-check{{else if eq . "covers"}}bi-images{{else if eq . "thumbnails"}}bi-aspect-ratio{{else if eq . "copy"}}bi-sd-card{{else if eq . "convert"}}bi-arrow-left-right{{else if eq . "pack"}}bi-box-seam{{else if eq . "split"}}bi-scissors{{else if eq . "timetobeat"}}bi-hourglass-split{{else if eq . "upload"}}bi-upload{{else}}bi-gear{{end}}{{end}}
 

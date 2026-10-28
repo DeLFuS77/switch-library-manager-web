@@ -431,7 +431,7 @@ func TestLaneColoursFollowTheStepOrTheKind(t *testing.T) {
 		"Game [0100000000010000][v0].nsp":                    {"red", "Game"},
 		"Game [0100000000010800][v65536].nsz":                {"yellow", "Update"},
 		"Game DLC [0100000000011001][v0].nsp":                {"cyan", "DLC"},
-		"Game [0100000000010000][v65536][+1 DLC] (pack).nsz": {"green", "Complete pack"},
+		"Game [0100000000010000][v65536][+1 DLC] (pack).nsz": {"green", "Combine"},
 	}
 	for name, want := range kinds {
 		lane := TaskLane{Name: name, Kind: laneKind(name)}
