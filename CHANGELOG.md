@@ -4,7 +4,7 @@
 
 ### Improvements
 
-- In the view by covers of Tasks, a file worked on in steps, as in a compression (hashes, compression and check), says under its cover the step it is in, with its colour, and its bar is split in the steps: the ones done stay full and only the one being done fills up, so the bar no longer seems to start again. A task of one step, as Verify, keeps its whole bar
+- In the view by covers of Tasks, a file worked on in steps, as in a compression (hashes, compression and check), says under its cover the step it is in, with its colour, and its bar is split in the steps, each in the colour it has in the view by bars (the hashes cyan, the work orange, the check green): the ones done stay full and only the one being done fills up, with the moving stripes, so the bar no longer seems to start again. A task of one step, as Verify, keeps its whole bar, with the moving stripes too
 
 ## 1.65.0
 

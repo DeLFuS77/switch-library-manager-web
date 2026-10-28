@@ -341,7 +341,7 @@ func TestTasksByCoversShowEachFile(t *testing.T) {
 	web.embedFS = os.DirFS("..")
 	web.HandleTasks()
 	id := web.taskLog().Start(TASK_COMPRESS, TRIGGER_MANUAL)
-	web.taskLog().ProgressFiles(id, 20<<10, 50<<10, "Game.nsp", 3, 3, []TaskLane{{Name: "Game.nsp", Done: 6 << 30, Total: 12 << 30, Phase: "Compressing", Step: 2, Steps: 3}})
+	web.taskLog().ProgressFiles(id, 20<<10, 50<<10, "Game.nsp", 3, 3, []TaskLane{{Name: "Game.nsp", Done: 6 << 30, Total: 12 << 30, Phase: PHASE_COMPRESSING, Step: 2, Steps: 3, Phases: []string{PHASE_HASHING, PHASE_COMPRESSING, PHASE_VERIFYING}}})
 	web.taskLog().AddFileTile(id, "Done.nsp", false, "")
 	web.taskLog().AddFileTile(id, "Broken.nsp", true, NOTE_COMPRESS_FAILED)
 	page := httptest.NewRecorder()
@@ -352,8 +352,9 @@ func TestTasksByCoversShowEachFile(t *testing.T) {
 			t.Errorf("the covers show %q", want)
 		}
 	}
-	// the step of the file, and its bar split in its three steps: the first done, the second filling
-	for _, want := range []string{`data-step="2"`, `task-tile-step`, "· 2/3", `task-tile-segs`, `task-tile-seg is-done"></span><span class="task-tile-seg"><span class="progress-bar" style="width: 50%"></span></span><span class="task-tile-seg"></span>`} {
+	// the step of the file, and its bar split in its three steps, each in its colour: the hashes
+	// done, the compression filling with the moving stripes, the check to come
+	for _, want := range []string{`data-step="2"`, `task-tile-step`, "· 2/3", `task-tile-segs`, `task-tile-seg is-done lane-cyan"></span><span class="task-tile-seg"><span class="progress-bar progress-bar-striped progress-bar-animated lane-yellow" style="width: 50%"></span></span><span class="task-tile-seg"></span>`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("the cover at work shows its step: %q", want)
 		}

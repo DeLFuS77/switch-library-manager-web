@@ -297,10 +297,10 @@ with the one it is in written above it, as in the view by bars */}}
 {{- if .Segments}}
 		<span class="task-tile-step"><span class="lane-dot lane-{{.Tone}}" aria-hidden="true"></span><span class="text-truncate">{{t .Phase}}</span>&nbsp;· {{.Step}}/{{.Steps}}</span>
 		<span class="task-tile-segs" role="progressbar" aria-label="{{.Name}}: {{t .Phase}}, {{t "step %v of %v" .Step .Steps}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100">
-			{{- range .Segments}}<span class="task-tile-seg{{if .Done}} is-done{{end}}">{{if .Current}}<span class="progress-bar" style="width: {{$.Percent}}%"></span>{{end}}</span>{{end -}}
+			{{- range .Segments}}<span class="task-tile-seg{{if .Done}} is-done lane-{{.Tone}}{{end}}">{{if .Current}}<span class="progress-bar progress-bar-striped progress-bar-animated lane-{{.Tone}}" style="width: {{$.Percent}}%"></span>{{end}}</span>{{end -}}
 		</span>
 {{- else}}
-		<span class="progress task-tile-bar" role="progressbar" aria-label="{{.Name}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100"><span class="progress-bar" style="width: {{.Percent}}%"></span></span>
+		<span class="progress task-tile-bar" role="progressbar" aria-label="{{.Name}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100"><span class="progress-bar progress-bar-striped progress-bar-animated" style="width: {{.Percent}}%"></span></span>
 {{- end}}
 {{- end}}
 {{define "taskIcon"}}{{if eq . "sync"}}bi-arrow-repeat{{else if eq . "scan"}}bi-search{{else if eq . "organize"}}bi-folder-symlink{{else if eq . "cleanup"}}bi-trash3{{else if eq . "compress"}}bi-file-zip{{else if eq . "decompress"}}bi-box-arrow-up{{else if eq . "verify"}}bi-shield-check{{else if eq . "covers"}}bi-images{{else if eq . "thumbnails"}}bi-aspect-ratio{{else if eq . "copy"}}bi-sd-card{{else if eq . "convert"}}bi-arrow-left-right{{else if eq . "pack"}}bi-box-seam{{else if eq . "split"}}bi-scissors{{else if eq . "timetobeat"}}bi-hourglass-split{{else if eq . "upload"}}bi-upload{{else}}bi-gear{{end}}{{end}}

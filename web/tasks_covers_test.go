@@ -112,6 +112,10 @@ func TestTileSegments(t *testing.T) {
 	if len(segments) != 3 || !segments[0].Done || segments[0].Current || !segments[1].Current || segments[1].Done || segments[2].Done || segments[2].Current {
 		t.Fatalf("steps: %+v", segments)
 	}
+	colours := TaskTile{Step: 3, Steps: 3, Tone: "green", Phases: []string{PHASE_HASHING, PHASE_COMPRESSING, PHASE_VERIFYING}}.Segments()
+	if colours[0].Tone != "cyan" || colours[1].Tone != "yellow" || colours[2].Tone != "green" {
+		t.Fatalf("each step in its colour: %+v", colours)
+	}
 	if (TaskTile{Step: 1, Steps: 1}).Segments() != nil || (TaskTile{}).Segments() != nil {
 		t.Fatal("one step: a whole bar")
 	}

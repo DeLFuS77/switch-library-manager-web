@@ -172,6 +172,8 @@ type TaskLane struct {
 	Phase string `json:"phase,omitempty"`
 	Step  int    `json:"step,omitempty"`
 	Steps int    `json:"steps,omitempty"`
+	// every step of the file, in its order, for the colours of the bar of its cover
+	Phases []string `json:"-"`
 	// what the file holds, from its name: Base, Update or DLC by the title ID, Pack for a
 	// complete pack ("" unknown)
 	Kind string `json:"kind,omitempty"`
@@ -185,6 +187,14 @@ var laneTones = []string{"red", "yellow", "cyan", "green"}
 // the colours of the steps of a file: the hashes, the work itself, the check
 var phaseTones = map[string]string{PHASE_HASHING: "cyan", PHASE_VERIFYING: "green"}
 
+// phaseTone is the colour of a step of a file: the hashes, the check, or the work itself.
+func phaseTone(phase string) string {
+	if tone, ok := phaseTones[phase]; ok {
+		return tone
+	}
+	return "yellow"
+}
+
 // the colours of what a file holds, as in the library overview
 var kindTones = map[string]string{"Base": "red", "Update": "yellow", "DLC": "cyan", "Pack": "green"}
 
@@ -193,10 +203,7 @@ var kindTones = map[string]string{"Base": "red", "Update": "yellow", "DLC": "cya
 // always the same for the same name.
 func (l TaskLane) Tone() string {
 	if l.Phase != "" {
-		if tone, ok := phaseTones[l.Phase]; ok {
-			return tone
-		}
-		return "yellow"
+		return phaseTone(l.Phase)
 	}
 	if tone, ok := kindTones[l.Kind]; ok {
 		return tone
@@ -266,7 +273,7 @@ func (l TaskLane) StepDone() int64 {
 func (l TaskLane) Tile() TaskTile {
 	tile := TaskTile{Name: l.Name, Cover: l.Cover, Working: true, Percent: l.StepPercent()}
 	if l.Phase != "" && l.Steps > 1 {
-		tile.Phase, tile.Step, tile.Steps, tile.Tone = l.Phase, l.Step, l.Steps, l.Tone()
+		tile.Phase, tile.Step, tile.Steps, tile.Tone, tile.Phases = l.Phase, l.Step, l.Steps, l.Tone(), l.Phases
 	}
 	return tile
 }
@@ -308,17 +315,19 @@ type TaskTile struct {
 	Percent int    `json:"-"`
 	// for a file at work in a task in steps (hashes, work, check): the step it is in, out of
 	// how many, and its colour, as in the view by bars
-	Phase string `json:"-"`
-	Step  int    `json:"-"`
-	Steps int    `json:"-"`
-	Tone  string `json:"-"`
+	Phase  string   `json:"-"`
+	Step   int      `json:"-"`
+	Steps  int      `json:"-"`
+	Tone   string   `json:"-"`
+	Phases []string `json:"-"`
 }
 
 // TileSegment is a step of a file at work, for the bar of its cover split in steps: done, the
-// one being done, or still to come.
+// one being done, or still to come, in the colour of its step.
 type TileSegment struct {
 	Done    bool
 	Current bool
+	Tone    string
 }
 
 // Segments are the steps of a file at work, for the bar of its cover; none for a task of one
@@ -329,7 +338,10 @@ func (t TaskTile) Segments() []TileSegment {
 	}
 	segments := make([]TileSegment, t.Steps)
 	for i := range segments {
-		segments[i] = TileSegment{Done: i+1 < t.Step, Current: i+1 == t.Step}
+		segments[i] = TileSegment{Done: i+1 < t.Step, Current: i+1 == t.Step, Tone: t.Tone}
+		if i < len(t.Phases) {
+			segments[i].Tone = phaseTone(t.Phases[i])
+		}
 	}
 	return segments
 }

@@ -892,7 +892,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 						index := -1
 						if len(phases) > 0 && sizes[i] > 0 {
 							index = min(int(step/sizes[i]), len(phases)-1)
-							lane.Phase, lane.Step, lane.Steps = phases[index], index+1, len(phases)
+							lane.Phase, lane.Step, lane.Steps, lane.Phases = phases[index], index+1, len(phases), phases
 						}
 						// the last report of this step, to measure its speed
 						var last time.Time

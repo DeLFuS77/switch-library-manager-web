@@ -401,19 +401,16 @@
 	height: 0.3rem;
 }
 
+// each step in its colour, as in the view by bars: the hashes cyan, the work orange, the check
+// green; the one being done with the moving stripes
 .task-tile-seg {
 	flex: 1;
 	overflow: hidden;
 	border-radius: 2px;
 	background: rgba(127, 127, 127, 0.25);
 
-	&.is-done {
-		background: rgb(var(--tile-work-rgb));
-	}
-
 	.progress-bar {
 		height: 100%;
-		background-color: rgb(var(--tile-work-rgb));
 	}
 }
 
@@ -536,6 +533,8 @@
 // (hashes, work, check), or by what it holds (game, update, DLC); the dot by its step or kind
 // says which
 .task-lane-bar .progress-bar,
+.task-tile-seg,
+.task-tile-seg .progress-bar,
 .lane-dot {
 	&.lane-red { background-color: #{$slm-red}; }
 	&.lane-yellow { background-color: #{$warning}; }
