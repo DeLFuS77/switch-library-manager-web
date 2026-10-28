@@ -93,13 +93,26 @@ func shownPlan(plan []TaskTile, lanes []TaskLane, covers map[string]string) ([]T
 			working[lane.Name] = lane.StepPercent()
 		}
 	}
-	first := len(plan)
-	for i, tile := range plan {
-		if tile.Waiting {
-			first = i
-			break
+	// the files at work come right after the ended ones, before those waiting, so the view
+	// fills up in order (AddFileTile puts the ended files first)
+	ordered := make([]TaskTile, 0, len(plan))
+	for _, tile := range plan {
+		if !tile.Waiting {
+			ordered = append(ordered, tile)
 		}
 	}
+	first := len(ordered)
+	for _, tile := range plan {
+		if _, ok := working[tile.Name]; ok && tile.Waiting {
+			ordered = append(ordered, tile)
+		}
+	}
+	for _, tile := range plan {
+		if _, ok := working[tile.Name]; !ok && tile.Waiting {
+			ordered = append(ordered, tile)
+		}
+	}
+	plan = ordered
 	start := max(0, min(first-maxShownTiles/10, len(plan)-maxShownTiles))
 	end := min(len(plan), start+maxShownTiles)
 	shown := make([]TaskTile, 0, end-start)

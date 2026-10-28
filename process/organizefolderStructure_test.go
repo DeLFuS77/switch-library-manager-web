@@ -352,6 +352,14 @@ func TestAsciiFallbackName(t *testing.T) {
 	if name := asciiFallbackName(files); name != "Unknown Title" {
 		t.Fatalf("no letter in the file either: %q", name)
 	}
+	// the numbers of a name are not a name: 符文工房4 特别版 is not "4"
+	files.File.ExtendedInfo.FileName = "符文工房4 特别版 [0100E21011446000][v0].nsp"
+	if name := asciiFallbackName(files); name != "Unknown Title" {
+		t.Fatalf("numbers only: %q", name)
+	}
+	if hasLetter(safeName("符文工房4 特别版")) || !hasLetter(safeName("Pokémon 剣")) {
+		t.Fatal("letters of the safe names")
+	}
 }
 
 func TestOrganizeSubfoldersWithoutGameFolders(t *testing.T) {

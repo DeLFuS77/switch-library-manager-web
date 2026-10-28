@@ -1,4 +1,61 @@
 {
+  "1.65.0": {
+    "en": [
+      "Organize has a new action, Place new files: the loose files of the library, like the uploaded ones, go to the folder their game already has, and nothing else moves. The automations can do the same with Only the new files.",
+      "Keep the folder each game has, and a subfolder for the base game next to those of updates and DLC. A game with a Chinese or Korean name no longer gets a folder named only with a number.",
+      "In the view by covers of Tasks, the files at work fill up in blue, the ones waiting are darkened, the covers fill up in order and the bars no longer jump."
+    ],
+    "es": [
+      "Organizar tiene una acción nueva, Colocar archivos nuevos: los archivos sueltos de la biblioteca, como los subidos, van a la carpeta que ya tiene su juego, y nada más se mueve. Las automatizaciones pueden hacer lo mismo con Solo los archivos nuevos.",
+      "Conservar la carpeta de cada juego, y una subcarpeta para el juego base junto a las de actualizaciones y DLC. Un juego con nombre chino o coreano ya no recibe una carpeta con solo un número.",
+      "En la vista por portadas de Tareas, los archivos en marcha se llenan en azul, los pendientes salen oscurecidos, las portadas se llenan en orden y las barras ya no saltan."
+    ],
+    "de": [
+      "Organisieren hat eine neue Aktion, Neue Dateien einordnen: lose Dateien der Bibliothek, etwa hochgeladene, kommen in den Ordner, den ihr Spiel schon hat, und sonst bewegt sich nichts. Die Automatisierungen können dasselbe mit Nur die neuen Dateien.",
+      "Den Ordner jedes Spiels behalten, und ein Unterordner für das Hauptspiel neben denen für Updates und DLC. Ein Spiel mit chinesischem oder koreanischem Namen bekommt keinen Ordner mehr, der nur aus einer Zahl besteht.",
+      "In der Ansicht nach Covern unter Aufgaben füllen sich die laufenden Dateien blau, wartende sind abgedunkelt, die Cover füllen sich der Reihe nach und die Balken springen nicht mehr."
+    ],
+    "fr": [
+      "Organiser a une nouvelle action, Ranger les nouveaux fichiers : les fichiers isolés de la bibliothèque, comme ceux envoyés, vont dans le dossier que leur jeu a déjà, et rien d'autre ne bouge. Les automatisations peuvent faire de même avec Seulement les nouveaux fichiers.",
+      "Garder le dossier de chaque jeu, et un sous-dossier pour le jeu de base à côté de ceux des mises à jour et des DLC. Un jeu au nom chinois ou coréen ne reçoit plus un dossier nommé d'un seul nombre.",
+      "Dans la vue par jaquettes des Tâches, les fichiers en cours se remplissent en bleu, ceux en attente sont assombris, les jaquettes se remplissent dans l'ordre et les barres ne sautent plus."
+    ],
+    "it": [
+      "Organizza ha una nuova azione, Sistema i file nuovi: i file sparsi della libreria, come quelli caricati, vanno nella cartella che il loro gioco ha già, e nient'altro si sposta. Le automazioni possono fare lo stesso con Solo i file nuovi.",
+      "Mantieni la cartella di ogni gioco, e una sottocartella per il gioco base accanto a quelle di aggiornamenti e DLC. Un gioco con nome cinese o coreano non riceve più una cartella con solo un numero.",
+      "Nella vista per copertine di Attività, i file in lavorazione si riempiono di blu, quelli in attesa sono scuriti, le copertine si riempiono in ordine e le barre non saltano più."
+    ],
+    "pt": [
+      "Organizar tem uma nova ação, Colocar arquivos novos: os arquivos soltos da biblioteca, como os enviados, vão para a pasta que o jogo já tem, e nada mais se move. As automações podem fazer o mesmo com Só os arquivos novos.",
+      "Manter a pasta de cada jogo, e uma subpasta para o jogo base ao lado das de atualizações e DLC. Um jogo com nome chinês ou coreano não recebe mais uma pasta com apenas um número.",
+      "Na vista por capas de Tarefas, os arquivos em andamento se enchem de azul, os que esperam ficam escurecidos, as capas se enchem em ordem e as barras não saltam mais."
+    ],
+    "nl": [
+      "Ordenen heeft een nieuwe actie, Nieuwe bestanden plaatsen: losse bestanden van de bibliotheek, zoals geüploade, gaan naar de map die hun game al heeft, en verder verschuift er niets. De automatiseringen kunnen hetzelfde met Alleen de nieuwe bestanden.",
+      "De map van elke game behouden, en een submap voor de basisgame naast die voor updates en DLC. Een game met een Chinese of Koreaanse naam krijgt geen map meer met alleen een getal.",
+      "In de weergave met covers van Taken vullen de bestanden in bewerking zich blauw, wachtende zijn donkerder, de covers vullen zich op volgorde en de balken springen niet meer."
+    ],
+    "ru": [
+      "В «Упорядочить» появилось новое действие «Разместить новые файлы»: отдельные файлы библиотеки, например загруженные, попадают в папку, которая уже есть у их игры, и больше ничего не перемещается. Автоматизации могут делать то же самое с «Только новые файлы».",
+      "«Сохранять папку каждой игры» и подпапка для основной игры рядом с папками обновлений и DLC. Игра с китайским или корейским названием больше не получает папку, названную одним числом.",
+      "В режиме обложек на странице «Задачи» файлы в работе заполняются синим, ожидающие затемнены, обложки заполняются по порядку, а полосы больше не скачут."
+    ],
+    "ja": [
+      "整理に新しい操作「新しいファイルを配置」を追加：アップロードしたファイルなどライブラリ内のばらばらのファイルを、そのゲームの既存のフォルダーへ移し、ほかは何も動かしません。自動処理でも「新しいファイルのみ」で同じことができます。",
+      "「各ゲームのフォルダーを維持」と、アップデートやDLCと並ぶ本編用のサブフォルダーを追加。中国語や韓国語の名前のゲームが、数字だけのフォルダーになることはなくなりました。",
+      "タスクのカバー画像表示で、処理中のファイルは青く満ち、待機中のものは暗く表示され、カバー画像は順番に埋まり、バーが跳ねなくなりました。"
+    ],
+    "ko": [
+      "정리에 새 작업 '새 파일 배치'가 추가되었습니다: 업로드한 파일처럼 라이브러리에 흩어진 파일은 해당 게임이 이미 가진 폴더로 가고, 다른 것은 움직이지 않습니다. 자동화도 '새 파일만'으로 같은 일을 할 수 있습니다.",
+      "'각 게임의 폴더 유지'와 업데이트, DLC 폴더 옆의 본편 하위 폴더가 추가되었습니다. 중국어나 한국어 이름의 게임이 더 이상 숫자만 있는 폴더를 받지 않습니다.",
+      "작업의 커버 보기에서 진행 중인 파일은 파란색으로 채워지고, 대기 중인 파일은 어둡게 표시되며, 커버는 순서대로 채워지고 막대가 더 이상 튀지 않습니다."
+    ],
+    "zh": [
+      "整理新增操作“放置新文件”：库中零散的文件（例如上传的文件）会放入其游戏已有的文件夹，其他内容都不移动。自动化也可以用“仅新文件”做同样的事。",
+      "新增“保留每个游戏的文件夹”，以及与更新和 DLC 并列的本体子文件夹。名称为中文或韩文的游戏不再得到只有数字的文件夹。",
+      "在任务的封面视图中，处理中的文件以蓝色填充，等待中的变暗，封面按顺序填满，进度条也不再跳动。"
+    ]
+  },
   "1.64.0": {
     "en": [
       "The Compress page tells why each file cannot be compressed: sparse storage, compressed already, no game data, or an encryption no compressor reads.",

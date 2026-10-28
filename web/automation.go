@@ -356,8 +356,19 @@ func (web *Web) runAutomationOnce() bool {
 	if options.CleanupUpdates && updates > 0 {
 		steps = append(steps, ORGANIZE_ACTION_CLEANUP)
 	}
-	if options.Organize {
+	if options.Organize && options.OrganizeNewOnly {
+		steps = append(steps, ORGANIZE_ACTION_NEW)
+	} else if options.Organize {
 		steps = append(steps, ORGANIZE_ACTION_ORGANIZE)
+	}
+	// the new files, by the name they have now: a compressed one is the NSZ or XCZ
+	newFiles := []string{}
+	for _, path := range existing {
+		newFiles = append(newFiles, path)
+		switch ext := strings.ToLower(filepath.Ext(path)); ext {
+		case ".nsp", ".xci":
+			newFiles = append(newFiles, strings.TrimSuffix(path, filepath.Ext(path))+ext[:3]+"z")
+		}
 	}
 	for _, action := range steps {
 		if _, ok := web.waitForAutomation(); !ok {
@@ -369,7 +380,7 @@ func (web *Web) runAutomationOnce() bool {
 				continue
 			}
 		}
-		operations, err := web.runOrganizeAction(action, TRIGGER_AUTOMATION)
+		operations, err := web.runOrganizeFiles(action, newFiles, TRIGGER_AUTOMATION)
 		web.state.endSync()
 		if err != nil {
 			web.sugarLogger.Warnf("Automation: %s failed: %v", action, err)

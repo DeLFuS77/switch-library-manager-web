@@ -17,6 +17,9 @@ import (
 const (
 	ORGANIZE_ACTION_ORGANIZE = "organize"
 	ORGANIZE_ACTION_CLEANUP  = "cleanup"
+	// the new files only, into the folders of their games: the ones of the automation, or the
+	// loose files in the library folders
+	ORGANIZE_ACTION_NEW = "new"
 )
 
 type OrganizePageData struct {
@@ -33,6 +36,8 @@ type OrganizeForm struct {
 	KeepNamesWithId            bool   `in:"form=keep_names_with_id"`
 	DlcFolder                  string `in:"form=dlc_folder"`
 	UpdatesFolder              string `in:"form=updates_folder"`
+	BaseFolder                 string `in:"form=base_folder"`
+	KeepGameFolders            bool   `in:"form=keep_game_folders"`
 	FoldersWithIds             bool   `in:"form=folders_with_ids"`
 	DlcOwnFolders              bool   `in:"form=dlc_own_folders"`
 	ProcessWhenMissingBaseGame bool   `in:"form=process_when_missing_base_game"`
@@ -90,6 +95,8 @@ func (f *OrganizeForm) toOptions(current settings.OrganizeOptions) settings.Orga
 	current.KeepNamesWithId = f.KeepNamesWithId
 	current.DlcFolder = strings.TrimSpace(f.DlcFolder)
 	current.UpdatesFolder = strings.TrimSpace(f.UpdatesFolder)
+	current.BaseFolder = strings.TrimSpace(f.BaseFolder)
+	current.KeepGameFolders = f.KeepGameFolders
 	current.FoldersWithIds = f.FoldersWithIds
 	current.DlcInOneFolder = !f.DlcOwnFolders
 	current.ProcessWhenMissingBaseGame = f.ProcessWhenMissingBaseGame
@@ -157,6 +164,38 @@ func newOrganizeResponse(operations []process.Operation, dryRun bool, libraryFol
 
 // organize plans (dryRun) or performs an organize action on the current library.
 func (web *Web) organize(action string, dryRun bool) ([]process.Operation, error) {
+	return web.organizeFiles(action, nil, dryRun)
+}
+
+// looseFiles are the files of the library that lie in a library folder itself, outside the
+// folders of the games: the ones uploaded or copied there.
+func looseFiles(localDB *db.LocalSwitchFilesDB, roots []string) []string {
+	isRoot := map[string]bool{}
+	for _, root := range roots {
+		isRoot[filepath.Clean(root)] = true
+	}
+	paths := []string{}
+	add := func(file db.ExtendedFileInfo) {
+		if isRoot[filepath.Clean(file.BaseFolder)] {
+			paths = append(paths, filepath.Join(file.BaseFolder, file.FileName))
+		}
+	}
+	for _, local := range localDB.TitlesMap {
+		if local.BaseExist {
+			add(local.File.ExtendedInfo)
+		}
+		for _, update := range local.Updates {
+			add(update.ExtendedInfo)
+		}
+		for _, dlc := range local.Dlc {
+			add(dlc.ExtendedInfo)
+		}
+	}
+	return paths
+}
+
+// organizeFiles is organize; the new files action takes paths, or the loose files when nil.
+func (web *Web) organizeFiles(action string, paths []string, dryRun bool) ([]process.Operation, error) {
 	switchDB, localDB := web.state.get()
 	if localDB == nil {
 		return nil, errors.New("the library has not been scanned yet")
@@ -173,6 +212,12 @@ func (web *Web) organize(action string, dryRun bool) ([]process.Operation, error
 	switch action {
 	case ORGANIZE_ACTION_ORGANIZE:
 		return process.OrganizeByFolders(settingsObj.Folder, localDB, switchDB, options, dryRun, progress)
+	case ORGANIZE_ACTION_NEW:
+		roots := scanFolders(settingsObj)
+		if paths == nil {
+			paths = looseFiles(localDB, roots)
+		}
+		return process.OrganizeNewFiles(settingsObj.Folder, roots, paths, localDB, switchDB, options, dryRun, progress)
 	case ORGANIZE_ACTION_CLEANUP:
 		// of two copies the compressed one stays, when it was checked and is sound
 		return process.DeleteOldUpdates(settingsObj.Folder, web.preferCompressed(localDB), options, dryRun, progress, web.cleanupRefusal), nil
@@ -184,6 +229,11 @@ func (web *Web) organize(action string, dryRun bool) ([]process.Operation, error
 // runOrganizeAction organizes the files or deletes the old updates as a task. The caller holds
 // the synchronization (startSync), so no scan moves files at the same time, and rescans after.
 func (web *Web) runOrganizeAction(action string, trigger string) ([]process.Operation, error) {
+	return web.runOrganizeFiles(action, nil, trigger)
+}
+
+// runOrganizeFiles is runOrganizeAction with the paths of the new files action.
+func (web *Web) runOrganizeFiles(action string, paths []string, trigger string) ([]process.Operation, error) {
 	kind := TASK_ORGANIZE
 	if action == ORGANIZE_ACTION_CLEANUP {
 		kind = TASK_CLEANUP
@@ -202,7 +252,7 @@ func (web *Web) runOrganizeAction(action string, trigger string) ([]process.Oper
 		return nil, errOrganizeBusy
 	}
 	taskId := web.startTask(kind, trigger)
-	operations, err := web.organize(action, false)
+	operations, err := web.organizeFiles(action, paths, false)
 	web.verifications().follow(operations)
 	web.uncompressible().follow(operations)
 	web.moves.record(operations)
@@ -370,7 +420,7 @@ func (web *Web) HandleOrganize() {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: field, Message: translate(lang, err.Error())})
 		}
 
-		for field, folder := range map[string]string{"dlc_folder": options.DlcFolder, "updates_folder": options.UpdatesFolder} {
+		for field, folder := range map[string]string{"dlc_folder": options.DlcFolder, "updates_folder": options.UpdatesFolder, "base_folder": options.BaseFolder} {
 			if strings.Contains(folder, "..") {
 				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: field, Message: translate(lang, "Parent folder references (..) are not allowed")})
 			}

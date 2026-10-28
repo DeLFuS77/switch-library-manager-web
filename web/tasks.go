@@ -660,7 +660,9 @@ func (l *TaskLog) SetPlan(id int64, names []string) {
 	})
 }
 
-// AddFileTile records how a file of a task on files ended, in its plan too.
+// AddFileTile records how a file of a task on files ended, in its plan too: after the files
+// ended before it, so the view by covers fills up in order, from the top left, even when
+// several files are worked on at once and end in another order than the plan's.
 func (l *TaskLog) AddFileTile(id int64, name string, failed bool, note string) {
 	l.update(id, false, func(task *Task) {
 		tile := TaskTile{Name: name, Failed: failed, Note: note}
@@ -668,9 +670,14 @@ func (l *TaskLog) AddFileTile(id int64, name string, failed bool, note string) {
 		if len(task.Tiles) > maxTaskResults {
 			task.Tiles = task.Tiles[len(task.Tiles)-maxTaskResults:]
 		}
-		for i := range task.Plan {
+		ended := 0
+		for ended < len(task.Plan) && !task.Plan[ended].Waiting {
+			ended++
+		}
+		for i := ended; i < len(task.Plan); i++ {
 			if task.Plan[i].Waiting && task.Plan[i].Name == name {
-				task.Plan[i] = tile
+				copy(task.Plan[ended+1:i+1], task.Plan[ended:i])
+				task.Plan[ended] = tile
 				break
 			}
 		}

@@ -59,7 +59,25 @@ type fileOperations struct {
 	movedFrom map[string]string
 	// the folders files were moved or deleted from: the only ones the run can leave empty
 	vacated map[string]bool
-	logger  *zap.SugaredLogger
+	// with a list, the only files that move (see pathKey): the others stay as they are, and
+	// nothing is told of them
+	only   map[string]bool
+	logger *zap.SugaredLogger
+}
+
+// pathKey is a path as the list of files to move keeps it: in any case where the disk takes
+// names in any case.
+func pathKey(path string) string {
+	path = filepath.Clean(path)
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+		return strings.ToLower(path)
+	}
+	return path
+}
+
+// leftOut tells a file the list of files to move does not have.
+func (f *fileOperations) leftOut(path string) bool {
+	return f.only != nil && !f.only[pathKey(path)]
 }
 
 func newFileOperations(dryRun bool) *fileOperations {
@@ -126,6 +144,11 @@ func isSplitPart(name string) bool {
 
 func (f *fileOperations) move(from string, to string) error {
 	from, to = filepath.Clean(from), filepath.Clean(to)
+	if f.leftOut(from) {
+		// its other contents must not move it either
+		f.movedFrom[from] = from
+		return nil
+	}
 	if from != to && isSplitPart(filepath.Base(from)) {
 		if _, moved := f.movedFrom[from]; !moved {
 			f.movedFrom[from] = from
@@ -272,6 +295,9 @@ func (f *fileOperations) remove(file db.ExtendedFileInfo, reason string) error {
 }
 
 func (f *fileOperations) skip(file string, reason string) {
+	if f.leftOut(file) {
+		return
+	}
 	f.record(Operation{Kind: OP_SKIP, From: file, Reason: reason}, nil)
 }
 
@@ -516,6 +542,35 @@ func OrganizeByFolders(baseFolder string,
 	options settings.OrganizeOptions,
 	dryRun bool,
 	updateProgress db.ProgressUpdater) ([]Operation, error) {
+	return organize(baseFolder, []string{baseFolder}, nil, localDB, titlesDB, options, dryRun, updateProgress)
+}
+
+// OrganizeNewFiles moves (and optionally renames) the files in paths only, the new ones, and
+// leaves the rest of the library as it is: a file goes to the folder its game has already
+// (see gameFolders), or to a new one when the game has none. roots are the folders of the
+// library, which are no game's own.
+func OrganizeNewFiles(baseFolder string,
+	roots []string,
+	paths []string,
+	localDB *db.LocalSwitchFilesDB,
+	titlesDB *db.SwitchTitlesDB,
+	options settings.OrganizeOptions,
+	dryRun bool,
+	updateProgress db.ProgressUpdater) ([]Operation, error) {
+	if paths == nil {
+		paths = []string{}
+	}
+	return organize(baseFolder, roots, paths, localDB, titlesDB, options, dryRun, updateProgress)
+}
+
+func organize(baseFolder string,
+	roots []string,
+	only []string,
+	localDB *db.LocalSwitchFilesDB,
+	titlesDB *db.SwitchTitlesDB,
+	options settings.OrganizeOptions,
+	dryRun bool,
+	updateProgress db.ProgressUpdater) ([]Operation, error) {
 
 	if err := ValidateOptions(options); err != nil {
 		return nil, err
@@ -525,6 +580,27 @@ func OrganizeByFolders(baseFolder string,
 	}
 
 	ops := newFileOperations(dryRun)
+	if only != nil {
+		ops.only = map[string]bool{}
+		for _, path := range only {
+			ops.only[pathKey(path)] = true
+		}
+	}
+	// the files of a game go to the folder it has already: when asked, and always for the new
+	// files, which would otherwise start a second folder of the game next to one named by hand
+	keepFolders := options.CreateFolderPerGame && (options.KeepGameFolders || only != nil)
+	var existing map[string]string
+	if keepFolders {
+		existing = gameFolders(roots, localDB, options, ops.only)
+	}
+	isRoot := func(folder string) bool {
+		for _, root := range roots {
+			if root != "" && pathKey(root) == pathKey(folder) {
+				return true
+			}
+		}
+		return false
+	}
 	keys := sortedKeys(localDB.TitlesMap)
 	tasksSize := len(keys) + 1
 
@@ -555,11 +631,17 @@ func OrganizeByFolders(baseFolder string,
 		}
 		collection := collectionName(names, unnamed)
 		folder := filepath.Dir(path)
-		if options.CreateFolderPerGame {
+		// with the folders kept, a collection in a folder of its own stays there
+		if options.CreateFolderPerGame && !(keepFolders && !isRoot(folder)) {
 			folder = filepath.Join(baseFolder, avoidReserved(strings.TrimRight(collection, " .")))
 		}
 		fileName := filepath.Base(path)
-		if options.RenameFiles {
+		// a name with the ID of one of its games is one the user gave, as for a file of one game
+		given := false
+		for _, key := range games {
+			given = given || hasTitleId(fileName, key+"000")
+		}
+		if options.RenameFiles && !(options.KeepNamesWithId && given) {
 			fileName = avoidReserved(fmt.Sprintf("%s [%s][%d games]%s", collection, firstId, len(games), strings.ToLower(filepath.Ext(path))))
 		}
 		ops.move(path, filepath.Join(folder, fileName))
@@ -586,8 +668,9 @@ func OrganizeByFolders(baseFolder string,
 		}
 		titleName := getTitleName(title, v)
 		// a name in Chinese or Korean is left with no letter by the names for the Switch: the
-		// file's own name, or Unknown Title, instead of a folder called "_"
-		if options.SwitchSafeFileNames && strings.Trim(safeName(titleName), " -_.") == "" {
+		// file's own name, or Unknown Title, instead of a folder called "_", or "4" for
+		// 符文工房4 特别版
+		if options.SwitchSafeFileNames && !hasLetter(safeName(titleName)) {
 			titleName = asciiFallbackName(v)
 		}
 		if updateProgress != nil {
@@ -649,6 +732,9 @@ func OrganizeByFolders(baseFolder string,
 		// deleted again on every run
 		if options.CreateFolderPerGame {
 			destinationPath = filepath.Join(baseFolder, getFolderName(options, templateData))
+			if folder := existing[k]; folder != "" {
+				destinationPath = folder
+			}
 		}
 		// with folders by ID, the folder of an update or DLC, named after its own ID (in the
 		// template data when it is asked)
@@ -660,19 +746,7 @@ func OrganizeByFolders(baseFolder string,
 			return filepath.Join(parent, avoidReserved(strings.TrimRight(name, " .")))
 		}
 
-		//process base title
-		if v.BaseExist && collections[filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)] == nil {
-			templateData[settings.TEMPLATE_TYPE] = "BASE"
-			templateData[settings.TEMPLATE_DLC_NUMBER] = ""
-			fileTemplateData(templateData, v, v.File.ExtendedInfo)
-			from := filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)
-			to := filepath.Join(destinationPath, getFileName(options, v.File.ExtendedInfo.FileName, templateData, 0))
-			if err := ops.move(from, to); err != nil {
-				continue
-			}
-		}
-
-		// destination folder of an update or DLC file
+		// destination folder of a file of the game, in its subfolder
 		targetFolder := func(file db.ExtendedFileInfo, subFolder string) string {
 			if options.CreateFolderPerGame {
 				if subFolder != "" {
@@ -684,6 +758,18 @@ func OrganizeByFolders(baseFolder string,
 				return resolveFolder(baseFolder, subFolder)
 			}
 			return file.BaseFolder
+		}
+
+		//process base title
+		if v.BaseExist && collections[filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)] == nil {
+			templateData[settings.TEMPLATE_TYPE] = "BASE"
+			templateData[settings.TEMPLATE_DLC_NUMBER] = ""
+			fileTemplateData(templateData, v, v.File.ExtendedInfo)
+			from := filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)
+			to := filepath.Join(targetFolder(v.File.ExtendedInfo, options.BaseFolder), getFileName(options, v.File.ExtendedInfo.FileName, templateData, 0))
+			if err := ops.move(from, to); err != nil {
+				continue
+			}
 		}
 
 		//process updates
@@ -774,10 +860,112 @@ func OrganizeByFolders(baseFolder string,
 		if updateProgress != nil {
 			updateProgress.UpdateProgress(tasksSize, tasksSize, "Deleting empty folders...")
 		}
-		ops.deleteEmptyFolders(baseFolder, localDB.EmptyFolders)
+		// with the new files only, no folder that was empty before: only the ones they leave
+		known := localDB.EmptyFolders
+		if only != nil {
+			known = nil
+		}
+		ops.deleteEmptyFolders(baseFolder, known)
 	}
 
 	return ops.operations, nil
+}
+
+// gameFolders are the folders the games have already, by key: the folder of the base file,
+// above its subfolder for the base, the updates or the DLC, or else the one of an update or
+// DLC, above its subfolder and the folder named with its own ID. A folder of the library
+// (roots) is no game's own, nor one with files of several games; the files in skip (the new
+// ones, still to be placed) tell no folder.
+func gameFolders(roots []string, localDB *db.LocalSwitchFilesDB, options settings.OrganizeOptions, skip map[string]bool) map[string]string {
+	subfolders := []string{}
+	for _, folder := range []string{options.BaseFolder, options.UpdatesFolder, options.DlcFolder} {
+		folder = strings.TrimSpace(folder)
+		if folder == "" || filepath.IsAbs(folder) {
+			continue
+		}
+		if folder = filepath.Clean(folder); folder != "." {
+			subfolders = append(subfolders, pathKey(folder))
+		}
+	}
+	if options.FoldersWithIds {
+		subfolders = append(subfolders, pathKey("DLC"))
+	}
+	// the folder of a file of a game, above the subfolders the options give it
+	gameFolder := func(file db.ExtendedFileInfo, id string) string {
+		dir := filepath.Clean(file.BaseFolder)
+		for dir != filepath.Dir(dir) {
+			key, stripped := pathKey(dir), false
+			for _, sub := range subfolders {
+				if strings.HasSuffix(key, string(filepath.Separator)+sub) {
+					dir, stripped = filepath.Clean(dir[:len(dir)-len(sub)-1]), true
+					break
+				}
+			}
+			if !stripped && id != "" && hasTitleId(filepath.Base(dir), id) {
+				dir, stripped = filepath.Dir(dir), true
+			}
+			if !stripped {
+				break
+			}
+		}
+		return dir
+	}
+	isRoot := map[string]bool{}
+	for _, root := range roots {
+		if root != "" {
+			isRoot[pathKey(root)] = true
+		}
+	}
+	type found struct{ base, others []string }
+	candidates := map[string]*found{}
+	games := map[string]map[string]bool{}
+	add := func(key string, file db.ExtendedFileInfo, id string, base bool) {
+		if skip[pathKey(filepath.Join(file.BaseFolder, file.FileName))] {
+			return
+		}
+		folder := gameFolder(file, id)
+		if isRoot[pathKey(folder)] {
+			return
+		}
+		if games[pathKey(folder)] == nil {
+			games[pathKey(folder)] = map[string]bool{}
+		}
+		games[pathKey(folder)][key] = true
+		if candidates[key] == nil {
+			candidates[key] = &found{}
+		}
+		if base {
+			candidates[key].base = append(candidates[key].base, folder)
+		} else {
+			candidates[key].others = append(candidates[key].others, folder)
+		}
+	}
+	for key, local := range localDB.TitlesMap {
+		if local.BaseExist {
+			add(key, local.File.ExtendedInfo, "", true)
+		}
+		for _, version := range sortedIntKeys(local.Updates) {
+			update := local.Updates[version]
+			id := ""
+			if update.Metadata != nil {
+				id = update.Metadata.TitleId
+			}
+			add(key, update.ExtendedInfo, id, false)
+		}
+		for _, id := range sortedKeys(local.Dlc) {
+			add(key, local.Dlc[id].ExtendedInfo, id, false)
+		}
+	}
+	result := map[string]string{}
+	for key, folders := range candidates {
+		for _, folder := range append(folders.base, folders.others...) {
+			if len(games[pathKey(folder)]) == 1 {
+				result[key] = folder
+				break
+			}
+		}
+	}
+	return result
 }
 
 // multiGameFiles are the files that hold titles of several games, a collection on one
@@ -1217,11 +1405,22 @@ func asciiFallbackName(v *db.SwitchGameFiles) string {
 		if name == v.File.ExtendedInfo.FileName {
 			name = strings.TrimSuffix(name, filepath.Ext(name))
 		}
-		if name = strings.TrimSpace(safeName(name)); strings.Trim(name, " -_.") != "" {
+		if name = strings.TrimSpace(safeName(name)); hasLetter(name) {
 			return name
 		}
 	}
 	return "Unknown Title"
+}
+
+// hasLetter tells whether a name has a letter: a name of numbers only, such as the "4" left of
+// a Chinese name, says nothing of its game.
+func hasLetter(name string) bool {
+	for _, r := range name {
+		if unicode.IsLetter(r) {
+			return true
+		}
+	}
+	return false
 }
 
 // RemoveFiles deletes the given files, each with its reason, refusing files that changed

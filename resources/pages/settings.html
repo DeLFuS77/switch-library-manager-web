@@ -342,6 +342,11 @@
 										<input class="form-check-input" type="checkbox" role="switch" id="automation_organize" name="automation_organize" value="true"{{if $a.Organize}} checked{{end}}>
 										<label class="form-check-label" for="automation_organize"><span class="bi bi-folder-symlink me-1" aria-hidden="true"></span>{{t "Organize the library"}}</label>
 										<div class="form-text">{{t "Moves and renames the files with the folders and names of the Organize page. Look at its preview first, to see what would change."}} <a href="/organize.html">{{t "Open Organize"}}</a></div>
+										<div class="form-check mt-2">
+											<input class="form-check-input" type="checkbox" id="automation_organize_new_only" name="automation_organize_new_only" value="true" aria-describedby="automation_organize_new_only_help"{{if $a.OrganizeNewOnly}} checked{{end}}>
+											<label class="form-check-label" for="automation_organize_new_only">{{t "Only the new files"}}</label>
+											<div class="form-text" id="automation_organize_new_only_help">{{t "They go to the folder their game has, or to a new one, and the rest of the library stays as it is."}}</div>
+										</div>
 									</div>
 								</li>
 								<li class="automation-step">

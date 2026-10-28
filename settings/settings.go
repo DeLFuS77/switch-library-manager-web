@@ -28,7 +28,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "1.64.0"
+	SLM_WEB_VERSION        = "1.65.0"
 	REPOSITORY_OWNER       = "DeLFuS77"
 	// titles.json and versions.json are generated from blawar/titledb by the
 	// "Update title data" workflow of this repository
@@ -108,6 +108,10 @@ type OrganizeOptions struct {
 	KeepFiles []string `json:"keep_files,omitempty"`
 	// a file whose name has its title ID in brackets keeps its name: it is only moved
 	KeepNamesWithId bool `json:"keep_names_with_id,omitempty"`
+	// the subfolder of the game file, inside the game folder as the ones of updates and DLC
+	BaseFolder string `json:"base_folder,omitempty"`
+	// a game that has a folder of its own keeps it: its files go there, and it is not renamed
+	KeepGameFolders bool `json:"keep_game_folders,omitempty"`
 }
 
 // The copies of a duplicate the library can keep.
@@ -166,7 +170,9 @@ type AutomationOptions struct {
 	Compress       bool `json:"compress"`
 	CleanupUpdates bool `json:"cleanup_updates"`
 	Organize       bool `json:"organize"`
-	Notify         bool `json:"notify"`
+	// organize the new files only, into the folders of their games, and leave the rest as it is
+	OrganizeNewOnly bool `json:"organize_new_only,omitempty"`
+	Notify          bool `json:"notify"`
 	// wait for the background hours instead of running at once
 	BackgroundHoursOnly bool `json:"background_hours_only"`
 }

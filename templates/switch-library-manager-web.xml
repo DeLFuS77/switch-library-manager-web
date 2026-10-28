@@ -22,7 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.64.0
+  <Changes>### 1.65.0
+- Place new files puts the loose files, like the uploaded ones, in the folder their game has, also from the automations
+- Game folders can be kept as they are, with a subfolder for the base game, and Chinese or Korean names no longer leave a folder named with a number
+- Tasks by covers fills up in order and in blue, with the files waiting darkened and bars that no longer jump
+### 1.64.0
 - The Compress page tells why each file cannot be compressed
 - The free space is weighed before files are written, and the list of games to combine warns of a DLC that needs a newer update
 - Packs are called Combine now

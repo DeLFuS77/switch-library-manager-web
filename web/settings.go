@@ -66,6 +66,7 @@ type SettingsForm struct {
 	AutomationCompress    bool   `in:"form=automation_compress"`
 	AutomationCleanup     bool   `in:"form=automation_cleanup"`
 	AutomationOrganize    bool   `in:"form=automation_organize"`
+	AutomationNewOnly     bool   `in:"form=automation_organize_new_only"`
 	AutomationNotify      bool   `in:"form=automation_notify"`
 	AutomationNight       bool   `in:"form=automation_night"`
 	VaultEnabled          bool   `in:"form=vault_enabled"`
@@ -336,7 +337,7 @@ func (web *Web) HandleSettings() {
 			appSettings.AutoInstallUpdates = settingsForm.AutoInstallUpdates
 			appSettings.Automation = settings.AutomationOptions{Enabled: settingsForm.AutomationEnabled, Verify: settingsForm.AutomationVerify,
 				Compress: settingsForm.AutomationCompress, CleanupUpdates: settingsForm.AutomationCleanup, Organize: settingsForm.AutomationOrganize,
-				Notify: settingsForm.AutomationNotify, BackgroundHoursOnly: settingsForm.AutomationNight}
+				OrganizeNewOnly: settingsForm.AutomationNewOnly, Notify: settingsForm.AutomationNotify, BackgroundHoursOnly: settingsForm.AutomationNight}
 			// the vault password is kept as a hash only; an empty field keeps the one there is
 			appSettings.Vault.Enabled = settingsForm.VaultEnabled
 			appSettings.Vault.User = strings.TrimSpace(settingsForm.VaultUser)
