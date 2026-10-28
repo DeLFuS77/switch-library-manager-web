@@ -11,10 +11,12 @@
 ### Improvements
 
 - A collection whose file name already has the title ID of one of its games keeps it when Keep the names that already have their title ID is on, instead of taking the list of its games as a name
+- In the view by covers of Tasks, the covers of the files at work and the bars under them fill up in blue instead of red, which tells errors elsewhere in the app. The covers of the files still waiting are darkened and the ended ones are shown as they are, so what is left is seen at a glance. The covers fill up in order, from the top left: the files ended first, as they end, then those at work and those waiting, even when several files are worked on at once
 
 ### Fixes
 
 - With the names for the Switch, a game whose name is in Chinese or Korean with a number in it, like Rune Factory 4 Special, got a folder named only with the number (4): it takes the name of its file, or Unknown Title, as a name with no letter did (thanks @ChapeLu)
+- In the view by covers of Tasks, the total of a running task jumped back and forth every second, and the bar under each cover grew again from nothing: each bar now goes on from where it was
 
 ## 1.64.0
 

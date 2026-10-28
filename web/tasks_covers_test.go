@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
@@ -79,6 +80,28 @@ func TestTaskPlanShowsEveryFile(t *testing.T) {
 	shown, more = shownPlan(log.Snapshot()[0].Plan, nil, nil)
 	if len(shown) != maxShownTiles || shown[0].Name != "0476.nsp" || more != 1000-476-maxShownTiles {
 		t.Fatalf("a long plan: from %s, %d shown, %d more", shown[0].Name, len(shown), more)
+	}
+}
+
+// The view by covers fills up in order, from the top left, when several files are worked on at
+// once and end in another order than the plan's: the ended ones first, as they ended, then
+// those at work, then those waiting.
+func TestTaskPlanFillsInOrder(t *testing.T) {
+	log := newTestWeb(t).taskLog()
+	id := log.Start(TASK_COMPRESS, TRIGGER_MANUAL)
+	log.SetPlan(id, []string{"A.nsp", "B.nsp", "C.nsp", "D.nsp", "E.nsp", "F.nsp"})
+	log.AddFileTile(id, "C.nsp", false, "")
+	log.AddFileTile(id, "A.nsp", true, NOTE_VERIFY_DAMAGED)
+	shown, _ := shownPlan(log.Snapshot()[0].Plan, []TaskLane{{Name: "E.nsp", Done: 1, Total: 2}, {Name: "B.nsp", Done: 1, Total: 4}}, nil)
+	got := []string{}
+	for _, tile := range shown {
+		got = append(got, tile.Name)
+	}
+	if strings.Join(got, " ") != "C.nsp A.nsp B.nsp E.nsp D.nsp F.nsp" {
+		t.Fatalf("in order: %v", got)
+	}
+	if shown[0].Waiting || !shown[1].Failed || !shown[2].Working || !shown[3].Working || shown[4].Working || !shown[4].Waiting {
+		t.Fatalf("the states: %+v", shown)
 	}
 }
 

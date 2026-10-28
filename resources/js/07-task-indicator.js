@@ -232,12 +232,24 @@ function initLiveTasks() {
 						card.querySelectorAll('.task-lane [title]').forEach(name => lanesBefore.add(card.dataset.taskId + '|' + name.title));
 					});
 					// every bar (the total and the one of each file) goes on from where it was
-					// instead of jumping: by task, the total first, then the files by name
-					const barKey = (card, bar) => card.dataset.taskId + '|' + (bar.closest('.task-lane')?.querySelector('[title]')?.title || '');
+					// instead of jumping: by task, the total first, then the files by name, in their lanes
+					// or on their covers. Any other bar has no key: with the one of the total, the total
+					// and every cover would go on from the width of whichever bar came last
+					const barKey = (card, bar) => {
+						const file = bar.closest('.task-lane, .task-tile');
+						if (file) {
+							const name = file.querySelector('[title]')?.title;
+							return name ? card.dataset.taskId + '|' + name : null;
+						}
+						return bar.classList.contains('task-total-bar') ? card.dataset.taskId + '|' : null;
+					};
 					const widths = {};
 					const shares = {};
 					list.querySelectorAll('[data-task-id]').forEach(card => {
 						card.querySelectorAll('.progress-bar').forEach(bar => {
+							if (barKey(card, bar) === null) {
+								return;
+							}
 							widths[barKey(card, bar)] = bar.style.width;
 							// the share done, which sets the colours of the total
 							shares[barKey(card, bar)] = bar.style.getPropertyValue('--pct');
@@ -306,7 +318,14 @@ function initLiveTasks() {
 					updateTaskIndicator();
 					list.querySelectorAll('[data-task-id]').forEach(card => {
 						card.querySelectorAll('.progress-bar').forEach(bar => {
+							if (barKey(card, bar) === null) {
+								return;
+							}
 							const before = widths[barKey(card, bar)];
+							if (before) {
+								// drawn already: it does not grow from nothing again on every update
+								bar.style.animation = 'none';
+							}
 							if (!before || before === bar.style.width) {
 								return;
 							}
