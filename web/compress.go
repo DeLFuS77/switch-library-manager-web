@@ -371,7 +371,7 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 	if same, err := switchfs.HoldsSameContents(path, temporary); err != nil || !same {
 		return errors.New("the converted file does not hold every content of the card")
 	}
-	if err := os.Rename(temporary, target); err != nil {
+	if err := commitFile(temporary, target); err != nil {
 		return err
 	}
 	web.verifications().remember(target, written)
@@ -1144,7 +1144,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 	if err := switchfs.VerifyCompressed(ctx, temporary, result.Hashes, filling(info.Size(), report(info.Size()))); err != nil {
 		return 0, err
 	}
-	if err := os.Rename(temporary, target); err != nil {
+	if err := commitFile(temporary, target); err != nil {
 		return 0, err
 	}
 	web.rememberWritten(target)
@@ -1200,7 +1200,7 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 	if err != nil {
 		return err
 	}
-	if err := os.Rename(temporary, target); err != nil {
+	if err := commitFile(temporary, target); err != nil {
 		return err
 	}
 	web.verifications().remember(target, written)

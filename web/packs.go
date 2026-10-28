@@ -340,7 +340,7 @@ func (web *Web) makePack(ctx context.Context, sources []string, target string, s
 	if err != nil {
 		return 0, err
 	}
-	if err := os.Rename(temporary, target); err != nil {
+	if err := commitFile(temporary, target); err != nil {
 		return 0, err
 	}
 	web.verifications().remember(target, written)

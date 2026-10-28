@@ -225,7 +225,7 @@ func (web *Web) splitFile(ctx context.Context, path string, game string, deleteO
 		written, err := switchfs.WriteSplitPartAndCheck(ctx, path, part, temporary, report(done))
 		if err == nil {
 			checked = checked && fullyChecked(written)
-			if err = os.Rename(temporary, target); err == nil {
+			if err = commitFile(temporary, target); err == nil {
 				web.verifications().remember(target, written)
 			}
 		}

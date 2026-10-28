@@ -494,7 +494,11 @@ func copyFileTo(ctx context.Context, source string, target string, progress func
 		os.Remove(temporary)
 		return err
 	}
-	return os.Rename(temporary, target)
+	if err := os.Rename(temporary, target); err != nil {
+		return err
+	}
+	syncFolder(filepath.Dir(target))
+	return nil
 }
 
 func (web *Web) HandleSdCard() {

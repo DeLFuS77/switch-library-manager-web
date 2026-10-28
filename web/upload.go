@@ -412,7 +412,7 @@ func (web *Web) HandleUploads() {
 			writeGlobalError(w, http.StatusConflict, lang, UPLOAD_EXISTS)
 			return
 		}
-		err := os.Rename(upload.part, upload.final)
+		err := commitFile(upload.part, upload.final)
 		if err != nil {
 			// the task ends with the failure instead of staying at 100%, and the file sent is
 			// removed: sending it again starts over
