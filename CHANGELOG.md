@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- In the view by covers of Tasks, the covers of the files at work and the bars under them fill up in blue instead of red, which tells errors elsewhere in the app
+
+### Fixes
+
+- In the view by covers of Tasks, the total of a running task jumped back and forth every second, and the bar under each cover grew again from nothing: each bar now goes on from where it was
+
 ## 1.64.0
 
 ### New

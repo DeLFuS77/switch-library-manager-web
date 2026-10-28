@@ -354,18 +354,31 @@
 }
 
 // a file at work: the cover fills up from the bottom with its progress, with the share on it,
-// as in NXPress; the files waiting and ended keep their covers as they are
+// as in NXPress; the files waiting and ended keep their covers as they are. In the blue of
+// NXPress, not the red of the app, which tells errors
+.task-tile {
+	--tile-work-rgb: 10, 111, 176;
+}
+
+[data-bs-theme="dark"] .task-tile {
+	--tile-work-rgb: 61, 183, 234;
+}
+
 .task-tile.is-working .task-tile-cover::after {
 	content: '';
 	position: absolute;
 	inset: 0;
-	background: linear-gradient(to top, rgba(var(--bs-primary-rgb), 0.35) var(--lane-fill, 0%), rgba(0, 0, 0, 0.35) var(--lane-fill, 0%));
-	box-shadow: inset 0 0 0 2px rgba(var(--bs-primary-rgb), 0.8);
+	background: linear-gradient(to top, rgba(var(--tile-work-rgb), 0.4) var(--lane-fill, 0%), rgba(0, 0, 0, 0.35) var(--lane-fill, 0%));
+	box-shadow: inset 0 0 0 2px rgba(var(--tile-work-rgb), 0.85);
 	border-radius: inherit;
 }
 
 .task-tile-bar {
 	height: 0.3rem;
+
+	.progress-bar {
+		background-color: rgb(var(--tile-work-rgb));
+	}
 }
 
 .task-tile-pct {
