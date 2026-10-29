@@ -88,6 +88,7 @@ func (web *Web) Synchronize(trigger string) bool {
 // It returns false if a synchronization is already running: the rescan is then done once it
 // ends, as the files changed after it looked at them.
 func (web *Web) Rescan(trigger string) bool {
+	web.noteAppScan(trigger)
 	if web.scanInBackground(true, trigger) {
 		return true
 	}
