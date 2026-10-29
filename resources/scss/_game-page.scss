@@ -235,6 +235,15 @@
 		text-overflow: ellipsis;
 	}
 
+	// a value of plain text goes on to a second line on a phone instead of being cut ("Up to 2
+	// players")
+	.fact-value:not(:has(*)) {
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		white-space: normal;
+	}
+
 	// a 16 digit ID fits on one line
 	.fact-id {
 		font-size: var(--slm-text-md);
