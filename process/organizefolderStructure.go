@@ -347,7 +347,8 @@ func SameFile(a, b string) bool {
 		return false
 	}
 	bInfo, err := os.Stat(b)
-	return err == nil && os.SameFile(aInfo, bInfo)
+	// files of two sizes are two files: Windows opens both to tell one file, which a share pays for
+	return err == nil && aInfo.Size() == bInfo.Size() && os.SameFile(aInfo, bInfo)
 }
 
 func (f *fileOperations) skip(file string, reason string) {
