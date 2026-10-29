@@ -7,6 +7,13 @@
 			theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 		}
 		document.documentElement.setAttribute('data-bs-theme', theme);
+		// the bar of the browser on the phone in the colour of the page, once its tag is read
+		document.addEventListener('DOMContentLoaded', function () {
+			var meta = document.querySelector('meta[name="theme-color"]');
+			if (meta) {
+				meta.setAttribute('content', theme === 'dark' ? '#0d1117' : '#f4f6fa');
+			}
+		});
 	} catch (e) {}
 	// Settings opens on one section from the first paint (see initSettingsSections in web.js)
 	if (location.pathname === '/settings.html') {
