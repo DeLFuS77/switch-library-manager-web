@@ -451,7 +451,7 @@ func automationMessage(lang string, result AutomationResult) (string, string) {
 		lines = append(lines, "✓ "+translatef(lang, "%v files checked, %v damaged", result.Checked, result.Damaged))
 	}
 	if result.Compressed > 0 {
-		lines = append(lines, "✓ "+translatef(lang, "%v files compressed, %v saved", result.Compressed, formatSize(result.Saved)))
+		lines = append(lines, "✓ "+translatef(lang, "%v files compressed, %v saved", result.Compressed, formatSizeIn(lang, result.Saved)))
 	}
 	if result.Removed > 0 && result.Quarantined {
 		lines = append(lines, "✓ "+translatef(lang, "%v old updates moved to the quarantine", result.Removed))

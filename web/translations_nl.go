@@ -69,7 +69,7 @@ func init() {
 		"Its sections use an encryption no compressor reads: it stays as it is, and installs normally.":                                  "De secties gebruiken een versleuteling die geen compressor leest: het blijft zoals het is en installeert normaal.",
 		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v bestanden kunnen niet worden gecomprimeerd en worden niet getoond: er viel niets aan te verkleinen. Ze blijven zoals ze zijn en installeren normaal.",
 		"%v damaged files are not listed: they cannot be compressed until they are replaced with a sound copy.":                          "%v beschadigde bestanden worden niet getoond: ze kunnen pas worden gecomprimeerd als je ze vervangt door een goede kopie.",
-		"Sparse storage":           "Sparse storage",
+		"Sparse storage":           "Sparse opslag",
 		"Compressed already":       "Al gecomprimeerd",
 		"No game data":             "Geen spelgegevens",
 		"Encryption":               "Versleuteling",
@@ -1697,5 +1697,17 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "De oude update wordt meteen verwijderd: hij kan niet worden teruggezet.",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "De oude update wacht %v in de verborgen map: Instellingen, Quarantaine kan hem terugzetten.",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "De oude update wacht in de verborgen map tot je haar leegmaakt: Instellingen, Quarantaine kan hem terugzetten.",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "Titeldatabase downloaden...",
+		"Downloading versions database...": "Versiedatabase downloaden...",
+		"Loading titles database...":       "Titeldatabase laden...",
+		"Processing titles and updates...": "Titels en updates verwerken...",
+		"Scanning library...":              "Bibliotheek scannen...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "Opnieuw laden",
+		// a count of one
+		"%v file selected, %v": "%v bestand geselecteerd, %v",
+		"%v game selected, %v": "%v game geselecteerd, %v",
+		"%v step on":           "%v stap aan",
 	}
 }

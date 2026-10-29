@@ -112,20 +112,6 @@
 		font-size: var(--slm-text-md);
 		font-variant-numeric: tabular-nums;
 	}
-
-	&.gauge-sm {
-		width: 3.2rem;
-		height: 3.2rem;
-		background: conic-gradient($slm-cyan calc(var(--pct) * 1%), var(--slm-surface-muted) 0);
-
-		&::before {
-			inset: .35rem;
-		}
-
-		.gauge-value {
-			font-size: var(--slm-text-xs);
-		}
-	}
 }
 
 

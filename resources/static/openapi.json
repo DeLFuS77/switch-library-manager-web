@@ -709,6 +709,10 @@
           },
           "message": {
             "type": "string"
+          },
+          "text": {
+            "type": "string",
+            "description": "The message in the language of the request"
           }
         }
       },
@@ -778,6 +782,10 @@
           },
           "message": {
             "type": "string"
+          },
+          "text": {
+            "type": "string",
+            "description": "The message in the language of the request"
           },
           "error": {
             "$ref": "#/components/schemas/TaskNote"

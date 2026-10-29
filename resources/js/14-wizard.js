@@ -855,7 +855,7 @@ function setupWizard(element) {
 			['bi-moon-stars', say('background'), choice('background_hours'), 'background'],
 			['bi-file-zip', say('compress'), [choice('auto_compress'), form.elements.auto_compress.value ? choice('auto_compress_level') : ''].filter(Boolean).join(' · '), 'compression'],
 			['bi-folder-symlink', say('order'), order || say('none'), 'organize'],
-			['bi-magic', say('automation'), master.checked && automation ? [say('stepsOn', automation), organizeNewOnly ? say('newOnly') : ''].filter(Boolean).join(' · ') : say('off'), 'automation'],
+			['bi-magic', say('automation'), master.checked && automation ? [say(automation === 1 ? 'stepsOnOne' : 'stepsOn', automation), organizeNewOnly ? say('newOnly') : ''].filter(Boolean).join(' · ') : say('off'), 'automation'],
 			['bi-hourglass-split', say('quarantine'), choice('quarantine_keep'), 'quarantine'],
 			['bi-bell', say('notifications'), notifications ? say('set') : say('none'), 'notifications'],
 			['bi-shield-check', say('verify'), choice('verify_interval_days'), 'extras'],
@@ -911,9 +911,15 @@ function setupWizard(element) {
 			}
 		});
 	});
+	// Enter in a field that is typed in, or in a list, goes to the next step; on a button it
+	// presses that button. Before the last step no Enter sends the form, also on a check box.
+	const typed = ['text', 'password', 'url', 'email', 'number', 'search', 'tel'];
 	form.addEventListener('keydown', e => {
-		if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && current < last) {
-			e.preventDefault();
+		if (e.key !== 'Enter' || current >= last || !['INPUT', 'SELECT'].includes(e.target.tagName)) {
+			return;
+		}
+		e.preventDefault();
+		if (e.target.tagName === 'SELECT' || typed.includes(e.target.type)) {
 			next.click();
 		}
 	});

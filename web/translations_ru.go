@@ -1697,5 +1697,17 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "Старое обновление удаляется сразу: вернуть его нельзя.",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "Старое обновление ждёт в скрытой папке (%v): его можно вернуть в Настройки, Карантин.",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "Старое обновление ждёт в скрытой папке, пока ты её не очистишь: его можно вернуть в Настройки, Карантин.",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "Скачивание базы названий...",
+		"Downloading versions database...": "Скачивание базы версий...",
+		"Loading titles database...":       "Загрузка базы названий...",
+		"Processing titles and updates...": "Обработка игр и обновлений...",
+		"Scanning library...":              "Сканирование библиотеки...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "Обновить",
+		// a count of one
+		"%v file selected, %v": "Выбран %v файл, %v",
+		"%v game selected, %v": "Выбрана %v игра, %v",
+		"%v step on":           "Включён %v шаг",
 	}
 }

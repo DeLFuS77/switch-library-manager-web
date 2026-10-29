@@ -1697,5 +1697,17 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "Das alte Update wird sofort gelöscht: Es lässt sich nicht zurücklegen.",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "Das alte Update wartet %v im versteckten Ordner: Unter Einstellungen, Quarantäne lässt es sich zurücklegen.",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "Das alte Update wartet im versteckten Ordner, bis du ihn leerst: Unter Einstellungen, Quarantäne lässt es sich zurücklegen.",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "Titeldatenbank wird heruntergeladen...",
+		"Downloading versions database...": "Versionsdatenbank wird heruntergeladen...",
+		"Loading titles database...":       "Titeldatenbank wird geladen...",
+		"Processing titles and updates...": "Titel und Updates werden verarbeitet...",
+		"Scanning library...":              "Bibliothek wird gescannt...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "Neu laden",
+		// a count of one
+		"%v file selected, %v": "%v Datei ausgewählt, %v",
+		"%v game selected, %v": "%v Spiel ausgewählt, %v",
+		"%v step on":           "%v Schritt an",
 	}
 }

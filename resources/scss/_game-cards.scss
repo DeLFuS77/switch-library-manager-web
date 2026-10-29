@@ -367,12 +367,6 @@
 	font-weight: 600;
 }
 
-// keep controls inside a card clickable above the card's stretched link
-.card-action {
-	position: relative;
-	z-index: 2;
-}
-
 
 // how the game goes for the user: a mark on the cover, and the panel of the game page
 .game-cover-meta .badge-play {

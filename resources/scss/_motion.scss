@@ -1162,11 +1162,6 @@
 }
 
 
-.saga-state {
-	font-size: var(--slm-text-xs);
-	color: var(--bs-secondary-color);
-}
-
 /* the bars of running tasks are drawn again at every update: no entrance animation; the
    stripes of the bars that move keep moving */
 [data-live-tasks] .progress-bar:not(.progress-bar-animated) {

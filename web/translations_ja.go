@@ -1697,5 +1697,17 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "古いアップデートはすぐに削除され、元に戻せません。",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "古いアップデートは隠しフォルダーで %v 待機し、設定の「隔離」から戻せます。",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "古いアップデートは空にするまで隠しフォルダーで待機し、設定の「隔離」から戻せます。",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "タイトルデータベースをダウンロード中...",
+		"Downloading versions database...": "バージョンデータベースをダウンロード中...",
+		"Loading titles database...":       "タイトルデータベースを読み込み中...",
+		"Processing titles and updates...": "タイトルとアップデートを処理中...",
+		"Scanning library...":              "ライブラリをスキャン中...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "再読み込み",
+		// a count of one
+		"%v file selected, %v": "%v個のファイルを選択中、%v",
+		"%v game selected, %v": "%v 本のゲームを選択、%v",
+		"%v step on":           "%v ステップがオン",
 	}
 }

@@ -271,9 +271,9 @@ func (web *Web) botNew(lang string) string {
 // botSpace tells the size of the library and the free space of its folder.
 func (web *Web) botSpace(lang string) string {
 	stats := web.getStatistics(lang)
-	text := translatef(lang, "Your library takes %v.", formatSize(stats.TotalSize))
+	text := translatef(lang, "Your library takes %v.", formatSizeIn(lang, stats.TotalSize))
 	if free, err := diskFree(settings.ReadSettings(web.dataFolder).Folder); err == nil {
-		text += "\n" + translatef(lang, "Free in its folder: %v.", formatSize(int64(free)))
+		text += "\n" + translatef(lang, "Free in its folder: %v.", formatSizeIn(lang, int64(free)))
 	}
 	return text
 }

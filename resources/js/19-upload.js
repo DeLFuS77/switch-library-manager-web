@@ -43,15 +43,24 @@ function initGameUpload() {
 		panel.hidden = false;
 		// the folder chosen when the file was added
 		const folderField = document.getElementById('uploadFolder');
-		const job = { file, item, cancelled: false, id: null, folder: folderField ? folderField.value : '' };
+		const job = { file, item, cancelled: false, ended: false, id: null, folder: folderField ? folderField.value : '' };
 		cancel.addEventListener('click', () => {
+			// an ended file only leaves the list: what a failed one sent stays, to go on when it is chosen again
+			if (job.ended) {
+				item.remove();
+				hideIfEmpty();
+				return;
+			}
 			job.cancelled = true;
 			if (job.id) {
 				postForm('/uploads/cancel', { id: job.id }).catch(() => undefined);
 			}
 			if (job !== current) {
 				item.remove();
-				queue.splice(queue.indexOf(job), 1);
+				const index = queue.indexOf(job);
+				if (index >= 0) {
+					queue.splice(index, 1);
+				}
 				gameUploadsWaiting = queue.length + (current ? 1 : 0);
 				hideIfEmpty();
 			}
@@ -74,6 +83,7 @@ function initGameUpload() {
 		}
 	};
 	const finishItem = (job, done, message) => {
+		job.ended = true;
 		job.item.classList.add(done ? 'is-done' : 'is-failed');
 		// ended: its stripes stop, in the colour of how it ended
 		job.item.querySelector('.progress-bar').classList.remove('progress-bar-animated', 'is-work');
@@ -86,12 +96,7 @@ function initGameUpload() {
 			}, 8000);
 		} else {
 			// a failed file stays until it is closed
-			const close = job.item.querySelector('.upload-cancel');
-			close.hidden = false;
-			close.onclick = () => {
-				job.item.remove();
-				hideIfEmpty();
-			};
+			job.item.querySelector('.upload-cancel').hidden = false;
 		}
 	};
 

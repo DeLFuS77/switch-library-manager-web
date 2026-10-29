@@ -454,6 +454,6 @@ func (web *Web) HandleQuarantine() {
 		lang := web.requestLanguage(r)
 		count, size := web.quarantine().empty()
 		web.sugarLogger.Infof("[Quarantine] emptied: %d files, %d bytes", count, size)
-		writeJSON(w, http.StatusOK, map[string]string{"message": translatef(lang, "%v files deleted for good (%v).", count, formatSize(size))})
+		writeJSON(w, http.StatusOK, map[string]string{"message": translatef(lang, "%v files deleted for good (%v).", count, formatSizeIn(lang, size))})
 	}).Methods("POST")
 }

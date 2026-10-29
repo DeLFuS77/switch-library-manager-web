@@ -465,26 +465,6 @@
 	}
 }
 
-// a collapsible section (Compress page)
-.details-section {
-	summary {
-		cursor: pointer;
-		list-style: none;
-
-		&::-webkit-details-marker {
-			display: none;
-		}
-	}
-
-	.details-chevron {
-		transition: transform .2s ease;
-	}
-
-	&[open] .details-chevron {
-		transform: rotate(180deg);
-	}
-}
-
 .item-type {
 	min-width: 3.4rem;
 	justify-content: center;
@@ -545,13 +525,6 @@
 	&:hover {
 		transform: scale(1.02);
 	}
-}
-
-.td-img {
-	width: 3.25rem;
-	height: 3.25rem;
-	object-fit: cover;
-	border-radius: $border-radius;
 }
 
 

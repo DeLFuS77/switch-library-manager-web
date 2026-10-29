@@ -112,16 +112,23 @@ function initSpacePreparing() {
 	if (!document.querySelector('[data-space-preparing]')) {
 		return;
 	}
-	const ask = () => fetch('/space/ready', { cache: 'no-store', headers: { Accept: 'application/json' } })
-		.then(response => (response.ok ? response.json() : { ready: false }))
+	// a server that does not answer is asked less and less often, up to every half a minute
+	let errors = 0;
+	const again = () => setTimeout(ask, errors ? Math.min(30000, 1500 * 2 ** errors) : 1000);
+	const ask = () => apiFetch('/space/ready', { cache: 'no-store', headers: { Accept: 'application/json' } })
+		.then(response => (response.ok ? response.json() : Promise.reject(response)))
 		.then(state => {
+			errors = 0;
 			if (state.ready) {
 				window.location.reload();
 			} else {
-				setTimeout(ask, 1000);
+				again();
 			}
 		})
-		.catch(() => setTimeout(ask, 3000));
+		.catch(() => {
+			errors++;
+			again();
+		});
 	setTimeout(ask, 800);
 }
 
@@ -148,21 +155,6 @@ function initScreenshots() {
 			image.addEventListener('error', () => fail(image), { once: true });
 		}
 	});
-}
-
-// covers and pictures that cannot be loaded (a network that blocks Nintendo, a cover gone)
-// show the placeholder instead of a broken image
-function initImageFallbacks() {
-	document.addEventListener('error', e => {
-		const image = e.target;
-		if (!(image instanceof HTMLImageElement) || image.dataset.fallback || image.classList.contains('title-screenshot')) {
-			return;
-		}
-		if (image.closest('.game-cover, .dlc-tile-image, .title-hero, .dlc-game, .mini-card, .td-img') || image.classList.contains('td-img')) {
-			image.dataset.fallback = 'true';
-			image.src = '/resources/static/noimage.png';
-		}
-	}, true);
 }
 
 // pages of cards tell the server how many cards fit in a row, which rounds the cards per

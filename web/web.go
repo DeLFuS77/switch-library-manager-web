@@ -51,6 +51,8 @@ type SyncProgress struct {
 	Current       int    `json:"current"`
 	Total         int    `json:"total"`
 	Message       string `json:"message"`
+	// the message in the language of the request
+	Text string `json:"text,omitempty"`
 }
 
 func (s *WebState) setProgress(current int, total int, message string) {
@@ -484,6 +486,11 @@ var funcMap = template.FuncMap{
 	"playStateName": func(state string) string { return playStateLooks[state].Name },
 	"filterUrl": func(filter *TitleItemFilter, replace ...string) template.URL {
 		return template.URL("?" + filter.query(replace...).Encode())
+	},
+	// filterHidden keeps the filter in a form that changes a part of it, as hidden fields
+	// besides the fields of the form: filterHidden .Filter "per_page"
+	"filterHidden": func(filter *TitleItemFilter, own ...string) template.HTML {
+		return filter.hiddenFields(own...)
 	},
 	"formatSize": formatSize,
 	// versions as v0, v65536
@@ -954,6 +961,15 @@ func progressMessage(message string) (string, string) {
 		return "Done", ""
 	}
 	return message, ""
+}
+
+// messageText translates the message of a task, with what it names in its place: a message
+// that is only the name of a file stays as it is.
+func messageText(lang string, message string, arg string) string {
+	if arg != "" {
+		return translatef(lang, message, arg)
+	}
+	return translate(lang, message)
 }
 
 // taskLog returns the task history, loading it on first use.

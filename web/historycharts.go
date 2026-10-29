@@ -65,7 +65,7 @@ func historyCharts(days []HistoryDay, lang string) *HistoryCharts {
 	}
 	t := func(text string, args ...any) string { return translatef(lang, text, args...) }
 	count := func(value float64) string { return formatNumber(lang, int(value)) }
-	size := func(value float64) string { return formatSize(int64(value)) }
+	size := func(value float64) string { return formatSizeIn(lang, int64(value)) }
 	always := func(HistoryDay) bool { return true }
 	withDisk := func(day HistoryDay) bool { return day.Disk > 0 }
 
@@ -109,7 +109,7 @@ func historyCharts(days []HistoryDay, lang string) *HistoryCharts {
 		}
 	}
 	if perDay, ok := dailyTrend(recent, func(d HistoryDay) float64 { return float64(d.Size) }, always); ok && perDay > 0 {
-		charts.GrowthPerMonth = formatSize(int64(perDay * 30))
+		charts.GrowthPerMonth = formatSizeIn(lang, int64(perDay*30))
 	}
 	if perDay, ok := dailyTrend(recent, func(d HistoryDay) float64 { return float64(d.Disk - d.Free) }, withDisk); ok && perDay > 0 {
 		if latest := days[len(days)-1]; latest.Disk > 0 {

@@ -202,6 +202,13 @@ const (
 	taskEventKeepAlive = 20 * time.Second
 )
 
+// apiTask is a task as /api/tasks gives it: with its message in the language of the request,
+// so the pages show it as Tasks does.
+type apiTask struct {
+	Task
+	Text string `json:"text,omitempty"`
+}
+
 func (web *Web) HandleTasks() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/tasks.html")
 
@@ -223,10 +230,13 @@ func (web *Web) HandleTasks() {
 		// the pages ask it every second or two: without the files a task has left or the size
 		// of every file it compressed, which can be thousands of lines
 		tasks := web.taskLog().Snapshot()
+		lang := web.requestLanguage(r)
+		result := make([]apiTask, len(tasks))
 		for i := range tasks {
 			tasks[i].Resume, tasks[i].Results = nil, nil
+			result[i] = apiTask{Task: tasks[i], Text: messageText(lang, tasks[i].Message, tasks[i].MessageArg)}
 		}
-		writeJSON(w, http.StatusOK, tasks)
+		writeJSON(w, http.StatusOK, result)
 	}).Methods("GET")
 
 	// server-sent events: the version of the task list after every change

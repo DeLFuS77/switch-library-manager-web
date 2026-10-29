@@ -99,8 +99,7 @@
 		--kpi-soft: #{rgba($success, .14)};
 	}
 
-	&.kpi-info,
-	&.kpi-cyan {
+	&.kpi-info {
 		--kpi-color: #{$slm-cyan};
 		--kpi-soft: var(--slm-cyan-soft);
 	}

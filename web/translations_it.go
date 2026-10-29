@@ -1489,7 +1489,7 @@ func init() {
 		"base":                           "base",
 		"base file is missing":           "manca il file base",
 		"based on":                       "basato su",
-		"breadcrumb":                     "breadcrumb",
+		"breadcrumb":                     "percorso di navigazione",
 		"damaged file: %v":               "file danneggiato: %v",
 		"done":                           "fatto",
 		"duplicate %v file (%v)":         "file %v duplicato (%v)",
@@ -1697,5 +1697,17 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "L'aggiornamento vecchio viene eliminato subito: non si può rimettere.",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "L'aggiornamento vecchio aspetta %v nella cartella nascosta: Impostazioni, Quarantena può rimetterlo.",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "L'aggiornamento vecchio aspetta nella cartella nascosta finché non la svuoti: Impostazioni, Quarantena può rimetterlo.",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "Download del database dei titoli...",
+		"Downloading versions database...": "Download del database delle versioni...",
+		"Loading titles database...":       "Caricamento del database dei titoli...",
+		"Processing titles and updates...": "Elaborazione di titoli e aggiornamenti...",
+		"Scanning library...":              "Scansione della libreria...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "Ricarica",
+		// a count of one
+		"%v file selected, %v": "%v file selezionato, %v",
+		"%v game selected, %v": "%v gioco selezionato, %v",
+		"%v step on":           "%v passaggio attivo",
 	}
 }

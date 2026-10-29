@@ -50,16 +50,8 @@
 					<button type="button" class="btn btn-outline-secondary" data-view="compact" title="{{t "Small covers"}}" aria-pressed="false"><span class="bi bi-grid-3x3-gap" aria-hidden="true"></span><span class="visually-hidden">{{t "Small covers"}}</span></button>
 				</div>
 				{{- end}}
-				<input type="hidden" name="per_page" value="{{.Filter.PerPage}}">
-				{{- if .Filter.Status}}<input type="hidden" name="status" value="{{.Filter.Status}}">{{end}}
-				{{- if .Filter.Format}}<input type="hidden" name="format" value="{{.Filter.Format | toLower}}">{{end}}
-				{{- if .Filter.Kind}}<input type="hidden" name="kind" value="{{.Filter.Kind}}">{{end}}
-				{{- if .Filter.Region}}<input type="hidden" name="region" value="{{.Filter.Region | toLower}}">{{end}}
-				{{- if .Filter.Extra}}<input type="hidden" name="extra" value="{{.Filter.Extra}}">{{end}}
-				{{- if .Filter.Collection}}<input type="hidden" name="collection" value="{{.Filter.Collection}}">{{end}}
-				{{- if .Filter.Genre}}<input type="hidden" name="genre" value="{{.Filter.Genre}}">{{end}}
-				{{- if .Filter.Players}}<input type="hidden" name="players" value="{{.Filter.Players}}">{{end}}
-				{{- if .Filter.GameLanguage}}<input type="hidden" name="languages" value="{{.Filter.GameLanguage}}">{{end}}
+				{{- /* every other filter of the list (My games, a collection, a genre...) is kept */}}
+				{{filterHidden .Filter "q" "sort_by" "sort_order"}}
 			</form>
 {{- end}}
 

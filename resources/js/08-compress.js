@@ -1,7 +1,10 @@
 // Compress: the file lists and their selection.
 // One of the files joined into resources/static/web.js by scripts/build-js.mjs, in the order of their names.
 
-// same as formatSize on the server
+// the languages of the page that write decimals with a comma, as decimalSeparators on the server
+const DECIMAL_COMMA_LANGUAGES = ['es', 'pt', 'it', 'de', 'nl', 'fr', 'ru'];
+
+// same as formatSizeIn on the server, in the language of the page
 function formatSize(size) {
 	if (size < 1024) {
 		return `${size} B`;
@@ -12,7 +15,8 @@ function formatSize(size) {
 		unit *= 1024;
 		exp++;
 	}
-	return `${(size / unit).toFixed(1)} ${'KMGTPE'[exp]}B`;
+	const number = (size / unit).toFixed(1);
+	return `${DECIMAL_COMMA_LANGUAGES.includes(document.documentElement.lang) ? number.replace('.', ',') : number} ${'KMGTPE'[exp]}B`;
 }
 
 function initCompress() {
@@ -21,7 +25,10 @@ function initCompress() {
 		const button = e.target.closest('[data-compress-cancel]');
 		if (button) {
 			button.disabled = true;
-			fetch('/compress/cancel', { method: 'POST' });
+			// a cancel that did not reach the server can be asked again
+			postForm('/compress/cancel', {}).catch(() => {
+				button.disabled = false;
+			});
 		}
 		// pause or resume: the live list of tasks draws the other button
 		const pause = e.target.closest('[data-compress-pause]');
@@ -108,7 +115,9 @@ function bindFileForm(form, url) {
 	};
 	const update = () => {
 		const { count, size } = selection();
-		summary.textContent = summary.dataset.template.replace('%v', count).replace('%v', formatSize(size));
+		// "1 file selected", not "1 files"
+		const template = count === 1 && summary.dataset.templateOne ? summary.dataset.templateOne : summary.dataset.template;
+		summary.textContent = template.replace('%v', count).replace('%v', formatSize(size));
 		const shown = boxes().filter(visible);
 		const shownSelected = shown.filter(box => box.checked);
 		all.checked = shown.length > 0 && shownSelected.length === shown.length;
@@ -146,10 +155,10 @@ function bindFileForm(form, url) {
 		}
 		const controller = new AbortController();
 		loading = controller;
-		return fetch(list.dataset.fileList + '?q=' + encodeURIComponent(query || ''), { signal: controller.signal })
+		return apiFetch(list.dataset.fileList + '?q=' + encodeURIComponent(query || ''), { signal: controller.signal })
 			.then(response => {
 				if (!response.ok) {
-					throw new Error(String(response.status));
+					throw new Error(t('Unexpected server response (%v).', response.status));
 				}
 				return response.text();
 			})
@@ -158,7 +167,17 @@ function bindFileForm(form, url) {
 				list.dataset.loaded = 'true';
 				update();
 			})
-			.catch(() => undefined);
+			.catch(error => {
+				// a newer filter took its place, or the rows of an earlier answer stay
+				if (controller.signal.aborted || list.dataset.loaded) {
+					return;
+				}
+				// instead of "Loading...", why the list is not there: the tab shown again asks again
+				const note = list.querySelector('p');
+				if (note) {
+					note.textContent = error instanceof TypeError ? t('Could not reach the server.') : error.message;
+				}
+			});
 	};
 	// a list is loaded when its tab is first shown
 	const panel = form.closest('[role="tabpanel"]');
@@ -261,7 +280,7 @@ function bindFileForm(form, url) {
 		submit.disabled = true;
 		// Space: the files deleted leave the list as they go, not all at the end
 		const following = url === '/space/clean' ? followRemoval(form, update) : null;
-		const send = spaceOk => runAsTask(() => fetch(url, {
+		const send = spaceOk => runAsTask(() => apiFetch(url, {
 			method: 'POST',
 			body: new URLSearchParams([...new FormData(form), ...(spaceOk ? [['space_ok', 'true']] : [])]).toString(),
 			headers: { 'Content-type': 'application/x-www-form-urlencoded' }
@@ -274,7 +293,7 @@ function bindFileForm(form, url) {
 					}
 				});
 			}
-			return response.json().then(json => {
+			return readJSON(response).then(json => {
 				// the new files may not fit: asked first, with where and how much
 				if (response.status === 409 && json.space) {
 					const lines = json.space.map(drive => '• ' + drive.folder + ': ' + t('up to %v needed, %v free').replace('%v', formatSize(drive.need)).replace('%v', formatSize(drive.free)));
@@ -285,7 +304,9 @@ function bindFileForm(form, url) {
 					return;
 				}
 				submit.disabled = false;
-				insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', json.globalError.strongMessage, json.globalError.message);
+				// an answer without a message (a proxy's) says its status
+				const error = json.globalError || {};
+				insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', error.strongMessage || t('Error!'), error.message || t('Unexpected server response (%v).', response.status));
 			});
 		});
 		send(false).catch(() => {

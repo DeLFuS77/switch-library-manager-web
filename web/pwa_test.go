@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -57,5 +58,32 @@ func TestManifestIsInstallable(t *testing.T) {
 	}
 	if !sizes["192x192 any"] || !sizes["512x512 any"] || !sizes["512x512 maskable"] {
 		t.Fatalf("icons %v", sizes)
+	}
+}
+
+// The page shown when the server cannot be reached speaks every language of the interface, and
+// the service worker keeps the styles, the script and the picture it needs with it.
+func TestOfflinePageWorksOffline(t *testing.T) {
+	page, err := os.ReadFile("../resources/static/offline.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	worker, err := os.ReadFile("../resources/static/sw.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, lang := range supportedLanguages {
+		if lang != DEFAULT_LANGUAGE && !strings.Contains(string(page), `lang="`+lang+`"`) {
+			t.Errorf("the offline page has no text in %s", lang)
+		}
+	}
+	kept := regexp.MustCompile(`OFFLINE_FILES = \[([^\]]*)\]`).FindStringSubmatch(string(worker))
+	if kept == nil {
+		t.Fatal("the service worker keeps no files for the offline page")
+	}
+	for _, match := range regexp.MustCompile(`(?:<link rel="stylesheet" href|<script src|<img src)="([^"]+)"`).FindAllStringSubmatch(string(page), -1) {
+		if !strings.Contains(kept[1], "'"+match[1]+"'") {
+			t.Errorf("the service worker does not keep %s for the offline page", match[1])
+		}
 	}
 }

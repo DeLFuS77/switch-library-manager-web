@@ -326,7 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	initSearchClear();
 	initCopyButtons();
 	initFullRows();
-	initImageFallbacks();
 	initScreenshots();
 	initSpacePreparing();
 	initPack();

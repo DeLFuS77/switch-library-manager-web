@@ -1724,6 +1724,18 @@ var translations = map[string]map[string]string{
 		"The old update is deleted at once: it cannot be put back.":                                           "La actualización vieja se borra al momento: no se puede devolver.",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "La actualización vieja espera %v en la carpeta oculta: Ajustes, Cuarentena puede devolverla.",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "La actualización vieja espera en la carpeta oculta hasta que la vacíes: Ajustes, Cuarentena puede devolverla.",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "Descargando la base de datos de títulos...",
+		"Downloading versions database...": "Descargando la base de datos de versiones...",
+		"Loading titles database...":       "Cargando la base de datos de títulos...",
+		"Processing titles and updates...": "Procesando títulos y actualizaciones...",
+		"Scanning library...":              "Analizando la biblioteca...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "Recargar",
+		// a count of one
+		"%v file selected, %v": "%v archivo seleccionado, %v",
+		"%v game selected, %v": "%v juego elegido, %v",
+		"%v step on":           "%v paso activado",
 	},
 }
 
@@ -1744,4 +1756,5 @@ var jsTexts = []string{
 	"Couch mode: Select or Esc to leave", "In testing",
 	"Nothing to check", "No file is new or changed since the last check.",
 	"The new files may not fit. A file that fills its disk fails, and its original stays as it was.", "up to %v needed, %v free", "Start anyway?",
+	"Added to the queue.", "It starts when the tasks before it end: number %v in the queue.", "Reload",
 }
