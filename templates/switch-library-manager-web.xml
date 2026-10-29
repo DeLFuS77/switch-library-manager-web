@@ -22,7 +22,12 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.66.0
+  <Changes>### 1.67.0
+- Quarantine in Settings: what is deleted from the library can wait in a hidden folder and be put back (off until turned on)
+- Many fixes from a full review, above all of cases that could delete the only copy of a game
+- Red only for errors and work in blue; the covers of Tasks fill up smoothly and stay during a scan
+- SLM_TRUSTED_PROXIES trusts only the proxies listed: add your own proxy or tunnel to it
+### 1.66.0
 - The setup wizard asks how to order the games (a folder per game, Base, Updates and DLC subfolders, keeping your folders)
 - The wizard chooses Only the new files for the automations, measures the server and sends a test notification
 - Calm background music in the wizard, with a button to turn it off
@@ -85,7 +90,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-10-28</Date>
+  <Date>2026-10-29</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>
