@@ -215,7 +215,7 @@ type Web struct {
 	// the files deleted that wait in the quarantine
 	quarantineItems *quarantineStore
 	quarantineOnce  sync.Once
-	compressor    compressor
+	compressor      compressor
 	// files are being organized or deleted by Organize: file tasks wait
 	organizing atomic.Bool
 	// the files deleted so far by the cleanup running, for the page to take them off its list
