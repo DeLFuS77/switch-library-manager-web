@@ -20,7 +20,8 @@ func diskSpace(path string) (uint64, uint64, error) {
 	if err := unix.Statfs(path, &stat); err != nil {
 		return 0, 0, err
 	}
-	return uint64(stat.Bavail) * uint64(stat.Bsize), uint64(stat.Blocks) * uint64(stat.Bsize), nil
+	size := blockSize(&stat)
+	return uint64(stat.Bavail) * size, uint64(stat.Blocks) * size, nil
 }
 
 // volumeOf names the volume of a folder, to add up what goes to the same disk: its device.

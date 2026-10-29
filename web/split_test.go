@@ -12,6 +12,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
+	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -124,6 +125,37 @@ func TestSplitKeepsThePartsAlreadyWritten(t *testing.T) {
 	}
 	if _, err := os.Stat(super2); err != nil {
 		t.Fatal("the original is kept")
+	}
+}
+
+// A part already there with the size it would have counts only once it is found sound: one
+// damaged since keeps the original; one the app did not check yet is checked first.
+func TestSplitChecksThePartsFoundWritten(t *testing.T) {
+	web, super := splitWebWithSuperNsp(t)
+	report := func(int64) func(int64, int64) { return func(int64, int64) {} }
+	if err := web.splitFile(context.Background(), super, "Super Game", false, report); err != nil {
+		t.Fatal(err)
+	}
+	update := filepath.Join(filepath.Dir(super), "Super Game [0100000000020800][v65536].nsp")
+	data, _ := os.ReadFile(update)
+	data[len(data)/2] ^= 0xFF
+	os.WriteFile(update, data, 0o644)
+	if err := web.splitFile(context.Background(), super, "Super Game", true, report); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(super); err != nil {
+		t.Fatal("a damaged part keeps the original")
+	}
+
+	// sound, but never checked by the app: checked now, and the original goes
+	data[len(data)/2] ^= 0xFF
+	os.WriteFile(update, data, 0o644)
+	web.verifications().follow([]process.Operation{{Kind: process.OP_DELETE, From: update}})
+	if err := web.splitFile(context.Background(), super, "Super Game", true, report); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(super); !os.IsNotExist(err) {
+		t.Fatal("deleted once every part is found sound")
 	}
 }
 

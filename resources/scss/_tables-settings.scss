@@ -34,10 +34,14 @@
 		color: $slm-cyan;
 	}
 
+	// the kind of a task, in grey: red is kept for the tasks that failed and blue for the ones
+	// at work (see .task-row and .task-card)
 	&.task-icon {
 		width: 2.5rem;
 		height: 2.5rem;
 		font-size: var(--slm-text-md);
+		background: var(--bs-secondary-bg);
+		color: var(--bs-secondary-color);
 	}
 }
 
@@ -222,18 +226,28 @@
 	}
 }
 
-// the logo is white, make it dark on the light theme (outside the colored brand mark)
-[data-bs-theme="light"] .invert-on-light {
-	filter: invert(1);
-}
-
 @media (prefers-reduced-motion: reduce) {
+	// an endless animation of .01ms would show a random frame each time, flickering: it ends
+	// at once instead
 	*,
 	*::before,
 	*::after {
 		animation-duration: .01ms !important;
+		animation-iteration-count: 1 !important;
 		transition-duration: .01ms !important;
 		scroll-behavior: auto !important;
+	}
+
+	// the spinners tell that work goes on: they keep turning
+	.spinner-border,
+	.spinner-grow {
+		animation-duration: .75s !important;
+		animation-iteration-count: infinite !important;
+	}
+
+	#sync.is-syncing .bi {
+		animation-duration: 1s !important;
+		animation-iteration-count: infinite !important;
 	}
 }
 
@@ -241,3 +255,44 @@
 	min-width: 0;
 }
 
+
+// the quarantine of Settings: what it holds, how full it is, and a file leaving the list
+.quarantine-summary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .75rem 1.5rem;
+	align-items: center;
+	padding: .75rem 1rem;
+	border-radius: .75rem;
+	background: var(--bs-tertiary-bg);
+
+	strong {
+		font-size: 1.15rem;
+	}
+}
+
+.quarantine-meter {
+	flex-basis: 100%;
+	height: 6px;
+	overflow: hidden;
+	border-radius: 3px;
+	background: var(--bs-secondary-bg);
+
+	span {
+		display: block;
+		height: 100%;
+		background: rgb(var(--slm-work-rgb));
+	}
+}
+
+.quarantine-reason {
+	padding: .05rem .5rem;
+	border-radius: 1rem;
+	background: var(--bs-secondary-bg);
+}
+
+.quarantine-row-out {
+	opacity: 0;
+	transform: translateX(30px);
+	transition: opacity .4s ease, transform .4s ease;
+}

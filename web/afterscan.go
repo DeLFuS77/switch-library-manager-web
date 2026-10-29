@@ -10,7 +10,14 @@ import (
 // the lists the pages show, so opening a page for the first time is fast.
 func (web *Web) afterScan() {
 	// the scan knows the compressed copies written before it started
-	web.forgetWritten(time.Unix(0, web.scanStarted.Load()))
+	scanStarted := time.Unix(0, web.scanStarted.Load())
+	web.forgetWritten(scanStarted)
+	// and the files Organize moved before: the tasks waiting take their new paths, and the old
+	// ones are forgotten, as they may hold other files by now
+	web.queue().follow(web.moves.resolve)
+	web.moves.forget(scanStarted)
+	// a pack or a check of the whole library waiting in the queue goes on with the new library
+	web.queueAfterScan()
 	// games bought since leave the wishlist
 	web.forgetOwnedWishes()
 	web.startCoverDownloads()
@@ -27,6 +34,8 @@ func (web *Web) afterScan() {
 		web.lookupTimesToBeat(TRIGGER_SCAN)
 		// the games without their title key, for Issues and Compress
 		web.checkTitleKeys()
+		// the title languages asked for while it ran
+		web.addPendingTitleLanguages()
 	}()
 }
 

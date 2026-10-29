@@ -278,13 +278,22 @@ func hsl(h, s, l float64) (float64, float64, float64) {
 	return r + m, g + m, b + m
 }
 
-// demoReadOnly refuses every change in demo mode.
+// DEMO_HIDDEN tells why the demo shows nothing of the server it runs on, translated
+const DEMO_HIDDEN = "Demo mode: the folders and the details of the server are not shown."
+
+// demoReadOnly refuses every change in demo mode, and the page that shows the server the demo
+// runs on. The checks of the setup wizard change nothing and answer without looking at the
+// server (see HandleWizard), so the wizard can be gone through.
 func (web *Web) demoReadOnly(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet, http.MethodHead, http.MethodOptions:
+			if r.URL.Path == "/diagnostics.html" {
+				http.Error(w, translate(web.requestLanguage(r), DEMO_HIDDEN), http.StatusForbidden)
+				return
+			}
 		default:
-			if r.URL.Path != "/login.html" && r.URL.Path != "/logout" {
+			if r.URL.Path != "/login.html" && r.URL.Path != "/logout" && r.URL.Path != "/wizard/check" {
 				writeGlobalError(w, http.StatusForbidden, web.requestLanguage(r), DEMO_DISABLED)
 				return
 			}

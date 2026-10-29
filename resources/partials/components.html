@@ -45,7 +45,7 @@
 					<div class="setup-progress text-md-end">
 						<div class="small text-body-secondary mb-1">{{t "%v of %v done" .Done .Total}}</div>
 						<div class="progress" role="progressbar" aria-label="{{t "Setup progress"}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100">
-							<div class="progress-bar" style="width: {{.Percent}}%"></div>
+							<div class="progress-bar is-work" style="width: {{.Percent}}%"></div>
 						</div>
 					</div>
 				</div>
@@ -96,6 +96,7 @@
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#vault"><span class="bi bi-safe me-2" aria-hidden="true"></span>{{t "Save vault"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#mobile"><span class="bi bi-phone me-2" aria-hidden="true"></span>{{t "App on your phone"}}</a></li>
 						<li class="settings-nav-heading d-none d-lg-block">{{t "Maintenance"}}</li>
+						<li class="nav-item"><a class="nav-link" href="{{$base}}#quarantine"><span class="bi bi-hourglass-split me-2" aria-hidden="true"></span>{{t "Quarantine"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#backup"><span class="bi bi-life-preserver me-2" aria-hidden="true"></span>{{t "Backup"}}</a></li>
 						<li class="nav-item"><a class="nav-link{{if eq . "diagnostics"}} active{{end}}" href="/diagnostics.html"{{if eq . "diagnostics"}} aria-current="page"{{end}}><span class="bi bi-heart-pulse me-2" aria-hidden="true"></span>{{t "Diagnostics"}}</a></li>
 					</ul>

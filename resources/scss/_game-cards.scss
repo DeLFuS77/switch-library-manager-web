@@ -367,12 +367,6 @@
 	font-weight: 600;
 }
 
-// keep controls inside a card clickable above the card's stretched link
-.card-action {
-	position: relative;
-	z-index: 2;
-}
-
 
 // how the game goes for the user: a mark on the cover, and the panel of the game page
 .game-cover-meta .badge-play {
@@ -396,6 +390,19 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: .4rem;
+
+	// the states in grey and the one chosen in the blue of work: red tells errors (after its
+	// radio, to weigh more than the colours of the outline buttons of each theme)
+	.btn-check + .btn {
+		--#{$prefix}btn-color: var(--bs-secondary-color);
+		--#{$prefix}btn-border-color: var(--bs-border-color);
+		--#{$prefix}btn-hover-color: rgb(var(--slm-work-rgb));
+		--#{$prefix}btn-hover-bg: rgba(var(--slm-work-rgb), .12);
+		--#{$prefix}btn-hover-border-color: rgb(var(--slm-work-rgb));
+		--#{$prefix}btn-active-color: var(--bs-body-bg);
+		--#{$prefix}btn-active-bg: rgb(var(--slm-work-rgb));
+		--#{$prefix}btn-active-border-color: rgb(var(--slm-work-rgb));
+	}
 }
 
 // the stars fill up to the one chosen, and up to the one under the pointer

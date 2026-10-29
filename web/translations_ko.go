@@ -334,6 +334,8 @@ func init() {
 		"Another task is working on the files of the library (organizing, a cleanup, a compression, combining games or a check): try again when it has finished.": "다른 작업이 라이브러리 파일을 처리 중입니다(정리, 청소, 압축, 결합, 확인). 끝난 뒤 다시 시도하세요.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.":                                                        "라이브러리가 유지하는 게임, 최신 업데이트 또는 DLC도 들어 있어 삭제하지 않습니다.",
 		"The newer file is damaged: keep this one.":                                                                                                               "더 새로운 파일이 손상되었습니다. 이 파일을 유지하세요.",
+		"What this file holds could not be read: keep this one.":                                                                                                  "이 파일의 내용을 읽을 수 없습니다. 이 파일을 유지하세요.",
+		"A part already there is not sound as a whole: the original is kept.":                                                                                     "이미 있는 파트가 전체적으로 정상이 아닙니다. 원본은 그대로 둡니다.",
 		"The compressed file does not hold everything this file holds: keep this one.":                                                                            "압축 파일에 이 파일의 내용이 모두 들어 있지 않습니다. 이 파일을 유지하세요.",
 		"A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.":                                    "다른 지역의 게임 사본이 확인되고 정상일 때만 사본을 삭제합니다. 먼저 파일을 확인하세요.",
 		"And the separate files?": "개별 파일은?",
@@ -668,6 +670,10 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "파일 %v개는 이미 압축본이 있어 표시하지 않아요. 압축본이 검증되면 공간 페이지에서 원본을 삭제할 수 있어요.",
 		"%v files at a time": "한 번에 파일 %v개",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "파일 %v개는 남겨 둘 사본이 검증된 후에만 삭제할 수 있어요. 해당 사본만 검사해요.",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "네트워크 경로는 여기서 확인하지 않습니다. 앱이 사용할 때 읽습니다.",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "지금은 비울 수 있는 것이 없습니다. 아래 %v개 파일은 각각 표시된 이유로 남습니다.",
 
@@ -1371,6 +1377,7 @@ func init() {
 		"The file is damaged or was modified.":                                     "파일이 손상되었거나 수정되었어요.",
 		"The file is not a backup of this app.":                                    "이 앱의 백업 파일이 아니에요.",
 		"The files could not be checked.":                                          "파일을 검사할 수 없어요.",
+		"The file could not be read, it was left unchecked.":                       "파일을 읽을 수 없어서 검사하지 않은 채로 두었어요.",
 		"The files could not be copied.":                                           "파일을 복사할 수 없어요.",
 		"The files could not be organized.":                                        "파일을 정리할 수 없어요.",
 		"The folder does not exist or is not an absolute path.":                    "폴더가 없거나 절대 경로가 아니에요.",
@@ -1525,6 +1532,10 @@ func init() {
 		"within a minute":                                                  "1분 이내",
 		"you":                                                              "나",
 		"yours included":                                                   "내 것 포함",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "데모 모드: 서버의 폴더와 세부 정보는 표시하지 않아요.",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "DLC마다 폴더",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "ID를 붙이면 DLC마다 자기 폴더에 들어가요. 끄면 모두 DLC 폴더에 들어가서 경로가 짧아져요. 많은 Windows 프로그램은 260자를 넘는 경로를 읽지 못해요.",
@@ -1583,6 +1594,10 @@ func init() {
 		"No preference: the suggested copy": "선호 없음: 추천 사본",
 		"Your preferred region":             "선호 지역",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "게임마다 카드 한 장에 모든 지역의 국기를 표시합니다(없는 지역은 흐리게). 게임 페이지에서 선택한 사본이나 추천 사본이 표시되고, 카운터는 게임을 한 번만 셉니다. 파일은 바뀌지 않습니다.",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "릴리스의 서명이 없거나 올바르지 않습니다. 아무것도 변경하지 않았습니다.",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "텔레그램 채팅에서 답하기",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "봇의 채팅에 쓰세요: /have zelda, /new, /space, /status, /sync. 답은 그 채팅에만 앱 언어로 옵니다.",
@@ -1645,5 +1660,75 @@ func init() {
 		"The update goes to the folder of its game; nothing else is touched.": "업데이트는 해당 게임 폴더로 갑니다. 다른 것은 건드리지 않습니다.",
 		"Everything is ordered, also what was loose.":                         "흩어져 있던 것까지 모두 정리됩니다.",
 		"Write a channel first.":                                              "먼저 채널을 입력하세요.",
+		"Quarantine":                                                          "격리함",
+		"What the app deletes from the library (duplicates, old updates, copies of other regions) does not go at once: it waits in a hidden folder of the same library folder, on the same disk, without being copied, and you can put it back while it is there.": "앱이 라이브러리에서 삭제하는 것(중복, 오래된 업데이트, 다른 지역의 사본)은 바로 사라지지 않습니다. 같은 라이브러리 폴더의 숨김 폴더에서 같은 디스크에 복사 없이 기다리며, 그동안 원래 자리로 되돌릴 수 있습니다.",
+		"Keep what is deleted":            "삭제한 항목 보관",
+		"Off: deleted at once":            "끔: 바로 삭제",
+		"48 hours":                        "48시간",
+		"1 week":                          "1주",
+		"30 days":                         "30일",
+		"Until I empty it":                "직접 비울 때까지",
+		"Largest size":                    "최대 크기",
+		"No limit":                        "제한 없음",
+		"Over it, the oldest goes first.": "넘으면 가장 오래된 것부터 삭제됩니다.",
+		"When a task needs room, delete the oldest of the quarantine first":                  "작업에 공간이 필요하면 격리함의 가장 오래된 것부터 삭제",
+		"Also keep the originals after compressing, converting, splitting or making a pack":  "압축, 변환, 분할, 팩 만들기 후 원본도 보관",
+		"They are checked before they are deleted, and they take a lot of room: better off.": "삭제 전에 이미 확인되고 공간을 많이 차지하므로 끄는 것이 좋습니다.",
+		"In the quarantine now":                "현재 격리함에 있는 항목",
+		"of %v GB":                             "/ %v GB",
+		"The oldest is deleted for good on %v": "가장 오래된 항목은 %v에 영구 삭제됩니다",
+		"Empty the quarantine? Its %v files are deleted for good.": "격리함을 비울까요? 파일 %v개가 영구 삭제됩니다.",
+		"Empty now":              "지금 비우기",
+		"deleted for good on %v": "%v에 영구 삭제",
+		"Put back in its folder": "원래 폴더로 되돌리기",
+		"Put back":               "되돌리기",
+		"Delete %v for good? It cannot be undone.": "%v을(를) 영구 삭제할까요? 되돌릴 수 없습니다.",
+		"Delete for good":                          "영구 삭제",
+		"Nothing is waiting in the quarantine.":    "격리함에 대기 중인 항목이 없습니다.",
+		"The hidden folder (%v) is in each library folder: the app does not scan it nor offer it to DBI.": "숨김 폴더(%v)는 각 라이브러리 폴더에 있습니다. 앱은 이를 검사하지 않으며 DBI에 제공하지도 않습니다.",
+		"Duplicate":                                    "중복",
+		"Old update":                                   "오래된 업데이트",
+		"Copy of another region":                       "다른 지역의 사본",
+		"Original of a compressed file":                "압축된 파일의 원본",
+		"Converted to NSP":                             "NSP로 변환됨",
+		"Decompressed to NSP":                          "NSP로 압축 해제됨",
+		"Split into parts":                             "여러 부분으로 분할됨",
+		"Joined in a pack":                             "팩으로 합쳐짐",
+		"Deleted from the library":                     "라이브러리에서 삭제됨",
+		"Another file has its name in its folder now.": "원래 폴더에 같은 이름의 다른 파일이 있습니다.",
+		"That file is no longer in the quarantine.":    "그 파일은 더 이상 격리함에 없습니다.",
+		"The file could not be put back.":              "파일을 되돌리지 못했습니다.",
+		"%v is back in its folder.":                    "%v을(를) 원래 폴더로 되돌렸습니다.",
+		"The file could not be deleted.":               "파일을 삭제하지 못했습니다.",
+		"Deleted for good.":                            "영구 삭제했습니다.",
+		"%v files deleted for good (%v).":              "파일 %v개를 영구 삭제했습니다(%v).",
+		"Move %v files (%v) to the quarantine? You can put them back from Settings, Quarantine.": "파일 %v개(%v)를 격리함으로 옮길까요? 설정의 격리함에서 되돌릴 수 있습니다.",
+		"%v old updates moved to the quarantine":                                                 "오래된 업데이트 %v개를 격리함으로 옮겼습니다",
+		"What happens to what is deleted?":                                                       "삭제한 항목은 어떻게 될까요?",
+		"Duplicates, old updates and copies of other regions can wait a while in a hidden folder before they go for good, so a mistake can be undone. They are moved, not copied: they take no more room.": "중복, 오래된 업데이트, 다른 지역의 사본은 영구 삭제되기 전에 숨김 폴더에서 잠시 기다릴 수 있어 실수를 되돌릴 수 있습니다. 복사가 아니라 이동이므로 공간을 더 차지하지 않습니다.",
+		"Delete at once":                        "바로 삭제",
+		"old":                                   "오래됨",
+		"An update is replaced by a newer one.": "업데이트가 더 새로운 것으로 바뀝니다.",
+		"The old update is deleted at once: it cannot be put back.":                                           "오래된 업데이트는 바로 삭제되어 되돌릴 수 없습니다.",
+		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "오래된 업데이트는 숨김 폴더에서 %v 동안 기다리며, 설정의 격리함에서 되돌릴 수 있습니다.",
+		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "오래된 업데이트는 비울 때까지 숨김 폴더에서 기다리며, 설정의 격리함에서 되돌릴 수 있습니다.",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "타이틀 데이터베이스 다운로드 중...",
+		"Downloading versions database...": "버전 데이터베이스 다운로드 중...",
+		"Loading titles database...":       "타이틀 데이터베이스 불러오는 중...",
+		"Processing titles and updates...": "타이틀과 업데이트 처리 중...",
+		"Scanning library...":              "라이브러리 스캔 중...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "새로고침",
+		// a count of one
+		"%v file selected, %v": "파일 %v개 선택됨, %v",
+		"%v game selected, %v": "게임 %v개 선택, %v",
+		"%v step on":           "%v단계 켜짐",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "남기는 사본과 같은 파일을 다른 경로로 가리키고 있어 삭제하지 않습니다.",
+		// a newer version that could not be read
+		"The newer file could not be read, it was recognized by its name only: keep this one.": "더 새로운 파일을 읽을 수 없어 이름으로만 인식했습니다. 이 파일을 유지하세요.",
+		// settings that could not be saved
+		"The settings could not be saved: %v": "설정을 저장하지 못했어요: %v",
 	}
 }

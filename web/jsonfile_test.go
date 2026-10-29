@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -49,5 +50,35 @@ func TestAtomicWritesDoNotMix(t *testing.T) {
 	}
 	if entries, _ := os.ReadDir(filepath.Dir(path)); len(entries) != 1 {
 		t.Fatalf("no temporary file left: %v", entries)
+	}
+}
+
+// A store whose file is there but cannot be read starts empty, and is not saved over the file:
+// once it reads again, it is saved as before. A file that does not exist is an empty store.
+func TestStoreThatCannotBeReadIsNotWrittenOver(t *testing.T) {
+	dir := t.TempDir()
+	missing := filepath.Join(dir, "collections.json")
+	if _, ok := readStore(missing); ok {
+		t.Fatal("nothing to read")
+	}
+	if err := writeFileAtomic(missing, []byte("{}")); err != nil {
+		t.Fatalf("a store that did not exist is saved: %v", err)
+	}
+	// a folder where the file should be cannot be read
+	unread := filepath.Join(dir, "favorites.json")
+	os.Mkdir(unread, 0o755)
+	if _, ok := readStore(unread); ok {
+		t.Fatal("a folder is not read")
+	}
+	if err := writeFileAtomic(unread, []byte("{}")); !errors.Is(err, errStoreUnread) {
+		t.Fatalf("not saved over what could not be read: %v", err)
+	}
+	os.Remove(unread)
+	os.WriteFile(unread, []byte("{}"), 0o600)
+	if _, ok := readStore(unread); !ok {
+		t.Fatal("read once it can be")
+	}
+	if err := writeFileAtomic(unread, []byte(`{"0100000000010000":"2026-10-29T00:00:00Z"}`)); err != nil {
+		t.Fatalf("saved again once read: %v", err)
 	}
 }

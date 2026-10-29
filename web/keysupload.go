@@ -87,7 +87,7 @@ func writePrivateFile(path string, data []byte) error {
 	if err := temporary.Close(); err != nil {
 		return err
 	}
-	return os.Rename(temporary.Name(), path)
+	return commitFile(temporary.Name(), path)
 }
 
 // readUpload reads a file of the form, at most maxKeysUpload bytes; nil when it was not sent.

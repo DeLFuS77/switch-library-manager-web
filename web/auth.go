@@ -13,12 +13,15 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+	"unicode"
+	"unicode/utf8"
 )
 
 const (
@@ -97,6 +100,8 @@ type Auth struct {
 	basicCache  sync.Map // sha256 of name and password -> expiry
 	// sessions ended with Log out before they expire
 	revoked *revokedSessions
+	// when each session was last used, to end the ones nobody uses
+	seen *seenSessions
 	// login disabled: requests from outside the local network are refused, unless allowed
 	remoteWithoutLogin bool
 	// why the password of SLM_AUTH_PASSWORD is weak, or nil
@@ -106,6 +111,9 @@ type Auth struct {
 	// when an attempt that is told only now and then was told last, by user, address and result
 	toldMutex sync.Mutex
 	told      map[string]time.Time
+	// the failed and blocked attempts told in the current minute, by address
+	toldMinute time.Time
+	toldByIp   map[string]int
 }
 
 const (
@@ -115,6 +123,13 @@ const (
 	retryTellInterval = time.Hour
 	// the attempts remembered; past that the oldest are forgotten, or all of them
 	maxToldAttempts = 1000
+	// failed and blocked attempts told per address and minute: a person who mistypes is told
+	// every time, a bot only this often
+	maxToldPerMinute = maxLoginFailures + 2
+	// the longest name of an attempt kept as it was sent; the names of accounts are shorter
+	maxAttemptName = 32
+	// the longest name kept in the keys of the login limiter; a longer one is kept as a hash
+	maxLimiterName = 64
 )
 
 func newAuth(dataFolder string) (*Auth, error) {
@@ -134,7 +149,7 @@ func newAuth(dataFolder string) (*Auth, error) {
 		return nil, err
 	}
 	return &Auth{users: users, envUser: envUser, envPassword: envPassword, secret: secret, limiter: newLoginLimiter(),
-		revoked: loadRevokedSessions(dataFolder), remoteWithoutLogin: os.Getenv(REMOTE_WITHOUT_LOGIN_ENV) == "true",
+		revoked: loadRevokedSessions(dataFolder), seen: loadSeenSessions(dataFolder), remoteWithoutLogin: os.Getenv(REMOTE_WITHOUT_LOGIN_ENV) == "true",
 		envPasswordWeak: weakEnvPassword(envUser, envPassword)}, nil
 }
 
@@ -272,6 +287,10 @@ func (a *Auth) fromSession(r *http.Request) *Principal {
 	if a.revoked.has(parts[2]) {
 		return nil
 	}
+	// a session nobody used for two weeks has ended, before the end of its 30 days
+	if !a.seen.use(parts[2], expiry, time.Now()) {
+		return nil
+	}
 	return principal
 }
 
@@ -307,6 +326,21 @@ func (a *Auth) forget() {
 func isPublicPath(path string) bool {
 	return path == "/login.html" || path == "/logout" || path == "/sw.js" ||
 		strings.HasPrefix(path, "/resources/static/") || strings.HasPrefix(path, "/resources/vendor/")
+}
+
+// isPublicRequest tells a request of a public path written plainly: a path with escapes or dots
+// (%2e%2e%2f, /../) is not taken for one, whatever it becomes once decoded and cleaned.
+func isPublicRequest(r *http.Request) bool {
+	return isPublicPath(r.URL.Path) && r.URL.EscapedPath() == r.URL.Path && path.Clean(r.URL.Path) == r.URL.Path
+}
+
+// anonymous is who sends a request of a public path without being signed in: a guest, or an
+// administrator where login is off and any other page would take the request as one.
+func (a *Auth) anonymous(r *http.Request) *Principal {
+	if !a.Enabled() && (a.remoteWithoutLogin || (isLocalRequest(r) && allowedHost(r.Host))) {
+		return &Principal{Role: ROLE_ADMIN}
+	}
+	return &Principal{Role: ROLE_GUEST}
 }
 
 // pages and actions of administrators; read-only users can only look and download
@@ -354,10 +388,10 @@ func editorAllowed(r *http.Request) bool {
 	return false
 }
 
-// isAdminRequest tells a request of an administrator, or of anyone when login is off.
+// isAdminRequest tells a request of an administrator, or of anyone when login is off (the
+// middleware then makes everybody on the local network one).
 func isAdminRequest(r *http.Request) bool {
-	principal := principalFrom(r)
-	return principal == nil || principal.IsAdmin()
+	return principalFrom(r).IsAdmin()
 }
 
 func viewerAllowed(r *http.Request) bool {
@@ -378,8 +412,12 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var principal *Principal
 		switch {
-		case isPublicPath(r.URL.Path):
+		case isPublicRequest(r):
 			principal = a.fromSession(r)
+			if principal == nil {
+				next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), principalKey{}, a.anonymous(r))))
+				return
+			}
 		case !a.Enabled():
 			// without login everybody is an administrator: only on the local network, so an app
 			// published on the internet before an administrator is created is not open to anyone
@@ -427,7 +465,7 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 			}
 		}
 
-		if principal != nil && !roleAllows(principal.Role, r) {
+		if !roleAllows(principal.Role, r) {
 			http.Error(w, "this action needs an administrator", http.StatusForbidden)
 			return
 		}
@@ -436,20 +474,67 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 	})
 }
 
+// attemptName is the name of a sign-in attempt as it is told and logged: one that cannot be
+// the name of an account is cut and loses its control characters, so the names a bot sends
+// cannot fill the activity log, the log of the app or the memory.
+func (a *Auth) attemptName(name string) string {
+	if validUserName.MatchString(name) || (a.envUser != "" && name == a.envUser) {
+		return name
+	}
+	var cleaned strings.Builder
+	kept := 0
+	for _, r := range name {
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) || r == utf8.RuneError {
+			continue
+		}
+		if kept == maxAttemptName {
+			cleaned.WriteString("…")
+			break
+		}
+		cleaned.WriteRune(r)
+		kept++
+	}
+	return cleaned.String()
+}
+
 // loginAttempt tells the hook of a sign-in attempt, never passing the password itself. With
 // every, an attempt of the same user from the same address with the same result is told only
 // once in that time: an API client signs in with every request, and a blocked one keeps trying.
+// A blocked address is told once in that time whatever names it tries, and the failures of an
+// address are told at most maxToldPerMinute times a minute.
 func (a *Auth) loginAttempt(user, ip, result, password string, every time.Duration) {
 	if a.onLogin == nil {
 		return
 	}
+	user = a.attemptName(user)
+	if !a.shouldTell(user, ip, result, every, time.Now()) {
+		return
+	}
+	a.onLogin(user, ip, result, len(password) >= minPasswordLength)
+}
+
+// shouldTell decides whether an attempt is told, and notes it when it is.
+func (a *Auth) shouldTell(user, ip, result string, every time.Duration, now time.Time) bool {
+	a.toldMutex.Lock()
+	defer a.toldMutex.Unlock()
+	if result != "ok" {
+		if minute := now.Truncate(time.Minute); !a.toldMinute.Equal(minute) || a.toldByIp == nil {
+			a.toldMinute = minute
+			a.toldByIp = map[string]int{}
+		}
+		count, seen := a.toldByIp[ip]
+		// many addresses in one minute: the new ones wait for the next
+		if count >= maxToldPerMinute || (!seen && len(a.toldByIp) >= maxToldAttempts) {
+			return false
+		}
+	}
 	if every > 0 {
-		now := time.Now()
 		key := user + "\x00" + ip + "\x00" + result
-		a.toldMutex.Lock()
+		if result == "blocked" {
+			key = ip + "\x00" + result
+		}
 		if last, ok := a.told[key]; ok && now.Sub(last) < every {
-			a.toldMutex.Unlock()
-			return
+			return false
 		}
 		if len(a.told) >= maxToldAttempts {
 			for other, last := range a.told {
@@ -466,9 +551,11 @@ func (a *Auth) loginAttempt(user, ip, result, password string, every time.Durati
 			a.told = map[string]time.Time{}
 		}
 		a.told[key] = now
-		a.toldMutex.Unlock()
 	}
-	a.onLogin(user, ip, result, len(password) >= minPasswordLength)
+	if result != "ok" {
+		a.toldByIp[ip]++
+	}
+	return true
 }
 
 // signedIn notes the sign-in of a user, shown in Users. A failed write only loses the date.
@@ -480,19 +567,35 @@ func (a *Auth) signedIn(name string) {
 
 // unauthorized sends browsers to the login page and asks other clients for credentials.
 func (a *Auth) unauthorized(w http.ResponseWriter, r *http.Request) {
-	if (r.Method == http.MethodGet || r.Method == http.MethodHead) && strings.Contains(r.Header.Get("Accept"), "text/html") {
+	if pageNavigation(r) {
 		target := "/login.html"
-		if r.URL.Path != "/" && r.URL.Path != "/index.html" {
+		// a form sent after the session ended goes to the login page alone
+		if (r.Method == http.MethodGet || r.Method == http.MethodHead) && r.URL.Path != "/" && r.URL.Path != "/index.html" {
 			target += "?next=" + url.QueryEscape(r.URL.RequestURI())
 		}
 		http.Redirect(w, r, target, http.StatusSeeOther)
 		return
 	}
-	// requests of the pages' scripts must not open the browser's login dialog
-	if r.Header.Get("Sec-Fetch-Site") == "" {
+	// requests of the pages' scripts must not open the browser's login dialog: signed in there,
+	// the browser would send the password with every request and Log out would not log out
+	if !fromPage(r) {
 		w.Header().Set("WWW-Authenticate", `Basic realm="Switch Library Manager", charset="UTF-8"`)
 	}
 	http.Error(w, "unauthorized", http.StatusUnauthorized)
+}
+
+// pageNavigation tells a request of the browser that opens a page, by a link or by sending a
+// form: browsers say so with Sec-Fetch-Mode only to secure origins, but a page asks for HTML,
+// which the scripts of the pages do not.
+func pageNavigation(r *http.Request) bool {
+	return r.Header.Get("Sec-Fetch-Mode") == "navigate" || strings.Contains(r.Header.Get("Accept"), "text/html")
+}
+
+// fromPage tells a request sent by a page of a browser: by Sec-Fetch-Site, or, where browsers do
+// not send it (plain HTTP on the local network), by the Origin or the Referer they add. API
+// clients send neither.
+func fromPage(r *http.Request) bool {
+	return r.Header.Get("Sec-Fetch-Site") != "" || r.Header.Get("Origin") != "" || r.Header.Get("Referer") != ""
 }
 
 // safeNext keeps redirects after login on this site: a path of it, without control characters
@@ -606,7 +709,9 @@ func forwardedAddresses(r *http.Request) []string {
 
 // isLocalRequest reports whether a request comes from the local network: from a local address
 // and, through a reverse proxy, without any address outside it among the forwarded ones (a
-// client can add addresses, but not remove the one its proxy adds).
+// client can add addresses, but not remove the one its proxy adds). The address of the
+// connection decides: a forwarded address can make a request not local, never local, so it can
+// never make anybody an administrator while login is off.
 func isLocalRequest(r *http.Request) bool {
 	if !isLocalAddress(remoteHost(r)) {
 		return false
@@ -619,9 +724,11 @@ func isLocalRequest(r *http.Request) bool {
 	return true
 }
 
-// TRUSTED_PROXIES_ENV lists more proxies whose forwarded client addresses are believed, besides
-// the ones of the local network: addresses or ranges, and "cloudflare" for its published ranges
-// (when Cloudflare connects to the app directly instead of through a tunnel on this computer).
+// TRUSTED_PROXIES_ENV lists the proxies whose forwarded client addresses are believed: addresses
+// or ranges, and "cloudflare" for its published ranges (when Cloudflare connects to the app
+// directly instead of through a tunnel on this computer). Not set, every address of the local
+// network is believed, as a reverse proxy there needs nothing set; set, only the ones listed,
+// so the other computers of the network cannot make up the address they send from.
 const TRUSTED_PROXIES_ENV = "SLM_TRUSTED_PROXIES"
 
 // cloudflareRanges are the addresses Cloudflare connects from (https://www.cloudflare.com/ips/).
@@ -666,22 +773,14 @@ func parseTrustedProxies(value string) []*net.IPNet {
 	return nets
 }
 
-// trustedProxy reports whether forwarded client addresses are believed from an address: one of
-// the local network (a reverse proxy or a tunnel on it) or one set in SLM_TRUSTED_PROXIES.
+// trustedProxy reports whether forwarded client addresses are believed from an address: one set
+// in SLM_TRUSTED_PROXIES, or without it one of the local network (a reverse proxy or a tunnel on
+// it). Whether a request is local never depends on this (see isLocalRequest).
 func trustedProxy(address string) bool {
-	ip := net.ParseIP(strings.Trim(strings.TrimSpace(address), "[]"))
-	if ip == nil {
-		return false
+	if len(trustedProxyNets) > 0 {
+		return configuredProxy(address)
 	}
-	if isLocalAddress(address) {
-		return true
-	}
-	for _, network := range trustedProxyNets {
-		if network.Contains(ip) {
-			return true
-		}
-	}
-	return false
+	return net.ParseIP(strings.Trim(strings.TrimSpace(address), "[]")) != nil && isLocalAddress(address)
 }
 
 // clientIp is the address of the client, for the login limiter. Through a trusted proxy it is
@@ -813,6 +912,10 @@ func newLoginLimiter() *loginLimiter {
 func loginKeys(ip, name string) []string {
 	keys := []string{"ip:" + ip}
 	if name = strings.ToLower(strings.TrimSpace(name)); name != "" {
+		// a name longer than any account takes little room, whatever its length
+		if len(name) > maxLimiterName {
+			name = "#" + cacheKey(name)
+		}
 		keys = append(keys, "user:"+name)
 	}
 	return keys

@@ -334,6 +334,8 @@ func init() {
 		"Another task is working on the files of the library (organizing, a cleanup, a compression, combining games or a check): try again when it has finished.": "另一个任务正在处理游戏库的文件（整理、清理、压缩、合并或校验）：请在完成后重试。",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.":                                                        "它还包含游戏库保留的游戏本体、最新更新或 DLC，因此不会删除。",
 		"The newer file is damaged: keep this one.":                                                                                                               "较新的文件已损坏：请保留这个。",
+		"What this file holds could not be read: keep this one.":                                                                                                  "无法读取此文件的内容：请保留这个。",
+		"A part already there is not sound as a whole: the original is kept.":                                                                                     "已有的某个部分并非完整无损：原文件已保留。",
 		"The compressed file does not hold everything this file holds: keep this one.":                                                                            "压缩文件没有包含此文件的全部内容：请保留这个。",
 		"A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.":                                    "只有在保留一份其他地区、已校验且完好的游戏副本时才会删除副本：请先校验文件。",
 		"And the separate files?": "单独的文件怎么办？",
@@ -668,6 +670,10 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "%v 个文件已有压缩副本，未在此列出。副本校验通过后，可在“空间”页面删除原始文件。",
 		"%v files at a time": "同时处理 %v 个文件",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v 个文件只有在保留的副本校验通过后才能删除。只会检查这些副本。",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "此处不检查网络路径：应用会在使用时读取它们。",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "现在没有可以释放的空间：下面的 %v 个文件会保留，各自的原因已注明。",
 
@@ -1371,6 +1377,7 @@ func init() {
 		"The file is damaged or was modified.":                                     "文件已损坏或被修改。",
 		"The file is not a backup of this app.":                                    "该文件不是本应用的备份。",
 		"The files could not be checked.":                                          "无法检查文件。",
+		"The file could not be read, it was left unchecked.":                       "无法读取文件，已保留为未检查。",
 		"The files could not be copied.":                                           "无法复制文件。",
 		"The files could not be organized.":                                        "无法整理文件。",
 		"The folder does not exist or is not an absolute path.":                    "文件夹不存在或不是绝对路径。",
@@ -1525,6 +1532,10 @@ func init() {
 		"within a minute":                                                  "一分钟内",
 		"you":                                                              "你",
 		"yours included":                                                   "包括你的",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "演示模式：不显示服务器的文件夹和详细信息。",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "每个 DLC 一个文件夹",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "使用 ID 时，每个 DLC 放进自己的文件夹。关闭后，全部放进 DLC 文件夹：路径更短，因为许多 Windows 程序无法读取超过 260 个字符的路径。",
@@ -1583,6 +1594,10 @@ func init() {
 		"No preference: the suggested copy": "无偏好：推荐的副本",
 		"Your preferred region":             "你的首选地区",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "每个游戏一张卡片，显示其所有地区的国旗：你没有的地区显示为灰色。显示你在游戏页面选择的副本或推荐的副本，计数时每个游戏只算一次。不会更改任何文件。",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "该版本的签名缺失或错误：未做任何更改。",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "在 Telegram 聊天中回复",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "在机器人的聊天中发送：/have zelda、/new、/space、/status、/sync。只会在该聊天中回复，使用应用的语言。",
@@ -1645,5 +1660,75 @@ func init() {
 		"The update goes to the folder of its game; nothing else is touched.": "更新进入其游戏的文件夹;其他内容不变。",
 		"Everything is ordered, also what was loose.":                         "全部整理,包括原本散落的文件。",
 		"Write a channel first.":                                              "请先填写一个渠道。",
+		"Quarantine":                                                          "隔离区",
+		"What the app deletes from the library (duplicates, old updates, copies of other regions) does not go at once: it waits in a hidden folder of the same library folder, on the same disk, without being copied, and you can put it back while it is there.": "应用从库中删除的内容（重复文件、旧更新、其他地区的副本）不会立即消失：它会在同一库文件夹中的隐藏文件夹里等待，位于同一磁盘且不复制，在此期间你可以把它放回原处。",
+		"Keep what is deleted":            "保留已删除的内容",
+		"Off: deleted at once":            "关闭：立即删除",
+		"48 hours":                        "48 小时",
+		"1 week":                          "1 周",
+		"30 days":                         "30 天",
+		"Until I empty it":                "直到我清空",
+		"Largest size":                    "最大大小",
+		"No limit":                        "不限",
+		"Over it, the oldest goes first.": "超出后先删除最旧的。",
+		"When a task needs room, delete the oldest of the quarantine first":                  "任务需要空间时，先删除隔离区中最旧的内容",
+		"Also keep the originals after compressing, converting, splitting or making a pack":  "压缩、转换、拆分或制作合集后也保留原文件",
+		"They are checked before they are deleted, and they take a lot of room: better off.": "删除前已经过检查，且占用空间很大：建议关闭。",
+		"In the quarantine now":                "当前在隔离区",
+		"of %v GB":                             "/ %v GB",
+		"The oldest is deleted for good on %v": "最旧的内容将于 %v 永久删除",
+		"Empty the quarantine? Its %v files are deleted for good.": "清空隔离区？其中 %v 个文件将被永久删除。",
+		"Empty now":              "立即清空",
+		"deleted for good on %v": "将于 %v 永久删除",
+		"Put back in its folder": "放回原文件夹",
+		"Put back":               "放回",
+		"Delete %v for good? It cannot be undone.": "永久删除 %v？此操作无法撤销。",
+		"Delete for good":                          "永久删除",
+		"Nothing is waiting in the quarantine.":    "隔离区中没有等待的内容。",
+		"The hidden folder (%v) is in each library folder: the app does not scan it nor offer it to DBI.": "隐藏文件夹（%v）位于每个库文件夹中：应用不会扫描它，也不会提供给 DBI。",
+		"Duplicate":                                    "重复",
+		"Old update":                                   "旧更新",
+		"Copy of another region":                       "其他地区的副本",
+		"Original of a compressed file":                "已压缩文件的原文件",
+		"Converted to NSP":                             "已转换为 NSP",
+		"Decompressed to NSP":                          "已解压为 NSP",
+		"Split into parts":                             "已拆分",
+		"Joined in a pack":                             "已合并为合集",
+		"Deleted from the library":                     "已从库中删除",
+		"Another file has its name in its folder now.": "其原文件夹中现在已有同名的其他文件。",
+		"That file is no longer in the quarantine.":    "该文件已不在隔离区中。",
+		"The file could not be put back.":              "无法放回该文件。",
+		"%v is back in its folder.":                    "%v 已放回原文件夹。",
+		"The file could not be deleted.":               "无法删除该文件。",
+		"Deleted for good.":                            "已永久删除。",
+		"%v files deleted for good (%v).":              "已永久删除 %v 个文件（%v）。",
+		"Move %v files (%v) to the quarantine? You can put them back from Settings, Quarantine.": "将 %v 个文件（%v）移到隔离区？可在设置的隔离区中放回。",
+		"%v old updates moved to the quarantine":                                                 "已将 %v 个旧更新移到隔离区",
+		"What happens to what is deleted?":                                                       "删除的内容会怎样？",
+		"Duplicates, old updates and copies of other regions can wait a while in a hidden folder before they go for good, so a mistake can be undone. They are moved, not copied: they take no more room.": "重复文件、旧更新和其他地区的副本可以先在隐藏文件夹中等待一段时间再被永久删除，以便撤销误操作。它们是移动而不是复制：不会多占空间。",
+		"Delete at once":                        "立即删除",
+		"old":                                   "旧",
+		"An update is replaced by a newer one.": "一个更新被更新的版本取代。",
+		"The old update is deleted at once: it cannot be put back.":                                           "旧更新会立即删除：无法放回。",
+		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "旧更新会在隐藏文件夹中等待 %v：可在设置的隔离区中放回。",
+		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "旧更新会在隐藏文件夹中等待，直到你清空：可在设置的隔离区中放回。",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "正在下载游戏数据库...",
+		"Downloading versions database...": "正在下载版本数据库...",
+		"Loading titles database...":       "正在加载游戏数据库...",
+		"Processing titles and updates...": "正在处理游戏和更新...",
+		"Scanning library...":              "正在扫描游戏库...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "重新加载",
+		// a count of one
+		"%v file selected, %v": "已选择 %v 个文件，%v",
+		"%v game selected, %v": "已选 %v 个游戏，%v",
+		"%v step on":           "已开启 %v 个步骤",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "它与保留的副本是同一个文件，只是经由另一条路径访问，因此不会删除。",
+		// a newer version that could not be read
+		"The newer file could not be read, it was recognized by its name only: keep this one.": "较新的文件无法读取，只能通过文件名识别：请保留这个。",
+		// settings that could not be saved
+		"The settings could not be saved: %v": "无法保存设置：%v",
 	}
 }

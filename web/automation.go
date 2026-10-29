@@ -54,7 +54,7 @@ type automationBatch struct {
 func (web *Web) automation() *automationQueue {
 	web.automationOnce.Do(func() {
 		queue := &automationQueue{path: filepath.Join(web.dataFolder, AUTOMATION_FILENAME)}
-		if data, err := os.ReadFile(queue.path); err == nil {
+		if data, ok := readStore(queue.path); ok {
 			parseStore(queue.path, data, queue)
 		}
 		// the app stopped while the automations were working on these files
@@ -262,6 +262,8 @@ type AutomationResult struct {
 	Saved      int64
 	Removed    int
 	Moved      int
+	// the files removed went to the quarantine
+	Quarantined bool
 }
 
 // runAutomationOnce takes the files of the queue through the steps. It returns whether files
@@ -388,6 +390,7 @@ func (web *Web) runAutomationOnce() bool {
 		}
 		if action == ORGANIZE_ACTION_CLEANUP {
 			result.Removed = len(operations)
+			result.Quarantined = quarantineOn(settings.ReadSettings(web.dataFolder).Quarantine)
 		} else {
 			result.Moved = len(operations)
 		}
@@ -448,9 +451,11 @@ func automationMessage(lang string, result AutomationResult) (string, string) {
 		lines = append(lines, "✓ "+translatef(lang, "%v files checked, %v damaged", result.Checked, result.Damaged))
 	}
 	if result.Compressed > 0 {
-		lines = append(lines, "✓ "+translatef(lang, "%v files compressed, %v saved", result.Compressed, formatSize(result.Saved)))
+		lines = append(lines, "✓ "+translatef(lang, "%v files compressed, %v saved", result.Compressed, formatSizeIn(lang, result.Saved)))
 	}
-	if result.Removed > 0 {
+	if result.Removed > 0 && result.Quarantined {
+		lines = append(lines, "✓ "+translatef(lang, "%v old updates moved to the quarantine", result.Removed))
+	} else if result.Removed > 0 {
 		lines = append(lines, "✓ "+translatef(lang, "%v old updates deleted", result.Removed))
 	}
 	if result.Moved > 0 {

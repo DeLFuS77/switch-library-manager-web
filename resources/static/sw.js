@@ -3,11 +3,16 @@
 // installed; library pages and data always come from the server.
 const CACHE = 'slm-static-__VERSION__';
 const OFFLINE_PAGE = '/resources/static/offline.html';
+// what the offline page shows besides itself: its styles, the theme and the mark of the app
+const OFFLINE_FILES = ['/resources/static/web.css', '/resources/static/theme.js', '/resources/static/icon.svg'];
 
 // a cache that cannot be used (private mode, full disk) must not stop the app: everything
 // then simply comes from the server
 self.addEventListener('install', event => {
-	event.waitUntil(caches.open(CACHE).then(cache => cache.add(OFFLINE_PAGE)).catch(() => undefined).then(() => self.skipWaiting()));
+	event.waitUntil(caches.open(CACHE)
+		.then(cache => cache.add(OFFLINE_PAGE).then(() => cache.addAll(OFFLINE_FILES)))
+		.catch(() => undefined)
+		.then(() => self.skipWaiting()));
 });
 
 // caches of previous versions are removed
@@ -58,7 +63,9 @@ self.addEventListener('fetch', event => {
 				event.waitUntil(fresh().catch(() => undefined));
 				return cached;
 			}
-			return fresh();
+			// the server cannot be reached: the copy kept of the same file with another version,
+			// e.g. the styles of the offline page, which asks for them without one
+			return fresh().catch(error => cache.match(request, { ignoreSearch: true }).then(copy => copy || Promise.reject(error)));
 		})).catch(() => fetch(request)));
 		return;
 	}

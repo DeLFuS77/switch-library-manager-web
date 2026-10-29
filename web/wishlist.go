@@ -3,7 +3,6 @@ package web
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -32,7 +31,7 @@ type wishlist struct {
 func (web *Web) wishes() *wishlist {
 	web.wishOnce.Do(func() {
 		list := &wishlist{path: filepath.Join(web.dataFolder, WISHLIST_FILENAME), games: map[string]time.Time{}}
-		if data, err := os.ReadFile(list.path); err == nil {
+		if data, ok := readStore(list.path); ok {
 			parseStore(list.path, data, &list.games)
 		}
 		web.wish = list
@@ -119,7 +118,7 @@ func (w *wishlist) saveLocked() {
 // reload reads the list again, after a backup was restored.
 func (w *wishlist) reload() {
 	games := map[string]time.Time{}
-	if data, err := os.ReadFile(w.path); err == nil {
+	if data, ok := readStore(w.path); ok {
 		parseStore(w.path, data, &games)
 	}
 	w.mutex.Lock()

@@ -63,6 +63,8 @@ type fileOperations struct {
 	// nothing is told of them
 	only   map[string]bool
 	logger *zap.SugaredLogger
+	// how a file to delete goes
+	discard Discard
 }
 
 // pathKey is a path as the list of files to move keeps it: in any case where the disk takes
@@ -81,7 +83,15 @@ func (f *fileOperations) leftOut(path string) bool {
 }
 
 func newFileOperations(dryRun bool) *fileOperations {
-	return &fileOperations{dryRun: dryRun, plannedDirs: map[string]bool{}, plannedTargets: map[string]string{}, movedFrom: map[string]string{}, logger: zap.S()}
+	return &fileOperations{dryRun: dryRun, plannedDirs: map[string]bool{}, plannedTargets: map[string]string{}, movedFrom: map[string]string{}, logger: zap.S(), discard: removeFile}
+}
+
+// Discard takes a file the library no longer wants off its folders: deleted, or kept aside for
+// a while by the web interface (its quarantine). The reason is why it goes.
+type Discard func(path string, reason string) error
+
+func removeFile(path string, _ string) error {
+	return os.Remove(path)
 }
 
 func (f *fileOperations) record(op Operation, err error) {
@@ -177,11 +187,12 @@ func (f *fileOperations) move(from string, to string) error {
 			}
 		}
 		// renaming only the case of a file on a case-insensitive file system is fine
-		if toInfo, err := os.Stat(to); err == nil && !os.SameFile(fromInfo, toInfo) {
-			if toInfo.Size() == fromInfo.Size() {
-				return errDuplicateAtDestination
+		caseOnly := false
+		if toInfo, err := os.Stat(to); err == nil {
+			if !os.SameFile(fromInfo, toInfo) {
+				return takenAtDestination(fromInfo, toInfo)
 			}
-			return errNameTakenAtDestination
+			caseOnly = true
 		}
 		if err := f.mkdir(filepath.Dir(to)); err != nil {
 			return err
@@ -191,7 +202,15 @@ func (f *fileOperations) move(from string, to string) error {
 			f.movedFrom[from] = to
 			return nil
 		}
-		if err := os.Rename(from, to); err != nil {
+		moveTo := moveFile
+		if caseOnly {
+			moveTo = os.Rename
+		}
+		if err := moveTo(from, to); err != nil {
+			// a file that came at the destination since it was looked at is never written over
+			if toInfo, statErr := os.Stat(to); errors.Is(err, os.ErrExist) && statErr == nil {
+				return takenAtDestination(fromInfo, toInfo)
+			}
 			return err
 		}
 		f.movedFrom[from] = to
@@ -231,12 +250,17 @@ func (f *fileOperations) renameInPlace(from string, to string, renamed string, k
 			}
 		}
 		// only its case changes on a case-insensitive file system: it is the same file
-		if inPlaceInfo, err := os.Stat(inPlace); err == nil && !os.SameFile(fromInfo, inPlaceInfo) {
-			return errNameTakenInPlace
+		renameTo := renameNoReplace
+		if inPlaceInfo, err := os.Stat(inPlace); err == nil {
+			if !os.SameFile(fromInfo, inPlaceInfo) {
+				return errNameTakenInPlace
+			}
+			renameTo = os.Rename
 		}
 		f.plannedTargets[inPlace] = from
 		if !f.dryRun {
-			if err := os.Rename(from, inPlace); err != nil {
+			// a file that came with the name since it was looked at is never written over
+			if err := renameTo(from, inPlace); err != nil {
 				return err
 			}
 		}
@@ -249,6 +273,15 @@ func (f *fileOperations) renameInPlace(from string, to string, renamed string, k
 		return
 	}
 	f.record(Operation{Kind: OP_MOVE, From: from, To: inPlace, Reason: renamed}, nil)
+}
+
+// takenAtDestination is why a file cannot go where another file has its name: a copy of the
+// same size, or another file of the same game.
+func takenAtDestination(fromInfo os.FileInfo, toInfo os.FileInfo) error {
+	if toInfo.Size() == fromInfo.Size() {
+		return errDuplicateAtDestination
+	}
+	return errNameTakenAtDestination
 }
 
 var (
@@ -269,11 +302,20 @@ const (
 	REASON_RENAMED_NAME_TAKEN        = "Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good."
 )
 
-// remove deletes a file found by the last scan, unless it changed since then.
+// REASON_SAME_FILE is a duplicate or an older version that is the very file the library keeps,
+// reached by another path: deleting it would delete the copy that stays.
+const REASON_SAME_FILE = "It is the same file as the copy that stays, reached by another path, so it is not deleted."
+
+// remove deletes a file found by the last scan, unless it changed since then, or it is the
+// file its reason names as the one that stays.
 func (f *fileOperations) remove(file db.ExtendedFileInfo, reason string) error {
 	filePath := filepath.Join(file.BaseFolder, file.FileName)
 	if isSplitPart(file.FileName) {
 		f.skip(filePath, REASON_SPLIT)
+		return nil
+	}
+	if kept := db.KeptBy(reason); kept != "" && SameFile(filePath, kept) {
+		f.skip(filePath, REASON_SAME_FILE)
 		return nil
 	}
 	err := func() error {
@@ -287,11 +329,26 @@ func (f *fileOperations) remove(file db.ExtendedFileInfo, reason string) error {
 		if f.dryRun {
 			return nil
 		}
-		return os.Remove(filePath)
+		return f.discard(filePath, reason)
 	}()
 
 	f.record(Operation{Kind: OP_DELETE, From: filePath, Reason: reason}, err)
 	return err
+}
+
+// SameFile tells whether two paths are one file on the disk: the same path, or one folder
+// reached by two paths, or a link and the file it points to.
+func SameFile(a, b string) bool {
+	if pathKey(a) == pathKey(b) {
+		return true
+	}
+	aInfo, err := os.Stat(a)
+	if err != nil {
+		return false
+	}
+	bInfo, err := os.Stat(b)
+	// files of two sizes are two files: Windows opens both to tell one file, which a share pays for
+	return err == nil && aInfo.Size() == bInfo.Size() && os.SameFile(aInfo, bInfo)
 }
 
 func (f *fileOperations) skip(file string, reason string) {
@@ -304,12 +361,14 @@ func (f *fileOperations) skip(file string, reason string) {
 // deleteEmptyFolders deletes the folders under root left with nothing in them but files of the
 // system (db.SystemFile), which go with them: the ones this run took files from, the ones the
 // last scan found so (known), and the parents they leave so. A preview lists the ones empty
-// already, and tells that the ones it empties go too.
-func (f *fileOperations) deleteEmptyFolders(root string, known []string) {
+// already, and tells that the ones it empties go too. The library folders (roots) are never
+// deleted.
+func (f *fileOperations) deleteEmptyFolders(root string, roots []string, known []string) {
 	// only the folders this run took files from can have become empty, and their parents, with
 	// the ones the walk of the scan found empty: they are looked at one by one, instead of
 	// walking the whole library again, which took minutes on a NAS
 	root = filepath.Clean(root)
+	libraryFolder := libraryFolders(roots)
 	if f.dryRun {
 		// a folder the run moves files into is not left empty
 		filled := map[string]bool{}
@@ -320,7 +379,7 @@ func (f *fileOperations) deleteEmptyFolders(root string, known []string) {
 		}
 		for _, folder := range known {
 			if rel, err := filepath.Rel(root, folder); err == nil && rel != "." && !strings.HasPrefix(rel, "..") && !filled[filepath.Clean(folder)] {
-				if _, empty := systemFilesOnly(folder); empty {
+				if _, empty := systemFilesOnly(folder); empty && !libraryFolder(folder) {
 					f.record(Operation{Kind: OP_DELETE, From: folder, Reason: "empty folder"}, nil)
 				}
 			}
@@ -358,7 +417,7 @@ func (f *fileOperations) deleteEmptyFolders(root string, known []string) {
 
 	for _, folder := range folders {
 		system, empty := systemFilesOnly(folder)
-		if !empty {
+		if !empty || libraryFolder(folder) {
 			continue
 		}
 		for _, file := range system {
@@ -367,6 +426,38 @@ func (f *fileOperations) deleteEmptyFolders(root string, known []string) {
 		// os.Remove refuses a folder that got a file in the meantime
 		err := os.Remove(folder)
 		f.record(Operation{Kind: OP_DELETE, From: folder, Reason: "empty folder"}, err)
+	}
+}
+
+// libraryFolders tells the library folders (roots), by their paths or as they are on the disk:
+// one inside another (settings of an older version, or edited by hand) deleted once empty
+// failed every scan after, as a folder that cannot be reached.
+func libraryFolders(roots []string) func(folder string) bool {
+	keys := map[string]bool{}
+	infos := []os.FileInfo{}
+	for _, root := range roots {
+		if root == "" {
+			continue
+		}
+		keys[pathKey(root)] = true
+		if info, err := os.Stat(root); err == nil {
+			infos = append(infos, info)
+		}
+	}
+	return func(folder string) bool {
+		if keys[pathKey(folder)] {
+			return true
+		}
+		info, err := os.Stat(folder)
+		if err != nil {
+			return false
+		}
+		for _, root := range infos {
+			if os.SameFile(info, root) {
+				return true
+			}
+		}
+		return false
 	}
 }
 
@@ -479,8 +570,25 @@ func FilesInUse(localDB *db.LocalSwitchFilesDB) map[string]bool {
 // with the reason it returns (the file that stays was not checked, or is damaged).
 func DeleteOldUpdates(baseFolder string, localDB *db.LocalSwitchFilesDB, options settings.OrganizeOptions,
 	dryRun bool, updateProgress db.ProgressUpdater, keep ...func(db.ExtendedFileInfo, db.SkippedFile) string) []Operation {
+	return DeleteOldUpdatesTo(nil, baseFolder, localDB, options, dryRun, updateProgress, keep...)
+}
+
+// DeleteOldUpdatesTo is DeleteOldUpdates with the files going where discard takes them (nil
+// deletes them).
+func DeleteOldUpdatesTo(discard Discard, baseFolder string, localDB *db.LocalSwitchFilesDB, options settings.OrganizeOptions,
+	dryRun bool, updateProgress db.ProgressUpdater, keep ...func(db.ExtendedFileInfo, db.SkippedFile) string) []Operation {
+	return CleanupLibrary(discard, baseFolder, []string{baseFolder}, localDB, options, dryRun, updateProgress, keep...)
+}
+
+// CleanupLibrary is DeleteOldUpdatesTo for a library of several folders (roots, baseFolder
+// among them), none of which is deleted when it is left empty.
+func CleanupLibrary(discard Discard, baseFolder string, roots []string, localDB *db.LocalSwitchFilesDB, options settings.OrganizeOptions,
+	dryRun bool, updateProgress db.ProgressUpdater, keep ...func(db.ExtendedFileInfo, db.SkippedFile) string) []Operation {
 
 	ops := newFileOperations(dryRun)
+	if discard != nil {
+		ops.discard = discard
+	}
 	inUse := FilesInUse(localDB)
 
 	files := make([]db.ExtendedFileInfo, 0, len(localDB.Skipped))
@@ -520,7 +628,7 @@ func DeleteOldUpdates(baseFolder string, localDB *db.LocalSwitchFilesDB, options
 	}
 
 	if options.DeleteEmptyFolders && baseFolder != "" {
-		ops.deleteEmptyFolders(baseFolder, localDB.EmptyFolders)
+		ops.deleteEmptyFolders(baseFolder, roots, localDB.EmptyFolders)
 	}
 
 	return ops.operations
@@ -542,7 +650,20 @@ func OrganizeByFolders(baseFolder string,
 	options settings.OrganizeOptions,
 	dryRun bool,
 	updateProgress db.ProgressUpdater) ([]Operation, error) {
-	return organize(baseFolder, []string{baseFolder}, nil, localDB, titlesDB, options, dryRun, updateProgress)
+	return OrganizeLibrary(baseFolder, []string{baseFolder}, localDB, titlesDB, options, dryRun, updateProgress)
+}
+
+// OrganizeLibrary is OrganizeByFolders for a library of several folders (roots, baseFolder
+// among them): none of them is the folder of a game, whose files would stay in it, and leave
+// the library with their updates and DLC moved below it.
+func OrganizeLibrary(baseFolder string,
+	roots []string,
+	localDB *db.LocalSwitchFilesDB,
+	titlesDB *db.SwitchTitlesDB,
+	options settings.OrganizeOptions,
+	dryRun bool,
+	updateProgress db.ProgressUpdater) ([]Operation, error) {
+	return organize(baseFolder, roots, nil, localDB, titlesDB, options, dryRun, updateProgress)
 }
 
 // OrganizeNewFiles moves (and optionally renames) the files in paths only, the new ones, and
@@ -865,7 +986,7 @@ func organize(baseFolder string,
 		if only != nil {
 			known = nil
 		}
-		ops.deleteEmptyFolders(baseFolder, known)
+		ops.deleteEmptyFolders(baseFolder, roots, known)
 	}
 
 	return ops.operations, nil
@@ -1004,15 +1125,21 @@ func multiGameFiles(localDB *db.LocalSwitchFilesDB) map[string][]string {
 }
 
 // collectionName is the name of a file with several games: their names, the first ones and
-// how many more when they do not fit, or have no name that can be written.
+// how many more when they do not fit, or have no name that can be written. The names are
+// measured as the disk keeps them (see NameBytes), and a first name too long alone is cut on a
+// character boundary: the name of the folder and of the file must fit in what a disk takes.
 func collectionName(names []string, unnamed int) string {
 	const budget = 110
 	if len(names) == 0 {
 		return "Collection"
 	}
 	name := names[0]
+	for runes := []rune(name); NameBytes(name) > budget && len(runes) > 1; {
+		runes = runes[:len(runes)-1]
+		name = strings.TrimRight(string(runes), " -_.")
+	}
 	for i, next := range names[1:] {
-		if len(name)+len(next)+3 > budget {
+		if NameBytes(name)+NameBytes(next)+3 > budget {
 			return fmt.Sprintf("%s + %d more", name, len(names)-1-i+unnamed)
 		}
 		name += " + " + next
@@ -1033,7 +1160,7 @@ func collectionGameName(titlesDB *db.SwitchTitlesDB, key string, local *db.Switc
 	}
 	name := getTitleName(title, local)
 	if !safe {
-		return name
+		return pieceName(name)
 	}
 	if english, ok := titlesDB.LocalizedTitle("en", strings.ToUpper(key)+"000"); ok && readableAscii(english.Name) {
 		name = english.Name
@@ -1044,11 +1171,19 @@ func collectionGameName(titlesDB *db.SwitchTitlesDB, key string, local *db.Switc
 			return ""
 		}
 	}
-	clean := strings.Join(strings.Fields(safeName(name)), " ")
+	clean := pieceName(safeName(name))
 	if letters(clean) == 0 {
 		return ""
 	}
-	return strings.Trim(clean, " -_.")
+	return clean
+}
+
+// pieceName is a name as a part of the name of a file or folder, as the templates write it:
+// without the characters a disk refuses or a path splits on ("Fate/EXTELLA", "NieR:Automata?"),
+// its spaces one by one, and without the dots and spaces at its ends Windows drops.
+func pieceName(name string) string {
+	name = strings.Join(strings.Fields(folderIllegalCharsRegex.ReplaceAllString(name, "")), " ")
+	return strings.Trim(name, " -_.")
 }
 
 // readableAscii tells whether a name is written in latin letters only.
@@ -1322,21 +1457,10 @@ func fileTemplateData(templateData map[string]string, v *db.SwitchGameFiles, fil
 			dlcs++
 		}
 	}
-	parts := []string{}
-	for _, kind := range []struct {
-		count  int
-		letter string
-	}{{games, "G"}, {updates, "U"}, {dlcs, "D"}} {
-		if kind.count > 0 {
-			parts = append(parts, strconv.Itoa(kind.count)+kind.letter)
-		}
-	}
-	templateData[settings.TEMPLATE_PACKAGE_CONTENTS] = strings.Join(parts, "+")
+	templateData[settings.TEMPLATE_PACKAGE_CONTENTS] = switchfs.PackageContents(games, updates, dlcs)
 	templateData[settings.TEMPLATE_SIZE_GB], templateData[settings.TEMPLATE_SIZE_MB] = "", ""
-	if file.Size > 0 && !file.IsDir {
-		tenths := (file.Size + 50_000_000) / 100_000_000
-		templateData[settings.TEMPLATE_SIZE_GB] = fmt.Sprintf("%d.%dGB", tenths/10, tenths%10)
-		templateData[settings.TEMPLATE_SIZE_MB] = fmt.Sprintf("%dMB", (file.Size+500_000)/1_000_000)
+	if !file.IsDir {
+		templateData[settings.TEMPLATE_SIZE_GB], templateData[settings.TEMPLATE_SIZE_MB] = switchfs.SizeGB(file.Size), switchfs.SizeMB(file.Size)
 	}
 }
 
@@ -1425,8 +1549,11 @@ func hasLetter(name string) bool {
 
 // RemoveFiles deletes the given files, each with its reason, refusing files that changed
 // since the last scan. With dryRun the deletions are only planned.
-func RemoveFiles(files []db.ExtendedFileInfo, reasons []string, dryRun bool) []Operation {
+func RemoveFiles(files []db.ExtendedFileInfo, reasons []string, dryRun bool, discard Discard) []Operation {
 	ops := newFileOperations(dryRun)
+	if discard != nil {
+		ops.discard = discard
+	}
 	for i, file := range files {
 		ops.remove(file, reasons[i])
 	}

@@ -139,3 +139,50 @@ func TestRemoteCoversAreThumbnailedAndCached(t *testing.T) {
 		t.Fatalf("only names of the cover server are fetched: %d", recorder.Code)
 	}
 }
+
+// Without a connection, the covers are not tried again by every scan: the history of the tasks
+// would fill with the same warning. New games, a while later or a search asked by hand try them.
+func TestCoversWaitForTheConnection(t *testing.T) {
+	web := newTestWeb(t)
+	switchDB := &db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{
+		"0100000000010": {Attributes: db.TitleAttributes{Id: "0100000000010000", IconUrl: "http://127.0.0.1:1/icon.jpg"}},
+	}}
+	library := &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{"0100000000010": {BaseExist: true}}}
+	web.state.set(switchDB, library)
+	tasks := func() int {
+		count := 0
+		for _, task := range web.taskLog().Snapshot() {
+			if task.Kind == TASK_COVERS {
+				count++
+			}
+		}
+		return count
+	}
+	web.downloadMissingCovers()
+	if task := web.taskLog().Snapshot()[0]; tasks() != 1 || len(task.Warnings) == 0 || task.Warnings[0].Text != NOTE_COVERS_OFFLINE {
+		t.Fatalf("the first task finds no connection: %+v", task)
+	}
+	web.downloadMissingCovers()
+	if tasks() != 1 {
+		t.Fatal("the same covers wait a while")
+	}
+	// a scan found a new game
+	switchDB.TitlesMap["0100000000020"] = &db.SwitchTitle{Attributes: db.TitleAttributes{Id: "0100000000020000", IconUrl: "http://127.0.0.1:1/icon2.jpg"}}
+	library.TitlesMap["0100000000020"] = &db.SwitchGameFiles{BaseExist: true}
+	web.downloadMissingCovers()
+	if tasks() != 2 {
+		t.Fatal("the cover of a new game is tried")
+	}
+	// later on
+	web.covers.offlineAt = web.covers.offlineAt.Add(-coverOfflineWait)
+	web.downloadMissingCovers()
+	if tasks() != 3 {
+		t.Fatal("tried again a while later")
+	}
+	// asked by hand
+	web.background.forced = true
+	web.downloadMissingCovers()
+	if tasks() != 4 {
+		t.Fatal("tried when asked")
+	}
+}

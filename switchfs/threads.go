@@ -1,5 +1,7 @@
 package switchfs
 
+import "runtime"
+
 // the memory one thread of the zstd library in C takes, measured on 4 GiB of a game with 8
 // threads (577 MiB at 11, 1394 MiB at 19), with a margin
 var nativeThreadMemory = map[string]uint64{LevelBalanced: 80 << 20, LevelMax: 190 << 20}
@@ -37,4 +39,20 @@ func LimitThreads(level string, threads int, files int) int {
 		return fit
 	}
 	return threads
+}
+
+// UsableProcessors are the processors a compression works on unless set: all but an eighth of
+// them, at least one left free so the rest of the computer keeps going (4 of 3, 16 of 14, 32
+// of 28). The zstd library in C compresses one file on all of them: on a processor of 24, 24
+// threads compressed 38 % faster than 12. The memory sets fewer when it is short (LimitThreads).
+func UsableProcessors() int {
+	processors := runtime.NumCPU()
+	if processors <= 1 {
+		return 1
+	}
+	// the max of this package compares bytes
+	if processors < 8 {
+		return processors - 1
+	}
+	return processors - processors/8
 }

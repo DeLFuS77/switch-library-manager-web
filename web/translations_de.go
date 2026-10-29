@@ -334,6 +334,8 @@ func init() {
 		"Another task is working on the files of the library (organizing, a cleanup, a compression, combining games or a check): try again when it has finished.": "Eine andere Aufgabe arbeitet mit den Dateien der Bibliothek (Organisieren, Bereinigen, Komprimieren, Kombinieren oder Prüfung): versuche es erneut, wenn sie fertig ist.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.":                                                        "Sie enthält auch das Spiel, sein neuestes Update oder einen DLC, den die Bibliothek behält, deshalb wird sie nicht gelöscht.",
 		"The newer file is damaged: keep this one.":                                                                                                               "Die neuere Datei ist beschädigt: Behalte diese.",
+		"What this file holds could not be read: keep this one.":                                                                                                  "Der Inhalt dieser Datei konnte nicht gelesen werden: Behalte diese.",
+		"A part already there is not sound as a whole: the original is kept.":                                                                                     "Ein bereits vorhandener Teil ist nicht vollständig intakt: Das Original bleibt erhalten.",
 		"The compressed file does not hold everything this file holds: keep this one.":                                                                            "Die komprimierte Datei enthält nicht alles, was diese Datei enthält: Behalte diese.",
 		"A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.":                                    "Eine Kopie wird nur gelöscht, wenn eine geprüfte, fehlerfreie Kopie des Spiels aus einer anderen Region bleibt: Prüfe zuerst die Dateien.",
 		"And the separate files?": "Und die einzelnen Dateien?",
@@ -933,6 +935,10 @@ func init() {
 		"1 hour":                  "1 Stunde",
 		"Only folders that changed are read again. A longer interval lets the disks of a NAS sleep.":              "Nur geänderte Ordner werden neu gelesen. Ein längerer Abstand lässt die Festplatten eines NAS schlafen.",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v Dateien können erst gelöscht werden, wenn die behaltenen Kopien geprüft sind. Nur diese Kopien werden geprüft.",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "Netzwerkpfade werden hier nicht geprüft: Die App liest sie, wenn sie sie verwendet.",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Gerade lässt sich nichts freigeben: Die %v Dateien unten bleiben, jede aus dem angegebenen Grund.",
 
@@ -1411,6 +1417,7 @@ func init() {
 		"The file is damaged or was modified.":                             "Die Datei ist beschädigt oder wurde verändert.",
 		"The file is not a backup of this app.":                            "Die Datei ist kein Backup dieser App.",
 		"The files could not be checked.":                                  "Die Dateien konnten nicht geprüft werden.",
+		"The file could not be read, it was left unchecked.":               "Die Datei konnte nicht gelesen werden und bleibt ungeprüft.",
 		"The files could not be organized.":                                "Die Dateien konnten nicht organisiert werden.",
 		"The folder with your prod.keys (and optionally title.keys), or the path to the file. Empty: the data folder, then ~/.switch. Keys stay on the server of the app and are never sent anywhere else.": "Der Ordner mit deiner prod.keys (und optional title.keys) oder der Pfad zur Datei. Leer: der Datenordner, dann ~/.switch. Die Schlüssel bleiben auf dem Server der App und werden nirgendwohin sonst gesendet.",
 		"Upload my prod.keys":         "Meine prod.keys hochladen",
@@ -1525,6 +1532,10 @@ func init() {
 		"v%v available":                                                    "v%v verfügbar",
 		"within a minute":                                                  "innerhalb einer Minute",
 		"you":                                                              "du",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "Demo-Modus: Die Ordner und die Details des Servers werden nicht angezeigt.",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "Ein Ordner für jeden DLC",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "Mit den IDs kommt jeder DLC in einen eigenen Ordner. Ohne diese Option landen alle im DLC-Ordner: Die Pfade bleiben kürzer, denn viele Windows-Programme lesen nicht mehr als 260 Zeichen.",
@@ -1583,6 +1594,10 @@ func init() {
 		"No preference: the suggested copy": "Keine Vorliebe: die empfohlene Kopie",
 		"Your preferred region":             "Deine bevorzugte Region",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Eine Karte für jedes Spiel, mit den Flaggen all seiner Regionen: die, die du nicht hast, abgeblendet. Sie zeigt die Kopie, die du auf der Seite des Spiels wählst, oder die empfohlene, und die Zähler zählen das Spiel einmal. Keine Datei wird geändert.",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "Die Signatur der Version fehlt oder ist falsch: Nichts wurde geändert.",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "Im Telegram-Chat antworten",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "Schreib dem Bot in seinem Chat: /have zelda, /new, /space, /status, /sync. Nur dieser Chat bekommt Antworten, in der Sprache der App.",
@@ -1645,5 +1660,75 @@ func init() {
 		"The update goes to the folder of its game; nothing else is touched.": "Das Update kommt in den Ordner seines Spiels; sonst wird nichts angefasst.",
 		"Everything is ordered, also what was loose.":                         "Alles wird geordnet, auch was lose lag.",
 		"Write a channel first.":                                              "Gib zuerst einen Kanal ein.",
+		"Quarantine":                                                          "Quarantäne",
+		"What the app deletes from the library (duplicates, old updates, copies of other regions) does not go at once: it waits in a hidden folder of the same library folder, on the same disk, without being copied, and you can put it back while it is there.": "Was die App aus der Bibliothek löscht (Duplikate, alte Updates, Kopien anderer Regionen), verschwindet nicht sofort: Es wartet in einem versteckten Ordner desselben Bibliotheksordners, auf derselben Platte und ohne Kopie, und du kannst es zurücklegen, solange es dort ist.",
+		"Keep what is deleted":            "Gelöschtes aufbewahren",
+		"Off: deleted at once":            "Aus: sofort gelöscht",
+		"48 hours":                        "48 Stunden",
+		"1 week":                          "1 Woche",
+		"30 days":                         "30 Tage",
+		"Until I empty it":                "Bis ich sie leere",
+		"Largest size":                    "Höchstgröße",
+		"No limit":                        "Keine Grenze",
+		"Over it, the oldest goes first.": "Darüber wird zuerst das Älteste gelöscht.",
+		"When a task needs room, delete the oldest of the quarantine first":                  "Wenn eine Aufgabe Platz braucht, zuerst das Älteste der Quarantäne löschen",
+		"Also keep the originals after compressing, converting, splitting or making a pack":  "Auch die Originale nach dem Komprimieren, Umwandeln, Teilen oder Packen aufbewahren",
+		"They are checked before they are deleted, and they take a lot of room: better off.": "Sie werden vor dem Löschen geprüft und brauchen viel Platz: besser aus.",
+		"In the quarantine now":                "Jetzt in der Quarantäne",
+		"of %v GB":                             "von %v GB",
+		"The oldest is deleted for good on %v": "Das Älteste wird am %v endgültig gelöscht",
+		"Empty the quarantine? Its %v files are deleted for good.": "Quarantäne leeren? Ihre %v Dateien werden endgültig gelöscht.",
+		"Empty now":              "Jetzt leeren",
+		"deleted for good on %v": "wird am %v endgültig gelöscht",
+		"Put back in its folder": "In seinen Ordner zurücklegen",
+		"Put back":               "Zurücklegen",
+		"Delete %v for good? It cannot be undone.": "%v endgültig löschen? Das lässt sich nicht rückgängig machen.",
+		"Delete for good":                          "Endgültig löschen",
+		"Nothing is waiting in the quarantine.":    "In der Quarantäne wartet nichts.",
+		"The hidden folder (%v) is in each library folder: the app does not scan it nor offer it to DBI.": "Der versteckte Ordner (%v) liegt in jedem Bibliotheksordner: Die App durchsucht ihn nicht und bietet ihn DBI nicht an.",
+		"Duplicate":                                    "Duplikat",
+		"Old update":                                   "Altes Update",
+		"Copy of another region":                       "Kopie einer anderen Region",
+		"Original of a compressed file":                "Original einer komprimierten Datei",
+		"Converted to NSP":                             "In NSP umgewandelt",
+		"Decompressed to NSP":                          "Zu NSP entpackt",
+		"Split into parts":                             "In Teile aufgeteilt",
+		"Joined in a pack":                             "In einem Paket vereint",
+		"Deleted from the library":                     "Aus der Bibliothek gelöscht",
+		"Another file has its name in its folder now.": "In seinem Ordner liegt jetzt eine andere Datei mit seinem Namen.",
+		"That file is no longer in the quarantine.":    "Diese Datei ist nicht mehr in der Quarantäne.",
+		"The file could not be put back.":              "Die Datei konnte nicht zurückgelegt werden.",
+		"%v is back in its folder.":                    "%v ist wieder in seinem Ordner.",
+		"The file could not be deleted.":               "Die Datei konnte nicht gelöscht werden.",
+		"Deleted for good.":                            "Endgültig gelöscht.",
+		"%v files deleted for good (%v).":              "%v Dateien endgültig gelöscht (%v).",
+		"Move %v files (%v) to the quarantine? You can put them back from Settings, Quarantine.": "%v Dateien (%v) in die Quarantäne verschieben? Du kannst sie unter Einstellungen, Quarantäne zurücklegen.",
+		"%v old updates moved to the quarantine":                                                 "%v alte Updates in die Quarantäne verschoben",
+		"What happens to what is deleted?":                                                       "Was passiert mit Gelöschtem?",
+		"Duplicates, old updates and copies of other regions can wait a while in a hidden folder before they go for good, so a mistake can be undone. They are moved, not copied: they take no more room.": "Duplikate, alte Updates und Kopien anderer Regionen können eine Weile in einem versteckten Ordner warten, bevor sie endgültig gehen, damit sich ein Fehler rückgängig machen lässt. Sie werden verschoben, nicht kopiert: Sie brauchen keinen zusätzlichen Platz.",
+		"Delete at once":                        "Sofort löschen",
+		"old":                                   "alt",
+		"An update is replaced by a newer one.": "Ein Update wird durch ein neueres ersetzt.",
+		"The old update is deleted at once: it cannot be put back.":                                           "Das alte Update wird sofort gelöscht: Es lässt sich nicht zurücklegen.",
+		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "Das alte Update wartet %v im versteckten Ordner: Unter Einstellungen, Quarantäne lässt es sich zurücklegen.",
+		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "Das alte Update wartet im versteckten Ordner, bis du ihn leerst: Unter Einstellungen, Quarantäne lässt es sich zurücklegen.",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "Titeldatenbank wird heruntergeladen...",
+		"Downloading versions database...": "Versionsdatenbank wird heruntergeladen...",
+		"Loading titles database...":       "Titeldatenbank wird geladen...",
+		"Processing titles and updates...": "Titel und Updates werden verarbeitet...",
+		"Scanning library...":              "Bibliothek wird gescannt...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "Neu laden",
+		// a count of one
+		"%v file selected, %v": "%v Datei ausgewählt, %v",
+		"%v game selected, %v": "%v Spiel ausgewählt, %v",
+		"%v step on":           "%v Schritt an",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "Es ist dieselbe Datei wie die Kopie, die bleibt, nur über einen anderen Pfad erreicht, deshalb wird sie nicht gelöscht.",
+		// a newer version that could not be read
+		"The newer file could not be read, it was recognized by its name only: keep this one.": "Die neuere Datei ließ sich nicht lesen und wurde nur an ihrem Namen erkannt: Behalte diese.",
+		// settings that could not be saved
+		"The settings could not be saved: %v": "Die Einstellungen konnten nicht gespeichert werden: %v",
 	}
 }

@@ -41,7 +41,7 @@ const (
 	NOTE_DECOMPRESS_FAILED     = "The file could not be decompressed, the compressed file is kept."
 )
 
-var compressNoteTexts = []string{NOTE_SPLIT_FAILED, NOTE_SPLIT_EXISTS, NOTE_SPLIT_KEPT, NOTE_PACK_FAILED, NOTE_PACK_EXISTS, NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_SPARSE, NOTE_COMPRESS_ALREADY, NOTE_COMPRESS_NO_DATA, NOTE_COMPRESS_ENCRYPTION, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_CANCELED_OLD, NOTE_COMPRESS_DELETE, NOTE_COMPRESS_NO_KEY}
+var compressNoteTexts = []string{NOTE_SPLIT_FAILED, NOTE_SPLIT_EXISTS, NOTE_SPLIT_KEPT, NOTE_SPLIT_PART_UNSOUND, NOTE_PACK_FAILED, NOTE_PACK_EXISTS, NOTE_DECOMPRESS_FAILED, NOTE_COMPRESS_FAILED, NOTE_COMPRESS_DAMAGED, NOTE_COMPRESS_SPACE, NOTE_COMPRESS_EXISTS, NOTE_COMPRESS_NOTHING, NOTE_COMPRESS_SPARSE, NOTE_COMPRESS_ALREADY, NOTE_COMPRESS_NO_DATA, NOTE_COMPRESS_ENCRYPTION, NOTE_COMPRESS_CANCELED, NOTE_COMPRESS_CANCELED_OLD, NOTE_COMPRESS_DELETE, NOTE_COMPRESS_NO_KEY}
 
 // CompressCandidate is an NSP of the library that can be compressed.
 type CompressCandidate struct {
@@ -183,12 +183,17 @@ func settingsLevel(appSettings *settings.AppSettings) string {
 type compressor struct {
 	mutex  sync.Mutex
 	cancel context.CancelFunc
+	// the kind of the task working on the files, which tells whether it can be paused
+	kind string
 	// a pause holds the work where it is until resume is closed; taskId is the task paused
 	paused bool
 	resume chan struct{}
 	taskId int64
 	// the bytes the files being written will still take, for the space checks
 	reserved int64
+	// the version of the check results when the task began, which the Space page follows
+	// while it runs (see spaceKey)
+	spaceVersion uint64
 	// the compressed copies written since the last scan, which does not know them yet, with
 	// when they were written, and how many were written, for the list of the copies
 	written        map[string]time.Time
@@ -264,7 +269,7 @@ func (web *Web) compressedCopies() map[string]bool {
 	web.compressor.mutex.Lock()
 	written := web.compressor.writtenVersion
 	web.compressor.mutex.Unlock()
-	return web.derived(fmt.Sprintf("compressedCopies:%d", written), func() any {
+	return web.derivedLatest("compressedCopies:", fmt.Sprintf("compressedCopies:%d", written), func() any {
 		scanned := web.scannedPaths()
 		copies := map[string]bool{}
 		for _, candidate := range web.compressCandidates() {
@@ -371,14 +376,15 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 	if same, err := switchfs.HoldsSameContents(path, temporary); err != nil || !same {
 		return errors.New("the converted file does not hold every content of the card")
 	}
-	if err := os.Rename(temporary, target); err != nil {
+	if err := commitFile(temporary, target); err != nil {
 		return err
 	}
 	web.verifications().remember(target, written)
 	if deleteOriginal && fullyChecked(written) {
-		if err := os.Remove(path); err != nil {
+		if err := web.discardOriginal(path, QUARANTINE_CONVERTED); err != nil {
 			return fmt.Errorf("could not delete the original: %w", err)
 		}
+		web.moves.replaced(path, target)
 	}
 	web.sugarLogger.Infof("Converted %s", path)
 	return nil
@@ -444,24 +450,12 @@ func (web *Web) libraryFiles(extensions ...string) []CompressCandidate {
 	return candidates
 }
 
-// compressWorkers are the processors a compression works on unless set: all but an eighth of
-// them, at least one left free so the rest of the server keeps going (4 of 3, 16 of 14). The
-// zstd library in C compresses one file on all of them: on a processor of 24, 24 threads
-// compressed 38 % faster than 12. The memory sets fewer when it is short (LimitThreads).
-func compressWorkers() int {
-	processors := runtime.NumCPU()
-	if processors <= 1 {
-		return 1
-	}
-	return processors - max(1, processors/8)
-}
-
 // compressThreads is the number of threads that compress each file: as set, at most every
-// processor, or when not set compressWorkers shared among the files compressed at once.
+// processor, or when not set switchfs.UsableProcessors shared among the files compressed at once.
 // Measure this server tells the fastest setting on its disk.
 func compressThreads(setting int, files int) int {
 	if setting <= 0 {
-		return max(1, compressWorkers()/max(1, files))
+		return max(1, switchfs.UsableProcessors()/max(1, files))
 	}
 	return min(setting, runtime.NumCPU())
 }
@@ -491,7 +485,13 @@ func (web *Web) reserveSpace(folder string, need int64) (release func(), err err
 	web.compressor.mutex.Lock()
 	defer web.compressor.mutex.Unlock()
 	if free, err := diskFree(folder); err == nil && int64(free) < web.compressor.reserved+need+(64<<20) {
-		return nil, errCompressSpace
+		// the oldest files of the quarantine on that disk give their room first, when they may
+		if !web.makeRoom(folder, web.compressor.reserved+need+(64<<20)) {
+			return nil, errCompressSpace
+		}
+		if free, err := diskFree(folder); err == nil && int64(free) < web.compressor.reserved+need+(64<<20) {
+			return nil, errCompressSpace
+		}
 	}
 	web.compressor.reserved += need
 	return func() {
@@ -588,7 +588,8 @@ func (web *Web) resumeInterrupted() {
 	if resume == nil {
 		return
 	}
-	paths := []string{}
+	type left struct{ path, target string }
+	files := []left{}
 	for _, path := range resume.Paths {
 		if _, err := os.Stat(path); err != nil {
 			continue
@@ -609,18 +610,34 @@ func (web *Web) resumeInterrupted() {
 			}
 			target = packed
 		}
+		files = append(files, left{path, target})
+	}
+	// the file being written when the app stopped is left half written: it would keep the file
+	// from being written again. Removed only while no task works on the files, under the lock a
+	// task takes to start: a task started by hand meanwhile may be writing that very file
+	web.compressor.mutex.Lock()
+	if web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() {
+		// kept for when the files are free
+		web.compressor.mutex.Unlock()
+		return
+	}
+	for _, file := range files {
 		// a split writes several files: it removes what it left half written and keeps the
 		// parts it wrote whole
-		if target != "" {
-			// the file being written when the app stopped is left half written: it would keep
-			// the file from being written again
-			os.Remove(temporaryOf(path, target))
-			// done just before the app stopped
-			if _, err := os.Stat(target); err == nil {
+		if file.target != "" {
+			os.Remove(temporaryOf(file.path, file.target))
+		}
+	}
+	web.compressor.mutex.Unlock()
+	paths := []string{}
+	for _, file := range files {
+		// done just before the app stopped
+		if file.target != "" {
+			if _, err := os.Stat(file.target); err == nil {
 				continue
 			}
 		}
-		paths = append(paths, path)
+		paths = append(paths, file.path)
 	}
 	if len(paths) == 0 {
 		web.taskLog().SetResume(id, nil)
@@ -720,6 +737,7 @@ func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, si
 // more than their path (a pack reads every file of the game), and, unless resume is nil,
 // how the task goes on after a restart: it keeps the files it has left as it goes.
 func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, sizes []int64, passes int64, resume *TaskResume, job fileJob) bool {
+	spaceVersion := web.verifications().Version()
 	web.compressor.mutex.Lock()
 	// files are being moved or deleted, or the server is being measured
 	if web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() {
@@ -727,7 +745,8 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 		return false
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	web.compressor.cancel = cancel
+	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, kind, 0
+	web.compressor.spaceVersion = spaceVersion
 	web.compressor.mutex.Unlock()
 
 	// a list made before Organize moved files, or before a restart: each file where it is now
@@ -741,6 +760,10 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	taskId := web.taskLog().Start(kind, trigger)
 	web.compressor.mutex.Lock()
 	web.compressor.taskId = taskId
+	// paused as it started
+	if web.compressor.paused {
+		web.taskLog().SetPaused(taskId, true)
+	}
 	web.compressor.mutex.Unlock()
 	names := make([]string, len(paths))
 	for i, path := range paths {
@@ -786,14 +809,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	web.taskLog().SetWorkers(taskId, workers, threads)
 	go func() {
 		defer func() {
-			web.compressor.mutex.Lock()
-			web.compressor.cancel = nil
-			if web.compressor.paused {
-				web.compressor.paused = false
-				close(web.compressor.resume)
-				web.taskLog().SetPaused(taskId, false)
-			}
-			web.compressor.mutex.Unlock()
+			web.releaseFiles()
 			cancel()
 			// the files are free: the next task of the queue
 			go web.runQueue()
@@ -1050,8 +1066,12 @@ var (
 )
 
 // compressDamage tells a compression that failed on the file itself: an NCA that does not
-// match its content ID and fails its hash trees, or a file cut short.
+// match its content ID and fails its hash trees, or a file cut short. A file that could not be
+// read, or a copy that failed its check, says nothing of what the file holds.
 func compressDamage(err error) bool {
+	if notContent(err) {
+		return false
+	}
 	return strings.Contains(err.Error(), "damaged") || errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)
 }
 
@@ -1092,7 +1112,7 @@ func compressNote(kind string, err error) string {
 		return NOTE_COMPRESS_NOTHING
 	case errors.Is(err, switchfs.ErrNoTitleKey):
 		return NOTE_COMPRESS_NO_KEY
-	case strings.Contains(err.Error(), "damaged"):
+	case strings.Contains(err.Error(), "damaged") && !notContent(err):
 		return NOTE_COMPRESS_DAMAGED
 	case kind == TASK_COMPRESS && compressDamage(err):
 		return NOTE_COMPRESS_DAMAGED
@@ -1132,27 +1152,34 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 		Level: level, Workers: switchfs.LimitThreads(level, compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce)), filesAtOnce(appSettings.CompressFilesAtOnce)), Progress: filling(info.Size(), report(0)),
 	})
 	if err != nil {
-		return 0, err
+		// a file that could not be read is not damaged
+		return 0, readFailure(path, info, err)
 	}
 	// an NCA whose hash is not its content ID: rewritten by a tool, or damaged
 	originalCheck, err := switchfs.CheckHashes(ctx, path, result.Hashes)
 	if err != nil {
-		return 0, err
+		return 0, readFailure(path, info, err)
 	}
 	// reading the original whole was its check: the next file check does not read it again
 	web.verifications().remember(path, originalCheck)
 	if err := switchfs.VerifyCompressed(ctx, temporary, result.Hashes, filling(info.Size(), report(info.Size()))); err != nil {
-		return 0, err
+		// the copy failed its check, not the original
+		if errors.Is(err, context.Canceled) {
+			return 0, err
+		}
+		return 0, &notContentError{err}
 	}
-	if err := os.Rename(temporary, target); err != nil {
+	if err := commitFile(temporary, target); err != nil {
 		return 0, err
 	}
 	web.rememberWritten(target)
 	web.verifications().inherit(path, target)
 	if deleteOriginal {
-		if err := os.Remove(path); err != nil {
+		if err := web.discardOriginal(path, QUARANTINE_COMPRESSED); err != nil {
 			return 0, fmt.Errorf("could not delete the original: %w", err)
 		}
+		// a pack asked for the game in the queue makes it of the NSZ
+		web.moves.replaced(path, target)
 	}
 	web.sugarLogger.Infof("Compressed %s: %d -> %d bytes", path, result.InputSize, result.OutputSize)
 	return result.InputSize - result.OutputSize, nil
@@ -1200,18 +1227,23 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 	if err != nil {
 		return err
 	}
-	if err := os.Rename(temporary, target); err != nil {
+	if err := commitFile(temporary, target); err != nil {
 		return err
 	}
 	web.verifications().remember(target, written)
 	if deleteCompressed && fullyChecked(written) {
-		if err := os.Remove(path); err != nil {
+		if err := web.discardOriginal(path, QUARANTINE_DECOMPRESSED); err != nil {
 			return fmt.Errorf("could not delete the original: %w", err)
 		}
+		web.moves.replaced(path, target)
 	}
 	web.sugarLogger.Infof("Decompressed %s", path)
 	return nil
 }
+
+// pausableKinds are the tasks on files that hold where they are while paused; the others (a
+// check, a copy to the SD card) are only cancelled.
+var pausableKinds = map[string]bool{TASK_COMPRESS: true, TASK_DECOMPRESS: true, TASK_CONVERT: true, TASK_PACK: true, TASK_SPLIT: true}
 
 // pauseCompression holds the running compression (or decompression, conversion, pack) where
 // it is, in the middle of a file too, or lets it go on; a cancel still stops it while paused.
@@ -1219,7 +1251,7 @@ func (web *Web) pauseCompression(paused bool) bool {
 	c := &web.compressor
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	if c.cancel == nil || c.paused == paused {
+	if c.cancel == nil || c.paused == paused || !pausableKinds[c.kind] {
 		return false
 	}
 	c.paused = paused
@@ -1228,8 +1260,27 @@ func (web *Web) pauseCompression(paused bool) bool {
 	} else {
 		close(c.resume)
 	}
-	web.taskLog().SetPaused(c.taskId, paused)
+	if c.taskId != 0 {
+		web.taskLog().SetPaused(c.taskId, paused)
+	}
 	return true
+}
+
+// releaseFiles ends the task working on the files: none runs, and nothing stays paused for
+// the next one.
+func (web *Web) releaseFiles() {
+	c := &web.compressor
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.cancel, c.kind = nil, ""
+	if c.paused {
+		c.paused = false
+		close(c.resume)
+		if c.taskId != 0 {
+			web.taskLog().SetPaused(c.taskId, false)
+		}
+	}
+	c.taskId = 0
 }
 
 // waitIfPaused returns at once, or when the paused task is resumed or cancelled.
@@ -1263,6 +1314,14 @@ func (web *Web) cancelCompression() bool {
 // wait for it to end.
 func (web *Web) filesBusy() bool {
 	return web.organizing.Load() || web.measuring.Load() || web.compressionRunning() || web.uploads.writing()
+}
+
+// spaceHeld gives the version of the check results the Space page follows while a task writes
+// files: the one of when it began.
+func (web *Web) spaceHeld() (uint64, bool) {
+	web.compressor.mutex.Lock()
+	defer web.compressor.mutex.Unlock()
+	return web.compressor.spaceVersion, web.compressor.cancel != nil && pausableKinds[web.compressor.kind]
 }
 
 func (web *Web) compressionRunning() bool {

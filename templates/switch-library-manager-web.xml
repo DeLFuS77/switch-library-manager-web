@@ -22,7 +22,12 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.66.0
+  <Changes>### 1.67.0
+- Quarantine in Settings: what is deleted from the library can wait in a hidden folder and be put back (off until turned on)
+- Many fixes, above all of cases that could delete the only copy of a game
+- Red only for errors and work in blue; the covers of Tasks fill up smoothly and stay during a scan
+- SLM_TRUSTED_PROXIES trusts only the proxies listed: the proxy or tunnel of the network has to be added to it too
+### 1.66.0
 - The setup wizard asks how to order the games (a folder per game, Base, Updates and DLC subfolders, keeping your folders)
 - The wizard chooses Only the new files for the automations, measures the server and sends a test notification
 - Calm background music in the wizard, with a button to turn it off
@@ -85,7 +90,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-10-28</Date>
+  <Date>2026-10-29</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>
@@ -103,7 +108,7 @@
   <Config Name="Admin password" Target="SLM_AUTH_PASSWORD" Default="" Mode="" Description="Optional: password of the administrator above." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
   <Config Name="Allow remote access without login" Target="SLM_ALLOW_REMOTE_WITHOUT_LOGIN" Default="" Mode="" Description="Optional: set to true only if another service (a proxy with its own login, a VPN) protects the app. Without users, the app otherwise only answers on the local network." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
   <Config Name="Allowed names" Target="SLM_ALLOWED_HOSTS" Default="" Mode="" Description="Optional, only without login: other names the app is opened by, separated by commas (addresses, the server name and .local or .lan names always work)." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
-  <Config Name="Trusted proxies" Target="SLM_TRUSTED_PROXIES" Default="" Mode="" Description="Optional: set to cloudflare when Cloudflare connects to the app directly, so the login protection sees the real visitor address (not needed with a Cloudflare Tunnel or a proxy on your network). Also takes proxy addresses or ranges, separated by commas." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="Trusted proxies" Target="SLM_TRUSTED_PROXIES" Default="" Mode="" Description="Optional: the proxies whose visitor address the login protection believes, separated by commas: addresses, ranges, or cloudflare when Cloudflare connects to the app directly. Empty, any proxy on the network is believed (a Cloudflare Tunnel or a proxy on the network needs nothing set). Set, only those listed: the proxy or tunnel of the network has to be listed too, so other computers of the network cannot make up their address." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
   <Config Name="IGDB Client ID" Target="SLM_IGDB_CLIENT_ID" Default="" Mode="" Description="Optional: the Client ID of your own Twitch application (dev.twitch.tv/console), to show how long games take to beat, from IGDB. Can also be set in Settings." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
   <Config Name="IGDB Client Secret" Target="SLM_IGDB_CLIENT_SECRET" Default="" Mode="" Description="Optional: the Client Secret of the same Twitch application." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
 </Container>

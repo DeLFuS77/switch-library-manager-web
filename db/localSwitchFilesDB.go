@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"runtime"
 	"sync"
@@ -68,8 +69,11 @@ func NewLocalSwitchDBManager(dataFolder string) (*LocalSwitchDBManager, error) {
 		return nil, err
 	}
 
-	if db.GetInternalValue(DB_KEY_LIBRARY_SCHEMA) != LIBRARY_SCHEMA_VERSION {
-		zap.S().Info("Local library cache was created by an older version, it will be rebuilt")
+	if schema := db.GetInternalValue(DB_KEY_LIBRARY_SCHEMA); schema != LIBRARY_SCHEMA_VERSION {
+		// a new data folder has no schema yet, and nothing to rebuild
+		if schema != "" {
+			zap.S().Info("Local library cache was created by an older version, it will be rebuilt")
+		}
 		if err := db.ClearTable(DB_TABLE_LOCAL_LIBRARY); err != nil {
 			db.Close()
 			return nil, err
@@ -187,6 +191,24 @@ type SkippedFile struct {
 	ReasonCode     int
 	ReasonText     string
 	AdditionalInfo string
+	// the file could not be read as it ends before its contents do (see CutShort): told by the
+	// error of the reader, never by the text of the reason, which has the path of the file
+	CutShort bool
+}
+
+// endsOfFile matches the text of an error of a reader that met the end of the file, at its end:
+// the readers of switchfs give it as text inside their own errors, not wrapped.
+var endsOfFile = regexp.MustCompile(`\bEOF[\])]*$`)
+
+// CutShort tells an error of a reader that met the end of the file while the headers still
+// asked for more: a file cut short (a copy or a download that stopped), not one that could not be
+// opened. reason is the text of such an error, or of a reason that has it at its end, kept by
+// an older version without the flag of SkippedFile.
+func CutShort(err error, reason string) bool {
+	if err != nil {
+		return errors.Is(err, io.ErrUnexpectedEOF) || errors.Is(err, io.EOF) || endsOfFile.MatchString(err.Error())
+	}
+	return endsOfFile.MatchString(reason)
 }
 
 type LocalSwitchFilesDB struct {
@@ -266,14 +288,24 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 		}
 
 		ldb.leftovers, ldb.emptyFolders = nil, nil
+		unreadable := []string{}
 		for _, folder := range distinctFolders(folders, recursive) {
-			err := scanFolder(folder, recursive, &files, &ldb.leftovers, &ldb.emptyFolders, progress, estimate)
+			err := scanFolder(folder, recursive, &files, &ldb.leftovers, &ldb.emptyFolders, &unreadable, progress, estimate)
 			if progress != nil {
 				progress.UpdateProgress(-1, -1, "Scanned "+folder)
 			}
 			if err != nil {
-				zap.S().Errorf("Failed to scan folder %v - %v", folder, err)
-				continue
+				// read as empty, as a folder that cannot be reached
+				return nil, fmt.Errorf("the library folder %s cannot be read: %w", folder, err)
+			}
+		}
+		// a folder below that cannot be read (its owner changed, a disk of the array failed)
+		// keeps the games the last scan found in it: what it holds now is not known, and taken
+		// for gone they would count as deleted
+		if len(unreadable) > 0 {
+			var previous []ExtendedFileInfo
+			if ldb.db.GetEntry(DB_TABLE_LOCAL_LIBRARY, "files", &previous) == nil {
+				files = append(files, filesIn(previous, unreadable)...)
 			}
 		}
 
@@ -295,15 +327,20 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 
 // distinctFolders leaves out a folder listed twice and, when the folders are scanned with their
 // subfolders, a folder inside another one listed: its files would be read twice, and each one
-// would count as a duplicate of itself, offered to be deleted with its only copy.
+// would count as a duplicate of itself, offered to be deleted with its only copy. The folders
+// are compared as they are on the disk too, written as they may be (see SameFolder).
 func distinctFolders(folders []string, recursive bool) []string {
 	cleaned := []string{}
-	seen := map[string]bool{}
 	for _, folder := range folders {
 		folder = filepath.Clean(folder)
-		key := folderKey(folder)
-		if !seen[key] {
-			seen[key] = true
+		repeated := false
+		for _, other := range cleaned {
+			if SameFolder(folder, other) {
+				repeated = true
+				break
+			}
+		}
+		if !repeated {
 			cleaned = append(cleaned, folder)
 		}
 	}
@@ -311,13 +348,10 @@ func distinctFolders(folders []string, recursive bool) []string {
 		return cleaned
 	}
 	distinct := []string{}
-	for _, folder := range cleaned {
+	for i, folder := range cleaned {
 		inside := false
-		for _, other := range cleaned {
-			if other == folder {
-				continue
-			}
-			if rel, err := filepath.Rel(folderKey(other), folderKey(folder)); err == nil && rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		for j, other := range cleaned {
+			if i != j && FolderInside(folder, other) {
 				inside = true
 				break
 			}
@@ -329,6 +363,53 @@ func distinctFolders(folders []string, recursive bool) []string {
 	return distinct
 }
 
+// SameFolderName tells whether two paths are the same folder by their names alone.
+func SameFolderName(a, b string) bool {
+	return folderKey(filepath.Clean(a)) == folderKey(filepath.Clean(b))
+}
+
+// FolderInsideName tells whether the folder inner is below the folder outer by their names alone.
+func FolderInsideName(inner, outer string) bool {
+	rel, err := filepath.Rel(folderKey(filepath.Clean(outer)), folderKey(filepath.Clean(inner)))
+	return err == nil && rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
+// SameFolder tells whether two paths are the same folder: by their names, or on the disk, for
+// one folder written in two ways (a drive of Windows and the share it maps, a path with \\?\ in
+// front, two volumes of a container on one folder, a link to it).
+func SameFolder(a, b string) bool {
+	if SameFolderName(a, b) {
+		return true
+	}
+	aInfo, err := os.Stat(a)
+	if err != nil {
+		return false
+	}
+	bInfo, err := os.Stat(b)
+	return err == nil && os.SameFile(aInfo, bInfo)
+}
+
+// FolderInside tells whether the folder inner is below the folder outer: by their names, or
+// on the disk, when a folder above inner is outer written in another way (see SameFolder).
+func FolderInside(inner, outer string) bool {
+	if FolderInsideName(inner, outer) {
+		return true
+	}
+	inner, outer = filepath.Clean(inner), filepath.Clean(outer)
+	outerInfo, err := os.Stat(outer)
+	if err != nil {
+		return false
+	}
+	for dir := filepath.Dir(inner); ; dir = filepath.Dir(dir) {
+		if info, err := os.Stat(dir); err == nil && os.SameFile(info, outerInfo) {
+			return true
+		}
+		if filepath.Dir(dir) == dir {
+			return false
+		}
+	}
+}
+
 // folderKey compares folders the way the system does: Windows and macOS ignore the case.
 func folderKey(folder string) string {
 	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
@@ -337,7 +418,10 @@ func folderKey(folder string) string {
 	return folder
 }
 
-// distinctFiles keeps each file once, by its path.
+// distinctFiles keeps each file once, by its path and by what it is on the disk: a folder
+// reached by two paths the folders cannot tell apart (two volumes of a container on one folder,
+// a link) shows its games twice, and each one would count as a duplicate of itself, deleted with
+// its only copy. The game seen first stays, unless it is a link to the other one.
 func distinctFiles(files []ExtendedFileInfo) []ExtendedFileInfo {
 	seen := map[string]bool{}
 	distinct := files[:0]
@@ -349,78 +433,205 @@ func distinctFiles(files []ExtendedFileInfo) []ExtendedFileInfo {
 		seen[key] = true
 		distinct = append(distinct, file)
 	}
-	return distinct
+	// only games of the same size can be one file: the others are never looked at on the disk
+	bySize := map[int64][]int{}
+	for i, file := range distinct {
+		if !file.IsDir && (IsGameFileType(filepath.Ext(file.FileName)) || strings.HasSuffix(file.FileName, "00")) {
+			bySize[file.Size] = append(bySize[file.Size], i)
+		}
+	}
+	dropped := map[int]bool{}
+	for _, indexes := range bySize {
+		if len(indexes) < 2 {
+			continue
+		}
+		infos := make([]os.FileInfo, len(indexes))
+		for k, i := range indexes {
+			infos[k], _ = os.Stat(fullPath(distinct[i]))
+		}
+		for a := range indexes {
+			if infos[a] == nil || dropped[indexes[a]] {
+				continue
+			}
+			for b := a + 1; b < len(indexes); b++ {
+				if infos[b] == nil || dropped[indexes[b]] || !os.SameFile(infos[a], infos[b]) {
+					continue
+				}
+				if isLink(fullPath(distinct[indexes[a]])) && !isLink(fullPath(distinct[indexes[b]])) {
+					distinct[indexes[a]] = distinct[indexes[b]]
+				}
+				dropped[indexes[b]] = true
+			}
+		}
+	}
+	if len(dropped) == 0 {
+		return distinct
+	}
+	kept := distinct[:0]
+	for i, file := range distinct {
+		if !dropped[i] {
+			kept = append(kept, file)
+		}
+	}
+	return kept
+}
+
+// filesIn are the files inside any of the folders, by their paths.
+func filesIn(files []ExtendedFileInfo, folders []string) []ExtendedFileInfo {
+	inside := []ExtendedFileInfo{}
+	for _, file := range files {
+		for _, folder := range folders {
+			rel, err := filepath.Rel(folderKey(filepath.Clean(folder)), folderKey(filepath.Clean(file.BaseFolder)))
+			if err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+				inside = append(inside, file)
+				break
+			}
+		}
+	}
+	return inside
+}
+
+// isLink tells a path that is a link to another file (a symlink, a junction of Windows).
+func isLink(path string) bool {
+	info, err := os.Lstat(path)
+	return err == nil && info.Mode()&(fs.ModeSymlink|fs.ModeIrregular) != 0
 }
 
 // scanFolder adds the files of a folder; estimate is how many files the folders are thought
-// to hold, for the progress, or 0 when unknown.
-func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, leftovers *[]LeftoverFile, emptyFolders *[]string, progress ProgressUpdater, estimate int) error {
-	if _, err := os.Stat(folder); err != nil {
+// to hold, for the progress, or 0 when unknown. The folder itself, or a link to one, must be
+// read, or nothing is known of its games; the folders below that cannot be read are added to
+// unreadable, when it is given.
+func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, leftovers *[]LeftoverFile, emptyFolders *[]string, unreadable *[]string, progress ProgressUpdater, estimate int) error {
+	rootInfo, err := os.Stat(folder)
+	if err != nil {
 		return err
 	}
 	// the folders below, and whether something else than files of the system is in them
 	held := map[string]bool{}
 	folders := []string{}
-	// WalkDir reads the entry types from the directory listing; only files are stat'ed
-	err := filepath.WalkDir(folder, func(path string, entry fs.DirEntry, err error) error {
-		if path == folder {
-			return nil
-		}
-		if err != nil {
-			zap.S().Error("Error while scanning folders", err)
-			// a folder that cannot be read is never taken for an empty one
-			held[path] = true
-			held[filepath.Dir(path)] = true
-			return nil
-		}
-
-		if !SystemFile(entry) {
-			held[filepath.Dir(path)] = true
-		}
-		if entry.IsDir() {
-			if _, seen := held[path]; !seen {
-				held[path] = false
+	// the folders walked through links, as they are on the disk
+	walked := []os.FileInfo{rootInfo}
+	// walkedAlready tells a link to a folder walked already, or to a folder above it: walked
+	// again, it would be walked again and again, or its games found twice
+	walkedAlready := func(path string, target os.FileInfo) bool {
+		for _, info := range walked {
+			if os.SameFile(info, target) {
+				return true
 			}
-			folders = append(folders, path)
-			return nil
 		}
-
-		// skip hidden files (including macOS "._" resource forks and the temporary files of the
-		// app), but not a game whose name starts with a dot (".hack//G.U.", named so by an older
-		// version or another tool): skipped, it was never in the library nor organized
-		if name := entry.Name(); strings.HasPrefix(name, ".") {
-			leftover := leftoverName.MatchString(name)
-			if leftovers != nil && leftover {
-				if info, err := entry.Info(); err == nil {
-					*leftovers = append(*leftovers, LeftoverFile{Path: path, Size: info.Size(), ModTime: info.ModTime()})
+		for dir := filepath.Dir(path); ; dir = filepath.Dir(dir) {
+			if info, err := os.Stat(dir); err == nil && os.SameFile(info, target) {
+				return true
+			}
+			if filepath.Dir(dir) == dir {
+				return false
+			}
+		}
+	}
+	var walk func(root string) error
+	walk = func(root string) error {
+		// a folder that is a link (a symlink, a junction of Windows) is not walked by WalkDir,
+		// which found no game in it: it is walked through its name with a separator at the end,
+		// which follows the link, and its files keep the path the settings give
+		start := root
+		if info, err := os.Lstat(root); err == nil && !info.IsDir() {
+			start = root + string(os.PathSeparator)
+		}
+		// WalkDir reads the entry types from the directory listing; only files are stat'ed
+		return filepath.WalkDir(start, func(path string, entry fs.DirEntry, err error) error {
+			if path == start {
+				// the folder itself cannot be read: none of its games is known
+				return err
+			}
+			if err != nil {
+				zap.S().Warnf("A folder of the library cannot be read, the games found in it before are kept - %v", err)
+				// a folder that cannot be read is never taken for an empty one
+				held[path] = true
+				held[filepath.Dir(path)] = true
+				if unreadable != nil {
+					*unreadable = append(*unreadable, path)
 				}
-			}
-			if leftover || strings.HasPrefix(name, "._") || !IsGameFileType(filepath.Ext(name)) {
 				return nil
 			}
-		}
-		info, err := entry.Info()
-		if err != nil {
-			// removed while scanning
-			return nil
-		}
-		base := path[0 : len(path)-len(info.Name())]
-		if strings.TrimSuffix(base, string(os.PathSeparator)) != strings.TrimSuffix(folder, string(os.PathSeparator)) &&
-			!recursive {
-			return nil
-		}
-		if progress != nil {
-			if found := len(*files) + 1; estimate > 0 {
-				// never full before the walk ends: there may be more files than last time
-				progress.UpdateProgress(min(found, estimate*99/100), estimate, "Found "+info.Name())
-			} else {
-				progress.UpdateProgress(-1, -1, "Found "+info.Name())
+			if entry.IsDir() && entry.Name() == QUARANTINE_FOLDER {
+				return filepath.SkipDir
 			}
-		}
-		*files = append(*files, ExtendedFileInfo{FileName: info.Name(), BaseFolder: base, Size: info.Size(), IsDir: info.IsDir()})
+			// a link to a folder (a symlink, a junction of Windows) is walked as the folder it is,
+			// once, instead of being taken for a file that is no game
+			if entry.Type()&(fs.ModeSymlink|fs.ModeIrregular) != 0 {
+				if target, err := os.Stat(path); err == nil && target.IsDir() {
+					// never an empty folder to delete: deleting it would take the link only
+					held[path] = true
+					held[filepath.Dir(path)] = true
+					if !recursive || entry.Name() == QUARANTINE_FOLDER || walkedAlready(path, target) {
+						return nil
+					}
+					walked = append(walked, target)
+					if err := walk(path); err != nil {
+						zap.S().Warnf("A folder of the library cannot be read, the games found in it before are kept - %v", err)
+						if unreadable != nil {
+							*unreadable = append(*unreadable, path)
+						}
+					}
+					return nil
+				}
+			}
 
-		return nil
-	})
+			if !SystemFile(entry) {
+				held[filepath.Dir(path)] = true
+			}
+			if entry.IsDir() {
+				if _, seen := held[path]; !seen {
+					held[path] = false
+				}
+				folders = append(folders, path)
+				return nil
+			}
+
+			// skip hidden files (including macOS "._" resource forks and the temporary files of the
+			// app), but not a game whose name starts with a dot (".hack//G.U.", named so by an older
+			// version or another tool): skipped, it was never in the library nor organized
+			if name := entry.Name(); strings.HasPrefix(name, ".") {
+				leftover := leftoverName.MatchString(name)
+				if leftovers != nil && leftover {
+					if info, err := entry.Info(); err == nil {
+						*leftovers = append(*leftovers, LeftoverFile{Path: path, Size: info.Size(), ModTime: info.ModTime()})
+					}
+				}
+				if leftover || strings.HasPrefix(name, "._") || !IsGameFileType(filepath.Ext(name)) {
+					return nil
+				}
+			}
+			info, err := entry.Info()
+			if err == nil && entry.Type()&(fs.ModeSymlink|fs.ModeIrregular) != 0 {
+				// a link to a game: the size of the game, not the one of the link (the length of the
+				// path it points to), which made the link the smaller copy to keep and the game the
+				// duplicate to delete
+				info, err = os.Stat(path)
+			}
+			if err != nil {
+				// removed while scanning, or a link to nothing
+				return nil
+			}
+			base := path[0 : len(path)-len(entry.Name())]
+			if strings.TrimSuffix(base, string(os.PathSeparator)) != strings.TrimSuffix(folder, string(os.PathSeparator)) &&
+				!recursive {
+				return nil
+			}
+			if progress != nil {
+				if found := len(*files) + 1; estimate > 0 {
+					// never full before the walk ends: there may be more files than last time
+					progress.UpdateProgress(min(found, estimate*99/100), estimate, "Found "+info.Name())
+				} else {
+					progress.UpdateProgress(-1, -1, "Found "+info.Name())
+				}
+			}
+			*files = append(*files, ExtendedFileInfo{FileName: info.Name(), BaseFolder: base, Size: info.Size(), IsDir: info.IsDir()})
+
+			return nil
+		})
+	}
+	err = walk(folder)
 	if emptyFolders != nil && recursive {
 		for _, path := range folders {
 			if !held[path] {
@@ -437,6 +648,10 @@ var systemFiles = map[string]bool{"thumbs.db": true, "ehthumbs.db": true, "deskt
 
 // SystemFile tells a file Windows or macOS leaves in a folder it shows, which does not make
 // the folder hold anything.
+// QUARANTINE_FOLDER holds the files deleted that can still be put back (see the quarantine of
+// the web interface): never part of the library.
+const QUARANTINE_FOLDER = ".slm-quarantine"
+
 func SystemFile(entry fs.DirEntry) bool {
 	name := strings.ToLower(entry.Name())
 	return !entry.IsDir() && (systemFiles[name] || strings.HasPrefix(name, "._"))
@@ -465,6 +680,14 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 	chosen := map[string]bool{}
 	for _, path := range organizeOptions.KeepFiles {
 		chosen[filepath.Clean(path)] = true
+		// a copy chosen that the app compressed, decompressed or converted since is the file
+		// that took its place, with the same name in the same folder: by its old name only, the
+		// choice of the settings would decide again, and the Space page offer the copy chosen
+		if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
+			for _, converted := range []string{switchfs.CompressedPath(path), switchfs.DecompressedPath(path), switchfs.ConvertedPath(path)} {
+				chosen[filepath.Clean(converted)] = true
+			}
+		}
 	}
 	// the number of titles of each file read, to tell the files with several titles
 	titlesInFile := map[ExtendedFileInfo]int{}
@@ -837,7 +1060,7 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 			err = errors.New("no content metadata found")
 		}
 		if err != nil {
-			result.skip = &SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: readErrorText(kind, err)}
+			result.skip = &SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: readErrorText(kind, err), CutShort: CutShort(err, "")}
 			zap.S().Warnf("[file:%v] failed to read %v [reason: %v]", file.FileName, kind, err)
 		}
 		if metadata != nil {

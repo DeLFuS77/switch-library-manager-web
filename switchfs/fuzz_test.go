@@ -3,6 +3,8 @@ package switchfs
 import (
 	"bytes"
 	"encoding/binary"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -22,8 +24,18 @@ func fuzzPfs0() []byte {
 	return data
 }
 
+// fuzzNegativeTicket is a PFS0 with a ticket whose size has its top bit set: negative as an
+// int64, it was allocated as it was.
+func fuzzNegativeTicket() []byte {
+	data := fuzzPfs0()
+	copy(data[0x10+0x18:], "a.tik")
+	binary.LittleEndian.PutUint64(data[0x10+8:], 1<<63|4)
+	return data
+}
+
 func FuzzOpenGamePackage(f *testing.F) {
 	f.Add(fuzzPfs0())
+	f.Add(fuzzNegativeTicket())
 	f.Add([]byte("HEAD"))
 	f.Add(make([]byte, 0x200))
 	f.Fuzz(func(t *testing.T, data []byte) {
@@ -33,9 +45,31 @@ func FuzzOpenGamePackage(f *testing.F) {
 
 func FuzzReadPfs0(f *testing.F) {
 	f.Add(fuzzPfs0())
+	f.Add(fuzzNegativeTicket())
 	f.Add([]byte("PFS0"))
 	f.Fuzz(func(t *testing.T, data []byte) {
 		readPfs0(bytes.NewReader(data), 0)
+	})
+}
+
+// The checks the library runs on every file after a scan: the tickets, the title keys and
+// what can be compressed, with the keys loaded so they read past the headers.
+func FuzzCheckGameFile(f *testing.F) {
+	initNszKeys(f, "")
+	f.Add(fuzzPfs0())
+	f.Add(fuzzNegativeTicket())
+	f.Add(makePFS0(pfs0Magic, []string{testRightsId + ".tik"}, [][]byte{makeTicket(testRightsId)}))
+	// one file, written again for every input: a folder each would make the fuzzing crawl
+	path := filepath.Join(f.TempDir(), "fuzz.nsp")
+	f.Fuzz(func(t *testing.T, data []byte) {
+		if pkg, err := readGamePackage(bytes.NewReader(data)); err == nil {
+			readTickets(bytes.NewReader(data), pkg.files)
+		}
+		if err := os.WriteFile(path, data, 0o600); err != nil {
+			t.Fatal(err)
+		}
+		MissingTitleKey(path)
+		NotCompressible(path)
 	})
 }
 

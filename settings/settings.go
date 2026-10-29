@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -28,7 +29,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "1.66.0"
+	SLM_WEB_VERSION        = "1.67.0"
 	REPOSITORY_OWNER       = "DeLFuS77"
 	// titles.json and versions.json are generated from blawar/titledb by the
 	// "Update title data" workflow of this repository
@@ -162,6 +163,22 @@ type VaultOptions struct {
 	Notify bool `json:"notify,omitempty"`
 }
 
+// QuarantineOptions: the files the app deletes from the library (duplicates, old updates, the
+// copies of other regions) go first to a hidden folder of the same library folder, from where
+// they can be put back until they expire.
+type QuarantineOptions struct {
+	// how long they are kept: "" (off: deleted at once), "48h", "7d", "30d" or "never" (until
+	// emptied)
+	Keep string `json:"keep,omitempty"`
+	// the GB it holds at most, the oldest deleted first; 0 for no limit
+	LimitGB int `json:"limit_gb"`
+	// the oldest are deleted when a task needs room on their disk
+	MakeRoom bool `json:"make_room"`
+	// also the originals deleted after compressing, decompressing, converting, splitting or
+	// making a pack, already checked then
+	Originals bool `json:"originals,omitempty"`
+}
+
 // AutomationOptions are the steps run on the files that appear in the library, in this order:
 // check, compress, delete old updates, organize, and a message with what was done.
 type AutomationOptions struct {
@@ -233,6 +250,8 @@ type AppSettings struct {
 	Automation AutomationOptions `json:"automation"`
 	// the save vault for JKSV (off by default)
 	Vault VaultOptions `json:"vault"`
+	// where deleted files wait before they go (off by default)
+	Quarantine QuarantineOptions `json:"quarantine"`
 	// the Twitch application of the user, for the times to beat of IGDB (optional)
 	IgdbClientId     string `json:"igdb_client_id,omitempty"`
 	IgdbClientSecret string `json:"igdb_client_secret,omitempty"`
@@ -259,12 +278,10 @@ func ReadSettings(dataFolder string) *AppSettings {
 	if current := settingsInstance.Load(); current != nil {
 		return current
 	}
-	// defaults for keys missing from settings files written by older versions
-	loaded := &AppSettings{Debug: false, ScanFolders: []string{}, WatchFolders: true, CheckForUpdates: true,
-		Notifications:   NotificationOptions{NotifyUpdates: true, NotifyDlc: true, NotifyWishlist: true, NotifyNewGames: true, NotifyCheats: true, NotifyTaskFailures: true},
-		OrganizeOptions: OrganizeOptions{SwitchSafeFileNames: true}, Prodkeys: "", IgnoreDLCTitleIds: []string{"01007F600B135007"}}
-	if _, err := os.Stat(filepath.Join(dataFolder, SETTINGS_FILENAME)); err == nil {
-		file, err := os.Open(filepath.Join(dataFolder, SETTINGS_FILENAME))
+	loaded := settingsDefaults()
+	path := filepath.Join(dataFolder, SETTINGS_FILENAME)
+	if _, err := os.Stat(path); err == nil {
+		file, err := os.Open(path)
 		if err != nil {
 			// e.g. a file of another user after PUID changed: never written over, it holds the
 			// folders, the tokens and every choice; the defaults are used meanwhile
@@ -277,7 +294,12 @@ func ReadSettings(dataFolder string) *AppSettings {
 			if err != nil {
 				// kept aside, so what it holds can be recovered by hand
 				aside := filepath.Join(dataFolder, SETTINGS_FILENAME+".corrupt-"+time.Now().Format("20060102-150405"))
-				os.Rename(filepath.Join(dataFolder, SETTINGS_FILENAME), aside)
+				os.Rename(path, aside)
+				// the settings saved before the last ones are tried before the defaults
+				if restored := settingsDefaults(); decodeSettings(path+SETTINGS_BACKUP_SUFFIX, restored) == nil {
+					zap.S().Errorf("The settings file could not be read, it was kept as %s and the copy saved before it is used - %v", filepath.Base(aside), err)
+					return SaveSettings(verifySettings(dataFolder, restored), dataFolder)
+				}
 				zap.S().Errorf("The settings file could not be read, it was kept as %s and a new one is created - %v", filepath.Base(aside), err)
 				return saveDefaultSettings(dataFolder)
 			}
@@ -288,6 +310,24 @@ func ReadSettings(dataFolder string) *AppSettings {
 	} else {
 		return saveDefaultSettings(dataFolder)
 	}
+}
+
+// settingsDefaults are the settings a settings file is read into: the defaults of the keys
+// missing from the files written by older versions.
+func settingsDefaults() *AppSettings {
+	return &AppSettings{Debug: false, ScanFolders: []string{}, WatchFolders: true, CheckForUpdates: true,
+		Notifications:   NotificationOptions{NotifyUpdates: true, NotifyDlc: true, NotifyWishlist: true, NotifyNewGames: true, NotifyCheats: true, NotifyTaskFailures: true},
+		OrganizeOptions: OrganizeOptions{SwitchSafeFileNames: true}, Quarantine: QuarantineOptions{LimitGB: 100, MakeRoom: true}, Prodkeys: "", IgnoreDLCTitleIds: []string{"01007F600B135007"}}
+}
+
+// decodeSettings reads the settings file at path into settings.
+func decodeSettings(path string, settings *AppSettings) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return json.NewDecoder(file).Decode(settings)
 }
 
 // verifySettings fills in values missing from settings files written by older versions.
@@ -412,6 +452,7 @@ func saveDefaultSettings(dataFolder string) *AppSettings {
 			SwitchSafeFileNames:  true,
 			DeleteOldUpdateFiles: false,
 		},
+		Quarantine: QuarantineOptions{LimitGB: 100, MakeRoom: true},
 	}
 	return SaveSettings(defaults, dataFolder)
 }
@@ -438,15 +479,31 @@ func ReloadSettings(dataFolder string) *AppSettings {
 }
 
 // UpdateSettings applies change to the current settings and saves them. Concurrent
-// updates are serialized so one request cannot overwrite the change of another.
+// updates are serialized so one request cannot overwrite the change of another. A change that
+// cannot be saved is not made, and the settings as they are are given (see TryUpdateSettings).
 func UpdateSettings(dataFolder string, change func(settings *AppSettings)) *AppSettings {
+	appSettings, err := TryUpdateSettings(dataFolder, change)
+	if err != nil {
+		zap.S().Errorf("Failed to save settings - %v", err)
+	}
+	return appSettings
+}
+
+// TryUpdateSettings is UpdateSettings that tells why a change could not be saved: the settings
+// then stay as they were, in memory as on the disk, and the page that asked for it can say so
+// instead of "Saved", which the next start would prove wrong.
+func TryUpdateSettings(dataFolder string, change func(settings *AppSettings)) (*AppSettings, error) {
 	updateMutex.Lock()
 	defer updateMutex.Unlock()
 	// a copy: other goroutines may be reading the current settings
-	appSettings := *ReadSettings(dataFolder)
+	current := ReadSettings(dataFolder)
+	appSettings := *current
 	appSettings.LocalizedTitlesEtags = maps.Clone(appSettings.LocalizedTitlesEtags)
 	change(&appSettings)
-	return SaveSettings(&appSettings, dataFolder)
+	if err := TrySaveSettings(&appSettings, dataFolder); err != nil {
+		return current, err
+	}
+	return &appSettings, nil
 }
 
 // changesLists reports whether a change of the settings can change the lists of the app:
@@ -464,24 +521,94 @@ func changesLists(before *AppSettings, after *AppSettings) bool {
 	return !reflect.DeepEqual(a, b)
 }
 
+// SETTINGS_BACKUP_SUFFIX names the copy of the settings saved before the last ones: tried when
+// the settings file cannot be read, before the defaults.
+const SETTINGS_BACKUP_SUFFIX = ".bak"
+
+// SaveSettings saves the settings and makes them the current ones. Settings that cannot be
+// saved are not: the current ones stay, and are given (see TrySaveSettings).
 func SaveSettings(settings *AppSettings, dataFolder string) *AppSettings {
-	file, _ := json.MarshalIndent(settings, "", " ")
-	// the settings hold notification tokens: only the app reads them
-	path := filepath.Join(dataFolder, SETTINGS_FILENAME)
-	// written aside and put in place at once: a full disk or a power cut while it is written
-	// must not leave it half written, which would lose every setting
-	temporary := path + ".tmp"
-	if err := os.WriteFile(temporary, file, 0600); err != nil {
+	if err := TrySaveSettings(settings, dataFolder); err != nil {
 		zap.S().Errorf("Failed to save settings - %v", err)
-		os.Remove(temporary)
-	} else if err := os.Rename(temporary, path); err != nil {
-		zap.S().Errorf("Failed to save settings - %v", err)
+		if current := settingsInstance.Load(); current != nil {
+			return current
+		}
+		// none to keep (the defaults, in a data folder that cannot be written): used unsaved
+		use(settings)
 	}
-	// a file written by an older version keeps its permissions otherwise
-	os.Chmod(path, 0600)
+	return settings
+}
+
+// TrySaveSettings saves the settings and, once they are on the disk, makes them the current
+// ones; when they cannot be saved the current ones stay, and the error tells why.
+func TrySaveSettings(settings *AppSettings, dataFolder string) error {
+	file, err := json.MarshalIndent(settings, "", " ")
+	if err != nil {
+		return err
+	}
+	path := filepath.Join(dataFolder, SETTINGS_FILENAME)
+	// the settings saved before, while they can be read: the last good ones if these get lost
+	if previous, err := os.ReadFile(path); err == nil && json.Valid(previous) {
+		if err := writeDurably(path+SETTINGS_BACKUP_SUFFIX, previous); err != nil {
+			zap.S().Warnf("Failed to keep a copy of the settings - %v", err)
+		}
+	}
+	if err := writeDurably(path, file); err != nil {
+		return err
+	}
+	use(settings)
+	return nil
+}
+
+// use makes settings the current ones.
+func use(settings *AppSettings) {
 	previous := settingsInstance.Swap(settings)
 	if previous == nil || changesLists(previous, settings) {
 		version.Add(1)
 	}
-	return settings
+}
+
+// writeDurably writes a file aside and puts it in place at once, once its bytes are on the
+// disk: a full disk or a power cut while it is written must not leave it empty or half written,
+// which would lose every setting. The settings hold notification tokens: only the app reads them.
+func writeDurably(path string, data []byte) error {
+	temporary := path + ".tmp"
+	err := func() error {
+		file, err := os.OpenFile(temporary, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+		if err != nil {
+			return err
+		}
+		if _, err := file.Write(data); err != nil {
+			file.Close()
+			return err
+		}
+		if err := file.Sync(); err != nil {
+			file.Close()
+			return err
+		}
+		if err := file.Close(); err != nil {
+			return err
+		}
+		return os.Rename(temporary, path)
+	}()
+	if err != nil {
+		os.Remove(temporary)
+		return err
+	}
+	// a file written by an older version keeps its permissions otherwise
+	os.Chmod(path, 0600)
+	syncFolder(filepath.Dir(path))
+	return nil
+}
+
+// syncFolder writes the names of a folder to the disk, a rename among them. Windows has no
+// way to, and keeps them in the journal of NTFS on its own.
+func syncFolder(folder string) {
+	if runtime.GOOS == "windows" {
+		return
+	}
+	if file, err := os.Open(folder); err == nil {
+		file.Sync()
+		file.Close()
+	}
 }

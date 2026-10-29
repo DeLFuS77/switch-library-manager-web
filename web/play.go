@@ -3,7 +3,6 @@ package web
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -92,7 +91,7 @@ func (web *Web) play() *playStore {
 // reload reads the states again, also after a backup was restored.
 func (s *playStore) reload() {
 	users := map[string]map[string]PlayEntry{}
-	if data, err := os.ReadFile(s.path); err == nil {
+	if data, ok := readStore(s.path); ok {
 		parseStore(s.path, data, &users)
 	}
 	if users == nil {

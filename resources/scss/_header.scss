@@ -452,6 +452,8 @@
 	margin: -.5rem 0 1rem;
 	font-size: var(--slm-text-sm);
 	text-decoration: none;
+	// a step of the tune-up, not a warning: the blue of work, not the red of errors
+	color: rgb(var(--slm-work-rgb));
 
 	> .bi {
 		margin-right: .4rem;

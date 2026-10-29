@@ -39,13 +39,14 @@ function setupKeysUpload(box, saved) {
 		const data = new FormData();
 		inputs.filter(file => file.files.length).forEach(file => data.append(file.dataset.keysFile, file.files[0]));
 		send.disabled = true;
-		fetch('/settings/keys', { method: 'POST', body: data })
-			.then(response => response.json().then(json => ({ ok: response.ok, json })))
-			.then(({ ok, json }) => {
+		apiFetch('/settings/keys', { method: 'POST', body: data })
+			.then(response => readJSON(response).then(json => ({ ok: response.ok, status: response.status, json })))
+			.then(({ ok, status, json }) => {
 				send.disabled = false;
 				if (!ok) {
+					// the server answered: an answer without a message (a proxy's) says its status
 					const error = json.globalError || {};
-					showToast('alert-danger', 'bi-exclamation-triangle-fill', error.strongMessage || t('Error!'), error.message || t('Could not reach the server.'));
+					showToast('alert-danger', 'bi-exclamation-triangle-fill', error.strongMessage || t('Error!'), error.message || t('Unexpected server response (%v).', status));
 					return;
 				}
 				showToast('alert-success', 'bi-check-circle-fill', json.strongMessage, json.message);
@@ -113,7 +114,7 @@ function onSubmit(form) {
 	}
 
 	const data = new FormData(form);
-	fetch(form.action || window.location.href, {
+	apiFetch(form.action || window.location.href, {
 		method: 'POST',
 		body: new URLSearchParams(data).toString(),
 		headers: {
@@ -187,14 +188,32 @@ const OPERATION_LABELS = {
 	cleanup: t('Clean up')
 };
 
+// apiFetch is fetch for the requests of the pages. When the session has ended (401) the page
+// is opened again, which goes through the login and comes back to it; the promise then never
+// settles, so nothing says the server could not be reached.
+function apiFetch(url, options) {
+	return fetch(url, options).then(response => {
+		if (response.status === 401) {
+			window.location.reload();
+			return new Promise(() => {});
+		}
+		return response;
+	});
+}
+
+// readJSON reads the JSON of an answer, or {} when it has none (the error page of a proxy)
+function readJSON(response) {
+	return response.json().catch(() => ({}));
+}
+
 function postForm(url, params) {
-	return fetch(url, {
+	return apiFetch(url, {
 		method: 'POST',
 		body: new URLSearchParams(params).toString(),
 		headers: {
 			'Content-type': 'application/x-www-form-urlencoded'
 		}
-	}).then(response => response.json().catch(() => ({})).then(json => {
+	}).then(response => readJSON(response).then(json => {
 		if (!response.ok) {
 			const message = (json.globalError && json.globalError.message) || t('Unexpected server response (%v).', response.status);
 			throw new Error(message);

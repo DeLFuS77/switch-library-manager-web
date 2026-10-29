@@ -69,7 +69,7 @@ func init() {
 		"Its sections use an encryption no compressor reads: it stays as it is, and installs normally.":                                  "De secties gebruiken een versleuteling die geen compressor leest: het blijft zoals het is en installeert normaal.",
 		"%v files cannot be compressed and are not listed: nothing in them could be shrunk. They stay as they are and install normally.": "%v bestanden kunnen niet worden gecomprimeerd en worden niet getoond: er viel niets aan te verkleinen. Ze blijven zoals ze zijn en installeren normaal.",
 		"%v damaged files are not listed: they cannot be compressed until they are replaced with a sound copy.":                          "%v beschadigde bestanden worden niet getoond: ze kunnen pas worden gecomprimeerd als je ze vervangt door een goede kopie.",
-		"Sparse storage":           "Sparse storage",
+		"Sparse storage":           "Sparse opslag",
 		"Compressed already":       "Al gecomprimeerd",
 		"No game data":             "Geen spelgegevens",
 		"Encryption":               "Versleuteling",
@@ -334,6 +334,8 @@ func init() {
 		"Another task is working on the files of the library (organizing, a cleanup, a compression, combining games or a check): try again when it has finished.": "Een andere taak werkt met de bestanden van de bibliotheek (ordenen, opschonen, comprimeren, combineren of controle): probeer het opnieuw als die klaar is.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.":                                                        "Het bevat ook het spel, de nieuwste update of een DLC die de bibliotheek bewaart, dus het wordt niet verwijderd.",
 		"The newer file is damaged: keep this one.":                                                                                                               "Het nieuwere bestand is beschadigd: bewaar dit bestand.",
+		"What this file holds could not be read: keep this one.":                                                                                                  "De inhoud van dit bestand kon niet worden gelezen: bewaar dit bestand.",
+		"A part already there is not sound as a whole: the original is kept.":                                                                                     "Een deel dat er al was is niet in zijn geheel in orde: het origineel blijft bewaard.",
 		"The compressed file does not hold everything this file holds: keep this one.":                                                                            "Het gecomprimeerde bestand bevat niet alles wat dit bestand bevat: bewaar dit bestand.",
 		"A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.":                                    "Een kopie wordt alleen verwijderd als er een gecontroleerde, gave kopie van het spel uit een andere regio overblijft: controleer eerst de bestanden.",
 		"And the separate files?": "En de losse bestanden?",
@@ -668,6 +670,10 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "%v bestanden hebben al een gecomprimeerde kopie en staan niet in de lijst. De originelen kun je op de pagina Ruimte verwijderen zodra hun kopieën zijn gecontroleerd.",
 		"%v files at a time": "%v bestanden tegelijk",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v bestanden kunnen pas worden verwijderd als de kopieën die blijven zijn gecontroleerd. Alleen die kopieën worden gecontroleerd.",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "Netwerkpaden worden hier niet gecontroleerd: de app leest ze wanneer hij ze gebruikt.",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Er kan nu niets worden vrijgemaakt: de %v bestanden hieronder blijven, elk om de aangegeven reden.",
 
@@ -1371,6 +1377,7 @@ func init() {
 		"The file is damaged or was modified.":                                     "Het bestand is beschadigd of gewijzigd.",
 		"The file is not a backup of this app.":                                    "Het bestand is geen back-up van deze app.",
 		"The files could not be checked.":                                          "De bestanden konden niet worden gecontroleerd.",
+		"The file could not be read, it was left unchecked.":                       "Het bestand kon niet worden gelezen en blijft ongecontroleerd.",
 		"The files could not be copied.":                                           "De bestanden konden niet worden gekopieerd.",
 		"The files could not be organized.":                                        "De bestanden konden niet worden geordend.",
 		"The folder does not exist or is not an absolute path.":                    "De map bestaat niet of is geen absoluut pad.",
@@ -1525,6 +1532,10 @@ func init() {
 		"within a minute":                                                  "binnen een minuut",
 		"you":                                                              "jij",
 		"yours included":                                                   "inclusief die van jou",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "Demomodus: de mappen en de details van de server worden niet getoond.",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "Een map voor elke DLC",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "Met de ID's gaat elke DLC naar een eigen map. Zonder deze optie gaan ze allemaal naar de DLC-map: de paden blijven korter, want veel Windows-programma's lezen niet meer dan 260 tekens.",
@@ -1583,6 +1594,10 @@ func init() {
 		"No preference: the suggested copy": "Geen voorkeur: de aanbevolen kopie",
 		"Your preferred region":             "Je voorkeursregio",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Eén kaart per game, met de vlaggen van al zijn regio's: die je niet hebt, gedimd. Hij toont de kopie die je op de pagina van de game kiest, of de aanbevolen, en de tellers tellen de game één keer. Er wordt geen bestand gewijzigd.",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "De handtekening van de versie ontbreekt of klopt niet: er is niets gewijzigd.",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "Antwoorden in de Telegram-chat",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "Schrijf de bot in zijn chat: /have zelda, /new, /space, /status, /sync. Alleen die chat krijgt antwoorden, in de taal van de app.",
@@ -1645,5 +1660,75 @@ func init() {
 		"The update goes to the folder of its game; nothing else is touched.": "De update gaat naar de map van zijn game; verder wordt niets aangeraakt.",
 		"Everything is ordered, also what was loose.":                         "Alles wordt geordend, ook wat los lag.",
 		"Write a channel first.":                                              "Vul eerst een kanaal in.",
+		"Quarantine":                                                          "Quarantaine",
+		"What the app deletes from the library (duplicates, old updates, copies of other regions) does not go at once: it waits in a hidden folder of the same library folder, on the same disk, without being copied, and you can put it back while it is there.": "Wat de app uit de bibliotheek verwijdert (dubbele bestanden, oude updates, kopieën van andere regio's) verdwijnt niet meteen: het wacht in een verborgen map in dezelfde bibliotheekmap, op dezelfde schijf en zonder kopie, en je kunt het terugzetten zolang het daar staat.",
+		"Keep what is deleted":            "Verwijderde bestanden bewaren",
+		"Off: deleted at once":            "Uit: meteen verwijderd",
+		"48 hours":                        "48 uur",
+		"1 week":                          "1 week",
+		"30 days":                         "30 dagen",
+		"Until I empty it":                "Tot ik haar leegmaak",
+		"Largest size":                    "Maximale grootte",
+		"No limit":                        "Geen limiet",
+		"Over it, the oldest goes first.": "Daarboven gaat het oudste eerst weg.",
+		"When a task needs room, delete the oldest of the quarantine first":                  "Als een taak ruimte nodig heeft, eerst het oudste uit de quarantaine verwijderen",
+		"Also keep the originals after compressing, converting, splitting or making a pack":  "Ook de originelen bewaren na comprimeren, omzetten, splitsen of een pakket maken",
+		"They are checked before they are deleted, and they take a lot of room: better off.": "Ze worden gecontroleerd voordat ze weg gaan en nemen veel ruimte in: beter uit.",
+		"In the quarantine now":                "Nu in quarantaine",
+		"of %v GB":                             "van %v GB",
+		"The oldest is deleted for good on %v": "Het oudste wordt op %v definitief verwijderd",
+		"Empty the quarantine? Its %v files are deleted for good.": "Quarantaine legen? De %v bestanden worden definitief verwijderd.",
+		"Empty now":              "Nu legen",
+		"deleted for good on %v": "op %v definitief verwijderd",
+		"Put back in its folder": "Terugzetten in zijn map",
+		"Put back":               "Terugzetten",
+		"Delete %v for good? It cannot be undone.": "%v definitief verwijderen? Dit kan niet ongedaan worden gemaakt.",
+		"Delete for good":                          "Definitief verwijderen",
+		"Nothing is waiting in the quarantine.":    "Er wacht niets in quarantaine.",
+		"The hidden folder (%v) is in each library folder: the app does not scan it nor offer it to DBI.": "De verborgen map (%v) staat in elke bibliotheekmap: de app scant haar niet en biedt haar niet aan DBI aan.",
+		"Duplicate":                                    "Dubbel",
+		"Old update":                                   "Oude update",
+		"Copy of another region":                       "Kopie van een andere regio",
+		"Original of a compressed file":                "Origineel van een gecomprimeerd bestand",
+		"Converted to NSP":                             "Omgezet naar NSP",
+		"Decompressed to NSP":                          "Uitgepakt naar NSP",
+		"Split into parts":                             "Opgesplitst in delen",
+		"Joined in a pack":                             "Samengevoegd in een pakket",
+		"Deleted from the library":                     "Uit de bibliotheek verwijderd",
+		"Another file has its name in its folder now.": "In zijn map staat nu een ander bestand met zijn naam.",
+		"That file is no longer in the quarantine.":    "Dat bestand staat niet meer in quarantaine.",
+		"The file could not be put back.":              "Het bestand kon niet worden teruggezet.",
+		"%v is back in its folder.":                    "%v staat weer in zijn map.",
+		"The file could not be deleted.":               "Het bestand kon niet worden verwijderd.",
+		"Deleted for good.":                            "Definitief verwijderd.",
+		"%v files deleted for good (%v).":              "%v bestanden definitief verwijderd (%v).",
+		"Move %v files (%v) to the quarantine? You can put them back from Settings, Quarantine.": "%v bestanden (%v) naar de quarantaine verplaatsen? Je kunt ze terugzetten via Instellingen, Quarantaine.",
+		"%v old updates moved to the quarantine":                                                 "%v oude updates naar de quarantaine verplaatst",
+		"What happens to what is deleted?":                                                       "Wat gebeurt er met wat wordt verwijderd?",
+		"Duplicates, old updates and copies of other regions can wait a while in a hidden folder before they go for good, so a mistake can be undone. They are moved, not copied: they take no more room.": "Dubbele bestanden, oude updates en kopieën van andere regio's kunnen een tijdje in een verborgen map wachten voordat ze definitief weg gaan, zodat een vergissing ongedaan kan worden gemaakt. Ze worden verplaatst, niet gekopieerd: ze nemen geen extra ruimte in.",
+		"Delete at once":                        "Meteen verwijderen",
+		"old":                                   "oud",
+		"An update is replaced by a newer one.": "Een update wordt vervangen door een nieuwere.",
+		"The old update is deleted at once: it cannot be put back.":                                           "De oude update wordt meteen verwijderd: hij kan niet worden teruggezet.",
+		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "De oude update wacht %v in de verborgen map: Instellingen, Quarantaine kan hem terugzetten.",
+		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "De oude update wacht in de verborgen map tot je haar leegmaakt: Instellingen, Quarantaine kan hem terugzetten.",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "Titeldatabase downloaden...",
+		"Downloading versions database...": "Versiedatabase downloaden...",
+		"Loading titles database...":       "Titeldatabase laden...",
+		"Processing titles and updates...": "Titels en updates verwerken...",
+		"Scanning library...":              "Bibliotheek scannen...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "Opnieuw laden",
+		// a count of one
+		"%v file selected, %v": "%v bestand geselecteerd, %v",
+		"%v game selected, %v": "%v game geselecteerd, %v",
+		"%v step on":           "%v stap aan",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "Het is hetzelfde bestand als de kopie die blijft, via een ander pad bereikt, dus het wordt niet verwijderd.",
+		// a newer version that could not be read
+		"The newer file could not be read, it was recognized by its name only: keep this one.": "Het nieuwere bestand kon niet worden gelezen en is alleen aan de naam herkend: bewaar dit bestand.",
+		// settings that could not be saved
+		"The settings could not be saved: %v": "De instellingen konden niet worden opgeslagen: %v",
 	}
 }

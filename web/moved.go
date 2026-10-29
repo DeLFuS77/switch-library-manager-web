@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/process"
 )
@@ -23,35 +24,85 @@ const movedFilesHops = 16
 
 type movedFiles struct {
 	mutex sync.Mutex
-	// the new path of a file, by its old one
-	to map[string]string
+	// the new path of a file, and when it moved, by its old one
+	to map[string]movedFile
 }
 
-// record keeps the moves of Organize that went through.
+type movedFile struct {
+	path string
+	at   time.Time
+}
+
+// record keeps the moves of Organize that went through. A file moved to a path is another file
+// than the one that was there before: what that one's move said is forgotten.
 func (m *movedFiles) record(operations []process.Operation) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
+	now := time.Now()
 	for _, op := range operations {
 		if op.Error != "" || op.Kind != process.OP_MOVE {
 			continue
 		}
 		if m.to == nil || len(m.to) >= movedFilesLimit {
-			m.to = map[string]string{}
+			m.to = map[string]movedFile{}
 		}
-		m.to[op.From] = op.To
+		delete(m.to, op.To)
+		if op.From != op.To {
+			m.to[op.From] = movedFile{op.To, now}
+		}
 	}
 }
 
-// resolve is where the file at path is now, as far as the app moved it.
+// replaced keeps a file the app replaced with the one it made of it (an NSP deleted once its
+// NSZ was checked): a task asked for the original before works on what holds it now.
+func (m *movedFiles) replaced(original string, made string) {
+	m.record([]process.Operation{{Kind: process.OP_MOVE, From: original, To: made}})
+}
+
+// forget forgets the moves made before a scan started: the library has the new paths, and an
+// old path may hold another file by now.
+func (m *movedFiles) forget(before time.Time) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	for from, moved := range m.to {
+		if moved.at.Before(before) {
+			delete(m.to, from)
+		}
+	}
+}
+
+// resolve is where the file at path is now, as far as the app moved it. A file at the old path
+// is the file of that path (a new file under the name of one moved), unless it is the very file
+// moved (a name changed in its case only).
 func (m *movedFiles) resolve(path string) string {
+	for hop := 0; hop < movedFilesHops; hop++ {
+		m.mutex.Lock()
+		next, ok := m.to[path]
+		m.mutex.Unlock()
+		if !ok || next.path == path {
+			break
+		}
+		if here, err := os.Stat(path); err == nil {
+			if there, err := os.Stat(next.path); err != nil || !os.SameFile(here, there) {
+				break
+			}
+		}
+		path = next.path
+	}
+	return path
+}
+
+// follow is where the moves of the app lead from path, without looking at the disk: for a path
+// sent by a page, which is only compared with the paths of the library.
+func (m *movedFiles) follow(path string) string {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	for hop := 0; hop < movedFilesHops; hop++ {
 		next, ok := m.to[path]
-		if !ok || next == path {
+		if !ok || next.path == path {
 			break
 		}
-		path = next
+		path = next.path
 	}
 	return path
 }
@@ -87,7 +138,8 @@ func (web *Web) fileThere(path string) error {
 // libraryPaths are the requested paths that are files among the candidates, each one once, as
 // the library has them and never as they were sent: only files of the library are touched. A
 // page drawn before Organize moved files sends their old paths, and the library may still list
-// them until its next scan: both are taken where the files are now.
+// them until its next scan: both are taken where the files are now. What the page sent is only
+// compared with the paths of the library, never looked for on the disk.
 func (web *Web) libraryPaths(requested []string, candidates []CompressCandidate) []string {
 	known := map[string]string{}
 	for _, candidate := range candidates {
@@ -97,7 +149,11 @@ func (web *Web) libraryPaths(requested []string, candidates []CompressCandidate)
 	paths := []string{}
 	seen := map[string]bool{}
 	for _, path := range requested {
-		if library, ok := known[web.moves.resolve(path)]; ok && !seen[library] {
+		library, ok := known[path]
+		if !ok {
+			library, ok = known[web.moves.follow(path)]
+		}
+		if ok && !seen[library] {
 			seen[library] = true
 			paths = append(paths, library)
 		}

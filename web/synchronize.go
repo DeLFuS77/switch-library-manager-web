@@ -88,6 +88,7 @@ func (web *Web) Synchronize(trigger string) bool {
 // It returns false if a synchronization is already running: the rescan is then done once it
 // ends, as the files changed after it looked at them.
 func (web *Web) Rescan(trigger string) bool {
+	web.noteAppScan(trigger)
 	if web.scanInBackground(true, trigger) {
 		return true
 	}
@@ -165,7 +166,10 @@ func (web *Web) HandleSynchronize() {
 	web.router.HandleFunc("/sync", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Cache-Control", "no-store")
+		progress := web.state.getProgress()
+		key, arg := progressMessage(progress.Message)
+		progress.Text = messageText(web.requestLanguage(r), key, arg)
 		jsonEncoder := json.NewEncoder(w)
-		jsonEncoder.Encode(web.state.getProgress())
+		jsonEncoder.Encode(progress)
 	}).Methods("GET")
 }

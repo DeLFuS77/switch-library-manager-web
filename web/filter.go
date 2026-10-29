@@ -2,6 +2,8 @@ package web
 
 import (
 	"errors"
+	"html"
+	"html/template"
 	"net/url"
 	"regexp"
 	"sort"
@@ -225,6 +227,27 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 		}
 	}
 	return values
+}
+
+// hiddenFields writes the filter as the hidden fields of a form that changes a part of it (the
+// search and the order, the per page), so every other filter is kept. own are the fields the
+// form has itself; the page is left out, as a new search or order starts on the first one.
+func (f *TitleItemFilter) hiddenFields(own ...string) template.HTML {
+	values := f.query()
+	values.Del("page")
+	for _, name := range own {
+		values.Del(name)
+	}
+	names := make([]string, 0, len(values))
+	for name := range values {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	var fields strings.Builder
+	for _, name := range names {
+		fields.WriteString(`<input type="hidden" name="` + html.EscapeString(name) + `" value="` + html.EscapeString(values.Get(name)) + `">`)
+	}
+	return template.HTML(fields.String())
 }
 
 // MatchesItem reports whether the title ID or one of the names of an item contains the

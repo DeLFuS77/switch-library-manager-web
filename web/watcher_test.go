@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/fsnotify/fsnotify"
 )
 
 func TestFolderFingerprintChangesWithFiles(t *testing.T) {
@@ -168,5 +169,56 @@ func TestWatcherWaitsForTasksOnTheFiles(t *testing.T) {
 	web.organizing.Store(false)
 	if w.waiting() {
 		t.Fatal("the watcher scans what the task changed")
+	}
+}
+
+// A task too short for the watcher to see it running is not scanned again after its own scan,
+// when the folders reported no change since that scan began; a change after it, or a scan that
+// did not end, leaves the folders to the watcher.
+func TestWatcherLeavesTheScanOfAShortTask(t *testing.T) {
+	web := newTestWeb(t)
+	folder := t.TempDir()
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.WatchFolders, s.Folder = true, folder })
+	notify, err := fsnotify.NewWatcher()
+	if err != nil {
+		t.Skip("no notifications of changes here")
+	}
+	defer notify.Close()
+	w := &folderWatcher{web: web, tree: newDirTree(), notify: notify, watched: map[string]struct{}{}}
+	w.scanned = w.fingerprint()
+
+	// a compression wrote its file, and asked for a scan once it ended
+	os.WriteFile(filepath.Join(folder, "Game [0100000000010000][v0].nsz"), []byte("game"), 0o644)
+	w.lastEvent = time.Now()
+	web.noteAppScan(TRIGGER_COMPRESS)
+	web.state.startSync()
+	if !w.waiting() {
+		t.Fatal("its scan is waited for")
+	}
+	web.scanStarted.Store(time.Now().UnixNano())
+	web.scansDone.Add(1)
+	web.state.endSync()
+	if !w.waiting() || w.scanned != w.fingerprint() {
+		t.Fatal("the scan of the task covers what it changed")
+	}
+
+	// a file copied in afterwards is the watcher's
+	os.WriteFile(filepath.Join(folder, "Other [0100000000020000][v0].nsp"), []byte("other"), 0o644)
+	w.lastEvent = time.Now()
+	if w.waiting() {
+		t.Fatal("a later change is scanned")
+	}
+	// so is a change during the scan of a task
+	web.noteAppScan(TRIGGER_ORGANIZE)
+	web.scanStarted.Store(time.Now().UnixNano())
+	web.scansDone.Add(1)
+	w.lastEvent = time.Now().Add(2 * time.Second)
+	if w.waiting() {
+		t.Fatal("a change while the scan ran is scanned")
+	}
+	// a scan asked for something else than a change of the app is no task's
+	web.noteAppScan(TRIGGER_MANUAL)
+	if asked := web.appScan.Load(); asked == nil || !asked.at.Equal(w.appScanAt) {
+		t.Fatal("only the scans after the changes of the app")
 	}
 }

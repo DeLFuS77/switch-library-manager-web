@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
@@ -151,6 +152,12 @@ func (web *Web) fileCovers() map[string]string {
 				if _, ok := covers[file.FileName]; !ok || local.BaseExist && file == local.File.ExtendedInfo {
 					covers[file.FileName] = cover
 				}
+				// the file it was made from, or is turned into, by compressing or decompressing it
+				if other := otherPacking(file.FileName); other != "" {
+					if _, ok := covers[other]; !ok {
+						covers[other] = cover
+					}
+				}
 			}
 			if local.BaseExist {
 				add(local.File.ExtendedInfo)
@@ -162,8 +169,30 @@ func (web *Web) fileCovers() map[string]string {
 				add(dlc.ExtendedInfo)
 			}
 		}
+		// a scan shows the library it has read so far, and a compressed file leaves it: the
+		// covers found before are kept, so the view by covers does not lose them meanwhile
+		for name, cover := range covers {
+			web.knownCovers.Store(name, cover)
+		}
+		web.knownCovers.Range(func(name, cover any) bool {
+			if _, ok := covers[name.(string)]; !ok {
+				covers[name.(string)] = cover.(string)
+			}
+			return true
+		})
 		return covers
 	}).(map[string]string)
+}
+
+// otherPacking is the name of the same file compressed, or decompressed: "Game.nsp" and
+// "Game.nsz", "Game.xci" and "Game.xcz"; empty for other files.
+func otherPacking(name string) string {
+	ext := filepath.Ext(name)
+	other, ok := map[string]string{".nsp": ".nsz", ".nsz": ".nsp", ".xci": ".xcz", ".xcz": ".xci"}[strings.ToLower(ext)]
+	if !ok {
+		return ""
+	}
+	return name[:len(name)-len(ext)] + other
 }
 
 // TaskGroup is a finished task, or several of the same kind that followed one another and
@@ -202,6 +231,13 @@ const (
 	taskEventKeepAlive = 20 * time.Second
 )
 
+// apiTask is a task as /api/tasks gives it: with its message in the language of the request,
+// so the pages show it as Tasks does.
+type apiTask struct {
+	Task
+	Text string `json:"text,omitempty"`
+}
+
 func (web *Web) HandleTasks() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/tasks.html")
 
@@ -223,10 +259,13 @@ func (web *Web) HandleTasks() {
 		// the pages ask it every second or two: without the files a task has left or the size
 		// of every file it compressed, which can be thousands of lines
 		tasks := web.taskLog().Snapshot()
+		lang := web.requestLanguage(r)
+		result := make([]apiTask, len(tasks))
 		for i := range tasks {
 			tasks[i].Resume, tasks[i].Results = nil, nil
+			result[i] = apiTask{Task: tasks[i], Text: messageText(lang, tasks[i].Message, tasks[i].MessageArg)}
 		}
-		writeJSON(w, http.StatusOK, tasks)
+		writeJSON(w, http.StatusOK, result)
 	}).Methods("GET")
 
 	// server-sent events: the version of the task list after every change

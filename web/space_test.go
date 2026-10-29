@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/binary"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -63,8 +65,20 @@ func spaceWeb(t *testing.T) (*Web, string) {
 		},
 	}
 	web.state.set(&db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{}}, localDB)
+	// the files are not real games: what the duplicate holds is told, as a read would
+	holds(web, filepath.Join(dir, duplicate.FileName), "0100000000020000")
 	web.HandleSpace()
 	return web, dir
+}
+
+// holds tells the titles a test file holds, as reading it would.
+func holds(web *Web, path string, ids ...string) {
+	info, _ := os.Stat(path)
+	held := []heldTitle{}
+	for _, id := range ids {
+		held = append(held, heldTitle{id: id})
+	}
+	web.titlesHeld.Store(fmt.Sprintf("%s|%d|%d", path, info.Size(), info.ModTime().UnixNano()), held)
 }
 
 func spaceGroup(groups []SpaceGroup, id string) SpaceGroup {
@@ -532,5 +546,66 @@ func TestSpaceGroupsCollapse(t *testing.T) {
 	}
 	if strings.Contains(page, "<details class=\"space-group space-group-old_updates\" open") {
 		t.Error("a group starts open")
+	}
+}
+
+// A duplicate whose titles cannot be read (a game card that holds several) is kept: what only
+// it holds cannot be known. The failure is not kept, so it is read again the next time.
+func TestADuplicateThatCannotBeReadIsKept(t *testing.T) {
+	web := newTestWeb(t)
+	dir := t.TempDir()
+	kept := filepath.Join(dir, "Game [0100000000010000][v0].nsz")
+	os.WriteFile(kept, []byte("the copy that stays"), 0o644)
+	info, _ := os.Stat(kept)
+	web.verifications().set(kept, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checker: verifyChecker})
+	card := db.ExtendedFileInfo{FileName: "Collection.xci", BaseFolder: dir, Size: 15}
+	os.WriteFile(filepath.Join(dir, card.FileName), []byte("not a game card"), 0o644)
+
+	refusal := web.cleanupRefusal(card, db.SkippedFile{ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + kept + ")"})
+	if refusal != NOTE_SPACE_UNREAD {
+		t.Fatalf("the cleanup keeps it: %q", refusal)
+	}
+	held := 0
+	web.titlesHeld.Range(func(key, value any) bool { held++; return true })
+	if held != 0 {
+		t.Fatal("a file that could not be read is not taken for one that holds nothing")
+	}
+}
+
+// An old update or DLC is not deleted for a newer version the scan could not read and
+// recognized by its name only (a copy cut short, or read with keys too old): the old one may be
+// the only one that works. Neither on the Space page nor by the cleanup.
+func TestOldVersionStaysForANewerOneThatCannotBeRead(t *testing.T) {
+	web, dir := spaceWeb(t)
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.Folder = dir })
+	newer := filepath.Join(dir, "Game [0100000000010800][v131072].nsp")
+	oldDlc := db.ExtendedFileInfo{FileName: "Game DLC [0100000000011001][v0].nsp", BaseFolder: dir, Size: 40}
+	newerDlc := db.ExtendedFileInfo{FileName: "Game DLC [0100000000011001][v65536].nsp", BaseFolder: dir, Size: 41}
+	for _, file := range []db.ExtendedFileInfo{oldDlc, newerDlc} {
+		os.WriteFile(filepath.Join(dir, file.FileName), make([]byte, file.Size), 0o644)
+	}
+	_, localDB := web.state.get()
+	localDB.Skipped[db.ExtendedFileInfo{FileName: filepath.Base(newer), BaseFolder: dir, Size: 60}] = db.SkippedFile{
+		ReasonCode: db.REASON_FILENAME_FALLBACK, ReasonText: "identified by file name only, failed to read NSP [reason: unexpected EOF]"}
+	localDB.Skipped[newerDlc] = db.SkippedFile{ReasonCode: db.REASON_FILENAME_FALLBACK, ReasonText: "identified by file name only, failed to read NSP [reason: EOF]"}
+	localDB.Skipped[oldDlc] = db.SkippedFile{ReasonCode: db.REASON_OLD_UPDATE, ReasonText: "old DLC file, newer version exist locally (" + filepath.Join(dir, newerDlc.FileName) + ")"}
+	web.state.set(&db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{}}, localDB)
+
+	files := spaceGroup(web.spaceGroups(), SPACE_OLD_UPDATES).Files
+	if len(files) != 2 {
+		t.Fatalf("the old update and the old DLC: %+v", files)
+	}
+	for _, file := range files {
+		if file.Deletable || file.Note != NOTE_SPACE_NEWER_UNREAD {
+			t.Fatalf("kept for a newer one read by its name only: %+v", file)
+		}
+	}
+	if _, err := web.runOrganizeAction(ORGANIZE_ACTION_CLEANUP, TRIGGER_MANUAL); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"Game [0100000000010800][v65536].nsp", oldDlc.FileName} {
+		if _, err := os.Stat(filepath.Join(dir, name)); err != nil {
+			t.Fatalf("the cleanup keeps %s: %v", name, err)
+		}
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"os"
 )
 
 const (
@@ -120,11 +121,14 @@ func readPfs0(reader io.ReaderAt, offset int64) (*PFS0, error) {
 			}
 		}
 
-		if fileOffset > math.MaxUint64-p.HeaderLen {
+		// the readers take offsets and sizes as int64: a file must end within it from the start
+		// of the reader, or a size with its top bit set turns negative
+		base := uint64(offset) + p.HeaderLen
+		if fileOffset > math.MaxInt64-base {
 			return nil, fmt.Errorf("PFS0 file entry %d offset overflows", i)
 		}
 		startOffset := fileOffset + p.HeaderLen
-		if fileSize > math.MaxUint64-startOffset {
+		if fileSize > math.MaxInt64-base-fileOffset {
 			return nil, fmt.Errorf("PFS0 file entry %d range overflows", i)
 		}
 		p.Files = append(p.Files, fileEntry{startOffset, fileSize, string(nameBytes)})
@@ -148,6 +152,28 @@ func readAtFull(reader io.ReaderAt, p []byte, offset int64) error {
 		return err
 	}
 	return nil
+}
+
+// readerSize is the size of what a reader reads, when it tells: a file, the parts of a split
+// file or bytes in memory.
+func readerSize(reader io.ReaderAt) (int64, bool) {
+	switch r := reader.(type) {
+	case interface{ Size() int64 }:
+		return r.Size(), true
+	case interface{ Stat() (os.FileInfo, error) }:
+		if info, err := r.Stat(); err == nil {
+			return info.Size(), true
+		}
+	case *fileWrapper:
+		return readerSize(r.file)
+	case *splitFile:
+		var size int64
+		for _, info := range r.info {
+			size += info.Size()
+		}
+		return size, true
+	}
+	return 0, false
 }
 
 func maxInt() int {

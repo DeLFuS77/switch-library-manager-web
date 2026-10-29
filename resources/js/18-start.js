@@ -109,6 +109,48 @@ document.addEventListener('DOMContentLoaded', () => {
 		});
 	});
 
+	// the quarantine: put a file back, delete one or all of them for good; its options show
+	// only while it is on
+	const quarantine = document.querySelector('[data-quarantine]');
+	if (quarantine) {
+		const keep = quarantine.querySelector('[data-quarantine-keep]');
+		const showOptions = () => quarantine.querySelectorAll('[data-quarantine-on]').forEach(part => {
+			part.hidden = keep.value === '';
+		});
+		keep.addEventListener('change', showOptions);
+		showOptions();
+		quarantine.addEventListener('click', e => {
+			const button = e.target.closest('[data-quarantine-restore], [data-quarantine-delete], [data-quarantine-empty]');
+			if (!button || (button.dataset.confirm && !window.confirm(button.dataset.confirm))) {
+				return;
+			}
+			const action = button.dataset.quarantineRestore ? 'restore' : button.dataset.quarantineDelete ? 'delete' : 'empty';
+			const body = new URLSearchParams({ id: button.dataset.quarantineRestore || button.dataset.quarantineDelete || '' });
+			button.disabled = true;
+			fetch(`/quarantine/${action}`, { method: 'POST', body })
+				.then(readBackupAnswer)
+				.then(({ ok, json }) => {
+					if (!ok) {
+						button.disabled = false;
+						backupFailed(json);
+						return;
+					}
+					insertAlert(mainContainer(), 'alert-success', 'bi-check-circle-fill', '', json.message);
+					const row = button.closest('[data-quarantine-row]');
+					if (row && quarantine.querySelectorAll('[data-quarantine-row]').length > 1) {
+						row.classList.add('quarantine-row-out');
+						setTimeout(() => window.location.reload(), 450);
+					} else {
+						window.location.reload();
+					}
+				})
+				.catch(() => {
+					button.disabled = false;
+					backupFailed();
+				});
+		});
+	}
+
 	// installable app; browsers only allow it on HTTPS or localhost
 	if ('serviceWorker' in navigator && window.isSecureContext) {
 		navigator.serviceWorker.register('/sw.js').catch(() => undefined);
@@ -284,7 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	initSearchClear();
 	initCopyButtons();
 	initFullRows();
-	initImageFallbacks();
 	initScreenshots();
 	initSpacePreparing();
 	initPack();

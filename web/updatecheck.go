@@ -34,9 +34,10 @@ type AppUpdate struct {
 	files releaseFiles
 }
 
-// CanInstall tells whether the app can install this version by itself.
+// CanInstall tells whether the app can install this version by itself: with a key to check the
+// releases with, only a signed one.
 func (u *AppUpdate) CanInstall() bool {
-	return u.files.archiveUrl != "" && selfUpdatable()
+	return u.files.archiveUrl != "" && u.files.signed() && selfUpdatable()
 }
 
 // updateChecker remembers the latest release found on GitHub.

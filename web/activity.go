@@ -3,7 +3,6 @@ package web
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -19,6 +18,9 @@ import (
 const (
 	ACTIVITY_FILENAME = "activity.json"
 	maxActivities     = 500
+	// the failed and blocked sign-ins kept at most: a flood of them from many addresses cannot
+	// push the other actions out of the log
+	maxFailedSignIns = 100
 )
 
 // actions, translated by the interface
@@ -95,7 +97,7 @@ func (web *Web) activities() *activityLog {
 // reload reads the log again, also after a backup was restored.
 func (l *activityLog) reload() {
 	entries := []Activity{}
-	if data, err := os.ReadFile(l.path); err == nil {
+	if data, ok := readStore(l.path); ok {
 		parseStore(l.path, data, &entries)
 	}
 	l.mutex.Lock()
@@ -108,12 +110,29 @@ func (l *activityLog) add(entry Activity) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	l.entries = append([]Activity{entry}, l.entries...)
+	if failedSignIn(entry) {
+		// only the newest failed sign-ins stay
+		kept, failures := l.entries[:0], 0
+		for _, each := range l.entries {
+			if failedSignIn(each) {
+				if failures++; failures > maxFailedSignIns {
+					continue
+				}
+			}
+			kept = append(kept, each)
+		}
+		l.entries = kept
+	}
 	if len(l.entries) > maxActivities {
 		l.entries = l.entries[:maxActivities]
 	}
 	if data, err := json.MarshalIndent(l.entries, "", " "); err == nil {
 		writeFileAtomic(l.path, data)
 	}
+}
+
+func failedSignIn(entry Activity) bool {
+	return entry.Action == ACTION_LOGIN_FAIL || entry.Action == ACTION_LOGIN_LOCK
 }
 
 // activityPreview is the newest entries, at most n.

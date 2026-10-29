@@ -13,6 +13,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/process"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -28,6 +29,7 @@ const (
 	NOTE_SPACE_KEPT_DAMAGED  = "The copy that is kept is damaged: keep this one."
 	NOTE_SPACE_KEPT_MISSING  = "The copy that is kept was not found; rescan the library."
 	NOTE_SPACE_NEWER_DAMAGED = "The newer file is damaged: keep this one."
+	NOTE_SPACE_NEWER_UNREAD  = "The newer file could not be read, it was recognized by its name only: keep this one."
 	NOTE_SPACE_NOT_SAME      = "The compressed file does not hold everything this file holds: keep this one."
 	NOTE_SPACE_KEPT_PARTIAL  = "The copy that is kept could not be checked whole: keep this one."
 	// the same, on the Space page, where the user can still choose to delete it
@@ -96,6 +98,8 @@ func (g SpaceGroup) RestSize() int64 {
 type SpacePageData struct {
 	GlobalPageData
 	Groups []SpaceGroup
+	// the files deleted go to the quarantine, and can be put back
+	Quarantine bool
 	// the size of the library and the space that can be freed now
 	LibrarySize  int64
 	Reclaimable  int64
@@ -327,7 +331,7 @@ func (web *Web) holdsSameContents(original string, copyPath string, copyInfo os.
 }
 
 // newerDamaged refuses to delete an old update or DLC whose newer version was found
-// damaged: the old one may be the only one that works.
+// damaged, or could not be read at all: the old one may be the only one that works.
 func (web *Web) newerDamaged(newer string) string {
 	// the newer file must still be there, moved or deleted by hand since the scan or not
 	if info, err := os.Stat(newer); newer == "" || err != nil || info.IsDir() {
@@ -336,7 +340,27 @@ func (web *Web) newerDamaged(newer string) string {
 	if web.verifications().foundDamaged(newer) {
 		return NOTE_SPACE_NEWER_DAMAGED
 	}
+	// a copy cut short, or read with keys too old, is the newer version by its name only
+	if web.unreadFiles()[filepath.Clean(newer)] {
+		return NOTE_SPACE_NEWER_UNREAD
+	}
 	return ""
+}
+
+// unreadFiles are the files of the library the scan could not read, by path: the ones it
+// recognized by their names only.
+func (web *Web) unreadFiles() map[string]bool {
+	return web.derived("unreadFiles", func() any {
+		unread := map[string]bool{}
+		if _, localDB := web.state.get(); localDB != nil {
+			for file, skipped := range localDB.Skipped {
+				if skipped.ReasonCode == db.REASON_FILENAME_FALLBACK || skipped.ReasonCode == db.REASON_MALFORMED_FILE {
+					unread[filepath.Clean(filepath.Join(file.BaseFolder, file.FileName))] = true
+				}
+			}
+		}
+		return unread
+	}).(map[string]bool)
 }
 
 // cleanupRefusal applies the rules of the Space page to the cleanup of Organize and of the
@@ -369,7 +393,12 @@ func (web *Web) cleanupRefusal(file db.ExtendedFileInfo, skipped db.SkippedFile)
 // reason names the copy kept of one of them only, and the copies kept of the others must be
 // sound too, or deleting it would lose what only it holds sound.
 func (web *Web) requireSoundKeptCopies(entry *SpaceFile) {
-	for _, other := range web.keptCopiesOf(entry.file) {
+	copies, read := web.keptCopiesOf(entry.file)
+	if !read && entry.Deletable {
+		entry.Deletable, entry.Note, entry.OnRequest = false, NOTE_SPACE_UNREAD, false
+		return
+	}
+	for _, other := range copies {
 		if other == entry.KeptBy || !entry.Deletable {
 			continue
 		}
@@ -385,15 +414,20 @@ type heldTitle struct {
 	version int
 }
 
-// heldTitles are the titles a file holds, read once while it does not change.
-func (web *Web) heldTitles(path string) []heldTitle {
+// NOTE_SPACE_UNREAD is told of a duplicate whose titles could not be read: what only it holds
+// cannot be known.
+const NOTE_SPACE_UNREAD = "What this file holds could not be read: keep this one."
+
+// heldTitles are the titles a file holds, read once while it does not change; false when the
+// file could not be read, which is not kept: it is read again the next time.
+func (web *Web) heldTitles(path string) ([]heldTitle, bool) {
 	info, err := os.Stat(path)
 	if err != nil {
-		return nil
+		return nil, false
 	}
 	key := fmt.Sprintf("%s|%d|%d", path, info.Size(), info.ModTime().UnixNano())
 	if held, ok := web.titlesHeld.Load(key); ok {
-		return held.([]heldTitle)
+		return held.([]heldTitle), true
 	}
 	var contents map[string]*switchfs.ContentMetaAttributes
 	switch strings.ToLower(filepath.Ext(path)) {
@@ -402,30 +436,31 @@ func (web *Web) heldTitles(path string) []heldTitle {
 	case ".xci", ".xcz":
 		contents, err = switchfs.ReadXciMetadata(path)
 	}
+	if err != nil {
+		return nil, false
+	}
 	held := []heldTitle{}
-	if err == nil {
-		for id, content := range contents {
-			held = append(held, heldTitle{id: id, version: content.Version})
-		}
+	for id, content := range contents {
+		held = append(held, heldTitle{id: id, version: content.Version})
 	}
 	web.titlesHeld.Store(key, held)
-	return held
+	return held, true
 }
 
 // keptCopiesOf are the files the library keeps for the titles a file with several titles holds
 // (a cartridge with its update, a SuperNSP), other than the file itself; none for a file with
-// one title.
-func (web *Web) keptCopiesOf(file db.ExtendedFileInfo) []string {
+// one title. read is false when the titles of the file could not be read.
+func (web *Web) keptCopiesOf(file db.ExtendedFileInfo) (copies []string, read bool) {
 	path := filepath.Join(file.BaseFolder, file.FileName)
 	if file.FileName == "" {
-		return nil
+		return nil, true
 	}
-	held := web.heldTitles(path)
+	held, read := web.heldTitles(path)
 	_, localDB := web.state.get()
-	if len(held) < 2 || localDB == nil {
-		return nil
+	if !read || len(held) < 2 || localDB == nil {
+		return nil, read
 	}
-	copies := []string{}
+	copies = []string{}
 	for _, content := range held {
 		id := content.id
 		prefix, err := db.TitleIDPrefix(id)
@@ -450,7 +485,7 @@ func (web *Web) keptCopiesOf(file db.ExtendedFileInfo) []string {
 			copies = append(copies, keptPath)
 		}
 	}
-	return copies
+	return copies, true
 }
 
 // requireSoundKeptCopy lets a duplicate be deleted only when the copy that stays was
@@ -466,6 +501,13 @@ func (web *Web) requireSoundKeptCopy(entry *SpaceFile) {
 	if err != nil || info.IsDir() {
 		entry.Deletable = false
 		entry.Note = NOTE_SPACE_KEPT_MISSING
+		return
+	}
+	// the copy that stays is this very file, reached by another path (a library scanned by an
+	// older version listed it so): deleting it would delete both
+	if entry.Path != "" && process.SameFile(entry.Path, entry.KeptBy) {
+		entry.Deletable = false
+		entry.Note = process.REASON_SAME_FILE
 		return
 	}
 	record, ok := web.verifications().current(entry.KeptBy, info)
@@ -527,6 +569,11 @@ func (web *Web) spaceKey() string {
 	if web.verifying() {
 		return fmt.Sprintf("space:%d", store.SavedVersion())
 	}
+	// a compression gives a result with every file it writes: the page shows the content of
+	// when the task began, worked out again once it ends (no cleanup runs meanwhile)
+	if version, held := web.spaceHeld(); held {
+		return fmt.Sprintf("space:%d", version)
+	}
 	return fmt.Sprintf("space:%d", store.Version())
 }
 
@@ -539,7 +586,7 @@ func (web *Web) lastSpaceContent() *SpacePageData {
 // spaceContent is the content of the Space page, computed once: it opens every original and
 // its compressed copy and looks at many files, which takes a while on a NAS.
 func (web *Web) spaceContent() SpacePageData {
-	return web.derived(web.spaceKey(), func() any { return web.buildSpaceContent() }).(SpacePageData)
+	return web.derivedLatest("space:", web.spaceKey(), func() any { return web.buildSpaceContent() }).(SpacePageData)
 }
 
 // spaceReady tells whether the Space page can be shown at once; if not, its content is
@@ -612,6 +659,7 @@ func (web *Web) HandleSpace() {
 				data.GlobalPageData = web.globalPageData("space")
 				data.Updating = true
 				data.Regions = web.regionalDuplicates(web.requestLanguage(r))
+				data.Quarantine = quarantineOn(settings.ReadSettings(web.dataFolder).Quarantine)
 				web.render(w, r, templates, data)
 				return
 			}
@@ -620,6 +668,7 @@ func (web *Web) HandleSpace() {
 		}
 		data := web.spacePageData()
 		data.Regions = web.regionalDuplicates(web.requestLanguage(r))
+		data.Quarantine = quarantineOn(settings.ReadSettings(web.dataFolder).Quarantine)
 		web.render(w, r, templates, data)
 	}).Methods("GET")
 

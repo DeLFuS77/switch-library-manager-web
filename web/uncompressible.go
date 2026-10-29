@@ -3,7 +3,6 @@ package web
 import (
 	"encoding/json"
 	"errors"
-	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -104,7 +103,7 @@ type UncompressibleEntry struct {
 func (web *Web) uncompressible() *uncompressibleStore {
 	web.uncompressibleOnce.Do(func() {
 		store := &uncompressibleStore{path: filepath.Join(web.dataFolder, UNCOMPRESSIBLE_FILENAME), files: map[string]uncompressibleFile{}, looked: map[string]bool{}}
-		if data, err := os.ReadFile(store.path); err == nil {
+		if data, ok := readStore(store.path); ok {
 			parseStore(store.path, data, &store.files)
 		}
 		if store.files == nil {

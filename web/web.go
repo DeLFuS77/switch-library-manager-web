@@ -51,6 +51,8 @@ type SyncProgress struct {
 	Current       int    `json:"current"`
 	Total         int    `json:"total"`
 	Message       string `json:"message"`
+	// the message in the language of the request
+	Text string `json:"text,omitempty"`
 }
 
 func (s *WebState) setProgress(current int, total int, message string) {
@@ -134,6 +136,9 @@ type Web struct {
 	uploads uploadStore
 	// one check of the notifications at a time: two would send the same items
 	notifying sync.Mutex
+	// every cover the Tasks page found for a file, by its name: kept while a scan rebuilds the
+	// library, and for a file compressed since, see fileCovers
+	knownCovers sync.Map
 	// results of switchfs.HoldsSameContents, see holdsSameContents
 	sameContents      sync.Map
 	sameContentsCount atomic.Int64
@@ -175,6 +180,8 @@ type Web struct {
 	// the scans of the library that ended well, for the watcher to know one followed a task
 	// on the files
 	scansDone atomic.Uint64
+	// the last scan the app asked for after changing the files itself (see noteAppScan)
+	appScan atomic.Pointer[appScanRequest]
 	// when the scan running or last run started, and a rescan asked while it ran (the files
 	// changed meanwhile, e.g. a compression ended), done once it ends
 	scanStarted   atomic.Int64
@@ -205,7 +212,10 @@ type Web struct {
 	updates       updateChecker
 	verify        *verifyStore
 	verifyOnce    sync.Once
-	compressor    compressor
+	// the files deleted that wait in the quarantine
+	quarantineItems *quarantineStore
+	quarantineOnce  sync.Once
+	compressor      compressor
 	// files are being organized or deleted by Organize: file tasks wait
 	organizing atomic.Bool
 	// the files deleted so far by the cleanup running, for the page to take them off its list
@@ -481,6 +491,11 @@ var funcMap = template.FuncMap{
 	"playStateName": func(state string) string { return playStateLooks[state].Name },
 	"filterUrl": func(filter *TitleItemFilter, replace ...string) template.URL {
 		return template.URL("?" + filter.query(replace...).Encode())
+	},
+	// filterHidden keeps the filter in a form that changes a part of it, as hidden fields
+	// besides the fields of the form: filterHidden .Filter "per_page"
+	"filterHidden": func(filter *TitleItemFilter, own ...string) template.HTML {
+		return filter.hiddenFields(own...)
 	},
 	"formatSize": formatSize,
 	// versions as v0, v65536
@@ -780,6 +795,7 @@ func (web *Web) Start() {
 	web.HandleMeasure()
 	web.HandleVerify()
 	web.HandleBackup()
+	web.HandleQuarantine()
 	web.HandleSpace()
 	web.HandleSdCard()
 	web.HandleOrphans()
@@ -950,6 +966,15 @@ func progressMessage(message string) (string, string) {
 		return "Done", ""
 	}
 	return message, ""
+}
+
+// messageText translates the message of a task, with what it names in its place: a message
+// that is only the name of a file stays as it is.
+func messageText(lang string, message string, arg string) string {
+	if arg != "" {
+		return translatef(lang, message, arg)
+	}
+	return translate(lang, message)
 }
 
 // taskLog returns the task history, loading it on first use.

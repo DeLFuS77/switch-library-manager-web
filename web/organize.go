@@ -211,7 +211,8 @@ func (web *Web) organizeFiles(action string, paths []string, dryRun bool) ([]pro
 
 	switch action {
 	case ORGANIZE_ACTION_ORGANIZE:
-		return process.OrganizeByFolders(settingsObj.Folder, localDB, switchDB, options, dryRun, progress)
+		// every library folder is one: an extra one is no game's own folder
+		return process.OrganizeLibrary(settingsObj.Folder, scanFolders(settingsObj), localDB, switchDB, options, dryRun, progress)
 	case ORGANIZE_ACTION_NEW:
 		roots := scanFolders(settingsObj)
 		if paths == nil {
@@ -220,7 +221,7 @@ func (web *Web) organizeFiles(action string, paths []string, dryRun bool) ([]pro
 		return process.OrganizeNewFiles(settingsObj.Folder, roots, paths, localDB, switchDB, options, dryRun, progress)
 	case ORGANIZE_ACTION_CLEANUP:
 		// of two copies the compressed one stays, when it was checked and is sound
-		return process.DeleteOldUpdates(settingsObj.Folder, web.preferCompressed(localDB), options, dryRun, progress, web.cleanupRefusal), nil
+		return process.CleanupLibrary(web.discard, settingsObj.Folder, scanFolders(settingsObj), web.preferCompressed(localDB), options, dryRun, progress, web.cleanupRefusal), nil
 	default:
 		return nil, errors.New("unknown action")
 	}
@@ -256,6 +257,7 @@ func (web *Web) runOrganizeFiles(action string, paths []string, trigger string) 
 	web.verifications().follow(operations)
 	web.uncompressible().follow(operations)
 	web.moves.record(operations)
+	web.followKeptChoices(operations)
 	var failure *TaskNote
 	if err == nil {
 		web.taskLog().SetResult(taskId, 0, web.noteOrganized(taskId, operations))
@@ -332,7 +334,7 @@ func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string)
 	web.removing.reset()
 	removed := make([]process.Operation, 0, len(files))
 	for i := range files {
-		ops := process.RemoveFiles(files[i:i+1], reasons[i:i+1], false)
+		ops := process.RemoveFiles(files[i:i+1], reasons[i:i+1], false, web.discard)
 		for _, op := range ops {
 			if op.Error == "" {
 				web.removing.add(op.From)
@@ -430,9 +432,11 @@ func (web *Web) HandleOrganize() {
 	}, func(value any, lang string) SuccessResponse {
 		form := value.(*OrganizeForm)
 		keptBefore := settings.ReadSettings(web.dataFolder).OrganizeOptions.KeepDuplicate
-		settings.UpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
+		if _, err := settings.TryUpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
 			appSettings.OrganizeOptions = form.toOptions(appSettings.OrganizeOptions)
-		})
+		}); err != nil {
+			return notSaved(lang, err)
+		}
 		// the tune-up counts the changes of Organize with the new options
 		web.invalidateDerived()
 		// the scan decides which copy of a duplicate is kept

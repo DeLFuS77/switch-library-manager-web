@@ -1,11 +1,13 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"os"
-	"path/filepath"
 	"regexp"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 )
@@ -37,6 +39,9 @@ type SettingsPageData struct {
 	FilesAtOnceChoices    []int
 	// the app can install a new version by itself (not in a container)
 	SelfUpdatable bool
+	// the files deleted that wait in the quarantine, and the sizes it can hold
+	Quarantine       quarantineSummary
+	QuarantineLimits []int
 }
 
 type SettingsForm struct {
@@ -74,6 +79,10 @@ type SettingsForm struct {
 	VaultPassword         string `in:"form=vault_password"`
 	VaultKeep             int    `in:"form=vault_keep"`
 	VaultNotify           bool   `in:"form=vault_notify"`
+	QuarantineKeep        string `in:"form=quarantine_keep"`
+	QuarantineLimit       int    `in:"form=quarantine_limit"`
+	QuarantineMakeRoom    bool   `in:"form=quarantine_make_room"`
+	QuarantineOriginals   bool   `in:"form=quarantine_originals"`
 	IgdbClientId          string `in:"form=igdb_client_id"`
 	IgdbClientSecret      string `in:"form=igdb_client_secret"`
 	AutoCompress          string `in:"form=auto_compress"`
@@ -299,6 +308,12 @@ func (web *Web) HandleSettings() {
 		if _, ok := allowedVaultKeep[settingsForm.VaultKeep]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_keep", Message: translate(lang, "Unknown option")})
 		}
+		if _, ok := quarantineKeeps[settingsForm.QuarantineKeep]; !ok {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "quarantine_keep", Message: translate(lang, "Unknown option")})
+		}
+		if !slices.Contains(quarantineLimits, settingsForm.QuarantineLimit) {
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "quarantine_limit", Message: translate(lang, "Unknown option")})
+		}
 
 		if _, ok := allowedVerifyIntervals[settingsForm.VerifyIntervalDays]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
@@ -307,7 +322,9 @@ func (web *Web) HandleSettings() {
 			})
 		}
 
-		errorResponse.FieldErrors = append(errorResponse.FieldErrors, validateNotifications(settingsForm.notificationOptions(), lang)...)
+		// the secrets the page got masked are checked as they are saved
+		sent := keptSecrets(settingsForm.notificationOptions(), settings.ReadSettings(web.dataFolder).Notifications)
+		errorResponse.FieldErrors = append(errorResponse.FieldErrors, validateNotifications(sent, lang)...)
 
 		if !validWizardOrganize(settingsForm.OrganizeLayout, settingsForm.KeepDuplicate) {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
@@ -329,7 +346,7 @@ func (web *Web) HandleSettings() {
 		cheatsWereOff := settings.ReadSettings(web.dataFolder).CheatsDisabled
 		scanFolders := SplitAndTrimSpaceArray(settingsForm.ScanFolders, "\n")
 
-		settings.UpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
+		_, err := settings.TryUpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
 			appSettings.Prodkeys = settingsForm.Prodkeys
 			appSettings.IgnoreDLCTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreDLCTitleIds, "\n")
 			appSettings.IgnoreUpdateTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreUpdateTitleIds, "\n")
@@ -357,6 +374,8 @@ func (web *Web) HandleSettings() {
 			appSettings.Vault.User = strings.TrimSpace(settingsForm.VaultUser)
 			appSettings.Vault.Keep = settingsForm.VaultKeep
 			appSettings.Vault.Notify = settingsForm.VaultNotify
+			appSettings.Quarantine = settings.QuarantineOptions{Keep: settingsForm.QuarantineKeep, LimitGB: settingsForm.QuarantineLimit,
+				MakeRoom: settingsForm.QuarantineMakeRoom, Originals: settingsForm.QuarantineOriginals}
 			if settingsForm.VaultPassword != "" {
 				if hash, err := hashVaultPassword(settingsForm.VaultPassword); err == nil {
 					appSettings.Vault.PasswordHash = hash
@@ -376,7 +395,7 @@ func (web *Web) HandleSettings() {
 			appSettings.CompressFilesAtOnce = settingsForm.CompressFilesAtOnce
 			appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
 			appSettings.Language = settingsForm.Language
-			appSettings.Notifications = settingsForm.notificationOptions()
+			appSettings.Notifications = keptSecrets(settingsForm.notificationOptions(), appSettings.Notifications)
 			if settingsForm.OrganizeLayout != "" {
 				appSettings.OrganizeOptions = wizardOrganize(appSettings.OrganizeOptions, settingsForm.OrganizeLayout,
 					settingsForm.KeepGameFolders, settingsForm.RenameFiles, settingsForm.DeleteEmptyFolders, settingsForm.KeepDuplicate)
@@ -388,6 +407,9 @@ func (web *Web) HandleSettings() {
 				appSettings.ScanFolders = []string{}
 			}
 		})
+		if err != nil {
+			return notSaved(lang, err)
+		}
 		// turned on: the cheats come now, not with the next synchronization
 		if cheatsWereOff && settingsForm.Cheats {
 			go web.downloadCheats()
@@ -411,6 +433,14 @@ func (web *Web) HandleSettings() {
 	}, web.embedFS, fsPatterns...)
 }
 
+// notSaved is the answer to a form whose settings could not be saved (a disk full or that
+// cannot be written, a file held by an antivirus): an error, never "Saved", which the next start
+// would prove wrong.
+func notSaved(lang string, err error) SuccessResponse {
+	return SuccessResponse{failure: &ErrorResponse{FieldErrors: []FieldError{},
+		GlobalError: GlobalError{StrongMessage: translate(lang, "Error!"), Message: translatef(lang, "The settings could not be saved: %v", err)}}}
+}
+
 // VerifySpeedOption is a verification speed and how many files it checks at once here.
 type VerifySpeedOption struct {
 	Value   string
@@ -431,21 +461,26 @@ func verifySpeedOptions() []VerifySpeedOption {
 // (ignoring a title or a synchronization also changes them) and what they depend on.
 func (web *Web) settingsPageData() SettingsPageData {
 	current := settings.ReadSettings(web.dataFolder)
+	// the secrets of the notifications never go back to the page (see secretMask)
+	shown := *current
+	shown.Notifications = maskedNotifications(current.Notifications)
 	return SettingsPageData{
 		GlobalPageData:          web.globalPageData("settings"),
-		Settings:                current,
+		Settings:                &shown,
 		NextSync:                nextSyncTime(current),
 		SyncIntervals:           []int{0, 6, 12, 24, 168},
 		Languages:               supportedLanguages,
 		MissingCovers:           web.missingCovers(),
 		VerifySpeeds:            verifySpeedOptions(),
 		AutoBackups:             web.autoBackups(),
+		Quarantine:              web.quarantineSummary(),
+		QuarantineLimits:        quarantineLimits,
 		KeysAvailable:           settings.IsKeysFileAvailable(),
 		NotificationsConfigured: notificationsConfigured(current.Notifications),
 		AutomationPending:       web.automationPending(),
 		CompressThreadChoices:   compressThreadChoices(),
 		Processors:              runtime.NumCPU(),
-		DefaultThreads:          compressWorkers(),
+		DefaultThreads:          switchfs.UsableProcessors(),
 		FilesAtOnceChoices:      []int{1, 2, 3, maxFilesAtOnce},
 		SelfUpdatable:           selfUpdatable(),
 		LastMeasure:             web.lastMeasure(),
@@ -454,26 +489,30 @@ func (web *Web) settingsPageData() SettingsPageData {
 
 // repeatedFolders tells, in the language of the page, the first folder listed twice or inside
 // another listed folder (the library is scanned with its subfolders); empty when there is none.
+// The folders are compared on the disk too: a drive of Windows and the share it maps, or two
+// volumes of a container on one folder, are one folder written in two ways. A folder written
+// with ".." is compared by its name only, never looked for on the disk.
 func repeatedFolders(folders []string, lang string) string {
-	key := func(folder string) string {
-		folder = filepath.Clean(folder)
-		if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
-			return strings.ToLower(folder)
-		}
-		return folder
-	}
 	for i, folder := range folders {
 		for j, other := range folders {
 			if i == j {
 				continue
 			}
-			if key(folder) == key(other) {
+			same := db.SameFolderName(folder, other)
+			if !same && !strings.Contains(folder, "..") && !strings.Contains(other, "..") {
+				same = db.SameFolder(folder, other)
+			}
+			if same {
 				if i < j {
 					return translatef(lang, "This folder is listed twice: %v", folder)
 				}
 				continue
 			}
-			if rel, err := filepath.Rel(key(other), key(folder)); err == nil && rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			inside := db.FolderInsideName(folder, other)
+			if !inside && !strings.Contains(folder, "..") && !strings.Contains(other, "..") {
+				inside = db.FolderInside(folder, other)
+			}
+			if inside {
 				return translatef(lang, "%v is inside %v: its files would be read twice. Keep only one of them.", folder, other)
 			}
 		}

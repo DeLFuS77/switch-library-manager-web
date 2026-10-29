@@ -1,7 +1,11 @@
 package web
 
 import (
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -11,6 +15,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 )
 
 // envAuth returns an Auth with the user set in the environment.
@@ -296,6 +301,66 @@ func TestSessionsEndWhenThePasswordChanges(t *testing.T) {
 	}
 }
 
+// A session nobody used for two weeks ends before its 30 days, also after a restart; every use
+// moves it on, and a session made before this version starts with its next use.
+func TestIdleSessionsEnd(t *testing.T) {
+	web := usersWeb(t)
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	handler := web.auth.middleware(web.router)
+	c := &client{t: t, handler: handler}
+	c.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
+	if code := c.do("GET", "/index.html", nil).Code; code != http.StatusOK {
+		t.Fatalf("signed in: %d", code)
+	}
+	signature := strings.Split(c.cookies[0].Value, ".")[2]
+	hash := sha256.Sum256([]byte(signature))
+	key := hex.EncodeToString(hash[:16])
+	lastUse := func(ago time.Duration) {
+		web.auth.seen.mutex.Lock()
+		entry := web.auth.seen.seen[key]
+		entry.Last = time.Now().Add(-ago).Unix()
+		web.auth.seen.seen[key] = entry
+		web.auth.seen.mutex.Unlock()
+	}
+
+	lastUse(sessionIdle - time.Hour)
+	if code := c.do("GET", "/index.html", nil).Code; code != http.StatusOK {
+		t.Fatalf("used within two weeks: %d", code)
+	}
+	if last := web.auth.seen.seen[key].Last; time.Since(time.Unix(last, 0)) > time.Minute {
+		t.Fatal("a use moves the session on")
+	}
+	lastUse(sessionIdle + time.Hour)
+	if code := c.do("GET", "/index.html", nil).Code; code != http.StatusUnauthorized {
+		t.Fatalf("not used for two weeks: %d", code)
+	}
+	// written down, so the session stays ended after a restart, and the file holds no signature
+	web.auth.seen.use("another session", time.Now().Add(time.Hour).Unix(), time.Now())
+	restarted, err := newAuth(web.dataFolder)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if restarted.fromSession(httptest.NewRequest("GET", "/", nil)) != nil {
+		t.Fatal("no cookie, no session")
+	}
+	request := httptest.NewRequest("GET", "/index.html", nil)
+	request.AddCookie(c.cookies[0])
+	if restarted.fromSession(request) != nil {
+		t.Fatal("an ended session after a restart")
+	}
+	if data, _ := os.ReadFile(filepath.Join(web.dataFolder, SEEN_SESSIONS_FILENAME)); strings.Contains(string(data), signature) {
+		t.Fatal("the signatures are not written down")
+	}
+
+	// a session from before: not seen yet, it goes on
+	web.auth.seen.mutex.Lock()
+	delete(web.auth.seen.seen, key)
+	web.auth.seen.mutex.Unlock()
+	if code := c.do("GET", "/index.html", nil).Code; code != http.StatusOK {
+		t.Fatalf("a session made before: %d", code)
+	}
+}
+
 func TestTamperedSessionsAreRejected(t *testing.T) {
 	web := usersWeb(t)
 	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
@@ -538,5 +603,170 @@ func TestSignInsToldToActivity(t *testing.T) {
 	wrong.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"guessed-wrong-2"}})
 	if count("alice blocked") != 1 {
 		t.Fatalf("a blocked login page is told once an hour: %v", told)
+	}
+}
+
+// A flood of failed sign-ins with long names, from one address or from many, keeps the names
+// short and the activity log small, with the other actions still in it.
+func TestFailedSignInsCannotFloodTheActivity(t *testing.T) {
+	web := usersWeb(t)
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	web.auth.onLogin = web.recordLogin
+	web.activities().add(Activity{Time: time.Now(), User: "alice", Action: ACTION_SETTINGS})
+	handler := web.auth.middleware(web.router)
+	count := func(action string) int {
+		n := 0
+		for _, entry := range web.activities().list() {
+			if entry.Action == action {
+				n++
+			}
+		}
+		return n
+	}
+	long := strings.Repeat("x", 60<<10)
+
+	// one address: its failures until it is blocked, then a single blocked attempt whatever
+	// the names it tries, by the login page or by basic authentication
+	bot := &client{t: t, handler: handler, ip: "192.0.2.50"}
+	for i := range 30 {
+		bot.do("POST", "/login.html", url.Values{"name": {long + fmt.Sprint(i)}, "password": {"guessed-wrong-1"}})
+	}
+	bot.do("GET", "/index.html", nil, "Authorization", basic(long+"basic", "guessed-wrong-1"))
+	if fails := count(ACTION_LOGIN_FAIL); fails != maxLoginFailures {
+		t.Fatalf("the failures of one address: %d", fails)
+	}
+	if blocked := count(ACTION_LOGIN_LOCK); blocked != 1 {
+		t.Fatalf("a blocked address trying other names is told once: %d", blocked)
+	}
+	api := &client{t: t, handler: handler, ip: "192.0.2.60"}
+	api.do("GET", "/index.html", nil, "Authorization", basic(long, "guessed-wrong-1"))
+	for _, entry := range web.activities().list() {
+		if utf8.RuneCountInString(entry.User) > maxAttemptName+1 {
+			t.Fatalf("a name of %d characters was kept", utf8.RuneCountInString(entry.User))
+		}
+	}
+	if keys := loginKeys("192.0.2.50", long); len(keys[1]) > len("user:#")+maxLimiterName {
+		t.Fatalf("a key of the limiter of %d bytes", len(keys[1]))
+	}
+	if name := web.auth.attemptName("evil\u202ename\x1b[31m"); name != "evilname[31m" {
+		t.Fatalf("control characters are left out: %q", name)
+	}
+
+	// many addresses: only the newest failures stay, and the other actions with them
+	for i := range 3 * maxFailedSignIns {
+		web.auth.loginAttempt("name"+fmt.Sprint(i), fmt.Sprintf("203.0.%d.%d", i/200, i%200+1), "fail", "guessed-wrong-1", 0)
+	}
+	if fails := count(ACTION_LOGIN_FAIL) + count(ACTION_LOGIN_LOCK); fails != maxFailedSignIns {
+		t.Fatalf("failed sign-ins kept: %d", fails)
+	}
+	if count(ACTION_SETTINGS) != 1 || web.activities().list()[0].IP != fmt.Sprintf("203.0.%d.%d", (3*maxFailedSignIns-1)/200, (3*maxFailedSignIns-1)%200+1) {
+		t.Fatal("the other actions and the newest failures stay")
+	}
+	if info, err := os.Stat(filepath.Join(web.dataFolder, ACTIVITY_FILENAME)); err != nil || info.Size() > 64<<10 {
+		t.Fatalf("the log on the disk: %v", info.Size())
+	}
+
+	// the failures of one address are told a few times a minute at most
+	now := time.Date(2026, 10, 29, 12, 0, 30, 0, time.UTC)
+	told := 0
+	for i := range 3 * maxToldPerMinute {
+		if web.auth.shouldTell("name"+fmt.Sprint(i), "192.0.2.70", "fail", 0, now) {
+			told++
+		}
+	}
+	if told != maxToldPerMinute || !web.auth.shouldTell("alice", "192.0.2.70", "ok", 0, now) || !web.auth.shouldTell("other", "192.0.2.70", "fail", 0, now.Add(time.Minute)) {
+		t.Fatalf("told in a minute: %d", told)
+	}
+}
+
+// Over plain HTTP browsers send no Sec-Fetch headers: the scripts of the pages are told apart by
+// their Origin or Referer, and never get the browser's login dialog, which would keep the browser
+// signed in after Log out; a form sent after the session ended goes to the login page. API
+// clients are still asked for credentials.
+func TestNoLoginDialogForThePagesOverPlainHttp(t *testing.T) {
+	web := usersWeb(t)
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	anonymous := &client{t: t, handler: web.auth.middleware(web.router)}
+	page := "http://192.168.1.2:3000/index.html"
+	for name, headers := range map[string][]string{
+		"a script asking for JSON":  {"Accept", "application/json", "Referer", page},
+		"a script sending a form":   {"Accept", "*/*", "Origin", "http://192.168.1.2:3000", "Referer", page},
+		"a script of a secure page": {"Sec-Fetch-Site", "same-origin"},
+	} {
+		got := anonymous.do("POST", "/sync", nil, headers...)
+		if got.Code != http.StatusUnauthorized || got.Header().Get("WWW-Authenticate") != "" {
+			t.Errorf("%s: %d %q", name, got.Code, got.Header().Get("WWW-Authenticate"))
+		}
+	}
+	form := anonymous.do("POST", "/users/create", url.Values{"name": {"bob"}}, "Accept", "text/html,application/xhtml+xml,*/*;q=0.8", "Origin", "http://192.168.1.2:3000")
+	if form.Code != http.StatusSeeOther || form.Header().Get("Location") != "/login.html" {
+		t.Fatalf("a form sent without a session: %d %q", form.Code, form.Header().Get("Location"))
+	}
+	navigate := anonymous.do("GET", "/settings.html", nil, "Sec-Fetch-Mode", "navigate")
+	if navigate.Code != http.StatusSeeOther || navigate.Header().Get("Location") != "/login.html?next=%2Fsettings.html" {
+		t.Fatalf("a page opened: %d %q", navigate.Code, navigate.Header().Get("Location"))
+	}
+	if api := anonymous.do("GET", "/index.html", nil, "Accept", "*/*"); api.Code != http.StatusUnauthorized || api.Header().Get("WWW-Authenticate") == "" {
+		t.Fatalf("an API client is asked for credentials: %d", api.Code)
+	}
+}
+
+// The public paths answer without login, as a guest: never as an administrator, unless login is
+// off and the request comes from where it would make one. A path written with escapes or dots is
+// not public, whatever it becomes once decoded.
+func TestPublicPathsAreForGuests(t *testing.T) {
+	web := usersWeb(t)
+	roles := []string{}
+	public := func(w http.ResponseWriter, r *http.Request) {
+		role := principalFrom(r).Role
+		if isAdminRequest(r) {
+			role += " (admin)"
+		}
+		roles = append(roles, role)
+		w.Write([]byte("public"))
+	}
+	web.router.HandleFunc("/resources/static/web.css", public)
+	web.router.HandleFunc("/sw.js", public)
+	web.router.PathPrefix("/resources/static/").HandlerFunc(public)
+	handler := web.auth.middleware(web.router)
+	last := func() string { return roles[len(roles)-1] }
+
+	// login off: from the local network, an administrator as on every page
+	local := &client{t: t, handler: handler}
+	if code := local.do("GET", "/resources/static/web.css", nil).Code; code != http.StatusOK || last() != ROLE_ADMIN+" (admin)" {
+		t.Fatalf("login off, local: %d %q", code, last())
+	}
+	remote := &client{t: t, handler: handler, ip: "203.0.113.9"}
+	if code := remote.do("GET", "/sw.js", nil).Code; code != http.StatusOK || last() != ROLE_GUEST {
+		t.Fatalf("login off, from outside: %d %q", code, last())
+	}
+	if code := remote.do("GET", "/settings.html", nil).Code; code != http.StatusForbidden {
+		t.Fatalf("login off, from outside, a page: %d", code)
+	}
+
+	// login on: a guest, and the login page and Log out still work
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	anonymous := &client{t: t, handler: handler}
+	if code := anonymous.do("GET", "/resources/static/web.css", nil).Code; code != http.StatusOK || last() != ROLE_GUEST {
+		t.Fatalf("login on, nobody signed in: %d %q", code, last())
+	}
+	if page := anonymous.do("GET", "/login.html", nil); page.Code != http.StatusOK {
+		t.Fatalf("the login page: %d", page.Code)
+	}
+	if logout := anonymous.do("POST", "/logout", nil); logout.Code != http.StatusSeeOther {
+		t.Fatalf("Log out without a session: %d", logout.Code)
+	}
+	for _, path := range []string{"/resources/static/..%2f..%2fsettings.html", "/resources/static/%2e%2e/settings.html", "/resources/static/../../settings.html", "/resources/static/%77eb.css"} {
+		if code := anonymous.do("GET", path, nil).Code; code != http.StatusUnauthorized {
+			t.Errorf("%s needs a login: %d", path, code)
+		}
+	}
+	admin := &client{t: t, handler: handler}
+	admin.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
+	if code := admin.do("GET", "/resources/static/web.css", nil).Code; code != http.StatusOK || last() != ROLE_ADMIN+" (admin)" {
+		t.Fatalf("signed in: %d %q", code, last())
+	}
+	if isAdminRequest(httptest.NewRequest("GET", "/", nil).WithContext(context.WithValue(context.Background(), principalKey{}, (*Principal)(nil)))) {
+		t.Fatal("nobody is not an administrator")
 	}
 }

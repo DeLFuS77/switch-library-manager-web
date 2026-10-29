@@ -3,6 +3,7 @@ package switchfs
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -36,6 +37,24 @@ type gamePackage struct {
 
 // openGamePackage reads the layout of an NSP (or NSZ) or XCI (or XCZ).
 func openGamePackage(input io.ReaderAt) (*gamePackage, error) {
+	pkg, err := readGamePackage(input)
+	if err != nil {
+		return nil, err
+	}
+	// every file must lie within the input: a damaged size would be read as a file that is
+	// not there, a hash of nothing taken for its own
+	if size, ok := readerSize(input); ok {
+		for _, file := range pkg.files {
+			if file.offset < 0 || file.size < 0 || file.offset > size || file.size > size-file.offset {
+				return nil, fmt.Errorf("%s ends past the end of the file: %w", file.name, io.ErrUnexpectedEOF)
+			}
+		}
+	}
+	return pkg, nil
+}
+
+// readGamePackage is openGamePackage without the check of the files against the input.
+func readGamePackage(input io.ReaderAt) (*gamePackage, error) {
 	magic := make([]byte, 4)
 	if err := readAtFull(input, magic, 0); err != nil {
 		return nil, err
@@ -87,7 +106,7 @@ func openGamePackage(input io.ReaderAt) (*gamePackage, error) {
 // packageWriter writes the files of a compressed package in order.
 type packageWriter interface {
 	begin() error
-	startFile()
+	startFile() error
 	endFile() error
 	finish() error
 }
@@ -155,11 +174,15 @@ func (w *xczWriter) emptyPartition(name string) error {
 	if err := partition.finish(); err != nil {
 		return err
 	}
-	return w.root.addFile(name, position, w.alignedEnd())
+	end, err := w.alignedEnd()
+	if err != nil {
+		return err
+	}
+	return w.root.addFile(name, position, end)
 }
 
-func (w *xczWriter) startFile() {
-	w.secure.startFile()
+func (w *xczWriter) startFile() error {
+	return w.secure.startFile()
 }
 
 func (w *xczWriter) endFile() error {
@@ -170,7 +193,11 @@ func (w *xczWriter) finish() error {
 	if err := w.secure.finish(); err != nil {
 		return err
 	}
-	if err := w.root.addFile("secure", w.start, w.alignedEnd()); err != nil {
+	end, err := w.alignedEnd()
+	if err != nil {
+		return err
+	}
+	if err := w.root.addFile("secure", w.start, end); err != nil {
 		return err
 	}
 	for _, name := range w.pkg.partitions[indexOf(w.pkg.partitions, "secure")+1:] {
@@ -185,13 +212,18 @@ func (w *xczWriter) finish() error {
 }
 
 // alignedEnd pads the file to a multiple of 0x200 and returns the end.
-func (w *xczWriter) alignedEnd() int64 {
-	position, _ := w.file.Seek(0, io.SeekEnd)
+func (w *xczWriter) alignedEnd() (int64, error) {
+	position, err := w.file.Seek(0, io.SeekEnd)
+	if err != nil {
+		return 0, err
+	}
 	if padding := (0x200 - position%0x200) % 0x200; padding > 0 {
-		w.file.Write(make([]byte, padding))
+		if _, err := w.file.Write(make([]byte, padding)); err != nil {
+			return 0, err
+		}
 		position += padding
 	}
-	return position
+	return position, nil
 }
 
 func indexOf(values []string, value string) int {
@@ -217,6 +249,11 @@ type hfs0Writer struct {
 }
 
 func (w *hfs0Writer) begin() error {
+	// the names of the files are known before they are written: too many for the header are
+	// told before gigabytes are written for nothing
+	if err := w.checkHeader(); err != nil {
+		return err
+	}
 	if w.compact {
 		_, err := w.file.Write(make([]byte, 0x200))
 		return err
@@ -225,9 +262,10 @@ func (w *hfs0Writer) begin() error {
 	return err
 }
 
-func (w *hfs0Writer) startFile() {
-	position, _ := w.file.Seek(0, io.SeekCurrent)
+func (w *hfs0Writer) startFile() error {
+	position, err := w.file.Seek(0, io.SeekCurrent)
 	w.current = position
+	return err
 }
 
 func (w *hfs0Writer) endFile() error {
@@ -245,11 +283,26 @@ func (w *hfs0Writer) addFile(name string, start int64, end int64) error {
 	w.names = append(w.names, name)
 	w.starts = append(w.starts, start)
 	w.sizes = append(w.sizes, end-start)
-	w.file.Seek(0, io.SeekEnd)
+	_, err := w.file.Seek(0, io.SeekEnd)
+	return err
+}
+
+// checkHeader tells whether the header of the files named fits in the space reserved for it.
+func (w *hfs0Writer) checkHeader() error {
+	headerLen := int64(0x10 + hfs0EntrySize*len(w.names))
+	for _, name := range w.names {
+		headerLen += int64(len(name)) + 1
+	}
+	if headerLen > hfs0ReservedHeader || (w.compact && headerLen > 0x200) {
+		return errors.New("too many files for the HFS0 header")
+	}
 	return nil
 }
 
 func (w *hfs0Writer) finish() error {
+	if err := w.checkHeader(); err != nil {
+		return err
+	}
 	var table []byte
 	nameOffsets := make([]uint32, len(w.names))
 	for i, name := range w.names {
@@ -257,9 +310,6 @@ func (w *hfs0Writer) finish() error {
 		table = append(append(table, name...), 0)
 	}
 	headerLen := int64(0x10 + hfs0EntrySize*len(w.names) + len(table))
-	if headerLen > hfs0ReservedHeader || (w.compact && headerLen > 0x200) {
-		return errors.New("too many files for the HFS0 header")
-	}
 	header := make([]byte, headerLen)
 	copy(header, hfs0Magic)
 	binary.LittleEndian.PutUint32(header[4:8], uint32(len(w.names)))

@@ -59,7 +59,8 @@ func (web *Web) HandleActivity() {
 		})
 	}).Methods("GET")
 
-	// the whole log as a spreadsheet; the detail stays in English, like the stored log
+	// the whole log as a spreadsheet; the detail stays in English, like the stored log. The names
+	// tried at the login page and the values of the forms are never read as formulas
 	web.router.HandleFunc("/activity.csv", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
 		w.Header().Set("Content-Type", "text/csv; charset=utf-8")
@@ -67,7 +68,7 @@ func (web *Web) HandleActivity() {
 		writer := csv.NewWriter(w)
 		writer.Write([]string{"time", "user", "action", "detail", "ip"})
 		for _, entry := range translateActivity(lang, web.activities().list()) {
-			writer.Write([]string{entry.Time.Format("2006-01-02 15:04:05"), entry.User, translate(lang, entry.Action), entry.Detail, entry.IP})
+			writer.Write([]string{entry.Time.Format("2006-01-02 15:04:05"), csvSafe(entry.User), translate(lang, entry.Action), csvSafe(entry.Detail), csvSafe(entry.IP)})
 		}
 		writer.Flush()
 	}).Methods("GET")

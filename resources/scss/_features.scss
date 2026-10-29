@@ -369,10 +369,31 @@
 	background-color: rgb(var(--slm-work-rgb));
 }
 
+// spinners of work going on
+.text-work {
+	color: rgb(var(--slm-work-rgb)) !important;
+}
+
 // a file at work: the cover fills up from the bottom with its progress, with the share on it,
 // as in NXPress; the files waiting and ended keep their covers as they are
 .task-tile {
 	--tile-work-rgb: var(--slm-work-rgb);
+}
+
+// the share a cover (or the number of a lane) is filled with: a registered property, so it
+// rises smoothly between two updates of the list instead of jumping to the next value
+@property --lane-fill {
+	syntax: "<percentage>";
+	inherits: true;
+	initial-value: 0%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.task-tile,
+	.task-lane-thumb,
+	.task-lane-number {
+		transition: --lane-fill 1.2s linear;
+	}
 }
 
 .task-tile.is-working .task-tile-cover::after {
@@ -488,7 +509,7 @@
 	font-weight: 600;
 	background:
 		radial-gradient(closest-side, var(--bs-card-bg, var(--bs-body-bg)) 78%, transparent 80%),
-		conic-gradient(var(--bs-primary) var(--lane-fill, 0%), rgba(127, 127, 127, 0.25) 0);
+		conic-gradient(rgb(var(--slm-work-rgb)) var(--lane-fill, 0%), rgba(127, 127, 127, 0.25) 0);
 }
 
 .task-lane-main {
@@ -821,7 +842,7 @@
 	position: absolute;
 	inset: 0;
 	border-radius: 50%;
-	background: conic-gradient(#{$slm-red} calc(var(--pct, 0) * 1%), rgba(255, 255, 255, .12) 0);
+	background: conic-gradient(rgb(var(--slm-work-rgb)) calc(var(--pct, 0) * 1%), rgba(127, 127, 127, .25) 0);
 	-webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
 	mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
 }

@@ -15,36 +15,6 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
-// The setting chosen is the fastest tried, unless a lighter one is within 5%; the trials take
-// half the processors and all of them, on one, two and four files, lightest first.
-func TestChooseTrial(t *testing.T) {
-	trials := []MeasureTrial{{1, 1, 100}, {1, 2, 180}, {2, 1, 186}, {1, 4, 260}, {2, 2, 270}, {3, 1, 200}}
-	if threads, files := chooseTrial(trials); threads != 4 || files != 1 {
-		t.Fatalf("2x2 is less than 5%% faster than 1x4: %d threads, %d files", threads, files)
-	}
-	trials[4].Speed = 274
-	if threads, files := chooseTrial(trials); threads != 2 || files != 2 {
-		t.Fatalf("2x2 is 5%% faster: %d threads, %d files", threads, files)
-	}
-	if threads, files := chooseTrial([]MeasureTrial{{Files: 2, Threads: 4}}); threads != 1 || files != 1 {
-		t.Fatalf("nothing measured: %d threads, %d files", threads, files)
-	}
-	got := measureTrials(2, "fast")
-	if len(got) != 3 || got[0] != (MeasureTrial{Files: 1, Threads: 1}) || got[1] != (MeasureTrial{Files: 1, Threads: 2}) || got[2] != (MeasureTrial{Files: 2, Threads: 1}) {
-		t.Fatalf("a server of two processors: %+v", got)
-	}
-	got = measureTrials(16, "fast")
-	want := []MeasureTrial{{Files: 1, Threads: 8}, {Files: 2, Threads: 4}, {Files: 4, Threads: 2}, {Files: 1, Threads: 16}, {Files: 2, Threads: 8}, {Files: 4, Threads: 4}}
-	if len(got) != len(want) {
-		t.Fatalf("a big server: %+v", got)
-	}
-	for i := range want {
-		if got[i] != want[i] {
-			t.Fatalf("a big server: %+v", got)
-		}
-	}
-}
-
 func TestMeasureServer(t *testing.T) {
 	web, _ := compressWeb(t)
 	web.HandleMeasure()

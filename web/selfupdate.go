@@ -7,7 +7,9 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"crypto/ed25519"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -22,6 +24,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"golang.org/x/crypto/blake2b"
 )
 
 // The app updates itself where it runs as a program (Windows, macOS, Linux): the archive of its
@@ -29,12 +32,26 @@ import (
 // release, and its program is tried before it replaces the one that runs, which is kept as
 // .old. The app then starts the new program and stops. A container is updated by Docker
 // instead: the app has no right to replace its own image.
+//
+// With releasePublicKey set, SHA256SUMS.txt must also carry a minisign signature of that key
+// (SHA256SUMS.txt.minisig in the release): the checksums then prove the archive was made by
+// whoever holds the secret key, not only that it is the one of the release on GitHub.
+
+// releasePublicKey is the minisign public key the releases are signed with: the second line of
+// minisign.pub. Empty, the checksums of the release are trusted as GitHub serves them.
+const releasePublicKey = ""
+
+// updateSigningKey is the key the update checks the signature with; a variable for the tests.
+var updateSigningKey = releasePublicKey
 
 const (
 	appName = "switch-library-manager-web"
 	// the most an archive and the list of checksums may weigh
 	maxArchiveSize = 300 << 20
 	maxSumsSize    = 64 << 10
+	// the name of the signature of the checksums in a release, and the most it may weigh
+	sumsSignatureName = "SHA256SUMS.txt.minisig"
+	maxSignatureSize  = 4 << 10
 	// how long the new program has to say its version
 	tryNewProgramFor = 30 * time.Second
 	// the environment of the new program: it waits for the port the old one leaves
@@ -61,11 +78,12 @@ var (
 	}
 )
 
-// releaseFiles are the files of a release the update needs: the archive of this system and the
-// checksums.
+// releaseFiles are the files of a release the update needs: the archive of this system, the
+// checksums and their signature ("" when the release has none).
 type releaseFiles struct {
 	archive, archiveUrl string
 	sumsUrl             string
+	signatureUrl        string
 }
 
 // systemArchive is the name of the archive of a release for a system, "" for one without.
@@ -89,7 +107,16 @@ func systemArchive(goos string, goarch string) string {
 func filesOfRelease(assets map[string]string, archive string) (releaseFiles, bool) {
 	files := releaseFiles{archive: archive, archiveUrl: assets[archive], sumsUrl: assets["SHA256SUMS.txt"]}
 	ok := archive != "" && strings.HasPrefix(files.archiveUrl, releaseDownloads) && strings.HasPrefix(files.sumsUrl, releaseDownloads)
+	if signature := assets[sumsSignatureName]; strings.HasPrefix(signature, releaseDownloads) {
+		files.signatureUrl = signature
+	}
 	return files, ok
+}
+
+// signed tells whether the checksums of a release can be trusted: there is no key to check them
+// with, or the release has a signature to check.
+func (f releaseFiles) signed() bool {
+	return updateSigningKey == "" || f.signatureUrl != ""
 }
 
 // selfUpdatable tells whether this app can update itself: a program of a release, not in a
@@ -115,6 +142,7 @@ var (
 	errUpdateNone     = errorString("No newer version is known.")
 	errUpdateDownload = errorString("The new version could not be downloaded: try again later.")
 	errUpdateChecksum = errorString("The download does not match the checksum of the release: nothing was changed.")
+	errUpdateSigned   = errorString("The signature of the release is missing or wrong: nothing was changed.")
 	errUpdateProgram  = errorString("The new version does not start on this computer: nothing was changed.")
 	errUpdateReplace  = errorString("The program could not be replaced: nothing was changed. Update it by hand.")
 	errUpdateNoOld    = errorString("There is no version of before to go back to.")
@@ -216,6 +244,22 @@ func (web *Web) installUpdate() error {
 	if err != nil {
 		end()
 		return errUpdateDownload
+	}
+	if updateSigningKey != "" {
+		if !update.files.signed() {
+			end()
+			return errUpdateSigned
+		}
+		signature, err := download(update.files.signatureUrl, maxSignatureSize, false)
+		if err != nil {
+			end()
+			return errUpdateDownload
+		}
+		if err := verifyMinisign(updateSigningKey, sums, signature); err != nil {
+			web.sugarLogger.Warnf("[Update] the checksums of version %s are not signed by the key of the app: %v", update.Version, err)
+			end()
+			return errUpdateSigned
+		}
 	}
 	want, ok := checksumOf(sums, update.files.archive)
 	if !ok {
@@ -372,6 +416,47 @@ func checksumOf(sums []byte, name string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+// verifyMinisign checks a minisign signature of data with a public key, as minisign -V does:
+// the key is the base64 line of minisign.pub (the algorithm "Ed", its id, the Ed25519 key), the
+// signature has a line of the same id with the signature of the file ("Ed" of the file itself,
+// "ED" of its BLAKE2b-512 hash, as minisign makes by default) and a trusted comment signed with it.
+func verifyMinisign(publicKey string, data []byte, signature []byte) error {
+	key, err := base64.StdEncoding.DecodeString(strings.TrimSpace(publicKey))
+	if err != nil || len(key) != 2+8+ed25519.PublicKeySize || string(key[:2]) != "Ed" {
+		return errors.New("the public key cannot be read")
+	}
+	lines := strings.Split(strings.ReplaceAll(string(signature), "\r\n", "\n"), "\n")
+	if len(lines) < 4 || !strings.HasPrefix(lines[2], "trusted comment: ") {
+		return errors.New("the signature cannot be read")
+	}
+	signed, err := base64.StdEncoding.DecodeString(strings.TrimSpace(lines[1]))
+	if err != nil || len(signed) != 2+8+ed25519.SignatureSize {
+		return errors.New("the signature cannot be read")
+	}
+	if !bytes.Equal(signed[2:10], key[2:10]) {
+		return errors.New("signed with another key")
+	}
+	publicEd := ed25519.PublicKey(key[10:])
+	message := data
+	switch string(signed[:2]) {
+	case "Ed":
+	case "ED":
+		hash := blake2b.Sum512(data)
+		message = hash[:]
+	default:
+		return errors.New("an unknown kind of signature")
+	}
+	if !ed25519.Verify(publicEd, message, signed[10:]) {
+		return errors.New("the signature does not match")
+	}
+	global, err := base64.StdEncoding.DecodeString(strings.TrimSpace(lines[3]))
+	comment := strings.TrimPrefix(lines[2], "trusted comment: ")
+	if err != nil || !ed25519.Verify(publicEd, append(append([]byte{}, signed[10:]...), comment...), global) {
+		return errors.New("the trusted comment does not match")
+	}
+	return nil
 }
 
 // programOf takes the program out of an archive of a release: only the file

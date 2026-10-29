@@ -98,7 +98,7 @@
 							<span class="bi bi-search" aria-hidden="true"></span>
 							<input type="search" class="form-control form-control-sm" data-file-filter placeholder="{{t "Filter by name..."}}" aria-label="{{t "Filter by name..."}}">
 						</div>
-						<div class="small text-body-secondary ms-sm-auto" data-file-summary id="compressSummary" data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" (add (len .Candidates) .RestCount) (formatSize .TotalSize)}}</div>
+						<div class="small text-body-secondary ms-sm-auto" data-file-summary id="compressSummary" data-template="{{t "%v files selected, %v"}}" data-template-one="{{t "%v file selected, %v"}}" aria-live="polite">{{$count := add (len .Candidates) .RestCount}}{{if eq $count 1}}{{t "%v file selected, %v" $count (formatSize .TotalSize)}}{{else}}{{t "%v files selected, %v" $count (formatSize .TotalSize)}}{{end}}</div>
 					</div>
 					{{- if .RestCount}}
 					<p class="small text-body-secondary mb-2"><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "The %v biggest files are listed one by one; the other %v, smaller, go together in the last row of the list." (len .Candidates) (num .RestCount)}}</p>
@@ -174,7 +174,7 @@
 							<span class="bi bi-search" aria-hidden="true"></span>
 							<input type="search" class="form-control form-control-sm" data-file-filter placeholder="{{t "Filter by name..."}}" aria-label="{{t "Filter by name..."}}">
 						</div>
-						<div class="small text-body-secondary ms-sm-auto" data-file-summary data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" 0 (formatSize 0)}}</div>
+						<div class="small text-body-secondary ms-sm-auto" data-file-summary data-template="{{t "%v files selected, %v"}}" data-template-one="{{t "%v file selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" 0 (formatSize 0)}}</div>
 					</div>
 					<div data-file-list="/compress/xci-list" class="mb-3"><p class="text-body-secondary small">{{t "Loading..."}}</p></div>
 					<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
@@ -202,7 +202,7 @@
 							<span class="bi bi-search" aria-hidden="true"></span>
 							<input type="search" class="form-control form-control-sm" data-file-filter placeholder="{{t "Filter by name..."}}" aria-label="{{t "Filter by name..."}}">
 						</div>
-						<div class="small text-body-secondary ms-sm-auto" data-file-summary data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" 0 (formatSize 0)}}</div>
+						<div class="small text-body-secondary ms-sm-auto" data-file-summary data-template="{{t "%v files selected, %v"}}" data-template-one="{{t "%v file selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" 0 (formatSize 0)}}</div>
 					</div>
 					<div data-file-list="/compress/split-list" class="mb-3"><p class="text-body-secondary small">{{t "Loading..."}}</p></div>
 					<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
@@ -229,7 +229,7 @@
 							<span class="bi bi-search" aria-hidden="true"></span>
 							<input type="search" class="form-control form-control-sm" data-file-filter placeholder="{{t "Filter by name..."}}" aria-label="{{t "Filter by name..."}}">
 						</div>
-						<div class="small text-body-secondary ms-sm-auto" data-file-summary data-template="{{t "%v games selected, %v"}}" aria-live="polite">{{t "%v games selected, %v" 0 (formatSize 0)}}</div>
+						<div class="small text-body-secondary ms-sm-auto" data-file-summary data-template="{{t "%v games selected, %v"}}" data-template-one="{{t "%v game selected, %v"}}" aria-live="polite">{{t "%v games selected, %v" 0 (formatSize 0)}}</div>
 					</div>
 					<div data-file-list="/compress/pack-list" class="mb-3"><p class="text-body-secondary small">{{t "Loading..."}}</p></div>
 					<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
@@ -256,7 +256,7 @@
 							<span class="bi bi-search" aria-hidden="true"></span>
 							<input type="search" class="form-control form-control-sm" data-file-filter placeholder="{{t "Filter by name..."}}" aria-label="{{t "Filter by name..."}}">
 						</div>
-						<div class="small text-body-secondary ms-sm-auto" data-file-summary data-template="{{t "%v files selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" 0 (formatSize 0)}}</div>
+						<div class="small text-body-secondary ms-sm-auto" data-file-summary data-template="{{t "%v files selected, %v"}}" data-template-one="{{t "%v file selected, %v"}}" aria-live="polite">{{t "%v files selected, %v" 0 (formatSize 0)}}</div>
 					</div>
 					<div data-file-list="/compress/nsz-list" class="mb-3"><p class="text-body-secondary small">{{t "Loading..."}}</p></div>
 					<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">

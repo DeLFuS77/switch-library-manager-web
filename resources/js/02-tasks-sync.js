@@ -3,8 +3,8 @@
 
 // the tasks of the server, newest first
 function fetchTasks() {
-	return fetch('/api/tasks', { cache: 'no-store', headers: { Accept: 'application/json' } })
-		.then(response => (response.ok ? response.json() : []));
+	return apiFetch('/api/tasks', { cache: 'no-store', headers: { Accept: 'application/json' } })
+		.then(response => (response.ok ? readJSON(response) : []));
 }
 
 // runAsTask starts work that runs as tasks and stays on the page: a note says it is running,
@@ -32,6 +32,14 @@ function runAsTask(start) {
 			});
 		});
 	});
+}
+
+// the message of a task, translated by the server in the language of the page
+function taskText(task) {
+	if (task.text) {
+		return task.text;
+	}
+	return task.messageArg ? t(task.message, task.messageArg) : t(task.message || '');
 }
 
 const TASK_NOTE_ID = 'taskRunning';
@@ -68,7 +76,7 @@ function followTasks(known) {
 		const running = started.filter(task => task.status === 'running');
 		if (running.length > 0) {
 			const task = running[0];
-			const text = task.messageArg ? t(task.message, task.messageArg) : t(task.message || '');
+			const text = taskText(task);
 			const percent = task.total > 0 && task.current >= 0 ? ` · ${Math.min(100, Math.round(task.current * 100 / task.total))}%` : '';
 			if (text) {
 				message.textContent = text + percent;
@@ -120,7 +128,7 @@ function showSyncAlert() {
 	const header = document.createElement('div');
 	header.classList.add('d-flex', 'align-items-center');
 	const spinner = document.createElement('span');
-	spinner.classList.add('spinner-border', 'spinner-border-sm', 'text-primary', 'flex-shrink-0', 'me-2');
+	spinner.classList.add('spinner-border', 'spinner-border-sm', 'text-work', 'flex-shrink-0', 'me-2');
 	spinner.setAttribute('aria-hidden', 'true');
 	const text = document.createElement('div');
 	text.classList.add('text-truncate');
@@ -157,9 +165,10 @@ function updateSyncAlert(status) {
 		return;
 	}
 
+	// the message, translated by the server in the language of the page
 	const message = alert.querySelector('[data-sync-message]');
-	if (message && status.message) {
-		message.textContent = status.message;
+	if (message && (status.text || status.message)) {
+		message.textContent = status.text || status.message;
 	}
 
 	const progress = alert.querySelector('.progress');
@@ -217,6 +226,39 @@ function onSyncFinished() {
 	finishSync();
 }
 
+// The fields of the page the user changed (a note, the files chosen in Compress, the games for
+// the card): a reload would lose them. A part of the page that saves its fields at once makes
+// what it saved their default value, so they no longer count.
+const editedFields = new Set();
+function noteEditedField(e) {
+	if (e.isTrusted && e.target instanceof Element && e.target.matches('main input, main textarea, main select')) {
+		editedFields.add(e.target);
+	}
+}
+document.addEventListener('input', noteEditedField, true);
+document.addEventListener('change', noteEditedField, true);
+
+function hasUnsavedChanges() {
+	return [...editedFields].some(field => {
+		if (!field.isConnected || field.disabled || field.type === 'file') {
+			return false;
+		}
+		if (field.type === 'checkbox' || field.type === 'radio') {
+			return field.checked !== field.defaultChecked;
+		}
+		if (field.tagName === 'SELECT') {
+			const options = [...field.options];
+			if (field.multiple) {
+				return options.some(option => option.selected !== option.defaultSelected);
+			}
+			// with no option marked, the first one is the default
+			const marked = options.map(option => option.defaultSelected).lastIndexOf(true);
+			return field.selectedIndex !== Math.max(0, marked);
+		}
+		return field.value !== field.defaultValue;
+	});
+}
+
 function finishSync() {
 	const syncAlert = document.getElementById(SYNC_ALERT_ID);
 	if (syncAlert) {
@@ -225,15 +267,37 @@ function finishSync() {
 
 	// nor while games are being uploaded from the page: the reload would stop them; nor while
 	// the setup wizard is open: the scan its saving starts closed its last screen at once
-	if (document.querySelector('form[method="post"]:not([action="/logout"])') || gameUploadsBusy() || document.querySelector('.wizard.show')) {
-		// do not reload pages with forms, it could discard unsaved changes
-		insertAlert(mainContainer(), 'alert-success', 'bi-check-circle-fill', t('Done!'), t('The library has been updated.'));
+	const uploading = gameUploadsBusy() || document.querySelector('.wizard.show');
+	if (uploading || document.querySelector('form[method="post"]:not([action="/logout"])') || hasUnsavedChanges()) {
+		// do not reload pages with forms or changes, it could discard unsaved changes: the
+		// notice offers the reload instead
+		const toast = showToast('alert-success', 'bi-check-circle-fill', t('Done!'), t('The library has been updated.'));
+		if (!uploading && !toast.querySelector('[data-sync-reload]')) {
+			const reload = document.createElement('button');
+			reload.type = 'button';
+			reload.className = 'btn btn-link alert-link p-0 align-baseline';
+			reload.dataset.syncReload = '';
+			reload.textContent = t('Reload');
+			reload.addEventListener('click', () => window.location.reload());
+			toast.querySelector('.flex-grow-1').append(' ', reload);
+		}
 	} else {
 		window.location.reload();
 	}
 }
 
+// watchSync follows the synchronization until it ends. Called again while it follows one (saving
+// the settings, ignoring a type of file...), it does not start a second loop.
+let watchingSync = false;
 function watchSync() {
+	if (watchingSync) {
+		return;
+	}
+	watchingSync = true;
+	pollSync();
+}
+
+function pollSync() {
 	setTimeout(() => {
 		fetch('/sync', { method: 'GET', cache: 'no-store' })
 			.then(response => {
@@ -247,13 +311,14 @@ function watchSync() {
 			.then(status => {
 				if (status.synchronizing) {
 					updateSyncAlert(status);
-					watchSync();
+					pollSync();
 				} else {
+					watchingSync = false;
 					onSyncFinished();
 				}
 			})
 			// the server may be restarting, keep trying
-			.catch(() => watchSync());
+			.catch(() => pollSync());
 	}, SYNC_POLL_INTERVAL);
 }
 

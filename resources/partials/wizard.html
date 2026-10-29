@@ -105,6 +105,16 @@
 							<g class="wz-belt"><rect x="40" y="134" width="22" height="16" rx="4" fill="url(#wzScreen)"/><rect x="92" y="134" width="22" height="16" rx="4" fill="url(#wzWarm)"/><rect x="144" y="134" width="22" height="16" rx="4" fill="url(#wzGreen)"/></g>
 						</svg>
 
+						<!-- quarantine: a file drops into a box and comes back, while the sand runs -->
+						<svg class="wizard-scene" data-scene="quarantine" viewBox="0 0 240 200" hidden>
+							<ellipse cx="110" cy="180" rx="80" ry="7" fill="#000" opacity=".18"/>
+							<path d="M44 112 h132 v56 a8 8 0 0 1 -8 8 H52 a8 8 0 0 1 -8 -8z" fill="#c9862a"/>
+							<g class="wz-drop"><rect x="92" y="54" width="36" height="46" rx="6" fill="url(#wzScreen)"/><rect x="100" y="66" width="20" height="5" rx="2.5" fill="#fff" opacity=".85"/><rect x="100" y="76" width="14" height="5" rx="2.5" fill="#fff" opacity=".6"/></g>
+							<path d="M40 120 h140 v48 a8 8 0 0 1 -8 8 H48 a8 8 0 0 1 -8 -8z" fill="#ffb238"/>
+							<rect x="86" y="136" width="48" height="10" rx="5" fill="#fff" opacity=".85"/>
+							<g class="wz-flip" style="transform-origin:200px 66px"><rect x="184" y="36" width="32" height="5" rx="2.5" fill="#fff"/><rect x="184" y="91" width="32" height="5" rx="2.5" fill="#fff"/><path d="M188 41 h24 l-10 25 l10 25 h-24 l10 -25z" fill="url(#wzGlass)"/><path d="M192 46 h16 l-8 17z" fill="#ffd166"/><path d="M194 91 h12 l-6 -10z" fill="#ffd166"/></g>
+						</svg>
+
 						<!-- notifications: a phone with messages -->
 						<svg class="wizard-scene" data-scene="notifications" viewBox="0 0 240 200" hidden>
 							<ellipse cx="120" cy="182" rx="56" ry="7" fill="#000" opacity=".18"/>
@@ -489,6 +499,48 @@
 							</div>
 						</section>
 
+						<!-- 9b. quarantine -->
+						<section class="wizard-step" data-step="quarantine" data-icon="bi-hourglass-split" data-caption="{{t "Quarantine"}}" hidden>
+							{{- $q := $s.Quarantine}}
+							<h2 class="wizard-title">{{t "What happens to what is deleted?"}}</h2>
+							<p class="wizard-lead">{{t "Duplicates, old updates and copies of other regions can wait a while in a hidden folder before they go for good, so a mistake can be undone. They are moved, not copied: they take no more room."}}</p>
+							<div class="wizard-choices wizard-choices-cards" role="radiogroup" aria-label="{{t "Keep what is deleted"}}">
+								<label class="wizard-card"><input type="radio" name="quarantine_keep" value=""{{if eq $q.Keep ""}} checked{{end}}><span class="wizard-card-icon bi bi-trash3" aria-hidden="true"></span><span class="wizard-card-label">{{t "Delete at once"}}</span></label>
+								<label class="wizard-card"><input type="radio" name="quarantine_keep" value="48h"{{if eq $q.Keep "48h"}} checked{{end}}><span class="wizard-card-icon bi bi-hourglass-split" aria-hidden="true"></span><span class="wizard-card-label">{{t "48 hours"}}</span></label>
+								<label class="wizard-card"><input type="radio" name="quarantine_keep" value="7d"{{if eq $q.Keep "7d"}} checked{{end}}><span class="wizard-card-icon bi bi-calendar-week" aria-hidden="true"></span><span class="wizard-card-label">{{t "1 week"}}</span><span class="wizard-card-tip">{{t "Recommended"}}</span></label>
+								<label class="wizard-card"><input type="radio" name="quarantine_keep" value="30d"{{if eq $q.Keep "30d"}} checked{{end}}><span class="wizard-card-icon bi bi-calendar3" aria-hidden="true"></span><span class="wizard-card-label">{{t "30 days"}}</span></label>
+								<label class="wizard-card"><input type="radio" name="quarantine_keep" value="never"{{if eq $q.Keep "never"}} checked{{end}}><span class="wizard-card-icon bi bi-infinity" aria-hidden="true"></span><span class="wizard-card-label">{{t "Until I empty it"}}</span></label>
+							</div>
+							<div class="wizard-tree" data-wizard-tree="quarantine" aria-hidden="true">
+								<button type="button" class="btn btn-sm btn-link wizard-tree-again" data-wizard-tree-again tabindex="-1"><span class="bi bi-arrow-repeat me-1"></span>{{t "Again"}}</button>
+								<div class="wizard-tree-root"><span class="bi bi-hdd"></span>{{.FolderExample}}</div>
+								<div class="wizard-tree-rows" data-wizard-tree-rows></div>
+								<div class="wizard-tree-caption" data-wizard-tree-caption></div>
+							</div>
+							<div data-wizard-quarantine-on>
+								<div class="col-md-7 px-0 mt-3">
+									<label for="wizard_quarantine_limit" class="form-label fw-semibold">{{t "Largest size"}}</label>
+									<select class="form-select" id="wizard_quarantine_limit" name="quarantine_limit" aria-describedby="wizard_quarantine_limit_help">
+										{{- range .QuarantineLimits}}
+										<option value="{{.}}"{{if eq $q.LimitGB .}} selected{{end}}>{{if eq . 0}}{{t "No limit"}}{{else}}{{.}} GB{{end}}</option>
+										{{- end}}
+									</select>
+									<div class="form-text" id="wizard_quarantine_limit_help">{{t "Over it, the oldest goes first."}}</div>
+								</div>
+								<div class="wizard-toggles mt-2">
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="wizard_quarantine_make_room" name="quarantine_make_room" value="true"{{if $q.MakeRoom}} checked{{end}}>
+										<label class="form-check-label" for="wizard_quarantine_make_room">{{t "When a task needs room, delete the oldest of the quarantine first"}}</label>
+									</div>
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="wizard_quarantine_originals" name="quarantine_originals" value="true" aria-describedby="wizard_quarantine_originals_help"{{if $q.Originals}} checked{{end}}>
+										<label class="form-check-label" for="wizard_quarantine_originals">{{t "Also keep the originals after compressing, converting, splitting or making a pack"}}</label>
+										<div class="form-text" id="wizard_quarantine_originals_help">{{t "They are checked before they are deleted, and they take a lot of room: better off."}}</div>
+									</div>
+								</div>
+							</div>
+						</section>
+
 						<!-- 10. notifications -->
 						<section class="wizard-step" data-step="notifications" data-icon="bi-bell" data-caption="{{t "Notifications"}}" hidden>
 							<h2 class="wizard-title">{{t "Get a message when something new arrives"}}</h2>
@@ -647,6 +699,6 @@
 			</form>
 		</div>
 	</div>
-	<script type="application/json" data-wizard-texts>{"step":{{t "Step %v of %v"}},"checking":{{t "Checking…"}},"saving":{{t "Saving…"}},"yes":{{t "Yes"}},"no":{{t "No"}},"none":{{t "None"}},"folders":{{t "Folders to scan"}},"keys":{{t "Your keys (prod.keys)"}},"firmware":{{t "Firmware of your console"}},"background":{{t "Do heavy work"}},"compress":{{t "Compress automatically"}},"automation":{{t "Automations"}},"notifications":{{t "Notifications"}},"admin":{{t "Administrator"}},"igdb":{{t "Times to beat (IGDB)"}},"theme":{{t "Theme"}},"language":{{t "Language"}},"default":{{t "Default"}},"stepsOn":{{t "%v steps on"}},"off":{{t "Off"}},"set":{{t "Set"}},"noFolder":{{t "Please provide at least one Folder to scan"}},"adminFailed":{{t "The administrator could not be created. Check the user name and the password."}},"unreachable":{{t "The server could not be reached."}},"found":{{t "Keys found"}},"notFound":{{t "Keys not found"}},"change":{{t "Change"}},"noFolders":{{t "No folders here"}},"more":{{t "Only the first %v folders are shown."}},"regions":{{t "Preferred regions, in order"}},"sync":{{t "Automatic synchronization"}},"order":{{t "Order"}},"rename":{{t "Rename files"}},"verify":{{t "Check the files"}},"newOnly":{{t "Only the new files"}},"sending":{{t "Sending…"}},"new":{{t "new"}},"untouched":{{t "untouched"}},"treeBefore":{{t "Before: the files as they came."}},"treeNone":{{t "Nothing changes its place."}},"treeNoneRenamed":{{t "Every file stays where it is, with the name of the template."}},"treeFolder":{{t "Each game in a folder with its name."}},"treeKeep":{{t "A game that has a folder keeps it; the others get one of their own."}},"treeSub":{{t "Inside each game, a subfolder for each kind."}},"treeEmpty":{{t "The empty folder is deleted."}},"treeArrives":{{t "A new update of a game arrives."}},"treeNewOnly":{{t "The update goes to the folder of its game; nothing else is touched."}},"treeAll":{{t "Everything is ordered, also what was loose."}}}</script>
+	<script type="application/json" data-wizard-texts>{"step":{{t "Step %v of %v"}},"checking":{{t "Checking…"}},"saving":{{t "Saving…"}},"yes":{{t "Yes"}},"no":{{t "No"}},"none":{{t "None"}},"folders":{{t "Folders to scan"}},"keys":{{t "Your keys (prod.keys)"}},"firmware":{{t "Firmware of your console"}},"background":{{t "Do heavy work"}},"compress":{{t "Compress automatically"}},"automation":{{t "Automations"}},"notifications":{{t "Notifications"}},"admin":{{t "Administrator"}},"igdb":{{t "Times to beat (IGDB)"}},"theme":{{t "Theme"}},"language":{{t "Language"}},"default":{{t "Default"}},"stepsOn":{{t "%v steps on"}},"stepsOnOne":{{t "%v step on"}},"off":{{t "Off"}},"set":{{t "Set"}},"noFolder":{{t "Please provide at least one Folder to scan"}},"adminFailed":{{t "The administrator could not be created. Check the user name and the password."}},"unreachable":{{t "The server could not be reached."}},"found":{{t "Keys found"}},"notFound":{{t "Keys not found"}},"change":{{t "Change"}},"noFolders":{{t "No folders here"}},"more":{{t "Only the first %v folders are shown."}},"regions":{{t "Preferred regions, in order"}},"sync":{{t "Automatic synchronization"}},"order":{{t "Order"}},"rename":{{t "Rename files"}},"verify":{{t "Check the files"}},"newOnly":{{t "Only the new files"}},"sending":{{t "Sending…"}},"new":{{t "new"}},"untouched":{{t "untouched"}},"treeBefore":{{t "Before: the files as they came."}},"treeNone":{{t "Nothing changes its place."}},"treeNoneRenamed":{{t "Every file stays where it is, with the name of the template."}},"treeFolder":{{t "Each game in a folder with its name."}},"treeKeep":{{t "A game that has a folder keeps it; the others get one of their own."}},"treeSub":{{t "Inside each game, a subfolder for each kind."}},"treeEmpty":{{t "The empty folder is deleted."}},"treeArrives":{{t "A new update of a game arrives."}},"treeNewOnly":{{t "The update goes to the folder of its game; nothing else is touched."}},"treeAll":{{t "Everything is ordered, also what was loose."}},"quarantine":{{t "Quarantine"}},"old":{{t "old"}},"treeCleanup":{{t "An update is replaced by a newer one."}},"treeAtOnce":{{t "The old update is deleted at once: it cannot be put back."}},"treeKept":{{t "The old update waits in the hidden folder for %v: Settings, Quarantine can put it back."}},"treeKeptNever":{{t "The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back."}}}</script>
 </div>
 {{- end}}

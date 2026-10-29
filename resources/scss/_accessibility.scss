@@ -68,6 +68,35 @@
 	outline-offset: 2px;
 }
 
+// the field being written and the switches and boxes turned on, in the blue of work: red tells
+// errors. A box or a switch shows its focus only from the keyboard (the ring above), not when
+// it is clicked or a page gives it the focus, as each step of the setup wizard does
+.form-control:focus,
+.form-select:focus {
+	border-color: rgba(var(--slm-work-rgb), .7);
+	box-shadow: 0 0 0 $input-btn-focus-width rgba(var(--slm-work-rgb), .25);
+}
+
+.form-check-input:focus {
+	border-color: var(--bs-border-color);
+	box-shadow: none;
+}
+
+.form-check-input:checked,
+.form-check-input[type="checkbox"]:indeterminate {
+	background-color: rgb(var(--slm-work-rgb));
+	border-color: rgb(var(--slm-work-rgb));
+}
+
+// the knob of a switch turned off stays grey with the focus
+.form-switch .form-check-input:focus:not(:checked) {
+	--#{$prefix}form-switch-bg: #{escape-svg($form-switch-bg-image)};
+}
+
+[data-bs-theme="dark"] .form-switch .form-check-input:focus:not(:checked) {
+	--#{$prefix}form-switch-bg: #{escape-svg($form-switch-bg-image-dark)};
+}
+
 // 8: nothing wider than a phone of 320px: the closed side menu and the edges of the row of
 // filters do not widen the page
 html,

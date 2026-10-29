@@ -146,6 +146,7 @@ func MergeNewestAndCheck(ctx context.Context, sources []string, target string, w
 	}
 	newest := map[string]found{}
 	all := []found{}
+	deltas := make([]map[string]bool, len(sources))
 	for i, path := range sources {
 		reader, err := OpenFile(path)
 		if err != nil {
@@ -153,6 +154,9 @@ func MergeNewestAndCheck(ctx context.Context, sources []string, target string, w
 		}
 		pkg, err := openGamePackage(reader)
 		if err == nil {
+			if withoutDeltas {
+				deltas[i] = deltaFragmentNames(reader, pkg)
+			}
 			var plan *SplitPlan
 			if plan, err = planSplit(reader, pkg, 1); err == nil {
 				for _, part := range plan.Parts {
@@ -168,24 +172,60 @@ func MergeNewestAndCheck(ctx context.Context, sources []string, target string, w
 			return 0, nil, FileCheck{}, err
 		}
 	}
+	kept := func(f found) bool {
+		// the same version in another package is the same files, given once by the merge
+		return f.part.Version >= newest[f.part.TitleId].part.Version
+	}
+	// a file of a version kept stays, also when an older version in the same package has it
+	// too: two versions of an update can share a ticket (named after the rights ID) or an NCA
+	keep := make([]map[string]bool, len(sources))
+	for _, f := range all {
+		if !kept(f) {
+			continue
+		}
+		if keep[f.source] == nil {
+			keep[f.source] = map[string]bool{}
+		}
+		for _, file := range f.part.files {
+			keep[f.source][file.name] = true
+		}
+	}
 	drop := make([]map[string]bool, len(sources))
 	replaced := []string{}
 	for _, f := range all {
-		// the same version in another package is the same files, given once by the merge
-		if f.part.Version >= newest[f.part.TitleId].part.Version {
+		if kept(f) {
 			continue
 		}
 		if drop[f.source] == nil {
 			drop[f.source] = map[string]bool{}
 		}
 		for _, file := range f.part.files {
-			drop[f.source][file.name] = true
+			if !keep[f.source][file.name] {
+				drop[f.source][file.name] = true
+			}
 		}
 		replaced = append(replaced, fmt.Sprintf("%s v%d", strings.ToUpper(f.part.TitleId), f.part.Version))
 	}
 	skipped, written, err := writePackages(ctx, sources, target, withoutDeltas, drop, progress)
 	if err != nil {
 		return 0, nil, FileCheck{}, err
+	}
+	// every file of a version kept is in the pack, but the delta fragments left out: the
+	// originals are deleted after it
+	inPack := map[string]bool{}
+	for _, file := range written {
+		inPack[packKey(file.name)] = true
+	}
+	for _, f := range all {
+		if !kept(f) {
+			continue
+		}
+		for _, file := range f.part.files {
+			if !inPack[packKey(file.name)] && !deltas[f.source][file.name] {
+				os.Remove(target)
+				return 0, nil, FileCheck{}, fmt.Errorf("%s of %s v%d is missing from the pack", file.name, strings.ToUpper(f.part.TitleId), f.part.Version)
+			}
+		}
 	}
 	check, err := checkWritten(ctx, target, written)
 	if err != nil {
@@ -206,6 +246,17 @@ func StripDeltasAndCheck(ctx context.Context, source string, target string, prog
 		os.Remove(target)
 	}
 	return skipped, check, err
+}
+
+// packKey is what a file is once in a pack by: the same content once, also as an NCA in one
+// package and an NCZ in another; a ticket and its certificate share their rights ID, and an
+// NCA and its XML their ID, but they are different files.
+func packKey(name string) string {
+	key := strings.ToLower(name)
+	if id := contentId(name); id != "" && (strings.HasSuffix(key, ".nca") || strings.HasSuffix(key, ".ncz")) {
+		return id
+	}
+	return key
 }
 
 // writePackages writes the files of the packages into one NSP or NSZ at target, but the ones
@@ -241,13 +292,7 @@ func writePackages(ctx context.Context, sources []string, target string, without
 			deltas = deltaFragmentNames(reader, pkg)
 		}
 		for _, file := range pkg.files {
-			// the same content once, also as an NCA in one package and an NCZ in another; a
-			// ticket and its certificate share their rights ID, and an NCA and its XML their ID,
-			// but they are different files
-			key := strings.ToLower(file.name)
-			if id := contentId(file.name); id != "" && (strings.HasSuffix(key, ".nca") || strings.HasSuffix(key, ".ncz")) {
-				key = id
-			}
+			key := packKey(file.name)
 			if seen[key] || (drop != nil && drop[len(opened)-1][file.name]) {
 				continue
 			}
@@ -278,12 +323,15 @@ func writePackages(ctx context.Context, sources []string, target string, without
 	}
 	writer := &pfs0Writer{file: output, names: names}
 	written := make([]*writtenFile, len(parts))
+	defer endHashes(written)
 	err = writer.begin()
 	for i, p := range parts {
 		if err != nil {
 			break
 		}
-		writer.startFile()
+		if err = writer.startFile(); err != nil {
+			break
+		}
 		written[i] = newWrittenFile(names[i])
 		err = copyRange(ctx, io.MultiWriter(writer.file, written[i]), opened[p.source].reader, p.file.offset, p.file.size, report)
 		if err == nil {

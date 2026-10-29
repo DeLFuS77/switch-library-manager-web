@@ -228,7 +228,7 @@ function initOrganize() {
 			showSyncAlert();
 			watchSync();
 		}
-		result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		result.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
 	};
 
 	const fail = error => {
@@ -261,7 +261,7 @@ function initOrganize() {
 			bar.classList.remove('w-100');
 			bar.style.width = `${percent}%`;
 			bar.style.setProperty('--pct', percent);
-			message.textContent = task.messageArg ? t(task.message, task.messageArg) : t(task.message);
+			message.textContent = taskText(task);
 			count.textContent = `${task.current} / ${task.total} \u00b7 ${percent}%`;
 		})
 		.catch(() => {});
@@ -272,11 +272,22 @@ function initOrganize() {
 		count.textContent = '';
 		progress.hidden = false;
 		result.classList.add('d-none');
-		progress.scrollIntoView({ behavior: 'smooth', block: 'start' });
-		polling = setInterval(follow, 700);
+		progress.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
+		// asked again once answered, so an answer that comes late cannot move the bar back
+		const token = {};
+		polling = token;
+		const ask = () => follow().then(() => {
+			if (polling === token) {
+				token.timer = setTimeout(ask, 700);
+			}
+		});
+		token.timer = setTimeout(ask, 700);
 	};
 	const stopProgress = () => {
-		clearInterval(polling);
+		if (polling) {
+			clearTimeout(polling.timer);
+		}
+		polling = null;
 		progress.hidden = true;
 		result.classList.remove('d-none');
 	};

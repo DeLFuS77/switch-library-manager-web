@@ -8,7 +8,7 @@
 			{{- if .Preparing}}
 			<section class="surface space-preparing" data-space-preparing role="status" aria-live="polite">
 				<div class="d-flex align-items-center gap-3 mb-3">
-					<span class="spinner-border text-primary flex-shrink-0" aria-hidden="true"></span>
+					<span class="spinner-border text-work flex-shrink-0" aria-hidden="true"></span>
 					<div>
 						<h2 class="h6 fw-semibold mb-1">{{t "Looking at what can be freed..."}}</h2>
 						<div class="small text-body-secondary">{{t "Each original is compared with its compressed copy and every file is looked at on the disk; on a NAS it takes a moment. The page opens by itself when it is ready, and next time it opens at once."}}</div>
@@ -107,8 +107,8 @@
 						<input class="form-check-input" type="checkbox" id="spaceAll" data-file-all checked>
 						<label class="form-check-label fw-semibold" for="spaceAll">{{t "Select all"}}</label>
 					</div>
-					<div class="small text-body-secondary d-none d-sm-block" data-file-summary data-template="{{t "%v files selected, %v"}}" aria-live="polite"></div>
-					<button type="submit" class="btn btn-danger rounded-pill px-4 text-nowrap" data-confirm="{{t "Delete %v files (%v)? This cannot be undone."}}"><span class="bi bi-trash3 me-2" aria-hidden="true"></span>{{t "Delete selected"}}</button>
+					<div class="small text-body-secondary d-none d-sm-block" data-file-summary data-template="{{t "%v files selected, %v"}}" data-template-one="{{t "%v file selected, %v"}}" aria-live="polite"></div>
+					<button type="submit" class="btn btn-danger rounded-pill px-4 text-nowrap" data-confirm="{{if .Quarantine}}{{t "Move %v files (%v) to the quarantine? You can put them back from Settings, Quarantine."}}{{else}}{{t "Delete %v files (%v)? This cannot be undone."}}{{end}}"><span class="bi bi-trash3 me-2" aria-hidden="true"></span>{{t "Delete selected"}}</button>
 				</div>
 			</form>
 			{{- end}}

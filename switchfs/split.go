@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -147,14 +146,11 @@ func byGame(plan *SplitPlan, pkg *gamePackage) (*SplitPlan, error) {
 // gameOf is the title ID of the game a title belongs to: an update is the ID of its game
 // plus 0x800, a DLC the ID of its game plus 0x1000 and its number.
 func gameOf(part SplitPart) (string, error) {
-	id, err := strconv.ParseUint(part.TitleId, 16, 64)
+	id, err := GameTitleID(part.TitleId, part.Type)
 	if err != nil {
-		return "", fmt.Errorf("invalid title ID %q", part.TitleId)
+		return "", err
 	}
-	if part.Type == "DLC" {
-		id -= 0x1000
-	}
-	return fmt.Sprintf("%016x", id&^0xFFF), nil
+	return fmt.Sprintf("%016x", id), nil
 }
 
 // cardSize is the size of the game card xczWriter writes with these files: the header of
@@ -339,12 +335,15 @@ func writeSplitPart(ctx context.Context, source string, part SplitPart, target s
 	}
 	names := part.Files()
 	written := make([]*writtenFile, len(part.files))
+	defer endHashes(written)
 	err = writer.begin()
 	for i, file := range part.files {
 		if err != nil {
 			break
 		}
-		writer.startFile()
+		if err = writer.startFile(); err != nil {
+			break
+		}
 		written[i] = newWrittenFile(names[i])
 		err = copyRange(ctx, io.MultiWriter(output, written[i]), reader, file.offset, file.size, report)
 		if err == nil {

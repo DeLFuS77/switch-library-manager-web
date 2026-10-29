@@ -530,7 +530,7 @@ func loadTaskLog(dataFolder string) *TaskLog {
 	if info, err := os.Stat(log.path); err == nil {
 		saved = info.ModTime()
 	}
-	if data, err := os.ReadFile(log.path); err == nil {
+	if data, ok := readStore(log.path); ok {
 		saved := []*Task{}
 		if parseStore(log.path, data, &saved) == nil {
 			log.tasks = saved

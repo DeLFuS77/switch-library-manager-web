@@ -86,6 +86,44 @@ func TestSpanishTranslationIsComplete(t *testing.T) {
 	}
 }
 
+// Every text web.js passes to t() is sent to the browser (jsTexts) and translated in every
+// language: t() only knows the texts of jsTexts, the others are shown in English.
+func TestJsTextsAreSentAndTranslated(t *testing.T) {
+	// t('...'), t("...") and t(`...`) without ${}
+	literal := regexp.MustCompile(`\bt\(\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"|` + "`([^`$]*)`" + `)`)
+	unescape := strings.NewReplacer(`\'`, `'`, `\"`, `"`, `\\`, `\`)
+	sent := map[string]bool{}
+	for _, text := range jsTexts {
+		sent[text] = true
+	}
+	files, _ := filepath.Glob("../resources/js/*.js")
+	if len(files) == 0 {
+		t.Fatal("no scripts found")
+	}
+	found := 0
+	for _, file := range files {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, match := range literal.FindAllStringSubmatch(string(data), -1) {
+			text := unescape.Replace(match[1] + match[2] + match[3])
+			found++
+			if !sent[text] {
+				t.Errorf("%s: %q is not in jsTexts", filepath.Base(file), text)
+			}
+			for _, lang := range supportedLanguages {
+				if _, ok := translations[lang][text]; !ok && lang != DEFAULT_LANGUAGE {
+					t.Errorf("%s: no %s translation for %q", filepath.Base(file), lang, text)
+				}
+			}
+		}
+	}
+	if found < 20 {
+		t.Fatalf("only %d texts found", found)
+	}
+}
+
 func TestLanguageFromHeader(t *testing.T) {
 	for header, want := range map[string]string{
 		"":                        "en",
@@ -200,6 +238,68 @@ func TestNumbersHaveTheSeparatorOfTheLanguage(t *testing.T) {
 	} {
 		if got := formatNumber(c.lang, c.value); got != c.want {
 			t.Errorf("%s %d: %q, want %q", c.lang, c.value, got, c.want)
+		}
+	}
+}
+
+// The overview of the Library writes its numbers with the separator of the language, also when
+// they do not count up to it (reduced motion).
+func TestLibraryOverviewNumbersHaveTheSeparator(t *testing.T) {
+	web := newTestWeb(t)
+	set, err := parseTemplates(os.DirFS(".."), "resources/layout.html", "resources/partials/card.html", "resources/partials/filter.html",
+		"resources/partials/pagination.html", "resources/pages/index.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	global := web.globalPageData("index")
+	global.HasLibrary = true
+	data := LibraryPageData{
+		TitleItemsPageData: TitleItemsPageData{GlobalPageData: global, Filter: defaultFilter(), Views: web.libraryViews("mine", "es")},
+		Stats: Statistics{Games: 11382, UpdatesPending: 12345, GamesWithUpdate: 10500, DlcWithUpdate: 1845, MissingDlc: 23456,
+			HasTitlesDatabase: true, GamesUpToDate: 10200, GamesUpToDatePct: 89},
+	}
+	var page strings.Builder
+	if err := set.execute(&page, "es", data); err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{`data-count="11382">11.382<`, `data-count="12345">12.345<`, "10.500 juegos y 1845 DLC", `data-count="23456">23.456<`, "(10.200 / 11.382)"} {
+		if !strings.Contains(page.String(), want) {
+			t.Errorf("the overview misses %q", want)
+		}
+	}
+}
+
+// Sizes have the decimal separator of the language, in the pages and in web.js, which lists the
+// same languages.
+func TestSizesHaveTheDecimalSeparatorOfTheLanguage(t *testing.T) {
+	const size = 3 * 1024 * 1024 * 1024 / 2
+	for lang, want := range map[string]string{"en": "1.5 GB", "es": "1,5 GB", "de": "1,5 GB", "fr": "1,5 GB", "ja": "1.5 GB", "zh": "1.5 GB"} {
+		if got := formatSizeIn(lang, size); got != want {
+			t.Errorf("%s: %q, want %q", lang, got, want)
+		}
+		if got := i18nFuncs(lang)["formatSize"].(func(int64) string)(size); got != want {
+			t.Errorf("%s template: %q, want %q", lang, got, want)
+		}
+	}
+	if got := formatSizeIn("es", 512); got != "512 B" {
+		t.Errorf("bytes: %q", got)
+	}
+
+	data, err := os.ReadFile("../resources/js/08-compress.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	list := regexp.MustCompile(`DECIMAL_COMMA_LANGUAGES = \[([^\]]*)\]`).FindStringSubmatch(string(data))
+	if list == nil {
+		t.Fatal("web.js lists no languages with a decimal comma")
+	}
+	languages := regexp.MustCompile(`'([a-z]+)'`).FindAllStringSubmatch(list[1], -1)
+	if len(languages) != len(decimalSeparators) {
+		t.Errorf("web.js lists %d languages with a decimal comma, the server %d", len(languages), len(decimalSeparators))
+	}
+	for _, lang := range languages {
+		if decimalSeparators[lang[1]] != "," {
+			t.Errorf("web.js writes a decimal comma in %s, the server does not", lang[1])
 		}
 	}
 }

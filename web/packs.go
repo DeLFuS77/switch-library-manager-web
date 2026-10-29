@@ -238,12 +238,16 @@ func (web *Web) packGame(path string) (*db.SwitchGameFiles, string) {
 	// the library may still have the paths from before Organize moved the files, and path the
 	// new ones, or the other way round: both where the files are now
 	path = web.moves.resolve(path)
-	for _, local := range localDB.TitlesMap {
-		if !local.BaseExist || local.File.Metadata == nil {
-			continue
-		}
-		if web.moves.resolve(filepath.Join(local.File.ExtendedInfo.BaseFolder, local.File.ExtendedInfo.FileName)) == path {
-			return local, local.File.Metadata.TitleId
+	// the game compressed (or decompressed, converted) since, its original kept: the library may
+	// have the copy as the game now
+	for _, wanted := range []string{path, switchfs.CompressedPath(path), switchfs.DecompressedPath(path), switchfs.ConvertedPath(path)} {
+		for _, local := range localDB.TitlesMap {
+			if !local.BaseExist || local.File.Metadata == nil {
+				continue
+			}
+			if web.moves.resolve(filepath.Join(local.File.ExtendedInfo.BaseFolder, local.File.ExtendedInfo.FileName)) == wanted {
+				return local, local.File.Metadata.TitleId
+			}
 		}
 	}
 	return nil, ""
@@ -323,7 +327,12 @@ func (web *Web) makePack(ctx context.Context, sources []string, target string, s
 		return 0, errPackExists
 	}
 	if free, err := diskFree(filepath.Dir(target)); err == nil && free < uint64(size)+(64<<20) {
-		return 0, errCompressSpace
+		if !web.makeRoom(filepath.Dir(target), size+(64<<20)) {
+			return 0, errCompressSpace
+		}
+		if free, err := diskFree(filepath.Dir(target)); err == nil && free < uint64(size)+(64<<20) {
+			return 0, errCompressSpace
+		}
 	}
 	temporary := filepath.Join(filepath.Dir(target), "."+filepath.Base(target)+".tmp")
 	defer os.Remove(temporary)
@@ -340,7 +349,7 @@ func (web *Web) makePack(ctx context.Context, sources []string, target string, s
 	if err != nil {
 		return 0, err
 	}
-	if err := os.Rename(temporary, target); err != nil {
+	if err := commitFile(temporary, target); err != nil {
 		return 0, err
 	}
 	web.verifications().remember(target, written)
@@ -348,7 +357,7 @@ func (web *Web) makePack(ctx context.Context, sources []string, target string, s
 	if deleteOriginals && fullyChecked(written) {
 		folders := []string{}
 		for _, source := range sources {
-			if err := os.Remove(source); err != nil {
+			if err := web.discardOriginal(source, QUARANTINE_PACK); err != nil {
 				return skipped, fmt.Errorf("could not delete the original: %w", err)
 			}
 			folders = append(folders, filepath.Dir(source))

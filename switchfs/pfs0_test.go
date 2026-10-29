@@ -2,8 +2,12 @@ package switchfs
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
+	"errors"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -136,4 +140,64 @@ func (fullReadErrorReader) ReadAt(p []byte, _ int64) (int, error) {
 		p[0] = 1
 	}
 	return len(p), io.ErrUnexpectedEOF
+}
+
+// A size with its top bit set, one bit flipped in the entry of a ticket, was negative as an
+// int64: the ticket was allocated with it and the server stopped, and a file of that size was
+// copied as nothing, its hash the one of nothing. Such a package, or one whose files end past
+// its end, is refused wherever it is opened.
+func TestSizesPastTheEndOfTheFileAreRefused(t *testing.T) {
+	initNszKeys(t, "")
+	_, nsp := writeTestNsp(t, t.TempDir())
+	// the ticket is the fourth file, the program the first
+	entrySize := func(data []byte, index int) []byte { return data[0x10+0x18*index+8:] }
+	negative := append([]byte(nil), nsp...)
+	binary.LittleEndian.PutUint64(entrySize(negative, 3), binary.LittleEndian.Uint64(entrySize(negative, 3))|1<<63)
+	past := append([]byte(nil), nsp...)
+	binary.LittleEndian.PutUint64(entrySize(past, 0), binary.LittleEndian.Uint64(entrySize(past, 0))+uint64(len(nsp)))
+	for name, data := range map[string][]byte{"negative": negative, "past": past} {
+		path := filepath.Join(t.TempDir(), "Game [0100000000010000][v0].nsp")
+		if err := os.WriteFile(path, data, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := openGamePackage(bytes.NewReader(data)); err == nil {
+			t.Fatalf("%s: the package opens", name)
+		}
+		if _, err := MissingTitleKey(path); err == nil {
+			t.Fatalf("%s: the title keys are checked", name)
+		}
+		if err := NotCompressible(path); err == nil || errors.Is(err, ErrNotCompressible) {
+			t.Fatalf("%s: %v", name, err)
+		}
+		if _, err := VerifyFile(context.Background(), path, nil); err == nil {
+			t.Fatalf("%s: the file is verified", name)
+		}
+		if _, err := CompressGame(context.Background(), path, CompressedPath(path), CompressOptions{}); err == nil {
+			t.Fatalf("%s: the file is compressed", name)
+		}
+	}
+	// the same in the secure partition of a game card
+	xci, err := os.ReadFile(writeTestXci(t, t.TempDir()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	root, err := readPfs0(bytes.NewReader(xci), 0xF000)
+	if err != nil {
+		t.Fatal(err)
+	}
+	secure := 0xF000 + int(root.Files[1].StartOffset)
+	binary.LittleEndian.PutUint64(xci[secure+0x10+8:], binary.LittleEndian.Uint64(xci[secure+0x10+8:])|1<<63)
+	if _, err := openGamePackage(bytes.NewReader(xci)); err == nil {
+		t.Fatal("a game card with a negative size opens")
+	}
+	// a file cut short is told as one
+	if _, err := openGamePackage(bytes.NewReader(nsp[:len(nsp)-1])); !errors.Is(err, io.ErrUnexpectedEOF) || !strings.Contains(err.Error(), "EOF") {
+		t.Fatalf("a package cut short: %v", err)
+	}
+	if _, err := readTickets(bytes.NewReader(nsp), []packedFile{{name: "a.tik", offset: 0, size: -1}}); err == nil {
+		t.Fatal("a ticket of a negative size is read")
+	}
+	if err := copyRange(context.Background(), io.Discard, bytes.NewReader(nsp), 0, -1, nil); err == nil {
+		t.Fatal("a negative range is copied")
+	}
 }

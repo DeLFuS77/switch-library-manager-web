@@ -334,6 +334,8 @@ func init() {
 		"Another task is working on the files of the library (organizing, a cleanup, a compression, combining games or a check): try again when it has finished.": "Другая задача работает с файлами библиотеки (упорядочивание, очистка, сжатие, объединение или проверка): повторите попытку после её завершения.",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.":                                                        "Он также содержит игру, её последнее обновление или DLC, которые библиотека сохраняет, поэтому он не удаляется.",
 		"The newer file is damaged: keep this one.":                                                                                                               "Более новый файл повреждён: оставьте этот.",
+		"What this file holds could not be read: keep this one.":                                                                                                  "Не удалось прочитать содержимое этого файла: оставьте этот.",
+		"A part already there is not sound as a whole: the original is kept.":                                                                                     "Уже существующая часть не цела полностью: оригинал сохранён.",
 		"The compressed file does not hold everything this file holds: keep this one.":                                                                            "Сжатый файл содержит не всё, что есть в этом файле: оставьте этот.",
 		"A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.":                                    "Копия удаляется, только если остаётся проверенная и целая копия игры из другого региона: сначала проверьте файлы.",
 		"And the separate files?": "А отдельные файлы?",
@@ -668,6 +670,10 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "Файлов со сжатой копией: %v, они не показаны. Оригиналы можно удалить на странице «Место», когда их копии будут проверены.",
 		"%v files at a time": "Файлов одновременно: %v",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "Файлов: %v, их можно удалить только после проверки сохраняемых копий. Проверяются только эти копии.",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "Сетевые пути здесь не проверяются: приложение читает их, когда использует.",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Сейчас освободить нечего: %v файлов ниже остаются, каждый по указанной причине.",
 
@@ -1371,6 +1377,7 @@ func init() {
 		"The file is damaged or was modified.":                                     "Файл повреждён или был изменён.",
 		"The file is not a backup of this app.":                                    "Файл не является резервной копией этого приложения.",
 		"The files could not be checked.":                                          "Не удалось проверить файлы.",
+		"The file could not be read, it was left unchecked.":                       "Не удалось прочитать файл, он остался непроверенным.",
 		"The files could not be copied.":                                           "Не удалось скопировать файлы.",
 		"The files could not be organized.":                                        "Не удалось упорядочить файлы.",
 		"The folder does not exist or is not an absolute path.":                    "Папка не существует или путь не абсолютный.",
@@ -1525,6 +1532,10 @@ func init() {
 		"within a minute":                                                  "в течение минуты",
 		"you":                                                              "вы",
 		"yours included":                                                   "включая ваш",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "Деморежим: папки и сведения о сервере не показываются.",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "Отдельная папка для каждого DLC",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "С ID каждый DLC попадает в свою папку. Без этого все они попадают в папку DLC: пути остаются короче, ведь многие программы Windows не читают пути длиннее 260 символов.",
@@ -1583,6 +1594,10 @@ func init() {
 		"No preference: the suggested copy": "Без предпочтения: рекомендуемая копия",
 		"Your preferred region":             "Ваш предпочитаемый регион",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Одна карточка на игру с флагами всех её регионов: тех, которых у вас нет, — приглушёнными. Показывается копия, выбранная вами на странице игры, или рекомендуемая, а счётчики учитывают игру один раз. Файлы не изменяются.",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "Подпись версии отсутствует или неверна: ничего не изменено.",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "Отвечать в чате Telegram",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "Пишите боту в его чат: /have zelda, /new, /space, /status, /sync. Ответы приходят только в этот чат, на языке приложения.",
@@ -1645,5 +1660,75 @@ func init() {
 		"The update goes to the folder of its game; nothing else is touched.": "Обновление идёт в папку своей игры; больше ничего не трогается.",
 		"Everything is ordered, also what was loose.":                         "Упорядочивается всё, и то, что лежало отдельно.",
 		"Write a channel first.":                                              "Сначала укажи канал.",
+		"Quarantine":                                                          "Карантин",
+		"What the app deletes from the library (duplicates, old updates, copies of other regions) does not go at once: it waits in a hidden folder of the same library folder, on the same disk, without being copied, and you can put it back while it is there.": "То, что приложение удаляет из библиотеки (дубликаты, старые обновления, копии других регионов), исчезает не сразу: оно ждёт в скрытой папке той же папки библиотеки, на том же диске и без копирования, и его можно вернуть на место, пока оно там.",
+		"Keep what is deleted":            "Хранить удалённое",
+		"Off: deleted at once":            "Выключено: удаляется сразу",
+		"48 hours":                        "48 часов",
+		"1 week":                          "1 неделя",
+		"30 days":                         "30 дней",
+		"Until I empty it":                "Пока я не очищу",
+		"Largest size":                    "Максимальный размер",
+		"No limit":                        "Без ограничения",
+		"Over it, the oldest goes first.": "При превышении сначала удаляется самое старое.",
+		"When a task needs room, delete the oldest of the quarantine first":                  "Если задаче нужно место, сначала удалять самое старое из карантина",
+		"Also keep the originals after compressing, converting, splitting or making a pack":  "Сохранять и оригиналы после сжатия, преобразования, разделения или создания пакета",
+		"They are checked before they are deleted, and they take a lot of room: better off.": "Они проверяются перед удалением и занимают много места: лучше выключить.",
+		"In the quarantine now":                "Сейчас в карантине",
+		"of %v GB":                             "из %v ГБ",
+		"The oldest is deleted for good on %v": "Самое старое будет удалено навсегда %v",
+		"Empty the quarantine? Its %v files are deleted for good.": "Очистить карантин? Его файлы (%v) будут удалены навсегда.",
+		"Empty now":              "Очистить сейчас",
+		"deleted for good on %v": "удаляется навсегда %v",
+		"Put back in its folder": "Вернуть в свою папку",
+		"Put back":               "Вернуть",
+		"Delete %v for good? It cannot be undone.": "Удалить %v навсегда? Это нельзя отменить.",
+		"Delete for good":                          "Удалить навсегда",
+		"Nothing is waiting in the quarantine.":    "В карантине ничего нет.",
+		"The hidden folder (%v) is in each library folder: the app does not scan it nor offer it to DBI.": "Скрытая папка (%v) есть в каждой папке библиотеки: приложение её не сканирует и не показывает DBI.",
+		"Duplicate":                                    "Дубликат",
+		"Old update":                                   "Старое обновление",
+		"Copy of another region":                       "Копия другого региона",
+		"Original of a compressed file":                "Оригинал сжатого файла",
+		"Converted to NSP":                             "Преобразован в NSP",
+		"Decompressed to NSP":                          "Распакован в NSP",
+		"Split into parts":                             "Разделён на части",
+		"Joined in a pack":                             "Объединён в пакет",
+		"Deleted from the library":                     "Удалён из библиотеки",
+		"Another file has its name in its folder now.": "В его папке теперь есть другой файл с таким же именем.",
+		"That file is no longer in the quarantine.":    "Этого файла больше нет в карантине.",
+		"The file could not be put back.":              "Не удалось вернуть файл.",
+		"%v is back in its folder.":                    "%v снова в своей папке.",
+		"The file could not be deleted.":               "Не удалось удалить файл.",
+		"Deleted for good.":                            "Удалено навсегда.",
+		"%v files deleted for good (%v).":              "Удалено навсегда файлов: %v (%v).",
+		"Move %v files (%v) to the quarantine? You can put them back from Settings, Quarantine.": "Переместить файлы (%v, %v) в карантин? Их можно вернуть в Настройки, Карантин.",
+		"%v old updates moved to the quarantine":                                                 "Старых обновлений перемещено в карантин: %v",
+		"What happens to what is deleted?":                                                       "Что происходит с удалённым?",
+		"Duplicates, old updates and copies of other regions can wait a while in a hidden folder before they go for good, so a mistake can be undone. They are moved, not copied: they take no more room.": "Дубликаты, старые обновления и копии других регионов могут какое-то время ждать в скрытой папке, прежде чем исчезнуть навсегда, чтобы ошибку можно было исправить. Они перемещаются, а не копируются: места больше не занимают.",
+		"Delete at once":                        "Удалять сразу",
+		"old":                                   "старое",
+		"An update is replaced by a newer one.": "Обновление заменяется более новым.",
+		"The old update is deleted at once: it cannot be put back.":                                           "Старое обновление удаляется сразу: вернуть его нельзя.",
+		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "Старое обновление ждёт в скрытой папке (%v): его можно вернуть в Настройки, Карантин.",
+		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "Старое обновление ждёт в скрытой папке, пока ты её не очистишь: его можно вернуть в Настройки, Карантин.",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "Скачивание базы названий...",
+		"Downloading versions database...": "Скачивание базы версий...",
+		"Loading titles database...":       "Загрузка базы названий...",
+		"Processing titles and updates...": "Обработка игр и обновлений...",
+		"Scanning library...":              "Сканирование библиотеки...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "Обновить",
+		// a count of one
+		"%v file selected, %v": "Выбран %v файл, %v",
+		"%v game selected, %v": "Выбрана %v игра, %v",
+		"%v step on":           "Включён %v шаг",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "Это тот же файл, что и остающаяся копия, только по другому пути, поэтому он не удаляется.",
+		// a newer version that could not be read
+		"The newer file could not be read, it was recognized by its name only: keep this one.": "Более новый файл не удалось прочитать, он распознан только по имени: оставьте этот.",
+		// settings that could not be saved
+		"The settings could not be saved: %v": "Не удалось сохранить настройки: %v",
 	}
 }

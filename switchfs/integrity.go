@@ -225,8 +225,7 @@ type integritySection struct {
 }
 
 // newNcaIntegrity reads the header of an NCA (its first 0xC00 bytes, encrypted).
-func newNcaIntegrity(encryptedHeader []byte) (*ncaIntegrity, *ncaHeader, error) {
-	keys, _ := settings.SwitchKeys()
+func newNcaIntegrity(keys keySet, encryptedHeader []byte) (*ncaIntegrity, *ncaHeader, error) {
 	if keys == nil || keys.GetKey("header_key") == "" {
 		return nil, nil, &MissingKeyError{KeyName: "header_key"}
 	}
@@ -291,7 +290,9 @@ func checkNcaIntegrity(ctx context.Context, input io.ReaderAt, offset int64, siz
 	if err := readAtFull(input, encryptedHeader, offset); err != nil {
 		return IntegrityResult{}, err
 	}
-	check, header, err := newNcaIntegrity(encryptedHeader)
+	// the header and the sections are read with the same keys
+	keys, _ := settings.SwitchKeys()
+	check, header, err := newNcaIntegrity(keys, encryptedHeader)
 	if err != nil {
 		return IntegrityResult{}, err
 	}
@@ -301,7 +302,7 @@ func checkNcaIntegrity(ctx context.Context, input io.ReaderAt, offset int64, siz
 		needsKey = needsKey || section.layers != nil && section.encType == 3
 	}
 	if needsKey {
-		key, err := ncaSectionKey(header, titleKeys)
+		key, err := ncaSectionKey(keys, header, titleKeys)
 		if err != nil {
 			// without the key nothing encrypted can be checked
 			result := IntegrityResult{Unchecked: len(check.sections)}

@@ -1162,11 +1162,6 @@
 }
 
 
-.saga-state {
-	font-size: var(--slm-text-xs);
-	color: var(--bs-secondary-color);
-}
-
 /* the bars of running tasks are drawn again at every update: no entrance animation; the
    stripes of the bars that move keep moving */
 [data-live-tasks] .progress-bar:not(.progress-bar-animated) {
@@ -1478,7 +1473,7 @@
 	isolation: isolate;
 
 	&.is-for-you {
-		border-color: rgba(214, 40, 57, .45);
+		border-color: rgba($slm-cyan, .45);
 	}
 
 	&::before {
@@ -1573,7 +1568,7 @@
 		font-weight: 800;
 		line-height: 1;
 		color: var(--bs-emphasis-color);
-		text-shadow: 0 2px 18px rgba(214, 40, 57, .55);
+		text-shadow: 0 2px 18px rgba(var(--slm-work-rgb), .55);
 	}
 
 	.countdown-label {
@@ -1818,6 +1813,7 @@ html[data-section="compression"] #compression,
 html[data-section="automation"] #automation,
 html[data-section="vault"] #vault,
 html[data-section="notifications"] #notifications,
+html[data-section="quarantine"] #quarantine,
 html[data-section="mobile"] #mobile,
 html[data-section="backup"] #backup {
 	display: block;

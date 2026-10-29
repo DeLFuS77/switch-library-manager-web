@@ -62,6 +62,9 @@ func ReadBuildID(path string, titleId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if hashInfo.pfs0HeaderOffset >= entry.Size {
+		return "", errors.New("the program has no ExeFS")
+	}
 	start := uint64(entry.StartOffset) + hashInfo.pfs0HeaderOffset
 	exefs, err := readPlain(reader, pkg, program, start, min(uint64(exefsReadLimit), uint64(entry.Size)-hashInfo.pfs0HeaderOffset))
 	if err != nil {
@@ -170,8 +173,9 @@ func buildIdOfExefs(exefs []byte) (string, error) {
 		if file.Name != "main" {
 			continue
 		}
+		// told apart without adding to the offset: a damaged one near its largest overflowed
 		start := file.StartOffset
-		if start+nsoBuildIdOffset+8 > uint64(len(exefs)) {
+		if start > uint64(len(exefs)) || uint64(len(exefs))-start < nsoBuildIdOffset+8 {
 			return "", errors.New("the header of main is beyond what was read")
 		}
 		if string(exefs[start:start+4]) != "NSO0" {

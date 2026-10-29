@@ -120,6 +120,51 @@ func TestClientAddressBehindCloudflare(t *testing.T) {
 	}
 }
 
+// Without SLM_TRUSTED_PROXIES a proxy of the local network is believed, as before; with it only
+// the proxies listed, so another computer of the network cannot make up its address to dodge
+// the login protection. A forwarded address never makes a request local.
+func TestOnlyTheTrustedProxiesListedAreBelieved(t *testing.T) {
+	saved := trustedProxyNets
+	defer func() { trustedProxyNets = saved }()
+	trustedProxyNets = parseTrustedProxies("")
+	request := func(remote string, forwarded string) *http.Request {
+		r := httptest.NewRequest("GET", "/", nil)
+		r.RemoteAddr = remote + ":5000"
+		r.Header.Set("X-Forwarded-For", forwarded)
+		return r
+	}
+	if got := clientIp(request("192.168.1.2", "203.0.113.9")); got != "203.0.113.9" {
+		t.Fatalf("a proxy of the local network, nothing set: %q", got)
+	}
+
+	trustedProxyNets = parseTrustedProxies("192.168.1.2, 10.8.0.0/16")
+	if got := clientIp(request("192.168.1.2", "203.0.113.9")); got != "203.0.113.9" {
+		t.Fatalf("a proxy listed: %q", got)
+	}
+	if got := clientIp(request("10.8.4.4", "203.0.113.9")); got != "203.0.113.9" {
+		t.Fatalf("a range listed: %q", got)
+	}
+	if got := clientIp(request("192.168.1.30", "203.0.113.10")); got != "192.168.1.30" {
+		t.Fatalf("another computer of the network makes up its address: %q", got)
+	}
+	cloudflare := request("192.168.1.30", "")
+	cloudflare.Header.Set("Cf-Connecting-Ip", "203.0.113.11")
+	if got := clientIp(cloudflare); got != "192.168.1.30" {
+		t.Fatalf("another computer of the network sends the header of Cloudflare: %q", got)
+	}
+
+	// local or not, from the address of the connection, whatever is forwarded
+	for _, proxies := range []string{"", "192.168.1.2"} {
+		trustedProxyNets = parseTrustedProxies(proxies)
+		if isLocalRequest(request("203.0.113.9", "192.168.1.5")) {
+			t.Fatalf("an address of the internet that says it is local (%q)", proxies)
+		}
+		if !isLocalRequest(request("192.168.1.2", "192.168.1.5")) || isLocalRequest(request("192.168.1.2", "203.0.113.9")) {
+			t.Fatalf("through a proxy of the network (%q)", proxies)
+		}
+	}
+}
+
 func TestParseTrustedProxies(t *testing.T) {
 	nets := parseTrustedProxies("10.0.0.1, 2001:db8::/32;cloudflare  nonsense")
 	if len(nets) != 2+len(cloudflareRanges) {

@@ -1,4 +1,72 @@
 {
+  "1.67.0": {
+    "en": [
+      "New in Settings: a quarantine. What the app deletes from the library can wait in a hidden folder for a while and be put back from there. It is off until it is turned on, and the setup wizard asks about it.",
+      "This version brings many fixes: above all, a folder reached by two paths, a file that cannot be read for a moment or a move between two disks can no longer end in deleting the only copy of a game.",
+      "Red is kept for errors, and work going on is blue. In Tasks, the covers fill up smoothly and stay during a scan.",
+      "SLM_TRUSTED_PROXIES now trusts only the proxies listed: where it is set, the proxy or tunnel of the network has to be added to it too."
+    ],
+    "es": [
+      "Nuevo en Ajustes: una cuarentena. Lo que la app borra de la biblioteca puede esperar un tiempo en una carpeta oculta y recuperarse desde allí. Está apagada hasta que se encienda, y el asistente de configuración pregunta por ella.",
+      "Esta versión trae muchos arreglos: sobre todo, una carpeta a la que se llega por dos rutas, un archivo que no se puede leer en ese momento o un movimiento entre dos discos ya no pueden acabar borrando la única copia de un juego.",
+      "El rojo queda para los errores, y el trabajo en marcha es azul. En Tareas, las portadas se llenan con suavidad y se quedan durante un escaneo.",
+      "SLM_TRUSTED_PROXIES ahora solo confía en los proxies de la lista: donde esté puesta, hay que añadir también el proxy o túnel de la red."
+    ],
+    "de": [
+      "Neu in den Einstellungen: eine Quarantäne. Was die App aus der Bibliothek löscht, kann eine Weile in einem versteckten Ordner warten und von dort zurückgeholt werden. Sie ist aus, bis sie eingeschaltet wird, und der Einrichtungsassistent fragt danach.",
+      "Diese Version bringt viele Korrekturen: vor allem können ein Ordner, der über zwei Pfade erreicht wird, eine Datei, die kurz nicht lesbar ist, oder ein Verschieben zwischen zwei Datenträgern nicht mehr dazu führen, dass die einzige Kopie eines Spiels gelöscht wird.",
+      "Rot bleibt für Fehler, laufende Arbeit ist blau. Unter Aufgaben füllen sich die Cover gleichmäßig und bleiben während eines Scans stehen.",
+      "SLM_TRUSTED_PROXIES vertraut jetzt nur den aufgeführten Proxys: Wo die Variable gesetzt ist, muss auch der Proxy oder Tunnel des Netzwerks eingetragen werden."
+    ],
+    "fr": [
+      "Nouveau dans Paramètres : une quarantaine. Ce que l'application supprime de la bibliothèque peut attendre un moment dans un dossier caché et être restauré depuis là. Elle reste désactivée jusqu'à son activation, et l'assistant de configuration pose la question.",
+      "Cette version apporte de nombreuses corrections : surtout, un dossier atteint par deux chemins, un fichier illisible un instant ou un déplacement entre deux disques ne peuvent plus finir par supprimer la seule copie d'un jeu.",
+      "Le rouge est réservé aux erreurs, et le travail en cours est en bleu. Dans Tâches, les jaquettes se remplissent en douceur et restent pendant une analyse.",
+      "SLM_TRUSTED_PROXIES ne fait désormais confiance qu'aux proxys de la liste : là où elle est définie, le proxy ou le tunnel du réseau doit aussi y être ajouté."
+    ],
+    "it": [
+      "Novità in Impostazioni: una quarantena. Ciò che l'app elimina dalla libreria può restare per un po' in una cartella nascosta ed essere ripristinato da lì. Resta disattivata finché non viene attivata, e la configurazione guidata lo chiede.",
+      "Questa versione porta molte correzioni: soprattutto, una cartella raggiunta da due percorsi, un file illeggibile per un momento o uno spostamento tra due dischi non possono più finire per eliminare l'unica copia di un gioco.",
+      "Il rosso resta per gli errori, e il lavoro in corso è blu. In Attività, le copertine si riempiono in modo fluido e restano durante una scansione.",
+      "SLM_TRUSTED_PROXIES ora si fida solo dei proxy elencati: dove è impostata, va aggiunto anche il proxy o tunnel della rete."
+    ],
+    "pt": [
+      "Novo em Configurações: uma quarentena. O que o app apaga da biblioteca pode esperar um tempo numa pasta oculta e ser recuperado de lá. Fica desligada até ser ligada, e o assistente de configuração pergunta sobre ela.",
+      "Esta versão traz muitas correções: sobretudo, uma pasta acessada por dois caminhos, um arquivo que não pode ser lido por um momento ou uma movimentação entre dois discos não podem mais acabar apagando a única cópia de um jogo.",
+      "O vermelho fica para os erros, e o trabalho em andamento é azul. Em Tarefas, as capas se enchem suavemente e ficam durante uma verificação da biblioteca.",
+      "SLM_TRUSTED_PROXIES agora só confia nos proxies da lista: onde estiver definida, é preciso adicionar também o proxy ou túnel da rede."
+    ],
+    "nl": [
+      "Nieuw in Instellingen: een quarantaine. Wat de app uit de bibliotheek verwijdert, kan een tijd in een verborgen map wachten en daar worden teruggezet. Ze staat uit tot ze wordt aangezet, en de installatiewizard vraagt ernaar.",
+      "Deze versie brengt veel oplossingen: vooral kunnen een map die via twee paden bereikt wordt, een bestand dat even niet te lezen is of een verplaatsing tussen twee schijven niet meer leiden tot het verwijderen van de enige kopie van een game.",
+      "Rood blijft voor fouten, en werk dat bezig is, is blauw. In Taken vullen de covers zich vloeiend en blijven ze staan tijdens een scan.",
+      "SLM_TRUSTED_PROXIES vertrouwt nu alleen de vermelde proxy's: waar de variabele is ingesteld, moet ook de proxy of tunnel van het netwerk worden toegevoegd."
+    ],
+    "ru": [
+      "Новое в «Настройках»: карантин. То, что приложение удаляет из библиотеки, может какое-то время полежать в скрытой папке и быть восстановлено оттуда. Он выключен, пока его не включат, и мастер настройки спрашивает о нём.",
+      "В этой версии много исправлений: прежде всего, папка, доступная по двум путям, файл, который на миг не удалось прочитать, или перенос между двумя дисками больше не могут привести к удалению единственной копии игры.",
+      "Красный остаётся для ошибок, а идущая работа теперь синяя. В «Задачах» обложки заполняются плавно и не пропадают во время сканирования.",
+      "SLM_TRUSTED_PROXIES теперь доверяет только перечисленным прокси: если переменная задана, в неё нужно добавить и прокси или туннель сети."
+    ],
+    "ja": [
+      "設定に「隔離」を追加：アプリがライブラリから削除したものを、しばらく隠しフォルダーに置いておき、そこから元に戻せます。オンにするまでは無効で、セットアップウィザードでも確認されます。",
+      "このバージョンでは多くの問題を修正しました。特に、2つのパスからたどれるフォルダー、一時的に読めないファイル、2つのディスク間の移動が原因で、ゲームの唯一のコピーが削除されることはなくなりました。",
+      "赤はエラー専用になり、処理中の作業は青で表示されます。タスクではカバー画像がなめらかに満ち、スキャン中も表示されたままです。",
+      "SLM_TRUSTED_PROXIES は一覧にあるプロキシのみを信頼するようになりました。設定している場合は、ネットワークのプロキシやトンネルも追加する必要があります。"
+    ],
+    "ko": [
+      "설정에 새로 추가: 격리함. 앱이 라이브러리에서 삭제한 것은 숨김 폴더에서 한동안 기다렸다가 그곳에서 되돌릴 수 있습니다. 켜기 전까지는 꺼져 있으며, 설정 마법사에서 물어봅니다.",
+      "이번 버전에는 많은 수정이 들어 있습니다. 특히 두 경로로 접근되는 폴더, 잠시 읽을 수 없는 파일, 두 디스크 간 이동 때문에 게임의 유일한 사본이 삭제되는 일이 더 이상 없습니다.",
+      "빨간색은 오류에만 쓰이고, 진행 중인 작업은 파란색입니다. 작업에서 커버가 부드럽게 채워지고 스캔 중에도 그대로 남습니다.",
+      "SLM_TRUSTED_PROXIES는 이제 목록에 있는 프록시만 신뢰합니다. 설정된 경우 네트워크의 프록시나 터널도 추가해야 합니다."
+    ],
+    "zh": [
+      "设置中新增：隔离区。应用从库中删除的内容可以在隐藏文件夹中保留一段时间，并可从那里恢复。在开启之前它是关闭的，设置向导也会询问。",
+      "此版本包含大量修复：尤其是，通过两条路径访问的文件夹、暂时无法读取的文件或在两个磁盘之间移动，都不会再导致删除游戏的唯一副本。",
+      "红色只用于错误，进行中的工作显示为蓝色。在任务中，封面平滑填充，扫描期间也会保留。",
+      "SLM_TRUSTED_PROXIES 现在只信任列表中的代理：设置了它的话，还需要把网络中的代理或隧道也加进去。"
+    ]
+  },
   "1.66.0": {
     "en": [
       "The setup wizard asks how to order your games: as they are, a folder per game, or with Base, Updates and DLC subfolders, keeping the folders you have. A small tree shows what each choice does.",

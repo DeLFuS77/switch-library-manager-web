@@ -334,6 +334,8 @@ func init() {
 		"Another task is working on the files of the library (organizing, a cleanup, a compression, combining games or a check): try again when it has finished.": "別のタスクがライブラリのファイルを処理中です（整理、クリーンアップ、圧縮、結合、確認）。終了してからもう一度お試しください。",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.":                                                        "ライブラリが残すゲーム本体、最新アップデート、または DLC も含んでいるため、削除しません。",
 		"The newer file is damaged: keep this one.":                                                                                                               "新しいファイルが破損しています。こちらを残してください。",
+		"What this file holds could not be read: keep this one.":                                                                                                  "このファイルの内容を読み取れませんでした。こちらを残してください。",
+		"A part already there is not sound as a whole: the original is kept.":                                                                                     "既にあるパートが完全には正常ではありません。元のファイルは残します。",
 		"The compressed file does not hold everything this file holds: keep this one.":                                                                            "圧縮ファイルにはこのファイルの内容がすべて含まれていません。こちらを残してください。",
 		"A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.":                                    "別の地域のゲームのコピーが確認済みで正常な場合にのみ削除できます。先にファイルを確認してください。",
 		"And the separate files?": "個別のファイルは？",
@@ -668,6 +670,10 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "%v個のファイルはすでに圧縮済みのため表示されていません。圧縮ファイルの検証後、元のファイルは「容量」ページで削除できます。",
 		"%v files at a time": "同時に%v個のファイル",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v個のファイルは、残す側のファイルを検証した後でのみ削除できます。検証されるのは残す側のファイルだけです。",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "ネットワーク上のパスはここでは確認しません。アプリが使うときに読み込みます。",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "今は何も解放できません。以下の %v 個のファイルは、それぞれ示された理由で残ります。",
 
@@ -1371,6 +1377,7 @@ func init() {
 		"The file is damaged or was modified.":                                     "ファイルが破損しているか、変更されています。",
 		"The file is not a backup of this app.":                                    "このアプリのバックアップファイルではありません。",
 		"The files could not be checked.":                                          "ファイルを確認できませんでした。",
+		"The file could not be read, it was left unchecked.":                       "ファイルを読み取れなかったため、未確認のままです。",
 		"The files could not be copied.":                                           "ファイルをコピーできませんでした。",
 		"The files could not be organized.":                                        "ファイルを整理できませんでした。",
 		"The folder does not exist or is not an absolute path.":                    "フォルダーが存在しないか、絶対パスではありません。",
@@ -1525,6 +1532,10 @@ func init() {
 		"within a minute":                                                  "1分以内",
 		"you":                                                              "自分",
 		"yours included":                                                   "自分を含む",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "デモモード：サーバーのフォルダーと詳細は表示しません。",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "DLC ごとにフォルダー",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "ID を付ける場合、DLC ごとに専用のフォルダーに入れます。オフにすると、すべて DLC フォルダーに入り、パスが短くなります。多くの Windows のプログラムは 260 文字を超えるパスを読めません。",
@@ -1583,6 +1594,10 @@ func init() {
 		"No preference: the suggested copy": "指定なし：おすすめのコピー",
 		"Your preferred region":             "優先する地域",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "ゲームごとに1枚のカードで、すべての地域の国旗を表示します（持っていない地域は薄く表示）。ゲームのページで選んだコピー、またはおすすめのコピーが表示され、カウンターではゲームを1つとして数えます。ファイルは変更されません。",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "リリースの署名がないか、正しくありません。何も変更していません。",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "Telegramのチャットで返信する",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "ボットのチャットに書き込みます：/have zelda、/new、/space、/status、/sync。返信はそのチャットだけに、アプリの言語で届きます。",
@@ -1645,5 +1660,75 @@ func init() {
 		"The update goes to the folder of its game; nothing else is touched.": "アップデートはそのゲームのフォルダーへ。ほかは何も変えません。",
 		"Everything is ordered, also what was loose.":                         "ばらばらだったものも含めて、すべて整理します。",
 		"Write a channel first.":                                              "先にチャンネルを入力してください。",
+		"Quarantine":                                                          "隔離",
+		"What the app deletes from the library (duplicates, old updates, copies of other regions) does not go at once: it waits in a hidden folder of the same library folder, on the same disk, without being copied, and you can put it back while it is there.": "アプリがライブラリから削除するもの（重複、古いアップデート、他リージョンのコピー）はすぐには消えません。同じライブラリフォルダー内の隠しフォルダーで、同じディスク上にコピーせずに待機し、その間は元の場所に戻せます。",
+		"Keep what is deleted":            "削除したものを保管",
+		"Off: deleted at once":            "オフ：すぐに削除",
+		"48 hours":                        "48時間",
+		"1 week":                          "1週間",
+		"30 days":                         "30日",
+		"Until I empty it":                "自分で空にするまで",
+		"Largest size":                    "最大サイズ",
+		"No limit":                        "制限なし",
+		"Over it, the oldest goes first.": "超えると古いものから削除されます。",
+		"When a task needs room, delete the oldest of the quarantine first":                  "タスクに空きが必要なときは、隔離の古いものから先に削除する",
+		"Also keep the originals after compressing, converting, splitting or making a pack":  "圧縮・変換・分割・パック作成後の元ファイルも保管する",
+		"They are checked before they are deleted, and they take a lot of room: better off.": "削除前に確認済みで、容量も大きいため、オフがおすすめです。",
+		"In the quarantine now":                "現在隔離中",
+		"of %v GB":                             "/ %v GB",
+		"The oldest is deleted for good on %v": "最も古いものは %v に完全に削除されます",
+		"Empty the quarantine? Its %v files are deleted for good.": "隔離を空にしますか？ %v 個のファイルが完全に削除されます。",
+		"Empty now":              "今すぐ空にする",
+		"deleted for good on %v": "%v に完全削除",
+		"Put back in its folder": "元のフォルダーに戻す",
+		"Put back":               "戻す",
+		"Delete %v for good? It cannot be undone.": "%v を完全に削除しますか？ 元に戻せません。",
+		"Delete for good":                          "完全に削除",
+		"Nothing is waiting in the quarantine.":    "隔離中のものはありません。",
+		"The hidden folder (%v) is in each library folder: the app does not scan it nor offer it to DBI.": "隠しフォルダー（%v）は各ライブラリフォルダーにあります。アプリはスキャンせず、DBI にも表示しません。",
+		"Duplicate":                                    "重複",
+		"Old update":                                   "古いアップデート",
+		"Copy of another region":                       "他リージョンのコピー",
+		"Original of a compressed file":                "圧縮済みファイルの元ファイル",
+		"Converted to NSP":                             "NSP に変換済み",
+		"Decompressed to NSP":                          "NSP に展開済み",
+		"Split into parts":                             "分割済み",
+		"Joined in a pack":                             "パックに結合済み",
+		"Deleted from the library":                     "ライブラリから削除",
+		"Another file has its name in its folder now.": "元のフォルダーに同じ名前の別のファイルがあります。",
+		"That file is no longer in the quarantine.":    "そのファイルはもう隔離にありません。",
+		"The file could not be put back.":              "ファイルを戻せませんでした。",
+		"%v is back in its folder.":                    "%v を元のフォルダーに戻しました。",
+		"The file could not be deleted.":               "ファイルを削除できませんでした。",
+		"Deleted for good.":                            "完全に削除しました。",
+		"%v files deleted for good (%v).":              "%v 個のファイルを完全に削除しました（%v）。",
+		"Move %v files (%v) to the quarantine? You can put them back from Settings, Quarantine.": "%v 個のファイル（%v）を隔離に移動しますか？ 設定の「隔離」から戻せます。",
+		"%v old updates moved to the quarantine":                                                 "古いアップデート %v 件を隔離に移動しました",
+		"What happens to what is deleted?":                                                       "削除したものはどうなる？",
+		"Duplicates, old updates and copies of other regions can wait a while in a hidden folder before they go for good, so a mistake can be undone. They are moved, not copied: they take no more room.": "重複、古いアップデート、他リージョンのコピーは、完全に削除される前にしばらく隠しフォルダーで待機できるので、間違いを元に戻せます。コピーではなく移動なので、容量は増えません。",
+		"Delete at once":                        "すぐに削除",
+		"old":                                   "古い",
+		"An update is replaced by a newer one.": "アップデートが新しいものに置き換わります。",
+		"The old update is deleted at once: it cannot be put back.":                                           "古いアップデートはすぐに削除され、元に戻せません。",
+		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "古いアップデートは隠しフォルダーで %v 待機し、設定の「隔離」から戻せます。",
+		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "古いアップデートは空にするまで隠しフォルダーで待機し、設定の「隔離」から戻せます。",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "タイトルデータベースをダウンロード中...",
+		"Downloading versions database...": "バージョンデータベースをダウンロード中...",
+		"Loading titles database...":       "タイトルデータベースを読み込み中...",
+		"Processing titles and updates...": "タイトルとアップデートを処理中...",
+		"Scanning library...":              "ライブラリをスキャン中...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "再読み込み",
+		// a count of one
+		"%v file selected, %v": "%v個のファイルを選択中、%v",
+		"%v game selected, %v": "%v 本のゲームを選択、%v",
+		"%v step on":           "%v ステップがオン",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "残すコピーと同じファイルに別のパスから届いているため、削除しません。",
+		// a newer version that could not be read
+		"The newer file could not be read, it was recognized by its name only: keep this one.": "新しいファイルは読み取れず、名前だけで認識されました。こちらを残してください。",
+		// settings that could not be saved
+		"The settings could not be saved: %v": "設定を保存できませんでした: %v",
 	}
 }

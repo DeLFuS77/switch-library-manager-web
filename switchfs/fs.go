@@ -13,6 +13,8 @@ type fsHeader struct {
 	hashType      byte // (0 = Auto, 2 = HierarchicalSha256, 3 = HierarchicalIntegrity (Ivfc))
 	fsHeaderBytes []byte
 	generation    uint32
+	// with the generation, the upper half of the AES-CTR counter of the section
+	secureValue uint32
 }
 
 // fsEntry is where a section lies in its NCA. The offsets do not fit in 32 bits for the
@@ -79,6 +81,7 @@ func getFsHeader(ncaHeader *ncaHeader, index int) (*fsHeader, error) {
 
 	generationBytes := fsHeaderBytes[0x140 : 0x140+0x4] //generation
 	result.generation = binary.LittleEndian.Uint32(generationBytes)
+	result.secureValue = binary.LittleEndian.Uint32(fsHeaderBytes[0x144:0x148])
 
 	return &result, nil
 }
