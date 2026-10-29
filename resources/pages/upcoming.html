@@ -25,7 +25,7 @@
 				<div class="featured-bg" style="background-image: url('{{if .BannerUrl}}{{.BannerUrl}}{{else}}{{thumb $i.ImageUrl}}{{end}}')"></div>
 				<img class="featured-cover" src="{{if eq $i.ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb $i.ImageUrl}}{{end}}" alt="">
 				<div class="featured-info">
-					<span class="chip {{if .ForYou}}chip-danger{{else}}chip-muted{{end}}"><span class="bi {{if .ForYou}}bi-stars{{else}}bi-calendar-event{{end}}" aria-hidden="true"></span>{{if .ForYou}}{{t "Next for you"}}{{else}}{{t "Next release"}}{{end}}</span>
+					<span class="chip {{if .ForYou}}chip-info{{else}}chip-muted{{end}}"><span class="bi {{if .ForYou}}bi-stars{{else}}bi-calendar-event{{end}}" aria-hidden="true"></span>{{if .ForYou}}{{t "Next for you"}}{{else}}{{t "Next release"}}{{end}}</span>
 					<h2 class="featured-name" id="featuredRelease"><a class="stretched-link" href="/title/{{$i.Id}}.html">{{$i.Name}}</a></h2>
 					<p class="featured-when mb-0"><span class="bi bi-calendar3" aria-hidden="true"></span>{{formatTime $i.ReleaseDate}}{{with .Saga}} &middot; <span class="bi bi-collection" aria-hidden="true"></span>{{.Name}} &middot; {{t "you have %v of %v" .Owned .Total}}{{end}}</p>
 				</div>

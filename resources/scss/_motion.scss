@@ -1478,7 +1478,7 @@
 	isolation: isolate;
 
 	&.is-for-you {
-		border-color: rgba(214, 40, 57, .45);
+		border-color: rgba($slm-cyan, .45);
 	}
 
 	&::before {
