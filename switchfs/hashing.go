@@ -193,7 +193,13 @@ func checkWritten(ctx context.Context, path string, written []*writtenFile) (Fil
 			if err := decompressNcz(ctx, plain, input, file.offset, file.size, nil); err != nil {
 				return check, fmt.Errorf("%s: %w", file.name, err)
 			}
-			if id := contentId(file.name); id == "" || hex.EncodeToString(plain.Sum(nil)[:16]) == id {
+			id := contentId(file.name)
+			if id == "" {
+				// nothing tells what it must decompress to
+				check.Partial = true
+				continue
+			}
+			if hex.EncodeToString(plain.Sum(nil)[:16]) == id {
 				continue
 			}
 			result, err := checkNczIntegrity(ctx, input, file.offset, file.size)
@@ -206,7 +212,13 @@ func checkWritten(ctx context.Context, path string, written []*writtenFile) (Fil
 			continue
 		}
 		sum := want.hash.Sum()
-		if id := contentId(file.name); id == "" || hex.EncodeToString(sum[:16]) == id {
+		id := contentId(file.name)
+		if id == "" {
+			// nothing tells what its hash must be
+			check.Partial = true
+			continue
+		}
+		if hex.EncodeToString(sum[:16]) == id {
 			continue
 		}
 		if titleKeys == nil {

@@ -327,3 +327,47 @@ func TestWritersEndTheirHashes(t *testing.T) {
 		t.Fatalf("%d goroutines left by the writers", after-before)
 	}
 }
+
+// An NCA without a content ID in its name has nothing its hash can be checked against: it was
+// taken as checked, and the original of a file made from it could go. The check is partial.
+func TestNcaWithoutContentIdIsAPartialCheck(t *testing.T) {
+	initNszKeys(t, "")
+	ctx := context.Background()
+	source := filepath.Join(t.TempDir(), "Game [0100000000010000][v0].nsp")
+	os.WriteFile(source, makePFS0(pfs0Magic, []string{"game.nca"}, [][]byte{makeProgramNca(t, gameData(0x40000), 3, "")}), 0o644)
+	other, _ := writeTestNsp(t, t.TempDir())
+	partial := func(name string, check FileCheck, err error) {
+		t.Helper()
+		if err != nil || !check.Partial {
+			t.Fatalf("%s: %+v %v", name, check, err)
+		}
+	}
+
+	check, err := VerifyFile(ctx, source, nil)
+	partial("the file", check, err)
+	_, check, err = HashAndCheck(ctx, source, nil)
+	partial("its hashes", check, err)
+	nsz := filepath.Join(t.TempDir(), "game.nsz")
+	result, err := CompressGame(ctx, source, nsz, CompressOptions{})
+	if err != nil || result.Compressed != 1 {
+		t.Fatalf("compressed: %+v %v", result, err)
+	}
+	check, err = CheckHashes(ctx, source, result.Hashes)
+	partial("the hashes of its compression", check, err)
+	check, err = VerifyFile(ctx, nsz, nil)
+	partial("its NSZ", check, err)
+	check, err = DecompressAndCheck(ctx, nsz, filepath.Join(t.TempDir(), "back.nsp"), nil)
+	partial("its NSZ decompressed", check, err)
+	_, check, err = MergeAndCheck(ctx, []string{source, other}, filepath.Join(t.TempDir(), "pack.nsp"), true, nil)
+	partial("a pack of it", check, err)
+	otherNsz := filepath.Join(t.TempDir(), "other.nsz")
+	if _, err := CompressGame(ctx, other, otherNsz, CompressOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	_, check, err = MergeAndCheck(ctx, []string{nsz, otherNsz}, filepath.Join(t.TempDir(), "pack.nsz"), true, nil)
+	partial("a pack of its NSZ", check, err)
+	// with a content ID, the same file is checked whole
+	if check, err := VerifyFile(ctx, other, nil); err != nil || check.Partial {
+		t.Fatalf("a file of named NCA files: %+v %v", check, err)
+	}
+}

@@ -1149,7 +1149,8 @@ type FileCheck struct {
 	// whose data still matches all its hashes: they install and play like the originals
 	Modified []string
 	// some sections of those files cannot be checked on their own (the romfs of an
-	// update, or no key to decrypt them)
+	// update, or no key to decrypt them), or an NCA has no content ID in its name to be
+	// checked against
 	Partial bool
 }
 
@@ -1212,7 +1213,13 @@ func CheckHashes(ctx context.Context, path string, hashes map[string][32]byte) (
 		if !strings.HasSuffix(strings.ToLower(file.name), ".nca") {
 			continue
 		}
-		if id := contentId(file.name); id == "" || hex.EncodeToString(sum[:16]) == id {
+		id := contentId(file.name)
+		if id == "" {
+			// nothing tells what its hash must be
+			check.Partial = true
+			continue
+		}
+		if hex.EncodeToString(sum[:16]) == id {
 			continue
 		}
 		if titleKeys == nil {
@@ -1308,7 +1315,13 @@ func checkPackage(ctx context.Context, path string, expected map[string][32]byte
 		if !strings.HasSuffix(strings.ToLower(original), ".nca") {
 			continue
 		}
-		if id := contentId(file.name); id == "" || hex.EncodeToString(sum[:16]) == id {
+		id := contentId(file.name)
+		if id == "" {
+			// nothing tells what its hash must be
+			check.Partial = true
+			continue
+		}
+		if hex.EncodeToString(sum[:16]) == id {
 			continue
 		}
 		// the NCA does not match its content ID: modified by a tool, or damaged
