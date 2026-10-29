@@ -911,9 +911,15 @@ function setupWizard(element) {
 			}
 		});
 	});
+	// Enter in a field that is typed in, or in a list, goes to the next step; on a button it
+	// presses that button. Before the last step no Enter sends the form, also on a check box.
+	const typed = ['text', 'password', 'url', 'email', 'number', 'search', 'tel'];
 	form.addEventListener('keydown', e => {
-		if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && current < last) {
-			e.preventDefault();
+		if (e.key !== 'Enter' || current >= last || !['INPUT', 'SELECT'].includes(e.target.tagName)) {
+			return;
+		}
+		e.preventDefault();
+		if (e.target.tagName === 'SELECT' || typed.includes(e.target.type)) {
 			next.click();
 		}
 	});
