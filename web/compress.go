@@ -584,7 +584,8 @@ func (web *Web) resumeInterrupted() {
 	if resume == nil {
 		return
 	}
-	paths := []string{}
+	type left struct{ path, target string }
+	files := []left{}
 	for _, path := range resume.Paths {
 		if _, err := os.Stat(path); err != nil {
 			continue
@@ -605,18 +606,34 @@ func (web *Web) resumeInterrupted() {
 			}
 			target = packed
 		}
+		files = append(files, left{path, target})
+	}
+	// the file being written when the app stopped is left half written: it would keep the file
+	// from being written again. Removed only while no task works on the files, under the lock a
+	// task takes to start: a task started by hand meanwhile may be writing that very file
+	web.compressor.mutex.Lock()
+	if web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() {
+		// kept for when the files are free
+		web.compressor.mutex.Unlock()
+		return
+	}
+	for _, file := range files {
 		// a split writes several files: it removes what it left half written and keeps the
 		// parts it wrote whole
-		if target != "" {
-			// the file being written when the app stopped is left half written: it would keep
-			// the file from being written again
-			os.Remove(temporaryOf(path, target))
-			// done just before the app stopped
-			if _, err := os.Stat(target); err == nil {
+		if file.target != "" {
+			os.Remove(temporaryOf(file.path, file.target))
+		}
+	}
+	web.compressor.mutex.Unlock()
+	paths := []string{}
+	for _, file := range files {
+		// done just before the app stopped
+		if file.target != "" {
+			if _, err := os.Stat(file.target); err == nil {
 				continue
 			}
 		}
-		paths = append(paths, path)
+		paths = append(paths, file.path)
 	}
 	if len(paths) == 0 {
 		web.taskLog().SetResume(id, nil)

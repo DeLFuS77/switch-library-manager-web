@@ -10,6 +10,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
 // A compression keeps the files it has left as it goes, for a restart in the middle of it,
@@ -124,4 +125,34 @@ func TestRescanAskedDuringAScanIsNotLost(t *testing.T) {
 		t.Fatalf("only the copies written before the scan are forgotten: %v", web.compressor.written)
 	}
 	web.state.endSync()
+}
+
+// A task the app was stopped in the middle of goes on only while no task works on the files:
+// a compression started by hand meanwhile may be writing the temporary file it would remove.
+func TestResumeLeavesTheFileOfARunningTask(t *testing.T) {
+	web, path := compressWeb(t)
+	saved := &TaskLog{path: filepath.Join(web.dataFolder, TASKS_FILENAME), subscribers: map[chan int64]struct{}{}}
+	id := saved.Start(TASK_COMPRESS, TRIGGER_MANUAL)
+	saved.SetResume(id, &TaskResume{Paths: []string{path}, Level: "fast"})
+	temporary := temporaryOf(path, switchfs.CompressedPath(path))
+
+	// the same file compressed by hand, before the scan of the start let the task go on
+	writing, release := make(chan struct{}), make(chan struct{})
+	web.runFileTask(TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		os.WriteFile(temporary, []byte("being written"), 0o644)
+		close(writing)
+		<-release
+		os.Remove(temporary)
+		return 0, nil
+	})
+	<-writing
+	web.resumeInterrupted()
+	if _, err := os.Stat(temporary); err != nil {
+		t.Fatal("the file being written stays")
+	}
+	if _, _, resume := web.taskLog().interrupted(); resume == nil {
+		t.Fatal("the task goes on later")
+	}
+	close(release)
+	waitForCompression(t, web)
 }
