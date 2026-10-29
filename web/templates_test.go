@@ -241,3 +241,30 @@ func TestNumbersHaveTheSeparatorOfTheLanguage(t *testing.T) {
 		}
 	}
 }
+
+// The overview of the Library writes its numbers with the separator of the language, also when
+// they do not count up to it (reduced motion).
+func TestLibraryOverviewNumbersHaveTheSeparator(t *testing.T) {
+	web := newTestWeb(t)
+	set, err := parseTemplates(os.DirFS(".."), "resources/layout.html", "resources/partials/card.html", "resources/partials/filter.html",
+		"resources/partials/pagination.html", "resources/pages/index.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	global := web.globalPageData("index")
+	global.HasLibrary = true
+	data := LibraryPageData{
+		TitleItemsPageData: TitleItemsPageData{GlobalPageData: global, Filter: defaultFilter(), Views: web.libraryViews("mine", "es")},
+		Stats: Statistics{Games: 11382, UpdatesPending: 12345, GamesWithUpdate: 10500, DlcWithUpdate: 1845, MissingDlc: 23456,
+			HasTitlesDatabase: true, GamesUpToDate: 10200, GamesUpToDatePct: 89},
+	}
+	var page strings.Builder
+	if err := set.execute(&page, "es", data); err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{`data-count="11382">11.382<`, `data-count="12345">12.345<`, "10.500 juegos y 1845 DLC", `data-count="23456">23.456<`, "(10.200 / 11.382)"} {
+		if !strings.Contains(page.String(), want) {
+			t.Errorf("the overview misses %q", want)
+		}
+	}
+}
