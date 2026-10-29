@@ -59,32 +59,28 @@ function startToastTimer(toast) {
 }
 
 // notifications that came while a dialog was open, such as the setup wizard, which they would
-// cover: they are shown when it closes. Errors do not wait.
+// cover: they are shown when it closes. Errors do not wait. They are made at once all the same,
+// so the caller can still add to them (the reload of a finished synchronization).
 const waitingToasts = [];
 document.addEventListener('hidden.bs.modal', () => {
 	if (!document.querySelector('.modal.show')) {
-		waitingToasts.splice(0).forEach(args => showToast(...args));
+		waitingToasts.splice(0).forEach(placeToast);
 	}
 });
 
 function showToast(contextualClass, iconClass, strongMessage, message) {
-	if (contextualClass !== 'alert-danger' && document.querySelector('.modal.show')) {
-		waitingToasts.push([contextualClass, iconClass, strongMessage, message]);
-		return null;
-	}
 	const stack = toastStack();
 	const key = contextualClass + '|' + strongMessage + '|' + message;
-	const existing = [...stack.children].find(toast => toast.dataset.toastKey === key);
+	const existing = [...stack.children, ...waitingToasts].find(toast => toast.dataset.toastKey === key);
 	if (existing) {
-		startToastTimer(existing);
+		if (existing.isConnected) {
+			startToastTimer(existing);
+		}
 		return existing;
 	}
 
 	const toast = document.createElement('div');
 	toast.className = 'alert toast-note d-flex align-items-start gap-2 fade ' + contextualClass;
-	if (contextualClass === 'alert-success') {
-		playSound('done');
-	}
 	toast.setAttribute('role', contextualClass === 'alert-danger' ? 'alert' : 'status');
 	toast.dataset.toastKey = key;
 	toast.toastDuration = contextualClass === 'alert-danger' ? TOAST_ERROR_MS : TOAST_SUCCESS_MS;
@@ -117,6 +113,19 @@ function showToast(contextualClass, iconClass, strongMessage, message) {
 	toast.addEventListener('focusin', () => clearTimeout(toast.toastTimer));
 	toast.addEventListener('focusout', () => startToastTimer(toast));
 
+	if (contextualClass !== 'alert-danger' && document.querySelector('.modal.show')) {
+		waitingToasts.push(toast);
+	} else {
+		placeToast(toast);
+	}
+	return toast;
+}
+
+function placeToast(toast) {
+	const stack = toastStack();
+	if (toast.classList.contains('alert-success')) {
+		playSound('done');
+	}
 	stack.appendChild(toast);
 	while (stack.children.length > MAX_TOASTS) {
 		closeToast(stack.firstElementChild);
@@ -126,7 +135,6 @@ function showToast(contextualClass, iconClass, strongMessage, message) {
 	void toast.offsetWidth;
 	toast.classList.add('show');
 	startToastTimer(toast);
-	return toast;
 }
 
 // the messages the server put in the page (after saving a form) become notifications
