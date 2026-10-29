@@ -3,6 +3,7 @@ package web
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -170,6 +171,40 @@ func TestTasksHttp(t *testing.T) {
 	web.router.ServeHTTP(missing, httptest.NewRequest("POST", "/api/tasks/999/dismiss", nil))
 	if missing.Code != http.StatusNotFound {
 		t.Fatalf("dismissing an unknown task: %v", missing.Code)
+	}
+}
+
+// The pages show the message of a task and of the synchronization in their language: /api/tasks
+// and /sync give it translated, next to the English message of the API.
+func TestTaskMessagesInTheLanguageOfTheRequest(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleTasks()
+	web.HandleSynchronize()
+	web.startTask(TASK_SCAN, TRIGGER_MANUAL)
+	web.UpdateProgress(-1, -1, "Scanned /games/Zelda")
+	web.taskLog().Progress(web.taskLog().Start(TASK_COVERS, TRIGGER_MANUAL), 1, 9, "Downloading covers")
+	web.state.startSync()
+	web.state.setProgress(0, 4, "Downloading titles database...")
+
+	get := func(path string, target any) {
+		request := httptest.NewRequest("GET", path, nil)
+		request.Header.Set("Accept-Language", "es")
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, request)
+		if recorder.Code != http.StatusOK || json.Unmarshal(recorder.Body.Bytes(), target) != nil {
+			t.Fatalf("%s: %v %s", path, recorder.Code, recorder.Body.String())
+		}
+	}
+	var tasks []map[string]any
+	get("/api/tasks", &tasks)
+	if len(tasks) != 2 || tasks[0]["text"] != "Descargando portadas" || tasks[1]["message"] != "Folder looked at: %v" || tasks[1]["text"] != "Carpeta revisada: /games/Zelda" {
+		t.Fatalf("tasks: %v", tasks)
+	}
+	var status map[string]any
+	get("/sync", &status)
+	if status["message"] != "Downloading titles database..." || status["text"] != "Descargando la base de datos de títulos..." {
+		t.Fatalf("sync: %v", status)
 	}
 }
 

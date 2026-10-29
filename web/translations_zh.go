@@ -1697,5 +1697,11 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "旧更新会立即删除：无法放回。",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "旧更新会在隐藏文件夹中等待 %v：可在设置的隔离区中放回。",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "旧更新会在隐藏文件夹中等待，直到你清空：可在设置的隔离区中放回。",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "正在下载游戏数据库...",
+		"Downloading versions database...": "正在下载版本数据库...",
+		"Loading titles database...":       "正在加载游戏数据库...",
+		"Processing titles and updates...": "正在处理游戏和更新...",
+		"Scanning library...":              "正在扫描游戏库...",
 	}
 }

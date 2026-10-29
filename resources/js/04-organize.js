@@ -261,7 +261,7 @@ function initOrganize() {
 			bar.classList.remove('w-100');
 			bar.style.width = `${percent}%`;
 			bar.style.setProperty('--pct', percent);
-			message.textContent = task.messageArg ? t(task.message, task.messageArg) : t(task.message);
+			message.textContent = taskText(task);
 			count.textContent = `${task.current} / ${task.total} \u00b7 ${percent}%`;
 		})
 		.catch(() => {});

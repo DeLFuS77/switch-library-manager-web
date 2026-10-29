@@ -51,6 +51,8 @@ type SyncProgress struct {
 	Current       int    `json:"current"`
 	Total         int    `json:"total"`
 	Message       string `json:"message"`
+	// the message in the language of the request
+	Text string `json:"text,omitempty"`
 }
 
 func (s *WebState) setProgress(current int, total int, message string) {
@@ -954,6 +956,15 @@ func progressMessage(message string) (string, string) {
 		return "Done", ""
 	}
 	return message, ""
+}
+
+// messageText translates the message of a task, with what it names in its place: a message
+// that is only the name of a file stays as it is.
+func messageText(lang string, message string, arg string) string {
+	if arg != "" {
+		return translatef(lang, message, arg)
+	}
+	return translate(lang, message)
 }
 
 // taskLog returns the task history, loading it on first use.

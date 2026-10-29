@@ -1697,5 +1697,11 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "A atualização antiga é apagada de imediato: não se pode devolver.",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "A atualização antiga espera %v na pasta oculta: Definições, Quarentena pode devolvê-la.",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "A atualização antiga espera na pasta oculta até a esvaziares: Definições, Quarentena pode devolvê-la.",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "Baixando o banco de dados de títulos...",
+		"Downloading versions database...": "Baixando o banco de dados de versões...",
+		"Loading titles database...":       "Carregando o banco de dados de títulos...",
+		"Processing titles and updates...": "Processando títulos e atualizações...",
+		"Scanning library...":              "Analisando a biblioteca...",
 	}
 }

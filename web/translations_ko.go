@@ -1697,5 +1697,11 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "오래된 업데이트는 바로 삭제되어 되돌릴 수 없습니다.",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "오래된 업데이트는 숨김 폴더에서 %v 동안 기다리며, 설정의 격리함에서 되돌릴 수 있습니다.",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "오래된 업데이트는 비울 때까지 숨김 폴더에서 기다리며, 설정의 격리함에서 되돌릴 수 있습니다.",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "타이틀 데이터베이스 다운로드 중...",
+		"Downloading versions database...": "버전 데이터베이스 다운로드 중...",
+		"Loading titles database...":       "타이틀 데이터베이스 불러오는 중...",
+		"Processing titles and updates...": "타이틀과 업데이트 처리 중...",
+		"Scanning library...":              "라이브러리 스캔 중...",
 	}
 }

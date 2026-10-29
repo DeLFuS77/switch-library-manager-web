@@ -34,6 +34,14 @@ function runAsTask(start) {
 	});
 }
 
+// the message of a task, translated by the server in the language of the page
+function taskText(task) {
+	if (task.text) {
+		return task.text;
+	}
+	return task.messageArg ? t(task.message, task.messageArg) : t(task.message || '');
+}
+
 const TASK_NOTE_ID = 'taskRunning';
 
 function followTasks(known) {
@@ -68,7 +76,7 @@ function followTasks(known) {
 		const running = started.filter(task => task.status === 'running');
 		if (running.length > 0) {
 			const task = running[0];
-			const text = task.messageArg ? t(task.message, task.messageArg) : t(task.message || '');
+			const text = taskText(task);
 			const percent = task.total > 0 && task.current >= 0 ? ` · ${Math.min(100, Math.round(task.current * 100 / task.total))}%` : '';
 			if (text) {
 				message.textContent = text + percent;
@@ -157,9 +165,10 @@ function updateSyncAlert(status) {
 		return;
 	}
 
+	// the message, translated by the server in the language of the page
 	const message = alert.querySelector('[data-sync-message]');
-	if (message && status.message) {
-		message.textContent = status.message;
+	if (message && (status.text || status.message)) {
+		message.textContent = status.text || status.message;
 	}
 
 	const progress = alert.querySelector('.progress');

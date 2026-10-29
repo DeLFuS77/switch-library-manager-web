@@ -86,6 +86,44 @@ func TestSpanishTranslationIsComplete(t *testing.T) {
 	}
 }
 
+// Every text web.js passes to t() is sent to the browser (jsTexts) and translated in every
+// language: t() only knows the texts of jsTexts, the others are shown in English.
+func TestJsTextsAreSentAndTranslated(t *testing.T) {
+	// t('...'), t("...") and t(`...`) without ${}
+	literal := regexp.MustCompile(`\bt\(\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"|` + "`([^`$]*)`" + `)`)
+	unescape := strings.NewReplacer(`\'`, `'`, `\"`, `"`, `\\`, `\`)
+	sent := map[string]bool{}
+	for _, text := range jsTexts {
+		sent[text] = true
+	}
+	files, _ := filepath.Glob("../resources/js/*.js")
+	if len(files) == 0 {
+		t.Fatal("no scripts found")
+	}
+	found := 0
+	for _, file := range files {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, match := range literal.FindAllStringSubmatch(string(data), -1) {
+			text := unescape.Replace(match[1] + match[2] + match[3])
+			found++
+			if !sent[text] {
+				t.Errorf("%s: %q is not in jsTexts", filepath.Base(file), text)
+			}
+			for _, lang := range supportedLanguages {
+				if _, ok := translations[lang][text]; !ok && lang != DEFAULT_LANGUAGE {
+					t.Errorf("%s: no %s translation for %q", filepath.Base(file), lang, text)
+				}
+			}
+		}
+	}
+	if found < 20 {
+		t.Fatalf("only %d texts found", found)
+	}
+}
+
 func TestLanguageFromHeader(t *testing.T) {
 	for header, want := range map[string]string{
 		"":                        "en",

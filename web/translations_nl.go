@@ -1697,5 +1697,11 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "De oude update wordt meteen verwijderd: hij kan niet worden teruggezet.",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "De oude update wacht %v in de verborgen map: Instellingen, Quarantaine kan hem terugzetten.",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "De oude update wacht in de verborgen map tot je haar leegmaakt: Instellingen, Quarantaine kan hem terugzetten.",
+		// the steps of a synchronization, on its notice and on Tasks
+		"Downloading titles database...":   "Titeldatabase downloaden...",
+		"Downloading versions database...": "Versiedatabase downloaden...",
+		"Loading titles database...":       "Titeldatabase laden...",
+		"Processing titles and updates...": "Titels en updates verwerken...",
+		"Scanning library...":              "Bibliotheek scannen...",
 	}
 }
