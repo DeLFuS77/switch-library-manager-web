@@ -19,6 +19,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode"
+	"unicode/utf8"
 )
 
 const (
@@ -106,6 +108,9 @@ type Auth struct {
 	// when an attempt that is told only now and then was told last, by user, address and result
 	toldMutex sync.Mutex
 	told      map[string]time.Time
+	// the failed and blocked attempts told in the current minute, by address
+	toldMinute time.Time
+	toldByIp   map[string]int
 }
 
 const (
@@ -115,6 +120,13 @@ const (
 	retryTellInterval = time.Hour
 	// the attempts remembered; past that the oldest are forgotten, or all of them
 	maxToldAttempts = 1000
+	// failed and blocked attempts told per address and minute: a person who mistypes is told
+	// every time, a bot only this often
+	maxToldPerMinute = maxLoginFailures + 2
+	// the longest name of an attempt kept as it was sent; the names of accounts are shorter
+	maxAttemptName = 32
+	// the longest name kept in the keys of the login limiter; a longer one is kept as a hash
+	maxLimiterName = 64
 )
 
 func newAuth(dataFolder string) (*Auth, error) {
@@ -436,20 +448,67 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 	})
 }
 
+// attemptName is the name of a sign-in attempt as it is told and logged: one that cannot be
+// the name of an account is cut and loses its control characters, so the names a bot sends
+// cannot fill the activity log, the log of the app or the memory.
+func (a *Auth) attemptName(name string) string {
+	if validUserName.MatchString(name) || (a.envUser != "" && name == a.envUser) {
+		return name
+	}
+	var cleaned strings.Builder
+	kept := 0
+	for _, r := range name {
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) || r == utf8.RuneError {
+			continue
+		}
+		if kept == maxAttemptName {
+			cleaned.WriteString("…")
+			break
+		}
+		cleaned.WriteRune(r)
+		kept++
+	}
+	return cleaned.String()
+}
+
 // loginAttempt tells the hook of a sign-in attempt, never passing the password itself. With
 // every, an attempt of the same user from the same address with the same result is told only
 // once in that time: an API client signs in with every request, and a blocked one keeps trying.
+// A blocked address is told once in that time whatever names it tries, and the failures of an
+// address are told at most maxToldPerMinute times a minute.
 func (a *Auth) loginAttempt(user, ip, result, password string, every time.Duration) {
 	if a.onLogin == nil {
 		return
 	}
+	user = a.attemptName(user)
+	if !a.shouldTell(user, ip, result, every, time.Now()) {
+		return
+	}
+	a.onLogin(user, ip, result, len(password) >= minPasswordLength)
+}
+
+// shouldTell decides whether an attempt is told, and notes it when it is.
+func (a *Auth) shouldTell(user, ip, result string, every time.Duration, now time.Time) bool {
+	a.toldMutex.Lock()
+	defer a.toldMutex.Unlock()
+	if result != "ok" {
+		if minute := now.Truncate(time.Minute); !a.toldMinute.Equal(minute) || a.toldByIp == nil {
+			a.toldMinute = minute
+			a.toldByIp = map[string]int{}
+		}
+		count, seen := a.toldByIp[ip]
+		// many addresses in one minute: the new ones wait for the next
+		if count >= maxToldPerMinute || (!seen && len(a.toldByIp) >= maxToldAttempts) {
+			return false
+		}
+	}
 	if every > 0 {
-		now := time.Now()
 		key := user + "\x00" + ip + "\x00" + result
-		a.toldMutex.Lock()
+		if result == "blocked" {
+			key = ip + "\x00" + result
+		}
 		if last, ok := a.told[key]; ok && now.Sub(last) < every {
-			a.toldMutex.Unlock()
-			return
+			return false
 		}
 		if len(a.told) >= maxToldAttempts {
 			for other, last := range a.told {
@@ -466,9 +525,11 @@ func (a *Auth) loginAttempt(user, ip, result, password string, every time.Durati
 			a.told = map[string]time.Time{}
 		}
 		a.told[key] = now
-		a.toldMutex.Unlock()
 	}
-	a.onLogin(user, ip, result, len(password) >= minPasswordLength)
+	if result != "ok" {
+		a.toldByIp[ip]++
+	}
+	return true
 }
 
 // signedIn notes the sign-in of a user, shown in Users. A failed write only loses the date.
@@ -813,6 +874,10 @@ func newLoginLimiter() *loginLimiter {
 func loginKeys(ip, name string) []string {
 	keys := []string{"ip:" + ip}
 	if name = strings.ToLower(strings.TrimSpace(name)); name != "" {
+		// a name longer than any account takes little room, whatever its length
+		if len(name) > maxLimiterName {
+			name = "#" + cacheKey(name)
+		}
 		keys = append(keys, "user:"+name)
 	}
 	return keys

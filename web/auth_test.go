@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -11,6 +12,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 )
 
 // envAuth returns an Auth with the user set in the environment.
@@ -538,5 +540,78 @@ func TestSignInsToldToActivity(t *testing.T) {
 	wrong.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"guessed-wrong-2"}})
 	if count("alice blocked") != 1 {
 		t.Fatalf("a blocked login page is told once an hour: %v", told)
+	}
+}
+
+// A flood of failed sign-ins with long names, from one address or from many, keeps the names
+// short and the activity log small, with the other actions still in it.
+func TestFailedSignInsCannotFloodTheActivity(t *testing.T) {
+	web := usersWeb(t)
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	web.auth.onLogin = web.recordLogin
+	web.activities().add(Activity{Time: time.Now(), User: "alice", Action: ACTION_SETTINGS})
+	handler := web.auth.middleware(web.router)
+	count := func(action string) int {
+		n := 0
+		for _, entry := range web.activities().list() {
+			if entry.Action == action {
+				n++
+			}
+		}
+		return n
+	}
+	long := strings.Repeat("x", 60<<10)
+
+	// one address: its failures until it is blocked, then a single blocked attempt whatever
+	// the names it tries, by the login page or by basic authentication
+	bot := &client{t: t, handler: handler, ip: "192.0.2.50"}
+	for i := range 30 {
+		bot.do("POST", "/login.html", url.Values{"name": {long + fmt.Sprint(i)}, "password": {"guessed-wrong-1"}})
+	}
+	bot.do("GET", "/index.html", nil, "Authorization", basic(long+"basic", "guessed-wrong-1"))
+	if fails := count(ACTION_LOGIN_FAIL); fails != maxLoginFailures {
+		t.Fatalf("the failures of one address: %d", fails)
+	}
+	if blocked := count(ACTION_LOGIN_LOCK); blocked != 1 {
+		t.Fatalf("a blocked address trying other names is told once: %d", blocked)
+	}
+	api := &client{t: t, handler: handler, ip: "192.0.2.60"}
+	api.do("GET", "/index.html", nil, "Authorization", basic(long, "guessed-wrong-1"))
+	for _, entry := range web.activities().list() {
+		if utf8.RuneCountInString(entry.User) > maxAttemptName+1 {
+			t.Fatalf("a name of %d characters was kept", utf8.RuneCountInString(entry.User))
+		}
+	}
+	if keys := loginKeys("192.0.2.50", long); len(keys[1]) > len("user:#")+maxLimiterName {
+		t.Fatalf("a key of the limiter of %d bytes", len(keys[1]))
+	}
+	if name := web.auth.attemptName("evil\u202ename\x1b[31m"); name != "evilname[31m" {
+		t.Fatalf("control characters are left out: %q", name)
+	}
+
+	// many addresses: only the newest failures stay, and the other actions with them
+	for i := range 3 * maxFailedSignIns {
+		web.auth.loginAttempt("name"+fmt.Sprint(i), fmt.Sprintf("203.0.%d.%d", i/200, i%200+1), "fail", "guessed-wrong-1", 0)
+	}
+	if fails := count(ACTION_LOGIN_FAIL) + count(ACTION_LOGIN_LOCK); fails != maxFailedSignIns {
+		t.Fatalf("failed sign-ins kept: %d", fails)
+	}
+	if count(ACTION_SETTINGS) != 1 || web.activities().list()[0].IP != fmt.Sprintf("203.0.%d.%d", (3*maxFailedSignIns-1)/200, (3*maxFailedSignIns-1)%200+1) {
+		t.Fatal("the other actions and the newest failures stay")
+	}
+	if info, err := os.Stat(filepath.Join(web.dataFolder, ACTIVITY_FILENAME)); err != nil || info.Size() > 64<<10 {
+		t.Fatalf("the log on the disk: %v", info.Size())
+	}
+
+	// the failures of one address are told a few times a minute at most
+	now := time.Date(2026, 10, 29, 12, 0, 30, 0, time.UTC)
+	told := 0
+	for i := range 3 * maxToldPerMinute {
+		if web.auth.shouldTell("name"+fmt.Sprint(i), "192.0.2.70", "fail", 0, now) {
+			told++
+		}
+	}
+	if told != maxToldPerMinute || !web.auth.shouldTell("alice", "192.0.2.70", "ok", 0, now) || !web.auth.shouldTell("other", "192.0.2.70", "fail", 0, now.Add(time.Minute)) {
+		t.Fatalf("told in a minute: %d", told)
 	}
 }
