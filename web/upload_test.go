@@ -176,6 +176,66 @@ func TestUploadsGivenUpAfterADay(t *testing.T) {
 	}
 }
 
+// An upload nothing comes to gives back the room it kept on the disk, which would hold up the
+// compressions, and keeps it again when it goes on; one given up for a day is removed by the
+// watch of the uploads, also when no other upload starts, with the files cut before the start.
+func TestAbandonedUploadsGiveBackTheirRoom(t *testing.T) {
+	web, folder := uploadWeb(t)
+	reserved := func() int64 {
+		web.compressor.mutex.Lock()
+		defer web.compressor.mutex.Unlock()
+		return web.compressor.reserved
+	}
+	content := make([]byte, 100)
+	upload := web.uploads.get(uploadAnswer(t, postForm(web, "/uploads/start", url.Values{"name": {"Game.nsp"}, "size": {"100"}}))["id"].(string))
+	putPiece(web, upload.Id, 0, content[:40])
+	if got := reserved(); got != 100 {
+		t.Fatalf("an upload keeps room for its file: %d", got)
+	}
+	upload.mutex.Lock()
+	upload.touched = time.Now().Add(-uploadStalled - time.Second)
+	upload.mutex.Unlock()
+	web.endStalledUploads()
+	if got := reserved(); got != 0 || web.uploads.get(upload.Id) == nil {
+		t.Fatalf("a stopped upload gives its room back and stays: %d", got)
+	}
+	// pieces again: the room for the rest is kept again, and given back once at the end
+	putPiece(web, upload.Id, 40, content[40:70])
+	if got := reserved(); got != 60 {
+		t.Fatalf("the room for the rest of the file: %d", got)
+	}
+	upload.mutex.Lock()
+	upload.touched = time.Now().Add(-uploadStalled - time.Second)
+	upload.mutex.Unlock()
+	web.endStalledUploads()
+	if again := uploadAnswer(t, postForm(web, "/uploads/start", url.Values{"name": {"Game.nsp"}, "size": {"100"}})); again["received"].(float64) != 70 || reserved() != 30 {
+		t.Fatalf("chosen again, it goes on: %v, %d kept", again, reserved())
+	}
+	putPiece(web, upload.Id, 70, content[70:])
+	if response := postForm(web, "/uploads/finish", url.Values{"id": {upload.Id}}); response.Code != http.StatusOK || reserved() != 0 {
+		t.Fatalf("finished: %d, %d kept", response.Code, reserved())
+	}
+
+	// given up after a day, by the watch of the uploads alone
+	idle := web.uploads.get(uploadAnswer(t, postForm(web, "/uploads/start", url.Values{"name": {"Other.nsp"}, "size": {"50"}}))["id"].(string))
+	idle.mutex.Lock()
+	idle.touched = time.Now().Add(-uploadIdle - time.Minute)
+	idle.mutex.Unlock()
+	orphan := filepath.Join(folder, uploadPrefix+"cut"+uploadSuffix)
+	os.WriteFile(orphan, []byte("x"), 0o644)
+	old := time.Now().Add(-uploadIdle - time.Hour)
+	os.Chtimes(orphan, old, old)
+	web.forgetIdleUploadsEverywhere()
+	if web.uploads.get(idle.Id) != nil || reserved() != 0 {
+		t.Fatalf("an idle upload is given up: %d kept", reserved())
+	}
+	for _, path := range []string{idle.part, orphan} {
+		if _, err := os.Stat(path); err == nil {
+			t.Fatalf("%s is left", filepath.Base(path))
+		}
+	}
+}
+
 // the pieces the browser sends are bigger than a form
 func TestUploadPieceGetsPastTheBodyLimit(t *testing.T) {
 	read := int64(0)
