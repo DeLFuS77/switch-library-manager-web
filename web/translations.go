@@ -333,6 +333,7 @@ var translations = map[string]map[string]string{
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.":                                                        "También contiene el juego, su última actualización o un DLC que la biblioteca conserva, así que no se borra.",
 		"The newer file is damaged: keep this one.":                                                                                                               "El archivo más nuevo está dañado: conserva este.",
 		"What this file holds could not be read: keep this one.":                                                                                                  "No se ha podido leer lo que contiene este archivo: conserva este.",
+		"A part already there is not sound as a whole: the original is kept.":                                                                                     "Una parte que ya estaba no está sana entera: se conserva el original.",
 		"The compressed file does not hold everything this file holds: keep this one.":                                                                            "El archivo comprimido no contiene todo lo que tiene este: conserva este.",
 		"A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.":                                    "Una copia solo se borra si queda una copia del juego de otra región, comprobada y sana: comprueba los archivos primero.",
 		"And the separate files?": "¿Y los archivos sueltos?",

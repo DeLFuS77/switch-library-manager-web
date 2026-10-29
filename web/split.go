@@ -28,6 +28,8 @@ const (
 	NOTE_SPLIT_EXISTS = "A file with the name of a part already exists."
 	NOTE_SPLIT_KEPT   = "Some files of the original are in no part: the original is kept."
 	PHASE_SPLITTING   = "Splitting"
+	// a part found already written that is not sound as a whole
+	NOTE_SPLIT_PART_UNSOUND = "A part already there is not sound as a whole: the original is kept."
 )
 
 var errSplitExists = errors.New("a file with the name of a part already exists")
@@ -182,7 +184,8 @@ func (web *Web) startSplitBy(paths []string, deleteOriginals bool, trigger strin
 }
 
 // splitFile writes the parts of a file next to it. A part already there with the size it
-// would have was written before the app stopped: it is kept as it is.
+// would have was written before the app stopped: it is kept as it is, and counts for deleting
+// the original only once it is found sound.
 func (web *Web) splitFile(ctx context.Context, path string, game string, deleteOriginal bool, report func(step int64) func(int64, int64)) error {
 	if _, err := os.Stat(path); err != nil {
 		return err
@@ -214,7 +217,12 @@ func (web *Web) splitFile(ctx context.Context, path string, game string, deleteO
 	var done int64
 	for i, part := range plan.Parts {
 		target := targets[i]
-		if _, err := os.Stat(target); err == nil {
+		if existing, err := os.Stat(target); err == nil {
+			sound, err := web.soundPart(ctx, target, existing, report(done))
+			if err != nil {
+				return err
+			}
+			checked = checked && sound
 			done += part.Size
 			continue
 		}
@@ -246,6 +254,34 @@ func (web *Web) splitFile(ctx context.Context, path string, game string, deleteO
 		}
 	}
 	return nil
+}
+
+// soundPart tells whether a part found already written is sound as a whole: from its last check
+// while it did not change, or checked now. Its size alone does not tell a part cut short by a
+// failed disk, or another file of the same name.
+func (web *Web) soundPart(ctx context.Context, path string, info os.FileInfo, progress func(int64, int64)) (bool, error) {
+	detail := "the last check of the file did not find it sound"
+	if record, ok := web.verifications().current(path, info); ok {
+		if record.sound() && !record.Modified {
+			return true, nil
+		}
+	} else {
+		check, err := verifyLibraryFile(ctx, path, progress)
+		if errors.Is(err, context.Canceled) {
+			return false, err
+		}
+		if err == nil {
+			web.verifications().remember(path, check)
+			if fullyChecked(check) {
+				return true, nil
+			}
+			detail = "it could not be checked whole"
+		} else {
+			detail = err.Error()
+		}
+	}
+	web.warnRunningTask(NOTE_SPLIT_PART_UNSOUND, filepath.Base(path)+": "+detail)
+	return false, nil
 }
 
 // warnRunningTask adds a note to the task on files that is running.

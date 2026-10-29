@@ -335,6 +335,7 @@ func init() {
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.":                                                        "Il contient aussi le jeu, sa dernière mise à jour ou un DLC que la bibliothèque garde, il n'est donc pas supprimé.",
 		"The newer file is damaged: keep this one.":                                                                                                               "Le fichier plus récent est endommagé : garde celui-ci.",
 		"What this file holds could not be read: keep this one.":                                                                                                  "Le contenu de ce fichier n'a pas pu être lu : garde celui-ci.",
+		"A part already there is not sound as a whole: the original is kept.":                                                                                     "Une partie déjà présente n'est pas intacte en entier : l'original est conservé.",
 		"The compressed file does not hold everything this file holds: keep this one.":                                                                            "Le fichier compressé ne contient pas tout ce que contient celui-ci : garde celui-ci.",
 		"A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.":                                    "Une copie n'est supprimée que s'il reste une copie du jeu d'une autre région, vérifiée et saine : vérifie d'abord les fichiers.",
 		"And the separate files?": "Et les fichiers séparés ?",
