@@ -278,6 +278,7 @@ func writePackages(ctx context.Context, sources []string, target string, without
 	}
 	writer := &pfs0Writer{file: output, names: names}
 	written := make([]*writtenFile, len(parts))
+	defer endHashes(written)
 	err = writer.begin()
 	for i, p := range parts {
 		if err != nil {

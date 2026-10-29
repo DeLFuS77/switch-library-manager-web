@@ -117,6 +117,7 @@ func PackIntoCard(ctx context.Context, card string, extras []string, target stri
 	}
 	writer := &xczWriter{file: output, input: opened[0].reader, pkg: opened[0].pkg, names: names}
 	written := make([]*writtenFile, len(entries))
+	defer endHashes(written)
 	err = writer.begin()
 	for i, e := range entries {
 		if err != nil {

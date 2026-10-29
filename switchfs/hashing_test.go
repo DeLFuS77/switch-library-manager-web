@@ -8,9 +8,11 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 // The hashes a compression takes of the original while reading it are the ones a pass of
@@ -260,4 +262,68 @@ func TestWritersCheckWhatTheyWrite(t *testing.T) {
 		}
 	}
 
+}
+
+// Every hash a writer takes on a goroutine of its own ends with it, written whole or not: the
+// hashes of the files of every pack, conversion and part not read by the check were left
+// waiting, with their buffers, for as long as the server ran.
+func TestWritersEndTheirHashes(t *testing.T) {
+	initNszKeys(t, "")
+	folder := t.TempDir()
+	base := filepath.Join(folder, "base.nsp")
+	update := filepath.Join(folder, "update.nsp")
+	os.WriteFile(base, makePFS0(pfs0Magic, []string{"a.nca", "common.cert"}, [][]byte{[]byte("base-content"), []byte("cert")}), 0o644)
+	os.WriteFile(update, makePFS0(pfs0Magic, []string{"b.nca", "common.cert"}, [][]byte{[]byte("update-content!"), []byte("cert")}), 0o644)
+	xci := writeTestXci(t, t.TempDir())
+	card := writeCardXci(t, t.TempDir())
+	dlc := writeTitleNsp(t, t.TempDir(), 0x0100000000011001, 0, ContentMetaType_AddOnContent, 3)
+	_, _, super := splitFixture(t, ".nsp")
+	plan, err := PlanSplit(super)
+	if err != nil {
+		t.Fatal(err)
+	}
+	canceled, cancel := context.WithCancel(context.Background())
+	cancel()
+	target := func(name string) string { return filepath.Join(t.TempDir(), name) }
+
+	runtime.GC()
+	before := runtime.NumGoroutine()
+	for i := 0; i < 3; i++ {
+		if _, _, err := MergeAndCheck(context.Background(), []string{base, update}, target("pack.nsp"), true, nil); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := MergePackages(context.Background(), []string{base, update}, target("pack.nsp"), true, nil); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := MergePackages(canceled, []string{base, update}, target("pack.nsp"), true, nil); err == nil {
+			t.Fatal("a canceled pack")
+		}
+		if err := ConvertXciToNsp(context.Background(), xci, target("card.nsp"), nil); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := ConvertAndCheck(canceled, xci, target("card.nsp"), nil); err == nil {
+			t.Fatal("a canceled conversion")
+		}
+		if err := WriteSplitPart(context.Background(), super, plan.Parts[0], target("part.nsp"), nil); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := WriteSplitPartAndCheck(canceled, super, plan.Parts[0], target("part.nsp"), nil); err == nil {
+			t.Fatal("a canceled part")
+		}
+		if _, _, err := PackIntoCard(context.Background(), card, []string{dlc}, target("complete.xci"), nil); err != nil {
+			t.Fatal(err)
+		}
+		if _, _, err := PackIntoCard(canceled, card, []string{dlc}, target("complete.xci"), nil); err == nil {
+			t.Fatal("a canceled pack into a card")
+		}
+	}
+	// what ends on its own a little later is not left
+	after := runtime.NumGoroutine()
+	for wait := 0; wait < 200 && after > before; wait++ {
+		time.Sleep(10 * time.Millisecond)
+		after = runtime.NumGoroutine()
+	}
+	if after > before {
+		t.Fatalf("%d goroutines left by the writers", after-before)
+	}
 }

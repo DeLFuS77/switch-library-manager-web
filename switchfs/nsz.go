@@ -1445,6 +1445,7 @@ func decompressNsz(ctx context.Context, source string, target string, progress f
 		return nil, err
 	}
 	written := make([]*writtenFile, len(pkg.files))
+	defer endHashes(written)
 	writer := newPackageWriter(output, input, pkg, names)
 	err = writer.begin()
 	for i, file := range pkg.files {
@@ -1472,12 +1473,6 @@ func decompressNsz(ctx context.Context, source string, target string, progress f
 	}
 	if err == nil {
 		err = writer.finish()
-	}
-	// the hashes are taken on goroutines of their own: each ends once its sum is asked
-	for _, w := range written {
-		if w != nil {
-			w.hash.Sum()
-		}
 	}
 	closeErr := output.Close()
 	if err == nil {

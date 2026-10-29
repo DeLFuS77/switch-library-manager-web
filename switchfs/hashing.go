@@ -119,6 +119,17 @@ func newWrittenFile(name string) *writtenFile {
 	return &writtenFile{name: name, hash: newBackgroundHash()}
 }
 
+// endHashes ends the goroutines of the hashes of files written, on every way out of a writer:
+// each waits for more of its file until its sum is asked, also after an error. The sums stay
+// for checkWritten.
+func endHashes(written []*writtenFile) {
+	for _, w := range written {
+		if w != nil {
+			w.hash.Sum()
+		}
+	}
+}
+
 func (w *writtenFile) Write(p []byte) (int, error) {
 	w.hash.Write(p)
 	w.size += int64(len(p))

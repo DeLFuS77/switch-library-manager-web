@@ -335,6 +335,7 @@ func writeSplitPart(ctx context.Context, source string, part SplitPart, target s
 	}
 	names := part.Files()
 	written := make([]*writtenFile, len(part.files))
+	defer endHashes(written)
 	err = writer.begin()
 	for i, file := range part.files {
 		if err != nil {

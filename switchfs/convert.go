@@ -83,6 +83,7 @@ func convertXciToNsp(ctx context.Context, source string, target string, progress
 	// a header just big enough for the names, as in the NSP files of the eShop
 	writer := &pfs0Writer{file: output, names: names}
 	written := make([]*writtenFile, len(pkg.files))
+	defer endHashes(written)
 	err = writer.begin()
 	for i, file := range pkg.files {
 		if err != nil {
