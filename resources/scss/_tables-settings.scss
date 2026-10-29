@@ -34,10 +34,14 @@
 		color: $slm-cyan;
 	}
 
+	// the kind of a task, in grey: red is kept for the tasks that failed and blue for the ones
+	// at work (see .task-row and .task-card)
 	&.task-icon {
 		width: 2.5rem;
 		height: 2.5rem;
 		font-size: var(--slm-text-md);
+		background: var(--bs-secondary-bg);
+		color: var(--bs-secondary-color);
 	}
 }
 

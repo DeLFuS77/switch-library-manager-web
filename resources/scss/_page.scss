@@ -199,7 +199,17 @@
 
 	&.task-failed {
 		border-left-color: $danger;
+
+		.task-icon {
+			background: var(--slm-accent-soft);
+			color: $danger;
+		}
 	}
+}
+
+.task-card .task-icon {
+	background: rgba(var(--slm-work-rgb), .14);
+	color: rgb(var(--slm-work-rgb));
 }
 
 .task-note {
