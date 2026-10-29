@@ -197,6 +197,12 @@ func TestUpdateWithoutDeltas(t *testing.T) {
 // writeTitleNsp writes an NSP with one title: its Meta NCA and a program NCA of its own.
 func writeTitleNsp(t *testing.T, folder string, titleID uint64, version uint32, metaType byte, seed int) string {
 	t.Helper()
+	return writeTitleNspWith(t, folder, titleID, version, metaType, seed, "", nil)
+}
+
+// writeTitleNspWith is writeTitleNsp with one more file, such as a ticket.
+func writeTitleNspWith(t *testing.T, folder string, titleID uint64, version uint32, metaType byte, seed int, extraName string, extra []byte) string {
+	t.Helper()
 	programNca := makeProgramNca(t, gameData(0x10000+seed*0x200), 3, "")
 	programName := contentName(programNca, ".nca")
 	var program [16]byte
@@ -210,8 +216,57 @@ func writeTitleNsp(t *testing.T, folder string, titleID uint64, version uint32, 
 	cnmt[0x20+0x36] = 1
 	meta := makeSyntheticNCA(t, pad512(makePFS0(pfs0Magic, []string{"Title.cnmt"}, [][]byte{cnmt})), 1)
 	path := filepath.Join(folder, fmt.Sprintf("%016x-v%d.nsp", titleID, version))
-	os.WriteFile(path, makePFS0(pfs0Magic, []string{contentName(meta, ".cnmt.nca"), programName}, [][]byte{meta, programNca}), 0o644)
+	names := []string{contentName(meta, ".cnmt.nca"), programName}
+	contents := [][]byte{meta, programNca}
+	if extraName != "" {
+		names = append(names, extraName)
+		contents = append(contents, extra)
+	}
+	os.WriteFile(path, makePFS0(pfs0Magic, names, contents), 0o644)
 	return path
+}
+
+// A SuperNSP with two versions of the same update keeps, in a pack, the ticket of the version
+// kept, though the older version has a ticket of the same name: it was dropped with the old
+// version, and the originals were deleted after the pack.
+func TestMergeNewestKeepsTheTicketOfTheNewest(t *testing.T) {
+	initNszKeys(t, "")
+	folder := t.TempDir()
+	for _, tickets := range [][2]string{
+		// the same key generation: the same rights ID, so one ticket in the SuperNSP
+		{"0100000000010800000000000000000a.tik", "0100000000010800000000000000000a.tik"},
+		// another key generation
+		{"01000000000108000000000000000009.tik", "0100000000010800000000000000000a.tik"},
+	} {
+		v1 := writeTitleNspWith(t, folder, 0x0100000000010800, 65536, ContentMetaType_Patch, 1, tickets[0], bytes.Repeat([]byte{1}, 0x2C0))
+		v2 := writeTitleNspWith(t, folder, 0x0100000000010800, 131072, ContentMetaType_Patch, 2, tickets[1], bytes.Repeat([]byte{2}, 0x2C0))
+		super := filepath.Join(folder, "super.nsp")
+		os.Remove(super)
+		if _, _, err := MergeAndCheck(context.Background(), []string{v2, v1}, super, true, nil); err != nil {
+			t.Fatal(err)
+		}
+		dlc := writeTitleNsp(t, folder, 0x0100000000011001, 0, ContentMetaType_AddOnContent, 3)
+		packed := filepath.Join(folder, "pack.nsp")
+		os.Remove(packed)
+		_, replaced, _, err := MergeNewestAndCheck(context.Background(), []string{super, dlc}, packed, true, nil)
+		if err != nil || len(replaced) != 1 || replaced[0] != "0100000000010800 v65536" {
+			t.Fatalf("%v: replaced %v: %v", tickets, replaced, err)
+		}
+		pkg, err := ReadPfs0File(packed)
+		if err != nil {
+			t.Fatal(err)
+		}
+		found := false
+		for _, file := range pkg.Files {
+			found = found || file.Name == tickets[1]
+		}
+		if !found {
+			t.Fatalf("%v: the update kept lost its ticket", tickets)
+		}
+		if contents, err := ReadNspMetadata(packed); err != nil || contents["0100000000010800"] == nil || contents["0100000000010800"].Version != 131072 {
+			t.Fatalf("%v: the new update: %v %v", tickets, contents, err)
+		}
+	}
 }
 
 // A SuperNSP merged with a newer update of its game keeps the new update only.
