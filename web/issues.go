@@ -12,6 +12,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
 type Issue struct {
@@ -236,10 +237,19 @@ func (web *Web) HandleIssues() {
 }
 
 // keptChoices are the copies chosen to be kept with path added: the other copy of the same
-// duplicate is no longer chosen, and the files that are gone are left out.
+// duplicate is no longer chosen, and the files that are gone are left out. A copy compressed,
+// decompressed or converted since is chosen by its new name.
 func keptChoices(choices []string, path string, other string) []string {
 	result := []string{}
 	for _, choice := range choices {
+		if _, err := os.Stat(choice); err != nil {
+			for _, converted := range []string{switchfs.CompressedPath(choice), switchfs.DecompressedPath(choice), switchfs.ConvertedPath(choice)} {
+				if _, err := os.Stat(converted); err == nil {
+					choice = converted
+					break
+				}
+			}
+		}
 		if choice == path || filepath.Clean(choice) == filepath.Clean(other) {
 			continue
 		}
@@ -248,6 +258,42 @@ func keptChoices(choices []string, path string, other string) []string {
 		}
 	}
 	return append(result, path)
+}
+
+// followKeptChoices keeps the copies chosen in Issues chosen where Organize moved them: by
+// their old paths the next scan let the settings choose again, and the Space page could offer
+// to delete the very copy chosen.
+func (web *Web) followKeptChoices(operations []process.Operation) {
+	if len(settings.ReadSettings(web.dataFolder).OrganizeOptions.KeepFiles) == 0 {
+		return
+	}
+	moved := map[string]string{}
+	for _, op := range operations {
+		if op.Error == "" && op.Kind == process.OP_MOVE && op.From != "" && op.To != "" {
+			moved[filepath.Clean(op.From)] = op.To
+		}
+	}
+	follows := func(choices []string) bool {
+		for _, choice := range choices {
+			if _, ok := moved[filepath.Clean(choice)]; ok {
+				return true
+			}
+		}
+		return false
+	}
+	if !follows(settings.ReadSettings(web.dataFolder).OrganizeOptions.KeepFiles) {
+		return
+	}
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+		choices := make([]string, 0, len(s.OrganizeOptions.KeepFiles))
+		for _, choice := range s.OrganizeOptions.KeepFiles {
+			if to, ok := moved[filepath.Clean(choice)]; ok {
+				choice = to
+			}
+			choices = append(choices, choice)
+		}
+		s.OrganizeOptions.KeepFiles = choices
+	})
 }
 
 // gamesInFiles are the names of the games of each file that holds several games, by path,

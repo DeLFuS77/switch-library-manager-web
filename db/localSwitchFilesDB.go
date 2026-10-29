@@ -647,6 +647,14 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 	chosen := map[string]bool{}
 	for _, path := range organizeOptions.KeepFiles {
 		chosen[filepath.Clean(path)] = true
+		// a copy chosen that the app compressed, decompressed or converted since is the file
+		// that took its place, with the same name in the same folder: by its old name only, the
+		// choice of the settings would decide again, and the Space page offer the copy chosen
+		if _, err := os.Stat(path); errors.Is(err, fs.ErrNotExist) {
+			for _, converted := range []string{switchfs.CompressedPath(path), switchfs.DecompressedPath(path), switchfs.ConvertedPath(path)} {
+				chosen[filepath.Clean(converted)] = true
+			}
+		}
 	}
 	// the number of titles of each file read, to tell the files with several titles
 	titlesInFile := map[ExtendedFileInfo]int{}

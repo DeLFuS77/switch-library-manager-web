@@ -257,6 +257,7 @@ func (web *Web) runOrganizeFiles(action string, paths []string, trigger string) 
 	web.verifications().follow(operations)
 	web.uncompressible().follow(operations)
 	web.moves.record(operations)
+	web.followKeptChoices(operations)
 	var failure *TaskNote
 	if err == nil {
 		web.taskLog().SetResult(taskId, 0, web.noteOrganized(taskId, operations))
