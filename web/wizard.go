@@ -394,11 +394,17 @@ func (web *Web) HandleWizard() {
 			value = value[:4096]
 		}
 		var result WizardCheck
-		switch r.PostFormValue("kind") {
-		case "folder":
-			result = checkWizardFolder(value, lang)
-		case "keys":
-			result = checkWizardKeys(value, lang)
+		switch kind := r.PostFormValue("kind"); kind {
+		case "folder", "keys":
+			switch {
+			case isDemoMode():
+				// the demo goes through the wizard without telling what the server holds
+				result = WizardCheck{Ok: true, Message: translate(lang, DEMO_HIDDEN)}
+			case kind == "folder":
+				result = checkWizardFolder(value, lang)
+			default:
+				result = checkWizardKeys(value, lang)
+			}
 		case "folders":
 			// a folder twice, or one inside another: what Settings refuse when saving
 			message := repeatedFolders(SplitAndTrimSpaceArray(value, "\n"), lang)
@@ -419,6 +425,10 @@ func (web *Web) HandleWizard() {
 			path = path[:4096]
 		}
 		w.Header().Set("Cache-Control", "no-store")
+		if isDemoMode() {
+			writeJSON(w, http.StatusOK, WizardFolders{Folders: []string{}, Places: []string{}, Error: translate(web.requestLanguage(r), DEMO_HIDDEN)})
+			return
+		}
 		writeJSON(w, http.StatusOK, browseFolders(path, web.requestLanguage(r)))
 	}).Methods("GET")
 

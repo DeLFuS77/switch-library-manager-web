@@ -1263,6 +1263,10 @@ var translations = map[string]map[string]string{
 		"General":                            "General",
 		"Keys found":                         "Claves encontradas",
 		"Keys not found":                     "Claves no encontradas",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "Modo demo: no se muestran las carpetas ni los detalles del servidor.",
+
 		// a file that stays in its folder because its name is taken where it would go
 		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "No se ha movido: en el destino ya hay una copia del mismo tamaño. Es un duplicado, la página Espacio puede liberarlo.",
 		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "En el destino ya hay otro archivo con el mismo nombre y otro tamaño: son dos archivos del mismo juego y versión, Comprobar puede decir cuál está bien.",

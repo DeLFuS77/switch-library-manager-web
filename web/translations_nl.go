@@ -1529,6 +1529,10 @@ func init() {
 		"within a minute":                                                  "binnen een minuut",
 		"you":                                                              "jij",
 		"yours included":                                                   "inclusief die van jou",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "Demomodus: de mappen en de details van de server worden niet getoond.",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "Een map voor elke DLC",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "Met de ID's gaat elke DLC naar een eigen map. Zonder deze optie gaan ze allemaal naar de DLC-map: de paden blijven korter, want veel Windows-programma's lezen niet meer dan 260 tekens.",

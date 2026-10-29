@@ -1529,6 +1529,10 @@ func init() {
 		"within a minute":                                                  "в течение минуты",
 		"you":                                                              "вы",
 		"yours included":                                                   "включая ваш",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "Деморежим: папки и сведения о сервере не показываются.",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "Отдельная папка для каждого DLC",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "С ID каждый DLC попадает в свою папку. Без этого все они попадают в папку DLC: пути остаются короче, ведь многие программы Windows не читают пути длиннее 260 символов.",

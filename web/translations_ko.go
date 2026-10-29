@@ -1529,6 +1529,10 @@ func init() {
 		"within a minute":                                                  "1분 이내",
 		"you":                                                              "나",
 		"yours included":                                                   "내 것 포함",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "데모 모드: 서버의 폴더와 세부 정보는 표시하지 않아요.",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "DLC마다 폴더",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "ID를 붙이면 DLC마다 자기 폴더에 들어가요. 끄면 모두 DLC 폴더에 들어가서 경로가 짧아져요. 많은 Windows 프로그램은 260자를 넘는 경로를 읽지 못해요.",

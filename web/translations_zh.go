@@ -1529,6 +1529,10 @@ func init() {
 		"within a minute":                                                  "一分钟内",
 		"you":                                                              "你",
 		"yours included":                                                   "包括你的",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "演示模式：不显示服务器的文件夹和详细信息。",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "每个 DLC 一个文件夹",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "使用 ID 时，每个 DLC 放进自己的文件夹。关闭后，全部放进 DLC 文件夹：路径更短，因为许多 Windows 程序无法读取超过 260 个字符的路径。",

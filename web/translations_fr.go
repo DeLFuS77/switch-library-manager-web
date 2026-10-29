@@ -1529,6 +1529,10 @@ func init() {
 		"v%v available":                                                    "v%v disponible",
 		"within a minute":                                                  "dans moins d'une minute",
 		"you":                                                              "vous",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "Mode démo : les dossiers et les détails du serveur ne sont pas affichés.",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "Un dossier pour chaque DLC",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "Avec les ID, chaque DLC va dans son propre dossier. Sans cela, ils vont tous dans le dossier DLC : les chemins restent plus courts, car beaucoup de programmes de Windows ne lisent pas plus de 260 caractères.",
