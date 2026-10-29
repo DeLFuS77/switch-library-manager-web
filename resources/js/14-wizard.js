@@ -429,7 +429,7 @@ function setupWizard(element) {
 	markTheme();
 
 	// live checks of the folders and the keys
-	const check = (kind, value) => fetch(`/wizard/check?kind=${kind}&value=${encodeURIComponent(value)}`, { cache: 'no-store' })
+	const check = (kind, value) => fetch('/wizard/check', { method: 'POST', cache: 'no-store', body: new URLSearchParams({ kind, value }) })
 		.then(response => (response.ok ? response.json() : Promise.reject(response.status)));
 	const checkLine = (target, result) => {
 		target.className = `wizard-check-line ${result.ok ? 'is-ok' : 'is-bad'}`;

@@ -933,6 +933,10 @@ func init() {
 		"1 hour":                  "1 heure",
 		"Only folders that changed are read again. A longer interval lets the disks of a NAS sleep.":              "Seuls les dossiers modifiés sont relus. Un intervalle plus long laisse les disques d'un NAS se mettre en veille.",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v fichiers ne peuvent être supprimés qu'une fois les copies conservées vérifiées. Seules ces copies sont contrôlées.",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "Les chemins réseau ne sont pas vérifiés ici : l'app les lit quand elle s'en sert.",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Rien ne peut être libéré pour l'instant : les %v fichiers ci-dessous restent, chacun pour la raison indiquée.",
 

@@ -931,6 +931,10 @@ var translations = map[string]map[string]string{
 		"1 hour":                  "1 hora",
 		"Only folders that changed are read again. A longer interval lets the disks of a NAS sleep.":              "Solo se vuelven a leer las carpetas que han cambiado. Un intervalo más largo deja dormir los discos de un NAS.",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v archivos solo se pueden borrar cuando las copias que se conservan estén verificadas. Solo se comprueban esas copias.",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "Las rutas de red no se comprueban aquí: la app las lee cuando las usa.",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Ahora no se puede liberar nada: los %v archivos de abajo se quedan, cada uno por el motivo que indica.",
 

@@ -668,6 +668,10 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "%v bestanden hebben al een gecomprimeerde kopie en staan niet in de lijst. De originelen kun je op de pagina Ruimte verwijderen zodra hun kopieën zijn gecontroleerd.",
 		"%v files at a time": "%v bestanden tegelijk",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v bestanden kunnen pas worden verwijderd als de kopieën die blijven zijn gecontroleerd. Alleen die kopieën worden gecontroleerd.",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "Netwerkpaden worden hier niet gecontroleerd: de app leest ze wanneer hij ze gebruikt.",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Er kan nu niets worden vrijgemaakt: de %v bestanden hieronder blijven, elk om de aangegeven reden.",
 

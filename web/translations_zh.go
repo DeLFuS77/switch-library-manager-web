@@ -668,6 +668,10 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "%v 个文件已有压缩副本，未在此列出。副本校验通过后，可在“空间”页面删除原始文件。",
 		"%v files at a time": "同时处理 %v 个文件",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v 个文件只有在保留的副本校验通过后才能删除。只会检查这些副本。",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "此处不检查网络路径：应用会在使用时读取它们。",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "现在没有可以释放的空间：下面的 %v 个文件会保留，各自的原因已注明。",
 

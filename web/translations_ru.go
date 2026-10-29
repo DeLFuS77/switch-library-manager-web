@@ -668,6 +668,10 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "Файлов со сжатой копией: %v, они не показаны. Оригиналы можно удалить на странице «Место», когда их копии будут проверены.",
 		"%v files at a time": "Файлов одновременно: %v",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "Файлов: %v, их можно удалить только после проверки сохраняемых копий. Проверяются только эти копии.",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "Сетевые пути здесь не проверяются: приложение читает их, когда использует.",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Сейчас освободить нечего: %v файлов ниже остаются, каждый по указанной причине.",
 

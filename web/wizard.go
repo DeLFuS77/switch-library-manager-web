@@ -305,11 +305,26 @@ func countGameFiles(folder string) (int, bool) {
 	return count, stop
 }
 
-// checkWizardFolder checks a folder of games: it exists, can be read, and has games.
+// WIZARD_NETWORK_PATH tells why a path of another computer is not checked, translated
+const WIZARD_NETWORK_PATH = "Network paths are not checked here: the app reads them when it uses them."
+
+// networkPath tells a path of another computer (\\server\share, //server/share): the checks of
+// the wizard never open one, or Windows would send the credentials of the user to that computer.
+// A drive letter mapped to a share is a path of this computer and is checked.
+func networkPath(path string) bool {
+	path = strings.TrimSpace(path)
+	return len(path) >= 2 && (path[0] == '\\' || path[0] == '/') && (path[1] == '\\' || path[1] == '/')
+}
+
+// checkWizardFolder checks a folder of games: it exists, can be read, and has games. A network
+// path is not opened; the wizard goes on with it.
 func checkWizardFolder(folder string, lang string) WizardCheck {
 	folder = strings.TrimSpace(folder)
 	if folder == "" {
 		return WizardCheck{Message: translate(lang, "Please provide at least one Folder to scan")}
+	}
+	if networkPath(folder) {
+		return WizardCheck{Ok: true, Message: translate(lang, WIZARD_NETWORK_PATH)}
 	}
 	info, err := os.Stat(folder)
 	if err != nil || !info.IsDir() {
@@ -336,6 +351,9 @@ func checkWizardKeys(path string, lang string) WizardCheck {
 			return WizardCheck{Ok: true, Message: translate(lang, "Keys found")}
 		}
 		return WizardCheck{Message: translate(lang, "Keys not found")}
+	}
+	if networkPath(path) {
+		return WizardCheck{Message: translate(lang, WIZARD_NETWORK_PATH)}
 	}
 	keys, err := settings.GetSwitchKeys(path)
 	if err != nil {
@@ -368,14 +386,15 @@ func (web *Web) HandleWizard() {
 		}
 	}).Methods("GET")
 
+	// a POST, so that another site cannot make the server open a path (see sameOriginOnly)
 	web.router.HandleFunc("/wizard/check", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
-		value := r.URL.Query().Get("value")
+		value := r.PostFormValue("value")
 		if len(value) > 4096 {
 			value = value[:4096]
 		}
 		var result WizardCheck
-		switch r.URL.Query().Get("kind") {
+		switch r.PostFormValue("kind") {
 		case "folder":
 			result = checkWizardFolder(value, lang)
 		case "keys":
@@ -390,9 +409,10 @@ func (web *Web) HandleWizard() {
 		}
 		w.Header().Set("Cache-Control", "no-store")
 		writeJSON(w, http.StatusOK, result)
-	}).Methods("GET")
+	}).Methods("POST")
 
-	// the folders of the server, to choose the folder of the games instead of writing it
+	// the folders of the server, to choose the folder of the games instead of writing it; only
+	// inside the places it starts from, never a network path (see browseFolders)
 	web.router.HandleFunc("/wizard/folders", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Query().Get("path")
 		if len(path) > 4096 {
