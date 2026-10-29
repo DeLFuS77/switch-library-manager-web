@@ -23,7 +23,7 @@ function updateTaskIndicator() {
 	if (taskLinks().length === 0) {
 		return Promise.resolve(0);
 	}
-	return fetch('/api/tasks', { cache: 'no-store', headers: { Accept: 'application/json' } })
+	return apiFetch('/api/tasks', { cache: 'no-store', headers: { Accept: 'application/json' } })
 		.then(response => (response.ok ? response.json() : Promise.reject(response)))
 		.then(tasks => {
 			const active = tasks.filter(task => task.status === 'running');
@@ -117,16 +117,35 @@ function initTaskIndicator() {
 // browser opens few connections at once to the same server (six), and each page of the app
 // left open in a tab would keep one: with several tabs, the requests of the page seen waited
 // for good. A tab in the background closes its connection, and looks again once it is seen.
+// An error answer (the session ended, a proxy while the app starts again) ends the connection
+// for good: it is opened again a few seconds later, with what changed meanwhile.
 function followTaskEvents(changed) {
 	let source = null;
+	let retry = null;
 	const open = () => {
 		if (source || document.hidden) {
 			return;
 		}
-		source = new EventSource('/api/tasks/events');
-		source.addEventListener('tasks', changed);
+		const current = new EventSource('/api/tasks/events');
+		source = current;
+		current.addEventListener('tasks', changed);
+		current.addEventListener('error', () => {
+			if (current !== source || current.readyState !== EventSource.CLOSED) {
+				return;
+			}
+			close();
+			retry = setTimeout(() => {
+				retry = null;
+				if (!document.hidden) {
+					open();
+					changed();
+				}
+			}, 5000);
+		});
 	};
 	const close = () => {
+		clearTimeout(retry);
+		retry = null;
 		if (source) {
 			source.close();
 			source = null;
@@ -217,7 +236,7 @@ function initLiveTasks() {
 		// an answer that never comes is given up: the next change asks again
 		const controller = new AbortController();
 		const timeout = setTimeout(() => controller.abort(), 20000);
-		fetch('/tasks.html?part=list', { cache: 'no-store', signal: controller.signal })
+		apiFetch('/tasks.html?part=list', { cache: 'no-store', signal: controller.signal })
 			.then(response => response.ok ? response.text() : Promise.reject(response))
 			.then(html => new Promise(drawn => {
 				const moving = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
