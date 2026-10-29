@@ -58,7 +58,20 @@ function startToastTimer(toast) {
 	toast.toastTimer = setTimeout(() => closeToast(toast), toast.toastDuration);
 }
 
+// notifications that came while a dialog was open, such as the setup wizard, which they would
+// cover: they are shown when it closes. Errors do not wait.
+const waitingToasts = [];
+document.addEventListener('hidden.bs.modal', () => {
+	if (!document.querySelector('.modal.show')) {
+		waitingToasts.splice(0).forEach(args => showToast(...args));
+	}
+});
+
 function showToast(contextualClass, iconClass, strongMessage, message) {
+	if (contextualClass !== 'alert-danger' && document.querySelector('.modal.show')) {
+		waitingToasts.push([contextualClass, iconClass, strongMessage, message]);
+		return null;
+	}
 	const stack = toastStack();
 	const key = contextualClass + '|' + strongMessage + '|' + message;
 	const existing = [...stack.children].find(toast => toast.dataset.toastKey === key);
