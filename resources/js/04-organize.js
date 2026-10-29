@@ -273,10 +273,21 @@ function initOrganize() {
 		progress.hidden = false;
 		result.classList.add('d-none');
 		progress.scrollIntoView({ behavior: 'smooth', block: 'start' });
-		polling = setInterval(follow, 700);
+		// asked again once answered, so an answer that comes late cannot move the bar back
+		const token = {};
+		polling = token;
+		const ask = () => follow().then(() => {
+			if (polling === token) {
+				token.timer = setTimeout(ask, 700);
+			}
+		});
+		token.timer = setTimeout(ask, 700);
 	};
 	const stopProgress = () => {
-		clearInterval(polling);
+		if (polling) {
+			clearTimeout(polling.timer);
+		}
+		polling = null;
 		progress.hidden = true;
 		result.classList.remove('d-none');
 	};

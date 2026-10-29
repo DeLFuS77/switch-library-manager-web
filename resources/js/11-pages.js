@@ -68,19 +68,35 @@ function initSelfUpdate() {
 			return;
 		}
 		bar.hidden = false;
-		watching = setInterval(() => {
-			fetch('/update/progress', { cache: 'no-store' })
-				.then(response => response.json())
-				.then(progress => {
-					const percent = progress.total > 0 ? Math.min(100, Math.round((progress.done * 100) / progress.total)) : 0;
-					bar.firstElementChild.style.width = percent + '%';
-					bar.setAttribute('aria-valuenow', String(percent));
-					if (progress.step === 'check') {
-						say(t('Checking the new version...'));
-					}
-				})
-				.catch(() => {});
-		}, 500);
+		// asked again once answered, so an answer that comes late cannot move the bar back
+		const token = {};
+		watching = token;
+		const ask = () => fetch('/update/progress', { cache: 'no-store' })
+			.then(response => response.json())
+			.then(progress => {
+				if (watching !== token) {
+					return;
+				}
+				const percent = progress.total > 0 ? Math.min(100, Math.round((progress.done * 100) / progress.total)) : 0;
+				bar.firstElementChild.style.width = percent + '%';
+				bar.setAttribute('aria-valuenow', String(percent));
+				if (progress.step === 'check') {
+					say(t('Checking the new version...'));
+				}
+			})
+			.catch(() => {})
+			.then(() => {
+				if (watching === token) {
+					token.timer = setTimeout(ask, 500);
+				}
+			});
+		token.timer = setTimeout(ask, 500);
+	};
+	const stopWatching = () => {
+		if (watching) {
+			clearTimeout(watching.timer);
+		}
+		watching = null;
 	};
 	// the version that runs, or '' when it does not say
 	const runningVersion = () => fetch('/update/version', { cache: 'no-store', headers: { Accept: 'application/json' } })
@@ -91,7 +107,7 @@ function initSelfUpdate() {
 	// proxy are not an answer) and, when it says its version, it is not the one of before,
 	// which answers until it stops
 	const restart = before => {
-		clearInterval(watching);
+		stopWatching();
 		if (bar) {
 			bar.firstElementChild.style.width = '100%';
 		}
@@ -135,7 +151,7 @@ function initSelfUpdate() {
 			})
 			.then(() => restart(before))
 			.catch(error => {
-				clearInterval(watching);
+				stopWatching();
 				if (bar) {
 					bar.hidden = true;
 				}

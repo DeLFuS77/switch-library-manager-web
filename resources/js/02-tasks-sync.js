@@ -286,7 +286,18 @@ function finishSync() {
 	}
 }
 
+// watchSync follows the synchronization until it ends. Called again while it follows one (saving
+// the settings, ignoring a type of file...), it does not start a second loop.
+let watchingSync = false;
 function watchSync() {
+	if (watchingSync) {
+		return;
+	}
+	watchingSync = true;
+	pollSync();
+}
+
+function pollSync() {
 	setTimeout(() => {
 		fetch('/sync', { method: 'GET', cache: 'no-store' })
 			.then(response => {
@@ -300,13 +311,14 @@ function watchSync() {
 			.then(status => {
 				if (status.synchronizing) {
 					updateSyncAlert(status);
-					watchSync();
+					pollSync();
 				} else {
+					watchingSync = false;
 					onSyncFinished();
 				}
 			})
 			// the server may be restarting, keep trying
-			.catch(() => watchSync());
+			.catch(() => pollSync());
 	}, SYNC_POLL_INTERVAL);
 }
 
