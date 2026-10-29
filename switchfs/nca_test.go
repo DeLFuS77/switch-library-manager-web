@@ -253,6 +253,29 @@ type unsizedReader struct{ reader io.ReaderAt }
 
 func (u unsizedReader) ReadAt(p []byte, offset int64) (int, error) { return u.reader.ReadAt(p, offset) }
 
+// The counter of a section is its secure value and its generation, as the compression and the
+// check of the hash trees build it: the metadata, read with the generation alone, was nothing
+// readable in a section whose secure value is not zero, and its game had no name, NACP or icon
+// of its own.
+func TestMetaSectionWithASecureValue(t *testing.T) {
+	initNszKeys(t, "")
+	section := makePFS0(pfs0Magic, []string{"Application_0100000000010000.cnmt"}, [][]byte{makeCNMT(0x0100000000010000, 0, ContentMetaType_Application)})
+	section = append(section, make([]byte, (-len(section))&0x1ff)...)
+	// encrypted with the secure value 0x55667788
+	nca := makeProgramNca(t, section, 3, "")
+	_, decoded, err := openMetaNcaDataSection(bytes.NewReader(nca), 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pfs0, err := readPfs0(bytes.NewReader(decoded), 0)
+	if err != nil {
+		t.Fatalf("the section is not decrypted: %v", err)
+	}
+	if attributes, err := readBinaryCnmt(pfs0, decoded); err != nil || attributes.TitleId != "0100000000010000" {
+		t.Fatalf("the CNMT: %+v %v", attributes, err)
+	}
+}
+
 func TestDecryptAesCtrSuccessAndTruncation(t *testing.T) {
 	initTestKeys(t)
 	plain := bytes.Repeat([]byte("ctr"), 32)

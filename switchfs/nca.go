@@ -166,8 +166,10 @@ func decryptAesCtr(ncaHeader *ncaHeader, fsHeader *fsHeader, offset uint64, size
 		return nil, errors.New("invalid key area key")
 	}
 
+	// the upper half of the counter is the secure value and the generation, as the
+	// compression and the check of the hash trees read it
 	counter := make([]byte, 0x10)
-	binary.BigEndian.PutUint64(counter, uint64(fsHeader.generation))
+	binary.BigEndian.PutUint64(counter, uint64(fsHeader.secureValue)<<32|uint64(fsHeader.generation))
 	binary.BigEndian.PutUint64(counter[8:], offset/0x10)
 
 	c, err := aes.NewCipher(decKey)
