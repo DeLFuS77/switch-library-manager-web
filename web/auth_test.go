@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -613,5 +614,65 @@ func TestFailedSignInsCannotFloodTheActivity(t *testing.T) {
 	}
 	if told != maxToldPerMinute || !web.auth.shouldTell("alice", "192.0.2.70", "ok", 0, now) || !web.auth.shouldTell("other", "192.0.2.70", "fail", 0, now.Add(time.Minute)) {
 		t.Fatalf("told in a minute: %d", told)
+	}
+}
+
+// The public paths answer without login, as a guest: never as an administrator, unless login is
+// off and the request comes from where it would make one. A path written with escapes or dots is
+// not public, whatever it becomes once decoded.
+func TestPublicPathsAreForGuests(t *testing.T) {
+	web := usersWeb(t)
+	roles := []string{}
+	public := func(w http.ResponseWriter, r *http.Request) {
+		role := principalFrom(r).Role
+		if isAdminRequest(r) {
+			role += " (admin)"
+		}
+		roles = append(roles, role)
+		w.Write([]byte("public"))
+	}
+	web.router.HandleFunc("/resources/static/web.css", public)
+	web.router.HandleFunc("/sw.js", public)
+	web.router.PathPrefix("/resources/static/").HandlerFunc(public)
+	handler := web.auth.middleware(web.router)
+	last := func() string { return roles[len(roles)-1] }
+
+	// login off: from the local network, an administrator as on every page
+	local := &client{t: t, handler: handler}
+	if code := local.do("GET", "/resources/static/web.css", nil).Code; code != http.StatusOK || last() != ROLE_ADMIN+" (admin)" {
+		t.Fatalf("login off, local: %d %q", code, last())
+	}
+	remote := &client{t: t, handler: handler, ip: "203.0.113.9"}
+	if code := remote.do("GET", "/sw.js", nil).Code; code != http.StatusOK || last() != ROLE_GUEST {
+		t.Fatalf("login off, from outside: %d %q", code, last())
+	}
+	if code := remote.do("GET", "/settings.html", nil).Code; code != http.StatusForbidden {
+		t.Fatalf("login off, from outside, a page: %d", code)
+	}
+
+	// login on: a guest, and the login page and Log out still work
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	anonymous := &client{t: t, handler: handler}
+	if code := anonymous.do("GET", "/resources/static/web.css", nil).Code; code != http.StatusOK || last() != ROLE_GUEST {
+		t.Fatalf("login on, nobody signed in: %d %q", code, last())
+	}
+	if page := anonymous.do("GET", "/login.html", nil); page.Code != http.StatusOK {
+		t.Fatalf("the login page: %d", page.Code)
+	}
+	if logout := anonymous.do("POST", "/logout", nil); logout.Code != http.StatusSeeOther {
+		t.Fatalf("Log out without a session: %d", logout.Code)
+	}
+	for _, path := range []string{"/resources/static/..%2f..%2fsettings.html", "/resources/static/%2e%2e/settings.html", "/resources/static/../../settings.html", "/resources/static/%77eb.css"} {
+		if code := anonymous.do("GET", path, nil).Code; code != http.StatusUnauthorized {
+			t.Errorf("%s needs a login: %d", path, code)
+		}
+	}
+	admin := &client{t: t, handler: handler}
+	admin.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
+	if code := admin.do("GET", "/resources/static/web.css", nil).Code; code != http.StatusOK || last() != ROLE_ADMIN+" (admin)" {
+		t.Fatalf("signed in: %d %q", code, last())
+	}
+	if isAdminRequest(httptest.NewRequest("GET", "/", nil).WithContext(context.WithValue(context.Background(), principalKey{}, (*Principal)(nil)))) {
+		t.Fatal("nobody is not an administrator")
 	}
 }

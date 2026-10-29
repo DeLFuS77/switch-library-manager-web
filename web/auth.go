@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -321,6 +322,21 @@ func isPublicPath(path string) bool {
 		strings.HasPrefix(path, "/resources/static/") || strings.HasPrefix(path, "/resources/vendor/")
 }
 
+// isPublicRequest tells a request of a public path written plainly: a path with escapes or dots
+// (%2e%2e%2f, /../) is not taken for one, whatever it becomes once decoded and cleaned.
+func isPublicRequest(r *http.Request) bool {
+	return isPublicPath(r.URL.Path) && r.URL.EscapedPath() == r.URL.Path && path.Clean(r.URL.Path) == r.URL.Path
+}
+
+// anonymous is who sends a request of a public path without being signed in: a guest, or an
+// administrator where login is off and any other page would take the request as one.
+func (a *Auth) anonymous(r *http.Request) *Principal {
+	if !a.Enabled() && (a.remoteWithoutLogin || (isLocalRequest(r) && allowedHost(r.Host))) {
+		return &Principal{Role: ROLE_ADMIN}
+	}
+	return &Principal{Role: ROLE_GUEST}
+}
+
 // pages and actions of administrators; read-only users can only look and download
 var adminOnlyPages = map[string]struct{}{"/settings.html": {}, "/wizard": {}, "/wizard/check": {}, "/wizard/folders": {}, "/wizard/admin": {}, "/saves.html": {}, "/saves/download": {}, "/organize.html": {}, "/users.html": {}, "/activity.html": {}, "/activity.csv": {}, "/compress.html": {}, "/space.html": {}, "/update.html": {}, "/backup/download": {},
 	"/compress/xci-list": {}, "/compress/nsz-list": {}, "/diagnostics.html": {}, "/maintenance.html": {}}
@@ -366,10 +382,10 @@ func editorAllowed(r *http.Request) bool {
 	return false
 }
 
-// isAdminRequest tells a request of an administrator, or of anyone when login is off.
+// isAdminRequest tells a request of an administrator, or of anyone when login is off (the
+// middleware then makes everybody on the local network one).
 func isAdminRequest(r *http.Request) bool {
-	principal := principalFrom(r)
-	return principal == nil || principal.IsAdmin()
+	return principalFrom(r).IsAdmin()
 }
 
 func viewerAllowed(r *http.Request) bool {
@@ -390,8 +406,12 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var principal *Principal
 		switch {
-		case isPublicPath(r.URL.Path):
+		case isPublicRequest(r):
 			principal = a.fromSession(r)
+			if principal == nil {
+				next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), principalKey{}, a.anonymous(r))))
+				return
+			}
 		case !a.Enabled():
 			// without login everybody is an administrator: only on the local network, so an app
 			// published on the internet before an administrator is created is not open to anyone
@@ -439,7 +459,7 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 			}
 		}
 
-		if principal != nil && !roleAllows(principal.Role, r) {
+		if !roleAllows(principal.Role, r) {
 			http.Error(w, "this action needs an administrator", http.StatusForbidden)
 			return
 		}
