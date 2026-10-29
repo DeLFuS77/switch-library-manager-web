@@ -26,7 +26,7 @@
 - Quarantine in Settings: what is deleted from the library can wait in a hidden folder and be put back (off until turned on)
 - Many fixes, above all of cases that could delete the only copy of a game
 - Red only for errors and work in blue; the covers of Tasks fill up smoothly and stay during a scan
-- SLM_TRUSTED_PROXIES trusts only the proxies listed: add your own proxy or tunnel to it
+- SLM_TRUSTED_PROXIES trusts only the proxies listed: the proxy or tunnel of the network has to be added to it too
 ### 1.66.0
 - The setup wizard asks how to order the games (a folder per game, Base, Updates and DLC subfolders, keeping your folders)
 - The wizard chooses Only the new files for the automations, measures the server and sends a test notification

@@ -4,15 +4,15 @@
 
 ### New
 
-- Quarantine, in Settings: what the app deletes from the library (duplicates, old updates, copies of other regions) can wait in a hidden folder of its library folder for 48 hours, a week, 30 days or until you empty it, and be put back from the list, where each file says why it went and when it goes for good. It is moved, not copied, so it takes no more room; the quarantine has a largest size (the oldest goes first), gives its room to a task that needs it, and can also keep the originals after compressing, converting, splitting or making a pack. Off until you turn it on; the Space page and the automations say when files go to it
+- Quarantine, in Settings: what the app deletes from the library (duplicates, old updates, copies of other regions) can wait in a hidden folder of its library folder for 48 hours, a week, 30 days or until it is emptied, and be put back from the list, where each file says why it went and when it goes for good. It is moved, not copied, so it takes no more room; the quarantine has a largest size (the oldest goes first), gives its room to a task that needs it, and can also keep the originals after compressing, converting, splitting or making a pack. Off until it is turned on; the Space page and the automations say when files go to it
 - The setup wizard asks what happens to what is deleted, with a tree that shows the old update going to the quarantine or being deleted at once
 
 ### Improvements
 
 - In Tasks, the cover of a file at work (and the number of its lane) fills up smoothly between two updates, instead of rising in jumps
-- A file written by the app (compressed, decompressed, converted, split, a pack, an upload, your keys) is on the disk before it takes its name, and before the original is deleted: a power cut at that moment no longer leaves an empty file with the original gone
+- A file written by the app (compressed, decompressed, converted, split, a pack, an upload, the keys) is on the disk before it takes its name, and before the original is deleted: a power cut at that moment no longer leaves an empty file with the original gone
 - The music of the setup wizard is a slow bossa nova now: a soft bass, short chords ahead of the beat and a quiet wooden click, calmer than the bells it had
-- Red is kept for errors: work going on (spinners, the bar of the setup checklist, the rings of Tasks and Upcoming) is blue, switches turned on and the focus of fields are blue, and boxes show their focus only when you move with the keyboard
+- Red is kept for errors: work going on (spinners, the bar of the setup checklist, the rings of Tasks and Upcoming) is blue, switches turned on and the focus of fields are blue, and boxes show their focus only when moving with the keyboard
 - The icon of a task in Tasks is grey, blue while it works and red only when it failed; empty states are grey, the tune-up step is blue and "Next for you" cyan, and in My game the states are grey with the one chosen in blue
 - With reduced motion, endless animations stop instead of flickering, spinners keep turning and the page scrolls without gliding
 - On a phone, the bar of the browser follows the theme of the page
@@ -20,7 +20,7 @@
 
 ### Security
 
-- With SLM_TRUSTED_PROXIES set, only the proxies listed are trusted, so other computers of your network cannot make up their address. Before, they were added to the ones of the local network: if you set it and also use a proxy or a tunnel on your network, add it to the list
+- With SLM_TRUSTED_PROXIES set, only the proxies listed are trusted, so other computers of the network cannot make up their address. Before, they were added to the ones of the local network: where it is set and a proxy or a tunnel is used on the network, that proxy or tunnel has to be added to the list
 - A flood of failed sign-ins can no longer fill or wipe the activity log: names are cut to 32 characters, a blocked address is noted once an hour, and only the newest 100 failed sign-ins are kept
 - The activity spreadsheet writes names and values that start with = + - or @ as text, never as formulas
 - The login page and its files treat a visitor without a session as a guest, never as an administrator, and a path written with escapes is not taken for one of them
@@ -53,7 +53,7 @@
 - A game file with a damaged size in its header no longer stops the server when the title keys are checked after a scan, nor is copied or checked as if empty; a file whose contents end past its end is reported as cut short
 - The server no longer stops when prod.keys cannot be read during a synchronization while a check or a compression is running, nor when it reads the build ID of a damaged program; the missing key is reported as an error
 - A damaged metadata or control NCA no longer stops the scan, the icons or the file details, nor takes gigabytes of memory before failing
-- A file with an NCA not named after its content is checked only in part, so its original is kept
+- An NCA whose name has no content ID makes the check of its file partial, so the original is kept
 - Write errors while building an NSP, XCI or XCZ are reported instead of ignored, a damaged subsection table of an update patch is refused, and packing too many files into a game card is reported before anything is written
 - Packs, game card conversions and split parts no longer leave memory in use after they finish or fail
 - In a container with a memory limit, compression no longer drops to one thread after reading a game: the file cache is no longer counted as memory in use
@@ -61,14 +61,14 @@
 - A pause asked during a file check or an SD copy no longer holds the next compression
 - A pack queued after a compression of the same game waits for the scan and is made of the compressed file
 - Favorites (and IGDB lookups) changed at the same time are all saved
-- Things that happen at the same time no longer get in each other's way: IGDB titles no longer undo a newer library, a title language chosen during a synchronization is loaded after it, title keys wait for the scan, and a cancelled automatic compression no longer skips the file until a restart
+- Small races fixed: IGDB titles no longer undo a newer library, a title language asked during a synchronization is loaded after it, title keys wait for the scan, and a cancelled automatic compression no longer skips the file until a restart
 - Without a connection, scans no longer start a new cover download each time, filling Tasks with the same warning
 - The folder watcher no longer scans again right after the scan that follows a short task of the app
 - Uploads: closing the row of a failed file no longer drops another waiting file from the queue or deletes what the failed file had already sent, and an abandoned upload gives back its reserved space after three minutes, so it no longer holds up compressions; abandoned files are removed at startup and every hour
 - A finished synchronization no longer reloads the page over unsaved changes: its notice offers to reload instead, and waits until the setup wizard or another dialog is closed, as other notifications do now instead of covering it
 - Library: searching, sorting or changing the number per page keeps every filter (My games, collections, genre, players, play state, kind of issue…)
 - An expired session opens the login page instead of showing misleading errors, and the Tasks page and its link follow the tasks again after an error answer (an expired session, a proxy while the app restarts)
-- Progress bars no longer jump back now and then
+- Progress is asked for one answer at a time, so a late answer no longer moves a bar back
 - After an update, the page waits for the new version to answer before it opens the library
 - The synchronization notice and the notes of running tasks are in the language of the page; the offline page is in every language and keeps its styles when the server cannot be reached
 - Numbers of the Library overview have the thousands separator of the language, also with reduced motion; sizes use its decimal separator, and a count of one reads "1 file selected" or "1 step on"
@@ -77,8 +77,8 @@
 - SD card: the Copy button shows its icon again
 - Uploads: the panel goes above the notice of a synchronization instead of under it
 - Game page: on a phone, a fact of plain text goes on to a second line instead of being cut
-- The browser no longer shows old copies of some pages after an update, and the server no longer works out the Space page again after every file compressed
-- A new install no longer logs a warning about a cache made by an older version
+- Old cached versions of some pages are dropped, and the Space page is no longer worked out again for every file compressed
+- No log line about a cache made by an older version on a new data folder
 - In the view by covers of Tasks, the covers went away for a while during a library scan, leaving only the names of the files, and a file compressed or decompressed lost its cover once done: covers stay now
 
 ## 1.66.0
