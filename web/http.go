@@ -30,6 +30,9 @@ type FieldError struct {
 type SuccessResponse struct {
 	StrongMessage string `json:"strongMessage"`
 	Message       string `json:"message"`
+	// the change could not be made after all (the settings could not be saved): the page shows
+	// this error instead
+	failure *ErrorResponse
 }
 
 type FilteredPageData func(filter *TitleItemFilter, lang string) any
@@ -95,7 +98,13 @@ func (web *Web) HandleValidated(pattern string, inputStruct interface{}, pageDat
 				return
 			}
 
-			jsonEncoder.Encode(onSuccess(value, lang))
+			response := onSuccess(value, lang)
+			if response.failure != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				jsonEncoder.Encode(response.failure)
+				return
+			}
+			jsonEncoder.Encode(response)
 		default:
 			web.sugarLogger.Error(fmt.Errorf("Unsupported method: %s", r.Method))
 			w.WriteHeader(http.StatusMethodNotAllowed)

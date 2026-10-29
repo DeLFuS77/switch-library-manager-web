@@ -432,9 +432,11 @@ func (web *Web) HandleOrganize() {
 	}, func(value any, lang string) SuccessResponse {
 		form := value.(*OrganizeForm)
 		keptBefore := settings.ReadSettings(web.dataFolder).OrganizeOptions.KeepDuplicate
-		settings.UpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
+		if _, err := settings.TryUpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
 			appSettings.OrganizeOptions = form.toOptions(appSettings.OrganizeOptions)
-		})
+		}); err != nil {
+			return notSaved(lang, err)
+		}
 		// the tune-up counts the changes of Organize with the new options
 		web.invalidateDerived()
 		// the scan decides which copy of a duplicate is kept

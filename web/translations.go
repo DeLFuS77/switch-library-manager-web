@@ -1728,6 +1728,8 @@ var translations = map[string]map[string]string{
 		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "Es el mismo archivo que la copia que se queda, alcanzado por otra ruta, así que no se borra.",
 		// a newer version that could not be read
 		"The newer file could not be read, it was recognized by its name only: keep this one.": "El archivo más nuevo no se pudo leer, se reconoció solo por su nombre: conserva este.",
+		// settings that could not be saved
+		"The settings could not be saved: %v": "No se pudieron guardar los ajustes: %v",
 	},
 }
 

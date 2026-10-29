@@ -1701,5 +1701,7 @@ func init() {
 		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "Es ist dieselbe Datei wie die Kopie, die bleibt, nur über einen anderen Pfad erreicht, deshalb wird sie nicht gelöscht.",
 		// a newer version that could not be read
 		"The newer file could not be read, it was recognized by its name only: keep this one.": "Die neuere Datei ließ sich nicht lesen und wurde nur an ihrem Namen erkannt: Behalte diese.",
+		// settings that could not be saved
+		"The settings could not be saved: %v": "Die Einstellungen konnten nicht gespeichert werden: %v",
 	}
 }

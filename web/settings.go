@@ -344,7 +344,7 @@ func (web *Web) HandleSettings() {
 		cheatsWereOff := settings.ReadSettings(web.dataFolder).CheatsDisabled
 		scanFolders := SplitAndTrimSpaceArray(settingsForm.ScanFolders, "\n")
 
-		settings.UpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
+		_, err := settings.TryUpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
 			appSettings.Prodkeys = settingsForm.Prodkeys
 			appSettings.IgnoreDLCTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreDLCTitleIds, "\n")
 			appSettings.IgnoreUpdateTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreUpdateTitleIds, "\n")
@@ -405,6 +405,9 @@ func (web *Web) HandleSettings() {
 				appSettings.ScanFolders = []string{}
 			}
 		})
+		if err != nil {
+			return notSaved(lang, err)
+		}
 		// turned on: the cheats come now, not with the next synchronization
 		if cheatsWereOff && settingsForm.Cheats {
 			go web.downloadCheats()
@@ -426,6 +429,14 @@ func (web *Web) HandleSettings() {
 			Message:       message,
 		}
 	}, web.embedFS, fsPatterns...)
+}
+
+// notSaved is the answer to a form whose settings could not be saved (a disk full or that
+// cannot be written, a file held by an antivirus): an error, never "Saved", which the next start
+// would prove wrong.
+func notSaved(lang string, err error) SuccessResponse {
+	return SuccessResponse{failure: &ErrorResponse{FieldErrors: []FieldError{},
+		GlobalError: GlobalError{StrongMessage: translate(lang, "Error!"), Message: translatef(lang, "The settings could not be saved: %v", err)}}}
 }
 
 // VerifySpeedOption is a verification speed and how many files it checks at once here.

@@ -206,9 +206,12 @@ func (web *Web) HandleIssues() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
 			return
 		}
-		settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+		if _, err := settings.TryUpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
 			s.OrganizeOptions.KeepFiles = keptChoices(s.OrganizeOptions.KeepFiles, path, other)
-		})
+		}); err != nil {
+			writeGlobalError(w, http.StatusInternalServerError, lang, translatef(lang, "The settings could not be saved: %v", err))
+			return
+		}
 		web.Rescan(TRIGGER_SETTINGS)
 		writeJSON(w, http.StatusAccepted, map[string]any{"kept": path})
 	}).Methods("POST")
