@@ -182,7 +182,7 @@ function insertAlert(element, contextualClass, iconClass, strongMessage, message
 	element.insertBefore(alert, element.firstChild);
 	if (element.tagName === 'FORM') {
 		// long forms: bring the feedback into view
-		alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		alert.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'center' });
 	}
 }
 

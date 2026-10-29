@@ -232,12 +232,27 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+	// an endless animation of .01ms would show a random frame each time, flickering: it ends
+	// at once instead
 	*,
 	*::before,
 	*::after {
 		animation-duration: .01ms !important;
+		animation-iteration-count: 1 !important;
 		transition-duration: .01ms !important;
 		scroll-behavior: auto !important;
+	}
+
+	// the spinners tell that work goes on: they keep turning
+	.spinner-border,
+	.spinner-grow {
+		animation-duration: .75s !important;
+		animation-iteration-count: infinite !important;
+	}
+
+	#sync.is-syncing .bi {
+		animation-duration: 1s !important;
+		animation-iteration-count: infinite !important;
 	}
 }
 
