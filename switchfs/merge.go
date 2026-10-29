@@ -284,7 +284,9 @@ func writePackages(ctx context.Context, sources []string, target string, without
 		if err != nil {
 			break
 		}
-		writer.startFile()
+		if err = writer.startFile(); err != nil {
+			break
+		}
 		written[i] = newWrittenFile(names[i])
 		err = copyRange(ctx, io.MultiWriter(writer.file, written[i]), opened[p.source].reader, p.file.offset, p.file.size, report)
 		if err == nil {

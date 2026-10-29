@@ -341,7 +341,9 @@ func writeSplitPart(ctx context.Context, source string, part SplitPart, target s
 		if err != nil {
 			break
 		}
-		writer.startFile()
+		if err = writer.startFile(); err != nil {
+			break
+		}
 		written[i] = newWrittenFile(names[i])
 		err = copyRange(ctx, io.MultiWriter(output, written[i]), reader, file.offset, file.size, report)
 		if err == nil {

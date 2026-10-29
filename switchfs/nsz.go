@@ -262,7 +262,9 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 		if err = ctx.Err(); err != nil {
 			break
 		}
-		writer.startFile()
+		if err = writer.startFile(); err != nil {
+			break
+		}
 		// the original is hashed as it is read, instead of in a pass of its own
 		reader := newHashingReaderAt(input, file.offset, file.size)
 		if plans[i] != nil && (options.Blocks || pkg.xci) {
@@ -457,7 +459,7 @@ func bktrSections(input io.ReaderAt, ncaOffset int64, section nczSection, fsh *f
 	info := fsh.fsHeaderBytes[0x120:0x140]
 	tableOffset := binary.LittleEndian.Uint64(info[0:8])
 	tableSize := binary.LittleEndian.Uint64(info[8:16])
-	if string(info[16:20]) != "BKTR" || tableSize < 0x8000 || tableOffset+tableSize > section.size {
+	if string(info[16:20]) != "BKTR" || tableSize < 0x8000 || tableSize > section.size || tableOffset > section.size-tableSize {
 		return nil, errors.New("no subsection table")
 	}
 
@@ -480,14 +482,15 @@ func bktrSections(input io.ReaderAt, ncaOffset int64, section nczSection, fsh *f
 		return nil, err
 	}
 	buckets := binary.LittleEndian.Uint32(header[4:8])
-	if buckets == 0 || uint64(buckets+1)*0x4000 > tableSize {
+	// counted in 64 bits: buckets+1 in 32 overflows
+	if buckets == 0 || (uint64(buckets)+1)*0x4000 > tableSize {
 		return nil, errors.New("invalid subsection table")
 	}
 
 	sections := []nczSection{}
 	next := section.offset
 	for b := uint32(0); b < buckets; b++ {
-		bucket, err := read(tableStart+uint64(b+1)*0x4000, 0x4000)
+		bucket, err := read(tableStart+(uint64(b)+1)*0x4000, 0x4000)
 		if err != nil {
 			return nil, err
 		}
@@ -1465,7 +1468,9 @@ func decompressNsz(ctx context.Context, source string, target string, progress f
 		if err != nil {
 			break
 		}
-		writer.startFile()
+		if err = writer.startFile(); err != nil {
+			break
+		}
 		// what is written of the file is hashed meanwhile, with its start and its end kept
 		written[i] = newWrittenFile(names[i])
 		out := io.MultiWriter(output, written[i])
@@ -1529,9 +1534,10 @@ func pfs0HeaderLen(needed int64) int64 {
 	return (needed + 0xF) &^ 0xF
 }
 
-func (w *pfs0Writer) startFile() {
-	position, _ := w.file.Seek(0, io.SeekCurrent)
+func (w *pfs0Writer) startFile() error {
+	position, err := w.file.Seek(0, io.SeekCurrent)
 	w.current = position
+	return err
 }
 
 func (w *pfs0Writer) endFile() error {

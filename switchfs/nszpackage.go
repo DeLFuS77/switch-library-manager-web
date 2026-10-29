@@ -106,7 +106,7 @@ func readGamePackage(input io.ReaderAt) (*gamePackage, error) {
 // packageWriter writes the files of a compressed package in order.
 type packageWriter interface {
 	begin() error
-	startFile()
+	startFile() error
 	endFile() error
 	finish() error
 }
@@ -174,11 +174,15 @@ func (w *xczWriter) emptyPartition(name string) error {
 	if err := partition.finish(); err != nil {
 		return err
 	}
-	return w.root.addFile(name, position, w.alignedEnd())
+	end, err := w.alignedEnd()
+	if err != nil {
+		return err
+	}
+	return w.root.addFile(name, position, end)
 }
 
-func (w *xczWriter) startFile() {
-	w.secure.startFile()
+func (w *xczWriter) startFile() error {
+	return w.secure.startFile()
 }
 
 func (w *xczWriter) endFile() error {
@@ -189,7 +193,11 @@ func (w *xczWriter) finish() error {
 	if err := w.secure.finish(); err != nil {
 		return err
 	}
-	if err := w.root.addFile("secure", w.start, w.alignedEnd()); err != nil {
+	end, err := w.alignedEnd()
+	if err != nil {
+		return err
+	}
+	if err := w.root.addFile("secure", w.start, end); err != nil {
 		return err
 	}
 	for _, name := range w.pkg.partitions[indexOf(w.pkg.partitions, "secure")+1:] {
@@ -204,13 +212,18 @@ func (w *xczWriter) finish() error {
 }
 
 // alignedEnd pads the file to a multiple of 0x200 and returns the end.
-func (w *xczWriter) alignedEnd() int64 {
-	position, _ := w.file.Seek(0, io.SeekEnd)
+func (w *xczWriter) alignedEnd() (int64, error) {
+	position, err := w.file.Seek(0, io.SeekEnd)
+	if err != nil {
+		return 0, err
+	}
 	if padding := (0x200 - position%0x200) % 0x200; padding > 0 {
-		w.file.Write(make([]byte, padding))
+		if _, err := w.file.Write(make([]byte, padding)); err != nil {
+			return 0, err
+		}
 		position += padding
 	}
-	return position
+	return position, nil
 }
 
 func indexOf(values []string, value string) int {
@@ -249,9 +262,10 @@ func (w *hfs0Writer) begin() error {
 	return err
 }
 
-func (w *hfs0Writer) startFile() {
-	position, _ := w.file.Seek(0, io.SeekCurrent)
+func (w *hfs0Writer) startFile() error {
+	position, err := w.file.Seek(0, io.SeekCurrent)
 	w.current = position
+	return err
 }
 
 func (w *hfs0Writer) endFile() error {
@@ -269,8 +283,8 @@ func (w *hfs0Writer) addFile(name string, start int64, end int64) error {
 	w.names = append(w.names, name)
 	w.starts = append(w.starts, start)
 	w.sizes = append(w.sizes, end-start)
-	w.file.Seek(0, io.SeekEnd)
-	return nil
+	_, err := w.file.Seek(0, io.SeekEnd)
+	return err
 }
 
 // checkHeader tells whether the header of the files named fits in the space reserved for it.

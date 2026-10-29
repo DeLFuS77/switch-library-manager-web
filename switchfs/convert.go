@@ -89,7 +89,9 @@ func convertXciToNsp(ctx context.Context, source string, target string, progress
 		if err != nil {
 			break
 		}
-		writer.startFile()
+		if err = writer.startFile(); err != nil {
+			break
+		}
 		written[i] = newWrittenFile(names[i])
 		err = copyRange(ctx, io.MultiWriter(writer.file, written[i]), input, file.offset, file.size, report)
 		if err == nil {

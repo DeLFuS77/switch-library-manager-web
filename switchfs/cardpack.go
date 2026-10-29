@@ -123,7 +123,9 @@ func PackIntoCard(ctx context.Context, card string, extras []string, target stri
 		if err != nil {
 			break
 		}
-		writer.startFile()
+		if err = writer.startFile(); err != nil {
+			break
+		}
 		written[i] = newWrittenFile(names[i])
 		err = copyRange(ctx, io.MultiWriter(output, written[i]), opened[e.source].reader, e.file.offset, e.file.size, report)
 		if err == nil {

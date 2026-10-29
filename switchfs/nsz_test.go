@@ -346,6 +346,56 @@ func makeBktrNca(t *testing.T, plain []byte) []byte {
 	return nca
 }
 
+// A damaged subsection table of an update patch is told as such: with its size and offset
+// added, or its number of buckets plus one, in fewer bits than they need, both wrapped around to
+// a small number and the table was read as one.
+func TestBktrTableThatOverflowsIsRefused(t *testing.T) {
+	key := make([]byte, 16)
+	section := nczSection{offset: 0, size: 0x10000, cryptoType: 4, key: key, counter: make([]byte, 16)}
+	table := func(tableOffset uint64, tableSize uint64, buckets uint32) ([]byte, *fsHeader) {
+		fsh := &fsHeader{fsHeaderBytes: make([]byte, 0x200)}
+		binary.LittleEndian.PutUint64(fsh.fsHeaderBytes[0x120:], tableOffset)
+		binary.LittleEndian.PutUint64(fsh.fsHeaderBytes[0x128:], tableSize)
+		copy(fsh.fsHeaderBytes[0x130:], "BKTR")
+		data := make([]byte, section.size)
+		binary.LittleEndian.PutUint32(data[0x8000+4:], buckets)
+		block, _ := aes.NewCipher(key)
+		cipher.NewCTR(block, nczCounter(section.counter, 0x8000)).XORKeyStream(data[0x8000:0xC000], data[0x8000:0xC000])
+		return data, fsh
+	}
+	data, fsh := table(0x8000, 0x8000, ^uint32(0))
+	if _, err := bktrSections(bytes.NewReader(data), 0, section, fsh); err == nil || err.Error() != "invalid subsection table" {
+		t.Fatalf("buckets that overflow: %v", err)
+	}
+	data, fsh = table(^uint64(0)-0x7FFF, 0x8000, 1)
+	if _, err := bktrSections(bytes.NewReader(data), 0, section, fsh); err == nil || err.Error() != "no subsection table" {
+		t.Fatalf("a table past the section: %v", err)
+	}
+}
+
+// The errors of the writing of a package are told: the padding of a game card, and where a
+// file starts or ends, were written and asked for without looking.
+func TestWritersTellTheirErrors(t *testing.T) {
+	file, err := os.Create(filepath.Join(t.TempDir(), "closed"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	file.Write([]byte{1})
+	file.Close()
+	if _, err := (&xczWriter{file: file}).alignedEnd(); err == nil {
+		t.Fatal("the end of a game card")
+	}
+	if err := (&hfs0Writer{file: file}).startFile(); err == nil {
+		t.Fatal("the start of a file of a partition")
+	}
+	if err := (&hfs0Writer{file: file}).addFile("secure", 0, 0x200); err == nil {
+		t.Fatal("a partition")
+	}
+	if err := (&pfs0Writer{file: file}).startFile(); err == nil {
+		t.Fatal("the start of a file of an NSP")
+	}
+}
+
 func TestUpdatePatchesAreCompressed(t *testing.T) {
 	initNszKeys(t, "")
 	folder := t.TempDir()
