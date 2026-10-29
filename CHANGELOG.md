@@ -13,6 +13,10 @@
 - A file written by the app (compressed, decompressed, converted, split, a pack, an upload, your keys) is on the disk before it takes its name, and before the original is deleted: a power cut at that moment no longer leaves an empty file with the original gone
 - The music of the setup wizard is a slow bossa nova now: a soft bass, short chords ahead of the beat and a quiet wooden click, calmer than the bells it had
 
+### Fixes
+
+- In the view by covers of Tasks, the covers went away for a while during a library scan, leaving only the names of the files, and a file compressed or decompressed lost its cover once done: covers stay now
+
 ## 1.66.0
 
 ### New

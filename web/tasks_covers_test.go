@@ -136,3 +136,22 @@ func TestTaskPercentExact(t *testing.T) {
 		}
 	}
 }
+
+// The view by covers keeps the cover of a file while a scan rebuilds the library, and gives a
+// file compressed since the cover of the file it was made from.
+func TestTaskCoversSurviveAScan(t *testing.T) {
+	web := newTestWeb(t)
+	game := &db.SwitchGameFiles{Icon: "game.jpg", BaseExist: true,
+		File: db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: "Game [0100000000010000][v0].nsp"}}}
+	web.state.set(nil, &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{"0100000000010": game}})
+	covers := web.fileCovers()
+	cover := covers["Game [0100000000010000][v0].nsp"]
+	if cover == "" || covers["Game [0100000000010000][v0].nsz"] != cover {
+		t.Fatalf("the file and its compressed copy must have the cover of the game: %v", covers)
+	}
+	// a scan starts again from an empty library
+	web.state.set(nil, &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{}})
+	if got := web.fileCovers()["Game [0100000000010000][v0].nsp"]; got != cover {
+		t.Fatalf("the cover is lost during a scan: %q", got)
+	}
+}
