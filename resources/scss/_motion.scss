@@ -1573,7 +1573,7 @@
 		font-weight: 800;
 		line-height: 1;
 		color: var(--bs-emphasis-color);
-		text-shadow: 0 2px 18px rgba(214, 40, 57, .55);
+		text-shadow: 0 2px 18px rgba(var(--slm-work-rgb), .55);
 	}
 
 	.countdown-label {
