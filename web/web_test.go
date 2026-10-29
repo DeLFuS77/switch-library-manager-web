@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -965,6 +966,73 @@ func TestValidateNotifications(t *testing.T) {
 		if errs := validateNotifications(options, "en"); len(errs) == 0 {
 			t.Errorf("invalid options accepted: %+v", options)
 		}
+	}
+}
+
+// The bot token of Telegram and the token of the webhook of Discord never go back to the pages:
+// they show a mask, a form sent back with it keeps them, a new value replaces them and an empty
+// field turns the channel off, as before. The browser keeps no copy of the pages of settings.
+func TestNotificationSecretsAreNotShown(t *testing.T) {
+	web, _ := compressWeb(t)
+	web.HandleSettings()
+	web.HandleWizard()
+	web.HandleNotifications()
+	token, webhook := "123456:ABCDEFGHIJKLMNOPQRSTUVWXYZ", "https://discord.com/api/webhooks/123/secret-TOKEN_1"
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
+		s.Notifications.TelegramBotToken, s.Notifications.TelegramChatId, s.Notifications.DiscordWebhookUrl = token, "-100123", webhook
+	})
+	masked := "https://discord.com/api/webhooks/123/" + secretMask
+	for _, path := range []string{"/settings.html", "/wizard"} {
+		page := httptest.NewRecorder()
+		withSecurityHeaders(web.router).ServeHTTP(page, httptest.NewRequest(http.MethodGet, path, nil))
+		body := page.Body.String()
+		if page.Code != http.StatusOK || strings.Contains(body, "ABCDEFGHIJ") || strings.Contains(body, "secret-TOKEN") ||
+			!strings.Contains(body, `value="`+secretMask+`"`) || !strings.Contains(body, `value="`+masked+`"`) {
+			t.Fatalf("%s shows the secrets: %d", path, page.Code)
+		}
+		if page.Header().Get("Cache-Control") != "no-store" {
+			t.Fatalf("%s may be kept by the browser", path)
+		}
+	}
+
+	folder := t.TempDir()
+	post := func(form url.Values) {
+		t.Helper()
+		form.Set("scan_folders", folder)
+		if response := postForm(web, "/settings.html", form); response.Code != http.StatusOK {
+			t.Fatalf("saving: %d %s", response.Code, response.Body.String())
+		}
+	}
+	post(url.Values{"telegram_bot_token": {secretMask}, "telegram_chat_id": {"-100123"}, "discord_webhook_url": {masked}})
+	if saved := settings.ReadSettings(web.dataFolder).Notifications; saved.TelegramBotToken != token || saved.DiscordWebhookUrl != webhook {
+		t.Fatalf("sent back as shown, the secrets are kept: %+v", saved)
+	}
+	// a test of the wizard with the masks sends with the saved secrets: here a Telegram that answers
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/bot"+token+"/sendMessage" && r.URL.Path != "/api/webhooks/123/secret-TOKEN_1" {
+			w.WriteHeader(http.StatusUnauthorized)
+		}
+	}))
+	defer server.Close()
+	savedApi := telegramApiUrl
+	telegramApiUrl = server.URL
+	defer func() { telegramApiUrl = savedApi }()
+	test := postForm(web, "/notifications/test", url.Values{"draft": {"1"}, "telegram_bot_token": {secretMask}, "telegram_chat_id": {"-100123"}})
+	if test.Code != http.StatusOK {
+		t.Fatalf("a test with the masked token: %d %s", test.Code, test.Body.String())
+	}
+
+	post(url.Values{"telegram_bot_token": {"654321:ZYXWVUTSRQPONMLKJIHGFEDCBA"}, "telegram_chat_id": {"-100123"}, "discord_webhook_url": {"https://discord.com/api/webhooks/456/other-token"}})
+	if saved := settings.ReadSettings(web.dataFolder).Notifications; saved.TelegramBotToken != "654321:ZYXWVUTSRQPONMLKJIHGFEDCBA" || saved.DiscordWebhookUrl != "https://discord.com/api/webhooks/456/other-token" {
+		t.Fatalf("new secrets replace them: %+v", saved)
+	}
+	// the mask of another webhook is not a webhook
+	if response := postForm(web, "/settings.html", url.Values{"scan_folders": {folder}, "discord_webhook_url": {masked}}); response.Code != http.StatusBadRequest {
+		t.Fatalf("the mask of a webhook no longer saved: %d", response.Code)
+	}
+	post(url.Values{})
+	if saved := settings.ReadSettings(web.dataFolder).Notifications; saved.TelegramBotToken != "" || saved.DiscordWebhookUrl != "" {
+		t.Fatalf("emptied, the channels are off: %+v", saved)
 	}
 }
 
