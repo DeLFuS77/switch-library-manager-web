@@ -611,16 +611,14 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 		return false
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	web.compressor.cancel = cancel
+	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, TASK_VERIFY, 0
 	web.compressor.mutex.Unlock()
 
 	store := web.verifications()
 	taskId := web.taskLog().Start(TASK_VERIFY, trigger)
 	go func() {
 		defer func() {
-			web.compressor.mutex.Lock()
-			web.compressor.cancel = nil
-			web.compressor.mutex.Unlock()
+			web.releaseFiles()
 			cancel()
 			// the files are free: the next task of the queue
 			go web.runQueue()
@@ -849,16 +847,14 @@ func (web *Web) startSignatureCheck(all bool, trigger string) bool {
 		return false
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	web.compressor.cancel = cancel
+	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, TASK_VERIFY, 0
 	web.compressor.mutex.Unlock()
 
 	store := web.verifications()
 	taskId := web.taskLog().Start(TASK_VERIFY, trigger)
 	go func() {
 		defer func() {
-			web.compressor.mutex.Lock()
-			web.compressor.cancel = nil
-			web.compressor.mutex.Unlock()
+			web.releaseFiles()
 			cancel()
 			go web.runQueue()
 		}()

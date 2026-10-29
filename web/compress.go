@@ -183,6 +183,8 @@ func settingsLevel(appSettings *settings.AppSettings) string {
 type compressor struct {
 	mutex  sync.Mutex
 	cancel context.CancelFunc
+	// the kind of the task working on the files, which tells whether it can be paused
+	kind string
 	// a pause holds the work where it is until resume is closed; taskId is the task paused
 	paused bool
 	resume chan struct{}
@@ -721,7 +723,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 		return false
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	web.compressor.cancel = cancel
+	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, kind, 0
 	web.compressor.mutex.Unlock()
 
 	// a list made before Organize moved files, or before a restart: each file where it is now
@@ -735,6 +737,10 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	taskId := web.taskLog().Start(kind, trigger)
 	web.compressor.mutex.Lock()
 	web.compressor.taskId = taskId
+	// paused as it started
+	if web.compressor.paused {
+		web.taskLog().SetPaused(taskId, true)
+	}
 	web.compressor.mutex.Unlock()
 	names := make([]string, len(paths))
 	for i, path := range paths {
@@ -780,14 +786,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	web.taskLog().SetWorkers(taskId, workers, threads)
 	go func() {
 		defer func() {
-			web.compressor.mutex.Lock()
-			web.compressor.cancel = nil
-			if web.compressor.paused {
-				web.compressor.paused = false
-				close(web.compressor.resume)
-				web.taskLog().SetPaused(taskId, false)
-			}
-			web.compressor.mutex.Unlock()
+			web.releaseFiles()
 			cancel()
 			// the files are free: the next task of the queue
 			go web.runQueue()
@@ -1216,13 +1215,17 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 	return nil
 }
 
+// pausableKinds are the tasks on files that hold where they are while paused; the others (a
+// check, a copy to the SD card) are only cancelled.
+var pausableKinds = map[string]bool{TASK_COMPRESS: true, TASK_DECOMPRESS: true, TASK_CONVERT: true, TASK_PACK: true, TASK_SPLIT: true}
+
 // pauseCompression holds the running compression (or decompression, conversion, pack) where
 // it is, in the middle of a file too, or lets it go on; a cancel still stops it while paused.
 func (web *Web) pauseCompression(paused bool) bool {
 	c := &web.compressor
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	if c.cancel == nil || c.paused == paused {
+	if c.cancel == nil || c.paused == paused || !pausableKinds[c.kind] {
 		return false
 	}
 	c.paused = paused
@@ -1231,8 +1234,27 @@ func (web *Web) pauseCompression(paused bool) bool {
 	} else {
 		close(c.resume)
 	}
-	web.taskLog().SetPaused(c.taskId, paused)
+	if c.taskId != 0 {
+		web.taskLog().SetPaused(c.taskId, paused)
+	}
 	return true
+}
+
+// releaseFiles ends the task working on the files: none runs, and nothing stays paused for
+// the next one.
+func (web *Web) releaseFiles() {
+	c := &web.compressor
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.cancel, c.kind = nil, ""
+	if c.paused {
+		c.paused = false
+		close(c.resume)
+		if c.taskId != 0 {
+			web.taskLog().SetPaused(c.taskId, false)
+		}
+	}
+	c.taskId = 0
 }
 
 // waitIfPaused returns at once, or when the paused task is resumed or cancelled.

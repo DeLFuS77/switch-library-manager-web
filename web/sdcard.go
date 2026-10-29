@@ -387,15 +387,13 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 		return false
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	web.compressor.cancel = cancel
+	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, TASK_COPY, 0
 	web.compressor.mutex.Unlock()
 
 	taskId := web.taskLog().Start(TASK_COPY, TRIGGER_MANUAL)
 	go func() {
 		defer func() {
-			web.compressor.mutex.Lock()
-			web.compressor.cancel = nil
-			web.compressor.mutex.Unlock()
+			web.releaseFiles()
 			cancel()
 			// the files are free: the next task of the queue
 			go web.runQueue()
