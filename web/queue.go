@@ -47,6 +47,8 @@ type taskQueue struct {
 	// when the run of the queue began: the task working when the first one was queued, or the
 	// first one started; zero while the queue is not used. Its end is told by the notifications.
 	started time.Time
+	// the first task waits for the scan running to end (see readsLibrary)
+	waitingForScan bool
 }
 
 func (web *Web) queue() *taskQueue {
@@ -220,6 +222,28 @@ func (web *Web) startQueued(task QueuedTask) bool {
 	return true
 }
 
+// readsLibrary tells a task that works on the library as the last scan found it: a pack takes
+// the files of its game from it, a check of the whole library its list of files. After a task
+// that changed the files, it waits for the scan that follows, or it would work on the files of
+// before (an NSP the compression deleted for its NSZ) or on a library found only in part.
+func readsLibrary(task QueuedTask) bool {
+	return task.Kind == TASK_PACK || task.Kind == TASK_VERIFY && task.Paths == nil
+}
+
+// queueAfterScan starts the task of the queue that waited for the scan that just ended.
+func (web *Web) queueAfterScan() {
+	queue := web.queue()
+	queue.mutex.Lock()
+	waiting := queue.waitingForScan && !web.rescanPending.Load()
+	if waiting {
+		queue.waitingForScan = false
+	}
+	queue.mutex.Unlock()
+	if waiting {
+		go web.runQueue()
+	}
+}
+
 // runQueue starts the first task of the queue when the files are free. It is called when a
 // task on files, Organize or a measure ends, and every minute by the scheduler, so the queue
 // never stays still.
@@ -235,6 +259,10 @@ func (web *Web) runQueue() {
 			queue.save()
 			go web.notifyQueueDone(since)
 		}
+		return
+	}
+	if readsLibrary(queue.items[0]) && (web.state.IsSynchronizing() || web.rescanPending.Load()) {
+		queue.waitingForScan = true
 		return
 	}
 	now := time.Now()

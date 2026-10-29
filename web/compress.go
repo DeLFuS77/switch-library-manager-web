@@ -381,6 +381,7 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 		if err := web.discardOriginal(path, QUARANTINE_CONVERTED); err != nil {
 			return fmt.Errorf("could not delete the original: %w", err)
 		}
+		web.moves.replaced(path, target)
 	}
 	web.sugarLogger.Infof("Converted %s", path)
 	return nil
@@ -1172,6 +1173,8 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 		if err := web.discardOriginal(path, QUARANTINE_COMPRESSED); err != nil {
 			return 0, fmt.Errorf("could not delete the original: %w", err)
 		}
+		// a pack asked for the game in the queue makes it of the NSZ
+		web.moves.replaced(path, target)
 	}
 	web.sugarLogger.Infof("Compressed %s: %d -> %d bytes", path, result.InputSize, result.OutputSize)
 	return result.InputSize - result.OutputSize, nil
@@ -1227,6 +1230,7 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 		if err := web.discardOriginal(path, QUARANTINE_DECOMPRESSED); err != nil {
 			return fmt.Errorf("could not delete the original: %w", err)
 		}
+		web.moves.replaced(path, target)
 	}
 	web.sugarLogger.Infof("Decompressed %s", path)
 	return nil

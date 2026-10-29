@@ -53,6 +53,12 @@ func (m *movedFiles) record(operations []process.Operation) {
 	}
 }
 
+// replaced keeps a file the app replaced with the one it made of it (an NSP deleted once its
+// NSZ was checked): a task asked for the original before works on what holds it now.
+func (m *movedFiles) replaced(original string, made string) {
+	m.record([]process.Operation{{Kind: process.OP_MOVE, From: original, To: made}})
+}
+
 // forget forgets the moves made before a scan started: the library has the new paths, and an
 // old path may hold another file by now.
 func (m *movedFiles) forget(before time.Time) {

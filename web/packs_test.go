@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
@@ -203,5 +204,63 @@ func TestDlcNeedsNewer(t *testing.T) {
 	local.Dlc["d"] = dlc(196608)
 	if need := dlcNeedsNewer(local); need != 262144 {
 		t.Errorf("the newest version a DLC needs: %d", need)
+	}
+}
+
+// A pack queued behind a compression that deletes the NSP of the game waits for the scan that
+// follows, and is made of the NSZ: not refused for a file gone, nor made of the files of before.
+func TestPackQueuedAfterACompressionTakesTheNsz(t *testing.T) {
+	web, path, _ := compressWebWithLibrary(t)
+	folder := filepath.Dir(path)
+	update := filepath.Join(folder, "Game [0100000000010800][v65536].nsp")
+	if _, err := testnsp.WriteNspOf(update, "the update of the test game "); err != nil {
+		t.Fatal(err)
+	}
+	_, library := web.state.get()
+	local := library.TitlesMap["0100000000010"]
+	local.Updates[65536] = db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: filepath.Base(update), BaseFolder: folder}, Metadata: &switchfs.ContentMetaAttributes{TitleId: "0100000000010800", Version: 65536}}
+	local.LatestUpdate = 65536
+
+	// the compression deleted the NSP, and its scan runs
+	nsz := switchfs.CompressedPath(path)
+	if _, err := web.compressFile(t.Context(), path, switchfs.LevelFast, true, func(int64) func(int64, int64) { return func(int64, int64) {} }); err != nil {
+		t.Fatal(err)
+	}
+	if !web.state.startSync() {
+		t.Fatal("no scan")
+	}
+	web.scanStarted.Store(time.Now().UnixNano())
+	web.queue().add(QueuedTask{Kind: TASK_PACK, Paths: []string{path}, Delete: false})
+	web.runQueue()
+	if len(web.queue().list()) != 1 || web.compressionRunning() {
+		t.Fatal("the pack waits for the scan")
+	}
+	// the scan found the NSZ
+	local.File.ExtendedInfo = db.ExtendedFileInfo{FileName: filepath.Base(nsz), BaseFolder: folder}
+	web.state.set(nil, library)
+	web.state.endSync()
+	web.afterScan()
+	deadline := time.Now().Add(20 * time.Second)
+	for len(web.queue().list()) > 0 || web.compressionRunning() {
+		if time.Now().After(deadline) {
+			t.Fatal("the pack did not run after the scan")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	task := waitForTask(t, web, TASK_PACK)
+	if task.Status != TASK_SUCCESS || task.Files != 1 {
+		t.Fatalf("the pack is made of the NSZ: %+v %+v", task, task.Warnings)
+	}
+}
+
+// A pack asked for a game compressed since, its NSP kept, is made of what the library has as
+// the game now.
+func TestPackFindsTheGameCompressedSince(t *testing.T) {
+	web, path, _ := compressWebWithLibrary(t)
+	_, library := web.state.get()
+	local := library.TitlesMap["0100000000010"]
+	local.File.ExtendedInfo.FileName = filepath.Base(switchfs.CompressedPath(path))
+	if found, id := web.packGame(path); found != local || id != "0100000000010000" {
+		t.Fatalf("the game of the NSP is the one of its NSZ: %v %s", found, id)
 	}
 }

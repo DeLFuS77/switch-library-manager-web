@@ -16,6 +16,8 @@ func (web *Web) afterScan() {
 	// ones are forgotten, as they may hold other files by now
 	web.queue().follow(web.moves.resolve)
 	web.moves.forget(scanStarted)
+	// a pack or a check of the whole library waiting in the queue goes on with the new library
+	web.queueAfterScan()
 	// games bought since leave the wishlist
 	web.forgetOwnedWishes()
 	web.startCoverDownloads()

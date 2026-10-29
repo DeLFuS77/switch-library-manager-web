@@ -238,12 +238,16 @@ func (web *Web) packGame(path string) (*db.SwitchGameFiles, string) {
 	// the library may still have the paths from before Organize moved the files, and path the
 	// new ones, or the other way round: both where the files are now
 	path = web.moves.resolve(path)
-	for _, local := range localDB.TitlesMap {
-		if !local.BaseExist || local.File.Metadata == nil {
-			continue
-		}
-		if web.moves.resolve(filepath.Join(local.File.ExtendedInfo.BaseFolder, local.File.ExtendedInfo.FileName)) == path {
-			return local, local.File.Metadata.TitleId
+	// the game compressed (or decompressed, converted) since, its original kept: the library may
+	// have the copy as the game now
+	for _, wanted := range []string{path, switchfs.CompressedPath(path), switchfs.DecompressedPath(path), switchfs.ConvertedPath(path)} {
+		for _, local := range localDB.TitlesMap {
+			if !local.BaseExist || local.File.Metadata == nil {
+				continue
+			}
+			if web.moves.resolve(filepath.Join(local.File.ExtendedInfo.BaseFolder, local.File.ExtendedInfo.FileName)) == wanted {
+				return local, local.File.Metadata.TitleId
+			}
 		}
 	}
 	return nil, ""
