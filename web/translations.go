@@ -931,6 +931,10 @@ var translations = map[string]map[string]string{
 		"1 hour":                  "1 hora",
 		"Only folders that changed are read again. A longer interval lets the disks of a NAS sleep.":              "Solo se vuelven a leer las carpetas que han cambiado. Un intervalo más largo deja dormir los discos de un NAS.",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v archivos solo se pueden borrar cuando las copias que se conservan estén verificadas. Solo se comprueban esas copias.",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "Las rutas de red no se comprueban aquí: la app las lee cuando las usa.",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Ahora no se puede liberar nada: los %v archivos de abajo se quedan, cada uno por el motivo que indica.",
 
@@ -1259,6 +1263,10 @@ var translations = map[string]map[string]string{
 		"General":                            "General",
 		"Keys found":                         "Claves encontradas",
 		"Keys not found":                     "Claves no encontradas",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "Modo demo: no se muestran las carpetas ni los detalles del servidor.",
+
 		// a file that stays in its folder because its name is taken where it would go
 		"Not moved: a copy of the same size is already at the destination. It is a duplicate, the Space page can free it.":                                                               "No se ha movido: en el destino ya hay una copia del mismo tamaño. Es un duplicado, la página Espacio puede liberarlo.",
 		"Another file with the same name, of another size, is already at the destination: they are two files of the same game and version, Check can tell which one is good.":            "En el destino ya hay otro archivo con el mismo nombre y otro tamaño: son dos archivos del mismo juego y versión, Comprobar puede decir cuál está bien.",
@@ -1610,6 +1618,10 @@ var translations = map[string]map[string]string{
 		"No preference: the suggested copy": "Sin preferencia: la copia sugerida",
 		"Your preferred region":             "Tu región preferida",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Una tarjeta para cada juego, con las banderas de todas sus regiones: las que no tienes, apagadas. Muestra la copia que elijas en la ficha del juego, o la sugerida, y los contadores cuentan el juego una vez. No se cambia ningún archivo.",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "La firma de la versión falta o no es válida: no se ha cambiado nada.",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "Responder en el chat de Telegram",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "Escribe al bot en su chat: /tengo zelda, /nuevo, /espacio, /estado, /sincroniza. Solo responde en ese chat, en el idioma de la app.",

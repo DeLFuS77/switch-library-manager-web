@@ -3,6 +3,7 @@ package web
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -46,6 +47,41 @@ func TestDemoRefusesChanges(t *testing.T) {
 	handler.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/index.html", nil))
 	if recorder.Code != http.StatusAccepted {
 		t.Fatal("pages can be read")
+	}
+}
+
+// The demo shows nothing of the server it runs on: not the diagnostics, not its folders, and the
+// checks of the wizard answer without looking at it, so the wizard can still be gone through.
+func TestDemoHidesTheServer(t *testing.T) {
+	t.Setenv("SLM_DEMO", "true")
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleWizard()
+	web.router.HandleFunc("/diagnostics.html", func(w http.ResponseWriter, r *http.Request) { w.Write([]byte(web.dataFolder)) })
+	handler := web.demoReadOnly(web.router)
+	serve := func(method string, path string, form url.Values) *httptest.ResponseRecorder {
+		request := httptest.NewRequest(method, path, strings.NewReader(form.Encode()))
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		recorder := httptest.NewRecorder()
+		handler.ServeHTTP(recorder, request)
+		return recorder
+	}
+	folder := t.TempDir()
+	os.WriteFile(filepath.Join(folder, "a.nsp"), []byte("x"), 0o644)
+	if got := serve(http.MethodGet, "/diagnostics.html", nil); got.Code != http.StatusForbidden || strings.Contains(got.Body.String(), web.dataFolder) || !strings.Contains(got.Body.String(), DEMO_HIDDEN) {
+		t.Fatalf("the diagnostics: %d %s", got.Code, got.Body.String())
+	}
+	if got := serve(http.MethodGet, "/wizard/folders?path="+url.QueryEscape(folder), nil); got.Code != http.StatusOK || strings.Contains(got.Body.String(), "a.nsp") || !strings.Contains(got.Body.String(), DEMO_HIDDEN) || strings.Contains(got.Body.String(), `"places":["`) {
+		t.Fatalf("the folders of the server: %d %s", got.Code, got.Body.String())
+	}
+	for _, kind := range []string{"folder", "keys"} {
+		got := serve(http.MethodPost, "/wizard/check", url.Values{"kind": {kind}, "value": {folder}})
+		if got.Code != http.StatusOK || !strings.Contains(got.Body.String(), `"ok":true`) || !strings.Contains(got.Body.String(), DEMO_HIDDEN) || strings.Contains(got.Body.String(), `"games":1`) {
+			t.Fatalf("the check of the %s: %d %s", kind, got.Code, got.Body.String())
+		}
+	}
+	if got := serve(http.MethodPost, "/sync", url.Values{}); got.Code != http.StatusForbidden {
+		t.Fatalf("changes stay refused: %d", got.Code)
 	}
 }
 

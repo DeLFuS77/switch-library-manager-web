@@ -86,7 +86,7 @@ func (web *Web) HandleUsers() {
 		principal, ok := web.auth.verify(data.Name, r.FormValue("password"))
 		if !ok {
 			web.auth.limiter.fail(keys...)
-			web.sugarLogger.Warnf("Failed login for %q from %s", data.Name, ip)
+			web.sugarLogger.Warnf("Failed login for %q from %s", web.auth.attemptName(data.Name), ip)
 			web.auth.loginAttempt(data.Name, ip, "fail", r.FormValue("password"), 0)
 			data.Error = translate(lang, "Wrong user name or password.")
 			w.WriteHeader(http.StatusUnauthorized)

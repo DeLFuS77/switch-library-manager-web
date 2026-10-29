@@ -5,7 +5,10 @@ import (
 	"archive/zip"
 	"bytes"
 	"compress/gzip"
+	"crypto/ed25519"
+	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"net/http"
@@ -17,6 +20,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"golang.org/x/crypto/blake2b"
 )
 
 func TestSystemArchive(t *testing.T) {
@@ -244,5 +248,105 @@ func TestInstallAtNight(t *testing.T) {
 	}
 	if selfUpdatable() && (!web.installAtNight(night) || !*started) {
 		t.Fatal("not installed at night")
+	}
+}
+
+// minisignKey makes a throwaway minisign key for a test: the public key as the second line of
+// minisign.pub, and a function that signs as minisign -S does (prehashed, or not with legacy).
+func minisignKey(t *testing.T) (string, func(data []byte, legacy bool) []byte) {
+	t.Helper()
+	public, private, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	id := []byte{1, 2, 3, 4, 5, 6, 7, 8}
+	sign := func(data []byte, legacy bool) []byte {
+		algorithm, message := "ED", data
+		if legacy {
+			algorithm = "Ed"
+		} else {
+			hash := blake2b.Sum512(data)
+			message = hash[:]
+		}
+		signature := ed25519.Sign(private, message)
+		comment := "timestamp:1793000000\tfile:SHA256SUMS.txt\thashed"
+		global := ed25519.Sign(private, append(append([]byte{}, signature...), comment...))
+		line := append(append([]byte(algorithm), id...), signature...)
+		return []byte("untrusted comment: signature from minisign secret key\n" + base64.StdEncoding.EncodeToString(line) + "\n" +
+			"trusted comment: " + comment + "\n" + base64.StdEncoding.EncodeToString(global) + "\n")
+	}
+	return base64.StdEncoding.EncodeToString(append(append([]byte("Ed"), id...), public...)), sign
+}
+
+func TestVerifyMinisign(t *testing.T) {
+	key, sign := minisignKey(t)
+	other, _ := minisignKey(t)
+	data := []byte(strings.Repeat("ab", 32) + "  switch-library-manager-web-linux-x64.tar.gz\n")
+	for _, legacy := range []bool{false, true} {
+		if err := verifyMinisign(key, data, sign(data, legacy)); err != nil {
+			t.Fatalf("a signature (legacy %v): %v", legacy, err)
+		}
+	}
+	signature := sign(data, false)
+	tampered := bytes.Replace(signature, []byte("hashed"), []byte("hashes"), 1)
+	cases := map[string]error{
+		"other data":             verifyMinisign(key, append([]byte("x"), data...), signature),
+		"another key":            verifyMinisign(other, data, signature),
+		"a changed comment":      verifyMinisign(key, data, tampered),
+		"no signature":           verifyMinisign(key, data, nil),
+		"a key that is not one":  verifyMinisign("RWQ", data, signature),
+		"a signature cut in two": verifyMinisign(key, data, signature[:60]),
+	}
+	for name, err := range cases {
+		if err == nil {
+			t.Errorf("%s is accepted", name)
+		}
+	}
+}
+
+// With a key in the app, an update is installed only with a signature of its checksums made with
+// that key; without a key, as before, the checksums are enough.
+func TestInstallUpdateChecksTheSignature(t *testing.T) {
+	archive := tarArchive(t, map[string]string{"switch-library-manager-web/switch-library-manager-web": "new"})
+	sum := sha256.Sum256(archive)
+	sums := []byte(hex.EncodeToString(sum[:]) + "  " + systemArchive("linux", "amd64") + "\n")
+	key, sign := minisignKey(t)
+	saved := updateSigningKey
+	updateSigningKey = key
+	t.Cleanup(func() { updateSigningKey = saved })
+	serve := func(signature []byte) string {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.Write(signature) }))
+		t.Cleanup(server.Close)
+		return server.URL + "/1.70.0/" + sumsSignatureName
+	}
+
+	web, program, started := updateTestWeb(t, archive, hex.EncodeToString(sum[:]))
+	if web.updates.latest.CanInstall() || web.installUpdate() != errUpdateSigned {
+		t.Fatal("a release without a signature")
+	}
+	web.updates.latest.files.signatureUrl = serve(sign(append([]byte("x"), sums...), false))
+	if err := web.installUpdate(); err != errUpdateSigned {
+		t.Fatalf("a signature of other checksums: %v", err)
+	}
+	if data, _ := os.ReadFile(program); string(data) != "old" || *started {
+		t.Fatalf("the program was changed: %q", data)
+	}
+	web.updates.latest.files.signatureUrl = serve(sign(sums, false))
+	if err := web.installUpdate(); err != nil {
+		t.Fatal(err)
+	}
+	if data, _ := os.ReadFile(program); string(data) != "new" || !*started {
+		t.Fatalf("the program: %q", data)
+	}
+
+	// the signature is taken only from the releases of the app
+	files, _ := filesOfRelease(map[string]string{"a.tar.gz": releaseDownloads + "a.tar.gz", "SHA256SUMS.txt": releaseDownloads + "SHA256SUMS.txt",
+		sumsSignatureName: "https://example.com/" + sumsSignatureName}, "a.tar.gz")
+	if files.signatureUrl != "" || files.signed() {
+		t.Fatal("a signature from anywhere else")
+	}
+	updateSigningKey = ""
+	if !files.signed() {
+		t.Fatal("without a key the checksums are enough")
 	}
 }

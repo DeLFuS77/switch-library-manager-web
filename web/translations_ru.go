@@ -668,6 +668,10 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "Файлов со сжатой копией: %v, они не показаны. Оригиналы можно удалить на странице «Место», когда их копии будут проверены.",
 		"%v files at a time": "Файлов одновременно: %v",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "Файлов: %v, их можно удалить только после проверки сохраняемых копий. Проверяются только эти копии.",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "Сетевые пути здесь не проверяются: приложение читает их, когда использует.",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Сейчас освободить нечего: %v файлов ниже остаются, каждый по указанной причине.",
 
@@ -1525,6 +1529,10 @@ func init() {
 		"within a minute":                                                  "в течение минуты",
 		"you":                                                              "вы",
 		"yours included":                                                   "включая ваш",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "Деморежим: папки и сведения о сервере не показываются.",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "Отдельная папка для каждого DLC",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "С ID каждый DLC попадает в свою папку. Без этого все они попадают в папку DLC: пути остаются короче, ведь многие программы Windows не читают пути длиннее 260 символов.",
@@ -1583,6 +1591,10 @@ func init() {
 		"No preference: the suggested copy": "Без предпочтения: рекомендуемая копия",
 		"Your preferred region":             "Ваш предпочитаемый регион",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Одна карточка на игру с флагами всех её регионов: тех, которых у вас нет, — приглушёнными. Показывается копия, выбранная вами на странице игры, или рекомендуемая, а счётчики учитывают игру один раз. Файлы не изменяются.",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "Подпись версии отсутствует или неверна: ничего не изменено.",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "Отвечать в чате Telegram",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "Пишите боту в его чат: /have zelda, /new, /space, /status, /sync. Ответы приходят только в этот чат, на языке приложения.",

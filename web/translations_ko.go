@@ -668,6 +668,10 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "파일 %v개는 이미 압축본이 있어 표시하지 않아요. 압축본이 검증되면 공간 페이지에서 원본을 삭제할 수 있어요.",
 		"%v files at a time": "한 번에 파일 %v개",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "파일 %v개는 남겨 둘 사본이 검증된 후에만 삭제할 수 있어요. 해당 사본만 검사해요.",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "네트워크 경로는 여기서 확인하지 않습니다. 앱이 사용할 때 읽습니다.",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "지금은 비울 수 있는 것이 없습니다. 아래 %v개 파일은 각각 표시된 이유로 남습니다.",
 
@@ -1525,6 +1529,10 @@ func init() {
 		"within a minute":                                                  "1분 이내",
 		"you":                                                              "나",
 		"yours included":                                                   "내 것 포함",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "데모 모드: 서버의 폴더와 세부 정보는 표시하지 않아요.",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "DLC마다 폴더",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "ID를 붙이면 DLC마다 자기 폴더에 들어가요. 끄면 모두 DLC 폴더에 들어가서 경로가 짧아져요. 많은 Windows 프로그램은 260자를 넘는 경로를 읽지 못해요.",
@@ -1583,6 +1591,10 @@ func init() {
 		"No preference: the suggested copy": "선호 없음: 추천 사본",
 		"Your preferred region":             "선호 지역",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "게임마다 카드 한 장에 모든 지역의 국기를 표시합니다(없는 지역은 흐리게). 게임 페이지에서 선택한 사본이나 추천 사본이 표시되고, 카운터는 게임을 한 번만 셉니다. 파일은 바뀌지 않습니다.",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "릴리스의 서명이 없거나 올바르지 않습니다. 아무것도 변경하지 않았습니다.",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "텔레그램 채팅에서 답하기",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "봇의 채팅에 쓰세요: /have zelda, /new, /space, /status, /sync. 답은 그 채팅에만 앱 언어로 옵니다.",

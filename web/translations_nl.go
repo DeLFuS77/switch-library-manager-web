@@ -668,6 +668,10 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "%v bestanden hebben al een gecomprimeerde kopie en staan niet in de lijst. De originelen kun je op de pagina Ruimte verwijderen zodra hun kopieën zijn gecontroleerd.",
 		"%v files at a time": "%v bestanden tegelijk",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v bestanden kunnen pas worden verwijderd als de kopieën die blijven zijn gecontroleerd. Alleen die kopieën worden gecontroleerd.",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "Netwerkpaden worden hier niet gecontroleerd: de app leest ze wanneer hij ze gebruikt.",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Er kan nu niets worden vrijgemaakt: de %v bestanden hieronder blijven, elk om de aangegeven reden.",
 
@@ -1525,6 +1529,10 @@ func init() {
 		"within a minute":                                                  "binnen een minuut",
 		"you":                                                              "jij",
 		"yours included":                                                   "inclusief die van jou",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "Demomodus: de mappen en de details van de server worden niet getoond.",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "Een map voor elke DLC",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "Met de ID's gaat elke DLC naar een eigen map. Zonder deze optie gaan ze allemaal naar de DLC-map: de paden blijven korter, want veel Windows-programma's lezen niet meer dan 260 tekens.",
@@ -1583,6 +1591,10 @@ func init() {
 		"No preference: the suggested copy": "Geen voorkeur: de aanbevolen kopie",
 		"Your preferred region":             "Je voorkeursregio",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Eén kaart per game, met de vlaggen van al zijn regio's: die je niet hebt, gedimd. Hij toont de kopie die je op de pagina van de game kiest, of de aanbevolen, en de tellers tellen de game één keer. Er wordt geen bestand gewijzigd.",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "De handtekening van de versie ontbreekt of klopt niet: er is niets gewijzigd.",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "Antwoorden in de Telegram-chat",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "Schrijf de bot in zijn chat: /have zelda, /new, /space, /status, /sync. Alleen die chat krijgt antwoorden, in de taal van de app.",

@@ -261,3 +261,59 @@ func TestWizardTestsTheChannelsWritten(t *testing.T) {
 		t.Fatalf("a token without its chat: %d %s", recorder.Code, recorder.Body.String())
 	}
 }
+
+// The checks of the wizard open paths of the server: they are a POST, so another site cannot
+// send them (see sameOriginOnly), and they never open a path of another computer, which would
+// make Windows send the credentials of the user to it. Drive letters, mapped too, are checked.
+func TestWizardChecksArePostsAndSkipNetworkPaths(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleWizard()
+	folder := t.TempDir()
+	check := func(method string, values url.Values) *httptest.ResponseRecorder {
+		var request *http.Request
+		if method == http.MethodGet {
+			request = httptest.NewRequest(method, "/wizard/check?"+values.Encode(), nil)
+		} else {
+			request = httptest.NewRequest(method, "/wizard/check", strings.NewReader(values.Encode()))
+			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		}
+		recorder := httptest.NewRecorder()
+		sameOriginOnly(web.router).ServeHTTP(recorder, request)
+		return recorder
+	}
+	if got := check(http.MethodPost, url.Values{"kind": {"folder"}, "value": {folder}}); got.Code != http.StatusOK || !strings.Contains(got.Body.String(), `"ok":true`) {
+		t.Fatalf("a check: %d %s", got.Code, got.Body.String())
+	}
+	if got := check(http.MethodGet, url.Values{"kind": {"folder"}, "value": {folder}}); got.Code == http.StatusOK {
+		t.Fatal("a check is not a GET")
+	}
+	request := httptest.NewRequest(http.MethodPost, "/wizard/check", strings.NewReader("kind=folder&value=x"))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	request.Header.Set("Sec-Fetch-Site", "cross-site")
+	recorder := httptest.NewRecorder()
+	sameOriginOnly(web.router).ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusForbidden {
+		t.Fatalf("a check sent by another site: %d", recorder.Code)
+	}
+
+	for _, path := range []string{`\\server\share\games`, `//server/share/games`, ` \\?\UNC\server\share`, `/\server\share`} {
+		if !networkPath(path) {
+			t.Errorf("%q is a network path", path)
+		}
+		if got := checkWizardFolder(path, "en"); !got.Ok || got.Message != WIZARD_NETWORK_PATH || got.Games != 0 {
+			t.Errorf("the folder %q: %+v", path, got)
+		}
+		if got := checkWizardKeys(path, "en"); got.Ok || got.Message != WIZARD_NETWORK_PATH {
+			t.Errorf("the keys %q: %+v", path, got)
+		}
+		if got := browseFolders(path, "en"); got.Error == "" || len(got.Folders) != 0 {
+			t.Errorf("the browser %q: %+v", path, got)
+		}
+	}
+	for _, path := range []string{`Z:\Switch`, `C:/Games`, "/mnt/roms", folder} {
+		if networkPath(path) {
+			t.Errorf("%q is a path of this computer", path)
+		}
+	}
+}

@@ -668,6 +668,10 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "%v個のファイルはすでに圧縮済みのため表示されていません。圧縮ファイルの検証後、元のファイルは「容量」ページで削除できます。",
 		"%v files at a time": "同時に%v個のファイル",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v個のファイルは、残す側のファイルを検証した後でのみ削除できます。検証されるのは残す側のファイルだけです。",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "ネットワーク上のパスはここでは確認しません。アプリが使うときに読み込みます。",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "今は何も解放できません。以下の %v 個のファイルは、それぞれ示された理由で残ります。",
 
@@ -1525,6 +1529,10 @@ func init() {
 		"within a minute":                                                  "1分以内",
 		"you":                                                              "自分",
 		"yours included":                                                   "自分を含む",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "デモモード：サーバーのフォルダーと詳細は表示しません。",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "DLC ごとにフォルダー",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "ID を付ける場合、DLC ごとに専用のフォルダーに入れます。オフにすると、すべて DLC フォルダーに入り、パスが短くなります。多くの Windows のプログラムは 260 文字を超えるパスを読めません。",
@@ -1583,6 +1591,10 @@ func init() {
 		"No preference: the suggested copy": "指定なし：おすすめのコピー",
 		"Your preferred region":             "優先する地域",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "ゲームごとに1枚のカードで、すべての地域の国旗を表示します（持っていない地域は薄く表示）。ゲームのページで選んだコピー、またはおすすめのコピーが表示され、カウンターではゲームを1つとして数えます。ファイルは変更されません。",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "リリースの署名がないか、正しくありません。何も変更していません。",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "Telegramのチャットで返信する",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "ボットのチャットに書き込みます：/have zelda、/new、/space、/status、/sync。返信はそのチャットだけに、アプリの言語で届きます。",

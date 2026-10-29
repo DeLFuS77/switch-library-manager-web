@@ -74,11 +74,18 @@ const contentSecurityPolicy = "default-src 'self'; script-src 'self'; style-src 
 	"img-src 'self' data: https:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; " +
 	"frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
 
+// privatePages show the settings, the users or the activity: neither the browser nor a proxy
+// keeps a copy of them, which another user of the computer could open later
+var privatePages = map[string]bool{"/settings.html": true, "/users.html": true, "/account.html": true, "/activity.html": true, "/activity.csv": true, "/wizard": true}
+
 // withSecurityHeaders adds headers that make the browser refuse foreign scripts, framing
 // by other sites and content type guessing.
 func withSecurityHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		headers := w.Header()
+		if privatePages[r.URL.Path] {
+			headers.Set("Cache-Control", "no-store")
+		}
 		headers.Set("Content-Security-Policy", contentSecurityPolicy)
 		headers.Set("X-Content-Type-Options", "nosniff")
 		headers.Set("X-Frame-Options", "DENY")

@@ -933,6 +933,10 @@ func init() {
 		"1 hour":                  "1 heure",
 		"Only folders that changed are read again. A longer interval lets the disks of a NAS sleep.":              "Seuls les dossiers modifiés sont relus. Un intervalle plus long laisse les disques d'un NAS se mettre en veille.",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v fichiers ne peuvent être supprimés qu'une fois les copies conservées vérifiées. Seules ces copies sont contrôlées.",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "Les chemins réseau ne sont pas vérifiés ici : l'app les lit quand elle s'en sert.",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "Rien ne peut être libéré pour l'instant : les %v fichiers ci-dessous restent, chacun pour la raison indiquée.",
 
@@ -1525,6 +1529,10 @@ func init() {
 		"v%v available":                                                    "v%v disponible",
 		"within a minute":                                                  "dans moins d'une minute",
 		"you":                                                              "vous",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "Mode démo : les dossiers et les détails du serveur ne sont pas affichés.",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "Un dossier pour chaque DLC",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "Avec les ID, chaque DLC va dans son propre dossier. Sans cela, ils vont tous dans le dossier DLC : les chemins restent plus courts, car beaucoup de programmes de Windows ne lisent pas plus de 260 caractères.",
@@ -1583,6 +1591,10 @@ func init() {
 		"No preference: the suggested copy": "Aucune préférence : la copie suggérée",
 		"Your preferred region":             "Votre région préférée",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Une carte pour chaque jeu, avec les drapeaux de toutes ses régions : celles que vous n'avez pas, estompées. Elle montre la copie que vous choisissez sur la page du jeu, ou celle suggérée, et les compteurs comptent le jeu une fois. Aucun fichier n'est modifié.",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "La signature de la version manque ou est incorrecte : rien n'a été changé.",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "Répondre dans le chat Telegram",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "Écrivez au bot dans son chat : /have zelda, /new, /space, /status, /sync. Seul ce chat reçoit des réponses, dans la langue de l'app.",

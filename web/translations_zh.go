@@ -668,6 +668,10 @@ func init() {
 		"%v files already have a compressed copy and are not listed. The originals can be deleted on the Space page once their copies are verified.": "%v 个文件已有压缩副本，未在此列出。副本校验通过后，可在“空间”页面删除原始文件。",
 		"%v files at a time": "同时处理 %v 个文件",
 		"%v files can only be deleted once the copies that are kept are verified. Only those copies are checked.": "%v 个文件只有在保留的副本校验通过后才能删除。只会检查这些副本。",
+
+		// a path of another computer, never opened by the checks of the wizard
+		"Network paths are not checked here: the app reads them when it uses them.": "此处不检查网络路径：应用会在使用时读取它们。",
+
 		// Space, when every file left stays for a reason
 		"Nothing can be freed now: the %v files below stay, each for the reason shown.": "现在没有可以释放的空间：下面的 %v 个文件会保留，各自的原因已注明。",
 
@@ -1525,6 +1529,10 @@ func init() {
 		"within a minute":                                                  "一分钟内",
 		"you":                                                              "你",
 		"yours included":                                                   "包括你的",
+
+		// the demo shows nothing of the server it runs on
+		"Demo mode: the folders and the details of the server are not shown.": "演示模式：不显示服务器的文件夹和详细信息。",
+
 		// a folder for each DLC, or all of them in the DLC folder
 		"A folder for each DLC": "每个 DLC 一个文件夹",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "使用 ID 时，每个 DLC 放进自己的文件夹。关闭后，全部放进 DLC 文件夹：路径更短，因为许多 Windows 程序无法读取超过 260 个字符的路径。",
@@ -1583,6 +1591,10 @@ func init() {
 		"No preference: the suggested copy": "无偏好：推荐的副本",
 		"Your preferred region":             "你的首选地区",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "每个游戏一张卡片，显示其所有地区的国旗：你没有的地区显示为灰色。显示你在游戏页面选择的副本或推荐的副本，计数时每个游戏只算一次。不会更改任何文件。",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "该版本的签名缺失或错误：未做任何更改。",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "在 Telegram 聊天中回复",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "在机器人的聊天中发送：/have zelda、/new、/space、/status、/sync。只会在该聊天中回复，使用应用的语言。",

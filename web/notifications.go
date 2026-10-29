@@ -387,6 +387,41 @@ func sendMessage(options settings.NotificationOptions, title string, text string
 	return nil
 }
 
+// secretMask stands for a saved secret in the forms: the pages never get the bot token of
+// Telegram nor the token of the webhook of Discord back. A field sent back as it was shown keeps
+// the saved value, a new one replaces it and an empty one turns the channel off, as before.
+const secretMask = "********"
+
+// maskedNotifications are the notification settings as the pages show them.
+func maskedNotifications(options settings.NotificationOptions) settings.NotificationOptions {
+	if options.TelegramBotToken != "" {
+		options.TelegramBotToken = secretMask
+	}
+	options.DiscordWebhookUrl = maskedWebhook(options.DiscordWebhookUrl)
+	return options
+}
+
+// maskedWebhook is a webhook of Discord with the mask in place of its token, the part after the
+// last slash: https://discord.com/api/webhooks/<id>/********
+func maskedWebhook(webhook string) string {
+	if webhook == "" {
+		return ""
+	}
+	return webhook[:strings.LastIndex(webhook, "/")+1] + secretMask
+}
+
+// keptSecrets puts the saved secrets back in the notification settings sent by a form, where the
+// form sent them as they were shown.
+func keptSecrets(sent settings.NotificationOptions, saved settings.NotificationOptions) settings.NotificationOptions {
+	if sent.TelegramBotToken == secretMask && saved.TelegramBotToken != "" {
+		sent.TelegramBotToken = saved.TelegramBotToken
+	}
+	if sent.DiscordWebhookUrl != "" && sent.DiscordWebhookUrl == maskedWebhook(saved.DiscordWebhookUrl) {
+		sent.DiscordWebhookUrl = saved.DiscordWebhookUrl
+	}
+	return sent
+}
+
 // validateNotifications checks the notification settings of the settings form.
 func validateNotifications(options settings.NotificationOptions, lang string) []FieldError {
 	errs := []FieldError{}
@@ -415,10 +450,12 @@ func (web *Web) HandleNotifications() {
 		options := settings.ReadSettings(web.dataFolder).Notifications
 		// the wizard tests the channels written in it, before they are saved
 		if r.FormValue("draft") == "1" {
+			saved := options
 			options.DiscordWebhookUrl = strings.TrimSpace(r.FormValue("discord_webhook_url"))
 			options.WebhookUrl = strings.TrimSpace(r.FormValue("webhook_url"))
 			options.TelegramBotToken = strings.TrimSpace(r.FormValue("telegram_bot_token"))
 			options.TelegramChatId = strings.TrimSpace(r.FormValue("telegram_chat_id"))
+			options = keptSecrets(options, saved)
 			if errs := validateNotifications(options, lang); len(errs) > 0 {
 				writeGlobalError(w, http.StatusBadRequest, lang, errs[0].Message)
 				return

@@ -34,8 +34,11 @@ const (
 	// the uploads count as files being written for this long after their last piece
 	uploadWriting = time.Minute
 	// an upload nothing came to for this long ends its task: the page was closed, or lost the
-	// connection. Its file is kept, and the same file chosen again goes on (see uploadIdle)
+	// connection. Its file is kept, and the same file chosen again goes on (see uploadIdle). The
+	// room kept on the disk for it is given back meanwhile, so it does not hold up a compression
 	uploadStalled = 3 * time.Minute
+	// how often the uploads given up and their files are looked for, besides at the start
+	uploadSweepEvery = time.Hour
 )
 
 const TASK_UPLOAD = "upload"
@@ -97,6 +100,9 @@ func (s *uploadStore) remove(upload *gameUpload) {
 	s.mutex.Lock()
 	delete(s.items, upload.Id)
 	s.mutex.Unlock()
+	// the room is given back once, also while the watch gives it back after a pause
+	upload.mutex.Lock()
+	defer upload.mutex.Unlock()
 	if upload.release != nil {
 		upload.release()
 		upload.release = nil
@@ -183,18 +189,35 @@ func (web *Web) endUploadTask(upload *gameUpload, failure *TaskNote) {
 	upload.taskId = 0
 }
 
-// watchUploads ends the tasks of the uploads nothing comes to any more.
+// watchUploads ends the tasks of the uploads nothing comes to any more and gives back the room
+// they kept; at the start and every uploadSweepEvery it also gives up the ones idle for a day
+// and removes the files of uploads cut before the start, also when no other upload starts.
 func (web *Web) watchUploads() {
 	store := &web.uploads
 	store.watching.Do(func() {
 		go func() {
+			web.forgetIdleUploadsEverywhere()
+			swept := time.Now()
 			ticker := time.NewTicker(30 * time.Second)
 			defer ticker.Stop()
 			for range ticker.C {
 				web.endStalledUploads()
+				if time.Since(swept) >= uploadSweepEvery {
+					web.forgetIdleUploadsEverywhere()
+					swept = time.Now()
+				}
 			}
 		}()
 	})
+}
+
+// forgetIdleUploadsEverywhere gives up the idle uploads, and removes the files of the uploads
+// cut before the start in every folder games are uploaded to.
+func (web *Web) forgetIdleUploadsEverywhere() {
+	web.dropIdleUploads()
+	for _, folder := range web.uploadFolders() {
+		web.removeCutUploads(folder)
+	}
 }
 
 func (web *Web) endStalledUploads() {
@@ -207,34 +230,69 @@ func (web *Web) endStalledUploads() {
 	store.mutex.Unlock()
 	for _, upload := range uploads {
 		upload.mutex.Lock()
-		if upload.taskId != 0 && time.Since(upload.touched) >= uploadStalled {
-			web.endUploadTask(upload, &TaskNote{Text: NOTE_UPLOAD_STOPPED})
+		if time.Since(upload.touched) >= uploadStalled {
+			if upload.taskId != 0 {
+				web.endUploadTask(upload, &TaskNote{Text: NOTE_UPLOAD_STOPPED})
+			}
+			// the room kept for the rest of the file is given back; the upload asks for it again
+			// when it goes on
+			if upload.release != nil {
+				upload.release()
+				upload.release = nil
+			}
 		}
 		upload.mutex.Unlock()
 	}
 }
 
+// keepRoom keeps again the room an upload needs for the rest of its file, after it was given
+// back while nothing came. The upload is locked.
+func (web *Web) keepRoom(upload *gameUpload) error {
+	if upload.release != nil {
+		return nil
+	}
+	release, err := web.reserveSpace(filepath.Dir(upload.part), upload.Size-upload.Received)
+	if err != nil {
+		return err
+	}
+	upload.release = release
+	return nil
+}
+
 // forgetIdleUploads gives up the uploads nobody sent anything to for a day, and removes the
 // files of uploads cut before the app was started.
 func (web *Web) forgetIdleUploads(folder string) {
+	web.dropIdleUploads()
+	web.removeCutUploads(folder)
+}
+
+// dropIdleUploads gives up the uploads nobody sent anything to for a day, with their files.
+func (web *Web) dropIdleUploads() {
 	store := &web.uploads
 	store.mutex.Lock()
-	known := map[string]bool{}
+	defer store.mutex.Unlock()
 	for id, upload := range store.items {
 		upload.mutex.Lock()
-		idle := time.Since(upload.touched) >= uploadIdle
-		upload.mutex.Unlock()
-		if idle {
-			upload.mutex.Lock()
+		if time.Since(upload.touched) >= uploadIdle {
 			web.endUploadTask(upload, &TaskNote{Text: NOTE_UPLOAD_STOPPED})
-			upload.mutex.Unlock()
 			delete(store.items, id)
 			os.Remove(upload.part)
 			if upload.release != nil {
 				upload.release()
+				upload.release = nil
 			}
-			continue
 		}
+		upload.mutex.Unlock()
+	}
+}
+
+// removeCutUploads removes the files of uploads of a folder this app does not know, cut before
+// it was started, once they are a day old.
+func (web *Web) removeCutUploads(folder string) {
+	store := &web.uploads
+	store.mutex.Lock()
+	known := map[string]bool{}
+	for _, upload := range store.items {
 		known[upload.part] = true
 	}
 	store.mutex.Unlock()
@@ -297,6 +355,11 @@ func (web *Web) HandleUploads() {
 		for _, upload := range store.items {
 			if upload.final == final && upload.Size == size {
 				upload.mutex.Lock()
+				if err := web.keepRoom(upload); err != nil {
+					upload.mutex.Unlock()
+					writeGlobalError(w, http.StatusInsufficientStorage, lang, UPLOAD_SPACE)
+					return
+				}
 				upload.touched = time.Now()
 				// gone on after it stopped: in Tasks again
 				web.uploadTask(upload)
@@ -359,6 +422,11 @@ func (web *Web) HandleUploads() {
 		if err != nil || offset != upload.Received {
 			// the browser goes on from where the server is
 			writeJSON(w, http.StatusConflict, uploadStatus(upload))
+			return
+		}
+		// pieces again after a pause: the room given back meanwhile is kept again
+		if err := web.keepRoom(upload); err != nil {
+			writeGlobalError(w, http.StatusInsufficientStorage, lang, UPLOAD_SPACE)
 			return
 		}
 		file, err := os.OpenFile(upload.part, os.O_WRONLY, 0)

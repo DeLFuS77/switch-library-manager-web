@@ -322,7 +322,9 @@ func (web *Web) HandleSettings() {
 			})
 		}
 
-		errorResponse.FieldErrors = append(errorResponse.FieldErrors, validateNotifications(settingsForm.notificationOptions(), lang)...)
+		// the secrets the page got masked are checked as they are saved
+		sent := keptSecrets(settingsForm.notificationOptions(), settings.ReadSettings(web.dataFolder).Notifications)
+		errorResponse.FieldErrors = append(errorResponse.FieldErrors, validateNotifications(sent, lang)...)
 
 		if !validWizardOrganize(settingsForm.OrganizeLayout, settingsForm.KeepDuplicate) {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
@@ -393,7 +395,7 @@ func (web *Web) HandleSettings() {
 			appSettings.CompressFilesAtOnce = settingsForm.CompressFilesAtOnce
 			appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
 			appSettings.Language = settingsForm.Language
-			appSettings.Notifications = settingsForm.notificationOptions()
+			appSettings.Notifications = keptSecrets(settingsForm.notificationOptions(), appSettings.Notifications)
 			if settingsForm.OrganizeLayout != "" {
 				appSettings.OrganizeOptions = wizardOrganize(appSettings.OrganizeOptions, settingsForm.OrganizeLayout,
 					settingsForm.KeepGameFolders, settingsForm.RenameFiles, settingsForm.DeleteEmptyFolders, settingsForm.KeepDuplicate)
@@ -448,9 +450,12 @@ func verifySpeedOptions() []VerifySpeedOption {
 // (ignoring a title or a synchronization also changes them) and what they depend on.
 func (web *Web) settingsPageData() SettingsPageData {
 	current := settings.ReadSettings(web.dataFolder)
+	// the secrets of the notifications never go back to the page (see secretMask)
+	shown := *current
+	shown.Notifications = maskedNotifications(current.Notifications)
 	return SettingsPageData{
 		GlobalPageData:          web.globalPageData("settings"),
-		Settings:                current,
+		Settings:                &shown,
 		NextSync:                nextSyncTime(current),
 		SyncIntervals:           []int{0, 6, 12, 24, 168},
 		Languages:               supportedLanguages,
