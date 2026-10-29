@@ -117,12 +117,15 @@ func PackIntoCard(ctx context.Context, card string, extras []string, target stri
 	}
 	writer := &xczWriter{file: output, input: opened[0].reader, pkg: opened[0].pkg, names: names}
 	written := make([]*writtenFile, len(entries))
+	defer endHashes(written)
 	err = writer.begin()
 	for i, e := range entries {
 		if err != nil {
 			break
 		}
-		writer.startFile()
+		if err = writer.startFile(); err != nil {
+			break
+		}
 		written[i] = newWrittenFile(names[i])
 		err = copyRange(ctx, io.MultiWriter(output, written[i]), opened[e.source].reader, e.file.offset, e.file.size, report)
 		if err == nil {

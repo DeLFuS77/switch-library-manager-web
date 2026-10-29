@@ -7,8 +7,11 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
+	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -203,6 +206,73 @@ func TestOpenMetaNcaDataSectionSupportsUnencryptedSections(t *testing.T) {
 	}
 	if string(decoded[:4]) != "PFS0" {
 		t.Fatalf("unexpected unencrypted section: %q", decoded[:4])
+	}
+}
+
+// The section of a metadata NCA is read whole: a damaged header made the scan, the icons and
+// the facts of a file stop, with a start of its data past the section, or take gigabytes
+// before the read failed, with a section past the end of the file.
+func TestMetaSectionWithinItsFile(t *testing.T) {
+	section := makePFS0(pfs0Magic, []string{"meta.cnmt"}, [][]byte{makeCNMT(1, 0, ContentMetaType_Application)})
+	section = append(section, make([]byte, (-len(section))&0x1ff)...)
+	nca := makeSyntheticNCA(t, section, 1)
+	if _, decoded, err := openMetaNcaDataSection(bytes.NewReader(nca), 0); err != nil || string(decoded[:4]) != "PFS0" {
+		t.Fatalf("the section: %v", err)
+	}
+	pastTheSection := mutateSyntheticNCAHeader(t, nca, func(header []byte) {
+		binary.LittleEndian.PutUint64(header[0x440:], uint64(len(section))+1)
+	})
+	if _, _, err := openMetaNcaDataSection(bytes.NewReader(pastTheSection), 0); err == nil {
+		t.Fatal("the data of the section starts past its end")
+	}
+	// a section of 1 GiB in a file of a few kB
+	pastTheFile := mutateSyntheticNCAHeader(t, nca, func(header []byte) {
+		binary.LittleEndian.PutUint32(header[0x244:], 6+(1<<30)/0x200)
+	})
+	var before, after runtime.MemStats
+	runtime.ReadMemStats(&before)
+	_, _, err := openMetaNcaDataSection(bytes.NewReader(pastTheFile), 0)
+	runtime.ReadMemStats(&after)
+	if !errors.Is(err, io.ErrUnexpectedEOF) {
+		t.Fatalf("a section past the end of the file: %v", err)
+	}
+	if allocated := after.TotalAlloc - before.TotalAlloc; allocated > 64<<20 {
+		t.Fatalf("%d bytes taken for a section that is not there", allocated)
+	}
+	// also from a reader that does not tell its size
+	if _, _, err := openMetaNcaDataSection(unsizedReader{bytes.NewReader(pastTheFile)}, 0); err == nil {
+		t.Fatal("a section past the end of an unsized reader")
+	}
+	if _, decoded, err := openMetaNcaDataSection(unsizedReader{bytes.NewReader(nca)}, 0); err != nil || string(decoded[:4]) != "PFS0" {
+		t.Fatalf("the section from an unsized reader: %v", err)
+	}
+}
+
+// unsizedReader hides the size of its reader.
+type unsizedReader struct{ reader io.ReaderAt }
+
+func (u unsizedReader) ReadAt(p []byte, offset int64) (int, error) { return u.reader.ReadAt(p, offset) }
+
+// The counter of a section is its secure value and its generation, as the compression and the
+// check of the hash trees build it: the metadata, read with the generation alone, was nothing
+// readable in a section whose secure value is not zero, and its game had no name, NACP or icon
+// of its own.
+func TestMetaSectionWithASecureValue(t *testing.T) {
+	initNszKeys(t, "")
+	section := makePFS0(pfs0Magic, []string{"Application_0100000000010000.cnmt"}, [][]byte{makeCNMT(0x0100000000010000, 0, ContentMetaType_Application)})
+	section = append(section, make([]byte, (-len(section))&0x1ff)...)
+	// encrypted with the secure value 0x55667788
+	nca := makeProgramNca(t, section, 3, "")
+	_, decoded, err := openMetaNcaDataSection(bytes.NewReader(nca), 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	pfs0, err := readPfs0(bytes.NewReader(decoded), 0)
+	if err != nil {
+		t.Fatalf("the section is not decrypted: %v", err)
+	}
+	if attributes, err := readBinaryCnmt(pfs0, decoded); err != nil || attributes.TitleId != "0100000000010000" {
+		t.Fatalf("the CNMT: %+v %v", attributes, err)
 	}
 }
 

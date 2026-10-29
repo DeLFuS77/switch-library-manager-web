@@ -63,7 +63,9 @@ func RecompressGame(ctx context.Context, source string, target string, options C
 		if err = ctx.Err(); err != nil {
 			break
 		}
-		writer.startFile()
+		if err = writer.startFile(); err != nil {
+			break
+		}
 		// the progress follows the bytes of the source read
 		counter := &countingReaderAt{reader: input, start: file.offset, end: file.offset + file.size, report: report}
 		if strings.HasSuffix(strings.ToLower(file.name), ".ncz") {

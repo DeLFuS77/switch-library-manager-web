@@ -2,6 +2,7 @@ package switchfs
 
 import (
 	"bytes"
+	"encoding/binary"
 	"testing"
 )
 
@@ -21,5 +22,20 @@ func TestBuildIdOfExefs(t *testing.T) {
 	bad := makePFS0(pfs0Magic, []string{"main"}, [][]byte{make([]byte, 0x100)})
 	if _, err := buildIdOfExefs(bad); err == nil {
 		t.Fatal("main that is not an NSO")
+	}
+	// a damaged offset of main near its largest: added to the offset of the module ID it
+	// wrapped around to a small one, and the read past the ExeFS stopped the server
+	parsed, err := readPfs0(bytes.NewReader(exefs), 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, start := range []uint64{^uint64(0) - 0x3F, 1 << 63, uint64(len(exefs)) - 0x20} {
+		damaged := append([]byte(nil), exefs...)
+		entry := damaged[0x10+PfsfileEntryTableSize:]
+		binary.LittleEndian.PutUint64(entry[0:8], start-parsed.HeaderLen)
+		binary.LittleEndian.PutUint64(entry[8:16], 0)
+		if _, err := buildIdOfExefs(damaged); err == nil {
+			t.Fatalf("main at %#x", start)
+		}
 	}
 }

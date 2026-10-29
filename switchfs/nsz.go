@@ -262,7 +262,9 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 		if err = ctx.Err(); err != nil {
 			break
 		}
-		writer.startFile()
+		if err = writer.startFile(); err != nil {
+			break
+		}
 		// the original is hashed as it is read, instead of in a pass of its own
 		reader := newHashingReaderAt(input, file.offset, file.size)
 		if plans[i] != nil && (options.Blocks || pkg.xci) {
@@ -349,7 +351,7 @@ func planNcz(input io.ReaderAt, offset int64, size uint64, titleKeys map[string]
 		return nil, "it holds no game data (" + name + ")", nil
 	}
 
-	sectionKey, err := ncaSectionKey(header, titleKeys)
+	sectionKey, err := ncaSectionKey(keys, header, titleKeys)
 	if err != nil {
 		return nil, "", err
 	}
@@ -457,7 +459,7 @@ func bktrSections(input io.ReaderAt, ncaOffset int64, section nczSection, fsh *f
 	info := fsh.fsHeaderBytes[0x120:0x140]
 	tableOffset := binary.LittleEndian.Uint64(info[0:8])
 	tableSize := binary.LittleEndian.Uint64(info[8:16])
-	if string(info[16:20]) != "BKTR" || tableSize < 0x8000 || tableOffset+tableSize > section.size {
+	if string(info[16:20]) != "BKTR" || tableSize < 0x8000 || tableSize > section.size || tableOffset > section.size-tableSize {
 		return nil, errors.New("no subsection table")
 	}
 
@@ -480,14 +482,15 @@ func bktrSections(input io.ReaderAt, ncaOffset int64, section nczSection, fsh *f
 		return nil, err
 	}
 	buckets := binary.LittleEndian.Uint32(header[4:8])
-	if buckets == 0 || uint64(buckets+1)*0x4000 > tableSize {
+	// counted in 64 bits: buckets+1 in 32 overflows
+	if buckets == 0 || (uint64(buckets)+1)*0x4000 > tableSize {
 		return nil, errors.New("invalid subsection table")
 	}
 
 	sections := []nczSection{}
 	next := section.offset
 	for b := uint32(0); b < buckets; b++ {
-		bucket, err := read(tableStart+uint64(b+1)*0x4000, 0x4000)
+		bucket, err := read(tableStart+(uint64(b)+1)*0x4000, 0x4000)
 		if err != nil {
 			return nil, err
 		}
@@ -521,10 +524,19 @@ func bktrSections(input io.ReaderAt, ncaOffset int64, section nczSection, fsh *f
 	return sections, nil
 }
 
+// keySet is the keys an operation reads, taken once from settings.SwitchKeys: they are loaded
+// again before every synchronization, and may change or be gone meanwhile.
+type keySet interface {
+	GetKey(name string) string
+	TitleKey(rightsId string) (string, bool)
+}
+
 // ncaSectionKey returns the AES key of the sections of an NCA: the title key of its
 // ticket (or title.keys) for titles with a rights ID, else the key in the key area.
-func ncaSectionKey(header *ncaHeader, titleKeys map[string][]byte) ([]byte, error) {
-	keys, _ := settings.SwitchKeys()
+func ncaSectionKey(keys keySet, header *ncaHeader, titleKeys map[string][]byte) ([]byte, error) {
+	if keys == nil {
+		return nil, &MissingKeyError{KeyName: "header_key"}
+	}
 	revision := fmt.Sprintf("%02x", header.getKeyRevision())
 
 	if header.HasRightsId() {
@@ -567,6 +579,9 @@ func readTickets(input io.ReaderAt, files []packedFile) (map[string][]byte, erro
 	for _, file := range files {
 		if !strings.HasSuffix(strings.ToLower(file.name), ".tik") || file.size > 0x1000 {
 			continue
+		}
+		if file.size < 0 || file.offset < 0 {
+			return nil, fmt.Errorf("%s has an invalid size", file.name)
 		}
 		ticket := make([]byte, file.size)
 		if err := readAtFull(input, ticket, file.offset); err != nil {
@@ -1137,7 +1152,8 @@ type FileCheck struct {
 	// whose data still matches all its hashes: they install and play like the originals
 	Modified []string
 	// some sections of those files cannot be checked on their own (the romfs of an
-	// update, or no key to decrypt them)
+	// update, or no key to decrypt them), or an NCA has no content ID in its name to be
+	// checked against
 	Partial bool
 }
 
@@ -1200,7 +1216,13 @@ func CheckHashes(ctx context.Context, path string, hashes map[string][32]byte) (
 		if !strings.HasSuffix(strings.ToLower(file.name), ".nca") {
 			continue
 		}
-		if id := contentId(file.name); id == "" || hex.EncodeToString(sum[:16]) == id {
+		id := contentId(file.name)
+		if id == "" {
+			// nothing tells what its hash must be
+			check.Partial = true
+			continue
+		}
+		if hex.EncodeToString(sum[:16]) == id {
 			continue
 		}
 		if titleKeys == nil {
@@ -1296,7 +1318,13 @@ func checkPackage(ctx context.Context, path string, expected map[string][32]byte
 		if !strings.HasSuffix(strings.ToLower(original), ".nca") {
 			continue
 		}
-		if id := contentId(file.name); id == "" || hex.EncodeToString(sum[:16]) == id {
+		id := contentId(file.name)
+		if id == "" {
+			// nothing tells what its hash must be
+			check.Partial = true
+			continue
+		}
+		if hex.EncodeToString(sum[:16]) == id {
 			continue
 		}
 		// the NCA does not match its content ID: modified by a tool, or damaged
@@ -1359,7 +1387,8 @@ func checkNczIntegrity(ctx context.Context, input io.ReaderAt, offset int64, siz
 	if err := readAtFull(input, encryptedHeader, offset); err != nil {
 		return IntegrityResult{}, err
 	}
-	check, _, err := newNcaIntegrity(encryptedHeader)
+	keys, _ := settings.SwitchKeys()
+	check, _, err := newNcaIntegrity(keys, encryptedHeader)
 	if err != nil {
 		return IntegrityResult{}, err
 	}
@@ -1404,6 +1433,10 @@ func decompressNsz(ctx context.Context, source string, target string, progress f
 	}
 	defer input.Close()
 	pkg, err := openGamePackage(input)
+	if errors.Is(err, io.ErrUnexpectedEOF) {
+		// a package cut short is told as such, as when its files are read
+		return nil, err
+	}
 	if err != nil {
 		return nil, errors.New("only NSZ and XCZ files can be decompressed")
 	}
@@ -1428,13 +1461,16 @@ func decompressNsz(ctx context.Context, source string, target string, progress f
 		return nil, err
 	}
 	written := make([]*writtenFile, len(pkg.files))
+	defer endHashes(written)
 	writer := newPackageWriter(output, input, pkg, names)
 	err = writer.begin()
 	for i, file := range pkg.files {
 		if err != nil {
 			break
 		}
-		writer.startFile()
+		if err = writer.startFile(); err != nil {
+			break
+		}
 		// what is written of the file is hashed meanwhile, with its start and its end kept
 		written[i] = newWrittenFile(names[i])
 		out := io.MultiWriter(output, written[i])
@@ -1455,12 +1491,6 @@ func decompressNsz(ctx context.Context, source string, target string, progress f
 	}
 	if err == nil {
 		err = writer.finish()
-	}
-	// the hashes are taken on goroutines of their own: each ends once its sum is asked
-	for _, w := range written {
-		if w != nil {
-			w.hash.Sum()
-		}
 	}
 	closeErr := output.Close()
 	if err == nil {
@@ -1504,9 +1534,10 @@ func pfs0HeaderLen(needed int64) int64 {
 	return (needed + 0xF) &^ 0xF
 }
 
-func (w *pfs0Writer) startFile() {
-	position, _ := w.file.Seek(0, io.SeekCurrent)
+func (w *pfs0Writer) startFile() error {
+	position, err := w.file.Seek(0, io.SeekCurrent)
 	w.current = position
+	return err
 }
 
 func (w *pfs0Writer) endFile() error {
@@ -1542,6 +1573,10 @@ func (w *pfs0Writer) finish() error {
 }
 
 func copyRange(ctx context.Context, output io.Writer, input io.ReaderAt, offset int64, size int64, progress func(int64)) error {
+	// a negative size would copy nothing, and its hash be taken for the file's
+	if offset < 0 || size < 0 {
+		return errors.New("invalid file range")
+	}
 	buffer := make([]byte, nczChunkSize)
 	for done := int64(0); done < size; {
 		if err := ctx.Err(); err != nil {

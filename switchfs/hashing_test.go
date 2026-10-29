@@ -8,9 +8,11 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 // The hashes a compression takes of the original while reading it are the ones a pass of
@@ -260,4 +262,112 @@ func TestWritersCheckWhatTheyWrite(t *testing.T) {
 		}
 	}
 
+}
+
+// Every hash a writer takes on a goroutine of its own ends with it, written whole or not: the
+// hashes of the files of every pack, conversion and part not read by the check were left
+// waiting, with their buffers, for as long as the server ran.
+func TestWritersEndTheirHashes(t *testing.T) {
+	initNszKeys(t, "")
+	folder := t.TempDir()
+	base := filepath.Join(folder, "base.nsp")
+	update := filepath.Join(folder, "update.nsp")
+	os.WriteFile(base, makePFS0(pfs0Magic, []string{"a.nca", "common.cert"}, [][]byte{[]byte("base-content"), []byte("cert")}), 0o644)
+	os.WriteFile(update, makePFS0(pfs0Magic, []string{"b.nca", "common.cert"}, [][]byte{[]byte("update-content!"), []byte("cert")}), 0o644)
+	xci := writeTestXci(t, t.TempDir())
+	card := writeCardXci(t, t.TempDir())
+	dlc := writeTitleNsp(t, t.TempDir(), 0x0100000000011001, 0, ContentMetaType_AddOnContent, 3)
+	_, _, super := splitFixture(t, ".nsp")
+	plan, err := PlanSplit(super)
+	if err != nil {
+		t.Fatal(err)
+	}
+	canceled, cancel := context.WithCancel(context.Background())
+	cancel()
+	target := func(name string) string { return filepath.Join(t.TempDir(), name) }
+
+	runtime.GC()
+	before := runtime.NumGoroutine()
+	for i := 0; i < 3; i++ {
+		if _, _, err := MergeAndCheck(context.Background(), []string{base, update}, target("pack.nsp"), true, nil); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := MergePackages(context.Background(), []string{base, update}, target("pack.nsp"), true, nil); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := MergePackages(canceled, []string{base, update}, target("pack.nsp"), true, nil); err == nil {
+			t.Fatal("a canceled pack")
+		}
+		if err := ConvertXciToNsp(context.Background(), xci, target("card.nsp"), nil); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := ConvertAndCheck(canceled, xci, target("card.nsp"), nil); err == nil {
+			t.Fatal("a canceled conversion")
+		}
+		if err := WriteSplitPart(context.Background(), super, plan.Parts[0], target("part.nsp"), nil); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := WriteSplitPartAndCheck(canceled, super, plan.Parts[0], target("part.nsp"), nil); err == nil {
+			t.Fatal("a canceled part")
+		}
+		if _, _, err := PackIntoCard(context.Background(), card, []string{dlc}, target("complete.xci"), nil); err != nil {
+			t.Fatal(err)
+		}
+		if _, _, err := PackIntoCard(canceled, card, []string{dlc}, target("complete.xci"), nil); err == nil {
+			t.Fatal("a canceled pack into a card")
+		}
+	}
+	// what ends on its own a little later is not left
+	after := runtime.NumGoroutine()
+	for wait := 0; wait < 200 && after > before; wait++ {
+		time.Sleep(10 * time.Millisecond)
+		after = runtime.NumGoroutine()
+	}
+	if after > before {
+		t.Fatalf("%d goroutines left by the writers", after-before)
+	}
+}
+
+// An NCA without a content ID in its name has nothing its hash can be checked against: it was
+// taken as checked, and the original of a file made from it could go. The check is partial.
+func TestNcaWithoutContentIdIsAPartialCheck(t *testing.T) {
+	initNszKeys(t, "")
+	ctx := context.Background()
+	source := filepath.Join(t.TempDir(), "Game [0100000000010000][v0].nsp")
+	os.WriteFile(source, makePFS0(pfs0Magic, []string{"game.nca"}, [][]byte{makeProgramNca(t, gameData(0x40000), 3, "")}), 0o644)
+	other, _ := writeTestNsp(t, t.TempDir())
+	partial := func(name string, check FileCheck, err error) {
+		t.Helper()
+		if err != nil || !check.Partial {
+			t.Fatalf("%s: %+v %v", name, check, err)
+		}
+	}
+
+	check, err := VerifyFile(ctx, source, nil)
+	partial("the file", check, err)
+	_, check, err = HashAndCheck(ctx, source, nil)
+	partial("its hashes", check, err)
+	nsz := filepath.Join(t.TempDir(), "game.nsz")
+	result, err := CompressGame(ctx, source, nsz, CompressOptions{})
+	if err != nil || result.Compressed != 1 {
+		t.Fatalf("compressed: %+v %v", result, err)
+	}
+	check, err = CheckHashes(ctx, source, result.Hashes)
+	partial("the hashes of its compression", check, err)
+	check, err = VerifyFile(ctx, nsz, nil)
+	partial("its NSZ", check, err)
+	check, err = DecompressAndCheck(ctx, nsz, filepath.Join(t.TempDir(), "back.nsp"), nil)
+	partial("its NSZ decompressed", check, err)
+	_, check, err = MergeAndCheck(ctx, []string{source, other}, filepath.Join(t.TempDir(), "pack.nsp"), true, nil)
+	partial("a pack of it", check, err)
+	otherNsz := filepath.Join(t.TempDir(), "other.nsz")
+	if _, err := CompressGame(ctx, other, otherNsz, CompressOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	_, check, err = MergeAndCheck(ctx, []string{nsz, otherNsz}, filepath.Join(t.TempDir(), "pack.nsz"), true, nil)
+	partial("a pack of its NSZ", check, err)
+	// with a content ID, the same file is checked whole
+	if check, err := VerifyFile(ctx, other, nil); err != nil || check.Partial {
+		t.Fatalf("a file of named NCA files: %+v %v", check, err)
+	}
 }

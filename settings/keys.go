@@ -36,7 +36,11 @@ func (k *switchKeys) TitleKey(rightsId string) (string, bool) {
 	return key, ok
 }
 
+// GetKey returns a key of prod.keys, or "" if it is not there or no keys are loaded.
 func (k *switchKeys) GetKey(keyName string) string {
+	if k == nil {
+		return ""
+	}
 	return k.keys[keyName]
 }
 

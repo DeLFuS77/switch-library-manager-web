@@ -335,12 +335,15 @@ func writeSplitPart(ctx context.Context, source string, part SplitPart, target s
 	}
 	names := part.Files()
 	written := make([]*writtenFile, len(part.files))
+	defer endHashes(written)
 	err = writer.begin()
 	for i, file := range part.files {
 		if err != nil {
 			break
 		}
-		writer.startFile()
+		if err = writer.startFile(); err != nil {
+			break
+		}
 		written[i] = newWrittenFile(names[i])
 		err = copyRange(ctx, io.MultiWriter(output, written[i]), reader, file.offset, file.size, report)
 		if err == nil {

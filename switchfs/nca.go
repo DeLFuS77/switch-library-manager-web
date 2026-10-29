@@ -77,12 +77,21 @@ func openMetaNcaDataSection(reader io.ReaderAt, ncaOffset int64) (*fsHeader, []b
 	if entry.Size == 0 || entry.Size > maxReadSectionSize {
 		return nil, nil, errors.New("empty or invalid section")
 	}
-	if entry.StartOffset > uint64(^uint64(0)>>1) || ncaOffset > int64(^uint64(0)>>1)-int64(entry.StartOffset) {
+	if entry.StartOffset > uint64(^uint64(0)>>1) || ncaOffset > int64(^uint64(0)>>1)-int64(entry.StartOffset)-int64(entry.Size) {
 		return nil, nil, errors.New("NCA section offset overflows")
 	}
 
-	encodedEntryContent := make([]byte, entry.Size)
 	entryOffset := ncaOffset + int64(entry.StartOffset)
+	// a damaged size must not take gigabytes before the read fails: the section must be in
+	// the file
+	if size, ok := readerSize(reader); ok {
+		if entryOffset > size || int64(entry.Size) > size-entryOffset {
+			return nil, nil, fmt.Errorf("the NCA section ends past the end of the file: %w", io.ErrUnexpectedEOF)
+		}
+	} else if err := readAtFull(reader, make([]byte, 1), entryOffset+int64(entry.Size)-1); err != nil {
+		return nil, nil, err
+	}
+	encodedEntryContent := make([]byte, entry.Size)
 	_, err = reader.ReadAt(encodedEntryContent, entryOffset)
 	if err != nil {
 		return nil, nil, err
@@ -105,6 +114,9 @@ func openMetaNcaDataSection(reader io.ReaderAt, ncaOffset int64) (*fsHeader, []b
 	hashInfo, err := fsHeader.getHashInfo()
 	if err != nil {
 		return nil, nil, err
+	}
+	if hashInfo.pfs0HeaderOffset > uint64(len(decoded)) {
+		return nil, nil, errors.New("the data of the NCA section starts past its end")
 	}
 
 	return fsHeader, decoded[hashInfo.pfs0HeaderOffset:], nil
@@ -154,8 +166,10 @@ func decryptAesCtr(ncaHeader *ncaHeader, fsHeader *fsHeader, offset uint64, size
 		return nil, errors.New("invalid key area key")
 	}
 
+	// the upper half of the counter is the secure value and the generation, as the
+	// compression and the check of the hash trees read it
 	counter := make([]byte, 0x10)
-	binary.BigEndian.PutUint64(counter, uint64(fsHeader.generation))
+	binary.BigEndian.PutUint64(counter, uint64(fsHeader.secureValue)<<32|uint64(fsHeader.generation))
 	binary.BigEndian.PutUint64(counter[8:], offset/0x10)
 
 	c, err := aes.NewCipher(decKey)
@@ -166,10 +180,9 @@ func decryptAesCtr(ncaHeader *ncaHeader, fsHeader *fsHeader, offset uint64, size
 		return nil, errors.New("encoded NCA section is truncated")
 	}
 
-	decContent := make([]byte, size)
-
+	// decrypted where it is: a section can be big, and a copy would take its size again
 	s := cipher.NewCTR(c, counter)
-	s.XORKeyStream(decContent, encoded[0:size])
+	s.XORKeyStream(encoded[:size], encoded[:size])
 
-	return decContent, nil
+	return encoded[:size], nil
 }
