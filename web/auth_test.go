@@ -2,6 +2,8 @@ package web
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
@@ -296,6 +298,66 @@ func TestSessionsEndWhenThePasswordChanges(t *testing.T) {
 	wrong := first.do("POST", "/account/password", url.Values{"current": {"nope"}, "password": {"hotel-secret-88"}})
 	if !strings.Contains(wrong.Header().Get("Location"), "error=") {
 		t.Fatalf("the current password is checked: %q", wrong.Header().Get("Location"))
+	}
+}
+
+// A session nobody used for two weeks ends before its 30 days, also after a restart; every use
+// moves it on, and a session made before this version starts with its next use.
+func TestIdleSessionsEnd(t *testing.T) {
+	web := usersWeb(t)
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	handler := web.auth.middleware(web.router)
+	c := &client{t: t, handler: handler}
+	c.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
+	if code := c.do("GET", "/index.html", nil).Code; code != http.StatusOK {
+		t.Fatalf("signed in: %d", code)
+	}
+	signature := strings.Split(c.cookies[0].Value, ".")[2]
+	hash := sha256.Sum256([]byte(signature))
+	key := hex.EncodeToString(hash[:16])
+	lastUse := func(ago time.Duration) {
+		web.auth.seen.mutex.Lock()
+		entry := web.auth.seen.seen[key]
+		entry.Last = time.Now().Add(-ago).Unix()
+		web.auth.seen.seen[key] = entry
+		web.auth.seen.mutex.Unlock()
+	}
+
+	lastUse(sessionIdle - time.Hour)
+	if code := c.do("GET", "/index.html", nil).Code; code != http.StatusOK {
+		t.Fatalf("used within two weeks: %d", code)
+	}
+	if last := web.auth.seen.seen[key].Last; time.Since(time.Unix(last, 0)) > time.Minute {
+		t.Fatal("a use moves the session on")
+	}
+	lastUse(sessionIdle + time.Hour)
+	if code := c.do("GET", "/index.html", nil).Code; code != http.StatusUnauthorized {
+		t.Fatalf("not used for two weeks: %d", code)
+	}
+	// written down, so the session stays ended after a restart, and the file holds no signature
+	web.auth.seen.use("another session", time.Now().Add(time.Hour).Unix(), time.Now())
+	restarted, err := newAuth(web.dataFolder)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if restarted.fromSession(httptest.NewRequest("GET", "/", nil)) != nil {
+		t.Fatal("no cookie, no session")
+	}
+	request := httptest.NewRequest("GET", "/index.html", nil)
+	request.AddCookie(c.cookies[0])
+	if restarted.fromSession(request) != nil {
+		t.Fatal("an ended session after a restart")
+	}
+	if data, _ := os.ReadFile(filepath.Join(web.dataFolder, SEEN_SESSIONS_FILENAME)); strings.Contains(string(data), signature) {
+		t.Fatal("the signatures are not written down")
+	}
+
+	// a session from before: not seen yet, it goes on
+	web.auth.seen.mutex.Lock()
+	delete(web.auth.seen.seen, key)
+	web.auth.seen.mutex.Unlock()
+	if code := c.do("GET", "/index.html", nil).Code; code != http.StatusOK {
+		t.Fatalf("a session made before: %d", code)
 	}
 }
 

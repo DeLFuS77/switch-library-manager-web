@@ -100,6 +100,8 @@ type Auth struct {
 	basicCache  sync.Map // sha256 of name and password -> expiry
 	// sessions ended with Log out before they expire
 	revoked *revokedSessions
+	// when each session was last used, to end the ones nobody uses
+	seen *seenSessions
 	// login disabled: requests from outside the local network are refused, unless allowed
 	remoteWithoutLogin bool
 	// why the password of SLM_AUTH_PASSWORD is weak, or nil
@@ -147,7 +149,7 @@ func newAuth(dataFolder string) (*Auth, error) {
 		return nil, err
 	}
 	return &Auth{users: users, envUser: envUser, envPassword: envPassword, secret: secret, limiter: newLoginLimiter(),
-		revoked: loadRevokedSessions(dataFolder), remoteWithoutLogin: os.Getenv(REMOTE_WITHOUT_LOGIN_ENV) == "true",
+		revoked: loadRevokedSessions(dataFolder), seen: loadSeenSessions(dataFolder), remoteWithoutLogin: os.Getenv(REMOTE_WITHOUT_LOGIN_ENV) == "true",
 		envPasswordWeak: weakEnvPassword(envUser, envPassword)}, nil
 }
 
@@ -283,6 +285,10 @@ func (a *Auth) fromSession(r *http.Request) *Principal {
 		return nil
 	}
 	if a.revoked.has(parts[2]) {
+		return nil
+	}
+	// a session nobody used for two weeks has ended, before the end of its 30 days
+	if !a.seen.use(parts[2], expiry, time.Now()) {
 		return nil
 	}
 	return principal
