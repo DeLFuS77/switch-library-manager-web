@@ -3,8 +3,8 @@
 
 // the tasks of the server, newest first
 function fetchTasks() {
-	return fetch('/api/tasks', { cache: 'no-store', headers: { Accept: 'application/json' } })
-		.then(response => (response.ok ? response.json() : []));
+	return apiFetch('/api/tasks', { cache: 'no-store', headers: { Accept: 'application/json' } })
+		.then(response => (response.ok ? readJSON(response) : []));
 }
 
 // runAsTask starts work that runs as tasks and stays on the page: a note says it is running,

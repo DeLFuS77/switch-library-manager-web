@@ -112,16 +112,23 @@ function initSpacePreparing() {
 	if (!document.querySelector('[data-space-preparing]')) {
 		return;
 	}
-	const ask = () => fetch('/space/ready', { cache: 'no-store', headers: { Accept: 'application/json' } })
-		.then(response => (response.ok ? response.json() : { ready: false }))
+	// a server that does not answer is asked less and less often, up to every half a minute
+	let errors = 0;
+	const again = () => setTimeout(ask, errors ? Math.min(30000, 1500 * 2 ** errors) : 1000);
+	const ask = () => apiFetch('/space/ready', { cache: 'no-store', headers: { Accept: 'application/json' } })
+		.then(response => (response.ok ? response.json() : Promise.reject(response)))
 		.then(state => {
+			errors = 0;
 			if (state.ready) {
 				window.location.reload();
 			} else {
-				setTimeout(ask, 1000);
+				again();
 			}
 		})
-		.catch(() => setTimeout(ask, 3000));
+		.catch(() => {
+			errors++;
+			again();
+		});
 	setTimeout(ask, 800);
 }
 
