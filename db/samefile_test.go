@@ -86,7 +86,7 @@ func TestLinkToAGameIsNoCopy(t *testing.T) {
 		t.Skipf("no link to a file here: %v", err)
 	}
 	files := []ExtendedFileInfo{}
-	if err := scanFolder(lib, true, &files, nil, nil, nil, 0); err != nil {
+	if err := scanFolder(lib, true, &files, nil, nil, nil, nil, 0); err != nil {
 		t.Fatal(err)
 	}
 	for _, file := range files {

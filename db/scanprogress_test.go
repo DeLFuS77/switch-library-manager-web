@@ -25,7 +25,7 @@ func TestWalkingTheFoldersShowsProgress(t *testing.T) {
 	}
 	recorder := &stepRecorder{}
 	files := []ExtendedFileInfo{}
-	if err := scanFolder(folder, true, &files, nil, nil, recorder, 3); err != nil {
+	if err := scanFolder(folder, true, &files, nil, nil, nil, recorder, 3); err != nil {
 		t.Fatal(err)
 	}
 	if len(recorder.steps) != 4 || recorder.steps[0] != [2]int{1, 3} {
@@ -37,7 +37,7 @@ func TestWalkingTheFoldersShowsProgress(t *testing.T) {
 		}
 	}
 	unknown := &stepRecorder{}
-	scanFolder(folder, true, &[]ExtendedFileInfo{}, nil, nil, unknown, 0)
+	scanFolder(folder, true, &[]ExtendedFileInfo{}, nil, nil, nil, unknown, 0)
 	if unknown.steps[0] != [2]int{-1, -1} {
 		t.Fatalf("without a last scan the progress is unknown: %v", unknown.steps)
 	}
@@ -92,7 +92,7 @@ func TestScanFindsLeftovers(t *testing.T) {
 		os.WriteFile(filepath.Join(folder, name), []byte("x"), 0644)
 	}
 	leftovers := []LeftoverFile{}
-	if err := scanFolder(folder, true, &[]ExtendedFileInfo{}, &leftovers, nil, nil, 0); err != nil {
+	if err := scanFolder(folder, true, &[]ExtendedFileInfo{}, &leftovers, nil, nil, nil, 0); err != nil {
 		t.Fatal(err)
 	}
 	if len(leftovers) != 2 {
@@ -114,7 +114,7 @@ func TestScanFindsEmptyFolders(t *testing.T) {
 	os.WriteFile(filepath.Join(folder, "Kept", ".keep"), []byte("x"), 0o644)
 
 	empty := []string{}
-	if err := scanFolder(folder, true, &[]ExtendedFileInfo{}, nil, &empty, nil, 0); err != nil {
+	if err := scanFolder(folder, true, &[]ExtendedFileInfo{}, nil, &empty, nil, nil, 0); err != nil {
 		t.Fatal(err)
 	}
 	sort.Strings(empty)
@@ -133,7 +133,7 @@ func TestScanFindsGamesWhoseNameStartsWithADot(t *testing.T) {
 	}
 	files := []ExtendedFileInfo{}
 	leftovers := []LeftoverFile{}
-	if err := scanFolder(folder, true, &files, &leftovers, nil, nil, 0); err != nil {
+	if err := scanFolder(folder, true, &files, &leftovers, nil, nil, nil, 0); err != nil {
 		t.Fatal(err)
 	}
 	names := []string{}
@@ -158,7 +158,7 @@ func TestScanSkipsTheQuarantine(t *testing.T) {
 	}
 	files := []ExtendedFileInfo{}
 	empty := []string{}
-	if err := scanFolder(folder, true, &files, nil, &empty, nil, 0); err != nil {
+	if err := scanFolder(folder, true, &files, nil, &empty, nil, nil, 0); err != nil {
 		t.Fatal(err)
 	}
 	if len(files) != 0 {
