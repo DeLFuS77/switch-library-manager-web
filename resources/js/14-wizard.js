@@ -492,7 +492,7 @@ function setupWizard(element) {
 		.then(result => {
 			browsing = result.path || '';
 			browserPath.textContent = result.error || browsing;
-			browserPath.classList.toggle('text-danger', Boolean(result.error));
+			browserPath.classList.toggle('text-danger-emphasis', Boolean(result.error));
 			browserUp.disabled = !result.parent;
 			browserUp.dataset.path = result.parent || '';
 			browserPlaces.replaceChildren(...(result.places || []).map(place => {

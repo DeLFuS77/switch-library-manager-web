@@ -13,8 +13,9 @@
 		border-radius: 50%;
 		font-size: 2rem;
 		margin-bottom: 1rem;
-		background: var(--slm-accent-soft);
-		color: $primary;
+		// nothing here yet is not an error: grey, not the red of errors
+		background: var(--bs-secondary-bg);
+		color: var(--bs-secondary-color);
 
 		&.is-success {
 			background: rgba($success, .14);

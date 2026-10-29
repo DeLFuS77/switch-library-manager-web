@@ -12,6 +12,8 @@ function storedTheme() {
 function applyTheme(theme) {
 	const dark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 	document.documentElement.setAttribute('data-bs-theme', dark ? 'dark' : 'light');
+	// the bar of the browser on the phone in the colour of the page (see theme.js)
+	document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0d1117' : '#f4f6fa');
 	document.querySelectorAll('[data-theme-value]').forEach(item => {
 		const active = item.dataset.themeValue === theme;
 		item.classList.toggle('active', active);

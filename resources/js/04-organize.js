@@ -228,7 +228,7 @@ function initOrganize() {
 			showSyncAlert();
 			watchSync();
 		}
-		result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		result.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
 	};
 
 	const fail = error => {
@@ -272,7 +272,7 @@ function initOrganize() {
 		count.textContent = '';
 		progress.hidden = false;
 		result.classList.add('d-none');
-		progress.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		progress.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
 		polling = setInterval(follow, 700);
 	};
 	const stopProgress = () => {

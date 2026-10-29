@@ -120,7 +120,7 @@ function showSyncAlert() {
 	const header = document.createElement('div');
 	header.classList.add('d-flex', 'align-items-center');
 	const spinner = document.createElement('span');
-	spinner.classList.add('spinner-border', 'spinner-border-sm', 'text-primary', 'flex-shrink-0', 'me-2');
+	spinner.classList.add('spinner-border', 'spinner-border-sm', 'text-work', 'flex-shrink-0', 'me-2');
 	spinner.setAttribute('aria-hidden', 'true');
 	const text = document.createElement('div');
 	text.classList.add('text-truncate');
