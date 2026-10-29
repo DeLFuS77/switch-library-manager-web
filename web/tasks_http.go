@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
@@ -151,6 +152,12 @@ func (web *Web) fileCovers() map[string]string {
 				if _, ok := covers[file.FileName]; !ok || local.BaseExist && file == local.File.ExtendedInfo {
 					covers[file.FileName] = cover
 				}
+				// the file it was made from, or is turned into, by compressing or decompressing it
+				if other := otherPacking(file.FileName); other != "" {
+					if _, ok := covers[other]; !ok {
+						covers[other] = cover
+					}
+				}
 			}
 			if local.BaseExist {
 				add(local.File.ExtendedInfo)
@@ -162,8 +169,30 @@ func (web *Web) fileCovers() map[string]string {
 				add(dlc.ExtendedInfo)
 			}
 		}
+		// a scan shows the library it has read so far, and a compressed file leaves it: the
+		// covers found before are kept, so the view by covers does not lose them meanwhile
+		for name, cover := range covers {
+			web.knownCovers.Store(name, cover)
+		}
+		web.knownCovers.Range(func(name, cover any) bool {
+			if _, ok := covers[name.(string)]; !ok {
+				covers[name.(string)] = cover.(string)
+			}
+			return true
+		})
 		return covers
 	}).(map[string]string)
+}
+
+// otherPacking is the name of the same file compressed, or decompressed: "Game.nsp" and
+// "Game.nsz", "Game.xci" and "Game.xcz"; empty for other files.
+func otherPacking(name string) string {
+	ext := filepath.Ext(name)
+	other, ok := map[string]string{".nsp": ".nsz", ".nsz": ".nsp", ".xci": ".xcz", ".xcz": ".xci"}[strings.ToLower(ext)]
+	if !ok {
+		return ""
+	}
+	return name[:len(name)-len(ext)] + other
 }
 
 // TaskGroup is a finished task, or several of the same kind that followed one another and

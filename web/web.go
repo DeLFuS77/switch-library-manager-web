@@ -134,6 +134,9 @@ type Web struct {
 	uploads uploadStore
 	// one check of the notifications at a time: two would send the same items
 	notifying sync.Mutex
+	// every cover the Tasks page found for a file, by its name: kept while a scan rebuilds the
+	// library, and for a file compressed since, see fileCovers
+	knownCovers sync.Map
 	// results of switchfs.HoldsSameContents, see holdsSameContents
 	sameContents      sync.Map
 	sameContentsCount atomic.Int64

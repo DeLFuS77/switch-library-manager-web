@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- In the view by covers of Tasks, the covers went away for a while during a library scan, leaving only the names of the files, and a file compressed or decompressed lost its cover once done: covers stay now
+
 ## 1.66.0
 
 ### New
