@@ -221,7 +221,7 @@ func (web *Web) organizeFiles(action string, paths []string, dryRun bool) ([]pro
 		return process.OrganizeNewFiles(settingsObj.Folder, roots, paths, localDB, switchDB, options, dryRun, progress)
 	case ORGANIZE_ACTION_CLEANUP:
 		// of two copies the compressed one stays, when it was checked and is sound
-		return process.DeleteOldUpdatesTo(web.discard, settingsObj.Folder, web.preferCompressed(localDB), options, dryRun, progress, web.cleanupRefusal), nil
+		return process.CleanupLibrary(web.discard, settingsObj.Folder, scanFolders(settingsObj), web.preferCompressed(localDB), options, dryRun, progress, web.cleanupRefusal), nil
 	default:
 		return nil, errors.New("unknown action")
 	}

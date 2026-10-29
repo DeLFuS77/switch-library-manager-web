@@ -360,12 +360,14 @@ func (f *fileOperations) skip(file string, reason string) {
 // deleteEmptyFolders deletes the folders under root left with nothing in them but files of the
 // system (db.SystemFile), which go with them: the ones this run took files from, the ones the
 // last scan found so (known), and the parents they leave so. A preview lists the ones empty
-// already, and tells that the ones it empties go too.
-func (f *fileOperations) deleteEmptyFolders(root string, known []string) {
+// already, and tells that the ones it empties go too. The library folders (roots) are never
+// deleted.
+func (f *fileOperations) deleteEmptyFolders(root string, roots []string, known []string) {
 	// only the folders this run took files from can have become empty, and their parents, with
 	// the ones the walk of the scan found empty: they are looked at one by one, instead of
 	// walking the whole library again, which took minutes on a NAS
 	root = filepath.Clean(root)
+	libraryFolder := libraryFolders(roots)
 	if f.dryRun {
 		// a folder the run moves files into is not left empty
 		filled := map[string]bool{}
@@ -376,7 +378,7 @@ func (f *fileOperations) deleteEmptyFolders(root string, known []string) {
 		}
 		for _, folder := range known {
 			if rel, err := filepath.Rel(root, folder); err == nil && rel != "." && !strings.HasPrefix(rel, "..") && !filled[filepath.Clean(folder)] {
-				if _, empty := systemFilesOnly(folder); empty {
+				if _, empty := systemFilesOnly(folder); empty && !libraryFolder(folder) {
 					f.record(Operation{Kind: OP_DELETE, From: folder, Reason: "empty folder"}, nil)
 				}
 			}
@@ -414,7 +416,7 @@ func (f *fileOperations) deleteEmptyFolders(root string, known []string) {
 
 	for _, folder := range folders {
 		system, empty := systemFilesOnly(folder)
-		if !empty {
+		if !empty || libraryFolder(folder) {
 			continue
 		}
 		for _, file := range system {
@@ -423,6 +425,38 @@ func (f *fileOperations) deleteEmptyFolders(root string, known []string) {
 		// os.Remove refuses a folder that got a file in the meantime
 		err := os.Remove(folder)
 		f.record(Operation{Kind: OP_DELETE, From: folder, Reason: "empty folder"}, err)
+	}
+}
+
+// libraryFolders tells the library folders (roots), by their paths or as they are on the disk:
+// one inside another (settings of an older version, or edited by hand) deleted once empty
+// failed every scan after, as a folder that cannot be reached.
+func libraryFolders(roots []string) func(folder string) bool {
+	keys := map[string]bool{}
+	infos := []os.FileInfo{}
+	for _, root := range roots {
+		if root == "" {
+			continue
+		}
+		keys[pathKey(root)] = true
+		if info, err := os.Stat(root); err == nil {
+			infos = append(infos, info)
+		}
+	}
+	return func(folder string) bool {
+		if keys[pathKey(folder)] {
+			return true
+		}
+		info, err := os.Stat(folder)
+		if err != nil {
+			return false
+		}
+		for _, root := range infos {
+			if os.SameFile(info, root) {
+				return true
+			}
+		}
+		return false
 	}
 }
 
@@ -542,6 +576,13 @@ func DeleteOldUpdates(baseFolder string, localDB *db.LocalSwitchFilesDB, options
 // deletes them).
 func DeleteOldUpdatesTo(discard Discard, baseFolder string, localDB *db.LocalSwitchFilesDB, options settings.OrganizeOptions,
 	dryRun bool, updateProgress db.ProgressUpdater, keep ...func(db.ExtendedFileInfo, db.SkippedFile) string) []Operation {
+	return CleanupLibrary(discard, baseFolder, []string{baseFolder}, localDB, options, dryRun, updateProgress, keep...)
+}
+
+// CleanupLibrary is DeleteOldUpdatesTo for a library of several folders (roots, baseFolder
+// among them), none of which is deleted when it is left empty.
+func CleanupLibrary(discard Discard, baseFolder string, roots []string, localDB *db.LocalSwitchFilesDB, options settings.OrganizeOptions,
+	dryRun bool, updateProgress db.ProgressUpdater, keep ...func(db.ExtendedFileInfo, db.SkippedFile) string) []Operation {
 
 	ops := newFileOperations(dryRun)
 	if discard != nil {
@@ -586,7 +627,7 @@ func DeleteOldUpdatesTo(discard Discard, baseFolder string, localDB *db.LocalSwi
 	}
 
 	if options.DeleteEmptyFolders && baseFolder != "" {
-		ops.deleteEmptyFolders(baseFolder, localDB.EmptyFolders)
+		ops.deleteEmptyFolders(baseFolder, roots, localDB.EmptyFolders)
 	}
 
 	return ops.operations
@@ -944,7 +985,7 @@ func organize(baseFolder string,
 		if only != nil {
 			known = nil
 		}
-		ops.deleteEmptyFolders(baseFolder, known)
+		ops.deleteEmptyFolders(baseFolder, roots, known)
 	}
 
 	return ops.operations, nil

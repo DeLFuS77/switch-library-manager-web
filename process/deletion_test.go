@@ -138,3 +138,42 @@ func otherPath(t *testing.T, folder string) string {
 	}
 	return link
 }
+
+// A library folder inside another one (settings of an older version, or edited by hand) is
+// never deleted when the cleanup leaves it empty: every scan after failed, as with a folder that
+// cannot be reached. The other folders it leaves empty go.
+func TestCleanupKeepsALibraryFolderLeftEmpty(t *testing.T) {
+	root := t.TempDir()
+	nested, other := filepath.Join(root, "New"), filepath.Join(root, "Other")
+	for _, folder := range []string{nested, other} {
+		if err := os.Mkdir(folder, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	update := writeFile(t, root, "Game [v131072].nsp", 10)
+	oldInNested := writeFile(t, nested, "Game [v65536].nsp", 5)
+	oldInOther := writeFile(t, other, "Game [v0].nsp", 4)
+	library := &db.LocalSwitchFilesDB{
+		TitlesMap: map[string]*db.SwitchGameFiles{
+			"0100000000010": {Updates: map[int]db.SwitchFileInfo{131072: info(update, "0100000000010800", 131072)}, LatestUpdate: 131072, Dlc: map[string]db.SwitchFileInfo{}},
+		},
+		Skipped: map[db.ExtendedFileInfo]db.SkippedFile{
+			oldInNested: {ReasonCode: db.REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally"},
+			oldInOther:  {ReasonCode: db.REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally"},
+		},
+	}
+	options := settings.OrganizeOptions{DeleteEmptyFolders: true}
+	operations := CleanupLibrary(nil, root, []string{root, nested}, library, options, false, nil)
+	if len(failedOps(operations)) != 0 {
+		t.Fatalf("no errors: %+v", failedOps(operations))
+	}
+	if _, err := os.Stat(filepath.Join(nested, oldInNested.FileName)); !os.IsNotExist(err) {
+		t.Fatalf("the old update goes: %+v", operations)
+	}
+	if _, err := os.Stat(nested); err != nil {
+		t.Fatalf("the library folder stays: %+v", operations)
+	}
+	if _, err := os.Stat(other); !os.IsNotExist(err) {
+		t.Fatalf("the folder left empty goes: %+v", operations)
+	}
+}
