@@ -349,7 +349,7 @@ func planNcz(input io.ReaderAt, offset int64, size uint64, titleKeys map[string]
 		return nil, "it holds no game data (" + name + ")", nil
 	}
 
-	sectionKey, err := ncaSectionKey(header, titleKeys)
+	sectionKey, err := ncaSectionKey(keys, header, titleKeys)
 	if err != nil {
 		return nil, "", err
 	}
@@ -521,10 +521,19 @@ func bktrSections(input io.ReaderAt, ncaOffset int64, section nczSection, fsh *f
 	return sections, nil
 }
 
+// keySet is the keys an operation reads, taken once from settings.SwitchKeys: they are loaded
+// again before every synchronization, and may change or be gone meanwhile.
+type keySet interface {
+	GetKey(name string) string
+	TitleKey(rightsId string) (string, bool)
+}
+
 // ncaSectionKey returns the AES key of the sections of an NCA: the title key of its
 // ticket (or title.keys) for titles with a rights ID, else the key in the key area.
-func ncaSectionKey(header *ncaHeader, titleKeys map[string][]byte) ([]byte, error) {
-	keys, _ := settings.SwitchKeys()
+func ncaSectionKey(keys keySet, header *ncaHeader, titleKeys map[string][]byte) ([]byte, error) {
+	if keys == nil {
+		return nil, &MissingKeyError{KeyName: "header_key"}
+	}
 	revision := fmt.Sprintf("%02x", header.getKeyRevision())
 
 	if header.HasRightsId() {
@@ -1362,7 +1371,8 @@ func checkNczIntegrity(ctx context.Context, input io.ReaderAt, offset int64, siz
 	if err := readAtFull(input, encryptedHeader, offset); err != nil {
 		return IntegrityResult{}, err
 	}
-	check, _, err := newNcaIntegrity(encryptedHeader)
+	keys, _ := settings.SwitchKeys()
+	check, _, err := newNcaIntegrity(keys, encryptedHeader)
 	if err != nil {
 		return IntegrityResult{}, err
 	}

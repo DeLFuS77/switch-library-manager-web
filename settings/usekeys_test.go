@@ -29,3 +29,14 @@ func TestUseSwitchKeys(t *testing.T) {
 		t.Fatal("a missing file is an error")
 	}
 }
+
+// The keys are nil while none could be read: asked for a key, they have none.
+func TestNoKeysHaveNoKey(t *testing.T) {
+	var keys *switchKeys
+	if keys.GetKey("header_key") != "" {
+		t.Fatal("a key without keys")
+	}
+	if _, ok := keys.TitleKey("0100abcd000000000000000000000000"); ok {
+		t.Fatal("a title key without keys")
+	}
+}

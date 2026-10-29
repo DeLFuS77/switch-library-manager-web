@@ -275,6 +275,34 @@ func TestMissingTitleKeyIsAnError(t *testing.T) {
 	}
 }
 
+// The keys are cleared when a synchronization reads them again and cannot read prod.keys,
+// while a compression or a check goes on: an NCA read meanwhile has no key to decrypt it,
+// which is an error and never stopped the server.
+func TestNoKeysAreAnErrorForTheSections(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("USERPROFILE", home)
+	t.Setenv("HOME", home)
+	key, _ := hex.DecodeString(testTitleKey)
+	for _, rightsId := range []string{"", testRightsId} {
+		nca := makeProgramNca(t, gameData(0x40000), 3, rightsId)
+		header, err := DecryptNcaHeader(testHeaderKey, nca[:0xC00])
+		if err != nil {
+			t.Fatal(err)
+		}
+		settings.InitSwitchKeys(t.TempDir())
+		keys, _ := settings.SwitchKeys()
+		if _, err := ncaSectionKey(keys, header, map[string][]byte{testRightsId: key}); err == nil {
+			t.Fatalf("rights ID %q: a key without prod.keys", rightsId)
+		}
+		if _, err := ncaSectionKey(nil, header, nil); err == nil {
+			t.Fatalf("rights ID %q: a key without keys", rightsId)
+		}
+		if result, err := checkNcaIntegrity(context.Background(), bytes.NewReader(nca), 0, int64(len(nca)), nil); err == nil || result.Checked > 0 {
+			t.Fatalf("rights ID %q: checked without keys (%+v)", rightsId, result)
+		}
+	}
+}
+
 // makeBktrNca builds an update patch NCA: an AesCtrEx section whose three subsections
 // use different counters, followed by the subsection table.
 func makeBktrNca(t *testing.T, plain []byte) []byte {
