@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"runtime"
 	"sync"
@@ -187,6 +188,24 @@ type SkippedFile struct {
 	ReasonCode     int
 	ReasonText     string
 	AdditionalInfo string
+	// the file could not be read as it ends before its contents do (see CutShort): told by the
+	// error of the reader, never by the text of the reason, which has the path of the file
+	CutShort bool
+}
+
+// endsOfFile matches the text of an error of a reader that met the end of the file, at its end:
+// the readers of switchfs give it as text inside their own errors, not wrapped.
+var endsOfFile = regexp.MustCompile(`\bEOF[\])]*$`)
+
+// CutShort tells an error of a reader that met the end of the file while the headers still
+// asked for more: a file cut short (a copy or a download that stopped), not one that could not be
+// opened. reason is the text of such an error, or of a reason that has it at its end, kept by
+// an older version without the flag of SkippedFile.
+func CutShort(err error, reason string) bool {
+	if err != nil {
+		return errors.Is(err, io.ErrUnexpectedEOF) || errors.Is(err, io.EOF) || endsOfFile.MatchString(err.Error())
+	}
+	return endsOfFile.MatchString(reason)
 }
 
 type LocalSwitchFilesDB struct {
@@ -1027,7 +1046,7 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 			err = errors.New("no content metadata found")
 		}
 		if err != nil {
-			result.skip = &SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: readErrorText(kind, err)}
+			result.skip = &SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: readErrorText(kind, err), CutShort: CutShort(err, "")}
 			zap.S().Warnf("[file:%v] failed to read %v [reason: %v]", file.FileName, kind, err)
 		}
 		if metadata != nil {

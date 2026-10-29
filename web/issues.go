@@ -31,6 +31,8 @@ type Issue struct {
 	CanKeep     bool
 	// on the shown page only: the file can be deleted on its own (see fileDeletableIssueKinds)
 	CanDelete bool
+	// the scan could not read the file as it ends before its contents do (see db.CutShort)
+	CutShort bool
 }
 
 type IssuesPageData struct {
@@ -87,7 +89,7 @@ func (web *Web) HandleIssues() {
 		if kind != "" {
 			matching = []Issue{}
 			for _, issue := range all {
-				if issueKind(issue.Reason) == kind {
+				if issue.kind() == kind {
 					matching = append(matching, issue)
 				}
 			}
@@ -110,10 +112,10 @@ func (web *Web) HandleIssues() {
 			if info, err := os.Stat(shown[i].File); err == nil && !info.IsDir() {
 				shown[i].Size = info.Size()
 			}
-			shown[i].Cause = issueCause(shown[i].Reason, lang)
+			shown[i].Cause = issueCause(shown[i].kind(), shown[i].Reason, lang)
 			shown[i].GamesInFile = gamesInFiles[shown[i].File]
-			shown[i].CanKeep = issueKind(shown[i].Reason) == ISSUE_DUPLICATE
-			shown[i].CanDelete = fileDeletableIssueKinds[issueKind(shown[i].Reason)] && !shown[i].Kept && shown[i].Size >= 0
+			shown[i].CanKeep = shown[i].kind() == ISSUE_DUPLICATE
+			shown[i].CanDelete = fileDeletableIssueKinds[shown[i].kind()] && !shown[i].Kept && shown[i].Size >= 0
 		}
 		return IssuesPageData{
 			GlobalPageData:   web.globalPageData("issues"),
@@ -165,7 +167,7 @@ func (web *Web) HandleIssues() {
 		// the path of the issue the library lists, never the one of the request
 		var found *Issue
 		for _, issue := range web.getIssues() {
-			if requested != "" && issue.File == requested && fileDeletableIssueKinds[issueKind(issue.Reason)] && !issue.Kept {
+			if requested != "" && issue.File == requested && fileDeletableIssueKinds[issue.kind()] && !issue.Kept {
 				found = &issue
 				break
 			}
@@ -174,7 +176,7 @@ func (web *Web) HandleIssues() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
 			return
 		}
-		kind := issueKind(found.Reason)
+		kind := found.kind()
 		files := issueFiles([]Issue{*found}, kind)
 		if len(files) == 0 {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
@@ -198,7 +200,7 @@ func (web *Web) HandleIssues() {
 		// the path of the issue the library lists, never the one of the request
 		path, other := "", ""
 		for _, issue := range web.getIssues() {
-			if requested != "" && issue.File == requested && issueKind(issue.Reason) == ISSUE_DUPLICATE {
+			if requested != "" && issue.File == requested && issue.kind() == ISSUE_DUPLICATE {
 				path, other = issue.File, keptBy(issue.Reason)
 			}
 		}
@@ -387,7 +389,7 @@ func (web *Web) buildIssues() []Issue {
 		if v.ReasonCode == db.REASON_OLD_UPDATE && inUse[path] {
 			continue
 		}
-		issues = append(issues, Issue{File: path, Reason: v.ReasonText, Kept: inUse[path]})
+		issues = append(issues, Issue{File: path, Reason: v.ReasonText, Kept: inUse[path], CutShort: v.CutShort})
 	}
 
 	// only the files of the library folders: a folder taken out of the settings is no longer
