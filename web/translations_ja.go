@@ -334,6 +334,7 @@ func init() {
 		"Another task is working on the files of the library (organizing, a cleanup, a compression, combining games or a check): try again when it has finished.": "別のタスクがライブラリのファイルを処理中です（整理、クリーンアップ、圧縮、結合、確認）。終了してからもう一度お試しください。",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.":                                                        "ライブラリが残すゲーム本体、最新アップデート、または DLC も含んでいるため、削除しません。",
 		"The newer file is damaged: keep this one.":                                                                                                               "新しいファイルが破損しています。こちらを残してください。",
+		"What this file holds could not be read: keep this one.":                                                                                                  "このファイルの内容を読み取れませんでした。こちらを残してください。",
 		"The compressed file does not hold everything this file holds: keep this one.":                                                                            "圧縮ファイルにはこのファイルの内容がすべて含まれていません。こちらを残してください。",
 		"A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.":                                    "別の地域のゲームのコピーが確認済みで正常な場合にのみ削除できます。先にファイルを確認してください。",
 		"And the separate files?": "個別のファイルは？",

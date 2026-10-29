@@ -334,6 +334,7 @@ func init() {
 		"Another task is working on the files of the library (organizing, a cleanup, a compression, combining games or a check): try again when it has finished.": "另一个任务正在处理游戏库的文件（整理、清理、压缩、合并或校验）：请在完成后重试。",
 		"It also holds the game, its latest update or a DLC that the library keeps, so it is not deleted.":                                                        "它还包含游戏库保留的游戏本体、最新更新或 DLC，因此不会删除。",
 		"The newer file is damaged: keep this one.":                                                                                                               "较新的文件已损坏：请保留这个。",
+		"What this file holds could not be read: keep this one.":                                                                                                  "无法读取此文件的内容：请保留这个。",
 		"The compressed file does not hold everything this file holds: keep this one.":                                                                            "压缩文件没有包含此文件的全部内容：请保留这个。",
 		"A copy is only deleted while a copy of the game from another region stays, checked and sound: check the files first.":                                    "只有在保留一份其他地区、已校验且完好的游戏副本时才会删除副本：请先校验文件。",
 		"And the separate files?": "单独的文件怎么办？",
