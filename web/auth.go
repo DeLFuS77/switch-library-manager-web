@@ -687,7 +687,9 @@ func forwardedAddresses(r *http.Request) []string {
 
 // isLocalRequest reports whether a request comes from the local network: from a local address
 // and, through a reverse proxy, without any address outside it among the forwarded ones (a
-// client can add addresses, but not remove the one its proxy adds).
+// client can add addresses, but not remove the one its proxy adds). The address of the
+// connection decides: a forwarded address can make a request not local, never local, so it can
+// never make anybody an administrator while login is off.
 func isLocalRequest(r *http.Request) bool {
 	if !isLocalAddress(remoteHost(r)) {
 		return false
@@ -700,9 +702,11 @@ func isLocalRequest(r *http.Request) bool {
 	return true
 }
 
-// TRUSTED_PROXIES_ENV lists more proxies whose forwarded client addresses are believed, besides
-// the ones of the local network: addresses or ranges, and "cloudflare" for its published ranges
-// (when Cloudflare connects to the app directly instead of through a tunnel on this computer).
+// TRUSTED_PROXIES_ENV lists the proxies whose forwarded client addresses are believed: addresses
+// or ranges, and "cloudflare" for its published ranges (when Cloudflare connects to the app
+// directly instead of through a tunnel on this computer). Not set, every address of the local
+// network is believed, as a reverse proxy there needs nothing set; set, only the ones listed,
+// so the other computers of the network cannot make up the address they send from.
 const TRUSTED_PROXIES_ENV = "SLM_TRUSTED_PROXIES"
 
 // cloudflareRanges are the addresses Cloudflare connects from (https://www.cloudflare.com/ips/).
@@ -747,22 +751,14 @@ func parseTrustedProxies(value string) []*net.IPNet {
 	return nets
 }
 
-// trustedProxy reports whether forwarded client addresses are believed from an address: one of
-// the local network (a reverse proxy or a tunnel on it) or one set in SLM_TRUSTED_PROXIES.
+// trustedProxy reports whether forwarded client addresses are believed from an address: one set
+// in SLM_TRUSTED_PROXIES, or without it one of the local network (a reverse proxy or a tunnel on
+// it). Whether a request is local never depends on this (see isLocalRequest).
 func trustedProxy(address string) bool {
-	ip := net.ParseIP(strings.Trim(strings.TrimSpace(address), "[]"))
-	if ip == nil {
-		return false
+	if len(trustedProxyNets) > 0 {
+		return configuredProxy(address)
 	}
-	if isLocalAddress(address) {
-		return true
-	}
-	for _, network := range trustedProxyNets {
-		if network.Contains(ip) {
-			return true
-		}
-	}
-	return false
+	return net.ParseIP(strings.Trim(strings.TrimSpace(address), "[]")) != nil && isLocalAddress(address)
 }
 
 // clientIp is the address of the client, for the login limiter. Through a trusted proxy it is
