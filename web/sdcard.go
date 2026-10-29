@@ -154,7 +154,7 @@ func sdGameFiles(local *db.SwitchGameFiles, dlc bool) []db.ExtendedFileInfo {
 // sdPlan is kept for each choice of options until the library, the settings, the favorites or
 // the collections change: working it out walks the whole library, the slowest page of a big one.
 func (web *Web) sdPlan(options SdOptions, lang string) SdPlan {
-	return web.derived(fmt.Sprintf("sdPlan:%s|%+v", lang, options), func() any {
+	return web.derivedLatest("sdPlan:", fmt.Sprintf("sdPlan:%s|%+v", lang, options), func() any {
 		return web.buildSdPlan(options, lang)
 	}).(SdPlan)
 }

@@ -191,6 +191,9 @@ type compressor struct {
 	taskId int64
 	// the bytes the files being written will still take, for the space checks
 	reserved int64
+	// the version of the check results when the task began, which the Space page follows
+	// while it runs (see spaceKey)
+	spaceVersion uint64
 	// the compressed copies written since the last scan, which does not know them yet, with
 	// when they were written, and how many were written, for the list of the copies
 	written        map[string]time.Time
@@ -266,7 +269,7 @@ func (web *Web) compressedCopies() map[string]bool {
 	web.compressor.mutex.Lock()
 	written := web.compressor.writtenVersion
 	web.compressor.mutex.Unlock()
-	return web.derived(fmt.Sprintf("compressedCopies:%d", written), func() any {
+	return web.derivedLatest("compressedCopies:", fmt.Sprintf("compressedCopies:%d", written), func() any {
 		scanned := web.scannedPaths()
 		copies := map[string]bool{}
 		for _, candidate := range web.compressCandidates() {
@@ -734,6 +737,7 @@ func (web *Web) runFileTaskSized(kind string, trigger string, paths []string, si
 // more than their path (a pack reads every file of the game), and, unless resume is nil,
 // how the task goes on after a restart: it keeps the files it has left as it goes.
 func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, sizes []int64, passes int64, resume *TaskResume, job fileJob) bool {
+	spaceVersion := web.verifications().Version()
 	web.compressor.mutex.Lock()
 	// files are being moved or deleted, or the server is being measured
 	if web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() {
@@ -742,6 +746,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, kind, 0
+	web.compressor.spaceVersion = spaceVersion
 	web.compressor.mutex.Unlock()
 
 	// a list made before Organize moved files, or before a restart: each file where it is now
@@ -1309,6 +1314,14 @@ func (web *Web) cancelCompression() bool {
 // wait for it to end.
 func (web *Web) filesBusy() bool {
 	return web.organizing.Load() || web.measuring.Load() || web.compressionRunning() || web.uploads.writing()
+}
+
+// spaceHeld gives the version of the check results the Space page follows while a task writes
+// files: the one of when it began.
+func (web *Web) spaceHeld() (uint64, bool) {
+	web.compressor.mutex.Lock()
+	defer web.compressor.mutex.Unlock()
+	return web.compressor.spaceVersion, web.compressor.cancel != nil && pausableKinds[web.compressor.kind]
 }
 
 func (web *Web) compressionRunning() bool {

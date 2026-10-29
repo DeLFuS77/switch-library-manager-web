@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -155,5 +156,47 @@ func TestDesignShowsOverviewDlcProgressAndRings(t *testing.T) {
 	stats := get("/statistics.html")
 	if !strings.Contains(stats, "conic-gradient(var(--slm-chart-1)") || !strings.Contains(stats, "--pct:") {
 		t.Error("the statistics page must draw the donut and the gauge")
+	}
+}
+
+// A value kept in versions keeps only its newest one; the others of the cache stay.
+func TestDerivedKeepsTheNewestVersion(t *testing.T) {
+	web := newTestWeb(t)
+	web.derived("library:en", func() any { return 1 })
+	web.derivedLatest("space:", "space:1", func() any { return 1 })
+	web.derivedLatest("space:", "space:2", func() any { return 2 })
+	if _, ok := web.derivedCached("space:1"); ok {
+		t.Fatal("the older version is dropped")
+	}
+	if _, ok := web.derivedCached("space:2"); !ok {
+		t.Fatal("the newest is kept")
+	}
+	if _, ok := web.derivedCached("library:en"); !ok {
+		t.Fatal("the other values stay")
+	}
+}
+
+// While a compression writes files, the Space page keeps the content of when it began, instead
+// of working it out again for every file; it follows the results again once it ends.
+func TestSpaceIsNotWorkedOutForEveryFileCompressed(t *testing.T) {
+	web, path := compressWeb(t)
+	info, _ := os.Stat(path)
+	before := web.spaceKey()
+	release := make(chan struct{})
+	working := make(chan struct{})
+	web.runFileTask(TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		close(working)
+		<-release
+		return 0, nil
+	})
+	<-working
+	web.verifications().set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checker: verifyChecker})
+	if web.spaceKey() != before {
+		t.Fatal("the content of when the task began")
+	}
+	close(release)
+	waitForCompression(t, web)
+	if web.spaceKey() == before {
+		t.Fatal("the results again once it ended")
 	}
 }

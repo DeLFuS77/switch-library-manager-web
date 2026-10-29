@@ -541,6 +541,11 @@ func (web *Web) spaceKey() string {
 	if web.verifying() {
 		return fmt.Sprintf("space:%d", store.SavedVersion())
 	}
+	// a compression gives a result with every file it writes: the page shows the content of
+	// when the task began, worked out again once it ends (no cleanup runs meanwhile)
+	if version, held := web.spaceHeld(); held {
+		return fmt.Sprintf("space:%d", version)
+	}
 	return fmt.Sprintf("space:%d", store.Version())
 }
 
@@ -553,7 +558,7 @@ func (web *Web) lastSpaceContent() *SpacePageData {
 // spaceContent is the content of the Space page, computed once: it opens every original and
 // its compressed copy and looks at many files, which takes a while on a NAS.
 func (web *Web) spaceContent() SpacePageData {
-	return web.derived(web.spaceKey(), func() any { return web.buildSpaceContent() }).(SpacePageData)
+	return web.derivedLatest("space:", web.spaceKey(), func() any { return web.buildSpaceContent() }).(SpacePageData)
 }
 
 // spaceReady tells whether the Space page can be shown at once; if not, its content is

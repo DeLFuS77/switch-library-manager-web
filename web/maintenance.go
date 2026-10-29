@@ -228,7 +228,7 @@ func (web *Web) uncheckedFiles() (unchecked int, damaged int) {
 	if web.verifying() {
 		version = store.SavedVersion()
 	}
-	counts := web.derived(fmt.Sprintf("unchecked:%d", version), func() any {
+	counts := web.derivedLatest("unchecked:", fmt.Sprintf("unchecked:%d", version), func() any {
 		files := web.derived("gameFiles", func() any { return web.libraryFiles(".nsp", ".nsz", ".xci", ".xcz") }).([]CompressCandidate)
 		store.mutex.Lock()
 		defer store.mutex.Unlock()
