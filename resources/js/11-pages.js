@@ -52,8 +52,8 @@ function initSelfUpdate() {
 		showToast('alert-danger', 'bi-exclamation-triangle', t('Error!'), message);
 	};
 	const post = url =>
-		fetch(url, { method: 'POST' })
-			.then(response => response.json().then(json => ({ response, json })))
+		apiFetch(url, { method: 'POST' })
+			.then(response => readJSON(response).then(json => ({ response, json })))
 			.then(({ response, json }) => {
 				if (!response.ok) {
 					const error = json.globalError || {};
@@ -82,19 +82,38 @@ function initSelfUpdate() {
 				.catch(() => {});
 		}, 500);
 	};
-	const restart = () => {
+	// the version that runs, or '' when it does not say
+	const runningVersion = () => fetch('/update/version', { cache: 'no-store', headers: { Accept: 'application/json' } })
+		.then(response => (response.ok ? response.json() : {}))
+		.then(json => json.version || '')
+		.catch(() => '');
+	// the app is back when it answers its health check (a 503 while it starts and a 502 of a
+	// proxy are not an answer) and, when it says its version, it is not the one of before,
+	// which answers until it stops
+	const restart = before => {
 		clearInterval(watching);
 		if (bar) {
 			bar.firstElementChild.style.width = '100%';
 		}
 		say(t('Installed: the app starts again...'));
 		const started = Date.now();
+		let answered = false;
 		const wait = () => {
 			fetch('/healthz', { cache: 'no-store' })
-				.then(() => window.location.assign('/'))
+				.then(response => (response.ok ? runningVersion() : Promise.reject(response)))
+				.then(version => {
+					answered = true;
+					if (before && version === before) {
+						return Promise.reject(version);
+					}
+					window.location.assign('/');
+				})
 				.catch(() => {
 					if (Date.now() - started < 120000) {
 						setTimeout(wait, 1500);
+					} else if (answered) {
+						// it answers, still as the version of before: the page says which one runs
+						window.location.assign('/');
 					} else {
 						say(t('The app does not answer: start it again by hand.'));
 					}
@@ -108,8 +127,13 @@ function initSelfUpdate() {
 		if (url === '/update/install') {
 			watchProgress();
 		}
-		post(url)
-			.then(restart)
+		let before = '';
+		runningVersion()
+			.then(version => {
+				before = version;
+				return post(url);
+			})
+			.then(() => restart(before))
 			.catch(error => {
 				clearInterval(watching);
 				if (bar) {
