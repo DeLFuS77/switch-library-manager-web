@@ -2,7 +2,7 @@ package switchfs
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"go.uber.org/zap"
 	"strings"
 )
@@ -11,7 +11,7 @@ func ReadNspMetadata(filePath string) (map[string]*ContentMetaAttributes, error)
 
 	pfs0, err := ReadPfs0File(filePath)
 	if err != nil {
-		return nil, errors.New("Invalid NSP file, reason - [" + err.Error() + "]")
+		return nil, fmt.Errorf("Invalid NSP file, reason - [%w]", err)
 	}
 
 	file, err := OpenFile(filePath)
