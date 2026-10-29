@@ -490,6 +490,36 @@ func writeTestXci(t *testing.T, folder string) string {
 	return path
 }
 
+// The header of the secure partition of a game card holds the names of its files in 0x8000
+// bytes: too many files were told once the whole card was written, tens of GB for a card
+// packed with many DLC. They are told before anything of them is written.
+func TestTooManyFilesForAGameCardAreToldFirst(t *testing.T) {
+	initNszKeys(t, "")
+	game := makeProgramNca(t, gameData(0x80000), 3, "")
+	names := []string{contentName(game, ".nca")}
+	payloads := [][]byte{game}
+	for i := 0; i < 400; i++ {
+		names = append(names, hex.EncodeToString(binary.BigEndian.AppendUint64(make([]byte, 8), uint64(i)))+".tik")
+		payloads = append(payloads, []byte("ticket"))
+	}
+	root := makePFS0(hfs0Magic, []string{"secure"}, [][]byte{makePFS0(hfs0Magic, names, payloads)})
+	header := make([]byte, 0xF000)
+	copy(header[0x100:], "HEAD")
+	binary.LittleEndian.PutUint64(header[0x130:], 0xF000)
+	source := filepath.Join(t.TempDir(), "Game [0100000000010000][v0].xci")
+	if err := os.WriteFile(source, append(header, root...), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	var written int64
+	_, err := CompressGame(context.Background(), source, CompressedPath(source), CompressOptions{Progress: func(done, total int64) { written = done }})
+	if err == nil || !strings.Contains(err.Error(), "too many files") || written > 0 {
+		t.Fatalf("%d bytes written before: %v", written, err)
+	}
+	if _, err := os.Stat(CompressedPath(source)); err == nil {
+		t.Fatal("no XCZ may be left behind")
+	}
+}
+
 func TestCompressXciToXcz(t *testing.T) {
 	initNszKeys(t, "")
 	source := writeTestXci(t, t.TempDir())

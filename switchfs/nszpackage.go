@@ -236,6 +236,11 @@ type hfs0Writer struct {
 }
 
 func (w *hfs0Writer) begin() error {
+	// the names of the files are known before they are written: too many for the header are
+	// told before gigabytes are written for nothing
+	if err := w.checkHeader(); err != nil {
+		return err
+	}
 	if w.compact {
 		_, err := w.file.Write(make([]byte, 0x200))
 		return err
@@ -268,7 +273,22 @@ func (w *hfs0Writer) addFile(name string, start int64, end int64) error {
 	return nil
 }
 
+// checkHeader tells whether the header of the files named fits in the space reserved for it.
+func (w *hfs0Writer) checkHeader() error {
+	headerLen := int64(0x10 + hfs0EntrySize*len(w.names))
+	for _, name := range w.names {
+		headerLen += int64(len(name)) + 1
+	}
+	if headerLen > hfs0ReservedHeader || (w.compact && headerLen > 0x200) {
+		return errors.New("too many files for the HFS0 header")
+	}
+	return nil
+}
+
 func (w *hfs0Writer) finish() error {
+	if err := w.checkHeader(); err != nil {
+		return err
+	}
 	var table []byte
 	nameOffsets := make([]uint32, len(w.names))
 	for i, name := range w.names {
@@ -276,9 +296,6 @@ func (w *hfs0Writer) finish() error {
 		table = append(append(table, name...), 0)
 	}
 	headerLen := int64(0x10 + hfs0EntrySize*len(w.names) + len(table))
-	if headerLen > hfs0ReservedHeader || (w.compact && headerLen > 0x200) {
-		return errors.New("too many files for the HFS0 header")
-	}
 	header := make([]byte, headerLen)
 	copy(header, hfs0Magic)
 	binary.LittleEndian.PutUint32(header[4:8], uint32(len(w.names)))
