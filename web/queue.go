@@ -162,6 +162,33 @@ func (q *taskQueue) begin(at time.Time) {
 	}
 }
 
+// follow puts the files of the tasks waiting where resolve says they are now: before the
+// moves of Organize are forgotten.
+func (q *taskQueue) follow(resolve func(string) string) {
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
+	changed := false
+	for i, item := range q.items {
+		for j, path := range item.Paths {
+			if now := resolve(path); now != path {
+				q.items[i].Paths[j], changed = now, true
+			}
+		}
+		if len(item.Names) > 0 {
+			names := make(map[string]string, len(item.Names))
+			for path, name := range item.Names {
+				now := resolve(path)
+				changed = changed || now != path
+				names[now] = name
+			}
+			q.items[i].Names = names
+		}
+	}
+	if changed {
+		q.save()
+	}
+}
+
 // list is the queue in its order.
 func (q *taskQueue) list() []QueuedTask {
 	q.mutex.Lock()

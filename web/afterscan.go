@@ -10,7 +10,12 @@ import (
 // the lists the pages show, so opening a page for the first time is fast.
 func (web *Web) afterScan() {
 	// the scan knows the compressed copies written before it started
-	web.forgetWritten(time.Unix(0, web.scanStarted.Load()))
+	scanStarted := time.Unix(0, web.scanStarted.Load())
+	web.forgetWritten(scanStarted)
+	// and the files Organize moved before: the tasks waiting take their new paths, and the old
+	// ones are forgotten, as they may hold other files by now
+	web.queue().follow(web.moves.resolve)
+	web.moves.forget(scanStarted)
 	// games bought since leave the wishlist
 	web.forgetOwnedWishes()
 	web.startCoverDownloads()

@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/process"
 )
@@ -23,35 +24,64 @@ const movedFilesHops = 16
 
 type movedFiles struct {
 	mutex sync.Mutex
-	// the new path of a file, by its old one
-	to map[string]string
+	// the new path of a file, and when it moved, by its old one
+	to map[string]movedFile
 }
 
-// record keeps the moves of Organize that went through.
+type movedFile struct {
+	path string
+	at   time.Time
+}
+
+// record keeps the moves of Organize that went through. A file moved to a path is another file
+// than the one that was there before: what that one's move said is forgotten.
 func (m *movedFiles) record(operations []process.Operation) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
+	now := time.Now()
 	for _, op := range operations {
 		if op.Error != "" || op.Kind != process.OP_MOVE {
 			continue
 		}
 		if m.to == nil || len(m.to) >= movedFilesLimit {
-			m.to = map[string]string{}
+			m.to = map[string]movedFile{}
 		}
-		m.to[op.From] = op.To
+		delete(m.to, op.To)
+		if op.From != op.To {
+			m.to[op.From] = movedFile{op.To, now}
+		}
 	}
 }
 
-// resolve is where the file at path is now, as far as the app moved it.
-func (m *movedFiles) resolve(path string) string {
+// forget forgets the moves made before a scan started: the library has the new paths, and an
+// old path may hold another file by now.
+func (m *movedFiles) forget(before time.Time) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
+	for from, moved := range m.to {
+		if moved.at.Before(before) {
+			delete(m.to, from)
+		}
+	}
+}
+
+// resolve is where the file at path is now, as far as the app moved it. A file at the old path
+// is the file of that path (a new file under the name of one moved), unless it is the very file
+// moved (a name changed in its case only).
+func (m *movedFiles) resolve(path string) string {
 	for hop := 0; hop < movedFilesHops; hop++ {
+		m.mutex.Lock()
 		next, ok := m.to[path]
-		if !ok || next == path {
+		m.mutex.Unlock()
+		if !ok || next.path == path {
 			break
 		}
-		path = next
+		if here, err := os.Stat(path); err == nil {
+			if there, err := os.Stat(next.path); err != nil || !os.SameFile(here, there) {
+				break
+			}
+		}
+		path = next.path
 	}
 	return path
 }
