@@ -1726,6 +1726,8 @@ var translations = map[string]map[string]string{
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "La actualización vieja espera en la carpeta oculta hasta que la vacíes: Ajustes, Cuarentena puede devolverla.",
 		// a folder reached by two paths
 		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "Es el mismo archivo que la copia que se queda, alcanzado por otra ruta, así que no se borra.",
+		// a newer version that could not be read
+		"The newer file could not be read, it was recognized by its name only: keep this one.": "El archivo más nuevo no se pudo leer, se reconoció solo por su nombre: conserva este.",
 	},
 }
 

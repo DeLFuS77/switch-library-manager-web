@@ -1699,5 +1699,7 @@ func init() {
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "Старое обновление ждёт в скрытой папке, пока ты её не очистишь: его можно вернуть в Настройки, Карантин.",
 		// a folder reached by two paths
 		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "Это тот же файл, что и остающаяся копия, только по другому пути, поэтому он не удаляется.",
+		// a newer version that could not be read
+		"The newer file could not be read, it was recognized by its name only: keep this one.": "Более новый файл не удалось прочитать, он распознан только по имени: оставьте этот.",
 	}
 }

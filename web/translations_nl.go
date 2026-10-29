@@ -1699,5 +1699,7 @@ func init() {
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "De oude update wacht in de verborgen map tot je haar leegmaakt: Instellingen, Quarantaine kan hem terugzetten.",
 		// a folder reached by two paths
 		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "Het is hetzelfde bestand als de kopie die blijft, via een ander pad bereikt, dus het wordt niet verwijderd.",
+		// a newer version that could not be read
+		"The newer file could not be read, it was recognized by its name only: keep this one.": "Het nieuwere bestand kon niet worden gelezen en is alleen aan de naam herkend: bewaar dit bestand.",
 	}
 }

@@ -29,6 +29,7 @@ const (
 	NOTE_SPACE_KEPT_DAMAGED  = "The copy that is kept is damaged: keep this one."
 	NOTE_SPACE_KEPT_MISSING  = "The copy that is kept was not found; rescan the library."
 	NOTE_SPACE_NEWER_DAMAGED = "The newer file is damaged: keep this one."
+	NOTE_SPACE_NEWER_UNREAD  = "The newer file could not be read, it was recognized by its name only: keep this one."
 	NOTE_SPACE_NOT_SAME      = "The compressed file does not hold everything this file holds: keep this one."
 	NOTE_SPACE_KEPT_PARTIAL  = "The copy that is kept could not be checked whole: keep this one."
 	// the same, on the Space page, where the user can still choose to delete it
@@ -330,7 +331,7 @@ func (web *Web) holdsSameContents(original string, copyPath string, copyInfo os.
 }
 
 // newerDamaged refuses to delete an old update or DLC whose newer version was found
-// damaged: the old one may be the only one that works.
+// damaged, or could not be read at all: the old one may be the only one that works.
 func (web *Web) newerDamaged(newer string) string {
 	// the newer file must still be there, moved or deleted by hand since the scan or not
 	if info, err := os.Stat(newer); newer == "" || err != nil || info.IsDir() {
@@ -339,7 +340,27 @@ func (web *Web) newerDamaged(newer string) string {
 	if web.verifications().foundDamaged(newer) {
 		return NOTE_SPACE_NEWER_DAMAGED
 	}
+	// a copy cut short, or read with keys too old, is the newer version by its name only
+	if web.unreadFiles()[filepath.Clean(newer)] {
+		return NOTE_SPACE_NEWER_UNREAD
+	}
 	return ""
+}
+
+// unreadFiles are the files of the library the scan could not read, by path: the ones it
+// recognized by their names only.
+func (web *Web) unreadFiles() map[string]bool {
+	return web.derived("unreadFiles", func() any {
+		unread := map[string]bool{}
+		if _, localDB := web.state.get(); localDB != nil {
+			for file, skipped := range localDB.Skipped {
+				if skipped.ReasonCode == db.REASON_FILENAME_FALLBACK || skipped.ReasonCode == db.REASON_MALFORMED_FILE {
+					unread[filepath.Clean(filepath.Join(file.BaseFolder, file.FileName))] = true
+				}
+			}
+		}
+		return unread
+	}).(map[string]bool)
 }
 
 // cleanupRefusal applies the rules of the Space page to the cleanup of Organize and of the

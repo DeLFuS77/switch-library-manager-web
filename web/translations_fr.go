@@ -1699,5 +1699,7 @@ func init() {
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "L'ancienne mise à jour attend dans le dossier caché jusqu'à ce que tu le vides : Réglages, Quarantaine peut la remettre.",
 		// a folder reached by two paths
 		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "C'est le même fichier que la copie gardée, atteint par un autre chemin, il n'est donc pas supprimé.",
+		// a newer version that could not be read
+		"The newer file could not be read, it was recognized by its name only: keep this one.": "Le fichier plus récent n'a pas pu être lu, il n'a été reconnu que par son nom : garde celui-ci.",
 	}
 }
