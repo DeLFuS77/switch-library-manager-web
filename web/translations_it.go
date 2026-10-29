@@ -1489,7 +1489,7 @@ func init() {
 		"base":                           "base",
 		"base file is missing":           "manca il file base",
 		"based on":                       "basato su",
-		"breadcrumb":                     "breadcrumb",
+		"breadcrumb":                     "percorso di navigazione",
 		"damaged file: %v":               "file danneggiato: %v",
 		"done":                           "fatto",
 		"duplicate %v file (%v)":         "file %v duplicato (%v)",
@@ -1705,5 +1705,9 @@ func init() {
 		"Scanning library...":              "Scansione della libreria...",
 		// the notice of a synchronization that did not reload the page
 		"Reload": "Ricarica",
+		// a count of one
+		"%v file selected, %v": "%v file selezionato, %v",
+		"%v game selected, %v": "%v gioco selezionato, %v",
+		"%v step on":           "%v passaggio attivo",
 	}
 }

@@ -1705,5 +1705,9 @@ func init() {
 		"Scanning library...":              "Analyse de la bibliothèque...",
 		// the notice of a synchronization that did not reload the page
 		"Reload": "Recharger",
+		// a count of one
+		"%v file selected, %v": "%v fichier sélectionné, %v",
+		"%v game selected, %v": "%v jeu sélectionné, %v",
+		"%v step on":           "%v étape activée",
 	}
 }

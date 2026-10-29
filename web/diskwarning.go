@@ -157,7 +157,7 @@ func (web *Web) notifyLowDisks(disks []LowDisk) bool {
 	}
 	items := []NotificationItem{}
 	for _, disk := range disks {
-		items = append(items, NotificationItem{Key: "disk:" + disk.Folder, Kind: "disk", Name: disk.Folder, Detail: translatef(lang, "%v free (%v%%)", formatSize(disk.Free), disk.Percent)})
+		items = append(items, NotificationItem{Key: "disk:" + disk.Folder, Kind: "disk", Name: disk.Folder, Detail: translatef(lang, "%v free (%v%%)", formatSizeIn(lang, disk.Free), disk.Percent)})
 	}
 	title := translate(lang, "Switch Library Manager: little free space left")
 	text := ""

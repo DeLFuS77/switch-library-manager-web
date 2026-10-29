@@ -1705,5 +1705,9 @@ func init() {
 		"Scanning library...":              "ライブラリをスキャン中...",
 		// the notice of a synchronization that did not reload the page
 		"Reload": "再読み込み",
+		// a count of one
+		"%v file selected, %v": "%v個のファイルを選択中、%v",
+		"%v game selected, %v": "%v 本のゲームを選択、%v",
+		"%v step on":           "%v ステップがオン",
 	}
 }

@@ -268,3 +268,38 @@ func TestLibraryOverviewNumbersHaveTheSeparator(t *testing.T) {
 		}
 	}
 }
+
+// Sizes have the decimal separator of the language, in the pages and in web.js, which lists the
+// same languages.
+func TestSizesHaveTheDecimalSeparatorOfTheLanguage(t *testing.T) {
+	const size = 3 * 1024 * 1024 * 1024 / 2
+	for lang, want := range map[string]string{"en": "1.5 GB", "es": "1,5 GB", "de": "1,5 GB", "fr": "1,5 GB", "ja": "1.5 GB", "zh": "1.5 GB"} {
+		if got := formatSizeIn(lang, size); got != want {
+			t.Errorf("%s: %q, want %q", lang, got, want)
+		}
+		if got := i18nFuncs(lang)["formatSize"].(func(int64) string)(size); got != want {
+			t.Errorf("%s template: %q, want %q", lang, got, want)
+		}
+	}
+	if got := formatSizeIn("es", 512); got != "512 B" {
+		t.Errorf("bytes: %q", got)
+	}
+
+	data, err := os.ReadFile("../resources/js/08-compress.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	list := regexp.MustCompile(`DECIMAL_COMMA_LANGUAGES = \[([^\]]*)\]`).FindStringSubmatch(string(data))
+	if list == nil {
+		t.Fatal("web.js lists no languages with a decimal comma")
+	}
+	languages := regexp.MustCompile(`'([a-z]+)'`).FindAllStringSubmatch(list[1], -1)
+	if len(languages) != len(decimalSeparators) {
+		t.Errorf("web.js lists %d languages with a decimal comma, the server %d", len(languages), len(decimalSeparators))
+	}
+	for _, lang := range languages {
+		if decimalSeparators[lang[1]] != "," {
+			t.Errorf("web.js writes a decimal comma in %s, the server does not", lang[1])
+		}
+	}
+}

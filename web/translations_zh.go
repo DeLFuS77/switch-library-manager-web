@@ -1705,5 +1705,9 @@ func init() {
 		"Scanning library...":              "正在扫描游戏库...",
 		// the notice of a synchronization that did not reload the page
 		"Reload": "重新加载",
+		// a count of one
+		"%v file selected, %v": "已选择 %v 个文件，%v",
+		"%v game selected, %v": "已选 %v 个游戏，%v",
+		"%v step on":           "已开启 %v 个步骤",
 	}
 }

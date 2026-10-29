@@ -1732,6 +1732,10 @@ var translations = map[string]map[string]string{
 		"Scanning library...":              "Analizando la biblioteca...",
 		// the notice of a synchronization that did not reload the page
 		"Reload": "Recargar",
+		// a count of one
+		"%v file selected, %v": "%v archivo seleccionado, %v",
+		"%v game selected, %v": "%v juego elegido, %v",
+		"%v step on":           "%v paso activado",
 	},
 }
 

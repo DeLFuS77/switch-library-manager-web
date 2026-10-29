@@ -112,7 +112,7 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 			check.Value = t("Readable and writable")
 		}
 		if free, err := diskFree(folder); err == nil {
-			check.Value += " · " + t("%v free", formatSize(int64(free)))
+			check.Value += " · " + t("%v free", formatSizeIn(lang, int64(free)))
 			if free < lowDiskSpace && check.Status == CHECK_OK {
 				check.Status, check.Hint = CHECK_WARN, t("Little free space left.")
 			}
@@ -157,7 +157,7 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 		dataCheck.Status, dataCheck.Value, dataCheck.Hint = CHECK_ERROR, t("Read only"), t("The settings cannot be saved. In Docker, check PUID and PGID.")
 	}
 	if free, err := diskFree(web.dataFolder); err == nil {
-		dataCheck.Value += " · " + t("%v free", formatSize(int64(free)))
+		dataCheck.Value += " · " + t("%v free", formatSizeIn(lang, int64(free)))
 		if free < lowDiskSpace/5 && dataCheck.Status == CHECK_OK {
 			dataCheck.Status, dataCheck.Hint = CHECK_WARN, t("Little free space left.")
 		}

@@ -855,7 +855,7 @@ function setupWizard(element) {
 			['bi-moon-stars', say('background'), choice('background_hours'), 'background'],
 			['bi-file-zip', say('compress'), [choice('auto_compress'), form.elements.auto_compress.value ? choice('auto_compress_level') : ''].filter(Boolean).join(' · '), 'compression'],
 			['bi-folder-symlink', say('order'), order || say('none'), 'organize'],
-			['bi-magic', say('automation'), master.checked && automation ? [say('stepsOn', automation), organizeNewOnly ? say('newOnly') : ''].filter(Boolean).join(' · ') : say('off'), 'automation'],
+			['bi-magic', say('automation'), master.checked && automation ? [say(automation === 1 ? 'stepsOnOne' : 'stepsOn', automation), organizeNewOnly ? say('newOnly') : ''].filter(Boolean).join(' · ') : say('off'), 'automation'],
 			['bi-hourglass-split', say('quarantine'), choice('quarantine_keep'), 'quarantine'],
 			['bi-bell', say('notifications'), notifications ? say('set') : say('none'), 'notifications'],
 			['bi-shield-check', say('verify'), choice('verify_interval_days'), 'extras'],

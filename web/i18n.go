@@ -84,6 +84,9 @@ func i18nFuncs(lang string) template.FuncMap {
 		"numShort":       func(value int) string { return formatShortNumber(lang, value) },
 		"formatDateTime": func(value time.Time) string { return formatDateTime(lang, value) },
 		"issue":          func(text string) string { return translateIssue(lang, text) },
+		// sizes with the decimal separator of the language
+		"formatSize":  func(size int64) string { return formatSizeIn(lang, size) },
+		"formatBytes": func(size int) string { return formatSizeIn(lang, int64(size)) },
 	}
 }
 
@@ -203,6 +206,19 @@ func formatNumber(lang string, value int) string {
 		return "-" + builder.String()
 	}
 	return builder.String()
+}
+
+// decimal separators by language, as web.js has them (formatSize); the others use a point
+var decimalSeparators = map[string]string{"es": ",", "pt": ",", "it": ",", "de": ",", "nl": ",", "fr": ",", "ru": ","}
+
+// formatSizeIn is formatSize with the decimal separator of the language: 1.5 GB in English is
+// 1,5 GB in Spanish.
+func formatSizeIn(lang string, size int64) string {
+	text := formatSize(size)
+	if separator, ok := decimalSeparators[lang]; ok {
+		return strings.Replace(text, ".", separator, 1)
+	}
+	return text
 }
 
 // formatShortNumber writes a big number short, for the room of a phone: 24943 is "25k", and

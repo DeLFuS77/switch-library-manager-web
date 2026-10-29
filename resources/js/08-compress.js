@@ -1,7 +1,10 @@
 // Compress: the file lists and their selection.
 // One of the files joined into resources/static/web.js by scripts/build-js.mjs, in the order of their names.
 
-// same as formatSize on the server
+// the languages of the page that write decimals with a comma, as decimalSeparators on the server
+const DECIMAL_COMMA_LANGUAGES = ['es', 'pt', 'it', 'de', 'nl', 'fr', 'ru'];
+
+// same as formatSizeIn on the server, in the language of the page
 function formatSize(size) {
 	if (size < 1024) {
 		return `${size} B`;
@@ -12,7 +15,8 @@ function formatSize(size) {
 		unit *= 1024;
 		exp++;
 	}
-	return `${(size / unit).toFixed(1)} ${'KMGTPE'[exp]}B`;
+	const number = (size / unit).toFixed(1);
+	return `${DECIMAL_COMMA_LANGUAGES.includes(document.documentElement.lang) ? number.replace('.', ',') : number} ${'KMGTPE'[exp]}B`;
 }
 
 function initCompress() {
@@ -111,7 +115,9 @@ function bindFileForm(form, url) {
 	};
 	const update = () => {
 		const { count, size } = selection();
-		summary.textContent = summary.dataset.template.replace('%v', count).replace('%v', formatSize(size));
+		// "1 file selected", not "1 files"
+		const template = count === 1 && summary.dataset.templateOne ? summary.dataset.templateOne : summary.dataset.template;
+		summary.textContent = template.replace('%v', count).replace('%v', formatSize(size));
 		const shown = boxes().filter(visible);
 		const shownSelected = shown.filter(box => box.checked);
 		all.checked = shown.length > 0 && shownSelected.length === shown.length;

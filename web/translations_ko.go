@@ -1705,5 +1705,9 @@ func init() {
 		"Scanning library...":              "라이브러리 스캔 중...",
 		// the notice of a synchronization that did not reload the page
 		"Reload": "새로고침",
+		// a count of one
+		"%v file selected, %v": "파일 %v개 선택됨, %v",
+		"%v game selected, %v": "게임 %v개 선택, %v",
+		"%v step on":           "%v단계 켜짐",
 	}
 }
