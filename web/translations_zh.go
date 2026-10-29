@@ -1703,5 +1703,7 @@ func init() {
 		"Loading titles database...":       "正在加载游戏数据库...",
 		"Processing titles and updates...": "正在处理游戏和更新...",
 		"Scanning library...":              "正在扫描游戏库...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "重新加载",
 	}
 }

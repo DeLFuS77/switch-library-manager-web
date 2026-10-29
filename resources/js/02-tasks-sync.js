@@ -226,6 +226,39 @@ function onSyncFinished() {
 	finishSync();
 }
 
+// The fields of the page the user changed (a note, the files chosen in Compress, the games for
+// the card): a reload would lose them. A part of the page that saves its fields at once makes
+// what it saved their default value, so they no longer count.
+const editedFields = new Set();
+function noteEditedField(e) {
+	if (e.isTrusted && e.target instanceof Element && e.target.matches('main input, main textarea, main select')) {
+		editedFields.add(e.target);
+	}
+}
+document.addEventListener('input', noteEditedField, true);
+document.addEventListener('change', noteEditedField, true);
+
+function hasUnsavedChanges() {
+	return [...editedFields].some(field => {
+		if (!field.isConnected || field.disabled || field.type === 'file') {
+			return false;
+		}
+		if (field.type === 'checkbox' || field.type === 'radio') {
+			return field.checked !== field.defaultChecked;
+		}
+		if (field.tagName === 'SELECT') {
+			const options = [...field.options];
+			if (field.multiple) {
+				return options.some(option => option.selected !== option.defaultSelected);
+			}
+			// with no option marked, the first one is the default
+			const marked = options.map(option => option.defaultSelected).lastIndexOf(true);
+			return field.selectedIndex !== Math.max(0, marked);
+		}
+		return field.value !== field.defaultValue;
+	});
+}
+
 function finishSync() {
 	const syncAlert = document.getElementById(SYNC_ALERT_ID);
 	if (syncAlert) {
@@ -234,9 +267,20 @@ function finishSync() {
 
 	// nor while games are being uploaded from the page: the reload would stop them; nor while
 	// the setup wizard is open: the scan its saving starts closed its last screen at once
-	if (document.querySelector('form[method="post"]:not([action="/logout"])') || gameUploadsBusy() || document.querySelector('.wizard.show')) {
-		// do not reload pages with forms, it could discard unsaved changes
-		insertAlert(mainContainer(), 'alert-success', 'bi-check-circle-fill', t('Done!'), t('The library has been updated.'));
+	const uploading = gameUploadsBusy() || document.querySelector('.wizard.show');
+	if (uploading || document.querySelector('form[method="post"]:not([action="/logout"])') || hasUnsavedChanges()) {
+		// do not reload pages with forms or changes, it could discard unsaved changes: the
+		// notice offers the reload instead
+		const toast = showToast('alert-success', 'bi-check-circle-fill', t('Done!'), t('The library has been updated.'));
+		if (!uploading && !toast.querySelector('[data-sync-reload]')) {
+			const reload = document.createElement('button');
+			reload.type = 'button';
+			reload.className = 'btn btn-link alert-link p-0 align-baseline';
+			reload.dataset.syncReload = '';
+			reload.textContent = t('Reload');
+			reload.addEventListener('click', () => window.location.reload());
+			toast.querySelector('.flex-grow-1').append(' ', reload);
+		}
 	} else {
 		window.location.reload();
 	}

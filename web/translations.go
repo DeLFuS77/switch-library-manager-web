@@ -1730,6 +1730,8 @@ var translations = map[string]map[string]string{
 		"Loading titles database...":       "Cargando la base de datos de títulos...",
 		"Processing titles and updates...": "Procesando títulos y actualizaciones...",
 		"Scanning library...":              "Analizando la biblioteca...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "Recargar",
 	},
 }
 
@@ -1750,5 +1752,5 @@ var jsTexts = []string{
 	"Couch mode: Select or Esc to leave", "In testing",
 	"Nothing to check", "No file is new or changed since the last check.",
 	"The new files may not fit. A file that fills its disk fails, and its original stays as it was.", "up to %v needed, %v free", "Start anyway?",
-	"Added to the queue.", "It starts when the tasks before it end: number %v in the queue.",
+	"Added to the queue.", "It starts when the tasks before it end: number %v in the queue.", "Reload",
 }

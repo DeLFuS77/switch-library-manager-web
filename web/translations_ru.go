@@ -1703,5 +1703,7 @@ func init() {
 		"Loading titles database...":       "Загрузка базы названий...",
 		"Processing titles and updates...": "Обработка игр и обновлений...",
 		"Scanning library...":              "Сканирование библиотеки...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "Обновить",
 	}
 }

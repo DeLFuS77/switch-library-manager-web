@@ -233,6 +233,11 @@ function initPlay() {
 		const params = { id: form.dataset.play, status: data.get('status') || '', rating: data.get('rating') || '0', note: note.value };
 		return postForm('/play', params).then(() => {
 			savedNote = note.value;
+			// what is kept is no longer a change a reload would lose
+			note.defaultValue = note.value;
+			form.querySelectorAll('input[type="radio"]').forEach(input => {
+				input.defaultChecked = input.checked;
+			});
 			button.disabled = true;
 			showToast('text-bg-success', 'bi-check-circle-fill', form.dataset.saved, '');
 		}).catch(error => {

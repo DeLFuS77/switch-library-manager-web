@@ -1703,5 +1703,7 @@ func init() {
 		"Loading titles database...":       "타이틀 데이터베이스 불러오는 중...",
 		"Processing titles and updates...": "타이틀과 업데이트 처리 중...",
 		"Scanning library...":              "라이브러리 스캔 중...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "새로고침",
 	}
 }

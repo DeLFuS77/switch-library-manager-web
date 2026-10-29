@@ -1703,5 +1703,7 @@ func init() {
 		"Loading titles database...":       "Caricamento del database dei titoli...",
 		"Processing titles and updates...": "Elaborazione di titoli e aggiornamenti...",
 		"Scanning library...":              "Scansione della libreria...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "Ricarica",
 	}
 }

@@ -1703,5 +1703,7 @@ func init() {
 		"Loading titles database...":       "タイトルデータベースを読み込み中...",
 		"Processing titles and updates...": "タイトルとアップデートを処理中...",
 		"Scanning library...":              "ライブラリをスキャン中...",
+		// the notice of a synchronization that did not reload the page
+		"Reload": "再読み込み",
 	}
 }
