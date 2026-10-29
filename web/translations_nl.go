@@ -1587,6 +1587,10 @@ func init() {
 		"No preference: the suggested copy": "Geen voorkeur: de aanbevolen kopie",
 		"Your preferred region":             "Je voorkeursregio",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Eén kaart per game, met de vlaggen van al zijn regio's: die je niet hebt, gedimd. Hij toont de kopie die je op de pagina van de game kiest, of de aanbevolen, en de tellers tellen de game één keer. Er wordt geen bestand gewijzigd.",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "De handtekening van de versie ontbreekt of klopt niet: er is niets gewijzigd.",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "Antwoorden in de Telegram-chat",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "Schrijf de bot in zijn chat: /have zelda, /new, /space, /status, /sync. Alleen die chat krijgt antwoorden, in de taal van de app.",

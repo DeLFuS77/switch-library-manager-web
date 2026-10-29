@@ -1587,6 +1587,10 @@ func init() {
 		"No preference: the suggested copy": "指定なし：おすすめのコピー",
 		"Your preferred region":             "優先する地域",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "ゲームごとに1枚のカードで、すべての地域の国旗を表示します（持っていない地域は薄く表示）。ゲームのページで選んだコピー、またはおすすめのコピーが表示され、カウンターではゲームを1つとして数えます。ファイルは変更されません。",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "リリースの署名がないか、正しくありません。何も変更していません。",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "Telegramのチャットで返信する",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "ボットのチャットに書き込みます：/have zelda、/new、/space、/status、/sync。返信はそのチャットだけに、アプリの言語で届きます。",

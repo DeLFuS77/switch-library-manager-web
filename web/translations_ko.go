@@ -1587,6 +1587,10 @@ func init() {
 		"No preference: the suggested copy": "선호 없음: 추천 사본",
 		"Your preferred region":             "선호 지역",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "게임마다 카드 한 장에 모든 지역의 국기를 표시합니다(없는 지역은 흐리게). 게임 페이지에서 선택한 사본이나 추천 사본이 표시되고, 카운터는 게임을 한 번만 셉니다. 파일은 바뀌지 않습니다.",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "릴리스의 서명이 없거나 올바르지 않습니다. 아무것도 변경하지 않았습니다.",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "텔레그램 채팅에서 답하기",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "봇의 채팅에 쓰세요: /have zelda, /new, /space, /status, /sync. 답은 그 채팅에만 앱 언어로 옵니다.",

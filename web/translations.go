@@ -1614,6 +1614,10 @@ var translations = map[string]map[string]string{
 		"No preference: the suggested copy": "Sin preferencia: la copia sugerida",
 		"Your preferred region":             "Tu región preferida",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "Una tarjeta para cada juego, con las banderas de todas sus regiones: las que no tienes, apagadas. Muestra la copia que elijas en la ficha del juego, o la sugerida, y los contadores cuentan el juego una vez. No se cambia ningún archivo.",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "La firma de la versión falta o no es válida: no se ha cambiado nada.",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "Responder en el chat de Telegram",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "Escribe al bot en su chat: /tengo zelda, /nuevo, /espacio, /estado, /sincroniza. Solo responde en ese chat, en el idioma de la app.",

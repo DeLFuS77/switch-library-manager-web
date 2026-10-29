@@ -1587,6 +1587,10 @@ func init() {
 		"No preference: the suggested copy": "无偏好：推荐的副本",
 		"Your preferred region":             "你的首选地区",
 		"One card for each game, with the flags of all its regions: the ones you do not have, dimmed. It shows the copy you choose on the page of the game, or the suggested one, and the counters count the game once. No file is changed.": "每个游戏一张卡片，显示其所有地区的国旗：你没有的地区显示为灰色。显示你在游戏页面选择的副本或推荐的副本，计数时每个游戏只算一次。不会更改任何文件。",
+
+		// the update, when the checksums of a release are not signed with the key of the app
+		"The signature of the release is missing or wrong: nothing was changed.": "该版本的签名缺失或错误：未做任何更改。",
+
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "在 Telegram 聊天中回复",
 		"Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app.": "在机器人的聊天中发送：/have zelda、/new、/space、/status、/sync。只会在该聊天中回复，使用应用的语言。",
