@@ -187,11 +187,12 @@ func (f *fileOperations) move(from string, to string) error {
 			}
 		}
 		// renaming only the case of a file on a case-insensitive file system is fine
-		if toInfo, err := os.Stat(to); err == nil && !os.SameFile(fromInfo, toInfo) {
-			if toInfo.Size() == fromInfo.Size() {
-				return errDuplicateAtDestination
+		caseOnly := false
+		if toInfo, err := os.Stat(to); err == nil {
+			if !os.SameFile(fromInfo, toInfo) {
+				return takenAtDestination(fromInfo, toInfo)
 			}
-			return errNameTakenAtDestination
+			caseOnly = true
 		}
 		if err := f.mkdir(filepath.Dir(to)); err != nil {
 			return err
@@ -201,7 +202,15 @@ func (f *fileOperations) move(from string, to string) error {
 			f.movedFrom[from] = to
 			return nil
 		}
-		if err := os.Rename(from, to); err != nil {
+		moveTo := moveFile
+		if caseOnly {
+			moveTo = os.Rename
+		}
+		if err := moveTo(from, to); err != nil {
+			// a file that came at the destination since it was looked at is never written over
+			if toInfo, statErr := os.Stat(to); errors.Is(err, os.ErrExist) && statErr == nil {
+				return takenAtDestination(fromInfo, toInfo)
+			}
 			return err
 		}
 		f.movedFrom[from] = to
@@ -241,12 +250,17 @@ func (f *fileOperations) renameInPlace(from string, to string, renamed string, k
 			}
 		}
 		// only its case changes on a case-insensitive file system: it is the same file
-		if inPlaceInfo, err := os.Stat(inPlace); err == nil && !os.SameFile(fromInfo, inPlaceInfo) {
-			return errNameTakenInPlace
+		renameTo := renameNoReplace
+		if inPlaceInfo, err := os.Stat(inPlace); err == nil {
+			if !os.SameFile(fromInfo, inPlaceInfo) {
+				return errNameTakenInPlace
+			}
+			renameTo = os.Rename
 		}
 		f.plannedTargets[inPlace] = from
 		if !f.dryRun {
-			if err := os.Rename(from, inPlace); err != nil {
+			// a file that came with the name since it was looked at is never written over
+			if err := renameTo(from, inPlace); err != nil {
 				return err
 			}
 		}
@@ -259,6 +273,15 @@ func (f *fileOperations) renameInPlace(from string, to string, renamed string, k
 		return
 	}
 	f.record(Operation{Kind: OP_MOVE, From: from, To: inPlace, Reason: renamed}, nil)
+}
+
+// takenAtDestination is why a file cannot go where another file has its name: a copy of the
+// same size, or another file of the same game.
+func takenAtDestination(fromInfo os.FileInfo, toInfo os.FileInfo) error {
+	if toInfo.Size() == fromInfo.Size() {
+		return errDuplicateAtDestination
+	}
+	return errNameTakenAtDestination
 }
 
 var (
