@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -127,5 +128,29 @@ func TestIssuesDeleteOneUnreadableFile(t *testing.T) {
 	}
 	if _, err := os.Stat(card); err != nil {
 		t.Fatal("the other files stay")
+	}
+}
+
+// The copy chosen in Issues stays chosen once Organize moved it, and once the app compressed
+// or converted it: by its old path the next scan let the settings choose again.
+func TestKeptChoiceFollowsTheFile(t *testing.T) {
+	web := newTestWeb(t)
+	dir := t.TempDir()
+	chosen, moved := filepath.Join(dir, "Game.nsp"), filepath.Join(dir, "Game", "Game [0100000000010000][v0].nsp")
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.OrganizeOptions.KeepFiles = []string{chosen, "other.nsp"} })
+	web.followKeptChoices([]process.Operation{
+		{Kind: process.OP_MOVE, From: chosen, To: moved},
+		{Kind: process.OP_MOVE, From: "other.nsp", To: "failed.nsp", Error: "another file is moved to the same destination"},
+	})
+	if kept := settings.ReadSettings(web.dataFolder).OrganizeOptions.KeepFiles; len(kept) != 2 || kept[0] != moved || kept[1] != "other.nsp" {
+		t.Fatalf("the copy chosen where it was moved: %v", kept)
+	}
+
+	compressed := filepath.Join(dir, "Card.xcz")
+	os.WriteFile(compressed, []byte("x"), 0o644)
+	newer := filepath.Join(dir, "New.nsp")
+	os.WriteFile(newer, []byte("x"), 0o644)
+	if got := keptChoices([]string{filepath.Join(dir, "Card.xci")}, newer, filepath.Join(dir, "Other.nsp")); len(got) != 2 || got[0] != compressed {
+		t.Fatalf("a copy chosen and compressed since is kept by its new name: %v", got)
 	}
 }

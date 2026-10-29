@@ -70,7 +70,7 @@ func (web *Web) issueKindCounts() []IssueKindCount {
 	return web.derived("issueKindCounts", func() any {
 		counts := map[string]int{}
 		for _, issue := range web.getIssues() {
-			counts[issueKind(issue.Reason)]++
+			counts[issue.kind()]++
 		}
 		result := []IssueKindCount{}
 		for _, kind := range issueKinds {
@@ -82,8 +82,18 @@ func (web *Web) issueKindCounts() []IssueKindCount {
 	}).([]IssueKindCount)
 }
 
-// issueKind tells the kind of an issue from its reason.
+// issueKind tells the kind of an issue from its reason (see Issue.kind).
 func issueKind(reason string) string {
+	return kindOfIssue(reason, false)
+}
+
+// kind is the kind of the issue: from its reason, and for a file the scan could not read,
+// whether the reader met the end of the file.
+func (issue Issue) kind() string {
+	return kindOfIssue(issue.Reason, issue.CutShort)
+}
+
+func kindOfIssue(reason string, cutShort bool) string {
 	switch {
 	case strings.HasPrefix(reason, "damaged file"):
 		return ISSUE_DAMAGED
@@ -103,23 +113,19 @@ func issueKind(reason string) string {
 		return ISSUE_UNSUPPORTED
 	case strings.HasPrefix(reason, "not signed by Nintendo"):
 		return ISSUE_UNSIGNED
-	case isCutShort(reason):
+	case cutShort || db.CutShort(nil, reason):
+		// the reader met the end of the file (EOF) while the headers still asked for more; a
+		// passing error of the disk or of the network is an error of reading, never an end of
+		// file, and "EOF" in the name of the file (GAMEOFLIFE.nsp) is none either
 		return ISSUE_TRUNCATED
 	}
 	return ISSUE_UNREADABLE
 }
 
-// isCutShort tells a file that could not be read because it ends before its contents do: the
-// reader met the end of the file (EOF) while the headers still asked for more. A passing error
-// of the disk or of the network is an error of reading, never an end of file.
-func isCutShort(reason string) bool {
-	return strings.Contains(reason, "EOF")
-}
-
-// issueCause says in plain words why a file could not be read, from the error of its reader;
-// empty when the error itself is the clearest thing to show.
-func issueCause(reason, lang string) string {
-	switch kind := issueKind(reason); {
+// issueCause says in plain words why a file could not be read, from the kind of its issue and
+// the error of its reader; empty when the error itself is the clearest thing to show.
+func issueCause(kind, reason, lang string) string {
+	switch {
 	case kind == ISSUE_TRUNCATED:
 		return translatef(lang, "Cut short: the file ends before its contents do.")
 	case kind == ISSUE_UNREADABLE && strings.Contains(reason, "invalid NCA magic"):
@@ -163,7 +169,7 @@ func issueFiles(issues []Issue, kind string) []db.ExtendedFileInfo {
 	files := []db.ExtendedFileInfo{}
 	seen := map[string]bool{}
 	for _, issue := range issues {
-		if issueKind(issue.Reason) != kind || seen[issue.File] {
+		if issue.kind() != kind || seen[issue.File] {
 			continue
 		}
 		seen[issue.File] = true
@@ -194,7 +200,7 @@ func (web *Web) issueSummaries(issues []Issue, lang string) []IssueSummary {
 	t := func(text string, args ...any) string { return translatef(lang, text, args...) }
 	counts := map[string]int{}
 	for _, issue := range issues {
-		counts[issueKind(issue.Reason)]++
+		counts[issue.kind()]++
 	}
 	summaries := []IssueSummary{}
 	for _, kind := range issueKinds {

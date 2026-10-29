@@ -1724,5 +1724,11 @@ func init() {
 		"%v file selected, %v": "%v bestand geselecteerd, %v",
 		"%v game selected, %v": "%v game geselecteerd, %v",
 		"%v step on":           "%v stap aan",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "Het is hetzelfde bestand als de kopie die blijft, via een ander pad bereikt, dus het wordt niet verwijderd.",
+		// a newer version that could not be read
+		"The newer file could not be read, it was recognized by its name only: keep this one.": "Het nieuwere bestand kon niet worden gelezen en is alleen aan de naam herkend: bewaar dit bestand.",
+		// settings that could not be saved
+		"The settings could not be saved: %v": "De instellingen konden niet worden opgeslagen: %v",
 	}
 }

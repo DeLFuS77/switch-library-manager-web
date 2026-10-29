@@ -1724,5 +1724,11 @@ func init() {
 		"%v file selected, %v": "%v個のファイルを選択中、%v",
 		"%v game selected, %v": "%v 本のゲームを選択、%v",
 		"%v step on":           "%v ステップがオン",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "残すコピーと同じファイルに別のパスから届いているため、削除しません。",
+		// a newer version that could not be read
+		"The newer file could not be read, it was recognized by its name only: keep this one.": "新しいファイルは読み取れず、名前だけで認識されました。こちらを残してください。",
+		// settings that could not be saved
+		"The settings could not be saved: %v": "設定を保存できませんでした: %v",
 	}
 }

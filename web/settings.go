@@ -1,10 +1,10 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"os"
-	"path/filepath"
 	"regexp"
 	"runtime"
 	"slices"
@@ -346,7 +346,7 @@ func (web *Web) HandleSettings() {
 		cheatsWereOff := settings.ReadSettings(web.dataFolder).CheatsDisabled
 		scanFolders := SplitAndTrimSpaceArray(settingsForm.ScanFolders, "\n")
 
-		settings.UpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
+		_, err := settings.TryUpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
 			appSettings.Prodkeys = settingsForm.Prodkeys
 			appSettings.IgnoreDLCTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreDLCTitleIds, "\n")
 			appSettings.IgnoreUpdateTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreUpdateTitleIds, "\n")
@@ -407,6 +407,9 @@ func (web *Web) HandleSettings() {
 				appSettings.ScanFolders = []string{}
 			}
 		})
+		if err != nil {
+			return notSaved(lang, err)
+		}
 		// turned on: the cheats come now, not with the next synchronization
 		if cheatsWereOff && settingsForm.Cheats {
 			go web.downloadCheats()
@@ -428,6 +431,14 @@ func (web *Web) HandleSettings() {
 			Message:       message,
 		}
 	}, web.embedFS, fsPatterns...)
+}
+
+// notSaved is the answer to a form whose settings could not be saved (a disk full or that
+// cannot be written, a file held by an antivirus): an error, never "Saved", which the next start
+// would prove wrong.
+func notSaved(lang string, err error) SuccessResponse {
+	return SuccessResponse{failure: &ErrorResponse{FieldErrors: []FieldError{},
+		GlobalError: GlobalError{StrongMessage: translate(lang, "Error!"), Message: translatef(lang, "The settings could not be saved: %v", err)}}}
 }
 
 // VerifySpeedOption is a verification speed and how many files it checks at once here.
@@ -478,26 +489,21 @@ func (web *Web) settingsPageData() SettingsPageData {
 
 // repeatedFolders tells, in the language of the page, the first folder listed twice or inside
 // another listed folder (the library is scanned with its subfolders); empty when there is none.
+// The folders are compared on the disk too: a drive of Windows and the share it maps, or two
+// volumes of a container on one folder, are one folder written in two ways.
 func repeatedFolders(folders []string, lang string) string {
-	key := func(folder string) string {
-		folder = filepath.Clean(folder)
-		if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
-			return strings.ToLower(folder)
-		}
-		return folder
-	}
 	for i, folder := range folders {
 		for j, other := range folders {
 			if i == j {
 				continue
 			}
-			if key(folder) == key(other) {
+			if db.SameFolder(folder, other) {
 				if i < j {
 					return translatef(lang, "This folder is listed twice: %v", folder)
 				}
 				continue
 			}
-			if rel, err := filepath.Rel(key(other), key(folder)); err == nil && rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			if db.FolderInside(folder, other) {
 				return translatef(lang, "%v is inside %v: its files would be read twice. Keep only one of them.", folder, other)
 			}
 		}

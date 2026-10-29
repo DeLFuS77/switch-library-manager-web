@@ -80,10 +80,21 @@ func TestIssueKinds(t *testing.T) {
 	if !deletableIssueKinds[ISSUE_TRUNCATED] || deletableIssueKinds[ISSUE_UNREADABLE] {
 		t.Fatal("only the files cut short are deleted among the unread ones")
 	}
-	if issueCause("unable to determine title-Id / version - failed to read NCA header EOF", "en") == "" ||
-		issueCause("unable to determine title-Id / version - invalid NCA magic", "en") == "" ||
-		issueCause("unable to determine title-Id / version - something else", "en") != "" {
+	cause := func(reason string) string { return issueCause(issueKind(reason), reason, "en") }
+	if cause("unable to determine title-Id / version - failed to read NCA header EOF") == "" ||
+		cause("unable to determine title-Id / version - invalid NCA magic") == "" ||
+		cause("unable to determine title-Id / version - something else") != "" {
 		t.Fatal("the cause in plain words, only when it is known")
+	}
+	// a file that cannot be opened is no file cut short, whatever its name: it was offered to be
+	// deleted with the files cut short for the "EOF" in GAMEOFLIFE.nsp
+	unopened := Issue{Reason: `failed to read NSP [reason: Invalid NSP file, reason - [open C:\roms\GAMEOFLIFE.nsp: Access is denied.]]`}
+	if kind := unopened.kind(); kind != ISSUE_UNREADABLE {
+		t.Fatalf("a file that cannot be opened: %s", kind)
+	}
+	// the scan tells a file cut short by the error of its reader, whatever the text says
+	if kind := (Issue{Reason: "failed to read NSP [reason: a header ends early]", CutShort: true}).kind(); kind != ISSUE_TRUNCATED {
+		t.Fatalf("cut short by the scan: %s", kind)
 	}
 	// a file still being written is cut short too: it is not deleted until it rests
 	dir := t.TempDir()

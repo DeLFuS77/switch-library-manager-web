@@ -238,3 +238,57 @@ func TestMovedRepositoryUrl(t *testing.T) {
 		}
 	}
 }
+
+// A settings file that cannot be read (a power cut while it was written by an older version)
+// gives way to the copy of the settings saved before it, not to the defaults: the folders, the
+// tokens and every choice were lost.
+func TestSettingsComeBackFromTheCopySavedBefore(t *testing.T) {
+	isolateSettings(t)
+	dir := t.TempDir()
+	if err := TrySaveSettings(&AppSettings{Folder: "/first", Port: 8080}, dir); err != nil {
+		t.Fatal(err)
+	}
+	if err := TrySaveSettings(&AppSettings{Folder: "/second", Port: 8080}, dir); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, filepath.Join(dir, SETTINGS_FILENAME), "")
+	settingsInstance.Store(nil)
+	if s := ReadSettings(dir); s.Folder != "/first" || s.Port != 8080 {
+		t.Fatalf("the copy saved before: %+v", s)
+	}
+	if aside, _ := filepath.Glob(filepath.Join(dir, SETTINGS_FILENAME+".corrupt-*")); len(aside) != 1 {
+		t.Fatalf("the file that cannot be read is kept aside: %v", aside)
+	}
+	// and saved again as the settings
+	settingsInstance.Store(nil)
+	if s := ReadSettings(dir); s.Folder != "/first" {
+		t.Fatalf("saved: %+v", s)
+	}
+}
+
+// Settings that cannot be saved are not changed, in memory either: the page said "Saved" and the
+// change was gone at the next start.
+func TestSettingsThatCannotBeSavedStayAsTheyWere(t *testing.T) {
+	isolateSettings(t)
+	dir := t.TempDir()
+	ReadSettings(dir)
+	if _, err := TryUpdateSettings(dir, func(s *AppSettings) { s.Folder = "/before" }); err != nil {
+		t.Fatal(err)
+	}
+	// a folder where the file is written aside: it cannot be
+	blocked := filepath.Join(dir, SETTINGS_FILENAME+".tmp")
+	if err := os.MkdirAll(filepath.Join(blocked, "x"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	current, err := TryUpdateSettings(dir, func(s *AppSettings) { s.Folder = "/after" })
+	if err == nil || current.Folder != "/before" || ReadSettings(dir).Folder != "/before" {
+		t.Fatalf("not changed: %v %+v", err, ReadSettings(dir))
+	}
+	if UpdateSettings(dir, func(s *AppSettings) { s.Folder = "/after" }).Folder != "/before" {
+		t.Fatal("not changed by UpdateSettings either")
+	}
+	saved := &AppSettings{}
+	if err := decodeSettings(filepath.Join(dir, SETTINGS_FILENAME), saved); err != nil || saved.Folder != "/before" {
+		t.Fatalf("the file as it was: %v %+v", err, saved)
+	}
+}

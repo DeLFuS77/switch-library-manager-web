@@ -1724,5 +1724,11 @@ func init() {
 		"%v file selected, %v": "已选择 %v 个文件，%v",
 		"%v game selected, %v": "已选 %v 个游戏，%v",
 		"%v step on":           "已开启 %v 个步骤",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "它与保留的副本是同一个文件，只是经由另一条路径访问，因此不会删除。",
+		// a newer version that could not be read
+		"The newer file could not be read, it was recognized by its name only: keep this one.": "较新的文件无法读取，只能通过文件名识别：请保留这个。",
+		// settings that could not be saved
+		"The settings could not be saved: %v": "无法保存设置：%v",
 	}
 }

@@ -9,6 +9,15 @@ import (
 // its reason.
 var keptPath = regexp.MustCompile(`\((.*[/\\].*)\)$`)
 
+// KeptBy is the file named at the end of the reason of a skipped file: the copy that stays of
+// a duplicate, or the newer version of an older one; empty when it names none.
+func KeptBy(reason string) string {
+	if match := keptPath.FindStringSubmatch(reason); match != nil {
+		return match[1]
+	}
+	return ""
+}
+
 // resolveKeptChains names in the reason of each duplicate and older version the file the
 // library keeps. A file is compared with the one kept at that moment: when a better one comes
 // later, the one kept before is skipped too, and the files compared with it named a file that

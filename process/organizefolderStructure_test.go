@@ -504,7 +504,7 @@ func TestDeleteEmptyFolders(t *testing.T) {
 		ops.record(Operation{Kind: OP_MOVE, From: filepath.Join(root, dir, "x.nsp"), To: filepath.Join(root, "x.nsp")}, nil)
 	}
 	moves := len(ops.operations)
-	ops.deleteEmptyFolders(root, nil)
+	ops.deleteEmptyFolders(root, []string{root}, nil)
 	for _, gone := range []string{"a", "d", "g"} {
 		if _, err := os.Stat(filepath.Join(root, gone)); !os.IsNotExist(err) {
 			t.Errorf("%s stays", gone)
@@ -744,14 +744,14 @@ func TestDeleteFoldersFoundEmpty(t *testing.T) {
 	known := []string{filepath.Join(root, "Empty"), filepath.Join(root, "Thumbs"), filepath.Join(root, "Parent", "Child")}
 
 	preview := newFileOperations(true)
-	preview.deleteEmptyFolders(root, known)
+	preview.deleteEmptyFolders(root, []string{root}, known)
 	if countKind(preview.operations, OP_DELETE) != 3 {
 		t.Fatalf("the preview lists the folders found empty: %+v", preview.operations)
 	}
 	assertExists(t, filepath.Join(root, "Empty"), true)
 
 	ops := newFileOperations(false)
-	ops.deleteEmptyFolders(root, known)
+	ops.deleteEmptyFolders(root, []string{root}, known)
 	for _, folder := range []string{"Empty", "Thumbs", "Parent/Child", "Parent"} {
 		assertExists(t, filepath.Join(root, folder), false)
 	}

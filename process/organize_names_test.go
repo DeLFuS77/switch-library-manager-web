@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -200,5 +201,42 @@ func TestSplitPartsStay(t *testing.T) {
 		if op.Kind != OP_SKIP || op.Reason != REASON_SPLIT {
 			t.Errorf("only skipped: %+v", op)
 		}
+	}
+}
+
+// Without the names for the Switch, a cartridge with several games is named without the
+// characters a disk refuses or a path splits on, and within what a disk takes: "Fate/EXTELLA"
+// made two folders on Linux and "NieR:Automata?" no folder on Windows, and long Japanese names,
+// longer still decomposed, a name the disk refused.
+func TestCartridgeNamesFitTheDisk(t *testing.T) {
+	baseFolder := t.TempDir()
+	card := writeFixture(t, filepath.Join(baseFolder, "card.xci"), "card")
+	game := func(id string) *db.SwitchGameFiles {
+		return &db.SwitchGameFiles{BaseExist: true, MultiContent: true, File: db.SwitchFileInfo{ExtendedInfo: card, Metadata: metadataForID(id, 0)},
+			Updates: map[int]db.SwitchFileInfo{}, Dlc: map[string]db.SwitchFileInfo{}}
+	}
+	local := &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{
+		"0100000000010": game("0100000000010000"),
+		"0100000000020": game("0100000000020000"),
+	}}
+	remote := &db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{
+		"0100000000010": {Attributes: db.TitleAttributes{Id: "0100000000010000", Name: "Fate/EXTELLA "}},
+		"0100000000020": {Attributes: db.TitleAttributes{Id: "0100000000020000", Name: "NieR:Automata?"}},
+	}}
+	options := organizeOptions()
+	options.SwitchSafeFileNames = false
+	ops, err := OrganizeByFolders(baseFolder, local, remote, options, false, nil)
+	if err != nil || len(failedOps(ops)) != 0 {
+		t.Fatalf("organize: %v %+v", err, failedOps(ops))
+	}
+	assertExists(t, filepath.Join(baseFolder, "FateEXTELLA + NieRAutomata", "FateEXTELLA + NieRAutomata [0100000000010000][2 games].xci"), true)
+
+	long := strings.Repeat("ガ", 60)
+	name := collectionName([]string{long, "Second"}, 0)
+	if NameBytes(name) > 130 || !strings.HasPrefix(name, "ガ") || !strings.HasSuffix(name, " + 1 more") {
+		t.Fatalf("a long Japanese name is cut to fit, decomposed: %d bytes, %q", NameBytes(name), name)
+	}
+	if !utf8.ValidString(name) {
+		t.Fatalf("never inside a character: %q", name)
 	}
 }
