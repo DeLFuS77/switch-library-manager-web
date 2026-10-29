@@ -1124,15 +1124,21 @@ func multiGameFiles(localDB *db.LocalSwitchFilesDB) map[string][]string {
 }
 
 // collectionName is the name of a file with several games: their names, the first ones and
-// how many more when they do not fit, or have no name that can be written.
+// how many more when they do not fit, or have no name that can be written. The names are
+// measured as the disk keeps them (see NameBytes), and a first name too long alone is cut on a
+// character boundary: the name of the folder and of the file must fit in what a disk takes.
 func collectionName(names []string, unnamed int) string {
 	const budget = 110
 	if len(names) == 0 {
 		return "Collection"
 	}
 	name := names[0]
+	for runes := []rune(name); NameBytes(name) > budget && len(runes) > 1; {
+		runes = runes[:len(runes)-1]
+		name = strings.TrimRight(string(runes), " -_.")
+	}
 	for i, next := range names[1:] {
-		if len(name)+len(next)+3 > budget {
+		if NameBytes(name)+NameBytes(next)+3 > budget {
 			return fmt.Sprintf("%s + %d more", name, len(names)-1-i+unnamed)
 		}
 		name += " + " + next
@@ -1153,7 +1159,7 @@ func collectionGameName(titlesDB *db.SwitchTitlesDB, key string, local *db.Switc
 	}
 	name := getTitleName(title, local)
 	if !safe {
-		return name
+		return pieceName(name)
 	}
 	if english, ok := titlesDB.LocalizedTitle("en", strings.ToUpper(key)+"000"); ok && readableAscii(english.Name) {
 		name = english.Name
@@ -1164,11 +1170,19 @@ func collectionGameName(titlesDB *db.SwitchTitlesDB, key string, local *db.Switc
 			return ""
 		}
 	}
-	clean := strings.Join(strings.Fields(safeName(name)), " ")
+	clean := pieceName(safeName(name))
 	if letters(clean) == 0 {
 		return ""
 	}
-	return strings.Trim(clean, " -_.")
+	return clean
+}
+
+// pieceName is a name as a part of the name of a file or folder, as the templates write it:
+// without the characters a disk refuses or a path splits on ("Fate/EXTELLA", "NieR:Automata?"),
+// its spaces one by one, and without the dots and spaces at its ends Windows drops.
+func pieceName(name string) string {
+	name = strings.Join(strings.Fields(folderIllegalCharsRegex.ReplaceAllString(name, "")), " ")
+	return strings.Trim(name, " -_.")
 }
 
 // readableAscii tells whether a name is written in latin letters only.
