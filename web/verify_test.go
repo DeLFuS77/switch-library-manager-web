@@ -1,16 +1,24 @@
 package web
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"io"
+	"io/fs"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
 func waitForTask(t *testing.T, web *Web, kind string) Task {
@@ -326,5 +334,114 @@ func TestUnsignedFilesAreAnIssue(t *testing.T) {
 	os.WriteFile(path, []byte("game, changed"), 0o644)
 	if len(store.unsigned()) != 0 {
 		t.Error("a changed file keeps its old result")
+	}
+}
+
+// A file that cannot be read during a check (removed meanwhile, a failed read of the disk or
+// the share) is left unchecked with a warning: never stored as damaged, never in Issues.
+func TestAFileThatCannotBeReadIsNotDamaged(t *testing.T) {
+	web, path := compressWeb(t)
+	original := verifyLibraryFile
+	t.Cleanup(func() { verifyLibraryFile = original })
+	for _, fail := range []func(ctx context.Context, path string, progress func(int64, int64)) (switchfs.FileCheck, error){
+		// a share that failed in the middle of the file
+		func(ctx context.Context, path string, progress func(int64, int64)) (switchfs.FileCheck, error) {
+			return switchfs.FileCheck{}, fmt.Errorf("a.nca: read 3 of 8 bytes: %w", &fs.PathError{Op: "read", Path: path, Err: syscall.EIO})
+		},
+		// the file removed once the list was made
+		func(ctx context.Context, path string, progress func(int64, int64)) (switchfs.FileCheck, error) {
+			data, _ := os.ReadFile(path)
+			os.Remove(path)
+			defer os.WriteFile(path, data, 0o644)
+			return original(ctx, path, progress)
+		},
+	} {
+		verifyLibraryFile = fail
+		web.startVerificationOf([]string{path}, verifyRecheckAll, TRIGGER_MANUAL)
+		task := waitForTask(t, web, TASK_VERIFY)
+		if task.Damaged != 0 || task.Status != TASK_WARNING || len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_VERIFY_UNREADABLE {
+			t.Fatalf("a file that could not be read is no damage: %+v", task)
+		}
+		if len(web.verifications().damaged()) != 0 || len(web.verifications().records) != 0 {
+			t.Fatalf("nothing is kept of it: %+v", web.verifications().records)
+		}
+		for _, issue := range web.getIssues() {
+			if issueKind(issue.Reason) == ISSUE_DAMAGED {
+				t.Fatalf("not in Issues: %+v", issue)
+			}
+		}
+	}
+	for lang, texts := range translations {
+		if texts[NOTE_VERIFY_UNREADABLE] == "" {
+			t.Errorf("%s: no translation of the warning", lang)
+		}
+	}
+	// a fault of what it holds is a damage, the file there and the same
+	verifyLibraryFile = func(ctx context.Context, path string, progress func(int64, int64)) (switchfs.FileCheck, error) {
+		return switchfs.FileCheck{}, errors.New("a.nca: invalid NCZ section table")
+	}
+	web.startVerificationOf([]string{path}, verifyRecheckAll, TRIGGER_MANUAL)
+	if task := waitForTask(t, web, TASK_VERIFY); task.Damaged != 1 || len(web.verifications().damaged()) != 1 {
+		t.Fatalf("a fault of the contents is a damage: %+v", task)
+	}
+}
+
+// A failure says nothing of what a file holds when the file changed or went away meanwhile.
+func TestReadFailures(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "Game.nsp")
+	os.WriteFile(path, []byte("game"), 0o644)
+	before, _ := os.Stat(path)
+	content := errors.New("a.nca does not match its content ID: the file is damaged or was modified")
+	if readFailure(path, before, content) != content || compressDamage(readFailure(path, before, content)) != true {
+		t.Fatal("a fault of the contents of a file that stays the same is a damage")
+	}
+	if err := readFailure(path, before, fmt.Errorf("x: %w", &fs.PathError{Op: "open", Path: path, Err: syscall.ENOENT})); !notContent(err) || compressDamage(err) || !fileGone(err) {
+		t.Fatalf("a file that cannot be opened is no damage, and gone: %v", err)
+	}
+	cut := fmt.Errorf("read 3 of 8 bytes: %w", io.ErrUnexpectedEOF)
+	os.WriteFile(path, []byte("game, still being copied"), 0o644)
+	if err := readFailure(path, before, cut); compressDamage(err) || compressNote(TASK_COMPRESS, err) == NOTE_COMPRESS_DAMAGED {
+		t.Fatalf("a file that grew while it was read is no damage: %v", err)
+	}
+	os.Remove(path)
+	if err := readFailure(path, before, content); !notContent(err) {
+		t.Fatalf("a file gone meanwhile is no damage: %v", err)
+	}
+	if err := readFailure(path, before, context.Canceled); notContent(err) {
+		t.Fatal("a cancel stays a cancel")
+	}
+}
+
+// The bulk deletion of the damaged files of Issues deletes a file only if the current check
+// found it damaged as it is now, and it reads: an older check could have taken a read that
+// failed for a damage.
+func TestIssuesDeleteDamagedFilesChecksThemAgain(t *testing.T) {
+	web, _, separate := keepWeb(t)
+	t.Cleanup(func() {
+		for deadline := 0; web.state.IsSynchronizing() && deadline < 200; deadline++ {
+			waitShort()
+		}
+	})
+	info, _ := os.Stat(separate)
+	store := web.verifications()
+	store.set(separate, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Reason: "damaged file: open: in use", Checker: verifyChecker - 1})
+	web.invalidateDerived()
+	if response := postForm(web, "/issues/delete", url.Values{"kind": {ISSUE_DAMAGED}}); response.Code != http.StatusOK || !strings.Contains(response.Body.String(), `"deleted":0`) {
+		t.Fatalf("a damage of an older check is checked again first: %d %s", response.Code, response.Body.String())
+	}
+	if _, err := os.Stat(separate); err != nil {
+		t.Fatal("the file stays")
+	}
+	// the scan that followed made the library again: the file is asked for as such
+	file := []db.ExtendedFileInfo{{FileName: filepath.Base(separate), BaseFolder: filepath.Dir(separate), Size: info.Size()}}
+	if files := web.stillOfNoUse(file, ISSUE_DAMAGED); len(files) != 0 {
+		t.Fatalf("still not: %+v", files)
+	}
+	store.set(separate, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Reason: "damaged file: x", Checker: verifyChecker})
+	if files := web.stillOfNoUse(file, ISSUE_DAMAGED); len(files) != 1 {
+		t.Fatalf("a damage the current check found goes: %+v", files)
+	}
+	if readsNow(filepath.Join(filepath.Dir(separate), "gone.nsz")) {
+		t.Fatal("a file gone does not read")
 	}
 }

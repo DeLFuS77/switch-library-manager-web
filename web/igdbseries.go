@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -34,12 +33,14 @@ type igdbCollectionStore struct {
 	mutex       sync.Mutex
 	path        string
 	collections map[int]igdbCollection
+	// one save at a time: an older one never ends after a newer one
+	saving sync.Mutex
 }
 
 func (web *Web) igdbCollections() *igdbCollectionStore {
 	web.igdbSeriesOnce.Do(func() {
 		store := &igdbCollectionStore{path: filepath.Join(web.dataFolder, IGDB_SERIES_FILENAME), collections: map[int]igdbCollection{}}
-		if data, err := os.ReadFile(store.path); err == nil {
+		if data, ok := readStore(store.path); ok {
 			parseStore(store.path, data, &store.collections)
 		}
 		web.igdbSeries = store
@@ -64,6 +65,8 @@ func (s *igdbCollectionStore) set(id int, collection igdbCollection) {
 }
 
 func (s *igdbCollectionStore) save() error {
+	s.saving.Lock()
+	defer s.saving.Unlock()
 	s.mutex.Lock()
 	data, err := json.Marshal(s.collections)
 	s.mutex.Unlock()

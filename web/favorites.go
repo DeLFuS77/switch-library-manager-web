@@ -2,12 +2,16 @@ package web
 
 import (
 	"encoding/json"
+	"errors"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // Favorites are the games of the library the user likes most, marked with a star. They are
@@ -23,12 +27,14 @@ type favoriteStore struct {
 	path  string
 	// by upper case title ID: when the game was marked
 	games map[string]time.Time
+	// one save at a time: an older one never ends after a newer one
+	saving sync.Mutex
 }
 
 func (web *Web) favorites() *favoriteStore {
 	web.favoritesOnce.Do(func() {
 		store := &favoriteStore{path: filepath.Join(web.dataFolder, FAVORITES_FILENAME)}
-		if _, err := os.Stat(store.path); err != nil {
+		if _, err := os.Stat(store.path); errors.Is(err, fs.ErrNotExist) {
 			store.games = map[string]time.Time{}
 			web.migrateFavoriteCollection(store)
 		} else {
@@ -69,7 +75,7 @@ func (web *Web) migrateFavoriteCollection(store *favoriteStore) {
 // reload reads the favorites again, also after a backup was restored.
 func (f *favoriteStore) reload() {
 	games := map[string]time.Time{}
-	if data, err := os.ReadFile(f.path); err == nil {
+	if data, ok := readStore(f.path); ok {
 		parseStore(f.path, data, &games)
 	}
 	f.mutex.Lock()
@@ -110,7 +116,9 @@ func (f *favoriteStore) set(id string, favorite bool) bool {
 		delete(f.games, id)
 	}
 	f.mutex.Unlock()
-	f.save()
+	if err := f.save(); err != nil {
+		zap.S().Errorf("The favorites could not be saved: %v", err)
+	}
 	return true
 }
 
@@ -125,13 +133,18 @@ func (f *favoriteStore) snapshotTimes() map[string]time.Time {
 	return times
 }
 
-func (f *favoriteStore) save() {
+// save writes the favorites as they are when it starts: saves made at the same time each
+// write a newer state than the one before, so the last one written holds every change.
+func (f *favoriteStore) save() error {
+	f.saving.Lock()
+	defer f.saving.Unlock()
 	f.mutex.Lock()
 	data, err := json.MarshalIndent(f.games, "", " ")
 	f.mutex.Unlock()
-	if err == nil {
-		writeFileAtomic(f.path, data)
+	if err != nil {
+		return err
 	}
+	return writeFileAtomic(f.path, data)
 }
 
 func (web *Web) HandleFavorites() {

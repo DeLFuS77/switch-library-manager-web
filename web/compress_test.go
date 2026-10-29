@@ -548,6 +548,48 @@ func TestCompressionPause(t *testing.T) {
 	}
 }
 
+// A pause asked while a task that cannot pause works (a check) is refused: it would stay set
+// and hold the next compression for good, shown on the task before.
+func TestPauseOnlyHoldsTasksThatPause(t *testing.T) {
+	web, path := compressWeb(t)
+	original := verifyLibraryFile
+	t.Cleanup(func() { verifyLibraryFile = original })
+	reading, gate := make(chan struct{}), make(chan struct{})
+	verifyLibraryFile = func(ctx context.Context, path string, progress func(int64, int64)) (switchfs.FileCheck, error) {
+		close(reading)
+		<-gate
+		return original(ctx, path, progress)
+	}
+	web.startVerificationOf([]string{path}, verifyRecheckAll, TRIGGER_MANUAL)
+	<-reading
+	if web.pauseCompression(true) {
+		t.Fatal("a check is not paused")
+	}
+	close(gate)
+	checked := waitForTask(t, web, TASK_VERIFY)
+	if checked.Paused {
+		t.Fatal("the check is not marked paused")
+	}
+
+	ran := make(chan struct{}, 1)
+	web.runFileTask(TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+		report(0)(1, 1)
+		ran <- struct{}{}
+		return 0, nil
+	})
+	select {
+	case <-ran:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the next compression is not held")
+	}
+	waitForCompression(t, web)
+	web.compressor.mutex.Lock()
+	defer web.compressor.mutex.Unlock()
+	if web.compressor.paused || web.compressor.kind != "" || web.compressor.taskId != 0 {
+		t.Fatalf("nothing is left of the tasks: %v %q %d", web.compressor.paused, web.compressor.kind, web.compressor.taskId)
+	}
+}
+
 // The files of a compression go by name, not the biggest first, and their sizes follow them.
 func TestSortedByName(t *testing.T) {
 	paths := []string{"/b/Zelda.nsp", "/a/mario.nsp", "/c/Animal.nsp", "/a/Mario.nsp"}

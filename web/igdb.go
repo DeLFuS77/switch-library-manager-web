@@ -100,12 +100,14 @@ type timeToBeatStore struct {
 	path  string
 	// by upper case title ID
 	games map[string]TimeToBeat
+	// one save at a time: an older one never ends after a newer one
+	saving sync.Mutex
 }
 
 func (web *Web) timesToBeat() *timeToBeatStore {
 	web.timeToBeatOnce.Do(func() {
 		store := &timeToBeatStore{path: filepath.Join(web.dataFolder, TIMETOBEAT_FILENAME), games: map[string]TimeToBeat{}}
-		if data, err := os.ReadFile(store.path); err == nil {
+		if data, ok := readStore(store.path); ok {
 			parseStore(store.path, data, &store.games)
 		}
 		web.timeToBeat = store
@@ -149,6 +151,8 @@ func (s *timeToBeatStore) hasKnown() bool {
 }
 
 func (s *timeToBeatStore) save() error {
+	s.saving.Lock()
+	defer s.saving.Unlock()
 	s.mutex.Lock()
 	data, err := json.Marshal(s.games)
 	s.mutex.Unlock()

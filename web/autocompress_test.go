@@ -1,6 +1,9 @@
 package web
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -92,5 +95,21 @@ func TestNightlyCompressRunsOncePerNight(t *testing.T) {
 	web.state.endSync()
 	if !web.nightlyCompressDue(night.Add(time.Minute)) {
 		t.Fatal("tried again while a scan kept it from starting")
+	}
+}
+
+// A compression cancelled, or of a file that could not be read, is not a failure: the file is
+// offered again by the next automatic compression.
+func TestAutoCompressTriesACancelledFileAgain(t *testing.T) {
+	web, path := compressWeb(t)
+	for _, err := range []error{context.Canceled, fmt.Errorf("x: %w", context.Canceled), &notContentError{errors.New("in use")}, errCompressSpace, nil} {
+		web.noteAutoCompressFailure(path, err)
+	}
+	if len(web.auto.failed) != 0 {
+		t.Fatalf("not failures: %v", web.auto.failed)
+	}
+	web.noteAutoCompressFailure(path, errors.New("a.nca does not match its content ID: the file is damaged or was modified"))
+	if len(web.auto.failed) != 1 {
+		t.Fatal("a damaged file is not tried again")
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -25,6 +26,8 @@ const (
 	NOTE_VERIFY_DAMAGED  = "The file is damaged or was modified."
 	NOTE_VERIFY_FAILED   = "The files could not be checked."
 	NOTE_VERIFY_UNSIGNED = "An NCA is not signed by Nintendo: a tool rewrote it."
+	// a file that could not be read (gone, in use, a disk or a share that failed): not damaged
+	NOTE_VERIFY_UNREADABLE = "The file could not be read, it was left unchecked."
 )
 
 // allowed values of verify_interval_days; 0 disables scheduled verification
@@ -51,8 +54,13 @@ type verifyRecord struct {
 // (updates with many sections, block compression) and tells NCA files rewritten by a tool
 // apart from damaged ones: files found damaged by an older version are checked again.
 // Version 3 reads the hashes of the sections past 4 GB of an NCA: rewritten NCA files of
-// big games found intact by an older version are checked again.
-const verifyChecker = 3
+// big games found intact by an older version are checked again. Version 4 tells a file that
+// could not be read (in use, gone, a disk or a share that failed) from a damaged one: files
+// found damaged by an older version are checked again.
+const verifyChecker = 4
+
+// verifyCheckerIntact is the oldest version whose rewritten NCA files found intact still stand.
+const verifyCheckerIntact = 3
 
 // sound tells a file checked whole and found sound: only such a copy lets another one be
 // deleted.
@@ -64,7 +72,10 @@ func (r verifyRecord) sound() bool {
 // rewritten NCA found intact without the hashes of its sections past 4 GB. Other sound files
 // matched the SHA-256 of their content IDs, which no version got wrong.
 func (r verifyRecord) stale() bool {
-	return (!r.OK || r.Modified) && r.Checker < verifyChecker
+	if !r.OK {
+		return r.Checker < verifyChecker
+	}
+	return r.Modified && r.Checker < verifyCheckerIntact
 }
 
 // signatureRecord is what a check of the signatures found in a file, valid while its size and
@@ -111,7 +122,7 @@ type verifyFile struct {
 
 func loadVerifyStore(dataFolder string) *verifyStore {
 	store := &verifyStore{path: filepath.Join(dataFolder, VERIFY_FILENAME), records: map[string]verifyRecord{}, signatures: map[string]signatureRecord{}}
-	if data, err := os.ReadFile(store.path); err == nil {
+	if data, ok := readStore(store.path); ok {
 		saved := verifyFile{}
 		if parseStore(store.path, data, &saved) == nil && saved.Records != nil {
 			store.records = saved.Records
@@ -409,6 +420,19 @@ func (s *verifyStore) foundDamaged(path string) bool {
 	return ok && !record.OK && record.Size == info.Size() && record.ModTime == info.ModTime().UnixNano()
 }
 
+// stillDamaged tells whether a file is, as it is now, the one the current check found damaged
+// by its contents: what deleting it as of no use relies on.
+func (s *verifyStore) stillDamaged(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil || info.IsDir() {
+		return false
+	}
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	record, ok := s.records[path]
+	return ok && !record.OK && !record.stale() && record.Size == info.Size() && record.ModTime == info.ModTime().UnixNano()
+}
+
 // damaged returns the files found damaged that are still unchanged, by path.
 func (s *verifyStore) damaged() map[string]string {
 	s.mutex.Lock()
@@ -481,8 +505,54 @@ func statFiles(paths []string, workers int) []os.FileInfo {
 // verifyLibraryFile checks one file: every NCA against its content ID (NSZ and XCZ files
 // decompressed), and an NCA that does not match it against the hashes of its data, to
 // tell one rewritten by a tool from a damaged one.
-func verifyLibraryFile(ctx context.Context, path string, progress func(int64, int64)) (switchfs.FileCheck, error) {
+var verifyLibraryFile = func(ctx context.Context, path string, progress func(int64, int64)) (switchfs.FileCheck, error) {
 	return switchfs.VerifyFile(ctx, path, progress)
+}
+
+// notContentError is a failure that tells nothing of what a file holds: the file could not be
+// read (gone, in use by another program, a disk or a network share that failed, changed while
+// it was read), or what failed was the copy written from it. Only what a file holds tells it
+// damaged.
+type notContentError struct{ err error }
+
+func (e *notContentError) Error() string { return e.err.Error() }
+func (e *notContentError) Unwrap() error { return e.err }
+
+// notContent tells a failure that is not of what the file holds (see notContentError).
+func notContent(err error) bool {
+	var wrapped *notContentError
+	return errors.As(err, &wrapped)
+}
+
+// readFailure gives the error of reading the file at path, as it was before (its size and
+// time), as a notContentError when the file could not be read: else as it is.
+func readFailure(path string, before os.FileInfo, err error) error {
+	if err == nil || errors.Is(err, context.Canceled) || notContent(err) || !unreadable(path, before, err) {
+		return err
+	}
+	return &notContentError{err}
+}
+
+// unreadable tells a check that failed on reading the file, not on what it holds: the system
+// refused or failed a read (the file is gone or in use, the disk or the share failed), or the
+// file is no longer there as it was (a share that dropped, a file still being copied).
+func unreadable(path string, before os.FileInfo, err error) bool {
+	var pathError *fs.PathError
+	if errors.As(err, &pathError) {
+		return true
+	}
+	// the error of a read can reach the check in other words: the file must still be there,
+	// the same, and open
+	info, statErr := os.Stat(path)
+	if statErr != nil || before == nil || info.Size() != before.Size() || !info.ModTime().Equal(before.ModTime()) {
+		return true
+	}
+	file, openErr := os.Open(path)
+	if openErr != nil {
+		return true
+	}
+	file.Close()
+	return false
 }
 
 // files checked again by a scheduled verification once their last check is this old
@@ -541,16 +611,14 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 		return false
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	web.compressor.cancel = cancel
+	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, TASK_VERIFY, 0
 	web.compressor.mutex.Unlock()
 
 	store := web.verifications()
 	taskId := web.taskLog().Start(TASK_VERIFY, trigger)
 	go func() {
 		defer func() {
-			web.compressor.mutex.Lock()
-			web.compressor.cancel = nil
-			web.compressor.mutex.Unlock()
+			web.releaseFiles()
 			cancel()
 			// the files are free: the next task of the queue
 			go web.runQueue()
@@ -634,6 +702,7 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 			laneSizes  = make([]int64, workers)
 			checked    int
 			damaged    int
+			unread     int // files that could not be read, left unchecked
 			lastReport time.Time
 			lastSave   = time.Now()
 			failure    *TaskNote
@@ -655,7 +724,7 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 				}
 			}
 			// the files checked: one being read is counted once it is done
-			web.taskLog().ProgressFiles(taskId, int(done>>20), int(total>>20), name, checked, len(files), lanes)
+			web.taskLog().ProgressFiles(taskId, int(done>>20), int(total>>20), name, checked+unread, len(files), lanes)
 		}
 		// a scheduled verification stops when the background hours end and goes on the next time
 		stopped := func() bool {
@@ -704,6 +773,16 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 						mutex.Unlock()
 						return
 					}
+					// a file that could not be read stays unchecked: in use, gone, or on a disk or a
+					// share that failed, it is not damaged
+					if err != nil && unreadable(file.path, file.info, err) {
+						unread++
+						web.taskLog().Warn(taskId, NOTE_VERIFY_UNREADABLE, name+": "+err.Error())
+						web.taskLog().SkipFileTile(taskId, name, NOTE_VERIFY_UNREADABLE)
+						report(name, true)
+						mutex.Unlock()
+						continue
+					}
 					record := verifyRecord{Size: file.info.Size(), ModTime: file.info.ModTime().UnixNano(), OK: err == nil, Checked: time.Now(),
 						Modified: err == nil && len(check.Modified) > 0, Partial: err == nil && check.Partial, Checker: verifyChecker}
 					note := ""
@@ -733,7 +812,9 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 		}
 		wait.Wait()
 
-		finished := checked == len(files)
+		// a file that could not be read was gone through too: the next run of the schedule does
+		// not start again at once for it
+		finished := checked+unread == len(files)
 		switch {
 		case ctx.Err() != nil:
 			failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
@@ -766,16 +847,14 @@ func (web *Web) startSignatureCheck(all bool, trigger string) bool {
 		return false
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	web.compressor.cancel = cancel
+	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, TASK_VERIFY, 0
 	web.compressor.mutex.Unlock()
 
 	store := web.verifications()
 	taskId := web.taskLog().Start(TASK_VERIFY, trigger)
 	go func() {
 		defer func() {
-			web.compressor.mutex.Lock()
-			web.compressor.cancel = nil
-			web.compressor.mutex.Unlock()
+			web.releaseFiles()
 			cancel()
 			go web.runQueue()
 		}()

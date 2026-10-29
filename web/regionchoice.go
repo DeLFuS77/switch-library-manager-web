@@ -3,7 +3,6 @@ package web
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -26,7 +25,7 @@ type regionChoices struct {
 func (web *Web) regionChoices() *regionChoices {
 	web.regionChoiceOnce.Do(func() {
 		store := &regionChoices{path: filepath.Join(web.dataFolder, REGION_CHOICES_FILENAME), ids: map[string]bool{}}
-		if data, err := os.ReadFile(store.path); err == nil {
+		if data, ok := readStore(store.path); ok {
 			parseStore(store.path, data, &store.ids)
 		}
 		if store.ids == nil {

@@ -177,6 +177,8 @@ type Web struct {
 	// the scans of the library that ended well, for the watcher to know one followed a task
 	// on the files
 	scansDone atomic.Uint64
+	// the last scan the app asked for after changing the files itself (see noteAppScan)
+	appScan atomic.Pointer[appScanRequest]
 	// when the scan running or last run started, and a rescan asked while it ran (the files
 	// changed meanwhile, e.g. a compression ended), done once it ends
 	scanStarted   atomic.Int64

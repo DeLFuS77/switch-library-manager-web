@@ -53,6 +53,20 @@ func (web *Web) derived(name string, compute func() any) any {
 	return value
 }
 
+// derivedLatest is derived for a value kept in versions, family being the start of their names
+// ("space:" of "space:12"): the older versions go once a newer one is asked for, instead of
+// staying until the library or the settings change.
+func (web *Web) derivedLatest(family string, name string, compute func() any) any {
+	web.cache.mutex.Lock()
+	for key := range web.cache.values {
+		if key != name && strings.HasPrefix(key, family) {
+			delete(web.cache.values, key)
+		}
+	}
+	web.cache.mutex.Unlock()
+	return web.derived(name, compute)
+}
+
 // sorted returns the cached items of a list (name) in the order of the filter. Filtering
 // keeps the order, so each request only walks the sorted list instead of sorting it.
 func (web *Web) sorted(name string, filter *TitleItemFilter, build func() []TitleItem) []TitleItem {

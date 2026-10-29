@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -46,7 +45,7 @@ func (web *Web) smartCollections() *smartCollectionStore {
 // reload reads them again, also after a backup was restored.
 func (s *smartCollectionStore) reload() {
 	items := []SmartCollection{}
-	if data, err := os.ReadFile(s.path); err == nil {
+	if data, ok := readStore(s.path); ok {
 		parseStore(s.path, data, &items)
 	}
 	if items == nil {

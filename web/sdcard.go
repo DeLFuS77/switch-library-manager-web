@@ -154,7 +154,7 @@ func sdGameFiles(local *db.SwitchGameFiles, dlc bool) []db.ExtendedFileInfo {
 // sdPlan is kept for each choice of options until the library, the settings, the favorites or
 // the collections change: working it out walks the whole library, the slowest page of a big one.
 func (web *Web) sdPlan(options SdOptions, lang string) SdPlan {
-	return web.derived(fmt.Sprintf("sdPlan:%s|%+v", lang, options), func() any {
+	return web.derivedLatest("sdPlan:", fmt.Sprintf("sdPlan:%s|%+v", lang, options), func() any {
 		return web.buildSdPlan(options, lang)
 	}).(SdPlan)
 }
@@ -387,15 +387,13 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 		return false
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	web.compressor.cancel = cancel
+	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, TASK_COPY, 0
 	web.compressor.mutex.Unlock()
 
 	taskId := web.taskLog().Start(TASK_COPY, TRIGGER_MANUAL)
 	go func() {
 		defer func() {
-			web.compressor.mutex.Lock()
-			web.compressor.cancel = nil
-			web.compressor.mutex.Unlock()
+			web.releaseFiles()
 			cancel()
 			// the files are free: the next task of the queue
 			go web.runQueue()

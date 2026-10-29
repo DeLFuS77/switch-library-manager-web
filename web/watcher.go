@@ -66,6 +66,26 @@ type folderWatcher struct {
 	waitedScan uint64
 	// the last time the watcher saw a task on the files running
 	busySeen time.Time
+	// the last scan asked for by the app that the watcher took into account, and the last change
+	// the folders reported
+	appScanAt time.Time
+	lastEvent time.Time
+}
+
+// appScanRequest is a scan the app asked for after it changed the files (a task on files,
+// Organize, a cleanup, an upload), with the scans done by then.
+type appScanRequest struct {
+	at    time.Time
+	scans uint64
+}
+
+// noteAppScan tells the watcher that the scan about to start follows changes the app made to
+// the files itself (a task on files, Organize, an upload): a task too short for the watcher to
+// see it running is not scanned again a few seconds after its own scan.
+func (web *Web) noteAppScan(trigger string) {
+	if trigger == TRIGGER_COMPRESS || trigger == TRIGGER_ORGANIZE || trigger == TRIGGER_UPLOAD {
+		web.appScan.Store(&appScanRequest{at: time.Now(), scans: web.scansDone.Load()})
+	}
 }
 
 // StartFolderWatcher watches the library folders and rescans the library when files are
@@ -127,6 +147,7 @@ func (w *folderWatcher) run() {
 					w.add(event.Name)
 				}
 			}
+			w.lastEvent = time.Now()
 			quiet.Reset(watchQuietPeriod)
 		case err, ok := <-errs:
 			if !ok {
@@ -161,12 +182,13 @@ func (w *folderWatcher) waiting() bool {
 		return true
 	}
 	if !w.waited {
-		return false
+		return w.coveredByAppScan()
 	}
 	// only a scan that started once the task had ended covers what it changed: one started
 	// meanwhile (a synchronization asked during a long check) missed what came after it
 	if w.web.scansDone.Load() > w.waitedScan && time.Unix(0, w.web.scanStarted.Load()).After(w.busySeen) {
 		w.waited = false
+		w.appScanSeen()
 		current := w.fingerprint()
 		w.lastCheck, w.scanned = current, current
 		w.web.watchFingerprint.Store(current)
@@ -180,6 +202,39 @@ func (w *folderWatcher) waiting() bool {
 	// the task did not scan: the watcher does, if the files changed
 	w.waited = false
 	return false
+}
+
+// coveredByAppScan tells whether the changes the watcher found are the ones of a task it did
+// not see running, which the scan the app asked for at its end covers: waited for while that
+// scan runs, and taken for scanned once it ended, when the folders reported no change since it
+// began (the events of the task itself reach the watcher a moment late). Without notifications
+// of the changes, a scan that failed or a change since, the folders are left to the watcher.
+func (w *folderWatcher) coveredByAppScan() bool {
+	asked := w.web.appScan.Load()
+	if w.notify == nil || asked == nil || !asked.at.After(w.appScanAt) {
+		return false
+	}
+	if w.web.state.IsSynchronizing() {
+		return true
+	}
+	w.appScanAt = asked.at
+	started := time.Unix(0, w.web.scanStarted.Load())
+	if w.web.scansDone.Load() <= asked.scans || started.Before(asked.at) || w.lastEvent.After(started.Add(time.Second)) {
+		return false
+	}
+	current := w.fingerprint()
+	w.lastCheck, w.scanned = current, current
+	w.web.watchFingerprint.Store(current)
+	w.web.saveWatchFingerprint()
+	return true
+}
+
+// appScanSeen marks the scans the app asked for so far as taken into account: a later look at
+// the folders never takes their changes for those of the app.
+func (w *folderWatcher) appScanSeen() {
+	if asked := w.web.appScan.Load(); asked != nil && asked.at.After(w.appScanAt) {
+		w.appScanAt = asked.at
+	}
 }
 
 // checkStable scans the library if the folders changed and stopped changing.
@@ -217,6 +272,7 @@ func (w *folderWatcher) scanIfChanged(fingerprint uint64) {
 	// walks the folders again; the metadata of unchanged files comes from the cache, so this is quick
 	w.web.watchFingerprint.Store(fingerprint)
 	if w.web.scanInBackground(true, TRIGGER_WATCHER) {
+		w.appScanSeen()
 		w.scanned = fingerprint
 		w.web.sugarLogger.Info("[Library folders changed, scanning]")
 	}

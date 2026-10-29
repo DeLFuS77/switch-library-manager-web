@@ -3,7 +3,6 @@ package web
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -46,7 +45,7 @@ func (web *Web) collections() *collectionStore {
 // reload reads the collections again, also after a backup was restored.
 func (c *collectionStore) reload() {
 	games := map[string][]string{}
-	if data, err := os.ReadFile(c.path); err == nil {
+	if data, ok := readStore(c.path); ok {
 		parseStore(c.path, data, &games)
 	}
 	c.mutex.Lock()
