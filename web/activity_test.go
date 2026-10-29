@@ -1,10 +1,14 @@
 package web
 
 import (
+	"encoding/csv"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestActivityAndLanguagePerUser(t *testing.T) {
@@ -35,6 +39,25 @@ func TestActivityAndLanguagePerUser(t *testing.T) {
 	c.do(http.MethodPost, "/account/language", url.Values{"language": {""}})
 	if page := c.do(http.MethodGet, "/users.html", nil, "Accept-Language", "en"); !strings.Contains(page.Body.String(), "Activity") {
 		t.Fatal("without a language of their own, users see the language of the app or browser")
+	}
+}
+
+// The log as a spreadsheet: a name tried at the login page, or a value of a form, that starts
+// like a formula is not read as one.
+func TestActivityCsvHasNoFormulas(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.HandleActivity()
+	web.activities().add(Activity{Time: time.Now(), User: "=HYPERLINK(\"x\")", Action: ACTION_LOGIN_FAIL, Detail: "+cmd", IP: "@1"})
+	web.activities().add(Activity{Time: time.Now(), User: "ana", Action: ACTION_VERIFY, Detail: "-all"})
+	recorder := httptest.NewRecorder()
+	web.router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/activity.csv", nil))
+	rows, err := csv.NewReader(recorder.Body).ReadAll()
+	if err != nil || len(rows) != 3 {
+		t.Fatalf("%v %v", rows, err)
+	}
+	if rows[1][1] != "ana" || rows[1][3] != "'-all" || rows[2][1] != "'=HYPERLINK(\"x\")" || rows[2][3] != "'+cmd" || rows[2][4] != "'@1" {
+		t.Fatalf("cells that start like a formula: %q", rows)
 	}
 }
 
