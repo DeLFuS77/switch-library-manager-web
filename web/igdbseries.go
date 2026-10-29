@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -41,7 +40,7 @@ type igdbCollectionStore struct {
 func (web *Web) igdbCollections() *igdbCollectionStore {
 	web.igdbSeriesOnce.Do(func() {
 		store := &igdbCollectionStore{path: filepath.Join(web.dataFolder, IGDB_SERIES_FILENAME), collections: map[int]igdbCollection{}}
-		if data, err := os.ReadFile(store.path); err == nil {
+		if data, ok := readStore(store.path); ok {
 			parseStore(store.path, data, &store.collections)
 		}
 		web.igdbSeries = store

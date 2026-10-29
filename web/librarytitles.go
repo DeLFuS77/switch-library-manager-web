@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -50,7 +49,7 @@ type igdbTitleStore struct {
 func (web *Web) igdbTitles() *igdbTitleStore {
 	web.igdbTitlesOnce.Do(func() {
 		store := &igdbTitleStore{path: filepath.Join(web.dataFolder, IGDB_TITLES_FILENAME), games: map[string]IgdbTitle{}}
-		if data, err := os.ReadFile(store.path); err == nil {
+		if data, ok := readStore(store.path); ok {
 			parseStore(store.path, data, &store.games)
 		}
 		web.igdbTitlesStore = store

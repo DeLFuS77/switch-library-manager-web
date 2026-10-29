@@ -107,7 +107,7 @@ type timeToBeatStore struct {
 func (web *Web) timesToBeat() *timeToBeatStore {
 	web.timeToBeatOnce.Do(func() {
 		store := &timeToBeatStore{path: filepath.Join(web.dataFolder, TIMETOBEAT_FILENAME), games: map[string]TimeToBeat{}}
-		if data, err := os.ReadFile(store.path); err == nil {
+		if data, ok := readStore(store.path); ok {
 			parseStore(store.path, data, &store.games)
 		}
 		web.timeToBeat = store

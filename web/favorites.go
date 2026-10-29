@@ -2,6 +2,8 @@ package web
 
 import (
 	"encoding/json"
+	"errors"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -32,7 +34,7 @@ type favoriteStore struct {
 func (web *Web) favorites() *favoriteStore {
 	web.favoritesOnce.Do(func() {
 		store := &favoriteStore{path: filepath.Join(web.dataFolder, FAVORITES_FILENAME)}
-		if _, err := os.Stat(store.path); err != nil {
+		if _, err := os.Stat(store.path); errors.Is(err, fs.ErrNotExist) {
 			store.games = map[string]time.Time{}
 			web.migrateFavoriteCollection(store)
 		} else {
@@ -73,7 +75,7 @@ func (web *Web) migrateFavoriteCollection(store *favoriteStore) {
 // reload reads the favorites again, also after a backup was restored.
 func (f *favoriteStore) reload() {
 	games := map[string]time.Time{}
-	if data, err := os.ReadFile(f.path); err == nil {
+	if data, ok := readStore(f.path); ok {
 		parseStore(f.path, data, &games)
 	}
 	f.mutex.Lock()

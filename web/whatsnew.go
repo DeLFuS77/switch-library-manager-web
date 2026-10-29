@@ -39,7 +39,7 @@ type WhatsNew struct {
 func (web *Web) recordVersion() {
 	path := filepath.Join(web.dataFolder, VERSION_FILENAME)
 	record := versionRecord{}
-	if data, err := os.ReadFile(path); err == nil {
+	if data, ok := readStore(path); ok {
 		parseStore(path, data, &record)
 	} else if _, err := os.Stat(filepath.Join(web.dataFolder, "slm.db")); err == nil {
 		record.Version = "?"

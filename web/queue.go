@@ -3,7 +3,6 @@ package web
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -68,7 +67,7 @@ type queueFile struct {
 
 func loadTaskQueue(path string) *taskQueue {
 	queue := &taskQueue{path: path}
-	if data, err := os.ReadFile(path); err == nil {
+	if data, ok := readStore(path); ok {
 		saved := queueFile{}
 		if parseStore(path, data, &saved) == nil {
 			queue.items, queue.nextId, queue.started = saved.Items, saved.LastId, saved.Started

@@ -122,7 +122,7 @@ type verifyFile struct {
 
 func loadVerifyStore(dataFolder string) *verifyStore {
 	store := &verifyStore{path: filepath.Join(dataFolder, VERIFY_FILENAME), records: map[string]verifyRecord{}, signatures: map[string]signatureRecord{}}
-	if data, err := os.ReadFile(store.path); err == nil {
+	if data, ok := readStore(store.path); ok {
 		saved := verifyFile{}
 		if parseStore(store.path, data, &saved) == nil && saved.Records != nil {
 			store.records = saved.Records

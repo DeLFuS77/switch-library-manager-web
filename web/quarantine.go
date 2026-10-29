@@ -95,7 +95,7 @@ func (web *Web) quarantine() *quarantineStore {
 
 func loadQuarantine(dataFolder string) *quarantineStore {
 	store := &quarantineStore{path: filepath.Join(dataFolder, QUARANTINE_FILENAME)}
-	if data, err := os.ReadFile(store.path); err == nil {
+	if data, ok := readStore(store.path); ok {
 		parseStore(store.path, data, &store.items)
 	}
 	return store

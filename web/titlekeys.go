@@ -35,7 +35,7 @@ type titleKeyStore struct {
 func (web *Web) titleKeys() *titleKeyStore {
 	web.titleKeysOnce.Do(func() {
 		store := &titleKeyStore{path: filepath.Join(web.dataFolder, TITLEKEYS_FILENAME), files: map[string]titleKeyCheck{}}
-		if data, err := os.ReadFile(store.path); err == nil {
+		if data, ok := readStore(store.path); ok {
 			parseStore(store.path, data, &store.files)
 		}
 		if store.files == nil {

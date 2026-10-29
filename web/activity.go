@@ -3,7 +3,6 @@ package web
 import (
 	"encoding/json"
 	"net/http"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -95,7 +94,7 @@ func (web *Web) activities() *activityLog {
 // reload reads the log again, also after a backup was restored.
 func (l *activityLog) reload() {
 	entries := []Activity{}
-	if data, err := os.ReadFile(l.path); err == nil {
+	if data, ok := readStore(l.path); ok {
 		parseStore(l.path, data, &entries)
 	}
 	l.mutex.Lock()

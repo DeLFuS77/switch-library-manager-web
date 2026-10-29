@@ -2,7 +2,6 @@ package web
 
 import (
 	"encoding/json"
-	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -95,7 +94,7 @@ func (web *Web) history() *libraryHistory {
 // reload reads the history again, also after a backup was restored.
 func (h *libraryHistory) reload() {
 	data := historyData{}
-	if bytes, err := os.ReadFile(h.path); err == nil {
+	if bytes, ok := readStore(h.path); ok {
 		parseStore(h.path, bytes, &data)
 	}
 	h.mutex.Lock()

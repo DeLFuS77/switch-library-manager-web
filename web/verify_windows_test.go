@@ -76,3 +76,26 @@ func TestIssuesDeleteLeavesAFileInUse(t *testing.T) {
 		t.Fatal("the file stays")
 	}
 }
+
+// The favorites of a file another program holds open when the app starts are not lost: the
+// store starts empty, and is not saved over the file.
+func TestFavoritesInUseAreNotWrittenOver(t *testing.T) {
+	web := newTestWeb(t)
+	path := filepath.Join(web.dataFolder, FAVORITES_FILENAME)
+	saved := `{"0100000000010000":"2026-10-29T00:00:00Z"}`
+	os.WriteFile(path, []byte(saved), 0o600)
+	name, _ := syscall.UTF16PtrFromString(path)
+	handle, err := syscall.CreateFile(name, syscall.GENERIC_READ, 0, nil, syscall.OPEN_EXISTING, syscall.FILE_ATTRIBUTE_NORMAL, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	web.favorites().set("0100000000020000", true)
+	syscall.CloseHandle(handle)
+	if data, _ := os.ReadFile(path); string(data) != saved {
+		t.Fatalf("the favorites on the disk stay: %s", data)
+	}
+	web.favorites().reload()
+	if !web.favorites().has("0100000000010000") {
+		t.Fatal("read once the file is free")
+	}
+}

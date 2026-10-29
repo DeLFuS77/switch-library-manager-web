@@ -3,7 +3,6 @@ package web
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -66,7 +65,7 @@ func ratioKeys(kind string, path string) []string {
 func (web *Web) ratios() *ratioStore {
 	web.ratiosOnce.Do(func() {
 		store := &ratioStore{path: filepath.Join(web.dataFolder, COMPRESSION_RATIOS_FILENAME), kinds: map[string]ratioTotal{}}
-		if data, err := os.ReadFile(store.path); err == nil {
+		if data, ok := readStore(store.path); ok {
 			parseStore(store.path, data, &store.kinds)
 		}
 		if store.kinds == nil {

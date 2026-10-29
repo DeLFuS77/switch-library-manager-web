@@ -54,7 +54,7 @@ type automationBatch struct {
 func (web *Web) automation() *automationQueue {
 	web.automationOnce.Do(func() {
 		queue := &automationQueue{path: filepath.Join(web.dataFolder, AUTOMATION_FILENAME)}
-		if data, err := os.ReadFile(queue.path); err == nil {
+		if data, ok := readStore(queue.path); ok {
 			parseStore(queue.path, data, queue)
 		}
 		// the app stopped while the automations were working on these files
