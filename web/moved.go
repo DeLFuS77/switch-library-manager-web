@@ -92,6 +92,21 @@ func (m *movedFiles) resolve(path string) string {
 	return path
 }
 
+// follow is where the moves of the app lead from path, without looking at the disk: for a path
+// sent by a page, which is only compared with the paths of the library.
+func (m *movedFiles) follow(path string) string {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	for hop := 0; hop < movedFilesHops; hop++ {
+		next, ok := m.to[path]
+		if !ok || next.path == path {
+			break
+		}
+		path = next.path
+	}
+	return path
+}
+
 // resolveAll is resolve for each path, in a new list.
 func (m *movedFiles) resolveAll(paths []string) []string {
 	resolved := make([]string, len(paths))
@@ -123,7 +138,8 @@ func (web *Web) fileThere(path string) error {
 // libraryPaths are the requested paths that are files among the candidates, each one once, as
 // the library has them and never as they were sent: only files of the library are touched. A
 // page drawn before Organize moved files sends their old paths, and the library may still list
-// them until its next scan: both are taken where the files are now.
+// them until its next scan: both are taken where the files are now. What the page sent is only
+// compared with the paths of the library, never looked for on the disk.
 func (web *Web) libraryPaths(requested []string, candidates []CompressCandidate) []string {
 	known := map[string]string{}
 	for _, candidate := range candidates {
@@ -133,7 +149,11 @@ func (web *Web) libraryPaths(requested []string, candidates []CompressCandidate)
 	paths := []string{}
 	seen := map[string]bool{}
 	for _, path := range requested {
-		if library, ok := known[web.moves.resolve(path)]; ok && !seen[library] {
+		library, ok := known[path]
+		if !ok {
+			library, ok = known[web.moves.follow(path)]
+		}
+		if ok && !seen[library] {
 			seen[library] = true
 			paths = append(paths, library)
 		}

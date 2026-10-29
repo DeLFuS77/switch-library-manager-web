@@ -159,6 +159,17 @@ type IssueSummary struct {
 // are not: missing keys or a format the app does not know also leave a file unread.
 var deletableIssueKinds = map[string]bool{ISSUE_DAMAGED: true, ISSUE_TRUNCATED: true}
 
+// deletableIssueKind is the deletable kind a request names, as the app writes it and never as
+// it was sent: it goes into the reason each file is deleted for.
+func deletableIssueKind(requested string) (string, bool) {
+	for kind := range deletableIssueKinds {
+		if kind == requested {
+			return kind, true
+		}
+	}
+	return "", false
+}
+
 // fileDeletableIssueKinds are the kinds whose files can be deleted one by one, each after a
 // confirmation: the ones that cannot be read are too, once the user knows what they are.
 var fileDeletableIssueKinds = map[string]bool{ISSUE_DAMAGED: true, ISSUE_TRUNCATED: true, ISSUE_UNREADABLE: true}

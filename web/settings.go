@@ -490,20 +490,29 @@ func (web *Web) settingsPageData() SettingsPageData {
 // repeatedFolders tells, in the language of the page, the first folder listed twice or inside
 // another listed folder (the library is scanned with its subfolders); empty when there is none.
 // The folders are compared on the disk too: a drive of Windows and the share it maps, or two
-// volumes of a container on one folder, are one folder written in two ways.
+// volumes of a container on one folder, are one folder written in two ways. A folder written
+// with ".." is compared by its name only, never looked for on the disk.
 func repeatedFolders(folders []string, lang string) string {
 	for i, folder := range folders {
 		for j, other := range folders {
 			if i == j {
 				continue
 			}
-			if db.SameFolder(folder, other) {
+			same := db.SameFolderName(folder, other)
+			if !same && !strings.Contains(folder, "..") && !strings.Contains(other, "..") {
+				same = db.SameFolder(folder, other)
+			}
+			if same {
 				if i < j {
 					return translatef(lang, "This folder is listed twice: %v", folder)
 				}
 				continue
 			}
-			if db.FolderInside(folder, other) {
+			inside := db.FolderInsideName(folder, other)
+			if !inside && !strings.Contains(folder, "..") && !strings.Contains(other, "..") {
+				inside = db.FolderInside(folder, other)
+			}
+			if inside {
 				return translatef(lang, "%v is inside %v: its files would be read twice. Keep only one of them.", folder, other)
 			}
 		}

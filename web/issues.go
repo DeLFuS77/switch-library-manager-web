@@ -135,8 +135,8 @@ func (web *Web) HandleIssues() {
 	// the library again
 	web.router.HandleFunc("/issues/delete", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
-		kind := r.FormValue("kind")
-		if !deletableIssueKinds[kind] {
+		kind, ok := deletableIssueKind(r.FormValue("kind"))
+		if !ok {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
 			return
 		}

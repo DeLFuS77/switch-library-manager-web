@@ -363,11 +363,22 @@ func distinctFolders(folders []string, recursive bool) []string {
 	return distinct
 }
 
+// SameFolderName tells whether two paths are the same folder by their names alone.
+func SameFolderName(a, b string) bool {
+	return folderKey(filepath.Clean(a)) == folderKey(filepath.Clean(b))
+}
+
+// FolderInsideName tells whether the folder inner is below the folder outer by their names alone.
+func FolderInsideName(inner, outer string) bool {
+	rel, err := filepath.Rel(folderKey(filepath.Clean(outer)), folderKey(filepath.Clean(inner)))
+	return err == nil && rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
 // SameFolder tells whether two paths are the same folder: by their names, or on the disk, for
 // one folder written in two ways (a drive of Windows and the share it maps, a path with \\?\ in
 // front, two volumes of a container on one folder, a link to it).
 func SameFolder(a, b string) bool {
-	if folderKey(filepath.Clean(a)) == folderKey(filepath.Clean(b)) {
+	if SameFolderName(a, b) {
 		return true
 	}
 	aInfo, err := os.Stat(a)
@@ -381,10 +392,10 @@ func SameFolder(a, b string) bool {
 // FolderInside tells whether the folder inner is below the folder outer: by their names, or
 // on the disk, when a folder above inner is outer written in another way (see SameFolder).
 func FolderInside(inner, outer string) bool {
-	inner, outer = filepath.Clean(inner), filepath.Clean(outer)
-	if rel, err := filepath.Rel(folderKey(outer), folderKey(inner)); err == nil && rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+	if FolderInsideName(inner, outer) {
 		return true
 	}
+	inner, outer = filepath.Clean(inner), filepath.Clean(outer)
 	outerInfo, err := os.Stat(outer)
 	if err != nil {
 		return false
