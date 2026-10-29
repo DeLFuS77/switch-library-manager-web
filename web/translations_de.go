@@ -1411,6 +1411,7 @@ func init() {
 		"The file is damaged or was modified.":                             "Die Datei ist beschädigt oder wurde verändert.",
 		"The file is not a backup of this app.":                            "Die Datei ist kein Backup dieser App.",
 		"The files could not be checked.":                                  "Die Dateien konnten nicht geprüft werden.",
+		"The file could not be read, it was left unchecked.":               "Die Datei konnte nicht gelesen werden und bleibt ungeprüft.",
 		"The files could not be organized.":                                "Die Dateien konnten nicht organisiert werden.",
 		"The folder with your prod.keys (and optionally title.keys), or the path to the file. Empty: the data folder, then ~/.switch. Keys stay on the server of the app and are never sent anywhere else.": "Der Ordner mit deiner prod.keys (und optional title.keys) oder der Pfad zur Datei. Leer: der Datenordner, dann ~/.switch. Die Schlüssel bleiben auf dem Server der App und werden nirgendwohin sonst gesendet.",
 		"Upload my prod.keys":         "Meine prod.keys hochladen",

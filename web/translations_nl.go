@@ -1371,6 +1371,7 @@ func init() {
 		"The file is damaged or was modified.":                                     "Het bestand is beschadigd of gewijzigd.",
 		"The file is not a backup of this app.":                                    "Het bestand is geen back-up van deze app.",
 		"The files could not be checked.":                                          "De bestanden konden niet worden gecontroleerd.",
+		"The file could not be read, it was left unchecked.":                       "Het bestand kon niet worden gelezen en blijft ongecontroleerd.",
 		"The files could not be copied.":                                           "De bestanden konden niet worden gekopieerd.",
 		"The files could not be organized.":                                        "De bestanden konden niet worden geordend.",
 		"The folder does not exist or is not an absolute path.":                    "De map bestaat niet of is geen absoluut pad.",

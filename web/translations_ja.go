@@ -1371,6 +1371,7 @@ func init() {
 		"The file is damaged or was modified.":                                     "ファイルが破損しているか、変更されています。",
 		"The file is not a backup of this app.":                                    "このアプリのバックアップファイルではありません。",
 		"The files could not be checked.":                                          "ファイルを確認できませんでした。",
+		"The file could not be read, it was left unchecked.":                       "ファイルを読み取れなかったため、未確認のままです。",
 		"The files could not be copied.":                                           "ファイルをコピーできませんでした。",
 		"The files could not be organized.":                                        "ファイルを整理できませんでした。",
 		"The folder does not exist or is not an absolute path.":                    "フォルダーが存在しないか、絶対パスではありません。",

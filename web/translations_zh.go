@@ -1371,6 +1371,7 @@ func init() {
 		"The file is damaged or was modified.":                                     "文件已损坏或被修改。",
 		"The file is not a backup of this app.":                                    "该文件不是本应用的备份。",
 		"The files could not be checked.":                                          "无法检查文件。",
+		"The file could not be read, it was left unchecked.":                       "无法读取文件，已保留为未检查。",
 		"The files could not be copied.":                                           "无法复制文件。",
 		"The files could not be organized.":                                        "无法整理文件。",
 		"The folder does not exist or is not an absolute path.":                    "文件夹不存在或不是绝对路径。",

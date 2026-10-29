@@ -141,6 +141,8 @@ func (web *Web) HandleIssues() {
 		if kind == ISSUE_TRUNCATED {
 			files = settledFiles(files, 10*time.Minute)
 		}
+		// each file is looked at again before it goes: the list may be older than the file
+		files = web.stillOfNoUse(files, kind)
 		reasons := make([]string, len(files))
 		for i := range reasons {
 			reasons[i] = "deleted from Issues: " + kind
@@ -233,6 +235,44 @@ func (web *Web) HandleIssues() {
 		web.Rescan(TRIGGER_SETTINGS)
 		writeJSON(w, http.StatusAccepted, map[string]any{"ignored": extension})
 	}).Methods("POST")
+}
+
+// stillOfNoUse keeps the files of a kind of issue that are still of no use as they are now:
+// each one opens and reads (a share that dropped, or a file in use by another program, is never
+// taken for a file of no use), and a damaged one is still the file the current check found
+// damaged by its contents, not one an older check could not read.
+func (web *Web) stillOfNoUse(files []db.ExtendedFileInfo, kind string) []db.ExtendedFileInfo {
+	kept := []db.ExtendedFileInfo{}
+	for _, file := range files {
+		path := filepath.Join(file.BaseFolder, file.FileName)
+		if kind == ISSUE_DAMAGED && !web.verifications().stillDamaged(path) {
+			continue
+		}
+		if !readsNow(path) {
+			continue
+		}
+		kept = append(kept, file)
+	}
+	return kept
+}
+
+// readsNow tells whether a file opens and its first and last bytes read.
+func readsNow(path string) bool {
+	file, err := os.Open(path)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+	info, err := file.Stat()
+	if err != nil || info.IsDir() {
+		return false
+	}
+	buffer := make([]byte, min(info.Size(), 64<<10))
+	if _, err := file.ReadAt(buffer, 0); err != nil {
+		return false
+	}
+	_, err = file.ReadAt(buffer, info.Size()-int64(len(buffer)))
+	return err == nil
 }
 
 // keptChoices are the copies chosen to be kept with path added: the other copy of the same

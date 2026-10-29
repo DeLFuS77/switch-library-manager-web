@@ -1371,6 +1371,7 @@ func init() {
 		"The file is damaged or was modified.":                                     "파일이 손상되었거나 수정되었어요.",
 		"The file is not a backup of this app.":                                    "이 앱의 백업 파일이 아니에요.",
 		"The files could not be checked.":                                          "파일을 검사할 수 없어요.",
+		"The file could not be read, it was left unchecked.":                       "파일을 읽을 수 없어서 검사하지 않은 채로 두었어요.",
 		"The files could not be copied.":                                           "파일을 복사할 수 없어요.",
 		"The files could not be organized.":                                        "파일을 정리할 수 없어요.",
 		"The folder does not exist or is not an absolute path.":                    "폴더가 없거나 절대 경로가 아니에요.",

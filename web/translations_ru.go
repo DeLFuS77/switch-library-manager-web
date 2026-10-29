@@ -1371,6 +1371,7 @@ func init() {
 		"The file is damaged or was modified.":                                     "Файл повреждён или был изменён.",
 		"The file is not a backup of this app.":                                    "Файл не является резервной копией этого приложения.",
 		"The files could not be checked.":                                          "Не удалось проверить файлы.",
+		"The file could not be read, it was left unchecked.":                       "Не удалось прочитать файл, он остался непроверенным.",
 		"The files could not be copied.":                                           "Не удалось скопировать файлы.",
 		"The files could not be organized.":                                        "Не удалось упорядочить файлы.",
 		"The folder does not exist or is not an absolute path.":                    "Папка не существует или путь не абсолютный.",

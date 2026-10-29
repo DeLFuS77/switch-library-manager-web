@@ -1044,8 +1044,12 @@ var (
 )
 
 // compressDamage tells a compression that failed on the file itself: an NCA that does not
-// match its content ID and fails its hash trees, or a file cut short.
+// match its content ID and fails its hash trees, or a file cut short. A file that could not be
+// read, or a copy that failed its check, says nothing of what the file holds.
 func compressDamage(err error) bool {
+	if notContent(err) {
+		return false
+	}
 	return strings.Contains(err.Error(), "damaged") || errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)
 }
 
@@ -1086,7 +1090,7 @@ func compressNote(kind string, err error) string {
 		return NOTE_COMPRESS_NOTHING
 	case errors.Is(err, switchfs.ErrNoTitleKey):
 		return NOTE_COMPRESS_NO_KEY
-	case strings.Contains(err.Error(), "damaged"):
+	case strings.Contains(err.Error(), "damaged") && !notContent(err):
 		return NOTE_COMPRESS_DAMAGED
 	case kind == TASK_COMPRESS && compressDamage(err):
 		return NOTE_COMPRESS_DAMAGED
@@ -1126,17 +1130,22 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 		Level: level, Workers: switchfs.LimitThreads(level, compressThreads(appSettings.CompressThreads, filesAtOnce(appSettings.CompressFilesAtOnce)), filesAtOnce(appSettings.CompressFilesAtOnce)), Progress: filling(info.Size(), report(0)),
 	})
 	if err != nil {
-		return 0, err
+		// a file that could not be read is not damaged
+		return 0, readFailure(path, info, err)
 	}
 	// an NCA whose hash is not its content ID: rewritten by a tool, or damaged
 	originalCheck, err := switchfs.CheckHashes(ctx, path, result.Hashes)
 	if err != nil {
-		return 0, err
+		return 0, readFailure(path, info, err)
 	}
 	// reading the original whole was its check: the next file check does not read it again
 	web.verifications().remember(path, originalCheck)
 	if err := switchfs.VerifyCompressed(ctx, temporary, result.Hashes, filling(info.Size(), report(info.Size()))); err != nil {
-		return 0, err
+		// the copy failed its check, not the original
+		if errors.Is(err, context.Canceled) {
+			return 0, err
+		}
+		return 0, &notContentError{err}
 	}
 	if err := commitFile(temporary, target); err != nil {
 		return 0, err
