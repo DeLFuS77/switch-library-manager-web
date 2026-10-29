@@ -53,7 +53,7 @@
 - A game file with a damaged size in its header no longer stops the server when the title keys are checked after a scan, nor is copied or checked as if empty; a file whose contents end past its end is reported as cut short
 - The server no longer stops when prod.keys cannot be read during a synchronization while a check or a compression is running, nor when it reads the build ID of a damaged program; the missing key is reported as an error
 - A damaged metadata or control NCA no longer stops the scan, the icons or the file details, nor takes gigabytes of memory before failing
-- An NCA whose name has no content ID makes the check of its file partial, so the original is kept
+- A file with an NCA not named after its content is checked only in part, so its original is kept
 - Write errors while building an NSP, XCI or XCZ are reported instead of ignored, a damaged subsection table of an update patch is refused, and packing too many files into a game card is reported before anything is written
 - Packs, game card conversions and split parts no longer leave memory in use after they finish or fail
 - In a container with a memory limit, compression no longer drops to one thread after reading a game: the file cache is no longer counted as memory in use
@@ -61,14 +61,14 @@
 - A pause asked during a file check or an SD copy no longer holds the next compression
 - A pack queued after a compression of the same game waits for the scan and is made of the compressed file
 - Favorites (and IGDB lookups) changed at the same time are all saved
-- Small races fixed: IGDB titles no longer undo a newer library, a title language asked during a synchronization is loaded after it, title keys wait for the scan, and a cancelled automatic compression no longer skips the file until a restart
+- Things that happen at the same time no longer get in each other's way: IGDB titles no longer undo a newer library, a title language chosen during a synchronization is loaded after it, title keys wait for the scan, and a cancelled automatic compression no longer skips the file until a restart
 - Without a connection, scans no longer start a new cover download each time, filling Tasks with the same warning
 - The folder watcher no longer scans again right after the scan that follows a short task of the app
 - Uploads: closing the row of a failed file no longer drops another waiting file from the queue or deletes what the failed file had already sent, and an abandoned upload gives back its reserved space after three minutes, so it no longer holds up compressions; abandoned files are removed at startup and every hour
 - A finished synchronization no longer reloads the page over unsaved changes: its notice offers to reload instead, and waits until the setup wizard or another dialog is closed, as other notifications do now instead of covering it
 - Library: searching, sorting or changing the number per page keeps every filter (My games, collections, genre, players, play state, kind of issue…)
 - An expired session opens the login page instead of showing misleading errors, and the Tasks page and its link follow the tasks again after an error answer (an expired session, a proxy while the app restarts)
-- Progress is asked for one answer at a time, so a late answer no longer moves a bar back
+- Progress bars no longer jump back now and then
 - After an update, the page waits for the new version to answer before it opens the library
 - The synchronization notice and the notes of running tasks are in the language of the page; the offline page is in every language and keeps its styles when the server cannot be reached
 - Numbers of the Library overview have the thousands separator of the language, also with reduced motion; sizes use its decimal separator, and a count of one reads "1 file selected" or "1 step on"
@@ -77,8 +77,8 @@
 - SD card: the Copy button shows its icon again
 - Uploads: the panel goes above the notice of a synchronization instead of under it
 - Game page: on a phone, a fact of plain text goes on to a second line instead of being cut
-- Old cached versions of some pages are dropped, and the Space page is no longer worked out again for every file compressed
-- No log line about a cache made by an older version on a new data folder
+- The browser no longer shows old copies of some pages after an update, and the server no longer works out the Space page again after every file compressed
+- A new install no longer logs a warning about a cache made by an older version
 - In the view by covers of Tasks, the covers went away for a while during a library scan, leaving only the names of the files, and a file compressed or decompressed lost its cover once done: covers stay now
 
 ## 1.66.0

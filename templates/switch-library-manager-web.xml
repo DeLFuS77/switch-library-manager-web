@@ -24,7 +24,7 @@
   <License>AGPL-3.0</License>
   <Changes>### 1.67.0
 - Quarantine in Settings: what is deleted from the library can wait in a hidden folder and be put back (off until turned on)
-- Many fixes from a full review, above all of cases that could delete the only copy of a game
+- Many fixes, above all of cases that could delete the only copy of a game
 - Red only for errors and work in blue; the covers of Tasks fill up smoothly and stay during a scan
 - SLM_TRUSTED_PROXIES trusts only the proxies listed: add your own proxy or tunnel to it
 ### 1.66.0
