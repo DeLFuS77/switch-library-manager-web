@@ -222,11 +222,6 @@
 	}
 }
 
-// the logo is white, make it dark on the light theme (outside the colored brand mark)
-[data-bs-theme="light"] .invert-on-light {
-	filter: invert(1);
-}
-
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
