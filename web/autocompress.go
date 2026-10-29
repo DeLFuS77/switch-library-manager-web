@@ -97,15 +97,26 @@ func (web *Web) compressPaths(paths []string, trigger string) bool {
 	// read twice: compressed (and hashed meanwhile), then verified
 	return web.runResumableTask(TASK_COMPRESS, trigger, paths, 2, &TaskResume{Level: level, Delete: !appSettings.AutoCompressKeep}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		saved, err := web.compressFile(ctx, path, level, !appSettings.AutoCompressKeep, report)
-		if err != nil && !errors.Is(err, errCompressSpace) {
-			if info, statErr := os.Stat(path); statErr == nil {
-				web.auto.mutex.Lock()
-				web.auto.failed[path] = info.ModTime()
-				web.auto.mutex.Unlock()
-			}
-		}
+		web.noteAutoCompressFailure(path, err)
 		return saved, err
 	})
+}
+
+// noteAutoCompressFailure keeps a file that failed, so it is not tried again until it changes:
+// not one cancelled, nor one that could not be read (in use, still being copied), nor one
+// without room, which are tried again.
+func (web *Web) noteAutoCompressFailure(path string, err error) {
+	if err == nil || errors.Is(err, errCompressSpace) || errors.Is(err, context.Canceled) || notContent(err) {
+		return
+	}
+	if info, statErr := os.Stat(path); statErr == nil {
+		web.auto.mutex.Lock()
+		if web.auto.failed == nil {
+			web.auto.failed = map[string]time.Time{}
+		}
+		web.auto.failed[path] = info.ModTime()
+		web.auto.mutex.Unlock()
+	}
 }
 
 // nightlyCompressDue reports whether the nightly compression should run now; it runs

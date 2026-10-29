@@ -313,11 +313,24 @@ func (web *Web) lookupLibraryTitles(ctx context.Context, client *igdbClient) err
 	if err := store.save(); err != nil {
 		return err
 	}
-	// the titles are made again with what IGDB told
-	if !web.state.IsSynchronizing() {
-		switchDB, localDB := web.state.get()
-		web.state.set(web.withLibraryTitles(switchDB, localDB), localDB)
+	// the titles are made again with what IGDB told, of the databases as they are then: a
+	// library replaced meanwhile (covers, a scan) is not written over with the one of before
+	if web.state.update(web.withLibraryTitles) {
 		web.invalidateDerived()
 	}
 	return nil
+}
+
+// update replaces the titles database with what change makes of the current databases, under
+// the lock, so nothing replaced meanwhile is lost. Nothing changes while a synchronization runs:
+// it makes them again itself.
+func (s *WebState) update(change func(*db.SwitchTitlesDB, *db.LocalSwitchFilesDB) *db.SwitchTitlesDB) bool {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	if s.isSynchronizing {
+		return false
+	}
+	s.switchDB = change(s.switchDB, s.localDB)
+	s.version++
+	return true
 }

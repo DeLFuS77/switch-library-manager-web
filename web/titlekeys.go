@@ -74,6 +74,11 @@ func (web *Web) checkTitleKeys() {
 	if keys, _ := settings.SwitchKeys(); keys == nil || keys.GetKey("header_key") == "" {
 		return
 	}
+	// a scan running shows the library it found so far: the files not found yet would be
+	// forgotten. The one that ends looks again
+	if web.state.IsSynchronizing() {
+		return
+	}
 	store := web.titleKeys()
 	if !store.running.TryLock() {
 		return
@@ -100,10 +105,11 @@ func (web *Web) checkTitleKeys() {
 		}
 		store.set(file.Path, titleKeyCheck{Size: info.Size(), ModTime: info.ModTime().UnixNano(), Missing: missing})
 	}
-	// the files gone are forgotten
+	// the files gone are forgotten, unless a scan started meanwhile: the library may be the
+	// part of it found so far
 	store.mutex.Lock()
 	for path := range store.files {
-		if !seen[path] {
+		if !seen[path] && !web.state.IsSynchronizing() {
 			delete(store.files, path)
 		}
 	}

@@ -15,6 +15,9 @@ import (
 type titleLanguages struct {
 	mutex sync.Mutex
 	seen  map[string]bool
+	// asked for while a synchronization ran, which may have loaded the languages before: added
+	// once it ends
+	pending map[string]bool
 	// serializes reading and downloading the files
 	fileMutex sync.Mutex
 }
@@ -60,7 +63,13 @@ func (web *Web) noteLanguage(lang string) {
 func (web *Web) addTitleLanguage(lang string) {
 	switchDB, _ := web.state.get()
 	if switchDB == nil || web.state.IsSynchronizing() {
-		// loaded by the synchronization
+		// loaded by the synchronization, unless it read the languages before: added after it
+		web.languages.mutex.Lock()
+		if web.languages.pending == nil {
+			web.languages.pending = map[string]bool{}
+		}
+		web.languages.pending[lang] = true
+		web.languages.mutex.Unlock()
 		return
 	}
 	if _, ok := switchDB.Localized[lang]; ok {
@@ -72,6 +81,18 @@ func (web *Web) addTitleLanguage(lang string) {
 	}
 	web.state.addLocalized(lang, titles)
 	web.invalidateDerived()
+}
+
+// addPendingTitleLanguages adds the title names of the languages asked for during the
+// synchronization that ended, when it did not load them.
+func (web *Web) addPendingTitleLanguages() {
+	web.languages.mutex.Lock()
+	pending := web.languages.pending
+	web.languages.pending = nil
+	web.languages.mutex.Unlock()
+	for lang := range pending {
+		web.addTitleLanguage(lang)
+	}
 }
 
 // addLocalized replaces the titles database with a copy that also has the names of a

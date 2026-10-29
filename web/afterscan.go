@@ -34,6 +34,8 @@ func (web *Web) afterScan() {
 		web.lookupTimesToBeat(TRIGGER_SCAN)
 		// the games without their title key, for Issues and Compress
 		web.checkTitleKeys()
+		// the title languages asked for while it ran
+		web.addPendingTitleLanguages()
 	}()
 }
 

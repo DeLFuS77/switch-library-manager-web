@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -92,5 +93,55 @@ func TestLibraryTitlesForUnknownGames(t *testing.T) {
 	web.igdbTitles().set("0100000000020", IgdbTitle{Checked: time.Now().Add(-2 * igdbTitleRetry)})
 	if pending := web.libraryTitlesToLookUp(time.Now()); pending["0100000000020"] != "Lost Quest" {
 		t.Fatalf("a game not found long ago is asked again: %v", pending)
+	}
+}
+
+// The titles made again from what IGDB told are made of the databases as they are then, under
+// the lock: a library replaced meanwhile is never written over with the one of before, and
+// nothing changes while a synchronization runs.
+func TestTitlesAreMadeOfTheCurrentLibrary(t *testing.T) {
+	web := newTestWeb(t)
+	switchDB, before := testDatabases(t)
+	web.state.set(switchDB, before)
+	// covers or a scan gave a new library after the lookups started
+	after := *before
+	web.state.set(switchDB, &after)
+	if !web.state.update(func(s *db.SwitchTitlesDB, l *db.LocalSwitchFilesDB) *db.SwitchTitlesDB {
+		if l != &after {
+			t.Error("made of the library of before")
+		}
+		return s
+	}) {
+		t.Fatal("not updated")
+	}
+	if _, library := web.state.get(); library != &after {
+		t.Fatal("the new library stays")
+	}
+	web.state.startSync()
+	defer web.state.endSync()
+	if web.state.update(func(s *db.SwitchTitlesDB, l *db.LocalSwitchFilesDB) *db.SwitchTitlesDB { return nil }) {
+		t.Fatal("nothing changes during a synchronization")
+	}
+}
+
+// A language of titles asked for while a synchronization runs is added once it ends, as it may
+// have loaded the languages before.
+func TestTitleLanguageAskedDuringASyncIsAddedAfter(t *testing.T) {
+	web := newTestWeb(t)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, `{"0100000000010000":{"name":"Un jeu"}}`)
+	}))
+	defer server.Close()
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.LocalizedTitlesJsonUrl = server.URL + "/titles.%s.json" })
+	web.state.set(&db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{}}, nil)
+	web.state.startSync()
+	web.addTitleLanguage("fr")
+	web.state.endSync()
+	if switchDB, _ := web.state.get(); switchDB.Localized["fr"] != nil {
+		t.Fatal("not added during the synchronization")
+	}
+	web.addPendingTitleLanguages()
+	if switchDB, _ := web.state.get(); switchDB.Localized["fr"] == nil {
+		t.Fatal("added once it ended")
 	}
 }

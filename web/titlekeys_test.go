@@ -48,3 +48,21 @@ func TestGameWithoutItsTitleKey(t *testing.T) {
 		t.Fatal("a file that changed is looked at again")
 	}
 }
+
+// The files of the library are looked at only once the scan running ends: the library it shows
+// meanwhile is the part found so far, and the files not found yet would be forgotten.
+func TestTitleKeysWaitForTheScan(t *testing.T) {
+	web, _ := compressWeb(t)
+	gone := filepath.Join(t.TempDir(), "Not scanned yet [0100000000020000][v0].nsp")
+	web.titleKeys().set(gone, titleKeyCheck{Size: 1, Missing: "0100000000020000000000000000000a"})
+	web.state.startSync()
+	web.checkTitleKeys()
+	web.state.endSync()
+	if _, ok := web.titleKeys().files[gone]; !ok {
+		t.Fatal("kept while a scan runs")
+	}
+	web.checkTitleKeys()
+	if _, ok := web.titleKeys().files[gone]; ok {
+		t.Fatal("a file gone is forgotten once the library is whole")
+	}
+}
