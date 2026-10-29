@@ -211,7 +211,8 @@ func (web *Web) organizeFiles(action string, paths []string, dryRun bool) ([]pro
 
 	switch action {
 	case ORGANIZE_ACTION_ORGANIZE:
-		return process.OrganizeByFolders(settingsObj.Folder, localDB, switchDB, options, dryRun, progress)
+		// every library folder is one: an extra one is no game's own folder
+		return process.OrganizeLibrary(settingsObj.Folder, scanFolders(settingsObj), localDB, switchDB, options, dryRun, progress)
 	case ORGANIZE_ACTION_NEW:
 		roots := scanFolders(settingsObj)
 		if paths == nil {

@@ -585,7 +585,20 @@ func OrganizeByFolders(baseFolder string,
 	options settings.OrganizeOptions,
 	dryRun bool,
 	updateProgress db.ProgressUpdater) ([]Operation, error) {
-	return organize(baseFolder, []string{baseFolder}, nil, localDB, titlesDB, options, dryRun, updateProgress)
+	return OrganizeLibrary(baseFolder, []string{baseFolder}, localDB, titlesDB, options, dryRun, updateProgress)
+}
+
+// OrganizeLibrary is OrganizeByFolders for a library of several folders (roots, baseFolder
+// among them): none of them is the folder of a game, whose files would stay in it, and leave
+// the library with their updates and DLC moved below it.
+func OrganizeLibrary(baseFolder string,
+	roots []string,
+	localDB *db.LocalSwitchFilesDB,
+	titlesDB *db.SwitchTitlesDB,
+	options settings.OrganizeOptions,
+	dryRun bool,
+	updateProgress db.ProgressUpdater) ([]Operation, error) {
+	return organize(baseFolder, roots, nil, localDB, titlesDB, options, dryRun, updateProgress)
 }
 
 // OrganizeNewFiles moves (and optionally renames) the files in paths only, the new ones, and
