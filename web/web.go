@@ -487,6 +487,11 @@ var funcMap = template.FuncMap{
 	"filterUrl": func(filter *TitleItemFilter, replace ...string) template.URL {
 		return template.URL("?" + filter.query(replace...).Encode())
 	},
+	// filterHidden keeps the filter in a form that changes a part of it, as hidden fields
+	// besides the fields of the form: filterHidden .Filter "per_page"
+	"filterHidden": func(filter *TitleItemFilter, own ...string) template.HTML {
+		return filter.hiddenFields(own...)
+	},
 	"formatSize": formatSize,
 	// versions as v0, v65536
 	"versionList": func(versions []int) string {
