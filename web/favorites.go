@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // Favorites are the games of the library the user likes most, marked with a star. They are
@@ -23,6 +25,8 @@ type favoriteStore struct {
 	path  string
 	// by upper case title ID: when the game was marked
 	games map[string]time.Time
+	// one save at a time: an older one never ends after a newer one
+	saving sync.Mutex
 }
 
 func (web *Web) favorites() *favoriteStore {
@@ -110,7 +114,9 @@ func (f *favoriteStore) set(id string, favorite bool) bool {
 		delete(f.games, id)
 	}
 	f.mutex.Unlock()
-	f.save()
+	if err := f.save(); err != nil {
+		zap.S().Errorf("The favorites could not be saved: %v", err)
+	}
 	return true
 }
 
@@ -125,13 +131,18 @@ func (f *favoriteStore) snapshotTimes() map[string]time.Time {
 	return times
 }
 
-func (f *favoriteStore) save() {
+// save writes the favorites as they are when it starts: saves made at the same time each
+// write a newer state than the one before, so the last one written holds every change.
+func (f *favoriteStore) save() error {
+	f.saving.Lock()
+	defer f.saving.Unlock()
 	f.mutex.Lock()
 	data, err := json.MarshalIndent(f.games, "", " ")
 	f.mutex.Unlock()
-	if err == nil {
-		writeFileAtomic(f.path, data)
+	if err != nil {
+		return err
 	}
+	return writeFileAtomic(f.path, data)
 }
 
 func (web *Web) HandleFavorites() {

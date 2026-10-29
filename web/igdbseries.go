@@ -34,6 +34,8 @@ type igdbCollectionStore struct {
 	mutex       sync.Mutex
 	path        string
 	collections map[int]igdbCollection
+	// one save at a time: an older one never ends after a newer one
+	saving sync.Mutex
 }
 
 func (web *Web) igdbCollections() *igdbCollectionStore {
@@ -64,6 +66,8 @@ func (s *igdbCollectionStore) set(id int, collection igdbCollection) {
 }
 
 func (s *igdbCollectionStore) save() error {
+	s.saving.Lock()
+	defer s.saving.Unlock()
 	s.mutex.Lock()
 	data, err := json.Marshal(s.collections)
 	s.mutex.Unlock()

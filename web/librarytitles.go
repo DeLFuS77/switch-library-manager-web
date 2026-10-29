@@ -43,6 +43,8 @@ type igdbTitleStore struct {
 	mutex sync.Mutex
 	path  string
 	games map[string]IgdbTitle
+	// one save at a time: an older one never ends after a newer one
+	saving sync.Mutex
 }
 
 func (web *Web) igdbTitles() *igdbTitleStore {
@@ -70,6 +72,8 @@ func (s *igdbTitleStore) set(prefix string, game IgdbTitle) {
 }
 
 func (s *igdbTitleStore) save() error {
+	s.saving.Lock()
+	defer s.saving.Unlock()
 	s.mutex.Lock()
 	data, err := json.Marshal(s.games)
 	s.mutex.Unlock()
