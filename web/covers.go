@@ -13,6 +13,9 @@ const (
 	// downloaded covers are shown in batches, so pages are not rebuilt after every image
 	coverBatchInterval = 15 * time.Second
 	coverBatchSize     = 250
+	// the covers that could not be downloaded for lack of a connection wait this long before
+	// another task tries them, unless the user asks
+	coverOfflineWait = 15 * time.Minute
 )
 
 // coverLoader downloads the covers of the library after a scan, in the background.
@@ -21,6 +24,40 @@ type coverLoader struct {
 	running bool
 	// a scan finished while covers were being downloaded: look again when done
 	again bool
+	// when the downloads last found no connection, and the covers they had to download
+	offlineAt time.Time
+	offline   map[string]bool
+}
+
+// waitsForConnection tells whether the covers to download are the ones the last task could not
+// download for lack of a connection, a moment ago: trying them again at once would only fill the
+// history of the tasks with the same warning. New games bring new covers, which are tried.
+func (c *coverLoader) waitsForConnection(urls []string, now time.Time) bool {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	if c.offlineAt.IsZero() || now.Sub(c.offlineAt) >= coverOfflineWait {
+		return false
+	}
+	for _, url := range urls {
+		if !c.offline[url] {
+			return false
+		}
+	}
+	return true
+}
+
+// noteConnection keeps whether the downloads found no connection, with the covers they had.
+func (c *coverLoader) noteConnection(offline bool, urls []string, now time.Time) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	if !offline {
+		c.offlineAt, c.offline = time.Time{}, nil
+		return
+	}
+	c.offlineAt, c.offline = now, make(map[string]bool, len(urls))
+	for _, url := range urls {
+		c.offline[url] = true
+	}
 }
 
 // coverUpdate is the icon and banner found for a game, by title ID prefix.
@@ -72,6 +109,10 @@ func (web *Web) downloadMissingCovers() {
 		web.waitForBackgroundHours()
 		return
 	}
+	// "Search covers again" tries them, connection or not
+	web.background.mutex.Lock()
+	forced := web.background.forced
+	web.background.mutex.Unlock()
 	defer web.endForcedCovers()
 
 	// covers cached by an earlier run are shown at once, the others are downloaded
@@ -141,6 +182,10 @@ func (web *Web) downloadMissingCovers() {
 	}
 	// covers that failed recently (removed from the cover server) wait a day
 	urls = db.CoversToTry(web.dataFolder, urls)
+	// no connection a moment ago for these very covers: what needs none is done, without a task
+	if len(urls) > 0 && !forced && web.covers.waitsForConnection(urls, time.Now()) {
+		urls = nil
+	}
 	if len(urls) == 0 {
 		extracted := web.extractMissingIcons(0)
 		web.saveCovers(len(ready) > 0 || extracted > 0)
@@ -188,7 +233,9 @@ func (web *Web) downloadMissingCovers() {
 	mutex.Unlock()
 	web.sugarLogger.Infof("[%d covers downloaded]", downloaded)
 	web.taskLog().SetResult(taskId, 0, downloaded)
-	if errors.Is(coversErr, db.ErrNoConnection) {
+	offline := errors.Is(coversErr, db.ErrNoConnection)
+	web.covers.noteConnection(offline, urls, time.Now())
+	if offline {
 		web.sugarLogger.Warnf("The cover server does not answer, the covers left are downloaded after the next scan: %v", coversErr)
 		web.taskLog().Warn(taskId, NOTE_COVERS_OFFLINE, coversErr.Error())
 	}
