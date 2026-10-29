@@ -1,10 +1,10 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"os"
-	"path/filepath"
 	"regexp"
 	"runtime"
 	"slices"
@@ -473,26 +473,21 @@ func (web *Web) settingsPageData() SettingsPageData {
 
 // repeatedFolders tells, in the language of the page, the first folder listed twice or inside
 // another listed folder (the library is scanned with its subfolders); empty when there is none.
+// The folders are compared on the disk too: a drive of Windows and the share it maps, or two
+// volumes of a container on one folder, are one folder written in two ways.
 func repeatedFolders(folders []string, lang string) string {
-	key := func(folder string) string {
-		folder = filepath.Clean(folder)
-		if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
-			return strings.ToLower(folder)
-		}
-		return folder
-	}
 	for i, folder := range folders {
 		for j, other := range folders {
 			if i == j {
 				continue
 			}
-			if key(folder) == key(other) {
+			if db.SameFolder(folder, other) {
 				if i < j {
 					return translatef(lang, "This folder is listed twice: %v", folder)
 				}
 				continue
 			}
-			if rel, err := filepath.Rel(key(other), key(folder)); err == nil && rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			if db.FolderInside(folder, other) {
 				return translatef(lang, "%v is inside %v: its files would be read twice. Keep only one of them.", folder, other)
 			}
 		}

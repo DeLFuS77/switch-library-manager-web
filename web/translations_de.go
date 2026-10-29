@@ -1697,5 +1697,7 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "Das alte Update wird sofort gelöscht: Es lässt sich nicht zurücklegen.",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "Das alte Update wartet %v im versteckten Ordner: Unter Einstellungen, Quarantäne lässt es sich zurücklegen.",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "Das alte Update wartet im versteckten Ordner, bis du ihn leerst: Unter Einstellungen, Quarantäne lässt es sich zurücklegen.",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "Es ist dieselbe Datei wie die Kopie, die bleibt, nur über einen anderen Pfad erreicht, deshalb wird sie nicht gelöscht.",
 	}
 }

@@ -1697,5 +1697,7 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "古いアップデートはすぐに削除され、元に戻せません。",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "古いアップデートは隠しフォルダーで %v 待機し、設定の「隔離」から戻せます。",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "古いアップデートは空にするまで隠しフォルダーで待機し、設定の「隔離」から戻せます。",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "残すコピーと同じファイルに別のパスから届いているため、削除しません。",
 	}
 }

@@ -471,6 +471,13 @@ func (web *Web) requireSoundKeptCopy(entry *SpaceFile) {
 		entry.Note = NOTE_SPACE_KEPT_MISSING
 		return
 	}
+	// the copy that stays is this very file, reached by another path (a library scanned by an
+	// older version listed it so): deleting it would delete both
+	if entry.Path != "" && process.SameFile(entry.Path, entry.KeptBy) {
+		entry.Deletable = false
+		entry.Note = process.REASON_SAME_FILE
+		return
+	}
 	record, ok := web.verifications().current(entry.KeptBy, info)
 	switch {
 	case !ok:

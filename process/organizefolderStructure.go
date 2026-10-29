@@ -279,11 +279,20 @@ const (
 	REASON_RENAMED_NAME_TAKEN        = "Not moved: another file with the same name, of another size, is already at the destination. They are two files of the same game and version, Check can tell which one is good."
 )
 
-// remove deletes a file found by the last scan, unless it changed since then.
+// REASON_SAME_FILE is a duplicate or an older version that is the very file the library keeps,
+// reached by another path: deleting it would delete the copy that stays.
+const REASON_SAME_FILE = "It is the same file as the copy that stays, reached by another path, so it is not deleted."
+
+// remove deletes a file found by the last scan, unless it changed since then, or it is the
+// file its reason names as the one that stays.
 func (f *fileOperations) remove(file db.ExtendedFileInfo, reason string) error {
 	filePath := filepath.Join(file.BaseFolder, file.FileName)
 	if isSplitPart(file.FileName) {
 		f.skip(filePath, REASON_SPLIT)
+		return nil
+	}
+	if kept := db.KeptBy(reason); kept != "" && SameFile(filePath, kept) {
+		f.skip(filePath, REASON_SAME_FILE)
 		return nil
 	}
 	err := func() error {
@@ -302,6 +311,20 @@ func (f *fileOperations) remove(file db.ExtendedFileInfo, reason string) error {
 
 	f.record(Operation{Kind: OP_DELETE, From: filePath, Reason: reason}, err)
 	return err
+}
+
+// SameFile tells whether two paths are one file on the disk: the same path, or one folder
+// reached by two paths, or a link and the file it points to.
+func SameFile(a, b string) bool {
+	if pathKey(a) == pathKey(b) {
+		return true
+	}
+	aInfo, err := os.Stat(a)
+	if err != nil {
+		return false
+	}
+	bInfo, err := os.Stat(b)
+	return err == nil && os.SameFile(aInfo, bInfo)
 }
 
 func (f *fileOperations) skip(file string, reason string) {

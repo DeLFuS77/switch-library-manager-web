@@ -1697,5 +1697,7 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "L'ancienne mise à jour est supprimée tout de suite : elle ne peut pas être remise.",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "L'ancienne mise à jour attend %v dans le dossier caché : Réglages, Quarantaine peut la remettre.",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "L'ancienne mise à jour attend dans le dossier caché jusqu'à ce que tu le vides : Réglages, Quarantaine peut la remettre.",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "C'est le même fichier que la copie gardée, atteint par un autre chemin, il n'est donc pas supprimé.",
 	}
 }

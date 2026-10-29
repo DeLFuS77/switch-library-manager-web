@@ -1697,5 +1697,7 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "De oude update wordt meteen verwijderd: hij kan niet worden teruggezet.",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "De oude update wacht %v in de verborgen map: Instellingen, Quarantaine kan hem terugzetten.",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "De oude update wacht in de verborgen map tot je haar leegmaakt: Instellingen, Quarantaine kan hem terugzetten.",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "Het is hetzelfde bestand als de kopie die blijft, via een ander pad bereikt, dus het wordt niet verwijderd.",
 	}
 }

@@ -295,15 +295,20 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 
 // distinctFolders leaves out a folder listed twice and, when the folders are scanned with their
 // subfolders, a folder inside another one listed: its files would be read twice, and each one
-// would count as a duplicate of itself, offered to be deleted with its only copy.
+// would count as a duplicate of itself, offered to be deleted with its only copy. The folders
+// are compared as they are on the disk too, written as they may be (see SameFolder).
 func distinctFolders(folders []string, recursive bool) []string {
 	cleaned := []string{}
-	seen := map[string]bool{}
 	for _, folder := range folders {
 		folder = filepath.Clean(folder)
-		key := folderKey(folder)
-		if !seen[key] {
-			seen[key] = true
+		repeated := false
+		for _, other := range cleaned {
+			if SameFolder(folder, other) {
+				repeated = true
+				break
+			}
+		}
+		if !repeated {
 			cleaned = append(cleaned, folder)
 		}
 	}
@@ -311,13 +316,10 @@ func distinctFolders(folders []string, recursive bool) []string {
 		return cleaned
 	}
 	distinct := []string{}
-	for _, folder := range cleaned {
+	for i, folder := range cleaned {
 		inside := false
-		for _, other := range cleaned {
-			if other == folder {
-				continue
-			}
-			if rel, err := filepath.Rel(folderKey(other), folderKey(folder)); err == nil && rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		for j, other := range cleaned {
+			if i != j && FolderInside(folder, other) {
 				inside = true
 				break
 			}
@@ -329,6 +331,42 @@ func distinctFolders(folders []string, recursive bool) []string {
 	return distinct
 }
 
+// SameFolder tells whether two paths are the same folder: by their names, or on the disk, for
+// one folder written in two ways (a drive of Windows and the share it maps, a path with \\?\ in
+// front, two volumes of a container on one folder, a link to it).
+func SameFolder(a, b string) bool {
+	if folderKey(filepath.Clean(a)) == folderKey(filepath.Clean(b)) {
+		return true
+	}
+	aInfo, err := os.Stat(a)
+	if err != nil {
+		return false
+	}
+	bInfo, err := os.Stat(b)
+	return err == nil && os.SameFile(aInfo, bInfo)
+}
+
+// FolderInside tells whether the folder inner is below the folder outer: by their names, or
+// on the disk, when a folder above inner is outer written in another way (see SameFolder).
+func FolderInside(inner, outer string) bool {
+	inner, outer = filepath.Clean(inner), filepath.Clean(outer)
+	if rel, err := filepath.Rel(folderKey(outer), folderKey(inner)); err == nil && rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return true
+	}
+	outerInfo, err := os.Stat(outer)
+	if err != nil {
+		return false
+	}
+	for dir := filepath.Dir(inner); ; dir = filepath.Dir(dir) {
+		if info, err := os.Stat(dir); err == nil && os.SameFile(info, outerInfo) {
+			return true
+		}
+		if filepath.Dir(dir) == dir {
+			return false
+		}
+	}
+}
+
 // folderKey compares folders the way the system does: Windows and macOS ignore the case.
 func folderKey(folder string) string {
 	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
@@ -337,7 +375,10 @@ func folderKey(folder string) string {
 	return folder
 }
 
-// distinctFiles keeps each file once, by its path.
+// distinctFiles keeps each file once, by its path and by what it is on the disk: a folder
+// reached by two paths the folders cannot tell apart (two volumes of a container on one folder,
+// a link) shows its games twice, and each one would count as a duplicate of itself, deleted with
+// its only copy. The game seen first stays, unless it is a link to the other one.
 func distinctFiles(files []ExtendedFileInfo) []ExtendedFileInfo {
 	seen := map[string]bool{}
 	distinct := files[:0]
@@ -349,7 +390,53 @@ func distinctFiles(files []ExtendedFileInfo) []ExtendedFileInfo {
 		seen[key] = true
 		distinct = append(distinct, file)
 	}
-	return distinct
+	// only games of the same size can be one file: the others are never looked at on the disk
+	bySize := map[int64][]int{}
+	for i, file := range distinct {
+		if !file.IsDir && (IsGameFileType(filepath.Ext(file.FileName)) || strings.HasSuffix(file.FileName, "00")) {
+			bySize[file.Size] = append(bySize[file.Size], i)
+		}
+	}
+	dropped := map[int]bool{}
+	for _, indexes := range bySize {
+		if len(indexes) < 2 {
+			continue
+		}
+		infos := make([]os.FileInfo, len(indexes))
+		for k, i := range indexes {
+			infos[k], _ = os.Stat(fullPath(distinct[i]))
+		}
+		for a := range indexes {
+			if infos[a] == nil || dropped[indexes[a]] {
+				continue
+			}
+			for b := a + 1; b < len(indexes); b++ {
+				if infos[b] == nil || dropped[indexes[b]] || !os.SameFile(infos[a], infos[b]) {
+					continue
+				}
+				if isLink(fullPath(distinct[indexes[a]])) && !isLink(fullPath(distinct[indexes[b]])) {
+					distinct[indexes[a]] = distinct[indexes[b]]
+				}
+				dropped[indexes[b]] = true
+			}
+		}
+	}
+	if len(dropped) == 0 {
+		return distinct
+	}
+	kept := distinct[:0]
+	for i, file := range distinct {
+		if !dropped[i] {
+			kept = append(kept, file)
+		}
+	}
+	return kept
+}
+
+// isLink tells a path that is a link to another file (a symlink, a junction of Windows).
+func isLink(path string) bool {
+	info, err := os.Lstat(path)
+	return err == nil && info.Mode()&(fs.ModeSymlink|fs.ModeIrregular) != 0
 }
 
 // scanFolder adds the files of a folder; estimate is how many files the folders are thought
@@ -403,11 +490,20 @@ func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, leftov
 			}
 		}
 		info, err := entry.Info()
+		if err == nil && entry.Type()&fs.ModeSymlink != 0 {
+			// a link to a game: the size of the game, not the one of the link (the length of the
+			// path it points to), which made the link the smaller copy to keep and the game the
+			// duplicate to delete
+			info, err = os.Stat(path)
+			if err == nil && info.IsDir() {
+				return nil
+			}
+		}
 		if err != nil {
-			// removed while scanning
+			// removed while scanning, or a link to nothing
 			return nil
 		}
-		base := path[0 : len(path)-len(info.Name())]
+		base := path[0 : len(path)-len(entry.Name())]
 		if strings.TrimSuffix(base, string(os.PathSeparator)) != strings.TrimSuffix(folder, string(os.PathSeparator)) &&
 			!recursive {
 			return nil

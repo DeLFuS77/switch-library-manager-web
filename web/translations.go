@@ -1724,6 +1724,8 @@ var translations = map[string]map[string]string{
 		"The old update is deleted at once: it cannot be put back.":                                           "La actualización vieja se borra al momento: no se puede devolver.",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "La actualización vieja espera %v en la carpeta oculta: Ajustes, Cuarentena puede devolverla.",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "La actualización vieja espera en la carpeta oculta hasta que la vacíes: Ajustes, Cuarentena puede devolverla.",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "Es el mismo archivo que la copia que se queda, alcanzado por otra ruta, así que no se borra.",
 	},
 }
 

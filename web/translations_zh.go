@@ -1697,5 +1697,7 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "旧更新会立即删除：无法放回。",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "旧更新会在隐藏文件夹中等待 %v：可在设置的隔离区中放回。",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "旧更新会在隐藏文件夹中等待，直到你清空：可在设置的隔离区中放回。",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "它与保留的副本是同一个文件，只是经由另一条路径访问，因此不会删除。",
 	}
 }

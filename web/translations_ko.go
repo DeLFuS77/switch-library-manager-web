@@ -1697,5 +1697,7 @@ func init() {
 		"The old update is deleted at once: it cannot be put back.":                                           "오래된 업데이트는 바로 삭제되어 되돌릴 수 없습니다.",
 		"The old update waits in the hidden folder for %v: Settings, Quarantine can put it back.":             "오래된 업데이트는 숨김 폴더에서 %v 동안 기다리며, 설정의 격리함에서 되돌릴 수 있습니다.",
 		"The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back.": "오래된 업데이트는 비울 때까지 숨김 폴더에서 기다리며, 설정의 격리함에서 되돌릴 수 있습니다.",
+		// a folder reached by two paths
+		"It is the same file as the copy that stays, reached by another path, so it is not deleted.": "남기는 사본과 같은 파일을 다른 경로로 가리키고 있어 삭제하지 않습니다.",
 	}
 }
