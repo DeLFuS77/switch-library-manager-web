@@ -25,7 +25,7 @@ const (
 	testRightsId = "0100000000010000000000000000000a"
 )
 
-func initNszKeys(t *testing.T, titleKeys string) {
+func initNszKeys(t testing.TB, titleKeys string) {
 	t.Helper()
 	dir := t.TempDir()
 	keys := "header_key = " + testHeaderKey + "\nkey_area_key_application_00 = " + testAreaKey + "\ntitlekek_00 = " + testTitleKek + "\n"

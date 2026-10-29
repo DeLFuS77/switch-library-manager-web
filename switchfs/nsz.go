@@ -568,6 +568,9 @@ func readTickets(input io.ReaderAt, files []packedFile) (map[string][]byte, erro
 		if !strings.HasSuffix(strings.ToLower(file.name), ".tik") || file.size > 0x1000 {
 			continue
 		}
+		if file.size < 0 || file.offset < 0 {
+			return nil, fmt.Errorf("%s has an invalid size", file.name)
+		}
 		ticket := make([]byte, file.size)
 		if err := readAtFull(input, ticket, file.offset); err != nil {
 			return nil, err
@@ -1404,6 +1407,10 @@ func decompressNsz(ctx context.Context, source string, target string, progress f
 	}
 	defer input.Close()
 	pkg, err := openGamePackage(input)
+	if errors.Is(err, io.ErrUnexpectedEOF) {
+		// a package cut short is told as such, as when its files are read
+		return nil, err
+	}
 	if err != nil {
 		return nil, errors.New("only NSZ and XCZ files can be decompressed")
 	}
@@ -1542,6 +1549,10 @@ func (w *pfs0Writer) finish() error {
 }
 
 func copyRange(ctx context.Context, output io.Writer, input io.ReaderAt, offset int64, size int64, progress func(int64)) error {
+	// a negative size would copy nothing, and its hash be taken for the file's
+	if offset < 0 || size < 0 {
+		return errors.New("invalid file range")
+	}
 	buffer := make([]byte, nczChunkSize)
 	for done := int64(0); done < size; {
 		if err := ctx.Err(); err != nil {

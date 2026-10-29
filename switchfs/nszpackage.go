@@ -3,6 +3,7 @@ package switchfs
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -36,6 +37,24 @@ type gamePackage struct {
 
 // openGamePackage reads the layout of an NSP (or NSZ) or XCI (or XCZ).
 func openGamePackage(input io.ReaderAt) (*gamePackage, error) {
+	pkg, err := readGamePackage(input)
+	if err != nil {
+		return nil, err
+	}
+	// every file must lie within the input: a damaged size would be read as a file that is
+	// not there, a hash of nothing taken for its own
+	if size, ok := readerSize(input); ok {
+		for _, file := range pkg.files {
+			if file.offset < 0 || file.size < 0 || file.offset > size || file.size > size-file.offset {
+				return nil, fmt.Errorf("%s ends past the end of the file: %w", file.name, io.ErrUnexpectedEOF)
+			}
+		}
+	}
+	return pkg, nil
+}
+
+// readGamePackage is openGamePackage without the check of the files against the input.
+func readGamePackage(input io.ReaderAt) (*gamePackage, error) {
 	magic := make([]byte, 4)
 	if err := readAtFull(input, magic, 0); err != nil {
 		return nil, err
