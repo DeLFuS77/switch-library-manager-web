@@ -561,19 +561,35 @@ func (a *Auth) signedIn(name string) {
 
 // unauthorized sends browsers to the login page and asks other clients for credentials.
 func (a *Auth) unauthorized(w http.ResponseWriter, r *http.Request) {
-	if (r.Method == http.MethodGet || r.Method == http.MethodHead) && strings.Contains(r.Header.Get("Accept"), "text/html") {
+	if pageNavigation(r) {
 		target := "/login.html"
-		if r.URL.Path != "/" && r.URL.Path != "/index.html" {
+		// a form sent after the session ended goes to the login page alone
+		if (r.Method == http.MethodGet || r.Method == http.MethodHead) && r.URL.Path != "/" && r.URL.Path != "/index.html" {
 			target += "?next=" + url.QueryEscape(r.URL.RequestURI())
 		}
 		http.Redirect(w, r, target, http.StatusSeeOther)
 		return
 	}
-	// requests of the pages' scripts must not open the browser's login dialog
-	if r.Header.Get("Sec-Fetch-Site") == "" {
+	// requests of the pages' scripts must not open the browser's login dialog: signed in there,
+	// the browser would send the password with every request and Log out would not log out
+	if !fromPage(r) {
 		w.Header().Set("WWW-Authenticate", `Basic realm="Switch Library Manager", charset="UTF-8"`)
 	}
 	http.Error(w, "unauthorized", http.StatusUnauthorized)
+}
+
+// pageNavigation tells a request of the browser that opens a page, by a link or by sending a
+// form: browsers say so with Sec-Fetch-Mode only to secure origins, but a page asks for HTML,
+// which the scripts of the pages do not.
+func pageNavigation(r *http.Request) bool {
+	return r.Header.Get("Sec-Fetch-Mode") == "navigate" || strings.Contains(r.Header.Get("Accept"), "text/html")
+}
+
+// fromPage tells a request sent by a page of a browser: by Sec-Fetch-Site, or, where browsers do
+// not send it (plain HTTP on the local network), by the Origin or the Referer they add. API
+// clients send neither.
+func fromPage(r *http.Request) bool {
+	return r.Header.Get("Sec-Fetch-Site") != "" || r.Header.Get("Origin") != "" || r.Header.Get("Referer") != ""
 }
 
 // safeNext keeps redirects after login on this site: a path of it, without control characters

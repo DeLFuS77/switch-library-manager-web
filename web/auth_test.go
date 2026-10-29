@@ -617,6 +617,38 @@ func TestFailedSignInsCannotFloodTheActivity(t *testing.T) {
 	}
 }
 
+// Over plain HTTP browsers send no Sec-Fetch headers: the scripts of the pages are told apart by
+// their Origin or Referer, and never get the browser's login dialog, which would keep the browser
+// signed in after Log out; a form sent after the session ended goes to the login page. API
+// clients are still asked for credentials.
+func TestNoLoginDialogForThePagesOverPlainHttp(t *testing.T) {
+	web := usersWeb(t)
+	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	anonymous := &client{t: t, handler: web.auth.middleware(web.router)}
+	page := "http://192.168.1.2:3000/index.html"
+	for name, headers := range map[string][]string{
+		"a script asking for JSON":  {"Accept", "application/json", "Referer", page},
+		"a script sending a form":   {"Accept", "*/*", "Origin", "http://192.168.1.2:3000", "Referer", page},
+		"a script of a secure page": {"Sec-Fetch-Site", "same-origin"},
+	} {
+		got := anonymous.do("POST", "/sync", nil, headers...)
+		if got.Code != http.StatusUnauthorized || got.Header().Get("WWW-Authenticate") != "" {
+			t.Errorf("%s: %d %q", name, got.Code, got.Header().Get("WWW-Authenticate"))
+		}
+	}
+	form := anonymous.do("POST", "/users/create", url.Values{"name": {"bob"}}, "Accept", "text/html,application/xhtml+xml,*/*;q=0.8", "Origin", "http://192.168.1.2:3000")
+	if form.Code != http.StatusSeeOther || form.Header().Get("Location") != "/login.html" {
+		t.Fatalf("a form sent without a session: %d %q", form.Code, form.Header().Get("Location"))
+	}
+	navigate := anonymous.do("GET", "/settings.html", nil, "Sec-Fetch-Mode", "navigate")
+	if navigate.Code != http.StatusSeeOther || navigate.Header().Get("Location") != "/login.html?next=%2Fsettings.html" {
+		t.Fatalf("a page opened: %d %q", navigate.Code, navigate.Header().Get("Location"))
+	}
+	if api := anonymous.do("GET", "/index.html", nil, "Accept", "*/*"); api.Code != http.StatusUnauthorized || api.Header().Get("WWW-Authenticate") == "" {
+		t.Fatalf("an API client is asked for credentials: %d", api.Code)
+	}
+}
+
 // The public paths answer without login, as a guest: never as an administrator, unless login is
 // off and the request comes from where it would make one. A path written with escapes or dots is
 // not public, whatever it becomes once decoded.
