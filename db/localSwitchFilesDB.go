@@ -69,8 +69,11 @@ func NewLocalSwitchDBManager(dataFolder string) (*LocalSwitchDBManager, error) {
 		return nil, err
 	}
 
-	if db.GetInternalValue(DB_KEY_LIBRARY_SCHEMA) != LIBRARY_SCHEMA_VERSION {
-		zap.S().Info("Local library cache was created by an older version, it will be rebuilt")
+	if schema := db.GetInternalValue(DB_KEY_LIBRARY_SCHEMA); schema != LIBRARY_SCHEMA_VERSION {
+		// a new data folder has no schema yet, and nothing to rebuild
+		if schema != "" {
+			zap.S().Info("Local library cache was created by an older version, it will be rebuilt")
+		}
 		if err := db.ClearTable(DB_TABLE_LOCAL_LIBRARY); err != nil {
 			db.Close()
 			return nil, err
