@@ -391,8 +391,9 @@
 	flex-wrap: wrap;
 	gap: .4rem;
 
-	// the states in grey and the one chosen in the blue of work: red tells errors
-	.btn {
+	// the states in grey and the one chosen in the blue of work: red tells errors (after its
+	// radio, to weigh more than the colours of the outline buttons of each theme)
+	.btn-check + .btn {
 		--#{$prefix}btn-color: var(--bs-secondary-color);
 		--#{$prefix}btn-border-color: var(--bs-border-color);
 		--#{$prefix}btn-hover-color: rgb(var(--slm-work-rgb));
