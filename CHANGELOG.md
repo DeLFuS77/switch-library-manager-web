@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### New
+
+- The name, cover and description of a game can be changed by hand, with Edit on its page: the cover is uploaded or taken once from an address, and what is changed wins over the titles database, its translations and IGDB in every language, stays through synchronizations and scans, and comes back with a game deleted and found again. Organize names the files and folders with the name given when it runs, and backups keep the changes with their covers; Back to the original undoes them, and the files and the title ID of the game are never touched (thanks @ChapeLu, #133)
+
+### Fixes
+
+- Backups keep the copy chosen of each game of several regions, which restoring one left out
+
 ## 1.67.0
 
 ### New
