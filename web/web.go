@@ -1132,7 +1132,7 @@ func (web *Web) loadTitleLanguage(lang string, download bool) (map[string]db.Loc
 			etag = ""
 		}
 		var newEtag string
-		file, newEtag, err = db.LoadAndUpdateFile([]string{fmt.Sprintf(settingsObj.LocalizedTitlesJsonUrl, lang)}, filePath, etag)
+		file, newEtag, err = db.LoadAndUpdateFile(settings.CompressedFirst(fmt.Sprintf(settingsObj.LocalizedTitlesJsonUrl, lang)), filePath, etag)
 		if err == nil && newEtag != etag {
 			settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
 				if s.LocalizedTitlesEtags == nil {

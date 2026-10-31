@@ -39,7 +39,7 @@ func (web *Web) downloadSeries() {
 	if _, err := os.Stat(path); err != nil {
 		etag = ""
 	}
-	result, err := db.LoadAndUpdateAllowingEmpty([]string{settings.DEFAULT_SERIES_JSON_URL}, path, etag)
+	result, err := db.LoadAndUpdateAllowingEmpty(settings.CompressedFirst(settings.DEFAULT_SERIES_JSON_URL), path, etag)
 	if err != nil {
 		web.sugarLogger.Debugf("The series of Wikidata are not available: %v", err)
 		return

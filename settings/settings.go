@@ -31,21 +31,29 @@ const (
 	SLM_VERSION            = "1.4.0"
 	SLM_WEB_VERSION        = "1.67.0"
 	REPOSITORY_OWNER       = "DeLFuS77"
-	// titles.json and versions.json are generated from blawar/titledb by the
-	// "Update title data" workflow of this repository
-	DEFAULT_TITLES_JSON_URL   = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.json"
-	DEFAULT_VERSIONS_JSON_URL = "https://raw.githubusercontent.com/blawar/titledb/master/versions.json"
+	// the release where the "Update title data" workflow of this repository publishes the files
+	// it generates; next to each one it publishes the same file compressed (see CompressedFirst)
+	DATA_RELEASE_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/"
+	// the name of a file compressed with zstd is the one of the file with this after it, and a
+	// download whose URL ends with it is decompressed: titles.json.zst
+	COMPRESSED_SUFFIX = ".zst"
+	// titles.json is generated from blawar/titledb, and versions.json joins the versions of
+	// blawar/titledb with the ones of other sources
+	DEFAULT_TITLES_JSON_URL   = DATA_RELEASE_URL + "titles.json"
+	DEFAULT_VERSIONS_JSON_URL = DATA_RELEASE_URL + "versions.json"
+	// the versions of blawar/titledb alone: the default before versions.json of the data release
+	BLAWAR_VERSIONS_JSON_URL = "https://raw.githubusercontent.com/blawar/titledb/master/versions.json"
 	// covers of other stores for titles without one in the US store
-	DEFAULT_COVERS_JSON_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.covers.json"
+	DEFAULT_COVERS_JSON_URL = DATA_RELEASE_URL + "titles.covers.json"
 	// the series of Switch games, from Wikidata
-	DEFAULT_SERIES_JSON_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.series.json"
+	DEFAULT_SERIES_JSON_URL = DATA_RELEASE_URL + "titles.series.json"
 	// the cheats of switch-cheats-db: the build ID of every version of every game, the cheats
 	// of the last release as the SD card holds them, and the name of that release
 	DEFAULT_CHEATS_VERSIONS_URL = "https://raw.githubusercontent.com/HamletDuFromage/switch-cheats-db/master/versions.json"
 	DEFAULT_CHEATS_ZIP_URL      = "https://github.com/HamletDuFromage/switch-cheats-db/releases/latest/download/contents_complete.zip"
 	DEFAULT_CHEATS_RELEASE_URL  = "https://github.com/HamletDuFromage/switch-cheats-db/releases/latest/download/VERSION"
 	// %s is replaced by the interface language, e.g. titles.es.json
-	DEFAULT_LOCALIZED_TITLES_JSON_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.%s.json"
+	DEFAULT_LOCALIZED_TITLES_JSON_URL = DATA_RELEASE_URL + "titles.%s.json"
 	DEFAULT_TITLES_ETAG               = "W/\"a5b02845cf6bd61:0\""
 	DEFAULT_VERSIONS_ETAG             = "W/\"2ef50d1cb6bd61:0\""
 )
@@ -56,7 +64,7 @@ var (
 		"https://github.com/trembon/switch-library-manager/releases/download/data/titles.json",
 	}
 	FALLBACK_VERSIONS_JSON_URLS = []string{
-		"https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/versions.json",
+		BLAWAR_VERSIONS_JSON_URL,
 	}
 )
 
@@ -354,6 +362,11 @@ func verifySettings(dataFolder string, settings *AppSettings) *AppSettings {
 	settings.TitlesJsonUrl = movedRepositoryUrl(settings.TitlesJsonUrl)
 	settings.VersionsJsonUrl = movedRepositoryUrl(settings.VersionsJsonUrl)
 	settings.LocalizedTitlesJsonUrl = movedRepositoryUrl(settings.LocalizedTitlesJsonUrl)
+	// the versions of blawar/titledb were the default: settings saved with it get the versions
+	// of the data release, which has them and the ones of other sources; a URL of one's own stays
+	if settings.VersionsJsonUrl == BLAWAR_VERSIONS_JSON_URL {
+		settings.VersionsJsonUrl = DEFAULT_VERSIONS_JSON_URL
+	}
 
 	// the databases are only downloaded over https (a restored backup could name any address)
 	if !strings.HasPrefix(settings.TitlesJsonUrl, "https://") {
@@ -405,14 +418,30 @@ func movedRepositoryUrl(url string) string {
 	return prefix + REPOSITORY_OWNER + rest[slash:]
 }
 
-// TitlesJsonUrls returns the configured titles.json URL followed by the fallback mirrors.
+// TitlesJsonUrls returns the configured titles.json URL followed by the fallback mirrors, the
+// files of the data release compressed first (see CompressedFirst).
 func (s *AppSettings) TitlesJsonUrls() []string {
-	return withFallbacks(s.TitlesJsonUrl, FALLBACK_TITLES_JSON_URLS)
+	return CompressedFirst(withFallbacks(s.TitlesJsonUrl, FALLBACK_TITLES_JSON_URLS)...)
 }
 
-// VersionsJsonUrls returns the configured versions.json URL followed by the fallback mirrors.
+// VersionsJsonUrls returns the configured versions.json URL followed by the fallback mirrors, the
+// files of the data release compressed first (see CompressedFirst).
 func (s *AppSettings) VersionsJsonUrls() []string {
-	return withFallbacks(s.VersionsJsonUrl, FALLBACK_VERSIONS_JSON_URLS)
+	return CompressedFirst(withFallbacks(s.VersionsJsonUrl, FALLBACK_VERSIONS_JSON_URLS)...)
+}
+
+// CompressedFirst puts before each file of the data release the same file compressed, a quarter
+// of its size or less; the file as it is comes next, for when the compressed one cannot be
+// downloaded. The files of other places are left as they are.
+func CompressedFirst(urls ...string) []string {
+	result := make([]string, 0, 2*len(urls))
+	for _, url := range urls {
+		if strings.HasPrefix(url, DATA_RELEASE_URL) && strings.HasSuffix(url, ".json") {
+			result = append(result, url+COMPRESSED_SUFFIX)
+		}
+		result = append(result, url)
+	}
+	return result
 }
 
 func withFallbacks(url string, fallbacks []string) []string {

@@ -276,7 +276,8 @@ help too.
 - Based on [giwty's switch-library-manager](https://github.com/giwty/switch-library-manager) and
   [dtrunk90's switch-library-manager-web](https://github.com/dtrunk90/switch-library-manager-web)
 - Parsing, organizing and title data fixes from [trembon's switch-library-manager](https://github.com/trembon/switch-library-manager)
-- Title data from [blawar's titledb](https://github.com/blawar/titledb)
+- Title data from [blawar's titledb](https://github.com/blawar/titledb), and versions of updates also from
+  [borntohonk's titledb](https://github.com/borntohonk/titledb) and [16BitWonder's nx-versions](https://github.com/16BitWonder/nx-versions)
 - Cheats from [HamletDuFromage's switch-cheats-db](https://github.com/HamletDuFromage/switch-cheats-db), mirrored from GBAtemp and
   the authors of each cheat
 - NSZ format of [nsz](https://github.com/nicoboss/nsz) and the [Inter](https://github.com/rsms/inter) font

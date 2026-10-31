@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- A synchronization no longer downloads the titles database again when it did not change, and when it did, it downloads it compressed: 23 MB for titles.json instead of 126 MB. The versions of updates also come from borntohonk/titledb and 16BitWonder/nx-versions, so new updates still show up in the weeks blawar/titledb does not change; settings saved with the old address of versions.json, the one of blawar/titledb, move to the new one, and an address of one's own stays
+
 ## 1.67.0
 
 ### New

@@ -1,6 +1,7 @@
-# Generates titles.json and versions.json from blawar/titledb and publishes them
-# as assets of the rolling "data" release, which is the default titles source
-# of the app (settings.DEFAULT_TITLES_JSON_URL).
+# Generates titles.json from blawar/titledb, and versions.json from the versions of blawar/titledb
+# and other sources, and publishes them as assets of the rolling "data" release, which is the
+# default source of the app (settings.DATA_RELEASE_URL). Each file is published compressed too,
+# which the app downloads first, and only when it changed.
 # Adapted from https://github.com/trembon/switch-library-manager
 name: Update title data
 
@@ -17,8 +18,8 @@ concurrency:
   cancel-in-progress: false
 
 # NUT is code of another project, run with its own dependencies: it runs in a job that can
-# only read, at a fixed commit, and the job that publishes runs nothing but the upload of the
-# files it made. A change to NUT is taken on purpose, by changing NUT_COMMIT and making
+# only read, at a fixed commit, and the job that publishes runs nothing but zstd and the upload
+# of the files it made. A change to NUT is taken on purpose, by changing NUT_COMMIT and making
 # .github/nut-requirements.txt again for it.
 env:
   NUT_COMMIT: b4b9377b5113d00675c40c28b1c218c10ac66838
@@ -62,7 +63,24 @@ jobs:
           python nut.py --import-region US --language en
           mkdir -p "$GITHUB_WORKSPACE/generated-data"
           cp titledb/titles.json "$GITHUB_WORKSPACE/generated-data/titles.json"
-          cp titledb/versions.json "$GITHUB_WORKSPACE/generated-data/versions.json"
+
+      # blawar/titledb stops for weeks at times: the versions of other sources are added to its
+      # own, and a source that cannot be downloaded is left out this time
+      - name: Generate versions
+        run: |
+          mkdir -p versions-sources
+          get() {
+            if ! curl -fsSL --retry 3 --max-time 300 -o "versions-sources/$1" "$2"; then
+              rm -f "versions-sources/$1"
+              echo "::warning::$2 could not be downloaded, its versions are left out"
+            fi
+          }
+          get borntohonk.versions.json https://raw.githubusercontent.com/borntohonk/titledb/master/versions.json
+          get nx-versions.txt https://raw.githubusercontent.com/16BitWonder/nx-versions/master/versions.txt
+          get nx-changelog.md https://raw.githubusercontent.com/16BitWonder/nx-versions/master/FULL-CHANGELOG.md
+          python .github/scripts/merge_versions.py nut/titledb/versions.json generated-data/versions.json \
+            --versions versions-sources/borntohonk.versions.json \
+            --nx-versions versions-sources/nx-versions.txt --nx-changelog versions-sources/nx-changelog.md
 
       # names and descriptions for the translated interface languages
       - name: Generate localized titles
@@ -161,34 +179,69 @@ jobs:
                       raise SystemExit(f"Expected a JSON object: {path}")
           PY
 
+      # Only the files that changed are published again: the others keep their etag, and the app
+      # is told "not modified" instead of downloading them again. data.sha256 lists the files
+      # published with their compressed copy (.json.zst); a file leaves it before it is published
+      # again, so a run that stops halfway publishes it again the next time.
       - name: Publish data release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          NOTES: >-
+            Rolling `titles.json` in US English, generated from blawar/titledb using blawar/nut;
+            `versions.json`, with the versions of blawar/titledb, borntohonk/titledb and 16BitWonder/nx-versions;
+            and `titles.<lang>.json` with names and descriptions in Spanish, French, German, Italian, Portuguese,
+            Dutch, Russian, Japanese, Korean and Chinese. Every file is also published compressed with zstd
+            (`.json.zst`), and `data.sha256` has the SHA-256 of each one.
         run: |
           if ! gh release view data >/dev/null 2>&1; then
             gh release create data \
               --prerelease \
               --latest=false \
               --title "Switch Library Manager title data" \
-              --notes "Rolling US English titles.json and versions.json generated from blawar/titledb using blawar/nut, and titles.<lang>.json with names and descriptions in Spanish, French, German, Italian, Portuguese, Dutch, Russian, Japanese, Korean and Chinese."
+              --notes "$NOTES"
+          elif [ "$(gh release view data --json body --jq .body)" != "$NOTES" ]; then
+            gh release edit data --notes "$NOTES"
           fi
 
-          gh release upload data \
-            generated-data/titles.json \
-            generated-data/versions.json \
-            generated-data/titles.es.json \
-            generated-data/titles.fr.json \
-            generated-data/titles.de.json \
-            generated-data/titles.it.json \
-            generated-data/titles.pt.json \
-            generated-data/titles.covers.json \
-            --clobber
-          for lang in nl ru ja ko zh; do
-            if [ -f "generated-data/titles.$lang.json" ]; then
-              gh release upload data "generated-data/titles.$lang.json" --clobber
-            fi
-          done
-          if [ -f generated-data/titles.series.json ]; then
-            gh release upload data generated-data/titles.series.json --clobber
+          gh release view data --json assets --jq '.assets[].name' > published-names.txt
+          if grep -qx data.sha256 published-names.txt; then
+            gh release download data --pattern data.sha256 --output published.sha256
+          fi
+          mkdir -p publishing published
+          python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
+
+          names = set(Path("published-names.txt").read_text().split())
+          published = {}
+          if Path("published.sha256").exists():
+              for line in Path("published.sha256").read_text().splitlines():
+                  digest, _, name = line.partition("  ")
+                  # only a file that is there with its compressed copy
+                  if name in names and name + ".zst" in names:
+                      published[name] = digest
+
+          current = {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
+                     for path in sorted(Path("generated-data").glob("*.json"))}
+          changed = [name for name, digest in current.items() if published.get(name) != digest]
+          # the files not generated this time (the series when Wikidata did not answer) stay
+          kept = {name: digest for name, digest in published.items() if name not in changed}
+
+          def listing(files):
+              return "".join(f"{digest}  {name}\n" for name, digest in sorted(files.items()))
+
+          Path("changed.txt").write_text("".join(name + "\n" for name in changed), newline="\n")
+          Path("publishing/data.sha256").write_text(listing(kept), newline="\n")
+          Path("published/data.sha256").write_text(listing({**kept, **{name: current[name] for name in changed}}), newline="\n")
+          print(f"{len(changed)} of {len(current)} files changed: {' '.join(changed) or 'none'}")
+          PY
+
+          if [ -s changed.txt ]; then
+            gh release upload data publishing/data.sha256 --clobber
+            while read -r name; do
+              zstd -19 -T0 -q -f "generated-data/$name" -o "generated-data/$name.zst"
+              gh release upload data "generated-data/$name.zst" "generated-data/$name" --clobber
+            done < changed.txt
+            gh release upload data published/data.sha256 --clobber
           fi
