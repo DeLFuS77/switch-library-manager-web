@@ -3,6 +3,27 @@ package web
 // Italian interface translations; see translations.go.
 func init() {
 	translations["it"] = map[string]string{
+		// a game edited by hand
+		"Original: %v":   "Originale: %v",
+		"Edited by hand": "Modificato a mano",
+		"Edit the game":  "Modifica il gioco",
+		"Only how the app shows it changes: the file and the title ID of the game are not touched. Organize uses this name when you run it.": "Cambia solo come lo mostra l'app: il file e l'ID titolo del gioco non vengono toccati. Organizza userà questo nome quando lo avvii.",
+		"Cover":                           "Copertina",
+		"Upload an image":                 "Carica un'immagine",
+		"or paste an address (https://…)": "o incolla un indirizzo (https://…)",
+		"Address of the cover":            "Indirizzo della copertina",
+		"Use the cover of the game":       "Usa la copertina del gioco",
+		"JPEG, PNG or GIF, up to 5 MB. It is kept in the app.":                                   "JPEG, PNG o GIF, fino a 5 MB. Viene salvata nell'app.",
+		"Empty: the original one, “%v”.":                                                         "Vuoto: quello originale, «%v».",
+		"(if you like)":                                                                          "(se vuoi)",
+		"Empty: the original one, in your language when there is one.":                           "Vuota: quella originale, nella tua lingua se c'è.",
+		"Back to the original name, cover and description of this game? What you wrote is lost.": "Tornare al nome, alla copertina e alla descrizione originali di questo gioco? Quello che hai scritto andrà perso.",
+		"Back to the original":                                                                   "Torna all'originale",
+		"The cover is too large: at most 5 MB and 6000 pixels a side.":                           "La copertina è troppo grande: al massimo 5 MB e 6000 pixel per lato.",
+		"The titles database and the library do not know this game.":                             "Né il database dei titoli né la libreria conoscono questo gioco.",
+		"The cover must be a JPEG, PNG or GIF image.":                                            "La copertina deve essere un'immagine JPEG, PNG o GIF.",
+		"The cover could not be downloaded from that address.":                                   "Impossibile scaricare la copertina da quell'indirizzo.",
+		"The change could not be saved in the data folder.":                                      "Impossibile salvare la modifica nella cartella dei dati.",
 		// the titles database, with no connection to its servers
 		"Offline: the titles database was not downloaded, the saved copy is used.": "Nessuna connessione: impossibile scaricare il database dei titoli, viene usata la copia salvata.",
 		"Offline: the titles database was not downloaded.":                         "Nessuna connessione: impossibile scaricare il database dei titoli.",

@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initIgnoreButtons();
 	initLibraryBulk();
 	initCollections();
+	initTitleEdit();
 	initSdPlanner();
 	initIgnoreTypes();
 	initViewToggle();

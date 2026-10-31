@@ -498,3 +498,14 @@ func TestBackupKeepsTheChangesByHand(t *testing.T) {
 		t.Fatalf("other files are left out: %v %v", err, files)
 	}
 }
+
+// The messages of a change by hand that is refused are translated in every language.
+func TestOverrideMessagesAreTranslated(t *testing.T) {
+	for _, err := range []error{errOverrideId, errOverrideUnknown, errOverrideNotImage, errOverrideCoverLarge, errOverrideCoverUrl, errOverrideSave} {
+		for _, lang := range supportedLanguages {
+			if _, ok := translations[lang][err.Error()]; !ok && lang != DEFAULT_LANGUAGE {
+				t.Errorf("no %s translation for %q", lang, err.Error())
+			}
+		}
+	}
+}

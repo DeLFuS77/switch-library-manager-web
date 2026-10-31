@@ -4,6 +4,27 @@ package web
 // translate() calls and in web.js; "%v" placeholders are kept in the translation.
 var translations = map[string]map[string]string{
 	"es": {
+		// a game edited by hand
+		"Original: %v":   "Original: %v",
+		"Edited by hand": "Editado a mano",
+		"Edit the game":  "Editar el juego",
+		"Only how the app shows it changes: the file and the title ID of the game are not touched. Organize uses this name when you run it.": "Solo cambia cómo lo enseña la app: el archivo y el ID del juego no se tocan. Organizar usará este nombre cuando lo pongas en marcha.",
+		"Cover":                           "Portada",
+		"Upload an image":                 "Subir una imagen",
+		"or paste an address (https://…)": "o pega una dirección (https://…)",
+		"Address of the cover":            "Dirección de la portada",
+		"Use the cover of the game":       "Usar la portada del juego",
+		"JPEG, PNG or GIF, up to 5 MB. It is kept in the app.":                                   "JPEG, PNG o GIF, hasta 5 MB. Se guarda en la app.",
+		"Empty: the original one, “%v”.":                                                         "Vacío: el original, «%v».",
+		"(if you like)":                                                                          "(si quieres)",
+		"Empty: the original one, in your language when there is one.":                           "Vacía: la original, en tu idioma si la hay.",
+		"Back to the original name, cover and description of this game? What you wrote is lost.": "¿Volver al nombre, la portada y la descripción originales de este juego? Lo que escribiste se pierde.",
+		"Back to the original":                                                                   "Volver al original",
+		"The cover is too large: at most 5 MB and 6000 pixels a side.":                           "La portada es demasiado grande: hasta 5 MB y 6000 píxeles por lado.",
+		"The titles database and the library do not know this game.":                             "Ni la base de títulos ni la biblioteca conocen este juego.",
+		"The cover must be a JPEG, PNG or GIF image.":                                            "La portada tiene que ser una imagen JPEG, PNG o GIF.",
+		"The cover could not be downloaded from that address.":                                   "No se pudo descargar la portada de esa dirección.",
+		"The change could not be saved in the data folder.":                                      "No se pudo guardar el cambio en la carpeta de datos.",
 		// split and bulk packs
 		"Split multi-title files": "Separar archivos con varios títulos",
 		"A game card dump with several games (a collection on one cartridge) splits into one XCI or XCZ per game, with its update and DLC, so the files made for a game card stay as they are.":                                                                                   "Un volcado de cartucho con varios juegos (una colección en un solo cartucho) se separa en un XCI o XCZ por juego, con su actualización y sus DLC, así los archivos hechos para un cartucho quedan como están.",
@@ -1778,4 +1799,5 @@ var jsTexts = []string{
 	"Nothing to check", "No file is new or changed since the last check.",
 	"The new files may not fit. A file that fills its disk fails, and its original stays as it was.", "up to %v needed, %v free", "Start anyway?",
 	"Added to the queue.", "It starts when the tasks before it end: number %v in the queue.", "Reload",
+	"Saved!", "Back to the original", "The cover is too large: at most 5 MB and 6000 pixels a side.",
 }

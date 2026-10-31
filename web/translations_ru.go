@@ -3,6 +3,27 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		// a game edited by hand
+		"Original: %v":   "Исходное: %v",
+		"Edited by hand": "Изменено вручную",
+		"Edit the game":  "Изменить игру",
+		"Only how the app shows it changes: the file and the title ID of the game are not touched. Organize uses this name when you run it.": "Меняется только то, как её показывает приложение: файл и ID игры не трогаются. «Упорядочить» использует это название, когда вы его запустите.",
+		"Cover":                           "Обложка",
+		"Upload an image":                 "Загрузить изображение",
+		"or paste an address (https://…)": "или вставьте адрес (https://…)",
+		"Address of the cover":            "Адрес обложки",
+		"Use the cover of the game":       "Взять обложку игры",
+		"JPEG, PNG or GIF, up to 5 MB. It is kept in the app.":                                   "JPEG, PNG или GIF, до 5 МБ. Хранится в приложении.",
+		"Empty: the original one, “%v”.":                                                         "Пусто: исходное, «%v».",
+		"(if you like)":                                                                          "(по желанию)",
+		"Empty: the original one, in your language when there is one.":                           "Пусто: исходное, на вашем языке, если оно есть.",
+		"Back to the original name, cover and description of this game? What you wrote is lost.": "Вернуть исходные название, обложку и описание этой игры? Написанное вами будет потеряно.",
+		"Back to the original":                                                                   "Вернуть исходное",
+		"The cover is too large: at most 5 MB and 6000 pixels a side.":                           "Обложка слишком большая: не более 5 МБ и 6000 пикселей по стороне.",
+		"The titles database and the library do not know this game.":                             "Ни база названий, ни библиотека не знают эту игру.",
+		"The cover must be a JPEG, PNG or GIF image.":                                            "Обложка должна быть изображением JPEG, PNG или GIF.",
+		"The cover could not be downloaded from that address.":                                   "Не удалось скачать обложку по этому адресу.",
+		"The change could not be saved in the data folder.":                                      "Не удалось сохранить изменение в папке данных.",
 		// the titles database, with no connection to its servers
 		"Offline: the titles database was not downloaded, the saved copy is used.": "Нет соединения: не удалось скачать базу названий, используется сохранённая копия.",
 		"Offline: the titles database was not downloaded.":                         "Нет соединения: не удалось скачать базу названий.",

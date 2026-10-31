@@ -3,6 +3,27 @@ package web
 // French interface translations; see translations.go.
 func init() {
 	translations["fr"] = map[string]string{
+		// a game edited by hand
+		"Original: %v":   "Original : %v",
+		"Edited by hand": "Modifié à la main",
+		"Edit the game":  "Modifier le jeu",
+		"Only how the app shows it changes: the file and the title ID of the game are not touched. Organize uses this name when you run it.": "Seul l'affichage dans l'app change : le fichier et l'ID de titre du jeu ne sont pas touchés. Organiser utilise ce nom quand vous le lancez.",
+		"Cover":                           "Jaquette",
+		"Upload an image":                 "Envoyer une image",
+		"or paste an address (https://…)": "ou collez une adresse (https://…)",
+		"Address of the cover":            "Adresse de la jaquette",
+		"Use the cover of the game":       "Utiliser la jaquette du jeu",
+		"JPEG, PNG or GIF, up to 5 MB. It is kept in the app.":                                   "JPEG, PNG ou GIF, jusqu'à 5 Mo. Elle est gardée dans l'app.",
+		"Empty: the original one, “%v”.":                                                         "Vide : l'original, « %v ».",
+		"(if you like)":                                                                          "(si vous voulez)",
+		"Empty: the original one, in your language when there is one.":                           "Vide : l'originale, dans votre langue s'il y en a une.",
+		"Back to the original name, cover and description of this game? What you wrote is lost.": "Revenir au nom, à la jaquette et à la description d'origine de ce jeu ? Ce que vous avez écrit sera perdu.",
+		"Back to the original":                                                                   "Revenir à l'original",
+		"The cover is too large: at most 5 MB and 6000 pixels a side.":                           "La jaquette est trop grande : 5 Mo et 6000 pixels de côté au maximum.",
+		"The titles database and the library do not know this game.":                             "Ni la base de données des titres ni la bibliothèque ne connaissent ce jeu.",
+		"The cover must be a JPEG, PNG or GIF image.":                                            "La jaquette doit être une image JPEG, PNG ou GIF.",
+		"The cover could not be downloaded from that address.":                                   "Impossible de télécharger la jaquette depuis cette adresse.",
+		"The change could not be saved in the data folder.":                                      "Impossible d'enregistrer la modification dans le dossier de données.",
 		// the titles database, with no connection to its servers
 		"Offline: the titles database was not downloaded, the saved copy is used.": "Pas de connexion : la base de données des titres n'a pas pu être téléchargée, la copie enregistrée est utilisée.",
 		"Offline: the titles database was not downloaded.":                         "Pas de connexion : la base de données des titres n'a pas pu être téléchargée.",

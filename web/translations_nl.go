@@ -3,6 +3,27 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		// a game edited by hand
+		"Original: %v":   "Origineel: %v",
+		"Edited by hand": "Met de hand bewerkt",
+		"Edit the game":  "Game bewerken",
+		"Only how the app shows it changes: the file and the title ID of the game are not touched. Organize uses this name when you run it.": "Alleen hoe de app hem toont verandert: het bestand en de titel-ID van de game blijven ongemoeid. Ordenen gebruikt deze naam wanneer je het start.",
+		"Cover":                           "Cover",
+		"Upload an image":                 "Een afbeelding uploaden",
+		"or paste an address (https://…)": "of plak een adres (https://…)",
+		"Address of the cover":            "Adres van de cover",
+		"Use the cover of the game":       "De cover van de game gebruiken",
+		"JPEG, PNG or GIF, up to 5 MB. It is kept in the app.":                                   "JPEG, PNG of GIF, tot 5 MB. Wordt in de app bewaard.",
+		"Empty: the original one, “%v”.":                                                         "Leeg: de originele, ‘%v’.",
+		"(if you like)":                                                                          "(als je wilt)",
+		"Empty: the original one, in your language when there is one.":                           "Leeg: de originele, in je taal als die er is.",
+		"Back to the original name, cover and description of this game? What you wrote is lost.": "Terug naar de originele naam, cover en beschrijving van deze game? Wat je schreef gaat verloren.",
+		"Back to the original":                                                                   "Terug naar het origineel",
+		"The cover is too large: at most 5 MB and 6000 pixels a side.":                           "De cover is te groot: hoogstens 5 MB en 6000 pixels per zijde.",
+		"The titles database and the library do not know this game.":                             "De titeldatabase en de bibliotheek kennen deze game geen van beide.",
+		"The cover must be a JPEG, PNG or GIF image.":                                            "De cover moet een JPEG-, PNG- of GIF-afbeelding zijn.",
+		"The cover could not be downloaded from that address.":                                   "De cover kon niet van dat adres worden gedownload.",
+		"The change could not be saved in the data folder.":                                      "De wijziging kon niet in de datamap worden opgeslagen.",
 		// the titles database, with no connection to its servers
 		"Offline: the titles database was not downloaded, the saved copy is used.": "Geen verbinding: de titeldatabase kon niet worden gedownload, de opgeslagen kopie wordt gebruikt.",
 		"Offline: the titles database was not downloaded.":                         "Geen verbinding: de titeldatabase kon niet worden gedownload.",

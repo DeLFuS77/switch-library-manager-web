@@ -103,6 +103,13 @@ type TitleDetail struct {
 	RequiredFirmware string
 	FirmwareTooNew   bool
 
+	// what the user changed by hand (see overrides.go), and the game as it is without it
+	Edit                TitleOverride
+	Edited              bool
+	OriginalName        string
+	OriginalDescription string
+	OriginalImageUrl    string
+
 	// all local files of the game, downloadable as one archive
 	ArchiveFiles int
 	ArchiveSize  int64
@@ -225,6 +232,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		// only updates or DLC of an unknown game are present
 		detail.Id = strings.ToUpper(prefix + strings.Repeat("0", 16-len(prefix)))
 	}
+	detail.OriginalImageUrl = detail.ImageUrl
 	if cover := editedCover(switchDB, detail.Id); cover != "" {
 		detail.ImageUrl = cover
 	}
@@ -233,12 +241,26 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 	detail.Wished = web.wishes().has(detail.Id)
 	detail.TimeToBeat, _ = web.timesToBeat().get(detail.Id)
 	detail.Saves = web.titleSaves(detail.Id, lang)
+	// the name and description of the game without what the user changed by hand
+	detail.OriginalName, detail.OriginalDescription = detail.Name, detail.Description
+	if switchDB != nil {
+		unedited := *switchDB
+		unedited.Edited = nil
+		detail.OriginalName = titleName(&unedited, lang, detail.Id, getLocalTitleName(title, local))
+		if localized, ok := unedited.LocalizedTitle(lang, detail.Id); ok && localized.Description != "" {
+			detail.OriginalDescription = localized.Description
+		}
+	}
 	if localized, ok := switchDB.LocalizedTitle(lang, detail.Id); ok && localized.Description != "" {
 		detail.Description = localized.Description
 	}
 	if detail.Name == "" {
 		detail.Name = "Unknown title"
 	}
+	if detail.OriginalName == "" {
+		detail.OriginalName = detail.Name
+	}
+	detail.Edit, detail.Edited = web.titleOverrides().get(detail.Id)
 	_, detail.UpdatesIgnored = ignoredUpdates[strings.ToLower(detail.Id)]
 
 	if title != nil {
@@ -406,6 +428,16 @@ func (t TitleDetail) DlcPercent() int {
 		return 0
 	}
 	return t.DlcOwned * 100 / t.DlcTotal
+}
+
+// DescriptionHint is the beginning of the original description, shown in the empty field of the
+// description when the game is edited.
+func (t TitleDetail) DescriptionHint() string {
+	runes := []rune(strings.Join(strings.Fields(t.OriginalDescription), " "))
+	if len(runes) <= 200 {
+		return string(runes)
+	}
+	return strings.TrimSpace(string(runes[:200])) + "…"
 }
 
 // OlderVersions is the number of versions shown only on request, after the newest five.

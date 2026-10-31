@@ -3,6 +3,27 @@ package web
 // Portuguese (Brazil) interface translations; see translations.go.
 func init() {
 	translations["pt"] = map[string]string{
+		// a game edited by hand
+		"Original: %v":   "Original: %v",
+		"Edited by hand": "Editado à mão",
+		"Edit the game":  "Editar o jogo",
+		"Only how the app shows it changes: the file and the title ID of the game are not touched. Organize uses this name when you run it.": "Só muda como o app o mostra: o arquivo e o ID do título do jogo não são tocados. Organizar usa este nome quando você o executar.",
+		"Cover":                           "Capa",
+		"Upload an image":                 "Enviar uma imagem",
+		"or paste an address (https://…)": "ou cole um endereço (https://…)",
+		"Address of the cover":            "Endereço da capa",
+		"Use the cover of the game":       "Usar a capa do jogo",
+		"JPEG, PNG or GIF, up to 5 MB. It is kept in the app.":                                   "JPEG, PNG ou GIF, até 5 MB. Fica guardada no app.",
+		"Empty: the original one, “%v”.":                                                         "Vazio: o original, “%v”.",
+		"(if you like)":                                                                          "(se quiser)",
+		"Empty: the original one, in your language when there is one.":                           "Vazia: a original, no seu idioma se houver.",
+		"Back to the original name, cover and description of this game? What you wrote is lost.": "Voltar ao nome, à capa e à descrição originais deste jogo? O que você escreveu será perdido.",
+		"Back to the original":                                                                   "Voltar ao original",
+		"The cover is too large: at most 5 MB and 6000 pixels a side.":                           "A capa é grande demais: no máximo 5 MB e 6000 pixels por lado.",
+		"The titles database and the library do not know this game.":                             "Nem o banco de dados de títulos nem a biblioteca conhecem este jogo.",
+		"The cover must be a JPEG, PNG or GIF image.":                                            "A capa precisa ser uma imagem JPEG, PNG ou GIF.",
+		"The cover could not be downloaded from that address.":                                   "Não foi possível baixar a capa desse endereço.",
+		"The change could not be saved in the data folder.":                                      "Não foi possível guardar a alteração na pasta de dados.",
 		// the titles database, with no connection to its servers
 		"Offline: the titles database was not downloaded, the saved copy is used.": "Sem conexão: não foi possível baixar o banco de dados de títulos; a cópia salva é usada.",
 		"Offline: the titles database was not downloaded.":                         "Sem conexão: não foi possível baixar o banco de dados de títulos.",
