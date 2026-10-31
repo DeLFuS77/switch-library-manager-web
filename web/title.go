@@ -225,6 +225,9 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		// only updates or DLC of an unknown game are present
 		detail.Id = strings.ToUpper(prefix + strings.Repeat("0", 16-len(prefix)))
 	}
+	if cover := editedCover(switchDB, detail.Id); cover != "" {
+		detail.ImageUrl = cover
+	}
 
 	detail.Name = titleName(switchDB, lang, detail.Id, getLocalTitleName(title, local))
 	detail.Wished = web.wishes().has(detail.Id)

@@ -65,6 +65,158 @@
         }
       }
     },
+    "/api/titles/{titleId}/override": {
+      "get": {
+        "summary": "What was changed of a game by hand",
+        "description": "The name, cover and description an administrator gave the game on its page. They win over the titles database, its translations, the files of the game and IGDB, in every language. An update or DLC ID tells its game.",
+        "tags": [
+          "Library"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/titleId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The changes; edited is false when there are none",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TitleOverride"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid title ID"
+          },
+          "404": {
+            "description": "Neither the titles database nor the library knows the game"
+          }
+        }
+      },
+      "post": {
+        "summary": "Change the name, cover or description of a game",
+        "description": "Kept apart from the titles database, by title ID, so synchronizations and scans never lose it; the files of the game and its title ID are not touched, and Organize uses the name given when it runs. The name and the description sent replace the ones kept (empty: those of the game). A cover sent, as a file or as an address downloaded once, replaces the one kept; without one the cover kept stays. Covers must be JPEG, PNG or GIF images of at most 5 MB and 6000 pixels a side; they are made again, at most 1024 pixels a side. When nothing is left the change is forgotten.",
+        "tags": [
+          "Library"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/titleId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "description": "The name shown; empty for the one of the game"
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 10000,
+                    "description": "Empty for the one of the game"
+                  },
+                  "cover": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "A new cover"
+                  },
+                  "coverUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "The address of a new cover on the internet, downloaded once"
+                  },
+                  "removeCover": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "true shows the cover of the game again"
+                  }
+                }
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  "coverUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "removeCover": {
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kept and shown (after the synchronization running, if any)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TitleOverride"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid title ID, or a cover that is not an image, too large or that could not be downloaded"
+          },
+          "404": {
+            "description": "Neither the titles database nor the library knows the game"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Back to the original",
+        "description": "Forgets what was changed of the game by hand, and deletes the cover chosen.",
+        "tags": [
+          "Library"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/titleId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Forgotten",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TitleOverride"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid title ID"
+          },
+          "404": {
+            "description": "Neither the titles database nor the library knows the game"
+          }
+        }
+      }
+    },
     "/api/titles/{titleId}/updates/{version}": {
       "get": {
         "summary": "Download an update file",
@@ -604,6 +756,32 @@
             }
           }
         ]
+      },
+      "TitleOverride": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Title ID of the game"
+          },
+          "edited": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "coverUrl": {
+            "type": "string",
+            "description": "The cover chosen, served by the app"
+          },
+          "changed": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       },
       "Share": {
         "type": "object",

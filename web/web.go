@@ -125,6 +125,9 @@ type Web struct {
 	// the copies chosen of the games of several regions
 	regionChoice     *regionChoices
 	regionChoiceOnce sync.Once
+	// the names, covers and descriptions changed by hand (see overrides.go)
+	overrides     *titleOverrides
+	overridesOnce sync.Once
 	// how long the games take to beat, from IGDB (see igdb.go)
 	timeToBeat     *timeToBeatStore
 	timeToBeatOnce sync.Once
@@ -879,7 +882,7 @@ func (web *Web) startInBackground() {
 			web.sugarLogger.Info("The keys changed since the last scan, the library is scanned again")
 		}
 		// the pages show the titles while the library is scanned
-		web.state.set(switchDB, nil)
+		web.state.set(web.withLibraryTitles(switchDB, nil), nil)
 
 		taskId := web.startTask(TASK_SCAN, TRIGGER_STARTUP)
 		var failure *TaskNote

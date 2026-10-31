@@ -105,7 +105,7 @@ func withSecurityHeaders(next http.Handler) http.Handler {
 const (
 	// the largest request body: forms and lists of files; a backup has its own limit
 	maxRequestBody = 8 << 20
-	maxBackupBody  = 17 << 20
+	maxBackupBody  = 65 << 20
 	// the login form only has a name and a password
 	maxLoginBody = 64 << 10
 )

@@ -163,7 +163,7 @@ func (web *Web) buildMissingGames(lang string) []TitleItem {
 
 		name := titleName(switchDB, lang, v.Attributes.Id, v.Attributes.Name)
 		{
-			imageUrl := coverUrl(localDB, v.Attributes)
+			imageUrl := coverUrl(switchDB, localDB, v.Attributes)
 
 			release, err := intToTime(v.Attributes.ReleaseDate)
 			if err != nil {
