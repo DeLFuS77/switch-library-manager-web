@@ -158,6 +158,8 @@ Linux, Docker, NAS and Raspberry Pi.
   the log; HTTPS-ready, with the usual browser protections
 - Sign in through Authelia, Authentik or Cloudflare Access: the people your portal lets in open the app without its
   password ([how](docs/install/nas.md#signing-in-through-authelia-authentik-or-cloudflare-access))
+- Sign in with PocketID, Authentik or Keycloak: a button on the login page signs people in with OpenID Connect
+  ([how](docs/install/nas.md#signing-in-with-openid-connect-pocketid-authentik-keycloak))
 
 **In your language**
 - English, Spanish, French, German, Italian, Portuguese, Dutch, Russian, Japanese, Korean and Chinese (including

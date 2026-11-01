@@ -23,6 +23,7 @@ changes every time the app starts.
 - [Portainer](#portainer)
 - [Updating](#updating)
 - [Signing in through Authelia, Authentik or Cloudflare Access](#signing-in-through-authelia-authentik-or-cloudflare-access)
+- [Signing in with OpenID Connect (PocketID, Authentik, Keycloak)](#signing-in-with-openid-connect-pocketid-authentik-keycloak)
 
 ## Synology
 
@@ -111,3 +112,49 @@ page of Cloudflare Access.
 | `SLM_AUTH_PROXY_NEW_USERS` | `guest` or `player` to make a user for a person without one; empty, none is made |
 | `SLM_AUTH_PROXY_ADMIN_GROUP` | The group of the portal whose members are administrators |
 | `SLM_AUTH_PROXY_LOGOUT_URL` | Where Log out sends the people signed in by the portal |
+
+## Signing in with OpenID Connect (PocketID, Authentik, Keycloak)
+
+With a provider of OpenID Connect, the login page shows a button, such as **Log in with PocketID**, that signs people
+in with their account there. It is off until you turn it on in **Settings › Sign-in portal**, or with the variables
+below; a variable wins over its option. The app reads the provider over https only and checks every sign-in (the
+signature of the provider, the issuer, the audience, the expiry and the nonce of that sign-in, with PKCE), then gives
+the person the usual session of the app. Passwords and API keys keep working, and while the app has no user the
+button does nothing: the first administrator still needs the setup code.
+
+People are matched with users as with the sign-in portal: by name (`preferred_username`) or by the email set in
+**Users › Edit**, and an email the provider does not say it verified is not used. The first sign-in links the user with
+the account of the provider: from then on only that account signs in as the user, whatever name it takes, and setting
+another email in **Users › Edit** links it again at the next sign-in. The user of `SLM_AUTH_USERNAME` signs in with its
+password only. The members of the administrators group (`SLM_AUTH_PROXY_ADMIN_GROUP`, from the `groups` claim) are
+administrators, and `SLM_AUTH_PROXY_MATCH` and `SLM_AUTH_PROXY_NEW_USERS` apply too. Log out ends the session of the
+app and, when the provider has a page for it, the one of the provider.
+
+In the provider, make a client for the app. Its redirect address is the address of the app followed by
+`/login/oidc/callback`, such as `https://switch.example.com/login/oidc/callback`: Settings shows it, with a button to
+copy it. Then give the app the address of the provider (the issuer), the client ID and the client secret:
+
+```yaml
+    environment:
+      - SLM_OIDC_ISSUER=https://id.example.com
+      - SLM_OIDC_CLIENT_ID=switch-library-manager
+      - SLM_OIDC_CLIENT_SECRET=your-client-secret
+      - SLM_OIDC_BUTTON=PocketID                        # Log in with PocketID
+```
+
+- **PocketID**: add an OIDC client with the redirect address in **Callback URLs**. The issuer is the address of
+  PocketID, such as `https://id.example.com`.
+- **Authentik**: make an application with an **OAuth2/OpenID Provider** (client type Confidential) and the redirect
+  address in its **Redirect URIs**. The issuer is `https://auth.example.com/application/o/<slug>/`, with the slash at
+  the end. Since 2025.10 Authentik marks the emails as not verified unless you map them otherwise: people are then
+  matched by name.
+- **Keycloak**: in your realm, create an OpenID Connect client with **Client authentication** on and the redirect
+  address in **Valid redirect URIs**. The issuer is `https://kc.example.com/realms/<realm>`. For the administrators
+  group, add a **Group Membership** mapper with the claim name `groups` and **Full group path** off.
+
+| Variable | Meaning |
+|---|---|
+| `SLM_OIDC_ISSUER` | The address of the provider (issuer); set, the button is on |
+| `SLM_OIDC_CLIENT_ID`, `SLM_OIDC_CLIENT_SECRET` | The client of the app in the provider; no secret for a public client |
+| `SLM_OIDC_BUTTON` | The name on the button, Log in with …; empty, `SSO` |
+| `SLM_OIDC_SCOPES` | The scopes asked for; empty, `openid profile email groups` |
