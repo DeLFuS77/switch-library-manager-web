@@ -219,18 +219,25 @@ function initSearchClear() {
 
 // buttons that copy a text, such as the ID of a game
 // copyText puts a text in the clipboard; without HTTPS (a NAS opened by its address) the
-// browser has no clipboard API, and a selected field is copied instead
-function copyText(text) {
+// browser has no clipboard API, and a selected field is copied instead. The field goes in the
+// container given: in a window (a modal), which keeps the focus inside it
+function copyText(text, container = document.body) {
 	if (navigator.clipboard && window.isSecureContext) {
-		return navigator.clipboard.writeText(text);
+		// a browser that refuses it (a permission, a view inside another app) still copies a
+		// selected field
+		return navigator.clipboard.writeText(text).catch(() => copyBySelection(text, container));
 	}
+	return copyBySelection(text, container);
+}
+
+function copyBySelection(text, container) {
 	return new Promise((resolve, reject) => {
 		const field = document.createElement('textarea');
 		field.value = text;
 		field.setAttribute('readonly', '');
 		field.style.position = 'fixed';
 		field.style.opacity = '0';
-		document.body.appendChild(field);
+		container.appendChild(field);
 		field.select();
 		const copied = document.execCommand('copy');
 		field.remove();
@@ -249,7 +256,7 @@ function initCopyButtons() {
 		if (!button) {
 			return;
 		}
-		copyText(button.dataset.copy).then(() => {
+		copyText(button.dataset.copy, button.closest('.modal') || document.body).then(() => {
 			button.classList.add('is-copied');
 			setTimeout(() => button.classList.remove('is-copied'), 1200);
 			const label = button.querySelector('[data-copy-label]');

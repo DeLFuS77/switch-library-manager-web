@@ -90,6 +90,17 @@ func apiKeyRoles(userRole string) []string {
 	return choices
 }
 
+// apiKeyChoices are the roles a user may give a key, with what each may do, for My account.
+func apiKeyChoices(userRole string) []RoleChoice {
+	choices := []RoleChoice{}
+	for _, role := range apiKeyRoles(userRole) {
+		// read only given by a guest stays a guest's
+		does := lowerRole(role, userRole)
+		choices = append(choices, RoleChoice{Value: role, Name: apiKeyRoleName(role), Text: roleTexts[does]})
+	}
+	return choices
+}
+
 // apiKeyRoleName is the name of the role of a key, translated by the interface.
 func apiKeyRoleName(role string) string {
 	if role == ROLE_VIEWER {
@@ -273,6 +284,8 @@ type KeyRow struct {
 	Hint     string    `json:"hint"`
 	Created  time.Time `json:"created"`
 	LastUsed time.Time `json:"lastUsed,omitzero"`
+	// the colour of the avatar of its user, for Users
+	Color string `json:"-"`
 }
 
 // RoleName is the name of what the key may do, and MadeAsName the one it was made with,
@@ -280,8 +293,21 @@ type KeyRow struct {
 func (k KeyRow) RoleName() string   { return apiKeyRoleName(k.Role) }
 func (k KeyRow) MadeAsName() string { return apiKeyRoleName(k.MadeAs) }
 
+// Icon is the icon of the key in My account, from its name: a house for Home Assistant, a
+// terminal for a script, a key for the others.
+func (k KeyRow) Icon() string {
+	name := strings.ToLower(k.Name)
+	switch {
+	case strings.Contains(name, "home assistant") || strings.Contains(name, "homeassistant") || strings.Contains(name, "hass"):
+		return "bi-house-gear"
+	case strings.Contains(name, "script") || strings.Contains(name, "cron") || strings.Contains(name, "curl"):
+		return "bi-terminal"
+	}
+	return "bi-key"
+}
+
 func keyRow(user User, key APIKey) KeyRow {
-	row := KeyRow{User: user.Name, ID: key.ID, Name: key.Name, Role: lowerRole(key.Role, user.Role), Hint: apiKeyPrefix + "…" + key.Hint, Created: key.Created, LastUsed: key.LastUsed}
+	row := KeyRow{User: user.Name, ID: key.ID, Name: key.Name, Role: lowerRole(key.Role, user.Role), Hint: apiKeyPrefix + "…" + key.Hint, Created: key.Created, LastUsed: key.LastUsed, Color: user.Color}
 	if row.Role != key.Role {
 		row.MadeAs = key.Role
 	}

@@ -186,3 +186,25 @@
 									<p class="text-body-secondary mb-0 mt-1">{{t "It changes every time the app starts: after a restart, the new one is in the last lines."}}</p>
 								</details>
 {{- end}}
+
+{{- /* an API key in My account (with the icon of its name) or in Users (with the avatar of its user):
+	dict "Key" KeyRow "Owner" (in Users) "Me" (the name of who looks) */}}
+{{- define "keyRow"}}
+						<li class="surface key-row">
+							{{- if .Owner}}
+							<span class="user-avatar user-avatar-sm{{with .Key.Color}} avatar-{{.}}{{end}}" title="{{.Key.User}}" aria-hidden="true">{{initial .Key.User}}</span>
+							{{- else}}
+							<span class="key-icon" aria-hidden="true"><span class="bi {{.Key.Icon}}"></span></span>
+							{{- end}}
+							<div class="flex-grow-1 min-w-0">
+								<div class="fw-semibold text-break">{{.Key.Name}} <span class="chip {{if eq .Key.Role "admin"}}chip-success{{else}}chip-muted{{end}} ms-1">{{t .Key.RoleName}}</span></div>
+								<div class="small text-body-secondary">{{if .Owner}}{{.Key.User}}{{if eq .Key.User .Me}} ({{t "you"}}){{end}} &middot; {{end}}<span class="key-hint">{{.Key.Hint}}</span> &middot; {{t "Made %v" (formatDateTime .Key.Created)}} &middot; {{if .Key.LastUsed.IsZero}}{{t "Never used"}}{{else}}{{t "Last used %v" (formatDateTime .Key.LastUsed)}}{{end}}</div>
+								{{- if .Key.MadeAs}}
+								<div class="key-lowered"><span class="bi bi-arrow-down-circle me-1" aria-hidden="true"></span>{{t "Made as %v: it does no more than its user does now." (t .Key.MadeAsName)}}</div>
+								{{- end}}
+							</div>
+							<div class="key-actions">
+								<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill text-nowrap" data-key-revoke="{{.Key.ID}}" data-confirm="{{t "Revoke the key “%v”? What uses it stops signing in." .Key.Name}}"><span class="bi bi-x-circle me-1" aria-hidden="true"></span>{{t "Revoke"}}</button>
+							</div>
+						</li>
+{{- end}}

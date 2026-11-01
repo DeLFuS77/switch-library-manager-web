@@ -25,6 +25,8 @@ type UsersPageData struct {
 	Error    string
 	// a setup code missing, wrong or blocked: shown under its field, not over the page
 	CodeError string
+	// the API keys of every user
+	Keys []KeyRow
 }
 
 type AccountPageData struct {
@@ -38,6 +40,11 @@ type AccountPageData struct {
 	Stored bool
 	// the colours the avatar can take
 	AvatarColors []string
+	// the API keys of the user, and the roles a new one may have; a request signed in with a
+	// key sees them but makes none
+	Keys        []KeyRow
+	KeyChoices  []RoleChoice
+	CanMakeKeys bool
 }
 
 // messages shown after an action, by the key in the redirect
@@ -49,6 +56,9 @@ var userMessages = map[string]string{
 	"enabled":  "Login is now required. You are logged in as the new administrator.",
 	"language": "Your language was saved.",
 	"color":    "The colour of your icon was saved.",
+	// the API keys, made and revoked by the scripts of the pages
+	"keycreated": "The API key was made.",
+	"keyrevoked": "The API key was revoked.",
 }
 
 func (web *Web) HandleUsers() {
@@ -113,7 +123,7 @@ func (web *Web) HandleUsers() {
 		lang := web.requestLanguage(r)
 		// the first administrator asks for the setup code: it is written again at the end of the log
 		web.logSetupCode(false)
-		data := UsersPageData{GlobalPageData: web.globalPageData("users"), Users: web.auth.users.List(), EnvUser: web.auth.envUser, Activity: translateActivity(web.requestLanguage(r), activityPreview(web.activities().list(), 8))}
+		data := UsersPageData{GlobalPageData: web.globalPageData("users"), Users: web.auth.users.List(), EnvUser: web.auth.envUser, Activity: translateActivity(web.requestLanguage(r), activityPreview(web.activities().list(), 8)), Keys: web.auth.users.KeyRows("")}
 		if message, ok := userMessages[r.URL.Query().Get("done")]; ok {
 			data.Message = translate(lang, message)
 		}
@@ -133,6 +143,7 @@ func (web *Web) HandleUsers() {
 		if principal := principalFrom(r); principal != nil && principal.Name != "" {
 			if user, ok := web.auth.users.Get(principal.Name); ok {
 				data.Stored, data.Language = true, user.Language
+				data.Keys, data.KeyChoices, data.CanMakeKeys = web.auth.users.KeyRows(user.Name), apiKeyChoices(user.Role), principal.Source != "key"
 			}
 		}
 		if message, ok := userMessages[r.URL.Query().Get("done")]; ok {
