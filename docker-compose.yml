@@ -25,3 +25,5 @@ services:
       - ./data:/usr/local/share/switch-library-manager-web
       # your library
       - /path/to/your/switch/backups:/mnt/roms
+      # optional: games in a second folder; then add /mnt/roms2 to Folders to scan in Settings › Library
+      # - /path/to/more/switch/backups:/mnt/roms2
