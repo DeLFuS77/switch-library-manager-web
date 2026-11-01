@@ -190,7 +190,10 @@ jobs:
           exit 1
 
       - name: Check that the preferences save
-        run: node scripts/save-check.mjs http://localhost:3001
+        # the first administrator needs the setup code the app wrote in its log
+        run: |
+          SLM_SETUP_CODE="$(grep -o 'SETUP CODE  *[0-9A-Z-]*' save.log | tail -n 1 | awk '{print $3}')" \
+            node scripts/save-check.mjs http://localhost:3001
 
   docker:
     runs-on: ubuntu-24.04

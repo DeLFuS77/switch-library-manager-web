@@ -4,7 +4,8 @@
 // passed, as none of them pressed the button.
 //
 // Usage: node scripts/save-check.mjs [address of an app that is not in demo mode]
-// Needs Chrome (or Chromium, or Edge); set CHROME to its path if it is not found.
+// Needs Chrome (or Chromium, or Edge); set CHROME to its path if it is not found, and
+// SLM_SETUP_CODE to the setup code the app wrote in its log, which the first administrator needs.
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
@@ -106,11 +107,12 @@ const CHECKS = [
 // ones that follow.
 const USER = 'savecheck';
 const PASSWORD = 'Sv-' + randomBytes(12).toString('hex');
+const SETUP_CODE = (process.env.SLM_SETUP_CODE || '').replace(/[^0-9A-Za-z-]/g, '');
 const RELOADS = [
 	{
 		name: 'users.html: require login with a first administrator',
 		page: 'users.html',
-		fill: `(() => { document.querySelector('#firstName').value = '${USER}'; document.querySelector('#firstPassword').value = '${PASSWORD}'; return 'admin'; })()`,
+		fill: `(() => { document.querySelector('#firstName').value = '${USER}'; document.querySelector('#firstPassword').value = '${PASSWORD}'; document.querySelector('#firstCode').value = '${SETUP_CODE}'; return 'admin'; })()`,
 		submit: '#firstName',
 		read: `(document.querySelector('#role-${USER}') || {}).value || ''`,
 	},
