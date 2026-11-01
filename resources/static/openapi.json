@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Switch Library Manager Web API",
-    "description": "Read the library, its statistics and download files. When a login is required (users exist, or SLM_AUTH_USERNAME / SLM_AUTH_PASSWORD is set), every endpoint except /healthz needs HTTP basic authentication or a session cookie. Read-only users can call the GET endpoints; changes need an administrator. Requests that change data are rejected when they come from another web site; requests without browser headers (curl, scripts, Home Assistant) are accepted.",
+    "description": "Read the library, its statistics and download files. When a login is required (users exist, or SLM_AUTH_USERNAME / SLM_AUTH_PASSWORD is set), every endpoint except /healthz needs an API key (`Authorization: Bearer slm_...`, made in My account), HTTP basic authentication or a session cookie. A key does at most what its user does, and a read-only key only looks and downloads. Read-only users can call the GET endpoints; changes need an administrator. Requests that change data are rejected when they come from another web site; requests without browser headers (curl, scripts, Home Assistant) are accepted.",
     "license": {
       "name": "MIT"
     },
@@ -15,6 +15,9 @@
   ],
   "security": [
     {},
+    {
+      "bearerAuth": []
+    },
     {
       "basicAuth": []
     }
@@ -427,6 +430,136 @@
         }
       }
     },
+    "/api/keys": {
+      "get": {
+        "summary": "Your API keys",
+        "description": "The API keys of the user who asks, the newest first. The keys themselves are never sent again, only their last characters. An administrator gets the keys of every user with all=true.",
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "all",
+            "in": "query",
+            "description": "The keys of every user (administrators only)",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The keys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/APIKey"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Make an API key",
+        "description": "A key for the user who asks, signed in with a session or a password: a key cannot make keys. The key is in this answer only and cannot be shown again; only a hash of it is kept. It never does more than its user does at the time: when the role of the user is lowered, the key does less too, and the keys of a deleted user go with them. A user has at most 20 keys.",
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "description": "To tell the key from the others, e.g. where it is used",
+                    "example": "Home Assistant"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "viewer",
+                      "editor",
+                      "admin"
+                    ],
+                    "default": "viewer",
+                    "description": "viewer is read only: it looks and downloads. editor and admin only for a user with that role."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The key made, with the key itself",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKeyCreated"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A name that is empty or too long, a role the user does not have, 20 keys already, or a user without keys (the one of SLM_AUTH_USERNAME, or login off)"
+          },
+          "403": {
+            "description": "Asked with an API key"
+          }
+        }
+      }
+    },
+    "/api/keys/{id}": {
+      "delete": {
+        "summary": "Revoke an API key",
+        "description": "The key stops signing in at once. A user revokes their own keys, an administrator anybody's; not with an API key.",
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the key, from GET /api/keys",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{16}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The key revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKey"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Asked with an API key"
+          },
+          "404": {
+            "description": "No such key, or a key of another user"
+          }
+        }
+      }
+    },
     "/api/openapi.json": {
       "get": {
         "summary": "This API description",
@@ -701,6 +834,12 @@
   },
   "components": {
     "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "slm_ and 40 letters and digits",
+        "description": "An API key, made in My account or with POST /api/keys. Wrong keys count as failed sign-ins and block the address after a few."
+      },
       "basicAuth": {
         "type": "http",
         "scheme": "basic"
@@ -1056,6 +1195,72 @@
             "description": "A check: what it checks; empty for the checks of versions before it"
           }
         }
+      },
+      "APIKey": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string",
+            "description": "The user the key is of"
+          },
+          "id": {
+            "type": "string",
+            "example": "3f9c2a7d1e4b8a60"
+          },
+          "name": {
+            "type": "string",
+            "example": "Home Assistant"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "guest",
+              "viewer",
+              "editor",
+              "admin"
+            ],
+            "description": "What the key may do now: the lower of the role it was made with and the role of its user"
+          },
+          "madeAs": {
+            "type": "string",
+            "enum": [
+              "viewer",
+              "editor",
+              "admin"
+            ],
+            "description": "The role it was made with, only when its user may do less now"
+          },
+          "hint": {
+            "type": "string",
+            "description": "The last characters of the key, to tell it from the others",
+            "example": "slm_…k7Qa"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastUsed": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Noted at most every 10 minutes; missing if never used"
+          }
+        }
+      },
+      "APIKeyCreated": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/APIKey"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "The key, to send as Authorization: Bearer. Shown this once."
+              }
+            }
+          }
+        ]
       }
     }
   }

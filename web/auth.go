@@ -108,6 +108,8 @@ type Auth struct {
 	envPasswordWeak error
 	// told of each sign-in attempt (user, ip, result, whether the password was long enough)
 	onLogin func(user, ip, result string, longEnough bool)
+	// told of each sign-in with an API key (its user and name, ip, result), see apikeys.go
+	onKey func(user, keyName, ip, result string)
 	// when an attempt that is told only now and then was told last, by user, address and result
 	toldMutex sync.Mutex
 	told      map[string]time.Time
@@ -407,8 +409,13 @@ func viewerAllowed(r *http.Request) bool {
 		// the backups hold the settings and the users
 		return !adminOnly && !strings.HasPrefix(r.URL.Path, "/backup/")
 	case http.MethodPost:
-		// the list of files of the SD card planner is a download, as the pages are
-		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/account/color" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt" || r.URL.Path == "/play"
+		// the list of files of the SD card planner is a download, as the pages are; every user
+		// makes their own API keys
+		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/account/color" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt" || r.URL.Path == "/play" ||
+			r.URL.Path == "/api/keys"
+	case http.MethodDelete:
+		// and revokes them
+		return strings.HasPrefix(r.URL.Path, "/api/keys/")
 	}
 	return false
 }
@@ -440,11 +447,18 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 			principal = a.fromSession(r)
 			if principal == nil {
 				ip := clientIp(r)
-				name, _, _ := r.BasicAuth()
+				// an API key names no account: it counts against the address only
+				secret, bearer := bearerKey(r)
+				name := ""
+				if !bearer {
+					name, _, _ = r.BasicAuth()
+				}
 				keys := loginKeys(ip, name)
 				retryAfter, delay := a.limiter.check(keys...)
 				if retryAfter > 0 {
-					if _, password, had := r.BasicAuth(); had {
+					if bearer {
+						a.keyAttempt("", APIKey{}, ip, "blocked")
+					} else if _, password, had := r.BasicAuth(); had {
 						a.loginAttempt(name, ip, "blocked", password, retryTellInterval)
 					}
 					w.Header().Set("Retry-After", strconv.Itoa(int(retryAfter.Seconds())+1))
@@ -454,20 +468,35 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 				if delay > 0 {
 					sleepFor(delay)
 				}
-				var attempted bool
-				principal, attempted = a.fromBasicAuth(r)
-				if principal == nil {
-					if attempted {
+				if bearer {
+					var key APIKey
+					var ok bool
+					principal, key, ok = a.fromAPIKey(secret)
+					if !ok {
 						a.limiter.fail(keys...)
-						_, password, _ := r.BasicAuth()
-						a.loginAttempt(name, ip, "fail", password, retryTellInterval)
+						a.keyAttempt("", APIKey{}, ip, "fail")
+						w.Header().Set("WWW-Authenticate", `Bearer realm="Switch Library Manager", error="invalid_token"`)
+						http.Error(w, "unauthorized", http.StatusUnauthorized)
+						return
 					}
-					a.unauthorized(w, r)
-					return
+					a.limiter.succeed(keys...)
+					a.keyAttempt(principal.Name, key, ip, "ok")
+				} else {
+					var attempted bool
+					principal, attempted = a.fromBasicAuth(r)
+					if principal == nil {
+						if attempted {
+							a.limiter.fail(keys...)
+							_, password, _ := r.BasicAuth()
+							a.loginAttempt(name, ip, "fail", password, retryTellInterval)
+						}
+						a.unauthorized(w, r)
+						return
+					}
+					a.limiter.succeed(keys...)
+					a.loginAttempt(principal.Name, ip, "ok", "", apiLoginTellInterval)
+					a.signedIn(principal.Name)
 				}
-				a.limiter.succeed(keys...)
-				a.loginAttempt(principal.Name, ip, "ok", "", apiLoginTellInterval)
-				a.signedIn(principal.Name)
 			}
 		}
 

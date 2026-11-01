@@ -74,4 +74,73 @@
 					</section>
 				</div>
 			</div>
+			{{- if .Auth.Enabled}}
+			<section class="surface mt-4" id="keys" aria-labelledby="keysTitle">
+				<div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+					<h2 class="section-title mb-0 me-auto" id="keysTitle"><span class="bi bi-key" aria-hidden="true"></span>{{t "API keys"}}</h2>
+					{{- if .CanMakeKeys}}
+					<button type="button" class="btn btn-primary rounded-pill" data-bs-toggle="modal" data-bs-target="#keyCreate"><span class="bi bi-plus-lg me-1" aria-hidden="true"></span>{{t "Make a key"}}</button>
+					{{- end}}
+				</div>
+				{{- if .Stored}}
+				<p class="text-body-secondary small">{{tCode "For Home Assistant and scripts: they sign in with %v and your password is not kept in them. If one is lost, revoke it and make another." "Authorization: Bearer"}}</p>
+				{{- if .Keys}}
+				<ul class="list-unstyled key-list mb-0">
+					{{- range .Keys}}
+					{{- template "keyRow" (dict "Key" . "Owner" false "Me" $.Auth.User)}}
+					{{- end}}
+				</ul>
+				{{- else}}
+				<p class="text-body-secondary small mb-0">{{t "You have none yet. Make one for Home Assistant or a script instead of giving them your password."}}</p>
+				{{- end}}
+				{{- else}}
+				<p class="text-body-secondary small mb-0">{{t "This user is set with environment variables and keeps no keys. Create a user in Users to have your own."}}</p>
+				{{- end}}
+			</section>
+			{{- if .CanMakeKeys}}
+			<div class="modal fade" id="keyCreate" tabindex="-1" aria-labelledby="keyCreateTitle" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<div class="modal-content" data-key-create data-made-title="{{t "Key made"}}" data-key-label="{{t "Key “%v”"}}">
+						<div class="modal-header">
+							<h2 class="modal-title fs-5" id="keyCreateTitle"><span class="bi bi-key me-2" aria-hidden="true" data-key-title-icon></span><span data-key-title>{{t "Make a key"}}</span></h2>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+						</div>
+						<!-- the messages stay out of the form, as in the other forms of the page -->
+						<div class="alert alert-danger mx-3 mt-3 mb-0" role="alert" data-key-error hidden><div class="d-flex gap-2"><span class="bi bi-exclamation-octagon-fill flex-shrink-0 mt-1" aria-hidden="true"></span><div><strong>{{t "Error!"}}</strong> <span data-key-error-message></span></div></div></div>
+						<form data-key-step="form">
+						<div class="modal-body">
+							<label class="form-label fw-semibold" for="keyName">{{t "Name"}}</label>
+							<input class="form-control" id="keyName" name="name" maxlength="40" required autocomplete="off" placeholder="Home Assistant" aria-describedby="keyNameHelp">
+							<div class="form-text mb-3" id="keyNameHelp">{{t "To tell it from the others: where it is used."}}</div>
+							<fieldset>
+								<legend class="form-label fw-semibold fs-6">{{t "Permission"}}</legend>
+								{{- range $i, $choice := .KeyChoices}}
+								<label class="perm-choice{{if $i}} mt-2{{end}}"><input class="form-check-input me-2" type="radio" name="role" value="{{.Value}}"{{if eq $i 0}} checked{{end}}><strong>{{t .Name}}</strong><span class="d-block small text-body-secondary">{{t .Text}}</span></label>
+								{{- end}}
+								<div class="form-text">{{t "A key never does more than your account: if your role is lowered, the key does less too."}}</div>
+							</fieldset>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">{{t "Cancel"}}</button>
+							<button type="submit" class="btn btn-primary rounded-pill"><span class="bi bi-plus-lg me-1" aria-hidden="true"></span>{{t "Make"}}</button>
+						</div>
+						</form>
+						<div class="modal-body" data-key-step="reveal" hidden>
+							<div class="alert alert-warning d-flex gap-2 align-items-start py-2" role="status"><span class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1" aria-hidden="true"></span><div>{{t "Copy it now: it will not be shown again. If you lose it, revoke it and make another."}}</div></div>
+							<div class="form-label fw-semibold" data-key-reveal-name></div>
+							<div class="key-secret-box d-flex flex-wrap gap-2 align-items-center">
+								<code class="key-secret flex-grow-1" data-key-secret></code>
+								<button type="button" class="btn btn-primary rounded-pill key-copy" data-copy="" data-copied="{{t "Copied"}}" data-key-copy><span class="bi bi-clipboard me-1 copy-icon" aria-hidden="true"></span><span class="bi bi-check-lg me-1 copied-icon" aria-hidden="true"></span><span data-copy-label>{{t "Copy"}}</span></button>
+							</div>
+							<div class="small text-body-secondary mt-3 mb-1">{{t "Send it in the header of every request:"}}</div>
+							<pre class="key-example small mb-0"><code data-key-header></code></pre>
+						</div>
+						<div class="modal-footer" data-key-step="reveal" hidden>
+							<button type="button" class="btn btn-primary rounded-pill" data-bs-dismiss="modal">{{t "Done"}}</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			{{- end}}
+			{{- end}}
 {{- end}}

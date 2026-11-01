@@ -94,6 +94,19 @@
 					{{- end}}
 				</ul>
 			</section>
+			<section class="mb-4" id="keys" aria-labelledby="keysTitle">
+				<h2 class="section-title" id="keysTitle"><span class="bi bi-key" aria-hidden="true"></span>{{t "API keys"}}</h2>
+				{{- if .Keys}}
+				<p class="text-body-secondary small">{{t "Each user makes their own in My account. Here you can revoke any of them; the key itself cannot be seen."}}</p>
+				<ul class="list-unstyled key-list mb-0">
+					{{- range .Keys}}
+					{{- template "keyRow" (dict "Key" . "Owner" true "Me" $.Auth.User)}}
+					{{- end}}
+				</ul>
+				{{- else}}
+				<p class="text-body-secondary small mb-0">{{t "No user has API keys. Each user makes their own in My account, for Home Assistant or a script."}}</p>
+				{{- end}}
+			</section>
 			<section class="surface" aria-labelledby="addUserTitle">
 				<h2 class="section-title" id="addUserTitle"><span class="bi bi-person-plus" aria-hidden="true"></span>{{t "Add a user"}}</h2>
 				<form class="row g-3 align-items-end" method="post" action="/users/create">
