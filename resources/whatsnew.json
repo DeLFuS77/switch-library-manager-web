@@ -1,4 +1,39 @@
 {
+  "1.68.1": {
+    "en": [
+      "Security update of the library used to sign in with OpenID Connect. Nothing changes for those who do not use it."
+    ],
+    "es": [
+      "Actualización de seguridad de la librería que usa la entrada con OpenID Connect. Para quien no la usa, no cambia nada."
+    ],
+    "de": [
+      "Sicherheitsupdate der Bibliothek für die Anmeldung mit OpenID Connect. Wer sie nicht nutzt, merkt keinen Unterschied."
+    ],
+    "fr": [
+      "Mise à jour de sécurité de la bibliothèque utilisée pour se connecter avec OpenID Connect. Rien ne change si on ne l'utilise pas."
+    ],
+    "it": [
+      "Aggiornamento di sicurezza della libreria usata per accedere con OpenID Connect. Per chi non la usa non cambia nulla."
+    ],
+    "pt": [
+      "Atualização de segurança da biblioteca usada para entrar com OpenID Connect. Para quem não usa, nada muda."
+    ],
+    "nl": [
+      "Beveiligingsupdate van de bibliotheek waarmee wordt aangemeld met OpenID Connect. Wie die niet gebruikt, merkt er niets van."
+    ],
+    "ru": [
+      "Обновление безопасности библиотеки для входа через OpenID Connect. Для тех, кто им не пользуется, ничего не меняется."
+    ],
+    "ja": [
+      "OpenID Connect でのサインインに使うライブラリのセキュリティ更新です。使っていない場合は何も変わりません。"
+    ],
+    "ko": [
+      "OpenID Connect 로그인에 쓰이는 라이브러리의 보안 업데이트입니다. 사용하지 않는다면 바뀌는 것은 없습니다."
+    ],
+    "zh": [
+      "OpenID Connect 登录所用的库已进行安全更新。不使用它的话，没有任何变化。"
+    ]
+  },
   "1.68.0": {
     "en": [
       "New ways to sign in, in Settings › Sign-in portal: through Authelia, Authentik or Cloudflare Access in front of the app, or with OpenID Connect (PocketID, Authentik, Keycloak). Both are off until turned on.",
