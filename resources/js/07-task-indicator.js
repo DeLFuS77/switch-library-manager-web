@@ -28,7 +28,8 @@ function updateTaskIndicator() {
 		.then(tasks => {
 			const active = tasks.filter(task => task.status === 'running');
 			const running = active.length;
-			const failed = tasks.filter(task => task.status === 'failed').length;
+			// cancelled, or stopped by a restart: no failure
+			const failed = tasks.filter(task => task.status === 'failed' && !task.ending).length;
 			// the progress of the first task that knows it, for the ring around the icon
 			const measured = active.find(task => task.total > 0 && task.current >= 0);
 			const percent = measured ? Math.min(100, Math.round(measured.current * 100 / measured.total)) : -1;
@@ -197,6 +198,9 @@ function initLiveTasks() {
 	let rendered = Number(list.dataset.version || 0);
 	let loading = false;
 	let pending = false;
+	// a list that could not be fetched or drawn is asked again, waiting longer each time
+	let failures = 0;
+	let retry = null;
 	// while a list of files is being scrolled (the bar dragged, a finger sliding) it is not
 	// drawn again: the new list would end the gesture every second
 	let scrolledAt = 0;
@@ -473,8 +477,19 @@ function initLiveTasks() {
 				});
 				setTimeout(drawSafely, moving ? 800 : 250);
 			}))
+			.then(() => {
+				failures = 0;
+			})
 			.catch(() => {
-				// the next event tries again
+				// not drawn: the next event draws the list whatever its version, and it is asked again
+				// meanwhile, as the last change may be the end of a task, after which no event comes
+				rendered = -1;
+				failures++;
+				clearTimeout(retry);
+				retry = setTimeout(() => {
+					retry = null;
+					refresh();
+				}, Math.min(30000, 2000 * 2 ** Math.min(failures - 1, 4)));
 			})
 			.finally(() => {
 				clearTimeout(timeout);
@@ -502,6 +517,13 @@ function initLiveTasks() {
 	} else {
 		setInterval(refresh, 3000);
 	}
+	// a running task is looked at once a minute even without events: a connection that drops
+	// without telling (a proxy, a phone asleep) would leave its bar moving for good
+	setInterval(() => {
+		if (!document.hidden && list.querySelector('[data-task-id]')) {
+			refresh();
+		}
+	}, 60000);
 
 	list.addEventListener('click', e => {
 		const dismiss = e.target.closest('[data-task-dismiss]');

@@ -18,6 +18,8 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime/debug"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -191,6 +193,8 @@ type Web struct {
 	rescanPending atomic.Bool
 	// a measure of the server is running
 	measuring atomic.Bool
+	// the app was asked to stop: no task starts any more (see Stop)
+	stopping atomic.Bool
 	// the server of the pages, closed before an update starts the new program
 	server *http.Server
 	// the content of the Space page is being prepared
@@ -890,15 +894,22 @@ func (web *Web) startInBackground() {
 		web.state.set(web.withLibraryTitles(switchDB, nil), nil)
 
 		taskId := web.startTask(TASK_SCAN, TRIGGER_STARTUP)
-		var failure *TaskNote
-		localDB, err := web.buildLocalDB(switchDB, rescan)
-		if err != nil {
-			web.sugarLogger.Error(err)
-			failure = &TaskNote{Text: NOTE_SCAN_FAILED, Detail: err.Error()}
-		} else {
+		failure := func() (failure *TaskNote) {
+			// a panic: the scan of the start fails, the app goes on with the titles it has
+			defer func() {
+				if recovered := recover(); recovered != nil {
+					failure = web.crashed(TASK_SCAN, recovered)
+				}
+			}()
+			localDB, err := web.buildLocalDB(switchDB, rescan)
+			if err != nil {
+				web.sugarLogger.Error(err)
+				return &TaskNote{Text: NOTE_SCAN_FAILED, Detail: err.Error()}
+			}
 			web.taskLog().SetResult(taskId, len(localDB.TitlesMap), localDB.NumFiles)
 			web.state.set(web.withLibraryTitles(switchDB, localDB), localDB)
-		}
+			return nil
+		}()
 		web.state.endSync()
 		web.finishTask(taskId, failure)
 		if failure == nil {
@@ -992,8 +1003,97 @@ func (web *Web) taskLog() *TaskLog {
 			web.tasks = loadTaskLog(web.dataFolder)
 		}
 		web.tasks.onFailed = web.notifyTaskFailed
+		// the log tells what each task did, not only what went wrong in it
+		web.tasks.onEnded = web.logTaskEnd
 	})
 	return web.tasks
+}
+
+// logTaskEnd writes a line of a task that ended: what, started by what, how it ended and how
+// long it took.
+func (web *Web) logTaskEnd(task Task) {
+	how := task.Status
+	if task.Error != nil {
+		how += ": " + task.Error.Text
+		if task.Error.Detail != "" {
+			how += " (" + task.Error.Detail + ")"
+		}
+	} else if len(task.Warnings) > 0 {
+		how += fmt.Sprintf(" (%d warnings)", len(task.Warnings))
+	}
+	web.sugarLogger.Infof("[Task %d] %s (%s) %s in %s", task.Id, task.Kind, task.Trigger, how, task.Duration())
+}
+
+// crashed turns a panic of the work of a task into its failure, logged with where it happened:
+// the task ends, the files and the scan are let go, and the app goes on instead of stopping
+// with every task it runs.
+func (web *Web) crashed(what string, recovered any) *TaskNote {
+	web.sugarLogger.Errorf("%s stopped on an unexpected error: %v\n%s", what, recovered, debug.Stack())
+	return &TaskNote{Text: NOTE_TASK_CRASHED, Detail: fmt.Sprint(recovered)}
+}
+
+// finishRunning ends, with a failure, the running tasks of some kinds: their work stopped on a
+// panic where the task is not known.
+func (web *Web) finishRunning(failure *TaskNote, kinds ...string) {
+	for _, task := range web.taskLog().Snapshot() {
+		if task.Running() && slices.Contains(kinds, task.Kind) {
+			web.finishTask(task.Id, failure)
+		}
+	}
+}
+
+// errUnexpected is the error of the work on one file that panicked: that file fails, the task
+// goes on with the others.
+var errUnexpected = errors.New("unexpected error")
+
+// safely runs the work on one file, a panic on a strange file turned into its error.
+func safely[T any](work func() (T, error)) (result T, err error) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			err = fmt.Errorf("%w: %v", errUnexpected, recovered)
+		}
+	}()
+	return work()
+}
+
+// holdScan keeps scans from running while files are moved or deleted (Organize, a cleanup);
+// false while one runs. releaseScan lets them run again.
+func (web *Web) holdScan() bool {
+	return web.state.startSync()
+}
+
+// releaseScan lets scans run again after holdScan. A rescan asked meanwhile was left for the end
+// of a scan, and no scan ended: it is done now, or done by the one asked here (a trigger), else
+// it would wait for whatever starts the next scan, and a task waiting in the queue with it.
+func (web *Web) releaseScan(trigger string) {
+	web.state.endSync()
+	if trigger != "" {
+		web.Rescan(trigger)
+		return
+	}
+	web.rescanIfPending()
+}
+
+// Stop is called when the app is asked to stop (docker stop, Ctrl+C, an update): no task starts
+// any more, and what the tasks did and have left is saved now, so they go on where they were
+// once the app starts again instead of from up to half a minute before.
+func (web *Web) Stop() {
+	if !web.stopping.CompareAndSwap(false, true) {
+		return
+	}
+	web.compressor.mutex.Lock()
+	flush := web.compressor.flush
+	web.compressor.mutex.Unlock()
+	if flush != nil {
+		flush()
+	}
+	if web.verify != nil {
+		if err := web.verify.save(); err != nil {
+			web.sugarLogger.Warnf("Failed to save the verification results: %v", err)
+		}
+	}
+	web.taskLog().Flush()
+	web.sugarLogger.Info("[SLM stops]")
 }
 
 // startTask records a task that receives the progress reported by UpdateProgress.

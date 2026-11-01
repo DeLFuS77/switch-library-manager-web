@@ -8,7 +8,9 @@ import (
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"os"
+	"os/signal"
 	"path/filepath"
+	"syscall"
 )
 
 //go:embed resources/static
@@ -60,7 +62,18 @@ func main() {
 	sugar.Infof("[Executable: %v]", exePath)
 	sugar.Infof("[Data folder: %v]", dataFolder)
 
-	web.CreateWeb(router, embedFS, appSettings, dataFolder, sugar).Start()
+	app := web.CreateWeb(router, embedFS, appSettings, dataFolder, sugar)
+	// docker stop, Ctrl+C or the system shutting down: what the tasks did and have left is saved
+	// before the app ends, so they go on where they were once it starts again
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-stop
+		app.Stop()
+		logger.Sync()
+		os.Exit(0)
+	}()
+	app.Start()
 
 }
 

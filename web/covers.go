@@ -86,6 +86,15 @@ func (web *Web) startCoverDownloads() {
 	web.covers.mutex.Unlock()
 
 	go func() {
+		// a panic: the task of the covers ends failed, and the next scan starts them again
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				web.finishRunning(web.crashed(TASK_COVERS, recovered), TASK_COVERS, TASK_THUMBNAILS)
+				web.covers.mutex.Lock()
+				web.covers.running, web.covers.again = false, false
+				web.covers.mutex.Unlock()
+			}
+		}()
 		for {
 			web.downloadMissingCovers()
 			web.covers.mutex.Lock()

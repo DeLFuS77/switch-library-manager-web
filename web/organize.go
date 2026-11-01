@@ -234,7 +234,7 @@ func (web *Web) runOrganizeAction(action string, trigger string) ([]process.Oper
 }
 
 // runOrganizeFiles is runOrganizeAction with the paths of the new files action.
-func (web *Web) runOrganizeFiles(action string, paths []string, trigger string) ([]process.Operation, error) {
+func (web *Web) runOrganizeFiles(action string, paths []string, trigger string) (operations []process.Operation, err error) {
 	kind := TASK_ORGANIZE
 	if action == ORGANIZE_ACTION_CLEANUP {
 		kind = TASK_CLEANUP
@@ -253,18 +253,26 @@ func (web *Web) runOrganizeFiles(action string, paths []string, trigger string) 
 		return nil, errOrganizeBusy
 	}
 	taskId := web.startTask(kind, trigger)
-	operations, err := web.organizeFiles(action, paths, false)
+	var failure *TaskNote
+	// ends however it ends: a panic on a strange file makes the task fail, instead of leaving it
+	// running and the scan held for good
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			failure = web.crashed(kind, recovered)
+			err = errors.New(failure.Detail)
+		}
+		web.finishTask(taskId, failure)
+	}()
+	operations, err = web.organizeFiles(action, paths, false)
 	web.verifications().follow(operations)
 	web.uncompressible().follow(operations)
 	web.moves.record(operations)
 	web.followKeptChoices(operations)
-	var failure *TaskNote
 	if err == nil {
 		web.taskLog().SetResult(taskId, 0, web.noteOrganized(taskId, operations))
 	} else {
 		failure = &TaskNote{Text: NOTE_ORGANIZE_FAILED, Detail: err.Error()}
 	}
-	web.finishTask(taskId, failure)
 	return operations, err
 }
 
@@ -311,7 +319,7 @@ func (web *Web) noteOrganized(taskId int64, operations []process.Operation) int 
 
 // removeFilesAsTask deletes files of the library as a cleanup task, while no scan,
 // compression, conversion, pack, check or copy can start, and gives what was deleted.
-func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string) (int, int64, error) {
+func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string) (deleted int, freed int64, err error) {
 	if !web.organizing.CompareAndSwap(false, true) {
 		return 0, 0, errOrganizeBusy
 	}
@@ -323,13 +331,20 @@ func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string)
 	if web.compressionRunning() || web.measuring.Load() {
 		return 0, 0, errOrganizeBusy
 	}
-	if !web.state.startSync() {
+	if !web.holdScan() {
 		return 0, 0, errRegionBusy
 	}
-	defer web.state.endSync()
+	defer web.releaseScan("")
 	taskId := web.startTask(TASK_CLEANUP, TRIGGER_MANUAL)
-	deleted, freed := 0, int64(0)
 	var failure *TaskNote
+	// ends however it ends, as Organize (see runOrganizeFiles)
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			failure = web.crashed(TASK_CLEANUP, recovered)
+			err = errors.New(failure.Detail)
+		}
+		web.finishTask(taskId, failure)
+	}()
 	// one file at a time, so the page can take each one off its list once it is gone
 	web.removing.reset()
 	removed := make([]process.Operation, 0, len(files))
@@ -353,7 +368,6 @@ func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string)
 		}
 	}
 	web.taskLog().SetCompressResult(taskId, deleted, freed)
-	web.finishTask(taskId, failure)
 	return deleted, freed, nil
 }
 
@@ -470,21 +484,20 @@ func (web *Web) handleOrganizeActions() {
 
 	web.router.HandleFunc("/organize/run", func(w http.ResponseWriter, r *http.Request) {
 		// never move files while the library is being scanned
-		if !web.state.startSync() {
+		if !web.holdScan() {
 			writeGlobalError(w, http.StatusConflict, web.requestLanguage(r), "A synchronization is running, try again when it has finished.")
 			return
 		}
 
 		operations, err := web.runOrganizeAction(r.FormValue("action"), TRIGGER_MANUAL)
-		web.state.endSync()
-
 		if err != nil {
+			web.releaseScan("")
 			writeGlobalError(w, http.StatusBadRequest, web.requestLanguage(r), err.Error())
 			return
 		}
 
 		// the cached library no longer matches the files on disk
-		web.Rescan(TRIGGER_ORGANIZE)
+		web.releaseScan(TRIGGER_ORGANIZE)
 
 		writeJSON(w, http.StatusOK, newOrganizeResponse(operations, false, settings.ReadSettings(web.dataFolder).Folder, web.requestLanguage(r)))
 	}).Methods("POST")

@@ -690,10 +690,28 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 // NCA not signed by Nintendo and nothing damaged ends modified, which is no failure. With both,
 // the hashes are checked even when the signatures fail.
 func (web *Web) startVerificationAt(level string, paths []string, recheck time.Duration, trigger string) bool {
+	return web.startVerificationSince(level, paths, recheck, trigger, time.Now())
+}
+
+// resumeVerification goes on with a check the app was stopped in the middle of: the files it
+// checked since it began are left out, whatever it was asked to check again.
+func (web *Web) resumeVerification(resume *TaskResume) bool {
+	recheck := resume.Recheck
+	if recheck < 0 {
+		// all the files: those checked since the check began are done
+		recheck = max(time.Since(resume.Since), time.Second)
+	}
+	return web.startVerificationSince(resume.Level, resume.Paths, recheck, TRIGGER_RESUME, resume.Since)
+}
+
+// startVerificationSince is startVerificationAt for a check that began at since, before the app
+// was started again. A check asked by the user (or by the queue) goes on after a restart; a
+// scheduled one waits for the next background hours, and the automations start theirs again.
+func (web *Web) startVerificationSince(level string, paths []string, recheck time.Duration, trigger string, since time.Time) bool {
 	level, _ = verifyLevel(level)
 	hashes, signatures := level != VERIFY_LEVEL_SIGNATURE, level != VERIFY_LEVEL_HASH
 	web.compressor.mutex.Lock()
-	if web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() {
+	if web.filesTaken() {
 		web.compressor.mutex.Unlock()
 		return false
 	}
@@ -704,12 +722,29 @@ func (web *Web) startVerificationAt(level string, paths []string, recheck time.D
 	store := web.verifications()
 	taskId := web.taskLog().Start(TASK_VERIFY, trigger)
 	web.taskLog().SetVerifyLevel(taskId, level, false)
+	resumable := trigger == TRIGGER_MANUAL || trigger == TRIGGER_RESUME
+	if resumable {
+		// the files as asked: nil for the whole library, read again then
+		web.taskLog().SetResume(taskId, &TaskResume{Paths: paths, Level: level, Recheck: recheck, Since: since})
+	}
 	go func() {
 		defer func() {
 			web.releaseFiles()
 			cancel()
 			// the files are free: the next task of the queue
 			go web.runQueue()
+		}()
+		// a panic outside the check of a file (each file has its own): the task ends failed with
+		// the results it has, the files are let go, and it is not started again after a restart
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				note := web.crashed(TASK_VERIFY, recovered)
+				if err := store.save(); err != nil {
+					web.sugarLogger.Warnf("Failed to save the verification results: %v", err)
+				}
+				web.taskLog().SetResume(taskId, nil)
+				web.taskLog().Finish(taskId, note)
+			}
 		}()
 
 		type pending struct {
@@ -879,7 +914,7 @@ func (web *Web) startVerificationAt(level string, paths []string, recheck time.D
 					var signed *switchfs.SignatureCheck
 					var signErr error
 					if file.signature {
-						if result, err := checkFileSignatures(file.path); err == nil {
+						if result, err := safely(func() (switchfs.SignatureCheck, error) { return checkFileSignatures(file.path) }); err == nil {
 							signed = &result
 						} else {
 							signErr = err
@@ -889,11 +924,13 @@ func (web *Web) startVerificationAt(level string, paths []string, recheck time.D
 					var check switchfs.FileCheck
 					var err error
 					if file.hash {
-						check, err = verifyLibraryFile(ctx, file.path, func(fileDone int64, fileTotal int64) {
-							mutex.Lock()
-							partial[worker] = fileDone
-							report(name, false)
-							mutex.Unlock()
+						check, err = safely(func() (switchfs.FileCheck, error) {
+							return verifyLibraryFile(ctx, file.path, func(fileDone int64, fileTotal int64) {
+								mutex.Lock()
+								partial[worker] = fileDone
+								report(name, false)
+								mutex.Unlock()
+							})
 						})
 					}
 
@@ -913,7 +950,8 @@ func (web *Web) startVerificationAt(level string, paths []string, recheck time.D
 					if !file.hash {
 						readErr = signErr
 					}
-					if readErr != nil && unreadable(file.path, file.info, readErr) {
+					// nor is one the check itself failed on
+					if readErr != nil && (unreadable(file.path, file.info, readErr) || errors.Is(readErr, errUnexpected)) {
 						unread++
 						web.taskLog().Warn(taskId, NOTE_VERIFY_UNREADABLE, name+": "+readErr.Error())
 						web.taskLog().SkipFileTile(taskId, name, NOTE_VERIFY_UNREADABLE)
@@ -1016,6 +1054,10 @@ func (web *Web) startVerificationAt(level string, paths []string, recheck time.D
 		}
 		// Issues lists the damaged files and the ones not signed
 		web.invalidateDerived()
+		// ended by itself or cancelled: nothing goes on after a restart
+		if resumable {
+			web.taskLog().SetResume(taskId, nil)
+		}
 		web.taskLog().Finish(taskId, failure)
 	}()
 	return true

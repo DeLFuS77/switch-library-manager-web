@@ -20,7 +20,8 @@
 				<details class="task-section mb-4" data-task-section="running" open>
 					<summary class="section-title"><span class="bi bi-activity" aria-hidden="true"></span>{{t "Running"}} <span class="badge rounded-pill text-bg-secondary">{{len .Running}}</span><span class="bi bi-chevron-down task-section-chevron" aria-hidden="true"></span></summary>
 					{{- range .Running}}
-					<article class="surface task-card mb-3{{if .Paused}} is-paused{{end}}" data-task-id="{{.Id}}">
+					{{- $stalled := .StalledText}}
+					<article id="task-{{.Id}}" class="surface task-card mb-3{{if .Paused}} is-paused{{end}}{{if $stalled}} is-stalled{{end}}" data-task-id="{{.Id}}">
 						<div class="d-flex align-items-center gap-3 mb-3">
 							<span class="stat-icon task-icon"><span class="bi {{template "taskIcon" .Kind}}" aria-hidden="true"></span></span>
 							<div class="flex-grow-1 min-w-0">
@@ -39,7 +40,7 @@
 							{{- end}}
 							{{- if .Paused}}
 							<span class="chip chip-warning flex-shrink-0"><span class="bi bi-pause-circle" aria-hidden="true"></span>{{t "Paused"}}</span>
-							{{- else}}
+							{{- else if not $stalled}}
 							<span class="spinner-border spinner-border-sm text-work flex-shrink-0" aria-hidden="true"></span>
 							{{- end}}
 						</div>
@@ -59,8 +60,15 @@
 							{{- else}}
 							<span class="text-truncate task-message">{{if .MessageArg}}{{t .Message .MessageArg}}{{else}}{{t .Message}}{{end}}</span>
 							{{- end}}
-							{{- if ge $pct 0}}<span class="text-nowrap">{{if .ByFiles}}{{.Current}} / {{.Total}}{{else if or (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split") (eq .Kind "upload")}}{{formatSize (mul .Current 1048576)}} / {{formatSize (mul .Total 1048576)}}{{else}}{{.Current}} / {{.Total}}{{end}} &middot; {{$pct}}%{{with .Speed}} &middot; {{.}} MB/s{{end}}{{with .RemainingText}} &middot; {{t "%v left" .}}{{end}}</span>{{end}}
+							{{- if ge $pct 0}}<span class="text-nowrap">{{if .ByFiles}}{{.Current}} / {{.Total}}{{else if or (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split") (eq .Kind "upload")}}{{formatSize (mul .Current 1048576)}} / {{formatSize (mul .Total 1048576)}}{{else}}{{.Current}} / {{.Total}}{{end}} &middot; {{$pct}}%{{if not $stalled}}{{with .Speed}} &middot; {{.}} MB/s{{end}}{{with .RemainingText}} &middot; {{t "%v left" .}}{{end}}{{end}}</span>{{end}}
 						</div>
+						{{- /* a task that stopped changing, and what a paused one holds up (they share the files) */}}
+						{{- if $stalled}}
+						<div class="task-note text-warning-emphasis"><span class="bi bi-hourglass-split me-1" aria-hidden="true"></span>{{if or (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split")}}{{t "No progress for %v. If it stays like this, cancel it and look at the disk." $stalled}}{{else}}{{t "No progress for %v. If it stays like this, restart the app and look at the disk." $stalled}}{{end}}</div>
+						{{- end}}
+						{{- with .PausedText}}
+						<div class="task-note text-warning-emphasis"><span class="bi bi-sign-stop me-1" aria-hidden="true"></span>{{t "Paused for %v." .}}{{with $.Waits.Text lang}} {{t "While it stays paused, these wait: %v." .}}{{end}}</div>
+						{{- end}}
 						{{- template "verifyBreakdown" .Breakdown}}
 						{{- $kind := .Kind}}
 						{{- with .Lanes}}
@@ -134,13 +142,18 @@
 					</div>
 					<ul class="list-unstyled task-history mb-0">
 						{{- range .Finished}}
-						<li class="surface task-row task-{{.Status}}">
+						{{- /* cancelled, or stopped by a restart: no failure, so neither red nor counted */}}
+						{{- $ending := .Ending}}
+						<li id="task-{{.Id}}" class="surface task-row task-{{if eq $ending "stopped"}}warning{{else if $ending}}muted{{else}}{{.Status}}{{end}}">
 							<span class="stat-icon task-icon flex-shrink-0"><span class="bi {{template "taskIcon" .Kind}}" aria-hidden="true"></span></span>
 							<div class="flex-grow-1 min-w-0">
 								<div class="d-flex flex-wrap align-items-center gap-2 mb-1">
 									<h3 class="h6 fw-semibold mb-0">{{template "taskKind" .Kind}}</h3>
 									{{- if eq .Status "success"}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Completed"}}</span>
 									{{- else if eq .Status "warning"}}<span class="chip chip-warning"><span class="bi bi-exclamation-circle" aria-hidden="true"></span>{{t "Completed with warnings"}}</span>
+									{{- else if eq $ending "continued"}}<span class="chip chip-muted"><span class="bi bi-arrow-repeat" aria-hidden="true"></span>{{t "Continued after a restart"}}</span>
+									{{- else if eq $ending "stopped"}}<span class="chip chip-warning"><span class="bi bi-pause-circle" aria-hidden="true"></span>{{t "Stopped by a restart"}}</span>
+									{{- else if eq $ending "cancelled"}}<span class="chip chip-muted"><span class="bi bi-slash-circle" aria-hidden="true"></span>{{t "Cancelled"}}</span>
 									{{- else}}<span class="chip chip-danger"><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Failed"}}</span>{{end}}
 									{{- with .Level}}<span class="chip chip-muted">{{template "verifyLevel" .}}</span>{{end}}
 									{{- if gt .Count 1}}<span class="chip chip-muted" title="{{t "%v times in a row, the last one shown" .Count}}"><span class="bi bi-layers" aria-hidden="true"></span>&times;{{.Count}}</span>{{end}}
@@ -163,8 +176,14 @@
 								</div>
 								{{- template "verifyBreakdown" .Breakdown}}
 								{{- template "taskTiles" .}}
+								{{- if eq $ending "continued"}}
+								<div class="task-note text-body-secondary"><span class="bi bi-arrow-repeat me-1" aria-hidden="true"></span>{{if .StoppedToday}}{{t "It stopped at %v because the app was restarted, and went on by itself." .StoppedClock}}{{else}}{{t "It stopped on %v because the app was restarted, and went on by itself." (formatDateTime .Finished)}}{{end}} <a class="fw-semibold text-work" href="#task-{{.ContinuedIn}}">{{t "See the task that went on"}}</a></div>
+								{{- else if eq $ending "stopped"}}
+								<div class="task-note text-warning-emphasis"><span class="bi bi-pause-circle me-1" aria-hidden="true"></span>{{if .GoesOnByItself}}{{t "The app was restarted while it worked. It goes on by itself as soon as it can."}}{{else}}{{t "The app was restarted while it worked. What it did stays; start it again to finish."}}{{end}}</div>
+								{{- else if not $ending}}
 								{{- with .Error}}
 								<div class="task-note text-danger-emphasis"><span class="bi bi-x-octagon me-1" aria-hidden="true"></span>{{t .Text}}{{if .Detail}} <code class="task-detail">{{.Detail}}</code>{{end}}</div>
+								{{- end}}
 								{{- end}}
 								{{- range .Warnings}}
 								<div class="task-note text-warning-emphasis"><span class="bi bi-exclamation-triangle me-1" aria-hidden="true"></span>{{t .Text}}{{if .Detail}} <code class="task-detail">{{.Detail}}</code>{{end}}</div>
