@@ -140,9 +140,15 @@ type Task struct {
 	Plan []TaskTile `json:"-"`
 	// on the Tasks page only: the files of the plan left out after those shown
 	HiddenAfter int `json:"-"`
-	// damaged files found by a verification, and why its files are checked
+	// damaged files found by a verification (failed), and why its files are checked
 	Damaged   int              `json:"damaged,omitempty"`
 	Breakdown *VerifyBreakdown `json:"breakdown,omitempty"`
+	// the files of a verification with an NCA not signed by Nintendo and nothing damaged
+	// (modified, no failure), and its level (see verifyLevel); ByFiles: its progress counts files,
+	// not megabytes, as it reads no file whole
+	Modified int    `json:"modified,omitempty"`
+	Level    string `json:"level,omitempty"`
+	ByFiles  bool   `json:"byFiles,omitempty"`
 	// work done at the same time: the files being worked on, each with its progress, and
 	// how many workers or threads the task uses
 	Lanes []TaskLane `json:"lanes,omitempty"`
@@ -291,6 +297,8 @@ type VerifyBreakdown struct {
 	Changed  int `json:"changed"`
 	Improved int `json:"improved"`
 	Again    int `json:"again"`
+	// checked before for their hashes: only their signatures are checked
+	Signatures int `json:"signatures,omitempty"`
 }
 
 // TaskResult is a file a task finished, with its size before and after.
@@ -307,6 +315,8 @@ type TaskTile struct {
 	// left as it is, with why: nothing in it could be done (a game in sparse storage to
 	// compress), which is no failure
 	Skipped bool `json:"skipped,omitempty"`
+	// a file checked with an NCA not signed by Nintendo and nothing damaged, which is no failure
+	Modified bool `json:"modified,omitempty"`
 	// why it failed, an English sentence translated by the interface
 	Note string `json:"note,omitempty"`
 	// in the plan of a running task: the file is not done yet
@@ -445,7 +455,7 @@ func (t Task) speedAt(now time.Time) int {
 		return 0
 	}
 	elapsed := (now.Sub(t.Started) - t.PausedFor).Seconds()
-	if !measuredInMegabytes(t.Kind) || t.Current <= 0 || elapsed < 10 {
+	if !measuredInMegabytes(t.Kind) || t.ByFiles || t.Current <= 0 || elapsed < 10 {
 		return 0
 	}
 	return int(float64(t.Current) / elapsed)
@@ -539,6 +549,15 @@ func loadTaskLog(dataFolder string) *TaskLog {
 	for _, task := range log.tasks {
 		if task.Id >= log.nextId {
 			log.nextId = task.Id
+		}
+		// a check of the signatures of an older version counted the files not signed as damaged
+		if task.Kind == TASK_VERIFY && task.Level == "" && task.Modified == 0 {
+			for _, warning := range task.Warnings {
+				if warning.Text == NOTE_VERIFY_UNSIGNED {
+					task.Level, task.Modified, task.Damaged = VERIFY_LEVEL_SIGNATURE, task.Damaged, 0
+					break
+				}
+			}
 		}
 		if task.Status == TASK_RUNNING {
 			task.Status = TASK_FAILED
@@ -724,6 +743,12 @@ func (l *TaskLog) SkipFileTile(id int64, name string, note string) {
 	l.addTile(id, TaskTile{Name: name, Skipped: true, Note: note})
 }
 
+// ModifiedFileTile records a file of a verification that ended modified, with why: an NCA not
+// signed by Nintendo and nothing damaged, which is no failure.
+func (l *TaskLog) ModifiedFileTile(id int64, name string, note string) {
+	l.addTile(id, TaskTile{Name: name, Modified: true, Note: note})
+}
+
 func (l *TaskLog) addTile(id int64, tile TaskTile) {
 	name := tile.Name
 	l.update(id, false, func(task *Task) {
@@ -752,10 +777,19 @@ func (l *TaskLog) SetBreakdown(id int64, breakdown VerifyBreakdown) {
 	})
 }
 
-// SetVerifyResult records the files checked so far and the damaged ones.
-func (l *TaskLog) SetVerifyResult(id int64, checked int, damaged int) {
+// SetVerifyResult records the files checked so far, the failed ones (damaged) and the modified
+// ones.
+func (l *TaskLog) SetVerifyResult(id int64, checked int, failed int, modified int) {
 	l.update(id, false, func(task *Task) {
-		task.Files, task.Damaged = checked, damaged
+		task.Files, task.Damaged, task.Modified = checked, failed, modified
+	})
+}
+
+// SetVerifyLevel records the level of a verification, and whether its progress counts files
+// instead of megabytes.
+func (l *TaskLog) SetVerifyLevel(id int64, level string, byFiles bool) {
+	l.update(id, false, func(task *Task) {
+		task.Level, task.ByFiles = level, byFiles
 	})
 }
 

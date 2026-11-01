@@ -258,6 +258,7 @@ type AutomationResult struct {
 	Updates    int
 	Checked    int
 	Damaged    int
+	Modified   int // an NCA not signed by Nintendo and nothing damaged: no failure
 	Compressed int
 	Saved      int64
 	Removed    int
@@ -312,6 +313,7 @@ func (web *Web) runAutomationOnce() bool {
 			web.waitForFileTask()
 		}
 		store := web.verifications()
+		unsigned := store.unsigned()
 		for _, path := range existing {
 			if info, err := os.Stat(path); err == nil {
 				if record, ok := store.current(path, info); ok {
@@ -319,6 +321,8 @@ func (web *Web) runAutomationOnce() bool {
 					if !record.OK {
 						result.Damaged++
 						damaged[path] = true
+					} else if len(unsigned[path]) > 0 {
+						result.Modified++
 					}
 				}
 			}
@@ -403,8 +407,8 @@ func (web *Web) runAutomationOnce() bool {
 	if options.Notify {
 		web.notifyAutomation(result)
 	}
-	web.sugarLogger.Infof("Automation: %d new games and DLC, %d updates, %d files checked (%d damaged), %d compressed, %d old updates deleted, %d files organized",
-		len(result.Games), result.Updates, result.Checked, result.Damaged, result.Compressed, result.Removed, result.Moved)
+	web.sugarLogger.Infof("Automation: %d new games and DLC, %d updates, %d files checked (%d failed, %d modified), %d compressed, %d old updates deleted, %d files organized",
+		len(result.Games), result.Updates, result.Checked, result.Damaged, result.Modified, result.Compressed, result.Removed, result.Moved)
 	done = true
 	return true
 }
@@ -448,7 +452,11 @@ func automationMessage(lang string, result AutomationResult) (string, string) {
 		lines = append(lines, "• "+translatef(lang, "%v new updates", result.Updates))
 	}
 	if result.Checked > 0 {
-		lines = append(lines, "✓ "+translatef(lang, "%v files checked, %v damaged", result.Checked, result.Damaged))
+		checked := translatef(lang, "%v files checked, %v failed", result.Checked, result.Damaged)
+		if result.Modified > 0 {
+			checked = translatef(lang, "%v files checked, %v modified, %v failed", result.Checked, result.Modified, result.Damaged)
+		}
+		lines = append(lines, "✓ "+checked)
 	}
 	if result.Compressed > 0 {
 		lines = append(lines, "✓ "+translatef(lang, "%v files compressed, %v saved", result.Compressed, formatSizeIn(lang, result.Saved)))

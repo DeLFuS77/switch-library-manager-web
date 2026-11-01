@@ -23,12 +23,48 @@ import (
 const (
 	VERIFY_FILENAME = "verify.json"
 	// a damaged file found by a verification, shown in Issues
-	NOTE_VERIFY_DAMAGED  = "The file is damaged or was modified."
+	NOTE_VERIFY_DAMAGED  = "The file is damaged: its data does not match its hashes."
 	NOTE_VERIFY_FAILED   = "The files could not be checked."
 	NOTE_VERIFY_UNSIGNED = "An NCA is not signed by Nintendo: a tool rewrote it."
+	// the warning of a damaged file in older versions, still in the history of the tasks
+	NOTE_VERIFY_DAMAGED_OLD = "The file is damaged or was modified."
 	// a file that could not be read (gone, in use, a disk or a share that failed): not damaged
 	NOTE_VERIFY_UNREADABLE = "The file could not be read, it was left unchecked."
+	// a check of the signatures only that could not read the headers of a file with the keys
+	NOTE_VERIFY_NO_SIGNATURES = "The signatures could not be read, it was left unchecked."
 )
+
+// the levels of a check: the signature of Nintendo on the header of every NCA, read in
+// seconds; the hashes of all their data, read whole; or both, what a check was before it had
+// levels
+const (
+	VERIFY_LEVEL_SIGNATURE = "signature"
+	VERIFY_LEVEL_HASH      = "hash"
+	VERIFY_LEVEL_BOTH      = "both"
+)
+
+// what a check of a file ended in, besides sound: its data does not match its hashes (damaged),
+// or an NCA is not signed by Nintendo while nothing is damaged (a tool rewrote it, and it usually
+// installs and plays: no failure)
+const (
+	VERIFY_FAILED   = "failed"
+	VERIFY_MODIFIED = "modified"
+)
+
+// verifyLevel gives the level asked, false for one not known: empty is both, as a check was
+// before it had levels, full is hash, as NXPress named it before 1.4.0, and signatures is the
+// scope the pages of older versions sent for a check of the signatures only.
+func verifyLevel(value string) (string, bool) {
+	switch value {
+	case "", VERIFY_LEVEL_BOTH:
+		return VERIFY_LEVEL_BOTH, true
+	case VERIFY_LEVEL_HASH, "full":
+		return VERIFY_LEVEL_HASH, true
+	case VERIFY_LEVEL_SIGNATURE, "signatures":
+		return VERIFY_LEVEL_SIGNATURE, true
+	}
+	return "", false
+}
 
 // allowed values of verify_interval_days; 0 disables scheduled verification
 var allowedVerifyIntervals = map[int]struct{}{0: {}, 7: {}, 30: {}}
@@ -79,11 +115,13 @@ func (r verifyRecord) stale() bool {
 }
 
 // signatureRecord is what a check of the signatures found in a file, valid while its size and
-// modification time do not change: the NCA files not signed by Nintendo.
+// modification time do not change: the NCA files not signed by Nintendo, or why its headers
+// could not be read with the keys (they are not read again while the file does not change).
 type signatureRecord struct {
 	Size     int64     `json:"size"`
 	ModTime  int64     `json:"mod_time"`
 	Unsigned []string  `json:"unsigned,omitempty"`
+	Error    string    `json:"error,omitempty"`
 	Checked  time.Time `json:"checked"`
 }
 
@@ -357,12 +395,14 @@ func (s *verifyStore) why(path string, info os.FileInfo) string {
 	return VERIFY_WHY_AGAIN
 }
 
-// the reasons a file is checked
+// the reasons a file is checked; signature: its data was checked before, only its signatures
+// are checked
 const (
-	VERIFY_WHY_NEW      = "new"
-	VERIFY_WHY_CHANGED  = "changed"
-	VERIFY_WHY_IMPROVED = "improved"
-	VERIFY_WHY_AGAIN    = "again"
+	VERIFY_WHY_NEW       = "new"
+	VERIFY_WHY_CHANGED   = "changed"
+	VERIFY_WHY_IMPROVED  = "improved"
+	VERIFY_WHY_AGAIN     = "again"
+	VERIFY_WHY_SIGNATURE = "signature"
 )
 
 func (s *verifyStore) set(path string, record verifyRecord) {
@@ -380,12 +420,39 @@ func (s *verifyStore) setSignatures(path string, info os.FileInfo, unsigned []st
 	s.version.Add(1)
 }
 
-// signaturesChecked tells whether the signatures of a file, as it is now, were checked.
-func (s *verifyStore) signaturesChecked(path string, info os.FileInfo) bool {
+// signaturesFailed keeps that the headers of a file could not be read with the keys, so they are
+// not read again while the file does not change.
+func (s *verifyStore) signaturesFailed(path string, info os.FileInfo, reason string) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.signatures[path] = signatureRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), Error: reason, Checked: time.Now()}
+	s.version.Add(1)
+}
+
+// signatureResult returns what the check of the signatures of a file found, if it is still
+// valid for the file as it is now.
+func (s *verifyStore) signatureResult(path string, info os.FileInfo) (signatureRecord, bool) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	record, ok := s.signatures[path]
-	return ok && record.Size == info.Size() && record.ModTime == info.ModTime().UnixNano()
+	if !ok || record.Size != info.Size() || record.ModTime != info.ModTime().UnixNano() {
+		return signatureRecord{}, false
+	}
+	return record, true
+}
+
+// whySignatures tells why the signatures of a file without a valid record are checked: they
+// were never checked, or the file changed since.
+func (s *verifyStore) whySignatures(path string, info os.FileInfo) string {
+	if _, ok := s.signatureResult(path, info); ok {
+		return VERIFY_WHY_AGAIN
+	}
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	if _, ok := s.signatures[path]; ok {
+		return VERIFY_WHY_CHANGED
+	}
+	return VERIFY_WHY_NEW
 }
 
 // unsigned lists the files with NCA files not signed by Nintendo, while they did not change.
@@ -509,6 +576,16 @@ var verifyLibraryFile = func(ctx context.Context, path string, progress func(int
 	return switchfs.VerifyFile(ctx, path, progress)
 }
 
+// checkFileSignatures checks the signature of Nintendo on the header of every NCA of a file.
+var checkFileSignatures = switchfs.CheckSignatures
+
+// missingKey tells a failure for a key prod.keys does not have: the file is not to blame, and
+// it is checked again once the keys are there.
+func missingKey(err error) bool {
+	var missing *switchfs.MissingKeyError
+	return errors.As(err, &missing)
+}
+
 // notContentError is a failure that tells nothing of what a file holds: the file could not be
 // read (gone, in use by another program, a disk or a network share that failed, changed while
 // it was read), or what failed was the copy written from it. Only what a file holds tells it
@@ -600,11 +677,21 @@ func (web *Web) startVerification(onlyChanged bool, trigger string) bool {
 	return web.startVerificationOf(nil, recheck, trigger)
 }
 
-// startVerificationOf checks the given files, or every file of the library when paths is
-// nil: all of them (verifyRecheckAll), the new and changed ones (verifyRecheckChanged), or
-// also the ones last checked longer ago than recheck. The files never checked go first, then
-// the ones checked the longest ago.
+// startVerificationOf checks the given files at the level both (see startVerificationAt).
 func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigger string) bool {
+	return web.startVerificationAt(VERIFY_LEVEL_BOTH, paths, recheck, trigger)
+}
+
+// startVerificationAt checks the given files, or every file of the library when paths is nil, at
+// a level: the signatures of Nintendo from the headers, the hashes of all the data, or both. It
+// checks all of them (verifyRecheckAll), the new and changed ones (verifyRecheckChanged), or also
+// the ones last checked longer ago than recheck. The files never checked go first, then the ones
+// checked the longest ago. A file whose data does not match its hashes ends failed; one with an
+// NCA not signed by Nintendo and nothing damaged ends modified, which is no failure. With both,
+// the hashes are checked even when the signatures fail.
+func (web *Web) startVerificationAt(level string, paths []string, recheck time.Duration, trigger string) bool {
+	level, _ = verifyLevel(level)
+	hashes, signatures := level != VERIFY_LEVEL_SIGNATURE, level != VERIFY_LEVEL_HASH
 	web.compressor.mutex.Lock()
 	if web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() {
 		web.compressor.mutex.Unlock()
@@ -616,6 +703,7 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 
 	store := web.verifications()
 	taskId := web.taskLog().Start(TASK_VERIFY, trigger)
+	web.taskLog().SetVerifyLevel(taskId, level, false)
 	go func() {
 		defer func() {
 			web.releaseFiles()
@@ -628,6 +716,8 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 			path    string
 			info    os.FileInfo
 			checked time.Time
+			// what the file needs checked: its hashes, its signatures
+			hash, signature bool
 		}
 		files := []pending{}
 		breakdown := VerifyBreakdown{}
@@ -650,21 +740,45 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 				web.sugarLogger.Infof("[File check] %d files moved by an older version keep their results", found)
 			}
 		}
+		// a result is due when there is none for the file as it is now, or it is older than asked
+		due := func(ok bool, checked time.Time) bool {
+			return !ok || recheck < 0 || (recheck > 0 && now.Sub(checked) >= recheck)
+		}
 		for i, path := range paths {
 			info := infos[i]
 			if info == nil || info.IsDir() {
 				continue
 			}
-			record, ok := store.current(path, info)
-			if ok && recheck >= 0 && (recheck == 0 || now.Sub(record.Checked) < recheck) {
-				continue
-			}
-			files = append(files, pending{path, info, record.Checked})
-			total += info.Size()
+			file := pending{path: path, info: info}
 			// the task says why its files are checked
 			why := VERIFY_WHY_AGAIN
-			if !ok {
-				why = store.why(path, info)
+			if hashes {
+				record, ok := store.current(path, info)
+				if file.hash = due(ok, record.Checked); file.hash {
+					file.checked = record.Checked
+					if !ok {
+						why = store.why(path, info)
+					}
+				}
+			}
+			if signatures {
+				signed, ok := store.signatureResult(path, info)
+				if file.signature = due(ok, signed.Checked); file.signature && !file.hash {
+					file.checked = signed.Checked
+					switch {
+					case hashes:
+						why = VERIFY_WHY_SIGNATURE
+					case !ok:
+						why = store.whySignatures(path, info)
+					}
+				}
+			}
+			if !file.hash && !file.signature {
+				continue
+			}
+			files = append(files, file)
+			if file.hash {
+				total += info.Size()
 			}
 			switch why {
 			case VERIFY_WHY_NEW:
@@ -673,11 +787,16 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 				breakdown.Changed++
 			case VERIFY_WHY_IMPROVED:
 				breakdown.Improved++
+			case VERIFY_WHY_SIGNATURE:
+				breakdown.Signatures++
 			default:
 				breakdown.Again++
 			}
 		}
 		web.taskLog().SetBreakdown(taskId, breakdown)
+		// a check that reads no file whole counts its files, not megabytes
+		byFiles := total == 0
+		web.taskLog().SetVerifyLevel(taskId, level, byFiles)
 		// the files never checked or checked longest ago first, and among them by name: the count
 		// moves from the start, instead of waiting for the biggest files
 		sort.SliceStable(files, func(i, j int) bool {
@@ -702,6 +821,7 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 			laneSizes  = make([]int64, workers)
 			checked    int
 			damaged    int
+			modified   int
 			unread     int // files that could not be read, left unchecked
 			lastReport time.Time
 			lastSave   = time.Now()
@@ -713,6 +833,11 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 				return
 			}
 			lastReport = time.Now()
+			// the files checked: one being read is counted once it is done
+			if byFiles {
+				web.taskLog().ProgressFiles(taskId, checked+unread, len(files), name, checked+unread, len(files), nil)
+				return
+			}
 			done := completed
 			for _, value := range partial {
 				done += value
@@ -723,7 +848,6 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 					lanes = append(lanes, TaskLane{Name: laneName, Done: partial[i], Total: laneSizes[i], Kind: laneKind(laneName)})
 				}
 			}
-			// the files checked: one being read is counted once it is done
 			web.taskLog().ProgressFiles(taskId, int(done>>20), int(total>>20), name, checked+unread, len(files), lanes)
 		}
 		// a scheduled verification stops when the background hours end and goes on the next time
@@ -751,51 +875,110 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 					report(name, true)
 					mutex.Unlock()
 
-					check, err := verifyLibraryFile(ctx, file.path, func(fileDone int64, fileTotal int64) {
-						mutex.Lock()
-						partial[worker] = fileDone
-						report(name, false)
-						mutex.Unlock()
-					})
-					// the signatures too: the headers only, read in a moment
-					if err == nil {
-						if signed, signErr := switchfs.CheckSignatures(file.path); signErr == nil {
-							// Issues lists the files not signed: the check of their data stays a success
-							store.setSignatures(file.path, file.info, signed.Unsigned)
+					// the signatures first: the headers only, read in a moment
+					var signed *switchfs.SignatureCheck
+					var signErr error
+					if file.signature {
+						if result, err := checkFileSignatures(file.path); err == nil {
+							signed = &result
+						} else {
+							signErr = err
 						}
+					}
+					// the hashes even when the signatures fail: only damage makes a file fail
+					var check switchfs.FileCheck
+					var err error
+					if file.hash {
+						check, err = verifyLibraryFile(ctx, file.path, func(fileDone int64, fileTotal int64) {
+							mutex.Lock()
+							partial[worker] = fileDone
+							report(name, false)
+							mutex.Unlock()
+						})
 					}
 
 					mutex.Lock()
 					partial[worker] = 0
 					laneNames[worker] = ""
-					completed += file.info.Size()
+					if file.hash {
+						completed += file.info.Size()
+					}
 					if errors.Is(err, context.Canceled) {
 						mutex.Unlock()
 						return
 					}
 					// a file that could not be read stays unchecked: in use, gone, or on a disk or a
 					// share that failed, it is not damaged
-					if err != nil && unreadable(file.path, file.info, err) {
+					readErr := err
+					if !file.hash {
+						readErr = signErr
+					}
+					if readErr != nil && unreadable(file.path, file.info, readErr) {
 						unread++
-						web.taskLog().Warn(taskId, NOTE_VERIFY_UNREADABLE, name+": "+err.Error())
+						web.taskLog().Warn(taskId, NOTE_VERIFY_UNREADABLE, name+": "+readErr.Error())
 						web.taskLog().SkipFileTile(taskId, name, NOTE_VERIFY_UNREADABLE)
 						report(name, true)
 						mutex.Unlock()
 						continue
 					}
-					record := verifyRecord{Size: file.info.Size(), ModTime: file.info.ModTime().UnixNano(), OK: err == nil, Checked: time.Now(),
-						Modified: err == nil && len(check.Modified) > 0, Partial: err == nil && check.Partial, Checker: verifyChecker}
-					note := ""
-					if err != nil {
-						damaged++
-						record.Reason = "damaged file: " + err.Error()
-						web.taskLog().Warn(taskId, NOTE_VERIFY_DAMAGED, name+": "+err.Error())
-						note = NOTE_VERIFY_DAMAGED
+					switch {
+					case signed != nil:
+						// Issues lists the files not signed
+						store.setSignatures(file.path, file.info, signed.Unsigned)
+					case signErr != nil && !missingKey(signErr) && !unreadable(file.path, file.info, signErr):
+						// headers the keys cannot read are not read again while the file stays the same
+						store.signaturesFailed(file.path, file.info, signErr.Error())
 					}
-					web.taskLog().AddFileTile(taskId, name, err != nil, note)
-					store.set(file.path, record)
+					// a check of the signatures alone that could not read them tells nothing of the file
+					if !hashes && signed == nil {
+						unread++
+						web.taskLog().SkipFileTile(taskId, name, NOTE_VERIFY_NO_SIGNATURES)
+						report(name, true)
+						mutex.Unlock()
+						continue
+					}
+					if file.hash {
+						record := verifyRecord{Size: file.info.Size(), ModTime: file.info.ModTime().UnixNano(), OK: err == nil, Checked: time.Now(),
+							Modified: err == nil && len(check.Modified) > 0, Partial: err == nil && check.Partial, Checker: verifyChecker}
+						if err != nil {
+							record.Reason = "damaged file: " + err.Error()
+						}
+						store.set(file.path, record)
+					}
+					// how the file ended, at the level of the check; what was not checked again stands
+					// as it was found
+					verdict, reason := "", ""
+					if hashes {
+						if file.hash && err != nil {
+							verdict, reason = VERIFY_FAILED, err.Error()
+						} else if record, ok := store.current(file.path, file.info); !file.hash && ok && !record.OK {
+							verdict, reason = VERIFY_FAILED, strings.TrimPrefix(record.Reason, "damaged file: ")
+						}
+					}
+					if signatures && verdict == "" {
+						if signed == nil && !file.signature {
+							if saved, ok := store.signatureResult(file.path, file.info); ok {
+								signed = &switchfs.SignatureCheck{Unsigned: saved.Unsigned}
+							}
+						}
+						if signed != nil && len(signed.Unsigned) > 0 {
+							verdict = VERIFY_MODIFIED
+						}
+					}
+					switch verdict {
+					case VERIFY_FAILED:
+						damaged++
+						web.taskLog().Warn(taskId, NOTE_VERIFY_DAMAGED, name+": "+reason)
+						web.taskLog().AddFileTile(taskId, name, true, NOTE_VERIFY_DAMAGED)
+					case VERIFY_MODIFIED:
+						// told on its cover and in Issues, not as a warning: it is no failure
+						modified++
+						web.taskLog().ModifiedFileTile(taskId, name, NOTE_VERIFY_UNSIGNED)
+					default:
+						web.taskLog().AddFileTile(taskId, name, false, "")
+					}
 					checked++
-					web.taskLog().SetVerifyResult(taskId, checked, damaged)
+					web.taskLog().SetVerifyResult(taskId, checked, damaged, modified)
 					report(name, true)
 					saveNow := time.Since(lastSave) >= verifySaveInterval
 					if saveNow {
@@ -822,7 +1005,8 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 			// the next scheduled run goes on with the files not checked yet
 			web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_HOURS, "")
 		}
-		if finished {
+		// the date of the last check, and the schedule, are of the checks that read the data
+		if finished && hashes {
 			store.mutex.Lock()
 			store.LastRun = time.Now()
 			store.mutex.Unlock()
@@ -830,77 +1014,7 @@ func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigg
 		if err := store.save(); err != nil {
 			web.sugarLogger.Warnf("Failed to save the verification results: %v", err)
 		}
-		// Issues lists the damaged files
-		web.invalidateDerived()
-		web.taskLog().Finish(taskId, failure)
-	}()
-	return true
-}
-
-// startSignatureCheck checks the signature of Nintendo on every NCA of the library, from the
-// headers only: a matter of seconds, where a whole check reads every byte. all checks again the
-// files checked before; else only the new and changed ones.
-func (web *Web) startSignatureCheck(all bool, trigger string) bool {
-	web.compressor.mutex.Lock()
-	if web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() {
-		web.compressor.mutex.Unlock()
-		return false
-	}
-	ctx, cancel := context.WithCancel(context.Background())
-	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, TASK_VERIFY, 0
-	web.compressor.mutex.Unlock()
-
-	store := web.verifications()
-	taskId := web.taskLog().Start(TASK_VERIFY, trigger)
-	go func() {
-		defer func() {
-			web.releaseFiles()
-			cancel()
-			go web.runQueue()
-		}()
-		web.taskLog().Progress(taskId, 0, 0, NOTE_VERIFY_PREPARING)
-		paths := []string{}
-		for _, candidate := range web.libraryFiles(".nsp", ".nsz", ".xci", ".xcz") {
-			paths = append(paths, candidate.Path)
-		}
-		paths = web.moves.resolveAll(paths)
-		infos := statFiles(paths, 16)
-		type pending struct {
-			path string
-			info os.FileInfo
-		}
-		files := []pending{}
-		for i, path := range paths {
-			if info := infos[i]; info != nil && !info.IsDir() && (all || !store.signaturesChecked(path, info)) {
-				files = append(files, pending{path, info})
-			}
-		}
-		checked, unsigned := 0, 0
-		var failure *TaskNote
-		for _, file := range files {
-			if ctx.Err() != nil {
-				failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
-				break
-			}
-			name := filepath.Base(file.path)
-			web.taskLog().ProgressFiles(taskId, checked, len(files), name, checked, len(files), nil)
-			signed, err := switchfs.CheckSignatures(file.path)
-			checked++
-			if err != nil {
-				continue
-			}
-			store.setSignatures(file.path, file.info, signed.Unsigned)
-			if len(signed.Unsigned) > 0 {
-				unsigned++
-				web.taskLog().Warn(taskId, NOTE_VERIFY_UNSIGNED, name+": "+strings.Join(signed.Unsigned, ", "))
-			}
-			web.taskLog().SetVerifyResult(taskId, checked, unsigned)
-		}
-		web.taskLog().ProgressFiles(taskId, checked, len(files), "", checked, len(files), nil)
-		if err := store.save(); err != nil {
-			web.sugarLogger.Warnf("Failed to save the verification results: %v", err)
-		}
-		// Issues lists the files not signed
+		// Issues lists the damaged files and the ones not signed
 		web.invalidateDerived()
 		web.taskLog().Finish(taskId, failure)
 	}()
@@ -917,13 +1031,17 @@ func verifyDue(s *settings.AppSettings, lastRun time.Time, now time.Time) bool {
 
 func (web *Web) HandleVerify() {
 	web.router.HandleFunc("/verify/start", func(w http.ResponseWriter, r *http.Request) {
-		// the signatures only, from the headers of the files
-		if r.FormValue("scope") == "signatures" {
-			web.startOrQueue(w, QueuedTask{Kind: TASK_VERIFY, Signatures: true, Recheck: verifyRecheckChanged})
+		level, ok := verifyLevel(r.FormValue("level"))
+		if !ok {
+			writeGlobalError(w, http.StatusBadRequest, web.requestLanguage(r), "Invalid request")
 			return
 		}
 		var paths []string
-		if r.FormValue("scope") == "space" {
+		switch r.FormValue("scope") {
+		case "signatures":
+			// the button of the pages of older versions: the signatures only
+			level = VERIFY_LEVEL_SIGNATURE
+		case "space":
 			// only the files the Space page needs checked before deleting
 			paths = web.spaceVerifyPaths()
 		}
@@ -934,17 +1052,17 @@ func (web *Web) HandleVerify() {
 		// nothing new nor changed, and no task that could change files before the check: the
 		// page says so, instead of a task that checks nothing (pressed again, as it seemed to do
 		// nothing)
-		if recheck == verifyRecheckChanged && !web.filesBusy() && len(web.queue().list()) == 0 && web.nothingToVerify(paths) {
+		if recheck == verifyRecheckChanged && !web.filesBusy() && len(web.queue().list()) == 0 && web.nothingToVerify(paths, level) {
 			writeJSON(w, http.StatusOK, map[string]any{"nothing": true})
 			return
 		}
-		web.startOrQueue(w, QueuedTask{Kind: TASK_VERIFY, Paths: paths, Recheck: recheck})
+		web.startOrQueue(w, QueuedTask{Kind: TASK_VERIFY, Paths: paths, Recheck: recheck, Level: level})
 	}).Methods("POST")
 }
 
 // nothingToVerify tells whether a check of the new and changed files of paths (of the library
-// when nil) would find none: each of them was checked as it is now.
-func (web *Web) nothingToVerify(paths []string) bool {
+// when nil) at a level would find none: each of them was checked as it is now.
+func (web *Web) nothingToVerify(paths []string, level string) bool {
 	if paths == nil {
 		for _, candidate := range web.libraryFiles(".nsp", ".nsz", ".xci", ".xcz") {
 			paths = append(paths, candidate.Path)
@@ -956,7 +1074,10 @@ func (web *Web) nothingToVerify(paths []string) bool {
 		if info == nil || info.IsDir() {
 			continue
 		}
-		if _, ok := store.current(paths[i], info); !ok {
+		if _, ok := store.current(paths[i], info); !ok && level != VERIFY_LEVEL_SIGNATURE {
+			return false
+		}
+		if _, ok := store.signatureResult(paths[i], info); !ok && level != VERIFY_LEVEL_HASH {
 			return false
 		}
 	}

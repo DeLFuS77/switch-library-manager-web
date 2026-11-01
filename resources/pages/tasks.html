@@ -25,7 +25,7 @@
 							<span class="stat-icon task-icon"><span class="bi {{template "taskIcon" .Kind}}" aria-hidden="true"></span></span>
 							<div class="flex-grow-1 min-w-0">
 								<h3 class="h6 fw-semibold mb-0">{{template "taskKind" .Kind}}</h3>
-								<div class="small text-body-secondary">{{template "taskTrigger" .Trigger}} &middot; {{t "started %v" (formatDateTime .Started)}}{{if gt .Workers 1}} &middot; <span class="bi bi-diagram-3 me-1" aria-hidden="true"></span>{{t "%v files at once" .Workers}}{{end}}{{if gt .Threads 0}} &middot; <span class="bi bi-cpu me-1" aria-hidden="true"></span>{{t "%v threads" .Threads}}{{end}}</div>
+								<div class="small text-body-secondary">{{template "taskTrigger" .Trigger}} &middot; {{t "started %v" (formatDateTime .Started)}}{{with .Level}} &middot; {{template "verifyLevel" .}}{{end}}{{if gt .Workers 1}} &middot; <span class="bi bi-diagram-3 me-1" aria-hidden="true"></span>{{t "%v files at once" .Workers}}{{end}}{{if gt .Threads 0}} &middot; <span class="bi bi-cpu me-1" aria-hidden="true"></span>{{t "%v threads" .Threads}}{{end}}</div>
 							</div>
 							{{- if or (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split")}}
 							{{- if .Paused}}
@@ -59,7 +59,7 @@
 							{{- else}}
 							<span class="text-truncate task-message">{{if .MessageArg}}{{t .Message .MessageArg}}{{else}}{{t .Message}}{{end}}</span>
 							{{- end}}
-							{{- if ge $pct 0}}<span class="text-nowrap">{{if or (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split") (eq .Kind "upload")}}{{formatSize (mul .Current 1048576)}} / {{formatSize (mul .Total 1048576)}}{{else}}{{.Current}} / {{.Total}}{{end}} &middot; {{$pct}}%{{with .Speed}} &middot; {{.}} MB/s{{end}}{{with .RemainingText}} &middot; {{t "%v left" .}}{{end}}</span>{{end}}
+							{{- if ge $pct 0}}<span class="text-nowrap">{{if .ByFiles}}{{.Current}} / {{.Total}}{{else if or (eq .Kind "verify") (eq .Kind "copy") (eq .Kind "compress") (eq .Kind "decompress") (eq .Kind "convert") (eq .Kind "pack") (eq .Kind "split") (eq .Kind "upload")}}{{formatSize (mul .Current 1048576)}} / {{formatSize (mul .Total 1048576)}}{{else}}{{.Current}} / {{.Total}}{{end}} &middot; {{$pct}}%{{with .Speed}} &middot; {{.}} MB/s{{end}}{{with .RemainingText}} &middot; {{t "%v left" .}}{{end}}</span>{{end}}
 						</div>
 						{{- template "verifyBreakdown" .Breakdown}}
 						{{- $kind := .Kind}}
@@ -114,7 +114,7 @@
 								<span class="stat-icon task-icon"><span class="bi {{template "taskIcon" .Kind}}" aria-hidden="true"></span></span>
 								<span class="min-w-0">
 									<span class="d-block fw-semibold">{{template "taskKind" .Kind}}</span>
-									<span class="d-block small text-body-secondary">{{if not .Files}}{{t "the whole library"}}{{else if eq .Kind "pack"}}{{t "%v games" .Files}}{{else}}{{t "%v files" .Files}}{{end}} &middot; {{t "added %v" (formatDateTime .Added)}}</span>
+									<span class="d-block small text-body-secondary">{{if not .Files}}{{t "the whole library"}}{{else if eq .Kind "pack"}}{{t "%v games" .Files}}{{else}}{{t "%v files" .Files}}{{end}}{{with .CheckLevel}} &middot; {{template "verifyLevel" .}}{{end}} &middot; {{t "added %v" (formatDateTime .Added)}}</span>
 								</span>
 							</label>
 							<span class="queue-order">
@@ -142,6 +142,7 @@
 									{{- if eq .Status "success"}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Completed"}}</span>
 									{{- else if eq .Status "warning"}}<span class="chip chip-warning"><span class="bi bi-exclamation-circle" aria-hidden="true"></span>{{t "Completed with warnings"}}</span>
 									{{- else}}<span class="chip chip-danger"><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Failed"}}</span>{{end}}
+									{{- with .Level}}<span class="chip chip-muted">{{template "verifyLevel" .}}</span>{{end}}
 									{{- if gt .Count 1}}<span class="chip chip-muted" title="{{t "%v times in a row, the last one shown" .Count}}"><span class="bi bi-layers" aria-hidden="true"></span>&times;{{.Count}}</span>{{end}}
 								</div>
 								<div class="small text-body-secondary">
@@ -149,7 +150,7 @@
 									{{- if eq .Kind "compress"}}{{if .Files}} &middot; {{t "%v files compressed, %v saved" .Files (formatSize .Saved)}}{{with .SavedPercent}} ({{.}}){{end}}{{end}}
 									{{- else if eq .Kind "decompress"}}{{if .Files}} &middot; {{t "%v files decompressed" .Files}}{{end}}
 									{{- else if and (eq .Kind "cleanup") .Saved}} &middot; {{t "%v files deleted, %v freed" .Files (formatSize .Saved)}}
-									{{- else if eq .Kind "verify"}} &middot; {{t "%v files checked, %v damaged" .Files .Damaged}}
+									{{- else if eq .Kind "verify"}} &middot; {{if eq .Level "signature"}}{{t "%v files checked, %v modified" .Files .Modified}}{{else if .Modified}}{{t "%v files checked, %v modified, %v failed" .Files .Modified .Damaged}}{{else}}{{t "%v files checked, %v failed" .Files .Damaged}}{{end}}
 									{{- else if eq .Kind "covers"}} &middot; {{t "%v covers downloaded" .Files}}
 									{{- else if eq .Kind "copy"}} &middot; {{t "%v files copied" .Files}}
 									{{- else if eq .Kind "upload"}} &middot; {{.Subject}}{{if .Files}} ({{formatSize .Saved}}){{end}}
@@ -191,10 +192,11 @@
 {{- /* the view by covers: every file of a running task, waiting, at work (filling up with its
    progress) or ended (how it ended), as NXPress shows them; a task without its list of files,
    and an ended one, show the files at work and the files ended */}}
+{{- $verify := eq .Kind "verify"}}
 {{- if .Plan}}
 <ul class="task-tiles list-unstyled mb-0 mt-3" aria-label="{{t "Files"}}">
 	{{- range .Plan}}
-	<li class="task-tile{{if .Working}} is-working{{else if .Waiting}} is-waiting{{else if .Failed}} is-failed{{else if .Skipped}} is-skipped{{end}}"{{if .Working}} style="--lane-fill: {{.Percent}}%"{{with .Step}} data-step="{{.}}"{{end}}{{end}}>
+	<li class="task-tile{{if .Working}} is-working{{else if .Waiting}} is-waiting{{else if .Failed}} is-failed{{else if .Skipped}} is-skipped{{else if .Modified}} is-modified{{end}}"{{if .Working}} style="--lane-fill: {{.Percent}}%"{{with .Step}} data-step="{{.}}"{{end}}{{end}}>
 		<span class="task-tile-cover">{{if .Cover}}<img class="task-tile-img" src="{{.Cover}}" alt="" loading="lazy" decoding="async">{{else}}<span class="bi bi-file-earmark-zip" aria-hidden="true"></span>{{end}}{{if .Working}}<span class="task-tile-pct">{{.Percent}}%</span>{{end}}</span>
 		<span class="task-tile-name" title="{{.Name}}">{{.Name}}</span>
 		{{- if .Working}}
@@ -202,9 +204,11 @@
 		{{- else if .Waiting}}
 		<span class="chip chip-muted task-tile-state"><span class="bi bi-hourglass" aria-hidden="true"></span>{{t "Waiting"}}</span>
 		{{- else if .Failed}}
-		<span class="chip chip-danger task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Error"}}</span>
+		<span class="chip chip-danger task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-x-circle" aria-hidden="true"></span>{{if $verify}}{{t "Failed (file)"}}{{else}}{{t "Error"}}{{end}}</span>
 		{{- else if .Skipped}}
 		<span class="chip chip-warning task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-dash-circle" aria-hidden="true"></span>{{t "Skipped"}}</span>
+		{{- else if .Modified}}
+		<span class="chip chip-warning task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-patch-exclamation" aria-hidden="true"></span>{{t "Modified"}}</span>
 		{{- else}}
 		<span class="chip chip-success task-tile-state"><span class="bi bi-check-circle" aria-hidden="true"></span>OK</span>
 		{{- end}}
@@ -226,13 +230,15 @@
 	{{- end}}
 	{{- end}}
 	{{- range .Tiles}}
-	<li class="task-tile{{if .Failed}} is-failed{{else if .Skipped}} is-skipped{{end}}">
+	<li class="task-tile{{if .Failed}} is-failed{{else if .Skipped}} is-skipped{{else if .Modified}} is-modified{{end}}">
 		<span class="task-tile-cover">{{if .Cover}}<img class="task-tile-img" src="{{.Cover}}" alt="" loading="lazy" decoding="async">{{else}}<span class="bi bi-file-earmark-zip" aria-hidden="true"></span>{{end}}</span>
 		<span class="task-tile-name" title="{{.Name}}">{{.Name}}</span>
 		{{- if .Failed}}
-		<span class="chip chip-danger task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Error"}}</span>
+		<span class="chip chip-danger task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-x-circle" aria-hidden="true"></span>{{if $verify}}{{t "Failed (file)"}}{{else}}{{t "Error"}}{{end}}</span>
 		{{- else if .Skipped}}
 		<span class="chip chip-warning task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-dash-circle" aria-hidden="true"></span>{{t "Skipped"}}</span>
+		{{- else if .Modified}}
+		<span class="chip chip-warning task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-patch-exclamation" aria-hidden="true"></span>{{t "Modified"}}</span>
 		{{- else}}
 		<span class="chip chip-success task-tile-state"><span class="bi bi-check-circle" aria-hidden="true"></span>OK</span>
 		{{- end}}
@@ -250,6 +256,7 @@
 	{{- if .Changed}}<span>{{t "%v changed" (num .Changed)}}</span>{{end}}
 	{{- if .Improved}}<span title="{{t "Files found modified by a tool (NSC_Builder and the like) are checked again once since version 1.30.0: an older check did not read the hashes of their sections past 4 GB."}}">{{t "%v checked again once after an improvement of the check" (num .Improved)}} <span class="bi bi-question-circle" aria-hidden="true"></span></span>{{end}}
 	{{- if .Again}}<span>{{t "%v checked again as asked" (num .Again)}}</span>{{end}}
+	{{- if .Signatures}}<span>{{t "%v only for their signatures" (num .Signatures)}}</span>{{end}}
 </div>
 {{- end}}
 {{- end}}
@@ -292,6 +299,8 @@
 </div>
 {{- end}}
 {{- end}}
+
+{{define "verifyLevel"}}{{if eq . "signature"}}<span class="bi bi-patch-check me-1" aria-hidden="true"></span>{{t "Signature"}}{{else if eq . "hash"}}<span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Hash"}}{{else}}{{t "Both"}}{{end}}{{end}}
 
 {{define "taskKind"}}{{if eq . "sync"}}{{t "Synchronization"}}{{else if eq . "scan"}}{{t "Library scan"}}{{else if eq . "organize"}}{{t "Organize files"}}{{else if eq . "cleanup"}}{{t "Delete old updates"}}{{else if eq . "compress"}}{{t "Compression"}}{{else if eq . "decompress"}}{{t "Decompression"}}{{else if eq . "verify"}}{{t "File check"}}{{else if eq . "covers"}}{{t "Cover downloads"}}{{else if eq . "thumbnails"}}{{t "Thumbnails"}}{{else if eq . "copy"}}{{t "Copy to the card"}}{{else if eq . "convert"}}{{t "Conversion"}}{{else if eq . "pack"}}{{t "Combine"}}{{else if eq . "split"}}{{t "Split files"}}{{else if eq . "timetobeat"}}{{t "Times to beat (IGDB)"}}{{else if eq . "upload"}}{{t "Upload"}}{{else}}{{.}}{{end}}{{end}}
 

@@ -41,7 +41,16 @@ func translate(lang string, text string) string {
 	if translated, ok := translations[lang][text]; ok {
 		return translated
 	}
+	if english, ok := englishTexts[text]; ok {
+		return english
+	}
 	return text
+}
+
+// englishTexts are the texts whose key says what they name, for the languages where the word
+// changes with it (a file failed, a task failed: "Fallido", "Fallida"), with their English.
+var englishTexts = map[string]string{
+	"Failed (file)": "Failed",
 }
 
 func translatef(lang string, text string, args ...any) string {
@@ -355,6 +364,7 @@ var issuePatterns = []struct {
 	{regexp.MustCompile(`^failed to read (NSP|XCI|split files) \[reason: (.*)\]$`), "failed to read %v [reason: %v]"},
 	{regexp.MustCompile(`^unable to determine title-Id / version - (.*)$`), "unable to determine title ID / version - %v"},
 	{regexp.MustCompile(`^damaged file: (.*)$`), "damaged file: %v"},
+	{regexp.MustCompile(`^not signed by Nintendo: (.*)$`), "not signed by Nintendo: %v"},
 	{regexp.MustCompile(`^no title key \(rights ID (\w+)\): the file has no ticket and title\.keys does not list it$`), "no title key (rights ID %v): the file has no ticket and title.keys does not list it"},
 }
 

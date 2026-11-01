@@ -1162,6 +1162,7 @@ func TestOpenApiDocumentsEveryEndpoint(t *testing.T) {
 	web.HandleExport()
 	web.HandleSynchronize()
 	web.HandleIgnore()
+	web.HandleVerify()
 	web.HandleApiDocs()
 	documented := 0
 	web.router.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
