@@ -26,7 +26,7 @@ require (
 )
 
 require (
-	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.6 // indirect
 	go.uber.org/atomic v1.6.0 // indirect
 	go.uber.org/multierr v1.5.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
