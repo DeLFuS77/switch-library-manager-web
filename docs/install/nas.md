@@ -9,6 +9,8 @@ On every system you need:
 - **A folder for the app's data** (settings, caches, covers). Put **your own** `prod.keys` there, dumped from your
   console; no keys are included or downloaded.
 - **The folder of your games** (NSP, NSZ, XCI, XCZ), readable and writable so the app can organize and compress them.
+  Games in a second folder, such as another disk, can be mounted at `/mnt/roms2` (the compose files have the line ready)
+  and added to **Folders to scan** in **Settings › Library**.
 - **PUID and PGID**: the user and group that own your games folder. The app runs as that user, never as root.
 
 After the installation, open `http://<address of the NAS>:3000` and set your folders in **Settings**. Create an
@@ -34,8 +36,9 @@ DSM 7.2 or newer, with **Container Manager** installed from the Package Center.
    - **Path**: `/volume1/docker/switch-library-manager-web`
    - **Source**: *Create docker-compose.yml*, and paste
      [templates/synology/docker-compose.yml](../../templates/synology/docker-compose.yml).
-4. Change `/volume1/Switch` to the folder of your games, and `PUID`/`PGID` if yours are different. Click **Next** and
-   **Done**: the image is downloaded and the app starts.
+4. Change `/volume1/Switch` to the folder of your games, and `PUID`/`PGID` if yours are different. For games in a
+   second folder, remove the `#` of the `/mnt/roms2` line and set its folder. Click **Next** and **Done**: the image
+   is downloaded and the app starts.
 
 ## Portainer
 

@@ -190,9 +190,10 @@ once and changes every time the app starts.
 
 | Setting | Meaning |
 |---|---|
-| `-p 3000:3000` | The port of the web interface |
+| `-p 3000:3000` | The port of the web interface. For another one, change the first number: `-p 8080:3000` |
 | `/usr/local/share/switch-library-manager-web` | Data folder: settings, caches, covers and **your keys** |
 | `/mnt/roms` | Your games; writable, to organize and compress files |
+| `/mnt/roms2` | Optional: games in a second folder, such as another disk (`-v /path/to/more/games:/mnt/roms2`). Add `/mnt/roms2` to **Folders to scan** in **Settings › Library** |
 | `PUID`, `PGID` | The user and group that own your games (`id` on the host). The app never runs as root |
 | `TZ` | Your time zone, for dates and scheduled synchronizations |
 
@@ -209,9 +210,10 @@ To update, pull the new image and recreate the container: `docker compose pull &
 Step by step for each one in [Installing on a NAS](docs/install/nas.md) and in the [wiki](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Installation).
 
 On **Unraid**, set **Switch library** to the share with your games (for example `/mnt/user/switch`) and copy
-your keys to `/mnt/user/appdata/switch-library-manager-web/`. Do not install the image from the Docker Hub search: the
-port and folders would be empty. The setup code of the first administrator is in the log of the container: in the
-**Docker** tab, click the icon of the app and choose **Logs**.
+your keys to `/mnt/user/appdata/switch-library-manager-web/`. Games in another share or disk go in **Second Switch
+library**: then add `/mnt/roms2` to **Folders to scan** in **Settings › Library**. Do not install the image from the
+Docker Hub search: the port and folders would be empty. The setup code of the first administrator is in the log of the
+container: in the **Docker** tab, click the icon of the app and choose **Logs**.
 
 ### Windows, macOS and Linux
 
