@@ -32,6 +32,9 @@ var (
 	telegramTokenRegex  = regexp.MustCompile(`^[0-9]+:[A-Za-z0-9_-]{20,}$`)
 	telegramChatRegex   = regexp.MustCompile(`^(-?[0-9]+|@[A-Za-z0-9_]{5,})$`)
 	webhookRegex        = regexp.MustCompile(`^https?://[^\s]+$`)
+	// every address a notification is sent to: http or https and a host, which may be one of the
+	// local network, as a server of one's own
+	notificationURLRegex = regexp.MustCompile(`^https?://[^/?#\s]+([/?#]\S*)?$`)
 
 	// replaced in tests
 	telegramApiUrl = "https://api.telegram.org"
@@ -305,6 +308,11 @@ func notificationText(lang string, items []NotificationItem) (string, string) {
 }
 
 func postJSON(url string, payload any) error {
+	// the addresses of the settings were checked when saved; settings.json may have been
+	// changed by hand since
+	if !notificationURLRegex.MatchString(url) {
+		return errors.New("not an http or https address")
+	}
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return err

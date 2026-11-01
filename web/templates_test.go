@@ -148,6 +148,17 @@ func TestLanguageFromHeader(t *testing.T) {
 	}
 }
 
+// A language that is not one of the list names no file and no download.
+func TestTitleLanguageOnlyOfTheList(t *testing.T) {
+	if supportedLanguage("es") != "es" || supportedLanguage("ES") != "" || supportedLanguage("../es") != "" {
+		t.Fatal("unexpected supported language")
+	}
+	web := newTestWeb(t)
+	if _, ok := web.loadTitleLanguage("../../es", true); ok {
+		t.Fatal("titles of a language not in the list were loaded")
+	}
+}
+
 func TestLocalizedDatesAndIssues(t *testing.T) {
 	date := time.Date(2026, 10, 5, 13, 5, 0, 0, time.Local)
 	if got := formatDate("es", date); got != "5 oct 2026" {

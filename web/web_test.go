@@ -969,6 +969,15 @@ func TestValidateNotifications(t *testing.T) {
 	}
 }
 
+// A notification goes to http and https addresses only, also when settings.json was changed by hand.
+func TestNotificationsOnlyToWebAddresses(t *testing.T) {
+	for _, address := range []string{"file:///etc/passwd", "gopher://server/x", "https://", "http://host/a b"} {
+		if err := postJSON(address, map[string]string{}); err == nil {
+			t.Errorf("sent to %q", address)
+		}
+	}
+}
+
 // The bot token of Telegram and the token of the webhook of Discord never go back to the pages:
 // they show a mask, a form sent back with it keeps them, a new value replaces them and an empty
 // field turns the channel off, as before. The browser keeps no copy of the pages of settings.

@@ -133,12 +133,19 @@ func (set templateSet) executeTemplate(w io.Writer, lang string, name string, da
 }
 
 func isSupportedLanguage(lang string) bool {
+	return supportedLanguage(lang) != ""
+}
+
+// supportedLanguage is lang as the list of supported languages has it, or "" when it is not
+// one of them. The value comes from the list, not from what a browser sent: it names files of
+// the data folder and goes in the addresses of downloads.
+func supportedLanguage(lang string) string {
 	for _, supported := range supportedLanguages {
 		if supported == lang {
-			return true
+			return supported
 		}
 	}
-	return false
+	return ""
 }
 
 // languageFromHeader returns the first supported language of an Accept-Language header.
@@ -146,8 +153,7 @@ func isSupportedLanguage(lang string) bool {
 func languageFromHeader(header string) string {
 	for _, part := range strings.Split(header, ",") {
 		tag := strings.ToLower(strings.TrimSpace(strings.SplitN(part, ";", 2)[0]))
-		primary := strings.SplitN(tag, "-", 2)[0]
-		if isSupportedLanguage(primary) {
+		if primary := supportedLanguage(strings.SplitN(tag, "-", 2)[0]); primary != "" {
 			return primary
 		}
 	}

@@ -14,6 +14,11 @@
 
 - Backups keep the copy chosen of each game of several regions, which restoring one left out
 
+### Security
+
+- golang.org/x/net 0.62.0 (GO-2026-6860 and GO-2026-6866, in a package the app does not use)
+- Downloads and notifications go only to http and https addresses, also when settings.json was changed by hand, and the language of the browser only names files of the data folder when it is one of the languages of the app
+
 ## 1.67.0
 
 ### New
