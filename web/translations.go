@@ -1435,6 +1435,7 @@ var translations = map[string]map[string]string{
 		"Organize":                      "Organizar",
 		"Settings":                      "Ajustes",
 		"Menu":                          "Menú",
+		"More":                          "Más",
 		"Close":                         "Cerrar",
 		"Toggle navigation":             "Mostrar navegación",
 		"based on":                      "basado en",

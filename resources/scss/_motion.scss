@@ -1603,12 +1603,12 @@
 	}
 }
 
-// phones: the main sections in a bar at the bottom, within reach of the thumb
+// phones and tablets: the main sections in a bar at the bottom, within reach of the thumb
 .bottom-nav {
 	position: fixed;
 	inset: auto 0 0 0;
 	z-index: 1030;
-	display: grid;
+	display: none;
 	// each link as wide as its label, the room left shared out: a long label (Updates in some
 	// languages) no longer runs into the ones beside it
 	grid-template-columns: repeat(5, minmax(0, auto));
@@ -1619,6 +1619,29 @@
 	-webkit-backdrop-filter: blur(14px) saturate(140%);
 	border-top: 1px solid var(--slm-border);
 	view-transition-name: bottom-nav;
+
+	@include bottom-nav-screens {
+		display: grid;
+	}
+
+	// a tablet: more sections, each as wide as its label and never narrower than a thumb, around
+	// the middle of the bar
+	@include bottom-nav-wide-screens {
+		grid-template-columns: none;
+		grid-auto-columns: minmax(4.5rem, auto);
+		grid-auto-flow: column;
+		column-gap: clamp(.25rem, 2vw, 2rem);
+		justify-content: center;
+	}
+}
+
+// DLC, Issues and Tasks are in the bar of a tablet only, in More on a phone
+.bottom-link.bottom-wide-only {
+	display: none;
+
+	@include bottom-nav-wide-screens {
+		display: flex;
+	}
 }
 
 .bottom-link {
@@ -1693,7 +1716,38 @@
 	text-align: center;
 }
 
-@include media-breakpoint-down(md) {
+// a dot on More: something waits in its menu, in red the issues or the failed tasks, in orange a
+// step of the tune-up. A tablet has Issues and Tasks in the bar, so its dot is for the tune-up only
+.bottom-dot {
+	position: absolute;
+	top: -.05rem;
+	left: 75%;
+	width: .55rem;
+	height: .55rem;
+	border-radius: 50%;
+	background: var(--bs-warning);
+	box-shadow: 0 0 0 2px var(--bs-body-bg);
+
+	&.is-problem {
+		background: var(--bs-danger);
+	}
+}
+
+.bottom-dot.bottom-wide-only {
+	display: none;
+}
+
+@include bottom-nav-wide-screens {
+	.bottom-narrow-only {
+		display: none !important;
+	}
+
+	.bottom-dot.bottom-wide-only {
+		display: block;
+	}
+}
+
+@include bottom-nav-screens {
 	:root {
 		--slm-bottom-nav: calc(3.6rem + env(safe-area-inset-bottom));
 	}

@@ -1159,6 +1159,7 @@ func init() {
 		"Making thumbnails": "Miniaturen maken",
 		"Maximum":           "Maximaal",
 		"Menu":              "Menu",
+		"More":              "Meer",
 		"Missing":           "Ontbrekend",
 		"Missing DLC":       "Ontbrekende DLC",
 		"Missing Games":     "Ontbrekende games",

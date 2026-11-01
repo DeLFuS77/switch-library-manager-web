@@ -1159,6 +1159,7 @@ func init() {
 		"Making thumbnails": "サムネイルを作成中",
 		"Maximum":           "最大",
 		"Menu":              "メニュー",
+		"More":              "その他",
 		"Missing":           "不足",
 		"Missing DLC":       "不足しているDLC",
 		"Missing Games":     "未所持のゲーム",

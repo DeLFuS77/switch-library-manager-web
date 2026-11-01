@@ -78,6 +78,28 @@ function updateTaskIndicator() {
 					failedBadge.classList.toggle('ms-auto', running === 0);
 				}
 			});
+			// the Tasks link in the bar at the bottom of a tablet counts the failed ones too
+			document.querySelectorAll('.bottom-link[href="/tasks.html"]').forEach(link => {
+				let badge = link.querySelector('.bottom-badge');
+				let label = link.querySelector('.bottom-count');
+				if (failed === 0) {
+					badge?.remove();
+					label?.remove();
+					return;
+				}
+				if (!badge) {
+					badge = document.createElement('span');
+					badge.className = 'bottom-badge text-bg-danger';
+					link.querySelector('.bi')?.appendChild(badge);
+				}
+				if (!label) {
+					label = document.createElement('span');
+					label.className = 'visually-hidden bottom-count';
+					link.appendChild(label);
+				}
+				badge.textContent = failed > 99 ? '99+' : String(failed);
+				label.textContent = ' ' + t('Failed tasks: %v', failed);
+			});
 			return running;
 		})
 		.catch(() => -1);

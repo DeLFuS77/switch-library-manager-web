@@ -106,7 +106,7 @@
 {{- end}}
 
 {{- define "bottomLink"}}
-		<a class="bottom-link{{if eq .Page .Id}} active{{end}}" href="{{.Href}}"{{if eq .Page .Id}} aria-current="page"{{end}}><span class="bi {{.Icon}}" aria-hidden="true">{{if gt .Count 0}}<span class="bottom-badge">{{if gt .Count 99}}99+{{else}}{{.Count}}{{end}}</span>{{end}}</span><span class="bottom-label">{{.Label}}</span></a>
+		<a class="bottom-link{{if eq .Page .Id}} active{{end}}{{if .Wide}} bottom-wide-only{{end}}" href="{{.Href}}"{{if eq .Page .Id}} aria-current="page"{{end}}><span class="bi {{.Icon}}" aria-hidden="true">{{if gt .Count 0}}<span class="bottom-badge{{with .Badge}} {{.}}{{end}}">{{if gt .Count 99}}99+{{else}}{{.Count}}{{end}}</span>{{end}}</span><span class="bottom-label">{{.Label}}</span>{{if gt .Count 0}}<span class="visually-hidden bottom-count"> {{with .CountLabel}}{{.}}{{else}}{{num .Count}}{{end}}</span>{{end}}</a>
 {{- end}}
 
 {{- define "miniCard"}}

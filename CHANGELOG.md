@@ -17,6 +17,7 @@
 - When the app is stopped in the middle of a task (an update, a restart, the nightly backup of a NAS that stops the containers), what the task has left is saved before the app ends, not up to half a minute before. A check of the files started by hand or from the queue now goes on by itself once the app starts again, leaving out the files it had already checked, as a compression does
 - The log says how each task ended and how long it took, and the duplicates a scan finds are one line instead of one line each on every scan
 - Tasks tells apart what is no failure: a task cancelled is Cancelled, in grey; one a restart of the app stopped is Stopped by a restart, in orange, with whether it goes on by itself or has to be started again; and once it went on by itself it is Continued after a restart, in grey, with a link to the task that went on. None of them is red or counted in the number of failed tasks of the menu, and they leave the history like the tasks that ended well. A running task that has not moved for 15 minutes says so, with its bars still, and a paused one says since when and what waits for it (the queue, the scheduled synchronization, the new files of the automations). The API tells these endings in `ending`
+- On phones and tablets the menu button at the top is gone, as it opened the same menu as the bar at the bottom: the bar, with More, is the menu. Tablets have the bar too, upright or on their side, with DLC, Issues and Tasks and their numbers, while a computer with a mouse keeps the menu at the top whatever the width of its window. The account (My account, Settings, the theme, the couch mode, Log out) opens from the avatar at the top, as on a computer, and More shows a dot when something waits inside: red for issues or failed tasks, orange for a step of the tune-up. Screen readers hear the numbers of the bar, and in the couch mode, which hides the bar, the menu button stays
 
 ### Fixes
 
@@ -27,6 +28,7 @@
 - Backups keep the copy chosen of each game of several regions, which restoring one left out
 - In Issues, the reason of a file not signed by Nintendo is in the language of the page
 - The health check of the container asks the port set in settings.json instead of always 3000, so with another port the container no longer shows as unhealthy
+- On a phone, the last item of the menu was under the bar at the bottom, and touching it opened Updates
 
 ### Security
 

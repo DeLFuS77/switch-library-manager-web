@@ -1159,6 +1159,7 @@ func init() {
 		"Making thumbnails": "썸네일 생성 중",
 		"Maximum":           "최대",
 		"Menu":              "메뉴",
+		"More":              "더보기",
 		"Missing":           "누락",
 		"Missing DLC":       "누락된 DLC",
 		"Missing Games":     "누락된 게임",
