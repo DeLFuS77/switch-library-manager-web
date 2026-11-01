@@ -2,13 +2,25 @@
 {{define "main"}}
 			<div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
 				{{- template "pageHeader" (dict "Title" (t "Issues") "Count" .Total "Subtitle" (t "Files that could not be added to the library, damaged files, duplicates and old versions. The Space page can clean up old updates and duplicates."))}}
-				<div class="d-flex flex-wrap gap-2 mb-3 admin-only page-actions">
-					<button type="button" class="btn btn-primary rounded-pill" data-verify="changed" title="{{t "Checks the new and changed files for damage"}}"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Check new files"}}</button>
+				<div class="d-flex flex-wrap align-items-center gap-2 mb-3 admin-only page-actions">
+					{{- /* one check at the level chosen, which the browser remembers (see initVerifyLevel) */}}
+					<div class="play-states" role="radiogroup" aria-label="{{t "What to check"}}" aria-describedby="verifyLevelHelp">
+						<input type="radio" class="btn-check" name="verify_level" id="verifyLevelSignature" value="signature" autocomplete="off">
+						<label class="btn btn-sm btn-outline-secondary rounded-pill" for="verifyLevelSignature"><span class="bi bi-patch-check me-1" aria-hidden="true"></span>{{t "Signature"}}</label>
+						<input type="radio" class="btn-check" name="verify_level" id="verifyLevelHash" value="hash" autocomplete="off">
+						<label class="btn btn-sm btn-outline-secondary rounded-pill" for="verifyLevelHash"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Hash"}}</label>
+						<input type="radio" class="btn-check" name="verify_level" id="verifyLevelBoth" value="both" autocomplete="off" checked>
+						<label class="btn btn-sm btn-outline-secondary rounded-pill" for="verifyLevelBoth">{{t "Both"}}</label>
+					</div>
+					<button type="button" class="btn btn-primary rounded-pill" data-verify="changed" title="{{t "Checks the new and changed files at the level chosen"}}"><span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Check new files"}}</button>
 					<button type="button" class="btn btn-glass rounded-pill" data-verify="all" title="{{t "Checks every file again"}}"><span class="bi bi-arrow-repeat me-1" aria-hidden="true"></span>{{t "Check everything again"}}</button>
-					<button type="button" class="btn btn-glass rounded-pill" data-verify="signatures" title="{{t "Checks in seconds that every NCA has the signature of Nintendo, from its header: it does not read the data"}}"><span class="bi bi-patch-check me-1" aria-hidden="true"></span>{{t "Check signatures"}}</button>
 				</div>
 			</div>
-			<p class="small text-body-secondary mt-n2 admin-only">{{- if not .LastVerified.IsZero}}{{t "Files last checked %v" (formatDateTime .LastVerified)}}. {{end}}{{t "Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more."}}</p>
+			<p class="small text-body-secondary mt-n2 admin-only" id="verifyLevelHelp">{{- if not .LastVerified.IsZero}}{{t "Files last checked %v" (formatDateTime .LastVerified)}}. {{end -}}
+				<span data-verify-hint="signature" hidden>{{t "Signature: in seconds, every NCA is checked for the signature of Nintendo on its header, without reading the data. A file without it is Modified."}}</span>
+				<span data-verify-hint="hash" hidden>{{t "Hash: every file is read whole and every NCA checked against its hashes, which finds any damaged byte; it takes as long as reading the files. A damaged file is Failed."}}</span>
+				<span data-verify-hint="both">{{t "Both: the signature first, then the hashes, even when the signature fails. A damaged file is Failed; one without the signature and nothing damaged, Modified."}}</span>
+				{{t "Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more."}}</p>
 			{{- if .Summaries}}
 			<section class="issue-summary mb-4" aria-label="{{t "Summary"}}">
 				{{- range .Summaries}}
@@ -80,7 +92,9 @@
 				<li class="item-row">
 					<span class="issue-icon bi {{issueIcon .Reason}}" aria-hidden="true"></span>
 					<div class="item-main">
-						<div class="item-name" title="{{.File}}">{{fileBase .File}}</div>
+						<div class="item-name" title="{{.File}}">{{fileBase .File}}
+							{{- if eq .Verdict "failed"}} <span class="chip chip-danger ms-1"><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Failed (file)"}}</span>
+							{{- else if eq .Verdict "modified"}} <span class="chip chip-warning ms-1"><span class="bi bi-patch-exclamation" aria-hidden="true"></span>{{t "Modified"}}</span>{{end}}</div>
 						{{- if .Cause}}
 						<div class="issue-reason">{{.Cause}}</div>
 						<div class="issue-detail" title="{{issue .Reason}}">{{shortPaths (issue .Reason)}}</div>

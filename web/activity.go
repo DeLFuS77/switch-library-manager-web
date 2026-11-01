@@ -184,8 +184,23 @@ var recordedActions = map[string]func(r *http.Request) (string, string){
 	"/users/delete":   func(r *http.Request) (string, string) { return ACTION_USER_DEL, r.FormValue("name") },
 	"/uploads/finish": func(r *http.Request) (string, string) { return ACTION_UPLOAD, r.FormValue("name") },
 	"/sync":           func(r *http.Request) (string, string) { return ACTION_SYNC, "" },
-	"/verify/start":   func(r *http.Request) (string, string) { return ACTION_VERIFY, r.FormValue("action") },
+	"/verify/start":   func(r *http.Request) (string, string) { return ACTION_VERIFY, verifyActivity(r) },
 }
+
+// verifyActivity tells the level of a check, and whether it reads every file again.
+func verifyActivity(r *http.Request) string {
+	level, _ := verifyLevel(r.FormValue("level"))
+	if r.FormValue("scope") == "signatures" {
+		level = VERIFY_LEVEL_SIGNATURE
+	}
+	if r.FormValue("all") == "true" {
+		return level + " + " + VERIFY_ACTIVITY_ALL
+	}
+	return level
+}
+
+// VERIFY_ACTIVITY_ALL is a check of every file again, in the activity.
+const VERIFY_ACTIVITY_ALL = "every file again"
 
 // statusRecorder remembers the status of a response.
 type statusRecorder struct {
@@ -240,6 +255,10 @@ var (
 		SPACE_OLD_UPDATES:               "Old updates",
 		SPACE_DUPLICATES:                "Duplicates",
 		SPACE_COMPRESSED:                "Compressed originals",
+		VERIFY_LEVEL_SIGNATURE:          "Signature",
+		VERIFY_LEVEL_HASH:               "Hash",
+		VERIFY_LEVEL_BOTH:               "Both",
+		VERIFY_ACTIVITY_ALL:             "Check everything again",
 		"admin":                         "Administrator",
 		"viewer":                        "Player",
 		"guest":                         "Guest",

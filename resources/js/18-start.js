@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initIgnoreTypes();
 	initViewToggle();
 	initTaskView();
+	initVerifyLevel();
 	initTaskSections();
 	initLiveTasks();
 	initCompress();
@@ -277,6 +278,11 @@ document.addEventListener('DOMContentLoaded', () => {
 		button.addEventListener('click', () => {
 			button.disabled = true;
 			const body = new URLSearchParams({ all: button.dataset.verify === 'all' ? 'true' : 'false', scope: button.dataset.verify });
+			// the level chosen on the page; without a choice, both
+			const level = document.querySelector('input[name="verify_level"]:checked');
+			if (level) {
+				body.set('level', level.value);
+			}
 			runAsTask(() => fetch('/verify/start', { method: 'POST', body })).then(response => {
 				if (response.ok) {
 					return response.json().catch(() => ({})).then(json => {

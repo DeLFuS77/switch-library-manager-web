@@ -581,6 +581,63 @@
         }
       }
     },
+    "/verify/start": {
+      "post": {
+        "summary": "Check the files",
+        "description": "Checks the files of the library in the background, at a level: signature reads the header of every NCA and tells in seconds whether it has the signature of Nintendo; hash reads every file whole and checks every NCA against its hashes; both does the two, the hashes even when the signature fails. A file whose data does not match its hashes is failed; a file with an NCA not signed by Nintendo and nothing damaged is modified, which is no failure. The results are listed on the Issues page and in the task (GET /api/tasks). If a task works on the files, the check waits in the queue.",
+        "tags": [
+          "Library"
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "level": {
+                    "type": "string",
+                    "enum": [
+                      "signature",
+                      "hash",
+                      "both"
+                    ],
+                    "default": "both"
+                  },
+                  "all": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "true checks every file again; false only the new and changed ones"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Nothing to check: no file is new or changed since its last check at this level",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "nothing": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Started, or added to the queue"
+          },
+          "400": {
+            "description": "Invalid level"
+          }
+        }
+      }
+    },
     "/healthz": {
       "get": {
         "summary": "Health check",
@@ -919,7 +976,8 @@
               "sync",
               "scan",
               "organize",
-              "cleanup"
+              "cleanup",
+              "verify"
             ]
           },
           "trigger": {
@@ -979,6 +1037,23 @@
           },
           "files": {
             "type": "integer"
+          },
+          "damaged": {
+            "type": "integer",
+            "description": "A check: the files failed, whose data does not match their hashes"
+          },
+          "modified": {
+            "type": "integer",
+            "description": "A check: the files modified, with an NCA not signed by Nintendo and nothing damaged (no failure)"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "signature",
+              "hash",
+              "both"
+            ],
+            "description": "A check: what it checks; empty for the checks of versions before it"
           }
         }
       }

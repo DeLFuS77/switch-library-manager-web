@@ -55,6 +55,42 @@ function initTaskView() {
 	}));
 }
 
+// The level of a check of the files on the Issues page, remembered by the browser: the
+// signatures, the hashes or both, with what it does said under the buttons. The buttons of the
+// check send it (see the [data-verify] buttons).
+const VERIFY_LEVEL_KEY = 'slm-verify-level';
+
+function initVerifyLevel() {
+	const levels = Array.from(document.querySelectorAll('input[name="verify_level"]'));
+	if (!levels.length) {
+		return;
+	}
+	const show = value => {
+		document.querySelectorAll('[data-verify-hint]').forEach(hint => {
+			hint.hidden = hint.dataset.verifyHint !== value;
+		});
+	};
+	let saved = null;
+	try {
+		saved = localStorage.getItem(VERIFY_LEVEL_KEY);
+	} catch (e) {
+		// storage may be blocked: the level checked in the page, both
+	}
+	const chosen = levels.find(level => level.value === saved);
+	if (chosen) {
+		chosen.checked = true;
+	}
+	levels.forEach(level => level.addEventListener('change', () => {
+		show(level.value);
+		try {
+			localStorage.setItem(VERIFY_LEVEL_KEY, level.value);
+		} catch (e) {
+			// not remembered
+		}
+	}));
+	show((levels.find(level => level.checked) || levels[0]).value);
+}
+
 // The parts of the Tasks page (running, queue, history) fold with a click on their title and
 // stay as they were left, in this browser: also when the list is drawn again as tasks go on
 // (initLiveTasks calls applyTaskSections).
