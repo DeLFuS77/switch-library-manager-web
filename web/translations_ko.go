@@ -1554,6 +1554,24 @@ func init() {
 		"you":                                                              "나",
 		"yours included":                                                   "내 것 포함",
 
+		// the setup code of the first administrator, in Users, the setup wizard and a restored backup
+		"Setup code": "설정 코드",
+		"It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs.": "컨테이너 로그에서 %v 라고 적힌 곳에 있어요. Unraid에서는 Docker 탭, 앱 아이콘, Logs.",
+		"It is in the window of the program, where it says %v.":                                              "프로그램 창에서 %v 라고 적힌 곳에 있어요.",
+		"Where is the log?":                                    "로그는 어디에 있나요?",
+		"Docker tab, click the icon of the app, Logs.":         "Docker 탭에서 앱 아이콘을 클릭하고 Logs.",
+		"Container Manager, Container, the app, Details, Log.": "Container Manager, 컨테이너, 앱, 세부 정보, 로그.",
+		"Containers, the app, Logs.":                           "Containers, 앱, Logs.",
+		"Windows and macOS":                                    "Windows와 macOS",
+		"the window of the program, which opens with it.":      "프로그램과 함께 열리는 창.",
+		"It changes every time the app starts: after a restart, the new one is in the last lines.":                             "앱이 시작될 때마다 바뀌어요. 다시 시작한 뒤에는 새 코드가 마지막 줄에 있어요.",
+		"Without login, a backup with users asks for the setup code: it is in the log of the container, where it says %v.":     "로그인이 꺼져 있을 때 사용자가 있는 백업을 복원하려면 설정 코드가 필요해요. 컨테이너 로그에서 %v 라고 적힌 곳에 있어요.",
+		"Without login, a backup with users asks for the setup code: it is in the window of the program, where it says %v.":    "로그인이 꺼져 있을 때 사용자가 있는 백업을 복원하려면 설정 코드가 필요해요. 프로그램 창에서 %v 라고 적힌 곳에 있어요.",
+		"Write the setup code: it is in the log of the app, where it says SETUP CODE.":                                         "설정 코드를 입력하세요. 앱 로그에서 SETUP CODE 라고 적힌 곳에 있어요.",
+		"The setup code is not right. Copy it from the log of the app, where it says SETUP CODE.":                              "설정 코드가 맞지 않아요. 앱 로그에서 SETUP CODE 라고 적힌 곳의 코드를 복사하세요.",
+		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "잘못된 설정 코드가 너무 많아요. 몇 분 기다리거나 앱을 다시 시작해 새 코드를 받으세요.",
+		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "이 백업에는 사용자가 있어요. 복원하려면 설정 코드를 입력하세요. 앱 로그에서 SETUP CODE 라고 적힌 곳에 있어요.",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "데모 모드: 서버의 폴더와 세부 정보는 표시하지 않아요.",
 

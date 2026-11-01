@@ -1554,6 +1554,24 @@ func init() {
 		"within a minute":                                                  "dans moins d'une minute",
 		"you":                                                              "vous",
 
+		// the setup code of the first administrator, in Users, the setup wizard and a restored backup
+		"Setup code": "Code de configuration",
+		"It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs.": "Il se trouve dans le journal du conteneur, là où est écrit %v. Sur Unraid : onglet Docker, icône de l'application, Logs.",
+		"It is in the window of the program, where it says %v.":                                              "Il se trouve dans la fenêtre du programme, là où est écrit %v.",
+		"Where is the log?":                                    "Où est le journal ?",
+		"Docker tab, click the icon of the app, Logs.":         "onglet Docker, cliquez sur l'icône de l'application, Logs.",
+		"Container Manager, Container, the app, Details, Log.": "Container Manager, Conteneur, l'application, Détails, Journal.",
+		"Containers, the app, Logs.":                           "Containers, l'application, Logs.",
+		"Windows and macOS":                                    "Windows et macOS",
+		"the window of the program, which opens with it.":      "la fenêtre du programme, qui s'ouvre avec lui.",
+		"It changes every time the app starts: after a restart, the new one is in the last lines.":                             "Il change à chaque démarrage de l'application : après un redémarrage, le nouveau se trouve dans les dernières lignes.",
+		"Without login, a backup with users asks for the setup code: it is in the log of the container, where it says %v.":     "Sans connexion, une sauvegarde avec des utilisateurs demande le code de configuration : il se trouve dans le journal du conteneur, là où est écrit %v.",
+		"Without login, a backup with users asks for the setup code: it is in the window of the program, where it says %v.":    "Sans connexion, une sauvegarde avec des utilisateurs demande le code de configuration : il se trouve dans la fenêtre du programme, là où est écrit %v.",
+		"Write the setup code: it is in the log of the app, where it says SETUP CODE.":                                         "Saisissez le code de configuration : il se trouve dans le journal de l'application, là où est écrit SETUP CODE.",
+		"The setup code is not right. Copy it from the log of the app, where it says SETUP CODE.":                              "Le code de configuration n'est pas correct. Copiez-le depuis le journal de l'application, là où est écrit SETUP CODE.",
+		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "Trop de codes de configuration erronés. Attendez quelques minutes, ou redémarrez l'application pour obtenir un nouveau code.",
+		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "Cette sauvegarde contient des utilisateurs : pour les restaurer, saisissez le code de configuration. Il se trouve dans le journal de l'application, là où est écrit SETUP CODE.",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "Mode démo : les dossiers et les détails du serveur ne sont pas affichés.",
 

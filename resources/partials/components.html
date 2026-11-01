@@ -171,3 +171,18 @@
 							</div>
 						</div>
 {{- end}}
+
+{{- define "setupCodeHelp"}}
+								<div class="form-text setup-code-help" id="{{.}}"><span class="bi bi-terminal me-1" aria-hidden="true"></span>{{if inContainer}}{{tCode "It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs." "SETUP CODE"}}{{else}}{{tCode "It is in the window of the program, where it says %v." "SETUP CODE"}}{{end}}</div>
+								<details class="setup-code-where mt-1">
+									<summary>{{t "Where is the log?"}}</summary>
+									<ul class="text-body-secondary">
+										<li><strong class="text-body">Unraid</strong>: {{t "Docker tab, click the icon of the app, Logs."}}</li>
+										<li><strong class="text-body">Synology</strong>: {{t "Container Manager, Container, the app, Details, Log."}}</li>
+										<li><strong class="text-body">Portainer</strong>: {{t "Containers, the app, Logs."}}</li>
+										<li><strong class="text-body">Docker</strong>: <code>docker logs switch-library-manager-web</code></li>
+										<li><strong class="text-body">{{t "Windows and macOS"}}</strong>: {{t "the window of the program, which opens with it."}}</li>
+									</ul>
+									<p class="text-body-secondary mb-0 mt-1">{{t "It changes every time the app starts: after a restart, the new one is in the last lines."}}</p>
+								</details>
+{{- end}}

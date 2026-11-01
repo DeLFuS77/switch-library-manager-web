@@ -128,7 +128,9 @@ func (web *Web) HandleAutoBackups() {
 		}
 		data, err := os.ReadFile(path)
 		if err == nil {
-			err = web.restoreBackup(data)
+			// a copy the app made itself holds only the users this app had: without the setup
+			// code, nobody can bring new ones with it
+			err = web.restoreBackup(data, nil)
 		}
 		if err != nil {
 			for _, known := range backupErrors {

@@ -40,7 +40,8 @@ var (
 	ErrEnvironmentUser = errors.New("This user is set with environment variables and cannot be changed here.")
 )
 
-var userErrors = []error{ErrUserName, ErrUserExists, ErrUserNotFound, ErrPasswordLength, ErrPasswordCommon, ErrPasswordName, ErrRole, ErrLastAdmin, ErrDeleteSelf, ErrWrongPassword, ErrEnvironmentUser}
+var userErrors = []error{ErrUserName, ErrUserExists, ErrUserNotFound, ErrPasswordLength, ErrPasswordCommon, ErrPasswordName, ErrRole, ErrLastAdmin, ErrDeleteSelf, ErrWrongPassword, ErrEnvironmentUser,
+	ErrSetupCodeMissing, ErrSetupCode, ErrSetupCodeBlocked}
 
 var validUserName = regexp.MustCompile(`^[A-Za-z0-9._-]{1,32}$`)
 

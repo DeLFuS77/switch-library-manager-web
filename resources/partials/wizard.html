@@ -627,6 +627,12 @@
 							{{- else}}
 							<p class="wizard-lead">{{t "Login is off: anyone on your network can change or delete your library, and the app does not answer from the internet. Create an administrator now, or later in Users."}}</p>
 							<div class="row g-3">
+								<!-- the setup code of the log: being on the local network is not enough -->
+								<div class="col-12">
+									<label for="wizard_setup_code" class="form-label fw-semibold">{{t "Setup code"}}</label>
+									<input type="text" class="form-control setup-code-input wizard-setup-code" id="wizard_setup_code" name="wizard_setup_code" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX" maxlength="32" aria-describedby="wizard_setup_code_help">
+									{{- template "setupCodeHelp" "wizard_setup_code_help"}}
+								</div>
 								<div class="col-md-6">
 									<label for="wizard_admin_name" class="form-label fw-semibold">{{t "User name"}}</label>
 									<input type="text" class="form-control" id="wizard_admin_name" name="wizard_admin_name" autocomplete="username" maxlength="32" data-wizard-field="name">

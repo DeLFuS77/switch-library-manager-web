@@ -1554,6 +1554,24 @@ func init() {
 		"you":                                                              "jij",
 		"yours included":                                                   "inclusief die van jou",
 
+		// the setup code of the first administrator, in Users, the setup wizard and a restored backup
+		"Setup code": "Installatiecode",
+		"It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs.": "Die staat in het log van de container, waar %v staat. In Unraid: tabblad Docker, pictogram van de app, Logs.",
+		"It is in the window of the program, where it says %v.":                                              "Die staat in het venster van het programma, waar %v staat.",
+		"Where is the log?":                                    "Waar is het log?",
+		"Docker tab, click the icon of the app, Logs.":         "tabblad Docker, klik op het pictogram van de app, Logs.",
+		"Container Manager, Container, the app, Details, Log.": "Container Manager, Container, de app, Details, Logboek.",
+		"Containers, the app, Logs.":                           "Containers, de app, Logs.",
+		"Windows and macOS":                                    "Windows en macOS",
+		"the window of the program, which opens with it.":      "het venster van het programma, dat ermee opengaat.",
+		"It changes every time the app starts: after a restart, the new one is in the last lines.":                             "Die verandert bij elke start van de app: na een herstart staat de nieuwe in de laatste regels.",
+		"Without login, a backup with users asks for the setup code: it is in the log of the container, where it says %v.":     "Zonder inloggen vraagt een back-up met gebruikers om de installatiecode: die staat in het log van de container, waar %v staat.",
+		"Without login, a backup with users asks for the setup code: it is in the window of the program, where it says %v.":    "Zonder inloggen vraagt een back-up met gebruikers om de installatiecode: die staat in het venster van het programma, waar %v staat.",
+		"Write the setup code: it is in the log of the app, where it says SETUP CODE.":                                         "Vul de installatiecode in: die staat in het log van de app, waar SETUP CODE staat.",
+		"The setup code is not right. Copy it from the log of the app, where it says SETUP CODE.":                              "De installatiecode klopt niet. Kopieer hem uit het log van de app, waar SETUP CODE staat.",
+		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "Te veel verkeerde installatiecodes. Wacht een paar minuten, of start de app opnieuw voor een nieuwe code.",
+		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "Deze back-up bevat gebruikers: vul de installatiecode in om ze te herstellen. Die staat in het log van de app, waar SETUP CODE staat.",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "Demomodus: de mappen en de details van de server worden niet getoond.",
 

@@ -515,6 +515,8 @@ var funcMap = template.FuncMap{
 	"maintenanceStep": maintenanceStepOf,
 	"formatBytes":     func(size int) string { return formatSize(int64(size)) },
 	"asset":           func(path string) string { return path + "?v=" + assetVersion },
+	// the app runs in a container: its log is the log of the container, not a window
+	"inContainer": runningInContainer,
 	"mod": func(a, b int) int {
 		if b == 0 {
 			return 0
@@ -844,6 +846,8 @@ func (web *Web) Start() {
 	} else {
 		web.sugarLogger.Warn("[Authentication disabled] The app only answers on the local network until an administrator is created in Users.")
 	}
+	// the code that creates the first administrator, while there is none
+	web.logSetupCode(true)
 
 	// the app is ready: the pages take the place of the page of the start
 	front.set(withSecurityHeaders(withBodyLimit(withCompression(withHealthCheck(web.withVault(handler))))))
