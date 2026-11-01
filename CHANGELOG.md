@@ -10,6 +10,10 @@
 
 - A synchronization no longer downloads the titles database again when it did not change, and when it did, it downloads it compressed: 23 MB for titles.json instead of 126 MB. The versions of updates also come from borntohonk/titledb and 16BitWonder/nx-versions, so new updates still show up in the weeks blawar/titledb does not change; settings saved with the old address of versions.json, the one of blawar/titledb, move to the new one, and an address of one's own stays
 
+### Security
+
+- The first administrator is created with a one-time setup code that the app writes in its log when it starts without users (look for SETUP CODE: the log of the container, or the window of the program on Windows and macOS). Being on the local network is no longer enough: behind Docker Desktop, Podman without root or a tunnel, a visitor from the internet can arrive with a private address or the one of the server itself. The code is asked in Users, in the setup wizard, by the API and when a backup with users is restored while there are none; it changes on every start, is never shown in the app, and after 10 wrong codes it is blocked for everyone for 15 minutes, up to an hour. Installations that already have users, or an administrator in SLM_AUTH_USERNAME, do not change
+
 ### Fixes
 
 - Backups keep the copy chosen of each game of several regions, which restoring one left out
