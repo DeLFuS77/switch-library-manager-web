@@ -12,7 +12,10 @@ On every system you need:
 - **PUID and PGID**: the user and group that own your games folder. The app runs as that user, never as root.
 
 After the installation, open `http://<address of the NAS>:3000` and set your folders in **Settings**. Create an
-administrator in **Users** before the app can be reached from outside your network.
+administrator in **Users** before the app can be reached from outside your network. The first one needs the setup code
+that the app writes in the log of the container when it starts without users: look for `SETUP CODE` (Synology:
+Container Manager > Container > the app > Details > Log; Portainer: Containers > the app > Logs). It works once and
+changes every time the app starts.
 
 - [Synology](#synology)
 - [Portainer](#portainer)
