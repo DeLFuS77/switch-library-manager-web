@@ -22,6 +22,7 @@ changes every time the app starts.
 - [Synology](#synology)
 - [Portainer](#portainer)
 - [Updating](#updating)
+- [Signing in through Authelia, Authentik or Cloudflare Access](#signing-in-through-authelia-authentik-or-cloudflare-access)
 
 ## Synology
 
@@ -59,3 +60,54 @@ deploy it.
 - **Portainer**: the container > **Recreate** with *Pull latest image*, or the stack > **Pull and redeploy**.
 
 The data folder keeps the settings, users and covers, so nothing is lost when the container is recreated.
+
+## Signing in through Authelia, Authentik or Cloudflare Access
+
+If a sign-in portal already protects the app, the people it lets in can open the app as their user, without its
+password. It is off until you turn it on in **Settings › Sign-in portal**, or with the variables below; a variable
+wins over its option, which Settings then shows locked. Passwords and API keys keep working, and while the app has no
+user the portal does nothing: the first administrator still needs the setup code.
+
+Each person is matched with a user of the app by name or by email: set the email of each user in **Users › Edit**. A
+person without a user gets the login page, unless the app is set to make them a guest or a player (never an
+administrator). The members of a group of the portal (`SLM_AUTH_PROXY_ADMIN_GROUP`, e.g. `slm-admins`) are
+administrators while they are in it.
+
+**Authelia or Authentik**, with the forward auth of nginx, Traefik or Caddy: the proxy names the person in a header,
+and the app believes it only from the addresses of `SLM_TRUSTED_PROXIES`, never from those of Cloudflare. From
+anywhere else the header is ignored and noted in **Activity**.
+
+```yaml
+    environment:
+      - SLM_TRUSTED_PROXIES=172.18.0.10                 # the address of your proxy
+      - SLM_AUTH_PROXY_HEADER=Remote-User               # Authentik: X-authentik-username
+      - SLM_AUTH_PROXY_EMAIL_HEADER=Remote-Email        # Authentik: X-authentik-email
+      - SLM_AUTH_PROXY_GROUPS_HEADER=Remote-Groups      # Authentik: X-authentik-groups
+      - SLM_AUTH_PROXY_LOGOUT_URL=https://auth.example.com/logout
+```
+
+With Authentik the logout address is `/outpost.goauthentik.io/sign_out`, on the address of the app. The proxy must
+set these headers itself on every request, as the forward auth of Authelia and Authentik does. A tunnel that only
+passes requests on, like cloudflared, does not: with a Cloudflare Tunnel, use Cloudflare Access instead.
+
+**Cloudflare Access**: Cloudflare signs every request it lets through. The app checks the signature with the public
+keys of your team, downloaded over https, and knows each person by their email.
+
+```yaml
+    environment:
+      - SLM_CF_ACCESS_TEAM=myteam                       # myteam.cloudflareaccess.com
+      - SLM_CF_ACCESS_AUD=4714c1358e65fe4b408ad6d432a5f878f08194bdb4752441fd56faefa9b2b6f2
+```
+
+The AUD tag is in **Zero Trust › Access › Applications ›** your application **› Overview**. Log out goes to the logout
+page of Cloudflare Access.
+
+| Variable | Meaning |
+|---|---|
+| `SLM_AUTH_PROXY_HEADER` | The header of the user name; set, the header is believed |
+| `SLM_AUTH_PROXY_EMAIL_HEADER`, `SLM_AUTH_PROXY_GROUPS_HEADER` | The headers of the email and the groups (`Remote-Email`, `Remote-Groups`) |
+| `SLM_CF_ACCESS_TEAM`, `SLM_CF_ACCESS_AUD` | The team of Cloudflare Zero Trust and the AUD tag of the application; set, Cloudflare Access is believed |
+| `SLM_AUTH_PROXY_MATCH` | `name` or `email` to match people only by name or only by email; empty, by either |
+| `SLM_AUTH_PROXY_NEW_USERS` | `guest` or `player` to make a user for a person without one; empty, none is made |
+| `SLM_AUTH_PROXY_ADMIN_GROUP` | The group of the portal whose members are administrators |
+| `SLM_AUTH_PROXY_LOGOUT_URL` | Where Log out sends the people signed in by the portal |
