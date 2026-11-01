@@ -114,6 +114,8 @@ type Auth struct {
 	// the failed and blocked attempts told in the current minute, by address
 	toldMinute time.Time
 	toldByIp   map[string]int
+	// the code that creates the first administrator, while login is off (see setupcode.go)
+	setup setupCode
 }
 
 const (
@@ -148,9 +150,13 @@ func newAuth(dataFolder string) (*Auth, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Auth{users: users, envUser: envUser, envPassword: envPassword, secret: secret, limiter: newLoginLimiter(),
+	auth := &Auth{users: users, envUser: envUser, envPassword: envPassword, secret: secret, limiter: newLoginLimiter(),
 		revoked: loadRevokedSessions(dataFolder), seen: loadSeenSessions(dataFolder), remoteWithoutLogin: os.Getenv(REMOTE_WITHOUT_LOGIN_ENV) == "true",
-		envPasswordWeak: weakEnvPassword(envUser, envPassword)}, nil
+		envPasswordWeak: weakEnvPassword(envUser, envPassword)}
+	if err := auth.startSetupCode(); err != nil {
+		return nil, err
+	}
+	return auth, nil
 }
 
 // loadSessionSecret reads the key that signs the session cookies, creating it on first use.
@@ -1004,7 +1010,9 @@ func (l *loginLimiter) fail(keys ...string) {
 		entry.last = now
 		if entry.count >= maxLoginFailures {
 			cap := maxLoginBlock
-			if strings.HasPrefix(key, "user:") {
+			// the setup code, shared by every address, is capped as an account is, so that
+			// wrong codes cannot keep its owner out for a whole day
+			if strings.HasPrefix(key, "user:") || key == setupCodeKey {
 				cap = maxAccountBlock
 			}
 			entry.blockUntil = now.Add(block(entry.count, cap))

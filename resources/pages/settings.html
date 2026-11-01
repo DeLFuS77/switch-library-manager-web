@@ -608,7 +608,15 @@
 								<input class="form-control form-control-sm w-auto" type="file" id="backupFile" name="backup" accept=".zip,.slmbackup,application/zip" required>
 								<label class="visually-hidden" for="restorePassword">{{t "Password of the backup, if it has one"}}</label>
 								<input class="form-control form-control-sm backup-password" type="password" id="restorePassword" name="password" autocomplete="off" placeholder="{{t "Password of the backup, if it has one"}}">
+								{{- if not .Auth.Enabled}}
+								<!-- users brought while login is off are the first ones: they need the setup code -->
+								<label class="visually-hidden" for="restoreCode">{{t "Setup code"}}</label>
+								<input class="form-control form-control-sm backup-password setup-code-input is-wordy" id="restoreCode" name="setup_code" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" maxlength="32" placeholder="{{t "Setup code"}}" aria-describedby="restoreCodeHelp">
+								{{- end}}
 								<button type="submit" class="btn btn-outline-danger rounded-pill" data-confirm="{{t "Restoring replaces the current settings and users. Continue?"}}"><span class="bi bi-upload me-2" aria-hidden="true"></span>{{t "Restore"}}</button>
+								{{- if not .Auth.Enabled}}
+								<div class="form-text w-100 mt-0 setup-code-help" id="restoreCodeHelp"><span class="bi bi-terminal me-1" aria-hidden="true"></span>{{if inContainer}}{{tCode "Without login, a backup with users asks for the setup code: it is in the log of the container, where it says %v." "SETUP CODE"}}{{else}}{{tCode "Without login, a backup with users asks for the setup code: it is in the window of the program, where it says %v." "SETUP CODE"}}{{end}}</div>
+								{{- end}}
 							</form>
 						</div>
 						<h3 class="h6 fw-semibold mt-4 mb-1">{{t "Automatic copies"}}</h3>

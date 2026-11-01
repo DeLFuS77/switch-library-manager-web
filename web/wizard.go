@@ -279,6 +279,9 @@ type WizardCheck struct {
 	// game files found in a folder (at most wizardCountLimit)
 	Games int  `json:"games"`
 	More  bool `json:"more"`
+	// the field the message is about, when it is not the one checked (the setup code of the
+	// administrator)
+	Field string `json:"field,omitempty"`
 }
 
 // countGameFiles counts the game files of a folder and its subfolders, up to a limit and a time.
@@ -379,6 +382,8 @@ func (web *Web) HandleWizard() {
 		}
 		data.OrganizeLayout = wizardLayout(data.Settings.OrganizeOptions)
 		data.SettingsPageData.GlobalPageData.Auth = web.authInfo(r)
+		// its step of the administrator asks for the setup code, written again at the end of the log
+		web.logSetupCode(false)
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		if err := templates.executeTemplate(w, web.requestLanguage(r), "wizard", data); err != nil {
@@ -436,8 +441,14 @@ func (web *Web) HandleWizard() {
 	// body of a POST, never in an address
 	web.router.HandleFunc("/wizard/admin", func(w http.ResponseWriter, r *http.Request) {
 		result := checkWizardAdmin(r.FormValue("name"), r.FormValue("password"), web.requestLanguage(r))
-		if result.Ok && strings.TrimSpace(r.FormValue("name")) != "" && web.auth != nil && web.auth.Enabled() {
-			result = WizardCheck{Message: translate(web.requestLanguage(r), "Login is on")}
+		if result.Ok && strings.TrimSpace(r.FormValue("name")) != "" && web.auth != nil {
+			if web.auth.Enabled() {
+				result = WizardCheck{Message: translate(web.requestLanguage(r), "Login is on")}
+			} else if err := web.auth.checkSetupCode(r.FormValue("setup_code")); err != nil {
+				// the code is checked here too, limited as when the administrator is created
+				web.setupCodeFailed(err)
+				result = WizardCheck{Message: translate(web.requestLanguage(r), err.Error()), Field: "setup_code"}
+			}
 		}
 		w.Header().Set("Cache-Control", "no-store")
 		writeJSON(w, http.StatusOK, result)

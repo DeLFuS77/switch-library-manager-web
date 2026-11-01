@@ -1551,6 +1551,24 @@ func init() {
 		"you":                                                              "自分",
 		"yours included":                                                   "自分を含む",
 
+		// the setup code of the first administrator, in Users, the setup wizard and a restored backup
+		"Setup code": "セットアップコード",
+		"It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs.": "コンテナのログの %v と書かれた行にあります。Unraid では、Docker タブ、アプリのアイコン、Logs。",
+		"It is in the window of the program, where it says %v.":                                              "プログラムのウィンドウの %v と書かれた行にあります。",
+		"Where is the log?":                                    "ログはどこにありますか？",
+		"Docker tab, click the icon of the app, Logs.":         "Docker タブで、アプリのアイコンをクリックし、Logs。",
+		"Container Manager, Container, the app, Details, Log.": "Container Manager、コンテナ、アプリ、詳細、ログ。",
+		"Containers, the app, Logs.":                           "Containers、アプリ、Logs。",
+		"Windows and macOS":                                    "Windows と macOS",
+		"the window of the program, which opens with it.":      "プログラムと一緒に開くウィンドウ。",
+		"It changes every time the app starts: after a restart, the new one is in the last lines.":                             "アプリが起動するたびに変わります。再起動したら、新しいコードは最後の行にあります。",
+		"Without login, a backup with users asks for the setup code: it is in the log of the container, where it says %v.":     "ログインがオフの間は、ユーザーを含むバックアップの復元にセットアップコードが必要です。コンテナのログの %v と書かれた行にあります。",
+		"Without login, a backup with users asks for the setup code: it is in the window of the program, where it says %v.":    "ログインがオフの間は、ユーザーを含むバックアップの復元にセットアップコードが必要です。プログラムのウィンドウの %v と書かれた行にあります。",
+		"Write the setup code: it is in the log of the app, where it says SETUP CODE.":                                         "セットアップコードを入力してください。アプリのログの SETUP CODE と書かれた行にあります。",
+		"The setup code is not right. Copy it from the log of the app, where it says SETUP CODE.":                              "セットアップコードが正しくありません。アプリのログの SETUP CODE と書かれた行からコピーしてください。",
+		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "間違ったセットアップコードが多すぎます。数分待つか、アプリを再起動して新しいコードを取得してください。",
+		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "このバックアップにはユーザーが含まれています。復元するにはセットアップコードを入力してください。アプリのログの SETUP CODE と書かれた行にあります。",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "デモモード：サーバーのフォルダーと詳細は表示しません。",
 

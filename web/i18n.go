@@ -67,6 +67,15 @@ func i18nFuncs(lang string) template.FuncMap {
 			}
 			return translate(lang, text)
 		},
+		// tCode translates a text whose arguments are shown as code, like a word to look for in
+		// a log: tCode "Look for %v in the log." "SETUP CODE"
+		"tCode": func(text string, args ...any) template.HTML {
+			codes := make([]any, len(args))
+			for i, arg := range args {
+				codes[i] = "<code>" + template.HTMLEscapeString(fmt.Sprint(arg)) + "</code>"
+			}
+			return template.HTML(fmt.Sprintf(template.HTMLEscapeString(translate(lang, text)), codes...))
+		},
 		"lang":           func() string { return lang },
 		"jsTranslations": func() map[string]string { return jsTranslations(lang) },
 		"languageName":   func(code string) string { return languageNames[code] },

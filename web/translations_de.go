@@ -1551,6 +1551,24 @@ func init() {
 		"within a minute":                                                  "innerhalb einer Minute",
 		"you":                                                              "du",
 
+		// the setup code of the first administrator, in Users, the setup wizard and a restored backup
+		"Setup code": "Einrichtungscode",
+		"It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs.": "Er steht im Log des Containers, dort wo %v steht. Unter Unraid: Reiter Docker, Symbol der App, Logs.",
+		"It is in the window of the program, where it says %v.":                                              "Er steht im Fenster des Programms, dort wo %v steht.",
+		"Where is the log?":                                    "Wo ist das Log?",
+		"Docker tab, click the icon of the app, Logs.":         "Reiter Docker, auf das Symbol der App klicken, Logs.",
+		"Container Manager, Container, the app, Details, Log.": "Container Manager, Container, die App, Details, Protokoll.",
+		"Containers, the app, Logs.":                           "Containers, die App, Logs.",
+		"Windows and macOS":                                    "Windows und macOS",
+		"the window of the program, which opens with it.":      "das Fenster des Programms, das sich mit ihm öffnet.",
+		"It changes every time the app starts: after a restart, the new one is in the last lines.":                             "Er ändert sich bei jedem Start der App: Nach einem Neustart steht der neue in den letzten Zeilen.",
+		"Without login, a backup with users asks for the setup code: it is in the log of the container, where it says %v.":     "Ohne Anmeldung verlangt eine Sicherung mit Benutzern den Einrichtungscode: Er steht im Log des Containers, dort wo %v steht.",
+		"Without login, a backup with users asks for the setup code: it is in the window of the program, where it says %v.":    "Ohne Anmeldung verlangt eine Sicherung mit Benutzern den Einrichtungscode: Er steht im Fenster des Programms, dort wo %v steht.",
+		"Write the setup code: it is in the log of the app, where it says SETUP CODE.":                                         "Gib den Einrichtungscode ein: Er steht im Log der App, dort wo SETUP CODE steht.",
+		"The setup code is not right. Copy it from the log of the app, where it says SETUP CODE.":                              "Der Einrichtungscode stimmt nicht. Kopiere ihn aus dem Log der App, dort wo SETUP CODE steht.",
+		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "Zu viele falsche Einrichtungscodes. Warte ein paar Minuten oder starte die App neu, um einen neuen Code zu bekommen.",
+		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "Diese Sicherung enthält Benutzer: Um sie wiederherzustellen, gib den Einrichtungscode ein. Er steht im Log der App, dort wo SETUP CODE steht.",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "Demo-Modus: Die Ordner und die Details des Servers werden nicht angezeigt.",
 

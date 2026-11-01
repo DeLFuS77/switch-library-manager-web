@@ -797,8 +797,18 @@ function setupWizard(element) {
 	// made "Save and start" fail again and again without saying why
 	const adminName = form.elements.wizard_admin_name;
 	const adminPassword = form.elements.wizard_admin_password;
+	// the setup code of the log, asked with the first administrator
+	const adminCode = form.elements.wizard_setup_code;
 	const adminResult = element.querySelector('[data-wizard-admin-result]');
 	let adminOk = true;
+	const markCode = bad => {
+		adminCode?.classList.toggle('is-invalid', bad);
+		if (bad) {
+			adminCode?.setAttribute('aria-invalid', 'true');
+		} else {
+			adminCode?.removeAttribute('aria-invalid');
+		}
+	};
 	const checkAdmin = () => {
 		if (authEnabled || !adminName) {
 			return Promise.resolve(true);
@@ -809,12 +819,15 @@ function setupWizard(element) {
 			adminResult.replaceChildren();
 			adminResult.className = 'wizard-check-line';
 			adminOk = true;
+			markCode(false);
 			return Promise.resolve(true);
 		}
-		return fetch('/wizard/admin', { method: 'POST', body: new URLSearchParams({ name, password }) })
+		const code = adminCode ? adminCode.value : '';
+		return fetch('/wizard/admin', { method: 'POST', body: new URLSearchParams({ name, password, setup_code: code }) })
 			.then(response => (response.ok ? response.json() : Promise.reject(response.status)))
 			.then(result => {
 				adminOk = result.ok;
+				markCode(!result.ok && result.field === 'setup_code');
 				if (result.ok) {
 					adminResult.replaceChildren();
 					adminResult.className = 'wizard-check-line';
@@ -832,9 +845,12 @@ function setupWizard(element) {
 	element.querySelector('[data-wizard-show-password]')?.addEventListener('change', e => {
 		adminPassword.type = e.target.checked ? 'text' : 'password';
 	});
-	[adminName, adminPassword].forEach(field => field?.addEventListener('input', () => {
+	[adminName, adminPassword, adminCode].forEach(field => field?.addEventListener('input', () => {
 		adminResult.replaceChildren();
 		showAlert('');
+		if (field === adminCode) {
+			markCode(false);
+		}
 	}));
 
 	// a step goes on only when what it asks is right
@@ -989,6 +1005,7 @@ function setupWizard(element) {
 		const body = new FormData(form);
 		body.delete('wizard_admin_name');
 		body.delete('wizard_admin_password');
+		body.delete('wizard_setup_code');
 		fetch('/settings.html', { method: 'POST', body: new URLSearchParams(body) })
 			.then(response => response.json().then(json => ({ ok: response.ok, json })))
 			.then(({ ok, json }) => {
@@ -1011,7 +1028,8 @@ function setupWizard(element) {
 				const name = form.elements.wizard_admin_name ? form.elements.wizard_admin_name.value.trim() : '';
 				const password = form.elements.wizard_admin_password ? form.elements.wizard_admin_password.value : '';
 				if (!authEnabled && name && password) {
-					return fetch('/users/create', { method: 'POST', body: new URLSearchParams({ name, password, role: 'admin' }), redirect: 'follow' })
+					const code = form.elements.wizard_setup_code ? form.elements.wizard_setup_code.value : '';
+					return fetch('/users/create', { method: 'POST', body: new URLSearchParams({ name, password, role: 'admin', setup_code: code }), redirect: 'follow' })
 						.then(response => {
 							const failed = !response.ok || /[?&]error=/.test(response.url);
 							if (failed) {

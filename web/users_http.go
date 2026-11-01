@@ -23,6 +23,8 @@ type UsersPageData struct {
 	EnvUser  string
 	Message  string
 	Error    string
+	// a setup code missing, wrong or blocked: shown under its field, not over the page
+	CodeError string
 }
 
 type AccountPageData struct {
@@ -109,12 +111,18 @@ func (web *Web) HandleUsers() {
 
 	web.router.HandleFunc("/users.html", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
+		// the first administrator asks for the setup code: it is written again at the end of the log
+		web.logSetupCode(false)
 		data := UsersPageData{GlobalPageData: web.globalPageData("users"), Users: web.auth.users.List(), EnvUser: web.auth.envUser, Activity: translateActivity(web.requestLanguage(r), activityPreview(web.activities().list(), 8))}
 		if message, ok := userMessages[r.URL.Query().Get("done")]; ok {
 			data.Message = translate(lang, message)
 		}
 		if err := userErrorFromQuery(r); err != nil {
-			data.Error = translate(lang, err.Error())
+			if errors.Is(err, ErrSetupCodeMissing) || errors.Is(err, ErrSetupCode) || errors.Is(err, ErrSetupCodeBlocked) {
+				data.CodeError = translate(lang, err.Error())
+			} else {
+				data.Error = translate(lang, err.Error())
+			}
 		}
 		web.render(w, r, users, data)
 	}).Methods("GET")
@@ -141,8 +149,14 @@ func (web *Web) HandleUsers() {
 		name := strings.TrimSpace(r.FormValue("name"))
 		role := r.FormValue("role")
 		if firstUser {
-			// whoever enables the login must be able to manage it
+			// whoever enables the login must be able to manage it, and show the setup code of the
+			// log: an address of the local network is not enough (see setupcode.go)
 			role = ROLE_ADMIN
+			if err := web.auth.checkSetupCode(r.FormValue("setup_code")); err != nil {
+				web.setupCodeFailed(err)
+				redirectWithError(w, r, "/users.html", err)
+				return
+			}
 		}
 		// the first user is only created if there is still none, so two requests at once
 		// cannot both become administrators without login
@@ -152,6 +166,7 @@ func (web *Web) HandleUsers() {
 		}
 		web.sugarLogger.Infof("User %q (%s) created", name, role)
 		if firstUser {
+			web.auth.endSetupCode()
 			http.SetCookie(w, web.auth.sessionCookie(r, name))
 			http.Redirect(w, r, "/users.html?done=enabled", http.StatusSeeOther)
 			return

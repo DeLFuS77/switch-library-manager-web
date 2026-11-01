@@ -1551,6 +1551,24 @@ func init() {
 		"you":                                                              "вы",
 		"yours included":                                                   "включая ваш",
 
+		// the setup code of the first administrator, in Users, the setup wizard and a restored backup
+		"Setup code": "Код настройки",
+		"It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs.": "Он в журнале контейнера, в строке %v. В Unraid: вкладка Docker, значок приложения, Logs.",
+		"It is in the window of the program, where it says %v.":                                              "Он в окне программы, в строке %v.",
+		"Where is the log?":                                    "Где журнал?",
+		"Docker tab, click the icon of the app, Logs.":         "вкладка Docker, нажмите на значок приложения, Logs.",
+		"Container Manager, Container, the app, Details, Log.": "Container Manager, Контейнер, приложение, Подробности, Журнал.",
+		"Containers, the app, Logs.":                           "Containers, приложение, Logs.",
+		"Windows and macOS":                                    "Windows и macOS",
+		"the window of the program, which opens with it.":      "окно программы, которое открывается вместе с ней.",
+		"It changes every time the app starts: after a restart, the new one is in the last lines.":                             "Он меняется при каждом запуске приложения: после перезапуска новый код — в последних строках.",
+		"Without login, a backup with users asks for the setup code: it is in the log of the container, where it says %v.":     "Без входа копия с пользователями требует код настройки: он в журнале контейнера, в строке %v.",
+		"Without login, a backup with users asks for the setup code: it is in the window of the program, where it says %v.":    "Без входа копия с пользователями требует код настройки: он в окне программы, в строке %v.",
+		"Write the setup code: it is in the log of the app, where it says SETUP CODE.":                                         "Введите код настройки: он в журнале приложения, в строке SETUP CODE.",
+		"The setup code is not right. Copy it from the log of the app, where it says SETUP CODE.":                              "Неверный код настройки. Скопируйте его из журнала приложения, из строки SETUP CODE.",
+		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "Слишком много неверных кодов настройки. Подождите несколько минут или перезапустите приложение, чтобы получить новый код.",
+		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "В этой копии есть пользователи: чтобы восстановить их, введите код настройки. Он в журнале приложения, в строке SETUP CODE.",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "Деморежим: папки и сведения о сервере не показываются.",
 

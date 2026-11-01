@@ -154,8 +154,8 @@ Linux, Docker, NAS and Raspberry Pi.
 **Safe to reach from the internet**
 - User accounts with administrator and read-only roles, a language per user and an activity log
 - Protection against brute force and bots that try lists of users and passwords, also behind Cloudflare
-- No access from outside your network until an administrator exists; HTTPS-ready, with the usual browser
-  protections
+- No access from outside your network until an administrator exists, and the first one needs a one-time code from
+  the log; HTTPS-ready, with the usual browser protections
 
 **In your language**
 - English, Spanish, French, German, Italian, Portuguese, Dutch, Russian, Japanese, Korean and Chinese (including
@@ -184,6 +184,10 @@ docker run -d \
 
 Then open http://localhost:3000 (or the address of your server).
 
+To create the first administrator, in **Users** or in the setup wizard, the app asks for the setup code it writes in
+its log when it starts without users: run `docker logs switch-library-manager-web` and look for `SETUP CODE`. It works
+once and changes every time the app starts.
+
 | Setting | Meaning |
 |---|---|
 | `-p 3000:3000` | The port of the web interface |
@@ -206,7 +210,8 @@ Step by step for each one in [Installing on a NAS](docs/install/nas.md) and in t
 
 On **Unraid**, set **Switch library** to the share with your games (for example `/mnt/user/switch`) and copy
 your keys to `/mnt/user/appdata/switch-library-manager-web/`. Do not install the image from the Docker Hub search: the
-port and folders would be empty.
+port and folders would be empty. The setup code of the first administrator is in the log of the container: in the
+**Docker** tab, click the icon of the app and choose **Logs**.
 
 ### Windows, macOS and Linux
 
@@ -217,6 +222,7 @@ asks before opening them: see [the steps for each system](https://github.com/DeL
 
 The program keeps its settings and data next to itself, or in the folder set in `SLM_DATA_DIR`. To update, unpack the
 new version over the folder of the one you have (`switch-library-manager-web`): the program is replaced and the data stays.
+The setup code of the first administrator is in the window of the program, where it says `SETUP CODE`.
 
 ## Your keys
 

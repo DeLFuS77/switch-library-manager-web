@@ -178,4 +178,54 @@ $avatar-colors: (
 	}
 }
 
+// the setup code of the first administrator: copied from the log, so it looks like it there
+.setup-code-input {
+	font-family: $font-family-monospace;
+	letter-spacing: .12em;
+	text-transform: uppercase;
 
+	// a hint in words is written as words
+	&::placeholder {
+		text-transform: none;
+	}
+
+	&.is-wordy::placeholder {
+		font-family: $font-family-base;
+		letter-spacing: normal;
+	}
+}
+
+// where the code is: the word to look for in the log, neutral (red is for errors)
+.setup-code-help code,
+.setup-code-where code {
+	padding: .05rem .3rem;
+	border-radius: .25rem;
+	background: var(--bs-secondary-bg);
+	color: var(--bs-body-color);
+	font-weight: 700;
+}
+
+// the word to look for stays on one line
+.setup-code-help code {
+	white-space: nowrap;
+}
+
+.setup-code-where {
+	font-size: var(--slm-text-sm);
+
+	summary {
+		width: fit-content;
+		color: var(--bs-secondary-color);
+		cursor: pointer;
+	}
+
+	ul {
+		margin: .4rem 0 0;
+		padding-left: 1.1rem;
+	}
+}
+
+// in the wizard, the code keeps the width of a code
+.wizard-setup-code {
+	max-width: 22rem;
+}

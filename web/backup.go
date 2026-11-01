@@ -45,7 +45,8 @@ var (
 	ErrBackupAdmin   = errors.New("The backup has users but no administrator.")
 )
 
-var backupErrors = []error{ErrBackupInvalid, ErrBackupFile, ErrBackupAdmin, ErrBackupPasswordNeeded, ErrBackupPasswordWrong, ErrBackupPasswordShort}
+var backupErrors = []error{ErrBackupInvalid, ErrBackupFile, ErrBackupAdmin, ErrBackupPasswordNeeded, ErrBackupPasswordWrong, ErrBackupPasswordShort,
+	ErrBackupSetupCode, ErrSetupCode, ErrSetupCodeBlocked}
 
 // writeBackup writes a ZIP file with the backup files that exist.
 func (web *Web) writeBackup(w io.Writer) error {
@@ -166,9 +167,27 @@ func backupCoverImage(data []byte) bool {
 	return err == nil && config.Width > 0 && config.Height > 0 && config.Width <= maxOverrideCoverSide && config.Height <= maxOverrideCoverSide
 }
 
+// backupSetupCode checks the setup code sent with a backup: one with users, while login is off,
+// creates the first ones, and needs the code as creating them in Users does.
+func (web *Web) backupSetupCode(given string) func() error {
+	return func() error {
+		err := web.auth.checkSetupCode(given)
+		if err != nil {
+			web.setupCodeFailed(err)
+		}
+		if errors.Is(err, ErrSetupCodeMissing) {
+			return ErrBackupSetupCode
+		}
+		return err
+	}
+}
+
 // restoreBackup replaces the backup files of the data folder with those of the backup
-// and loads them again. Files missing from the backup are left as they are.
-func (web *Web) restoreBackup(data []byte) error {
+// and loads them again. Files missing from the backup are left as they are. Users that the
+// backup brings while login is off are the first ones: firstUsers checks they may come (the
+// setup code), or nil lets them, for the copies the app made itself, which can only hold the
+// accounts this app had.
+func (web *Web) restoreBackup(data []byte, firstUsers func() error) error {
 	files, err := readBackup(data)
 	if err != nil {
 		return err
@@ -184,6 +203,11 @@ func (web *Web) restoreBackup(data []byte) error {
 		}
 		if len(users) > 0 && !hasAdmin {
 			return ErrBackupAdmin
+		}
+		if len(users) > 0 && web.auth != nil && !web.auth.Enabled() && firstUsers != nil {
+			if err := firstUsers(); err != nil {
+				return err
+			}
 		}
 		// a backup made before the login was enabled does not disable it
 		if len(users) == 0 && web.auth != nil && web.auth.users.Count() > 0 {
@@ -230,6 +254,8 @@ func (web *Web) restoreBackup(data []byte) error {
 			return err
 		}
 		web.auth.forget()
+		// users came back: the setup code is not asked any more
+		web.auth.endSetupCode()
 	}
 	if _, ok := files[VERIFY_FILENAME]; ok {
 		web.verifications().reload()
@@ -310,7 +336,7 @@ func (web *Web) HandleBackup() {
 		}
 		// a backup sealed with a password is opened first
 		if data, err = decryptBackup(data, r.FormValue("password")); err == nil {
-			err = web.restoreBackup(data)
+			err = web.restoreBackup(data, web.backupSetupCode(r.FormValue("setup_code")))
 		}
 		if err != nil {
 			for _, known := range backupErrors {

@@ -1551,6 +1551,24 @@ func init() {
 		"you":                                                              "你",
 		"yours included":                                                   "包括你的",
 
+		// the setup code of the first administrator, in Users, the setup wizard and a restored backup
+		"Setup code": "设置码",
+		"It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs.": "它在容器日志中写着 %v 的地方。在 Unraid 中：Docker 标签页、应用图标、Logs。",
+		"It is in the window of the program, where it says %v.":                                              "它在程序窗口中写着 %v 的地方。",
+		"Where is the log?":                                    "日志在哪里？",
+		"Docker tab, click the icon of the app, Logs.":         "Docker 标签页，点击应用图标，Logs。",
+		"Container Manager, Container, the app, Details, Log.": "Container Manager、容器、本应用、详细信息、日志。",
+		"Containers, the app, Logs.":                           "Containers、本应用、Logs。",
+		"Windows and macOS":                                    "Windows 和 macOS",
+		"the window of the program, which opens with it.":      "随程序一起打开的窗口。",
+		"It changes every time the app starts: after a restart, the new one is in the last lines.":                             "每次应用启动时都会变化：重启后，新的设置码在最后几行。",
+		"Without login, a backup with users asks for the setup code: it is in the log of the container, where it says %v.":     "未开启登录时，恢复包含用户的备份需要设置码：它在容器日志中写着 %v 的地方。",
+		"Without login, a backup with users asks for the setup code: it is in the window of the program, where it says %v.":    "未开启登录时，恢复包含用户的备份需要设置码：它在程序窗口中写着 %v 的地方。",
+		"Write the setup code: it is in the log of the app, where it says SETUP CODE.":                                         "请输入设置码：它在应用日志中写着 SETUP CODE 的地方。",
+		"The setup code is not right. Copy it from the log of the app, where it says SETUP CODE.":                              "设置码不正确。请从应用日志中写着 SETUP CODE 的地方复制。",
+		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "错误的设置码太多。请等几分钟，或重启应用以获取新的设置码。",
+		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "此备份包含用户：要恢复它们，请输入设置码。它在应用日志中写着 SETUP CODE 的地方。",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "演示模式：不显示服务器的文件夹和详细信息。",
 

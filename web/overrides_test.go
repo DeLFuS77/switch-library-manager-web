@@ -473,7 +473,7 @@ func TestBackupKeepsTheChangesByHand(t *testing.T) {
 	target := newTestWeb(t)
 	os.MkdirAll(filepath.Join(target.dataFolder, OVERRIDE_COVERS_FOLDER), 0755)
 	os.WriteFile(filepath.Join(target.dataFolder, OVERRIDE_COVERS_FOLDER, "0100000000090000-00000000.jpg"), []byte("left of before"), 0644)
-	if err := target.restoreBackup(buffer.Bytes()); err != nil {
+	if err := target.restoreBackup(buffer.Bytes(), nil); err != nil {
 		t.Fatal(err)
 	}
 	if kept, ok := target.titleOverrides().get(overrideTestId); !ok || kept.Name != "Kept" || kept.Cover != cover {
