@@ -1141,6 +1141,7 @@ func init() {
 		"Making thumbnails": "Создание миниатюр",
 		"Maximum":           "Максимальная",
 		"Menu":              "Меню",
+		"More":              "Ещё",
 		"Missing":           "Не хватает",
 		"Missing DLC":       "Недостающие DLC",
 		"Missing Games":     "Недостающие игры",

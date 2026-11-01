@@ -1270,6 +1270,7 @@ func init() {
 		"Main navigation": "Navegação principal",
 		"Maximum":         "Máximo",
 		"Menu":            "Menu",
+		"More":            "Mais",
 		"Missing":         "Faltando",
 		"Missing DLC":     "DLC faltando",
 		"Missing Games":   "Jogos faltando",

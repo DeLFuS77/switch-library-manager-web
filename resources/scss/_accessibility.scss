@@ -104,8 +104,8 @@ body {
 	overflow-x: clip;
 }
 
-// 10: the bottom bar of the phone never hides the control with the focus
-@include media-breakpoint-down(md) {
+// 10: the bottom bar of the phone and the tablet never hides the control with the focus
+@include bottom-nav-screens {
 	html {
 		scroll-padding-bottom: 5rem;
 	}

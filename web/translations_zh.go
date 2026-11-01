@@ -1141,6 +1141,7 @@ func init() {
 		"Making thumbnails": "正在生成缩略图",
 		"Maximum":           "最高",
 		"Menu":              "菜单",
+		"More":              "更多",
 		"Missing":           "缺失",
 		"Missing DLC":       "缺失的 DLC",
 		"Missing Games":     "缺失的游戏",
