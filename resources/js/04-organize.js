@@ -336,16 +336,45 @@ function initNotificationTest() {
 		return;
 	}
 	button.addEventListener('click', () => {
-		const form = document.getElementById('settingsForm');
 		button.disabled = true;
-		postForm('/notifications/test', {}).then(response => {
-			insertAlert(form, 'alert-success', 'bi-check-circle-fill', response.strongMessage, response.message);
-		}).catch(error => {
-			insertAlert(form, 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+		// each channel says how it went: green when every one took it, orange when some did not,
+		// red when none did, with why for each one that failed
+		apiFetch('/notifications/test', { method: 'POST' }).then(response => readJSON(response).then(json => {
+			const failed = json.failed || [];
+			if (response.ok && failed.length === 0) {
+				showToast('alert-success', 'bi-check-circle-fill', json.strongMessage, json.message);
+			} else if (response.ok) {
+				notificationResults(showToast('alert-warning', 'bi-exclamation-triangle-fill', json.strongMessage, ''), failed);
+			} else {
+				const error = json.globalError || {};
+				notificationResults(showToast('alert-danger', 'bi-exclamation-octagon-fill', error.strongMessage || t('Error!'), error.message || t('Unexpected server response (%v).', response.status)), failed);
+			}
+		})).catch(() => {
+			showToast('alert-danger', 'bi-exclamation-octagon-fill', t('Error!'), t('Could not reach the server.'));
 		}).finally(() => {
 			button.disabled = false;
 		});
 	});
+}
+
+// notificationResults lists under a notice the channels that did not take a test, and gives it
+// the time of an error to be read.
+function notificationResults(toast, failed) {
+	if (!toast || failed.length === 0 || toast.querySelector('.notify-results')) {
+		return;
+	}
+	const list = document.createElement('ul');
+	list.className = 'notify-results';
+	failed.forEach(line => {
+		const item = document.createElement('li');
+		item.textContent = line;
+		list.appendChild(item);
+	});
+	toast.querySelector('.flex-grow-1').appendChild(list);
+	toast.toastDuration = TOAST_ERROR_MS;
+	if (toast.isConnected) {
+		startToastTimer(toast);
+	}
 }
 
 const THEME_KEY = 'slm-theme';

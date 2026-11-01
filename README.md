@@ -143,8 +143,8 @@ Linux, Docker, NAS and Raspberry Pi.
 - Low memory use and fast with tens of thousands of files: the library shows up while it is scanned, covers and
   thumbnails load in the background
 - Background hours: keep cover downloads, thumbnails, file checks and compression for the night
-- Live tasks page, scheduled synchronization and notifications (Discord, Telegram, webhook) of new updates, DLC
-  and games
+- Live tasks page, scheduled synchronization and notifications (Discord, Telegram, ntfy, Gotify, Pushover, email
+  or a webhook) of new updates, DLC and games
 - Weekly backups of your configuration, and a Diagnostics page that checks everything at a glance
 - JSON API with OpenAPI description, e.g. for Home Assistant
 - Installable on your phone's home screen like an app
