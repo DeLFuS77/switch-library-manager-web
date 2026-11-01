@@ -6,6 +6,7 @@
 
 - The name, cover and description of a game can be changed by hand, with Edit on its page: the cover is uploaded or taken once from an address, and what is changed wins over the titles database, its translations and IGDB in every language, stays through synchronizations and scans, and comes back with a game deleted and found again. Organize names the files and folders with the name given when it runs, and backups keep the changes with their covers; Back to the original undoes them, and the files and the title ID of the game are never touched (thanks @ChapeLu, #133)
 - Notifications to ntfy, Gotify, Pushover and email (SMTP with STARTTLS or SSL/TLS), besides Discord, Telegram and the webhook. In Settings each channel is a row that opens and says where it sends and whether it is on; the setup wizard picks one with a card. Send a test notification says how each channel went, with the reason of each one that failed
+- API keys for Home Assistant and scripts instead of a user name and password: each user makes and revokes their own in My account, read only or with their role, and they are sent as `Authorization: Bearer`. A key never does more than its user does at the time, shows when it was last used, and is seen only once, when it is made: only its hash is kept, also in backups, and a wrong key counts as a failed sign-in. Administrators see and revoke the keys of everybody in Users, and the activity tells when a key is made, used and revoked. Basic authentication works as before
 
 ### Improvements
 
