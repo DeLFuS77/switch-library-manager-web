@@ -772,6 +772,9 @@ func (web *Web) Start() {
 	}
 	web.auth.onLogin = web.recordLogin
 	web.auth.onKey = web.recordKeyAttempt
+	web.auth.onPortal = web.recordPortal
+	web.auth.portalSettings = func() settings.PortalOptions { return settings.ReadSettings(web.dataFolder).Portal }
+	web.logPortalProblems()
 
 	// Run http server
 	setStartingStep("Preparing the pages...")

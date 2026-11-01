@@ -197,7 +197,8 @@ $avatar-colors: (
 
 // where the code is: the word to look for in the log, neutral (red is for errors)
 .setup-code-help code,
-.setup-code-where code {
+.setup-code-where code,
+.portal-section code {
 	padding: .05rem .3rem;
 	border-radius: .25rem;
 	background: var(--bs-secondary-bg);

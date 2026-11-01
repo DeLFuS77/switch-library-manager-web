@@ -1815,11 +1815,13 @@ html[data-section="vault"] #vault,
 html[data-section="notifications"] #notifications,
 html[data-section="quarantine"] #quarantine,
 html[data-section="mobile"] #mobile,
+html[data-section="portal"] #portal,
 html[data-section="backup"] #backup {
 	display: block;
 }
 
 html[data-section="mobile"] #settingsForm .save-bar,
+html[data-section="portal"] #settingsForm .save-bar,
 html[data-section="backup"] #settingsForm .save-bar {
 	display: none !important;
 }

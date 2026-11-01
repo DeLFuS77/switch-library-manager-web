@@ -41,7 +41,7 @@ var (
 )
 
 var userErrors = []error{ErrUserName, ErrUserExists, ErrUserNotFound, ErrPasswordLength, ErrPasswordCommon, ErrPasswordName, ErrRole, ErrLastAdmin, ErrDeleteSelf, ErrWrongPassword, ErrEnvironmentUser,
-	ErrSetupCodeMissing, ErrSetupCode, ErrSetupCodeBlocked}
+	ErrSetupCodeMissing, ErrSetupCode, ErrSetupCodeBlocked, ErrEmail, ErrEmailTaken}
 
 var validUserName = regexp.MustCompile(`^[A-Za-z0-9._-]{1,32}$`)
 
@@ -59,6 +59,14 @@ type User struct {
 	LastLogin time.Time `json:"last_login,omitzero"`
 	// the keys API clients sign in with, see apikeys.go
 	APIKeys []APIKey `json:"api_keys,omitempty"`
+	// the email a sign-in portal names the user with, set by an administrator (see proxyauth.go)
+	Email string `json:"email,omitempty"`
+}
+
+// HasPassword tells a user who can sign in with a password: one made by a sign-in portal has
+// none until an administrator sets one.
+func (u User) HasPassword() bool {
+	return u.PasswordHash != ""
 }
 
 // clone is a copy of the user that shares nothing with the stored one.
@@ -155,10 +163,11 @@ func (s *UserStore) Get(name string) (User, bool) {
 func (s *UserStore) Verify(name string, password string) (User, bool) {
 	user, ok := s.Get(name)
 	hash := dummyHash
-	if ok {
+	// a user without a password takes as long as one that does not exist
+	if ok && user.HasPassword() {
 		hash = []byte(user.PasswordHash)
 	}
-	if compareHash(hash, password) != nil || !ok {
+	if compareHash(hash, password) != nil || !ok || !user.HasPassword() {
 		return User{}, false
 	}
 	return user, true

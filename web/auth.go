@@ -22,6 +22,8 @@ import (
 	"time"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 const (
@@ -57,6 +59,8 @@ type Principal struct {
 	Role string
 	// "env" for the user set with environment variables, "" when login is disabled
 	Source string
+	// signed in by a portal in front of the app: VIA_PROXY or VIA_CLOUDFLARE (see proxyauth.go)
+	Via string
 }
 
 func (p *Principal) IsAdmin() bool {
@@ -77,6 +81,8 @@ type AuthInfo struct {
 	WeakEnvPassword bool
 	// the colour of the avatar of the user, or "" for the colours of the app
 	Color string
+	// signed in by a portal in front of the app: VIA_PROXY or VIA_CLOUDFLARE
+	Via string
 }
 
 type principalKey struct{}
@@ -118,6 +124,15 @@ type Auth struct {
 	toldByIp   map[string]int
 	// the code that creates the first administrator, while login is off (see setupcode.go)
 	setup setupCode
+	// signing in through a portal in front of the app (see proxyauth.go): the options set in the
+	// environment and which ones are, the ones of Settings, the keys of Cloudflare Access, what is
+	// told of each sign-in and how it went last
+	portalEnv      settings.PortalOptions
+	portalEnvSet   map[string]bool
+	portalSettings func() settings.PortalOptions
+	cfKeys         cfAccessKeys
+	onPortal       func(event portalEvent)
+	portalSeen     portalStatus
 }
 
 const (
@@ -155,6 +170,7 @@ func newAuth(dataFolder string) (*Auth, error) {
 	auth := &Auth{users: users, envUser: envUser, envPassword: envPassword, secret: secret, limiter: newLoginLimiter(),
 		revoked: loadRevokedSessions(dataFolder), seen: loadSeenSessions(dataFolder), remoteWithoutLogin: os.Getenv(REMOTE_WITHOUT_LOGIN_ENV) == "true",
 		envPasswordWeak: weakEnvPassword(envUser, envPassword)}
+	auth.portalEnv, auth.portalEnvSet = readPortalEnv()
 	if err := auth.startSetupCode(); err != nil {
 		return nil, err
 	}
@@ -426,7 +442,10 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 		var principal *Principal
 		switch {
 		case isPublicRequest(r):
-			principal = a.fromSession(r)
+			principal = a.fromPortal(r)
+			if principal == nil {
+				principal = a.fromSession(r)
+			}
 			if principal == nil {
 				next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), principalKey{}, a.anonymous(r))))
 				return
@@ -444,7 +463,11 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 			}
 			principal = &Principal{Role: ROLE_ADMIN}
 		default:
-			principal = a.fromSession(r)
+			// the portal in front says who the person is now, over a session of before
+			principal = a.fromPortal(r)
+			if principal == nil {
+				principal = a.fromSession(r)
+			}
 			if principal == nil {
 				ip := clientIp(r)
 				// an API key names no account: it counts against the address only
@@ -905,6 +928,7 @@ func (web *Web) authInfo(r *http.Request) AuthInfo {
 	}
 	info.CanEdit = info.Role == ROLE_ADMIN || info.Role == ROLE_EDITOR
 	info.CanDownload = info.Role != ROLE_GUEST
+	info.Via = principal.Via
 	if web.auth != nil && web.auth.users != nil && principal.Name != "" {
 		if user, ok := web.auth.users.Get(principal.Name); ok {
 			info.Color = user.Color

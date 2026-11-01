@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		watchSync();
 	}
 
-	document.querySelectorAll('#settingsForm, #organizeForm').forEach(form => {
+	document.querySelectorAll('#settingsForm, #organizeForm, #portalForm').forEach(form => {
 		form.addEventListener('submit', e => {
 			e.preventDefault();
 			onSubmit(form);

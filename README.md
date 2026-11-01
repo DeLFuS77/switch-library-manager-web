@@ -156,6 +156,8 @@ Linux, Docker, NAS and Raspberry Pi.
 - Protection against brute force and bots that try lists of users and passwords, also behind Cloudflare
 - No access from outside your network until an administrator exists, and the first one needs a one-time code from
   the log; HTTPS-ready, with the usual browser protections
+- Sign in through Authelia, Authentik or Cloudflare Access: the people your portal lets in open the app without its
+  password ([how](docs/install/nas.md#signing-in-through-authelia-authentik-or-cloudflare-access))
 
 **In your language**
 - English, Spanish, French, German, Italian, Portuguese, Dutch, Russian, Japanese, Korean and Chinese (including
