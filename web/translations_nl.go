@@ -1551,6 +1551,19 @@ func init() {
 		"you":                                                              "jij",
 		"yours included":                                                   "inclusief die van jou",
 
+		// API keys of the users, in My account, Users, the activity and the API
+		"Created an API key":        "API-sleutel aangemaakt",
+		"Signed in with an API key": "Aangemeld met een API-sleutel",
+		"Revoked an API key":        "API-sleutel ingetrokken",
+		"unknown API key":           "onbekende API-sleutel",
+		"API key":                   "API-sleutel",
+		"Give the key a name of up to 40 characters.":                             "Geef de sleutel een naam van hoogstens 40 tekens.",
+		"A key cannot do more than its user.":                                     "Een sleutel kan niet meer dan zijn gebruiker.",
+		"A user can have at most 20 API keys. Revoke one that is no longer used.": "Een gebruiker kan hoogstens 20 API-sleutels hebben. Trek er een in die niet meer wordt gebruikt.",
+		"The API key does not exist.":                                             "De API-sleutel bestaat niet.",
+		"Only the users created in Users can have API keys.":                      "Alleen gebruikers die bij Gebruikers zijn aangemaakt, kunnen API-sleutels hebben.",
+		"An API key cannot make or revoke API keys: sign in with the password.":   "Een API-sleutel kan geen API-sleutels aanmaken of intrekken: meld je aan met het wachtwoord.",
+
 		// the setup code of the first administrator, in Users, the setup wizard and a restored backup
 		"Setup code": "Installatiecode",
 		"It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs.": "Die staat in het log van de container, waar %v staat. In Unraid: tabblad Docker, pictogram van de app, Logs.",

@@ -57,6 +57,15 @@ type User struct {
 	Created time.Time `json:"created"`
 	// the last sign-in, in the login page or by an API client; zero if never
 	LastLogin time.Time `json:"last_login,omitzero"`
+	// the keys API clients sign in with, see apikeys.go
+	APIKeys []APIKey `json:"api_keys,omitempty"`
+}
+
+// clone is a copy of the user that shares nothing with the stored one.
+func (u *User) clone() User {
+	copied := *u
+	copied.APIKeys = slices.Clone(u.APIKeys)
+	return copied
 }
 
 // loginNoteInterval is how often the last sign-in of a user is written: an API client signs in
@@ -120,7 +129,7 @@ func (s *UserStore) List() []User {
 	defer s.mutex.RUnlock()
 	users := make([]User, 0, len(s.users))
 	for _, user := range s.users {
-		users = append(users, *user)
+		users = append(users, user.clone())
 	}
 	sort.Slice(users, func(i, j int) bool { return strings.ToLower(users[i].Name) < strings.ToLower(users[j].Name) })
 	return users
@@ -139,7 +148,7 @@ func (s *UserStore) Get(name string) (User, bool) {
 	if !ok {
 		return User{}, false
 	}
-	return *user, true
+	return user.clone(), true
 }
 
 // Verify checks a password; it takes the same time whether the user exists or not.

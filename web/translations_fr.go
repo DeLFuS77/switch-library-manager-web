@@ -1551,6 +1551,19 @@ func init() {
 		"within a minute":                                                  "dans moins d'une minute",
 		"you":                                                              "vous",
 
+		// API keys of the users, in My account, Users, the activity and the API
+		"Created an API key":        "A créé une clé d'API",
+		"Signed in with an API key": "Connecté avec une clé d'API",
+		"Revoked an API key":        "A révoqué une clé d'API",
+		"unknown API key":           "clé d'API inconnue",
+		"API key":                   "Clé d'API",
+		"Give the key a name of up to 40 characters.":                             "Donnez à la clé un nom de 40 caractères au plus.",
+		"A key cannot do more than its user.":                                     "Une clé ne peut pas faire plus que son utilisateur.",
+		"A user can have at most 20 API keys. Revoke one that is no longer used.": "Un utilisateur peut avoir au plus 20 clés d'API. Révoquez-en une qui ne sert plus.",
+		"The API key does not exist.":                                             "La clé d'API n'existe pas.",
+		"Only the users created in Users can have API keys.":                      "Seuls les utilisateurs créés dans Utilisateurs peuvent avoir des clés d'API.",
+		"An API key cannot make or revoke API keys: sign in with the password.":   "Une clé d'API ne peut ni créer ni révoquer de clés d'API : connectez-vous avec le mot de passe.",
+
 		// the setup code of the first administrator, in Users, the setup wizard and a restored backup
 		"Setup code": "Code de configuration",
 		"It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs.": "Il se trouve dans le journal du conteneur, là où est écrit %v. Sur Unraid : onglet Docker, icône de l'application, Logs.",

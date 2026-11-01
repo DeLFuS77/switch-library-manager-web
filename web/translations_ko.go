@@ -1551,6 +1551,19 @@ func init() {
 		"you":                                                              "나",
 		"yours included":                                                   "내 것 포함",
 
+		// API keys of the users, in My account, Users, the activity and the API
+		"Created an API key":        "API 키를 만듦",
+		"Signed in with an API key": "API 키로 로그인함",
+		"Revoked an API key":        "API 키를 취소함",
+		"unknown API key":           "존재하지 않는 API 키",
+		"API key":                   "API 키",
+		"Give the key a name of up to 40 characters.":                             "키에 40자 이내의 이름을 붙이세요.",
+		"A key cannot do more than its user.":                                     "키는 해당 사용자가 할 수 있는 것 이상은 할 수 없습니다.",
+		"A user can have at most 20 API keys. Revoke one that is no longer used.": "사용자 한 명은 API 키를 최대 20개까지 가질 수 있습니다. 더 이상 쓰지 않는 키를 취소하세요.",
+		"The API key does not exist.":                                             "API 키가 존재하지 않습니다.",
+		"Only the users created in Users can have API keys.":                      "사용자 페이지에서 만든 사용자만 API 키를 가질 수 있습니다.",
+		"An API key cannot make or revoke API keys: sign in with the password.":   "API 키로는 API 키를 만들거나 취소할 수 없습니다. 비밀번호로 로그인하세요.",
+
 		// the setup code of the first administrator, in Users, the setup wizard and a restored backup
 		"Setup code": "설정 코드",
 		"It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs.": "컨테이너 로그에서 %v 라고 적힌 곳에 있어요. Unraid에서는 Docker 탭, 앱 아이콘, Logs.",

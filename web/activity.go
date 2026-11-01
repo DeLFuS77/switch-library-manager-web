@@ -41,9 +41,13 @@ const (
 	ACTION_LOGIN_OK   = "Signed in"
 	ACTION_LOGIN_FAIL = "Failed sign-in"
 	ACTION_LOGIN_LOCK = "Sign-in blocked (too many tries)"
+	ACTION_KEY_NEW    = "Created an API key"
+	ACTION_KEY_USE    = "Signed in with an API key"
+	ACTION_KEY_DEL    = "Revoked an API key"
 )
 
-var activityActions = []string{ACTION_SETTINGS, ACTION_ORGANIZE, ACTION_SPACE, ACTION_COMPRESS, ACTION_DECOMPRESS, ACTION_RESTORE, ACTION_USER_NEW, ACTION_USER_ROLE, ACTION_USER_PASS, ACTION_USER_DEL, ACTION_LEFTOVERS, ACTION_UPLOAD, ACTION_SYNC, ACTION_VERIFY, ACTION_LOGIN_OK, ACTION_LOGIN_FAIL, ACTION_LOGIN_LOCK}
+var activityActions = []string{ACTION_SETTINGS, ACTION_ORGANIZE, ACTION_SPACE, ACTION_COMPRESS, ACTION_DECOMPRESS, ACTION_RESTORE, ACTION_USER_NEW, ACTION_USER_ROLE, ACTION_USER_PASS, ACTION_USER_DEL, ACTION_LEFTOVERS, ACTION_UPLOAD, ACTION_SYNC, ACTION_VERIFY, ACTION_LOGIN_OK, ACTION_LOGIN_FAIL, ACTION_LOGIN_LOCK,
+	ACTION_KEY_NEW, ACTION_KEY_USE, ACTION_KEY_DEL}
 
 // Activity is an action of a user.
 type Activity struct {
@@ -246,6 +250,9 @@ var (
 		"editor":                        "Editor",
 		"password of the usual length":  "password of the usual length",
 		"password too short to be real": "password too short to be real",
+		"read only":                     "Read only",
+		apiKeyFailDetail:                "unknown API key",
+		apiKeyBlockedDetail:             "API key",
 	}
 	activityPhrases = []string{", originals deleted after the check", ", NSZ deleted after the check"}
 )
@@ -272,10 +279,15 @@ func translateActivity(lang string, entries []Activity) []Activity {
 		for _, phrase := range activityPhrases {
 			detail = strings.Replace(detail, phrase, ", "+translate(lang, strings.TrimPrefix(phrase, ", ")), 1)
 		}
-		if name, role, found := strings.Cut(detail, ": "); found {
-			if label, ok := activityValues[role]; ok {
-				detail = name + ": " + translate(lang, label)
+		// the role after the last colon: the name of an API key before it may have one too
+		if i := strings.LastIndex(detail, ": "); i >= 0 {
+			if label, ok := activityValues[detail[i+2:]]; ok {
+				detail = detail[:i] + ": " + translate(lang, label)
 			}
+		}
+		// a key that does not exist names no user
+		if entry.User == "" && (entry.Detail == apiKeyFailDetail || entry.Detail == apiKeyBlockedDetail) {
+			entry.User = translate(lang, "API key")
 		}
 		entry.Detail = detail
 		result[i] = entry

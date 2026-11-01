@@ -270,6 +270,8 @@ func (web *Web) HandleUsers() {
 		http.SetCookie(w, web.auth.sessionCookie(r, principal.Name))
 		http.Redirect(w, r, "/account.html?done=password", http.StatusSeeOther)
 	}).Methods("POST")
+
+	web.handleAPIKeys()
 }
 
 func (web *Web) renderLogin(w http.ResponseWriter, r *http.Request, templates templateSet, data LoginPageData) {

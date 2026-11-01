@@ -1551,6 +1551,19 @@ func init() {
 		"you":                                                              "вы",
 		"yours included":                                                   "включая ваш",
 
+		// API keys of the users, in My account, Users, the activity and the API
+		"Created an API key":        "Создал API-ключ",
+		"Signed in with an API key": "Вход по API-ключу",
+		"Revoked an API key":        "Отозвал API-ключ",
+		"unknown API key":           "неизвестный API-ключ",
+		"API key":                   "API-ключ",
+		"Give the key a name of up to 40 characters.":                             "Дайте ключу имя длиной до 40 символов.",
+		"A key cannot do more than its user.":                                     "Ключ не может делать больше, чем его пользователь.",
+		"A user can have at most 20 API keys. Revoke one that is no longer used.": "У пользователя может быть не больше 20 API-ключей. Отзовите тот, который больше не используется.",
+		"The API key does not exist.":                                             "Такого API-ключа нет.",
+		"Only the users created in Users can have API keys.":                      "API-ключи могут быть только у пользователей, созданных на странице «Пользователи».",
+		"An API key cannot make or revoke API keys: sign in with the password.":   "API-ключом нельзя создавать или отзывать API-ключи: войдите с паролем.",
+
 		// the setup code of the first administrator, in Users, the setup wizard and a restored backup
 		"Setup code": "Код настройки",
 		"It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs.": "Он в журнале контейнера, в строке %v. В Unraid: вкладка Docker, значок приложения, Logs.",

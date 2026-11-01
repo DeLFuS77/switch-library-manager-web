@@ -767,6 +767,7 @@ func (web *Web) Start() {
 		log.Fatal(err)
 	}
 	web.auth.onLogin = web.recordLogin
+	web.auth.onKey = web.recordKeyAttempt
 
 	// Run http server
 	setStartingStep("Preparing the pages...")

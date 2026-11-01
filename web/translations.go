@@ -1287,6 +1287,19 @@ var translations = map[string]map[string]string{
 		"Keys found":                         "Claves encontradas",
 		"Keys not found":                     "Claves no encontradas",
 
+		// API keys of the users, in My account, Users, the activity and the API
+		"Created an API key":        "Creó una llave de API",
+		"Signed in with an API key": "Entró con una llave de API",
+		"Revoked an API key":        "Anuló una llave de API",
+		"unknown API key":           "llave de API que no existe",
+		"API key":                   "Llave de API",
+		"Give the key a name of up to 40 characters.":                             "Ponle a la llave un nombre de hasta 40 caracteres.",
+		"A key cannot do more than its user.":                                     "Una llave no puede hacer más que su usuario.",
+		"A user can have at most 20 API keys. Revoke one that is no longer used.": "Un usuario puede tener como mucho 20 llaves de API. Anula alguna que ya no se use.",
+		"The API key does not exist.":                                             "La llave de API no existe.",
+		"Only the users created in Users can have API keys.":                      "Solo los usuarios creados en Usuarios pueden tener llaves de API.",
+		"An API key cannot make or revoke API keys: sign in with the password.":   "Una llave de API no puede crear ni anular llaves: entra con la contraseña.",
+
 		// the setup code of the first administrator, in Users, the setup wizard and a restored backup
 		"Setup code": "Código de configuración",
 		"It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs.": "Está en el log del contenedor, donde pone %v. En Unraid: pestaña Docker, icono de la app, Logs.",

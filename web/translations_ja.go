@@ -1551,6 +1551,19 @@ func init() {
 		"you":                                                              "自分",
 		"yours included":                                                   "自分を含む",
 
+		// API keys of the users, in My account, Users, the activity and the API
+		"Created an API key":        "APIキーを作成しました",
+		"Signed in with an API key": "APIキーでサインイン",
+		"Revoked an API key":        "APIキーを無効にしました",
+		"unknown API key":           "存在しないAPIキー",
+		"API key":                   "APIキー",
+		"Give the key a name of up to 40 characters.":                             "キーに40文字以内の名前を付けてください。",
+		"A key cannot do more than its user.":                                     "キーはそのユーザーにできること以上はできません。",
+		"A user can have at most 20 API keys. Revoke one that is no longer used.": "1人のユーザーが持てるAPIキーは20個までです。使わなくなったものを無効にしてください。",
+		"The API key does not exist.":                                             "そのAPIキーは存在しません。",
+		"Only the users created in Users can have API keys.":                      "APIキーを持てるのは「ユーザー」で作成したユーザーだけです。",
+		"An API key cannot make or revoke API keys: sign in with the password.":   "APIキーではAPIキーの作成も無効化もできません。パスワードでサインインしてください。",
+
 		// the setup code of the first administrator, in Users, the setup wizard and a restored backup
 		"Setup code": "セットアップコード",
 		"It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs.": "コンテナのログの %v と書かれた行にあります。Unraid では、Docker タブ、アプリのアイコン、Logs。",

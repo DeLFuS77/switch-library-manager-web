@@ -1551,6 +1551,19 @@ func init() {
 		"you":                                                              "你",
 		"yours included":                                                   "包括你的",
 
+		// API keys of the users, in My account, Users, the activity and the API
+		"Created an API key":        "创建了 API 密钥",
+		"Signed in with an API key": "使用 API 密钥登录",
+		"Revoked an API key":        "撤销了 API 密钥",
+		"unknown API key":           "不存在的 API 密钥",
+		"API key":                   "API 密钥",
+		"Give the key a name of up to 40 characters.":                             "请给密钥起一个不超过 40 个字符的名称。",
+		"A key cannot do more than its user.":                                     "密钥不能做超出其用户权限的事。",
+		"A user can have at most 20 API keys. Revoke one that is no longer used.": "每个用户最多可有 20 个 API 密钥。请撤销一个不再使用的。",
+		"The API key does not exist.":                                             "该 API 密钥不存在。",
+		"Only the users created in Users can have API keys.":                      "只有在“用户”中创建的用户才能拥有 API 密钥。",
+		"An API key cannot make or revoke API keys: sign in with the password.":   "API 密钥不能创建或撤销 API 密钥：请用密码登录。",
+
 		// the setup code of the first administrator, in Users, the setup wizard and a restored backup
 		"Setup code": "设置码",
 		"It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs.": "它在容器日志中写着 %v 的地方。在 Unraid 中：Docker 标签页、应用图标、Logs。",
