@@ -94,6 +94,8 @@ type UserStore struct {
 	users map[string]*User // by lower case name
 	// a user configured with environment variables, which is always an administrator
 	reservedName string
+	// the API keys that passed lately, by cacheKey: see FindAPIKey
+	keysSeen sync.Map
 }
 
 // a hash compared when the user does not exist, so the response time does not tell
@@ -176,8 +178,8 @@ func (s *UserStore) Verify(name string, password string) (User, bool) {
 	return user, true
 }
 
-// hashSlots limits the bcrypt checks going on at the same time: each takes a processor for a
-// while, and a flood of passwords would leave none for the app.
+// hashSlots limits the bcrypt and Argon2id checks going on at the same time: each takes a
+// processor for a while, and a flood of passwords would leave none for the app.
 var hashSlots = make(chan struct{}, max(2, runtime.NumCPU()/2))
 
 // compareHash checks a password against its bcrypt hash, a few at a time.

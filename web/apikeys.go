@@ -2,7 +2,6 @@ package web
 
 import (
 	"crypto/rand"
-	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
 	"errors"
@@ -13,24 +12,35 @@ import (
 	"time"
 	"unicode"
 	"unicode/utf8"
+
+	"golang.org/x/crypto/argon2"
 )
 
 // API keys let Home Assistant and scripts sign in without the password of their user. Each user
 // makes and revokes their own in My account, and administrators can revoke anybody's in Users.
 // A key is sent as "Authorization: Bearer slm_..." and does at most what its user does now: a key
 // made by an administrator who becomes an editor works as an editor's, and the keys of a deleted
-// user go with them. Only a SHA-256 hash of each key is kept, beside its user in users.json, so a
+// user go with them. Only an Argon2id hash of each key is kept, beside its user in users.json, so a
 // key is shown once, when it is made, and never again: not in a page, an answer, the log, the
 // activity or a backup.
 
 const (
 	apiKeyPrefix = "slm_"
 	// letters and digits only, so a double click selects the whole key; 40 of them are 238 bits,
-	// far too many to guess, which is why a fast hash is enough to keep them
+	// far too many to guess
 	apiKeyAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	apiKeyLength   = 40
 	// the end of a key shown to tell it from the others
 	apiKeyHintLength = 4
+	// the start of a key, kept to find it among the others before its hash is checked: with the
+	// hint, 28 characters are left, still far too many to guess
+	apiKeyLookupLength = 8
+	// Argon2id with the smallest cost OWASP gives for passwords, 2 passes over 19 MB: a key that
+	// passed is remembered for basicAuthCacheTime, so an API client pays for it once in a while
+	apiKeyKdfTime    = 2
+	apiKeyKdfMemory  = 19 * 1024
+	apiKeyKdfThreads = 1
+	apiKeySaltSize   = 16
 	maxAPIKeys       = 20
 	maxAPIKeyName    = 40
 )
@@ -58,8 +68,12 @@ type APIKey struct {
 	Name string `json:"name"`
 	// the most the key may do; never more than its user may do at the time
 	Role string `json:"role"`
-	// SHA-256 of the key, in hexadecimal
+	// Argon2id of the key with Salt, both in hexadecimal
 	Hash string `json:"hash"`
+	Salt string `json:"salt"`
+	// the first characters of the key after its prefix, so a key sent is hashed for one stored
+	// key and not for each of them
+	Lookup string `json:"lookup"`
 	// the last characters of the key
 	Hint    string    `json:"hint"`
 	Created time.Time `json:"created"`
@@ -147,8 +161,20 @@ func newAPIKeyId() (string, error) {
 	return hex.EncodeToString(random), nil
 }
 
-func apiKeyHash(secret string) [sha256.Size]byte {
-	return sha256.Sum256([]byte(secret))
+// apiKeyHash is the Argon2id hash of a key with a salt, made a few at a time as the checks of
+// the passwords.
+func apiKeyHash(secret string, salt []byte) []byte {
+	hashSlots <- struct{}{}
+	defer func() { <-hashSlots }()
+	return argon2.IDKey([]byte(secret), salt, apiKeyKdfTime, apiKeyKdfMemory, apiKeyKdfThreads, 32)
+}
+
+// apiKeyLookup is the start of a key that finds it among the others, if it can be a key.
+func apiKeyLookup(secret string) (string, bool) {
+	if len(secret) != len(apiKeyPrefix)+apiKeyLength || !strings.HasPrefix(secret, apiKeyPrefix) {
+		return "", false
+	}
+	return secret[len(apiKeyPrefix) : len(apiKeyPrefix)+apiKeyLookupLength], true
 }
 
 // cleanAPIKeyName returns the name of a key without the spaces around it, if it can be one: up to
@@ -181,6 +207,13 @@ func (s *UserStore) AddAPIKey(owner string, name string, role string) (string, A
 	if err != nil {
 		return "", APIKey{}, err
 	}
+	salt := make([]byte, apiKeySaltSize)
+	if _, err := rand.Read(salt); err != nil {
+		return "", APIKey{}, err
+	}
+	// hashed before the store is locked, as it takes a while
+	hash := apiKeyHash(secret, salt)
+	lookup, _ := apiKeyLookup(secret)
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	user, ok := s.users[strings.ToLower(owner)]
@@ -193,8 +226,7 @@ func (s *UserStore) AddAPIKey(owner string, name string, role string) (string, A
 	if len(user.APIKeys) >= maxAPIKeys {
 		return "", APIKey{}, ErrAPIKeyCount
 	}
-	hash := apiKeyHash(secret)
-	key := APIKey{ID: id, Name: name, Role: lowerRole(role, user.Role), Hash: hex.EncodeToString(hash[:]), Hint: secret[len(secret)-apiKeyHintLength:], Created: time.Now()}
+	key := APIKey{ID: id, Name: name, Role: lowerRole(role, user.Role), Hash: hex.EncodeToString(hash), Salt: hex.EncodeToString(salt), Lookup: lookup, Hint: secret[len(secret)-apiKeyHintLength:], Created: time.Now()}
 	user.APIKeys = append(user.APIKeys, key)
 	if err := s.save(); err != nil {
 		// a key that was not saved must not work until the next start either
@@ -228,27 +260,73 @@ func (s *UserStore) DeleteAPIKey(owner string, id string) (string, APIKey, error
 	return "", APIKey{}, ErrAPIKeyNotFound
 }
 
-// FindAPIKey returns the user a key belongs to and the key. The hash of the key is compared with
-// every stored one, in constant time and without stopping at the one that matches, so the time
-// taken tells nothing of the keys.
+// apiKeySeen is a key that passed, remembered by FindAPIKey.
+type apiKeySeen struct {
+	id    string
+	until time.Time
+}
+
+// FindAPIKey returns the user a key belongs to and the key. The start of the key is compared with
+// every stored one, in constant time and without stopping at the one that matches, and the key is
+// then checked against the hash of the one found. A key that passed is remembered for
+// basicAuthCacheTime by its id, so revoking it, or deleting its user, stops it at once.
 func (s *UserStore) FindAPIKey(secret string) (User, APIKey, bool) {
-	given := apiKeyHash(secret)
+	lookup, ok := apiKeyLookup(secret)
+	if !ok {
+		return User{}, APIKey{}, false
+	}
+	remembered := cacheKey(secret)
+	if seen, ok := s.keysSeen.Load(remembered); ok && time.Now().Before(seen.(apiKeySeen).until) {
+		if user, key, ok := s.apiKeyById(seen.(apiKeySeen).id); ok {
+			return user, key, true
+		}
+	}
+	s.keysSeen.Delete(remembered)
+	type candidate struct {
+		id         string
+		hash, salt []byte
+	}
+	candidates := []candidate{}
 	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-	var owner *User
-	var found APIKey
 	for _, user := range s.users {
 		for _, key := range user.APIKeys {
-			stored, err := hex.DecodeString(key.Hash)
-			if err == nil && subtle.ConstantTimeCompare(given[:], stored) == 1 {
-				owner, found = user, key
+			if subtle.ConstantTimeCompare([]byte(lookup), []byte(key.Lookup)) != 1 {
+				continue
+			}
+			hash, hashErr := hex.DecodeString(key.Hash)
+			salt, saltErr := hex.DecodeString(key.Salt)
+			if hashErr == nil && saltErr == nil {
+				candidates = append(candidates, candidate{key.ID, hash, salt})
 			}
 		}
 	}
-	if owner == nil {
-		return User{}, APIKey{}, false
+	// hashed with the store unlocked, as it takes a while
+	s.mutex.RUnlock()
+	for _, stored := range candidates {
+		if subtle.ConstantTimeCompare(apiKeyHash(secret, stored.salt), stored.hash) != 1 {
+			continue
+		}
+		// the key may have been revoked while it was hashed
+		if user, key, ok := s.apiKeyById(stored.id); ok {
+			s.keysSeen.Store(remembered, apiKeySeen{id: stored.id, until: time.Now().Add(basicAuthCacheTime)})
+			return user, key, true
+		}
 	}
-	return owner.clone(), found, true
+	return User{}, APIKey{}, false
+}
+
+// apiKeyById returns a key and its user.
+func (s *UserStore) apiKeyById(id string) (User, APIKey, bool) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	for _, user := range s.users {
+		for _, key := range user.APIKeys {
+			if key.ID == id {
+				return user.clone(), key, true
+			}
+		}
+	}
+	return User{}, APIKey{}, false
 }
 
 // NoteAPIKeyUse records the use of a key, which is also a sign-in of its user, at most once every

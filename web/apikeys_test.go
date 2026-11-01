@@ -342,17 +342,18 @@ func TestAPIKeysAreNeverShownAgain(t *testing.T) {
 		seen["log"] += entry.Message + "\n"
 	}
 
-	hash := apiKeyHash(created.Key)
+	alice, _ := web.auth.users.Get("alice")
+	hash := alice.APIKeys[0].Hash
 	secret := created.Key[len(apiKeyPrefix):]
 	for where, text := range seen {
 		if strings.Contains(text, secret) {
 			t.Fatalf("the key is in %s", where)
 		}
-		if where != USERS_FILENAME && where != "backup "+USERS_FILENAME && strings.Contains(text, hex.EncodeToString(hash[:])) {
+		if where != USERS_FILENAME && where != "backup "+USERS_FILENAME && strings.Contains(text, hash) {
 			t.Fatalf("the hash of the key is in %s", where)
 		}
 	}
-	if !strings.Contains(seen[USERS_FILENAME], hex.EncodeToString(hash[:])) || !strings.Contains(seen["backup "+USERS_FILENAME], hex.EncodeToString(hash[:])) {
+	if !strings.Contains(seen[USERS_FILENAME], hash) || !strings.Contains(seen["backup "+USERS_FILENAME], hash) {
 		t.Fatal("users.json and its backup keep the hash of the key")
 	}
 	if !strings.Contains(seen["log"], `API key "Home Assistant" of "alice" created`) {
@@ -446,17 +447,47 @@ func TestAPIKeysAreHashedAndCompared(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	hash := apiKeyHash(secret)
-	if key.Hash != hex.EncodeToString(hash[:]) || strings.Contains(key.Hash, secret) {
-		t.Fatalf("only the hash is kept: %+v", key)
+	salt, _ := hex.DecodeString(key.Salt)
+	if len(salt) != apiKeySaltSize || key.Hash != hex.EncodeToString(apiKeyHash(secret, salt)) || strings.Contains(key.Hash, secret) {
+		t.Fatalf("only the hash is kept, with its salt: %+v", key)
+	}
+	if key.Lookup != secret[len(apiKeyPrefix):len(apiKeyPrefix)+apiKeyLookupLength] {
+		t.Fatalf("the start of the key finds it: %+v", key)
 	}
 	if user, found, ok := store.FindAPIKey(secret); !ok || user.Name != "alice" || found.ID != key.ID {
 		t.Fatal("the key is found by its hash")
 	}
-	for _, wrong := range []string{"", apiKeyPrefix, secret[:len(secret)-1], secret + "a", strings.ToUpper(secret)} {
+	// the same start and length, another end: it is hashed and refused
+	last := "a"
+	if strings.HasSuffix(secret, last) {
+		last = "b"
+	}
+	sameStart := secret[:len(secret)-1] + last
+	for _, wrong := range []string{"", apiKeyPrefix, secret[:len(secret)-1], secret + "a", strings.ToUpper(secret), sameStart} {
 		if _, _, ok := store.FindAPIKey(wrong); ok {
 			t.Fatalf("%q is not the key", wrong)
 		}
+	}
+	// two keys never share a salt
+	otherSecret, other, err := store.AddAPIKey("alice", "Two", ROLE_VIEWER)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if other.Salt == key.Salt || other.Hash == key.Hash {
+		t.Fatal("each key has its own salt")
+	}
+	// a key that passed is remembered, and stops at once when it is revoked
+	if _, _, ok := store.FindAPIKey(otherSecret); !ok {
+		t.Fatal("the second key is found")
+	}
+	if _, ok := store.keysSeen.Load(cacheKey(otherSecret)); !ok {
+		t.Fatal("a key that passed is remembered")
+	}
+	if _, _, err := store.DeleteAPIKey("", other.ID); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, ok := store.FindAPIKey(otherSecret); ok {
+		t.Fatal("a revoked key stops at once, even when remembered")
 	}
 	// a user copied out of the store shares no key with it
 	user, _ := store.Get("alice")
