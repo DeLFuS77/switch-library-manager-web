@@ -9,7 +9,7 @@
   <Privileged>false</Privileged>
   <Support>https://github.com/DeLFuS77/switch-library-manager-web/issues</Support>
   <Project>https://github.com/DeLFuS77/switch-library-manager-web</Project>
-  <Overview>Manage your Nintendo Switch backup library from the browser: missing updates, DLC and games, issues, organizing and renaming, NSZ compression (with an estimate of what each file saves, and pause and resume), complete packs and the split of multi-title files (SuperNSP), in bulk, and an SD card planner. Use it with a game controller like a console. Discover games you might like, upcoming releases and your series, see statistics, your year on Switch, the version history of each game and, optionally, how long games take to beat (IGDB). Quick search, notifications, user accounts with protection against bots, 11 languages. Use it with backups of games you own. Put your own prod.keys (and optionally title.keys), dumped from your console, in the appdata folder or upload them from Settings; no keys or games are included or downloaded. Provided as it is, without any warranty (AGPL-3.0): keep a backup of your games.</Overview>
+  <Overview>Manage your Nintendo Switch backup library from the browser: missing updates, DLC and games, issues, organizing and renaming, NSZ compression (with an estimate of what each file saves, and pause and resume), complete packs and the split of multi-title files (SuperNSP), in bulk, and an SD card planner. Use it with a game controller like a console. Discover games you might like, upcoming releases and your series, see statistics, your year on Switch, the version history of each game and, optionally, how long games take to beat (IGDB). Quick search, notifications, user accounts with protection against bots, 11 languages. Use it with backups of games you own. Put your own prod.keys (and optionally title.keys), dumped from your console, in the appdata folder or upload them from Settings; no keys or games are included or downloaded. The first administrator is created with a one-time setup code from the log of the container (icon of the app, Logs). Provided as it is, without any warranty (AGPL-3.0): keep a backup of your games.</Overview>
   <Category>Tools:Utilities MediaApp:Other</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/templates/switch-library-manager-web.xml</TemplateURL>
@@ -22,7 +22,12 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.67.0
+  <Changes>### 1.68.0
+- Sign-in through Authelia, Authentik, Cloudflare Access or OpenID Connect (PocketID, Keycloak), off until turned on
+- Tasks no longer get stuck, and a task cancelled or stopped by a restart no longer counts as failed
+- Name, cover and description of a game editable by hand, and checking the files by levels (Signature, Hash or Both)
+- Notifications to ntfy, Gotify, Pushover and email, API keys, and an optional second folder of games in this template
+### 1.67.0
 - Quarantine in Settings: what is deleted from the library can wait in a hidden folder and be put back (off until turned on)
 - Many fixes, above all of cases that could delete the only copy of a game
 - Red only for errors and work in blue; the covers of Tasks fill up smoothly and stay during a scan
@@ -90,7 +95,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-10-29</Date>
+  <Date>2026-11-01</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>
@@ -101,14 +106,21 @@
   <Config Name="WebUI port" Target="3000" Default="3000" Mode="tcp" Description="Port of the web interface." Type="Port" Display="always" Required="true" Mask="false">3000</Config>
   <Config Name="Appdata" Target="/usr/local/share/switch-library-manager-web" Default="/mnt/user/appdata/switch-library-manager-web" Mode="rw" Description="Settings, caches and covers. Put your prod.keys (and optionally title.keys) here." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/switch-library-manager-web</Config>
   <Config Name="Switch library" Target="/mnt/roms" Default="" Mode="rw" Description="Share with your NSP, NSZ, XCI and XCZ files, e.g. /mnt/user/switch. Read and write, to organize and compress files." Type="Path" Display="always" Required="true" Mask="false"></Config>
+  <Config Name="Second Switch library" Target="/mnt/roms2" Default="" Mode="rw" Description="Optional: another share or disk with more games, e.g. /mnt/disks/usb/switch. Empty when all the games are in one place. To use it, add /mnt/roms2 to Folders to scan in Settings › Library or in the setup wizard, one folder per line." Type="Path" Display="always" Required="false" Mask="false"></Config>
   <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="User that runs the app; 99 is nobody, the owner of Unraid shares." Type="Variable" Display="advanced" Required="true" Mask="false">99</Config>
   <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Group that runs the app; 100 is users." Type="Variable" Display="advanced" Required="true" Mask="false">100</Config>
   <Config Name="Time zone" Target="TZ" Default="Europe/Madrid" Mode="" Description="Time zone for dates and scheduled synchronizations." Type="Variable" Display="advanced" Required="false" Mask="false">Europe/Madrid</Config>
-  <Config Name="Admin user" Target="SLM_AUTH_USERNAME" Default="" Mode="" Description="Optional: an administrator, with the password below. Users can also be created in the app." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="Admin user" Target="SLM_AUTH_USERNAME" Default="" Mode="" Description="Optional: an administrator, with the password below. Users can also be created in the app: the first one with the setup code of the log of the container (look for SETUP CODE)." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
   <Config Name="Admin password" Target="SLM_AUTH_PASSWORD" Default="" Mode="" Description="Optional: password of the administrator above." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
   <Config Name="Allow remote access without login" Target="SLM_ALLOW_REMOTE_WITHOUT_LOGIN" Default="" Mode="" Description="Optional: set to true only if another service (a proxy with its own login, a VPN) protects the app. Without users, the app otherwise only answers on the local network." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
   <Config Name="Allowed names" Target="SLM_ALLOWED_HOSTS" Default="" Mode="" Description="Optional, only without login: other names the app is opened by, separated by commas (addresses, the server name and .local or .lan names always work)." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
   <Config Name="Trusted proxies" Target="SLM_TRUSTED_PROXIES" Default="" Mode="" Description="Optional: the proxies whose visitor address the login protection believes, separated by commas: addresses, ranges, or cloudflare when Cloudflare connects to the app directly. Empty, any proxy on the network is believed (a Cloudflare Tunnel or a proxy on the network needs nothing set). Set, only those listed: the proxy or tunnel of the network has to be listed too, so other computers of the network cannot make up their address." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="Sign-in portal header" Target="SLM_AUTH_PROXY_HEADER" Default="" Mode="" Description="Optional: the header in which a sign-in portal (Authelia, Authentik) names the user, e.g. Remote-User. The people it lets in open the app without its password. Believed only from the proxies of Trusted proxies, never from Cloudflare. More options in Settings › Sign-in portal." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="Cloudflare Access team" Target="SLM_CF_ACCESS_TEAM" Default="" Mode="" Description="Optional: the team of Cloudflare Zero Trust (myteam for myteam.cloudflareaccess.com). With the AUD below, the people Cloudflare Access lets in open the app without its password, matched by the email set in Users." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="Cloudflare Access AUD" Target="SLM_CF_ACCESS_AUD" Default="" Mode="" Description="Optional: the Application Audience (AUD) tag of the application in Cloudflare Access (Zero Trust › Access › Applications › the application › Overview)." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="OpenID Connect issuer" Target="SLM_OIDC_ISSUER" Default="" Mode="" Description="Optional: the https address of the provider of OpenID Connect (PocketID, Authentik, Keycloak), e.g. https://id.example.com. Set, the login page has a button to sign in with it. Give the provider the redirect address shown in Settings › Sign-in portal. More options there." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="OpenID Connect client ID" Target="SLM_OIDC_CLIENT_ID" Default="" Mode="" Description="Optional: the client ID the provider gave the app." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
+  <Config Name="OpenID Connect client secret" Target="SLM_OIDC_CLIENT_SECRET" Default="" Mode="" Description="Optional: the client secret of the same client; empty for a public client." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
   <Config Name="IGDB Client ID" Target="SLM_IGDB_CLIENT_ID" Default="" Mode="" Description="Optional: the Client ID of your own Twitch application (dev.twitch.tv/console), to show how long games take to beat, from IGDB. Can also be set in Settings." Type="Variable" Display="advanced" Required="false" Mask="false"></Config>
   <Config Name="IGDB Client Secret" Target="SLM_IGDB_CLIENT_SECRET" Default="" Mode="" Description="Optional: the Client Secret of the same Twitch application." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
 </Container>

@@ -5,13 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net"
 	"net/http"
+	"net/mail"
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -32,6 +37,9 @@ var (
 	telegramTokenRegex  = regexp.MustCompile(`^[0-9]+:[A-Za-z0-9_-]{20,}$`)
 	telegramChatRegex   = regexp.MustCompile(`^(-?[0-9]+|@[A-Za-z0-9_]{5,})$`)
 	webhookRegex        = regexp.MustCompile(`^https?://[^\s]+$`)
+	// every address a notification is sent to: http or https and a host, which may be one of the
+	// local network, as a server of one's own
+	notificationURLRegex = regexp.MustCompile(`^https?://[^/?#\s]+([/?#]\S*)?$`)
 
 	// replaced in tests
 	telegramApiUrl = "https://api.telegram.org"
@@ -160,7 +168,50 @@ func (web *Web) saveNotifiedKeys(items []NotificationItem) error {
 }
 
 func notificationsConfigured(options settings.NotificationOptions) bool {
-	return options.DiscordWebhookUrl != "" || (options.TelegramBotToken != "" && options.TelegramChatId != "") || options.WebhookUrl != ""
+	return len(notificationChannels(options)) > 0
+}
+
+// notificationChannel is a configured channel: its name, as the results of a test say it, and
+// how it sends a message.
+type notificationChannel struct {
+	name string
+	send func(title string, text string, items any) error
+}
+
+// notificationChannels are the configured channels, in the order of the Settings page.
+func notificationChannels(options settings.NotificationOptions) []notificationChannel {
+	channels := []notificationChannel{}
+	add := func(name string, send func(title string, text string, items any) error) {
+		channels = append(channels, notificationChannel{name: name, send: send})
+	}
+	if options.DiscordWebhookUrl != "" {
+		add("Discord", func(title string, text string, _ any) error {
+			return postJSON(options.DiscordWebhookUrl, map[string]string{"content": fitMessage("**"+title+"**\n"+text, discordMessageLimit)})
+		})
+	}
+	if options.TelegramBotToken != "" && options.TelegramChatId != "" {
+		add("Telegram", func(title string, text string, _ any) error {
+			return postJSON(telegramApiUrl+"/bot"+options.TelegramBotToken+"/sendMessage", map[string]string{"chat_id": options.TelegramChatId, "text": fitMessage(title+"\n"+text, telegramMessageLimit)})
+		})
+	}
+	if options.NtfyUrl != "" {
+		add("ntfy", func(title string, text string, _ any) error { return sendNtfy(options, title, text) })
+	}
+	if options.GotifyUrl != "" && options.GotifyToken != "" {
+		add("Gotify", func(title string, text string, _ any) error { return sendGotify(options, title, text) })
+	}
+	if options.PushoverUser != "" && options.PushoverToken != "" {
+		add("Pushover", func(title string, text string, _ any) error { return sendPushover(options, title, text) })
+	}
+	if emailConfigured(options) {
+		add("Email", func(title string, text string, _ any) error { return sendEmail(options, title, text) })
+	}
+	if options.WebhookUrl != "" {
+		add("Webhook", func(title string, text string, items any) error {
+			return postJSON(options.WebhookUrl, map[string]any{"title": title, "message": text, "items": items})
+		})
+	}
+	return channels
 }
 
 // notifyChanges reports the updates and DLC that became available since the last check.
@@ -309,14 +360,33 @@ func postJSON(url string, payload any) error {
 	if err != nil {
 		return err
 	}
-	resp, err := notificationClient.Post(url, "application/json", bytes.NewReader(body))
+	return post(url, "application/json", body, nil)
+}
+
+// post sends a message to a channel. The addresses of the settings were checked when saved, but
+// settings.json may have been changed by hand since: it must be http or https and have a host,
+// which may be one of the local network (a server of one's own).
+func post(address string, contentType string, body []byte, header http.Header) error {
+	if !notificationURLRegex.MatchString(address) {
+		return failed("not a valid address")
+	}
+	request, err := http.NewRequest(http.MethodPost, address, bytes.NewReader(body))
 	if err != nil {
-		// the error may contain the URL with a secret (Discord, Telegram), do not log it
-		return errors.New("request failed")
+		return failed("not a valid address")
+	}
+	for name, values := range header {
+		request.Header[name] = values
+	}
+	request.Header.Set("Content-Type", contentType)
+	resp, err := notificationClient.Do(request)
+	if err != nil {
+		// the error holds the address, which may hold a secret (Discord, Telegram): not told
+		return failed("no answer from the server")
 	}
 	defer resp.Body.Close()
+	io.Copy(io.Discard, io.LimitReader(resp.Body, 64<<10))
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("server answered %d", resp.StatusCode)
+		return failed("the server answered %v", resp.StatusCode)
 	}
 	return nil
 }
@@ -347,31 +417,38 @@ func fitMessage(text string, limit int) string {
 	return cut + "\n…"
 }
 
+// channelResult is what a channel did with a message: err is nil when it took it.
+type channelResult struct {
+	channel string
+	err     error
+}
+
+// deliver sends a message to every configured channel at once; items go to the JSON webhook.
+// The results are in the order of the channels.
+func deliver(options settings.NotificationOptions, title string, text string, items any) []channelResult {
+	channels := notificationChannels(options)
+	results := make([]channelResult, len(channels))
+	var wait sync.WaitGroup
+	for i, channel := range channels {
+		wait.Add(1)
+		go func() {
+			defer wait.Done()
+			results[i] = channelResult{channel: channel.name, err: channel.send(title, text, items)}
+		}()
+	}
+	wait.Wait()
+	return results
+}
+
 // sendMessage sends a message to every configured channel; items go to the JSON webhook. It
 // fails only when no channel took it: a channel that failed is reported in the log, and the
 // others do not get the same message again and again because of it.
 func sendMessage(options settings.NotificationOptions, title string, text string, items any) error {
 	errs := []string{}
 	sent := 0
-
-	if options.DiscordWebhookUrl != "" {
-		if err := postJSON(options.DiscordWebhookUrl, map[string]string{"content": fitMessage("**"+title+"**\n"+text, discordMessageLimit)}); err != nil {
-			errs = append(errs, "Discord: "+err.Error())
-		} else {
-			sent++
-		}
-	}
-	if options.TelegramBotToken != "" && options.TelegramChatId != "" {
-		url := telegramApiUrl + "/bot" + options.TelegramBotToken + "/sendMessage"
-		if err := postJSON(url, map[string]string{"chat_id": options.TelegramChatId, "text": fitMessage(title+"\n"+text, telegramMessageLimit)}); err != nil {
-			errs = append(errs, "Telegram: "+err.Error())
-		} else {
-			sent++
-		}
-	}
-	if options.WebhookUrl != "" {
-		if err := postJSON(options.WebhookUrl, map[string]any{"title": title, "message": text, "items": items}); err != nil {
-			errs = append(errs, "Webhook: "+err.Error())
+	for _, result := range deliver(options, title, text, items) {
+		if result.err != nil {
+			errs = append(errs, result.channel+": "+result.err.Error())
 		} else {
 			sent++
 		}
@@ -394,10 +471,15 @@ const secretMask = "********"
 
 // maskedNotifications are the notification settings as the pages show them.
 func maskedNotifications(options settings.NotificationOptions) settings.NotificationOptions {
-	if options.TelegramBotToken != "" {
-		options.TelegramBotToken = secretMask
-	}
+	options.TelegramBotToken = maskedSecret(options.TelegramBotToken)
 	options.DiscordWebhookUrl = maskedWebhook(options.DiscordWebhookUrl)
+	options.WebhookUrl = maskedURL(options.WebhookUrl)
+	options.NtfyUrl = maskedURL(options.NtfyUrl)
+	options.NtfyToken = maskedSecret(options.NtfyToken)
+	options.GotifyUrl = maskedURL(options.GotifyUrl)
+	options.GotifyToken = maskedSecret(options.GotifyToken)
+	options.PushoverToken = maskedSecret(options.PushoverToken)
+	options.SmtpPassword = maskedSecret(options.SmtpPassword)
 	return options
 }
 
@@ -413,12 +495,17 @@ func maskedWebhook(webhook string) string {
 // keptSecrets puts the saved secrets back in the notification settings sent by a form, where the
 // form sent them as they were shown.
 func keptSecrets(sent settings.NotificationOptions, saved settings.NotificationOptions) settings.NotificationOptions {
-	if sent.TelegramBotToken == secretMask && saved.TelegramBotToken != "" {
-		sent.TelegramBotToken = saved.TelegramBotToken
-	}
+	sent.TelegramBotToken = keptSecret(sent.TelegramBotToken, saved.TelegramBotToken)
 	if sent.DiscordWebhookUrl != "" && sent.DiscordWebhookUrl == maskedWebhook(saved.DiscordWebhookUrl) {
 		sent.DiscordWebhookUrl = saved.DiscordWebhookUrl
 	}
+	sent.WebhookUrl = keptURL(sent.WebhookUrl, saved.WebhookUrl)
+	sent.NtfyUrl = keptURL(sent.NtfyUrl, saved.NtfyUrl)
+	sent.NtfyToken = keptSecret(sent.NtfyToken, saved.NtfyToken)
+	sent.GotifyUrl = keptURL(sent.GotifyUrl, saved.GotifyUrl)
+	sent.GotifyToken = keptSecret(sent.GotifyToken, saved.GotifyToken)
+	sent.PushoverToken = keptSecret(sent.PushoverToken, saved.PushoverToken)
+	sent.SmtpPassword = keptSecret(sent.SmtpPassword, saved.SmtpPassword)
 	return sent
 }
 
@@ -441,7 +528,148 @@ func validateNotifications(options settings.NotificationOptions, lang string) []
 	if options.WebhookUrl != "" && !webhookRegex.MatchString(options.WebhookUrl) {
 		errs = append(errs, FieldError{Field: "webhook_url", Message: translate(lang, "Invalid URL")})
 	}
+	// both fields of a channel, or none: the message goes to the one left empty
+	emptyOf := func(first string, firstField string, secondField string) string {
+		if first == "" {
+			return firstField
+		}
+		return secondField
+	}
+	if options.NtfyUrl != "" || options.NtfyToken != "" {
+		if _, _, ok := ntfyTarget(options.NtfyUrl); !ok {
+			errs = append(errs, FieldError{Field: "ntfy_url", Message: translate(lang, "Write the address of the topic, like https://ntfy.sh/my-topic")})
+		}
+		if options.NtfyToken != "" && !ntfyTokenRegex.MatchString(options.NtfyToken) {
+			errs = append(errs, FieldError{Field: "ntfy_token", Message: translate(lang, "Invalid token")})
+		}
+	}
+	if (options.GotifyUrl == "") != (options.GotifyToken == "") {
+		errs = append(errs, FieldError{Field: emptyOf(options.GotifyUrl, "gotify_url", "gotify_token"), Message: translate(lang, "Gotify needs both the address of the server and the token of the application")})
+	} else if options.GotifyUrl != "" {
+		if _, ok := gotifyMessages(options.GotifyUrl); !ok {
+			errs = append(errs, FieldError{Field: "gotify_url", Message: translate(lang, "Write the address of the server, like https://gotify.example.com")})
+		}
+		if !gotifyTokenRegex.MatchString(options.GotifyToken) {
+			errs = append(errs, FieldError{Field: "gotify_token", Message: translate(lang, "Invalid token")})
+		}
+	}
+	if (options.PushoverUser == "") != (options.PushoverToken == "") {
+		errs = append(errs, FieldError{Field: emptyOf(options.PushoverUser, "pushover_user", "pushover_token"), Message: translate(lang, "Pushover needs both the user key and the token of the application")})
+	} else if options.PushoverUser != "" {
+		if !pushoverKeyRegex.MatchString(options.PushoverUser) {
+			errs = append(errs, FieldError{Field: "pushover_user", Message: translate(lang, "Invalid key: 30 letters and numbers")})
+		}
+		if !pushoverKeyRegex.MatchString(options.PushoverToken) {
+			errs = append(errs, FieldError{Field: "pushover_token", Message: translate(lang, "Invalid key: 30 letters and numbers")})
+		}
+	}
+	return append(errs, validateEmail(options, lang)...)
+}
+
+// validateEmail checks the settings of the mail, when one of them is written.
+func validateEmail(options settings.NotificationOptions, lang string) []FieldError {
+	errs := []FieldError{}
+	if options.SmtpHost == "" && options.SmtpTo == "" && options.SmtpUser == "" && options.SmtpPassword == "" && options.SmtpFrom == "" {
+		return errs
+	}
+	if host := options.SmtpHost; !smtpHostRegex.MatchString(host) && net.ParseIP(host) == nil {
+		errs = append(errs, FieldError{Field: "smtp_host", Message: translate(lang, "Write the name of the mail server, like smtp.example.com")})
+	}
+	if options.SmtpPort < 0 || options.SmtpPort > 65535 {
+		errs = append(errs, FieldError{Field: "smtp_port", Message: translate(lang, "Invalid port")})
+	}
+	security := emailSecurity(options)
+	if !slices.Contains(settings.SmtpSecurityChoices, security) {
+		errs = append(errs, FieldError{Field: "smtp_security", Message: translate(lang, "Unknown option")})
+	}
+	if (options.SmtpUser == "") != (options.SmtpPassword == "") {
+		field := "smtp_password"
+		if options.SmtpUser == "" {
+			field = "smtp_user"
+		}
+		errs = append(errs, FieldError{Field: field, Message: translate(lang, "Write both the user and the password, or neither")})
+	} else if options.SmtpUser != "" && security == settings.SMTP_NONE {
+		errs = append(errs, FieldError{Field: "smtp_security", Message: translate(lang, "Without encryption the password would travel in clear: choose STARTTLS or SSL/TLS")})
+	}
+	if from := emailFrom(options); from == "" {
+		errs = append(errs, FieldError{Field: "smtp_from", Message: translate(lang, "Write the address the mail comes from")})
+	} else if _, err := mail.ParseAddress(from); err != nil {
+		message := "Invalid email address"
+		if options.SmtpFrom == "" {
+			// the user is not an address: the mail needs one to come from
+			message = "Write the address the mail comes from"
+		}
+		errs = append(errs, FieldError{Field: "smtp_from", Message: translate(lang, message)})
+	}
+	if _, ok := emailRecipients(options.SmtpTo); !ok {
+		errs = append(errs, FieldError{Field: "smtp_to", Message: translatef(lang, "Write one or more email addresses, separated by commas (at most %v)", maxEmailRecipients)})
+	}
 	return errs
+}
+
+// formPort is the port written in a form: 0 when empty, -1 when it is not a number.
+func formPort(value string) int {
+	if value == "" {
+		return 0
+	}
+	port, err := strconv.Atoi(value)
+	if err != nil {
+		return -1
+	}
+	return port
+}
+
+// formSecurity is the security chosen in a form: STARTTLS, the default, is saved as "".
+func formSecurity(value string) string {
+	if value == settings.SMTP_STARTTLS {
+		return ""
+	}
+	return value
+}
+
+// draftNotifications are the notification settings with the channels written in a form that is
+// not saved yet, as the wizard tests them.
+func draftNotifications(r *http.Request, options settings.NotificationOptions) settings.NotificationOptions {
+	value := func(name string) string {
+		return strings.TrimSpace(r.FormValue(name))
+	}
+	options.DiscordWebhookUrl = value("discord_webhook_url")
+	options.WebhookUrl = value("webhook_url")
+	options.TelegramBotToken = value("telegram_bot_token")
+	options.TelegramChatId = value("telegram_chat_id")
+	options.NtfyUrl = value("ntfy_url")
+	options.NtfyToken = value("ntfy_token")
+	options.GotifyUrl = value("gotify_url")
+	options.GotifyToken = value("gotify_token")
+	options.PushoverUser = value("pushover_user")
+	options.PushoverToken = value("pushover_token")
+	options.SmtpHost = value("smtp_host")
+	options.SmtpPort = formPort(value("smtp_port"))
+	options.SmtpSecurity = formSecurity(value("smtp_security"))
+	options.SmtpUser = value("smtp_user")
+	// a password may begin or end with a space
+	options.SmtpPassword = r.FormValue("smtp_password")
+	options.SmtpFrom = value("smtp_from")
+	options.SmtpTo = value("smtp_to")
+	return options
+}
+
+// NotificationTestResponse is the outcome of a test notification, channel by channel.
+type NotificationTestResponse struct {
+	StrongMessage string `json:"strongMessage,omitempty"`
+	Message       string `json:"message,omitempty"`
+	// the channels that did not take it, each with why
+	Failed []string `json:"failed,omitempty"`
+	// no channel took it
+	GlobalError *GlobalError `json:"globalError,omitempty"`
+}
+
+// channelNames writes a list of channels: "Telegram, ntfy and Email".
+func channelNames(lang string, names []string) string {
+	if len(names) < 2 {
+		return strings.Join(names, "")
+	}
+	return translatef(lang, "%v and %v", strings.Join(names[:len(names)-1], ", "), names[len(names)-1])
 }
 
 func (web *Web) HandleNotifications() {
@@ -450,12 +678,7 @@ func (web *Web) HandleNotifications() {
 		options := settings.ReadSettings(web.dataFolder).Notifications
 		// the wizard tests the channels written in it, before they are saved
 		if r.FormValue("draft") == "1" {
-			saved := options
-			options.DiscordWebhookUrl = strings.TrimSpace(r.FormValue("discord_webhook_url"))
-			options.WebhookUrl = strings.TrimSpace(r.FormValue("webhook_url"))
-			options.TelegramBotToken = strings.TrimSpace(r.FormValue("telegram_bot_token"))
-			options.TelegramChatId = strings.TrimSpace(r.FormValue("telegram_chat_id"))
-			options = keptSecrets(options, saved)
+			options = keptSecrets(draftNotifications(r, options), options)
 			if errs := validateNotifications(options, lang); len(errs) > 0 {
 				writeGlobalError(w, http.StatusBadRequest, lang, errs[0].Message)
 				return
@@ -470,10 +693,28 @@ func (web *Web) HandleNotifications() {
 			return
 		}
 		items := []NotificationItem{{Kind: "test", Name: translate(lang, "Test notification: notifications work.")}}
-		if err := sendNotification(options, lang, items); err != nil {
-			writeJSON(w, http.StatusBadGateway, ErrorResponse{GlobalError: GlobalError{StrongMessage: translate(lang, "Error!"), Message: err.Error()}, FieldErrors: []FieldError{}})
-			return
+		title, text := notificationText(lang, items)
+		// every channel says how it went: one that failed is not hidden by the others
+		sent, failures, logged := []string{}, []string{}, []string{}
+		for _, result := range deliver(options, title, text, items) {
+			name := translate(lang, result.channel)
+			if result.err == nil {
+				sent = append(sent, name)
+				continue
+			}
+			failures = append(failures, name+": "+failureText(lang, result.err))
+			logged = append(logged, result.channel+": "+result.err.Error())
 		}
-		writeJSON(w, http.StatusOK, SuccessResponse{StrongMessage: translate(lang, "Sent!"), Message: translate(lang, "Check your notification channels.")})
+		if len(logged) > 0 {
+			web.sugarLogger.Warnf("Test notification not sent to every channel: %s", strings.Join(logged, "; "))
+		}
+		switch {
+		case len(failures) == 0:
+			writeJSON(w, http.StatusOK, NotificationTestResponse{StrongMessage: translate(lang, "Sent!"), Message: translatef(lang, "To %v. Check your notification channels.", channelNames(lang, sent))})
+		case len(sent) > 0:
+			writeJSON(w, http.StatusOK, NotificationTestResponse{StrongMessage: translatef(lang, "Sent to %v.", channelNames(lang, sent)), Failed: failures})
+		default:
+			writeJSON(w, http.StatusBadGateway, NotificationTestResponse{GlobalError: &GlobalError{StrongMessage: translate(lang, "Error!"), Message: translate(lang, "It reached no channel.")}, Failed: failures})
+		}
 	}).Methods("POST")
 }

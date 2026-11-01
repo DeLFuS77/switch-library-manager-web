@@ -103,6 +103,48 @@ func TestJsonUrlsIncludeFallbacks(t *testing.T) {
 	}
 }
 
+// The files of the data release are asked for compressed first, and then as they are; the files
+// of other places have no compressed copy to ask for.
+func TestDataReleaseFilesAreCompressedFirst(t *testing.T) {
+	s := &AppSettings{TitlesJsonUrl: DEFAULT_TITLES_JSON_URL, VersionsJsonUrl: DEFAULT_VERSIONS_JSON_URL}
+
+	want := append([]string{DEFAULT_TITLES_JSON_URL + ".zst", DEFAULT_TITLES_JSON_URL}, FALLBACK_TITLES_JSON_URLS...)
+	if got := s.TitlesJsonUrls(); !reflect.DeepEqual(got, want) {
+		t.Fatalf("TitlesJsonUrls() = %v, want %v", got, want)
+	}
+	// the versions of the data release, then the ones of blawar/titledb alone
+	want = []string{DATA_RELEASE_URL + "versions.json.zst", DATA_RELEASE_URL + "versions.json", BLAWAR_VERSIONS_JSON_URL}
+	if got := s.VersionsJsonUrls(); !reflect.DeepEqual(got, want) {
+		t.Fatalf("VersionsJsonUrls() = %v, want %v", got, want)
+	}
+
+	spanish := DATA_RELEASE_URL + "titles.es.json"
+	if got := CompressedFirst(spanish); !reflect.DeepEqual(got, []string{spanish + ".zst", spanish}) {
+		t.Fatalf("CompressedFirst(%q) = %v", spanish, got)
+	}
+	for _, url := range []string{"https://example.com/titles.json", BLAWAR_VERSIONS_JSON_URL, DATA_RELEASE_URL + "titles.json.zst"} {
+		if got := CompressedFirst(url); !reflect.DeepEqual(got, []string{url}) {
+			t.Fatalf("CompressedFirst(%q) = %v, want it alone", url, got)
+		}
+	}
+}
+
+// Settings saved when the versions of blawar/titledb were the default get the versions of the
+// data release; a URL of one's own stays.
+func TestOldDefaultVersionsUrlFollowsTheDataRelease(t *testing.T) {
+	for saved, want := range map[string]string{
+		BLAWAR_VERSIONS_JSON_URL:            DEFAULT_VERSIONS_JSON_URL,
+		"https://example.com/versions.json": "https://example.com/versions.json",
+	} {
+		isolateSettings(t)
+		dir := t.TempDir()
+		writeFile(t, filepath.Join(dir, SETTINGS_FILENAME), `{"versions_json_url": "`+saved+`", "port": 8080}`)
+		if s := ReadSettings(dir); s.VersionsJsonUrl != want || s.Port != 8080 {
+			t.Fatalf("saved %q: got %q, want %q", saved, s.VersionsJsonUrl, want)
+		}
+	}
+}
+
 func TestKeyDiscoveryOrderAndMissingKeys(t *testing.T) {
 	isolateSettings(t)
 	base := t.TempDir()

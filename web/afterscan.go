@@ -26,6 +26,12 @@ func (web *Web) afterScan() {
 	go func() {
 		defer web.backgroundWork.Add(-1)
 		defer web.afterScanWork.Done()
+		// a panic: what is left of this work waits for the next scan, the app goes on
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				web.crashed("The work after the scan", recovered)
+			}
+		}()
 		// first: the lists show the dates the games were added
 		web.recordHistory()
 		// temporary files of tasks stopped in the middle that did not go on

@@ -22,6 +22,8 @@ import (
 	"time"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 const (
@@ -57,6 +59,11 @@ type Principal struct {
 	Role string
 	// "env" for the user set with environment variables, "" when login is disabled
 	Source string
+	// signed in by a portal in front of the app: VIA_PROXY or VIA_CLOUDFLARE (see proxyauth.go),
+	// or with OpenID Connect: VIA_OIDC (see oidc.go)
+	Via string
+	// how the session was opened, kept when the session is renewed (see markedSessionCookie)
+	mark string
 }
 
 func (p *Principal) IsAdmin() bool {
@@ -77,6 +84,10 @@ type AuthInfo struct {
 	WeakEnvPassword bool
 	// the colour of the avatar of the user, or "" for the colours of the app
 	Color string
+	// signed in by a portal in front of the app: VIA_PROXY, VIA_CLOUDFLARE or VIA_OIDC, and the
+	// name of the button of OpenID Connect
+	Via      string
+	Provider string
 }
 
 type principalKey struct{}
@@ -108,12 +119,29 @@ type Auth struct {
 	envPasswordWeak error
 	// told of each sign-in attempt (user, ip, result, whether the password was long enough)
 	onLogin func(user, ip, result string, longEnough bool)
+	// told of each sign-in with an API key (its user and name, ip, result), see apikeys.go
+	onKey func(user, keyName, ip, result string)
 	// when an attempt that is told only now and then was told last, by user, address and result
 	toldMutex sync.Mutex
 	told      map[string]time.Time
 	// the failed and blocked attempts told in the current minute, by address
 	toldMinute time.Time
 	toldByIp   map[string]int
+	// the code that creates the first administrator, while login is off (see setupcode.go)
+	setup setupCode
+	// signing in through a portal in front of the app (see proxyauth.go): the options set in the
+	// environment and which ones are, the ones of Settings, the keys of Cloudflare Access, what is
+	// told of each sign-in and how it went last
+	portalEnv      settings.PortalOptions
+	portalEnvSet   map[string]bool
+	portalSettings func() settings.PortalOptions
+	cfKeys         cfAccessKeys
+	onPortal       func(event portalEvent)
+	portalSeen     portalStatus
+	// signing in with OpenID Connect (see oidc.go): what the app read of the provider, and the
+	// failed sign-ins by address, apart from the ones with a password
+	oidc        oidcProviders
+	oidcLimiter *loginLimiter
 }
 
 const (
@@ -148,9 +176,15 @@ func newAuth(dataFolder string) (*Auth, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Auth{users: users, envUser: envUser, envPassword: envPassword, secret: secret, limiter: newLoginLimiter(),
+	auth := &Auth{users: users, envUser: envUser, envPassword: envPassword, secret: secret, limiter: newLoginLimiter(), oidcLimiter: newLoginLimiter(),
 		revoked: loadRevokedSessions(dataFolder), seen: loadSeenSessions(dataFolder), remoteWithoutLogin: os.Getenv(REMOTE_WITHOUT_LOGIN_ENV) == "true",
-		envPasswordWeak: weakEnvPassword(envUser, envPassword)}, nil
+		envPasswordWeak: weakEnvPassword(envUser, envPassword)}
+	auth.portalEnv, auth.portalEnvSet = readPortalEnv()
+	auth.oidc.client = newOidcClient(nil)
+	if err := auth.startSetupCode(); err != nil {
+		return nil, err
+	}
+	return auth, nil
 }
 
 // loadSessionSecret reads the key that signs the session cookies, creating it on first use.
@@ -231,11 +265,52 @@ func (a *Auth) sign(name string, expiry int64, tag string) string {
 	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
 }
 
+// how a session was opened, kept in its cookie after the signature, which covers it: with
+// OpenID Connect, or with OpenID Connect by a member of the administrators group, a mark that
+// names the group (see oidcAdminMark). A session opened with a password has no mark.
+const (
+	sessionOidc      = "o"
+	sessionOidcAdmin = "oa-"
+)
+
+// validMark tells a mark of a session this version knows.
+func validMark(mark string) bool {
+	if mark == sessionOidc {
+		return true
+	}
+	hash, ok := strings.CutPrefix(mark, sessionOidcAdmin)
+	_, err := hex.DecodeString(hash)
+	return ok && len(hash) == oidcAdminMarkLength && err == nil
+}
+
+// markTag is the tag of a session with its mark, as it is signed.
+func markTag(tag string, mark string) string {
+	if mark == "" {
+		return tag
+	}
+	return tag + "\x00" + mark
+}
+
 // sessionCookie logs the principal in for sessionLifetime.
 func (a *Auth) sessionCookie(r *http.Request, name string) *http.Cookie {
+	return a.markedSessionCookie(r, name, "")
+}
+
+// renewedSessionCookie is a new session of the user of the request, after a change of its
+// password ended the one it had, opened as that one was.
+func (a *Auth) renewedSessionCookie(r *http.Request) *http.Cookie {
+	principal := principalFrom(r)
+	return a.markedSessionCookie(r, principal.Name, principal.mark)
+}
+
+// markedSessionCookie logs the principal in for sessionLifetime, with how the session was opened.
+func (a *Auth) markedSessionCookie(r *http.Request, name string, mark string) *http.Cookie {
 	_, tag, _ := a.lookup(name)
 	expiry := time.Now().Add(sessionLifetime)
-	value := base64.RawURLEncoding.EncodeToString([]byte(name)) + "." + strconv.FormatInt(expiry.Unix(), 10) + "." + a.sign(name, expiry.Unix(), tag)
+	value := base64.RawURLEncoding.EncodeToString([]byte(name)) + "." + strconv.FormatInt(expiry.Unix(), 10) + "." + a.sign(name, expiry.Unix(), markTag(tag, mark))
+	if mark != "" {
+		value += "." + mark
+	}
 	return &http.Cookie{Name: SESSION_COOKIE, Value: value, Path: "/", Expires: expiry, HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: isHttps(r)}
 }
 
@@ -266,7 +341,10 @@ func (a *Auth) fromSession(r *http.Request) *Principal {
 		return nil
 	}
 	parts := strings.Split(cookie.Value, ".")
-	if len(parts) != 3 {
+	mark := ""
+	if len(parts) == 4 && validMark(parts[3]) {
+		mark = parts[3]
+	} else if len(parts) != 3 {
 		return nil
 	}
 	nameBytes, err := base64.RawURLEncoding.DecodeString(parts[0])
@@ -281,7 +359,7 @@ func (a *Auth) fromSession(r *http.Request) *Principal {
 	if !ok {
 		return nil
 	}
-	if !hmac.Equal([]byte(parts[2]), []byte(a.sign(string(nameBytes), expiry, tag))) {
+	if !hmac.Equal([]byte(parts[2]), []byte(a.sign(string(nameBytes), expiry, markTag(tag, mark)))) {
 		return nil
 	}
 	if a.revoked.has(parts[2]) {
@@ -290,6 +368,13 @@ func (a *Auth) fromSession(r *http.Request) *Principal {
 	// a session nobody used for two weeks has ended, before the end of its 30 days
 	if !a.seen.use(parts[2], expiry, time.Now()) {
 		return nil
+	}
+	if mark != "" {
+		principal.Via, principal.mark = VIA_OIDC, mark
+		// the group made an administrator: while it is still the group of the administrators
+		if strings.HasPrefix(mark, sessionOidcAdmin) && a.oidcAdminGroupOn(mark) {
+			principal.Role = ROLE_ADMIN
+		}
 	}
 	return principal
 }
@@ -324,7 +409,7 @@ func (a *Auth) forget() {
 
 // public paths work without login: the login page and the files it needs
 func isPublicPath(path string) bool {
-	return path == "/login.html" || path == "/logout" || path == "/sw.js" ||
+	return path == "/login.html" || path == "/logout" || path == "/sw.js" || path == oidcLoginPath || path == oidcCallbackPath ||
 		strings.HasPrefix(path, "/resources/static/") || strings.HasPrefix(path, "/resources/vendor/")
 }
 
@@ -401,8 +486,13 @@ func viewerAllowed(r *http.Request) bool {
 		// the backups hold the settings and the users
 		return !adminOnly && !strings.HasPrefix(r.URL.Path, "/backup/")
 	case http.MethodPost:
-		// the list of files of the SD card planner is a download, as the pages are
-		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/account/color" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt" || r.URL.Path == "/play"
+		// the list of files of the SD card planner is a download, as the pages are; every user
+		// makes their own API keys
+		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/account/color" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt" || r.URL.Path == "/play" ||
+			r.URL.Path == "/api/keys"
+	case http.MethodDelete:
+		// and revokes them
+		return strings.HasPrefix(r.URL.Path, "/api/keys/")
 	}
 	return false
 }
@@ -413,7 +503,10 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 		var principal *Principal
 		switch {
 		case isPublicRequest(r):
-			principal = a.fromSession(r)
+			principal = a.fromPortal(r)
+			if principal == nil {
+				principal = a.fromSession(r)
+			}
 			if principal == nil {
 				next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), principalKey{}, a.anonymous(r))))
 				return
@@ -431,14 +524,25 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 			}
 			principal = &Principal{Role: ROLE_ADMIN}
 		default:
-			principal = a.fromSession(r)
+			// the portal in front says who the person is now, over a session of before
+			principal = a.fromPortal(r)
+			if principal == nil {
+				principal = a.fromSession(r)
+			}
 			if principal == nil {
 				ip := clientIp(r)
-				name, _, _ := r.BasicAuth()
+				// an API key names no account: it counts against the address only
+				secret, bearer := bearerKey(r)
+				name := ""
+				if !bearer {
+					name, _, _ = r.BasicAuth()
+				}
 				keys := loginKeys(ip, name)
 				retryAfter, delay := a.limiter.check(keys...)
 				if retryAfter > 0 {
-					if _, password, had := r.BasicAuth(); had {
+					if bearer {
+						a.keyAttempt("", APIKey{}, ip, "blocked")
+					} else if _, password, had := r.BasicAuth(); had {
 						a.loginAttempt(name, ip, "blocked", password, retryTellInterval)
 					}
 					w.Header().Set("Retry-After", strconv.Itoa(int(retryAfter.Seconds())+1))
@@ -448,20 +552,35 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 				if delay > 0 {
 					sleepFor(delay)
 				}
-				var attempted bool
-				principal, attempted = a.fromBasicAuth(r)
-				if principal == nil {
-					if attempted {
+				if bearer {
+					var key APIKey
+					var ok bool
+					principal, key, ok = a.fromAPIKey(secret)
+					if !ok {
 						a.limiter.fail(keys...)
-						_, password, _ := r.BasicAuth()
-						a.loginAttempt(name, ip, "fail", password, retryTellInterval)
+						a.keyAttempt("", APIKey{}, ip, "fail")
+						w.Header().Set("WWW-Authenticate", `Bearer realm="Switch Library Manager", error="invalid_token"`)
+						http.Error(w, "unauthorized", http.StatusUnauthorized)
+						return
 					}
-					a.unauthorized(w, r)
-					return
+					a.limiter.succeed(keys...)
+					a.keyAttempt(principal.Name, key, ip, "ok")
+				} else {
+					var attempted bool
+					principal, attempted = a.fromBasicAuth(r)
+					if principal == nil {
+						if attempted {
+							a.limiter.fail(keys...)
+							_, password, _ := r.BasicAuth()
+							a.loginAttempt(name, ip, "fail", password, retryTellInterval)
+						}
+						a.unauthorized(w, r)
+						return
+					}
+					a.limiter.succeed(keys...)
+					a.loginAttempt(principal.Name, ip, "ok", "", apiLoginTellInterval)
+					a.signedIn(principal.Name)
 				}
-				a.limiter.succeed(keys...)
-				a.loginAttempt(principal.Name, ip, "ok", "", apiLoginTellInterval)
-				a.signedIn(principal.Name)
 			}
 		}
 
@@ -870,6 +989,10 @@ func (web *Web) authInfo(r *http.Request) AuthInfo {
 	}
 	info.CanEdit = info.Role == ROLE_ADMIN || info.Role == ROLE_EDITOR
 	info.CanDownload = info.Role != ROLE_GUEST
+	info.Via = principal.Via
+	if info.Via == VIA_OIDC && web.auth != nil {
+		info.Provider = oidcButton(web.auth.portal())
+	}
 	if web.auth != nil && web.auth.users != nil && principal.Name != "" {
 		if user, ok := web.auth.users.Get(principal.Name); ok {
 			info.Color = user.Color
@@ -1004,7 +1127,9 @@ func (l *loginLimiter) fail(keys ...string) {
 		entry.last = now
 		if entry.count >= maxLoginFailures {
 			cap := maxLoginBlock
-			if strings.HasPrefix(key, "user:") {
+			// the setup code, shared by every address, is capped as an account is, so that
+			// wrong codes cannot keep its owner out for a whole day
+			if strings.HasPrefix(key, "user:") || key == setupCodeKey {
 				cap = maxAccountBlock
 			}
 			entry.blockUntil = now.Add(block(entry.count, cap))

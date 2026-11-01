@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 		watchSync();
 	}
 
-	document.querySelectorAll('#settingsForm, #organizeForm').forEach(form => {
+	document.querySelectorAll('#settingsForm, #organizeForm, #portalForm').forEach(form => {
 		form.addEventListener('submit', e => {
 			e.preventDefault();
 			onSubmit(form);
@@ -38,10 +38,12 @@ document.addEventListener('DOMContentLoaded', () => {
 	initIgnoreButtons();
 	initLibraryBulk();
 	initCollections();
+	initTitleEdit();
 	initSdPlanner();
 	initIgnoreTypes();
 	initViewToggle();
 	initTaskView();
+	initVerifyLevel();
 	initTaskSections();
 	initLiveTasks();
 	initCompress();
@@ -276,6 +278,11 @@ document.addEventListener('DOMContentLoaded', () => {
 		button.addEventListener('click', () => {
 			button.disabled = true;
 			const body = new URLSearchParams({ all: button.dataset.verify === 'all' ? 'true' : 'false', scope: button.dataset.verify });
+			// the level chosen on the page; without a choice, both
+			const level = document.querySelector('input[name="verify_level"]:checked');
+			if (level) {
+				body.set('level', level.value);
+			}
 			runAsTask(() => fetch('/verify/start', { method: 'POST', body })).then(response => {
 				if (response.ok) {
 					return response.json().catch(() => ({})).then(json => {
@@ -325,6 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initGameUpload();
 	initSearchClear();
 	initCopyButtons();
+	initOriginPaths();
 	initFullRows();
 	initScreenshots();
 	initSpacePreparing();

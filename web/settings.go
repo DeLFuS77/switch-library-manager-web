@@ -27,6 +27,9 @@ type SettingsPageData struct {
 	// what the automations need: the keys (to compress) and a notification channel
 	KeysAvailable           bool
 	NotificationsConfigured bool
+	// the notification channels, with where each configured one sends
+	NotifyServices      []NotifyServiceView
+	SmtpSecurityChoices []string
 	// the last measure of the server, nil when there is none
 	LastMeasure *ServerMeasure
 	// files waiting for the automations
@@ -42,6 +45,8 @@ type SettingsPageData struct {
 	// the files deleted that wait in the quarantine, and the sizes it can hold
 	Quarantine       quarantineSummary
 	QuarantineLimits []int
+	// the sign-in portal in front of the app
+	Portal PortalView
 }
 
 type SettingsForm struct {
@@ -96,6 +101,19 @@ type SettingsForm struct {
 	TelegramBotToken      string `in:"form=telegram_bot_token"`
 	TelegramChatId        string `in:"form=telegram_chat_id"`
 	WebhookUrl            string `in:"form=webhook_url"`
+	NtfyUrl               string `in:"form=ntfy_url"`
+	NtfyToken             string `in:"form=ntfy_token"`
+	GotifyUrl             string `in:"form=gotify_url"`
+	GotifyToken           string `in:"form=gotify_token"`
+	PushoverUser          string `in:"form=pushover_user"`
+	PushoverToken         string `in:"form=pushover_token"`
+	SmtpHost              string `in:"form=smtp_host"`
+	SmtpPort              string `in:"form=smtp_port"`
+	SmtpSecurity          string `in:"form=smtp_security"`
+	SmtpUser              string `in:"form=smtp_user"`
+	SmtpPassword          string `in:"form=smtp_password"`
+	SmtpFrom              string `in:"form=smtp_from"`
+	SmtpTo                string `in:"form=smtp_to"`
 	NotifyUpdates         bool   `in:"form=notify_updates"`
 	NotifyDlc             bool   `in:"form=notify_dlc"`
 	NotifyWishlist        bool   `in:"form=notify_wishlist"`
@@ -115,10 +133,24 @@ type SettingsForm struct {
 
 func (f *SettingsForm) notificationOptions() settings.NotificationOptions {
 	return settings.NotificationOptions{
-		DiscordWebhookUrl:  strings.TrimSpace(f.DiscordWebhookUrl),
-		TelegramBotToken:   strings.TrimSpace(f.TelegramBotToken),
-		TelegramChatId:     strings.TrimSpace(f.TelegramChatId),
-		WebhookUrl:         strings.TrimSpace(f.WebhookUrl),
+		DiscordWebhookUrl: strings.TrimSpace(f.DiscordWebhookUrl),
+		TelegramBotToken:  strings.TrimSpace(f.TelegramBotToken),
+		TelegramChatId:    strings.TrimSpace(f.TelegramChatId),
+		WebhookUrl:        strings.TrimSpace(f.WebhookUrl),
+		NtfyUrl:           strings.TrimSpace(f.NtfyUrl),
+		NtfyToken:         strings.TrimSpace(f.NtfyToken),
+		GotifyUrl:         strings.TrimSpace(f.GotifyUrl),
+		GotifyToken:       strings.TrimSpace(f.GotifyToken),
+		PushoverUser:      strings.TrimSpace(f.PushoverUser),
+		PushoverToken:     strings.TrimSpace(f.PushoverToken),
+		SmtpHost:          strings.TrimSpace(f.SmtpHost),
+		SmtpPort:          formPort(strings.TrimSpace(f.SmtpPort)),
+		SmtpSecurity:      formSecurity(strings.TrimSpace(f.SmtpSecurity)),
+		SmtpUser:          strings.TrimSpace(f.SmtpUser),
+		// a password may begin or end with a space
+		SmtpPassword:       f.SmtpPassword,
+		SmtpFrom:           strings.TrimSpace(f.SmtpFrom),
+		SmtpTo:             strings.TrimSpace(f.SmtpTo),
 		NotifyUpdates:      f.NotifyUpdates,
 		NotifyDlc:          f.NotifyDlc,
 		NotifyWishlist:     f.NotifyWishlist,
@@ -157,6 +189,7 @@ func (web *Web) HandleSettings() {
 	fsPatterns := []string{
 		"resources/layout.html",
 		"resources/pages/settings.html",
+		"resources/partials/notifications.html",
 	}
 
 	web.HandleValidated("/settings.html", SettingsForm{}, func() any {
@@ -464,7 +497,12 @@ func (web *Web) settingsPageData() SettingsPageData {
 	// the secrets of the notifications never go back to the page (see secretMask)
 	shown := *current
 	shown.Notifications = maskedNotifications(current.Notifications)
+	portal := PortalView{}
+	if web.auth != nil {
+		portal = web.auth.portalView()
+	}
 	return SettingsPageData{
+		Portal:                  portal,
 		GlobalPageData:          web.globalPageData("settings"),
 		Settings:                &shown,
 		NextSync:                nextSyncTime(current),
@@ -477,6 +515,8 @@ func (web *Web) settingsPageData() SettingsPageData {
 		QuarantineLimits:        quarantineLimits,
 		KeysAvailable:           settings.IsKeysFileAvailable(),
 		NotificationsConfigured: notificationsConfigured(current.Notifications),
+		NotifyServices:          notifyServices(current.Notifications),
+		SmtpSecurityChoices:     settings.SmtpSecurityChoices,
 		AutomationPending:       web.automationPending(),
 		CompressThreadChoices:   compressThreadChoices(),
 		Processors:              runtime.NumCPU(),

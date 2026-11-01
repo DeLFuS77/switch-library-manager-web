@@ -55,7 +55,7 @@ var issueKindLooks = map[string]IssueKindLook{
 	ISSUE_OLD:         {"bi-clock-history", "warning", "Old updates and DLC"},
 	ISSUE_FILENAME:    {"bi-tag", "info", "Recognized by their name only"},
 	ISSUE_UNSUPPORTED: {"bi-file-earmark-x", "muted", "Files that are not games"},
-	ISSUE_UNSIGNED:    {"bi-patch-question", "warning", "Not signed by Nintendo"},
+	ISSUE_UNSIGNED:    {"bi-patch-exclamation", "warning", "Modified: not signed by Nintendo"},
 }
 
 // IssueKindCount is a kind of issue and how many files it has, for the header.

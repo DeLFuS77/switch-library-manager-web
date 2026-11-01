@@ -51,15 +51,45 @@ type SwitchTitlesDB struct {
 	Versions map[string]map[int]string
 	// names and descriptions per interface language, by upper case title ID
 	Localized map[string]map[string]LocalizedTitle
+	// what the user changed of games by hand, by upper case title ID: it wins over the titles,
+	// their translations and what the files tell (see LocalizedTitle)
+	Edited map[string]EditedTitle
 }
 
-// LocalizedTitle returns the name and description of a title in a language, if known.
+// EditedTitle is what the user changed of a game by hand; what is empty stays as it was.
+type EditedTitle struct {
+	Name        string
+	Description string
+	// the file of the cover chosen, in the folder of the covers chosen
+	Cover string
+}
+
+// LocalizedTitle returns the name and description of a title in a language, if known: the
+// ones the user wrote, in every language, else those of the translation.
 func (s *SwitchTitlesDB) LocalizedTitle(lang string, titleId string) (LocalizedTitle, bool) {
-	if s == nil || s.Localized == nil {
+	if s == nil {
 		return LocalizedTitle{}, false
 	}
-	title, ok := s.Localized[lang][strings.ToUpper(titleId)]
+	id := strings.ToUpper(titleId)
+	title, ok := s.Localized[lang][id]
+	if edited, found := s.Edited[id]; found {
+		if edited.Name != "" {
+			title.Name, ok = edited.Name, true
+		}
+		if edited.Description != "" {
+			title.Description, ok = edited.Description, true
+		}
+	}
 	return title, ok
+}
+
+// EditedTitle returns what the user changed of a game by hand, if anything.
+func (s *SwitchTitlesDB) EditedTitle(titleId string) (EditedTitle, bool) {
+	if s == nil {
+		return EditedTitle{}, false
+	}
+	edited, ok := s.Edited[strings.ToUpper(titleId)]
+	return edited, ok
 }
 
 // CreateSwitchTitleDB builds the titles database from titles.json and versions.json.

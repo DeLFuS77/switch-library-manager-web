@@ -26,7 +26,7 @@ type QueuedTask struct {
 	Added time.Time `json:"added"`
 	// the files, as the library had them; nil for a check of the whole library
 	Paths []string `json:"paths,omitempty"`
-	// the level of a compression
+	// the level of a compression, or of a check (see verifyLevel)
 	Level string `json:"level,omitempty"`
 	// the originals are deleted once their new files are checked
 	Delete bool `json:"delete,omitempty"`
@@ -34,8 +34,20 @@ type QueuedTask struct {
 	Names map[string]string `json:"names,omitempty"`
 	// a check: the files checked less than this ago are left out (see startVerificationOf)
 	Recheck time.Duration `json:"recheck,omitempty"`
-	// a check of the signatures only (see startSignatureCheck)
+	// a check of the signatures only, as older versions queued it (see CheckLevel)
 	Signatures bool `json:"signatures,omitempty"`
+}
+
+// CheckLevel is the level of a check: of the signatures, of the hashes or both.
+func (task QueuedTask) CheckLevel() string {
+	if task.Kind != TASK_VERIFY {
+		return ""
+	}
+	if task.Signatures {
+		return VERIFY_LEVEL_SIGNATURE
+	}
+	level, _ := verifyLevel(task.Level)
+	return level
 }
 
 type taskQueue struct {
@@ -212,10 +224,7 @@ func (web *Web) startQueued(task QueuedTask) bool {
 	case TASK_SPLIT:
 		return web.startSplitBy(task.Paths, task.Delete, TRIGGER_MANUAL)
 	case TASK_VERIFY:
-		if task.Signatures {
-			return web.startSignatureCheck(task.Recheck == verifyRecheckAll, TRIGGER_MANUAL)
-		}
-		return web.startVerificationOf(task.Paths, task.Recheck, TRIGGER_MANUAL)
+		return web.startVerificationAt(task.CheckLevel(), task.Paths, task.Recheck, TRIGGER_MANUAL)
 	}
 	// a kind this version does not know: dropped, not kept waiting for good
 	return true

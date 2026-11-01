@@ -566,6 +566,47 @@
 	color: var(--bs-secondary-color);
 }
 
+// On a computer the account menu ends the full header. On a phone or a tablet it takes the place
+// of the menu button, as the sections are in the bar at the bottom and in its More. The couch mode
+// hides that bar: there the menu button and its panel stay, the account inside.
+.account-menu {
+	display: none;
+
+	@include media-breakpoint-up(xxl) {
+		display: block;
+	}
+}
+
+@include bottom-nav-screens {
+	html:not(.is-couch) {
+		.account-menu {
+			display: block;
+		}
+
+		.app-header .navbar-toggler,
+		.nav-account-section {
+			display: none;
+		}
+
+		// the avatar without its arrow, in the room of the menu button
+		.account-toggle::after {
+			display: none;
+		}
+
+		// the menu scrolls between the header and the bar, also on a phone on its side
+		.account-menu .dropdown-menu {
+			max-height: calc(100vh - 4.5rem - var(--slm-bottom-nav));
+			overflow-y: auto;
+		}
+
+		// the panel of More ends above the bar: its last item is never under it, and More closes
+		// it again
+		.app-header .offcanvas {
+			bottom: var(--slm-bottom-nav);
+		}
+	}
+}
+
 // an icon that turns: its box is a square around its glyph alone, so it turns around its
 // centre without wobbling
 @mixin spinning-icon($duration) {

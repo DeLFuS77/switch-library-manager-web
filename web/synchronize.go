@@ -16,6 +16,8 @@ func (web *Web) Synchronize(trigger string) bool {
 	if !web.state.startSync() {
 		return false
 	}
+	// it reads the files as they are now: a rescan asked before is done by it
+	web.rescanPending.Store(false)
 	taskId := web.startTask(TASK_SYNC, trigger)
 	web.scanStarted.Store(time.Now().UnixNano())
 
@@ -39,6 +41,12 @@ func (web *Web) Synchronize(trigger string) bool {
 		defer settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
 			s.LastSyncTime = time.Now()
 		})
+		// a panic: the synchronization fails (the steps above end it), the app goes on
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				failure = web.crashed(TASK_SYNC, recovered)
+			}
+		}()
 
 		currentSwitchDB, _ := web.state.get()
 
@@ -109,6 +117,8 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 	if !web.state.startSync() {
 		return false
 	}
+	// it reads the files as they are now: a rescan asked before is done by it
+	web.rescanPending.Store(false)
 	taskId := web.startTask(TASK_SCAN, trigger)
 	web.scanStarted.Store(time.Now().UnixNano())
 
@@ -135,6 +145,12 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 		defer func() {
 			if failure == nil {
 				web.scansDone.Add(1)
+			}
+		}()
+		// a panic: the scan fails (the steps above end it), the app goes on
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				failure = web.crashed(TASK_SCAN, recovered)
 			}
 		}()
 

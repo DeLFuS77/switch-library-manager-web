@@ -95,6 +95,8 @@
 						<li class="settings-nav-heading d-none d-lg-block">{{t "Extras"}}</li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#vault"><span class="bi bi-safe me-2" aria-hidden="true"></span>{{t "Save vault"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#mobile"><span class="bi bi-phone me-2" aria-hidden="true"></span>{{t "App on your phone"}}</a></li>
+						<li class="settings-nav-heading d-none d-lg-block">{{t "Access"}}</li>
+						<li class="nav-item"><a class="nav-link" href="{{$base}}#portal"><span class="bi bi-door-open me-2" aria-hidden="true"></span>{{t "Sign-in portal"}}</a></li>
 						<li class="settings-nav-heading d-none d-lg-block">{{t "Maintenance"}}</li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#quarantine"><span class="bi bi-hourglass-split me-2" aria-hidden="true"></span>{{t "Quarantine"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#backup"><span class="bi bi-life-preserver me-2" aria-hidden="true"></span>{{t "Backup"}}</a></li>
@@ -104,7 +106,7 @@
 {{- end}}
 
 {{- define "bottomLink"}}
-		<a class="bottom-link{{if eq .Page .Id}} active{{end}}" href="{{.Href}}"{{if eq .Page .Id}} aria-current="page"{{end}}><span class="bi {{.Icon}}" aria-hidden="true">{{if gt .Count 0}}<span class="bottom-badge">{{if gt .Count 99}}99+{{else}}{{.Count}}{{end}}</span>{{end}}</span><span class="bottom-label">{{.Label}}</span></a>
+		<a class="bottom-link{{if eq .Page .Id}} active{{end}}{{if .Wide}} bottom-wide-only{{end}}" href="{{.Href}}"{{if eq .Page .Id}} aria-current="page"{{end}}><span class="bi {{.Icon}}" aria-hidden="true">{{if gt .Count 0}}<span class="bottom-badge{{with .Badge}} {{.}}{{end}}">{{if gt .Count 99}}99+{{else}}{{.Count}}{{end}}</span>{{end}}</span><span class="bottom-label">{{.Label}}</span>{{if gt .Count 0}}<span class="visually-hidden bottom-count"> {{with .CountLabel}}{{.}}{{else}}{{num .Count}}{{end}}</span>{{end}}</a>
 {{- end}}
 
 {{- define "miniCard"}}
@@ -170,4 +172,41 @@
 								<div class="progress-bar" style="width: {{percentOf .Count .Max}}%"></div>
 							</div>
 						</div>
+{{- end}}
+
+{{- define "setupCodeHelp"}}
+								<div class="form-text setup-code-help" id="{{.}}"><span class="bi bi-terminal me-1" aria-hidden="true"></span>{{if inContainer}}{{tCode "It is in the log of the container, where it says %v. On Unraid: Docker tab, icon of the app, Logs." "SETUP CODE"}}{{else}}{{tCode "It is in the window of the program, where it says %v." "SETUP CODE"}}{{end}}</div>
+								<details class="setup-code-where mt-1">
+									<summary>{{t "Where is the log?"}}</summary>
+									<ul class="text-body-secondary">
+										<li><strong class="text-body">Unraid</strong>: {{t "Docker tab, click the icon of the app, Logs."}}</li>
+										<li><strong class="text-body">Synology</strong>: {{t "Container Manager, Container, the app, Details, Log."}}</li>
+										<li><strong class="text-body">Portainer</strong>: {{t "Containers, the app, Logs."}}</li>
+										<li><strong class="text-body">Docker</strong>: <code>docker logs switch-library-manager-web</code></li>
+										<li><strong class="text-body">{{t "Windows and macOS"}}</strong>: {{t "the window of the program, which opens with it."}}</li>
+									</ul>
+									<p class="text-body-secondary mb-0 mt-1">{{t "It changes every time the app starts: after a restart, the new one is in the last lines."}}</p>
+								</details>
+{{- end}}
+
+{{- /* an API key in My account (with the icon of its name) or in Users (with the avatar of its user):
+	dict "Key" KeyRow "Owner" (in Users) "Me" (the name of who looks) */}}
+{{- define "keyRow"}}
+						<li class="surface key-row">
+							{{- if .Owner}}
+							<span class="user-avatar user-avatar-sm{{with .Key.Color}} avatar-{{.}}{{end}}" title="{{.Key.User}}" aria-hidden="true">{{initial .Key.User}}</span>
+							{{- else}}
+							<span class="key-icon" aria-hidden="true"><span class="bi {{.Key.Icon}}"></span></span>
+							{{- end}}
+							<div class="flex-grow-1 min-w-0">
+								<div class="fw-semibold text-break">{{.Key.Name}} <span class="chip {{if eq .Key.Role "admin"}}chip-success{{else}}chip-muted{{end}} ms-1">{{t .Key.RoleName}}</span></div>
+								<div class="small text-body-secondary">{{if .Owner}}{{.Key.User}}{{if eq .Key.User .Me}} ({{t "you"}}){{end}} &middot; {{end}}<span class="key-hint">{{.Key.Hint}}</span> &middot; {{t "Made %v" (formatDateTime .Key.Created)}} &middot; {{if .Key.LastUsed.IsZero}}{{t "Never used"}}{{else}}{{t "Last used %v" (formatDateTime .Key.LastUsed)}}{{end}}</div>
+								{{- if .Key.MadeAs}}
+								<div class="key-lowered"><span class="bi bi-arrow-down-circle me-1" aria-hidden="true"></span>{{t "Made as %v: it does no more than its user does now." (t .Key.MadeAsName)}}</div>
+								{{- end}}
+							</div>
+							<div class="key-actions">
+								<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill text-nowrap" data-key-revoke="{{.Key.ID}}" data-confirm="{{t "Revoke the key “%v”? What uses it stops signing in." .Key.Name}}"><span class="bi bi-x-circle me-1" aria-hidden="true"></span>{{t "Revoke"}}</button>
+							</div>
+						</li>
 {{- end}}

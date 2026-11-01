@@ -11,6 +11,16 @@
 						<p class="text-body-secondary">{{t "Anyone who can open this app has full access. Create an administrator to require a login."}}</p>
 						<form class="row g-2 align-items-end" method="post" action="/users/create">
 							<input type="hidden" name="role" value="admin">
+							<!-- the setup code of the log: being on the local network is not enough -->
+							<div class="col-12 col-lg-6 mb-2">
+								<label class="form-label fw-semibold" for="firstCode">{{t "Setup code"}}</label>
+								<input class="form-control setup-code-input{{if .CodeError}} is-invalid{{end}}" id="firstCode" name="setup_code" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX" maxlength="32" required aria-describedby="firstCodeHelp{{if .CodeError}} firstCodeError{{end}}"{{if .CodeError}} aria-invalid="true" autofocus{{end}}>
+								{{- if .CodeError}}
+								<div class="invalid-feedback d-block" id="firstCodeError"><span class="bi bi-x-circle-fill me-1" aria-hidden="true"></span>{{.CodeError}}</div>
+								{{- end}}
+								{{- template "setupCodeHelp" "firstCodeHelp"}}
+							</div>
+							<div class="w-100 m-0"></div>
 							<div class="col-sm-6 col-lg-5">
 								<label class="form-label fw-semibold" for="firstName">{{t "User name"}}</label>
 								<input class="form-control" id="firstName" name="name" autocomplete="username" autocapitalize="none" spellcheck="false" required pattern="[A-Za-z0-9._\-]{1,32}">
@@ -45,8 +55,9 @@
 						<span class="user-avatar{{with .Color}} avatar-{{.}}{{end}}" aria-hidden="true">{{initial .Name}}</span>
 						<div class="flex-grow-1 min-w-0">
 							<div class="fw-semibold">{{.Name}}{{if eq .Name $me}} <span class="text-body-secondary fw-normal">({{t "you"}})</span>{{end}}
-								{{- if .IsAdmin}} <span class="chip chip-success ms-1">{{t "Administrator"}}</span>{{else}} <span class="chip chip-muted ms-1">{{t (roleName .Role)}}</span>{{end}}</div>
-							<div class="small text-body-secondary">{{t "Created %v" (formatDateTime .Created)}} &middot; {{if .LastLogin.IsZero}}{{t "Never signed in"}}{{else}}{{t "Last sign-in %v" (formatDateTime .LastLogin)}}{{end}}</div>
+								{{- if .IsAdmin}} <span class="chip chip-success ms-1">{{t "Administrator"}}</span>{{else}} <span class="chip chip-muted ms-1">{{t (roleName .Role)}}</span>{{end}}
+								{{- if not .HasPassword}} <span class="chip chip-info ms-1"><span class="bi bi-door-open me-1" aria-hidden="true"></span>{{t "No password"}}</span>{{end}}</div>
+							<div class="small text-body-secondary">{{with .Email}}<span class="bi bi-envelope me-1" aria-hidden="true"></span><span class="text-break">{{.}}</span> &middot; {{end}}{{t "Created %v" (formatDateTime .Created)}} &middot; {{if .LastLogin.IsZero}}{{t "Never signed in"}}{{else}}{{t "Last sign-in %v" (formatDateTime .LastLogin)}}{{end}}</div>
 						</div>
 						<details class="user-actions">
 							<summary class="btn btn-sm btn-outline-secondary rounded-pill"><span class="bi bi-pencil me-1" aria-hidden="true"></span>{{t "Edit"}}</summary>
@@ -63,6 +74,15 @@
 										</select>
 										<button class="btn btn-outline-primary" type="submit">{{t "Change"}}</button>
 									</div>
+								</form>
+								<form class="mb-3" method="post" action="/users/email">
+									<input type="hidden" name="name" value="{{.Name}}">
+									<label class="form-label small fw-semibold" for="email-{{.Name}}">{{t "Email for the sign-in portal"}}</label>
+									<div class="input-group input-group-sm">
+										<input class="form-control" id="email-{{.Name}}" name="email" type="email" value="{{.Email}}" maxlength="256" autocomplete="off" spellcheck="false" aria-describedby="email-help-{{.Name}}">
+										<button class="btn btn-outline-primary" type="submit">{{t "Save"}}</button>
+									</div>
+									<div class="form-text" id="email-help-{{.Name}}">{{t "The one of their account in Authelia, Authentik or Cloudflare. Empty removes it."}}</div>
 								</form>
 								<form class="mb-3" method="post" action="/users/password">
 									<input type="hidden" name="name" value="{{.Name}}">
@@ -83,6 +103,19 @@
 					</li>
 					{{- end}}
 				</ul>
+			</section>
+			<section class="mb-4" id="keys" aria-labelledby="keysTitle">
+				<h2 class="section-title" id="keysTitle"><span class="bi bi-key" aria-hidden="true"></span>{{t "API keys"}}</h2>
+				{{- if .Keys}}
+				<p class="text-body-secondary small">{{t "Each user makes their own in My account. Here you can revoke any of them; the key itself cannot be seen."}}</p>
+				<ul class="list-unstyled key-list mb-0">
+					{{- range .Keys}}
+					{{- template "keyRow" (dict "Key" . "Owner" true "Me" $.Auth.User)}}
+					{{- end}}
+				</ul>
+				{{- else}}
+				<p class="text-body-secondary small mb-0">{{t "No user has API keys. Each user makes their own in My account, for Home Assistant or a script."}}</p>
+				{{- end}}
 			</section>
 			<section class="surface" aria-labelledby="addUserTitle">
 				<h2 class="section-title" id="addUserTitle"><span class="bi bi-person-plus" aria-hidden="true"></span>{{t "Add a user"}}</h2>

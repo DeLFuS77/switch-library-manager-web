@@ -864,7 +864,7 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 						continue
 					} else if ok {
 						skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate update file (" + fullPath(update.ExtendedInfo) + ")"}
-						zap.S().Warnf("-->Duplicate update file found [%v] and [%v]", update.ExtendedInfo.FileName, file.FileName)
+						zap.S().Debugf("-->Duplicate update file found [%v] and [%v]", update.ExtendedInfo.FileName, file.FileName)
 						continue
 					}
 					switchTitle.Updates[metadata.Version] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
@@ -889,7 +889,7 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 					}
 					if switchTitle.BaseExist {
 						skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate base file (" + fullPath(switchTitle.File.ExtendedInfo) + ")"}
-						zap.S().Warnf("-->Duplicate base file found [%v] and [%v]", file.FileName, switchTitle.File.ExtendedInfo.FileName)
+						zap.S().Debugf("-->Duplicate base file found [%v] and [%v]", file.FileName, switchTitle.File.ExtendedInfo.FileName)
 						continue
 					}
 					switchTitle.File = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
@@ -923,7 +923,7 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 						continue
 					} else if metadata.Version == dlc.Metadata.Version {
 						skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate DLC file (" + fullPath(dlc.ExtendedInfo) + ")"}
-						zap.S().Warnf("-->Duplicate DLC file found [%v] and [%v]", file.FileName, dlc.ExtendedInfo.FileName)
+						zap.S().Debugf("-->Duplicate DLC file found [%v] and [%v]", file.FileName, dlc.ExtendedInfo.FileName)
 						continue
 					}
 				}
@@ -950,6 +950,17 @@ func (ldb *LocalSwitchDBManager) processLocalFiles(switchDB *SwitchTitlesDB, dat
 	// without waiting for thousands of downloads
 	assignCachedCovers(dataFolder, covers)
 	resolveKeptChains(skipped)
+	// one line for all the duplicates, each one listed in Issues and Space: a line each, on every
+	// scan, left nothing else to read in the log
+	duplicates := 0
+	for _, file := range skipped {
+		if file.ReasonCode == REASON_DUPLICATE {
+			duplicates++
+		}
+	}
+	if duplicates > 0 {
+		zap.S().Infof("%d duplicate files found (listed in Issues and Space)", duplicates)
+	}
 }
 
 // PreferDuplicate tells whether the copy file is kept instead of found, the copy of the same

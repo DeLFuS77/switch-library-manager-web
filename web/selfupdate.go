@@ -358,6 +358,8 @@ func (web *Web) restartWith(program string, end func()) {
 		if web.server != nil {
 			web.server.Close()
 		}
+		// the new program reads what the tasks have left
+		web.Stop()
 		if err := startProgram(program); err != nil {
 			web.sugarLogger.Errorf("[Update] the new program could not be started: %v", err)
 			old := program + ".old"

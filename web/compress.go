@@ -198,6 +198,15 @@ type compressor struct {
 	// when they were written, and how many were written, for the list of the copies
 	written        map[string]time.Time
 	writtenVersion int
+	// saves what the task working on the files has left, now: the app is about to stop (see Stop)
+	flush func()
+}
+
+// filesTaken tells whether a task may not start on the files: one works on them, files are
+// being moved or deleted, the server is being measured, or the app is stopping. The caller
+// holds the mutex of the compressor.
+func (web *Web) filesTaken() bool {
+	return web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() || web.stopping.Load()
 }
 
 // rememberWritten keeps a compressed copy just written, until the scan that follows.
@@ -588,6 +597,13 @@ func (web *Web) resumeInterrupted() {
 	if resume == nil {
 		return
 	}
+	// a check reads the files again where they are now, and leaves out the ones it checked
+	if kind == TASK_VERIFY {
+		if web.resumeVerification(resume) {
+			web.continued(id, kind)
+		}
+		return
+	}
 	type left struct{ path, target string }
 	files := []left{}
 	for _, path := range resume.Paths {
@@ -616,7 +632,7 @@ func (web *Web) resumeInterrupted() {
 	// from being written again. Removed only while no task works on the files, under the lock a
 	// task takes to start: a task started by hand meanwhile may be writing that very file
 	web.compressor.mutex.Lock()
-	if web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() {
+	if web.filesTaken() {
 		// kept for when the files are free
 		web.compressor.mutex.Unlock()
 		return
@@ -659,8 +675,18 @@ func (web *Web) resumeInterrupted() {
 	// forgotten once it goes on: kept while another task on files keeps it from starting,
 	// for the next start of the app
 	if started {
-		web.taskLog().SetResume(id, nil)
+		web.continued(id, kind)
 		web.sugarLogger.Infof("[%s goes on after a restart with %d files]", kind, len(paths))
+	}
+}
+
+// continued forgets what a task the app was stopped in the middle of had left, once it went on
+// in a new task (the newest of its kind: it took the files, so no other one started meanwhile),
+// and points it to the new one.
+func (web *Web) continued(id int64, kind string) {
+	web.taskLog().SetResume(id, nil)
+	if next := web.latestTaskId(kind); next != id {
+		web.taskLog().SetContinued(id, next)
 	}
 }
 
@@ -740,7 +766,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	spaceVersion := web.verifications().Version()
 	web.compressor.mutex.Lock()
 	// files are being moved or deleted, or the server is being measured
-	if web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() {
+	if web.filesTaken() {
 		web.compressor.mutex.Unlock()
 		return false
 	}
@@ -814,6 +840,15 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 			// the files are free: the next task of the queue
 			go web.runQueue()
 		}()
+		// a panic outside the work on a file (each file has its own): the task ends failed, the
+		// files are let go, and it is not started again after a restart
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				note := web.crashed(kind, recovered)
+				web.taskLog().SetResume(taskId, nil)
+				web.taskLog().Finish(taskId, note)
+			}
+		}()
 
 		// the sizes not given are asked here, in the background
 		if sizes == nil {
@@ -840,6 +875,17 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 			failure *TaskNote
 			wait    sync.WaitGroup
 		)
+		// the app stopping saves what is left now, not up to half a minute before
+		if resume != nil {
+			web.compressor.mutex.Lock()
+			web.compressor.flush = func() {
+				mutex.Lock()
+				left := leftResume()
+				mutex.Unlock()
+				web.taskLog().SetResume(taskId, left)
+			}
+			web.compressor.mutex.Unlock()
+		}
 		// the bytes each step read and the time it took, over every file, for the time left
 		phases := filePhases[kind]
 		phased := len(phases) > 0 && int64(len(phases)) == passes
@@ -939,14 +985,9 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 					var fileSaved int64
 					err := web.fileThere(path)
 					if err == nil {
-						fileSaved, err = func() (saved int64, err error) {
-							defer func() {
-								if recovered := recover(); recovered != nil {
-									err = fmt.Errorf("unexpected error: %v", recovered)
-								}
-							}()
+						fileSaved, err = safely(func() (int64, error) {
 							return job(ctx, path, report)
-						}()
+						})
 					}
 
 					mutex.Lock()
@@ -1272,7 +1313,7 @@ func (web *Web) releaseFiles() {
 	c := &web.compressor
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	c.cancel, c.kind = nil, ""
+	c.cancel, c.kind, c.flush = nil, "", nil
 	if c.paused {
 		c.paused = false
 		close(c.resume)

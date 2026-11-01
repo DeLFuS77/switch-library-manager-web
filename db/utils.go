@@ -10,10 +10,13 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"syscall"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/klauspost/compress/zstd"
 	"go.uber.org/zap"
 )
 
@@ -22,7 +25,13 @@ const (
 	maxDownloadSize = 1 << 30
 	// a cover or screenshot
 	maxImageSize = 20 << 20
+	// the memory a compressed download may need: the files are compressed with zstd -19, which
+	// needs 8 MB, and --long would need up to 128 MB
+	maxCompressionWindow = 1 << 27
 )
+
+// maxDecompressedSize is the largest a compressed download may grow to; the tests set a small one.
+var maxDecompressedSize int64 = maxDownloadSize
 
 // publicClient downloads the covers named by the titles database: only from addresses on
 // the internet, so a changed database cannot make the app call services of the local network.
@@ -44,6 +53,14 @@ var publicClient = &http.Client{
 		return nil
 	},
 }
+
+// downloadURLRegex is the form of every address the app downloads from: http or https and a
+// host. The addresses of one's own in the settings have it too; anything else is refused before
+// a request is made.
+var downloadURLRegex = regexp.MustCompile(`^https?://[^/?#\s]+([/?#]\S*)?$`)
+
+// errNotHttpUrl is the failure of an address that is not an http or https one.
+var errNotHttpUrl = errors.New("not an http or https address")
 
 // AllowLocalDownloads lets the tests download covers from servers on this computer.
 var AllowLocalDownloads = false
@@ -120,7 +137,8 @@ func (e unanswered) Unwrap() error { return e.error }
 // LoadAndUpdate is LoadAndUpdateFile, also telling whether a new version was downloaded.
 // Downloads are streamed to a temporary file, checked for truncation and for a valid JSON
 // document, and only then replace the local copy, so an interrupted download never
-// damages it. Temporary failures are retried before the next URL is tried; when the first
+// damages it. A URL that ends with settings.COMPRESSED_SUFFIX is decompressed as it is
+// downloaded. Temporary failures are retried before the next URL is tried; when the first
 // URL got no answer at all, the next ones are tried once, as retrying them too would only make
 // a computer with no connection wait longer.
 func LoadAndUpdate(urls []string, filePath string, etag string) (UpdateResult, error) {
@@ -140,6 +158,9 @@ func LoadAndUpdateChecked(urls []string, filePath string, etag string, check fun
 
 // FetchSmall downloads a small text file, at most limit bytes.
 func FetchSmall(url string, limit int64) (string, error) {
+	if !downloadURLRegex.MatchString(url) {
+		return "", errNotHttpUrl
+	}
 	resp, err := httpClient.Get(url)
 	if err != nil {
 		return "", err
@@ -172,9 +193,10 @@ func loadAndUpdateWith(urls []string, filePath string, etag string, check func(p
 		if url == "" {
 			continue
 		}
-		// an etag is only meaningful for the URL it came from
+		// an etag is only meaningful for the URL it came from: the first one, or the second when
+		// the first is the same file compressed, as either may have given it
 		requestEtag := etag
-		if i > 0 {
+		if i > 0 && !(i == 1 && urls[0] == url+settings.COMPRESSED_SUFFIX) {
 			requestEtag = ""
 		}
 
@@ -270,8 +292,12 @@ func downloadWithRetries(url string, etag string, target string, attempts int) (
 	return "", err
 }
 
-// downloadToFile streams url into target and returns the etag of the response.
+// downloadToFile streams url into target, decompressed if it is a compressed file, and returns
+// the etag of the response.
 func downloadToFile(url string, etag string, target string) (string, error) {
+	if !downloadURLRegex.MatchString(url) {
+		return "", errPermanent{errNotHttpUrl}
+	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", errPermanent{err}
@@ -302,7 +328,13 @@ func downloadToFile(url string, etag string, target string) (string, error) {
 		return "", errPermanent{err}
 	}
 	output := &recordingWriter{writer: file}
-	written, copyErr := io.Copy(output, resp.Body)
+	body := &countingReader{reader: resp.Body}
+	var copyErr error
+	if strings.HasSuffix(url, settings.COMPRESSED_SUFFIX) {
+		copyErr = decompressDownload(output, body)
+	} else {
+		_, copyErr = io.Copy(output, body)
+	}
 	closeErr := file.Close()
 	if copyErr != nil {
 		// a disk that is full or cannot be written is not mended by downloading again
@@ -314,11 +346,45 @@ func downloadToFile(url string, etag string, target string) (string, error) {
 	if closeErr != nil {
 		return "", errPermanent{closeErr}
 	}
-	if resp.ContentLength >= 0 && written != resp.ContentLength {
-		return "", fmt.Errorf("download incomplete, got %v of %v bytes", written, resp.ContentLength)
+	if resp.ContentLength >= 0 && body.read != resp.ContentLength {
+		return "", fmt.Errorf("download incomplete, got %v of %v bytes", body.read, resp.ContentLength)
 	}
 
 	return resp.Header.Get("Etag"), nil
+}
+
+// decompressDownload writes the file compressed with zstd that source holds, refusing one larger
+// than maxDecompressedSize: a small file that grows without end must not fill the disk.
+func decompressDownload(output io.Writer, source io.Reader) error {
+	decoder, err := zstd.NewReader(source, zstd.WithDecoderConcurrency(1), zstd.WithDecoderMaxWindow(maxCompressionWindow))
+	if err != nil {
+		return errPermanent{err}
+	}
+	defer decoder.Close()
+	written, err := io.Copy(output, io.LimitReader(decoder, maxDecompressedSize+1))
+	if errors.Is(err, zstd.ErrMagicMismatch) {
+		// not a compressed file at all, as a page the server gives for any address
+		return errPermanent{err}
+	}
+	if err != nil {
+		return err
+	}
+	if written > maxDecompressedSize {
+		return errPermanent{errors.New("the file is too large")}
+	}
+	return nil
+}
+
+// countingReader counts the bytes read, to tell a download cut short.
+type countingReader struct {
+	reader io.Reader
+	read   int64
+}
+
+func (r *countingReader) Read(p []byte) (int, error) {
+	n, err := r.reader.Read(p)
+	r.read += int64(n)
+	return n, err
 }
 
 // recordingWriter keeps the error of a write, to tell it from an error of the download.
@@ -387,6 +453,9 @@ var errNotModified = errors.New("no new updates")
 
 // download gets a URL, refusing answers larger than limit.
 func download(client *http.Client, url string, etag string, limit int64) ([]byte, string, error) {
+	if !downloadURLRegex.MatchString(url) {
+		return nil, "", errNotHttpUrl
+	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, "", err

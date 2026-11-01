@@ -531,8 +531,9 @@ html {
 	}
 }
 
-// a paused task: its bars stand still
-.task-card.is-paused .progress-bar-animated {
+// a paused task, and one that has not moved for a while: its bars stand still
+.task-card.is-paused .progress-bar-animated,
+.task-card.is-stalled .progress-bar-animated {
 	animation: none;
 }
 

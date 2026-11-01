@@ -190,7 +190,10 @@ jobs:
           exit 1
 
       - name: Check that the preferences save
-        run: node scripts/save-check.mjs http://localhost:3001
+        # the first administrator needs the setup code the app wrote in its log
+        run: |
+          SLM_SETUP_CODE="$(grep -o 'SETUP CODE  *[0-9A-Z-]*' save.log | tail -n 1 | awk '{print $3}')" \
+            node scripts/save-check.mjs http://localhost:3001
 
   docker:
     runs-on: ubuntu-24.04
@@ -245,6 +248,20 @@ jobs:
             status=$(docker inspect -f '{{.State.Health.Status}}' slm)
             echo "health: $status"
             [ "$status" = "healthy" ] && exit 0
+            sleep 4
+          done
+          docker logs slm
+          exit 1
+
+      - name: Check health on another port
+        run: |
+          # the health check of the container follows "port" of settings.json
+          docker exec slm sed -i 's/"port": 3000/"port": 8080/' /usr/local/share/switch-library-manager-web/settings.json
+          docker restart slm
+          for i in $(seq 1 45); do
+            status=$(docker inspect -f '{{.State.Health.Status}}' slm)
+            echo "health: $status"
+            [ "$status" = "healthy" ] && docker exec slm wget -q -O /dev/null http://127.0.0.1:8080/healthz && exit 0
             sleep 4
           done
           docker logs slm

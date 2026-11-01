@@ -184,9 +184,16 @@ func nacpPublisher(local *db.SwitchGameFiles) string {
 }
 
 // withLibraryTitles is the titles database with a title for each game of the library it does
-// not list, made again on every scan (so a game removed takes its title away); the database
-// itself is left as it is, as it is shared.
+// not list, made again on every scan (so a game removed takes its title away), and, last, what
+// the user changed of the games by hand, which wins over all of it (see withTitleOverrides); the
+// database itself is left as it is, as it is shared.
 func (web *Web) withLibraryTitles(switchDB *db.SwitchTitlesDB, localDB *db.LocalSwitchFilesDB) *db.SwitchTitlesDB {
+	return web.withTitleOverrides(web.addLibraryTitles(switchDB, localDB))
+}
+
+// addLibraryTitles is the titles database with a title for each game of the library it does not
+// list.
+func (web *Web) addLibraryTitles(switchDB *db.SwitchTitlesDB, localDB *db.LocalSwitchFilesDB) *db.SwitchTitlesDB {
 	if switchDB == nil || localDB == nil {
 		return switchDB
 	}

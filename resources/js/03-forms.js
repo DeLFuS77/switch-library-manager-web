@@ -160,6 +160,11 @@ function onSubmit(form) {
 
 					field.setAttribute('aria-describedby', `validation-feedback-${fieldError.field}`);
 					field.classList.add('is-invalid');
+					// a field in a row that opens (a notification channel) opens it
+					const row = field.closest('details');
+					if (row) {
+						row.open = true;
+					}
 
 					field.parentElement.appendChild(validationFeedback);
 				});

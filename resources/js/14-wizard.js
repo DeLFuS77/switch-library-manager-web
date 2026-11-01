@@ -14,6 +14,12 @@ function initAutomationSettings() {
 	update();
 }
 
+// the field of each notification channel that tells whether it is set, and every field of the
+// channels, as the wizard sends them to a test before they are saved
+const NOTIFY_CHANNELS = ['discord_webhook_url', 'telegram_bot_token', 'ntfy_url', 'gotify_url', 'pushover_user', 'smtp_host', 'webhook_url'];
+const NOTIFY_FIELDS = ['discord_webhook_url', 'telegram_bot_token', 'telegram_chat_id', 'ntfy_url', 'ntfy_token', 'gotify_url', 'gotify_token',
+	'pushover_user', 'pushover_token', 'smtp_host', 'smtp_port', 'smtp_security', 'smtp_user', 'smtp_password', 'smtp_from', 'smtp_to', 'webhook_url'];
+
 // The setup wizard: loaded from the server when it opens (by itself the first time, or from
 // Settings and the quick search), one step at a time, saved with the Settings form at the end.
 let wizardLoading = null;
@@ -432,10 +438,11 @@ function setupWizard(element) {
 	const check = (kind, value) => fetch('/wizard/check', { method: 'POST', cache: 'no-store', body: new URLSearchParams({ kind, value }) })
 		.then(response => (response.ok ? response.json() : Promise.reject(response.status)));
 	const checkLine = (target, result) => {
-		target.className = `wizard-check-line ${result.ok ? 'is-ok' : 'is-bad'}`;
+		const state = result.ok ? 'is-ok' : (result.warn ? 'is-warn' : 'is-bad');
+		target.className = `wizard-check-line ${state}`;
 		target.replaceChildren();
 		const mark = document.createElement('span');
-		mark.className = `bi ${result.ok ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}`;
+		mark.className = `bi ${result.ok ? 'bi-check-circle-fill' : (result.warn ? 'bi-exclamation-triangle-fill' : 'bi-x-circle-fill')}`;
 		mark.setAttribute('aria-hidden', 'true');
 		target.append(mark, document.createTextNode(` ${result.message}`));
 	};
@@ -723,7 +730,7 @@ function setupWizard(element) {
 	updateQuarantine();
 
 	// a step of the automations that needs the keys or a channel says so
-	const channels = ['discord_webhook_url', 'webhook_url', 'telegram_bot_token'];
+	const channels = NOTIFY_CHANNELS;
 	const keysNeeded = element.querySelector('[data-wizard-keys-needed]');
 	const channelNeeded = element.querySelector('[data-wizard-channel-needed]');
 	const updateNeeds = () => {
@@ -731,6 +738,29 @@ function setupWizard(element) {
 		channelNeeded.hidden = !element.querySelector('[data-wizard-needs-channel]').checked || channels.some(name => form.elements[name].value.trim());
 	};
 	element.querySelectorAll('[data-wizard-needs-keys], [data-wizard-needs-channel]').forEach(input => input.addEventListener('change', updateNeeds));
+
+	// a channel is chosen with its card; the fields of the others stay, hidden, so saving keeps them
+	const notifyGroups = [...element.querySelectorAll('[data-wizard-notify-service]')];
+	const showNotifyService = key => {
+		notifyGroups.forEach(group => {
+			group.hidden = group.dataset.wizardNotifyService !== key;
+		});
+	};
+	element.querySelectorAll('[data-wizard-notify-choice]').forEach(choice => choice.addEventListener('change', () => {
+		if (choice.checked) {
+			showNotifyService(choice.value);
+		}
+	}));
+	// a field with an error in a channel that is not chosen: its card is chosen
+	const revealNotifyField = name => {
+		const field = form.elements[name];
+		const group = field && field.closest ? field.closest('[data-wizard-notify-service]') : null;
+		if (group && group.hidden) {
+			const choice = element.querySelector(`[data-wizard-notify-choice][value="${group.dataset.wizardNotifyService}"]`);
+			choice.checked = true;
+			showNotifyService(choice.value);
+		}
+	};
 
 	// a test notification with the channels written here, before they are saved
 	const testButton = element.querySelector('[data-wizard-test-notification]');
@@ -740,10 +770,19 @@ function setupWizard(element) {
 		testResult.className = 'wizard-check-line m-0';
 		testResult.textContent = say('sending');
 		const body = new URLSearchParams({ draft: '1' });
-		[...channels, 'telegram_chat_id'].forEach(name => body.set(name, form.elements[name].value));
+		NOTIFY_FIELDS.forEach(name => body.set(name, form.elements[name].value));
 		fetch('/notifications/test', { method: 'POST', body })
 			.then(response => response.json().catch(() => ({})).then(json => ({ ok: response.ok, json })))
-			.then(({ ok, json }) => checkLine(testResult, { ok, message: ok ? json.message : ((json.globalError && json.globalError.message) || say('unreachable')) }))
+			.then(({ ok, json }) => {
+				const failed = (json.failed || []).join(' · ');
+				if (ok && !failed) {
+					checkLine(testResult, { ok: true, message: json.message });
+				} else if (ok) {
+					checkLine(testResult, { ok: false, warn: true, message: `${json.strongMessage} ${failed}` });
+				} else {
+					checkLine(testResult, { ok: false, message: failed || (json.globalError && json.globalError.message) || say('unreachable') });
+				}
+			})
 			.catch(() => checkLine(testResult, { ok: false, message: say('unreachable') }))
 			.finally(() => {
 				testButton.disabled = false;
@@ -758,8 +797,18 @@ function setupWizard(element) {
 	// made "Save and start" fail again and again without saying why
 	const adminName = form.elements.wizard_admin_name;
 	const adminPassword = form.elements.wizard_admin_password;
+	// the setup code of the log, asked with the first administrator
+	const adminCode = form.elements.wizard_setup_code;
 	const adminResult = element.querySelector('[data-wizard-admin-result]');
 	let adminOk = true;
+	const markCode = bad => {
+		adminCode?.classList.toggle('is-invalid', bad);
+		if (bad) {
+			adminCode?.setAttribute('aria-invalid', 'true');
+		} else {
+			adminCode?.removeAttribute('aria-invalid');
+		}
+	};
 	const checkAdmin = () => {
 		if (authEnabled || !adminName) {
 			return Promise.resolve(true);
@@ -770,12 +819,15 @@ function setupWizard(element) {
 			adminResult.replaceChildren();
 			adminResult.className = 'wizard-check-line';
 			adminOk = true;
+			markCode(false);
 			return Promise.resolve(true);
 		}
-		return fetch('/wizard/admin', { method: 'POST', body: new URLSearchParams({ name, password }) })
+		const code = adminCode ? adminCode.value : '';
+		return fetch('/wizard/admin', { method: 'POST', body: new URLSearchParams({ name, password, setup_code: code }) })
 			.then(response => (response.ok ? response.json() : Promise.reject(response.status)))
 			.then(result => {
 				adminOk = result.ok;
+				markCode(!result.ok && result.field === 'setup_code');
 				if (result.ok) {
 					adminResult.replaceChildren();
 					adminResult.className = 'wizard-check-line';
@@ -793,9 +845,12 @@ function setupWizard(element) {
 	element.querySelector('[data-wizard-show-password]')?.addEventListener('change', e => {
 		adminPassword.type = e.target.checked ? 'text' : 'password';
 	});
-	[adminName, adminPassword].forEach(field => field?.addEventListener('input', () => {
+	[adminName, adminPassword, adminCode].forEach(field => field?.addEventListener('input', () => {
 		adminResult.replaceChildren();
 		showAlert('');
+		if (field === adminCode) {
+			markCode(false);
+		}
 	}));
 
 	// a step goes on only when what it asks is right
@@ -840,7 +895,7 @@ function setupWizard(element) {
 		const folders = folderField.value.split('\n').map(line => line.trim()).filter(Boolean);
 		const automation = ['automation_verify', 'automation_compress', 'automation_cleanup', 'automation_organize', 'automation_notify']
 			.filter(name => form.elements[name].checked).length;
-		const notifications = ['discord_webhook_url', 'webhook_url', 'telegram_bot_token'].some(name => form.elements[name].value.trim());
+		const notifications = NOTIFY_CHANNELS.some(name => form.elements[name].value.trim());
 		const regions = ['preferred_region', 'preferred_region_2', 'preferred_region_3']
 			.filter(name => form.elements[name].value).map(choice);
 		const order = [choice('organize_layout'), form.elements.rename_files.checked ? say('rename') : ''].filter(Boolean).join(' · ');
@@ -950,12 +1005,14 @@ function setupWizard(element) {
 		const body = new FormData(form);
 		body.delete('wizard_admin_name');
 		body.delete('wizard_admin_password');
+		body.delete('wizard_setup_code');
 		fetch('/settings.html', { method: 'POST', body: new URLSearchParams(body) })
 			.then(response => response.json().then(json => ({ ok: response.ok, json })))
 			.then(({ ok, json }) => {
 				if (!ok) {
 					const error = (json.fieldErrors || [])[0];
 					if (error) {
+						revealNotifyField(error.field);
 						const index = stepOf(error.field);
 						if (index >= 0) {
 							show(index, -1);
@@ -971,7 +1028,8 @@ function setupWizard(element) {
 				const name = form.elements.wizard_admin_name ? form.elements.wizard_admin_name.value.trim() : '';
 				const password = form.elements.wizard_admin_password ? form.elements.wizard_admin_password.value : '';
 				if (!authEnabled && name && password) {
-					return fetch('/users/create', { method: 'POST', body: new URLSearchParams({ name, password, role: 'admin' }), redirect: 'follow' })
+					const code = form.elements.wizard_setup_code ? form.elements.wizard_setup_code.value : '';
+					return fetch('/users/create', { method: 'POST', body: new URLSearchParams({ name, password, role: 'admin', setup_code: code }), redirect: 'follow' })
 						.then(response => {
 							const failed = !response.ok || /[?&]error=/.test(response.url);
 							if (failed) {

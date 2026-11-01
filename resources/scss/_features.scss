@@ -462,9 +462,11 @@
 	filter: brightness(0.45) saturate(0.6);
 }
 
-// a file left as it is (nothing in it could be done, as a game in sparse storage to compress)
-// keeps its cover, with an orange edge: it did not fail
-.task-tile.is-skipped .task-tile-cover {
+// a file left as it is (nothing in it could be done, as a game in sparse storage to compress),
+// and a file checked modified (an NCA not signed by Nintendo, nothing damaged), keep their cover,
+// with an orange edge: they did not fail
+.task-tile.is-skipped .task-tile-cover,
+.task-tile.is-modified .task-tile-cover {
 	box-shadow: 0 0 0 2px var(--bs-warning);
 }
 

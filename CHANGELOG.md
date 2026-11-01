@@ -1,5 +1,42 @@
 # Changelog
 
+## 1.68.0
+
+> **Caution:** this version brings many changes, above all to signing in and to tasks, and not every test planned for them has been done yet, so some bugs may remain.
+
+### New
+
+- The name, cover and description of a game can be changed by hand, with Edit on its page: the changes win over the titles database and IGDB, stay through scans and backups, and Organize uses the new name; Back to the original undoes them (thanks @ChapeLu, #133)
+- Notifications to ntfy, Gotify, Pushover and email (SMTP), besides Discord, Telegram and the webhook; Send a test notification tells how each channel went
+- API keys for Home Assistant and scripts (`Authorization: Bearer`), read only or with the role of their user, made and revoked by each user in My account; only their hash is kept
+- Sign-in through Authelia, Authentik or another forward-auth proxy, with a header such as Remote-User believed only from SLM_TRUSTED_PROXIES, or through Cloudflare Access, with its signed token checked. In Settings › Sign-in portal, off until turned on
+- Sign-in with OpenID Connect (PocketID, Authentik, Keycloak or another provider): a button such as Log in with PocketID on the login page, with PKCE, nonce and signature checked, and the first sign-in links the user with the account of the provider. Off until turned on
+
+### Improvements
+
+- Check the files at a level chosen in Issues: Signature, Hash or Both, which replaces Check signatures. A file rewritten by a tool, with an NCA not signed by Nintendo and nothing damaged, is Modified, in orange, and no longer counts as failed
+- The titles database is downloaded only when it changed, and compressed (23 MB instead of 126 MB); the versions of updates also come from borntohonk/titledb and 16BitWonder/nx-versions
+- Tasks tells apart what is no failure: Cancelled, in grey, Stopped by a restart, in orange, and Continued after a restart, in grey; none of them counts as failed. A task that has not moved for 15 minutes says so, and a paused one says what it waits for
+- A check of the files goes on by itself after a restart, as a compression does, and what a task has left is saved before the app stops
+- On phones and tablets the bar at the bottom is the menu, with More: the menu button at the top is gone, and the account opens from the avatar
+- The Unraid template has an optional second folder of games (/mnt/roms2), and the docker-compose.yml files have the line ready
+- The log says how each task ended and how long it took, and the duplicates a scan finds are one line
+
+### Fixes
+
+- Tasks no longer get stuck: the automations no longer let new files through unchecked while another task holds them, a check in the queue no longer waits for good for a scan that never comes, a task that hits an unexpected error ends as failed instead of stopping the app, and the Tasks page no longer shows a task that ended as running
+- Backups keep the copy chosen of each game of several regions
+- In Issues, the reason of a file not signed by Nintendo is in the language of the page
+- The health check of the container uses the port of settings.json instead of always 3000
+- On a phone, the last item of the menu was under the bar at the bottom
+
+### Security
+
+- The first administrator is created with a one-time setup code that the app writes in its log (SETUP CODE) when it starts without users: being on the local network is no longer enough. Installations that already have users, or SLM_AUTH_USERNAME, do not change
+- The tokens and passwords of the new channels, and those written in the address of a webhook, are never sent back to the page or written in the log
+- Downloads and notifications go only to http and https addresses
+- golang.org/x/net 0.62.0 (GO-2026-6860 and GO-2026-6866, in a package the app does not use)
+
 ## 1.67.0
 
 ### New

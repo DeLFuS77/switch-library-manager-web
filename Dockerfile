@@ -12,21 +12,21 @@ RUN mkdir -p $SLM_DATA_DIR /mnt/roms
 # set by docker buildx / BuildKit: amd64 or arm64 (make docker-binaries)
 ARG TARGETARCH
 COPY build/switch-library-manager-web-linux-${TARGETARCH} /usr/local/bin/switch-library-manager-web
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY docker-entrypoint.sh docker-healthcheck.sh /usr/local/bin/
 # the license and where the source code is (GNU AGPL-3.0)
 COPY LICENSE NOTICE.md /usr/share/doc/switch-library-manager-web/
 LABEL org.opencontainers.image.licenses="AGPL-3.0-only" \
       org.opencontainers.image.source="https://github.com/DeLFuS77/switch-library-manager-web"
-RUN chmod 755 /usr/local/bin/switch-library-manager-web /usr/local/bin/docker-entrypoint.sh
+RUN chmod 755 /usr/local/bin/switch-library-manager-web /usr/local/bin/docker-entrypoint.sh /usr/local/bin/docker-healthcheck.sh
 
 VOLUME $SLM_DATA_DIR
 VOLUME /mnt/roms
 
 EXPOSE 3000
 
-# /healthz answers without authentication; the port must match "port" in settings.json
+# /healthz answers without authentication, on the "port" of settings.json (docker-healthcheck.sh)
 HEALTHCHECK --interval=30s --timeout=5s --start-period=2m --retries=3 \
-    CMD wget -q -O /dev/null http://127.0.0.1:3000/healthz || exit 1
+    CMD ["docker-healthcheck.sh"]
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["switch-library-manager-web"]

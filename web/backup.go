@@ -5,9 +5,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"image"
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -16,17 +18,27 @@ import (
 )
 
 const (
-	// the largest backup accepted, the largest file in it (the verification results of a large
-	// library) and all its files together
-	maxBackupSize      = 16 << 20
+	// the largest backup accepted (it holds the covers chosen by hand too), the largest file in
+	// it (the verification results of a large library) and all its files together
+	maxBackupSize      = 64 << 20
 	maxBackupFileSize  = 64 << 20
 	maxBackupTotalSize = 256 << 20
 )
 
 // backupFiles are the files of the data folder kept in a backup: the configuration, the
-// users, the verification results and the notified versions. Console keys, the session
-// key and the caches are never included.
-var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, WISHLIST_FILENAME, ACTIVITY_FILENAME, HISTORY_FILENAME, COLLECTIONS_FILENAME, FAVORITES_FILENAME, PLAY_FILENAME, SMART_COLLECTIONS_FILENAME}
+// users, the verification results and the notified versions, the copies chosen of the games of
+// several regions and what was changed of games by hand. Console keys, the session key and the
+// caches are never included.
+var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, WISHLIST_FILENAME, ACTIVITY_FILENAME, HISTORY_FILENAME, COLLECTIONS_FILENAME, FAVORITES_FILENAME, PLAY_FILENAME, SMART_COLLECTIONS_FILENAME,
+	REGION_CHOICES_FILENAME, TITLE_OVERRIDES_FILENAME}
+
+// backupCover is the name in a backup of a cover chosen by hand, kept in OVERRIDE_COVERS_FOLDER:
+// the name of a file alone, never a path.
+func backupCover(name string) (string, bool) {
+	folder, file := path.Split(name)
+	file = filepath.Base(file)
+	return file, folder == OVERRIDE_COVERS_FOLDER+"/" && overrideCoverName.MatchString(file)
+}
 
 // errors shown to the user, translated by the interface
 var (
@@ -35,7 +47,8 @@ var (
 	ErrBackupAdmin   = errors.New("The backup has users but no administrator.")
 )
 
-var backupErrors = []error{ErrBackupInvalid, ErrBackupFile, ErrBackupAdmin, ErrBackupPasswordNeeded, ErrBackupPasswordWrong, ErrBackupPasswordShort}
+var backupErrors = []error{ErrBackupInvalid, ErrBackupFile, ErrBackupAdmin, ErrBackupPasswordNeeded, ErrBackupPasswordWrong, ErrBackupPasswordShort,
+	ErrBackupSetupCode, ErrSetupCode, ErrSetupCodeBlocked}
 
 // writeBackup writes a ZIP file with the backup files that exist.
 func (web *Web) writeBackup(w io.Writer) error {
@@ -49,6 +62,26 @@ func (web *Web) writeBackup(w io.Writer) error {
 			return err
 		}
 		file, err := archive.CreateHeader(&zip.FileHeader{Name: name, Method: zip.Deflate, Modified: time.Now()})
+		if err != nil {
+			return err
+		}
+		if _, err := file.Write(data); err != nil {
+			return err
+		}
+	}
+	// the covers chosen by hand, images stored as they are
+	for _, override := range web.titleOverrides().snapshot() {
+		if override.Cover == "" {
+			continue
+		}
+		data, err := os.ReadFile(web.overrideCoverPath(override.Cover))
+		if errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		file, err := archive.CreateHeader(&zip.FileHeader{Name: OVERRIDE_COVERS_FOLDER + "/" + override.Cover, Method: zip.Store, Modified: time.Now()})
 		if err != nil {
 			return err
 		}
@@ -73,11 +106,13 @@ func readBackup(data []byte) (map[string][]byte, error) {
 	files := map[string][]byte{}
 	total := 0
 	for _, entry := range archive.File {
-		if _, ok := allowed[entry.Name]; !ok {
+		_, known := allowed[entry.Name]
+		_, cover := backupCover(entry.Name)
+		if !known && !cover {
 			continue
 		}
 		// a file too large or twice is not a backup of the app
-		if _, twice := files[entry.Name]; twice || entry.UncompressedSize64 > maxBackupFileSize {
+		if _, twice := files[entry.Name]; twice || entry.UncompressedSize64 > maxBackupFileSize || cover && entry.UncompressedSize64 > maxOverrideCoverBytes {
 			return nil, ErrBackupFile
 		}
 		reader, err := entry.Open()
@@ -100,6 +135,12 @@ func readBackup(data []byte) (map[string][]byte, error) {
 
 	var target any
 	for name, content := range files {
+		if _, cover := backupCover(name); cover {
+			if !backupCoverImage(content) {
+				return nil, ErrBackupFile
+			}
+			continue
+		}
 		switch name {
 		case settings.SETTINGS_FILENAME:
 			target = &settings.AppSettings{}
@@ -117,9 +158,38 @@ func readBackup(data []byte) (map[string][]byte, error) {
 	return files, nil
 }
 
+// backupCoverImage tells a cover of a backup the app made: a JPEG or PNG image of a size it keeps.
+func backupCoverImage(data []byte) bool {
+	switch http.DetectContentType(data) {
+	case "image/jpeg", "image/png":
+	default:
+		return false
+	}
+	config, _, err := image.DecodeConfig(bytes.NewReader(data))
+	return err == nil && config.Width > 0 && config.Height > 0 && config.Width <= maxOverrideCoverSide && config.Height <= maxOverrideCoverSide
+}
+
+// backupSetupCode checks the setup code sent with a backup: one with users, while login is off,
+// creates the first ones, and needs the code as creating them in Users does.
+func (web *Web) backupSetupCode(given string) func() error {
+	return func() error {
+		err := web.auth.checkSetupCode(given)
+		if err != nil {
+			web.setupCodeFailed(err)
+		}
+		if errors.Is(err, ErrSetupCodeMissing) {
+			return ErrBackupSetupCode
+		}
+		return err
+	}
+}
+
 // restoreBackup replaces the backup files of the data folder with those of the backup
-// and loads them again. Files missing from the backup are left as they are.
-func (web *Web) restoreBackup(data []byte) error {
+// and loads them again. Files missing from the backup are left as they are. Users that the
+// backup brings while login is off are the first ones: firstUsers checks they may come (the
+// setup code), or nil lets them, for the copies the app made itself, which can only hold the
+// accounts this app had.
+func (web *Web) restoreBackup(data []byte, firstUsers func() error) error {
 	files, err := readBackup(data)
 	if err != nil {
 		return err
@@ -136,12 +206,29 @@ func (web *Web) restoreBackup(data []byte) error {
 		if len(users) > 0 && !hasAdmin {
 			return ErrBackupAdmin
 		}
+		if len(users) > 0 && web.auth != nil && !web.auth.Enabled() && firstUsers != nil {
+			if err := firstUsers(); err != nil {
+				return err
+			}
+		}
 		// a backup made before the login was enabled does not disable it
 		if len(users) == 0 && web.auth != nil && web.auth.users.Count() > 0 {
 			delete(files, USERS_FILENAME)
 		}
 	}
 
+	// the covers first, so the changes restored find them
+	for name, content := range files {
+		// the name is checked again where the file is written: a name of the app, inside its folder
+		if cover, ok := backupCover(name); ok && overrideCoverName.MatchString(cover) && filepath.IsLocal(cover) {
+			if err := os.MkdirAll(filepath.Dir(web.overrideCoverPath(cover)), 0755); err != nil {
+				return err
+			}
+			if err := writeFileAtomic(web.overrideCoverPath(cover), content); err != nil {
+				return err
+			}
+		}
+	}
 	for _, name := range backupFiles {
 		content, ok := files[name]
 		if !ok {
@@ -170,6 +257,8 @@ func (web *Web) restoreBackup(data []byte) error {
 			return err
 		}
 		web.auth.forget()
+		// users came back: the setup code is not asked any more
+		web.auth.endSetupCode()
 	}
 	if _, ok := files[VERIFY_FILENAME]; ok {
 		web.verifications().reload()
@@ -196,6 +285,14 @@ func (web *Web) restoreBackup(data []byte) error {
 	}
 	if _, ok := files[WISHLIST_FILENAME]; ok {
 		web.wishes().reload()
+	}
+	if _, ok := files[REGION_CHOICES_FILENAME]; ok {
+		web.regionChoices().reload()
+	}
+	if _, ok := files[TITLE_OVERRIDES_FILENAME]; ok {
+		web.titleOverrides().reload()
+		web.removeUnusedOverrideCovers()
+		web.applyTitleOverrides()
 	}
 	web.invalidateDerived()
 	return nil
@@ -242,7 +339,7 @@ func (web *Web) HandleBackup() {
 		}
 		// a backup sealed with a password is opened first
 		if data, err = decryptBackup(data, r.FormValue("password")); err == nil {
-			err = web.restoreBackup(data)
+			err = web.restoreBackup(data, web.backupSetupCode(r.FormValue("setup_code")))
 		}
 		if err != nil {
 			for _, known := range backupErrors {

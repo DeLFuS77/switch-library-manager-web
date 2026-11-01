@@ -249,6 +249,15 @@
 	&.wizard-choices-cards {
 		grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
 	}
+
+	// the notification channels: smaller cards, two or three in a row on a phone
+	&.wizard-choices-services {
+		grid-template-columns: repeat(auto-fill, minmax(6.25rem, 1fr));
+
+		.wizard-card {
+			padding: .6rem .4rem;
+		}
+	}
 }
 
 .wizard-choice,
@@ -426,6 +435,11 @@
 
 	&.is-bad .bi {
 		color: var(--bs-danger);
+	}
+
+	// a test that reached some channels and not others
+	&.is-warn .bi {
+		color: var(--bs-warning-text-emphasis);
 	}
 
 	code {

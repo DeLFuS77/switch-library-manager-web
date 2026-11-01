@@ -1,4 +1,72 @@
 {
+  "1.68.0": {
+    "en": [
+      "New ways to sign in, in Settings › Sign-in portal: through Authelia, Authentik or Cloudflare Access in front of the app, or with OpenID Connect (PocketID, Authentik, Keycloak). Both are off until turned on.",
+      "Tasks no longer get stuck after a restart or an unexpected error, and a task cancelled or stopped by a restart no longer counts as failed.",
+      "The name, cover and description of a game can be changed with Edit on its page, and Check the files has three levels: Signature, Hash or Both.",
+      "Notifications to ntfy, Gotify, Pushover and email, and API keys for Home Assistant and scripts, in My account."
+    ],
+    "es": [
+      "Nuevas formas de entrar, en Ajustes › Portal de acceso: a través de Authelia, Authentik o Cloudflare Access delante de la app, o con OpenID Connect (PocketID, Authentik, Keycloak). Las dos están apagadas hasta que se encienden.",
+      "Las tareas ya no se quedan enganchadas tras un reinicio o un error inesperado, y una tarea cancelada o parada por un reinicio ya no cuenta como fallida.",
+      "El nombre, la portada y la descripción de un juego se pueden cambiar con Editar en su página, y Comprobar los archivos tiene tres niveles: Firma, Hash o Las dos.",
+      "Avisos a ntfy, Gotify, Pushover y correo, y llaves de API para Home Assistant y scripts, en Mi cuenta."
+    ],
+    "de": [
+      "Neue Wege zur Anmeldung, unter Einstellungen › Anmeldeportal: über Authelia, Authentik oder Cloudflare Access vor der App oder mit OpenID Connect (PocketID, Authentik, Keycloak). Beides ist aus, bis es eingeschaltet wird.",
+      "Aufgaben bleiben nach einem Neustart oder einem unerwarteten Fehler nicht mehr hängen, und eine abgebrochene oder durch einen Neustart angehaltene Aufgabe zählt nicht mehr als fehlgeschlagen.",
+      "Name, Cover und Beschreibung eines Spiels lassen sich mit Bearbeiten auf seiner Seite ändern, und Dateien prüfen hat drei Stufen: Signatur, Hash oder Beides.",
+      "Benachrichtigungen an ntfy, Gotify, Pushover und per E-Mail sowie API-Schlüssel für Home Assistant und Skripte, unter Mein Konto."
+    ],
+    "fr": [
+      "De nouvelles façons de se connecter, dans Paramètres › Portail de connexion : via Authelia, Authentik ou Cloudflare Access devant l'application, ou avec OpenID Connect (PocketID, Authentik, Keycloak). Les deux restent désactivées tant qu'on ne les active pas.",
+      "Les tâches ne restent plus bloquées après un redémarrage ou une erreur inattendue, et une tâche annulée ou arrêtée par un redémarrage ne compte plus comme échouée.",
+      "Le nom, la jaquette et la description d'un jeu se changent avec Modifier sur sa page, et Vérifier les fichiers a trois niveaux : Signature, Hash ou Les deux.",
+      "Des notifications vers ntfy, Gotify, Pushover et par e-mail, et des clés d'API pour Home Assistant et les scripts, dans Mon compte."
+    ],
+    "it": [
+      "Nuovi modi per accedere, in Impostazioni › Portale di accesso: tramite Authelia, Authentik o Cloudflare Access davanti all'app, oppure con OpenID Connect (PocketID, Authentik, Keycloak). Entrambi restano spenti finché non vengono attivati.",
+      "Le attività non restano più bloccate dopo un riavvio o un errore imprevisto, e un'attività annullata o fermata da un riavvio non conta più come fallita.",
+      "Il nome, la copertina e la descrizione di un gioco si cambiano con Modifica nella sua pagina, e Controlla i file ha tre livelli: Firma, Hash o Entrambi.",
+      "Notifiche a ntfy, Gotify, Pushover e via email, e chiavi API per Home Assistant e gli script, in Il mio account."
+    ],
+    "pt": [
+      "Novas formas de entrar, em Configurações › Portal de acesso: pelo Authelia, Authentik ou Cloudflare Access na frente do app, ou com OpenID Connect (PocketID, Authentik, Keycloak). As duas ficam desligadas até serem ligadas.",
+      "As tarefas não ficam mais travadas depois de um reinício ou de um erro inesperado, e uma tarefa cancelada ou parada por um reinício não conta mais como falha.",
+      "O nome, a capa e a descrição de um jogo podem ser mudados com Editar na página dele, e Verificar os arquivos tem três níveis: Assinatura, Hash ou Os dois.",
+      "Notificações para ntfy, Gotify, Pushover e e-mail, e chaves de API para o Home Assistant e scripts, em Minha conta."
+    ],
+    "nl": [
+      "Nieuwe manieren om aan te melden, in Instellingen › Aanmeldportaal: via Authelia, Authentik of Cloudflare Access vóór de app, of met OpenID Connect (PocketID, Authentik, Keycloak). Beide staan uit tot ze worden aangezet.",
+      "Taken blijven niet meer hangen na een herstart of een onverwachte fout, en een geannuleerde of door een herstart gestopte taak telt niet meer als mislukt.",
+      "De naam, de cover en de beschrijving van een spel zijn te wijzigen met Bewerken op de pagina ervan, en Controleer de bestanden heeft drie niveaus: Handtekening, Hash of Beide.",
+      "Meldingen naar ntfy, Gotify, Pushover en e-mail, en API-sleutels voor Home Assistant en scripts, in Mijn account."
+    ],
+    "ru": [
+      "Новые способы входа, в «Настройки › Портал входа»: через Authelia, Authentik или Cloudflare Access перед приложением или через OpenID Connect (PocketID, Authentik, Keycloak). Оба выключены, пока их не включат.",
+      "Задачи больше не зависают после перезапуска или неожиданной ошибки, а задача, отменённая или остановленная перезапуском, больше не считается неудачной.",
+      "Название, обложку и описание игры можно изменить кнопкой «Изменить» на её странице, а у «Проверить файлы» три уровня: Подпись, Хеш или Оба.",
+      "Уведомления в ntfy, Gotify, Pushover и по электронной почте, а также API-ключи для Home Assistant и скриптов — в разделе «Моя учётная запись»."
+    ],
+    "ja": [
+      "新しいサインイン方法を 設定 › サインインポータル に追加しました。アプリの前に置いた Authelia、Authentik、Cloudflare Access を通すか、OpenID Connect（PocketID、Authentik、Keycloak）を使えます。どちらもオンにするまではオフです。",
+      "再起動や予期しないエラーのあとでタスクが止まったままになることはなくなり、キャンセルされたタスクや再起動で停止したタスクは失敗として数えられなくなりました。",
+      "ゲームの名前、カバー画像、説明はそのページの 編集 で変更できます。ファイルを確認 には 署名、ハッシュ、両方 の3段階があります。",
+      "ntfy、Gotify、Pushover、メールへの通知と、Home Assistant やスクリプト用の APIキーを マイアカウント で使えます。"
+    ],
+    "ko": [
+      "새 로그인 방법이 설정 › 로그인 포털에 추가되었습니다. 앱 앞에 둔 Authelia, Authentik 또는 Cloudflare Access를 거치거나 OpenID Connect(PocketID, Authentik, Keycloak)로 로그인합니다. 둘 다 켜기 전까지는 꺼져 있습니다.",
+      "재시작이나 예기치 않은 오류 뒤에도 작업이 멈춘 채로 남지 않으며, 취소되었거나 재시작으로 중지된 작업은 더 이상 실패로 세지 않습니다.",
+      "게임의 이름, 커버, 설명을 해당 페이지의 편집으로 바꿀 수 있고, 파일 검사하기에는 서명, 해시, 둘 다의 세 단계가 있습니다.",
+      "ntfy, Gotify, Pushover, 이메일 알림과 Home Assistant 및 스크립트용 API 키를 내 계정에서 쓸 수 있습니다."
+    ],
+    "zh": [
+      "新的登录方式位于 设置 › 登录门户：通过放在应用前面的 Authelia、Authentik 或 Cloudflare Access，或使用 OpenID Connect（PocketID、Authentik、Keycloak）。两者在开启之前都处于关闭状态。",
+      "任务在重启或意外错误后不再卡住，已取消或因重启而停止的任务也不再算作失败。",
+      "游戏的名称、封面和简介可以在其页面上用 编辑 修改，检查文件 有三个级别：签名、哈希或两者。",
+      "可以通知到 ntfy、Gotify、Pushover 和电子邮件，并可在 我的账户 中为 Home Assistant 和脚本创建 API 密钥。"
+    ]
+  },
   "1.67.0": {
     "en": [
       "New in Settings: a quarantine. What the app deletes from the library can wait in a hidden folder for a while and be put back from there. It is off until it is turned on, and the setup wizard asks about it.",

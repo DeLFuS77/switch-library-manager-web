@@ -89,7 +89,7 @@ func TestRestoreBackupNeedsAnAdministrator(t *testing.T) {
 		settings.SETTINGS_FILENAME: "{}",
 		USERS_FILENAME:             `[{"name":"ana","role":"viewer","password_hash":"x"}]`,
 	})
-	if err := web.restoreBackup(backup); !errors.Is(err, ErrBackupAdmin) {
+	if err := web.restoreBackup(backup, nil); !errors.Is(err, ErrBackupAdmin) {
 		t.Fatalf("got %v", err)
 	}
 	if _, err := os.Stat(filepath.Join(web.dataFolder, USERS_FILENAME)); err == nil {
@@ -113,7 +113,7 @@ func TestBackupRestoreRoundTrip(t *testing.T) {
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.ConsoleFirmware = "19.0.0" })
 
 	before := settings.Version()
-	if err := web.restoreBackup(buffer.Bytes()); err != nil {
+	if err := web.restoreBackup(buffer.Bytes(), nil); err != nil {
 		t.Fatal(err)
 	}
 	if got := settings.ReadSettings(web.dataFolder).ConsoleFirmware; got != "18.1.0" {
@@ -218,7 +218,7 @@ func TestEncryptedBackupThroughThePages(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := web.restoreBackup(plain); err != nil {
+	if err := web.restoreBackup(plain, nil); err != nil {
 		t.Fatal(err)
 	}
 	if got := settings.ReadSettings(web.dataFolder).ConsoleFirmware; got != "18.1.0" {
