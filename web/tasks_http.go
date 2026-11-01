@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/gorilla/mux"
 )
 
@@ -18,8 +19,56 @@ type TasksPageData struct {
 	Finished []TaskGroup
 	// the tasks on files waiting for their turn
 	Queue []QueuedView
+	// what waits while a task on files is paused
+	Waits PausedWaits
 	// the version of the task list, so the page knows when to refresh
 	ListVersion int64
+}
+
+// PausedWaits is what waits while a task on files is paused, as it holds the files: the tasks of
+// the queue, a scheduled synchronization that is due, the new files of the automations.
+type PausedWaits struct {
+	Queue      int
+	Sync       bool
+	Automation int
+}
+
+// Text is what waits, in a sentence of the language: "2 tasks in the queue, the scheduled
+// synchronization and 4 new files of the automations"; "" when nothing waits.
+func (w PausedWaits) Text(lang string) string {
+	parts := []string{}
+	switch {
+	case w.Queue == 1:
+		parts = append(parts, translate(lang, "1 task in the queue"))
+	case w.Queue > 1:
+		parts = append(parts, translatef(lang, "%v tasks in the queue", formatNumber(lang, w.Queue)))
+	}
+	if w.Sync {
+		parts = append(parts, translate(lang, "the scheduled synchronization"))
+	}
+	switch {
+	case w.Automation == 1:
+		parts = append(parts, translate(lang, "1 new file of the automations"))
+	case w.Automation > 1:
+		parts = append(parts, translatef(lang, "%v new files of the automations", formatNumber(lang, w.Automation)))
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	if len(parts) == 1 {
+		return parts[0]
+	}
+	return translatef(lang, "%v and %v", strings.Join(parts[:len(parts)-1], ", "), parts[len(parts)-1])
+}
+
+// pausedWaits is what waits now while a task on files is paused.
+func (web *Web) pausedWaits() PausedWaits {
+	appSettings := settings.ReadSettings(web.dataFolder)
+	waits := PausedWaits{Queue: len(web.queue().list()), Sync: syncDue(appSettings, time.Now())}
+	if appSettings.Automation.Any() {
+		waits.Automation = web.automationPending()
+	}
+	return waits
 }
 
 func (web *Web) tasksPageData() TasksPageData {
@@ -33,12 +82,17 @@ func (web *Web) tasksPageData() TasksPageData {
 func (web *Web) taskListData() TasksPageData {
 	data := TasksPageData{Running: []Task{}, ListVersion: web.taskLog().Version()}
 	finished := []Task{}
+	paused := false
 	for _, task := range web.taskLog().Snapshot() {
 		if task.Running() {
 			data.Running = append(data.Running, web.withCovers(task))
+			paused = paused || task.Paused
 		} else {
 			finished = append(finished, web.withCovers(task))
 		}
+	}
+	if paused {
+		data.Waits = web.pausedWaits()
 	}
 	data.Finished = groupTasks(finished)
 	data.Queue = web.queuedViews()
@@ -236,6 +290,8 @@ const (
 type apiTask struct {
 	Task
 	Text string `json:"text,omitempty"`
+	// a failed task that is no failure: cancelled, stopped by a restart, or gone on after it
+	Ending string `json:"ending,omitempty"`
 }
 
 func (web *Web) HandleTasks() {
@@ -263,7 +319,7 @@ func (web *Web) HandleTasks() {
 		result := make([]apiTask, len(tasks))
 		for i := range tasks {
 			tasks[i].Resume, tasks[i].Results = nil, nil
-			result[i] = apiTask{Task: tasks[i], Text: messageText(lang, tasks[i].Message, tasks[i].MessageArg)}
+			result[i] = apiTask{Task: tasks[i], Text: messageText(lang, tasks[i].Message, tasks[i].MessageArg), Ending: tasks[i].Ending()}
 		}
 		writeJSON(w, http.StatusOK, result)
 	}).Methods("GET")

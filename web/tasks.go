@@ -435,6 +435,79 @@ func (t Task) Running() bool {
 	return t.Status == TASK_RUNNING
 }
 
+// how a task that did not end well ended when it is no failure
+const (
+	// the user stopped it
+	ENDING_CANCELLED = "cancelled"
+	// a restart of the app stopped it (an update, the nightly backup of a NAS)
+	ENDING_STOPPED = "stopped"
+	// and it went on by itself in another task once the app started again
+	ENDING_CONTINUED = "continued"
+)
+
+// Ending tells how a task that did not end well ended when that is no failure: cancelled by the
+// user, stopped by a restart of the app, or stopped and gone on in another task. "" for a
+// failure and for a task that ended well. These are neither red nor counted as failures.
+func (t Task) Ending() string {
+	if t.Status != TASK_FAILED || t.Error == nil {
+		return ""
+	}
+	switch {
+	case t.Error.Text == NOTE_INTERRUPTED && t.ContinuedIn != 0:
+		return ENDING_CONTINUED
+	case t.Error.Text == NOTE_INTERRUPTED:
+		return ENDING_STOPPED
+	case notWorthTelling[t.Error.Text]:
+		return ENDING_CANCELLED
+	}
+	return ""
+}
+
+// GoesOnByItself tells whether a task a restart stopped is done again without the user: it has
+// files left to go on with, or what started it (a schedule, the automations, a scan, the start of
+// the app) starts it again.
+func (t Task) GoesOnByItself() bool {
+	return t.Resume != nil || t.Trigger != TRIGGER_MANUAL || t.Kind == TASK_SCAN || t.Kind == TASK_COVERS || t.Kind == TASK_THUMBNAILS
+}
+
+// StoppedToday tells whether a task a restart stopped ended today, so its hour says when.
+func (t Task) StoppedToday() bool {
+	return t.Finished.Local().Format("2006-01-02") == time.Now().Format("2006-01-02")
+}
+
+// StoppedClock is the hour a task a restart stopped ended, as 05:00.
+func (t Task) StoppedClock() string {
+	return t.Finished.Local().Format("15:04")
+}
+
+// stallAfter is how long a running task goes without any change before it is told as stuck: a
+// file the task waits for that never comes, a disk that does not answer.
+const stallAfter = 15 * time.Minute
+
+// StalledText is how long a running task has not changed, as "18m", once that is longer than
+// stallAfter; "" otherwise, and while it is paused, which holds it on purpose.
+func (t Task) StalledText() string {
+	return t.stalledTextAt(time.Now())
+}
+
+func (t Task) stalledTextAt(now time.Time) string {
+	if !t.Running() || t.Paused || t.Beat.IsZero() {
+		return ""
+	}
+	if idle := now.Sub(t.Beat); idle >= stallAfter {
+		return formatDuration(idle)
+	}
+	return ""
+}
+
+// PausedText is how long a running task has been paused, as "3h 5m".
+func (t Task) PausedText() string {
+	if !t.Paused || t.PausedAt.IsZero() {
+		return ""
+	}
+	return formatDuration(time.Since(t.PausedAt))
+}
+
 // Percent is the progress of a running task, or -1 when the number of steps is unknown.
 // PercentExact is Percent with two decimals, for the width of the bar: a long task shows
 // that it moved before its first whole percent.
@@ -910,13 +983,14 @@ func (l *TaskLog) Snapshot() []Task {
 	return tasks
 }
 
-// FailedCount counts the failed tasks that were not dismissed.
+// FailedCount counts the failed tasks that were not dismissed: not the ones cancelled or
+// stopped by a restart, which are no failure.
 func (l *TaskLog) FailedCount() int {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	count := 0
 	for _, task := range l.tasks {
-		if task.Status == TASK_FAILED {
+		if task.Status == TASK_FAILED && task.Ending() == "" {
 			count++
 		}
 	}
@@ -990,12 +1064,15 @@ func (l *TaskLog) changed(save bool) {
 	}
 }
 
-// trim drops the oldest finished tasks beyond the limit, but keeps failed ones.
+// trim drops the oldest finished tasks beyond the limit, but keeps failed ones, and the ones a
+// restart stopped that still have files to go on with. A task cancelled or stopped by a restart
+// is no failure, and goes like the others.
 func (l *TaskLog) trim() {
 	kept := []*Task{}
 	finished := 0
 	for _, task := range l.tasks {
-		if task.Status != TASK_RUNNING && task.Status != TASK_FAILED {
+		failed := task.Status == TASK_FAILED && task.Ending() == ""
+		if task.Status != TASK_RUNNING && !failed && task.Resume == nil {
 			finished++
 			if finished > maxFinishedTasks {
 				continue

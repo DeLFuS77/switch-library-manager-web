@@ -28,7 +28,8 @@ function updateTaskIndicator() {
 		.then(tasks => {
 			const active = tasks.filter(task => task.status === 'running');
 			const running = active.length;
-			const failed = tasks.filter(task => task.status === 'failed').length;
+			// cancelled, or stopped by a restart: no failure
+			const failed = tasks.filter(task => task.status === 'failed' && !task.ending).length;
 			// the progress of the first task that knows it, for the ring around the icon
 			const measured = active.find(task => task.total > 0 && task.current >= 0);
 			const percent = measured ? Math.min(100, Math.round(measured.current * 100 / measured.total)) : -1;
