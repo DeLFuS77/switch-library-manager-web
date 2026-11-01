@@ -29,7 +29,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "1.67.0"
+	SLM_WEB_VERSION        = "1.68.0"
 	REPOSITORY_OWNER       = "DeLFuS77"
 	// the release where the "Update title data" workflow of this repository publishes the files
 	// it generates; next to each one it publishes the same file compressed (see CompressedFirst)
