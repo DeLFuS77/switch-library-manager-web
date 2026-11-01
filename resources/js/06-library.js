@@ -204,7 +204,8 @@ function initTitleEdit() {
 			file.value = '';
 			removeCover.value = 'false';
 		}
-		preview.src = value.startsWith('https://') ? value : shown;
+		// encoded as an address, keeping the escapes it already has: only an https image
+		preview.src = value.startsWith('https://') ? encodeURI(value).replace(/%25([0-9A-Fa-f]{2})/g, '%$1') : shown;
 	});
 	preview.addEventListener('error', () => {
 		if (preview.getAttribute('src') !== shown) {
