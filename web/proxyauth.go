@@ -29,6 +29,7 @@ import (
 // It is off by default and never works while there is no user: the first administrator is still
 // made with the setup code. Passwords, basic authentication and API keys keep working as before.
 // An environment variable wins over the same option of Settings, which then shows it locked.
+// Signing in with OpenID Connect matches people with users the same way (see oidc.go).
 
 const (
 	PROXY_HEADER_ENV        = "SLM_AUTH_PROXY_HEADER"
@@ -144,6 +145,7 @@ func readPortalEnv() (settings.PortalOptions, map[string]bool) {
 	}
 	options.AdminGroup = read(PROXY_ADMIN_GROUP_ENV)
 	options.LogoutUrl = read(PROXY_LOGOUT_URL_ENV)
+	readOidcEnv(&options, read)
 	return options, set
 }
 
@@ -154,7 +156,14 @@ func (a *Auth) portal() settings.PortalOptions {
 	if a.portalSettings != nil {
 		options = a.portalSettings()
 	}
+	return a.withEnv(options)
+}
+
+// withEnv returns options of the portal with the ones of the environment over them, and the
+// default names of the headers.
+func (a *Auth) withEnv(options settings.PortalOptions) settings.PortalOptions {
 	env, set := a.portalEnv, a.portalEnvSet
+	oidcFromEnv(&options, env, set)
 	if set[PROXY_HEADER_ENV] {
 		options.Header, options.UserHeader = true, env.UserHeader
 	}
@@ -217,6 +226,8 @@ type portalIdentity struct {
 	Name   string
 	Email  string
 	Groups []string
+	// the account of a provider of OpenID Connect, which no other person can take (see oidc.go)
+	Subject string
 }
 
 // named is how the identity is shown: its name, else its email.
@@ -239,7 +250,8 @@ type portalEvent struct {
 	Via  string
 	IP   string
 	// "ok", "made" (a user was made), "unknown" (no user), "untrusted" (a header from an address
-	// not trusted) or "token" (a token of Cloudflare Access not valid)
+	// not trusted), "token" (a token of Cloudflare Access not valid) or "oidc" (a sign-in with
+	// OpenID Connect that failed)
 	Result string
 	// the role a group gave, the role of a user made, or why a token was not valid
 	Detail string
@@ -373,9 +385,9 @@ func (a *Auth) portalPrincipal(identity *portalIdentity) (portalSignIn, bool, er
 }
 
 // portalTell notes a sign-in through a portal for Settings, and tells the hook of it: a sign-in
-// once a day by user and address, as the portal signs the person in with every request, a user
-// made always, and a person without a user, a header from an address not trusted or a token not
-// valid once an hour by address.
+// once a day by user and address, as the portal signs the person in with every request (with
+// OpenID Connect, each one: it opens a session), a user made always, and a person without a
+// user, a header from an address not trusted or a token not valid once an hour by address.
 func (a *Auth) portalTell(event portalEvent) {
 	now := time.Now()
 	a.portalSeen.note(event, now)
@@ -384,7 +396,7 @@ func (a *Auth) portalTell(event portalEvent) {
 	}
 	switch event.Result {
 	case "ok":
-		if !a.shouldTell("portal:"+event.User, event.IP, event.Result, apiLoginTellInterval, now) {
+		if event.Via != VIA_OIDC && !a.shouldTell("portal:"+event.User, event.IP, event.Result, apiLoginTellInterval, now) {
 			return
 		}
 	case "made":
@@ -449,6 +461,11 @@ type PortalView struct {
 	LastProblemAt time.Time
 	// the roles a new user may get
 	NewUserRoles []string
+	// OpenID Connect is on and has what it needs, the name on its button, and whether a client
+	// secret is saved: the secret itself never goes to the page
+	OidcReady       bool
+	OidcButton      string
+	OidcSecretSaved bool
 }
 
 func (a *Auth) portalView() PortalView {
@@ -457,7 +474,9 @@ func (a *Auth) portalView() PortalView {
 	view := PortalView{Options: options, Env: a.portalEnvSet, TrustedProxies: os.Getenv(TRUSTED_PROXIES_ENV), HeaderProxies: headerProxiesSet(),
 		HeaderReady:     options.Header && validHeaderName(options.UserHeader) && headerProxiesSet(),
 		CloudflareReady: options.Cloudflare && teamOk && cfAudPattern.MatchString(options.CloudflareAud),
-		NewUserRoles:    portalNewUserRoles}
+		NewUserRoles:    portalNewUserRoles,
+		OidcReady:       oidcReady(options), OidcButton: oidcButton(options), OidcSecretSaved: options.OidcClientSecret != ""}
+	view.Options.OidcClientSecret = ""
 	a.portalSeen.mutex.Lock()
 	view.LastOk, view.LastOkAt, view.LastProblem, view.LastProblemAt = a.portalSeen.lastOk, a.portalSeen.lastOkAt, a.portalSeen.lastProblem, a.portalSeen.problemAt
 	a.portalSeen.mutex.Unlock()
@@ -502,6 +521,11 @@ func (s *UserStore) SetEmail(name string, email string) error {
 	if other := s.byEmailLocked(email); other != nil && other != user {
 		return ErrEmailTaken
 	}
+	// another email names another person: the account of OpenID Connect is linked again at the
+	// next sign-in
+	if !strings.EqualFold(user.Email, email) {
+		user.OidcSubject = ""
+	}
 	user.Email = email
 	return s.save()
 }
@@ -525,21 +549,36 @@ func (s *UserStore) portalUser(name string, email string, match string, role str
 	if !slices.Contains(portalNewUserRoles, role) || (len(s.users) == 0 && s.reservedName == "") {
 		return User{}, false, ErrUserNotFound
 	}
-	user := &User{Name: s.freeNameLocked(portalUserName(name, email)), Role: role, Created: time.Now()}
-	if email != "" && s.byEmailLocked(email) == nil {
-		user.Email = email
-	}
+	user := s.newPortalUserLocked(name, email, role)
 	// only a user the person is matched with the next time: else each request would make another
 	if !(match != MATCH_EMAIL && user.Name == name) && !(match != MATCH_NAME && user.Email != "") {
 		return User{}, false, ErrUserNotFound
 	}
+	if err := s.addLocked(user); err != nil {
+		return User{}, false, err
+	}
+	return user.clone(), true, nil
+}
+
+// newPortalUserLocked is the user made for a person a portal or a provider let in, with role and
+// without a password. The mutex must be held.
+func (s *UserStore) newPortalUserLocked(name string, email string, role string) *User {
+	user := &User{Name: s.freeNameLocked(portalUserName(name, email)), Role: role, Created: time.Now()}
+	if email != "" && s.byEmailLocked(email) == nil {
+		user.Email = email
+	}
+	return user
+}
+
+// addLocked stores a new user. The mutex must be held.
+func (s *UserStore) addLocked(user *User) error {
 	key := strings.ToLower(user.Name)
 	s.users[key] = user
 	if err := s.save(); err != nil {
 		delete(s.users, key)
-		return User{}, false, err
+		return err
 	}
-	return user.clone(), true, nil
+	return nil
 }
 
 // portalUserName is the name of a user made for a person: the name the portal sent, else the
@@ -593,8 +632,11 @@ func (s *UserStore) freeNameLocked(name string) string {
 
 // portalViaName is how a portal is named in the activity and the pages.
 func portalViaName(via string) string {
-	if via == VIA_CLOUDFLARE {
+	switch via {
+	case VIA_CLOUDFLARE:
 		return "Cloudflare Access"
+	case VIA_OIDC:
+		return "OpenID Connect"
 	}
 	return "proxy"
 }
@@ -607,6 +649,8 @@ func (web *Web) recordPortal(event portalEvent) {
 		web.sugarLogger.Warnf("A header of the sign-in portal came from %s, which is not in %s: it was ignored", event.IP, TRUSTED_PROXIES_ENV)
 	case "token":
 		web.sugarLogger.Warnf("A token of Cloudflare Access was not valid: %s", event.Detail)
+	case "oidc":
+		web.sugarLogger.Warnf("A sign-in with OpenID Connect failed: %s", event.Detail)
 	}
 	if isDemoMode() {
 		return
@@ -615,8 +659,11 @@ func (web *Web) recordPortal(event portalEvent) {
 	switch event.Result {
 	case "ok":
 		entry.Action, entry.Detail = ACTION_PORTAL_PROXY, event.Detail
-		if event.Via == VIA_CLOUDFLARE {
+		switch event.Via {
+		case VIA_CLOUDFLARE:
 			entry.Action = ACTION_PORTAL_CF
+		case VIA_OIDC:
+			entry.Action = ACTION_PORTAL_OIDC
 		}
 	case "made":
 		entry.Action, entry.Detail = ACTION_USER_NEW, event.User+": "+event.Detail
@@ -626,6 +673,8 @@ func (web *Web) recordPortal(event portalEvent) {
 		entry.Action, entry.Detail = ACTION_LOGIN_FAIL, portalUntrustedDetail
 	case "token":
 		entry.Action, entry.Detail = ACTION_LOGIN_FAIL, portalTokenDetail
+	case "oidc":
+		entry.Action, entry.Detail = ACTION_LOGIN_FAIL, oidcFailedDetail
 	default:
 		return
 	}

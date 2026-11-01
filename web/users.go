@@ -61,6 +61,9 @@ type User struct {
 	APIKeys []APIKey `json:"api_keys,omitempty"`
 	// the email a sign-in portal names the user with, set by an administrator (see proxyauth.go)
 	Email string `json:"email,omitempty"`
+	// the account of the provider of OpenID Connect the user signs in with, linked at the first
+	// sign-in: a hash of its issuer and subject (see oidc.go)
+	OidcSubject string `json:"oidc_subject,omitempty"`
 }
 
 // HasPassword tells a user who can sign in with a password: one made by a sign-in portal has

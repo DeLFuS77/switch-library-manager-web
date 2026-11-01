@@ -597,15 +597,15 @@
 						{{- $p := .Portal.Options}}
 						{{- $env := .Portal.Env}}
 						<h2 class="section-title" id="portalTitle"><span class="bi bi-door-open" aria-hidden="true"></span>{{t "Sign-in portal"}}</h2>
-						<p class="text-body-secondary">{{t "If a sign-in portal already protects the app (Authelia, Authentik or Cloudflare Access), the people it lets in open the app as their user, without writing its password again. Off until you turn it on. Passwords and API keys keep working."}}</p>
+						<p class="text-body-secondary">{{t "If a sign-in portal already protects the app (Authelia, Authentik or Cloudflare Access) or you have a provider of OpenID Connect (PocketID, Authentik, Keycloak), the people it lets in open the app as their user, without writing its password again. Off until you turn it on. Passwords and API keys keep working."}}</p>
 						{{- with .Portal}}
 						{{- if or (not .LastOkAt.IsZero) (not .LastProblemAt.IsZero)}}
 						<div class="d-flex flex-wrap gap-2 mb-3 small">
 							{{- if not .LastOkAt.IsZero}}
-							<span class="chip chip-success"><span class="bi bi-check-circle me-1" aria-hidden="true"></span>{{if eq .LastOk.Via "cloudflare"}}{{t "Last sign-in: %v with Cloudflare Access, %v" .LastOk.User (formatDateTime .LastOkAt)}}{{else}}{{t "Last sign-in: %v through the proxy, %v" .LastOk.User (formatDateTime .LastOkAt)}}{{end}}</span>
+							<span class="chip chip-success"><span class="bi bi-check-circle me-1" aria-hidden="true"></span>{{if eq .LastOk.Via "oidc"}}{{t "Last sign-in: %v with %v, %v" .LastOk.User .OidcButton (formatDateTime .LastOkAt)}}{{else if eq .LastOk.Via "cloudflare"}}{{t "Last sign-in: %v with Cloudflare Access, %v" .LastOk.User (formatDateTime .LastOkAt)}}{{else}}{{t "Last sign-in: %v through the proxy, %v" .LastOk.User (formatDateTime .LastOkAt)}}{{end}}</span>
 							{{- end}}
 							{{- if not .LastProblemAt.IsZero}}
-							<span class="chip chip-warning"><span class="bi bi-exclamation-triangle me-1" aria-hidden="true"></span>{{if eq .LastProblem.Result "untrusted"}}{{t "Header from an address that is not trusted: %v, %v" .LastProblem.IP (formatDateTime .LastProblemAt)}}{{else if eq .LastProblem.Result "token"}}{{t "Cloudflare Access token not valid: %v, %v" .LastProblem.IP (formatDateTime .LastProblemAt)}}{{else}}{{t "No user in the app for %v, %v" .LastProblem.User (formatDateTime .LastProblemAt)}}{{end}}</span>
+							<span class="chip chip-warning"><span class="bi bi-exclamation-triangle me-1" aria-hidden="true"></span>{{if eq .LastProblem.Result "untrusted"}}{{t "Header from an address that is not trusted: %v, %v" .LastProblem.IP (formatDateTime .LastProblemAt)}}{{else if eq .LastProblem.Result "token"}}{{t "Cloudflare Access token not valid: %v, %v" .LastProblem.IP (formatDateTime .LastProblemAt)}}{{else if eq .LastProblem.Result "oidc"}}{{t "Sign-in with %v failed: %v, %v" .OidcButton .LastProblem.IP (formatDateTime .LastProblemAt)}}{{else}}{{t "No user in the app for %v, %v" .LastProblem.User (formatDateTime .LastProblemAt)}}{{end}}</span>
 							{{- end}}
 						</div>
 						{{- end}}
@@ -660,6 +660,50 @@
 								</div>
 							</div>
 
+							<div class="form-check form-switch mb-2">
+								<input class="form-check-input" type="checkbox" role="switch" id="portal_oidc" name="portal_oidc" value="true" aria-describedby="portalOidcHelp"{{if $p.Oidc}} checked{{end}}{{if index $env "SLM_OIDC_ISSUER"}} disabled{{end}}>
+								<label class="form-check-label fw-semibold" for="portal_oidc">{{t "Sign in with OpenID Connect"}}</label>
+								<div class="form-text mt-0" id="portalOidcHelp">{{t "PocketID, Authentik, Keycloak or another provider. The login page shows a button; the app talks to the provider over https only."}}</div>
+							</div>
+							<div class="row g-3 mb-4 ps-md-4">
+								<div class="col-12">
+									<label class="form-label small fw-semibold" for="portal_oidc_issuer">{{t "Address of the provider (issuer)"}}</label>
+									<input class="form-control form-control-sm font-monospace" id="portal_oidc_issuer" name="portal_oidc_issuer" value="{{$p.OidcIssuer}}" placeholder="https://id.example.com" maxlength="2048" autocomplete="off" autocapitalize="none" spellcheck="false" aria-describedby="portalIssuerHelp"{{if index $env "SLM_OIDC_ISSUER"}} disabled{{end}}>
+									{{- template "portalLock" (dict "Env" $env "Name" "SLM_OIDC_ISSUER")}}
+									<div class="form-text" id="portalIssuerHelp">PocketID: <code>https://id.example.com</code> · Authentik: <code>https://auth.example.com/application/o/switch/</code> · Keycloak: <code>https://kc.example.com/realms/home</code></div>
+								</div>
+								<div class="col-md-6">
+									<label class="form-label small fw-semibold" for="portal_oidc_client_id">{{t "Client ID"}}</label>
+									<input class="form-control form-control-sm font-monospace" id="portal_oidc_client_id" name="portal_oidc_client_id" value="{{$p.OidcClientId}}" maxlength="256" autocomplete="off" autocapitalize="none" spellcheck="false"{{if index $env "SLM_OIDC_CLIENT_ID"}} disabled{{end}}>
+									{{- template "portalLock" (dict "Env" $env "Name" "SLM_OIDC_CLIENT_ID")}}
+								</div>
+								<div class="col-md-6">
+									<label class="form-label small fw-semibold" for="portal_oidc_client_secret">{{t "Client Secret"}}</label>
+									<input class="form-control form-control-sm" id="portal_oidc_client_secret" name="portal_oidc_client_secret" type="password" value="" maxlength="2048" autocomplete="new-password" spellcheck="false" placeholder="{{if .Portal.OidcSecretSaved}}{{t "Saved. Leave it empty to keep it."}}{{end}}" aria-describedby="portalSecretHelp"{{if index $env "SLM_OIDC_CLIENT_SECRET"}} disabled{{end}}>
+									{{- template "portalLock" (dict "Env" $env "Name" "SLM_OIDC_CLIENT_SECRET")}}
+									<div class="form-text" id="portalSecretHelp">{{t "Never shown again once saved. Empty if your provider gives the app as a public client."}}</div>
+								</div>
+								<div class="col-md-6">
+									<label class="form-label small fw-semibold" for="portal_oidc_button">{{t "Name on the button"}}</label>
+									<input class="form-control form-control-sm" id="portal_oidc_button" name="portal_oidc_button" value="{{$p.OidcButton}}" placeholder="SSO" maxlength="40" autocomplete="off" aria-describedby="portalButtonHelp"{{if index $env "SLM_OIDC_BUTTON"}} disabled{{end}}>
+									{{- template "portalLock" (dict "Env" $env "Name" "SLM_OIDC_BUTTON")}}
+									<div class="form-text" id="portalButtonHelp">{{t "The login page shows: %v" (t "Log in with %v" .Portal.OidcButton)}}</div>
+								</div>
+								<div class="col-md-6">
+									<label class="form-label small fw-semibold" for="portal_oidc_scopes">{{t "Scopes"}}</label>
+									<input class="form-control form-control-sm font-monospace" id="portal_oidc_scopes" name="portal_oidc_scopes" value="{{$p.OidcScopes}}" placeholder="openid profile email groups" maxlength="512" autocomplete="off" autocapitalize="none" spellcheck="false"{{if index $env "SLM_OIDC_SCOPES"}} disabled{{end}}>
+									{{- template "portalLock" (dict "Env" $env "Name" "SLM_OIDC_SCOPES")}}
+								</div>
+								<div class="col-12">
+									<label class="form-label small fw-semibold" for="portal_oidc_redirect">{{t "Redirect address, for your provider"}}</label>
+									<div class="input-group input-group-sm">
+										<input class="form-control font-monospace" id="portal_oidc_redirect" value="/login/oidc/callback" readonly data-origin-path="/login/oidc/callback" aria-describedby="portalRedirectHelp">
+										<button class="btn btn-outline-secondary" type="button" data-copy="/login/oidc/callback" data-origin-path="/login/oidc/callback" data-copied="{{t "Copied"}}"><span class="bi bi-clipboard me-1" aria-hidden="true"></span><span data-copy-label>{{t "Copy"}}</span></button>
+									</div>
+									<div class="form-text" id="portalRedirectHelp">{{t "PocketID: Callback URLs · Authentik: Redirect URIs · Keycloak: Valid redirect URIs. It is the address you open the app with now."}}</div>
+								</div>
+							</div>
+
 							<h3 class="h6 fw-semibold">{{t "Who is who"}}</h3>
 							<div class="row g-3">
 								<div class="col-md-6">
@@ -686,13 +730,13 @@
 									<label class="form-label small fw-semibold" for="portal_admin_group">{{t "Administrators group"}} <span class="text-body-secondary fw-normal">{{t "(if you like)"}}</span></label>
 									<input class="form-control form-control-sm" id="portal_admin_group" name="portal_admin_group" value="{{$p.AdminGroup}}" placeholder="slm-admins" maxlength="256" autocomplete="off" spellcheck="false" aria-describedby="portalGroupHelp"{{if index $env "SLM_AUTH_PROXY_ADMIN_GROUP"}} disabled{{end}}>
 									{{- template "portalLock" (dict "Env" $env "Name" "SLM_AUTH_PROXY_ADMIN_GROUP")}}
-									<div class="form-text" id="portalGroupHelp">{{t "Whoever is in this group comes in as an administrator. Only with the groups header."}}</div>
+									<div class="form-text" id="portalGroupHelp">{{t "Whoever is in this group comes in as an administrator. With the groups header or the groups of OpenID Connect."}}</div>
 								</div>
 								<div class="col-md-6">
 									<label class="form-label small fw-semibold" for="portal_logout_url">{{t "Address to log out"}} <span class="text-body-secondary fw-normal">{{t "(if you like)"}}</span></label>
 									<input class="form-control form-control-sm font-monospace" id="portal_logout_url" name="portal_logout_url" value="{{$p.LogoutUrl}}" placeholder="https://auth.example.com/logout" maxlength="2048" autocomplete="off" spellcheck="false" aria-describedby="portalLogoutHelp"{{if index $env "SLM_AUTH_PROXY_LOGOUT_URL"}} disabled{{end}}>
 									{{- template "portalLock" (dict "Env" $env "Name" "SLM_AUTH_PROXY_LOGOUT_URL")}}
-									<div class="form-text" id="portalLogoutHelp">{{t "With Cloudflare Access, empty uses its own."}}</div>
+									<div class="form-text" id="portalLogoutHelp">{{t "For the header of the proxy. Cloudflare Access and OpenID Connect use their own."}}</div>
 								</div>
 							</div>
 							<div class="d-flex justify-content-end mt-3">

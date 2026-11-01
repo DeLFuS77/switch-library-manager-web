@@ -234,6 +234,15 @@ type PortalOptions struct {
 	Cloudflare     bool   `json:"cloudflare,omitempty"`
 	CloudflareTeam string `json:"cloudflare_team,omitempty"`
 	CloudflareAud  string `json:"cloudflare_aud,omitempty"`
+	// a button of the login page signs in with OpenID Connect (PocketID, Authentik, Keycloak):
+	// the address of the provider, the client of the app in it, the name on the button and the
+	// scopes asked for
+	Oidc             bool   `json:"oidc,omitempty"`
+	OidcIssuer       string `json:"oidc_issuer,omitempty"`
+	OidcClientId     string `json:"oidc_client_id,omitempty"`
+	OidcClientSecret string `json:"oidc_client_secret,omitempty"`
+	OidcButton       string `json:"oidc_button,omitempty"`
+	OidcScopes       string `json:"oidc_scopes,omitempty"`
 	// how a person is matched with a user: "" by name or email, "name" or "email"
 	MatchBy string `json:"match_by,omitempty"`
 	// the role of the user made for a person without one: "" makes none, guest or viewer

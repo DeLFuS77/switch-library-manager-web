@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -19,6 +20,15 @@ type LoginPageData struct {
 	PortalVia string
 	// signed out of the app while the portal keeps its session: told where to end it
 	PortalOut bool
+	// the name on the button of OpenID Connect, when it is on, and the notice of a sign-in with
+	// it: OIDC_FAILED, OIDC_UNREACHABLE or OIDC_CANCELLED
+	Oidc       string
+	OidcName   string
+	OidcNotice string
+	// signed out, on the way to the page of another site that ends the session of the provider
+	// or the portal, and its name
+	Leaving     string
+	LeavingName string
 }
 
 type UsersPageData struct {
@@ -78,6 +88,11 @@ func (web *Web) HandleUsers() {
 
 	web.router.HandleFunc("/login.html", func(w http.ResponseWriter, r *http.Request) {
 		data := LoginPageData{Next: r.URL.Query().Get("next")}
+		options := web.auth.portal()
+		data.OidcName = oidcButton(options)
+		if oidcReady(options) {
+			data.Oidc = data.OidcName
+		}
 		via := principalFrom(r).Via
 		// signed out of the app, while the portal in front keeps the person signed in
 		if via != "" && r.URL.Query().Get("portal") == "out" {
@@ -93,12 +108,16 @@ func (web *Web) HandleUsers() {
 		if identity, _ := web.auth.portalIdentity(r); identity != nil {
 			data.Portal, data.PortalVia = identity.named(), identity.Via
 		}
+		web.oidcLoginNotice(w, r, &data)
 		web.renderLogin(w, r, login, data)
 	}).Methods("GET")
 
 	web.router.HandleFunc("/login.html", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
 		data := LoginPageData{Next: r.FormValue("next"), Name: strings.TrimSpace(r.FormValue("name"))}
+		if options := web.auth.portal(); oidcReady(options) {
+			data.Oidc, data.OidcName = oidcButton(options), oidcButton(options)
+		}
 		ip := clientIp(r)
 		keys := loginKeys(ip, data.Name)
 		retryAfter, delay := web.auth.limiter.check(keys...)
@@ -139,11 +158,30 @@ func (web *Web) HandleUsers() {
 		web.auth.endSession(r)
 		http.SetCookie(w, clearSessionCookie(r))
 		target := "/login.html"
-		// a person signed in by a portal signs out of it, or is told how to
-		if via := principalFrom(r).Via; via != "" {
+		via := principalFrom(r).Via
+		switch via {
+		case "":
+		case VIA_OIDC:
+			// out of the provider too, when it has a page for it
+			if exit := web.auth.oidcLogout(r); exit != "" {
+				target = exit
+			}
+			http.SetCookie(w, web.auth.oidcCookie(r, oidcHintCookie, "/logout", "", 0))
+		default:
+			// a person signed in by a portal signs out of it, or is told how to
 			if target = web.auth.portalLogout(via); target == "" {
 				target = "/login.html?portal=out"
 			}
+		}
+		// a page of the app opens the one of another site: browsers do not follow a form to
+		// another site (form-action 'self' of the Content-Security-Policy), not even redirected
+		if !strings.HasPrefix(target, "/") {
+			data := LoginPageData{Leaving: target, LeavingName: leavingName(target)}
+			if via == VIA_OIDC {
+				data.LeavingName = oidcButton(web.auth.portal())
+			}
+			web.renderLogin(w, r, login, data)
+			return
 		}
 		http.Redirect(w, r, target, http.StatusSeeOther)
 	}).Methods("POST")
@@ -234,7 +272,7 @@ func (web *Web) HandleUsers() {
 		web.auth.forget()
 		if strings.EqualFold(name, principalFrom(r).Name) {
 			// the new password ended the current session too
-			http.SetCookie(w, web.auth.sessionCookie(r, principalFrom(r).Name))
+			http.SetCookie(w, web.auth.renewedSessionCookie(r))
 		}
 		http.Redirect(w, r, "/users.html?done=password", http.StatusSeeOther)
 	}).Methods("POST")
@@ -308,12 +346,13 @@ func (web *Web) HandleUsers() {
 			return
 		}
 		web.auth.forget()
-		http.SetCookie(w, web.auth.sessionCookie(r, principal.Name))
+		http.SetCookie(w, web.auth.renewedSessionCookie(r))
 		http.Redirect(w, r, "/account.html?done=password", http.StatusSeeOther)
 	}).Methods("POST")
 
 	web.handleAPIKeys()
 	web.handlePortal()
+	web.handleOidc()
 }
 
 func (web *Web) renderLogin(w http.ResponseWriter, r *http.Request, templates templateSet, data LoginPageData) {
@@ -322,6 +361,14 @@ func (web *Web) renderLogin(w http.ResponseWriter, r *http.Request, templates te
 	if err := templates.execute(w, data.Lang, data); err != nil {
 		web.sugarLogger.Error(fmt.Errorf("executing template failed: %w", err))
 	}
+}
+
+// leavingName is how the page of another site that ends a session is named: its host.
+func leavingName(target string) string {
+	if parsed, err := url.Parse(target); err == nil && parsed.Host != "" {
+		return parsed.Hostname()
+	}
+	return target
 }
 
 // redirectWithError shows a known error on the target page.

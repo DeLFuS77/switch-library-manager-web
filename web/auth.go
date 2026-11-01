@@ -59,8 +59,11 @@ type Principal struct {
 	Role string
 	// "env" for the user set with environment variables, "" when login is disabled
 	Source string
-	// signed in by a portal in front of the app: VIA_PROXY or VIA_CLOUDFLARE (see proxyauth.go)
+	// signed in by a portal in front of the app: VIA_PROXY or VIA_CLOUDFLARE (see proxyauth.go),
+	// or with OpenID Connect: VIA_OIDC (see oidc.go)
 	Via string
+	// how the session was opened, kept when the session is renewed (see markedSessionCookie)
+	mark string
 }
 
 func (p *Principal) IsAdmin() bool {
@@ -81,8 +84,10 @@ type AuthInfo struct {
 	WeakEnvPassword bool
 	// the colour of the avatar of the user, or "" for the colours of the app
 	Color string
-	// signed in by a portal in front of the app: VIA_PROXY or VIA_CLOUDFLARE
-	Via string
+	// signed in by a portal in front of the app: VIA_PROXY, VIA_CLOUDFLARE or VIA_OIDC, and the
+	// name of the button of OpenID Connect
+	Via      string
+	Provider string
 }
 
 type principalKey struct{}
@@ -133,6 +138,10 @@ type Auth struct {
 	cfKeys         cfAccessKeys
 	onPortal       func(event portalEvent)
 	portalSeen     portalStatus
+	// signing in with OpenID Connect (see oidc.go): what the app read of the provider, and the
+	// failed sign-ins by address, apart from the ones with a password
+	oidc        oidcProviders
+	oidcLimiter *loginLimiter
 }
 
 const (
@@ -167,10 +176,11 @@ func newAuth(dataFolder string) (*Auth, error) {
 	if err != nil {
 		return nil, err
 	}
-	auth := &Auth{users: users, envUser: envUser, envPassword: envPassword, secret: secret, limiter: newLoginLimiter(),
+	auth := &Auth{users: users, envUser: envUser, envPassword: envPassword, secret: secret, limiter: newLoginLimiter(), oidcLimiter: newLoginLimiter(),
 		revoked: loadRevokedSessions(dataFolder), seen: loadSeenSessions(dataFolder), remoteWithoutLogin: os.Getenv(REMOTE_WITHOUT_LOGIN_ENV) == "true",
 		envPasswordWeak: weakEnvPassword(envUser, envPassword)}
 	auth.portalEnv, auth.portalEnvSet = readPortalEnv()
+	auth.oidc.client = newOidcClient(nil)
 	if err := auth.startSetupCode(); err != nil {
 		return nil, err
 	}
@@ -255,11 +265,52 @@ func (a *Auth) sign(name string, expiry int64, tag string) string {
 	return base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
 }
 
+// how a session was opened, kept in its cookie after the signature, which covers it: with
+// OpenID Connect, or with OpenID Connect by a member of the administrators group, a mark that
+// names the group (see oidcAdminMark). A session opened with a password has no mark.
+const (
+	sessionOidc      = "o"
+	sessionOidcAdmin = "oa-"
+)
+
+// validMark tells a mark of a session this version knows.
+func validMark(mark string) bool {
+	if mark == sessionOidc {
+		return true
+	}
+	hash, ok := strings.CutPrefix(mark, sessionOidcAdmin)
+	_, err := hex.DecodeString(hash)
+	return ok && len(hash) == oidcAdminMarkLength && err == nil
+}
+
+// markTag is the tag of a session with its mark, as it is signed.
+func markTag(tag string, mark string) string {
+	if mark == "" {
+		return tag
+	}
+	return tag + "\x00" + mark
+}
+
 // sessionCookie logs the principal in for sessionLifetime.
 func (a *Auth) sessionCookie(r *http.Request, name string) *http.Cookie {
+	return a.markedSessionCookie(r, name, "")
+}
+
+// renewedSessionCookie is a new session of the user of the request, after a change of its
+// password ended the one it had, opened as that one was.
+func (a *Auth) renewedSessionCookie(r *http.Request) *http.Cookie {
+	principal := principalFrom(r)
+	return a.markedSessionCookie(r, principal.Name, principal.mark)
+}
+
+// markedSessionCookie logs the principal in for sessionLifetime, with how the session was opened.
+func (a *Auth) markedSessionCookie(r *http.Request, name string, mark string) *http.Cookie {
 	_, tag, _ := a.lookup(name)
 	expiry := time.Now().Add(sessionLifetime)
-	value := base64.RawURLEncoding.EncodeToString([]byte(name)) + "." + strconv.FormatInt(expiry.Unix(), 10) + "." + a.sign(name, expiry.Unix(), tag)
+	value := base64.RawURLEncoding.EncodeToString([]byte(name)) + "." + strconv.FormatInt(expiry.Unix(), 10) + "." + a.sign(name, expiry.Unix(), markTag(tag, mark))
+	if mark != "" {
+		value += "." + mark
+	}
 	return &http.Cookie{Name: SESSION_COOKIE, Value: value, Path: "/", Expires: expiry, HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: isHttps(r)}
 }
 
@@ -290,7 +341,10 @@ func (a *Auth) fromSession(r *http.Request) *Principal {
 		return nil
 	}
 	parts := strings.Split(cookie.Value, ".")
-	if len(parts) != 3 {
+	mark := ""
+	if len(parts) == 4 && validMark(parts[3]) {
+		mark = parts[3]
+	} else if len(parts) != 3 {
 		return nil
 	}
 	nameBytes, err := base64.RawURLEncoding.DecodeString(parts[0])
@@ -305,7 +359,7 @@ func (a *Auth) fromSession(r *http.Request) *Principal {
 	if !ok {
 		return nil
 	}
-	if !hmac.Equal([]byte(parts[2]), []byte(a.sign(string(nameBytes), expiry, tag))) {
+	if !hmac.Equal([]byte(parts[2]), []byte(a.sign(string(nameBytes), expiry, markTag(tag, mark)))) {
 		return nil
 	}
 	if a.revoked.has(parts[2]) {
@@ -314,6 +368,13 @@ func (a *Auth) fromSession(r *http.Request) *Principal {
 	// a session nobody used for two weeks has ended, before the end of its 30 days
 	if !a.seen.use(parts[2], expiry, time.Now()) {
 		return nil
+	}
+	if mark != "" {
+		principal.Via, principal.mark = VIA_OIDC, mark
+		// the group made an administrator: while it is still the group of the administrators
+		if strings.HasPrefix(mark, sessionOidcAdmin) && a.oidcAdminGroupOn(mark) {
+			principal.Role = ROLE_ADMIN
+		}
 	}
 	return principal
 }
@@ -348,7 +409,7 @@ func (a *Auth) forget() {
 
 // public paths work without login: the login page and the files it needs
 func isPublicPath(path string) bool {
-	return path == "/login.html" || path == "/logout" || path == "/sw.js" ||
+	return path == "/login.html" || path == "/logout" || path == "/sw.js" || path == oidcLoginPath || path == oidcCallbackPath ||
 		strings.HasPrefix(path, "/resources/static/") || strings.HasPrefix(path, "/resources/vendor/")
 }
 
@@ -929,6 +990,9 @@ func (web *Web) authInfo(r *http.Request) AuthInfo {
 	info.CanEdit = info.Role == ROLE_ADMIN || info.Role == ROLE_EDITOR
 	info.CanDownload = info.Role != ROLE_GUEST
 	info.Via = principal.Via
+	if info.Via == VIA_OIDC && web.auth != nil {
+		info.Provider = oidcButton(web.auth.portal())
+	}
 	if web.auth != nil && web.auth.users != nil && principal.Name != "" {
 		if user, ok := web.auth.users.Get(principal.Name); ok {
 			info.Color = user.Color
