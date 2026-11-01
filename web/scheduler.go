@@ -53,6 +53,10 @@ func (web *Web) StartScheduler() {
 				}
 			}
 			web.resumeBackgroundWork(now)
+			// a rescan left for the end of a scan while none runs, so none will end to do it
+			if !web.state.IsSynchronizing() {
+				web.rescanIfPending()
+			}
 			// a task on files the app was stopped in the middle of, kept from going on at the
 			// start by another task
 			if !web.filesBusy() && !web.state.IsSynchronizing() {

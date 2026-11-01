@@ -1096,6 +1096,7 @@ func init() {
 		"The game folder gets its ID too: Game [0100…000] › Update [0100…800], and DLC › name of the DLC [0100…001].": "游戏文件夹也会带上 ID:游戏 [0100…000] › Update [0100…800],DLC › DLC 名称 [0100…001]。",
 		"Installed version": "已安装版本",
 		"Interrupted: the app stopped while the task was running.": "已中断：任务运行时应用停止了。",
+		"The task stopped on an unexpected error.":                 "任务因意外错误而停止。",
 		"Invalid Title ID (16 hexadecimal characters)":             "无效的 Title ID（16 位十六进制字符）",
 		"Invalid Title ID (16 hexadecimal characters): %v":         "无效的 Title ID（16 位十六进制字符）：%v",
 		"Invalid URL": "无效的 URL",

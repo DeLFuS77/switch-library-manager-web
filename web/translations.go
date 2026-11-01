@@ -1213,6 +1213,7 @@ var translations = map[string]map[string]string{
 		"App started":             "Inicio de la app",
 		"After organizing":        "Tras organizar",
 		"Interrupted: the app stopped while the task was running.":                     "Interrumpida: la app se detuvo mientras la tarea estaba en curso.",
+		"The task stopped on an unexpected error.":                                     "La tarea se detuvo por un error inesperado.",
 		"The titles database could not be downloaded.":                                 "No se ha podido descargar la base de datos de títulos.",
 		"The titles database could not be downloaded, the saved copy is used.":         "No se ha podido descargar la base de datos de títulos; se usa la copia guardada.",
 		"Offline: the titles database was not downloaded, the saved copy is used.":     "Sin conexión: no se ha podido descargar la base de datos de títulos; se usa la copia guardada.",

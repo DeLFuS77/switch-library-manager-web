@@ -1096,6 +1096,7 @@ func init() {
 		"The game folder gets its ID too: Game [0100…000] › Update [0100…800], and DLC › name of the DLC [0100…001].": "De map van de game krijgt ook zijn ID: Game [0100…000] › Update [0100…800], en DLC › naam van de DLC [0100…001].",
 		"Installed version": "Geïnstalleerde versie",
 		"Interrupted: the app stopped while the task was running.": "Onderbroken: de app stopte terwijl de taak liep.",
+		"The task stopped on an unexpected error.":                 "De taak is gestopt door een onverwachte fout.",
 		"Invalid Title ID (16 hexadecimal characters)":             "Ongeldige Title ID (16 hexadecimale tekens)",
 		"Invalid Title ID (16 hexadecimal characters): %v":         "Ongeldige Title ID (16 hexadecimale tekens): %v",
 		"Invalid URL": "Ongeldige URL",

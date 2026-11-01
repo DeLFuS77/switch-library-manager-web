@@ -1238,6 +1238,7 @@ func init() {
 		"The game folder gets its ID too: Game [0100…000] › Update [0100…800], and DLC › name of the DLC [0100…001].": "A pasta do jogo também leva o seu ID: Jogo [0100…000] › Update [0100…800], e DLC › nome do DLC [0100…001].",
 		"Installed version": "Versão instalada",
 		"Interrupted: the app stopped while the task was running.": "Interrompida: o app parou enquanto a tarefa estava em execução.",
+		"The task stopped on an unexpected error.":                 "A tarefa parou devido a um erro inesperado.",
 		"Invalid Title ID (16 hexadecimal characters)":             "Title ID inválido (16 caracteres hexadecimais)",
 		"Invalid Title ID (16 hexadecimal characters): %v":         "Title ID inválido (16 caracteres hexadecimais): %v",
 		"Invalid URL": "URL inválida",

@@ -1096,6 +1096,7 @@ func init() {
 		"The game folder gets its ID too: Game [0100…000] › Update [0100…800], and DLC › name of the DLC [0100…001].": "ゲームのフォルダーにもIDが付きます:ゲーム [0100…000] › Update [0100…800]、DLC › DLC名 [0100…001]。",
 		"Installed version": "インストール済みのバージョン",
 		"Interrupted: the app stopped while the task was running.": "中断：タスクの実行中にアプリが停止しました。",
+		"The task stopped on an unexpected error.":                 "予期しないエラーでタスクが停止しました。",
 		"Invalid Title ID (16 hexadecimal characters)":             "無効なタイトルID（16桁の16進数）",
 		"Invalid Title ID (16 hexadecimal characters): %v":         "無効なタイトルID（16桁の16進数）：%v",
 		"Invalid URL": "無効なURL",

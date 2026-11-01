@@ -71,12 +71,17 @@ const (
 	NOTE_ORGANIZE_MORE         = "More files left as they are, all listed in the preview of Organize:"
 	NOTE_PAUSED_FOR_SCAN       = "Paused for a scan; it continues afterwards."
 	NOTE_PAUSED_FOR_HOURS      = "Paused outside the background hours; it continues when they begin."
+	// something the task did not expect stopped it: it ends failed, and the app goes on
+	NOTE_TASK_CRASHED = "The task stopped on an unexpected error."
 )
 
-var taskNoteTexts = []string{NOTE_SD_COPY_FAILED, NOTE_INTERRUPTED, NOTE_TITLES_DOWNLOAD, NOTE_TITLES_SAVED_COPY, NOTE_TITLES_OFFLINE, NOTE_TITLES_OFFLINE_NONE, NOTE_COVERS_OFFLINE, NOTE_SCAN_FAILED, NOTE_NOTIFY_FAILED, NOTE_ORGANIZE_FAILED, NOTE_PAUSED_FOR_SCAN, NOTE_PAUSED_FOR_HOURS}
+var taskNoteTexts = []string{NOTE_SD_COPY_FAILED, NOTE_INTERRUPTED, NOTE_TITLES_DOWNLOAD, NOTE_TITLES_SAVED_COPY, NOTE_TITLES_OFFLINE, NOTE_TITLES_OFFLINE_NONE, NOTE_COVERS_OFFLINE, NOTE_SCAN_FAILED, NOTE_NOTIFY_FAILED, NOTE_ORGANIZE_FAILED, NOTE_PAUSED_FOR_SCAN, NOTE_PAUSED_FOR_HOURS, NOTE_TASK_CRASHED}
 
 const (
 	TASKS_FILENAME = "tasks.json"
+	// a running task is saved at least this often, with when it was last heard of: a task the
+	// app is stopped in the middle of is found again, with about when it stopped
+	taskSaveInterval = 30 * time.Second
 	// finished tasks kept in the history; failed tasks stay until they are dismissed
 	maxFinishedTasks = 30
 )
@@ -101,6 +106,10 @@ type TaskResume struct {
 	Paths  []string `json:"paths"`
 	Level  string   `json:"level,omitempty"`
 	Delete bool     `json:"delete,omitempty"`
+	// a check of files: how old a result may be to be left out (see startVerificationAt), and
+	// when the check began, so the files it checked before the app stopped are not checked again
+	Recheck time.Duration `json:"recheck,omitempty"`
+	Since   time.Time     `json:"since,omitempty"`
 }
 
 // Task is a synchronization, scan or organize run, as shown on the Tasks page.
@@ -113,9 +122,14 @@ type Task struct {
 	Status   string      `json:"status"`
 	Started  time.Time   `json:"started"`
 	Finished time.Time   `json:"finished,omitempty"`
-	Current  int         `json:"current"`
-	Total    int         `json:"total"`
-	Message  string      `json:"message"`
+	// the last time a running task changed, saved every half minute: a task that stopped
+	// changing is stuck, and a task the app was stopped in the middle of ended about then
+	Beat time.Time `json:"beat,omitempty"`
+	// a task the app was stopped in the middle of that went on by itself in this other task
+	ContinuedIn int64  `json:"continuedIn,omitempty"`
+	Current     int    `json:"current"`
+	Total       int    `json:"total"`
+	Message     string `json:"message"`
 	// what the message names, when it is "... %v"
 	MessageArg string `json:"messageArg,omitempty"`
 	// the file a task is about, kept once it ended (an upload)
@@ -529,6 +543,10 @@ type TaskLog struct {
 	subscribers map[chan int64]struct{}
 	// told of each task that fails, in the background
 	onFailed func(Task)
+	// told of each task that ends, as it ends
+	onEnded func(Task)
+	// when the history was last written
+	saved time.Time
 }
 
 // loadTaskLog reads the history saved in the data folder. Tasks that were running when
@@ -565,7 +583,7 @@ func loadTaskLog(dataFolder string) *TaskLog {
 			// the moment the app stopped is not known: the last one it is known to have
 			// worked on the task, instead of its start, which showed it lasted no time at all
 			task.Finished = task.Started
-			for _, at := range []time.Time{task.LeftAt, saved} {
+			for _, at := range []time.Time{task.LeftAt, task.Beat, saved} {
 				if at.After(task.Finished) {
 					task.Finished = at
 				}
@@ -575,18 +593,20 @@ func loadTaskLog(dataFolder string) *TaskLog {
 	return log
 }
 
-// Start records a new running task.
+// Start records a new running task. It is saved at once: a task the app is stopped in the
+// middle of is told as such once it starts again, instead of being gone.
 func (l *TaskLog) Start(kind string, trigger string) int64 {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	l.nextId++
-	task := &Task{Id: l.nextId, Kind: kind, Trigger: trigger, Status: TASK_RUNNING, Started: time.Now(), Total: -1, Current: -1}
+	now := time.Now()
+	task := &Task{Id: l.nextId, Kind: kind, Trigger: trigger, Status: TASK_RUNNING, Started: now, Beat: now, Total: -1, Current: -1}
 	l.tasks = append([]*Task{task}, l.tasks...)
-	l.changed(false)
+	l.changed(true)
 	return task.Id
 }
 
-// Progress updates a running task. Progress is not saved to disk.
+// Progress updates a running task. Progress is saved at most every half minute.
 func (l *TaskLog) Progress(id int64, current int, total int, message string) {
 	l.ProgressArg(id, current, total, message, "")
 }
@@ -655,7 +675,7 @@ func (l *TaskLog) SetResult(id int64, games int, files int) {
 }
 
 // SetCompressResult records the files compressed so far and the bytes saved. It is saved
-// at once, so a task the app is stopped in the middle of still says what it did.
+// within half a minute, so a task the app is stopped in the middle of still says what it did.
 func (l *TaskLog) SetCompressResult(id int64, files int, saved int64) {
 	l.update(id, false, func(task *Task) {
 		task.Files, task.Saved = files, saved
@@ -683,6 +703,13 @@ func (l *TaskLog) interrupted() (int64, string, *TaskResume) {
 		}
 	}
 	return 0, "", nil
+}
+
+// SetContinued records that a task the app was stopped in the middle of went on in another.
+func (l *TaskLog) SetContinued(id int64, other int64) {
+	l.update(id, true, func(task *Task) {
+		task.ContinuedIn = other
+	})
 }
 
 // SetPaused records that a running task is held, or goes on again.
@@ -795,16 +822,20 @@ func (l *TaskLog) SetVerifyLevel(id int64, level string, byFiles bool) {
 
 // Finish ends a task; a failure makes it failed, warnings make it a warning.
 func (l *TaskLog) Finish(id int64, failure *TaskNote) {
-	var failed *Task
+	var failed, ended *Task
 	defer func() {
+		if ended != nil && l.onEnded != nil {
+			l.onEnded(*ended)
+		}
 		if failed != nil && l.onFailed != nil {
 			go l.onFailed(*failed)
 		}
 	}()
 	l.update(id, true, func(task *Task) {
 		defer func() {
+			copied := *task
+			ended = &copied
 			if task.Status == TASK_FAILED {
-				copied := *task
 				failed = &copied
 			}
 		}()
@@ -913,6 +944,13 @@ func (l *TaskLog) Touch() {
 	l.changed(false)
 }
 
+// Flush writes the history as it is now: the app is about to stop.
+func (l *TaskLog) Flush() {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+	l.save()
+}
+
 func (l *TaskLog) Version() int64 {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
@@ -925,14 +963,19 @@ func (l *TaskLog) update(id int64, save bool, change func(task *Task)) {
 	for _, task := range l.tasks {
 		if task.Id == id {
 			change(task)
+			if task.Status == TASK_RUNNING {
+				task.Beat = time.Now()
+			}
 			l.changed(save)
 			return
 		}
 	}
 }
 
-// changed must be called with the mutex held.
+// changed must be called with the mutex held. A change not saved is saved anyway once the
+// history was not written for half a minute, with the running tasks as they are.
 func (l *TaskLog) changed(save bool) {
+	save = save || time.Since(l.saved) >= taskSaveInterval
 	l.version++
 	for ch := range l.subscribers {
 		select {
@@ -971,5 +1014,6 @@ func (l *TaskLog) save() {
 	if err != nil {
 		return
 	}
+	l.saved = time.Now()
 	writeFileAtomic(l.path, data)
 }

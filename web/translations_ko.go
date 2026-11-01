@@ -1096,6 +1096,7 @@ func init() {
 		"The game folder gets its ID too: Game [0100…000] › Update [0100…800], and DLC › name of the DLC [0100…001].": "게임 폴더에도 ID가 붙어요: 게임 [0100…000] › Update [0100…800], DLC › DLC 이름 [0100…001].",
 		"Installed version": "설치된 버전",
 		"Interrupted: the app stopped while the task was running.": "중단됨: 작업 실행 중에 앱이 멈췄어요.",
+		"The task stopped on an unexpected error.":                 "예기치 않은 오류로 작업이 중지되었습니다.",
 		"Invalid Title ID (16 hexadecimal characters)":             "잘못된 타이틀 ID (16자리 16진수)",
 		"Invalid Title ID (16 hexadecimal characters): %v":         "잘못된 타이틀 ID (16자리 16진수): %v",
 		"Invalid URL": "잘못된 URL",

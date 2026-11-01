@@ -547,9 +547,11 @@ func TestInterruptedTaskEndsWhenLastHeardOf(t *testing.T) {
 	lastEstimate := time.Now().Add(-10 * time.Minute)
 	log.mutex.Lock()
 	for _, task := range log.tasks {
+		// last heard of as it started, or with its last estimate
 		task.Started = time.Now().Add(-2 * time.Hour)
+		task.Beat = task.Started
 		if task.Id == estimated {
-			task.LeftAt = lastEstimate
+			task.LeftAt, task.Beat = lastEstimate, lastEstimate
 		}
 	}
 	log.save()
