@@ -593,6 +593,113 @@
 							<p class="small text-body-secondary mb-0">{{t "Open the app once with that outside address: the code above then shows it, ready for the phone."}}</p>
 						</details>
 					</section>
+					<section class="surface mt-4 settings-section portal-section" id="portal" aria-labelledby="portalTitle">
+						{{- $p := .Portal.Options}}
+						{{- $env := .Portal.Env}}
+						<h2 class="section-title" id="portalTitle"><span class="bi bi-door-open" aria-hidden="true"></span>{{t "Sign-in portal"}}</h2>
+						<p class="text-body-secondary">{{t "If a sign-in portal already protects the app (Authelia, Authentik or Cloudflare Access), the people it lets in open the app as their user, without writing its password again. Off until you turn it on. Passwords and API keys keep working."}}</p>
+						{{- with .Portal}}
+						{{- if or (not .LastOkAt.IsZero) (not .LastProblemAt.IsZero)}}
+						<div class="d-flex flex-wrap gap-2 mb-3 small">
+							{{- if not .LastOkAt.IsZero}}
+							<span class="chip chip-success"><span class="bi bi-check-circle me-1" aria-hidden="true"></span>{{if eq .LastOk.Via "cloudflare"}}{{t "Last sign-in: %v with Cloudflare Access, %v" .LastOk.User (formatDateTime .LastOkAt)}}{{else}}{{t "Last sign-in: %v through the proxy, %v" .LastOk.User (formatDateTime .LastOkAt)}}{{end}}</span>
+							{{- end}}
+							{{- if not .LastProblemAt.IsZero}}
+							<span class="chip chip-warning"><span class="bi bi-exclamation-triangle me-1" aria-hidden="true"></span>{{if eq .LastProblem.Result "untrusted"}}{{t "Header from an address that is not trusted: %v, %v" .LastProblem.IP (formatDateTime .LastProblemAt)}}{{else if eq .LastProblem.Result "token"}}{{t "Cloudflare Access token not valid: %v, %v" .LastProblem.IP (formatDateTime .LastProblemAt)}}{{else}}{{t "No user in the app for %v, %v" .LastProblem.User (formatDateTime .LastProblemAt)}}{{end}}</span>
+							{{- end}}
+						</div>
+						{{- end}}
+						{{- end}}
+						<form id="portalForm" method="post" action="/settings/portal" data-save-when-changed>
+							<div class="form-check form-switch mb-2">
+								<input class="form-check-input" type="checkbox" role="switch" id="portal_header" name="portal_header" value="true" aria-describedby="portalHeaderHelp"{{if $p.Header}} checked{{end}}{{if index $env "SLM_AUTH_PROXY_HEADER"}} disabled{{end}}>
+								<label class="form-check-label fw-semibold" for="portal_header">{{t "Trust the header of my proxy"}}</label>
+								<div class="form-text mt-0" id="portalHeaderHelp">{{t "Authelia, Authentik or another portal with nginx, Traefik or Caddy."}}
+									{{- if .Portal.HeaderProxies}} {{tCode "Believed only from the addresses of %v (now %v); from any other it is ignored and noted in Activity." "SLM_TRUSTED_PROXIES" .Portal.TrustedProxies}}{{end}}</div>
+								{{- if not .Portal.HeaderProxies}}
+								<div class="form-text text-warning-emphasis"><span class="bi bi-exclamation-triangle me-1" aria-hidden="true"></span>{{tCode "%v names no proxy yet: the header is ignored until it has the address of your proxy." "SLM_TRUSTED_PROXIES"}}</div>
+								{{- end}}
+							</div>
+							<div class="row g-3 mb-4 ps-md-4">
+								<div class="col-md-4">
+									<label class="form-label small fw-semibold" for="portal_user_header">{{t "User"}}</label>
+									<input class="form-control form-control-sm font-monospace" id="portal_user_header" name="portal_user_header" value="{{$p.UserHeader}}" placeholder="Remote-User" maxlength="64" autocomplete="off" spellcheck="false"{{if index $env "SLM_AUTH_PROXY_HEADER"}} disabled{{end}}>
+									{{- template "portalLock" (dict "Env" $env "Name" "SLM_AUTH_PROXY_HEADER")}}
+								</div>
+								<div class="col-md-4">
+									<label class="form-label small fw-semibold" for="portal_email_header">{{t "Email"}}</label>
+									<input class="form-control form-control-sm font-monospace" id="portal_email_header" name="portal_email_header" value="{{$p.EmailHeader}}" placeholder="Remote-Email" maxlength="64" autocomplete="off" spellcheck="false"{{if index $env "SLM_AUTH_PROXY_EMAIL_HEADER"}} disabled{{end}}>
+									{{- template "portalLock" (dict "Env" $env "Name" "SLM_AUTH_PROXY_EMAIL_HEADER")}}
+								</div>
+								<div class="col-md-4">
+									<label class="form-label small fw-semibold" for="portal_groups_header">{{t "Groups"}}</label>
+									<input class="form-control form-control-sm font-monospace" id="portal_groups_header" name="portal_groups_header" value="{{$p.GroupsHeader}}" placeholder="Remote-Groups" maxlength="64" autocomplete="off" spellcheck="false"{{if index $env "SLM_AUTH_PROXY_GROUPS_HEADER"}} disabled{{end}}>
+									{{- template "portalLock" (dict "Env" $env "Name" "SLM_AUTH_PROXY_GROUPS_HEADER")}}
+								</div>
+							</div>
+
+							<div class="form-check form-switch mb-2">
+								<input class="form-check-input" type="checkbox" role="switch" id="portal_cloudflare" name="portal_cloudflare" value="true" aria-describedby="portalCloudflareHelp"{{if $p.Cloudflare}} checked{{end}}{{if index $env "SLM_CF_ACCESS_TEAM"}} disabled{{end}}>
+								<label class="form-check-label fw-semibold" for="portal_cloudflare">{{t "Trust Cloudflare Access"}}</label>
+								<div class="form-text mt-0" id="portalCloudflareHelp">{{t "The app checks the signature of each sign-in with the keys of your team, which it downloads over https. It knows each person by their email."}}</div>
+							</div>
+							<div class="row g-3 mb-4 ps-md-4">
+								<div class="col-md-5">
+									<label class="form-label small fw-semibold" for="portal_cf_team">{{t "Team"}}</label>
+									<div class="input-group input-group-sm">
+										<input class="form-control font-monospace" id="portal_cf_team" name="portal_cf_team" value="{{$p.CloudflareTeam}}" maxlength="80" autocomplete="off" autocapitalize="none" spellcheck="false"{{if index $env "SLM_CF_ACCESS_TEAM"}} disabled{{end}}>
+										<span class="input-group-text">.cloudflareaccess.com</span>
+									</div>
+									{{- template "portalLock" (dict "Env" $env "Name" "SLM_CF_ACCESS_TEAM")}}
+								</div>
+								<div class="col-md-7">
+									<label class="form-label small fw-semibold" for="portal_cf_aud">{{t "Application Audience (AUD) tag"}}</label>
+									<input class="form-control form-control-sm font-monospace" id="portal_cf_aud" name="portal_cf_aud" value="{{$p.CloudflareAud}}" maxlength="256" autocomplete="off" spellcheck="false" aria-describedby="portalAudHelp"{{if index $env "SLM_CF_ACCESS_AUD"}} disabled{{end}}>
+									{{- template "portalLock" (dict "Env" $env "Name" "SLM_CF_ACCESS_AUD")}}
+									<div class="form-text" id="portalAudHelp">{{t "In Cloudflare: Zero Trust › Access › Applications › your application › Overview."}}</div>
+								</div>
+							</div>
+
+							<h3 class="h6 fw-semibold">{{t "Who is who"}}</h3>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label class="form-label small fw-semibold" for="portal_match">{{t "How each person is recognized"}}</label>
+									<select class="form-select form-select-sm" id="portal_match" name="portal_match" aria-describedby="portalMatchHelp"{{if index $env "SLM_AUTH_PROXY_MATCH"}} disabled{{end}}>
+										<option value=""{{if eq $p.MatchBy ""}} selected{{end}}>{{t "By name or by email"}}</option>
+										<option value="name"{{if eq $p.MatchBy "name"}} selected{{end}}>{{t "By name only"}}</option>
+										<option value="email"{{if eq $p.MatchBy "email"}} selected{{end}}>{{t "By email only"}}</option>
+									</select>
+									{{- template "portalLock" (dict "Env" $env "Name" "SLM_AUTH_PROXY_MATCH")}}
+									<div class="form-text" id="portalMatchHelp">{{t "The email of each user is set in Users › Edit. Cloudflare Access always by email."}}</div>
+								</div>
+								<div class="col-md-6">
+									<label class="form-label small fw-semibold" for="portal_new_users">{{t "When someone has no user in the app"}}</label>
+									<select class="form-select form-select-sm" id="portal_new_users" name="portal_new_users" aria-describedby="portalNewUsersHelp"{{if index $env "SLM_AUTH_PROXY_NEW_USERS"}} disabled{{end}}>
+										<option value=""{{if eq $p.NewUsers ""}} selected{{end}}>{{t "Do not let them in"}}</option>
+										<option value="guest"{{if eq $p.NewUsers "guest"}} selected{{end}}>{{t "Make them a Guest (looks only)"}}</option>
+										<option value="viewer"{{if eq $p.NewUsers "viewer"}} selected{{end}}>{{t "Make them a Player (looks and downloads)"}}</option>
+									</select>
+									{{- template "portalLock" (dict "Env" $env "Name" "SLM_AUTH_PROXY_NEW_USERS")}}
+									<div class="form-text" id="portalNewUsersHelp">{{t "An administrator is never made."}}</div>
+								</div>
+								<div class="col-md-6">
+									<label class="form-label small fw-semibold" for="portal_admin_group">{{t "Administrators group"}} <span class="text-body-secondary fw-normal">{{t "(if you like)"}}</span></label>
+									<input class="form-control form-control-sm" id="portal_admin_group" name="portal_admin_group" value="{{$p.AdminGroup}}" placeholder="slm-admins" maxlength="256" autocomplete="off" spellcheck="false" aria-describedby="portalGroupHelp"{{if index $env "SLM_AUTH_PROXY_ADMIN_GROUP"}} disabled{{end}}>
+									{{- template "portalLock" (dict "Env" $env "Name" "SLM_AUTH_PROXY_ADMIN_GROUP")}}
+									<div class="form-text" id="portalGroupHelp">{{t "Whoever is in this group comes in as an administrator. Only with the groups header."}}</div>
+								</div>
+								<div class="col-md-6">
+									<label class="form-label small fw-semibold" for="portal_logout_url">{{t "Address to log out"}} <span class="text-body-secondary fw-normal">{{t "(if you like)"}}</span></label>
+									<input class="form-control form-control-sm font-monospace" id="portal_logout_url" name="portal_logout_url" value="{{$p.LogoutUrl}}" placeholder="https://auth.example.com/logout" maxlength="2048" autocomplete="off" spellcheck="false" aria-describedby="portalLogoutHelp"{{if index $env "SLM_AUTH_PROXY_LOGOUT_URL"}} disabled{{end}}>
+									{{- template "portalLock" (dict "Env" $env "Name" "SLM_AUTH_PROXY_LOGOUT_URL")}}
+									<div class="form-text" id="portalLogoutHelp">{{t "With Cloudflare Access, empty uses its own."}}</div>
+								</div>
+							</div>
+							<div class="d-flex justify-content-end mt-3">
+								<button type="submit" class="btn btn-primary rounded-pill px-4"><span class="bi bi-check-lg me-2" aria-hidden="true"></span>{{t "Save"}}</button>
+							</div>
+						</form>
+					</section>
 					<section class="surface mt-4 settings-section" id="backup" aria-labelledby="backupTitle">
 						<h2 class="section-title" id="backupTitle"><span class="bi bi-life-preserver" aria-hidden="true"></span>{{t "Backup"}}</h2>
 						<p class="text-body-secondary">{{t "Save the settings, users, verification results and notified versions in a ZIP file, to move the app or to undo a mistake. Your keys are never included."}}</p>
@@ -642,4 +749,11 @@
 					</section>
 				</div>
 			</div>
+{{- end}}
+
+{{- define "portalLock"}}
+{{- /* an option of the sign-in portal set with an environment variable, which wins over it */}}
+{{- if index .Env .Name}}
+									<div class="form-text"><span class="bi bi-lock me-1" aria-hidden="true"></span>{{tCode "Set by %v" .Name}}</div>
+{{- end}}
 {{- end}}

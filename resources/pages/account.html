@@ -10,6 +10,7 @@
 							<div>
 								<div class="h5 fw-bold mb-1">{{if .Auth.User}}{{.Auth.User}}{{else}}{{t "Guest"}}{{end}}</div>
 								{{- if .Auth.IsAdmin}}<span class="chip chip-success">{{t "Administrator"}}</span>{{else}}<span class="chip chip-muted">{{t (roleName .Auth.Role)}}</span>{{end}}
+								{{- if .Auth.Via}} <span class="chip chip-info"><span class="bi bi-door-open me-1" aria-hidden="true"></span>{{if eq .Auth.Via "cloudflare"}}Cloudflare Access{{else}}{{t "through the proxy"}}{{end}}</span>{{end}}
 							</div>
 						</div>
 						{{- if .Stored}}
@@ -56,6 +57,8 @@
 						<a class="btn btn-primary rounded-pill admin-only" href="/users.html"><span class="bi bi-people me-2" aria-hidden="true"></span>{{t "Users"}}</a>
 						{{- else if or .Auth.FromEnv (not .Auth.User)}}
 						<p class="text-body-secondary mb-0">{{t "This user is set with environment variables and cannot be changed here."}}</p>
+						{{- else if and .Stored (not .HasPassword)}}
+						<p class="text-body-secondary mb-0">{{t "You come in through your sign-in portal: this account has no password of the app. An administrator can set one in Users."}}</p>
 						{{- else}}
 						<form method="post" action="/account/password" data-save-when-changed>
 							<input class="d-none" name="username" value="{{.Auth.User}}" autocomplete="username" aria-hidden="true" tabindex="-1">

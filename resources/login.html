@@ -18,7 +18,14 @@
 	<meta name="theme-color" content="#0d1117">
 </head>
 <body class="login-page d-flex align-items-center justify-content-center min-vh-100 p-3">
-	<main class="surface login-card w-100" id="main">
+	<main class="surface login-card w-100{{if .PortalOut}} text-center{{end}}" id="main">
+		{{- if .PortalOut}}
+		<!-- signed out of the app, while the portal in front keeps the session: it is ended there -->
+		<span class="brand-mark brand-mark-lg mb-3"><img src="/resources/static/icon.svg" alt="" aria-hidden="true"></span>
+		<h1 class="h5 fw-bold mb-2">{{t "You left the app"}}</h1>
+		<p class="text-body-secondary">{{t "You came in through your sign-in portal, which keeps your session open. To leave completely, log out in the portal."}}</p>
+		<a class="btn btn-outline-primary rounded-pill" href="/index.html"><span class="bi bi-collection me-2" aria-hidden="true"></span>{{t "Back to the library"}}</a>
+		{{- else}}
 		<div class="text-center mb-4">
 			<span class="brand-mark brand-mark-lg mb-3"><img src="/resources/static/icon.svg" alt="" aria-hidden="true"></span>
 			<h1 class="h4 fw-bold mb-1">Switch Library Manager</h1>
@@ -26,6 +33,10 @@
 		</div>
 		{{- if .Error}}
 		<div class="alert alert-danger d-flex align-items-center gap-2" role="alert"><span class="bi bi-exclamation-triangle-fill flex-shrink-0" aria-hidden="true"></span><div>{{.Error}}</div></div>
+		{{- end}}
+		{{- if .Portal}}
+		<!-- the portal in front let the person in, but the app has no user for them -->
+		<div class="alert alert-info d-flex gap-2 small" role="status"><span class="bi bi-person-badge flex-shrink-0 mt-1" aria-hidden="true"></span><div>{{tStrong "Your sign-in portal knows you as %v, but the app has no user with that name or email. Ask an administrator to make you one, or log in with a user of the app." .Portal}}</div></div>
 		{{- end}}
 		<form method="post" action="/login.html">
 			<input type="hidden" name="next" value="{{.Next}}">
@@ -39,6 +50,7 @@
 			</div>
 			<button class="btn btn-primary btn-lg rounded-pill w-100" type="submit"><span class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></span>{{t "Log in"}}</button>
 		</form>
+		{{- end}}
 	</main>
 </body>
 </html>

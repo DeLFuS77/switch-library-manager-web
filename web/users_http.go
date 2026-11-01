@@ -324,15 +324,11 @@ func (web *Web) renderLogin(w http.ResponseWriter, r *http.Request, templates te
 	}
 }
 
-// redirectWithError shows a known error on the target page, at its #section when it has one.
+// redirectWithError shows a known error on the target page.
 func redirectWithError(w http.ResponseWriter, r *http.Request, target string, err error) {
-	target, section, _ := strings.Cut(target, "#")
-	if section != "" {
-		section = "#" + section
-	}
 	for i, known := range userErrors {
 		if errors.Is(err, known) {
-			http.Redirect(w, r, fmt.Sprintf("%s?error=%d%s", target, i, section), http.StatusSeeOther)
+			http.Redirect(w, r, fmt.Sprintf("%s?error=%d", target, i), http.StatusSeeOther)
 			return
 		}
 	}

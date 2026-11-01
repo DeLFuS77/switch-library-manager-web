@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"slices"
@@ -16,12 +17,14 @@ var (
 	ErrPortalTeam   = errors.New("Write the team name of Cloudflare Zero Trust, like myteam.")
 	ErrPortalAud    = errors.New("Paste the Application Audience (AUD) tag of the application in Cloudflare Access.")
 	ErrPortalLogout = errors.New("Write an address that starts with https:// or /.")
+	ErrPortalGroup  = errors.New("Write the name of one group, without commas.")
 	ErrPortalOption = errors.New("Unknown option")
 )
 
 // portalOptionsFromForm reads the options of the portal sent from Settings over the ones there
-// are: an option set in the environment is locked, and its field is not sent.
-func portalOptionsFromForm(r *http.Request, current settings.PortalOptions, env map[string]bool) (settings.PortalOptions, error) {
+// are: an option set in the environment is locked, and its field is not sent. A wrong one is told
+// with the field it is in.
+func portalOptionsFromForm(r *http.Request, current settings.PortalOptions, env map[string]bool) (settings.PortalOptions, string, error) {
 	options := current
 	set := func(variable string, field *string, value string) {
 		if !env[variable] {
@@ -44,53 +47,59 @@ func portalOptionsFromForm(r *http.Request, current settings.PortalOptions, env 
 	set(PROXY_ADMIN_GROUP_ENV, &options.AdminGroup, r.FormValue("portal_admin_group"))
 	set(PROXY_LOGOUT_URL_ENV, &options.LogoutUrl, r.FormValue("portal_logout_url"))
 
-	for _, header := range []string{options.UserHeader, options.EmailHeader, options.GroupsHeader} {
-		if header != "" && !validHeaderName(header) {
-			return options, ErrPortalHeader
+	for _, header := range []struct{ field, name string }{{"portal_user_header", options.UserHeader}, {"portal_email_header", options.EmailHeader}, {"portal_groups_header", options.GroupsHeader}} {
+		if header.name != "" && !validHeaderName(header.name) {
+			return options, header.field, ErrPortalHeader
 		}
 	}
 	if options.CloudflareTeam != "" || options.Cloudflare {
 		team, ok := cfTeamName(options.CloudflareTeam)
 		if !ok {
-			return options, ErrPortalTeam
+			return options, "portal_cf_team", ErrPortalTeam
 		}
 		options.CloudflareTeam = team
 	}
 	if (options.CloudflareAud != "" || options.Cloudflare) && !cfAudPattern.MatchString(options.CloudflareAud) {
-		return options, ErrPortalAud
+		return options, "portal_cf_aud", ErrPortalAud
 	}
 	if options.MatchBy != "" && options.MatchBy != MATCH_NAME && options.MatchBy != MATCH_EMAIL {
-		return options, ErrPortalOption
+		return options, "portal_match", ErrPortalOption
 	}
 	if options.NewUsers != "" && !slices.Contains(portalNewUserRoles, options.NewUsers) {
-		return options, ErrPortalOption
+		return options, "portal_new_users", ErrPortalOption
 	}
 	if len(options.AdminGroup) > maxPortalName || strings.ContainsFunc(options.AdminGroup, unicode.IsControl) || strings.ContainsAny(options.AdminGroup, ",|") {
-		return options, ErrPortalOption
+		return options, "portal_admin_group", ErrPortalGroup
 	}
 	if !validLogoutUrl(options.LogoutUrl) {
-		return options, ErrPortalLogout
+		return options, "portal_logout_url", ErrPortalLogout
 	}
-	return options, nil
+	return options, "", nil
 }
 
 // handlePortal serves the options of the portal in Settings and the emails of the users, both for
 // administrators only.
 func (web *Web) handlePortal() {
+	// sent by the scripts of Settings, as its other forms: a wrong option is shown under its field
 	web.router.HandleFunc("/settings/portal", func(w http.ResponseWriter, r *http.Request) {
+		lang := web.requestLanguage(r)
+		w.Header().Set("Content-Type", "application/json")
+		encoder := json.NewEncoder(w)
 		current := settings.ReadSettings(web.dataFolder).Portal
-		options, err := portalOptionsFromForm(r, current, web.auth.portalEnvSet)
+		options, field, err := portalOptionsFromForm(r, current, web.auth.portalEnvSet)
 		if err != nil {
-			redirectWithError(w, r, "/settings.html#portal", err)
+			w.WriteHeader(http.StatusBadRequest)
+			encoder.Encode(ErrorResponse{FieldErrors: []FieldError{{Field: field, Message: translate(lang, err.Error())}}})
 			return
 		}
 		if _, err := settings.TryUpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
 			appSettings.Portal = options
 		}); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			w.WriteHeader(http.StatusInternalServerError)
+			encoder.Encode(notSaved(lang, err).failure)
 			return
 		}
-		http.Redirect(w, r, "/settings.html?done=portal#portal", http.StatusSeeOther)
+		encoder.Encode(SuccessResponse{StrongMessage: translate(lang, "Success!"), Message: translate(lang, "The options of the sign-in portal were saved.")})
 	}).Methods("POST")
 
 	web.router.HandleFunc("/users/email", func(w http.ResponseWriter, r *http.Request) {

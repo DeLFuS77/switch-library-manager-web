@@ -45,6 +45,8 @@ type SettingsPageData struct {
 	// the files deleted that wait in the quarantine, and the sizes it can hold
 	Quarantine       quarantineSummary
 	QuarantineLimits []int
+	// the sign-in portal in front of the app
+	Portal PortalView
 }
 
 type SettingsForm struct {
@@ -495,7 +497,12 @@ func (web *Web) settingsPageData() SettingsPageData {
 	// the secrets of the notifications never go back to the page (see secretMask)
 	shown := *current
 	shown.Notifications = maskedNotifications(current.Notifications)
+	portal := PortalView{}
+	if web.auth != nil {
+		portal = web.auth.portalView()
+	}
 	return SettingsPageData{
+		Portal:                  portal,
 		GlobalPageData:          web.globalPageData("settings"),
 		Settings:                &shown,
 		NextSync:                nextSyncTime(current),

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -157,8 +158,11 @@ func TestPortalPersonWithoutUser(t *testing.T) {
 		t.Fatalf("a person without user logs in: %v %q", page.Code, page.Header().Get("Location"))
 	}
 	login := proxy.do("GET", "/login.html", nil, "Remote-User", "carol")
-	if login.Code != http.StatusOK {
-		t.Fatalf("the login page says who the portal named: %v", login.Code)
+	if login.Code != http.StatusOK || !strings.Contains(login.Body.String(), "<strong>carol</strong>") || !strings.Contains(login.Body.String(), `name="password"`) {
+		t.Fatalf("the login page says who the portal named, with its form: %v", login.Code)
+	}
+	if strings.Contains(proxy.do("GET", "/login.html", nil, "Remote-User", "<b>carol</b>").Body.String(), "<b>carol") {
+		t.Fatal("the name is escaped")
 	}
 	if web.auth.users.Count() != 2 {
 		t.Fatal("no user is made by default")
@@ -365,8 +369,8 @@ func TestPortalLogout(t *testing.T) {
 	if out.Header().Get("Location") != "/login.html?portal=out" {
 		t.Fatalf("without the exit of the portal: %q", out.Header().Get("Location"))
 	}
-	if page := proxy.do("GET", "/login.html?portal=out", nil, "Remote-User", "alice"); page.Code != http.StatusOK {
-		t.Fatalf("the page that tells it, not the library: %v %q", page.Code, page.Header().Get("Location"))
+	if page := proxy.do("GET", "/login.html?portal=out", nil, "Remote-User", "alice"); page.Code != http.StatusOK || !strings.Contains(page.Body.String(), `href="/index.html"`) || strings.Contains(page.Body.String(), `name="password"`) {
+		t.Fatalf("the page that tells it, not the library nor the form: %v %q", page.Code, page.Header().Get("Location"))
 	}
 	setPortal(web, settings.PortalOptions{Header: true, LogoutUrl: "https://auth.example.com/logout"})
 	if location := proxy.do("POST", "/logout", nil, "Remote-User", "alice").Header().Get("Location"); location != "https://auth.example.com/logout" {
@@ -398,9 +402,8 @@ func TestPortalEnvironmentWinsOverSettings(t *testing.T) {
 	// the form of Settings does not change what the environment sets
 	admin := &client{t: t, handler: proxy.handler}
 	admin.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
-	saved := admin.do("POST", "/settings/portal", url.Values{"portal_user_header": {"Remote-User"}, "portal_new_users": {""}, "portal_admin_group": {"slm-admins"}})
-	if saved.Header().Get("Location") != "/settings.html?done=portal#portal" {
-		t.Fatalf("saved: %q", saved.Header().Get("Location"))
+	if saved := admin.do("POST", "/settings/portal", url.Values{"portal_user_header": {"Remote-User"}, "portal_new_users": {""}, "portal_admin_group": {"slm-admins"}}); saved.Code != http.StatusOK {
+		t.Fatalf("saved: %v %s", saved.Code, saved.Body.String())
 	}
 	stored := settings.ReadSettings(web.dataFolder).Portal
 	if stored.UserHeader != "Remote-User" || stored.Header || stored.AdminGroup != "slm-admins" {
@@ -419,8 +422,8 @@ func TestPortalSettingsForm(t *testing.T) {
 	good := url.Values{"portal_header": {"true"}, "portal_user_header": {"Remote-User"}, "portal_cloudflare": {"true"},
 		"portal_cf_team": {"https://MyTeam.cloudflareaccess.com/"}, "portal_cf_aud": {strings.Repeat("ab", 32)}, "portal_match": {MATCH_EMAIL},
 		"portal_new_users": {ROLE_GUEST}, "portal_admin_group": {"slm-admins"}, "portal_logout_url": {"https://auth.example.com/logout"}}
-	if location := admin.do("POST", "/settings/portal", good).Header().Get("Location"); location != "/settings.html?done=portal#portal" {
-		t.Fatalf("saved: %q", location)
+	if saved := admin.do("POST", "/settings/portal", good); saved.Code != http.StatusOK || !strings.Contains(saved.Body.String(), "strongMessage") {
+		t.Fatalf("saved: %v %s", saved.Code, saved.Body.String())
 	}
 	stored := settings.ReadSettings(web.dataFolder).Portal
 	if !stored.Header || !stored.Cloudflare || stored.CloudflareTeam != "myteam" || stored.MatchBy != MATCH_EMAIL || stored.NewUsers != ROLE_GUEST {
@@ -436,9 +439,11 @@ func TestPortalSettingsForm(t *testing.T) {
 			bad[key] = values
 		}
 		bad.Set(field, value)
-		location := admin.do("POST", "/settings/portal", bad).Header().Get("Location")
-		if !strings.Contains(location, "error=") || !strings.HasSuffix(location, "#portal") {
-			t.Fatalf("%s=%q is refused: %q", field, value, location)
+		refused := admin.do("POST", "/settings/portal", bad)
+		var answer ErrorResponse
+		json.Unmarshal(refused.Body.Bytes(), &answer)
+		if refused.Code != http.StatusBadRequest || len(answer.FieldErrors) != 1 || answer.FieldErrors[0].Field != field || answer.FieldErrors[0].Message == "" {
+			t.Fatalf("%s=%q is refused under its field: %v %s", field, value, refused.Code, refused.Body.String())
 		}
 	}
 	if settings.ReadSettings(web.dataFolder).Portal != stored {
@@ -448,6 +453,40 @@ func TestPortalSettingsForm(t *testing.T) {
 	viewer.do("POST", "/login.html", url.Values{"name": {"bob"}, "password": {"bravo-secret-22"}})
 	if code := viewer.do("POST", "/settings/portal", url.Values{}).Code; code != http.StatusForbidden {
 		t.Fatalf("only administrators: %v", code)
+	}
+}
+
+// Settings shows the options in use, locks the ones of the environment and tells the last
+// sign-in and the last header not believed.
+func TestPortalInSettings(t *testing.T) {
+	t.Setenv(CF_ACCESS_TEAM_ENV, "myteam")
+	t.Setenv("SLM_AUTH_USERNAME", "")
+	t.Setenv("SLM_AUTH_PASSWORD", "")
+	saved := trustedProxyNets
+	t.Cleanup(func() { trustedProxyNets = saved })
+	trustedProxyNets = parseTrustedProxies(proxyAddress)
+	web, _ := compressWeb(t)
+	auth, err := newAuth(web.dataFolder)
+	if err != nil {
+		t.Fatal(err)
+	}
+	web.auth = auth
+	auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
+	auth.portalSettings = func() settings.PortalOptions { return settings.ReadSettings(web.dataFolder).Portal }
+	setPortal(web, settings.PortalOptions{Header: true, AdminGroup: "slm-admins"})
+	web.HandleSettings()
+	proxy := &client{t: t, handler: auth.middleware(web.router), ip: proxyAddress}
+	proxy.do("GET", "/index.html", nil, "Remote-User", "alice")
+	(&client{t: t, handler: proxy.handler, ip: "192.168.1.30"}).do("GET", "/index.html", nil, "Remote-User", "alice")
+	page := proxy.do("GET", "/settings.html", nil, "Remote-User", "alice")
+	body := page.Body.String()
+	for _, want := range []string{`id="portalForm"`, `value="slm-admins"`, `value="myteam" maxlength="80" autocomplete="off" autocapitalize="none" spellcheck="false" disabled`, "<code>SLM_CF_ACCESS_TEAM</code>", "192.168.1.30", `href="#portal"`} {
+		if !strings.Contains(body, want) {
+			t.Errorf("Settings shows %q", want)
+		}
+	}
+	if page.Code != http.StatusOK {
+		t.Fatalf("Settings: %v", page.Code)
 	}
 }
 

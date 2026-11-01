@@ -85,6 +85,14 @@ func i18nFuncs(lang string) template.FuncMap {
 			}
 			return template.HTML(fmt.Sprintf(template.HTMLEscapeString(translate(lang, text)), codes...))
 		},
+		// tStrong translates a text whose arguments are shown in bold, like a name
+		"tStrong": func(text string, args ...any) template.HTML {
+			strong := make([]any, len(args))
+			for i, arg := range args {
+				strong[i] = "<strong>" + template.HTMLEscapeString(fmt.Sprint(arg)) + "</strong>"
+			}
+			return template.HTML(fmt.Sprintf(template.HTMLEscapeString(translate(lang, text)), strong...))
+		},
 		"lang":           func() string { return lang },
 		"jsTranslations": func() map[string]string { return jsTranslations(lang) },
 		"languageName":   func(code string) string { return languageNames[code] },
