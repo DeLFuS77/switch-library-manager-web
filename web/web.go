@@ -1122,6 +1122,10 @@ func (web *Web) loadLocalizedTitles(download bool) map[string]map[string]db.Loca
 
 // loadTitleLanguage loads titles.<lang>.json, downloading a newer one first if asked.
 func (web *Web) loadTitleLanguage(lang string, download bool) (map[string]db.LocalizedTitle, bool) {
+	// the language names a file of the data folder and goes in the address of the download
+	if lang = supportedLanguage(lang); lang == "" {
+		return nil, false
+	}
 	web.languages.fileMutex.Lock()
 	defer web.languages.fileMutex.Unlock()
 	settingsObj := settings.ReadSettings(web.dataFolder)

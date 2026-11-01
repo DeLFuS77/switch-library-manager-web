@@ -136,14 +136,47 @@ const (
 // KeepDuplicateChoices are the valid values of KeepDuplicate.
 var KeepDuplicateChoices = []string{KEEP_FIRST_FOUND, KEEP_NSP, KEEP_XCI, KEEP_AUTO}
 
+// the security of the connection to the SMTP server of the notifications
+const (
+	// encrypted after the greeting, usually on port 587: the default
+	SMTP_STARTTLS = "starttls"
+	// encrypted from the start, usually on port 465
+	SMTP_TLS = "tls"
+	// not encrypted, for a server of the local network that takes mail without a password
+	SMTP_NONE = "none"
+)
+
+// SmtpSecurityChoices are the valid values of NotificationOptions.SmtpSecurity.
+var SmtpSecurityChoices = []string{SMTP_STARTTLS, SMTP_TLS, SMTP_NONE}
+
 // NotificationOptions configures the messages sent when updates or DLC become available.
 type NotificationOptions struct {
 	DiscordWebhookUrl string `json:"discord_webhook_url"`
 	TelegramBotToken  string `json:"telegram_bot_token"`
 	TelegramChatId    string `json:"telegram_chat_id"`
 	WebhookUrl        string `json:"webhook_url"`
-	NotifyUpdates     bool   `json:"notify_updates"`
-	NotifyDlc         bool   `json:"notify_dlc"`
+	// ntfy: the address of the topic, with its server, and an access token for a topic that is
+	// protected
+	NtfyUrl   string `json:"ntfy_url,omitempty"`
+	NtfyToken string `json:"ntfy_token,omitempty"`
+	// Gotify: the address of the server and the token of an application
+	GotifyUrl   string `json:"gotify_url,omitempty"`
+	GotifyToken string `json:"gotify_token,omitempty"`
+	// Pushover: the key of the user (or of a group) and the token of an application
+	PushoverUser  string `json:"pushover_user,omitempty"`
+	PushoverToken string `json:"pushover_token,omitempty"`
+	// email through an SMTP server; the port 0 is the usual one of the security
+	SmtpHost     string `json:"smtp_host,omitempty"`
+	SmtpPort     int    `json:"smtp_port,omitempty"`
+	SmtpSecurity string `json:"smtp_security,omitempty"`
+	SmtpUser     string `json:"smtp_user,omitempty"`
+	SmtpPassword string `json:"smtp_password,omitempty"`
+	// the address the mail comes from, the user when empty
+	SmtpFrom string `json:"smtp_from,omitempty"`
+	// the addresses the mail goes to, separated by commas
+	SmtpTo        string `json:"smtp_to,omitempty"`
+	NotifyUpdates bool   `json:"notify_updates"`
+	NotifyDlc     bool   `json:"notify_dlc"`
 	// wished games that are released or get new DLC
 	NotifyWishlist bool `json:"notify_wishlist"`
 	// games of the library that get cheats for the version they have

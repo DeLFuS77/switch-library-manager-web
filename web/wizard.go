@@ -366,7 +366,7 @@ func checkWizardKeys(path string, lang string) WizardCheck {
 }
 
 func (web *Web) HandleWizard() {
-	templates := web.mustParseTemplates(web.embedFS, "resources/partials/wizard.html")
+	templates := web.mustParseTemplates(web.embedFS, "resources/partials/wizard.html", "resources/partials/notifications.html")
 
 	web.router.HandleFunc("/wizard", func(w http.ResponseWriter, r *http.Request) {
 		inContainer := runningInContainer()

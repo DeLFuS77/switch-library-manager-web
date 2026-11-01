@@ -5,6 +5,7 @@
 ### New
 
 - The name, cover and description of a game can be changed by hand, with Edit on its page: the cover is uploaded or taken once from an address, and what is changed wins over the titles database, its translations and IGDB in every language, stays through synchronizations and scans, and comes back with a game deleted and found again. Organize names the files and folders with the name given when it runs, and backups keep the changes with their covers; Back to the original undoes them, and the files and the title ID of the game are never touched (thanks @ChapeLu, #133)
+- Notifications to ntfy, Gotify, Pushover and email (SMTP with STARTTLS or SSL/TLS), besides Discord, Telegram and the webhook. In Settings each channel is a row that opens and says where it sends and whether it is on; the setup wizard picks one with a card. Send a test notification says how each channel went, with the reason of each one that failed
 
 ### Improvements
 
@@ -13,6 +14,12 @@
 ### Fixes
 
 - Backups keep the copy chosen of each game of several regions, which restoring one left out
+
+### Security
+
+- The tokens and passwords of the new channels, and a password or a token written in the address of a webhook, are kept like the token of Telegram: the pages show ********, and the log and the result of a test never hold them
+- golang.org/x/net 0.62.0 (GO-2026-6860 and GO-2026-6866, in a package the app does not use)
+- Downloads and notifications go only to http and https addresses, also when settings.json was changed by hand, and the language of the browser only names files of the data folder when it is one of the languages of the app
 
 ## 1.67.0
 

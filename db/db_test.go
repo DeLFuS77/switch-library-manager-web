@@ -359,6 +359,19 @@ func TestLoadAndUpdateDoesNotRetryPermanentFailures(t *testing.T) {
 	}
 }
 
+// Only http and https addresses are downloaded, also when settings.json was changed by hand.
+func TestOnlyWebAddressesAreDownloaded(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "titles.json")
+	for _, address := range []string{"file:///etc/passwd", "ftp://server/titles.json", "https://", "http:///titles.json", "https://host/titles json"} {
+		if _, err := LoadAndUpdate([]string{address}, path, ""); err == nil {
+			t.Errorf("%q was downloaded", address)
+		}
+		if _, err := FetchSmall(address, 100); !errors.Is(err, errNotHttpUrl) {
+			t.Errorf("%q was fetched: %v", address, err)
+		}
+	}
+}
+
 func TestLoadAndUpdateRejectsTruncatedDownloads(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "titles.json")
 	if err := os.WriteFile(path, []byte(`{"local": true}`), 0644); err != nil {

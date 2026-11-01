@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"syscall"
 	"time"
@@ -52,6 +53,14 @@ var publicClient = &http.Client{
 		return nil
 	},
 }
+
+// downloadURLRegex is the form of every address the app downloads from: http or https and a
+// host. The addresses of one's own in the settings have it too; anything else is refused before
+// a request is made.
+var downloadURLRegex = regexp.MustCompile(`^https?://[^/?#\s]+([/?#]\S*)?$`)
+
+// errNotHttpUrl is the failure of an address that is not an http or https one.
+var errNotHttpUrl = errors.New("not an http or https address")
 
 // AllowLocalDownloads lets the tests download covers from servers on this computer.
 var AllowLocalDownloads = false
@@ -149,6 +158,9 @@ func LoadAndUpdateChecked(urls []string, filePath string, etag string, check fun
 
 // FetchSmall downloads a small text file, at most limit bytes.
 func FetchSmall(url string, limit int64) (string, error) {
+	if !downloadURLRegex.MatchString(url) {
+		return "", errNotHttpUrl
+	}
 	resp, err := httpClient.Get(url)
 	if err != nil {
 		return "", err
@@ -283,6 +295,9 @@ func downloadWithRetries(url string, etag string, target string, attempts int) (
 // downloadToFile streams url into target, decompressed if it is a compressed file, and returns
 // the etag of the response.
 func downloadToFile(url string, etag string, target string) (string, error) {
+	if !downloadURLRegex.MatchString(url) {
+		return "", errPermanent{errNotHttpUrl}
+	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", errPermanent{err}
@@ -438,6 +453,9 @@ var errNotModified = errors.New("no new updates")
 
 // download gets a URL, refusing answers larger than limit.
 func download(client *http.Client, url string, etag string, limit int64) ([]byte, string, error) {
+	if !downloadURLRegex.MatchString(url) {
+		return nil, "", errNotHttpUrl
+	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, "", err
