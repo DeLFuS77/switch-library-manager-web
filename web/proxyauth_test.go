@@ -372,9 +372,17 @@ func TestPortalLogout(t *testing.T) {
 	if page := proxy.do("GET", "/login.html?portal=out", nil, "Remote-User", "alice"); page.Code != http.StatusOK || !strings.Contains(page.Body.String(), `href="/index.html"`) || strings.Contains(page.Body.String(), `name="password"`) {
 		t.Fatalf("the page that tells it, not the library nor the form: %v %q", page.Code, page.Header().Get("Location"))
 	}
-	setPortal(web, settings.PortalOptions{Header: true, LogoutUrl: "https://auth.example.com/logout"})
-	if location := proxy.do("POST", "/logout", nil, "Remote-User", "alice").Header().Get("Location"); location != "https://auth.example.com/logout" {
-		t.Fatalf("to the exit of the portal: %q", location)
+	// the exit of another site is opened by a page of the app: browsers do not follow a form
+	// to another site (form-action 'self'), not even redirected
+	setPortal(web, settings.PortalOptions{Header: true, LogoutUrl: "https://auth.example.com/logout?rd=https://slm.example.com"})
+	exit := proxy.do("POST", "/logout", nil, "Remote-User", "alice")
+	if body := exit.Body.String(); exit.Code != http.StatusOK || !strings.Contains(body, `content="0; url=https://auth.example.com/logout?rd=https://slm.example.com"`) ||
+		!strings.Contains(body, "auth.example.com") || strings.Contains(body, `name="password"`) {
+		t.Fatalf("to the exit of the portal: %v %s", exit.Code, body)
+	}
+	setPortal(web, settings.PortalOptions{Header: true, LogoutUrl: "/portal/logout"})
+	if location := proxy.do("POST", "/logout", nil, "Remote-User", "alice").Header().Get("Location"); location != "/portal/logout" {
+		t.Fatalf("an exit on this site: %q", location)
 	}
 	// signed in with a password, Log out is the one of always
 	password := &client{t: t, handler: proxy.handler}

@@ -47,13 +47,16 @@ const (
 	// signed in by a portal in front of the app (see proxyauth.go)
 	ACTION_PORTAL_PROXY = "Signed in through the proxy"
 	ACTION_PORTAL_CF    = "Signed in with Cloudflare Access"
+	// signed in with OpenID Connect (see oidc.go)
+	ACTION_PORTAL_OIDC = "Signed in with OpenID Connect"
 	// the email a portal names a user with, and the options of the portal
 	ACTION_USER_EMAIL      = "Changed the email of a user"
 	ACTION_PORTAL_SETTINGS = "Changed the sign-in portal"
 )
 
 var activityActions = []string{ACTION_SETTINGS, ACTION_ORGANIZE, ACTION_SPACE, ACTION_COMPRESS, ACTION_DECOMPRESS, ACTION_RESTORE, ACTION_USER_NEW, ACTION_USER_ROLE, ACTION_USER_PASS, ACTION_USER_DEL, ACTION_LEFTOVERS, ACTION_UPLOAD, ACTION_SYNC, ACTION_VERIFY, ACTION_LOGIN_OK, ACTION_LOGIN_FAIL, ACTION_LOGIN_LOCK,
-	ACTION_KEY_NEW, ACTION_KEY_USE, ACTION_KEY_DEL, ACTION_PORTAL_PROXY, ACTION_PORTAL_CF, ACTION_USER_EMAIL, ACTION_PORTAL_SETTINGS}
+	ACTION_KEY_NEW, ACTION_KEY_USE, ACTION_KEY_DEL, ACTION_PORTAL_PROXY, ACTION_PORTAL_CF, ACTION_USER_EMAIL, ACTION_PORTAL_SETTINGS,
+	ACTION_PORTAL_OIDC}
 
 // Activity is an action of a user.
 type Activity struct {
@@ -283,6 +286,7 @@ var (
 		portalUnknownDetail:             portalUnknownDetail,
 		portalUntrustedDetail:           portalUntrustedDetail,
 		portalTokenDetail:               portalTokenDetail,
+		oidcFailedDetail:                oidcFailedDetail,
 	}
 	activityPhrases = []string{", originals deleted after the check", ", NSZ deleted after the check"}
 )
@@ -322,6 +326,9 @@ func translateActivity(lang string, entries []Activity) []Activity {
 		// a token that is not valid names nobody
 		if entry.User == "" && entry.Detail == portalTokenDetail {
 			entry.User = "Cloudflare Access"
+		}
+		if entry.User == "" && entry.Detail == oidcFailedDetail {
+			entry.User = "OpenID Connect"
 		}
 		entry.Detail = detail
 		result[i] = entry

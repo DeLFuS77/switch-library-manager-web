@@ -10,7 +10,8 @@
 							<div>
 								<div class="h5 fw-bold mb-1">{{if .Auth.User}}{{.Auth.User}}{{else}}{{t "Guest"}}{{end}}</div>
 								{{- if .Auth.IsAdmin}}<span class="chip chip-success">{{t "Administrator"}}</span>{{else}}<span class="chip chip-muted">{{t (roleName .Auth.Role)}}</span>{{end}}
-								{{- if .Auth.Via}} <span class="chip chip-info"><span class="bi bi-door-open me-1" aria-hidden="true"></span>{{if eq .Auth.Via "cloudflare"}}Cloudflare Access{{else}}{{t "through the proxy"}}{{end}}</span>{{end}}
+								{{- if eq .Auth.Via "oidc"}} <span class="chip chip-info"><span class="bi bi-shield-lock me-1" aria-hidden="true"></span>{{.Auth.Provider}}</span>
+								{{- else if .Auth.Via}} <span class="chip chip-info"><span class="bi bi-door-open me-1" aria-hidden="true"></span>{{if eq .Auth.Via "cloudflare"}}Cloudflare Access{{else}}{{t "through the proxy"}}{{end}}</span>{{end}}
 							</div>
 						</div>
 						{{- if .Stored}}

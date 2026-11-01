@@ -332,6 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initGameUpload();
 	initSearchClear();
 	initCopyButtons();
+	initOriginPaths();
 	initFullRows();
 	initScreenshots();
 	initSpacePreparing();

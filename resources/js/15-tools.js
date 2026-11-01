@@ -271,6 +271,19 @@ function initCopyButtons() {
 	});
 }
 
+// the fields and copy buttons of an address of this site as the browser opens it now: the
+// redirect address of OpenID Connect, to give the provider
+function initOriginPaths() {
+	document.querySelectorAll('[data-origin-path]').forEach(element => {
+		const address = window.location.origin + element.dataset.originPath;
+		if (element.matches('input')) {
+			element.value = address;
+		} else {
+			element.dataset.copy = address;
+		}
+	});
+}
+
 // Issues: delete the files of a kind of issue that are of no use, after a confirmation
 function initIssueDelete() {
 	document.querySelectorAll('[data-issue-delete]').forEach(button => button.addEventListener('click', () => {
