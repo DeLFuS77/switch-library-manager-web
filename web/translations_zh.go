@@ -3,6 +3,27 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		// a game edited by hand
+		"Original: %v":   "原名：%v",
+		"Edited by hand": "已手动编辑",
+		"Edit the game":  "编辑游戏",
+		"Only how the app shows it changes: the file and the title ID of the game are not touched. Organize uses this name when you run it.": "只改变应用中的显示方式：游戏文件和标题 ID 不会改动。运行“整理”时会使用这个名称。",
+		"Cover":                           "封面",
+		"Upload an image":                 "上传图片",
+		"or paste an address (https://…)": "或粘贴地址（https://…）",
+		"Address of the cover":            "封面地址",
+		"Use the cover of the game":       "使用游戏的封面",
+		"JPEG, PNG or GIF, up to 5 MB. It is kept in the app.":                                   "JPEG、PNG 或 GIF，最大 5 MB。保存在应用中。",
+		"Empty: the original one, “%v”.":                                                         "留空：使用原来的名称“%v”。",
+		"(if you like)":                                                                          "（可选）",
+		"Empty: the original one, in your language when there is one.":                           "留空：使用原来的简介，如有则为你的语言。",
+		"Back to the original name, cover and description of this game? What you wrote is lost.": "要恢复这款游戏原来的名称、封面和简介吗？你填写的内容将丢失。",
+		"Back to the original":                                                                   "恢复原样",
+		"The cover is too large: at most 5 MB and 6000 pixels a side.":                           "封面太大：最大 5 MB，每边最多 6000 像素。",
+		"The titles database and the library do not know this game.":                             "游戏数据库和游戏库中都没有这款游戏。",
+		"The cover must be a JPEG, PNG or GIF image.":                                            "封面必须是 JPEG、PNG 或 GIF 图片。",
+		"The cover could not be downloaded from that address.":                                   "无法从该地址下载封面。",
+		"The change could not be saved in the data folder.":                                      "无法将更改保存到数据文件夹。",
 		// the titles database, with no connection to its servers
 		"Offline: the titles database was not downloaded, the saved copy is used.": "无法连接：无法下载游戏数据库，将使用已保存的副本。",
 		"Offline: the titles database was not downloaded.":                         "无法连接：无法下载游戏数据库。",

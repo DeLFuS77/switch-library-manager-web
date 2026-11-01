@@ -121,7 +121,7 @@ func (web *Web) upcomingGamesAt(lang string, now time.Time) []UpcomingGame {
 			Id:           id,
 			Name:         titleName(switchDB, lang, id, attributes.Name),
 			OriginalName: attributes.Name,
-			ImageUrl:     coverUrl(localDB, attributes),
+			ImageUrl:     coverUrl(switchDB, localDB, attributes),
 			Region:       attributes.Region,
 			ReleaseDate:  release,
 			Known:        true,

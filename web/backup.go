@@ -5,9 +5,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"image"
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -16,17 +18,25 @@ import (
 )
 
 const (
-	// the largest backup accepted, the largest file in it (the verification results of a large
-	// library) and all its files together
-	maxBackupSize      = 16 << 20
+	// the largest backup accepted (it holds the covers chosen by hand too), the largest file in
+	// it (the verification results of a large library) and all its files together
+	maxBackupSize      = 64 << 20
 	maxBackupFileSize  = 64 << 20
 	maxBackupTotalSize = 256 << 20
 )
 
 // backupFiles are the files of the data folder kept in a backup: the configuration, the
-// users, the verification results and the notified versions. Console keys, the session
-// key and the caches are never included.
-var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, WISHLIST_FILENAME, ACTIVITY_FILENAME, HISTORY_FILENAME, COLLECTIONS_FILENAME, FAVORITES_FILENAME, PLAY_FILENAME, SMART_COLLECTIONS_FILENAME}
+// users, the verification results and the notified versions, the copies chosen of the games of
+// several regions and what was changed of games by hand. Console keys, the session key and the
+// caches are never included.
+var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, WISHLIST_FILENAME, ACTIVITY_FILENAME, HISTORY_FILENAME, COLLECTIONS_FILENAME, FAVORITES_FILENAME, PLAY_FILENAME, SMART_COLLECTIONS_FILENAME,
+	REGION_CHOICES_FILENAME, TITLE_OVERRIDES_FILENAME}
+
+// backupCover is the name in a backup of a cover chosen by hand, kept in OVERRIDE_COVERS_FOLDER
+func backupCover(name string) (string, bool) {
+	folder, file := path.Split(name)
+	return file, folder == OVERRIDE_COVERS_FOLDER+"/" && overrideCoverName.MatchString(file)
+}
 
 // errors shown to the user, translated by the interface
 var (
@@ -56,6 +66,26 @@ func (web *Web) writeBackup(w io.Writer) error {
 			return err
 		}
 	}
+	// the covers chosen by hand, images stored as they are
+	for _, override := range web.titleOverrides().snapshot() {
+		if override.Cover == "" {
+			continue
+		}
+		data, err := os.ReadFile(web.overrideCoverPath(override.Cover))
+		if errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		file, err := archive.CreateHeader(&zip.FileHeader{Name: OVERRIDE_COVERS_FOLDER + "/" + override.Cover, Method: zip.Store, Modified: time.Now()})
+		if err != nil {
+			return err
+		}
+		if _, err := file.Write(data); err != nil {
+			return err
+		}
+	}
 	return archive.Close()
 }
 
@@ -73,11 +103,13 @@ func readBackup(data []byte) (map[string][]byte, error) {
 	files := map[string][]byte{}
 	total := 0
 	for _, entry := range archive.File {
-		if _, ok := allowed[entry.Name]; !ok {
+		_, known := allowed[entry.Name]
+		_, cover := backupCover(entry.Name)
+		if !known && !cover {
 			continue
 		}
 		// a file too large or twice is not a backup of the app
-		if _, twice := files[entry.Name]; twice || entry.UncompressedSize64 > maxBackupFileSize {
+		if _, twice := files[entry.Name]; twice || entry.UncompressedSize64 > maxBackupFileSize || cover && entry.UncompressedSize64 > maxOverrideCoverBytes {
 			return nil, ErrBackupFile
 		}
 		reader, err := entry.Open()
@@ -100,6 +132,12 @@ func readBackup(data []byte) (map[string][]byte, error) {
 
 	var target any
 	for name, content := range files {
+		if _, cover := backupCover(name); cover {
+			if !backupCoverImage(content) {
+				return nil, ErrBackupFile
+			}
+			continue
+		}
 		switch name {
 		case settings.SETTINGS_FILENAME:
 			target = &settings.AppSettings{}
@@ -115,6 +153,17 @@ func readBackup(data []byte) (map[string][]byte, error) {
 		}
 	}
 	return files, nil
+}
+
+// backupCoverImage tells a cover of a backup the app made: a JPEG or PNG image of a size it keeps.
+func backupCoverImage(data []byte) bool {
+	switch http.DetectContentType(data) {
+	case "image/jpeg", "image/png":
+	default:
+		return false
+	}
+	config, _, err := image.DecodeConfig(bytes.NewReader(data))
+	return err == nil && config.Width > 0 && config.Height > 0 && config.Width <= maxOverrideCoverSide && config.Height <= maxOverrideCoverSide
 }
 
 // restoreBackup replaces the backup files of the data folder with those of the backup
@@ -142,6 +191,17 @@ func (web *Web) restoreBackup(data []byte) error {
 		}
 	}
 
+	// the covers first, so the changes restored find them
+	for name, content := range files {
+		if cover, ok := backupCover(name); ok {
+			if err := os.MkdirAll(filepath.Dir(web.overrideCoverPath(cover)), 0755); err != nil {
+				return err
+			}
+			if err := writeFileAtomic(web.overrideCoverPath(cover), content); err != nil {
+				return err
+			}
+		}
+	}
 	for _, name := range backupFiles {
 		content, ok := files[name]
 		if !ok {
@@ -196,6 +256,14 @@ func (web *Web) restoreBackup(data []byte) error {
 	}
 	if _, ok := files[WISHLIST_FILENAME]; ok {
 		web.wishes().reload()
+	}
+	if _, ok := files[REGION_CHOICES_FILENAME]; ok {
+		web.regionChoices().reload()
+	}
+	if _, ok := files[TITLE_OVERRIDES_FILENAME]; ok {
+		web.titleOverrides().reload()
+		web.removeUnusedOverrideCovers()
+		web.applyTitleOverrides()
 	}
 	web.invalidateDerived()
 	return nil

@@ -52,19 +52,20 @@ func (web *Web) thumbnails() *thumbnails {
 // pregenerateThumbnails makes the missing thumbnails of the library covers, one at a time,
 // so pages do not wait for them the first time they are shown.
 func (web *Web) pregenerateThumbnails() {
-	_, localDB := web.state.get()
+	switchDB, localDB := web.state.get()
 	if localDB == nil {
 		return
 	}
 	missing := []string{}
 	seen := map[string]bool{}
-	for _, title := range localDB.TitlesMap {
-		if title.Icon == "" || seen[title.Icon] {
+	for prefix, title := range localDB.TitlesMap {
+		icon := gameIcon(switchDB, prefix, title)
+		if icon == "" || seen[icon] {
 			continue
 		}
-		seen[title.Icon] = true
-		if _, err := os.Stat(filepath.Join(web.dataFolder, "img", "thumbs", title.Icon)); err != nil {
-			missing = append(missing, title.Icon)
+		seen[icon] = true
+		if _, err := os.Stat(filepath.Join(web.dataFolder, "img", "thumbs", icon)); err != nil {
+			missing = append(missing, icon)
 		}
 	}
 	if len(missing) == 0 {
@@ -154,6 +155,10 @@ func (web *Web) imagePath(name string) (string, bool) {
 		return "", false
 	}
 	path := filepath.Join(web.dataFolder, "img", name)
+	if overrideCoverName.MatchString(name) {
+		// a cover chosen by the user, kept apart from the cache
+		path = web.overrideCoverPath(name)
+	}
 	if info, err := os.Stat(path); err != nil || info.IsDir() {
 		return "", false
 	}

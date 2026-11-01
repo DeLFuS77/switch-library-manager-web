@@ -41,7 +41,7 @@ type exportSiteData struct {
 
 // writeExportSite writes the ZIP of the exported web page.
 func (web *Web) writeExportSite(w io.Writer, templates templateSet, lang string) error {
-	_, localDB := web.state.get()
+	switchDB, localDB := web.state.get()
 	data := exportSiteData{Title: translate(lang, "My Switch library"), Created: time.Now()}
 	covers := map[string]string{}
 	for _, title := range web.getExport() {
@@ -66,8 +66,9 @@ func (web *Web) writeExportSite(w io.Writer, templates templateSet, lang string)
 		data.MissingDlc += title.DlcMissing
 		data.Size += title.Size
 		if localDB != nil {
-			if local, ok := localDB.TitlesMap[strings.ToLower(title.Id[:13])]; ok && local.Icon != "" {
-				thumbnail := filepath.Join(web.dataFolder, "img", "thumbs", local.Icon)
+			prefix := strings.ToLower(title.Id[:13])
+			if local, ok := localDB.TitlesMap[prefix]; ok && gameIcon(switchDB, prefix, local) != "" {
+				thumbnail := filepath.Join(web.dataFolder, "img", "thumbs", gameIcon(switchDB, prefix, local))
 				if _, err := os.Stat(thumbnail); err == nil {
 					game.Cover = strconv.Itoa(len(covers)+1) + ".jpg"
 					covers[game.Cover] = thumbnail

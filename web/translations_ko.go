@@ -3,6 +3,27 @@ package web
 // Korean interface translations; see translations.go.
 func init() {
 	translations["ko"] = map[string]string{
+		// a game edited by hand
+		"Original: %v":   "원래 이름: %v",
+		"Edited by hand": "직접 편집함",
+		"Edit the game":  "게임 편집",
+		"Only how the app shows it changes: the file and the title ID of the game are not touched. Organize uses this name when you run it.": "앱에서 보이는 방식만 바뀌어요. 게임 파일과 타이틀 ID는 그대로예요. 정리를 실행하면 이 이름을 사용해요.",
+		"Cover":                           "커버",
+		"Upload an image":                 "이미지 업로드",
+		"or paste an address (https://…)": "또는 주소 붙여넣기 (https://…)",
+		"Address of the cover":            "커버 주소",
+		"Use the cover of the game":       "게임 커버 사용",
+		"JPEG, PNG or GIF, up to 5 MB. It is kept in the app.":                                   "JPEG, PNG 또는 GIF, 최대 5MB. 앱에 저장돼요.",
+		"Empty: the original one, “%v”.":                                                         "비워 두면: 원래 이름, “%v”.",
+		"(if you like)":                                                                          "(원하면)",
+		"Empty: the original one, in your language when there is one.":                           "비워 두면: 원래 설명, 있으면 사용 중인 언어로.",
+		"Back to the original name, cover and description of this game? What you wrote is lost.": "이 게임의 이름, 커버, 설명을 원래대로 되돌릴까요? 입력한 내용은 사라져요.",
+		"Back to the original":                                                                   "원래대로 되돌리기",
+		"The cover is too large: at most 5 MB and 6000 pixels a side.":                           "커버가 너무 커요: 최대 5MB, 한 변 6000픽셀까지예요.",
+		"The titles database and the library do not know this game.":                             "타이틀 데이터베이스와 라이브러리 모두 이 게임을 알지 못해요.",
+		"The cover must be a JPEG, PNG or GIF image.":                                            "커버는 JPEG, PNG 또는 GIF 이미지여야 해요.",
+		"The cover could not be downloaded from that address.":                                   "그 주소에서 커버를 다운로드하지 못했어요.",
+		"The change could not be saved in the data folder.":                                      "변경 사항을 데이터 폴더에 저장하지 못했어요.",
 		// the titles database, with no connection to its servers
 		"Offline: the titles database was not downloaded, the saved copy is used.": "연결할 수 없어요: 타이틀 데이터베이스를 다운로드할 수 없어 저장된 사본을 사용해요.",
 		"Offline: the titles database was not downloaded.":                         "연결할 수 없어요: 타이틀 데이터베이스를 다운로드할 수 없어요.",

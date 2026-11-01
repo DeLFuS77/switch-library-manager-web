@@ -24,16 +24,25 @@ type regionChoices struct {
 
 func (web *Web) regionChoices() *regionChoices {
 	web.regionChoiceOnce.Do(func() {
-		store := &regionChoices{path: filepath.Join(web.dataFolder, REGION_CHOICES_FILENAME), ids: map[string]bool{}}
-		if data, ok := readStore(store.path); ok {
-			parseStore(store.path, data, &store.ids)
-		}
-		if store.ids == nil {
-			store.ids = map[string]bool{}
-		}
+		store := &regionChoices{path: filepath.Join(web.dataFolder, REGION_CHOICES_FILENAME)}
+		store.reload()
 		web.regionChoice = store
 	})
 	return web.regionChoice
+}
+
+// reload reads the file again (a backup was restored).
+func (c *regionChoices) reload() {
+	ids := map[string]bool{}
+	if data, ok := readStore(c.path); ok {
+		parseStore(c.path, data, &ids)
+	}
+	if ids == nil {
+		ids = map[string]bool{}
+	}
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.ids = ids
 }
 
 // snapshot returns the title IDs chosen.

@@ -787,7 +787,7 @@ func organize(baseFolder string,
 		if titlesDB != nil {
 			title = titlesDB.TitlesMap[k]
 		}
-		titleName := getTitleName(title, v)
+		titleName := gameName(titlesDB, k, title, v)
 		// a name in Chinese or Korean is left with no letter by the names for the Switch: the
 		// file's own name, or Unknown Title, instead of a folder called "_", or "4" for
 		// 符文工房4 特别版
@@ -1158,7 +1158,7 @@ func collectionGameName(titlesDB *db.SwitchTitlesDB, key string, local *db.Switc
 	if titlesDB != nil {
 		title = titlesDB.TitlesMap[key]
 	}
-	name := getTitleName(title, local)
+	name := gameName(titlesDB, key, title, local)
 	if !safe {
 		return pieceName(name)
 	}
@@ -1297,6 +1297,15 @@ var (
 // realName tells a name from a placeholder such as "-" of some entries of the titles database.
 func realName(name string) bool {
 	return strings.Trim(name, " -_.?·") != ""
+}
+
+// gameName is the name of a game in the names of its files and folders: the one the user gave
+// it by hand, else the one of the titles database or of its own files (see getTitleName).
+func gameName(titlesDB *db.SwitchTitlesDB, key string, title *db.SwitchTitle, local *db.SwitchGameFiles) string {
+	if edited, ok := titlesDB.EditedTitle(strings.ToUpper(key) + "000"); ok && realName(edited.Name) {
+		return strings.TrimSpace(edited.Name)
+	}
+	return getTitleName(title, local)
 }
 
 func getTitleName(switchTitle *db.SwitchTitle, v *db.SwitchGameFiles) string {

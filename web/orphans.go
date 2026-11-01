@@ -75,7 +75,7 @@ func (web *Web) buildOrphans(lang string) []TitleItem {
 		if item.Name == "" {
 			item.Name = id
 		}
-		item.ImageUrl = coverUrl(localDB, attributes)
+		item.ImageUrl = coverUrl(switchDB, localDB, attributes)
 		items = append(items, item)
 	}
 	return items

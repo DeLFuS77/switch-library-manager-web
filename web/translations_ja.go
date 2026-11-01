@@ -3,6 +3,27 @@ package web
 // Japanese interface translations; see translations.go.
 func init() {
 	translations["ja"] = map[string]string{
+		// a game edited by hand
+		"Original: %v":   "元の名前：%v",
+		"Edited by hand": "手動で編集済み",
+		"Edit the game":  "ゲームを編集",
+		"Only how the app shows it changes: the file and the title ID of the game are not touched. Organize uses this name when you run it.": "アプリでの表示だけが変わります。ゲームのファイルとタイトル ID はそのままです。整理を実行すると、この名前が使われます。",
+		"Cover":                           "カバー画像",
+		"Upload an image":                 "画像をアップロード",
+		"or paste an address (https://…)": "またはアドレスを貼り付け（https://…）",
+		"Address of the cover":            "カバー画像のアドレス",
+		"Use the cover of the game":       "ゲームのカバー画像を使う",
+		"JPEG, PNG or GIF, up to 5 MB. It is kept in the app.":                                   "JPEG、PNG、GIF、5 MB まで。アプリ内に保存されます。",
+		"Empty: the original one, “%v”.":                                                         "空欄：元の名前（「%v」）",
+		"(if you like)":                                                                          "（任意）",
+		"Empty: the original one, in your language when there is one.":                           "空欄：元の説明（あればお使いの言語で）",
+		"Back to the original name, cover and description of this game? What you wrote is lost.": "このゲームの名前、カバー画像、説明を元に戻しますか？入力した内容は失われます。",
+		"Back to the original":                                                                   "元に戻す",
+		"The cover is too large: at most 5 MB and 6000 pixels a side.":                           "カバー画像が大きすぎます：5 MB、1 辺 6000 ピクセルまでです。",
+		"The titles database and the library do not know this game.":                             "タイトルデータベースにもライブラリにもこのゲームはありません。",
+		"The cover must be a JPEG, PNG or GIF image.":                                            "カバー画像は JPEG、PNG、GIF のいずれかの画像にしてください。",
+		"The cover could not be downloaded from that address.":                                   "そのアドレスからカバー画像をダウンロードできませんでした。",
+		"The change could not be saved in the data folder.":                                      "変更をデータフォルダーに保存できませんでした。",
 		// the titles database, with no connection to its servers
 		"Offline: the titles database was not downloaded, the saved copy is used.": "接続できません：タイトルデータベースをダウンロードできなかったため、保存済みのコピーを使用します。",
 		"Offline: the titles database was not downloaded.":                         "接続できません：タイトルデータベースをダウンロードできませんでした。",

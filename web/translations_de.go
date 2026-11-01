@@ -3,6 +3,27 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		// a game edited by hand
+		"Original: %v":   "Original: %v",
+		"Edited by hand": "Von Hand bearbeitet",
+		"Edit the game":  "Spiel bearbeiten",
+		"Only how the app shows it changes: the file and the title ID of the game are not touched. Organize uses this name when you run it.": "Nur die Anzeige in der App ändert sich: Die Datei und die Titel-ID des Spiels bleiben unberührt. Organisieren verwendet diesen Namen, wenn du es startest.",
+		"Cover":                           "Cover",
+		"Upload an image":                 "Bild hochladen",
+		"or paste an address (https://…)": "oder eine Adresse einfügen (https://…)",
+		"Address of the cover":            "Adresse des Covers",
+		"Use the cover of the game":       "Cover des Spiels verwenden",
+		"JPEG, PNG or GIF, up to 5 MB. It is kept in the app.":                                   "JPEG, PNG oder GIF, bis 5 MB. Es wird in der App gespeichert.",
+		"Empty: the original one, “%v”.":                                                         "Leer: der ursprüngliche, „%v“.",
+		"(if you like)":                                                                          "(wenn du möchtest)",
+		"Empty: the original one, in your language when there is one.":                           "Leer: die ursprüngliche, in deiner Sprache, falls vorhanden.",
+		"Back to the original name, cover and description of this game? What you wrote is lost.": "Zurück zum ursprünglichen Namen, Cover und zur ursprünglichen Beschreibung dieses Spiels? Was du geschrieben hast, geht verloren.",
+		"Back to the original":                                                                   "Zurück zum Original",
+		"The cover is too large: at most 5 MB and 6000 pixels a side.":                           "Das Cover ist zu groß: höchstens 5 MB und 6000 Pixel pro Seite.",
+		"The titles database and the library do not know this game.":                             "Weder die Titeldatenbank noch die Bibliothek kennt dieses Spiel.",
+		"The cover must be a JPEG, PNG or GIF image.":                                            "Das Cover muss ein JPEG-, PNG- oder GIF-Bild sein.",
+		"The cover could not be downloaded from that address.":                                   "Das Cover konnte von dieser Adresse nicht heruntergeladen werden.",
+		"The change could not be saved in the data folder.":                                      "Die Änderung konnte nicht im Datenordner gespeichert werden.",
 		// the titles database, with no connection to its servers
 		"Offline: the titles database was not downloaded, the saved copy is used.": "Keine Verbindung: Die Titeldatenbank konnte nicht heruntergeladen werden, die gespeicherte Kopie wird verwendet.",
 		"Offline: the titles database was not downloaded.":                         "Keine Verbindung: Die Titeldatenbank konnte nicht heruntergeladen werden.",

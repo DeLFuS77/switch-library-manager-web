@@ -139,10 +139,10 @@ func (web *Web) fileCovers() map[string]string {
 		}
 		for prefix, local := range localDB.TitlesMap {
 			cover := ""
-			if local.Icon != "" {
-				cover = "/i/" + local.Icon
+			if icon := gameIcon(switchDB, prefix, local); icon != "" {
+				cover = "/i/" + icon
 			} else if switchDB != nil && switchDB.TitlesMap[prefix] != nil {
-				cover = coverUrl(localDB, switchDB.TitlesMap[prefix].Attributes)
+				cover = coverUrl(switchDB, localDB, switchDB.TitlesMap[prefix].Attributes)
 			}
 			if cover == "" {
 				continue
