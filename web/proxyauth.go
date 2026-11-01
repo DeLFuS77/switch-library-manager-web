@@ -100,8 +100,9 @@ func validLogoutUrl(address string) bool {
 	if strings.ContainsAny(address, "\\ \t\r\n") || len(address) > 2048 {
 		return false
 	}
+	// a page of this site, never //host or /\host, which a browser takes for another site
 	if strings.HasPrefix(address, "/") {
-		return !strings.HasPrefix(address, "//")
+		return len(address) == 1 || (address[1] != '/' && address[1] != '\\')
 	}
 	parsed, err := url.Parse(address)
 	return err == nil && (parsed.Scheme == "https" || parsed.Scheme == "http") && parsed.Host != "" && parsed.User == nil

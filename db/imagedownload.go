@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 )
 
 // ErrImageTooLarge is an image refused for being larger than asked.
@@ -14,7 +13,7 @@ var ErrImageTooLarge = errors.New("the image is too large")
 // DownloadImage gets an image at an address the user gave, refusing answers larger than limit.
 // As the covers of the titles database, it comes from the internet only (see publicClient).
 func DownloadImage(url string, limit int64) ([]byte, error) {
-	if !strings.HasPrefix(url, "https://") && !strings.HasPrefix(url, "http://") {
+	if !downloadURLRegex.MatchString(url) {
 		return nil, errors.New("only web addresses are downloaded")
 	}
 	response, err := publicClient.Get(url)

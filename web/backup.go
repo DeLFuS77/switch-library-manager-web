@@ -32,9 +32,11 @@ const (
 var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, WISHLIST_FILENAME, ACTIVITY_FILENAME, HISTORY_FILENAME, COLLECTIONS_FILENAME, FAVORITES_FILENAME, PLAY_FILENAME, SMART_COLLECTIONS_FILENAME,
 	REGION_CHOICES_FILENAME, TITLE_OVERRIDES_FILENAME}
 
-// backupCover is the name in a backup of a cover chosen by hand, kept in OVERRIDE_COVERS_FOLDER
+// backupCover is the name in a backup of a cover chosen by hand, kept in OVERRIDE_COVERS_FOLDER:
+// the name of a file alone, never a path.
 func backupCover(name string) (string, bool) {
 	folder, file := path.Split(name)
+	file = filepath.Base(file)
 	return file, folder == OVERRIDE_COVERS_FOLDER+"/" && overrideCoverName.MatchString(file)
 }
 
@@ -217,7 +219,8 @@ func (web *Web) restoreBackup(data []byte, firstUsers func() error) error {
 
 	// the covers first, so the changes restored find them
 	for name, content := range files {
-		if cover, ok := backupCover(name); ok {
+		// the name is checked again where the file is written: a name of the app, inside its folder
+		if cover, ok := backupCover(name); ok && overrideCoverName.MatchString(cover) && filepath.IsLocal(cover) {
 			if err := os.MkdirAll(filepath.Dir(web.overrideCoverPath(cover)), 0755); err != nil {
 				return err
 			}
