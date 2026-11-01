@@ -10,10 +10,12 @@
 ### Improvements
 
 - A synchronization no longer downloads the titles database again when it did not change, and when it did, it downloads it compressed: 23 MB for titles.json instead of 126 MB. The versions of updates also come from borntohonk/titledb and 16BitWonder/nx-versions, so new updates still show up in the weeks blawar/titledb does not change; settings saved with the old address of versions.json, the one of blawar/titledb, move to the new one, and an address of one's own stays
+- Check the files: one check with its level chosen on the Issues page, Signature (the header of every NCA, in seconds), Hash (every file read whole and checked against its hashes) or Both, which the browser remembers; Check signatures is gone, as Signature does it. A file with an NCA not signed by Nintendo and nothing damaged is Modified, in orange, and no longer counts as failed: a tool rewrote it, and it usually installs and plays. A damaged file is Failed, in red, and listed only as damaged. With Both the hashes are checked even when the signature fails; the scheduled checks and the automations check both. Tasks, the activity, the message of the automations and the API (/verify/start, and the tasks) tell the two apart, and the results saved by older versions still read
 
 ### Fixes
 
 - Backups keep the copy chosen of each game of several regions, which restoring one left out
+- In Issues, the reason of a file not signed by Nintendo is in the language of the page
 
 ### Security
 
