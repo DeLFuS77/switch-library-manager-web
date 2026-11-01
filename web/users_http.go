@@ -13,6 +13,12 @@ type LoginPageData struct {
 	Next  string
 	Name  string
 	Error string
+	// who a sign-in portal in front of the app named, when no user has that name or email, and
+	// which portal it was
+	Portal    string
+	PortalVia string
+	// signed out of the app while the portal keeps its session: told where to end it
+	PortalOut bool
 }
 
 type UsersPageData struct {
@@ -45,6 +51,8 @@ type AccountPageData struct {
 	Keys        []KeyRow
 	KeyChoices  []RoleChoice
 	CanMakeKeys bool
+	// the user has a password: one made by a sign-in portal has none
+	HasPassword bool
 }
 
 // messages shown after an action, by the key in the redirect
@@ -59,6 +67,8 @@ var userMessages = map[string]string{
 	// the API keys, made and revoked by the scripts of the pages
 	"keycreated": "The API key was made.",
 	"keyrevoked": "The API key was revoked.",
+	// the email a sign-in portal names a user with
+	"email": "The email was saved.",
 }
 
 func (web *Web) HandleUsers() {
@@ -67,11 +77,23 @@ func (web *Web) HandleUsers() {
 	account := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/account.html")
 
 	web.router.HandleFunc("/login.html", func(w http.ResponseWriter, r *http.Request) {
-		if !web.auth.Enabled() || web.auth.fromSession(r) != nil {
-			http.Redirect(w, r, safeNext(r.URL.Query().Get("next")), http.StatusSeeOther)
+		data := LoginPageData{Next: r.URL.Query().Get("next")}
+		via := principalFrom(r).Via
+		// signed out of the app, while the portal in front keeps the person signed in
+		if via != "" && r.URL.Query().Get("portal") == "out" {
+			data.PortalOut, data.PortalVia = true, via
+			web.renderLogin(w, r, login, data)
 			return
 		}
-		web.renderLogin(w, r, login, LoginPageData{Next: r.URL.Query().Get("next")})
+		if !web.auth.Enabled() || via != "" || web.auth.fromSession(r) != nil {
+			http.Redirect(w, r, safeNext(data.Next), http.StatusSeeOther)
+			return
+		}
+		// the portal let the person in, but the app has no user for them
+		if identity, _ := web.auth.portalIdentity(r); identity != nil {
+			data.Portal, data.PortalVia = identity.named(), identity.Via
+		}
+		web.renderLogin(w, r, login, data)
 	}).Methods("GET")
 
 	web.router.HandleFunc("/login.html", func(w http.ResponseWriter, r *http.Request) {
@@ -116,7 +138,14 @@ func (web *Web) HandleUsers() {
 	web.router.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
 		web.auth.endSession(r)
 		http.SetCookie(w, clearSessionCookie(r))
-		http.Redirect(w, r, "/login.html", http.StatusSeeOther)
+		target := "/login.html"
+		// a person signed in by a portal signs out of it, or is told how to
+		if via := principalFrom(r).Via; via != "" {
+			if target = web.auth.portalLogout(via); target == "" {
+				target = "/login.html?portal=out"
+			}
+		}
+		http.Redirect(w, r, target, http.StatusSeeOther)
 	}).Methods("POST")
 
 	web.router.HandleFunc("/users.html", func(w http.ResponseWriter, r *http.Request) {
@@ -144,6 +173,7 @@ func (web *Web) HandleUsers() {
 			if user, ok := web.auth.users.Get(principal.Name); ok {
 				data.Stored, data.Language = true, user.Language
 				data.Keys, data.KeyChoices, data.CanMakeKeys = web.auth.users.KeyRows(user.Name), apiKeyChoices(user.Role), principal.Source != "key"
+				data.HasPassword = user.HasPassword()
 			}
 		}
 		if message, ok := userMessages[r.URL.Query().Get("done")]; ok {
@@ -283,6 +313,7 @@ func (web *Web) HandleUsers() {
 	}).Methods("POST")
 
 	web.handleAPIKeys()
+	web.handlePortal()
 }
 
 func (web *Web) renderLogin(w http.ResponseWriter, r *http.Request, templates templateSet, data LoginPageData) {
@@ -293,11 +324,15 @@ func (web *Web) renderLogin(w http.ResponseWriter, r *http.Request, templates te
 	}
 }
 
-// redirectWithError shows a known error on the target page.
+// redirectWithError shows a known error on the target page, at its #section when it has one.
 func redirectWithError(w http.ResponseWriter, r *http.Request, target string, err error) {
+	target, section, _ := strings.Cut(target, "#")
+	if section != "" {
+		section = "#" + section
+	}
 	for i, known := range userErrors {
 		if errors.Is(err, known) {
-			http.Redirect(w, r, fmt.Sprintf("%s?error=%d", target, i), http.StatusSeeOther)
+			http.Redirect(w, r, fmt.Sprintf("%s?error=%d%s", target, i, section), http.StatusSeeOther)
 			return
 		}
 	}

@@ -1565,6 +1565,22 @@ func init() {
 		"you":                                                              "나",
 		"yours included":                                                   "내 것 포함",
 
+		// sign-in portal in front of the app (Authelia, Authentik, Cloudflare Access): Settings, Users,
+		// the login page and the activity
+		"Signed in through the proxy":                                                       "프록시를 통해 로그인함",
+		"Signed in with Cloudflare Access":                                                  "Cloudflare Access로 로그인함",
+		"Changed the email of a user":                                                       "사용자의 이메일을 변경함",
+		"Changed the sign-in portal":                                                        "로그인 포털을 변경함",
+		"no user with this name or email":                                                   "이 이름이나 이메일을 가진 사용자가 없음",
+		"header sent from an address that is not trusted":                                   "신뢰하지 않는 주소에서 보낸 헤더",
+		"Cloudflare Access token not valid":                                                 "유효하지 않은 Cloudflare Access 토큰",
+		"Write an email like name@example.com.":                                             "name@example.com 같은 이메일을 입력하세요.",
+		"Another user has this email.":                                                      "다른 사용자가 이미 이 이메일을 쓰고 있어요.",
+		"Write the name of a header, like Remote-User.":                                     "Remote-User 같은 헤더 이름을 입력하세요.",
+		"Write the team name of Cloudflare Zero Trust, like myteam.":                        "myteam 같은 Cloudflare Zero Trust 팀 이름을 입력하세요.",
+		"Paste the Application Audience (AUD) tag of the application in Cloudflare Access.": "Cloudflare Access 애플리케이션의 Application Audience(AUD) 태그를 붙여 넣으세요.",
+		"Write an address that starts with https:// or /.":                                  "https:// 또는 /로 시작하는 주소를 입력하세요.",
+		"The email was saved.":                                                              "이메일을 저장했어요.",
 		// API keys of the users, in My account, Users, the activity and the API
 		"Created an API key":        "API 키를 만듦",
 		"Signed in with an API key": "API 키로 로그인함",

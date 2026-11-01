@@ -1565,6 +1565,22 @@ func init() {
 		"you":                                                              "вы",
 		"yours included":                                                   "включая ваш",
 
+		// sign-in portal in front of the app (Authelia, Authentik, Cloudflare Access): Settings, Users,
+		// the login page and the activity
+		"Signed in through the proxy":                                                       "Вход через прокси",
+		"Signed in with Cloudflare Access":                                                  "Вход через Cloudflare Access",
+		"Changed the email of a user":                                                       "Сменил e-mail пользователя",
+		"Changed the sign-in portal":                                                        "Изменил портал входа",
+		"no user with this name or email":                                                   "нет пользователя с таким именем или e-mail",
+		"header sent from an address that is not trusted":                                   "заголовок с недоверенного адреса",
+		"Cloudflare Access token not valid":                                                 "недействительный токен Cloudflare Access",
+		"Write an email like name@example.com.":                                             "Введите e-mail вида name@example.com.",
+		"Another user has this email.":                                                      "Этот e-mail уже есть у другого пользователя.",
+		"Write the name of a header, like Remote-User.":                                     "Введите имя заголовка, например Remote-User.",
+		"Write the team name of Cloudflare Zero Trust, like myteam.":                        "Введите имя команды Cloudflare Zero Trust, например myteam.",
+		"Paste the Application Audience (AUD) tag of the application in Cloudflare Access.": "Вставьте тег Application Audience (AUD) приложения в Cloudflare Access.",
+		"Write an address that starts with https:// or /.":                                  "Введите адрес, который начинается с https:// или /.",
+		"The email was saved.":                                                              "E-mail сохранён.",
 		// API keys of the users, in My account, Users, the activity and the API
 		"Created an API key":        "Создал API-ключ",
 		"Signed in with an API key": "Вход по API-ключу",

@@ -44,10 +44,16 @@ const (
 	ACTION_KEY_NEW    = "Created an API key"
 	ACTION_KEY_USE    = "Signed in with an API key"
 	ACTION_KEY_DEL    = "Revoked an API key"
+	// signed in by a portal in front of the app (see proxyauth.go)
+	ACTION_PORTAL_PROXY = "Signed in through the proxy"
+	ACTION_PORTAL_CF    = "Signed in with Cloudflare Access"
+	// the email a portal names a user with, and the options of the portal
+	ACTION_USER_EMAIL      = "Changed the email of a user"
+	ACTION_PORTAL_SETTINGS = "Changed the sign-in portal"
 )
 
 var activityActions = []string{ACTION_SETTINGS, ACTION_ORGANIZE, ACTION_SPACE, ACTION_COMPRESS, ACTION_DECOMPRESS, ACTION_RESTORE, ACTION_USER_NEW, ACTION_USER_ROLE, ACTION_USER_PASS, ACTION_USER_DEL, ACTION_LEFTOVERS, ACTION_UPLOAD, ACTION_SYNC, ACTION_VERIFY, ACTION_LOGIN_OK, ACTION_LOGIN_FAIL, ACTION_LOGIN_LOCK,
-	ACTION_KEY_NEW, ACTION_KEY_USE, ACTION_KEY_DEL}
+	ACTION_KEY_NEW, ACTION_KEY_USE, ACTION_KEY_DEL, ACTION_PORTAL_PROXY, ACTION_PORTAL_CF, ACTION_USER_EMAIL, ACTION_PORTAL_SETTINGS}
 
 // Activity is an action of a user.
 type Activity struct {
@@ -184,11 +190,13 @@ var recordedActions = map[string]func(r *http.Request) (string, string){
 	"/users/role": func(r *http.Request) (string, string) {
 		return ACTION_USER_ROLE, r.FormValue("name") + ": " + r.FormValue("role")
 	},
-	"/users/password": func(r *http.Request) (string, string) { return ACTION_USER_PASS, r.FormValue("name") },
-	"/users/delete":   func(r *http.Request) (string, string) { return ACTION_USER_DEL, r.FormValue("name") },
-	"/uploads/finish": func(r *http.Request) (string, string) { return ACTION_UPLOAD, r.FormValue("name") },
-	"/sync":           func(r *http.Request) (string, string) { return ACTION_SYNC, "" },
-	"/verify/start":   func(r *http.Request) (string, string) { return ACTION_VERIFY, verifyActivity(r) },
+	"/users/password":  func(r *http.Request) (string, string) { return ACTION_USER_PASS, r.FormValue("name") },
+	"/users/delete":    func(r *http.Request) (string, string) { return ACTION_USER_DEL, r.FormValue("name") },
+	"/users/email":     func(r *http.Request) (string, string) { return ACTION_USER_EMAIL, r.FormValue("name") },
+	"/settings/portal": func(r *http.Request) (string, string) { return ACTION_PORTAL_SETTINGS, "" },
+	"/uploads/finish":  func(r *http.Request) (string, string) { return ACTION_UPLOAD, r.FormValue("name") },
+	"/sync":            func(r *http.Request) (string, string) { return ACTION_SYNC, "" },
+	"/verify/start":    func(r *http.Request) (string, string) { return ACTION_VERIFY, verifyActivity(r) },
 }
 
 // verifyActivity tells the level of a check, and whether it reads every file again.
@@ -272,6 +280,9 @@ var (
 		"read only":                     "Read only",
 		apiKeyFailDetail:                "unknown API key",
 		apiKeyBlockedDetail:             "API key",
+		portalUnknownDetail:             portalUnknownDetail,
+		portalUntrustedDetail:           portalUntrustedDetail,
+		portalTokenDetail:               portalTokenDetail,
 	}
 	activityPhrases = []string{", originals deleted after the check", ", NSZ deleted after the check"}
 )
@@ -307,6 +318,10 @@ func translateActivity(lang string, entries []Activity) []Activity {
 		// a key that does not exist names no user
 		if entry.User == "" && (entry.Detail == apiKeyFailDetail || entry.Detail == apiKeyBlockedDetail) {
 			entry.User = translate(lang, "API key")
+		}
+		// a token that is not valid names nobody
+		if entry.User == "" && entry.Detail == portalTokenDetail {
+			entry.User = "Cloudflare Access"
 		}
 		entry.Detail = detail
 		result[i] = entry

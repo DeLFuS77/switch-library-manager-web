@@ -1565,6 +1565,22 @@ func init() {
 		"you":                                                              "自分",
 		"yours included":                                                   "自分を含む",
 
+		// sign-in portal in front of the app (Authelia, Authentik, Cloudflare Access): Settings, Users,
+		// the login page and the activity
+		"Signed in through the proxy":                                                       "プロキシ経由でサインイン",
+		"Signed in with Cloudflare Access":                                                  "Cloudflare Access でサインイン",
+		"Changed the email of a user":                                                       "ユーザーのメールアドレスを変更しました",
+		"Changed the sign-in portal":                                                        "サインインポータルを変更しました",
+		"no user with this name or email":                                                   "この名前またはメールアドレスのユーザーはいません",
+		"header sent from an address that is not trusted":                                   "信頼されていないアドレスから送られたヘッダー",
+		"Cloudflare Access token not valid":                                                 "無効な Cloudflare Access トークン",
+		"Write an email like name@example.com.":                                             "name@example.com のようにメールアドレスを入力してください。",
+		"Another user has this email.":                                                      "このメールアドレスは別のユーザーが使っています。",
+		"Write the name of a header, like Remote-User.":                                     "Remote-User のようにヘッダー名を入力してください。",
+		"Write the team name of Cloudflare Zero Trust, like myteam.":                        "myteam のように Cloudflare Zero Trust のチーム名を入力してください。",
+		"Paste the Application Audience (AUD) tag of the application in Cloudflare Access.": "Cloudflare Access のアプリケーションの Application Audience (AUD) タグを貼り付けてください。",
+		"Write an address that starts with https:// or /.":                                  "https:// または / で始まるアドレスを入力してください。",
+		"The email was saved.":                                                              "メールアドレスを保存しました。",
 		// API keys of the users, in My account, Users, the activity and the API
 		"Created an API key":        "APIキーを作成しました",
 		"Signed in with an API key": "APIキーでサインイン",

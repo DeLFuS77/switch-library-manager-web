@@ -1285,6 +1285,22 @@ var translations = map[string]map[string]string{
 		"Keys found":                         "Claves encontradas",
 		"Keys not found":                     "Claves no encontradas",
 
+		// sign-in portal in front of the app (Authelia, Authentik, Cloudflare Access): Settings, Users,
+		// the login page and the activity
+		"Signed in through the proxy":                                                       "Entró por el proxy",
+		"Signed in with Cloudflare Access":                                                  "Entró con Cloudflare Access",
+		"Changed the email of a user":                                                       "Cambió el correo de un usuario",
+		"Changed the sign-in portal":                                                        "Cambió el portal de acceso",
+		"no user with this name or email":                                                   "ningún usuario con este nombre ni este correo",
+		"header sent from an address that is not trusted":                                   "cabecera enviada desde una dirección no fiable",
+		"Cloudflare Access token not valid":                                                 "token de Cloudflare Access no válido",
+		"Write an email like name@example.com.":                                             "Escribe un correo como nombre@ejemplo.com.",
+		"Another user has this email.":                                                      "Otro usuario ya tiene este correo.",
+		"Write the name of a header, like Remote-User.":                                     "Escribe el nombre de una cabecera, como Remote-User.",
+		"Write the team name of Cloudflare Zero Trust, like myteam.":                        "Escribe el nombre del equipo de Cloudflare Zero Trust, como miequipo.",
+		"Paste the Application Audience (AUD) tag of the application in Cloudflare Access.": "Pega la etiqueta de audiencia (AUD) de la aplicación de Cloudflare Access.",
+		"Write an address that starts with https:// or /.":                                  "Escribe una dirección que empiece por https:// o por /.",
+		"The email was saved.":                                                              "Se ha guardado el correo.",
 		// API keys of the users, in My account, Users, the activity and the API
 		"Created an API key":        "Creó una llave de API",
 		"Signed in with an API key": "Entró con una llave de API",

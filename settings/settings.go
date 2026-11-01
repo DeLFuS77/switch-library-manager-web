@@ -220,6 +220,30 @@ type QuarantineOptions struct {
 	Originals bool `json:"originals,omitempty"`
 }
 
+// PortalOptions let the people a sign-in portal in front of the app already let in (Authelia,
+// Authentik, Cloudflare Access) open it without the password of the app. Off by default; the
+// environment variables of the same options win over them (see web/proxyauth.go).
+type PortalOptions struct {
+	// believe the user a proxy of SLM_TRUSTED_PROXIES names in a header
+	Header       bool   `json:"header,omitempty"`
+	UserHeader   string `json:"user_header,omitempty"`
+	EmailHeader  string `json:"email_header,omitempty"`
+	GroupsHeader string `json:"groups_header,omitempty"`
+	// believe the signed token of Cloudflare Access: the team and the audience (AUD) of the
+	// application
+	Cloudflare     bool   `json:"cloudflare,omitempty"`
+	CloudflareTeam string `json:"cloudflare_team,omitempty"`
+	CloudflareAud  string `json:"cloudflare_aud,omitempty"`
+	// how a person is matched with a user: "" by name or email, "name" or "email"
+	MatchBy string `json:"match_by,omitempty"`
+	// the role of the user made for a person without one: "" makes none, guest or viewer
+	NewUsers string `json:"new_users,omitempty"`
+	// the members of this group are administrators
+	AdminGroup string `json:"admin_group,omitempty"`
+	// where Log out sends the people signed in by the portal
+	LogoutUrl string `json:"logout_url,omitempty"`
+}
+
 // AutomationOptions are the steps run on the files that appear in the library, in this order:
 // check, compress, delete old updates, organize, and a message with what was done.
 type AutomationOptions struct {
@@ -308,6 +332,8 @@ type AppSettings struct {
 	Language          string              `json:"language"`
 	Notifications     NotificationOptions `json:"notifications"`
 	LastSyncTime      time.Time           `json:"last_sync_time"`
+	// signing in through a portal in front of the app (off by default)
+	Portal PortalOptions `json:"portal,omitzero"`
 }
 
 func ReadSettings(dataFolder string) *AppSettings {

@@ -1565,6 +1565,22 @@ func init() {
 		"within a minute":                                                  "innerhalb einer Minute",
 		"you":                                                              "du",
 
+		// sign-in portal in front of the app (Authelia, Authentik, Cloudflare Access): Settings, Users,
+		// the login page and the activity
+		"Signed in through the proxy":                                                       "Über den Proxy angemeldet",
+		"Signed in with Cloudflare Access":                                                  "Mit Cloudflare Access angemeldet",
+		"Changed the email of a user":                                                       "Hat die E-Mail eines Benutzers geändert",
+		"Changed the sign-in portal":                                                        "Hat das Anmeldeportal geändert",
+		"no user with this name or email":                                                   "kein Benutzer mit diesem Namen oder dieser E-Mail",
+		"header sent from an address that is not trusted":                                   "Header von einer nicht vertrauenswürdigen Adresse gesendet",
+		"Cloudflare Access token not valid":                                                 "ungültiges Token von Cloudflare Access",
+		"Write an email like name@example.com.":                                             "Gib eine E-Mail wie name@example.com ein.",
+		"Another user has this email.":                                                      "Ein anderer Benutzer hat diese E-Mail bereits.",
+		"Write the name of a header, like Remote-User.":                                     "Gib den Namen eines Headers ein, z. B. Remote-User.",
+		"Write the team name of Cloudflare Zero Trust, like myteam.":                        "Gib den Teamnamen von Cloudflare Zero Trust ein, z. B. meinteam.",
+		"Paste the Application Audience (AUD) tag of the application in Cloudflare Access.": "Füge das Application-Audience-Tag (AUD) der Anwendung in Cloudflare Access ein.",
+		"Write an address that starts with https:// or /.":                                  "Gib eine Adresse ein, die mit https:// oder / beginnt.",
+		"The email was saved.":                                                              "Die E-Mail wurde gespeichert.",
 		// API keys of the users, in My account, Users, the activity and the API
 		"Created an API key":        "Hat einen API-Schlüssel erstellt",
 		"Signed in with an API key": "Mit einem API-Schlüssel angemeldet",

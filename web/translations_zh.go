@@ -1565,6 +1565,22 @@ func init() {
 		"you":                                                              "你",
 		"yours included":                                                   "包括你的",
 
+		// sign-in portal in front of the app (Authelia, Authentik, Cloudflare Access): Settings, Users,
+		// the login page and the activity
+		"Signed in through the proxy":                                                       "通过代理登录",
+		"Signed in with Cloudflare Access":                                                  "使用 Cloudflare Access 登录",
+		"Changed the email of a user":                                                       "更改了用户的邮箱",
+		"Changed the sign-in portal":                                                        "更改了登录门户",
+		"no user with this name or email":                                                   "没有使用此名称或邮箱的用户",
+		"header sent from an address that is not trusted":                                   "来自不受信任地址的请求头",
+		"Cloudflare Access token not valid":                                                 "无效的 Cloudflare Access 令牌",
+		"Write an email like name@example.com.":                                             "请输入邮箱，例如 name@example.com。",
+		"Another user has this email.":                                                      "其他用户已在使用此邮箱。",
+		"Write the name of a header, like Remote-User.":                                     "请输入请求头的名称，例如 Remote-User。",
+		"Write the team name of Cloudflare Zero Trust, like myteam.":                        "请输入 Cloudflare Zero Trust 的团队名称，例如 myteam。",
+		"Paste the Application Audience (AUD) tag of the application in Cloudflare Access.": "请粘贴 Cloudflare Access 中该应用的 Application Audience (AUD) 标签。",
+		"Write an address that starts with https:// or /.":                                  "请输入以 https:// 或 / 开头的地址。",
+		"The email was saved.":                                                              "邮箱已保存。",
 		// API keys of the users, in My account, Users, the activity and the API
 		"Created an API key":        "创建了 API 密钥",
 		"Signed in with an API key": "使用 API 密钥登录",

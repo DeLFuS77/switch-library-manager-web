@@ -1565,6 +1565,22 @@ func init() {
 		"you":                                                              "jij",
 		"yours included":                                                   "inclusief die van jou",
 
+		// sign-in portal in front of the app (Authelia, Authentik, Cloudflare Access): Settings, Users,
+		// the login page and the activity
+		"Signed in through the proxy":                                                       "Aangemeld via de proxy",
+		"Signed in with Cloudflare Access":                                                  "Aangemeld met Cloudflare Access",
+		"Changed the email of a user":                                                       "E-mail van een gebruiker gewijzigd",
+		"Changed the sign-in portal":                                                        "Aanmeldportaal gewijzigd",
+		"no user with this name or email":                                                   "geen gebruiker met deze naam of dit e-mailadres",
+		"header sent from an address that is not trusted":                                   "header verzonden vanaf een adres dat niet vertrouwd wordt",
+		"Cloudflare Access token not valid":                                                 "ongeldig token van Cloudflare Access",
+		"Write an email like name@example.com.":                                             "Vul een e-mailadres in zoals naam@voorbeeld.nl.",
+		"Another user has this email.":                                                      "Een andere gebruiker heeft dit e-mailadres al.",
+		"Write the name of a header, like Remote-User.":                                     "Vul de naam van een header in, zoals Remote-User.",
+		"Write the team name of Cloudflare Zero Trust, like myteam.":                        "Vul de teamnaam van Cloudflare Zero Trust in, zoals mijnteam.",
+		"Paste the Application Audience (AUD) tag of the application in Cloudflare Access.": "Plak de Application Audience-tag (AUD) van de applicatie in Cloudflare Access.",
+		"Write an address that starts with https:// or /.":                                  "Vul een adres in dat begint met https:// of /.",
+		"The email was saved.":                                                              "Het e-mailadres is opgeslagen.",
 		// API keys of the users, in My account, Users, the activity and the API
 		"Created an API key":        "API-sleutel aangemaakt",
 		"Signed in with an API key": "Aangemeld met een API-sleutel",
