@@ -238,7 +238,12 @@ jobs:
           PY
 
           if [ -s changed.txt ]; then
-            gh release upload data publishing/data.sha256 --clobber
+            # GitHub takes no empty file: when every file changed, the list goes until they are up
+            if [ -s publishing/data.sha256 ]; then
+              gh release upload data publishing/data.sha256 --clobber
+            elif grep -qx data.sha256 published-names.txt; then
+              gh release delete-asset data data.sha256 --yes
+            fi
             while read -r name; do
               zstd -19 -T0 -q -f "generated-data/$name" -o "generated-data/$name.zst"
               gh release upload data "generated-data/$name.zst" "generated-data/$name" --clobber
