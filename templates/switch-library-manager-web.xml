@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.68.1
+  <Changes>### 1.69.0
+- Reads the NSZ files made with the experimental extra compression of NXPress
+### 1.68.1
 - Security update of the library used to sign in with OpenID Connect
 ### 1.68.0
 - Sign-in through Authelia, Authentik, Cloudflare Access or OpenID Connect (PocketID, Keycloak), off until turned on

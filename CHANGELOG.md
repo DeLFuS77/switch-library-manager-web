@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.69.0
 
 ### Improvements
 

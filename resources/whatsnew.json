@@ -1,4 +1,39 @@
 {
+  "1.69.0": {
+    "en": [
+      "NSZ files made with the experimental extra compression of NXPress are read too: they decompress and check like any other NSZ."
+    ],
+    "es": [
+      "Los NSZ hechos con la compresión extra experimental de NXPress también se leen: se descomprimen y se comprueban como cualquier otro NSZ."
+    ],
+    "de": [
+      "NSZ-Dateien, die mit der experimentellen Zusatzkompression von NXPress erstellt wurden, werden jetzt auch gelesen: Sie lassen sich wie jede andere NSZ entpacken und prüfen."
+    ],
+    "fr": [
+      "Les NSZ créés avec la compression supplémentaire expérimentale de NXPress sont aussi lus : ils se décompressent et se vérifient comme n'importe quel autre NSZ."
+    ],
+    "it": [
+      "Ora si leggono anche gli NSZ creati con la compressione extra sperimentale di NXPress: si decomprimono e si verificano come qualsiasi altro NSZ."
+    ],
+    "pt": [
+      "Os NSZ feitos com a compressão extra experimental do NXPress também são lidos: são descompactados e verificados como qualquer outro NSZ."
+    ],
+    "nl": [
+      "NSZ-bestanden die met de experimentele extra compressie van NXPress zijn gemaakt, worden nu ook gelezen: ze worden uitgepakt en gecontroleerd zoals elk ander NSZ-bestand."
+    ],
+    "ru": [
+      "Теперь читаются и NSZ, созданные экспериментальным дополнительным сжатием NXPress: они распаковываются и проверяются как любой другой NSZ."
+    ],
+    "ja": [
+      "NXPress の実験的な追加圧縮で作った NSZ も読み込めるようになりました。ほかの NSZ と同じように展開・検証できます。"
+    ],
+    "ko": [
+      "NXPress의 실험적 추가 압축으로 만든 NSZ도 읽을 수 있습니다. 다른 NSZ와 똑같이 압축을 풀고 검사할 수 있습니다."
+    ],
+    "zh": [
+      "现在也能读取用 NXPress 实验性额外压缩制作的 NSZ：可以像其他 NSZ 一样解压和校验。"
+    ]
+  },
   "1.68.1": {
     "en": [
       "Security update of the library used to sign in with OpenID Connect. Nothing changes for those who do not use it."
