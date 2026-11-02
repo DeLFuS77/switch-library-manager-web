@@ -1674,6 +1674,16 @@ func init() {
 		"You cancelled the sign-in with %v.":                                      "%v でのログインをキャンセルしました。",
 		"Closing your session in %v…":                                             "%v のセッションを終了しています…",
 		"Continue":                                                                "続ける",
+		// unlinking a user from the account of a provider of OpenID Connect, in Users and the
+		// activity
+		"Linked with %v": "%v と連携済み",
+		"%v account":     "%v アカウント",
+		"Unlink":         "連携を解除",
+		"Once unlinked, the next sign-in with %v links the account that signs in then.": "解除すると、次に %v でログインしたアカウントが連携されます。",
+		"Unlink %v from their %v account? The sessions opened with it will end.":        "%v と %v アカウントの連携を解除しますか？そのアカウントで開いたセッションは終了します。",
+		"The OpenID Connect account was unlinked.":                                      "OpenID Connect アカウントの連携を解除しました。",
+		"Unlinked a user from OpenID Connect":                                           "ユーザーの OpenID Connect 連携を解除しました",
+		"The user is not linked with an account of the provider.":                       "このユーザーはプロバイダーのどのアカウントとも連携していません。",
 		// API keys of the users, in My account, Users, the activity and the API
 		"Created an API key":        "APIキーを作成しました",
 		"Signed in with an API key": "APIキーでサインイン",

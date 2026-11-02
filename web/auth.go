@@ -244,19 +244,19 @@ func (a *Auth) verify(name string, password string) (*Principal, bool) {
 	return nil, false
 }
 
-// lookup returns the current role and session tag of a user. The tag changes with the
-// password, so changing it ends the existing sessions.
-func (a *Auth) lookup(name string) (*Principal, string, bool) {
+// lookup returns the current role of a user and the tag its sessions opened as mark says are
+// signed with. The tag changes with the password, so changing it ends the existing sessions.
+func (a *Auth) lookup(name string, mark string) (*Principal, string, bool) {
 	if a.envUser != "" && name == a.envUser {
 		tag := sha256.Sum256([]byte("env\x00" + a.envPassword))
-		return &Principal{Name: a.envUser, Role: ROLE_ADMIN, Source: "env"}, hex.EncodeToString(tag[:8]), true
+		return &Principal{Name: a.envUser, Role: ROLE_ADMIN, Source: "env"}, markTag(hex.EncodeToString(tag[:8]), mark, ""), true
 	}
 	user, ok := a.users.Get(name)
 	if !ok {
 		return nil, "", false
 	}
 	tag := sha256.Sum256([]byte(user.PasswordHash))
-	return &Principal{Name: user.Name, Role: user.Role}, hex.EncodeToString(tag[:8]), true
+	return &Principal{Name: user.Name, Role: user.Role}, markTag(hex.EncodeToString(tag[:8]), mark, user.OidcSubject), true
 }
 
 func (a *Auth) sign(name string, expiry int64, tag string) string {
@@ -283,12 +283,14 @@ func validMark(mark string) bool {
 	return ok && len(hash) == oidcAdminMarkLength && err == nil
 }
 
-// markTag is the tag of a session with its mark, as it is signed.
-func markTag(tag string, mark string) string {
+// markTag is the tag of a session with its mark, as it is signed. A session opened with OpenID
+// Connect also signs the account of the provider the user is linked with, so unlinking it, or
+// linking another one, ends those sessions.
+func markTag(tag string, mark string, subject string) string {
 	if mark == "" {
 		return tag
 	}
-	return tag + "\x00" + mark
+	return tag + "\x00" + mark + "\x00" + subject
 }
 
 // sessionCookie logs the principal in for sessionLifetime.
@@ -305,9 +307,9 @@ func (a *Auth) renewedSessionCookie(r *http.Request) *http.Cookie {
 
 // markedSessionCookie logs the principal in for sessionLifetime, with how the session was opened.
 func (a *Auth) markedSessionCookie(r *http.Request, name string, mark string) *http.Cookie {
-	_, tag, _ := a.lookup(name)
+	_, tag, _ := a.lookup(name, mark)
 	expiry := time.Now().Add(sessionLifetime)
-	value := base64.RawURLEncoding.EncodeToString([]byte(name)) + "." + strconv.FormatInt(expiry.Unix(), 10) + "." + a.sign(name, expiry.Unix(), markTag(tag, mark))
+	value := base64.RawURLEncoding.EncodeToString([]byte(name)) + "." + strconv.FormatInt(expiry.Unix(), 10) + "." + a.sign(name, expiry.Unix(), tag)
 	if mark != "" {
 		value += "." + mark
 	}
@@ -355,11 +357,11 @@ func (a *Auth) fromSession(r *http.Request) *Principal {
 	if err != nil || time.Now().Unix() > expiry {
 		return nil
 	}
-	principal, tag, ok := a.lookup(string(nameBytes))
+	principal, tag, ok := a.lookup(string(nameBytes), mark)
 	if !ok {
 		return nil
 	}
-	if !hmac.Equal([]byte(parts[2]), []byte(a.sign(string(nameBytes), expiry, markTag(tag, mark)))) {
+	if !hmac.Equal([]byte(parts[2]), []byte(a.sign(string(nameBytes), expiry, tag))) {
 		return nil
 	}
 	if a.revoked.has(parts[2]) {
@@ -387,7 +389,7 @@ func (a *Auth) fromBasicAuth(r *http.Request) (principal *Principal, attempted b
 	}
 	key := cacheKey(name + "\x00" + password)
 	if expiry, ok := a.basicCache.Load(key); ok && time.Now().Before(expiry.(time.Time)) {
-		if principal, _, ok := a.lookup(name); ok {
+		if principal, _, ok := a.lookup(name, ""); ok {
 			return principal, true
 		}
 	}

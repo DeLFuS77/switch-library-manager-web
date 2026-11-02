@@ -43,6 +43,8 @@ type UsersPageData struct {
 	CodeError string
 	// the API keys of every user
 	Keys []KeyRow
+	// the name of the provider of OpenID Connect, on the users linked with an account of it
+	Oidc string
 }
 
 type AccountPageData struct {
@@ -79,6 +81,8 @@ var userMessages = map[string]string{
 	"keyrevoked": "The API key was revoked.",
 	// the email a sign-in portal names a user with
 	"email": "The email was saved.",
+	// the link of a user with the account of a provider of OpenID Connect
+	"unlinked": "The OpenID Connect account was unlinked.",
 }
 
 func (web *Web) HandleUsers() {
@@ -190,7 +194,7 @@ func (web *Web) HandleUsers() {
 		lang := web.requestLanguage(r)
 		// the first administrator asks for the setup code: it is written again at the end of the log
 		web.logSetupCode(false)
-		data := UsersPageData{GlobalPageData: web.globalPageData("users"), Users: web.auth.users.List(), EnvUser: web.auth.envUser, Activity: translateActivity(web.requestLanguage(r), activityPreview(web.activities().list(), 8)), Keys: web.auth.users.KeyRows("")}
+		data := UsersPageData{GlobalPageData: web.globalPageData("users"), Users: web.auth.users.List(), EnvUser: web.auth.envUser, Activity: translateActivity(web.requestLanguage(r), activityPreview(web.activities().list(), 8)), Keys: web.auth.users.KeyRows(""), Oidc: oidcButton(web.auth.portal())}
 		if message, ok := userMessages[r.URL.Query().Get("done")]; ok {
 			data.Message = translate(lang, message)
 		}

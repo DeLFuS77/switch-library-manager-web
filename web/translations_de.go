@@ -1674,6 +1674,16 @@ func init() {
 		"You cancelled the sign-in with %v.":                                      "Du hast die Anmeldung mit %v abgebrochen.",
 		"Closing your session in %v…":                                             "Deine Sitzung bei %v wird beendet…",
 		"Continue":                                                                "Weiter",
+		// unlinking a user from the account of a provider of OpenID Connect, in Users and the
+		// activity
+		"Linked with %v": "Verknüpft mit %v",
+		"%v account":     "%v-Konto",
+		"Unlink":         "Verknüpfung lösen",
+		"Once unlinked, the next sign-in with %v links the account that signs in then.": "Nach dem Lösen verknüpft die nächste Anmeldung mit %v das Konto, das sich dann anmeldet.",
+		"Unlink %v from their %v account? The sessions opened with it will end.":        "Die Verknüpfung von %v mit dem %v-Konto lösen? Die damit geöffneten Sitzungen werden beendet.",
+		"The OpenID Connect account was unlinked.":                                      "Die Verknüpfung mit dem OpenID-Connect-Konto wurde gelöst.",
+		"Unlinked a user from OpenID Connect":                                           "Hat die Verknüpfung eines Benutzers mit OpenID Connect gelöst",
+		"The user is not linked with an account of the provider.":                       "Der Benutzer ist mit keinem Konto des Anbieters verknüpft.",
 		// API keys of the users, in My account, Users, the activity and the API
 		"Created an API key":        "Hat einen API-Schlüssel erstellt",
 		"Signed in with an API key": "Mit einem API-Schlüssel angemeldet",

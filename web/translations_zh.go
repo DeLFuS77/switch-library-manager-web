@@ -1674,6 +1674,16 @@ func init() {
 		"You cancelled the sign-in with %v.":                                      "你已取消使用 %v 登录。",
 		"Closing your session in %v…":                                             "正在结束你在 %v 的会话…",
 		"Continue":                                                                "继续",
+		// unlinking a user from the account of a provider of OpenID Connect, in Users and the
+		// activity
+		"Linked with %v": "已关联 %v",
+		"%v account":     "%v 账户",
+		"Unlink":         "取消关联",
+		"Once unlinked, the next sign-in with %v links the account that signs in then.": "取消关联后，下次使用 %v 登录的账户将被关联。",
+		"Unlink %v from their %v account? The sessions opened with it will end.":        "要取消 %v 与其 %v 账户的关联吗？用该账户打开的会话将结束。",
+		"The OpenID Connect account was unlinked.":                                      "已取消 OpenID Connect 账户的关联。",
+		"Unlinked a user from OpenID Connect":                                           "取消了用户与 OpenID Connect 的关联",
+		"The user is not linked with an account of the provider.":                       "该用户未关联提供方的任何账户。",
 		// API keys of the users, in My account, Users, the activity and the API
 		"Created an API key":        "创建了 API 密钥",
 		"Signed in with an API key": "使用 API 密钥登录",

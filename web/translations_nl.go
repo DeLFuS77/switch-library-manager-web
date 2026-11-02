@@ -1674,6 +1674,16 @@ func init() {
 		"You cancelled the sign-in with %v.":                                      "Je hebt het inloggen met %v geannuleerd.",
 		"Closing your session in %v…":                                             "Je sessie bij %v wordt beëindigd…",
 		"Continue":                                                                "Doorgaan",
+		// unlinking a user from the account of a provider of OpenID Connect, in Users and the
+		// activity
+		"Linked with %v": "Gekoppeld aan %v",
+		"%v account":     "%v-account",
+		"Unlink":         "Ontkoppelen",
+		"Once unlinked, the next sign-in with %v links the account that signs in then.": "Na het ontkoppelen koppelt de volgende aanmelding met %v het account dat zich dan aanmeldt.",
+		"Unlink %v from their %v account? The sessions opened with it will end.":        "%v ontkoppelen van het %v-account? De sessies die ermee zijn geopend, worden beëindigd.",
+		"The OpenID Connect account was unlinked.":                                      "Het OpenID Connect-account is ontkoppeld.",
+		"Unlinked a user from OpenID Connect":                                           "Gebruiker ontkoppeld van OpenID Connect",
+		"The user is not linked with an account of the provider.":                       "De gebruiker is niet gekoppeld aan een account van de provider.",
 		// API keys of the users, in My account, Users, the activity and the API
 		"Created an API key":        "API-sleutel aangemaakt",
 		"Signed in with an API key": "Aangemeld met een API-sleutel",

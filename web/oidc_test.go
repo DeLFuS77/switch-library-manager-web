@@ -12,6 +12,7 @@ import (
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -518,6 +519,78 @@ func TestOidcSessionKeepsItsMark(t *testing.T) {
 	}
 	if !strings.HasSuffix(b.cookie(SESSION_COOKIE, "/"), "."+oidcAdminMark("slm-admins")) || b.do("GET", "/settings.html", nil).Code != http.StatusOK {
 		t.Fatal("the renewed session keeps its mark")
+	}
+}
+
+// An administrator sees in Users who is linked with an account of the provider and unlinks them:
+// the sessions opened with that account end, the ones of the password do not, and the next
+// sign-in links the user again.
+func TestOidcUnlink(t *testing.T) {
+	web, provider := oidcWeb(t, settings.PortalOptions{})
+	provider.says(map[string]any{"sub": "sub-bob", "preferred_username": "bob"})
+	linked := newBrowser(t, web)
+	linked.signIn(provider, "")
+	password := newBrowser(t, web)
+	password.do("POST", "/login.html", url.Values{"name": {"bob"}, "password": {"bravo-secret-22"}})
+	admin := newBrowser(t, web)
+	admin.do("POST", "/login.html", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
+
+	page := admin.do("GET", "/users.html", nil).Body.String()
+	if strings.Count(page, "Linked with PocketID") != 1 || strings.Count(page, `action="/users/unlink"`) != 1 || !strings.Contains(page, "Unlink bob from their PocketID account?") {
+		t.Fatalf("only bob is linked, with a button to unlink him: %s", page)
+	}
+	// the link is kept while OpenID Connect is off, and shown with the name of the button
+	setPortal(web, settings.PortalOptions{OidcButton: "PocketID"})
+	if page := admin.do("GET", "/users.html", nil).Body.String(); !strings.Contains(page, "Linked with PocketID") {
+		t.Fatal("shown with OpenID Connect off")
+	}
+	setPortal(web, provider.options(settings.PortalOptions{}))
+
+	if code := password.do("POST", "/users/unlink", url.Values{"name": {"bob"}}).Code; code != http.StatusForbidden {
+		t.Fatalf("only administrators unlink: %v", code)
+	}
+	if location := admin.do("POST", "/users/unlink", url.Values{"name": {"bob"}}).Header().Get("Location"); location != "/users.html?done=unlinked" {
+		t.Fatalf("unlinked: %q", location)
+	}
+	if bob, _ := web.auth.users.Get("bob"); bob.OidcSubject != "" || activityCount(web, ACTION_OIDC_UNLINK, "bob") != 1 {
+		t.Fatal("the link is removed, and noted in the activity")
+	}
+	if sessionName(web, linked) != "" || sessionName(web, password) != "bob" {
+		t.Fatal("the session of the provider ends, the one of the password does not")
+	}
+	if page := admin.do("GET", "/users.html?done=unlinked", nil).Body.String(); strings.Contains(page, "Linked with PocketID") || !strings.Contains(page, "The OpenID Connect account was unlinked.") {
+		t.Fatal("the chip is gone, and the change told")
+	}
+	if location := admin.do("POST", "/users/unlink", url.Values{"name": {"bob"}}).Header().Get("Location"); location != "/users.html?error="+strconv.Itoa(errorIndex(ErrOidcNotLinked)) {
+		t.Fatalf("a user who is not linked: %q", location)
+	}
+	if location := admin.do("POST", "/users/unlink", url.Values{"name": {"nobody"}}).Header().Get("Location"); location != "/users.html?error="+strconv.Itoa(errorIndex(ErrUserNotFound)) {
+		t.Fatalf("a user who does not exist: %q", location)
+	}
+	if activityCount(web, ACTION_OIDC_UNLINK, "bob") != 1 || activityCount(web, ACTION_OIDC_UNLINK, "nobody") != 0 {
+		t.Fatal("what failed is not in the activity")
+	}
+
+	// the next sign-in links the user again; a new email ends that session as well
+	linked.signIn(provider, "")
+	if bob, _ := web.auth.users.Get("bob"); bob.OidcSubject == "" || sessionName(web, linked) != "bob" {
+		t.Fatal("linked again at the next sign-in")
+	}
+	admin.do("POST", "/users/email", url.Values{"name": {"bob"}, "email": {"bob@example.com"}})
+	if sessionName(web, linked) != "" || sessionName(web, password) != "bob" {
+		t.Fatal("a new email unlinks the account and ends its sessions")
+	}
+
+	// an administrator who signed in with the provider and unlinks themselves signs in again
+	provider.says(map[string]any{"sub": "sub-alice", "preferred_username": "alice"})
+	self := newBrowser(t, web)
+	self.signIn(provider, "")
+	unlinked := self.do("POST", "/users/unlink", url.Values{"name": {"alice"}})
+	if unlinked.Header().Get("Location") != "/login.html" || self.cookie(SESSION_COOKIE, "/") != "" || activityCount(web, ACTION_OIDC_UNLINK, "alice") != 1 {
+		t.Fatalf("back to the login page: %q", unlinked.Header().Get("Location"))
+	}
+	if sessionName(web, admin) != "alice" {
+		t.Fatal("the session of the password of alice goes on")
 	}
 }
 
