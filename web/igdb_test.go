@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -33,11 +34,15 @@ func fakeIgdb(t *testing.T) (*httptest.Server, *atomic.Int32) {
 			if !strings.Contains(string(body), "platforms = (130)") {
 				t.Errorf("only Switch games are searched: %s", body)
 			}
+			if !strings.Contains(string(body), "aggregated_rating,aggregated_rating_count,rating,rating_count") {
+				t.Errorf("the scores are asked with the game: %s", body)
+			}
 			if strings.Contains(string(body), "Unknown") {
 				io.WriteString(w, `[]`)
 				return
 			}
-			io.WriteString(w, `[{"id":1,"name":"Star Odyssey Deluxe","slug":"star-odyssey-deluxe"},{"id":2,"name":"Star Odyssey","slug":"star-odyssey","collections":[77]}]`)
+			io.WriteString(w, `[{"id":1,"name":"Star Odyssey Deluxe","slug":"star-odyssey-deluxe","rating":40,"rating_count":2},`+
+				`{"id":2,"name":"Star Odyssey","slug":"star-odyssey","collections":[77],"aggregated_rating":84.6,"aggregated_rating_count":23,"rating":78.4,"rating_count":140}]`)
 		case r.URL.Path == "/v4/collections":
 			io.WriteString(w, `[{"id":77,"name":"Star Odyssey","games":[{"name":"Star Odyssey","platforms":[130]},{"name":"Star Odyssey II","platforms":[6,130]},{"name":"Star Odyssey PC","platforms":[6]}]}]`)
 		case r.URL.Path == "/v4/game_time_to_beats":
@@ -67,7 +72,10 @@ func TestIgdbLookup(t *testing.T) {
 	if value.Main() != 54000 || value.Url() != "https://www.igdb.com/games/star-odyssey" || !value.Checked.Equal(now) {
 		t.Fatalf("main %d, url %s", value.Main(), value.Url())
 	}
-	if value, err := client.lookup(context.Background(), "Unknown Game", now); err != nil || value.Found || value.Known() {
+	if value.Critics() != 85 || value.CriticCount != 23 || value.Users() != 78 || value.UserCount != 140 || !value.HasScores() || !value.ScoresChecked {
+		t.Fatalf("the scores of the game: %+v", value)
+	}
+	if value, err := client.lookup(context.Background(), "Unknown Game", now); err != nil || value.Found || value.Known() || value.HasScores() {
 		t.Fatalf("a game IGDB does not know: %+v %v", value, err)
 	}
 
@@ -197,5 +205,81 @@ func TestOldLookupsAreRepeatedForTheSeries(t *testing.T) {
 	web.timesToBeat().set("0100000000010000", TimeToBeat{Found: true, Checked: time.Now()})
 	if !web.timesToBeat().needsLookup("0100000000010000", time.Now()) {
 		t.Fatal("a game without its series is looked up again")
+	}
+}
+
+// Games looked up before the scores were asked are looked up once again, and then not for a
+// while.
+func TestOldLookupsAreRepeatedForTheScores(t *testing.T) {
+	web := newTestWeb(t)
+	store := web.timesToBeat()
+	store.set("0100000000010000", TimeToBeat{Found: true, Checked: time.Now(), SeriesChecked: true})
+	if !store.needsLookup("0100000000010000", time.Now()) {
+		t.Fatal("a game without its scores is looked up again")
+	}
+	store.set("0100000000010000", TimeToBeat{Found: true, Checked: time.Now(), SeriesChecked: true, ScoresChecked: true})
+	if store.needsLookup("0100000000010000", time.Now()) {
+		t.Fatal("a game with its scores waits")
+	}
+}
+
+func TestScoresNeedReviewsOrVotes(t *testing.T) {
+	for _, c := range []struct {
+		value          TimeToBeat
+		critics, users int
+	}{
+		{TimeToBeat{Found: true, CriticScore: 84.5, CriticCount: 3, UserScore: 70.2, UserCount: 9}, 85, 70},
+		// a score without reviews or votes is not shown
+		{TimeToBeat{Found: true, CriticScore: 90, UserScore: 60}, 0, 0},
+		{TimeToBeat{CriticScore: 90, CriticCount: 3}, 0, 0},
+	} {
+		if c.value.Critics() != c.critics || c.value.Users() != c.users || c.value.HasScores() != (c.critics > 0 || c.users > 0) {
+			t.Errorf("%+v: critics %d, users %d", c.value, c.value.Critics(), c.value.Users())
+		}
+	}
+}
+
+func TestScoreLevels(t *testing.T) {
+	for score, want := range map[int]string{100: "top", 90: "top", 89: "high", 75: "high", 74: "mid", 50: "mid", 49: "low", 1: "low"} {
+		if got := scoreLevel(score); got != want {
+			t.Errorf("scoreLevel(%d) = %q, want %q", score, got, want)
+		}
+	}
+}
+
+// The game page shows the scores under the publisher, linked to IGDB, and nothing without them.
+func TestGamePageShowsTheScores(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.state.set(testDatabases(t))
+	web.HandleTitle()
+	get := func() string {
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/title/0100000000010000.html", nil))
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("the game page: %d", recorder.Code)
+		}
+		return recorder.Body.String()
+	}
+
+	if page := get(); strings.Contains(page, `class="title-scores"`) {
+		t.Fatal("no scores without IGDB")
+	}
+	web.timesToBeat().set("0100000000010000", TimeToBeat{Found: true, Checked: time.Now(), Slug: "star-odyssey",
+		CriticScore: 93.6, CriticCount: 23, UserScore: 61, UserCount: 1})
+	web.invalidateDerived()
+	page := get()
+	for _, want := range []string{`<a class="title-scores" href="https://www.igdb.com/games/star-odyssey"`, `class="score score-top">94<`,
+		"23 reviews", `class="score score-mid">61<`, "1 vote<"} {
+		if !strings.Contains(page, want) {
+			t.Errorf("the game page misses %q", want)
+		}
+	}
+
+	// only the score there is
+	web.timesToBeat().set("0100000000010000", TimeToBeat{Found: true, Checked: time.Now(), UserScore: 40, UserCount: 1200})
+	web.invalidateDerived()
+	if page := get(); strings.Contains(page, "Critics") || !strings.Contains(page, `class="score score-low">40<`) || !strings.Contains(page, "1,200 votes") {
+		t.Error("the game page shows only the score of the users")
 	}
 }

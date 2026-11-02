@@ -38,6 +38,12 @@
 						{{- if $t.Publisher}}
 						<p class="title-publisher"><span class="bi bi-building" aria-hidden="true"></span>{{$t.Publisher}}</p>
 						{{- end}}
+						{{- with $t.TimeToBeat}}{{if .HasScores}}
+						<a class="title-scores" href="{{.Url}}" target="_blank" rel="noopener noreferrer" title="{{t "Scores on IGDB"}}">
+							{{- if .Critics}}<span class="score-item"><span class="score score-{{scoreLevel .Critics}}">{{.Critics}}</span><span class="score-label">{{t "Critics"}}<span class="score-count">{{if eq .CriticCount 1}}{{t "1 review"}}{{else}}{{t "%v reviews" (num .CriticCount)}}{{end}}</span></span></span>{{end}}
+							{{- if .Users}}<span class="score-item"><span class="score score-{{scoreLevel .Users}}">{{.Users}}</span><span class="score-label">{{t "Players"}}<span class="score-count">{{if eq .UserCount 1}}{{t "1 vote"}}{{else}}{{t "%v votes" (num .UserCount)}}{{end}}</span></span></span>{{end}}
+						</a>
+						{{- end}}{{end}}
 						<div class="title-actions">
 							{{- if and $t.Owned (gt $t.ArchiveFiles 1)}}
 							<a class="btn btn-primary rounded-pill" href="/api/titles/{{$t.Id}}/archive.zip"><span class="bi bi-file-earmark-zip me-2" aria-hidden="true"></span>{{t "Download all (%v files, %v)" $t.ArchiveFiles (formatSize $t.ArchiveSize)}}</a>

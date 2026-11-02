@@ -514,6 +514,7 @@ var funcMap = template.FuncMap{
 		return strings.Join(texts, ", ")
 	},
 	"hours":           hoursText,
+	"scoreLevel":      scoreLevel,
 	"thumb":           thumbUrl,
 	"fullImage":       fullImageUrl,
 	"maintenanceStep": maintenanceStepOf,

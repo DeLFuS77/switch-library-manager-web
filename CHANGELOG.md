@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### New
+
+- The page of a game shows its scores on IGDB, of the critics and of the players, with how many reviews and votes they come from; scores of 90 or more shine. Like the times to beat, they need the IGDB Client ID and Secret in Settings, and games looked up before are looked up once again for them
+
 ### Improvements
 
 - Folders can be skipped when scanning, by name or by pattern (`_build`, `.git`, `*_backup*`), in Settings › Library › Folders to skip: what is inside them is not scanned, organized or deleted, and Organize never moves a game into one (thanks @aleszczynskig, #142)

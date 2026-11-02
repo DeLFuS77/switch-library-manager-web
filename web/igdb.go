@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -18,10 +19,11 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
-// How long games take to beat comes from IGDB (igdb.com, by Twitch), free for non-commercial
-// use. It is optional: each user creates a Twitch application and sets its Client ID and
-// Secret, so no keys are shipped with the app. The times are looked up once per game in the
-// background and kept in a file of the data folder, as IGDB asks.
+// How long games take to beat, and the scores of critics and players, come from IGDB (igdb.com,
+// by Twitch), free for non-commercial use. It is optional: each user creates a Twitch
+// application and sets its Client ID and Secret, so no keys are shipped with the app. The times
+// and scores are looked up once per game in the background and kept in a file of the data
+// folder, as IGDB asks.
 
 const (
 	TIMETOBEAT_FILENAME = "timetobeat.json"
@@ -58,6 +60,49 @@ type TimeToBeat struct {
 	// the collections (series) of the game on IGDB; SeriesChecked tells they were asked
 	Collections   []int `json:"collections,omitempty"`
 	SeriesChecked bool  `json:"seriesChecked,omitempty"`
+	// the scores of the game on IGDB, from 0 to 100: of the critics (the reviews of other
+	// sites) and of the users of IGDB, and how many reviews and votes they come from;
+	// ScoresChecked tells they were asked
+	CriticScore   float64 `json:"criticScore,omitempty"`
+	CriticCount   int     `json:"criticCount,omitempty"`
+	UserScore     float64 `json:"userScore,omitempty"`
+	UserCount     int     `json:"userCount,omitempty"`
+	ScoresChecked bool    `json:"scoresChecked,omitempty"`
+}
+
+// Critics is the score of the critics, rounded, or 0 without reviews.
+func (t TimeToBeat) Critics() int {
+	if !t.Found || t.CriticCount == 0 {
+		return 0
+	}
+	return int(math.Round(t.CriticScore))
+}
+
+// Users is the score of the users of IGDB, rounded, or 0 without votes.
+func (t TimeToBeat) Users() int {
+	if !t.Found || t.UserCount == 0 {
+		return 0
+	}
+	return int(math.Round(t.UserScore))
+}
+
+// HasScores reports whether there is at least one score to show.
+func (t TimeToBeat) HasScores() bool {
+	return t.Critics() > 0 || t.Users() > 0
+}
+
+// scoreLevel is the colour of a score: top (green and shining) from 90, high from 75, mid from
+// 50, low below. Red is kept for errors, never for a low score.
+func scoreLevel(score int) string {
+	switch {
+	case score >= 90:
+		return "top"
+	case score >= 75:
+		return "high"
+	case score >= 50:
+		return "mid"
+	}
+	return "low"
 }
 
 // Known reports whether there is at least one time to show.
@@ -165,7 +210,7 @@ func (s *timeToBeatStore) save() error {
 // needsLookup reports whether a game is looked up: never looked up, or a while ago.
 func (s *timeToBeatStore) needsLookup(id string, now time.Time) bool {
 	value, ok := s.get(id)
-	if !ok || !value.SeriesChecked {
+	if !ok || !value.SeriesChecked || !value.ScoresChecked {
 		return true
 	}
 	if value.Found {
@@ -290,16 +335,22 @@ func apicalypseText(text string) string {
 	return strings.NewReplacer(`\`, " ", `"`, " ").Replace(text)
 }
 
-// lookup finds a game of the Switch on IGDB by its name, and how long it takes to beat.
+// lookup finds a game of the Switch on IGDB by its name, its scores and how long it takes to
+// beat.
 func (c *igdbClient) lookup(ctx context.Context, name string, now time.Time) (TimeToBeat, error) {
-	result := TimeToBeat{Checked: now, SeriesChecked: true}
+	result := TimeToBeat{Checked: now, SeriesChecked: true, ScoresChecked: true}
 	var games []struct {
-		Id          int    `json:"id"`
-		Name        string `json:"name"`
-		Slug        string `json:"slug"`
-		Collections []int  `json:"collections"`
+		Id                    int     `json:"id"`
+		Name                  string  `json:"name"`
+		Slug                  string  `json:"slug"`
+		Collections           []int   `json:"collections"`
+		AggregatedRating      float64 `json:"aggregated_rating"`
+		AggregatedRatingCount int     `json:"aggregated_rating_count"`
+		Rating                float64 `json:"rating"`
+		RatingCount           int     `json:"rating_count"`
 	}
-	query := fmt.Sprintf(`search "%s"; fields id,name,slug,collections; where platforms = (%d); limit 5;`, apicalypseText(name), igdbSwitchPlatform)
+	query := fmt.Sprintf(`search "%s"; fields id,name,slug,collections,aggregated_rating,aggregated_rating_count,rating,rating_count; where platforms = (%d); limit 5;`,
+		apicalypseText(name), igdbSwitchPlatform)
 	if err := c.query(ctx, "games", query, &games); err != nil {
 		return result, err
 	}
@@ -316,6 +367,8 @@ func (c *igdbClient) lookup(ctx context.Context, name string, now time.Time) (Ti
 		}
 	}
 	result.Found, result.GameId, result.Slug, result.Collections = true, chosen.Id, chosen.Slug, chosen.Collections
+	result.CriticScore, result.CriticCount = chosen.AggregatedRating, chosen.AggregatedRatingCount
+	result.UserScore, result.UserCount = chosen.Rating, chosen.RatingCount
 
 	var times []struct {
 		Hastily    int `json:"hastily"`
