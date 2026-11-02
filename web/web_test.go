@@ -1463,3 +1463,23 @@ func TestUnknownDatesAreNoError(t *testing.T) {
 		t.Fatalf("a real date: %v %v", date, err)
 	}
 }
+
+// Games without a release date (unknown to the titles database) go last in both orders: sorted
+// from the oldest, the library starts with the oldest game, not with the unknown ones.
+func TestSortByReleaseDatePutsUnknownLast(t *testing.T) {
+	day := func(year int) time.Time { return time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC) }
+	items := []TitleItem{{Name: "C"}, {Name: "A", ReleaseDate: day(2020)}, {Name: "B", ReleaseDate: day(2018)}, {Name: "D"}}
+	for order, want := range map[string]string{"asc": "BACD", "desc": "ABCD"} {
+		sorted := append([]TitleItem(nil), items...)
+		if err := sortItems(&TitleItemFilter{SortBy: "release_date", SortOrder: order}, sorted); err != nil {
+			t.Fatal(err)
+		}
+		names := ""
+		for _, item := range sorted {
+			names += item.Name
+		}
+		if names != want {
+			t.Errorf("%s: %s, want %s", order, names, want)
+		}
+	}
+}

@@ -37,6 +37,9 @@ type ContentMetaAttributes struct {
 	RequiredTitleVersion int    `json:"required_title_version"`
 	Contents             map[string]Content
 	Ncap                 *Nacp
+	// set by the library when the NACP of a game or an update could not be read: the newest
+	// generation of the keys then, plus one (0 in data cached before it was noted)
+	NacpTriedKeys int `json:"nacp_tried_keys,omitempty"`
 }
 
 type ContentMeta struct {
