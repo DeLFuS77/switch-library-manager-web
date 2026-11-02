@@ -35,6 +35,9 @@
 					{{- if or .TimesToBeat (eq .Filter.SortBy "duration")}}
 					<option value="duration"{{if eq .Filter.SortBy "duration"}} selected{{end}}>{{t "Time to beat"}}</option>
 					{{- end}}
+					{{- if or .Scores (eq .Filter.SortBy "score")}}
+					<option value="score"{{if eq .Filter.SortBy "score"}} selected{{end}}>{{t "Score"}}</option>
+					{{- end}}
 					{{- end}}
 					<option value="id"{{if eq .Filter.SortBy "id"}} selected{{end}}>{{t "ID"}}</option>
 				</select>
@@ -102,6 +105,17 @@
 								<a class="filter-choice{{if eq $f.Players "1"}} active{{end}}" href="{{filterUrl $f "players" "1"}}">{{t "1 player"}} <span class="filter-count">{{num $fc.SinglePlayer}}</span></a>
 								<a class="filter-choice{{if eq $f.Players "2"}} active{{end}}" href="{{filterUrl $f "players" "2"}}">{{t "2 or more"}} <span class="filter-count">{{num $fc.TwoPlayers}}</span></a>
 								<a class="filter-choice{{if eq $f.Players "4"}} active{{end}}" href="{{filterUrl $f "players" "4"}}">{{t "4 or more"}} <span class="filter-count">{{num $fc.FourPlayers}}</span></a>
+							</div>
+						</section>
+						{{- end}}
+						{{- if or $fc.Score70 $f.Score}}
+						<section class="filter-group">
+							<h3 class="filter-group-title"><span class="bi bi-award" aria-hidden="true"></span>{{t "Score"}}</h3>
+							<div class="filter-choices">
+								<a class="filter-choice{{if not $f.Score}} active{{end}}" href="{{filterUrl $f "score" ""}}">{{t "Any score"}}</a>
+								<a class="filter-choice{{if eq $f.Score "90"}} active{{end}}" href="{{filterUrl $f "score" "90"}}">{{t "%v or more" 90}} <span class="filter-count">{{num $fc.Score90}}</span></a>
+								<a class="filter-choice{{if eq $f.Score "80"}} active{{end}}" href="{{filterUrl $f "score" "80"}}">{{t "%v or more" 80}} <span class="filter-count">{{num $fc.Score80}}</span></a>
+								<a class="filter-choice{{if eq $f.Score "70"}} active{{end}}" href="{{filterUrl $f "score" "70"}}">{{t "%v or more" 70}} <span class="filter-count">{{num $fc.Score70}}</span></a>
 							</div>
 						</section>
 						{{- end}}
@@ -179,9 +193,10 @@
 				{{- with $f.Genre}}<a class="active-filter" href="{{filterUrl $f "genre" ""}}"><span class="bi bi-tags" aria-hidden="true"></span>{{t .}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Players}}<a class="active-filter" href="{{filterUrl $f "players" ""}}"><span class="bi bi-people" aria-hidden="true"></span>{{if eq . "1"}}{{t "1 player"}}{{else if eq . "2"}}{{t "2 or more"}}{{else}}{{t "4 or more"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.GameLanguage}}<a class="active-filter" href="{{filterUrl $f "languages" ""}}"><span class="bi bi-translate" aria-hidden="true"></span>{{t (gameLanguage .)}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				{{- with $f.Score}}<a class="active-filter" href="{{filterUrl $f "score" ""}}"><span class="bi bi-award" aria-hidden="true"></span>{{t "Score of %v or more" .}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- if $f.Extra}}<a class="active-filter" href="{{filterUrl $f "extra" ""}}"><span class="bi bi-funnel" aria-hidden="true"></span>{{if eq $f.Extra "recent"}}{{t "Added in the last 30 days"}}{{else if eq $f.Extra "no_cover"}}{{t "Without a cover"}}{{else if eq $f.Extra "favorites"}}{{t "Favorites only"}}{{else if eq $f.Extra "cheats"}}{{t "With cheats for my version"}}{{else if eq $f.Extra "cheats_other"}}{{t "With cheats for another version"}}{{else if eq $f.Extra "firmware"}}{{t "Need a newer firmware"}}{{else}}{{t "Not recognized"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Play}}<a class="active-filter" href="{{filterUrl $f "play" ""}}"><span class="bi bi-joystick" aria-hidden="true"></span>{{if eq . "none"}}{{t "Without a state"}}{{else}}{{t (playStateName .)}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
-				<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "genre" "" "players" "" "languages" "" "play" ""}}">{{t "Clear filters"}}</a>
+				<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "genre" "" "players" "" "languages" "" "play" "" "score" ""}}">{{t "Clear filters"}}</a>
 			</div>
 			{{- end}}
 {{- end}}

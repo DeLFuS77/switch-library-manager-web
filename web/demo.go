@@ -392,8 +392,8 @@ func (web *Web) writeDemoHistory(switchDB *db.SwitchTitlesDB, localDB *db.LocalS
 	}
 }
 
-// writeDemoTimesToBeat makes up how long the games of the demo take to beat, so the times of
-// IGDB can be seen without a Twitch application.
+// writeDemoTimesToBeat makes up how long the games of the demo take to beat, and their scores,
+// so the data of IGDB can be seen without a Twitch application.
 func (web *Web) writeDemoTimesToBeat(localDB *db.LocalSwitchFilesDB) {
 	store := web.timesToBeat()
 	store.mutex.Lock()
@@ -410,8 +410,14 @@ func (web *Web) writeDemoTimesToBeat(localDB *db.LocalSwitchFilesDB) {
 			continue
 		}
 		hours := 3 + (i*7)%38
-		store.set(local.File.Metadata.TitleId, TimeToBeat{Found: true, Checked: time.Now(), Hastily: hours * 2700, Normally: hours * 3600,
-			Completely: hours * 6300, Count: 4 + (i*13)%90})
+		value := TimeToBeat{Found: true, Checked: time.Now(), SeriesChecked: true, ScoresChecked: true, Hastily: hours * 2700,
+			Normally: hours * 3600, Completely: hours * 6300, Count: 4 + (i*13)%90,
+			UserScore: float64(58 + (i*11)%38), UserCount: 6 + (i*17)%300}
+		// every third game has no reviews, like small games of the eShop
+		if i%3 != 0 {
+			value.CriticScore, value.CriticCount = float64(55+(i*9)%41), 3+(i*5)%60
+		}
+		store.set(local.File.Metadata.TitleId, value)
 	}
 	store.save()
 }
