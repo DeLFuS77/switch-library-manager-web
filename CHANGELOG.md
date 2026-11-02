@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.68.1
+
+### Fixes
+
+- The titles database is published compressed, as 1.68.0 expects: its first publication stopped before uploading anything, so until now the whole database was downloaded
+
+### Security
+
+- github.com/go-jose/go-jose/v4 4.1.6 (GHSA-mgcc-cww5-fp2q, GHSA-4w3g-jfj2-cw2q and GHSA-vvm8-gf78-28g4), used only by sign-in with OpenID Connect, which is off until turned on
+- The tools that update the titles database use pyasn1 0.6.5 (GHSA-fm9c-5rcf-2q5p, GHSA-9m75-vc3g-4x39, GHSA-mm57-4v3p-rchx and GHSA-2qm8-x737-gmw5)
+
 ## 1.68.0
 
 > **Caution:** this version brings many changes, above all to signing in and to tasks, and not every test planned for them has been done yet, so some bugs may remain.
