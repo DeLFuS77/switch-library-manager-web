@@ -5,8 +5,11 @@ func init() {
 	translations["ja"] = map[string]string{
 		// folders to skip when scanning
 		"Folders to skip": "スキップするフォルダー",
-		"One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted.": "1行に1つ。単語は、その単語を名前に含むフォルダーをスキップします（大文字と小文字は区別しません）。「build」は「Dragon Quest Builders」もスキップします。* や ? を使うと、名前全体が一致する必要があります（例: *_build*）。中にあるものはスキャン、整理、削除されません。",
-		"Write the name of a folder, or a pattern like *_build*, not a path: %v":                                                         "パスではなく、フォルダー名か *_build* のようなパターンを入力してください: %v",
+		"Starting with":   "先頭が一致",
+		"Ending with":     "末尾が一致",
+		"Containing":      "名前に含む",
+		"One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted.":                     "各リストに1行に1つずつ。大文字と小文字は区別しません。これらのフォルダーの中身はスキャン、整理、削除されません。",
+		"Write a part of the name of a folder, not a path: %v":                                                                           "パスではなく、フォルダー名の一部を入力してください: %v",
 		"Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is.": "移動先がスキャンでスキップされるフォルダーになり、ゲームがライブラリから外れてしまうため、そのままにしています。",
 		// a game edited by hand
 		"Original: %v":   "元の名前：%v",

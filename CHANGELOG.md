@@ -4,7 +4,7 @@
 
 ### Improvements
 
-- Folders can be skipped when scanning, by name or by pattern (`_build`, `.git`, `*_backup*`), in Settings › Library › Folders to skip: what is inside them is not scanned, organized or deleted, and Organize never moves a game into one (thanks @aleszczynskig, #142)
+- Folders can be skipped when scanning, by how their names start, end or what they contain, in three lists of Settings › Library › Folders to skip and of the setup wizard: for example the ones starting with `_`, ending with `(copy)` or containing `build`, in any case. What is inside them is not scanned, organized or deleted, and Organize never moves a game into one (thanks @aleszczynskig, #142)
 
 ## 1.69.0
 

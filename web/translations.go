@@ -6,8 +6,11 @@ var translations = map[string]map[string]string{
 	"es": {
 		// folders to skip when scanning
 		"Folders to skip": "Carpetas que se saltan",
-		"One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted.": "Una por línea. Una palabra salta las carpetas cuyo nombre la contiene, sin mirar mayúsculas: «build» también salta «Dragon Quest Builders». Con * o ? el nombre entero tiene que encajar, como en *_build*. Lo que hay dentro no se analiza, no se organiza ni se borra.",
-		"Write the name of a folder, or a pattern like *_build*, not a path: %v":                                                         "Escribe el nombre de una carpeta, o un patrón como *_build*, no una ruta: %v",
+		"Starting with":   "Empiezan por",
+		"Ending with":     "Acaban en",
+		"Containing":      "Contienen",
+		"One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted.":                     "Uno por línea en cada lista, sin mirar mayúsculas. Lo que hay dentro de estas carpetas no se analiza, no se organiza y no se borra.",
+		"Write a part of the name of a folder, not a path: %v":                                                                           "Escribe una parte del nombre de una carpeta, no una ruta: %v",
 		"Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is.": "Su carpeta sería una de las que se saltan al analizar, y el juego saldría de la biblioteca, así que se queda donde está.",
 		// a game edited by hand
 		"Original: %v":   "Original: %v",

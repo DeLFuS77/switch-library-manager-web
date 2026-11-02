@@ -5,8 +5,11 @@ func init() {
 	translations["ko"] = map[string]string{
 		// folders to skip when scanning
 		"Folders to skip": "건너뛸 폴더",
-		"One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted.": "한 줄에 하나씩. 단어는 이름에 그 단어가 들어 있는 폴더를 대소문자 구분 없이 건너뛰어요. “build”는 “Dragon Quest Builders”도 건너뛰어요. * 또는 ?를 쓰면 이름 전체가 맞아야 해요(예: *_build*). 안에 있는 것은 스캔, 정리, 삭제하지 않아요.",
-		"Write the name of a folder, or a pattern like *_build*, not a path: %v":                                                         "경로가 아니라 폴더 이름이나 *_build* 같은 패턴을 입력하세요: %v",
+		"Starting with":   "다음으로 시작",
+		"Ending with":     "다음으로 끝남",
+		"Containing":      "다음을 포함",
+		"One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted.":                     "각 목록에 한 줄에 하나씩, 대소문자는 구분하지 않습니다. 이 폴더 안의 내용은 스캔, 정리, 삭제되지 않습니다.",
+		"Write a part of the name of a folder, not a path: %v":                                                                           "경로가 아니라 폴더 이름의 일부를 입력하세요: %v",
 		"Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is.": "스캔에서 건너뛰는 폴더로 옮겨지면 게임이 라이브러리에서 빠지므로 그대로 두었어요.",
 		// a game edited by hand
 		"Original: %v":   "원래 이름: %v",

@@ -335,31 +335,54 @@ func TestSettingsThatCannotBeSavedStayAsTheyWere(t *testing.T) {
 	}
 }
 
-// A word leaves out the folders whose names have it, a pattern with * or ? the ones whose whole
-// name it matches, in any case.
+// Folders are left out by the start, the end or a part of their names, in any case; a word
+// without * is a part too, and only the * at the ends count.
 func TestExcludedFolder(t *testing.T) {
-	patterns := []string{"_build", "Cache", " .git/ ", "*_old*", "tmp?", ""}
+	patterns := []string{"_*", "*(Copy)", "*build*", "Cache", " .git/ ", "[old]*", "a*b", "*", ""}
 	for name, want := range map[string]bool{
-		"_build": true, "My_BUILD_files": true, "cache": true, "CACHE2": true, ".git": true, ".github": true,
-		"games_old_2": true, "TMP1": true, "tmp": false, "tmp12": false, "Builders": false, "Zelda": false, "": false,
+		"_Tests": true, "My_games": false, "Zelda (copy)": true, "(copy) Zelda": false, "Dragon Quest Builders": true,
+		"CACHE2": true, ".github": true, "[OLD] games": true, "games [old]": false, "xa*bx": true, "ab": false, "Zelda": false, "": false,
 	} {
 		if got := ExcludedFolder(patterns, name); got != want {
 			t.Errorf("%q: %v, want %v", name, got, want)
 		}
 	}
-	if ExcludedFolder(nil, "cache") || ExcludedFolder([]string{"  ", "/"}, "cache") {
-		t.Fatal("no pattern leaves nothing out")
+	if ExcludedFolder(nil, "cache") || ExcludedFolder([]string{"  ", "/", "**"}, "cache") {
+		t.Fatal("nothing to look for leaves nothing out")
 	}
-	// a malformed pattern matches nothing, instead of everything
-	if ExcludedFolder([]string{"[a*"}, "[abc") {
-		t.Fatal("a malformed pattern")
+}
+
+// A text of a kind is kept as a line of the settings, and read back as the same kind and text.
+func TestSkipPatterns(t *testing.T) {
+	for _, c := range []struct{ kind, text, pattern string }{
+		{SKIP_STARTING, " _ ", "_*"}, {SKIP_STARTING, "_*", "_*"}, {SKIP_ENDING, "_old", "*_old"}, {SKIP_ENDING, "*_old", "*_old"},
+		{SKIP_CONTAINING, "build", "*build*"}, {SKIP_CONTAINING, "*", ""}, {SKIP_STARTING, " / ", ""},
+	} {
+		pattern := SkipPattern(c.kind, c.text)
+		if pattern != c.pattern {
+			t.Errorf("%s %q: %q, want %q", c.kind, c.text, pattern, c.pattern)
+			continue
+		}
+		if kind, text := FolderSkip(pattern); pattern != "" && (kind != c.kind || text != SkipText(c.text)) {
+			t.Errorf("%q read back as %s %q", pattern, kind, text)
+		}
+	}
+	s := AppSettings{ExcludeFolders: []string{"_*", "*_old", "*build*", "cache", "*(copy)"}}
+	if got := s.SkipFolders(SKIP_STARTING); !reflect.DeepEqual(got, []string{"_"}) {
+		t.Fatalf("starting: %v", got)
+	}
+	if got := s.SkipFolders(SKIP_ENDING); !reflect.DeepEqual(got, []string{"_old", "(copy)"}) {
+		t.Fatalf("ending: %v", got)
+	}
+	if got := s.SkipFolders(SKIP_CONTAINING); !reflect.DeepEqual(got, []string{"build", "cache"}) {
+		t.Fatalf("containing: %v", got)
 	}
 }
 
 func TestValidFolderPattern(t *testing.T) {
 	for line, want := range map[string]bool{
-		"_build": true, "cache/": true, `cache\`: true, "*_build*": true, "?tmp": true,
-		"/mnt/roms/cache": false, `D:\roms\cache`: false, "a/b": false, "/": false, "  ": false, "[a*": false,
+		"_build": true, "cache/": true, `cache\`: true, "*_build*": true, "[a*": true,
+		"/mnt/roms/cache": false, `D:\roms\cache`: false, "a/b": false, "/": false, "  ": false, "**": false,
 	} {
 		if got := ValidFolderPattern(line); got != want {
 			t.Errorf("%q: %v, want %v", line, got, want)
