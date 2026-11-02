@@ -1413,6 +1413,16 @@ var translations = map[string]map[string]string{
 		"You cancelled the sign-in with %v.":                                      "Has cancelado la entrada con %v.",
 		"Closing your session in %v…":                                             "Cerrando tu sesión en %v…",
 		"Continue":                                                                "Continuar",
+		// unlinking a user from the account of a provider of OpenID Connect, in Users and the
+		// activity
+		"Linked with %v": "Vinculado con %v",
+		"%v account":     "Cuenta de %v",
+		"Unlink":         "Desvincular",
+		"Once unlinked, the next sign-in with %v links the account that signs in then.": "Tras desvincularla, la próxima entrada con %v vincula la cuenta que entre entonces.",
+		"Unlink %v from their %v account? The sessions opened with it will end.":        "¿Desvincular a %v de su cuenta de %v? Se cerrarán las sesiones que abrió con ella.",
+		"The OpenID Connect account was unlinked.":                                      "Se ha desvinculado la cuenta de OpenID Connect.",
+		"Unlinked a user from OpenID Connect":                                           "Desvinculó a un usuario de OpenID Connect",
+		"The user is not linked with an account of the provider.":                       "El usuario no está vinculado con ninguna cuenta del proveedor.",
 		// API keys of the users, in My account, Users, the activity and the API
 		"Created an API key":        "Creó una llave de API",
 		"Signed in with an API key": "Entró con una llave de API",

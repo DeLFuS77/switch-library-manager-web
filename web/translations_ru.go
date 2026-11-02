@@ -1694,6 +1694,16 @@ func init() {
 		"You cancelled the sign-in with %v.":                                      "Вы отменили вход через %v.",
 		"Closing your session in %v…":                                             "Завершаем вашу сессию в %v…",
 		"Continue":                                                                "Продолжить",
+		// unlinking a user from the account of a provider of OpenID Connect, in Users and the
+		// activity
+		"Linked with %v": "Привязан к %v",
+		"%v account":     "Учётная запись %v",
+		"Unlink":         "Отвязать",
+		"Once unlinked, the next sign-in with %v links the account that signs in then.": "После отвязки следующий вход через %v привяжет ту учётную запись, которая войдёт тогда.",
+		"Unlink %v from their %v account? The sessions opened with it will end.":        "Отвязать %v от учётной записи %v? Сеансы, открытые через неё, завершатся.",
+		"The OpenID Connect account was unlinked.":                                      "Учётная запись OpenID Connect отвязана.",
+		"Unlinked a user from OpenID Connect":                                           "Отвязал пользователя от OpenID Connect",
+		"The user is not linked with an account of the provider.":                       "Пользователь не привязан ни к одной учётной записи провайдера.",
 		// API keys of the users, in My account, Users, the activity and the API
 		"Created an API key":        "Создал API-ключ",
 		"Signed in with an API key": "Вход по API-ключу",

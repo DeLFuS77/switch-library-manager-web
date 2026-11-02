@@ -159,6 +159,22 @@ func (web *Web) handlePortal() {
 		}
 		http.Redirect(w, r, "/users.html?done=email", http.StatusSeeOther)
 	}).Methods("POST")
+
+	web.router.HandleFunc("/users/unlink", func(w http.ResponseWriter, r *http.Request) {
+		name := r.FormValue("name")
+		if err := web.auth.users.UnlinkOidc(name); err != nil {
+			redirectWithError(w, r, "/users.html", err)
+			return
+		}
+		web.sugarLogger.Infof("User %q unlinked from OpenID Connect", name)
+		// an administrator who unlinked their own account ended the session they opened with it
+		if principal := principalFrom(r); principal.Via == VIA_OIDC && strings.EqualFold(name, principal.Name) {
+			http.SetCookie(w, clearSessionCookie(r))
+			http.Redirect(w, r, "/login.html", http.StatusSeeOther)
+			return
+		}
+		http.Redirect(w, r, "/users.html?done=unlinked", http.StatusSeeOther)
+	}).Methods("POST")
 }
 
 // checkOidcProvider reads the provider of OpenID Connect as Settings turns it on or changes its

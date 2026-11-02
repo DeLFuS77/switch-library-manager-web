@@ -1694,6 +1694,16 @@ func init() {
 		"You cancelled the sign-in with %v.":                                      "%v 로그인을 취소했어요.",
 		"Closing your session in %v…":                                             "%v 세션을 끝내는 중…",
 		"Continue":                                                                "계속",
+		// unlinking a user from the account of a provider of OpenID Connect, in Users and the
+		// activity
+		"Linked with %v": "%v 연결됨",
+		"%v account":     "%v 계정",
+		"Unlink":         "연결 해제",
+		"Once unlinked, the next sign-in with %v links the account that signs in then.": "연결을 해제하면 다음에 %v(으)로 로그인하는 계정이 연결돼요.",
+		"Unlink %v from their %v account? The sessions opened with it will end.":        "%v 사용자와 %v 계정의 연결을 해제할까요? 이 계정으로 연 세션은 종료돼요.",
+		"The OpenID Connect account was unlinked.":                                      "OpenID Connect 계정 연결을 해제했어요.",
+		"Unlinked a user from OpenID Connect":                                           "사용자의 OpenID Connect 연결을 해제함",
+		"The user is not linked with an account of the provider.":                       "이 사용자는 공급자의 어떤 계정과도 연결되어 있지 않아요.",
 		// API keys of the users, in My account, Users, the activity and the API
 		"Created an API key":        "API 키를 만듦",
 		"Signed in with an API key": "API 키로 로그인함",

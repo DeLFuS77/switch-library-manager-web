@@ -47,8 +47,10 @@ const (
 	// signed in by a portal in front of the app (see proxyauth.go)
 	ACTION_PORTAL_PROXY = "Signed in through the proxy"
 	ACTION_PORTAL_CF    = "Signed in with Cloudflare Access"
-	// signed in with OpenID Connect (see oidc.go)
+	// signed in with OpenID Connect (see oidc.go), and a user unlinked from the account of the
+	// provider
 	ACTION_PORTAL_OIDC = "Signed in with OpenID Connect"
+	ACTION_OIDC_UNLINK = "Unlinked a user from OpenID Connect"
 	// the email a portal names a user with, and the options of the portal
 	ACTION_USER_EMAIL      = "Changed the email of a user"
 	ACTION_PORTAL_SETTINGS = "Changed the sign-in portal"
@@ -56,7 +58,7 @@ const (
 
 var activityActions = []string{ACTION_SETTINGS, ACTION_ORGANIZE, ACTION_SPACE, ACTION_COMPRESS, ACTION_DECOMPRESS, ACTION_RESTORE, ACTION_USER_NEW, ACTION_USER_ROLE, ACTION_USER_PASS, ACTION_USER_DEL, ACTION_LEFTOVERS, ACTION_UPLOAD, ACTION_SYNC, ACTION_VERIFY, ACTION_LOGIN_OK, ACTION_LOGIN_FAIL, ACTION_LOGIN_LOCK,
 	ACTION_KEY_NEW, ACTION_KEY_USE, ACTION_KEY_DEL, ACTION_PORTAL_PROXY, ACTION_PORTAL_CF, ACTION_USER_EMAIL, ACTION_PORTAL_SETTINGS,
-	ACTION_PORTAL_OIDC}
+	ACTION_PORTAL_OIDC, ACTION_OIDC_UNLINK}
 
 // Activity is an action of a user.
 type Activity struct {
@@ -196,6 +198,7 @@ var recordedActions = map[string]func(r *http.Request) (string, string){
 	"/users/password":  func(r *http.Request) (string, string) { return ACTION_USER_PASS, r.FormValue("name") },
 	"/users/delete":    func(r *http.Request) (string, string) { return ACTION_USER_DEL, r.FormValue("name") },
 	"/users/email":     func(r *http.Request) (string, string) { return ACTION_USER_EMAIL, r.FormValue("name") },
+	"/users/unlink":    func(r *http.Request) (string, string) { return ACTION_OIDC_UNLINK, r.FormValue("name") },
 	"/settings/portal": func(r *http.Request) (string, string) { return ACTION_PORTAL_SETTINGS, "" },
 	"/uploads/finish":  func(r *http.Request) (string, string) { return ACTION_UPLOAD, r.FormValue("name") },
 	"/sync":            func(r *http.Request) (string, string) { return ACTION_SYNC, "" },
