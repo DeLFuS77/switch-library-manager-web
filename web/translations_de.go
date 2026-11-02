@@ -3,6 +3,11 @@ package web
 // German interface translations; see translations.go.
 func init() {
 	translations["de"] = map[string]string{
+		// folders to skip when scanning
+		"Folders to skip": "Zu überspringende Ordner",
+		"One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted.": "Einer pro Zeile. Ein Wort überspringt die Ordner, deren Name es enthält, ohne auf Groß- und Kleinschreibung zu achten: „build“ überspringt auch „Dragon Quest Builders“. Mit * oder ? muss der ganze Name passen, wie bei *_build*. Was darin liegt, wird nicht gescannt, organisiert oder gelöscht.",
+		"Write the name of a folder, or a pattern like *_build*, not a path: %v":                                                         "Schreibe den Namen eines Ordners oder ein Muster wie *_build*, keinen Pfad: %v",
+		"Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is.": "Sein Ordner wäre einer der beim Scannen übersprungenen Ordner, und das Spiel würde die Bibliothek verlassen, daher bleibt die Datei, wo sie ist.",
 		// a game edited by hand
 		"Original: %v":   "Original: %v",
 		"Edited by hand": "Von Hand bearbeitet",

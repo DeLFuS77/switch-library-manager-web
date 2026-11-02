@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 // a folder changed this recently, or with files written this recently, is read file by file
@@ -38,8 +39,10 @@ func newDirTree() *dirTree {
 }
 
 // refresh checks the folders and returns a fingerprint of all their files, which changes
-// when a file is added, removed, renamed or rewritten, and the folders found.
-func (t *dirTree) refresh(roots []string) (uint64, []string) {
+// when a file is added, removed, renamed or rewritten, and the folders found. The folders the
+// scan leaves out (exclude, see settings.ExcludedFolder) are left out too: what changes in them
+// is no reason to scan.
+func (t *dirTree) refresh(roots []string, exclude []string) (uint64, []string) {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
 	now := time.Now()
@@ -73,7 +76,9 @@ func (t *dirTree) refresh(roots []string) (uint64, []string) {
 			count++
 		}
 		for _, sub := range known.subdirs {
-			visit(sub)
+			if !settings.ExcludedFolder(exclude, filepath.Base(sub)) {
+				visit(sub)
+			}
 		}
 	}
 	for _, root := range roots {

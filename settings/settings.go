@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"maps"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -121,6 +122,9 @@ type OrganizeOptions struct {
 	BaseFolder string `json:"base_folder,omitempty"`
 	// a game that has a folder of its own keeps it: its files go there, and it is not renamed
 	KeepGameFolders bool `json:"keep_game_folders,omitempty"`
+	// the folders the scan leaves out (AppSettings.ExcludeFolders), given when organizing: a file
+	// moved into one would leave the library; never saved with these options
+	ExcludeFolders []string `json:"-"`
 }
 
 // The copies of a duplicate the library can keep.
@@ -291,6 +295,9 @@ type AppSettings struct {
 	IgnoreDLCUpdates       bool              `json:"ignore_dlc_updates"`
 	IgnoreFileTypes        []string          `json:"ignore_file_types"`
 	HideDemoGames          bool              `json:"hide_demo_games"`
+	// the folders below the library folders the scan leaves out, with everything in them, by
+	// their names (see ExcludedFolder); none by default
+	ExcludeFolders []string `json:"exclude_folders,omitempty"`
 	// the cheats of the games are not downloaded nor shown
 	CheatsDisabled bool `json:"cheats_disabled,omitempty"`
 	// a game the library has from several regions shows and counts once, by the copy the
@@ -484,6 +491,43 @@ func movedRepositoryUrl(url string) string {
 		return url
 	}
 	return prefix + REPOSITORY_OWNER + rest[slash:]
+}
+
+// ExcludedFolder tells a folder left out of the scan by its name, in any case: a pattern with *
+// or ? (path.Match) is matched against the whole name, a word against any part of it.
+func ExcludedFolder(patterns []string, name string) bool {
+	name = strings.ToLower(name)
+	for _, pattern := range patterns {
+		pattern = strings.ToLower(FolderPattern(pattern))
+		if pattern == "" {
+			continue
+		}
+		if strings.ContainsAny(pattern, "*?") {
+			if matched, _ := path.Match(pattern, name); matched {
+				return true
+			}
+		} else if strings.Contains(name, pattern) {
+			return true
+		}
+	}
+	return false
+}
+
+// FolderPattern is a line of ExcludeFolders as it is kept: without the spaces and the
+// separators around it, which a folder name never has ("cache/").
+func FolderPattern(line string) string {
+	return strings.Trim(strings.TrimSpace(line), `/\`)
+}
+
+// ValidFolderPattern tells a line of ExcludeFolders that can match a folder name: a path has
+// separators no name has, and a pattern can be malformed ("[a*").
+func ValidFolderPattern(line string) bool {
+	pattern := FolderPattern(line)
+	if pattern == "" || strings.ContainsAny(pattern, `/\`) {
+		return false
+	}
+	_, err := path.Match(pattern, "")
+	return err == nil
 }
 
 // TitlesJsonUrls returns the configured titles.json URL followed by the fallback mirrors, the

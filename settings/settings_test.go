@@ -334,3 +334,56 @@ func TestSettingsThatCannotBeSavedStayAsTheyWere(t *testing.T) {
 		t.Fatalf("the file as it was: %v %+v", err, saved)
 	}
 }
+
+// A word leaves out the folders whose names have it, a pattern with * or ? the ones whose whole
+// name it matches, in any case.
+func TestExcludedFolder(t *testing.T) {
+	patterns := []string{"_build", "Cache", " .git/ ", "*_old*", "tmp?", ""}
+	for name, want := range map[string]bool{
+		"_build": true, "My_BUILD_files": true, "cache": true, "CACHE2": true, ".git": true, ".github": true,
+		"games_old_2": true, "TMP1": true, "tmp": false, "tmp12": false, "Builders": false, "Zelda": false, "": false,
+	} {
+		if got := ExcludedFolder(patterns, name); got != want {
+			t.Errorf("%q: %v, want %v", name, got, want)
+		}
+	}
+	if ExcludedFolder(nil, "cache") || ExcludedFolder([]string{"  ", "/"}, "cache") {
+		t.Fatal("no pattern leaves nothing out")
+	}
+	// a malformed pattern matches nothing, instead of everything
+	if ExcludedFolder([]string{"[a*"}, "[abc") {
+		t.Fatal("a malformed pattern")
+	}
+}
+
+func TestValidFolderPattern(t *testing.T) {
+	for line, want := range map[string]bool{
+		"_build": true, "cache/": true, `cache\`: true, "*_build*": true, "?tmp": true,
+		"/mnt/roms/cache": false, `D:\roms\cache`: false, "a/b": false, "/": false, "  ": false, "[a*": false,
+	} {
+		if got := ValidFolderPattern(line); got != want {
+			t.Errorf("%q: %v, want %v", line, got, want)
+		}
+	}
+}
+
+// Settings written before the folders to leave out existed leave none out, and the list is
+// saved and read back.
+func TestExcludeFoldersAreMissingFromOlderSettings(t *testing.T) {
+	isolateSettings(t)
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, SETTINGS_FILENAME), `{"folder": "/roms", "scan_folders": ["/more"], "port": 8080}`)
+	if s := ReadSettings(dir); len(s.ExcludeFolders) != 0 || s.Folder != "/roms" {
+		t.Fatalf("older settings: %#v", s.ExcludeFolders)
+	}
+	UpdateSettings(dir, func(s *AppSettings) { s.ExcludeFolders = []string{"_build", "*_old*"} })
+	settingsInstance.Store(nil)
+	if s := ReadSettings(dir); !reflect.DeepEqual(s.ExcludeFolders, []string{"_build", "*_old*"}) {
+		t.Fatalf("read back: %#v", s.ExcludeFolders)
+	}
+	// never written for the options of Organize, which only get them while organizing
+	data, _ := os.ReadFile(filepath.Join(dir, SETTINGS_FILENAME))
+	if strings.Count(string(data), "_build") != 1 {
+		t.Fatalf("saved once: %s", data)
+	}
+}

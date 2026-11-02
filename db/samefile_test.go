@@ -29,13 +29,13 @@ func TestDistinctFoldersOnTheDisk(t *testing.T) {
 		t.Fatal(err)
 	}
 	alias := otherPath(t, lib)
-	if got := distinctFolders([]string{lib, alias}, true); len(got) != 1 || got[0] != lib {
+	if got := distinctFolders([]string{lib, alias}, true, nil); len(got) != 1 || got[0] != lib {
 		t.Fatalf("one folder by two paths: %v", got)
 	}
-	if got := distinctFolders([]string{filepath.Join(alias, "new"), lib}, true); len(got) != 1 || got[0] != lib {
+	if got := distinctFolders([]string{filepath.Join(alias, "new"), lib}, true, nil); len(got) != 1 || got[0] != lib {
 		t.Fatalf("a folder inside the other by another path: %v", got)
 	}
-	if got := distinctFolders([]string{filepath.Join(alias, "new"), lib}, false); len(got) != 2 {
+	if got := distinctFolders([]string{filepath.Join(alias, "new"), lib}, false, nil); len(got) != 2 {
 		t.Fatalf("without subfolders the folder inside is read on its own: %v", got)
 	}
 }
@@ -86,7 +86,7 @@ func TestLinkToAGameIsNoCopy(t *testing.T) {
 		t.Skipf("no link to a file here: %v", err)
 	}
 	files := []ExtendedFileInfo{}
-	if err := scanFolder(lib, true, &files, nil, nil, nil, nil, 0); err != nil {
+	if err := scanFolder(lib, true, nil, &files, nil, nil, nil, nil, 0); err != nil {
 		t.Fatal(err)
 	}
 	for _, file := range files {

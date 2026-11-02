@@ -3,6 +3,11 @@ package web
 // Russian interface translations; see translations.go.
 func init() {
 	translations["ru"] = map[string]string{
+		// folders to skip when scanning
+		"Folders to skip": "Пропускаемые папки",
+		"One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted.": "По одной на строку. Слово пропускает папки, в названии которых оно есть, без учёта регистра: «build» пропустит и «Dragon Quest Builders». С * или ? должно совпасть всё название, как в *_build*. Их содержимое не сканируется, не упорядочивается и не удаляется.",
+		"Write the name of a folder, or a pattern like *_build*, not a path: %v":                                                         "Укажите имя папки или шаблон вроде *_build*, а не путь: %v",
+		"Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is.": "Его папка оказалась бы среди пропускаемых при сканировании, и игра пропала бы из библиотеки, поэтому файл остаётся на месте.",
 		// a game edited by hand
 		"Original: %v":   "Исходное: %v",
 		"Edited by hand": "Изменено вручную",
