@@ -289,8 +289,9 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 
 		ldb.leftovers, ldb.emptyFolders = nil, nil
 		unreadable := []string{}
-		for _, folder := range distinctFolders(folders, recursive) {
-			err := scanFolder(folder, recursive, &files, &ldb.leftovers, &ldb.emptyFolders, &unreadable, progress, estimate)
+		exclude := settings.ReadSettings(dataFolder).ExcludeFolders
+		for _, folder := range distinctFolders(folders, recursive, exclude) {
+			err := scanFolder(folder, recursive, exclude, &files, &ldb.leftovers, &ldb.emptyFolders, &unreadable, progress, estimate)
 			if progress != nil {
 				progress.UpdateProgress(-1, -1, "Scanned "+folder)
 			}
@@ -328,8 +329,9 @@ func (ldb *LocalSwitchDBManager) CreateLocalSwitchFilesDB(switchDB *SwitchTitles
 // distinctFolders leaves out a folder listed twice and, when the folders are scanned with their
 // subfolders, a folder inside another one listed: its files would be read twice, and each one
 // would count as a duplicate of itself, offered to be deleted with its only copy. The folders
-// are compared as they are on the disk too, written as they may be (see SameFolder).
-func distinctFolders(folders []string, recursive bool) []string {
+// are compared as they are on the disk too, written as they may be (see SameFolder). A folder
+// inside a folder the scan leaves out (exclude) is read on its own: it was chosen.
+func distinctFolders(folders []string, recursive bool, exclude []string) []string {
 	cleaned := []string{}
 	for _, folder := range folders {
 		folder = filepath.Clean(folder)
@@ -351,7 +353,7 @@ func distinctFolders(folders []string, recursive bool) []string {
 	for i, folder := range cleaned {
 		inside := false
 		for j, other := range cleaned {
-			if i != j && FolderInside(folder, other) {
+			if i != j && FolderInside(folder, other) && !excludedBelow(folder, other, exclude) {
 				inside = true
 				break
 			}
@@ -361,6 +363,27 @@ func distinctFolders(folders []string, recursive bool) []string {
 		}
 	}
 	return distinct
+}
+
+// excludedBelow tells a folder inside outer that the walk of outer does not reach: it, or a
+// folder on the way down to it, is left out by its name (see settings.ExcludedFolder).
+func excludedBelow(inner, outer string, exclude []string) bool {
+	if len(exclude) == 0 {
+		return false
+	}
+	outerInfo, _ := os.Stat(outer)
+	for dir := filepath.Clean(inner); filepath.Dir(dir) != dir; dir = filepath.Dir(dir) {
+		if SameFolderName(dir, outer) {
+			return false
+		}
+		if info, err := os.Stat(dir); err == nil && outerInfo != nil && os.SameFile(info, outerInfo) {
+			return false
+		}
+		if settings.ExcludedFolder(exclude, filepath.Base(dir)) {
+			return true
+		}
+	}
+	return false
 }
 
 // SameFolderName tells whether two paths are the same folder by their names alone.
@@ -500,8 +523,9 @@ func isLink(path string) bool {
 // scanFolder adds the files of a folder; estimate is how many files the folders are thought
 // to hold, for the progress, or 0 when unknown. The folder itself, or a link to one, must be
 // read, or nothing is known of its games; the folders below that cannot be read are added to
-// unreadable, when it is given.
-func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, leftovers *[]LeftoverFile, emptyFolders *[]string, unreadable *[]string, progress ProgressUpdater, estimate int) error {
+// unreadable, when it is given. The folders below whose names are in exclude are left out with
+// everything in them (see settings.ExcludedFolder), the folder itself never.
+func scanFolder(folder string, recursive bool, exclude []string, files *[]ExtendedFileInfo, leftovers *[]LeftoverFile, emptyFolders *[]string, unreadable *[]string, progress ProgressUpdater, estimate int) error {
 	rootInfo, err := os.Stat(folder)
 	if err != nil {
 		return err
@@ -556,6 +580,12 @@ func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, leftov
 			if entry.IsDir() && entry.Name() == QUARANTINE_FOLDER {
 				return filepath.SkipDir
 			}
+			// a folder left out (a build folder, a cache) is never read, and the folder it is in
+			// never taken for an empty one
+			if entry.IsDir() && settings.ExcludedFolder(exclude, entry.Name()) {
+				held[filepath.Dir(path)] = true
+				return filepath.SkipDir
+			}
 			// a link to a folder (a symlink, a junction of Windows) is walked as the folder it is,
 			// once, instead of being taken for a file that is no game
 			if entry.Type()&(fs.ModeSymlink|fs.ModeIrregular) != 0 {
@@ -563,7 +593,7 @@ func scanFolder(folder string, recursive bool, files *[]ExtendedFileInfo, leftov
 					// never an empty folder to delete: deleting it would take the link only
 					held[path] = true
 					held[filepath.Dir(path)] = true
-					if !recursive || entry.Name() == QUARANTINE_FOLDER || walkedAlready(path, target) {
+					if !recursive || entry.Name() == QUARANTINE_FOLDER || settings.ExcludedFolder(exclude, entry.Name()) || walkedAlready(path, target) {
 						return nil
 					}
 					walked = append(walked, target)

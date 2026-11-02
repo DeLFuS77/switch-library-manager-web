@@ -203,6 +203,7 @@ func (web *Web) organizeFiles(action string, paths []string, dryRun bool) ([]pro
 
 	settingsObj := settings.ReadSettings(web.dataFolder)
 	options := settingsObj.OrganizeOptions
+	options.ExcludeFolders = settingsObj.ExcludeFolders
 	// a preview shows no progress: it would take over the one of a scan running meanwhile
 	var progress db.ProgressUpdater = web
 	if dryRun {

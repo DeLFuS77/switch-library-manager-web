@@ -52,6 +52,7 @@ type SettingsPageData struct {
 type SettingsForm struct {
 	Prodkeys              string `in:"form=prod_keys"`
 	ScanFolders           string `in:"form=scan_folders"`
+	ExcludeFolders        string `in:"form=exclude_folders"`
 	IgnoreDLCTitleIds     string `in:"form=ignore_dlc_title_ids"`
 	IgnoreUpdateTitleIds  string `in:"form=ignore_update_title_ids"`
 	IgnoreDLCUpdates      bool   `in:"form=ignore_dlc_updates"`
@@ -239,6 +240,16 @@ func (web *Web) HandleSettings() {
 					Field:   "scan_folders",
 					Message: message,
 				})
+			}
+		}
+
+		for _, value := range SplitAndTrimSpaceArray(settingsForm.ExcludeFolders, "\n") {
+			if !settings.ValidFolderPattern(value) {
+				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+					Field:   "exclude_folders",
+					Message: translatef(lang, "Write the name of a folder, or a pattern like *_build*, not a path: %v", value),
+				})
+				break
 			}
 		}
 
@@ -438,6 +449,10 @@ func (web *Web) HandleSettings() {
 				appSettings.ScanFolders = scanFolders[1:]
 			} else {
 				appSettings.ScanFolders = []string{}
+			}
+			appSettings.ExcludeFolders = nil
+			for _, line := range SplitAndTrimSpaceArray(settingsForm.ExcludeFolders, "\n") {
+				appSettings.ExcludeFolders = append(appSettings.ExcludeFolders, settings.FolderPattern(line))
 			}
 		})
 		if err != nil {

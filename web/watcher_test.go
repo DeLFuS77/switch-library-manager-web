@@ -79,25 +79,49 @@ func TestOnlyChangedFoldersAreReadAgain(t *testing.T) {
 	os.Chtimes(root, old, old)
 
 	tree := newDirTree()
-	first, dirs := tree.refresh([]string{root})
+	first, dirs := tree.refresh([]string{root}, nil)
 	if tree.lastRead != 21 || len(dirs) != 21 {
 		t.Fatalf("the first check reads every folder: %d read, %d found", tree.lastRead, len(dirs))
 	}
-	if again, _ := tree.refresh([]string{root}); again != first || tree.lastRead != 0 {
+	if again, _ := tree.refresh([]string{root}, nil); again != first || tree.lastRead != 0 {
 		t.Fatalf("an unchanged library is not read again: %d folders read", tree.lastRead)
 	}
 
 	// a new file is noticed by reading only its folder
 	added := filepath.Join(root, "game c", "update.nsp")
 	os.WriteFile(added, []byte("new"), 0644)
-	changed, _ := tree.refresh([]string{root})
+	changed, _ := tree.refresh([]string{root}, nil)
 	if changed == first || tree.lastRead != 1 {
 		t.Fatalf("one folder changed: fingerprint changed %v, %d folders read", changed != first, tree.lastRead)
 	}
 	// while it is recent, the folder is read again, so a file being copied is seen growing
 	os.WriteFile(added, []byte("new and bigger"), 0644)
-	if grown, _ := tree.refresh([]string{root}); grown == changed {
+	if grown, _ := tree.refresh([]string{root}, nil); grown == changed {
 		t.Fatal("a file growing in a recently changed folder must change the fingerprint")
+	}
+}
+
+// What changes in a folder the scan leaves out is no reason to scan: it is neither read nor
+// watched.
+func TestExcludedFoldersAreNotWatched(t *testing.T) {
+	root := t.TempDir()
+	build := filepath.Join(root, "_build", "deep")
+	os.MkdirAll(build, 0755)
+	os.MkdirAll(filepath.Join(root, "Game"), 0755)
+	os.WriteFile(filepath.Join(root, "Game", "game.nsp"), []byte("game"), 0644)
+	exclude := []string{"_build"}
+
+	tree := newDirTree()
+	before, dirs := tree.refresh([]string{root}, exclude)
+	if len(dirs) != 2 {
+		t.Fatalf("the library and its game folder only: %v", dirs)
+	}
+	os.WriteFile(filepath.Join(build, "game.nsp"), []byte("built"), 0644)
+	if after, _ := tree.refresh([]string{root}, exclude); after != before {
+		t.Fatal("a file in a folder left out changed the fingerprint")
+	}
+	if after, _ := tree.refresh([]string{root}, nil); after == before {
+		t.Fatal("without the setting it counts")
 	}
 }
 

@@ -3,6 +3,11 @@ package web
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	translations["zh"] = map[string]string{
+		// folders to skip when scanning
+		"Folders to skip": "要跳过的文件夹",
+		"One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted.": "每行一个。单词会跳过名称中包含它的文件夹，不区分大小写：“build”也会跳过“Dragon Quest Builders”。使用 * 或 ? 时，整个名称必须匹配，例如 *_build*。其中的内容不会被扫描、整理或删除。",
+		"Write the name of a folder, or a pattern like *_build*, not a path: %v":                                                         "请填写文件夹名称或 *_build* 这样的模式，而不是路径：%v",
+		"Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is.": "它的文件夹会是扫描时跳过的文件夹之一，游戏会因此离开游戏库，所以保留在原处。",
 		// a game edited by hand
 		"Original: %v":   "原名：%v",
 		"Edited by hand": "已手动编辑",

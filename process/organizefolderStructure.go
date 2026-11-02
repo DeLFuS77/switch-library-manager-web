@@ -65,6 +65,8 @@ type fileOperations struct {
 	logger *zap.SugaredLogger
 	// how a file to delete goes
 	discard Discard
+	// tells a folder the scan leaves out (see excludedFolders), or nil
+	excluded func(dir string) bool
 }
 
 // pathKey is a path as the list of files to move keeps it: in any case where the disk takes
@@ -142,6 +144,10 @@ func samePath(a, b string) bool {
 // REASON_SPLIT explains a part of a split file left where it is.
 const REASON_SPLIT = "split files are not organized"
 
+// REASON_EXCLUDED_FOLDER explains a file left where it is, as its folder would be one the scan
+// leaves out.
+const REASON_EXCLUDED_FOLDER = "Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is."
+
 // isSplitPart tells the parts of a split file ("00", "01"...): the first one stands for the
 // whole file in the library, and moving or deleting it alone would leave the others behind.
 func isSplitPart(name string) bool {
@@ -173,6 +179,11 @@ func (f *fileOperations) move(from string, to string) error {
 	if from == to {
 		// in place: its other contents must not move it to their own names
 		f.movedFrom[from] = to
+		return nil
+	}
+	if f.excluded != nil && f.excluded(filepath.Dir(to)) {
+		f.movedFrom[from] = from
+		f.skip(from, REASON_EXCLUDED_FOLDER)
 		return nil
 	}
 
@@ -426,6 +437,29 @@ func (f *fileOperations) deleteEmptyFolders(root string, roots []string, known [
 		// os.Remove refuses a folder that got a file in the meantime
 		err := os.Remove(folder)
 		f.record(Operation{Kind: OP_DELETE, From: folder, Reason: "empty folder"}, err)
+	}
+}
+
+// excludedFolders tells a folder inside one of the library folders (roots) that the scan leaves
+// out, by its name or the name of a folder on the way down to it (see settings.ExcludedFolder).
+// Nil without patterns.
+func excludedFolders(roots []string, patterns []string) func(dir string) bool {
+	if len(patterns) == 0 {
+		return nil
+	}
+	libraryFolder := libraryFolders(roots)
+	return func(dir string) bool {
+		excluded := false
+		for dir = filepath.Clean(dir); ; dir = filepath.Dir(dir) {
+			if libraryFolder(dir) {
+				return excluded
+			}
+			if filepath.Dir(dir) == dir {
+				// outside the library: never scanned anyway
+				return false
+			}
+			excluded = excluded || settings.ExcludedFolder(patterns, filepath.Base(dir))
+		}
 	}
 }
 
@@ -701,6 +735,8 @@ func organize(baseFolder string,
 	}
 
 	ops := newFileOperations(dryRun)
+	// a file moved into a folder the scan leaves out would leave the library
+	ops.excluded = excludedFolders(append([]string{baseFolder}, roots...), options.ExcludeFolders)
 	if only != nil {
 		ops.only = map[string]bool{}
 		for _, path := range only {

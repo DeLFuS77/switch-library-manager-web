@@ -37,6 +37,15 @@
 								</textarea>
 								<div class="form-text" id="scanFoldersHelp">{{t "One folder per Line"}}</div>
 							</div>
+							<div class="mt-3">
+								<label for="exclude_folders" class="form-label fw-semibold">{{t "Folders to skip"}}</label>
+								<textarea class="form-control font-monospace" id="exclude_folders" name="exclude_folders" rows="3" spellcheck="false" placeholder="{{t "e.g. %v" "_build"}}" aria-describedby="excludeFoldersHelp">
+{{- range .Settings.ExcludeFolders}}
+{{.}}
+{{- end -}}
+								</textarea>
+								<div class="form-text" id="excludeFoldersHelp">{{t "One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted."}}</div>
+							</div>
 							<div class="form-check form-switch mt-3">
 								<input class="form-check-input" type="checkbox" role="switch" id="watch_folders" name="watch_folders" value="true" aria-describedby="watchFoldersHelp"{{if .Settings.WatchFolders}} checked{{end}}>
 								<label class="form-check-label" for="watch_folders">{{t "Scan automatically when files change"}}</label>

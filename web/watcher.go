@@ -36,7 +36,7 @@ func scanFolders(s *settings.AppSettings) []string {
 // folderFingerprint summarizes the paths, sizes and modification times of every file in
 // the folders. It changes when a file is added, removed, renamed or rewritten.
 func folderFingerprint(folders []string) uint64 {
-	fingerprint, _ := newDirTree().refresh(folders)
+	fingerprint, _ := newDirTree().refresh(folders, nil)
 	return fingerprint
 }
 
@@ -114,7 +114,8 @@ func (web *Web) StartFolderWatcher() {
 
 // fingerprint checks the library folders (see dirTree) and returns their fingerprint.
 func (w *folderWatcher) fingerprint() uint64 {
-	fingerprint, dirs := w.tree.refresh(scanFolders(settings.ReadSettings(w.web.dataFolder)))
+	appSettings := settings.ReadSettings(w.web.dataFolder)
+	fingerprint, dirs := w.tree.refresh(scanFolders(appSettings), appSettings.ExcludeFolders)
 	w.dirs = dirs
 	return fingerprint
 }

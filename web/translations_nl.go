@@ -3,6 +3,11 @@ package web
 // Dutch interface translations; see translations.go.
 func init() {
 	translations["nl"] = map[string]string{
+		// folders to skip when scanning
+		"Folders to skip": "Over te slaan mappen",
+		"One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted.": "Eén per regel. Een woord slaat de mappen over waarvan de naam het bevat, ongeacht hoofdletters: ‘build’ slaat ook ‘Dragon Quest Builders’ over. Met * of ? moet de hele naam passen, zoals bij *_build*. Wat erin staat wordt niet gescand, geordend of verwijderd.",
+		"Write the name of a folder, or a pattern like *_build*, not a path: %v":                                                         "Schrijf de naam van een map, of een patroon zoals *_build*, geen pad: %v",
+		"Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is.": "De map zou een van de mappen zijn die bij het scannen worden overgeslagen, en het spel zou uit de bibliotheek verdwijnen, dus blijft het waar het is.",
 		// a game edited by hand
 		"Original: %v":   "Origineel: %v",
 		"Edited by hand": "Met de hand bewerkt",
