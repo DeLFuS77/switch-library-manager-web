@@ -110,7 +110,10 @@ func recompressNcz(ctx context.Context, output *os.File, input io.ReaderAt, offs
 		return err
 	}
 	count := binary.LittleEndian.Uint64(head[nczHeaderSize+8:])
-	if string(head[nczHeaderSize:nczHeaderSize+8]) != nczSectionMagic || count == 0 || count > nczMaxSections || count > uint64(size)/0x40 {
+	if string(head[nczHeaderSize:nczHeaderSize+8]) == nczSectionMagicV3 {
+		return errors.New("an archive (NCZSECT3) is not recompressed as it is: decompress it first")
+	}
+	if magic := string(head[nczHeaderSize : nczHeaderSize+8]); magic != nczSectionMagic && magic != nczSectionMagicV2 || count == 0 || count > nczMaxSections || count > uint64(size)/0x40 {
 		return errors.New("invalid NCZ section table")
 	}
 	table := make([]byte, count*0x40)

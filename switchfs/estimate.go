@@ -61,7 +61,7 @@ func EstimateCompression(ctx context.Context, source string, options CompressOpt
 		if !isCompressibleNcaName(file.name) || file.size <= nczHeaderSize {
 			continue
 		}
-		plan, _, err := planNcz(input, file.offset, uint64(file.size), titleKeys)
+		plan, _, err := planNcz(input, file.offset, uint64(file.size), titleKeys, options.Sparse)
 		if err != nil {
 			return estimate, err
 		}

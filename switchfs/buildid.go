@@ -114,7 +114,7 @@ func readPlain(reader io.ReaderAt, pkg *gamePackage, file packedFile, position u
 	if err != nil {
 		return nil, err
 	}
-	plan, _, err := planNcz(reader, file.offset, uint64(file.size), titleKeys)
+	plan, _, err := planNcz(reader, file.offset, uint64(file.size), titleKeys, false)
 	if err != nil {
 		return nil, err
 	}

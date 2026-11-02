@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The library reads NSZ files with base games in sparse storage compressed by NXPress in its experimental format (NCZSECT2): they decompress and check like any other NSZ
+- The library also reads the experimental archives of NXPress (NCZSECT3), where the LZ4 blocks Nintendo compressed inside games and updates are kept decompressed and made again byte for byte: they decompress and check like any other NSZ
+
 ## 1.68.1
 
 ### Fixes
