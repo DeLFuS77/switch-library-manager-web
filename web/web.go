@@ -282,6 +282,8 @@ type TitleItem struct {
 	Demo bool
 	// library: how long the game takes to beat, in seconds (IGDB); 0 when not known
 	TimeToBeat int
+	// library: the score of the game on IGDB, of the critics or else of the users; 0 when none
+	Score int
 	// library: the size of the game with its updates and DLC, and when it was found in the folders
 	Size  int64
 	Added time.Time
@@ -343,6 +345,8 @@ type GlobalPageData struct {
 	Counts              NavCounts
 	// some games have their time to beat (IGDB): the library can be sorted by it
 	TimesToBeat bool
+	// some games have a score (IGDB): the library can be sorted and filtered by it
+	Scores bool
 	// the setup wizard opens by itself (first use), for an administrator
 	WizardAuto bool
 	// the save vault is on: its page is in the menu
@@ -426,6 +430,10 @@ type LibraryFacets struct {
 	SinglePlayer int
 	TwoPlayers   int
 	FourPlayers  int
+	// the games by their score: of 70, 80 and 90 or more
+	Score70 int
+	Score80 int
+	Score90 int
 	// the collections with their number of games, before the collection filter
 	Collections []CollectionCount
 	Regions     []string
@@ -615,6 +623,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 		Counts:              web.navCounts(),
 		Update:              web.availableUpdate(),
 		TimesToBeat:         web.timesToBeat().hasKnown(),
+		Scores:              web.timesToBeat().hasScores(),
 		WizardAuto:          web.wizardAuto(),
 		VaultEnabled:        vaultEnabled(settings.ReadSettings(web.dataFolder)) || isDemoMode(),
 		LowDisks:            web.lowDisks(),

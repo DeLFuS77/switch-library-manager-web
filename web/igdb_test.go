@@ -283,3 +283,61 @@ func TestGamePageShowsTheScores(t *testing.T) {
 		t.Error("the game page shows only the score of the users")
 	}
 }
+
+func TestSortByScorePutsUnknownLast(t *testing.T) {
+	items := []TitleItem{{Name: "C"}, {Name: "A", Score: 91}, {Name: "B", Score: 72}, {Name: "D"}}
+	for order, want := range map[string]string{"asc": "BACD", "desc": "ABCD"} {
+		sorted := append([]TitleItem(nil), items...)
+		if err := sortItems(&TitleItemFilter{SortBy: "score", SortOrder: order}, sorted); err != nil {
+			t.Fatal(err)
+		}
+		names := ""
+		for _, item := range sorted {
+			names += item.Name
+		}
+		if names != want {
+			t.Errorf("%s: %s, want %s", order, names, want)
+		}
+	}
+}
+
+func TestScoreFilter(t *testing.T) {
+	odd := &TitleItemFilter{Score: "85"}
+	odd.Normalize()
+	if odd.Score != "" {
+		t.Fatalf("only 70, 80 and 90: %q", odd.Score)
+	}
+	filter := &TitleItemFilter{Score: "80", SortBy: "score"}
+	filter.Normalize()
+	if filter.Score != "80" || filter.SortBy != "score" || !filter.Filters() || filter.SecondaryCount() != 1 || filter.query().Get("score") != "80" {
+		t.Fatalf("the filter: %+v", filter)
+	}
+	for _, c := range []struct {
+		score  int
+		filter string
+		want   bool
+	}{{85, "80", true}, {80, "80", true}, {79, "80", false}, {0, "70", false}, {0, "", true}} {
+		if scoreMatches(c.score, c.filter) != c.want {
+			t.Errorf("scoreMatches(%d, %q) != %v", c.score, c.filter, c.want)
+		}
+	}
+	if query := cleanSmartQuery("?score=90&sort_by=score&sort_order=desc"); !strings.Contains(query, "score=90") || !strings.Contains(query, "sort_by=score") {
+		t.Fatalf("a smart collection keeps the score: %q", query)
+	}
+}
+
+// The library counts its games by score and shows only those of the score chosen.
+func TestLibraryFiltersByScore(t *testing.T) {
+	web := newTestWeb(t)
+	web.state.set(testDatabases(t))
+	web.timesToBeat().set("0100000000010000", TimeToBeat{Found: true, Checked: time.Now(), CriticScore: 86, CriticCount: 12})
+	web.invalidateDerived()
+	all, _, facets := web.getLibraryWithFacets(&TitleItemFilter{SortBy: "name", SortOrder: "asc", PerPage: 24, Page: 1, WithMissing: "0"}, DEFAULT_LANGUAGE)
+	if len(all) < 2 || facets.Score70 != 1 || facets.Score80 != 1 || facets.Score90 != 0 {
+		t.Fatalf("%d games, scores %d/%d/%d", len(all), facets.Score70, facets.Score80, facets.Score90)
+	}
+	items, _, _ := web.getLibraryWithFacets(&TitleItemFilter{Score: "80", SortBy: "name", SortOrder: "asc", PerPage: 24, Page: 1, WithMissing: "0"}, DEFAULT_LANGUAGE)
+	if len(items) != 1 || items[0].Id != "0100000000010000" || items[0].Score != 86 {
+		t.Fatalf("only the game of 80 or more: %+v", items)
+	}
+}

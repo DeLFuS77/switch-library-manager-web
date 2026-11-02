@@ -4,7 +4,7 @@
 
 ### New
 
-- The page of a game shows its scores on IGDB, of the critics and of the players, with how many reviews and votes they come from; scores of 90 or more shine. Like the times to beat, they need the IGDB Client ID and Secret in Settings, and games looked up before are looked up once again for them
+- The page of a game shows its scores on IGDB, of the critics and of the players, with how many reviews and votes they come from; scores of 90 or more shine. The library can be sorted by score, and filtered to the games of 70, 80 or 90 or more, by the score of the critics or else of the players. Like the times to beat, they need the IGDB Client ID and Secret in Settings, and games looked up before are looked up once again for them
 
 ### Improvements
 

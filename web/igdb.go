@@ -91,6 +91,14 @@ func (t TimeToBeat) HasScores() bool {
 	return t.Critics() > 0 || t.Users() > 0
 }
 
+// Score is the score the library sorts and filters by: of the critics, else of the users.
+func (t TimeToBeat) Score() int {
+	if critics := t.Critics(); critics > 0 {
+		return critics
+	}
+	return t.Users()
+}
+
 // scoreLevel is the colour of a score: top (green and shining) from 90, high from 75, mid from
 // 50, low below. Red is kept for errors, never for a low score.
 func scoreLevel(score int) string {
@@ -189,6 +197,18 @@ func (s *timeToBeatStore) hasKnown() bool {
 	defer s.mutex.Unlock()
 	for _, value := range s.games {
 		if value.Known() {
+			return true
+		}
+	}
+	return false
+}
+
+// hasScores reports whether at least one game has a score.
+func (s *timeToBeatStore) hasScores() bool {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	for _, value := range s.games {
+		if value.HasScores() {
 			return true
 		}
 	}

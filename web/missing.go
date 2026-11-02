@@ -82,7 +82,7 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 			facets.TwoPlayers++
 		}
 		if (filter.Genre != "" && !hasValue(item.Genres, filter.Genre)) || !playersMatch(item.Players, filter.Players) ||
-			(filter.GameLanguage != "" && !hasValue(item.Languages, filter.GameLanguage)) {
+			(filter.GameLanguage != "" && !hasValue(item.Languages, filter.GameLanguage)) || !scoreMatches(item.Score, filter.Score) {
 			continue
 		}
 		if item.Demo {
