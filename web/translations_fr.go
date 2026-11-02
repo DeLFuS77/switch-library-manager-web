@@ -5,8 +5,12 @@ func init() {
 	translations["fr"] = map[string]string{
 		// folders to skip when scanning
 		"Folders to skip": "Dossiers à ignorer",
-		"One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted.": "Un par ligne. Un mot ignore les dossiers dont le nom le contient, sans tenir compte des majuscules : « build » ignore aussi « Dragon Quest Builders ». Avec * ou ?, le nom entier doit correspondre, comme dans *_build*. Ce qu'ils contiennent n'est ni analysé, ni organisé, ni supprimé.",
-		"Write the name of a folder, or a pattern like *_build*, not a path: %v":                                                         "Écrivez le nom d'un dossier, ou un motif comme *_build*, pas un chemin : %v",
+		"Starting with":   "Commencent par",
+		"Ending with":     "Finissent par",
+		"Containing":      "Contiennent",
+		"One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted.":                     "Un par ligne dans chaque liste, sans tenir compte des majuscules. Le contenu de ces dossiers n'est ni analysé, ni organisé, ni supprimé.",
+		"A folder with an empty file named .slmignore inside is skipped too, whatever its name.":                                         "Un dossier contenant un fichier vide nommé .slmignore est aussi ignoré, quel que soit son nom.",
+		"Write a part of the name of a folder, not a path: %v":                                                                           "Écrivez une partie du nom d'un dossier, pas un chemin : %v",
 		"Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is.": "Son dossier serait l'un des dossiers ignorés lors de l'analyse, et le jeu quitterait la bibliothèque : il reste donc où il est.",
 		// a game edited by hand
 		"Original: %v":   "Original : %v",

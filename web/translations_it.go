@@ -5,8 +5,12 @@ func init() {
 	translations["it"] = map[string]string{
 		// folders to skip when scanning
 		"Folders to skip": "Cartelle da saltare",
-		"One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted.": "Una per riga. Una parola salta le cartelle il cui nome la contiene, senza badare alle maiuscole: «build» salta anche «Dragon Quest Builders». Con * o ? deve corrispondere il nome intero, come in *_build*. Ciò che contengono non viene scansionato, organizzato né eliminato.",
-		"Write the name of a folder, or a pattern like *_build*, not a path: %v":                                                         "Scrivi il nome di una cartella, o un modello come *_build*, non un percorso: %v",
+		"Starting with":   "Iniziano con",
+		"Ending with":     "Finiscono con",
+		"Containing":      "Contengono",
+		"One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted.":                     "Uno per riga in ogni elenco, senza distinguere maiuscole e minuscole. Il contenuto di queste cartelle non viene analizzato, organizzato né eliminato.",
+		"A folder with an empty file named .slmignore inside is skipped too, whatever its name.":                                         "Viene saltata anche una cartella che contiene un file vuoto chiamato .slmignore, qualunque sia il suo nome.",
+		"Write a part of the name of a folder, not a path: %v":                                                                           "Scrivi una parte del nome di una cartella, non un percorso: %v",
 		"Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is.": "La sua cartella sarebbe una di quelle saltate durante la scansione, e il gioco uscirebbe dalla libreria, quindi resta dov'è.",
 		// a game edited by hand
 		"Original: %v":   "Originale: %v",

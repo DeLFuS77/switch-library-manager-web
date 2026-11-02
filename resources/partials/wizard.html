@@ -228,6 +228,36 @@
 								</div>
 							</div>
 							<ul class="wizard-checks list-unstyled" data-wizard-folder-results aria-live="polite"></ul>
+							<div class="mt-3" role="group" aria-labelledby="wizardSkipFoldersTitle" aria-describedby="wizardSkipFoldersHelp">
+								<div class="form-label fw-semibold mb-1" id="wizardSkipFoldersTitle">{{t "Folders to skip"}}</div>
+								<div class="row g-2">
+									<div class="col-md-4">
+										<label for="wizard_skip_starting" class="form-label small mb-1">{{t "Starting with"}}</label>
+										<textarea class="form-control font-monospace" id="wizard_skip_starting" name="skip_starting" rows="2" spellcheck="false" placeholder="{{t "e.g. %v" "_"}}">
+{{- range $s.SkipFolders "starting"}}
+{{.}}
+{{- end -}}
+										</textarea>
+									</div>
+									<div class="col-md-4">
+										<label for="wizard_skip_ending" class="form-label small mb-1">{{t "Ending with"}}</label>
+										<textarea class="form-control font-monospace" id="wizard_skip_ending" name="skip_ending" rows="2" spellcheck="false" placeholder="{{t "e.g. %v" "_old"}}">
+{{- range $s.SkipFolders "ending"}}
+{{.}}
+{{- end -}}
+										</textarea>
+									</div>
+									<div class="col-md-4">
+										<label for="wizard_skip_containing" class="form-label small mb-1">{{t "Containing"}}</label>
+										<textarea class="form-control font-monospace" id="wizard_skip_containing" name="skip_containing" rows="2" spellcheck="false" placeholder="{{t "e.g. %v" "build"}}">
+{{- range $s.SkipFolders "containing"}}
+{{.}}
+{{- end -}}
+										</textarea>
+									</div>
+								</div>
+								<div class="form-text" id="wizardSkipFoldersHelp">{{t "One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted."}} {{t "A folder with an empty file named .slmignore inside is skipped too, whatever its name."}}</div>
+							</div>
 							<div class="row g-3 mt-1 align-items-end">
 								<div class="col-md-6">
 									<div class="form-check form-switch mb-2">
@@ -668,8 +698,6 @@
 						<textarea name="ignore_update_title_ids">{{range $s.IgnoreUpdateTitleIds}}{{.}}
 {{end}}</textarea>
 						<input type="text" name="ignore_file_types" value="{{range $i, $e := $s.IgnoreFileTypes}}{{if $i}} {{end}}{{$e}}{{end}}">
-						<textarea name="exclude_folders">{{range $s.ExcludeFolders}}{{.}}
-{{end}}</textarea>
 						<input type="checkbox" name="vault_enabled" value="true"{{if $s.Vault.Enabled}} checked{{end}}>
 						<input type="text" name="vault_user" value="{{$s.Vault.User}}">
 						<input type="password" name="vault_password" value="" autocomplete="off">
