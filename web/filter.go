@@ -431,7 +431,25 @@ func sortItems(filter *TitleItemFilter, items []TitleItem) error {
 	case "region":
 		data = TitleItemByRegion(items)
 	case "release_date":
-		data = TitleItemByReleaseDate(items)
+		// the games without a date (unknown to the titles database) go last in both orders, not
+		// first of the oldest
+		known := items[:0:0]
+		unknown := []TitleItem{}
+		for _, item := range items {
+			if !item.ReleaseDate.IsZero() {
+				known = append(known, item)
+			} else {
+				unknown = append(unknown, item)
+			}
+		}
+		var sorter sort.Interface = TitleItemByReleaseDate(known)
+		if filter.SortOrder == "desc" {
+			sorter = sort.Reverse(sorter)
+		}
+		sort.Stable(sorter)
+		sort.Sort(TitleItemByName(unknown))
+		copy(items, append(known, unknown...))
+		return nil
 	case "type":
 		data = TitleItemByType(items)
 	case "size":

@@ -1052,6 +1052,28 @@ func (ldb *LocalSwitchDBManager) needsAttributes(metadata map[string]*switchfs.C
 	return false
 }
 
+// needsNacp tells cached data of a game or an update read without its NACP (its names and its
+// version) with keys of an older generation than the ones loaded, or cached before that was
+// noted: the keys may have lacked its generation, so it is read again, once per generation.
+func needsNacp(metadata map[string]*switchfs.ContentMetaAttributes, generation int) bool {
+	for _, meta := range metadata {
+		if meta != nil && meta.Ncap == nil && (meta.Type == "BASE" || meta.Type == "UPD") && meta.NacpTriedKeys < generation+1 {
+			return true
+		}
+	}
+	return false
+}
+
+// noteNacpTried notes in the data of a file just read the generation of the keys its games and
+// updates without a NACP were read with.
+func noteNacpTried(metadata map[string]*switchfs.ContentMetaAttributes, generation int) {
+	for _, meta := range metadata {
+		if meta != nil && meta.Ncap == nil && (meta.Type == "BASE" || meta.Type == "UPD") {
+			meta.NacpTriedKeys = generation + 1
+		}
+	}
+}
+
 // hasName tells whether a game gives itself a name in any language.
 func hasName(nacp *switchfs.Nacp) bool {
 	for _, title := range nacp.TitleName {
@@ -1071,11 +1093,12 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 	fileKey := filePath + "|" + file.FileName + "|" + strconv.Itoa(int(file.Size))
 
 	if keys != nil && keys.GetKey("header_key") != "" {
+		_, _, generation := settings.KeysSummary()
 		var metadata map[string]*switchfs.ContentMetaAttributes
 		if err := ldb.db.GetEntry(DB_TABLE_FILE_SCAN_METADATA, fileKey, &metadata); err != nil {
 			zap.S().Warnf("%v", err)
 		}
-		if metadata != nil && !ldb.needsAttributes(metadata) {
+		if metadata != nil && !ldb.needsAttributes(metadata) && !needsNacp(metadata, generation) {
 			result.metadata = metadata
 			return result
 		}
@@ -1105,6 +1128,7 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 			zap.S().Warnf("[file:%v] failed to read %v [reason: %v]", file.FileName, kind, err)
 		}
 		if metadata != nil {
+			noteNacpTried(metadata, generation)
 			result.metadata = metadata
 			result.cacheKey = fileKey
 			return result

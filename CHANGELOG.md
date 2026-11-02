@@ -6,6 +6,11 @@
 
 - Folders can be skipped when scanning, by name or by pattern (`_build`, `.git`, `*_backup*`), in Settings › Library › Folders to skip: what is inside them is not scanned, organized or deleted, and Organize never moves a game into one (thanks @aleszczynskig, #142)
 
+### Fixes
+
+- A game or an update read without the names and the version inside it, for example while prod.keys lacked the keys of its firmware, kept the name of its file for good: it is read again once, and again when keys of a newer firmware arrive, so the next scan gives it its own name
+- Sorted by release date, the games without a date (unknown to the titles database) go last in both orders, instead of first from the oldest
+
 ## 1.69.0
 
 ### Improvements
