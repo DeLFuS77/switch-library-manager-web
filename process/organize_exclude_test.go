@@ -1,6 +1,7 @@
 package process
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 )
@@ -56,7 +57,24 @@ func TestExcludedFoldersStartBelowTheLibrary(t *testing.T) {
 	if excluded(filepath.Join(filepath.Dir(library), "Elsewhere", "Updates")) {
 		t.Fatal("outside the library nothing is scanned")
 	}
-	if excludedFolders([]string{library}, nil) != nil {
-		t.Fatal("without patterns")
+	if excludedFolders([]string{library}, nil)(filepath.Join(library, "Game", "Updates")) {
+		t.Fatal("without patterns nor the file nothing is left out")
+	}
+}
+
+// A folder with the file .slmignore in it is left out, with the folders inside it, whatever
+// their names; the library folder is not, even with the file.
+func TestFoldersWithTheMarkerAreLeftOut(t *testing.T) {
+	library := t.TempDir()
+	tests := filepath.Join(library, "Tests")
+	os.MkdirAll(filepath.Join(tests, "Game"), 0o755)
+	os.WriteFile(filepath.Join(tests, ".slmignore"), nil, 0o644)
+	os.WriteFile(filepath.Join(library, ".slmignore"), nil, 0o644)
+	excluded := excludedFolders([]string{library}, nil)
+	if !excluded(tests) || !excluded(filepath.Join(tests, "Game")) {
+		t.Fatal("the folder with the file, and the ones inside it")
+	}
+	if excluded(library) || excluded(filepath.Join(library, "Zelda")) {
+		t.Fatal("the library folder is read even with the file")
 	}
 }

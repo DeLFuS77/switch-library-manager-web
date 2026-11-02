@@ -9,6 +9,7 @@ func init() {
 		"Ending with":     "Terminam com",
 		"Containing":      "Contêm",
 		"One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted.":                     "Um por linha em cada lista, sem diferenciar maiúsculas. O conteúdo destas pastas não é analisado, organizado nem apagado.",
+		"A folder with an empty file named .slmignore inside is skipped too, whatever its name.":                                         "Também é ignorada uma pasta que tenha dentro um arquivo vazio chamado .slmignore, seja qual for o nome dela.",
 		"Write a part of the name of a folder, not a path: %v":                                                                           "Escreva uma parte do nome de uma pasta, não um caminho: %v",
 		"Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is.": "A pasta dele seria uma das ignoradas ao escanear, e o jogo sairia da biblioteca, então ele fica onde está.",
 		// a game edited by hand

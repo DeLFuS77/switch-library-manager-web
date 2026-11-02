@@ -9,6 +9,7 @@ func init() {
 		"Ending with":     "结尾为",
 		"Containing":      "包含",
 		"One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted.":                     "每个列表一行一个，不区分大小写。这些文件夹里的内容不会被扫描、整理或删除。",
+		"A folder with an empty file named .slmignore inside is skipped too, whatever its name.":                                         "里面有名为 .slmignore 的空文件的文件夹也会被跳过，不论它叫什么名字。",
 		"Write a part of the name of a folder, not a path: %v":                                                                           "请填写文件夹名称的一部分，而不是路径：%v",
 		"Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is.": "它的文件夹会是扫描时跳过的文件夹之一，游戏会因此离开游戏库，所以保留在原处。",
 		// a game edited by hand

@@ -9,6 +9,7 @@ func init() {
 		"Ending with":     "Enden mit",
 		"Containing":      "Enthalten",
 		"One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted.":                     "Einer pro Zeile in jeder Liste, Groß- und Kleinschreibung egal. Was in diesen Ordnern liegt, wird nicht gescannt, sortiert oder gelöscht.",
+		"A folder with an empty file named .slmignore inside is skipped too, whatever its name.":                                         "Ein Ordner mit einer leeren Datei namens .slmignore darin wird ebenfalls übersprungen, egal wie er heißt.",
 		"Write a part of the name of a folder, not a path: %v":                                                                           "Schreibe einen Teil des Namens eines Ordners, keinen Pfad: %v",
 		"Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is.": "Sein Ordner wäre einer der beim Scannen übersprungenen Ordner, und das Spiel würde die Bibliothek verlassen, daher bleibt die Datei, wo sie ist.",
 		// a game edited by hand

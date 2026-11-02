@@ -9,6 +9,7 @@ func init() {
 		"Ending with":     "末尾が一致",
 		"Containing":      "名前に含む",
 		"One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted.":                     "各リストに1行に1つずつ。大文字と小文字は区別しません。これらのフォルダーの中身はスキャン、整理、削除されません。",
+		"A folder with an empty file named .slmignore inside is skipped too, whatever its name.":                                         ".slmignore という名前の空のファイルが入っているフォルダーも、名前に関係なくスキップされます。",
 		"Write a part of the name of a folder, not a path: %v":                                                                           "パスではなく、フォルダー名の一部を入力してください: %v",
 		"Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is.": "移動先がスキャンでスキップされるフォルダーになり、ゲームがライブラリから外れてしまうため、そのままにしています。",
 		// a game edited by hand

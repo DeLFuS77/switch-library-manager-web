@@ -65,7 +65,7 @@
 										</textarea>
 									</div>
 								</div>
-								<div class="form-text" id="skipFoldersHelp">{{t "One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted."}}</div>
+								<div class="form-text" id="skipFoldersHelp">{{t "One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted."}} {{t "A folder with an empty file named .slmignore inside is skipped too, whatever its name."}}</div>
 							</div>
 							<div class="form-check form-switch mt-3">
 								<input class="form-check-input" type="checkbox" role="switch" id="watch_folders" name="watch_folders" value="true" aria-describedby="watchFoldersHelp"{{if .Settings.WatchFolders}} checked{{end}}>

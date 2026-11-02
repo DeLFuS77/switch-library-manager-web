@@ -366,11 +366,9 @@ func distinctFolders(folders []string, recursive bool, exclude []string) []strin
 }
 
 // excludedBelow tells a folder inside outer that the walk of outer does not reach: it, or a
-// folder on the way down to it, is left out by its name (see settings.ExcludedFolder).
+// folder on the way down to it, is left out by its name (see settings.ExcludedFolder) or by the
+// file settings.SKIP_MARKER in it.
 func excludedBelow(inner, outer string, exclude []string) bool {
-	if len(exclude) == 0 {
-		return false
-	}
 	outerInfo, _ := os.Stat(outer)
 	for dir := filepath.Clean(inner); filepath.Dir(dir) != dir; dir = filepath.Dir(dir) {
 		if SameFolderName(dir, outer) {
@@ -379,7 +377,7 @@ func excludedBelow(inner, outer string, exclude []string) bool {
 		if info, err := os.Stat(dir); err == nil && outerInfo != nil && os.SameFile(info, outerInfo) {
 			return false
 		}
-		if settings.ExcludedFolder(exclude, filepath.Base(dir)) {
+		if settings.ExcludedFolder(exclude, filepath.Base(dir)) || settings.MarkedToSkip(dir) {
 			return true
 		}
 	}
@@ -523,8 +521,9 @@ func isLink(path string) bool {
 // scanFolder adds the files of a folder; estimate is how many files the folders are thought
 // to hold, for the progress, or 0 when unknown. The folder itself, or a link to one, must be
 // read, or nothing is known of its games; the folders below that cannot be read are added to
-// unreadable, when it is given. The folders below whose names are in exclude are left out with
-// everything in them (see settings.ExcludedFolder), the folder itself never.
+// unreadable, when it is given. The folders below whose names are in exclude, or with the file
+// settings.SKIP_MARKER in them, are left out with everything in them (see
+// settings.ExcludedFolder), the folder itself never.
 func scanFolder(folder string, recursive bool, exclude []string, files *[]ExtendedFileInfo, leftovers *[]LeftoverFile, emptyFolders *[]string, unreadable *[]string, progress ProgressUpdater, estimate int) error {
 	rootInfo, err := os.Stat(folder)
 	if err != nil {
@@ -533,6 +532,15 @@ func scanFolder(folder string, recursive bool, exclude []string, files *[]Extend
 	// the folders below, and whether something else than files of the system is in them
 	held := map[string]bool{}
 	folders := []string{}
+	// the folders with the file that leaves them out, and what this walk had found before
+	marked := []string{}
+	foundBefore, leftoversBefore, unreadableBefore := len(*files), 0, 0
+	if leftovers != nil {
+		leftoversBefore = len(*leftovers)
+	}
+	if unreadable != nil {
+		unreadableBefore = len(*unreadable)
+	}
 	// the folders walked through links, as they are on the disk
 	walked := []os.FileInfo{rootInfo}
 	// walkedAlready tells a link to a folder walked already, or to a folder above it: walked
@@ -607,6 +615,15 @@ func scanFolder(folder string, recursive bool, exclude []string, files *[]Extend
 				}
 			}
 
+			// the file that leaves a folder out: the rest of the folder is not read, and what was
+			// found in it before the file is dropped once the walk ends; the folder chosen is
+			// always read
+			if !entry.IsDir() && settings.IsSkipMarker(entry.Name()) && filepath.Dir(path) != filepath.Clean(folder) {
+				dir := filepath.Dir(path)
+				marked = append(marked, dir)
+				held[filepath.Dir(dir)] = true
+				return filepath.SkipDir
+			}
 			if !SystemFile(entry) {
 				held[filepath.Dir(path)] = true
 			}
@@ -662,9 +679,47 @@ func scanFolder(folder string, recursive bool, exclude []string, files *[]Extend
 		})
 	}
 	err = walk(folder)
+	// what is inside the folders left out by the file: the folders that sort before the file
+	// (#, ( or -) were read before it was found
+	inMarked := func(path string) bool {
+		path = strings.TrimSuffix(path, string(os.PathSeparator))
+		for _, dir := range marked {
+			if path == dir || strings.HasPrefix(path, dir+string(os.PathSeparator)) {
+				return true
+			}
+		}
+		return false
+	}
+	if len(marked) > 0 {
+		kept := (*files)[:foundBefore]
+		for _, file := range (*files)[foundBefore:] {
+			if !inMarked(file.BaseFolder) {
+				kept = append(kept, file)
+			}
+		}
+		*files = kept
+		if leftovers != nil {
+			keptLeftovers := (*leftovers)[:leftoversBefore]
+			for _, leftover := range (*leftovers)[leftoversBefore:] {
+				if !inMarked(filepath.Dir(leftover.Path)) {
+					keptLeftovers = append(keptLeftovers, leftover)
+				}
+			}
+			*leftovers = keptLeftovers
+		}
+		if unreadable != nil {
+			keptUnreadable := (*unreadable)[:unreadableBefore]
+			for _, path := range (*unreadable)[unreadableBefore:] {
+				if !inMarked(path) {
+					keptUnreadable = append(keptUnreadable, path)
+				}
+			}
+			*unreadable = keptUnreadable
+		}
+	}
 	if emptyFolders != nil && recursive {
 		for _, path := range folders {
-			if !held[path] {
+			if !held[path] && !inMarked(path) {
 				*emptyFolders = append(*emptyFolders, path)
 			}
 		}

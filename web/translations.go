@@ -10,6 +10,7 @@ var translations = map[string]map[string]string{
 		"Ending with":     "Acaban en",
 		"Containing":      "Contienen",
 		"One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted.":                     "Uno por línea en cada lista, sin mirar mayúsculas. Lo que hay dentro de estas carpetas no se analiza, no se organiza y no se borra.",
+		"A folder with an empty file named .slmignore inside is skipped too, whatever its name.":                                         "También se salta una carpeta que tenga dentro un archivo vacío llamado .slmignore, se llame como se llame.",
 		"Write a part of the name of a folder, not a path: %v":                                                                           "Escribe una parte del nombre de una carpeta, no una ruta: %v",
 		"Its folder would be one of the folders to skip when scanning, and the game would leave the library, so it is left where it is.": "Su carpeta sería una de las que se saltan al analizar, y el juego saldría de la biblioteca, así que se queda donde está.",
 		// a game edited by hand

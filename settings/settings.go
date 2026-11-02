@@ -565,6 +565,21 @@ func (s AppSettings) SkipFolders(kind string) []string {
 	return texts
 }
 
+// SKIP_MARKER is a file that, put in a folder below the library folders, leaves the folder out
+// of the scan with everything in it, whatever its name.
+const SKIP_MARKER = ".slmignore"
+
+// IsSkipMarker tells the name of SKIP_MARKER, in any case.
+func IsSkipMarker(name string) bool {
+	return strings.EqualFold(name, SKIP_MARKER)
+}
+
+// MarkedToSkip tells a folder with SKIP_MARKER in it.
+func MarkedToSkip(dir string) bool {
+	info, err := os.Stat(filepath.Join(dir, SKIP_MARKER))
+	return err == nil && !info.IsDir()
+}
+
 // FolderPattern is a line of ExcludeFolders as it is kept: without the spaces and the
 // separators around it, which a folder name never has ("cache/").
 func FolderPattern(line string) string {
