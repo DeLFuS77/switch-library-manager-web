@@ -170,6 +170,41 @@
 	}
 }
 
+// the cover of the window that edits a game by hand
+.title-edit-cover {
+	display: block;
+	width: 100%;
+	aspect-ratio: 1;
+	object-fit: cover;
+	border-radius: $border-radius-lg;
+	background: var(--bs-secondary-bg);
+	box-shadow: 0 10px 24px -14px rgba(0, 0, 0, .6);
+
+	// on a phone the name is not pushed away by a cover as wide as the window
+	@include media-breakpoint-down(sm) {
+		max-width: 10rem;
+		margin-inline: auto;
+	}
+}
+
+// the button is the field of the file: the field covers it, unseen, and lends it its focus
+.title-edit-file {
+	position: relative;
+	overflow: hidden;
+
+	input {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		cursor: pointer;
+	}
+
+	&:has(input:focus-visible) {
+		outline: 2px solid var(--slm-focus);
+		outline-offset: 2px;
+	}
+}
+
 // the facts span the whole width of the header, each box as wide as it needs
 .fact-grid {
 	display: grid;

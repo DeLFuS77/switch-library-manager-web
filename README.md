@@ -143,10 +143,10 @@ Linux, Docker, NAS and Raspberry Pi.
 - Low memory use and fast with tens of thousands of files: the library shows up while it is scanned, covers and
   thumbnails load in the background
 - Background hours: keep cover downloads, thumbnails, file checks and compression for the night
-- Live tasks page, scheduled synchronization and notifications (Discord, Telegram, webhook) of new updates, DLC
-  and games
+- Live tasks page, scheduled synchronization and notifications (Discord, Telegram, ntfy, Gotify, Pushover, email
+  or a webhook) of new updates, DLC and games
 - Weekly backups of your configuration, and a Diagnostics page that checks everything at a glance
-- JSON API with OpenAPI description, e.g. for Home Assistant
+- JSON API with OpenAPI description, e.g. for Home Assistant, with API keys per user instead of passwords
 - Installable on your phone's home screen like an app
 - Accessible: the contrast of WCAG AA in both themes, full use with the keyboard and texts of 12px at least, checked
   on every change
@@ -154,8 +154,12 @@ Linux, Docker, NAS and Raspberry Pi.
 **Safe to reach from the internet**
 - User accounts with administrator and read-only roles, a language per user and an activity log
 - Protection against brute force and bots that try lists of users and passwords, also behind Cloudflare
-- No access from outside your network until an administrator exists; HTTPS-ready, with the usual browser
-  protections
+- No access from outside your network until an administrator exists, and the first one needs a one-time code from
+  the log; HTTPS-ready, with the usual browser protections
+- Sign in through Authelia, Authentik or Cloudflare Access: the people your portal lets in open the app without its
+  password ([how](docs/install/nas.md#signing-in-through-authelia-authentik-or-cloudflare-access))
+- Sign in with PocketID, Authentik or Keycloak: a button on the login page signs people in with OpenID Connect
+  ([how](docs/install/nas.md#signing-in-with-openid-connect-pocketid-authentik-keycloak))
 
 **In your language**
 - English, Spanish, French, German, Italian, Portuguese, Dutch, Russian, Japanese, Korean and Chinese (including
@@ -184,11 +188,16 @@ docker run -d \
 
 Then open http://localhost:3000 (or the address of your server).
 
+To create the first administrator, in **Users** or in the setup wizard, the app asks for the setup code it writes in
+its log when it starts without users: run `docker logs switch-library-manager-web` and look for `SETUP CODE`. It works
+once and changes every time the app starts.
+
 | Setting | Meaning |
 |---|---|
-| `-p 3000:3000` | The port of the web interface |
+| `-p 3000:3000` | The port of the web interface. For another one, change the first number: `-p 8080:3000` |
 | `/usr/local/share/switch-library-manager-web` | Data folder: settings, caches, covers and **your keys** |
 | `/mnt/roms` | Your games; writable, to organize and compress files |
+| `/mnt/roms2` | Optional: games in a second folder, such as another disk (`-v /path/to/more/games:/mnt/roms2`). Add `/mnt/roms2` to **Folders to scan** in **Settings › Library** |
 | `PUID`, `PGID` | The user and group that own your games (`id` on the host). The app never runs as root |
 | `TZ` | Your time zone, for dates and scheduled synchronizations |
 
@@ -205,8 +214,10 @@ To update, pull the new image and recreate the container: `docker compose pull &
 Step by step for each one in [Installing on a NAS](docs/install/nas.md) and in the [wiki](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Installation).
 
 On **Unraid**, set **Switch library** to the share with your games (for example `/mnt/user/switch`) and copy
-your keys to `/mnt/user/appdata/switch-library-manager-web/`. Do not install the image from the Docker Hub search: the
-port and folders would be empty.
+your keys to `/mnt/user/appdata/switch-library-manager-web/`. Games in another share or disk go in **Second Switch
+library**: then add `/mnt/roms2` to **Folders to scan** in **Settings › Library**. Do not install the image from the
+Docker Hub search: the port and folders would be empty. The setup code of the first administrator is in the log of the
+container: in the **Docker** tab, click the icon of the app and choose **Logs**.
 
 ### Windows, macOS and Linux
 
@@ -217,6 +228,7 @@ asks before opening them: see [the steps for each system](https://github.com/DeL
 
 The program keeps its settings and data next to itself, or in the folder set in `SLM_DATA_DIR`. To update, unpack the
 new version over the folder of the one you have (`switch-library-manager-web`): the program is replaced and the data stays.
+The setup code of the first administrator is in the window of the program, where it says `SETUP CODE`.
 
 ## Your keys
 
@@ -276,7 +288,8 @@ help too.
 - Based on [giwty's switch-library-manager](https://github.com/giwty/switch-library-manager) and
   [dtrunk90's switch-library-manager-web](https://github.com/dtrunk90/switch-library-manager-web)
 - Parsing, organizing and title data fixes from [trembon's switch-library-manager](https://github.com/trembon/switch-library-manager)
-- Title data from [blawar's titledb](https://github.com/blawar/titledb)
+- Title data from [blawar's titledb](https://github.com/blawar/titledb), and versions of updates also from
+  [borntohonk's titledb](https://github.com/borntohonk/titledb) and [16BitWonder's nx-versions](https://github.com/16BitWonder/nx-versions)
 - Cheats from [HamletDuFromage's switch-cheats-db](https://github.com/HamletDuFromage/switch-cheats-db), mirrored from GBAtemp and
   the authors of each cheat
 - NSZ format of [nsz](https://github.com/nicoboss/nsz) and the [Inter](https://github.com/rsms/inter) font

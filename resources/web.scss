@@ -243,6 +243,22 @@ h3,
 	}
 }
 
+// The screens where the bar at the bottom is the navigation, instead of the menu at the top:
+// phones, and touch screens narrower than the full header of 1400px (tablets, upright or on their
+// side). A computer with a mouse keeps the menu at the top, whatever the width of its window.
+@mixin bottom-nav-screens {
+	@media (max-width: 767.98px), (max-width: 1399.98px) and (pointer: coarse) {
+		@content;
+	}
+}
+
+// the tablets among them: the bar has room for more sections
+@mixin bottom-nav-wide-screens {
+	@media (min-width: 768px) and (max-width: 1399.98px) and (pointer: coarse) {
+		@content;
+	}
+}
+
 // the styles of the app, by subject, in the order they apply (later rules win over earlier ones)
 @import "scss/header";
 @import "scss/page";

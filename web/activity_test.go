@@ -16,7 +16,7 @@ func TestActivityAndLanguagePerUser(t *testing.T) {
 	c := &client{t: t, handler: web.auth.middleware(web.withActivityLog(web.router))}
 
 	// the first user enables the login and is logged in
-	if response := c.do(http.MethodPost, "/users/create", url.Values{"name": {"ana"}, "password": {"alpha-secret-11"}}); response.Code != http.StatusSeeOther {
+	if response := c.do(http.MethodPost, "/users/create", url.Values{"name": {"ana"}, "password": {"alpha-secret-11"}, "setup_code": {web.auth.setup.code}}); response.Code != http.StatusSeeOther {
 		t.Fatalf("create: %d", response.Code)
 	}
 	c.do(http.MethodPost, "/users/create", url.Values{"name": {"luis"}, "password": {"bravo-secret-22"}, "role": {ROLE_VIEWER}})

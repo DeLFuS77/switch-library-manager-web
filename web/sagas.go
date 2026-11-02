@@ -98,7 +98,7 @@ func (web *Web) sagaMembers(family string, lang string) []TitleItem {
 			Id:           strings.ToUpper(title.Attributes.Id),
 			Name:         titleName(switchDB, lang, title.Attributes.Id, title.Attributes.Name),
 			OriginalName: title.Attributes.Name,
-			ImageUrl:     coverUrl(localDB, title.Attributes),
+			ImageUrl:     coverUrl(switchDB, localDB, title.Attributes),
 			Region:       title.Attributes.Region,
 			Missing:      true,
 			Wished:       wished[strings.ToUpper(title.Attributes.Id)],

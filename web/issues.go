@@ -35,6 +35,19 @@ type Issue struct {
 	CutShort bool
 }
 
+// Verdict is what a check of the file ended in, for the chip of its row: failed (its data does
+// not match its hashes) or modified (an NCA not signed by Nintendo, nothing damaged); empty for
+// the issues of the scan.
+func (issue Issue) Verdict() string {
+	switch issue.kind() {
+	case ISSUE_DAMAGED:
+		return VERIFY_FAILED
+	case ISSUE_UNSIGNED:
+		return VERIFY_MODIFIED
+	}
+	return ""
+}
+
 type IssuesPageData struct {
 	GlobalPageData
 	// the shown page of the issues that match the search
@@ -444,15 +457,17 @@ func (web *Web) buildIssues() []Issue {
 	}
 
 	// files a verification found damaged, while they did not change
-	for path, reason := range web.verifications().damaged() {
+	damaged := web.verifications().damaged()
+	for path, reason := range damaged {
 		if scanned[filepath.Clean(path)] {
 			issues = append(issues, Issue{File: path, Reason: reason})
 		}
 	}
 
-	// files with NCA files not signed by Nintendo, while they did not change
+	// files with NCA files not signed by Nintendo, while they did not change: modified, unless
+	// they are damaged, which they are listed as
 	for path, names := range web.verifications().unsigned() {
-		if scanned[filepath.Clean(path)] {
+		if _, failed := damaged[path]; !failed && scanned[filepath.Clean(path)] {
 			issues = append(issues, Issue{File: path, Reason: "not signed by Nintendo: " + strings.Join(names, ", ")})
 		}
 	}
@@ -485,7 +500,7 @@ func issueIcon(reason string) string {
 	case strings.HasPrefix(reason, "damaged file"):
 		return "bi-heartbreak text-danger"
 	case strings.HasPrefix(reason, "not signed by Nintendo"):
-		return "bi-patch-question text-warning"
+		return "bi-patch-exclamation text-warning"
 	default:
 		return "bi-exclamation-octagon text-danger"
 	}

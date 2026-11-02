@@ -29,6 +29,7 @@
 							{{- if $t.UpdateMissing}}{{if not $t.UpdatesIgnored}}<span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Update available"}}</span>{{end}}{{end}}
 							{{- if $t.FirmwareTooNew}}<span class="chip chip-danger"><span class="bi bi-cpu" aria-hidden="true"></span>{{t "Your console needs firmware %v or newer for this game" $t.RequiredFirmware}}</span>{{end}}
 							{{- if gt $t.MissingDlc 0}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC missing" $t.MissingDlc}}</span>{{else if and (not $t.Owned) $t.Dlc}}<span class="chip chip-muted"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC" (len $t.Dlc)}}</span>{{end}}
+							{{- if $t.Edited}}<span class="chip chip-muted" title="{{t "Original: %v" $t.OriginalName}}"><span class="bi bi-pencil" aria-hidden="true"></span>{{t "Edited by hand"}}<span class="visually-hidden"> ({{t "Original: %v" $t.OriginalName}})</span></span>{{end}}
 						</div>
 						<h1 class="title-name">{{$t.Name}}</h1>
 						{{- with .Collections}}
@@ -83,6 +84,7 @@
 									</div>
 								</form>
 							</div>
+							<button type="button" class="btn btn-glass rounded-pill admin-only" data-bs-toggle="modal" data-bs-target="#titleEdit"><span class="bi bi-pencil me-2" aria-hidden="true"></span>{{t "Edit"}}</button>
 						</div>
 					</div>
 				</div>
@@ -404,6 +406,56 @@
 				</div>
 			</section>
 			{{- end}}{{end}}
+			{{- template "titleEdit" $t}}
+{{- end}}
+{{define "titleEdit"}}
+			<div class="modal fade admin-only" id="titleEdit" tabindex="-1" aria-labelledby="titleEditTitle" aria-hidden="true">
+				<div class="modal-dialog modal-lg modal-dialog-centered">
+					<form class="modal-content" data-title-edit="{{.Id}}" data-original-cover="{{if .OriginalImageUrl}}{{fullImage .OriginalImageUrl}}{{else}}/resources/static/noimage.png{{end}}" novalidate>
+						<div class="modal-header">
+							<h2 class="modal-title fs-5" id="titleEditTitle"><span class="bi bi-pencil me-2" aria-hidden="true"></span>{{t "Edit the game"}}</h2>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+						</div>
+						<div class="modal-body">
+							<p class="small text-body-secondary">{{t "Only how the app shows it changes: the file and the title ID of the game are not touched. Organize uses this name when you run it."}}</p>
+							<div class="alert alert-danger" role="alert" data-title-edit-error hidden><div class="d-flex gap-2"><span class="bi bi-exclamation-octagon-fill flex-shrink-0 mt-1" aria-hidden="true"></span><div><strong>{{t "Error!"}}</strong> <span data-title-edit-message></span></div></div></div>
+							<div class="row g-3">
+								<div class="col-sm-4">
+									<img src="{{if .ImageUrl}}{{fullImage .ImageUrl}}{{else}}/resources/static/noimage.png{{end}}" class="title-edit-cover" alt="{{t "Cover"}}" data-title-edit-preview>
+									<div class="d-grid gap-2 mt-2">
+										<label class="btn btn-sm btn-outline-secondary rounded-pill title-edit-file"><span class="bi bi-upload me-1" aria-hidden="true"></span>{{t "Upload an image"}}<input type="file" name="cover" accept="image/jpeg,image/png,image/gif" data-title-edit-file></label>
+										<input type="url" class="form-control form-control-sm" name="coverUrl" maxlength="2000" placeholder="{{t "or paste an address (https://…)"}}" aria-label="{{t "Address of the cover"}}" data-title-edit-url>
+										{{- if .Edit.Cover}}
+										<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-title-edit-original-cover><span class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></span>{{t "Use the cover of the game"}}</button>
+										{{- end}}
+									</div>
+									<input type="hidden" name="removeCover" value="false" data-title-edit-remove-cover>
+									<div class="form-text">{{t "JPEG, PNG or GIF, up to 5 MB. It is kept in the app."}}</div>
+								</div>
+								<div class="col-sm-8">
+									<label class="form-label fw-semibold" for="titleEditName">{{t "Name"}}</label>
+									<input type="text" class="form-control" id="titleEditName" name="name" maxlength="200" value="{{.Edit.Name}}" placeholder="{{.OriginalName}}">
+									<div class="form-text">{{t "Empty: the original one, “%v”." .OriginalName}}</div>
+									<label class="form-label fw-semibold mt-3" for="titleEditDescription">{{t "Description"}} <span class="fw-normal text-body-secondary">{{t "(if you like)"}}</span></label>
+									<textarea class="form-control" id="titleEditDescription" name="description" rows="6" maxlength="10000" placeholder="{{.DescriptionHint}}">{{.Edit.Description}}</textarea>
+									<div class="form-text">{{t "Empty: the original one, in your language when there is one."}}</div>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer justify-content-between">
+							{{- if .Edited}}
+							<button type="button" class="btn btn-outline-secondary rounded-pill" data-title-edit-reset data-confirm-text="{{t "Back to the original name, cover and description of this game? What you wrote is lost."}}"><span class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></span>{{t "Back to the original"}}</button>
+							{{- else}}
+							<span></span>
+							{{- end}}
+							<div class="d-flex gap-2">
+								<button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">{{t "Cancel"}}</button>
+								<button type="submit" class="btn btn-primary rounded-pill"><span class="bi bi-check-lg me-1" aria-hidden="true"></span>{{t "Save"}}</button>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
 {{- end}}
 {{define "titleFile"}}
 					<li class="item-row">

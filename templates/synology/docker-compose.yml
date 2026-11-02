@@ -22,3 +22,5 @@ services:
       - /volume1/docker/switch-library-manager-web/data:/usr/local/share/switch-library-manager-web
       # your games
       - /volume1/Switch:/mnt/roms
+      # optional: games in a second folder; then add /mnt/roms2 to Folders to scan in Settings › Library
+      # - /volume2/Switch:/mnt/roms2

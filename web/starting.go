@@ -51,8 +51,8 @@ func currentStartingStep(lang string) string {
 func startingLanguage(r *http.Request) string {
 	for _, part := range strings.Split(r.Header.Get("Accept-Language"), ",") {
 		lang := strings.ToLower(strings.TrimSpace(strings.SplitN(strings.SplitN(part, ";", 2)[0], "-", 2)[0]))
-		if isSupportedLanguage(lang) {
-			return lang
+		if supported := supportedLanguage(lang); supported != "" {
+			return supported
 		}
 	}
 	return DEFAULT_LANGUAGE

@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"sort"
@@ -161,12 +162,17 @@ func (web *Web) queueAutomation(events []HistoryEvent) {
 	}
 }
 
-// automationPending is the number of files waiting for the automations.
+// automationPending is the number of files waiting for the automations, the ones they are
+// working on included.
 func (web *Web) automationPending() int {
 	queue := web.automation()
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
-	return len(queue.Paths)
+	pending := len(queue.Paths)
+	if queue.Running != nil {
+		pending += len(queue.Running.Paths)
+	}
+	return pending
 }
 
 // resumeAutomation goes on with the files left in the queue when the app stopped.
@@ -196,6 +202,16 @@ func (web *Web) startAutomation() {
 	queue.running = true
 	queue.mutex.Unlock()
 	go func() {
+		// a panic: the files go back to the queue (runAutomationOnce), and the next files that
+		// appear, or the next start of the app, start it again
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				web.crashed("Automation", recovered)
+				queue.mutex.Lock()
+				queue.running, queue.again = false, false
+				queue.mutex.Unlock()
+			}
+		}()
 		for {
 			for web.runAutomationOnce() {
 			}
@@ -211,10 +227,11 @@ func (web *Web) startAutomation() {
 	}()
 }
 
-// automationIdle reports whether a step can start: no scan and no file task running, and
-// within the background hours when asked.
+// automationIdle reports whether a step can start: no scan running and nothing holding the files
+// (a task on files, Organize, a cleanup, a measure of the server, an upload), the app not
+// stopping, and within the background hours when asked.
 func (web *Web) automationIdle(options settings.AutomationOptions) bool {
-	return !web.state.IsSynchronizing() && !web.compressionRunning() && (!options.BackgroundHoursOnly || web.backgroundAllowed())
+	return !web.state.IsSynchronizing() && !web.filesBusy() && !web.stopping.Load() && (!options.BackgroundHoursOnly || web.backgroundAllowed())
 }
 
 // waitForAutomation waits until a step can start. It gives up when the automation is turned off.
@@ -258,6 +275,7 @@ type AutomationResult struct {
 	Updates    int
 	Checked    int
 	Damaged    int
+	Modified   int // an NCA not signed by Nintendo and nothing damaged: no failure
 	Compressed int
 	Saved      int64
 	Removed    int
@@ -267,7 +285,10 @@ type AutomationResult struct {
 }
 
 // runAutomationOnce takes the files of the queue through the steps. It returns whether files
-// were waiting, so the caller runs it again for the ones that appeared meanwhile.
+// were waiting, so the caller runs it again for the ones that appeared meanwhile. A step that
+// cannot start (something took the files or the scan between the wait and the start) puts the
+// files back in the queue, to go through the steps again once they are free: they never leave
+// it with a step skipped.
 func (web *Web) runAutomationOnce() bool {
 	options, ok := web.waitForAutomation()
 	if !ok {
@@ -308,10 +329,12 @@ func (web *Web) runAutomationOnce() bool {
 	// 1. check the new files
 	damaged := map[string]bool{}
 	if options.Verify && len(existing) > 0 {
-		if web.startVerificationOf(existing, verifyRecheckChanged, TRIGGER_AUTOMATION) {
-			web.waitForFileTask()
+		if !web.startVerificationOf(existing, verifyRecheckChanged, TRIGGER_AUTOMATION) {
+			return true
 		}
+		web.waitForFileTask()
 		store := web.verifications()
+		unsigned := store.unsigned()
 		for _, path := range existing {
 			if info, err := os.Stat(path); err == nil {
 				if record, ok := store.current(path, info); ok {
@@ -319,6 +342,8 @@ func (web *Web) runAutomationOnce() bool {
 					if !record.OK {
 						result.Damaged++
 						damaged[path] = true
+					} else if len(unsigned[path]) > 0 {
+						result.Modified++
 					}
 				}
 			}
@@ -343,11 +368,12 @@ func (web *Web) runAutomationOnce() bool {
 					return false
 				}
 				before := web.latestTaskId(TASK_COMPRESS)
-				if web.compressPaths(toCompress, TRIGGER_AUTOMATION) {
-					web.waitForFileTask()
-					if task, ok := web.latestTask(TASK_COMPRESS); ok && task.Id != before {
-						result.Compressed, result.Saved = task.Files, task.Saved
-					}
+				if !web.compressPaths(toCompress, TRIGGER_AUTOMATION) {
+					return true
+				}
+				web.waitForFileTask()
+				if task, ok := web.latestTask(TASK_COMPRESS); ok && task.Id != before {
+					result.Compressed, result.Saved = task.Files, task.Saved
 				}
 			}
 		}
@@ -376,14 +402,20 @@ func (web *Web) runAutomationOnce() bool {
 		if _, ok := web.waitForAutomation(); !ok {
 			return false
 		}
-		if !web.state.startSync() {
-			// a scan started meanwhile: wait for it
-			if _, ok := web.waitForAutomation(); !ok || !web.state.startSync() {
-				continue
-			}
+		if !web.holdScan() {
+			// a scan started meanwhile
+			return true
 		}
 		operations, err := web.runOrganizeFiles(action, newFiles, TRIGGER_AUTOMATION)
-		web.state.endSync()
+		// files changed: they are scanned again; else a rescan asked meanwhile is done now
+		rescan := ""
+		if err == nil && len(operations) > 0 {
+			rescan = TRIGGER_AUTOMATION
+		}
+		web.releaseScan(rescan)
+		if errors.Is(err, errOrganizeBusy) {
+			return true
+		}
 		if err != nil {
 			web.sugarLogger.Warnf("Automation: %s failed: %v", action, err)
 			continue
@@ -394,17 +426,14 @@ func (web *Web) runAutomationOnce() bool {
 		} else {
 			result.Moved = len(operations)
 		}
-		if len(operations) > 0 {
-			web.Rescan(TRIGGER_AUTOMATION)
-		}
 	}
 
 	// 5. a message with what was done
 	if options.Notify {
 		web.notifyAutomation(result)
 	}
-	web.sugarLogger.Infof("Automation: %d new games and DLC, %d updates, %d files checked (%d damaged), %d compressed, %d old updates deleted, %d files organized",
-		len(result.Games), result.Updates, result.Checked, result.Damaged, result.Compressed, result.Removed, result.Moved)
+	web.sugarLogger.Infof("Automation: %d new games and DLC, %d updates, %d files checked (%d failed, %d modified), %d compressed, %d old updates deleted, %d files organized",
+		len(result.Games), result.Updates, result.Checked, result.Damaged, result.Modified, result.Compressed, result.Removed, result.Moved)
 	done = true
 	return true
 }
@@ -448,7 +477,11 @@ func automationMessage(lang string, result AutomationResult) (string, string) {
 		lines = append(lines, "• "+translatef(lang, "%v new updates", result.Updates))
 	}
 	if result.Checked > 0 {
-		lines = append(lines, "✓ "+translatef(lang, "%v files checked, %v damaged", result.Checked, result.Damaged))
+		checked := translatef(lang, "%v files checked, %v failed", result.Checked, result.Damaged)
+		if result.Modified > 0 {
+			checked = translatef(lang, "%v files checked, %v modified, %v failed", result.Checked, result.Modified, result.Damaged)
+		}
+		lines = append(lines, "✓ "+checked)
 	}
 	if result.Compressed > 0 {
 		lines = append(lines, "✓ "+translatef(lang, "%v files compressed, %v saved", result.Compressed, formatSizeIn(lang, result.Saved)))

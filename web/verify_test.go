@@ -122,8 +122,9 @@ func TestVerifyWorkers(t *testing.T) {
 func TestScheduledVerificationChecksOldResultsAgain(t *testing.T) {
 	web, path := compressWeb(t)
 	info, _ := os.Stat(path)
-	// checked 40 days ago and fine
+	// checked 40 days ago and fine, its hashes and its signatures
 	web.verifications().set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checked: time.Now().AddDate(0, 0, -40)})
+	web.verifications().signatures[path] = signatureRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), Checked: time.Now().AddDate(0, 0, -40)}
 
 	web.startVerificationOf([]string{path}, verifyRecheckChanged, TRIGGER_MANUAL)
 	if task := waitForTask(t, web, TASK_VERIFY); task.Files != 0 {

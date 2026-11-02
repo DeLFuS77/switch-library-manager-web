@@ -1,0 +1,125 @@
+{{- /* The fields of a notification channel, for the Settings page and the wizard: .Service names
+the channel, .Prefix goes before the ids (the wizard has its own) and .N are the notification
+settings, with their secrets masked. */}}
+{{- define "notifyFields"}}
+{{- $p := .Prefix}}{{$n := .N}}
+{{- if eq .Service "discord"}}
+<label for="{{$p}}discord_webhook_url" class="form-label fw-semibold">{{t "Discord webhook URL"}}</label>
+<input type="url" class="form-control" id="{{$p}}discord_webhook_url" name="discord_webhook_url" value="{{$n.DiscordWebhookUrl}}" placeholder="https://discord.com/api/webhooks/..." autocomplete="off" spellcheck="false">
+<div class="form-text">{{t "Channel settings > Integrations > Webhooks"}}</div>
+{{- else if eq .Service "telegram"}}
+<div class="row g-3">
+	<div class="col-md-6">
+		<label for="{{$p}}telegram_bot_token" class="form-label fw-semibold">{{t "Telegram bot token"}}</label>
+		<input type="password" class="form-control" id="{{$p}}telegram_bot_token" name="telegram_bot_token" value="{{$n.TelegramBotToken}}" autocomplete="off">
+		<div class="form-text">{{t "Create a bot with @BotFather"}}</div>
+	</div>
+	<div class="col-md-6">
+		<label for="{{$p}}telegram_chat_id" class="form-label fw-semibold">{{t "Telegram chat ID"}}</label>
+		<input type="text" class="form-control" id="{{$p}}telegram_chat_id" name="telegram_chat_id" value="{{$n.TelegramChatId}}" autocomplete="off">
+	</div>
+	<div class="col-12">
+		<div class="form-check form-switch">
+			<input class="form-check-input" type="checkbox" role="switch" id="{{$p}}telegram_commands" name="telegram_commands" value="true" aria-describedby="{{$p}}telegram_commands_help"{{if $n.TelegramCommands}} checked{{end}}>
+			<label class="form-check-label" for="{{$p}}telegram_commands">{{t "Answer in the chat of Telegram"}}</label>
+			<div class="form-text" id="{{$p}}telegram_commands_help">{{t "Write to the bot in its chat: /have zelda, /new, /space, /status, /sync. Only that chat gets answers, in the language of the app."}}</div>
+		</div>
+	</div>
+</div>
+{{- else if eq .Service "ntfy"}}
+<div class="row g-3">
+	<div class="col-md-7">
+		<label for="{{$p}}ntfy_url" class="form-label fw-semibold">{{t "Address of the topic"}}</label>
+		<input type="url" class="form-control" id="{{$p}}ntfy_url" name="ntfy_url" value="{{$n.NtfyUrl}}" placeholder="https://ntfy.sh/my-topic" autocomplete="off" spellcheck="false" aria-describedby="{{$p}}ntfy_url_help">
+		<div class="form-text" id="{{$p}}ntfy_url_help">{{t "The server and the topic, as in the app of ntfy. A server of your own works too."}}</div>
+	</div>
+	<div class="col-md-5">
+		<label for="{{$p}}ntfy_token" class="form-label fw-semibold">{{t "Access token"}} <span class="fw-normal text-body-secondary">{{t "(optional)"}}</span></label>
+		<input type="password" class="form-control" id="{{$p}}ntfy_token" name="ntfy_token" value="{{$n.NtfyToken}}" autocomplete="new-password" aria-describedby="{{$p}}ntfy_token_help">
+		<div class="form-text" id="{{$p}}ntfy_token_help">{{t "Only for a protected topic (tk_…)."}}</div>
+	</div>
+</div>
+{{- else if eq .Service "gotify"}}
+<div class="row g-3">
+	<div class="col-md-7">
+		<label for="{{$p}}gotify_url" class="form-label fw-semibold">{{t "Address of the server"}}</label>
+		<input type="url" class="form-control" id="{{$p}}gotify_url" name="gotify_url" value="{{$n.GotifyUrl}}" placeholder="https://gotify.example.com" autocomplete="off" spellcheck="false">
+	</div>
+	<div class="col-md-5">
+		<label for="{{$p}}gotify_token" class="form-label fw-semibold">{{t "Token of the application"}}</label>
+		<input type="password" class="form-control" id="{{$p}}gotify_token" name="gotify_token" value="{{$n.GotifyToken}}" autocomplete="new-password" aria-describedby="{{$p}}gotify_token_help">
+		<div class="form-text" id="{{$p}}gotify_token_help">{{t "In Gotify: Apps, Create application."}}</div>
+	</div>
+</div>
+{{- else if eq .Service "pushover"}}
+<div class="row g-3">
+	<div class="col-md-6">
+		<label for="{{$p}}pushover_user" class="form-label fw-semibold">{{t "User key"}}</label>
+		<input type="text" class="form-control" id="{{$p}}pushover_user" name="pushover_user" value="{{$n.PushoverUser}}" autocomplete="off" spellcheck="false" aria-describedby="{{$p}}pushover_user_help">
+		<div class="form-text" id="{{$p}}pushover_user_help">{{t "At the top right of pushover.net, once signed in."}}</div>
+	</div>
+	<div class="col-md-6">
+		<label for="{{$p}}pushover_token" class="form-label fw-semibold">{{t "Token of the application (API)"}}</label>
+		<input type="password" class="form-control" id="{{$p}}pushover_token" name="pushover_token" value="{{$n.PushoverToken}}" autocomplete="new-password" aria-describedby="{{$p}}pushover_token_help">
+		<div class="form-text" id="{{$p}}pushover_token_help">{{t "On pushover.net: Create an Application."}}</div>
+	</div>
+</div>
+{{- else if eq .Service "email"}}
+<div class="row g-3">
+	<div class="col-md-6">
+		<label for="{{$p}}smtp_host" class="form-label fw-semibold">{{t "Mail server (SMTP)"}}</label>
+		<input type="text" class="form-control" id="{{$p}}smtp_host" name="smtp_host" value="{{$n.SmtpHost}}" placeholder="smtp.example.com" autocomplete="off" spellcheck="false">
+	</div>
+	<div class="col-5 col-md-2">
+		<label for="{{$p}}smtp_port" class="form-label fw-semibold">{{t "Port"}}</label>
+		<input type="number" class="form-control" id="{{$p}}smtp_port" name="smtp_port" value="{{if $n.SmtpPort}}{{$n.SmtpPort}}{{end}}" min="1" max="65535" placeholder="587" inputmode="numeric">
+	</div>
+	<div class="col-7 col-md-4">
+		<label for="{{$p}}smtp_security" class="form-label fw-semibold">{{t "Security"}}</label>
+		<select class="form-select" id="{{$p}}smtp_security" name="smtp_security">
+			<option value="starttls"{{if or (eq $n.SmtpSecurity "") (eq $n.SmtpSecurity "starttls")}} selected{{end}}>STARTTLS</option>
+			<option value="tls"{{if eq $n.SmtpSecurity "tls"}} selected{{end}}>SSL/TLS</option>
+			<option value="none"{{if eq $n.SmtpSecurity "none"}} selected{{end}}>{{t "None"}}</option>
+		</select>
+	</div>
+	<div class="col-md-6">
+		<label for="{{$p}}smtp_user" class="form-label fw-semibold">{{t "User"}}</label>
+		<input type="text" class="form-control" id="{{$p}}smtp_user" name="smtp_user" value="{{$n.SmtpUser}}" autocomplete="off" spellcheck="false">
+	</div>
+	<div class="col-md-6">
+		<label for="{{$p}}smtp_password" class="form-label fw-semibold">{{t "Password"}}</label>
+		<input type="password" class="form-control" id="{{$p}}smtp_password" name="smtp_password" value="{{$n.SmtpPassword}}" autocomplete="new-password" aria-describedby="{{$p}}smtp_password_help">
+		<div class="form-text" id="{{$p}}smtp_password_help">{{t "With Gmail or Outlook, an app password."}}</div>
+	</div>
+	<div class="col-md-6">
+		<label for="{{$p}}smtp_from" class="form-label fw-semibold">{{t "From"}} <span class="fw-normal text-body-secondary">{{t "(optional)"}}</span></label>
+		<input type="email" class="form-control" id="{{$p}}smtp_from" name="smtp_from" value="{{$n.SmtpFrom}}" placeholder="library@example.com" autocomplete="off" spellcheck="false" aria-describedby="{{$p}}smtp_from_help">
+		<div class="form-text" id="{{$p}}smtp_from_help">{{t "Empty: the user."}}</div>
+	</div>
+	<div class="col-md-6">
+		<label for="{{$p}}smtp_to" class="form-label fw-semibold">{{t "To"}}</label>
+		<input type="text" class="form-control" id="{{$p}}smtp_to" name="smtp_to" value="{{$n.SmtpTo}}" placeholder="me@example.com" autocomplete="off" spellcheck="false" aria-describedby="{{$p}}smtp_to_help">
+		<div class="form-text" id="{{$p}}smtp_to_help">{{t "Several addresses, separated by commas."}}</div>
+	</div>
+</div>
+{{- else if eq .Service "webhook"}}
+<label for="{{$p}}webhook_url" class="form-label fw-semibold">{{t "Other webhook URL"}}</label>
+<input type="url" class="form-control" id="{{$p}}webhook_url" name="webhook_url" value="{{$n.WebhookUrl}}" placeholder="https://..." autocomplete="off" spellcheck="false" aria-describedby="{{$p}}webhook_url_help">
+<div class="form-text" id="{{$p}}webhook_url_help">{{t "Receives a JSON message (Home Assistant, n8n, ...). A password or a token in the address is kept hidden too."}}</div>
+{{- end}}
+{{- end}}
+
+{{- /* A channel of the Settings page: a row that opens, saying where it sends and whether it is
+on. */}}
+{{- define "notifyService"}}
+<details class="notify-service" data-notify-service="{{.S.Key}}">
+	<summary>
+		<span class="notify-service-icon bi {{.S.Icon}}" aria-hidden="true"></span>
+		<span class="notify-service-name">{{t .S.Name}}{{with .S.Target}}<span class="notify-service-to">{{.}}</span>{{end}}</span>
+		<span class="notify-service-end">{{if .S.Target}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "On"}}</span>{{end}}<span class="bi bi-chevron-down notify-service-chevron" aria-hidden="true"></span></span>
+	</summary>
+	<div class="notify-service-body">
+		{{template "notifyFields" (dict "Service" .S.Key "Prefix" "" "N" .N)}}
+	</div>
+</details>
+{{- end}}

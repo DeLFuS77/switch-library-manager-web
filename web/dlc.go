@@ -60,7 +60,7 @@ func (web *Web) buildMissingDLC(lang string) []TitleItem {
 				missingDlc[i] = dlc
 			}
 
-			imageUrl := coverUrl(localDB, v.Attributes)
+			imageUrl := coverUrl(switchDB, localDB, v.Attributes)
 
 			items = append(items, TitleItem{
 				ImageUrl:        imageUrl,

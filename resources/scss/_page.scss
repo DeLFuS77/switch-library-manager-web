@@ -197,6 +197,11 @@
 		border-left-color: $warning;
 	}
 
+	// cancelled, or stopped by a restart and gone on: it ended, and it is no failure
+	&.task-muted {
+		border-left-color: var(--bs-gray-500);
+	}
+
 	&.task-failed {
 		border-left-color: $danger;
 

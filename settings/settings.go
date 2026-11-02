@@ -29,23 +29,31 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "1.67.0"
+	SLM_WEB_VERSION        = "1.68.1"
 	REPOSITORY_OWNER       = "DeLFuS77"
-	// titles.json and versions.json are generated from blawar/titledb by the
-	// "Update title data" workflow of this repository
-	DEFAULT_TITLES_JSON_URL   = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.json"
-	DEFAULT_VERSIONS_JSON_URL = "https://raw.githubusercontent.com/blawar/titledb/master/versions.json"
+	// the release where the "Update title data" workflow of this repository publishes the files
+	// it generates; next to each one it publishes the same file compressed (see CompressedFirst)
+	DATA_RELEASE_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/"
+	// the name of a file compressed with zstd is the one of the file with this after it, and a
+	// download whose URL ends with it is decompressed: titles.json.zst
+	COMPRESSED_SUFFIX = ".zst"
+	// titles.json is generated from blawar/titledb, and versions.json joins the versions of
+	// blawar/titledb with the ones of other sources
+	DEFAULT_TITLES_JSON_URL   = DATA_RELEASE_URL + "titles.json"
+	DEFAULT_VERSIONS_JSON_URL = DATA_RELEASE_URL + "versions.json"
+	// the versions of blawar/titledb alone: the default before versions.json of the data release
+	BLAWAR_VERSIONS_JSON_URL = "https://raw.githubusercontent.com/blawar/titledb/master/versions.json"
 	// covers of other stores for titles without one in the US store
-	DEFAULT_COVERS_JSON_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.covers.json"
+	DEFAULT_COVERS_JSON_URL = DATA_RELEASE_URL + "titles.covers.json"
 	// the series of Switch games, from Wikidata
-	DEFAULT_SERIES_JSON_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.series.json"
+	DEFAULT_SERIES_JSON_URL = DATA_RELEASE_URL + "titles.series.json"
 	// the cheats of switch-cheats-db: the build ID of every version of every game, the cheats
 	// of the last release as the SD card holds them, and the name of that release
 	DEFAULT_CHEATS_VERSIONS_URL = "https://raw.githubusercontent.com/HamletDuFromage/switch-cheats-db/master/versions.json"
 	DEFAULT_CHEATS_ZIP_URL      = "https://github.com/HamletDuFromage/switch-cheats-db/releases/latest/download/contents_complete.zip"
 	DEFAULT_CHEATS_RELEASE_URL  = "https://github.com/HamletDuFromage/switch-cheats-db/releases/latest/download/VERSION"
 	// %s is replaced by the interface language, e.g. titles.es.json
-	DEFAULT_LOCALIZED_TITLES_JSON_URL = "https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/titles.%s.json"
+	DEFAULT_LOCALIZED_TITLES_JSON_URL = DATA_RELEASE_URL + "titles.%s.json"
 	DEFAULT_TITLES_ETAG               = "W/\"a5b02845cf6bd61:0\""
 	DEFAULT_VERSIONS_ETAG             = "W/\"2ef50d1cb6bd61:0\""
 )
@@ -56,7 +64,7 @@ var (
 		"https://github.com/trembon/switch-library-manager/releases/download/data/titles.json",
 	}
 	FALLBACK_VERSIONS_JSON_URLS = []string{
-		"https://github.com/DeLFuS77/switch-library-manager-web/releases/download/data/versions.json",
+		BLAWAR_VERSIONS_JSON_URL,
 	}
 )
 
@@ -128,14 +136,47 @@ const (
 // KeepDuplicateChoices are the valid values of KeepDuplicate.
 var KeepDuplicateChoices = []string{KEEP_FIRST_FOUND, KEEP_NSP, KEEP_XCI, KEEP_AUTO}
 
+// the security of the connection to the SMTP server of the notifications
+const (
+	// encrypted after the greeting, usually on port 587: the default
+	SMTP_STARTTLS = "starttls"
+	// encrypted from the start, usually on port 465
+	SMTP_TLS = "tls"
+	// not encrypted, for a server of the local network that takes mail without a password
+	SMTP_NONE = "none"
+)
+
+// SmtpSecurityChoices are the valid values of NotificationOptions.SmtpSecurity.
+var SmtpSecurityChoices = []string{SMTP_STARTTLS, SMTP_TLS, SMTP_NONE}
+
 // NotificationOptions configures the messages sent when updates or DLC become available.
 type NotificationOptions struct {
 	DiscordWebhookUrl string `json:"discord_webhook_url"`
 	TelegramBotToken  string `json:"telegram_bot_token"`
 	TelegramChatId    string `json:"telegram_chat_id"`
 	WebhookUrl        string `json:"webhook_url"`
-	NotifyUpdates     bool   `json:"notify_updates"`
-	NotifyDlc         bool   `json:"notify_dlc"`
+	// ntfy: the address of the topic, with its server, and an access token for a topic that is
+	// protected
+	NtfyUrl   string `json:"ntfy_url,omitempty"`
+	NtfyToken string `json:"ntfy_token,omitempty"`
+	// Gotify: the address of the server and the token of an application
+	GotifyUrl   string `json:"gotify_url,omitempty"`
+	GotifyToken string `json:"gotify_token,omitempty"`
+	// Pushover: the key of the user (or of a group) and the token of an application
+	PushoverUser  string `json:"pushover_user,omitempty"`
+	PushoverToken string `json:"pushover_token,omitempty"`
+	// email through an SMTP server; the port 0 is the usual one of the security
+	SmtpHost     string `json:"smtp_host,omitempty"`
+	SmtpPort     int    `json:"smtp_port,omitempty"`
+	SmtpSecurity string `json:"smtp_security,omitempty"`
+	SmtpUser     string `json:"smtp_user,omitempty"`
+	SmtpPassword string `json:"smtp_password,omitempty"`
+	// the address the mail comes from, the user when empty
+	SmtpFrom string `json:"smtp_from,omitempty"`
+	// the addresses the mail goes to, separated by commas
+	SmtpTo        string `json:"smtp_to,omitempty"`
+	NotifyUpdates bool   `json:"notify_updates"`
+	NotifyDlc     bool   `json:"notify_dlc"`
 	// wished games that are released or get new DLC
 	NotifyWishlist bool `json:"notify_wishlist"`
 	// games of the library that get cheats for the version they have
@@ -177,6 +218,39 @@ type QuarantineOptions struct {
 	// also the originals deleted after compressing, decompressing, converting, splitting or
 	// making a pack, already checked then
 	Originals bool `json:"originals,omitempty"`
+}
+
+// PortalOptions let the people a sign-in portal in front of the app already let in (Authelia,
+// Authentik, Cloudflare Access) open it without the password of the app. Off by default; the
+// environment variables of the same options win over them (see web/proxyauth.go).
+type PortalOptions struct {
+	// believe the user a proxy of SLM_TRUSTED_PROXIES names in a header
+	Header       bool   `json:"header,omitempty"`
+	UserHeader   string `json:"user_header,omitempty"`
+	EmailHeader  string `json:"email_header,omitempty"`
+	GroupsHeader string `json:"groups_header,omitempty"`
+	// believe the signed token of Cloudflare Access: the team and the audience (AUD) of the
+	// application
+	Cloudflare     bool   `json:"cloudflare,omitempty"`
+	CloudflareTeam string `json:"cloudflare_team,omitempty"`
+	CloudflareAud  string `json:"cloudflare_aud,omitempty"`
+	// a button of the login page signs in with OpenID Connect (PocketID, Authentik, Keycloak):
+	// the address of the provider, the client of the app in it, the name on the button and the
+	// scopes asked for
+	Oidc             bool   `json:"oidc,omitempty"`
+	OidcIssuer       string `json:"oidc_issuer,omitempty"`
+	OidcClientId     string `json:"oidc_client_id,omitempty"`
+	OidcClientSecret string `json:"oidc_client_secret,omitempty"`
+	OidcButton       string `json:"oidc_button,omitempty"`
+	OidcScopes       string `json:"oidc_scopes,omitempty"`
+	// how a person is matched with a user: "" by name or email, "name" or "email"
+	MatchBy string `json:"match_by,omitempty"`
+	// the role of the user made for a person without one: "" makes none, guest or viewer
+	NewUsers string `json:"new_users,omitempty"`
+	// the members of this group are administrators
+	AdminGroup string `json:"admin_group,omitempty"`
+	// where Log out sends the people signed in by the portal
+	LogoutUrl string `json:"logout_url,omitempty"`
 }
 
 // AutomationOptions are the steps run on the files that appear in the library, in this order:
@@ -267,6 +341,8 @@ type AppSettings struct {
 	Language          string              `json:"language"`
 	Notifications     NotificationOptions `json:"notifications"`
 	LastSyncTime      time.Time           `json:"last_sync_time"`
+	// signing in through a portal in front of the app (off by default)
+	Portal PortalOptions `json:"portal,omitzero"`
 }
 
 func ReadSettings(dataFolder string) *AppSettings {
@@ -354,6 +430,11 @@ func verifySettings(dataFolder string, settings *AppSettings) *AppSettings {
 	settings.TitlesJsonUrl = movedRepositoryUrl(settings.TitlesJsonUrl)
 	settings.VersionsJsonUrl = movedRepositoryUrl(settings.VersionsJsonUrl)
 	settings.LocalizedTitlesJsonUrl = movedRepositoryUrl(settings.LocalizedTitlesJsonUrl)
+	// the versions of blawar/titledb were the default: settings saved with it get the versions
+	// of the data release, which has them and the ones of other sources; a URL of one's own stays
+	if settings.VersionsJsonUrl == BLAWAR_VERSIONS_JSON_URL {
+		settings.VersionsJsonUrl = DEFAULT_VERSIONS_JSON_URL
+	}
 
 	// the databases are only downloaded over https (a restored backup could name any address)
 	if !strings.HasPrefix(settings.TitlesJsonUrl, "https://") {
@@ -405,14 +486,30 @@ func movedRepositoryUrl(url string) string {
 	return prefix + REPOSITORY_OWNER + rest[slash:]
 }
 
-// TitlesJsonUrls returns the configured titles.json URL followed by the fallback mirrors.
+// TitlesJsonUrls returns the configured titles.json URL followed by the fallback mirrors, the
+// files of the data release compressed first (see CompressedFirst).
 func (s *AppSettings) TitlesJsonUrls() []string {
-	return withFallbacks(s.TitlesJsonUrl, FALLBACK_TITLES_JSON_URLS)
+	return CompressedFirst(withFallbacks(s.TitlesJsonUrl, FALLBACK_TITLES_JSON_URLS)...)
 }
 
-// VersionsJsonUrls returns the configured versions.json URL followed by the fallback mirrors.
+// VersionsJsonUrls returns the configured versions.json URL followed by the fallback mirrors, the
+// files of the data release compressed first (see CompressedFirst).
 func (s *AppSettings) VersionsJsonUrls() []string {
-	return withFallbacks(s.VersionsJsonUrl, FALLBACK_VERSIONS_JSON_URLS)
+	return CompressedFirst(withFallbacks(s.VersionsJsonUrl, FALLBACK_VERSIONS_JSON_URLS)...)
+}
+
+// CompressedFirst puts before each file of the data release the same file compressed, a quarter
+// of its size or less; the file as it is comes next, for when the compressed one cannot be
+// downloaded. The files of other places are left as they are.
+func CompressedFirst(urls ...string) []string {
+	result := make([]string, 0, 2*len(urls))
+	for _, url := range urls {
+		if strings.HasPrefix(url, DATA_RELEASE_URL) && strings.HasSuffix(url, ".json") {
+			result = append(result, url+COMPRESSED_SUFFIX)
+		}
+		result = append(result, url)
+	}
+	return result
 }
 
 func withFallbacks(url string, fallbacks []string) []string {

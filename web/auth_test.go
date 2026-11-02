@@ -191,7 +191,7 @@ func TestFirstUserEnablesLogin(t *testing.T) {
 	web := usersWeb(t)
 	c := &client{t: t, handler: web.auth.middleware(web.router)}
 
-	created := c.do("POST", "/users/create", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}, "role": {ROLE_VIEWER}})
+	created := c.do("POST", "/users/create", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}, "role": {ROLE_VIEWER}, "setup_code": {web.auth.setup.code}})
 	if created.Code != http.StatusSeeOther || !strings.Contains(created.Header().Get("Location"), "done=enabled") {
 		t.Fatalf("create: %v %q", created.Code, created.Header().Get("Location"))
 	}

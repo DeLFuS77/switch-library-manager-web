@@ -175,7 +175,7 @@ func TestParseTrustedProxies(t *testing.T) {
 func TestLogoutEndsTheSession(t *testing.T) {
 	web := usersWeb(t)
 	c := &client{t: t, handler: web.auth.middleware(web.router)}
-	c.do("POST", "/users/create", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}})
+	c.do("POST", "/users/create", url.Values{"name": {"alice"}, "password": {"alpha-secret-11"}, "setup_code": {web.auth.setup.code}})
 	if code := c.do("GET", "/settings.html", nil).Code; code != http.StatusOK {
 		t.Fatalf("logged in: %d", code)
 	}

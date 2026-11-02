@@ -296,3 +296,90 @@
 	transform: translateX(30px);
 	transition: opacity .4s ease, transform .4s ease;
 }
+
+// Settings > Notifications: a row per channel that opens, with where it sends and whether it is on
+.notify-services {
+	display: flex;
+	flex-direction: column;
+	gap: .5rem;
+}
+
+.notify-service {
+	border: 1px solid var(--slm-border);
+	border-radius: $border-radius-lg;
+	background: var(--slm-surface-muted);
+
+	> summary {
+		display: flex;
+		align-items: center;
+		gap: .7rem;
+		padding: .6rem .85rem;
+		cursor: pointer;
+		list-style: none;
+
+		&::-webkit-details-marker {
+			display: none;
+		}
+	}
+
+	&[open] > summary {
+		border-bottom: 1px solid var(--slm-border);
+	}
+
+	&[open] .notify-service-chevron {
+		transform: rotate(180deg);
+	}
+}
+
+.notify-service-icon {
+	display: grid;
+	flex: none;
+	place-items: center;
+	width: 2.1rem;
+	height: 2.1rem;
+	border: 1px solid var(--slm-border);
+	border-radius: $border-radius;
+	background: var(--slm-surface);
+	color: var(--bs-secondary-color);
+	font-size: 1.05rem;
+}
+
+.notify-service-name {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	font-weight: 600;
+	line-height: 1.25;
+}
+
+.notify-service-to {
+	overflow: hidden;
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-sm);
+	font-weight: 400;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.notify-service-end {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: .6rem;
+	margin-left: auto;
+}
+
+.notify-service-chevron {
+	color: var(--bs-secondary-color);
+	transition: transform .2s ease;
+}
+
+.notify-service-body {
+	padding: .9rem .85rem 1rem;
+}
+
+// the channels a test did not reach, each with why
+.notify-results {
+	margin: .35rem 0 0;
+	padding-left: 1.1rem;
+}

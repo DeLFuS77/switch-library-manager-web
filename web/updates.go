@@ -52,7 +52,7 @@ func (web *Web) buildMissingUpdates(lang string) []TitleItem {
 			name = strings.ToUpper(v.Attributes.Id)
 		}
 		{
-			imageUrl := coverUrl(localDB, v.Attributes)
+			imageUrl := coverUrl(switchDB, localDB, v.Attributes)
 
 			latest, err := strToTime("2006-01-02", v.LatestUpdateDate)
 			if err != nil {

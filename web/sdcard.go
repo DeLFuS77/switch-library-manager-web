@@ -192,8 +192,8 @@ func (web *Web) buildSdPlan(options SdOptions, lang string) SdPlan {
 		}
 		id := strings.ToUpper(local.File.Metadata.TitleId)
 		game := SdGame{Id: id, Name: titleName(switchDB, lang, id, original)}
-		if local.Icon != "" {
-			game.ImageUrl = "/i/" + local.Icon
+		if icon := gameIcon(switchDB, prefix, local); icon != "" {
+			game.ImageUrl = "/i/" + icon
 		}
 		for _, file := range sdGameFiles(local, options.Dlc) {
 			game.Size += file.Size
@@ -382,7 +382,7 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 
 	web.compressor.mutex.Lock()
 	// no copy while files are organized or deleted
-	if web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() {
+	if web.filesTaken() {
 		web.compressor.mutex.Unlock()
 		return false
 	}

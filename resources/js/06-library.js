@@ -131,6 +131,112 @@ function initCollections() {
 	});
 }
 
+// the name, cover and description of a game changed by hand, on its page: the page is loaded
+// again with them, and says so once there
+const TITLE_EDIT_KEY = 'slm-title-edit';
+
+function initTitleEdit() {
+	try {
+		const done = sessionStorage.getItem(TITLE_EDIT_KEY);
+		sessionStorage.removeItem(TITLE_EDIT_KEY);
+		if (done) {
+			showToast('alert-success', 'bi-check-circle-fill', done, '');
+		}
+	} catch (e) {
+		// no storage: the page shows the change all the same
+	}
+	const form = document.querySelector('[data-title-edit]');
+	if (!form) {
+		return;
+	}
+	const url = '/api/titles/' + form.dataset.titleEdit + '/override';
+	const error = form.querySelector('[data-title-edit-error]');
+	const preview = form.querySelector('[data-title-edit-preview]');
+	const file = form.querySelector('[data-title-edit-file]');
+	const address = form.querySelector('[data-title-edit-url]');
+	const removeCover = form.querySelector('[data-title-edit-remove-cover]');
+	const originalCover = form.querySelector('[data-title-edit-original-cover]');
+	const reset = form.querySelector('[data-title-edit-reset]');
+	const shown = preview.getAttribute('src');
+	const buttons = () => form.querySelectorAll('button');
+	const fail = message => {
+		form.querySelector('[data-title-edit-message]').textContent = message;
+		error.hidden = false;
+		buttons().forEach(button => button.disabled = false);
+	};
+	const send = (method, body, message) => {
+		error.hidden = true;
+		buttons().forEach(button => button.disabled = true);
+		apiFetch(url, { method, body }).then(response => readJSON(response).then(json => {
+			if (!response.ok) {
+				throw new Error((json.globalError && json.globalError.message) || t('Unexpected server response (%v).', response.status));
+			}
+			try {
+				sessionStorage.setItem(TITLE_EDIT_KEY, message);
+			} catch (e) {
+				// shown without the notice
+			}
+			window.location.reload();
+		})).catch(e => fail(e.message || t('Could not reach the server.')));
+	};
+
+	file.addEventListener('change', () => {
+		const chosen = file.files[0];
+		if (!chosen) {
+			return;
+		}
+		address.value = '';
+		removeCover.value = 'false';
+		if (chosen.size > 5 * 1024 * 1024) {
+			fail(t('The cover is too large: at most 5 MB and 6000 pixels a side.'));
+			file.value = '';
+			return;
+		}
+		error.hidden = true;
+		// a data address: the policy of the pages shows no other kind of local image
+		const reader = new FileReader();
+		reader.onload = () => preview.src = reader.result;
+		reader.readAsDataURL(chosen);
+	});
+	address.addEventListener('input', () => {
+		const value = address.value.trim();
+		if (value) {
+			file.value = '';
+			removeCover.value = 'false';
+		}
+		// encoded as an address, keeping the escapes it already has: only an https image
+		preview.src = value.startsWith('https://') ? encodeURI(value).replace(/%25([0-9A-Fa-f]{2})/g, '%$1') : shown;
+	});
+	preview.addEventListener('error', () => {
+		if (preview.getAttribute('src') !== shown) {
+			preview.src = shown;
+		}
+	});
+	if (originalCover) {
+		originalCover.addEventListener('click', () => {
+			file.value = '';
+			address.value = '';
+			removeCover.value = 'true';
+			preview.src = form.dataset.originalCover;
+		});
+	}
+	if (reset) {
+		reset.addEventListener('click', () => {
+			if (window.confirm(reset.dataset.confirmText)) {
+				send('DELETE', null, t('Back to the original'));
+			}
+		});
+	}
+	form.addEventListener('submit', e => {
+		e.preventDefault();
+		const body = new FormData(form);
+		if (!file.files.length) {
+			body.delete('cover');
+		}
+		send('POST', body, t('Saved!'));
+	});
+}
+
 // ignore a type of file listed in Issues: the library is scanned again without them
 function initIgnoreTypes() {
 	document.querySelectorAll('[data-ignore-type]').forEach(button => {

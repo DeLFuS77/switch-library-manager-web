@@ -162,8 +162,8 @@ func (web *Web) HandleApi() {
 							item.BannerUrl = "/i/" + v.Banner
 						}
 
-						if v.Icon != "" {
-							item.IconUrl = "/i/" + v.Icon
+						if icon := gameIcon(switchDB, k, v); icon != "" {
+							item.IconUrl = "/i/" + icon
 						}
 
 						if item.IconUrl != "" {
@@ -228,6 +228,11 @@ func (web *Web) HandleApi() {
 
 		w.WriteHeader(http.StatusNotFound)
 	})
+
+	// the name, cover and description of a game changed by hand (see overrides.go)
+	web.router.HandleFunc("/api/titles/{titleId}/override", web.handleTitleOverrideGet).Methods("GET")
+	web.router.HandleFunc("/api/titles/{titleId}/override", web.handleTitleOverrideSet).Methods("POST")
+	web.router.HandleFunc("/api/titles/{titleId}/override", web.handleTitleOverrideDelete).Methods("DELETE")
 
 	web.router.HandleFunc("/api/titles/{titleId}/updates/{version}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)

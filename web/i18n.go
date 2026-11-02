@@ -41,7 +41,16 @@ func translate(lang string, text string) string {
 	if translated, ok := translations[lang][text]; ok {
 		return translated
 	}
+	if english, ok := englishTexts[text]; ok {
+		return english
+	}
 	return text
+}
+
+// englishTexts are the texts whose key says what they name, for the languages where the word
+// changes with it (a file failed, a task failed: "Fallido", "Fallida"), with their English.
+var englishTexts = map[string]string{
+	"Failed (file)": "Failed",
 }
 
 func translatef(lang string, text string, args ...any) string {
@@ -66,6 +75,23 @@ func i18nFuncs(lang string) template.FuncMap {
 				return translatef(lang, text, args...)
 			}
 			return translate(lang, text)
+		},
+		// tCode translates a text whose arguments are shown as code, like a word to look for in
+		// a log: tCode "Look for %v in the log." "SETUP CODE"
+		"tCode": func(text string, args ...any) template.HTML {
+			codes := make([]any, len(args))
+			for i, arg := range args {
+				codes[i] = "<code>" + template.HTMLEscapeString(fmt.Sprint(arg)) + "</code>"
+			}
+			return template.HTML(fmt.Sprintf(template.HTMLEscapeString(translate(lang, text)), codes...))
+		},
+		// tStrong translates a text whose arguments are shown in bold, like a name
+		"tStrong": func(text string, args ...any) template.HTML {
+			strong := make([]any, len(args))
+			for i, arg := range args {
+				strong[i] = "<strong>" + template.HTMLEscapeString(fmt.Sprint(arg)) + "</strong>"
+			}
+			return template.HTML(fmt.Sprintf(template.HTMLEscapeString(translate(lang, text)), strong...))
 		},
 		"lang":           func() string { return lang },
 		"jsTranslations": func() map[string]string { return jsTranslations(lang) },
@@ -133,12 +159,19 @@ func (set templateSet) executeTemplate(w io.Writer, lang string, name string, da
 }
 
 func isSupportedLanguage(lang string) bool {
+	return supportedLanguage(lang) != ""
+}
+
+// supportedLanguage is lang as the list of supported languages has it, or "" when it is not
+// one of them. The value comes from the list, not from what a browser sent: it names files of
+// the data folder and goes in the addresses of downloads.
+func supportedLanguage(lang string) string {
 	for _, supported := range supportedLanguages {
 		if supported == lang {
-			return true
+			return supported
 		}
 	}
-	return false
+	return ""
 }
 
 // languageFromHeader returns the first supported language of an Accept-Language header.
@@ -146,8 +179,7 @@ func isSupportedLanguage(lang string) bool {
 func languageFromHeader(header string) string {
 	for _, part := range strings.Split(header, ",") {
 		tag := strings.ToLower(strings.TrimSpace(strings.SplitN(part, ";", 2)[0]))
-		primary := strings.SplitN(tag, "-", 2)[0]
-		if isSupportedLanguage(primary) {
+		if primary := supportedLanguage(strings.SplitN(tag, "-", 2)[0]); primary != "" {
 			return primary
 		}
 	}
@@ -340,6 +372,7 @@ var issuePatterns = []struct {
 	{regexp.MustCompile(`^failed to read (NSP|XCI|split files) \[reason: (.*)\]$`), "failed to read %v [reason: %v]"},
 	{regexp.MustCompile(`^unable to determine title-Id / version - (.*)$`), "unable to determine title ID / version - %v"},
 	{regexp.MustCompile(`^damaged file: (.*)$`), "damaged file: %v"},
+	{regexp.MustCompile(`^not signed by Nintendo: (.*)$`), "not signed by Nintendo: %v"},
 	{regexp.MustCompile(`^no title key \(rights ID (\w+)\): the file has no ticket and title\.keys does not list it$`), "no title key (rights ID %v): the file has no ticket and title.keys does not list it"},
 }
 

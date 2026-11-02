@@ -486,8 +486,8 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			item.FirmwareTooNew = true
 		}
 
-		if v.Icon != "" {
-			item.ImageUrl = "/i/" + v.Icon
+		if icon := gameIcon(switchDB, k, v); icon != "" {
+			item.ImageUrl = "/i/" + icon
 		} else if v.Banner != "" {
 			item.ImageUrl = "/i/" + v.Banner
 		}
@@ -559,9 +559,12 @@ func localTitleName(localDB *db.LocalSwitchFilesDB, titleId string) string {
 	return ""
 }
 
-// coverUrl returns the cover of a title: the cached one of the library, else the icon or
-// the banner of the titles database.
-func coverUrl(localDB *db.LocalSwitchFilesDB, attributes db.TitleAttributes) string {
+// coverUrl returns the cover of a title: the one the user chose, the cached one of the library,
+// else the icon or the banner of the titles database.
+func coverUrl(switchDB *db.SwitchTitlesDB, localDB *db.LocalSwitchFilesDB, attributes db.TitleAttributes) string {
+	if url := editedCover(switchDB, attributes.Id); url != "" {
+		return url
+	}
 	if url := localImageUrl(localDB, attributes.Id); url != "" {
 		return url
 	}

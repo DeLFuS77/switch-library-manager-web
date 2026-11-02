@@ -40,7 +40,8 @@ var (
 	ErrEnvironmentUser = errors.New("This user is set with environment variables and cannot be changed here.")
 )
 
-var userErrors = []error{ErrUserName, ErrUserExists, ErrUserNotFound, ErrPasswordLength, ErrPasswordCommon, ErrPasswordName, ErrRole, ErrLastAdmin, ErrDeleteSelf, ErrWrongPassword, ErrEnvironmentUser}
+var userErrors = []error{ErrUserName, ErrUserExists, ErrUserNotFound, ErrPasswordLength, ErrPasswordCommon, ErrPasswordName, ErrRole, ErrLastAdmin, ErrDeleteSelf, ErrWrongPassword, ErrEnvironmentUser,
+	ErrSetupCodeMissing, ErrSetupCode, ErrSetupCodeBlocked, ErrEmail, ErrEmailTaken}
 
 var validUserName = regexp.MustCompile(`^[A-Za-z0-9._-]{1,32}$`)
 
@@ -56,6 +57,26 @@ type User struct {
 	Created time.Time `json:"created"`
 	// the last sign-in, in the login page or by an API client; zero if never
 	LastLogin time.Time `json:"last_login,omitzero"`
+	// the keys API clients sign in with, see apikeys.go
+	APIKeys []APIKey `json:"api_keys,omitempty"`
+	// the email a sign-in portal names the user with, set by an administrator (see proxyauth.go)
+	Email string `json:"email,omitempty"`
+	// the account of the provider of OpenID Connect the user signs in with, linked at the first
+	// sign-in: a hash of its issuer and subject (see oidc.go)
+	OidcSubject string `json:"oidc_subject,omitempty"`
+}
+
+// HasPassword tells a user who can sign in with a password: one made by a sign-in portal has
+// none until an administrator sets one.
+func (u User) HasPassword() bool {
+	return u.PasswordHash != ""
+}
+
+// clone is a copy of the user that shares nothing with the stored one.
+func (u *User) clone() User {
+	copied := *u
+	copied.APIKeys = slices.Clone(u.APIKeys)
+	return copied
 }
 
 // loginNoteInterval is how often the last sign-in of a user is written: an API client signs in
@@ -73,6 +94,8 @@ type UserStore struct {
 	users map[string]*User // by lower case name
 	// a user configured with environment variables, which is always an administrator
 	reservedName string
+	// the API keys that passed lately, by cacheKey: see FindAPIKey
+	keysSeen sync.Map
 }
 
 // a hash compared when the user does not exist, so the response time does not tell
@@ -119,7 +142,7 @@ func (s *UserStore) List() []User {
 	defer s.mutex.RUnlock()
 	users := make([]User, 0, len(s.users))
 	for _, user := range s.users {
-		users = append(users, *user)
+		users = append(users, user.clone())
 	}
 	sort.Slice(users, func(i, j int) bool { return strings.ToLower(users[i].Name) < strings.ToLower(users[j].Name) })
 	return users
@@ -138,24 +161,25 @@ func (s *UserStore) Get(name string) (User, bool) {
 	if !ok {
 		return User{}, false
 	}
-	return *user, true
+	return user.clone(), true
 }
 
 // Verify checks a password; it takes the same time whether the user exists or not.
 func (s *UserStore) Verify(name string, password string) (User, bool) {
 	user, ok := s.Get(name)
 	hash := dummyHash
-	if ok {
+	// a user without a password takes as long as one that does not exist
+	if ok && user.HasPassword() {
 		hash = []byte(user.PasswordHash)
 	}
-	if compareHash(hash, password) != nil || !ok {
+	if compareHash(hash, password) != nil || !ok || !user.HasPassword() {
 		return User{}, false
 	}
 	return user, true
 }
 
-// hashSlots limits the bcrypt checks going on at the same time: each takes a processor for a
-// while, and a flood of passwords would leave none for the app.
+// hashSlots limits the bcrypt and Argon2id checks going on at the same time: each takes a
+// processor for a while, and a flood of passwords would leave none for the app.
 var hashSlots = make(chan struct{}, max(2, runtime.NumCPU()/2))
 
 // compareHash checks a password against its bcrypt hash, a few at a time.
