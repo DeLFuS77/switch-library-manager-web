@@ -18,6 +18,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
 	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"golang.org/x/crypto/bcrypt"
@@ -507,7 +508,7 @@ func pruneVaultFolder(folder string, keep int) int {
 // notifyVaultUpload tells about a new backup on the notification channels.
 func (web *Web) notifyVaultUpload(path string) {
 	settingsObj := settings.ReadSettings(web.dataFolder)
-	if !notificationsConfigured(settingsObj.Notifications) {
+	if !notify.Configured(settingsObj.Notifications) {
 		return
 	}
 	lang := settingsObj.Language
@@ -525,7 +526,7 @@ func (web *Web) notifyVaultUpload(path string) {
 	}
 	title := i18n.Translate(lang, "Switch Library Manager: save backed up")
 	text := i18n.Translatef(lang, "New backup of your save of %v.", name)
-	if err := sendMessage(settingsObj.Notifications, title, text, map[string]string{"game": name, "file": filepath.Base(path)}); err != nil {
+	if err := notify.Send(settingsObj.Notifications, title, text, map[string]string{"game": name, "file": filepath.Base(path)}); err != nil {
 		web.sugarLogger.Warnf("Failed to send the save vault message: %v", err)
 	}
 }

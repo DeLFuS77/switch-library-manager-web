@@ -15,6 +15,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -501,7 +502,7 @@ func automationMessage(lang string, result AutomationResult) (string, string) {
 
 func (web *Web) notifyAutomation(result AutomationResult) {
 	settingsObj := settings.ReadSettings(web.dataFolder)
-	if !notificationsConfigured(settingsObj.Notifications) {
+	if !notify.Configured(settingsObj.Notifications) {
 		return
 	}
 	lang := settingsObj.Language
@@ -509,7 +510,7 @@ func (web *Web) notifyAutomation(result AutomationResult) {
 		lang = i18n.DEFAULT_LANGUAGE
 	}
 	title, text := automationMessage(lang, result)
-	if err := sendMessage(settingsObj.Notifications, title, text, result); err != nil {
+	if err := notify.Send(settingsObj.Notifications, title, text, result); err != nil {
 		web.sugarLogger.Warnf("Failed to send the automation message: %v", err)
 	}
 }

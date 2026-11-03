@@ -7,6 +7,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -150,7 +151,7 @@ func (d *diskWatch) anyReported() bool {
 func (web *Web) notifyLowDisks(disks []LowDisk) bool {
 	settingsObj := settings.ReadSettings(web.dataFolder)
 	options := settingsObj.Notifications
-	if !notificationsConfigured(options) {
+	if !notify.Configured(options) {
 		return false
 	}
 	lang := settingsObj.Language
@@ -167,7 +168,7 @@ func (web *Web) notifyLowDisks(disks []LowDisk) bool {
 		text += "• " + i18n.Translatef(lang, "%v: %v", item.Name, item.Detail) + "\n"
 	}
 	text += i18n.Translate(lang, "Free space from the Space page of the app; compressions wait until there is room.")
-	if err := sendMessage(options, title, text, items); err != nil {
+	if err := notify.Send(options, title, text, items); err != nil {
 		web.sugarLogger.Warnf("Failed to send notification: %v", err)
 		return false
 	}

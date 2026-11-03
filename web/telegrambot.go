@@ -11,6 +11,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -79,7 +80,7 @@ func (web *Web) startTelegramBot() {
 // the next ones. Messages from before since (the start of the app) are not answered.
 func (web *Web) pollTelegram(options settings.NotificationOptions, offset int64, since time.Time) (int64, error) {
 	query := url.Values{"timeout": {fmt.Sprint(telegramPollSeconds)}, "offset": {fmt.Sprint(offset)}, "allowed_updates": {`["message","channel_post"]`}}
-	response, err := telegramPollClient.Get(telegramApiUrl + "/bot" + options.TelegramBotToken + "/getUpdates?" + query.Encode())
+	response, err := telegramPollClient.Get(notify.TelegramApiUrl + "/bot" + options.TelegramBotToken + "/getUpdates?" + query.Encode())
 	if err != nil {
 		return offset, errors.New("Telegram does not answer")
 	}
@@ -106,7 +107,7 @@ func (web *Web) pollTelegram(options settings.NotificationOptions, offset int64,
 		if answer == "" {
 			continue
 		}
-		if err := postJSON(telegramApiUrl+"/bot"+options.TelegramBotToken+"/sendMessage", map[string]string{"chat_id": options.TelegramChatId, "text": fitMessage(answer, telegramMessageLimit)}); err != nil {
+		if err := notify.PostJSON(notify.TelegramApiUrl+"/bot"+options.TelegramBotToken+"/sendMessage", map[string]string{"chat_id": options.TelegramChatId, "text": notify.FitMessage(answer, notify.TelegramMessageLimit)}); err != nil {
 			web.sugarLogger.Debugf("Telegram: the answer could not be sent: %v", err)
 		}
 	}
@@ -129,7 +130,7 @@ func (web *Web) setTelegramCommands(options settings.NotificationOptions) {
 	for _, command := range botCommands {
 		commands = append(commands, map[string]string{"command": botCommandName(command.name, command.spanish, lang), "description": i18n.Translate(lang, command.help)})
 	}
-	if err := postJSON(telegramApiUrl+"/bot"+options.TelegramBotToken+"/setMyCommands", map[string]any{"commands": commands}); err != nil {
+	if err := notify.PostJSON(notify.TelegramApiUrl+"/bot"+options.TelegramBotToken+"/setMyCommands", map[string]any{"commands": commands}); err != nil {
 		web.sugarLogger.Debugf("Telegram: the commands could not be set: %v", err)
 	}
 }

@@ -4,12 +4,13 @@ package launch
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"net"
 	"os"
 	"runtime"
 	"strings"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // On a desktop (Windows, macOS) the program is usually started with a double click: the app

@@ -12,6 +12,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -298,7 +299,7 @@ func (web *Web) notifyQueueDone(since time.Time) {
 	}
 	settingsObj := settings.ReadSettings(web.dataFolder)
 	options := settingsObj.Notifications
-	if !notificationsConfigured(options) || options.QueueDoneQuiet {
+	if !notify.Configured(options) || options.QueueDoneQuiet {
 		return
 	}
 	lang := settingsObj.Language
@@ -326,7 +327,7 @@ func (web *Web) notifyQueueDone(since time.Time) {
 		}
 		items = append(items, map[string]any{"kind": task.Kind, "id": task.Id, "status": task.Status})
 	}
-	if err := sendMessage(options, i18n.Translate(lang, "The queue of tasks is done"), strings.Join(lines, "\n"), items); err != nil {
+	if err := notify.Send(options, i18n.Translate(lang, "The queue of tasks is done"), strings.Join(lines, "\n"), items); err != nil {
 		web.sugarLogger.Warnf("Failed to send the notification of the queue: %v", err)
 	}
 }

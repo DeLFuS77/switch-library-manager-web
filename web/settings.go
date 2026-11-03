@@ -3,6 +3,7 @@ package web
 import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"os"
@@ -29,7 +30,7 @@ type SettingsPageData struct {
 	KeysAvailable           bool
 	NotificationsConfigured bool
 	// the notification channels, with where each configured one sends
-	NotifyServices      []NotifyServiceView
+	NotifyServices      []notify.ServiceView
 	SmtpSecurityChoices []string
 	// the last measure of the server, nil when there is none
 	LastMeasure *ServerMeasure
@@ -368,7 +369,7 @@ func (web *Web) HandleSettings() {
 		}
 
 		// the secrets the page got masked are checked as they are saved
-		sent := keptSecrets(settingsForm.notificationOptions(), settings.ReadSettings(web.dataFolder).Notifications)
+		sent := notify.KeptSecrets(settingsForm.notificationOptions(), settings.ReadSettings(web.dataFolder).Notifications)
 		errorResponse.FieldErrors = append(errorResponse.FieldErrors, validateNotifications(sent, lang)...)
 
 		if !validWizardOrganize(settingsForm.OrganizeLayout, settingsForm.KeepDuplicate) {
@@ -440,7 +441,7 @@ func (web *Web) HandleSettings() {
 			appSettings.CompressFilesAtOnce = settingsForm.CompressFilesAtOnce
 			appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
 			appSettings.Language = settingsForm.Language
-			appSettings.Notifications = keptSecrets(settingsForm.notificationOptions(), appSettings.Notifications)
+			appSettings.Notifications = notify.KeptSecrets(settingsForm.notificationOptions(), appSettings.Notifications)
 			if settingsForm.OrganizeLayout != "" {
 				appSettings.OrganizeOptions = wizardOrganize(appSettings.OrganizeOptions, settingsForm.OrganizeLayout,
 					settingsForm.KeepGameFolders, settingsForm.RenameFiles, settingsForm.DeleteEmptyFolders, settingsForm.KeepDuplicate)
@@ -512,7 +513,7 @@ func (web *Web) settingsPageData() SettingsPageData {
 	current := settings.ReadSettings(web.dataFolder)
 	// the secrets of the notifications never go back to the page (see secretMask)
 	shown := *current
-	shown.Notifications = maskedNotifications(current.Notifications)
+	shown.Notifications = notify.Masked(current.Notifications)
 	portal := PortalView{}
 	if web.auth != nil {
 		portal = web.auth.portalView()
@@ -530,8 +531,8 @@ func (web *Web) settingsPageData() SettingsPageData {
 		Quarantine:              web.quarantineSummary(),
 		QuarantineLimits:        quarantineLimits,
 		KeysAvailable:           settings.IsKeysFileAvailable(),
-		NotificationsConfigured: notificationsConfigured(current.Notifications),
-		NotifyServices:          notifyServices(current.Notifications),
+		NotificationsConfigured: notify.Configured(current.Notifications),
+		NotifyServices:          notify.Services(current.Notifications),
 		SmtpSecurityChoices:     settings.SmtpSecurityChoices,
 		AutomationPending:       web.automationPending(),
 		CompressThreadChoices:   compressThreadChoices(),

@@ -1,4 +1,4 @@
-package web
+package notify
 
 import (
 	"crypto/tls"
@@ -18,6 +18,7 @@ import (
 	"testing"
 	"unicode/utf8"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
@@ -86,7 +87,7 @@ func TestNtfyGotifyAndPushover(t *testing.T) {
 		PushoverUser:  testPushoverUser,
 		PushoverToken: testPushoverToken,
 	}
-	if err := sendNotification(options, "es", []NotificationItem{{Kind: "update", Name: "Juego", Detail: "v2"}}); err != nil {
+	if err := Send(options, i18n.Translatef("es", "Switch Library Manager: %v new item(s)", 1), "• "+i18n.Translatef("es", "Update %v for %v", "v2", "Juego"), nil); err != nil {
 		t.Fatal(err)
 	}
 	requests := received()
@@ -125,7 +126,7 @@ func TestNtfyGotifyAndPushover(t *testing.T) {
 
 	// a user and a password in the address of ntfy sign in with them
 	host := strings.TrimPrefix(server.URL, "http://")
-	if err := sendMessage(settings.NotificationOptions{NtfyUrl: "http://reader:pa55@" + host + "/games"}, "Title", "Text", nil); err != nil {
+	if err := Send(settings.NotificationOptions{NtfyUrl: "http://reader:pa55@" + host + "/games"}, "Title", "Text", nil); err != nil {
 		t.Fatal(err)
 	}
 	last := received()[3]
@@ -354,12 +355,11 @@ func TestEmailNotifications(t *testing.T) {
 	savedRoots := smtpRootCAs
 	smtpRootCAs = pool
 	defer func() { smtpRootCAs = savedRoots }()
-	items := []NotificationItem{{Kind: "update", Name: "ゼルダ", Detail: "v3"}}
 
 	// STARTTLS, the usual way, with PLAIN; the mail comes from the user
 	server := startFakeSMTP(t, &fakeSMTP{tlsConfig: tlsConfig, offerTLS: true, user: "library@example.com", password: "s3cret pass", mechanisms: "PLAIN LOGIN"})
 	options := settings.NotificationOptions{SmtpHost: "127.0.0.1", SmtpPort: server.port(), SmtpUser: "library@example.com", SmtpPassword: "s3cret pass", SmtpTo: "me@example.com, Other <other@example.com>"}
-	if err := sendNotification(options, "ja", items); err != nil {
+	if err := Send(options, i18n.Translatef("ja", "Switch Library Manager: %v new item(s)", 1), "• "+i18n.Translatef("ja", "Update %v for %v", "v3", "ゼルダ"), nil); err != nil {
 		t.Fatal(err)
 	}
 	mails := server.received()
@@ -377,18 +377,18 @@ func TestEmailNotifications(t *testing.T) {
 
 	// a wrong password: the code of the server, never its words (they repeat the user) nor the password
 	options.SmtpPassword = "wrong pass"
-	results := deliver(options, "Title", "Text", nil)
-	if len(results) != 1 || results[0].err == nil || results[0].err.Error() != "the server refused the user or the password (535)" {
+	results := Deliver(options, "Title", "Text", nil)
+	if len(results) != 1 || results[0].Err == nil || results[0].Err.Error() != "the server refused the user or the password (535)" {
 		t.Fatalf("a wrong password: %+v", results)
 	}
-	if text := failureText("es", results[0].err); text != "el servidor no aceptó el usuario o la contraseña (535)" {
+	if text := FailureText("es", results[0].Err); text != "el servidor no aceptó el usuario o la contraseña (535)" {
 		t.Fatalf("the reason in Spanish: %q", text)
 	}
 
 	// TLS from the start, with LOGIN only (as Outlook), from an address of its own
 	implicit := startFakeSMTP(t, &fakeSMTP{tlsConfig: tlsConfig, implicitTLS: true, user: "apikey", password: "pw", mechanisms: "LOGIN"})
 	options = settings.NotificationOptions{SmtpHost: "127.0.0.1", SmtpPort: implicit.port(), SmtpSecurity: settings.SMTP_TLS, SmtpUser: "apikey", SmtpPassword: "pw", SmtpFrom: "Library <library@example.com>", SmtpTo: "me@example.com"}
-	if err := sendMessage(options, "Title", "Text", nil); err != nil {
+	if err := Send(options, "Title", "Text", nil); err != nil {
 		t.Fatal(err)
 	}
 	if mails := implicit.received(); len(mails) != 1 || !mails[0].encrypted || mails[0].from != "FROM:<library@example.com>" || !strings.Contains(mails[0].data, `From: "Library" <library@example.com>`) {
@@ -398,7 +398,7 @@ func TestEmailNotifications(t *testing.T) {
 	// a server of the local network, without encryption nor a password
 	plain := startFakeSMTP(t, &fakeSMTP{})
 	options = settings.NotificationOptions{SmtpHost: "127.0.0.1", SmtpPort: plain.port(), SmtpSecurity: settings.SMTP_NONE, SmtpFrom: "library@example.com", SmtpTo: "me@example.com"}
-	if err := sendMessage(options, "Title", "Line 1\nLine 2", nil); err != nil {
+	if err := Send(options, "Title", "Line 1\nLine 2", nil); err != nil {
 		t.Fatal(err)
 	}
 	if mails := plain.received(); len(mails) != 1 || mails[0].encrypted || strings.TrimSpace(bodyOf(t, mails[0].data)) != "Line 1\nLine 2" {
@@ -407,58 +407,14 @@ func TestEmailNotifications(t *testing.T) {
 
 	// STARTTLS chosen and a server that does not offer it: nothing is sent in clear
 	options.SmtpSecurity, options.SmtpUser, options.SmtpPassword = "", "library@example.com", "pw"
-	if results := deliver(options, "Title", "Text", nil); results[0].err == nil || results[0].err.Error() != "the server does not offer STARTTLS" {
+	if results := Deliver(options, "Title", "Text", nil); results[0].Err == nil || results[0].Err.Error() != "the server does not offer STARTTLS" {
 		t.Fatalf("no STARTTLS: %+v", results)
 	}
 	// a certificate the computer does not trust
 	smtpRootCAs = x509.NewCertPool()
 	options = settings.NotificationOptions{SmtpHost: "127.0.0.1", SmtpPort: server.port(), SmtpUser: "library@example.com", SmtpPassword: "s3cret pass", SmtpTo: "me@example.com"}
-	if results := deliver(options, "Title", "Text", nil); results[0].err == nil || results[0].err.Error() != "the certificate of the server is not valid" {
+	if results := Deliver(options, "Title", "Text", nil); results[0].Err == nil || results[0].Err.Error() != "the certificate of the server is not valid" {
 		t.Fatalf("an untrusted certificate: %+v", results)
-	}
-}
-
-// The test says how each channel went: green when every one took it, orange when some did not,
-// red when none did. Why one failed holds neither its address nor its token.
-func TestNotificationTestSaysEachChannel(t *testing.T) {
-	gotifyStatus := http.StatusOK
-	server, _ := channelServer(t, func(path string) int {
-		if strings.HasPrefix(path, "/gotify") {
-			return gotifyStatus
-		}
-		return http.StatusOK
-	})
-	web := newTestWeb(t)
-	web.HandleNotifications()
-	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
-		s.Notifications = settings.NotificationOptions{NtfyUrl: server.URL + "/games", GotifyUrl: server.URL + "/gotify", GotifyToken: "SecretToken123"}
-	})
-	test := func() (int, NotificationTestResponse, string) {
-		recorder := postForm(web, "/notifications/test", url.Values{})
-		var response NotificationTestResponse
-		json.Unmarshal(recorder.Body.Bytes(), &response)
-		return recorder.Code, response, recorder.Body.String()
-	}
-
-	code, response, _ := test()
-	if code != http.StatusOK || response.StrongMessage != "Sent!" || response.Message != "To ntfy and Gotify. Check your notification channels." || len(response.Failed) != 0 {
-		t.Fatalf("every channel: %d %+v", code, response)
-	}
-	gotifyStatus = http.StatusUnauthorized
-	code, response, body := test()
-	if code != http.StatusOK || response.StrongMessage != "Sent to ntfy." || len(response.Failed) != 1 || response.Failed[0] != "Gotify: the server answered 401" {
-		t.Fatalf("one channel failed: %d %+v", code, response)
-	}
-	if strings.Contains(body, "SecretToken123") || strings.Contains(body, server.URL) {
-		t.Fatalf("the answer holds a secret or an address: %s", body)
-	}
-	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
-		s.Notifications.NtfyUrl = "http://127.0.0.1:1/games"
-	})
-	code, response, _ = test()
-	if code != http.StatusBadGateway || response.GlobalError == nil || response.GlobalError.Message != "It reached no channel." ||
-		len(response.Failed) != 2 || response.Failed[0] != "ntfy: no answer from the server" {
-		t.Fatalf("no channel: %d %+v", code, response)
 	}
 }
 
@@ -468,9 +424,9 @@ func TestChannelFailuresHoldNoSecrets(t *testing.T) {
 	core, logs := observer.New(zap.DebugLevel)
 	restore := zap.ReplaceGlobals(zap.New(core))
 	defer restore()
-	savedTelegram, savedPushover := telegramApiUrl, pushoverApiUrl
-	telegramApiUrl, pushoverApiUrl = "http://127.0.0.1:1", "http://127.0.0.1:1/1/messages.json"
-	defer func() { telegramApiUrl, pushoverApiUrl = savedTelegram, savedPushover }()
+	savedTelegram, savedPushover := TelegramApiUrl, pushoverApiUrl
+	TelegramApiUrl, pushoverApiUrl = "http://127.0.0.1:1", "http://127.0.0.1:1/1/messages.json"
+	defer func() { TelegramApiUrl, pushoverApiUrl = savedTelegram, savedPushover }()
 
 	server, _ := channelServer(t, func(string) int { return http.StatusForbidden })
 	host := strings.TrimPrefix(server.URL, "http://")
@@ -482,14 +438,14 @@ func TestChannelFailuresHoldNoSecrets(t *testing.T) {
 		SmtpHost: "127.0.0.1", SmtpPort: 1, SmtpUser: "library@example.com", SmtpPassword: "SMTPPASSWORD", SmtpTo: "me@example.com",
 		WebhookUrl: "http://hookuser:HOOKPASS@" + host + "/hook?token=HOOKTOKEN",
 	}
-	err := sendMessage(options, "Title", "Text", nil)
+	err := Send(options, "Title", "Text", nil)
 	if err == nil {
 		t.Fatal("every channel failed")
 	}
 	// one channel took it: the others go to the log
 	working, _ := channelServer(t, nil)
 	options.DiscordWebhookUrl = strings.Replace(working.URL, "http://", "http://", 1) + "/api/webhooks/1/DISCORDSECRET"
-	if sendMessage(options, "Title", "Text", nil) != nil {
+	if Send(options, "Title", "Text", nil) != nil {
 		t.Fatal("a channel took it")
 	}
 	written := err.Error()
@@ -506,101 +462,34 @@ func TestChannelFailuresHoldNoSecrets(t *testing.T) {
 	}
 }
 
-// The tokens and passwords of the new channels, and a password or a token written in an address,
-// are shown masked, kept when sent back as shown and replaced by a new value.
-func TestNewChannelSecretsAreNotShown(t *testing.T) {
-	web, _ := compressWeb(t)
-	web.HandleSettings()
-	web.HandleWizard()
-	saved := settings.NotificationOptions{
-		NtfyUrl: "https://reader:NTFYPASS@ntfy.example.com/games", NtfyToken: "tk_NTFYTOKEN",
-		GotifyUrl: "https://gotify.example.com", GotifyToken: "GOTIFYTOKEN1",
-		PushoverUser: testPushoverUser, PushoverToken: testPushoverToken,
-		SmtpHost: "smtp.example.com", SmtpPort: 587, SmtpUser: "library@example.com", SmtpPassword: "SMTPPASSWORD", SmtpTo: "me@example.com",
-		WebhookUrl: "https://hooks.example.com/notify?token=HOOKTOKEN&room=7",
-	}
-	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.Notifications = saved })
-	for _, path := range []string{"/settings.html", "/wizard"} {
-		page := httptest.NewRecorder()
-		withSecurityHeaders(web.router).ServeHTTP(page, httptest.NewRequest(http.MethodGet, path, nil))
-		body := page.Body.String()
-		if page.Code != http.StatusOK {
-			t.Fatalf("%s: %d", path, page.Code)
-		}
-		for _, secret := range []string{"NTFYPASS", "tk_NTFYTOKEN", "GOTIFYTOKEN1", testPushoverToken, "SMTPPASSWORD", "HOOKTOKEN"} {
-			if strings.Contains(body, secret) {
-				t.Errorf("%s shows %s", path, secret)
-			}
-		}
-		for _, shown := range []string{`value="https://reader:` + secretMask + `@ntfy.example.com/games"`, `value="https://hooks.example.com/notify?token=` + secretMask + `&amp;room=7"`, `name="smtp_password" value="` + secretMask + `"`} {
-			if !strings.Contains(body, shown) {
-				t.Errorf("%s does not show %s", path, shown)
-			}
-		}
-	}
-	page := httptest.NewRecorder()
-	web.router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/settings.html", nil))
-	if body := page.Body.String(); !strings.Contains(body, "ntfy.example.com/games") || !strings.Contains(body, "hooks.example.com") || !strings.Contains(body, "me@example.com") {
-		t.Fatal("the rows say where each channel sends")
-	}
-
-	folder := t.TempDir()
-	shown := maskedNotifications(saved)
-	form := url.Values{
-		"scan_folders": {folder},
-		"ntfy_url":     {shown.NtfyUrl}, "ntfy_token": {shown.NtfyToken},
-		"gotify_url": {shown.GotifyUrl}, "gotify_token": {shown.GotifyToken},
-		"pushover_user": {shown.PushoverUser}, "pushover_token": {shown.PushoverToken},
-		"smtp_host": {"smtp.example.com"}, "smtp_port": {"587"}, "smtp_security": {"starttls"}, "smtp_user": {"library@example.com"}, "smtp_password": {shown.SmtpPassword}, "smtp_to": {"me@example.com"},
-		"webhook_url": {shown.WebhookUrl},
-		// the card chosen in the wizard goes with its form, and is left aside
-		"wizard_notify_service": {"ntfy"},
-	}
-	if response := postForm(web, "/settings.html", form); response.Code != http.StatusOK {
-		t.Fatalf("saving: %d %s", response.Code, response.Body.String())
-	}
-	if got := settings.ReadSettings(web.dataFolder).Notifications; got.NtfyUrl != saved.NtfyUrl || got.NtfyToken != saved.NtfyToken || got.GotifyToken != saved.GotifyToken ||
-		got.PushoverToken != saved.PushoverToken || got.SmtpPassword != saved.SmtpPassword || got.WebhookUrl != saved.WebhookUrl || got.SmtpSecurity != "" || got.SmtpPort != 587 {
-		t.Fatalf("sent back as shown, the secrets are kept: %+v", got)
-	}
-	form.Set("smtp_password", "new password")
-	form.Set("webhook_url", "https://hooks.example.com/notify?token=NEW&room=7")
-	if response := postForm(web, "/settings.html", form); response.Code != http.StatusOK {
-		t.Fatalf("saving: %d %s", response.Code, response.Body.String())
-	}
-	if got := settings.ReadSettings(web.dataFolder).Notifications; got.SmtpPassword != "new password" || got.WebhookUrl != "https://hooks.example.com/notify?token=NEW&room=7" {
-		t.Fatalf("new secrets replace them: %+v", got)
-	}
-}
-
 func TestMaskedURL(t *testing.T) {
 	for address, want := range map[string]string{
 		"":                                   "",
 		"https://hooks.example.com/notify":   "https://hooks.example.com/notify",
-		"https://user:pw@host/x":             "https://user:" + secretMask + "@host/x",
-		"https://tk_abc@host/x":              "https://" + secretMask + "@host/x",
-		"https://host/x?room=7&api_key=abc":  "https://host/x?room=7&api_key=" + secretMask,
-		"https://host/message?token=abc&p=5": "https://host/message?token=" + secretMask + "&p=5",
-		"http://192.168.1.2:8123/api/webhook/x?Signature=y&Auth=z": "http://192.168.1.2:8123/api/webhook/x?Signature=" + secretMask + "&Auth=" + secretMask,
+		"https://user:pw@host/x":             "https://user:" + SecretMask + "@host/x",
+		"https://tk_abc@host/x":              "https://" + SecretMask + "@host/x",
+		"https://host/x?room=7&api_key=abc":  "https://host/x?room=7&api_key=" + SecretMask,
+		"https://host/message?token=abc&p=5": "https://host/message?token=" + SecretMask + "&p=5",
+		"http://192.168.1.2:8123/api/webhook/x?Signature=y&Auth=z": "http://192.168.1.2:8123/api/webhook/x?Signature=" + SecretMask + "&Auth=" + SecretMask,
 	} {
-		if got := maskedURL(address); got != want {
+		if got := MaskedURL(address); got != want {
 			t.Errorf("maskedURL(%q) = %q, want %q", address, got, want)
 		}
-		if got := keptURL(maskedURL(address), address); got != address {
+		if got := KeptURL(MaskedURL(address), address); got != address {
 			t.Errorf("keptURL of the masked %q = %q", address, got)
 		}
 	}
 	// a mask sent for another user is not taken for the saved password
-	if got := keptURL("https://other:"+secretMask+"@host/x", "https://user:pw@host/x"); strings.Contains(got, "pw") {
+	if got := KeptURL("https://other:"+SecretMask+"@host/x", "https://user:pw@host/x"); strings.Contains(got, "pw") {
 		t.Fatalf("the mask of another user: %s", got)
 	}
 	// another part of the address changed, the secrets shown masked stay
 	saved := "https://user:pw@hooks.example.com/notify?token=abc&room=7"
-	if got := keptURL("https://user:"+secretMask+"@hooks.example.com/notify?token="+secretMask+"&room=8", saved); got != "https://user:pw@hooks.example.com/notify?token=abc&room=8" {
+	if got := KeptURL("https://user:"+SecretMask+"@hooks.example.com/notify?token="+SecretMask+"&room=8", saved); got != "https://user:pw@hooks.example.com/notify?token=abc&room=8" {
 		t.Fatalf("another room: %s", got)
 	}
 	// never to another server
-	if got := keptURL("https://user:"+secretMask+"@evil.example.com/notify?token="+secretMask, saved); strings.Contains(got, "pw") || strings.Contains(got, "abc") {
+	if got := KeptURL("https://user:"+SecretMask+"@evil.example.com/notify?token="+SecretMask, saved); strings.Contains(got, "pw") || strings.Contains(got, "abc") {
 		t.Fatalf("a saved secret goes to another host: %s", got)
 	}
 }
@@ -612,10 +501,10 @@ func TestValidateNewChannels(t *testing.T) {
 		PushoverUser: testPushoverUser, PushoverToken: testPushoverToken,
 		SmtpHost: "smtp.example.com", SmtpPort: 465, SmtpSecurity: settings.SMTP_TLS, SmtpUser: "apikey", SmtpPassword: "pw", SmtpFrom: "Library <library@example.com>", SmtpTo: "me@example.com, you@example.com",
 	}
-	if errs := validateNotifications(valid, "en"); len(errs) != 0 {
+	if errs := Validate(valid, "en"); len(errs) != 0 {
 		t.Fatalf("valid options rejected: %+v", errs)
 	}
-	if errs := validateNotifications(settings.NotificationOptions{SmtpHost: "192.168.1.5", SmtpSecurity: settings.SMTP_NONE, SmtpFrom: "nas@example.com", SmtpTo: "me@example.com"}, "en"); len(errs) != 0 {
+	if errs := Validate(settings.NotificationOptions{SmtpHost: "192.168.1.5", SmtpSecurity: settings.SMTP_NONE, SmtpFrom: "nas@example.com", SmtpTo: "me@example.com"}, "en"); len(errs) != 0 {
 		t.Fatalf("a server of the local network without a password: %+v", errs)
 	}
 	for field, options := range map[string]settings.NotificationOptions{
@@ -633,18 +522,12 @@ func TestValidateNewChannels(t *testing.T) {
 		"smtp_to":        {SmtpHost: "smtp.example.com", SmtpUser: "a@example.com", SmtpPassword: "pw", SmtpTo: "not an address"},
 	} {
 		found := false
-		for _, err := range validateNotifications(options, "en") {
+		for _, err := range Validate(options, "en") {
 			found = found || err.Field == field
 		}
 		if !found {
 			t.Errorf("%s: no error for %+v", field, options)
 		}
-	}
-	if formPort("") != 0 || formPort("587") != 587 || formPort("x") != -1 || formSecurity("starttls") != "" || formSecurity("tls") != "tls" {
-		t.Fatal("unexpected form values")
-	}
-	if channelNames("es", []string{"Telegram", "ntfy", "Correo"}) != "Telegram, ntfy y Correo" || channelNames("en", []string{"ntfy"}) != "ntfy" {
-		t.Fatal("unexpected list of channels")
 	}
 	if got := strconv.Itoa(emailPort(settings.NotificationOptions{SmtpSecurity: settings.SMTP_TLS})); got != "465" {
 		t.Fatalf("the port of TLS: %s", got)

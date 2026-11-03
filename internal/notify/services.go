@@ -1,4 +1,4 @@
-package web
+package notify
 
 import (
 	"bytes"
@@ -69,8 +69,8 @@ func failed(text string, args ...any) error {
 	return sendFailure{text: text, args: args}
 }
 
-// failureText is why a channel did not take a message, in a language.
-func failureText(lang string, err error) string {
+// FailureText is why a channel did not take a message, in a language.
+func FailureText(lang string, err error) string {
 	var failure sendFailure
 	if errors.As(err, &failure) {
 		return i18n.Translatef(lang, failure.text, failure.args...)
@@ -154,12 +154,12 @@ func sendPushover(options settings.NotificationOptions, title string, text strin
 		"token":   {options.PushoverToken},
 		"user":    {options.PushoverUser},
 		"title":   {title},
-		"message": {fitMessage(text, pushoverMessageLimit)},
+		"message": {FitMessage(text, pushoverMessageLimit)},
 	}
 	return post(pushoverApiUrl, "application/x-www-form-urlencoded", []byte(form.Encode()), nil)
 }
 
-// fitBytes is fitMessage for a channel whose limit is in bytes.
+// fitBytes is FitMessage for a channel whose limit is in bytes.
 func fitBytes(text string, limit int) string {
 	if len(text) <= limit {
 		return text
@@ -380,10 +380,10 @@ func emailMessage(from *mail.Address, to []*mail.Address, subject string, text s
 	return message.Bytes()
 }
 
-// maskedURL is an address with the mask in place of a password written in it, and of the values
+// MaskedURL is an address with the mask in place of a password written in it, and of the values
 // of the parameters that look like secrets: https://user:********@host/notify?token=********. A
 // user without a password may be a token: it is masked too.
-func maskedURL(address string) string {
+func MaskedURL(address string) string {
 	parsed, err := url.Parse(address)
 	if err != nil || address == "" {
 		return address
@@ -391,9 +391,9 @@ func maskedURL(address string) string {
 	// written by hand: the address would write the mask escaped
 	userinfo := ""
 	if parsed.User != nil {
-		userinfo = secretMask + "@"
+		userinfo = SecretMask + "@"
 		if _, ok := parsed.User.Password(); ok {
-			userinfo = url.User(parsed.User.Username()).String() + ":" + secretMask + "@"
+			userinfo = url.User(parsed.User.Username()).String() + ":" + SecretMask + "@"
 		}
 		parsed.User = nil
 	}
@@ -402,7 +402,7 @@ func maskedURL(address string) string {
 		parameters := strings.Split(parsed.RawQuery, "&")
 		for i, parameter := range parameters {
 			if name, _, found := strings.Cut(parameter, "="); found && secretParameterRegex.MatchString(name) {
-				parameters[i] = name + "=" + secretMask
+				parameters[i] = name + "=" + SecretMask
 				changed = true
 			}
 		}
@@ -415,14 +415,14 @@ func maskedURL(address string) string {
 	return prefix + userinfo + strings.TrimPrefix(parsed.String(), prefix)
 }
 
-// keptURL is the address sent by a form, with the saved secrets where the form sent the mask:
+// KeptURL is the address sent by a form, with the saved secrets where the form sent the mask:
 // also when another part of the address was changed, but only for the same host, so a secret
 // never goes to another server.
-func keptURL(sent string, saved string) string {
-	if sent == "" || saved == "" || !strings.Contains(sent, secretMask) {
+func KeptURL(sent string, saved string) string {
+	if sent == "" || saved == "" || !strings.Contains(sent, SecretMask) {
 		return sent
 	}
-	if sent == maskedURL(saved) {
+	if sent == MaskedURL(saved) {
 		return saved
 	}
 	sentURL, err := url.Parse(sent)
@@ -437,9 +437,9 @@ func keptURL(sent string, saved string) string {
 		password, hasPassword := sentURL.User.Password()
 		savedPassword, savedHasPassword := savedURL.User.Password()
 		switch {
-		case hasPassword && password == secretMask && savedHasPassword && sentURL.User.Username() == savedURL.User.Username():
+		case hasPassword && password == SecretMask && savedHasPassword && sentURL.User.Username() == savedURL.User.Username():
 			sentURL.User = url.UserPassword(savedURL.User.Username(), savedPassword)
-		case !hasPassword && sentURL.User.Username() == secretMask && !savedHasPassword:
+		case !hasPassword && sentURL.User.Username() == SecretMask && !savedHasPassword:
 			sentURL.User = savedURL.User
 		}
 	}
@@ -451,7 +451,7 @@ func keptURL(sent string, saved string) string {
 	}
 	parameters := strings.Split(sentURL.RawQuery, "&")
 	for i, parameter := range parameters {
-		if name, value, found := strings.Cut(parameter, "="); found && value == secretMask {
+		if name, value, found := strings.Cut(parameter, "="); found && value == SecretMask {
 			if savedValue, ok := savedValues[name]; ok {
 				parameters[i] = name + "=" + savedValue
 			}
@@ -463,7 +463,7 @@ func keptURL(sent string, saved string) string {
 
 // keptSecret is a secret sent by a form, or the saved one when the form sent the mask.
 func keptSecret(sent string, saved string) string {
-	if sent == secretMask && saved != "" {
+	if sent == SecretMask && saved != "" {
 		return saved
 	}
 	return sent
@@ -474,11 +474,11 @@ func maskedSecret(secret string) string {
 	if secret == "" {
 		return ""
 	}
-	return secretMask
+	return SecretMask
 }
 
-// NotifyServiceView is a notification channel as the Settings page and the wizard show it.
-type NotifyServiceView struct {
+// ServiceView is a notification channel as the Settings page and the wizard show it.
+type ServiceView struct {
 	Key string
 	// in English, translated by the page
 	Name string
@@ -487,10 +487,10 @@ type NotifyServiceView struct {
 	Target string
 }
 
-// notifyServices are the notification channels in the order of the pages.
-func notifyServices(options settings.NotificationOptions) []NotifyServiceView {
+// Services are the notification channels in the order of the pages.
+func Services(options settings.NotificationOptions) []ServiceView {
 	targets := notificationTargets(options)
-	services := []NotifyServiceView{
+	services := []ServiceView{
 		{Key: "discord", Name: "Discord", Icon: "bi-discord"},
 		{Key: "telegram", Name: "Telegram", Icon: "bi-telegram"},
 		{Key: "ntfy", Name: "ntfy", Icon: "bi-bell"},
