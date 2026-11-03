@@ -153,7 +153,7 @@ func TestVaultTakesBigBackups(t *testing.T) {
 
 func TestVaultPathStaysInside(t *testing.T) {
 	web := newTestWeb(t)
-	for _, bad := range []string{"../settings.json", "JKSV/../../x.zip", "JKSV/game/save.dat", ""} {
+	for _, bad := range []string{"../settings.json", "JKSV/../../x.zip", "JKSV/game/save.dat", "", `..\..\x.zip`, `JKSV\..\..\x.zip`} {
 		if path, ok := web.vaultPath(bad); ok && !strings.HasPrefix(path, web.vaultRoot()) || ok && !strings.HasSuffix(path, ".zip") {
 			t.Errorf("%q gives %q", bad, path)
 		}

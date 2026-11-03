@@ -466,7 +466,8 @@ func (web *Web) saveGames(lang string) []SaveGame {
 // vaultPath resolves a path of the vault given by a page, refusing anything outside it.
 func (web *Web) vaultPath(relative string) (string, bool) {
 	root := web.vaultRoot()
-	clean := filepath.Clean(filepath.FromSlash("/" + relative))
+	// cleaned from a leading slash, the path cannot climb above the root
+	clean := filepath.Clean("/" + filepath.FromSlash(relative))
 	path := filepath.Join(root, clean)
 	inside, err := filepath.Rel(root, path)
 	if err != nil || inside == "." || strings.HasPrefix(inside, "..") || !strings.EqualFold(filepath.Ext(path), ".zip") {
