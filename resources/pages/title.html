@@ -187,7 +187,7 @@
 							{{- if .Normally}}<span><span class="time-to-beat-value">{{hours .Normally}}</span><span class="fact-sub">{{t "Story"}}</span></span>{{end}}
 							{{- if .Hastily}}<span><span class="time-to-beat-value">{{hours .Hastily}}</span><span class="fact-sub">{{t "Quick"}}</span></span>{{end}}
 							{{- if .Completely}}<span><span class="time-to-beat-value">{{hours .Completely}}</span><span class="fact-sub">{{t "100%"}}</span></span>{{end}}
-							<a class="time-to-beat-source" href="{{.Url}}" target="_blank" rel="noopener noreferrer">{{t "Data from IGDB"}}{{if .Count}} · {{t "%v players" .Count}}{{end}}</a>
+							<span class="time-to-beat-source">{{t "Data from IGDB"}}{{if .Count}} · {{t "%v players" .Count}}{{end}}</span>
 						</dd>
 					</div>
 					{{- end}}{{end}}

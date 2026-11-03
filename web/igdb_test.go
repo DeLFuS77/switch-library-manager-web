@@ -72,8 +72,8 @@ func TestIgdbLookup(t *testing.T) {
 	if len(value.Collections) != 1 || value.Collections[0] != 77 || !value.SeriesChecked {
 		t.Fatalf("the series of the game: %+v", value)
 	}
-	if value.Main() != 54000 || value.Url() != "https://www.igdb.com/games/star-odyssey" || !value.Checked.Equal(now) {
-		t.Fatalf("main %d, url %s", value.Main(), value.Url())
+	if value.Main() != 54000 || value.Slug != "star-odyssey" || !value.Checked.Equal(now) {
+		t.Fatalf("main %d, slug %s", value.Main(), value.Slug)
 	}
 	if value.Critics() != 85 || value.CriticCount != 23 || value.Users() != 78 || value.UserCount != 140 || !value.HasScores() || !value.ScoresChecked {
 		t.Fatalf("the scores of the game: %+v", value)

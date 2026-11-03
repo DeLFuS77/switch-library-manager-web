@@ -130,14 +130,6 @@ func (t TimeToBeat) Main() int {
 	return t.Hastily
 }
 
-// Url is the page of the game on IGDB, for the attribution.
-func (t TimeToBeat) Url() string {
-	if t.Slug == "" {
-		return "https://www.igdb.com"
-	}
-	return "https://www.igdb.com/games/" + url.PathEscape(t.Slug)
-}
-
 // hoursText formats seconds as hours, rounded: "~12 h", "~1.5 h", "<1 h".
 func hoursText(seconds int) string {
 	hours := float64(seconds) / 3600
