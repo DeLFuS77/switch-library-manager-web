@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -480,7 +481,7 @@ func (web *Web) HandleUploads() {
 			writeGlobalError(w, http.StatusConflict, lang, UPLOAD_EXISTS)
 			return
 		}
-		err := commitFile(upload.part, upload.final)
+		err := durable.CommitFile(upload.part, upload.final)
 		if err != nil {
 			// the task ends with the failure instead of staying at 100%, and the file sent is
 			// removed: sending it again starts over

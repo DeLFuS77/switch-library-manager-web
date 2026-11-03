@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -55,8 +56,8 @@ type automationBatch struct {
 func (web *Web) automation() *automationQueue {
 	web.automationOnce.Do(func() {
 		queue := &automationQueue{path: filepath.Join(web.dataFolder, AUTOMATION_FILENAME)}
-		if data, ok := readStore(queue.path); ok {
-			parseStore(queue.path, data, queue)
+		if data, ok := durable.ReadStore(queue.path); ok {
+			durable.ParseStore(queue.path, data, queue)
 		}
 		// the app stopped while the automations were working on these files
 		queue.giveBack()
@@ -92,7 +93,7 @@ func (q *automationQueue) save() {
 		return
 	}
 	if data, err := json.Marshal(q); err == nil {
-		writeFileAtomic(q.path, data)
+		durable.WriteFile(q.path, data)
 	}
 }
 

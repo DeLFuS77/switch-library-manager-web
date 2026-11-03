@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"net/http"
 	"path/filepath"
 	"sort"
@@ -45,8 +46,8 @@ func (web *Web) collections() *collectionStore {
 // reload reads the collections again, also after a backup was restored.
 func (c *collectionStore) reload() {
 	games := map[string][]string{}
-	if data, ok := readStore(c.path); ok {
-		parseStore(c.path, data, &games)
+	if data, ok := durable.ReadStore(c.path); ok {
+		durable.ParseStore(c.path, data, &games)
 	}
 	c.mutex.Lock()
 	c.games = games
@@ -133,7 +134,7 @@ func (c *collectionStore) set(ids []string, name string, add bool) error {
 	if err != nil {
 		return err
 	}
-	return writeFileAtomic(c.path, data)
+	return durable.WriteFile(c.path, data)
 }
 
 func (web *Web) HandleCollections() {

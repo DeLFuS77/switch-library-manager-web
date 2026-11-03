@@ -9,12 +9,12 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
-	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"go.uber.org/zap"
 )
 
@@ -738,18 +738,6 @@ func writeDurably(path string, data []byte) error {
 	}
 	// a file written by an older version keeps its permissions otherwise
 	os.Chmod(path, 0600)
-	syncFolder(filepath.Dir(path))
+	durable.SyncFolder(filepath.Dir(path))
 	return nil
-}
-
-// syncFolder writes the names of a folder to the disk, a rename among them. Windows has no
-// way to, and keeps them in the journal of NTFS on its own.
-func syncFolder(folder string) {
-	if runtime.GOOS == "windows" {
-		return
-	}
-	if file, err := os.Open(folder); err == nil {
-		file.Sync()
-		file.Close()
-	}
 }

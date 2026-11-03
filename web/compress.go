@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -385,7 +386,7 @@ func (web *Web) convertFile(ctx context.Context, path string, deleteOriginal boo
 	if same, err := switchfs.HoldsSameContents(path, temporary); err != nil || !same {
 		return errors.New("the converted file does not hold every content of the card")
 	}
-	if err := commitFile(temporary, target); err != nil {
+	if err := durable.CommitFile(temporary, target); err != nil {
 		return err
 	}
 	web.verifications().remember(target, written)
@@ -1210,7 +1211,7 @@ func (web *Web) compressFile(ctx context.Context, path string, level string, del
 		}
 		return 0, &notContentError{err}
 	}
-	if err := commitFile(temporary, target); err != nil {
+	if err := durable.CommitFile(temporary, target); err != nil {
 		return 0, err
 	}
 	web.rememberWritten(target)
@@ -1268,7 +1269,7 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 	if err != nil {
 		return err
 	}
-	if err := commitFile(temporary, target); err != nil {
+	if err := durable.CommitFile(temporary, target); err != nil {
 		return err
 	}
 	web.verifications().remember(target, written)

@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -34,8 +35,8 @@ func (web *Web) regionChoices() *regionChoices {
 // reload reads the file again (a backup was restored).
 func (c *regionChoices) reload() {
 	ids := map[string]bool{}
-	if data, ok := readStore(c.path); ok {
-		parseStore(c.path, data, &ids)
+	if data, ok := durable.ReadStore(c.path); ok {
+		durable.ParseStore(c.path, data, &ids)
 	}
 	if ids == nil {
 		ids = map[string]bool{}
@@ -68,7 +69,7 @@ func (c *regionChoices) choose(id string, group []string) {
 		c.ids[strings.ToUpper(id)] = true
 	}
 	if data, err := json.Marshal(c.ids); err == nil {
-		writeFileAtomic(c.path, data)
+		durable.WriteFile(c.path, data)
 	}
 }
 

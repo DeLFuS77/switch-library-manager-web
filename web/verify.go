@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -160,9 +161,9 @@ type verifyFile struct {
 
 func loadVerifyStore(dataFolder string) *verifyStore {
 	store := &verifyStore{path: filepath.Join(dataFolder, VERIFY_FILENAME), records: map[string]verifyRecord{}, signatures: map[string]signatureRecord{}}
-	if data, ok := readStore(store.path); ok {
+	if data, ok := durable.ReadStore(store.path); ok {
 		saved := verifyFile{}
-		if parseStore(store.path, data, &saved) == nil && saved.Records != nil {
+		if durable.ParseStore(store.path, data, &saved) == nil && saved.Records != nil {
 			store.records = saved.Records
 			store.LastRun = saved.LastRun
 			if saved.Signatures != nil {
@@ -196,7 +197,7 @@ func (s *verifyStore) save() error {
 	if err != nil {
 		return err
 	}
-	return writeFileAtomic(s.path, data)
+	return durable.WriteFile(s.path, data)
 }
 
 // current returns the record of a file if it is still valid for the file as it is now.

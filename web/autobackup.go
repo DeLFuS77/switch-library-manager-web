@@ -3,6 +3,7 @@ package web
 import (
 	"bytes"
 	"errors"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -74,7 +75,7 @@ func (web *Web) makeAutoBackup(now time.Time) error {
 	if err := web.writeBackup(buffer); err != nil {
 		return err
 	}
-	if err := writeFileAtomic(filepath.Join(folder, "slm-backup-"+now.Format("2006-01-02")+".zip"), buffer.Bytes()); err != nil {
+	if err := durable.WriteFile(filepath.Join(folder, "slm-backup-"+now.Format("2006-01-02")+".zip"), buffer.Bytes()); err != nil {
 		return err
 	}
 	backups := web.autoBackups()

@@ -1,4 +1,7 @@
-package web
+// Package durable writes files so that a crash, a full disk or a power cut never leaves a
+// file cut or empty, and reads the JSON files of the data folder without taking one that
+// cannot be read for an empty one.
+package durable
 
 import (
 	"os"
@@ -6,17 +9,17 @@ import (
 	"runtime"
 )
 
-// commitFile gives a file written under a temporary name its own name for good: its bytes
+// CommitFile gives a file written under a temporary name its own name for good: its bytes
 // reach the disk before the rename, and the rename before anything else is deleted, so a
 // power cut never leaves the new file empty or missing with the original already gone.
-func commitFile(temporary string, target string) error {
+func CommitFile(temporary string, target string) error {
 	if err := syncFile(temporary); err != nil {
 		return err
 	}
 	if err := os.Rename(temporary, target); err != nil {
 		return err
 	}
-	syncFolder(filepath.Dir(target))
+	SyncFolder(filepath.Dir(target))
 	return nil
 }
 
@@ -33,9 +36,9 @@ func syncFile(path string) error {
 	return file.Close()
 }
 
-// syncFolder writes the names of a folder to the disk, a rename among them. Windows has no
+// SyncFolder writes the names of a folder to the disk, a rename among them. Windows has no
 // way to, and keeps them in the journal of NTFS on its own.
-func syncFolder(folder string) {
+func SyncFolder(folder string) {
 	if runtime.GOOS == "windows" {
 		return
 	}

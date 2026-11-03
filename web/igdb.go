@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -107,8 +108,8 @@ type timeToBeatStore struct {
 func (web *Web) timesToBeat() *timeToBeatStore {
 	web.timeToBeatOnce.Do(func() {
 		store := &timeToBeatStore{path: filepath.Join(web.dataFolder, TIMETOBEAT_FILENAME), games: map[string]TimeToBeat{}}
-		if data, ok := readStore(store.path); ok {
-			parseStore(store.path, data, &store.games)
+		if data, ok := durable.ReadStore(store.path); ok {
+			durable.ParseStore(store.path, data, &store.games)
 		}
 		web.timeToBeat = store
 	})
@@ -159,7 +160,7 @@ func (s *timeToBeatStore) save() error {
 	if err != nil {
 		return err
 	}
-	return writeFileAtomic(s.path, data)
+	return durable.WriteFile(s.path, data)
 }
 
 // needsLookup reports whether a game is looked up: never looked up, or a while ago.

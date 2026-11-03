@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -349,7 +350,7 @@ func (web *Web) makePack(ctx context.Context, sources []string, target string, s
 	if err != nil {
 		return 0, err
 	}
-	if err := commitFile(temporary, target); err != nil {
+	if err := durable.CommitFile(temporary, target); err != nil {
 		return 0, err
 	}
 	web.verifications().remember(target, written)

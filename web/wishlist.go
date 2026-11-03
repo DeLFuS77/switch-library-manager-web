@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"net/http"
 	"path/filepath"
 	"regexp"
@@ -31,8 +32,8 @@ type wishlist struct {
 func (web *Web) wishes() *wishlist {
 	web.wishOnce.Do(func() {
 		list := &wishlist{path: filepath.Join(web.dataFolder, WISHLIST_FILENAME), games: map[string]time.Time{}}
-		if data, ok := readStore(list.path); ok {
-			parseStore(list.path, data, &list.games)
+		if data, ok := durable.ReadStore(list.path); ok {
+			durable.ParseStore(list.path, data, &list.games)
 		}
 		web.wish = list
 	})
@@ -111,15 +112,15 @@ func (w *wishlist) removeOwned(owned func(id string) bool) bool {
 
 func (w *wishlist) saveLocked() {
 	if data, err := json.MarshalIndent(w.games, "", " "); err == nil {
-		writeFileAtomic(w.path, data)
+		durable.WriteFile(w.path, data)
 	}
 }
 
 // reload reads the list again, after a backup was restored.
 func (w *wishlist) reload() {
 	games := map[string]time.Time{}
-	if data, ok := readStore(w.path); ok {
-		parseStore(w.path, data, &games)
+	if data, ok := durable.ReadStore(w.path); ok {
+		durable.ParseStore(w.path, data, &games)
 	}
 	w.mutex.Lock()
 	w.games = games

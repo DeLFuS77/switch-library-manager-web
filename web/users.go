@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"errors"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -339,7 +340,7 @@ func (s *UserStore) save() error {
 	if err != nil {
 		return err
 	}
-	return writeFileAtomic(s.path, data)
+	return durable.WriteFile(s.path, data)
 }
 
 func hashPassword(password string) (string, error) {

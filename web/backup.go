@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -224,7 +225,7 @@ func (web *Web) restoreBackup(data []byte, firstUsers func() error) error {
 			if err := os.MkdirAll(filepath.Dir(web.overrideCoverPath(cover)), 0755); err != nil {
 				return err
 			}
-			if err := writeFileAtomic(web.overrideCoverPath(cover), content); err != nil {
+			if err := durable.WriteFile(web.overrideCoverPath(cover), content); err != nil {
 				return err
 			}
 		}

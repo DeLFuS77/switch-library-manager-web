@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -45,8 +46,8 @@ func (web *Web) smartCollections() *smartCollectionStore {
 // reload reads them again, also after a backup was restored.
 func (s *smartCollectionStore) reload() {
 	items := []SmartCollection{}
-	if data, ok := readStore(s.path); ok {
-		parseStore(s.path, data, &items)
+	if data, ok := durable.ReadStore(s.path); ok {
+		durable.ParseStore(s.path, data, &items)
 	}
 	if items == nil {
 		items = []SmartCollection{}
@@ -67,7 +68,7 @@ func (s *smartCollectionStore) save() error {
 	if err != nil {
 		return err
 	}
-	return writeFileAtomic(s.path, data)
+	return durable.WriteFile(s.path, data)
 }
 
 // put keeps a smart collection, replacing the one of the same name.

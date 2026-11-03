@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -95,8 +96,8 @@ func (web *Web) quarantine() *quarantineStore {
 
 func loadQuarantine(dataFolder string) *quarantineStore {
 	store := &quarantineStore{path: filepath.Join(dataFolder, QUARANTINE_FILENAME)}
-	if data, ok := readStore(store.path); ok {
-		parseStore(store.path, data, &store.items)
+	if data, ok := durable.ReadStore(store.path); ok {
+		durable.ParseStore(store.path, data, &store.items)
 	}
 	return store
 }
@@ -108,7 +109,7 @@ func (q *quarantineStore) save() {
 		return
 	}
 	if data, err := json.Marshal(q.items); err == nil {
-		writeFileAtomic(q.path, data)
+		durable.WriteFile(q.path, data)
 	}
 }
 
@@ -230,7 +231,7 @@ func (web *Web) putInQuarantine(appSettings *settings.AppSettings, path string, 
 		web.sugarLogger.Warnf("[Quarantine] %s could not be kept, it is deleted: %v", path, err)
 		return os.Remove(path)
 	}
-	syncFolder(folder)
+	durable.SyncFolder(folder)
 	q.items = append(q.items, QuarantineItem{Id: id, Path: path, Stored: stored, Root: root, Size: info.Size(), Reason: reason, Time: now})
 	q.trim(appSettings.Quarantine.LimitGB)
 	q.save()
@@ -301,7 +302,7 @@ func (q *quarantineStore) restore(id string) (QuarantineItem, error) {
 		if err := os.Rename(item.Stored, item.Path); err != nil {
 			return item, err
 		}
-		syncFolder(filepath.Dir(item.Path))
+		durable.SyncFolder(filepath.Dir(item.Path))
 		item.erase()
 		q.take(id)
 		q.save()

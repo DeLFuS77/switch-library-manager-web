@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -495,7 +496,7 @@ func copyFileTo(ctx context.Context, source string, target string, progress func
 	if err := os.Rename(temporary, target); err != nil {
 		return err
 	}
-	syncFolder(filepath.Dir(target))
+	durable.SyncFolder(filepath.Dir(target))
 	return nil
 }
 

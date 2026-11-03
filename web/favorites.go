@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"errors"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"io/fs"
 	"net/http"
 	"os"
@@ -75,8 +76,8 @@ func (web *Web) migrateFavoriteCollection(store *favoriteStore) {
 // reload reads the favorites again, also after a backup was restored.
 func (f *favoriteStore) reload() {
 	games := map[string]time.Time{}
-	if data, ok := readStore(f.path); ok {
-		parseStore(f.path, data, &games)
+	if data, ok := durable.ReadStore(f.path); ok {
+		durable.ParseStore(f.path, data, &games)
 	}
 	f.mutex.Lock()
 	f.games = games
@@ -144,7 +145,7 @@ func (f *favoriteStore) save() error {
 	if err != nil {
 		return err
 	}
-	return writeFileAtomic(f.path, data)
+	return durable.WriteFile(f.path, data)
 }
 
 func (web *Web) HandleFavorites() {

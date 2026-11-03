@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -35,8 +36,8 @@ type titleKeyStore struct {
 func (web *Web) titleKeys() *titleKeyStore {
 	web.titleKeysOnce.Do(func() {
 		store := &titleKeyStore{path: filepath.Join(web.dataFolder, TITLEKEYS_FILENAME), files: map[string]titleKeyCheck{}}
-		if data, ok := readStore(store.path); ok {
-			parseStore(store.path, data, &store.files)
+		if data, ok := durable.ReadStore(store.path); ok {
+			durable.ParseStore(store.path, data, &store.files)
 		}
 		if store.files == nil {
 			store.files = map[string]titleKeyCheck{}
@@ -56,7 +57,7 @@ func (s *titleKeyStore) save() {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	if data, err := json.Marshal(s.files); err == nil {
-		writeFileAtomic(s.path, data)
+		durable.WriteFile(s.path, data)
 	}
 }
 

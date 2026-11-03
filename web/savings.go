@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -65,8 +66,8 @@ func ratioKeys(kind string, path string) []string {
 func (web *Web) ratios() *ratioStore {
 	web.ratiosOnce.Do(func() {
 		store := &ratioStore{path: filepath.Join(web.dataFolder, COMPRESSION_RATIOS_FILENAME), kinds: map[string]ratioTotal{}}
-		if data, ok := readStore(store.path); ok {
-			parseStore(store.path, data, &store.kinds)
+		if data, ok := durable.ReadStore(store.path); ok {
+			durable.ParseStore(store.path, data, &store.kinds)
 		}
 		if store.kinds == nil {
 			store.kinds = map[string]ratioTotal{}
@@ -91,7 +92,7 @@ func (s *ratioStore) add(kind string, path string, before int64, after int64) {
 		s.kinds[key] = total
 	}
 	if data, err := json.Marshal(s.kinds); err == nil {
-		writeFileAtomic(s.path, data)
+		durable.WriteFile(s.path, data)
 	}
 }
 

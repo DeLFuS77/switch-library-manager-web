@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 )
 
 // The library history remembers when each game, update and DLC appeared in the folders and
@@ -94,8 +95,8 @@ func (web *Web) history() *libraryHistory {
 // reload reads the history again, also after a backup was restored.
 func (h *libraryHistory) reload() {
 	data := historyData{}
-	if bytes, ok := readStore(h.path); ok {
-		parseStore(h.path, bytes, &data)
+	if bytes, ok := durable.ReadStore(h.path); ok {
+		durable.ParseStore(h.path, bytes, &data)
 	}
 	h.mutex.Lock()
 	h.data = data
@@ -259,7 +260,7 @@ func (h *libraryHistory) record(contents map[string]libraryContent, now time.Tim
 	if err != nil {
 		return events, first, err
 	}
-	return events, first, writeFileAtomic(h.path, bytes)
+	return events, first, durable.WriteFile(h.path, bytes)
 }
 
 // added returns when a content was found in the folders, or the zero time.
@@ -292,7 +293,7 @@ func (h *libraryHistory) addSaved(bytes int64) {
 		h.data.Days[len(h.data.Days)-1].Saved = h.data.Saved
 	}
 	if data, err := json.Marshal(h.data); err == nil {
-		writeFileAtomic(h.path, data)
+		durable.WriteFile(h.path, data)
 	}
 }
 

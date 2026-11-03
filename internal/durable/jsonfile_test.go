@@ -1,4 +1,4 @@
-package web
+package durable
 
 import (
 	"encoding/json"
@@ -16,7 +16,7 @@ func TestCorruptStoreIsKeptAside(t *testing.T) {
 	path := filepath.Join(dir, "favorites.json")
 	os.WriteFile(path, []byte(`{"0100000000010000": "2026-`), 0600)
 	games := map[string]string{}
-	if err := parseStore(path, []byte(`{"0100000000010000": "2026-`), &games); err == nil {
+	if err := ParseStore(path, []byte(`{"0100000000010000": "2026-`), &games); err == nil {
 		t.Fatal("the file cannot be read")
 	}
 	entries, _ := os.ReadDir(dir)
@@ -34,7 +34,7 @@ func TestAtomicWritesDoNotMix(t *testing.T) {
 		go func(i int) {
 			defer wait.Done()
 			data, _ := json.Marshal(map[string]string{"value": strings.Repeat(string(rune('a'+i)), 100000)})
-			if err := writeFileAtomic(path, data); err != nil {
+			if err := WriteFile(path, data); err != nil {
 				t.Error(err)
 			}
 		}(i)
@@ -58,27 +58,27 @@ func TestAtomicWritesDoNotMix(t *testing.T) {
 func TestStoreThatCannotBeReadIsNotWrittenOver(t *testing.T) {
 	dir := t.TempDir()
 	missing := filepath.Join(dir, "collections.json")
-	if _, ok := readStore(missing); ok {
+	if _, ok := ReadStore(missing); ok {
 		t.Fatal("nothing to read")
 	}
-	if err := writeFileAtomic(missing, []byte("{}")); err != nil {
+	if err := WriteFile(missing, []byte("{}")); err != nil {
 		t.Fatalf("a store that did not exist is saved: %v", err)
 	}
 	// a folder where the file should be cannot be read
 	unread := filepath.Join(dir, "favorites.json")
 	os.Mkdir(unread, 0o755)
-	if _, ok := readStore(unread); ok {
+	if _, ok := ReadStore(unread); ok {
 		t.Fatal("a folder is not read")
 	}
-	if err := writeFileAtomic(unread, []byte("{}")); !errors.Is(err, errStoreUnread) {
+	if err := WriteFile(unread, []byte("{}")); !errors.Is(err, errStoreUnread) {
 		t.Fatalf("not saved over what could not be read: %v", err)
 	}
 	os.Remove(unread)
 	os.WriteFile(unread, []byte("{}"), 0o600)
-	if _, ok := readStore(unread); !ok {
+	if _, ok := ReadStore(unread); !ok {
 		t.Fatal("read once it can be")
 	}
-	if err := writeFileAtomic(unread, []byte(`{"0100000000010000":"2026-10-29T00:00:00Z"}`)); err != nil {
+	if err := WriteFile(unread, []byte(`{"0100000000010000":"2026-10-29T00:00:00Z"}`)); err != nil {
 		t.Fatalf("saved again once read: %v", err)
 	}
 }

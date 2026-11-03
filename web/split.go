@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -233,7 +234,7 @@ func (web *Web) splitFile(ctx context.Context, path string, game string, deleteO
 		written, err := switchfs.WriteSplitPartAndCheck(ctx, path, part, temporary, report(done))
 		if err == nil {
 			checked = checked && fullyChecked(written)
-			if err = commitFile(temporary, target); err == nil {
+			if err = durable.CommitFile(temporary, target); err == nil {
 				web.verifications().remember(target, written)
 			}
 		}

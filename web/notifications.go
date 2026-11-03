@@ -19,6 +19,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"go.uber.org/zap"
 )
@@ -164,7 +165,7 @@ func (web *Web) saveNotifiedKeys(items []NotificationItem) error {
 	if err != nil {
 		return err
 	}
-	return writeFileAtomic(web.notificationStatePath(), data)
+	return durable.WriteFile(web.notificationStatePath(), data)
 }
 
 func notificationsConfigured(options settings.NotificationOptions) bool {

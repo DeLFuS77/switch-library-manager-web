@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"hash/fnv"
 	"os"
 	"path/filepath"
@@ -631,9 +632,9 @@ func loadTaskLog(dataFolder string) *TaskLog {
 	if info, err := os.Stat(log.path); err == nil {
 		saved = info.ModTime()
 	}
-	if data, ok := readStore(log.path); ok {
+	if data, ok := durable.ReadStore(log.path); ok {
 		saved := []*Task{}
-		if parseStore(log.path, data, &saved) == nil {
+		if durable.ParseStore(log.path, data, &saved) == nil {
 			log.tasks = saved
 		}
 	}
@@ -1092,5 +1093,5 @@ func (l *TaskLog) save() {
 		return
 	}
 	l.saved = time.Now()
-	writeFileAtomic(l.path, data)
+	durable.WriteFile(l.path, data)
 }

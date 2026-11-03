@@ -1,4 +1,4 @@
-package web
+package durable
 
 import (
 	"encoding/json"
@@ -18,10 +18,10 @@ import (
 // next save would write over all the file holds. Such a file is not written until it is read.
 var unreadStores sync.Map
 
-// readStore reads the file of a store of the data folder; false when there is nothing to read.
+// ReadStore reads the file of a store of the data folder; false when there is nothing to read.
 // A file that does not exist is an empty store; one that could not be read is reported and kept
 // as it is (see unreadStores).
-func readStore(path string) ([]byte, bool) {
+func ReadStore(path string) ([]byte, bool) {
 	data, err := os.ReadFile(path)
 	// on Windows a file being replaced by a save at the same moment refuses to open for an
 	// instant: tried again before giving up
@@ -43,11 +43,11 @@ func readStore(path string) ([]byte, bool) {
 // errStoreUnread is a save refused for a file that could not be read when its store was loaded.
 var errStoreUnread = errors.New("the file could not be read when it was loaded: it is not written over")
 
-// writeFileAtomic writes a file in the data folder through a temporary file, so a crash or
+// WriteFile writes a file in the data folder through a temporary file, so a crash or
 // a full disk while writing leaves the previous version instead of a cut file. Each write has
 // a temporary file of its own: two saves at the same time never mix, and the file is on the
 // disk before it takes the place of the previous one.
-func writeFileAtomic(path string, data []byte) error {
+func WriteFile(path string, data []byte) error {
 	if _, unread := unreadStores.Load(path); unread {
 		return fmt.Errorf("%s: %w", filepath.Base(path), errStoreUnread)
 	}
@@ -84,10 +84,10 @@ func writeFileAtomic(path string, data []byte) error {
 	return err
 }
 
-// parseStore reads the JSON of a file of the data folder. A file that cannot be read is set
+// ParseStore reads the JSON of a file of the data folder. A file that cannot be read is set
 // aside under another name and reported, instead of being taken for empty and written over
 // by the next save, with all it held.
-func parseStore(path string, data []byte, value any) error {
+func ParseStore(path string, data []byte, value any) error {
 	err := json.Unmarshal(data, value)
 	if err != nil {
 		aside := fmt.Sprintf("%s.corrupt-%s", path, time.Now().Format("20060102-150405"))

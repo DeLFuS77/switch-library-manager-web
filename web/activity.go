@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"net/http"
 	"path/filepath"
 	"regexp"
@@ -110,8 +111,8 @@ func (web *Web) activities() *activityLog {
 // reload reads the log again, also after a backup was restored.
 func (l *activityLog) reload() {
 	entries := []Activity{}
-	if data, ok := readStore(l.path); ok {
-		parseStore(l.path, data, &entries)
+	if data, ok := durable.ReadStore(l.path); ok {
+		durable.ParseStore(l.path, data, &entries)
 	}
 	l.mutex.Lock()
 	l.entries = entries
@@ -140,7 +141,7 @@ func (l *activityLog) add(entry Activity) {
 		l.entries = l.entries[:maxActivities]
 	}
 	if data, err := json.MarshalIndent(l.entries, "", " "); err == nil {
-		writeFileAtomic(l.path, data)
+		durable.WriteFile(l.path, data)
 	}
 }
 

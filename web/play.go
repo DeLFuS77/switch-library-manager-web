@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -91,8 +92,8 @@ func (web *Web) play() *playStore {
 // reload reads the states again, also after a backup was restored.
 func (s *playStore) reload() {
 	users := map[string]map[string]PlayEntry{}
-	if data, ok := readStore(s.path); ok {
-		parseStore(s.path, data, &users)
+	if data, ok := durable.ReadStore(s.path); ok {
+		durable.ParseStore(s.path, data, &users)
 	}
 	if users == nil {
 		users = map[string]map[string]PlayEntry{}
@@ -139,7 +140,7 @@ func (s *playStore) set(user string, id string, entry PlayEntry) error {
 	if err != nil {
 		return err
 	}
-	return writeFileAtomic(s.path, data)
+	return durable.WriteFile(s.path, data)
 }
 
 // playUser is the user the states of a request belong to: "" without login.

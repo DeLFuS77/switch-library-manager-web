@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -87,7 +88,7 @@ func writePrivateFile(path string, data []byte) error {
 	if err := temporary.Close(); err != nil {
 		return err
 	}
-	return commitFile(temporary.Name(), path)
+	return durable.CommitFile(temporary.Name(), path)
 }
 
 // readUpload reads a file of the form, at most maxKeysUpload bytes; nil when it was not sent.

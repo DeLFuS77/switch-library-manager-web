@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -174,7 +175,7 @@ func (web *Web) saveMeasure(measure ServerMeasure) {
 		s.CompressFilesAtOnce = measure.FilesAtOnce
 	})
 	if data, err := json.Marshal(measure); err == nil {
-		writeFileAtomic(filepath.Join(web.dataFolder, "measure.json"), data)
+		durable.WriteFile(filepath.Join(web.dataFolder, "measure.json"), data)
 	}
 }
 
@@ -186,7 +187,7 @@ func (web *Web) lastMeasure() *ServerMeasure {
 		return nil
 	}
 	measure := ServerMeasure{}
-	if parseStore(path, data, &measure) != nil || measure.Measured.IsZero() {
+	if durable.ParseStore(path, data, &measure) != nil || measure.Measured.IsZero() {
 		return nil
 	}
 	return &measure

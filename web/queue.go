@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -79,9 +80,9 @@ type queueFile struct {
 
 func loadTaskQueue(path string) *taskQueue {
 	queue := &taskQueue{path: path}
-	if data, ok := readStore(path); ok {
+	if data, ok := durable.ReadStore(path); ok {
 		saved := queueFile{}
-		if parseStore(path, data, &saved) == nil {
+		if durable.ParseStore(path, data, &saved) == nil {
 			queue.items, queue.nextId, queue.started = saved.Items, saved.LastId, saved.Started
 		}
 	}
@@ -95,7 +96,7 @@ func loadTaskQueue(path string) *taskQueue {
 func (q *taskQueue) save() {
 	data, err := json.Marshal(queueFile{LastId: q.nextId, Items: q.items, Started: q.started})
 	if err == nil {
-		writeFileAtomic(q.path, data)
+		durable.WriteFile(q.path, data)
 	}
 }
 
