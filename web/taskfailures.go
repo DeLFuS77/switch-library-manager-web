@@ -14,7 +14,7 @@ var taskKindNames = map[string]string{
 	TASK_SYNC: "Synchronization", TASK_SCAN: "Library scan", TASK_ORGANIZE: "Organize files", TASK_CLEANUP: "Delete old updates",
 	TASK_COMPRESS: "Compression", TASK_DECOMPRESS: "Decompression", TASK_VERIFY: "File check", TASK_COVERS: "Cover downloads",
 	TASK_THUMBNAILS: "Thumbnails", TASK_COPY: "Copy to the card", TASK_CONVERT: "Conversion", TASK_PACK: "Combine",
-	TASK_SPLIT: "Split files", TASK_TIMETOBEAT: "Times to beat (IGDB)", TASK_UPLOAD: "Upload",
+	TASK_SPLIT: "Split files", TASK_TIMETOBEAT: "Times to beat and scores (IGDB)", TASK_UPLOAD: "Upload",
 }
 
 // notWorthTelling are the ends that are not failures to tell: what the user stopped.

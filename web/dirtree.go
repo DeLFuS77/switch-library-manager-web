@@ -32,6 +32,8 @@ type dirInfo struct {
 	subdirs  []string
 	files    uint64
 	hotUntil time.Time
+	// the folder holds the file that leaves it out of the scan (settings.SKIP_MARKER)
+	marked bool
 }
 
 func newDirTree() *dirTree {
@@ -40,8 +42,9 @@ func newDirTree() *dirTree {
 
 // refresh checks the folders and returns a fingerprint of all their files, which changes
 // when a file is added, removed, renamed or rewritten, and the folders found. The folders the
-// scan leaves out (exclude, see settings.ExcludedFolder) are left out too: what changes in them
-// is no reason to scan.
+// scan leaves out (exclude, see settings.ExcludedFolder, or with settings.SKIP_MARKER in them)
+// are left out too: what changes in them is no reason to scan. Putting or removing the file
+// changes the folder, and its files then count or no longer do.
 func (t *dirTree) refresh(roots []string, exclude []string) (uint64, []string) {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
@@ -50,8 +53,8 @@ func (t *dirTree) refresh(roots []string, exclude []string) (uint64, []string) {
 	var sum, xor, count uint64
 	read := 0
 
-	var visit func(dir string)
-	visit = func(dir string) {
+	var visit func(dir string, chosen bool)
+	visit = func(dir string, chosen bool) {
 		if visited[dir] {
 			return
 		}
@@ -68,6 +71,10 @@ func (t *dirTree) refresh(roots []string, exclude []string) (uint64, []string) {
 			t.dirs[dir] = known
 			read++
 		}
+		// a folder left out by the file in it, below a folder chosen, is no reason to scan
+		if known.marked && !chosen {
+			return
+		}
 		// only files count: an empty folder is no reason to scan
 		if known.files != 0 {
 			entry := mix(hashString(dir) ^ known.files)
@@ -77,12 +84,12 @@ func (t *dirTree) refresh(roots []string, exclude []string) (uint64, []string) {
 		}
 		for _, sub := range known.subdirs {
 			if !settings.ExcludedFolder(exclude, filepath.Base(sub)) {
-				visit(sub)
+				visit(sub, false)
 			}
 		}
 	}
 	for _, root := range roots {
-		visit(filepath.Clean(root))
+		visit(filepath.Clean(root), true)
 	}
 	// folders that disappeared are forgotten
 	for dir := range t.dirs {
@@ -118,6 +125,9 @@ func readDir(dir string, modTime int64, now time.Time) *dirInfo {
 				result.subdirs = append(result.subdirs, path)
 			}
 			continue
+		}
+		if settings.IsSkipMarker(entry.Name()) {
+			result.marked = true
 		}
 		info, err := entry.Info()
 		if err != nil {

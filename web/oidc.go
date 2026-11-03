@@ -87,6 +87,9 @@ var (
 	errOidcUnreachable = errors.New("the provider could not be reached")
 )
 
+// shown in Users, translated by the interface
+var ErrOidcNotLinked = errors.New("The user is not linked with an account of the provider.")
+
 // readOidcEnv reads the options of OpenID Connect set in the environment: an issuer turns it on.
 func readOidcEnv(options *settings.PortalOptions, read func(name string) string) {
 	if value := read(OIDC_ISSUER_ENV); value != "" {
@@ -564,6 +567,28 @@ func (s *UserStore) oidcUser(subject string, name string, email string, match st
 		return User{}, false, err
 	}
 	return found.clone(), made, nil
+}
+
+// UnlinkOidc removes the link of a user with the account of a provider, which ends the sessions
+// opened with it (see markTag). The next sign-in with OpenID Connect links the user again, as
+// the first one did.
+func (s *UserStore) UnlinkOidc(name string) error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	user, ok := s.users[strings.ToLower(name)]
+	if !ok {
+		return ErrUserNotFound
+	}
+	subject := user.OidcSubject
+	if subject == "" {
+		return ErrOidcNotLinked
+	}
+	user.OidcSubject = ""
+	if err := s.save(); err != nil {
+		user.OidcSubject = subject
+		return err
+	}
+	return nil
 }
 
 // oidcLogout is where Log out sends a person signed in with OpenID Connect: the page of the

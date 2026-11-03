@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"maps"
 	"os"
-	"path"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -30,7 +29,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "1.69.0"
+	SLM_WEB_VERSION        = "1.70.0"
 	REPOSITORY_OWNER       = "DeLFuS77"
 	// the release where the "Update title data" workflow of this repository publishes the files
 	// it generates; next to each one it publishes the same file compressed (see CompressedFirst)
@@ -296,7 +295,7 @@ type AppSettings struct {
 	IgnoreFileTypes        []string          `json:"ignore_file_types"`
 	HideDemoGames          bool              `json:"hide_demo_games"`
 	// the folders below the library folders the scan leaves out, with everything in them, by
-	// their names (see ExcludedFolder); none by default
+	// the start, the end or a part of their names (see FolderSkip); none by default
 	ExcludeFolders []string `json:"exclude_folders,omitempty"`
 	// the cheats of the games are not downloaded nor shown
 	CheatsDisabled bool `json:"cheats_disabled,omitempty"`
@@ -493,24 +492,92 @@ func movedRepositoryUrl(url string) string {
 	return prefix + REPOSITORY_OWNER + rest[slash:]
 }
 
-// ExcludedFolder tells a folder left out of the scan by its name, in any case: a pattern with *
-// or ? (path.Match) is matched against the whole name, a word against any part of it.
+// ExcludedFolder tells a folder left out of the scan by its name, in any case: by its start, its
+// end or a part of it (see FolderSkip).
 func ExcludedFolder(patterns []string, name string) bool {
 	name = strings.ToLower(name)
 	for _, pattern := range patterns {
-		pattern = strings.ToLower(FolderPattern(pattern))
-		if pattern == "" {
-			continue
-		}
-		if strings.ContainsAny(pattern, "*?") {
-			if matched, _ := path.Match(pattern, name); matched {
-				return true
-			}
-		} else if strings.Contains(name, pattern) {
+		kind, text := FolderSkip(pattern)
+		text = strings.ToLower(text)
+		switch {
+		case text == "":
+		case kind == SKIP_STARTING && strings.HasPrefix(name, text),
+			kind == SKIP_ENDING && strings.HasSuffix(name, text),
+			kind == SKIP_CONTAINING && strings.Contains(name, text):
 			return true
 		}
 	}
 	return false
+}
+
+// the kinds of folders to skip: by the start, the end or a part of their name
+const (
+	SKIP_STARTING   = "starting"
+	SKIP_ENDING     = "ending"
+	SKIP_CONTAINING = "containing"
+)
+
+// FolderSkip tells the kind and the text of a line of ExcludeFolders: "_*" skips the names that
+// start with "_", "*_old" the ones that end with "_old", and "*build*", or "build", the ones that
+// contain it. Only the * at the ends count: the rest is the text as it is.
+func FolderSkip(line string) (kind string, text string) {
+	pattern := FolderPattern(line)
+	starts, ends := strings.HasPrefix(pattern, "*"), strings.HasSuffix(pattern, "*")
+	text = SkipText(pattern)
+	switch {
+	case ends && !starts:
+		return SKIP_STARTING, text
+	case starts && !ends:
+		return SKIP_ENDING, text
+	}
+	return SKIP_CONTAINING, text
+}
+
+// SkipPattern is the line of ExcludeFolders that skips the folders of a kind with a text; "" for
+// a text without anything to look for.
+func SkipPattern(kind string, text string) string {
+	text = SkipText(text)
+	switch {
+	case text == "":
+		return ""
+	case kind == SKIP_STARTING:
+		return text + "*"
+	case kind == SKIP_ENDING:
+		return "*" + text
+	}
+	return "*" + text + "*"
+}
+
+// SkipText is a text of a list of folders to skip as it is kept: without the spaces, the
+// separators and the * around it.
+func SkipText(line string) string {
+	return strings.TrimSpace(strings.Trim(FolderPattern(line), "*"))
+}
+
+// SkipFolders lists the texts of the folders skipped by one kind, for the lists of the settings.
+func (s AppSettings) SkipFolders(kind string) []string {
+	texts := []string{}
+	for _, pattern := range s.ExcludeFolders {
+		if skip, text := FolderSkip(pattern); skip == kind && text != "" {
+			texts = append(texts, text)
+		}
+	}
+	return texts
+}
+
+// SKIP_MARKER is a file that, put in a folder below the library folders, leaves the folder out
+// of the scan with everything in it, whatever its name.
+const SKIP_MARKER = ".slmignore"
+
+// IsSkipMarker tells the name of SKIP_MARKER, in any case.
+func IsSkipMarker(name string) bool {
+	return strings.EqualFold(name, SKIP_MARKER)
+}
+
+// MarkedToSkip tells a folder with SKIP_MARKER in it.
+func MarkedToSkip(dir string) bool {
+	info, err := os.Stat(filepath.Join(dir, SKIP_MARKER))
+	return err == nil && !info.IsDir()
 }
 
 // FolderPattern is a line of ExcludeFolders as it is kept: without the spaces and the
@@ -519,15 +586,11 @@ func FolderPattern(line string) string {
 	return strings.Trim(strings.TrimSpace(line), `/\`)
 }
 
-// ValidFolderPattern tells a line of ExcludeFolders that can match a folder name: a path has
-// separators no name has, and a pattern can be malformed ("[a*").
+// ValidFolderPattern tells a text of the folders to skip that can be part of a folder name: a
+// path has separators no name has.
 func ValidFolderPattern(line string) bool {
-	pattern := FolderPattern(line)
-	if pattern == "" || strings.ContainsAny(pattern, `/\`) {
-		return false
-	}
-	_, err := path.Match(pattern, "")
-	return err == nil
+	text := SkipText(line)
+	return text != "" && !strings.ContainsAny(text, `/\`)
 }
 
 // TitlesJsonUrls returns the configured titles.json URL followed by the fallback mirrors, the

@@ -39,6 +39,7 @@ func TestRoles(t *testing.T) {
 		{"POST", "/organize/run", false, false, false, true},
 		{"GET", "/settings.html", false, false, false, true},
 		{"POST", "/users/create", false, false, false, true},
+		{"POST", "/users/unlink", false, false, false, true},
 		{"GET", "/backup/download", false, false, false, true},
 	}
 	for _, c := range checks {

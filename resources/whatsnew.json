@@ -1,4 +1,72 @@
 {
+  "1.70.0": {
+    "en": [
+      "The page of a game shows the scores of critics and players from IGDB, and the library can be sorted and filtered by them (with the IGDB keys in Settings).",
+      "Statistics has a Scores tab: the averages, the games with the best scores and your own ratings next to the ones of IGDB.",
+      "Folders can be skipped by how their names start, end or what they contain, or by putting an empty file named .slmignore in them.",
+      "Games once read without their own name, for example with older keys, get it back with the next scan."
+    ],
+    "es": [
+      "La ficha de cada juego enseña las notas de la crítica y de los jugadores de IGDB, y la biblioteca se puede ordenar y filtrar por ellas (con las claves de IGDB en Ajustes).",
+      "Estadísticas tiene una pestaña de Notas: las medias, tus juegos con mejor nota y tus propias notas al lado de las de IGDB.",
+      "Las carpetas se pueden saltar por cómo empieza, acaba o qué contiene su nombre, o poniendo dentro un archivo vacío llamado .slmignore.",
+      "Los juegos que una vez se leyeron sin su nombre, por ejemplo con claves antiguas, lo recuperan en el siguiente análisis."
+    ],
+    "de": [
+      "Die Seite eines Spiels zeigt die Wertungen von Kritikern und Spielern aus IGDB, und die Bibliothek lässt sich danach sortieren und filtern (mit den IGDB-Schlüsseln in den Einstellungen).",
+      "Statistiken hat einen Reiter Wertungen: die Durchschnitte, deine Spiele mit den besten Wertungen und deine eigenen Bewertungen neben denen von IGDB.",
+      "Ordner lassen sich danach überspringen, wie ihr Name beginnt, endet oder was er enthält, oder indem man eine leere Datei namens .slmignore hineinlegt.",
+      "Spiele, die einmal ohne ihren eigenen Namen gelesen wurden, etwa mit älteren Schlüsseln, bekommen ihn beim nächsten Scan zurück."
+    ],
+    "fr": [
+      "La page de chaque jeu montre les notes de la critique et des joueurs d'IGDB, et la bibliothèque peut être triée et filtrée par elles (avec les clés IGDB dans les Paramètres).",
+      "Statistiques a un onglet Notes : les moyennes, vos jeux les mieux notés et vos propres notes à côté de celles d'IGDB.",
+      "Les dossiers peuvent être ignorés selon le début, la fin ou le contenu de leur nom, ou en y mettant un fichier vide nommé .slmignore.",
+      "Les jeux lus une fois sans leur propre nom, par exemple avec d'anciennes clés, le retrouvent à la prochaine analyse."
+    ],
+    "it": [
+      "La pagina di ogni gioco mostra i voti della critica e dei giocatori di IGDB, e la libreria si può ordinare e filtrare in base a essi (con le chiavi IGDB nelle Impostazioni).",
+      "Statistiche ha una scheda Voti: le medie, i tuoi giochi con i voti migliori e i tuoi voti accanto a quelli di IGDB.",
+      "Le cartelle si possono saltare in base a come inizia, finisce o cosa contiene il loro nome, oppure mettendoci dentro un file vuoto chiamato .slmignore.",
+      "I giochi letti una volta senza il loro nome, per esempio con chiavi vecchie, lo recuperano alla prossima scansione."
+    ],
+    "pt": [
+      "A página de cada jogo mostra as notas da crítica e dos jogadores do IGDB, e a biblioteca pode ser ordenada e filtrada por elas (com as chaves do IGDB nas Configurações).",
+      "Estatísticas tem um separador Notas: as médias, os seus jogos com melhor nota e as suas próprias notas ao lado das do IGDB.",
+      "As pastas podem ser ignoradas pelo começo, pelo fim ou pelo que o nome contém, ou colocando dentro delas um arquivo vazio chamado .slmignore.",
+      "Os jogos lidos uma vez sem o próprio nome, por exemplo com chaves antigas, recuperam-no na próxima análise."
+    ],
+    "nl": [
+      "De pagina van een spel toont de scores van critici en spelers uit IGDB, en de bibliotheek kan erop gesorteerd en gefilterd worden (met de IGDB-sleutels in Instellingen).",
+      "Statistieken heeft een tabblad Scores: de gemiddelden, je games met de beste scores en je eigen beoordelingen naast die van IGDB.",
+      "Mappen kunnen worden overgeslagen op hoe hun naam begint, eindigt of wat hij bevat, of door er een leeg bestand met de naam .slmignore in te zetten.",
+      "Spellen die ooit zonder hun eigen naam zijn gelezen, bijvoorbeeld met oudere sleutels, krijgen die bij de volgende scan terug."
+    ],
+    "ru": [
+      "На странице игры показаны оценки критиков и игроков из IGDB, а библиотеку можно сортировать и фильтровать по ним (с ключами IGDB в настройках).",
+      "В «Статистике» появилась вкладка «Оценки»: средние оценки, ваши игры с лучшими оценками и ваши собственные оценки рядом с оценками IGDB.",
+      "Папки можно пропускать по тому, как начинается, заканчивается или что содержит их имя, или положив в них пустой файл .slmignore.",
+      "Игры, однажды прочитанные без собственного имени, например со старыми ключами, получат его при следующем сканировании."
+    ],
+    "ja": [
+      "ゲームのページに IGDB の評論家とプレイヤーの評価が表示され、ライブラリを評価で並べ替えたり絞り込んだりできます（設定に IGDB のキーが必要です）。",
+      "統計に「評価」タブが加わりました：平均、評価の高いゲーム、そして自分の評価と IGDB の評価の比較。",
+      "フォルダー名の先頭・末尾・含まれる文字でフォルダーをスキップできます。.slmignore という空のファイルを入れてもスキップされます。",
+      "古いキーなどで本来の名前なしに読み込まれたゲームは、次のスキャンで名前が戻ります。"
+    ],
+    "ko": [
+      "게임 페이지에 IGDB의 평론가와 플레이어 평점이 표시되고, 라이브러리를 평점으로 정렬하고 필터링할 수 있습니다(설정에 IGDB 키 필요).",
+      "통계에 평점 탭이 생겼습니다: 평균, 평점이 가장 높은 내 게임, 그리고 IGDB 평점과 나란히 놓인 내 평점.",
+      "폴더 이름이 무엇으로 시작하거나 끝나는지, 무엇을 포함하는지로 폴더를 건너뛸 수 있고, .slmignore라는 빈 파일을 넣어도 건너뜁니다.",
+      "예전 키 등으로 원래 이름 없이 읽혔던 게임은 다음 스캔에서 이름을 되찾습니다."
+    ],
+    "zh": [
+      "游戏页面会显示 IGDB 上评论家和玩家的评分，媒体库也可以按评分排序和筛选（需要在设置中填写 IGDB 密钥）。",
+      "统计新增“评分”标签页：平均分、评分最高的游戏，以及你自己的评分与 IGDB 评分的对比。",
+      "可以按文件夹名称的开头、结尾或包含的内容跳过文件夹，也可以在文件夹里放一个名为 .slmignore 的空文件。",
+      "曾经没读到自己名称的游戏（例如用旧密钥读取时），会在下一次扫描时恢复名称。"
+    ]
+  },
   "1.69.0": {
     "en": [
       "NSZ files made with the experimental extra compression of NXPress are read too: they decompress and check like any other NSZ."

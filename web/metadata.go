@@ -2,6 +2,7 @@ package web
 
 import (
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
@@ -121,4 +122,24 @@ func playersMatch(players int, filter string) bool {
 		return players >= 4
 	}
 	return true
+}
+
+// scoreMatches reports whether a score is at least the one of the filter ("70", "80" or "90"); a
+// game without a score matches no such filter.
+func scoreMatches(score int, filter string) bool {
+	lowest, err := strconv.Atoi(filter)
+	return err != nil || score >= lowest
+}
+
+// countScore counts a game in the scores of 70, 80 and 90 or more it reaches.
+func countScore(facets *LibraryFacets, score int) {
+	if score >= 70 {
+		facets.Score70++
+	}
+	if score >= 80 {
+		facets.Score80++
+	}
+	if score >= 90 {
+		facets.Score90++
+	}
 }

@@ -157,6 +157,9 @@
 						<div>
 							<div class="stat-value"{{if .Count}} data-count="{{.Value}}"{{end}}>{{.Value}}</div>
 							<div class="stat-label">{{.Label}}</div>
+							{{- with .Sub}}
+							<div class="small text-body-secondary">{{.}}</div>
+							{{- end}}
 						</div>
 					</div>
 				</div>

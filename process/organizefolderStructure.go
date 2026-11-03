@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
@@ -441,25 +442,33 @@ func (f *fileOperations) deleteEmptyFolders(root string, roots []string, known [
 }
 
 // excludedFolders tells a folder inside one of the library folders (roots) that the scan leaves
-// out, by its name or the name of a folder on the way down to it (see settings.ExcludedFolder).
-// Nil without patterns.
+// out: by its name or the name of a folder on the way down to it (see settings.ExcludedFolder),
+// or by the file settings.SKIP_MARKER in one of them. Each folder is looked at once.
 func excludedFolders(roots []string, patterns []string) func(dir string) bool {
-	if len(patterns) == 0 {
-		return nil
-	}
 	libraryFolder := libraryFolders(roots)
+	var mutex sync.Mutex
+	known := map[string]bool{}
 	return func(dir string) bool {
-		excluded := false
-		for dir = filepath.Clean(dir); ; dir = filepath.Dir(dir) {
-			if libraryFolder(dir) {
-				return excluded
-			}
-			if filepath.Dir(dir) == dir {
-				// outside the library: never scanned anyway
-				return false
-			}
-			excluded = excluded || settings.ExcludedFolder(patterns, filepath.Base(dir))
+		dir = filepath.Clean(dir)
+		mutex.Lock()
+		defer mutex.Unlock()
+		if excluded, ok := known[dir]; ok {
+			return excluded
 		}
+		excluded := false
+		for current := dir; ; current = filepath.Dir(current) {
+			if libraryFolder(current) {
+				break
+			}
+			if filepath.Dir(current) == current {
+				// outside the library: never scanned anyway
+				excluded = false
+				break
+			}
+			excluded = excluded || settings.ExcludedFolder(patterns, filepath.Base(current)) || settings.MarkedToSkip(current)
+		}
+		known[dir] = excluded
+		return excluded
 	}
 }
 

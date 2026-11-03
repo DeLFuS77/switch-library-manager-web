@@ -125,6 +125,30 @@ func TestExcludedFoldersAreNotWatched(t *testing.T) {
 	}
 }
 
+// What changes in a folder with the file .slmignore is no reason to scan either; putting the
+// file in is, as the games in the folder leave the library.
+func TestFoldersWithTheMarkerAreNotWatched(t *testing.T) {
+	root := t.TempDir()
+	tests := filepath.Join(root, "Tests")
+	os.MkdirAll(filepath.Join(tests, "deep"), 0755)
+	os.WriteFile(filepath.Join(tests, "a.nsp"), []byte("game"), 0644)
+	tree := newDirTree()
+	withGames, _ := tree.refresh([]string{root}, nil)
+	os.WriteFile(filepath.Join(tests, ".slmignore"), nil, 0644)
+	// the folder changed: read again at once, as a folder just changed
+	before, dirs := tree.refresh([]string{root}, nil)
+	if before == withGames {
+		t.Fatal("putting the file in changes the fingerprint")
+	}
+	if len(dirs) != 2 {
+		t.Fatalf("the library and the folder with the file, not the folders inside it: %v", dirs)
+	}
+	os.WriteFile(filepath.Join(tests, "deep", "b.nsp"), []byte("game"), 0644)
+	if after, _ := tree.refresh([]string{root}, nil); after != before {
+		t.Fatal("a file in a folder left out changed the fingerprint")
+	}
+}
+
 func TestWatchFingerprintIsKeptBetweenRuns(t *testing.T) {
 	web := newTestWeb(t)
 	if web.savedWatchFingerprint() != 0 {

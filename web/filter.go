@@ -41,6 +41,8 @@ type TitleItemFilter struct {
 	GameLanguage string `in:"form=languages"`
 	// library only: how the games go for the user who looks ("none" for the games without)
 	Play string `in:"form=play"`
+	// library only: the lowest score of the games on IGDB ("70", "80" or "90")
+	Score string `in:"form=score"`
 	// the user who looks, for Play (set by the handler)
 	player string
 	// the keyword prepared for searching, set by MatchesItem
@@ -74,7 +76,7 @@ const recentDays = 30
 
 var (
 	allowedPerPage = map[int]struct{}{12: {}, 24: {}, 48: {}, 96: {}}
-	allowedSortBy  = map[string]struct{}{"added": {}, "favorite": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}, "duration": {}}
+	allowedSortBy  = map[string]struct{}{"added": {}, "favorite": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}, "duration": {}, "score": {}}
 	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}, STATUS_WANTED: {}}
 	allowedKind    = map[string]struct{}{"": {}, KIND_GAME: {}, KIND_DEMO: {}}
 	allowedExtra   = map[string]struct{}{"": {}, EXTRA_NO_COVER: {}, EXTRA_UNKNOWN: {}, EXTRA_RECENT: {}, EXTRA_FAVORITES: {}, EXTRA_CHEATS: {}, EXTRA_CHEATS_OTHER: {}, EXTRA_FIRMWARE: {}}
@@ -146,6 +148,9 @@ func (f *TitleItemFilter) Normalize() {
 	if f.Players != "1" && f.Players != "2" && f.Players != "4" {
 		f.Players = ""
 	}
+	if f.Score != "70" && f.Score != "80" && f.Score != "90" {
+		f.Score = ""
+	}
 	f.GameLanguage = strings.ToLower(strings.TrimSpace(f.GameLanguage))
 	if _, ok := gameLanguageNames[f.GameLanguage]; !ok {
 		f.GameLanguage = ""
@@ -168,12 +173,12 @@ func (f *TitleItemFilter) Active() bool {
 // Filters reports whether the Library shows only some of its games: what a smart collection
 // keeps.
 func (f *TitleItemFilter) Filters() bool {
-	return f.Active() || f.Genre != "" || f.Players != "" || f.GameLanguage != ""
+	return f.Active() || f.Genre != "" || f.Players != "" || f.GameLanguage != "" || f.Score != ""
 }
 
 // Plain reports whether the first page is shown without any filter (in any view of the Library).
 func (f *TitleItemFilter) Plain() bool {
-	return !f.Active() && f.Genre == "" && f.Players == "" && f.GameLanguage == "" && f.Page <= 1
+	return !f.Active() && f.Genre == "" && f.Players == "" && f.GameLanguage == "" && f.Score == "" && f.Page <= 1
 }
 
 // ShowsMissing reports whether the Library shows the games it does not have too: All, its view
@@ -186,7 +191,7 @@ func (f *TitleItemFilter) ShowsMissing() bool {
 // collection, kind, region, format and the others.
 func (f *TitleItemFilter) SecondaryCount() int {
 	count := 0
-	for _, value := range []string{f.Collection, f.Kind, f.Region, f.Format, f.Extra, f.Genre, f.Players, f.GameLanguage, f.Play} {
+	for _, value := range []string{f.Collection, f.Kind, f.Region, f.Format, f.Extra, f.Genre, f.Players, f.GameLanguage, f.Play, f.Score} {
 		if value != "" {
 			count++
 		}
@@ -211,6 +216,7 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("players", f.Players)
 	values.Set("languages", f.GameLanguage)
 	values.Set("play", f.Play)
+	values.Set("score", f.Score)
 	values.Set("per_page", strconv.Itoa(f.chosenPerPage()))
 	values.Set("sort_by", f.SortBy)
 	values.Set("sort_order", f.SortOrder)
@@ -313,6 +319,18 @@ func (a TitleItemByDuration) Less(i, j int) bool {
 		return lessName(a[i], a[j])
 	}
 	return a[i].TimeToBeat < a[j].TimeToBeat
+}
+
+// TitleItemByScore sorts by the score; games without one go last, whatever the order.
+type TitleItemByScore []TitleItem
+
+func (a TitleItemByScore) Len() int      { return len(a) }
+func (a TitleItemByScore) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a TitleItemByScore) Less(i, j int) bool {
+	if a[i].Score == a[j].Score {
+		return lessName(a[i], a[j])
+	}
+	return a[i].Score < a[j].Score
 }
 
 func (a TitleItemBySize) Len() int      { return len(a) }
@@ -431,7 +449,25 @@ func sortItems(filter *TitleItemFilter, items []TitleItem) error {
 	case "region":
 		data = TitleItemByRegion(items)
 	case "release_date":
-		data = TitleItemByReleaseDate(items)
+		// the games without a date (unknown to the titles database) go last in both orders, not
+		// first of the oldest
+		known := items[:0:0]
+		unknown := []TitleItem{}
+		for _, item := range items {
+			if !item.ReleaseDate.IsZero() {
+				known = append(known, item)
+			} else {
+				unknown = append(unknown, item)
+			}
+		}
+		var sorter sort.Interface = TitleItemByReleaseDate(known)
+		if filter.SortOrder == "desc" {
+			sorter = sort.Reverse(sorter)
+		}
+		sort.Stable(sorter)
+		sort.Sort(TitleItemByName(unknown))
+		copy(items, append(known, unknown...))
+		return nil
 	case "type":
 		data = TitleItemByType(items)
 	case "size":
@@ -440,18 +476,21 @@ func sortItems(filter *TitleItemFilter, items []TitleItem) error {
 		data = TitleItemByAdded(items)
 	case "favorite":
 		data = TitleItemByFavorite(items)
-	case "duration":
-		// the games without a time go last in both orders
+	case "duration", "score":
+		// the games without a time or a score go last in both orders
 		known := items[:0:0]
 		unknown := []TitleItem{}
 		for _, item := range items {
-			if item.TimeToBeat > 0 {
+			if (filter.SortBy == "duration" && item.TimeToBeat > 0) || (filter.SortBy == "score" && item.Score > 0) {
 				known = append(known, item)
 			} else {
 				unknown = append(unknown, item)
 			}
 		}
 		var sorter sort.Interface = TitleItemByDuration(known)
+		if filter.SortBy == "score" {
+			sorter = TitleItemByScore(known)
+		}
 		if filter.SortOrder == "desc" {
 			sorter = sort.Reverse(sorter)
 		}

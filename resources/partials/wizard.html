@@ -228,6 +228,36 @@
 								</div>
 							</div>
 							<ul class="wizard-checks list-unstyled" data-wizard-folder-results aria-live="polite"></ul>
+							<div class="mt-3" role="group" aria-labelledby="wizardSkipFoldersTitle" aria-describedby="wizardSkipFoldersHelp">
+								<div class="form-label fw-semibold mb-1" id="wizardSkipFoldersTitle">{{t "Folders to skip"}}</div>
+								<div class="row g-2">
+									<div class="col-md-4">
+										<label for="wizard_skip_starting" class="form-label small mb-1">{{t "Starting with"}}</label>
+										<textarea class="form-control font-monospace" id="wizard_skip_starting" name="skip_starting" rows="2" spellcheck="false" placeholder="{{t "e.g. %v" "_"}}">
+{{- range $s.SkipFolders "starting"}}
+{{.}}
+{{- end -}}
+										</textarea>
+									</div>
+									<div class="col-md-4">
+										<label for="wizard_skip_ending" class="form-label small mb-1">{{t "Ending with"}}</label>
+										<textarea class="form-control font-monospace" id="wizard_skip_ending" name="skip_ending" rows="2" spellcheck="false" placeholder="{{t "e.g. %v" "_old"}}">
+{{- range $s.SkipFolders "ending"}}
+{{.}}
+{{- end -}}
+										</textarea>
+									</div>
+									<div class="col-md-4">
+										<label for="wizard_skip_containing" class="form-label small mb-1">{{t "Containing"}}</label>
+										<textarea class="form-control font-monospace" id="wizard_skip_containing" name="skip_containing" rows="2" spellcheck="false" placeholder="{{t "e.g. %v" "build"}}">
+{{- range $s.SkipFolders "containing"}}
+{{.}}
+{{- end -}}
+										</textarea>
+									</div>
+								</div>
+								<div class="form-text" id="wizardSkipFoldersHelp">{{t "One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted."}} {{t "A folder with an empty file named .slmignore inside is skipped too, whatever its name."}}</div>
+							</div>
 							<div class="row g-3 mt-1 align-items-end">
 								<div class="col-md-6">
 									<div class="form-check form-switch mb-2">
@@ -596,8 +626,8 @@
 								</div>
 							</div>
 							<fieldset class="igdb-settings mt-3">
-								<legend class="form-label fw-semibold"><span class="bi bi-hourglass-split me-1" aria-hidden="true"></span>{{t "Times to beat (IGDB)"}}</legend>
-								<p class="form-text mt-0">{{t "Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret."}}</p>
+								<legend class="form-label fw-semibold"><span class="bi bi-hourglass-split me-1" aria-hidden="true"></span>{{t "Times to beat and scores (IGDB)"}}</legend>
+								<p class="form-text mt-0">{{t "Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret."}} {{t "The game pages also show the scores of critics and players, and the library can be sorted and filtered by them."}}</p>
 								<div class="row g-3">
 									<div class="col-md-6">
 										<label for="wizard_igdb_client_id" class="form-label">{{t "Client ID"}}</label>
@@ -668,8 +698,6 @@
 						<textarea name="ignore_update_title_ids">{{range $s.IgnoreUpdateTitleIds}}{{.}}
 {{end}}</textarea>
 						<input type="text" name="ignore_file_types" value="{{range $i, $e := $s.IgnoreFileTypes}}{{if $i}} {{end}}{{$e}}{{end}}">
-						<textarea name="exclude_folders">{{range $s.ExcludeFolders}}{{.}}
-{{end}}</textarea>
 						<input type="checkbox" name="vault_enabled" value="true"{{if $s.Vault.Enabled}} checked{{end}}>
 						<input type="text" name="vault_user" value="{{$s.Vault.User}}">
 						<input type="password" name="vault_password" value="" autocomplete="off">
@@ -700,6 +728,6 @@
 			</form>
 		</div>
 	</div>
-	<script type="application/json" data-wizard-texts>{"step":{{t "Step %v of %v"}},"checking":{{t "Checking…"}},"saving":{{t "Saving…"}},"yes":{{t "Yes"}},"no":{{t "No"}},"none":{{t "None"}},"folders":{{t "Folders to scan"}},"keys":{{t "Your keys (prod.keys)"}},"firmware":{{t "Firmware of your console"}},"background":{{t "Do heavy work"}},"compress":{{t "Compress automatically"}},"automation":{{t "Automations"}},"notifications":{{t "Notifications"}},"admin":{{t "Administrator"}},"igdb":{{t "Times to beat (IGDB)"}},"theme":{{t "Theme"}},"language":{{t "Language"}},"default":{{t "Default"}},"stepsOn":{{t "%v steps on"}},"stepsOnOne":{{t "%v step on"}},"off":{{t "Off"}},"set":{{t "Set"}},"noFolder":{{t "Please provide at least one Folder to scan"}},"adminFailed":{{t "The administrator could not be created. Check the user name and the password."}},"unreachable":{{t "The server could not be reached."}},"found":{{t "Keys found"}},"notFound":{{t "Keys not found"}},"change":{{t "Change"}},"noFolders":{{t "No folders here"}},"more":{{t "Only the first %v folders are shown."}},"regions":{{t "Preferred regions, in order"}},"sync":{{t "Automatic synchronization"}},"order":{{t "Order"}},"rename":{{t "Rename files"}},"verify":{{t "Check the files"}},"newOnly":{{t "Only the new files"}},"sending":{{t "Sending…"}},"new":{{t "new"}},"untouched":{{t "untouched"}},"treeBefore":{{t "Before: the files as they came."}},"treeNone":{{t "Nothing changes its place."}},"treeNoneRenamed":{{t "Every file stays where it is, with the name of the template."}},"treeFolder":{{t "Each game in a folder with its name."}},"treeKeep":{{t "A game that has a folder keeps it; the others get one of their own."}},"treeSub":{{t "Inside each game, a subfolder for each kind."}},"treeEmpty":{{t "The empty folder is deleted."}},"treeArrives":{{t "A new update of a game arrives."}},"treeNewOnly":{{t "The update goes to the folder of its game; nothing else is touched."}},"treeAll":{{t "Everything is ordered, also what was loose."}},"quarantine":{{t "Quarantine"}},"old":{{t "old"}},"treeCleanup":{{t "An update is replaced by a newer one."}},"treeAtOnce":{{t "The old update is deleted at once: it cannot be put back."}},"treeKept":{{t "The old update waits in the hidden folder for %v: Settings, Quarantine can put it back."}},"treeKeptNever":{{t "The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back."}}}</script>
+	<script type="application/json" data-wizard-texts>{"step":{{t "Step %v of %v"}},"checking":{{t "Checking…"}},"saving":{{t "Saving…"}},"yes":{{t "Yes"}},"no":{{t "No"}},"none":{{t "None"}},"folders":{{t "Folders to scan"}},"keys":{{t "Your keys (prod.keys)"}},"firmware":{{t "Firmware of your console"}},"background":{{t "Do heavy work"}},"compress":{{t "Compress automatically"}},"automation":{{t "Automations"}},"notifications":{{t "Notifications"}},"admin":{{t "Administrator"}},"igdb":{{t "Times to beat and scores (IGDB)"}},"theme":{{t "Theme"}},"language":{{t "Language"}},"default":{{t "Default"}},"stepsOn":{{t "%v steps on"}},"stepsOnOne":{{t "%v step on"}},"off":{{t "Off"}},"set":{{t "Set"}},"noFolder":{{t "Please provide at least one Folder to scan"}},"adminFailed":{{t "The administrator could not be created. Check the user name and the password."}},"unreachable":{{t "The server could not be reached."}},"found":{{t "Keys found"}},"notFound":{{t "Keys not found"}},"change":{{t "Change"}},"noFolders":{{t "No folders here"}},"more":{{t "Only the first %v folders are shown."}},"regions":{{t "Preferred regions, in order"}},"sync":{{t "Automatic synchronization"}},"order":{{t "Order"}},"rename":{{t "Rename files"}},"verify":{{t "Check the files"}},"newOnly":{{t "Only the new files"}},"sending":{{t "Sending…"}},"new":{{t "new"}},"untouched":{{t "untouched"}},"treeBefore":{{t "Before: the files as they came."}},"treeNone":{{t "Nothing changes its place."}},"treeNoneRenamed":{{t "Every file stays where it is, with the name of the template."}},"treeFolder":{{t "Each game in a folder with its name."}},"treeKeep":{{t "A game that has a folder keeps it; the others get one of their own."}},"treeSub":{{t "Inside each game, a subfolder for each kind."}},"treeEmpty":{{t "The empty folder is deleted."}},"treeArrives":{{t "A new update of a game arrives."}},"treeNewOnly":{{t "The update goes to the folder of its game; nothing else is touched."}},"treeAll":{{t "Everything is ordered, also what was loose."}},"quarantine":{{t "Quarantine"}},"old":{{t "old"}},"treeCleanup":{{t "An update is replaced by a newer one."}},"treeAtOnce":{{t "The old update is deleted at once: it cannot be put back."}},"treeKept":{{t "The old update waits in the hidden folder for %v: Settings, Quarantine can put it back."}},"treeKeptNever":{{t "The old update waits in the hidden folder until you empty it: Settings, Quarantine can put it back."}}}</script>
 </div>
 {{- end}}

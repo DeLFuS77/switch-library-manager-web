@@ -102,3 +102,41 @@ func TestFolderInsideAnExcludedOneIsScannedOnItsOwn(t *testing.T) {
 		t.Fatalf("without the setting it is read with the other one: %v", got)
 	}
 }
+
+// A folder with the file .slmignore in it is not read, whatever its name, with its subfolders,
+// also the ones read before the file was found (# and ( sort before the dot); the folder chosen
+// is read even with the file in it.
+func TestScanSkipsFoldersWithTheMarker(t *testing.T) {
+	root := t.TempDir()
+	writeGame(t, filepath.Join(root, "Zelda", "Zelda [01007EF00011E000][v0].nsp"))
+	writeGame(t, filepath.Join(root, "Tests", ".slmignore"))
+	writeGame(t, filepath.Join(root, "Tests", "a.nsp"))
+	writeGame(t, filepath.Join(root, "Tests", "#old", "b.nsp"))
+	writeGame(t, filepath.Join(root, "Tests", "(copy)", "c.nsp"))
+	writeGame(t, filepath.Join(root, "Tests", "deep", "d.nsp"))
+	writeGame(t, filepath.Join(root, "Tests", "(copy)", ".c.nsp.tmp"))
+	os.MkdirAll(filepath.Join(root, "Tests", "#empty"), 0o755)
+	writeGame(t, filepath.Join(root, ".slmignore"))
+	writeGame(t, filepath.Join(root, "root.nsp"))
+
+	files := []ExtendedFileInfo{{FileName: "before.nsp", BaseFolder: "/elsewhere/"}}
+	leftovers := []LeftoverFile{}
+	empty := []string{}
+	if err := scanFolder(root, true, nil, &files, &leftovers, &empty, nil, nil, 0); err != nil {
+		t.Fatal(err)
+	}
+	if files[0].FileName != "before.nsp" {
+		t.Fatalf("the files of the folders scanned before are kept: %v", files[0])
+	}
+	if got := scannedNames(t, root, files[1:]); got != "Zelda/Zelda [01007EF00011E000][v0].nsp|root.nsp" {
+		t.Fatalf("files: %v", got)
+	}
+	if len(leftovers) != 0 || len(empty) != 0 {
+		t.Fatalf("leftovers %v, empty folders %v", leftovers, empty)
+	}
+	// a folder chosen inside the marked one is read on its own
+	chosen := filepath.Join(root, "Tests", "deep")
+	if got := distinctFolders([]string{root, chosen}, true, nil); len(got) != 2 {
+		t.Fatalf("folders: %v", got)
+	}
+}

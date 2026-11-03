@@ -50,9 +50,12 @@ type SettingsPageData struct {
 }
 
 type SettingsForm struct {
-	Prodkeys              string `in:"form=prod_keys"`
-	ScanFolders           string `in:"form=scan_folders"`
-	ExcludeFolders        string `in:"form=exclude_folders"`
+	Prodkeys    string `in:"form=prod_keys"`
+	ScanFolders string `in:"form=scan_folders"`
+	// the folders to skip: the starts, the ends and the parts of their names, one per line
+	SkipStarting          string `in:"form=skip_starting"`
+	SkipEnding            string `in:"form=skip_ending"`
+	SkipContaining        string `in:"form=skip_containing"`
 	IgnoreDLCTitleIds     string `in:"form=ignore_dlc_title_ids"`
 	IgnoreUpdateTitleIds  string `in:"form=ignore_update_title_ids"`
 	IgnoreDLCUpdates      bool   `in:"form=ignore_dlc_updates"`
@@ -130,6 +133,14 @@ type SettingsForm struct {
 	RenameFiles        bool   `in:"form=rename_files"`
 	DeleteEmptyFolders bool   `in:"form=delete_empty_folders"`
 	KeepDuplicate      string `in:"form=keep_duplicate"`
+}
+
+// skipList is a list of the folders to skip of the form: its field, its kind and its lines.
+type skipList struct{ field, kind, lines string }
+
+func (f *SettingsForm) skipLists() []skipList {
+	return []skipList{{"skip_starting", settings.SKIP_STARTING, f.SkipStarting}, {"skip_ending", settings.SKIP_ENDING, f.SkipEnding},
+		{"skip_containing", settings.SKIP_CONTAINING, f.SkipContaining}}
 }
 
 func (f *SettingsForm) notificationOptions() settings.NotificationOptions {
@@ -243,13 +254,16 @@ func (web *Web) HandleSettings() {
 			}
 		}
 
-		for _, value := range SplitAndTrimSpaceArray(settingsForm.ExcludeFolders, "\n") {
-			if !settings.ValidFolderPattern(value) {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-					Field:   "exclude_folders",
-					Message: translatef(lang, "Write the name of a folder, or a pattern like *_build*, not a path: %v", value),
-				})
-				break
+		for _, list := range settingsForm.skipLists() {
+			for _, value := range SplitAndTrimSpaceArray(list.lines, "\n") {
+				// a line of * alone skips nothing, and is left out
+				if settings.SkipText(value) != "" && !settings.ValidFolderPattern(value) {
+					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
+						Field:   list.field,
+						Message: translatef(lang, "Write a part of the name of a folder, not a path: %v", value),
+					})
+					break
+				}
 			}
 		}
 
@@ -451,8 +465,12 @@ func (web *Web) HandleSettings() {
 				appSettings.ScanFolders = []string{}
 			}
 			appSettings.ExcludeFolders = nil
-			for _, line := range SplitAndTrimSpaceArray(settingsForm.ExcludeFolders, "\n") {
-				appSettings.ExcludeFolders = append(appSettings.ExcludeFolders, settings.FolderPattern(line))
+			for _, list := range settingsForm.skipLists() {
+				for _, line := range SplitAndTrimSpaceArray(list.lines, "\n") {
+					if pattern := settings.SkipPattern(list.kind, line); pattern != "" {
+						appSettings.ExcludeFolders = append(appSettings.ExcludeFolders, pattern)
+					}
+				}
 			}
 		})
 		if err != nil {

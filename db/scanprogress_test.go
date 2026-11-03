@@ -85,6 +85,32 @@ func TestUnknownGamesAreReadAgainForTheirAttributes(t *testing.T) {
 	}
 }
 
+// A game or an update cached without its NACP is read again once with keys of a newer generation,
+// and once if it was cached before that was noted; DLC, which have none, are kept.
+func TestGamesWithoutNacpAreReadAgainWithNewerKeys(t *testing.T) {
+	game := map[string]*switchfs.ContentMetaAttributes{"0100000000020000": {TitleId: "0100000000020000", Type: "BASE"}}
+	if !needsNacp(game, 21) {
+		t.Fatal("data cached before the keys were noted is read again")
+	}
+	noteNacpTried(game, 21)
+	if game["0100000000020000"].NacpTriedKeys != 22 || needsNacp(game, 21) {
+		t.Fatalf("read again with the same keys: %+v", game["0100000000020000"])
+	}
+	if !needsNacp(game, 22) {
+		t.Fatal("keys of a newer generation read it again")
+	}
+	update := map[string]*switchfs.ContentMetaAttributes{"0100000000020800": {TitleId: "0100000000020800", Type: "UPD"}}
+	dlc := map[string]*switchfs.ContentMetaAttributes{"0100000000021001": {TitleId: "0100000000021001", Type: "DLC"}}
+	named := map[string]*switchfs.ContentMetaAttributes{"0100000000030000": {TitleId: "0100000000030000", Type: "BASE", Ncap: &switchfs.Nacp{}}}
+	if !needsNacp(update, 21) || needsNacp(dlc, 21) || needsNacp(named, 21) {
+		t.Fatal("updates are read again; DLC and games with their NACP are kept")
+	}
+	noteNacpTried(named, 21)
+	if named["0100000000030000"].NacpTriedKeys != 0 {
+		t.Fatal("a game with its NACP notes nothing")
+	}
+}
+
 // The walk notes the temporary files of the app, and only those.
 func TestScanFindsLeftovers(t *testing.T) {
 	folder := t.TempDir()

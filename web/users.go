@@ -41,7 +41,7 @@ var (
 )
 
 var userErrors = []error{ErrUserName, ErrUserExists, ErrUserNotFound, ErrPasswordLength, ErrPasswordCommon, ErrPasswordName, ErrRole, ErrLastAdmin, ErrDeleteSelf, ErrWrongPassword, ErrEnvironmentUser,
-	ErrSetupCodeMissing, ErrSetupCode, ErrSetupCodeBlocked, ErrEmail, ErrEmailTaken}
+	ErrSetupCodeMissing, ErrSetupCode, ErrSetupCodeBlocked, ErrEmail, ErrEmailTaken, ErrOidcNotLinked}
 
 var validUserName = regexp.MustCompile(`^[A-Za-z0-9._-]{1,32}$`)
 

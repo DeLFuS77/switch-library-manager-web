@@ -1,10 +1,21 @@
 # Changelog
 
-## Unreleased
+## 1.70.0
+
+### New
+
+- The page of a game shows its scores on IGDB, of the critics and of the players, with how many reviews and votes they come from; scores of 90 or more shine. The library can be sorted by score, and filtered to the games of 70, 80 or 90 or more, by the score of the critics or else of the players. Like the times to beat, they need the IGDB Client ID and Secret in Settings, and games looked up before are looked up once again for them
+- Statistics has a Scores tab once games have a score: the averages of the critics and of the players, the games by score, the ten best of the library, and the ratings given with the stars of My rating (a star is 20) next to the scores of the same games, with the ones rated much higher or lower than on IGDB
 
 ### Improvements
 
-- Folders can be skipped when scanning, by name or by pattern (`_build`, `.git`, `*_backup*`), in Settings › Library › Folders to skip: what is inside them is not scanned, organized or deleted, and Organize never moves a game into one (thanks @aleszczynskig, #142)
+- Users shows which users are linked with an account of the OpenID Connect provider, and an administrator can remove the link under Edit; the sessions opened with that account end at once, and the next sign-in links the user again
+- Folders can be skipped when scanning, by how their names start, end or what they contain, in three lists of Settings › Library › Folders to skip and of the setup wizard: for example the ones starting with `_`, ending with `(copy)` or containing `build`, in any case; or, whatever its name, by putting an empty file named `.slmignore` in the folder. What is inside them is not scanned, organized or deleted, and Organize never moves a game into one (thanks @aleszczynskig, #142)
+
+### Fixes
+
+- A game or an update read without the names and the version inside it, for example while prod.keys lacked the keys of its firmware, kept the name of its file for good: it is read again once, and again when keys of a newer firmware arrive, so the next scan gives it its own name
+- Sorted by release date, the games without a date (unknown to the titles database) go last in both orders, instead of first from the oldest
 
 ## 1.69.0
 

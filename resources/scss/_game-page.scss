@@ -135,6 +135,107 @@
 	margin-bottom: 1rem;
 }
 
+// the scores of IGDB under the publisher: green from 75, shining from 90, orange from 50, grey
+// below (red is kept for errors)
+.title-scores {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .5rem 1.25rem;
+	margin: .25rem 0 1rem;
+	color: inherit;
+	text-decoration: none;
+
+	&:hover .score-label {
+		text-decoration: underline;
+	}
+}
+
+.score-item {
+	display: inline-flex;
+	align-items: center;
+	gap: .5rem;
+}
+
+.score {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 2.4rem;
+	height: 2.4rem;
+	padding: 0 .4rem;
+	border-radius: .6rem;
+	font-weight: 800;
+	font-size: 1.05rem;
+	font-variant-numeric: tabular-nums;
+}
+
+@each $level, $tone in (top: success, high: success, mid: warning, low: secondary) {
+	.score-#{$level} {
+		background: rgba(var(--bs-#{$tone}-rgb), .18);
+		box-shadow: inset 0 0 0 1px rgba(var(--bs-#{$tone}-rgb), .45);
+		color: var(--bs-#{$tone}-text-emphasis);
+	}
+}
+
+.score-low {
+	color: var(--bs-body-color);
+}
+
+// in the lists of Statistics
+.score-sm {
+	min-width: 2.1rem;
+	height: 2.1rem;
+	font-size: .9rem;
+	flex-shrink: 0;
+}
+
+// 90 or more: a steady glow and, now and then, a gleam of light across, like a shiny card
+.score-top {
+	position: relative;
+	overflow: hidden;
+	box-shadow: inset 0 0 0 1px rgba(var(--bs-success-rgb), .8), 0 0 10px 1px rgba(var(--bs-success-rgb), .45);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.score-top::after {
+		content: "";
+		position: absolute;
+		inset: -20% auto -20% -60%;
+		width: 45%;
+		background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .55), transparent);
+		transform: skewX(-20deg);
+		pointer-events: none;
+		animation: slm-score-shine 3.6s ease-in-out infinite;
+	}
+}
+
+@keyframes slm-score-shine {
+	0%,
+	55% {
+		left: -60%;
+	}
+
+	85%,
+	100% {
+		left: 130%;
+	}
+}
+
+.score-label {
+	display: flex;
+	flex-direction: column;
+	line-height: 1.15;
+	font-size: .85rem;
+	font-weight: 600;
+}
+
+.score-count {
+	font-size: .75rem;
+	font-weight: 400;
+	color: var(--bs-secondary-color);
+}
+
 // a translucent button that stays readable on the colored header
 .btn-glass {
 	--bs-btn-color: var(--bs-body-color);

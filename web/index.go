@@ -222,7 +222,7 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		if !inCollection {
 			continue
 		}
-		// genres, players and languages are counted before their own filters
+		// genres, players, languages and scores are counted before their own filters
 		for _, genre := range item.Genres {
 			genreCounts[genre]++
 		}
@@ -238,8 +238,9 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		case item.Players >= 2:
 			facets.TwoPlayers++
 		}
+		countScore(&facets, item.Score)
 		if (filter.Genre != "" && !hasValue(item.Genres, filter.Genre)) || !playersMatch(item.Players, filter.Players) ||
-			(filter.GameLanguage != "" && !hasValue(item.Languages, filter.GameLanguage)) {
+			(filter.GameLanguage != "" && !hasValue(item.Languages, filter.GameLanguage)) || !scoreMatches(item.Score, filter.Score) {
 			continue
 		}
 		// the kinds and extras are counted whatever they are set to, within the collection
@@ -461,6 +462,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 		}
 		item.Added = added["game:"+item.Id]
 		item.TimeToBeat = timesToBeat[item.Id].Main()
+		item.Score = timesToBeat[item.Id].Score()
 		item.Collections = collections[item.Id]
 		item.Selectable = true
 		item.Favorite = favorites[item.Id]

@@ -22,7 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.69.0
+  <Changes>### 1.70.0
+- Scores of critics and players from IGDB on the game page and in Statistics, to sort and filter the library by (with the IGDB keys)
+- Folders skipped by how their names start, end or what they contain, or by an empty .slmignore file in them
+- Games once read without their own name get it back with the next scan
+### 1.69.0
 - Reads the NSZ files made with the experimental extra compression of NXPress
 ### 1.68.1
 - Security update of the library used to sign in with OpenID Connect
@@ -99,7 +103,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-11-02</Date>
+  <Date>2026-11-03</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>

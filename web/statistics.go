@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"html/template"
+	"math"
 	"net/http"
 	"path/filepath"
 	"sort"
@@ -53,15 +54,58 @@ type Statistics struct {
 	// how long the games with a time to beat (IGDB) take, in seconds, and how many they are
 	TimeToBeat      int
 	TimeToBeatGames int
+	// the scores of the games on IGDB: the averages of the critics and of the users with how
+	// many games they come from, the games with a score by band, and the best ones
+	CriticAverage int
+	CriticGames   int
+	UserAverage   int
+	UserGames     int
+	ScoredGames   int
+	ScoreBands    []ScoreBand
+	MaxScoreBand  int
+	TopScored     []ScoredGame
 	// the highest count of each list, for the bars
 	MaxGenre     int
 	MaxPublisher int
 	MaxYear      int
 }
 
+// ScoreBand is how many games have a score of a band, of the colours of the scores (see
+// scoreLevel): 90 or more, 75 to 89, 50 to 74 and under 50.
+type ScoreBand struct {
+	Label string
+	Level string
+	Count int
+}
+
+// ScoredGame is a game with its score, and for the comparison with the user's rating, that
+// rating in stars and as a score (a star is 20).
+type ScoredGame struct {
+	Id    string
+	Name  string
+	Score int
+	Stars int
+	Mine  int
+}
+
+// ScoreComparison sets the ratings of a user ("My rating") against the scores of the same
+// games: their averages, and the games the user liked more or less than IGDB, the most first.
+type ScoreComparison struct {
+	Rated  int
+	Mine   int
+	Theirs int
+	More   []ScoredGame
+	Less   []ScoredGame
+}
+
+// a rating is told apart from the score of IGDB from this difference on
+const scoreDisagreement = 15
+
 type StatisticsPageData struct {
 	GlobalPageData
 	Stats Statistics
+	// the ratings of the user who looks against the scores of IGDB
+	Mine ScoreComparison
 	// what changed in the folders, newest first, and the library over time
 	History []HistoryEvent
 	Charts  *HistoryCharts
@@ -209,6 +253,9 @@ func (web *Web) buildStatistics(lang string) Statistics {
 		games := 0
 		leftOut, _ := web.regionCopies(lang)
 		merged := web.mergedStatus(lang)
+		scores := web.timesToBeat().snapshot()
+		critics, users := 0, 0
+		bands := map[string]int{}
 		for _, item := range library {
 			if item.TimeToBeat > 0 {
 				stats.TimeToBeat += item.TimeToBeat
@@ -218,6 +265,20 @@ func (web *Web) buildStatistics(lang string) Statistics {
 				continue
 			}
 			games++
+			if item.Score > 0 {
+				value := scores[item.Id]
+				if score := value.Critics(); score > 0 {
+					critics += score
+					stats.CriticGames++
+				}
+				if score := value.Users(); score > 0 {
+					users += score
+					stats.UserGames++
+				}
+				stats.ScoredGames++
+				bands[scoreLevel(item.Score)]++
+				stats.TopScored = append(stats.TopScored, ScoredGame{Id: item.Id, Name: item.Name, Score: item.Score})
+			}
 			if status, ok := merged[item.Id]; ok {
 				status.apply(&item)
 			}
@@ -229,6 +290,28 @@ func (web *Web) buildStatistics(lang string) Statistics {
 			}
 		}
 		stats.Games = games
+		if stats.CriticGames > 0 {
+			stats.CriticAverage = int(math.Round(float64(critics) / float64(stats.CriticGames)))
+		}
+		if stats.UserGames > 0 {
+			stats.UserAverage = int(math.Round(float64(users) / float64(stats.UserGames)))
+		}
+		if stats.ScoredGames > 0 {
+			for _, band := range []ScoreBand{{"90 or more", "top", 0}, {"75 to 89", "high", 0}, {"50 to 74", "mid", 0}, {"Under 50", "low", 0}} {
+				band.Count = bands[band.Level]
+				stats.ScoreBands = append(stats.ScoreBands, band)
+				stats.MaxScoreBand = max(stats.MaxScoreBand, band.Count)
+			}
+		}
+		sort.Slice(stats.TopScored, func(i, j int) bool {
+			if stats.TopScored[i].Score != stats.TopScored[j].Score {
+				return stats.TopScored[i].Score > stats.TopScored[j].Score
+			}
+			return sortName(stats.TopScored[i].Name) < sortName(stats.TopScored[j].Name)
+		})
+		if len(stats.TopScored) > 10 {
+			stats.TopScored = stats.TopScored[:10]
+		}
 		// the share of the games counts them as the library does, next to its count
 		stats.ByContent[0].Count = games
 		stats.GamesUpToDatePct = percent(int64(stats.GamesUpToDate), int64(stats.Games))
@@ -246,13 +329,55 @@ func (web *Web) buildStatistics(lang string) Statistics {
 	return stats
 }
 
+// scoreComparison sets the ratings of a user against the scores of IGDB of the same games of
+// the library.
+func (web *Web) scoreComparison(user string, lang string) ScoreComparison {
+	comparison := ScoreComparison{}
+	plays := web.play().all(user)
+	if len(plays) == 0 {
+		return comparison
+	}
+	mine, theirs := 0, 0
+	for _, item := range web.derived("library:"+lang, func() any { return web.buildLibrary(lang) }).([]TitleItem) {
+		rating := plays[item.Id].Rating
+		if item.Missing || item.Score == 0 || rating == 0 {
+			continue
+		}
+		game := ScoredGame{Id: item.Id, Name: item.Name, Score: item.Score, Stars: rating, Mine: rating * 20}
+		comparison.Rated++
+		mine += game.Mine
+		theirs += game.Score
+		switch difference := game.Mine - game.Score; {
+		case difference >= scoreDisagreement:
+			comparison.More = append(comparison.More, game)
+		case difference <= -scoreDisagreement:
+			comparison.Less = append(comparison.Less, game)
+		}
+	}
+	if comparison.Rated == 0 {
+		return comparison
+	}
+	comparison.Mine = int(math.Round(float64(mine) / float64(comparison.Rated)))
+	comparison.Theirs = int(math.Round(float64(theirs) / float64(comparison.Rated)))
+	// the biggest differences first, three of each
+	sort.Slice(comparison.More, func(i, j int) bool {
+		return comparison.More[i].Mine-comparison.More[i].Score > comparison.More[j].Mine-comparison.More[j].Score
+	})
+	sort.Slice(comparison.Less, func(i, j int) bool {
+		return comparison.Less[i].Score-comparison.Less[i].Mine > comparison.Less[j].Score-comparison.Less[j].Mine
+	})
+	comparison.More = comparison.More[:min(len(comparison.More), 3)]
+	comparison.Less = comparison.Less[:min(len(comparison.Less), 3)]
+	return comparison
+}
+
 func (web *Web) HandleStatistics() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/statistics.html")
 
 	web.router.HandleFunc("/statistics.html", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
 		web.render(w, r, templates, StatisticsPageData{GlobalPageData: web.globalPageData("statistics"), Stats: web.getStatistics(lang),
-			History: web.history().recent(50), Charts: historyCharts(web.history().days(), lang)})
+			Mine: web.scoreComparison(playUser(r), lang), History: web.history().recent(50), Charts: historyCharts(web.history().days(), lang)})
 	}).Methods("GET")
 }
 

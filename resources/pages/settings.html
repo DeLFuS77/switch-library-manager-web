@@ -37,14 +37,35 @@
 								</textarea>
 								<div class="form-text" id="scanFoldersHelp">{{t "One folder per Line"}}</div>
 							</div>
-							<div class="mt-3">
-								<label for="exclude_folders" class="form-label fw-semibold">{{t "Folders to skip"}}</label>
-								<textarea class="form-control font-monospace" id="exclude_folders" name="exclude_folders" rows="3" spellcheck="false" placeholder="{{t "e.g. %v" "_build"}}" aria-describedby="excludeFoldersHelp">
-{{- range .Settings.ExcludeFolders}}
+							<div class="mt-3" role="group" aria-labelledby="skipFoldersTitle" aria-describedby="skipFoldersHelp">
+								<div class="form-label fw-semibold mb-1" id="skipFoldersTitle">{{t "Folders to skip"}}</div>
+								<div class="row g-2">
+									<div class="col-md-4">
+										<label for="skip_starting" class="form-label small mb-1">{{t "Starting with"}}</label>
+										<textarea class="form-control font-monospace" id="skip_starting" name="skip_starting" rows="3" spellcheck="false" placeholder="{{t "e.g. %v" "_"}}">
+{{- range .Settings.SkipFolders "starting"}}
 {{.}}
 {{- end -}}
-								</textarea>
-								<div class="form-text" id="excludeFoldersHelp">{{t "One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted."}}</div>
+										</textarea>
+									</div>
+									<div class="col-md-4">
+										<label for="skip_ending" class="form-label small mb-1">{{t "Ending with"}}</label>
+										<textarea class="form-control font-monospace" id="skip_ending" name="skip_ending" rows="3" spellcheck="false" placeholder="{{t "e.g. %v" "_old"}}">
+{{- range .Settings.SkipFolders "ending"}}
+{{.}}
+{{- end -}}
+										</textarea>
+									</div>
+									<div class="col-md-4">
+										<label for="skip_containing" class="form-label small mb-1">{{t "Containing"}}</label>
+										<textarea class="form-control font-monospace" id="skip_containing" name="skip_containing" rows="3" spellcheck="false" placeholder="{{t "e.g. %v" "build"}}">
+{{- range .Settings.SkipFolders "containing"}}
+{{.}}
+{{- end -}}
+										</textarea>
+									</div>
+								</div>
+								<div class="form-text" id="skipFoldersHelp">{{t "One per line in each list, in any case. What is inside these folders is not scanned, organized or deleted."}} {{t "A folder with an empty file named .slmignore inside is skipped too, whatever its name."}}</div>
 							</div>
 							<div class="form-check form-switch mt-3">
 								<input class="form-check-input" type="checkbox" role="switch" id="watch_folders" name="watch_folders" value="true" aria-describedby="watchFoldersHelp"{{if .Settings.WatchFolders}} checked{{end}}>
@@ -184,8 +205,8 @@
 								</div>
 								<div class="col-12">
 									<fieldset class="igdb-settings">
-										<legend class="form-label fw-semibold"><span class="bi bi-hourglass-split me-1" aria-hidden="true"></span>{{t "Times to beat (IGDB)"}}</legend>
-										<p class="form-text mt-0" id="igdbHelp">{{t "Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret."}} <a href="https://api-docs.igdb.com/#account-creation" target="_blank" rel="noopener noreferrer">{{t "How to get them"}}</a> {{t "With the keys, the sagas also take the series of your games from IGDB, exactly."}}</p>
+										<legend class="form-label fw-semibold"><span class="bi bi-hourglass-split me-1" aria-hidden="true"></span>{{t "Times to beat and scores (IGDB)"}}</legend>
+										<p class="form-text mt-0" id="igdbHelp">{{t "Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret."}} <a href="https://api-docs.igdb.com/#account-creation" target="_blank" rel="noopener noreferrer">{{t "How to get them"}}</a> {{t "With the keys, the sagas also take the series of your games from IGDB, exactly."}} {{t "The game pages also show the scores of critics and players, and the library can be sorted and filtered by them."}}</p>
 										<div class="row g-3">
 											<div class="col-md-6">
 												<label for="igdb_client_id" class="form-label">{{t "Client ID"}}</label>
