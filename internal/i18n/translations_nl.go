@@ -3,6 +3,14 @@ package i18n
 // Dutch interface translations; see translations.go.
 func init() {
 	Translations["nl"] = map[string]string{
+		// the files that go with a game
+		"When old updates are deleted, by hand or by the automations, the other copy of a duplicate goes too.": "Als oude updates worden verwijderd, met de hand of door de automatiseringen, gaat ook de andere kopie van een duplicaat weg.",
+		"The NFO goes with its game.":                       "De NFO gaat mee met zijn game.",
+		"The NFO stays where it was.":                       "De NFO blijft waar hij was.",
+		"Take the NFO, SFV and proof files with their game": "NFO-, SFV- en proof-bestanden met hun game meenemen",
+		"A file named as its game (game.nfo next to game.nsp) takes its new name. A folder that holds only the game also gives it its other notes, checksums and images, and its Proof folder.": "Een bestand met de naam van zijn game (game.nfo naast game.nsp) krijgt de nieuwe naam. Een map met alleen de game geeft hem ook de andere notities, checksums en afbeeldingen mee, en de map Proof.",
+		"It goes with a game that was moved, but a file with its name is already where it would go, so it is left where it is.":                                                                 "Het hoort bij een game die is verplaatst, maar waar het heen zou gaan staat al een bestand met die naam, dus het blijft waar het is.",
+
 		// low priority
 		"Low priority": "Lage prioriteit",
 		"The app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turned off, it takes effect when the app starts again.": "De app loopt achter de andere programma's van de server aan, zodat die blijven reageren terwijl hij comprimeert, controleert of converteert; hij gaat wat trager als die de processor nodig hebben. Op Linux werkt uitzetten pas bij de volgende start van de app.",

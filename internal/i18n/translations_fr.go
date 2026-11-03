@@ -3,6 +3,14 @@ package i18n
 // French interface translations; see translations.go.
 func init() {
 	Translations["fr"] = map[string]string{
+		// the files that go with a game
+		"When old updates are deleted, by hand or by the automations, the other copy of a duplicate goes too.": "Quand les anciennes mises à jour sont supprimées, à la main ou par les automatisations, l'autre copie d'un doublon part aussi.",
+		"The NFO goes with its game.":                       "Le NFO suit son jeu.",
+		"The NFO stays where it was.":                       "Le NFO reste où il était.",
+		"Take the NFO, SFV and proof files with their game": "Emporter les fichiers NFO, SFV et proof avec leur jeu",
+		"A file named as its game (game.nfo next to game.nsp) takes its new name. A folder that holds only the game also gives it its other notes, checksums and images, and its Proof folder.": "Un fichier nommé comme son jeu (jeu.nfo à côté de jeu.nsp) prend son nouveau nom. Un dossier qui ne contient que le jeu lui donne aussi ses autres notes, sommes de contrôle et images, ainsi que son dossier Proof.",
+		"It goes with a game that was moved, but a file with its name is already where it would go, so it is left where it is.":                                                                 "Il accompagne un jeu qui a été déplacé, mais un fichier portant son nom se trouve déjà là où il irait, il reste donc où il est.",
+
 		// low priority
 		"Low priority": "Priorité basse",
 		"The app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turned off, it takes effect when the app starts again.": "L'application passe après les autres programmes du serveur, pour qu'ils restent réactifs pendant qu'elle compresse, vérifie ou convertit ; elle va un peu moins vite quand ils ont besoin du processeur. Sous Linux, la désactiver prend effet au prochain démarrage de l'application.",

@@ -44,6 +44,7 @@ type OrganizeForm struct {
 	FoldersWithIds             bool   `in:"form=folders_with_ids"`
 	DlcOwnFolders              bool   `in:"form=dlc_own_folders"`
 	ProcessWhenMissingBaseGame bool   `in:"form=process_when_missing_base_game"`
+	MoveExtraFiles             bool   `in:"form=move_extra_files"`
 	DeleteEmptyFolders         bool   `in:"form=delete_empty_folders"`
 	DeleteDuplicateFiles       bool   `in:"form=delete_duplicate_files"`
 	KeepDuplicate              string `in:"form=keep_duplicate"`
@@ -103,6 +104,7 @@ func (f *OrganizeForm) toOptions(current settings.OrganizeOptions) settings.Orga
 	current.FoldersWithIds = f.FoldersWithIds
 	current.DlcInOneFolder = !f.DlcOwnFolders
 	current.ProcessWhenMissingBaseGame = f.ProcessWhenMissingBaseGame
+	current.LeaveExtraFiles = !f.MoveExtraFiles
 	current.DeleteEmptyFolders = f.DeleteEmptyFolders
 	current.DeleteDuplicateFiles = f.DeleteDuplicateFiles
 	current.DeleteUpdatesWithCheats = !f.KeepUpdatesWithCheats

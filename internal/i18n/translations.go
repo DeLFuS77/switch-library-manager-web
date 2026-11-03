@@ -4,6 +4,14 @@ package i18n
 // Translate() calls and in web.js; "%v" placeholders are kept in the translation.
 var Translations = map[string]map[string]string{
 	"es": {
+		// the files that go with a game
+		"When old updates are deleted, by hand or by the automations, the other copy of a duplicate goes too.": "Cuando se borran las actualizaciones antiguas, a mano o con las automatizaciones, también se va la otra copia de un duplicado.",
+		"The NFO goes with its game.":                       "El NFO va con su juego.",
+		"The NFO stays where it was.":                       "El NFO se queda donde estaba.",
+		"Take the NFO, SFV and proof files with their game": "Llevar los NFO, SFV y proof con su juego",
+		"A file named as its game (game.nfo next to game.nsp) takes its new name. A folder that holds only the game also gives it its other notes, checksums and images, and its Proof folder.": "Un archivo que se llama como su juego (juego.nfo junto a juego.nsp) toma su nombre nuevo. Una carpeta que solo tiene el juego le da también sus otras notas, sumas de comprobación e imágenes, y su carpeta Proof.",
+		"It goes with a game that was moved, but a file with its name is already where it would go, so it is left where it is.":                                                                 "Va con un juego que se ha movido, pero donde iría ya hay un archivo con su nombre, así que se queda donde está.",
+
 		// low priority
 		"Low priority": "Prioridad baja",
 		"The app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turned off, it takes effect when the app starts again.": "La app va por detrás de los demás programas del servidor, para que sigan respondiendo mientras comprime, verifica o convierte; va algo más lenta cuando ellos necesitan el procesador. En Linux, al desactivarla se aplica cuando la app vuelva a arrancar.",

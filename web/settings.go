@@ -133,11 +133,14 @@ type SettingsForm struct {
 	TelegramCommands      bool   `in:"form=telegram_commands"`
 	// the order of the files, sent by the setup wizard only: empty leaves the options of
 	// Organize as they are
-	OrganizeLayout     string `in:"form=organize_layout"`
-	KeepGameFolders    bool   `in:"form=keep_game_folders"`
-	RenameFiles        bool   `in:"form=rename_files"`
-	DeleteEmptyFolders bool   `in:"form=delete_empty_folders"`
-	KeepDuplicate      string `in:"form=keep_duplicate"`
+	OrganizeLayout       string `in:"form=organize_layout"`
+	KeepGameFolders      bool   `in:"form=keep_game_folders"`
+	RenameFiles          bool   `in:"form=rename_files"`
+	KeepNamesWithId      bool   `in:"form=keep_names_with_id"`
+	DeleteEmptyFolders   bool   `in:"form=delete_empty_folders"`
+	MoveExtraFiles       bool   `in:"form=move_extra_files"`
+	DeleteDuplicateFiles bool   `in:"form=delete_duplicate_files"`
+	KeepDuplicate        string `in:"form=keep_duplicate"`
 }
 
 // skipList is a list of the folders to skip of the form: its field, its kind and its lines.
@@ -539,8 +542,9 @@ func (form *SettingsForm) apply(appSettings *settings.AppSettings) {
 	appSettings.Language = form.Language
 	appSettings.Notifications = notify.KeptSecrets(form.notificationOptions(), appSettings.Notifications)
 	if form.OrganizeLayout != "" {
-		appSettings.OrganizeOptions = wizardOrganize(appSettings.OrganizeOptions, form.OrganizeLayout,
-			form.KeepGameFolders, form.RenameFiles, form.DeleteEmptyFolders, form.KeepDuplicate)
+		appSettings.OrganizeOptions = wizardOrganize(appSettings.OrganizeOptions, form.OrganizeLayout, wizardOrder{
+			keepFolders: form.KeepGameFolders, rename: form.RenameFiles, keepNames: form.KeepNamesWithId, deleteEmpty: form.DeleteEmptyFolders,
+			moveExtras: form.MoveExtraFiles, deleteDuplicates: form.DeleteDuplicateFiles, keepDuplicate: form.KeepDuplicate})
 	}
 	appSettings.Folder = scanFolders[0]
 	if len(scanFolders) > 1 {

@@ -211,10 +211,16 @@ func validWizardOrganize(layout string, keepDuplicate string) bool {
 	return false
 }
 
+// wizardOrder is what the wizard asks of the order of the files, besides their layout.
+type wizardOrder struct {
+	keepFolders, rename, keepNames, deleteEmpty, moveExtras, deleteDuplicates bool
+	keepDuplicate                                                             string
+}
+
 // wizardOrganize applies the order chosen in the wizard to the options of Organize; the rest of
 // them (the templates, the IDs in the folders...) stay as they are. Subfolders the user named
 // keep their names.
-func wizardOrganize(options settings.OrganizeOptions, layout string, keepFolders bool, rename bool, deleteEmpty bool, keepDuplicate string) settings.OrganizeOptions {
+func wizardOrganize(options settings.OrganizeOptions, layout string, order wizardOrder) settings.OrganizeOptions {
 	switch layout {
 	case WIZARD_LAYOUT_NONE:
 		options.CreateFolderPerGame = false
@@ -234,10 +240,13 @@ func wizardOrganize(options settings.OrganizeOptions, layout string, keepFolders
 			options.DlcFolder = wizardDlcFolder
 		}
 	}
-	options.KeepGameFolders = keepFolders
-	options.RenameFiles = rename
-	options.DeleteEmptyFolders = deleteEmpty
-	options.KeepDuplicate = keepDuplicate
+	options.KeepGameFolders = order.keepFolders
+	options.RenameFiles = order.rename
+	options.KeepNamesWithId = order.keepNames
+	options.DeleteEmptyFolders = order.deleteEmpty
+	options.LeaveExtraFiles = !order.moveExtras
+	options.DeleteDuplicateFiles = order.deleteDuplicates
+	options.KeepDuplicate = order.keepDuplicate
 	return options
 }
 

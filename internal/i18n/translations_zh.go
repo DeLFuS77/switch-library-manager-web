@@ -3,6 +3,14 @@ package i18n
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	Translations["zh"] = map[string]string{
+		// the files that go with a game
+		"When old updates are deleted, by hand or by the automations, the other copy of a duplicate goes too.": "删除旧更新时（手动或通过自动化），重复文件的另一份副本也会一起删除。",
+		"The NFO goes with its game.":                       "NFO 随游戏一起移动。",
+		"The NFO stays where it was.":                       "NFO 留在原处。",
+		"Take the NFO, SFV and proof files with their game": "将 NFO、SFV 和 proof 文件随游戏一起移动",
+		"A file named as its game (game.nfo next to game.nsp) takes its new name. A folder that holds only the game also gives it its other notes, checksums and images, and its Proof folder.": "与游戏同名的文件（game.nsp 旁边的 game.nfo）会改用游戏的新名称。若文件夹里只有这个游戏，其中的其他说明、校验文件、图片和 Proof 文件夹也会一起移动。",
+		"It goes with a game that was moved, but a file with its name is already where it would go, so it is left where it is.":                                                                 "它属于一个已移动的游戏，但目标位置已有同名文件，因此保留在原处。",
+
 		// low priority
 		"Low priority": "低优先级",
 		"The app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turned off, it takes effect when the app starts again.": "应用会让位于服务器上的其他程序，压缩、校验或转换时它们仍能流畅响应；其他程序需要处理器时会稍慢一些。在 Linux 上，关闭后要到应用重新启动才生效。",

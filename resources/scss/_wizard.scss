@@ -1056,6 +1056,10 @@ body:has(.wizard.show) #alert_sync {
 		color: rgb(var(--slm-work-rgb));
 	}
 
+	&.is-extra .bi {
+		color: var(--bs-secondary-color);
+	}
+
 	&.is-moving .wizard-tree-name {
 		color: rgb(var(--slm-work-rgb));
 	}
