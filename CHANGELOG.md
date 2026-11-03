@@ -5,6 +5,7 @@
 ### Improvements
 
 - Folders can be skipped when scanning, by name or by pattern (`_build`, `.git`, `*_backup*`), in Settings › Library › Folders to skip: what is inside them is not scanned, organized or deleted, and Organize never moves a game into one (thanks @aleszczynskig, #142)
+- A file whose check finds nothing wrong is Verified, and a damaged one Corrupted, in Tasks, in Issues and in the messages of the automations, as NXPress calls them; Modified stays as it is
 
 ## 1.69.0
 

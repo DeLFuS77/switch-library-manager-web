@@ -477,9 +477,9 @@ func automationMessage(lang string, result AutomationResult) (string, string) {
 		lines = append(lines, "• "+translatef(lang, "%v new updates", result.Updates))
 	}
 	if result.Checked > 0 {
-		checked := translatef(lang, "%v files checked, %v failed", result.Checked, result.Damaged)
+		checked := translatef(lang, "%v files checked, %v corrupted", result.Checked, result.Damaged)
 		if result.Modified > 0 {
-			checked = translatef(lang, "%v files checked, %v modified, %v failed", result.Checked, result.Modified, result.Damaged)
+			checked = translatef(lang, "%v files checked, %v modified, %v corrupted", result.Checked, result.Modified, result.Damaged)
 		}
 		lines = append(lines, "✓ "+checked)
 	}

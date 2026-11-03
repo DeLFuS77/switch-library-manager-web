@@ -163,7 +163,7 @@
 									{{- if eq .Kind "compress"}}{{if .Files}} &middot; {{t "%v files compressed, %v saved" .Files (formatSize .Saved)}}{{with .SavedPercent}} ({{.}}){{end}}{{end}}
 									{{- else if eq .Kind "decompress"}}{{if .Files}} &middot; {{t "%v files decompressed" .Files}}{{end}}
 									{{- else if and (eq .Kind "cleanup") .Saved}} &middot; {{t "%v files deleted, %v freed" .Files (formatSize .Saved)}}
-									{{- else if eq .Kind "verify"}} &middot; {{if eq .Level "signature"}}{{t "%v files checked, %v modified" .Files .Modified}}{{else if .Modified}}{{t "%v files checked, %v modified, %v failed" .Files .Modified .Damaged}}{{else}}{{t "%v files checked, %v failed" .Files .Damaged}}{{end}}
+									{{- else if eq .Kind "verify"}} &middot; {{if eq .Level "signature"}}{{t "%v files checked, %v modified" .Files .Modified}}{{else if .Modified}}{{t "%v files checked, %v modified, %v corrupted" .Files .Modified .Damaged}}{{else}}{{t "%v files checked, %v corrupted" .Files .Damaged}}{{end}}
 									{{- else if eq .Kind "covers"}} &middot; {{t "%v covers downloaded" .Files}}
 									{{- else if eq .Kind "copy"}} &middot; {{t "%v files copied" .Files}}
 									{{- else if eq .Kind "upload"}} &middot; {{.Subject}}{{if .Files}} ({{formatSize .Saved}}){{end}}
@@ -223,13 +223,13 @@
 		{{- else if .Waiting}}
 		<span class="chip chip-muted task-tile-state"><span class="bi bi-hourglass" aria-hidden="true"></span>{{t "Waiting"}}</span>
 		{{- else if .Failed}}
-		<span class="chip chip-danger task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-x-circle" aria-hidden="true"></span>{{if $verify}}{{t "Failed (file)"}}{{else}}{{t "Error"}}{{end}}</span>
+		<span class="chip chip-danger task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-x-circle" aria-hidden="true"></span>{{if $verify}}{{t "Corrupted"}}{{else}}{{t "Error"}}{{end}}</span>
 		{{- else if .Skipped}}
 		<span class="chip chip-warning task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-dash-circle" aria-hidden="true"></span>{{t "Skipped"}}</span>
 		{{- else if .Modified}}
 		<span class="chip chip-warning task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-patch-exclamation" aria-hidden="true"></span>{{t "Modified"}}</span>
 		{{- else}}
-		<span class="chip chip-success task-tile-state"><span class="bi bi-check-circle" aria-hidden="true"></span>OK</span>
+		<span class="chip chip-success task-tile-state"><span class="bi bi-check-circle" aria-hidden="true"></span>{{if $verify}}{{t "Verified"}}{{else}}OK{{end}}</span>
 		{{- end}}
 	</li>
 	{{- end}}
@@ -253,13 +253,13 @@
 		<span class="task-tile-cover">{{if .Cover}}<img class="task-tile-img" src="{{.Cover}}" alt="" loading="lazy" decoding="async">{{else}}<span class="bi bi-file-earmark-zip" aria-hidden="true"></span>{{end}}</span>
 		<span class="task-tile-name" title="{{.Name}}">{{.Name}}</span>
 		{{- if .Failed}}
-		<span class="chip chip-danger task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-x-circle" aria-hidden="true"></span>{{if $verify}}{{t "Failed (file)"}}{{else}}{{t "Error"}}{{end}}</span>
+		<span class="chip chip-danger task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-x-circle" aria-hidden="true"></span>{{if $verify}}{{t "Corrupted"}}{{else}}{{t "Error"}}{{end}}</span>
 		{{- else if .Skipped}}
 		<span class="chip chip-warning task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-dash-circle" aria-hidden="true"></span>{{t "Skipped"}}</span>
 		{{- else if .Modified}}
 		<span class="chip chip-warning task-tile-state"{{with .Note}} title="{{t .}}"{{end}}><span class="bi bi-patch-exclamation" aria-hidden="true"></span>{{t "Modified"}}</span>
 		{{- else}}
-		<span class="chip chip-success task-tile-state"><span class="bi bi-check-circle" aria-hidden="true"></span>OK</span>
+		<span class="chip chip-success task-tile-state"><span class="bi bi-check-circle" aria-hidden="true"></span>{{if $verify}}{{t "Verified"}}{{else}}OK{{end}}</span>
 		{{- end}}
 	</li>
 	{{- end}}
