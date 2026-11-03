@@ -114,4 +114,41 @@
 	}
 }
 
+// the scores in Statistics: the bands in the colors of the scores, and the user's rating against
+// the one of IGDB
+.score-band-top,
+.score-band-high {
+	--bar-color: var(--bs-success);
+}
 
+.score-band-mid {
+	--bar-color: var(--bs-warning);
+}
+
+.score-band-low {
+	--bar-color: var(--bs-secondary);
+}
+
+.score-versus {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem 2rem;
+	margin-bottom: 1rem;
+}
+
+.score-versus-value {
+	font-size: 2rem;
+	font-weight: 800;
+	line-height: 1;
+	font-variant-numeric: tabular-nums;
+}
+
+.score-stars {
+	flex-shrink: 0;
+	color: #f59e0b;
+	letter-spacing: .05rem;
+
+	.bi-star {
+		color: var(--bs-secondary-color);
+	}
+}
