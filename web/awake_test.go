@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/awake"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 )
 
 // A task on the files keeps the computer awake while it works, lets it sleep while paused, and
@@ -21,7 +22,7 @@ func TestFileTaskKeepsAwake(t *testing.T) {
 	t.Cleanup(func() { awake.BlockSleep = blocked })
 
 	working, gate := make(chan struct{}), make(chan struct{})
-	started := web.runFileTask(TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	started := web.runFileTask(tasklog.TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		report(0)(1, 2)
 		close(working)
 		<-gate
@@ -50,7 +51,7 @@ func TestFileTaskKeepsAwake(t *testing.T) {
 
 	// cancelled while paused: nothing is left held either
 	working, gate = make(chan struct{}), make(chan struct{})
-	web.runFileTask(TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	web.runFileTask(tasklog.TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		report(0)(1, 2)
 		close(working)
 		<-gate

@@ -36,7 +36,7 @@ Thanks for wanting to help. Switch Library Manager Web is free software under th
   the behaviour is kept by later changes. A pull request without them is asked for them.
 - **Style:** Go code is formatted with `gofmt` and passes `go vet` without warnings; JavaScript and SCSS follow the
   style of the files around them.
-- **Interface texts:** every text of the pages is translated in all the languages of `web/translations*.go`; a test
+- **Interface texts:** every text of the pages is translated in all the languages of `internal/i18n/translations*.go`; a test
   fails when one is missing.
 - **Changelog:** user-facing changes get a line under `## Unreleased` in [CHANGELOG.md](CHANGELOG.md).
 - **No keys nor game data** in commits, tests or issues.

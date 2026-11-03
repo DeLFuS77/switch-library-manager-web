@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -16,7 +17,7 @@ func TestOrganizeTellsTheFilesLeft(t *testing.T) {
 		s.Language = "es"
 		s.Folder = "/games"
 	})
-	taskId := web.taskLog().Start(TASK_ORGANIZE, TRIGGER_MANUAL)
+	taskId := web.taskLog().Start(tasklog.TASK_ORGANIZE, tasklog.TRIGGER_MANUAL)
 	operations := []process.Operation{
 		{Kind: process.OP_MOVE, From: "/games/a.nsp", To: "/games/A/a.nsp"},
 		{Kind: process.OP_MOVE, From: "/games/b.nsp", To: "/games/B/b.nsp", Error: "another file is moved to the same destination"},
@@ -27,15 +28,15 @@ func TestOrganizeTellsTheFilesLeft(t *testing.T) {
 	if changed := web.noteOrganized(taskId, operations); changed != 2 {
 		t.Fatalf("changed: %d", changed)
 	}
-	var task Task
+	var task tasklog.Task
 	for _, each := range web.taskLog().Snapshot() {
 		if each.Id == taskId {
 			task = each
 		}
 	}
-	if len(task.Warnings) != 3 || task.Warnings[0].Text != NOTE_ORGANIZE_FILE_FAILED || !strings.HasPrefix(task.Warnings[0].Detail, "b.nsp: ") ||
-		task.Warnings[1].Text != NOTE_ORGANIZE_FILE_KEPT || !strings.Contains(task.Warnings[1].Detail, "Su juego no está en la biblioteca") ||
-		task.Warnings[2].Text != NOTE_ORGANIZE_FILE_RENAMED || !strings.HasPrefix(task.Warnings[2].Detail, "c.nsp: No se ha movido") {
+	if len(task.Warnings) != 3 || task.Warnings[0].Text != tasklog.NOTE_ORGANIZE_FILE_FAILED || !strings.HasPrefix(task.Warnings[0].Detail, "b.nsp: ") ||
+		task.Warnings[1].Text != tasklog.NOTE_ORGANIZE_FILE_KEPT || !strings.Contains(task.Warnings[1].Detail, "Su juego no está en la biblioteca") ||
+		task.Warnings[2].Text != tasklog.NOTE_ORGANIZE_FILE_RENAMED || !strings.HasPrefix(task.Warnings[2].Detail, "c.nsp: No se ha movido") {
 		t.Fatalf("the notes: %+v", task.Warnings)
 	}
 
@@ -44,12 +45,12 @@ func TestOrganizeTellsTheFilesLeft(t *testing.T) {
 	for i := 0; i < organizeNotesShown+5; i++ {
 		many = append(many, process.Operation{Kind: process.OP_SKIP, From: "/games/x.nsp", Reason: process.REASON_SPLIT})
 	}
-	other := web.taskLog().Start(TASK_ORGANIZE, TRIGGER_MANUAL)
+	other := web.taskLog().Start(tasklog.TASK_ORGANIZE, tasklog.TRIGGER_MANUAL)
 	web.noteOrganized(other, many)
 	for _, each := range web.taskLog().Snapshot() {
 		if each.Id == other {
 			last := each.Warnings[len(each.Warnings)-1]
-			if len(each.Warnings) != organizeNotesShown+1 || last.Text != NOTE_ORGANIZE_MORE || last.Detail != "5" {
+			if len(each.Warnings) != organizeNotesShown+1 || last.Text != tasklog.NOTE_ORGANIZE_MORE || last.Detail != "5" {
 				t.Fatalf("%d notes, the last %+v", len(each.Warnings), last)
 			}
 		}

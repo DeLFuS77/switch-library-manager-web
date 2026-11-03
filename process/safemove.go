@@ -3,10 +3,10 @@ package process
 import (
 	"errors"
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"io"
 	"os"
 	"path/filepath"
-	"runtime"
 )
 
 // rename gives a file a name no file has, as renameNoReplace; a variable for the tests, which
@@ -75,7 +75,7 @@ func copyAcross(from string, to string) error {
 		os.Remove(temporary)
 		return err
 	}
-	syncFolder(filepath.Dir(to))
+	durable.SyncFolder(filepath.Dir(to))
 	source.Close()
 	if err := os.Remove(from); err != nil {
 		// the original cannot go (a folder that cannot be written): the copy goes instead, so
@@ -86,18 +86,6 @@ func copyAcross(from string, to string) error {
 		return fmt.Errorf("the original cannot be deleted after its copy to the other disk: %w", err)
 	}
 	return nil
-}
-
-// syncFolder writes the names of a folder to the disk, a rename among them. Windows has no
-// way to, and keeps them in the journal of NTFS on its own.
-func syncFolder(folder string) {
-	if runtime.GOOS == "windows" {
-		return
-	}
-	if file, err := os.Open(folder); err == nil {
-		file.Sync()
-		file.Close()
-	}
 }
 
 // renameChecked is a rename that refuses a name a file has, for the systems with no way to:

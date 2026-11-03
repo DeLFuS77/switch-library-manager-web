@@ -17,6 +17,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -116,11 +117,11 @@ func TestCloudflareAccessTokens(t *testing.T) {
 	if n := keys.fetches.Load(); n != 1 {
 		t.Fatalf("the keys are kept: fetched %d times", n)
 	}
-	if n := activityCount(web, ACTION_PORTAL_CF, ""); n != 2 {
+	if n := activityCount(web, activity.ACTION_PORTAL_CF, ""); n != 2 {
 		t.Fatalf("told once a day by user: %d", n)
 	}
-	for _, entry := range web.activities().list() {
-		if entry.Action == ACTION_PORTAL_CF && entry.IP != "203.0.113.20" {
+	for _, entry := range web.activities().List() {
+		if entry.Action == activity.ACTION_PORTAL_CF && entry.IP != "203.0.113.20" {
 			t.Fatalf("the address of the person, from Cloudflare: %q", entry.IP)
 		}
 	}
@@ -172,7 +173,7 @@ func TestCloudflareAccessTokens(t *testing.T) {
 			t.Errorf("%s: %v", name, code)
 		}
 	}
-	if n := activityCount(web, ACTION_LOGIN_FAIL, portalTokenDetail); n != 1 {
+	if n := activityCount(web, activity.ACTION_LOGIN_FAIL, portalTokenDetail); n != 1 {
 		t.Fatalf("tokens not valid are told once an hour by address: %d", n)
 	}
 	// a person Cloudflare let in without a user of the app

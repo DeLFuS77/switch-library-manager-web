@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -184,7 +185,7 @@ func TestSpaceIsNotWorkedOutForEveryFileCompressed(t *testing.T) {
 	before := web.spaceKey()
 	release := make(chan struct{})
 	working := make(chan struct{})
-	web.runFileTask(TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	web.runFileTask(tasklog.TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		close(working)
 		<-release
 		return 0, nil

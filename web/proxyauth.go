@@ -14,6 +14,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -656,28 +657,28 @@ func (web *Web) recordPortal(event portalEvent) {
 	if isDemoMode() {
 		return
 	}
-	entry := Activity{Time: time.Now(), User: event.User, IP: event.IP}
+	entry := activity.Entry{Time: time.Now(), User: event.User, IP: event.IP}
 	switch event.Result {
 	case "ok":
-		entry.Action, entry.Detail = ACTION_PORTAL_PROXY, event.Detail
+		entry.Action, entry.Detail = activity.ACTION_PORTAL_PROXY, event.Detail
 		switch event.Via {
 		case VIA_CLOUDFLARE:
-			entry.Action = ACTION_PORTAL_CF
+			entry.Action = activity.ACTION_PORTAL_CF
 		case VIA_OIDC:
-			entry.Action = ACTION_PORTAL_OIDC
+			entry.Action = activity.ACTION_PORTAL_OIDC
 		}
 	case "made":
-		entry.Action, entry.Detail = ACTION_USER_NEW, event.User+": "+event.Detail
+		entry.Action, entry.Detail = activity.ACTION_USER_NEW, event.User+": "+event.Detail
 	case "unknown":
-		entry.Action, entry.Detail = ACTION_LOGIN_FAIL, portalUnknownDetail
+		entry.Action, entry.Detail = activity.ACTION_LOGIN_FAIL, portalUnknownDetail
 	case "untrusted":
-		entry.Action, entry.Detail = ACTION_LOGIN_FAIL, portalUntrustedDetail
+		entry.Action, entry.Detail = activity.ACTION_LOGIN_FAIL, portalUntrustedDetail
 	case "token":
-		entry.Action, entry.Detail = ACTION_LOGIN_FAIL, portalTokenDetail
+		entry.Action, entry.Detail = activity.ACTION_LOGIN_FAIL, portalTokenDetail
 	case "oidc":
-		entry.Action, entry.Detail = ACTION_LOGIN_FAIL, oidcFailedDetail
+		entry.Action, entry.Detail = activity.ACTION_LOGIN_FAIL, oidcFailedDetail
 	default:
 		return
 	}
-	web.activities().add(entry)
+	web.activities().Add(entry)
 }

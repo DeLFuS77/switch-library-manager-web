@@ -13,6 +13,10 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -95,8 +99,8 @@ func (web *Web) quarantine() *quarantineStore {
 
 func loadQuarantine(dataFolder string) *quarantineStore {
 	store := &quarantineStore{path: filepath.Join(dataFolder, QUARANTINE_FILENAME)}
-	if data, ok := readStore(store.path); ok {
-		parseStore(store.path, data, &store.items)
+	if data, ok := durable.ReadStore(store.path); ok {
+		durable.ParseStore(store.path, data, &store.items)
 	}
 	return store
 }
@@ -108,7 +112,7 @@ func (q *quarantineStore) save() {
 		return
 	}
 	if data, err := json.Marshal(q.items); err == nil {
-		writeFileAtomic(q.path, data)
+		durable.WriteFile(q.path, data)
 	}
 }
 
@@ -230,7 +234,7 @@ func (web *Web) putInQuarantine(appSettings *settings.AppSettings, path string, 
 		web.sugarLogger.Warnf("[Quarantine] %s could not be kept, it is deleted: %v", path, err)
 		return os.Remove(path)
 	}
-	syncFolder(folder)
+	durable.SyncFolder(folder)
 	q.items = append(q.items, QuarantineItem{Id: id, Path: path, Stored: stored, Root: root, Size: info.Size(), Reason: reason, Time: now})
 	q.trim(appSettings.Quarantine.LimitGB)
 	q.save()
@@ -301,7 +305,7 @@ func (q *quarantineStore) restore(id string) (QuarantineItem, error) {
 		if err := os.Rename(item.Stored, item.Path); err != nil {
 			return item, err
 		}
-		syncFolder(filepath.Dir(item.Path))
+		durable.SyncFolder(filepath.Dir(item.Path))
 		item.erase()
 		q.take(id)
 		q.save()
@@ -353,7 +357,7 @@ func (web *Web) makeRoom(folder string, need int64) bool {
 	sort.SliceStable(q.items, func(i, j int) bool { return q.items[i].Time.Before(q.items[j].Time) })
 	freed := false
 	for i := 0; i < len(q.items); {
-		if free, err := diskFree(folder); err != nil || int64(free) >= need {
+		if free, err := diskfree.Free(folder); err != nil || int64(free) >= need {
 			break
 		}
 		item := q.items[i]
@@ -436,8 +440,8 @@ func (web *Web) HandleQuarantine() {
 		}
 		web.sugarLogger.Infof("[Quarantine] %s put back", item.Path)
 		// the library has the file again
-		web.Rescan(TRIGGER_ORGANIZE)
-		writeJSON(w, http.StatusOK, map[string]string{"message": translatef(lang, "%v is back in its folder.", filepath.Base(item.Path))})
+		web.Rescan(tasklog.TRIGGER_ORGANIZE)
+		writeJSON(w, http.StatusOK, map[string]string{"message": i18n.Translatef(lang, "%v is back in its folder.", filepath.Base(item.Path))})
 	}).Methods("POST")
 
 	web.router.HandleFunc("/quarantine/delete", func(w http.ResponseWriter, r *http.Request) {
@@ -447,13 +451,13 @@ func (web *Web) HandleQuarantine() {
 			writeGlobalError(w, http.StatusInternalServerError, lang, "The file could not be deleted.")
 			return
 		}
-		writeJSON(w, http.StatusOK, map[string]string{"message": translate(lang, "Deleted for good.")})
+		writeJSON(w, http.StatusOK, map[string]string{"message": i18n.Translate(lang, "Deleted for good.")})
 	}).Methods("POST")
 
 	web.router.HandleFunc("/quarantine/empty", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
 		count, size := web.quarantine().empty()
 		web.sugarLogger.Infof("[Quarantine] emptied: %d files, %d bytes", count, size)
-		writeJSON(w, http.StatusOK, map[string]string{"message": translatef(lang, "%v files deleted for good (%v).", count, formatSizeIn(lang, size))})
+		writeJSON(w, http.StatusOK, map[string]string{"message": i18n.Translatef(lang, "%v files deleted for good (%v).", count, i18n.FormatSizeIn(lang, size))})
 	}).Methods("POST")
 }

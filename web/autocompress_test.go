@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -26,15 +27,15 @@ func setAutoCompress(t *testing.T, web *Web, mode string, keep bool) {
 func TestAutoCompressNewFiles(t *testing.T) {
 	web, path, restore := compressWebWithLibrary(t)
 
-	if web.autoCompress(TRIGGER_WATCHER) {
+	if web.autoCompress(tasklog.TRIGGER_WATCHER) {
 		t.Fatal("automatic compression is off by default")
 	}
 	setAutoCompress(t, web, AUTO_COMPRESS_NEW, false)
-	if !web.autoCompress(TRIGGER_WATCHER) {
+	if !web.autoCompress(tasklog.TRIGGER_WATCHER) {
 		t.Fatal("the new file must be compressed")
 	}
-	task := waitForTask(t, web, TASK_COMPRESS)
-	if task.Status != TASK_SUCCESS || task.Trigger != TRIGGER_WATCHER || task.Files != 1 {
+	task := waitForTask(t, web, tasklog.TASK_COMPRESS)
+	if task.Status != tasklog.TASK_SUCCESS || task.Trigger != tasklog.TRIGGER_WATCHER || task.Files != 1 {
 		t.Fatalf("task: %+v", task)
 	}
 	if _, err := os.Stat(switchfs.CompressedPath(path)); err != nil {
@@ -47,7 +48,7 @@ func TestAutoCompressNewFiles(t *testing.T) {
 		time.Sleep(20 * time.Millisecond)
 	}
 	restore()
-	if web.autoCompress(TRIGGER_WATCHER) {
+	if web.autoCompress(tasklog.TRIGGER_WATCHER) {
 		t.Fatal("nothing is left to compress")
 	}
 }
@@ -59,13 +60,13 @@ func TestAutoCompressDoesNotRetryFailures(t *testing.T) {
 	data[len(data)-50] ^= 0xFF
 	os.WriteFile(path, data, 0o644)
 
-	if !web.autoCompress(TRIGGER_WATCHER) {
+	if !web.autoCompress(tasklog.TRIGGER_WATCHER) {
 		t.Fatal("the first attempt runs")
 	}
-	if task := waitForTask(t, web, TASK_COMPRESS); task.Status != TASK_FAILED {
+	if task := waitForTask(t, web, tasklog.TASK_COMPRESS); task.Status != tasklog.TASK_FAILED {
 		t.Fatalf("a damaged file fails: %+v", task)
 	}
-	if web.autoCompress(TRIGGER_WATCHER) {
+	if web.autoCompress(tasklog.TRIGGER_WATCHER) {
 		t.Fatal("a failed file is not tried again until it changes")
 	}
 }

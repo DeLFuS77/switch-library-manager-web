@@ -22,6 +22,8 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -167,7 +169,7 @@ func TestTitleOverridesWinAndAreKept(t *testing.T) {
 	scans := uint64(0)
 	synchronize := func() {
 		t.Helper()
-		if !web.Synchronize(TRIGGER_MANUAL) {
+		if !web.Synchronize(tasklog.TRIGGER_MANUAL) {
 			t.Fatal("the synchronization starts")
 		}
 		scans++
@@ -175,7 +177,7 @@ func TestTitleOverridesWinAndAreKept(t *testing.T) {
 	}
 	rescan := func() {
 		t.Helper()
-		if !web.Rescan(TRIGGER_MANUAL) {
+		if !web.Rescan(tasklog.TRIGGER_MANUAL) {
 			t.Fatal("the scan starts")
 		}
 		scans++
@@ -502,8 +504,8 @@ func TestBackupKeepsTheChangesByHand(t *testing.T) {
 // The messages of a change by hand that is refused are translated in every language.
 func TestOverrideMessagesAreTranslated(t *testing.T) {
 	for _, err := range []error{errOverrideId, errOverrideUnknown, errOverrideNotImage, errOverrideCoverLarge, errOverrideCoverUrl, errOverrideSave} {
-		for _, lang := range supportedLanguages {
-			if _, ok := translations[lang][err.Error()]; !ok && lang != DEFAULT_LANGUAGE {
+		for _, lang := range i18n.SupportedLanguages {
+			if _, ok := i18n.Translations[lang][err.Error()]; !ok && lang != i18n.DEFAULT_LANGUAGE {
 				t.Errorf("no %s translation for %q", lang, err.Error())
 			}
 		}

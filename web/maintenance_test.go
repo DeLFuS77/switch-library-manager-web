@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -72,7 +73,7 @@ func TestMaintenanceReview(t *testing.T) {
 	for deadline := time.Now().Add(10 * time.Second); web.state.IsSynchronizing() && time.Now().Before(deadline); {
 		time.Sleep(20 * time.Millisecond)
 	}
-	if task := lastTask(web.taskLog().Snapshot(), TASK_SCAN); task == nil {
+	if task := lastTask(web.taskLog().Snapshot(), tasklog.TASK_SCAN); task == nil {
 		t.Fatal("the library was scanned")
 	}
 }

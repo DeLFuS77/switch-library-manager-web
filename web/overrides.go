@@ -24,6 +24,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 )
 
 // An administrator can change by hand the name, the cover and the description of a game, on its
@@ -93,8 +94,8 @@ func (web *Web) titleOverrides() *titleOverrides {
 // reload reads the file again (a backup was restored).
 func (o *titleOverrides) reload() {
 	titles := map[string]TitleOverride{}
-	if data, ok := readStore(o.path); ok {
-		parseStore(o.path, data, &titles)
+	if data, ok := durable.ReadStore(o.path); ok {
+		durable.ParseStore(o.path, data, &titles)
 	}
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
@@ -147,7 +148,7 @@ func (o *titleOverrides) set(id string, override TitleOverride) (TitleOverride, 
 	if err != nil {
 		return previous, err
 	}
-	if err := writeFileAtomic(o.path, data); err != nil {
+	if err := durable.WriteFile(o.path, data); err != nil {
 		return previous, err
 	}
 	o.titles = titles
@@ -304,7 +305,7 @@ func (web *Web) saveOverrideCover(id string, data []byte) (string, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 		return "", err
 	}
-	if err := writeFileAtomic(path, encoded); err != nil {
+	if err := durable.WriteFile(path, encoded); err != nil {
 		return "", err
 	}
 	if err := web.thumbnails().make(path, filepath.Join(web.dataFolder, "img", "thumbs", name)); err != nil {

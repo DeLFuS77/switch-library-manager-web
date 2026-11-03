@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -77,9 +78,9 @@ func TestTelegramAnswersItsChatOnly(t *testing.T) {
 		}
 	}))
 	t.Cleanup(server.Close)
-	saved := telegramApiUrl
-	telegramApiUrl = server.URL
-	t.Cleanup(func() { telegramApiUrl = saved })
+	saved := notify.TelegramApiUrl
+	notify.TelegramApiUrl = server.URL
+	t.Cleanup(func() { notify.TelegramApiUrl = saved })
 
 	options := settings.NotificationOptions{TelegramBotToken: "123456:abcdefghijklmnopqrstuvwx", TelegramChatId: "42", TelegramCommands: true}
 	offset, err := web.pollTelegram(options, 7, time.Now())
@@ -107,9 +108,9 @@ func TestTelegramRefused(t *testing.T) {
 		w.Write([]byte(`{"ok":false,"description":"Conflict: terminated by other getUpdates request"}`))
 	}))
 	t.Cleanup(server.Close)
-	saved := telegramApiUrl
-	telegramApiUrl = server.URL
-	t.Cleanup(func() { telegramApiUrl = saved })
+	saved := notify.TelegramApiUrl
+	notify.TelegramApiUrl = server.URL
+	t.Cleanup(func() { notify.TelegramApiUrl = saved })
 	options := settings.NotificationOptions{TelegramBotToken: "123456:abcdefghijklmnopqrstuvwx", TelegramChatId: "42"}
 	offset, err := web.pollTelegram(options, 3, time.Now())
 	if err == nil || offset != 3 || strings.Contains(err.Error(), options.TelegramBotToken) || !strings.Contains(err.Error(), "Conflict") {

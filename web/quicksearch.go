@@ -1,6 +1,8 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"net/http"
 	"net/url"
 	"sort"
@@ -92,29 +94,29 @@ type quickEntry struct {
 
 // quickRank orders the matches: the name itself, then names that start with the search, then
 // a word that starts with it, then the rest; -1 when it does not match.
-func quickRank(query *searchQuery, entry *quickEntry) int {
-	if query.text == "" || !query.matches(entry.key, entry.words) {
+func quickRank(query *search.Query, entry *quickEntry) int {
+	if query.Text == "" || !query.Matches(entry.key, entry.words) {
 		return -1
 	}
 	// a Title ID is found as it is written, not one that differs in a few digits
-	if titleIdPattern.MatchString(strings.ToUpper(query.text)) && !strings.Contains(entry.key, query.text) {
+	if titleIdPattern.MatchString(strings.ToUpper(query.Text)) && !strings.Contains(entry.key, query.Text) {
 		return -1
 	}
 	switch {
-	case entry.name == query.text:
+	case entry.name == query.Text:
 		return 0
-	case strings.HasPrefix(entry.name, query.text):
+	case strings.HasPrefix(entry.name, query.Text):
 		return 1
-	case strings.Contains(" "+entry.name, " "+query.text):
+	case strings.Contains(" "+entry.name, " "+query.Text):
 		return 2
-	case strings.Contains(entry.name, query.text):
+	case strings.Contains(entry.name, query.Text):
 		return 3
 	}
 	return 4
 }
 
 // quickBest returns the best matches of the entries, at most limit.
-func quickBest(query *searchQuery, entries []quickEntry, limit int) []QuickResult {
+func quickBest(query *search.Query, entries []quickEntry, limit int) []QuickResult {
 	type match struct {
 		rank  int
 		index int
@@ -138,8 +140,8 @@ func quickBest(query *searchQuery, entries []quickEntry, limit int) []QuickResul
 }
 
 func newQuickEntry(result QuickResult, name string, other string) quickEntry {
-	key := searchText(name + " " + other)
-	return quickEntry{result: result, name: searchText(name), key: key, words: strings.Fields(key)}
+	key := search.Text(name + " " + other)
+	return quickEntry{result: result, name: search.Text(name), key: key, words: strings.Fields(key)}
 }
 
 // quickGames are the games of the library prepared for the search, sorted by name.
@@ -177,7 +179,7 @@ func (web *Web) quickSeries(lang string) []quickEntry {
 			if saga.ImageUrl != "" {
 				image = thumbUrl(saga.ImageUrl)
 			}
-			entries = append(entries, newQuickEntry(QuickResult{Label: saga.Name, Href: "/sagas.html?" + values.Encode(), Image: image, Icon: "bi-stack", Meta: translatef(lang, "%v of %v", saga.Owned, saga.Total)}, saga.Name, ""))
+			entries = append(entries, newQuickEntry(QuickResult{Label: saga.Name, Href: "/sagas.html?" + values.Encode(), Image: image, Icon: "bi-stack", Meta: i18n.Translatef(lang, "%v of %v", saga.Owned, saga.Total)}, saga.Name, ""))
 		}
 		sort.SliceStable(entries, func(i, j int) bool { return sortName(entries[i].result.Label) < sortName(entries[j].result.Label) })
 		return entries
@@ -187,30 +189,30 @@ func (web *Web) quickSeries(lang string) []quickEntry {
 // quickCollections are the collections with the number of their games, sorted by name.
 func (web *Web) quickCollections(lang string) []quickEntry {
 	counts := map[string]int{}
-	for _, names := range web.collections().snapshot() {
+	for _, names := range web.collections().Snapshot() {
 		for _, name := range names {
 			counts[name]++
 		}
 	}
 	entries := []quickEntry{}
-	for _, name := range web.collections().names() {
+	for _, name := range web.collections().Names() {
 		href := "/index.html?" + url.Values{"collection": {name}}.Encode()
-		entries = append(entries, newQuickEntry(QuickResult{Label: name, Href: href, Icon: "bi-bookmark", Meta: translatef(lang, "%v games", counts[name])}, name, ""))
+		entries = append(entries, newQuickEntry(QuickResult{Label: name, Href: href, Icon: "bi-bookmark", Meta: i18n.Translatef(lang, "%v games", counts[name])}, name, ""))
 	}
 	return entries
 }
 
 // quickPagesFor are the pages the user may open, found by the search, or the suggested ones
 // when nothing is typed.
-func quickPagesFor(query *searchQuery, lang string, admin bool) []QuickResult {
+func quickPagesFor(query *search.Query, lang string, admin bool) []QuickResult {
 	entries := []quickEntry{}
 	for _, page := range quickPages {
 		if page.admin && !admin {
 			continue
 		}
-		label := translate(lang, page.label)
+		label := i18n.Translate(lang, page.label)
 		result := QuickResult{Label: label, Href: page.href, Icon: page.icon}
-		if query.text == "" {
+		if query.Text == "" {
 			if page.suggested {
 				entries = append(entries, quickEntry{result: result})
 			}
@@ -218,7 +220,7 @@ func quickPagesFor(query *searchQuery, lang string, admin bool) []QuickResult {
 		}
 		entries = append(entries, newQuickEntry(result, label, page.label+" "+page.words))
 	}
-	if query.text == "" {
+	if query.Text == "" {
 		results := []QuickResult{}
 		for _, entry := range entries {
 			results = append(results, entry.result)
@@ -230,10 +232,10 @@ func quickPagesFor(query *searchQuery, lang string, admin bool) []QuickResult {
 
 // quickSearch finds what matches a search, for a user who is an administrator or not.
 func (web *Web) quickSearch(keyword string, lang string, admin bool) QuickResults {
-	query := newSearchQuery(keyword)
+	query := search.NewQuery(keyword)
 	results := QuickResults{Games: []QuickResult{}, Series: []QuickResult{}, Collections: []QuickResult{}}
 	results.Pages = quickPagesFor(query, lang, admin)
-	if query.text == "" {
+	if query.Text == "" {
 		return results
 	}
 	results.Games = quickBest(query, web.quickGames(lang), quickSearchGames)

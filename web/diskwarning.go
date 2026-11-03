@@ -5,6 +5,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -60,7 +63,7 @@ func (web *Web) librarySpace() (int64, int64) {
 	var free, total int64
 	seen := map[[2]uint64]bool{}
 	for _, folder := range scanFolders(settings.ReadSettings(web.dataFolder)) {
-		available, size, err := diskSpace(folder)
+		available, size, err := diskfree.Space(folder)
 		if err != nil || size == 0 || seen[[2]uint64{available, size}] {
 			continue
 		}
@@ -82,7 +85,7 @@ func measureLowDisks(folders []string, percent int, ceiling uint64) []LowDisk {
 	low := []LowDisk{}
 	seen := map[[2]uint64]bool{}
 	for _, folder := range folders {
-		free, total, err := diskSpace(folder)
+		free, total, err := diskfree.Space(folder)
 		if err != nil || total == 0 {
 			continue
 		}
@@ -148,24 +151,24 @@ func (d *diskWatch) anyReported() bool {
 func (web *Web) notifyLowDisks(disks []LowDisk) bool {
 	settingsObj := settings.ReadSettings(web.dataFolder)
 	options := settingsObj.Notifications
-	if !notificationsConfigured(options) {
+	if !notify.Configured(options) {
 		return false
 	}
 	lang := settingsObj.Language
-	if !isSupportedLanguage(lang) {
-		lang = DEFAULT_LANGUAGE
+	if !i18n.IsSupportedLanguage(lang) {
+		lang = i18n.DEFAULT_LANGUAGE
 	}
 	items := []NotificationItem{}
 	for _, disk := range disks {
-		items = append(items, NotificationItem{Key: "disk:" + disk.Folder, Kind: "disk", Name: disk.Folder, Detail: translatef(lang, "%v free (%v%%)", formatSizeIn(lang, disk.Free), disk.Percent)})
+		items = append(items, NotificationItem{Key: "disk:" + disk.Folder, Kind: "disk", Name: disk.Folder, Detail: i18n.Translatef(lang, "%v free (%v%%)", i18n.FormatSizeIn(lang, disk.Free), disk.Percent)})
 	}
-	title := translate(lang, "Switch Library Manager: little free space left")
+	title := i18n.Translate(lang, "Switch Library Manager: little free space left")
 	text := ""
 	for _, item := range items {
-		text += "• " + translatef(lang, "%v: %v", item.Name, item.Detail) + "\n"
+		text += "• " + i18n.Translatef(lang, "%v: %v", item.Name, item.Detail) + "\n"
 	}
-	text += translate(lang, "Free space from the Space page of the app; compressions wait until there is room.")
-	if err := sendMessage(options, title, text, items); err != nil {
+	text += i18n.Translate(lang, "Free space from the Space page of the app; compressions wait until there is room.")
+	if err := notify.Send(options, title, text, items); err != nil {
 		web.sugarLogger.Warnf("Failed to send notification: %v", err)
 		return false
 	}
@@ -176,6 +179,6 @@ func (web *Web) notifyLowDisks(disks []LowDisk) bool {
 // roomToCompress tells whether the volume of a file can take its compressed copy, written
 // beside it before the original is deleted: automatic compression waits otherwise.
 func roomToCompress(path string, size int64) bool {
-	free, err := diskFree(filepath.Dir(path))
+	free, err := diskfree.Free(filepath.Dir(path))
 	return err != nil || int64(free) >= size+(64<<20)
 }

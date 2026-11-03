@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -23,8 +24,8 @@ func TestTaskCoversAndNextFile(t *testing.T) {
 		"0100000000020": game("Second.nsp", "second.jpg"),
 	}, Skipped: map[db.ExtendedFileInfo]db.SkippedFile{}})
 
-	lanes := []TaskLane{{Name: "First.nsp"}}
-	task := Task{Lanes: lanes, Resume: &TaskResume{Paths: []string{filepath.Join(dir, "First.nsp"), filepath.Join(dir, "Second.nsp")}}}
+	lanes := []tasklog.Lane{{Name: "First.nsp"}}
+	task := tasklog.Task{Lanes: lanes, Resume: &tasklog.Resume{Paths: []string{filepath.Join(dir, "First.nsp"), filepath.Join(dir, "Second.nsp")}}}
 	shown := web.withCovers(task)
 	if shown.Lanes[0].Cover != "/t/first.jpg" {
 		t.Fatalf("the cover of the file worked on: %+v", shown.Lanes)
@@ -39,7 +40,7 @@ func TestTaskCoversAndNextFile(t *testing.T) {
 	if web.withCovers(task).Next != nil {
 		t.Fatal("a paused task takes no next file")
 	}
-	if web.withCovers(Task{}).Next != nil {
+	if web.withCovers(tasklog.Task{}).Next != nil {
 		t.Fatal("a task without files has none")
 	}
 }
@@ -47,12 +48,12 @@ func TestTaskCoversAndNextFile(t *testing.T) {
 // The view by covers shows every file of a running task: ended, at work and waiting.
 func TestTaskPlanShowsEveryFile(t *testing.T) {
 	log := newTestWeb(t).taskLog()
-	id := log.Start(TASK_VERIFY, TRIGGER_MANUAL)
+	id := log.Start(tasklog.TASK_VERIFY, tasklog.TRIGGER_MANUAL)
 	log.SetPlan(id, []string{"A.nsp", "B.nsp", "C.nsp", "D.nsp"})
 	log.AddFileTile(id, "A.nsp", false, "")
 	log.AddFileTile(id, "B.nsp", true, NOTE_VERIFY_DAMAGED)
 	task := log.Snapshot()[0]
-	shown, more := shownPlan(task.Plan, []TaskLane{{Name: "C.nsp", Done: 1, Total: 4}}, map[string]string{"C.nsp": "/t/c.jpg"})
+	shown, more := shownPlan(task.Plan, []tasklog.Lane{{Name: "C.nsp", Done: 1, Total: 4}}, map[string]string{"C.nsp": "/t/c.jpg"})
 	if more != 0 || len(shown) != 4 {
 		t.Fatalf("every file: %+v, %d more", shown, more)
 	}
@@ -72,7 +73,7 @@ func TestTaskPlanShowsEveryFile(t *testing.T) {
 	for i := range names {
 		names[i] = fmt.Sprintf("%04d.nsp", i)
 	}
-	id = log.Start(TASK_VERIFY, TRIGGER_MANUAL)
+	id = log.Start(tasklog.TASK_VERIFY, tasklog.TRIGGER_MANUAL)
 	log.SetPlan(id, names)
 	for _, name := range names[:500] {
 		log.AddFileTile(id, name, false, "")
@@ -88,11 +89,11 @@ func TestTaskPlanShowsEveryFile(t *testing.T) {
 // those at work, then those waiting.
 func TestTaskPlanFillsInOrder(t *testing.T) {
 	log := newTestWeb(t).taskLog()
-	id := log.Start(TASK_COMPRESS, TRIGGER_MANUAL)
+	id := log.Start(tasklog.TASK_COMPRESS, tasklog.TRIGGER_MANUAL)
 	log.SetPlan(id, []string{"A.nsp", "B.nsp", "C.nsp", "D.nsp", "E.nsp", "F.nsp"})
 	log.AddFileTile(id, "C.nsp", false, "")
 	log.AddFileTile(id, "A.nsp", true, NOTE_VERIFY_DAMAGED)
-	shown, _ := shownPlan(log.Snapshot()[0].Plan, []TaskLane{{Name: "E.nsp", Done: 1, Total: 2}, {Name: "B.nsp", Done: 1, Total: 4}}, nil)
+	shown, _ := shownPlan(log.Snapshot()[0].Plan, []tasklog.Lane{{Name: "E.nsp", Done: 1, Total: 2}, {Name: "B.nsp", Done: 1, Total: 4}}, nil)
 	got := []string{}
 	for _, tile := range shown {
 		got = append(got, tile.Name)
@@ -102,38 +103,6 @@ func TestTaskPlanFillsInOrder(t *testing.T) {
 	}
 	if shown[0].Waiting || !shown[1].Failed || !shown[2].Working || !shown[3].Working || shown[4].Working || !shown[4].Waiting {
 		t.Fatalf("the states: %+v", shown)
-	}
-}
-
-// The covers of a file in steps say which step it is in: the steps before it done, its own
-// being done; a plan keeps its file at work in the steps as the lane says.
-func TestTileSegments(t *testing.T) {
-	segments := TaskTile{Step: 2, Steps: 3}.Segments()
-	if len(segments) != 3 || !segments[0].Done || segments[0].Current || !segments[1].Current || segments[1].Done || segments[2].Done || segments[2].Current {
-		t.Fatalf("steps: %+v", segments)
-	}
-	colours := TaskTile{Step: 3, Steps: 3, Tone: "green", Phases: []string{PHASE_HASHING, PHASE_COMPRESSING, PHASE_VERIFYING}}.Segments()
-	if colours[0].Tone != "cyan" || colours[1].Tone != "yellow" || colours[2].Tone != "green" {
-		t.Fatalf("each step in its colour: %+v", colours)
-	}
-	if (TaskTile{Step: 1, Steps: 1}).Segments() != nil || (TaskTile{}).Segments() != nil {
-		t.Fatal("one step: a whole bar")
-	}
-	lane := TaskLane{Name: "A.nsp", Done: 5, Total: 12, Phase: PHASE_COMPRESSING, Step: 2, Steps: 3}
-	shown, _ := shownPlan([]TaskTile{{Name: "A.nsp", Waiting: true}}, []TaskLane{lane}, map[string]string{"A.nsp": "/t/a.jpg"})
-	tile := shown[0]
-	if !tile.Working || tile.Phase != PHASE_COMPRESSING || tile.Step != 2 || tile.Steps != 3 || tile.Tone != lane.Tone() || tile.Percent != 25 || tile.Cover != "/t/a.jpg" {
-		t.Fatalf("the file at work: %+v", tile)
-	}
-}
-
-// A long task shows how far it is before its first whole percent.
-func TestTaskPercentExact(t *testing.T) {
-	cases := map[[2]int]string{{8, 1000}: "0.80", {0, 1000}: "0.00", {1000, 1000}: "100", {5, 0}: "0", {3, 2}: "100"}
-	for c, want := range cases {
-		if got := (Task{Current: c[0], Total: c[1]}).PercentExact(); got != want {
-			t.Errorf("%d of %d: %s, want %s", c[0], c[1], got, want)
-		}
 	}
 }
 
@@ -153,5 +122,27 @@ func TestTaskCoversSurviveAScan(t *testing.T) {
 	web.state.set(nil, &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{}})
 	if got := web.fileCovers()["Game [0100000000010000][v0].nsp"]; got != cover {
 		t.Fatalf("the cover is lost during a scan: %q", got)
+	}
+}
+
+// The covers of a file in steps say which step it is in: the steps before it done, its own
+// being done; a plan keeps its file at work in the steps as the lane says.
+func TestTileSegments(t *testing.T) {
+	segments := tasklog.Tile{Step: 2, Steps: 3}.Segments()
+	if len(segments) != 3 || !segments[0].Done || segments[0].Current || !segments[1].Current || segments[1].Done || segments[2].Done || segments[2].Current {
+		t.Fatalf("steps: %+v", segments)
+	}
+	colours := tasklog.Tile{Step: 3, Steps: 3, Tone: "green", Phases: []string{tasklog.PHASE_HASHING, tasklog.PHASE_COMPRESSING, tasklog.PHASE_VERIFYING}}.Segments()
+	if colours[0].Tone != "cyan" || colours[1].Tone != "yellow" || colours[2].Tone != "green" {
+		t.Fatalf("each step in its colour: %+v", colours)
+	}
+	if (tasklog.Tile{Step: 1, Steps: 1}).Segments() != nil || (tasklog.Tile{}).Segments() != nil {
+		t.Fatal("one step: a whole bar")
+	}
+	lane := tasklog.Lane{Name: "A.nsp", Done: 5, Total: 12, Phase: tasklog.PHASE_COMPRESSING, Step: 2, Steps: 3}
+	shown, _ := shownPlan([]tasklog.Tile{{Name: "A.nsp", Waiting: true}}, []tasklog.Lane{lane}, map[string]string{"A.nsp": "/t/a.jpg"})
+	tile := shown[0]
+	if !tile.Working || tile.Phase != tasklog.PHASE_COMPRESSING || tile.Step != 2 || tile.Steps != 3 || tile.Tone != lane.Tone() || tile.Percent != 25 || tile.Cover != "/t/a.jpg" {
+		t.Fatalf("the file at work: %+v", tile)
 	}
 }

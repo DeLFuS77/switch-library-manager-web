@@ -9,6 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -77,7 +81,7 @@ func (web *Web) startTelegramBot() {
 // the next ones. Messages from before since (the start of the app) are not answered.
 func (web *Web) pollTelegram(options settings.NotificationOptions, offset int64, since time.Time) (int64, error) {
 	query := url.Values{"timeout": {fmt.Sprint(telegramPollSeconds)}, "offset": {fmt.Sprint(offset)}, "allowed_updates": {`["message","channel_post"]`}}
-	response, err := telegramPollClient.Get(telegramApiUrl + "/bot" + options.TelegramBotToken + "/getUpdates?" + query.Encode())
+	response, err := telegramPollClient.Get(notify.TelegramApiUrl + "/bot" + options.TelegramBotToken + "/getUpdates?" + query.Encode())
 	if err != nil {
 		return offset, errors.New("Telegram does not answer")
 	}
@@ -104,7 +108,7 @@ func (web *Web) pollTelegram(options settings.NotificationOptions, offset int64,
 		if answer == "" {
 			continue
 		}
-		if err := postJSON(telegramApiUrl+"/bot"+options.TelegramBotToken+"/sendMessage", map[string]string{"chat_id": options.TelegramChatId, "text": fitMessage(answer, telegramMessageLimit)}); err != nil {
+		if err := notify.PostJSON(notify.TelegramApiUrl+"/bot"+options.TelegramBotToken+"/sendMessage", map[string]string{"chat_id": options.TelegramChatId, "text": notify.FitMessage(answer, notify.TelegramMessageLimit)}); err != nil {
 			web.sugarLogger.Debugf("Telegram: the answer could not be sent: %v", err)
 		}
 	}
@@ -125,9 +129,9 @@ func (web *Web) setTelegramCommands(options settings.NotificationOptions) {
 	lang := web.botLanguage()
 	commands := []map[string]string{}
 	for _, command := range botCommands {
-		commands = append(commands, map[string]string{"command": botCommandName(command.name, command.spanish, lang), "description": translate(lang, command.help)})
+		commands = append(commands, map[string]string{"command": botCommandName(command.name, command.spanish, lang), "description": i18n.Translate(lang, command.help)})
 	}
-	if err := postJSON(telegramApiUrl+"/bot"+options.TelegramBotToken+"/setMyCommands", map[string]any{"commands": commands}); err != nil {
+	if err := notify.PostJSON(notify.TelegramApiUrl+"/bot"+options.TelegramBotToken+"/setMyCommands", map[string]any{"commands": commands}); err != nil {
 		web.sugarLogger.Debugf("Telegram: the commands could not be set: %v", err)
 	}
 }
@@ -135,8 +139,8 @@ func (web *Web) setTelegramCommands(options settings.NotificationOptions) {
 // botLanguage is the language of the answers: the one of the app, else English.
 func (web *Web) botLanguage() string {
 	lang := settings.ReadSettings(web.dataFolder).Language
-	if !isSupportedLanguage(lang) {
-		return DEFAULT_LANGUAGE
+	if !i18n.IsSupportedLanguage(lang) {
+		return i18n.DEFAULT_LANGUAGE
 	}
 	return lang
 }
@@ -192,17 +196,17 @@ func (web *Web) answerTelegram(text string, lang string) string {
 	case "help":
 		return botHelp(lang)
 	}
-	return translate(lang, "I do not know that. /help tells what I answer.")
+	return i18n.Translate(lang, "I do not know that. /help tells what I answer.")
 }
 
 func botHelp(lang string) string {
-	lines := []string{translate(lang, "I answer about your library:")}
+	lines := []string{i18n.Translate(lang, "I answer about your library:")}
 	for _, command := range botCommands {
 		example := "/" + botCommandName(command.name, command.spanish, lang)
 		if command.name == "have" {
 			example += " zelda"
 		}
-		lines = append(lines, example+" · "+translate(lang, command.help))
+		lines = append(lines, example+" · "+i18n.Translate(lang, command.help))
 	}
 	return strings.Join(lines, "\n")
 }
@@ -210,18 +214,18 @@ func botHelp(lang string) string {
 // botHave tells the games of the library whose name has the words asked, a few of them.
 func (web *Web) botHave(query string, lang string) string {
 	if query == "" {
-		return translate(lang, "Write the name of a game after it: /have zelda")
+		return i18n.Translate(lang, "Write the name of a game after it: /have zelda")
 	}
 	filter := &TitleItemFilter{Keyword: query, WithMissing: "0"}
 	filter.Normalize()
 	items, p, _ := web.getLibraryWithFacets(filter, lang)
 	if len(items) == 0 {
-		return translatef(lang, "No game of your library is called %v.", query)
+		return i18n.Translatef(lang, "No game of your library is called %v.", query)
 	}
-	lines := []string{translatef(lang, "Yes, %v in your library:", p.NumItems)}
+	lines := []string{i18n.Translatef(lang, "Yes, %v in your library:", p.NumItems)}
 	for i, item := range items {
 		if i == telegramListed {
-			lines = append(lines, translatef(lang, "and %v more", p.NumItems-telegramListed))
+			lines = append(lines, i18n.Translatef(lang, "and %v more", p.NumItems-telegramListed))
 			break
 		}
 		line := "• " + item.Name
@@ -235,7 +239,7 @@ func (web *Web) botHave(query string, lang string) string {
 			line += fmt.Sprintf(" · %d DLC", item.DlcOwned)
 		}
 		if item.UpdateAvailable {
-			line += " · " + translate(lang, "Update available")
+			line += " · " + i18n.Translate(lang, "Update available")
 		}
 		lines = append(lines, line)
 	}
@@ -257,23 +261,23 @@ func (web *Web) botNew(lang string) string {
 	lines := []string{}
 	switch {
 	case len(added) == 0:
-		lines = append(lines, translate(lang, "No game was added this week."))
+		lines = append(lines, i18n.Translate(lang, "No game was added this week."))
 	case len(added) > telegramListed:
-		lines = append(lines, translatef(lang, "Added this week: %v", strings.Join(added[:telegramListed], ", "))+" "+translatef(lang, "and %v more", len(added)-telegramListed))
+		lines = append(lines, i18n.Translatef(lang, "Added this week: %v", strings.Join(added[:telegramListed], ", "))+" "+i18n.Translatef(lang, "and %v more", len(added)-telegramListed))
 	default:
-		lines = append(lines, translatef(lang, "Added this week: %v", strings.Join(added, ", ")))
+		lines = append(lines, i18n.Translatef(lang, "Added this week: %v", strings.Join(added, ", ")))
 	}
 	counts := web.navCounts()
-	lines = append(lines, translatef(lang, "Updates waiting: %v", counts.Updates), translatef(lang, "DLC you do not have: %v", counts.Dlc))
+	lines = append(lines, i18n.Translatef(lang, "Updates waiting: %v", counts.Updates), i18n.Translatef(lang, "DLC you do not have: %v", counts.Dlc))
 	return strings.Join(lines, "\n")
 }
 
 // botSpace tells the size of the library and the free space of its folder.
 func (web *Web) botSpace(lang string) string {
 	stats := web.getStatistics(lang)
-	text := translatef(lang, "Your library takes %v.", formatSizeIn(lang, stats.TotalSize))
-	if free, err := diskFree(settings.ReadSettings(web.dataFolder).Folder); err == nil {
-		text += "\n" + translatef(lang, "Free in its folder: %v.", formatSizeIn(lang, int64(free)))
+	text := i18n.Translatef(lang, "Your library takes %v.", i18n.FormatSizeIn(lang, stats.TotalSize))
+	if free, err := diskfree.Free(settings.ReadSettings(web.dataFolder).Folder); err == nil {
+		text += "\n" + i18n.Translatef(lang, "Free in its folder: %v.", i18n.FormatSizeIn(lang, int64(free)))
 	}
 	return text
 }
@@ -287,7 +291,7 @@ func (web *Web) botStatus(lang string) string {
 		}
 		name := task.Kind
 		if label, ok := taskKindNames[task.Kind]; ok {
-			name = translate(lang, label)
+			name = i18n.Translate(lang, label)
 		}
 		if task.Total > 0 && task.Current >= 0 {
 			name += fmt.Sprintf(" · %d %%", min(task.Current*100/task.Total, 100))
@@ -295,18 +299,18 @@ func (web *Web) botStatus(lang string) string {
 		lines = append(lines, "• "+name)
 	}
 	if len(lines) == 0 {
-		return translate(lang, "No task is at work.")
+		return i18n.Translate(lang, "No task is at work.")
 	}
-	return translate(lang, "At work:") + "\n" + strings.Join(lines, "\n")
+	return i18n.Translate(lang, "At work:") + "\n" + strings.Join(lines, "\n")
 }
 
 // botSync starts a synchronization, as the button of the app does.
 func (web *Web) botSync(lang string) string {
 	if web.state.IsSynchronizing() {
-		return translate(lang, "A synchronization is already running.")
+		return i18n.Translate(lang, "A synchronization is already running.")
 	}
-	if !web.Synchronize(TRIGGER_MANUAL) {
-		return translate(lang, "The synchronization could not start now: a task works on the files. Try again later.")
+	if !web.Synchronize(tasklog.TRIGGER_MANUAL) {
+		return i18n.Translate(lang, "The synchronization could not start now: a task works on the files. Try again later.")
 	}
-	return translate(lang, "Synchronization started.")
+	return i18n.Translate(lang, "Synchronization started.")
 }

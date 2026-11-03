@@ -20,6 +20,8 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -195,8 +197,8 @@ func (web *Web) loadDemo() {
 
 	// the favorites of the demo, which the recommendations follow
 	if data, err := json.Marshal(favorites); err == nil {
-		os.WriteFile(filepath.Join(web.dataFolder, FAVORITES_FILENAME), data, 0600)
-		web.favorites().reload()
+		os.WriteFile(filepath.Join(web.dataFolder, userdata.FAVORITES_FILENAME), data, 0600)
+		web.favorites().Reload()
 	}
 
 	web.writeDemoHistory(switchDB, localDB, time.Now())
@@ -289,7 +291,7 @@ func (web *Web) demoReadOnly(next http.Handler) http.Handler {
 		switch r.Method {
 		case http.MethodGet, http.MethodHead, http.MethodOptions:
 			if r.URL.Path == "/diagnostics.html" {
-				http.Error(w, translate(web.requestLanguage(r), DEMO_HIDDEN), http.StatusForbidden)
+				http.Error(w, i18n.Translate(web.requestLanguage(r), DEMO_HIDDEN), http.StatusForbidden)
 				return
 			}
 		default:

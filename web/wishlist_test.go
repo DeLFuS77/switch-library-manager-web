@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -26,7 +27,7 @@ func TestWishlist(t *testing.T) {
 
 	all, _ := web.getMissingGames(defaultFilter(), "en")
 	wanted := defaultFilter()
-	wanted.Status = STATUS_WANTED
+	wanted.Status = userdata.STATUS_WANTED
 	wished, _ := web.getMissingGames(wanted, "en")
 	if len(wished) != 1 || !wished[0].Wished || len(all) < len(wished) {
 		t.Fatalf("wishlist filter: %d of %d", len(wished), len(all))
@@ -47,7 +48,7 @@ func TestWishlist(t *testing.T) {
 	// a game that is now in the library leaves the wishlist
 	localDB.TitlesMap["0100000000020"] = &db.SwitchGameFiles{BaseExist: true, Updates: map[int]db.SwitchFileInfo{}, Dlc: map[string]db.SwitchFileInfo{}}
 	web.forgetOwnedWishes()
-	if web.wishes().count() != 0 {
+	if web.wishes().Count() != 0 {
 		t.Fatal("owned games leave the wishlist")
 	}
 }

@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"html/template"
 	"net/http"
 	"strings"
@@ -43,7 +44,7 @@ func setStartingStep(step string) {
 }
 
 func currentStartingStep(lang string) string {
-	return translate(lang, startingSteps[startingStep.Load()])
+	return i18n.Translate(lang, startingSteps[startingStep.Load()])
 }
 
 // startingLanguage is the language of the browser for the page of the start, which comes
@@ -51,11 +52,11 @@ func currentStartingStep(lang string) string {
 func startingLanguage(r *http.Request) string {
 	for _, part := range strings.Split(r.Header.Get("Accept-Language"), ",") {
 		lang := strings.ToLower(strings.TrimSpace(strings.SplitN(strings.SplitN(part, ";", 2)[0], "-", 2)[0]))
-		if supported := supportedLanguage(lang); supported != "" {
+		if supported := i18n.SupportedLanguage(lang); supported != "" {
 			return supported
 		}
 	}
-	return DEFAULT_LANGUAGE
+	return i18n.DEFAULT_LANGUAGE
 }
 
 // StartingStepView is a step of the page of the start.
@@ -269,15 +270,15 @@ func startingHandler(icon []byte) http.Handler {
 				case i == current:
 					status = "current"
 				}
-				steps = append(steps, StartingStepView{Text: translate(lang, step), Status: status})
+				steps = append(steps, StartingStepView{Text: i18n.Translate(lang, step), Status: status})
 			}
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			w.WriteHeader(http.StatusServiceUnavailable)
 			startingPage.Execute(w, map[string]any{
 				"Lang":    lang,
-				"Title":   translate(lang, "Starting the app..."),
-				"Text":    translate(lang, "After an update or a restart this takes a moment. The page opens by itself when the app is ready."),
-				"Footer":  translate(lang, "Your library, games and settings are safe; nothing is changed while the app starts."),
+				"Title":   i18n.Translate(lang, "Starting the app..."),
+				"Text":    i18n.Translate(lang, "After an update or a restart this takes a moment. The page opens by itself when the app is ready."),
+				"Footer":  i18n.Translate(lang, "Your library, games and settings are safe; nothing is changed while the app starts."),
 				"Steps":   steps,
 				"Percent": startingPercent(),
 			})

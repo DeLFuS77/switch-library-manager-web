@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -148,11 +149,11 @@ func TestHistoryChartsForecast(t *testing.T) {
 	if charts == nil || len(charts.Graphs) != 2 {
 		t.Fatalf("content and space, nothing saved: %+v", charts)
 	}
-	if charts.GrowthPerMonth != formatSize(30<<30) {
+	if charts.GrowthPerMonth != i18n.FormatSize(30<<30) {
 		t.Errorf("grows %q a month", charts.GrowthPerMonth)
 	}
 	// 40 GiB free on January 31: full on March 12
-	if charts.FullIn != "6 weeks" || charts.FullOn != formatDate("en", time.Date(2026, 3, 12, 0, 0, 0, 0, time.UTC)) {
+	if charts.FullIn != "6 weeks" || charts.FullOn != i18n.FormatDate("en", time.Date(2026, 3, 12, 0, 0, 0, 0, time.UTC)) {
 		t.Errorf("full in %q, on %q", charts.FullIn, charts.FullOn)
 	}
 	// a library that does not grow does not fill the disk

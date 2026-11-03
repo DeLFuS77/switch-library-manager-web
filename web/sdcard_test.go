@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -24,7 +25,7 @@ func TestSdPlanner(t *testing.T) {
 		t.Fatalf("totals: %+v", plan)
 	}
 	// the favorites give their genres when none is chosen
-	web.favorites().set("0100000000010000", true)
+	web.favorites().Set("0100000000010000", true)
 	plan = web.sdPlan(readSdOptions(url.Values{}), "en")
 	if !plan.Options.AutoGenres || plan.Options.Genres[0] != "RPG" || plan.Selected[0].Reasons[0].Key != "Favorite" {
 		t.Fatalf("genres of the favorites: %+v", plan.Options)
@@ -51,8 +52,8 @@ func TestSdCopy(t *testing.T) {
 	if response := postForm(web, "/sd/copy", url.Values{"id": {"0100000000010000"}, "target": {target}, "dlc": {"1"}}); response.Code != http.StatusAccepted {
 		t.Fatalf("copy: %d %s", response.Code, response.Body.String())
 	}
-	task := waitForTask(t, web, TASK_COPY)
-	if task.Status != TASK_SUCCESS || task.Files != 3 {
+	task := waitForTask(t, web, tasklog.TASK_COPY)
+	if task.Status != tasklog.TASK_SUCCESS || task.Files != 3 {
 		t.Fatalf("the game, its update and its DLC are copied: %+v", task)
 	}
 	if _, err := os.Stat(filepath.Join(target, "Known Game", "Known [0100000000010000][v0].nsp")); err != nil {
@@ -60,7 +61,7 @@ func TestSdCopy(t *testing.T) {
 	}
 	// again: the files there are kept
 	postForm(web, "/sd/copy", url.Values{"id": {"0100000000010000"}, "target": {target}})
-	if task := waitForTask(t, web, TASK_COPY); task.Status != TASK_SUCCESS || task.Files != 2 {
+	if task := waitForTask(t, web, tasklog.TASK_COPY); task.Status != tasklog.TASK_SUCCESS || task.Files != 2 {
 		t.Fatalf("a second copy without DLC: %+v", task)
 	}
 	if folder := sdFolderName(`Game: "The <Best>" / 2`); folder != "Game The Best 2" {

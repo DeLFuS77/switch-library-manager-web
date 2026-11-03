@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -22,7 +23,7 @@ func TestTemplatesParse(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s: %v", name, err)
 		}
-		for _, lang := range supportedLanguages {
+		for _, lang := range i18n.SupportedLanguages {
 			if set[lang] == nil || set[lang].Lookup("main") == nil {
 				t.Fatalf("%s: missing template for %s", name, lang)
 			}
@@ -33,7 +34,7 @@ func TestTemplatesParse(t *testing.T) {
 // Every translation key must be used, and every translated text must be non-empty.
 func TestTranslationsAreUsed(t *testing.T) {
 	var sources strings.Builder
-	for _, pattern := range []string{"../resources/*.html", "../resources/*/*.html", "../resources/js/*.js", "*.go", "../process/*.go", "../db/*.go"} {
+	for _, pattern := range []string{"../resources/*.html", "../resources/*/*.html", "../resources/js/*.js", "*.go", "../internal/*/*.go", "../process/*.go", "../db/*.go"} {
 		files, _ := filepath.Glob(pattern)
 		for _, file := range files {
 			if strings.HasSuffix(file, "_test.go") || strings.HasPrefix(filepath.Base(file), "translations") {
@@ -48,7 +49,7 @@ func TestTranslationsAreUsed(t *testing.T) {
 		sources.WriteString(funcMap["intervalLabel"].(func(int) string)(hours))
 	}
 	all := sources.String()
-	for lang, texts := range translations {
+	for lang, texts := range i18n.Translations {
 		for key, value := range texts {
 			if strings.TrimSpace(value) == "" {
 				t.Errorf("%s: empty translation for %q", lang, key)
@@ -74,26 +75,26 @@ func TestSpanishTranslationIsComplete(t *testing.T) {
 	for _, file := range append(files, layout...) {
 		data, _ := os.ReadFile(file)
 		for _, match := range marked.FindAllStringSubmatch(string(data), -1) {
-			if _, ok := translations["es"][match[1]]; !ok && !untranslated[match[1]] {
+			if _, ok := i18n.Translations["es"][match[1]]; !ok && !untranslated[match[1]] {
 				t.Errorf("%s: no Spanish translation for %q", filepath.Base(file), match[1])
 			}
 		}
 	}
-	for _, text := range jsTexts {
-		if _, ok := translations["es"][text]; !ok {
+	for _, text := range i18n.JSTexts {
+		if _, ok := i18n.Translations["es"][text]; !ok {
 			t.Errorf("web.js: no Spanish translation for %q", text)
 		}
 	}
 }
 
-// Every text web.js passes to t() is sent to the browser (jsTexts) and translated in every
-// language: t() only knows the texts of jsTexts, the others are shown in English.
+// Every text web.js passes to t() is sent to the browser (i18n.JSTexts) and translated in every
+// language: t() only knows the texts of i18n.JSTexts, the others are shown in English.
 func TestJsTextsAreSentAndTranslated(t *testing.T) {
 	// t('...'), t("...") and t(`...`) without ${}
 	literal := regexp.MustCompile(`\bt\(\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)"|` + "`([^`$]*)`" + `)`)
 	unescape := strings.NewReplacer(`\'`, `'`, `\"`, `"`, `\\`, `\`)
 	sent := map[string]bool{}
-	for _, text := range jsTexts {
+	for _, text := range i18n.JSTexts {
 		sent[text] = true
 	}
 	files, _ := filepath.Glob("../resources/js/*.js")
@@ -112,8 +113,8 @@ func TestJsTextsAreSentAndTranslated(t *testing.T) {
 			if !sent[text] {
 				t.Errorf("%s: %q is not in jsTexts", filepath.Base(file), text)
 			}
-			for _, lang := range supportedLanguages {
-				if _, ok := translations[lang][text]; !ok && lang != DEFAULT_LANGUAGE {
+			for _, lang := range i18n.SupportedLanguages {
+				if _, ok := i18n.Translations[lang][text]; !ok && lang != i18n.DEFAULT_LANGUAGE {
 					t.Errorf("%s: no %s translation for %q", filepath.Base(file), lang, text)
 				}
 			}
@@ -139,18 +140,18 @@ func TestLanguageFromHeader(t *testing.T) {
 		"ja-JP,ja;q=0.9":          "ja",
 		"ES":                      "es",
 	} {
-		if got := languageFromHeader(header); got != want {
+		if got := i18n.LanguageFromHeader(header); got != want {
 			t.Errorf("languageFromHeader(%q) = %q, want %q", header, got, want)
 		}
 	}
-	if translatef("es", "%v DLC missing", 3) != "Faltan 3 DLC" || translate("xx", "Library") != "Library" {
+	if i18n.Translatef("es", "%v DLC missing", 3) != "Faltan 3 DLC" || i18n.Translate("xx", "Library") != "Library" {
 		t.Fatal("unexpected translation")
 	}
 }
 
 // A language that is not one of the list names no file and no download.
 func TestTitleLanguageOnlyOfTheList(t *testing.T) {
-	if supportedLanguage("es") != "es" || supportedLanguage("ES") != "" || supportedLanguage("../es") != "" {
+	if i18n.SupportedLanguage("es") != "es" || i18n.SupportedLanguage("ES") != "" || i18n.SupportedLanguage("../es") != "" {
 		t.Fatal("unexpected supported language")
 	}
 	web := newTestWeb(t)
@@ -161,21 +162,21 @@ func TestTitleLanguageOnlyOfTheList(t *testing.T) {
 
 func TestLocalizedDatesAndIssues(t *testing.T) {
 	date := time.Date(2026, 10, 5, 13, 5, 0, 0, time.Local)
-	if got := formatDate("es", date); got != "5 oct 2026" {
+	if got := i18n.FormatDate("es", date); got != "5 oct 2026" {
 		t.Errorf("es date = %q", got)
 	}
-	if got := formatDate("en", date); got != "Oct 5, 2026" {
+	if got := i18n.FormatDate("en", date); got != "Oct 5, 2026" {
 		t.Errorf("en date = %q", got)
 	}
 	for lang, want := range map[string]string{"ja": "2026年10月5日", "zh": "2026年10月5日", "ko": "2026년 10월 5일", "nl": "5 okt. 2026", "ru": "5 окт. 2026"} {
-		if got := formatDate(lang, date); got != want {
+		if got := i18n.FormatDate(lang, date); got != want {
 			t.Errorf("%s date = %q, want %q", lang, got, want)
 		}
 	}
-	if got := formatDateTime("es", date); got != "5 oct 2026 13:05" {
+	if got := i18n.FormatDateTime("es", date); got != "5 oct 2026 13:05" {
 		t.Errorf("es date time = %q", got)
 	}
-	if formatDate("es", time.Time{}) != "" || formatDateTime("es", time.Time{}) != "nunca" {
+	if i18n.FormatDate("es", time.Time{}) != "" || i18n.FormatDateTime("es", time.Time{}) != "nunca" {
 		t.Error("zero dates")
 	}
 
@@ -188,10 +189,10 @@ func TestLocalizedDatesAndIssues(t *testing.T) {
 		"something new and unknown":                                      "something new and unknown",
 	}
 	for text, want := range issues {
-		if got := translateIssue("es", text); got != want {
+		if got := i18n.TranslateIssue("es", text); got != want {
 			t.Errorf("translateIssue(%q)\n got %q\nwant %q", text, got, want)
 		}
-		if got := translateIssue("en", text); got != text {
+		if got := i18n.TranslateIssue("en", text); got != text {
 			t.Errorf("English issue changed: %q", got)
 		}
 	}
@@ -200,15 +201,15 @@ func TestLocalizedDatesAndIssues(t *testing.T) {
 // Every interface language translates the same texts as Spanish, with the same placeholders.
 func TestAllLanguagesAreComplete(t *testing.T) {
 	placeholders := regexp.MustCompile(`%[vsd%]`)
-	for _, lang := range supportedLanguages {
-		if lang == DEFAULT_LANGUAGE || lang == "es" {
+	for _, lang := range i18n.SupportedLanguages {
+		if lang == i18n.DEFAULT_LANGUAGE || lang == "es" {
 			continue
 		}
-		if languageNames[lang] == "" || len(monthAbbreviations[lang]) == 0 {
+		if i18n.LanguageNames[lang] == "" || len(i18n.MonthAbbreviations[lang]) == 0 {
 			t.Errorf("%s: no name or months", lang)
 		}
-		for text := range translations["es"] {
-			translated, ok := translations[lang][text]
+		for text := range i18n.Translations["es"] {
+			translated, ok := i18n.Translations[lang][text]
 			if !ok {
 				t.Errorf("%s: no translation for %q", lang, text)
 				continue
@@ -217,8 +218,8 @@ func TestAllLanguagesAreComplete(t *testing.T) {
 				t.Errorf("%s: placeholders differ in %q", lang, translated)
 			}
 		}
-		for text := range translations[lang] {
-			if _, ok := translations["es"][text]; !ok {
+		for text := range i18n.Translations[lang] {
+			if _, ok := i18n.Translations["es"][text]; !ok {
 				t.Errorf("%s: translation of an unknown text %q", lang, text)
 			}
 		}
@@ -247,7 +248,7 @@ func TestNumbersHaveTheSeparatorOfTheLanguage(t *testing.T) {
 		{"en", 11382, "11,382"}, {"en", 999, "999"}, {"en", 1234567, "1,234,567"}, {"es", 3111, "3111"}, {"es", 11382, "11.382"},
 		{"de", 3111, "3.111"}, {"fr", 11382, "11\u202f382"}, {"ja", 2547, "2,547"}, {"en", 0, "0"}, {"en", -1500, "-1,500"},
 	} {
-		if got := formatNumber(c.lang, c.value); got != c.want {
+		if got := i18n.FormatNumber(c.lang, c.value); got != c.want {
 			t.Errorf("%s %d: %q, want %q", c.lang, c.value, got, c.want)
 		}
 	}
@@ -285,14 +286,14 @@ func TestLibraryOverviewNumbersHaveTheSeparator(t *testing.T) {
 func TestSizesHaveTheDecimalSeparatorOfTheLanguage(t *testing.T) {
 	const size = 3 * 1024 * 1024 * 1024 / 2
 	for lang, want := range map[string]string{"en": "1.5 GB", "es": "1,5 GB", "de": "1,5 GB", "fr": "1,5 GB", "ja": "1.5 GB", "zh": "1.5 GB"} {
-		if got := formatSizeIn(lang, size); got != want {
+		if got := i18n.FormatSizeIn(lang, size); got != want {
 			t.Errorf("%s: %q, want %q", lang, got, want)
 		}
 		if got := i18nFuncs(lang)["formatSize"].(func(int64) string)(size); got != want {
 			t.Errorf("%s template: %q, want %q", lang, got, want)
 		}
 	}
-	if got := formatSizeIn("es", 512); got != "512 B" {
+	if got := i18n.FormatSizeIn("es", 512); got != "512 B" {
 		t.Errorf("bytes: %q", got)
 	}
 
@@ -305,11 +306,11 @@ func TestSizesHaveTheDecimalSeparatorOfTheLanguage(t *testing.T) {
 		t.Fatal("web.js lists no languages with a decimal comma")
 	}
 	languages := regexp.MustCompile(`'([a-z]+)'`).FindAllStringSubmatch(list[1], -1)
-	if len(languages) != len(decimalSeparators) {
-		t.Errorf("web.js lists %d languages with a decimal comma, the server %d", len(languages), len(decimalSeparators))
+	if len(languages) != len(i18n.DecimalSeparators) {
+		t.Errorf("web.js lists %d languages with a decimal comma, the server %d", len(languages), len(i18n.DecimalSeparators))
 	}
 	for _, lang := range languages {
-		if decimalSeparators[lang[1]] != "," {
+		if i18n.DecimalSeparators[lang[1]] != "," {
 			t.Errorf("web.js writes a decimal comma in %s, the server does not", lang[1])
 		}
 	}

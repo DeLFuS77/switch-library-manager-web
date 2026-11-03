@@ -10,6 +10,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -103,8 +104,8 @@ type UncompressibleEntry struct {
 func (web *Web) uncompressible() *uncompressibleStore {
 	web.uncompressibleOnce.Do(func() {
 		store := &uncompressibleStore{path: filepath.Join(web.dataFolder, UNCOMPRESSIBLE_FILENAME), files: map[string]uncompressibleFile{}, looked: map[string]bool{}}
-		if data, ok := readStore(store.path); ok {
-			parseStore(store.path, data, &store.files)
+		if data, ok := durable.ReadStore(store.path); ok {
+			durable.ParseStore(store.path, data, &store.files)
 		}
 		if store.files == nil {
 			store.files = map[string]uncompressibleFile{}
@@ -138,7 +139,7 @@ func (s *uncompressibleStore) setReason(path string, size int64, reason string) 
 // save must be called with the mutex held.
 func (s *uncompressibleStore) save() {
 	if data, err := json.Marshal(s.files); err == nil {
-		writeFileAtomic(s.path, data)
+		durable.WriteFile(s.path, data)
 	}
 }
 
@@ -168,7 +169,7 @@ func (s *uncompressibleStore) follow(operations []process.Operation) {
 		return
 	}
 	if data, err := json.Marshal(s.files); err == nil {
-		writeFileAtomic(s.path, data)
+		durable.WriteFile(s.path, data)
 	}
 }
 

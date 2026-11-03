@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -40,8 +41,8 @@ type igdbCollectionStore struct {
 func (web *Web) igdbCollections() *igdbCollectionStore {
 	web.igdbSeriesOnce.Do(func() {
 		store := &igdbCollectionStore{path: filepath.Join(web.dataFolder, IGDB_SERIES_FILENAME), collections: map[int]igdbCollection{}}
-		if data, ok := readStore(store.path); ok {
-			parseStore(store.path, data, &store.collections)
+		if data, ok := durable.ReadStore(store.path); ok {
+			durable.ParseStore(store.path, data, &store.collections)
 		}
 		web.igdbSeries = store
 	})
@@ -73,7 +74,7 @@ func (s *igdbCollectionStore) save() error {
 	if err != nil {
 		return err
 	}
-	return writeFileAtomic(s.path, data)
+	return durable.WriteFile(s.path, data)
 }
 
 // missingIgdbCollections are the collections of the games looked up that were never

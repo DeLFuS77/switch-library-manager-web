@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -127,7 +128,7 @@ func browseFolders(path string, lang string) WizardFolders {
 		}
 	}
 	if path == "" {
-		result.Error = translatef(lang, "Folder not found: %v", requested)
+		result.Error = i18n.Translatef(lang, "Folder not found: %v", requested)
 		return result
 	}
 	result.Path = path
@@ -137,9 +138,9 @@ func browseFolders(path string, lang string) WizardFolders {
 	entries, err := os.ReadDir(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			result.Error = translatef(lang, "Folder not found: %v", path)
+			result.Error = i18n.Translatef(lang, "Folder not found: %v", path)
 		} else {
-			result.Error = translate(lang, "The folder exists but cannot be read: check the permissions.")
+			result.Error = i18n.Translate(lang, "The folder exists but cannot be read: check the permissions.")
 		}
 		return result
 	}
@@ -248,13 +249,13 @@ func checkWizardAdmin(name string, password string, lang string) WizardCheck {
 		return WizardCheck{Ok: true}
 	}
 	if name == "" || password == "" {
-		return WizardCheck{Message: translate(lang, "Fill in the user name and the password, or leave both empty.")}
+		return WizardCheck{Message: i18n.Translate(lang, "Fill in the user name and the password, or leave both empty.")}
 	}
 	if !validUserName.MatchString(name) {
-		return WizardCheck{Message: translate(lang, ErrUserName.Error())}
+		return WizardCheck{Message: i18n.Translate(lang, ErrUserName.Error())}
 	}
 	if err := checkPassword(name, password); err != nil {
-		return WizardCheck{Message: translate(lang, err.Error())}
+		return WizardCheck{Message: i18n.Translate(lang, err.Error())}
 	}
 	return WizardCheck{Ok: true}
 }
@@ -324,26 +325,26 @@ func networkPath(path string) bool {
 func checkWizardFolder(folder string, lang string) WizardCheck {
 	folder = strings.TrimSpace(folder)
 	if folder == "" {
-		return WizardCheck{Message: translate(lang, "Please provide at least one Folder to scan")}
+		return WizardCheck{Message: i18n.Translate(lang, "Please provide at least one Folder to scan")}
 	}
 	if networkPath(folder) {
-		return WizardCheck{Ok: true, Message: translate(lang, WIZARD_NETWORK_PATH)}
+		return WizardCheck{Ok: true, Message: i18n.Translate(lang, WIZARD_NETWORK_PATH)}
 	}
 	info, err := os.Stat(folder)
 	if err != nil || !info.IsDir() {
-		return WizardCheck{Message: translatef(lang, "Folder not found: %v", folder)}
+		return WizardCheck{Message: i18n.Translatef(lang, "Folder not found: %v", folder)}
 	}
 	if _, err := os.ReadDir(folder); err != nil {
-		return WizardCheck{Message: translate(lang, "The folder exists but cannot be read: check the permissions.")}
+		return WizardCheck{Message: i18n.Translate(lang, "The folder exists but cannot be read: check the permissions.")}
 	}
 	games, more := countGameFiles(folder)
 	if games == 0 {
-		return WizardCheck{Ok: true, Message: translate(lang, "Found, but there are no game files in it yet.")}
+		return WizardCheck{Ok: true, Message: i18n.Translate(lang, "Found, but there are no game files in it yet.")}
 	}
 	if more {
-		return WizardCheck{Ok: true, Games: games, More: true, Message: translatef(lang, "Found, with more than %v game files.", games)}
+		return WizardCheck{Ok: true, Games: games, More: true, Message: i18n.Translatef(lang, "Found, with more than %v game files.", games)}
 	}
-	return WizardCheck{Ok: true, Games: games, Message: translatef(lang, "Found, with %v game files.", games)}
+	return WizardCheck{Ok: true, Games: games, Message: i18n.Translatef(lang, "Found, with %v game files.", games)}
 }
 
 // checkWizardKeys checks a path to the keys; empty is the default places.
@@ -351,21 +352,21 @@ func checkWizardKeys(path string, lang string) WizardCheck {
 	path = strings.TrimSpace(path)
 	if path == "" {
 		if settings.IsKeysFileAvailable() {
-			return WizardCheck{Ok: true, Message: translate(lang, "Keys found")}
+			return WizardCheck{Ok: true, Message: i18n.Translate(lang, "Keys found")}
 		}
-		return WizardCheck{Message: translate(lang, "Keys not found")}
+		return WizardCheck{Message: i18n.Translate(lang, "Keys not found")}
 	}
 	if networkPath(path) {
-		return WizardCheck{Message: translate(lang, WIZARD_NETWORK_PATH)}
+		return WizardCheck{Message: i18n.Translate(lang, WIZARD_NETWORK_PATH)}
 	}
 	keys, err := settings.GetSwitchKeys(path)
 	if err != nil {
-		return WizardCheck{Message: translatef(lang, "Error trying to read Product Keys (%v)", err)}
+		return WizardCheck{Message: i18n.Translatef(lang, "Error trying to read Product Keys (%v)", err)}
 	}
 	if keys["header_key"] == "" {
-		return WizardCheck{Message: translate(lang, "Please provide a valid Product Keys Path")}
+		return WizardCheck{Message: i18n.Translate(lang, "Please provide a valid Product Keys Path")}
 	}
-	return WizardCheck{Ok: true, Message: translate(lang, "Keys found")}
+	return WizardCheck{Ok: true, Message: i18n.Translate(lang, "Keys found")}
 }
 
 func (web *Web) HandleWizard() {
@@ -404,7 +405,7 @@ func (web *Web) HandleWizard() {
 			switch {
 			case isDemoMode():
 				// the demo goes through the wizard without telling what the server holds
-				result = WizardCheck{Ok: true, Message: translate(lang, DEMO_HIDDEN)}
+				result = WizardCheck{Ok: true, Message: i18n.Translate(lang, DEMO_HIDDEN)}
 			case kind == "folder":
 				result = checkWizardFolder(value, lang)
 			default:
@@ -431,7 +432,7 @@ func (web *Web) HandleWizard() {
 		}
 		w.Header().Set("Cache-Control", "no-store")
 		if isDemoMode() {
-			writeJSON(w, http.StatusOK, WizardFolders{Folders: []string{}, Places: []string{}, Error: translate(web.requestLanguage(r), DEMO_HIDDEN)})
+			writeJSON(w, http.StatusOK, WizardFolders{Folders: []string{}, Places: []string{}, Error: i18n.Translate(web.requestLanguage(r), DEMO_HIDDEN)})
 			return
 		}
 		writeJSON(w, http.StatusOK, browseFolders(path, web.requestLanguage(r)))
@@ -443,11 +444,11 @@ func (web *Web) HandleWizard() {
 		result := checkWizardAdmin(r.FormValue("name"), r.FormValue("password"), web.requestLanguage(r))
 		if result.Ok && strings.TrimSpace(r.FormValue("name")) != "" && web.auth != nil {
 			if web.auth.Enabled() {
-				result = WizardCheck{Message: translate(web.requestLanguage(r), "Login is on")}
+				result = WizardCheck{Message: i18n.Translate(web.requestLanguage(r), "Login is on")}
 			} else if err := web.auth.checkSetupCode(r.FormValue("setup_code")); err != nil {
 				// the code is checked here too, limited as when the administrator is created
 				web.setupCodeFailed(err)
-				result = WizardCheck{Message: translate(web.requestLanguage(r), err.Error()), Field: "setup_code"}
+				result = WizardCheck{Message: i18n.Translate(web.requestLanguage(r), err.Error()), Field: "setup_code"}
 			}
 		}
 		w.Header().Set("Cache-Control", "no-store")

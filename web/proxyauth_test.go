@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -39,7 +40,7 @@ func setPortal(web *Web, options settings.PortalOptions) {
 // activityCount counts the entries of the activity log with an action and a detail.
 func activityCount(web *Web, action string, detail string) int {
 	n := 0
-	for _, entry := range web.activities().list() {
+	for _, entry := range web.activities().List() {
 		if entry.Action == action && entry.Detail == detail {
 			n++
 		}
@@ -71,7 +72,7 @@ func TestPortalHeaderFromATrustedProxy(t *testing.T) {
 		t.Fatalf("the login page is not needed: %q", location)
 	}
 	proxy.do("GET", "/index.html", nil, "Remote-User", "alice")
-	if n := activityCount(web, ACTION_PORTAL_PROXY, ""); n != 2 {
+	if n := activityCount(web, activity.ACTION_PORTAL_PROXY, ""); n != 2 {
 		t.Fatalf("each user signed in through the proxy is told once a day: %d", n)
 	}
 	if user, _ := web.auth.users.Get("alice"); user.LastLogin.IsZero() {
@@ -98,11 +99,11 @@ func TestPortalHeaderFromAnotherAddressIsIgnored(t *testing.T) {
 			}
 		}
 	}
-	if n := activityCount(web, ACTION_LOGIN_FAIL, portalUntrustedDetail); n != 4 {
+	if n := activityCount(web, activity.ACTION_LOGIN_FAIL, portalUntrustedDetail); n != 4 {
 		t.Fatalf("a header from an address not trusted is told once an hour by address: %d", n)
 	}
-	for _, entry := range web.activities().list() {
-		if entry.Action == ACTION_LOGIN_FAIL && entry.IP == proxyAddress {
+	for _, entry := range web.activities().List() {
+		if entry.Action == activity.ACTION_LOGIN_FAIL && entry.IP == proxyAddress {
 			t.Fatal("the address told is the one of the connection, not the one it forwards")
 		}
 	}
@@ -143,7 +144,7 @@ func TestPortalIsOffByDefault(t *testing.T) {
 	if code := proxy.do("GET", "/settings.html", nil, "Remote-User", "alice").Code; code != http.StatusUnauthorized {
 		t.Fatalf("the header means nothing until it is turned on: %v", code)
 	}
-	if len(web.activities().list()) != 0 {
+	if len(web.activities().List()) != 0 {
 		t.Fatal("nothing is told")
 	}
 }
@@ -167,7 +168,7 @@ func TestPortalPersonWithoutUser(t *testing.T) {
 	if web.auth.users.Count() != 2 {
 		t.Fatal("no user is made by default")
 	}
-	if n := activityCount(web, ACTION_LOGIN_FAIL, portalUnknownDetail); n != 1 {
+	if n := activityCount(web, activity.ACTION_LOGIN_FAIL, portalUnknownDetail); n != 1 {
 		t.Fatalf("told once an hour: %d", n)
 	}
 	// the password of the app still works for them
@@ -199,7 +200,7 @@ func TestPortalMakesUsersWhenAsked(t *testing.T) {
 	if code := proxy.do("GET", "/settings.html", nil, "Remote-User", "carol").Code; code != http.StatusForbidden {
 		t.Fatalf("a user made by the portal is no administrator: %v", code)
 	}
-	if n := activityCount(web, ACTION_USER_NEW, "carol: viewer"); n != 1 {
+	if n := activityCount(web, activity.ACTION_USER_NEW, "carol: viewer"); n != 1 {
 		t.Fatalf("the user made is told: %d", n)
 	}
 
@@ -246,7 +247,7 @@ func TestPortalAdministratorsGroup(t *testing.T) {
 	if user, _ := web.auth.users.Get("bob"); user.Role != ROLE_VIEWER {
 		t.Fatal("the group does not change the role stored")
 	}
-	if n := activityCount(web, ACTION_PORTAL_PROXY, ROLE_ADMIN); n != 1 {
+	if n := activityCount(web, activity.ACTION_PORTAL_PROXY, ROLE_ADMIN); n != 1 {
 		t.Fatalf("the sign-in as administrator by the group is told: %d", n)
 	}
 	other := &client{t: t, handler: handler, ip: "192.168.1.10"}
@@ -437,7 +438,7 @@ func TestPortalSettingsForm(t *testing.T) {
 	if !stored.Header || !stored.Cloudflare || stored.CloudflareTeam != "myteam" || stored.MatchBy != MATCH_EMAIL || stored.NewUsers != ROLE_GUEST {
 		t.Fatalf("the options: %+v", stored)
 	}
-	if n := activityCount(web, ACTION_PORTAL_SETTINGS, ""); n != 1 {
+	if n := activityCount(web, activity.ACTION_PORTAL_SETTINGS, ""); n != 1 {
 		t.Fatalf("a change of the portal is in the activity: %d", n)
 	}
 	for field, value := range map[string]string{"portal_user_header": "Authorization", "portal_email_header": "Remote User", "portal_cf_team": "my team",

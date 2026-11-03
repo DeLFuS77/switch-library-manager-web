@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -39,8 +40,8 @@ type WhatsNew struct {
 func (web *Web) recordVersion() {
 	path := filepath.Join(web.dataFolder, VERSION_FILENAME)
 	record := versionRecord{}
-	if data, ok := readStore(path); ok {
-		parseStore(path, data, &record)
+	if data, ok := durable.ReadStore(path); ok {
+		durable.ParseStore(path, data, &record)
 	} else if _, err := os.Stat(filepath.Join(web.dataFolder, "slm.db")); err == nil {
 		record.Version = "?"
 	}
@@ -49,7 +50,7 @@ func (web *Web) recordVersion() {
 	}
 	next := versionRecord{Version: settings.SLM_WEB_VERSION, Previous: record.Version, Updated: time.Now()}
 	if data, err := json.Marshal(next); err == nil {
-		writeFileAtomic(path, data)
+		durable.WriteFile(path, data)
 	}
 }
 

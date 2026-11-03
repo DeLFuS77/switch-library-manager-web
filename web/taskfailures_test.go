@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -45,25 +46,25 @@ func TestFailedTasksAreNotified(t *testing.T) {
 		return append([]string(nil), messages...)
 	}
 
-	id := web.taskLog().Start(TASK_COMPRESS, TRIGGER_MANUAL)
-	web.taskLog().Finish(id, &TaskNote{Text: NOTE_COMPRESS_FAILED, Detail: "Game.nsp: broken"})
+	id := web.taskLog().Start(tasklog.TASK_COMPRESS, tasklog.TRIGGER_MANUAL)
+	web.taskLog().Finish(id, &tasklog.Note{Text: NOTE_COMPRESS_FAILED, Detail: "Game.nsp: broken"})
 	if got := told(1); len(got) != 1 || !strings.Contains(got[0], "Compresión") || !strings.Contains(got[0], "Game.nsp: broken") {
 		t.Fatalf("a failed compression is told: %q", got)
 	}
 
 	// a task that went well, or cancelled by the user, is not
-	id = web.taskLog().Start(TASK_SCAN, TRIGGER_MANUAL)
+	id = web.taskLog().Start(tasklog.TASK_SCAN, tasklog.TRIGGER_MANUAL)
 	web.taskLog().Finish(id, nil)
-	id = web.taskLog().Start(TASK_COMPRESS, TRIGGER_MANUAL)
-	web.taskLog().Finish(id, &TaskNote{Text: NOTE_COMPRESS_CANCELED})
+	id = web.taskLog().Start(tasklog.TASK_COMPRESS, tasklog.TRIGGER_MANUAL)
+	web.taskLog().Finish(id, &tasklog.Note{Text: tasklog.NOTE_COMPRESS_CANCELED})
 	if got := told(2); len(got) != 1 {
 		t.Fatalf("only failures are told: %q", got)
 	}
 
 	// the switch off
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.Notifications.NotifyTaskFailures = false })
-	id = web.taskLog().Start(TASK_VERIFY, TRIGGER_MANUAL)
-	web.taskLog().Finish(id, &TaskNote{Text: NOTE_SCAN_FAILED})
+	id = web.taskLog().Start(tasklog.TASK_VERIFY, tasklog.TRIGGER_MANUAL)
+	web.taskLog().Finish(id, &tasklog.Note{Text: tasklog.NOTE_SCAN_FAILED})
 	if got := told(2); len(got) != 1 {
 		t.Fatalf("turned off: %q", got)
 	}

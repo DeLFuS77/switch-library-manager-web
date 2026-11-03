@@ -3,6 +3,7 @@ package web
 import (
 	"archive/zip"
 	"bytes"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"io"
 	"os"
 	"path/filepath"
@@ -42,7 +43,7 @@ type exportSiteData struct {
 // writeExportSite writes the ZIP of the exported web page.
 func (web *Web) writeExportSite(w io.Writer, templates templateSet, lang string) error {
 	switchDB, localDB := web.state.get()
-	data := exportSiteData{Title: translate(lang, "My Switch library"), Created: time.Now()}
+	data := exportSiteData{Title: i18n.Translate(lang, "My Switch library"), Created: time.Now()}
 	covers := map[string]string{}
 	for _, title := range web.getExport() {
 		game := exportSiteGame{Id: title.Id, Name: title.Name, Version: title.Version, Size: title.Size,

@@ -333,7 +333,7 @@ func (web *Web) buildStatistics(lang string) Statistics {
 // the library.
 func (web *Web) scoreComparison(user string, lang string) ScoreComparison {
 	comparison := ScoreComparison{}
-	plays := web.play().all(user)
+	plays := web.play().All(user)
 	if len(plays) == 0 {
 		return comparison
 	}

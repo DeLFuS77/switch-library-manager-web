@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -110,7 +111,7 @@ func (web *Web) titleDetails(title *db.SwitchTitle, lang string) db.TitleDetails
 	if store != nil && details.Description == "" && len(details.Screenshots) == 0 {
 		details = store.Details(title.Attributes.Id)
 	}
-	if store != nil && lang != DEFAULT_LANGUAGE {
+	if store != nil && lang != i18n.DEFAULT_LANGUAGE {
 		if description := store.LocalizedDescription(lang, title.Attributes.Id); description != "" {
 			details.Description = description
 		}

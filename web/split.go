@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -20,8 +22,6 @@ import (
 // take one title per file expect. Each part is written under a hidden name, checked whole,
 // and only then gets its name; the original goes last, if asked, and only when every NCA,
 // ticket and certificate it holds is in a part that was checked.
-
-const TASK_SPLIT = "split"
 
 const (
 	NOTE_SPLIT_FAILED = "The file could not be split, the original is kept."
@@ -163,7 +163,7 @@ func (web *Web) splitPartName(part switchfs.SplitPart, game string) string {
 
 // startSplit splits the files in the background, one after the other.
 func (web *Web) startSplit(paths []string, deleteOriginals bool) bool {
-	return web.startSplitBy(paths, deleteOriginals, TRIGGER_MANUAL)
+	return web.startSplitBy(paths, deleteOriginals, tasklog.TRIGGER_MANUAL)
 }
 
 func (web *Web) startSplitBy(paths []string, deleteOriginals bool, trigger string) bool {
@@ -174,7 +174,7 @@ func (web *Web) startSplitBy(paths []string, deleteOriginals bool, trigger strin
 	names = web.moves.resolveKeys(names)
 	// every file is copied into its parts, then the parts are checked
 	// read once: split, and each part checked while it is written
-	return web.runResumableTask(TASK_SPLIT, trigger, paths, 1, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	return web.runResumableTask(tasklog.TASK_SPLIT, trigger, paths, 1, &tasklog.Resume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		name := names[path]
 		if name == "" {
 			name = strings.TrimSpace(db.ParseTitleNameFromFileName(filepath.Base(path)))
@@ -233,7 +233,7 @@ func (web *Web) splitFile(ctx context.Context, path string, game string, deleteO
 		written, err := switchfs.WriteSplitPartAndCheck(ctx, path, part, temporary, report(done))
 		if err == nil {
 			checked = checked && fullyChecked(written)
-			if err = commitFile(temporary, target); err == nil {
+			if err = durable.CommitFile(temporary, target); err == nil {
 				web.verifications().remember(target, written)
 			}
 		}
@@ -308,7 +308,7 @@ func (web *Web) handleSplit() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the files to split.")
 			return
 		}
-		web.startWriting(w, r, QueuedTask{Kind: TASK_SPLIT, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
+		web.startWriting(w, r, QueuedTask{Kind: tasklog.TASK_SPLIT, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
 	}).Methods("POST")
 }
 

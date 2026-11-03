@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/fsnotify/fsnotify"
 )
@@ -83,7 +84,7 @@ type appScanRequest struct {
 // the files itself (a task on files, Organize, an upload): a task too short for the watcher to
 // see it running is not scanned again a few seconds after its own scan.
 func (web *Web) noteAppScan(trigger string) {
-	if trigger == TRIGGER_COMPRESS || trigger == TRIGGER_ORGANIZE || trigger == TRIGGER_UPLOAD {
+	if trigger == tasklog.TRIGGER_COMPRESS || trigger == tasklog.TRIGGER_ORGANIZE || trigger == tasklog.TRIGGER_UPLOAD {
 		web.appScan.Store(&appScanRequest{at: time.Now(), scans: web.scansDone.Load()})
 	}
 }
@@ -272,7 +273,7 @@ func (w *folderWatcher) scanIfChanged(fingerprint uint64) {
 	}
 	// walks the folders again; the metadata of unchanged files comes from the cache, so this is quick
 	w.web.watchFingerprint.Store(fingerprint)
-	if w.web.scanInBackground(true, TRIGGER_WATCHER) {
+	if w.web.scanInBackground(true, tasklog.TRIGGER_WATCHER) {
 		w.appScanSeen()
 		w.scanned = fingerprint
 		w.web.sugarLogger.Info("[Library folders changed, scanning]")

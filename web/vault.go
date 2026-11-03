@@ -16,6 +16,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
+	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/webdav"
@@ -166,7 +170,7 @@ func (web *Web) vaultHandler() http.Handler {
 // the first backup, on the folder that holds it.
 func vaultFree(root string) (uint64, bool) {
 	for _, folder := range []string{root, filepath.Dir(root)} {
-		if free, err := diskFree(folder); err == nil {
+		if free, err := diskfree.Free(folder); err == nil {
 			return free, true
 		}
 	}
@@ -413,9 +417,9 @@ func (web *Web) saveGames(lang string) []SaveGame {
 	byName := map[string]TitleItem{}
 	for _, item := range library {
 		byId[strings.ToUpper(item.Id)] = item
-		byName[searchText(item.Name)] = item
+		byName[search.Text(item.Name)] = item
 		if item.OriginalName != "" {
-			byName[searchText(item.OriginalName)] = item
+			byName[search.Text(item.OriginalName)] = item
 		}
 	}
 	games := map[string]*SaveGame{}
@@ -424,7 +428,7 @@ func (web *Web) saveGames(lang string) []SaveGame {
 		game := SaveGame{Name: backup.Folder}
 		item, known := byId[backup.TitleId]
 		if !known {
-			item, known = byName[searchText(backup.Folder)]
+			item, known = byName[search.Text(backup.Folder)]
 		}
 		if known {
 			key = "id:" + strings.ToUpper(item.Id)
@@ -545,12 +549,12 @@ func pruneVaultFolder(folder string, keep int) int {
 // notifyVaultUpload tells about a new backup on the notification channels.
 func (web *Web) notifyVaultUpload(path string) {
 	settingsObj := settings.ReadSettings(web.dataFolder)
-	if !notificationsConfigured(settingsObj.Notifications) {
+	if !notify.Configured(settingsObj.Notifications) {
 		return
 	}
 	lang := settingsObj.Language
-	if !isSupportedLanguage(lang) {
-		lang = DEFAULT_LANGUAGE
+	if !i18n.IsSupportedLanguage(lang) {
+		lang = i18n.DEFAULT_LANGUAGE
 	}
 	name := filepath.Base(filepath.Dir(path))
 	if id, _, ok := jksvMeta(path); ok {
@@ -561,9 +565,9 @@ func (web *Web) notifyVaultUpload(path string) {
 			}
 		}
 	}
-	title := translate(lang, "Switch Library Manager: save backed up")
-	text := translatef(lang, "New backup of your save of %v.", name)
-	if err := sendMessage(settingsObj.Notifications, title, text, map[string]string{"game": name, "file": filepath.Base(path)}); err != nil {
+	title := i18n.Translate(lang, "Switch Library Manager: save backed up")
+	text := i18n.Translatef(lang, "New backup of your save of %v.", name)
+	if err := notify.Send(settingsObj.Notifications, title, text, map[string]string{"game": name, "file": filepath.Base(path)}); err != nil {
 		web.sugarLogger.Warnf("Failed to send the save vault message: %v", err)
 	}
 }

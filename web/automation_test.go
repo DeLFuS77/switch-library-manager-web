@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -147,7 +148,7 @@ func TestAutomationRunsTheChosenSteps(t *testing.T) {
 	if !strings.Contains(text, "Known Game") || !strings.Contains(text, "3 files checked, 3 corrupted") {
 		t.Fatalf("message: %q", text)
 	}
-	if task, ok := web.latestTask(TASK_VERIFY); !ok || task.Trigger != TRIGGER_AUTOMATION {
+	if task, ok := web.latestTask(tasklog.TASK_VERIFY); !ok || task.Trigger != tasklog.TRIGGER_AUTOMATION {
 		t.Fatalf("the check is a task of the automations: %+v", task)
 	}
 }

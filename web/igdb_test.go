@@ -3,6 +3,9 @@ package web
 import (
 	"context"
 	"errors"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -120,13 +123,13 @@ func TestTimesToBeatAreLookedUpAndKept(t *testing.T) {
 	t.Setenv(IGDB_CLIENT_ID_ENV, "my-id")
 	t.Setenv(IGDB_CLIENT_SECRET_ENV, "good-secret")
 
-	if !web.lookupTimesToBeat(TRIGGER_MANUAL) {
+	if !web.lookupTimesToBeat(tasklog.TRIGGER_MANUAL) {
 		t.Fatal("the lookup starts")
 	}
 	for deadline := time.Now().Add(20 * time.Second); web.timeToBeatRunning.Load() && time.Now().Before(deadline); {
 		time.Sleep(20 * time.Millisecond)
 	}
-	library := web.buildLibrary(DEFAULT_LANGUAGE)
+	library := web.buildLibrary(i18n.DEFAULT_LANGUAGE)
 	if len(library) == 0 {
 		t.Fatal("no library")
 	}
@@ -134,13 +137,13 @@ func TestTimesToBeatAreLookedUpAndKept(t *testing.T) {
 	if !ok || !value.Known() {
 		t.Fatalf("kept: %+v %v", value, ok)
 	}
-	if item := web.buildLibrary(DEFAULT_LANGUAGE)[0]; item.TimeToBeat != 54000 {
+	if item := web.buildLibrary(i18n.DEFAULT_LANGUAGE)[0]; item.TimeToBeat != 54000 {
 		t.Fatalf("the library knows the time: %d", item.TimeToBeat)
 	}
 
 	// the next run has nothing to look up
 	before := requests.Load()
-	if web.lookupTimesToBeat(TRIGGER_MANUAL) || requests.Load() != before {
+	if web.lookupTimesToBeat(tasklog.TRIGGER_MANUAL) || requests.Load() != before {
 		t.Fatal("games looked up recently are not looked up again")
 	}
 
@@ -156,7 +159,7 @@ func TestNoLookupWithoutKeys(t *testing.T) {
 	web.state.set(testDatabases(t))
 	t.Setenv(IGDB_CLIENT_ID_ENV, "")
 	t.Setenv(IGDB_CLIENT_SECRET_ENV, "")
-	if web.lookupTimesToBeat(TRIGGER_MANUAL) {
+	if web.lookupTimesToBeat(tasklog.TRIGGER_MANUAL) {
 		t.Fatal("nothing without the keys")
 	}
 }
@@ -332,11 +335,11 @@ func TestLibraryFiltersByScore(t *testing.T) {
 	web.state.set(testDatabases(t))
 	web.timesToBeat().set("0100000000010000", TimeToBeat{Found: true, Checked: time.Now(), CriticScore: 86, CriticCount: 12})
 	web.invalidateDerived()
-	all, _, facets := web.getLibraryWithFacets(&TitleItemFilter{SortBy: "name", SortOrder: "asc", PerPage: 24, Page: 1, WithMissing: "0"}, DEFAULT_LANGUAGE)
+	all, _, facets := web.getLibraryWithFacets(&TitleItemFilter{SortBy: "name", SortOrder: "asc", PerPage: 24, Page: 1, WithMissing: "0"}, i18n.DEFAULT_LANGUAGE)
 	if len(all) < 2 || facets.Score70 != 1 || facets.Score80 != 1 || facets.Score90 != 0 {
 		t.Fatalf("%d games, scores %d/%d/%d", len(all), facets.Score70, facets.Score80, facets.Score90)
 	}
-	items, _, _ := web.getLibraryWithFacets(&TitleItemFilter{Score: "80", SortBy: "name", SortOrder: "asc", PerPage: 24, Page: 1, WithMissing: "0"}, DEFAULT_LANGUAGE)
+	items, _, _ := web.getLibraryWithFacets(&TitleItemFilter{Score: "80", SortBy: "name", SortOrder: "asc", PerPage: 24, Page: 1, WithMissing: "0"}, i18n.DEFAULT_LANGUAGE)
 	if len(items) != 1 || items[0].Id != "0100000000010000" || items[0].Score != 86 {
 		t.Fatalf("only the game of 80 or more: %+v", items)
 	}
@@ -373,7 +376,7 @@ func TestStatisticsShowTheScores(t *testing.T) {
 	}
 
 	// two stars are 40, far under the 94 of IGDB
-	if err := web.play().set("", "0100000000010000", PlayEntry{Rating: 2}); err != nil {
+	if err := web.play().Set("", "0100000000010000", userdata.PlayEntry{Rating: 2}); err != nil {
 		t.Fatal(err)
 	}
 	page = get()
@@ -387,7 +390,7 @@ func TestStatisticsShowTheScores(t *testing.T) {
 	}
 
 	// close to IGDB: no list
-	if err := web.play().set("", "0100000000010000", PlayEntry{Rating: 5}); err != nil {
+	if err := web.play().Set("", "0100000000010000", userdata.PlayEntry{Rating: 5}); err != nil {
 		t.Fatal(err)
 	}
 	if page := get(); !strings.Contains(page, "Your ratings are close to the ones of IGDB.") || strings.Contains(page, "You rate lower than IGDB") {

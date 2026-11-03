@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -88,7 +89,7 @@ func (web *Web) resumeBackgroundWork(now time.Time) {
 		web.sugarLogger.Info("[Background hours: covers and thumbnails]")
 		web.startCoverDownloads()
 	}
-	if compress && web.autoCompress(TRIGGER_SCHEDULE) {
+	if compress && web.autoCompress(tasklog.TRIGGER_SCHEDULE) {
 		web.sugarLogger.Info("[Background hours: compressing new files]")
 	}
 }

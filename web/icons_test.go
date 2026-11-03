@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -90,7 +91,7 @@ func TestReadIconsComeBackAfterAScan(t *testing.T) {
 	coverTasks := func() int {
 		count := 0
 		for _, task := range web.taskLog().Snapshot() {
-			if task.Kind == TASK_COVERS {
+			if task.Kind == tasklog.TASK_COVERS {
 				count++
 			}
 		}

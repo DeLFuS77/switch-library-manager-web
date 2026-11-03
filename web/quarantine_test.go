@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -206,7 +207,7 @@ func TestQuarantineReasons(t *testing.T) {
 		}
 	}
 	for reason := range quarantineReasons {
-		if translate("es", quarantineReasons[reason]) == quarantineReasons[reason] {
+		if i18n.Translate("es", quarantineReasons[reason]) == quarantineReasons[reason] {
 			t.Errorf("%s: no Spanish text", reason)
 		}
 	}

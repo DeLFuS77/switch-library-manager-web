@@ -41,7 +41,7 @@ func (web *Web) tasteProfile(lang string) tasteProfile {
 		return profile
 	}
 	index := web.sagas()
-	favorites := web.favorites().snapshot()
+	favorites := web.favorites().Snapshot()
 	count := func(genres []string, counts map[string]float64) {
 		for _, genre := range genres {
 			counts[genre]++

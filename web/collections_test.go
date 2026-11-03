@@ -15,13 +15,13 @@ func TestCollections(t *testing.T) {
 	if response.Code != http.StatusOK {
 		t.Fatalf("add: %d %s", response.Code, response.Body.String())
 	}
-	if names := web.collections().of("0100000000010000"); len(names) != 1 || names[0] != "For the kids" {
+	if names := web.collections().Of("0100000000010000"); len(names) != 1 || names[0] != "For the kids" {
 		t.Fatalf("names are cleaned: %v", names)
 	}
 	// the same collection, written in another case
 	postForm(web, "/collections", url.Values{"id": {"0100000000010000"}, "name": {"for the KIDS"}})
 	postForm(web, "/collections", url.Values{"id": {"0100000000010000"}, "name": {"Playing"}})
-	if names := web.collections().of("0100000000010000"); len(names) != 2 || names[0] != "For the kids" || names[1] != "Playing" {
+	if names := web.collections().Of("0100000000010000"); len(names) != 2 || names[0] != "For the kids" || names[1] != "Playing" {
 		t.Fatalf("one entry per collection, sorted: %v", names)
 	}
 
@@ -33,7 +33,7 @@ func TestCollections(t *testing.T) {
 	}
 
 	postForm(web, "/collections", url.Values{"id": {"0100000000030000"}, "name": {"For the kids"}, "action": {"remove"}})
-	if names := web.collections().of("0100000000030000"); len(names) != 0 {
+	if names := web.collections().Of("0100000000030000"); len(names) != 0 {
 		t.Fatalf("removed: %v", names)
 	}
 
@@ -47,8 +47,8 @@ func TestCollections(t *testing.T) {
 		}
 	}
 
-	web.collections().reload()
-	if len(web.collections().names()) != 2 {
+	web.collections().Reload()
+	if len(web.collections().Names()) != 2 {
 		t.Fatal("the collections are saved")
 	}
 }
@@ -56,7 +56,7 @@ func TestCollections(t *testing.T) {
 func TestFilterCountsFollowTheCollection(t *testing.T) {
 	web := newTestWeb(t)
 	web.state.set(testDatabases(t))
-	web.collections().set([]string{"0100000000010000"}, "Playing", true)
+	web.collections().Set([]string{"0100000000010000"}, "Playing", true)
 	web.invalidateDerived()
 	filter := defaultFilter()
 	filter.Collection = "Playing"
@@ -73,8 +73,8 @@ func TestFavorites(t *testing.T) {
 	web := newTestWeb(t)
 	web.state.set(testDatabases(t))
 	// a collection named like the favorites becomes the stars
-	web.collections().set([]string{"0100000000030000"}, "Favoritos", true)
-	if !web.favorites().has("0100000000030000") || len(web.collections().names()) != 0 {
+	web.collections().Set([]string{"0100000000030000"}, "Favoritos", true)
+	if !web.favorites().Has("0100000000030000") || len(web.collections().Names()) != 0 {
 		t.Fatal("the collection Favoritos becomes the favorites")
 	}
 

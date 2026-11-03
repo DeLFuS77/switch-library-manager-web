@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/csv"
 	"encoding/json"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"net/http"
 	"sort"
 	"strconv"
@@ -64,7 +65,7 @@ func (web *Web) getExport() []ExportTitle {
 		if !local.BaseExist || local.File.Metadata == nil {
 			continue
 		}
-		detail, ok := web.getTitleDetail(local.File.Metadata.TitleId, DEFAULT_LANGUAGE)
+		detail, ok := web.getTitleDetail(local.File.Metadata.TitleId, i18n.DEFAULT_LANGUAGE)
 		if !ok {
 			continue
 		}

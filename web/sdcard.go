@@ -17,6 +17,11 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/awake"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/search"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -26,7 +31,6 @@ import (
 // writes there and never deletes anything.
 
 const (
-	TASK_COPY = "copy"
 	// a card of "1000 GB" holds about this share of it once formatted
 	sdFormattedShare = 0.93
 	maxSdGenres      = 8
@@ -119,7 +123,7 @@ func readSdOptions(query url.Values) SdOptions {
 	}
 	options.Multiplayer = query.Get("multiplayer") == "1"
 	options.MoreGames = query.Get("strategy") == "more"
-	options.Collection = cleanCollectionName(query.Get("collection"))
+	options.Collection = userdata.CleanCollectionName(query.Get("collection"))
 	if search := strings.TrimSpace(query.Get("q")); len(search) <= 80 {
 		options.Search = search
 	}
@@ -161,13 +165,13 @@ func (web *Web) sdPlan(options SdOptions, lang string) SdPlan {
 }
 
 func (web *Web) buildSdPlan(options SdOptions, lang string) SdPlan {
-	plan := SdPlan{Options: options, Usable: sdUsable(options), Collections: web.collections().names()}
+	plan := SdPlan{Options: options, Usable: sdUsable(options), Collections: web.collections().Names()}
 	switchDB, localDB := web.state.get()
 	if localDB == nil {
 		return plan
 	}
-	favorites := web.favorites().snapshot()
-	collections := web.collections().snapshot()
+	favorites := web.favorites().Snapshot()
+	collections := web.collections().Snapshot()
 	added := web.history().addedTimes()
 	recentSince := time.Now().AddDate(0, 0, -recentDays)
 
@@ -293,11 +297,11 @@ func (web *Web) buildSdPlan(options SdOptions, lang string) SdPlan {
 		plan.Selected = plan.Selected[:maxSdSelectedRows]
 	}
 	if options.Search != "" {
-		search := newSearchQuery(options.Search)
+		query := search.NewQuery(options.Search)
 		found := plan.Others[:0:0]
 		for _, game := range plan.Others {
-			text := searchText(game.Name)
-			if search.matches(text, strings.Fields(text)) {
+			text := search.Text(game.Name)
+			if query.Matches(text, strings.Fields(text)) {
 				found = append(found, game)
 			}
 		}
@@ -388,11 +392,11 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 		return false
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, TASK_COPY, 0
+	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, tasklog.TASK_COPY, 0
 	web.compressor.awake = awake.Keep()
 	web.compressor.mutex.Unlock()
 
-	taskId := web.taskLog().Start(TASK_COPY, TRIGGER_MANUAL)
+	taskId := web.taskLog().Start(tasklog.TASK_COPY, tasklog.TRIGGER_MANUAL)
 	go func() {
 		defer func() {
 			web.releaseFiles()
@@ -402,10 +406,10 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 		}()
 		var done int64
 		copied := 0
-		var failure *TaskNote
+		var failure *tasklog.Note
 		for i, file := range files {
 			if ctx.Err() != nil {
-				failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
+				failure = &tasklog.Note{Text: tasklog.NOTE_COMPRESS_CANCELED}
 				break
 			}
 			name := filepath.Base(file.source)
@@ -416,10 +420,10 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 			done += file.size
 			if err != nil {
 				if ctx.Err() != nil {
-					failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
+					failure = &tasklog.Note{Text: tasklog.NOTE_COMPRESS_CANCELED}
 					break
 				}
-				failure = &TaskNote{Text: NOTE_SD_COPY_FAILED, Detail: name + ": " + err.Error()}
+				failure = &tasklog.Note{Text: tasklog.NOTE_SD_COPY_FAILED, Detail: name + ": " + err.Error()}
 				break
 			}
 			copied++
@@ -429,8 +433,6 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 	}()
 	return true
 }
-
-const NOTE_SD_COPY_FAILED = "The files could not be copied."
 
 // copyFileTo copies a file through a temporary file; a file of the same size already there
 // is kept.
@@ -497,7 +499,7 @@ func copyFileTo(ctx context.Context, source string, target string, progress func
 	if err := os.Rename(temporary, target); err != nil {
 		return err
 	}
-	syncFolder(filepath.Dir(target))
+	durable.SyncFolder(filepath.Dir(target))
 	return nil
 }
 
@@ -546,7 +548,7 @@ func (web *Web) HandleSdCard() {
 				total += file.Size
 			}
 		}
-		builder.WriteString("\n" + formatSize(total) + "\n")
+		builder.WriteString("\n" + i18n.FormatSize(total) + "\n")
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.Header().Set("Content-Disposition", "attachment; filename=\"sd-card.txt\"")
 		io.WriteString(w, builder.String())

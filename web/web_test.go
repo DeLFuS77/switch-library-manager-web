@@ -20,6 +20,8 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"github.com/gorilla/mux"
@@ -673,7 +675,7 @@ func TestSetIgnoredAndFormatSize(t *testing.T) {
 		t.Fatalf("unexpected list: %v", list)
 	}
 	for size, want := range map[int64]string{512: "512 B", 2048: "2.0 KB", 213637397: "203.7 MB", 16 << 30: "16.0 GB"} {
-		if got := formatSize(size); got != want {
+		if got := i18n.FormatSize(size); got != want {
 			t.Errorf("formatSize(%d) = %q, want %q", size, got, want)
 		}
 	}
@@ -888,9 +890,9 @@ func TestNotifications(t *testing.T) {
 		paths = append(paths, r.URL.Path)
 	}))
 	defer server.Close()
-	oldTelegram := telegramApiUrl
-	telegramApiUrl = server.URL
-	defer func() { telegramApiUrl = oldTelegram }()
+	oldTelegram := notify.TelegramApiUrl
+	notify.TelegramApiUrl = server.URL
+	defer func() { notify.TelegramApiUrl = oldTelegram }()
 
 	original := settings.ReadSettings(web.dataFolder).Notifications
 	defer settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.Notifications = original })
@@ -972,7 +974,7 @@ func TestValidateNotifications(t *testing.T) {
 // A notification goes to http and https addresses only, also when settings.json was changed by hand.
 func TestNotificationsOnlyToWebAddresses(t *testing.T) {
 	for _, address := range []string{"file:///etc/passwd", "gopher://server/x", "https://", "http://host/a b"} {
-		if err := postJSON(address, map[string]string{}); err == nil {
+		if err := notify.PostJSON(address, map[string]string{}); err == nil {
 			t.Errorf("sent to %q", address)
 		}
 	}
@@ -990,13 +992,13 @@ func TestNotificationSecretsAreNotShown(t *testing.T) {
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
 		s.Notifications.TelegramBotToken, s.Notifications.TelegramChatId, s.Notifications.DiscordWebhookUrl = token, "-100123", webhook
 	})
-	masked := "https://discord.com/api/webhooks/123/" + secretMask
+	masked := "https://discord.com/api/webhooks/123/" + notify.SecretMask
 	for _, path := range []string{"/settings.html", "/wizard"} {
 		page := httptest.NewRecorder()
 		withSecurityHeaders(web.router).ServeHTTP(page, httptest.NewRequest(http.MethodGet, path, nil))
 		body := page.Body.String()
 		if page.Code != http.StatusOK || strings.Contains(body, "ABCDEFGHIJ") || strings.Contains(body, "secret-TOKEN") ||
-			!strings.Contains(body, `value="`+secretMask+`"`) || !strings.Contains(body, `value="`+masked+`"`) {
+			!strings.Contains(body, `value="`+notify.SecretMask+`"`) || !strings.Contains(body, `value="`+masked+`"`) {
 			t.Fatalf("%s shows the secrets: %d", path, page.Code)
 		}
 		if page.Header().Get("Cache-Control") != "no-store" {
@@ -1012,7 +1014,7 @@ func TestNotificationSecretsAreNotShown(t *testing.T) {
 			t.Fatalf("saving: %d %s", response.Code, response.Body.String())
 		}
 	}
-	post(url.Values{"telegram_bot_token": {secretMask}, "telegram_chat_id": {"-100123"}, "discord_webhook_url": {masked}})
+	post(url.Values{"telegram_bot_token": {notify.SecretMask}, "telegram_chat_id": {"-100123"}, "discord_webhook_url": {masked}})
 	if saved := settings.ReadSettings(web.dataFolder).Notifications; saved.TelegramBotToken != token || saved.DiscordWebhookUrl != webhook {
 		t.Fatalf("sent back as shown, the secrets are kept: %+v", saved)
 	}
@@ -1023,10 +1025,10 @@ func TestNotificationSecretsAreNotShown(t *testing.T) {
 		}
 	}))
 	defer server.Close()
-	savedApi := telegramApiUrl
-	telegramApiUrl = server.URL
-	defer func() { telegramApiUrl = savedApi }()
-	test := postForm(web, "/notifications/test", url.Values{"draft": {"1"}, "telegram_bot_token": {secretMask}, "telegram_chat_id": {"-100123"}})
+	savedApi := notify.TelegramApiUrl
+	notify.TelegramApiUrl = server.URL
+	defer func() { notify.TelegramApiUrl = savedApi }()
+	test := postForm(web, "/notifications/test", url.Values{"draft": {"1"}, "telegram_bot_token": {notify.SecretMask}, "telegram_chat_id": {"-100123"}})
 	if test.Code != http.StatusOK {
 		t.Fatalf("a test with the masked token: %d %s", test.Code, test.Body.String())
 	}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -49,8 +50,8 @@ func apiShares(shares []SizeShare) []ApiShare {
 func (web *Web) HandleApiDocs() {
 	web.router.HandleFunc("/api/statistics", func(w http.ResponseWriter, r *http.Request) {
 		lang := r.URL.Query().Get("lang")
-		if !isSupportedLanguage(lang) {
-			lang = DEFAULT_LANGUAGE
+		if !i18n.IsSupportedLanguage(lang) {
+			lang = i18n.DEFAULT_LANGUAGE
 		}
 		stats := web.getStatistics(lang)
 		response := ApiStatistics{

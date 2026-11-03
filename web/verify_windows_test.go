@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 )
 
 // openWithoutSharing opens a file the way a program that keeps others out does: no one else
@@ -35,8 +37,8 @@ func openWithoutSharing(t *testing.T, path string) {
 func TestAFileInUseIsNotDamaged(t *testing.T) {
 	web, path := compressWeb(t)
 	openWithoutSharing(t, path)
-	web.startVerificationOf([]string{path}, verifyRecheckAll, TRIGGER_MANUAL)
-	task := waitForTask(t, web, TASK_VERIFY)
+	web.startVerificationOf([]string{path}, verifyRecheckAll, tasklog.TRIGGER_MANUAL)
+	task := waitForTask(t, web, tasklog.TASK_VERIFY)
 	if task.Damaged != 0 || len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_VERIFY_UNREADABLE {
 		t.Fatalf("a file in use is no damage: %+v", task)
 	}
@@ -45,7 +47,7 @@ func TestAFileInUseIsNotDamaged(t *testing.T) {
 	}
 	// nor by a compression, which reads it whole too
 	web.startCompression([]string{path}, "fast", false)
-	if task := waitForCompression(t, web); task.Status != TASK_FAILED || len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_COMPRESS_FAILED {
+	if task := waitForCompression(t, web); task.Status != tasklog.TASK_FAILED || len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_COMPRESS_FAILED {
 		t.Fatalf("a file in use is not compressed, and not damaged: %+v", task)
 	}
 	if len(web.verifications().damaged()) != 0 {
@@ -81,7 +83,7 @@ func TestIssuesDeleteLeavesAFileInUse(t *testing.T) {
 // store starts empty, and is not saved over the file.
 func TestFavoritesInUseAreNotWrittenOver(t *testing.T) {
 	web := newTestWeb(t)
-	path := filepath.Join(web.dataFolder, FAVORITES_FILENAME)
+	path := filepath.Join(web.dataFolder, userdata.FAVORITES_FILENAME)
 	saved := `{"0100000000010000":"2026-10-29T00:00:00Z"}`
 	os.WriteFile(path, []byte(saved), 0o600)
 	name, _ := syscall.UTF16PtrFromString(path)
@@ -89,13 +91,13 @@ func TestFavoritesInUseAreNotWrittenOver(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	web.favorites().set("0100000000020000", true)
+	web.favorites().Set("0100000000020000", true)
 	syscall.CloseHandle(handle)
 	if data, _ := os.ReadFile(path); string(data) != saved {
 		t.Fatalf("the favorites on the disk stay: %s", data)
 	}
-	web.favorites().reload()
-	if !web.favorites().has("0100000000010000") {
+	web.favorites().Reload()
+	if !web.favorites().Has("0100000000010000") {
 		t.Fatal("read once the file is free")
 	}
 }
