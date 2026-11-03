@@ -3,6 +3,10 @@ package i18n
 // Japanese interface translations; see translations.go.
 func init() {
 	Translations["ja"] = map[string]string{
+		// low priority
+		"Low priority": "低い優先度",
+		"The app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turned off, it takes effect when the app starts again.": "アプリをサーバーのほかのプログラムより後回しにして、圧縮・検証・変換の間もそれらが快適に動くようにします。ほかのプログラムがプロセッサを使うときは少し遅くなります。Linux では、オフにするとアプリの次回起動時から反映されます。",
+
 		// folders to skip when scanning
 		"Folders to skip": "スキップするフォルダー",
 		"Starting with":   "先頭が一致",

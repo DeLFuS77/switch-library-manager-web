@@ -319,6 +319,9 @@ type AppSettings struct {
 	// files compressed, decompressed or converted at the same time (0: one)
 	CompressThreads     int `json:"compress_threads,omitempty"`
 	CompressFilesAtOnce int `json:"compress_files_at_once,omitempty"`
+	// the app runs below the normal priority of the processor, so the rest of the server stays
+	// responsive while it compresses
+	LowPriority bool `json:"low_priority,omitempty"`
 	// ask GitHub once a day whether a newer version of the app was released
 	CheckForUpdates bool `json:"check_for_updates"`
 	// a new version is installed by itself at night, where the app can update itself

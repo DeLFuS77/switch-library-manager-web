@@ -3,6 +3,10 @@ package i18n
 // Italian interface translations; see translations.go.
 func init() {
 	Translations["it"] = map[string]string{
+		// low priority
+		"Low priority": "Priorità bassa",
+		"The app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turned off, it takes effect when the app starts again.": "L'app va dietro agli altri programmi del server, così restano reattivi mentre comprime, verifica o converte; va un po' più lenta quando loro usano il processore. Su Linux, disattivarla ha effetto al prossimo avvio dell'app.",
+
 		// folders to skip when scanning
 		"Folders to skip": "Cartelle da saltare",
 		"Starting with":   "Iniziano con",

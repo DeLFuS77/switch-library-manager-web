@@ -3,6 +3,10 @@ package i18n
 // Russian interface translations; see translations.go.
 func init() {
 	Translations["ru"] = map[string]string{
+		// low priority
+		"Low priority": "Низкий приоритет",
+		"The app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turned off, it takes effect when the app starts again.": "Приложение уступает другим программам сервера, чтобы они не тормозили во время сжатия, проверки или преобразования; когда им нужен процессор, оно работает немного медленнее. В Linux отключение начнёт действовать после перезапуска приложения.",
+
 		// folders to skip when scanning
 		"Folders to skip": "Пропускаемые папки",
 		"Starting with":   "Начинаются с",

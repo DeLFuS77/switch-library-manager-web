@@ -3,6 +3,10 @@ package i18n
 // Korean interface translations; see translations.go.
 func init() {
 	Translations["ko"] = map[string]string{
+		// low priority
+		"Low priority": "낮은 우선순위",
+		"The app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turned off, it takes effect when the app starts again.": "앱이 서버의 다른 프로그램보다 뒤로 물러나서, 압축·검증·변환하는 동안에도 그 프로그램들이 잘 반응해요. 다른 프로그램이 프로세서를 쓸 때는 조금 느려져요. Linux에서는 끄면 앱을 다시 시작할 때부터 적용돼요.",
+
 		// folders to skip when scanning
 		"Folders to skip": "건너뛸 폴더",
 		"Starting with":   "다음으로 시작",

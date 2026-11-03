@@ -6,6 +6,7 @@
 
 - A file whose check finds nothing wrong is Verified, and a damaged one Corrupted, in Tasks, in Issues and in the messages of the automations, as NXPress calls them; Modified stays as it is
 - On a computer, the app keeps it from going to sleep while a task works on the files (a compression, a decompression or conversion, packs, a split, a check, a copy to the SD card, Organize or the measure of the server), so a task left for the night no longer stops halfway; while the task is paused, the computer may sleep. In Docker the server decides, as before
+- Low priority, a switch in Settings under the compression: the app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turning it off takes effect when the app starts again (thanks @NikoMuffin, who asked for it in NXPress)
 
 ### Security
 

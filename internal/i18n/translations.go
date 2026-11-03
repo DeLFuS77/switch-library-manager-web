@@ -4,6 +4,10 @@ package i18n
 // Translate() calls and in web.js; "%v" placeholders are kept in the translation.
 var Translations = map[string]map[string]string{
 	"es": {
+		// low priority
+		"Low priority": "Prioridad baja",
+		"The app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turned off, it takes effect when the app starts again.": "La app va por detrás de los demás programas del servidor, para que sigan respondiendo mientras comprime, verifica o convierte; va algo más lenta cuando ellos necesitan el procesador. En Linux, al desactivarla se aplica cuando la app vuelva a arrancar.",
+
 		// folders to skip when scanning
 		"Folders to skip": "Carpetas que se saltan",
 		"Starting with":   "Empiezan por",
