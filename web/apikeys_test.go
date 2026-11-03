@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"io"
 	"net/http"
 	"net/url"
@@ -274,16 +275,16 @@ func TestWrongKeysCountAsFailedSignIns(t *testing.T) {
 		t.Fatalf("the key works from another address: %v", code)
 	}
 
-	entries := web.activities().list()
+	entries := web.activities().List()
 	failed, blocked := 0, 0
 	for _, entry := range entries {
 		if entry.IP != "203.0.113.7" {
 			continue
 		}
 		switch {
-		case entry.Action == ACTION_LOGIN_FAIL && entry.Detail == apiKeyFailDetail && entry.User == "":
+		case entry.Action == activity.ACTION_LOGIN_FAIL && entry.Detail == apiKeyFailDetail && entry.User == "":
 			failed++
-		case entry.Action == ACTION_LOGIN_LOCK && entry.Detail == apiKeyBlockedDetail:
+		case entry.Action == activity.ACTION_LOGIN_LOCK && entry.Detail == apiKeyBlockedDetail:
 			blocked++
 		}
 	}
@@ -359,7 +360,7 @@ func TestAPIKeysAreNeverShownAgain(t *testing.T) {
 	if !strings.Contains(seen["log"], `API key "Home Assistant" of "alice" created`) {
 		t.Fatalf("the log tells a key was made, by its name: %s", seen["log"])
 	}
-	if !strings.Contains(seen["/activity.csv"], ACTION_KEY_NEW) || !strings.Contains(seen["/activity.csv"], ACTION_KEY_USE) {
+	if !strings.Contains(seen["/activity.csv"], activity.ACTION_KEY_NEW) || !strings.Contains(seen["/activity.csv"], activity.ACTION_KEY_USE) {
 		t.Fatalf("the activity tells a key was made and used: %s", seen["/activity.csv"])
 	}
 }
@@ -379,20 +380,20 @@ func TestAPIKeysInTheActivity(t *testing.T) {
 
 	count := map[string]int{}
 	details := map[string][]string{}
-	for _, entry := range translateActivity("es", web.activities().list()) {
+	for _, entry := range translateActivity("es", web.activities().List()) {
 		count[entry.Action]++
 		details[entry.Action] = append(details[entry.Action], entry.User+" "+entry.Detail)
 	}
-	if count[ACTION_KEY_USE] != 1 {
-		t.Fatalf("the use of a key is told once a day by key and address: %v", details[ACTION_KEY_USE])
+	if count[activity.ACTION_KEY_USE] != 1 {
+		t.Fatalf("the use of a key is told once a day by key and address: %v", details[activity.ACTION_KEY_USE])
 	}
-	if strings.Join(details[ACTION_KEY_NEW], "|") != `bob "Tablet": Solo lectura|alice "Home: Assistant": Solo lectura` {
-		t.Fatalf("who made which key: %q", details[ACTION_KEY_NEW])
+	if strings.Join(details[activity.ACTION_KEY_NEW], "|") != `bob "Tablet": Solo lectura|alice "Home: Assistant": Solo lectura` {
+		t.Fatalf("who made which key: %q", details[activity.ACTION_KEY_NEW])
 	}
-	if strings.Join(details[ACTION_KEY_DEL], "|") != `alice "Home: Assistant"|alice "Tablet" (bob)` {
-		t.Fatalf("who revoked which key, and whose: %q", details[ACTION_KEY_DEL])
+	if strings.Join(details[activity.ACTION_KEY_DEL], "|") != `alice "Home: Assistant"|alice "Tablet" (bob)` {
+		t.Fatalf("who revoked which key, and whose: %q", details[activity.ACTION_KEY_DEL])
 	}
-	if count[ACTION_LOGIN_OK] != 2 {
+	if count[activity.ACTION_LOGIN_OK] != 2 {
 		t.Fatalf("the sign-ins of the login page are told as before: %v", count)
 	}
 }

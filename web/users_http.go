@@ -3,6 +3,7 @@ package web
 import (
 	"errors"
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"math"
 	"net/http"
@@ -35,7 +36,7 @@ type LoginPageData struct {
 type UsersPageData struct {
 	GlobalPageData
 	// what users changed, newest first
-	Activity []Activity
+	Activity []activity.Entry
 	Users    []User
 	EnvUser  string
 	Message  string
@@ -191,7 +192,7 @@ func (web *Web) HandleUsers() {
 		lang := web.requestLanguage(r)
 		// the first administrator asks for the setup code: it is written again at the end of the log
 		web.logSetupCode(false)
-		data := UsersPageData{GlobalPageData: web.globalPageData("users"), Users: web.auth.users.List(), EnvUser: web.auth.envUser, Activity: translateActivity(web.requestLanguage(r), activityPreview(web.activities().list(), 8)), Keys: web.auth.users.KeyRows("")}
+		data := UsersPageData{GlobalPageData: web.globalPageData("users"), Users: web.auth.users.List(), EnvUser: web.auth.envUser, Activity: translateActivity(web.requestLanguage(r), activity.Preview(web.activities().List(), 8)), Keys: web.auth.users.KeyRows("")}
 		if message, ok := userMessages[r.URL.Query().Get("done")]; ok {
 			data.Message = i18n.Translate(lang, message)
 		}

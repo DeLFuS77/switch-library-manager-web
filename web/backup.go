@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
@@ -32,7 +33,7 @@ const (
 // users, the verification results and the notified versions, the copies chosen of the games of
 // several regions and what was changed of games by hand. Console keys, the session key and the
 // caches are never included.
-var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, WISHLIST_FILENAME, ACTIVITY_FILENAME, HISTORY_FILENAME, COLLECTIONS_FILENAME, FAVORITES_FILENAME, PLAY_FILENAME, SMART_COLLECTIONS_FILENAME,
+var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, WISHLIST_FILENAME, activity.ACTIVITY_FILENAME, HISTORY_FILENAME, COLLECTIONS_FILENAME, FAVORITES_FILENAME, PLAY_FILENAME, SMART_COLLECTIONS_FILENAME,
 	REGION_CHOICES_FILENAME, TITLE_OVERRIDES_FILENAME}
 
 // backupCover is the name in a backup of a cover chosen by hand, kept in OVERRIDE_COVERS_FOLDER:
@@ -266,8 +267,8 @@ func (web *Web) restoreBackup(data []byte, firstUsers func() error) error {
 	if _, ok := files[VERIFY_FILENAME]; ok {
 		web.verifications().reload()
 	}
-	if _, ok := files[ACTIVITY_FILENAME]; ok {
-		web.activities().reload()
+	if _, ok := files[activity.ACTIVITY_FILENAME]; ok {
+		web.activities().Reload()
 	}
 	if _, ok := files[FAVORITES_FILENAME]; ok {
 		web.favorites().reload()

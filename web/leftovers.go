@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"io/fs"
 	"os"
@@ -19,8 +20,6 @@ import (
 // leftoverAge is how long a temporary file must be left untouched before it is removed: a
 // task writing one changes it all the time.
 const leftoverAge = 30 * time.Minute
-
-const ACTION_LEFTOVERS = "Removed temporary files left halfway"
 
 // cleanLeftovers removes the temporary files of the app the last scan found and no task writes.
 func (web *Web) cleanLeftovers() {
@@ -48,8 +47,8 @@ func (web *Web) cleanLeftovers() {
 		return
 	}
 	detail := fmt.Sprintf("%d (%s)", removed, i18n.FormatSize(freed))
-	web.sugarLogger.Infof("[%s: %s]", ACTION_LEFTOVERS, detail)
-	web.activities().add(Activity{Time: time.Now(), Action: ACTION_LEFTOVERS, Detail: detail})
+	web.sugarLogger.Infof("[%s: %s]", activity.ACTION_LEFTOVERS, detail)
+	web.activities().Add(activity.Entry{Time: time.Now(), Action: activity.ACTION_LEFTOVERS, Detail: detail})
 }
 
 // cleanVaultLeftovers removes the uploads to the save vault that were cut and left behind

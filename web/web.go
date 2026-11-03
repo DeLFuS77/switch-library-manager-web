@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/launch"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
@@ -123,7 +124,7 @@ type Web struct {
 	coverFallbacks map[string]coverFallback
 	wish           *wishlist
 	wishOnce       sync.Once
-	activity       *activityLog
+	activity       *activity.Log
 	activityOnce   sync.Once
 	hist           *libraryHistory
 	historyOnce    sync.Once

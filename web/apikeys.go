@@ -5,6 +5,7 @@ import (
 	"crypto/subtle"
 	"encoding/hex"
 	"errors"
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"net/http"
 	"slices"
 	"sort"
@@ -461,16 +462,16 @@ func (web *Web) recordKeyAttempt(user, keyName, ip, result string) {
 	if isDemoMode() {
 		return
 	}
-	entry := Activity{Time: time.Now(), IP: ip}
+	entry := activity.Entry{Time: time.Now(), IP: ip}
 	switch result {
 	case "ok":
-		entry.User, entry.Action, entry.Detail = user, ACTION_KEY_USE, quotedKeyName(keyName)
+		entry.User, entry.Action, entry.Detail = user, activity.ACTION_KEY_USE, quotedKeyName(keyName)
 	case "fail":
-		entry.Action, entry.Detail = ACTION_LOGIN_FAIL, apiKeyFailDetail
+		entry.Action, entry.Detail = activity.ACTION_LOGIN_FAIL, apiKeyFailDetail
 	case "blocked":
-		entry.Action, entry.Detail = ACTION_LOGIN_LOCK, apiKeyBlockedDetail
+		entry.Action, entry.Detail = activity.ACTION_LOGIN_LOCK, apiKeyBlockedDetail
 	default:
 		return
 	}
-	web.activities().add(entry)
+	web.activities().Add(entry)
 }

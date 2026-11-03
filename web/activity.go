@@ -1,8 +1,7 @@
 package web
 
 import (
-	"encoding/json"
-	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"net/http"
@@ -10,69 +9,11 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
-// The activity log records who changed what: deleted, organized or compressed files,
-// restored backups, saved settings and managed users. Administrators see it on the Users
-// page. Only actions that succeeded are recorded.
-
-const (
-	ACTIVITY_FILENAME = "activity.json"
-	maxActivities     = 500
-	// the failed and blocked sign-ins kept at most: a flood of them from many addresses cannot
-	// push the other actions out of the log
-	maxFailedSignIns = 100
-)
-
-// actions, translated by the interface
-const (
-	ACTION_SETTINGS   = "Saved the settings"
-	ACTION_ORGANIZE   = "Organized the files"
-	ACTION_SPACE      = "Deleted files on the Space page"
-	ACTION_COMPRESS   = "Started a compression"
-	ACTION_DECOMPRESS = "Started a decompression"
-	ACTION_RESTORE    = "Restored a backup"
-	ACTION_USER_NEW   = "Created a user"
-	ACTION_USER_ROLE  = "Changed the role of a user"
-	ACTION_USER_PASS  = "Changed the password of a user"
-	ACTION_USER_DEL   = "Deleted a user"
-	ACTION_UPLOAD     = "Uploaded a game"
-	ACTION_SYNC       = "Updated the titles database"
-	ACTION_VERIFY     = "Started a file check"
-	ACTION_LOGIN_OK   = "Signed in"
-	ACTION_LOGIN_FAIL = "Failed sign-in"
-	ACTION_LOGIN_LOCK = "Sign-in blocked (too many tries)"
-	ACTION_KEY_NEW    = "Created an API key"
-	ACTION_KEY_USE    = "Signed in with an API key"
-	ACTION_KEY_DEL    = "Revoked an API key"
-	// signed in by a portal in front of the app (see proxyauth.go)
-	ACTION_PORTAL_PROXY = "Signed in through the proxy"
-	ACTION_PORTAL_CF    = "Signed in with Cloudflare Access"
-	// signed in with OpenID Connect (see oidc.go)
-	ACTION_PORTAL_OIDC = "Signed in with OpenID Connect"
-	// the email a portal names a user with, and the options of the portal
-	ACTION_USER_EMAIL      = "Changed the email of a user"
-	ACTION_PORTAL_SETTINGS = "Changed the sign-in portal"
-)
-
-var activityActions = []string{ACTION_SETTINGS, ACTION_ORGANIZE, ACTION_SPACE, ACTION_COMPRESS, ACTION_DECOMPRESS, ACTION_RESTORE, ACTION_USER_NEW, ACTION_USER_ROLE, ACTION_USER_PASS, ACTION_USER_DEL, ACTION_LEFTOVERS, ACTION_UPLOAD, ACTION_SYNC, ACTION_VERIFY, ACTION_LOGIN_OK, ACTION_LOGIN_FAIL, ACTION_LOGIN_LOCK,
-	ACTION_KEY_NEW, ACTION_KEY_USE, ACTION_KEY_DEL, ACTION_PORTAL_PROXY, ACTION_PORTAL_CF, ACTION_USER_EMAIL, ACTION_PORTAL_SETTINGS,
-	ACTION_PORTAL_OIDC}
-
-// Activity is an action of a user.
-type Activity struct {
-	Time   time.Time `json:"time"`
-	User   string    `json:"user,omitempty"`
-	Action string    `json:"action"`
-	Detail string    `json:"detail,omitempty"`
-	// the address the action came from, when it is known
-	IP string `json:"ip,omitempty"`
-}
-
 // loginResults are the actions of a sign-in attempt, by result.
-var loginResults = map[string]string{"ok": ACTION_LOGIN_OK, "fail": ACTION_LOGIN_FAIL, "blocked": ACTION_LOGIN_LOCK}
+var loginResults = map[string]string{"ok": activity.ACTION_LOGIN_OK, "fail": activity.ACTION_LOGIN_FAIL, "blocked": activity.ACTION_LOGIN_LOCK}
 
 // recordLogin notes a sign-in attempt: who, from where, and how it went. The password tried is
 // never kept; only whether it had the length a real one needs, to tell a typo from a probe.
@@ -92,117 +33,54 @@ func (web *Web) recordLogin(user, ip, result string, longEnough bool) {
 			detail = "password too short to be real"
 		}
 	}
-	web.activities().add(Activity{Time: time.Now(), User: user, Action: action, Detail: detail, IP: ip})
+	web.activities().Add(activity.Entry{Time: time.Now(), User: user, Action: action, Detail: detail, IP: ip})
 }
 
-type activityLog struct {
-	mutex   sync.Mutex
-	path    string
-	entries []Activity
-}
-
-func (web *Web) activities() *activityLog {
+func (web *Web) activities() *activity.Log {
 	web.activityOnce.Do(func() {
-		log := &activityLog{path: filepath.Join(web.dataFolder, ACTIVITY_FILENAME)}
-		log.reload()
-		web.activity = log
+		web.activity = activity.Load(filepath.Join(web.dataFolder, activity.ACTIVITY_FILENAME))
 	})
 	return web.activity
-}
-
-// reload reads the log again, also after a backup was restored.
-func (l *activityLog) reload() {
-	entries := []Activity{}
-	if data, ok := durable.ReadStore(l.path); ok {
-		durable.ParseStore(l.path, data, &entries)
-	}
-	l.mutex.Lock()
-	l.entries = entries
-	l.mutex.Unlock()
-}
-
-// add records an action, newest first.
-func (l *activityLog) add(entry Activity) {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
-	l.entries = append([]Activity{entry}, l.entries...)
-	if failedSignIn(entry) {
-		// only the newest failed sign-ins stay
-		kept, failures := l.entries[:0], 0
-		for _, each := range l.entries {
-			if failedSignIn(each) {
-				if failures++; failures > maxFailedSignIns {
-					continue
-				}
-			}
-			kept = append(kept, each)
-		}
-		l.entries = kept
-	}
-	if len(l.entries) > maxActivities {
-		l.entries = l.entries[:maxActivities]
-	}
-	if data, err := json.MarshalIndent(l.entries, "", " "); err == nil {
-		durable.WriteFile(l.path, data)
-	}
-}
-
-func failedSignIn(entry Activity) bool {
-	return entry.Action == ACTION_LOGIN_FAIL || entry.Action == ACTION_LOGIN_LOCK
-}
-
-// activityPreview is the newest entries, at most n.
-func activityPreview(entries []Activity, n int) []Activity {
-	if len(entries) > n {
-		return entries[:n]
-	}
-	return entries
-}
-
-func (l *activityLog) list() []Activity {
-	l.mutex.Lock()
-	defer l.mutex.Unlock()
-	return append([]Activity(nil), l.entries...)
 }
 
 // recordedActions are the requests that change files, users or settings, and how to
 // describe them.
 var recordedActions = map[string]func(r *http.Request) (string, string){
-	"/settings.html": func(r *http.Request) (string, string) { return ACTION_SETTINGS, "" },
-	"/organize/run":  func(r *http.Request) (string, string) { return ACTION_ORGANIZE, r.FormValue("action") },
+	"/settings.html": func(r *http.Request) (string, string) { return activity.ACTION_SETTINGS, "" },
+	"/organize/run":  func(r *http.Request) (string, string) { return activity.ACTION_ORGANIZE, r.FormValue("action") },
 	"/space/clean": func(r *http.Request) (string, string) {
 		detail := strconv.Itoa(len(r.Form["path"])) + " files"
 		for _, group := range r.Form["rest"] {
 			detail += " + " + group
 		}
-		return ACTION_SPACE, detail
+		return activity.ACTION_SPACE, detail
 	},
 	"/compress/start": func(r *http.Request) (string, string) {
 		detail := strconv.Itoa(len(r.Form["path"])) + " files"
 		if r.FormValue("delete_originals") == "true" {
 			detail += ", originals deleted after the check"
 		}
-		return ACTION_COMPRESS, detail
+		return activity.ACTION_COMPRESS, detail
 	},
 	"/decompress/start": func(r *http.Request) (string, string) {
 		detail := strconv.Itoa(len(r.Form["path"])) + " files"
 		if r.FormValue("delete_compressed") == "true" {
 			detail += ", NSZ deleted after the check"
 		}
-		return ACTION_DECOMPRESS, detail
+		return activity.ACTION_DECOMPRESS, detail
 	},
-	"/backup/restore": func(r *http.Request) (string, string) { return ACTION_RESTORE, "" },
-	"/users/create":   func(r *http.Request) (string, string) { return ACTION_USER_NEW, r.FormValue("name") },
+	"/backup/restore": func(r *http.Request) (string, string) { return activity.ACTION_RESTORE, "" },
+	"/users/create":   func(r *http.Request) (string, string) { return activity.ACTION_USER_NEW, r.FormValue("name") },
 	"/users/role": func(r *http.Request) (string, string) {
-		return ACTION_USER_ROLE, r.FormValue("name") + ": " + r.FormValue("role")
+		return activity.ACTION_USER_ROLE, r.FormValue("name") + ": " + r.FormValue("role")
 	},
-	"/users/password":  func(r *http.Request) (string, string) { return ACTION_USER_PASS, r.FormValue("name") },
-	"/users/delete":    func(r *http.Request) (string, string) { return ACTION_USER_DEL, r.FormValue("name") },
-	"/users/email":     func(r *http.Request) (string, string) { return ACTION_USER_EMAIL, r.FormValue("name") },
-	"/settings/portal": func(r *http.Request) (string, string) { return ACTION_PORTAL_SETTINGS, "" },
-	"/uploads/finish":  func(r *http.Request) (string, string) { return ACTION_UPLOAD, r.FormValue("name") },
-	"/sync":            func(r *http.Request) (string, string) { return ACTION_SYNC, "" },
-	"/verify/start":    func(r *http.Request) (string, string) { return ACTION_VERIFY, verifyActivity(r) },
+	"/users/password":  func(r *http.Request) (string, string) { return activity.ACTION_USER_PASS, r.FormValue("name") },
+	"/users/delete":    func(r *http.Request) (string, string) { return activity.ACTION_USER_DEL, r.FormValue("name") },
+	"/users/email":     func(r *http.Request) (string, string) { return activity.ACTION_USER_EMAIL, r.FormValue("name") },
+	"/settings/portal": func(r *http.Request) (string, string) { return activity.ACTION_PORTAL_SETTINGS, "" },
+	"/uploads/finish":  func(r *http.Request) (string, string) { return activity.ACTION_UPLOAD, r.FormValue("name") },
+	"/sync":            func(r *http.Request) (string, string) { return activity.ACTION_SYNC, "" },
+	"/verify/start":    func(r *http.Request) (string, string) { return activity.ACTION_VERIFY, verifyActivity(r) },
 }
 
 // verifyActivity tells the level of a check, and whether it reads every file again.
@@ -260,7 +138,7 @@ func (web *Web) withActivityLog(next http.Handler) http.Handler {
 		if principal := principalFrom(r); principal != nil {
 			user = principal.Name
 		}
-		web.activities().add(Activity{Time: time.Now(), User: user, Action: action, Detail: detail, IP: clientIp(r)})
+		web.activities().Add(activity.Entry{Time: time.Now(), User: user, Action: action, Detail: detail, IP: clientIp(r)})
 	})
 }
 
@@ -296,8 +174,8 @@ var (
 
 // translateActivity returns the activity with its details in a language. The details are
 // recorded in English: counts of files, values of forms and names of users.
-func translateActivity(lang string, entries []Activity) []Activity {
-	result := make([]Activity, len(entries))
+func translateActivity(lang string, entries []activity.Entry) []activity.Entry {
+	result := make([]activity.Entry, len(entries))
 	for i, entry := range entries {
 		detail := entry.Detail
 		if label, ok := activityValues[detail]; ok {

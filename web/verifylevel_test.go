@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -320,13 +321,13 @@ func TestActivityTellsTheLevel(t *testing.T) {
 	if detail != "hash + every file again" {
 		t.Fatalf("detail: %q", detail)
 	}
-	if got := translateActivity("es", []Activity{{Detail: detail}})[0].Detail; got != "Hash + Volver a comprobar todo" {
+	if got := translateActivity("es", []activity.Entry{{Detail: detail}})[0].Detail; got != "Hash + Volver a comprobar todo" {
 		t.Fatalf("translated: %q", got)
 	}
 	old := httptest.NewRequest(http.MethodPost, "/verify/start", strings.NewReader("scope=signatures"))
 	old.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	old.ParseForm()
-	if got := translateActivity("es", []Activity{{Detail: verifyActivity(old)}})[0].Detail; got != "Firma" {
+	if got := translateActivity("es", []activity.Entry{{Detail: verifyActivity(old)}})[0].Detail; got != "Firma" {
 		t.Fatalf("the button of older pages: %q", got)
 	}
 }

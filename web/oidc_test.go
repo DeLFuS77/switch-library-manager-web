@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -251,7 +252,7 @@ func TestOidcSignIn(t *testing.T) {
 	if code := b.do("GET", "/settings.html", nil).Code; code != http.StatusForbidden {
 		t.Fatalf("bob keeps the role of a player: %v", code)
 	}
-	if n := activityCount(web, ACTION_PORTAL_OIDC, ""); n != 1 {
+	if n := activityCount(web, activity.ACTION_PORTAL_OIDC, ""); n != 1 {
 		t.Fatalf("the sign-in is in the activity: %d", n)
 	}
 	if user, _ := web.auth.users.Get("bob"); user.LastLogin.IsZero() {
@@ -350,7 +351,7 @@ func TestOidcRefusesWhatIsNotValid(t *testing.T) {
 	if !strings.Contains(recorder.Header().Get("Location"), OIDC_FAILED) {
 		t.Fatalf("a code used twice: %q", recorder.Header().Get("Location"))
 	}
-	if n := activityCount(web, ACTION_LOGIN_FAIL, oidcFailedDetail); n == 0 {
+	if n := activityCount(web, activity.ACTION_LOGIN_FAIL, oidcFailedDetail); n == 0 {
 		t.Fatal("the failures are in the activity")
 	}
 	if web.auth.portalView().LastProblem.Result != "oidc" {
@@ -362,13 +363,13 @@ func TestOidcRefusesWhatIsNotValid(t *testing.T) {
 	}
 
 	// cancelled at the provider: told on the login page, not as a failure
-	failures := activityCount(web, ACTION_LOGIN_FAIL, oidcFailedDetail)
+	failures := activityCount(web, activity.ACTION_LOGIN_FAIL, oidcFailedDetail)
 	b = newBrowser(t, web)
 	_, state = provider.authorize(b.do("GET", oidcLoginPath, nil).Header().Get("Location"))
 	if location := b.do("GET", oidcCallbackPath+"?error=access_denied&state="+state, nil).Header().Get("Location"); !strings.HasPrefix(location, "/login.html?oidc="+OIDC_CANCELLED) {
 		t.Fatalf("cancelled: %q", location)
 	}
-	if activityCount(web, ACTION_LOGIN_FAIL, oidcFailedDetail) != failures {
+	if activityCount(web, activity.ACTION_LOGIN_FAIL, oidcFailedDetail) != failures {
 		t.Fatal("a person who cancels did nothing wrong")
 	}
 }
@@ -412,7 +413,7 @@ func TestOidcPersonWithoutUser(t *testing.T) {
 	if _, ok := web.auth.users.Get("carol"); ok {
 		t.Fatal("no user is made")
 	}
-	if n := activityCount(web, ACTION_LOGIN_FAIL, portalUnknownDetail); n != 1 {
+	if n := activityCount(web, activity.ACTION_LOGIN_FAIL, portalUnknownDetail); n != 1 {
 		t.Fatalf("the activity notes it: %d", n)
 	}
 	// a name sent to the login page by another site is not shown
@@ -431,7 +432,7 @@ func TestOidcPersonWithoutUser(t *testing.T) {
 	if !ok || carol.Role != ROLE_VIEWER || carol.HasPassword() || carol.Email != "carol@example.com" {
 		t.Fatalf("a player without a password: %+v", carol)
 	}
-	if n := activityCount(web, ACTION_USER_NEW, "carol: viewer"); n != 1 {
+	if n := activityCount(web, activity.ACTION_USER_NEW, "carol: viewer"); n != 1 {
 		t.Fatalf("the user made is in the activity: %d", n)
 	}
 }
@@ -555,7 +556,7 @@ func TestOidcAdministratorsGroup(t *testing.T) {
 	if bob, _ := web.auth.users.Get("bob"); bob.Role != ROLE_VIEWER {
 		t.Fatal("the role stored stays")
 	}
-	if n := activityCount(web, ACTION_PORTAL_OIDC, ROLE_ADMIN); n != 1 {
+	if n := activityCount(web, activity.ACTION_PORTAL_OIDC, ROLE_ADMIN); n != 1 {
 		t.Fatalf("the activity says the group made an administrator: %d", n)
 	}
 	// without the group set, or with another group, the same session is the one of a player

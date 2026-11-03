@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"net/http"
 	"net/http/httptest"
@@ -555,7 +556,7 @@ func TestLastSignIn(t *testing.T) {
 	}
 }
 
-// Activity is told of every sign-in of the login page, right or wrong, and of an API client or
+// Entry is told of every sign-in of the login page, right or wrong, and of an API client or
 // a blocked attempt only now and then, not with every request.
 func TestSignInsToldToActivity(t *testing.T) {
 	web := usersWeb(t)
@@ -613,11 +614,11 @@ func TestFailedSignInsCannotFloodTheActivity(t *testing.T) {
 	web := usersWeb(t)
 	web.auth.users.Add("alice", "alpha-secret-11", ROLE_ADMIN)
 	web.auth.onLogin = web.recordLogin
-	web.activities().add(Activity{Time: time.Now(), User: "alice", Action: ACTION_SETTINGS})
+	web.activities().Add(activity.Entry{Time: time.Now(), User: "alice", Action: activity.ACTION_SETTINGS})
 	handler := web.auth.middleware(web.router)
 	count := func(action string) int {
 		n := 0
-		for _, entry := range web.activities().list() {
+		for _, entry := range web.activities().List() {
 			if entry.Action == action {
 				n++
 			}
@@ -633,15 +634,15 @@ func TestFailedSignInsCannotFloodTheActivity(t *testing.T) {
 		bot.do("POST", "/login.html", url.Values{"name": {long + fmt.Sprint(i)}, "password": {"guessed-wrong-1"}})
 	}
 	bot.do("GET", "/index.html", nil, "Authorization", basic(long+"basic", "guessed-wrong-1"))
-	if fails := count(ACTION_LOGIN_FAIL); fails != maxLoginFailures {
+	if fails := count(activity.ACTION_LOGIN_FAIL); fails != maxLoginFailures {
 		t.Fatalf("the failures of one address: %d", fails)
 	}
-	if blocked := count(ACTION_LOGIN_LOCK); blocked != 1 {
+	if blocked := count(activity.ACTION_LOGIN_LOCK); blocked != 1 {
 		t.Fatalf("a blocked address trying other names is told once: %d", blocked)
 	}
 	api := &client{t: t, handler: handler, ip: "192.0.2.60"}
 	api.do("GET", "/index.html", nil, "Authorization", basic(long, "guessed-wrong-1"))
-	for _, entry := range web.activities().list() {
+	for _, entry := range web.activities().List() {
 		if utf8.RuneCountInString(entry.User) > maxAttemptName+1 {
 			t.Fatalf("a name of %d characters was kept", utf8.RuneCountInString(entry.User))
 		}
@@ -654,16 +655,16 @@ func TestFailedSignInsCannotFloodTheActivity(t *testing.T) {
 	}
 
 	// many addresses: only the newest failures stay, and the other actions with them
-	for i := range 3 * maxFailedSignIns {
+	for i := range 3 * activity.MaxFailedSignIns {
 		web.auth.loginAttempt("name"+fmt.Sprint(i), fmt.Sprintf("203.0.%d.%d", i/200, i%200+1), "fail", "guessed-wrong-1", 0)
 	}
-	if fails := count(ACTION_LOGIN_FAIL) + count(ACTION_LOGIN_LOCK); fails != maxFailedSignIns {
+	if fails := count(activity.ACTION_LOGIN_FAIL) + count(activity.ACTION_LOGIN_LOCK); fails != activity.MaxFailedSignIns {
 		t.Fatalf("failed sign-ins kept: %d", fails)
 	}
-	if count(ACTION_SETTINGS) != 1 || web.activities().list()[0].IP != fmt.Sprintf("203.0.%d.%d", (3*maxFailedSignIns-1)/200, (3*maxFailedSignIns-1)%200+1) {
+	if count(activity.ACTION_SETTINGS) != 1 || web.activities().List()[0].IP != fmt.Sprintf("203.0.%d.%d", (3*activity.MaxFailedSignIns-1)/200, (3*activity.MaxFailedSignIns-1)%200+1) {
 		t.Fatal("the other actions and the newest failures stay")
 	}
-	if info, err := os.Stat(filepath.Join(web.dataFolder, ACTIVITY_FILENAME)); err != nil || info.Size() > 64<<10 {
+	if info, err := os.Stat(filepath.Join(web.dataFolder, activity.ACTIVITY_FILENAME)); err != nil || info.Size() > 64<<10 {
 		t.Fatalf("the log on the disk: %v", info.Size())
 	}
 
