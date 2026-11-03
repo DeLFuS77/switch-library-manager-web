@@ -3,6 +3,11 @@ package i18n
 // Korean interface translations; see translations.go.
 func init() {
 	Translations["ko"] = map[string]string{
+		// the files that go with a game
+		"Take the NFO, SFV and proof files with their game": "NFO, SFV, proof 파일을 게임과 함께 옮기기",
+		"A file named as its game (game.nfo next to game.nsp) takes its new name. A folder that holds only the game also gives it its other notes, checksums and images, and its Proof folder.": "게임과 이름이 같은 파일(game.nsp 옆의 game.nfo)은 게임의 새 이름을 따릅니다. 게임만 들어 있는 폴더라면 다른 메모, 체크섬, 이미지와 Proof 폴더도 함께 옮깁니다.",
+		"It goes with a game that was moved, but a file with its name is already where it would go, so it is left where it is.":                                                                 "옮겨진 게임에 딸린 파일이지만, 옮길 위치에 같은 이름의 파일이 이미 있어 그대로 둡니다.",
+
 		// low priority
 		"Low priority": "낮은 우선순위",
 		"The app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turned off, it takes effect when the app starts again.": "앱이 서버의 다른 프로그램보다 뒤로 물러나서, 압축·검증·변환하는 동안에도 그 프로그램들이 잘 반응해요. 다른 프로그램이 프로세서를 쓸 때는 조금 느려져요. Linux에서는 끄면 앱을 다시 시작할 때부터 적용돼요.",

@@ -3,6 +3,11 @@ package i18n
 // German interface translations; see translations.go.
 func init() {
 	Translations["de"] = map[string]string{
+		// the files that go with a game
+		"Take the NFO, SFV and proof files with their game": "NFO-, SFV- und Proof-Dateien mit ihrem Spiel mitnehmen",
+		"A file named as its game (game.nfo next to game.nsp) takes its new name. A folder that holds only the game also gives it its other notes, checksums and images, and its Proof folder.": "Eine Datei, die wie ihr Spiel heißt (spiel.nfo neben spiel.nsp), bekommt dessen neuen Namen. Ein Ordner, der nur das Spiel enthält, gibt ihm auch seine anderen Notizen, Prüfsummen und Bilder sowie seinen Proof-Ordner mit.",
+		"It goes with a game that was moved, but a file with its name is already where it would go, so it is left where it is.":                                                                 "Sie gehört zu einem verschobenen Spiel, aber am Ziel liegt schon eine Datei mit ihrem Namen, daher bleibt sie, wo sie ist.",
+
 		// low priority
 		"Low priority": "Niedrige Priorität",
 		"The app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turned off, it takes effect when the app starts again.": "Die App läuft hinter den anderen Programmen des Servers, damit sie reaktionsfähig bleiben, während sie komprimiert, prüft oder umwandelt; sie wird etwas langsamer, wenn diese den Prozessor brauchen. Unter Linux wirkt das Ausschalten erst beim nächsten Start der App.",

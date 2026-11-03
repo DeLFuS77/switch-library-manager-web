@@ -121,6 +121,9 @@ type OrganizeOptions struct {
 	BaseFolder string `json:"base_folder,omitempty"`
 	// a game that has a folder of its own keeps it: its files go there, and it is not renamed
 	KeepGameFolders bool `json:"keep_game_folders,omitempty"`
+	// the NFO, SFV and proof files of a game stay where they are when it moves, instead of going
+	// with it
+	LeaveExtraFiles bool `json:"leave_extra_files,omitempty"`
 	// the folders the scan leaves out (AppSettings.ExcludeFolders), given when organizing: a file
 	// moved into one would leave the library; never saved with these options
 	ExcludeFolders []string `json:"-"`
