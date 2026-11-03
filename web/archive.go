@@ -77,11 +77,15 @@ func safeFileName(name string) string {
 
 // writeArchive streams the files as a ZIP archive. Switch files are already compressed,
 // so they are stored as they are: fast, and no temporary file or memory is needed.
-func writeArchive(w io.Writer, root string, entries []archiveEntry) error {
+func (web *Web) writeArchive(w io.Writer, root string, entries []archiveEntry) error {
 	archive := zip.NewWriter(w)
 	for _, entry := range entries {
 		entry.file = compressedSinceScan(entry.file)
 		path := filepath.Join(entry.file.BaseFolder, entry.file.FileName)
+		// never follow a link that reaches into the app's data folder (prod.keys and the rest)
+		if web.linksIntoData(path) {
+			continue
+		}
 		file, err := os.Open(path)
 		if err != nil {
 			return err
@@ -128,7 +132,7 @@ func (web *Web) HandleArchive() {
 
 		w.Header().Set("Content-Type", "application/zip")
 		w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote(name+".zip"))
-		if err := writeArchive(w, name+"/", archiveEntries(local)); err != nil {
+		if err := web.writeArchive(w, name+"/", archiveEntries(local)); err != nil {
 			// the response has started, the client receives a truncated archive
 			web.sugarLogger.Warnf("Archive of %v aborted: %v", id, err)
 		}

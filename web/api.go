@@ -84,11 +84,31 @@ func compressedSinceScan(file db.ExtendedFileInfo) db.ExtendedFileInfo {
 	return file
 }
 
-func serveDownload(w http.ResponseWriter, r *http.Request, file db.ExtendedFileInfo) {
+// linksIntoData reports whether a library path resolves, through symlinks, into the app's data
+// folder (prod.keys, the session key, the backups). Such a file is never served or archived, so
+// a link planted in a scanned folder cannot take a secret out through a download.
+func (web *Web) linksIntoData(path string) bool {
+	real, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		return false
+	}
+	data, err := filepath.EvalSymlinks(web.dataFolder)
+	if err != nil {
+		data = web.dataFolder
+	}
+	return real == data || insideFolder(real, data)
+}
+
+func (web *Web) serveDownload(w http.ResponseWriter, r *http.Request, file db.ExtendedFileInfo) {
 	file = compressedSinceScan(file)
+	full := filepath.Join(file.BaseFolder, file.FileName)
+	if web.linksIntoData(full) {
+		http.NotFound(w, r)
+		return
+	}
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote(file.FileName))
-	http.ServeFile(w, r, filepath.Join(file.BaseFolder, file.FileName))
+	http.ServeFile(w, r, full)
 }
 
 func (web *Web) HandleApi() {
@@ -222,7 +242,7 @@ func (web *Web) HandleApi() {
 	web.router.HandleFunc("/api/titles/{titleId}", func(w http.ResponseWriter, r *http.Request) {
 		_, localDB := web.state.get()
 		if title := findLocalTitle(localDB, mux.Vars(r)["titleId"]); title != nil {
-			serveDownload(w, r, title.File.ExtendedInfo)
+			web.serveDownload(w, r, title.File.ExtendedInfo)
 			return
 		}
 
@@ -241,7 +261,7 @@ func (web *Web) HandleApi() {
 		if version, err := strconv.Atoi(vars["version"]); err == nil {
 			if title := findLocalTitle(localDB, vars["titleId"]); title != nil {
 				if update, ok := title.Updates[version]; ok {
-					serveDownload(w, r, update.ExtendedInfo)
+					web.serveDownload(w, r, update.ExtendedInfo)
 					return
 				}
 			}
@@ -257,7 +277,7 @@ func (web *Web) HandleApi() {
 		if title := findLocalTitle(localDB, vars["titleId"]); title != nil {
 			for id, dlc := range title.Dlc {
 				if strings.EqualFold(id, vars["dlcTitleId"]) {
-					serveDownload(w, r, dlc.ExtendedInfo)
+					web.serveDownload(w, r, dlc.ExtendedInfo)
 					return
 				}
 			}

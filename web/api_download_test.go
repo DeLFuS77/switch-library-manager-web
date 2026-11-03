@@ -48,3 +48,30 @@ func TestDownloadOfAGameCompressedSinceTheScan(t *testing.T) {
 		t.Fatalf("the original: %q", download.Body.String())
 	}
 }
+
+// TestLinksIntoData checks that a library file resolving into the app's data folder is detected,
+// so a planted symlink cannot take prod.keys or another secret out through a download.
+func TestLinksIntoData(t *testing.T) {
+	dataDir := t.TempDir()
+	libDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dataDir, "prod.keys"), []byte("x"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(libDir, "game.nsp"), []byte("x"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	web := &Web{dataFolder: dataDir}
+	if !web.linksIntoData(filepath.Join(dataDir, "prod.keys")) {
+		t.Fatal("a file inside the data folder was not detected")
+	}
+	if web.linksIntoData(filepath.Join(libDir, "game.nsp")) {
+		t.Fatal("a normal library file was wrongly treated as inside the data folder")
+	}
+	// a symlink in the library pointing into the data folder, only where the OS allows one
+	link := filepath.Join(libDir, "link.nsp")
+	if err := os.Symlink(filepath.Join(dataDir, "prod.keys"), link); err == nil {
+		if !web.linksIntoData(link) {
+			t.Fatal("a symlink into the data folder was not detected")
+		}
+	}
+}
