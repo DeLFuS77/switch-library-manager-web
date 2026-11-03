@@ -21,6 +21,9 @@
 				{{- if $games}}
 				<button type="button" class="page-tab" role="tab" id="tabGames" data-tab="games" aria-controls="panelGames" aria-selected="false" tabindex="-1"><span class="bi bi-controller" aria-hidden="true"></span>{{t "Games"}}</button>
 				{{- end}}
+				{{- if $s.ScoredGames}}
+				<button type="button" class="page-tab" role="tab" id="tabScores" data-tab="scores" aria-controls="panelScores" aria-selected="false" tabindex="-1"><span class="bi bi-award" aria-hidden="true"></span>{{t "Scores"}}</button>
+				{{- end}}
 				<button type="button" class="page-tab" role="tab" id="tabHistory" data-tab="history" aria-controls="panelHistory" aria-selected="false" tabindex="-1"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "Library history"}}</button>
 			</div>
 			<div role="tabpanel" id="panelSpace" aria-labelledby="tabSpace">
@@ -127,6 +130,77 @@
 				{{- end}}
 			</div>
 			{{- end}}
+			{{- if $s.ScoredGames}}
+			<div role="tabpanel" id="panelScores" aria-labelledby="tabScores" hidden>
+				<div class="row row-cols-2 row-cols-md-3 g-2 g-md-3 mb-4">
+					{{- if $s.CriticGames}}
+					{{- template "statCard" (dict "Label" (t "Critics' average") "Value" $s.CriticAverage "Icon" "bi-award" "Tone" "" "Count" true "Sub" (t "from %v games" (num $s.CriticGames)))}}
+					{{- end}}
+					{{- if $s.UserGames}}
+					{{- template "statCard" (dict "Label" (t "Players' average") "Value" $s.UserAverage "Icon" "bi-people" "Tone" "is-cyan" "Count" true "Sub" (t "from %v games" (num $s.UserGames)))}}
+					{{- end}}
+					{{- template "statCard" (dict "Label" (t "Games with a score") "Value" $s.ScoredGames "Icon" "bi-collection" "Tone" "" "Count" true "Sub" (t "of %v in the library" (num $s.Games)))}}
+				</div>
+				<div class="row g-3 mb-4">
+					<div class="col-lg-6">
+						<section class="surface h-100">
+							<h2 class="section-title"><span class="bi bi-bar-chart" aria-hidden="true"></span>{{t "Games by score"}}</h2>
+							{{- range $s.ScoreBands}}
+							<div class="score-band score-band-{{.Level}}">
+								{{- template "countBar" (dict "Label" (t .Label) "Count" .Count "Max" $s.MaxScoreBand "Href" "")}}
+							</div>
+							{{- end}}
+							<a class="small" href="/index.html?sort_by=score&amp;sort_order=desc">{{t "See them in the library, the best first"}}</a>
+						</section>
+					</div>
+					<div class="col-lg-6">
+						<section class="surface h-100">
+							<h2 class="section-title"><span class="bi bi-trophy" aria-hidden="true"></span>{{t "Your games with the best scores"}}</h2>
+							<ol class="list-group list-group-flush">
+								{{- range $s.TopScored}}
+								<li class="list-group-item bg-transparent d-flex align-items-center gap-2 px-0">
+									<span class="score score-sm score-{{scoreLevel .Score}}">{{.Score}}</span>
+									<a class="link-body-emphasis text-decoration-none me-auto text-truncate" href="/title/{{.Id}}.html">{{.Name}}</a>
+								</li>
+								{{- end}}
+							</ol>
+						</section>
+					</div>
+				</div>
+				<section class="surface mb-4">
+					<h2 class="section-title"><span class="bi bi-star" aria-hidden="true"></span>{{t "Your rating and IGDB's"}}</h2>
+					{{- with .Mine}}
+					{{- if .Rated}}
+					<div class="score-versus">
+						<div><div class="score-versus-value">{{.Mine}}</div><div class="small text-body-secondary">{{t "your average"}}</div></div>
+						<div><div class="score-versus-value text-body-secondary">{{.Theirs}}</div><div class="small text-body-secondary">{{if eq .Rated 1}}{{t "IGDB in that game"}}{{else}}{{t "IGDB in those %v games" (num .Rated)}}{{end}}</div></div>
+					</div>
+					{{- if or .More .Less}}
+					<div class="row g-3">
+						{{- with .More}}
+						<div class="col-lg-6">
+							<div class="fw-semibold small mb-1">{{t "You rate higher than IGDB"}}</div>
+							<ul class="list-group list-group-flush">{{range .}}{{template "scoreVersus" .}}{{end}}</ul>
+						</div>
+						{{- end}}
+						{{- with .Less}}
+						<div class="col-lg-6">
+							<div class="fw-semibold small mb-1">{{t "You rate lower than IGDB"}}</div>
+							<ul class="list-group list-group-flush">{{range .}}{{template "scoreVersus" .}}{{end}}</ul>
+						</div>
+						{{- end}}
+					</div>
+					{{- else}}
+					<p class="mb-0">{{t "Your ratings are close to the ones of IGDB."}}</p>
+					{{- end}}
+					<p class="small text-body-secondary mt-2 mb-0">{{t "From the stars of “My rating” on each game page: a star is 20."}}</p>
+					{{- else}}
+					<p class="text-body-secondary mb-0">{{t "Rate your games with the stars of “My rating” on their pages to compare them with IGDB."}}</p>
+					{{- end}}
+					{{- end}}
+				</section>
+			</div>
+			{{- end}}
 			<div role="tabpanel" id="panelHistory" aria-labelledby="tabHistory" hidden>
 				<section class="surface mb-4" aria-labelledby="historyTitle">
 					<h2 class="section-title" id="historyTitle"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "Library history"}}</h2>
@@ -199,6 +273,15 @@
 				</section>
 			</div>
 			{{- end}}
+{{- end}}
+
+{{define "scoreVersus"}}
+								<li class="list-group-item bg-transparent d-flex align-items-center gap-2 px-0">
+									<span class="score-stars small" title="{{t "%v of 5" .Stars}}">{{range mkRange 1 5}}<span class="bi {{if le . $.Stars}}bi-star-fill{{else}}bi-star{{end}}" aria-hidden="true"></span>{{end}}<span class="visually-hidden">{{t "%v of 5" .Stars}}</span></span>
+									<a class="link-body-emphasis text-decoration-none me-auto text-truncate" href="/title/{{.Id}}.html">{{.Name}}</a>
+									<span class="small text-body-secondary">IGDB</span>
+									<span class="score score-sm score-{{scoreLevel .Score}}">{{.Score}}</span>
+								</li>
 {{- end}}
 
 {{define "statShare"}}

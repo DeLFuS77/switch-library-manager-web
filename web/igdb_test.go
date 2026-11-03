@@ -341,3 +341,56 @@ func TestLibraryFiltersByScore(t *testing.T) {
 		t.Fatalf("only the game of 80 or more: %+v", items)
 	}
 }
+
+// With scores, Statistics has a tab of its own: the averages, the games by score, the best ones
+// and the ratings of the user against the scores of the same games.
+func TestStatisticsShowTheScores(t *testing.T) {
+	web := newTestWeb(t)
+	web.embedFS = os.DirFS("..")
+	web.state.set(testDatabases(t))
+	web.HandleStatistics()
+	get := func() string {
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/statistics.html", nil))
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("the statistics page: %d", recorder.Code)
+		}
+		return recorder.Body.String()
+	}
+
+	if page := get(); strings.Contains(page, `id="tabScores"`) {
+		t.Fatal("no scores tab without IGDB")
+	}
+	web.timesToBeat().set("0100000000010000", TimeToBeat{Found: true, Checked: time.Now(), CriticScore: 93.6, CriticCount: 23, UserScore: 61, UserCount: 4})
+	web.invalidateDerived()
+	page := get()
+	for _, want := range []string{`id="tabScores"`, `id="panelScores"`, `data-count="94"`, `data-count="61"`,
+		`aria-label="90 or more" aria-valuenow="1"`, `aria-label="Under 50" aria-valuenow="0"`,
+		`class="score score-sm score-top">94<`, `href="/title/0100000000010000.html">Known Game<`, "Rate your games with the stars"} {
+		if !strings.Contains(page, want) {
+			t.Errorf("the statistics page misses %q", want)
+		}
+	}
+
+	// two stars are 40, far under the 94 of IGDB
+	if err := web.play().set("", "0100000000010000", PlayEntry{Rating: 2}); err != nil {
+		t.Fatal(err)
+	}
+	page = get()
+	for _, want := range []string{`class="score-versus-value">40<`, "IGDB in that game", "You rate lower than IGDB", `title="2 of 5"`} {
+		if !strings.Contains(page, want) {
+			t.Errorf("the comparison misses %q", want)
+		}
+	}
+	if strings.Contains(page, "You rate higher than IGDB") || strings.Contains(page, "Rate your games with the stars") {
+		t.Error("only the games rated lower, and no hint once there are ratings")
+	}
+
+	// close to IGDB: no list
+	if err := web.play().set("", "0100000000010000", PlayEntry{Rating: 5}); err != nil {
+		t.Fatal(err)
+	}
+	if page := get(); !strings.Contains(page, "Your ratings are close to the ones of IGDB.") || strings.Contains(page, "You rate lower than IGDB") {
+		t.Error("a rating of 100 against 94 is close")
+	}
+}
