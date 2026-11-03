@@ -509,3 +509,29 @@ func TestOverrideMessagesAreTranslated(t *testing.T) {
 		}
 	}
 }
+
+// TestOverrideCoverRejectsTraversal checks that a cover name restored from a backup cannot
+// reach out of the covers folder: reload drops a traversal name and overrideCoverPath refuses
+// it, so a crafted overrides.json cannot make the app read prod.keys or any file outside.
+func TestOverrideCoverRejectsTraversal(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, TITLE_OVERRIDES_FILENAME)
+	content := `{"` + overrideTestId + `":{"cover":"../prod.keys"}}`
+	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+		t.Fatal(err)
+	}
+	store := &titleOverrides{path: path}
+	store.reload()
+	if cover := store.titles[overrideTestId].Cover; cover != "" {
+		t.Fatalf("a traversal cover was kept: %q", cover)
+	}
+
+	web := &Web{dataFolder: dir}
+	if got := web.overrideCoverPath("../prod.keys"); got != "" {
+		t.Fatalf("overrideCoverPath did not refuse a traversal name: %q", got)
+	}
+	valid := overrideTestId + "-00000000.jpg"
+	if got := web.overrideCoverPath(valid); got != filepath.Join(dir, OVERRIDE_COVERS_FOLDER, valid) {
+		t.Fatalf("overrideCoverPath refused a valid name: %q", got)
+	}
+}

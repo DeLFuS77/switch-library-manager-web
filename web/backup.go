@@ -71,7 +71,7 @@ func (web *Web) writeBackup(w io.Writer) error {
 	}
 	// the covers chosen by hand, images stored as they are
 	for _, override := range web.titleOverrides().snapshot() {
-		if override.Cover == "" {
+		if override.Cover == "" || !overrideCoverName.MatchString(override.Cover) {
 			continue
 		}
 		data, err := os.ReadFile(web.overrideCoverPath(override.Cover))
