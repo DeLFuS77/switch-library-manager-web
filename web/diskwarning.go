@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -60,7 +61,7 @@ func (web *Web) librarySpace() (int64, int64) {
 	var free, total int64
 	seen := map[[2]uint64]bool{}
 	for _, folder := range scanFolders(settings.ReadSettings(web.dataFolder)) {
-		available, size, err := diskSpace(folder)
+		available, size, err := diskfree.Space(folder)
 		if err != nil || size == 0 || seen[[2]uint64{available, size}] {
 			continue
 		}
@@ -82,7 +83,7 @@ func measureLowDisks(folders []string, percent int, ceiling uint64) []LowDisk {
 	low := []LowDisk{}
 	seen := map[[2]uint64]bool{}
 	for _, folder := range folders {
-		free, total, err := diskSpace(folder)
+		free, total, err := diskfree.Space(folder)
 		if err != nil || total == 0 {
 			continue
 		}
@@ -176,6 +177,6 @@ func (web *Web) notifyLowDisks(disks []LowDisk) bool {
 // roomToCompress tells whether the volume of a file can take its compressed copy, written
 // beside it before the original is deleted: automatic compression waits otherwise.
 func roomToCompress(path string, size int64) bool {
-	free, err := diskFree(filepath.Dir(path))
+	free, err := diskfree.Free(filepath.Dir(path))
 	return err != nil || int64(free) >= size+(64<<20)
 }

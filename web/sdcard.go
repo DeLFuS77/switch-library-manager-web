@@ -17,6 +17,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -293,11 +294,11 @@ func (web *Web) buildSdPlan(options SdOptions, lang string) SdPlan {
 		plan.Selected = plan.Selected[:maxSdSelectedRows]
 	}
 	if options.Search != "" {
-		search := newSearchQuery(options.Search)
+		query := search.NewQuery(options.Search)
 		found := plan.Others[:0:0]
 		for _, game := range plan.Others {
-			text := searchText(game.Name)
-			if search.matches(text, strings.Fields(text)) {
+			text := search.Text(game.Name)
+			if query.Matches(text, strings.Fields(text)) {
 				found = append(found, game)
 			}
 		}

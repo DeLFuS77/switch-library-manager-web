@@ -1,6 +1,6 @@
 //go:build !windows && !linux
 
-package web
+package diskfree
 
 import "golang.org/x/sys/unix"
 

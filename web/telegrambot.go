@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -272,7 +273,7 @@ func (web *Web) botNew(lang string) string {
 func (web *Web) botSpace(lang string) string {
 	stats := web.getStatistics(lang)
 	text := translatef(lang, "Your library takes %v.", formatSizeIn(lang, stats.TotalSize))
-	if free, err := diskFree(settings.ReadSettings(web.dataFolder).Folder); err == nil {
+	if free, err := diskfree.Free(settings.ReadSettings(web.dataFolder).Folder); err == nil {
 		text += "\n" + translatef(lang, "Free in its folder: %v.", formatSizeIn(lang, int64(free)))
 	}
 	return text

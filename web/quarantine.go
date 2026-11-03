@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -354,7 +355,7 @@ func (web *Web) makeRoom(folder string, need int64) bool {
 	sort.SliceStable(q.items, func(i, j int) bool { return q.items[i].Time.Before(q.items[j].Time) })
 	freed := false
 	for i := 0; i < len(q.items); {
-		if free, err := diskFree(folder); err != nil || int64(free) >= need {
+		if free, err := diskfree.Free(folder); err != nil || int64(free) >= need {
 			break
 		}
 		item := q.items[i]

@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -494,12 +495,12 @@ func compressThreadChoices() []int {
 func (web *Web) reserveSpace(folder string, need int64) (release func(), err error) {
 	web.compressor.mutex.Lock()
 	defer web.compressor.mutex.Unlock()
-	if free, err := diskFree(folder); err == nil && int64(free) < web.compressor.reserved+need+(64<<20) {
+	if free, err := diskfree.Free(folder); err == nil && int64(free) < web.compressor.reserved+need+(64<<20) {
 		// the oldest files of the quarantine on that disk give their room first, when they may
 		if !web.makeRoom(folder, web.compressor.reserved+need+(64<<20)) {
 			return nil, errCompressSpace
 		}
-		if free, err := diskFree(folder); err == nil && int64(free) < web.compressor.reserved+need+(64<<20) {
+		if free, err := diskfree.Free(folder); err == nil && int64(free) < web.compressor.reserved+need+(64<<20) {
 			return nil, errCompressSpace
 		}
 	}

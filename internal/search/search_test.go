@@ -1,4 +1,4 @@
-package web
+package search
 
 import (
 	"strings"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestForgivingSearch(t *testing.T) {
-	name := searchText("0100000000010000 The Legend of Zelda™: Breath of the Wild")
+	name := Text("0100000000010000 The Legend of Zelda™: Breath of the Wild")
 	words := strings.Fields(name)
 	for query, want := range map[string]bool{
 		"zelda":          true,
@@ -20,15 +20,15 @@ func TestForgivingSearch(t *testing.T) {
 		"0100000000010":  true,
 		"xyz":            false,
 	} {
-		if got := searchMatches(name, words, searchText(query)); got != want {
+		if got := Matches(name, words, Text(query)); got != want {
 			t.Errorf("%q: %v, want %v", query, got, want)
 		}
 	}
-	pokemon := searchText("Pokémon Escarlata")
-	if !searchMatches(pokemon, strings.Fields(pokemon), searchText("pokemon escarlta")) {
+	pokemon := Text("Pokémon Escarlata")
+	if !Matches(pokemon, strings.Fields(pokemon), Text("pokemon escarlta")) {
 		t.Error("accents and a typo do not matter")
 	}
-	if searchMatches(pokemon, strings.Fields(pokemon), searchText("poke violeta")) {
+	if Matches(pokemon, strings.Fields(pokemon), Text("poke violeta")) {
 		t.Error("a word that is not there is not found")
 	}
 }

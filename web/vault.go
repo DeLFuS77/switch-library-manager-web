@@ -16,6 +16,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
+	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/webdav"
@@ -166,7 +168,7 @@ func (web *Web) vaultHandler() http.Handler {
 // the first backup, on the folder that holds it.
 func vaultFree(root string) (uint64, bool) {
 	for _, folder := range []string{root, filepath.Dir(root)} {
-		if free, err := diskFree(folder); err == nil {
+		if free, err := diskfree.Free(folder); err == nil {
 			return free, true
 		}
 	}
@@ -372,9 +374,9 @@ func (web *Web) saveGames(lang string) []SaveGame {
 	byName := map[string]TitleItem{}
 	for _, item := range library {
 		byId[strings.ToUpper(item.Id)] = item
-		byName[searchText(item.Name)] = item
+		byName[search.Text(item.Name)] = item
 		if item.OriginalName != "" {
-			byName[searchText(item.OriginalName)] = item
+			byName[search.Text(item.OriginalName)] = item
 		}
 	}
 	games := map[string]*SaveGame{}
@@ -383,7 +385,7 @@ func (web *Web) saveGames(lang string) []SaveGame {
 		game := SaveGame{Name: backup.Folder}
 		item, known := byId[backup.TitleId]
 		if !known {
-			item, known = byName[searchText(backup.Folder)]
+			item, known = byName[search.Text(backup.Folder)]
 		}
 		if known {
 			key = "id:" + strings.ToUpper(item.Id)

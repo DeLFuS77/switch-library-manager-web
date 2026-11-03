@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -111,7 +112,7 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 		default:
 			check.Value = t("Readable and writable")
 		}
-		if free, err := diskFree(folder); err == nil {
+		if free, err := diskfree.Free(folder); err == nil {
 			check.Value += " · " + t("%v free", formatSizeIn(lang, int64(free)))
 			if free < lowDiskSpace && check.Status == CHECK_OK {
 				check.Status, check.Hint = CHECK_WARN, t("Little free space left.")
@@ -156,7 +157,7 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 	if !writable(web.dataFolder) {
 		dataCheck.Status, dataCheck.Value, dataCheck.Hint = CHECK_ERROR, t("Read only"), t("The settings cannot be saved. In Docker, check PUID and PGID.")
 	}
-	if free, err := diskFree(web.dataFolder); err == nil {
+	if free, err := diskfree.Free(web.dataFolder); err == nil {
 		dataCheck.Value += " · " + t("%v free", formatSizeIn(lang, int64(free)))
 		if free < lowDiskSpace/5 && dataCheck.Status == CHECK_OK {
 			dataCheck.Status, dataCheck.Hint = CHECK_WARN, t("Little free space left.")

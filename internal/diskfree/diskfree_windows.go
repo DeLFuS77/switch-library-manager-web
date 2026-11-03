@@ -1,6 +1,6 @@
 //go:build windows
 
-package web
+package diskfree
 
 import (
 	"path/filepath"
@@ -9,14 +9,14 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-// diskFree returns the bytes available to the user on the volume of path.
-func diskFree(path string) (uint64, error) {
-	available, _, err := diskSpace(path)
+// Free returns the bytes available to the user on the volume of path.
+func Free(path string) (uint64, error) {
+	available, _, err := Space(path)
 	return available, err
 }
 
-// diskSpace returns the bytes available to the user on the volume of path, and its size.
-func diskSpace(path string) (uint64, uint64, error) {
+// Space returns the bytes available to the user on the volume of path, and its size.
+func Space(path string) (uint64, uint64, error) {
 	pointer, err := windows.UTF16PtrFromString(path)
 	if err != nil {
 		return 0, 0, err
@@ -28,8 +28,8 @@ func diskSpace(path string) (uint64, uint64, error) {
 	return available, total, nil
 }
 
-// volumeOf names the volume of a folder, to add up what goes to the same disk: its letter or share.
-func volumeOf(folder string) string {
+// Volume names the volume of a folder, to add up what goes to the same disk: its letter or share.
+func Volume(folder string) string {
 	if volume := filepath.VolumeName(folder); volume != "" {
 		return strings.ToLower(volume)
 	}

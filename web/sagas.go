@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 )
 
@@ -246,7 +247,7 @@ func (web *Web) sagaProgress(lang string) []SagaProgress {
 			for _, game := range games {
 				words = append(words, game.Name, game.OriginalName)
 			}
-			saga.searchKey = searchText(strings.Join(words, " "))
+			saga.searchKey = search.Text(strings.Join(words, " "))
 			saga.searchWords = strings.Fields(saga.searchKey)
 			result = append(result, saga)
 		}
@@ -336,9 +337,9 @@ func (web *Web) HandleSagas() {
 	web.HandleFiltered("/sagas.html", func(filter *TitleItemFilter, lang string) any {
 		data := SagasPageData{GlobalPageData: web.globalPageData("sagas"), Filter: filter}
 		all := web.sagaProgress(lang)
-		var query *searchQuery
+		var query *search.Query
 		if filter.Keyword != "" {
-			query = newSearchQuery(filter.Keyword)
+			query = search.NewQuery(filter.Keyword)
 		}
 		shown := []SagaProgress{}
 		for _, saga := range all {
@@ -350,7 +351,7 @@ func (web *Web) HandleSagas() {
 			if saga.Complete() != (filter.Status == STATUS_COMPLETE) {
 				continue
 			}
-			if query != nil && !query.matches(saga.searchKey, saga.searchWords) {
+			if query != nil && !query.Matches(saga.searchKey, saga.searchWords) {
 				continue
 			}
 			shown = append(shown, saga)

@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -168,9 +169,9 @@ func (web *Web) upcomingGamesAt(lang string, now time.Time) []UpcomingGame {
 func upcomingPage(games []UpcomingGame, filter *TitleItemFilter, now time.Time) UpcomingPageData {
 	data := UpcomingPageData{Filter: filter}
 	day := today(now)
-	var query *searchQuery
+	var query *search.Query
 	if filter.Keyword != "" {
-		query = newSearchQuery(filter.Keyword)
+		query = search.NewQuery(filter.Keyword)
 	}
 	for _, game := range games {
 		released := game.Item.ReleaseDate.Before(day)
@@ -184,8 +185,8 @@ func upcomingPage(games []UpcomingGame, filter *TitleItemFilter, now time.Time) 
 			continue
 		}
 		if query != nil {
-			text := searchText(game.Item.Name + " " + game.Item.OriginalName)
-			if !query.matches(text, strings.Fields(text)) {
+			text := search.Text(game.Item.Name + " " + game.Item.OriginalName)
+			if !query.Matches(text, strings.Fields(text)) {
 				continue
 			}
 		}

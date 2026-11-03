@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -71,7 +72,7 @@ func (web *Web) spaceShort(task QueuedTask) []SpaceShort {
 	if task.Kind == TASK_COMPRESS || task.Kind == TASK_DECOMPRESS || task.Kind == TASK_CONVERT {
 		atOnce = filesAtOnce(settings.ReadSettings(web.dataFolder).CompressFilesAtOnce)
 	}
-	return weighSpace(writes, task.Delete, atOnce, volumeOf, diskFree)
+	return weighSpace(writes, task.Delete, atOnce, diskfree.Volume, diskfree.Free)
 }
 
 // weighSpace adds up the new files by volume. A file whose original is deleted on the same volume

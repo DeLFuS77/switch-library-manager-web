@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/launch"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -701,17 +702,17 @@ func (web *Web) Start() {
 	// take a while on a NAS)
 	listener, err := listenLimited(fmt.Sprint(":", web.appSettings.Port))
 	// started by an update: the program before leaves the port in a moment
-	for wait := 0; err != nil && portInUse(err) && restarted() && wait < 60; wait++ {
+	for wait := 0; err != nil && launch.PortInUse(err) && restarted() && wait < 60; wait++ {
 		time.Sleep(500 * time.Millisecond)
 		listener, err = listenLimited(fmt.Sprint(":", web.appSettings.Port))
 	}
 	if err != nil {
 		// started twice with a double click: the app is already open, show it instead
-		if portInUse(err) {
+		if launch.PortInUse(err) {
 			url := fmt.Sprintf("http://localhost:%d/", web.appSettings.Port)
 			web.sugarLogger.Warnf("Port %d is already in use: the app may be running already. Open %s, or set another \"port\" in settings.json.", web.appSettings.Port, url)
-			if shouldOpenBrowser() {
-				openUrl(url)
+			if launch.ShouldOpenBrowser() {
+				launch.OpenUrl(url)
 			}
 			os.Exit(1)
 		}
@@ -733,8 +734,8 @@ func (web *Web) Start() {
 	web.server = server
 	served := make(chan error, 1)
 	go func() { served <- server.Serve(listener) }()
-	if shouldOpenBrowser() && !isDemoMode() {
-		go web.openBrowserWhenReady(web.appSettings.Port)
+	if launch.ShouldOpenBrowser() && !isDemoMode() {
+		go launch.OpenBrowserWhenReady(web.appSettings.Port, web.sugarLogger)
 	}
 
 	// the names the games give themselves, for names the titles database has only in another script

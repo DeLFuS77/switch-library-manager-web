@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"html"
 	"html/template"
 	"net/url"
@@ -44,7 +45,7 @@ type TitleItemFilter struct {
 	// the user who looks, for Play (set by the handler)
 	player string
 	// the keyword prepared for searching, set by MatchesItem
-	search *searchQuery
+	search *search.Query
 }
 
 // library status filters
@@ -260,9 +261,9 @@ func (f *TitleItemFilter) MatchesItem(item *TitleItem) bool {
 		return f.Matches(item.Id, item.Name, item.OriginalName)
 	}
 	if f.search == nil {
-		f.search = newSearchQuery(f.Keyword)
+		f.search = search.NewQuery(f.Keyword)
 	}
-	return f.search.matches(item.searchKey, item.searchWords)
+	return f.search.Matches(item.searchKey, item.searchWords)
 }
 
 // Matches reports whether the title ID or one of the names contains the keyword (case insensitive).

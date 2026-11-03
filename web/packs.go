@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -327,11 +328,11 @@ func (web *Web) makePack(ctx context.Context, sources []string, target string, s
 	if _, err := os.Stat(target); err == nil {
 		return 0, errPackExists
 	}
-	if free, err := diskFree(filepath.Dir(target)); err == nil && free < uint64(size)+(64<<20) {
+	if free, err := diskfree.Free(filepath.Dir(target)); err == nil && free < uint64(size)+(64<<20) {
 		if !web.makeRoom(filepath.Dir(target), size+(64<<20)) {
 			return 0, errCompressSpace
 		}
-		if free, err := diskFree(filepath.Dir(target)); err == nil && free < uint64(size)+(64<<20) {
+		if free, err := diskfree.Free(filepath.Dir(target)); err == nil && free < uint64(size)+(64<<20) {
 			return 0, errCompressSpace
 		}
 	}

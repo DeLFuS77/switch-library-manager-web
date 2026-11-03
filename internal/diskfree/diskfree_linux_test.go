@@ -1,4 +1,4 @@
-package web
+package diskfree
 
 import (
 	"testing"

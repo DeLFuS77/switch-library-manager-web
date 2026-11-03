@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -437,7 +438,7 @@ func TestSeveralFilesAtOnce(t *testing.T) {
 // the space left is taken by the first.
 func TestSpaceIsReservedForFilesWrittenAtOnce(t *testing.T) {
 	web := newTestWeb(t)
-	free, err := diskFree(web.dataFolder)
+	free, err := diskfree.Free(web.dataFolder)
 	if err != nil {
 		t.Skip("no free space on this system")
 	}

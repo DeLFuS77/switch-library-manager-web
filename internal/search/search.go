@@ -1,14 +1,13 @@
-package web
+// Package search forgives the way a name is written: accents, case, signs and the order of the
+// words do not matter, and small typing mistakes are accepted ("zelda brth" finds "The
+// Legend of Zelda: Breath of the Wild", "pokemon escarlta" finds "Pokémon Escarlata").
+package search
 
 import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
 )
-
-// Searching forgives the way a name is written: accents, case, signs and the order of the
-// words do not matter, and small typing mistakes are accepted ("zelda brth" finds "The
-// Legend of Zelda: Breath of the Wild", "pokemon escarlta" finds "Pokémon Escarlata").
 
 // letters with accents and their plain letter
 var plainLetters = map[rune]rune{
@@ -20,8 +19,8 @@ var plainLetters = map[rune]rune{
 	'ñ': 'n', 'ç': 'c', 'ß': 's', 'ý': 'y', 'ÿ': 'y',
 }
 
-// searchText returns a text in lower case without accents, with the signs as spaces.
-func searchText(text string) string {
+// Text returns a text in lower case without accents, with the signs as spaces.
+func Text(text string) string {
 	var builder strings.Builder
 	builder.Grow(len(text))
 	space := false
@@ -40,9 +39,9 @@ func searchText(text string) string {
 	return strings.TrimSpace(builder.String())
 }
 
-// searchQuery is a search prepared once for every item of a list.
-type searchQuery struct {
-	text   string
+// Query is a search prepared once for every item of a list.
+type Query struct {
+	Text   string
 	tokens []searchToken
 }
 
@@ -52,19 +51,19 @@ type searchToken struct {
 	typos int
 }
 
-func newSearchQuery(keyword string) *searchQuery {
-	query := &searchQuery{text: searchText(keyword)}
-	for _, token := range strings.Fields(query.text) {
+func NewQuery(keyword string) *Query {
+	query := &Query{Text: Text(keyword)}
+	for _, token := range strings.Fields(query.Text) {
 		runes := []rune(token)
 		query.tokens = append(query.tokens, searchToken{text: token, runes: runes, typos: allowedTypos(len(runes))})
 	}
 	return query
 }
 
-// matches reports whether every word of the query is in the text (see searchText), or
+// Matches reports whether every word of the query is in the text (see Text), or
 // close to one of its words.
-func (q *searchQuery) matches(text string, words []string) bool {
-	if q.text == "" || strings.Contains(text, q.text) {
+func (q *Query) Matches(text string, words []string) bool {
+	if q.Text == "" || strings.Contains(text, q.Text) {
 		return true
 	}
 	for i := range q.tokens {
@@ -79,9 +78,9 @@ func (q *searchQuery) matches(text string, words []string) bool {
 	return true
 }
 
-// searchMatches is matches for a query used once.
-func searchMatches(text string, words []string, query string) bool {
-	return newSearchQuery(query).matches(text, words)
+// Matches is Query.Matches for a query used once.
+func Matches(text string, words []string, query string) bool {
+	return NewQuery(query).Matches(text, words)
 }
 
 // typos allowed in a word of the query: none for short words

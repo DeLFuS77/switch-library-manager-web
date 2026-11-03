@@ -12,6 +12,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -130,9 +131,9 @@ func (c *igdbClient) lookupTitle(ctx context.Context, name string, now time.Time
 	}
 	// the same name first, else the best match of IGDB
 	chosen := games[0]
-	wanted := searchText(name)
+	wanted := search.Text(name)
 	for _, game := range games {
-		if searchText(game.Name) == wanted {
+		if search.Text(game.Name) == wanted {
 			chosen = game
 			break
 		}
