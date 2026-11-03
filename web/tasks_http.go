@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/gorilla/mux"
 )
@@ -39,18 +40,18 @@ func (w PausedWaits) Text(lang string) string {
 	parts := []string{}
 	switch {
 	case w.Queue == 1:
-		parts = append(parts, translate(lang, "1 task in the queue"))
+		parts = append(parts, i18n.Translate(lang, "1 task in the queue"))
 	case w.Queue > 1:
-		parts = append(parts, translatef(lang, "%v tasks in the queue", formatNumber(lang, w.Queue)))
+		parts = append(parts, i18n.Translatef(lang, "%v tasks in the queue", i18n.FormatNumber(lang, w.Queue)))
 	}
 	if w.Sync {
-		parts = append(parts, translate(lang, "the scheduled synchronization"))
+		parts = append(parts, i18n.Translate(lang, "the scheduled synchronization"))
 	}
 	switch {
 	case w.Automation == 1:
-		parts = append(parts, translate(lang, "1 new file of the automations"))
+		parts = append(parts, i18n.Translate(lang, "1 new file of the automations"))
 	case w.Automation > 1:
-		parts = append(parts, translatef(lang, "%v new files of the automations", formatNumber(lang, w.Automation)))
+		parts = append(parts, i18n.Translatef(lang, "%v new files of the automations", i18n.FormatNumber(lang, w.Automation)))
 	}
 	if len(parts) == 0 {
 		return ""
@@ -58,7 +59,7 @@ func (w PausedWaits) Text(lang string) string {
 	if len(parts) == 1 {
 		return parts[0]
 	}
-	return translatef(lang, "%v and %v", strings.Join(parts[:len(parts)-1], ", "), parts[len(parts)-1])
+	return i18n.Translatef(lang, "%v and %v", strings.Join(parts[:len(parts)-1], ", "), parts[len(parts)-1])
 }
 
 // pausedWaits is what waits now while a task on files is paused.

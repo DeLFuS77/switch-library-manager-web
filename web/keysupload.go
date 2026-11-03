@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -113,34 +114,34 @@ func (web *Web) HandleKeysUpload() {
 		r.Body = http.MaxBytesReader(w, r.Body, 3*maxKeysUpload)
 		prodKeys, err := readUpload(r, "prod_keys")
 		if err != nil || prodKeys == nil || len(prodKeys) > maxKeysUpload {
-			writeGlobalError(w, http.StatusBadRequest, lang, translate(lang, "Choose your prod.keys file."))
+			writeGlobalError(w, http.StatusBadRequest, lang, i18n.Translate(lang, "Choose your prod.keys file."))
 			return
 		}
 		if err := checkProdKeys(prodKeys); err != nil {
-			writeGlobalError(w, http.StatusBadRequest, lang, translate(lang, err.Error()))
+			writeGlobalError(w, http.StatusBadRequest, lang, i18n.Translate(lang, err.Error()))
 			return
 		}
 		titleKeys, err := readUpload(r, "title_keys")
 		if err != nil || len(titleKeys) > maxKeysUpload {
-			writeGlobalError(w, http.StatusBadRequest, lang, translate(lang, errNotTitleKeys.Error()))
+			writeGlobalError(w, http.StatusBadRequest, lang, i18n.Translate(lang, errNotTitleKeys.Error()))
 			return
 		}
 		if titleKeys != nil {
 			if err := checkTitleKeys(titleKeys); err != nil {
-				writeGlobalError(w, http.StatusBadRequest, lang, translate(lang, err.Error()))
+				writeGlobalError(w, http.StatusBadRequest, lang, i18n.Translate(lang, err.Error()))
 				return
 			}
 		}
 
 		if err := writePrivateFile(filepath.Join(web.dataFolder, "prod.keys"), prodKeys); err != nil {
 			web.sugarLogger.Errorf("[Keys] could not be saved: %v", err)
-			writeGlobalError(w, http.StatusInternalServerError, lang, translate(lang, "The keys could not be saved in the data folder."))
+			writeGlobalError(w, http.StatusInternalServerError, lang, i18n.Translate(lang, "The keys could not be saved in the data folder."))
 			return
 		}
 		if titleKeys != nil {
 			if err := writePrivateFile(filepath.Join(web.dataFolder, "title.keys"), titleKeys); err != nil {
 				web.sugarLogger.Errorf("[Keys] title.keys could not be saved: %v", err)
-				writeGlobalError(w, http.StatusInternalServerError, lang, translate(lang, "The keys could not be saved in the data folder."))
+				writeGlobalError(w, http.StatusInternalServerError, lang, i18n.Translate(lang, "The keys could not be saved in the data folder."))
 				return
 			}
 		}
@@ -151,11 +152,11 @@ func (web *Web) HandleKeysUpload() {
 		}
 		web.sugarLogger.Infof("[Keys] new keys saved in the data folder from Settings")
 
-		message := translate(lang, "Your keys are saved in the data folder of the app. The library is being rescanned.")
+		message := i18n.Translate(lang, "Your keys are saved in the data folder of the app. The library is being rescanned.")
 		if !web.Rescan(TRIGGER_SETTINGS) {
-			message = translate(lang, "Your keys are saved in the data folder of the app. They will be used by the next synchronization.")
+			message = i18n.Translate(lang, "Your keys are saved in the data folder of the app. They will be used by the next synchronization.")
 		}
 		// the folder of the keys now, for the field of the wizard
-		writeJSON(w, http.StatusOK, map[string]string{"strongMessage": translate(lang, "Success!"), "message": message, "folder": web.dataFolder})
+		writeJSON(w, http.StatusOK, map[string]string{"strongMessage": i18n.Translate(lang, "Success!"), "message": message, "folder": web.dataFolder})
 	}).Methods("POST")
 }

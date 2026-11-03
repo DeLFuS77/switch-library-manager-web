@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -46,7 +47,7 @@ func (web *Web) cleanLeftovers() {
 	if removed == 0 {
 		return
 	}
-	detail := fmt.Sprintf("%d (%s)", removed, formatSize(freed))
+	detail := fmt.Sprintf("%d (%s)", removed, i18n.FormatSize(freed))
 	web.sugarLogger.Infof("[%s: %s]", ACTION_LEFTOVERS, detail)
 	web.activities().add(Activity{Time: time.Now(), Action: ACTION_LEFTOVERS, Detail: detail})
 }

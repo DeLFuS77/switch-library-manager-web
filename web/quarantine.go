@@ -15,6 +15,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -439,7 +440,7 @@ func (web *Web) HandleQuarantine() {
 		web.sugarLogger.Infof("[Quarantine] %s put back", item.Path)
 		// the library has the file again
 		web.Rescan(TRIGGER_ORGANIZE)
-		writeJSON(w, http.StatusOK, map[string]string{"message": translatef(lang, "%v is back in its folder.", filepath.Base(item.Path))})
+		writeJSON(w, http.StatusOK, map[string]string{"message": i18n.Translatef(lang, "%v is back in its folder.", filepath.Base(item.Path))})
 	}).Methods("POST")
 
 	web.router.HandleFunc("/quarantine/delete", func(w http.ResponseWriter, r *http.Request) {
@@ -449,13 +450,13 @@ func (web *Web) HandleQuarantine() {
 			writeGlobalError(w, http.StatusInternalServerError, lang, "The file could not be deleted.")
 			return
 		}
-		writeJSON(w, http.StatusOK, map[string]string{"message": translate(lang, "Deleted for good.")})
+		writeJSON(w, http.StatusOK, map[string]string{"message": i18n.Translate(lang, "Deleted for good.")})
 	}).Methods("POST")
 
 	web.router.HandleFunc("/quarantine/empty", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
 		count, size := web.quarantine().empty()
 		web.sugarLogger.Infof("[Quarantine] emptied: %d files, %d bytes", count, size)
-		writeJSON(w, http.StatusOK, map[string]string{"message": translatef(lang, "%v files deleted for good (%v).", count, formatSizeIn(lang, size))})
+		writeJSON(w, http.StatusOK, map[string]string{"message": i18n.Translatef(lang, "%v files deleted for good (%v).", count, i18n.FormatSizeIn(lang, size))})
 	}).Methods("POST")
 }

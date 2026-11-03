@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/csv"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"net/http"
 	"sort"
 	"strconv"
@@ -25,7 +26,7 @@ type ActivityActionName struct {
 func activityActionNames(lang string) []ActivityActionName {
 	names := make([]ActivityActionName, 0, len(activityActions))
 	for _, action := range activityActions {
-		names = append(names, ActivityActionName{Value: action, Name: translate(lang, action)})
+		names = append(names, ActivityActionName{Value: action, Name: i18n.Translate(lang, action)})
 	}
 	sort.Slice(names, func(i, j int) bool { return names[i].Name < names[j].Name })
 	return names
@@ -68,7 +69,7 @@ func (web *Web) HandleActivity() {
 		writer := csv.NewWriter(w)
 		writer.Write([]string{"time", "user", "action", "detail", "ip"})
 		for _, entry := range translateActivity(lang, web.activities().list()) {
-			writer.Write([]string{entry.Time.Format("2006-01-02 15:04:05"), csvSafe(entry.User), translate(lang, entry.Action), csvSafe(entry.Detail), csvSafe(entry.IP)})
+			writer.Write([]string{entry.Time.Format("2006-01-02 15:04:05"), csvSafe(entry.User), i18n.Translate(lang, entry.Action), csvSafe(entry.Detail), csvSafe(entry.IP)})
 		}
 		writer.Flush()
 	}).Methods("GET")

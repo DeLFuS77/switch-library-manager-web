@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 )
 
 // the kinds of issues, for the summary at the top of the Issues page and its filter
@@ -127,9 +128,9 @@ func kindOfIssue(reason string, cutShort bool) string {
 func issueCause(kind, reason, lang string) string {
 	switch {
 	case kind == ISSUE_TRUNCATED:
-		return translatef(lang, "Cut short: the file ends before its contents do.")
+		return i18n.Translatef(lang, "Cut short: the file ends before its contents do.")
 	case kind == ISSUE_UNREADABLE && strings.Contains(reason, "invalid NCA magic"):
-		return translatef(lang, "Its contents cannot be decrypted: a damaged copy, or encrypted with keys other than yours.")
+		return i18n.Translatef(lang, "Its contents cannot be decrypted: a damaged copy, or encrypted with keys other than yours.")
 	}
 	return ""
 }
@@ -208,7 +209,7 @@ func settledFiles(files []db.ExtendedFileInfo, quiet time.Duration) []db.Extende
 
 // issueSummaries counts the issues by kind; the kinds without issues are left out.
 func (web *Web) issueSummaries(issues []Issue, lang string) []IssueSummary {
-	t := func(text string, args ...any) string { return translatef(lang, text, args...) }
+	t := func(text string, args ...any) string { return i18n.Translatef(lang, text, args...) }
 	counts := map[string]int{}
 	for _, issue := range issues {
 		counts[issue.kind()]++

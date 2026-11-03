@@ -3,6 +3,7 @@ package web
 import (
 	"errors"
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"math"
 	"net/http"
 	"net/url"
@@ -126,7 +127,7 @@ func (web *Web) HandleUsers() {
 			if minutes < 1 {
 				minutes = 1
 			}
-			data.Error = translatef(lang, errTooManyLogins.Error(), minutes)
+			data.Error = i18n.Translatef(lang, errTooManyLogins.Error(), minutes)
 			web.auth.loginAttempt(data.Name, ip, "blocked", r.FormValue("password"), retryTellInterval)
 			w.WriteHeader(http.StatusTooManyRequests)
 			web.renderLogin(w, r, login, data)
@@ -142,7 +143,7 @@ func (web *Web) HandleUsers() {
 			// the address goes to Activity only: proxies send it in headers, which the log keeps out
 			web.sugarLogger.Warnf("Failed login for %q", web.auth.attemptName(data.Name))
 			web.auth.loginAttempt(data.Name, ip, "fail", r.FormValue("password"), 0)
-			data.Error = translate(lang, "Wrong user name or password.")
+			data.Error = i18n.Translate(lang, "Wrong user name or password.")
 			w.WriteHeader(http.StatusUnauthorized)
 			web.renderLogin(w, r, login, data)
 			return
@@ -192,13 +193,13 @@ func (web *Web) HandleUsers() {
 		web.logSetupCode(false)
 		data := UsersPageData{GlobalPageData: web.globalPageData("users"), Users: web.auth.users.List(), EnvUser: web.auth.envUser, Activity: translateActivity(web.requestLanguage(r), activityPreview(web.activities().list(), 8)), Keys: web.auth.users.KeyRows("")}
 		if message, ok := userMessages[r.URL.Query().Get("done")]; ok {
-			data.Message = translate(lang, message)
+			data.Message = i18n.Translate(lang, message)
 		}
 		if err := userErrorFromQuery(r); err != nil {
 			if errors.Is(err, ErrSetupCodeMissing) || errors.Is(err, ErrSetupCode) || errors.Is(err, ErrSetupCodeBlocked) {
-				data.CodeError = translate(lang, err.Error())
+				data.CodeError = i18n.Translate(lang, err.Error())
 			} else {
-				data.Error = translate(lang, err.Error())
+				data.Error = i18n.Translate(lang, err.Error())
 			}
 		}
 		web.render(w, r, users, data)
@@ -206,7 +207,7 @@ func (web *Web) HandleUsers() {
 
 	web.router.HandleFunc("/account.html", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
-		data := AccountPageData{GlobalPageData: web.globalPageData("account"), Languages: supportedLanguages, AvatarColors: avatarColors}
+		data := AccountPageData{GlobalPageData: web.globalPageData("account"), Languages: i18n.SupportedLanguages, AvatarColors: avatarColors}
 		if principal := principalFrom(r); principal != nil && principal.Name != "" {
 			if user, ok := web.auth.users.Get(principal.Name); ok {
 				data.Stored, data.Language = true, user.Language
@@ -215,10 +216,10 @@ func (web *Web) HandleUsers() {
 			}
 		}
 		if message, ok := userMessages[r.URL.Query().Get("done")]; ok {
-			data.Message = translate(lang, message)
+			data.Message = i18n.Translate(lang, message)
 		}
 		if err := userErrorFromQuery(r); err != nil {
-			data.Error = translate(lang, err.Error())
+			data.Error = i18n.Translate(lang, err.Error())
 		}
 		web.render(w, r, account, data)
 	}).Methods("GET")
@@ -295,7 +296,7 @@ func (web *Web) HandleUsers() {
 	web.router.HandleFunc("/account/language", func(w http.ResponseWriter, r *http.Request) {
 		principal := principalFrom(r)
 		lang := r.FormValue("language")
-		if lang != "" && !isSupportedLanguage(lang) {
+		if lang != "" && !i18n.IsSupportedLanguage(lang) {
 			lang = ""
 		}
 		if principal == nil || principal.Name == "" {

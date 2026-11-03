@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -105,7 +106,7 @@ func (web *Web) HandleAutoBackups() {
 			writeGlobalError(w, http.StatusInternalServerError, lang, "The backup could not be made.")
 			return
 		}
-		writeJSON(w, http.StatusOK, SuccessResponse{StrongMessage: translate(lang, "Success!"), Message: translate(lang, "A copy of the configuration was saved.")})
+		writeJSON(w, http.StatusOK, SuccessResponse{StrongMessage: i18n.Translate(lang, "Success!"), Message: i18n.Translate(lang, "A copy of the configuration was saved.")})
 	}).Methods("POST")
 
 	web.router.HandleFunc("/backup/auto/{name}", func(w http.ResponseWriter, r *http.Request) {
@@ -146,6 +147,6 @@ func (web *Web) HandleAutoBackups() {
 		}
 		web.sugarLogger.Infof("[Backup %s restored]", filepath.Base(path))
 		web.Rescan(TRIGGER_SETTINGS)
-		writeJSON(w, http.StatusOK, SuccessResponse{StrongMessage: translate(lang, "Success!"), Message: translate(lang, "The backup was restored. The library is being rescanned.")})
+		writeJSON(w, http.StatusOK, SuccessResponse{StrongMessage: i18n.Translate(lang, "Success!"), Message: i18n.Translate(lang, "The backup was restored. The library is being rescanned.")})
 	}).Methods("POST")
 }

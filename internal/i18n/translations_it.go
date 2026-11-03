@@ -1,8 +1,8 @@
-package web
+package i18n
 
 // Italian interface translations; see translations.go.
 func init() {
-	translations["it"] = map[string]string{
+	Translations["it"] = map[string]string{
 		// folders to skip when scanning
 		"Folders to skip": "Cartelle da saltare",
 		"One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted.": "Una per riga. Una parola salta le cartelle il cui nome la contiene, senza badare alle maiuscole: «build» salta anche «Dragon Quest Builders». Con * o ? deve corrispondere il nome intero, come in *_build*. Ciò che contengono non viene scansionato, organizzato né eliminato.",

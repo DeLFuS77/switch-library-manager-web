@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 )
 
 // afterScan runs the background work that follows a new library: covers, thumbnails and
@@ -66,7 +67,7 @@ func (web *Web) warmPages() {
 // titleLanguagesWithDefault are the languages pages are shown in: the default one and the
 // languages in use.
 func (web *Web) titleLanguagesWithDefault() []string {
-	return append([]string{DEFAULT_LANGUAGE}, web.titleLanguages()...)
+	return append([]string{i18n.DEFAULT_LANGUAGE}, web.titleLanguages()...)
 }
 
 // PartialLibrary shows the games a slow scan found so far (see db.PartialLibraryReceiver).

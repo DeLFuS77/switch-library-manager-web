@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -301,8 +302,8 @@ func (web *Web) notifyQueueDone(since time.Time) {
 		return
 	}
 	lang := settingsObj.Language
-	if !isSupportedLanguage(lang) {
-		lang = DEFAULT_LANGUAGE
+	if !i18n.IsSupportedLanguage(lang) {
+		lang = i18n.DEFAULT_LANGUAGE
 	}
 	tasks := []Task{}
 	for _, task := range web.taskLog().Snapshot() {
@@ -317,15 +318,15 @@ func (web *Web) notifyQueueDone(since time.Time) {
 	lines := []string{}
 	items := []any{}
 	for _, task := range tasks {
-		kind := translate(lang, taskKindNames[task.Kind])
+		kind := i18n.Translate(lang, taskKindNames[task.Kind])
 		if task.Error != nil {
-			lines = append(lines, "✗ "+translatef(lang, "%v failed: %v", kind, translate(lang, task.Error.Text)))
+			lines = append(lines, "✗ "+i18n.Translatef(lang, "%v failed: %v", kind, i18n.Translate(lang, task.Error.Text)))
 		} else {
-			lines = append(lines, "✓ "+translatef(lang, "%v: done", kind))
+			lines = append(lines, "✓ "+i18n.Translatef(lang, "%v: done", kind))
 		}
 		items = append(items, map[string]any{"kind": task.Kind, "id": task.Id, "status": task.Status})
 	}
-	if err := sendMessage(options, translate(lang, "The queue of tasks is done"), strings.Join(lines, "\n"), items); err != nil {
+	if err := sendMessage(options, i18n.Translate(lang, "The queue of tasks is done"), strings.Join(lines, "\n"), items); err != nil {
 		web.sugarLogger.Warnf("Failed to send the notification of the queue: %v", err)
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -147,8 +148,8 @@ func newOrganizeResponse(operations []process.Operation, dryRun bool, libraryFol
 		apiOp := ApiOperation(op)
 		apiOp.From = displayPath(libraryFolder, op.From)
 		apiOp.To = displayPath(libraryFolder, op.To)
-		apiOp.Error = translate(lang, op.Error)
-		apiOp.Reason = translate(lang, op.Reason)
+		apiOp.Error = i18n.Translate(lang, op.Error)
+		apiOp.Reason = i18n.Translate(lang, op.Reason)
 		response.Operations = append(response.Operations, apiOp)
 		if op.Reason == NOTE_SPACE_VERIFY_KEPT || op.Reason == NOTE_SPACE_VERIFY {
 			response.NeedsVerify++
@@ -286,8 +287,8 @@ const organizeNotesShown = 30
 func (web *Web) noteOrganized(taskId int64, operations []process.Operation) int {
 	appSettings := settings.ReadSettings(web.dataFolder)
 	lang := appSettings.Language
-	if !isSupportedLanguage(lang) {
-		lang = DEFAULT_LANGUAGE
+	if !i18n.IsSupportedLanguage(lang) {
+		lang = i18n.DEFAULT_LANGUAGE
 	}
 	changed, told, untold := 0, 0, 0
 	tell := func(text string, op process.Operation, why string) {
@@ -296,7 +297,7 @@ func (web *Web) noteOrganized(taskId int64, operations []process.Operation) int 
 			return
 		}
 		told++
-		web.taskLog().Warn(taskId, text, displayPath(appSettings.Folder, op.From)+": "+translate(lang, why))
+		web.taskLog().Warn(taskId, text, displayPath(appSettings.Folder, op.From)+": "+i18n.Translate(lang, why))
 	}
 	for _, op := range operations {
 		switch {
@@ -410,7 +411,7 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 }
 
 func writeGlobalError(w http.ResponseWriter, status int, lang string, message string) {
-	writeJSON(w, status, ErrorResponse{GlobalError: GlobalError{StrongMessage: translate(lang, "Error!"), Message: translate(lang, message)}, FieldErrors: []FieldError{}})
+	writeJSON(w, status, ErrorResponse{GlobalError: GlobalError{StrongMessage: i18n.Translate(lang, "Error!"), Message: i18n.Translate(lang, message)}, FieldErrors: []FieldError{}})
 }
 
 func (web *Web) HandleOrganize() {
@@ -434,12 +435,12 @@ func (web *Web) HandleOrganize() {
 			if strings.Contains(err.Error(), "folder") {
 				field = "folder_name_template"
 			}
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: field, Message: translate(lang, err.Error())})
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: field, Message: i18n.Translate(lang, err.Error())})
 		}
 
 		for field, folder := range map[string]string{"dlc_folder": options.DlcFolder, "updates_folder": options.UpdatesFolder, "base_folder": options.BaseFolder} {
 			if strings.Contains(folder, "..") {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: field, Message: translate(lang, "Parent folder references (..) are not allowed")})
+				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: field, Message: i18n.Translate(lang, "Parent folder references (..) are not allowed")})
 			}
 		}
 
@@ -459,14 +460,14 @@ func (web *Web) HandleOrganize() {
 			changing := web.duplicatesChanging(keep)
 			web.Rescan(TRIGGER_SETTINGS)
 			return SuccessResponse{
-				StrongMessage: translate(lang, "Saved!"),
-				Message:       translatef(lang, "The library is scanned again: %v duplicates keep the other copy now.", changing),
+				StrongMessage: i18n.Translate(lang, "Saved!"),
+				Message:       i18n.Translatef(lang, "The library is scanned again: %v duplicates keep the other copy now.", changing),
 			}
 		}
 
 		return SuccessResponse{
-			StrongMessage: translate(lang, "Saved!"),
-			Message:       translate(lang, "Use Preview to see what will change."),
+			StrongMessage: i18n.Translate(lang, "Saved!"),
+			Message:       i18n.Translate(lang, "Use Preview to see what will change."),
 		}
 	}, web.embedFS, fsPatterns...)
 

@@ -1,8 +1,8 @@
-package web
+package i18n
 
 // Russian interface translations; see translations.go.
 func init() {
-	translations["ru"] = map[string]string{
+	Translations["ru"] = map[string]string{
 		// folders to skip when scanning
 		"Folders to skip": "Пропускаемые папки",
 		"One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted.": "По одной на строку. Слово пропускает папки, в названии которых оно есть, без учёта регистра: «build» пропустит и «Dragon Quest Builders». С * или ? должно совпасть всё название, как в *_build*. Их содержимое не сканируется, не упорядочивается и не удаляется.",

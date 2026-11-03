@@ -1,4 +1,4 @@
-package web
+package i18n
 
 import "testing"
 
@@ -16,7 +16,7 @@ func TestShortNumbers(t *testing.T) {
 		{"zh", 120000, "12万"},
 		{"ko", 12899, "1.3만"},
 	} {
-		if got := formatShortNumber(c.lang, c.value); got != c.want {
+		if got := FormatShortNumber(c.lang, c.value); got != c.want {
 			t.Errorf("%s %d: %q, want %q", c.lang, c.value, got, c.want)
 		}
 	}

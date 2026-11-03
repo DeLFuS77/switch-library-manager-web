@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -390,19 +389,6 @@ func sortedVersions(updates map[int]db.SwitchFileInfo) []int {
 	}
 	sort.Sort(sort.Reverse(sort.IntSlice(versions)))
 	return versions
-}
-
-func formatSize(size int64) string {
-	const unit = 1024
-	if size < unit {
-		return fmt.Sprintf("%d B", size)
-	}
-	div, exp := int64(unit), 0
-	for n := size / unit; n >= unit; n /= unit {
-		div *= unit
-		exp++
-	}
-	return fmt.Sprintf("%.1f %cB", float64(size)/float64(div), "KMGTPE"[exp])
 }
 
 func (web *Web) HandleTitle() {

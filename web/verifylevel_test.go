@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -78,7 +79,7 @@ func TestASignatureAloneThatFailsIsModified(t *testing.T) {
 	if !found {
 		t.Fatalf("Issues lists it as modified: %+v", web.getIssues())
 	}
-	if reason := translateIssue("es", "not signed by Nintendo: a.nca"); reason != "sin firma de Nintendo: a.nca" {
+	if reason := i18n.TranslateIssue("es", "not signed by Nintendo: a.nca"); reason != "sin firma de Nintendo: a.nca" {
 		t.Fatalf("the reason is translated: %q", reason)
 	}
 
@@ -304,7 +305,7 @@ func TestResultsOfOlderVersionsStillRead(t *testing.T) {
 	if tasks[1].Level != "" || tasks[1].Damaged != 1 || tasks[1].Modified != 0 || !tasks[1].Tiles[0].Failed {
 		t.Fatalf("an older check of the files: %+v", tasks[1])
 	}
-	if translate("es", NOTE_VERIFY_DAMAGED_OLD) == NOTE_VERIFY_DAMAGED_OLD {
+	if i18n.Translate("es", NOTE_VERIFY_DAMAGED_OLD) == NOTE_VERIFY_DAMAGED_OLD {
 		t.Fatal("the warning of older versions is still translated")
 	}
 }
@@ -332,7 +333,7 @@ func TestActivityTellsTheLevel(t *testing.T) {
 // A file checked is Verified or Corrupted, as NXPress says it, and a task that failed is still
 // Failed.
 func TestCheckedFileStates(t *testing.T) {
-	if translate("es", "Verified") != "Verificado" || translate("es", "Corrupted") != "Corrupto" || translate("es", "Failed") != "Fallida" {
+	if i18n.Translate("es", "Verified") != "Verificado" || i18n.Translate("es", "Corrupted") != "Corrupto" || i18n.Translate("es", "Failed") != "Fallida" {
 		t.Fatal("the states of a file checked")
 	}
 }

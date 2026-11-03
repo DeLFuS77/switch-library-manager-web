@@ -1,8 +1,8 @@
-package web
+package i18n
 
 // Interface translations. The key is the English text used in the templates, in
-// translate() calls and in web.js; "%v" placeholders are kept in the translation.
-var translations = map[string]map[string]string{
+// Translate() calls and in web.js; "%v" placeholders are kept in the translation.
+var Translations = map[string]map[string]string{
 	"es": {
 		// folders to skip when scanning
 		"Folders to skip": "Carpetas que se saltan",
@@ -1682,7 +1682,7 @@ var translations = map[string]map[string]string{
 		"A folder for each DLC": "Una carpeta para cada DLC",
 		"With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters.": "Con los ID, cada DLC va a una carpeta propia. Sin esto, todos van a la carpeta de DLC: las rutas quedan más cortas, ya que muchos programas de Windows no leen más de 260 caracteres.",
 
-		// issues (translated by pattern, see translateIssue)
+		// issues (translated by pattern, see TranslateIssue)
 		"file type is not supported": "tipo de archivo no compatible",
 		"base file is missing":       "falta el juego base",
 		"duplicate %v file (%v)":     "archivo de %v duplicado (%v)",
@@ -2020,7 +2020,7 @@ var translations = map[string]map[string]string{
 }
 
 // texts used by web.js, sent to the browser in the page language
-var jsTexts = []string{
+var JSTexts = []string{
 	"Updating", "Downloading the new version...", "Checking the new version...", "Going back to the version of before...", "You have the latest version.", "Installed: the app starts again...", "The app does not answer: start it again by hand.",
 	"Deleting empty folders...", "Tasks running: %v", "Failed tasks: %v",
 	"Close", "Synchronizing!", "The library is being updated.", "Synchronization progress", "Done!",

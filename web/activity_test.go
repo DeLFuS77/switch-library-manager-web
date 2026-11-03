@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/csv"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -63,7 +64,7 @@ func TestActivityCsvHasNoFormulas(t *testing.T) {
 
 func TestActivityTextsAreTranslated(t *testing.T) {
 	for _, action := range activityActions {
-		if _, ok := translations["es"][action]; !ok {
+		if _, ok := i18n.Translations["es"][action]; !ok {
 			t.Errorf("no Spanish translation for %q", action)
 		}
 	}
@@ -78,7 +79,7 @@ func TestActivityDetailsAreTranslated(t *testing.T) {
 		{Action: ACTION_USER_NEW, Detail: "pedro"},
 	}
 	got := translateActivity("es", entries)
-	want := []string{"Borrar actualizaciones antiguas", "3 archivos + Duplicados", "2 archivos, originales borrados tras la comprobación", "ana: " + translate("es", "Player"), "pedro"}
+	want := []string{"Borrar actualizaciones antiguas", "3 archivos + Duplicados", "2 archivos, originales borrados tras la comprobación", "ana: " + i18n.Translate("es", "Player"), "pedro"}
 	for i := range want {
 		if got[i].Detail != want[i] {
 			t.Errorf("%q: got %q, want %q", entries[i].Detail, got[i].Detail, want[i])

@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"math"
 	"strings"
 	"time"
@@ -63,9 +64,9 @@ func historyCharts(days []HistoryDay, lang string) *HistoryCharts {
 	if len(days) < 2 {
 		return nil
 	}
-	t := func(text string, args ...any) string { return translatef(lang, text, args...) }
-	count := func(value float64) string { return formatNumber(lang, int(value)) }
-	size := func(value float64) string { return formatSizeIn(lang, int64(value)) }
+	t := func(text string, args ...any) string { return i18n.Translatef(lang, text, args...) }
+	count := func(value float64) string { return i18n.FormatNumber(lang, int(value)) }
+	size := func(value float64) string { return i18n.FormatSizeIn(lang, int64(value)) }
 	always := func(HistoryDay) bool { return true }
 	withDisk := func(day HistoryDay) bool { return day.Disk > 0 }
 
@@ -109,20 +110,20 @@ func historyCharts(days []HistoryDay, lang string) *HistoryCharts {
 		}
 	}
 	if perDay, ok := dailyTrend(recent, func(d HistoryDay) float64 { return float64(d.Size) }, always); ok && perDay > 0 {
-		charts.GrowthPerMonth = formatSizeIn(lang, int64(perDay*30))
+		charts.GrowthPerMonth = i18n.FormatSizeIn(lang, int64(perDay*30))
 	}
 	if perDay, ok := dailyTrend(recent, func(d HistoryDay) float64 { return float64(d.Disk - d.Free) }, withDisk); ok && perDay > 0 {
 		if latest := days[len(days)-1]; latest.Disk > 0 {
 			left := float64(latest.Free) / perDay
 			if left < historyForecastDays {
-				charts.FullOn = formatDate(lang, last.Add(time.Duration(left*24)*time.Hour))
+				charts.FullOn = i18n.FormatDate(lang, last.Add(time.Duration(left*24)*time.Hour))
 				switch {
 				case left < 14:
-					charts.FullIn = t("%v days", formatNumber(lang, int(math.Ceil(left))))
+					charts.FullIn = t("%v days", i18n.FormatNumber(lang, int(math.Ceil(left))))
 				case left < 60:
-					charts.FullIn = t("%v weeks", formatNumber(lang, int(math.Round(left/7))))
+					charts.FullIn = t("%v weeks", i18n.FormatNumber(lang, int(math.Round(left/7))))
 				default:
-					charts.FullIn = t("%v months", formatNumber(lang, int(math.Round(left/30))))
+					charts.FullIn = t("%v months", i18n.FormatNumber(lang, int(math.Round(left/30))))
 				}
 			}
 		}
@@ -159,7 +160,7 @@ func drawHistory(days []HistoryDay, lang string, lines []chartLine, scale float6
 		date, err := time.Parse("2006-01-02", day.Date)
 		return date.Sub(first).Hours() * historyChartWidth / span, err == nil
 	}
-	graph := &HistoryGraph{From: formatDate(lang, first), To: formatDate(lang, last)}
+	graph := &HistoryGraph{From: i18n.FormatDate(lang, first), To: i18n.FormatDate(lang, last)}
 	for _, line := range lines {
 		points := []string{}
 		lastValue := ""
@@ -193,7 +194,7 @@ func drawHistory(days []HistoryDay, lang string, lines []chartLine, scale float6
 		}
 		entry := pointerDay{X: math.Round(position*10) / 10, Values: []string{}}
 		if date, err := time.Parse("2006-01-02", day.Date); err == nil {
-			entry.Date = formatDate(lang, date)
+			entry.Date = i18n.FormatDate(lang, date)
 		}
 		for _, line := range lines {
 			value := "–"

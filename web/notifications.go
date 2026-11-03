@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"go.uber.org/zap"
 )
@@ -228,8 +229,8 @@ func (web *Web) notifyChanges() error {
 	}
 
 	lang := settingsObj.Language
-	if !isSupportedLanguage(lang) {
-		lang = DEFAULT_LANGUAGE
+	if !i18n.IsSupportedLanguage(lang) {
+		lang = i18n.DEFAULT_LANGUAGE
 	}
 	// without the titles or the library nothing is known: saved as empty, every update and
 	// DLC would be reported as new by the next synchronization
@@ -295,8 +296,8 @@ func (web *Web) notifyNewContent(events []HistoryEvent) {
 		return
 	}
 	lang := settingsObj.Language
-	if !isSupportedLanguage(lang) {
-		lang = DEFAULT_LANGUAGE
+	if !i18n.IsSupportedLanguage(lang) {
+		lang = i18n.DEFAULT_LANGUAGE
 	}
 	switchDB, _ := web.state.get()
 	items := []NotificationItem{}
@@ -327,28 +328,28 @@ func (web *Web) notifyNewContent(events []HistoryEvent) {
 const maxNotificationLines = 20
 
 func notificationText(lang string, items []NotificationItem) (string, string) {
-	title := translatef(lang, "Switch Library Manager: %v new item(s)", len(items))
+	title := i18n.Translatef(lang, "Switch Library Manager: %v new item(s)", len(items))
 	lines := []string{}
 	for i, item := range items {
 		if i == maxNotificationLines {
-			lines = append(lines, translatef(lang, "and %v more", len(items)-maxNotificationLines))
+			lines = append(lines, i18n.Translatef(lang, "and %v more", len(items)-maxNotificationLines))
 			break
 		}
 		switch item.Kind {
 		case "update":
-			lines = append(lines, "• "+translatef(lang, "Update %v for %v", item.Detail, item.Name))
+			lines = append(lines, "• "+i18n.Translatef(lang, "Update %v for %v", item.Detail, item.Name))
 		case "dlc":
-			lines = append(lines, "• "+translatef(lang, "DLC %v for %v", item.Detail, item.Name))
+			lines = append(lines, "• "+i18n.Translatef(lang, "DLC %v for %v", item.Detail, item.Name))
 		case "wish":
-			lines = append(lines, "• "+translatef(lang, "On your wishlist and available: %v", item.Name))
+			lines = append(lines, "• "+i18n.Translatef(lang, "On your wishlist and available: %v", item.Name))
 		case "wishdlc":
-			lines = append(lines, "• "+translatef(lang, "DLC %v for %v (on your wishlist)", item.Detail, item.Name))
+			lines = append(lines, "• "+i18n.Translatef(lang, "DLC %v for %v (on your wishlist)", item.Detail, item.Name))
 		case "new":
-			lines = append(lines, "• "+translatef(lang, "New in your library: %v", item.Name))
+			lines = append(lines, "• "+i18n.Translatef(lang, "New in your library: %v", item.Name))
 		case "newdlc":
-			lines = append(lines, "• "+translatef(lang, "New DLC in your library: %v", item.Name))
+			lines = append(lines, "• "+i18n.Translatef(lang, "New DLC in your library: %v", item.Name))
 		case "cheats":
-			lines = append(lines, "• "+translatef(lang, "Cheats for %v (%v, the version you have)", item.Name, item.Detail))
+			lines = append(lines, "• "+i18n.Translatef(lang, "Cheats for %v (%v, the version you have)", item.Name, item.Detail))
 		default:
 			lines = append(lines, "• "+item.Name)
 		}
@@ -514,20 +515,20 @@ func keptSecrets(sent settings.NotificationOptions, saved settings.NotificationO
 func validateNotifications(options settings.NotificationOptions, lang string) []FieldError {
 	errs := []FieldError{}
 	if options.DiscordWebhookUrl != "" && !discordWebhookRegex.MatchString(options.DiscordWebhookUrl) {
-		errs = append(errs, FieldError{Field: "discord_webhook_url", Message: translate(lang, "Enter the webhook URL copied from Discord (https://discord.com/api/webhooks/...)")})
+		errs = append(errs, FieldError{Field: "discord_webhook_url", Message: i18n.Translate(lang, "Enter the webhook URL copied from Discord (https://discord.com/api/webhooks/...)")})
 	}
 	if (options.TelegramBotToken == "") != (options.TelegramChatId == "") {
-		errs = append(errs, FieldError{Field: "telegram_chat_id", Message: translate(lang, "Telegram needs both the bot token and the chat ID")})
+		errs = append(errs, FieldError{Field: "telegram_chat_id", Message: i18n.Translate(lang, "Telegram needs both the bot token and the chat ID")})
 	} else if options.TelegramBotToken != "" {
 		if !telegramTokenRegex.MatchString(options.TelegramBotToken) {
-			errs = append(errs, FieldError{Field: "telegram_bot_token", Message: translate(lang, "Invalid bot token (as given by @BotFather)")})
+			errs = append(errs, FieldError{Field: "telegram_bot_token", Message: i18n.Translate(lang, "Invalid bot token (as given by @BotFather)")})
 		}
 		if !telegramChatRegex.MatchString(options.TelegramChatId) {
-			errs = append(errs, FieldError{Field: "telegram_chat_id", Message: translate(lang, "Invalid chat ID (a number or @channel)")})
+			errs = append(errs, FieldError{Field: "telegram_chat_id", Message: i18n.Translate(lang, "Invalid chat ID (a number or @channel)")})
 		}
 	}
 	if options.WebhookUrl != "" && !webhookRegex.MatchString(options.WebhookUrl) {
-		errs = append(errs, FieldError{Field: "webhook_url", Message: translate(lang, "Invalid URL")})
+		errs = append(errs, FieldError{Field: "webhook_url", Message: i18n.Translate(lang, "Invalid URL")})
 	}
 	// both fields of a channel, or none: the message goes to the one left empty
 	emptyOf := func(first string, firstField string, secondField string) string {
@@ -538,30 +539,30 @@ func validateNotifications(options settings.NotificationOptions, lang string) []
 	}
 	if options.NtfyUrl != "" || options.NtfyToken != "" {
 		if _, _, ok := ntfyTarget(options.NtfyUrl); !ok {
-			errs = append(errs, FieldError{Field: "ntfy_url", Message: translate(lang, "Write the address of the topic, like https://ntfy.sh/my-topic")})
+			errs = append(errs, FieldError{Field: "ntfy_url", Message: i18n.Translate(lang, "Write the address of the topic, like https://ntfy.sh/my-topic")})
 		}
 		if options.NtfyToken != "" && !ntfyTokenRegex.MatchString(options.NtfyToken) {
-			errs = append(errs, FieldError{Field: "ntfy_token", Message: translate(lang, "Invalid token")})
+			errs = append(errs, FieldError{Field: "ntfy_token", Message: i18n.Translate(lang, "Invalid token")})
 		}
 	}
 	if (options.GotifyUrl == "") != (options.GotifyToken == "") {
-		errs = append(errs, FieldError{Field: emptyOf(options.GotifyUrl, "gotify_url", "gotify_token"), Message: translate(lang, "Gotify needs both the address of the server and the token of the application")})
+		errs = append(errs, FieldError{Field: emptyOf(options.GotifyUrl, "gotify_url", "gotify_token"), Message: i18n.Translate(lang, "Gotify needs both the address of the server and the token of the application")})
 	} else if options.GotifyUrl != "" {
 		if _, ok := gotifyMessages(options.GotifyUrl); !ok {
-			errs = append(errs, FieldError{Field: "gotify_url", Message: translate(lang, "Write the address of the server, like https://gotify.example.com")})
+			errs = append(errs, FieldError{Field: "gotify_url", Message: i18n.Translate(lang, "Write the address of the server, like https://gotify.example.com")})
 		}
 		if !gotifyTokenRegex.MatchString(options.GotifyToken) {
-			errs = append(errs, FieldError{Field: "gotify_token", Message: translate(lang, "Invalid token")})
+			errs = append(errs, FieldError{Field: "gotify_token", Message: i18n.Translate(lang, "Invalid token")})
 		}
 	}
 	if (options.PushoverUser == "") != (options.PushoverToken == "") {
-		errs = append(errs, FieldError{Field: emptyOf(options.PushoverUser, "pushover_user", "pushover_token"), Message: translate(lang, "Pushover needs both the user key and the token of the application")})
+		errs = append(errs, FieldError{Field: emptyOf(options.PushoverUser, "pushover_user", "pushover_token"), Message: i18n.Translate(lang, "Pushover needs both the user key and the token of the application")})
 	} else if options.PushoverUser != "" {
 		if !pushoverKeyRegex.MatchString(options.PushoverUser) {
-			errs = append(errs, FieldError{Field: "pushover_user", Message: translate(lang, "Invalid key: 30 letters and numbers")})
+			errs = append(errs, FieldError{Field: "pushover_user", Message: i18n.Translate(lang, "Invalid key: 30 letters and numbers")})
 		}
 		if !pushoverKeyRegex.MatchString(options.PushoverToken) {
-			errs = append(errs, FieldError{Field: "pushover_token", Message: translate(lang, "Invalid key: 30 letters and numbers")})
+			errs = append(errs, FieldError{Field: "pushover_token", Message: i18n.Translate(lang, "Invalid key: 30 letters and numbers")})
 		}
 	}
 	return append(errs, validateEmail(options, lang)...)
@@ -574,36 +575,36 @@ func validateEmail(options settings.NotificationOptions, lang string) []FieldErr
 		return errs
 	}
 	if host := options.SmtpHost; !smtpHostRegex.MatchString(host) && net.ParseIP(host) == nil {
-		errs = append(errs, FieldError{Field: "smtp_host", Message: translate(lang, "Write the name of the mail server, like smtp.example.com")})
+		errs = append(errs, FieldError{Field: "smtp_host", Message: i18n.Translate(lang, "Write the name of the mail server, like smtp.example.com")})
 	}
 	if options.SmtpPort < 0 || options.SmtpPort > 65535 {
-		errs = append(errs, FieldError{Field: "smtp_port", Message: translate(lang, "Invalid port")})
+		errs = append(errs, FieldError{Field: "smtp_port", Message: i18n.Translate(lang, "Invalid port")})
 	}
 	security := emailSecurity(options)
 	if !slices.Contains(settings.SmtpSecurityChoices, security) {
-		errs = append(errs, FieldError{Field: "smtp_security", Message: translate(lang, "Unknown option")})
+		errs = append(errs, FieldError{Field: "smtp_security", Message: i18n.Translate(lang, "Unknown option")})
 	}
 	if (options.SmtpUser == "") != (options.SmtpPassword == "") {
 		field := "smtp_password"
 		if options.SmtpUser == "" {
 			field = "smtp_user"
 		}
-		errs = append(errs, FieldError{Field: field, Message: translate(lang, "Write both the user and the password, or neither")})
+		errs = append(errs, FieldError{Field: field, Message: i18n.Translate(lang, "Write both the user and the password, or neither")})
 	} else if options.SmtpUser != "" && security == settings.SMTP_NONE {
-		errs = append(errs, FieldError{Field: "smtp_security", Message: translate(lang, "Without encryption the password would travel in clear: choose STARTTLS or SSL/TLS")})
+		errs = append(errs, FieldError{Field: "smtp_security", Message: i18n.Translate(lang, "Without encryption the password would travel in clear: choose STARTTLS or SSL/TLS")})
 	}
 	if from := emailFrom(options); from == "" {
-		errs = append(errs, FieldError{Field: "smtp_from", Message: translate(lang, "Write the address the mail comes from")})
+		errs = append(errs, FieldError{Field: "smtp_from", Message: i18n.Translate(lang, "Write the address the mail comes from")})
 	} else if _, err := mail.ParseAddress(from); err != nil {
 		message := "Invalid email address"
 		if options.SmtpFrom == "" {
 			// the user is not an address: the mail needs one to come from
 			message = "Write the address the mail comes from"
 		}
-		errs = append(errs, FieldError{Field: "smtp_from", Message: translate(lang, message)})
+		errs = append(errs, FieldError{Field: "smtp_from", Message: i18n.Translate(lang, message)})
 	}
 	if _, ok := emailRecipients(options.SmtpTo); !ok {
-		errs = append(errs, FieldError{Field: "smtp_to", Message: translatef(lang, "Write one or more email addresses, separated by commas (at most %v)", maxEmailRecipients)})
+		errs = append(errs, FieldError{Field: "smtp_to", Message: i18n.Translatef(lang, "Write one or more email addresses, separated by commas (at most %v)", maxEmailRecipients)})
 	}
 	return errs
 }
@@ -670,7 +671,7 @@ func channelNames(lang string, names []string) string {
 	if len(names) < 2 {
 		return strings.Join(names, "")
 	}
-	return translatef(lang, "%v and %v", strings.Join(names[:len(names)-1], ", "), names[len(names)-1])
+	return i18n.Translatef(lang, "%v and %v", strings.Join(names[:len(names)-1], ", "), names[len(names)-1])
 }
 
 func (web *Web) HandleNotifications() {
@@ -693,12 +694,12 @@ func (web *Web) HandleNotifications() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "No notification channel is configured. Save the settings first.")
 			return
 		}
-		items := []NotificationItem{{Kind: "test", Name: translate(lang, "Test notification: notifications work.")}}
+		items := []NotificationItem{{Kind: "test", Name: i18n.Translate(lang, "Test notification: notifications work.")}}
 		title, text := notificationText(lang, items)
 		// every channel says how it went: one that failed is not hidden by the others
 		sent, failures, logged := []string{}, []string{}, []string{}
 		for _, result := range deliver(options, title, text, items) {
-			name := translate(lang, result.channel)
+			name := i18n.Translate(lang, result.channel)
 			if result.err == nil {
 				sent = append(sent, name)
 				continue
@@ -711,11 +712,11 @@ func (web *Web) HandleNotifications() {
 		}
 		switch {
 		case len(failures) == 0:
-			writeJSON(w, http.StatusOK, NotificationTestResponse{StrongMessage: translate(lang, "Sent!"), Message: translatef(lang, "To %v. Check your notification channels.", channelNames(lang, sent))})
+			writeJSON(w, http.StatusOK, NotificationTestResponse{StrongMessage: i18n.Translate(lang, "Sent!"), Message: i18n.Translatef(lang, "To %v. Check your notification channels.", channelNames(lang, sent))})
 		case len(sent) > 0:
-			writeJSON(w, http.StatusOK, NotificationTestResponse{StrongMessage: translatef(lang, "Sent to %v.", channelNames(lang, sent)), Failed: failures})
+			writeJSON(w, http.StatusOK, NotificationTestResponse{StrongMessage: i18n.Translatef(lang, "Sent to %v.", channelNames(lang, sent)), Failed: failures})
 		default:
-			writeJSON(w, http.StatusBadGateway, NotificationTestResponse{GlobalError: &GlobalError{StrongMessage: translate(lang, "Error!"), Message: translate(lang, "It reached no channel.")}, Failed: failures})
+			writeJSON(w, http.StatusBadGateway, NotificationTestResponse{GlobalError: &GlobalError{StrongMessage: i18n.Translate(lang, "Error!"), Message: i18n.Translate(lang, "It reached no channel.")}, Failed: failures})
 		}
 	}).Methods("POST")
 }

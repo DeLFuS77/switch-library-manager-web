@@ -23,6 +23,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -72,9 +73,9 @@ func failed(text string, args ...any) error {
 func failureText(lang string, err error) string {
 	var failure sendFailure
 	if errors.As(err, &failure) {
-		return translatef(lang, failure.text, failure.args...)
+		return i18n.Translatef(lang, failure.text, failure.args...)
 	}
-	return translate(lang, "it could not be sent")
+	return i18n.Translate(lang, "it could not be sent")
 }
 
 // webAddress parses an address of the settings: http or https, with a host and with nothing

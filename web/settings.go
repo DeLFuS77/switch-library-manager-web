@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"os"
@@ -206,12 +207,12 @@ func (web *Web) HandleSettings() {
 			if err != nil {
 				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 					Field:   "prod_keys",
-					Message: translatef(lang, "Error trying to read Product Keys (%v)", err),
+					Message: i18n.Translatef(lang, "Error trying to read Product Keys (%v)", err),
 				})
 			} else if keys["header_key"] == "" {
 				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 					Field:   "prod_keys",
-					Message: translate(lang, "Please provide a valid Product Keys Path"),
+					Message: i18n.Translate(lang, "Please provide a valid Product Keys Path"),
 				})
 			}
 		}
@@ -221,14 +222,14 @@ func (web *Web) HandleSettings() {
 		if len(scanFolders) == 0 {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 				Field:   "scan_folders",
-				Message: translate(lang, "Please provide at least one Folder to scan"),
+				Message: i18n.Translate(lang, "Please provide at least one Folder to scan"),
 			})
 		} else {
 			for _, value := range scanFolders {
 				if _, err := os.Stat(value); os.IsNotExist(err) || os.IsPermission(err) {
 					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 						Field:   "scan_folders",
-						Message: translatef(lang, "Folder not found: %v", value),
+						Message: i18n.Translatef(lang, "Folder not found: %v", value),
 					})
 
 					break
@@ -247,7 +248,7 @@ func (web *Web) HandleSettings() {
 			if !settings.ValidFolderPattern(value) {
 				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 					Field:   "exclude_folders",
-					Message: translatef(lang, "Write the name of a folder, or a pattern like *_build*, not a path: %v", value),
+					Message: i18n.Translatef(lang, "Write the name of a folder, or a pattern like *_build*, not a path: %v", value),
 				})
 				break
 			}
@@ -258,7 +259,7 @@ func (web *Web) HandleSettings() {
 				if !titleIdRegex.MatchString(value) {
 					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 						Field:   field,
-						Message: translatef(lang, "Invalid Title ID (16 hexadecimal characters): %v", value),
+						Message: i18n.Translatef(lang, "Invalid Title ID (16 hexadecimal characters): %v", value),
 					})
 
 					break
@@ -269,7 +270,7 @@ func (web *Web) HandleSettings() {
 		if _, ok := allowedSyncIntervals[settingsForm.SyncIntervalHours]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 				Field:   "sync_interval_hours",
-				Message: translate(lang, "Invalid synchronization interval"),
+				Message: i18n.Translate(lang, "Invalid synchronization interval"),
 			})
 		}
 
@@ -277,7 +278,7 @@ func (web *Web) HandleSettings() {
 			if _, ok := parseFirmware(firmware); !ok {
 				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 					Field:   "console_firmware",
-					Message: translate(lang, "Write the firmware like 18.1.0"),
+					Message: i18n.Translate(lang, "Write the firmware like 18.1.0"),
 				})
 			}
 		}
@@ -285,20 +286,20 @@ func (web *Web) HandleSettings() {
 		if _, ok := allowedAutoCompress[settingsForm.AutoCompress]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 				Field:   "auto_compress",
-				Message: translate(lang, "Unknown option"),
+				Message: i18n.Translate(lang, "Unknown option"),
 			})
 		}
 
 		if settingsForm.CompressThreads < 0 || settingsForm.CompressThreads > runtime.NumCPU() {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 				Field:   "compress_threads",
-				Message: translate(lang, "Unknown option"),
+				Message: i18n.Translate(lang, "Unknown option"),
 			})
 		}
 		if settingsForm.CompressFilesAtOnce < 0 || settingsForm.CompressFilesAtOnce > maxFilesAtOnce {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 				Field:   "compress_files_at_once",
-				Message: translate(lang, "Unknown option"),
+				Message: i18n.Translate(lang, "Unknown option"),
 			})
 		}
 
@@ -307,7 +308,7 @@ func (web *Web) HandleSettings() {
 				if region = strings.TrimSpace(region); region != "" && !regionPattern.MatchString(strings.ToUpper(region)) {
 					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 						Field:   field,
-						Message: translate(lang, "Unknown option"),
+						Message: i18n.Translate(lang, "Unknown option"),
 					})
 					break
 				}
@@ -317,21 +318,21 @@ func (web *Web) HandleSettings() {
 		if _, ok := allowedBackgroundHours[settingsForm.BackgroundHours]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 				Field:   "background_hours",
-				Message: translate(lang, "Unknown option"),
+				Message: i18n.Translate(lang, "Unknown option"),
 			})
 		}
 
 		if _, ok := allowedWatchIntervals[settingsForm.WatchIntervalMinutes]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 				Field:   "watch_interval_minutes",
-				Message: translate(lang, "Unknown option"),
+				Message: i18n.Translate(lang, "Unknown option"),
 			})
 		}
 
 		if _, ok := allowedVerifySpeeds[settingsForm.VerifySpeed]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 				Field:   "verify_speed",
-				Message: translate(lang, "Unknown option"),
+				Message: i18n.Translate(lang, "Unknown option"),
 			})
 		}
 
@@ -339,30 +340,30 @@ func (web *Web) HandleSettings() {
 		if settingsForm.VaultEnabled {
 			vaultUser := strings.TrimSpace(settingsForm.VaultUser)
 			if !validUserName.MatchString(vaultUser) {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_user", Message: translate(lang, ErrUserName.Error())})
+				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_user", Message: i18n.Translate(lang, ErrUserName.Error())})
 			}
 			if password := settingsForm.VaultPassword; password != "" {
 				if err := checkPassword(vaultUser, password); err != nil {
-					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_password", Message: translate(lang, err.Error())})
+					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_password", Message: i18n.Translate(lang, err.Error())})
 				}
 			} else if settings.ReadSettings(web.dataFolder).Vault.PasswordHash == "" {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_password", Message: translate(lang, ErrPasswordLength.Error())})
+				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_password", Message: i18n.Translate(lang, ErrPasswordLength.Error())})
 			}
 		}
 		if _, ok := allowedVaultKeep[settingsForm.VaultKeep]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_keep", Message: translate(lang, "Unknown option")})
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_keep", Message: i18n.Translate(lang, "Unknown option")})
 		}
 		if _, ok := quarantineKeeps[settingsForm.QuarantineKeep]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "quarantine_keep", Message: translate(lang, "Unknown option")})
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "quarantine_keep", Message: i18n.Translate(lang, "Unknown option")})
 		}
 		if !slices.Contains(quarantineLimits, settingsForm.QuarantineLimit) {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "quarantine_limit", Message: translate(lang, "Unknown option")})
+			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "quarantine_limit", Message: i18n.Translate(lang, "Unknown option")})
 		}
 
 		if _, ok := allowedVerifyIntervals[settingsForm.VerifyIntervalDays]; !ok {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 				Field:   "verify_interval_days",
-				Message: translate(lang, "Invalid verification interval"),
+				Message: i18n.Translate(lang, "Invalid verification interval"),
 			})
 		}
 
@@ -373,14 +374,14 @@ func (web *Web) HandleSettings() {
 		if !validWizardOrganize(settingsForm.OrganizeLayout, settingsForm.KeepDuplicate) {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 				Field:   "organize_layout",
-				Message: translate(lang, "Unknown option"),
+				Message: i18n.Translate(lang, "Unknown option"),
 			})
 		}
 
-		if settingsForm.Language != "" && !isSupportedLanguage(settingsForm.Language) {
+		if settingsForm.Language != "" && !i18n.IsSupportedLanguage(settingsForm.Language) {
 			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
 				Field:   "language",
-				Message: translate(lang, "Unsupported language"),
+				Message: i18n.Translate(lang, "Unsupported language"),
 			})
 		}
 
@@ -469,13 +470,13 @@ func (web *Web) HandleSettings() {
 			web.sugarLogger.Debugf("prod.keys not loaded: %s", err)
 		}
 
-		message := translate(lang, "Settings changed successfully. The library is being rescanned.")
+		message := i18n.Translate(lang, "Settings changed successfully. The library is being rescanned.")
 		if !web.Rescan(TRIGGER_SETTINGS) {
-			message = translate(lang, "Settings changed successfully. They will be applied by the next synchronization.")
+			message = i18n.Translate(lang, "Settings changed successfully. They will be applied by the next synchronization.")
 		}
 
 		return SuccessResponse{
-			StrongMessage: translate(lang, "Success!"),
+			StrongMessage: i18n.Translate(lang, "Success!"),
 			Message:       message,
 		}
 	}, web.embedFS, fsPatterns...)
@@ -486,7 +487,7 @@ func (web *Web) HandleSettings() {
 // would prove wrong.
 func notSaved(lang string, err error) SuccessResponse {
 	return SuccessResponse{failure: &ErrorResponse{FieldErrors: []FieldError{},
-		GlobalError: GlobalError{StrongMessage: translate(lang, "Error!"), Message: translatef(lang, "The settings could not be saved: %v", err)}}}
+		GlobalError: GlobalError{StrongMessage: i18n.Translate(lang, "Error!"), Message: i18n.Translatef(lang, "The settings could not be saved: %v", err)}}}
 }
 
 // VerifySpeedOption is a verification speed and how many files it checks at once here.
@@ -522,7 +523,7 @@ func (web *Web) settingsPageData() SettingsPageData {
 		Settings:                &shown,
 		NextSync:                nextSyncTime(current),
 		SyncIntervals:           []int{0, 6, 12, 24, 168},
-		Languages:               supportedLanguages,
+		Languages:               i18n.SupportedLanguages,
 		MissingCovers:           web.missingCovers(),
 		VerifySpeeds:            verifySpeedOptions(),
 		AutoBackups:             web.autoBackups(),
@@ -559,7 +560,7 @@ func repeatedFolders(folders []string, lang string) string {
 			}
 			if same {
 				if i < j {
-					return translatef(lang, "This folder is listed twice: %v", folder)
+					return i18n.Translatef(lang, "This folder is listed twice: %v", folder)
 				}
 				continue
 			}
@@ -568,7 +569,7 @@ func repeatedFolders(folders []string, lang string) string {
 				inside = db.FolderInside(folder, other)
 			}
 			if inside {
-				return translatef(lang, "%v is inside %v: its files would be read twice. Keep only one of them.", folder, other)
+				return i18n.Translatef(lang, "%v is inside %v: its files would be read twice. Keep only one of them.", folder, other)
 			}
 		}
 	}

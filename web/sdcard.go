@@ -17,6 +17,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -546,7 +547,7 @@ func (web *Web) HandleSdCard() {
 				total += file.Size
 			}
 		}
-		builder.WriteString("\n" + formatSize(total) + "\n")
+		builder.WriteString("\n" + i18n.FormatSize(total) + "\n")
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.Header().Set("Content-Disposition", "attachment; filename=\"sd-card.txt\"")
 		io.WriteString(w, builder.String())

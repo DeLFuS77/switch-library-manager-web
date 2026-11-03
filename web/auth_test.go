@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -479,7 +480,7 @@ func TestUserMessagesAreTranslated(t *testing.T) {
 		texts = append(texts, message)
 	}
 	for _, text := range texts {
-		if _, ok := translations["es"][text]; !ok {
+		if _, ok := i18n.Translations["es"][text]; !ok {
 			t.Errorf("no Spanish translation for %q", text)
 		}
 	}

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"os"
 	"path/filepath"
 	"testing"
@@ -37,7 +38,7 @@ func TestGameWithoutItsTitleKey(t *testing.T) {
 	if !found {
 		t.Fatal("Issues tells it")
 	}
-	if got := translateIssue("es", "no title key (rights ID 0100000000010000000000000000000a): the file has no ticket and title.keys does not list it"); got == "" || got[:3] != "sin" {
+	if got := i18n.TranslateIssue("es", "no title key (rights ID 0100000000010000000000000000000a): the file has no ticket and title.keys does not list it"); got == "" || got[:3] != "sin" {
 		t.Fatalf("translated: %q", got)
 	}
 

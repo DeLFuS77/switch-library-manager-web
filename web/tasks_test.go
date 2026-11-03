@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -124,7 +125,7 @@ func TestTaskLogSubscribersGetTheLatestVersion(t *testing.T) {
 
 func TestTaskNotesAreTranslated(t *testing.T) {
 	for _, text := range taskNoteTexts {
-		if _, ok := translations["es"][text]; !ok {
+		if _, ok := i18n.Translations["es"][text]; !ok {
 			t.Errorf("no Spanish translation for task note %q", text)
 		}
 	}
@@ -295,7 +296,7 @@ func TestScanStepsAreTranslated(t *testing.T) {
 		t.Fatalf("other messages stay: %q %q", key, arg)
 	}
 	for _, step := range progressSteps {
-		if _, ok := translations["es"][step.key]; !ok {
+		if _, ok := i18n.Translations["es"][step.key]; !ok {
 			t.Errorf("no Spanish translation for %q", step.key)
 		}
 	}
@@ -361,10 +362,10 @@ func TestLaneShowsTheStepWithTheSizeOfTheFile(t *testing.T) {
 	page := httptest.NewRecorder()
 	web.router.ServeHTTP(page, httptest.NewRequest(http.MethodGet, "/tasks.html?part=list", nil))
 	body := page.Body.String()
-	if want := formatSize(2<<30) + " / " + formatSize(4<<30); !strings.Contains(body, want) {
+	if want := i18n.FormatSize(2<<30) + " / " + i18n.FormatSize(4<<30); !strings.Contains(body, want) {
 		t.Errorf("the file shows %q", want)
 	}
-	if strings.Contains(body, formatSize(6<<30)+" / "+formatSize(12<<30)) {
+	if strings.Contains(body, i18n.FormatSize(6<<30)+" / "+i18n.FormatSize(12<<30)) {
 		t.Error("the file shows the bytes of every step")
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -29,8 +30,8 @@ func (web *Web) titleLanguages() []string {
 	web.languages.mutex.Lock()
 	defer web.languages.mutex.Unlock()
 	result := []string{}
-	for _, lang := range supportedLanguages {
-		if lang == DEFAULT_LANGUAGE {
+	for _, lang := range i18n.SupportedLanguages {
+		if lang == i18n.DEFAULT_LANGUAGE {
 			continue
 		}
 		_, err := os.Stat(filepath.Join(web.dataFolder, "titles."+lang+".json"))
@@ -44,7 +45,7 @@ func (web *Web) titleLanguages() []string {
 // noteLanguage records the language of a request. The title names of a language used for
 // the first time are loaded in the background, so they appear without a synchronization.
 func (web *Web) noteLanguage(lang string) {
-	if lang == DEFAULT_LANGUAGE {
+	if lang == i18n.DEFAULT_LANGUAGE {
 		return
 	}
 	web.languages.mutex.Lock()

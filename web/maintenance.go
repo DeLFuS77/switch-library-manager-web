@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -81,7 +82,7 @@ var stepOfPage = map[string]int{"organize": 3, "space": 4, "compress": 5}
 // maintenanceSteps tells the state of every step; what takes long to compute is prepared in
 // the background, and the step says so meanwhile.
 func (web *Web) maintenanceSteps(lang string) []MaintenanceStep {
-	t := func(text string, args ...any) string { return translatef(lang, text, args...) }
+	t := func(text string, args ...any) string { return i18n.Translatef(lang, text, args...) }
 	appSettings := settings.ReadSettings(web.dataFolder)
 	steps := []MaintenanceStep{
 		{Id: STEP_SYNC, Icon: "bi-arrow-repeat", Title: t("Synchronize"), Href: "/tasks.html",
@@ -108,9 +109,9 @@ func (web *Web) maintenanceSteps(lang string) []MaintenanceStep {
 			case localDB == nil || appSettings.LastSyncTime.IsZero():
 				step.Status, step.Detail, step.Action = STEP_TODO, t("The library was never synchronized."), "sync"
 			case time.Since(appSettings.LastSyncTime) > 7*24*time.Hour:
-				step.Status, step.Detail, step.Action = STEP_TODO, t("Last synchronized %v.", formatDateTime(lang, appSettings.LastSyncTime)), "sync"
+				step.Status, step.Detail, step.Action = STEP_TODO, t("Last synchronized %v.", i18n.FormatDateTime(lang, appSettings.LastSyncTime)), "sync"
 			default:
-				step.Status, step.Detail = STEP_DONE, t("Last synchronized %v.", formatDateTime(lang, appSettings.LastSyncTime))
+				step.Status, step.Detail = STEP_DONE, t("Last synchronized %v.", i18n.FormatDateTime(lang, appSettings.LastSyncTime))
 			}
 		case STEP_VERIFY:
 			unchecked, damaged := web.uncheckedFiles()
@@ -120,9 +121,9 @@ func (web *Web) maintenanceSteps(lang string) []MaintenanceStep {
 			case web.verifying():
 				step.Status, step.Detail = STEP_PREPARING, t("A check is running.")
 			case unchecked > 0:
-				step.Status, step.Detail, step.Action = STEP_TODO, t("%v files were never checked.", formatNumber(lang, unchecked)), "verify"
+				step.Status, step.Detail, step.Action = STEP_TODO, t("%v files were never checked.", i18n.FormatNumber(lang, unchecked)), "verify"
 			case damaged > 0:
-				step.Status, step.Detail = STEP_DONE, t("Everything checked; %v damaged files are on the Issues page.", formatNumber(lang, damaged))
+				step.Status, step.Detail = STEP_DONE, t("Everything checked; %v damaged files are on the Issues page.", i18n.FormatNumber(lang, damaged))
 				if damaged == 1 {
 					step.Detail = t("Everything checked; 1 damaged file is on the Issues page.")
 				}
@@ -145,7 +146,7 @@ func (web *Web) maintenanceSteps(lang string) []MaintenanceStep {
 			case localDB == nil || !ready:
 				step.Status, step.Detail = STEP_PREPARING, t("Looking at what would change...")
 			case changes > 0:
-				step.Status, step.Detail = STEP_TODO, t("%v changes are waiting.", formatNumber(lang, changes))
+				step.Status, step.Detail = STEP_TODO, t("%v changes are waiting.", i18n.FormatNumber(lang, changes))
 				if changes == 1 {
 					step.Detail = t("1 change is waiting.")
 				}
@@ -164,12 +165,12 @@ func (web *Web) maintenanceSteps(lang string) []MaintenanceStep {
 					data = web.spaceContent()
 				}
 				if data.Reclaimable > 0 {
-					step.Status, step.Detail = STEP_TODO, t("%v can be freed now.", formatSizeIn(lang, data.Reclaimable))
+					step.Status, step.Detail = STEP_TODO, t("%v can be freed now.", i18n.FormatSizeIn(lang, data.Reclaimable))
 				} else {
 					step.Status, step.Detail = STEP_DONE, t("Nothing to free now.")
 				}
 				if data.Unverified > 0 {
-					step.Detail += " " + t("%v more once their other copy is checked.", formatNumber(lang, data.Unverified))
+					step.Detail += " " + t("%v more once their other copy is checked.", i18n.FormatNumber(lang, data.Unverified))
 				}
 				if !ready {
 					step.Detail += " " + t("(updating...)")
@@ -187,7 +188,7 @@ func (web *Web) maintenanceSteps(lang string) []MaintenanceStep {
 			case !settings.IsKeysFileAvailable():
 				step.Status, step.Detail = STEP_DONE, t("Compressing needs your prod.keys.")
 			case len(candidates) > 0:
-				step.Status, step.Detail = STEP_TODO, t("%v files are not compressed (%v).", formatNumber(lang, len(candidates)), formatSizeIn(lang, size))
+				step.Status, step.Detail = STEP_TODO, t("%v files are not compressed (%v).", i18n.FormatNumber(lang, len(candidates)), i18n.FormatSizeIn(lang, size))
 			default:
 				step.Status, step.Detail = STEP_DONE, t("Every file is compressed.")
 			}

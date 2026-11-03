@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -312,7 +313,7 @@ func (web *Web) HandleBackup() {
 		if password := r.PostFormValue("password"); r.Method == http.MethodPost && password != "" {
 			sealed, err := encryptBackup(data, password)
 			if err != nil {
-				http.Error(w, translate(web.requestLanguage(r), err.Error()), http.StatusBadRequest)
+				http.Error(w, i18n.Translate(web.requestLanguage(r), err.Error()), http.StatusBadRequest)
 				return
 			}
 			data, name, kind = sealed, strings.TrimSuffix(name, ".zip")+".slmbackup", "application/octet-stream"
@@ -356,8 +357,8 @@ func (web *Web) HandleBackup() {
 		web.sugarLogger.Info("[Backup restored]")
 		web.Rescan(TRIGGER_SETTINGS)
 		writeJSON(w, http.StatusOK, SuccessResponse{
-			StrongMessage: translate(lang, "Success!"),
-			Message:       translate(lang, "The backup was restored. The library is being rescanned."),
+			StrongMessage: i18n.Translate(lang, "Success!"),
+			Message:       i18n.Translate(lang, "The backup was restored. The library is being rescanned."),
 		})
 	}).Methods("POST")
 }

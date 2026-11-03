@@ -1,8 +1,8 @@
-package web
+package i18n
 
 // Simplified Chinese interface translations; see translations.go.
 func init() {
-	translations["zh"] = map[string]string{
+	Translations["zh"] = map[string]string{
 		// folders to skip when scanning
 		"Folders to skip": "要跳过的文件夹",
 		"One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted.": "每行一个。单词会跳过名称中包含它的文件夹，不区分大小写：“build”也会跳过“Dragon Quest Builders”。使用 * 或 ? 时，整个名称必须匹配，例如 *_build*。其中的内容不会被扫描、整理或删除。",

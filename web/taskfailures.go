@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -30,19 +31,19 @@ func (web *Web) notifyTaskFailed(task Task) {
 		return
 	}
 	lang := settingsObj.Language
-	if !isSupportedLanguage(lang) {
-		lang = DEFAULT_LANGUAGE
+	if !i18n.IsSupportedLanguage(lang) {
+		lang = i18n.DEFAULT_LANGUAGE
 	}
 	kind := task.Kind
 	if name, ok := taskKindNames[kind]; ok {
-		kind = translate(lang, name)
+		kind = i18n.Translate(lang, name)
 	}
-	reason := translate(lang, task.Error.Text)
+	reason := i18n.Translate(lang, task.Error.Text)
 	if task.Error.Detail != "" {
 		reason += "\n" + task.Error.Detail
 	}
-	title := translate(lang, "A task failed")
-	text := translatef(lang, "%v failed: %v", kind, reason)
+	title := i18n.Translate(lang, "A task failed")
+	text := i18n.Translatef(lang, "%v failed: %v", kind, reason)
 	item := map[string]any{"kind": task.Kind, "id": task.Id, "reason": task.Error.Text, "detail": task.Error.Detail}
 	if err := sendMessage(options, title, text, []any{item}); err != nil {
 		web.sugarLogger.Warnf("Failed to send the notification of a failed task: %v", err)

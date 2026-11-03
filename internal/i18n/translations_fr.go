@@ -1,8 +1,8 @@
-package web
+package i18n
 
 // French interface translations; see translations.go.
 func init() {
-	translations["fr"] = map[string]string{
+	Translations["fr"] = map[string]string{
 		// folders to skip when scanning
 		"Folders to skip": "Dossiers à ignorer",
 		"One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted.": "Un par ligne. Un mot ignore les dossiers dont le nom le contient, sans tenir compte des majuscules : « build » ignore aussi « Dragon Quest Builders ». Avec * ou ?, le nom entier doit correspondre, comme dans *_build*. Ce qu'ils contiennent n'est ni analysé, ni organisé, ni supprimé.",

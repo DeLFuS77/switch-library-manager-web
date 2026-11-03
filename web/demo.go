@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -289,7 +290,7 @@ func (web *Web) demoReadOnly(next http.Handler) http.Handler {
 		switch r.Method {
 		case http.MethodGet, http.MethodHead, http.MethodOptions:
 			if r.URL.Path == "/diagnostics.html" {
-				http.Error(w, translate(web.requestLanguage(r), DEMO_HIDDEN), http.StatusForbidden)
+				http.Error(w, i18n.Translate(web.requestLanguage(r), DEMO_HIDDEN), http.StatusForbidden)
 				return
 			}
 		default:

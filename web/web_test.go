@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"github.com/gorilla/mux"
@@ -673,7 +674,7 @@ func TestSetIgnoredAndFormatSize(t *testing.T) {
 		t.Fatalf("unexpected list: %v", list)
 	}
 	for size, want := range map[int64]string{512: "512 B", 2048: "2.0 KB", 213637397: "203.7 MB", 16 << 30: "16.0 GB"} {
-		if got := formatSize(size); got != want {
+		if got := i18n.FormatSize(size); got != want {
 			t.Errorf("formatSize(%d) = %q, want %q", size, got, want)
 		}
 	}

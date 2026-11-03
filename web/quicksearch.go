@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"net/http"
 	"net/url"
@@ -178,7 +179,7 @@ func (web *Web) quickSeries(lang string) []quickEntry {
 			if saga.ImageUrl != "" {
 				image = thumbUrl(saga.ImageUrl)
 			}
-			entries = append(entries, newQuickEntry(QuickResult{Label: saga.Name, Href: "/sagas.html?" + values.Encode(), Image: image, Icon: "bi-stack", Meta: translatef(lang, "%v of %v", saga.Owned, saga.Total)}, saga.Name, ""))
+			entries = append(entries, newQuickEntry(QuickResult{Label: saga.Name, Href: "/sagas.html?" + values.Encode(), Image: image, Icon: "bi-stack", Meta: i18n.Translatef(lang, "%v of %v", saga.Owned, saga.Total)}, saga.Name, ""))
 		}
 		sort.SliceStable(entries, func(i, j int) bool { return sortName(entries[i].result.Label) < sortName(entries[j].result.Label) })
 		return entries
@@ -196,7 +197,7 @@ func (web *Web) quickCollections(lang string) []quickEntry {
 	entries := []quickEntry{}
 	for _, name := range web.collections().names() {
 		href := "/index.html?" + url.Values{"collection": {name}}.Encode()
-		entries = append(entries, newQuickEntry(QuickResult{Label: name, Href: href, Icon: "bi-bookmark", Meta: translatef(lang, "%v games", counts[name])}, name, ""))
+		entries = append(entries, newQuickEntry(QuickResult{Label: name, Href: href, Icon: "bi-bookmark", Meta: i18n.Translatef(lang, "%v games", counts[name])}, name, ""))
 	}
 	return entries
 }
@@ -209,7 +210,7 @@ func quickPagesFor(query *search.Query, lang string, admin bool) []QuickResult {
 		if page.admin && !admin {
 			continue
 		}
-		label := translate(lang, page.label)
+		label := i18n.Translate(lang, page.label)
 		result := QuickResult{Label: label, Href: page.href, Icon: page.icon}
 		if query.Text == "" {
 			if page.suggested {

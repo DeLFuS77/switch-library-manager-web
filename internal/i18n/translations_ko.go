@@ -1,8 +1,8 @@
-package web
+package i18n
 
 // Korean interface translations; see translations.go.
 func init() {
-	translations["ko"] = map[string]string{
+	Translations["ko"] = map[string]string{
 		// folders to skip when scanning
 		"Folders to skip": "건너뛸 폴더",
 		"One per line. A word skips the folders whose name contains it, in any case: “build” also skips “Dragon Quest Builders”. With * or ? the whole name has to match, as in *_build*. What is inside is not scanned, organized or deleted.": "한 줄에 하나씩. 단어는 이름에 그 단어가 들어 있는 폴더를 대소문자 구분 없이 건너뛰어요. “build”는 “Dragon Quest Builders”도 건너뛰어요. * 또는 ?를 쓰면 이름 전체가 맞아야 해요(예: *_build*). 안에 있는 것은 스캔, 정리, 삭제하지 않아요.",

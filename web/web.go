@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/launch"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/process"
@@ -505,7 +506,7 @@ var funcMap = template.FuncMap{
 	"filterHidden": func(filter *TitleItemFilter, own ...string) template.HTML {
 		return filter.hiddenFields(own...)
 	},
-	"formatSize": formatSize,
+	"formatSize": i18n.FormatSize,
 	// versions as v0, v65536
 	"versionList": func(versions []int) string {
 		texts := make([]string, len(versions))
@@ -518,7 +519,7 @@ var funcMap = template.FuncMap{
 	"thumb":           thumbUrl,
 	"fullImage":       fullImageUrl,
 	"maintenanceStep": maintenanceStepOf,
-	"formatBytes":     func(size int) string { return formatSize(int64(size)) },
+	"formatBytes":     func(size int) string { return i18n.FormatSize(int64(size)) },
 	"asset":           func(path string) string { return path + "?v=" + assetVersion },
 	// the app runs in a container: its log is the log of the container, not a window
 	"inContainer": runningInContainer,
@@ -637,7 +638,7 @@ func (web *Web) navCounts() NavCounts {
 	counts.Missing = web.missingGamesCount()
 	// as the Updates page lists them (the copies kept of games of several regions depend little
 	// on the language)
-	counts.Updates = len(web.shownMissingUpdates(DEFAULT_LANGUAGE))
+	counts.Updates = len(web.shownMissingUpdates(i18n.DEFAULT_LANGUAGE))
 	for _, title := range web.missingDLC() {
 		counts.Dlc += len(title.MissingDLCItems)
 	}
@@ -995,9 +996,9 @@ func progressMessage(message string) (string, string) {
 // that is only the name of a file stays as it is.
 func messageText(lang string, message string, arg string) string {
 	if arg != "" {
-		return translatef(lang, message, arg)
+		return i18n.Translatef(lang, message, arg)
 	}
-	return translate(lang, message)
+	return i18n.Translate(lang, message)
 }
 
 // taskLog returns the task history, loading it on first use.
@@ -1232,7 +1233,7 @@ func (web *Web) loadLocalizedTitles(download bool) map[string]map[string]db.Loca
 // loadTitleLanguage loads titles.<lang>.json, downloading a newer one first if asked.
 func (web *Web) loadTitleLanguage(lang string, download bool) (map[string]db.LocalizedTitle, bool) {
 	// the language names a file of the data folder and goes in the address of the download
-	if lang = supportedLanguage(lang); lang == "" {
+	if lang = i18n.SupportedLanguage(lang); lang == "" {
 		return nil, false
 	}
 	web.languages.fileMutex.Lock()

@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 )
 
 // Updates and DLC of games that are not in the library are reported one by one in Issues
@@ -33,7 +34,7 @@ func (web *Web) HandleOrphans() {
 
 // orphanCount is the number of games with updates or DLC in the library but not the game.
 func (web *Web) orphanCount() int {
-	return web.derived("orphanCount", func() any { return len(web.buildOrphans(DEFAULT_LANGUAGE)) }).(int)
+	return web.derived("orphanCount", func() any { return len(web.buildOrphans(i18n.DEFAULT_LANGUAGE)) }).(int)
 }
 
 // buildOrphans lists the games of which the library has updates or DLC but not the game.

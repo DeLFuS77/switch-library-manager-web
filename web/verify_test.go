@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -83,7 +84,7 @@ func TestVerifyFindsDamagedFiles(t *testing.T) {
 	if icon := issueIcon("damaged file: x"); !strings.Contains(icon, "bi-heartbreak") {
 		t.Fatalf("icon: %s", icon)
 	}
-	if translated := translateIssue("es", "damaged file: x"); translated != "archivo dañado: x" {
+	if translated := i18n.TranslateIssue("es", "damaged file: x"); translated != "archivo dañado: x" {
 		t.Fatalf("translation: %s", translated)
 	}
 
@@ -372,7 +373,7 @@ func TestAFileThatCannotBeReadIsNotDamaged(t *testing.T) {
 			}
 		}
 	}
-	for lang, texts := range translations {
+	for lang, texts := range i18n.Translations {
 		if texts[NOTE_VERIFY_UNREADABLE] == "" {
 			t.Errorf("%s: no translation of the warning", lang)
 		}

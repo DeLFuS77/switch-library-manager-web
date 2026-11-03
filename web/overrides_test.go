@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -502,8 +503,8 @@ func TestBackupKeepsTheChangesByHand(t *testing.T) {
 // The messages of a change by hand that is refused are translated in every language.
 func TestOverrideMessagesAreTranslated(t *testing.T) {
 	for _, err := range []error{errOverrideId, errOverrideUnknown, errOverrideNotImage, errOverrideCoverLarge, errOverrideCoverUrl, errOverrideSave} {
-		for _, lang := range supportedLanguages {
-			if _, ok := translations[lang][err.Error()]; !ok && lang != DEFAULT_LANGUAGE {
+		for _, lang := range i18n.SupportedLanguages {
+			if _, ok := i18n.Translations[lang][err.Error()]; !ok && lang != i18n.DEFAULT_LANGUAGE {
 				t.Errorf("no %s translation for %q", lang, err.Error())
 			}
 		}

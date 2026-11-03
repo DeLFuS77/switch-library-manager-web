@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 )
 
@@ -42,7 +43,7 @@ func TestFilterFormsKeepEveryFilter(t *testing.T) {
 	render := func(name string) string {
 		var out strings.Builder
 		data := map[string]any{"Filter": f, "Page": "index", "Pagination": pagination.Calculate(f.Page, f.PerPage, 500)}
-		if err := set[DEFAULT_LANGUAGE].ExecuteTemplate(&out, name, data); err != nil {
+		if err := set[i18n.DEFAULT_LANGUAGE].ExecuteTemplate(&out, name, data); err != nil {
 			t.Fatal(err)
 		}
 		return out.String()

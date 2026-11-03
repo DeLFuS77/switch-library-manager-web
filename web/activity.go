@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"net/http"
 	"path/filepath"
 	"regexp"
@@ -299,30 +300,30 @@ func translateActivity(lang string, entries []Activity) []Activity {
 	for i, entry := range entries {
 		detail := entry.Detail
 		if label, ok := activityValues[detail]; ok {
-			detail = translate(lang, label)
+			detail = i18n.Translate(lang, label)
 		}
 		if match := activityFilesPattern.FindStringSubmatch(detail); match != nil {
-			detail = translatef(lang, "%v files", match[1]) + detail[len(match[0]):]
+			detail = i18n.Translatef(lang, "%v files", match[1]) + detail[len(match[0]):]
 		}
 		parts := strings.Split(detail, " + ")
 		for j, part := range parts {
 			if label, ok := activityValues[part]; ok {
-				parts[j] = translate(lang, label)
+				parts[j] = i18n.Translate(lang, label)
 			}
 		}
 		detail = strings.Join(parts, " + ")
 		for _, phrase := range activityPhrases {
-			detail = strings.Replace(detail, phrase, ", "+translate(lang, strings.TrimPrefix(phrase, ", ")), 1)
+			detail = strings.Replace(detail, phrase, ", "+i18n.Translate(lang, strings.TrimPrefix(phrase, ", ")), 1)
 		}
 		// the role after the last colon: the name of an API key before it may have one too
 		if i := strings.LastIndex(detail, ": "); i >= 0 {
 			if label, ok := activityValues[detail[i+2:]]; ok {
-				detail = detail[:i] + ": " + translate(lang, label)
+				detail = detail[:i] + ": " + i18n.Translate(lang, label)
 			}
 		}
 		// a key that does not exist names no user
 		if entry.User == "" && (entry.Detail == apiKeyFailDetail || entry.Detail == apiKeyBlockedDetail) {
-			entry.User = translate(lang, "API key")
+			entry.User = i18n.Translate(lang, "API key")
 		}
 		// a token that is not valid names nobody
 		if entry.User == "" && entry.Detail == portalTokenDetail {

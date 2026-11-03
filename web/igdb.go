@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -348,7 +349,7 @@ func (web *Web) lookupTimesToBeat(trigger string) bool {
 	now := time.Now()
 	type pending struct{ id, name string }
 	games := []pending{}
-	for _, item := range web.derived("library:"+DEFAULT_LANGUAGE, func() any { return web.buildLibrary(DEFAULT_LANGUAGE) }).([]TitleItem) {
+	for _, item := range web.derived("library:"+i18n.DEFAULT_LANGUAGE, func() any { return web.buildLibrary(i18n.DEFAULT_LANGUAGE) }).([]TitleItem) {
 		name := item.OriginalName
 		if name == "" {
 			name = item.Name

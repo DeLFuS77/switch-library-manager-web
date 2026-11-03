@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"golang.org/x/crypto/bcrypt"
@@ -510,8 +511,8 @@ func (web *Web) notifyVaultUpload(path string) {
 		return
 	}
 	lang := settingsObj.Language
-	if !isSupportedLanguage(lang) {
-		lang = DEFAULT_LANGUAGE
+	if !i18n.IsSupportedLanguage(lang) {
+		lang = i18n.DEFAULT_LANGUAGE
 	}
 	name := filepath.Base(filepath.Dir(path))
 	if id, _, ok := jksvMeta(path); ok {
@@ -522,8 +523,8 @@ func (web *Web) notifyVaultUpload(path string) {
 			}
 		}
 	}
-	title := translate(lang, "Switch Library Manager: save backed up")
-	text := translatef(lang, "New backup of your save of %v.", name)
+	title := i18n.Translate(lang, "Switch Library Manager: save backed up")
+	text := i18n.Translatef(lang, "New backup of your save of %v.", name)
 	if err := sendMessage(settingsObj.Notifications, title, text, map[string]string{"game": name, "file": filepath.Base(path)}); err != nil {
 		web.sugarLogger.Warnf("Failed to send the save vault message: %v", err)
 	}

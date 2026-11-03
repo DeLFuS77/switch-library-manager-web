@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -57,9 +58,9 @@ var appStarted = time.Now()
 func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 	t := func(text string, args ...any) string {
 		if len(args) > 0 {
-			return translatef(lang, text, args...)
+			return i18n.Translatef(lang, text, args...)
 		}
-		return translate(lang, text)
+		return i18n.Translate(lang, text)
 	}
 	appSettings := settings.ReadSettings(web.dataFolder)
 	switchDB, localDB := web.state.get()
@@ -113,7 +114,7 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 			check.Value = t("Readable and writable")
 		}
 		if free, err := diskfree.Free(folder); err == nil {
-			check.Value += " · " + t("%v free", formatSizeIn(lang, int64(free)))
+			check.Value += " · " + t("%v free", i18n.FormatSizeIn(lang, int64(free)))
 			if free < lowDiskSpace && check.Status == CHECK_OK {
 				check.Status, check.Hint = CHECK_WARN, t("Little free space left.")
 			}
@@ -124,7 +125,7 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 		folders.Checks = append(folders.Checks, Check{Label: t("Files found"), Value: t("%v files, %v not recognized", num(lang, localDB.NumFiles), num(lang, len(localDB.Skipped))), Status: CHECK_INFO})
 	}
 	if scan := lastTask(web.taskLog().Snapshot(), TASK_SCAN); scan != nil {
-		check := Check{Label: t("Last scan"), Value: formatDateTime(lang, scan.Started) + " · " + t("took %v", scan.Duration()), Status: CHECK_OK}
+		check := Check{Label: t("Last scan"), Value: i18n.FormatDateTime(lang, scan.Started) + " · " + t("took %v", scan.Duration()), Status: CHECK_OK}
 		if scan.Status != TASK_SUCCESS {
 			check.Status, check.Hint = CHECK_WARN, t("See the details in Tasks.")
 		}
@@ -139,7 +140,7 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 	} else {
 		database.Checks = append(database.Checks, Check{Label: t("Titles"), Value: num(lang, len(switchDB.TitlesMap)), Status: CHECK_OK})
 	}
-	sync := Check{Label: t("Last synchronization"), Value: formatDateTime(lang, appSettings.LastSyncTime), Status: CHECK_OK}
+	sync := Check{Label: t("Last synchronization"), Value: i18n.FormatDateTime(lang, appSettings.LastSyncTime), Status: CHECK_OK}
 	if appSettings.LastSyncTime.IsZero() {
 		sync.Status, sync.Hint = CHECK_WARN, t("Synchronize to download the titles database.")
 	} else if time.Since(appSettings.LastSyncTime) > 14*24*time.Hour {
@@ -158,14 +159,14 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 		dataCheck.Status, dataCheck.Value, dataCheck.Hint = CHECK_ERROR, t("Read only"), t("The settings cannot be saved. In Docker, check PUID and PGID.")
 	}
 	if free, err := diskfree.Free(web.dataFolder); err == nil {
-		dataCheck.Value += " · " + t("%v free", formatSizeIn(lang, int64(free)))
+		dataCheck.Value += " · " + t("%v free", i18n.FormatSizeIn(lang, int64(free)))
 		if free < lowDiskSpace/5 && dataCheck.Status == CHECK_OK {
 			dataCheck.Status, dataCheck.Hint = CHECK_WARN, t("Little free space left.")
 		}
 	}
 	data.Checks = append(data.Checks, dataCheck)
 	if backups := web.autoBackups(); len(backups) > 0 {
-		data.Checks = append(data.Checks, Check{Label: t("Automatic copies"), Value: t("%v, the last on %v", len(backups), formatDateTime(lang, backups[0].Time)), Status: CHECK_OK})
+		data.Checks = append(data.Checks, Check{Label: t("Automatic copies"), Value: t("%v, the last on %v", len(backups), i18n.FormatDateTime(lang, backups[0].Time)), Status: CHECK_OK})
 	} else {
 		data.Checks = append(data.Checks, Check{Label: t("Automatic copies"), Value: t("None yet"), Status: CHECK_INFO})
 	}
@@ -200,7 +201,7 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 	}
 	work.Checks = append(work.Checks, tasks, Check{Label: t("Issues"), Value: num(lang, len(web.getIssues())), Status: CHECK_INFO})
 	if last := web.verifications().lastRun(); !last.IsZero() {
-		work.Checks = append(work.Checks, Check{Label: t("Last file check"), Value: formatDateTime(lang, last), Status: CHECK_INFO})
+		work.Checks = append(work.Checks, Check{Label: t("Last file check"), Value: i18n.FormatDateTime(lang, last), Status: CHECK_INFO})
 	}
 	groups = append(groups, work)
 
@@ -221,7 +222,7 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 }
 
 func num(lang string, n int) string {
-	return formatNumber(lang, n)
+	return i18n.FormatNumber(lang, n)
 }
 
 // writable reports whether a file can be created in a folder.

@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -334,7 +335,7 @@ func TestUploadsInTasks(t *testing.T) {
 		t.Fatalf("a cancelled upload: %+v", task)
 	}
 	for _, text := range []string{NOTE_UPLOAD_CANCELED, NOTE_UPLOAD_STOPPED, "Upload", "Upload to"} {
-		if translate("es", text) == text {
+		if i18n.Translate("es", text) == text {
 			t.Errorf("not translated: %q", text)
 		}
 	}

@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"errors"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -118,7 +119,7 @@ func TestTimesToBeatAreLookedUpAndKept(t *testing.T) {
 	for deadline := time.Now().Add(20 * time.Second); web.timeToBeatRunning.Load() && time.Now().Before(deadline); {
 		time.Sleep(20 * time.Millisecond)
 	}
-	library := web.buildLibrary(DEFAULT_LANGUAGE)
+	library := web.buildLibrary(i18n.DEFAULT_LANGUAGE)
 	if len(library) == 0 {
 		t.Fatal("no library")
 	}
@@ -126,7 +127,7 @@ func TestTimesToBeatAreLookedUpAndKept(t *testing.T) {
 	if !ok || !value.Known() {
 		t.Fatalf("kept: %+v %v", value, ok)
 	}
-	if item := web.buildLibrary(DEFAULT_LANGUAGE)[0]; item.TimeToBeat != 54000 {
+	if item := web.buildLibrary(i18n.DEFAULT_LANGUAGE)[0]; item.TimeToBeat != 54000 {
 		t.Fatalf("the library knows the time: %d", item.TimeToBeat)
 	}
 

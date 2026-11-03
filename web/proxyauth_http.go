@@ -10,6 +10,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -133,10 +134,10 @@ func (web *Web) handlePortal() {
 			field, err = web.checkOidcProvider(web.auth.withEnv(current), web.auth.withEnv(options))
 		}
 		if err != nil {
-			message := translate(lang, err.Error())
+			message := i18n.Translate(lang, err.Error())
 			if errors.Is(err, ErrOidcIssuerName) {
 				named, _ := oidcIssuerProblem(err)
-				message = translatef(lang, ErrOidcIssuerName.Error(), named)
+				message = i18n.Translatef(lang, ErrOidcIssuerName.Error(), named)
 			}
 			w.WriteHeader(http.StatusBadRequest)
 			encoder.Encode(ErrorResponse{FieldErrors: []FieldError{{Field: field, Message: message}}})
@@ -149,7 +150,7 @@ func (web *Web) handlePortal() {
 			encoder.Encode(notSaved(lang, err).failure)
 			return
 		}
-		encoder.Encode(SuccessResponse{StrongMessage: translate(lang, "Success!"), Message: translate(lang, "The options of the sign-in portal were saved.")})
+		encoder.Encode(SuccessResponse{StrongMessage: i18n.Translate(lang, "Success!"), Message: i18n.Translate(lang, "The options of the sign-in portal were saved.")})
 	}).Methods("POST")
 
 	web.router.HandleFunc("/users/email", func(w http.ResponseWriter, r *http.Request) {

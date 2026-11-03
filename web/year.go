@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"net/http"
 	"sort"
 	"strconv"
@@ -75,10 +76,10 @@ type YearPageData struct {
 
 // monthLabel is the short name of a month in a language, for the bars.
 func monthLabel(lang string, month time.Month) string {
-	if months, ok := monthAbbreviations[lang]; ok {
+	if months, ok := i18n.MonthAbbreviations[lang]; ok {
 		return months[month-1]
 	}
-	if signs, ok := dateSigns[lang]; ok {
+	if signs, ok := i18n.DateSigns[lang]; ok {
 		return fmt.Sprintf("%d%s", month, strings.TrimSpace(signs[1]))
 	}
 	return month.String()[:3]
@@ -184,7 +185,7 @@ func (web *Web) buildYearReview(year int, lang string, now time.Time) YearReview
 		}
 	}
 	if busiest >= 0 {
-		review.BusiestMonth = formatMonth(lang, time.Date(year, time.Month(busiest+1), 1, 0, 0, 0, 0, time.UTC))
+		review.BusiestMonth = i18n.FormatMonth(lang, time.Date(year, time.Month(busiest+1), 1, 0, 0, 0, 0, time.UTC))
 	}
 
 	if top := topCounts(genres, 1); len(top) > 0 {

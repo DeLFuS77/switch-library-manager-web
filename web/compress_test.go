@@ -19,6 +19,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -240,7 +241,7 @@ func TestCompressDamageIncludesFilesCutShort(t *testing.T) {
 
 func TestCompressNotesAreTranslated(t *testing.T) {
 	for _, text := range compressNoteTexts {
-		if _, ok := translations["es"][text]; !ok {
+		if _, ok := i18n.Translations["es"][text]; !ok {
 			t.Errorf("no Spanish translation for %q", text)
 		}
 	}

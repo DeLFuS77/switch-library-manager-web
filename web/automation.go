@@ -14,6 +14,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -465,35 +466,35 @@ func (web *Web) latestTaskId(kind string) int64 {
 
 // automationMessage is the text of the message: what came, and what was done with it.
 func automationMessage(lang string, result AutomationResult) (string, string) {
-	title := translate(lang, "Switch Library Manager: new files taken care of")
+	title := i18n.Translate(lang, "Switch Library Manager: new files taken care of")
 	lines := []string{}
 	for i, name := range result.Games {
 		if i == maxNotificationLines {
-			lines = append(lines, translatef(lang, "and %v more", len(result.Games)-maxNotificationLines))
+			lines = append(lines, i18n.Translatef(lang, "and %v more", len(result.Games)-maxNotificationLines))
 			break
 		}
-		lines = append(lines, "• "+translatef(lang, "New in your library: %v", name))
+		lines = append(lines, "• "+i18n.Translatef(lang, "New in your library: %v", name))
 	}
 	if result.Updates > 0 {
-		lines = append(lines, "• "+translatef(lang, "%v new updates", result.Updates))
+		lines = append(lines, "• "+i18n.Translatef(lang, "%v new updates", result.Updates))
 	}
 	if result.Checked > 0 {
-		checked := translatef(lang, "%v files checked, %v corrupted", result.Checked, result.Damaged)
+		checked := i18n.Translatef(lang, "%v files checked, %v corrupted", result.Checked, result.Damaged)
 		if result.Modified > 0 {
-			checked = translatef(lang, "%v files checked, %v modified, %v corrupted", result.Checked, result.Modified, result.Damaged)
+			checked = i18n.Translatef(lang, "%v files checked, %v modified, %v corrupted", result.Checked, result.Modified, result.Damaged)
 		}
 		lines = append(lines, "✓ "+checked)
 	}
 	if result.Compressed > 0 {
-		lines = append(lines, "✓ "+translatef(lang, "%v files compressed, %v saved", result.Compressed, formatSizeIn(lang, result.Saved)))
+		lines = append(lines, "✓ "+i18n.Translatef(lang, "%v files compressed, %v saved", result.Compressed, i18n.FormatSizeIn(lang, result.Saved)))
 	}
 	if result.Removed > 0 && result.Quarantined {
-		lines = append(lines, "✓ "+translatef(lang, "%v old updates moved to the quarantine", result.Removed))
+		lines = append(lines, "✓ "+i18n.Translatef(lang, "%v old updates moved to the quarantine", result.Removed))
 	} else if result.Removed > 0 {
-		lines = append(lines, "✓ "+translatef(lang, "%v old updates deleted", result.Removed))
+		lines = append(lines, "✓ "+i18n.Translatef(lang, "%v old updates deleted", result.Removed))
 	}
 	if result.Moved > 0 {
-		lines = append(lines, "✓ "+translatef(lang, "%v files organized", result.Moved))
+		lines = append(lines, "✓ "+i18n.Translatef(lang, "%v files organized", result.Moved))
 	}
 	return title, strings.Join(lines, "\n")
 }
@@ -504,8 +505,8 @@ func (web *Web) notifyAutomation(result AutomationResult) {
 		return
 	}
 	lang := settingsObj.Language
-	if !isSupportedLanguage(lang) {
-		lang = DEFAULT_LANGUAGE
+	if !i18n.IsSupportedLanguage(lang) {
+		lang = i18n.DEFAULT_LANGUAGE
 	}
 	title, text := automationMessage(lang, result)
 	if err := sendMessage(settingsObj.Notifications, title, text, result); err != nil {
