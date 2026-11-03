@@ -803,10 +803,6 @@ func init() {
 		"The game pages also show the scores of critics and players, and the library can be sorted and filtered by them.": "游戏页面还会显示评论家和玩家的评分，媒体库也可以按评分排序和筛选。",
 		"Critics":        "评论家",
 		"Scores on IGDB": "IGDB 上的评分",
-		"1 review":       "1 篇评测",
-		"%v reviews":     "%v 篇评测",
-		"1 vote":         "1 票",
-		"%v votes":       "%v 票",
 		// the scores in Statistics
 		"Scores":               "评分",
 		"Critics' average":     "评论家平均分",

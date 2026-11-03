@@ -806,10 +806,6 @@ func init() {
 		"The game pages also show the scores of critics and players, and the library can be sorted and filtered by them.": "Le pagine dei giochi mostrano anche i voti della critica e dei giocatori, e la libreria si può ordinare e filtrare in base a essi.",
 		"Critics":        "Critica",
 		"Scores on IGDB": "Voti su IGDB",
-		"1 review":       "1 recensione",
-		"%v reviews":     "%v recensioni",
-		"1 vote":         "1 voto",
-		"%v votes":       "%v voti",
 		// the scores in Statistics
 		"Scores":               "Voti",
 		"Critics' average":     "Media della critica",

@@ -803,10 +803,6 @@ func init() {
 		"The game pages also show the scores of critics and players, and the library can be sorted and filtered by them.": "게임 페이지에 평론가와 플레이어의 평점도 표시되며, 라이브러리를 평점으로 정렬하고 필터링할 수 있습니다.",
 		"Critics":        "평론가",
 		"Scores on IGDB": "IGDB 평점",
-		"1 review":       "리뷰 1개",
-		"%v reviews":     "리뷰 %v개",
-		"1 vote":         "1표",
-		"%v votes":       "%v표",
 		// the scores in Statistics
 		"Scores":               "평점",
 		"Critics' average":     "평론가 평균",

@@ -803,10 +803,6 @@ func init() {
 		"The game pages also show the scores of critics and players, and the library can be sorted and filtered by them.": "De spelpagina's tonen ook de scores van critici en spelers, en de bibliotheek kan erop gesorteerd en gefilterd worden.",
 		"Critics":        "Critici",
 		"Scores on IGDB": "Scores op IGDB",
-		"1 review":       "1 recensie",
-		"%v reviews":     "%v recensies",
-		"1 vote":         "1 stem",
-		"%v votes":       "%v stemmen",
 		// the scores in Statistics
 		"Scores":               "Scores",
 		"Critics' average":     "Gemiddelde van critici",

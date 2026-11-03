@@ -804,10 +804,6 @@ var Translations = map[string]map[string]string{
 		"The game pages also show the scores of critics and players, and the library can be sorted and filtered by them.": "Las fichas de los juegos también enseñan las notas de la crítica y de los jugadores, y la biblioteca se puede ordenar y filtrar por ellas.",
 		"Critics":        "Crítica",
 		"Scores on IGDB": "Notas en IGDB",
-		"1 review":       "1 reseña",
-		"%v reviews":     "%v reseñas",
-		"1 vote":         "1 voto",
-		"%v votes":       "%v votos",
 		// the scores in Statistics
 		"Scores":               "Notas",
 		"Critics' average":     "Nota media de la crítica",

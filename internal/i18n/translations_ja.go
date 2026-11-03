@@ -803,10 +803,6 @@ func init() {
 		"The game pages also show the scores of critics and players, and the library can be sorted and filtered by them.": "ゲームのページには評論家とプレイヤーの評価も表示され、ライブラリを評価で並べ替えたり絞り込んだりできます。",
 		"Critics":        "評論家",
 		"Scores on IGDB": "IGDBの評価",
-		"1 review":       "レビュー1件",
-		"%v reviews":     "レビュー%v件",
-		"1 vote":         "1票",
-		"%v votes":       "%v票",
 		// the scores in Statistics
 		"Scores":               "評価",
 		"Critics' average":     "評論家の平均",

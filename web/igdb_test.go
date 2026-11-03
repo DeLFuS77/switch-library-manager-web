@@ -250,7 +250,8 @@ func TestScoreLevels(t *testing.T) {
 	}
 }
 
-// The game page shows the scores under the publisher, linked to IGDB, and nothing without them.
+// The game page shows the scores under the publisher, without the reviews and votes they come from
+// and with no link out, and nothing without them.
 func TestGamePageShowsTheScores(t *testing.T) {
 	web := newTestWeb(t)
 	web.embedFS = os.DirFS("..")
@@ -272,17 +273,21 @@ func TestGamePageShowsTheScores(t *testing.T) {
 		CriticScore: 93.6, CriticCount: 23, UserScore: 61, UserCount: 1})
 	web.invalidateDerived()
 	page := get()
-	for _, want := range []string{`<a class="title-scores" href="https://www.igdb.com/games/star-odyssey"`, `class="score score-top">94<`,
-		"23 reviews", `class="score score-mid">61<`, "1 vote<"} {
+	for _, want := range []string{`<div class="title-scores"`, `class="score score-top">94<`, "Critics", `class="score score-mid">61<`, "Players"} {
 		if !strings.Contains(page, want) {
 			t.Errorf("the game page misses %q", want)
+		}
+	}
+	for _, unwanted := range []string{`<a class="title-scores"`, "23 reviews", "1 vote"} {
+		if strings.Contains(page, unwanted) {
+			t.Errorf("the game page shows %q", unwanted)
 		}
 	}
 
 	// only the score there is
 	web.timesToBeat().set("0100000000010000", TimeToBeat{Found: true, Checked: time.Now(), UserScore: 40, UserCount: 1200})
 	web.invalidateDerived()
-	if page := get(); strings.Contains(page, "Critics") || !strings.Contains(page, `class="score score-low">40<`) || !strings.Contains(page, "1,200 votes") {
+	if page := get(); strings.Contains(page, "Critics") || !strings.Contains(page, `class="score score-low">40<`) || strings.Contains(page, "1,200 votes") {
 		t.Error("the game page shows only the score of the users")
 	}
 }
