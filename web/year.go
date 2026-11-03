@@ -220,7 +220,7 @@ func (web *Web) buildYearReview(year int, lang string, now time.Time) YearReview
 	}
 	review.NewGames = added
 
-	for _, marked := range web.favorites().snapshotTimes() {
+	for _, marked := range web.favorites().SnapshotTimes() {
 		if marked.Year() == year {
 			review.Favorites++
 		}

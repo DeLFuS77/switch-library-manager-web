@@ -7,6 +7,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 )
 
@@ -31,13 +32,13 @@ func TestFilterFormsKeepEveryFilter(t *testing.T) {
 	}
 	f := &TitleItemFilter{Keyword: `zelda "&"`, PerPage: 48, SortBy: "added", SortOrder: "desc", Page: 3, Status: STATUS_UPDATE, Format: "nsz",
 		Kind: KIND_GAME, Region: "eur", Extra: EXTRA_FAVORITES, Collection: "Couch", IssueKind: "damaged", WithMissing: "0",
-		Genre: db.Genres[0], Players: "2", GameLanguage: "ja", Play: PLAY_PLAYING}
+		Genre: db.Genres[0], Players: "2", GameLanguage: "ja", Play: userdata.PLAY_PLAYING}
 	f.Normalize()
 	f.FitColumns(5)
 	hidden := func(name, value string) string {
 		return `<input type="hidden" name="` + name + `" value="` + value + `">`
 	}
-	kept := []string{hidden("missing", "0"), hidden("play", PLAY_PLAYING), hidden("collection", "Couch"), hidden("kind_of_issue", "damaged"),
+	kept := []string{hidden("missing", "0"), hidden("play", userdata.PLAY_PLAYING), hidden("collection", "Couch"), hidden("kind_of_issue", "damaged"),
 		hidden("genre", db.Genres[0]), hidden("players", "2"), hidden("languages", "ja"), hidden("kind", KIND_GAME), hidden("region", "eur"),
 		hidden("extra", EXTRA_FAVORITES), hidden("status", STATUS_UPDATE), hidden("format", "nsz")}
 	render := func(name string) string {

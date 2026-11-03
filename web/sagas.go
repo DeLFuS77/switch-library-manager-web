@@ -87,7 +87,7 @@ func (web *Web) sagaMembers(family string, lang string) []TitleItem {
 		return nil
 	}
 	index := web.sagas()
-	wished := web.wishes().snapshot()
+	wished := web.wishes().Snapshot()
 	items := []TitleItem{}
 	for _, prefix := range index.membersOf[family] {
 		title := switchDB.TitlesMap[prefix]

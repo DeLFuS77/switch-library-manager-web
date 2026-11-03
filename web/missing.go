@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"sort"
@@ -21,7 +22,7 @@ func (web *Web) HandleMissing() {
 		items, p, facets := web.getMissingGamesWithFacets(filter, lang)
 		data := MissingPageData{TitleItemsPageData: TitleItemsPageData{
 			GlobalPageData: web.globalPageData("missing"),
-			WishedCount:    web.wishes().count(),
+			WishedCount:    web.wishes().Count(),
 			TitleItems:     items,
 			Filter:         filter,
 			Pagination:     p,
@@ -46,7 +47,7 @@ func (web *Web) getMissingGames(filter *TitleItemFilter, lang string) ([]TitleIt
 }
 
 // getMissingGamesWithFacets gives the page of the missing games that match the filter: the
-// wishlist, the search, the region, the genre, the players, the language and games or demos.
+// Wishlist, the search, the region, the genre, the players, the language and games or demos.
 // Each filter is counted before its own choice, like in the Library.
 func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination, LibraryFacets) {
 	all := web.sorted("missingGames:"+lang, filter, func() []TitleItem { return web.buildMissingGames(lang) })
@@ -57,7 +58,7 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 	matched := make([]int, 0, len(all))
 	for index := range all {
 		item := &all[index]
-		if (filter.Status == STATUS_WANTED && !item.Wished) || !filter.MatchesItem(item) {
+		if (filter.Status == userdata.STATUS_WANTED && !item.Wished) || !filter.MatchesItem(item) {
 			continue
 		}
 		if item.Region != "" {
@@ -146,7 +147,7 @@ func (web *Web) buildMissingGames(lang string) []TitleItem {
 	}
 
 	hideDemoGames := settings.ReadSettings(web.dataFolder).HideDemoGames
-	wished := web.wishes().snapshot()
+	wished := web.wishes().Snapshot()
 
 	for k, v := range switchDB.TitlesMap {
 		if local, ok := localDB.TitlesMap[k]; ok && local.BaseExist {

@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -170,7 +171,7 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 			}
 		}
 	}
-	plays := web.play().all(filter.player)
+	plays := web.play().All(filter.player)
 	facets.Play = map[string]int{}
 
 	for index := range all {
@@ -342,7 +343,7 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	facets.Genres = sortedCounts(genreCounts)
 	facets.Languages = sortedCounts(languageCounts)
 	for name, count := range collectionCounts {
-		facets.Collections = append(facets.Collections, CollectionCount{Name: name, Count: count})
+		facets.Collections = append(facets.Collections, userdata.CollectionCount{Name: name, Count: count})
 	}
 	sort.Slice(facets.Collections, func(i, j int) bool {
 		return strings.ToLower(facets.Collections[i].Name) < strings.ToLower(facets.Collections[j].Name)
@@ -394,7 +395,7 @@ func (web *Web) libraryViews(current string, lang string) LibraryViews {
 func (web *Web) buildLibraryWithMissing(lang string) []TitleItem {
 	library := web.derived("library:"+lang, func() any { return web.buildLibrary(lang) }).([]TitleItem)
 	missing := web.derived("missing:"+lang, func() any { return web.buildMissingGames(lang) }).([]TitleItem)
-	collections := web.collections().snapshot()
+	collections := web.collections().Snapshot()
 	items := make([]TitleItem, 0, len(library)+len(missing))
 	items = append(items, library...)
 	for _, item := range missing {
@@ -418,8 +419,8 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 	ignoredUpdates := toLowerSet(settingsObj.IgnoreUpdateTitleIds)
 	ignoredDlc := toLowerSet(settingsObj.IgnoreDLCTitleIds)
 	added := web.history().addedTimes()
-	collections := web.collections().snapshot()
-	favorites := web.favorites().snapshot()
+	collections := web.collections().Snapshot()
+	favorites := web.favorites().Snapshot()
 	timesToBeat := web.timesToBeat().snapshot()
 	cheats := web.cheats()
 

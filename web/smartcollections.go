@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -43,7 +44,7 @@ func (web *Web) smartCollections() *smartCollectionStore {
 	return web.smartCollectionsStore
 }
 
-// reload reads them again, also after a backup was restored.
+// Reload reads them again, also after a backup was restored.
 func (s *smartCollectionStore) reload() {
 	items := []SmartCollection{}
 	if data, ok := durable.ReadStore(s.path); ok {
@@ -164,7 +165,7 @@ func (web *Web) smartCollectionViews(filter *TitleItemFilter, lang string) []Sma
 func (web *Web) HandleSmartCollections() {
 	web.router.HandleFunc("/smart-collections", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
-		name := cleanCollectionName(r.FormValue("name"))
+		name := userdata.CleanCollectionName(r.FormValue("name"))
 		if name == "" {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Invalid collection name")
 			return

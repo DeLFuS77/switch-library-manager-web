@@ -189,13 +189,13 @@ func (web *Web) quickSeries(lang string) []quickEntry {
 // quickCollections are the collections with the number of their games, sorted by name.
 func (web *Web) quickCollections(lang string) []quickEntry {
 	counts := map[string]int{}
-	for _, names := range web.collections().snapshot() {
+	for _, names := range web.collections().Snapshot() {
 		for _, name := range names {
 			counts[name]++
 		}
 	}
 	entries := []quickEntry{}
-	for _, name := range web.collections().names() {
+	for _, name := range web.collections().Names() {
 		href := "/index.html?" + url.Values{"collection": {name}}.Encode()
 		entries = append(entries, newQuickEntry(QuickResult{Label: name, Href: href, Icon: "bi-bookmark", Meta: i18n.Translatef(lang, "%v games", counts[name])}, name, ""))
 	}

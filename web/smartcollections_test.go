@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"net/http"
 	"net/url"
 	"strings"
@@ -31,8 +32,8 @@ func TestSmartCollections(t *testing.T) {
 		t.Fatalf("nothing played yet: %+v", views)
 	}
 	// it fills by itself
-	web.play().set("", id, PlayEntry{Status: PLAY_PLAYING})
-	filter.Play = PLAY_PLAYING
+	web.play().Set("", id, userdata.PlayEntry{Status: userdata.PLAY_PLAYING})
+	filter.Play = userdata.PLAY_PLAYING
 	// the same filters as the ones kept (All, not My games)
 	filter.WithMissing = ""
 	views := web.smartCollectionViews(filter, "en")

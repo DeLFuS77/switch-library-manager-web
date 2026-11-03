@@ -73,7 +73,7 @@ func (web *Web) availableItems(lang string) []NotificationItem {
 
 	if options.NotifyWishlist {
 		today := time.Now().Format("20060102")
-		for _, id := range web.wishes().ids() {
+		for _, id := range web.wishes().Ids() {
 			title, ok := switchDB.TitlesMap[strings.ToLower(id[:13])]
 			if !ok {
 				continue

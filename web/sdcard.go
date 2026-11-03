@@ -20,6 +20,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -121,7 +122,7 @@ func readSdOptions(query url.Values) SdOptions {
 	}
 	options.Multiplayer = query.Get("multiplayer") == "1"
 	options.MoreGames = query.Get("strategy") == "more"
-	options.Collection = cleanCollectionName(query.Get("collection"))
+	options.Collection = userdata.CleanCollectionName(query.Get("collection"))
 	if search := strings.TrimSpace(query.Get("q")); len(search) <= 80 {
 		options.Search = search
 	}
@@ -163,13 +164,13 @@ func (web *Web) sdPlan(options SdOptions, lang string) SdPlan {
 }
 
 func (web *Web) buildSdPlan(options SdOptions, lang string) SdPlan {
-	plan := SdPlan{Options: options, Usable: sdUsable(options), Collections: web.collections().names()}
+	plan := SdPlan{Options: options, Usable: sdUsable(options), Collections: web.collections().Names()}
 	switchDB, localDB := web.state.get()
 	if localDB == nil {
 		return plan
 	}
-	favorites := web.favorites().snapshot()
-	collections := web.collections().snapshot()
+	favorites := web.favorites().Snapshot()
+	collections := web.collections().Snapshot()
 	added := web.history().addedTimes()
 	recentSince := time.Now().AddDate(0, 0, -recentDays)
 

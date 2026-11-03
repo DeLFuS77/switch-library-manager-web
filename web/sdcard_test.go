@@ -25,7 +25,7 @@ func TestSdPlanner(t *testing.T) {
 		t.Fatalf("totals: %+v", plan)
 	}
 	// the favorites give their genres when none is chosen
-	web.favorites().set("0100000000010000", true)
+	web.favorites().Set("0100000000010000", true)
 	plan = web.sdPlan(readSdOptions(url.Values{}), "en")
 	if !plan.Options.AutoGenres || plan.Options.Genres[0] != "RPG" || plan.Selected[0].Reasons[0].Key != "Favorite" {
 		t.Fatalf("genres of the favorites: %+v", plan.Options)

@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -12,7 +13,7 @@ import (
 func TestAutomaticBackupsKeepTheLastOnes(t *testing.T) {
 	web := newTestWeb(t)
 	os.WriteFile(filepath.Join(web.dataFolder, "settings.json"), []byte(`{}`), 0600)
-	os.WriteFile(filepath.Join(web.dataFolder, FAVORITES_FILENAME), []byte(`{"0100000000010000":"2026-01-01T00:00:00Z"}`), 0600)
+	os.WriteFile(filepath.Join(web.dataFolder, userdata.FAVORITES_FILENAME), []byte(`{"0100000000010000":"2026-01-01T00:00:00Z"}`), 0600)
 	start := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
 	if !web.autoBackupDue(start) {
 		t.Fatal("without copies a copy is due")
@@ -35,7 +36,7 @@ func TestAutomaticBackupsKeepTheLastOnes(t *testing.T) {
 	}
 	data, _ := os.ReadFile(filepath.Join(web.autoBackupFolder(), backups[0].Name))
 	files, err := readBackup(data)
-	if err != nil || len(files[FAVORITES_FILENAME]) == 0 {
+	if err != nil || len(files[userdata.FAVORITES_FILENAME]) == 0 {
 		t.Fatalf("the copy holds the configuration: %v %v", err, files)
 	}
 	for _, name := range []string{"../settings.json", "slm-backup-2026-02-12.zip/../../x", "settings.json", "slm-backup-1999-01-01.zip"} {

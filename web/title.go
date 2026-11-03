@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/gorilla/mux"
 )
@@ -109,7 +110,7 @@ type TitleDetail struct {
 	OriginalDescription string
 	OriginalImageUrl    string
 
-	// all local files of the game, downloadable as one archive
+	// All local files of the game, downloadable as one archive
 	ArchiveFiles int
 	ArchiveSize  int64
 	// the files a complete pack of the game is made of (base, latest update and DLC)
@@ -127,8 +128,8 @@ type TitlePageData struct {
 	Favorite bool
 	Saga     SagaProgress
 	// how the game goes for the user, and the states to choose from
-	Play       PlayEntry
-	PlayStates []PlayState
+	Play       userdata.PlayEntry
+	PlayStates []userdata.PlayState
 }
 
 func newTitleFile(info db.SwitchFileInfo, fileType string, downloadUrl string) *TitleFile {
@@ -237,7 +238,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 	}
 
 	detail.Name = titleName(switchDB, lang, detail.Id, getLocalTitleName(title, local))
-	detail.Wished = web.wishes().has(detail.Id)
+	detail.Wished = web.wishes().Has(detail.Id)
 	detail.TimeToBeat, _ = web.timesToBeat().get(detail.Id)
 	detail.Saves = web.titleSaves(detail.Id, lang)
 	// the name and description of the game without what the user changed by hand
@@ -286,7 +287,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		detail.Versions = titleVersions(detail.Name, title.Updates, local)
 	}
 
-	// all DLC known to the titles database or present in the library
+	// All DLC known to the titles database or present in the library
 	dlcIds := map[string]struct{}{}
 	if title != nil {
 		for id := range title.Dlc {
@@ -402,9 +403,9 @@ func (web *Web) HandleTitle() {
 			return
 		}
 		web.render(w, r, templates, TitlePageData{GlobalPageData: web.globalPageData("title"), Title: detail,
-			Collections: web.collections().of(detail.Id), AllCollections: web.collections().names(),
-			Favorite: web.favorites().has(detail.Id), Saga: web.sameSaga(detail.Id, detail.Name, web.requestLanguage(r)),
-			Play: web.play().of(playUser(r), detail.Id), PlayStates: PlayStates()})
+			Collections: web.collections().Of(detail.Id), AllCollections: web.collections().Names(),
+			Favorite: web.favorites().Has(detail.Id), Saga: web.sameSaga(detail.Id, detail.Name, web.requestLanguage(r)),
+			Play: web.play().Of(playUser(r), detail.Id), PlayStates: userdata.PlayStates()})
 	}).Methods("GET")
 }
 

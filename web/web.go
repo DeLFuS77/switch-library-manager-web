@@ -9,6 +9,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/launch"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -122,7 +123,7 @@ type Web struct {
 	covers         coverLoader
 	background     backgroundWork
 	coverFallbacks map[string]coverFallback
-	wish           *wishlist
+	wish           *userdata.Wishlist
 	wishOnce       sync.Once
 	activity       *activity.Log
 	activityOnce   sync.Once
@@ -168,12 +169,12 @@ type Web struct {
 	// the save vault: verified passwords and what was read from the backups (see vault.go)
 	vault           vaultAuth
 	vaultFiles      vaultIndex
-	coll            *collectionStore
+	coll            *userdata.Collections
 	collectionsOnce sync.Once
-	fav             *favoriteStore
+	fav             *userdata.Favorites
 	favoritesOnce   sync.Once
 	// how the games go for each user (see play.go)
-	playStore *playStore
+	playStore *userdata.PlayStore
 	playOnce  sync.Once
 	// the filters of the Library kept under a name (see smartcollections.go)
 	smartCollectionsStore *smartCollectionStore
@@ -295,7 +296,7 @@ type TitleItem struct {
 	// library: the game is a favorite, or it is not in the library (shown with the others)
 	Favorite bool
 	// how the game goes for the user who looks (set on the shown page only)
-	Play    PlayEntry
+	Play    userdata.PlayEntry
 	Missing bool
 	// library: there are cheats for the version of the game the library has, or only for
 	// other versions
@@ -332,7 +333,7 @@ func (t TitleItem) DlcPercent() int {
 }
 
 type GlobalPageData struct {
-	// set by render for the user of the request
+	// Set by render for the user of the request
 	Auth AuthInfo
 	// a newer version of the app, if one was released
 	Update *AppUpdate
@@ -431,7 +432,7 @@ type LibraryFacets struct {
 	TwoPlayers   int
 	FourPlayers  int
 	// the collections with their number of games, before the collection filter
-	Collections []CollectionCount
+	Collections []userdata.CollectionCount
 	Regions     []string
 	// the settings hide the demos unless the kind filter asks for them
 	DemosHidden bool
@@ -495,11 +496,11 @@ var funcMap = template.FuncMap{
 		return template.URL("?" + values.Encode())
 	},
 	// filterUrl links to the current list with some filter values replaced: filterUrl .Filter "status" "dlc"
-	"playStates":    PlayStates,
+	"playStates":    userdata.PlayStates,
 	"roleName":      func(role string) string { return roleNames[role] },
 	"roleChoices":   RoleChoices,
 	"cheatTargets":  func() []cheatTarget { return cheatTargets },
-	"playStateName": func(state string) string { return playStateLooks[state].Name },
+	"playStateName": func(state string) string { return userdata.PlayStateLooks[state].Name },
 	"filterUrl": func(filter *TitleItemFilter, replace ...string) template.URL {
 		return template.URL("?" + filter.query(replace...).Encode())
 	},
@@ -626,7 +627,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 
 // navCounts counts the missing updates and DLC (respecting the ignore lists) and the issues.
 func (web *Web) navCounts() NavCounts {
-	counts := NavCounts{FailedTasks: web.taskLog().FailedCount(), RunningTasks: web.taskLog().RunningCount(), Wished: web.wishes().count()}
+	counts := NavCounts{FailedTasks: web.taskLog().FailedCount(), RunningTasks: web.taskLog().RunningCount(), Wished: web.wishes().Count()}
 	switchDB, localDB := web.state.get()
 	if localDB == nil {
 		return counts
@@ -1070,7 +1071,7 @@ func (web *Web) holdScan() bool {
 }
 
 // releaseScan lets scans run again after holdScan. A rescan asked meanwhile was left for the end
-// of a scan, and no scan ended: it is done now, or done by the one asked here (a trigger), else
+// Of a scan, and no scan ended: it is done now, or done by the one asked here (a trigger), else
 // it would wait for whatever starts the next scan, and a task waiting in the queue with it.
 func (web *Web) releaseScan(trigger string) {
 	web.state.endSync()
@@ -1221,7 +1222,7 @@ func (web *Web) buildLocalDB(switchDB *db.SwitchTitlesDB, ignoreCache bool) (*db
 
 // loadLocalizedTitles loads the names and descriptions of the title languages. With
 // download, newer files are fetched first. Failures only lose the translations: English
-// names are used instead.
+// Names are used instead.
 func (web *Web) loadLocalizedTitles(download bool) map[string]map[string]db.LocalizedTitle {
 	result := map[string]map[string]db.LocalizedTitle{}
 	for _, lang := range web.titleLanguages() {

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/search"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -17,7 +18,7 @@ const (
 	// games released in these last days are shown as just released
 	justReleasedDays = 14
 	// the filter of the games on the wishlist or of a series of the library
-	STATUS_FOR_YOU = STATUS_WANTED
+	STATUS_FOR_YOU = userdata.STATUS_WANTED
 )
 
 // UpcomingGame is a game not released yet or just released, and why it matters to the user.
@@ -78,7 +79,7 @@ func (web *Web) upcomingGamesAt(lang string, now time.Time) []UpcomingGame {
 	}
 	from := today(now).AddDate(0, 0, -justReleasedDays)
 	hideDemos := settings.ReadSettings(web.dataFolder).HideDemoGames
-	wished := web.wishes().snapshot()
+	wished := web.wishes().Snapshot()
 
 	// the names of the games of the library, in every store
 	owned := map[string]bool{}

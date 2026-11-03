@@ -18,6 +18,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -33,7 +34,7 @@ const (
 // users, the verification results and the notified versions, the copies chosen of the games of
 // several regions and what was changed of games by hand. Console keys, the session key and the
 // caches are never included.
-var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, WISHLIST_FILENAME, activity.ACTIVITY_FILENAME, HISTORY_FILENAME, COLLECTIONS_FILENAME, FAVORITES_FILENAME, PLAY_FILENAME, SMART_COLLECTIONS_FILENAME,
+var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, userdata.WISHLIST_FILENAME, activity.ACTIVITY_FILENAME, HISTORY_FILENAME, userdata.COLLECTIONS_FILENAME, userdata.FAVORITES_FILENAME, userdata.PLAY_FILENAME, SMART_COLLECTIONS_FILENAME,
 	REGION_CHOICES_FILENAME, TITLE_OVERRIDES_FILENAME}
 
 // backupCover is the name in a backup of a cover chosen by hand, kept in OVERRIDE_COVERS_FOLDER:
@@ -270,14 +271,14 @@ func (web *Web) restoreBackup(data []byte, firstUsers func() error) error {
 	if _, ok := files[activity.ACTIVITY_FILENAME]; ok {
 		web.activities().Reload()
 	}
-	if _, ok := files[FAVORITES_FILENAME]; ok {
-		web.favorites().reload()
+	if _, ok := files[userdata.FAVORITES_FILENAME]; ok {
+		web.favorites().Reload()
 	}
-	if _, ok := files[COLLECTIONS_FILENAME]; ok {
-		web.collections().reload()
+	if _, ok := files[userdata.COLLECTIONS_FILENAME]; ok {
+		web.collections().Reload()
 	}
-	if _, ok := files[PLAY_FILENAME]; ok {
-		web.play().reload()
+	if _, ok := files[userdata.PLAY_FILENAME]; ok {
+		web.play().Reload()
 	}
 	if _, ok := files[SMART_COLLECTIONS_FILENAME]; ok {
 		web.smartCollections().reload()
@@ -287,8 +288,8 @@ func (web *Web) restoreBackup(data []byte, firstUsers func() error) error {
 		// what came after the backup is not new: no notifications, no automations
 		web.history().quietNext()
 	}
-	if _, ok := files[WISHLIST_FILENAME]; ok {
-		web.wishes().reload()
+	if _, ok := files[userdata.WISHLIST_FILENAME]; ok {
+		web.wishes().Reload()
 	}
 	if _, ok := files[REGION_CHOICES_FILENAME]; ok {
 		web.regionChoices().reload()

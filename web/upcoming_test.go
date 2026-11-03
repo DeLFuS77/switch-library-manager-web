@@ -22,7 +22,7 @@ func TestUpcomingGamesByMonth(t *testing.T) {
 	switchDB.TitlesMap["0100000000090"] = game("0100000000090000", "Old Game", 20200101)
 	switchDB.TitlesMap["01000000000A0"] = game("01000000000A0000", "Other Game NETWORK TEST", 20261021)
 	web.state.set(switchDB, localDB)
-	web.wishes().set("0100000000070000", true)
+	web.wishes().Set("0100000000070000", true)
 
 	now := time.Date(2026, 10, 6, 15, 0, 0, 0, time.Local)
 	games := web.upcomingGamesAt("en", now)

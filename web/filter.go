@@ -3,6 +3,7 @@ package web
 import (
 	"errors"
 	"github.com/dtrunk90/switch-library-manager-web/internal/search"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"html"
 	"html/template"
 	"net/url"
@@ -76,7 +77,7 @@ const recentDays = 30
 var (
 	allowedPerPage = map[int]struct{}{12: {}, 24: {}, 48: {}, 96: {}}
 	allowedSortBy  = map[string]struct{}{"added": {}, "favorite": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}, "duration": {}}
-	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}, STATUS_WANTED: {}}
+	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}, userdata.STATUS_WANTED: {}}
 	allowedKind    = map[string]struct{}{"": {}, KIND_GAME: {}, KIND_DEMO: {}}
 	allowedExtra   = map[string]struct{}{"": {}, EXTRA_NO_COVER: {}, EXTRA_UNKNOWN: {}, EXTRA_RECENT: {}, EXTRA_FAVORITES: {}, EXTRA_CHEATS: {}, EXTRA_CHEATS_OTHER: {}, EXTRA_FIRMWARE: {}}
 	regionPattern  = regexp.MustCompile(`^[A-Z]{2,4}$`)
@@ -137,7 +138,7 @@ func (f *TitleItemFilter) Normalize() {
 	if _, ok := allowedExtra[f.Extra]; !ok {
 		f.Extra = ""
 	}
-	f.Collection = cleanCollectionName(f.Collection)
+	f.Collection = userdata.CleanCollectionName(f.Collection)
 	if f.WithMissing != "0" {
 		f.WithMissing = ""
 	}
@@ -151,7 +152,7 @@ func (f *TitleItemFilter) Normalize() {
 	if _, ok := gameLanguageNames[f.GameLanguage]; !ok {
 		f.GameLanguage = ""
 	}
-	if _, ok := playStateLooks[f.Play]; !ok && f.Play != "none" {
+	if _, ok := userdata.PlayStateLooks[f.Play]; !ok && f.Play != "none" {
 		f.Play = ""
 	}
 	f.Region = strings.ToUpper(strings.TrimSpace(f.Region))
@@ -367,7 +368,7 @@ func (a TitleItemByName) Less(i, j int) bool {
 }
 
 // sortName is a name as it is sorted: without case, and without the quotes and signs some
-// names start with ("GAME", #Game, [Game]).
+// Names start with ("GAME", #Game, [Game]).
 func sortName(name string) string {
 	trimmed := strings.TrimLeftFunc(name, func(r rune) bool { return !unicode.IsLetter(r) && !unicode.IsDigit(r) })
 	if trimmed == "" {
