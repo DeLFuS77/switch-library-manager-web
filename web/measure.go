@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/awake"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -241,6 +242,8 @@ func (web *Web) HandleMeasure() {
 			web.measuring.Store(false)
 			go web.runQueue()
 		}()
+		// a computer gone to sleep would end the measure, or spoil it
+		defer awake.Keep().Release()
 		ctx, cancel := context.WithTimeout(r.Context(), measureTimeout)
 		defer cancel()
 		result, err := web.measureServer(ctx)

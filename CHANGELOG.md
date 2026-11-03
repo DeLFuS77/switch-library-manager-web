@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- On a computer, the app keeps it from going to sleep while a task works on the files (a compression, a decompression or conversion, packs, a split, a check, a copy to the SD card, Organize or the measure of the server), so a task left for the night no longer stops halfway; while the task is paused, the computer may sleep. In Docker the server decides, as before
+
 ## 1.70.0
 
 ### New

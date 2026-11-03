@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/awake"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -253,6 +254,8 @@ func (web *Web) runOrganizeFiles(action string, paths []string, trigger string) 
 	if web.compressionRunning() || web.measuring.Load() {
 		return nil, errOrganizeBusy
 	}
+	// moving the files to another disk can take long: the computer stays awake meanwhile
+	defer awake.Keep().Release()
 	taskId := web.startTask(kind, trigger)
 	var failure *TaskNote
 	// ends however it ends: a panic on a strange file makes the task fail, instead of leaving it
