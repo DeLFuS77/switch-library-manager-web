@@ -22,7 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.70.0
+  <Changes>### 1.71.0
+- Low priority in Settings, so the server stays responsive while the app compresses or checks
+- Upcoming releases opens each month with a calendar sheet
+- Verified and Corrupted as in NXPress, and several security fixes
+### 1.70.0
 - Scores of critics and players from IGDB on the game page and in Statistics, to sort and filter the library by (with the IGDB keys)
 - Folders skipped by how their names start, end or what they contain, or by an empty .slmignore file in them
 - Games once read without their own name get it back with the next scan
