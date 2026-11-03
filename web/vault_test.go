@@ -285,3 +285,26 @@ func TestVaultKeepsTheSaveWhenAnUploadIsCut(t *testing.T) {
 type errorReader struct{}
 
 func (errorReader) Read([]byte) (int, error) { return 0, errors.New("connection cut") }
+
+// TestZipTooManyEntries checks the end-of-central-directory precheck: a save with a few files
+// passes, one that declares far more is refused before its central directory is opened.
+func TestZipTooManyEntries(t *testing.T) {
+	dir := t.TempDir()
+	write := func(entries uint16) string {
+		b := make([]byte, 22)
+		binary.LittleEndian.PutUint32(b[0:], 0x06054b50)
+		binary.LittleEndian.PutUint16(b[8:], entries)
+		binary.LittleEndian.PutUint16(b[10:], entries)
+		path := filepath.Join(dir, "backup.zip")
+		if err := os.WriteFile(path, b, 0644); err != nil {
+			t.Fatal(err)
+		}
+		return path
+	}
+	if zipTooManyEntries(write(5), maxVaultZipEntries) {
+		t.Fatal("a small ZIP was rejected")
+	}
+	if !zipTooManyEntries(write(30000), maxVaultZipEntries) {
+		t.Fatal("a ZIP with too many entries was not rejected")
+	}
+}
