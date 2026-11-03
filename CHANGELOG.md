@@ -5,7 +5,7 @@
 ### Improvements
 
 - Organize takes the NFO, SFV and proof files of a game along with it: a file named as the game (game.nfo next to game.nsp) takes its new name, and a folder that holds only the game, as a release comes, gives it its other notes, checksums and images and its Proof folder, so the folder is left empty. A file whose name is already taken where it would go stays where it is and is told in the preview. On by default; it can be turned off in the options of Organize (thanks @ChapeLu)
-- The Order step of the setup wizard also asks whether the NFO, SFV and proof files go with their game, whether the other copy of a duplicate is deleted with the old updates, and whether the names that already have their title ID are kept when renaming; its tree shows the NFO going with its game or staying where it was
+- The Order step of the setup wizard also asks whether the NFO, SFV and proof files go with their game, whether the other copy of a duplicate is deleted with the old updates, and whether the names that already have their title ID are kept when renaming; its tree shows the NFO going with its game or staying where it was. Its Extras step links to how to get the IGDB keys and says that the sagas also come from IGDB with them, as Settings does
 
 ## 1.71.0
 
