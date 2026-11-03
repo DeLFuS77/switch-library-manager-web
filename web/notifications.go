@@ -501,11 +501,12 @@ func keptSecrets(sent settings.NotificationOptions, saved settings.NotificationO
 	}
 	sent.WebhookUrl = keptURL(sent.WebhookUrl, saved.WebhookUrl)
 	sent.NtfyUrl = keptURL(sent.NtfyUrl, saved.NtfyUrl)
-	sent.NtfyToken = keptSecret(sent.NtfyToken, saved.NtfyToken)
+	sent.NtfyToken = keptSecretForHost(sent.NtfyToken, saved.NtfyToken, channelHost(sent.NtfyUrl), channelHost(saved.NtfyUrl))
 	sent.GotifyUrl = keptURL(sent.GotifyUrl, saved.GotifyUrl)
-	sent.GotifyToken = keptSecret(sent.GotifyToken, saved.GotifyToken)
+	sent.GotifyToken = keptSecretForHost(sent.GotifyToken, saved.GotifyToken, channelHost(sent.GotifyUrl), channelHost(saved.GotifyUrl))
+	// Pushover and Telegram always talk to the same fixed host, so their token may stay
 	sent.PushoverToken = keptSecret(sent.PushoverToken, saved.PushoverToken)
-	sent.SmtpPassword = keptSecret(sent.SmtpPassword, saved.SmtpPassword)
+	sent.SmtpPassword = keptSecretForHost(sent.SmtpPassword, saved.SmtpPassword, strings.ToLower(strings.TrimSpace(sent.SmtpHost)), strings.ToLower(strings.TrimSpace(saved.SmtpHost)))
 	return sent
 }
 
