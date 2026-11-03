@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -56,6 +57,7 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 	genreCounts := map[string]int{}
 	languageCounts := map[string]int{}
 	matched := make([]int, 0, len(all))
+	filter.searchIn(all)
 	for index := range all {
 		item := &all[index]
 		if (filter.Status == userdata.STATUS_WANTED && !item.Wished) || !filter.MatchesItem(item) {
@@ -114,7 +116,8 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 }
 
 // missingGamesCount counts the games of the titles database that are not in the library, with
-// the filters of the Missing Games page, for the header and the statistics.
+// the filters of the Missing Games page, for the header and the statistics: without the games
+// of the Switch 2 alone, as buildMissingGames.
 func (web *Web) missingGamesCount() int {
 	return web.derived("missingGamesCount", func() any {
 		switchDB, localDB := web.state.get()
@@ -127,7 +130,7 @@ func (web *Web) missingGamesCount() int {
 			if local, ok := localDB.TitlesMap[k]; ok && local.BaseExist {
 				continue
 			}
-			if v.Attributes.Name == "" || v.Attributes.Id == "" || (hideDemoGames && isDemo(v, v.Attributes.Name)) {
+			if v.Attributes.Name == "" || v.Attributes.Id == "" || db.Switch2(v.Attributes.Id) || (hideDemoGames && isDemo(v, v.Attributes.Name)) {
 				continue
 			}
 			count++
@@ -136,7 +139,9 @@ func (web *Web) missingGamesCount() int {
 	}).(int)
 }
 
-// buildMissingGames lists every game of the titles database that is not in the library.
+// buildMissingGames lists every game of the titles database that is not in the library, but
+// the games of the Switch 2 alone: the library is of the Switch (a game of the library is
+// never missing, whatever its console).
 func (web *Web) buildMissingGames(lang string) []TitleItem {
 	items := []TitleItem{}
 
@@ -154,7 +159,7 @@ func (web *Web) buildMissingGames(lang string) []TitleItem {
 			continue
 		}
 
-		if v.Attributes.Name == "" || v.Attributes.Id == "" {
+		if v.Attributes.Name == "" || v.Attributes.Id == "" || db.Switch2(v.Attributes.Id) {
 			continue
 		}
 

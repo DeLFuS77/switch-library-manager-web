@@ -757,3 +757,18 @@ func TestCopyCheckedWholeIsKept(t *testing.T) {
 		}
 	}
 }
+
+// The games of the Switch 2 alone have title IDs from 04.
+func TestSwitch2TitleIds(t *testing.T) {
+	for id, want := range map[string]bool{
+		"0400C3F00006E000": true,
+		"0400c3f00006e":    true,
+		"0400C3F00006F001": true,
+		"0100152000022000": false,
+		"":                 false,
+	} {
+		if got := Switch2(id); got != want {
+			t.Errorf("%q: %v, want %v", id, got, want)
+		}
+	}
+}

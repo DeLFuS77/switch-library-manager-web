@@ -55,6 +55,8 @@ type fileOperations struct {
 	operations     []Operation
 	plannedDirs    map[string]bool
 	plannedTargets map[string]string
+	// the destinations of the run, by pathKey: the files that arrive in a folder
+	arrived map[string]bool
 	// files already moved, by their old path: a file with several contents is listed once
 	// for each of them
 	movedFrom map[string]string
@@ -68,6 +70,8 @@ type fileOperations struct {
 	discard Discard
 	// tells a folder the scan leaves out (see excludedFolders), or nil
 	excluded func(dir string) bool
+	// finds the files that go with a game moved (see gameExtras), or nil when they stay
+	extras *gameExtras
 }
 
 // pathKey is a path as the list of files to move keeps it: in any case where the disk takes
@@ -86,7 +90,13 @@ func (f *fileOperations) leftOut(path string) bool {
 }
 
 func newFileOperations(dryRun bool) *fileOperations {
-	return &fileOperations{dryRun: dryRun, plannedDirs: map[string]bool{}, plannedTargets: map[string]string{}, movedFrom: map[string]string{}, logger: zap.S(), discard: removeFile}
+	return &fileOperations{dryRun: dryRun, plannedDirs: map[string]bool{}, plannedTargets: map[string]string{}, arrived: map[string]bool{}, movedFrom: map[string]string{}, logger: zap.S(), discard: removeFile}
+}
+
+// plan books the destination to of the file from.
+func (f *fileOperations) plan(to string, from string) {
+	f.plannedTargets[to] = from
+	f.arrived[pathKey(to)] = true
 }
 
 // Discard takes a file the library no longer wants off its folders: deleted, or kept aside for
@@ -209,7 +219,7 @@ func (f *fileOperations) move(from string, to string) error {
 		if err := f.mkdir(filepath.Dir(to)); err != nil {
 			return err
 		}
-		f.plannedTargets[to] = from
+		f.plan(to, from)
 		if f.dryRun {
 			f.movedFrom[from] = to
 			return nil
@@ -240,6 +250,9 @@ func (f *fileOperations) move(from string, to string) error {
 		return nil
 	}
 	f.record(Operation{Kind: OP_MOVE, From: from, To: to}, err)
+	if err == nil && f.extras != nil {
+		f.moveExtras(from, to)
+	}
 	return err
 }
 
@@ -269,7 +282,7 @@ func (f *fileOperations) renameInPlace(from string, to string, renamed string, k
 			}
 			renameTo = os.Rename
 		}
-		f.plannedTargets[inPlace] = from
+		f.plan(inPlace, from)
 		if !f.dryRun {
 			// a file that came with the name since it was looked at is never written over
 			if err := renameTo(from, inPlace); err != nil {
@@ -285,6 +298,9 @@ func (f *fileOperations) renameInPlace(from string, to string, renamed string, k
 		return
 	}
 	f.record(Operation{Kind: OP_MOVE, From: from, To: inPlace, Reason: renamed}, nil)
+	if f.extras != nil {
+		f.moveExtras(from, inPlace)
+	}
 }
 
 // takenAtDestination is why a file cannot go where another file has its name: a copy of the
@@ -815,6 +831,9 @@ func newLibraryOrganizer(baseFolder string, roots []string, only []string, local
 		o.existing = gameFolders(roots, localDB, options, o.ops.only)
 	}
 	o.collections = multiGameFiles(localDB)
+	if !options.LeaveExtraFiles {
+		o.ops.extras = newGameExtras(append([]string{baseFolder}, roots...), localDB)
+	}
 	return o
 }
 

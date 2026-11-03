@@ -29,7 +29,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "1.71.0"
+	SLM_WEB_VERSION        = "1.72.0"
 	REPOSITORY_OWNER       = "DeLFuS77"
 	// the release where the "Update title data" workflow of this repository publishes the files
 	// it generates; next to each one it publishes the same file compressed (see CompressedFirst)
@@ -121,6 +121,9 @@ type OrganizeOptions struct {
 	BaseFolder string `json:"base_folder,omitempty"`
 	// a game that has a folder of its own keeps it: its files go there, and it is not renamed
 	KeepGameFolders bool `json:"keep_game_folders,omitempty"`
+	// the NFO, SFV and proof files of a game stay where they are when it moves, instead of going
+	// with it
+	LeaveExtraFiles bool `json:"leave_extra_files,omitempty"`
 	// the folders the scan leaves out (AppSettings.ExcludeFolders), given when organizing: a file
 	// moved into one would leave the library; never saved with these options
 	ExcludeFolders []string `json:"-"`

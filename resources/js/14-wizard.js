@@ -256,7 +256,7 @@ function wizardTree(box, states) {
 	const shown = {};
 	const height = 25;
 	const indent = 18;
-	const icons = { folder: 'bi-folder-fill', sub: 'bi-folder', base: 'bi-controller', update: 'bi-arrow-up-circle-fill', dlc: 'bi-puzzle', quarantine: 'bi-hourglass-split' };
+	const icons = { folder: 'bi-folder-fill', sub: 'bi-folder', base: 'bi-controller', update: 'bi-arrow-up-circle-fill', dlc: 'bi-puzzle', quarantine: 'bi-hourglass-split', extra: 'bi-file-earmark-text' };
 	const draw = (state, moving = []) => {
 		const ids = new Set(state.rows.map(row => row.id));
 		state.rows.forEach((row, i) => {
@@ -622,7 +622,7 @@ function setupWizard(element) {
 	}
 
 	// the order of the files: a tree shows it, made of a game with a folder of its own (MK8) and
-	// the loose files of another one
+	// the loose files of another one, with the NFO of its base
 	const layoutOf = () => form.elements.organize_layout.value;
 	const row = (id, kind, name, depth, more = {}) => ({ id, kind, name, depth, ...more });
 	const orderStates = () => {
@@ -630,43 +630,61 @@ function setupWizard(element) {
 		const keep = form.elements.keep_game_folders.checked;
 		const rename = form.elements.rename_files.checked;
 		const empty = form.elements.delete_empty_folders.checked;
+		const extras = form.elements.move_extra_files.checked;
 		const named = (plain, full) => (rename ? full : plain);
+		// the NFO goes with the base and takes its name, or stays loose where it was
+		const nfo = depth => (extras
+			? [row('zn', 'extra', named('zelda.nfo', 'The Legend of Zelda [01007EF00011E000][v0].nfo'), depth, { renamed: rename })]
+			: []);
+		const nfoLeft = extras ? [] : [row('zn', 'extra', 'zelda.nfo', 0)];
 		const files = depth => [
 			row('zb', 'base', named('zelda.nsp', 'The Legend of Zelda [01007EF00011E000][v0].nsp'), depth, { renamed: rename }),
 			row('zu', 'update', named('zelda-update.nsp', 'The Legend of Zelda [01007EF00011E800][v131072].nsp'), depth, { renamed: rename }),
 			row('zd', 'dlc', named('zelda-dlc.nsp', 'The Legend of Zelda (Expansion Pass)[01007EF00011F001][v0].nsp'), depth, { renamed: rename }),
 		];
 		const mk = named('mk8.nsp', 'Mario Kart 8 Deluxe [0100152000022000][v0].nsp');
-		const start = { text: say('treeBefore'), rows: [row('mk', 'folder', 'MK8', 0), row('mkb', 'base', 'mk8.nsp', 1), row('dl', 'folder', 'downloads', 0), ...files(0)] };
+		// the files as they came, with the names they had
+		const start = { text: say('treeBefore'), rows: [row('mk', 'folder', 'MK8', 0), row('mkb', 'base', 'mk8.nsp', 1), row('dl', 'folder', 'downloads', 0),
+			row('zb', 'base', 'zelda.nsp', 0), row('zn', 'extra', 'zelda.nfo', 0), row('zu', 'update', 'zelda-update.nsp', 0), row('zd', 'dlc', 'zelda-dlc.nsp', 0)] };
 		const mkFolder = row('mk', 'folder', keep ? 'MK8' : 'Mario Kart 8 Deluxe', 0);
 		const downloads = empty && layout !== 'none' ? [] : [row('dl', 'folder', 'downloads', 0)];
 		let rows;
 		let text;
 		if (layout === 'none') {
-			rows = [row('mk', 'folder', 'MK8', 0), row('mkb', 'base', mk, 1, { renamed: rename }), ...downloads, ...files(0)];
+			const [zb, ...others] = files(0);
+			rows = [row('mk', 'folder', 'MK8', 0), row('mkb', 'base', mk, 1, { renamed: rename }), ...downloads, zb, ...nfo(0), ...nfoLeft, ...others];
 			text = say(rename ? 'treeNoneRenamed' : 'treeNone');
 		} else if (layout === 'folder') {
-			rows = [mkFolder, row('mkb', 'base', mk, 1, { renamed: rename }), ...downloads, row('z', 'folder', 'The Legend of Zelda', 0), ...files(1)];
+			const [zb, ...others] = files(1);
+			rows = [mkFolder, row('mkb', 'base', mk, 1, { renamed: rename }), ...downloads, ...nfoLeft, row('z', 'folder', 'The Legend of Zelda', 0), zb, ...nfo(1), ...others];
 			text = say(keep ? 'treeKeep' : 'treeFolder');
 		} else {
 			const [zb, zu, zd] = files(2);
-			rows = [mkFolder, row('mkB', 'sub', 'Base', 1), row('mkb', 'base', mk, 2, { renamed: rename }), ...downloads, row('z', 'folder', 'The Legend of Zelda', 0),
-				row('zB', 'sub', 'Base', 1), zb, row('zU', 'sub', 'Updates', 1), zu, row('zD', 'sub', 'DLC', 1), zd];
+			rows = [mkFolder, row('mkB', 'sub', 'Base', 1), row('mkb', 'base', mk, 2, { renamed: rename }), ...downloads, ...nfoLeft, row('z', 'folder', 'The Legend of Zelda', 0),
+				row('zB', 'sub', 'Base', 1), zb, ...nfo(2), row('zU', 'sub', 'Updates', 1), zu, row('zD', 'sub', 'DLC', 1), zd];
 			text = say('treeSub');
+		}
+		if (layout !== 'none') {
+			text += ` ${say(extras ? 'treeExtras' : 'treeExtrasLeft')}`;
 		}
 		if (layout !== 'none' && empty) {
 			text += ` ${say('treeEmpty')}`;
 		}
-		return [start, { rows, text, moving: ['mkb', 'zb', 'zu', 'zd'] }];
+		return [start, { rows, text, moving: ['mkb', 'zb', 'zu', 'zd', ...(extras && layout !== 'none' ? ['zn'] : [])] }];
 	};
 	trees.organize = wizardTree(element.querySelector('[data-wizard-tree="organize"]'), orderStates);
 	const keepFolders = element.querySelector('[data-wizard-keep-folders]');
+	const keepNames = element.querySelector('[data-wizard-keep-names]');
 	const updateOrder = () => {
 		const loose = layoutOf() === 'none';
 		keepFolders.classList.toggle('is-off', loose);
 		keepFolders.toggleAttribute('inert', loose);
+		// the names are kept only when the files are renamed
+		const plain = !form.elements.rename_files.checked;
+		keepNames.classList.toggle('is-off', plain);
+		keepNames.toggleAttribute('inert', plain);
 	};
-	['organize_layout', 'keep_game_folders', 'rename_files', 'delete_empty_folders'].forEach(name => {
+	['organize_layout', 'keep_game_folders', 'rename_files', 'delete_empty_folders', 'move_extra_files'].forEach(name => {
 		const field = form.elements[name];
 		(field instanceof RadioNodeList ? [...field] : [field]).forEach(input => input.addEventListener('change', () => {
 			updateOrder();

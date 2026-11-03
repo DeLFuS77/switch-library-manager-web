@@ -15,3 +15,17 @@ func TestOrganizeFormKeepDuplicate(t *testing.T) {
 		}
 	}
 }
+
+// The NFO, SFV and proof files go with their game unless the switch is turned off; settings of
+// older versions, without the key, take them along.
+func TestOrganizeFormExtraFiles(t *testing.T) {
+	if (&OrganizeForm{MoveExtraFiles: true}).toOptions(settings.OrganizeOptions{LeaveExtraFiles: true}).LeaveExtraFiles {
+		t.Error("turned on, the files go with their game")
+	}
+	if !(&OrganizeForm{}).toOptions(settings.OrganizeOptions{}).LeaveExtraFiles {
+		t.Error("turned off, the files stay")
+	}
+	if (settings.OrganizeOptions{}).LeaveExtraFiles {
+		t.Error("by default the files go with their game")
+	}
+}

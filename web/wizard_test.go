@@ -187,21 +187,26 @@ func TestWizardBrowsesTheFoldersOfTheServer(t *testing.T) {
 // and the subfolders named by the user keep their names.
 func TestWizardOrganize(t *testing.T) {
 	current := settings.OrganizeOptions{FolderNameTemplate: "{TITLE_NAME}", FoldersWithIds: true, UpdatesFolder: "Patches"}
-	sub := wizardOrganize(current, WIZARD_LAYOUT_SUB, true, true, true, settings.KEEP_AUTO)
+	sub := wizardOrganize(current, WIZARD_LAYOUT_SUB, wizardOrder{keepFolders: true, rename: true, keepNames: true, deleteEmpty: true,
+		moveExtras: true, deleteDuplicates: true, keepDuplicate: settings.KEEP_AUTO})
 	if !sub.CreateFolderPerGame || sub.BaseFolder != "Base" || sub.UpdatesFolder != "Patches" || sub.DlcFolder != "DLC" {
 		t.Fatalf("the subfolders: %+v", sub)
 	}
-	if !sub.KeepGameFolders || !sub.RenameFiles || !sub.DeleteEmptyFolders || sub.KeepDuplicate != settings.KEEP_AUTO || !sub.FoldersWithIds || sub.FolderNameTemplate != "{TITLE_NAME}" {
+	if !sub.KeepGameFolders || !sub.RenameFiles || !sub.KeepNamesWithId || !sub.DeleteEmptyFolders || sub.LeaveExtraFiles || !sub.DeleteDuplicateFiles ||
+		sub.KeepDuplicate != settings.KEEP_AUTO || !sub.FoldersWithIds || sub.FolderNameTemplate != "{TITLE_NAME}" {
 		t.Fatalf("the other options: %+v", sub)
 	}
 	if wizardLayout(sub) != WIZARD_LAYOUT_SUB {
 		t.Fatalf("the layout of the subfolders: %q", wizardLayout(sub))
 	}
-	folder := wizardOrganize(sub, WIZARD_LAYOUT_FOLDER, false, false, false, "")
+	folder := wizardOrganize(sub, WIZARD_LAYOUT_FOLDER, wizardOrder{})
 	if !folder.CreateFolderPerGame || folder.BaseFolder != "" || folder.UpdatesFolder != "" || folder.DlcFolder != "" || folder.RenameFiles || wizardLayout(folder) != WIZARD_LAYOUT_FOLDER {
 		t.Fatalf("a folder per game: %+v", folder)
 	}
-	none := wizardOrganize(sub, WIZARD_LAYOUT_NONE, true, false, false, "")
+	if folder.KeepNamesWithId || !folder.LeaveExtraFiles || folder.DeleteDuplicateFiles {
+		t.Fatalf("the switches turned off: %+v", folder)
+	}
+	none := wizardOrganize(sub, WIZARD_LAYOUT_NONE, wizardOrder{keepFolders: true})
 	if none.CreateFolderPerGame || none.BaseFolder != "" || wizardLayout(none) != WIZARD_LAYOUT_NONE {
 		t.Fatalf("the files as they are: %+v", none)
 	}

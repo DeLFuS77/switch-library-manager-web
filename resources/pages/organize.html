@@ -125,10 +125,15 @@
 									<label class="form-check-label" for="dlc_own_folders">{{t "A folder for each DLC"}}</label>
 								</div>
 								<div class="form-text mb-3" id="dlc_own_folders_help">{{t "With the IDs, each DLC goes to a folder of its own. Without it, all of them go to the DLC folder: the paths stay shorter, as many programs of Windows read no more than 260 characters."}}</div>
-								<div class="form-check form-switch">
+								<div class="form-check form-switch mb-3">
 									<input class="form-check-input" type="checkbox" role="switch" id="process_when_missing_base_game" name="process_when_missing_base_game" value="true"{{if $o.ProcessWhenMissingBaseGame}} checked{{end}}>
 									<label class="form-check-label" for="process_when_missing_base_game">{{t "Also organize updates and DLC without base game"}}</label>
 								</div>
+								<div class="form-check form-switch mb-1">
+									<input class="form-check-input" type="checkbox" role="switch" id="move_extra_files" name="move_extra_files" value="true" aria-describedby="move_extra_files_help"{{if not $o.LeaveExtraFiles}} checked{{end}}>
+									<label class="form-check-label" for="move_extra_files">{{t "Take the NFO, SFV and proof files with their game"}}</label>
+								</div>
+								<div class="form-text" id="move_extra_files_help">{{t "A file named as its game (game.nfo next to game.nsp) takes its new name. A folder that holds only the game also gives it its other notes, checksums and images, and its Proof folder."}}</div>
 							</div>
 						</div>
 					</div>

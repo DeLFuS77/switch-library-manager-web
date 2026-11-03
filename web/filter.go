@@ -47,7 +47,7 @@ type TitleItemFilter struct {
 	Score string `in:"form=score"`
 	// the user who looks, for Play (set by the handler)
 	player string
-	// the keyword prepared for searching, set by MatchesItem
+	// the keyword prepared for searching a list, set by searchIn (or MatchesItem)
 	search *search.Query
 }
 
@@ -258,8 +258,19 @@ func (f *TitleItemFilter) hiddenFields(own ...string) template.HTML {
 	return template.HTML(fields.String())
 }
 
+// searchIn prepares the keyword for the items of a list before MatchesItem: a typing mistake
+// is forgiven only when no item has the words as they are typed (see search.Query.Narrow).
+func (f *TitleItemFilter) searchIn(items []TitleItem) {
+	if f.Keyword == "" {
+		return
+	}
+	f.search = search.NewQuery(f.Keyword)
+	f.search.Narrow(len(items), func(i int) string { return items[i].searchKey })
+}
+
 // MatchesItem reports whether the title ID or one of the names of an item contains the
-// keyword (case insensitive). Items of a sorted list are checked without allocating.
+// keyword (case insensitive). Items of a sorted list are checked without allocating; the list
+// is first given to searchIn.
 func (f *TitleItemFilter) MatchesItem(item *TitleItem) bool {
 	if f.Keyword == "" {
 		return true

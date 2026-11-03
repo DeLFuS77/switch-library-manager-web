@@ -39,10 +39,10 @@
 						<p class="title-publisher"><span class="bi bi-building" aria-hidden="true"></span>{{$t.Publisher}}</p>
 						{{- end}}
 						{{- with $t.TimeToBeat}}{{if .HasScores}}
-						<a class="title-scores" href="{{.Url}}" target="_blank" rel="noopener noreferrer" title="{{t "Scores on IGDB"}}">
-							{{- if .Critics}}<span class="score-item"><span class="score score-{{scoreLevel .Critics}}">{{.Critics}}</span><span class="score-label">{{t "Critics"}}<span class="score-count">{{if eq .CriticCount 1}}{{t "1 review"}}{{else}}{{t "%v reviews" (num .CriticCount)}}{{end}}</span></span></span>{{end}}
-							{{- if .Users}}<span class="score-item"><span class="score score-{{scoreLevel .Users}}">{{.Users}}</span><span class="score-label">{{t "Players"}}<span class="score-count">{{if eq .UserCount 1}}{{t "1 vote"}}{{else}}{{t "%v votes" (num .UserCount)}}{{end}}</span></span></span>{{end}}
-						</a>
+						<div class="title-scores" title="{{t "Scores on IGDB"}}">
+							{{- if .Critics}}<span class="score-item"><span class="score score-{{scoreLevel .Critics}}">{{.Critics}}</span><span class="score-label">{{t "Critics"}}</span></span>{{end}}
+							{{- if .Users}}<span class="score-item"><span class="score score-{{scoreLevel .Users}}">{{.Users}}</span><span class="score-label">{{t "Players"}}</span></span>{{end}}
+						</div>
 						{{- end}}{{end}}
 						<div class="title-actions">
 							{{- if and $t.Owned (gt $t.ArchiveFiles 1)}}
@@ -187,7 +187,7 @@
 							{{- if .Normally}}<span><span class="time-to-beat-value">{{hours .Normally}}</span><span class="fact-sub">{{t "Story"}}</span></span>{{end}}
 							{{- if .Hastily}}<span><span class="time-to-beat-value">{{hours .Hastily}}</span><span class="fact-sub">{{t "Quick"}}</span></span>{{end}}
 							{{- if .Completely}}<span><span class="time-to-beat-value">{{hours .Completely}}</span><span class="fact-sub">{{t "100%"}}</span></span>{{end}}
-							<a class="time-to-beat-source" href="{{.Url}}" target="_blank" rel="noopener noreferrer">{{t "Data from IGDB"}}{{if .Count}} · {{t "%v players" .Count}}{{end}}</a>
+							<span class="time-to-beat-source">{{t "Data from IGDB"}}{{if .Count}} · {{t "%v players" .Count}}{{end}}</span>
 						</dd>
 					</div>
 					{{- end}}{{end}}

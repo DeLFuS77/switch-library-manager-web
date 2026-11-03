@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.72.0
+
+### Improvements
+
+- Organize takes the NFO, SFV and proof files of a game along with it: a file named as the game (game.nfo next to game.nsp) takes its new name, and a folder that holds only the game, as a release comes, gives it its other notes, checksums and images and its Proof folder, so the folder is left empty. A file whose name is already taken where it would go stays where it is and is told in the preview. On by default; it can be turned off in the options of Organize (thanks @ChapeLu)
+- The Order step of the setup wizard also asks whether the NFO, SFV and proof files go with their game, whether the other copy of a duplicate is deleted with the old updates, and whether the names that already have their title ID are kept when renaming; its tree shows the NFO going with its game or staying where it was. Its Extras step links to how to get the IGDB keys and says that the sagas also come from IGDB with them, as Settings does
+- The page of a game shows the scores of the critics and of the players alone, without the number of reviews and votes, and neither they nor the source of the times to beat open IGDB when clicked
+
+### Fixes
+
+- The search finds the games written as typed: "mario" lists the Mario games, no longer Bone Marrow, Marimo or Earth Marines among them. Small typing mistakes are still forgiven when no game is written so, as "zelda brth" for Breath of the Wild or "pokemon escarlta" for Pokémon Escarlata. It works so in every list with a search (the Library, Missing Games, Updates, DLC, the Series, Upcoming releases, the copy to the SD card) and in the quick search
+- The games of the Nintendo Switch 2 alone, such as Mario Kart World, are no longer shown as missing: the library is of the Switch, so they are left out of the games greyed out in the Library, Missing Games and the Wishlist, the recommendations, Upcoming releases, the series and the counts of missing games. A game of the library is always shown, whatever its console
+
 ## 1.71.0
 
 ### Improvements
