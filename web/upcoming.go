@@ -39,6 +39,8 @@ func (game UpcomingGame) ForYou() bool {
 type UpcomingMonth struct {
 	Month time.Time
 	Games []UpcomingGame
+	// every other month is drawn in the second colour, to tell it from the month next to it
+	Alternate bool
 }
 
 // UpcomingPageData is the page of the upcoming games.
@@ -198,7 +200,7 @@ func upcomingPage(games []UpcomingGame, filter *TitleItemFilter, now time.Time) 
 		data.Shown++
 		month := time.Date(game.Item.ReleaseDate.Year(), game.Item.ReleaseDate.Month(), 1, 0, 0, 0, 0, time.UTC)
 		if n := len(data.Months); n == 0 || !data.Months[n-1].Month.Equal(month) {
-			data.Months = append(data.Months, UpcomingMonth{Month: month})
+			data.Months = append(data.Months, UpcomingMonth{Month: month, Alternate: n%2 == 1})
 		}
 		data.Months[len(data.Months)-1].Games = append(data.Months[len(data.Months)-1].Games, game)
 	}

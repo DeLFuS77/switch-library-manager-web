@@ -210,6 +210,19 @@ func FormatMonth(lang string, value time.Time) string {
 	return value.Format("January 2006")
 }
 
+// FormatMonthName formats a month without its year, as a title: "October" / "Octubre" / "10月".
+func FormatMonthName(lang string, value time.Time) string {
+	if signs, ok := DateSigns[lang]; ok {
+		return fmt.Sprintf("%d%s", value.Month(), strings.TrimSpace(signs[1]))
+	}
+	if months, ok := monthNames[lang]; ok {
+		month := []rune(months[value.Month()-1])
+		month[0] = unicode.ToUpper(month[0])
+		return string(month)
+	}
+	return value.Format("January")
+}
+
 // FormatDay formats a day of the month without the year: "Oct 8" / "8 oct".
 func FormatDay(lang string, value time.Time) string {
 	if signs, ok := DateSigns[lang]; ok {
