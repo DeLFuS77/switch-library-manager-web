@@ -4,6 +4,9 @@ package i18n
 func init() {
 	Translations["ru"] = map[string]string{
 		// the files that go with a game
+		"When old updates are deleted, by hand or by the automations, the other copy of a duplicate goes too.": "Когда удаляются старые обновления, вручную или автоматизациями, вместе с ними удаляется и вторая копия дубликата.",
+		"The NFO goes with its game.":                       "NFO переносится вместе с игрой.",
+		"The NFO stays where it was.":                       "NFO остаётся на месте.",
 		"Take the NFO, SFV and proof files with their game": "Переносить файлы NFO, SFV и proof вместе с игрой",
 		"A file named as its game (game.nfo next to game.nsp) takes its new name. A folder that holds only the game also gives it its other notes, checksums and images, and its Proof folder.": "Файл с тем же именем, что и игра (game.nfo рядом с game.nsp), получает её новое имя. Если в папке только эта игра, вместе с ней переносятся и остальные заметки, контрольные суммы, изображения и папка Proof.",
 		"It goes with a game that was moved, but a file with its name is already where it would go, so it is left where it is.":                                                                 "Файл относится к перемещённой игре, но там, куда он должен попасть, уже есть файл с таким именем, поэтому он остаётся на месте.",

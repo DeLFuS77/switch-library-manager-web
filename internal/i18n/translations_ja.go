@@ -4,6 +4,9 @@ package i18n
 func init() {
 	Translations["ja"] = map[string]string{
 		// the files that go with a game
+		"When old updates are deleted, by hand or by the automations, the other copy of a duplicate goes too.": "古いアップデートを削除するとき（手動でも自動化でも）、重複のもう一方のコピーも削除されます。",
+		"The NFO goes with its game.":                       "NFO はゲームと一緒に移動します。",
+		"The NFO stays where it was.":                       "NFO は元の場所に残ります。",
 		"Take the NFO, SFV and proof files with their game": "NFO・SFV・proof ファイルをゲームと一緒に移動",
 		"A file named as its game (game.nfo next to game.nsp) takes its new name. A folder that holds only the game also gives it its other notes, checksums and images, and its Proof folder.": "ゲームと同じ名前のファイル（game.nsp の隣の game.nfo）はゲームの新しい名前になります。ゲームだけが入ったフォルダーでは、ほかのメモ、チェックサム、画像、Proof フォルダーも一緒に移動します。",
 		"It goes with a game that was moved, but a file with its name is already where it would go, so it is left where it is.":                                                                 "移動したゲームに付属するファイルですが、移動先に同じ名前のファイルがすでにあるため、そのままにしています。",

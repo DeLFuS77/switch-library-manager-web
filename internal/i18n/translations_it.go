@@ -4,6 +4,9 @@ package i18n
 func init() {
 	Translations["it"] = map[string]string{
 		// the files that go with a game
+		"When old updates are deleted, by hand or by the automations, the other copy of a duplicate goes too.": "Quando gli aggiornamenti vecchi vengono eliminati, a mano o dalle automazioni, se ne va anche l'altra copia di un duplicato.",
+		"The NFO goes with its game.":                       "L'NFO va con il suo gioco.",
+		"The NFO stays where it was.":                       "L'NFO resta dov'era.",
 		"Take the NFO, SFV and proof files with their game": "Porta i file NFO, SFV e proof con il loro gioco",
 		"A file named as its game (game.nfo next to game.nsp) takes its new name. A folder that holds only the game also gives it its other notes, checksums and images, and its Proof folder.": "Un file che si chiama come il suo gioco (gioco.nfo accanto a gioco.nsp) prende il suo nuovo nome. Una cartella che contiene solo il gioco gli dà anche le sue altre note, checksum e immagini, e la sua cartella Proof.",
 		"It goes with a game that was moved, but a file with its name is already where it would go, so it is left where it is.":                                                                 "Va con un gioco che è stato spostato, ma dove andrebbe c'è già un file con il suo nome, quindi resta dov'è.",
