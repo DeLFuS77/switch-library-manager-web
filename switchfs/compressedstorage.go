@@ -87,7 +87,8 @@ func findLz4Blocks(input io.ReaderAt, offset int64, header *ncaHeader, plan *ncz
 		b := fsh.fsHeaderBytes
 		tableOffset, tableSize := binary.LittleEndian.Uint64(b[0x178:]), binary.LittleEndian.Uint64(b[0x180:])
 		tableCount := int(int32(binary.LittleEndian.Uint32(b[0x190:])))
-		if tableSize == 0 || string(b[0x188:0x18C]) != "BKTR" || fsh.hashType != 3 {
+		// a damaged header must not reserve gigabytes for the table before it is read
+		if tableSize == 0 || tableSize > 1<<30 || string(b[0x188:0x18C]) != "BKTR" || fsh.hashType != 3 {
 			continue
 		}
 		if binary.LittleEndian.Uint16(b[0x170:]) != 0 || !isZero(b[0x148+0x8:0x148+0x10]) {

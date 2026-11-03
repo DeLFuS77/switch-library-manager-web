@@ -132,8 +132,10 @@ func (e *MissingKeyError) Error() string {
 	return fmt.Sprintf("missing Key_area_key[%v]", e.KeyName)
 }
 
-// maxReadSectionSize is the size of the biggest section read into memory at once.
-const maxReadSectionSize = 1 << 31
+// maxReadSectionSize is the size of the biggest section read into memory at once. Only the
+// small control and meta NCAs are read whole here (a few MB); the cap stops a damaged NCA that
+// declares a huge section from reserving gigabytes before the read fails.
+const maxReadSectionSize = 64 << 20
 
 func decryptAesCtr(ncaHeader *ncaHeader, fsHeader *fsHeader, offset uint64, size uint64, encoded []byte) ([]byte, error) {
 	keyRevision := fmt.Sprintf("%02x", ncaHeader.getKeyRevision())
