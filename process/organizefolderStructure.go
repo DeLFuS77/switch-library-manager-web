@@ -734,43 +734,101 @@ func organize(baseFolder string,
 		return nil, errors.New("no library folder configured")
 	}
 
-	ops := newFileOperations(dryRun)
+	o := newLibraryOrganizer(baseFolder, roots, only, localDB, titlesDB, options, dryRun)
+	keys := sortedKeys(localDB.TitlesMap)
+	tasksSize := len(keys) + 1
+	o.moveCollections()
+	for i, k := range keys {
+		v := localDB.TitlesMap[k]
+		if !v.BaseExist && !options.ProcessWhenMissingBaseGame {
+			o.skipWithoutGame(v)
+			continue
+		}
+		var title *db.SwitchTitle
+		if titlesDB != nil {
+			title = titlesDB.TitlesMap[k]
+		}
+		titleName := o.titleName(k, title, v)
+		if updateProgress != nil {
+			updateProgress.UpdateProgress(i+1, tasksSize, titleName)
+		}
+		o.moveTitle(k, title, v, titleTemplateData(title, v, titleName))
+	}
+
+	if options.DeleteEmptyFolders && baseFolder != "" {
+		if updateProgress != nil {
+			updateProgress.UpdateProgress(tasksSize, tasksSize, "Deleting empty folders...")
+		}
+		// with the new files only, no folder that was empty before: only the ones they leave
+		known := localDB.EmptyFolders
+		if only != nil {
+			known = nil
+		}
+		o.ops.deleteEmptyFolders(baseFolder, roots, known)
+	}
+
+	return o.ops.operations, nil
+}
+
+// libraryOrganizer plans the moves of a run of Organize: moveCollections for the files of
+// several games, skipWithoutGame for updates and DLC without their game, and moveTitle with
+// moveUpdates and moveDlcs for each game; idFolder and targetFolder give the folders.
+type libraryOrganizer struct {
+	baseFolder string
+	roots      []string
+	localDB    *db.LocalSwitchFilesDB
+	titlesDB   *db.SwitchTitlesDB
+	options    settings.OrganizeOptions
+	ops        *fileOperations
+	// the files of a game go to the folder it has already (see newLibraryOrganizer), the
+	// folders of the games by key
+	keepFolders bool
+	existing    map[string]string
+	// the files with several games, by path
+	collections map[string][]string
+}
+
+func newLibraryOrganizer(baseFolder string, roots []string, only []string, localDB *db.LocalSwitchFilesDB, titlesDB *db.SwitchTitlesDB,
+	options settings.OrganizeOptions, dryRun bool) *libraryOrganizer {
+	o := &libraryOrganizer{baseFolder: baseFolder, roots: roots, localDB: localDB, titlesDB: titlesDB, options: options, ops: newFileOperations(dryRun)}
 	// a file moved into a folder the scan leaves out would leave the library
-	ops.excluded = excludedFolders(append([]string{baseFolder}, roots...), options.ExcludeFolders)
+	o.ops.excluded = excludedFolders(append([]string{baseFolder}, roots...), options.ExcludeFolders)
 	if only != nil {
-		ops.only = map[string]bool{}
+		o.ops.only = map[string]bool{}
 		for _, path := range only {
-			ops.only[pathKey(path)] = true
+			o.ops.only[pathKey(path)] = true
 		}
 	}
 	// the files of a game go to the folder it has already: when asked, and always for the new
 	// files, which would otherwise start a second folder of the game next to one named by hand
-	keepFolders := options.CreateFolderPerGame && (options.KeepGameFolders || only != nil)
-	var existing map[string]string
-	if keepFolders {
-		existing = gameFolders(roots, localDB, options, ops.only)
+	o.keepFolders = options.CreateFolderPerGame && (options.KeepGameFolders || only != nil)
+	if o.keepFolders {
+		o.existing = gameFolders(roots, localDB, options, o.ops.only)
 	}
-	isRoot := func(folder string) bool {
-		for _, root := range roots {
-			if root != "" && pathKey(root) == pathKey(folder) {
-				return true
-			}
-		}
-		return false
-	}
-	keys := sortedKeys(localDB.TitlesMap)
-	tasksSize := len(keys) + 1
+	o.collections = multiGameFiles(localDB)
+	return o
+}
 
-	// a file with several games (a collection on one cartridge) is named after all of them,
-	// once, instead of after the game that comes last
-	collections := multiGameFiles(localDB)
-	for _, path := range sortedKeys(collections) {
-		games := collections[path]
+func (o *libraryOrganizer) isRoot(folder string) bool {
+	for _, root := range o.roots {
+		if root != "" && pathKey(root) == pathKey(folder) {
+			return true
+		}
+	}
+	return false
+}
+
+// moveCollections names a file with several games (a collection on one cartridge) after all of
+// them, once, instead of after the game that comes last.
+func (o *libraryOrganizer) moveCollections() {
+	options := o.options
+	for _, path := range sortedKeys(o.collections) {
+		games := o.collections[path]
 		type named struct{ name, key string }
 		named_ := []named{}
 		unnamed := 0
 		for _, key := range games {
-			if name := collectionGameName(titlesDB, key, localDB.TitlesMap[key], options.SwitchSafeFileNames); name != "" {
+			if name := collectionGameName(o.titlesDB, key, o.localDB.TitlesMap[key], options.SwitchSafeFileNames); name != "" {
 				named_ = append(named_, named{name, key})
 			} else {
 				unnamed++
@@ -789,8 +847,8 @@ func organize(baseFolder string,
 		collection := collectionName(names, unnamed)
 		folder := filepath.Dir(path)
 		// with the folders kept, a collection in a folder of its own stays there
-		if options.CreateFolderPerGame && !(keepFolders && !isRoot(folder)) {
-			folder = filepath.Join(baseFolder, avoidReserved(strings.TrimRight(collection, " .")))
+		if options.CreateFolderPerGame && !(o.keepFolders && !o.isRoot(folder)) {
+			folder = filepath.Join(o.baseFolder, avoidReserved(strings.TrimRight(collection, " .")))
 		}
 		fileName := filepath.Base(path)
 		// a name with the ID of one of its games is one the user gave, as for a file of one game
@@ -801,231 +859,228 @@ func organize(baseFolder string,
 		if options.RenameFiles && !(options.KeepNamesWithId && given) {
 			fileName = avoidReserved(fmt.Sprintf("%s [%s][%d games]%s", collection, firstId, len(games), strings.ToLower(filepath.Ext(path))))
 		}
-		ops.move(path, filepath.Join(folder, fileName))
+		o.ops.move(path, filepath.Join(folder, fileName))
+	}
+}
+
+// skipWithoutGame tells the updates and DLC of a game the library does not have, so that the
+// files left where they are do not go unnoticed.
+func (o *libraryOrganizer) skipWithoutGame(v *db.SwitchGameFiles) {
+	for _, update := range sortedIntKeys(v.Updates) {
+		info := v.Updates[update].ExtendedInfo
+		o.ops.skip(filepath.Join(info.BaseFolder, info.FileName), REASON_NO_BASE)
+	}
+	for _, id := range sortedKeys(v.Dlc) {
+		info := v.Dlc[id].ExtendedInfo
+		o.ops.skip(filepath.Join(info.BaseFolder, info.FileName), REASON_NO_BASE)
+	}
+}
+
+// titleName is the name a game is organized by.
+func (o *libraryOrganizer) titleName(k string, title *db.SwitchTitle, v *db.SwitchGameFiles) string {
+	titleName := gameName(o.titlesDB, k, title, v)
+	// a name in Chinese or Korean is left with no letter by the names for the Switch: the
+	// file's own name, or Unknown Title, instead of a folder called "_", or "4" for
+	// 符文工房4 特别版
+	if o.options.SwitchSafeFileNames && !hasLetter(safeName(titleName)) {
+		titleName = asciiFallbackName(v)
+	}
+	return titleName
+}
+
+// titleTemplateData are the fields of the templates of the names for the game: its ID, name,
+// region and version.
+func titleTemplateData(title *db.SwitchTitle, v *db.SwitchGameFiles, titleName string) map[string]string {
+	templateData := map[string]string{}
+
+	if title != nil && title.Attributes.Id != "" {
+		templateData[settings.TEMPLATE_TITLE_ID] = title.Attributes.Id
+	} else if v.File.Metadata != nil {
+		templateData[settings.TEMPLATE_TITLE_ID] = v.File.Metadata.TitleId
 	}
 
-	for i, k := range keys {
-		v := localDB.TitlesMap[k]
-		if !v.BaseExist && !options.ProcessWhenMissingBaseGame {
-			// told, so that the files left where they are do not go unnoticed
-			for _, update := range sortedIntKeys(v.Updates) {
-				info := v.Updates[update].ExtendedInfo
-				ops.skip(filepath.Join(info.BaseFolder, info.FileName), REASON_NO_BASE)
+	templateData[settings.TEMPLATE_TITLE_NAME] = titleName
+	templateData[settings.TEMPLATE_VERSION_TXT] = ""
+
+	if title != nil {
+		templateData[settings.TEMPLATE_REGION] = title.Attributes.Region
+	}
+
+	// a multi content file is named with the latest update it holds itself, not with a
+	// newer one in a file of its own
+	latestUpdate := 0
+	if v.MultiContent {
+		for update, info := range v.Updates {
+			if info.ExtendedInfo == v.File.ExtendedInfo && update > latestUpdate {
+				latestUpdate = update
 			}
-			for _, id := range sortedKeys(v.Dlc) {
-				info := v.Dlc[id].ExtendedInfo
-				ops.skip(filepath.Join(info.BaseFolder, info.FileName), REASON_NO_BASE)
-			}
+		}
+	}
+	if latestUpdate > 0 {
+		templateData[settings.TEMPLATE_VERSION] = strconv.Itoa(latestUpdate)
+
+		if latestUpdate > 0 && v.Updates[latestUpdate].Metadata != nil && v.Updates[latestUpdate].Metadata.Ncap != nil {
+			templateData[settings.TEMPLATE_VERSION_TXT] = v.Updates[latestUpdate].Metadata.Ncap.DisplayVersion
+		}
+	} else {
+		templateData[settings.TEMPLATE_VERSION] = "0"
+
+		if v.File.Metadata != nil && v.File.Metadata.Ncap != nil {
+			templateData[settings.TEMPLATE_VERSION_TXT] = v.File.Metadata.Ncap.DisplayVersion
+		}
+	}
+	return templateData
+}
+
+// moveTitle plans the moves of the files of a game: its base file, then its updates and DLC.
+func (o *libraryOrganizer) moveTitle(k string, title *db.SwitchTitle, v *db.SwitchGameFiles, templateData map[string]string) {
+	if v.IsSplit {
+		// the parts of a split file must stay together in their folder
+		o.ops.skip(filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName), REASON_SPLIT)
+		return
+	}
+
+	destinationPath := v.File.ExtendedInfo.BaseFolder
+	if !v.BaseExist {
+		destinationPath = ""
+	}
+
+	// the folder of the game is created when a file moves into it: a file of several
+	// games stays in the folder of the first one, and an empty folder would be created and
+	// deleted again on every run
+	if o.options.CreateFolderPerGame {
+		destinationPath = filepath.Join(o.baseFolder, getFolderName(o.options, templateData))
+		if folder := o.existing[k]; folder != "" {
+			destinationPath = folder
+		}
+	}
+
+	//process base title
+	if v.BaseExist && o.collections[filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)] == nil {
+		templateData[settings.TEMPLATE_TYPE] = "BASE"
+		templateData[settings.TEMPLATE_DLC_NUMBER] = ""
+		fileTemplateData(templateData, v, v.File.ExtendedInfo)
+		from := filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)
+		to := filepath.Join(o.targetFolder(destinationPath, v.File.ExtendedInfo, o.options.BaseFolder), getFileName(o.options, v.File.ExtendedInfo.FileName, templateData, 0))
+		if err := o.ops.move(from, to); err != nil {
+			return
+		}
+	}
+	o.moveUpdates(v, templateData, destinationPath)
+	o.moveDlcs(title, v, templateData, destinationPath)
+}
+
+// idFolder is, with folders by ID, the folder of an update or DLC, named after its own ID (in
+// the template data when it is asked).
+func (o *libraryOrganizer) idFolder(templateData map[string]string, parent string, fallback string, template string) string {
+	if parent == "" {
+		parent = fallback
+	}
+	name := strings.TrimSpace(fittingTemplate(templateData, o.options.SwitchSafeFileNames, template, 0, maxNameBytes))
+	return filepath.Join(parent, avoidReserved(strings.TrimRight(name, " .")))
+}
+
+// targetFolder is the destination folder of a file of the game, in its subfolder.
+func (o *libraryOrganizer) targetFolder(destinationPath string, file db.ExtendedFileInfo, subFolder string) string {
+	if o.options.CreateFolderPerGame {
+		if subFolder != "" {
+			return filepath.Join(destinationPath, subFolder)
+		}
+		return destinationPath
+	}
+	if subFolder != "" {
+		return resolveFolder(o.baseFolder, subFolder)
+	}
+	return file.BaseFolder
+}
+
+// moveUpdates plans the moves of the updates of a game.
+func (o *libraryOrganizer) moveUpdates(v *db.SwitchGameFiles, templateData map[string]string, destinationPath string) {
+	options := o.options
+	for _, update := range sortedIntKeys(v.Updates) {
+		updateInfo := v.Updates[update]
+		// if the current title is multi content and the update is contained in the main file, skip
+		if v.MultiContent && v.BaseExist && v.File.ExtendedInfo == updateInfo.ExtendedInfo {
 			continue
 		}
 
-		var title *db.SwitchTitle
-		if titlesDB != nil {
-			title = titlesDB.TitlesMap[k]
+		if updateInfo.Metadata != nil {
+			templateData[settings.TEMPLATE_TITLE_ID] = updateInfo.Metadata.TitleId
 		}
-		titleName := gameName(titlesDB, k, title, v)
-		// a name in Chinese or Korean is left with no letter by the names for the Switch: the
-		// file's own name, or Unknown Title, instead of a folder called "_", or "4" for
-		// 符文工房4 特别版
-		if options.SwitchSafeFileNames && !hasLetter(safeName(titleName)) {
-			titleName = asciiFallbackName(v)
-		}
-		if updateProgress != nil {
-			updateProgress.UpdateProgress(i+1, tasksSize, titleName)
-		}
-
-		templateData := map[string]string{}
-
-		if title != nil && title.Attributes.Id != "" {
-			templateData[settings.TEMPLATE_TITLE_ID] = title.Attributes.Id
-		} else if v.File.Metadata != nil {
-			templateData[settings.TEMPLATE_TITLE_ID] = v.File.Metadata.TitleId
-		}
-
-		templateData[settings.TEMPLATE_TITLE_NAME] = titleName
-		templateData[settings.TEMPLATE_VERSION_TXT] = ""
-
-		if title != nil {
-			templateData[settings.TEMPLATE_REGION] = title.Attributes.Region
-		}
-
-		// a multi content file is named with the latest update it holds itself, not with a
-		// newer one in a file of its own
-		latestUpdate := 0
-		if v.MultiContent {
-			for update, info := range v.Updates {
-				if info.ExtendedInfo == v.File.ExtendedInfo && update > latestUpdate {
-					latestUpdate = update
-				}
-			}
-		}
-		if latestUpdate > 0 {
-			templateData[settings.TEMPLATE_VERSION] = strconv.Itoa(latestUpdate)
-
-			if latestUpdate > 0 && v.Updates[latestUpdate].Metadata != nil && v.Updates[latestUpdate].Metadata.Ncap != nil {
-				templateData[settings.TEMPLATE_VERSION_TXT] = v.Updates[latestUpdate].Metadata.Ncap.DisplayVersion
-			}
+		templateData[settings.TEMPLATE_VERSION] = strconv.Itoa(update)
+		templateData[settings.TEMPLATE_TYPE] = "UPD"
+		templateData[settings.TEMPLATE_DLC_NUMBER] = ""
+		fileTemplateData(templateData, v, updateInfo.ExtendedInfo)
+		if updateInfo.Metadata != nil && updateInfo.Metadata.Ncap != nil {
+			templateData[settings.TEMPLATE_VERSION_TXT] = updateInfo.Metadata.Ncap.DisplayVersion
 		} else {
-			templateData[settings.TEMPLATE_VERSION] = "0"
-
-			if v.File.Metadata != nil && v.File.Metadata.Ncap != nil {
-				templateData[settings.TEMPLATE_VERSION_TXT] = v.File.Metadata.Ncap.DisplayVersion
-			}
+			templateData[settings.TEMPLATE_VERSION_TXT] = ""
 		}
 
-		if v.IsSplit {
-			// the parts of a split file must stay together in their folder
-			ops.skip(filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName), REASON_SPLIT)
+		from := filepath.Join(updateInfo.ExtendedInfo.BaseFolder, updateInfo.ExtendedInfo.FileName)
+		if o.collections[from] != nil {
+			continue
+		}
+		updatesFolder := options.UpdatesFolder
+		if options.FoldersWithIds {
+			updatesFolder = o.idFolder(templateData, "", options.UpdatesFolder, "Update [{"+settings.TEMPLATE_TITLE_ID+"}]")
+			if options.UpdatesFolder != "" {
+				updatesFolder = o.idFolder(templateData, "", "", options.UpdatesFolder+" [{"+settings.TEMPLATE_TITLE_ID+"}]")
+			}
+		}
+		to := filepath.Join(o.targetFolder(destinationPath, updateInfo.ExtendedInfo, updatesFolder), getFileName(options, updateInfo.ExtendedInfo.FileName, templateData, 0))
+		o.ops.move(from, to)
+	}
+}
+
+// moveDlcs plans the moves of the DLC of a game.
+func (o *libraryOrganizer) moveDlcs(title *db.SwitchTitle, v *db.SwitchGameFiles, templateData map[string]string, destinationPath string) {
+	options := o.options
+	existingDlcs := map[string]string{}
+	for _, id := range sortedKeys(v.Dlc) {
+		dlc := v.Dlc[id]
+		// if the current title is multi content and the dlc is contained in the main file, skip
+		if v.MultiContent && v.BaseExist && v.File.ExtendedInfo == dlc.ExtendedInfo {
 			continue
 		}
 
-		destinationPath := v.File.ExtendedInfo.BaseFolder
-		if !v.BaseExist {
-			destinationPath = ""
+		templateData[settings.TEMPLATE_VERSION] = "0"
+		templateData[settings.TEMPLATE_VERSION_TXT] = ""
+		if dlc.Metadata != nil {
+			templateData[settings.TEMPLATE_VERSION] = strconv.Itoa(dlc.Metadata.Version)
 		}
+		templateData[settings.TEMPLATE_TYPE] = "DLC"
+		fileTemplateData(templateData, v, dlc.ExtendedInfo)
+		templateData[settings.TEMPLATE_TITLE_ID] = id
+		templateData[settings.TEMPLATE_DLC_NAME] = getDlcName(title, dlc)
+		templateData[settings.TEMPLATE_DLC_NUMBER] = dlcNumber(id)
+		from := filepath.Join(dlc.ExtendedInfo.BaseFolder, dlc.ExtendedInfo.FileName)
+		if o.collections[from] != nil {
+			continue
+		}
+		dlcFolder := options.DlcFolder
+		if options.FoldersWithIds && !options.DlcInOneFolder {
+			// the folder of the DLC tells its name without the one of its game, which the
+			// folder of the game says already, or "DLC" when it has none
+			name := templateData[settings.TEMPLATE_DLC_NAME]
+			templateData[settings.TEMPLATE_DLC_NAME] = dlcFolderName(name, templateData[settings.TEMPLATE_TITLE_NAME])
+			dlcFolder = o.idFolder(templateData, options.DlcFolder, "DLC", "{"+settings.TEMPLATE_DLC_NAME+"} [{"+settings.TEMPLATE_TITLE_ID+"}]")
+			templateData[settings.TEMPLATE_DLC_NAME] = name
+		}
+		folder := o.targetFolder(destinationPath, dlc.ExtendedInfo, dlcFolder)
 
-		// the folder of the game is created when a file moves into it: a file of several
-		// games stays in the folder of the first one, and an empty folder would be created and
-		// deleted again on every run
-		if options.CreateFolderPerGame {
-			destinationPath = filepath.Join(baseFolder, getFolderName(options, templateData))
-			if folder := existing[k]; folder != "" {
-				destinationPath = folder
-			}
-		}
-		// with folders by ID, the folder of an update or DLC, named after its own ID (in the
-		// template data when it is asked)
-		idFolder := func(parent string, fallback string, template string) string {
-			if parent == "" {
-				parent = fallback
-			}
-			name := strings.TrimSpace(fittingTemplate(templateData, options.SwitchSafeFileNames, template, 0, maxNameBytes))
-			return filepath.Join(parent, avoidReserved(strings.TrimRight(name, " .")))
-		}
-
-		// destination folder of a file of the game, in its subfolder
-		targetFolder := func(file db.ExtendedFileInfo, subFolder string) string {
-			if options.CreateFolderPerGame {
-				if subFolder != "" {
-					return filepath.Join(destinationPath, subFolder)
-				}
-				return destinationPath
-			}
-			if subFolder != "" {
-				return resolveFolder(baseFolder, subFolder)
-			}
-			return file.BaseFolder
-		}
-
-		//process base title
-		if v.BaseExist && collections[filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)] == nil {
-			templateData[settings.TEMPLATE_TYPE] = "BASE"
-			templateData[settings.TEMPLATE_DLC_NUMBER] = ""
-			fileTemplateData(templateData, v, v.File.ExtendedInfo)
-			from := filepath.Join(v.File.ExtendedInfo.BaseFolder, v.File.ExtendedInfo.FileName)
-			to := filepath.Join(targetFolder(v.File.ExtendedInfo, options.BaseFolder), getFileName(options, v.File.ExtendedInfo.FileName, templateData, 0))
-			if err := ops.move(from, to); err != nil {
-				continue
+		// DLC with different IDs can share a name, number them instead of colliding
+		var to string
+		for dlcNameTry := 0; ; dlcNameTry++ {
+			to = filepath.Join(folder, getFileName(options, dlc.ExtendedInfo.FileName, templateData, dlcNameTry))
+			if existingId, exists := existingDlcs[to]; !exists || existingId == id {
+				break
 			}
 		}
+		existingDlcs[to] = id
 
-		//process updates
-		for _, update := range sortedIntKeys(v.Updates) {
-			updateInfo := v.Updates[update]
-			// if the current title is multi content and the update is contained in the main file, skip
-			if v.MultiContent && v.BaseExist && v.File.ExtendedInfo == updateInfo.ExtendedInfo {
-				continue
-			}
-
-			if updateInfo.Metadata != nil {
-				templateData[settings.TEMPLATE_TITLE_ID] = updateInfo.Metadata.TitleId
-			}
-			templateData[settings.TEMPLATE_VERSION] = strconv.Itoa(update)
-			templateData[settings.TEMPLATE_TYPE] = "UPD"
-			templateData[settings.TEMPLATE_DLC_NUMBER] = ""
-			fileTemplateData(templateData, v, updateInfo.ExtendedInfo)
-			if updateInfo.Metadata != nil && updateInfo.Metadata.Ncap != nil {
-				templateData[settings.TEMPLATE_VERSION_TXT] = updateInfo.Metadata.Ncap.DisplayVersion
-			} else {
-				templateData[settings.TEMPLATE_VERSION_TXT] = ""
-			}
-
-			from := filepath.Join(updateInfo.ExtendedInfo.BaseFolder, updateInfo.ExtendedInfo.FileName)
-			if collections[from] != nil {
-				continue
-			}
-			updatesFolder := options.UpdatesFolder
-			if options.FoldersWithIds {
-				updatesFolder = idFolder("", options.UpdatesFolder, "Update [{"+settings.TEMPLATE_TITLE_ID+"}]")
-				if options.UpdatesFolder != "" {
-					updatesFolder = idFolder("", "", options.UpdatesFolder+" [{"+settings.TEMPLATE_TITLE_ID+"}]")
-				}
-			}
-			to := filepath.Join(targetFolder(updateInfo.ExtendedInfo, updatesFolder), getFileName(options, updateInfo.ExtendedInfo.FileName, templateData, 0))
-			ops.move(from, to)
-		}
-
-		//process DLC
-		existingDlcs := map[string]string{}
-		for _, id := range sortedKeys(v.Dlc) {
-			dlc := v.Dlc[id]
-			// if the current title is multi content and the dlc is contained in the main file, skip
-			if v.MultiContent && v.BaseExist && v.File.ExtendedInfo == dlc.ExtendedInfo {
-				continue
-			}
-
-			templateData[settings.TEMPLATE_VERSION] = "0"
-			templateData[settings.TEMPLATE_VERSION_TXT] = ""
-			if dlc.Metadata != nil {
-				templateData[settings.TEMPLATE_VERSION] = strconv.Itoa(dlc.Metadata.Version)
-			}
-			templateData[settings.TEMPLATE_TYPE] = "DLC"
-			fileTemplateData(templateData, v, dlc.ExtendedInfo)
-			templateData[settings.TEMPLATE_TITLE_ID] = id
-			templateData[settings.TEMPLATE_DLC_NAME] = getDlcName(title, dlc)
-			templateData[settings.TEMPLATE_DLC_NUMBER] = dlcNumber(id)
-			from := filepath.Join(dlc.ExtendedInfo.BaseFolder, dlc.ExtendedInfo.FileName)
-			if collections[from] != nil {
-				continue
-			}
-			dlcFolder := options.DlcFolder
-			if options.FoldersWithIds && !options.DlcInOneFolder {
-				// the folder of the DLC tells its name without the one of its game, which the
-				// folder of the game says already, or "DLC" when it has none
-				name := templateData[settings.TEMPLATE_DLC_NAME]
-				templateData[settings.TEMPLATE_DLC_NAME] = dlcFolderName(name, templateData[settings.TEMPLATE_TITLE_NAME])
-				dlcFolder = idFolder(options.DlcFolder, "DLC", "{"+settings.TEMPLATE_DLC_NAME+"} [{"+settings.TEMPLATE_TITLE_ID+"}]")
-				templateData[settings.TEMPLATE_DLC_NAME] = name
-			}
-			folder := targetFolder(dlc.ExtendedInfo, dlcFolder)
-
-			// DLC with different IDs can share a name, number them instead of colliding
-			var to string
-			for dlcNameTry := 0; ; dlcNameTry++ {
-				to = filepath.Join(folder, getFileName(options, dlc.ExtendedInfo.FileName, templateData, dlcNameTry))
-				if existingId, exists := existingDlcs[to]; !exists || existingId == id {
-					break
-				}
-			}
-			existingDlcs[to] = id
-
-			ops.move(from, to)
-		}
+		o.ops.move(from, to)
 	}
-
-	if options.DeleteEmptyFolders && baseFolder != "" {
-		if updateProgress != nil {
-			updateProgress.UpdateProgress(tasksSize, tasksSize, "Deleting empty folders...")
-		}
-		// with the new files only, no folder that was empty before: only the ones they leave
-		known := localDB.EmptyFolders
-		if only != nil {
-			known = nil
-		}
-		ops.deleteEmptyFolders(baseFolder, roots, known)
-	}
-
-	return ops.operations, nil
 }
 
 // gameFolders are the folders the games have already, by key: the folder of the base file,
