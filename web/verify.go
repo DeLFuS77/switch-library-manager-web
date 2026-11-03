@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/awake"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -717,6 +718,7 @@ func (web *Web) startVerificationSince(level string, paths []string, recheck tim
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, TASK_VERIFY, 0
+	web.compressor.awake = awake.Keep()
 	web.compressor.mutex.Unlock()
 
 	store := web.verifications()

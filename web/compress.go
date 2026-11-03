@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/awake"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -189,6 +190,8 @@ type compressor struct {
 	paused bool
 	resume chan struct{}
 	taskId int64
+	// keeps the computer awake while the task works, not while it is paused
+	awake *awake.Hold
 	// the bytes the files being written will still take, for the space checks
 	reserved int64
 	// the version of the check results when the task began, which the Space page follows
@@ -772,6 +775,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, kind, 0
+	web.compressor.awake = awake.Keep()
 	web.compressor.spaceVersion = spaceVersion
 	web.compressor.mutex.Unlock()
 
@@ -1301,6 +1305,8 @@ func (web *Web) pauseCompression(paused bool) bool {
 	} else {
 		close(c.resume)
 	}
+	// paused, the computer may sleep
+	c.awake.Pause(paused)
 	if c.taskId != 0 {
 		web.taskLog().SetPaused(c.taskId, paused)
 	}
@@ -1314,6 +1320,8 @@ func (web *Web) releaseFiles() {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.cancel, c.kind, c.flush = nil, "", nil
+	c.awake.Release()
+	c.awake = nil
 	if c.paused {
 		c.paused = false
 		close(c.resume)

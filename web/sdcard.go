@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/awake"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -388,6 +389,7 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, TASK_COPY, 0
+	web.compressor.awake = awake.Keep()
 	web.compressor.mutex.Unlock()
 
 	taskId := web.taskLog().Start(TASK_COPY, TRIGGER_MANUAL)
