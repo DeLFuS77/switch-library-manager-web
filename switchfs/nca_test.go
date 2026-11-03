@@ -225,9 +225,10 @@ func TestMetaSectionWithinItsFile(t *testing.T) {
 	if _, _, err := openMetaNcaDataSection(bytes.NewReader(pastTheSection), 0); err == nil {
 		t.Fatal("the data of the section starts past its end")
 	}
-	// a section of 1 GiB in a file of a few kB
+	// a section within maxReadSectionSize but past the end of a file of a few kB: it fails
+	// without taking its size in memory
 	pastTheFile := mutateSyntheticNCAHeader(t, nca, func(header []byte) {
-		binary.LittleEndian.PutUint32(header[0x244:], 6+(1<<30)/0x200)
+		binary.LittleEndian.PutUint32(header[0x244:], 6+(32<<20)/0x200)
 	})
 	var before, after runtime.MemStats
 	runtime.ReadMemStats(&before)
@@ -242,6 +243,20 @@ func TestMetaSectionWithinItsFile(t *testing.T) {
 	// also from a reader that does not tell its size
 	if _, _, err := openMetaNcaDataSection(unsizedReader{bytes.NewReader(pastTheFile)}, 0); err == nil {
 		t.Fatal("a section past the end of an unsized reader")
+	}
+	// a section larger than maxReadSectionSize is refused outright, without reserving it: a
+	// damaged NCA inside a file that really is gigabytes must not take gigabytes to read
+	tooBig := mutateSyntheticNCAHeader(t, nca, func(header []byte) {
+		binary.LittleEndian.PutUint32(header[0x244:], 6+(1<<30)/0x200)
+	})
+	runtime.ReadMemStats(&before)
+	_, _, err = openMetaNcaDataSection(bytes.NewReader(tooBig), 0)
+	runtime.ReadMemStats(&after)
+	if err == nil {
+		t.Fatal("an oversized section was not refused")
+	}
+	if allocated := after.TotalAlloc - before.TotalAlloc; allocated > 64<<20 {
+		t.Fatalf("%d bytes taken for an oversized section", allocated)
 	}
 	if _, decoded, err := openMetaNcaDataSection(unsizedReader{bytes.NewReader(nca)}, 0); err != nil || string(decoded[:4]) != "PFS0" {
 		t.Fatalf("the section from an unsized reader: %v", err)

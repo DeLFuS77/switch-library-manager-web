@@ -53,6 +53,11 @@ func ReadPfs0File(filePath string) (*PFS0, error) {
 // maxPfs0FileCount files.
 const maxPfs0StringTable = 4 << 20
 
+// maxPfs0Name is the longest file name read from the string table. The names of an NSP are a
+// few bytes each, so bounding each one stops a table without a terminator from making every
+// entry copy the whole table into memory.
+const maxPfs0Name = 512
+
 func readPfs0(reader io.ReaderAt, offset int64) (*PFS0, error) {
 	if reader == nil {
 		return nil, errors.New("nil reader")
@@ -114,11 +119,10 @@ func readPfs0(reader io.ReaderAt, offset int64) (*PFS0, error) {
 		}
 		var nameBytes []byte
 		for _, b := range fileNamesBuffer[nameOffset:] {
-			if b == 0x0 {
+			if b == 0x0 || len(nameBytes) >= maxPfs0Name {
 				break
-			} else {
-				nameBytes = append(nameBytes, b)
 			}
+			nameBytes = append(nameBytes, b)
 		}
 
 		// the readers take offsets and sizes as int64: a file must end within it from the start
