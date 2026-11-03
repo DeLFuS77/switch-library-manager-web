@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -757,7 +758,7 @@ func (web *Web) HandleSpace() {
 		web.sugarLogger.Infof("[Space] %d files deleted, %d bytes freed", deleted, freed)
 
 		// the cached library no longer matches the files on disk
-		web.Rescan(TRIGGER_ORGANIZE)
+		web.Rescan(tasklog.TRIGGER_ORGANIZE)
 		writeJSON(w, http.StatusOK, map[string]any{"deleted": deleted, "freed": freed, "requested": size})
 	}).Methods("POST")
 }

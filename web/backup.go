@@ -16,6 +16,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -355,7 +356,7 @@ func (web *Web) HandleBackup() {
 			return
 		}
 		web.sugarLogger.Info("[Backup restored]")
-		web.Rescan(TRIGGER_SETTINGS)
+		web.Rescan(tasklog.TRIGGER_SETTINGS)
 		writeJSON(w, http.StatusOK, SuccessResponse{
 			StrongMessage: i18n.Translate(lang, "Success!"),
 			Message:       i18n.Translate(lang, "The backup was restored. The library is being rescanned."),

@@ -11,6 +11,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -71,7 +72,7 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 	app.Checks = append(app.Checks,
 		Check{Label: t("Version"), Value: settings.SLM_WEB_VERSION, Status: CHECK_INFO},
 		Check{Label: t("System"), Value: fmt.Sprintf("%s/%s, %s, %d %s", runtime.GOOS, runtime.GOARCH, runtime.Version(), runtime.NumCPU(), t("cores")), Status: CHECK_INFO},
-		Check{Label: t("Running for"), Value: formatDuration(time.Since(appStarted)), Status: CHECK_INFO},
+		Check{Label: t("Running for"), Value: i18n.FormatDuration(time.Since(appStarted)), Status: CHECK_INFO},
 		Check{Label: t("Data folder"), Value: web.dataFolder, Status: CHECK_INFO},
 	)
 	if update := web.availableUpdate(); update != nil {
@@ -124,9 +125,9 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 	if localDB != nil {
 		folders.Checks = append(folders.Checks, Check{Label: t("Files found"), Value: t("%v files, %v not recognized", num(lang, localDB.NumFiles), num(lang, len(localDB.Skipped))), Status: CHECK_INFO})
 	}
-	if scan := lastTask(web.taskLog().Snapshot(), TASK_SCAN); scan != nil {
+	if scan := lastTask(web.taskLog().Snapshot(), tasklog.TASK_SCAN); scan != nil {
 		check := Check{Label: t("Last scan"), Value: i18n.FormatDateTime(lang, scan.Started) + " · " + t("took %v", scan.Duration()), Status: CHECK_OK}
-		if scan.Status != TASK_SUCCESS {
+		if scan.Status != tasklog.TASK_SUCCESS {
 			check.Status, check.Hint = CHECK_WARN, t("See the details in Tasks.")
 		}
 		folders.Checks = append(folders.Checks, check)
@@ -238,8 +239,8 @@ func writable(folder string) bool {
 }
 
 // lastTask returns the newest finished task of a kind.
-func lastTask(tasks []Task, kind string) *Task {
-	var last *Task
+func lastTask(tasks []tasklog.Task, kind string) *tasklog.Task {
+	var last *tasklog.Task
 	for i := range tasks {
 		task := &tasks[i]
 		if task.Kind != kind || task.Running() {
@@ -250,20 +251,6 @@ func lastTask(tasks []Task, kind string) *Task {
 		}
 	}
 	return last
-}
-
-// formatDuration is a duration in days, hours and minutes.
-func formatDuration(d time.Duration) string {
-	days := int(d.Hours()) / 24
-	hours := int(d.Hours()) % 24
-	minutes := int(d.Minutes()) % 60
-	if days > 0 {
-		return fmt.Sprintf("%dd %dh", days, hours)
-	}
-	if hours > 0 {
-		return fmt.Sprintf("%dh %dm", hours, minutes)
-	}
-	return fmt.Sprintf("%dm", minutes)
 }
 
 func (web *Web) HandleDiagnostics() {

@@ -10,13 +10,14 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/gorilla/mux"
 )
 
 type TasksPageData struct {
 	GlobalPageData
-	Running  []Task
+	Running  []tasklog.Task
 	Finished []TaskGroup
 	// the tasks on files waiting for their turn
 	Queue []QueuedView
@@ -81,8 +82,8 @@ func (web *Web) tasksPageData() TasksPageData {
 // taskListData is the list of tasks alone, refreshed by the page while tasks run: it needs
 // none of the header.
 func (web *Web) taskListData() TasksPageData {
-	data := TasksPageData{Running: []Task{}, ListVersion: web.taskLog().Version()}
-	finished := []Task{}
+	data := TasksPageData{Running: []tasklog.Task{}, ListVersion: web.taskLog().Version()}
+	finished := []tasklog.Task{}
 	paused := false
 	for _, task := range web.taskLog().Snapshot() {
 		if task.Running() {
@@ -106,7 +107,7 @@ const maxShownTiles = 240
 
 // withCovers gives a task on files with the cover of the game of each file it works on and
 // each file it ended, and the next file it takes from those it has left.
-func (web *Web) withCovers(task Task) Task {
+func (web *Web) withCovers(task tasklog.Task) tasklog.Task {
 	if len(task.Lanes) == 0 && len(task.Tiles) == 0 && len(task.Plan) == 0 && task.Resume == nil {
 		return task
 	}
@@ -117,7 +118,7 @@ func (web *Web) withCovers(task Task) Task {
 	}
 	task.Plan, task.HiddenAfter = shownPlan(task.Plan, task.Lanes, covers)
 	// the lanes of the snapshot are shared with the running task: a copy is changed
-	lanes := make([]TaskLane, len(task.Lanes))
+	lanes := make([]tasklog.Lane, len(task.Lanes))
 	working := map[string]bool{}
 	for i, lane := range task.Lanes {
 		lane.Cover = covers[lane.Name]
@@ -128,7 +129,7 @@ func (web *Web) withCovers(task Task) Task {
 	if task.Resume != nil && !task.Paused {
 		for _, path := range task.Resume.Paths {
 			if name := filepath.Base(path); !working[name] {
-				task.Next = &TaskLane{Name: name, Cover: covers[name]}
+				task.Next = &tasklog.Lane{Name: name, Cover: covers[name]}
 				break
 			}
 		}
@@ -139,11 +140,11 @@ func (web *Web) withCovers(task Task) Task {
 // shownPlan is the part of the plan of a running task the view by covers shows, each file with
 // its cover and, at work, its progress, and how many files are left out after it: a few of the
 // files ended, then those at work and those waiting. The files ended before them are left out.
-func shownPlan(plan []TaskTile, lanes []TaskLane, covers map[string]string) ([]TaskTile, int) {
+func shownPlan(plan []tasklog.Tile, lanes []tasklog.Lane, covers map[string]string) ([]tasklog.Tile, int) {
 	if len(plan) == 0 {
 		return nil, 0
 	}
-	working := map[string]TaskLane{}
+	working := map[string]tasklog.Lane{}
 	for _, lane := range lanes {
 		if lane.Name != "" {
 			working[lane.Name] = lane
@@ -151,7 +152,7 @@ func shownPlan(plan []TaskTile, lanes []TaskLane, covers map[string]string) ([]T
 	}
 	// the files at work come right after the ended ones, before those waiting, so the view
 	// fills up in order (AddFileTile puts the ended files first)
-	ordered := make([]TaskTile, 0, len(plan))
+	ordered := make([]tasklog.Tile, 0, len(plan))
 	for _, tile := range plan {
 		if !tile.Waiting {
 			ordered = append(ordered, tile)
@@ -171,7 +172,7 @@ func shownPlan(plan []TaskTile, lanes []TaskLane, covers map[string]string) ([]T
 	plan = ordered
 	start := max(0, min(first-maxShownTiles/10, len(plan)-maxShownTiles))
 	end := min(len(plan), start+maxShownTiles)
-	shown := make([]TaskTile, 0, end-start)
+	shown := make([]tasklog.Tile, 0, end-start)
 	for _, tile := range plan[start:end] {
 		tile.Cover = covers[tile.Name]
 		if lane, ok := working[tile.Name]; ok && tile.Waiting {
@@ -253,7 +254,7 @@ func otherPacking(name string) string {
 // TaskGroup is a finished task, or several of the same kind that followed one another and
 // went well, shown once: "Library scan ×9".
 type TaskGroup struct {
-	Task
+	tasklog.Task
 	Count int
 	// the IDs of the tasks of the group, separated by commas, to dismiss them together
 	Ids string
@@ -261,10 +262,10 @@ type TaskGroup struct {
 
 // groupTasks puts together the tasks of the same kind and trigger that went well one after
 // another; the first of each group is shown.
-func groupTasks(tasks []Task) []TaskGroup {
+func groupTasks(tasks []tasklog.Task) []TaskGroup {
 	groups := []TaskGroup{}
-	quiet := func(task Task) bool {
-		return task.Status == TASK_SUCCESS && task.Error == nil && len(task.Warnings) == 0
+	quiet := func(task tasklog.Task) bool {
+		return task.Status == tasklog.TASK_SUCCESS && task.Error == nil && len(task.Warnings) == 0
 	}
 	for _, task := range tasks {
 		if n := len(groups); n > 0 {
@@ -289,7 +290,7 @@ const (
 // apiTask is a task as /api/tasks gives it: with its message in the language of the request,
 // so the pages show it as Tasks does.
 type apiTask struct {
-	Task
+	tasklog.Task
 	Text string `json:"text,omitempty"`
 	// a failed task that is no failure: cancelled, stopped by a restart, or gone on after it
 	Ending string `json:"ending,omitempty"`

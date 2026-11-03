@@ -23,6 +23,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -168,7 +169,7 @@ func TestTitleOverridesWinAndAreKept(t *testing.T) {
 	scans := uint64(0)
 	synchronize := func() {
 		t.Helper()
-		if !web.Synchronize(TRIGGER_MANUAL) {
+		if !web.Synchronize(tasklog.TRIGGER_MANUAL) {
 			t.Fatal("the synchronization starts")
 		}
 		scans++
@@ -176,7 +177,7 @@ func TestTitleOverridesWinAndAreKept(t *testing.T) {
 	}
 	rescan := func() {
 		t.Helper()
-		if !web.Rescan(TRIGGER_MANUAL) {
+		if !web.Rescan(tasklog.TRIGGER_MANUAL) {
 			t.Fatal("the scan starts")
 		}
 		scans++

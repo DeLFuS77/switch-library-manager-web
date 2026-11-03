@@ -5,6 +5,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 )
 
 // afterScan runs the background work that follows a new library: covers, thumbnails and
@@ -38,7 +39,7 @@ func (web *Web) afterScan() {
 		// temporary files of tasks stopped in the middle that did not go on
 		web.cleanLeftovers()
 		web.warmPages()
-		web.lookupTimesToBeat(TRIGGER_SCAN)
+		web.lookupTimesToBeat(tasklog.TRIGGER_SCAN)
 		// the games without their title key, for Issues and Compress
 		web.checkTitleKeys()
 		// the title languages asked for while it ran

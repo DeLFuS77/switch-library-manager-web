@@ -13,6 +13,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -153,7 +154,7 @@ func (web *Web) HandleKeysUpload() {
 		web.sugarLogger.Infof("[Keys] new keys saved in the data folder from Settings")
 
 		message := i18n.Translate(lang, "Your keys are saved in the data folder of the app. The library is being rescanned.")
-		if !web.Rescan(TRIGGER_SETTINGS) {
+		if !web.Rescan(tasklog.TRIGGER_SETTINGS) {
 			message = i18n.Translate(lang, "Your keys are saved in the data folder of the app. They will be used by the next synchronization.")
 		}
 		// the folder of the keys now, for the field of the wizard

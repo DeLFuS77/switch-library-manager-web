@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -600,7 +601,7 @@ func TestOldVersionStaysForANewerOneThatCannotBeRead(t *testing.T) {
 			t.Fatalf("kept for a newer one read by its name only: %+v", file)
 		}
 	}
-	if _, err := web.runOrganizeAction(ORGANIZE_ACTION_CLEANUP, TRIGGER_MANUAL); err != nil {
+	if _, err := web.runOrganizeAction(ORGANIZE_ACTION_CLEANUP, tasklog.TRIGGER_MANUAL); err != nil {
 		t.Fatal(err)
 	}
 	for _, name := range []string{"Game [0100000000010800][v65536].nsp", oldDlc.FileName} {

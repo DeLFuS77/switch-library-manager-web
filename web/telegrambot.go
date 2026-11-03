@@ -12,6 +12,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -308,7 +309,7 @@ func (web *Web) botSync(lang string) string {
 	if web.state.IsSynchronizing() {
 		return i18n.Translate(lang, "A synchronization is already running.")
 	}
-	if !web.Synchronize(TRIGGER_MANUAL) {
+	if !web.Synchronize(tasklog.TRIGGER_MANUAL) {
 		return i18n.Translate(lang, "The synchronization could not start now: a task works on the files. Try again later.")
 	}
 	return i18n.Translate(lang, "Synchronization started.")

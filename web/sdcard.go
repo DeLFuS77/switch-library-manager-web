@@ -19,6 +19,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/search"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -28,7 +29,6 @@ import (
 // writes there and never deletes anything.
 
 const (
-	TASK_COPY = "copy"
 	// a card of "1000 GB" holds about this share of it once formatted
 	sdFormattedShare = 0.93
 	maxSdGenres      = 8
@@ -390,10 +390,10 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 		return false
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, TASK_COPY, 0
+	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, tasklog.TASK_COPY, 0
 	web.compressor.mutex.Unlock()
 
-	taskId := web.taskLog().Start(TASK_COPY, TRIGGER_MANUAL)
+	taskId := web.taskLog().Start(tasklog.TASK_COPY, tasklog.TRIGGER_MANUAL)
 	go func() {
 		defer func() {
 			web.releaseFiles()
@@ -403,10 +403,10 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 		}()
 		var done int64
 		copied := 0
-		var failure *TaskNote
+		var failure *tasklog.Note
 		for i, file := range files {
 			if ctx.Err() != nil {
-				failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
+				failure = &tasklog.Note{Text: tasklog.NOTE_COMPRESS_CANCELED}
 				break
 			}
 			name := filepath.Base(file.source)
@@ -417,10 +417,10 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 			done += file.size
 			if err != nil {
 				if ctx.Err() != nil {
-					failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
+					failure = &tasklog.Note{Text: tasklog.NOTE_COMPRESS_CANCELED}
 					break
 				}
-				failure = &TaskNote{Text: NOTE_SD_COPY_FAILED, Detail: name + ": " + err.Error()}
+				failure = &tasklog.Note{Text: tasklog.NOTE_SD_COPY_FAILED, Detail: name + ": " + err.Error()}
 				break
 			}
 			copied++
@@ -430,8 +430,6 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 	}()
 	return true
 }
-
-const NOTE_SD_COPY_FAILED = "The files could not be copied."
 
 // copyFileTo copies a file through a temporary file; a file of the same size already there
 // is kept.

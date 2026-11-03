@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 )
 
 func TestCoversAreDownloadedAfterTheScan(t *testing.T) {
@@ -58,13 +59,13 @@ func TestCoversAreDownloadedAfterTheScan(t *testing.T) {
 	}
 
 	// the downloads are shown in Tasks
-	var coverTask *Task
+	var coverTask *tasklog.Task
 	for _, task := range web.taskLog().Snapshot() {
-		if task.Kind == TASK_COVERS {
+		if task.Kind == tasklog.TASK_COVERS {
 			coverTask = &task
 		}
 	}
-	if coverTask == nil || coverTask.Status != TASK_SUCCESS || coverTask.Files != 2 || coverTask.Trigger != TRIGGER_SCAN {
+	if coverTask == nil || coverTask.Status != tasklog.TASK_SUCCESS || coverTask.Files != 2 || coverTask.Trigger != tasklog.TRIGGER_SCAN {
 		t.Fatalf("cover task: %+v", coverTask)
 	}
 
@@ -91,7 +92,7 @@ func TestCoverDownloadsStopForAScan(t *testing.T) {
 	if web.covers.again {
 		t.Fatal("covers are not asked again while the scan runs")
 	}
-	if task := web.taskLog().Snapshot()[0]; task.Kind != TASK_COVERS || len(task.Warnings) == 0 || task.Warnings[0].Text != NOTE_PAUSED_FOR_SCAN {
+	if task := web.taskLog().Snapshot()[0]; task.Kind != tasklog.TASK_COVERS || len(task.Warnings) == 0 || task.Warnings[0].Text != tasklog.NOTE_PAUSED_FOR_SCAN {
 		t.Fatalf("the task says it paused for the scan: %+v", task)
 	}
 }
@@ -152,14 +153,14 @@ func TestCoversWaitForTheConnection(t *testing.T) {
 	tasks := func() int {
 		count := 0
 		for _, task := range web.taskLog().Snapshot() {
-			if task.Kind == TASK_COVERS {
+			if task.Kind == tasklog.TASK_COVERS {
 				count++
 			}
 		}
 		return count
 	}
 	web.downloadMissingCovers()
-	if task := web.taskLog().Snapshot()[0]; tasks() != 1 || len(task.Warnings) == 0 || task.Warnings[0].Text != NOTE_COVERS_OFFLINE {
+	if task := web.taskLog().Snapshot()[0]; tasks() != 1 || len(task.Warnings) == 0 || task.Warnings[0].Text != tasklog.NOTE_COVERS_OFFLINE {
 		t.Fatalf("the first task finds no connection: %+v", task)
 	}
 	web.downloadMissingCovers()

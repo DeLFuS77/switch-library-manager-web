@@ -4,6 +4,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"os"
@@ -472,7 +473,7 @@ func (web *Web) HandleSettings() {
 		}
 
 		message := i18n.Translate(lang, "Settings changed successfully. The library is being rescanned.")
-		if !web.Rescan(TRIGGER_SETTINGS) {
+		if !web.Rescan(tasklog.TRIGGER_SETTINGS) {
 			message = i18n.Translate(lang, "Settings changed successfully. They will be applied by the next synchronization.")
 		}
 

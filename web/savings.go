@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"sync"
 )
@@ -36,25 +35,6 @@ func (t ratioTotal) percent() int {
 		return 0
 	}
 	return int((t.Before - t.After) * 100 / t.Before)
-}
-
-var titleIdInName = regexp.MustCompile(`\[([0-9A-Fa-f]{16})\]`)
-
-// contentKind tells from the title ID in the name of a file whether it is a game, an update or
-// a DLC, as the Compress page names them; "" when the name has none.
-func contentKind(path string) string {
-	match := titleIdInName.FindStringSubmatch(filepath.Base(path))
-	if match == nil {
-		return ""
-	}
-	id := strings.ToLower(match[1])
-	switch {
-	case strings.HasSuffix(id, "000"):
-		return "Base"
-	case strings.HasSuffix(id, "800"):
-		return "Update"
-	}
-	return "DLC"
 }
 
 // ratioKeys are the totals a file counts in: its kind with its format, and its kind alone.

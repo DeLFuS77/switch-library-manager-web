@@ -18,6 +18,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/search"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -370,7 +371,7 @@ func (web *Web) lookupTimesToBeat(trigger string) bool {
 		defer web.timeToBeatRunning.Store(false)
 		client := newIgdbClient(id, secret)
 		ctx := context.Background()
-		var failure *TaskNote
+		var failure *tasklog.Note
 		found := 0
 		for i, game := range games {
 			// a scan replaces the library: the rest waits for the next run
@@ -380,7 +381,7 @@ func (web *Web) lookupTimesToBeat(trigger string) bool {
 			web.taskLog().Progress(taskId, i, len(games), game.name)
 			value, err := client.lookup(ctx, game.name, time.Now())
 			if errors.Is(err, errIgdbCredentials) {
-				failure = &TaskNote{Text: NOTE_IGDB_CREDENTIALS}
+				failure = &tasklog.Note{Text: NOTE_IGDB_CREDENTIALS}
 				break
 			}
 			if err != nil {
@@ -398,19 +399,19 @@ func (web *Web) lookupTimesToBeat(trigger string) bool {
 		web.taskLog().Progress(taskId, len(games), len(games), "")
 		web.taskLog().SetResult(taskId, found, len(games))
 		if err := store.save(); err != nil && failure == nil {
-			failure = &TaskNote{Text: err.Error()}
+			failure = &tasklog.Note{Text: err.Error()}
 		}
 		// the Switch games of the collections of the games, for their series
 		if failure == nil && !web.state.IsSynchronizing() {
 			if err := web.lookupIgdbCollections(ctx, client); errors.Is(err, errIgdbCredentials) {
-				failure = &TaskNote{Text: NOTE_IGDB_CREDENTIALS}
+				failure = &tasklog.Note{Text: NOTE_IGDB_CREDENTIALS}
 			}
 		}
 		// the genres, release date, description and cover of the games the titles database
 		// does not list
 		if failure == nil && !web.state.IsSynchronizing() {
 			if err := web.lookupLibraryTitles(ctx, client); errors.Is(err, errIgdbCredentials) {
-				failure = &TaskNote{Text: NOTE_IGDB_CREDENTIALS}
+				failure = &tasklog.Note{Text: NOTE_IGDB_CREDENTIALS}
 			}
 		}
 		web.invalidateDerived()

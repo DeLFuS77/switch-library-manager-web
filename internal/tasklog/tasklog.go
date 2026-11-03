@@ -1,16 +1,22 @@
-package web
+// Package tasklog keeps the tasks the app runs in the background (synchronizations, scans,
+// compressions, checks, copies) with their progress, file by file, and the history of the
+// ones that ended, saved in the data folder so a task cut by a restart goes on.
+package tasklog
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"hash/fnv"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 )
 
 // kinds of background tasks
@@ -23,6 +29,10 @@ const (
 	TASK_DECOMPRESS = "decompress"
 	TASK_VERIFY     = "verify"
 	TASK_CONVERT    = "convert"
+	TASK_PACK       = "pack"
+	TASK_SPLIT      = "split"
+	// games copied to an SD card
+	TASK_COPY = "copy"
 	// background work after a scan
 	TASK_COVERS     = "covers"
 	TASK_THUMBNAILS = "thumbnails"
@@ -73,7 +83,16 @@ const (
 	NOTE_PAUSED_FOR_SCAN       = "Paused for a scan; it continues afterwards."
 	NOTE_PAUSED_FOR_HOURS      = "Paused outside the background hours; it continues when they begin."
 	// something the task did not expect stopped it: it ends failed, and the app goes on
-	NOTE_TASK_CRASHED = "The task stopped on an unexpected error."
+	NOTE_TASK_CRASHED   = "The task stopped on an unexpected error."
+	NOTE_SD_COPY_FAILED = "The files could not be copied."
+	// every task on files that the user stops; the old text stays in the history saved before
+	NOTE_COMPRESS_CANCELED     = "The task was cancelled."
+	NOTE_COMPRESS_CANCELED_OLD = "The compression was cancelled."
+	// an upload of a game from the browser that was cancelled or cut
+	NOTE_UPLOAD_CANCELED = "The upload was cancelled."
+	NOTE_UPLOAD_STOPPED  = "The upload stopped: the page was closed or lost the connection. Choose the same file again to go on where it stopped."
+	// a check found an NCA a tool rewrote (see the levels of a check below)
+	NOTE_VERIFY_UNSIGNED = "An NCA is not signed by Nintendo: a tool rewrote it."
 )
 
 var taskNoteTexts = []string{NOTE_SD_COPY_FAILED, NOTE_INTERRUPTED, NOTE_TITLES_DOWNLOAD, NOTE_TITLES_SAVED_COPY, NOTE_TITLES_OFFLINE, NOTE_TITLES_OFFLINE_NONE, NOTE_COVERS_OFFLINE, NOTE_SCAN_FAILED, NOTE_NOTIFY_FAILED, NOTE_ORGANIZE_FAILED, NOTE_PAUSED_FOR_SCAN, NOTE_PAUSED_FOR_HOURS, NOTE_TASK_CRASHED}
@@ -94,16 +113,16 @@ var formatChanges = map[string]map[string]string{
 	TASK_CONVERT:    {".xci": "XCI → NSP", ".xcz": "XCZ → NSZ"},
 }
 
-// formatChange is the change of format of a file in a task on files, e.g. "NSP → NSZ", or ""
+// FormatChange is the change of format of a file in a task on files, e.g. "NSP → NSZ", or ""
 // when the task does not change it.
-func formatChange(kind string, name string) string {
+func FormatChange(kind string, name string) string {
 	return formatChanges[kind][strings.ToLower(filepath.Ext(name))]
 }
 
-// TaskResume is what a task on files still has to do and how, saved as it goes: a task the
+// Resume is what a task on files still has to do and how, saved as it goes: a task the
 // app was stopped in the middle of (a restart, an update, a backup of the server at night)
 // goes on with it once the app is started again.
-type TaskResume struct {
+type Resume struct {
 	Paths  []string `json:"paths"`
 	Level  string   `json:"level,omitempty"`
 	Delete bool     `json:"delete,omitempty"`
@@ -117,12 +136,12 @@ type TaskResume struct {
 type Task struct {
 	Id int64 `json:"id"`
 	// the files a compression, decompression or conversion has left, while it runs
-	Resume   *TaskResume `json:"resume,omitempty"`
-	Kind     string      `json:"kind"`
-	Trigger  string      `json:"trigger"`
-	Status   string      `json:"status"`
-	Started  time.Time   `json:"started"`
-	Finished time.Time   `json:"finished,omitempty"`
+	Resume   *Resume   `json:"resume,omitempty"`
+	Kind     string    `json:"kind"`
+	Trigger  string    `json:"trigger"`
+	Status   string    `json:"status"`
+	Started  time.Time `json:"started"`
+	Finished time.Time `json:"finished,omitempty"`
 	// the last time a running task changed, saved every half minute: a task that stopped
 	// changing is stuck, and a task the app was stopped in the middle of ended about then
 	Beat time.Time `json:"beat,omitempty"`
@@ -136,10 +155,10 @@ type Task struct {
 	// the file a task is about, kept once it ended (an upload)
 	Subject string `json:"subject,omitempty"`
 	// the files of a task on files: the one it reached, out of how many
-	FileNumber int        `json:"fileNumber,omitempty"`
-	FileCount  int        `json:"fileCount,omitempty"`
-	Error      *TaskNote  `json:"error,omitempty"`
-	Warnings   []TaskNote `json:"warnings,omitempty"`
+	FileNumber int    `json:"fileNumber,omitempty"`
+	FileCount  int    `json:"fileCount,omitempty"`
+	Error      *Note  `json:"error,omitempty"`
+	Warnings   []Note `json:"warnings,omitempty"`
 	// results, depending on the kind
 	Games int `json:"games,omitempty"`
 	Files int `json:"files,omitempty"`
@@ -147,12 +166,12 @@ type Task struct {
 	Saved    int64 `json:"saved,omitempty"`
 	Original int64 `json:"original,omitempty"`
 	// the size of each file before and after a compression
-	Results []TaskResult `json:"results,omitempty"`
+	Results []Result `json:"results,omitempty"`
 	// how each file of a task on files ended, for the view of the Tasks page by covers
-	Tiles []TaskTile `json:"tiles,omitempty"`
+	Tiles []Tile `json:"tiles,omitempty"`
 	// every file of a running task on files, in its order, waiting or ended: the view by covers
 	// shows them all, as NXPress does. Not saved to disk.
-	Plan []TaskTile `json:"-"`
+	Plan []Tile `json:"-"`
 	// on the Tasks page only: the files of the plan left out after those shown
 	HiddenAfter int `json:"-"`
 	// damaged files found by a verification (failed), and why its files are checked
@@ -166,7 +185,7 @@ type Task struct {
 	ByFiles  bool   `json:"byFiles,omitempty"`
 	// work done at the same time: the files being worked on, each with its progress, and
 	// how many workers or threads the task uses
-	Lanes []TaskLane `json:"lanes,omitempty"`
+	Lanes []Lane `json:"lanes,omitempty"`
 	// a running compression held by the user until it is resumed, since when, and how long
 	// it was held before: the speed counts only the time it worked
 	Paused    bool          `json:"paused,omitempty"`
@@ -180,11 +199,11 @@ type Task struct {
 	Left      time.Duration `json:"left,omitempty"`
 	LeftAt    time.Time     `json:"leftAt,omitempty"`
 	// on the Tasks page only: the next file a task on files will take, and its cover
-	Next *TaskLane `json:"-"`
+	Next *Lane `json:"-"`
 }
 
-// TaskLane is a file a running task is working on, with its own progress in bytes.
-type TaskLane struct {
+// Lane is a file a running task is working on, with its own progress in bytes.
+type Lane struct {
 	Name  string `json:"name"`
 	Done  int64  `json:"done"`
 	Total int64  `json:"total"`
@@ -222,7 +241,7 @@ var kindTones = map[string]string{"Base": "red", "Update": "yellow", "DLC": "cya
 // Tone is the colour of the bar of the file: the step it is in for a task in steps
 // (compression, decompression...), what it holds for a check (game, update or DLC), or else
 // always the same for the same name.
-func (l TaskLane) Tone() string {
+func (l Lane) Tone() string {
 	if l.Phase != "" {
 		return phaseTone(l.Phase)
 	}
@@ -234,18 +253,18 @@ func (l TaskLane) Tone() string {
 	return laneTones[hash.Sum32()%uint32(len(laneTones))]
 }
 
-// laneKind is what a file holds for its bar: a complete pack, named after its base game, is a
+// LaneKind is what a file holds for its bar: a complete pack, named after its base game, is a
 // pack and not a game.
-func laneKind(name string) string {
+func LaneKind(name string) string {
 	if strings.Contains(strings.ToLower(name), "(pack)") {
 		return "Pack"
 	}
-	return contentKind(name)
+	return ContentKind(name)
 }
 
 // KindName is what the file holds, to translate, shown while it is checked: "Game", "Update"
 // or "DLC"; "" when unknown or when the file goes through steps.
-func (l TaskLane) KindName() string {
+func (l Lane) KindName() string {
 	if l.Phase != "" {
 		return ""
 	}
@@ -261,7 +280,7 @@ func (l TaskLane) KindName() string {
 }
 
 // Percent is the progress of the file.
-func (l TaskLane) Percent() int {
+func (l Lane) Percent() int {
 	if l.Total <= 0 {
 		return 0
 	}
@@ -273,7 +292,7 @@ func (l TaskLane) Percent() int {
 
 // StepTotal is the size of the file, read once in each step: its progress counts every step,
 // so 13 GB read three times showed as 39 GB, which is not the size anyone sees in the folder.
-func (l TaskLane) StepTotal() int64 {
+func (l Lane) StepTotal() int64 {
 	if l.Steps <= 1 {
 		return l.Total
 	}
@@ -281,7 +300,7 @@ func (l TaskLane) StepTotal() int64 {
 }
 
 // StepDone is how far the step being done is, out of StepTotal.
-func (l TaskLane) StepDone() int64 {
+func (l Lane) StepDone() int64 {
 	if l.Steps <= 1 {
 		return l.Done
 	}
@@ -291,8 +310,8 @@ func (l TaskLane) StepDone() int64 {
 
 // Tile is the file at work as a cover of the view by covers: its progress in the step it is
 // in, and the step.
-func (l TaskLane) Tile() TaskTile {
-	tile := TaskTile{Name: l.Name, Cover: l.Cover, Working: true, Percent: l.StepPercent()}
+func (l Lane) Tile() Tile {
+	tile := Tile{Name: l.Name, Cover: l.Cover, Working: true, Percent: l.StepPercent()}
 	if l.Phase != "" && l.Steps > 1 {
 		tile.Phase, tile.Step, tile.Steps, tile.Tone, tile.Phases = l.Phase, l.Step, l.Steps, l.Tone(), l.Phases
 	}
@@ -300,8 +319,8 @@ func (l TaskLane) Tile() TaskTile {
 }
 
 // StepPercent is the progress of the step being done.
-func (l TaskLane) StepPercent() int {
-	return TaskLane{Done: l.StepDone(), Total: l.StepTotal()}.Percent()
+func (l Lane) StepPercent() int {
+	return Lane{Done: l.StepDone(), Total: l.StepTotal()}.Percent()
 }
 
 // VerifyBreakdown is why the files of a verification are checked: never checked before,
@@ -316,15 +335,15 @@ type VerifyBreakdown struct {
 	Signatures int `json:"signatures,omitempty"`
 }
 
-// TaskResult is a file a task finished, with its size before and after.
-type TaskResult struct {
+// Result is a file a task finished, with its size before and after.
+type Result struct {
 	Name   string `json:"name"`
 	Before int64  `json:"before"`
 	After  int64  `json:"after"`
 }
 
-// TaskTile is how a file of a task on files ended: done, or failed and why.
-type TaskTile struct {
+// Tile is how a file of a task on files ended: done, or failed and why.
+type Tile struct {
 	Name   string `json:"name"`
 	Failed bool   `json:"failed,omitempty"`
 	// left as it is, with why: nothing in it could be done (a game in sparse storage to
@@ -360,7 +379,7 @@ type TileSegment struct {
 
 // Segments are the steps of a file at work, for the bar of its cover; none for a task of one
 // step, whose bar is whole.
-func (t TaskTile) Segments() []TileSegment {
+func (t Tile) Segments() []TileSegment {
 	if t.Steps <= 1 {
 		return nil
 	}
@@ -378,12 +397,12 @@ func (t TaskTile) Segments() []TileSegment {
 const maxTaskResults = 200
 
 // SavedBytes is what the compression of the file saved.
-func (r TaskResult) SavedBytes() int64 { return r.Before - r.After }
+func (r Result) SavedBytes() int64 { return r.Before - r.After }
 
 // KeptWidth and SavedWidth are the shares of the size before that the file keeps and
 // saved, as CSS widths in percent.
-func (r TaskResult) KeptWidth() string  { return keptWidth(r.After, r.Before) }
-func (r TaskResult) SavedWidth() string { return savedWidth(r.After, r.Before) }
+func (r Result) KeptWidth() string  { return keptWidth(r.After, r.Before) }
+func (r Result) SavedWidth() string { return savedWidth(r.After, r.Before) }
 
 func keptWidth(after int64, before int64) string {
 	if before <= 0 {
@@ -409,7 +428,7 @@ func (t Task) KeptWidth() string  { return keptWidth(t.Original-t.Saved, t.Origi
 func (t Task) SavedWidth() string { return savedWidth(t.Original-t.Saved, t.Original) }
 
 // SavedPercent is the share of the file saved, as "3.0 %".
-func (r TaskResult) SavedPercent() string {
+func (r Result) SavedPercent() string {
 	return savedPercent(r.Before-r.After, r.Before)
 }
 
@@ -425,9 +444,9 @@ func (t Task) SavedPercent() string {
 	return savedPercent(t.Saved, t.Original)
 }
 
-// TaskNote is a problem of a task: Text is an English sentence translated by the
+// Note is a problem of a task: Text is an English sentence translated by the
 // interface, Detail the technical reason, shown as is.
-type TaskNote struct {
+type Note struct {
 	Text   string `json:"text"`
 	Detail string `json:"detail,omitempty"`
 }
@@ -458,7 +477,7 @@ func (t Task) Ending() string {
 		return ENDING_CONTINUED
 	case t.Error.Text == NOTE_INTERRUPTED:
 		return ENDING_STOPPED
-	case notWorthTelling[t.Error.Text]:
+	case NotWorthTelling[t.Error.Text]:
 		return ENDING_CANCELLED
 	}
 	return ""
@@ -496,7 +515,7 @@ func (t Task) stalledTextAt(now time.Time) string {
 		return ""
 	}
 	if idle := now.Sub(t.Beat); idle >= stallAfter {
-		return formatDuration(idle)
+		return i18n.FormatDuration(idle)
 	}
 	return ""
 }
@@ -506,7 +525,7 @@ func (t Task) PausedText() string {
 	if !t.Paused || t.PausedAt.IsZero() {
 		return ""
 	}
-	return formatDuration(time.Since(t.PausedAt))
+	return i18n.FormatDuration(time.Since(t.PausedAt))
 }
 
 // Percent is the progress of a running task, or -1 when the number of steps is unknown.
@@ -535,10 +554,10 @@ func (t Task) Percent() int {
 // Speed returns the megabytes per second of a running task that reads files (a check, a copy
 // to the SD card, a compression and the like), or 0.
 func (t Task) Speed() int {
-	return t.speedAt(time.Now())
+	return t.SpeedAt(time.Now())
 }
 
-func (t Task) speedAt(now time.Time) int {
+func (t Task) SpeedAt(now time.Time) int {
 	if t.Paused {
 		return 0
 	}
@@ -561,11 +580,11 @@ func measuredInMegabytes(kind string) bool {
 // RemainingText is the time left of a running task and about when it ends ("2h 15m · 18:40"),
 // or "" while it is not known yet.
 func (t Task) RemainingText() string {
-	return t.remainingTextAt(time.Now())
+	return t.RemainingTextAt(time.Now())
 }
 
-func (t Task) remainingTextAt(now time.Time) string {
-	left := t.remainingAt(now)
+func (t Task) RemainingTextAt(now time.Time) string {
+	left := t.RemainingAt(now)
 	if left <= 0 {
 		return ""
 	}
@@ -575,15 +594,15 @@ func (t Task) remainingTextAt(now time.Time) string {
 	if end.Format("2006-01-02") != now.Format("2006-01-02") {
 		clock = end.Format("02/01 15:04")
 	}
-	return formatDuration(left) + " · " + clock
+	return i18n.FormatDuration(left) + " · " + clock
 }
 
 // Remaining estimates the time left of a running task that reads files, or 0.
 func (t Task) Remaining() time.Duration {
-	return t.remainingAt(time.Now())
+	return t.RemainingAt(time.Now())
 }
 
-func (t Task) remainingAt(now time.Time) time.Duration {
+func (t Task) RemainingAt(now time.Time) time.Duration {
 	// the steps of a task on files go at very different speeds (hashes at hundreds of MB/s,
 	// the max compression at a few): the average of all of them said 2 minutes for an hour
 	if t.Estimated {
@@ -592,7 +611,7 @@ func (t Task) remainingAt(now time.Time) time.Duration {
 		}
 		return max(t.Left-now.Sub(t.LeftAt), time.Minute).Round(time.Minute)
 	}
-	speed := t.speedAt(now)
+	speed := t.SpeedAt(now)
 	if speed <= 0 || t.Total <= t.Current {
 		return 0
 	}
@@ -607,8 +626,8 @@ func (t Task) Duration() time.Duration {
 	return end.Sub(t.Started).Round(time.Second)
 }
 
-// TaskLog keeps the running and recent tasks and tells subscribers when they change.
-type TaskLog struct {
+// Log keeps the running and recent tasks and tells subscribers when they change.
+type Log struct {
 	mutex       sync.Mutex
 	path        string
 	tasks       []*Task // newest first
@@ -616,17 +635,17 @@ type TaskLog struct {
 	version     int64
 	subscribers map[chan int64]struct{}
 	// told of each task that fails, in the background
-	onFailed func(Task)
+	OnFailed func(Task)
 	// told of each task that ends, as it ends
-	onEnded func(Task)
+	OnEnded func(Task)
 	// when the history was last written
 	saved time.Time
 }
 
-// loadTaskLog reads the history saved in the data folder. Tasks that were running when
+// Load reads the history saved in the data folder. Tasks that were running when
 // the app stopped are marked as failed.
-func loadTaskLog(dataFolder string) *TaskLog {
-	log := &TaskLog{path: filepath.Join(dataFolder, TASKS_FILENAME), subscribers: map[chan int64]struct{}{}}
+func Load(dataFolder string) *Log {
+	log := &Log{path: filepath.Join(dataFolder, TASKS_FILENAME), subscribers: map[chan int64]struct{}{}}
 	// when the history was saved last: the app was still working then
 	var saved time.Time
 	if info, err := os.Stat(log.path); err == nil {
@@ -653,7 +672,7 @@ func loadTaskLog(dataFolder string) *TaskLog {
 		}
 		if task.Status == TASK_RUNNING {
 			task.Status = TASK_FAILED
-			task.Error = &TaskNote{Text: NOTE_INTERRUPTED}
+			task.Error = &Note{Text: NOTE_INTERRUPTED}
 			// the moment the app stopped is not known: the last one it is known to have
 			// worked on the task, instead of its start, which showed it lasted no time at all
 			task.Finished = task.Started
@@ -669,7 +688,7 @@ func loadTaskLog(dataFolder string) *TaskLog {
 
 // Start records a new running task. It is saved at once: a task the app is stopped in the
 // middle of is told as such once it starts again, instead of being gone.
-func (l *TaskLog) Start(kind string, trigger string) int64 {
+func (l *Log) Start(kind string, trigger string) int64 {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	l.nextId++
@@ -681,20 +700,20 @@ func (l *TaskLog) Start(kind string, trigger string) int64 {
 }
 
 // Progress updates a running task. Progress is saved at most every half minute.
-func (l *TaskLog) Progress(id int64, current int, total int, message string) {
+func (l *Log) Progress(id int64, current int, total int, message string) {
 	l.ProgressArg(id, current, total, message, "")
 }
 
 // ProgressArg is Progress with a message "... %v" and what it names apart, so the message is
 // translated.
-func (l *TaskLog) ProgressArg(id int64, current int, total int, message string, arg string) {
+func (l *Log) ProgressArg(id int64, current int, total int, message string, arg string) {
 	l.update(id, false, func(task *Task) {
 		task.Current, task.Total, task.Message, task.MessageArg = current, total, message, arg
 	})
 }
 
 // ProgressLanes is Progress with the files the task works on, in one update.
-func (l *TaskLog) ProgressLanes(id int64, current int, total int, message string, lanes []TaskLane) {
+func (l *Log) ProgressLanes(id int64, current int, total int, message string, lanes []Lane) {
 	l.update(id, false, func(task *Task) {
 		task.Current, task.Total, task.Message, task.MessageArg, task.Lanes = current, total, message, "", lanes
 	})
@@ -702,7 +721,7 @@ func (l *TaskLog) ProgressLanes(id int64, current int, total int, message string
 
 // ProgressFiles is ProgressLanes for a task on files, with the file it reached out of how
 // many, shown in a place of their own instead of after the name of the file.
-func (l *TaskLog) ProgressFiles(id int64, current int, total int, message string, number int, count int, lanes []TaskLane) {
+func (l *Log) ProgressFiles(id int64, current int, total int, message string, number int, count int, lanes []Lane) {
 	l.update(id, false, func(task *Task) {
 		task.Current, task.Total, task.Message, task.MessageArg, task.Lanes = current, total, message, "", lanes
 		task.FileNumber, task.FileCount = number, count
@@ -711,7 +730,7 @@ func (l *TaskLog) ProgressFiles(id int64, current int, total int, message string
 
 // ProgressFilesLeft is ProgressFiles with the time left estimated from the speed of each step,
 // or 0 while it is not known.
-func (l *TaskLog) ProgressFilesLeft(id int64, current int, total int, message string, number int, count int, lanes []TaskLane, left time.Duration) {
+func (l *Log) ProgressFilesLeft(id int64, current int, total int, message string, number int, count int, lanes []Lane, left time.Duration) {
 	l.update(id, false, func(task *Task) {
 		task.Current, task.Total, task.Message, task.MessageArg, task.Lanes = current, total, message, "", lanes
 		task.FileNumber, task.FileCount = number, count
@@ -720,7 +739,7 @@ func (l *TaskLog) ProgressFilesLeft(id int64, current int, total int, message st
 }
 
 // Lanes updates the files a running task is working on at the same time. Not saved to disk.
-func (l *TaskLog) Lanes(id int64, lanes []TaskLane) {
+func (l *Log) Lanes(id int64, lanes []Lane) {
 	l.update(id, false, func(task *Task) {
 		task.Lanes = lanes
 	})
@@ -728,21 +747,21 @@ func (l *TaskLog) Lanes(id int64, lanes []TaskLane) {
 
 // SetWorkers tells how many files a task works on at the same time, and with how many
 // threads each one.
-func (l *TaskLog) SetWorkers(id int64, workers int, threads int) {
+func (l *Log) SetWorkers(id int64, workers int, threads int) {
 	l.update(id, false, func(task *Task) {
 		task.Workers, task.Threads = workers, threads
 	})
 }
 
 // Warn adds a problem that did not stop the task.
-func (l *TaskLog) Warn(id int64, text string, detail string) {
+func (l *Log) Warn(id int64, text string, detail string) {
 	l.update(id, false, func(task *Task) {
-		task.Warnings = append(task.Warnings, TaskNote{Text: text, Detail: detail})
+		task.Warnings = append(task.Warnings, Note{Text: text, Detail: detail})
 	})
 }
 
 // SetResult records what the task found.
-func (l *TaskLog) SetResult(id int64, games int, files int) {
+func (l *Log) SetResult(id int64, games int, files int) {
 	l.update(id, false, func(task *Task) {
 		task.Games, task.Files = games, files
 	})
@@ -750,7 +769,7 @@ func (l *TaskLog) SetResult(id int64, games int, files int) {
 
 // SetCompressResult records the files compressed so far and the bytes saved. It is saved
 // within half a minute, so a task the app is stopped in the middle of still says what it did.
-func (l *TaskLog) SetCompressResult(id int64, files int, saved int64) {
+func (l *Log) SetCompressResult(id int64, files int, saved int64) {
 	l.update(id, false, func(task *Task) {
 		task.Files, task.Saved = files, saved
 	})
@@ -758,15 +777,15 @@ func (l *TaskLog) SetCompressResult(id int64, files int, saved int64) {
 
 // SetResume records what a task on files still has to do; nil when it ended by itself or
 // was cancelled, so it is not started again.
-func (l *TaskLog) SetResume(id int64, resume *TaskResume) {
+func (l *Log) SetResume(id int64, resume *Resume) {
 	l.update(id, true, func(task *Task) {
 		task.Resume = resume
 	})
 }
 
-// interrupted gives the last task on files the app was stopped in the middle of that still
+// Interrupted gives the last task on files the app was stopped in the middle of that still
 // has files left, with what it had left; tasks running now are not looked at.
-func (l *TaskLog) interrupted() (int64, string, *TaskResume) {
+func (l *Log) Interrupted() (int64, string, *Resume) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	for _, task := range l.tasks {
@@ -780,14 +799,14 @@ func (l *TaskLog) interrupted() (int64, string, *TaskResume) {
 }
 
 // SetContinued records that a task the app was stopped in the middle of went on in another.
-func (l *TaskLog) SetContinued(id int64, other int64) {
+func (l *Log) SetContinued(id int64, other int64) {
 	l.update(id, true, func(task *Task) {
 		task.ContinuedIn = other
 	})
 }
 
 // SetPaused records that a running task is held, or goes on again.
-func (l *TaskLog) SetPaused(id int64, paused bool) {
+func (l *Log) SetPaused(id int64, paused bool) {
 	l.update(id, false, func(task *Task) {
 		if task.Paused == paused {
 			return
@@ -803,17 +822,17 @@ func (l *TaskLog) SetPaused(id int64, paused bool) {
 }
 
 // SetSubject sets the file a task is about.
-func (l *TaskLog) SetSubject(id int64, subject string) {
+func (l *Log) SetSubject(id int64, subject string) {
 	l.update(id, false, func(task *Task) {
 		task.Subject = subject
 	})
 }
 
 // AddFileResult records a file compressed, with its size before and after.
-func (l *TaskLog) AddFileResult(id int64, name string, before int64, after int64) {
+func (l *Log) AddFileResult(id int64, name string, before int64, after int64) {
 	l.update(id, false, func(task *Task) {
 		task.Original += before
-		task.Results = append(task.Results, TaskResult{Name: name, Before: before, After: after})
+		task.Results = append(task.Results, Result{Name: name, Before: before, After: after})
 		if len(task.Results) > maxTaskResults {
 			task.Results = task.Results[len(task.Results)-maxTaskResults:]
 		}
@@ -821,10 +840,10 @@ func (l *TaskLog) AddFileResult(id int64, name string, before int64, after int64
 }
 
 // SetPlan records every file a task on files has to do, in its order, all waiting.
-func (l *TaskLog) SetPlan(id int64, names []string) {
-	plan := make([]TaskTile, len(names))
+func (l *Log) SetPlan(id int64, names []string) {
+	plan := make([]Tile, len(names))
 	for i, name := range names {
-		plan[i] = TaskTile{Name: name, Waiting: true}
+		plan[i] = Tile{Name: name, Waiting: true}
 	}
 	l.update(id, false, func(task *Task) {
 		task.Plan = plan
@@ -834,23 +853,23 @@ func (l *TaskLog) SetPlan(id int64, names []string) {
 // AddFileTile records how a file of a task on files ended, in its plan too: after the files
 // ended before it, so the view by covers fills up in order, from the top left, even when
 // several files are worked on at once and end in another order than the plan's.
-func (l *TaskLog) AddFileTile(id int64, name string, failed bool, note string) {
-	l.addTile(id, TaskTile{Name: name, Failed: failed, Note: note})
+func (l *Log) AddFileTile(id int64, name string, failed bool, note string) {
+	l.addTile(id, Tile{Name: name, Failed: failed, Note: note})
 }
 
 // SkipFileTile records a file of a task on files left as it is, with why: neither done nor
 // failed.
-func (l *TaskLog) SkipFileTile(id int64, name string, note string) {
-	l.addTile(id, TaskTile{Name: name, Skipped: true, Note: note})
+func (l *Log) SkipFileTile(id int64, name string, note string) {
+	l.addTile(id, Tile{Name: name, Skipped: true, Note: note})
 }
 
 // ModifiedFileTile records a file of a verification that ended modified, with why: an NCA not
 // signed by Nintendo and nothing damaged, which is no failure.
-func (l *TaskLog) ModifiedFileTile(id int64, name string, note string) {
-	l.addTile(id, TaskTile{Name: name, Modified: true, Note: note})
+func (l *Log) ModifiedFileTile(id int64, name string, note string) {
+	l.addTile(id, Tile{Name: name, Modified: true, Note: note})
 }
 
-func (l *TaskLog) addTile(id int64, tile TaskTile) {
+func (l *Log) addTile(id int64, tile Tile) {
 	name := tile.Name
 	l.update(id, false, func(task *Task) {
 		task.Tiles = append(task.Tiles, tile)
@@ -872,7 +891,7 @@ func (l *TaskLog) addTile(id int64, tile TaskTile) {
 }
 
 // SetBreakdown records why the files of a verification are checked.
-func (l *TaskLog) SetBreakdown(id int64, breakdown VerifyBreakdown) {
+func (l *Log) SetBreakdown(id int64, breakdown VerifyBreakdown) {
 	l.update(id, false, func(task *Task) {
 		task.Breakdown = &breakdown
 	})
@@ -880,7 +899,7 @@ func (l *TaskLog) SetBreakdown(id int64, breakdown VerifyBreakdown) {
 
 // SetVerifyResult records the files checked so far, the failed ones (damaged) and the modified
 // ones.
-func (l *TaskLog) SetVerifyResult(id int64, checked int, failed int, modified int) {
+func (l *Log) SetVerifyResult(id int64, checked int, failed int, modified int) {
 	l.update(id, false, func(task *Task) {
 		task.Files, task.Damaged, task.Modified = checked, failed, modified
 	})
@@ -888,21 +907,21 @@ func (l *TaskLog) SetVerifyResult(id int64, checked int, failed int, modified in
 
 // SetVerifyLevel records the level of a verification, and whether its progress counts files
 // instead of megabytes.
-func (l *TaskLog) SetVerifyLevel(id int64, level string, byFiles bool) {
+func (l *Log) SetVerifyLevel(id int64, level string, byFiles bool) {
 	l.update(id, false, func(task *Task) {
 		task.Level, task.ByFiles = level, byFiles
 	})
 }
 
 // Finish ends a task; a failure makes it failed, warnings make it a warning.
-func (l *TaskLog) Finish(id int64, failure *TaskNote) {
+func (l *Log) Finish(id int64, failure *Note) {
 	var failed, ended *Task
 	defer func() {
-		if ended != nil && l.onEnded != nil {
-			l.onEnded(*ended)
+		if ended != nil && l.OnEnded != nil {
+			l.OnEnded(*ended)
 		}
-		if failed != nil && l.onFailed != nil {
-			go l.onFailed(*failed)
+		if failed != nil && l.OnFailed != nil {
+			go l.OnFailed(*failed)
 		}
 	}()
 	l.update(id, true, func(task *Task) {
@@ -929,7 +948,7 @@ func (l *TaskLog) Finish(id int64, failure *TaskNote) {
 }
 
 // Dismiss removes a finished task from the history.
-func (l *TaskLog) Dismiss(id int64) bool {
+func (l *Log) Dismiss(id int64) bool {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	for i, task := range l.tasks {
@@ -943,7 +962,7 @@ func (l *TaskLog) Dismiss(id int64) bool {
 }
 
 // RunningCount is the number of tasks that are running, background work included.
-func (l *TaskLog) RunningCount() int {
+func (l *Log) RunningCount() int {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	count := 0
@@ -956,7 +975,7 @@ func (l *TaskLog) RunningCount() int {
 }
 
 // ClearFinished removes every finished task, failed ones included.
-func (l *TaskLog) ClearFinished() {
+func (l *Log) ClearFinished() {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	running := []*Task{}
@@ -970,15 +989,15 @@ func (l *TaskLog) ClearFinished() {
 }
 
 // Snapshot returns a copy of the tasks, newest first.
-func (l *TaskLog) Snapshot() []Task {
+func (l *Log) Snapshot() []Task {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	tasks := make([]Task, 0, len(l.tasks))
 	for _, task := range l.tasks {
 		copied := *task
-		copied.Warnings = append([]TaskNote(nil), task.Warnings...)
-		copied.Tiles = append([]TaskTile(nil), task.Tiles...)
-		copied.Plan = append([]TaskTile(nil), task.Plan...)
+		copied.Warnings = append([]Note(nil), task.Warnings...)
+		copied.Tiles = append([]Tile(nil), task.Tiles...)
+		copied.Plan = append([]Tile(nil), task.Plan...)
 		tasks = append(tasks, copied)
 	}
 	return tasks
@@ -986,7 +1005,7 @@ func (l *TaskLog) Snapshot() []Task {
 
 // FailedCount counts the failed tasks that were not dismissed: not the ones cancelled or
 // stopped by a restart, which are no failure.
-func (l *TaskLog) FailedCount() int {
+func (l *Log) FailedCount() int {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	count := 0
@@ -1000,7 +1019,7 @@ func (l *TaskLog) FailedCount() int {
 
 // Subscribe returns a channel that receives the new version after every change, and a
 // function to stop. Changes are coalesced: a slow reader only gets the latest version.
-func (l *TaskLog) Subscribe() (<-chan int64, func()) {
+func (l *Log) Subscribe() (<-chan int64, func()) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	ch := make(chan int64, 1)
@@ -1013,26 +1032,34 @@ func (l *TaskLog) Subscribe() (<-chan int64, func()) {
 }
 
 // Touch tells the pages of the tasks that something they show changed (the queue).
-func (l *TaskLog) Touch() {
+func (l *Log) Touch() {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	l.changed(false)
 }
 
+// Edit changes the tasks as they are, without noting that they were heard of nor saving
+// them: the tests make up tasks of the past with it.
+func (l *Log) Edit(change func(tasks []*Task) []*Task) {
+	l.mutex.Lock()
+	defer l.mutex.Unlock()
+	l.tasks = change(l.tasks)
+}
+
 // Flush writes the history as it is now: the app is about to stop.
-func (l *TaskLog) Flush() {
+func (l *Log) Flush() {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	l.save()
 }
 
-func (l *TaskLog) Version() int64 {
+func (l *Log) Version() int64 {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	return l.version
 }
 
-func (l *TaskLog) update(id int64, save bool, change func(task *Task)) {
+func (l *Log) update(id int64, save bool, change func(task *Task)) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 	for _, task := range l.tasks {
@@ -1049,7 +1076,7 @@ func (l *TaskLog) update(id int64, save bool, change func(task *Task)) {
 
 // changed must be called with the mutex held. A change not saved is saved anyway once the
 // history was not written for half a minute, with the running tasks as they are.
-func (l *TaskLog) changed(save bool) {
+func (l *Log) changed(save bool) {
 	save = save || time.Since(l.saved) >= taskSaveInterval
 	l.version++
 	for ch := range l.subscribers {
@@ -1068,7 +1095,7 @@ func (l *TaskLog) changed(save bool) {
 // trim drops the oldest finished tasks beyond the limit, but keeps failed ones, and the ones a
 // restart stopped that still have files to go on with. A task cancelled or stopped by a restart
 // is no failure, and goes like the others.
-func (l *TaskLog) trim() {
+func (l *Log) trim() {
 	kept := []*Task{}
 	finished := 0
 	for _, task := range l.tasks {
@@ -1084,7 +1111,7 @@ func (l *TaskLog) trim() {
 	l.tasks = kept
 }
 
-func (l *TaskLog) save() {
+func (l *Log) save() {
 	if l.path == "" {
 		return
 	}
@@ -1094,4 +1121,45 @@ func (l *TaskLog) save() {
 	}
 	l.saved = time.Now()
 	durable.WriteFile(l.path, data)
+}
+
+// the passes over a file, translated by the interface
+const (
+	PHASE_HASHING       = "Calculating hashes"
+	PHASE_COMPRESSING   = "Compressing"
+	PHASE_DECOMPRESSING = "Decompressing"
+	PHASE_CONVERTING    = "Converting"
+	PHASE_PACKING       = "Combining the files"
+	PHASE_VERIFYING     = "Verifying"
+)
+
+// the levels of a check: the signature of Nintendo on the header of every NCA, read in
+// seconds; the hashes of all their data, read whole; or both, what a check was before it had
+// levels
+const (
+	VERIFY_LEVEL_SIGNATURE = "signature"
+	VERIFY_LEVEL_HASH      = "hash"
+	VERIFY_LEVEL_BOTH      = "both"
+)
+
+// NotWorthTelling are the ends that are not failures to tell: what the user stopped.
+var NotWorthTelling = map[string]bool{NOTE_COMPRESS_CANCELED: true, NOTE_COMPRESS_CANCELED_OLD: true, NOTE_UPLOAD_CANCELED: true, NOTE_UPLOAD_STOPPED: true}
+
+var titleIdInName = regexp.MustCompile(`\[([0-9A-Fa-f]{16})\]`)
+
+// ContentKind tells from the title ID in the name of a file whether it is a game, an update or
+// a DLC, as the Compress page names them; "" when the name has none.
+func ContentKind(path string) string {
+	match := titleIdInName.FindStringSubmatch(filepath.Base(path))
+	if match == nil {
+		return ""
+	}
+	id := strings.ToLower(match[1])
+	switch {
+	case strings.HasSuffix(id, "000"):
+		return "Base"
+	case strings.HasSuffix(id, "800"):
+		return "Update"
+	}
+	return "DLC"
 }

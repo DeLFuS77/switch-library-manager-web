@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -95,7 +96,7 @@ func (web *Web) compressPaths(paths []string, trigger string) bool {
 	web.auto.mutex.Unlock()
 	// goes on after a restart too, like a compression started by hand
 	// read twice: compressed (and hashed meanwhile), then verified
-	return web.runResumableTask(TASK_COMPRESS, trigger, paths, 2, &TaskResume{Level: level, Delete: !appSettings.AutoCompressKeep}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	return web.runResumableTask(tasklog.TASK_COMPRESS, trigger, paths, 2, &tasklog.Resume{Level: level, Delete: !appSettings.AutoCompressKeep}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		saved, err := web.compressFile(ctx, path, level, !appSettings.AutoCompressKeep, report)
 		web.noteAutoCompressFailure(path, err)
 		return saved, err
@@ -137,7 +138,7 @@ func (web *Web) nightlyCompress(now time.Time) bool {
 	if !web.nightlyCompressDue(now) || web.state.IsSynchronizing() {
 		return false
 	}
-	started := web.autoCompress(TRIGGER_SCHEDULE)
+	started := web.autoCompress(tasklog.TRIGGER_SCHEDULE)
 	if started || len(web.autoCompressCandidates()) == 0 {
 		web.auto.mutex.Lock()
 		web.auto.lastDay = now.Format("2006-01-02")

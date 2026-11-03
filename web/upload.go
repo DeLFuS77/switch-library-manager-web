@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -43,12 +44,6 @@ const (
 )
 
 const TASK_UPLOAD = "upload"
-
-// notes of the task of an upload, translated by the interface
-const (
-	NOTE_UPLOAD_CANCELED = "The upload was cancelled."
-	NOTE_UPLOAD_STOPPED  = "The upload stopped: the page was closed or lost the connection. Choose the same file again to go on where it stopped."
-)
 
 // the extensions of the games that can be uploaded
 var uploadExtensions = map[string]bool{".nsp": true, ".nsz": true, ".xci": true, ".xcz": true}
@@ -172,13 +167,13 @@ func (web *Web) uploadTask(upload *gameUpload) {
 	if upload.taskId != 0 {
 		return
 	}
-	upload.taskId = web.taskLog().Start(TASK_UPLOAD, TRIGGER_MANUAL)
+	upload.taskId = web.taskLog().Start(TASK_UPLOAD, tasklog.TRIGGER_MANUAL)
 	web.taskLog().SetSubject(upload.taskId, upload.Name)
 	web.taskLog().Progress(upload.taskId, int(upload.Received>>20), int(upload.Size>>20), upload.Name)
 }
 
 // endUploadTask ends the task of an upload, with what happened.
-func (web *Web) endUploadTask(upload *gameUpload, failure *TaskNote) {
+func (web *Web) endUploadTask(upload *gameUpload, failure *tasklog.Note) {
 	if upload.taskId == 0 {
 		return
 	}
@@ -233,7 +228,7 @@ func (web *Web) endStalledUploads() {
 		upload.mutex.Lock()
 		if time.Since(upload.touched) >= uploadStalled {
 			if upload.taskId != 0 {
-				web.endUploadTask(upload, &TaskNote{Text: NOTE_UPLOAD_STOPPED})
+				web.endUploadTask(upload, &tasklog.Note{Text: tasklog.NOTE_UPLOAD_STOPPED})
 			}
 			// the room kept for the rest of the file is given back; the upload asks for it again
 			// when it goes on
@@ -275,7 +270,7 @@ func (web *Web) dropIdleUploads() {
 	for id, upload := range store.items {
 		upload.mutex.Lock()
 		if time.Since(upload.touched) >= uploadIdle {
-			web.endUploadTask(upload, &TaskNote{Text: NOTE_UPLOAD_STOPPED})
+			web.endUploadTask(upload, &tasklog.Note{Text: tasklog.NOTE_UPLOAD_STOPPED})
 			delete(store.items, id)
 			os.Remove(upload.part)
 			if upload.release != nil {
@@ -487,7 +482,7 @@ func (web *Web) HandleUploads() {
 			// removed: sending it again starts over
 			web.sugarLogger.Errorf("[Upload] %s could not take its name: %v", upload.final, err)
 			os.Remove(upload.part)
-			web.endUploadTask(upload, &TaskNote{Text: UPLOAD_FAILED})
+			web.endUploadTask(upload, &tasklog.Note{Text: UPLOAD_FAILED})
 			upload.mutex.Unlock()
 			web.uploads.remove(upload)
 			writeGlobalError(w, http.StatusInternalServerError, lang, UPLOAD_FAILED)
@@ -499,7 +494,7 @@ func (web *Web) HandleUploads() {
 		web.uploads.remove(upload)
 		web.sugarLogger.Infof("[Upload] %s saved in %s", upload.Name, filepath.Dir(upload.final))
 		web.invalidateDerived()
-		web.Rescan(TRIGGER_UPLOAD)
+		web.Rescan(tasklog.TRIGGER_UPLOAD)
 		writeJSON(w, http.StatusOK, map[string]any{"name": upload.Name, "path": upload.final})
 	}).Methods("POST")
 
@@ -512,7 +507,7 @@ func (web *Web) HandleUploads() {
 		}
 		upload.mutex.Lock()
 		os.Remove(upload.part)
-		web.endUploadTask(upload, &TaskNote{Text: NOTE_UPLOAD_CANCELED})
+		web.endUploadTask(upload, &tasklog.Note{Text: tasklog.NOTE_UPLOAD_CANCELED})
 		upload.mutex.Unlock()
 		web.uploads.remove(upload)
 		web.sugarLogger.Infof("[Upload] %s cancelled", upload.Name)

@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 )
 
@@ -74,7 +75,7 @@ func TestFileTasksFindMovedFiles(t *testing.T) {
 		mutex.Unlock()
 		return 0, nil
 	}
-	if !web.runFileTask(TASK_COMPRESS, []string{old}, 1, job) {
+	if !web.runFileTask(tasklog.TASK_COMPRESS, []string{old}, 1, job) {
 		t.Fatal("not started")
 	}
 	waitForCompression(t, web)
@@ -84,16 +85,16 @@ func TestFileTasksFindMovedFiles(t *testing.T) {
 
 	got = got[:0]
 	gone := filepath.Join(folder, "deleted.nsp")
-	if !web.runFileTask(TASK_COMPRESS, []string{gone}, 1, job) {
+	if !web.runFileTask(tasklog.TASK_COMPRESS, []string{gone}, 1, job) {
 		t.Fatal("not started")
 	}
 	waitForCompression(t, web)
 	if len(got) != 0 {
 		t.Fatalf("the job ran for a file that is not there: %v", got)
 	}
-	var last Task
+	var last tasklog.Task
 	for _, task := range web.taskLog().Snapshot() {
-		if task.Kind == TASK_COMPRESS && task.Id > last.Id {
+		if task.Kind == tasklog.TASK_COMPRESS && task.Id > last.Id {
 			last = task
 		}
 	}
@@ -166,7 +167,7 @@ func TestTheScanAfterOrganizeForgetsTheMoves(t *testing.T) {
 	folder := t.TempDir()
 	old, moved := filepath.Join(folder, "game.nsp"), filepath.Join(folder, "Game [0100000000010000][v0].nsp")
 	os.WriteFile(moved, []byte("game"), 0o644)
-	web.queue().add(QueuedTask{Kind: TASK_PACK, Paths: []string{old}, Names: map[string]string{old: "Game.nsp"}})
+	web.queue().add(QueuedTask{Kind: tasklog.TASK_PACK, Paths: []string{old}, Names: map[string]string{old: "Game.nsp"}})
 	web.moves.record([]process.Operation{{Kind: process.OP_MOVE, From: old, To: moved}})
 	web.scanStarted.Store(time.Now().Add(time.Second).UnixNano())
 	web.afterScan()

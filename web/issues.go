@@ -10,6 +10,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -171,7 +172,7 @@ func (web *Web) HandleIssues() {
 		}
 		// the issues are listed again at once, without the files deleted
 		web.invalidateDerived()
-		web.Rescan(TRIGGER_MANUAL)
+		web.Rescan(tasklog.TRIGGER_MANUAL)
 		writeJSON(w, http.StatusOK, map[string]any{"deleted": deleted, "freed": freed, "failed": len(files) - deleted})
 	}).Methods("POST")
 
@@ -204,7 +205,7 @@ func (web *Web) HandleIssues() {
 			return
 		}
 		web.invalidateDerived()
-		web.Rescan(TRIGGER_MANUAL)
+		web.Rescan(tasklog.TRIGGER_MANUAL)
 		writeJSON(w, http.StatusOK, map[string]any{"deleted": deleted, "freed": freed, "failed": len(files) - deleted})
 	}).Methods("POST")
 
@@ -230,7 +231,7 @@ func (web *Web) HandleIssues() {
 			writeGlobalError(w, http.StatusInternalServerError, lang, i18n.Translatef(lang, "The settings could not be saved: %v", err))
 			return
 		}
-		web.Rescan(TRIGGER_SETTINGS)
+		web.Rescan(tasklog.TRIGGER_SETTINGS)
 		writeJSON(w, http.StatusAccepted, map[string]any{"kept": path})
 	}).Methods("POST")
 
@@ -252,7 +253,7 @@ func (web *Web) HandleIssues() {
 			}
 			s.IgnoreFileTypes = append(s.IgnoreFileTypes, extension[1:])
 		})
-		web.Rescan(TRIGGER_SETTINGS)
+		web.Rescan(tasklog.TRIGGER_SETTINGS)
 		writeJSON(w, http.StatusAccepted, map[string]any{"ignored": extension})
 	}).Methods("POST")
 }

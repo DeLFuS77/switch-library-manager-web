@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -575,7 +576,7 @@ func (web *Web) handleRegionRemove() {
 			return
 		}
 		// the cached library no longer matches the files on disk
-		web.Rescan(TRIGGER_ORGANIZE)
+		web.Rescan(tasklog.TRIGGER_ORGANIZE)
 		writeJSON(w, http.StatusOK, map[string]any{"deleted": deleted, "freed": freed})
 	}).Methods("POST")
 }

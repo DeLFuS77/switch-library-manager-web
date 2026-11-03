@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -24,24 +25,14 @@ import (
 const (
 	VERIFY_FILENAME = "verify.json"
 	// a damaged file found by a verification, shown in Issues
-	NOTE_VERIFY_DAMAGED  = "The file is damaged: its data does not match its hashes."
-	NOTE_VERIFY_FAILED   = "The files could not be checked."
-	NOTE_VERIFY_UNSIGNED = "An NCA is not signed by Nintendo: a tool rewrote it."
+	NOTE_VERIFY_DAMAGED = "The file is damaged: its data does not match its hashes."
+	NOTE_VERIFY_FAILED  = "The files could not be checked."
 	// the warning of a damaged file in older versions, still in the history of the tasks
 	NOTE_VERIFY_DAMAGED_OLD = "The file is damaged or was modified."
 	// a file that could not be read (gone, in use, a disk or a share that failed): not damaged
 	NOTE_VERIFY_UNREADABLE = "The file could not be read, it was left unchecked."
 	// a check of the signatures only that could not read the headers of a file with the keys
 	NOTE_VERIFY_NO_SIGNATURES = "The signatures could not be read, it was left unchecked."
-)
-
-// the levels of a check: the signature of Nintendo on the header of every NCA, read in
-// seconds; the hashes of all their data, read whole; or both, what a check was before it had
-// levels
-const (
-	VERIFY_LEVEL_SIGNATURE = "signature"
-	VERIFY_LEVEL_HASH      = "hash"
-	VERIFY_LEVEL_BOTH      = "both"
 )
 
 // what a check of a file ended in, besides sound: its data does not match its hashes (damaged),
@@ -57,12 +48,12 @@ const (
 // scope the pages of older versions sent for a check of the signatures only.
 func verifyLevel(value string) (string, bool) {
 	switch value {
-	case "", VERIFY_LEVEL_BOTH:
-		return VERIFY_LEVEL_BOTH, true
-	case VERIFY_LEVEL_HASH, "full":
-		return VERIFY_LEVEL_HASH, true
-	case VERIFY_LEVEL_SIGNATURE, "signatures":
-		return VERIFY_LEVEL_SIGNATURE, true
+	case "", tasklog.VERIFY_LEVEL_BOTH:
+		return tasklog.VERIFY_LEVEL_BOTH, true
+	case tasklog.VERIFY_LEVEL_HASH, "full":
+		return tasklog.VERIFY_LEVEL_HASH, true
+	case tasklog.VERIFY_LEVEL_SIGNATURE, "signatures":
+		return tasklog.VERIFY_LEVEL_SIGNATURE, true
 	}
 	return "", false
 }
@@ -680,7 +671,7 @@ func (web *Web) startVerification(onlyChanged bool, trigger string) bool {
 
 // startVerificationOf checks the given files at the level both (see startVerificationAt).
 func (web *Web) startVerificationOf(paths []string, recheck time.Duration, trigger string) bool {
-	return web.startVerificationAt(VERIFY_LEVEL_BOTH, paths, recheck, trigger)
+	return web.startVerificationAt(tasklog.VERIFY_LEVEL_BOTH, paths, recheck, trigger)
 }
 
 // startVerificationAt checks the given files, or every file of the library when paths is nil, at
@@ -696,13 +687,13 @@ func (web *Web) startVerificationAt(level string, paths []string, recheck time.D
 
 // resumeVerification goes on with a check the app was stopped in the middle of: the files it
 // checked since it began are left out, whatever it was asked to check again.
-func (web *Web) resumeVerification(resume *TaskResume) bool {
+func (web *Web) resumeVerification(resume *tasklog.Resume) bool {
 	recheck := resume.Recheck
 	if recheck < 0 {
 		// all the files: those checked since the check began are done
 		recheck = max(time.Since(resume.Since), time.Second)
 	}
-	return web.startVerificationSince(resume.Level, resume.Paths, recheck, TRIGGER_RESUME, resume.Since)
+	return web.startVerificationSince(resume.Level, resume.Paths, recheck, tasklog.TRIGGER_RESUME, resume.Since)
 }
 
 // startVerificationSince is startVerificationAt for a check that began at since, before the app
@@ -710,23 +701,23 @@ func (web *Web) resumeVerification(resume *TaskResume) bool {
 // scheduled one waits for the next background hours, and the automations start theirs again.
 func (web *Web) startVerificationSince(level string, paths []string, recheck time.Duration, trigger string, since time.Time) bool {
 	level, _ = verifyLevel(level)
-	hashes, signatures := level != VERIFY_LEVEL_SIGNATURE, level != VERIFY_LEVEL_HASH
+	hashes, signatures := level != tasklog.VERIFY_LEVEL_SIGNATURE, level != tasklog.VERIFY_LEVEL_HASH
 	web.compressor.mutex.Lock()
 	if web.filesTaken() {
 		web.compressor.mutex.Unlock()
 		return false
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, TASK_VERIFY, 0
+	web.compressor.cancel, web.compressor.kind, web.compressor.taskId = cancel, tasklog.TASK_VERIFY, 0
 	web.compressor.mutex.Unlock()
 
 	store := web.verifications()
-	taskId := web.taskLog().Start(TASK_VERIFY, trigger)
+	taskId := web.taskLog().Start(tasklog.TASK_VERIFY, trigger)
 	web.taskLog().SetVerifyLevel(taskId, level, false)
-	resumable := trigger == TRIGGER_MANUAL || trigger == TRIGGER_RESUME
+	resumable := trigger == tasklog.TRIGGER_MANUAL || trigger == tasklog.TRIGGER_RESUME
 	if resumable {
 		// the files as asked: nil for the whole library, read again then
-		web.taskLog().SetResume(taskId, &TaskResume{Paths: paths, Level: level, Recheck: recheck, Since: since})
+		web.taskLog().SetResume(taskId, &tasklog.Resume{Paths: paths, Level: level, Recheck: recheck, Since: since})
 	}
 	go func() {
 		defer func() {
@@ -739,7 +730,7 @@ func (web *Web) startVerificationSince(level string, paths []string, recheck tim
 		// the results it has, the files are let go, and it is not started again after a restart
 		defer func() {
 			if recovered := recover(); recovered != nil {
-				note := web.crashed(TASK_VERIFY, recovered)
+				note := web.crashed(tasklog.TASK_VERIFY, recovered)
 				if err := store.save(); err != nil {
 					web.sugarLogger.Warnf("Failed to save the verification results: %v", err)
 				}
@@ -756,7 +747,7 @@ func (web *Web) startVerificationSince(level string, paths []string, recheck tim
 			hash, signature bool
 		}
 		files := []pending{}
-		breakdown := VerifyBreakdown{}
+		breakdown := tasklog.VerifyBreakdown{}
 		var total int64
 		// making the list of a big library on a NAS takes a while: the task says so
 		web.taskLog().Progress(taskId, 0, 0, NOTE_VERIFY_PREPARING)
@@ -861,7 +852,7 @@ func (web *Web) startVerificationSince(level string, paths []string, recheck tim
 			unread     int // files that could not be read, left unchecked
 			lastReport time.Time
 			lastSave   = time.Now()
-			failure    *TaskNote
+			failure    *tasklog.Note
 		)
 		report := func(name string, force bool) {
 			// called with the mutex held
@@ -878,17 +869,17 @@ func (web *Web) startVerificationSince(level string, paths []string, recheck tim
 			for _, value := range partial {
 				done += value
 			}
-			lanes := []TaskLane{}
+			lanes := []tasklog.Lane{}
 			for i, laneName := range laneNames {
 				if laneName != "" {
-					lanes = append(lanes, TaskLane{Name: laneName, Done: partial[i], Total: laneSizes[i], Kind: laneKind(laneName)})
+					lanes = append(lanes, tasklog.Lane{Name: laneName, Done: partial[i], Total: laneSizes[i], Kind: tasklog.LaneKind(laneName)})
 				}
 			}
 			web.taskLog().ProgressFiles(taskId, int(done>>20), int(total>>20), name, checked+unread, len(files), lanes)
 		}
 		// a scheduled verification stops when the background hours end and goes on the next time
 		stopped := func() bool {
-			return ctx.Err() != nil || (trigger == TRIGGER_SCHEDULE && !web.backgroundAllowed())
+			return ctx.Err() != nil || (trigger == tasklog.TRIGGER_SCHEDULE && !web.backgroundAllowed())
 		}
 
 		web.taskLog().SetWorkers(taskId, workers, 0)
@@ -1012,7 +1003,7 @@ func (web *Web) startVerificationSince(level string, paths []string, recheck tim
 					case VERIFY_MODIFIED:
 						// told on its cover and in Issues, not as a warning: it is no failure
 						modified++
-						web.taskLog().ModifiedFileTile(taskId, name, NOTE_VERIFY_UNSIGNED)
+						web.taskLog().ModifiedFileTile(taskId, name, tasklog.NOTE_VERIFY_UNSIGNED)
 					default:
 						web.taskLog().AddFileTile(taskId, name, false, "")
 					}
@@ -1039,10 +1030,10 @@ func (web *Web) startVerificationSince(level string, paths []string, recheck tim
 		finished := checked+unread == len(files)
 		switch {
 		case ctx.Err() != nil:
-			failure = &TaskNote{Text: NOTE_COMPRESS_CANCELED}
-		case !finished && trigger == TRIGGER_SCHEDULE:
+			failure = &tasklog.Note{Text: tasklog.NOTE_COMPRESS_CANCELED}
+		case !finished && trigger == tasklog.TRIGGER_SCHEDULE:
 			// the next scheduled run goes on with the files not checked yet
-			web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_HOURS, "")
+			web.taskLog().Warn(taskId, tasklog.NOTE_PAUSED_FOR_HOURS, "")
 		}
 		// the date of the last check, and the schedule, are of the checks that read the data
 		if finished && hashes {
@@ -1083,7 +1074,7 @@ func (web *Web) HandleVerify() {
 		switch r.FormValue("scope") {
 		case "signatures":
 			// the button of the pages of older versions: the signatures only
-			level = VERIFY_LEVEL_SIGNATURE
+			level = tasklog.VERIFY_LEVEL_SIGNATURE
 		case "space":
 			// only the files the Space page needs checked before deleting
 			paths = web.spaceVerifyPaths()
@@ -1099,7 +1090,7 @@ func (web *Web) HandleVerify() {
 			writeJSON(w, http.StatusOK, map[string]any{"nothing": true})
 			return
 		}
-		web.startOrQueue(w, QueuedTask{Kind: TASK_VERIFY, Paths: paths, Recheck: recheck, Level: level})
+		web.startOrQueue(w, QueuedTask{Kind: tasklog.TASK_VERIFY, Paths: paths, Recheck: recheck, Level: level})
 	}).Methods("POST")
 }
 
@@ -1117,10 +1108,10 @@ func (web *Web) nothingToVerify(paths []string, level string) bool {
 		if info == nil || info.IsDir() {
 			continue
 		}
-		if _, ok := store.current(paths[i], info); !ok && level != VERIFY_LEVEL_SIGNATURE {
+		if _, ok := store.current(paths[i], info); !ok && level != tasklog.VERIFY_LEVEL_SIGNATURE {
 			return false
 		}
-		if _, ok := store.signatureResult(paths[i], info); !ok && level != VERIFY_LEVEL_HASH {
+		if _, ok := store.signatureResult(paths[i], info); !ok && level != tasklog.VERIFY_LEVEL_HASH {
 			return false
 		}
 	}

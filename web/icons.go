@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -60,7 +61,7 @@ func (web *Web) extractMissingIcons(taskId int64) int {
 	sort.Slice(candidates, func(i, j int) bool { return candidates[i].path < candidates[j].path })
 	ownTask := taskId == 0
 	if ownTask {
-		taskId = web.taskLog().Start(TASK_COVERS, TRIGGER_SCAN)
+		taskId = web.taskLog().Start(tasklog.TASK_COVERS, tasklog.TRIGGER_SCAN)
 		defer web.taskLog().Finish(taskId, nil)
 	}
 

@@ -233,6 +233,20 @@ func FormatDateTime(lang string, value time.Time) string {
 	return FormatDate(lang, value) + " " + value.Format("15:04")
 }
 
+// FormatDuration is a duration in days, hours and minutes.
+func FormatDuration(d time.Duration) string {
+	days := int(d.Hours()) / 24
+	hours := int(d.Hours()) % 24
+	minutes := int(d.Minutes()) % 60
+	if days > 0 {
+		return fmt.Sprintf("%dd %dh", days, hours)
+	}
+	if hours > 0 {
+		return fmt.Sprintf("%dh %dm", hours, minutes)
+	}
+	return fmt.Sprintf("%dm", minutes)
+}
+
 // Issue texts are created in English by the scanner and contain file paths and technical
 // details, so they are translated by pattern; the captured parts stay as they are.
 var issuePatterns = []struct {

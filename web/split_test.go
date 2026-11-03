@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -69,8 +70,8 @@ func TestSplitASuperNspFromCompress(t *testing.T) {
 	if response := postForm(web, "/split/start", url.Values{"rest": {"all"}, "delete_originals": {"true"}}); response.Code != http.StatusAccepted {
 		t.Fatalf("split: %d %s", response.Code, response.Body.String())
 	}
-	task := waitForTask(t, web, TASK_SPLIT)
-	if task.Status != TASK_SUCCESS || task.Files != 1 {
+	task := waitForTask(t, web, tasklog.TASK_SPLIT)
+	if task.Status != tasklog.TASK_SUCCESS || task.Files != 1 {
 		t.Fatalf("one file split: %+v", task)
 	}
 	if _, err := os.Stat(super); !os.IsNotExist(err) {
@@ -120,7 +121,7 @@ func TestSplitKeepsThePartsAlreadyWritten(t *testing.T) {
 	// a different file with the name of a part is never replaced
 	web2, super2 := splitWebWithSuperNsp(t)
 	os.WriteFile(filepath.Join(filepath.Dir(super2), "Super Game [0100000000020000][v0].nsp"), []byte("something else"), 0o644)
-	if err := web2.splitFile(context.Background(), super2, "Super Game", true, report); err == nil || compressNote(TASK_SPLIT, err) != NOTE_SPLIT_EXISTS {
+	if err := web2.splitFile(context.Background(), super2, "Super Game", true, report); err == nil || compressNote(tasklog.TASK_SPLIT, err) != NOTE_SPLIT_EXISTS {
 		t.Fatalf("a file in the way: %v", err)
 	}
 	if _, err := os.Stat(super2); err != nil {
@@ -187,8 +188,8 @@ func TestMakePacksInBulk(t *testing.T) {
 	if response := postForm(web, "/packs/start", url.Values{"path": {path}}); response.Code != http.StatusAccepted {
 		t.Fatalf("packs: %d %s", response.Code, response.Body.String())
 	}
-	task := waitForTask(t, web, TASK_PACK)
-	if task.Status != TASK_SUCCESS || task.Files != 1 {
+	task := waitForTask(t, web, tasklog.TASK_PACK)
+	if task.Status != tasklog.TASK_SUCCESS || task.Files != 1 {
 		t.Fatalf("one pack made: %+v", task)
 	}
 	matches, _ := filepath.Glob(filepath.Join(folder, "*(pack).nsp"))

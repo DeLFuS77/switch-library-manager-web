@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/fsnotify/fsnotify"
 )
@@ -214,7 +215,7 @@ func TestWatcherLeavesTheScanOfAShortTask(t *testing.T) {
 	// a compression wrote its file, and asked for a scan once it ended
 	os.WriteFile(filepath.Join(folder, "Game [0100000000010000][v0].nsz"), []byte("game"), 0o644)
 	w.lastEvent = time.Now()
-	web.noteAppScan(TRIGGER_COMPRESS)
+	web.noteAppScan(tasklog.TRIGGER_COMPRESS)
 	web.state.startSync()
 	if !w.waiting() {
 		t.Fatal("its scan is waited for")
@@ -233,7 +234,7 @@ func TestWatcherLeavesTheScanOfAShortTask(t *testing.T) {
 		t.Fatal("a later change is scanned")
 	}
 	// so is a change during the scan of a task
-	web.noteAppScan(TRIGGER_ORGANIZE)
+	web.noteAppScan(tasklog.TRIGGER_ORGANIZE)
 	web.scanStarted.Store(time.Now().UnixNano())
 	web.scansDone.Add(1)
 	w.lastEvent = time.Now().Add(2 * time.Second)
@@ -241,7 +242,7 @@ func TestWatcherLeavesTheScanOfAShortTask(t *testing.T) {
 		t.Fatal("a change while the scan ran is scanned")
 	}
 	// a scan asked for something else than a change of the app is no task's
-	web.noteAppScan(TRIGGER_MANUAL)
+	web.noteAppScan(tasklog.TRIGGER_MANUAL)
 	if asked := web.appScan.Load(); asked == nil || !asked.at.Equal(w.appScanAt) {
 		t.Fatal("only the scans after the changes of the app")
 	}

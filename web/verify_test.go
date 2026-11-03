@@ -17,12 +17,13 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
-func waitForTask(t *testing.T, web *Web, kind string) Task {
+func waitForTask(t *testing.T, web *Web, kind string) tasklog.Task {
 	t.Helper()
 	deadline := time.Now().Add(20 * time.Second)
 	for web.compressionRunning() {
@@ -37,7 +38,7 @@ func waitForTask(t *testing.T, web *Web, kind string) Task {
 		}
 	}
 	t.Fatalf("no %s task", kind)
-	return Task{}
+	return tasklog.Task{}
 }
 
 func TestVerifyFindsDamagedFiles(t *testing.T) {
@@ -47,8 +48,8 @@ func TestVerifyFindsDamagedFiles(t *testing.T) {
 	if code := postForm(web, "/verify/start", url.Values{}).Code; code != http.StatusAccepted {
 		t.Fatalf("start: %v", code)
 	}
-	task := waitForTask(t, web, TASK_VERIFY)
-	if task.Status != TASK_SUCCESS || task.Files != 1 || task.Damaged != 0 {
+	task := waitForTask(t, web, tasklog.TASK_VERIFY)
+	if task.Status != tasklog.TASK_SUCCESS || task.Files != 1 || task.Damaged != 0 {
 		t.Fatalf("a good file: %+v", task)
 	}
 
@@ -59,7 +60,7 @@ func TestVerifyFindsDamagedFiles(t *testing.T) {
 	}
 	// checking everything again reads it again
 	postForm(web, "/verify/start", url.Values{"all": {"true"}})
-	if task := waitForTask(t, web, TASK_VERIFY); task.Files != 1 || len(web.taskLog().Snapshot()) != before+1 {
+	if task := waitForTask(t, web, tasklog.TASK_VERIFY); task.Files != 1 || len(web.taskLog().Snapshot()) != before+1 {
 		t.Fatalf("everything is checked again: %+v", task)
 	}
 
@@ -67,8 +68,8 @@ func TestVerifyFindsDamagedFiles(t *testing.T) {
 	data[len(data)-50] ^= 0xFF
 	os.WriteFile(path, data, 0o644)
 	postForm(web, "/verify/start", url.Values{})
-	task = waitForTask(t, web, TASK_VERIFY)
-	if task.Status != TASK_WARNING || task.Damaged != 1 || task.Warnings[0].Text != NOTE_VERIFY_DAMAGED {
+	task = waitForTask(t, web, tasklog.TASK_VERIFY)
+	if task.Status != tasklog.TASK_WARNING || task.Damaged != 1 || task.Warnings[0].Text != NOTE_VERIFY_DAMAGED {
 		t.Fatalf("a damaged file: %+v", task)
 	}
 	issues := web.getIssues()
@@ -127,30 +128,30 @@ func TestScheduledVerificationChecksOldResultsAgain(t *testing.T) {
 	web.verifications().set(path, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: true, Checked: time.Now().AddDate(0, 0, -40)})
 	web.verifications().signatures[path] = signatureRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), Checked: time.Now().AddDate(0, 0, -40)}
 
-	web.startVerificationOf([]string{path}, verifyRecheckChanged, TRIGGER_MANUAL)
-	if task := waitForTask(t, web, TASK_VERIFY); task.Files != 0 {
+	web.startVerificationOf([]string{path}, verifyRecheckChanged, tasklog.TRIGGER_MANUAL)
+	if task := waitForTask(t, web, tasklog.TASK_VERIFY); task.Files != 0 {
 		t.Fatalf("an unchanged file is skipped by a manual check of the changes: %+v", task)
 	}
-	web.startVerificationOf([]string{path}, 30*24*time.Hour, TRIGGER_MANUAL)
-	if task := waitForTask(t, web, TASK_VERIFY); task.Files != 1 {
+	web.startVerificationOf([]string{path}, 30*24*time.Hour, tasklog.TRIGGER_MANUAL)
+	if task := waitForTask(t, web, tasklog.TASK_VERIFY); task.Files != 1 {
 		t.Fatalf("a result older than the interval is checked again: %+v", task)
 	}
-	web.startVerificationOf([]string{path}, 30*24*time.Hour, TRIGGER_MANUAL)
-	if task := waitForTask(t, web, TASK_VERIFY); task.Files != 0 {
+	web.startVerificationOf([]string{path}, 30*24*time.Hour, tasklog.TRIGGER_MANUAL)
+	if task := waitForTask(t, web, tasklog.TASK_VERIFY); task.Files != 0 {
 		t.Fatalf("a recent result is kept: %+v", task)
 	}
 }
 
 func TestVerificationSpeedAndTimeLeft(t *testing.T) {
 	now := time.Now()
-	task := Task{Kind: TASK_VERIFY, Started: now.Add(-100 * time.Second), Current: 10000, Total: 70000}
-	if task.speedAt(now) != 100 {
-		t.Fatalf("10000 MB in 100 s: %d MB/s", task.speedAt(now))
+	task := tasklog.Task{Kind: tasklog.TASK_VERIFY, Started: now.Add(-100 * time.Second), Current: 10000, Total: 70000}
+	if task.SpeedAt(now) != 100 {
+		t.Fatalf("10000 MB in 100 s: %d MB/s", task.SpeedAt(now))
 	}
-	if task.remainingAt(now) != 10*time.Minute {
-		t.Fatalf("60000 MB left at 100 MB/s: %v", task.remainingAt(now))
+	if task.RemainingAt(now) != 10*time.Minute {
+		t.Fatalf("60000 MB left at 100 MB/s: %v", task.RemainingAt(now))
 	}
-	if (Task{Kind: TASK_SCAN, Started: task.Started, Current: 5, Total: 10}).speedAt(now) != 0 {
+	if (tasklog.Task{Kind: tasklog.TASK_SCAN, Started: task.Started, Current: 5, Total: 10}).SpeedAt(now) != 0 {
 		t.Fatal("only verifications show a speed")
 	}
 }
@@ -298,15 +299,15 @@ func TestResultsOfFilesMovedBeforeAreFound(t *testing.T) {
 // A compression says how long is left and about when it ends, another day too.
 func TestCompressionTimeLeft(t *testing.T) {
 	now := time.Date(2026, 10, 17, 22, 0, 0, 0, time.Local)
-	task := Task{Kind: TASK_COMPRESS, Started: now.Add(-100 * time.Second), Current: 10000, Total: 7210000}
-	if got := task.remainingTextAt(now); got != "20h 0m · 18/10 18:00" {
+	task := tasklog.Task{Kind: tasklog.TASK_COMPRESS, Started: now.Add(-100 * time.Second), Current: 10000, Total: 7210000}
+	if got := task.RemainingTextAt(now); got != "20h 0m · 18/10 18:00" {
 		t.Fatalf("time left: %q", got)
 	}
 	task.Total = 22000
-	if got := task.remainingTextAt(now); got != "2m · 22:02" {
+	if got := task.RemainingTextAt(now); got != "2m · 22:02" {
 		t.Fatalf("time left: %q", got)
 	}
-	if got := (Task{Kind: TASK_COMPRESS, Started: now.Add(-5 * time.Second), Current: 10, Total: 100}).remainingTextAt(now); got != "" {
+	if got := (tasklog.Task{Kind: tasklog.TASK_COMPRESS, Started: now.Add(-5 * time.Second), Current: 10, Total: 100}).RemainingTextAt(now); got != "" {
 		t.Fatalf("not known in the first seconds: %q", got)
 	}
 }
@@ -359,9 +360,9 @@ func TestAFileThatCannotBeReadIsNotDamaged(t *testing.T) {
 		},
 	} {
 		verifyLibraryFile = fail
-		web.startVerificationOf([]string{path}, verifyRecheckAll, TRIGGER_MANUAL)
-		task := waitForTask(t, web, TASK_VERIFY)
-		if task.Damaged != 0 || task.Status != TASK_WARNING || len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_VERIFY_UNREADABLE {
+		web.startVerificationOf([]string{path}, verifyRecheckAll, tasklog.TRIGGER_MANUAL)
+		task := waitForTask(t, web, tasklog.TASK_VERIFY)
+		if task.Damaged != 0 || task.Status != tasklog.TASK_WARNING || len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_VERIFY_UNREADABLE {
 			t.Fatalf("a file that could not be read is no damage: %+v", task)
 		}
 		if len(web.verifications().damaged()) != 0 || len(web.verifications().records) != 0 {
@@ -382,8 +383,8 @@ func TestAFileThatCannotBeReadIsNotDamaged(t *testing.T) {
 	verifyLibraryFile = func(ctx context.Context, path string, progress func(int64, int64)) (switchfs.FileCheck, error) {
 		return switchfs.FileCheck{}, errors.New("a.nca: invalid NCZ section table")
 	}
-	web.startVerificationOf([]string{path}, verifyRecheckAll, TRIGGER_MANUAL)
-	if task := waitForTask(t, web, TASK_VERIFY); task.Damaged != 1 || len(web.verifications().damaged()) != 1 {
+	web.startVerificationOf([]string{path}, verifyRecheckAll, tasklog.TRIGGER_MANUAL)
+	if task := waitForTask(t, web, tasklog.TASK_VERIFY); task.Damaged != 1 || len(web.verifications().damaged()) != 1 {
 		t.Fatalf("a fault of the contents is a damage: %+v", task)
 	}
 }
@@ -402,7 +403,7 @@ func TestReadFailures(t *testing.T) {
 	}
 	cut := fmt.Errorf("read 3 of 8 bytes: %w", io.ErrUnexpectedEOF)
 	os.WriteFile(path, []byte("game, still being copied"), 0o644)
-	if err := readFailure(path, before, cut); compressDamage(err) || compressNote(TASK_COMPRESS, err) == NOTE_COMPRESS_DAMAGED {
+	if err := readFailure(path, before, cut); compressDamage(err) || compressNote(tasklog.TASK_COMPRESS, err) == NOTE_COMPRESS_DAMAGED {
 		t.Fatalf("a file that grew while it was read is no damage: %v", err)
 	}
 	os.Remove(path)

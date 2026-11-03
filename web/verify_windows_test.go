@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 )
 
 // openWithoutSharing opens a file the way a program that keeps others out does: no one else
@@ -35,8 +36,8 @@ func openWithoutSharing(t *testing.T, path string) {
 func TestAFileInUseIsNotDamaged(t *testing.T) {
 	web, path := compressWeb(t)
 	openWithoutSharing(t, path)
-	web.startVerificationOf([]string{path}, verifyRecheckAll, TRIGGER_MANUAL)
-	task := waitForTask(t, web, TASK_VERIFY)
+	web.startVerificationOf([]string{path}, verifyRecheckAll, tasklog.TRIGGER_MANUAL)
+	task := waitForTask(t, web, tasklog.TASK_VERIFY)
 	if task.Damaged != 0 || len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_VERIFY_UNREADABLE {
 		t.Fatalf("a file in use is no damage: %+v", task)
 	}
@@ -45,7 +46,7 @@ func TestAFileInUseIsNotDamaged(t *testing.T) {
 	}
 	// nor by a compression, which reads it whole too
 	web.startCompression([]string{path}, "fast", false)
-	if task := waitForCompression(t, web); task.Status != TASK_FAILED || len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_COMPRESS_FAILED {
+	if task := waitForCompression(t, web); task.Status != tasklog.TASK_FAILED || len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_COMPRESS_FAILED {
 		t.Fatalf("a file in use is not compressed, and not damaged: %+v", task)
 	}
 	if len(web.verifications().damaged()) != 0 {

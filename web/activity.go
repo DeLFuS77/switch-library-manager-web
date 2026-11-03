@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"net/http"
 	"path/filepath"
 	"regexp"
@@ -208,7 +209,7 @@ var recordedActions = map[string]func(r *http.Request) (string, string){
 func verifyActivity(r *http.Request) string {
 	level, _ := verifyLevel(r.FormValue("level"))
 	if r.FormValue("scope") == "signatures" {
-		level = VERIFY_LEVEL_SIGNATURE
+		level = tasklog.VERIFY_LEVEL_SIGNATURE
 	}
 	if r.FormValue("all") == "true" {
 		return level + " + " + VERIFY_ACTIVITY_ALL
@@ -272,9 +273,9 @@ var (
 		SPACE_OLD_UPDATES:               "Old updates",
 		SPACE_DUPLICATES:                "Duplicates",
 		SPACE_COMPRESSED:                "Compressed originals",
-		VERIFY_LEVEL_SIGNATURE:          "Signature",
-		VERIFY_LEVEL_HASH:               "Hash",
-		VERIFY_LEVEL_BOTH:               "Both",
+		tasklog.VERIFY_LEVEL_SIGNATURE:  "Signature",
+		tasklog.VERIFY_LEVEL_HASH:       "Hash",
+		tasklog.VERIFY_LEVEL_BOTH:       "Both",
 		VERIFY_ACTIVITY_ALL:             "Check everything again",
 		"admin":                         "Administrator",
 		"viewer":                        "Player",

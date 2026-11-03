@@ -16,6 +16,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -439,7 +440,7 @@ func (web *Web) HandleQuarantine() {
 		}
 		web.sugarLogger.Infof("[Quarantine] %s put back", item.Path)
 		// the library has the file again
-		web.Rescan(TRIGGER_ORGANIZE)
+		web.Rescan(tasklog.TRIGGER_ORGANIZE)
 		writeJSON(w, http.StatusOK, map[string]string{"message": i18n.Translatef(lang, "%v is back in its folder.", filepath.Base(item.Path))})
 	}).Methods("POST")
 

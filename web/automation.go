@@ -16,6 +16,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -332,7 +333,7 @@ func (web *Web) runAutomationOnce() bool {
 	// 1. check the new files
 	damaged := map[string]bool{}
 	if options.Verify && len(existing) > 0 {
-		if !web.startVerificationOf(existing, verifyRecheckChanged, TRIGGER_AUTOMATION) {
+		if !web.startVerificationOf(existing, verifyRecheckChanged, tasklog.TRIGGER_AUTOMATION) {
 			return true
 		}
 		web.waitForFileTask()
@@ -370,12 +371,12 @@ func (web *Web) runAutomationOnce() bool {
 				if _, ok := web.waitForAutomation(); !ok {
 					return false
 				}
-				before := web.latestTaskId(TASK_COMPRESS)
-				if !web.compressPaths(toCompress, TRIGGER_AUTOMATION) {
+				before := web.latestTaskId(tasklog.TASK_COMPRESS)
+				if !web.compressPaths(toCompress, tasklog.TRIGGER_AUTOMATION) {
 					return true
 				}
 				web.waitForFileTask()
-				if task, ok := web.latestTask(TASK_COMPRESS); ok && task.Id != before {
+				if task, ok := web.latestTask(tasklog.TASK_COMPRESS); ok && task.Id != before {
 					result.Compressed, result.Saved = task.Files, task.Saved
 				}
 			}
@@ -409,11 +410,11 @@ func (web *Web) runAutomationOnce() bool {
 			// a scan started meanwhile
 			return true
 		}
-		operations, err := web.runOrganizeFiles(action, newFiles, TRIGGER_AUTOMATION)
+		operations, err := web.runOrganizeFiles(action, newFiles, tasklog.TRIGGER_AUTOMATION)
 		// files changed: they are scanned again; else a rescan asked meanwhile is done now
 		rescan := ""
 		if err == nil && len(operations) > 0 {
-			rescan = TRIGGER_AUTOMATION
+			rescan = tasklog.TRIGGER_AUTOMATION
 		}
 		web.releaseScan(rescan)
 		if errors.Is(err, errOrganizeBusy) {
@@ -449,8 +450,8 @@ func (web *Web) waitForFileTask() {
 }
 
 // latestTask is the newest task of a kind.
-func (web *Web) latestTask(kind string) (Task, bool) {
-	var latest Task
+func (web *Web) latestTask(kind string) (tasklog.Task, bool) {
+	var latest tasklog.Task
 	found := false
 	for _, task := range web.taskLog().Snapshot() {
 		if task.Kind == kind && (!found || task.Id > latest.Id) {

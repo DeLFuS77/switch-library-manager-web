@@ -16,6 +16,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -281,7 +282,7 @@ func TestUploadNameTooLongForTheDisk(t *testing.T) {
 	}
 }
 
-func uploadTaskOf(web *Web, id int64) *Task {
+func uploadTaskOf(web *Web, id int64) *tasklog.Task {
 	for _, task := range web.taskLog().Snapshot() {
 		if task.Id == id {
 			return &task
@@ -309,7 +310,7 @@ func TestUploadsInTasks(t *testing.T) {
 	// nothing comes: the task ends, the file is kept
 	upload.touched = time.Now().Add(-uploadStalled - time.Second)
 	web.endStalledUploads()
-	if task := uploadTaskOf(web, first); task.Running() || task.Error == nil || task.Error.Text != NOTE_UPLOAD_STOPPED {
+	if task := uploadTaskOf(web, first); task.Running() || task.Error == nil || task.Error.Text != tasklog.NOTE_UPLOAD_STOPPED {
 		t.Fatalf("a stopped upload: %+v", task)
 	}
 	// the same file again goes on, in a new task
@@ -322,7 +323,7 @@ func TestUploadsInTasks(t *testing.T) {
 	if response := postForm(web, "/uploads/finish", url.Values{"id": {upload.Id}}); response.Code != http.StatusOK {
 		t.Fatalf("finish: %d", response.Code)
 	}
-	if task := uploadTaskOf(web, second); task.Running() || task.Status != TASK_SUCCESS || task.Subject != "Game.nsp" || task.Files != 1 || task.Saved != int64(len(content)) {
+	if task := uploadTaskOf(web, second); task.Running() || task.Status != tasklog.TASK_SUCCESS || task.Subject != "Game.nsp" || task.Files != 1 || task.Saved != int64(len(content)) {
 		t.Fatalf("a finished upload: %+v", task)
 	}
 
@@ -331,10 +332,10 @@ func TestUploadsInTasks(t *testing.T) {
 	other := web.uploads.get(uploadAnswer(t, response)["id"].(string))
 	id := other.taskId
 	postForm(web, "/uploads/cancel", url.Values{"id": {other.Id}})
-	if task := uploadTaskOf(web, id); task.Running() || task.Error == nil || task.Error.Text != NOTE_UPLOAD_CANCELED {
+	if task := uploadTaskOf(web, id); task.Running() || task.Error == nil || task.Error.Text != tasklog.NOTE_UPLOAD_CANCELED {
 		t.Fatalf("a cancelled upload: %+v", task)
 	}
-	for _, text := range []string{NOTE_UPLOAD_CANCELED, NOTE_UPLOAD_STOPPED, "Upload", "Upload to"} {
+	for _, text := range []string{tasklog.NOTE_UPLOAD_CANCELED, tasklog.NOTE_UPLOAD_STOPPED, "Upload", "Upload to"} {
 		if i18n.Translate("es", text) == text {
 			t.Errorf("not translated: %q", text)
 		}

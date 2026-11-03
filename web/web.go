@@ -7,6 +7,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/launch"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -233,7 +234,7 @@ type Web struct {
 	moves     movedFiles
 	cache     derivedCache
 	auth      *Auth
-	tasks     *TaskLog
+	tasks     *tasklog.Log
 	tasksOnce sync.Once
 	// the tasks on files waiting for their turn
 	tasksQueue *taskQueue
@@ -580,7 +581,7 @@ var funcMap = template.FuncMap{
 		return strings.TrimSuffix(strings.TrimSuffix(fmt.Sprintf("%.1f", float64(gigabytes)/1000), "0"), ".")
 	},
 	// the change of format of a file in a task on files, e.g. "NSP → NSZ", or ""
-	"formatChange": formatChange,
+	"formatChange": tasklog.FormatChange,
 	// percentOf is part of total in percent, for bars
 	"percentOf": func(part int, total int) int {
 		if total <= 0 {
@@ -886,7 +887,7 @@ func (web *Web) startInBackground() {
 		if switchDB == nil {
 			web.state.endSync()
 			// first start (or titles cache lost): fetch the titles database right away
-			web.Synchronize(TRIGGER_STARTUP)
+			web.Synchronize(tasklog.TRIGGER_STARTUP)
 			return
 		}
 
@@ -898,18 +899,18 @@ func (web *Web) startInBackground() {
 		// the pages show the titles while the library is scanned
 		web.state.set(web.withLibraryTitles(switchDB, nil), nil)
 
-		taskId := web.startTask(TASK_SCAN, TRIGGER_STARTUP)
-		failure := func() (failure *TaskNote) {
+		taskId := web.startTask(tasklog.TASK_SCAN, tasklog.TRIGGER_STARTUP)
+		failure := func() (failure *tasklog.Note) {
 			// a panic: the scan of the start fails, the app goes on with the titles it has
 			defer func() {
 				if recovered := recover(); recovered != nil {
-					failure = web.crashed(TASK_SCAN, recovered)
+					failure = web.crashed(tasklog.TASK_SCAN, recovered)
 				}
 			}()
 			localDB, err := web.buildLocalDB(switchDB, rescan)
 			if err != nil {
 				web.sugarLogger.Error(err)
-				return &TaskNote{Text: NOTE_SCAN_FAILED, Detail: err.Error()}
+				return &tasklog.Note{Text: tasklog.NOTE_SCAN_FAILED, Detail: err.Error()}
 			}
 			web.taskLog().SetResult(taskId, len(localDB.TitlesMap), localDB.NumFiles)
 			web.state.set(web.withLibraryTitles(switchDB, localDB), localDB)
@@ -929,7 +930,7 @@ func (web *Web) startInBackground() {
 			web.runQueue()
 		}
 		if failure == nil && settings.ReadSettings(web.dataFolder).AutoCompress == AUTO_COMPRESS_NEW {
-			web.autoCompress(TRIGGER_STARTUP)
+			web.autoCompress(tasklog.TRIGGER_STARTUP)
 		}
 		if failure == nil {
 			web.resumeAutomation()
@@ -1002,21 +1003,21 @@ func messageText(lang string, message string, arg string) string {
 }
 
 // taskLog returns the task history, loading it on first use.
-func (web *Web) taskLog() *TaskLog {
+func (web *Web) taskLog() *tasklog.Log {
 	web.tasksOnce.Do(func() {
 		if web.tasks == nil {
-			web.tasks = loadTaskLog(web.dataFolder)
+			web.tasks = tasklog.Load(web.dataFolder)
 		}
-		web.tasks.onFailed = web.notifyTaskFailed
+		web.tasks.OnFailed = web.notifyTaskFailed
 		// the log tells what each task did, not only what went wrong in it
-		web.tasks.onEnded = web.logTaskEnd
+		web.tasks.OnEnded = web.logTaskEnd
 	})
 	return web.tasks
 }
 
 // logTaskEnd writes a line of a task that ended: what, started by what, how it ended and how
 // long it took.
-func (web *Web) logTaskEnd(task Task) {
+func (web *Web) logTaskEnd(task tasklog.Task) {
 	how := task.Status
 	if task.Error != nil {
 		how += ": " + task.Error.Text
@@ -1032,14 +1033,14 @@ func (web *Web) logTaskEnd(task Task) {
 // crashed turns a panic of the work of a task into its failure, logged with where it happened:
 // the task ends, the files and the scan are let go, and the app goes on instead of stopping
 // with every task it runs.
-func (web *Web) crashed(what string, recovered any) *TaskNote {
+func (web *Web) crashed(what string, recovered any) *tasklog.Note {
 	web.sugarLogger.Errorf("%s stopped on an unexpected error: %v\n%s", what, recovered, debug.Stack())
-	return &TaskNote{Text: NOTE_TASK_CRASHED, Detail: fmt.Sprint(recovered)}
+	return &tasklog.Note{Text: tasklog.NOTE_TASK_CRASHED, Detail: fmt.Sprint(recovered)}
 }
 
 // finishRunning ends, with a failure, the running tasks of some kinds: their work stopped on a
 // panic where the task is not known.
-func (web *Web) finishRunning(failure *TaskNote, kinds ...string) {
+func (web *Web) finishRunning(failure *tasklog.Note, kinds ...string) {
 	for _, task := range web.taskLog().Snapshot() {
 		if task.Running() && slices.Contains(kinds, task.Kind) {
 			web.finishTask(task.Id, failure)
@@ -1108,7 +1109,7 @@ func (web *Web) startTask(kind string, trigger string) int64 {
 	return id
 }
 
-func (web *Web) finishTask(id int64, failure *TaskNote) {
+func (web *Web) finishTask(id int64, failure *tasklog.Note) {
 	web.currentTask.CompareAndSwap(id, 0)
 	web.taskLog().Finish(id, failure)
 }

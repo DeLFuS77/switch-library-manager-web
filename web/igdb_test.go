@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -113,7 +114,7 @@ func TestTimesToBeatAreLookedUpAndKept(t *testing.T) {
 	t.Setenv(IGDB_CLIENT_ID_ENV, "my-id")
 	t.Setenv(IGDB_CLIENT_SECRET_ENV, "good-secret")
 
-	if !web.lookupTimesToBeat(TRIGGER_MANUAL) {
+	if !web.lookupTimesToBeat(tasklog.TRIGGER_MANUAL) {
 		t.Fatal("the lookup starts")
 	}
 	for deadline := time.Now().Add(20 * time.Second); web.timeToBeatRunning.Load() && time.Now().Before(deadline); {
@@ -133,7 +134,7 @@ func TestTimesToBeatAreLookedUpAndKept(t *testing.T) {
 
 	// the next run has nothing to look up
 	before := requests.Load()
-	if web.lookupTimesToBeat(TRIGGER_MANUAL) || requests.Load() != before {
+	if web.lookupTimesToBeat(tasklog.TRIGGER_MANUAL) || requests.Load() != before {
 		t.Fatal("games looked up recently are not looked up again")
 	}
 
@@ -149,7 +150,7 @@ func TestNoLookupWithoutKeys(t *testing.T) {
 	web.state.set(testDatabases(t))
 	t.Setenv(IGDB_CLIENT_ID_ENV, "")
 	t.Setenv(IGDB_CLIENT_SECRET_ENV, "")
-	if web.lookupTimesToBeat(TRIGGER_MANUAL) {
+	if web.lookupTimesToBeat(tasklog.TRIGGER_MANUAL) {
 		t.Fatal("nothing without the keys")
 	}
 }

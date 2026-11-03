@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -43,9 +44,9 @@ func levelWeb(t *testing.T, unsigned []string, damage error) (web *Web, path str
 
 func TestVerifyLevelNames(t *testing.T) {
 	for value, want := range map[string]string{
-		"": VERIFY_LEVEL_BOTH, "both": VERIFY_LEVEL_BOTH, "hash": VERIFY_LEVEL_HASH, "signature": VERIFY_LEVEL_SIGNATURE,
+		"": tasklog.VERIFY_LEVEL_BOTH, "both": tasklog.VERIFY_LEVEL_BOTH, "hash": tasklog.VERIFY_LEVEL_HASH, "signature": tasklog.VERIFY_LEVEL_SIGNATURE,
 		// as NXPress named it before 1.4.0, and the scope of the pages of older versions
-		"full": VERIFY_LEVEL_HASH, "signatures": VERIFY_LEVEL_SIGNATURE,
+		"full": tasklog.VERIFY_LEVEL_HASH, "signatures": tasklog.VERIFY_LEVEL_SIGNATURE,
 	} {
 		if got, ok := verifyLevel(value); !ok || got != want {
 			t.Errorf("%q: %q %v, want %q", value, got, ok, want)
@@ -60,14 +61,14 @@ func TestVerifyLevelNames(t *testing.T) {
 // in Issues.
 func TestASignatureAloneThatFailsIsModified(t *testing.T) {
 	web, path, _, _ := levelWeb(t, []string{"a.nca"}, nil)
-	if code := postForm(web, "/verify/start", url.Values{"level": {VERIFY_LEVEL_BOTH}}).Code; code != http.StatusAccepted {
+	if code := postForm(web, "/verify/start", url.Values{"level": {tasklog.VERIFY_LEVEL_BOTH}}).Code; code != http.StatusAccepted {
 		t.Fatalf("start: %d", code)
 	}
-	task := waitForTask(t, web, TASK_VERIFY)
-	if task.Status != TASK_SUCCESS || len(task.Warnings) != 0 || task.Files != 1 || task.Damaged != 0 || task.Modified != 1 || task.Level != VERIFY_LEVEL_BOTH {
+	task := waitForTask(t, web, tasklog.TASK_VERIFY)
+	if task.Status != tasklog.TASK_SUCCESS || len(task.Warnings) != 0 || task.Files != 1 || task.Damaged != 0 || task.Modified != 1 || task.Level != tasklog.VERIFY_LEVEL_BOTH {
 		t.Fatalf("modified is no failure: %+v", task)
 	}
-	if len(task.Tiles) != 1 || !task.Tiles[0].Modified || task.Tiles[0].Failed || task.Tiles[0].Note != NOTE_VERIFY_UNSIGNED {
+	if len(task.Tiles) != 1 || !task.Tiles[0].Modified || task.Tiles[0].Failed || task.Tiles[0].Note != tasklog.NOTE_VERIFY_UNSIGNED {
 		t.Fatalf("the cover says modified: %+v", task.Tiles)
 	}
 	found := false
@@ -105,12 +106,12 @@ func TestASignatureAloneThatFailsIsModified(t *testing.T) {
 // checked all the same, and Issues lists it once, as damaged.
 func TestAHashThatFailsIsFailed(t *testing.T) {
 	web, path, signatureRuns, hashRuns := levelWeb(t, []string{"a.nca"}, errors.New("a.nca: hash mismatch"))
-	postForm(web, "/verify/start", url.Values{"level": {VERIFY_LEVEL_BOTH}})
-	task := waitForTask(t, web, TASK_VERIFY)
+	postForm(web, "/verify/start", url.Values{"level": {tasklog.VERIFY_LEVEL_BOTH}})
+	task := waitForTask(t, web, tasklog.TASK_VERIFY)
 	if signatureRuns.Load() != 1 || hashRuns.Load() != 1 {
 		t.Fatalf("both checks run, the hashes after a signature that failed: %d %d", signatureRuns.Load(), hashRuns.Load())
 	}
-	if task.Status != TASK_WARNING || task.Damaged != 1 || task.Modified != 0 || task.Warnings[0].Text != NOTE_VERIFY_DAMAGED {
+	if task.Status != tasklog.TASK_WARNING || task.Damaged != 1 || task.Modified != 0 || task.Warnings[0].Text != NOTE_VERIFY_DAMAGED {
 		t.Fatalf("a damaged file fails: %+v", task)
 	}
 	if len(task.Tiles) != 1 || !task.Tiles[0].Failed || task.Tiles[0].Modified {
@@ -152,8 +153,8 @@ func TestAHashThatFailsIsFailed(t *testing.T) {
 // covers of the other tasks keep OK.
 func TestACheckedFileIsVerified(t *testing.T) {
 	web, _, _, _ := levelWeb(t, nil, nil)
-	postForm(web, "/verify/start", url.Values{"level": {VERIFY_LEVEL_BOTH}})
-	if task := waitForTask(t, web, TASK_VERIFY); len(task.Tiles) != 1 || task.Tiles[0].Failed || task.Tiles[0].Modified {
+	postForm(web, "/verify/start", url.Values{"level": {tasklog.VERIFY_LEVEL_BOTH}})
+	if task := waitForTask(t, web, tasklog.TASK_VERIFY); len(task.Tiles) != 1 || task.Tiles[0].Failed || task.Tiles[0].Modified {
 		t.Fatalf("the file passes: %+v", task.Tiles)
 	}
 	page := httptest.NewRecorder()
@@ -169,28 +170,28 @@ func TestACheckedFileIsVerified(t *testing.T) {
 func TestEachLevelChecksWhatItSays(t *testing.T) {
 	web, path, signatureRuns, hashRuns := levelWeb(t, []string{"a.nca"}, nil)
 
-	web.startVerificationAt(VERIFY_LEVEL_SIGNATURE, []string{path}, verifyRecheckAll, TRIGGER_MANUAL)
-	task := waitForTask(t, web, TASK_VERIFY)
+	web.startVerificationAt(tasklog.VERIFY_LEVEL_SIGNATURE, []string{path}, verifyRecheckAll, tasklog.TRIGGER_MANUAL)
+	task := waitForTask(t, web, tasklog.TASK_VERIFY)
 	if signatureRuns.Load() != 1 || hashRuns.Load() != 0 {
 		t.Fatalf("the signatures only: %d %d", signatureRuns.Load(), hashRuns.Load())
 	}
-	if task.Level != VERIFY_LEVEL_SIGNATURE || !task.ByFiles || task.Modified != 1 || task.Total != 1 {
+	if task.Level != tasklog.VERIFY_LEVEL_SIGNATURE || !task.ByFiles || task.Modified != 1 || task.Total != 1 {
 		t.Fatalf("a check of the signatures counts files: %+v", task)
 	}
 	if !web.verifications().lastRun().IsZero() {
 		t.Fatal("a check of the signatures alone is not the last check of the files")
 	}
-	if !web.nothingToVerify([]string{path}, VERIFY_LEVEL_SIGNATURE) || web.nothingToVerify([]string{path}, VERIFY_LEVEL_HASH) || web.nothingToVerify([]string{path}, VERIFY_LEVEL_BOTH) {
+	if !web.nothingToVerify([]string{path}, tasklog.VERIFY_LEVEL_SIGNATURE) || web.nothingToVerify([]string{path}, tasklog.VERIFY_LEVEL_HASH) || web.nothingToVerify([]string{path}, tasklog.VERIFY_LEVEL_BOTH) {
 		t.Fatal("the signatures are checked, the hashes not yet")
 	}
 
-	web.startVerificationAt(VERIFY_LEVEL_HASH, []string{path}, verifyRecheckAll, TRIGGER_MANUAL)
-	task = waitForTask(t, web, TASK_VERIFY)
+	web.startVerificationAt(tasklog.VERIFY_LEVEL_HASH, []string{path}, verifyRecheckAll, tasklog.TRIGGER_MANUAL)
+	task = waitForTask(t, web, tasklog.TASK_VERIFY)
 	if signatureRuns.Load() != 1 || hashRuns.Load() != 1 {
 		t.Fatalf("the hashes only: %d %d", signatureRuns.Load(), hashRuns.Load())
 	}
 	// the hashes say nothing of the signatures: a file not signed is sound at this level
-	if task.Level != VERIFY_LEVEL_HASH || task.ByFiles || task.Modified != 0 || task.Damaged != 0 || task.Tiles[0].Modified {
+	if task.Level != tasklog.VERIFY_LEVEL_HASH || task.ByFiles || task.Modified != 0 || task.Damaged != 0 || task.Tiles[0].Modified {
 		t.Fatalf("a check of the hashes: %+v", task)
 	}
 	if web.verifications().lastRun().IsZero() {
@@ -198,19 +199,19 @@ func TestEachLevelChecksWhatItSays(t *testing.T) {
 	}
 
 	// both: the new and changed files have both checked already
-	if response := postForm(web, "/verify/start", url.Values{"level": {VERIFY_LEVEL_BOTH}}); !strings.Contains(response.Body.String(), `"nothing":true`) {
+	if response := postForm(web, "/verify/start", url.Values{"level": {tasklog.VERIFY_LEVEL_BOTH}}); !strings.Contains(response.Body.String(), `"nothing":true`) {
 		t.Fatalf("nothing new to check at any level: %s", response.Body.String())
 	}
-	postForm(web, "/verify/start", url.Values{"level": {VERIFY_LEVEL_BOTH}, "all": {"true"}})
-	task = waitForTask(t, web, TASK_VERIFY)
+	postForm(web, "/verify/start", url.Values{"level": {tasklog.VERIFY_LEVEL_BOTH}, "all": {"true"}})
+	task = waitForTask(t, web, tasklog.TASK_VERIFY)
 	if signatureRuns.Load() != 2 || hashRuns.Load() != 2 || task.Modified != 1 {
 		t.Fatalf("both: %d %d %+v", signatureRuns.Load(), hashRuns.Load(), task)
 	}
 
 	// a file whose hashes were checked has only its signatures checked by both
 	web.verifications().signatures = map[string]signatureRecord{}
-	web.startVerificationAt(VERIFY_LEVEL_BOTH, []string{path}, verifyRecheckChanged, TRIGGER_MANUAL)
-	task = waitForTask(t, web, TASK_VERIFY)
+	web.startVerificationAt(tasklog.VERIFY_LEVEL_BOTH, []string{path}, verifyRecheckChanged, tasklog.TRIGGER_MANUAL)
+	task = waitForTask(t, web, tasklog.TASK_VERIFY)
 	if signatureRuns.Load() != 3 || hashRuns.Load() != 2 || task.Breakdown == nil || task.Breakdown.Signatures != 1 || !task.ByFiles {
 		t.Fatalf("only the signatures: %d %d %+v", signatureRuns.Load(), hashRuns.Load(), task)
 	}
@@ -230,12 +231,12 @@ func TestSignaturesThatCannotBeRead(t *testing.T) {
 		runs++
 		return switchfs.SignatureCheck{}, errors.New("invalid NCA header")
 	}
-	web.startVerificationAt(VERIFY_LEVEL_SIGNATURE, []string{path}, verifyRecheckChanged, TRIGGER_MANUAL)
-	task := waitForTask(t, web, TASK_VERIFY)
+	web.startVerificationAt(tasklog.VERIFY_LEVEL_SIGNATURE, []string{path}, verifyRecheckChanged, tasklog.TRIGGER_MANUAL)
+	task := waitForTask(t, web, tasklog.TASK_VERIFY)
 	if task.Files != 0 || task.Modified != 0 || len(task.Tiles) != 1 || !task.Tiles[0].Skipped || task.Tiles[0].Note != NOTE_VERIFY_NO_SIGNATURES {
 		t.Fatalf("left unchecked: %+v", task)
 	}
-	if !web.nothingToVerify([]string{path}, VERIFY_LEVEL_SIGNATURE) || runs != 1 {
+	if !web.nothingToVerify([]string{path}, tasklog.VERIFY_LEVEL_SIGNATURE) || runs != 1 {
 		t.Fatal("not read again while the file stays the same")
 	}
 	// a missing key is not the file's fault: it is checked again once the keys are there
@@ -243,9 +244,9 @@ func TestSignaturesThatCannotBeRead(t *testing.T) {
 	checkFileSignatures = func(string) (switchfs.SignatureCheck, error) {
 		return switchfs.SignatureCheck{}, &switchfs.MissingKeyError{KeyName: "header_key"}
 	}
-	web.startVerificationAt(VERIFY_LEVEL_SIGNATURE, []string{path}, verifyRecheckChanged, TRIGGER_MANUAL)
-	waitForTask(t, web, TASK_VERIFY)
-	if web.nothingToVerify([]string{path}, VERIFY_LEVEL_SIGNATURE) {
+	web.startVerificationAt(tasklog.VERIFY_LEVEL_SIGNATURE, []string{path}, verifyRecheckChanged, tasklog.TRIGGER_MANUAL)
+	waitForTask(t, web, tasklog.TASK_VERIFY)
+	if web.nothingToVerify([]string{path}, tasklog.VERIFY_LEVEL_SIGNATURE) {
 		t.Fatal("a missing key leaves nothing kept")
 	}
 }
@@ -282,24 +283,24 @@ func TestResultsOfOlderVersionsStillRead(t *testing.T) {
 	}
 
 	// a check of the signatures queued by an older version
-	if level := (QueuedTask{Kind: TASK_VERIFY, Signatures: true}).CheckLevel(); level != VERIFY_LEVEL_SIGNATURE {
+	if level := (QueuedTask{Kind: tasklog.TASK_VERIFY, Signatures: true}).CheckLevel(); level != tasklog.VERIFY_LEVEL_SIGNATURE {
 		t.Fatalf("queued check of the signatures: %q", level)
 	}
-	if level := (QueuedTask{Kind: TASK_VERIFY}).CheckLevel(); level != VERIFY_LEVEL_BOTH {
+	if level := (QueuedTask{Kind: tasklog.TASK_VERIFY}).CheckLevel(); level != tasklog.VERIFY_LEVEL_BOTH {
 		t.Fatalf("queued check: %q", level)
 	}
-	if level := (QueuedTask{Kind: TASK_COMPRESS, Level: "max"}).CheckLevel(); level != "" {
+	if level := (QueuedTask{Kind: tasklog.TASK_COMPRESS, Level: "max"}).CheckLevel(); level != "" {
 		t.Fatalf("a compression has no level of a check: %q", level)
 	}
 
 	// the history: a check of the signatures counted its files not signed as damaged
-	history := `[{"id":2,"kind":"verify","trigger":"manual","status":"warning","started":"2026-10-30T10:00:00Z","current":3,"total":3,"message":"","files":3,"damaged":2,"warnings":[{"text":"` + NOTE_VERIFY_UNSIGNED + `","detail":"A.nsp: a.nca"},{"text":"` + NOTE_VERIFY_UNSIGNED + `","detail":"B.nsp: b.nca"}]},` +
+	history := `[{"id":2,"kind":"verify","trigger":"manual","status":"warning","started":"2026-10-30T10:00:00Z","current":3,"total":3,"message":"","files":3,"damaged":2,"warnings":[{"text":"` + tasklog.NOTE_VERIFY_UNSIGNED + `","detail":"A.nsp: a.nca"},{"text":"` + tasklog.NOTE_VERIFY_UNSIGNED + `","detail":"B.nsp: b.nca"}]},` +
 		`{"id":1,"kind":"verify","trigger":"manual","status":"warning","started":"2026-10-29T10:00:00Z","current":9,"total":9,"message":"","files":5,"damaged":1,"warnings":[{"text":"` + NOTE_VERIFY_DAMAGED_OLD + `","detail":"C.nsp: x"}],"tiles":[{"name":"C.nsp","failed":true,"note":"` + NOTE_VERIFY_DAMAGED_OLD + `"}]}]`
-	if err := os.WriteFile(filepath.Join(folder, TASKS_FILENAME), []byte(history), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(folder, tasklog.TASKS_FILENAME), []byte(history), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	tasks := loadTaskLog(folder).Snapshot()
-	if tasks[0].Level != VERIFY_LEVEL_SIGNATURE || tasks[0].Modified != 2 || tasks[0].Damaged != 0 {
+	tasks := tasklog.Load(folder).Snapshot()
+	if tasks[0].Level != tasklog.VERIFY_LEVEL_SIGNATURE || tasks[0].Modified != 2 || tasks[0].Damaged != 0 {
 		t.Fatalf("an older check of the signatures: %+v", tasks[0])
 	}
 	if tasks[1].Level != "" || tasks[1].Damaged != 1 || tasks[1].Modified != 0 || !tasks[1].Tiles[0].Failed {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -237,9 +238,9 @@ func (web *Web) runOrganizeAction(action string, trigger string) ([]process.Oper
 
 // runOrganizeFiles is runOrganizeAction with the paths of the new files action.
 func (web *Web) runOrganizeFiles(action string, paths []string, trigger string) (operations []process.Operation, err error) {
-	kind := TASK_ORGANIZE
+	kind := tasklog.TASK_ORGANIZE
 	if action == ORGANIZE_ACTION_CLEANUP {
-		kind = TASK_CLEANUP
+		kind = tasklog.TASK_CLEANUP
 	}
 	// files are moved or deleted: no compression, conversion, pack or check may start
 	// meanwhile, and none may be running
@@ -255,7 +256,7 @@ func (web *Web) runOrganizeFiles(action string, paths []string, trigger string) 
 		return nil, errOrganizeBusy
 	}
 	taskId := web.startTask(kind, trigger)
-	var failure *TaskNote
+	var failure *tasklog.Note
 	// ends however it ends: a panic on a strange file makes the task fail, instead of leaving it
 	// running and the scan held for good
 	defer func() {
@@ -273,7 +274,7 @@ func (web *Web) runOrganizeFiles(action string, paths []string, trigger string) 
 	if err == nil {
 		web.taskLog().SetResult(taskId, 0, web.noteOrganized(taskId, operations))
 	} else {
-		failure = &TaskNote{Text: NOTE_ORGANIZE_FAILED, Detail: err.Error()}
+		failure = &tasklog.Note{Text: tasklog.NOTE_ORGANIZE_FAILED, Detail: err.Error()}
 	}
 	return operations, err
 }
@@ -302,19 +303,19 @@ func (web *Web) noteOrganized(taskId int64, operations []process.Operation) int 
 	for _, op := range operations {
 		switch {
 		case op.Error != "":
-			tell(NOTE_ORGANIZE_FILE_FAILED, op, op.Error)
+			tell(tasklog.NOTE_ORGANIZE_FILE_FAILED, op, op.Error)
 		case op.Kind == process.OP_SKIP:
-			tell(NOTE_ORGANIZE_FILE_KEPT, op, op.Reason)
+			tell(tasklog.NOTE_ORGANIZE_FILE_KEPT, op, op.Reason)
 		case op.Kind == process.OP_MOVE && op.Reason != "":
 			// renamed in its folder, as its name is taken where it would go
 			changed++
-			tell(NOTE_ORGANIZE_FILE_RENAMED, op, op.Reason)
+			tell(tasklog.NOTE_ORGANIZE_FILE_RENAMED, op, op.Reason)
 		case op.Kind != process.OP_CLEANUP:
 			changed++
 		}
 	}
 	if untold > 0 {
-		web.taskLog().Warn(taskId, NOTE_ORGANIZE_MORE, strconv.Itoa(untold))
+		web.taskLog().Warn(taskId, tasklog.NOTE_ORGANIZE_MORE, strconv.Itoa(untold))
 	}
 	return changed
 }
@@ -337,12 +338,12 @@ func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string)
 		return 0, 0, errRegionBusy
 	}
 	defer web.releaseScan("")
-	taskId := web.startTask(TASK_CLEANUP, TRIGGER_MANUAL)
-	var failure *TaskNote
+	taskId := web.startTask(tasklog.TASK_CLEANUP, tasklog.TRIGGER_MANUAL)
+	var failure *tasklog.Note
 	// ends however it ends, as Organize (see runOrganizeFiles)
 	defer func() {
 		if recovered := recover(); recovered != nil {
-			failure = web.crashed(TASK_CLEANUP, recovered)
+			failure = web.crashed(tasklog.TASK_CLEANUP, recovered)
 			err = errors.New(failure.Detail)
 		}
 		web.finishTask(taskId, failure)
@@ -366,7 +367,7 @@ func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string)
 			deleted++
 			freed += files[i].Size
 		} else if failure == nil {
-			failure = &TaskNote{Text: NOTE_ORGANIZE_FAILED, Detail: op.From + ": " + op.Error}
+			failure = &tasklog.Note{Text: tasklog.NOTE_ORGANIZE_FAILED, Detail: op.From + ": " + op.Error}
 		}
 	}
 	web.taskLog().SetCompressResult(taskId, deleted, freed)
@@ -458,7 +459,7 @@ func (web *Web) HandleOrganize() {
 		// the scan decides which copy of a duplicate is kept
 		if keep := settings.ReadSettings(web.dataFolder).OrganizeOptions.KeepDuplicate; keep != keptBefore {
 			changing := web.duplicatesChanging(keep)
-			web.Rescan(TRIGGER_SETTINGS)
+			web.Rescan(tasklog.TRIGGER_SETTINGS)
 			return SuccessResponse{
 				StrongMessage: i18n.Translate(lang, "Saved!"),
 				Message:       i18n.Translatef(lang, "The library is scanned again: %v duplicates keep the other copy now.", changing),
@@ -491,7 +492,7 @@ func (web *Web) handleOrganizeActions() {
 			return
 		}
 
-		operations, err := web.runOrganizeAction(r.FormValue("action"), TRIGGER_MANUAL)
+		operations, err := web.runOrganizeAction(r.FormValue("action"), tasklog.TRIGGER_MANUAL)
 		if err != nil {
 			web.releaseScan("")
 			writeGlobalError(w, http.StatusBadRequest, web.requestLanguage(r), err.Error())
@@ -499,7 +500,7 @@ func (web *Web) handleOrganizeActions() {
 		}
 
 		// the cached library no longer matches the files on disk
-		web.releaseScan(TRIGGER_ORGANIZE)
+		web.releaseScan(tasklog.TRIGGER_ORGANIZE)
 
 		writeJSON(w, http.StatusOK, newOrganizeResponse(operations, false, settings.ReadSettings(web.dataFolder).Folder, web.requestLanguage(r)))
 	}).Methods("POST")

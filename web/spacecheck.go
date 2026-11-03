@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -45,21 +46,21 @@ func (web *Web) startWriting(w http.ResponseWriter, r *http.Request, task Queued
 func (web *Web) spaceShort(task QueuedTask) []SpaceShort {
 	writes := []spaceWrite{}
 	switch task.Kind {
-	case TASK_COMPRESS, TASK_DECOMPRESS, TASK_CONVERT, TASK_SPLIT:
+	case tasklog.TASK_COMPRESS, tasklog.TASK_DECOMPRESS, tasklog.TASK_CONVERT, tasklog.TASK_SPLIT:
 		for _, path := range task.Paths {
 			info, err := os.Stat(path)
 			if err != nil || !info.Mode().IsRegular() {
 				continue
 			}
 			need := info.Size()
-			if task.Kind == TASK_DECOMPRESS {
+			if task.Kind == tasklog.TASK_DECOMPRESS {
 				if facts, err := switchfs.DescribeFile(path); err == nil && facts.DecompressedSize > need {
 					need = facts.DecompressedSize
 				}
 			}
 			writes = append(writes, spaceWrite{folder: filepath.Dir(path), need: need, source: filepath.Dir(path)})
 		}
-	case TASK_PACK:
+	case tasklog.TASK_PACK:
 		for _, path := range task.Paths {
 			if _, sources, size, err := web.packTarget(path, ""); err == nil {
 				writes = append(writes, spaceWrite{folder: filepath.Dir(sources[0]), need: size, source: filepath.Dir(sources[0])})
@@ -69,7 +70,7 @@ func (web *Web) spaceShort(task QueuedTask) []SpaceShort {
 		return nil
 	}
 	atOnce := 1
-	if task.Kind == TASK_COMPRESS || task.Kind == TASK_DECOMPRESS || task.Kind == TASK_CONVERT {
+	if task.Kind == tasklog.TASK_COMPRESS || task.Kind == tasklog.TASK_DECOMPRESS || task.Kind == tasklog.TASK_CONVERT {
 		atOnce = filesAtOnce(settings.ReadSettings(web.dataFolder).CompressFilesAtOnce)
 	}
 	return weighSpace(writes, task.Delete, atOnce, diskfree.Volume, diskfree.Free)

@@ -13,6 +13,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -22,8 +23,6 @@ import (
 // multi-content installers take it: one file to copy and install instead of many. The
 // older updates are left out (the latest one replaces them), and so are the delta fragments
 // of the update, which installs from a file never use.
-
-const TASK_PACK = "pack"
 
 const (
 	NOTE_PACK_FAILED = "The game could not be combined, its files are kept."
@@ -295,7 +294,7 @@ func (web *Web) packTask(titleId string, name string, deleteOriginals bool) (Que
 	if len(sources) == 0 {
 		return QueuedTask{}, errorString("This game has nothing to combine.")
 	}
-	return QueuedTask{Kind: TASK_PACK, Paths: []string{sources[0]}, Names: map[string]string{sources[0]: name}, Delete: deleteOriginals}, nil
+	return QueuedTask{Kind: tasklog.TASK_PACK, Paths: []string{sources[0]}, Names: map[string]string{sources[0]: name}, Delete: deleteOriginals}, nil
 }
 
 // startPacks makes the packs of the games whose base files are at paths, one after the other,
@@ -314,7 +313,7 @@ func (web *Web) startPacks(paths []string, names map[string]string, deleteOrigin
 	}
 	names = web.moves.resolveKeys(names)
 	// the files are read once: merged, and checked while the pack is written
-	return web.runFileTaskFull(TASK_PACK, trigger, paths, sizes, 1, &TaskResume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	return web.runFileTaskFull(tasklog.TASK_PACK, trigger, paths, sizes, 1, &tasklog.Resume{Delete: deleteOriginals}, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		target, sources, size, err := web.packTarget(path, names[path])
 		if err != nil {
 			return 0, err
@@ -415,6 +414,6 @@ func (web *Web) handlePacks() {
 			writeGlobalError(w, http.StatusBadRequest, lang, "Select the games to combine.")
 			return
 		}
-		web.startWriting(w, r, QueuedTask{Kind: TASK_PACK, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
+		web.startWriting(w, r, QueuedTask{Kind: tasklog.TASK_PACK, Paths: paths, Delete: r.FormValue("delete_originals") == "true"})
 	}).Methods("POST")
 }

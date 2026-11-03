@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -251,7 +252,7 @@ func (web *Web) uncheckedFiles() (unchecked int, damaged int) {
 // verifying tells whether a check of the files is running.
 func (web *Web) verifying() bool {
 	for _, task := range web.taskLog().Snapshot() {
-		if task.Running() && task.Kind == TASK_VERIFY {
+		if task.Running() && task.Kind == tasklog.TASK_VERIFY {
 			return true
 		}
 	}
@@ -305,7 +306,7 @@ func (web *Web) HandleMaintenance() {
 			}
 		}
 		tasks := web.taskLog().Snapshot()
-		for _, kind := range []string{TASK_SCAN, TASK_SYNC} {
+		for _, kind := range []string{tasklog.TASK_SCAN, tasklog.TASK_SYNC} {
 			if task := lastTask(tasks, kind); task != nil && task.Finished.After(data.LastReview) {
 				data.LastReview = task.Finished
 			}
@@ -316,7 +317,7 @@ func (web *Web) HandleMaintenance() {
 	// look at the library again: a scan (quick, only new or changed files are read) after
 	// which every step is worked out again
 	web.router.HandleFunc("/maintenance/review", func(w http.ResponseWriter, r *http.Request) {
-		web.Rescan(TRIGGER_MANUAL)
+		web.Rescan(tasklog.TRIGGER_MANUAL)
 		writeJSON(w, http.StatusAccepted, map[string]bool{"started": true})
 	}).Methods("POST")
 }

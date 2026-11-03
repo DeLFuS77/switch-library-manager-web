@@ -13,6 +13,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -43,11 +44,11 @@ type QueuedTask struct {
 
 // CheckLevel is the level of a check: of the signatures, of the hashes or both.
 func (task QueuedTask) CheckLevel() string {
-	if task.Kind != TASK_VERIFY {
+	if task.Kind != tasklog.TASK_VERIFY {
 		return ""
 	}
 	if task.Signatures {
-		return VERIFY_LEVEL_SIGNATURE
+		return tasklog.VERIFY_LEVEL_SIGNATURE
 	}
 	level, _ := verifyLevel(task.Level)
 	return level
@@ -216,18 +217,18 @@ func (q *taskQueue) list() []QueuedTask {
 // busy.
 func (web *Web) startQueued(task QueuedTask) bool {
 	switch task.Kind {
-	case TASK_COMPRESS:
-		return web.startCompressionBy(task.Paths, task.Level, task.Delete, TRIGGER_MANUAL)
-	case TASK_DECOMPRESS:
-		return web.startDecompressionBy(task.Paths, task.Delete, TRIGGER_MANUAL)
-	case TASK_CONVERT:
-		return web.startConversionBy(task.Paths, task.Delete, TRIGGER_MANUAL)
-	case TASK_PACK:
-		return web.startPacks(task.Paths, task.Names, task.Delete, TRIGGER_MANUAL)
-	case TASK_SPLIT:
-		return web.startSplitBy(task.Paths, task.Delete, TRIGGER_MANUAL)
-	case TASK_VERIFY:
-		return web.startVerificationAt(task.CheckLevel(), task.Paths, task.Recheck, TRIGGER_MANUAL)
+	case tasklog.TASK_COMPRESS:
+		return web.startCompressionBy(task.Paths, task.Level, task.Delete, tasklog.TRIGGER_MANUAL)
+	case tasklog.TASK_DECOMPRESS:
+		return web.startDecompressionBy(task.Paths, task.Delete, tasklog.TRIGGER_MANUAL)
+	case tasklog.TASK_CONVERT:
+		return web.startConversionBy(task.Paths, task.Delete, tasklog.TRIGGER_MANUAL)
+	case tasklog.TASK_PACK:
+		return web.startPacks(task.Paths, task.Names, task.Delete, tasklog.TRIGGER_MANUAL)
+	case tasklog.TASK_SPLIT:
+		return web.startSplitBy(task.Paths, task.Delete, tasklog.TRIGGER_MANUAL)
+	case tasklog.TASK_VERIFY:
+		return web.startVerificationAt(task.CheckLevel(), task.Paths, task.Recheck, tasklog.TRIGGER_MANUAL)
 	}
 	// a kind this version does not know: dropped, not kept waiting for good
 	return true
@@ -238,7 +239,7 @@ func (web *Web) startQueued(task QueuedTask) bool {
 // that changed the files, it waits for the scan that follows, or it would work on the files of
 // before (an NSP the compression deleted for its NSZ) or on a library found only in part.
 func readsLibrary(task QueuedTask) bool {
-	return task.Kind == TASK_PACK || task.Kind == TASK_VERIFY && task.Paths == nil
+	return task.Kind == tasklog.TASK_PACK || task.Kind == tasklog.TASK_VERIFY && task.Paths == nil
 }
 
 // queueAfterScan starts the task of the queue that waited for the scan that just ended.
@@ -289,7 +290,7 @@ func (web *Web) runQueue() {
 }
 
 // queueKinds are the kinds of tasks the queue runs.
-var queueKinds = map[string]bool{TASK_COMPRESS: true, TASK_DECOMPRESS: true, TASK_CONVERT: true, TASK_PACK: true, TASK_SPLIT: true, TASK_VERIFY: true}
+var queueKinds = map[string]bool{tasklog.TASK_COMPRESS: true, tasklog.TASK_DECOMPRESS: true, tasklog.TASK_CONVERT: true, tasklog.TASK_PACK: true, tasklog.TASK_SPLIT: true, tasklog.TASK_VERIFY: true}
 
 // notifyQueueDone tells by the channels of the notifications that the queue is done, with each
 // task on files that ran since it began and how it ended.
@@ -306,7 +307,7 @@ func (web *Web) notifyQueueDone(since time.Time) {
 	if !i18n.IsSupportedLanguage(lang) {
 		lang = i18n.DEFAULT_LANGUAGE
 	}
-	tasks := []Task{}
+	tasks := []tasklog.Task{}
 	for _, task := range web.taskLog().Snapshot() {
 		if queueKinds[task.Kind] && !task.Running() && !task.Started.Before(since) {
 			tasks = append(tasks, task)

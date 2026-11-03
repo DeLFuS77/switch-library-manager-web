@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -50,14 +51,14 @@ func TestCompressionKeepsWhatIsLeft(t *testing.T) {
 		}
 		return 1, nil
 	}
-	if !web.runResumableTask(TASK_COMPRESS, TRIGGER_MANUAL, paths, 1, &TaskResume{Level: "fast", Delete: true}, job) {
+	if !web.runResumableTask(tasklog.TASK_COMPRESS, tasklog.TRIGGER_MANUAL, paths, 1, &tasklog.Resume{Level: "fast", Delete: true}, job) {
 		t.Fatal("not started")
 	}
 	<-started
 	<-started
 	// the first file is done, the second is being worked on
 	deadline := time.Now().Add(5 * time.Second)
-	var resume *TaskResume
+	var resume *tasklog.Resume
 	for time.Now().Before(deadline) {
 		resume = web.taskLog().Snapshot()[0].Resume
 		if resume != nil && len(resume.Paths) == 2 {
@@ -75,35 +76,6 @@ func TestCompressionKeepsWhatIsLeft(t *testing.T) {
 	}
 }
 
-// After a restart, the task the app was stopped in the middle of gives what it had left,
-// once; a task that ended does not.
-func TestInterruptedTaskGoesOnOnce(t *testing.T) {
-	dir := t.TempDir()
-	saved := &TaskLog{path: filepath.Join(dir, TASKS_FILENAME), subscribers: map[chan int64]struct{}{}}
-	id := saved.Start(TASK_COMPRESS, TRIGGER_MANUAL)
-	saved.SetResume(id, &TaskResume{Paths: []string{"/games/b.nsp"}, Level: "max"})
-
-	log := loadTaskLog(dir)
-	taskId, kind, resume := log.interrupted()
-	if taskId != id || kind != TASK_COMPRESS || resume == nil || resume.Paths[0] != "/games/b.nsp" || resume.Level != "max" {
-		t.Fatalf("the interrupted compression goes on: %d %q %+v", taskId, kind, resume)
-	}
-	// kept until it goes on, also after another restart
-	if _, _, again := loadTaskLog(dir).interrupted(); again == nil {
-		t.Fatal("kept while it did not go on")
-	}
-	log.SetResume(id, nil)
-	if _, _, again := log.interrupted(); again != nil {
-		t.Fatal("forgotten once it went on")
-	}
-	// a task running now is not taken for an interrupted one
-	running := log.Start(TASK_COMPRESS, TRIGGER_STARTUP)
-	log.SetResume(running, &TaskResume{Paths: []string{"/games/c.nsp"}})
-	if _, _, again := log.interrupted(); again != nil {
-		t.Fatal("a running task is not interrupted")
-	}
-}
-
 // A rescan asked while a scan runs (a compression ended, files were organized) is done once
 // that scan ends, not lost; the copies written while it ran are not forgotten by it.
 func TestRescanAskedDuringAScanIsNotLost(t *testing.T) {
@@ -112,7 +84,7 @@ func TestRescanAskedDuringAScanIsNotLost(t *testing.T) {
 		t.Fatal("no scan running")
 	}
 	web.scanStarted.Store(time.Now().UnixNano())
-	if web.Rescan(TRIGGER_COMPRESS) {
+	if web.Rescan(tasklog.TRIGGER_COMPRESS) {
 		t.Fatal("a scan is running")
 	}
 	if !web.rescanPending.Load() {
@@ -131,14 +103,14 @@ func TestRescanAskedDuringAScanIsNotLost(t *testing.T) {
 // a compression started by hand meanwhile may be writing the temporary file it would remove.
 func TestResumeLeavesTheFileOfARunningTask(t *testing.T) {
 	web, path := compressWeb(t)
-	saved := &TaskLog{path: filepath.Join(web.dataFolder, TASKS_FILENAME), subscribers: map[chan int64]struct{}{}}
-	id := saved.Start(TASK_COMPRESS, TRIGGER_MANUAL)
-	saved.SetResume(id, &TaskResume{Paths: []string{path}, Level: "fast"})
+	saved := tasklog.Load(web.dataFolder)
+	id := saved.Start(tasklog.TASK_COMPRESS, tasklog.TRIGGER_MANUAL)
+	saved.SetResume(id, &tasklog.Resume{Paths: []string{path}, Level: "fast"})
 	temporary := temporaryOf(path, switchfs.CompressedPath(path))
 
 	// the same file compressed by hand, before the scan of the start let the task go on
 	writing, release := make(chan struct{}), make(chan struct{})
-	web.runFileTask(TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	web.runFileTask(tasklog.TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		os.WriteFile(temporary, []byte("being written"), 0o644)
 		close(writing)
 		<-release
@@ -150,7 +122,7 @@ func TestResumeLeavesTheFileOfARunningTask(t *testing.T) {
 	if _, err := os.Stat(temporary); err != nil {
 		t.Fatal("the file being written stays")
 	}
-	if _, _, resume := web.taskLog().interrupted(); resume == nil {
+	if _, _, resume := web.taskLog().Interrupted(); resume == nil {
 		t.Fatal("the task goes on later")
 	}
 	close(release)

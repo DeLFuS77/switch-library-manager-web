@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -25,12 +26,12 @@ func TestQueuedTaskStartsWhenTheFilesAreFree(t *testing.T) {
 		<-release
 		return 0, nil
 	}
-	if !web.runFileTask(TASK_DECOMPRESS, []string{path}, 1, busy) {
+	if !web.runFileTask(tasklog.TASK_DECOMPRESS, []string{path}, 1, busy) {
 		t.Fatal("the first task did not start")
 	}
 
 	answer := httptest.NewRecorder()
-	web.startOrQueue(answer, QueuedTask{Kind: TASK_COMPRESS, Paths: []string{path}, Level: switchfs.LevelFast})
+	web.startOrQueue(answer, QueuedTask{Kind: tasklog.TASK_COMPRESS, Paths: []string{path}, Level: switchfs.LevelFast})
 	reply := map[string]int{}
 	json.Unmarshal(answer.Body.Bytes(), &reply)
 	if reply["queued"] != 1 || len(web.queue().list()) != 1 {
@@ -42,7 +43,7 @@ func TestQueuedTaskStartsWhenTheFilesAreFree(t *testing.T) {
 	for {
 		compressed := 0
 		for _, task := range web.taskLog().Snapshot() {
-			if task.Kind == TASK_COMPRESS && !task.Running() {
+			if task.Kind == tasklog.TASK_COMPRESS && !task.Running() {
 				compressed++
 			}
 		}
@@ -64,7 +65,7 @@ func TestQueuedTaskStartsWhenTheFilesAreFree(t *testing.T) {
 func TestTaskStartsAtOnceWhenNothingWorks(t *testing.T) {
 	web, path := compressWeb(t)
 	answer := httptest.NewRecorder()
-	web.startOrQueue(answer, QueuedTask{Kind: TASK_COMPRESS, Paths: []string{path}, Level: switchfs.LevelFast})
+	web.startOrQueue(answer, QueuedTask{Kind: tasklog.TASK_COMPRESS, Paths: []string{path}, Level: switchfs.LevelFast})
 	reply := map[string]int{}
 	json.Unmarshal(answer.Body.Bytes(), &reply)
 	if reply["started"] != 1 || len(web.queue().list()) != 0 {
@@ -77,9 +78,9 @@ func TestTaskStartsAtOnceWhenNothingWorks(t *testing.T) {
 func TestQueueRemovesAndKeeps(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "queue.json")
 	queue := loadTaskQueue(path)
-	first := queue.add(QueuedTask{Kind: TASK_COMPRESS, Paths: []string{"/games/a.nsp"}, Level: switchfs.LevelMax, Delete: true})
-	second := queue.add(QueuedTask{Kind: TASK_PACK, Paths: []string{"/games/b.nsp"}, Names: map[string]string{"/games/b.nsp": "B"}})
-	third := queue.add(QueuedTask{Kind: TASK_VERIFY, Recheck: verifyRecheckAll})
+	first := queue.add(QueuedTask{Kind: tasklog.TASK_COMPRESS, Paths: []string{"/games/a.nsp"}, Level: switchfs.LevelMax, Delete: true})
+	second := queue.add(QueuedTask{Kind: tasklog.TASK_PACK, Paths: []string{"/games/b.nsp"}, Names: map[string]string{"/games/b.nsp": "B"}})
+	third := queue.add(QueuedTask{Kind: tasklog.TASK_VERIFY, Recheck: verifyRecheckAll})
 	if queue.position(third) != 3 {
 		t.Fatalf("place of the third: %d", queue.position(third))
 	}
@@ -89,11 +90,11 @@ func TestQueueRemovesAndKeeps(t *testing.T) {
 
 	again := loadTaskQueue(path)
 	items := again.list()
-	if len(items) != 1 || items[0].Id != second || items[0].Kind != TASK_PACK || items[0].Names["/games/b.nsp"] != "B" {
+	if len(items) != 1 || items[0].Id != second || items[0].Kind != tasklog.TASK_PACK || items[0].Names["/games/b.nsp"] != "B" {
 		t.Fatalf("after a restart: %+v", items)
 	}
 	// the IDs go on after a restart, never given twice
-	if next := again.add(QueuedTask{Kind: TASK_SPLIT}); next <= third {
+	if next := again.add(QueuedTask{Kind: tasklog.TASK_SPLIT}); next <= third {
 		t.Fatalf("ID %d given again", next)
 	}
 }
@@ -103,9 +104,9 @@ func TestQueueRemovesAndKeeps(t *testing.T) {
 func TestTasksPageShowsTheQueue(t *testing.T) {
 	web, path := compressWeb(t)
 	web.HandleTasks()
-	web.queue().add(QueuedTask{Kind: TASK_COMPRESS, Paths: []string{path}})
-	pack := web.queue().add(QueuedTask{Kind: TASK_PACK, Paths: []string{path, path}})
-	web.queue().add(QueuedTask{Kind: TASK_VERIFY})
+	web.queue().add(QueuedTask{Kind: tasklog.TASK_COMPRESS, Paths: []string{path}})
+	pack := web.queue().add(QueuedTask{Kind: tasklog.TASK_PACK, Paths: []string{path, path}})
+	web.queue().add(QueuedTask{Kind: tasklog.TASK_VERIFY})
 
 	part := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/tasks.html?part=list", nil)
@@ -130,9 +131,9 @@ func TestTasksPageShowsTheQueue(t *testing.T) {
 // A task moves one place up or down in the queue, never out of it.
 func TestQueueMoves(t *testing.T) {
 	queue := loadTaskQueue(filepath.Join(t.TempDir(), "queue.json"))
-	a := queue.add(QueuedTask{Kind: TASK_COMPRESS})
-	b := queue.add(QueuedTask{Kind: TASK_PACK})
-	c := queue.add(QueuedTask{Kind: TASK_VERIFY})
+	a := queue.add(QueuedTask{Kind: tasklog.TASK_COMPRESS})
+	b := queue.add(QueuedTask{Kind: tasklog.TASK_PACK})
+	c := queue.add(QueuedTask{Kind: tasklog.TASK_VERIFY})
 	order := func() []int64 {
 		ids := []int64{}
 		for _, item := range queue.list() {
@@ -171,11 +172,11 @@ func TestQueueDoneIsNotified(t *testing.T) {
 	})
 
 	release := make(chan struct{})
-	web.runFileTask(TASK_DECOMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	web.runFileTask(tasklog.TASK_DECOMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		<-release
 		return 0, nil
 	})
-	web.startOrQueue(httptest.NewRecorder(), QueuedTask{Kind: TASK_COMPRESS, Paths: []string{path}, Level: switchfs.LevelFast})
+	web.startOrQueue(httptest.NewRecorder(), QueuedTask{Kind: tasklog.TASK_COMPRESS, Paths: []string{path}, Level: switchfs.LevelFast})
 	close(release)
 
 	deadline := time.Now().Add(20 * time.Second)

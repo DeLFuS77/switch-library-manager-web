@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -40,15 +41,15 @@ func TestCleanupFollowsTheRulesOfTheSpacePage(t *testing.T) {
 func TestOrganizeAndFileTasksNeverRunTogether(t *testing.T) {
 	web := newTestWeb(t)
 	web.organizing.Store(true)
-	if web.runFileTask(TASK_COMPRESS, nil, 1, nil) {
+	if web.runFileTask(tasklog.TASK_COMPRESS, nil, 1, nil) {
 		t.Fatal("no compression while files are organized")
 	}
-	if web.startVerificationOf(nil, verifyRecheckChanged, TRIGGER_MANUAL) {
+	if web.startVerificationOf(nil, verifyRecheckChanged, tasklog.TRIGGER_MANUAL) {
 		t.Fatal("no check while files are organized")
 	}
 	web.organizing.Store(false)
 	web.compressor.cancel = func() {}
-	if _, err := web.runOrganizeAction(ORGANIZE_ACTION_CLEANUP, TRIGGER_MANUAL); err != errOrganizeBusy {
+	if _, err := web.runOrganizeAction(ORGANIZE_ACTION_CLEANUP, tasklog.TRIGGER_MANUAL); err != errOrganizeBusy {
 		t.Fatalf("no organizing while a file task runs: %v", err)
 	}
 	web.compressor.cancel = nil
