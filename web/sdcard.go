@@ -298,6 +298,7 @@ func (web *Web) buildSdPlan(options SdOptions, lang string) SdPlan {
 	}
 	if options.Search != "" {
 		query := search.NewQuery(options.Search)
+		query.Narrow(len(plan.Others), func(i int) string { return search.Text(plan.Others[i].Name) })
 		found := plan.Others[:0:0]
 		for _, game := range plan.Others {
 			text := search.Text(game.Name)

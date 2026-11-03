@@ -239,3 +239,10 @@ func ContentKind(id string) (string, error) {
 	}
 	return "", errors.New("DLC title ID has an invalid group nibble")
 }
+
+// Switch2 reports whether a title ID (or its prefix, see TitleIDPrefix) is of a game for the
+// Nintendo Switch 2 alone, which the Switch cannot run: their title IDs start with 04, those of
+// the Switch with 01 ("0400C3F00006E000" is Mario Kart World).
+func Switch2(id string) bool {
+	return strings.HasPrefix(id, "04")
+}
