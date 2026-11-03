@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.71.0
+
+### Improvements
+
+- A file whose check finds nothing wrong is Verified, and a damaged one Corrupted, in Tasks, in Issues and in the messages of the automations, as NXPress calls them; Modified stays as it is
+- On a computer, the app keeps it from going to sleep while a task works on the files (a compression, a decompression or conversion, packs, a split, a check, a copy to the SD card, Organize or the measure of the server), so a task left for the night no longer stops halfway; while the task is paused, the computer may sleep. In Docker the server decides, as before
+- Low priority, a switch in Settings under the compression: the app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turning it off takes effect when the app starts again (thanks @NikoMuffin, who asked for it in NXPress)
+- In Upcoming releases, each month opens with a sheet of a calendar in its own colour, cyan and violet by turns, with the year, the covers of its first games and an arrow towards them; its games wear the same colour on their top edge, so the games of a month that goes on in the next row are told apart. The sheet falls into place when the page opens and a soft gleam crosses it now and then, unless the system asks for reduced motion
+
+### Security
+
+- A backup with a made-up cover name in its overrides can no longer reach files outside the covers folder, such as prod.keys, in later backups or in the exported library site
+- A file of the library that is a link into the data folder (prod.keys, the session key or a backup) is not served for download
+- An upload in progress belongs to the user who started it: another user can no longer add to it or cancel it
+- A saved token of ntfy or Gotify, or the SMTP password, is no longer sent to another server when only its address changes: it has to be written again
+- The IGDB Client ID and Secret go in the body of the request, not in its address, so a network error no longer writes the secret in the log
+- Restored backup files can be read by their owner only, like the other files of the app
+- Game files and save backups made to take huge amounts of memory (sizes, headers or lists of entries far beyond real ones) are refused instead of slowing down or stopping the app
+
 ## 1.70.0
 
 ### New

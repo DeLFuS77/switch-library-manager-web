@@ -5,6 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/launch"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -118,9 +123,9 @@ type Web struct {
 	covers         coverLoader
 	background     backgroundWork
 	coverFallbacks map[string]coverFallback
-	wish           *wishlist
+	wish           *userdata.Wishlist
 	wishOnce       sync.Once
-	activity       *activityLog
+	activity       *activity.Log
 	activityOnce   sync.Once
 	hist           *libraryHistory
 	historyOnce    sync.Once
@@ -164,12 +169,12 @@ type Web struct {
 	// the save vault: verified passwords and what was read from the backups (see vault.go)
 	vault           vaultAuth
 	vaultFiles      vaultIndex
-	coll            *collectionStore
+	coll            *userdata.Collections
 	collectionsOnce sync.Once
-	fav             *favoriteStore
+	fav             *userdata.Favorites
 	favoritesOnce   sync.Once
 	// how the games go for each user (see play.go)
-	playStore *playStore
+	playStore *userdata.PlayStore
 	playOnce  sync.Once
 	// the filters of the Library kept under a name (see smartcollections.go)
 	smartCollectionsStore *smartCollectionStore
@@ -231,7 +236,7 @@ type Web struct {
 	moves     movedFiles
 	cache     derivedCache
 	auth      *Auth
-	tasks     *TaskLog
+	tasks     *tasklog.Log
 	tasksOnce sync.Once
 	// the tasks on files waiting for their turn
 	tasksQueue *taskQueue
@@ -293,7 +298,7 @@ type TitleItem struct {
 	// library: the game is a favorite, or it is not in the library (shown with the others)
 	Favorite bool
 	// how the game goes for the user who looks (set on the shown page only)
-	Play    PlayEntry
+	Play    userdata.PlayEntry
 	Missing bool
 	// library: there are cheats for the version of the game the library has, or only for
 	// other versions
@@ -330,7 +335,7 @@ func (t TitleItem) DlcPercent() int {
 }
 
 type GlobalPageData struct {
-	// set by render for the user of the request
+	// Set by render for the user of the request
 	Auth AuthInfo
 	// a newer version of the app, if one was released
 	Update *AppUpdate
@@ -435,7 +440,7 @@ type LibraryFacets struct {
 	Score80 int
 	Score90 int
 	// the collections with their number of games, before the collection filter
-	Collections []CollectionCount
+	Collections []userdata.CollectionCount
 	Regions     []string
 	// the settings hide the demos unless the kind filter asks for them
 	DemosHidden bool
@@ -499,11 +504,11 @@ var funcMap = template.FuncMap{
 		return template.URL("?" + values.Encode())
 	},
 	// filterUrl links to the current list with some filter values replaced: filterUrl .Filter "status" "dlc"
-	"playStates":    PlayStates,
+	"playStates":    userdata.PlayStates,
 	"roleName":      func(role string) string { return roleNames[role] },
 	"roleChoices":   RoleChoices,
 	"cheatTargets":  func() []cheatTarget { return cheatTargets },
-	"playStateName": func(state string) string { return playStateLooks[state].Name },
+	"playStateName": func(state string) string { return userdata.PlayStateLooks[state].Name },
 	"filterUrl": func(filter *TitleItemFilter, replace ...string) template.URL {
 		return template.URL("?" + filter.query(replace...).Encode())
 	},
@@ -512,7 +517,7 @@ var funcMap = template.FuncMap{
 	"filterHidden": func(filter *TitleItemFilter, own ...string) template.HTML {
 		return filter.hiddenFields(own...)
 	},
-	"formatSize": formatSize,
+	"formatSize": i18n.FormatSize,
 	// versions as v0, v65536
 	"versionList": func(versions []int) string {
 		texts := make([]string, len(versions))
@@ -526,7 +531,7 @@ var funcMap = template.FuncMap{
 	"thumb":           thumbUrl,
 	"fullImage":       fullImageUrl,
 	"maintenanceStep": maintenanceStepOf,
-	"formatBytes":     func(size int) string { return formatSize(int64(size)) },
+	"formatBytes":     func(size int) string { return i18n.FormatSize(int64(size)) },
 	"asset":           func(path string) string { return path + "?v=" + assetVersion },
 	// the app runs in a container: its log is the log of the container, not a window
 	"inContainer": runningInContainer,
@@ -587,7 +592,7 @@ var funcMap = template.FuncMap{
 		return strings.TrimSuffix(strings.TrimSuffix(fmt.Sprintf("%.1f", float64(gigabytes)/1000), "0"), ".")
 	},
 	// the change of format of a file in a task on files, e.g. "NSP → NSZ", or ""
-	"formatChange": formatChange,
+	"formatChange": tasklog.FormatChange,
 	// percentOf is part of total in percent, for bars
 	"percentOf": func(part int, total int) int {
 		if total <= 0 {
@@ -632,7 +637,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 
 // navCounts counts the missing updates and DLC (respecting the ignore lists) and the issues.
 func (web *Web) navCounts() NavCounts {
-	counts := NavCounts{FailedTasks: web.taskLog().FailedCount(), RunningTasks: web.taskLog().RunningCount(), Wished: web.wishes().count()}
+	counts := NavCounts{FailedTasks: web.taskLog().FailedCount(), RunningTasks: web.taskLog().RunningCount(), Wished: web.wishes().Count()}
 	switchDB, localDB := web.state.get()
 	if localDB == nil {
 		return counts
@@ -646,7 +651,7 @@ func (web *Web) navCounts() NavCounts {
 	counts.Missing = web.missingGamesCount()
 	// as the Updates page lists them (the copies kept of games of several regions depend little
 	// on the language)
-	counts.Updates = len(web.shownMissingUpdates(DEFAULT_LANGUAGE))
+	counts.Updates = len(web.shownMissingUpdates(i18n.DEFAULT_LANGUAGE))
 	for _, title := range web.missingDLC() {
 		counts.Dlc += len(title.MissingDLCItems)
 	}
@@ -706,22 +711,25 @@ func CreateWeb(router *mux.Router, embedFS embed.FS, appSettings *settings.AppSe
 func (web *Web) Start() {
 	// before the library database is opened: an installation that had one was updated
 	web.recordVersion()
+	if web.appSettings.LowPriority {
+		web.applyPriority(true)
+	}
 	// the app answers at once: while it gets ready, every page says it is starting and opens
 	// by itself once it is ready (opening the local database and preparing the pages can
 	// take a while on a NAS)
 	listener, err := listenLimited(fmt.Sprint(":", web.appSettings.Port))
 	// started by an update: the program before leaves the port in a moment
-	for wait := 0; err != nil && portInUse(err) && restarted() && wait < 60; wait++ {
+	for wait := 0; err != nil && launch.PortInUse(err) && restarted() && wait < 60; wait++ {
 		time.Sleep(500 * time.Millisecond)
 		listener, err = listenLimited(fmt.Sprint(":", web.appSettings.Port))
 	}
 	if err != nil {
 		// started twice with a double click: the app is already open, show it instead
-		if portInUse(err) {
+		if launch.PortInUse(err) {
 			url := fmt.Sprintf("http://localhost:%d/", web.appSettings.Port)
 			web.sugarLogger.Warnf("Port %d is already in use: the app may be running already. Open %s, or set another \"port\" in settings.json.", web.appSettings.Port, url)
-			if shouldOpenBrowser() {
-				openUrl(url)
+			if launch.ShouldOpenBrowser() {
+				launch.OpenUrl(url)
 			}
 			os.Exit(1)
 		}
@@ -743,8 +751,8 @@ func (web *Web) Start() {
 	web.server = server
 	served := make(chan error, 1)
 	go func() { served <- server.Serve(listener) }()
-	if shouldOpenBrowser() && !isDemoMode() {
-		go web.openBrowserWhenReady(web.appSettings.Port)
+	if launch.ShouldOpenBrowser() && !isDemoMode() {
+		go launch.OpenBrowserWhenReady(web.appSettings.Port, web.sugarLogger)
 	}
 
 	// the names the games give themselves, for names the titles database has only in another script
@@ -894,7 +902,7 @@ func (web *Web) startInBackground() {
 		if switchDB == nil {
 			web.state.endSync()
 			// first start (or titles cache lost): fetch the titles database right away
-			web.Synchronize(TRIGGER_STARTUP)
+			web.Synchronize(tasklog.TRIGGER_STARTUP)
 			return
 		}
 
@@ -906,18 +914,18 @@ func (web *Web) startInBackground() {
 		// the pages show the titles while the library is scanned
 		web.state.set(web.withLibraryTitles(switchDB, nil), nil)
 
-		taskId := web.startTask(TASK_SCAN, TRIGGER_STARTUP)
-		failure := func() (failure *TaskNote) {
+		taskId := web.startTask(tasklog.TASK_SCAN, tasklog.TRIGGER_STARTUP)
+		failure := func() (failure *tasklog.Note) {
 			// a panic: the scan of the start fails, the app goes on with the titles it has
 			defer func() {
 				if recovered := recover(); recovered != nil {
-					failure = web.crashed(TASK_SCAN, recovered)
+					failure = web.crashed(tasklog.TASK_SCAN, recovered)
 				}
 			}()
 			localDB, err := web.buildLocalDB(switchDB, rescan)
 			if err != nil {
 				web.sugarLogger.Error(err)
-				return &TaskNote{Text: NOTE_SCAN_FAILED, Detail: err.Error()}
+				return &tasklog.Note{Text: tasklog.NOTE_SCAN_FAILED, Detail: err.Error()}
 			}
 			web.taskLog().SetResult(taskId, len(localDB.TitlesMap), localDB.NumFiles)
 			web.state.set(web.withLibraryTitles(switchDB, localDB), localDB)
@@ -937,7 +945,7 @@ func (web *Web) startInBackground() {
 			web.runQueue()
 		}
 		if failure == nil && settings.ReadSettings(web.dataFolder).AutoCompress == AUTO_COMPRESS_NEW {
-			web.autoCompress(TRIGGER_STARTUP)
+			web.autoCompress(tasklog.TRIGGER_STARTUP)
 		}
 		if failure == nil {
 			web.resumeAutomation()
@@ -1004,27 +1012,27 @@ func progressMessage(message string) (string, string) {
 // that is only the name of a file stays as it is.
 func messageText(lang string, message string, arg string) string {
 	if arg != "" {
-		return translatef(lang, message, arg)
+		return i18n.Translatef(lang, message, arg)
 	}
-	return translate(lang, message)
+	return i18n.Translate(lang, message)
 }
 
 // taskLog returns the task history, loading it on first use.
-func (web *Web) taskLog() *TaskLog {
+func (web *Web) taskLog() *tasklog.Log {
 	web.tasksOnce.Do(func() {
 		if web.tasks == nil {
-			web.tasks = loadTaskLog(web.dataFolder)
+			web.tasks = tasklog.Load(web.dataFolder)
 		}
-		web.tasks.onFailed = web.notifyTaskFailed
+		web.tasks.OnFailed = web.notifyTaskFailed
 		// the log tells what each task did, not only what went wrong in it
-		web.tasks.onEnded = web.logTaskEnd
+		web.tasks.OnEnded = web.logTaskEnd
 	})
 	return web.tasks
 }
 
 // logTaskEnd writes a line of a task that ended: what, started by what, how it ended and how
 // long it took.
-func (web *Web) logTaskEnd(task Task) {
+func (web *Web) logTaskEnd(task tasklog.Task) {
 	how := task.Status
 	if task.Error != nil {
 		how += ": " + task.Error.Text
@@ -1040,14 +1048,14 @@ func (web *Web) logTaskEnd(task Task) {
 // crashed turns a panic of the work of a task into its failure, logged with where it happened:
 // the task ends, the files and the scan are let go, and the app goes on instead of stopping
 // with every task it runs.
-func (web *Web) crashed(what string, recovered any) *TaskNote {
+func (web *Web) crashed(what string, recovered any) *tasklog.Note {
 	web.sugarLogger.Errorf("%s stopped on an unexpected error: %v\n%s", what, recovered, debug.Stack())
-	return &TaskNote{Text: NOTE_TASK_CRASHED, Detail: fmt.Sprint(recovered)}
+	return &tasklog.Note{Text: tasklog.NOTE_TASK_CRASHED, Detail: fmt.Sprint(recovered)}
 }
 
 // finishRunning ends, with a failure, the running tasks of some kinds: their work stopped on a
 // panic where the task is not known.
-func (web *Web) finishRunning(failure *TaskNote, kinds ...string) {
+func (web *Web) finishRunning(failure *tasklog.Note, kinds ...string) {
 	for _, task := range web.taskLog().Snapshot() {
 		if task.Running() && slices.Contains(kinds, task.Kind) {
 			web.finishTask(task.Id, failure)
@@ -1076,7 +1084,7 @@ func (web *Web) holdScan() bool {
 }
 
 // releaseScan lets scans run again after holdScan. A rescan asked meanwhile was left for the end
-// of a scan, and no scan ended: it is done now, or done by the one asked here (a trigger), else
+// Of a scan, and no scan ended: it is done now, or done by the one asked here (a trigger), else
 // it would wait for whatever starts the next scan, and a task waiting in the queue with it.
 func (web *Web) releaseScan(trigger string) {
 	web.state.endSync()
@@ -1116,7 +1124,7 @@ func (web *Web) startTask(kind string, trigger string) int64 {
 	return id
 }
 
-func (web *Web) finishTask(id int64, failure *TaskNote) {
+func (web *Web) finishTask(id int64, failure *tasklog.Note) {
 	web.currentTask.CompareAndSwap(id, 0)
 	web.taskLog().Finish(id, failure)
 }
@@ -1227,7 +1235,7 @@ func (web *Web) buildLocalDB(switchDB *db.SwitchTitlesDB, ignoreCache bool) (*db
 
 // loadLocalizedTitles loads the names and descriptions of the title languages. With
 // download, newer files are fetched first. Failures only lose the translations: English
-// names are used instead.
+// Names are used instead.
 func (web *Web) loadLocalizedTitles(download bool) map[string]map[string]db.LocalizedTitle {
 	result := map[string]map[string]db.LocalizedTitle{}
 	for _, lang := range web.titleLanguages() {
@@ -1241,7 +1249,7 @@ func (web *Web) loadLocalizedTitles(download bool) map[string]map[string]db.Loca
 // loadTitleLanguage loads titles.<lang>.json, downloading a newer one first if asked.
 func (web *Web) loadTitleLanguage(lang string, download bool) (map[string]db.LocalizedTitle, bool) {
 	// the language names a file of the data folder and goes in the address of the download
-	if lang = supportedLanguage(lang); lang == "" {
+	if lang = i18n.SupportedLanguage(lang); lang == "" {
 		return nil, false
 	}
 	web.languages.fileMutex.Lock()

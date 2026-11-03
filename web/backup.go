@@ -14,6 +14,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -29,7 +34,7 @@ const (
 // users, the verification results and the notified versions, the copies chosen of the games of
 // several regions and what was changed of games by hand. Console keys, the session key and the
 // caches are never included.
-var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, WISHLIST_FILENAME, ACTIVITY_FILENAME, HISTORY_FILENAME, COLLECTIONS_FILENAME, FAVORITES_FILENAME, PLAY_FILENAME, SMART_COLLECTIONS_FILENAME,
+var backupFiles = []string{settings.SETTINGS_FILENAME, USERS_FILENAME, VERIFY_FILENAME, NOTIFICATIONS_STATE_FILENAME, userdata.WISHLIST_FILENAME, activity.ACTIVITY_FILENAME, HISTORY_FILENAME, userdata.COLLECTIONS_FILENAME, userdata.FAVORITES_FILENAME, userdata.PLAY_FILENAME, SMART_COLLECTIONS_FILENAME,
 	REGION_CHOICES_FILENAME, TITLE_OVERRIDES_FILENAME}
 
 // backupCover is the name in a backup of a cover chosen by hand, kept in OVERRIDE_COVERS_FOLDER:
@@ -71,7 +76,7 @@ func (web *Web) writeBackup(w io.Writer) error {
 	}
 	// the covers chosen by hand, images stored as they are
 	for _, override := range web.titleOverrides().snapshot() {
-		if override.Cover == "" {
+		if override.Cover == "" || !overrideCoverName.MatchString(override.Cover) {
 			continue
 		}
 		data, err := os.ReadFile(web.overrideCoverPath(override.Cover))
@@ -224,7 +229,7 @@ func (web *Web) restoreBackup(data []byte, firstUsers func() error) error {
 			if err := os.MkdirAll(filepath.Dir(web.overrideCoverPath(cover)), 0755); err != nil {
 				return err
 			}
-			if err := writeFileAtomic(web.overrideCoverPath(cover), content); err != nil {
+			if err := durable.WriteFile(web.overrideCoverPath(cover), content); err != nil {
 				return err
 			}
 		}
@@ -234,11 +239,10 @@ func (web *Web) restoreBackup(data []byte, firstUsers func() error) error {
 		if !ok {
 			continue
 		}
-		// the settings hold notification tokens, the users their password hashes
-		mode := os.FileMode(0644)
-		if name == USERS_FILENAME || name == settings.SETTINGS_FILENAME {
-			mode = 0600
-		}
+		// these files hold private data (notification tokens, password hashes, the addresses and
+		// names in the activity log), so they are written only for their owner, as the app writes
+		// them normally (jsonfile.go)
+		mode := os.FileMode(0600)
 		path := filepath.Join(web.dataFolder, name)
 		if err := os.WriteFile(path+".tmp", content, mode); err != nil {
 			return err
@@ -263,17 +267,17 @@ func (web *Web) restoreBackup(data []byte, firstUsers func() error) error {
 	if _, ok := files[VERIFY_FILENAME]; ok {
 		web.verifications().reload()
 	}
-	if _, ok := files[ACTIVITY_FILENAME]; ok {
-		web.activities().reload()
+	if _, ok := files[activity.ACTIVITY_FILENAME]; ok {
+		web.activities().Reload()
 	}
-	if _, ok := files[FAVORITES_FILENAME]; ok {
-		web.favorites().reload()
+	if _, ok := files[userdata.FAVORITES_FILENAME]; ok {
+		web.favorites().Reload()
 	}
-	if _, ok := files[COLLECTIONS_FILENAME]; ok {
-		web.collections().reload()
+	if _, ok := files[userdata.COLLECTIONS_FILENAME]; ok {
+		web.collections().Reload()
 	}
-	if _, ok := files[PLAY_FILENAME]; ok {
-		web.play().reload()
+	if _, ok := files[userdata.PLAY_FILENAME]; ok {
+		web.play().Reload()
 	}
 	if _, ok := files[SMART_COLLECTIONS_FILENAME]; ok {
 		web.smartCollections().reload()
@@ -283,8 +287,8 @@ func (web *Web) restoreBackup(data []byte, firstUsers func() error) error {
 		// what came after the backup is not new: no notifications, no automations
 		web.history().quietNext()
 	}
-	if _, ok := files[WISHLIST_FILENAME]; ok {
-		web.wishes().reload()
+	if _, ok := files[userdata.WISHLIST_FILENAME]; ok {
+		web.wishes().Reload()
 	}
 	if _, ok := files[REGION_CHOICES_FILENAME]; ok {
 		web.regionChoices().reload()
@@ -311,7 +315,7 @@ func (web *Web) HandleBackup() {
 		if password := r.PostFormValue("password"); r.Method == http.MethodPost && password != "" {
 			sealed, err := encryptBackup(data, password)
 			if err != nil {
-				http.Error(w, translate(web.requestLanguage(r), err.Error()), http.StatusBadRequest)
+				http.Error(w, i18n.Translate(web.requestLanguage(r), err.Error()), http.StatusBadRequest)
 				return
 			}
 			data, name, kind = sealed, strings.TrimSuffix(name, ".zip")+".slmbackup", "application/octet-stream"
@@ -353,10 +357,10 @@ func (web *Web) HandleBackup() {
 			return
 		}
 		web.sugarLogger.Info("[Backup restored]")
-		web.Rescan(TRIGGER_SETTINGS)
+		web.Rescan(tasklog.TRIGGER_SETTINGS)
 		writeJSON(w, http.StatusOK, SuccessResponse{
-			StrongMessage: translate(lang, "Success!"),
-			Message:       translate(lang, "The backup was restored. The library is being rescanned."),
+			StrongMessage: i18n.Translate(lang, "Success!"),
+			Message:       i18n.Translate(lang, "The backup was restored. The library is being rescanned."),
 		})
 	}).Methods("POST")
 }

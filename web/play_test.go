@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -21,27 +22,27 @@ func TestPlayStateOfEachUser(t *testing.T) {
 	web.HandleTitle()
 	id := "0100000000010000"
 
-	if response := postForm(web, "/play", url.Values{"id": {id}, "status": {PLAY_PLAYING}, "rating": {"4"}, "note": {" Chapter 3 "}}); response.Code != http.StatusOK {
+	if response := postForm(web, "/play", url.Values{"id": {id}, "status": {userdata.PLAY_PLAYING}, "rating": {"4"}, "note": {" Chapter 3 "}}); response.Code != http.StatusOK {
 		t.Fatalf("set: %d %s", response.Code, response.Body.String())
 	}
-	if entry := web.play().of("", id); entry.Status != PLAY_PLAYING || entry.Rating != 4 || entry.Note != "Chapter 3" {
+	if entry := web.play().Of("", id); entry.Status != userdata.PLAY_PLAYING || entry.Rating != 4 || entry.Note != "Chapter 3" {
 		t.Fatalf("kept: %+v", entry)
 	}
-	for _, bad := range []url.Values{{"id": {id}, "status": {"won"}}, {"id": {id}, "rating": {"6"}}, {"id": {"x"}, "status": {PLAY_PLAYING}}} {
+	for _, bad := range []url.Values{{"id": {id}, "status": {"won"}}, {"id": {id}, "rating": {"6"}}, {"id": {"x"}, "status": {userdata.PLAY_PLAYING}}} {
 		if response := postForm(web, "/play", bad); response.Code != http.StatusBadRequest {
 			t.Errorf("%v is refused: %d", bad, response.Code)
 		}
 	}
 	// another user has their own
-	web.play().set("alice", id, PlayEntry{Status: PLAY_FINISHED})
-	if web.play().of("alice", id).Status != PLAY_FINISHED || web.play().of("", id).Status != PLAY_PLAYING {
+	web.play().Set("alice", id, userdata.PlayEntry{Status: userdata.PLAY_FINISHED})
+	if web.play().Of("alice", id).Status != userdata.PLAY_FINISHED || web.play().Of("", id).Status != userdata.PLAY_PLAYING {
 		t.Fatal("each user has their own")
 	}
 
 	filter := defaultFilter()
-	filter.Play = PLAY_PLAYING
+	filter.Play = userdata.PLAY_PLAYING
 	items, _, facets := web.getLibraryWithFacets(filter, "en")
-	if len(items) != 1 || items[0].Id != id || items[0].Play.Status != PLAY_PLAYING || facets.Play[PLAY_PLAYING] != 1 || facets.Play["none"] == 0 {
+	if len(items) != 1 || items[0].Id != id || items[0].Play.Status != userdata.PLAY_PLAYING || facets.Play[userdata.PLAY_PLAYING] != 1 || facets.Play["none"] == 0 {
 		t.Fatalf("the filter and its counts: %+v %v", items, facets.Play)
 	}
 	filter.player = "alice"
@@ -64,7 +65,7 @@ func TestPlayStateOfEachUser(t *testing.T) {
 
 	// nothing left: forgotten
 	postForm(web, "/play", url.Values{"id": {id}})
-	if _, ok := web.play().all("")[id]; ok {
+	if _, ok := web.play().All("")[id]; ok {
 		t.Fatal("an empty state is forgotten")
 	}
 }

@@ -299,7 +299,7 @@ func TestSetupCodeIsNeverSent(t *testing.T) {
 			}
 		}
 	}
-	for _, entry := range web.activities().list() {
+	for _, entry := range web.activities().List() {
 		if strings.Contains(entry.Detail+entry.User+entry.Action, code) {
 			t.Fatalf("the activity has the code: %+v", entry)
 		}

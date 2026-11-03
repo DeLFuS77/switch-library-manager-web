@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"path/filepath"
 	"testing"
 )
@@ -13,7 +14,7 @@ func TestContentKind(t *testing.T) {
 		"Game without an id.nsp":              "",
 	}
 	for name, want := range cases {
-		if got := contentKind(name); got != want {
+		if got := tasklog.ContentKind(name); got != want {
 			t.Errorf("contentKind(%q) = %q, want %q", name, got, want)
 		}
 	}

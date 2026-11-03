@@ -4,11 +4,12 @@ import (
 	"strings"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 )
 
 // Updates and DLC of games that are not in the library are reported one by one in Issues
 // ("base file is missing"). The orphans page groups them by game, with what the library has
-// of each one, so it is clear which games are missing and can be wished or looked for.
+// Of each one, so it is clear which games are missing and can be wished or looked for.
 
 func (web *Web) HandleOrphans() {
 	fsPatterns := []string{
@@ -23,7 +24,7 @@ func (web *Web) HandleOrphans() {
 		items, p := web.filterPage(filter, web.sorted("orphans:"+lang, filter, func() []TitleItem { return web.buildOrphans(lang) }))
 		return TitleItemsPageData{
 			GlobalPageData: web.globalPageData("issues"),
-			WishedCount:    web.wishes().count(),
+			WishedCount:    web.wishes().Count(),
 			TitleItems:     items,
 			Filter:         filter,
 			Pagination:     p,
@@ -33,7 +34,7 @@ func (web *Web) HandleOrphans() {
 
 // orphanCount is the number of games with updates or DLC in the library but not the game.
 func (web *Web) orphanCount() int {
-	return web.derived("orphanCount", func() any { return len(web.buildOrphans(DEFAULT_LANGUAGE)) }).(int)
+	return web.derived("orphanCount", func() any { return len(web.buildOrphans(i18n.DEFAULT_LANGUAGE)) }).(int)
 }
 
 // buildOrphans lists the games of which the library has updates or DLC but not the game.
@@ -43,7 +44,7 @@ func (web *Web) buildOrphans(lang string) []TitleItem {
 	if localDB == nil {
 		return items
 	}
-	wished := web.wishes().snapshot()
+	wished := web.wishes().Snapshot()
 	for prefix, local := range localDB.TitlesMap {
 		if local.BaseExist || (len(local.Updates) == 0 && len(local.Dlc) == 0) {
 			continue

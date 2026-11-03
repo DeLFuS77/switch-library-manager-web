@@ -3,6 +3,7 @@ package web
 import (
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -37,13 +38,13 @@ func (web *Web) StartScheduler() {
 		for now := range ticker.C {
 			appSettings := settings.ReadSettings(web.dataFolder)
 			// a task changing the files goes first: the synchronization stays due until it ends
-			if syncDue(appSettings, now) && !web.filesBusy() && web.Synchronize(TRIGGER_SCHEDULE) {
+			if syncDue(appSettings, now) && !web.filesBusy() && web.Synchronize(tasklog.TRIGGER_SCHEDULE) {
 				web.sugarLogger.Info("[Scheduled synchronization started]")
 			}
 			if web.nightlyCompress(now) {
 				web.sugarLogger.Info("[Nightly compression started]")
 			}
-			if verifyDue(appSettings, web.verifications().lastRun(), now) && inBackgroundHours(appSettings, now) && !web.state.IsSynchronizing() && web.startVerificationOf(nil, time.Duration(appSettings.VerifyIntervalDays)*24*time.Hour, TRIGGER_SCHEDULE) {
+			if verifyDue(appSettings, web.verifications().lastRun(), now) && inBackgroundHours(appSettings, now) && !web.state.IsSynchronizing() && web.startVerificationOf(nil, time.Duration(appSettings.VerifyIntervalDays)*24*time.Hour, tasklog.TRIGGER_SCHEDULE) {
 				web.sugarLogger.Info("[Scheduled verification started]")
 			}
 			if now.Sub(backupFailed) >= time.Hour && web.autoBackupDue(now) {

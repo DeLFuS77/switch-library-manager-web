@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -18,13 +19,13 @@ func (web *Web) Synchronize(trigger string) bool {
 	}
 	// it reads the files as they are now: a rescan asked before is done by it
 	web.rescanPending.Store(false)
-	taskId := web.startTask(TASK_SYNC, trigger)
+	taskId := web.startTask(tasklog.TASK_SYNC, trigger)
 	web.scanStarted.Store(time.Now().UnixNano())
 
 	go func() {
 		// the last thing done: a rescan asked meanwhile
 		defer web.rescanIfPending()
-		var failure *TaskNote
+		var failure *tasklog.Note
 		defer func() {
 			web.finishTask(taskId, failure)
 			if failure == nil {
@@ -44,7 +45,7 @@ func (web *Web) Synchronize(trigger string) bool {
 		// a panic: the synchronization fails (the steps above end it), the app goes on
 		defer func() {
 			if recovered := recover(); recovered != nil {
-				failure = web.crashed(TASK_SYNC, recovered)
+				failure = web.crashed(tasklog.TASK_SYNC, recovered)
 			}
 		}()
 
@@ -65,27 +66,27 @@ func (web *Web) Synchronize(trigger string) bool {
 			offline := errors.Is(err, db.ErrNoConnection)
 			switch {
 			case offline && switchDB != nil:
-				web.taskLog().Warn(taskId, NOTE_TITLES_OFFLINE, err.Error())
+				web.taskLog().Warn(taskId, tasklog.NOTE_TITLES_OFFLINE, err.Error())
 			case offline:
-				web.taskLog().Warn(taskId, NOTE_TITLES_OFFLINE_NONE, err.Error())
+				web.taskLog().Warn(taskId, tasklog.NOTE_TITLES_OFFLINE_NONE, err.Error())
 			case switchDB != nil:
-				web.taskLog().Warn(taskId, NOTE_TITLES_SAVED_COPY, err.Error())
+				web.taskLog().Warn(taskId, tasklog.NOTE_TITLES_SAVED_COPY, err.Error())
 			default:
-				web.taskLog().Warn(taskId, NOTE_TITLES_DOWNLOAD, err.Error())
+				web.taskLog().Warn(taskId, tasklog.NOTE_TITLES_DOWNLOAD, err.Error())
 			}
 		}
 
 		localDB, err := web.buildLocalDB(switchDB, true)
 		if err != nil {
 			web.sugarLogger.Error(err)
-			failure = &TaskNote{Text: NOTE_SCAN_FAILED, Detail: err.Error()}
+			failure = &tasklog.Note{Text: tasklog.NOTE_SCAN_FAILED, Detail: err.Error()}
 			return
 		}
 		web.taskLog().SetResult(taskId, len(localDB.TitlesMap), localDB.NumFiles)
 
 		web.state.set(web.withLibraryTitles(switchDB, localDB), localDB)
 		if err := web.notifyChanges(); err != nil {
-			web.taskLog().Warn(taskId, NOTE_NOTIFY_FAILED, err.Error())
+			web.taskLog().Warn(taskId, tasklog.NOTE_NOTIFY_FAILED, err.Error())
 		}
 	}()
 
@@ -107,7 +108,7 @@ func (web *Web) Rescan(trigger string) bool {
 // rescanIfPending does the rescan asked while a scan ran, once it ends.
 func (web *Web) rescanIfPending() {
 	if web.rescanPending.CompareAndSwap(true, false) {
-		web.Rescan(TRIGGER_WATCHER)
+		web.Rescan(tasklog.TRIGGER_WATCHER)
 	}
 }
 
@@ -119,7 +120,7 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 	}
 	// it reads the files as they are now: a rescan asked before is done by it
 	web.rescanPending.Store(false)
-	taskId := web.startTask(TASK_SCAN, trigger)
+	taskId := web.startTask(tasklog.TASK_SCAN, trigger)
 	web.scanStarted.Store(time.Now().UnixNano())
 
 	web.backgroundWork.Add(1)
@@ -128,11 +129,11 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 		// the last thing done: after the task, the work after the scan has been started
 		defer web.backgroundWork.Add(-1)
 		defer web.rescanIfPending()
-		var failure *TaskNote
+		var failure *tasklog.Note
 		// files that just appeared are compressed afterwards, if asked
 		defer func() {
-			if failure == nil && trigger != TRIGGER_COMPRESS && settings.ReadSettings(web.dataFolder).AutoCompress == AUTO_COMPRESS_NEW {
-				web.autoCompress(TRIGGER_WATCHER)
+			if failure == nil && trigger != tasklog.TRIGGER_COMPRESS && settings.ReadSettings(web.dataFolder).AutoCompress == AUTO_COMPRESS_NEW {
+				web.autoCompress(tasklog.TRIGGER_WATCHER)
 			}
 		}()
 		defer func() {
@@ -150,7 +151,7 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 		// a panic: the scan fails (the steps above end it), the app goes on
 		defer func() {
 			if recovered := recover(); recovered != nil {
-				failure = web.crashed(TASK_SCAN, recovered)
+				failure = web.crashed(tasklog.TASK_SCAN, recovered)
 			}
 		}()
 
@@ -158,13 +159,13 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 		localDB, err := web.buildLocalDB(switchDB, ignoreCache)
 		if err != nil {
 			web.sugarLogger.Error(err)
-			failure = &TaskNote{Text: NOTE_SCAN_FAILED, Detail: err.Error()}
+			failure = &tasklog.Note{Text: tasklog.NOTE_SCAN_FAILED, Detail: err.Error()}
 			return
 		}
 		web.taskLog().SetResult(taskId, len(localDB.TitlesMap), localDB.NumFiles)
 
 		web.state.set(web.withLibraryTitles(switchDB, localDB), localDB)
-		if trigger == TRIGGER_WATCHER {
+		if trigger == tasklog.TRIGGER_WATCHER {
 			web.saveWatchFingerprint()
 		}
 	}()
@@ -175,7 +176,7 @@ func (web *Web) scanInBackground(ignoreCache bool, trigger string) bool {
 func (web *Web) HandleSynchronize() {
 	web.router.HandleFunc("/sync", func(w http.ResponseWriter, r *http.Request) {
 		// if a synchronization is already running the client simply follows that one
-		web.Synchronize(TRIGGER_MANUAL)
+		web.Synchronize(tasklog.TRIGGER_MANUAL)
 		w.WriteHeader(http.StatusAccepted)
 	}).Methods("POST")
 

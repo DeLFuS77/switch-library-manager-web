@@ -4,6 +4,7 @@ import (
 	"regexp"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"sort"
 	"strings"
 )
@@ -260,7 +261,7 @@ func regionalName(name string) string {
 	if i := strings.IndexAny(name, "（(["); i > 0 {
 		name = name[:i]
 	}
-	return searchText(name)
+	return search.Text(name)
 }
 
 // notAGame matches the trials, network tests and apps of a game that the titles database does

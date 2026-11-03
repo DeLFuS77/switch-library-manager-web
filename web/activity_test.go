@@ -2,6 +2,8 @@ package web
 
 import (
 	"encoding/csv"
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -23,8 +25,8 @@ func TestActivityAndLanguagePerUser(t *testing.T) {
 	// a failure is not recorded
 	c.do(http.MethodPost, "/users/create", url.Values{"name": {"bad name!"}, "password": {"charlie-sec-33"}})
 
-	entries := web.activities().list()
-	if len(entries) != 2 || entries[0].Action != ACTION_USER_NEW || entries[0].Detail != "luis" || entries[0].User != "ana" {
+	entries := web.activities().List()
+	if len(entries) != 2 || entries[0].Action != activity.ACTION_USER_NEW || entries[0].Detail != "luis" || entries[0].User != "ana" {
 		t.Fatalf("activity: %+v", entries)
 	}
 
@@ -48,8 +50,8 @@ func TestActivityCsvHasNoFormulas(t *testing.T) {
 	web := newTestWeb(t)
 	web.embedFS = os.DirFS("..")
 	web.HandleActivity()
-	web.activities().add(Activity{Time: time.Now(), User: "=HYPERLINK(\"x\")", Action: ACTION_LOGIN_FAIL, Detail: "+cmd", IP: "@1"})
-	web.activities().add(Activity{Time: time.Now(), User: "ana", Action: ACTION_VERIFY, Detail: "-all"})
+	web.activities().Add(activity.Entry{Time: time.Now(), User: "=HYPERLINK(\"x\")", Action: activity.ACTION_LOGIN_FAIL, Detail: "+cmd", IP: "@1"})
+	web.activities().Add(activity.Entry{Time: time.Now(), User: "ana", Action: activity.ACTION_VERIFY, Detail: "-all"})
 	recorder := httptest.NewRecorder()
 	web.router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/activity.csv", nil))
 	rows, err := csv.NewReader(recorder.Body).ReadAll()
@@ -62,23 +64,23 @@ func TestActivityCsvHasNoFormulas(t *testing.T) {
 }
 
 func TestActivityTextsAreTranslated(t *testing.T) {
-	for _, action := range activityActions {
-		if _, ok := translations["es"][action]; !ok {
+	for _, action := range activity.Actions {
+		if _, ok := i18n.Translations["es"][action]; !ok {
 			t.Errorf("no Spanish translation for %q", action)
 		}
 	}
 }
 
 func TestActivityDetailsAreTranslated(t *testing.T) {
-	entries := []Activity{
-		{Action: ACTION_ORGANIZE, Detail: "cleanup"},
-		{Action: ACTION_SPACE, Detail: "3 files + duplicates"},
-		{Action: ACTION_COMPRESS, Detail: "2 files, originals deleted after the check"},
-		{Action: ACTION_USER_ROLE, Detail: "ana: viewer"},
-		{Action: ACTION_USER_NEW, Detail: "pedro"},
+	entries := []activity.Entry{
+		{Action: activity.ACTION_ORGANIZE, Detail: "cleanup"},
+		{Action: activity.ACTION_SPACE, Detail: "3 files + duplicates"},
+		{Action: activity.ACTION_COMPRESS, Detail: "2 files, originals deleted after the check"},
+		{Action: activity.ACTION_USER_ROLE, Detail: "ana: viewer"},
+		{Action: activity.ACTION_USER_NEW, Detail: "pedro"},
 	}
 	got := translateActivity("es", entries)
-	want := []string{"Borrar actualizaciones antiguas", "3 archivos + Duplicados", "2 archivos, originales borrados tras la comprobación", "ana: " + translate("es", "Player"), "pedro"}
+	want := []string{"Borrar actualizaciones antiguas", "3 archivos + Duplicados", "2 archivos, originales borrados tras la comprobación", "ana: " + i18n.Translate("es", "Player"), "pedro"}
 	for i := range want {
 		if got[i].Detail != want[i] {
 			t.Errorf("%q: got %q, want %q", entries[i].Detail, got[i].Detail, want[i])

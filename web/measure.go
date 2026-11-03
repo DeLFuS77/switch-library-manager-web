@@ -13,6 +13,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/awake"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -174,7 +177,7 @@ func (web *Web) saveMeasure(measure ServerMeasure) {
 		s.CompressFilesAtOnce = measure.FilesAtOnce
 	})
 	if data, err := json.Marshal(measure); err == nil {
-		writeFileAtomic(filepath.Join(web.dataFolder, "measure.json"), data)
+		durable.WriteFile(filepath.Join(web.dataFolder, "measure.json"), data)
 	}
 }
 
@@ -186,7 +189,7 @@ func (web *Web) lastMeasure() *ServerMeasure {
 		return nil
 	}
 	measure := ServerMeasure{}
-	if parseStore(path, data, &measure) != nil || measure.Measured.IsZero() {
+	if durable.ParseStore(path, data, &measure) != nil || measure.Measured.IsZero() {
 		return nil
 	}
 	return &measure
@@ -228,12 +231,12 @@ func (web *Web) HandleMeasure() {
 		// one measure at a time, and not while a task works on the files: it would
 		// measure the task instead of the server
 		if !web.measuring.CompareAndSwap(false, true) {
-			writeJSON(w, http.StatusConflict, map[string]string{"error": translate(lang, string(errOrganizeBusy))})
+			writeJSON(w, http.StatusConflict, map[string]string{"error": i18n.Translate(lang, string(errOrganizeBusy))})
 			return
 		}
 		if web.organizing.Load() || web.compressionRunning() {
 			web.measuring.Store(false)
-			writeJSON(w, http.StatusConflict, map[string]string{"error": translate(lang, string(errOrganizeBusy))})
+			writeJSON(w, http.StatusConflict, map[string]string{"error": i18n.Translate(lang, string(errOrganizeBusy))})
 			return
 		}
 		// once the measure ends, the next task of the queue
@@ -241,6 +244,8 @@ func (web *Web) HandleMeasure() {
 			web.measuring.Store(false)
 			go web.runQueue()
 		}()
+		// a computer gone to sleep would end the measure, or spoil it
+		defer awake.Keep().Release()
 		ctx, cancel := context.WithTimeout(r.Context(), measureTimeout)
 		defer cancel()
 		result, err := web.measureServer(ctx)
@@ -248,9 +253,9 @@ func (web *Web) HandleMeasure() {
 			status, message := http.StatusInternalServerError, err.Error()
 			switch {
 			case errors.Is(err, errNoGameToMeasure):
-				status, message = http.StatusConflict, translate(lang, message)
+				status, message = http.StatusConflict, i18n.Translate(lang, message)
 			case errors.Is(err, switchfs.ErrNothingToMeasure):
-				status, message = http.StatusConflict, translate(lang, string(errNoGameToMeasure))
+				status, message = http.StatusConflict, i18n.Translate(lang, string(errNoGameToMeasure))
 			}
 			writeJSON(w, status, map[string]string{"error": message})
 			return

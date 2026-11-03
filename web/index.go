@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -146,228 +147,281 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	if filter.ShowsMissing() {
 		all = web.sorted("library+missing:"+lang, filter, func() []TitleItem { return web.buildLibraryWithMissing(lang) })
 	}
+	f := web.newLibraryFilter(filter, lang, all)
+	for index := range all {
+		if f.takes(index) {
+			f.matched = append(f.matched, index)
+		}
+	}
+	f.sortFacets()
+	items, p := f.page()
+	return items, p, f.facets
+}
 
+// libraryFilter goes through the games of the Library with a filter: each step counts the games
+// for the numbers shown on its own filters, then leaves out the ones its filter does not take, so
+// the numbers of a filter count the games the filters before it take.
+type libraryFilter struct {
+	filter *TitleItemFilter
+	all    []TitleItem
+	facets LibraryFacets
 	// positions of the matching items; only the shown page is copied
-	matched := make([]int, 0, len(all))
-	facets := LibraryFacets{Formats: []string{}, Regions: []string{}, DemosHidden: settings.ReadSettings(web.dataFolder).HideDemoGames}
-	formats := map[string]struct{}{}
-	regions := map[string]struct{}{}
-	recentSince := time.Now().AddDate(0, 0, -recentDays)
-	collectionCounts := map[string]int{}
-	genreCounts := map[string]int{}
-	languageCounts := map[string]int{}
-	leftOut, otherRegions := web.regionCopies(lang)
-	merged := web.mergedStatus(lang)
+	matched          []int
+	formats          map[string]struct{}
+	regions          map[string]struct{}
+	recentSince      time.Time
+	collectionCounts map[string]int
+	genreCounts      map[string]int
+	languageCounts   map[string]int
+	// the copies of the games of several regions left out, and the regions of the others
+	leftOut      map[string]bool
+	otherRegions map[string][]string
+	merged       map[string]regionStatus
 	// each game once: of a game the library has, no card of its other regions; of a game it does
 	// not have, one card of all of them
-	var regionsByName map[string][]string
-	ownedNames, shownMissing := map[string]bool{}, map[string]bool{}
+	regionsByName map[string][]string
+	ownedNames    map[string]bool
+	shownMissing  map[string]bool
+	plays         map[string]userdata.PlayEntry
+}
+
+func (web *Web) newLibraryFilter(filter *TitleItemFilter, lang string, all []TitleItem) *libraryFilter {
+	f := &libraryFilter{filter: filter, all: all, matched: make([]int, 0, len(all)),
+		facets:  LibraryFacets{Formats: []string{}, Regions: []string{}, DemosHidden: settings.ReadSettings(web.dataFolder).HideDemoGames},
+		formats: map[string]struct{}{}, regions: map[string]struct{}{}, recentSince: time.Now().AddDate(0, 0, -recentDays),
+		collectionCounts: map[string]int{}, genreCounts: map[string]int{}, languageCounts: map[string]int{},
+		ownedNames: map[string]bool{}, shownMissing: map[string]bool{}}
+	f.leftOut, f.otherRegions = web.regionCopies(lang)
+	f.merged = web.mergedStatus(lang)
 	if settings.ReadSettings(web.dataFolder).CountRegionsOnce {
-		regionsByName = web.regionsByName()
+		f.regionsByName = web.regionsByName()
 		for i := range all {
 			if !all[i].Missing {
-				ownedNames[regionalName(all[i].OriginalName)] = true
+				f.ownedNames[regionalName(all[i].OriginalName)] = true
 			}
 		}
 	}
-	plays := web.play().all(filter.player)
-	facets.Play = map[string]int{}
+	f.plays = web.play().All(filter.player)
+	f.facets.Play = map[string]int{}
+	return f
+}
 
-	for index := range all {
-		item := &all[index]
-		if leftOut[item.Id] || !filter.MatchesItem(item) {
-			continue
-		}
-		// a game of several regions is up to date when one of its copies is
-		if status, ok := merged[item.Id]; ok {
-			copied := *item
-			status.apply(&copied)
-			item = &copied
-		}
+// takes counts the game at index for the numbers of the filters, and reports whether the
+// filter takes it.
+func (f *libraryFilter) takes(index int) bool {
+	item := &f.all[index]
+	if f.leftOut[item.Id] || !f.filter.MatchesItem(item) {
+		return false
+	}
+	// a game of several regions is up to date when one of its copies is
+	if status, ok := f.merged[item.Id]; ok {
+		copied := *item
+		status.apply(&copied)
+		item = &copied
+	}
+	return f.formatAndRegion(item) && f.collection(item) && f.attributes(item) && f.kindAndExtra(item) && f.play(item) && f.status(item)
+}
 
-		// the formats are offered whatever the other filters are
-		if item.Type != "" {
-			formats[item.Type] = struct{}{}
-		}
-		if filter.Format != "" && item.Type != filter.Format {
-			continue
-		}
-		if item.Region != "" {
-			regions[item.Region] = struct{}{}
-		}
-		// a game of several regions is of each of the regions of its copies
-		for _, region := range otherRegions[item.Id] {
-			regions[region] = struct{}{}
-		}
-		if filter.Region != "" && item.Region != filter.Region && !hasValue(otherRegions[item.Id], regionCode(filter.Region)) {
-			continue
-		}
-		if item.Missing && regionsByName != nil {
-			name := regionalName(item.OriginalName)
-			if _, known := regionsByName[name]; known {
-				if ownedNames[name] || shownMissing[name] {
-					continue
-				}
-				shownMissing[name] = true
+// formatAndRegion counts the formats and regions of the game, and takes it in the format and
+// the region chosen, once when each game counts once.
+func (f *libraryFilter) formatAndRegion(item *TitleItem) bool {
+	filter := f.filter
+	// the formats are offered whatever the other filters are
+	if item.Type != "" {
+		f.formats[item.Type] = struct{}{}
+	}
+	if filter.Format != "" && item.Type != filter.Format {
+		return false
+	}
+	if item.Region != "" {
+		f.regions[item.Region] = struct{}{}
+	}
+	// a game of several regions is of each of the regions of its copies
+	for _, region := range f.otherRegions[item.Id] {
+		f.regions[region] = struct{}{}
+	}
+	if filter.Region != "" && item.Region != filter.Region && !hasValue(f.otherRegions[item.Id], regionCode(filter.Region)) {
+		return false
+	}
+	if item.Missing && f.regionsByName != nil {
+		name := regionalName(item.OriginalName)
+		if _, known := f.regionsByName[name]; known {
+			if f.ownedNames[name] || f.shownMissing[name] {
+				return false
 			}
+			f.shownMissing[name] = true
 		}
+	}
+	return true
+}
 
-		inCollection := filter.Collection == ""
-		for _, name := range item.Collections {
-			collectionCounts[name]++
-			if strings.EqualFold(name, filter.Collection) {
-				inCollection = true
-			}
+// collection counts the collections of the game, and takes it in the collection chosen.
+func (f *libraryFilter) collection(item *TitleItem) bool {
+	inCollection := f.filter.Collection == ""
+	for _, name := range item.Collections {
+		f.collectionCounts[name]++
+		if strings.EqualFold(name, f.filter.Collection) {
+			inCollection = true
 		}
-		if !inCollection {
-			continue
-		}
-		// genres, players, languages and scores are counted before their own filters
-		for _, genre := range item.Genres {
-			genreCounts[genre]++
-		}
-		for _, language := range item.Languages {
-			languageCounts[language]++
-		}
-		switch {
-		case item.Players == 1:
-			facets.SinglePlayer++
-		case item.Players >= 4:
-			facets.TwoPlayers++
-			facets.FourPlayers++
-		case item.Players >= 2:
-			facets.TwoPlayers++
-		}
-		countScore(&facets, item.Score)
-		if (filter.Genre != "" && !hasValue(item.Genres, filter.Genre)) || !playersMatch(item.Players, filter.Players) ||
-			(filter.GameLanguage != "" && !hasValue(item.Languages, filter.GameLanguage)) || !scoreMatches(item.Score, filter.Score) {
-			continue
-		}
-		// the kinds and extras are counted whatever they are set to, within the collection
-		if item.Demo {
-			facets.Demos++
-		} else {
-			facets.Games++
-		}
-		if item.ImageUrl == "" {
-			facets.NoCover++
-		}
-		if !item.Known {
-			facets.Unknown++
-		}
-		recent := item.Added.After(recentSince)
-		if recent {
-			facets.Recent++
-		}
-		if item.Favorite {
-			facets.Favorites++
-		}
-		if (filter.Kind == KIND_GAME && item.Demo) || (filter.Kind == KIND_DEMO && !item.Demo) || (filter.Kind == "" && facets.DemosHidden && item.Demo) {
-			continue
-		}
-		if item.Cheats {
-			facets.Cheats++
-		}
-		if item.CheatsOther {
-			facets.CheatsOther++
-		}
-		if item.FirmwareTooNew {
-			facets.FirmwareTooNew++
-		}
-		if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) || (filter.Extra == EXTRA_RECENT && !recent) || (filter.Extra == EXTRA_FAVORITES && !item.Favorite) || (filter.Extra == EXTRA_CHEATS && !item.Cheats) || (filter.Extra == EXTRA_CHEATS_OTHER && !item.CheatsOther) || (filter.Extra == EXTRA_FIRMWARE && !item.FirmwareTooNew) {
-			continue
-		}
+	}
+	return inCollection
+}
 
-		// how the game goes for the user: counted whatever is chosen, then chosen
-		if !item.Missing {
-			state := plays[item.Id].Status
-			if state == "" {
-				state = "none"
-			}
-			facets.Play[state]++
-			if filter.Play != "" && state != filter.Play {
-				continue
-			}
-		} else if filter.Play != "" {
-			continue
-		}
+// attributes counts the genres, players, languages and scores of the game before their own
+// filters, and takes it with the ones chosen.
+func (f *libraryFilter) attributes(item *TitleItem) bool {
+	filter, facets := f.filter, &f.facets
+	for _, genre := range item.Genres {
+		f.genreCounts[genre]++
+	}
+	for _, language := range item.Languages {
+		f.languageCounts[language]++
+	}
+	switch {
+	case item.Players == 1:
+		facets.SinglePlayer++
+	case item.Players >= 4:
+		facets.TwoPlayers++
+		facets.FourPlayers++
+	case item.Players >= 2:
+		facets.TwoPlayers++
+	}
+	countScore(facets, item.Score)
+	return !((filter.Genre != "" && !hasValue(item.Genres, filter.Genre)) || !playersMatch(item.Players, filter.Players) ||
+		(filter.GameLanguage != "" && !hasValue(item.Languages, filter.GameLanguage)) || !scoreMatches(item.Score, filter.Score))
+}
 
-		if item.Missing {
-			// games not in the library have no status: they show with "All" only
-			if filter.Status != "" {
-				continue
-			}
-			facets.Missing++
-			facets.All++
-			matched = append(matched, index)
-			continue
+// kindAndExtra counts the kinds and extras of the game whatever they are set to, within the
+// collection, and takes it in the kind and the extra chosen.
+func (f *libraryFilter) kindAndExtra(item *TitleItem) bool {
+	filter, facets := f.filter, &f.facets
+	if item.Demo {
+		facets.Demos++
+	} else {
+		facets.Games++
+	}
+	if item.ImageUrl == "" {
+		facets.NoCover++
+	}
+	if !item.Known {
+		facets.Unknown++
+	}
+	recent := item.Added.After(f.recentSince)
+	if recent {
+		facets.Recent++
+	}
+	if item.Favorite {
+		facets.Favorites++
+	}
+	if (filter.Kind == KIND_GAME && item.Demo) || (filter.Kind == KIND_DEMO && !item.Demo) || (filter.Kind == "" && facets.DemosHidden && item.Demo) {
+		return false
+	}
+	if item.Cheats {
+		facets.Cheats++
+	}
+	if item.CheatsOther {
+		facets.CheatsOther++
+	}
+	if item.FirmwareTooNew {
+		facets.FirmwareTooNew++
+	}
+	if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) || (filter.Extra == EXTRA_RECENT && !recent) || (filter.Extra == EXTRA_FAVORITES && !item.Favorite) || (filter.Extra == EXTRA_CHEATS && !item.Cheats) || (filter.Extra == EXTRA_CHEATS_OTHER && !item.CheatsOther) || (filter.Extra == EXTRA_FIRMWARE && !item.FirmwareTooNew) {
+		return false
+	}
+	return true
+}
+
+// play counts how the game goes for the user whatever is chosen, then takes it in the state
+// chosen.
+func (f *libraryFilter) play(item *TitleItem) bool {
+	if !item.Missing {
+		state := f.plays[item.Id].Status
+		if state == "" {
+			state = "none"
 		}
-		complete := item.Known && !item.UpdateAvailable && item.MissingDlcCount == 0
+		f.facets.Play[state]++
+		return f.filter.Play == "" || state == f.filter.Play
+	}
+	return f.filter.Play == ""
+}
+
+// status counts the game among the games with an update, DLC or complete, and takes it in the
+// status chosen; a game not in the library has none, and shows with "All" only.
+func (f *libraryFilter) status(item *TitleItem) bool {
+	facets := &f.facets
+	if item.Missing {
+		if f.filter.Status != "" {
+			return false
+		}
+		facets.Missing++
 		facets.All++
-		if item.UpdateAvailable {
-			facets.Update++
-		}
-		if item.MissingDlcCount > 0 {
-			facets.Dlc++
-		}
-		if complete {
-			facets.Complete++
-		}
-
-		switch filter.Status {
-		case STATUS_UPDATE:
-			if !item.UpdateAvailable {
-				continue
-			}
-		case STATUS_DLC:
-			if item.MissingDlcCount == 0 {
-				continue
-			}
-		case STATUS_COMPLETE:
-			if !complete {
-				continue
-			}
-		}
-
-		matched = append(matched, index)
+		return true
+	}
+	complete := item.Known && !item.UpdateAvailable && item.MissingDlcCount == 0
+	facets.All++
+	if item.UpdateAvailable {
+		facets.Update++
+	}
+	if item.MissingDlcCount > 0 {
+		facets.Dlc++
+	}
+	if complete {
+		facets.Complete++
 	}
 
-	for format := range formats {
+	switch f.filter.Status {
+	case STATUS_UPDATE:
+		return item.UpdateAvailable
+	case STATUS_DLC:
+		return item.MissingDlcCount > 0
+	case STATUS_COMPLETE:
+		return complete
+	}
+	return true
+}
+
+// sortFacets puts the formats, regions, genres, languages and collections found in order.
+func (f *libraryFilter) sortFacets() {
+	facets := &f.facets
+	for format := range f.formats {
 		facets.Formats = append(facets.Formats, format)
 	}
 	sort.Strings(facets.Formats)
-	for region := range regions {
+	for region := range f.regions {
 		facets.Regions = append(facets.Regions, region)
 	}
 	sort.Strings(facets.Regions)
-	facets.Genres = sortedCounts(genreCounts)
-	facets.Languages = sortedCounts(languageCounts)
-	for name, count := range collectionCounts {
-		facets.Collections = append(facets.Collections, CollectionCount{Name: name, Count: count})
+	facets.Genres = sortedCounts(f.genreCounts)
+	facets.Languages = sortedCounts(f.languageCounts)
+	for name, count := range f.collectionCounts {
+		facets.Collections = append(facets.Collections, userdata.CollectionCount{Name: name, Count: count})
 	}
 	sort.Slice(facets.Collections, func(i, j int) bool {
 		return strings.ToLower(facets.Collections[i].Name) < strings.ToLower(facets.Collections[j].Name)
 	})
+}
 
+// page copies the games of the shown page, with their regions and how they go for the user.
+func (f *libraryFilter) page() ([]TitleItem, pagination.Pagination) {
 	// the items are already sorted
-	p := pagination.Calculate(filter.Page, filter.PerPage, len(matched))
+	p := pagination.Calculate(f.filter.Page, f.filter.PerPage, len(f.matched))
 	items := make([]TitleItem, 0, p.End-p.Start)
-	for _, index := range matched[p.Start:p.End] {
-		item := all[index]
-		item.OtherRegions, item.OtherFlags = len(otherRegions[item.Id]), otherRegions[item.Id]
-		if status, ok := merged[item.Id]; ok {
+	for _, index := range f.matched[p.Start:p.End] {
+		item := f.all[index]
+		item.OtherRegions, item.OtherFlags = len(f.otherRegions[item.Id]), f.otherRegions[item.Id]
+		if status, ok := f.merged[item.Id]; ok {
 			status.apply(&item)
 		}
-		if regionsByName != nil {
-			item.MissingFlags = missingRegions(item, regionsByName)
+		if f.regionsByName != nil {
+			item.MissingFlags = missingRegions(item, f.regionsByName)
 			if room := max(coverFlags-1-len(item.OtherFlags), 0); len(item.MissingFlags) > room {
 				item.MissingFlags, item.HiddenRegions = item.MissingFlags[:room], item.MissingFlags[room:]
 			}
 		}
-		item.Play = plays[item.Id]
+		item.Play = f.plays[item.Id]
 		items = append(items, item)
 	}
-	return items, p, facets
+	return items, p
 }
 
 // libraryViews counts the games of each view of the Library. My games counts as the list of the
@@ -395,7 +449,7 @@ func (web *Web) libraryViews(current string, lang string) LibraryViews {
 func (web *Web) buildLibraryWithMissing(lang string) []TitleItem {
 	library := web.derived("library:"+lang, func() any { return web.buildLibrary(lang) }).([]TitleItem)
 	missing := web.derived("missing:"+lang, func() any { return web.buildMissingGames(lang) }).([]TitleItem)
-	collections := web.collections().snapshot()
+	collections := web.collections().Snapshot()
 	items := make([]TitleItem, 0, len(library)+len(missing))
 	items = append(items, library...)
 	for _, item := range missing {
@@ -419,8 +473,8 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 	ignoredUpdates := toLowerSet(settingsObj.IgnoreUpdateTitleIds)
 	ignoredDlc := toLowerSet(settingsObj.IgnoreDLCTitleIds)
 	added := web.history().addedTimes()
-	collections := web.collections().snapshot()
-	favorites := web.favorites().snapshot()
+	collections := web.collections().Snapshot()
+	favorites := web.favorites().Snapshot()
 	timesToBeat := web.timesToBeat().snapshot()
 	cheats := web.cheats()
 

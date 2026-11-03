@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -122,8 +123,8 @@ func TestMakePackFromTheTitlePage(t *testing.T) {
 	if response := postForm(web, "/title/pack", url.Values{"id": {"0100000000010000"}, "delete_originals": {"true"}}); response.Code != http.StatusAccepted {
 		t.Fatalf("pack: %d %s", response.Code, response.Body.String())
 	}
-	task := waitForTask(t, web, TASK_PACK)
-	if task.Status != TASK_SUCCESS || task.Files != 1 {
+	task := waitForTask(t, web, tasklog.TASK_PACK)
+	if task.Status != tasklog.TASK_SUCCESS || task.Files != 1 {
 		t.Fatalf("one pack made: %+v", task)
 	}
 	matches, _ := filepath.Glob(filepath.Join(folder, "*(pack).nsp"))
@@ -169,10 +170,10 @@ func TestPackDeletesTheFoldersLeftEmpty(t *testing.T) {
 		local.Dlc["0100000000011001"] = db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: filepath.Base(dlc), BaseFolder: filepath.Dir(dlc)}, Metadata: &switchfs.ContentMetaAttributes{TitleId: "0100000000011001"}}
 		web.invalidateDerived()
 
-		if !web.startPacks([]string{path}, nil, true, TRIGGER_MANUAL) {
+		if !web.startPacks([]string{path}, nil, true, tasklog.TRIGGER_MANUAL) {
 			t.Fatal("the pack starts")
 		}
-		if task := waitForTask(t, web, TASK_PACK); task.Status != TASK_SUCCESS {
+		if task := waitForTask(t, web, tasklog.TASK_PACK); task.Status != tasklog.TASK_SUCCESS {
 			t.Fatalf("pack: %+v", task)
 		}
 		for _, sub := range []string{"Updates", "DLC"} {
@@ -230,7 +231,7 @@ func TestPackQueuedAfterACompressionTakesTheNsz(t *testing.T) {
 		t.Fatal("no scan")
 	}
 	web.scanStarted.Store(time.Now().UnixNano())
-	web.queue().add(QueuedTask{Kind: TASK_PACK, Paths: []string{path}, Delete: false})
+	web.queue().add(QueuedTask{Kind: tasklog.TASK_PACK, Paths: []string{path}, Delete: false})
 	web.runQueue()
 	if len(web.queue().list()) != 1 || web.compressionRunning() {
 		t.Fatal("the pack waits for the scan")
@@ -247,8 +248,8 @@ func TestPackQueuedAfterACompressionTakesTheNsz(t *testing.T) {
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
-	task := waitForTask(t, web, TASK_PACK)
-	if task.Status != TASK_SUCCESS || task.Files != 1 {
+	task := waitForTask(t, web, tasklog.TASK_PACK)
+	if task.Status != tasklog.TASK_SUCCESS || task.Files != 1 {
 		t.Fatalf("the pack is made of the NSZ: %+v %+v", task, task.Warnings)
 	}
 }

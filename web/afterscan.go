@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 )
 
 // afterScan runs the background work that follows a new library: covers, thumbnails and
@@ -37,7 +39,7 @@ func (web *Web) afterScan() {
 		// temporary files of tasks stopped in the middle that did not go on
 		web.cleanLeftovers()
 		web.warmPages()
-		web.lookupTimesToBeat(TRIGGER_SCAN)
+		web.lookupTimesToBeat(tasklog.TRIGGER_SCAN)
 		// the games without their title key, for Issues and Compress
 		web.checkTitleKeys()
 		// the title languages asked for while it ran
@@ -66,7 +68,7 @@ func (web *Web) warmPages() {
 // titleLanguagesWithDefault are the languages pages are shown in: the default one and the
 // languages in use.
 func (web *Web) titleLanguagesWithDefault() []string {
-	return append([]string{DEFAULT_LANGUAGE}, web.titleLanguages()...)
+	return append([]string{i18n.DEFAULT_LANGUAGE}, web.titleLanguages()...)
 }
 
 // PartialLibrary shows the games a slow scan found so far (see db.PartialLibraryReceiver).

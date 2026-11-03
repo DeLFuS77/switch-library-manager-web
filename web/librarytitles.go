@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -49,8 +51,8 @@ type igdbTitleStore struct {
 func (web *Web) igdbTitles() *igdbTitleStore {
 	web.igdbTitlesOnce.Do(func() {
 		store := &igdbTitleStore{path: filepath.Join(web.dataFolder, IGDB_TITLES_FILENAME), games: map[string]IgdbTitle{}}
-		if data, ok := readStore(store.path); ok {
-			parseStore(store.path, data, &store.games)
+		if data, ok := durable.ReadStore(store.path); ok {
+			durable.ParseStore(store.path, data, &store.games)
 		}
 		web.igdbTitlesStore = store
 	})
@@ -79,7 +81,7 @@ func (s *igdbTitleStore) save() error {
 	if err != nil {
 		return err
 	}
-	return writeFileAtomic(s.path, data)
+	return durable.WriteFile(s.path, data)
 }
 
 // needsLookup tells a game never asked, or not found a while ago.
@@ -129,9 +131,9 @@ func (c *igdbClient) lookupTitle(ctx context.Context, name string, now time.Time
 	}
 	// the same name first, else the best match of IGDB
 	chosen := games[0]
-	wanted := searchText(name)
+	wanted := search.Text(name)
 	for _, game := range games {
-		if searchText(game.Name) == wanted {
+		if search.Text(game.Name) == wanted {
 			chosen = game
 			break
 		}

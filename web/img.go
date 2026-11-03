@@ -18,6 +18,7 @@ import (
 	"github.com/disintegration/gift"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 )
 
 const (
@@ -71,16 +72,16 @@ func (web *Web) pregenerateThumbnails() {
 	if len(missing) == 0 {
 		return
 	}
-	taskId := web.taskLog().Start(TASK_THUMBNAILS, TRIGGER_SCAN)
+	taskId := web.taskLog().Start(tasklog.TASK_THUMBNAILS, tasklog.TRIGGER_SCAN)
 	made := 0
 	for i, name := range missing {
 		// a new scan brings its own list
 		if web.state.IsSynchronizing() {
-			web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_SCAN, "")
+			web.taskLog().Warn(taskId, tasklog.NOTE_PAUSED_FOR_SCAN, "")
 			break
 		}
 		if !web.backgroundAllowed() {
-			web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_HOURS, "")
+			web.taskLog().Warn(taskId, tasklog.NOTE_PAUSED_FOR_HOURS, "")
 			web.waitForBackgroundHours()
 			break
 		}

@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"os"
 	"path/filepath"
 	"sync"
@@ -99,7 +100,7 @@ func (s *seenSessions) use(signature string, expiry int64, now time.Time) bool {
 	data, err := json.Marshal(s.seen)
 	s.mutex.Unlock()
 	if err == nil {
-		writeFileAtomic(s.path, data)
+		durable.WriteFile(s.path, data)
 	}
 	return true
 }

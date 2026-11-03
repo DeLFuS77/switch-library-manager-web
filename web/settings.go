@@ -2,6 +2,10 @@ package web
 
 import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
+	"github.com/dtrunk90/switch-library-manager-web/internal/priority"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"os"
@@ -28,7 +32,7 @@ type SettingsPageData struct {
 	KeysAvailable           bool
 	NotificationsConfigured bool
 	// the notification channels, with where each configured one sends
-	NotifyServices      []NotifyServiceView
+	NotifyServices      []notify.ServiceView
 	SmtpSecurityChoices []string
 	// the last measure of the server, nil when there is none
 	LastMeasure *ServerMeasure
@@ -99,6 +103,7 @@ type SettingsForm struct {
 	AutoCompressKeep      bool   `in:"form=auto_compress_keep"`
 	CompressThreads       int    `in:"form=compress_threads"`
 	CompressFilesAtOnce   int    `in:"form=compress_files_at_once"`
+	LowPriority           bool   `in:"form=low_priority"`
 	SyncIntervalHours     int    `in:"form=sync_interval_hours"`
 	Language              string `in:"form=language"`
 	DiscordWebhookUrl     string `in:"form=discord_webhook_url"`
@@ -207,296 +212,350 @@ func (web *Web) HandleSettings() {
 	web.HandleValidated("/settings.html", SettingsForm{}, func() any {
 		return web.settingsPageData()
 	}, func(value any, lang string) ErrorResponse {
-		settingsForm := value.(*SettingsForm)
-		errorResponse := ErrorResponse{
-			FieldErrors: []FieldError{},
-		}
-
-		if strings.TrimSpace(settingsForm.Prodkeys) != "" {
-			keys, err := settings.GetSwitchKeys(settingsForm.Prodkeys)
-			if err != nil {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-					Field:   "prod_keys",
-					Message: translatef(lang, "Error trying to read Product Keys (%v)", err),
-				})
-			} else if keys["header_key"] == "" {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-					Field:   "prod_keys",
-					Message: translate(lang, "Please provide a valid Product Keys Path"),
-				})
-			}
-		}
-
-		scanFolders := SplitAndTrimSpaceArray(settingsForm.ScanFolders, "\n")
-
-		if len(scanFolders) == 0 {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-				Field:   "scan_folders",
-				Message: translate(lang, "Please provide at least one Folder to scan"),
-			})
-		} else {
-			for _, value := range scanFolders {
-				if _, err := os.Stat(value); os.IsNotExist(err) || os.IsPermission(err) {
-					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-						Field:   "scan_folders",
-						Message: translatef(lang, "Folder not found: %v", value),
-					})
-
-					break
-				}
-			}
-			// a folder twice, or one inside another, would have its files read twice
-			if message := repeatedFolders(scanFolders, lang); message != "" {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-					Field:   "scan_folders",
-					Message: message,
-				})
-			}
-		}
-
-		for _, list := range settingsForm.skipLists() {
-			for _, value := range SplitAndTrimSpaceArray(list.lines, "\n") {
-				// a line of * alone skips nothing, and is left out
-				if settings.SkipText(value) != "" && !settings.ValidFolderPattern(value) {
-					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-						Field:   list.field,
-						Message: translatef(lang, "Write a part of the name of a folder, not a path: %v", value),
-					})
-					break
-				}
-			}
-		}
-
-		for field, ids := range map[string]string{"ignore_dlc_title_ids": settingsForm.IgnoreDLCTitleIds, "ignore_update_title_ids": settingsForm.IgnoreUpdateTitleIds} {
-			for _, value := range SplitAndTrimSpaceArray(ids, "\n") {
-				if !titleIdRegex.MatchString(value) {
-					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-						Field:   field,
-						Message: translatef(lang, "Invalid Title ID (16 hexadecimal characters): %v", value),
-					})
-
-					break
-				}
-			}
-		}
-
-		if _, ok := allowedSyncIntervals[settingsForm.SyncIntervalHours]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-				Field:   "sync_interval_hours",
-				Message: translate(lang, "Invalid synchronization interval"),
-			})
-		}
-
-		if firmware := strings.TrimSpace(settingsForm.ConsoleFirmware); firmware != "" {
-			if _, ok := parseFirmware(firmware); !ok {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-					Field:   "console_firmware",
-					Message: translate(lang, "Write the firmware like 18.1.0"),
-				})
-			}
-		}
-
-		if _, ok := allowedAutoCompress[settingsForm.AutoCompress]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-				Field:   "auto_compress",
-				Message: translate(lang, "Unknown option"),
-			})
-		}
-
-		if settingsForm.CompressThreads < 0 || settingsForm.CompressThreads > runtime.NumCPU() {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-				Field:   "compress_threads",
-				Message: translate(lang, "Unknown option"),
-			})
-		}
-		if settingsForm.CompressFilesAtOnce < 0 || settingsForm.CompressFilesAtOnce > maxFilesAtOnce {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-				Field:   "compress_files_at_once",
-				Message: translate(lang, "Unknown option"),
-			})
-		}
-
-		for field, value := range map[string]string{"preferred_region": settingsForm.PreferredRegion, "preferred_region_2": settingsForm.PreferredRegion2, "preferred_region_3": settingsForm.PreferredRegion3} {
-			for _, region := range strings.Split(value, ",") {
-				if region = strings.TrimSpace(region); region != "" && !regionPattern.MatchString(strings.ToUpper(region)) {
-					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-						Field:   field,
-						Message: translate(lang, "Unknown option"),
-					})
-					break
-				}
-			}
-		}
-
-		if _, ok := allowedBackgroundHours[settingsForm.BackgroundHours]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-				Field:   "background_hours",
-				Message: translate(lang, "Unknown option"),
-			})
-		}
-
-		if _, ok := allowedWatchIntervals[settingsForm.WatchIntervalMinutes]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-				Field:   "watch_interval_minutes",
-				Message: translate(lang, "Unknown option"),
-			})
-		}
-
-		if _, ok := allowedVerifySpeeds[settingsForm.VerifySpeed]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-				Field:   "verify_speed",
-				Message: translate(lang, "Unknown option"),
-			})
-		}
-
-		// the save vault needs a user, and a password the first time (the hash only is kept)
-		if settingsForm.VaultEnabled {
-			vaultUser := strings.TrimSpace(settingsForm.VaultUser)
-			if !validUserName.MatchString(vaultUser) {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_user", Message: translate(lang, ErrUserName.Error())})
-			}
-			if password := settingsForm.VaultPassword; password != "" {
-				if err := checkPassword(vaultUser, password); err != nil {
-					errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_password", Message: translate(lang, err.Error())})
-				}
-			} else if settings.ReadSettings(web.dataFolder).Vault.PasswordHash == "" {
-				errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_password", Message: translate(lang, ErrPasswordLength.Error())})
-			}
-		}
-		if _, ok := allowedVaultKeep[settingsForm.VaultKeep]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "vault_keep", Message: translate(lang, "Unknown option")})
-		}
-		if _, ok := quarantineKeeps[settingsForm.QuarantineKeep]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "quarantine_keep", Message: translate(lang, "Unknown option")})
-		}
-		if !slices.Contains(quarantineLimits, settingsForm.QuarantineLimit) {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{Field: "quarantine_limit", Message: translate(lang, "Unknown option")})
-		}
-
-		if _, ok := allowedVerifyIntervals[settingsForm.VerifyIntervalDays]; !ok {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-				Field:   "verify_interval_days",
-				Message: translate(lang, "Invalid verification interval"),
-			})
-		}
-
-		// the secrets the page got masked are checked as they are saved
-		sent := keptSecrets(settingsForm.notificationOptions(), settings.ReadSettings(web.dataFolder).Notifications)
-		errorResponse.FieldErrors = append(errorResponse.FieldErrors, validateNotifications(sent, lang)...)
-
-		if !validWizardOrganize(settingsForm.OrganizeLayout, settingsForm.KeepDuplicate) {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-				Field:   "organize_layout",
-				Message: translate(lang, "Unknown option"),
-			})
-		}
-
-		if settingsForm.Language != "" && !isSupportedLanguage(settingsForm.Language) {
-			errorResponse.FieldErrors = append(errorResponse.FieldErrors, FieldError{
-				Field:   "language",
-				Message: translate(lang, "Unsupported language"),
-			})
-		}
-
-		return errorResponse
+		return web.settingsErrors(value.(*SettingsForm), lang)
 	}, func(value any, lang string) SuccessResponse {
-		settingsForm := value.(*SettingsForm)
-		cheatsWereOff := settings.ReadSettings(web.dataFolder).CheatsDisabled
-		scanFolders := SplitAndTrimSpaceArray(settingsForm.ScanFolders, "\n")
-
-		_, err := settings.TryUpdateSettings(web.dataFolder, func(appSettings *settings.AppSettings) {
-			appSettings.Prodkeys = settingsForm.Prodkeys
-			appSettings.IgnoreDLCTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreDLCTitleIds, "\n")
-			appSettings.IgnoreUpdateTitleIds = SplitAndTrimSpaceArray(settingsForm.IgnoreUpdateTitleIds, "\n")
-			appSettings.IgnoreDLCUpdates = settingsForm.IgnoreDLCUpdates
-			appSettings.IgnoreFileTypes = SplitAndTrimSpaceArray(strings.ReplaceAll(settingsForm.IgnoreFileTypes, ",", " "), " ")
-			appSettings.HideDemoGames = settingsForm.HideDemoGames
-			appSettings.CheatsDisabled = !settingsForm.Cheats
-			appSettings.OrganizeOptions.DeleteUpdatesWithCheats = !settingsForm.KeepUpdatesWithCheats
-			appSettings.CountRegionsOnce = settingsForm.CountRegionsOnce
-			// the zones in order, each once: "EU,US,JP"
-			appSettings.PreferredRegion = strings.Join(preferredZones(strings.ToUpper(strings.Join([]string{settingsForm.PreferredRegion, settingsForm.PreferredRegion2, settingsForm.PreferredRegion3}, ","))), ",")
-			appSettings.WatchFolders = settingsForm.WatchFolders
-			appSettings.WatchIntervalMinutes = settingsForm.WatchIntervalMinutes
-			appSettings.BackgroundHours = settingsForm.BackgroundHours
-			appSettings.VerifyIntervalDays = settingsForm.VerifyIntervalDays
-			appSettings.VerifySpeed = settingsForm.VerifySpeed
-			appSettings.ConsoleFirmware = strings.TrimSpace(settingsForm.ConsoleFirmware)
-			appSettings.CheckForUpdates = settingsForm.CheckForUpdates
-			appSettings.AutoInstallUpdates = settingsForm.AutoInstallUpdates
-			appSettings.Automation = settings.AutomationOptions{Enabled: settingsForm.AutomationEnabled, Verify: settingsForm.AutomationVerify,
-				Compress: settingsForm.AutomationCompress, CleanupUpdates: settingsForm.AutomationCleanup, Organize: settingsForm.AutomationOrganize,
-				OrganizeNewOnly: settingsForm.AutomationNewOnly, Notify: settingsForm.AutomationNotify, BackgroundHoursOnly: settingsForm.AutomationNight}
-			// the vault password is kept as a hash only; an empty field keeps the one there is
-			appSettings.Vault.Enabled = settingsForm.VaultEnabled
-			appSettings.Vault.User = strings.TrimSpace(settingsForm.VaultUser)
-			appSettings.Vault.Keep = settingsForm.VaultKeep
-			appSettings.Vault.Notify = settingsForm.VaultNotify
-			appSettings.Quarantine = settings.QuarantineOptions{Keep: settingsForm.QuarantineKeep, LimitGB: settingsForm.QuarantineLimit,
-				MakeRoom: settingsForm.QuarantineMakeRoom, Originals: settingsForm.QuarantineOriginals}
-			if settingsForm.VaultPassword != "" {
-				if hash, err := hashVaultPassword(settingsForm.VaultPassword); err == nil {
-					appSettings.Vault.PasswordHash = hash
-				}
-			}
-			// the secret is never sent to the page: an empty field keeps it, no Client ID removes both
-			appSettings.IgdbClientId = strings.TrimSpace(settingsForm.IgdbClientId)
-			if appSettings.IgdbClientId == "" {
-				appSettings.IgdbClientSecret = ""
-			} else if secret := strings.TrimSpace(settingsForm.IgdbClientSecret); secret != "" {
-				appSettings.IgdbClientSecret = secret
-			}
-			appSettings.AutoCompress = settingsForm.AutoCompress
-			appSettings.AutoCompressLevel = settingsForm.AutoCompressLevel
-			appSettings.AutoCompressKeep = settingsForm.AutoCompressKeep
-			appSettings.CompressThreads = settingsForm.CompressThreads
-			appSettings.CompressFilesAtOnce = settingsForm.CompressFilesAtOnce
-			appSettings.SyncIntervalHours = settingsForm.SyncIntervalHours
-			appSettings.Language = settingsForm.Language
-			appSettings.Notifications = keptSecrets(settingsForm.notificationOptions(), appSettings.Notifications)
-			if settingsForm.OrganizeLayout != "" {
-				appSettings.OrganizeOptions = wizardOrganize(appSettings.OrganizeOptions, settingsForm.OrganizeLayout,
-					settingsForm.KeepGameFolders, settingsForm.RenameFiles, settingsForm.DeleteEmptyFolders, settingsForm.KeepDuplicate)
-			}
-			appSettings.Folder = scanFolders[0]
-			if len(scanFolders) > 1 {
-				appSettings.ScanFolders = scanFolders[1:]
-			} else {
-				appSettings.ScanFolders = []string{}
-			}
-			appSettings.ExcludeFolders = nil
-			for _, list := range settingsForm.skipLists() {
-				for _, line := range SplitAndTrimSpaceArray(list.lines, "\n") {
-					if pattern := settings.SkipPattern(list.kind, line); pattern != "" {
-						appSettings.ExcludeFolders = append(appSettings.ExcludeFolders, pattern)
-					}
-				}
-			}
-		})
-		if err != nil {
-			return notSaved(lang, err)
-		}
-		// turned on: the cheats come now, not with the next synchronization
-		if cheatsWereOff && settingsForm.Cheats {
-			go web.downloadCheats()
-		}
-		// the copy kept of each game of several regions follows the preferred region
-		web.invalidateDerived()
-
-		if _, err := settings.InitSwitchKeys(web.dataFolder); err != nil {
-			web.sugarLogger.Debugf("prod.keys not loaded: %s", err)
-		}
-
-		message := translate(lang, "Settings changed successfully. The library is being rescanned.")
-		if !web.Rescan(TRIGGER_SETTINGS) {
-			message = translate(lang, "Settings changed successfully. They will be applied by the next synchronization.")
-		}
-
-		return SuccessResponse{
-			StrongMessage: translate(lang, "Success!"),
-			Message:       message,
-		}
+		return web.saveSettings(value.(*SettingsForm), lang)
 	}, web.embedFS, fsPatterns...)
+}
+
+// settingsErrors checks the settings sent by the form, by groups of fields in the order of the
+// page.
+func (web *Web) settingsErrors(form *SettingsForm, lang string) ErrorResponse {
+	errs := []FieldError{}
+	errs = append(errs, keysErrors(form, lang)...)
+	errs = append(errs, foldersErrors(form, lang)...)
+	errs = append(errs, titleIdsErrors(form, lang)...)
+	errs = append(errs, choicesErrors(form, lang)...)
+	errs = append(errs, web.vaultErrors(form, lang)...)
+	if _, ok := quarantineKeeps[form.QuarantineKeep]; !ok {
+		errs = append(errs, FieldError{Field: "quarantine_keep", Message: i18n.Translate(lang, "Unknown option")})
+	}
+	if !slices.Contains(quarantineLimits, form.QuarantineLimit) {
+		errs = append(errs, FieldError{Field: "quarantine_limit", Message: i18n.Translate(lang, "Unknown option")})
+	}
+
+	if _, ok := allowedVerifyIntervals[form.VerifyIntervalDays]; !ok {
+		errs = append(errs, FieldError{
+			Field:   "verify_interval_days",
+			Message: i18n.Translate(lang, "Invalid verification interval"),
+		})
+	}
+
+	// the secrets the page got masked are checked as they are saved
+	sent := notify.KeptSecrets(form.notificationOptions(), settings.ReadSettings(web.dataFolder).Notifications)
+	errs = append(errs, validateNotifications(sent, lang)...)
+
+	if !validWizardOrganize(form.OrganizeLayout, form.KeepDuplicate) {
+		errs = append(errs, FieldError{
+			Field:   "organize_layout",
+			Message: i18n.Translate(lang, "Unknown option"),
+		})
+	}
+
+	if form.Language != "" && !i18n.IsSupportedLanguage(form.Language) {
+		errs = append(errs, FieldError{
+			Field:   "language",
+			Message: i18n.Translate(lang, "Unsupported language"),
+		})
+	}
+	return ErrorResponse{FieldErrors: errs}
+}
+
+// keysErrors checks the prod.keys written in the form, when there are.
+func keysErrors(form *SettingsForm, lang string) []FieldError {
+	if strings.TrimSpace(form.Prodkeys) == "" {
+		return nil
+	}
+	keys, err := settings.GetSwitchKeys(form.Prodkeys)
+	if err != nil {
+		return []FieldError{{
+			Field:   "prod_keys",
+			Message: i18n.Translatef(lang, "Error trying to read Product Keys (%v)", err),
+		}}
+	}
+	if keys["header_key"] == "" {
+		return []FieldError{{
+			Field:   "prod_keys",
+			Message: i18n.Translate(lang, "Please provide a valid Product Keys Path"),
+		}}
+	}
+	return nil
+}
+
+// foldersErrors checks the folders to scan, which must be there, each once, and the folders to
+// skip, which are names or patterns.
+func foldersErrors(form *SettingsForm, lang string) []FieldError {
+	errs := []FieldError{}
+	scanFolders := SplitAndTrimSpaceArray(form.ScanFolders, "\n")
+
+	if len(scanFolders) == 0 {
+		errs = append(errs, FieldError{
+			Field:   "scan_folders",
+			Message: i18n.Translate(lang, "Please provide at least one Folder to scan"),
+		})
+	} else {
+		for _, value := range scanFolders {
+			if _, err := os.Stat(value); os.IsNotExist(err) || os.IsPermission(err) {
+				errs = append(errs, FieldError{
+					Field:   "scan_folders",
+					Message: i18n.Translatef(lang, "Folder not found: %v", value),
+				})
+
+				break
+			}
+		}
+		// a folder twice, or one inside another, would have its files read twice
+		if message := repeatedFolders(scanFolders, lang); message != "" {
+			errs = append(errs, FieldError{
+				Field:   "scan_folders",
+				Message: message,
+			})
+		}
+	}
+
+	for _, list := range form.skipLists() {
+		for _, value := range SplitAndTrimSpaceArray(list.lines, "\n") {
+			// a line of * alone skips nothing, and is left out
+			if settings.SkipText(value) != "" && !settings.ValidFolderPattern(value) {
+				errs = append(errs, FieldError{
+					Field:   list.field,
+					Message: i18n.Translatef(lang, "Write a part of the name of a folder, not a path: %v", value),
+				})
+				break
+			}
+		}
+	}
+	return errs
+}
+
+// titleIdsErrors checks the title IDs of the updates and DLC to ignore.
+func titleIdsErrors(form *SettingsForm, lang string) []FieldError {
+	errs := []FieldError{}
+	for field, ids := range map[string]string{"ignore_dlc_title_ids": form.IgnoreDLCTitleIds, "ignore_update_title_ids": form.IgnoreUpdateTitleIds} {
+		for _, value := range SplitAndTrimSpaceArray(ids, "\n") {
+			if !titleIdRegex.MatchString(value) {
+				errs = append(errs, FieldError{
+					Field:   field,
+					Message: i18n.Translatef(lang, "Invalid Title ID (16 hexadecimal characters): %v", value),
+				})
+
+				break
+			}
+		}
+	}
+	return errs
+}
+
+// choicesErrors checks the options chosen in lists: each has to be one the page offers.
+func choicesErrors(form *SettingsForm, lang string) []FieldError {
+	errs := []FieldError{}
+	if _, ok := allowedSyncIntervals[form.SyncIntervalHours]; !ok {
+		errs = append(errs, FieldError{
+			Field:   "sync_interval_hours",
+			Message: i18n.Translate(lang, "Invalid synchronization interval"),
+		})
+	}
+
+	if firmware := strings.TrimSpace(form.ConsoleFirmware); firmware != "" {
+		if _, ok := parseFirmware(firmware); !ok {
+			errs = append(errs, FieldError{
+				Field:   "console_firmware",
+				Message: i18n.Translate(lang, "Write the firmware like 18.1.0"),
+			})
+		}
+	}
+
+	if _, ok := allowedAutoCompress[form.AutoCompress]; !ok {
+		errs = append(errs, FieldError{
+			Field:   "auto_compress",
+			Message: i18n.Translate(lang, "Unknown option"),
+		})
+	}
+
+	if form.CompressThreads < 0 || form.CompressThreads > runtime.NumCPU() {
+		errs = append(errs, FieldError{
+			Field:   "compress_threads",
+			Message: i18n.Translate(lang, "Unknown option"),
+		})
+	}
+	if form.CompressFilesAtOnce < 0 || form.CompressFilesAtOnce > maxFilesAtOnce {
+		errs = append(errs, FieldError{
+			Field:   "compress_files_at_once",
+			Message: i18n.Translate(lang, "Unknown option"),
+		})
+	}
+
+	for field, value := range map[string]string{"preferred_region": form.PreferredRegion, "preferred_region_2": form.PreferredRegion2, "preferred_region_3": form.PreferredRegion3} {
+		for _, region := range strings.Split(value, ",") {
+			if region = strings.TrimSpace(region); region != "" && !regionPattern.MatchString(strings.ToUpper(region)) {
+				errs = append(errs, FieldError{
+					Field:   field,
+					Message: i18n.Translate(lang, "Unknown option"),
+				})
+				break
+			}
+		}
+	}
+
+	if _, ok := allowedBackgroundHours[form.BackgroundHours]; !ok {
+		errs = append(errs, FieldError{
+			Field:   "background_hours",
+			Message: i18n.Translate(lang, "Unknown option"),
+		})
+	}
+
+	if _, ok := allowedWatchIntervals[form.WatchIntervalMinutes]; !ok {
+		errs = append(errs, FieldError{
+			Field:   "watch_interval_minutes",
+			Message: i18n.Translate(lang, "Unknown option"),
+		})
+	}
+
+	if _, ok := allowedVerifySpeeds[form.VerifySpeed]; !ok {
+		errs = append(errs, FieldError{
+			Field:   "verify_speed",
+			Message: i18n.Translate(lang, "Unknown option"),
+		})
+	}
+	return errs
+}
+
+// vaultErrors checks the save vault: it needs a user, and a password the first time (the hash
+// only is kept).
+func (web *Web) vaultErrors(form *SettingsForm, lang string) []FieldError {
+	errs := []FieldError{}
+	if form.VaultEnabled {
+		vaultUser := strings.TrimSpace(form.VaultUser)
+		if !validUserName.MatchString(vaultUser) {
+			errs = append(errs, FieldError{Field: "vault_user", Message: i18n.Translate(lang, ErrUserName.Error())})
+		}
+		if password := form.VaultPassword; password != "" {
+			if err := checkPassword(vaultUser, password); err != nil {
+				errs = append(errs, FieldError{Field: "vault_password", Message: i18n.Translate(lang, err.Error())})
+			}
+		} else if settings.ReadSettings(web.dataFolder).Vault.PasswordHash == "" {
+			errs = append(errs, FieldError{Field: "vault_password", Message: i18n.Translate(lang, ErrPasswordLength.Error())})
+		}
+	}
+	if _, ok := allowedVaultKeep[form.VaultKeep]; !ok {
+		errs = append(errs, FieldError{Field: "vault_keep", Message: i18n.Translate(lang, "Unknown option")})
+	}
+	return errs
+}
+
+// saveSettings saves the settings of the form, already checked, and scans the library with them.
+func (web *Web) saveSettings(form *SettingsForm, lang string) SuccessResponse {
+	before := settings.ReadSettings(web.dataFolder)
+	cheatsWereOff, wasLowPriority := before.CheatsDisabled, before.LowPriority
+	_, err := settings.TryUpdateSettings(web.dataFolder, form.apply)
+	if err != nil {
+		return notSaved(lang, err)
+	}
+	if form.LowPriority != wasLowPriority {
+		web.applyPriority(form.LowPriority)
+	}
+	// turned on: the cheats come now, not with the next synchronization
+	if cheatsWereOff && form.Cheats {
+		go web.downloadCheats()
+	}
+	// the copy kept of each game of several regions follows the preferred region
+	web.invalidateDerived()
+
+	if _, err := settings.InitSwitchKeys(web.dataFolder); err != nil {
+		web.sugarLogger.Debugf("prod.keys not loaded: %s", err)
+	}
+
+	message := i18n.Translate(lang, "Settings changed successfully. The library is being rescanned.")
+	if !web.Rescan(tasklog.TRIGGER_SETTINGS) {
+		message = i18n.Translate(lang, "Settings changed successfully. They will be applied by the next synchronization.")
+	}
+
+	return SuccessResponse{
+		StrongMessage: i18n.Translate(lang, "Success!"),
+		Message:       message,
+	}
+}
+
+// applyPriority runs the app below the normal priority of the processor, or at the normal one
+// again (on Linux a user may not be let raise it back: the app then stays low until it starts
+// again, as Settings says).
+func (web *Web) applyPriority(low bool) {
+	if err := priority.SetLow(low); err != nil {
+		web.sugarLogger.Warnf("The priority of the app could not be changed: %v", err)
+	}
+}
+
+// apply puts the values of the form in the settings.
+func (form *SettingsForm) apply(appSettings *settings.AppSettings) {
+	scanFolders := SplitAndTrimSpaceArray(form.ScanFolders, "\n")
+	appSettings.Prodkeys = form.Prodkeys
+	appSettings.IgnoreDLCTitleIds = SplitAndTrimSpaceArray(form.IgnoreDLCTitleIds, "\n")
+	appSettings.IgnoreUpdateTitleIds = SplitAndTrimSpaceArray(form.IgnoreUpdateTitleIds, "\n")
+	appSettings.IgnoreDLCUpdates = form.IgnoreDLCUpdates
+	appSettings.IgnoreFileTypes = SplitAndTrimSpaceArray(strings.ReplaceAll(form.IgnoreFileTypes, ",", " "), " ")
+	appSettings.HideDemoGames = form.HideDemoGames
+	appSettings.CheatsDisabled = !form.Cheats
+	appSettings.OrganizeOptions.DeleteUpdatesWithCheats = !form.KeepUpdatesWithCheats
+	appSettings.CountRegionsOnce = form.CountRegionsOnce
+	// the zones in order, each once: "EU,US,JP"
+	appSettings.PreferredRegion = strings.Join(preferredZones(strings.ToUpper(strings.Join([]string{form.PreferredRegion, form.PreferredRegion2, form.PreferredRegion3}, ","))), ",")
+	appSettings.WatchFolders = form.WatchFolders
+	appSettings.WatchIntervalMinutes = form.WatchIntervalMinutes
+	appSettings.BackgroundHours = form.BackgroundHours
+	appSettings.VerifyIntervalDays = form.VerifyIntervalDays
+	appSettings.VerifySpeed = form.VerifySpeed
+	appSettings.ConsoleFirmware = strings.TrimSpace(form.ConsoleFirmware)
+	appSettings.CheckForUpdates = form.CheckForUpdates
+	appSettings.AutoInstallUpdates = form.AutoInstallUpdates
+	appSettings.Automation = settings.AutomationOptions{Enabled: form.AutomationEnabled, Verify: form.AutomationVerify,
+		Compress: form.AutomationCompress, CleanupUpdates: form.AutomationCleanup, Organize: form.AutomationOrganize,
+		OrganizeNewOnly: form.AutomationNewOnly, Notify: form.AutomationNotify, BackgroundHoursOnly: form.AutomationNight}
+	// the vault password is kept as a hash only; an empty field keeps the one there is
+	appSettings.Vault.Enabled = form.VaultEnabled
+	appSettings.Vault.User = strings.TrimSpace(form.VaultUser)
+	appSettings.Vault.Keep = form.VaultKeep
+	appSettings.Vault.Notify = form.VaultNotify
+	appSettings.Quarantine = settings.QuarantineOptions{Keep: form.QuarantineKeep, LimitGB: form.QuarantineLimit,
+		MakeRoom: form.QuarantineMakeRoom, Originals: form.QuarantineOriginals}
+	if form.VaultPassword != "" {
+		if hash, err := hashVaultPassword(form.VaultPassword); err == nil {
+			appSettings.Vault.PasswordHash = hash
+		}
+	}
+	// the secret is never sent to the page: an empty field keeps it, no Client ID removes both
+	appSettings.IgdbClientId = strings.TrimSpace(form.IgdbClientId)
+	if appSettings.IgdbClientId == "" {
+		appSettings.IgdbClientSecret = ""
+	} else if secret := strings.TrimSpace(form.IgdbClientSecret); secret != "" {
+		appSettings.IgdbClientSecret = secret
+	}
+	appSettings.AutoCompress = form.AutoCompress
+	appSettings.AutoCompressLevel = form.AutoCompressLevel
+	appSettings.AutoCompressKeep = form.AutoCompressKeep
+	appSettings.CompressThreads = form.CompressThreads
+	appSettings.CompressFilesAtOnce = form.CompressFilesAtOnce
+	appSettings.LowPriority = form.LowPriority
+	appSettings.SyncIntervalHours = form.SyncIntervalHours
+	appSettings.Language = form.Language
+	appSettings.Notifications = notify.KeptSecrets(form.notificationOptions(), appSettings.Notifications)
+	if form.OrganizeLayout != "" {
+		appSettings.OrganizeOptions = wizardOrganize(appSettings.OrganizeOptions, form.OrganizeLayout,
+			form.KeepGameFolders, form.RenameFiles, form.DeleteEmptyFolders, form.KeepDuplicate)
+	}
+	appSettings.Folder = scanFolders[0]
+	if len(scanFolders) > 1 {
+		appSettings.ScanFolders = scanFolders[1:]
+	} else {
+		appSettings.ScanFolders = []string{}
+	}
+	appSettings.ExcludeFolders = nil
+	for _, list := range form.skipLists() {
+		for _, line := range SplitAndTrimSpaceArray(list.lines, "\n") {
+			if pattern := settings.SkipPattern(list.kind, line); pattern != "" {
+				appSettings.ExcludeFolders = append(appSettings.ExcludeFolders, pattern)
+			}
+		}
+	}
 }
 
 // notSaved is the answer to a form whose settings could not be saved (a disk full or that
@@ -504,7 +563,7 @@ func (web *Web) HandleSettings() {
 // would prove wrong.
 func notSaved(lang string, err error) SuccessResponse {
 	return SuccessResponse{failure: &ErrorResponse{FieldErrors: []FieldError{},
-		GlobalError: GlobalError{StrongMessage: translate(lang, "Error!"), Message: translatef(lang, "The settings could not be saved: %v", err)}}}
+		GlobalError: GlobalError{StrongMessage: i18n.Translate(lang, "Error!"), Message: i18n.Translatef(lang, "The settings could not be saved: %v", err)}}}
 }
 
 // VerifySpeedOption is a verification speed and how many files it checks at once here.
@@ -529,7 +588,7 @@ func (web *Web) settingsPageData() SettingsPageData {
 	current := settings.ReadSettings(web.dataFolder)
 	// the secrets of the notifications never go back to the page (see secretMask)
 	shown := *current
-	shown.Notifications = maskedNotifications(current.Notifications)
+	shown.Notifications = notify.Masked(current.Notifications)
 	portal := PortalView{}
 	if web.auth != nil {
 		portal = web.auth.portalView()
@@ -540,15 +599,15 @@ func (web *Web) settingsPageData() SettingsPageData {
 		Settings:                &shown,
 		NextSync:                nextSyncTime(current),
 		SyncIntervals:           []int{0, 6, 12, 24, 168},
-		Languages:               supportedLanguages,
+		Languages:               i18n.SupportedLanguages,
 		MissingCovers:           web.missingCovers(),
 		VerifySpeeds:            verifySpeedOptions(),
 		AutoBackups:             web.autoBackups(),
 		Quarantine:              web.quarantineSummary(),
 		QuarantineLimits:        quarantineLimits,
 		KeysAvailable:           settings.IsKeysFileAvailable(),
-		NotificationsConfigured: notificationsConfigured(current.Notifications),
-		NotifyServices:          notifyServices(current.Notifications),
+		NotificationsConfigured: notify.Configured(current.Notifications),
+		NotifyServices:          notify.Services(current.Notifications),
 		SmtpSecurityChoices:     settings.SmtpSecurityChoices,
 		AutomationPending:       web.automationPending(),
 		CompressThreadChoices:   compressThreadChoices(),
@@ -577,7 +636,7 @@ func repeatedFolders(folders []string, lang string) string {
 			}
 			if same {
 				if i < j {
-					return translatef(lang, "This folder is listed twice: %v", folder)
+					return i18n.Translatef(lang, "This folder is listed twice: %v", folder)
 				}
 				continue
 			}
@@ -586,7 +645,7 @@ func repeatedFolders(folders []string, lang string) string {
 				inside = db.FolderInside(folder, other)
 			}
 			if inside {
-				return translatef(lang, "%v is inside %v: its files would be read twice. Keep only one of them.", folder, other)
+				return i18n.Translatef(lang, "%v is inside %v: its files would be read twice. Keep only one of them.", folder, other)
 			}
 		}
 	}

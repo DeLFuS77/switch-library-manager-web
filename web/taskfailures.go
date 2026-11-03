@@ -1,6 +1,9 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -11,40 +14,37 @@ import (
 // taskKindNames are the names of the kinds of tasks, translated by the interface (the same as
 // the Tasks page).
 var taskKindNames = map[string]string{
-	TASK_SYNC: "Synchronization", TASK_SCAN: "Library scan", TASK_ORGANIZE: "Organize files", TASK_CLEANUP: "Delete old updates",
-	TASK_COMPRESS: "Compression", TASK_DECOMPRESS: "Decompression", TASK_VERIFY: "File check", TASK_COVERS: "Cover downloads",
-	TASK_THUMBNAILS: "Thumbnails", TASK_COPY: "Copy to the card", TASK_CONVERT: "Conversion", TASK_PACK: "Combine",
-	TASK_SPLIT: "Split files", TASK_TIMETOBEAT: "Times to beat and scores (IGDB)", TASK_UPLOAD: "Upload",
+	tasklog.TASK_SYNC: "Synchronization", tasklog.TASK_SCAN: "Library scan", tasklog.TASK_ORGANIZE: "Organize files", tasklog.TASK_CLEANUP: "Delete old updates",
+	tasklog.TASK_COMPRESS: "Compression", tasklog.TASK_DECOMPRESS: "Decompression", tasklog.TASK_VERIFY: "File check", tasklog.TASK_COVERS: "Cover downloads",
+	tasklog.TASK_THUMBNAILS: "Thumbnails", tasklog.TASK_COPY: "Copy to the card", tasklog.TASK_CONVERT: "Conversion", tasklog.TASK_PACK: "Combine",
+	tasklog.TASK_SPLIT: "Split files", TASK_TIMETOBEAT: "Times to beat and scores (IGDB)", TASK_UPLOAD: "Upload",
 }
 
-// notWorthTelling are the ends that are not failures to tell: what the user stopped.
-var notWorthTelling = map[string]bool{NOTE_COMPRESS_CANCELED: true, NOTE_COMPRESS_CANCELED_OLD: true, NOTE_UPLOAD_CANCELED: true, NOTE_UPLOAD_STOPPED: true}
-
-func (web *Web) notifyTaskFailed(task Task) {
-	if isDemoMode() || task.Error == nil || notWorthTelling[task.Error.Text] {
+func (web *Web) notifyTaskFailed(task tasklog.Task) {
+	if isDemoMode() || task.Error == nil || tasklog.NotWorthTelling[task.Error.Text] {
 		return
 	}
 	settingsObj := settings.ReadSettings(web.dataFolder)
 	options := settingsObj.Notifications
-	if !notificationsConfigured(options) || !options.NotifyTaskFailures {
+	if !notify.Configured(options) || !options.NotifyTaskFailures {
 		return
 	}
 	lang := settingsObj.Language
-	if !isSupportedLanguage(lang) {
-		lang = DEFAULT_LANGUAGE
+	if !i18n.IsSupportedLanguage(lang) {
+		lang = i18n.DEFAULT_LANGUAGE
 	}
 	kind := task.Kind
 	if name, ok := taskKindNames[kind]; ok {
-		kind = translate(lang, name)
+		kind = i18n.Translate(lang, name)
 	}
-	reason := translate(lang, task.Error.Text)
+	reason := i18n.Translate(lang, task.Error.Text)
 	if task.Error.Detail != "" {
 		reason += "\n" + task.Error.Detail
 	}
-	title := translate(lang, "A task failed")
-	text := translatef(lang, "%v failed: %v", kind, reason)
+	title := i18n.Translate(lang, "A task failed")
+	text := i18n.Translatef(lang, "%v failed: %v", kind, reason)
 	item := map[string]any{"kind": task.Kind, "id": task.Id, "reason": task.Error.Text, "detail": task.Error.Detail}
-	if err := sendMessage(options, title, text, []any{item}); err != nil {
+	if err := notify.Send(options, title, text, []any{item}); err != nil {
 		web.sugarLogger.Warnf("Failed to send the notification of a failed task: %v", err)
 	}
 }

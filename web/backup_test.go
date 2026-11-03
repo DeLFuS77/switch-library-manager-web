@@ -13,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -132,7 +133,7 @@ func TestBackupRestoreRoundTrip(t *testing.T) {
 
 func TestBackupMessagesAreTranslated(t *testing.T) {
 	for _, err := range backupErrors {
-		if _, ok := translations["es"][err.Error()]; !ok {
+		if _, ok := i18n.Translations["es"][err.Error()]; !ok {
 			t.Errorf("no Spanish translation for %q", err.Error())
 		}
 	}

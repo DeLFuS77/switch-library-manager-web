@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -88,7 +89,7 @@ func backgroundHoursNotNow(now time.Time) string {
 
 func TestAutomationMessage(t *testing.T) {
 	title, text := automationMessage("en", AutomationResult{Games: []string{"Star Game"}, Updates: 2, Checked: 3, Damaged: 1, Compressed: 2, Saved: 3 << 30, Removed: 1, Moved: 4})
-	for _, want := range []string{"Star Game", "2 new updates", "3 files checked, 1 failed", "2 files compressed", "1 old updates deleted", "4 files organized"} {
+	for _, want := range []string{"Star Game", "2 new updates", "3 files checked, 1 corrupted", "2 files compressed", "1 old updates deleted", "4 files organized"} {
 		if !strings.Contains(text, want) {
 			t.Errorf("missing %q in %q", want, text)
 		}
@@ -96,9 +97,9 @@ func TestAutomationMessage(t *testing.T) {
 	if title == "" {
 		t.Fatal("a title")
 	}
-	// the modified files are told apart from the failed ones
-	if _, text := automationMessage("es", AutomationResult{Checked: 3, Damaged: 1, Modified: 2}); !strings.Contains(text, "3 archivos comprobados, 2 modificados, 1 fallidos") {
-		t.Errorf("modified and failed: %q", text)
+	// the modified files are told apart from the corrupted ones
+	if _, text := automationMessage("es", AutomationResult{Checked: 3, Damaged: 1, Modified: 2}); !strings.Contains(text, "3 archivos comprobados, 2 modificados, 1 corruptos") {
+		t.Errorf("modified and corrupted: %q", text)
 	}
 }
 
@@ -144,10 +145,10 @@ func TestAutomationRunsTheChosenSteps(t *testing.T) {
 	}
 	text, _ := messages[0]["message"].(string)
 	// the test files are not real games: they are checked and found damaged
-	if !strings.Contains(text, "Known Game") || !strings.Contains(text, "3 files checked, 3 failed") {
+	if !strings.Contains(text, "Known Game") || !strings.Contains(text, "3 files checked, 3 corrupted") {
 		t.Fatalf("message: %q", text)
 	}
-	if task, ok := web.latestTask(TASK_VERIFY); !ok || task.Trigger != TRIGGER_AUTOMATION {
+	if task, ok := web.latestTask(tasklog.TASK_VERIFY); !ok || task.Trigger != tasklog.TRIGGER_AUTOMATION {
 		t.Fatalf("the check is a task of the automations: %+v", task)
 	}
 }

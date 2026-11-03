@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 )
 
 const (
@@ -89,7 +90,7 @@ func (web *Web) startCoverDownloads() {
 		// a panic: the task of the covers ends failed, and the next scan starts them again
 		defer func() {
 			if recovered := recover(); recovered != nil {
-				web.finishRunning(web.crashed(TASK_COVERS, recovered), TASK_COVERS, TASK_THUMBNAILS)
+				web.finishRunning(web.crashed(tasklog.TASK_COVERS, recovered), tasklog.TASK_COVERS, tasklog.TASK_THUMBNAILS)
 				web.covers.mutex.Lock()
 				web.covers.running, web.covers.again = false, false
 				web.covers.mutex.Unlock()
@@ -202,7 +203,7 @@ func (web *Web) downloadMissingCovers() {
 		return
 	}
 	web.sugarLogger.Infof("[Downloading %d covers in the background]", len(urls))
-	taskId := web.taskLog().Start(TASK_COVERS, TRIGGER_SCAN)
+	taskId := web.taskLog().Start(tasklog.TASK_COVERS, tasklog.TRIGGER_SCAN)
 	web.taskLog().Progress(taskId, 0, len(urls), "Downloading covers")
 
 	var mutex sync.Mutex
@@ -246,11 +247,11 @@ func (web *Web) downloadMissingCovers() {
 	web.covers.noteConnection(offline, urls, time.Now())
 	if offline {
 		web.sugarLogger.Warnf("The cover server does not answer, the covers left are downloaded after the next scan: %v", coversErr)
-		web.taskLog().Warn(taskId, NOTE_COVERS_OFFLINE, coversErr.Error())
+		web.taskLog().Warn(taskId, tasklog.NOTE_COVERS_OFFLINE, coversErr.Error())
 	}
 	if !web.backgroundAllowed() && !web.state.IsSynchronizing() {
 		// the background hours ended: continue when they begin again
-		web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_HOURS, "")
+		web.taskLog().Warn(taskId, tasklog.NOTE_PAUSED_FOR_HOURS, "")
 		web.taskLog().Finish(taskId, nil)
 		web.waitForBackgroundHours()
 		web.saveCovers(downloaded > 0)
@@ -259,7 +260,7 @@ func (web *Web) downloadMissingCovers() {
 	if web.state.IsSynchronizing() {
 		// the scan that interrupted the downloads starts them again once it ends (afterScan):
 		// asked again now, they would start over at once, again and again while it runs
-		web.taskLog().Warn(taskId, NOTE_PAUSED_FOR_SCAN, "")
+		web.taskLog().Warn(taskId, tasklog.NOTE_PAUSED_FOR_SCAN, "")
 		web.taskLog().Finish(taskId, nil)
 		return
 	}

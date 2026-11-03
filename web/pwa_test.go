@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -72,8 +73,8 @@ func TestOfflinePageWorksOffline(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, lang := range supportedLanguages {
-		if lang != DEFAULT_LANGUAGE && !strings.Contains(string(page), `lang="`+lang+`"`) {
+	for _, lang := range i18n.SupportedLanguages {
+		if lang != i18n.DEFAULT_LANGUAGE && !strings.Contains(string(page), `lang="`+lang+`"`) {
 			t.Errorf("the offline page has no text in %s", lang)
 		}
 	}

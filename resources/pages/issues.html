@@ -18,8 +18,8 @@
 			</div>
 			<p class="small text-body-secondary mt-n2 admin-only" id="verifyLevelHelp">{{- if not .LastVerified.IsZero}}{{t "Files last checked %v" (formatDateTime .LastVerified)}}. {{end -}}
 				<span data-verify-hint="signature" hidden>{{t "Signature: in seconds, every NCA is checked for the signature of Nintendo on its header, without reading the data. A file without it is Modified."}}</span>
-				<span data-verify-hint="hash" hidden>{{t "Hash: every file is read whole and every NCA checked against its hashes, which finds any damaged byte; it takes as long as reading the files. A damaged file is Failed."}}</span>
-				<span data-verify-hint="both">{{t "Both: the signature first, then the hashes, even when the signature fails. A damaged file is Failed; one without the signature and nothing damaged, Modified."}}</span>
+				<span data-verify-hint="hash" hidden>{{t "Hash: every file is read whole and every NCA checked against its hashes, which finds any damaged byte; it takes as long as reading the files. A damaged file is Corrupted."}}</span>
+				<span data-verify-hint="both">{{t "Both: the signature first, then the hashes, even when the signature fails. A damaged file is Corrupted; one without the signature and nothing damaged, Modified."}}</span>
 				{{t "Check new files looks only at the files added or changed since the last check, and goes on where a stopped check was; Check everything again reads the whole library once more."}}</p>
 			{{- if .Summaries}}
 			<section class="issue-summary mb-4" aria-label="{{t "Summary"}}">
@@ -93,7 +93,7 @@
 					<span class="issue-icon bi {{issueIcon .Reason}}" aria-hidden="true"></span>
 					<div class="item-main">
 						<div class="item-name" title="{{.File}}">{{fileBase .File}}
-							{{- if eq .Verdict "failed"}} <span class="chip chip-danger ms-1"><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Failed (file)"}}</span>
+							{{- if eq .Verdict "failed"}} <span class="chip chip-danger ms-1"><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Corrupted"}}</span>
 							{{- else if eq .Verdict "modified"}} <span class="chip chip-warning ms-1"><span class="bi bi-patch-exclamation" aria-hidden="true"></span>{{t "Modified"}}</span>{{end}}</div>
 						{{- if .Cause}}
 						<div class="issue-reason">{{.Cause}}</div>

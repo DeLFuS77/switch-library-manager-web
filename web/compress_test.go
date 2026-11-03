@@ -18,6 +18,9 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -85,7 +88,7 @@ func postForm(web *Web, path string, form url.Values) *httptest.ResponseRecorder
 	return recorder
 }
 
-func waitForCompression(t *testing.T, web *Web) Task {
+func waitForCompression(t *testing.T, web *Web) tasklog.Task {
 	t.Helper()
 	deadline := time.Now().Add(20 * time.Second)
 	for web.compressionRunning() {
@@ -95,12 +98,12 @@ func waitForCompression(t *testing.T, web *Web) Task {
 		time.Sleep(20 * time.Millisecond)
 	}
 	for _, task := range web.taskLog().Snapshot() {
-		if task.Kind == TASK_COMPRESS {
+		if task.Kind == tasklog.TASK_COMPRESS {
 			return task
 		}
 	}
 	t.Fatal("no compression task")
-	return Task{}
+	return tasklog.Task{}
 }
 
 func TestCompressPageAndRun(t *testing.T) {
@@ -121,7 +124,7 @@ func TestCompressPageAndRun(t *testing.T) {
 		t.Fatalf("start: %v %s", started.Code, started.Body.String())
 	}
 	task := waitForCompression(t, web)
-	if task.Status != TASK_SUCCESS || task.Files != 1 || task.Saved <= 0 {
+	if task.Status != tasklog.TASK_SUCCESS || task.Files != 1 || task.Saved <= 0 {
 		t.Fatalf("task: %+v", task)
 	}
 	// each file is listed with its size before and after, and the share saved
@@ -155,7 +158,7 @@ func TestCompressKeepsOriginalsWhenAsked(t *testing.T) {
 	if code := postForm(web, "/compress/start", url.Values{"path": {path}}).Code; code != http.StatusAccepted {
 		t.Fatalf("start: %v", code)
 	}
-	if task := waitForCompression(t, web); task.Status != TASK_SUCCESS {
+	if task := waitForCompression(t, web); task.Status != tasklog.TASK_SUCCESS {
 		t.Fatalf("task: %+v", task)
 	}
 	if _, err := os.Stat(path); err != nil {
@@ -193,7 +196,7 @@ func TestDamagedFilesAreNotCompressed(t *testing.T) {
 
 	postForm(web, "/compress/start", url.Values{"path": {path}, "delete_originals": {"true"}})
 	task := waitForCompression(t, web)
-	if task.Status != TASK_FAILED || len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_COMPRESS_DAMAGED {
+	if task.Status != tasklog.TASK_FAILED || len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_COMPRESS_DAMAGED {
 		t.Fatalf("a damaged file must be reported: %+v", task)
 	}
 	if _, err := os.Stat(path); err != nil {
@@ -232,14 +235,14 @@ func TestCompressDamageIncludesFilesCutShort(t *testing.T) {
 	if compressDamage(errCompressSpace) || compressDamage(context.Canceled) {
 		t.Fatal("not damage")
 	}
-	if compressNote(TASK_COMPRESS, fmt.Errorf("read 1 of 2 bytes: %w", io.EOF)) != NOTE_COMPRESS_DAMAGED {
+	if compressNote(tasklog.TASK_COMPRESS, fmt.Errorf("read 1 of 2 bytes: %w", io.EOF)) != NOTE_COMPRESS_DAMAGED {
 		t.Fatal("the note of a file cut short")
 	}
 }
 
 func TestCompressNotesAreTranslated(t *testing.T) {
 	for _, text := range compressNoteTexts {
-		if _, ok := translations["es"][text]; !ok {
+		if _, ok := i18n.Translations["es"][text]; !ok {
 			t.Errorf("no Spanish translation for %q", text)
 		}
 	}
@@ -293,14 +296,14 @@ func TestDecompressFromThePage(t *testing.T) {
 	for web.compressionRunning() && time.Now().Before(deadline) {
 		time.Sleep(20 * time.Millisecond)
 	}
-	var task Task
+	var task tasklog.Task
 	for _, candidate := range web.taskLog().Snapshot() {
-		if candidate.Kind == TASK_DECOMPRESS {
+		if candidate.Kind == tasklog.TASK_DECOMPRESS {
 			task = candidate
 			break
 		}
 	}
-	if task.Status != TASK_SUCCESS || task.Files != 1 {
+	if task.Status != tasklog.TASK_SUCCESS || task.Files != 1 {
 		t.Fatalf("task: %+v", task)
 	}
 	restored, err := os.ReadFile(path)
@@ -335,8 +338,8 @@ func TestConvertGameCardToNsp(t *testing.T) {
 	if response := postForm(web, "/convert/start", url.Values{"path": {xci}, "delete_originals": {"true"}}); response.Code != http.StatusAccepted {
 		t.Fatalf("convert: %d %s", response.Code, response.Body.String())
 	}
-	task := waitForTask(t, web, TASK_CONVERT)
-	if task.Status != TASK_SUCCESS || task.Files != 1 {
+	task := waitForTask(t, web, tasklog.TASK_CONVERT)
+	if task.Status != tasklog.TASK_SUCCESS || task.Files != 1 {
 		t.Fatalf("one card converted: %+v", task)
 	}
 	if _, err := os.Stat(strings.TrimSuffix(xci, ".xci") + ".nsp"); err != nil {
@@ -353,7 +356,7 @@ func TestCompressionLanesTellTheirPhase(t *testing.T) {
 	web, path := compressWeb(t)
 	info, _ := os.Stat(path)
 	phases := []string{}
-	web.runFileTask(TASK_COMPRESS, []string{path}, 2, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	web.runFileTask(tasklog.TASK_COMPRESS, []string{path}, 2, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		for step := int64(0); step < 2; step++ {
 			report(step*info.Size())(1, info.Size())
 			for _, task := range web.taskLog().Snapshot() {
@@ -372,11 +375,11 @@ func TestCompressionLanesTellTheirPhase(t *testing.T) {
 	})
 	waitForCompression(t, web)
 	for _, task := range web.taskLog().Snapshot() {
-		if task.Kind == TASK_COMPRESS && task.FileNumber != 1 {
+		if task.Kind == tasklog.TASK_COMPRESS && task.FileNumber != 1 {
 			t.Errorf("once compressed and checked, the file is counted: %d of %d", task.FileNumber, task.FileCount)
 		}
 	}
-	if strings.Join(phases, ", ") != PHASE_COMPRESSING+" 1/2, "+PHASE_VERIFYING+" 2/2" {
+	if strings.Join(phases, ", ") != tasklog.PHASE_COMPRESSING+" 1/2, "+tasklog.PHASE_VERIFYING+" 2/2" {
 		t.Fatalf("phases: %v", phases)
 	}
 }
@@ -396,7 +399,7 @@ func TestSeveralFilesAtOnce(t *testing.T) {
 	running, most, lanes := 0, 0, 0
 	both := make(chan struct{})
 	var once sync.Once
-	started := web.runFileTask(TASK_COMPRESS, paths, 3, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	started := web.runFileTask(tasklog.TASK_COMPRESS, paths, 3, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		mutex.Lock()
 		running++
 		most = max(most, running)
@@ -428,7 +431,7 @@ func TestSeveralFilesAtOnce(t *testing.T) {
 	if most != 2 || lanes != 2 {
 		t.Fatalf("two files at once, each with its line: %d at once, %d lines", most, lanes)
 	}
-	if task.Status != TASK_SUCCESS || task.Files != 3 || task.Saved != 300 || len(task.Results) != 3 || task.Workers != 2 {
+	if task.Status != tasklog.TASK_SUCCESS || task.Files != 3 || task.Saved != 300 || len(task.Results) != 3 || task.Workers != 2 {
 		t.Fatalf("the results of the three files: %+v", task)
 	}
 }
@@ -437,7 +440,7 @@ func TestSeveralFilesAtOnce(t *testing.T) {
 // the space left is taken by the first.
 func TestSpaceIsReservedForFilesWrittenAtOnce(t *testing.T) {
 	web := newTestWeb(t)
-	free, err := diskFree(web.dataFolder)
+	free, err := diskfree.Free(web.dataFolder)
 	if err != nil {
 		t.Skip("no free space on this system")
 	}
@@ -464,7 +467,7 @@ func TestCompressionCountsAsACheck(t *testing.T) {
 	if !web.startCompression([]string{path}, "fast", false) {
 		t.Fatal("the compression must start")
 	}
-	if task := waitForCompression(t, web); task.Status != TASK_SUCCESS {
+	if task := waitForCompression(t, web); task.Status != tasklog.TASK_SUCCESS {
 		t.Fatalf("task: %+v", task)
 	}
 	for _, file := range []string{path, switchfs.NszPath(path)} {
@@ -485,7 +488,7 @@ func TestCompressionPause(t *testing.T) {
 	reached := make(chan int64, 10)
 	// the job waits at the gate after its first report, so the pause comes before the next one
 	gate := make(chan struct{})
-	started := web.runFileTask(TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	started := web.runFileTask(tasklog.TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		progress := report(0)
 		for done := int64(1); done <= 3; done++ {
 			progress(done, 3)
@@ -532,7 +535,7 @@ func TestCompressionPause(t *testing.T) {
 	waitForCompression(t, web)
 
 	// cancelled while paused: the work ends
-	web.runFileTask(TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	web.runFileTask(tasklog.TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		progress := report(0)
 		reached <- 0
 		progress(1, 2)
@@ -542,7 +545,7 @@ func TestCompressionPause(t *testing.T) {
 	web.pauseCompression(true)
 	web.cancelCompression()
 	waitForCompression(t, web)
-	task := waitForTask(t, web, TASK_COMPRESS)
+	task := waitForTask(t, web, tasklog.TASK_COMPRESS)
 	if task.Paused {
 		t.Fatal("a task that ended is no longer paused")
 	}
@@ -560,19 +563,19 @@ func TestPauseOnlyHoldsTasksThatPause(t *testing.T) {
 		<-gate
 		return original(ctx, path, progress)
 	}
-	web.startVerificationOf([]string{path}, verifyRecheckAll, TRIGGER_MANUAL)
+	web.startVerificationOf([]string{path}, verifyRecheckAll, tasklog.TRIGGER_MANUAL)
 	<-reading
 	if web.pauseCompression(true) {
 		t.Fatal("a check is not paused")
 	}
 	close(gate)
-	checked := waitForTask(t, web, TASK_VERIFY)
+	checked := waitForTask(t, web, tasklog.TASK_VERIFY)
 	if checked.Paused {
 		t.Fatal("the check is not marked paused")
 	}
 
 	ran := make(chan struct{}, 1)
-	web.runFileTask(TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	web.runFileTask(tasklog.TASK_COMPRESS, []string{path}, 1, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		report(0)(1, 1)
 		ran <- struct{}{}
 		return 0, nil
@@ -617,7 +620,7 @@ func TestCompressionBarReachesItsEnd(t *testing.T) {
 	info, _ := os.Stat(path)
 	var mutex sync.Mutex
 	reached := map[int64]int64{}
-	web.runFileTask(TASK_COMPRESS, []string{path}, 2, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
+	web.runFileTask(tasklog.TASK_COMPRESS, []string{path}, 2, func(ctx context.Context, path string, report func(int64) func(int64, int64)) (int64, error) {
 		return web.compressFile(ctx, path, switchfs.LevelFast, false, func(step int64) func(int64, int64) {
 			progress := report(step)
 			return func(done int64, total int64) {

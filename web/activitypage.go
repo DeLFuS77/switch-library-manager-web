@@ -2,6 +2,8 @@ package web
 
 import (
 	"encoding/csv"
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"net/http"
 	"sort"
 	"strconv"
@@ -10,7 +12,7 @@ import (
 // ActivityPageData is the activity page: the actions, and the users and kinds to filter by.
 type ActivityPageData struct {
 	GlobalPageData
-	Activity []Activity
+	Activity []activity.Entry
 	Users    []string
 	Actions  []ActivityActionName
 }
@@ -23,16 +25,16 @@ type ActivityActionName struct {
 
 // activityActionNames are the kinds of actions with their names, to translate, for the filter.
 func activityActionNames(lang string) []ActivityActionName {
-	names := make([]ActivityActionName, 0, len(activityActions))
-	for _, action := range activityActions {
-		names = append(names, ActivityActionName{Value: action, Name: translate(lang, action)})
+	names := make([]ActivityActionName, 0, len(activity.Actions))
+	for _, action := range activity.Actions {
+		names = append(names, ActivityActionName{Value: action, Name: i18n.Translate(lang, action)})
 	}
 	sort.Slice(names, func(i, j int) bool { return names[i].Name < names[j].Name })
 	return names
 }
 
 // activityUsers are the names seen in the log, for the filter.
-func activityUsers(entries []Activity) []string {
+func activityUsers(entries []activity.Entry) []string {
 	seen := map[string]bool{}
 	users := []string{}
 	for _, entry := range entries {
@@ -50,7 +52,7 @@ func (web *Web) HandleActivity() {
 
 	web.router.HandleFunc("/activity.html", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
-		entries := web.activities().list()
+		entries := web.activities().List()
 		web.render(w, r, templates, ActivityPageData{
 			GlobalPageData: web.globalPageData("activity"),
 			Activity:       translateActivity(lang, entries),
@@ -67,8 +69,8 @@ func (web *Web) HandleActivity() {
 		w.Header().Set("Content-Disposition", "attachment; filename="+strconv.Quote("activity.csv"))
 		writer := csv.NewWriter(w)
 		writer.Write([]string{"time", "user", "action", "detail", "ip"})
-		for _, entry := range translateActivity(lang, web.activities().list()) {
-			writer.Write([]string{entry.Time.Format("2006-01-02 15:04:05"), csvSafe(entry.User), translate(lang, entry.Action), csvSafe(entry.Detail), csvSafe(entry.IP)})
+		for _, entry := range translateActivity(lang, web.activities().List()) {
+			writer.Write([]string{entry.Time.Format("2006-01-02 15:04:05"), csvSafe(entry.User), i18n.Translate(lang, entry.Action), csvSafe(entry.Detail), csvSafe(entry.IP)})
 		}
 		writer.Flush()
 	}).Methods("GET")

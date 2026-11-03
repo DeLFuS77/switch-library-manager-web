@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -112,7 +114,7 @@ func (web *Web) HandleIssues() {
 			keyword := strings.ToLower(filter.Keyword)
 			matching = []Issue{}
 			for _, issue := range byKind {
-				if strings.Contains(strings.ToLower(issue.File), keyword) || strings.Contains(strings.ToLower(translateIssue(lang, issue.Reason)), keyword) {
+				if strings.Contains(strings.ToLower(issue.File), keyword) || strings.Contains(strings.ToLower(i18n.TranslateIssue(lang, issue.Reason)), keyword) {
 					matching = append(matching, issue)
 				}
 			}
@@ -170,7 +172,7 @@ func (web *Web) HandleIssues() {
 		}
 		// the issues are listed again at once, without the files deleted
 		web.invalidateDerived()
-		web.Rescan(TRIGGER_MANUAL)
+		web.Rescan(tasklog.TRIGGER_MANUAL)
 		writeJSON(w, http.StatusOK, map[string]any{"deleted": deleted, "freed": freed, "failed": len(files) - deleted})
 	}).Methods("POST")
 
@@ -203,7 +205,7 @@ func (web *Web) HandleIssues() {
 			return
 		}
 		web.invalidateDerived()
-		web.Rescan(TRIGGER_MANUAL)
+		web.Rescan(tasklog.TRIGGER_MANUAL)
 		writeJSON(w, http.StatusOK, map[string]any{"deleted": deleted, "freed": freed, "failed": len(files) - deleted})
 	}).Methods("POST")
 
@@ -226,10 +228,10 @@ func (web *Web) HandleIssues() {
 		if _, err := settings.TryUpdateSettings(web.dataFolder, func(s *settings.AppSettings) {
 			s.OrganizeOptions.KeepFiles = keptChoices(s.OrganizeOptions.KeepFiles, path, other)
 		}); err != nil {
-			writeGlobalError(w, http.StatusInternalServerError, lang, translatef(lang, "The settings could not be saved: %v", err))
+			writeGlobalError(w, http.StatusInternalServerError, lang, i18n.Translatef(lang, "The settings could not be saved: %v", err))
 			return
 		}
-		web.Rescan(TRIGGER_SETTINGS)
+		web.Rescan(tasklog.TRIGGER_SETTINGS)
 		writeJSON(w, http.StatusAccepted, map[string]any{"kept": path})
 	}).Methods("POST")
 
@@ -251,7 +253,7 @@ func (web *Web) HandleIssues() {
 			}
 			s.IgnoreFileTypes = append(s.IgnoreFileTypes, extension[1:])
 		})
-		web.Rescan(TRIGGER_SETTINGS)
+		web.Rescan(tasklog.TRIGGER_SETTINGS)
 		writeJSON(w, http.StatusAccepted, map[string]any{"ignored": extension})
 	}).Methods("POST")
 }

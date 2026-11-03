@@ -6,75 +6,20 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
-	"regexp"
-	"strconv"
-	"strings"
 	"time"
-	"unicode"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
-
-// The English text is the translation key: a missing translation shows the English text.
-
-const DEFAULT_LANGUAGE = "en"
-
-// supportedLanguages lists the interface languages, the first one is the default.
-var supportedLanguages = []string{"en", "es", "fr", "de", "it", "pt", "nl", "ru", "ja", "ko", "zh"}
-
-var languageNames = map[string]string{
-	"en": "English",
-	"es": "Español",
-	"fr": "Français",
-	"de": "Deutsch",
-	"it": "Italiano",
-	"pt": "Português",
-	"nl": "Nederlands",
-	"ru": "Русский",
-	"ja": "日本語",
-	"ko": "한국어",
-	"zh": "简体中文",
-}
-
-func translate(lang string, text string) string {
-	if translated, ok := translations[lang][text]; ok {
-		return translated
-	}
-	if english, ok := englishTexts[text]; ok {
-		return english
-	}
-	return text
-}
-
-// englishTexts are the texts whose key says what they name, for the languages where the word
-// changes with it (a file failed, a task failed: "Fallido", "Fallida"), with their English.
-var englishTexts = map[string]string{
-	"Failed (file)": "Failed",
-}
-
-func translatef(lang string, text string, args ...any) string {
-	return fmt.Sprintf(translate(lang, text), args...)
-}
-
-// jsTranslations returns the translations of the texts used by web.js.
-func jsTranslations(lang string) map[string]string {
-	result := map[string]string{}
-	for _, text := range jsTexts {
-		if translated := translate(lang, text); translated != text {
-			result[text] = translated
-		}
-	}
-	return result
-}
 
 func i18nFuncs(lang string) template.FuncMap {
 	return template.FuncMap{
 		"t": func(text string, args ...any) string {
 			if len(args) > 0 {
-				return translatef(lang, text, args...)
+				return i18n.Translatef(lang, text, args...)
 			}
-			return translate(lang, text)
+			return i18n.Translate(lang, text)
 		},
 		// tCode translates a text whose arguments are shown as code, like a word to look for in
 		// a log: tCode "Look for %v in the log." "SETUP CODE"
@@ -83,7 +28,7 @@ func i18nFuncs(lang string) template.FuncMap {
 			for i, arg := range args {
 				codes[i] = "<code>" + template.HTMLEscapeString(fmt.Sprint(arg)) + "</code>"
 			}
-			return template.HTML(fmt.Sprintf(template.HTMLEscapeString(translate(lang, text)), codes...))
+			return template.HTML(fmt.Sprintf(template.HTMLEscapeString(i18n.Translate(lang, text)), codes...))
 		},
 		// tStrong translates a text whose arguments are shown in bold, like a name
 		"tStrong": func(text string, args ...any) template.HTML {
@@ -91,28 +36,29 @@ func i18nFuncs(lang string) template.FuncMap {
 			for i, arg := range args {
 				strong[i] = "<strong>" + template.HTMLEscapeString(fmt.Sprint(arg)) + "</strong>"
 			}
-			return template.HTML(fmt.Sprintf(template.HTMLEscapeString(translate(lang, text)), strong...))
+			return template.HTML(fmt.Sprintf(template.HTMLEscapeString(i18n.Translate(lang, text)), strong...))
 		},
 		"lang":           func() string { return lang },
-		"jsTranslations": func() map[string]string { return jsTranslations(lang) },
-		"languageName":   func(code string) string { return languageNames[code] },
-		"formatTime":     func(value time.Time) string { return formatDate(lang, value) },
+		"jsTranslations": func() map[string]string { return i18n.JSTranslations(lang) },
+		"languageName":   func(code string) string { return i18n.LanguageNames[code] },
+		"formatTime":     func(value time.Time) string { return i18n.FormatDate(lang, value) },
 		// a date of the titles database (20240131), or "" when it has none
 		"releaseDate": func(value int) string {
 			if date, err := intToTime(value); err == nil && value > 0 {
-				return formatDate(lang, date)
+				return i18n.FormatDate(lang, date)
 			}
 			return ""
 		},
-		"formatMonth":    func(value time.Time) string { return formatMonth(lang, value) },
-		"formatDay":      func(value time.Time) string { return formatDay(lang, value) },
-		"num":            func(value int) string { return formatNumber(lang, value) },
-		"numShort":       func(value int) string { return formatShortNumber(lang, value) },
-		"formatDateTime": func(value time.Time) string { return formatDateTime(lang, value) },
-		"issue":          func(text string) string { return translateIssue(lang, text) },
+		"formatMonth":    func(value time.Time) string { return i18n.FormatMonth(lang, value) },
+		"monthName":      func(value time.Time) string { return i18n.FormatMonthName(lang, value) },
+		"formatDay":      func(value time.Time) string { return i18n.FormatDay(lang, value) },
+		"num":            func(value int) string { return i18n.FormatNumber(lang, value) },
+		"numShort":       func(value int) string { return i18n.FormatShortNumber(lang, value) },
+		"formatDateTime": func(value time.Time) string { return i18n.FormatDateTime(lang, value) },
+		"issue":          func(text string) string { return i18n.TranslateIssue(lang, text) },
 		// sizes with the decimal separator of the language
-		"formatSize":  func(size int64) string { return formatSizeIn(lang, size) },
-		"formatBytes": func(size int) string { return formatSizeIn(lang, int64(size)) },
+		"formatSize":  func(size int64) string { return i18n.FormatSizeIn(lang, size) },
+		"formatBytes": func(size int) string { return i18n.FormatSizeIn(lang, int64(size)) },
 	}
 }
 
@@ -122,14 +68,14 @@ type templateSet map[string]*template.Template
 func parseTemplates(fsys fs.FS, fsPatterns ...string) (templateSet, error) {
 	// components shared by every page
 	fsPatterns = append(fsPatterns, "resources/partials/components.html")
-	base, err := template.New("layout").Funcs(funcMap).Funcs(i18nFuncs(DEFAULT_LANGUAGE)).ParseFS(fsys, fsPatterns...)
+	base, err := template.New("layout").Funcs(funcMap).Funcs(i18nFuncs(i18n.DEFAULT_LANGUAGE)).ParseFS(fsys, fsPatterns...)
 	if err != nil {
 		return nil, err
 	}
 
-	set := templateSet{DEFAULT_LANGUAGE: base}
-	for _, lang := range supportedLanguages {
-		if lang == DEFAULT_LANGUAGE {
+	set := templateSet{i18n.DEFAULT_LANGUAGE: base}
+	for _, lang := range i18n.SupportedLanguages {
+		if lang == i18n.DEFAULT_LANGUAGE {
 			continue
 		}
 		clone, err := base.Clone()
@@ -144,7 +90,7 @@ func parseTemplates(fsys fs.FS, fsPatterns ...string) (templateSet, error) {
 func (set templateSet) execute(w io.Writer, lang string, data any) error {
 	tmpl, ok := set[lang]
 	if !ok {
-		tmpl = set[DEFAULT_LANGUAGE]
+		tmpl = set[i18n.DEFAULT_LANGUAGE]
 	}
 	return tmpl.ExecuteTemplate(w, "layout", data)
 }
@@ -153,37 +99,9 @@ func (set templateSet) execute(w io.Writer, lang string, data any) error {
 func (set templateSet) executeTemplate(w io.Writer, lang string, name string, data any) error {
 	tmpl, ok := set[lang]
 	if !ok {
-		tmpl = set[DEFAULT_LANGUAGE]
+		tmpl = set[i18n.DEFAULT_LANGUAGE]
 	}
 	return tmpl.ExecuteTemplate(w, name, data)
-}
-
-func isSupportedLanguage(lang string) bool {
-	return supportedLanguage(lang) != ""
-}
-
-// supportedLanguage is lang as the list of supported languages has it, or "" when it is not
-// one of them. The value comes from the list, not from what a browser sent: it names files of
-// the data folder and goes in the addresses of downloads.
-func supportedLanguage(lang string) string {
-	for _, supported := range supportedLanguages {
-		if supported == lang {
-			return supported
-		}
-	}
-	return ""
-}
-
-// languageFromHeader returns the first supported language of an Accept-Language header.
-// Browsers list the languages in order of preference.
-func languageFromHeader(header string) string {
-	for _, part := range strings.Split(header, ",") {
-		tag := strings.ToLower(strings.TrimSpace(strings.SplitN(part, ";", 2)[0]))
-		if primary := supportedLanguage(strings.SplitN(tag, "-", 2)[0]); primary != "" {
-			return primary
-		}
-	}
-	return DEFAULT_LANGUAGE
 }
 
 // requestLanguage returns the interface language: the one chosen in the settings, or the
@@ -191,209 +109,17 @@ func languageFromHeader(header string) string {
 func (web *Web) requestLanguage(r *http.Request) string {
 	// the language chosen by the user comes first
 	if principal := principalFrom(r); principal != nil && principal.Name != "" && web.auth != nil {
-		if user, ok := web.auth.users.Get(principal.Name); ok && isSupportedLanguage(user.Language) {
+		if user, ok := web.auth.users.Get(principal.Name); ok && i18n.IsSupportedLanguage(user.Language) {
 			web.noteLanguage(user.Language)
 			return user.Language
 		}
 	}
 	lang := settings.ReadSettings(web.dataFolder).Language
-	if !isSupportedLanguage(lang) {
-		lang = languageFromHeader(r.Header.Get("Accept-Language"))
+	if !i18n.IsSupportedLanguage(lang) {
+		lang = i18n.LanguageFromHeader(r.Header.Get("Accept-Language"))
 	}
 	web.noteLanguage(lang)
 	return lang
-}
-
-// thousands separators by language; the others use a comma
-var thousandsSeparators = map[string]string{"es": ".", "pt": ".", "it": ".", "de": ".", "nl": ".", "fr": " ", "ru": " "}
-
-// formatNumber writes a number with the thousands separator of the language: 11382 is
-// "11,382" in English and "11.382" in Spanish, where four-digit numbers have none.
-func formatNumber(lang string, value int) string {
-	digits := strconv.Itoa(value)
-	negative := strings.HasPrefix(digits, "-")
-	digits = strings.TrimPrefix(digits, "-")
-	minimum := 4
-	if lang == "es" || lang == "pt" {
-		minimum = 5
-	}
-	if len(digits) < minimum {
-		if negative {
-			return "-" + digits
-		}
-		return digits
-	}
-	separator, ok := thousandsSeparators[lang]
-	if !ok {
-		separator = ","
-	}
-	var builder strings.Builder
-	for i, digit := range digits {
-		if i > 0 && (len(digits)-i)%3 == 0 {
-			builder.WriteString(separator)
-		}
-		builder.WriteRune(digit)
-	}
-	if negative {
-		return "-" + builder.String()
-	}
-	return builder.String()
-}
-
-// decimal separators by language, as web.js has them (formatSize); the others use a point
-var decimalSeparators = map[string]string{"es": ",", "pt": ",", "it": ",", "de": ",", "nl": ",", "fr": ",", "ru": ","}
-
-// formatSizeIn is formatSize with the decimal separator of the language: 1.5 GB in English is
-// 1,5 GB in Spanish.
-func formatSizeIn(lang string, size int64) string {
-	text := formatSize(size)
-	if separator, ok := decimalSeparators[lang]; ok {
-		return strings.Replace(text, ".", separator, 1)
-	}
-	return text
-}
-
-// formatShortNumber writes a big number short, for the room of a phone: 24943 is "25k", and
-// "2.5万" in Japanese and Chinese, "2.5만" in Korean, which count by ten thousands.
-func formatShortNumber(lang string, value int) string {
-	switch lang {
-	case "ja", "zh", "ko":
-		unit := "万"
-		if lang == "ko" {
-			unit = "만"
-		}
-		tenths := (value + 500) / 1000
-		if tenths%10 == 0 || tenths >= 1000 {
-			return formatNumber(lang, (tenths+5)/10) + unit
-		}
-		return strconv.Itoa(tenths/10) + "." + strconv.Itoa(tenths%10) + unit
-	}
-	return formatNumber(lang, (value+500)/1000) + "k"
-}
-
-var monthAbbreviations = map[string][12]string{
-	"es": {"ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"},
-	"fr": {"janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."},
-	"de": {"Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sept.", "Okt.", "Nov.", "Dez."},
-	"it": {"gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"},
-	"pt": {"jan.", "fev.", "mar.", "abr.", "mai.", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."},
-	"nl": {"jan.", "feb.", "mrt.", "apr.", "mei", "jun.", "jul.", "aug.", "sep.", "okt.", "nov.", "dec."},
-	"ru": {"янв.", "февр.", "мар.", "апр.", "мая", "июн.", "июл.", "авг.", "сент.", "окт.", "нояб.", "дек."},
-}
-
-// languages that write dates as year, month and day with their own signs
-var dateSigns = map[string][3]string{
-	"ja": {"年", "月", "日"},
-	"zh": {"年", "月", "日"},
-	"ko": {"년 ", "월 ", "일"},
-}
-
-// formatDate formats a date for the interface language: "Oct 5, 2026" / "5 oct 2026".
-func formatDate(lang string, value time.Time) string {
-	if value.IsZero() {
-		return ""
-	}
-	if signs, ok := dateSigns[lang]; ok {
-		return fmt.Sprintf("%d%s%d%s%d%s", value.Year(), signs[0], value.Month(), signs[1], value.Day(), signs[2])
-	}
-	if months, ok := monthAbbreviations[lang]; ok {
-		if lang == "de" {
-			return fmt.Sprintf("%d. %s %d", value.Day(), months[value.Month()-1], value.Year())
-		}
-		return fmt.Sprintf("%d %s %d", value.Day(), months[value.Month()-1], value.Year())
-	}
-	return value.Format("Jan 2, 2006")
-}
-
-var monthNames = map[string][12]string{
-	"es": {"enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"},
-	"fr": {"janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"},
-	"de": {"Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"},
-	"it": {"gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"},
-	"pt": {"janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"},
-	"nl": {"januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"},
-	"ru": {"январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"},
-}
-
-// formatMonth formats a month and its year: "October 2026" / "octubre de 2026".
-func formatMonth(lang string, value time.Time) string {
-	if signs, ok := dateSigns[lang]; ok {
-		return fmt.Sprintf("%d%s%d%s", value.Year(), signs[0], value.Month(), strings.TrimSpace(signs[1]))
-	}
-	if months, ok := monthNames[lang]; ok {
-		// a title: the month starts with a capital letter
-		month := []rune(months[value.Month()-1])
-		month[0] = unicode.ToUpper(month[0])
-		switch lang {
-		case "es", "pt":
-			return fmt.Sprintf("%s de %d", string(month), value.Year())
-		}
-		return fmt.Sprintf("%s %d", string(month), value.Year())
-	}
-	return value.Format("January 2006")
-}
-
-// formatDay formats a day of the month without the year: "Oct 8" / "8 oct".
-func formatDay(lang string, value time.Time) string {
-	if signs, ok := dateSigns[lang]; ok {
-		return fmt.Sprintf("%d%s%d%s", value.Month(), signs[1], value.Day(), signs[2])
-	}
-	if months, ok := monthAbbreviations[lang]; ok {
-		if lang == "de" {
-			return fmt.Sprintf("%d. %s", value.Day(), months[value.Month()-1])
-		}
-		return fmt.Sprintf("%d %s", value.Day(), months[value.Month()-1])
-	}
-	return value.Format("Jan 2")
-}
-
-// formatDateTime formats a local date and time for the interface language.
-func formatDateTime(lang string, value time.Time) string {
-	if value.IsZero() {
-		return translate(lang, "never")
-	}
-	value = value.Local()
-	return formatDate(lang, value) + " " + value.Format("15:04")
-}
-
-// Issue texts are created in English by the scanner and contain file paths and technical
-// details, so they are translated by pattern; the captured parts stay as they are.
-var issuePatterns = []struct {
-	pattern *regexp.Regexp
-	text    string
-}{
-	{regexp.MustCompile(`^file type is not supported$`), "file type is not supported"},
-	{regexp.MustCompile(`^base file is missing$`), "base file is missing"},
-	{regexp.MustCompile(`^duplicate (update|base|DLC) file \((.*)\)$`), "duplicate %v file (%v)"},
-	{regexp.MustCompile(`^old update file, newer update exist locally \((.*)\)$`), "old update file, newer update exist locally (%v)"},
-	{regexp.MustCompile(`^old DLC file, newer version exist locally \((.*)\)$`), "old DLC file, newer version exist locally (%v)"},
-	{regexp.MustCompile(`^failed to read (NSP|XCI|split files): prod\.keys has no (\S+)\. The title needs keys from a newer firmware: update prod\.keys, or add \[TitleID\]\[vVersion\] to the file name$`),
-		"failed to read %v: prod.keys has no %v. The title needs keys from a newer firmware: update prod.keys, or add [TitleID][vVersion] to the file name"},
-	{regexp.MustCompile(`^failed to read (NSP|XCI|split files) \[reason: (.*)\]$`), "failed to read %v [reason: %v]"},
-	{regexp.MustCompile(`^unable to determine title-Id / version - (.*)$`), "unable to determine title ID / version - %v"},
-	{regexp.MustCompile(`^damaged file: (.*)$`), "damaged file: %v"},
-	{regexp.MustCompile(`^not signed by Nintendo: (.*)$`), "not signed by Nintendo: %v"},
-	{regexp.MustCompile(`^no title key \(rights ID (\w+)\): the file has no ticket and title\.keys does not list it$`), "no title key (rights ID %v): the file has no ticket and title.keys does not list it"},
-}
-
-// translateIssue translates an issue text created by the scanner.
-func translateIssue(lang string, text string) string {
-	if lang == DEFAULT_LANGUAGE {
-		return text
-	}
-	if rest, ok := strings.CutPrefix(text, "identified by file name only, "); ok {
-		return translatef(lang, "identified by file name only, %v", translateIssue(lang, rest))
-	}
-	for _, issue := range issuePatterns {
-		if match := issue.pattern.FindStringSubmatch(text); match != nil {
-			args := make([]any, 0, len(match)-1)
-			for _, group := range match[1:] {
-				args = append(args, translate(lang, group))
-			}
-			return translatef(lang, issue.text, args...)
-		}
-	}
-	return text
 }
 
 // titleName returns the name of a title in the interface language, or fallback when the

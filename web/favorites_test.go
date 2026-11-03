@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -18,13 +19,13 @@ func TestFavoritesMarkedAtOnceAreAllSaved(t *testing.T) {
 		wait.Add(1)
 		go func(i int) {
 			defer wait.Done()
-			store.set(fmt.Sprintf("01000000000%03X000", i), true)
+			store.Set(fmt.Sprintf("01000000000%03X000", i), true)
 		}(i)
 	}
 	wait.Wait()
-	reloaded := &favoriteStore{path: filepath.Join(web.dataFolder, FAVORITES_FILENAME)}
-	reloaded.reload()
-	if got := len(reloaded.snapshot()); got != 40 {
+	reloaded := userdata.NewFavorites(filepath.Join(web.dataFolder, userdata.FAVORITES_FILENAME))
+	reloaded.Reload()
+	if got := len(reloaded.Snapshot()); got != 40 {
 		t.Fatalf("%d favorites on the disk, want 40", got)
 	}
 

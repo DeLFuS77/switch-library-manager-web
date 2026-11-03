@@ -1113,7 +1113,7 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 		// default) zstd keeps the window plus 1 MiB and moves the whole window down every
 		// MiB: on the 128 MiB window of other tools that was 4 times slower. Off, it keeps
 		// twice the window (16 MiB for the 8 MiB of this app) and moves it once per window.
-		decoder, err := zstd.NewReader(bufio.NewReaderSize(data, nczChunkSize), zstd.WithDecoderConcurrency(nczStreamDecoders), zstd.WithDecoderMaxWindow(1<<30), zstd.WithDecoderLowmem(false))
+		decoder, err := zstd.NewReader(bufio.NewReaderSize(data, nczChunkSize), zstd.WithDecoderConcurrency(nczStreamDecoders), zstd.WithDecoderMaxWindow(1<<27), zstd.WithDecoderLowmem(false))
 		if err != nil {
 			return err
 		}
@@ -1194,7 +1194,8 @@ func newNczBlockReader(source io.Reader) (*nczBlockReader, error) {
 	}
 	exponent := header[3]
 	count := binary.LittleEndian.Uint32(header[4:8])
-	if exponent < 14 || exponent > 30 || count > 1<<24 {
+	// nsz stores blocks of a few MB; the cap stops a header from asking for gigabyte blocks
+	if exponent < 14 || exponent > 25 || count > 1<<24 {
 		return nil, errors.New("invalid NCZ block header")
 	}
 	var decompressedSize uint64

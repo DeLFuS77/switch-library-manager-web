@@ -13,6 +13,10 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -55,8 +59,8 @@ type automationBatch struct {
 func (web *Web) automation() *automationQueue {
 	web.automationOnce.Do(func() {
 		queue := &automationQueue{path: filepath.Join(web.dataFolder, AUTOMATION_FILENAME)}
-		if data, ok := readStore(queue.path); ok {
-			parseStore(queue.path, data, queue)
+		if data, ok := durable.ReadStore(queue.path); ok {
+			durable.ParseStore(queue.path, data, queue)
 		}
 		// the app stopped while the automations were working on these files
 		queue.giveBack()
@@ -92,7 +96,7 @@ func (q *automationQueue) save() {
 		return
 	}
 	if data, err := json.Marshal(q); err == nil {
-		writeFileAtomic(q.path, data)
+		durable.WriteFile(q.path, data)
 	}
 }
 
@@ -329,7 +333,7 @@ func (web *Web) runAutomationOnce() bool {
 	// 1. check the new files
 	damaged := map[string]bool{}
 	if options.Verify && len(existing) > 0 {
-		if !web.startVerificationOf(existing, verifyRecheckChanged, TRIGGER_AUTOMATION) {
+		if !web.startVerificationOf(existing, verifyRecheckChanged, tasklog.TRIGGER_AUTOMATION) {
 			return true
 		}
 		web.waitForFileTask()
@@ -367,12 +371,12 @@ func (web *Web) runAutomationOnce() bool {
 				if _, ok := web.waitForAutomation(); !ok {
 					return false
 				}
-				before := web.latestTaskId(TASK_COMPRESS)
-				if !web.compressPaths(toCompress, TRIGGER_AUTOMATION) {
+				before := web.latestTaskId(tasklog.TASK_COMPRESS)
+				if !web.compressPaths(toCompress, tasklog.TRIGGER_AUTOMATION) {
 					return true
 				}
 				web.waitForFileTask()
-				if task, ok := web.latestTask(TASK_COMPRESS); ok && task.Id != before {
+				if task, ok := web.latestTask(tasklog.TASK_COMPRESS); ok && task.Id != before {
 					result.Compressed, result.Saved = task.Files, task.Saved
 				}
 			}
@@ -406,11 +410,11 @@ func (web *Web) runAutomationOnce() bool {
 			// a scan started meanwhile
 			return true
 		}
-		operations, err := web.runOrganizeFiles(action, newFiles, TRIGGER_AUTOMATION)
+		operations, err := web.runOrganizeFiles(action, newFiles, tasklog.TRIGGER_AUTOMATION)
 		// files changed: they are scanned again; else a rescan asked meanwhile is done now
 		rescan := ""
 		if err == nil && len(operations) > 0 {
-			rescan = TRIGGER_AUTOMATION
+			rescan = tasklog.TRIGGER_AUTOMATION
 		}
 		web.releaseScan(rescan)
 		if errors.Is(err, errOrganizeBusy) {
@@ -446,8 +450,8 @@ func (web *Web) waitForFileTask() {
 }
 
 // latestTask is the newest task of a kind.
-func (web *Web) latestTask(kind string) (Task, bool) {
-	var latest Task
+func (web *Web) latestTask(kind string) (tasklog.Task, bool) {
+	var latest tasklog.Task
 	found := false
 	for _, task := range web.taskLog().Snapshot() {
 		if task.Kind == kind && (!found || task.Id > latest.Id) {
@@ -464,50 +468,50 @@ func (web *Web) latestTaskId(kind string) int64 {
 
 // automationMessage is the text of the message: what came, and what was done with it.
 func automationMessage(lang string, result AutomationResult) (string, string) {
-	title := translate(lang, "Switch Library Manager: new files taken care of")
+	title := i18n.Translate(lang, "Switch Library Manager: new files taken care of")
 	lines := []string{}
 	for i, name := range result.Games {
 		if i == maxNotificationLines {
-			lines = append(lines, translatef(lang, "and %v more", len(result.Games)-maxNotificationLines))
+			lines = append(lines, i18n.Translatef(lang, "and %v more", len(result.Games)-maxNotificationLines))
 			break
 		}
-		lines = append(lines, "• "+translatef(lang, "New in your library: %v", name))
+		lines = append(lines, "• "+i18n.Translatef(lang, "New in your library: %v", name))
 	}
 	if result.Updates > 0 {
-		lines = append(lines, "• "+translatef(lang, "%v new updates", result.Updates))
+		lines = append(lines, "• "+i18n.Translatef(lang, "%v new updates", result.Updates))
 	}
 	if result.Checked > 0 {
-		checked := translatef(lang, "%v files checked, %v failed", result.Checked, result.Damaged)
+		checked := i18n.Translatef(lang, "%v files checked, %v corrupted", result.Checked, result.Damaged)
 		if result.Modified > 0 {
-			checked = translatef(lang, "%v files checked, %v modified, %v failed", result.Checked, result.Modified, result.Damaged)
+			checked = i18n.Translatef(lang, "%v files checked, %v modified, %v corrupted", result.Checked, result.Modified, result.Damaged)
 		}
 		lines = append(lines, "✓ "+checked)
 	}
 	if result.Compressed > 0 {
-		lines = append(lines, "✓ "+translatef(lang, "%v files compressed, %v saved", result.Compressed, formatSizeIn(lang, result.Saved)))
+		lines = append(lines, "✓ "+i18n.Translatef(lang, "%v files compressed, %v saved", result.Compressed, i18n.FormatSizeIn(lang, result.Saved)))
 	}
 	if result.Removed > 0 && result.Quarantined {
-		lines = append(lines, "✓ "+translatef(lang, "%v old updates moved to the quarantine", result.Removed))
+		lines = append(lines, "✓ "+i18n.Translatef(lang, "%v old updates moved to the quarantine", result.Removed))
 	} else if result.Removed > 0 {
-		lines = append(lines, "✓ "+translatef(lang, "%v old updates deleted", result.Removed))
+		lines = append(lines, "✓ "+i18n.Translatef(lang, "%v old updates deleted", result.Removed))
 	}
 	if result.Moved > 0 {
-		lines = append(lines, "✓ "+translatef(lang, "%v files organized", result.Moved))
+		lines = append(lines, "✓ "+i18n.Translatef(lang, "%v files organized", result.Moved))
 	}
 	return title, strings.Join(lines, "\n")
 }
 
 func (web *Web) notifyAutomation(result AutomationResult) {
 	settingsObj := settings.ReadSettings(web.dataFolder)
-	if !notificationsConfigured(settingsObj.Notifications) {
+	if !notify.Configured(settingsObj.Notifications) {
 		return
 	}
 	lang := settingsObj.Language
-	if !isSupportedLanguage(lang) {
-		lang = DEFAULT_LANGUAGE
+	if !i18n.IsSupportedLanguage(lang) {
+		lang = i18n.DEFAULT_LANGUAGE
 	}
 	title, text := automationMessage(lang, result)
-	if err := sendMessage(settingsObj.Notifications, title, text, result); err != nil {
+	if err := notify.Send(settingsObj.Notifications, title, text, result); err != nil {
 		web.sugarLogger.Warnf("Failed to send the automation message: %v", err)
 	}
 }

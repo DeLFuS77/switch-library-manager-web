@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 )
 
 func TestUpcomingGamesByMonth(t *testing.T) {
@@ -21,7 +22,7 @@ func TestUpcomingGamesByMonth(t *testing.T) {
 	switchDB.TitlesMap["0100000000090"] = game("0100000000090000", "Old Game", 20200101)
 	switchDB.TitlesMap["01000000000A0"] = game("01000000000A0000", "Other Game NETWORK TEST", 20261021)
 	web.state.set(switchDB, localDB)
-	web.wishes().set("0100000000070000", true)
+	web.wishes().Set("0100000000070000", true)
 
 	now := time.Date(2026, 10, 6, 15, 0, 0, 0, time.Local)
 	games := web.upcomingGamesAt("en", now)
@@ -40,6 +41,9 @@ func TestUpcomingGamesByMonth(t *testing.T) {
 	if page.Total != 2 || page.ForYou != 2 || len(page.JustReleased) != 1 || len(page.Months) != 2 || page.Months[0].Month.Month() != time.October {
 		t.Fatalf("by month: %+v", page)
 	}
+	if page.Months[0].Alternate || !page.Months[1].Alternate {
+		t.Fatalf("every other month in the second colour: %+v", page.Months)
+	}
 	if page.Featured == nil || page.Featured.Item.Id != "0100000000060000" || page.FeaturedDays != 13 {
 		t.Fatalf("the next game for the user is featured: %+v %d", page.Featured, page.FeaturedDays)
 	}
@@ -55,12 +59,17 @@ func TestUpcomingGamesByMonth(t *testing.T) {
 func TestMonthsAndDays(t *testing.T) {
 	date := time.Date(2026, 10, 8, 0, 0, 0, 0, time.UTC)
 	for lang, want := range map[string]string{"en": "October 2026", "es": "Octubre de 2026", "de": "Oktober 2026", "ja": "2026年10月", "ko": "2026년 10월"} {
-		if got := formatMonth(lang, date); got != want {
+		if got := i18n.FormatMonth(lang, date); got != want {
 			t.Errorf("%s month = %q, want %q", lang, got, want)
 		}
 	}
+	for lang, want := range map[string]string{"en": "October", "es": "Octubre", "ru": "Октябрь", "ja": "10月", "ko": "10월"} {
+		if got := i18n.FormatMonthName(lang, date); got != want {
+			t.Errorf("%s month name = %q, want %q", lang, got, want)
+		}
+	}
 	for lang, want := range map[string]string{"en": "Oct 8", "es": "8 oct", "de": "8. Okt.", "zh": "10月8日"} {
-		if got := formatDay(lang, date); got != want {
+		if got := i18n.FormatDay(lang, date); got != want {
 			t.Errorf("%s day = %q, want %q", lang, got, want)
 		}
 	}

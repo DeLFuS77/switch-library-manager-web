@@ -111,7 +111,7 @@
 
 {{- define "miniCard"}}
 				{{- $i := .Item}}
-				<article class="card game-card mini-card h-100{{if and .Grey $i.Missing}} is-missing{{end}}{{if .Highlight}} is-for-you{{end}}">
+				<article class="card game-card mini-card h-100{{if and .Grey $i.Missing}} is-missing{{end}}{{if .Highlight}} is-for-you{{end}}{{with .Class}} {{.}}{{end}}">
 					<div class="game-cover">
 						{{- if .Wish}}<button type="button" class="wish-toggle editor-only{{if $i.Wished}} is-wished{{end}}" data-wish="{{$i.Id}}" data-wished="{{$i.Wished}}" aria-pressed="{{$i.Wished}}" title="{{if $i.Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if $i.Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>{{end}}
 						{{- with .Badge}}<span class="cover-date"><span class="bi bi-calendar3" aria-hidden="true"></span>{{.}}</span>{{end}}

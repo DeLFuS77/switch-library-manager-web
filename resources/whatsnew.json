@@ -1,4 +1,72 @@
 {
+  "1.71.0": {
+    "en": [
+      "A file that passes a check is Verified, and a damaged one Corrupted, as in NXPress.",
+      "On a computer, the app keeps it from going to sleep while a task works on the files.",
+      "New option Low priority in Settings › Compression, so the rest of the server stays responsive while the app works.",
+      "Upcoming releases opens each month with a calendar sheet, and there are several security fixes."
+    ],
+    "es": [
+      "Un archivo comprobado sale como Verificado y uno dañado como Corrupto, como en NXPress.",
+      "En un ordenador, la app evita que se suspenda mientras una tarea trabaja con los archivos.",
+      "Nueva opción Prioridad baja en Ajustes › Compresión, para que el resto del servidor siga respondiendo mientras la app trabaja.",
+      "Próximos lanzamientos abre cada mes con una hoja de calendario, y hay varios arreglos de seguridad."
+    ],
+    "de": [
+      "Eine Datei, die die Prüfung besteht, ist Verifiziert, eine beschädigte Beschädigt, wie in NXPress.",
+      "Auf einem Computer verhindert die App, dass er in den Ruhezustand geht, während eine Aufgabe an den Dateien arbeitet.",
+      "Neue Option Niedrige Priorität in Einstellungen › Komprimierung, damit der Rest des Servers reaktionsschnell bleibt, während die App arbeitet.",
+      "Kommende Veröffentlichungen beginnt jeden Monat mit einem Kalenderblatt, und es gibt mehrere Sicherheitskorrekturen."
+    ],
+    "fr": [
+      "Un fichier qui passe la vérification est Vérifié, et un fichier endommagé Corrompu, comme dans NXPress.",
+      "Sur un ordinateur, l'app l'empêche de se mettre en veille pendant qu'une tâche travaille sur les fichiers.",
+      "Nouvelle option Priorité basse dans Paramètres › Compression, pour que le reste du serveur reste réactif pendant que l'app travaille.",
+      "Prochaines sorties ouvre chaque mois avec une feuille de calendrier, et plusieurs correctifs de sécurité sont inclus."
+    ],
+    "it": [
+      "Un file che supera il controllo è Verificato, e uno danneggiato Corrotto, come in NXPress.",
+      "Su un computer, l'app gli impedisce di andare in sospensione mentre un'attività lavora sui file.",
+      "Nuova opzione Priorità bassa in Impostazioni › Compressione, perché il resto del server resti reattivo mentre l'app lavora.",
+      "Prossime uscite apre ogni mese con un foglio di calendario, e ci sono diverse correzioni di sicurezza."
+    ],
+    "pt": [
+      "Um arquivo que passa na verificação fica Verificado, e um danificado Corrompido, como no NXPress.",
+      "Em um computador, o app impede que ele entre em suspensão enquanto uma tarefa trabalha nos arquivos.",
+      "Nova opção Prioridade baixa em Configurações › Compressão, para que o resto do servidor continue respondendo enquanto o app trabalha.",
+      "Próximos lançamentos abre cada mês com uma folha de calendário, e há várias correções de segurança."
+    ],
+    "nl": [
+      "Een bestand dat de controle doorstaat is Geverifieerd, en een beschadigd bestand Beschadigd, zoals in NXPress.",
+      "Op een computer voorkomt de app dat hij in slaapstand gaat terwijl een taak met de bestanden bezig is.",
+      "Nieuwe optie Lage prioriteit in Instellingen › Compressie, zodat de rest van de server blijft reageren terwijl de app werkt.",
+      "Aankomende releases opent elke maand met een kalenderblad, en er zijn meerdere beveiligingsoplossingen."
+    ],
+    "ru": [
+      "Файл, прошедший проверку, отмечается как Проверен, а повреждённый — как Повреждён, как в NXPress.",
+      "На компьютере приложение не даёт ему уйти в сон, пока задача работает с файлами.",
+      "Новый параметр Низкий приоритет в Настройки › Сжатие, чтобы остальной сервер оставался отзывчивым, пока приложение работает.",
+      "Скорые релизы открывают каждый месяц листом календаря, а также есть несколько исправлений безопасности."
+    ],
+    "ja": [
+      "チェックに通ったファイルは「検証済み」、壊れたファイルは「破損」と表示されます（NXPress と同じ）。",
+      "パソコンでは、タスクがファイルを処理している間はスリープしないようにします。",
+      "設定 › 圧縮 に新しいオプション「低い優先度」：アプリの動作中もサーバーの他の処理が快適に動きます。",
+      "発売予定のゲームは月ごとにカレンダーの一枚から始まり、いくつかのセキュリティ修正も含まれます。"
+    ],
+    "ko": [
+      "검사를 통과한 파일은 검증됨, 손상된 파일은 손상됨으로 표시됩니다(NXPress와 같음).",
+      "컴퓨터에서는 작업이 파일을 처리하는 동안 절전 모드로 들어가지 않게 합니다.",
+      "설정 › 압축에 새 옵션 낮은 우선순위: 앱이 작업하는 동안에도 서버의 다른 프로그램이 원활하게 동작합니다.",
+      "출시 예정 게임은 매달 달력 한 장으로 시작하며, 여러 보안 수정이 포함되어 있습니다."
+    ],
+    "zh": [
+      "通过检查的文件显示为已验证，损坏的文件显示为已损坏，与 NXPress 一致。",
+      "在电脑上，任务处理文件期间应用会阻止电脑进入睡眠。",
+      "设置 › 压缩 中新增低优先级选项，让应用工作时服务器上的其他程序依然流畅。",
+      "即将发售的每个月都以一张日历页开头，并包含多项安全修复。"
+    ]
+  },
   "1.70.0": {
     "en": [
       "The page of a game shows the scores of critics and players from IGDB, and the library can be sorted and filtered by them (with the IGDB keys in Settings).",

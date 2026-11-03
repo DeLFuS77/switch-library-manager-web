@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 )
 
 // A temporary file of the app left for a while is removed; one being written, and files of
@@ -36,7 +37,7 @@ func TestLeftoversAreRemoved(t *testing.T) {
 			t.Fatalf("%s was removed", filepath.Base(path))
 		}
 	}
-	if entries := web.activities().list(); len(entries) != 1 || entries[0].Action != ACTION_LEFTOVERS {
+	if entries := web.activities().List(); len(entries) != 1 || entries[0].Action != activity.ACTION_LEFTOVERS {
 		t.Fatalf("activity: %+v", entries)
 	}
 }

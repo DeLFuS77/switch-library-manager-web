@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"strings"
 )
@@ -55,7 +56,7 @@ func (web *Web) buildMissingDLC(lang string) []TitleItem {
 			for i, dlc := range v.MissingDLCItems {
 				dlc.Name = titleName(switchDB, lang, dlc.Id, dlc.Name)
 				if dlc.Name == "" {
-					dlc.Name = translate(lang, "DLC without a name in the titles database")
+					dlc.Name = i18n.Translate(lang, "DLC without a name in the titles database")
 				}
 				missingDlc[i] = dlc
 			}

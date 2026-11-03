@@ -41,15 +41,24 @@
 			<section class="mb-4" aria-labelledby="justReleased">
 				<h2 class="section-title" id="justReleased"><span class="bi bi-lightning-charge" aria-hidden="true"></span>{{t "Just released"}} <span class="badge rounded-pill text-bg-secondary">{{len .}}</span></h2>
 				<div class="rec-strip">
-					{{- range .}}{{template "upcomingGame" .}}{{end}}
+					{{- range .}}{{template "upcomingGame" (dict "Game" .)}}{{end}}
 				</div>
 			</section>
 			{{- end}}
 			{{- if .Months}}
 			<div class="saga-grid upcoming-timeline mb-4">
 				{{- range .Months}}
-				<h2 class="month-tile"><span class="bi bi-calendar-event" aria-hidden="true"></span><span class="month-tile-name">{{formatMonth .Month}}</span><span class="month-tile-count">{{if eq (len .Games) 1}}{{t "1 game"}}{{else}}{{t "%v games" (len .Games)}}{{end}}</span></h2>
-				{{- range .Games}}{{template "upcomingGame" .}}{{end}}
+				{{- $tone := ""}}{{if .Alternate}}{{$tone = "is-alternate"}}{{end}}
+				<h2 class="month-tile{{with $tone}} {{.}}{{end}}">
+					<span class="visually-hidden">{{formatMonth .Month}}</span>
+					<span class="month-tile-band" aria-hidden="true"><span class="month-tile-rings"></span>{{.Month.Year}}</span>
+					<span class="month-tile-name" aria-hidden="true">{{monthName .Month}}</span>
+					<span class="month-tile-covers" aria-hidden="true">
+						{{- range $index, $game := .Games}}{{if lt $index 3}}<img src="{{if eq $game.Item.ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb $game.Item.ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async">{{end}}{{end -}}
+					</span>
+					<span class="month-tile-foot"><span class="month-tile-count">{{if eq (len .Games) 1}}{{t "1 game"}}{{else}}{{t "%v games" (len .Games)}}{{end}}</span><span class="month-tile-go bi bi-arrow-right" aria-hidden="true"></span></span>
+				</h2>
+				{{- range .Games}}{{template "upcomingGame" (dict "Game" . "Class" $tone)}}{{end}}
 				{{- end}}
 			</div>
 			{{- end}}
@@ -64,6 +73,7 @@
 			{{- end}}
 {{- end}}
 {{define "upcomingGame"}}
-					{{- $note := ""}}{{with .Saga}}{{$note = printf "%s · %s" .Name (t "you have %v of %v" .Owned .Total)}}{{end}}
-					{{- template "miniCard" (dict "Item" .Item "Wish" true "Grey" false "Highlight" .ForYou "Badge" (formatDay .Item.ReleaseDate) "Note" $note "NoteIcon" "bi-collection")}}
+					{{- $game := .Game}}
+					{{- $note := ""}}{{with $game.Saga}}{{$note = printf "%s · %s" .Name (t "you have %v of %v" .Owned .Total)}}{{end}}
+					{{- template "miniCard" (dict "Item" $game.Item "Wish" true "Grey" false "Highlight" $game.ForYou "Badge" (formatDay $game.Item.ReleaseDate) "Note" $note "NoteIcon" "bi-collection" "Class" .Class)}}
 {{- end}}

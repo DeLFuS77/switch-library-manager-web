@@ -1,129 +1,23 @@
 package web
 
 import (
-	"encoding/json"
+	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"net/http"
 	"path/filepath"
 	"regexp"
-	"sort"
 	"strings"
-	"sync"
-	"time"
 )
 
 // The wishlist keeps games that are not in the library yet. It is shown on the Missing Games
 // page and the notifications report when a wished game is released or gets new DLC.
 
-const (
-	WISHLIST_FILENAME = "wishlist.json"
-	STATUS_WANTED     = "wanted"
-)
-
 var titleIdPattern = regexp.MustCompile(`^[0-9A-F]{16}$`)
 
-type wishlist struct {
-	mutex sync.Mutex
-	path  string
-	// by upper case title ID: when the game was added
-	games map[string]time.Time
-}
-
-func (web *Web) wishes() *wishlist {
+func (web *Web) wishes() *userdata.Wishlist {
 	web.wishOnce.Do(func() {
-		list := &wishlist{path: filepath.Join(web.dataFolder, WISHLIST_FILENAME), games: map[string]time.Time{}}
-		if data, ok := readStore(list.path); ok {
-			parseStore(list.path, data, &list.games)
-		}
-		web.wish = list
+		web.wish = userdata.LoadWishlist(filepath.Join(web.dataFolder, userdata.WISHLIST_FILENAME))
 	})
 	return web.wish
-}
-
-func (w *wishlist) has(id string) bool {
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
-	_, ok := w.games[strings.ToUpper(id)]
-	return ok
-}
-
-// snapshot returns the wished title IDs (upper case), for checking many titles at once.
-func (w *wishlist) snapshot() map[string]bool {
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
-	set := make(map[string]bool, len(w.games))
-	for id := range w.games {
-		set[id] = true
-	}
-	return set
-}
-
-func (w *wishlist) ids() []string {
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
-	ids := make([]string, 0, len(w.games))
-	for id := range w.games {
-		ids = append(ids, id)
-	}
-	sort.Strings(ids)
-	return ids
-}
-
-func (w *wishlist) count() int {
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
-	return len(w.games)
-}
-
-// set adds or removes a game and saves the list. It returns whether it changed.
-func (w *wishlist) set(id string, wanted bool) bool {
-	id = strings.ToUpper(id)
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
-	_, present := w.games[id]
-	if present == wanted {
-		return false
-	}
-	if wanted {
-		w.games[id] = time.Now()
-	} else {
-		delete(w.games, id)
-	}
-	w.saveLocked()
-	return true
-}
-
-// removeOwned drops the games that are now in the library.
-func (w *wishlist) removeOwned(owned func(id string) bool) bool {
-	w.mutex.Lock()
-	defer w.mutex.Unlock()
-	changed := false
-	for id := range w.games {
-		if owned(id) {
-			delete(w.games, id)
-			changed = true
-		}
-	}
-	if changed {
-		w.saveLocked()
-	}
-	return changed
-}
-
-func (w *wishlist) saveLocked() {
-	if data, err := json.MarshalIndent(w.games, "", " "); err == nil {
-		writeFileAtomic(w.path, data)
-	}
-}
-
-// reload reads the list again, after a backup was restored.
-func (w *wishlist) reload() {
-	games := map[string]time.Time{}
-	if data, ok := readStore(w.path); ok {
-		parseStore(w.path, data, &games)
-	}
-	w.mutex.Lock()
-	w.games = games
-	w.mutex.Unlock()
 }
 
 // forgetOwnedWishes removes the wished games that are in the library now.
@@ -132,7 +26,7 @@ func (web *Web) forgetOwnedWishes() {
 	if localDB == nil {
 		return
 	}
-	if web.wishes().removeOwned(func(id string) bool {
+	if web.wishes().RemoveOwned(func(id string) bool {
 		local, ok := localDB.TitlesMap[strings.ToLower(id[:13])]
 		return ok && local.BaseExist
 	}) {
@@ -149,10 +43,10 @@ func (web *Web) HandleWishlist() {
 			return
 		}
 		wanted := r.FormValue("wanted") == "true"
-		if web.wishes().set(id, wanted) {
+		if web.wishes().Set(id, wanted) {
 			// the Missing Games lists show the hearts
 			web.invalidateDerived()
 		}
-		writeJSON(w, http.StatusOK, map[string]any{"id": id, "wanted": wanted, "count": web.wishes().count()})
+		writeJSON(w, http.StatusOK, map[string]any{"id": id, "wanted": wanted, "count": web.wishes().Count()})
 	}).Methods("POST")
 }

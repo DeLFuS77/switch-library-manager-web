@@ -16,6 +16,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
+	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/webdav"
@@ -166,7 +170,7 @@ func (web *Web) vaultHandler() http.Handler {
 // the first backup, on the folder that holds it.
 func vaultFree(root string) (uint64, bool) {
 	for _, folder := range []string{root, filepath.Dir(root)} {
-		if free, err := diskFree(folder); err == nil {
+		if free, err := diskfree.Free(folder); err == nil {
 			return free, true
 		}
 	}
@@ -276,7 +280,48 @@ type SaveGame struct {
 }
 
 // jksvMeta reads the title ID and the time of a backup from the file JKSV puts in its ZIP.
+// maxVaultZipEntries caps the entries of a save backup. A real JKSV save has a handful of
+// files, so a ZIP that declares far more is a crafted file made to blow up memory when its
+// central directory is opened. 20000 is far above any real save.
+const maxVaultZipEntries = 20000
+
+// zipTooManyEntries reports whether the ZIP at path declares more than max entries, read from
+// its end-of-central-directory record so a crafted central directory is never opened whole.
+func zipTooManyEntries(path string, max int) bool {
+	file, err := os.Open(path)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+	info, err := file.Stat()
+	if err != nil {
+		return false
+	}
+	const eocdLen = 22
+	readLen := int64(eocdLen + 65535) // the record plus the largest possible comment
+	if readLen > info.Size() {
+		readLen = info.Size()
+	}
+	if readLen < eocdLen {
+		return false
+	}
+	buf := make([]byte, readLen)
+	if _, err := file.ReadAt(buf, info.Size()-readLen); err != nil {
+		return false
+	}
+	for i := len(buf) - eocdLen; i >= 0; i-- {
+		if binary.LittleEndian.Uint32(buf[i:]) == 0x06054b50 {
+			// total entries; 0xffff means ZIP64 (more than 65535), well over the cap
+			return int(binary.LittleEndian.Uint16(buf[i+10:])) > max
+		}
+	}
+	return false
+}
+
 func jksvMeta(path string) (string, time.Time, bool) {
+	if zipTooManyEntries(path, maxVaultZipEntries) {
+		return "", time.Time{}, false
+	}
 	reader, err := zip.OpenReader(path)
 	if err != nil {
 		return "", time.Time{}, false
@@ -372,9 +417,9 @@ func (web *Web) saveGames(lang string) []SaveGame {
 	byName := map[string]TitleItem{}
 	for _, item := range library {
 		byId[strings.ToUpper(item.Id)] = item
-		byName[searchText(item.Name)] = item
+		byName[search.Text(item.Name)] = item
 		if item.OriginalName != "" {
-			byName[searchText(item.OriginalName)] = item
+			byName[search.Text(item.OriginalName)] = item
 		}
 	}
 	games := map[string]*SaveGame{}
@@ -383,7 +428,7 @@ func (web *Web) saveGames(lang string) []SaveGame {
 		game := SaveGame{Name: backup.Folder}
 		item, known := byId[backup.TitleId]
 		if !known {
-			item, known = byName[searchText(backup.Folder)]
+			item, known = byName[search.Text(backup.Folder)]
 		}
 		if known {
 			key = "id:" + strings.ToUpper(item.Id)
@@ -421,7 +466,8 @@ func (web *Web) saveGames(lang string) []SaveGame {
 // vaultPath resolves a path of the vault given by a page, refusing anything outside it.
 func (web *Web) vaultPath(relative string) (string, bool) {
 	root := web.vaultRoot()
-	clean := filepath.Clean(filepath.FromSlash("/" + relative))
+	// cleaned from a leading slash, the path cannot climb above the root
+	clean := filepath.Clean("/" + filepath.FromSlash(relative))
 	path := filepath.Join(root, clean)
 	inside, err := filepath.Rel(root, path)
 	if err != nil || inside == "." || strings.HasPrefix(inside, "..") || !strings.EqualFold(filepath.Ext(path), ".zip") {
@@ -504,12 +550,12 @@ func pruneVaultFolder(folder string, keep int) int {
 // notifyVaultUpload tells about a new backup on the notification channels.
 func (web *Web) notifyVaultUpload(path string) {
 	settingsObj := settings.ReadSettings(web.dataFolder)
-	if !notificationsConfigured(settingsObj.Notifications) {
+	if !notify.Configured(settingsObj.Notifications) {
 		return
 	}
 	lang := settingsObj.Language
-	if !isSupportedLanguage(lang) {
-		lang = DEFAULT_LANGUAGE
+	if !i18n.IsSupportedLanguage(lang) {
+		lang = i18n.DEFAULT_LANGUAGE
 	}
 	name := filepath.Base(filepath.Dir(path))
 	if id, _, ok := jksvMeta(path); ok {
@@ -520,9 +566,9 @@ func (web *Web) notifyVaultUpload(path string) {
 			}
 		}
 	}
-	title := translate(lang, "Switch Library Manager: save backed up")
-	text := translatef(lang, "New backup of your save of %v.", name)
-	if err := sendMessage(settingsObj.Notifications, title, text, map[string]string{"game": name, "file": filepath.Base(path)}); err != nil {
+	title := i18n.Translate(lang, "Switch Library Manager: save backed up")
+	text := i18n.Translatef(lang, "New backup of your save of %v.", name)
+	if err := notify.Send(settingsObj.Notifications, title, text, map[string]string{"game": name, "file": filepath.Base(path)}); err != nil {
 		web.sugarLogger.Warnf("Failed to send the save vault message: %v", err)
 	}
 }

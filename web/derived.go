@@ -4,6 +4,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -76,7 +77,7 @@ func (web *Web) sorted(name string, filter *TitleItemFilter, build func() []Titl
 		items := append([]TitleItem(nil), all...)
 		for i := range items {
 			items[i].sortKey = sortName(items[i].Name)
-			items[i].searchKey = searchText(items[i].Id + " " + items[i].Name + " " + items[i].OriginalName)
+			items[i].searchKey = search.Text(items[i].Id + " " + items[i].Name + " " + items[i].OriginalName)
 			items[i].searchWords = strings.Fields(items[i].searchKey)
 		}
 		if err := sortItems(filter, items); err != nil {

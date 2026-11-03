@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/process"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -68,13 +69,13 @@ func TestUncompressibleFilesFollowOrganize(t *testing.T) {
 }
 
 func TestSparseStorageNote(t *testing.T) {
-	if note := compressNote(TASK_COMPRESS, fmt.Errorf("game.nsp: x.nca: rights ID 01: %w", switchfs.ErrNoTitleKey)); note != NOTE_COMPRESS_NO_KEY {
+	if note := compressNote(tasklog.TASK_COMPRESS, fmt.Errorf("game.nsp: x.nca: rights ID 01: %w", switchfs.ErrNoTitleKey)); note != NOTE_COMPRESS_NO_KEY {
 		t.Fatalf("a game without its title key is told so: %q", note)
 	}
-	if note := compressNote(TASK_COMPRESS, fmt.Errorf("x: %w", switchfs.ErrSparseStorage)); note != NOTE_COMPRESS_SPARSE {
+	if note := compressNote(tasklog.TASK_COMPRESS, fmt.Errorf("x: %w", switchfs.ErrSparseStorage)); note != NOTE_COMPRESS_SPARSE {
 		t.Fatalf("note: %q", note)
 	}
-	if note := compressNote(TASK_COMPRESS, switchfs.ErrNotCompressible); note != NOTE_COMPRESS_NOTHING {
+	if note := compressNote(tasklog.TASK_COMPRESS, switchfs.ErrNotCompressible); note != NOTE_COMPRESS_NOTHING {
 		t.Fatalf("note: %q", note)
 	}
 	// the reasons the library tells, each with its own note
@@ -84,7 +85,7 @@ func TestSparseStorageNote(t *testing.T) {
 		fmt.Errorf("%w: it holds no NCA file but metadata", switchfs.ErrNotCompressible):                           NOTE_COMPRESS_NO_DATA,
 		fmt.Errorf("%w: a.nca: its sections use an encryption the app does not read", switchfs.ErrNotCompressible): NOTE_COMPRESS_ENCRYPTION,
 	} {
-		if note := compressNote(TASK_COMPRESS, err); note != want {
+		if note := compressNote(tasklog.TASK_COMPRESS, err); note != want {
 			t.Errorf("%v: %q", err, note)
 		}
 	}

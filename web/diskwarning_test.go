@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"os"
 	"strings"
 	"testing"
@@ -8,9 +9,9 @@ import (
 
 func TestMeasureLowDisks(t *testing.T) {
 	folder := t.TempDir()
-	free, total, err := diskSpace(folder)
+	free, total, err := diskfree.Space(folder)
 	if err != nil || total == 0 || free > total {
-		t.Fatalf("diskSpace = %v, %v, %v", free, total, err)
+		t.Fatalf("diskfree.Space = %v, %v, %v", free, total, err)
 	}
 	// every volume is short of space below 101%, and none below 0%
 	if low := measureLowDisks([]string{folder, folder}, 101, ^uint64(0)); len(low) != 1 || low[0].Total != int64(total) {

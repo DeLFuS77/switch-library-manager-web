@@ -8,12 +8,12 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"go.uber.org/zap"
 )
 
@@ -29,7 +29,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "1.70.0"
+	SLM_WEB_VERSION        = "1.71.0"
 	REPOSITORY_OWNER       = "DeLFuS77"
 	// the release where the "Update title data" workflow of this repository publishes the files
 	// it generates; next to each one it publishes the same file compressed (see CompressedFirst)
@@ -319,6 +319,9 @@ type AppSettings struct {
 	// files compressed, decompressed or converted at the same time (0: one)
 	CompressThreads     int `json:"compress_threads,omitempty"`
 	CompressFilesAtOnce int `json:"compress_files_at_once,omitempty"`
+	// the app runs below the normal priority of the processor, so the rest of the server stays
+	// responsive while it compresses
+	LowPriority bool `json:"low_priority,omitempty"`
 	// ask GitHub once a day whether a newer version of the app was released
 	CheckForUpdates bool `json:"check_for_updates"`
 	// a new version is installed by itself at night, where the app can update itself
@@ -801,18 +804,6 @@ func writeDurably(path string, data []byte) error {
 	}
 	// a file written by an older version keeps its permissions otherwise
 	os.Chmod(path, 0600)
-	syncFolder(filepath.Dir(path))
+	durable.SyncFolder(filepath.Dir(path))
 	return nil
-}
-
-// syncFolder writes the names of a folder to the disk, a rename among them. Windows has no
-// way to, and keeps them in the journal of NTFS on its own.
-func syncFolder(folder string) {
-	if runtime.GOOS == "windows" {
-		return
-	}
-	if file, err := os.Open(folder); err == nil {
-		file.Sync()
-		file.Close()
-	}
 }

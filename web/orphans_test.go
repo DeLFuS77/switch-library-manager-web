@@ -15,7 +15,7 @@ func TestOrphansAreGroupedByGame(t *testing.T) {
 		t.Fatalf("count: %d", web.orphanCount())
 	}
 
-	web.wishes().set("0100000000040000", true)
+	web.wishes().Set("0100000000040000", true)
 	if items := web.buildOrphans("en"); !items[0].Wished {
 		t.Fatal("the wishlist is respected")
 	}

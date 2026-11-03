@@ -2,6 +2,7 @@ package web
 
 import (
 	"errors"
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"net/http"
 	"time"
 
@@ -75,7 +76,7 @@ func (web *Web) handleAPIKeys() {
 			return
 		}
 		web.sugarLogger.Infof("API key %q of %q created", key.Name, principal.Name)
-		web.activities().add(Activity{Time: time.Now(), User: principal.Name, Action: ACTION_KEY_NEW, Detail: quotedKeyName(key.Name) + ": " + apiKeyRoleDetail(key.Role), IP: clientIp(r)})
+		web.activities().Add(activity.Entry{Time: time.Now(), User: principal.Name, Action: activity.ACTION_KEY_NEW, Detail: quotedKeyName(key.Name) + ": " + apiKeyRoleDetail(key.Role), IP: clientIp(r)})
 		user, _ := web.auth.users.Get(principal.Name)
 		// the key is in this answer only: nothing on the way may keep it
 		w.Header().Set("Cache-Control", "no-store")
@@ -108,7 +109,7 @@ func (web *Web) handleAPIKeys() {
 		if user != actor.Name {
 			detail += " (" + user + ")"
 		}
-		web.activities().add(Activity{Time: time.Now(), User: actor.Name, Action: ACTION_KEY_DEL, Detail: detail, IP: clientIp(r)})
+		web.activities().Add(activity.Entry{Time: time.Now(), User: actor.Name, Action: activity.ACTION_KEY_DEL, Detail: detail, IP: clientIp(r)})
 		row := KeyRow{User: user, ID: key.ID, Name: key.Name, Role: key.Role, Hint: apiKeyPrefix + "…" + key.Hint, Created: key.Created, LastUsed: key.LastUsed}
 		writeJSON(w, http.StatusOK, row)
 	}).Methods("DELETE")
