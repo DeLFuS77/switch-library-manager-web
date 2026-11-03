@@ -605,6 +605,26 @@ func TestMaskedURL(t *testing.T) {
 	}
 }
 
+// TestKeptSecretForHost checks that a masked token stays only when the channel still points at
+// the same host, so changing the server forces the token to be entered again.
+func TestKeptSecretForHost(t *testing.T) {
+	if got := keptSecretForHost(secretMask, "tk_saved", "https://ntfy.sh", "https://ntfy.sh"); got != "tk_saved" {
+		t.Fatalf("same host dropped the token: %q", got)
+	}
+	if got := keptSecretForHost(secretMask, "tk_saved", "https://evil.example.com", "https://ntfy.sh"); got != "" {
+		t.Fatalf("a changed host kept the token: %q", got)
+	}
+	if got := keptSecretForHost(secretMask, "tk_saved", "http://ntfy.sh", "https://ntfy.sh"); got != "" {
+		t.Fatalf("a scheme downgrade kept the token: %q", got)
+	}
+	if got := keptSecretForHost("tk_new", "tk_saved", "https://ntfy.sh", "https://ntfy.sh"); got != "tk_new" {
+		t.Fatalf("a new token was changed: %q", got)
+	}
+	if got := keptSecretForHost(secretMask, "pw", "smtp.example.com", "smtp.other.com"); got != "" {
+		t.Fatalf("a changed SMTP host kept the password: %q", got)
+	}
+}
+
 func TestValidateNewChannels(t *testing.T) {
 	valid := settings.NotificationOptions{
 		NtfyUrl: "https://ntfy.sh/switch-games", NtfyToken: "tk_abc",

@@ -71,6 +71,8 @@ type gameUpload struct {
 	Received int64
 	part     string
 	final    string
+	// the user who started it, so another user cannot adopt an upload in progress
+	owner    string
 	touched  time.Time
 	release  func()
 	// the task that shows it in Tasks, 0 while nothing comes
@@ -352,8 +354,9 @@ func (web *Web) HandleUploads() {
 		if store.items == nil {
 			store.items = map[string]*gameUpload{}
 		}
+		owner := principalFrom(r).Name
 		for _, upload := range store.items {
-			if upload.final == final && upload.Size == size {
+			if upload.final == final && upload.Size == size && upload.owner == owner {
 				upload.mutex.Lock()
 				if err := web.keepRoom(upload); err != nil {
 					upload.mutex.Unlock()
@@ -388,7 +391,7 @@ func (web *Web) HandleUploads() {
 			return
 		}
 		file.Close()
-		upload := &gameUpload{Id: id, Name: name, Size: size, part: part, final: final, touched: time.Now(), release: release}
+		upload := &gameUpload{Id: id, Name: name, Size: size, part: part, final: final, owner: owner, touched: time.Now(), release: release}
 		web.uploadTask(upload)
 		store.items[id] = upload
 		web.sugarLogger.Infof("[Upload] %s started (%d bytes)", name, size)

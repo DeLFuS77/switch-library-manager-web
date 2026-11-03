@@ -468,6 +468,29 @@ func keptSecret(sent string, saved string) string {
 	return sent
 }
 
+// keptSecretForHost is like keptSecret, but only puts the saved secret back when the channel
+// still points at the same host (and scheme), so a masked token is never sent to a server the
+// form just changed; a changed host clears it, so the person types it again.
+func keptSecretForHost(sent string, saved string, sentHost string, savedHost string) string {
+	if sent != secretMask {
+		return sent
+	}
+	if strings.TrimSpace(sentHost) == "" || !strings.EqualFold(strings.TrimSpace(sentHost), strings.TrimSpace(savedHost)) {
+		return ""
+	}
+	return saved
+}
+
+// channelHost is the scheme and host a channel points at, for telling whether a masked secret
+// may stay; "" when the address cannot be parsed.
+func channelHost(raw string) string {
+	u, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil {
+		return ""
+	}
+	return strings.ToLower(u.Scheme + "://" + u.Host)
+}
+
 // maskedSecret is a secret as the pages show it.
 func maskedSecret(secret string) string {
 	if secret == "" {

@@ -234,11 +234,10 @@ func (web *Web) restoreBackup(data []byte, firstUsers func() error) error {
 		if !ok {
 			continue
 		}
-		// the settings hold notification tokens, the users their password hashes
-		mode := os.FileMode(0644)
-		if name == USERS_FILENAME || name == settings.SETTINGS_FILENAME {
-			mode = 0600
-		}
+		// these files hold private data (notification tokens, password hashes, the addresses and
+		// names in the activity log), so they are written only for their owner, as the app writes
+		// them normally (jsonfile.go)
+		mode := os.FileMode(0600)
 		path := filepath.Join(web.dataFolder, name)
 		if err := os.WriteFile(path+".tmp", content, mode); err != nil {
 			return err

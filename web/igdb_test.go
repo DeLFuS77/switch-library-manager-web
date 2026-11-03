@@ -22,7 +22,7 @@ func fakeIgdb(t *testing.T) (*httptest.Server, *atomic.Int32) {
 		requests.Add(1)
 		switch {
 		case strings.HasPrefix(r.URL.Path, "/token"):
-			if r.URL.Query().Get("client_secret") != "good-secret" {
+			if r.FormValue("client_secret") != "good-secret" {
 				w.WriteHeader(http.StatusForbidden)
 				return
 			}

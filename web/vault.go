@@ -276,7 +276,48 @@ type SaveGame struct {
 }
 
 // jksvMeta reads the title ID and the time of a backup from the file JKSV puts in its ZIP.
+// maxVaultZipEntries caps the entries of a save backup. A real JKSV save has a handful of
+// files, so a ZIP that declares far more is a crafted file made to blow up memory when its
+// central directory is opened. 20000 is far above any real save.
+const maxVaultZipEntries = 20000
+
+// zipTooManyEntries reports whether the ZIP at path declares more than max entries, read from
+// its end-of-central-directory record so a crafted central directory is never opened whole.
+func zipTooManyEntries(path string, max int) bool {
+	file, err := os.Open(path)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+	info, err := file.Stat()
+	if err != nil {
+		return false
+	}
+	const eocdLen = 22
+	readLen := int64(eocdLen + 65535) // the record plus the largest possible comment
+	if readLen > info.Size() {
+		readLen = info.Size()
+	}
+	if readLen < eocdLen {
+		return false
+	}
+	buf := make([]byte, readLen)
+	if _, err := file.ReadAt(buf, info.Size()-readLen); err != nil {
+		return false
+	}
+	for i := len(buf) - eocdLen; i >= 0; i-- {
+		if binary.LittleEndian.Uint32(buf[i:]) == 0x06054b50 {
+			// total entries; 0xffff means ZIP64 (more than 65535), well over the cap
+			return int(binary.LittleEndian.Uint16(buf[i+10:])) > max
+		}
+	}
+	return false
+}
+
 func jksvMeta(path string) (string, time.Time, bool) {
+	if zipTooManyEntries(path, maxVaultZipEntries) {
+		return "", time.Time{}, false
+	}
 	reader, err := zip.OpenReader(path)
 	if err != nil {
 		return "", time.Time{}, false
