@@ -1,4 +1,72 @@
 {
+  "1.72.0": {
+    "en": [
+      "Organize takes the NFO, SFV and proof files of a game along with it, and the setup wizard asks about it.",
+      "The search finds the games as you type them: \"mario\" no longer lists Bone Marrow or Marimo.",
+      "Games for the Switch 2 alone, such as Mario Kart World, no longer show as missing.",
+      "The page of a game shows the scores of critics and players without reviews, votes or links out."
+    ],
+    "es": [
+      "Organizar se lleva los NFO, SFV y proof de un juego junto con él, y el asistente lo pregunta.",
+      "La búsqueda encuentra los juegos tal como los escribes: «mario» ya no saca Bone Marrow ni Marimo.",
+      "Los juegos solo de Switch 2, como Mario Kart World, ya no salen como que faltan.",
+      "La ficha de un juego enseña la nota de la crítica y de los jugadores sin reseñas, votos ni enlaces externos."
+    ],
+    "de": [
+      "Organisieren nimmt die NFO-, SFV- und Proof-Dateien eines Spiels mit, und der Einrichtungsassistent fragt danach.",
+      "Die Suche findet Spiele so, wie du sie schreibst: „mario“ zeigt nicht mehr Bone Marrow oder Marimo.",
+      "Spiele nur für die Switch 2, wie Mario Kart World, erscheinen nicht mehr als fehlend.",
+      "Die Seite eines Spiels zeigt die Wertungen von Kritikern und Spielern ohne Rezensionen, Stimmen oder externe Links."
+    ],
+    "fr": [
+      "Organiser emporte les fichiers NFO, SFV et proof d'un jeu avec lui, et l'assistant de configuration le demande.",
+      "La recherche trouve les jeux tels que vous les écrivez : « mario » n'affiche plus Bone Marrow ni Marimo.",
+      "Les jeux uniquement Switch 2, comme Mario Kart World, n'apparaissent plus comme manquants.",
+      "La page d'un jeu affiche les notes de la critique et des joueurs sans avis, votes ni liens externes."
+    ],
+    "it": [
+      "Organizza porta con sé i file NFO, SFV e proof di un gioco, e la configurazione guidata lo chiede.",
+      "La ricerca trova i giochi così come li scrivi: \"mario\" non mostra più Bone Marrow o Marimo.",
+      "I giochi solo per Switch 2, come Mario Kart World, non risultano più mancanti.",
+      "La pagina di un gioco mostra i punteggi della critica e dei giocatori senza recensioni, voti o link esterni."
+    ],
+    "pt": [
+      "Organizar leva os arquivos NFO, SFV e proof de um jogo junto com ele, e o assistente pergunta sobre isso.",
+      "A busca encontra os jogos como você os escreve: \"mario\" não mostra mais Bone Marrow nem Marimo.",
+      "Jogos só do Switch 2, como Mario Kart World, não aparecem mais como faltando.",
+      "A página de um jogo mostra as notas da crítica e dos jogadores sem análises, votos nem links externos."
+    ],
+    "nl": [
+      "Ordenen neemt de NFO-, SFV- en proof-bestanden van een game mee, en de installatiewizard vraagt ernaar.",
+      "Zoeken vindt games zoals je ze typt: \"mario\" toont niet langer Bone Marrow of Marimo.",
+      "Games die alleen voor de Switch 2 zijn, zoals Mario Kart World, staan niet meer als ontbrekend.",
+      "De pagina van een game toont de scores van critici en spelers zonder recensies, stemmen of externe links."
+    ],
+    "ru": [
+      "«Упорядочить» переносит файлы NFO, SFV и proof вместе с игрой, а мастер настройки спрашивает об этом.",
+      "Поиск находит игры так, как вы их пишете: по «mario» больше не выводятся Bone Marrow и Marimo.",
+      "Игры только для Switch 2, например Mario Kart World, больше не показываются как недостающие.",
+      "На странице игры оценки критиков и игроков показываются без числа рецензий, голосов и внешних ссылок."
+    ],
+    "ja": [
+      "整理でゲームを移動するとき、NFO・SFV・proof ファイルも一緒に移動します。セットアップウィザードでも選べます。",
+      "検索は入力どおりのゲームを探します。「mario」で Bone Marrow や Marimo は出なくなりました。",
+      "Mario Kart World など Switch 2 専用のゲームは、足りないゲームとして表示されなくなりました。",
+      "ゲームのページでは、評論家とプレイヤーのスコアをレビュー数・投票数・外部リンクなしで表示します。"
+    ],
+    "ko": [
+      "정리로 게임을 옮길 때 NFO, SFV, proof 파일도 함께 옮기며, 설정 마법사에서도 고를 수 있습니다.",
+      "검색은 입력한 그대로의 게임을 찾습니다. 'mario'로 Bone Marrow나 Marimo가 더 이상 나오지 않습니다.",
+      "Mario Kart World 같은 Switch 2 전용 게임은 더 이상 없는 게임으로 표시되지 않습니다.",
+      "게임 페이지에 평론가와 플레이어 점수를 리뷰 수, 투표 수, 외부 링크 없이 보여 줍니다."
+    ],
+    "zh": [
+      "整理移动游戏时，会把 NFO、SFV 和 proof 文件一起带走，设置向导中也可以选择。",
+      "搜索会按输入的文字查找游戏：搜索“mario”不再出现 Bone Marrow 或 Marimo。",
+      "Mario Kart World 等仅限 Switch 2 的游戏不再显示为缺少的游戏。",
+      "游戏页面显示评论家和玩家评分，不再显示评测数、投票数和外部链接。"
+    ]
+  },
   "1.71.0": {
     "en": [
       "A file that passes a check is Verified, and a damaged one Corrupted, as in NXPress.",
