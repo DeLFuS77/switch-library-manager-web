@@ -41,16 +41,7 @@ func translate(lang string, text string) string {
 	if translated, ok := translations[lang][text]; ok {
 		return translated
 	}
-	if english, ok := englishTexts[text]; ok {
-		return english
-	}
 	return text
-}
-
-// englishTexts are the texts whose key says what they name, for the languages where the word
-// changes with it (a file failed, a task failed: "Fallido", "Fallida"), with their English.
-var englishTexts = map[string]string{
-	"Failed (file)": "Failed",
 }
 
 func translatef(lang string, text string, args ...any) string {

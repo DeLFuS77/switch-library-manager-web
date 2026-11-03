@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- A file whose check finds nothing wrong is Verified, and a damaged one Corrupted, in Tasks, in Issues and in the messages of the automations, as NXPress calls them; Modified stays as it is
+
 ## 1.70.0
 
 ### New

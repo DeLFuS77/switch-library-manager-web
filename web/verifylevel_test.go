@@ -86,7 +86,7 @@ func TestASignatureAloneThatFailsIsModified(t *testing.T) {
 	request := httptest.NewRequest("GET", "/tasks.html", nil)
 	request.Header.Set("Accept-Language", "es")
 	web.router.ServeHTTP(page, request)
-	for _, want := range []string{"1 archivos comprobados, 1 modificados, 0 fallidos", "is-modified", "Modificado", "Las dos"} {
+	for _, want := range []string{"1 archivos comprobados, 1 modificados, 0 corruptos", "is-modified", "Modificado", "Las dos"} {
 		if !strings.Contains(page.Body.String(), want) {
 			t.Errorf("Tasks shows %q", want)
 		}
@@ -132,13 +132,35 @@ func TestAHashThatFailsIsFailed(t *testing.T) {
 	request := httptest.NewRequest("GET", "/tasks.html", nil)
 	request.Header.Set("Accept-Language", "es")
 	web.router.ServeHTTP(page, request)
-	for _, want := range []string{"1 archivos comprobados, 1 fallidos", "Fallido</span>"} {
+	for _, want := range []string{"1 archivos comprobados, 1 corruptos", "Corrupto</span>"} {
 		if !strings.Contains(page.Body.String(), want) {
 			t.Errorf("Tasks shows %q", want)
 		}
 	}
 	if strings.Contains(page.Body.String(), "modificados") {
 		t.Error("a damaged file is not counted as modified")
+	}
+	page = httptest.NewRecorder()
+	web.router.ServeHTTP(page, httptest.NewRequest("GET", "/issues.html", nil))
+	if !strings.Contains(page.Body.String(), `<span class="bi bi-x-circle" aria-hidden="true"></span>Corrupted</span>`) {
+		t.Error("Issues shows a damaged file as Corrupted")
+	}
+}
+
+// A file whose check finds nothing wrong is Verified on its cover, as NXPress says it; the
+// covers of the other tasks keep OK.
+func TestACheckedFileIsVerified(t *testing.T) {
+	web, _, _, _ := levelWeb(t, nil, nil)
+	postForm(web, "/verify/start", url.Values{"level": {VERIFY_LEVEL_BOTH}})
+	if task := waitForTask(t, web, TASK_VERIFY); len(task.Tiles) != 1 || task.Tiles[0].Failed || task.Tiles[0].Modified {
+		t.Fatalf("the file passes: %+v", task.Tiles)
+	}
+	page := httptest.NewRecorder()
+	request := httptest.NewRequest("GET", "/tasks.html", nil)
+	request.Header.Set("Accept-Language", "es")
+	web.router.ServeHTTP(page, request)
+	if !strings.Contains(page.Body.String(), `<span class="bi bi-check-circle" aria-hidden="true"></span>Verificado</span>`) || strings.Contains(page.Body.String(), "</span>OK</span>") {
+		t.Error("the cover of a file checked says Verified")
 	}
 }
 
@@ -307,11 +329,11 @@ func TestActivityTellsTheLevel(t *testing.T) {
 	}
 }
 
-// A file failed and a task failed are said apart where the language tells them apart; English
-// says Failed for both.
-func TestFailedFileAndFailedTask(t *testing.T) {
-	if translate("en", "Failed (file)") != "Failed" || translate("es", "Failed (file)") != "Fallido" || translate("es", "Failed") != "Fallida" {
-		t.Fatal("a failed file")
+// A file checked is Verified or Corrupted, as NXPress says it, and a task that failed is still
+// Failed.
+func TestCheckedFileStates(t *testing.T) {
+	if translate("es", "Verified") != "Verificado" || translate("es", "Corrupted") != "Corrupto" || translate("es", "Failed") != "Fallida" {
+		t.Fatal("the states of a file checked")
 	}
 }
 
