@@ -88,7 +88,27 @@ func (web *Web) HandleUsers() {
 	users := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/users.html")
 	account := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/account.html")
 
-	web.router.HandleFunc("/login.html", func(w http.ResponseWriter, r *http.Request) {
+	web.router.HandleFunc("/login.html", web.loginPage(login)).Methods("GET")
+	web.router.HandleFunc("/login.html", web.signIn(login)).Methods("POST")
+	web.router.HandleFunc("/logout", web.signOut(login)).Methods("POST")
+	web.router.HandleFunc("/users.html", web.usersPage(users)).Methods("GET")
+	web.router.HandleFunc("/account.html", web.accountPage(account)).Methods("GET")
+	web.router.HandleFunc("/users/create", web.createUser).Methods("POST")
+	web.router.HandleFunc("/users/role", web.setUserRole).Methods("POST")
+	web.router.HandleFunc("/users/password", web.setUserPassword).Methods("POST")
+	web.router.HandleFunc("/users/delete", web.deleteUser).Methods("POST")
+	web.router.HandleFunc("/account/language", web.setAccountLanguage).Methods("POST")
+	web.router.HandleFunc("/account/color", web.setAccountColor).Methods("POST")
+	web.router.HandleFunc("/account/password", web.setAccountPassword).Methods("POST")
+
+	web.handleAPIKeys()
+	web.handlePortal()
+	web.handleOidc()
+}
+
+// loginPage shows the login page, or goes on to the app when the person is signed in already.
+func (web *Web) loginPage(login templateSet) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		data := LoginPageData{Next: r.URL.Query().Get("next")}
 		options := web.auth.portal()
 		data.OidcName = oidcButton(options)
@@ -112,9 +132,12 @@ func (web *Web) HandleUsers() {
 		}
 		web.oidcLoginNotice(w, r, &data)
 		web.renderLogin(w, r, login, data)
-	}).Methods("GET")
+	}
+}
 
-	web.router.HandleFunc("/login.html", func(w http.ResponseWriter, r *http.Request) {
+// signIn checks the name and password sent by the login page, limited as the logins are.
+func (web *Web) signIn(login templateSet) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
 		data := LoginPageData{Next: r.FormValue("next"), Name: strings.TrimSpace(r.FormValue("name"))}
 		if options := web.auth.portal(); oidcReady(options) {
@@ -154,9 +177,12 @@ func (web *Web) HandleUsers() {
 		web.auth.signedIn(principal.Name)
 		http.SetCookie(w, web.auth.sessionCookie(r, principal.Name))
 		http.Redirect(w, r, safeNext(data.Next), http.StatusSeeOther)
-	}).Methods("POST")
+	}
+}
 
-	web.router.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+// signOut ends the session, and the one of the portal or the provider in front when there is one.
+func (web *Web) signOut(login templateSet) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		web.auth.endSession(r)
 		http.SetCookie(w, clearSessionCookie(r))
 		target := "/login.html"
@@ -186,9 +212,12 @@ func (web *Web) HandleUsers() {
 			return
 		}
 		http.Redirect(w, r, target, http.StatusSeeOther)
-	}).Methods("POST")
+	}
+}
 
-	web.router.HandleFunc("/users.html", func(w http.ResponseWriter, r *http.Request) {
+// usersPage lists the users, their API keys and the latest activity.
+func (web *Web) usersPage(users templateSet) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
 		// the first administrator asks for the setup code: it is written again at the end of the log
 		web.logSetupCode(false)
@@ -204,9 +233,12 @@ func (web *Web) HandleUsers() {
 			}
 		}
 		web.render(w, r, users, data)
-	}).Methods("GET")
+	}
+}
 
-	web.router.HandleFunc("/account.html", func(w http.ResponseWriter, r *http.Request) {
+// accountPage shows the account of the user: language, colour, password and API keys.
+func (web *Web) accountPage(account templateSet) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
 		data := AccountPageData{GlobalPageData: web.globalPageData("account"), Languages: i18n.SupportedLanguages, AvatarColors: avatarColors}
 		if principal := principalFrom(r); principal != nil && principal.Name != "" {
@@ -223,138 +255,142 @@ func (web *Web) HandleUsers() {
 			data.Error = i18n.Translate(lang, err.Error())
 		}
 		web.render(w, r, account, data)
-	}).Methods("GET")
+	}
+}
 
-	web.router.HandleFunc("/users/create", func(w http.ResponseWriter, r *http.Request) {
-		firstUser := !web.auth.Enabled()
-		name := strings.TrimSpace(r.FormValue("name"))
-		role := r.FormValue("role")
-		if firstUser {
-			// whoever enables the login must be able to manage it, and show the setup code of the
-			// log: an address of the local network is not enough (see setupcode.go)
-			role = ROLE_ADMIN
-			if err := web.auth.checkSetupCode(r.FormValue("setup_code")); err != nil {
-				web.setupCodeFailed(err)
-				redirectWithError(w, r, "/users.html", err)
-				return
-			}
-		}
-		// the first user is only created if there is still none, so two requests at once
-		// cannot both become administrators without login
-		if err := web.auth.users.add(name, r.FormValue("password"), role, firstUser); err != nil {
+// createUser creates a user; the first one, an administrator, turns the login on with the setup
+// code.
+func (web *Web) createUser(w http.ResponseWriter, r *http.Request) {
+	firstUser := !web.auth.Enabled()
+	name := strings.TrimSpace(r.FormValue("name"))
+	role := r.FormValue("role")
+	if firstUser {
+		// whoever enables the login must be able to manage it, and show the setup code of the
+		// log: an address of the local network is not enough (see setupcode.go)
+		role = ROLE_ADMIN
+		if err := web.auth.checkSetupCode(r.FormValue("setup_code")); err != nil {
+			web.setupCodeFailed(err)
 			redirectWithError(w, r, "/users.html", err)
 			return
 		}
-		web.sugarLogger.Infof("User %q (%s) created", name, role)
-		if firstUser {
-			web.auth.endSetupCode()
-			http.SetCookie(w, web.auth.sessionCookie(r, name))
-			http.Redirect(w, r, "/users.html?done=enabled", http.StatusSeeOther)
-			return
-		}
-		http.Redirect(w, r, "/users.html?done=created", http.StatusSeeOther)
-	}).Methods("POST")
+	}
+	// the first user is only created if there is still none, so two requests at once
+	// cannot both become administrators without login
+	if err := web.auth.users.add(name, r.FormValue("password"), role, firstUser); err != nil {
+		redirectWithError(w, r, "/users.html", err)
+		return
+	}
+	web.sugarLogger.Infof("User %q (%s) created", name, role)
+	if firstUser {
+		web.auth.endSetupCode()
+		http.SetCookie(w, web.auth.sessionCookie(r, name))
+		http.Redirect(w, r, "/users.html?done=enabled", http.StatusSeeOther)
+		return
+	}
+	http.Redirect(w, r, "/users.html?done=created", http.StatusSeeOther)
+}
 
-	web.router.HandleFunc("/users/role", func(w http.ResponseWriter, r *http.Request) {
-		name := r.FormValue("name")
-		if err := web.auth.users.SetRole(name, r.FormValue("role")); err != nil {
-			redirectWithError(w, r, "/users.html", err)
-			return
-		}
-		web.auth.forget()
-		http.Redirect(w, r, "/users.html?done=role", http.StatusSeeOther)
-	}).Methods("POST")
+// setUserRole changes the role of a user.
+func (web *Web) setUserRole(w http.ResponseWriter, r *http.Request) {
+	name := r.FormValue("name")
+	if err := web.auth.users.SetRole(name, r.FormValue("role")); err != nil {
+		redirectWithError(w, r, "/users.html", err)
+		return
+	}
+	web.auth.forget()
+	http.Redirect(w, r, "/users.html?done=role", http.StatusSeeOther)
+}
 
-	web.router.HandleFunc("/users/password", func(w http.ResponseWriter, r *http.Request) {
-		name := r.FormValue("name")
-		if err := web.auth.users.SetPassword(name, r.FormValue("password")); err != nil {
-			redirectWithError(w, r, "/users.html", err)
-			return
-		}
-		web.auth.forget()
-		if strings.EqualFold(name, principalFrom(r).Name) {
-			// the new password ended the current session too
-			http.SetCookie(w, web.auth.renewedSessionCookie(r))
-		}
-		http.Redirect(w, r, "/users.html?done=password", http.StatusSeeOther)
-	}).Methods("POST")
-
-	web.router.HandleFunc("/users/delete", func(w http.ResponseWriter, r *http.Request) {
-		name := r.FormValue("name")
-		if strings.EqualFold(name, principalFrom(r).Name) {
-			redirectWithError(w, r, "/users.html", ErrDeleteSelf)
-			return
-		}
-		if err := web.auth.users.Delete(name); err != nil {
-			redirectWithError(w, r, "/users.html", err)
-			return
-		}
-		web.auth.forget()
-		web.sugarLogger.Infof("User %q deleted", name)
-		http.Redirect(w, r, "/users.html?done=deleted", http.StatusSeeOther)
-	}).Methods("POST")
-
-	web.router.HandleFunc("/account/language", func(w http.ResponseWriter, r *http.Request) {
-		principal := principalFrom(r)
-		lang := r.FormValue("language")
-		if lang != "" && !i18n.IsSupportedLanguage(lang) {
-			lang = ""
-		}
-		if principal == nil || principal.Name == "" {
-			redirectWithError(w, r, "/account.html", ErrEnvironmentUser)
-			return
-		}
-		if err := web.auth.users.SetLanguage(principal.Name, lang); err != nil {
-			redirectWithError(w, r, "/account.html", err)
-			return
-		}
-		http.Redirect(w, r, "/account.html?done=language", http.StatusSeeOther)
-	}).Methods("POST")
-
-	web.router.HandleFunc("/account/color", func(w http.ResponseWriter, r *http.Request) {
-		principal := principalFrom(r)
-		if principal == nil || principal.Name == "" || principal.Source == "env" {
-			redirectWithError(w, r, "/account.html", ErrEnvironmentUser)
-			return
-		}
-		if err := web.auth.users.SetColor(principal.Name, r.FormValue("color")); err != nil {
-			redirectWithError(w, r, "/account.html", err)
-			return
-		}
-		http.Redirect(w, r, "/account.html?done=color", http.StatusSeeOther)
-	}).Methods("POST")
-
-	web.router.HandleFunc("/account/password", func(w http.ResponseWriter, r *http.Request) {
-		principal := principalFrom(r)
-		if principal.Source == "env" || principal.Name == "" {
-			redirectWithError(w, r, "/account.html", ErrEnvironmentUser)
-			return
-		}
-		// guessed from an open session, it is limited as the logins are
-		keys := loginKeys(clientIp(r), principal.Name)
-		if retryAfter, _ := web.auth.limiter.check(keys...); retryAfter > 0 {
-			// a blocked attempt is not even checked
-			redirectWithError(w, r, "/account.html", ErrWrongPassword)
-			return
-		}
-		if _, ok := web.auth.users.Verify(principal.Name, r.FormValue("current")); !ok {
-			web.auth.limiter.fail(keys...)
-			redirectWithError(w, r, "/account.html", ErrWrongPassword)
-			return
-		}
-		web.auth.limiter.succeed(keys...)
-		if err := web.auth.users.SetPassword(principal.Name, r.FormValue("password")); err != nil {
-			redirectWithError(w, r, "/account.html", err)
-			return
-		}
-		web.auth.forget()
+// setUserPassword changes the password of a user, which ends their sessions.
+func (web *Web) setUserPassword(w http.ResponseWriter, r *http.Request) {
+	name := r.FormValue("name")
+	if err := web.auth.users.SetPassword(name, r.FormValue("password")); err != nil {
+		redirectWithError(w, r, "/users.html", err)
+		return
+	}
+	web.auth.forget()
+	if strings.EqualFold(name, principalFrom(r).Name) {
+		// the new password ended the current session too
 		http.SetCookie(w, web.auth.renewedSessionCookie(r))
-		http.Redirect(w, r, "/account.html?done=password", http.StatusSeeOther)
-	}).Methods("POST")
+	}
+	http.Redirect(w, r, "/users.html?done=password", http.StatusSeeOther)
+}
 
-	web.handleAPIKeys()
-	web.handlePortal()
-	web.handleOidc()
+// deleteUser deletes a user, never the one who asks.
+func (web *Web) deleteUser(w http.ResponseWriter, r *http.Request) {
+	name := r.FormValue("name")
+	if strings.EqualFold(name, principalFrom(r).Name) {
+		redirectWithError(w, r, "/users.html", ErrDeleteSelf)
+		return
+	}
+	if err := web.auth.users.Delete(name); err != nil {
+		redirectWithError(w, r, "/users.html", err)
+		return
+	}
+	web.auth.forget()
+	web.sugarLogger.Infof("User %q deleted", name)
+	http.Redirect(w, r, "/users.html?done=deleted", http.StatusSeeOther)
+}
+
+// setAccountLanguage saves the language of the interface of the user.
+func (web *Web) setAccountLanguage(w http.ResponseWriter, r *http.Request) {
+	principal := principalFrom(r)
+	lang := r.FormValue("language")
+	if lang != "" && !i18n.IsSupportedLanguage(lang) {
+		lang = ""
+	}
+	if principal == nil || principal.Name == "" {
+		redirectWithError(w, r, "/account.html", ErrEnvironmentUser)
+		return
+	}
+	if err := web.auth.users.SetLanguage(principal.Name, lang); err != nil {
+		redirectWithError(w, r, "/account.html", err)
+		return
+	}
+	http.Redirect(w, r, "/account.html?done=language", http.StatusSeeOther)
+}
+
+// setAccountColor saves the colour of the avatar of the user.
+func (web *Web) setAccountColor(w http.ResponseWriter, r *http.Request) {
+	principal := principalFrom(r)
+	if principal == nil || principal.Name == "" || principal.Source == "env" {
+		redirectWithError(w, r, "/account.html", ErrEnvironmentUser)
+		return
+	}
+	if err := web.auth.users.SetColor(principal.Name, r.FormValue("color")); err != nil {
+		redirectWithError(w, r, "/account.html", err)
+		return
+	}
+	http.Redirect(w, r, "/account.html?done=color", http.StatusSeeOther)
+}
+
+// setAccountPassword changes the password of the user, who gives the current one.
+func (web *Web) setAccountPassword(w http.ResponseWriter, r *http.Request) {
+	principal := principalFrom(r)
+	if principal.Source == "env" || principal.Name == "" {
+		redirectWithError(w, r, "/account.html", ErrEnvironmentUser)
+		return
+	}
+	// guessed from an open session, it is limited as the logins are
+	keys := loginKeys(clientIp(r), principal.Name)
+	if retryAfter, _ := web.auth.limiter.check(keys...); retryAfter > 0 {
+		// a blocked attempt is not even checked
+		redirectWithError(w, r, "/account.html", ErrWrongPassword)
+		return
+	}
+	if _, ok := web.auth.users.Verify(principal.Name, r.FormValue("current")); !ok {
+		web.auth.limiter.fail(keys...)
+		redirectWithError(w, r, "/account.html", ErrWrongPassword)
+		return
+	}
+	web.auth.limiter.succeed(keys...)
+	if err := web.auth.users.SetPassword(principal.Name, r.FormValue("password")); err != nil {
+		redirectWithError(w, r, "/account.html", err)
+		return
+	}
+	web.auth.forget()
+	http.SetCookie(w, web.auth.renewedSessionCookie(r))
+	http.Redirect(w, r, "/account.html?done=password", http.StatusSeeOther)
 }
 
 func (web *Web) renderLogin(w http.ResponseWriter, r *http.Request, templates templateSet, data LoginPageData) {
