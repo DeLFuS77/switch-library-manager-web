@@ -203,10 +203,13 @@ var errIgdbCredentials = errors.New("IGDB refused the Client ID or Secret")
 
 func (c *igdbClient) authenticate(ctx context.Context) error {
 	form := url.Values{"client_id": {c.id}, "client_secret": {c.secret}, "grant_type": {"client_credentials"}}
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, igdbTokenUrl+"?"+form.Encode(), nil)
+	// the credentials go in the body, never in the URL: a network error carries the URL, so a
+	// secret in the query string could end up in the log
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, igdbTokenUrl, strings.NewReader(form.Encode()))
 	if err != nil {
 		return err
 	}
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	response, err := c.http.Do(request)
 	if err != nil {
 		return err
