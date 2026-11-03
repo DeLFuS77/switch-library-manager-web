@@ -50,6 +50,7 @@ func i18nFuncs(lang string) template.FuncMap {
 			return ""
 		},
 		"formatMonth":    func(value time.Time) string { return i18n.FormatMonth(lang, value) },
+		"monthName":      func(value time.Time) string { return i18n.FormatMonthName(lang, value) },
 		"formatDay":      func(value time.Time) string { return i18n.FormatDay(lang, value) },
 		"num":            func(value int) string { return i18n.FormatNumber(lang, value) },
 		"numShort":       func(value int) string { return i18n.FormatShortNumber(lang, value) },

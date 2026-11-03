@@ -166,43 +166,267 @@
 	}
 }
 
-// 9: Upcoming: a tile opens each month in the grid of the games
+// 9: Upcoming: a sheet of a calendar opens each month in the grid of the games, in the colour of
+// the month, cyan and violet one after the other (never red, which tells errors). Its games wear
+// the colour on their top edge, so they are told apart when a month goes on in the next row.
+:root,
+[data-bs-theme="light"] {
+	--slm-month-1: #0a7d96;
+	--slm-month-2: #6a4ae0;
+	--slm-on-month: #fff;
+}
+
+[data-bs-theme="dark"] {
+	--slm-month-1: #22bfe3;
+	--slm-month-2: #9d86ff;
+	--slm-on-month: #071318;
+}
+
+.upcoming-timeline {
+	> .month-tile,
+	> .mini-card {
+		--slm-month: var(--slm-month-1);
+	}
+
+	> .is-alternate {
+		--slm-month: var(--slm-month-2);
+	}
+
+	> .mini-card {
+		border-top: 5px solid var(--slm-month);
+
+		.cover-date .bi {
+			color: var(--slm-month);
+		}
+	}
+}
+
 .month-tile {
+	container-type: inline-size;
+	position: relative;
 	display: flex;
 	flex-direction: column;
-	justify-content: flex-end;
-	gap: .2rem;
 	min-height: 8rem;
 	margin: 0;
-	padding: 1rem;
-	border-radius: $border-radius-lg;
+	overflow: hidden;
+	border-radius: $card-border-radius;
 	background:
-		radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--slm-chart-2) 22%, transparent), transparent 70%),
+		radial-gradient(130% 80% at 100% 100%, color-mix(in srgb, var(--slm-month) 18%, transparent), transparent 70%),
 		var(--slm-surface);
-	border: 1px solid color-mix(in srgb, var(--slm-chart-2) 30%, var(--slm-border));
+	border: 1px solid color-mix(in srgb, var(--slm-month) 40%, var(--slm-border));
+	// a soft glow of the colour of the month under the sheet
+	box-shadow: var(--slm-shadow), 0 14px 30px -16px color-mix(in srgb, var(--slm-month) 75%, transparent);
+	transition: transform .25s ease, box-shadow .25s ease;
 
-	> .bi {
-		margin-bottom: auto;
-		color: var(--slm-chart-2);
-		font-size: var(--slm-text-lg);
+	// it lifts like the cards, and its covers open like a hand of cards
+	&:hover {
+		transform: translateY(-4px);
+		box-shadow: var(--slm-shadow-hover), 0 18px 36px -14px color-mix(in srgb, var(--slm-month) 85%, transparent);
+
+		.month-tile-covers img {
+			&:nth-child(1) {
+				transform: rotate(-15deg) translate(-3px, 2px);
+			}
+
+			&:nth-child(2) {
+				transform: translateY(-.45rem);
+			}
+
+			&:nth-child(3) {
+				transform: rotate(15deg) translate(3px, 2px);
+			}
+		}
 	}
+
+	// a gleam that crosses the sheet now and then (see the motion below)
+	&::after {
+		content: "";
+		position: absolute;
+		inset: -20% auto -20% 0;
+		width: 40%;
+		background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .13) 45%, rgba(255, 255, 255, .04) 62%, transparent);
+		transform: translateX(-180%) skewX(-18deg);
+		pointer-events: none;
+	}
+
+	[data-bs-theme="light"] &::after {
+		background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .55) 45%, rgba(255, 255, 255, .15) 62%, transparent);
+	}
+
+	// the sheets do not gleam all at once
+	&:nth-of-type(4n + 2) {
+		--slm-month-delay: 1.75s;
+	}
+
+	&:nth-of-type(4n + 3) {
+		--slm-month-delay: 3.5s;
+	}
+
+	&:nth-of-type(4n + 4) {
+		--slm-month-delay: 5.25s;
+	}
+}
+
+// the top of the sheet: the year, with the holes of the rings and a light from above
+.month-tile-band {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: .5rem .9rem;
+	// the light stays above the year, which keeps its contrast
+	background: linear-gradient(180deg, color-mix(in srgb, var(--slm-month) 82%, #fff), var(--slm-month) 45%);
+	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .15);
+	color: var(--slm-on-month);
+	font-size: var(--slm-text-sm);
+	font-weight: 800;
+	letter-spacing: .14em;
+}
+
+.month-tile-rings {
+	width: 30px;
+	height: 10px;
+	background: radial-gradient(circle, var(--slm-surface) 0 3.5px, transparent 4px) 0 50% / 15px 100% repeat-x;
 }
 
 .month-tile-name {
 	display: block;
-	font-size: var(--slm-text-lg);
-	font-weight: 700;
-	line-height: 1.15;
+	padding: .85rem .9rem 0;
+	color: var(--slm-month);
+	font-size: var(--slm-text-xl);
+	font-size: clamp(1.3rem, 14.5cqi, 2.3rem);
+	font-weight: 800;
+	line-height: 1.05;
+	letter-spacing: -.02em;
+	overflow-wrap: anywhere;
+}
 
-	&::first-letter {
-		text-transform: uppercase;
+// the covers of its first games, fanned
+.month-tile-covers {
+	display: flex;
+	padding: .9rem .9rem 0 1.1rem;
+
+	img {
+		width: 2.6rem;
+		height: 2.6rem;
+		margin-left: -.55rem;
+		object-fit: cover;
+		border-radius: .45rem;
+		border: 2px solid var(--slm-surface);
+		box-shadow: 0 4px 10px -4px rgba(0, 0, 0, .5);
+		transform: rotate(-8deg);
+		transition: transform .35s cubic-bezier(.3, 1.5, .5, 1);
+
+		&:nth-child(2) {
+			transform: translateY(-.2rem);
+		}
+
+		&:nth-child(3) {
+			transform: rotate(8deg);
+		}
 	}
+}
+
+.month-tile-foot {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: .5rem;
+	margin-top: auto;
+	padding: .9rem;
 }
 
 .month-tile-count {
 	color: var(--bs-secondary-color);
 	font-size: var(--slm-text-sm);
-	font-weight: 500;
+	font-weight: 600;
+}
+
+// the arrow to the games of the month
+.month-tile-go {
+	display: grid;
+	place-items: center;
+	flex-shrink: 0;
+	width: 2.2rem;
+	height: 2.2rem;
+	border-radius: 50%;
+	background: var(--slm-month);
+	color: var(--slm-on-month);
+	font-size: 1.1rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	// the sheet falls into place like the page of a calendar, in the turn of the grid (see
+	// _motion); it lifts on hover afterwards
+	.upcoming-timeline > .month-tile {
+		transform-origin: 50% 0;
+		animation-name: slm-month-flip;
+		animation-duration: .8s;
+		animation-timing-function: cubic-bezier(.2, .8, .25, 1.12);
+		animation-fill-mode: backwards;
+	}
+
+	.month-tile::after {
+		animation: slm-month-gleam 7s ease-in-out var(--slm-month-delay, 0s) infinite;
+	}
+
+	// the arrow beats and nudges towards the games
+	.month-tile-go {
+		animation: slm-month-beat 3.5s ease-out calc(var(--slm-month-delay, 0s) / 2) infinite;
+
+		&::before {
+			animation: slm-month-nudge 3.5s ease-in-out calc(var(--slm-month-delay, 0s) / 2) infinite;
+		}
+	}
+}
+
+@keyframes slm-month-flip {
+	from {
+		opacity: 0;
+		transform: perspective(700px) rotateX(-75deg);
+	}
+
+	to {
+		opacity: 1;
+		transform: perspective(700px) rotateX(0);
+	}
+}
+
+@keyframes slm-month-gleam {
+	0%,
+	72% {
+		transform: translateX(-180%) skewX(-18deg);
+	}
+
+	100% {
+		transform: translateX(340%) skewX(-18deg);
+	}
+}
+
+@keyframes slm-month-beat {
+	0% {
+		box-shadow: 0 0 0 0 color-mix(in srgb, var(--slm-month) 55%, transparent);
+	}
+
+	60%,
+	100% {
+		box-shadow: 0 0 0 .55rem transparent;
+	}
+}
+
+@keyframes slm-month-nudge {
+	0%,
+	50%,
+	100% {
+		transform: none;
+	}
+
+	62% {
+		transform: translateX(3px);
+	}
+
+	76% {
+		transform: none;
+	}
 }
 
 // 10: DLC: the games side by side, two or three in a row on a wide screen

@@ -7,6 +7,7 @@
 - A file whose check finds nothing wrong is Verified, and a damaged one Corrupted, in Tasks, in Issues and in the messages of the automations, as NXPress calls them; Modified stays as it is
 - On a computer, the app keeps it from going to sleep while a task works on the files (a compression, a decompression or conversion, packs, a split, a check, a copy to the SD card, Organize or the measure of the server), so a task left for the night no longer stops halfway; while the task is paused, the computer may sleep. In Docker the server decides, as before
 - Low priority, a switch in Settings under the compression: the app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turning it off takes effect when the app starts again (thanks @NikoMuffin, who asked for it in NXPress)
+- In Upcoming releases, each month opens with a sheet of a calendar in its own colour, cyan and violet by turns, with the year, the covers of its first games and an arrow towards them; its games wear the same colour on their top edge, so the games of a month that goes on in the next row are told apart. The sheet falls into place when the page opens and a soft gleam crosses it now and then, unless the system asks for reduced motion
 
 ### Security
 

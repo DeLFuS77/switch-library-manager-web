@@ -41,6 +41,9 @@ func TestUpcomingGamesByMonth(t *testing.T) {
 	if page.Total != 2 || page.ForYou != 2 || len(page.JustReleased) != 1 || len(page.Months) != 2 || page.Months[0].Month.Month() != time.October {
 		t.Fatalf("by month: %+v", page)
 	}
+	if page.Months[0].Alternate || !page.Months[1].Alternate {
+		t.Fatalf("every other month in the second colour: %+v", page.Months)
+	}
 	if page.Featured == nil || page.Featured.Item.Id != "0100000000060000" || page.FeaturedDays != 13 {
 		t.Fatalf("the next game for the user is featured: %+v %d", page.Featured, page.FeaturedDays)
 	}
@@ -58,6 +61,11 @@ func TestMonthsAndDays(t *testing.T) {
 	for lang, want := range map[string]string{"en": "October 2026", "es": "Octubre de 2026", "de": "Oktober 2026", "ja": "2026年10月", "ko": "2026년 10월"} {
 		if got := i18n.FormatMonth(lang, date); got != want {
 			t.Errorf("%s month = %q, want %q", lang, got, want)
+		}
+	}
+	for lang, want := range map[string]string{"en": "October", "es": "Octubre", "ru": "Октябрь", "ja": "10月", "ko": "10월"} {
+		if got := i18n.FormatMonthName(lang, date); got != want {
+			t.Errorf("%s month name = %q, want %q", lang, got, want)
 		}
 	}
 	for lang, want := range map[string]string{"en": "Oct 8", "es": "8 oct", "de": "8. Okt.", "zh": "10月8日"} {
