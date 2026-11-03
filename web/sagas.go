@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/pagination"
 )
@@ -109,6 +110,10 @@ func (web *Web) sagaMembers(family string, lang string) []TitleItem {
 				item.Missing = false
 				item.InLibrary = true
 			}
+		}
+		// a game of the Switch 2 alone is of the series only when the library has it
+		if item.Missing && db.Switch2(title.Attributes.Id) {
+			continue
 		}
 		item.ReleaseDate, _ = intToTime(title.Attributes.ReleaseDate)
 		items = append(items, item)
@@ -340,6 +345,7 @@ func (web *Web) HandleSagas() {
 		var query *search.Query
 		if filter.Keyword != "" {
 			query = search.NewQuery(filter.Keyword)
+			query.Narrow(len(all), func(i int) string { return all[i].searchKey })
 		}
 		shown := []SagaProgress{}
 		for _, saga := range all {

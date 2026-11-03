@@ -1,6 +1,7 @@
 // Package search forgives the way a name is written: accents, case, signs and the order of the
 // words do not matter, and small typing mistakes are accepted ("zelda brth" finds "The
-// Legend of Zelda: Breath of the Wild", "pokemon escarlta" finds "Pokémon Escarlata").
+// Legend of Zelda: Breath of the Wild", "pokemon escarlta" finds "Pokémon Escarlata") when
+// no name of the list has the words as they are typed (see Query.Narrow).
 package search
 
 import (
@@ -43,6 +44,8 @@ func Text(text string) string {
 type Query struct {
 	Text   string
 	tokens []searchToken
+	// a text of the list has every word as it is typed: no typing mistake is forgiven
+	written bool
 }
 
 type searchToken struct {
@@ -61,10 +64,13 @@ func NewQuery(keyword string) *Query {
 }
 
 // Matches reports whether every word of the query is in the text (see Text), or
-// close to one of its words.
+// close to one of its words when Narrow found no text with all of them.
 func (q *Query) Matches(text string, words []string) bool {
-	if q.Text == "" || strings.Contains(text, q.Text) {
+	if q.Written(text) {
 		return true
+	}
+	if q.written {
+		return false
 	}
 	for i := range q.tokens {
 		token := &q.tokens[i]
@@ -76,6 +82,34 @@ func (q *Query) Matches(text string, words []string) bool {
 		}
 	}
 	return true
+}
+
+// Written reports whether every word of the query is in the text as it is typed (see Text).
+func (q *Query) Written(text string) bool {
+	if q.Text == "" || strings.Contains(text, q.Text) {
+		return true
+	}
+	for i := range q.tokens {
+		if !strings.Contains(text, q.tokens[i].text) {
+			return false
+		}
+	}
+	return true
+}
+
+// Narrow looks at the texts of a list (see Text) before it is searched: when one of them has
+// every word of the query as it is typed, the query finds only those, so typing mistakes are
+// forgiven only when nothing is written so ("mario" does not find "Marimo" in a list with
+// Mario games, "zelda brth" still finds Breath of the Wild). count is the length of the list,
+// text the text of its item i.
+func (q *Query) Narrow(count int, text func(i int) string) {
+	q.written = false
+	for i := 0; i < count; i++ {
+		if q.Written(text(i)) {
+			q.written = true
+			return
+		}
+	}
 }
 
 // Matches is Query.Matches for a query used once.

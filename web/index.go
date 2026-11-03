@@ -148,6 +148,7 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		all = web.sorted("library+missing:"+lang, filter, func() []TitleItem { return web.buildLibraryWithMissing(lang) })
 	}
 	f := web.newLibraryFilter(filter, lang, all)
+	filter.searchIn(all)
 	for index := range all {
 		if f.takes(index) {
 			f.matched = append(f.matched, index)

@@ -115,15 +115,19 @@ func quickRank(query *search.Query, entry *quickEntry) int {
 	return 4
 }
 
-// quickBest returns the best matches of the entries, at most limit.
+// quickBest returns the best matches of the entries, at most limit: with typing mistakes only
+// when no entry has the words as they are typed.
 func quickBest(query *search.Query, entries []quickEntry, limit int) []QuickResult {
 	type match struct {
 		rank  int
 		index int
 	}
+	// a copy: the query searches the other kinds of entries too
+	narrowed := *query
+	narrowed.Narrow(len(entries), func(i int) string { return entries[i].key })
 	matches := []match{}
 	for i := range entries {
-		if rank := quickRank(query, &entries[i]); rank >= 0 {
+		if rank := quickRank(&narrowed, &entries[i]); rank >= 0 {
 			matches = append(matches, match{rank, i})
 		}
 	}

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- The search finds the games written as typed: "mario" lists the Mario games, no longer Bone Marrow, Marimo or Earth Marines among them. Small typing mistakes are still forgiven when no game is written so, as "zelda brth" for Breath of the Wild or "pokemon escarlta" for Pokémon Escarlata. It works so in every list with a search (the Library, Missing Games, Updates, DLC, the Series, Upcoming releases, the copy to the SD card) and in the quick search
+- The games of the Nintendo Switch 2 alone, such as Mario Kart World, are no longer shown as missing: the library is of the Switch, so they are left out of the games greyed out in the Library, Missing Games and the Wishlist, the recommendations, Upcoming releases, the series and the counts of missing games. A game of the library is always shown, whatever its console
+
 ## 1.71.0
 
 ### Improvements

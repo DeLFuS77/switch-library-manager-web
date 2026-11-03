@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -108,7 +109,8 @@ func (web *Web) upcomingGamesAt(lang string, now time.Time) []UpcomingGame {
 		if err != nil || release.Before(from) {
 			continue
 		}
-		if (hideDemos && isDemo(title, attributes.Name)) || title.Attributes.IsDemo || notAGame.MatchString(attributes.Name) {
+		// the games of the Switch 2 alone are not for the library
+		if (hideDemos && isDemo(title, attributes.Name)) || title.Attributes.IsDemo || notAGame.MatchString(attributes.Name) || db.Switch2(attributes.Id) {
 			continue
 		}
 		name := regionalName(attributes.Name)
@@ -175,6 +177,7 @@ func upcomingPage(games []UpcomingGame, filter *TitleItemFilter, now time.Time) 
 	var query *search.Query
 	if filter.Keyword != "" {
 		query = search.NewQuery(filter.Keyword)
+		query.Narrow(len(games), func(i int) string { return search.Text(games[i].Item.Name + " " + games[i].Item.OriginalName) })
 	}
 	for _, game := range games {
 		released := game.Item.ReleaseDate.Before(day)

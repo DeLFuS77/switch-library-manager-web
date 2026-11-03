@@ -118,6 +118,7 @@ func (web *Web) filterPage(filter *TitleItemFilter, sorted []TitleItem) ([]Title
 	}
 	// positions of the matching items: only the shown page is copied
 	matched := make([]int, 0, len(sorted))
+	filter.searchIn(sorted)
 	for index := range sorted {
 		if filter.MatchesItem(&sorted[index]) {
 			matched = append(matched, index)

@@ -118,7 +118,8 @@ func (web *Web) buildRegionsByName() map[string][]string {
 	for _, title := range switchDB.TitlesMap {
 		name, region := title.Attributes.Name, regionCode(title.Attributes.Region)
 		key := regionalName(name)
-		if key == "" || region == "" || isDemo(title, name) {
+		// a game of the Switch 2 alone is no copy of the game of the Switch of its name
+		if key == "" || region == "" || isDemo(title, name) || db.Switch2(title.Attributes.Id) {
 			continue
 		}
 		if hasValue(result[key], region) {
