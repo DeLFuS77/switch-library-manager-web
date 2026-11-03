@@ -100,6 +100,11 @@ func (o *titleOverrides) reload() {
 	defer o.mutex.Unlock()
 	o.titles = map[string]TitleOverride{}
 	for id, override := range titles {
+		// a cover name from a restored backup must name a file in the covers folder, never a
+		// path that reaches out of it (e.g. "../prod.keys"): drop it when it does not
+		if override.Cover != "" && !overrideCoverName.MatchString(override.Cover) {
+			override.Cover = ""
+		}
 		o.titles[strings.ToUpper(id)] = override
 	}
 }
@@ -206,6 +211,11 @@ func gameIcon(switchDB *db.SwitchTitlesDB, prefix string, local *db.SwitchGameFi
 }
 
 func (web *Web) overrideCoverPath(name string) string {
+	// only the names of covers chosen by the app resolve to a file; anything else (a name from a
+	// restored backup that reaches out of the folder) returns "", which fails to open
+	if !overrideCoverName.MatchString(name) {
+		return ""
+	}
 	return filepath.Join(web.dataFolder, OVERRIDE_COVERS_FOLDER, name)
 }
 

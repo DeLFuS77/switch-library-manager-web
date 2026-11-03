@@ -67,11 +67,16 @@ func (web *Web) writeExportSite(w io.Writer, templates templateSet, lang string)
 		data.Size += title.Size
 		if localDB != nil {
 			prefix := strings.ToLower(title.Id[:13])
-			if local, ok := localDB.TitlesMap[prefix]; ok && gameIcon(switchDB, prefix, local) != "" {
-				thumbnail := filepath.Join(web.dataFolder, "img", "thumbs", gameIcon(switchDB, prefix, local))
-				if _, err := os.Stat(thumbnail); err == nil {
-					game.Cover = strconv.Itoa(len(covers)+1) + ".jpg"
-					covers[game.Cover] = thumbnail
+			if local, ok := localDB.TitlesMap[prefix]; ok {
+				// the icon names a file in the thumbs folder; never let a name out of it reach
+				// os.ReadFile below (the same guard as imagePath)
+				icon := gameIcon(switchDB, prefix, local)
+				if icon != "" && icon == filepath.Base(icon) && !strings.ContainsAny(icon, `/\`) && !strings.HasPrefix(icon, ".") {
+					thumbnail := filepath.Join(web.dataFolder, "img", "thumbs", icon)
+					if _, err := os.Stat(thumbnail); err == nil {
+						game.Cover = strconv.Itoa(len(covers)+1) + ".jpg"
+						covers[game.Cover] = thumbnail
+					}
 				}
 			}
 		}
