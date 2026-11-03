@@ -4,6 +4,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/notify"
+	"github.com/dtrunk90/switch-library-manager-web/internal/priority"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -102,6 +103,7 @@ type SettingsForm struct {
 	AutoCompressKeep      bool   `in:"form=auto_compress_keep"`
 	CompressThreads       int    `in:"form=compress_threads"`
 	CompressFilesAtOnce   int    `in:"form=compress_files_at_once"`
+	LowPriority           bool   `in:"form=low_priority"`
 	SyncIntervalHours     int    `in:"form=sync_interval_hours"`
 	Language              string `in:"form=language"`
 	DiscordWebhookUrl     string `in:"form=discord_webhook_url"`
@@ -443,10 +445,14 @@ func (web *Web) vaultErrors(form *SettingsForm, lang string) []FieldError {
 
 // saveSettings saves the settings of the form, already checked, and scans the library with them.
 func (web *Web) saveSettings(form *SettingsForm, lang string) SuccessResponse {
-	cheatsWereOff := settings.ReadSettings(web.dataFolder).CheatsDisabled
+	before := settings.ReadSettings(web.dataFolder)
+	cheatsWereOff, wasLowPriority := before.CheatsDisabled, before.LowPriority
 	_, err := settings.TryUpdateSettings(web.dataFolder, form.apply)
 	if err != nil {
 		return notSaved(lang, err)
+	}
+	if form.LowPriority != wasLowPriority {
+		web.applyPriority(form.LowPriority)
 	}
 	// turned on: the cheats come now, not with the next synchronization
 	if cheatsWereOff && form.Cheats {
@@ -467,6 +473,15 @@ func (web *Web) saveSettings(form *SettingsForm, lang string) SuccessResponse {
 	return SuccessResponse{
 		StrongMessage: i18n.Translate(lang, "Success!"),
 		Message:       message,
+	}
+}
+
+// applyPriority runs the app below the normal priority of the processor, or at the normal one
+// again (on Linux a user may not be let raise it back: the app then stays low until it starts
+// again, as Settings says).
+func (web *Web) applyPriority(low bool) {
+	if err := priority.SetLow(low); err != nil {
+		web.sugarLogger.Warnf("The priority of the app could not be changed: %v", err)
 	}
 }
 
@@ -519,6 +534,7 @@ func (form *SettingsForm) apply(appSettings *settings.AppSettings) {
 	appSettings.AutoCompressKeep = form.AutoCompressKeep
 	appSettings.CompressThreads = form.CompressThreads
 	appSettings.CompressFilesAtOnce = form.CompressFilesAtOnce
+	appSettings.LowPriority = form.LowPriority
 	appSettings.SyncIntervalHours = form.SyncIntervalHours
 	appSettings.Language = form.Language
 	appSettings.Notifications = notify.KeptSecrets(form.notificationOptions(), appSettings.Notifications)

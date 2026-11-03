@@ -3,6 +3,10 @@ package i18n
 // Simplified Chinese interface translations; see translations.go.
 func init() {
 	Translations["zh"] = map[string]string{
+		// low priority
+		"Low priority": "低优先级",
+		"The app runs below the other programs of the server, so they stay responsive while it compresses, checks or converts; it goes a little slower when they need the processor. On Linux, turned off, it takes effect when the app starts again.": "应用会让位于服务器上的其他程序，压缩、校验或转换时它们仍能流畅响应；其他程序需要处理器时会稍慢一些。在 Linux 上，关闭后要到应用重新启动才生效。",
+
 		// folders to skip when scanning
 		"Folders to skip": "要跳过的文件夹",
 		"Starting with":   "开头为",

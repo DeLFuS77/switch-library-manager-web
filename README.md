@@ -144,6 +144,7 @@ Linux, Docker, NAS and Raspberry Pi.
   thumbnails load in the background
 - Background hours: keep cover downloads, thumbnails, file checks and compression for the night
 - On a computer, it does not go to sleep while a task works on the files, unless the task is paused
+- Low priority, so the other programs of the server stay responsive while it compresses
 - Live tasks page, scheduled synchronization and notifications (Discord, Telegram, ntfy, Gotify, Pushover, email
   or a webhook) of new updates, DLC and games
 - Weekly backups of your configuration, and a Diagnostics page that checks everything at a glance
