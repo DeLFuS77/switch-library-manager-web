@@ -15,6 +15,10 @@
 - The quick search also finds Activity, Tune-up, Quarantine, App on your phone, Sign-in portal and Game data
 - The help of the fields of Settings and Organize no longer fills the page on a computer: a small ⓘ after the name of a field tells there is some, and it shows in a card while the mouse is on the name or the field has the focus of the keyboard. Statuses, warnings and links stay in sight, and on phones and tablets the help stays under each field (thanks @NikoMuffin, who asked for it in NXPress #67)
 
+### Fixes
+
+- The NSZ files made with the extra compression of NXPress no longer take every processor of the server for each file at once: their LZ4 blocks are made again on one thread per file while the files are checked, as Settings says, and on the threads of each file while they are decompressed or converted (thanks @NikoMuffin, who found it in NXPress #70)
+
 ## 1.72.1
 
 ### Fixes

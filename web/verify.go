@@ -755,7 +755,10 @@ func (web *Web) startVerificationSince(level string, paths []string, recheck tim
 		web.taskLog().SetPlan(taskId, names)
 
 		workers := min(verifyWorkers(settings.ReadSettings(web.dataFolder).VerifySpeed, runtime.NumCPU()), max(len(files), 1))
-		run := &verifyRun{web: web, ctx: ctx, store: store, taskId: taskId, trigger: trigger, hashes: hashes, signatures: signatures,
+		// a check keeps one processor busy per file, as Settings tells: the LZ4 blocks of the
+		// extra compression of NXPress (NCZSECT3) are made again on one thread, not on every
+		// processor of the server for each file checked at once
+		run := &verifyRun{web: web, ctx: switchfs.WithThreads(ctx, 1), store: store, taskId: taskId, trigger: trigger, hashes: hashes, signatures: signatures,
 			files: files, total: total, byFiles: byFiles, partial: make([]int64, workers), laneNames: make([]string, workers),
 			laneSizes: make([]int64, workers), lastSave: time.Now()}
 		web.taskLog().SetWorkers(taskId, workers, 0)

@@ -472,6 +472,14 @@ func compressThreads(setting int, files int) int {
 	return min(setting, runtime.NumCPU())
 }
 
+// fileThreads are the threads each file of a task takes for the LZ4 blocks of the extra
+// compression of NXPress (NCZSECT3), made again when it is decompressed, converted or checked:
+// the threads of a compression, and never more than its share of the usable processors among
+// the files worked on at once, so that several files do not each take every processor.
+func fileThreads(setting int, files int) int {
+	return min(compressThreads(setting, files), max(1, switchfs.UsableProcessors()/max(1, files)))
+}
+
 // maxFilesAtOnce is the most files a task on files works on at the same time.
 const maxFilesAtOnce = 4
 
@@ -789,8 +797,10 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 		}
 		web.taskLog().SetResume(taskId, run.leftResume())
 	}
-	workers, threads := fileTaskWorkers(kind, len(paths), resume, settings.ReadSettings(web.dataFolder))
+	appSettings := settings.ReadSettings(web.dataFolder)
+	workers, threads := fileTaskWorkers(kind, len(paths), resume, appSettings)
 	web.taskLog().SetWorkers(taskId, workers, threads)
+	run.ctx = switchfs.WithThreads(ctx, fileThreads(appSettings.CompressThreads, workers))
 	go func() {
 		defer func() {
 			web.releaseFiles()
