@@ -3,22 +3,24 @@ package switchfs
 import (
 	"encoding/binary"
 	"errors"
+	"math/bits"
 )
 
 // The LZ4 blocks of the compressed storage of an NCA (CompressionInfo, firmware 12 and later) are
 // made by two compressors of the tools of Nintendo, told by the level of each block in its table:
 //
-//   - level 0, the fast compressor of LZ4 before 1.8.2: a hash of 5 bytes on a table of 13 bits,
-//     the position right after a match tried at once, and matches searched only up to 12 bytes
-//     before the end;
-//   - level 5, LZ4HC of LZ4 r1xx (before 1.7): a hash chain searched 16 times, without the
-//     analysis of repeated patterns of 1.8, and the second search of a match starting one byte
-//     after the first one.
+//   - level 0, the fast compressor of LZ4 before 1.8.2: a table of 13 bits, the position right
+//     after a match tried at once, and matches searched only up to 12 bytes before the end. Its
+//     hash is of 5 bytes as built for 64 bits, and of 4 bytes as built for 32 bits: games use
+//     either;
+//   - levels 1 to 16, LZ4HC of LZ4 r1xx (before 1.7): a hash chain searched 1 << (level-1) times,
+//     16 at level 5 and 32,768 at level 16, without the analysis of repeated patterns of 1.8, and
+//     the second search of a match starting one byte after the first one.
 //
 // Both are written here after lz4.c and lz4hc.c of LZ4 (BSD 2-Clause License, Copyright Yann
 // Collet), set as those tools set them: they make the same blocks again, byte for byte, so a
 // block can be kept decompressed and compressed again when the NCA is rebuilt. Checked on every
-// block of two updates and a base game (more than 200,000 blocks).
+// block of three updates and three base games (more than 300,000 blocks of levels 0, 5 and 16).
 
 const (
 	lz4MinMatch     = 4
@@ -33,9 +35,16 @@ const (
 
 func lz4Read32(b []byte, i int) uint32 { return binary.LittleEndian.Uint32(b[i:]) }
 
-// lz4Count is how many bytes from in equal those from match, up to limit.
+// lz4Count is how many bytes from in equal those from match, up to limit; match is before in.
 func lz4Count(src []byte, in, match, limit int) int {
 	start := in
+	for in+8 <= limit {
+		if diff := binary.LittleEndian.Uint64(src[in:]) ^ binary.LittleEndian.Uint64(src[match:]); diff != 0 {
+			return in - start + bits.TrailingZeros64(diff)>>3
+		}
+		in += 8
+		match += 8
+	}
 	for in < limit && src[in] == src[match] {
 		in++
 		match++
@@ -126,20 +135,39 @@ func lz4Decompress(block []byte, size int) ([]byte, error) {
 	return out, nil
 }
 
+// lz4Level0Hash4 is the level an NCZSECT3 tells for a block of level 0 made by the fast compressor
+// as built for 32 bits, with the hash of 4 bytes. The levels of LZ4HC r1xx go up to 16.
+const lz4Level0Hash4 int8 = 64
+
 // nintendoLz4 compresses src as the block of the given level was made, and tells whether the
 // level is one of those known.
 func nintendoLz4(src []byte, level int8) ([]byte, bool) {
-	switch level {
-	case 0:
-		return lz4CompressFast(src), true
-	case 5:
-		return lz4CompressHC(src, 1<<(5-1)), true
+	switch {
+	case level == 0:
+		return lz4CompressFast(src, true), true
+	case level == lz4Level0Hash4:
+		return lz4CompressFast(src, false), true
+	case level >= 1 && level <= 16:
+		return lz4CompressHC(src, 1<<(level-1)), true
 	}
 	return nil, false
 }
 
-// lz4FastHash is the hash of 5 bytes of the fast compressor, on a table of 13 bits.
-func lz4FastHash(src []byte, i int) uint32 {
+// nintendoLz4Levels are the levels nintendoLz4 may make a block of the given level of an NCA at,
+// in the order to try them.
+func nintendoLz4Levels(level int8) []int8 {
+	if level == 0 {
+		return []int8{0, lz4Level0Hash4}
+	}
+	return []int8{level}
+}
+
+// lz4FastHash is the hash of the fast compressor on a table of 13 bits: of 5 bytes, or of 4 when
+// wide is false.
+func lz4FastHash(src []byte, i int, wide bool) uint32 {
+	if !wide {
+		return (lz4Read32(src, i) * 2654435761) >> (32 - 13)
+	}
 	var v uint64
 	if i+8 <= len(src) {
 		v = binary.LittleEndian.Uint64(src[i:])
@@ -151,8 +179,9 @@ func lz4FastHash(src []byte, i int) uint32 {
 	return uint32(((v << 24) * 889523592379) >> (64 - 13))
 }
 
-// lz4CompressFast is LZ4_compress_generic of LZ4 before 1.8.2, with no dictionary.
-func lz4CompressFast(src []byte) []byte {
+// lz4CompressFast is LZ4_compress_generic of LZ4 before 1.8.2, with no dictionary, with the hash
+// of 5 bytes when wide is set.
+func lz4CompressFast(src []byte, wide bool) []byte {
 	out := make([]byte, 0, len(src)+len(src)/255+16)
 	var table [1 << 13]int32
 	n := len(src)
@@ -164,9 +193,9 @@ func lz4CompressFast(src []byte) []byte {
 		out, _ = lz4Literals(out, src)
 		return out
 	}
-	table[lz4FastHash(src, ip)] = int32(ip)
+	table[lz4FastHash(src, ip, wide)] = int32(ip)
 	ip++
-	forwardH := lz4FastHash(src, ip)
+	forwardH := lz4FastHash(src, ip, wide)
 	for {
 		var match int
 		forwardIp := ip
@@ -185,7 +214,7 @@ func lz4CompressFast(src []byte) []byte {
 				return out
 			}
 			match = matchIndex
-			forwardH = lz4FastHash(src, forwardIp)
+			forwardH = lz4FastHash(src, forwardIp, wide)
 			table[h] = int32(current)
 			if matchIndex+lz4MaxDistance < current {
 				continue
@@ -221,9 +250,9 @@ func lz4CompressFast(src []byte) []byte {
 				out, _ = lz4Literals(out, src[anchor:])
 				return out
 			}
-			table[lz4FastHash(src, ip-2)] = int32(ip - 2)
+			table[lz4FastHash(src, ip-2, wide)] = int32(ip - 2)
 			// the position right after the match
-			h := lz4FastHash(src, ip)
+			h := lz4FastHash(src, ip, wide)
 			matchIndex := int(table[h])
 			table[h] = int32(ip)
 			if matchIndex+lz4MaxDistance >= ip && matchIndex < ip && lz4Read32(src, matchIndex) == lz4Read32(src, ip) {
@@ -235,7 +264,7 @@ func lz4CompressFast(src []byte) []byte {
 			break
 		}
 		ip++
-		forwardH = lz4FastHash(src, ip)
+		forwardH = lz4FastHash(src, ip, wide)
 	}
 }
 
@@ -285,9 +314,12 @@ func (s *lz4hcState) widerMatch(ip, iLow, iHigh, longest int) (int, int, int) {
 	s.insert(ipIdx)
 	matchIndex := s.hashTable[s.hash(ipIdx)]
 	matchPos, startPos := -1, -1
+	// what does not change while the chain is searched, at 32,768 times a search at level 16
+	head, last := lz4Read32(src, ip), src[iLow+longest]
+	chain := &s.chain
 	for nb := s.attempts; matchIndex >= lowLimit && nb > 0; nb-- {
 		m := int(matchIndex) - lz4hcPrefix
-		if src[iLow+longest] == src[m-delta+longest] && lz4Read32(src, m) == lz4Read32(src, ip) {
+		if last == src[m-delta+longest] && lz4Read32(src, m) == head {
 			mlt := lz4MinMatch + lz4Count(src, ip+lz4MinMatch, m+lz4MinMatch, iHigh)
 			back := 0
 			for ip+back > iLow && m+back > 0 && src[ip+back-1] == src[m+back-1] {
@@ -298,14 +330,15 @@ func (s *lz4hcState) widerMatch(ip, iLow, iHigh, longest int) (int, int, int) {
 				longest = mlt
 				matchPos = m + back
 				startPos = ip + back
+				last = src[iLow+longest]
 			}
 		}
-		matchIndex -= uint32(s.chain[matchIndex&(lz4hcMaxD-1)])
+		matchIndex -= uint32(chain[uint16(matchIndex)])
 	}
 	return longest, matchPos, startPos
 }
 
-// lz4CompressHC is LZ4HC_compress_generic of LZ4 r1xx for the levels of a hash chain (up to 9),
+// lz4CompressHC is LZ4HC_compress_generic of LZ4 r1xx, whose levels are all of a hash chain,
 // searching it attempts times.
 func lz4CompressHC(src []byte, attempts int) []byte {
 	s := &lz4hcState{src: src, nextToUpdate: lz4hcPrefix, attempts: attempts}

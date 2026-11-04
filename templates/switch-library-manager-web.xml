@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.72.0
+  <Changes>### 1.72.1
+- Reads the NSZ made with the extra compression of NXPress 1.5.0
+### 1.72.0
 - Organize takes the NFO, SFV and proof files along with their game
 - Stricter search, and games for the Switch 2 alone no longer show as missing
 - Scores of critics and players without reviews, votes or links out
@@ -111,7 +113,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-11-03</Date>
+  <Date>2026-11-04</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>

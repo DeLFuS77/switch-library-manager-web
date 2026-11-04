@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.72.1
+
+### Fixes
+
+- The NSZ files made with the extra compression of NXPress 1.5.0 are read also when their LZ4 blocks come from level 16 or from the fast compressor built for 32 bits, which many recent games use (thanks @NikoMuffin, who found them in NXPress #63)
+
 ## 1.72.0
 
 ### Improvements
