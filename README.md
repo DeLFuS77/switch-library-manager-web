@@ -1,6 +1,7 @@
 # Switch Library Manager Web
 
 [![Support on Ko-fi](https://img.shields.io/badge/Support_on-Ko--fi-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/delfus77)
+[![Discord](https://img.shields.io/badge/Discord-join_the_server-5865F2?logo=discord&logoColor=white)](https://discord.gg/acQVZSEBR)
 [![Release](https://img.shields.io/github/v/release/DeLFuS77/switch-library-manager-web?sort=semver)](https://github.com/DeLFuS77/switch-library-manager-web/releases)
 [![Downloads](https://img.shields.io/github/downloads/DeLFuS77/switch-library-manager-web/total?logo=github)](https://github.com/DeLFuS77/switch-library-manager-web/releases)
 [![Docker Hub](https://img.shields.io/docker/pulls/delfus77/switch-library-manager-web?logo=docker)](https://hub.docker.com/r/delfus77/switch-library-manager-web)
@@ -258,7 +259,8 @@ The [wiki](https://github.com/DeLFuS77/switch-library-manager-web/wiki) has a gu
 | [Demo mode](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Demo-mode), [Building](https://github.com/DeLFuS77/switch-library-manager-web/wiki/Building) | Look around without games, build it yourself |
 
 To report a security problem privately, see [SECURITY.md](SECURITY.md). To report bugs, ask for features or contribute
-code, see [CONTRIBUTING.md](CONTRIBUTING.md).
+code, see [CONTRIBUTING.md](CONTRIBUTING.md). For help, ideas and news of new versions there is also a
+[Discord server](https://discord.gg/acQVZSEBR), shared with NXPress.
 
 ## Disclaimer
 
