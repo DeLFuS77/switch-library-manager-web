@@ -1,4 +1,39 @@
 {
+  "1.72.1": {
+    "en": [
+      "Reads the NSZ files made with the extra compression of NXPress 1.5.0."
+    ],
+    "es": [
+      "Lee los archivos NSZ hechos con la compresión extra de NXPress 1.5.0."
+    ],
+    "de": [
+      "Liest die NSZ-Dateien, die mit der Extra-Komprimierung von NXPress 1.5.0 erstellt wurden."
+    ],
+    "fr": [
+      "Lit les fichiers NSZ créés avec la compression extra de NXPress 1.5.0."
+    ],
+    "it": [
+      "Legge i file NSZ creati con la compressione extra di NXPress 1.5.0."
+    ],
+    "pt": [
+      "Lê os arquivos NSZ criados com a compressão extra do NXPress 1.5.0."
+    ],
+    "nl": [
+      "Leest de NSZ-bestanden die zijn gemaakt met de extra compressie van NXPress 1.5.0."
+    ],
+    "ru": [
+      "Читает файлы NSZ, созданные с дополнительным сжатием NXPress 1.5.0."
+    ],
+    "ja": [
+      "NXPress 1.5.0 の追加圧縮で作られた NSZ ファイルを読み込めます。"
+    ],
+    "ko": [
+      "NXPress 1.5.0의 추가 압축으로 만든 NSZ 파일을 읽을 수 있습니다."
+    ],
+    "zh": [
+      "可以读取用 NXPress 1.5.0 额外压缩制作的 NSZ 文件。"
+    ]
+  },
   "1.72.0": {
     "en": [
       "Organize takes the NFO, SFV and proof files of a game along with it, and the setup wizard asks about it.",
