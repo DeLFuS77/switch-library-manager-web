@@ -5,6 +5,14 @@
 ### Improvements
 
 - Low priority on Windows lowers the memory of the app too: when memory runs short, its pages are the first given to the other programs (thanks @NikoMuffin, who found it in NXPress #70)
+- The full menu at the top shows from 1200px wide on a computer with a mouse (it was 1400px), so a laptop of 1280 or 1366px sees every section and its counts. In a narrower window the menu button wears the dot of More: red for issues or failed tasks, orange for a step of the tune-up waiting
+- On a phone, More starts with Issues and Tasks and no longer repeats the sections of the bar at the bottom
+- The account menu holds only what is yours: your account, the theme, the couch mode, the sounds and log out. Users, Activity and Diagnostics are in the index of Settings, under Access and Maintenance
+- The sections of Settings say what they hold: What is shown (the old Ignored items), Game data (the firmware of the console and the keys of IGDB) and Sync and check (the automatic synchronization, the checks of the files and the hours of the heavy work). General keeps the theme, the language and the notice of a new version
+- Issues shows the issues first: Check new files has an arrow whose menu chooses what to check, with what each level does, and checks every file again
+- The page of a game has fewer buttons in a row: Download all, Favorite, Collections and a More menu with Edit the game and Combine the files. On a phone Favorite and Collections show their icon alone
+- In the Library the first status filter is called Any status, so it is not confused with All of the tabs above. On a phone Upload games and Export are icons beside the title
+- The quick search also finds Activity, Tune-up, Quarantine, App on your phone, Sign-in portal and Game data
 
 ## 1.72.1
 
