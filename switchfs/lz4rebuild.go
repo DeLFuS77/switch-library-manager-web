@@ -21,7 +21,8 @@ import (
 //   - In the stream, each block of the table takes its decompressed size in place of its own.
 //   - After the stream: "NCZLZ4RB", the number of blocks (u64), the size of the table (u64) and
 //     the table compressed with zstd: per block its offset in the NCA (u64), its size there
-//     (u32), its decompressed size (u32) and its level (s8), 17 bytes.
+//     (u32), its decompressed size (u32) and its level (s8), 17 bytes. The level is the one of
+//     the NCA, but 64 for a block of level 0 made with the hash of 4 bytes (lz4Level0Hash4).
 //   - The last 16 bytes: where "NCZLZ4RB" starts after the start of the NCZ (u64) and
 //     "NCZLZ4FT".
 //
@@ -86,8 +87,12 @@ func newLz4Expander(out io.Writer, blocks []lz4Block, position uint64, workers i
 			defer e.workers.Done()
 			for piece := range e.jobs {
 				if raw, err := lz4Decompress(piece.data, int(piece.block.rawSize)); err == nil {
-					if made, known := nintendoLz4(raw, piece.block.level); known && bytes.Equal(made, piece.data) {
-						piece.data, piece.keep = raw, true
+					for _, level := range nintendoLz4Levels(piece.block.level) {
+						if made, known := nintendoLz4(raw, level); known && bytes.Equal(made, piece.data) {
+							piece.data, piece.keep = raw, true
+							piece.block.level = level
+							break
+						}
 					}
 				}
 				close(piece.ready)

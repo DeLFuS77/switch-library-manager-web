@@ -2,6 +2,7 @@ package switchfs
 
 import (
 	"bytes"
+	"hash/crc32"
 	"io"
 	"math/rand"
 	"testing"
@@ -30,7 +31,7 @@ func studyData(seed int64) []byte {
 func TestNintendoLz4Decompresses(t *testing.T) {
 	inputs := [][]byte{make([]byte, 64<<10), bytes.Repeat([]byte("abc"), 100), []byte("short"), studyData(1), studyData(2)}
 	for i, input := range inputs {
-		for _, level := range []int8{0, 5} {
+		for _, level := range []int8{0, lz4Level0Hash4, 1, 5, 9, 16} {
 			block, known := nintendoLz4(input, level)
 			if !known {
 				t.Fatal("level not known")
@@ -44,8 +45,43 @@ func TestNintendoLz4Decompresses(t *testing.T) {
 			}
 		}
 	}
-	if _, known := nintendoLz4(inputs[0], 9); known {
-		t.Error("level 9 is not one of Nintendo's")
+	for _, level := range []int8{-1, 17, lz4Level0Hash4 - 1} {
+		if _, known := nintendoLz4(inputs[0], level); known {
+			t.Errorf("level %d is not one of Nintendo's", level)
+		}
+	}
+}
+
+// The compressors make what they made when they made every block of the games tried again: the
+// fast one with each hash and LZ4HC at levels 5 and 16 searching its chain more, which finds
+// longer matches. The sizes and the CRC-32 of their blocks of one input are kept here, so that
+// any change to them shows.
+func TestNintendoLz4MakesTheSameBlocks(t *testing.T) {
+	input := studyData(1)
+	made := map[int8][]byte{}
+	for _, want := range []struct {
+		level int8
+		size  int
+		crc   uint32
+	}{{0, 22469, 0x4f72d095}, {lz4Level0Hash4, 22579, 0x6b6f0e99}, {5, 19312, 0x556aefdb}, {16, 18187, 0xe6acdf4c}} {
+		block, _ := nintendoLz4(input, want.level)
+		made[want.level] = block
+		if len(block) != want.size || crc32.ChecksumIEEE(block) != want.crc {
+			t.Errorf("level %d: %d bytes, CRC-32 %#08x", want.level, len(block), crc32.ChecksumIEEE(block))
+		}
+	}
+	if bytes.Equal(made[0], made[lz4Level0Hash4]) || len(made[16]) >= len(made[5]) {
+		t.Error("the compressors are not told apart")
+	}
+}
+
+// A block of level 0 is tried with each hash of the fast compressor.
+func TestNintendoLz4LevelsOfABlock(t *testing.T) {
+	if levels := nintendoLz4Levels(0); len(levels) != 2 || levels[0] != 0 || levels[1] != lz4Level0Hash4 {
+		t.Errorf("level 0: %v", levels)
+	}
+	if levels := nintendoLz4Levels(16); len(levels) != 1 || levels[0] != 16 {
+		t.Errorf("level 16: %v", levels)
 	}
 }
 
@@ -60,11 +96,14 @@ func TestLz4DecompressRefusesDamagedBlocks(t *testing.T) {
 }
 
 // NCZSECT3: the blocks of the table go into the stream decompressed and come back byte for byte;
-// a block the compressors do not make again stays as it is.
+// a block the compressors do not make again stays as it is. A block of level 0 made with the hash
+// of 4 bytes is told so in the table.
 func TestLz4BlocksKeptDecompressedComeBack(t *testing.T) {
-	rawFast, rawHC := studyData(4), studyData(5)
+	rawFast, rawHC, rawFast4, rawHC16 := studyData(4), studyData(5), studyData(6), studyData(7)
 	fast, _ := nintendoLz4(rawFast, 0)
 	hc, _ := nintendoLz4(rawHC, 5)
+	fast4, _ := nintendoLz4(rawFast4, lz4Level0Hash4)
+	hc16, _ := nintendoLz4(rawHC16, 16)
 	foreign, _ := nintendoLz4(rawFast, 5)
 	nca := bytes.Repeat([]byte{0x42}, 0x100)
 	at := func(block []byte) uint64 { return uint64(nczHeaderSize + len(nca)) }
@@ -78,6 +117,8 @@ func TestLz4BlocksKeptDecompressedComeBack(t *testing.T) {
 	add(hc, rawHC, 5)
 	// told as level 0, but made at level 5: not made again, so kept as it is
 	add(foreign, rawFast, 0)
+	add(fast4, rawFast4, 0)
+	add(hc16, rawHC16, 16)
 
 	stream := &bytes.Buffer{}
 	expander := newLz4Expander(stream, blocks, nczHeaderSize, 3)
@@ -90,10 +131,10 @@ func TestLz4BlocksKeptDecompressedComeBack(t *testing.T) {
 		rest = rest[n:]
 	}
 	kept, err := expander.finish()
-	if err != nil || len(kept) != 2 || kept[0].level != 0 || kept[1].level != 5 {
+	if err != nil || len(kept) != 4 || kept[0].level != 0 || kept[1].level != 5 || kept[2].level != lz4Level0Hash4 || kept[3].level != 16 {
 		t.Fatalf("kept %+v: %v", kept, err)
 	}
-	if stream.Len() != len(nca)-len(fast)-len(hc)+len(rawFast)+len(rawHC) {
+	if stream.Len() != len(nca)-len(fast)-len(hc)-len(fast4)-len(hc16)+len(rawFast)+len(rawHC)+len(rawFast4)+len(rawHC16) {
 		t.Fatalf("stream of %d bytes", stream.Len())
 	}
 
@@ -103,7 +144,7 @@ func TestLz4BlocksKeptDecompressedComeBack(t *testing.T) {
 	}
 	file := append(append(make([]byte, nczHeaderSize), stream.Bytes()...), table.Bytes()...)
 	kept, end, err := readLz4Table(bytes.NewReader(file), int64(len(file)))
-	if err != nil || len(kept) != 2 || end != nczHeaderSize+int64(stream.Len()) {
+	if err != nil || len(kept) != 4 || kept[2].level != lz4Level0Hash4 || end != nczHeaderSize+int64(stream.Len()) {
 		t.Fatalf("table: %v %d %d", err, len(kept), end)
 	}
 	back := &bytes.Buffer{}
