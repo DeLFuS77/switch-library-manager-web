@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Low priority on Windows lowers the memory of the app too: when memory runs short, its pages are the first given to the other programs (thanks @NikoMuffin, who found it in NXPress #70)
+
 ## 1.72.1
 
 ### Fixes
