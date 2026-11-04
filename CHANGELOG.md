@@ -13,6 +13,7 @@
 - The page of a game has fewer buttons in a row: Download all, Favorite, Collections and a More menu with Edit the game and Combine the files. On a phone Favorite and Collections show their icon alone
 - In the Library the first status filter is called Any status, so it is not confused with All of the tabs above. On a phone Upload games and Export are icons beside the title
 - The quick search also finds Activity, Tune-up, Quarantine, App on your phone, Sign-in portal and Game data
+- The help of the fields of Settings and Organize no longer fills the page on a computer: a small ⓘ after the name of a field tells there is some, and it shows in a card while the mouse is on the name or the field has the focus of the keyboard. Statuses, warnings and links stay in sight, and on phones and tablets the help stays under each field (thanks @NikoMuffin, who asked for it in NXPress #67)
 
 ## 1.72.1
 
