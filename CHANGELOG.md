@@ -5,6 +5,7 @@
 ### Improvements
 
 - Low priority on Windows lowers the memory of the app too: when memory runs short, its pages are the first given to the other programs (thanks @NikoMuffin, who found it in NXPress #70)
+- The help of the fields of Settings and Organize no longer fills the page on a computer: a small ⓘ after the name of a field tells there is some, and it shows in a card while the mouse is on the name or the field has the focus of the keyboard. Statuses, warnings and links stay in sight, and on phones and tablets the help stays under each field (thanks @NikoMuffin, who asked for it in NXPress #67)
 
 ## 1.72.1
 

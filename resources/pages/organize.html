@@ -82,7 +82,7 @@
 				</section>
 			</div>
 			<div role="tabpanel" id="panelOptions" aria-labelledby="tabOptions" hidden>
-				<form class="row g-3 mb-4" id="organizeForm" method="post" data-save-when-changed>
+				<form class="row g-3 mb-4" id="organizeForm" method="post" data-save-when-changed data-hover-help>
 					<div class="col-lg-6">
 						<div class="surface h-100">
 							<div>
@@ -149,7 +149,7 @@
 									<label for="file_name_template" class="form-label">{{t "File name template"}}</label>
 									<input type="text" class="form-control font-monospace" id="file_name_template" name="file_name_template" value="{{$o.FileNameTemplate}}">
 								</div>
-								<div class="form-text mb-3">
+								<div class="form-text mb-3 help-keep">
 									{{t "Available:"}} <code>{{t "{TITLE_NAME}"}}</code> <code>{{t "{TITLE_ID}"}}</code> <code>{{t "{VERSION}"}}</code> <code>{{t "{VERSION_TXT}"}}</code> <code>{{t "{REGION}"}}</code> <code>{{t "{TYPE}"}}</code> <code>{{t "{DLC_NAME}"}}</code> <code>{PACKAGE_CONTENTS}</code> <code>{SIZE_GB}</code> <code>{SIZE_MB}</code><br>{{t "{DLC_NUMBER}: the number of a DLC (1, 2...), for names like [DLC 1]"}}
 								</div>
 								<div class="form-check form-switch mb-2">

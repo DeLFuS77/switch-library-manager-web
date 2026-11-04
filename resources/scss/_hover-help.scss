@@ -1,0 +1,133 @@
+// The help under the fields of Settings and Organize, on a screen with a mouse (see
+// 21-hover-help.js): a small ⓘ after the name of a field tells there is some, grey until the mouse
+// comes, then in the blue of work; the help shows in a card tinted with that blue. Red stays for
+// errors.
+
+$help-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'%3E%3Ccircle cx='8' cy='8' r='6.4'/%3E%3Cpath d='M8 7.3v4M8 4.9v.2'/%3E%3C/svg%3E");
+
+.help-text {
+	display: none !important;
+}
+
+.has-help {
+	cursor: help;
+	border-radius: .25rem;
+
+	&::after {
+		content: "";
+		display: inline-block;
+		width: .875rem;
+		height: .875rem;
+		margin-left: .375rem;
+		vertical-align: -.125rem;
+		background-color: var(--bs-secondary-color);
+		opacity: .8;
+		mask: $help-mark center / contain no-repeat;
+		transition: background-color .15s, opacity .15s, transform .15s;
+	}
+
+	&:hover::after,
+	&.help-open::after,
+	&:focus-visible::after {
+		background-color: rgb(var(--slm-work-rgb));
+		opacity: 1;
+		transform: scale(1.1);
+	}
+}
+
+// the label of a switch toggles it: it keeps the hand of a click
+label.has-help {
+	cursor: pointer;
+}
+
+.help-pop {
+	position: fixed;
+	z-index: 1070;
+	max-width: 20rem;
+	padding: .75rem .875rem;
+	border: 1px solid rgba(var(--slm-work-rgb), .4);
+	border-radius: var(--bs-border-radius-lg);
+	color: var(--bs-body-color);
+	background: linear-gradient(160deg, rgba(var(--slm-work-rgb), .16), transparent 62%), var(--bs-body-bg);
+	box-shadow: 0 .875rem 2.125rem rgba(0, 0, 0, .25), 0 0 1.375rem -.5rem rgba(var(--slm-work-rgb), .45);
+	opacity: 0;
+	transform: translateY(.3rem) scale(.98);
+	transition: opacity .14s ease-out, transform .16s cubic-bezier(.2, .8, .2, 1);
+
+	&[hidden] {
+		display: none;
+	}
+
+	&.above {
+		transform: translateY(-.3rem) scale(.98);
+	}
+
+	&.in {
+		opacity: 1;
+		transform: none;
+	}
+
+	&.wide {
+		max-width: 24rem;
+	}
+}
+
+.help-title {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	margin-bottom: .3rem;
+	font-size: .8125rem;
+	font-weight: 600;
+
+	.bi {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 1.25rem;
+		height: 1.25rem;
+		border-radius: .375rem;
+		font-size: .8rem;
+		color: rgb(var(--slm-work-rgb));
+		background: rgba(var(--slm-work-rgb), .16);
+	}
+}
+
+.help-body {
+	font-size: .8125rem;
+	line-height: 1.5;
+	color: var(--bs-secondary-color);
+
+	a {
+		color: var(--slm-red-text);
+	}
+}
+
+.help-arrow {
+	position: absolute;
+	top: -.45rem;
+	width: .75rem;
+	height: .75rem;
+	transform: rotate(45deg);
+	background: color-mix(in srgb, rgb(var(--slm-work-rgb)) 12%, var(--bs-body-bg));
+	border-left: 1px solid rgba(var(--slm-work-rgb), .4);
+	border-top: 1px solid rgba(var(--slm-work-rgb), .4);
+
+	.help-pop.above & {
+		top: auto;
+		bottom: -.45rem;
+		background: var(--bs-body-bg);
+		border: 0;
+		border-right: 1px solid rgba(var(--slm-work-rgb), .4);
+		border-bottom: 1px solid rgba(var(--slm-work-rgb), .4);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.help-pop,
+	.help-pop.above,
+	.has-help:hover::after,
+	.has-help.help-open::after {
+		transform: none;
+	}
+}
