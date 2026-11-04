@@ -1,14 +1,15 @@
 {{define "title"}}{{t "Library"}}{{end}}
 {{define "main"}}
-			<div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
+			{{- /* on a phone the buttons keep their icon alone, beside the title */}}
+			<div class="d-flex flex-wrap align-items-end justify-content-between gap-2 library-head">
 				{{- template "pageHeader" (dict "Title" (t "Library") "Count" -1 "Subtitle" (t "The games in your folders. Open a game to see its updates, DLC and files."))}}
-				<div class="d-flex flex-wrap gap-2 mb-3">
+				<div class="d-flex flex-wrap gap-2 mb-3 library-head-actions">
 				{{- if not .Demo}}
-				<button type="button" class="btn btn-outline-secondary rounded-pill editor-only" data-upload-open title="{{t "Send NSP, NSZ, XCI or XCZ files from this device to the library folder. You can also drop them on the page."}}"><span class="bi bi-upload me-2" aria-hidden="true"></span>{{t "Upload games"}}</button>
+				<button type="button" class="btn btn-outline-secondary rounded-pill editor-only" data-upload-open title="{{t "Send NSP, NSZ, XCI or XCZ files from this device to the library folder. You can also drop them on the page."}}"><span class="bi bi-upload me-2" aria-hidden="true"></span><span class="library-head-label">{{t "Upload games"}}</span></button>
 				{{- end}}
 				{{- if gt .Pagination.NumItems 0}}
 				<div class="dropdown">
-					<button class="btn btn-outline-secondary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false"><span class="bi bi-download me-2" aria-hidden="true"></span>{{t "Export"}}</button>
+					<button class="btn btn-outline-secondary dropdown-toggle rounded-pill" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="{{t "Export"}}"><span class="bi bi-download me-2" aria-hidden="true"></span><span class="library-head-label">{{t "Export"}}</span></button>
 					<ul class="dropdown-menu dropdown-menu-end">
 						<li><a class="dropdown-item" href="/export/library.csv"><span class="bi bi-filetype-csv me-2" aria-hidden="true"></span>{{t "Spreadsheet (CSV)"}}</a></li>
 						<li><a class="dropdown-item" href="/export/library.json"><span class="bi bi-filetype-json me-2" aria-hidden="true"></span>{{t "Full inventory (JSON)"}}</a></li>
@@ -113,7 +114,8 @@
 			{{- template "filter" .}}
 			<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
 				<ul class="filter-pills filter-scroll list-unstyled mb-0" aria-label="{{t "Filter by status"}}">
-					{{- template "statusFilter" (dict "Filter" .Filter "Value" "" "Label" (t "All") "Icon" "" "Count" .Facets.All)}}
+					{{- /* not "All", the name of the first tab above */}}
+					{{- template "statusFilter" (dict "Filter" .Filter "Value" "" "Label" (t "Any status") "Icon" "" "Count" .Facets.All)}}
 					{{- template "statusFilter" (dict "Filter" .Filter "Value" "update" "Label" (t "Update available") "Icon" "bi-arrow-up-circle" "Count" .Facets.Update)}}
 					{{- template "statusFilter" (dict "Filter" .Filter "Value" "dlc" "Label" (t "DLC missing") "Icon" "bi-puzzle" "Count" .Facets.Dlc)}}
 					{{- template "statusFilter" (dict "Filter" .Filter "Value" "complete" "Label" (t "Up to date") "Icon" "bi-check-circle" "Count" .Facets.Complete)}}

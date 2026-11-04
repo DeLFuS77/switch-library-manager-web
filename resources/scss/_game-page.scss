@@ -254,6 +254,27 @@
 		}
 	}
 
+	// More (edit, combine) is a round button with its dots
+	.title-more {
+		padding-inline: 1rem;
+	}
+
+	.action-icon {
+		margin-right: .5rem;
+	}
+
+	// on a phone Favorite, the wishlist and Collections keep their icon alone, so they fit on
+	// one line with More; their name stays for screen readers
+	@include media-breakpoint-down(sm) {
+		.action-label {
+			@include visually-hidden();
+		}
+
+		.action-icon {
+			margin-right: 0;
+		}
+	}
+
 	@include media-breakpoint-up(sm) {
 		justify-content: flex-start;
 	}

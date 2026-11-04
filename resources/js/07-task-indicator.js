@@ -71,8 +71,8 @@ function updateTaskIndicator() {
 						badge.remove();
 					}
 				};
-				setBadge('.nav-running', 'badge rounded-pill nav-count nav-running ms-auto ms-xxl-0', running, t('Tasks running: %v', running), true);
-				setBadge('.nav-count.text-bg-danger', 'badge rounded-pill nav-count text-bg-danger ms-xxl-0', failed, t('Failed tasks: %v', failed), false);
+				setBadge('.nav-running', 'badge rounded-pill nav-count nav-running ms-auto ms-full-0', running, t('Tasks running: %v', running), true);
+				setBadge('.nav-count.text-bg-danger', 'badge rounded-pill nav-count text-bg-danger ms-full-0', failed, t('Failed tasks: %v', failed), false);
 				const failedBadge = link.querySelector('.nav-count.text-bg-danger');
 				if (failedBadge) {
 					failedBadge.classList.toggle('ms-auto', running === 0);

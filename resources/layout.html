@@ -21,24 +21,25 @@
 <body class="d-flex flex-column min-vh-100" data-page="{{.Page}}" data-role="{{.Auth.Role}}" data-wizard-auto="{{and .Auth.IsAdmin .WizardAuto}}">
 	<a class="skip-link btn btn-primary" href="#main">{{t "Skip to content"}}</a>
 	<header class="app-header sticky-top">
-		<nav class="navbar navbar-expand-xxl" aria-label="{{t "Main navigation"}}">
+		<nav class="navbar navbar-expand-full" aria-label="{{t "Main navigation"}}">
 			<div class="container-xxl">
 				<a class="navbar-brand d-flex align-items-center gap-2 me-3" href="/index.html">
 					<span class="brand-mark"><img src="/resources/static/icon.svg" alt="" aria-hidden="true"></span>
-					<span class="brand-text">Switch Library<span class="d-none d-sm-inline d-xxl-none"> Manager</span></span>
+					<span class="brand-text">Switch Library<span class="d-none d-sm-inline full-header-hide"> Manager</span></span>
 				</a>
-				<div class="d-flex align-items-center gap-2 order-xxl-last">
+				<div class="d-flex align-items-center gap-2 order-full-last">
 					<button type="button" class="btn btn-sm search-trigger rounded-pill" data-search-open aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K /" title="{{t "Search"}} (Ctrl K)">
 						<span class="bi bi-search" aria-hidden="true"></span><span class="search-trigger-label d-none d-lg-inline">{{t "Search"}}</span><kbd class="search-kbd d-none d-lg-inline" data-search-kbd>Ctrl K</kbd>
 					</button>
 					<a class="btn btn-primary btn-sm d-inline-flex align-items-center gap-2 rounded-pill px-3 editor-only" href="/sync" id="sync" title="{{t "Download the latest titles database and rescan the library"}}">
-						<span class="bi bi-arrow-repeat" aria-hidden="true"></span><span class="d-none d-md-inline d-xxl-none">{{t "Synchronize"}}</span>
+						<span class="bi bi-arrow-repeat" aria-hidden="true"></span><span class="d-none d-md-inline full-header-hide">{{t "Synchronize"}}</span>
 					</a>
 						{{- if ne .Page "tasks"}}
-						<a class="btn btn-sm header-tasks rounded-pill d-xxl-none" href="/tasks.html" data-header-tasks title="{{t "Tasks running: %v" (num .Counts.RunningTasks)}}"{{if not .Counts.RunningTasks}} hidden{{end}}><span class="bi bi-fan nav-busy" aria-hidden="true"></span><span class="header-tasks-count" data-header-tasks-count>{{if gt .Counts.RunningTasks 1}}{{.Counts.RunningTasks}}{{end}}</span><span class="visually-hidden">{{t "Tasks"}}</span></a>
+						<a class="btn btn-sm header-tasks rounded-pill full-header-hide" href="/tasks.html" data-header-tasks title="{{t "Tasks running: %v" (num .Counts.RunningTasks)}}"{{if not .Counts.RunningTasks}} hidden{{end}}><span class="bi bi-fan nav-busy" aria-hidden="true"></span><span class="header-tasks-count" data-header-tasks-count>{{if gt .Counts.RunningTasks 1}}{{.Counts.RunningTasks}}{{end}}</span><span class="visually-hidden">{{t "Tasks"}}</span></a>
 						{{- end}}
 					{{- if and .Auth.Enabled .Auth.IsAdmin}}
-					<a class="btn btn-link nav-link settings-shortcut d-none d-xxl-inline-flex{{if eq .Page "settings"}} active{{end}}" href="/settings.html" title="{{t "Settings"}}"{{if eq .Page "settings"}} aria-current="page"{{end}}><span class="bi bi-gear" aria-hidden="true"></span><span class="visually-hidden">{{t "Settings"}}</span></a>
+					{{- /* also lit on Users, Activity and Diagnostics, which are in the index of Settings */}}
+					<a class="btn btn-link nav-link settings-shortcut full-header-only-flex{{if or (eq .Page "settings") (eq .Page "users") (eq .Page "activity") (eq .Page "diagnostics")}} active{{end}}" href="/settings.html" title="{{t "Settings"}}"{{if eq .Page "settings"}} aria-current="page"{{end}}><span class="bi bi-gear" aria-hidden="true"></span><span class="visually-hidden">{{t "Settings"}}</span></a>
 					{{- end}}
 					{{- if or .Auth.Enabled .Auth.IsAdmin}}
 					<div class="dropdown account-menu">
@@ -51,8 +52,11 @@
 						</ul>
 					</div>
 					{{- end}}
-					<button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="{{t "Toggle navigation"}}">
+					{{- $tuneUp := and .Auth.IsAdmin .Counts.TuneUp}}
+					<button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="{{t "Toggle navigation"}}{{if .Counts.Issues}}, {{t "Issues"}}: {{num .Counts.Issues}}{{end}}{{if .Counts.FailedTasks}}, {{t "Failed tasks: %v" (num .Counts.FailedTasks)}}{{end}}{{if $tuneUp}}, {{t "A step of the tune-up is waiting"}}{{end}}">
 						<span class="navbar-toggler-icon"></span>
+						{{- /* what waits inside, as the dot of More on a phone */}}
+						{{- if or .Counts.Issues .Counts.FailedTasks}}<span class="toggler-dot is-problem" aria-hidden="true"></span>{{else if $tuneUp}}<span class="toggler-dot" aria-hidden="true"></span>{{end}}
 					</button>
 				</div>
 				<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
@@ -62,11 +66,11 @@
 					</div>
 					<div class="offcanvas-body">
 						<ul class="navbar-nav app-nav flex-grow-1">
-							{{- template "navLink" (dict "Page" (or (and (eq .Page "missing") "index") .Page) "Id" "index" "Href" "/index.html" "Icon" "bi-collection" "Label" (t "Library") "Count" 0 "Badge" "")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "updates" "Href" "/updates.html" "Icon" "bi-arrow-up-circle" "Label" (t "Updates") "Count" .Counts.Updates "Badge" "text-bg-warning")}}
-							{{- template "navLink" (dict "Page" .Page "Id" "dlc" "Href" "/dlc.html" "Icon" "bi-puzzle" "Label" (t "DLC") "Count" .Counts.Dlc "Badge" "text-bg-info")}}
+							{{- template "navLink" (dict "Page" (or (and (eq .Page "missing") "index") .Page) "Id" "index" "Href" "/index.html" "Icon" "bi-collection" "Label" (t "Library") "Count" 0 "Badge" "" "InBar" "in-bottom-bar")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "updates" "Href" "/updates.html" "Icon" "bi-arrow-up-circle" "Label" (t "Updates") "Count" .Counts.Updates "Badge" "text-bg-warning" "InBar" "in-bottom-bar")}}
+							{{- template "navLink" (dict "Page" .Page "Id" "dlc" "Href" "/dlc.html" "Icon" "bi-puzzle" "Label" (t "DLC") "Count" .Counts.Dlc "Badge" "text-bg-info" "InBar" "in-bottom-bar-wide")}}
 							{{- $discover := or (eq .Page "upcoming") (eq .Page "sagas") (eq .Page "statistics")}}
-							<li class="nav-item dropdown d-none d-xxl-block">
+							<li class="nav-item dropdown full-header-only">
 								<button class="btn btn-link nav-link dropdown-toggle{{if $discover}} active{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="discoverMenu">
 									{{- if $discover}}<span class="nav-indicator" aria-hidden="true"></span>{{end}}
 									<span class="bi bi-compass" aria-hidden="true"></span><span class="nav-label">{{t "Discover"}}</span>
@@ -77,7 +81,7 @@
 							</li>
 							{{- if .Auth.CanEdit}}
 							{{- $tools := or (eq .Page "maintenance") (eq .Page "organize") (eq .Page "compress") (eq .Page "space") (eq .Page "sd") (eq .Page "saves")}}
-							<li class="nav-item dropdown d-none d-xxl-block">
+							<li class="nav-item dropdown full-header-only">
 								<button class="btn btn-link nav-link dropdown-toggle{{if $tools}} active{{end}}" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="toolsMenu">
 									{{- if $tools}}<span class="nav-indicator" aria-hidden="true"></span>{{end}}
 									<span class="bi bi-tools" aria-hidden="true"></span><span class="nav-label">{{t "Tools"}}</span>{{if .Counts.TuneUp}}<span class="nav-dot" title="{{t "A step of the tune-up is waiting"}}"><span class="visually-hidden">{{t "A step of the tune-up is waiting"}}</span></span>{{end}}
@@ -88,12 +92,12 @@
 							</li>
 							{{- end}}
 						</ul>
-						<div class="d-xxl-none">
+						<div class="full-header-hide">
 							<hr>
 							<div class="nav-section-title">{{t "Discover"}}</div>
 							<ul class="navbar-nav app-nav">
-								{{- template "navLink" (dict "Page" .Page "Id" "upcoming" "Href" "/upcoming.html" "Icon" "bi-calendar-event" "Label" (t "Upcoming") "Count" 0 "Badge" "")}}
-								{{- template "navLink" (dict "Page" .Page "Id" "sagas" "Href" "/sagas.html" "Icon" "bi-stack" "Label" (t "Series") "Count" 0 "Badge" "")}}
+								{{- template "navLink" (dict "Page" .Page "Id" "upcoming" "Href" "/upcoming.html" "Icon" "bi-calendar-event" "Label" (t "Upcoming") "Count" 0 "Badge" "" "InBar" "in-bottom-bar")}}
+								{{- template "navLink" (dict "Page" .Page "Id" "sagas" "Href" "/sagas.html" "Icon" "bi-stack" "Label" (t "Series") "Count" 0 "Badge" "" "InBar" "in-bottom-bar")}}
 								{{- template "navLink" (dict "Page" .Page "Id" "statistics" "Href" "/statistics.html" "Icon" "bi-bar-chart" "Label" (t "Statistics") "Count" 0 "Badge" "")}}
 							</ul>
 							{{- if .Auth.CanEdit}}
@@ -114,13 +118,19 @@
 								{{- end}}
 							</ul>
 							{{- end}}
+							{{- if and .Auth.Enabled .Auth.IsAdmin}}
+							<hr>
+							<ul class="navbar-nav app-nav">
+								{{- template "navLink" (dict "Page" (or (and (or (eq .Page "users") (eq .Page "activity") (eq .Page "diagnostics")) "settings") .Page) "Id" "settings" "Href" "/settings.html" "Icon" "bi-gear" "Label" (t "Settings") "Count" 0 "Badge" "")}}
+							</ul>
+							{{- end}}
 							<hr>
 						</div>
-						<ul class="navbar-nav app-nav app-nav-compact me-xxl-2">
+						<ul class="navbar-nav app-nav app-nav-compact me-full-2 in-bottom-bar-wide">
 							{{- if .Counts.IssueKinds}}
 							<li class="nav-item nav-hint">
 								<a class="nav-link{{if eq .Page "issues"}} active{{end}}" href="/issues.html" aria-describedby="issueHint"{{if eq .Page "issues"}} aria-current="page"{{end}}>
-									<span class="bi bi-exclamation-triangle" aria-hidden="true"></span><span class="nav-label">{{t "Issues"}}</span><span class="badge rounded-pill nav-count text-bg-danger ms-auto ms-xxl-0">{{num .Counts.Issues}}</span>
+									<span class="bi bi-exclamation-triangle" aria-hidden="true"></span><span class="nav-label">{{t "Issues"}}</span><span class="badge rounded-pill nav-count text-bg-danger ms-auto ms-full-0">{{num .Counts.Issues}}</span>
 								</a>
 								<div class="nav-hint-panel" id="issueHint" role="tooltip">
 									<div class="nav-hint-title">{{t "Left to solve"}}</div>
@@ -137,7 +147,7 @@
 							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "/tasks.html" "Icon" (or (and .Counts.RunningTasks "bi-fan nav-busy") "bi-list-task") "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger" "Running" .Counts.RunningTasks "CountLabel" (t "Failed tasks: %v" (num .Counts.FailedTasks)))}}
 						</ul>
 						{{- if or .Auth.Enabled .Auth.IsAdmin}}
-						<div class="d-xxl-none nav-account-section">
+						<div class="full-header-hide nav-account-section">
 							<hr>
 							<ul class="list-unstyled nav-account mb-0">
 								{{- template "accountItems" .}}
@@ -217,7 +227,6 @@
 		{{- template "bottomLink" (dict "Page" .Page "Id" "sagas" "Href" "/sagas.html" "Icon" "bi-stack" "Label" (t "Series") "Count" 0)}}
 		{{- template "bottomLink" (dict "Page" .Page "Id" "issues" "Href" "/issues.html" "Icon" "bi-exclamation-triangle" "Label" (t "Issues") "Count" .Counts.Issues "Badge" "text-bg-danger" "Wide" true)}}
 		{{- template "bottomLink" (dict "Page" .Page "Id" "tasks" "Href" "/tasks.html" "Icon" "bi-list-task" "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger" "CountLabel" (t "Failed tasks: %v" (num .Counts.FailedTasks)) "Wide" true)}}
-		{{- $tuneUp := and .Auth.IsAdmin .Counts.TuneUp}}
 		<button type="button" class="bottom-link" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar"><span class="bi bi-three-dots" aria-hidden="true">
 			{{- if or .Counts.Issues .Counts.FailedTasks}}<span class="bottom-dot is-problem bottom-narrow-only"></span>{{else if $tuneUp}}<span class="bottom-dot bottom-narrow-only"></span>{{end}}
 			{{- if $tuneUp}}<span class="bottom-dot bottom-wide-only"></span>{{end}}</span><span class="bottom-label">{{t "More"}}</span>
@@ -250,9 +259,9 @@
 </html>
 {{end}}
 {{define "navLink"}}
-							<li class="nav-item">
+							<li class="nav-item{{with .InBar}} {{.}}{{end}}">
 								<a class="nav-link{{if eq .Page .Id}} active{{end}}" href="{{.Href}}" title="{{.Label}}"{{if eq .Page .Id}} aria-current="page"{{end}}>
-									{{if eq .Page .Id}}<span class="nav-indicator" aria-hidden="true"></span>{{end}}<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{if .Dot}}<span class="nav-dot" aria-hidden="true"></span>{{end}}{{with .Running}}<span class="badge rounded-pill nav-count nav-running ms-auto ms-xxl-0" title="{{t "Tasks running: %v" (num .)}}">{{num .}}<span class="visually-hidden"> {{t "Tasks running: %v" (num .)}}</span></span>{{end}}{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}}{{if not .Running}} ms-auto{{end}} ms-xxl-0"{{with .CountLabel}} title="{{.}}"{{end}}>{{num .Count}}{{with .CountLabel}}<span class="visually-hidden"> {{.}}</span>{{end}}</span>{{end}}
+									{{if eq .Page .Id}}<span class="nav-indicator" aria-hidden="true"></span>{{end}}<span class="bi {{.Icon}}" aria-hidden="true"></span><span class="nav-label">{{.Label}}</span>{{if .Dot}}<span class="nav-dot" aria-hidden="true"></span>{{end}}{{with .Running}}<span class="badge rounded-pill nav-count nav-running ms-auto ms-full-0" title="{{t "Tasks running: %v" (num .)}}">{{num .}}<span class="visually-hidden"> {{t "Tasks running: %v" (num .)}}</span></span>{{end}}{{if gt .Count 0}}<span class="badge rounded-pill nav-count {{.Badge}}{{if not .Running}} ms-auto{{end}} ms-full-0"{{with .CountLabel}} title="{{.}}"{{end}}>{{num .Count}}{{with .CountLabel}}<span class="visually-hidden"> {{.}}</span>{{end}}</span>{{end}}
 								</a>
 							</li>
 {{- end}}
@@ -290,14 +299,13 @@
 {{- end}}
 
 {{define "accountItems"}}
+{{- /* what is yours; Users, Activity and Diagnostics are in the index of Settings */}}
 {{- if .Auth.Enabled}}
 <li><span class="dropdown-item-text small text-body-secondary">{{.Auth.User}} &middot; {{t (roleName .Auth.Role)}}{{if .Auth.Via}} &middot; <span class="chip chip-info">{{if eq .Auth.Via "oidc"}}{{.Auth.Provider}}{{else if eq .Auth.Via "cloudflare"}}Cloudflare Access{{else}}{{t "through the proxy"}}{{end}}</span>{{end}}</span></li>
 <li><a class="dropdown-item{{if eq .Page "account"}} active{{end}}" href="/account.html"><span class="bi bi-person-gear me-2" aria-hidden="true"></span>{{t "My account"}}</a></li>
-{{- end}}
-{{- if .Auth.IsAdmin}}
-<li><a class="dropdown-item{{if eq .Page "settings"}} active{{end}}" href="/settings.html"><span class="bi bi-gear me-2" aria-hidden="true"></span>{{t "Settings"}}</a></li>
-<li><a class="dropdown-item{{if eq .Page "users"}} active{{end}}" href="/users.html"><span class="bi bi-people me-2" aria-hidden="true"></span>{{t "Users"}}</a></li>
-<li><a class="dropdown-item{{if eq .Page "diagnostics"}} active{{end}}" href="/diagnostics.html"><span class="bi bi-heart-pulse me-2" aria-hidden="true"></span>{{t "Diagnostics"}}</a></li>
+{{- else if .Auth.IsAdmin}}
+{{- /* without sign-in this menu is the gear itself */}}
+<li><a class="dropdown-item{{if or (eq .Page "settings") (eq .Page "users") (eq .Page "activity") (eq .Page "diagnostics")}} active{{end}}" href="/settings.html"><span class="bi bi-gear me-2" aria-hidden="true"></span>{{t "Settings"}}</a></li>
 {{- end}}
 <li><hr class="dropdown-divider"></li>
 <li><h6 class="dropdown-header">{{t "Theme"}}</h6></li>

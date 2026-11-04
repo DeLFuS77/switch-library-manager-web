@@ -56,8 +56,8 @@ function initTaskView() {
 }
 
 // The level of a check of the files on the Issues page, remembered by the browser: the
-// signatures, the hashes or both, with what it does said under the buttons. The buttons of the
-// check send it (see the [data-verify] buttons).
+// signatures, the hashes or both, chosen in the menu of the arrow next to Check new files, where
+// each one says what it does. The buttons of the check send it (see the [data-verify] buttons).
 const VERIFY_LEVEL_KEY = 'slm-verify-level';
 
 function initVerifyLevel() {
@@ -65,11 +65,6 @@ function initVerifyLevel() {
 	if (!levels.length) {
 		return;
 	}
-	const show = value => {
-		document.querySelectorAll('[data-verify-hint]').forEach(hint => {
-			hint.hidden = hint.dataset.verifyHint !== value;
-		});
-	};
 	let saved = null;
 	try {
 		saved = localStorage.getItem(VERIFY_LEVEL_KEY);
@@ -81,14 +76,12 @@ function initVerifyLevel() {
 		chosen.checked = true;
 	}
 	levels.forEach(level => level.addEventListener('change', () => {
-		show(level.value);
 		try {
 			localStorage.setItem(VERIFY_LEVEL_KEY, level.value);
 		} catch (e) {
 			// not remembered
 		}
 	}));
-	show((levels.find(level => level.checked) || levels[0]).value);
 }
 
 // The parts of the Tasks page (running, queue, history) fold with a click on their title and
