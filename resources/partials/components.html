@@ -85,10 +85,11 @@
 					<ul class="nav flex-lg-column settings-nav">
 						<li class="settings-nav-heading d-none d-lg-block">{{t "Your library"}}</li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#library"><span class="bi bi-collection me-2" aria-hidden="true"></span>{{t "Library"}}</a></li>
-						<li class="nav-item"><a class="nav-link" href="{{$base}}#ignored"><span class="bi bi-eye-slash me-2" aria-hidden="true"></span>{{t "Ignored items"}}</a></li>
+						<li class="nav-item"><a class="nav-link" href="{{$base}}#ignored"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "What is shown"}}</a></li>
+						<li class="nav-item"><a class="nav-link" href="{{$base}}#gamedata"><span class="bi bi-info-circle me-2" aria-hidden="true"></span>{{t "Game data"}}</a></li>
 						<li class="settings-nav-heading d-none d-lg-block">{{t "How it works"}}</li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#general"><span class="bi bi-sliders me-2" aria-hidden="true"></span>{{t "General"}}</a></li>
-						<li class="nav-item"><a class="nav-link" href="{{$base}}#background"><span class="bi bi-moon-stars me-2" aria-hidden="true"></span>{{t "Background work"}}</a></li>
+						<li class="nav-item"><a class="nav-link" href="{{$base}}#background"><span class="bi bi-arrow-repeat me-2" aria-hidden="true"></span>{{t "Sync and check"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#automation"><span class="bi bi-magic me-2" aria-hidden="true"></span>{{t "Automations"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#compression"><span class="bi bi-file-zip me-2" aria-hidden="true"></span>{{t "Compression"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#notifications"><span class="bi bi-bell me-2" aria-hidden="true"></span>{{t "Notifications"}}</a></li>
@@ -96,10 +97,12 @@
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#vault"><span class="bi bi-safe me-2" aria-hidden="true"></span>{{t "Save vault"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#mobile"><span class="bi bi-phone me-2" aria-hidden="true"></span>{{t "App on your phone"}}</a></li>
 						<li class="settings-nav-heading d-none d-lg-block">{{t "Access"}}</li>
+						<li class="nav-item"><a class="nav-link" href="/users.html"><span class="bi bi-people me-2" aria-hidden="true"></span>{{t "Users"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#portal"><span class="bi bi-door-open me-2" aria-hidden="true"></span>{{t "Sign-in portal"}}</a></li>
 						<li class="settings-nav-heading d-none d-lg-block">{{t "Maintenance"}}</li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#quarantine"><span class="bi bi-hourglass-split me-2" aria-hidden="true"></span>{{t "Quarantine"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#backup"><span class="bi bi-life-preserver me-2" aria-hidden="true"></span>{{t "Backup"}}</a></li>
+						<li class="nav-item"><a class="nav-link" href="/activity.html"><span class="bi bi-journal-text me-2" aria-hidden="true"></span>{{t "Activity"}}</a></li>
 						<li class="nav-item"><a class="nav-link{{if eq . "diagnostics"}} active{{end}}" href="/diagnostics.html"{{if eq . "diagnostics"}} aria-current="page"{{end}}><span class="bi bi-heart-pulse me-2" aria-hidden="true"></span>{{t "Diagnostics"}}</a></li>
 					</ul>
 				</nav>

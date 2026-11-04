@@ -49,34 +49,13 @@
 							<a class="btn btn-primary rounded-pill" href="/api/titles/{{$t.Id}}/archive.zip"><span class="bi bi-file-earmark-zip me-2" aria-hidden="true"></span>{{t "Download all (%v files, %v)" $t.ArchiveFiles (formatSize $t.ArchiveSize)}}</a>
 							{{- end}}
 							{{- if $t.Owned}}
-							<button type="button" class="btn rounded-pill editor-only {{if .Favorite}}btn-warning{{else}}btn-glass{{end}}" data-fav="{{$t.Id}}" data-favorite="{{.Favorite}}" aria-pressed="{{.Favorite}}" title="{{t "Favorite: the games you like most"}}"><span class="bi {{if .Favorite}}bi-star-fill{{else}}bi-star{{end}} me-2" aria-hidden="true"></span>{{if .Favorite}}{{t "Favorite"}}{{else}}{{t "Add to favorites"}}{{end}}</button>
+							<button type="button" class="btn rounded-pill editor-only {{if .Favorite}}btn-warning{{else}}btn-glass{{end}}" data-fav="{{$t.Id}}" data-favorite="{{.Favorite}}" aria-pressed="{{.Favorite}}" title="{{t "Favorite: the games you like most"}}"><span class="bi {{if .Favorite}}bi-star-fill{{else}}bi-star{{end}} action-icon" aria-hidden="true"></span><span class="action-label">{{if .Favorite}}{{t "Favorite"}}{{else}}{{t "Add to favorites"}}{{end}}</span></button>
 							{{- end}}
 							{{- if not $t.Owned}}
-							<button type="button" class="btn rounded-pill editor-only {{if $t.Wished}}btn-danger{{else}}btn-glass{{end}}" data-wish="{{$t.Id}}" data-wished="{{$t.Wished}}" aria-pressed="{{$t.Wished}}"><span class="bi {{if $t.Wished}}bi-heart-fill{{else}}bi-heart{{end}} me-2" aria-hidden="true"></span>{{if $t.Wished}}{{t "On your wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}</button>
-							{{- end}}
-							{{- if gt $t.PackFiles 1}}
-							<div class="dropdown admin-only">
-								<button type="button" class="btn btn-glass rounded-pill dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"><span class="bi bi-box-seam me-2" aria-hidden="true"></span>{{t "Combine"}}</button>
-								<form class="dropdown-menu p-3 pack-menu" data-pack="{{$t.Id}}">
-									<p class="small mb-2">{{t "One file with the game, its latest update and its DLC (%v files, %v), to copy and install all at once. The delta fragments of the update are left out." $t.PackFiles (formatSize $t.PackSize)}}</p>
-									<p class="small text-body-secondary mb-2"><span class="bi bi-hdd me-1" aria-hidden="true"></span>{{t "Until the separate files are deleted, it needs as much free space again."}}</p>
-									<fieldset class="mb-3">
-										<legend class="small fw-semibold mb-1">{{t "And the separate files?"}}</legend>
-										<div class="form-check">
-											<input class="form-check-input" type="radio" id="pack-keep" name="delete_originals" value="false" required>
-											<label class="form-check-label small" for="pack-keep">{{t "Keep them"}}</label>
-										</div>
-										<div class="form-check">
-											<input class="form-check-input" type="radio" id="pack-delete" name="delete_originals" value="true" required>
-											<label class="form-check-label small" for="pack-delete">{{t "Delete the separate files once the combined file is checked"}}</label>
-										</div>
-									</fieldset>
-									<button type="submit" class="btn btn-primary btn-sm w-100" disabled><span class="bi bi-box-seam me-2" aria-hidden="true"></span>{{t "Combine the files"}}</button>
-								</form>
-							</div>
+							<button type="button" class="btn rounded-pill editor-only {{if $t.Wished}}btn-danger{{else}}btn-glass{{end}}" data-wish="{{$t.Id}}" data-wished="{{$t.Wished}}" aria-pressed="{{$t.Wished}}"><span class="bi {{if $t.Wished}}bi-heart-fill{{else}}bi-heart{{end}} action-icon" aria-hidden="true"></span><span class="action-label">{{if $t.Wished}}{{t "On your wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}</span></button>
 							{{- end}}
 							<div class="dropdown editor-only">
-								<button type="button" class="btn btn-glass rounded-pill dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"><span class="bi bi-bookmark me-2" aria-hidden="true"></span>{{t "Collections"}}{{with .Collections}} ({{len .}}){{end}}</button>
+								<button type="button" class="btn btn-glass rounded-pill dropdown-toggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false"><span class="bi bi-bookmark action-icon" aria-hidden="true"></span><span class="action-label">{{t "Collections"}}{{with .Collections}} ({{len .}}){{end}}</span></button>
 								<form class="dropdown-menu p-3 collection-menu" data-collections="{{$t.Id}}">
 									{{- range $i, $name := .AllCollections}}
 									<div class="form-check">
@@ -90,7 +69,16 @@
 									</div>
 								</form>
 							</div>
-							<button type="button" class="btn btn-glass rounded-pill admin-only" data-bs-toggle="modal" data-bs-target="#titleEdit"><span class="bi bi-pencil me-2" aria-hidden="true"></span>{{t "Edit"}}</button>
+							{{- /* what is used less: editing how the app shows the game, and combining its files */}}
+							<div class="dropdown admin-only">
+								<button type="button" class="btn btn-glass rounded-pill title-more" data-bs-toggle="dropdown" aria-expanded="false" title="{{t "More actions"}}"><span class="bi bi-three-dots" aria-hidden="true"></span><span class="visually-hidden">{{t "More actions"}}</span></button>
+								<ul class="dropdown-menu dropdown-menu-end">
+									<li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#titleEdit"><span class="bi bi-pencil me-2" aria-hidden="true"></span>{{t "Edit the game"}}…</button></li>
+									{{- if gt $t.PackFiles 1}}
+									<li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#titlePack"><span class="bi bi-box-seam me-2" aria-hidden="true"></span>{{t "Combine the files"}}…</button></li>
+									{{- end}}
+								</ul>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -413,6 +401,39 @@
 			</section>
 			{{- end}}{{end}}
 			{{- template "titleEdit" $t}}
+			{{- if gt $t.PackFiles 1}}{{template "titlePack" $t}}{{end}}
+{{- end}}
+{{- define "titlePack"}}
+			{{- /* one file with the game, its latest update and its DLC, made as a task */}}
+			<div class="modal fade admin-only" id="titlePack" tabindex="-1" aria-labelledby="titlePackTitle" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<form class="modal-content pack-form" data-pack="{{.Id}}">
+						<div class="modal-header">
+							<h2 class="modal-title fs-5" id="titlePackTitle"><span class="bi bi-box-seam me-2" aria-hidden="true"></span>{{t "Combine the files"}}</h2>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+						</div>
+						<div class="modal-body">
+							<p class="small mb-2">{{t "One file with the game, its latest update and its DLC (%v files, %v), to copy and install all at once. The delta fragments of the update are left out." .PackFiles (formatSize .PackSize)}}</p>
+							<p class="small text-body-secondary mb-2"><span class="bi bi-hdd me-1" aria-hidden="true"></span>{{t "Until the separate files are deleted, it needs as much free space again."}}</p>
+							<fieldset class="mb-0">
+								<legend class="small fw-semibold mb-1">{{t "And the separate files?"}}</legend>
+								<div class="form-check">
+									<input class="form-check-input" type="radio" id="pack-keep" name="delete_originals" value="false" required>
+									<label class="form-check-label small" for="pack-keep">{{t "Keep them"}}</label>
+								</div>
+								<div class="form-check">
+									<input class="form-check-input" type="radio" id="pack-delete" name="delete_originals" value="true" required>
+									<label class="form-check-label small" for="pack-delete">{{t "Delete the separate files once the combined file is checked"}}</label>
+								</div>
+							</fieldset>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">{{t "Cancel"}}</button>
+							<button type="submit" class="btn btn-primary rounded-pill" disabled><span class="bi bi-box-seam me-2" aria-hidden="true"></span>{{t "Combine the files"}}</button>
+						</div>
+					</form>
+				</div>
+			</div>
 {{- end}}
 {{define "titleEdit"}}
 			<div class="modal fade admin-only" id="titleEdit" tabindex="-1" aria-labelledby="titleEditTitle" aria-hidden="true">

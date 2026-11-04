@@ -11,7 +11,8 @@ function initHeroMenus() {
 	});
 }
 
-// Game page > Complete pack: the pack is made as a task, followed on the Tasks page.
+// Game page > More > Combine the files: the pack is made as a task, followed on the Tasks page;
+// its window closes as it starts.
 function initPack() {
 	document.querySelectorAll('[data-pack]').forEach(form => {
 		const submit = form.querySelector('[type="submit"]');
@@ -26,6 +27,10 @@ function initPack() {
 				return;
 			}
 			submit.disabled = true;
+			const modal = form.closest('.modal');
+			if (modal) {
+				Modal.getOrCreateInstance(modal).hide();
+			}
 			runAsTask(() => postForm('/title/pack', { id: form.dataset.pack, delete_originals: choice }))
 				.catch(error => {
 					submit.disabled = false;

@@ -28,7 +28,7 @@
 	}
 
 	// next to the full menu of wide screens only the magnifier fits (the shortcut is in its title)
-	@include media-breakpoint-up(xxl) {
+	@include full-header {
 		min-width: 0;
 		padding-inline: .55rem;
 

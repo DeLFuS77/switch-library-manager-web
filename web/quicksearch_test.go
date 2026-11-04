@@ -38,6 +38,13 @@ func TestQuickSearchFindsGamesSeriesAndPages(t *testing.T) {
 	if got := web.quickSearch("telegram", "en", true).Pages; len(got) != 1 || got[0].Href != "/settings.html#notifications" {
 		t.Fatalf("a section of Settings by another word: %+v", got)
 	}
+
+	// the pages that only a menu or another page led to
+	for keyword, href := range map[string]string{"actividad": "/activity.html", "puesta a punto": "/maintenance.html", "cuarentena": "/settings.html#quarantine", "firmware": "/settings.html#gamedata"} {
+		if got := web.quickSearch(keyword, "es", true).Pages; len(got) == 0 || got[0].Href != href {
+			t.Errorf("%s: %+v", keyword, got)
+		}
+	}
 }
 
 func TestQuickSearchHidesAdministratorPages(t *testing.T) {

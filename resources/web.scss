@@ -259,6 +259,28 @@ h3,
 	}
 }
 
+// The screens of the full menu at the top: from 1400px, and from 1200px on a computer with a
+// mouse, as a laptop. A touch screen narrower than 1400px keeps the bar at the bottom.
+@mixin full-header {
+	@media (min-width: 1400px), (min-width: 1200px) and (pointer: fine) {
+		@content;
+	}
+}
+
+// the others: the menu folds into the side panel
+@mixin folded-header {
+	@media (max-width: 1199.98px), (max-width: 1399.98px) and (pointer: coarse), (max-width: 1399.98px) and (pointer: none) {
+		@content;
+	}
+}
+
+// the full menu while the screen is not yet wide enough for the name of the app and roomy links
+@mixin full-header-narrow {
+	@media (min-width: 1400px) and (max-width: 1799.98px), (min-width: 1200px) and (max-width: 1799.98px) and (pointer: fine) {
+		@content;
+	}
+}
+
 // the styles of the app, by subject, in the order they apply (later rules win over earlier ones)
 @import "scss/header";
 @import "scss/page";

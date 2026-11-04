@@ -92,7 +92,7 @@
 							</div>
 						</section>
 						<section class="surface mb-4 settings-section" id="ignored" aria-labelledby="ignoredTitle">
-							<h2 class="section-title" id="ignoredTitle"><span class="bi bi-eye-slash" aria-hidden="true"></span>{{t "Ignored items"}}</h2>
+							<h2 class="section-title" id="ignoredTitle"><span class="bi bi-eye" aria-hidden="true"></span>{{t "What is shown"}}</h2>
 							<div class="row g-3">
 								<div class="col-md-6">
 									<label for="ignore_dlc_title_ids" class="form-label fw-semibold">{{t "Ignored DLC Title IDs"}}</label>
@@ -163,41 +163,9 @@
 								</div>
 							</div>
 						</section>
-						<section class="surface mb-4 settings-section" id="general" aria-labelledby="generalTitle">
-							<h2 class="section-title" id="generalTitle"><span class="bi bi-sliders" aria-hidden="true"></span>{{t "General"}}</h2>
-							<div class="mb-3">
-								<div class="form-label fw-semibold" id="themeChoicesLabel">{{t "Theme"}}</div>
-								<ul class="list-unstyled d-flex flex-wrap gap-2 mb-1 theme-choices" role="group" aria-labelledby="themeChoicesLabel">
-									{{- template "themeChoices" "btn btn-sm btn-outline-secondary rounded-pill"}}
-								</ul>
-								<div class="form-text">{{t "The theme is kept by each browser."}}</div>
-							</div>
+						<section class="surface mb-4 settings-section" id="gamedata" aria-labelledby="gamedataTitle">
+							<h2 class="section-title" id="gamedataTitle"><span class="bi bi-info-circle" aria-hidden="true"></span>{{t "Game data"}}</h2>
 							<div class="row g-3">
-								<div class="col-md-6">
-									<label for="sync_interval_hours" class="form-label fw-semibold">{{t "Automatic synchronization"}}</label>
-									<select class="form-select" id="sync_interval_hours" name="sync_interval_hours">
-										{{- range .SyncIntervals}}
-										<option value="{{.}}"{{if eq . $.Settings.SyncIntervalHours}} selected{{end}}>{{t (intervalLabel .)}}</option>
-										{{- end}}
-									</select>
-									<div class="form-text">{{t "Last synchronization:"}} {{formatDateTime .Settings.LastSyncTime}}{{if not .NextSync.IsZero}} &middot; {{t "next:"}} {{if .Settings.LastSyncTime.IsZero}}{{t "within a minute"}}{{else}}{{formatDateTime .NextSync}}{{end}}{{end}}</div>
-								</div>
-								<div class="col-12">
-									<div class="form-check form-switch">
-										<input class="form-check-input" type="checkbox" role="switch" id="check_for_updates" name="check_for_updates" value="true" aria-describedby="updateHelp"{{if .Settings.CheckForUpdates}} checked{{end}}>
-										<label class="form-check-label" for="check_for_updates">{{t "Tell me when a new version of the app is available"}}</label> <a class="small ms-1" href="/update.html">{{t "How to update"}}</a>
-										<div class="form-text" id="updateHelp">{{t "Asks GitHub once a day for the latest release; nothing about your library is sent."}}</div>
-									</div>
-									{{- if .SelfUpdatable}}
-									<div class="form-check form-switch mt-2">
-										<input class="form-check-input" type="checkbox" role="switch" id="auto_install_updates" name="auto_install_updates" value="true" aria-describedby="autoInstallHelp"{{if .Settings.AutoInstallUpdates}} checked{{end}}>
-										<label class="form-check-label" for="auto_install_updates">{{t "Install new versions by themselves at night"}}</label>
-										<div class="form-text" id="autoInstallHelp">{{t "Between 3 and 5 in the morning, when no task is working on the files. The version of before is kept, to go back to it from the Update page."}}</div>
-									</div>
-									{{- else}}
-									{{- if .Settings.AutoInstallUpdates}}<input type="hidden" name="auto_install_updates" value="true">{{end}}
-									{{- end}}
-								</div>
 								<div class="col-md-6">
 									<label for="console_firmware" class="form-label fw-semibold">{{t "Firmware of your console"}}</label>
 									<input type="text" class="form-control" id="console_firmware" name="console_firmware" value="{{.Settings.ConsoleFirmware}}" placeholder="18.1.0" inputmode="decimal" aria-describedby="firmwareHelp">
@@ -220,6 +188,57 @@
 										</div>
 									</fieldset>
 								</div>
+							</div>
+						</section>
+						<section class="surface mb-4 settings-section" id="general" aria-labelledby="generalTitle">
+							<h2 class="section-title" id="generalTitle"><span class="bi bi-sliders" aria-hidden="true"></span>{{t "General"}}</h2>
+							<div class="mb-3">
+								<div class="form-label fw-semibold" id="themeChoicesLabel">{{t "Theme"}}</div>
+								<ul class="list-unstyled d-flex flex-wrap gap-2 mb-1 theme-choices" role="group" aria-labelledby="themeChoicesLabel">
+									{{- template "themeChoices" "btn btn-sm btn-outline-secondary rounded-pill"}}
+								</ul>
+								<div class="form-text">{{t "The theme is kept by each browser."}}</div>
+							</div>
+							<div class="row g-3">
+								<div class="col-12">
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="check_for_updates" name="check_for_updates" value="true" aria-describedby="updateHelp"{{if .Settings.CheckForUpdates}} checked{{end}}>
+										<label class="form-check-label" for="check_for_updates">{{t "Tell me when a new version of the app is available"}}</label> <a class="small ms-1" href="/update.html">{{t "How to update"}}</a>
+										<div class="form-text" id="updateHelp">{{t "Asks GitHub once a day for the latest release; nothing about your library is sent."}}</div>
+									</div>
+									{{- if .SelfUpdatable}}
+									<div class="form-check form-switch mt-2">
+										<input class="form-check-input" type="checkbox" role="switch" id="auto_install_updates" name="auto_install_updates" value="true" aria-describedby="autoInstallHelp"{{if .Settings.AutoInstallUpdates}} checked{{end}}>
+										<label class="form-check-label" for="auto_install_updates">{{t "Install new versions by themselves at night"}}</label>
+										<div class="form-text" id="autoInstallHelp">{{t "Between 3 and 5 in the morning, when no task is working on the files. The version of before is kept, to go back to it from the Update page."}}</div>
+									</div>
+									{{- else}}
+									{{- if .Settings.AutoInstallUpdates}}<input type="hidden" name="auto_install_updates" value="true">{{end}}
+									{{- end}}
+								</div>
+								<div class="col-md-6">
+									<label for="language" class="form-label fw-semibold">{{t "Language"}}</label>
+									<select class="form-select" id="language" name="language">
+										<option value=""{{if eq .Settings.Language ""}} selected{{end}}>{{t "Automatic (browser language)"}}</option>
+										{{- range .Languages}}
+										<option value="{{.}}"{{if eq . $.Settings.Language}} selected{{end}}>{{languageName .}}</option>
+										{{- end}}
+									</select>
+								</div>
+							</div>
+						</section>
+						<section class="surface mb-4 settings-section" id="background" aria-labelledby="backgroundTitle">
+							<h2 class="section-title" id="backgroundTitle"><span class="bi bi-arrow-repeat" aria-hidden="true"></span>{{t "Sync and check"}}</h2>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label for="sync_interval_hours" class="form-label fw-semibold">{{t "Automatic synchronization"}}</label>
+									<select class="form-select" id="sync_interval_hours" name="sync_interval_hours">
+										{{- range .SyncIntervals}}
+										<option value="{{.}}"{{if eq . $.Settings.SyncIntervalHours}} selected{{end}}>{{t (intervalLabel .)}}</option>
+										{{- end}}
+									</select>
+									<div class="form-text">{{t "Last synchronization:"}} {{formatDateTime .Settings.LastSyncTime}}{{if not .NextSync.IsZero}} &middot; {{t "next:"}} {{if .Settings.LastSyncTime.IsZero}}{{t "within a minute"}}{{else}}{{formatDateTime .NextSync}}{{end}}{{end}}</div>
+								</div>
 								<div class="col-md-6">
 									<label for="verify_interval_days" class="form-label fw-semibold">{{t "Check the files"}}</label>
 									<select class="form-select" id="verify_interval_days" name="verify_interval_days" aria-describedby="verifyHelp">
@@ -239,28 +258,16 @@
 									<div class="form-text" id="verifySpeedHelp">{{t "Checking compressed files keeps one processor core busy per file. Faster checks use more cores and disks at once; gentle leaves the server free for other apps."}}</div>
 								</div>
 								<div class="col-md-6">
-									<label for="language" class="form-label fw-semibold">{{t "Language"}}</label>
-									<select class="form-select" id="language" name="language">
-										<option value=""{{if eq .Settings.Language ""}} selected{{end}}>{{t "Automatic (browser language)"}}</option>
-										{{- range .Languages}}
-										<option value="{{.}}"{{if eq . $.Settings.Language}} selected{{end}}>{{languageName .}}</option>
-										{{- end}}
+									<label for="background_hours" class="form-label fw-semibold">{{t "Do heavy work"}}</label>
+									<select class="form-select" id="background_hours" name="background_hours" aria-describedby="backgroundHelp">
+										<option value=""{{if eq .Settings.BackgroundHours ""}} selected{{end}}>{{t "At any time"}}</option>
+										<option value="22-6"{{if eq .Settings.BackgroundHours "22-6"}} selected{{end}}>{{t "From %v to %v" "22:00" "6:00"}}</option>
+										<option value="0-6"{{if eq .Settings.BackgroundHours "0-6"}} selected{{end}}>{{t "From %v to %v" "0:00" "6:00"}}</option>
+										<option value="1-7"{{if eq .Settings.BackgroundHours "1-7"}} selected{{end}}>{{t "From %v to %v" "1:00" "7:00"}}</option>
+										<option value="2-8"{{if eq .Settings.BackgroundHours "2-8"}} selected{{end}}>{{t "From %v to %v" "2:00" "8:00"}}</option>
 									</select>
+									<div class="form-text" id="backgroundHelp">{{t "Downloading covers, making thumbnails, reading icons from game files, scheduled checks and the automatic compression of new files can wait for some hours, so the NAS stays fast while you use it. What you start yourself always runs at once."}}</div>
 								</div>
-							</div>
-						</section>
-						<section class="surface mb-4 settings-section" id="background" aria-labelledby="backgroundTitle">
-							<h2 class="section-title" id="backgroundTitle"><span class="bi bi-moon-stars" aria-hidden="true"></span>{{t "Background work"}}</h2>
-							<p class="text-body-secondary">{{t "Downloading covers, making thumbnails, reading icons from game files, scheduled checks and the automatic compression of new files can wait for some hours, so the NAS stays fast while you use it. What you start yourself always runs at once."}}</p>
-							<div class="col-md-6 px-0">
-								<label for="background_hours" class="form-label fw-semibold">{{t "Do heavy work"}}</label>
-								<select class="form-select" id="background_hours" name="background_hours">
-									<option value=""{{if eq .Settings.BackgroundHours ""}} selected{{end}}>{{t "At any time"}}</option>
-									<option value="22-6"{{if eq .Settings.BackgroundHours "22-6"}} selected{{end}}>{{t "From %v to %v" "22:00" "6:00"}}</option>
-									<option value="0-6"{{if eq .Settings.BackgroundHours "0-6"}} selected{{end}}>{{t "From %v to %v" "0:00" "6:00"}}</option>
-									<option value="1-7"{{if eq .Settings.BackgroundHours "1-7"}} selected{{end}}>{{t "From %v to %v" "1:00" "7:00"}}</option>
-									<option value="2-8"{{if eq .Settings.BackgroundHours "2-8"}} selected{{end}}>{{t "From %v to %v" "2:00" "8:00"}}</option>
-								</select>
 							</div>
 						</section>
 						<section class="surface mb-4 settings-section" id="compression" aria-labelledby="compressionTitle">
