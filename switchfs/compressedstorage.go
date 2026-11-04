@@ -10,7 +10,8 @@ import (
 // The compressed storage of an NCA section (firmware 12 and later): the data of the section is
 // cut into blocks, most of them of 64 KiB, each stored as it is, as zeros or compressed with LZ4,
 // and a table at the end of the data tells where each one is. Its place is in the FS header at
-// 0x178 (offset and size of the table after the start of the data level, and its BKTR header).
+// 0x178 (offset and size of the table after the start of the data level, and its BKTR header;
+// the size is often more than the tree takes).
 // Its entries are 0x18 bytes: the offset of the block in the decompressed data, its offset in the
 // stored data, its kind (3 for LZ4), the level it was compressed at and its stored size.
 // (Atmosphère: fssystem_compressed_storage.hpp, fssystem_compression_common.hpp.)
@@ -35,19 +36,24 @@ type ncaRange struct {
 	offset, size uint64
 }
 
-// bucketEntries reads the entries of a bucket tree of entrySize bytes each: the entry sets are the
-// last nodes of the table. It also gives the end offset the tree covers.
+// bucketEntries reads the entries of a bucket tree of entrySize bytes each, where Atmosphère reads
+// them (fssystem_bucket_tree.cpp): a first node, then the entry sets, one node each. The table
+// may be bigger than the tree: many games leave unused nodes after the last set. It also gives
+// the end offset the tree covers. A tree with a second level of nodes is not read: no game has
+// as many entries.
 func bucketEntries(table []byte, entrySize int, count int) ([][]byte, uint64, error) {
 	perSet := (bucketNodeSize - 0x10) / entrySize
+	if count <= 0 || len(table) < bucketNodeSize {
+		return nil, 0, errors.New("invalid bucket tree")
+	}
 	sets := (count + perSet - 1) / perSet
-	first := len(table) - sets*bucketNodeSize
-	if count <= 0 || len(table) < bucketNodeSize || first < bucketNodeSize {
+	if sets > (bucketNodeSize-0x10)/8 || len(table)/bucketNodeSize < 1+sets {
 		return nil, 0, errors.New("invalid bucket tree")
 	}
 	end := binary.LittleEndian.Uint64(table[8:16])
 	entries := make([][]byte, 0, count)
 	for s := 0; s < sets; s++ {
-		node := table[first+s*bucketNodeSize : first+(s+1)*bucketNodeSize]
+		node := table[(1+s)*bucketNodeSize : (2+s)*bucketNodeSize]
 		n := int(int32(binary.LittleEndian.Uint32(node[4:8])))
 		if n < 0 || n > perSet {
 			return nil, 0, errors.New("invalid bucket tree")
@@ -95,8 +101,12 @@ func findLz4Blocks(input io.ReaderAt, offset int64, header *ncaHeader, plan *ncz
 			continue
 		}
 		start := entry.StartOffset
-		// the data level of the hash tree: the last of its 6 levels
-		dataLevel := binary.LittleEndian.Uint64(b[0x8+0x10+5*0x18:])
+		// the data level of the hash tree: the last of its levels, 6 in every game
+		layers := binary.LittleEndian.Uint32(b[0x8+0xC:])
+		if layers < 2 || layers > 7 {
+			continue
+		}
+		dataLevel := binary.LittleEndian.Uint64(b[0x8+0x10+(layers-2)*0x18:])
 
 		// where a range of the section is in the NCA, in pieces: the same place, or in an update
 		// where the indirect table puts each part of it, when the update holds them all (ok false

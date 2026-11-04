@@ -110,6 +110,9 @@ type CompressResult struct {
 	Sparse int
 	// with Rebuild: the LZ4 blocks kept decompressed, of all the ones found
 	Rebuilt, Lz4Blocks int
+	// with Rebuild: the NCA whose compressed storage could not be read, "name: why"; they are
+	// compressed as a plain NCZ, with their LZ4 blocks as they are
+	Lz4Unread []string
 	// the SHA-256 of every file of the original by name, taken while it was read to compress
 	// it: what its compressed copy must give back (see CheckHashes and VerifyCompressed)
 	Hashes map[string][32]byte
@@ -162,9 +165,9 @@ func (s nczSection) counterAt(position uint64) []byte {
 type nczPlan struct {
 	sections []nczSection
 	// with CompressOptions.Rebuild: the LZ4 blocks of the compressed storage the NCA holds, and
-	// how many of them the NCZSECT3 written keeps decompressed
+	// the ones the NCZSECT3 written keeps decompressed
 	lz4  []lz4Block
-	kept int
+	kept []lz4Block
 }
 
 // planGame plans the compression of each NCA of a game, and gives the names its files take
@@ -264,7 +267,7 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 
 	plans, names, err := planGame(input, pkg, titleKeys, options.Sparse)
 	if err == nil && options.Rebuild && !options.Blocks && !pkg.xci {
-		err = planRebuild(input, pkg, plans)
+		result.Lz4Unread, err = planRebuild(input, pkg, plans)
 	}
 	for _, plan := range plans {
 		if plan != nil {
@@ -317,7 +320,7 @@ func CompressGame(ctx context.Context, source string, target string, options Com
 		}
 		sum, complete := reader.finish()
 		if plans[i] != nil {
-			result.Rebuilt += plans[i].kept
+			result.Rebuilt += len(plans[i].kept)
 			result.Lz4Blocks += len(plans[i].lz4)
 		}
 		if err == nil {
@@ -680,7 +683,11 @@ func ticketSignatureSize(signatureType uint32) int {
 }
 
 // writeNcz writes the NCZ of an NCA.
-func writeNcz(ctx context.Context, output io.Writer, input io.ReaderAt, offset int64, size int64, plan *nczPlan, options CompressOptions, progress func(int64)) error {
+func writeNcz(ctx context.Context, output *os.File, input io.ReaderAt, offset int64, size int64, plan *nczPlan, options CompressOptions, progress func(int64)) error {
+	start, err := output.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return err
+	}
 	counted := &countingWriter{w: output}
 	if err := writeNczHeader(counted, input, offset, plan, progress); err != nil {
 		return err
@@ -691,32 +698,58 @@ func writeNcz(ctx context.Context, output io.Writer, input io.ReaderAt, offset i
 	if len(plan.lz4) == 0 {
 		return nil
 	}
-	return writeLz4Table(counted, plan.lz4[:plan.kept], counted.n)
+	// no block was made again: the stream holds the NCA as it is, the NCZ any tool reads, and
+	// its table takes the magic it would have had without the blocks
+	if len(plan.kept) == 0 {
+		_, err := output.WriteAt([]byte(nczMagic(plan, false)), start+nczHeaderSize)
+		return err
+	}
+	return writeLz4Table(counted, plan.kept, counted.n)
 }
 
-// planRebuild finds the LZ4 blocks of the NCA files planned, for an NCZSECT3.
-func planRebuild(input io.ReaderAt, pkg *gamePackage, plans []*nczPlan) error {
+// planRebuild finds the LZ4 blocks of the NCA files planned, for an NCZSECT3. An NCA whose
+// compressed storage cannot be read keeps its blocks as they are, and is told with why.
+func planRebuild(input io.ReaderAt, pkg *gamePackage, plans []*nczPlan) ([]string, error) {
 	keys, _ := settings.SwitchKeys()
 	if keys == nil {
-		return errors.New("prod.keys is needed to compress")
+		return nil, errors.New("prod.keys is needed to compress")
 	}
+	unread := []string{}
 	for i, plan := range plans {
 		if plan == nil {
 			continue
 		}
 		encHeader := make([]byte, 0xC00)
 		if err := readAtFull(input, encHeader, pkg.files[i].offset); err != nil {
-			return err
+			return unread, err
 		}
 		header, err := DecryptNcaHeader(keys.GetKey("header_key"), encHeader)
 		if err != nil {
-			return err
+			return unread, err
 		}
-		if plan.lz4, err = findLz4Blocks(input, pkg.files[i].offset, header, plan); err != nil {
-			return fmt.Errorf("%s: %w", pkg.files[i].name, err)
+		blocks, err := findLz4Blocks(input, pkg.files[i].offset, header, plan)
+		if err != nil {
+			unread = append(unread, pkg.files[i].name+": "+err.Error())
+			continue
+		}
+		plan.lz4 = blocks
+	}
+	return unread, nil
+}
+
+// nczMagic is the magic of the section table of the NCZ of a plan: NCZSECT3 when it keeps LZ4
+// blocks decompressed (rebuild), NCZSECT2 when a section moves its counter, else NCZSECTN,
+// which every tool reads.
+func nczMagic(plan *nczPlan, rebuild bool) string {
+	if rebuild {
+		return nczSectionMagicV3
+	}
+	for _, section := range plan.sections {
+		if section.shift != 0 {
+			return nczSectionMagicV2
 		}
 	}
-	return nil
+	return nczSectionMagic
 }
 
 // writeNczHeader writes the header of the NCA as it is and the table of its sections.
@@ -730,17 +763,8 @@ func writeNczHeader(output io.Writer, input io.ReaderAt, offset int64, plan *ncz
 	}
 	progress(nczHeaderSize)
 
-	// NCZSECT2 only when a section moves its counter: any other NCZ stays readable by every tool
-	magic := nczSectionMagic
-	for _, section := range plan.sections {
-		if section.shift != 0 {
-			magic = nczSectionMagicV2
-		}
-	}
-	if len(plan.lz4) > 0 {
-		magic = nczSectionMagicV3
-	}
-	table := bytes.NewBufferString(magic)
+	// NCZSECT3 is written again as the other two when no block is made again (writeNcz)
+	table := bytes.NewBufferString(nczMagic(plan, len(plan.lz4) > 0))
 	binary.Write(table, binary.LittleEndian, uint64(len(plan.sections)))
 	for _, section := range plan.sections {
 		binary.Write(table, binary.LittleEndian, section.offset)
@@ -810,7 +834,7 @@ func writeNczStream(ctx context.Context, output io.Writer, input io.ReaderAt, of
 		if err != nil {
 			return fail(err)
 		}
-		plan.lz4, plan.kept = kept, len(kept)
+		plan.kept = kept
 	}
 	return encoder.Close()
 }
