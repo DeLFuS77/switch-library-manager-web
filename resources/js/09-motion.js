@@ -84,28 +84,34 @@ function initCoverLoading() {
 	});
 }
 
-// The star of the favorites and the heart of the wishlist change at once, with a little pop,
-// and the server is told; if it fails they go back. The buttons with a label (the game page)
-// reload the page, which shows the change in more places.
+// The star of the favorites, the heart of the wishlist and the cartridge of "I have it" change at
+// once, with a little pop, and the server is told; if it fails they go back. The buttons with a
+// label (the game page) reload the page, which shows the change in more places.
 const MARKS = {
-	fav: { url: '/favorites', field: 'favorite', state: 'favorite', on: 'bi-star-fill', off: 'bi-star', active: 'is-favorite', add: 'Add to favorites', remove: 'Remove from favorites' },
-	wish: { url: '/wishlist', field: 'wanted', state: 'wished', on: 'bi-heart-fill', off: 'bi-heart', active: 'is-wished', add: 'Add to the wishlist', remove: 'Remove from the wishlist' },
+	fav: { url: '/favorites', field: 'favorite', state: 'favorite', on: 'bi-star-fill', off: 'bi-star', active: 'is-favorite', card: 'is-fav-card', add: 'Add to favorites', remove: 'Remove from favorites' },
+	wish: { url: '/wishlist', field: 'wanted', state: 'wished', on: 'bi-heart-fill', off: 'bi-heart', active: 'is-wished', card: 'is-wish-card', add: 'Add to the wishlist', remove: 'Remove from the wishlist' },
+	// the cartridge is drawn: empty while not marked, with a tick once marked
+	own: { url: '/owned', field: 'owned', state: 'owned', on: '#own-on', off: '#own-off', active: 'is-owned', card: 'is-owned-card', add: 'I have it, without the file', remove: 'I have it (click to take it away)' },
 };
 
 function setMark(button, mark, marked) {
 	button.dataset[mark.state] = String(marked);
 	button.setAttribute('aria-pressed', String(marked));
 	button.classList.toggle(mark.active, marked);
-	// the card of a favorite, or of a game on the wishlist, has its aura
+	// the card of a favorite, of a game on the wishlist or of a game one has, has its look
 	const card = button.closest('.game-card');
 	if (card) {
-		card.classList.toggle(mark.state === 'favorite' ? 'is-fav-card' : 'is-wish-card', marked);
+		card.classList.toggle(mark.card, marked);
 	}
 	button.title = t(marked ? mark.remove : mark.add);
 	const icon = button.querySelector('.bi');
 	if (icon) {
 		icon.classList.toggle(mark.on, marked);
 		icon.classList.toggle(mark.off, !marked);
+	}
+	const drawn = button.querySelector('svg use');
+	if (drawn) {
+		drawn.setAttribute('href', marked ? mark.on : mark.off);
 	}
 }
 
@@ -137,6 +143,12 @@ function initMarks() {
 					button.classList.add('is-popping');
 				}
 				postForm(mark.url, { id, [mark.field]: String(marked) })
+					.then(() => {
+						// a game one has leaves the wishlist
+						if (key === 'own' && marked) {
+							document.querySelectorAll(`[data-wish="${CSS.escape(id)}"]`).forEach(heart => setMark(heart, MARKS.wish, false));
+						}
+					})
 					.catch(() => buttons.forEach(other => setMark(other, mark, !marked)));
 			});
 		});

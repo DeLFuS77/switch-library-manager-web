@@ -8,6 +8,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"sort"
 	"strings"
+	"time"
 )
 
 func (web *Web) HandleMissing() {
@@ -115,33 +116,60 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 	return items, p, facets
 }
 
+// missingCheck tells the games of the titles database the library is missing, as the Missing
+// Games page lists them.
+type missingCheck struct {
+	localDB *db.LocalSwitchFilesDB
+	// the games marked as owned without a file, by prefix
+	marked    map[string]time.Time
+	hideDemos bool
+	// the user has a Switch 2, and today as a date of the titles database
+	switch2 bool
+	today   int
+}
+
+func (web *Web) newMissingCheck(localDB *db.LocalSwitchFilesDB, now time.Time) missingCheck {
+	settingsObj := settings.ReadSettings(web.dataFolder)
+	return missingCheck{localDB: localDB, marked: web.markedPrefixes(), hideDemos: settingsObj.HideDemoGames, switch2: settingsObj.HasSwitch2, today: dateNumber(now)}
+}
+
+// missing reports whether the game of a prefix is missing: not in the library nor marked as
+// owned, with a name, not a demo when they are hidden, and a game of the Switch 2 alone only for
+// who has the console and once it is out (a game without a date is shown, with "No date").
+func (c missingCheck) missing(prefix string, title *db.SwitchTitle) bool {
+	attributes := title.Attributes
+	if attributes.Name == "" || attributes.Id == "" || hasGame(c.localDB, c.marked, prefix) {
+		return false
+	}
+	if db.Switch2(attributes.Id) && (!c.switch2 || attributes.ReleaseDate > c.today) {
+		return false
+	}
+	return !c.hideDemos || !isDemo(title, attributes.Name)
+}
+
 // missingGamesCount counts the games of the titles database that are not in the library, with
-// the filters of the Missing Games page, for the header and the statistics: without the games
-// of the Switch 2 alone, as buildMissingGames.
+// the filters of the Missing Games page, for the header and the statistics, as buildMissingGames.
 func (web *Web) missingGamesCount() int {
 	return web.derived("missingGamesCount", func() any {
 		switchDB, localDB := web.state.get()
 		if switchDB == nil || localDB == nil {
 			return 0
 		}
-		hideDemoGames := settings.ReadSettings(web.dataFolder).HideDemoGames
+		check := web.newMissingCheck(localDB, time.Now())
 		count := 0
 		for k, v := range switchDB.TitlesMap {
-			if local, ok := localDB.TitlesMap[k]; ok && local.BaseExist {
-				continue
+			if check.missing(k, v) {
+				count++
 			}
-			if v.Attributes.Name == "" || v.Attributes.Id == "" || db.Switch2(v.Attributes.Id) || (hideDemoGames && isDemo(v, v.Attributes.Name)) {
-				continue
-			}
-			count++
 		}
 		return count
 	}).(int)
 }
 
-// buildMissingGames lists every game of the titles database that is not in the library, but
-// the games of the Switch 2 alone: the library is of the Switch (a game of the library is
-// never missing, whatever its console).
+// buildMissingGames lists every game of the titles database that is not in the library nor
+// marked as owned. The games of the Switch 2 alone are listed only with "I have a Switch 2": a
+// library of the Switch does not miss them (a game of the library is never missing, whatever
+// its console).
 func (web *Web) buildMissingGames(lang string) []TitleItem {
 	items := []TitleItem{}
 
@@ -151,19 +179,11 @@ func (web *Web) buildMissingGames(lang string) []TitleItem {
 		return items
 	}
 
-	hideDemoGames := settings.ReadSettings(web.dataFolder).HideDemoGames
+	check := web.newMissingCheck(localDB, time.Now())
 	wished := web.wishes().Snapshot()
 
 	for k, v := range switchDB.TitlesMap {
-		if local, ok := localDB.TitlesMap[k]; ok && local.BaseExist {
-			continue
-		}
-
-		if v.Attributes.Name == "" || v.Attributes.Id == "" || db.Switch2(v.Attributes.Id) {
-			continue
-		}
-
-		if hideDemoGames && isDemo(v, v.Attributes.Name) {
+		if !check.missing(k, v) {
 			continue
 		}
 

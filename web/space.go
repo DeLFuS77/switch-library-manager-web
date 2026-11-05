@@ -33,6 +33,8 @@ const (
 	NOTE_SPACE_NEWER_UNREAD  = "The newer file could not be read, it was recognized by its name only: keep this one."
 	NOTE_SPACE_NOT_SAME      = "The compressed file does not hold everything this file holds: keep this one."
 	NOTE_SPACE_KEPT_PARTIAL  = "The copy that is kept could not be checked whole: keep this one."
+	// a NUP and an NSP or XCI of a game are never deleted for each other (see db.OtherFormat)
+	NOTE_SPACE_OTHER_FORMAT = "Part of what this file holds is kept only in a file of the other format (NUP, or NSP and XCI): both stay."
 	// the same, on the Space page, where the user can still choose to delete it
 	NOTE_SPACE_KEPT_PARTIAL_ASK = "The copy that is kept was checked without errors, but not whole: an update needs its game for that. Select this one to delete it anyway."
 )
@@ -246,6 +248,10 @@ func (web *Web) spaceGroups() []SpaceGroup {
 			}
 			add(SPACE_OLD_UPDATES, entry)
 		case db.REASON_DUPLICATE:
+			// a NUP and an NSP or XCI of a game both stay: neither is a copy to free
+			if db.KeptInOtherFormat(file, skipped) {
+				continue
+			}
 			checkCompressed(file, name, false)
 			if compressed[path] {
 				continue
@@ -371,6 +377,9 @@ func (web *Web) cleanupRefusal(file db.ExtendedFileInfo, skipped db.SkippedFile)
 	kept := keptBy(skipped.ReasonText)
 	switch skipped.ReasonCode {
 	case db.REASON_DUPLICATE:
+		if db.KeptInOtherFormat(file, skipped) {
+			return NOTE_SPACE_OTHER_FORMAT
+		}
 		entry := SpaceFile{KeptBy: kept, Deletable: true}
 		web.requireSoundKeptCopy(&entry)
 		if !entry.Deletable {
@@ -401,6 +410,11 @@ func (web *Web) requireSoundKeptCopies(entry *SpaceFile) {
 	}
 	for _, other := range copies {
 		if other == entry.KeptBy || !entry.Deletable {
+			continue
+		}
+		// what the file holds would be left only in a NUP, or only out of one
+		if db.OtherFormat(entry.file.FileName, other) {
+			entry.Deletable, entry.Note, entry.OnRequest = false, NOTE_SPACE_OTHER_FORMAT, false
 			continue
 		}
 		kept := SpaceFile{KeptBy: other, Deletable: true}
@@ -436,6 +450,8 @@ func (web *Web) heldTitles(path string) ([]heldTitle, bool) {
 		contents, err = switchfs.ReadNspMetadata(path)
 	case ".xci", ".xcz":
 		contents, err = switchfs.ReadXciMetadata(path)
+	case ".nup":
+		contents, err = switchfs.ReadNupMetadata(path)
 	}
 	if err != nil {
 		return nil, false

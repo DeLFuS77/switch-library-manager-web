@@ -16,9 +16,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
-	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -254,6 +254,9 @@ type igdbClient struct {
 	token      string
 	expires    time.Time
 	last       time.Time
+	// the platform of the Switch 2 in IGDB, once asked (see platformOf)
+	platformMutex sync.Mutex
+	switch2       int
 }
 
 func newIgdbClient(id, secret string) *igdbClient {
@@ -357,33 +360,36 @@ func apicalypseText(text string) string {
 // lookup finds a game of the Switch on IGDB by its name, its scores and how long it takes to
 // beat.
 func (c *igdbClient) lookup(ctx context.Context, name string, now time.Time) (TimeToBeat, error) {
+	return c.lookupOn(ctx, name, igdbSwitchPlatform, now)
+}
+
+// igdbScoredGame is a game of IGDB with its series and scores.
+type igdbScoredGame struct {
+	Id                    int     `json:"id"`
+	Name                  string  `json:"name"`
+	Slug                  string  `json:"slug"`
+	Collections           []int   `json:"collections"`
+	AggregatedRating      float64 `json:"aggregated_rating"`
+	AggregatedRatingCount int     `json:"aggregated_rating_count"`
+	Rating                float64 `json:"rating"`
+	RatingCount           int     `json:"rating_count"`
+}
+
+func (game igdbScoredGame) igdbName() string { return game.Name }
+
+const igdbScoredFields = "id,name,slug,collections,aggregated_rating,aggregated_rating_count,rating,rating_count"
+
+// lookupOn is lookup for the games of a platform of IGDB: the Switch, or the Switch 2.
+func (c *igdbClient) lookupOn(ctx context.Context, name string, platform int, now time.Time) (TimeToBeat, error) {
+	return c.lookupFor(ctx, name, "", platform, now)
+}
+
+// lookupFor is lookupOn for a game Wikidata may link to its game on IGDB (slug; see igdbFind).
+func (c *igdbClient) lookupFor(ctx context.Context, name string, slug string, platform int, now time.Time) (TimeToBeat, error) {
 	result := TimeToBeat{Checked: now, SeriesChecked: true, ScoresChecked: true}
-	var games []struct {
-		Id                    int     `json:"id"`
-		Name                  string  `json:"name"`
-		Slug                  string  `json:"slug"`
-		Collections           []int   `json:"collections"`
-		AggregatedRating      float64 `json:"aggregated_rating"`
-		AggregatedRatingCount int     `json:"aggregated_rating_count"`
-		Rating                float64 `json:"rating"`
-		RatingCount           int     `json:"rating_count"`
-	}
-	query := fmt.Sprintf(`search "%s"; fields id,name,slug,collections,aggregated_rating,aggregated_rating_count,rating,rating_count; where platforms = (%d); limit 5;`,
-		apicalypseText(name), igdbSwitchPlatform)
-	if err := c.query(ctx, "games", query, &games); err != nil {
+	chosen, found, err := igdbFind[igdbScoredGame](ctx, c, igdbScoredFields, name, slug, platform)
+	if err != nil || !found {
 		return result, err
-	}
-	if len(games) == 0 {
-		return result, nil
-	}
-	// the same name first, else the best match of IGDB
-	chosen := games[0]
-	wanted := search.Text(name)
-	for _, game := range games {
-		if search.Text(game.Name) == wanted {
-			chosen = game
-			break
-		}
 	}
 	result.Found, result.GameId, result.Slug, result.Collections = true, chosen.Id, chosen.Slug, chosen.Collections
 	result.CriticScore, result.CriticCount = chosen.AggregatedRating, chosen.AggregatedRatingCount
@@ -427,7 +433,7 @@ func (web *Web) lookupTimesToBeat(trigger string) bool {
 			games = append(games, pending{item.Id, name})
 		}
 	}
-	if len(games) == 0 && len(web.missingIgdbCollections(now)) == 0 && len(web.libraryTitlesToLookUp(now)) == 0 {
+	if len(games) == 0 && len(web.missingIgdbCollections(now)) == 0 && len(web.libraryTitlesToLookUp(now)) == 0 && len(web.switch2TitlesToLookUp(now)) == 0 {
 		web.timeToBeatRunning.Store(false)
 		return false
 	}
@@ -441,13 +447,24 @@ func (web *Web) lookupTimesToBeat(trigger string) bool {
 		ctx := context.Background()
 		var failure *tasklog.Note
 		found := 0
+		// the games of IGDB Wikidata links the games of the Switch 2 to
+		slugs := web.switch2Slugs()
 		for i, game := range games {
 			// a scan replaces the library: the rest waits for the next run
 			if web.state.IsSynchronizing() {
 				break
 			}
 			web.taskLog().Progress(taskId, i, len(games), game.name)
-			value, err := client.lookup(ctx, game.name, time.Now())
+			// a game of the Switch 2 is searched among the games of the Switch 2
+			platform, err := client.platformOf(ctx, game.id)
+			value := TimeToBeat{}
+			if err == nil {
+				slug := ""
+				if prefix, err := db.TitleIDPrefix(game.id); err == nil {
+					slug = slugs[prefix]
+				}
+				value, err = client.lookupFor(ctx, game.name, slug, platform, time.Now())
+			}
 			if errors.Is(err, errIgdbCredentials) {
 				failure = &tasklog.Note{Text: NOTE_IGDB_CREDENTIALS}
 				break
@@ -476,7 +493,7 @@ func (web *Web) lookupTimesToBeat(trigger string) bool {
 			}
 		}
 		// the genres, release date, description and cover of the games the titles database
-		// does not list
+		// does not list, and of the games of the Switch 2 of the list of switchbrew
 		if failure == nil && !web.state.IsSynchronizing() {
 			if err := web.lookupLibraryTitles(ctx, client); errors.Is(err, errIgdbCredentials) {
 				failure = &tasklog.Note{Text: NOTE_IGDB_CREDENTIALS}

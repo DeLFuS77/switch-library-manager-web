@@ -24,6 +24,8 @@ type SettingsPageData struct {
 	Languages     []string
 	// games of the library without a cover
 	MissingCovers int
+	// games of the Switch 2 the folders have: told under "I have a Switch 2" while it is off
+	Switch2Games int
 	// the verification speeds, with the files checked at once on this computer
 	VerifySpeeds []VerifySpeedOption
 	// the copies of the configuration made every week
@@ -70,6 +72,7 @@ type SettingsForm struct {
 	Cheats                bool   `in:"form=cheats"`
 	KeepUpdatesWithCheats bool   `in:"form=keep_updates_with_cheats"`
 	CountRegionsOnce      bool   `in:"form=count_regions_once"`
+	HasSwitch2            bool   `in:"form=has_switch2"`
 	PreferredRegion       string `in:"form=preferred_region"`
 	PreferredRegion2      string `in:"form=preferred_region_2"`
 	PreferredRegion3      string `in:"form=preferred_region_3"`
@@ -502,6 +505,7 @@ func (form *SettingsForm) apply(appSettings *settings.AppSettings) {
 	appSettings.CheatsDisabled = !form.Cheats
 	appSettings.OrganizeOptions.DeleteUpdatesWithCheats = !form.KeepUpdatesWithCheats
 	appSettings.CountRegionsOnce = form.CountRegionsOnce
+	appSettings.HasSwitch2 = form.HasSwitch2
 	// the zones in order, each once: "EU,US,JP"
 	appSettings.PreferredRegion = strings.Join(preferredZones(strings.ToUpper(strings.Join([]string{form.PreferredRegion, form.PreferredRegion2, form.PreferredRegion3}, ","))), ",")
 	appSettings.WatchFolders = form.WatchFolders
@@ -608,6 +612,7 @@ func (web *Web) settingsPageData() SettingsPageData {
 		SyncIntervals:           []int{0, 6, 12, 24, 168},
 		Languages:               i18n.SupportedLanguages,
 		MissingCovers:           web.missingCovers(),
+		Switch2Games:            web.switch2Games(),
 		VerifySpeeds:            verifySpeedOptions(),
 		AutoBackups:             web.autoBackups(),
 		Quarantine:              web.quarantineSummary(),

@@ -19,6 +19,11 @@ func getType(gameFile *db.SwitchGameFiles) string {
 		return "split"
 	}
 
+	// a NUP holds a game with its updates and DLC by design: its format tells more than
+	// "multi-content"
+	if switchfs.IsNupFile(gameFile.File.ExtendedInfo.FileName) {
+		return "nup"
+	}
 	if gameFile.MultiContent {
 		return "multi-content"
 	}
@@ -296,6 +301,15 @@ func (f *libraryFilter) attributes(item *TitleItem) bool {
 // collection, and takes it in the kind and the extra chosen.
 func (f *libraryFilter) kindAndExtra(item *TitleItem) bool {
 	filter, facets := f.filter, &f.facets
+	switch2 := item.IsSwitch2()
+	if switch2 {
+		facets.Switch2++
+	} else {
+		facets.Switch1++
+	}
+	if (filter.Console == CONSOLE_SWITCH && switch2) || (filter.Console == CONSOLE_SWITCH2 && !switch2) {
+		return false
+	}
 	if item.Demo {
 		facets.Demos++
 	} else {
@@ -358,7 +372,12 @@ func (f *libraryFilter) status(item *TitleItem) bool {
 		facets.All++
 		return true
 	}
-	complete := item.Known && !item.UpdateAvailable && item.MissingDlcCount == 0
+	// without a file its version is not known: it is neither up to date nor behind
+	if item.NoFile {
+		facets.All++
+		return f.filter.Status == ""
+	}
+	complete := item.Known && !item.UpdateAvailable && item.MissingDlcCount == 0 && !item.VersionsUnknown
 	facets.All++
 	if item.UpdateAvailable {
 		facets.Update++
@@ -549,6 +568,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			item.ImageUrl = "/i/" + v.Banner
 		}
 
+		item.VersionsUnknown = db.Switch2(k) && (title == nil || len(title.Updates) == 0)
 		if title != nil {
 			item.Region = title.Attributes.Region
 			item.Genres = title.Attributes.Genres
@@ -585,6 +605,53 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 		items = append(items, item)
 	}
 
+	return append(items, web.noFileItems(switchDB, localDB, lang, ignoredDlc, collections, favorites, timesToBeat)...)
+}
+
+// noFileItems are the games marked as owned that have no file in the library (see owned.go):
+// games of the library without a version, so without updates or DLC to ask for. A game the titles
+// database does not know is left out, as nothing is known of it.
+func (web *Web) noFileItems(switchDB *db.SwitchTitlesDB, localDB *db.LocalSwitchFilesDB, lang string, ignoredDlc map[string]struct{},
+	collections map[string][]string, favorites map[string]bool, timesToBeat map[string]TimeToBeat) []TitleItem {
+	items := []TitleItem{}
+	if switchDB == nil {
+		return items
+	}
+	for prefix, marked := range web.markedPrefixes() {
+		if local, ok := localDB.TitlesMap[prefix]; ok && local.BaseExist {
+			continue
+		}
+		title := switchDB.TitlesMap[prefix]
+		if title == nil || title.Attributes.Id == "" || !usableName(title.Attributes.Name) {
+			continue
+		}
+		attributes := title.Attributes
+		item := TitleItem{
+			Id:           strings.ToUpper(attributes.Id),
+			Name:         titleName(switchDB, lang, attributes.Id, attributes.Name),
+			OriginalName: attributes.Name,
+			ImageUrl:     coverUrl(switchDB, localDB, attributes),
+			Region:       attributes.Region,
+			Known:        true,
+			Demo:         isDemo(title, attributes.Name),
+			Genres:       attributes.Genres,
+			Players:      attributes.Players,
+			Languages:    attributes.Languages,
+			Added:        marked,
+			NoFile:       true,
+		}
+		item.ReleaseDate, _ = intToTime(attributes.ReleaseDate)
+		item.TimeToBeat = timesToBeat[item.Id].Main()
+		item.Score = timesToBeat[item.Id].Score()
+		item.Collections = collections[item.Id]
+		item.Favorite = favorites[item.Id]
+		for id := range title.Dlc {
+			if _, ignored := ignoredDlc[id]; !ignored {
+				item.KnownDlc++
+			}
+		}
+		items = append(items, item)
+	}
 	return items
 }
 

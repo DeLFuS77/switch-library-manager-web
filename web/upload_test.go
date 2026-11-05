@@ -272,6 +272,16 @@ func TestUploadNamesWithDots(t *testing.T) {
 	}
 }
 
+// NUP files, the containers of decrypted games, are uploaded like the other games.
+func TestUploadNupFiles(t *testing.T) {
+	if got := uploadName("Ocarina [0400486024DEC000][v131072].NUP"); got != "Ocarina [0400486024DEC000][v131072].NUP" {
+		t.Fatalf("a NUP is saved as %q", got)
+	}
+	if uploadName("Game.nup.zip") != "" || uploadName("Game.rar") != "" {
+		t.Fatal("other files are refused")
+	}
+}
+
 // A name too long for a disk that keeps names decomposed (ZFS on Unraid) is shortened before
 // its title ID, instead of failing when the file takes its name.
 func TestUploadNameTooLongForTheDisk(t *testing.T) {

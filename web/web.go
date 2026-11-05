@@ -173,6 +173,11 @@ type Web struct {
 	collectionsOnce sync.Once
 	fav             *userdata.Favorites
 	favoritesOnce   sync.Once
+	// the games the users have without a file of them (see owned.go)
+	ownedStore *userdata.Owned
+	ownedOnce  sync.Once
+	// titles.switch2.json as read last (see loadSwitch2Titles)
+	switch2List switch2Cache
 	// how the games go for each user (see play.go)
 	playStore *userdata.PlayStore
 	playOnce  sync.Once
@@ -256,8 +261,11 @@ type Web struct {
 }
 
 type TitleItem struct {
-	ImageUrl         string
-	Id               string
+	ImageUrl string
+	Id       string
+	// a game of the Switch 2 whose updates no list knows (none does yet): its version is known,
+	// not whether it is the newest, so it is neither up to date nor behind
+	VersionsUnknown  bool
 	LatestUpdate     int
 	LatestUpdateDate time.Time
 	LocalUpdate      int
@@ -324,6 +332,15 @@ type TitleItem struct {
 	searchWords []string
 	// shown as a game of the library on the page of a series
 	InLibrary bool
+	// library: the game is marked as owned and has no file in the library (see owned.go), and the
+	// DLC the titles database knows of it, which are not counted without a file
+	NoFile   bool
+	KnownDlc int
+}
+
+// IsSwitch2 reports whether the game is of the Nintendo Switch 2 alone: its card says so.
+func (t TitleItem) IsSwitch2() bool {
+	return db.Switch2(t.Id)
 }
 
 // DlcPercent is the share of the DLC of a game in the library.
@@ -414,8 +431,12 @@ type LibraryFacets struct {
 	Complete int
 	Formats  []string
 	// counted before the kind and extra filters; the regions found in the library
-	Games     int
-	Demos     int
+	Games int
+	Demos int
+	// the games of the Switch and of the Switch 2 alone, counted before the console filter: the
+	// filter is offered when the library has both
+	Switch1   int
+	Switch2   int
 	NoCover   int
 	Unknown   int
 	Recent    int
@@ -843,6 +864,7 @@ func (web *Web) Start() {
 	web.HandleCovers()
 	web.HandleUpdateGuide()
 	web.HandleWishlist()
+	web.HandleOwned()
 	web.HandleCollections()
 	web.HandlePlay()
 	web.HandleSmartCollections()
@@ -974,6 +996,7 @@ func (web *Web) loadSavedTitles() *db.SwitchTitlesDB {
 		return nil
 	}
 	web.applyCoverFallbacks(switchDB)
+	web.applySwitch2Titles(switchDB)
 	switchDB.Localized = web.loadLocalizedTitles(false)
 	return switchDB
 }
@@ -1192,9 +1215,11 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 		unchanged.Localized = web.loadLocalizedTitles(true)
 		web.downloadCoverFallbacks()
 		web.downloadSeries()
+		web.downloadSwitch2Titles()
 		// a few megabytes, not waited for: the library shows its cheats once they are here
 		go web.downloadCheats()
 		web.applyCoverFallbacks(&unchanged)
+		web.applySwitch2Titles(&unchanged)
 		return &unchanged, notDownloaded
 	}
 
@@ -1211,10 +1236,12 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 		if !offline {
 			web.downloadCoverFallbacks()
 			web.downloadSeries()
+			web.downloadSwitch2Titles()
 			// a few megabytes, not waited for: the library shows its cheats once they are here
 			go web.downloadCheats()
 		}
 		web.applyCoverFallbacks(switchTitleDB)
+		web.applySwitch2Titles(switchTitleDB)
 	}
 
 	web.UpdateProgress(3, 4, "Scanning library...")

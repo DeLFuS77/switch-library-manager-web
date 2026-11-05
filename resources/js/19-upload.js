@@ -3,7 +3,7 @@
 // where the server is, and a file chosen again after the page was closed goes on from there.
 
 const UPLOAD_PIECE = 16 * 1024 * 1024;
-const UPLOAD_EXTENSIONS = ['.nsp', '.nsz', '.xci', '.xcz'];
+const UPLOAD_EXTENSIONS = ['.nsp', '.nsz', '.xci', '.xcz', '.nup'];
 const UPLOAD_RETRIES = 6;
 
 // whether games are being sent, or wait to be: the page is not reloaded meanwhile

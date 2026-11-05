@@ -448,6 +448,34 @@ function setupWizard(element) {
 	};
 	const folderField = form.elements.scan_folders;
 	const folderResults = element.querySelector('[data-wizard-folder-results]');
+	// on the first run, folders with NUP files (decrypted games of the Switch 2) turn on "I have a
+	// Switch 2" until it is changed by hand, and a note on its step tells why; nothing is saved
+	// before the end of the wizard
+	const switch2Box = form.elements.has_switch2;
+	const switch2Note = element.querySelector('[data-wizard-switch2-note]');
+	const switch2Text = element.querySelector('[data-wizard-switch2-text]');
+	let switch2Touched = false;
+	let switch2ByFolders = false;
+	switch2Box?.addEventListener('change', () => {
+		switch2Touched = true;
+		switch2ByFolders = false;
+		switch2Note.hidden = true;
+	});
+	const suggestSwitch2 = nupFiles => {
+		if (!switch2Box || !switch2Note || switch2Touched || element.dataset.auto !== 'true') {
+			return;
+		}
+		if (nupFiles > 0 && (!switch2Box.checked || switch2ByFolders)) {
+			switch2Box.checked = true;
+			switch2ByFolders = true;
+			switch2Text.textContent = nupFiles === 1 ? say('switch2OnOne') : say('switch2On', nupFiles);
+			switch2Note.hidden = false;
+		} else if (nupFiles === 0 && switch2ByFolders) {
+			switch2Box.checked = false;
+			switch2ByFolders = false;
+			switch2Note.hidden = true;
+		}
+	};
 	const checkFolders = () => {
 		const folders = folderField.value.split('\n').map(line => line.trim()).filter(Boolean);
 		folderResults.replaceChildren();
@@ -465,6 +493,7 @@ function setupWizard(element) {
 			folderResults.prepend(line);
 			return false;
 		}).catch(() => true);
+		let nupFiles = 0;
 		return Promise.all([repeated, ...folders.map(folder => {
 			const line = document.createElement('li');
 			line.className = 'wizard-check-line';
@@ -473,9 +502,11 @@ function setupWizard(element) {
 			return check('folder', folder).then(result => {
 				checkLine(line, result);
 				line.prepend(Object.assign(document.createElement('code'), { textContent: folder }), document.createTextNode(' '));
+				nupFiles += result.switch2 || 0;
 				return result.ok;
 			}).catch(() => false);
 		})]).then(results => {
+			suggestSwitch2(nupFiles);
 			const ok = results.every(Boolean);
 			if (ok) {
 				showAlert('');
@@ -926,6 +957,7 @@ function setupWizard(element) {
 			['bi-folder2-open', say('folders'), folders.join(', ') || say('none'), 'folders'],
 			['bi-key', say('keys'), [form.elements.prod_keys.value.trim() || say('default'), keysFound === null ? '' : say(keysFound ? 'found' : 'notFound')].filter(Boolean).join(' · '), 'keys'],
 			['bi-nintendo-switch', say('firmware'), form.elements.console_firmware.value.trim() || '—', 'console'],
+			['bi-nintendo-switch', say('switch2'), say(form.elements.has_switch2.checked ? 'yes' : 'no'), 'console'],
 			['bi-globe2', say('regions'), regions.join(', ') || say('none'), 'library'],
 			['bi-arrow-repeat', say('sync'), choice('sync_interval_hours'), 'library'],
 			['bi-moon-stars', say('background'), choice('background_hours'), 'background'],

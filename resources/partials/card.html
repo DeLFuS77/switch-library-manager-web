@@ -1,20 +1,21 @@
 {{- define "card"}}
 				{{- $type := .Type}}{{if or (eq $type "BASEGAME") (eq $type "BASE")}}{{$type = t "Game"}}{{else if eq $type "ADDONCONTENT"}}{{$type = "DLC"}}{{else if eq $type "UPDATE"}}{{$type = t "Update"}}{{end}}
-				<article class="card game-card h-100{{if .Missing}} is-missing{{end}}{{if .Favorite}} is-fav-card{{else if .Wished}} is-wish-card{{end}}">
+				<article class="card game-card h-100{{if .Missing}} is-missing{{end}}{{if .NoFile}} no-file-card is-owned-card{{end}}{{if .Favorite}} is-fav-card{{else if .Wished}} is-wish-card{{end}}">
 					<div class="game-cover">
 						{{- if .LatestUpdate}}<input class="form-check-input cover-select" type="checkbox" data-bulk-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">{{else if .Selectable}}<input class="form-check-input cover-select editor-only" type="checkbox" data-library-item value="{{.Id}}" aria-label="{{t "Select"}} {{.Name}}">{{end}}
-						{{- if and (not .Type) (not .LatestUpdate) (not .InLibrary)}}<button type="button" class="wish-toggle editor-only{{if .Wished}} is-wished{{end}}" data-wish="{{.Id}}" data-wished="{{.Wished}}" aria-pressed="{{.Wished}}" title="{{if .Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if .Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button>{{end}}
+						{{- if and (not .Type) (not .LatestUpdate) (not .InLibrary) (not .NoFile)}}<button type="button" class="wish-toggle editor-only{{if .Wished}} is-wished{{end}}" data-wish="{{.Id}}" data-wished="{{.Wished}}" aria-pressed="{{.Wished}}" title="{{if .Wished}}{{t "Remove from the wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}"><span class="bi {{if .Wished}}bi-heart-fill{{else}}bi-heart{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Wishlist"}}</span></button><button type="button" class="own-toggle editor-only next-to-heart" data-own="{{.Id}}" data-owned="false" aria-pressed="false" title="{{t "I have it, without the file"}}"><svg class="own-icon" aria-hidden="true"><use href="#own-off"></use></svg><span class="visually-hidden">{{t "I have it"}}</span></button>{{end}}
+						{{- if .NoFile}}<button type="button" class="own-toggle editor-only is-owned" data-own="{{.Id}}" data-owned="true" aria-pressed="true" title="{{t "I have it (click to take it away)"}}"><svg class="own-icon" aria-hidden="true"><use href="#own-on"></use></svg><span class="visually-hidden">{{t "I have it"}}</span></button>{{end}}
 						{{- if .UpdateAvailable}}<span class="cover-ribbon" title="{{t "Update available"}}"><span class="bi bi-arrow-up-circle-fill" aria-hidden="true"></span></span>{{end}}
 						<a class="cover-link" href="/title/{{.Id}}.html" tabindex="-1" aria-hidden="true"><img src="{{if eq .ImageUrl ""}}/resources/static/noimage.png{{else}}{{thumb .ImageUrl}}{{end}}" alt="" loading="lazy" decoding="async"></a>
-						{{- if or .Type .Languages .Play.Status}}
+						{{- if or .Type .Languages .Play.Status .IsSwitch2}}
 						<div class="game-cover-meta">
-							{{- if or $type .Demo .Cheats .Play.Status}}<span class="d-inline-flex gap-1">{{if $type}}<span class="badge">{{$type}}</span>{{end}}{{if .Demo}}<span class="badge">{{t "Demo"}}</span>{{end}}{{if .Cheats}}<span class="badge badge-cheats" title="{{t "Cheats for your version"}}"><span class="bi bi-magic" aria-hidden="true"></span><span class="visually-hidden">{{t "Cheats for your version"}}</span></span>{{end}}{{with .Play.Status}}<span class="badge badge-play play-{{.}}" title="{{t $.Play.Look.Name}}"><span class="bi {{$.Play.Look.Icon}}" aria-hidden="true"></span><span class="visually-hidden">{{t $.Play.Look.Name}}</span></span>{{end}}</span>{{else}}<span></span>{{end}}
+							{{- if or $type .Demo .Cheats .Play.Status .IsSwitch2}}<span class="d-inline-flex gap-1">{{if $type}}<span class="badge">{{$type}}</span>{{end}}{{if .IsSwitch2}}<span class="badge badge-switch2">Switch 2</span>{{end}}{{if .Demo}}<span class="badge">{{t "Demo"}}</span>{{end}}{{if .Cheats}}<span class="badge badge-cheats" title="{{t "Cheats for your version"}}"><span class="bi bi-magic" aria-hidden="true"></span><span class="visually-hidden">{{t "Cheats for your version"}}</span></span>{{end}}{{with .Play.Status}}<span class="badge badge-play play-{{.}}" title="{{t $.Play.Look.Name}}"><span class="bi {{$.Play.Look.Icon}}" aria-hidden="true"></span><span class="visually-hidden">{{t $.Play.Look.Name}}</span></span>{{end}}</span>{{else}}<span></span>{{end}}
 							{{- with languageFlags .Languages lang}}{{if .Shown}}<span class="lang-flags"><span class="lang-sign" aria-hidden="true"><span class="bi bi-translate"></span></span><span class="visually-hidden">{{t "Languages"}}: {{range $i, $l := .Shown}}{{if $i}}, {{end}}{{t (gameLanguage $l.Code)}}{{end}}{{range .Hidden}}, {{t (gameLanguage .Code)}}{{end}}</span>{{range .Shown}}<span class="fi fi-{{.Flag}}" title="{{t (gameLanguage .Code)}}" aria-hidden="true"></span>{{end}}{{with .Hidden}}<span class="badge flags-more" tabindex="0" aria-hidden="true">+{{len .}}<span class="flags-more-list"><span class="flags-more-caption">{{t "Languages"}}</span><span class="flags-more-row">{{range .}}<span class="fi fi-{{.Flag}}" title="{{t (gameLanguage .Code)}}"></span>{{end}}</span></span></span>{{end}}</span>{{else}}<span></span>{{end}}{{end}}
 						</div>
 						{{- end}}
 					</div>
 					<div class="game-body">
-						{{- if and .Selectable (not .LatestUpdate)}}<button type="button" class="fav-toggle editor-only{{if .Favorite}} is-favorite{{end}}" data-fav="{{.Id}}" data-favorite="{{.Favorite}}" aria-pressed="{{.Favorite}}" title="{{if .Favorite}}{{t "Remove from favorites"}}{{else}}{{t "Add to favorites"}}{{end}}"><span class="bi {{if .Favorite}}bi-star-fill{{else}}bi-star{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Favorite"}}</span></button>{{end}}
+						{{- if and (or .Selectable .NoFile) (not .LatestUpdate)}}<button type="button" class="fav-toggle editor-only{{if .Favorite}} is-favorite{{end}}" data-fav="{{.Id}}" data-favorite="{{.Favorite}}" aria-pressed="{{.Favorite}}" title="{{if .Favorite}}{{t "Remove from favorites"}}{{else}}{{t "Add to favorites"}}{{end}}"><span class="bi {{if .Favorite}}bi-star-fill{{else}}bi-star{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{t "Favorite"}}</span></button>{{end}}
 						<h2 class="game-title"><a class="stretched-link" href="/title/{{.Id}}.html">{{.Name}}</a></h2>
 						{{- if .OtherRegions}}<span class="chip chip-muted align-self-start" title="{{t "You also have this game from other regions: see them on its page."}}"><span class="bi bi-globe2" aria-hidden="true"></span>{{if eq .OtherRegions 1}}{{t "+1 region"}}{{else}}{{t "+%v regions" .OtherRegions}}{{end}}</span>{{end}}
 						{{- if .LatestUpdate}}
@@ -24,7 +25,7 @@
 							<span class="game-meta">{{if not .LatestUpdateDate.IsZero}}{{t "Released %v" (formatTime .LatestUpdateDate)}}{{end}}</span>
 							<button type="button" class="btn btn-sm update-ignore" data-ignore-kind="update" data-ignore-id="{{.Id}}" data-ignored="true" title="{{t "Ignore updates"}}"><span class="bi bi-eye-slash" aria-hidden="true"></span><span class="visually-hidden">{{t "Ignore updates"}}: {{.Name}}</span></button>
 						</div>
-						{{- else if .Type}}
+						{{- else if or .Type .NoFile}}
 						{{- /* Library */}}
 						<div class="game-meta d-flex align-items-center gap-2">
 							<span class="me-auto">
@@ -34,13 +35,17 @@
 							{{- template "regionFlags" .}}
 						</div>
 						<div class="game-status d-flex flex-wrap gap-1">
+							{{- if .NoFile}}<span class="chip chip-own" title="{{t "You have this game without its file: its updates and DLC are not counted."}}"><svg class="own-icon" aria-hidden="true"><use href="#own-on"></use></svg>{{t "I have it · no file"}}</span>{{else}}
 							{{- if .UpdateAvailable}}<span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Update available"}}</span>{{end}}
 							{{- if .FirmwareTooNew}}<span class="chip chip-danger" title="{{t "Your console needs firmware %v or newer for this game" .RequiredFirmware}}"><span class="bi bi-cpu" aria-hidden="true"></span>{{t "Needs %v" .RequiredFirmware}}</span>{{end}}
 							{{- if gt .MissingDlcCount 0}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC missing" .MissingDlcCount}}</span>{{end}}
-							{{- if and .Region (not .UpdateAvailable) (eq .MissingDlcCount 0)}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Up to date"}}</span>{{end}}
+							{{- if and .Region (not .UpdateAvailable) (eq .MissingDlcCount 0) (not .VersionsUnknown)}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Up to date"}}</span>{{end}}
+							{{- end}}
 						</div>
 						{{- /* always the last row, so the rows of every card line up */}}
-						{{- if gt .DlcTotal 0}}
+						{{- if .NoFile}}
+						<div class="dlc-progress dlc-progress-none game-footer"><span class="bi bi-puzzle" aria-hidden="true"></span><span class="dlc-progress-label">{{if .KnownDlc}}{{t "DLC not counted"}}{{else}}{{t "No DLC"}}{{end}}</span></div>
+						{{- else if gt .DlcTotal 0}}
 						<div class="dlc-progress game-footer" title="{{t "%v of %v DLC" .DlcOwned .DlcTotal}}">
 							<div class="dlc-progress-bar" role="progressbar" aria-label="{{t "%v of %v DLC" .DlcOwned .DlcTotal}}" aria-valuenow="{{.DlcPercent}}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{.DlcPercent}}%"></span></div>
 							<span class="dlc-progress-label">DLC {{.DlcOwned}}/{{.DlcTotal}}</span>
@@ -51,9 +56,11 @@
 						{{- else}}
 						{{- /* Missing games */}}
 						{{- if or .OrphanUpdates .OrphanDlc}}<div class="game-meta d-flex flex-wrap gap-1">{{if .OrphanUpdates}}<span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Updates: %v" .OrphanUpdates}}</span>{{end}}{{if .OrphanDlc}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC" .OrphanDlc}}</span>{{end}}</div>{{end}}
-						{{- if .Missing}}<div class="game-meta"><span class="chip chip-muted"><span class="bi bi-cart" aria-hidden="true"></span>{{t "Not in your library"}}</span></div>{{else if .InLibrary}}<div class="game-meta"><span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "In your library"}}</span></div>{{end}}
-						{{- if or (not .ReleaseDate.IsZero) (showRegion .)}}
-						<div class="game-meta game-footer d-flex align-items-center gap-2"><span class="me-auto">{{if not .ReleaseDate.IsZero}}<span class="bi bi-calendar3 me-1" aria-hidden="true"></span>{{.ReleaseDate | formatTime}}{{end}}</span>{{template "regionFlags" .}}</div>
+						{{- if .Missing}}<div class="game-meta not-owned-note"><span class="chip chip-muted"><span class="bi bi-cart" aria-hidden="true"></span>{{t "Not in your library"}}</span></div>{{else if .InLibrary}}<div class="game-meta"><span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "In your library"}}</span></div>{{end}}
+						{{- /* shown once the game is marked with the button of its cover */}}
+						{{- if not .InLibrary}}<div class="game-meta own-note"><span class="chip chip-own"><svg class="own-icon" aria-hidden="true"><use href="#own-on"></use></svg>{{t "I have it"}}</span></div>{{end}}
+						{{- if or (not .ReleaseDate.IsZero) (showRegion .) .IsSwitch2}}
+						<div class="game-meta game-footer d-flex align-items-center gap-2"><span class="me-auto">{{if not .ReleaseDate.IsZero}}<span class="bi bi-calendar3 me-1" aria-hidden="true"></span>{{.ReleaseDate | formatTime}}{{else if .IsSwitch2}}<span class="chip chip-muted" title="{{t "The release date is not known yet."}}"><span class="bi bi-calendar-x" aria-hidden="true"></span>{{t "No date"}}</span>{{end}}</span>{{template "regionFlags" .}}</div>
 						{{- end}}
 						{{- end}}
 					</div>

@@ -52,7 +52,7 @@
 				<ol class="setup-steps list-unstyled mb-0">
 					{{- template "setupStep" (dict "Done" .TitlesDatabase "Number" 1 "Title" (t "Download the titles database") "Text" (t "Names, covers, updates and DLC of every game come from it. It is downloaded on the first start; if it failed, try again.") "ActionHref" "sync" "ActionLabel" (t "Synchronize") "ActionIcon" "bi-arrow-repeat" "Optional" false)}}
 					{{- template "setupStep" (dict "Done" .Keys "Number" 2 "Title" (t "Add your prod.keys") "Text" (t "Dump them from your own console. With them the files are read; without them games are recognized by their file name only.") "ActionHref" "/settings.html#library" "ActionLabel" (t "Set the keys path") "ActionIcon" "bi-key" "Optional" true)}}
-					{{- $foldersText := t "The folders with your NSP, NSZ, XCI or XCZ files. Sub-folders are included."}}
+					{{- $foldersText := t "The folders with your NSP, NSZ, XCI, XCZ or NUP files. Sub-folders are included."}}
 					{{- if .MissingFolders}}{{$foldersText = t "These folders cannot be read: %v. Check the path, or the volume of the container." (join .MissingFolders ", ")}}{{end}}
 					{{- template "setupStep" (dict "Done" .Folders "Number" 3 "Title" (t "Choose your game folders") "Text" $foldersText "ActionHref" "/settings.html#library" "ActionLabel" (t "Open Settings") "ActionIcon" "bi-folder2-open" "Optional" false)}}
 					{{- template "setupStep" (dict "Done" .Library "Number" 4 "Title" (t "Scan your library") "Text" (t "Happens by itself when the folders change. If your games are not found, scan again.") "ActionHref" "sync" "ActionLabel" (t "Scan now") "ActionIcon" "bi-search" "Optional" false)}}

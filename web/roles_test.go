@@ -30,6 +30,7 @@ func TestRoles(t *testing.T) {
 		{"POST", "/uploads/start", false, false, true, true},
 		{"PUT", "/uploads/chunk", false, false, true, true},
 		{"POST", "/favorites", false, false, true, true},
+		{"POST", "/owned", false, false, true, true},
 		{"POST", "/smart-collections", false, false, true, true},
 		{"GET", "/compress.html", false, false, true, true},
 		{"POST", "/compress/start", false, false, true, true},

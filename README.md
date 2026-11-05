@@ -294,6 +294,7 @@ help too.
 - Parsing, organizing and title data fixes from [trembon's switch-library-manager](https://github.com/trembon/switch-library-manager)
 - Title data from [blawar's titledb](https://github.com/blawar/titledb), and versions of updates also from
   [borntohonk's titledb](https://github.com/borntohonk/titledb) and [16BitWonder's nx-versions](https://github.com/16BitWonder/nx-versions)
+- The games of the Nintendo Switch 2 from the [title list of switchbrew](https://switchbrew.org/wiki/Switch_2:_Title_list/Games)
 - Cheats from [HamletDuFromage's switch-cheats-db](https://github.com/HamletDuFromage/switch-cheats-db), mirrored from GBAtemp and
   the authors of each cheat
 - NSZ format of [nsz](https://github.com/nicoboss/nsz) and the [Inter](https://github.com/rsms/inter) font

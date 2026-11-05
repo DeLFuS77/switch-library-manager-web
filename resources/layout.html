@@ -19,6 +19,11 @@
 	<meta name="theme-color" content="#0d1117">
 </head>
 <body class="d-flex flex-column min-vh-100" data-page="{{.Page}}" data-role="{{.Auth.Role}}" data-wizard-auto="{{and .Auth.IsAdmin .WizardAuto}}">
+	{{- /* the mark "I have it": a cartridge seen from the front, empty while not marked, filled with a tick once marked, so the state is told by the shape and not by the colour alone */}}
+	<svg width="0" height="0" class="position-absolute" aria-hidden="true" focusable="false">
+		<symbol id="own-off" viewBox="0 0 16 16"><path fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" d="M4.3.6h7.8v1h1v12.5a1.4 1.4 0 0 1-1.4 1.4H4.3a1.4 1.4 0 0 1-1.4-1.4V2a1.4 1.4 0 0 1 1.4-1.4Z"/><rect x="4.6" y="2.6" width="6.8" height="9.2" rx=".45" fill="none" stroke="currentColor" stroke-width=".85"/><rect x="4.6" y="2.6" width="6.8" height="2.3" rx=".45" fill="currentColor"/><path fill="currentColor" d="M7.05 13h1.9L8 14.15Z"/></symbol>
+		<symbol id="own-on" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M4.3.6h7.8v1h1v12.5a1.4 1.4 0 0 1-1.4 1.4H4.3a1.4 1.4 0 0 1-1.4-1.4V2a1.4 1.4 0 0 1 1.4-1.4ZM4.9 2.4a.5.5 0 0 0-.5.5v8.6a.5.5 0 0 0 .5.5h6.2a.5.5 0 0 0 .5-.5V2.9a.5.5 0 0 0-.5-.5ZM7.05 13 8 14.15 8.95 13Z"/><rect x="4.85" y="2.85" width="6.3" height="2.05" rx=".25" fill="currentColor"/><path d="M5.9 8.3l1.4 1.4 2.8-2.9" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+	</svg>
 	<a class="skip-link btn btn-primary" href="#main">{{t "Skip to content"}}</a>
 	<header class="app-header sticky-top">
 		<nav class="navbar navbar-expand-full" aria-label="{{t "Main navigation"}}">

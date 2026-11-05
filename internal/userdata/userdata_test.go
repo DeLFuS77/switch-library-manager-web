@@ -42,6 +42,19 @@ func TestStoresReadWhatTheySaved(t *testing.T) {
 		t.Fatalf("wishlist: %v", list.Ids())
 	}
 
+	owned := LoadOwned(filepath.Join(folder, OWNED_FILENAME))
+	if changed, err := owned.Set("0400c3f00006e000", true); !changed || err != nil {
+		t.Fatalf("a game is marked: %v %v", changed, err)
+	}
+	if changed, _ := owned.Set("0400C3F00006E000", true); changed {
+		t.Fatal("a game is marked once")
+	}
+	owned.Set("01007EF00011E000", true)
+	owned.Set("01007ef00011e000", false)
+	if again := LoadOwned(filepath.Join(folder, OWNED_FILENAME)); again.Count() != 1 || !again.Has("0400c3f00006e000") || again.Has("01007EF00011E000") || again.Ids()[0] != "0400C3F00006E000" {
+		t.Fatalf("owned: %v", again.Ids())
+	}
+
 	play := LoadPlay(filepath.Join(folder, PLAY_FILENAME))
 	entry, ok := CleanPlayEntry(PLAY_PLAYING, "4", "  on the second temple ")
 	if !ok {

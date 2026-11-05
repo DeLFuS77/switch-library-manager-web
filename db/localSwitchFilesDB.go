@@ -154,10 +154,10 @@ var NonGameFileTypes = []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"
 	".part", ".partial", ".tmp", ".bak", ".crdownload", ".download", ".aria2", ".!qb", ".!ut"}
 
 // IsGameFileType reports whether files with this extension (with its dot) are games, which
-// can never be ignored.
+// can never be ignored. A NUP holds a decrypted game (see switchfs.ReadNup).
 func IsGameFileType(extension string) bool {
 	switch strings.ToLower(extension) {
-	case ".nsp", ".nsz", ".xci", ".xcz":
+	case ".nsp", ".nsz", ".xci", ".xcz", ".nup":
 		return true
 	}
 	return false
@@ -849,7 +849,8 @@ func gameFiles(files []ExtendedFileInfo, ignoreFileTypes map[string]struct{}, sk
 			!strings.HasSuffix(fileName, "xci") &&
 			!strings.HasSuffix(fileName, "nsp") &&
 			!strings.HasSuffix(fileName, "nsz") &&
-			!strings.HasSuffix(fileName, "xcz") {
+			!strings.HasSuffix(fileName, "xcz") &&
+			!strings.HasSuffix(fileName, ".nup") {
 			if _, ok := ignoreFileTypes[filepath.Ext(fileName)]; !ok {
 				skipped[file] = SkippedFile{ReasonCode: REASON_UNSUPPORTED_TYPE, ReasonText: "file type is not supported"}
 			}
@@ -1100,6 +1101,20 @@ func (s *libraryScan) addDlc(switchTitle *SwitchGameFiles, file ExtendedFileInfo
 	switchTitle.Dlc[metadata.TitleId] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
 }
 
+// OtherFormat tells two copies of a game of which one is a NUP and the other is not. A NUP holds
+// the game decrypted, for emulators, an NSP or an XCI holds it to be installed, and they may not
+// hold the same version: the same game in both is kept in both, and neither is ever deleted as a
+// duplicate of the other.
+func OtherFormat(a string, b string) bool {
+	return switchfs.IsNupFile(a) != switchfs.IsNupFile(b)
+}
+
+// KeptInOtherFormat tells a duplicate whose copy kept is of the other format (see OtherFormat).
+func KeptInOtherFormat(file ExtendedFileInfo, skipped SkippedFile) bool {
+	kept := KeptBy(skipped.ReasonText)
+	return skipped.ReasonCode == REASON_DUPLICATE && kept != "" && OtherFormat(file.FileName, kept)
+}
+
 // PreferDuplicate tells whether the copy file is kept instead of found, the copy of the same
 // title found first, by the choice of the settings (keep). A file with several titles holds
 // other content too: it is never deleted while it holds anything the library keeps, so
@@ -1191,15 +1206,43 @@ func hasName(nacp *switchfs.Nacp) bool {
 	return false
 }
 
-// readGameMetadata identifies a file: from the cache, by reading it with the keys, or
-// from its name. It is safe to call from several goroutines.
+// readGameMetadata identifies a file: from the cache, by reading it with the keys (a NUP,
+// which is not encrypted, without them), or from its name. It is safe to call from several
+// goroutines.
 func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadataResult {
 	result := metadataResult{}
 	filePath := filepath.Join(file.BaseFolder, file.FileName)
 	keys, _ := settings.SwitchKeys()
 	fileKey := filePath + "|" + file.FileName + "|" + strconv.Itoa(int(file.Size))
 
-	if keys != nil && keys.GetKey("header_key") != "" {
+	if switchfs.IsNupFile(file.FileName) {
+		// read again when the reader of the NUP files tells more of them, and when the file changed
+		// without changing its size (a tool that edits its name or icon in place)
+		fileKey += "|nup" + strconv.Itoa(switchfs.NupReaderVersion)
+		if info, err := os.Stat(filePath); err == nil {
+			fileKey += "|" + strconv.FormatInt(info.ModTime().UnixNano(), 10)
+		}
+		var metadata map[string]*switchfs.ContentMetaAttributes
+		if err := ldb.db.GetEntry(DB_TABLE_FILE_SCAN_METADATA, fileKey, &metadata); err != nil {
+			zap.S().Warnf("%v", err)
+		}
+		// what a NUP tells does not depend on the keys: what was read once stays true
+		if metadata != nil {
+			result.metadata = metadata
+			return result
+		}
+		metadata, err := switchfs.ReadNupMetadata(filePath)
+		if err == nil && len(metadata) == 0 {
+			err = errors.New("no title ID in the file")
+		}
+		if err == nil {
+			result.metadata = metadata
+			result.cacheKey = fileKey
+			return result
+		}
+		result.skip = &SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: readErrorText("NUP", err), CutShort: CutShort(err, "")}
+		zap.S().Warnf("[file:%v] failed to read NUP [reason: %v]", file.FileName, err)
+	} else if keys != nil && keys.GetKey("header_key") != "" {
 		_, _, generation := settings.KeysSummary()
 		var metadata map[string]*switchfs.ContentMetaAttributes
 		if err := ldb.db.GetEntry(DB_TABLE_FILE_SCAN_METADATA, fileKey, &metadata); err != nil {

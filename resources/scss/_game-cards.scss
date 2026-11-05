@@ -308,6 +308,122 @@
 	}
 }
 
+// "I have it", a game one has without its file: a cartridge in the blue of work (see _features),
+// never in red; on that blue, white in the light theme and near black in the dark one
+:root,
+[data-bs-theme="light"] {
+	--slm-own-on: #fff;
+	--slm-own-text: #0a5f97;
+}
+
+[data-bs-theme="dark"] {
+	--slm-own-on: #061018;
+	--slm-own-text: #7fd0f2;
+}
+
+.own-icon {
+	width: 1.05em;
+	height: 1.05em;
+	flex: 0 0 auto;
+}
+
+// the button of the cover: next to the heart of a missing game, alone and filled on a game of the
+// library without a file
+.own-toggle {
+	position: absolute;
+	top: .55rem;
+	right: .55rem;
+	z-index: 3;
+	display: grid;
+	place-items: center;
+	width: 2.1rem;
+	height: 2.1rem;
+	min-width: 24px;
+	min-height: 24px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(0, 0, 0, .55);
+	color: #fff;
+	backdrop-filter: blur(4px);
+	transition: transform .15s ease, background-color .15s ease;
+
+	&:hover {
+		transform: scale(1.08);
+	}
+
+	&.next-to-heart {
+		right: 2.95rem;
+	}
+
+	&.is-owned {
+		background: rgb(var(--slm-work-rgb));
+		color: var(--slm-own-on);
+	}
+
+	.own-icon {
+		width: 1.15rem;
+		height: 1.15rem;
+	}
+}
+
+.chip.chip-own {
+	background: rgba(var(--slm-work-rgb), .12);
+	color: var(--slm-own-text);
+}
+
+[data-bs-theme="dark"] .chip.chip-own {
+	background: rgba(var(--slm-work-rgb), .16);
+}
+
+// a missing game says "I have it" once its button marks it
+.game-card {
+	.own-note {
+		display: none;
+	}
+
+	&.is-owned-card {
+		.own-note {
+			display: block;
+		}
+
+		.not-owned-note {
+			display: none;
+		}
+	}
+
+	// a game of the library without a file whose mark was just taken away
+	&.no-file-card:not(.is-owned-card) {
+		opacity: .55;
+	}
+}
+
+// the button of the game page, once the game is marked
+.btn.btn-own {
+	--bs-btn-color: var(--slm-own-on);
+	--bs-btn-bg: rgb(var(--slm-work-rgb));
+	--bs-btn-border-color: rgb(var(--slm-work-rgb));
+	--bs-btn-hover-color: var(--slm-own-on);
+	--bs-btn-hover-bg: rgb(var(--slm-work-rgb));
+	--bs-btn-hover-border-color: rgb(var(--slm-work-rgb));
+	--bs-btn-active-color: var(--slm-own-on);
+	--bs-btn-active-bg: rgb(var(--slm-work-rgb));
+	--bs-btn-active-border-color: rgb(var(--slm-work-rgb));
+	--bs-btn-disabled-color: var(--slm-own-on);
+	--bs-btn-disabled-bg: rgb(var(--slm-work-rgb));
+	--bs-btn-disabled-border-color: rgb(var(--slm-work-rgb));
+
+	&:hover {
+		filter: brightness(1.07);
+	}
+}
+
+.title-actions .own-icon {
+	width: 1.1em;
+	height: 1.1em;
+	vertical-align: -.15em;
+}
+
 .dlc-progress-none {
 	color: var(--bs-secondary-color);
 	opacity: .75;

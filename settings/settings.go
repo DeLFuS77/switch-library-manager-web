@@ -47,6 +47,8 @@ const (
 	DEFAULT_COVERS_JSON_URL = DATA_RELEASE_URL + "titles.covers.json"
 	// the series of Switch games, from Wikidata
 	DEFAULT_SERIES_JSON_URL = DATA_RELEASE_URL + "titles.series.json"
+	// the games of the Nintendo Switch 2 alone, from the title list of switchbrew
+	DEFAULT_SWITCH2_JSON_URL = DATA_RELEASE_URL + "titles.switch2.json"
 	// the cheats of switch-cheats-db: the build ID of every version of every game, the cheats
 	// of the last release as the SD card holds them, and the name of that release
 	DEFAULT_CHEATS_VERSIONS_URL = "https://raw.githubusercontent.com/HamletDuFromage/switch-cheats-db/master/versions.json"
@@ -305,7 +307,9 @@ type AppSettings struct {
 	// a game the library has from several regions shows and counts once, by the copy the
 	// Space page suggests to keep
 	CountRegionsOnce bool `json:"count_regions_once,omitempty"`
-	WatchFolders     bool `json:"watch_folders"`
+	// the user has a Nintendo Switch 2: its own games are missing too, and counted with the others
+	HasSwitch2   bool `json:"has_switch2,omitempty"`
+	WatchFolders bool `json:"watch_folders"`
 	// the country whose copy is the main one of a game of several regions, unless one is chosen
 	// on the page of the game; empty for the copy suggested
 	PreferredRegion string `json:"preferred_region,omitempty"`

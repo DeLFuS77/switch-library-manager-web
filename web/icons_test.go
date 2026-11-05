@@ -11,6 +11,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
+	"github.com/dtrunk90/switch-library-manager-web/internal/testnup"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
@@ -104,5 +105,33 @@ func TestReadIconsComeBackAfterAScan(t *testing.T) {
 	}
 	if coverTasks() != 0 {
 		t.Fatalf("no task of covers is made for it: %+v", web.taskLog().Snapshot())
+	}
+}
+
+// A NUP is not encrypted: the icon it carries is read without the keys of the console.
+func TestNupIconsAreReadWithoutKeys(t *testing.T) {
+	web := newTestWeb(t)
+	settings.InitSwitchKeys(t.TempDir())
+	folder := t.TempDir()
+	nup := filepath.Join(folder, "Game.nup")
+	data := testnup.Build([]testnup.Package{{TitleId: 0x0400000000010000, Kind: testnup.Base,
+		Meta: []testnup.Record{{Type: testnup.Icon, Payload: testnup.Jpeg}}}})
+	if err := os.WriteFile(nup, data, 0644); err != nil {
+		t.Fatal(err)
+	}
+	web.state.set(&db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{}}, &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{
+		"0400000000010": {BaseExist: true, File: db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: filepath.Base(nup), BaseFolder: folder, Size: int64(len(data))}}},
+	}})
+
+	if found := web.extractMissingIcons(0); found != 1 {
+		t.Fatalf("the icon of the NUP is read: %d", found)
+	}
+	_, localDB := web.state.get()
+	if icon := localDB.TitlesMap["0400000000010"].Icon; icon != extractedIconName("0400000000010") {
+		t.Fatalf("icon %q", icon)
+	}
+	saved, err := os.ReadFile(filepath.Join(web.dataFolder, "img", extractedIconName("0400000000010")))
+	if err != nil || string(saved) != string(testnup.Jpeg) {
+		t.Fatalf("saved icon %v", err)
 	}
 }

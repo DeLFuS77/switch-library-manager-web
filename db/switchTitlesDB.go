@@ -42,6 +42,9 @@ type SwitchTitle struct {
 	// made for a game of the library titles.json does not list, from what its own files and
 	// IGDB tell; not a title of the database (Missing does not list it)
 	FromLibrary bool `json:",omitempty"`
+	// a game of the Switch 2 alone titles.json does not list, from the title list of switchbrew
+	// (titles.switch2.json): its name and regions, and what IGDB tells of it
+	FromSwitch2List bool `json:",omitempty"`
 }
 
 type SwitchTitlesDB struct {
