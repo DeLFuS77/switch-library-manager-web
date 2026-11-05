@@ -1,4 +1,72 @@
 {
+  "1.73.0": {
+    "en": [
+      "Clearer menus: the full menu at the top from 1200px wide, and on phones More starts with Issues and Tasks.",
+      "The help of Settings and Organize shows in a card on the fields marked with ⓘ.",
+      "A title.keys can be uploaded alone, and Settings shows how many title keys are loaded.",
+      "Fixed: names in romaji without stray spaces, and the NSZ files of the extra compression no longer take every processor."
+    ],
+    "es": [
+      "Menús más claros: el menú completo arriba desde 1200 px de ancho, y en el móvil Más empieza por Problemas y Tareas.",
+      "La ayuda de Ajustes y Organizar sale en una tarjeta en los campos marcados con ⓘ.",
+      "Se puede subir solo un title.keys, y Ajustes dice cuántas claves de título hay cargadas.",
+      "Arreglado: los nombres en romaji ya no dejan espacios sueltos, y los NSZ de la compresión extra ya no ocupan todos los procesadores."
+    ],
+    "de": [
+      "Übersichtlichere Menüs: das volle Menü oben ab 1200 px Breite, und auf dem Handy beginnt Mehr mit Probleme und Aufgaben.",
+      "Die Hilfe in Einstellungen und Organisieren erscheint als Karte bei den Feldern mit ⓘ.",
+      "Eine title.keys kann allein hochgeladen werden, und die Einstellungen zeigen, wie viele Titelschlüssel geladen sind.",
+      "Behoben: Namen in Romaji ohne überzählige Leerzeichen, und die NSZ-Dateien der Extra-Komprimierung belegen nicht mehr alle Prozessoren."
+    ],
+    "fr": [
+      "Menus plus clairs : le menu complet en haut dès 1200 px de large, et sur mobile Plus commence par Problèmes et Tâches.",
+      "L’aide de Paramètres et d’Organiser s’affiche dans une carte sur les champs marqués d’un ⓘ.",
+      "Un title.keys peut être envoyé seul, et les Paramètres indiquent combien de clés de titre sont chargées.",
+      "Corrigé : les noms en romaji sans espaces en trop, et les fichiers NSZ de la compression extra n’occupent plus tous les processeurs."
+    ],
+    "it": [
+      "Menu più chiari: il menu completo in alto da 1200 px di larghezza, e sul telefono Altro inizia con Problemi e Attività.",
+      "L’aiuto di Impostazioni e Organizza appare in una scheda sui campi segnati con ⓘ.",
+      "Si può caricare un title.keys da solo, e le Impostazioni mostrano quante chiavi dei titoli sono caricate.",
+      "Corretto: i nomi in romaji senza spazi di troppo, e i file NSZ della compressione extra non occupano più tutti i processori."
+    ],
+    "pt": [
+      "Menus mais claros: o menu completo no topo a partir de 1200 px de largura, e no celular Mais começa com Problemas e Tarefas.",
+      "A ajuda de Configurações e Organizar aparece em um cartão nos campos marcados com ⓘ.",
+      "Um title.keys pode ser enviado sozinho, e as Configurações mostram quantas chaves de título estão carregadas.",
+      "Corrigido: nomes em romaji sem espaços a mais, e os arquivos NSZ da compressão extra já não ocupam todos os processadores."
+    ],
+    "nl": [
+      "Duidelijkere menu’s: het volledige menu bovenaan vanaf 1200 px breed, en op de telefoon begint Meer met Problemen en Taken.",
+      "De hulp van Instellingen en Ordenen verschijnt in een kaart bij de velden met ⓘ.",
+      "Een title.keys kan apart worden geüpload, en Instellingen toont hoeveel titelsleutels er geladen zijn.",
+      "Opgelost: namen in romaji zonder losse spaties, en de NSZ-bestanden van de extra compressie gebruiken niet meer alle processors."
+    ],
+    "ru": [
+      "Понятнее меню: полное меню сверху от ширины 1200 px, а на телефоне «Ещё» начинается с «Проблем» и «Задач».",
+      "Справка в «Настройках» и «Упорядочить» появляется карточкой у полей со значком ⓘ.",
+      "Файл title.keys можно загрузить отдельно, а «Настройки» показывают, сколько ключей игр загружено.",
+      "Исправлено: имена на ромадзи без лишних пробелов, а файлы NSZ с дополнительным сжатием больше не занимают все процессоры."
+    ],
+    "ja": [
+      "メニューがわかりやすくなりました：幅 1200 px から上部に全メニューを表示し、スマホでは「その他」が「問題」と「タスク」から始まります。",
+      "設定と整理のヘルプは、ⓘ の付いた項目でカードに表示されます。",
+      "title.keys だけをアップロードでき、設定に読み込まれたタイトルキーの数が表示されます。",
+      "修正：ローマ字の名前に余分な空白が入らなくなり、追加圧縮の NSZ がすべてのプロセッサを使わなくなりました。"
+    ],
+    "ko": [
+      "더 깔끔한 메뉴: 너비 1200 px부터 위쪽에 전체 메뉴가 보이고, 휴대폰에서는 더보기가 문제와 작업으로 시작합니다.",
+      "설정과 정리의 도움말이 ⓘ 표시가 있는 항목에서 카드로 나타납니다.",
+      "title.keys만 따로 올릴 수 있고, 설정에서 불러온 타이틀 키 수를 보여 줍니다.",
+      "수정: 로마자 이름에 불필요한 공백이 없어졌고, 추가 압축 NSZ 파일이 더 이상 모든 프로세서를 쓰지 않습니다."
+    ],
+    "zh": [
+      "菜单更清晰：宽度达到 1200 px 时顶部显示完整菜单，手机上的“更多”以“问题”和“任务”开头。",
+      "设置和整理的帮助会在带 ⓘ 的字段上以卡片显示。",
+      "可以单独上传 title.keys，设置中会显示已加载的标题密钥数量。",
+      "已修复：罗马字名称不再有多余空格，额外压缩的 NSZ 文件不再占用所有处理器。"
+    ]
+  },
   "1.72.1": {
     "en": [
       "Reads the NSZ files made with the extra compression of NXPress 1.5.0."

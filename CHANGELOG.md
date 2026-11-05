@@ -1,25 +1,19 @@
 # Changelog
 
-## Unreleased
+## 1.73.0
 
 ### Improvements
 
+- Clearer menus: the full menu at the top shows from 1200px wide on a computer with a mouse (it was 1400px), and in a narrower window the menu button wears the dot of More, red for issues or failed tasks and orange for a step of the tune-up waiting. On a phone More starts with Issues and Tasks and no longer repeats the bar at the bottom
+- The account menu keeps the account, the theme, the couch mode, the sounds and log out; Users, Activity and Diagnostics are in Settings, under Access and Maintenance. The sections of Settings say what they hold: What is shown (the old Ignored items), Game data and Sync and check
+- Fewer buttons in a row: Check new files, in Issues, has a menu with what each level checks; the page of a game keeps Download all, Favorite and Collections, with Edit the game and Combine the files under More; and the first status filter of the Library is called Any status. The quick search also finds Activity, Tune-up, Quarantine, App on your phone, Sign-in portal and Game data
+- The help of the fields of Settings and Organize no longer fills the page on a computer: a small ⓘ after the name of a field tells there is some, and it shows in a card while the mouse is on the name or the field has the focus of the keyboard; on phones and tablets it stays under each field (thanks @NikoMuffin, who asked for it in NXPress #67)
+- Settings and the setup wizard tell how many title keys are loaded, and a title.keys can be uploaded alone when a prod.keys is already in use; Diagnostics shows it as OK with its count, or how it is named and where it goes (thanks internethostage, who asked about it on Discord)
 - Low priority on Windows lowers the memory of the app too: when memory runs short, its pages are the first given to the other programs (thanks @NikoMuffin, who found it in NXPress #70)
-- The full menu at the top shows from 1200px wide on a computer with a mouse (it was 1400px), so a laptop of 1280 or 1366px sees every section and its counts. In a narrower window the menu button wears the dot of More: red for issues or failed tasks, orange for a step of the tune-up waiting
-- On a phone, More starts with Issues and Tasks and no longer repeats the sections of the bar at the bottom
-- The account menu holds only what is yours: your account, the theme, the couch mode, the sounds and log out. Users, Activity and Diagnostics are in the index of Settings, under Access and Maintenance
-- The sections of Settings say what they hold: What is shown (the old Ignored items), Game data (the firmware of the console and the keys of IGDB) and Sync and check (the automatic synchronization, the checks of the files and the hours of the heavy work). General keeps the theme, the language and the notice of a new version
-- Issues shows the issues first: Check new files has an arrow whose menu chooses what to check, with what each level does, and checks every file again
-- The page of a game has fewer buttons in a row: Download all, Favorite, Collections and a More menu with Edit the game and Combine the files. On a phone Favorite and Collections show their icon alone
-- In the Library the first status filter is called Any status, so it is not confused with All of the tabs above. On a phone Upload games and Export are icons beside the title
-- The quick search also finds Activity, Tune-up, Quarantine, App on your phone, Sign-in portal and Game data
-- The help of the fields of Settings and Organize no longer fills the page on a computer: a small ⓘ after the name of a field tells there is some, and it shows in a card while the mouse is on the name or the field has the focus of the keyboard. Statuses, warnings and links stay in sight, and on phones and tablets the help stays under each field (thanks @NikoMuffin, who asked for it in NXPress #67)
-- Settings and the setup wizard tell how many title keys are loaded, next to the button of title.keys, and a title.keys can be uploaded alone when a prod.keys is already in use: it is kept in the data folder and read along with that prod.keys. Diagnostics shows title.keys as OK with its count or, when there is none, how the file is named and where it goes (thanks internethostage, who asked about it on Discord)
 
 ### Fixes
 
-- With the names for the Switch (ASCII only), the kanji left out no longer leave spaces inside the brackets nor brackets with nothing inside: a DLC is named "(serekushon 1)", no longer "( serekusho 1)". In romaji the kana after a small kana is no longer lost (セレクション is serekushon, しょうねん shounen), the small tsu doubles the next consonant (セット is setto, no longer se.hold), and キャ, ジャ and ファ are kya, ja and fa. The next Organize renames the files whose names change (thanks internethostage, who reported it on Discord)
-
+- With the names for the Switch (ASCII only), the kanji left out no longer leave spaces or empty brackets ("(serekushon 1)", no longer "( serekusho 1)"), and the romaji after a small kana is right (shounen, setto, kya, ja, fa); the next Organize renames the files whose names change (thanks internethostage, who reported it on Discord)
 - The NSZ files made with the extra compression of NXPress no longer take every processor of the server for each file at once: their LZ4 blocks are made again on one thread per file while the files are checked, as Settings says, and on the threads of each file while they are decompressed or converted (thanks @NikoMuffin, who found it in NXPress #70)
 
 ## 1.72.1
