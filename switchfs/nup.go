@@ -169,8 +169,9 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 		return nil, errors.New("NUP header is too small")
 	case flags != 0:
 		return nil, fmt.Errorf("NUP flags %#x are not supported", flags)
-	case tocOffset != headerSize:
-		return nil, errors.New("NUP table of contents is not after the header")
+	// anywhere after the header and in the file, as the format lets a writer put it
+	case tocOffset < headerSize || tocOffset > fileSize:
+		return nil, errors.New("NUP table of contents is outside the file")
 	case tocSize < nupTocHeadSize || tocSize > nupMaxTocSize:
 		return nil, fmt.Errorf("NUP table of contents has an invalid size (%d bytes)", tocSize)
 	case packageCount == 0 || packageCount > nupMaxPackages:
@@ -254,7 +255,7 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 		metaOffset := le.Uint64(record[0x20:])
 		metaSize := uint64(le.Uint32(record[0x28:]))
 		if metaSize > 0 {
-			if metaSize > nupMaxMetaSize || metaOffset < tocOffset+tocSize || metaOffset > fileSize || metaSize > fileSize-metaOffset {
+			if metaSize > nupMaxMetaSize || metaOffset < headerSize || metaOffset > fileSize || metaSize > fileSize-metaOffset {
 				return nil, fmt.Errorf("NUP package %d has its metadata outside the file", i)
 			}
 			if metaTotal += metaSize; metaTotal > nupMaxMetaTotal {

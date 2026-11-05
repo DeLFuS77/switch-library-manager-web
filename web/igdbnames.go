@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"unicode"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 )
@@ -87,16 +88,20 @@ type igdbNamed interface {
 }
 
 // igdbFind finds a game on IGDB, with the fields asked: first the game Wikidata links it to (the
-// slug of the list of the Switch 2), then by its names on its console (see igdbSearchNames),
-// and, for a game of the Switch 2 IGDB lists on the Switch only, by the same name there.
+// slug of the list of the Switch 2), when that game is of its console or of the Switch and has
+// its name (see igdbNameFits), then by its names on its console (see igdbSearchNames), and, for
+// a game of the Switch 2 IGDB lists on the Switch only, by the same name there.
 func igdbFind[T igdbNamed](ctx context.Context, c *igdbClient, fields string, name string, slug string, platform int) (T, bool, error) {
 	var none T
 	if slug = strings.TrimSpace(slug); slug != "" {
 		var games []T
-		if err := c.query(ctx, "games", fmt.Sprintf(`fields %s; where slug = "%s"; limit 1;`, fields, apicalypseText(slug)), &games); err != nil {
+		query := fmt.Sprintf(`fields %s; where slug = "%s" & platforms = (%d,%d); limit 1;`, fields, apicalypseText(slug), platform, igdbSwitchPlatform)
+		if err := c.query(ctx, "games", query, &games); err != nil {
 			return none, false, err
 		}
-		if len(games) > 0 {
+		// a link of Wikidata made by an alias another game shares is not taken: the game is
+		// searched by its name instead
+		if len(games) > 0 && igdbNameFits(games[0].igdbName(), name) {
 			return games[0], true, nil
 		}
 	}
@@ -127,6 +132,25 @@ func igdbFind[T igdbNamed](ctx context.Context, c *igdbClient, fields string, na
 		}
 	}
 	return none, false, nil
+}
+
+// igdbNameFits tells whether a game of IGDB has the name of a title: the same, or one that starts
+// with it or that it starts with (an edition, a subtitle), in any of the names the title is
+// searched by. A name not in the Latin alphabet (Japanese) cannot be compared, and fits.
+func igdbNameFits(found string, name string) bool {
+	for _, r := range name {
+		if unicode.IsLetter(r) && !unicode.Is(unicode.Latin, r) {
+			return true
+		}
+	}
+	have := search.Text(found)
+	for _, searched := range igdbSearchNames(name) {
+		want := search.Text(searched)
+		if want != "" && (want == have || strings.HasPrefix(have, want+" ") || strings.HasPrefix(want, have+" ")) {
+			return true
+		}
+	}
+	return false
 }
 
 // igdbSameName is the game of the same name, -1 for none.

@@ -150,15 +150,16 @@ def wikidata_rows():
 
 
 def plain_name(name):
-    """A name to compare: without marks, case and punctuation."""
-    name = unicodedata.normalize("NFKC", name).lower()
-    name = re.sub(r"[™®©]", "", name)
+    """A name to compare: without marks, case and punctuation. The marks go first: NFKC writes
+    ™ as "TM"."""
+    name = unicodedata.normalize("NFKC", re.sub(r"[™®©]", "", name)).lower()
     return " ".join(re.sub(r"[^\w]+", " ", name).split())
 
 
 def name_keys(name):
     """The forms of a name of the list a game of Wikidata is looked for by."""
-    bare = re.sub(r"(?i)\bfor nintendo switch\s*2\b|\bstandard edition\b", " ", unicodedata.normalize("NFKC", name))
+    plain = unicodedata.normalize("NFKC", re.sub(r"[™®©]", "", name))
+    bare = re.sub(r"(?i)\bfor nintendo switch\s*2\b|\bstandard edition\b", " ", plain)
     return [key for key in dict.fromkeys([plain_name(name), plain_name(bare)]) if key]
 
 

@@ -82,6 +82,12 @@ func TestIgdbReleaseDateOfTheConsole(t *testing.T) {
 		t.Fatalf("a date of another platform only: %+v %v", found, err)
 	}
 
+	// a game of the Switch without a date of the Switch keeps the first one, as before
+	answer = `[{"name":"Old Shooter","first_release_date":1364169600,"release_dates":[{"date":1364169600,"platform":6}]}]`
+	if found, err = client.lookupTitleOn(context.Background(), "Old Shooter", igdbSwitchPlatform, time.Now()); err != nil || found.ReleaseDate != 20130325 {
+		t.Fatalf("a game of the Switch without a date of the Switch: %+v %v", found, err)
+	}
+
 	// no dates by platform: the first one
 	answer = `[{"name":"Old Shooter","first_release_date":1364169600}]`
 	if found, err = client.lookupTitleOn(context.Background(), "Old Shooter", igdbSwitch2Platform, time.Now()); err != nil || found.ReleaseDate != 20130325 {

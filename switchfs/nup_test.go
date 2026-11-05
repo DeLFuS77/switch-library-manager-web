@@ -2,6 +2,7 @@ package switchfs
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"errors"
 	"io"
@@ -99,6 +100,19 @@ func TestNupWithoutNamesOrIcon(t *testing.T) {
 	}
 	if _, err := ExtractIcon(path); err == nil {
 		t.Error("an icon was found in a NUP without one")
+	}
+}
+
+// The table of contents may be anywhere after the header, as the format allows a writer.
+func TestNupTableOfContentsAfterAGap(t *testing.T) {
+	path := writeNup(t, testnup.BuildWith([]testnup.Package{{TitleId: 0x0400C3F00006E000, Kind: NupKindBase, Version: 0,
+		Files: []testnup.File{{Path: "exefs/main.npdm", Data: []byte("npdm")}, {Path: "romfs/data.bin", Data: bytes.Repeat([]byte("data"), 100), Zstd: true}}}},
+		testnup.Options{Dedup: true, TocGap: 0x80}))
+	if metadata, err := ReadNupMetadata(path); err != nil || metadata["0400c3f00006e000"] == nil {
+		t.Fatalf("%v %v", metadata, err)
+	}
+	if _, err := VerifyNup(context.Background(), path, nil); err != nil {
+		t.Fatal(err)
 	}
 }
 

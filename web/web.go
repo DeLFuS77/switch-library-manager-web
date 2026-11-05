@@ -176,6 +176,8 @@ type Web struct {
 	// the games the users have without a file of them (see owned.go)
 	ownedStore *userdata.Owned
 	ownedOnce  sync.Once
+	// titles.switch2.json as read last (see loadSwitch2Titles)
+	switch2List switch2Cache
 	// how the games go for each user (see play.go)
 	playStore *userdata.PlayStore
 	playOnce  sync.Once

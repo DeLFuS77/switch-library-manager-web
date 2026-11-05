@@ -359,13 +359,24 @@ func TestSwitch2GamesAreLookedUpOnTheirPlatform(t *testing.T) {
 
 	// without the setting, only the games marked
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.HasSwitch2 = false })
-	web.igdbTitles().set("0400000000060", IgdbTitle{Found: true, Checked: time.Now().Add(-10 * 24 * time.Hour)})
+	web.igdbTitles().set("0400000000060", IgdbTitle{Found: true, Version: igdbTitleVersion, Checked: time.Now().Add(-40 * 24 * time.Hour)})
 	if pending := web.switch2TitlesToLookUp(time.Now()); len(pending) != 0 {
 		t.Errorf("without the setting: %v", pending)
 	}
 	web.owned().Set("0400000000060000", true)
 	if pending := web.switch2TitlesToLookUp(time.Now()); len(pending) != 1 || pending["0400000000060"] != "Comet Rally" {
-		t.Errorf("a game without a date is asked again after a week: %v", pending)
+		t.Errorf("a game without a date is asked again after a month: %v", pending)
+	}
+	// not every week: the date of a game IGDB lists on the Switch only does not come
+	web.igdbTitles().set("0400000000060", IgdbTitle{Found: true, Version: igdbTitleVersion, Checked: time.Now().Add(-10 * 24 * time.Hour)})
+	if pending := web.switch2TitlesToLookUp(time.Now()); len(pending) != 0 {
+		t.Errorf("a game without a date is not asked again after a week: %v", pending)
+	}
+	// a date still to come is asked again after a week, as it comes closer
+	web.igdbTitles().set("0400000000060", IgdbTitle{Found: true, Version: igdbTitleVersion, ReleaseDate: 29991231,
+		Checked: time.Now().Add(-10 * 24 * time.Hour)})
+	if pending := web.switch2TitlesToLookUp(time.Now()); len(pending) != 1 {
+		t.Errorf("a date still to come is asked again after a week: %v", pending)
 	}
 
 	// a game of the Switch is still searched on the Switch

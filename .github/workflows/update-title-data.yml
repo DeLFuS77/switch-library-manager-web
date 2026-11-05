@@ -116,6 +116,10 @@ jobs:
         continue-on-error: true
         run: python .github/scripts/build_series.py generated-data/titles.series.json
 
+      # the tests of the scripts, before the files they make are published
+      - name: Test the scripts
+        run: python -m unittest discover -s .github/scripts -p "test_*.py"
+
       # the games of the Nintendo Switch 2 alone, from the title list of switchbrew (titledb has
       # few of them), with their game on IGDB and release date from Wikidata when it answers; when
       # switchbrew does not answer, the published file of the last run stays

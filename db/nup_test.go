@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnup"
 )
@@ -68,5 +69,33 @@ func TestScanReadsNupFiles(t *testing.T) {
 	}
 	if !IsGameFileType(".NUP") {
 		t.Error("a NUP is a game")
+	}
+
+	// a NUP edited in place, its size the same (a name of the same length): read again
+	edited := testnup.Build([]testnup.Package{
+		{TitleId: 0x040074A01BF12000, Kind: testnup.Base, Meta: []testnup.Record{
+			{Type: testnup.TitleName, Payload: []byte("Banana!")},
+			{Type: testnup.Icon, Payload: testnup.Jpeg},
+		}},
+		{TitleId: 0x040074A01BF12000, Kind: testnup.Update, Version: 65536},
+		{TitleId: 0x040074A01BF13001, Kind: testnup.Addon},
+	})
+	if len(edited) != len(game) {
+		t.Fatalf("the edited NUP has another size: %d and %d", len(edited), len(game))
+	}
+	path := filepath.Join(romDir, "dump.nup")
+	if err := os.WriteFile(path, edited, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	later := time.Now().Add(time.Minute)
+	if err := os.Chtimes(path, later, later); err != nil {
+		t.Fatal(err)
+	}
+	localDB, err := manager.CreateLocalSwitchFilesDB(nil, dataFolder, []string{romDir}, nil, true, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if name := localDB.TitlesMap["040074a01bf12"].File.Metadata.Ncap.TitleName["AmericanEnglish"].Title; name != "Banana!" {
+		t.Errorf("the NUP edited in place: name %q", name)
 	}
 }

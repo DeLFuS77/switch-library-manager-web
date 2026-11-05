@@ -158,9 +158,10 @@ func (c *igdbClient) lookupTitleFor(ctx context.Context, name string, slug strin
 	}
 	result.Found = true
 	result.Summary = strings.TrimSpace(chosen.Summary)
-	// the first day it came out on the console searched; the first one on any platform only when
-	// IGDB gives no date of another platform, else a game of the Switch 2 that came out on the PC
-	// years before would show that date (a game without a date of its console shows none)
+	// the first day it came out on the console searched. Without one, a game of the Switch takes
+	// the first day on any platform, as before; a game of the Switch 2 takes it only when IGDB gives
+	// no date of another platform, else one that came out on the PC years before would show that
+	// date (it shows none, or the one of Wikidata; see applySwitch2Titles)
 	var first int64
 	otherPlatform := false
 	for _, release := range chosen.ReleaseDates {
@@ -172,7 +173,7 @@ func (c *igdbClient) lookupTitleFor(ctx context.Context, name string, slug strin
 			first = release.Date
 		}
 	}
-	if first == 0 && !otherPlatform {
+	if first == 0 && (!otherPlatform || platform == igdbSwitchPlatform) {
 		first = chosen.FirstReleaseDate
 	}
 	if first > 0 {

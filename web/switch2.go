@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
@@ -23,8 +24,9 @@ import (
 
 const SWITCH2_JSON_FILENAME = "titles.switch2.json"
 
-// a game of the Switch 2 IGDB gives no release date, or one still to come, is asked again after
-// a week: its date is set as it comes closer
+// a game of the Switch 2 whose release date is still to come is asked again after a week: its
+// date is set as it comes closer. One IGDB gives no date at all (one it lists on the Switch only
+// has none of the Switch 2) is asked again after a month, as a game not found.
 const switch2DateRetry = 7 * 24 * time.Hour
 
 // switch2Title is a game of titles.switch2.json.
@@ -94,14 +96,36 @@ func (web *Web) downloadSwitch2Titles() {
 	}
 }
 
-// loadSwitch2Titles reads the saved titles.switch2.json.
+// switch2Cache is titles.switch2.json as read last, kept while the file is the same.
+type switch2Cache struct {
+	mutex   sync.Mutex
+	size    int64
+	changed time.Time
+	titles  map[string]switch2Title
+}
+
+// loadSwitch2Titles reads the saved titles.switch2.json, once for as long as it does not change.
+// The map is shared: callers only read it.
 func (web *Web) loadSwitch2Titles() map[string]switch2Title {
+	cache := &web.switch2List
+	cache.mutex.Lock()
+	defer cache.mutex.Unlock()
+	path := filepath.Join(web.dataFolder, SWITCH2_JSON_FILENAME)
+	info, err := os.Stat(path)
+	if err != nil {
+		cache.titles, cache.size, cache.changed = nil, 0, time.Time{}
+		return nil
+	}
+	if cache.titles != nil && info.Size() == cache.size && info.ModTime().Equal(cache.changed) {
+		return cache.titles
+	}
 	list := switch2List{}
-	if data, err := os.ReadFile(filepath.Join(web.dataFolder, SWITCH2_JSON_FILENAME)); err == nil {
+	if data, err := os.ReadFile(path); err == nil {
 		if err := json.Unmarshal(data, &list); err != nil {
 			web.sugarLogger.Warnf("The list of the games of the Switch 2 cannot be read: %v", err)
 		}
 	}
+	cache.titles, cache.size, cache.changed = list.Titles, info.Size(), info.ModTime()
 	return list.Titles
 }
 
@@ -230,7 +254,7 @@ func (web *Web) withSwitch2Details(switchDB *db.SwitchTitlesDB) *db.SwitchTitles
 
 // switch2TitlesToLookUp are the games of the Switch 2 to ask IGDB about, by prefix with their
 // name: the ones of the list never asked (or not found a while ago), and the ones without a
-// release date or with one still to come, asked again after a while. Only the ones that can be
+// release date (after a month) or with one still to come (after a week). Only the ones that can be
 // shown: all of them with "I have a Switch 2", else the ones marked as owned and the ones the
 // folders have a file of (a NUP), which the Library shows always.
 func (web *Web) switch2TitlesToLookUp(now time.Time) map[string]string {
@@ -253,7 +277,8 @@ func (web *Web) switch2TitlesToLookUp(now time.Time) map[string]string {
 		found, asked := store.get(prefix)
 		switch {
 		case !asked, !found.Found && now.Sub(found.Checked) > igdbTitleRetry, found.Version < igdbTitleVersion:
-		case found.Found && (found.ReleaseDate == 0 || found.ReleaseDate > today) && now.Sub(found.Checked) > switch2DateRetry:
+		case found.Found && found.ReleaseDate > today && now.Sub(found.Checked) > switch2DateRetry:
+		case found.Found && found.ReleaseDate == 0 && now.Sub(found.Checked) > igdbTitleRetry:
 		default:
 			continue
 		}

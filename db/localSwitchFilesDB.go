@@ -1216,8 +1216,12 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 	fileKey := filePath + "|" + file.FileName + "|" + strconv.Itoa(int(file.Size))
 
 	if switchfs.IsNupFile(file.FileName) {
-		// read again when the reader of the NUP files tells more of them
+		// read again when the reader of the NUP files tells more of them, and when the file changed
+		// without changing its size (a tool that edits its name or icon in place)
 		fileKey += "|nup" + strconv.Itoa(switchfs.NupReaderVersion)
+		if info, err := os.Stat(filePath); err == nil {
+			fileKey += "|" + strconv.FormatInt(info.ModTime().UnixNano(), 10)
+		}
 		var metadata map[string]*switchfs.ContentMetaAttributes
 		if err := ldb.db.GetEntry(DB_TABLE_FILE_SCAN_METADATA, fileKey, &metadata); err != nil {
 			zap.S().Warnf("%v", err)

@@ -46,6 +46,28 @@ func TestIgdbSearchNames(t *testing.T) {
 	}
 }
 
+// A game Wikidata links a title to fits when it has its name, one with an edition or a subtitle
+// more or less, or when the name of the title is in another alphabet.
+func TestIgdbNameFits(t *testing.T) {
+	for _, c := range []struct {
+		found, name string
+		fits        bool
+	}{
+		{"Gecko Gods", "Gecko Gods", true},
+		{"Bravely Default: Flying Fairy HD Remaster", "BRAVELY DEFAULT FLYING FAIRY HD Remaster", true},
+		{"Pokémon Legends: Z-A", "Pokémon Legends: Z-A Nintendo Switch 2 Edition", true},
+		{"Madden NFL 27", "EA SPORTS™ Madden NFL 27", true},
+		{"Shine Post: Be Your Idol!", "シャインポスト Be Your アイドル！", true},
+		{"Another Game", "Gecko Gods", false},
+		{"Gecko", "Gecko Gods", true},
+		{"Tomba! 2: The Evil Swine Return", "Tombi! 2: The Evil Swine Return Special Edition", false},
+	} {
+		if got := igdbNameFits(c.found, c.name); got != c.fits {
+			t.Errorf("%q for %q: %v", c.found, c.name, got)
+		}
+	}
+}
+
 // The name of the game itself takes the best match of IGDB; a shorter form takes only a game
 // whose name is it or starts with it.
 func TestIgdbPick(t *testing.T) {
@@ -136,8 +158,10 @@ func TestIgdbFindBySlugAndOnTheSwitch(t *testing.T) {
 			query := string(body)
 			asked = append(asked, query[:strings.Index(query, ";")]+strings.TrimSuffix(query[strings.LastIndex(query, "where"):], "limit 5;"))
 			switch {
-			case strings.Contains(query, `where slug = "shine-post-be-your-idol"`):
+			case strings.Contains(query, `where slug = "shine-post-be-your-idol" & platforms = (508,130)`):
 				io.WriteString(w, `[{"name":"Shine Post: Be Your Idol!","cover":{"image_id":"sp"}}]`)
+			case strings.Contains(query, `where slug = "another-game"`):
+				io.WriteString(w, `[{"name":"Another Game","cover":{"image_id":"ag"}}]`)
 			case strings.Contains(query, `search "Gecko Gods"`) && strings.Contains(query, "platforms = (130)"):
 				io.WriteString(w, `[{"name":"Gecko Gods","release_dates":[{"date":1749081600,"platform":130}],"cover":{"image_id":"gg"}},{"name":"Gecko Gods 2"}]`)
 			case strings.Contains(query, `search "Gecko"`):
@@ -164,6 +188,13 @@ func TestIgdbFindBySlugAndOnTheSwitch(t *testing.T) {
 	found, err = client.lookupTitleFor(context.Background(), "Gecko Gods", "", igdbSwitch2Platform, time.Now())
 	if err != nil || !found.Found || !strings.HasSuffix(found.Cover, "/gg.jpg") || found.ReleaseDate != 0 {
 		t.Fatalf("on the Switch, without a date of the Switch 2: %+v %v, asked %q", found, err, asked)
+	}
+
+	// a link of Wikidata to a game of another name is left: the game is searched by its name
+	asked = nil
+	found, err = client.lookupTitleFor(context.Background(), "Gecko Gods", "another-game", igdbSwitch2Platform, time.Now())
+	if err != nil || !found.Found || !strings.HasSuffix(found.Cover, "/gg.jpg") {
+		t.Fatalf("a link to another game: %+v %v, asked %q", found, err, asked)
 	}
 
 	// a game of the Switch is searched on the Switch only
