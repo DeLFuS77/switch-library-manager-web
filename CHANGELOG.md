@@ -20,8 +20,6 @@
 
 - With the names for the Switch (ASCII only), the kanji left out no longer leave spaces inside the brackets nor brackets with nothing inside: a DLC is named "(serekushon 1)", no longer "( serekusho 1)". In romaji the kana after a small kana is no longer lost (セレクション is serekushon, しょうねん shounen), the small tsu doubles the next consonant (セット is setto, no longer se.hold), and キャ, ジャ and ファ are kya, ja and fa. The next Organize renames the files whose names change (thanks internethostage, who reported it on Discord)
 
-### Fixes
-
 - The NSZ files made with the extra compression of NXPress no longer take every processor of the server for each file at once: their LZ4 blocks are made again on one thread per file while the files are checked, as Settings says, and on the threads of each file while they are decompressed or converted (thanks @NikoMuffin, who found it in NXPress #70)
 
 ## 1.72.1
