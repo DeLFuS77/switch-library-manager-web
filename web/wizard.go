@@ -309,7 +309,7 @@ func countGameFiles(folder string) (int, bool) {
 		}
 		if !entry.IsDir() {
 			switch strings.ToLower(filepath.Ext(entry.Name())) {
-			case ".nsp", ".nsz", ".xci", ".xcz":
+			case ".nsp", ".nsz", ".xci", ".xcz", ".nup":
 				count++
 			}
 		}
