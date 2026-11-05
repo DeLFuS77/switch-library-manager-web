@@ -1,6 +1,31 @@
 package switchfs
 
-import "runtime"
+import (
+	"context"
+	"runtime"
+)
+
+// threadsKey holds the threads of WithThreads in a context.
+type threadsKey struct{}
+
+// WithThreads gives ctx the threads each file may take for its LZ4 blocks while it is read or
+// written under it, shared already among the files worked on at once (lz4RebuildWorkers):
+// decompressing, converting, verifying and hashing make the blocks of an NCZSECT3 again on that
+// many at once, and a compression with CompressOptions.Rebuild checks them on as many, when
+// fewer than its Workers. Without them (or with 0), a file takes every processor but one when it
+// is read, and the threads of its encoder when it is compressed.
+func WithThreads(ctx context.Context, threads int) context.Context {
+	return context.WithValue(ctx, threadsKey{}, threads)
+}
+
+// threadsOf are the threads of WithThreads in ctx, 0 when not set.
+func threadsOf(ctx context.Context) int {
+	if ctx == nil {
+		return 0
+	}
+	threads, _ := ctx.Value(threadsKey{}).(int)
+	return threads
+}
 
 // the memory one thread of the zstd library in C takes, measured on 4 GiB of a game with 8
 // threads (577 MiB at 11, 1394 MiB at 19), with a margin
