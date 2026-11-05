@@ -21,13 +21,12 @@ const noIconFilename = ".noicon.json"
 
 // extractMissingIcons gives the games of the library that have no cover the icon stored in
 // their own files: games removed from the eShop, titles the database does not know or
-// covers that are gone from the cover server. It needs the keys of the console. The
-// progress is shown in the task taskId, or in a new task when it is 0. It returns how many
-// icons were found.
+// covers that are gone from the cover server. It needs the keys of the console, but for the
+// NUP files, which are not encrypted. The progress is shown in the task taskId, or in a new
+// task when it is 0. It returns how many icons were found.
 func (web *Web) extractMissingIcons(taskId int64) int {
-	if keys, _ := settings.SwitchKeys(); keys == nil || keys.GetKey("header_key") == "" {
-		return 0
-	}
+	keys, _ := settings.SwitchKeys()
+	withKeys := keys != nil && keys.GetKey("header_key") != ""
 	_, localDB := web.state.get()
 	if localDB == nil {
 		return 0
@@ -45,6 +44,9 @@ func (web *Web) extractMissingIcons(taskId int64) int {
 			continue
 		}
 		path := filepath.Join(title.File.ExtendedInfo.BaseFolder, title.File.ExtendedInfo.FileName)
+		if !withKeys && !switchfs.IsNupFile(path) {
+			continue
+		}
 		info, err := os.Stat(path)
 		if err != nil {
 			continue

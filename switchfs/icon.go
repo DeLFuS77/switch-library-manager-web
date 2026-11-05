@@ -17,8 +17,16 @@ const maxControlNcaSize = 64 << 20
 var preferredIcons = []string{"icon_AmericanEnglish.dat", "icon_BritishEnglish.dat", "icon_Spanish.dat", "icon_French.dat", "icon_German.dat", "icon_Italian.dat", "icon_Japanese.dat"}
 
 // ExtractIcon returns the official icon (a JPEG image) stored in a game file: NSP, NSZ,
-// XCI or XCZ. It needs the keys of the console, like reading the names of the game.
+// XCI or XCZ. It needs the keys of the console, like reading the names of the game. A NUP
+// needs no keys: its icon is the one it carries, when it was packed with one.
 func ExtractIcon(path string) ([]byte, error) {
+	if IsNupFile(path) {
+		container, err := ReadNup(path)
+		if err != nil {
+			return nil, err
+		}
+		return container.Icon()
+	}
 	file, err := OpenFile(path)
 	if err != nil {
 		return nil, err
