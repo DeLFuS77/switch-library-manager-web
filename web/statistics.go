@@ -37,7 +37,9 @@ type Statistics struct {
 	ByFormat         []SizeShare
 	GamesUpToDate    int
 	GamesUpToDatePct int
-	GamesWithUpdate  int
+	// the games with a file in the library: the ones marked as owned without one have no version
+	GamesWithFile   int
+	GamesWithUpdate int
 	// the updates the Updates page lists: of games, and of DLC
 	UpdatesPending    int
 	DlcWithUpdate     int
@@ -319,6 +321,7 @@ func (web *Web) buildStatistics(lang string) Statistics {
 		}
 		// the share of the games counts them as the library does, next to its count
 		stats.ByContent[0].Count = games
+		stats.GamesWithFile = withFile
 		stats.GamesUpToDatePct = percent(int64(stats.GamesUpToDate), int64(withFile))
 		stats.UpdatesPending = len(web.shownMissingUpdates(lang))
 		stats.DlcWithUpdate = max(0, stats.UpdatesPending-stats.GamesWithUpdate)

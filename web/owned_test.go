@@ -91,8 +91,8 @@ func TestOwnedGamesAreNotMissing(t *testing.T) {
 	if count := web.missingGamesCount(); count != 1 {
 		t.Errorf("missing games counted: %d", count)
 	}
-	if stats := web.buildStatistics("en"); stats.MissingGames != 1 || stats.Games != 2 || stats.GamesUpToDatePct != 100 {
-		t.Errorf("statistics: %d missing, %d games, %d%% up to date", stats.MissingGames, stats.Games, stats.GamesUpToDatePct)
+	if stats := web.buildStatistics("en"); stats.MissingGames != 1 || stats.Games != 2 || stats.GamesWithFile != 1 || stats.GamesUpToDatePct != 100 {
+		t.Errorf("statistics: %d missing, %d games, %d with a file, %d%% up to date", stats.MissingGames, stats.Games, stats.GamesWithFile, stats.GamesUpToDatePct)
 	}
 
 	library, _, facets := web.getLibraryWithFacets(defaultFilter(), "en")

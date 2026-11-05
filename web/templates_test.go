@@ -268,7 +268,7 @@ func TestLibraryOverviewNumbersHaveTheSeparator(t *testing.T) {
 	data := LibraryPageData{
 		TitleItemsPageData: TitleItemsPageData{GlobalPageData: global, Filter: defaultFilter(), Views: web.libraryViews("mine", "es")},
 		Stats: Statistics{Games: 11382, UpdatesPending: 12345, GamesWithUpdate: 10500, DlcWithUpdate: 1845, MissingDlc: 23456,
-			HasTitlesDatabase: true, GamesUpToDate: 10200, GamesUpToDatePct: 89},
+			HasTitlesDatabase: true, GamesUpToDate: 10200, GamesUpToDatePct: 89, GamesWithFile: 11382},
 	}
 	var page strings.Builder
 	if err := set.execute(&page, "es", data); err != nil {
