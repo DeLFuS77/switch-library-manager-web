@@ -34,6 +34,35 @@ type switch2Title struct {
 	Regions []string `json:"regions,omitempty"`
 	// how it is sold: digital, cartridge, key card
 	Sold []string `json:"sold,omitempty"`
+	// its game on IGDB (the slug), which Wikidata links it to: asked before searching it by name
+	Igdb string `json:"igdb,omitempty"`
+	// the day it came out on the Switch 2, from Wikidata: 2025-06-05
+	Date string `json:"date,omitempty"`
+}
+
+// switch2Date is a date of the list as the titles database writes it: 2025-06-05 is 20250605;
+// 0 when there is none, or one that cannot be read.
+func switch2Date(date string) int {
+	day, err := time.Parse("2006-01-02", strings.TrimSpace(date))
+	if err != nil {
+		return 0
+	}
+	return dateNumber(day)
+}
+
+// switch2Slugs are the games of IGDB Wikidata links the games of the list to, by title ID prefix.
+func (web *Web) switch2Slugs() map[string]string {
+	slugs := map[string]string{}
+	for id, entry := range web.loadSwitch2Titles() {
+		slug := strings.TrimSpace(entry.Igdb)
+		if slug == "" {
+			continue
+		}
+		if prefix, err := db.TitleIDPrefix(strings.ToUpper(strings.TrimSpace(id))); err == nil {
+			slugs[prefix] = slug
+		}
+	}
+	return slugs
 }
 
 // switch2List is titles.switch2.json: the games by upper case title ID.
@@ -121,7 +150,8 @@ func (web *Web) applySwitch2Titles(switchDB *db.SwitchTitlesDB) {
 		if versions, ok := switchDB.Versions[prefix]; ok && title.Updates == nil {
 			title.Updates = versions
 		}
-		title.Attributes = db.TitleAttributes{Id: id, Name: name, Region: switch2Region(entry.Regions, preferred)}
+		// the date of Wikidata, until IGDB tells its own (see withSwitch2Details)
+		title.Attributes = db.TitleAttributes{Id: id, Name: name, Region: switch2Region(entry.Regions, preferred), ReleaseDate: switch2Date(entry.Date)}
 		switchDB.TitlesMap[prefix] = title
 	}
 }

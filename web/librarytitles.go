@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -30,8 +29,10 @@ const igdbTitleRetry = 30 * 24 * time.Hour
 // igdbTitleVersion is what a game is asked again under, found or not: 2, the release date of the
 // console searched, where before it was the first one on any platform (a game of the Switch 2 that
 // came out on the PC years before had that date); 3, the name searched without the marks and the
-// words of the eShop, then by shorter forms (see igdbSearchNames).
-const igdbTitleVersion = 3
+// words of the eShop, then by shorter forms (see igdbSearchNames); 4, the game Wikidata links a
+// game of the Switch 2 to first, and a game of the Switch 2 IGDB lists on the Switch only (see
+// igdbFind).
+const igdbTitleVersion = 4
 
 // IgdbTitle is what IGDB tells of a game the titles database does not list.
 type IgdbTitle struct {
@@ -112,52 +113,49 @@ func (c *igdbClient) lookupTitle(ctx context.Context, name string, now time.Time
 	return c.lookupTitleOn(ctx, name, igdbSwitchPlatform, now)
 }
 
+type igdbNamedField struct {
+	Name string `json:"name"`
+}
+
+// igdbTitleGame is a game of IGDB with what the title of a game is made of.
+type igdbTitleGame struct {
+	Name             string `json:"name"`
+	FirstReleaseDate int64  `json:"first_release_date"`
+	ReleaseDates     []struct {
+		Date     int64 `json:"date"`
+		Platform int   `json:"platform"`
+	} `json:"release_dates"`
+	Summary string           `json:"summary"`
+	Genres  []igdbNamedField `json:"genres"`
+	Themes  []igdbNamedField `json:"themes"`
+	Cover   struct {
+		ImageId string `json:"image_id"`
+	} `json:"cover"`
+	Companies []struct {
+		Company   igdbNamedField `json:"company"`
+		Publisher bool           `json:"publisher"`
+		Developer bool           `json:"developer"`
+	} `json:"involved_companies"`
+}
+
+func (game igdbTitleGame) igdbName() string { return game.Name }
+
+const igdbTitleFields = "name,first_release_date,release_dates.date,release_dates.platform,summary,genres.name,themes.name,cover.image_id," +
+	"involved_companies.company.name,involved_companies.publisher,involved_companies.developer"
+
 // lookupTitleOn is lookupTitle for the games of a platform of IGDB: the Switch, or the Switch 2.
 func (c *igdbClient) lookupTitleOn(ctx context.Context, name string, platform int, now time.Time) (IgdbTitle, error) {
+	return c.lookupTitleFor(ctx, name, "", platform, now)
+}
+
+// lookupTitleFor is lookupTitleOn for a game Wikidata may link to its game on IGDB (slug; see
+// igdbFind).
+func (c *igdbClient) lookupTitleFor(ctx context.Context, name string, slug string, platform int, now time.Time) (IgdbTitle, error) {
 	result := IgdbTitle{Checked: now, Version: igdbTitleVersion}
-	type named struct {
-		Name string `json:"name"`
+	chosen, found, err := igdbFind[igdbTitleGame](ctx, c, igdbTitleFields, name, slug, platform)
+	if err != nil || !found {
+		return result, err
 	}
-	var games []struct {
-		Name             string `json:"name"`
-		FirstReleaseDate int64  `json:"first_release_date"`
-		ReleaseDates     []struct {
-			Date     int64 `json:"date"`
-			Platform int   `json:"platform"`
-		} `json:"release_dates"`
-		Summary string  `json:"summary"`
-		Genres  []named `json:"genres"`
-		Themes  []named `json:"themes"`
-		Cover   struct {
-			ImageId string `json:"image_id"`
-		} `json:"cover"`
-		Companies []struct {
-			Company   named `json:"company"`
-			Publisher bool  `json:"publisher"`
-			Developer bool  `json:"developer"`
-		} `json:"involved_companies"`
-	}
-	// by the name without the marks of the eShop, then by shorter forms of it (see igdbSearchNames)
-	found := -1
-	for i, searched := range igdbSearchNames(name) {
-		games = nil
-		query := fmt.Sprintf(`search "%s"; fields name,first_release_date,release_dates.date,release_dates.platform,summary,genres.name,themes.name,cover.image_id,involved_companies.company.name,involved_companies.publisher,involved_companies.developer; where platforms = (%d); limit 5;`,
-			apicalypseText(searched), platform)
-		if err := c.query(ctx, "games", query, &games); err != nil {
-			return result, err
-		}
-		names := make([]string, len(games))
-		for j, game := range games {
-			names[j] = game.Name
-		}
-		if found = igdbPick(names, searched, i == 0); found >= 0 {
-			break
-		}
-	}
-	if found < 0 {
-		return result, nil
-	}
-	chosen := games[found]
 	result.Found = true
 	result.Summary = strings.TrimSpace(chosen.Summary)
 	// the first day it came out on the console searched; the first one on any platform only when
@@ -346,6 +344,8 @@ func (web *Web) lookupLibraryTitles(ctx context.Context, client *igdbClient) err
 		return nil
 	}
 	store := web.igdbTitles()
+	// the games of IGDB Wikidata links the games of the Switch 2 to
+	slugs := web.switch2Slugs()
 	// a game of the library IGDB gives a cover of, and that has none yet
 	newCover := false
 	_, localDB := web.state.get()
@@ -357,7 +357,7 @@ func (web *Web) lookupLibraryTitles(ctx context.Context, client *igdbClient) err
 		platform, err := client.platformOf(ctx, prefix)
 		found := IgdbTitle{}
 		if err == nil {
-			found, err = client.lookupTitleOn(ctx, name, platform, time.Now())
+			found, err = client.lookupTitleFor(ctx, name, slugs[prefix], platform, time.Now())
 		}
 		if err != nil {
 			if errors.Is(err, errIgdbCredentials) {

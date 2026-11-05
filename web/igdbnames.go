@@ -1,6 +1,8 @@
 package web
 
 import (
+	"context"
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -30,12 +32,19 @@ var (
 	igdbEdition = regexp.MustCompile(`(?i)\s*[-:]?\s*(?:[^\s:-]+\s+)?edition$`)
 	// a number stuck to the word before it: FORCE5, Archives2 (not 2K25)
 	igdbStuckNumber = regexp.MustCompile(`(\pL{3,})(\d+)\b`)
-	igdbSpaces      = regexp.MustCompile(`\s+`)
+	// a plus between two words, which IGDB writes between spaces: 1.5+2.5
+	igdbPlus = regexp.MustCompile(`(\S)\+(\S)`)
+	// a title stuck to the name after it: Mr.Do
+	igdbTitlePeriod = regexp.MustCompile(`\b(Mr|Mrs|Ms|Dr|St|Jr)\.(\S)`)
+	// the brand in front of the name, which IGDB leaves out: EA SPORTS Madden NFL 27
+	igdbBrand  = regexp.MustCompile(`(?i)^EA SPORTS\s+`)
+	igdbSpaces = regexp.MustCompile(`\s+`)
 )
 
 // igdbSearchNames are the names a game is searched by on IGDB, in turn while it is not found:
-// its name without the marks and the words IGDB does not have, the same with a number stuck to a
-// word set apart, without its edition, and the part before its subtitle.
+// its name without the marks and the words IGDB does not have, the same with the spaces IGDB
+// writes (1.5 + 2.5, Mr. Do), with a number stuck to a word set apart, without the brand in front
+// (EA SPORTS), without its edition, and the part before its subtitle.
 func igdbSearchNames(name string) []string {
 	clean := igdbMarks.Replace(name)
 	for _, words := range []*regexp.Regexp{igdbConsoleWords, igdbStandardEdition, igdbTrial, igdbDlc} {
@@ -54,9 +63,12 @@ func igdbSearchNames(name string) []string {
 	}
 	var names []string
 	seen := map[string]bool{}
-	for _, candidate := range []string{clean, igdbStuckNumber.ReplaceAllString(clean, "$1 $2"), tidy(igdbEdition.ReplaceAllString(clean, "")), tidy(head)} {
-		key := search.Text(candidate)
-		if len(key) < 3 || seen[key] {
+	spaced := igdbTitlePeriod.ReplaceAllString(igdbPlus.ReplaceAllString(clean, "$1 + $2"), "$1. $2")
+	for _, candidate := range []string{clean, spaced, igdbStuckNumber.ReplaceAllString(clean, "$1 $2"), igdbBrand.ReplaceAllString(clean, ""),
+		tidy(igdbEdition.ReplaceAllString(clean, "")), tidy(head)} {
+		// the same text once; "1.5+2.5" and "1.5 + 2.5" are different searches for IGDB
+		key := strings.ToLower(candidate)
+		if len(search.Text(candidate)) < 3 || seen[key] {
 			continue
 		}
 		seen[key] = true
@@ -69,16 +81,73 @@ func igdbSearchNames(name string) []string {
 	return names
 }
 
-// igdbPick is the game of an answer of IGDB to a search: the one of the same name, else, for the
-// name of the game itself (first), the best match of IGDB; for a shorter form of the name, one
-// whose name starts with it, as a short name finds other games too. -1 when none fits.
-func igdbPick(names []string, wanted string, first bool) int {
+// igdbNamed is a game of an answer of IGDB, with its name.
+type igdbNamed interface {
+	igdbName() string
+}
+
+// igdbFind finds a game on IGDB, with the fields asked: first the game Wikidata links it to (the
+// slug of the list of the Switch 2), then by its names on its console (see igdbSearchNames),
+// and, for a game of the Switch 2 IGDB lists on the Switch only, by the same name there.
+func igdbFind[T igdbNamed](ctx context.Context, c *igdbClient, fields string, name string, slug string, platform int) (T, bool, error) {
+	var none T
+	if slug = strings.TrimSpace(slug); slug != "" {
+		var games []T
+		if err := c.query(ctx, "games", fmt.Sprintf(`fields %s; where slug = "%s"; limit 1;`, fields, apicalypseText(slug)), &games); err != nil {
+			return none, false, err
+		}
+		if len(games) > 0 {
+			return games[0], true, nil
+		}
+	}
+	consoles := []int{platform}
+	if platform != igdbSwitchPlatform {
+		consoles = append(consoles, igdbSwitchPlatform)
+	}
+	names := igdbSearchNames(name)
+	for n, console := range consoles {
+		for i, searched := range names {
+			var games []T
+			query := fmt.Sprintf(`search "%s"; fields %s; where platforms = (%d); limit 5;`, apicalypseText(searched), fields, console)
+			if err := c.query(ctx, "games", query, &games); err != nil {
+				return none, false, err
+			}
+			found := make([]string, len(games))
+			for j, game := range games {
+				found[j] = game.igdbName()
+			}
+			// on the Switch, for a game of the Switch 2, only the same name
+			pick := igdbSameName(found, searched)
+			if pick < 0 && n == 0 {
+				pick = igdbPick(found, searched, i == 0)
+			}
+			if pick >= 0 {
+				return games[pick], true, nil
+			}
+		}
+	}
+	return none, false, nil
+}
+
+// igdbSameName is the game of the same name, -1 for none.
+func igdbSameName(names []string, wanted string) int {
 	want := search.Text(wanted)
 	for i, name := range names {
 		if search.Text(name) == want {
 			return i
 		}
 	}
+	return -1
+}
+
+// igdbPick is the game of an answer of IGDB to a search: the one of the same name, else, for the
+// name of the game itself (first), the best match of IGDB; for a shorter form of the name, one
+// whose name starts with it, as a short name finds other games too. -1 when none fits.
+func igdbPick(names []string, wanted string, first bool) int {
+	if same := igdbSameName(names, wanted); same >= 0 {
+		return same
+	}
+	want := search.Text(wanted)
 	if first {
 		if len(names) > 0 {
 			return 0

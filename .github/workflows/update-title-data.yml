@@ -117,7 +117,8 @@ jobs:
         run: python .github/scripts/build_series.py generated-data/titles.series.json
 
       # the games of the Nintendo Switch 2 alone, from the title list of switchbrew (titledb has
-      # few of them); when switchbrew does not answer, the published file of the last run stays
+      # few of them), with their game on IGDB and release date from Wikidata when it answers; when
+      # switchbrew does not answer, the published file of the last run stays
       - name: Generate the games of the Switch 2
         continue-on-error: true
         run: python .github/scripts/build_switch2_titles.py generated-data/titles.switch2.json
@@ -207,7 +208,7 @@ jobs:
             `versions.json`, with the versions of blawar/titledb, borntohonk/titledb and 16BitWonder/nx-versions;
             `titles.<lang>.json` with names and descriptions in Spanish, French, German, Italian, Portuguese,
             Dutch, Russian, Japanese, Korean and Chinese; and `titles.switch2.json`, the games of the
-            Nintendo Switch 2 from the title list of switchbrew. Every file is also published compressed with zstd
+            Nintendo Switch 2 from the title list of switchbrew, with their game on IGDB and release date from Wikidata. Every file is also published compressed with zstd
             (`.json.zst`), and `data.sha256` has the SHA-256 of each one.
         run: |
           if ! gh release view data >/dev/null 2>&1; then
