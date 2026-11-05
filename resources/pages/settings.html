@@ -18,11 +18,14 @@
 									{{- if .IsKeysFileAvailable}}<span class="text-success"><span class="bi bi-check-circle-fill me-1" aria-hidden="true"></span>{{t "Keys found"}}</span>{{else}}<span class="text-warning-emphasis"><span class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></span>{{t "Keys not found"}}</span>{{end -}}
 								</div>
 								<div class="form-text" id="prodKeysHelp">{{t "The folder with your prod.keys (and optionally title.keys), or the path to the file. Empty: the data folder, then ~/.switch. Keys stay on the server of the app and are never sent anywhere else."}}</div>
-								<div class="keys-upload mt-2" data-keys-upload>
+								<div class="keys-upload mt-2" data-keys-upload{{if .KeysAvailable}} data-keys-loaded{{end}}>
 									<input type="file" class="visually-hidden" accept=".keys,.txt" data-keys-file="prod_keys" tabindex="-1" aria-hidden="true">
 									<input type="file" class="visually-hidden" accept=".keys,.txt" data-keys-file="title_keys" tabindex="-1" aria-hidden="true">
 									<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-keys-pick="prod_keys"><span class="bi bi-upload me-1" aria-hidden="true"></span>{{t "Upload my prod.keys"}}</button>
-									<button type="button" class="btn btn-sm btn-link" data-keys-pick="title_keys">{{t "Add title.keys (optional)"}}</button>
+									<button type="button" class="btn btn-sm btn-link" data-keys-pick="title_keys">{{if .TitleKeys}}{{t "Update title.keys"}}{{else}}{{t "Add title.keys (optional)"}}{{end}}</button>
+									{{- if .TitleKeys}}
+									<span class="small text-success"><span class="bi bi-check-circle-fill me-1" aria-hidden="true"></span>{{t "%v title keys loaded" (num .TitleKeys)}}</span>
+									{{- end}}
 									<span class="small text-body-secondary" data-keys-chosen aria-live="polite"></span>
 									<button type="button" class="btn btn-sm btn-primary rounded-pill" data-keys-send hidden><span class="bi bi-check-lg me-1" aria-hidden="true"></span>{{t "Save the keys"}}</button>
 								</div>

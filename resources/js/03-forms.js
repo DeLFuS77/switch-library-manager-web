@@ -18,6 +18,7 @@ function formState(form) {
 
 // Settings > Library and the wizard: the prod.keys (and title.keys) of the console are sent to the
 // server of the app, which checks them and keeps them in its data folder; saved() is told where.
+// A title.keys goes alone when a prod.keys is in use (data-keys-loaded).
 function setupKeysUpload(box, saved) {
 	if (!box || box.dataset.keysReady) {
 		return;
@@ -29,7 +30,7 @@ function setupKeysUpload(box, saved) {
 	const input = name => box.querySelector(`[data-keys-file="${name}"]`);
 	const update = () => {
 		chosen.textContent = inputs.filter(file => file.files.length).map(file => file.files[0].name).join(' · ');
-		send.hidden = !input('prod_keys').files.length;
+		send.hidden = !input('prod_keys').files.length && !('keysLoaded' in box.dataset && input('title_keys').files.length);
 	};
 	box.querySelectorAll('[data-keys-pick]').forEach(button => {
 		button.addEventListener('click', () => input(button.dataset.keysPick).click());
@@ -50,6 +51,9 @@ function setupKeysUpload(box, saved) {
 					return;
 				}
 				showToast('alert-success', 'bi-check-circle-fill', json.strongMessage, json.message);
+				if (json.folder) {
+					box.dataset.keysLoaded = '';
+				}
 				inputs.forEach(file => {
 					file.value = '';
 				});

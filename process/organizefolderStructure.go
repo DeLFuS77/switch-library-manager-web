@@ -1622,13 +1622,7 @@ func applyTemplate(templateData map[string]string, useSafeNames bool, template s
 	}
 
 	if useSafeNames {
-		result = nihongo.RomajiString(result)
-
-		// handle known characters that have safe variants
-		result = strings.ReplaceAll(result, "ō", "o")
-
-		safe := nonAscii.FindAllString(result, -1)
-		result = strings.Join(safe, "")
+		result = safeName(result)
 	}
 
 	result = whitespace.ReplaceAllString(result, " ")
@@ -1643,10 +1637,99 @@ func applyTemplate(templateData map[string]string, useSafeNames bool, template s
 	return avoidReserved(result)
 }
 
-// safeName is a name as the names for the Switch write it: in romaji and in ASCII only.
+// safeName is a name as the names for the Switch write it: in romaji and in ASCII only, without
+// the spaces the kanji it drops leave inside brackets, nor the brackets they leave empty
+// ("( serekushon 1)" is "(serekushon 1)", "( )" goes).
 func safeName(name string) string {
-	name = strings.ReplaceAll(nihongo.RomajiString(name), "ō", "o")
-	return strings.Join(nonAscii.FindAllString(name, -1), "")
+	name = strings.ReplaceAll(romaji(name), "ō", "o")
+	name = strings.Join(nonAscii.FindAllString(name, -1), "")
+	for {
+		tidy := emptyBrackets.ReplaceAllString(bracketInnerSpace.ReplaceAllString(name, "$1$2"), "")
+		if tidy == name {
+			return name
+		}
+		name = tidy
+	}
+}
+
+// the small kana, which the romaji joins to the kana before them
+const smallKana = "ぁぃぅぇぉっゃゅょゎゕゖァィゥェォッャュョヮヵヶ"
+
+var (
+	smallVowels       = map[rune]string{'ぁ': "a", 'ぃ': "i", 'ぅ': "u", 'ぇ': "e", 'ぉ': "o", 'ァ': "a", 'ィ': "i", 'ゥ': "u", 'ェ': "e", 'ォ': "o"}
+	smallY            = map[rune]string{'ゃ': "ya", 'ゅ': "yu", 'ょ': "yo", 'ャ': "ya", 'ュ': "yu", 'ョ': "yo"}
+	bracketInnerSpace = regexp.MustCompile(`([(\[<])\s+|\s+([)\]>])`)
+	emptyBrackets     = regexp.MustCompile(`\(\s*\)|\[\s*\]|<\s*>`)
+	// the small tsu as nihongo writes it, <se.hold>, before the consonant it doubles; and the
+	// other small kana it does not know, as <ku.>
+	romajiHold = regexp.MustCompile(`<([a-z]+)\.hold>([b-df-hj-np-tv-z]?)`)
+	romajiOdd  = regexp.MustCompile(`<([a-z]+)\.[a-z]*>`)
+)
+
+// romaji is nihongo.RomajiString with its small kana mended. It drops the character after a
+// small kana it joins to the kana before (セレクション1 was "serekusho 1", しょうねん "shonen"), so
+// it is given the text in pieces that end at a small kana. It writes the small tsu as <se.hold>
+// (セット is "setto" here) and a small vowel as a dash (ファイ was "fu-i", here "fai").
+func romaji(s string) string {
+	runes := []rune(s)
+	var out strings.Builder
+	for start := 0; start < len(runes); {
+		end := start
+		for end < len(runes)-1 && !strings.ContainsRune(smallKana, runes[end]) {
+			end++
+		}
+		end++
+		piece := runes[start:end]
+		start = end
+		text := nihongo.RomajiString(string(piece))
+		joined := len(piece) >= 2 && strings.ContainsRune(smallKana, piece[len(piece)-1]) && isKana(piece[len(piece)-2])
+		if joined {
+			text = mendSmallKana(text, nihongo.RomajiString(string(piece[len(piece)-2])), piece[len(piece)-1])
+		}
+		out.WriteString(text)
+		// nihongo puts a space between kana and other characters, here between the pieces too
+		if start < len(runes) && joined != isKana(runes[start]) {
+			out.WriteByte(' ')
+		}
+	}
+	return romajiOdd.ReplaceAllString(romajiHold.ReplaceAllString(out.String(), "$1$2$2"), "$1")
+}
+
+// mendSmallKana writes again a kana and the small kana nihongo joined to it at the end of text:
+// nihongo writes a small vowel as a dash (ファ "fu-") and drops the y of a small ya, yu or yo
+// after a consonant other than sh and ch (キャ "ka", ジャ "za").
+func mendSmallKana(text, kana string, small rune) string {
+	if vowel, ok := smallVowels[small]; ok {
+		stem, found := strings.CutSuffix(text, kana+"-")
+		switch {
+		case !found:
+			return text
+		case kana == "u":
+			return stem + "w" + vowel
+		case kana == "i":
+			return stem + "y" + vowel
+		case len(kana) == 1:
+			return stem + kana + vowel
+		}
+		return stem + kana[:len(kana)-1] + vowel
+	}
+	y, ok := smallY[small]
+	if !ok || len(kana) < 2 || kana == "shi" || kana == "chi" {
+		return text
+	}
+	stem, found := strings.CutSuffix(text, kana[:len(kana)-1]+y[1:])
+	switch {
+	case !found:
+		return text
+	case kana == "zi":
+		return stem + "j" + y[1:]
+	}
+	return stem + kana[:len(kana)-1] + y
+}
+
+// isKana tells whether nihongo writes a character in romaji.
+func isKana(r rune) bool {
+	return nihongo.RomajiString(string(r)) != string(r)
 }
 
 // asciiFallbackName is the name of a game whose name has no letter for the Switch: the one in

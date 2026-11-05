@@ -486,6 +486,54 @@ func TestApplyTemplate(t *testing.T) {
 	}
 }
 
+// The kanji the names for the Switch drop leave no space inside the brackets, nor brackets with
+// nothing inside, and the kana after a small kana is kept: "( serekusho 1)" and "( se.hold )"
+// were the names of these DLC.
+func TestSafeNamesAfterDroppedKanji(t *testing.T) {
+	template := "{TITLE_NAME} ({DLC_NAME})[{TITLE_ID}][v{VERSION}]"
+	for _, c := range []struct{ title, dlc, want string }{
+		{"カゼノリフレ -SAMPLE-", "カゼノリフレ -SAMPLE- 追加セレクション1", "kazenorifure -SAMPLE- (serekushon 1)[010003900350D00F][v0]"},
+		{"森の物語 for Nintendo Switch", "森の物語 for Nintendo Switch 特典セット券", "no for Nintendo Switch (setto)[010003900350D00F][v0]"},
+		{"Game", "追加楽曲", "Game [010003900350D00F][v0]"},
+		{"Game", "[追加] 楽曲 <特典>", "Game [010003900350D00F][v0]"},
+	} {
+		data := map[string]string{
+			settings.TEMPLATE_TITLE_NAME: c.title,
+			settings.TEMPLATE_DLC_NAME:   c.dlc,
+			settings.TEMPLATE_TITLE_ID:   "010003900350d00f",
+			settings.TEMPLATE_VERSION:    "0",
+		}
+		if got := applyTemplate(data, true, template, 0); got != c.want {
+			t.Errorf("%s: %q, want %q", c.dlc, got, c.want)
+		}
+	}
+	if got := safeName("追加 (楽曲セレクション1) [特典]"); got != " (serekushon 1) " {
+		t.Errorf("safe name: %q", got)
+	}
+}
+
+func TestRomajiKeepsTheKanaAfterASmallKana(t *testing.T) {
+	for text, want := range map[string]string{
+		"セレクション1": "serekushon 1",
+		"セレクション":  "serekushon",
+		"しょうねん":   "shounen",
+		"キャラ":     "kyara",
+		"トウキョウ":   "toukyou",
+		"ジャンプ":    "janpu",
+		"チョコ":     "choko",
+		"セット":     "setto",
+		"セッ":      "se",
+		"ファイナル":   "fainaru",
+		"ウィ":      "wi",
+		"ほん1":     "hon 1",
+		"Pokémon": "Pokémon",
+	} {
+		if got := romaji(text); got != want {
+			t.Errorf("%s: %q, want %q", text, got, want)
+		}
+	}
+}
+
 // The folders the run took files from go when they are left empty, or with nothing but files
 // Windows or macOS leave, deepest first with the parents they leave empty; a folder with a file,
 // a hidden one of its own too, stays with its parents, and a folder the run did not touch and
