@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/banner.jpg" alt="Switch Library Manager Web and NXPress" width="100%"></p>
+
 # Switch Library Manager Web
 
 [![Support on Ko-fi](https://img.shields.io/badge/Support_on-Ko--fi-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/delfus77)
