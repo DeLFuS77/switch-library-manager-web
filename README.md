@@ -16,6 +16,9 @@ Manage the backups of your Nintendo Switch games from the browser: see which upd
 find broken or duplicate files, keep your folders tidy and save space with NSZ compression. It runs on Windows, macOS,
 Linux, Docker, NAS and Raspberry Pi.
 
+💬 Questions, ideas or news of new versions? Join the [Discord server](https://discord.gg/acQVZSEBR), shared with
+[NXPress](https://github.com/DeLFuS77/NXPress).
+
 <p align="center">
   <a href="https://ko-fi.com/delfus77"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi" height="36"></a>
   <br>
