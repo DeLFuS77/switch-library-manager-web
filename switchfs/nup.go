@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 )
@@ -54,6 +55,10 @@ const (
 	nupTlvLocalizedTitles = 0x0009
 	nupTlvLocalizedIcons  = 0x000A
 )
+
+// NupReaderVersion is raised when what the reader tells of a NUP changes (a name cleaned up, a
+// record read), so the library reads its NUP files again instead of keeping what it cached.
+const NupReaderVersion = 2
 
 // NupPackage is one package of a NUP: the game, one of its updates or one of its DLC.
 type NupPackage struct {
@@ -287,6 +292,15 @@ func nupText(raw []byte, limit int) string {
 	return text
 }
 
+// nupNameTags are the title ID and the version some packers leave in the name they store, as a
+// file name has them: "Game [0400245021D2C000][v131072]"
+var nupNameTags = regexp.MustCompile(`\s*\[(?:[0-9A-Fa-f]{16}|[vV]\d+)\]`)
+
+// nupName is a name stored in a NUP as a name: as text, without the tags of a file name.
+func nupName(raw []byte) string {
+	return strings.TrimSpace(nupNameTags.ReplaceAllString(nupText(raw, 0x200), ""))
+}
+
 // nacp is what a package tells of the game: its NACP when the file has it, else a NACP made of
 // the names, publisher and version it gives; nil when it gives none of them.
 func (pkg *NupPackage) nacp() *Nacp {
@@ -300,14 +314,14 @@ func (pkg *NupPackage) nacp() *Nacp {
 		if localized, err := parseNupLocalized(raw); err == nil {
 			for tag, name := range localized {
 				if language, ok := nupLanguage(tag); ok {
-					if text := nupText(name, 0x200); text != "" {
+					if text := nupName(name); text != "" {
 						names[language] = text
 					}
 				}
 			}
 		}
 	}
-	fallback := nupText(pkg.Meta[nupTlvTitleName], 0x200)
+	fallback := nupName(pkg.Meta[nupTlvTitleName])
 	if fallback == "" && len(names) == 0 {
 		return nil
 	}

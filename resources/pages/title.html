@@ -228,6 +228,8 @@
 				</div>
 				{{- else if gt $t.LatestUpdate 0}}
 				<div class="alert alert-success mb-0"><span class="bi bi-check-circle-fill me-2" aria-hidden="true"></span>{{t "You have the latest update."}}</div>
+				{{- else if $t.LocalUpdate}}
+				<p class="text-body-secondary mb-0"><span class="bi bi-info-circle me-2" aria-hidden="true"></span>{{t "You have v%v. There is no list of the updates of this game, so it is not known whether there are newer ones." $t.LocalUpdate}}</p>
 				{{- else}}
 				<p class="text-body-secondary mb-0">{{t "No updates have been released for this game."}}</p>
 				{{- end}}
@@ -237,7 +239,7 @@
 				<ul class="item-list">
 					{{- with $t.Base}}{{template "titleFile" .}}{{end}}
 					{{- range $t.Updates}}
-					{{- template "titleFile" .}}
+					{{- if not .InGameFile}}{{template "titleFile" .}}{{end}}
 					{{- end}}
 				</ul>
 			</section>
@@ -361,7 +363,7 @@
 					<li class="item-row item-row-wide">
 						<div class="item-main">
 							<div class="item-name">{{.Name}}</div>
-							<div class="item-meta">{{template "copyId" .Id}}{{if .File}}<span>{{formatSize .File.Size}}</span>{{end}}</div>
+							<div class="item-meta">{{template "copyId" .Id}}{{if .File}}{{if .File.InGameFile}}<span>{{t "In the file of the game"}}</span>{{else}}<span>{{formatSize .File.Size}}</span>{{end}}{{end}}</div>
 						</div>
 						<div class="item-end">
 							{{- if .Owned}}
@@ -502,6 +504,9 @@
 							</div>
 							{{- with .GamesInFile}}
 							<div class="item-meta"><span><span class="bi bi-collection me-1" aria-hidden="true"></span>{{t "This file holds %v games: %v" (len .) (join . ", ")}}</span></div>
+							{{- end}}
+							{{- with .AlsoHolds}}
+							<div class="item-meta"><span><span class="bi bi-box-seam me-1" aria-hidden="true"></span>{{t "Also in this file: %v" (join . ", ")}}</span></div>
 							{{- end}}
 						</div>
 						<a class="btn btn-sm btn-outline-secondary" href="{{.DownloadUrl}}" title="{{t "Download %v" .FileName}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download %v" .FileName}}</span></a>

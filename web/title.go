@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/gorilla/mux"
@@ -27,6 +28,12 @@ type TitleFile struct {
 	RequiredFirmware string
 	// the games the file holds, when it holds several (a collection on one cartridge)
 	GamesInFile []string
+	// the file of the game: its updates and DLC that are in it too (a cartridge or a NUP with them),
+	// said on its row, translated
+	AlsoHolds []string
+	// an update or a DLC in the file of the game: it is not listed again as a file, with the whole
+	// size of that file
+	InGameFile bool
 }
 
 // TitleVersion is an update released for a game, for the version history of the game page.
@@ -216,7 +223,21 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 
 		for _, version := range sortedVersions(local.Updates) {
 			update := local.Updates[version]
-			detail.Updates = append(detail.Updates, *newTitleFile(update, "UPD", "/api/titles/"+baseId+"/updates/"+strconv.Itoa(version)))
+			file := newTitleFile(update, "UPD", "/api/titles/"+baseId+"/updates/"+strconv.Itoa(version))
+			if update.ExtendedInfo == local.File.ExtendedInfo {
+				file.InGameFile = true
+				detail.Base.AlsoHolds = append(detail.Base.AlsoHolds, i18n.Translatef(lang, "update v%v", version))
+			}
+			detail.Updates = append(detail.Updates, *file)
+		}
+		inGameFile := 0
+		for _, dlc := range local.Dlc {
+			if dlc.ExtendedInfo == local.File.ExtendedInfo {
+				inGameFile++
+			}
+		}
+		if inGameFile > 0 {
+			detail.Base.AlsoHolds = append(detail.Base.AlsoHolds, i18n.Translatef(lang, "%v DLC", inGameFile))
 		}
 		detail.LocalUpdate = local.LatestUpdate
 		required := installedRequirement(local)
@@ -320,6 +341,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 			if file, ok := local.Dlc[id]; ok {
 				dlc.Owned = true
 				dlc.File = newTitleFile(file, "DLC", "/api/titles/"+detail.Id+"/dlc/"+dlc.Id)
+				dlc.File.InGameFile = local.BaseExist && file.ExtendedInfo == local.File.ExtendedInfo
 				if dlc.Name == "" {
 					dlc.Name = strings.TrimSpace(db.ParseTitleNameFromFileName(file.ExtendedInfo.FileName))
 				}

@@ -231,3 +231,24 @@ func FuzzReadNup(f *testing.F) {
 		}
 	})
 }
+
+// Some packers store the file name as the name of the game: its title ID and version are left out.
+func TestNupNamesWithoutFileTags(t *testing.T) {
+	container, err := readNupBytes(buildNup(t, []testnup.Package{{TitleId: 0x0400245021D2C000, Kind: NupKindBase, Meta: []testnup.Record{
+		tlv(nupTlvTitleName, []byte("Yoshi and the Mysterious Book [0400245021D2C000][v131072]")),
+		tlv(nupTlvLocalizedTitles, localized("ja", "ヨッシー [0400245021D2C000]")),
+	}}}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	nacp := container.Packages[0].nacp()
+	if english := nacp.TitleName[Language(AmericanEnglish).String()].Title; english != "Yoshi and the Mysterious Book" {
+		t.Errorf("name %q", english)
+	}
+	if japanese := nacp.TitleName[Language(Japanese).String()].Title; japanese != "ヨッシー" {
+		t.Errorf("Japanese name %q", japanese)
+	}
+	if name := nupName([]byte("Game [Demo]")); name != "Game [Demo]" {
+		t.Errorf("other brackets are kept: %q", name)
+	}
+}

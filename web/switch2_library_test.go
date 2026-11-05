@@ -1,6 +1,8 @@
 package web
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -172,5 +174,37 @@ func TestNupFilesShowAsNup(t *testing.T) {
 	game.File.ExtendedInfo.FileName = "Game.xci"
 	if kind := getType(game); kind != "multi-content" {
 		t.Fatalf("a cartridge with its update: %q", kind)
+	}
+}
+
+// The page of a game in a NUP with its update lists the file once, with what else it holds, and
+// tells the update one has when no list of updates is known.
+func TestNupGamePageListsTheFileOnce(t *testing.T) {
+	web := newTestWeb(t)
+	switchDB, localDB := testDatabases(t)
+	withSwitch2Game(t, localDB)
+	game := localDB.TitlesMap["0400486024dec"]
+	update := db.SwitchFileInfo{ExtendedInfo: game.File.ExtendedInfo, Metadata: &switchfs.ContentMetaAttributes{TitleId: "0400486024dec800", Version: 131072, Type: "Update"}}
+	game.Updates[131072] = update
+	game.LatestUpdate = 131072
+	web.state.set(switchDB, localDB)
+	web.embedFS = os.DirFS("..")
+	web.HandleTitle()
+
+	detail, ok := web.getTitleDetail("0400486024DEC000", "en")
+	if !ok || len(detail.Updates) != 1 || !detail.Updates[0].InGameFile || len(detail.Base.AlsoHolds) != 1 || detail.Base.AlsoHolds[0] != "update v131072" {
+		t.Fatalf("detail: %+v, updates %+v", detail.Base, detail.Updates)
+	}
+
+	recorder := httptest.NewRecorder()
+	web.router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/title/0400486024DEC000.html", nil))
+	page := recorder.Body.String()
+	if recorder.Code != http.StatusOK || strings.Count(page, "Ocarina [0400486024DEC000][v131072].nup</div>") != 1 {
+		t.Fatalf("the file is listed once: %d, %d times", recorder.Code, strings.Count(page, "Ocarina [0400486024DEC000][v131072].nup</div>"))
+	}
+	for _, want := range []string{"Also in this file: update v131072", "You have v131072. There is no list of the updates of this game"} {
+		if !strings.Contains(page, want) {
+			t.Errorf("the page misses %q", want)
+		}
 	}
 }
