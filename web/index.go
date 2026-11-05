@@ -358,6 +358,11 @@ func (f *libraryFilter) status(item *TitleItem) bool {
 		facets.All++
 		return true
 	}
+	// without a file its version is not known: it is neither up to date nor behind
+	if item.NoFile {
+		facets.All++
+		return f.filter.Status == ""
+	}
 	complete := item.Known && !item.UpdateAvailable && item.MissingDlcCount == 0
 	facets.All++
 	if item.UpdateAvailable {
@@ -585,6 +590,53 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 		items = append(items, item)
 	}
 
+	return append(items, web.noFileItems(switchDB, localDB, lang, ignoredDlc, collections, favorites, timesToBeat)...)
+}
+
+// noFileItems are the games marked as owned that have no file in the library (see owned.go):
+// games of the library without a version, so without updates or DLC to ask for. A game the titles
+// database does not know is left out, as nothing is known of it.
+func (web *Web) noFileItems(switchDB *db.SwitchTitlesDB, localDB *db.LocalSwitchFilesDB, lang string, ignoredDlc map[string]struct{},
+	collections map[string][]string, favorites map[string]bool, timesToBeat map[string]TimeToBeat) []TitleItem {
+	items := []TitleItem{}
+	if switchDB == nil {
+		return items
+	}
+	for prefix, marked := range web.markedPrefixes() {
+		if local, ok := localDB.TitlesMap[prefix]; ok && local.BaseExist {
+			continue
+		}
+		title := switchDB.TitlesMap[prefix]
+		if title == nil || title.Attributes.Id == "" || !usableName(title.Attributes.Name) {
+			continue
+		}
+		attributes := title.Attributes
+		item := TitleItem{
+			Id:           strings.ToUpper(attributes.Id),
+			Name:         titleName(switchDB, lang, attributes.Id, attributes.Name),
+			OriginalName: attributes.Name,
+			ImageUrl:     coverUrl(switchDB, localDB, attributes),
+			Region:       attributes.Region,
+			Known:        true,
+			Demo:         isDemo(title, attributes.Name),
+			Genres:       attributes.Genres,
+			Players:      attributes.Players,
+			Languages:    attributes.Languages,
+			Added:        marked,
+			NoFile:       true,
+		}
+		item.ReleaseDate, _ = intToTime(attributes.ReleaseDate)
+		item.TimeToBeat = timesToBeat[item.Id].Main()
+		item.Score = timesToBeat[item.Id].Score()
+		item.Collections = collections[item.Id]
+		item.Favorite = favorites[item.Id]
+		for id := range title.Dlc {
+			if _, ignored := ignoredDlc[id]; !ignored {
+				item.KnownDlc++
+			}
+		}
+		items = append(items, item)
+	}
 	return items
 }
 

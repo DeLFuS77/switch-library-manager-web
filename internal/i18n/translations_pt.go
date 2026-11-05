@@ -2055,5 +2055,16 @@ func init() {
 		"the server refused the mail (%v)":                       "o servidor recusou o e-mail (%v)",
 		"the password is only sent over an encrypted connection": "a senha só é enviada por uma ligação cifrada",
 		"the connection to the server was cut":                   "a ligação ao servidor foi cortada",
+		// I have it: the games one has without a file, and the games of the Switch 2
+		"I have it":                         "Eu tenho",
+		"I have it · no file":               "Eu tenho · sem arquivo",
+		"I have it, without the file":       "Eu tenho, mesmo sem o arquivo",
+		"I have it (click to take it away)": "Eu tenho (clique para tirar)",
+		"You have this game without its file: its updates and DLC are not counted.": "Você tem este jogo sem o arquivo dele: as atualizações e os DLC não são contados.",
+		"DLC not counted":                    "DLC não contados",
+		"No date":                            "Sem data",
+		"The release date is not known yet.": "A data de lançamento ainda não é conhecida.",
+		"I have a Switch 2":                  "Tenho um Switch 2",
+		"The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge.": "Os jogos do Switch 2 aparecem em Jogos faltando e nas contagens, pela lista do switchbrew, com capa, data de lançamento e descrição quando o IGDB está configurado. Marque com “Eu tenho” os que você tem em cartucho.",
 	}
 }

@@ -2055,5 +2055,16 @@ func init() {
 		"the server refused the mail (%v)":                       "서버가 메일을 거부했어요 (%v)",
 		"the password is only sent over an encrypted connection": "비밀번호는 암호화된 연결로만 보내요",
 		"the connection to the server was cut":                   "서버와의 연결이 끊겼어요",
+		// I have it: the games one has without a file, and the games of the Switch 2
+		"I have it":                         "보유 중",
+		"I have it · no file":               "보유 중 · 파일 없음",
+		"I have it, without the file":       "파일은 없지만 보유 중",
+		"I have it (click to take it away)": "보유 중 (클릭하면 해제)",
+		"You have this game without its file: its updates and DLC are not counted.": "이 게임은 파일 없이 보유 중입니다. 업데이트와 DLC는 집계하지 않습니다.",
+		"DLC not counted":                    "DLC 집계 안 함",
+		"No date":                            "날짜 없음",
+		"The release date is not known yet.": "출시일이 아직 알려지지 않았습니다.",
+		"I have a Switch 2":                  "Switch 2 있음",
+		"The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge.": "Switch 2 게임이 switchbrew 목록을 바탕으로 '누락된 게임'과 집계에 표시되며, IGDB를 설정하면 커버, 출시일, 설명도 함께 표시됩니다. 게임 카드로 가진 게임은 '보유 중'으로 표시하세요.",
 	}
 }

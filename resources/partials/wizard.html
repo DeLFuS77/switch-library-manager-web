@@ -330,6 +330,10 @@
 									<label class="form-check-label" for="wizard_cheats">{{t "Show the cheats of your games"}}</label>
 								</div>
 								<div class="form-check form-switch">
+									<input class="form-check-input" type="checkbox" role="switch" id="wizard_has_switch2" name="has_switch2" value="true"{{if $s.HasSwitch2}} checked{{end}}>
+									<label class="form-check-label" for="wizard_has_switch2">{{t "I have a Switch 2"}}</label>
+								</div>
+								<div class="form-check form-switch">
 									<input class="form-check-input" type="checkbox" role="switch" id="wizard_keep_updates_with_cheats" name="keep_updates_with_cheats" value="true"{{if not $s.OrganizeOptions.DeleteUpdatesWithCheats}} checked{{end}}>
 									<label class="form-check-label" for="wizard_keep_updates_with_cheats">{{t "Keep the old updates that have cheats"}}</label>
 								</div>

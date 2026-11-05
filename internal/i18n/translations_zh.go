@@ -2055,5 +2055,16 @@ func init() {
 		"the server refused the mail (%v)":                       "服务器拒绝了邮件（%v）",
 		"the password is only sent over an encrypted connection": "密码只通过加密连接发送",
 		"the connection to the server was cut":                   "与服务器的连接中断了",
+		// I have it: the games one has without a file, and the games of the Switch 2
+		"I have it":                         "已拥有",
+		"I have it · no file":               "已拥有 · 无文件",
+		"I have it, without the file":       "已拥有（没有文件）",
+		"I have it (click to take it away)": "已拥有（点击取消）",
+		"You have this game without its file: its updates and DLC are not counted.": "你拥有这个游戏，但没有它的文件：不统计它的更新和 DLC。",
+		"DLC not counted":                    "不统计 DLC",
+		"No date":                            "无日期",
+		"The release date is not known yet.": "发售日期尚不清楚。",
+		"I have a Switch 2":                  "我有 Switch 2",
+		"The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge.": "Switch 2 的游戏会根据 switchbrew 的列表显示在“缺失的游戏”和统计中；设置 IGDB 后还会显示封面、发售日期和简介。用“已拥有”标记你有卡带的游戏。",
 	}
 }

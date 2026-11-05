@@ -1,5 +1,6 @@
-# Generates titles.json from blawar/titledb, and versions.json from the versions of blawar/titledb
-# and other sources, and publishes them as assets of the rolling "data" release, which is the
+# Generates titles.json from blawar/titledb, versions.json from the versions of blawar/titledb
+# and other sources, and titles.switch2.json from the title list of switchbrew, and publishes them
+# as assets of the rolling "data" release, which is the
 # default source of the app (settings.DATA_RELEASE_URL). Each file is published compressed too,
 # which the app downloads first, and only when it changed.
 # Adapted from https://github.com/trembon/switch-library-manager
@@ -115,6 +116,12 @@ jobs:
         continue-on-error: true
         run: python .github/scripts/build_series.py generated-data/titles.series.json
 
+      # the games of the Nintendo Switch 2 alone, from the title list of switchbrew (titledb has
+      # few of them); when switchbrew does not answer, the published file of the last run stays
+      - name: Generate the games of the Switch 2
+        continue-on-error: true
+        run: python .github/scripts/build_switch2_titles.py generated-data/titles.switch2.json
+
       - name: Validate generated JSON files
         run: |
           python - <<'PY'
@@ -142,6 +149,14 @@ jobs:
               if not payload.get("series"):
                   series.unlink()
                   print("The series from Wikidata are empty, the published file stays")
+
+          switch2 = Path("generated-data") / "titles.switch2.json"
+          if switch2.exists():
+              with switch2.open(encoding="utf-8") as source:
+                  payload = json.load(source)
+              if not isinstance(payload.get("titles"), dict) or len(payload["titles"]) < 50:
+                  switch2.unlink()
+                  print("The games of the Switch 2 from switchbrew are too few, the published file stays")
           PY
 
       - name: Keep the generated files
@@ -190,8 +205,9 @@ jobs:
           NOTES: >-
             Rolling `titles.json` in US English, generated from blawar/titledb using blawar/nut;
             `versions.json`, with the versions of blawar/titledb, borntohonk/titledb and 16BitWonder/nx-versions;
-            and `titles.<lang>.json` with names and descriptions in Spanish, French, German, Italian, Portuguese,
-            Dutch, Russian, Japanese, Korean and Chinese. Every file is also published compressed with zstd
+            `titles.<lang>.json` with names and descriptions in Spanish, French, German, Italian, Portuguese,
+            Dutch, Russian, Japanese, Korean and Chinese; and `titles.switch2.json`, the games of the
+            Nintendo Switch 2 from the title list of switchbrew. Every file is also published compressed with zstd
             (`.json.zst`), and `data.sha256` has the SHA-256 of each one.
         run: |
           if ! gh release view data >/dev/null 2>&1; then
@@ -225,7 +241,8 @@ jobs:
           current = {path.name: hashlib.sha256(path.read_bytes()).hexdigest()
                      for path in sorted(Path("generated-data").glob("*.json"))}
           changed = [name for name, digest in current.items() if published.get(name) != digest]
-          # the files not generated this time (the series when Wikidata did not answer) stay
+          # the files not generated this time (the series when Wikidata did not answer, the games
+          # of the Switch 2 when switchbrew did not) stay
           kept = {name: digest for name, digest in published.items() if name not in changed}
 
           def listing(files):

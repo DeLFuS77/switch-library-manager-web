@@ -2055,5 +2055,16 @@ func init() {
 		"the server refused the mail (%v)":                       "сервер отклонил письмо (%v)",
 		"the password is only sent over an encrypted connection": "пароль отправляется только по зашифрованному соединению",
 		"the connection to the server was cut":                   "соединение с сервером прервалось",
+		// I have it: the games one has without a file, and the games of the Switch 2
+		"I have it":                         "Есть у меня",
+		"I have it · no file":               "Есть у меня · без файла",
+		"I have it, without the file":       "Есть у меня, даже без файла",
+		"I have it (click to take it away)": "Есть у меня (нажмите, чтобы убрать)",
+		"You have this game without its file: its updates and DLC are not counted.": "Эта игра есть у вас без файла: её обновления и DLC не учитываются.",
+		"DLC not counted":                    "DLC не учитываются",
+		"No date":                            "Без даты",
+		"The release date is not known yet.": "Дата выхода пока неизвестна.",
+		"I have a Switch 2":                  "У меня есть Switch 2",
+		"The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge.": "Игры Switch 2 показываются в разделе «Недостающие игры» и в подсчётах по списку switchbrew, а если настроен IGDB — с обложкой, датой выхода и описанием. Отметьте «Есть у меня» те, что есть у вас на картридже.",
 	}
 }

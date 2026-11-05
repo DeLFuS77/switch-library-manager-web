@@ -2055,5 +2055,16 @@ func init() {
 		"the server refused the mail (%v)":                       "サーバーがメールを拒否しました（%v）",
 		"the password is only sent over an encrypted connection": "パスワードは暗号化された接続でのみ送信されます",
 		"the connection to the server was cut":                   "サーバーとの接続が切れました",
+		// I have it: the games one has without a file, and the games of the Switch 2
+		"I have it":                         "持っている",
+		"I have it · no file":               "持っている・ファイルなし",
+		"I have it, without the file":       "ファイルはないが持っている",
+		"I have it (click to take it away)": "持っている（クリックで外す）",
+		"You have this game without its file: its updates and DLC are not counted.": "このゲームはファイルなしで持っています。アップデートと DLC は数えません。",
+		"DLC not counted":                    "DLC は数えない",
+		"No date":                            "日付なし",
+		"The release date is not known yet.": "発売日はまだわかりません。",
+		"I have a Switch 2":                  "Switch 2 を持っている",
+		"The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge.": "Switch 2 のゲームが switchbrew のリストから「未所持のゲーム」と集計に表示されます。IGDB を設定していれば、パッケージ画像、発売日、説明も表示されます。ゲームカードで持っているゲームは「持っている」で印を付けてください。",
 	}
 }

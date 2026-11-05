@@ -49,9 +49,20 @@ func (web *Web) tasteProfile(lang string) tasteProfile {
 	}
 	libraryGenres := map[string]float64{}
 	favoriteGenres := map[string]float64{}
+	// the games of the library: with a file, or marked as owned without one
+	marked := web.markedPrefixes()
+	owned := make(map[string]bool, len(localDB.TitlesMap)+len(marked))
 	for prefix, local := range localDB.TitlesMap {
+		if local.BaseExist {
+			owned[prefix] = true
+		}
+	}
+	for prefix := range marked {
+		owned[prefix] = true
+	}
+	for prefix := range owned {
 		title := switchDB.TitlesMap[prefix]
-		if !local.BaseExist || title == nil {
+		if title == nil || title.Attributes.Id == "" {
 			continue
 		}
 		id := strings.ToUpper(title.Attributes.Id)

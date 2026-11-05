@@ -2055,5 +2055,16 @@ func init() {
 		"the server refused the mail (%v)":                       "de server weigerde de e-mail (%v)",
 		"the password is only sent over an encrypted connection": "het wachtwoord wordt alleen via een versleutelde verbinding verstuurd",
 		"the connection to the server was cut":                   "de verbinding met de server werd verbroken",
+		// I have it: the games one has without a file, and the games of the Switch 2
+		"I have it":                         "Heb ik",
+		"I have it · no file":               "Heb ik · zonder bestand",
+		"I have it, without the file":       "Heb ik, ook zonder het bestand",
+		"I have it (click to take it away)": "Heb ik (klik om het weg te halen)",
+		"You have this game without its file: its updates and DLC are not counted.": "Je hebt deze game zonder bestand: de updates en DLC ervan worden niet geteld.",
+		"DLC not counted":                    "DLC niet geteld",
+		"No date":                            "Geen datum",
+		"The release date is not known yet.": "De releasedatum is nog niet bekend.",
+		"I have a Switch 2":                  "Ik heb een Switch 2",
+		"The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge.": "De games van de Switch 2 staan bij Ontbrekende games en in de tellingen, uit de lijst van switchbrew, met hoes, releasedatum en beschrijving als IGDB is ingesteld. Markeer met „Heb ik” de games die je op een cartridge hebt.",
 	}
 }

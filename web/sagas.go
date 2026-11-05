@@ -89,6 +89,8 @@ func (web *Web) sagaMembers(family string, lang string) []TitleItem {
 	}
 	index := web.sagas()
 	wished := web.wishes().Snapshot()
+	marked := web.markedPrefixes()
+	switch2 := web.showsSwitch2()
 	items := []TitleItem{}
 	for _, prefix := range index.membersOf[family] {
 		title := switchDB.TitlesMap[prefix]
@@ -105,14 +107,13 @@ func (web *Web) sagaMembers(family string, lang string) []TitleItem {
 			Missing:      true,
 			Wished:       wished[strings.ToUpper(title.Attributes.Id)],
 		}
-		if localDB != nil {
-			if local, ok := localDB.TitlesMap[prefix]; ok && local.BaseExist {
-				item.Missing = false
-				item.InLibrary = true
-			}
+		if hasGame(localDB, marked, prefix) {
+			item.Missing = false
+			item.InLibrary = true
 		}
-		// a game of the Switch 2 alone is of the series only when the library has it
-		if item.Missing && db.Switch2(title.Attributes.Id) {
+		// a game of the Switch 2 alone is of the series only when the library has it, or the user
+		// has the console
+		if item.Missing && db.Switch2(title.Attributes.Id) && !switch2 {
 			continue
 		}
 		item.ReleaseDate, _ = intToTime(title.Attributes.ReleaseDate)
@@ -152,12 +153,7 @@ func (web *Web) sameSaga(titleId string, name string, lang string) SagaProgress 
 		return SagaProgress{}
 	}
 	_, localDB := web.state.get()
-	selfOwned := false
-	if localDB != nil {
-		if local, ok := localDB.TitlesMap[strings.ToLower(titleId[:13])]; ok && local.BaseExist {
-			selfOwned = true
-		}
-	}
+	selfOwned := hasGame(localDB, web.markedPrefixes(), strings.ToLower(titleId[:13]))
 	self := regionalName(name)
 	progress := SagaProgress{family: family, Total: 1}
 	if selfOwned {
@@ -235,6 +231,12 @@ func (web *Web) sagaProgress(lang string) []SagaProgress {
 			if !local.BaseExist {
 				continue
 			}
+			if family, ok := index.familyOfId[prefix]; ok {
+				families[family] = true
+			}
+		}
+		// and of the games marked as owned without a file
+		for prefix := range web.markedPrefixes() {
 			if family, ok := index.familyOfId[prefix]; ok {
 				families[family] = true
 			}

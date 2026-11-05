@@ -173,6 +173,9 @@ type Web struct {
 	collectionsOnce sync.Once
 	fav             *userdata.Favorites
 	favoritesOnce   sync.Once
+	// the games the users have without a file of them (see owned.go)
+	ownedStore *userdata.Owned
+	ownedOnce  sync.Once
 	// how the games go for each user (see play.go)
 	playStore *userdata.PlayStore
 	playOnce  sync.Once
@@ -324,6 +327,15 @@ type TitleItem struct {
 	searchWords []string
 	// shown as a game of the library on the page of a series
 	InLibrary bool
+	// library: the game is marked as owned and has no file in the library (see owned.go), and the
+	// DLC the titles database knows of it, which are not counted without a file
+	NoFile   bool
+	KnownDlc int
+}
+
+// IsSwitch2 reports whether the game is of the Nintendo Switch 2 alone: its card says so.
+func (t TitleItem) IsSwitch2() bool {
+	return db.Switch2(t.Id)
 }
 
 // DlcPercent is the share of the DLC of a game in the library.
@@ -843,6 +855,7 @@ func (web *Web) Start() {
 	web.HandleCovers()
 	web.HandleUpdateGuide()
 	web.HandleWishlist()
+	web.HandleOwned()
 	web.HandleCollections()
 	web.HandlePlay()
 	web.HandleSmartCollections()
@@ -974,6 +987,7 @@ func (web *Web) loadSavedTitles() *db.SwitchTitlesDB {
 		return nil
 	}
 	web.applyCoverFallbacks(switchDB)
+	web.applySwitch2Titles(switchDB)
 	switchDB.Localized = web.loadLocalizedTitles(false)
 	return switchDB
 }
@@ -1192,9 +1206,11 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 		unchanged.Localized = web.loadLocalizedTitles(true)
 		web.downloadCoverFallbacks()
 		web.downloadSeries()
+		web.downloadSwitch2Titles()
 		// a few megabytes, not waited for: the library shows its cheats once they are here
 		go web.downloadCheats()
 		web.applyCoverFallbacks(&unchanged)
+		web.applySwitch2Titles(&unchanged)
 		return &unchanged, notDownloaded
 	}
 
@@ -1211,10 +1227,12 @@ func (web *Web) buildSwitchDb(current *db.SwitchTitlesDB) (*db.SwitchTitlesDB, e
 		if !offline {
 			web.downloadCoverFallbacks()
 			web.downloadSeries()
+			web.downloadSwitch2Titles()
 			// a few megabytes, not waited for: the library shows its cheats once they are here
 			go web.downloadCheats()
 		}
 		web.applyCoverFallbacks(switchTitleDB)
+		web.applySwitch2Titles(switchTitleDB)
 	}
 
 	web.UpdateProgress(3, 4, "Scanning library...")

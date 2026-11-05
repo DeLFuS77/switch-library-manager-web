@@ -250,7 +250,7 @@ func (web *Web) buildStatistics(lang string) Statistics {
 		library := web.derived("library:"+lang, func() any { return web.buildLibrary(lang) }).([]TitleItem)
 		// the games count as the library counts them: without the demos it hides, and up to
 		// date as its "Up to date" filter, with every update and DLC
-		games := 0
+		games, withFile := 0, 0
 		leftOut, _ := web.regionCopies(lang)
 		merged := web.mergedStatus(lang)
 		scores := web.timesToBeat().snapshot()
@@ -279,6 +279,11 @@ func (web *Web) buildStatistics(lang string) Statistics {
 				bands[scoreLevel(item.Score)]++
 				stats.TopScored = append(stats.TopScored, ScoredGame{Id: item.Id, Name: item.Name, Score: item.Score})
 			}
+			// a game marked as owned without a file has no version: neither up to date nor behind
+			if item.NoFile {
+				continue
+			}
+			withFile++
 			if status, ok := merged[item.Id]; ok {
 				status.apply(&item)
 			}
@@ -314,7 +319,7 @@ func (web *Web) buildStatistics(lang string) Statistics {
 		}
 		// the share of the games counts them as the library does, next to its count
 		stats.ByContent[0].Count = games
-		stats.GamesUpToDatePct = percent(int64(stats.GamesUpToDate), int64(stats.Games))
+		stats.GamesUpToDatePct = percent(int64(stats.GamesUpToDate), int64(withFile))
 		stats.UpdatesPending = len(web.shownMissingUpdates(lang))
 		stats.DlcWithUpdate = max(0, stats.UpdatesPending-stats.GamesWithUpdate)
 

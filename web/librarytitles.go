@@ -102,6 +102,11 @@ var igdbGenres = map[string]string{
 
 // lookupTitle finds a game of the Switch on IGDB by its name, and what it tells of it.
 func (c *igdbClient) lookupTitle(ctx context.Context, name string, now time.Time) (IgdbTitle, error) {
+	return c.lookupTitleOn(ctx, name, igdbSwitchPlatform, now)
+}
+
+// lookupTitleOn is lookupTitle for the games of a platform of IGDB: the Switch, or the Switch 2.
+func (c *igdbClient) lookupTitleOn(ctx context.Context, name string, platform int, now time.Time) (IgdbTitle, error) {
 	result := IgdbTitle{Checked: now}
 	type named struct {
 		Name string `json:"name"`
@@ -122,7 +127,7 @@ func (c *igdbClient) lookupTitle(ctx context.Context, name string, now time.Time
 		} `json:"involved_companies"`
 	}
 	query := fmt.Sprintf(`search "%s"; fields name,first_release_date,summary,genres.name,themes.name,cover.image_id,involved_companies.company.name,involved_companies.publisher,involved_companies.developer; where platforms = (%d); limit 5;`,
-		apicalypseText(name), igdbSwitchPlatform)
+		apicalypseText(name), platform)
 	if err := c.query(ctx, "games", query, &games); err != nil {
 		return result, err
 	}
@@ -185,12 +190,13 @@ func nacpPublisher(local *db.SwitchGameFiles) string {
 	return ""
 }
 
-// withLibraryTitles is the titles database with a title for each game of the library it does
+// withLibraryTitles is the titles database with what IGDB told of the games of the Switch 2 of
+// the list of switchbrew (see withSwitch2Details), a title for each game of the library it does
 // not list, made again on every scan (so a game removed takes its title away), and, last, what
 // the user changed of the games by hand, which wins over all of it (see withTitleOverrides); the
 // database itself is left as it is, as it is shared.
 func (web *Web) withLibraryTitles(switchDB *db.SwitchTitlesDB, localDB *db.LocalSwitchFilesDB) *db.SwitchTitlesDB {
-	return web.withTitleOverrides(web.addLibraryTitles(switchDB, localDB))
+	return web.withTitleOverrides(web.addLibraryTitles(web.withSwitch2Details(switchDB), localDB))
 }
 
 // addLibraryTitles is the titles database with a title for each game of the library it does not
@@ -297,9 +303,13 @@ func (web *Web) libraryTitlesToLookUp(now time.Time) map[string]string {
 }
 
 // lookupLibraryTitles asks IGDB about the games of the library the titles database does not
-// list, and puts what it tells in their titles.
+// list, and about the games of the Switch 2 of the list of switchbrew, and puts what it tells in
+// their titles.
 func (web *Web) lookupLibraryTitles(ctx context.Context, client *igdbClient) error {
 	pending := web.libraryTitlesToLookUp(time.Now())
+	for prefix, name := range web.switch2TitlesToLookUp(time.Now()) {
+		pending[prefix] = name
+	}
 	if len(pending) == 0 {
 		return nil
 	}
@@ -308,7 +318,12 @@ func (web *Web) lookupLibraryTitles(ctx context.Context, client *igdbClient) err
 		if web.state.IsSynchronizing() {
 			break
 		}
-		found, err := client.lookupTitle(ctx, name, time.Now())
+		// a game of the Switch 2 is searched among the games of the Switch 2
+		platform, err := client.platformOf(ctx, prefix)
+		found := IgdbTitle{}
+		if err == nil {
+			found, err = client.lookupTitleOn(ctx, name, platform, time.Now())
+		}
 		if err != nil {
 			if errors.Is(err, errIgdbCredentials) {
 				return err

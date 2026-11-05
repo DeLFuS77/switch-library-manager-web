@@ -1164,6 +1164,7 @@ func TestOpenApiDocumentsEveryEndpoint(t *testing.T) {
 	web.HandleExport()
 	web.HandleSynchronize()
 	web.HandleIgnore()
+	web.HandleOwned()
 	web.HandleVerify()
 	web.HandleApiDocs()
 	documented := 0

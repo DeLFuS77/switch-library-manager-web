@@ -77,7 +77,10 @@ type TitleDetail struct {
 	BannerUrl     string
 	Screenshots   []string
 
-	Owned   bool
+	Owned bool
+	// the game is marked as owned without a file (see owned.go): the user has it, a cartridge
+	// for instance, even when the library has no file of it
+	Marked  bool
 	Base    *TitleFile
 	Updates []TitleFile
 	// every update released, the newest first
@@ -239,6 +242,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 
 	detail.Name = titleName(switchDB, lang, detail.Id, getLocalTitleName(title, local))
 	detail.Wished = web.wishes().Has(detail.Id)
+	detail.Marked = web.owned().Has(detail.Id)
 	detail.TimeToBeat, _ = web.timesToBeat().get(detail.Id)
 	detail.Saves = web.titleSaves(detail.Id, lang)
 	// the name and description of the game without what the user changed by hand
@@ -407,6 +411,21 @@ func (web *Web) HandleTitle() {
 			Favorite: web.favorites().Has(detail.Id), Saga: web.sameSaga(detail.Id, detail.Name, web.requestLanguage(r)),
 			Play: web.play().Of(playUser(r), detail.Id), PlayStates: userdata.PlayStates()})
 	}).Methods("GET")
+}
+
+// NoFile reports whether the user has the game without a file of it in the library.
+func (t TitleDetail) NoFile() bool {
+	return t.Marked && !t.Owned
+}
+
+// HasGame reports whether the user has the game: its file is in the library, or it is marked.
+func (t TitleDetail) HasGame() bool {
+	return t.Owned || t.Marked
+}
+
+// IsSwitch2 reports whether the game is of the Nintendo Switch 2 alone.
+func (t TitleDetail) IsSwitch2() bool {
+	return db.Switch2(t.Id)
 }
 
 // DlcPercent is the share of the DLC of the game in the library.

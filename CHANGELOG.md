@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Games you have without their file, on a cartridge for instance, can be marked with "I have it": a round button with a cartridge next to the heart on the cover in Missing Games, and a button next to Favorite and Collections on the page of the game. A marked game shows in the Library with "I have it · no file", has My game, and is no longer missing anywhere: not in Missing Games, the recommendations, the series nor the counts of missing games. Without a file its version is not known, so its updates and DLC are not asked for. It works for games of the Switch and of the Switch 2, the marks are of the whole library and they go in the backups (thanks @brumouta, who asked for the Switch 2 in #157)
+- New setting "I have a Switch 2" in Settings › Library, off by default: on, the games of the Nintendo Switch 2 show in Missing Games and in the counts, with a "Switch 2" badge on their cover. Off, everything stays as it was. Upcoming releases does not change
+- The games of the Switch 2 come from the title list of switchbrew (titles.switch2.json in the data release), next to the ones of titles.json, which win. With the IGDB keys their cover, release date and description are looked up on the platform of the Switch 2: a game still to come is not shown in Missing Games, and one without a date shows "No date". The games of the Switch 2 of the library are also looked up there for their times to beat, scores and series
+
 ## 1.73.0
 
 ### Improvements

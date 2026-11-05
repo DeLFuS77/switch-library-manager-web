@@ -714,6 +714,70 @@
         }
       }
     },
+    "/owned": {
+      "post": {
+        "summary": "Mark a game you have without its file",
+        "description": "Marks a game you have without a file of it in the library (a game card, for instance), for the whole library, or takes the mark away. A marked game shows in the library as a game without a file and is not listed or counted as missing; its updates and DLC are not counted. Marking a game takes it off the wishlist. Needs an editor or an administrator.",
+        "tags": [
+          "Library"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9A-Fa-f]{13}000$",
+                    "description": "The title ID of the game (not of an update or a DLC)"
+                  },
+                  "owned": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "true marks the game, false takes the mark away"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "owned": {
+                      "type": "boolean"
+                    },
+                    "count": {
+                      "type": "integer",
+                      "description": "Games marked in the library"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid title ID, or not the ID of a game"
+          },
+          "403": {
+            "description": "Viewers cannot mark games"
+          }
+        }
+      }
+    },
     "/verify/start": {
       "post": {
         "summary": "Check the files",

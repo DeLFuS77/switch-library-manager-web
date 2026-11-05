@@ -86,6 +86,11 @@
 								</select>
 								<div class="form-text" id="watchIntervalHelp">{{t "Only folders that changed are read again. A longer interval lets the disks of a NAS sleep."}}</div>
 							</div>
+							<div class="form-check form-switch mt-3">
+								<input class="form-check-input" type="checkbox" role="switch" id="has_switch2" name="has_switch2" value="true" aria-describedby="hasSwitch2Help"{{if .Settings.HasSwitch2}} checked{{end}}>
+								<label class="form-check-label" for="has_switch2">{{t "I have a Switch 2"}}</label>
+								<div class="form-text" id="hasSwitch2Help">{{t "The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge."}}</div>
+							</div>
 							<div class="covers-box mt-4">
 								<div class="flex-grow-1">
 									<div class="fw-semibold help-name"><span class="bi bi-images me-2" aria-hidden="true"></span>{{t "Covers"}}</div>

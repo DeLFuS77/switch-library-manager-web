@@ -2082,6 +2082,17 @@ var Translations = map[string]map[string]string{
 		"the server refused the mail (%v)":                       "el servidor no aceptó el correo (%v)",
 		"the password is only sent over an encrypted connection": "la contraseña solo se envía por una conexión cifrada",
 		"the connection to the server was cut":                   "se cortó la conexión con el servidor",
+		// I have it: the games one has without a file, and the games of the Switch 2
+		"I have it":                         "Lo tengo",
+		"I have it · no file":               "Lo tengo · sin archivo",
+		"I have it, without the file":       "Lo tengo, aunque no tenga el archivo",
+		"I have it (click to take it away)": "Lo tengo (pulsa para quitarlo)",
+		"You have this game without its file: its updates and DLC are not counted.": "Tienes este juego sin su archivo: no se cuentan sus actualizaciones ni sus DLC.",
+		"DLC not counted":                    "DLC sin contar",
+		"No date":                            "Sin fecha",
+		"The release date is not known yet.": "Todavía no se sabe la fecha de salida.",
+		"I have a Switch 2":                  "Tengo una Switch 2",
+		"The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge.": "Los juegos de Switch 2 salen en Juegos que faltan y en las cuentas, con la lista de switchbrew y, si tienes IGDB configurado, con su carátula, su fecha de salida y su descripción. Marca con «Lo tengo» los que tienes en cartucho.",
 	},
 }
 
@@ -2098,6 +2109,7 @@ var JSTexts = []string{
 	"The version of the name changes: v%v → v%v (the update the file holds).",
 	"Apply the changes shown in the preview? Files will be moved or deleted.",
 	"Add to the wishlist", "Remove from the wishlist", "Add to favorites", "Remove from favorites",
+	"I have it, without the file", "I have it (click to take it away)",
 	"Controller connected", "D-pad to move, A to open, B to go back, Start to search.",
 	"Couch mode: Select or Esc to leave", "In testing",
 	"Nothing to check", "No file is new or changed since the last check.",

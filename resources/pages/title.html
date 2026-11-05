@@ -5,7 +5,7 @@
 			<nav aria-label="{{t "breadcrumb"}}" class="mt-3">
 				<ol class="breadcrumb mb-0">
 					<li class="breadcrumb-item"><a class="link-secondary" href="/index.html">{{t "Library"}}</a></li>
-					{{- if not $t.Owned}}
+					{{- if not $t.HasGame}}
 					<li class="breadcrumb-item"><a class="link-secondary" href="/missing.html">{{t "Missing ones"}}</a></li>
 					{{- end}}
 					<li class="breadcrumb-item active text-truncate" aria-current="page">{{$t.Name}}</li>
@@ -23,9 +23,12 @@
 						<div class="d-flex flex-wrap gap-1 mb-2">
 							{{- if $t.Owned}}
 							<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "In your library"}}</span>
+							{{- else if $t.Marked}}
+							<span class="chip chip-own" title="{{t "You have this game without its file: its updates and DLC are not counted."}}"><svg class="own-icon" aria-hidden="true"><use href="#own-on"></use></svg>{{t "I have it · no file"}}</span>
 							{{- else}}
 							<span class="chip chip-muted"><span class="bi bi-cart" aria-hidden="true"></span>{{t "Not in your library"}}</span>
 							{{- end}}
+							{{- if $t.IsSwitch2}}<span class="chip chip-muted">Switch 2</span>{{end}}
 							{{- if $t.UpdateMissing}}{{if not $t.UpdatesIgnored}}<span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Update available"}}</span>{{end}}{{end}}
 							{{- if $t.FirmwareTooNew}}<span class="chip chip-danger"><span class="bi bi-cpu" aria-hidden="true"></span>{{t "Your console needs firmware %v or newer for this game" $t.RequiredFirmware}}</span>{{end}}
 							{{- if gt $t.MissingDlc 0}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC missing" $t.MissingDlc}}</span>{{else if and (not $t.Owned) $t.Dlc}}<span class="chip chip-muted"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC" (len $t.Dlc)}}</span>{{end}}
@@ -48,10 +51,13 @@
 							{{- if and $t.Owned (gt $t.ArchiveFiles 1)}}
 							<a class="btn btn-primary rounded-pill" href="/api/titles/{{$t.Id}}/archive.zip"><span class="bi bi-file-earmark-zip me-2" aria-hidden="true"></span>{{t "Download all (%v files, %v)" $t.ArchiveFiles (formatSize $t.ArchiveSize)}}</a>
 							{{- end}}
-							{{- if $t.Owned}}
+							{{- if not $t.Owned}}
+							<button type="button" class="btn rounded-pill editor-only {{if $t.Marked}}btn-own{{else}}btn-glass{{end}}" data-own="{{$t.Id}}" data-owned="{{$t.Marked}}" aria-pressed="{{$t.Marked}}" title="{{if $t.Marked}}{{t "I have it (click to take it away)"}}{{else}}{{t "I have it, without the file"}}{{end}}"><svg class="own-icon action-icon" aria-hidden="true"><use href="#{{if $t.Marked}}own-on{{else}}own-off{{end}}"></use></svg><span class="action-label">{{t "I have it"}}</span></button>
+							{{- end}}
+							{{- if $t.HasGame}}
 							<button type="button" class="btn rounded-pill editor-only {{if .Favorite}}btn-warning{{else}}btn-glass{{end}}" data-fav="{{$t.Id}}" data-favorite="{{.Favorite}}" aria-pressed="{{.Favorite}}" title="{{t "Favorite: the games you like most"}}"><span class="bi {{if .Favorite}}bi-star-fill{{else}}bi-star{{end}} action-icon" aria-hidden="true"></span><span class="action-label">{{if .Favorite}}{{t "Favorite"}}{{else}}{{t "Add to favorites"}}{{end}}</span></button>
 							{{- end}}
-							{{- if not $t.Owned}}
+							{{- if not $t.HasGame}}
 							<button type="button" class="btn rounded-pill editor-only {{if $t.Wished}}btn-danger{{else}}btn-glass{{end}}" data-wish="{{$t.Id}}" data-wished="{{$t.Wished}}" aria-pressed="{{$t.Wished}}"><span class="bi {{if $t.Wished}}bi-heart-fill{{else}}bi-heart{{end}} action-icon" aria-hidden="true"></span><span class="action-label">{{if $t.Wished}}{{t "On your wishlist"}}{{else}}{{t "Add to the wishlist"}}{{end}}</span></button>
 							{{- end}}
 							<div class="dropdown editor-only">
@@ -82,7 +88,7 @@
 						</div>
 					</div>
 				</div>
-				{{- if $t.Owned}}
+				{{- if $t.HasGame}}
 				<section class="surface play-panel mb-4" aria-labelledby="playTitle">
 					<h2 class="section-title" id="playTitle"><span class="bi bi-joystick" aria-hidden="true"></span>{{t "My game"}}</h2>
 					<form class="play-form" data-play="{{$t.Id}}" data-saved="{{t "Saved!"}}">
