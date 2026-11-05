@@ -15,6 +15,10 @@
 - The quick search also finds Activity, Tune-up, Quarantine, App on your phone, Sign-in portal and Game data
 - The help of the fields of Settings and Organize no longer fills the page on a computer: a small ⓘ after the name of a field tells there is some, and it shows in a card while the mouse is on the name or the field has the focus of the keyboard. Statuses, warnings and links stay in sight, and on phones and tablets the help stays under each field (thanks @NikoMuffin, who asked for it in NXPress #67)
 
+### Fixes
+
+- With the names for the Switch (ASCII only), the kanji left out no longer leave spaces inside the brackets nor brackets with nothing inside: a DLC is named "(serekushon 1)", no longer "( serekusho 1)". In romaji the kana after a small kana is no longer lost (セレクション is serekushon, しょうねん shounen), the small tsu doubles the next consonant (セット is setto, no longer se.hold), and キャ, ジャ and ファ are kya, ja and fa. The next Organize renames the files whose names change (thanks internethostage, who reported it on Discord)
+
 ## 1.72.1
 
 ### Fixes
