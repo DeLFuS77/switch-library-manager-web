@@ -208,3 +208,30 @@ func TestNupGamePageListsTheFileOnce(t *testing.T) {
 		}
 	}
 }
+
+// A game of the Switch 2 is not told up to date: no list knows its updates. It is left out of the
+// games up to date and of their share, as a game without a file is.
+func TestSwitch2GamesAreNotUpToDate(t *testing.T) {
+	web := newTestWeb(t)
+	switchDB, localDB := testDatabases(t)
+	withSwitch2Game(t, localDB)
+	web.state.set(switchDB, localDB)
+
+	items, _, facets := web.getLibraryWithFacets(defaultFilter(), "en")
+	for _, item := range items {
+		if item.VersionsUnknown != item.IsSwitch2() {
+			t.Errorf("%s: versions unknown %v", item.Id, item.VersionsUnknown)
+		}
+	}
+	filter := defaultFilter()
+	filter.Status = STATUS_COMPLETE
+	filter.Normalize()
+	upToDate, _, _ := web.getLibraryWithFacets(filter, "en")
+	if hasSwitch2Item(upToDate) || len(upToDate) != facets.Complete {
+		t.Fatalf("up to date: %+v, facets %d", upToDate, facets.Complete)
+	}
+	stats := web.buildStatistics("en")
+	if stats.GamesWithFile != len(items)-1 || stats.GamesUpToDate > stats.GamesWithFile {
+		t.Fatalf("the share of the games up to date leaves the game of the Switch 2 out: %d of %d (%d games)", stats.GamesUpToDate, stats.GamesWithFile, len(items))
+	}
+}

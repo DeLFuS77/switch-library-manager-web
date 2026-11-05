@@ -259,8 +259,11 @@ type Web struct {
 }
 
 type TitleItem struct {
-	ImageUrl         string
-	Id               string
+	ImageUrl string
+	Id       string
+	// a game of the Switch 2 whose updates no list knows (none does yet): its version is known,
+	// not whether it is the newest, so it is neither up to date nor behind
+	VersionsUnknown  bool
 	LatestUpdate     int
 	LatestUpdateDate time.Time
 	LocalUpdate      int

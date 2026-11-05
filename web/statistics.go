@@ -285,6 +285,10 @@ func (web *Web) buildStatistics(lang string) Statistics {
 			if item.NoFile {
 				continue
 			}
+			// the same for a game whose updates no list knows: its version is not known to be the newest
+			if item.VersionsUnknown {
+				continue
+			}
 			withFile++
 			if status, ok := merged[item.Id]; ok {
 				status.apply(&item)

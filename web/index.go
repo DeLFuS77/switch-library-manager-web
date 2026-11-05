@@ -377,7 +377,7 @@ func (f *libraryFilter) status(item *TitleItem) bool {
 		facets.All++
 		return f.filter.Status == ""
 	}
-	complete := item.Known && !item.UpdateAvailable && item.MissingDlcCount == 0
+	complete := item.Known && !item.UpdateAvailable && item.MissingDlcCount == 0 && !item.VersionsUnknown
 	facets.All++
 	if item.UpdateAvailable {
 		facets.Update++
@@ -568,6 +568,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			item.ImageUrl = "/i/" + v.Banner
 		}
 
+		item.VersionsUnknown = db.Switch2(k) && (title == nil || len(title.Updates) == 0)
 		if title != nil {
 			item.Region = title.Attributes.Region
 			item.Genres = title.Attributes.Genres
