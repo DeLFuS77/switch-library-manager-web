@@ -58,7 +58,7 @@ const (
 
 // NupReaderVersion is raised when what the reader tells of a NUP changes (a name cleaned up, a
 // record read), so the library reads its NUP files again instead of keeping what it cached.
-const NupReaderVersion = 2
+const NupReaderVersion = 3
 
 // NupPackage is one package of a NUP: the game, one of its updates or one of its DLC.
 type NupPackage struct {
@@ -206,7 +206,26 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 
 // parseNupTlvs splits a block of metadata into its records; the block ends where the header of
 // the next record would not fit, and a record that runs past the block is an error.
+//
+// The packer of the format counted the types from 0 for a while (NPDM 0, NACP 1, the name 4,
+// the publisher 5), one below the ones the format gives them: type 0 is no type of the format,
+// so a block that has one is read with each of its types one up.
 func parseNupTlvs(block []byte) (map[uint16][]byte, error) {
+	result, err := splitNupTlvs(block)
+	if _, shifted := result[0]; err != nil || !shifted {
+		return result, err
+	}
+	moved := map[uint16][]byte{}
+	for kind, value := range result {
+		if kind < 0x00FF {
+			kind++
+		}
+		moved[kind] = value
+	}
+	return moved, nil
+}
+
+func splitNupTlvs(block []byte) (map[uint16][]byte, error) {
 	result := map[uint16][]byte{}
 	for pos := 0; pos+nupTlvHeadSize <= len(block); {
 		kind := binary.LittleEndian.Uint16(block[pos:])

@@ -155,6 +155,34 @@ func TestNupNacpRecord(t *testing.T) {
 	}
 }
 
+// The packer of the format counted the types of the metadata from 0 for a while: such a block is
+// read with its types where the format puts them, so the publisher is not taken for the name.
+func TestNupTypesCountedFromZero(t *testing.T) {
+	path := writeNup(t, buildNup(t, []testnup.Package{{TitleId: 0x040074A01BF12000, Kind: NupKindBase, Meta: []testnup.Record{
+		tlv(0, []byte("META npdm")), tlv(3, []byte("1.0.0")),
+		tlv(4, []byte("Made-up Bananza")), tlv(5, []byte("Nobody")), tlv(6, bytes.Repeat([]byte{9}, 32)),
+	}}}))
+	metadata, err := ReadNupMetadata(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	game := metadata["040074a01bf12000"]
+	if game == nil || game.Ncap == nil {
+		t.Fatalf("game: %+v", game)
+	}
+	english := game.Ncap.TitleName[Language(AmericanEnglish).String()]
+	if english.Title != "Made-up Bananza" || english.Publisher != "Nobody" || game.Ncap.DisplayVersion != "1.0.0" {
+		t.Errorf("name, publisher or version: %+v %q", english, game.Ncap.DisplayVersion)
+	}
+	container, err := ReadNup(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if meta := container.Packages[0].Meta; string(meta[1]) != "META npdm" || meta[0] != nil {
+		t.Errorf("the NPDM is not where the format puts it: %v", meta)
+	}
+}
+
 func readNupBytes(data []byte) (*NupContainer, error) {
 	return readNup(bytes.NewReader(data), int64(len(data)))
 }
