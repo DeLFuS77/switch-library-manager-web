@@ -13,6 +13,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"github.com/gorilla/mux"
 )
 
@@ -34,7 +35,26 @@ type TitleFile struct {
 	// an update or a DLC in the file of the game: it is not listed again as a file, with the whole
 	// size of that file
 	InGameFile bool
+	// the parts of a NUP, the game first, with what each takes of the file: told instead of
+	// AlsoHolds
+	Parts []TitleFilePart
 }
+
+// TitleFilePart is a part of a NUP: the game, an update or a DLC, with the bytes of the file its
+// data takes (the data an update shares with the game counted with the game).
+type TitleFilePart struct {
+	Kind string
+	// "v458752" for the game and an update, the name of a DLC
+	Detail string
+	Size   int64
+}
+
+// the kinds of the parts of a NUP
+const (
+	PART_GAME   = "game"
+	PART_UPDATE = "update"
+	PART_DLC    = "dlc"
+)
 
 // TitleVersion is an update released for a game, for the version history of the game page.
 type TitleVersion struct {
@@ -372,8 +392,57 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		}
 		return detail.Dlc[i].Name < detail.Dlc[j].Name
 	})
+	if detail.Base != nil && local != nil {
+		detail.Base.Parts = nupParts(local, detail.Name, detail.Dlc)
+		if len(detail.Base.Parts) > 0 {
+			detail.Base.AlsoHolds = nil
+		}
+	}
 
 	return detail, true
+}
+
+// nupParts are the parts of the NUP a game is in, with what each takes of the file, the game
+// first, then its updates and its DLC; none for any other file, or for a NUP read by a version
+// that did not tell the sizes.
+func nupParts(local *db.SwitchGameFiles, gameName string, dlc []TitleDlc) []TitleFilePart {
+	file := local.File
+	if !switchfs.IsNupFile(file.ExtendedInfo.FileName) || file.Metadata == nil || file.Metadata.StoredSize <= 0 {
+		return nil
+	}
+	parts := []TitleFilePart{{Kind: PART_GAME, Detail: "v" + strconv.Itoa(file.Metadata.Version), Size: file.Metadata.StoredSize}}
+	for _, version := range sortedVersions(local.Updates) {
+		update := local.Updates[version]
+		if update.ExtendedInfo == file.ExtendedInfo && update.Metadata != nil {
+			parts = append(parts, TitleFilePart{Kind: PART_UPDATE, Detail: "v" + strconv.Itoa(version), Size: update.Metadata.StoredSize})
+		}
+	}
+	// the DLC in the order of the page, by their names without the name of the game
+	for _, entry := range dlc {
+		held, ok := local.Dlc[strings.ToLower(entry.Id)]
+		if !ok || held.ExtendedInfo != file.ExtendedInfo || held.Metadata == nil {
+			continue
+		}
+		parts = append(parts, TitleFilePart{Kind: PART_DLC, Detail: dlcShortName(entry.Name, gameName), Size: held.Metadata.StoredSize})
+	}
+	return parts
+}
+
+// dlcShortName is the name of a DLC without the name of its game before it, as a list of the
+// parts of the game has the game already: "Donkey Kong Bananza: DK Island" is "DK Island".
+func dlcShortName(name string, gameName string) string {
+	if gameName == "" || len(name) <= len(gameName) || !strings.EqualFold(name[:len(gameName)], gameName) {
+		return name
+	}
+	after := name[len(gameName):]
+	// the name of the game as a whole, not the start of a longer word
+	if strings.IndexAny(after, " :-–—") != 0 {
+		return name
+	}
+	if rest := strings.TrimLeft(after, " :-–—"); rest != "" {
+		return rest
+	}
+	return name
 }
 
 // titleVersions lists the updates of a game known to the titles database, the newest first,

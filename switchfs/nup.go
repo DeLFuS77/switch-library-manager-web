@@ -75,7 +75,7 @@ const (
 
 // NupReaderVersion is raised when what the reader tells of a NUP changes (a name cleaned up, a
 // record read), so the library reads its NUP files again instead of keeping what it cached.
-const NupReaderVersion = 3
+const NupReaderVersion = 4
 
 // NupPackage is one package of a NUP: the game, one of its updates or one of its DLC.
 type NupPackage struct {
@@ -344,6 +344,9 @@ func (container *NupContainer) Walk(pkg int, fn func(path string, file int) erro
 		prefix string
 	}
 	root := container.Packages[pkg].RootDir
+	if int(root) >= len(container.Dirs) {
+		return errors.New("NUP package has its folder outside the table of contents")
+	}
 	stack := []frame{{dir: root}}
 	state[root] = open
 	dirCount := uint32(len(container.Dirs))
@@ -593,9 +596,41 @@ func ReadNupMetadata(path string) (map[string]*ContentMetaAttributes, error) {
 	return container.Metadata(), nil
 }
 
-// Metadata is what the packages of a NUP hold, by title ID (see ReadNupMetadata).
+// storedSizes are the bytes of the file the data of each package takes, by its index: a piece of
+// data shared by several packages (an update stores most of the files of its game unchanged) is
+// counted once, with the game first, then the updates, then the DLC, so the sizes add up to the
+// data of the file. A package whose tree cannot be walked takes none.
+func (container *NupContainer) storedSizes() []int64 {
+	sizes := make([]int64, len(container.Packages))
+	claimed := map[uint64]bool{}
+	for _, kind := range []byte{NupKindBase, NupKindUpdate, NupKindAddon, 3, nupKindLast} {
+		for i, pkg := range container.Packages {
+			if pkg.Kind != kind {
+				continue
+			}
+			size := int64(0)
+			err := container.Walk(i, func(_ string, index int) error {
+				file := container.Files[index]
+				if file.Size > 0 && !claimed[file.ExtentOffset] {
+					claimed[file.ExtentOffset] = true
+					size += int64(file.ExtentSize)
+				}
+				return nil
+			})
+			if err == nil {
+				sizes[i] = size
+			}
+		}
+	}
+	return sizes
+}
+
+// Metadata is what the packages of a NUP hold, by title ID (see ReadNupMetadata), each with the
+// bytes of the file it takes: an update stored more than once takes the bytes of all its copies.
 func (container *NupContainer) Metadata() map[string]*ContentMetaAttributes {
 	result := map[string]*ContentMetaAttributes{}
+	sizes := container.storedSizes()
+	stored := map[string]int64{}
 	var gameNacp *Nacp
 	for _, pkg := range container.Packages {
 		if pkg.Kind == NupKindBase && pkg.TitleId != 0 {
@@ -603,7 +638,7 @@ func (container *NupContainer) Metadata() map[string]*ContentMetaAttributes {
 			break
 		}
 	}
-	for _, pkg := range container.Packages {
+	for i, pkg := range container.Packages {
 		if pkg.TitleId == 0 {
 			// a package without an ID (a dump without its NPDM) cannot be put anywhere
 			continue
@@ -622,10 +657,14 @@ func (container *NupContainer) Metadata() map[string]*ContentMetaAttributes {
 		default:
 			continue
 		}
+		stored[meta.TitleId] += sizes[i]
 		if older, ok := result[meta.TitleId]; ok && older.Version >= meta.Version {
 			continue
 		}
 		result[meta.TitleId] = meta
+	}
+	for id, meta := range result {
+		meta.StoredSize = stored[id]
 	}
 	return result
 }

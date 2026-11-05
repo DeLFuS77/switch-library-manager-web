@@ -696,3 +696,57 @@
 		padding: 0.1rem 0;
 	}
 }
+
+// the parts of a NUP on its row in Files: the game, its updates and its DLC, each with what it
+// takes of the file; the help of the sizes shows on hover (see 21-hover-help.js)
+.nup-parts {
+	margin-top: .5rem;
+	font-size: .85rem;
+	color: var(--bs-secondary-color);
+}
+
+.nup-parts-title {
+	display: inline-block;
+	font-size: .8rem;
+	font-weight: 600;
+}
+
+.nup-parts-list {
+	display: grid;
+	gap: .125rem;
+	margin: .25rem 0 0;
+	padding: 0;
+	list-style: none;
+
+	li {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		column-gap: .5rem;
+	}
+
+	.bi {
+		flex: 0 0 1.125rem;
+	}
+}
+
+.nup-part-name {
+	flex: 1 1 6.5rem;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--bs-body-color);
+
+	small {
+		margin-left: .375rem;
+		font-size: .82rem;
+		color: var(--bs-secondary-color);
+	}
+}
+
+.nup-part-size {
+	margin-left: auto;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}

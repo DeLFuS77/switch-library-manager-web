@@ -235,3 +235,65 @@ func TestSwitch2GamesAreNotUpToDate(t *testing.T) {
 		t.Fatalf("the share of the games up to date leaves the game of the Switch 2 out: %d of %d (%d games)", stats.GamesUpToDate, stats.GamesWithFile, len(items))
 	}
 }
+
+// The page of a game in a NUP lists the parts of the file, with what each takes of it, instead
+// of the line of what else the file holds; the name of a DLC goes without the name of its game.
+func TestNupGamePageListsItsParts(t *testing.T) {
+	web := newTestWeb(t)
+	switchDB, localDB := testDatabases(t)
+	withSwitch2Game(t, localDB)
+	game := localDB.TitlesMap["0400486024dec"]
+	game.File.Metadata.StoredSize = 7 << 30
+	game.Updates[131072] = db.SwitchFileInfo{ExtendedInfo: game.File.ExtendedInfo,
+		Metadata: &switchfs.ContentMetaAttributes{TitleId: "0400486024dec800", Version: 131072, Type: "Update", StoredSize: 300 << 20}}
+	game.Dlc["0400486024ded001"] = db.SwitchFileInfo{ExtendedInfo: game.File.ExtendedInfo,
+		Metadata: &switchfs.ContentMetaAttributes{TitleId: "0400486024ded001", Type: "DLC", StoredSize: 700 << 20}}
+	game.LatestUpdate = 131072
+	switchDB.TitlesMap["0400486024dec"] = &db.SwitchTitle{Attributes: db.TitleAttributes{Id: "0400486024DEC000", Name: "Made-up Quest"},
+		Dlc: map[string]db.TitleAttributes{"0400486024ded001": {Id: "0400486024DED001", Name: "Made-up Quest: Island Pack"}}}
+	web.state.set(switchDB, localDB)
+	web.embedFS = os.DirFS("..")
+	web.HandleTitle()
+
+	detail, ok := web.getTitleDetail("0400486024DEC000", "en")
+	if !ok || detail.Base.AlsoHolds != nil || len(detail.Base.Parts) != 3 {
+		t.Fatalf("parts: %+v, also %v", detail.Base.Parts, detail.Base.AlsoHolds)
+	}
+	want := []TitleFilePart{{Kind: PART_GAME, Detail: "v65536", Size: 7 << 30}, {Kind: PART_UPDATE, Detail: "v131072", Size: 300 << 20},
+		{Kind: PART_DLC, Detail: "Island Pack", Size: 700 << 20}}
+	for i, part := range want {
+		if detail.Base.Parts[i] != part {
+			t.Fatalf("part %d: %+v, want %+v", i, detail.Base.Parts[i], part)
+		}
+	}
+
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/title/0400486024DEC000.html", nil)
+	request.Header.Set("Accept-Language", "es")
+	web.router.ServeHTTP(recorder, request)
+	body := recorder.Body.String()
+	if !strings.Contains(body, "Contenido del archivo") || !strings.Contains(body, "300,0 MB") || !strings.Contains(body, "<small>Island Pack</small>") ||
+		strings.Contains(body, "También en este archivo") {
+		t.Fatalf("the page lists the parts:\n%s", body)
+	}
+
+	// a NUP read before the sizes were told keeps the line of what else it holds
+	game.File.Metadata.StoredSize = 0
+	if detail, _ := web.getTitleDetail("0400486024DEC000", "en"); detail.Base.Parts != nil || len(detail.Base.AlsoHolds) == 0 {
+		t.Fatalf("no sizes: %+v %v", detail.Base.Parts, detail.Base.AlsoHolds)
+	}
+}
+
+func TestDlcShortName(t *testing.T) {
+	for name, want := range map[string]string{
+		"Donkey Kong Bananza: DK Island & Emerald Rush": "DK Island & Emerald Rush",
+		"Donkey Kong Bananza - Extra":                   "Extra",
+		"Donkey Kong Bananzas Pack":                     "Donkey Kong Bananzas Pack",
+		"Donkey Kong Bananza":                           "Donkey Kong Bananza",
+		"Season Pass":                                   "Season Pass",
+	} {
+		if got := dlcShortName(name, "Donkey Kong Bananza"); got != want {
+			t.Errorf("%q: %q, want %q", name, got, want)
+		}
+	}
+}

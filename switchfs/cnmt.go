@@ -40,6 +40,9 @@ type ContentMetaAttributes struct {
 	// set by the library when the NACP of a game or an update could not be read: the newest
 	// generation of the keys then, plus one (0 in data cached before it was noted)
 	NacpTriedKeys int `json:"nacp_tried_keys,omitempty"`
+	// for a package of a NUP: the bytes of the file its data takes, the data it shares with the
+	// game counted with the game (see NupContainer.Metadata); 0 for any other file
+	StoredSize int64 `json:"stored_size,omitempty"`
 }
 
 type ContentMeta struct {

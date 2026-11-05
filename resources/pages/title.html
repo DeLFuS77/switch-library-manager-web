@@ -505,6 +505,17 @@
 							{{- with .GamesInFile}}
 							<div class="item-meta"><span><span class="bi bi-collection me-1" aria-hidden="true"></span>{{t "This file holds %v games: %v" (len .) (join . ", ")}}</span></div>
 							{{- end}}
+							{{- with .Parts}}
+							<div class="nup-parts" data-hover-help>
+								<div class="nup-parts-title help-name">{{t "Contents of the file"}}</div>
+								<div class="form-text">{{t "What each part takes in the file. The data an update shares with the game is kept only once, so the parts add up to the size of the file."}}</div>
+								<ul class="nup-parts-list">
+									{{- range .}}
+									<li><span class="bi {{if eq .Kind "game"}}bi-controller{{else if eq .Kind "update"}}bi-arrow-up-circle{{else}}bi-puzzle{{end}}" aria-hidden="true"></span><span class="nup-part-name">{{if eq .Kind "game"}}{{t "Game"}}{{else if eq .Kind "update"}}{{t "Update"}}{{else}}{{t "DLC"}}{{end}}<small>{{.Detail}}</small></span><span class="nup-part-size">{{formatSize .Size}}</span></li>
+									{{- end}}
+								</ul>
+							</div>
+							{{- end}}
 							{{- with .AlsoHolds}}
 							<div class="item-meta"><span><span class="bi bi-box-seam me-1" aria-hidden="true"></span>{{t "Also in this file: %v" (join . ", ")}}</span></div>
 							{{- end}}

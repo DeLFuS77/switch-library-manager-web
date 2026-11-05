@@ -321,3 +321,41 @@ func TestVerifyNupManySmallAndBigFiles(t *testing.T) {
 		}
 	}
 }
+
+// Each package takes the bytes of its own data: the data the update shares with the game counts
+// with the game, once, and the parts add up to the data of the file.
+func TestNupStoredSizes(t *testing.T) {
+	packages := nupGame()
+	nup := testnup.Build(packages)
+	container, err := readNup(bytes.NewReader(nup), int64(len(nup)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	meta := container.Metadata()
+	game, update, dlc := meta["0400486024dec000"], meta["0400486024dec800"], meta["0400486024ded001"]
+	if game == nil || update == nil || dlc == nil {
+		t.Fatalf("metadata %v", meta)
+	}
+	stored := func(pkg int, path string) int64 {
+		_, size := testnup.Extent(nup, packages, pkg, path)
+		return int64(size)
+	}
+	wantUpdate := stored(1, "exefs/main") + stored(1, "romfs/Data/patch.bin")
+	if update.StoredSize != wantUpdate {
+		t.Errorf("the update takes %d, not the data it shares: want %d", update.StoredSize, wantUpdate)
+	}
+	if dlc.StoredSize != stored(2, "romfs/dlc.bin") {
+		t.Errorf("the DLC takes %d", dlc.StoredSize)
+	}
+	extents := map[uint64]bool{}
+	total := int64(0)
+	for _, file := range container.Files {
+		if file.Size > 0 && !extents[file.ExtentOffset] {
+			extents[file.ExtentOffset] = true
+			total += int64(file.ExtentSize)
+		}
+	}
+	if game.StoredSize+update.StoredSize+dlc.StoredSize != total || game.StoredSize <= stored(0, "romfs/Data/shared.bin") {
+		t.Errorf("the parts %d + %d + %d add up to the data %d", game.StoredSize, update.StoredSize, dlc.StoredSize, total)
+	}
+}
