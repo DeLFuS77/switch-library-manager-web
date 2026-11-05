@@ -28,10 +28,16 @@ const IGDB_TITLES_FILENAME = "igdbtitles.json"
 // a game IGDB did not find is asked again after a month, in case it was added
 const igdbTitleRetry = 30 * 24 * time.Hour
 
+// igdbTitleVersion is what a game found is asked again under: 2, the release date of the console
+// searched, where before it was the first one on any platform (a game of the Switch 2 that came
+// out on the PC years before had that date).
+const igdbTitleVersion = 2
+
 // IgdbTitle is what IGDB tells of a game the titles database does not list.
 type IgdbTitle struct {
 	Checked     time.Time `json:"checked"`
 	Found       bool      `json:"found"`
+	Version     int       `json:"version,omitempty"`
 	Genres      []string  `json:"genres,omitempty"`
 	ReleaseDate int       `json:"release_date,omitempty"`
 	Publisher   string    `json:"publisher,omitempty"`
@@ -84,10 +90,11 @@ func (s *igdbTitleStore) save() error {
 	return durable.WriteFile(s.path, data)
 }
 
-// needsLookup tells a game never asked, or not found a while ago.
+// needsLookup tells a game never asked, not found a while ago, or found by an older version of
+// the app (see igdbTitleVersion).
 func (s *igdbTitleStore) needsLookup(prefix string, now time.Time) bool {
 	game, ok := s.get(prefix)
-	return !ok || !game.Found && now.Sub(game.Checked) > igdbTitleRetry
+	return !ok || !game.Found && now.Sub(game.Checked) > igdbTitleRetry || game.Found && game.Version < igdbTitleVersion
 }
 
 // igdbGenres are the genres and themes of IGDB in the genres of the app; the others (Indie...)
@@ -107,17 +114,21 @@ func (c *igdbClient) lookupTitle(ctx context.Context, name string, now time.Time
 
 // lookupTitleOn is lookupTitle for the games of a platform of IGDB: the Switch, or the Switch 2.
 func (c *igdbClient) lookupTitleOn(ctx context.Context, name string, platform int, now time.Time) (IgdbTitle, error) {
-	result := IgdbTitle{Checked: now}
+	result := IgdbTitle{Checked: now, Version: igdbTitleVersion}
 	type named struct {
 		Name string `json:"name"`
 	}
 	var games []struct {
-		Name             string  `json:"name"`
-		FirstReleaseDate int64   `json:"first_release_date"`
-		Summary          string  `json:"summary"`
-		Genres           []named `json:"genres"`
-		Themes           []named `json:"themes"`
-		Cover            struct {
+		Name             string `json:"name"`
+		FirstReleaseDate int64  `json:"first_release_date"`
+		ReleaseDates     []struct {
+			Date     int64 `json:"date"`
+			Platform int   `json:"platform"`
+		} `json:"release_dates"`
+		Summary string  `json:"summary"`
+		Genres  []named `json:"genres"`
+		Themes  []named `json:"themes"`
+		Cover   struct {
 			ImageId string `json:"image_id"`
 		} `json:"cover"`
 		Companies []struct {
@@ -126,7 +137,7 @@ func (c *igdbClient) lookupTitleOn(ctx context.Context, name string, platform in
 			Developer bool  `json:"developer"`
 		} `json:"involved_companies"`
 	}
-	query := fmt.Sprintf(`search "%s"; fields name,first_release_date,summary,genres.name,themes.name,cover.image_id,involved_companies.company.name,involved_companies.publisher,involved_companies.developer; where platforms = (%d); limit 5;`,
+	query := fmt.Sprintf(`search "%s"; fields name,first_release_date,release_dates.date,release_dates.platform,summary,genres.name,themes.name,cover.image_id,involved_companies.company.name,involved_companies.publisher,involved_companies.developer; where platforms = (%d); limit 5;`,
 		apicalypseText(name), platform)
 	if err := c.query(ctx, "games", query, &games); err != nil {
 		return result, err
@@ -145,8 +156,25 @@ func (c *igdbClient) lookupTitleOn(ctx context.Context, name string, platform in
 	}
 	result.Found = true
 	result.Summary = strings.TrimSpace(chosen.Summary)
-	if chosen.FirstReleaseDate > 0 {
-		date := time.Unix(chosen.FirstReleaseDate, 0).UTC()
+	// the first day it came out on the console searched; the first one on any platform only when
+	// IGDB gives no date of another platform, else a game of the Switch 2 that came out on the PC
+	// years before would show that date (a game without a date of its console shows none)
+	var first int64
+	otherPlatform := false
+	for _, release := range chosen.ReleaseDates {
+		if release.Platform != platform {
+			otherPlatform = otherPlatform || release.Date > 0
+			continue
+		}
+		if release.Date > 0 && (first == 0 || release.Date < first) {
+			first = release.Date
+		}
+	}
+	if first == 0 && !otherPlatform {
+		first = chosen.FirstReleaseDate
+	}
+	if first > 0 {
+		date := time.Unix(first, 0).UTC()
 		result.ReleaseDate = date.Year()*10000 + int(date.Month())*100 + date.Day()
 	}
 	seen := map[string]bool{}

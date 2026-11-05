@@ -222,7 +222,7 @@ func (web *Web) switch2TitlesToLookUp(now time.Time) map[string]string {
 		}
 		found, asked := store.get(prefix)
 		switch {
-		case !asked, !found.Found && now.Sub(found.Checked) > igdbTitleRetry:
+		case !asked, !found.Found && now.Sub(found.Checked) > igdbTitleRetry, found.Found && found.Version < igdbTitleVersion:
 		case found.Found && (found.ReleaseDate == 0 || found.ReleaseDate > today) && now.Sub(found.Checked) > switch2DateRetry:
 		default:
 			continue

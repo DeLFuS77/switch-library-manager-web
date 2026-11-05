@@ -44,6 +44,58 @@ func TestIgdbLookupOfATitle(t *testing.T) {
 	}
 }
 
+// The release date is the one of the console searched, not the first one on any platform: a game
+// of the Switch 2 that came out on the PC years before gets the day it came out on the Switch 2,
+// and none when IGDB gives a date of another platform only. A game found before this asks again.
+func TestIgdbReleaseDateOfTheConsole(t *testing.T) {
+	answer := ""
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasPrefix(r.URL.Path, "/token"):
+			io.WriteString(w, `{"access_token":"abc","expires_in":3600}`)
+		case r.URL.Path == "/v4/games":
+			io.WriteString(w, answer)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	t.Cleanup(server.Close)
+	savedToken, savedApi := igdbTokenUrl, igdbApiUrl
+	igdbTokenUrl, igdbApiUrl = server.URL+"/token", server.URL+"/v4/"
+	t.Cleanup(func() { igdbTokenUrl, igdbApiUrl = savedToken, savedApi })
+	client := newIgdbClient("id", "secret")
+
+	// 25/03/2013 on the PC, 05/06/2025 and 12/06/2025 on the Switch 2
+	answer = `[{"name":"Old Shooter","first_release_date":1364169600,"release_dates":[{"date":1364169600,"platform":6},
+		{"date":1749686400,"platform":508},{"date":1749081600,"platform":508},{"platform":508}]}]`
+	found, err := client.lookupTitleOn(context.Background(), "Old Shooter", igdbSwitch2Platform, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !found.Found || found.ReleaseDate != 20250605 || found.Version != igdbTitleVersion {
+		t.Fatalf("the date of the Switch 2: %+v", found)
+	}
+
+	// a date of the PC only: none
+	answer = `[{"name":"Old Shooter","first_release_date":1364169600,"release_dates":[{"date":1364169600,"platform":6},{"platform":508}]}]`
+	if found, err = client.lookupTitleOn(context.Background(), "Old Shooter", igdbSwitch2Platform, time.Now()); err != nil || found.ReleaseDate != 0 {
+		t.Fatalf("a date of another platform only: %+v %v", found, err)
+	}
+
+	// no dates by platform: the first one
+	answer = `[{"name":"Old Shooter","first_release_date":1364169600}]`
+	if found, err = client.lookupTitleOn(context.Background(), "Old Shooter", igdbSwitch2Platform, time.Now()); err != nil || found.ReleaseDate != 20130325 {
+		t.Fatalf("no dates by platform: %+v %v", found, err)
+	}
+
+	store := &igdbTitleStore{games: map[string]IgdbTitle{}}
+	store.set("0400000000010", IgdbTitle{Found: true, ReleaseDate: 20130325, Checked: time.Now()})
+	store.set("0400000000020", IgdbTitle{Found: true, ReleaseDate: 20250605, Version: igdbTitleVersion, Checked: time.Now()})
+	if !store.needsLookup("0400000000010", time.Now()) || store.needsLookup("0400000000020", time.Now()) {
+		t.Fatal("a game found by an older version is asked again, one found now is not")
+	}
+}
+
 // A game of the library the titles database does not list gets a title with the versions
 // published, the name and publisher of its files and what IGDB told; the database is left as
 // it is, a known game keeps its own title, and a game gone takes its title away.
@@ -62,7 +114,7 @@ func TestLibraryTitlesForUnknownGames(t *testing.T) {
 		"0100000000010": game("0100000000010000", "Known Game", "Known Publisher"),
 		"0100000000020": game("0100000000020000", "Lost Quest", "Small Studio"),
 	}}
-	web.igdbTitles().set("0100000000020", IgdbTitle{Found: true, Genres: []string{"RPG"}, ReleaseDate: 20210101, Publisher: "Seller", Summary: "A quest.", Cover: "https://images.igdb.com/x.jpg"})
+	web.igdbTitles().set("0100000000020", IgdbTitle{Found: true, Version: igdbTitleVersion, Genres: []string{"RPG"}, ReleaseDate: 20210101, Publisher: "Seller", Summary: "A quest.", Cover: "https://images.igdb.com/x.jpg"})
 
 	enriched := web.withLibraryTitles(switchDB, localDB)
 	lost := enriched.TitlesMap["0100000000020"]
