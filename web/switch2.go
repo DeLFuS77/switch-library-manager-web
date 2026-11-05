@@ -201,10 +201,11 @@ func (web *Web) withSwitch2Details(switchDB *db.SwitchTitlesDB) *db.SwitchTitles
 // switch2TitlesToLookUp are the games of the Switch 2 to ask IGDB about, by prefix with their
 // name: the ones of the list never asked (or not found a while ago), and the ones without a
 // release date or with one still to come, asked again after a while. Only the ones that can be
-// shown: all of them with "I have a Switch 2", else the ones marked as owned.
+// shown: all of them with "I have a Switch 2", else the ones marked as owned and the ones the
+// folders have a file of (a NUP), which the Library shows always.
 func (web *Web) switch2TitlesToLookUp(now time.Time) map[string]string {
 	pending := map[string]string{}
-	switchDB, _ := web.state.get()
+	switchDB, localDB := web.state.get()
 	if switchDB == nil {
 		return pending
 	}
@@ -216,7 +217,7 @@ func (web *Web) switch2TitlesToLookUp(now time.Time) map[string]string {
 		if !title.FromSwitch2List || !usableName(title.Attributes.Name) {
 			continue
 		}
-		if _, ok := marked[prefix]; !ok && !all {
+		if !all && !hasGame(localDB, marked, prefix) {
 			continue
 		}
 		found, asked := store.get(prefix)

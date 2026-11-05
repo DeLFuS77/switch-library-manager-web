@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
@@ -142,5 +143,34 @@ func TestWizardCountsNupFiles(t *testing.T) {
 	}
 	if result := checkWizardFolder(folder, "en"); !result.Ok || result.Games != 3 || result.Switch2 != 2 {
 		t.Fatalf("three games, two of them NUP: %+v", result)
+	}
+}
+
+// A game of the Switch 2 the folders have a file of is asked to IGDB for its cover and details
+// also while "I have a Switch 2" is off: the Library shows it always.
+func TestSwitch2GamesWithAFileAreLookedUp(t *testing.T) {
+	web := newTestWeb(t)
+	switchDB := &db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{
+		"0400486024dec": {Attributes: db.TitleAttributes{Id: "0400486024DEC000", Name: "The Legend of Zelda: Ocarina of Time"}, FromSwitch2List: true},
+		"0400000000060": {Attributes: db.TitleAttributes{Id: "0400000000060000", Name: "Comet Rally"}, FromSwitch2List: true},
+	}}
+	localDB := &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{}, Skipped: map[db.ExtendedFileInfo]db.SkippedFile{}}
+	withSwitch2Game(t, localDB)
+	web.state.set(switchDB, localDB)
+	pending := web.switch2TitlesToLookUp(time.Now())
+	if len(pending) != 1 || pending["0400486024dec"] != "The Legend of Zelda: Ocarina of Time" {
+		t.Fatalf("only the game with a file: %v", pending)
+	}
+}
+
+// A NUP shows as NUP, its format, also when it holds updates or DLC with the game.
+func TestNupFilesShowAsNup(t *testing.T) {
+	game := &db.SwitchGameFiles{MultiContent: true, File: db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: "Ocarina.NUP"}}}
+	if kind := getType(game); kind != "nup" {
+		t.Fatalf("a NUP with its update: %q", kind)
+	}
+	game.File.ExtendedInfo.FileName = "Game.xci"
+	if kind := getType(game); kind != "multi-content" {
+		t.Fatalf("a cartridge with its update: %q", kind)
 	}
 }

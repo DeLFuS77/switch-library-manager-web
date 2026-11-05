@@ -314,6 +314,9 @@ func (web *Web) lookupLibraryTitles(ctx context.Context, client *igdbClient) err
 		return nil
 	}
 	store := web.igdbTitles()
+	// a game of the library IGDB gives a cover of, and that has none yet
+	newCover := false
+	_, localDB := web.state.get()
 	for prefix, name := range pending {
 		if web.state.IsSynchronizing() {
 			break
@@ -332,6 +335,11 @@ func (web *Web) lookupLibraryTitles(ctx context.Context, client *igdbClient) err
 			continue
 		}
 		store.set(prefix, found)
+		if localDB != nil && found.Found && found.Cover != "" {
+			if local, ok := localDB.TitlesMap[prefix]; ok && local.BaseExist && local.Icon == "" {
+				newCover = true
+			}
+		}
 	}
 	if err := store.save(); err != nil {
 		return err
@@ -340,6 +348,10 @@ func (web *Web) lookupLibraryTitles(ctx context.Context, client *igdbClient) err
 	// library replaced meanwhile (covers, a scan) is not written over with the one of before
 	if web.state.update(web.withLibraryTitles) {
 		web.invalidateDerived()
+		// the new covers of the games of the library show now, not after the next scan
+		if newCover {
+			web.startCoverDownloads()
+		}
 	}
 	return nil
 }

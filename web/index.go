@@ -19,6 +19,11 @@ func getType(gameFile *db.SwitchGameFiles) string {
 		return "split"
 	}
 
+	// a NUP holds a game with its updates and DLC by design: its format tells more than
+	// "multi-content"
+	if switchfs.IsNupFile(gameFile.File.ExtendedInfo.FileName) {
+		return "nup"
+	}
 	if gameFile.MultiContent {
 		return "multi-content"
 	}

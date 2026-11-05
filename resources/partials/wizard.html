@@ -201,7 +201,7 @@
 						<!-- 2. folders -->
 						<section class="wizard-step" data-step="folders" data-icon="bi-folder2-open" data-caption="{{t "Your games"}}" hidden>
 							<h2 class="wizard-title">{{t "Where are your games?"}}</h2>
-							<p class="wizard-lead">{{if .InContainer}}{{t "The folders with your NSP, NSZ, XCI and XCZ files. Subfolders are read too. With Docker, write the path inside the container, like /mnt/roms."}}{{else}}{{t "The folders with your NSP, NSZ, XCI and XCZ files. Subfolders are read too."}}{{end}}</p>
+							<p class="wizard-lead">{{if .InContainer}}{{t "The folders with your NSP, NSZ, XCI, XCZ and NUP files. Subfolders are read too. With Docker, write the path inside the container, like /mnt/roms."}}{{else}}{{t "The folders with your NSP, NSZ, XCI, XCZ and NUP files. Subfolders are read too."}}{{end}}</p>
 							{{- if not .Auto}}<p class="wizard-now"><span class="bi bi-info-circle" aria-hidden="true"></span>{{t "Now:"}} {{if $s.Folder}}<code>{{$s.Folder}}</code>{{range $s.ScanFolders}}, <code>{{.}}</code>{{end}}{{else}}{{t "no folder yet"}}{{end}}</p>{{end}}
 							<label for="wizard_scan_folders" class="form-label fw-semibold">{{t "Folders to scan"}}</label>
 							<textarea class="form-control font-monospace" id="wizard_scan_folders" name="scan_folders" rows="3" spellcheck="false" data-wizard-field="scan_folders" placeholder="{{t "e.g. %v" .FolderExample}}" aria-describedby="wizard_scan_folders_help">
