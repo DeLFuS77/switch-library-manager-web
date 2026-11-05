@@ -2065,6 +2065,13 @@ func init() {
 		"No date":                            "无日期",
 		"The release date is not known yet.": "发售日期尚不清楚。",
 		"I have a Switch 2":                  "我有 Switch 2",
+		"Console":                            "主机",
+		"All consoles":                       "所有主机",
+		"There are %v games of the Switch 2 in your folders. Turn it on to see also the ones you are missing.": "你的文件夹中有 %v 个 Switch 2 游戏。打开后也会显示你缺少的游戏。",
+		"There is 1 game of the Switch 2 in your folders. Turn it on to see also the ones you are missing.":    "你的文件夹中有 1 个 Switch 2 游戏。打开后也会显示你缺少的游戏。",
+		"The games of the Switch 2 you are missing show in Missing Games and in the counts.":                   "你缺少的 Switch 2 游戏会显示在“缺失的游戏”和统计中。",
+		"On because there are %v .nup files (games of the Switch 2) in your folders.":                          "已打开，因为你的文件夹中有 %v 个 .nup 文件（Switch 2 游戏）。",
+		"On because there is 1 .nup file (a game of the Switch 2) in your folders.":                            "已打开，因为你的文件夹中有 1 个 .nup 文件（Switch 2 游戏）。",
 		"The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge.": "Switch 2 的游戏会根据 switchbrew 的列表显示在“缺失的游戏”和统计中；设置 IGDB 后还会显示封面、发售日期和简介。用“已拥有”标记你有卡带的游戏。",
 	}
 }

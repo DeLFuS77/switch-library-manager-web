@@ -426,8 +426,12 @@ type LibraryFacets struct {
 	Complete int
 	Formats  []string
 	// counted before the kind and extra filters; the regions found in the library
-	Games     int
-	Demos     int
+	Games int
+	Demos int
+	// the games of the Switch and of the Switch 2 alone, counted before the console filter: the
+	// filter is offered when the library has both
+	Switch1   int
+	Switch2   int
 	NoCover   int
 	Unknown   int
 	Recent    int

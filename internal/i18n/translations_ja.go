@@ -2065,6 +2065,13 @@ func init() {
 		"No date":                            "日付なし",
 		"The release date is not known yet.": "発売日はまだわかりません。",
 		"I have a Switch 2":                  "Switch 2 を持っている",
+		"Console":                            "本体",
+		"All consoles":                       "すべての本体",
+		"There are %v games of the Switch 2 in your folders. Turn it on to see also the ones you are missing.": "フォルダーに Switch 2 のゲームが %v 本あります。オンにすると、未所持のゲームも表示されます。",
+		"There is 1 game of the Switch 2 in your folders. Turn it on to see also the ones you are missing.":    "フォルダーに Switch 2 のゲームが 1 本あります。オンにすると、未所持のゲームも表示されます。",
+		"The games of the Switch 2 you are missing show in Missing Games and in the counts.":                   "未所持の Switch 2 のゲームが「未所持のゲーム」と集計に表示されます。",
+		"On because there are %v .nup files (games of the Switch 2) in your folders.":                          "フォルダーに .nup ファイル（Switch 2 のゲーム）が %v 個あるため、オンにしました。",
+		"On because there is 1 .nup file (a game of the Switch 2) in your folders.":                            "フォルダーに .nup ファイル（Switch 2 のゲーム）が 1 個あるため、オンにしました。",
 		"The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge.": "Switch 2 のゲームが switchbrew のリストから「未所持のゲーム」と集計に表示されます。IGDB を設定していれば、パッケージ画像、発売日、説明も表示されます。ゲームカードで持っているゲームは「持っている」で印を付けてください。",
 	}
 }

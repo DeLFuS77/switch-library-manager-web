@@ -296,6 +296,15 @@ func (f *libraryFilter) attributes(item *TitleItem) bool {
 // collection, and takes it in the kind and the extra chosen.
 func (f *libraryFilter) kindAndExtra(item *TitleItem) bool {
 	filter, facets := f.filter, &f.facets
+	switch2 := item.IsSwitch2()
+	if switch2 {
+		facets.Switch2++
+	} else {
+		facets.Switch1++
+	}
+	if (filter.Console == CONSOLE_SWITCH && switch2) || (filter.Console == CONSOLE_SWITCH2 && !switch2) {
+		return false
+	}
 	if item.Demo {
 		facets.Demos++
 	} else {

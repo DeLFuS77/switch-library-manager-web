@@ -2065,6 +2065,13 @@ func init() {
 		"No date":                            "날짜 없음",
 		"The release date is not known yet.": "출시일이 아직 알려지지 않았습니다.",
 		"I have a Switch 2":                  "Switch 2 있음",
+		"Console":                            "콘솔",
+		"All consoles":                       "모든 콘솔",
+		"There are %v games of the Switch 2 in your folders. Turn it on to see also the ones you are missing.": "폴더에 Switch 2 게임이 %v개 있습니다. 켜면 없는 게임도 표시됩니다.",
+		"There is 1 game of the Switch 2 in your folders. Turn it on to see also the ones you are missing.":    "폴더에 Switch 2 게임이 1개 있습니다. 켜면 없는 게임도 표시됩니다.",
+		"The games of the Switch 2 you are missing show in Missing Games and in the counts.":                   "없는 Switch 2 게임이 '누락된 게임'과 집계에 표시됩니다.",
+		"On because there are %v .nup files (games of the Switch 2) in your folders.":                          "폴더에 .nup 파일(Switch 2 게임)이 %v개 있어서 켜 두었습니다.",
+		"On because there is 1 .nup file (a game of the Switch 2) in your folders.":                            "폴더에 .nup 파일(Switch 2 게임)이 1개 있어서 켜 두었습니다.",
 		"The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge.": "Switch 2 게임이 switchbrew 목록을 바탕으로 '누락된 게임'과 집계에 표시되며, IGDB를 설정하면 커버, 출시일, 설명도 함께 표시됩니다. 게임 카드로 가진 게임은 '보유 중'으로 표시하세요.",
 	}
 }

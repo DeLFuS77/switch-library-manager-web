@@ -286,17 +286,20 @@ func (web *Web) wizardAuto() bool {
 type WizardCheck struct {
 	Ok      bool   `json:"ok"`
 	Message string `json:"message"`
-	// game files found in a folder (at most wizardCountLimit)
-	Games int  `json:"games"`
-	More  bool `json:"more"`
+	// game files found in a folder (at most wizardCountLimit), and the decrypted games of the
+	// Switch 2 (NUP files) among them: the wizard turns on "I have a Switch 2" for them
+	Games   int  `json:"games"`
+	More    bool `json:"more"`
+	Switch2 int  `json:"switch2,omitempty"`
 	// the field the message is about, when it is not the one checked (the setup code of the
 	// administrator)
 	Field string `json:"field,omitempty"`
 }
 
-// countGameFiles counts the game files of a folder and its subfolders, up to a limit and a time.
-func countGameFiles(folder string) (int, bool) {
-	count := 0
+// countGameFiles counts the game files of a folder and its subfolders, up to a limit and a time,
+// and the NUP files among them.
+func countGameFiles(folder string) (int, int, bool) {
+	count, nup := 0, 0
 	deadline := time.Now().Add(wizardCountTime)
 	stop := false
 	filepath.WalkDir(folder, func(path string, entry fs.DirEntry, err error) error {
@@ -309,13 +312,16 @@ func countGameFiles(folder string) (int, bool) {
 		}
 		if !entry.IsDir() {
 			switch strings.ToLower(filepath.Ext(entry.Name())) {
-			case ".nsp", ".nsz", ".xci", ".xcz", ".nup":
+			case ".nup":
+				nup++
+				count++
+			case ".nsp", ".nsz", ".xci", ".xcz":
 				count++
 			}
 		}
 		return nil
 	})
-	return count, stop
+	return count, nup, stop
 }
 
 // WIZARD_NETWORK_PATH tells why a path of another computer is not checked, translated
@@ -346,14 +352,14 @@ func checkWizardFolder(folder string, lang string) WizardCheck {
 	if _, err := os.ReadDir(folder); err != nil {
 		return WizardCheck{Message: i18n.Translate(lang, "The folder exists but cannot be read: check the permissions.")}
 	}
-	games, more := countGameFiles(folder)
+	games, nup, more := countGameFiles(folder)
 	if games == 0 {
 		return WizardCheck{Ok: true, Message: i18n.Translate(lang, "Found, but there are no game files in it yet.")}
 	}
 	if more {
-		return WizardCheck{Ok: true, Games: games, More: true, Message: i18n.Translatef(lang, "Found, with more than %v game files.", games)}
+		return WizardCheck{Ok: true, Games: games, More: true, Switch2: nup, Message: i18n.Translatef(lang, "Found, with more than %v game files.", games)}
 	}
-	return WizardCheck{Ok: true, Games: games, Message: i18n.Translatef(lang, "Found, with %v game files.", games)}
+	return WizardCheck{Ok: true, Games: games, Switch2: nup, Message: i18n.Translatef(lang, "Found, with %v game files.", games)}
 }
 
 // checkWizardKeys checks a path to the keys; empty is the default places.

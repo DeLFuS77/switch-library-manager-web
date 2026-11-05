@@ -2092,6 +2092,13 @@ var Translations = map[string]map[string]string{
 		"No date":                            "Sin fecha",
 		"The release date is not known yet.": "Todavía no se sabe la fecha de salida.",
 		"I have a Switch 2":                  "Tengo una Switch 2",
+		"Console":                            "Consola",
+		"All consoles":                       "Todas las consolas",
+		"There are %v games of the Switch 2 in your folders. Turn it on to see also the ones you are missing.": "Hay %v juegos de Switch 2 en tus carpetas. Enciéndelo para ver también los que te faltan.",
+		"There is 1 game of the Switch 2 in your folders. Turn it on to see also the ones you are missing.":    "Hay 1 juego de Switch 2 en tus carpetas. Enciéndelo para ver también los que te faltan.",
+		"The games of the Switch 2 you are missing show in Missing Games and in the counts.":                   "Los juegos de Switch 2 que te faltan salen en Juegos que faltan y en las cuentas.",
+		"On because there are %v .nup files (games of the Switch 2) in your folders.":                          "Encendido porque hay %v archivos .nup (juegos de Switch 2) en tus carpetas.",
+		"On because there is 1 .nup file (a game of the Switch 2) in your folders.":                            "Encendido porque hay 1 archivo .nup (un juego de Switch 2) en tus carpetas.",
 		"The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge.": "Los juegos de Switch 2 salen en Juegos que faltan y en las cuentas, con la lista de switchbrew y, si tienes IGDB configurado, con su carátula, su fecha de salida y su descripción. Marca con «Lo tengo» los que tienes en cartucho.",
 	},
 }

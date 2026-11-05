@@ -2065,6 +2065,13 @@ func init() {
 		"No date":                            "Без даты",
 		"The release date is not known yet.": "Дата выхода пока неизвестна.",
 		"I have a Switch 2":                  "У меня есть Switch 2",
+		"Console":                            "Консоль",
+		"All consoles":                       "Все консоли",
+		"There are %v games of the Switch 2 in your folders. Turn it on to see also the ones you are missing.": "Игр для Switch 2 в твоих папках: %v. Включи, чтобы видеть и недостающие.",
+		"There is 1 game of the Switch 2 in your folders. Turn it on to see also the ones you are missing.":    "В твоих папках 1 игра для Switch 2. Включи, чтобы видеть и недостающие.",
+		"The games of the Switch 2 you are missing show in Missing Games and in the counts.":                   "Недостающие игры Switch 2 показываются в разделе «Недостающие игры» и в подсчётах.",
+		"On because there are %v .nup files (games of the Switch 2) in your folders.":                          "Включено: файлов .nup (игр Switch 2) в твоих папках: %v.",
+		"On because there is 1 .nup file (a game of the Switch 2) in your folders.":                            "Включено: в твоих папках 1 файл .nup (игра Switch 2).",
 		"The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge.": "Игры Switch 2 показываются в разделе «Недостающие игры» и в подсчётах по списку switchbrew, а если настроен IGDB — с обложкой, датой выхода и описанием. Отметьте «Есть у меня» те, что есть у вас на картридже.",
 	}
 }

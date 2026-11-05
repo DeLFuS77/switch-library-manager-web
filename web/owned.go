@@ -48,6 +48,22 @@ func hasGame(localDB *db.LocalSwitchFilesDB, marked map[string]time.Time, prefix
 	return ok
 }
 
+// switch2Games counts the games of the Switch 2 the folders have, a file of their own (a NUP,
+// for now): the ones marked as owned without a file are not counted.
+func (web *Web) switch2Games() int {
+	_, localDB := web.state.get()
+	if localDB == nil {
+		return 0
+	}
+	count := 0
+	for prefix, title := range localDB.TitlesMap {
+		if title.BaseExist && db.Switch2(prefix) {
+			count++
+		}
+	}
+	return count
+}
+
 // showsSwitch2 reports whether the games of the Switch 2 the library does not have are shown:
 // only for who has the console.
 func (web *Web) showsSwitch2() bool {

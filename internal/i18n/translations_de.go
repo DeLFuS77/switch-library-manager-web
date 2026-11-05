@@ -2065,6 +2065,13 @@ func init() {
 		"No date":                            "Ohne Datum",
 		"The release date is not known yet.": "Das Erscheinungsdatum ist noch nicht bekannt.",
 		"I have a Switch 2":                  "Ich habe eine Switch 2",
+		"Console":                            "Konsole",
+		"All consoles":                       "Alle Konsolen",
+		"There are %v games of the Switch 2 in your folders. Turn it on to see also the ones you are missing.": "In deinen Ordnern sind %v Spiele der Switch 2. Schalte es ein, um auch die fehlenden zu sehen.",
+		"There is 1 game of the Switch 2 in your folders. Turn it on to see also the ones you are missing.":    "In deinen Ordnern ist 1 Spiel der Switch 2. Schalte es ein, um auch die fehlenden zu sehen.",
+		"The games of the Switch 2 you are missing show in Missing Games and in the counts.":                   "Die fehlenden Spiele der Switch 2 erscheinen unter Fehlende Spiele und in den Zählungen.",
+		"On because there are %v .nup files (games of the Switch 2) in your folders.":                          "Eingeschaltet, weil in deinen Ordnern %v .nup-Dateien (Spiele der Switch 2) sind.",
+		"On because there is 1 .nup file (a game of the Switch 2) in your folders.":                            "Eingeschaltet, weil in deinen Ordnern 1 .nup-Datei (ein Spiel der Switch 2) ist.",
 		"The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge.": "Die Spiele der Switch 2 erscheinen unter Fehlende Spiele und in den Zählungen, aus der Liste von switchbrew, und mit Cover, Erscheinungsdatum und Beschreibung, wenn IGDB eingerichtet ist. Markiere mit „Hab ich“ die Spiele, die du als Spielkarte hast.",
 	}
 }

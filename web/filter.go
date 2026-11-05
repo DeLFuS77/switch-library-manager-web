@@ -26,9 +26,11 @@ type TitleItemFilter struct {
 	Status string `in:"form=status"`
 	Format string `in:"form=format"`
 	// library only: games or demos, region, and games without a cover or unknown
-	Kind   string `in:"form=kind"`
-	Region string `in:"form=region"`
-	Extra  string `in:"form=extra"`
+	Kind string `in:"form=kind"`
+	// library only: the games of one console, the Switch or the Switch 2 (CONSOLE_SWITCH...)
+	Console string `in:"form=console"`
+	Region  string `in:"form=region"`
+	Extra   string `in:"form=extra"`
 	// library only: one of the user's collections
 	Collection string `in:"form=collection"`
 	// issues only: a kind of issue
@@ -58,6 +60,13 @@ const (
 	STATUS_COMPLETE = "complete"
 )
 
+// library console filter: the games of the Switch (which the Switch 2 plays too), or of the
+// Switch 2 alone
+const (
+	CONSOLE_SWITCH  = "switch"
+	CONSOLE_SWITCH2 = "switch2"
+)
+
 // library kind and extra filters
 const (
 	KIND_GAME       = "game"
@@ -81,6 +90,7 @@ var (
 	allowedSortBy  = map[string]struct{}{"added": {}, "favorite": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}, "duration": {}, "score": {}}
 	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}, userdata.STATUS_WANTED: {}}
 	allowedKind    = map[string]struct{}{"": {}, KIND_GAME: {}, KIND_DEMO: {}}
+	allowedConsole = map[string]struct{}{"": {}, CONSOLE_SWITCH: {}, CONSOLE_SWITCH2: {}}
 	allowedExtra   = map[string]struct{}{"": {}, EXTRA_NO_COVER: {}, EXTRA_UNKNOWN: {}, EXTRA_RECENT: {}, EXTRA_FAVORITES: {}, EXTRA_CHEATS: {}, EXTRA_CHEATS_OTHER: {}, EXTRA_FIRMWARE: {}}
 	regionPattern  = regexp.MustCompile(`^[A-Z]{2,4}$`)
 )
@@ -137,6 +147,9 @@ func (f *TitleItemFilter) Normalize() {
 	if _, ok := allowedKind[f.Kind]; !ok {
 		f.Kind = ""
 	}
+	if _, ok := allowedConsole[f.Console]; !ok {
+		f.Console = ""
+	}
 	if _, ok := allowedExtra[f.Extra]; !ok {
 		f.Extra = ""
 	}
@@ -169,7 +182,7 @@ func (f *TitleItemFilter) Normalize() {
 // Active reports whether the items are filtered by a keyword, a status, a format or another
 // library filter.
 func (f *TitleItemFilter) Active() bool {
-	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Region != "" || f.Extra != "" || f.Collection != "" || f.Play != ""
+	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Console != "" || f.Region != "" || f.Extra != "" || f.Collection != "" || f.Play != ""
 }
 
 // Filters reports whether the Library shows only some of its games: what a smart collection
@@ -193,7 +206,7 @@ func (f *TitleItemFilter) ShowsMissing() bool {
 // collection, kind, region, format and the others.
 func (f *TitleItemFilter) SecondaryCount() int {
 	count := 0
-	for _, value := range []string{f.Collection, f.Kind, f.Region, f.Format, f.Extra, f.Genre, f.Players, f.GameLanguage, f.Play, f.Score} {
+	for _, value := range []string{f.Collection, f.Kind, f.Console, f.Region, f.Format, f.Extra, f.Genre, f.Players, f.GameLanguage, f.Play, f.Score} {
 		if value != "" {
 			count++
 		}
@@ -209,6 +222,7 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("status", f.Status)
 	values.Set("format", strings.ToLower(f.Format))
 	values.Set("kind", f.Kind)
+	values.Set("console", f.Console)
 	values.Set("region", strings.ToLower(f.Region))
 	values.Set("extra", f.Extra)
 	values.Set("collection", f.Collection)

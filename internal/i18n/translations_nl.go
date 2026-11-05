@@ -2065,6 +2065,13 @@ func init() {
 		"No date":                            "Geen datum",
 		"The release date is not known yet.": "De releasedatum is nog niet bekend.",
 		"I have a Switch 2":                  "Ik heb een Switch 2",
+		"Console":                            "Console",
+		"All consoles":                       "Alle consoles",
+		"There are %v games of the Switch 2 in your folders. Turn it on to see also the ones you are missing.": "Er staan %v games van de Switch 2 in je mappen. Zet het aan om ook de ontbrekende te zien.",
+		"There is 1 game of the Switch 2 in your folders. Turn it on to see also the ones you are missing.":    "Er staat 1 game van de Switch 2 in je mappen. Zet het aan om ook de ontbrekende te zien.",
+		"The games of the Switch 2 you are missing show in Missing Games and in the counts.":                   "De ontbrekende games van de Switch 2 staan bij Ontbrekende games en in de tellingen.",
+		"On because there are %v .nup files (games of the Switch 2) in your folders.":                          "Aan, omdat er %v .nup-bestanden (games van de Switch 2) in je mappen staan.",
+		"On because there is 1 .nup file (a game of the Switch 2) in your folders.":                            "Aan, omdat er 1 .nup-bestand (een game van de Switch 2) in je mappen staat.",
 		"The games of the Switch 2 show in Missing Games and in the counts, from the list of switchbrew, with their cover, release date and description when IGDB is set up. Mark with “I have it” the ones you have on a cartridge.": "De games van de Switch 2 staan bij Ontbrekende games en in de tellingen, uit de lijst van switchbrew, met hoes, releasedatum en beschrijving als IGDB is ingesteld. Markeer met „Heb ik” de games die je op een cartridge hebt.",
 	}
 }

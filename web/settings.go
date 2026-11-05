@@ -24,6 +24,8 @@ type SettingsPageData struct {
 	Languages     []string
 	// games of the library without a cover
 	MissingCovers int
+	// games of the Switch 2 the folders have: told under "I have a Switch 2" while it is off
+	Switch2Games int
 	// the verification speeds, with the files checked at once on this computer
 	VerifySpeeds []VerifySpeedOption
 	// the copies of the configuration made every week
@@ -610,6 +612,7 @@ func (web *Web) settingsPageData() SettingsPageData {
 		SyncIntervals:           []int{0, 6, 12, 24, 168},
 		Languages:               i18n.SupportedLanguages,
 		MissingCovers:           web.missingCovers(),
+		Switch2Games:            web.switch2Games(),
 		VerifySpeeds:            verifySpeedOptions(),
 		AutoBackups:             web.autoBackups(),
 		Quarantine:              web.quarantineSummary(),
