@@ -12,7 +12,6 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
-	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -28,10 +27,11 @@ const IGDB_TITLES_FILENAME = "igdbtitles.json"
 // a game IGDB did not find is asked again after a month, in case it was added
 const igdbTitleRetry = 30 * 24 * time.Hour
 
-// igdbTitleVersion is what a game found is asked again under: 2, the release date of the console
-// searched, where before it was the first one on any platform (a game of the Switch 2 that came
-// out on the PC years before had that date).
-const igdbTitleVersion = 2
+// igdbTitleVersion is what a game is asked again under, found or not: 2, the release date of the
+// console searched, where before it was the first one on any platform (a game of the Switch 2 that
+// came out on the PC years before had that date); 3, the name searched without the marks and the
+// words of the eShop, then by shorter forms (see igdbSearchNames).
+const igdbTitleVersion = 3
 
 // IgdbTitle is what IGDB tells of a game the titles database does not list.
 type IgdbTitle struct {
@@ -90,11 +90,11 @@ func (s *igdbTitleStore) save() error {
 	return durable.WriteFile(s.path, data)
 }
 
-// needsLookup tells a game never asked, not found a while ago, or found by an older version of
+// needsLookup tells a game never asked, not found a while ago, or asked by an older version of
 // the app (see igdbTitleVersion).
 func (s *igdbTitleStore) needsLookup(prefix string, now time.Time) bool {
 	game, ok := s.get(prefix)
-	return !ok || !game.Found && now.Sub(game.Checked) > igdbTitleRetry || game.Found && game.Version < igdbTitleVersion
+	return !ok || !game.Found && now.Sub(game.Checked) > igdbTitleRetry || game.Version < igdbTitleVersion
 }
 
 // igdbGenres are the genres and themes of IGDB in the genres of the app; the others (Indie...)
@@ -137,23 +137,27 @@ func (c *igdbClient) lookupTitleOn(ctx context.Context, name string, platform in
 			Developer bool  `json:"developer"`
 		} `json:"involved_companies"`
 	}
-	query := fmt.Sprintf(`search "%s"; fields name,first_release_date,release_dates.date,release_dates.platform,summary,genres.name,themes.name,cover.image_id,involved_companies.company.name,involved_companies.publisher,involved_companies.developer; where platforms = (%d); limit 5;`,
-		apicalypseText(name), platform)
-	if err := c.query(ctx, "games", query, &games); err != nil {
-		return result, err
-	}
-	if len(games) == 0 {
-		return result, nil
-	}
-	// the same name first, else the best match of IGDB
-	chosen := games[0]
-	wanted := search.Text(name)
-	for _, game := range games {
-		if search.Text(game.Name) == wanted {
-			chosen = game
+	// by the name without the marks of the eShop, then by shorter forms of it (see igdbSearchNames)
+	found := -1
+	for i, searched := range igdbSearchNames(name) {
+		games = nil
+		query := fmt.Sprintf(`search "%s"; fields name,first_release_date,release_dates.date,release_dates.platform,summary,genres.name,themes.name,cover.image_id,involved_companies.company.name,involved_companies.publisher,involved_companies.developer; where platforms = (%d); limit 5;`,
+			apicalypseText(searched), platform)
+		if err := c.query(ctx, "games", query, &games); err != nil {
+			return result, err
+		}
+		names := make([]string, len(games))
+		for j, game := range games {
+			names[j] = game.Name
+		}
+		if found = igdbPick(names, searched, i == 0); found >= 0 {
 			break
 		}
 	}
+	if found < 0 {
+		return result, nil
+	}
+	chosen := games[found]
 	result.Found = true
 	result.Summary = strings.TrimSpace(chosen.Summary)
 	// the first day it came out on the console searched; the first one on any platform only when

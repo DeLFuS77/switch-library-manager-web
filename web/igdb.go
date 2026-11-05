@@ -18,7 +18,6 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
-	"github.com/dtrunk90/switch-library-manager-web/internal/search"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
@@ -376,23 +375,27 @@ func (c *igdbClient) lookupOn(ctx context.Context, name string, platform int, no
 		Rating                float64 `json:"rating"`
 		RatingCount           int     `json:"rating_count"`
 	}
-	query := fmt.Sprintf(`search "%s"; fields id,name,slug,collections,aggregated_rating,aggregated_rating_count,rating,rating_count; where platforms = (%d); limit 5;`,
-		apicalypseText(name), platform)
-	if err := c.query(ctx, "games", query, &games); err != nil {
-		return result, err
-	}
-	if len(games) == 0 {
-		return result, nil
-	}
-	// the same name first, else the best match of IGDB
-	chosen := games[0]
-	wanted := search.Text(name)
-	for _, game := range games {
-		if search.Text(game.Name) == wanted {
-			chosen = game
+	// by the name without the marks of the eShop, then by shorter forms of it (see igdbSearchNames)
+	found := -1
+	for i, searched := range igdbSearchNames(name) {
+		games = nil
+		query := fmt.Sprintf(`search "%s"; fields id,name,slug,collections,aggregated_rating,aggregated_rating_count,rating,rating_count; where platforms = (%d); limit 5;`,
+			apicalypseText(searched), platform)
+		if err := c.query(ctx, "games", query, &games); err != nil {
+			return result, err
+		}
+		names := make([]string, len(games))
+		for j, game := range games {
+			names[j] = game.Name
+		}
+		if found = igdbPick(names, searched, i == 0); found >= 0 {
 			break
 		}
 	}
+	if found < 0 {
+		return result, nil
+	}
+	chosen := games[found]
 	result.Found, result.GameId, result.Slug, result.Collections = true, chosen.Id, chosen.Slug, chosen.Collections
 	result.CriticScore, result.CriticCount = chosen.AggregatedRating, chosen.AggregatedRatingCount
 	result.UserScore, result.UserCount = chosen.Rating, chosen.RatingCount
