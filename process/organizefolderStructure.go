@@ -663,6 +663,10 @@ func CleanupLibrary(discard Discard, baseFolder string, roots []string, localDB 
 		if skipped.ReasonCode != db.REASON_OLD_UPDATE && !(options.DeleteDuplicateFiles && skipped.ReasonCode == db.REASON_DUPLICATE) {
 			continue
 		}
+		// a NUP and an NSP or XCI of a game both stay, not told on every run
+		if db.KeptInOtherFormat(file, skipped) {
+			continue
+		}
 		if updateProgress != nil {
 			updateProgress.UpdateProgress(i+1, len(files), file.FileName)
 		}

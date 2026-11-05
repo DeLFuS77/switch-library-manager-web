@@ -1351,9 +1351,13 @@ func VerifyNsz(ctx context.Context, path string, expected map[string][32]byte, p
 	return VerifyCompressed(ctx, path, expected, progress)
 }
 
-// VerifyFile checks a game file of the library (NSP, NSZ, XCI or XCZ). An NCA that does
-// not match its content ID is only damaged when its data does not match its hashes.
+// VerifyFile checks a game file of the library (NSP, NSZ, XCI, XCZ or NUP). An NCA that does
+// not match its content ID is only damaged when its data does not match its hashes; every file
+// of a NUP must match the SHA-256 of its table of contents.
 func VerifyFile(ctx context.Context, path string, progress func(done int64, total int64)) (FileCheck, error) {
+	if IsNupFile(path) {
+		return VerifyNup(ctx, path, progress)
+	}
 	_, check, err := checkPackage(ctx, path, nil, progress)
 	return check, err
 }

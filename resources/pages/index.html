@@ -5,7 +5,7 @@
 				{{- template "pageHeader" (dict "Title" (t "Library") "Count" -1 "Subtitle" (t "The games in your folders. Open a game to see its updates, DLC and files."))}}
 				<div class="d-flex flex-wrap gap-2 mb-3 library-head-actions">
 				{{- if not .Demo}}
-				<button type="button" class="btn btn-outline-secondary rounded-pill editor-only" data-upload-open title="{{t "Send NSP, NSZ, XCI or XCZ files from this device to the library folder. You can also drop them on the page."}}"><span class="bi bi-upload me-2" aria-hidden="true"></span><span class="library-head-label">{{t "Upload games"}}</span></button>
+				<button type="button" class="btn btn-outline-secondary rounded-pill editor-only" data-upload-open title="{{t "Send NSP, NSZ, XCI, XCZ or NUP files from this device to the library folder. You can also drop them on the page."}}"><span class="bi bi-upload me-2" aria-hidden="true"></span><span class="library-head-label">{{t "Upload games"}}</span></button>
 				{{- end}}
 				{{- if gt .Pagination.NumItems 0}}
 				<div class="dropdown">
@@ -21,7 +21,7 @@
 			</div>
 			{{- if not .Demo}}
 			<div class="editor-only">
-				<input type="file" id="uploadInput" accept=".nsp,.nsz,.xci,.xcz" multiple hidden>
+				<input type="file" id="uploadInput" accept=".nsp,.nsz,.xci,.xcz,.nup" multiple hidden>
 				{{- if gt (len .UploadFolders) 1}}
 				<div class="upload-folder mb-3">
 					<label class="form-label small fw-semibold mb-1" for="uploadFolder">{{t "Upload to"}}</label>
@@ -35,7 +35,7 @@
 				<section class="upload-panel surface" id="uploadPanel" aria-live="polite" aria-labelledby="uploadPanelTitle" hidden
 					data-waiting="{{t "Waiting"}}" data-starting="{{t "Starting..."}}" data-progress="{{t "%v of %v"}}" data-retrying="{{t "Connection lost, trying again..."}}"
 					data-done="{{t "Uploaded: the library is being scanned"}}" data-failed="{{t "The upload failed. Choose the file again to go on where it stopped."}}"
-					data-bad-name="{{t "Only NSP, NSZ, XCI and XCZ files can be uploaded."}}" data-cancel="{{t "Cancel"}}">
+					data-bad-name="{{t "Only NSP, NSZ, XCI, XCZ and NUP files can be uploaded."}}" data-cancel="{{t "Cancel"}}">
 					<div class="upload-panel-head"><span class="bi bi-upload text-primary" aria-hidden="true"></span><span id="uploadPanelTitle">{{t "Uploading games"}}</span></div>
 					<ul class="upload-list"></ul>
 				</section>

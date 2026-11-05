@@ -46,10 +46,10 @@ const (
 const TASK_UPLOAD = "upload"
 
 // the extensions of the games that can be uploaded
-var uploadExtensions = map[string]bool{".nsp": true, ".nsz": true, ".xci": true, ".xcz": true}
+var uploadExtensions = map[string]bool{".nsp": true, ".nsz": true, ".xci": true, ".xcz": true, ".nup": true}
 
 const (
-	UPLOAD_BAD_NAME = "Only NSP, NSZ, XCI and XCZ files can be uploaded."
+	UPLOAD_BAD_NAME = "Only NSP, NSZ, XCI, XCZ and NUP files can be uploaded."
 	UPLOAD_EXISTS   = "A file with this name is already in the library folder."
 	UPLOAD_SPACE    = "Not enough free space in the library folder for this file."
 	UPLOAD_NO_DIR   = "The library folder is not set or cannot be found. Set it in Settings."

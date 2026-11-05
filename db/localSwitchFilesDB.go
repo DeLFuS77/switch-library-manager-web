@@ -1101,6 +1101,20 @@ func (s *libraryScan) addDlc(switchTitle *SwitchGameFiles, file ExtendedFileInfo
 	switchTitle.Dlc[metadata.TitleId] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
 }
 
+// OtherFormat tells two copies of a game of which one is a NUP and the other is not. A NUP holds
+// the game decrypted, for emulators, an NSP or an XCI holds it to be installed, and they may not
+// hold the same version: the same game in both is kept in both, and neither is ever deleted as a
+// duplicate of the other.
+func OtherFormat(a string, b string) bool {
+	return switchfs.IsNupFile(a) != switchfs.IsNupFile(b)
+}
+
+// KeptInOtherFormat tells a duplicate whose copy kept is of the other format (see OtherFormat).
+func KeptInOtherFormat(file ExtendedFileInfo, skipped SkippedFile) bool {
+	kept := KeptBy(skipped.ReasonText)
+	return skipped.ReasonCode == REASON_DUPLICATE && kept != "" && OtherFormat(file.FileName, kept)
+}
+
 // PreferDuplicate tells whether the copy file is kept instead of found, the copy of the same
 // title found first, by the choice of the settings (keep). A file with several titles holds
 // other content too: it is never deleted while it holds anything the library keeps, so
