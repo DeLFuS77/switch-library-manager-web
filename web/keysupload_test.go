@@ -97,3 +97,73 @@ func TestKeysUpload(t *testing.T) {
 		t.Fatalf("the settings point to the keys of the data folder: %q", got)
 	}
 }
+
+// A title.keys can be sent alone once a prod.keys is in use, wherever it is: it is kept in the
+// data folder, read with that prod.keys, and the settings still point to it.
+func TestTitleKeysUploadAlone(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	t.Setenv("USERPROFILE", home)
+	web := newTestWeb(t)
+	manager, err := db.NewLocalSwitchDBManager(web.dataFolder)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(manager.Close)
+	web.localDbManager = manager
+	web.HandleKeysUpload()
+	t.Cleanup(func() { settings.InitSwitchKeys(t.TempDir()) })
+
+	// without a prod.keys in use, a title.keys alone is refused
+	settings.InitSwitchKeys(web.dataFolder)
+	if response := uploadKeys(t, web, map[string]string{"title_keys": fakeTitleKeys}); response.Code != http.StatusBadRequest {
+		t.Fatalf("a title.keys without a prod.keys: %d", response.Code)
+	}
+	if _, err := os.Stat(filepath.Join(web.dataFolder, "title.keys")); !os.IsNotExist(err) {
+		t.Fatal("nothing is written for a refused title.keys")
+	}
+
+	keysFolder := t.TempDir()
+	if err := os.WriteFile(filepath.Join(keysFolder, "prod.keys"), []byte(fakeProdKeys), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.Prodkeys = keysFolder })
+	settings.InitSwitchKeys(web.dataFolder)
+	if check := titleKeysCheck(t, web); check.Status != CHECK_INFO || check.Hint == "" {
+		t.Fatalf("no title keys yet, and where they go: %+v", check)
+	}
+
+	if response := uploadKeys(t, web, map[string]string{"title_keys": "nope"}); response.Code != http.StatusBadRequest {
+		t.Fatalf("a wrong title.keys: %d", response.Code)
+	}
+	response := uploadKeys(t, web, map[string]string{"title_keys": fakeTitleKeys})
+	if response.Code != http.StatusOK || strings.Contains(response.Body.String(), "0123456789abcdef") || strings.Contains(response.Body.String(), `"folder"`) {
+		t.Fatalf("the title.keys is saved, and the folder of the keys is not changed: %d %s", response.Code, response.Body.String())
+	}
+	if data, err := os.ReadFile(filepath.Join(web.dataFolder, "title.keys")); err != nil || string(data) != fakeTitleKeys {
+		t.Fatalf("title.keys saved: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(web.dataFolder, "prod.keys")); !os.IsNotExist(err) {
+		t.Fatal("no prod.keys is written")
+	}
+	if got := settings.ReadSettings(web.dataFolder).Prodkeys; got != keysFolder {
+		t.Fatalf("the settings still point to the prod.keys in use: %q", got)
+	}
+	if check := titleKeysCheck(t, web); check.Status != CHECK_OK || check.Value != "1 title keys" {
+		t.Fatalf("the title keys sent are in use: %+v", check)
+	}
+}
+
+// titleKeysCheck is the line of title.keys in Diagnostics.
+func titleKeysCheck(t *testing.T, web *Web) Check {
+	t.Helper()
+	for _, group := range web.diagnostics(httptest.NewRequest(http.MethodGet, "/diagnostics.html", nil), "en").Groups {
+		for _, check := range group.Checks {
+			if check.Label == "title.keys" {
+				return check
+			}
+		}
+	}
+	t.Fatal("no title.keys in Diagnostics")
+	return Check{}
+}

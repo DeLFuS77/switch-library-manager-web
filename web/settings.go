@@ -31,6 +31,8 @@ type SettingsPageData struct {
 	// what the automations need: the keys (to compress) and a notification channel
 	KeysAvailable           bool
 	NotificationsConfigured bool
+	// the title keys loaded from title.keys
+	TitleKeys int
 	// the notification channels, with where each configured one sends
 	NotifyServices      []notify.ServiceView
 	SmtpSecurityChoices []string
@@ -597,6 +599,7 @@ func (web *Web) settingsPageData() SettingsPageData {
 	if web.auth != nil {
 		portal = web.auth.portalView()
 	}
+	_, titleKeys, _ := settings.KeysSummary()
 	return SettingsPageData{
 		Portal:                  portal,
 		GlobalPageData:          web.globalPageData("settings"),
@@ -610,6 +613,7 @@ func (web *Web) settingsPageData() SettingsPageData {
 		Quarantine:              web.quarantineSummary(),
 		QuarantineLimits:        quarantineLimits,
 		KeysAvailable:           settings.IsKeysFileAvailable(),
+		TitleKeys:               titleKeys,
 		NotificationsConfigured: notify.Configured(current.Notifications),
 		NotifyServices:          notify.Services(current.Notifications),
 		SmtpSecurityChoices:     settings.SmtpSecurityChoices,

@@ -29,6 +29,9 @@ var (
 	errNotTitleKeys = errors.New("This is not a title.keys file: each line is a rights ID and its title key.")
 )
 
+// TITLE_KEYS_HINT is where the app looks for the title keys, told when it has none
+const TITLE_KEYS_HINT = "Optional, for games without a ticket. Name the file exactly title.keys and put it next to the prod.keys in use, with one rightsId = key per line, or upload it in Settings."
+
 // checkProdKeys tells whether data is a prod.keys file the app can read games with: lines of
 // "name = hex" with the header key and at least one key area key of applications.
 func checkProdKeys(data []byte) error {
@@ -107,25 +110,32 @@ func readUpload(r *http.Request, field string) ([]byte, error) {
 }
 
 // HandleKeysUpload saves the prod.keys (and title.keys) sent from Settings in the data folder,
-// where the app looks for them, reads them and scans the library again. Their contents are
-// never logged nor shown; only administrators can send them (a POST), never in the demo.
+// where the app looks for them, reads them and scans the library again. A title.keys can come
+// alone when a prod.keys is in use: the app reads the one of the data folder too. Their contents
+// are never logged nor shown; only administrators can send them (a POST), never in the demo.
 func (web *Web) HandleKeysUpload() {
 	web.router.HandleFunc("/settings/keys", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
 		r.Body = http.MaxBytesReader(w, r.Body, 3*maxKeysUpload)
 		prodKeys, err := readUpload(r, "prod_keys")
-		if err != nil || prodKeys == nil || len(prodKeys) > maxKeysUpload {
+		if err != nil || len(prodKeys) > maxKeysUpload {
 			writeGlobalError(w, http.StatusBadRequest, lang, i18n.Translate(lang, "Choose your prod.keys file."))
-			return
-		}
-		if err := checkProdKeys(prodKeys); err != nil {
-			writeGlobalError(w, http.StatusBadRequest, lang, i18n.Translate(lang, err.Error()))
 			return
 		}
 		titleKeys, err := readUpload(r, "title_keys")
 		if err != nil || len(titleKeys) > maxKeysUpload {
 			writeGlobalError(w, http.StatusBadRequest, lang, i18n.Translate(lang, errNotTitleKeys.Error()))
 			return
+		}
+		if prodKeys == nil && (titleKeys == nil || !settings.IsKeysFileAvailable()) {
+			writeGlobalError(w, http.StatusBadRequest, lang, i18n.Translate(lang, "Choose your prod.keys file."))
+			return
+		}
+		if prodKeys != nil {
+			if err := checkProdKeys(prodKeys); err != nil {
+				writeGlobalError(w, http.StatusBadRequest, lang, i18n.Translate(lang, err.Error()))
+				return
+			}
 		}
 		if titleKeys != nil {
 			if err := checkTitleKeys(titleKeys); err != nil {
@@ -134,10 +144,12 @@ func (web *Web) HandleKeysUpload() {
 			}
 		}
 
-		if err := writePrivateFile(filepath.Join(web.dataFolder, "prod.keys"), prodKeys); err != nil {
-			web.sugarLogger.Errorf("[Keys] could not be saved: %v", err)
-			writeGlobalError(w, http.StatusInternalServerError, lang, i18n.Translate(lang, "The keys could not be saved in the data folder."))
-			return
+		if prodKeys != nil {
+			if err := writePrivateFile(filepath.Join(web.dataFolder, "prod.keys"), prodKeys); err != nil {
+				web.sugarLogger.Errorf("[Keys] could not be saved: %v", err)
+				writeGlobalError(w, http.StatusInternalServerError, lang, i18n.Translate(lang, "The keys could not be saved in the data folder."))
+				return
+			}
 		}
 		if titleKeys != nil {
 			if err := writePrivateFile(filepath.Join(web.dataFolder, "title.keys"), titleKeys); err != nil {
@@ -146,8 +158,11 @@ func (web *Web) HandleKeysUpload() {
 				return
 			}
 		}
-		// the keys of the data folder are the ones in use, whatever folder Settings named before
-		settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.Prodkeys = web.dataFolder })
+		// the keys of the data folder are the ones in use, whatever folder Settings named before;
+		// a title.keys alone goes with the prod.keys in use
+		if prodKeys != nil {
+			settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.Prodkeys = web.dataFolder })
+		}
 		if _, err := settings.InitSwitchKeys(web.dataFolder); err != nil {
 			web.sugarLogger.Errorf("[Keys] the keys sent could not be read: %v", err)
 		}
@@ -157,7 +172,11 @@ func (web *Web) HandleKeysUpload() {
 		if !web.Rescan(tasklog.TRIGGER_SETTINGS) {
 			message = i18n.Translate(lang, "Your keys are saved in the data folder of the app. They will be used by the next synchronization.")
 		}
-		// the folder of the keys now, for the field of the wizard
-		writeJSON(w, http.StatusOK, map[string]string{"strongMessage": i18n.Translate(lang, "Success!"), "message": message, "folder": web.dataFolder})
+		answer := map[string]string{"strongMessage": i18n.Translate(lang, "Success!"), "message": message}
+		if prodKeys != nil {
+			// the folder of the keys now, for the field of the wizard
+			answer["folder"] = web.dataFolder
+		}
+		writeJSON(w, http.StatusOK, answer)
 	}).Methods("POST")
 }

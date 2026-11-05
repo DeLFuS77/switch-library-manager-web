@@ -596,9 +596,12 @@ function setupWizard(element) {
 		checkLine(keysResult, result);
 	}).catch(() => {});
 	element.querySelector('[data-wizard-check-keys]').addEventListener('click', checkKeys);
-	// keys uploaded from here: the field points to them, and they are checked at once
+	// keys uploaded from here: the field points to them, and they are checked at once (a
+	// title.keys alone leaves the field as it is)
 	setupKeysUpload(element.querySelector('[data-keys-upload]'), json => {
-		form.elements.prod_keys.value = json.folder || '';
+		if (json.folder) {
+			form.elements.prod_keys.value = json.folder;
+		}
 		checkKeys();
 	});
 
