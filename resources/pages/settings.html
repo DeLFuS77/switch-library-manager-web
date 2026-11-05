@@ -4,7 +4,7 @@
 			<button type="button" class="year-teaser wizard-teaser mb-3 w-100 border-0 text-start" data-wizard-open><span class="bi bi-signpost-split" aria-hidden="true"></span><span class="flex-grow-1"><strong>{{t "Setup wizard"}}</strong> <span class="text-body-secondary">{{t "Go through every setting step by step, seeing how each one is set now."}}</span></span><span class="btn btn-primary btn-sm rounded-pill px-3 text-nowrap flex-shrink-0"><span class="bi bi-play-fill me-1" aria-hidden="true"></span>{{t "Open the wizard"}}</span></button>
 			<div class="row g-4">
 				{{- template "settingsNav" ""}}
-				<div class="col-lg-9">
+				<div class="col-lg-9" data-hover-help>
 					<form id="settingsForm" method="post" data-rescan="true" data-save-when-changed>
 						<section class="surface mb-4 settings-section" id="library" aria-labelledby="libraryTitle">
 							<h2 class="section-title" id="libraryTitle"><span class="bi bi-collection" aria-hidden="true"></span>{{t "Library"}}</h2>
@@ -12,17 +12,20 @@
 								<label for="prod_keys" class="form-label fw-semibold">{{t "Your keys (prod.keys)"}}</label>
 								<div class="input-group">
 									<span class="input-group-text"><span class="bi bi-key" aria-hidden="true"></span></span>
-									<input type="text" class="form-control" id="prod_keys" name="prod_keys" value="{{.Settings.Prodkeys}}" aria-describedby="prodKeysHelp">
+									<input type="text" class="form-control" id="prod_keys" name="prod_keys" value="{{.Settings.Prodkeys}}" aria-describedby="prodKeysStatus prodKeysHelp">
 								</div>
-								<div class="form-text" id="prodKeysHelp">
-									{{- if .IsKeysFileAvailable}}<span class="text-success"><span class="bi bi-check-circle-fill me-1" aria-hidden="true"></span>{{t "Keys found"}}</span> &middot; {{else}}<span class="text-warning-emphasis"><span class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></span>{{t "Keys not found"}}</span> &middot; {{end -}}
-									{{t "The folder with your prod.keys (and optionally title.keys), or the path to the file. Empty: the data folder, then ~/.switch. Keys stay on the server of the app and are never sent anywhere else."}}
+								<div class="form-text help-keep" id="prodKeysStatus">
+									{{- if .IsKeysFileAvailable}}<span class="text-success"><span class="bi bi-check-circle-fill me-1" aria-hidden="true"></span>{{t "Keys found"}}</span>{{else}}<span class="text-warning-emphasis"><span class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></span>{{t "Keys not found"}}</span>{{end -}}
 								</div>
-								<div class="keys-upload mt-2" data-keys-upload>
+								<div class="form-text" id="prodKeysHelp">{{t "The folder with your prod.keys (and optionally title.keys), or the path to the file. Empty: the data folder, then ~/.switch. Keys stay on the server of the app and are never sent anywhere else."}}</div>
+								<div class="keys-upload mt-2" data-keys-upload{{if .KeysAvailable}} data-keys-loaded{{end}}>
 									<input type="file" class="visually-hidden" accept=".keys,.txt" data-keys-file="prod_keys" tabindex="-1" aria-hidden="true">
 									<input type="file" class="visually-hidden" accept=".keys,.txt" data-keys-file="title_keys" tabindex="-1" aria-hidden="true">
 									<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-keys-pick="prod_keys"><span class="bi bi-upload me-1" aria-hidden="true"></span>{{t "Upload my prod.keys"}}</button>
-									<button type="button" class="btn btn-sm btn-link" data-keys-pick="title_keys">{{t "Add title.keys (optional)"}}</button>
+									<button type="button" class="btn btn-sm btn-link" data-keys-pick="title_keys">{{if .TitleKeys}}{{t "Update title.keys"}}{{else}}{{t "Add title.keys (optional)"}}{{end}}</button>
+									{{- if .TitleKeys}}
+									<span class="small text-success"><span class="bi bi-check-circle-fill me-1" aria-hidden="true"></span>{{t "%v title keys loaded" (num .TitleKeys)}}</span>
+									{{- end}}
 									<span class="small text-body-secondary" data-keys-chosen aria-live="polite"></span>
 									<button type="button" class="btn btn-sm btn-primary rounded-pill" data-keys-send hidden><span class="bi bi-check-lg me-1" aria-hidden="true"></span>{{t "Save the keys"}}</button>
 								</div>
@@ -85,14 +88,17 @@
 							</div>
 							<div class="covers-box mt-4">
 								<div class="flex-grow-1">
-									<div class="fw-semibold"><span class="bi bi-images me-2" aria-hidden="true"></span>{{t "Covers"}}</div>
-									<div class="form-text mt-1">{{if .MissingCovers}}{{t "Games without a cover: %v." .MissingCovers}} {{end}}{{t "Covers are downloaded after each scan; games without one take the icon stored in their own file (with your keys). Searching again also retries covers that failed."}}</div>
+									<div class="fw-semibold help-name"><span class="bi bi-images me-2" aria-hidden="true"></span>{{t "Covers"}}</div>
+									{{- if .MissingCovers}}
+									<div class="form-text mt-1 help-keep">{{t "Games without a cover: %v." .MissingCovers}}</div>
+									{{- end}}
+									<div class="form-text mt-1">{{t "Covers are downloaded after each scan; games without one take the icon stored in their own file (with your keys). Searching again also retries covers that failed."}}</div>
 								</div>
 								<button type="button" class="btn btn-sm btn-outline-primary rounded-pill text-nowrap" data-covers-retry><span class="bi bi-arrow-clockwise me-1" aria-hidden="true"></span>{{t "Search covers again"}}</button>
 							</div>
 						</section>
 						<section class="surface mb-4 settings-section" id="ignored" aria-labelledby="ignoredTitle">
-							<h2 class="section-title" id="ignoredTitle"><span class="bi bi-eye-slash" aria-hidden="true"></span>{{t "Ignored items"}}</h2>
+							<h2 class="section-title" id="ignoredTitle"><span class="bi bi-eye" aria-hidden="true"></span>{{t "What is shown"}}</h2>
 							<div class="row g-3">
 								<div class="col-md-6">
 									<label for="ignore_dlc_title_ids" class="form-label fw-semibold">{{t "Ignored DLC Title IDs"}}</label>
@@ -163,6 +169,34 @@
 								</div>
 							</div>
 						</section>
+						<section class="surface mb-4 settings-section" id="gamedata" aria-labelledby="gamedataTitle">
+							<h2 class="section-title" id="gamedataTitle"><span class="bi bi-info-circle" aria-hidden="true"></span>{{t "Game data"}}</h2>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label for="console_firmware" class="form-label fw-semibold">{{t "Firmware of your console"}}</label>
+									<input type="text" class="form-control" id="console_firmware" name="console_firmware" value="{{.Settings.ConsoleFirmware}}" placeholder="18.1.0" inputmode="decimal" aria-describedby="firmwareHelp">
+									<div class="form-text" id="firmwareHelp">{{t "Optional. Games and updates that need a newer firmware are marked. See it on the console in System Settings > System."}}</div>
+								</div>
+								<div class="col-12">
+									<fieldset class="igdb-settings">
+										<legend class="form-label fw-semibold"><span class="bi bi-hourglass-split me-1" aria-hidden="true"></span>{{t "Times to beat and scores (IGDB)"}}</legend>
+										<p class="form-text mt-0" id="igdbHelp">{{t "Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret."}} {{t "With the keys, the sagas also take the series of your games from IGDB, exactly."}} {{t "The game pages also show the scores of critics and players, and the library can be sorted and filtered by them."}}</p>
+										<p class="form-text help-keep mt-0"><a href="https://api-docs.igdb.com/#account-creation" target="_blank" rel="noopener noreferrer">{{t "How to get them"}}</a></p>
+										<div class="row g-3">
+											<div class="col-md-6">
+												<label for="igdb_client_id" class="form-label">{{t "Client ID"}}</label>
+												<input type="text" class="form-control" id="igdb_client_id" name="igdb_client_id" value="{{.Settings.IgdbClientId}}" autocomplete="off" spellcheck="false" aria-describedby="igdbHelp">
+											</div>
+											<div class="col-md-6">
+												<label for="igdb_client_secret" class="form-label">{{t "Client Secret"}}</label>
+												<input type="password" class="form-control" id="igdb_client_secret" name="igdb_client_secret" value="" autocomplete="new-password" spellcheck="false" placeholder="{{if .Settings.IgdbClientSecret}}{{t "Saved. Leave it empty to keep it."}}{{end}}" aria-describedby="igdbSecretHelp">
+												<div class="form-text" id="igdbSecretHelp">{{t "Never shown again once saved. Empty the Client ID to remove both."}}</div>
+											</div>
+										</div>
+									</fieldset>
+								</div>
+							</div>
+						</section>
 						<section class="surface mb-4 settings-section" id="general" aria-labelledby="generalTitle">
 							<h2 class="section-title" id="generalTitle"><span class="bi bi-sliders" aria-hidden="true"></span>{{t "General"}}</h2>
 							<div class="mb-3">
@@ -173,15 +207,6 @@
 								<div class="form-text">{{t "The theme is kept by each browser."}}</div>
 							</div>
 							<div class="row g-3">
-								<div class="col-md-6">
-									<label for="sync_interval_hours" class="form-label fw-semibold">{{t "Automatic synchronization"}}</label>
-									<select class="form-select" id="sync_interval_hours" name="sync_interval_hours">
-										{{- range .SyncIntervals}}
-										<option value="{{.}}"{{if eq . $.Settings.SyncIntervalHours}} selected{{end}}>{{t (intervalLabel .)}}</option>
-										{{- end}}
-									</select>
-									<div class="form-text">{{t "Last synchronization:"}} {{formatDateTime .Settings.LastSyncTime}}{{if not .NextSync.IsZero}} &middot; {{t "next:"}} {{if .Settings.LastSyncTime.IsZero}}{{t "within a minute"}}{{else}}{{formatDateTime .NextSync}}{{end}}{{end}}</div>
-								</div>
 								<div class="col-12">
 									<div class="form-check form-switch">
 										<input class="form-check-input" type="checkbox" role="switch" id="check_for_updates" name="check_for_updates" value="true" aria-describedby="updateHelp"{{if .Settings.CheckForUpdates}} checked{{end}}>
@@ -199,26 +224,27 @@
 									{{- end}}
 								</div>
 								<div class="col-md-6">
-									<label for="console_firmware" class="form-label fw-semibold">{{t "Firmware of your console"}}</label>
-									<input type="text" class="form-control" id="console_firmware" name="console_firmware" value="{{.Settings.ConsoleFirmware}}" placeholder="18.1.0" inputmode="decimal" aria-describedby="firmwareHelp">
-									<div class="form-text" id="firmwareHelp">{{t "Optional. Games and updates that need a newer firmware are marked. See it on the console in System Settings > System."}}</div>
+									<label for="language" class="form-label fw-semibold">{{t "Language"}}</label>
+									<select class="form-select" id="language" name="language">
+										<option value=""{{if eq .Settings.Language ""}} selected{{end}}>{{t "Automatic (browser language)"}}</option>
+										{{- range .Languages}}
+										<option value="{{.}}"{{if eq . $.Settings.Language}} selected{{end}}>{{languageName .}}</option>
+										{{- end}}
+									</select>
 								</div>
-								<div class="col-12">
-									<fieldset class="igdb-settings">
-										<legend class="form-label fw-semibold"><span class="bi bi-hourglass-split me-1" aria-hidden="true"></span>{{t "Times to beat and scores (IGDB)"}}</legend>
-										<p class="form-text mt-0" id="igdbHelp">{{t "Optional. Shows how long each game takes to beat, with data from IGDB, free for personal use. Create an application at dev.twitch.tv/console (Twitch account with two-step verification, client type Confidential, redirect URL http://localhost) and paste its Client ID and Secret."}} <a href="https://api-docs.igdb.com/#account-creation" target="_blank" rel="noopener noreferrer">{{t "How to get them"}}</a> {{t "With the keys, the sagas also take the series of your games from IGDB, exactly."}} {{t "The game pages also show the scores of critics and players, and the library can be sorted and filtered by them."}}</p>
-										<div class="row g-3">
-											<div class="col-md-6">
-												<label for="igdb_client_id" class="form-label">{{t "Client ID"}}</label>
-												<input type="text" class="form-control" id="igdb_client_id" name="igdb_client_id" value="{{.Settings.IgdbClientId}}" autocomplete="off" spellcheck="false" aria-describedby="igdbHelp">
-											</div>
-											<div class="col-md-6">
-												<label for="igdb_client_secret" class="form-label">{{t "Client Secret"}}</label>
-												<input type="password" class="form-control" id="igdb_client_secret" name="igdb_client_secret" value="" autocomplete="new-password" spellcheck="false" placeholder="{{if .Settings.IgdbClientSecret}}{{t "Saved. Leave it empty to keep it."}}{{end}}" aria-describedby="igdbSecretHelp">
-												<div class="form-text" id="igdbSecretHelp">{{t "Never shown again once saved. Empty the Client ID to remove both."}}</div>
-											</div>
-										</div>
-									</fieldset>
+							</div>
+						</section>
+						<section class="surface mb-4 settings-section" id="background" aria-labelledby="backgroundTitle">
+							<h2 class="section-title" id="backgroundTitle"><span class="bi bi-arrow-repeat" aria-hidden="true"></span>{{t "Sync and check"}}</h2>
+							<div class="row g-3">
+								<div class="col-md-6">
+									<label for="sync_interval_hours" class="form-label fw-semibold">{{t "Automatic synchronization"}}</label>
+									<select class="form-select" id="sync_interval_hours" name="sync_interval_hours">
+										{{- range .SyncIntervals}}
+										<option value="{{.}}"{{if eq . $.Settings.SyncIntervalHours}} selected{{end}}>{{t (intervalLabel .)}}</option>
+										{{- end}}
+									</select>
+									<div class="form-text help-keep">{{t "Last synchronization:"}} {{formatDateTime .Settings.LastSyncTime}}{{if not .NextSync.IsZero}} &middot; {{t "next:"}} {{if .Settings.LastSyncTime.IsZero}}{{t "within a minute"}}{{else}}{{formatDateTime .NextSync}}{{end}}{{end}}</div>
 								</div>
 								<div class="col-md-6">
 									<label for="verify_interval_days" class="form-label fw-semibold">{{t "Check the files"}}</label>
@@ -239,28 +265,16 @@
 									<div class="form-text" id="verifySpeedHelp">{{t "Checking compressed files keeps one processor core busy per file. Faster checks use more cores and disks at once; gentle leaves the server free for other apps."}}</div>
 								</div>
 								<div class="col-md-6">
-									<label for="language" class="form-label fw-semibold">{{t "Language"}}</label>
-									<select class="form-select" id="language" name="language">
-										<option value=""{{if eq .Settings.Language ""}} selected{{end}}>{{t "Automatic (browser language)"}}</option>
-										{{- range .Languages}}
-										<option value="{{.}}"{{if eq . $.Settings.Language}} selected{{end}}>{{languageName .}}</option>
-										{{- end}}
+									<label for="background_hours" class="form-label fw-semibold">{{t "Do heavy work"}}</label>
+									<select class="form-select" id="background_hours" name="background_hours" aria-describedby="backgroundHelp">
+										<option value=""{{if eq .Settings.BackgroundHours ""}} selected{{end}}>{{t "At any time"}}</option>
+										<option value="22-6"{{if eq .Settings.BackgroundHours "22-6"}} selected{{end}}>{{t "From %v to %v" "22:00" "6:00"}}</option>
+										<option value="0-6"{{if eq .Settings.BackgroundHours "0-6"}} selected{{end}}>{{t "From %v to %v" "0:00" "6:00"}}</option>
+										<option value="1-7"{{if eq .Settings.BackgroundHours "1-7"}} selected{{end}}>{{t "From %v to %v" "1:00" "7:00"}}</option>
+										<option value="2-8"{{if eq .Settings.BackgroundHours "2-8"}} selected{{end}}>{{t "From %v to %v" "2:00" "8:00"}}</option>
 									</select>
+									<div class="form-text" id="backgroundHelp">{{t "Downloading covers, making thumbnails, reading icons from game files, scheduled checks and the automatic compression of new files can wait for some hours, so the NAS stays fast while you use it. What you start yourself always runs at once."}}</div>
 								</div>
-							</div>
-						</section>
-						<section class="surface mb-4 settings-section" id="background" aria-labelledby="backgroundTitle">
-							<h2 class="section-title" id="backgroundTitle"><span class="bi bi-moon-stars" aria-hidden="true"></span>{{t "Background work"}}</h2>
-							<p class="text-body-secondary">{{t "Downloading covers, making thumbnails, reading icons from game files, scheduled checks and the automatic compression of new files can wait for some hours, so the NAS stays fast while you use it. What you start yourself always runs at once."}}</p>
-							<div class="col-md-6 px-0">
-								<label for="background_hours" class="form-label fw-semibold">{{t "Do heavy work"}}</label>
-								<select class="form-select" id="background_hours" name="background_hours">
-									<option value=""{{if eq .Settings.BackgroundHours ""}} selected{{end}}>{{t "At any time"}}</option>
-									<option value="22-6"{{if eq .Settings.BackgroundHours "22-6"}} selected{{end}}>{{t "From %v to %v" "22:00" "6:00"}}</option>
-									<option value="0-6"{{if eq .Settings.BackgroundHours "0-6"}} selected{{end}}>{{t "From %v to %v" "0:00" "6:00"}}</option>
-									<option value="1-7"{{if eq .Settings.BackgroundHours "1-7"}} selected{{end}}>{{t "From %v to %v" "1:00" "7:00"}}</option>
-									<option value="2-8"{{if eq .Settings.BackgroundHours "2-8"}} selected{{end}}>{{t "From %v to %v" "2:00" "8:00"}}</option>
-								</select>
 							</div>
 						</section>
 						<section class="surface mb-4 settings-section" id="compression" aria-labelledby="compressionTitle">
@@ -362,7 +376,10 @@
 									<div class="form-check form-switch flex-grow-1">
 										<input class="form-check-input" type="checkbox" role="switch" id="automation_compress" name="automation_compress" value="true"{{if $a.Compress}} checked{{end}}>
 										<label class="form-check-label" for="automation_compress"><span class="bi bi-file-zip me-1" aria-hidden="true"></span>{{t "Compress them"}}</label>
-										<div class="form-text">{{t "NSP and XCI to NSZ and XCZ, with the level and the originals option of Compression; damaged files are left alone."}}{{if not .KeysAvailable}} <span class="text-warning-emphasis">{{t "Needs your own prod.keys."}}</span>{{end}}</div>
+										<div class="form-text">{{t "NSP and XCI to NSZ and XCZ, with the level and the originals option of Compression; damaged files are left alone."}}</div>
+										{{- if not .KeysAvailable}}
+										<div class="form-text help-keep text-warning-emphasis">{{t "Needs your own prod.keys."}}</div>
+										{{- end}}
 									</div>
 								</li>
 								<li class="automation-step">
@@ -377,8 +394,8 @@
 									<span class="automation-step-number" aria-hidden="true">4</span>
 									<div class="form-check form-switch flex-grow-1">
 										<input class="form-check-input" type="checkbox" role="switch" id="automation_organize" name="automation_organize" value="true"{{if $a.Organize}} checked{{end}}>
-										<label class="form-check-label" for="automation_organize"><span class="bi bi-folder-symlink me-1" aria-hidden="true"></span>{{t "Organize the library"}}</label>
-										<div class="form-text">{{t "Moves and renames the files with the folders and names of the Organize page. Look at its preview first, to see what would change."}} <a href="/organize.html">{{t "Open Organize"}}</a></div>
+										<label class="form-check-label" for="automation_organize"><span class="bi bi-folder-symlink me-1" aria-hidden="true"></span>{{t "Organize the library"}}</label> <a class="small ms-1" href="/organize.html">{{t "Open Organize"}}</a>
+										<div class="form-text">{{t "Moves and renames the files with the folders and names of the Organize page. Look at its preview first, to see what would change."}}</div>
 										<div class="form-check mt-2">
 											<input class="form-check-input" type="checkbox" id="automation_organize_new_only" name="automation_organize_new_only" value="true" aria-describedby="automation_organize_new_only_help"{{if $a.OrganizeNewOnly}} checked{{end}}>
 											<label class="form-check-label" for="automation_organize_new_only">{{t "Only the new files"}}</label>
@@ -391,7 +408,10 @@
 									<div class="form-check form-switch flex-grow-1">
 										<input class="form-check-input" type="checkbox" role="switch" id="automation_notify" name="automation_notify" value="true"{{if $a.Notify}} checked{{end}}>
 										<label class="form-check-label" for="automation_notify"><span class="bi bi-bell me-1" aria-hidden="true"></span>{{t "Tell me what was done"}}</label>
-										<div class="form-text">{{t "A message with the new games and the result of every step."}}{{if not .NotificationsConfigured}} <span class="text-warning-emphasis">{{t "Set up a channel in Notifications first."}}</span>{{end}}</div>
+										<div class="form-text">{{t "A message with the new games and the result of every step."}}</div>
+										{{- if not .NotificationsConfigured}}
+										<div class="form-text help-keep text-warning-emphasis">{{t "Set up a channel in Notifications first."}}</div>
+										{{- end}}
 									</div>
 								</li>
 							</ol>

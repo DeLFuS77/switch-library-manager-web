@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.73.0
+
+### Improvements
+
+- Clearer menus: the full menu at the top shows from 1200px wide on a computer with a mouse (it was 1400px), and in a narrower window the menu button wears the dot of More, red for issues or failed tasks and orange for a step of the tune-up waiting. On a phone More starts with Issues and Tasks and no longer repeats the bar at the bottom
+- The account menu keeps the account, the theme, the couch mode, the sounds and log out; Users, Activity and Diagnostics are in Settings, under Access and Maintenance. The sections of Settings say what they hold: What is shown (the old Ignored items), Game data and Sync and check
+- Fewer buttons in a row: Check new files, in Issues, has a menu with what each level checks; the page of a game keeps Download all, Favorite and Collections, with Edit the game and Combine the files under More; and the first status filter of the Library is called Any status. The quick search also finds Activity, Tune-up, Quarantine, App on your phone, Sign-in portal and Game data
+- The help of the fields of Settings and Organize no longer fills the page on a computer: a small ⓘ after the name of a field tells there is some, and it shows in a card while the mouse is on the name or the field has the focus of the keyboard; on phones and tablets it stays under each field (thanks @NikoMuffin, who asked for it in NXPress #67)
+- Settings and the setup wizard tell how many title keys are loaded, and a title.keys can be uploaded alone when a prod.keys is already in use; Diagnostics shows it as OK with its count, or how it is named and where it goes (thanks internethostage, who asked about it on Discord)
+- Low priority on Windows lowers the memory of the app too: when memory runs short, its pages are the first given to the other programs (thanks @NikoMuffin, who found it in NXPress #70)
+
+### Fixes
+
+- With the names for the Switch (ASCII only), the kanji left out no longer leave spaces or empty brackets ("(serekushon 1)", no longer "( serekusho 1)"), and the romaji after a small kana is right (shounen, setto, kya, ja, fa); the next Organize renames the files whose names change (thanks internethostage, who reported it on Discord)
+- The NSZ files made with the extra compression of NXPress no longer take every processor of the server for each file at once: their LZ4 blocks are made again on one thread per file while the files are checked, as Settings says, and on the threads of each file while they are decompressed or converted (thanks @NikoMuffin, who found it in NXPress #70)
+
 ## 1.72.1
 
 ### Fixes

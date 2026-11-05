@@ -423,7 +423,7 @@ func TestSpaceWaitsOnlyForVerifications(t *testing.T) {
 }
 
 // A compressed copy already checked, damaged or not whole (an update needs its game for that),
-// does not wait for the check: "Verify now" would find nothing new to check. Not whole, the
+// does not wait for the check: "Check now" would find nothing new to check. Not whole, the
 // original can be deleted on request; damaged, it stays.
 func TestCheckedCompressedCopyWaitsForNothing(t *testing.T) {
 	web, dir := spaceWeb(t)

@@ -115,9 +115,18 @@ func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
 		loaded.keys[key] = value
 	}
 
-	// optional: title keys for games whose NSP has no ticket
-	titleKeysPath := filepath.Join(filepath.Dir(path), "title.keys")
-	if titleKeys, err := properties.LoadFile(titleKeysPath, properties.UTF8); err == nil {
+	// optional: title keys for games whose NSP has no ticket, from the title.keys next to
+	// prod.keys and from the one uploaded in Settings to the data folder
+	titleKeysPaths := []string{}
+	for _, titleKeysPath := range []string{filepath.Join(filepath.Dir(path), "title.keys"), filepath.Join(baseFolder, "title.keys")} {
+		if len(titleKeysPaths) > 0 && sameFile(titleKeysPaths[0], titleKeysPath) {
+			continue
+		}
+		titleKeys, err := properties.LoadFile(titleKeysPath, properties.UTF8)
+		if err != nil {
+			continue
+		}
+		titleKeysPaths = append(titleKeysPaths, titleKeysPath)
 		for _, rightsId := range titleKeys.Keys() {
 			value, _ := titleKeys.Get(rightsId)
 			loaded.titleKeys[strings.ToLower(strings.TrimSpace(rightsId))] = strings.TrimSpace(value)
@@ -134,10 +143,20 @@ func InitSwitchKeys(baseFolder string) (*switchKeys, error) {
 		lastKeysReport = report
 		logger.Infof("Loaded prod.keys from: %v", path)
 		if len(loaded.titleKeys) > 0 {
-			logger.Infof("Loaded %v title keys from: %v", len(loaded.titleKeys), titleKeysPath)
+			logger.Infof("Loaded %v title keys from: %v", len(loaded.titleKeys), strings.Join(titleKeysPaths, ", "))
 		}
 	}
 	return loaded, nil
+}
+
+// sameFile tells whether two paths name the same file, written alike or not.
+func sameFile(a, b string) bool {
+	if filepath.Clean(a) == filepath.Clean(b) {
+		return true
+	}
+	infoA, errA := os.Stat(a)
+	infoB, errB := os.Stat(b)
+	return errA == nil && errB == nil && os.SameFile(infoA, infoB)
 }
 
 // resolveKeysPath accepts either a path to a .keys file or a folder containing prod.keys.

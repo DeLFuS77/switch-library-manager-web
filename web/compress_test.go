@@ -664,3 +664,24 @@ func TestCompressPageStartsAtTheLevelOfSettings(t *testing.T) {
 		}
 	}
 }
+
+// The LZ4 blocks of a file of a task are made again on its threads, never on more than its share
+// of the usable processors among the files at once, and on one at least.
+func TestFileThreadsKeepToTheShareOfEachFile(t *testing.T) {
+	usable := switchfs.UsableProcessors()
+	for _, files := range []int{1, 2, 4, 64} {
+		share := max(1, usable/files)
+		for _, setting := range []int{0, 1, 2, 1000} {
+			got := fileThreads(setting, files)
+			if got < 1 || got > share {
+				t.Errorf("setting %d, %d files: %d threads, share %d", setting, files, got, share)
+			}
+			if setting == 1 && got != 1 {
+				t.Errorf("setting 1, %d files: %d threads", files, got)
+			}
+		}
+		if fileThreads(0, files) != share {
+			t.Errorf("not set, %d files: %d threads, want %d", files, fileThreads(0, files), share)
+		}
+	}
+}

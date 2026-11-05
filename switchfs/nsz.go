@@ -788,7 +788,15 @@ func writeNczStream(ctx context.Context, output io.Writer, input io.ReaderAt, of
 	var sink io.Writer = encoder
 	var expander *lz4Expander
 	if len(plan.lz4) > 0 {
-		expander = newLz4Expander(encoder, plan.lz4, plan.sections[0].offset, lz4RebuildWorkers())
+		// the threads of the encoder (0 means 1), or fewer when the context has fewer
+		threads := options.Workers
+		if threads < 1 {
+			threads = 1
+		}
+		if fewer := threadsOf(ctx); fewer > 0 && fewer < threads {
+			threads = fewer
+		}
+		expander = newLz4Expander(encoder, plan.lz4, plan.sections[0].offset, lz4RebuildWorkers(threads))
 		sink = expander
 	}
 	// on an error, the goroutines of the expander stop before the encoder is closed: they write
@@ -1149,7 +1157,7 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 	defer ahead.Close()
 	stream = ahead
 	if rebuild != nil {
-		rebuilder := newLz4Rebuilder(stream, rebuild, sections[0].offset, lz4RebuildWorkers())
+		rebuilder := newLz4Rebuilder(stream, rebuild, sections[0].offset, lz4RebuildWorkers(threadsOf(ctx)))
 		defer rebuilder.Close()
 		stream = rebuilder
 	}

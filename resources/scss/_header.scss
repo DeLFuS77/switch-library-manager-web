@@ -19,7 +19,7 @@
 }
 
 // the full menu of wide screens takes a little more width than the page, so it always fits
-@include media-breakpoint-up(xxl) {
+@include full-header {
 	.app-header > .navbar > .container-xxl {
 		max-width: min(100%, 1480px);
 	}
@@ -55,7 +55,7 @@
 	color: var(--bs-secondary-color);
 	transition: color .15s ease, background-color .15s ease;
 
-	@include media-breakpoint-up(xxl) {
+	@include full-header {
 		--bs-navbar-nav-link-padding-x: .5rem;
 		gap: .3rem;
 	}
@@ -91,7 +91,7 @@
 	pointer-events: none;
 }
 
-@include media-breakpoint-down(xxl) {
+@include folded-header {
 	.app-nav .nav-link {
 		padding: .7rem .9rem;
 	}
@@ -115,27 +115,101 @@
 }
 
 // on the horizontal bar the secondary links only show their icon, so the bar fits on one line
-@include media-breakpoint-up(xxl) {
+@include full-header {
 	.app-nav-compact .nav-label {
 		@include visually-hidden();
 	}
 }
 
-// the menu is horizontal from 1400px; until 1800px only the logo is shown, so the longer
-// labels of other languages fit
-@media (min-width: 1400px) and (max-width: 1799.98px) {
+// the menu is horizontal from 1400px (1200px with a mouse); until 1800px only the logo is shown,
+// so the longer labels of other languages fit
+@include full-header-narrow {
 	.navbar-brand .brand-text {
 		@include visually-hidden();
 	}
 }
 
 // and the links are closer together until there is room for all of them
-@media (min-width: 1400px) and (max-width: 1799.98px) {
+@include full-header-narrow {
 	.app-nav:not(.app-nav-compact) .nav-link {
 		gap: .3rem;
 		padding-inline: .4rem;
 		font-size: var(--slm-text-sm);
 	}
+}
+
+// Issues: Check new files with an arrow, whose menu chooses what to check and checks every file
+// again; a pill split in two
+.verify-split {
+	> .btn:first-child {
+		padding-inline: 1rem .8rem;
+		border-radius: 50rem 0 0 50rem;
+	}
+
+	> .dropdown-toggle-split {
+		padding-inline: .7rem .8rem;
+		border-left: 1px solid rgba(255, 255, 255, .35);
+		border-radius: 0 50rem 50rem 0;
+	}
+}
+
+.verify-menu {
+	width: min(24rem, calc(100vw - 2rem));
+	padding-block: .4rem;
+}
+
+.verify-choice {
+	display: flex;
+	align-items: flex-start;
+	gap: .65rem;
+	width: 100%;
+	padding: .5rem 1rem;
+	white-space: normal;
+	cursor: pointer;
+
+	> .bi:first-of-type {
+		margin-top: .15rem;
+	}
+
+	&:hover {
+		background: var(--bs-dropdown-link-hover-bg);
+	}
+}
+
+// the level chosen: a softer background and the check mark, in the blue of what is chosen
+label.verify-choice:has(.verify-radio:checked) {
+	background: var(--slm-surface-muted);
+}
+
+.verify-check {
+	margin-left: auto;
+	padding-left: .5rem;
+	color: rgb(var(--slm-work-rgb));
+	visibility: hidden;
+
+	.verify-choice:has(.verify-radio:checked) & {
+		visibility: visible;
+	}
+}
+
+.verify-choice:has(.verify-radio:focus-visible) {
+	outline: 2px solid var(--slm-focus);
+	outline-offset: -2px;
+}
+
+.verify-choice-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.verify-choice-label {
+	font-weight: 600;
+}
+
+.verify-choice-hint,
+.verify-last {
+	font-size: var(--slm-text-sm);
+	color: var(--bs-secondary-color);
 }
 
 // Issues: a card for each kind of issue, with how many files and what to do
@@ -572,7 +646,7 @@
 .account-menu {
 	display: none;
 
-	@include media-breakpoint-up(xxl) {
+	@include full-header {
 		display: block;
 	}
 }
@@ -604,6 +678,171 @@
 		.app-header .offcanvas {
 			bottom: var(--slm-bottom-nav);
 		}
+	}
+}
+
+// the panel of More begins with what wants attention, Issues and Tasks, and leaves out the
+// sections already in the bar: on a phone Library, Updates, Upcoming and Series; on a tablet also
+// DLC, Issues and Tasks
+@include bottom-nav-screens {
+	html:not(.is-couch) {
+		.app-header .offcanvas-body {
+			display: flex;
+			flex-direction: column;
+
+			> .app-nav {
+				flex-grow: 0 !important;
+			}
+
+			hr {
+				display: none;
+			}
+		}
+
+		.app-header .app-nav-compact {
+			order: -1;
+			padding-bottom: .5rem;
+			margin-bottom: .5rem;
+			border-bottom: 1px solid var(--bs-border-color);
+		}
+
+		.app-header .nav-section-title {
+			padding-top: 1rem;
+			margin-top: .5rem;
+			border-top: 1px solid var(--bs-border-color);
+		}
+
+		.in-bottom-bar {
+			display: none !important;
+		}
+	}
+}
+
+@include bottom-nav-wide-screens {
+	html:not(.is-couch) {
+		.in-bottom-bar-wide {
+			display: none !important;
+		}
+
+		// the first title opens the panel: no line above it
+		.app-header .nav-section-title:first-of-type {
+			padding-top: 0;
+			margin-top: 0;
+			border-top: 0;
+		}
+	}
+}
+
+// the menu laid out on the bar on the screens of the full header, as Bootstrap's navbar-expand
+// does at a breakpoint
+.navbar-expand-full {
+	@include full-header {
+		flex-wrap: nowrap;
+		justify-content: flex-start;
+
+		.navbar-nav {
+			flex-direction: row;
+
+			.dropdown-menu {
+				position: absolute;
+			}
+
+			.nav-link {
+				padding-right: var(--bs-navbar-nav-link-padding-x);
+				padding-left: var(--bs-navbar-nav-link-padding-x);
+			}
+		}
+
+		.navbar-toggler {
+			display: none;
+		}
+
+		.offcanvas {
+			position: static;
+			z-index: auto;
+			flex-grow: 1;
+			width: auto !important;
+			height: auto !important;
+			visibility: visible !important;
+			background-color: transparent !important;
+			border: 0 !important;
+			transform: none !important;
+			box-shadow: none;
+			transition: none;
+
+			.offcanvas-header {
+				display: none;
+			}
+
+			.offcanvas-body {
+				display: flex;
+				flex-grow: 0;
+				padding: 0;
+				overflow-y: visible;
+			}
+		}
+	}
+}
+
+// what shows only on the full header, and what only when the menu is folded
+.full-header-only {
+	display: none !important;
+
+	@include full-header {
+		display: block !important;
+	}
+}
+
+.full-header-only-flex {
+	display: none !important;
+
+	@include full-header {
+		display: inline-flex !important;
+	}
+}
+
+.full-header-hide {
+	@include full-header {
+		display: none !important;
+	}
+}
+
+.order-full-last {
+	@include full-header {
+		order: 6 !important;
+	}
+}
+
+.ms-full-0 {
+	@include full-header {
+		margin-left: 0 !important;
+	}
+}
+
+.me-full-2 {
+	@include full-header {
+		margin-right: .5rem !important;
+	}
+}
+
+// the menu button of a computer with a narrow window says what waits inside, as More does on a
+// phone: red for issues and failed tasks, orange for a step of the tune-up
+.navbar-toggler {
+	position: relative;
+}
+
+.toggler-dot {
+	position: absolute;
+	top: .3rem;
+	right: .3rem;
+	width: .55rem;
+	height: .55rem;
+	border-radius: 50%;
+	background: var(--bs-warning);
+	box-shadow: 0 0 0 2px var(--bs-body-bg);
+
+	&.is-problem {
+		background: var(--bs-danger);
 	}
 }
 
@@ -808,7 +1047,7 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 		white-space: nowrap;
 	}
 
-	.app-header .order-xxl-last {
+	.app-header .order-full-last {
 		flex-shrink: 0;
 		gap: .375rem !important;
 	}

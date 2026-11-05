@@ -88,7 +88,11 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 	} else {
 		keys.Checks = append(keys.Checks, Check{Label: "prod.keys", Value: t("Not found"), Status: CHECK_ERROR, Hint: t("Games are recognized by their file names only, and compression is off. Add your own prod.keys, dumped from your console.")})
 	}
-	keys.Checks = append(keys.Checks, Check{Label: "title.keys", Value: fmt.Sprint(titleKeys), Status: CHECK_INFO})
+	if titleKeys > 0 {
+		keys.Checks = append(keys.Checks, Check{Label: "title.keys", Value: t("%v title keys", num(lang, titleKeys)), Status: CHECK_OK})
+	} else {
+		keys.Checks = append(keys.Checks, Check{Label: "title.keys", Value: t("Not found"), Status: CHECK_INFO, Hint: t(TITLE_KEYS_HINT)})
+	}
 	groups = append(groups, keys)
 
 	// library folders

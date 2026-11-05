@@ -872,11 +872,6 @@
 	min-width: 16rem;
 }
 
-.pack-menu {
-	width: 22rem;
-	max-width: calc(100vw - 2rem);
-}
-
 .library-bulk[hidden] {
 	display: none !important;
 }
@@ -1861,6 +1856,7 @@ html[data-section] .settings-section {
 
 html[data-section="library"] #library,
 html[data-section="ignored"] #ignored,
+html[data-section="gamedata"] #gamedata,
 html[data-section="general"] #general,
 html[data-section="background"] #background,
 html[data-section="compression"] #compression,

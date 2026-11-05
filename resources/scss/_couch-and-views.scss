@@ -53,7 +53,7 @@
 		min-width: 0;
 	}
 
-	@media (min-width: 1400px) and (max-width: 1899.98px) {
+	@media (min-width: 1400px) and (max-width: 1899.98px), (min-width: 1200px) and (max-width: 1899.98px) and (pointer: fine) {
 		.app-nav .nav-label {
 			@include visually-hidden();
 		}

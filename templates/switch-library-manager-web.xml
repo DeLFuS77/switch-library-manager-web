@@ -22,7 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.72.1
+  <Changes>### 1.73.0
+- Clearer menus, and the help of Settings and Organize on hover
+- A title.keys can be uploaded alone, with how many title keys are loaded
+- Names in romaji without stray spaces; the NSZ of the extra compression keep to the threads of each file
+### 1.72.1
 - Reads the NSZ made with the extra compression of NXPress 1.5.0
 ### 1.72.0
 - Organize takes the NFO, SFV and proof files along with their game
@@ -113,7 +117,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-11-04</Date>
+  <Date>2026-11-05</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>

@@ -414,12 +414,21 @@ func (r *lz4Rebuilder) Close() {
 	r.stopped.Wait()
 }
 
-// lz4RebuildWorkers is how many blocks are made again at once: every processor but one, which
-// decompresses, decrypts and writes meanwhile.
-func lz4RebuildWorkers() int {
+// lz4RebuildWorkers is how many blocks of one file are made again (or checked) at once: the
+// threads of that file (CompressOptions.Workers, WithThreads), which the caller has shared
+// already among the files worked on at once, at least one, and never more than every processor
+// but one, which decompresses, decrypts and writes meanwhile. With no threads set (0), every
+// processor but one. Each worker makes the blocks with LZ4HC (lz4nintendo.go), which keeps a
+// processor busy: two files at once, each on every processor but one beside the threads of
+// zstd, left the computer slow to answer.
+func lz4RebuildWorkers(threads int) int {
 	// the package has a max of its own, for bytes
-	if n := runtime.NumCPU() - 1; n > 1 {
-		return n
+	most := runtime.NumCPU() - 1
+	if most < 1 {
+		most = 1
 	}
-	return 1
+	if threads < 1 || threads > most {
+		return most
+	}
+	return threads
 }
