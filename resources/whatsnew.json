@@ -1,4 +1,72 @@
 {
+  "2.0.0": {
+    "en": [
+      "Games of the Nintendo Switch 2: with “I have a Switch 2” on in Settings, they show in Missing Games with their covers and dates, and the Library has a Console filter.",
+      "“I have it” marks the games owned without their file, a cartridge for instance.",
+      "NUP files, the containers of decrypted games, are read and checked without keys.",
+      "IGDB finds more games, with the release date of their own console."
+    ],
+    "es": [
+      "Juegos de Nintendo Switch 2: con «Tengo una Switch 2» activado en Ajustes salen en Juegos que faltan con su carátula y su fecha, y la Biblioteca tiene un filtro de Consola.",
+      "«Lo tengo» marca los juegos que se tienen sin su archivo, en cartucho por ejemplo.",
+      "Los archivos NUP, los contenedores de juegos descifrados, se leen y se comprueban sin claves.",
+      "IGDB encuentra más juegos, con la fecha de salida de su propia consola."
+    ],
+    "de": [
+      "Spiele der Nintendo Switch 2: Mit „Ich habe eine Switch 2“ in den Einstellungen erscheinen sie unter Fehlende Spiele mit Cover und Datum, und die Bibliothek hat einen Filter Konsole.",
+      "„Hab ich“ markiert Spiele, die ohne ihre Datei vorhanden sind, etwa auf einem Modul.",
+      "NUP-Dateien, die Container entschlüsselter Spiele, werden ohne Schlüssel gelesen und geprüft.",
+      "IGDB findet mehr Spiele, mit dem Erscheinungsdatum ihrer eigenen Konsole."
+    ],
+    "fr": [
+      "Jeux de la Nintendo Switch 2 : avec « J’ai une Switch 2 » activé dans les Paramètres, ils apparaissent dans Jeux manquants avec leur jaquette et leur date, et la Bibliothèque a un filtre Console.",
+      "« Je l’ai » marque les jeux possédés sans leur fichier, sur cartouche par exemple.",
+      "Les fichiers NUP, conteneurs de jeux déchiffrés, sont lus et vérifiés sans clés.",
+      "IGDB trouve plus de jeux, avec la date de sortie de leur propre console."
+    ],
+    "it": [
+      "Giochi di Nintendo Switch 2: con «Ho una Switch 2» attivo nelle Impostazioni compaiono in Giochi mancanti con copertina e data, e la Libreria ha un filtro Console.",
+      "«Ce l’ho» segna i giochi posseduti senza il loro file, su cartuccia per esempio.",
+      "I file NUP, contenitori di giochi decifrati, vengono letti e controllati senza chiavi.",
+      "IGDB trova più giochi, con la data di uscita della loro console."
+    ],
+    "pt": [
+      "Jogos do Nintendo Switch 2: com «Tenho um Switch 2» ativado nas Configurações, aparecem em Jogos faltando com capa e data, e a Biblioteca tem um filtro Console.",
+      "«Eu tenho» marca os jogos possuídos sem o arquivo, em cartucho por exemplo.",
+      "Os arquivos NUP, contêineres de jogos descriptografados, são lidos e verificados sem chaves.",
+      "O IGDB encontra mais jogos, com a data de lançamento do seu próprio console."
+    ],
+    "nl": [
+      "Games van de Nintendo Switch 2: met „Ik heb een Switch 2” aan in Instellingen staan ze bij Ontbrekende games met hun cover en datum, en de Bibliotheek heeft een filter Console.",
+      "„Heb ik” markeert games die zonder hun bestand in bezit zijn, op een cartridge bijvoorbeeld.",
+      "NUP-bestanden, containers van ontsleutelde games, worden zonder sleutels gelezen en gecontroleerd.",
+      "IGDB vindt meer games, met de releasedatum van hun eigen console."
+    ],
+    "ru": [
+      "Игры Nintendo Switch 2: если в Настройках включено «У меня есть Switch 2», они появляются в разделе «Недостающие игры» с обложками и датами, а в Библиотеке есть фильтр «Консоль».",
+      "«Есть у меня» отмечает игры, которые есть без файла, например на картридже.",
+      "Файлы NUP — контейнеры расшифрованных игр — читаются и проверяются без ключей.",
+      "IGDB находит больше игр, с датой выхода на их собственной консоли."
+    ],
+    "ja": [
+      "Nintendo Switch 2 のゲーム：設定で「Switch 2 を持っている」をオンにすると、未所持のゲームにカバーと発売日付きで表示され、ライブラリに「本体」フィルターが加わります。",
+      "「持っている」で、ファイルなしで所有しているゲーム（カートリッジなど）に印を付けられます。",
+      "復号済みゲームのコンテナである NUP ファイルを、キーなしで読み取り・確認できます。",
+      "IGDB で見つかるゲームが増え、発売日はそのゲームの本体のものになりました。"
+    ],
+    "ko": [
+      "Nintendo Switch 2 게임: 설정에서 \"Switch 2 있음\"을 켜면 누락된 게임에 표지와 날짜와 함께 표시되고, 라이브러리에 콘솔 필터가 생깁니다.",
+      "\"보유 중\"으로 파일 없이 소유한 게임(예: 카트리지)을 표시할 수 있습니다.",
+      "복호화된 게임의 컨테이너인 NUP 파일을 키 없이 읽고 검사합니다.",
+      "IGDB에서 더 많은 게임을 찾고, 발매일은 해당 게임의 콘솔 기준입니다."
+    ],
+    "zh": [
+      "Nintendo Switch 2 游戏：在设置中开启“我有 Switch 2”后，它们会带着封面和日期出现在缺失的游戏中，游戏库也新增了主机筛选。",
+      "“已拥有”可标记没有文件但已拥有的游戏，例如卡带。",
+      "NUP 文件（已解密游戏的容器）无需密钥即可读取和检查。",
+      "IGDB 能找到更多游戏，发售日期为其所属主机的日期。"
+    ]
+  },
   "1.73.0": {
     "en": [
       "Clearer menus: the full menu at the top from 1200px wide, and on phones More starts with Issues and Tasks.",
