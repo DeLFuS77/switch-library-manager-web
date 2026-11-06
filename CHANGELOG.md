@@ -8,6 +8,8 @@
 - Filters is beside the search, and its panel goes in the order the filters are used: what is yours first (show only the favorites, the games with cheats or added lately, your collections, My game), then the file (type, format, region) and the game (genre, players, score, language). The long lists show their first choices and the others a click away, the choices without games are left out, and the foot tells how many games the filters leave, with Clear filters
 - "You might like" is folded on one line, and stays open on the next pages once opened
 - The view, the console, the status and the filters chosen are in blue: red is kept for errors and the main actions
+- Shorter texts under the pages of the Discover and Tools menus, each on one line in every language (thanks @NikoMuffin, who suggested it for NXPress)
+- The help of "Scan automatically when files change" says which folders it watches: the folders to scan and every folder inside them, except the folders to skip (thanks @NikoMuffin, who asked it of NXPress)
 
 ### Fixes
 
