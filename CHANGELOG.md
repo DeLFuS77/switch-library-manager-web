@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- The top of the Library is shorter, so the games start higher up: the four cards of the status are the filter of the list (Any status, With an update, Missing some DLC and Up to date, with the share of the games up to date), in place of the cards of before, the bar of the games up to date and the pills of the status. Each card tells what it counts in a bubble, on the ⓘ beside its name
+- Filters is beside the search, and its panel goes in the order the filters are used: what is yours first (show only the favorites, the games with cheats or added lately, your collections, My game), then the file (type, format, region) and the game (genre, players, score, language). The long lists show their first choices and the others a click away, the choices without games are left out, and the foot tells how many games the filters leave, with Clear filters
+- "You might like" is folded on one line, and stays open on the next pages once opened
+- The view, the console, the status and the filters chosen are in blue: red is kept for errors and the main actions
+
+### Fixes
+
+- Each number of the top of the Library is the number of games its click shows: All no longer counts the copies from other regions the list leaves out, Missing ones counts each game once when the settings count the games of several regions once (a game you have from another region is no longer missing), the consoles no longer count the hidden demos and follow the other filters, and the views and the cards follow the console chosen
+
 ## 2.0.1
 
 ### Improvements

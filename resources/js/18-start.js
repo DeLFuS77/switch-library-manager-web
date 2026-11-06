@@ -48,6 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	initLiveTasks();
 	initCompress();
 	initHoverHelp();
+	initRecommendationsFold();
+	initFilterPanelRoom();
 
 	// the answer of a backup request; one that is not JSON (a file too large for the server,
 	// a proxy in between) is still an answer, with its status

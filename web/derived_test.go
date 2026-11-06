@@ -124,7 +124,7 @@ func TestIssuesPageIsPaginatedAndSearchable(t *testing.T) {
 	}
 }
 
-func TestDesignShowsOverviewDlcProgressAndRings(t *testing.T) {
+func TestDesignShowsStatusDlcProgressAndRings(t *testing.T) {
 	web := newTestWeb(t)
 	web.embedFS = os.DirFS("..")
 	web.state.set(testDatabases(t))
@@ -142,7 +142,7 @@ func TestDesignShowsOverviewDlcProgressAndRings(t *testing.T) {
 	}
 
 	library := get("/index.html")
-	for _, want := range []string{"library-overview", "cover-ribbon", "DLC 1/2", `aria-valuenow="50"`} {
+	for _, want := range []string{"status-cards", "cover-ribbon", "DLC 1/2", `aria-valuenow="50"`} {
 		if !strings.Contains(library, want) {
 			t.Errorf("library page misses %q", want)
 		}

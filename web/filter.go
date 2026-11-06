@@ -50,6 +50,8 @@ type TitleItemFilter struct {
 	Score string `in:"form=score"`
 	// the user who looks, for Play (set by the handler)
 	player string
+	// the recommendations were left open (recsCookie, set by the handler)
+	recsOpen bool
 	// the keyword prepared for searching a list, set by searchIn (or MatchesItem)
 	search *search.Query
 }
@@ -120,6 +122,10 @@ var (
 
 // columnsCookie is the cookie in which a page of cards remembers how many cards fit in a row.
 const columnsCookie = "slm-columns"
+
+// recsCookie is the cookie in which the Library and the Missing games remember that the games
+// they recommend were opened: they stay open on the next pages.
+const recsCookie = "slm-recs"
 
 // FitColumns rounds the cards per page up to whole rows of the columns the browser shows,
 // so the last row of a full page has no gap: 24 cards are 25 on 5 columns, 28 on 7.
@@ -217,6 +223,11 @@ func (f *TitleItemFilter) Filters() bool {
 // Plain reports whether the first page is shown without any filter (in any view of the Library).
 func (f *TitleItemFilter) Plain() bool {
 	return !f.Active() && f.Genre == "" && f.Players == "" && f.GameLanguage == "" && f.Score == "" && f.Page <= 1
+}
+
+// RecsOpen reports whether the recommendations were left open (recsCookie).
+func (f *TitleItemFilter) RecsOpen() bool {
+	return f.recsOpen
 }
 
 // ShowsMissing reports whether the Library shows the games it does not have too: All, its view

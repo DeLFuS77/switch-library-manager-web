@@ -1004,14 +1004,15 @@
 
 	&:hover,
 	&:focus-visible {
-		border-color: var(--slm-chart-1);
+		border-color: rgb(var(--slm-work-rgb));
 		color: var(--bs-body-color);
 	}
 }
 
+// a choice made is in the blue of work, as the view and the status chosen
 .filter-choice.active {
-	border-color: var(--slm-chart-1);
-	background: var(--slm-accent-soft);
+	border-color: rgb(var(--slm-work-rgb));
+	background: rgba(var(--slm-work-rgb), .16);
 	font-weight: 600;
 }
 
@@ -1022,8 +1023,8 @@
 }
 
 .active-filter {
-	background: var(--slm-accent-soft);
-	border-color: var(--slm-chart-1);
+	background: rgba(var(--slm-work-rgb), .16);
+	border-color: rgb(var(--slm-work-rgb));
 
 	.bi-x {
 		margin-right: -.25rem;
@@ -1233,8 +1234,8 @@
 }
 
 .sd-options .btn-check:checked + .filter-choice {
-	border-color: var(--slm-chart-1);
-	background: var(--slm-accent-soft);
+	border-color: rgb(var(--slm-work-rgb));
+	background: rgba(var(--slm-work-rgb), .16);
 	font-weight: 600;
 }
 
@@ -1429,7 +1430,6 @@
 // back on a page, its cards appear at once
 .is-returning {
 	.game-grid > *,
-	.library-overview > .kpi,
 	.rec-strip > *,
 	.saga-grid > *,
 	.saga-list > * {

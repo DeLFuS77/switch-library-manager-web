@@ -28,7 +28,7 @@ func (web *Web) HandleMissing() {
 			TitleItems:     items,
 			Filter:         filter,
 			Pagination:     p,
-			Views:          web.libraryViews("missing", lang).withConsole(filter, facets, settings.ReadSettings(web.dataFolder).HasSwitch2),
+			Views:          web.libraryViews("missing", lang, filter.Console).withConsole(filter, facets, settings.ReadSettings(web.dataFolder).HasSwitch2),
 		}, Facets: facets}
 		if filter.Plain() {
 			data.Recommendations = web.recommendations(lang)
@@ -58,6 +58,7 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 	genreCounts := map[string]int{}
 	languageCounts := map[string]int{}
 	matched := make([]int, 0, len(all))
+	once := web.newMissingOnce()
 	filter.searchIn(all)
 	for index := range all {
 		item := &all[index]
@@ -68,6 +69,9 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 			regions[item.Region] = struct{}{}
 		}
 		if filter.Region != "" && item.Region != filter.Region {
+			continue
+		}
+		if !once.takes(item) {
 			continue
 		}
 		for _, genre := range item.Genres {
@@ -89,11 +93,13 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 			(filter.GameLanguage != "" && !hasValue(item.Languages, filter.GameLanguage)) || !scoreMatches(item.Score, filter.Score) {
 			continue
 		}
-		// the console, counted before its own choice as in the Library
+		// the console and the kind are the last filters: each console counts the games of its own
+		// tab, with the kind chosen, and the kinds the games of the console chosen
 		switch2 := item.IsSwitch2()
-		if switch2 {
+		kind := !((filter.Kind == KIND_GAME && item.Demo) || (filter.Kind == KIND_DEMO && !item.Demo))
+		if kind && switch2 {
 			facets.Switch2++
-		} else {
+		} else if kind {
 			facets.Switch1++
 		}
 		if (filter.Console == CONSOLE_SWITCH && switch2) || (filter.Console == CONSOLE_SWITCH2 && !switch2) {
@@ -104,7 +110,7 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 		} else {
 			facets.Games++
 		}
-		if (filter.Kind == KIND_GAME && item.Demo) || (filter.Kind == KIND_DEMO && !item.Demo) {
+		if !kind {
 			continue
 		}
 		facets.All++
@@ -121,9 +127,81 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 	p := pagination.Calculate(filter.Page, filter.PerPage, len(matched))
 	items := make([]TitleItem, 0, p.End-p.Start)
 	for _, index := range matched[p.Start:p.End] {
-		items = append(items, all[index])
+		item := all[index]
+		// one card of all the regions of the game, as in the Library
+		if once != nil {
+			item.MissingFlags = missingRegions(item, once.byName)
+			if room := coverFlags - 1; len(item.MissingFlags) > room {
+				item.MissingFlags, item.HiddenRegions = item.MissingFlags[:room], item.MissingFlags[room:]
+			}
+		}
+		items = append(items, item)
 	}
 	return items, p, facets
+}
+
+// missingOnce shows each missing game once when the settings count the games of several regions
+// once: a game the library has from one region is not missing from the others, and a game it
+// does not have is one card of all its regions, the first one met.
+type missingOnce struct {
+	byName map[string][]string
+	owned  map[string]bool
+	shown  map[string]bool
+}
+
+// newMissingOnce is nil when each region counts on its own.
+func (web *Web) newMissingOnce() *missingOnce {
+	if !settings.ReadSettings(web.dataFolder).CountRegionsOnce {
+		return nil
+	}
+	return &missingOnce{byName: web.regionsByName(), owned: web.ownedNames(), shown: map[string]bool{}}
+}
+
+// takes reports whether a missing game shows, and keeps that it did; a game of the Switch 2
+// alone is no copy of the game of the Switch of its name.
+func (m *missingOnce) takes(item *TitleItem) bool {
+	if m == nil || item.IsSwitch2() {
+		return true
+	}
+	name := regionalName(item.OriginalName)
+	if _, known := m.byName[name]; !known {
+		return true
+	}
+	if m.owned[name] || m.shown[name] {
+		return false
+	}
+	m.shown[name] = true
+	return true
+}
+
+// ownedNames are the names (regionalName) of the games of the library, as their cards have them,
+// and of the games marked as owned.
+func (web *Web) ownedNames() map[string]bool {
+	return web.derived("ownedNames", func() any {
+		names := map[string]bool{}
+		switchDB, localDB := web.state.get()
+		if localDB == nil {
+			return names
+		}
+		for k, v := range localDB.TitlesMap {
+			if !v.BaseExist || v.File.Metadata == nil {
+				continue
+			}
+			var title *db.SwitchTitle
+			if switchDB != nil {
+				title = switchDB.TitlesMap[k]
+			}
+			names[regionalName(getLocalTitleName(title, v))] = true
+		}
+		if switchDB != nil {
+			for prefix := range web.markedPrefixes() {
+				if title := switchDB.TitlesMap[prefix]; title != nil {
+					names[regionalName(title.Attributes.Name)] = true
+				}
+			}
+		}
+		return names
+	}).(map[string]bool)
 }
 
 // missingCheck tells the games of the titles database the library is missing, as the Missing
@@ -160,20 +238,58 @@ func (c missingCheck) missing(prefix string, title *db.SwitchTitle) bool {
 // missingGamesCount counts the games of the titles database that are not in the library, with
 // the filters of the Missing Games page, for the header and the statistics, as buildMissingGames.
 func (web *Web) missingGamesCount() int {
-	return web.derived("missingGamesCount", func() any {
+	return web.missingGamesCounts().All
+}
+
+// consoleCounts are the games of a view of the Library: all of them, and those of each console.
+type consoleCounts struct {
+	All     int
+	Switch1 int
+	Switch2 int
+}
+
+func (c *consoleCounts) add(switch2 bool) {
+	c.All++
+	if switch2 {
+		c.Switch2++
+	} else {
+		c.Switch1++
+	}
+}
+
+// of is the number of the console chosen ("" both).
+func (c consoleCounts) of(console string) int {
+	switch console {
+	case CONSOLE_SWITCH:
+		return c.Switch1
+	case CONSOLE_SWITCH2:
+		return c.Switch2
+	}
+	return c.All
+}
+
+// missingGamesCounts counts the missing games as the Missing Games page shows them without a
+// filter: each game once when the settings say so, of each console.
+func (web *Web) missingGamesCounts() consoleCounts {
+	return web.derived("missingGamesCounts", func() any {
+		counts := consoleCounts{}
 		switchDB, localDB := web.state.get()
 		if switchDB == nil || localDB == nil {
-			return 0
+			return counts
 		}
 		check := web.newMissingCheck(localDB, time.Now())
-		count := 0
+		once := web.newMissingOnce()
 		for k, v := range switchDB.TitlesMap {
-			if check.missing(k, v) {
-				count++
+			if !check.missing(k, v) {
+				continue
+			}
+			item := TitleItem{Id: strings.ToUpper(v.Attributes.Id), OriginalName: v.Attributes.Name}
+			if once.takes(&item) {
+				counts.add(item.IsSwitch2())
 			}
 		}
-		return count
-	}).(int)
+		return counts
+	}).(consoleCounts)
 }
 
 // buildMissingGames lists every game of the titles database that is not in the library nor
