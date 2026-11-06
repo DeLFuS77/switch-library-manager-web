@@ -67,7 +67,10 @@ func getLocalTitleName(title *db.SwitchTitle, gameFile *db.SwitchGameFiles) stri
 		}
 	}
 
-	return strings.TrimSpace(db.ParseTitleNameFromFileName(gameFile.File.ExtendedInfo.FileName))
+	// a file that gives no name of its own (a NUP made of a dump without its control data) is
+	// named by its file, made readable: "NintendoSwitchSportsResortv1.1.0" is "Nintendo Switch
+	// Sports Resort", which IGDB finds
+	return db.ReadableTitleName(db.ParseTitleNameFromFileName(gameFile.File.ExtendedInfo.FileName))
 }
 
 // demoName matches names that mark a demo, for demos the titles database does not flag: the
