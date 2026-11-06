@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Shorter texts under the pages of the Discover and Tools menus, each on one line in every language (thanks @NikoMuffin, who suggested it for NXPress)
+- The help of "Scan automatically when files change" says which folders it watches: the folders to scan and every folder inside them, except the folders to skip (thanks @NikoMuffin, who asked it of NXPress)
+
 ## 2.0.1
 
 ### Improvements
