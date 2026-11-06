@@ -18,7 +18,7 @@
 
 - Each number of the top of the Library is the number of games its click shows: All no longer counts the copies from other regions the list leaves out, Missing ones counts each game once when the settings count the games of several regions once (a game you have from another region is no longer missing), the consoles no longer count the hidden demos and follow the other filters, and the views and the cards follow the console chosen
 - Check the files reads the code of NUP files (main, rtld, sdk and subsdk of each ExeFS) and tells a NUP made of a dump whose code lost bytes: its hashes match while the game stops as it starts. It is told as damaged, with its own note in the task, on its cover and in Issues: dump the game again. NUP files found sound before are checked again
-- A game whose files give no name of their own, such as a NUP made of a dump without its control data, is named by its file made readable: NintendoSwitchSportsResortv1.1.0 is Nintendo Switch Sports Resort. A game IGDB did not find is asked again when its name changes, so it gets its cover
+- A game whose files give no name of their own, such as a NUP made of a dump without its control data, is named by its file made readable: MadeUpQuestv1.1.0 is Made Up Quest. A game IGDB did not find is asked again when its name changes, so it gets its cover
 
 ## 2.0.1
 
