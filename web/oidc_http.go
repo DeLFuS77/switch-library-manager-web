@@ -120,7 +120,7 @@ func (web *Web) oidcCallback(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.SetCookie(w, auth.oidcCookie(r, oidcHintCookie, "/logout", "", 0))
 	}
-	http.Redirect(w, r, safeNext(flow.Next), http.StatusSeeOther)
+	redirectLocal(w, r, safeNext(flow.Next))
 }
 
 // oidcLoginNotice reads the notice a sign-in with OpenID Connect left for the login page: the

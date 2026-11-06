@@ -733,16 +733,27 @@ func safeNext(next string) string {
 		return home
 	}
 	// what goes to the browser is checked too, as it is
-	if target := u.RequestURI(); isLocalPath(target) {
+	if target := u.RequestURI(); isLocalUrl(target) {
 		return target
 	}
 	return home
 }
 
-// isLocalPath tells a path of this site: a slash, then neither a slash nor a backslash, which a
-// browser would take for another site ("//evil.example", "/\evil.example").
-func isLocalPath(path string) bool {
+// isLocalUrl tells a path of this site: a slash, then neither a slash nor a backslash, which a
+// browser would take for another site ("//evil.example", "/\evil.example"). Code scanners know
+// a check by this name: a redirect made where it holds goes to this site only.
+func isLocalUrl(path string) bool {
 	return len(path) > 0 && path[0] == '/' && (len(path) == 1 || (path[1] != '/' && path[1] != '\\'))
+}
+
+// redirectLocal sends the browser to a page of this site, checked where it is sent: anything
+// else goes to the home page. next comes from the person (a form, a link), through safeNext.
+func redirectLocal(w http.ResponseWriter, r *http.Request, next string) {
+	if isLocalUrl(next) {
+		http.Redirect(w, r, next, http.StatusSeeOther)
+		return
+	}
+	http.Redirect(w, r, "/index.html", http.StatusSeeOther)
 }
 
 const (
