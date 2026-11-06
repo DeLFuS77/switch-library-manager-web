@@ -3,6 +3,7 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"runtime"
 	"strconv"
@@ -51,11 +52,16 @@ var appUpdateClient = &http.Client{Timeout: 15 * time.Second}
 
 // newerVersion reports whether version (e.g. 1.12.0) is newer than current.
 func newerVersion(version string, current string) bool {
+	// a beta (1.2.3-beta.4) has the number of its beta fourth; a version, a number past every beta
 	parse := func(text string) []int {
-		parts := strings.Split(strings.TrimPrefix(strings.TrimSpace(text), "v"), ".")
-		numbers := make([]int, 3)
+		core, beta, isBeta := strings.Cut(strings.TrimPrefix(strings.TrimSpace(text), "v"), "-beta.")
+		parts := strings.Split(core, ".")
+		numbers := []int{0, 0, 0, math.MaxInt}
 		for i := 0; i < len(parts) && i < 3; i++ {
 			numbers[i], _ = strconv.Atoi(parts[i])
+		}
+		if isBeta {
+			numbers[3], _ = strconv.Atoi(beta)
 		}
 		return numbers
 	}

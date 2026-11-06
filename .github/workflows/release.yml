@@ -1,6 +1,7 @@
 # Creates the GitHub release for a version tag, using the matching section of
 # CHANGELOG.md as release notes, with the program for Windows, macOS, Linux and Raspberry Pi
 # attached. GitHub attaches the source code archives. The notes go to the Discord server too.
+# A beta tag (1.2.3-beta.4) makes a pre-release, which the app never offers to update to.
 name: Release
 
 on:
@@ -8,6 +9,7 @@ on:
     tags:
       # versions only, not the "data" tag of the titles database
       - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+'
 
 # nothing by default; each job gets what it needs
 permissions: {}
@@ -154,22 +156,33 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          beta=()
+          title="${GITHUB_REF_NAME}"
+          case "${GITHUB_REF_NAME}" in
+            *-beta.*) beta=(--prerelease); title="${GITHUB_REF_NAME} (beta)" ;;
+          esac
           gh release create "${GITHUB_REF_NAME}" \
-            --title "${GITHUB_REF_NAME}" \
+            --title "${title}" \
+            "${beta[@]}" \
             --notes-file release-notes.md \
             --verify-tag \
             dist/*.zip dist/*.tar.gz dist/SHA256SUMS.txt dist/*.intoto.jsonl
 
       # the notes in #releases of the Discord server, through the webhook kept in the secret
-      # DISCORD_WEBHOOK; without it (a fork) nothing is sent, and if Discord fails the release
-      # stays as it is
+      # DISCORD_WEBHOOK; a beta goes to the channel of the secret DISCORD_BETA_WEBHOOK instead, and
+      # without it to none. Without the secret (a fork) nothing is sent, and if Discord fails the
+      # release stays as it is
       - name: Announce on Discord
         continue-on-error: true
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_BETA_WEBHOOK: ${{ secrets.DISCORD_BETA_WEBHOOK }}
         run: |
+          case "${GITHUB_REF_NAME}" in
+            *-beta.*) DISCORD_WEBHOOK="${DISCORD_BETA_WEBHOOK}" ;;
+          esac
           if [ -z "${DISCORD_WEBHOOK}" ]; then
-            echo "No DISCORD_WEBHOOK secret: nothing sent to Discord"
+            echo "No webhook secret for this release: nothing sent to Discord"
             exit 0
           fi
           python3 .github/scripts/discord_release.py \

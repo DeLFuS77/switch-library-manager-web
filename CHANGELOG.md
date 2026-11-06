@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.3-beta.1
+
+A beta: what the next version has, and changes to try that may still change. The app does not offer to update to a beta, the Docker image of a beta is tagged beta and never latest, and the one who runs a beta is told of the next version.
+
+### Improvements
+
+- The NSZ files the app makes carry the checksum of zstd in each of their frames with the zstd library in C too, as they did with the encoder in Go: a damaged file fails to decompress instead of giving damaged data, and every installer and emulator checks it
+
 ## 2.0.2
 
 ### Improvements

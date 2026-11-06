@@ -1,6 +1,7 @@
 # Publishes the Docker image for every version tag to the GitHub Container Registry and,
 # when the DOCKERHUB_TOKEN secret is set, to Docker Hub as DOCKERHUB_USERNAME.
-# A version can be published again by hand (Actions > Publish > Run workflow).
+# A version can be published again by hand (Actions > Publish > Run workflow). A beta tag
+# (1.2.3-beta.4) is published as itself and as "beta", never as "latest".
 name: Publish
 
 on:
@@ -8,6 +9,7 @@ on:
     tags:
       # versions only, not the "data" tag of the titles database
       - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+'
   workflow_dispatch:
     inputs:
       version:
@@ -116,8 +118,9 @@ jobs:
           images: ${{ steps.images.outputs.names }}
           tags: |
             type=raw,value=${{ env.VERSION }}
+            type=raw,value=beta,enable=${{ contains(env.VERSION, '-beta.') }}
           flavor: |
-            latest=true
+            latest=${{ !contains(env.VERSION, '-beta.') }}
 
       - name: Build and push Docker image
         id: build

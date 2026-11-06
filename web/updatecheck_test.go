@@ -20,6 +20,12 @@ func TestNewerVersion(t *testing.T) {
 		{"v2.0.0", "1.99.9", true},
 		{"1.11.0", "1.11.0", false},
 		{"1.9.0", "1.10.0", false},
+		// a beta comes after the version before it and before its own version
+		{"2.2.0", "2.2.0-beta.1", true},
+		{"2.2.0-beta.1", "2.2.0", false},
+		{"2.2.0-beta.1", "2.1.0", true},
+		{"2.1.0", "2.2.0-beta.1", false},
+		{"2.2.0-beta.10", "2.2.0-beta.9", true},
 	} {
 		if got := newerVersion(tt.version, tt.current); got != tt.newer {
 			t.Errorf("newerVersion(%q, %q) = %v", tt.version, tt.current, got)
