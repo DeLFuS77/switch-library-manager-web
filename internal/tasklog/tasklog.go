@@ -31,6 +31,8 @@ const (
 	TASK_CONVERT    = "convert"
 	TASK_PACK       = "pack"
 	TASK_SPLIT      = "split"
+	// the metadata of a NUP counted from 0 written again, for Eglantine and Lichii
+	TASK_NUP_FIX = "nupfix"
 	// games copied to an SD card
 	TASK_COPY = "copy"
 	// background work after a scan

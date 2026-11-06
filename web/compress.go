@@ -682,6 +682,9 @@ func (web *Web) resumeInterrupted() {
 		started = web.startPacks(paths, nil, resume.Delete, tasklog.TRIGGER_RESUME)
 	case tasklog.TASK_SPLIT:
 		started = web.startSplitBy(paths, resume.Delete, tasklog.TRIGGER_RESUME)
+	case tasklog.TASK_NUP_FIX:
+		// a fix cut leaves the blocks it had beside the NUP: it puts them back first
+		started = web.startNupFixBy(paths, tasklog.TRIGGER_RESUME)
 	}
 	// forgotten once it goes on: kept while another task on files keeps it from starting,
 	// for the next start of the app
@@ -1144,6 +1147,8 @@ func (r *fileTaskRun) finish() {
 			r.failure = &tasklog.Note{Text: NOTE_PACK_FAILED}
 		} else if r.kind == tasklog.TASK_SPLIT {
 			r.failure = &tasklog.Note{Text: NOTE_SPLIT_FAILED}
+		} else if r.kind == tasklog.TASK_NUP_FIX {
+			r.failure = &tasklog.Note{Text: NOTE_NUP_FIX_FAILED}
 		}
 	}
 	// ended by itself or cancelled: nothing goes on after a restart
@@ -1192,6 +1197,9 @@ func compressDamage(err error) bool {
 func compressNote(kind string, err error) string {
 	if fileGone(err) {
 		return NOTE_FILE_GONE
+	}
+	if kind == tasklog.TASK_NUP_FIX {
+		return nupFixNote(err)
 	}
 	if kind == tasklog.TASK_SPLIT {
 		switch {

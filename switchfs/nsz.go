@@ -1335,6 +1335,9 @@ type FileCheck struct {
 	// update, or no key to decrypt them), or an NCA has no content ID in its name to be
 	// checked against
 	Partial bool
+	// for a NUP: whether Eglantine and Lichii open it and can start its game; nil for any other
+	// file
+	Emulators *NupEmulators
 }
 
 // VerifyCompressed checks every file of an NSZ or XCZ: compressed ones are decompressed,

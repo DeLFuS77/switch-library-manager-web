@@ -43,6 +43,9 @@ type ContentMetaAttributes struct {
 	// for a package of a NUP: the bytes of the file its data takes, the data it shares with the
 	// game counted with the game (see NupContainer.Metadata); 0 for any other file
 	StoredSize int64 `json:"stored_size,omitempty"`
+	// for a package of a NUP: whether Eglantine and Lichii open the NUP and can start its game,
+	// the same for all its packages; nil for any other file
+	Emulators *NupEmulators `json:"emulators,omitempty"`
 }
 
 type ContentMeta struct {

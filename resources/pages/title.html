@@ -516,6 +516,25 @@
 								</ul>
 							</div>
 							{{- end}}
+							{{- with .Emulators}}
+							<div class="nup-emulators" data-hover-help>
+								<span class="help-name">{{t "Emulators"}}</span>
+								<div class="form-text">{{t "Eglantine and Lichii, the emulators that open NUP files, are stricter than the format: they do not open a NUP that breaks one of their rules, and to start its game they need main and main.npdm in its ExeFS. It is checked when the file is read, without reading the data of the game."}}</div>
+								<span class="chip {{if .Ok}}chip-success{{else}}chip-warning{{end}}"><span class="bi {{if .Ok}}bi-check-circle{{else}}bi-exclamation-triangle{{end}}" aria-hidden="true"></span>Eglantine</span>
+								<span class="chip {{if .Ok}}chip-success{{else}}chip-warning{{end}}"><span class="bi {{if .Ok}}bi-check-circle{{else}}bi-exclamation-triangle{{end}}" aria-hidden="true"></span>Lichii</span>
+								{{- if .Ok}}<span class="visually-hidden">{{t "They open it and can start its game."}}</span>{{end}}
+							</div>
+							{{- range .Warnings}}
+							<div class="nup-emulator-warning text-warning-emphasis"><span class="bi bi-exclamation-triangle" aria-hidden="true"></span>{{.}}</div>
+							{{- end}}
+							{{- if .ZeroBased}}
+							{{- /* its metadata written again as a task, by an administrator; what it does shows on hover */}}
+							<div class="nup-fix admin-only" data-hover-help>
+								<button type="button" class="btn btn-sm btn-outline-warning rounded-pill help-name" data-nup-fix="{{$.Path}}"><span class="bi bi-wrench-adjustable" aria-hidden="true"></span>{{t "Fix for emulators"}}</button>
+								<div class="form-text">{{t "Writes again, in the NUP itself, only the number of the type of each record of its metadata, so they are counted from 1 as the format says: Eglantine and Lichii then show its name, version and icon right. The files of the game are not touched. While it writes, it keeps a copy of the old blocks beside the NUP, and puts it back if anything fails or the work is cut; then it reads the NUP again, and the library reads it again. It runs as a task."}}</div>
+							</div>
+							{{- end}}
+							{{- end}}
 							{{- with .AlsoHolds}}
 							<div class="item-meta"><span><span class="bi bi-box-seam me-1" aria-hidden="true"></span>{{t "Also in this file: %v" (join . ", ")}}</span></div>
 							{{- end}}

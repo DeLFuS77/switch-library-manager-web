@@ -54,6 +54,8 @@ const (
 	NupKindUpdate = 1
 	NupKindAddon  = 2
 	nupKindLast   = 4
+	// the flag of an update stored without its game, the only one of version 1
+	nupFlagStandalone = 0x01
 )
 
 // codecs of the data of a file
@@ -75,7 +77,9 @@ const (
 
 // NupReaderVersion is raised when what the reader tells of a NUP changes (a name cleaned up, a
 // record read), so the library reads its NUP files again instead of keeping what it cached.
-const NupReaderVersion = 4
+// Version 5 tells whether Eglantine and Lichii open it, and a NUP whose metadata types are
+// counted from 0.
+const NupReaderVersion = 5
 
 // NupPackage is one package of a NUP: the game, one of its updates or one of its DLC.
 type NupPackage struct {
@@ -85,10 +89,16 @@ type NupPackage struct {
 	// bit 0: an update stored without its game
 	Flags   byte
 	Version uint32
-	// the folder of the package in Dirs
-	RootDir uint32
+	// the folder of the package in Dirs, and the one of its ExeFS (nupNoDir when it has none)
+	RootDir  uint32
+	ExefsDir uint32
 	// the metadata of the package by type, the first record of each type
 	Meta map[uint16][]byte
+	// its metadata has its types counted from 0, as a build of the packer of the format wrote
+	// them: read here where the format puts them, and read wrong by Eglantine and Lichii
+	ZeroBased bool
+	// where its block of metadata is in the file, for FixNupZeroBased
+	metaOffset, metaSize uint64
 }
 
 // NupDir is a folder of the tree of a package.
@@ -118,6 +128,9 @@ type NupContainer struct {
 	// the children of the folders, each a node: a folder below len(Dirs), else the file at
 	// node - len(Dirs)
 	Children []uint32
+	// what Eglantine and Lichii refuse in it that the format and this reader let be (see
+	// Emulators)
+	strict []NupEmulatorIssue
 }
 
 // IsNupFile tells a NUP by the extension of its name.
@@ -168,7 +181,7 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 	case headerSize < nupHeaderSize:
 		return nil, errors.New("NUP header is too small")
 	case flags != 0:
-		return nil, fmt.Errorf("NUP flags %#x are not supported", flags)
+		return nil, nupRefused(fmt.Errorf("NUP flags %#x are not supported", flags))
 	// anywhere after the header and in the file, as the format lets a writer put it
 	case tocOffset < headerSize || tocOffset > fileSize:
 		return nil, errors.New("NUP table of contents is outside the file")
@@ -178,8 +191,10 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 		return nil, fmt.Errorf("NUP has an invalid number of packages (%d)", packageCount)
 	case nupTocHeadSize+packageCount*nupPackageSize > tocSize:
 		return nil, errors.New("NUP packages do not fit in the table of contents")
-	case blobOffset%16 != 0 || blobOffset < tocOffset+tocSize:
+	case blobOffset < tocOffset+tocSize:
 		return nil, errors.New("NUP data region overlaps the table of contents")
+	case blobOffset%16 != 0:
+		return nil, nupRefused(errors.New("NUP data region does not start at a multiple of 16 bytes"))
 	}
 	if uint64(size) < fileSize {
 		// a copy or a download that stopped before the end
@@ -235,6 +250,7 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 	result := &NupContainer{Packages: make([]NupPackage, 0, packageCount), Dirs: make([]NupDir, dirCount),
 		Files: make([]NupFile, fileCount), Children: make([]uint32, children)}
 	metaTotal := uint64(0)
+	codecFlags, placedEmpty, tagged := 0, 0, 0
 	for i := uint64(0); i < packageCount; i++ {
 		record := toc[nupTocHeadSize+i*nupPackageSize:][:nupPackageSize]
 		pkg := NupPackage{
@@ -245,9 +261,16 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 			Flags:   record[0x19],
 		}
 		if pkg.Kind > nupKindLast {
-			return nil, fmt.Errorf("NUP package %d has an unknown kind (%d)", i, pkg.Kind)
+			return nil, nupRefused(fmt.Errorf("NUP package %d has an unknown kind (%d)", i, pkg.Kind))
+		}
+		if pkg.Kind > NupKindAddon {
+			result.strict = append(result.strict, nupIssue(nupIssueKind, i, pkg.Kind))
+		}
+		if pkg.Flags&^nupFlagStandalone != 0 {
+			result.strict = append(result.strict, nupIssue(nupIssueFlags, i, fmt.Sprintf("%#x", pkg.Flags)))
 		}
 		exefs, romfs := le.Uint32(record[0x0C:]), le.Uint32(record[0x10:])
+		pkg.ExefsDir = exefs
 		if uint64(pkg.RootDir) >= dirCount || exefs != nupNoDir && uint64(exefs) >= dirCount ||
 			romfs != nupNoDir && uint64(romfs) >= dirCount {
 			return nil, fmt.Errorf("NUP package %d has its folders outside the table of contents", i)
@@ -265,11 +288,15 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 			if _, err := r.ReadAt(block, int64(metaOffset)); err != nil {
 				return nil, fmt.Errorf("NUP package %d metadata: %w", i, err)
 			}
-			meta, err := parseNupTlvs(block)
+			meta, shifted, err := parseNupTlvs(block)
 			if err != nil {
-				return nil, fmt.Errorf("NUP package %d metadata: %w", i, err)
+				return nil, nupRefused(fmt.Errorf("NUP package %d metadata: %w", i, err))
 			}
-			pkg.Meta = meta
+			pkg.Meta, pkg.ZeroBased = meta, shifted
+			pkg.metaOffset, pkg.metaSize = metaOffset, metaSize
+			if !nupStrictLocalized(block) {
+				result.strict = append(result.strict, nupIssue(nupIssueLocalized, i))
+			}
 		}
 		result.Packages = append(result.Packages, pkg)
 	}
@@ -299,14 +326,15 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 			ExtentSize: le.Uint64(record[0x18:]), Codec: record[0x40]}
 		copy(file.Hash[:], record[0x20:0x40])
 		if file.Codec > nupCodecZstd {
-			return nil, fmt.Errorf("NUP file %q is stored with codec %d, which NUP version 1 does not have", fileName, file.Codec)
+			return nil, nupRefused(fmt.Errorf("NUP file %q is stored with codec %d, which NUP version 1 does not have", fileName, file.Codec))
 		}
 		// a file of 0 bytes has no data; any other has its data in the data region, aligned
 		if file.Size > 0 {
 			switch {
-			case file.ExtentOffset < blobOffset || file.ExtentOffset%16 != 0 || file.ExtentOffset > fileSize ||
-				file.ExtentSize > fileSize-file.ExtentOffset:
+			case file.ExtentOffset < blobOffset || file.ExtentOffset > fileSize || file.ExtentSize > fileSize-file.ExtentOffset:
 				return nil, fmt.Errorf("NUP file %q has its data outside the file", fileName)
+			case file.ExtentOffset%16 != 0:
+				return nil, nupRefused(fmt.Errorf("NUP file %q has its data at an offset that is not a multiple of 16 bytes", fileName))
 			case file.Codec == nupCodecRaw && file.ExtentSize != file.Size:
 				return nil, fmt.Errorf("NUP file %q is stored raw with %d bytes instead of %d", fileName, file.ExtentSize, file.Size)
 			case file.Codec == nupCodecZstd && file.ExtentSize == 0:
@@ -314,17 +342,39 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 			}
 		}
 		result.Files[i] = file
+		if record[0x41] != 0 {
+			codecFlags++
+		}
+		if file.Size == 0 && (file.ExtentOffset != 0 || file.ExtentSize != 0) {
+			placedEmpty++
+		}
 	}
 	for i := range result.Children {
 		node := le.Uint32(toc[position:])
 		position += 4
 		if node >= nupFileTag {
 			node = uint32(dirCount) + (node - nupFileTag)
+			tagged++
 		}
 		if uint64(node) >= dirCount+fileCount {
 			return nil, errors.New("NUP folder holds a file or a folder that is not in the table of contents")
 		}
 		result.Children[i] = node
+	}
+	switch {
+	case codecFlags == 1:
+		result.strict = append(result.strict, nupIssue(nupIssueCodecFlag))
+	case codecFlags > 1:
+		result.strict = append(result.strict, nupIssue(nupIssueCodecFlags, codecFlags))
+	}
+	switch {
+	case placedEmpty == 1:
+		result.strict = append(result.strict, nupIssue(nupIssuePlacedEmpty))
+	case placedEmpty > 1:
+		result.strict = append(result.strict, nupIssue(nupIssuePlacedEmpties, placedEmpty))
+	}
+	if tagged > 0 {
+		result.strict = append(result.strict, nupIssue(nupIssueTagged))
 	}
 	return result, nil
 }
@@ -401,11 +451,11 @@ func nupLabel(pkg NupPackage) string {
 //
 // The packer of the format counted the types from 0 for a while (NPDM 0, NACP 1, the name 4,
 // the publisher 5), one below the ones the format gives them: type 0 is no type of the format,
-// so a block that has one is read with each of its types one up.
-func parseNupTlvs(block []byte) (map[uint16][]byte, error) {
+// so a block that has one is read with each of its types one up, and told as such.
+func parseNupTlvs(block []byte) (map[uint16][]byte, bool, error) {
 	result, err := splitNupTlvs(block)
 	if _, shifted := result[0]; err != nil || !shifted {
-		return result, err
+		return result, false, err
 	}
 	moved := map[uint16][]byte{}
 	for kind, value := range result {
@@ -414,7 +464,7 @@ func parseNupTlvs(block []byte) (map[uint16][]byte, error) {
 		}
 		moved[kind] = value
 	}
-	return moved, nil
+	return moved, true, nil
 }
 
 func splitNupTlvs(block []byte) (map[uint16][]byte, error) {
@@ -631,6 +681,7 @@ func (container *NupContainer) storedSizes() []int64 {
 func (container *NupContainer) Metadata() map[string]*ContentMetaAttributes {
 	result := map[string]*ContentMetaAttributes{}
 	sizes := container.storedSizes()
+	emulators := container.Emulators()
 	stored := map[string]int64{}
 	var gameNacp *Nacp
 	for _, pkg := range container.Packages {
@@ -644,7 +695,8 @@ func (container *NupContainer) Metadata() map[string]*ContentMetaAttributes {
 			// a package without an ID (a dump without its NPDM) cannot be put anywhere
 			continue
 		}
-		meta := &ContentMetaAttributes{TitleId: NupTitleId(pkg), Version: int(pkg.Version), Contents: map[string]Content{}}
+		meta := &ContentMetaAttributes{TitleId: NupTitleId(pkg), Version: int(pkg.Version), Contents: map[string]Content{},
+			Emulators: &emulators}
 		switch pkg.Kind {
 		case NupKindBase:
 			meta.Type = "BASE"

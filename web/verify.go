@@ -36,6 +36,12 @@ const (
 	NOTE_VERIFY_UNREADABLE = "The file could not be read, it was left unchecked."
 	// a check of the signatures only that could not read the headers of a file with the keys
 	NOTE_VERIFY_NO_SIGNATURES = "The signatures could not be read, it was left unchecked."
+	// a NUP checked whole that Eglantine and Lichii, the emulators that open NUP files, do not
+	// open, or whose game they cannot start: no failure, the file is sound
+	NOTE_VERIFY_EMULATORS_REFUSE   = "Eglantine and Lichii do not open this NUP: the file is whole, but it breaks a rule of these emulators."
+	NOTE_VERIFY_EMULATORS_NO_START = "Eglantine and Lichii cannot start the game of this NUP, though the file is whole."
+	// a NUP checked whole whose metadata has its types counted from 0
+	NOTE_VERIFY_EMULATORS_ZERO_BASED = "Eglantine and Lichii show the name, version and icon of this NUP wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them."
 )
 
 // what a check of a file ended in, besides sound: its data does not match its hashes (damaged),
@@ -1096,6 +1102,9 @@ func (r *verifyRun) record(file verifyPending, name string, signed *switchfs.Sig
 	default:
 		r.web.taskLog().AddFileTile(taskId, name, false, "")
 	}
+	if file.hash && err == nil {
+		r.tellEmulators(name, check.Emulators)
+	}
 	r.checked++
 	r.web.taskLog().SetVerifyResult(taskId, r.checked, r.damaged, r.modified)
 	r.report(name, true)
@@ -1113,6 +1122,27 @@ func damagedNote(reason string) string {
 		return NOTE_VERIFY_CODE
 	}
 	return NOTE_VERIFY_DAMAGED
+}
+
+// tellEmulators warns of a NUP checked whole that Eglantine and Lichii do not read well, on a
+// line of its own: its tile stays sound.
+func (r *verifyRun) tellEmulators(name string, emulators *switchfs.NupEmulators) {
+	if emulators == nil {
+		return
+	}
+	switch {
+	case len(emulators.Refused) > 0:
+		reasons := make([]string, len(emulators.Refused))
+		for i, issue := range emulators.Refused {
+			reasons[i] = issue.String()
+		}
+		r.web.taskLog().Warn(r.taskId, NOTE_VERIFY_EMULATORS_REFUSE, name+": "+strings.Join(reasons, "; "))
+	case emulators.NoStart != nil:
+		r.web.taskLog().Warn(r.taskId, NOTE_VERIFY_EMULATORS_NO_START, name+": "+emulators.NoStart.String())
+	}
+	if emulators.ZeroBased {
+		r.web.taskLog().Warn(r.taskId, NOTE_VERIFY_EMULATORS_ZERO_BASED, name+": the types of its metadata are counted from 0")
+	}
 }
 
 // finish saves the results and ends the task: cancelled, paused until the next background hours,
