@@ -10,10 +10,15 @@
 - The view, the console, the status and the filters chosen are in blue: red is kept for errors and the main actions
 - Shorter texts under the pages of the Discover and Tools menus, each on one line in every language (thanks @NikoMuffin, who suggested it for NXPress)
 - The help of "Scan automatically when files change" says which folders it watches: the folders to scan and every folder inside them, except the folders to skip (thanks @NikoMuffin, who asked it of NXPress)
+- The page of a game in a NUP tells whether Eglantine and Lichii, the emulators that open NUP files, open it and can start its game: they are stricter than the format, and refuse a NUP with packages of kind 3 or 4, package flags other than the first, codec flags, files of 0 bytes that point at data, files marked with the high bit in their folders, folders inside themselves or more than 128 deep, or names and icons by language that run past their record, and they need main and main.npdm in the ExeFS they start. Its row in Files tags Eglantine and Lichii in green or orange, with the reason under them; Check the files tells it on an orange line of the task, the file being whole. A NUP the app does not read for a reason they share says they do not open it either
+- A NUP whose metadata types are counted from 0, as a build of the packer of the format wrote them, is told on the page of its game and in Check the files: the app reads it, but Eglantine and Lichii show its name, version and icon wrong
+- A NUP whose metadata types are counted from 0 can be fixed from the page of its game: the button under the orange warning writes only those numbers again, in the NUP itself, as NXPress does, so Eglantine and Lichii show its name, version and icon right. The old blocks are kept beside it while it writes and put back if anything fails or the work is cut, and the NUP is read back after. It runs as a task, for administrators, and the file stays checked
 
 ### Fixes
 
 - Each number of the top of the Library is the number of games its click shows: All no longer counts the copies from other regions the list leaves out, Missing ones counts each game once when the settings count the games of several regions once (a game you have from another region is no longer missing), the consoles no longer count the hidden demos and follow the other filters, and the views and the cards follow the console chosen
+- Check the files reads the code of NUP files (main, rtld, sdk and subsdk of each ExeFS) and tells a NUP made of a dump whose code lost bytes: its hashes match while the game stops as it starts. It is told as damaged, with its own note in the task, on its cover and in Issues: dump the game again. NUP files found sound before are checked again
+- A game whose files give no name of their own, such as a NUP made of a dump without its control data, is named by its file made readable: NintendoSwitchSportsResortv1.1.0 is Nintendo Switch Sports Resort. A game IGDB did not find is asked again when its name changes, so it gets its cover
 
 ## 2.0.1
 
