@@ -89,7 +89,8 @@ type CompressOptions struct {
 	Blocks bool
 	// the size of each block with Blocks, as a power of two, from MinBlockExponent to
 	// MaxBlockExponent; 0 is 20 (1 MiB), as nsz. Bigger blocks compress more and make a reader
-	// decompress more for each read: 24 (16 MiB) makes an NSZ about 8% smaller than 20
+	// decompress more for each read: 24 (16 MiB) made a game 4% smaller than 20, and an
+	// emulator took 1.2 s more to start it
 	BlockExponent int
 	// called with the bytes of the source processed so far and the total
 	Progress func(done int64, total int64)
