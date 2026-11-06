@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/banner.jpg" alt="Switch Library Manager Web and NXPress" width="100%"></p>
+
 # Switch Library Manager Web
 
 [![Support on Ko-fi](https://img.shields.io/badge/Support_on-Ko--fi-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/delfus77)
@@ -15,6 +17,9 @@
 Manage the backups of your Nintendo Switch games from the browser: see which updates, DLC and games you are missing,
 find broken or duplicate files, keep your folders tidy and save space with NSZ compression. It runs on Windows, macOS,
 Linux, Docker, NAS and Raspberry Pi.
+
+💬 Questions, ideas or news of new versions? Join the [Discord server](https://discord.gg/acQVZSEBR), shared with
+[NXPress](https://github.com/DeLFuS77/NXPress).
 
 <p align="center">
   <a href="https://ko-fi.com/delfus77"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi" height="36"></a>

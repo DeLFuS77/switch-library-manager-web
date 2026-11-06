@@ -22,7 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 1.73.0
+  <Changes>### 2.0.0
+- Games of the Nintendo Switch 2, with the setting I have a Switch 2 and a Console filter
+- I have it marks the games owned without their file
+- Reads and checks NUP files without keys; IGDB finds more games
+### 1.73.0
 - Clearer menus, and the help of Settings and Organize on hover
 - A title.keys can be uploaded alone, with how many title keys are loaded
 - Names in romaji without stray spaces; the NSZ of the extra compression keep to the threads of each file
@@ -117,7 +121,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-11-05</Date>
+  <Date>2026-11-06</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>
