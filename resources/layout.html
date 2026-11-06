@@ -283,19 +283,19 @@
 
 {{define "discoverItems"}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "upcoming" "Href" "/upcoming.html" "Icon" "bi-calendar-event" "Label" (t "Upcoming") "Text" (t "The releases of the coming weeks"))}}
-{{- template "navMenuItem" (dict "Page" .Page "Id" "sagas" "Href" "/sagas.html" "Icon" "bi-stack" "Label" (t "Series") "Text" (t "Your series and the games you miss of each"))}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "sagas" "Href" "/sagas.html" "Icon" "bi-stack" "Label" (t "Series") "Text" (t "Your series and the games you miss"))}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "statistics" "Href" "/statistics.html" "Icon" "bi-bar-chart" "Label" (t "Statistics") "Text" (t "Your library in numbers"))}}
 {{- end}}
 
 {{define "toolItems"}}
 {{- if .Auth.IsAdmin}}
-{{- template "navMenuItem" (dict "Page" .Page "Id" "maintenance" "Href" "/maintenance.html" "Icon" "bi-list-check" "Label" (t "Tune-up") "Text" (t "The steps in order to put your library in order") "Dot" .Counts.TuneUp)}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "maintenance" "Href" "/maintenance.html" "Icon" "bi-list-check" "Label" (t "Tune-up") "Text" (t "Tidy up your library step by step") "Dot" .Counts.TuneUp)}}
 <li><hr class="dropdown-divider"></li>
-{{- template "navMenuItem" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Text" (t "Rename your files and put them in folders"))}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "organize" "Href" "/organize.html" "Icon" "bi-folder-symlink" "Label" (t "Organize") "Text" (t "Rename files and sort into folders"))}}
 {{- end}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "compress" "Href" "/compress.html" "Icon" "bi-file-zip" "Label" (t "Compress") "Text" (t "Turn NSP into NSZ to save space"))}}
 {{- if .Auth.IsAdmin}}
-{{- template "navMenuItem" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Text" (t "Free the space of old updates and duplicates"))}}
+{{- template "navMenuItem" (dict "Page" .Page "Id" "space" "Href" "/space.html" "Icon" "bi-hdd" "Label" (t "Space") "Text" (t "Delete old updates and duplicates"))}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "sd" "Href" "/sd.html" "Icon" "bi-sd-card" "Label" (t "SD card planner") "Text" (t "Choose what fits on your SD card"))}}
 {{- if .VaultEnabled}}
 {{- template "navMenuItem" (dict "Page" .Page "Id" "saves" "Href" "/saves.html" "Icon" "bi-safe" "Label" (t "Save backups") "Text" (t "The saves of your consoles"))}}
