@@ -1,18 +1,16 @@
 # Changelog
 
-## Unreleased
+## 2.0.1
 
 ### Improvements
 
-- The console of the games shown is chosen beside the views of the Library: Both, Switch or Switch 2, each with how many games of the view are of it, and the console chosen stays from All to My games and Missing ones and for the next visit, so the Switch 2 games missing are one click away. It shows with games of the Switch 2 or "I have a Switch 2" on, and it takes the place of Console in the panel of filters
-- With several library folders, Organize puts each file in order within the folder of the library it lies in, which may be another disk, instead of moving it to the library folder: the game, its updates and its DLC get the folder of the game, named the same, in their own folder of the library, and nothing is copied from one disk to another, which took minutes for each NUP file. A library folder inside another one is still part of it
-- A file Organize has to copy to another disk tells in its task how much of it is copied, instead of looking stuck
-- The times to beat task, while it asks IGDB about the games of the Switch 2 and the ones the titles database does not list (hundreds of them the first time, at a few a second), shows which game and how many are left instead of 0/0, and keeps what it found every 20 games, so a restart in the middle does not ask them all again
-- With several library folders, games uploaded from the Library ask where they go when they are chosen or dropped: each folder with what is free on its disk, the last one used chosen first, and "Always use this folder", which "Ask where again" undoes in the panel of the uploads. The choice that stayed on the page before is gone
+- The console is chosen beside the views of the Library: Both, Switch or Switch 2, with how many games of the view are of each. It stays from All to My games and Missing ones and for the next visit, and takes the place of Console in the panel of filters
+- With several library folders, the games uploaded ask where they go, each folder with what is free on its disk, and Organize puts each file in order within its own folder of the library, which may be another disk, instead of copying it to the main one: a NUP file took minutes
+- Tasks that looked stuck tell how they go: a copy of a file to another disk, and IGDB asking about the games of the Switch 2, which now keeps what it found as it goes
 
 ### Security
 
-- Signing in and signing out only send the browser to a page of the app, checked as it goes: a path such as "//host" or "/\host", which a browser takes for another site, is refused also after signing out through a portal or a provider
+- Signing in and signing out only send the browser to a page of the app, checked as it goes: a path such as "//host", which a browser takes for another site, is refused
 
 ## 2.0.0
 
