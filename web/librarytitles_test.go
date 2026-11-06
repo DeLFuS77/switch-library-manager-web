@@ -97,8 +97,21 @@ func TestIgdbReleaseDateOfTheConsole(t *testing.T) {
 	store := &igdbTitleStore{games: map[string]IgdbTitle{}}
 	store.set("0400000000010", IgdbTitle{Found: true, ReleaseDate: 20130325, Checked: time.Now()})
 	store.set("0400000000020", IgdbTitle{Found: true, ReleaseDate: 20250605, Version: igdbTitleVersion, Checked: time.Now()})
-	if !store.needsLookup("0400000000010", time.Now()) || store.needsLookup("0400000000020", time.Now()) {
+	if !store.needsLookup("0400000000010", "A", time.Now()) || store.needsLookup("0400000000020", "B", time.Now()) {
 		t.Fatal("a game found by an older version is asked again, one found now is not")
+	}
+
+	// a game not found is asked again when the name it is searched by changes, not before
+	store.set("0400000000030", IgdbTitle{Found: false, Version: igdbTitleVersion, Checked: time.Now(), Name: "NintendoSwitchSportsResortv1.1.0"})
+	if store.needsLookup("0400000000030", "NintendoSwitchSportsResortv1.1.0", time.Now()) {
+		t.Error("a game not found was asked again by the same name before a month")
+	}
+	if !store.needsLookup("0400000000030", "Nintendo Switch Sports Resort", time.Now()) {
+		t.Error("a game not found was not asked again by its new name")
+	}
+	// a game found keeps what was found, whatever its name now
+	if store.needsLookup("0400000000020", "Another Name", time.Now()) {
+		t.Error("a game found was asked again for a new name")
 	}
 }
 

@@ -1334,6 +1334,30 @@ func ParseTitleNameFromFileName(fileName string) string {
 	return fileName
 }
 
+// fileNameVersion is the version a dump or a file name may end with: "_v1.1.0", " v1.0.2",
+// "Resortv1.1.0". A number with no dot ("FIFA 23", "Game 2") is part of the name.
+var fileNameVersion = regexp.MustCompile(`[\s_.-]*[vV]?\d+(?:\.\d+)+$`)
+
+// camelBreak is where a name written without spaces changes from a small letter to a capital.
+var camelBreak = regexp.MustCompile(`(\p{Ll})(\p{Lu})`)
+
+// ReadableTitleName is a name taken from a file or dump name made readable, for a game whose
+// files give no name of their own: underscores are spaces, a version at its end goes, and a
+// name of three words or more written together ("NintendoSwitchSportsResort") is parted into
+// its words. A name with spaces keeps its letters as they are ("McPixel", "eBaseball").
+func ReadableTitleName(name string) string {
+	name = strings.TrimSpace(name)
+	clean := strings.TrimSpace(fileNameVersion.ReplaceAllString(strings.ReplaceAll(name, "_", " "), ""))
+	if !strings.ContainsAny(clean, " \t") && len(camelBreak.FindAllStringIndex(clean, -1)) >= 2 {
+		clean = camelBreak.ReplaceAllString(clean, "$1 $2")
+	}
+	clean = strings.Join(strings.Fields(clean), " ")
+	if clean == "" {
+		return name
+	}
+	return clean
+}
+
 func fullPath(file ExtendedFileInfo) string {
 	return filepath.Join(file.BaseFolder, file.FileName)
 }
