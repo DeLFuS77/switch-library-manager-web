@@ -427,7 +427,7 @@ func TestIssuesDeleteDamagedFilesChecksThemAgain(t *testing.T) {
 	})
 	info, _ := os.Stat(separate)
 	store := web.verifications()
-	store.set(separate, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Reason: "damaged file: open: in use", Checker: verifyChecker - 1})
+	store.set(separate, verifyRecord{Size: info.Size(), ModTime: info.ModTime().UnixNano(), OK: false, Reason: "damaged file: open: in use", Checker: verifyCheckerDamaged - 1})
 	web.invalidateDerived()
 	if response := postForm(web, "/issues/delete", url.Values{"kind": {ISSUE_DAMAGED}}); response.Code != http.StatusOK || !strings.Contains(response.Body.String(), `"deleted":0`) {
 		t.Fatalf("a damage of an older check is checked again first: %d %s", response.Code, response.Body.String())

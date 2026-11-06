@@ -27,7 +27,9 @@ const (
 	VERIFY_FILENAME = "verify.json"
 	// a damaged file found by a verification, shown in Issues
 	NOTE_VERIFY_DAMAGED = "The file is damaged: its data does not match its hashes."
-	NOTE_VERIFY_FAILED  = "The files could not be checked."
+	// a NUP whose files are as they were packed, made of a dump that lacks bytes of its code
+	NOTE_VERIFY_CODE   = "The code of the game is damaged in the dump this NUP was made from: dump the game again."
+	NOTE_VERIFY_FAILED = "The files could not be checked."
 	// the warning of a damaged file in older versions, still in the history of the tasks
 	NOTE_VERIFY_DAMAGED_OLD = "The file is damaged or was modified."
 	// a file that could not be read (gone, in use, a disk or a share that failed): not damaged
@@ -85,8 +87,16 @@ type verifyRecord struct {
 // Version 3 reads the hashes of the sections past 4 GB of an NCA: rewritten NCA files of
 // big games found intact by an older version are checked again. Version 4 tells a file that
 // could not be read (in use, gone, a disk or a share that failed) from a damaged one: files
-// found damaged by an older version are checked again.
-const verifyChecker = 4
+// found damaged by an older version are checked again. Version 5 reads the code modules of
+// the ExeFS of a NUP by their headers: NUP files found sound by an older version are checked
+// again.
+const verifyChecker = 5
+
+// verifyCheckerDamaged is the oldest version whose damaged files still stand.
+const verifyCheckerDamaged = 4
+
+// verifyCheckerNup is the oldest version whose sound NUP files still stand.
+const verifyCheckerNup = 5
 
 // verifyCheckerIntact is the oldest version whose rewritten NCA files found intact still stand.
 const verifyCheckerIntact = 3
@@ -97,12 +107,16 @@ func (r verifyRecord) sound() bool {
 	return r.OK && !r.Partial
 }
 
-// stale tells a result an older version of the check may have got wrong: a damage, or a
-// rewritten NCA found intact without the hashes of its sections past 4 GB. Other sound files
-// matched the SHA-256 of their content IDs, which no version got wrong.
-func (r verifyRecord) stale() bool {
-	if !r.OK {
-		return r.Checker < verifyChecker
+// stale tells a result an older version of the check may have got wrong for the file at path:
+// a damage, a rewritten NCA found intact without the hashes of its sections past 4 GB, or a
+// NUP found sound without its code read. Other sound files matched the SHA-256 of their
+// content IDs, which no version got wrong.
+func (r verifyRecord) stale(path string) bool {
+	switch {
+	case !r.OK:
+		return r.Checker < verifyCheckerDamaged
+	case switchfs.IsNupFile(path):
+		return r.Checker < verifyCheckerNup
 	}
 	return r.Modified && r.Checker < verifyCheckerIntact
 }
@@ -197,7 +211,7 @@ func (s *verifyStore) current(path string, info os.FileInfo) (verifyRecord, bool
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	record, ok := s.records[path]
-	if !ok || record.Size != info.Size() || record.ModTime != info.ModTime().UnixNano() || record.stale() {
+	if !ok || record.Size != info.Size() || record.ModTime != info.ModTime().UnixNano() || record.stale(path) {
 		return verifyRecord{}, false
 	}
 	return record, true
@@ -249,7 +263,7 @@ func (s *verifyStore) carry(from string, to string, moved bool) bool {
 		delete(s.records, from)
 		// a move keeps the size and the time of the file: a file changed after it was checked,
 		// even to the same size, or a result too old, does not count as checked
-		if record.Size != info.Size() || record.ModTime != info.ModTime().UnixNano() || record.stale() {
+		if record.Size != info.Size() || record.ModTime != info.ModTime().UnixNano() || record.stale(from) {
 			s.version.Add(1)
 			return true
 		}
@@ -382,7 +396,7 @@ func (s *verifyStore) why(path string, info os.FileInfo) string {
 		return VERIFY_WHY_NEW
 	case record.Size != info.Size() || record.ModTime != info.ModTime().UnixNano():
 		return VERIFY_WHY_CHANGED
-	case record.stale():
+	case record.stale(path):
 		return VERIFY_WHY_IMPROVED
 	}
 	return VERIFY_WHY_AGAIN
@@ -490,7 +504,7 @@ func (s *verifyStore) stillDamaged(path string) bool {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	record, ok := s.records[path]
-	return ok && !record.OK && !record.stale() && record.Size == info.Size() && record.ModTime == info.ModTime().UnixNano()
+	return ok && !record.OK && !record.stale(path) && record.Size == info.Size() && record.ModTime == info.ModTime().UnixNano()
 }
 
 // damaged returns the files found damaged that are still unchanged, by path.
@@ -504,7 +518,7 @@ func (s *verifyStore) damaged() map[string]string {
 
 	result := map[string]string{}
 	for path, record := range records {
-		if record.OK || record.stale() {
+		if record.OK || record.stale(path) {
 			continue
 		}
 		if info, err := os.Stat(path); err == nil && info.Size() == record.Size && info.ModTime().UnixNano() == record.ModTime {
@@ -1072,8 +1086,9 @@ func (r *verifyRun) record(file verifyPending, name string, signed *switchfs.Sig
 	switch verdict {
 	case VERIFY_FAILED:
 		r.damaged++
-		r.web.taskLog().Warn(taskId, NOTE_VERIFY_DAMAGED, name+": "+reason)
-		r.web.taskLog().AddFileTile(taskId, name, true, NOTE_VERIFY_DAMAGED)
+		note := damagedNote(reason)
+		r.web.taskLog().Warn(taskId, note, name+": "+reason)
+		r.web.taskLog().AddFileTile(taskId, name, true, note)
 	case VERIFY_MODIFIED:
 		// told on its cover and in Issues, not as a warning: it is no failure
 		r.modified++
@@ -1089,6 +1104,15 @@ func (r *verifyRun) record(file verifyPending, name string, signed *switchfs.Sig
 		r.lastSave = time.Now()
 	}
 	return saveNow
+}
+
+// damagedNote is how a damaged file is told: a NUP whose files are whole but whose code is
+// damaged needs the game dumped again, which its data does not tell.
+func damagedNote(reason string) string {
+	if strings.HasPrefix(reason, switchfs.NupCodeDamaged) {
+		return NOTE_VERIFY_CODE
+	}
+	return NOTE_VERIFY_DAMAGED
 }
 
 // finish saves the results and ends the task: cancelled, paused until the next background hours,
