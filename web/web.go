@@ -475,8 +475,8 @@ type LibraryPageData struct {
 	Stats Statistics
 	// what is new, once after an update
 	WhatsNew *WhatsNew
-	// the folders games can be uploaded to
-	UploadFolders []string
+	// the folders games can be uploaded to, asked when there are several
+	UploadFolders []UploadFolder
 	// the smart collections, and whether the filters shown can become one
 	SmartCollections []SmartCollectionView
 	SmartSavable     bool

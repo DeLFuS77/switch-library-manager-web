@@ -33,6 +33,46 @@ body:has(#alert_sync) .upload-panel {
 	font-weight: 600;
 }
 
+// where the files go, asked when the library has several folders: one card for each folder
+.upload-where-choice {
+	display: flex;
+	align-items: center;
+	gap: .75rem;
+	margin-bottom: .5rem;
+	padding: .75rem .9rem;
+	border: 1px solid var(--slm-border);
+	border-radius: var(--bs-border-radius-lg);
+	cursor: pointer;
+
+	> .bi {
+		font-size: 1.25rem;
+		color: var(--bs-secondary-color);
+	}
+
+	&:has(input:checked) {
+		border-color: $slm-red;
+		background: rgba($slm-red, .08);
+	}
+}
+
+.upload-where-path {
+	display: block;
+	font-family: var(--bs-font-monospace);
+	font-weight: 600;
+	word-break: break-all;
+}
+
+.upload-where-free {
+	display: block;
+	color: var(--bs-secondary-color);
+	font-size: var(--slm-text-xs);
+}
+
+.upload-where-again {
+	font-size: var(--slm-text-xs);
+	font-weight: 400;
+}
+
 .upload-list {
 	overflow-y: auto;
 	margin: 0;

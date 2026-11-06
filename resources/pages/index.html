@@ -23,20 +23,35 @@
 			<div class="editor-only">
 				<input type="file" id="uploadInput" accept=".nsp,.nsz,.xci,.xcz,.nup" multiple hidden>
 				{{- if gt (len .UploadFolders) 1}}
-				<div class="upload-folder mb-3">
-					<label class="form-label small fw-semibold mb-1" for="uploadFolder">{{t "Upload to"}}</label>
-					<select class="form-select form-select-sm" id="uploadFolder">
-						{{- range .UploadFolders}}
-						<option value="{{.}}">{{.}}</option>
-						{{- end}}
-					</select>
+				{{- /* with several folders, each maybe another disk, the files chosen or dropped ask where they go */}}
+				<div class="modal fade" id="uploadWhere" tabindex="-1" aria-labelledby="uploadWhereTitle" aria-hidden="true"
+					data-title-one="{{t "Where to upload this game (%v)?"}}" data-title-many="{{t "Where to upload %v games (%v)?"}}">
+					<div class="modal-dialog modal-dialog-centered">
+						<div class="modal-content">
+							<div class="modal-header border-0 pb-0">
+								<h2 class="modal-title h6" id="uploadWhereTitle"><span class="bi bi-upload me-2 text-primary" aria-hidden="true"></span><span class="upload-where-title"></span></h2>
+							</div>
+							<div class="modal-body">
+								<p class="small text-body-secondary mb-3">{{t "Each folder may be on another disk."}}</p>
+								{{- range $i, $folder := .UploadFolders}}
+								<label class="upload-where-choice"><input class="form-check-input" type="radio" name="uploadWhere" value="{{$folder.Path}}"{{if eq $i 0}} checked{{end}}><span class="bi bi-hdd" aria-hidden="true"></span><span><span class="upload-where-path">{{$folder.Path}}</span><span class="upload-where-free">{{if $folder.Main}}{{t "Main folder"}}{{if ge $folder.Free 0}} · {{end}}{{end}}{{if ge $folder.Free 0}}{{t "%v free" (formatSize $folder.Free)}}{{end}}</span></span></label>
+								{{- end}}
+								<div class="form-check mt-2"><input class="form-check-input" type="checkbox" id="uploadWhereAlways"><label class="form-check-label small" for="uploadWhereAlways">{{t "Always use this folder and do not ask again"}}</label></div>
+							</div>
+							<div class="modal-footer border-0 pt-0">
+								<button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">{{t "Cancel"}}</button>
+								<button type="button" class="btn btn-primary rounded-pill" id="uploadWhereGo"><span class="bi bi-upload me-2" aria-hidden="true"></span>{{t "Upload games"}}</button>
+							</div>
+						</div>
+					</div>
 				</div>
 				{{- end}}
 				<section class="upload-panel surface" id="uploadPanel" aria-live="polite" aria-labelledby="uploadPanelTitle" hidden
 					data-waiting="{{t "Waiting"}}" data-starting="{{t "Starting..."}}" data-progress="{{t "%v of %v"}}" data-retrying="{{t "Connection lost, trying again..."}}"
 					data-done="{{t "Uploaded: the library is being scanned"}}" data-failed="{{t "The upload failed. Choose the file again to go on where it stopped."}}"
-					data-bad-name="{{t "Only NSP, NSZ, XCI, XCZ and NUP files can be uploaded."}}" data-cancel="{{t "Cancel"}}">
-					<div class="upload-panel-head"><span class="bi bi-upload text-primary" aria-hidden="true"></span><span id="uploadPanelTitle">{{t "Uploading games"}}</span></div>
+					data-bad-name="{{t "Only NSP, NSZ, XCI, XCZ and NUP files can be uploaded."}}" data-cancel="{{t "Cancel"}}" data-uploading-to="{{t "Uploading games to %v"}}">
+					<div class="upload-panel-head"><span class="bi bi-upload text-primary" aria-hidden="true"></span><span id="uploadPanelTitle">{{t "Uploading games"}}</span>
+						<button type="button" class="btn btn-link btn-sm p-0 ms-auto upload-where-again" hidden>{{t "Ask where again"}}</button></div>
 					<ul class="upload-list"></ul>
 				</section>
 				<div class="upload-drop" id="uploadDrop" hidden><div><span class="bi bi-cloud-arrow-up" aria-hidden="true"></span>{{t "Drop the games to upload them to the library folder"}}</div></div>

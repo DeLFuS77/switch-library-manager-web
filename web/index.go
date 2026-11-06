@@ -135,7 +135,7 @@ func (web *Web) HandleIndex() {
 			Setup:            web.setupStatus(),
 			Stats:            web.getStatistics(lang),
 			WhatsNew:         web.whatsNew(lang),
-			UploadFolders:    web.uploadFolders(),
+			UploadFolders:    web.uploadFolderChoices(),
 			SmartCollections: web.smartCollectionViews(filter, lang),
 			SmartSavable:     filter.Filters(),
 		}
