@@ -1252,6 +1252,7 @@ func init() {
 		"New collection":          "Новая коллекция",
 		"New in your library: %v": "Новое в вашей библиотеке: %v",
 		"New password":            "Новый пароль",
+		"It watches the folders to scan above and every folder inside them, except the folders to skip.":                                           "Следит за папками для сканирования выше и всеми папками внутри них, кроме пропускаемых папок.",
 		"New, removed or replaced files are detected right away in local folders, and at the interval below in network folders and on NAS shares.": "Новые, удалённые или заменённые файлы обнаруживаются сразу в локальных папках, а в сетевых папках и на ресурсах NAS — с указанным ниже интервалом.",
 		"Newer update":                   "Есть обновление новее",
 		"Next":                           "Далее",

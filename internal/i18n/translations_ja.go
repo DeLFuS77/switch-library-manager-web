@@ -1252,6 +1252,7 @@ func init() {
 		"New collection":          "新しいコレクション",
 		"New in your library: %v": "ライブラリに新しく追加：%v",
 		"New password":            "新しいパスワード",
+		"It watches the folders to scan above and every folder inside them, except the folders to skip.":                                           "上のスキャンするフォルダーとその中のすべてのフォルダーを監視します。スキップするフォルダーは除きます。",
 		"New, removed or replaced files are detected right away in local folders, and at the interval below in network folders and on NAS shares.": "新しいファイル、削除されたファイル、置き換えられたファイルは、ローカルフォルダーではすぐに、ネットワークフォルダーやNAS共有では下記の間隔で検出されます。",
 		"Newer update":                   "新しい更新データ",
 		"Next":                           "次へ",

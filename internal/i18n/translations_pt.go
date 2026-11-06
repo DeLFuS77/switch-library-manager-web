@@ -1017,6 +1017,7 @@ func init() {
 		"Covers are downloaded after each scan; games without one take the icon stored in their own file (with your keys). Searching again also retries covers that failed.": "As capas são baixadas após cada análise; jogos sem capa usam o ícone guardado no próprio arquivo (com suas chaves). Buscar de novo também tenta outra vez as capas que falharam.",
 		"Search covers again":               "Buscar capas de novo",
 		"Reading icons from the game files": "Lendo os ícones dos arquivos de jogo",
+		"It watches the folders to scan above and every folder inside them, except the folders to skip.":                                           "Observa as pastas a escanear acima e todas as pastas dentro delas, menos as pastas a ignorar.",
 		"New, removed or replaced files are detected right away in local folders, and at the interval below in network folders and on NAS shares.": "Arquivos novos, excluídos ou substituídos são detectados na hora em pastas locais, e no intervalo abaixo em pastas de rede e em um NAS.",
 		"Check the folders every": "Verificar as pastas a cada",
 		"2 minutes":               "2 minutos",

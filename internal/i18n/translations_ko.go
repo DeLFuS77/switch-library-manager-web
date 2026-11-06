@@ -1252,6 +1252,7 @@ func init() {
 		"New collection":          "새 컬렉션",
 		"New in your library: %v": "라이브러리에 새로 추가됨: %v",
 		"New password":            "새 비밀번호",
+		"It watches the folders to scan above and every folder inside them, except the folders to skip.":                                           "위의 스캔할 폴더와 그 안의 모든 폴더를 지켜봅니다. 건너뛸 폴더는 제외합니다.",
 		"New, removed or replaced files are detected right away in local folders, and at the interval below in network folders and on NAS shares.": "새로 생기거나 제거되거나 교체된 파일은 로컬 폴더에서는 즉시, 네트워크 폴더와 NAS 공유 폴더에서는 아래 주기마다 감지돼요.",
 		"Newer update":                   "최신 업데이트 있음",
 		"Next":                           "다음",

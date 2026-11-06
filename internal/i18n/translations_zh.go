@@ -1252,6 +1252,7 @@ func init() {
 		"New collection":          "新建合集",
 		"New in your library: %v": "游戏库新增：%v",
 		"New password":            "新密码",
+		"It watches the folders to scan above and every folder inside them, except the folders to skip.":                                           "监视上面要扫描的文件夹及其中的所有文件夹，要跳过的文件夹除外。",
 		"New, removed or replaced files are detected right away in local folders, and at the interval below in network folders and on NAS shares.": "本地文件夹中新增、删除或替换的文件会立即被检测到；网络文件夹和 NAS 共享则按下方间隔检测。",
 		"Newer update":                   "有更新的版本",
 		"Next":                           "下一页",
