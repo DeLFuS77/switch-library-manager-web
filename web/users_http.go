@@ -127,7 +127,7 @@ func (web *Web) loginPage(login templateSet) http.HandlerFunc {
 			return
 		}
 		if !web.auth.Enabled() || via != "" || web.auth.fromSession(r) != nil {
-			http.Redirect(w, r, safeNext(data.Next), http.StatusSeeOther)
+			redirectLocal(w, r, safeNext(data.Next))
 			return
 		}
 		// the portal let the person in, but the app has no user for them
@@ -180,7 +180,7 @@ func (web *Web) signIn(login templateSet) http.HandlerFunc {
 		web.auth.loginAttempt(principal.Name, ip, "ok", "", 0)
 		web.auth.signedIn(principal.Name)
 		http.SetCookie(w, web.auth.sessionCookie(r, principal.Name))
-		http.Redirect(w, r, safeNext(data.Next), http.StatusSeeOther)
+		redirectLocal(w, r, safeNext(data.Next))
 	}
 }
 
@@ -208,7 +208,7 @@ func (web *Web) signOut(login templateSet) http.HandlerFunc {
 		// a page of the app opens the one of another site: browsers do not follow a form to
 		// another site (form-action 'self' of the Content-Security-Policy), not even redirected;
 		// "//host" or "/\host" is another site too, though it starts with a slash
-		if !isLocalPath(target) {
+		if !isLocalUrl(target) {
 			data := LoginPageData{Leaving: target, LeavingName: leavingName(target)}
 			if via == VIA_OIDC {
 				data.LeavingName = oidcButton(web.auth.portal())
