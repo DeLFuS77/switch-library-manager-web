@@ -162,3 +162,23 @@ func TestScanForBrokenFiles(t *testing.T) {
 		t.Fatalf("empty broken files = %#v", got)
 	}
 }
+
+// A game rebuilt with its update in it has the version of the update: it lacks no update.
+func TestScanForMissingUpdatesMergedBase(t *testing.T) {
+	baseID := "0100abcd00001000"
+	local := map[string]*db.SwitchGameFiles{
+		"0100abcd00001": {BaseExist: true, File: db.SwitchFileInfo{Metadata: metadataForID(baseID, 5)},
+			Updates: map[int]db.SwitchFileInfo{}, Dlc: map[string]db.SwitchFileInfo{}},
+	}
+	remote := map[string]*db.SwitchTitle{
+		"0100abcd00001": {Attributes: db.TitleAttributes{Id: baseID, Name: "Game"}, Updates: map[int]string{1: "old", 5: "latest"}},
+	}
+	if _, missing := ScanForMissingUpdates(local, remote, map[string]struct{}{}, false)[baseID]; missing {
+		t.Fatal("a game with its newest update in it lacks no update")
+	}
+	remote["0100abcd00001"].Updates[6] = "newer"
+	game, missing := ScanForMissingUpdates(local, remote, map[string]struct{}{}, false)[baseID]
+	if !missing || game.LocalUpdate != 5 || game.LatestUpdate != 6 {
+		t.Fatalf("a newer update is still told, from the one in the game: %+v", game)
+	}
+}

@@ -685,3 +685,22 @@ func TestFileThreadsKeepToTheShareOfEachFile(t *testing.T) {
 		}
 	}
 }
+
+// A game stored with the LZ4 of its NCA, rebuilt to stay small once installed, is compressed
+// already: it is not offered to compress (#162).
+func TestNcaLz4FilesAreNotOffered(t *testing.T) {
+	web, path := compressWeb(t)
+	if len(web.compressCandidates()) != 1 {
+		t.Fatal("the game is offered")
+	}
+	_, library := web.state.get()
+	for _, title := range library.TitlesMap {
+		if filepath.Join(title.File.ExtendedInfo.BaseFolder, title.File.ExtendedInfo.FileName) == path && title.File.Metadata != nil {
+			title.File.Metadata.NcaLz4 = true
+		}
+	}
+	web.invalidateDerived()
+	if len(web.compressCandidates()) != 0 || len(web.uncompressedCandidates()) != 0 {
+		t.Fatal("a game with LZ4 in its NCA is compressed already")
+	}
+}
