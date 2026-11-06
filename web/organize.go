@@ -78,7 +78,8 @@ func (web *Web) duplicatesChanging(keep string) int {
 	}
 	count := 0
 	for file, skipped := range localDB.Skipped {
-		if skipped.ReasonCode != db.REASON_DUPLICATE {
+		// a base game of another version stays whatever copy the settings keep
+		if skipped.ReasonCode != db.REASON_DUPLICATE || skipped.OtherVersion {
 			continue
 		}
 		kept, ok := files[keptBy(skipped.ReasonText)]

@@ -249,12 +249,26 @@ func (web *Web) compressCandidates() []CompressCandidate {
 	return web.derived("compressCandidates", func() any {
 		_, localDB := web.state.get()
 		old := map[string]bool{}
+		// a game or an update stored with the LZ4 of its NCA, rebuilt to stay small once
+		// installed, is compressed already
+		lz4 := map[string]bool{}
 		if localDB != nil {
 			inUse := process.FilesInUse(localDB)
 			for file, skipped := range localDB.Skipped {
 				path := filepath.Join(file.BaseFolder, file.FileName)
 				if skipped.ReasonCode == db.REASON_OLD_UPDATE && !inUse[path] {
 					old[path] = true
+				}
+			}
+			for _, title := range localDB.TitlesMap {
+				files := []db.SwitchFileInfo{title.File}
+				for _, update := range title.Updates {
+					files = append(files, update)
+				}
+				for _, file := range files {
+					if file.Metadata != nil && file.Metadata.NcaLz4 {
+						lz4[filepath.Join(file.ExtendedInfo.BaseFolder, file.ExtendedInfo.FileName)] = true
+					}
 				}
 			}
 		}
@@ -266,7 +280,7 @@ func (web *Web) compressCandidates() []CompressCandidate {
 		damaged := web.verifications().damaged()
 		candidates := []CompressCandidate{}
 		for _, candidate := range web.libraryFiles(".nsp", ".xci") {
-			if _, uncompressible := store.get(candidate.Path, candidate.Size); !old[candidate.Path] && !uncompressible && noKey[candidate.Path] == "" && damaged[candidate.Path] == "" {
+			if _, uncompressible := store.get(candidate.Path, candidate.Size); !old[candidate.Path] && !lz4[candidate.Path] && !uncompressible && noKey[candidate.Path] == "" && damaged[candidate.Path] == "" {
 				candidates = append(candidates, candidate)
 			}
 		}

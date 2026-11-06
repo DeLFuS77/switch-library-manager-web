@@ -306,7 +306,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		if inGameFile > 0 {
 			detail.Base.AlsoHolds = append(detail.Base.AlsoHolds, i18n.Translatef(lang, "%v DLC", inGameFile))
 		}
-		detail.LocalUpdate = local.LatestUpdate
+		detail.LocalUpdate = local.UpdateLevel()
 		required := installedRequirement(local)
 		detail.RequiredFirmware = firmwareVersion(required)
 		detail.FirmwareTooNew = web.firmwareTooNew(required)

@@ -544,7 +544,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 
 		item := TitleItem{
 			Id:           strings.ToUpper(v.File.Metadata.TitleId),
-			LocalUpdate:  v.LatestUpdate,
+			LocalUpdate:  v.UpdateLevel(),
 			Name:         name,
 			OriginalName: originalName,
 			Type:         strings.ToUpper(getType(v)),

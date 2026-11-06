@@ -343,7 +343,7 @@ func (web *Web) buildRegionalDuplicates(lang string) []RegionGroup {
 		copy := RegionCopy{
 			Id:          strings.ToUpper(local.File.Metadata.TitleId),
 			Name:        titleName(switchDB, lang, local.File.Metadata.TitleId, original),
-			LocalUpdate: local.LatestUpdate,
+			LocalUpdate: local.UpdateLevel(),
 			Dlc:         len(local.Dlc),
 			Size:        local.File.ExtendedInfo.Size,
 		}
