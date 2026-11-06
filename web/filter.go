@@ -6,6 +6,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"html"
 	"html/template"
+	"net/http"
 	"net/url"
 	"regexp"
 	"sort"
@@ -61,11 +62,33 @@ const (
 )
 
 // library console filter: the games of the Switch (which the Switch 2 plays too), or of the
-// Switch 2 alone
+// Switch 2 alone; CONSOLE_ALL asks for both, over the console remembered (consoleCookie)
 const (
 	CONSOLE_SWITCH  = "switch"
 	CONSOLE_SWITCH2 = "switch2"
+	CONSOLE_ALL     = "all"
 )
+
+// consoleCookie is the cookie in which the Library and the Missing games remember the console
+// chosen: the views of the Library keep it, and so does the next visit.
+const consoleCookie = "slm-console"
+
+// rememberConsole takes the console of the Library and the Missing games from the request, and
+// keeps it in consoleCookie for the next pages; a request that asks for none takes the one kept.
+func rememberConsole(w http.ResponseWriter, r *http.Request, filter *TitleItemFilter) {
+	if asked, ok := r.URL.Query()["console"]; ok && len(asked) > 0 {
+		value := asked[0]
+		if value != CONSOLE_SWITCH && value != CONSOLE_SWITCH2 {
+			value = CONSOLE_ALL
+		}
+		http.SetCookie(w, &http.Cookie{Name: consoleCookie, Value: value, Path: "/", MaxAge: 365 * 24 * 3600, HttpOnly: true, SameSite: http.SameSiteLaxMode, Secure: r.TLS != nil})
+	} else if cookie, err := r.Cookie(consoleCookie); err == nil && (cookie.Value == CONSOLE_SWITCH || cookie.Value == CONSOLE_SWITCH2) {
+		filter.Console = cookie.Value
+	}
+	if filter.Console == CONSOLE_ALL {
+		filter.Console = ""
+	}
+}
 
 // library kind and extra filters
 const (
@@ -90,7 +113,7 @@ var (
 	allowedSortBy  = map[string]struct{}{"added": {}, "favorite": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}, "duration": {}, "score": {}}
 	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}, userdata.STATUS_WANTED: {}}
 	allowedKind    = map[string]struct{}{"": {}, KIND_GAME: {}, KIND_DEMO: {}}
-	allowedConsole = map[string]struct{}{"": {}, CONSOLE_SWITCH: {}, CONSOLE_SWITCH2: {}}
+	allowedConsole = map[string]struct{}{"": {}, CONSOLE_SWITCH: {}, CONSOLE_SWITCH2: {}, CONSOLE_ALL: {}}
 	allowedExtra   = map[string]struct{}{"": {}, EXTRA_NO_COVER: {}, EXTRA_UNKNOWN: {}, EXTRA_RECENT: {}, EXTRA_FAVORITES: {}, EXTRA_CHEATS: {}, EXTRA_CHEATS_OTHER: {}, EXTRA_FIRMWARE: {}}
 	regionPattern  = regexp.MustCompile(`^[A-Z]{2,4}$`)
 )

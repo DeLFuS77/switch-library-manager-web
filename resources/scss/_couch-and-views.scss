@@ -97,6 +97,26 @@
 	}
 }
 
+// the views of the Library and, beside them, the console of the games shown
+.library-view-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .75rem;
+}
+
+// the console: smaller, as it narrows the view chosen
+.console-views {
+	padding: .3rem;
+	gap: .3rem;
+
+	.library-view {
+		min-height: 1.95rem;
+		padding: .2rem .75rem;
+		font-size: var(--slm-text-sm);
+	}
+}
+
 // the views of the Library: your games, the ones you do not have, or all of them
 .library-views {
 	display: inline-flex;
@@ -170,7 +190,7 @@
 }
 
 // while the page changes the red is only the gliding piece, which then stays under the view
-:root:active-view-transition .library-view.active {
+:root:active-view-transition .library-views:not(.console-views) .library-view.active {
 	background: transparent;
 }
 

@@ -28,7 +28,7 @@ func (web *Web) HandleMissing() {
 			TitleItems:     items,
 			Filter:         filter,
 			Pagination:     p,
-			Views:          web.libraryViews("missing", lang),
+			Views:          web.libraryViews("missing", lang).withConsole(filter, facets, settings.ReadSettings(web.dataFolder).HasSwitch2),
 		}, Facets: facets}
 		if filter.Plain() {
 			data.Recommendations = web.recommendations(lang)
@@ -87,6 +87,16 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 		}
 		if (filter.Genre != "" && !hasValue(item.Genres, filter.Genre)) || !playersMatch(item.Players, filter.Players) ||
 			(filter.GameLanguage != "" && !hasValue(item.Languages, filter.GameLanguage)) || !scoreMatches(item.Score, filter.Score) {
+			continue
+		}
+		// the console, counted before its own choice as in the Library
+		switch2 := item.IsSwitch2()
+		if switch2 {
+			facets.Switch2++
+		} else {
+			facets.Switch1++
+		}
+		if (filter.Console == CONSOLE_SWITCH && switch2) || (filter.Console == CONSOLE_SWITCH2 && !switch2) {
 			continue
 		}
 		if item.Demo {

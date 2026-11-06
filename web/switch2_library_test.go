@@ -67,36 +67,81 @@ func hasSwitch2Item(items []TitleItem) bool {
 	return false
 }
 
-// The panel of filters offers Console after Type, only when the library has games of both, and
-// a console chosen shows as a filter that can be removed.
-func TestConsoleFilterInThePanel(t *testing.T) {
+// The console is chosen beside the views of the Library, with the numbers of the view shown, and
+// no longer in the panel of filters. It shows with games of the Switch 2 in the view, the Switch 2
+// owned, or a console chosen; a console chosen shows as a filter whose removal asks for both
+// consoles, over the one remembered.
+func TestConsoleBesideTheViews(t *testing.T) {
 	set, err := parseTemplates(os.DirFS(".."), "resources/partials/filter.html", "resources/partials/pagination.html")
 	if err != nil {
 		t.Fatal(err)
 	}
-	render := func(filter *TitleItemFilter, facets LibraryFacets) string {
+	render := func(name string, data any) string {
 		var out strings.Builder
-		data := map[string]any{"Filter": filter, "Facets": facets, "Library": true, "Page": "index"}
-		if err := set["es"].ExecuteTemplate(&out, "filterPanel", data); err != nil {
-			t.Fatal(err)
-		}
-		if err := set["es"].ExecuteTemplate(&out, "activeFilters", data); err != nil {
+		if err := set["es"].ExecuteTemplate(&out, name, data); err != nil {
 			t.Fatal(err)
 		}
 		return out.String()
 	}
-	both := render(defaultFilter(), LibraryFacets{Games: 4, Demos: 1, Switch1: 4, Switch2: 1})
-	console, kind := strings.Index(both, "Todas las consolas"), strings.Index(both, "Solo demos")
-	if console < 0 || kind < 0 || console < kind || !strings.Contains(both, `console=switch2`) {
-		t.Fatalf("Console after Type: %d, %d", console, kind)
+	panel := func(filter *TitleItemFilter, facets LibraryFacets) string {
+		data := map[string]any{"Filter": filter, "Facets": facets, "Library": true, "Page": "index"}
+		return render("filterPanel", data) + render("activeFilters", data)
 	}
-	if one := render(defaultFilter(), LibraryFacets{Games: 4, Switch1: 4}); strings.Contains(one, "Todas las consolas") {
-		t.Fatal("Console is offered with games of one console only")
+	if out := panel(defaultFilter(), LibraryFacets{Games: 4, Demos: 1, Switch1: 4, Switch2: 1}); strings.Contains(out, "console=") {
+		t.Fatal("the panel of filters no longer offers the console")
+	}
+	views := LibraryViews{Current: "mine", Mine: 5}.withConsole(defaultFilter(), LibraryFacets{Switch1: 4, Switch2: 1}, false)
+	out := render("libraryViews", views)
+	for _, want := range []string{`class="library-views console-views"`, ">Todas<", "console=all", "console=switch2", `>Switch 2<span class="library-view-count">1<`} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("%q missing in the views: %s", want, out)
+		}
+	}
+	if out := render("libraryViews", LibraryViews{Current: "mine"}.withConsole(defaultFilter(), LibraryFacets{Switch1: 4}, false)); strings.Contains(out, "console-views") {
+		t.Fatal("no console to choose without games of the Switch 2 nor the Switch 2 owned")
+	}
+	if out := render("libraryViews", LibraryViews{Current: "mine"}.withConsole(defaultFilter(), LibraryFacets{Switch1: 4}, true)); !strings.Contains(out, "console-views") {
+		t.Fatal("the console to choose with the Switch 2 owned")
 	}
 	chosen := defaultFilter()
 	chosen.Console = CONSOLE_SWITCH2
-	if out := render(chosen, LibraryFacets{Switch2: 1}); !strings.Contains(out, `class="active-filter"`) || !strings.Contains(out, "Switch 2<span class=\"bi bi-x\"") {
-		t.Fatal("the console chosen shows as an active filter")
+	if out := panel(chosen, LibraryFacets{Switch2: 1}); !strings.Contains(out, `class="active-filter"`) || !strings.Contains(out, "Switch 2<span class=\"bi bi-x\"") || !strings.Contains(out, "console=all") {
+		t.Fatal("the console chosen shows as an active filter, removed by asking for both")
+	}
+}
+
+// The console chosen is kept in a cookie for the next pages of the Library, and both consoles
+// asked for clear it.
+func TestConsoleIsRemembered(t *testing.T) {
+	ask := func(query string, cookie string) (*TitleItemFilter, string) {
+		request := httptest.NewRequest("GET", "/index.html"+query, nil)
+		if cookie != "" {
+			request.AddCookie(&http.Cookie{Name: consoleCookie, Value: cookie})
+		}
+		response := httptest.NewRecorder()
+		filter := defaultFilter()
+		filter.Console = request.URL.Query().Get("console")
+		filter.Normalize()
+		rememberConsole(response, request, filter)
+		kept := ""
+		for _, set := range response.Result().Cookies() {
+			if set.Name == consoleCookie {
+				kept = set.Value
+			}
+		}
+		return filter, kept
+	}
+	if filter, kept := ask("?console=switch2", ""); filter.Console != CONSOLE_SWITCH2 || kept != CONSOLE_SWITCH2 {
+		t.Fatalf("chosen: %q, kept %q", filter.Console, kept)
+	}
+	if filter, kept := ask("", CONSOLE_SWITCH2); filter.Console != CONSOLE_SWITCH2 || kept != "" {
+		t.Fatalf("remembered: %q, kept %q", filter.Console, kept)
+	}
+	if filter, kept := ask("?console=all", CONSOLE_SWITCH2); filter.Console != "" || kept != CONSOLE_ALL {
+		t.Fatalf("both: %q, kept %q", filter.Console, kept)
+	}
+	if filter, _ := ask("", CONSOLE_ALL); filter.Console != "" {
+		t.Fatalf("both remembered: %q", filter.Console)
 	}
 }
 

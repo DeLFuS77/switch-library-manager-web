@@ -415,6 +415,22 @@ type LibraryViews struct {
 	Current string
 	Mine    int
 	Missing int
+	// the console of the games shown ("" both), and how many of the view are of each, beside the
+	// views when there are games of the Switch 2 to choose from (see withConsole)
+	Console     string
+	Switch1     int
+	Switch2     int
+	ShowConsole bool
+	Filter      *TitleItemFilter
+}
+
+// withConsole adds to the views the choice of the console: the one of the filter, the numbers of
+// the view shown (counted before that choice), and whether it shows, with the Switch 2 owned, a
+// game of the Switch 2 in the view, or a console chosen.
+func (v LibraryViews) withConsole(filter *TitleItemFilter, facets LibraryFacets, hasSwitch2 bool) LibraryViews {
+	v.Console, v.Switch1, v.Switch2, v.Filter = filter.Console, facets.Switch1, facets.Switch2, filter
+	v.ShowConsole = hasSwitch2 || facets.Switch2 > 0 || filter.Console != ""
+	return v
 }
 
 // All is every game, those of the library and those it does not have.

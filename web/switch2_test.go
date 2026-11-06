@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 )
 
 // The games of the Switch 2 alone (title IDs from 04) are not missing from a library of the
@@ -85,5 +86,32 @@ func TestSwitch2GamesAreNotMissing(t *testing.T) {
 	// a game of the Switch 2 is no copy of the one of the Switch of its name
 	if regions := web.buildRegionsByName()[regionalName("Fortnite")]; !slices.Equal(regions, []string{"US"}) {
 		t.Errorf("regions of the game: %v", regions)
+	}
+}
+
+// The Missing games are chosen by console too, counted before that choice as in the Library: with
+// the Switch 2 owned, the games of the Switch 2 missing apart from the ones of the Switch.
+func TestMissingGamesByConsole(t *testing.T) {
+	web := newTestWeb(t)
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.HasSwitch2 = true })
+	title := func(id string, name string) *db.SwitchTitle {
+		return &db.SwitchTitle{Attributes: db.TitleAttributes{Id: id, Name: name, Region: "US", ReleaseDate: 20250605, IconUrl: "https://example.com/" + id + ".jpg"}}
+	}
+	web.state.set(&db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{
+		"0100000000010": title("0100000000010000", "Moon Runner"),
+		"0100000000020": title("0100000000020000", "Moon Runner 2"),
+		"0400000000030": title("0400000000030000", "Moon Runner 3"),
+	}}, &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{}, Skipped: map[db.ExtendedFileInfo]db.SkippedFile{}})
+
+	for console, want := range map[string][]string{"": {"Moon Runner", "Moon Runner 2", "Moon Runner 3"}, CONSOLE_SWITCH: {"Moon Runner", "Moon Runner 2"}, CONSOLE_SWITCH2: {"Moon Runner 3"}} {
+		filter := defaultFilter()
+		filter.Console = console
+		items, _, facets := web.getMissingGamesWithFacets(filter, "en")
+		if got := itemNames(items); !slices.Equal(got, want) {
+			t.Errorf("console %q: %v, want %v", console, got, want)
+		}
+		if facets.Switch1 != 2 || facets.Switch2 != 1 {
+			t.Errorf("console %q: counted %d and %d", console, facets.Switch1, facets.Switch2)
+		}
 	}
 }

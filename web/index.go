@@ -129,7 +129,7 @@ func (web *Web) HandleIndex() {
 				Filter:          filter,
 				Pagination:      p,
 				Recommendations: recommendations,
-				Views:           web.libraryViews(map[bool]string{true: "all", false: "mine"}[filter.ShowsMissing()], lang),
+				Views:           web.libraryViews(map[bool]string{true: "all", false: "mine"}[filter.ShowsMissing()], lang).withConsole(filter, facets, settings.ReadSettings(web.dataFolder).HasSwitch2),
 			},
 			Facets:           facets,
 			Setup:            web.setupStatus(),
