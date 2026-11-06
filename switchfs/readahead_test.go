@@ -44,7 +44,7 @@ func TestReadAhead(t *testing.T) {
 func TestNczBlockReaderInBatches(t *testing.T) {
 	const exponent = 14
 	blockSize := 1 << exponent
-	encoder, _ := newBlockEncoder(LevelFast, 1)
+	encoder, _ := newBlockEncoder(LevelFast, 1, nczBlockExponent)
 	defer encoder.Close()
 	random := make([]byte, blockSize)
 	for i := range random {

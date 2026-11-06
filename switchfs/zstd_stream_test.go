@@ -91,7 +91,7 @@ func TestBlockEncoderWindowAndRoundTrip(t *testing.T) {
 	}
 	sizes := map[string]int{}
 	for _, level := range []string{LevelFast, LevelBalanced, LevelMax, "1", "19"} {
-		encoder, err := newBlockEncoder(level, len(blocks))
+		encoder, err := newBlockEncoder(level, len(blocks), nczBlockExponent)
 		if err != nil {
 			t.Fatal(err)
 		}

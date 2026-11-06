@@ -23,8 +23,10 @@ var errEncoderClosed = errors.New("the zstd encoder is closed")
 // nativeEncoder is the encoder of the zstd library in C, closed once: its Close frees the
 // memory of C, and a second one freed it again, which broke the memory of the app (the encoder
 // in Go does not mind).
+// Its frame gets the checksum the encoder in Go writes (zstd_checksum.go).
 type nativeEncoder struct {
 	writer *zstd.Writer
+	frame  *ZstdChecksumFrame
 	closed bool
 	err    error
 }
@@ -33,7 +35,9 @@ func (e *nativeEncoder) Write(p []byte) (int, error) {
 	if e.closed {
 		return 0, errEncoderClosed
 	}
-	return e.writer.Write(p)
+	n, err := e.writer.Write(p)
+	e.frame.Content(p[:n])
+	return n, err
 }
 
 func (e *nativeEncoder) Close() error {
@@ -42,6 +46,9 @@ func (e *nativeEncoder) Close() error {
 	}
 	e.closed = true
 	e.err = e.writer.Close()
+	if e.err == nil {
+		e.err = e.frame.Finish()
+	}
 	return e.err
 }
 
@@ -64,7 +71,8 @@ func newNativeStreamEncoder(output io.Writer, level string, workers int) (io.Wri
 	if !ok {
 		return nil, false, nil
 	}
-	encoder := &nativeEncoder{writer: zstd.NewWriterLevel(output, native)}
+	frame := NewZstdChecksumFrame(output)
+	encoder := &nativeEncoder{writer: zstd.NewWriterLevel(frame, native), frame: frame}
 	if workers > 1 {
 		if err := encoder.writer.SetNbWorkers(workers); err != nil {
 			encoder.Close()
@@ -104,7 +112,11 @@ type nativeBlockEncoder struct {
 }
 
 func (e nativeBlockEncoder) encode(worker int, dst, src []byte) ([]byte, error) {
-	return e.contexts[worker].CompressLevel(dst, src, e.level)
+	out, err := e.contexts[worker].CompressLevel(dst, src, e.level)
+	if err != nil {
+		return nil, err
+	}
+	return AddZstdChecksum(out, src)
 }
 
 // Close leaves the memory of the contexts to their finalizers, which free it.
@@ -114,7 +126,7 @@ func (e nativeBlockEncoder) Close() error {
 
 // newNativeBlockEncoder gives the block encoder of the zstd library in C for a level it
 // covers, for workers goroutines; ok is false for the levels left to the encoder in Go.
-func newNativeBlockEncoder(level string, workers int) (blockEncoder, bool) {
+func newNativeBlockEncoder(level string, workers int, _ int) (blockEncoder, bool) {
 	native, ok := nativeLevel(level)
 	if !ok {
 		return nil, false

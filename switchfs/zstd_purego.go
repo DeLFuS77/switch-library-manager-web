@@ -16,6 +16,6 @@ func nativeJobSize(level string) int64 {
 	return 0
 }
 
-func newNativeBlockEncoder(level string, workers int) (blockEncoder, bool) {
+func newNativeBlockEncoder(level string, workers int, _ int) (blockEncoder, bool) {
 	return nil, false
 }

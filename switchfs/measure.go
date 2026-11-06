@@ -123,7 +123,7 @@ func newMeasureBlockWriter(output io.Writer, level string, workers int) (*measur
 	if workers < 1 {
 		workers = 1
 	}
-	encoder, err := newBlockEncoder(level, workers)
+	encoder, err := newBlockEncoder(level, workers, nczBlockExponent)
 	if err != nil {
 		return nil, err
 	}

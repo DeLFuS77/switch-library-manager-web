@@ -87,6 +87,10 @@ type CompressOptions struct {
 	// blocks compressed on their own instead of one stream, which lets a reader start
 	// anywhere: what nsz writes for XCZ by default. A game card is always compressed so.
 	Blocks bool
+	// the size of each block with Blocks, as a power of two, from MinBlockExponent to
+	// MaxBlockExponent; 0 is 20 (1 MiB), as nsz. Bigger blocks compress more and make a reader
+	// decompress more for each read: 24 (16 MiB) makes an NSZ about 8% smaller than 20
+	BlockExponent int
 	// called with the bytes of the source processed so far and the total
 	Progress func(done int64, total int64)
 	// the NCA files in sparse storage are compressed too, in the experimental format NCZSECT2
@@ -97,6 +101,25 @@ type CompressOptions struct {
 	// are kept decompressed and made again when they are rebuilt (NCZSECT3, lz4rebuild.go), so
 	// zstd compresses what LZ4 hid. Installers do not read it. Not with Blocks nor game cards.
 	Rebuild bool
+}
+
+// the sizes of block the readers of NSZ take: nsz, Sphaira and the emulators from 14, and
+// none of them has trouble up to 24 (16 MiB); past it nsz cannot compress and a console may
+// lack the memory
+const (
+	MinBlockExponent = 14
+	MaxBlockExponent = 24
+)
+
+// blockExponent is the size of each block of an NCZ in blocks, as a power of two.
+func (o CompressOptions) blockExponent() (int, error) {
+	if o.BlockExponent == 0 {
+		return nczBlockExponent, nil
+	}
+	if o.BlockExponent < MinBlockExponent || o.BlockExponent > MaxBlockExponent {
+		return 0, fmt.Errorf("a block size of 2^%d is not one readers of NSZ take: %d to %d", o.BlockExponent, MinBlockExponent, MaxBlockExponent)
+	}
+	return o.BlockExponent, nil
 }
 
 // CompressResult describes a finished compression.
@@ -869,11 +892,15 @@ func writeNczBlocks(ctx context.Context, output *os.File, input io.ReaderAt, off
 // writeNczBlockData writes the blocks of an NCZ after its section table: the block header,
 // the table of their sizes and the blocks, of dataSize bytes taken in order from fill.
 func writeNczBlockData(ctx context.Context, output *os.File, dataSize uint64, fill func([]byte) error, options CompressOptions, progress func(int64)) error {
-	blockSize := uint64(1) << nczBlockExponent
+	exponent, err := options.blockExponent()
+	if err != nil {
+		return err
+	}
+	blockSize := uint64(1) << exponent
 	count := (dataSize + blockSize - 1) / blockSize
 	header := make([]byte, 24)
 	copy(header, nczBlockMagic)
-	header[8], header[9], header[11] = 2, 1, nczBlockExponent
+	header[8], header[9], header[11] = 2, 1, byte(exponent)
 	binary.LittleEndian.PutUint32(header[12:], uint32(count))
 	binary.LittleEndian.PutUint64(header[16:], dataSize)
 	if _, err := output.Write(header); err != nil {
@@ -892,7 +919,7 @@ func writeNczBlockData(ctx context.Context, output *os.File, dataSize uint64, fi
 	if workers < 1 {
 		workers = 1
 	}
-	encoder, err := newBlockEncoder(options.Level, workers)
+	encoder, err := newBlockEncoder(options.Level, workers, exponent)
 	if err != nil {
 		return err
 	}

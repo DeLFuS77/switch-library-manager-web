@@ -139,7 +139,7 @@ func EstimateCompression(ctx context.Context, source string, options CompressOpt
 		var write func([]byte) error
 		var finish func() error
 		if options.Blocks || pkg.xci {
-			encoder, err := newBlockEncoder(options.Level, 1)
+			encoder, err := newBlockEncoder(options.Level, 1, nczBlockExponent)
 			if err != nil {
 				return err
 			}

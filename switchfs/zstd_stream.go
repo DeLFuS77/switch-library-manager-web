@@ -33,15 +33,15 @@ type blockEncoder interface {
 // newBlockEncoder gives the encoder of the blocks of an NCZ: the zstd library in C at the
 // level itself for the levels it covers (see newStreamEncoder), else the encoder in Go,
 // whose four levels compress less from the balanced level on.
-func newBlockEncoder(level string, workers int) (blockEncoder, error) {
+func newBlockEncoder(level string, workers int, exponent int) (blockEncoder, error) {
 	if workers < 1 {
 		workers = 1
 	}
-	if encoder, ok := newNativeBlockEncoder(level, workers); ok {
+	if encoder, ok := newNativeBlockEncoder(level, workers, exponent); ok {
 		return encoder, nil
 	}
 	encoder, err := zstd.NewWriter(nil, zstd.WithEncoderLevel(encoderLevel(level)),
-		zstd.WithEncoderConcurrency(workers), zstd.WithWindowSize(1<<nczBlockExponent))
+		zstd.WithEncoderConcurrency(workers), zstd.WithWindowSize(1<<exponent))
 	if err != nil {
 		return nil, err
 	}
