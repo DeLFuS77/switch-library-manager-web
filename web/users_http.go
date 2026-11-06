@@ -206,8 +206,9 @@ func (web *Web) signOut(login templateSet) http.HandlerFunc {
 			}
 		}
 		// a page of the app opens the one of another site: browsers do not follow a form to
-		// another site (form-action 'self' of the Content-Security-Policy), not even redirected
-		if !strings.HasPrefix(target, "/") {
+		// another site (form-action 'self' of the Content-Security-Policy), not even redirected;
+		// "//host" or "/\host" is another site too, though it starts with a slash
+		if !isLocalPath(target) {
 			data := LoginPageData{Leaving: target, LeavingName: leavingName(target)}
 			if via == VIA_OIDC {
 				data.LeavingName = oidcButton(web.auth.portal())

@@ -8,6 +8,10 @@
 - A file Organize has to copy to another disk tells in its task how much of it is copied, instead of looking stuck
 - The times to beat task, while it asks IGDB about the games of the Switch 2 and the ones the titles database does not list (hundreds of them the first time, at a few a second), shows which game and how many are left instead of 0/0, and keeps what it found every 20 games, so a restart in the middle does not ask them all again
 
+### Security
+
+- Signing in and signing out only send the browser to a page of the app, checked as it goes: a path such as "//host" or "/\host", which a browser takes for another site, is refused also after signing out through a portal or a provider
+
 ## 2.0.0
 
 > **Note:** the support of the Nintendo Switch 2 and of NUP files is new. It was tried with the games and files at hand, not with every case yet, so some rough edges may remain.

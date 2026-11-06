@@ -732,7 +732,17 @@ func safeNext(next string) string {
 	if err != nil || u.Scheme != "" || u.Host != "" || u.User != nil || !strings.HasPrefix(u.Path, "/") || strings.HasPrefix(u.Path, "//") || strings.HasPrefix(u.Path, "/login.html") {
 		return home
 	}
-	return u.RequestURI()
+	// what goes to the browser is checked too, as it is
+	if target := u.RequestURI(); isLocalPath(target) {
+		return target
+	}
+	return home
+}
+
+// isLocalPath tells a path of this site: a slash, then neither a slash nor a backslash, which a
+// browser would take for another site ("//evil.example", "/\evil.example").
+func isLocalPath(path string) bool {
+	return len(path) > 0 && path[0] == '/' && (len(path) == 1 || (path[1] != '/' && path[1] != '\\'))
 }
 
 const (
