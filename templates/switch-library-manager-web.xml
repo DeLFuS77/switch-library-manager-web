@@ -22,7 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.0
+  <Changes>### 2.0.1
+- Console (Both, Switch, Switch 2) beside the views of the Library
+- With several library folders, uploads ask where, and Organize keeps each file on its disk
+- Progress of long copies and of the IGDB lookups; safer redirects after signing in and out
+### 2.0.0
 - Games of the Nintendo Switch 2, with the setting I have a Switch 2 and a Console filter
 - I have it marks the games owned without their file
 - Reads and checks NUP files without keys; IGDB finds more games

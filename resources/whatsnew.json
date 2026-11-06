@@ -1,4 +1,61 @@
 {
+  "2.0.1": {
+    "en": [
+      "The console is chosen beside the views of the Library: Both, Switch or Switch 2, kept from one view to the other.",
+      "With several library folders, uploads ask where the games go, and Organize keeps each file on its own disk.",
+      "Long tasks tell how they go: copies to another disk and the IGDB lookups of the Switch 2 games."
+    ],
+    "es": [
+      "La consola se elige junto a las vistas de la Biblioteca: Todas, Switch o Switch 2, y se recuerda al cambiar de vista.",
+      "Con varias carpetas en la biblioteca, al subir se pregunta dónde van los juegos, y Organizar deja cada archivo en su disco.",
+      "Las tareas largas dicen cómo van: las copias a otro disco y las búsquedas en IGDB de los juegos de Switch 2."
+    ],
+    "de": [
+      "Die Konsole wird neben den Ansichten der Bibliothek gewählt: Alle, Switch oder Switch 2, und bleibt beim Wechsel der Ansicht erhalten.",
+      "Mit mehreren Bibliotheksordnern fragt das Hochladen, wohin die Spiele kommen, und Organisieren lässt jede Datei auf ihrem Laufwerk.",
+      "Lange Aufgaben zeigen ihren Fortschritt: Kopien auf ein anderes Laufwerk und die IGDB-Abfragen der Switch-2-Spiele."
+    ],
+    "fr": [
+      "La console se choisit à côté des vues de la Bibliothèque : Toutes, Switch ou Switch 2, et elle est gardée d’une vue à l’autre.",
+      "Avec plusieurs dossiers de bibliothèque, l’envoi demande où vont les jeux, et Organiser laisse chaque fichier sur son disque.",
+      "Les longues tâches disent où elles en sont : copies vers un autre disque et recherches IGDB des jeux Switch 2."
+    ],
+    "it": [
+      "La console si sceglie accanto alle viste della Libreria: Tutte, Switch o Switch 2, e resta passando da una vista all’altra.",
+      "Con più cartelle nella libreria, il caricamento chiede dove vanno i giochi, e Organizza lascia ogni file sul suo disco.",
+      "Le attività lunghe dicono come procedono: copie su un altro disco e ricerche IGDB dei giochi Switch 2."
+    ],
+    "pt": [
+      "O console é escolhido ao lado das vistas da Biblioteca: Todas, Switch ou Switch 2, e é mantido ao trocar de vista.",
+      "Com várias pastas na biblioteca, o envio pergunta para onde vão os jogos, e Organizar deixa cada arquivo no seu disco.",
+      "As tarefas longas mostram como vão: cópias para outro disco e as buscas no IGDB dos jogos de Switch 2."
+    ],
+    "nl": [
+      "De console kies je naast de weergaven van de Bibliotheek: Alle, Switch of Switch 2, en die blijft bij het wisselen van weergave.",
+      "Met meerdere bibliotheekmappen vraagt uploaden waar de games heen gaan, en Ordenen houdt elk bestand op zijn eigen schijf.",
+      "Lange taken laten zien hoe ze vorderen: kopieën naar een andere schijf en de IGDB-zoekopdrachten van Switch 2-games."
+    ],
+    "ru": [
+      "Консоль выбирается рядом с видами Библиотеки: Все, Switch или Switch 2, и выбор сохраняется при смене вида.",
+      "Если папок библиотеки несколько, при загрузке спрашивается, куда положить игры, а Упорядочивание оставляет каждый файл на его диске.",
+      "Долгие задачи показывают ход работы: копирование на другой диск и поиск игр Switch 2 в IGDB."
+    ],
+    "ja": [
+      "本体はライブラリの表示切り替えの横で選べます：すべて・Switch・Switch 2。表示を切り替えても選択は保たれます。",
+      "ライブラリのフォルダーが複数あるときは、アップロード時に保存先を確認し、整理では各ファイルを元のディスクに残します。",
+      "長いタスクは進み具合を表示します：別ディスクへのコピーと、Switch 2 ゲームの IGDB 検索。"
+    ],
+    "ko": [
+      "콘솔은 라이브러리 보기 옆에서 고릅니다: 전체, Switch, Switch 2. 보기를 바꿔도 선택이 유지됩니다.",
+      "라이브러리 폴더가 여러 개면 업로드할 때 게임을 둘 곳을 묻고, 정리는 각 파일을 원래 디스크에 둡니다.",
+      "오래 걸리는 작업은 진행 상황을 보여 줍니다: 다른 디스크로의 복사와 Switch 2 게임의 IGDB 검색."
+    ],
+    "zh": [
+      "可在游戏库视图旁选择主机：全部、Switch 或 Switch 2，切换视图时会保留所选。",
+      "游戏库有多个文件夹时，上传会询问游戏放在哪里，整理会让每个文件留在它自己的磁盘上。",
+      "耗时的任务会显示进度：复制到其他磁盘，以及 Switch 2 游戏的 IGDB 查询。"
+    ]
+  },
   "2.0.0": {
     "en": [
       "Games of the Nintendo Switch 2: with “I have a Switch 2” on in Settings, they show in Missing Games with their covers and dates, and the Library has a Console filter.",
