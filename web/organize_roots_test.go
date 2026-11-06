@@ -13,8 +13,9 @@ import (
 )
 
 // Organize with the folders kept takes every library folder as one: a game in an extra folder
-// is no game with a folder of its own there, and its update does not leave the library folder
-// for a folder below the extra one.
+// is no game with a folder of its own there, so it gets one, in that extra folder, with its
+// update inside it and not in a folder below the extra one; and nothing moves to the library
+// folder, which may be another disk.
 func TestOrganizeTakesEveryLibraryFolder(t *testing.T) {
 	web := newTestWeb(t)
 	library, extra := t.TempDir(), t.TempDir()
@@ -45,8 +46,8 @@ func TestOrganizeTakesEveryLibraryFolder(t *testing.T) {
 	for _, op := range operations {
 		if op.Kind == process.OP_MOVE {
 			moves++
-			if !strings.HasPrefix(op.To, library) {
-				t.Fatalf("into the library folder: %+v", op)
+			if !strings.HasPrefix(op.To, filepath.Join(extra, "Game")+string(filepath.Separator)) || strings.HasPrefix(op.To, library) {
+				t.Fatalf("into the folder of the game in the extra folder: %+v", op)
 			}
 		}
 	}

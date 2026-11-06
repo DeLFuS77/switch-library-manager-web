@@ -1015,6 +1015,8 @@ var progressSteps = []struct{ prefix, key string }{
 	{"Found ", "Looking at the folders: %v"},
 	{"Reading ", "Reading the new file %v"},
 	{"Scanned ", "Folder looked at: %v"},
+	// Organize, while a file is copied to another disk (process.CopyingMessage)
+	{"Copying ", "Copying to another disk: %v"},
 }
 
 // progressMessage splits a message of the scan into the sentence to translate and the file

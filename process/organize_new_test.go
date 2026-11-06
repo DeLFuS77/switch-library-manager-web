@@ -117,8 +117,9 @@ func TestGameFolderFromItsSubfolders(t *testing.T) {
 }
 
 // With the folders kept, a game whose files lie in an extra library folder itself gets a folder
-// of its own in the library folder: the extra folder is no game's own, and its update and DLC
-// went below it, out of the library folder.
+// of its own, in that folder: the extra folder is no game's own, its update and DLC go into the
+// folder of the game instead of below the extra folder, and nothing moves to the library folder,
+// which may be another disk.
 func TestKeepGameFoldersWithAnExtraLibraryFolder(t *testing.T) {
 	library, extra := t.TempDir(), t.TempDir()
 	local, remote := fixtureLibrary(t, extra)
@@ -129,8 +130,9 @@ func TestKeepGameFoldersWithAnExtraLibraryFolder(t *testing.T) {
 	if err != nil || len(failedOps(ops)) != 0 {
 		t.Fatalf("organize: %v %+v", err, failedOps(ops))
 	}
-	assertExists(t, filepath.Join(library, "Test Game", "Test Game [0100E95004039000][BASE][v0].nsp"), true)
-	assertExists(t, filepath.Join(library, "Test Game", "Updates", "Test Game [0100E95004039800][UPD][v65536].nsp"), true)
+	assertExists(t, filepath.Join(extra, "Test Game", "Test Game [0100E95004039000][BASE][v0].nsp"), true)
+	assertExists(t, filepath.Join(extra, "Test Game", "Updates", "Test Game [0100E95004039800][UPD][v65536].nsp"), true)
+	assertExists(t, filepath.Join(library, "Test Game"), false)
 	assertExists(t, filepath.Join(extra, "Updates"), false)
 	assertExists(t, filepath.Join(extra, "DLC"), false)
 }

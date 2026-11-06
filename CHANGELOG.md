@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- With several library folders, Organize puts each file in order within the folder of the library it lies in, which may be another disk, instead of moving it to the library folder: the game, its updates and its DLC get the folder of the game, named the same, in their own folder of the library, and nothing is copied from one disk to another, which took minutes for each NUP file. A library folder inside another one is still part of it
+- A file Organize has to copy to another disk tells in its task how much of it is copied, instead of looking stuck
+
 ## 2.0.0
 
 > **Note:** the support of the Nintendo Switch 2 and of NUP files is new. It was tried with the games and files at hand, not with every case yet, so some rough edges may remain.
