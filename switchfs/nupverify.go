@@ -180,6 +180,7 @@ func VerifyNup(ctx context.Context, path string, progress func(done int64, total
 			damaged = append(damaged, NupDamaged{Path: container.Files[index].Name, Reason: reason})
 		}
 	}
+	damaged = append(damaged, checkNupMeta(container)...)
 	if len(damaged) > 0 {
 		return check, &NupDamagedError{Damaged: damaged}
 	}
