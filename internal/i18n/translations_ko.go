@@ -2113,5 +2113,11 @@ func init() {
 		"failed to read %v [reason: %v]; Eglantine and Lichii do not open it either":                             "%v 읽기 실패 [이유: %v]; Eglantine과 Lichii에서도 열리지 않습니다",
 		"Eglantine and Lichii show its name, version and icon wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.":             "Eglantine과 Lichii에서 이름, 버전, 아이콘이 잘못 표시됩니다. 메타데이터의 종류가 0부터 세어져 있으며, 형식 패커의 한 버전이 그렇게 썼습니다.",
 		"Eglantine and Lichii show the name, version and icon of this NUP wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.": "Eglantine과 Lichii에서 이 NUP의 이름, 버전, 아이콘이 잘못 표시됩니다. 메타데이터의 종류가 0부터 세어져 있으며, 형식 패커의 한 버전이 그렇게 썼습니다.",
+		"Fix for emulators": "에뮬레이터용으로 고치기",
+		"Writes again, in the NUP itself, only the number of the type of each record of its metadata, so they are counted from 1 as the format says: Eglantine and Lichii then show its name, version and icon right. The files of the game are not touched. While it writes, it keeps a copy of the old blocks beside the NUP, and puts it back if anything fails or the work is cut; then it reads the NUP again, and the library reads it again. It runs as a task.": "NUP 안에서 메타데이터 각 레코드의 종류 번호만 다시 써서, 형식대로 1부터 세도록 합니다. 그러면 Eglantine과 Lichii가 이름, 버전, 아이콘을 제대로 표시합니다. 게임 파일은 건드리지 않습니다. 쓰는 동안 이전 블록의 사본을 NUP 옆에 두고, 무언가 실패하거나 작업이 중단되면 되돌려 놓습니다. 그다음 NUP를 다시 읽고, 라이브러리도 다시 읽습니다. 작업으로 실행됩니다.",
+		"The NUP could not be fixed for the emulators: it is left as it was.":                                "에뮬레이터용으로 NUP를 고칠 수 없습니다. NUP는 원래 상태 그대로입니다.",
+		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "NUP 옆에 다른 NUP의 메타데이터 사본(.nxpress-meta)이 있습니다. 계속하려면 삭제하세요.",
+		"This file is not a NUP of the library whose metadata is counted from 0.":                            "이 파일은 메타데이터가 0부터 세어진 라이브러리의 NUP가 아닙니다.",
+		"Fixing…": "고치는 중…",
 	}
 }

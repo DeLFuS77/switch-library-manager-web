@@ -787,3 +787,27 @@
 		margin-right: .3rem;
 	}
 }
+
+// the button that writes again the metadata of a NUP counted from 0: in the orange of the
+// warning above it, never red (nothing is wrong with the file); its help shows on hover, and it
+// keeps the hand of a button
+.nup-fix {
+	margin-top: .45rem;
+
+	.btn {
+		padding: .2rem .7rem;
+		font-size: .8rem;
+
+		.bi {
+			margin-right: .35rem;
+		}
+	}
+
+	.btn.has-help {
+		cursor: pointer;
+	}
+
+	.form-text {
+		margin-top: .35rem;
+	}
+}

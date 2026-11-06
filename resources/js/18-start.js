@@ -338,6 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initScreenshots();
 	initSpacePreparing();
 	initPack();
+	initNupFix();
 	initMeasure();
 	initHeroMenus();
 	initVaultSettings();

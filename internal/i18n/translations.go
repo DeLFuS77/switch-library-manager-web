@@ -2140,6 +2140,12 @@ var Translations = map[string]map[string]string{
 		"failed to read %v [reason: %v]; Eglantine and Lichii do not open it either":                             "no se pudo leer el %v [motivo: %v]; Eglantine y Lichii tampoco lo abren",
 		"Eglantine and Lichii show its name, version and icon wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.":             "Eglantine y Lichii muestran mal su nombre, su versión y su icono: los tipos de sus metadatos se cuentan desde 0, como los escribía una versión del empaquetador del formato.",
 		"Eglantine and Lichii show the name, version and icon of this NUP wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.": "Eglantine y Lichii muestran mal el nombre, la versión y el icono de este NUP: los tipos de sus metadatos se cuentan desde 0, como los escribía una versión del empaquetador del formato.",
+		"Fix for emulators": "Arreglar para emuladores",
+		"Writes again, in the NUP itself, only the number of the type of each record of its metadata, so they are counted from 1 as the format says: Eglantine and Lichii then show its name, version and icon right. The files of the game are not touched. While it writes, it keeps a copy of the old blocks beside the NUP, and puts it back if anything fails or the work is cut; then it reads the NUP again, and the library reads it again. It runs as a task.": "Reescribe en el propio NUP solo el número de tipo de cada registro de sus metadatos, para que se cuenten desde 1 como pide el formato: así Eglantine y Lichii muestran bien su nombre, su versión y su icono. Los archivos del juego no se tocan. Mientras escribe deja al lado una copia de los bloques viejos, y la vuelve a poner si algo falla o el trabajo se corta; después vuelve a leer el NUP, y la biblioteca lo vuelve a leer. Se hace como una tarea.",
+		"The NUP could not be fixed for the emulators: it is left as it was.":                                "No se ha podido arreglar el NUP para los emuladores: se ha dejado como estaba.",
+		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "Junto al NUP hay una copia de los metadatos de otro NUP (.nxpress-meta): bórrala para seguir.",
+		"This file is not a NUP of the library whose metadata is counted from 0.":                            "Este archivo no es un NUP de la biblioteca con los metadatos contados desde 0.",
+		"Fixing…": "Arreglando…",
 	},
 }
 
@@ -2163,4 +2169,5 @@ var JSTexts = []string{
 	"The new files may not fit. A file that fills its disk fails, and its original stays as it was.", "up to %v needed, %v free", "Start anyway?",
 	"Added to the queue.", "It starts when the tasks before it end: number %v in the queue.", "Reload",
 	"Saved!", "Back to the original", "The cover is too large: at most 5 MB and 6000 pixels a side.",
+	"Fixing…",
 }

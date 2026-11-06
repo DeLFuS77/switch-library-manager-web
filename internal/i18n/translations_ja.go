@@ -2113,5 +2113,11 @@ func init() {
 		"failed to read %v [reason: %v]; Eglantine and Lichii do not open it either":                             "%vを読み込めませんでした [理由: %v]。Eglantine と Lichii でも開けません",
 		"Eglantine and Lichii show its name, version and icon wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.":             "Eglantine と Lichii では名前、バージョン、アイコンが正しく表示されません。メタデータの種類が 0 から数えられています。形式のパッカーのあるバージョンがそう書いていました。",
 		"Eglantine and Lichii show the name, version and icon of this NUP wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.": "Eglantine と Lichii ではこの NUP の名前、バージョン、アイコンが正しく表示されません。メタデータの種類が 0 から数えられています。形式のパッカーのあるバージョンがそう書いていました。",
+		"Fix for emulators": "エミュレーター向けに修正",
+		"Writes again, in the NUP itself, only the number of the type of each record of its metadata, so they are counted from 1 as the format says: Eglantine and Lichii then show its name, version and icon right. The files of the game are not touched. While it writes, it keeps a copy of the old blocks beside the NUP, and puts it back if anything fails or the work is cut; then it reads the NUP again, and the library reads it again. It runs as a task.": "NUP そのものの中で、メタデータの各レコードの種類の番号だけを書き直し、形式どおり 1 から数えるようにします。これで Eglantine と Lichii が名前、バージョン、アイコンを正しく表示します。ゲームのファイルには触れません。書き込み中は古いブロックのコピーを NUP の横に置き、何かが失敗したり作業が中断されたりしたときは元に戻します。その後 NUP を読み直し、ライブラリもそれを読み直します。タスクとして実行されます。",
+		"The NUP could not be fixed for the emulators: it is left as it was.":                                "エミュレーター向けに NUP を修正できませんでした。NUP は元のままです。",
+		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "NUP の横に別の NUP のメタデータのコピー（.nxpress-meta）があります。続けるには削除してください。",
+		"This file is not a NUP of the library whose metadata is counted from 0.":                            "このファイルは、メタデータが 0 から数えられているライブラリの NUP ではありません。",
+		"Fixing…": "修正中…",
 	}
 }

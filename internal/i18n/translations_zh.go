@@ -2113,5 +2113,11 @@ func init() {
 		"failed to read %v [reason: %v]; Eglantine and Lichii do not open it either":                             "无法读取 %v [原因：%v]；Eglantine 和 Lichii 也打不开它",
 		"Eglantine and Lichii show its name, version and icon wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.":             "Eglantine 和 Lichii 会把它的名称、版本和图标显示错误：其元数据的类型从 0 开始计数，格式打包器的某个版本曾这样写入。",
 		"Eglantine and Lichii show the name, version and icon of this NUP wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.": "Eglantine 和 Lichii 会把这个 NUP 的名称、版本和图标显示错误：其元数据的类型从 0 开始计数，格式打包器的某个版本曾这样写入。",
+		"Fix for emulators": "为模拟器修复",
+		"Writes again, in the NUP itself, only the number of the type of each record of its metadata, so they are counted from 1 as the format says: Eglantine and Lichii then show its name, version and icon right. The files of the game are not touched. While it writes, it keeps a copy of the old blocks beside the NUP, and puts it back if anything fails or the work is cut; then it reads the NUP again, and the library reads it again. It runs as a task.": "只在 NUP 文件本身中重写其元数据每条记录的类型编号，让它们按格式要求从 1 开始计数：这样 Eglantine 和 Lichii 就能正确显示它的名称、版本和图标。游戏的文件不会被改动。写入期间会在 NUP 旁边保留旧数据块的副本，如果出错或工作被中断就会还原；之后会重新读取 NUP，游戏库也会重新读取它。它作为任务运行。",
+		"The NUP could not be fixed for the emulators: it is left as it was.":                                "无法为模拟器修复这个 NUP：它保持原样。",
+		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "NUP 旁边有另一个 NUP 的元数据副本（.nxpress-meta）：删除它后才能继续。",
+		"This file is not a NUP of the library whose metadata is counted from 0.":                            "这个文件不是游戏库中元数据从 0 开始计数的 NUP。",
+		"Fixing…": "正在修复…",
 	}
 }

@@ -47,6 +47,8 @@ type TitleFile struct {
 type TitleEmulators struct {
 	Ok       bool
 	Warnings []string
+	// its metadata is counted from 0: an administrator can fix it from the page (see nupfix.go)
+	ZeroBased bool
 }
 
 // what is said on the page of a NUP the emulators do not read well, before its reasons
@@ -63,7 +65,7 @@ func nupEmulators(info db.SwitchFileInfo, lang string) *TitleEmulators {
 		return nil
 	}
 	emulators := info.Metadata.Emulators
-	result := &TitleEmulators{Ok: emulators.Ok()}
+	result := &TitleEmulators{Ok: emulators.Ok(), ZeroBased: emulators.ZeroBased}
 	issue := func(issue switchfs.NupEmulatorIssue) string {
 		return i18n.Translatef(lang, issue.Text, issue.Values()...)
 	}
@@ -535,6 +537,7 @@ func sortedVersions(updates map[int]db.SwitchFileInfo) []int {
 func (web *Web) HandleTitle() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/title.html")
 	web.handlePack()
+	web.handleNupFix()
 
 	web.router.HandleFunc("/title/{titleId}.html", func(w http.ResponseWriter, r *http.Request) {
 		detail, ok := web.getTitleDetail(mux.Vars(r)["titleId"], web.requestLanguage(r))

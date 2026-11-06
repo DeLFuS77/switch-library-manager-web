@@ -97,6 +97,8 @@ type NupPackage struct {
 	// its metadata has its types counted from 0, as a build of the packer of the format wrote
 	// them: read here where the format puts them, and read wrong by Eglantine and Lichii
 	ZeroBased bool
+	// where its block of metadata is in the file, for FixNupZeroBased
+	metaOffset, metaSize uint64
 }
 
 // NupDir is a folder of the tree of a package.
@@ -291,6 +293,7 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 				return nil, nupRefused(fmt.Errorf("NUP package %d metadata: %w", i, err))
 			}
 			pkg.Meta, pkg.ZeroBased = meta, shifted
+			pkg.metaOffset, pkg.metaSize = metaOffset, metaSize
 			if !nupStrictLocalized(block) {
 				result.strict = append(result.strict, nupIssue(nupIssueLocalized, i))
 			}
