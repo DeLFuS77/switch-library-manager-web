@@ -96,8 +96,13 @@ func VerifyNup(ctx context.Context, path string, progress func(done int64, total
 	}
 	container, err := readNup(file, info.Size())
 	if err != nil {
+		if NupEmulatorsRefuse(err) {
+			err = fmt.Errorf("%w; %s", err, NupEmulatorsRefuseToo)
+		}
 		return check, err
 	}
+	emulators := container.Emulators()
+	check.Emulators = &emulators
 
 	// the pieces of data to read, each once, in the order they are stored
 	type key struct {

@@ -1240,7 +1240,11 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 			result.cacheKey = fileKey
 			return result
 		}
-		result.skip = &SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: readErrorText("NUP", err), CutShort: CutShort(err, "")}
+		reason := readErrorText("NUP", err)
+		if switchfs.NupEmulatorsRefuse(err) {
+			reason += "; " + switchfs.NupEmulatorsRefuseToo
+		}
+		result.skip = &SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: reason, CutShort: CutShort(err, "")}
 		zap.S().Warnf("[file:%v] failed to read NUP [reason: %v]", file.FileName, err)
 	} else if keys != nil && keys.GetKey("header_key") != "" {
 		_, _, generation := settings.KeysSummary()

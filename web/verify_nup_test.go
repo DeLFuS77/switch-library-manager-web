@@ -61,6 +61,12 @@ func TestVerifyChecksNupFiles(t *testing.T) {
 	if task.Files != 2 || task.Damaged != 0 || len(task.Tiles) != 2 || task.Tiles[1].Failed {
 		t.Fatalf("the NSP and the NUP of the library: %+v", task)
 	}
+	// the NUP is whole, but its game has no main.npdm: Eglantine and Lichii cannot start it, told
+	// on a line of its own, its tile sound
+	if task.Status != tasklog.TASK_WARNING || len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_VERIFY_EMULATORS_NO_START ||
+		task.Warnings[0].Detail != filepath.Base(path)+": the ExeFS of the game lacks: main.npdm" || task.Tiles[1].Modified || task.Tiles[1].Skipped {
+		t.Fatalf("the emulators: %+v", task)
+	}
 	for _, file := range signed {
 		if switchfs.IsNupFile(file) {
 			t.Fatal("the signatures of a NUP were asked for")
