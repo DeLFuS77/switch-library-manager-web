@@ -466,6 +466,15 @@ type LibraryFacets struct {
 	Play map[string]int
 	// games not in the library, shown in the All view
 	Missing int
+	// of the games counted in All, for the cards of the status: those of the library, the size of
+	// their files and the DLC they miss, and those with a file whose updates are known, of which
+	// Complete is the share up to date
+	Owned      int
+	WithFile   int
+	Size       int64
+	DlcMissing int
+	// the user marked how some game goes: the filter My game is offered
+	PlayUsed bool
 	// genres and languages of the games, the most frequent first, and the games by players
 	Genres       []NamedCount
 	Languages    []NamedCount
@@ -483,12 +492,15 @@ type LibraryFacets struct {
 	DemosHidden bool
 }
 
+// UpToDatePercent is the share of the games with a file that are up to date.
+func (f LibraryFacets) UpToDatePercent() int {
+	return percent(int64(f.Complete), int64(f.WithFile))
+}
+
 type LibraryPageData struct {
 	TitleItemsPageData
 	Facets LibraryFacets
 	Setup  SetupStatus
-	// the overview at the top of the library
-	Stats Statistics
 	// what is new, once after an update
 	WhatsNew *WhatsNew
 	// the folders games can be uploaded to, asked when there are several
@@ -507,6 +519,9 @@ var funcMap = template.FuncMap{
 	},
 	"add": func(a, b int) int {
 		return a + b
+	},
+	"sub": func(a, b int) int {
+		return a - b
 	},
 	"fileBase":   fileBase,
 	"fileDir":    fileDir,

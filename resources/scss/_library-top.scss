@@ -1,0 +1,418 @@
+// The top of the Library: the cards of the status, which filter the list; the toolbar with the
+// search, the order, the size of the covers and the panel of filters; and the recommendations
+// folded on one line. Last of the styles, so it wins over the older rules of the toolbar and the
+// panel.
+
+// ---------------------------------------------------------------------------------------
+// The cards of the status: each one is the filter of its games, with their number
+// ---------------------------------------------------------------------------------------
+.status-cards {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 1rem;
+	margin-bottom: 1.25rem;
+
+	@include media-breakpoint-down(lg) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: .6rem;
+	}
+
+	.kpi {
+		cursor: pointer;
+	}
+
+	// "Any status" is in no colour of its own: grey, never red
+	.kpi-neutral {
+		--kpi-color: var(--bs-secondary-color);
+		--kpi-soft: rgba(127, 127, 127, .14);
+	}
+
+	.kpi-label {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+
+	.kpi-name {
+		font-weight: 600;
+		color: var(--bs-body-color);
+	}
+
+	// the help is read out with its card; with a mouse it shows on the name (21-hover-help.js)
+	.form-text {
+		@include visually-hidden();
+	}
+
+	// the status shown: a ring and a tick in the colour of its card
+	.kpi.is-active {
+		border-color: var(--kpi-color);
+		box-shadow: 0 0 0 1px var(--kpi-color), var(--slm-shadow);
+		background: linear-gradient(150deg, var(--kpi-soft), transparent 70%), var(--slm-surface);
+	}
+
+	.kpi-check {
+		position: absolute;
+		top: .55rem;
+		right: .7rem;
+		z-index: 1;
+		font-size: .8rem;
+		color: var(--kpi-color);
+		opacity: 0;
+		transition: opacity .15s;
+	}
+
+	.kpi.is-active .kpi-check {
+		opacity: 1;
+	}
+
+	// the share of the games up to date
+	.kpi-bar {
+		display: block;
+		height: .35rem;
+		margin-top: .35rem;
+		border-radius: 1rem;
+		background: var(--slm-surface-muted);
+		overflow: hidden;
+
+		> span {
+			display: block;
+			height: 100%;
+			border-radius: inherit;
+			background: linear-gradient(90deg, $slm-cyan, $success);
+		}
+	}
+
+	// phones: four short cards, two by two, so the games start higher up
+	@include media-breakpoint-down(sm) {
+		.kpi {
+			padding: .5rem .7rem;
+			row-gap: .1rem;
+		}
+
+		.kpi .kpi-icon {
+			width: 1.7rem;
+			height: 1.7rem;
+			font-size: .85rem;
+			border-radius: .5rem;
+		}
+
+		.kpi .kpi-value {
+			font-size: 1.2rem;
+		}
+
+		.kpi-detail,
+		.kpi-check {
+			display: none;
+		}
+
+		.kpi-name {
+			font-size: var(--slm-text-xs);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		.kpi-bar {
+			margin-top: .2rem;
+		}
+
+		.kpi::after {
+			width: 4rem;
+			height: 4rem;
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------------------
+// The toolbar holds the panel of filters too
+// ---------------------------------------------------------------------------------------
+.toolbar .filter-panel {
+	display: flex;
+
+	> .btn {
+		display: inline-flex;
+		align-items: center;
+		gap: .4rem;
+		min-height: 2.4rem;
+		padding-inline: 1rem;
+	}
+}
+
+// with filters on, the button is in the blue of work, as a choice made
+.filter-panel > .btn.is-filtered {
+	--bs-btn-color: var(--bs-body-bg);
+	--bs-btn-bg: rgb(var(--slm-work-rgb));
+	--bs-btn-border-color: rgb(var(--slm-work-rgb));
+	--bs-btn-hover-color: var(--bs-body-bg);
+	--bs-btn-hover-bg: rgba(var(--slm-work-rgb), .88);
+	--bs-btn-hover-border-color: rgb(var(--slm-work-rgb));
+	--bs-btn-active-color: var(--bs-body-bg);
+	--bs-btn-active-bg: rgb(var(--slm-work-rgb));
+	--bs-btn-active-border-color: rgb(var(--slm-work-rgb));
+}
+
+.filter-badge {
+	padding: .15rem .45rem;
+	border-radius: 1rem;
+	background: rgba(0, 0, 0, .2);
+	color: inherit;
+	font-size: var(--slm-text-xs);
+}
+
+// phones: the search and Filters on one row, the order and the covers on the next
+@include media-breakpoint-down(sm) {
+	.toolbar.has-filters {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto auto;
+		gap: .5rem;
+
+		.toolbar-search {
+			grid-column: 1 / 3;
+			grid-row: 1;
+		}
+
+		.filter-panel {
+			grid-column: 3;
+			grid-row: 1;
+
+			> .btn {
+				width: 100%;
+				justify-content: center;
+				padding-inline: .75rem;
+			}
+		}
+
+		// the icon alone; the word stays for screen readers
+		.filter-word {
+			@include visually-hidden();
+		}
+
+		#sortBy {
+			grid-column: 1;
+			grid-row: 2;
+			min-width: 0;
+			width: 100%;
+		}
+
+		.btn-group:not(.view-toggle) {
+			grid-column: 2;
+			grid-row: 2;
+		}
+
+		.view-toggle {
+			grid-column: 3;
+			grid-row: 2;
+		}
+
+		.btn-group .btn {
+			padding-inline: .6rem;
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------------------
+// The panel of filters, in the order they are used
+// ---------------------------------------------------------------------------------------
+.filter-panel .filter-panel-menu {
+	width: min(46rem, calc(100vw - 2rem));
+	max-height: min(38rem, 78vh);
+	overflow-y: auto;
+	padding: 0;
+}
+
+// two columns when they fit: what is yours and the file, then the game
+.panel-cols {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
+	gap: 0 1.75rem;
+	padding: .9rem 1.1rem .35rem;
+}
+
+.panel-part-title {
+	margin: .2rem 0 .6rem;
+	font-size: var(--slm-text-xs);
+	font-weight: 700;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+	color: rgb(var(--slm-work-rgb));
+
+	.filter-group + &,
+	.filter-note + & {
+		margin-top: 1.25rem;
+	}
+}
+
+.panel-col > .filter-group:last-child {
+	margin-bottom: .6rem;
+}
+
+// the choices after the first ones of a long list, a click away
+.filter-more {
+	margin-top: .45rem;
+
+	> summary {
+		display: inline-flex;
+		align-items: center;
+		gap: .3rem;
+		list-style: none;
+		cursor: pointer;
+		font-size: var(--slm-text-sm);
+		font-weight: 600;
+		color: rgb(var(--slm-work-rgb));
+
+		&::-webkit-details-marker {
+			display: none;
+		}
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+
+	&[open] > summary {
+		display: none;
+	}
+}
+
+// in a choice the help is read out; with a mouse it shows on its name (21-hover-help.js)
+.filter-choice > .form-text {
+	@include visually-hidden();
+}
+
+// "My game" waits until a game is marked
+.filter-note {
+	display: flex;
+	align-items: baseline;
+	gap: .45rem;
+	margin: .75rem 0 0;
+	font-size: var(--slm-text-sm);
+	color: var(--bs-secondary-color);
+}
+
+// the number of games the filters leave, and the way to take them all off, always in sight
+.panel-foot {
+	position: sticky;
+	bottom: 0;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: .75rem;
+	padding: .55rem 1.1rem;
+	border-top: 1px solid var(--slm-border);
+	background: var(--bs-dropdown-bg, var(--bs-body-bg));
+	font-size: var(--slm-text-sm);
+}
+
+// ---------------------------------------------------------------------------------------
+// The recommendations, folded on one line
+// ---------------------------------------------------------------------------------------
+.rec-fold {
+	> summary {
+		display: flex;
+		align-items: center;
+		gap: .6rem;
+		padding: .6rem .9rem;
+		border: 1px solid var(--slm-border);
+		border-radius: 1rem;
+		background: var(--slm-surface);
+		list-style: none;
+		cursor: pointer;
+		transition: border-color .15s ease;
+
+		&::-webkit-details-marker {
+			display: none;
+		}
+
+		&:hover {
+			border-color: var(--bs-secondary-color);
+		}
+	}
+
+	&[open] > summary {
+		margin-bottom: .75rem;
+	}
+
+	.bi-stars {
+		color: $warning;
+	}
+
+	.rec-fold-title {
+		margin: 0;
+		font-size: var(--slm-text-md);
+		font-weight: 700;
+		white-space: nowrap;
+	}
+
+	.rec-fold-hint {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		color: var(--bs-secondary-color);
+		font-size: var(--slm-text-sm);
+	}
+
+	.rec-fold-covers {
+		display: flex;
+		flex-shrink: 0;
+		margin-left: auto;
+		padding-left: .5rem;
+
+		img {
+			width: 1.9rem;
+			height: 1.9rem;
+			margin-left: -.5rem;
+			border: 2px solid var(--slm-surface);
+			border-radius: .4rem;
+			object-fit: cover;
+		}
+	}
+
+	.rec-fold-chevron {
+		flex-shrink: 0;
+		transition: transform .2s ease;
+	}
+
+	&[open] .rec-fold-chevron {
+		transform: rotate(180deg);
+	}
+
+	@include media-breakpoint-down(sm) {
+		.rec-fold-hint,
+		.rec-fold-covers {
+			display: none;
+		}
+
+		.rec-fold-chevron {
+			margin-left: auto;
+		}
+	}
+}
+
+// phones: the legend of the marks on one line that slides, so the games start higher up
+@include media-breakpoint-down(sm) {
+	.mark-legend {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		white-space: nowrap;
+		scrollbar-width: none;
+		margin-inline: -1rem;
+		padding-inline: 1rem;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+
+		> span {
+			flex-shrink: 0;
+		}
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.rec-fold .rec-fold-chevron,
+	.status-cards .kpi-check {
+		transition: none;
+	}
+}

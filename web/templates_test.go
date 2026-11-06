@@ -254,9 +254,10 @@ func TestNumbersHaveTheSeparatorOfTheLanguage(t *testing.T) {
 	}
 }
 
-// The overview of the Library writes its numbers with the separator of the language, also when
-// they do not count up to it (reduced motion).
-func TestLibraryOverviewNumbersHaveTheSeparator(t *testing.T) {
+// The cards of the status of the Library are its filter: each one counts the games it shows,
+// with the separator of the language, the one shown is marked, and the ⓘ of a card tells what it
+// counts.
+func TestLibraryStatusCards(t *testing.T) {
 	web := newTestWeb(t)
 	set, err := parseTemplates(os.DirFS(".."), "resources/layout.html", "resources/partials/card.html", "resources/partials/filter.html",
 		"resources/partials/pagination.html", "resources/pages/index.html")
@@ -265,19 +266,32 @@ func TestLibraryOverviewNumbersHaveTheSeparator(t *testing.T) {
 	}
 	global := web.globalPageData("index")
 	global.HasLibrary = true
+	filter := defaultFilter()
+	filter.Status = STATUS_UPDATE
 	data := LibraryPageData{
-		TitleItemsPageData: TitleItemsPageData{GlobalPageData: global, Filter: defaultFilter(), Views: web.libraryViews("mine", "es")},
-		Stats: Statistics{Games: 11382, UpdatesPending: 12345, GamesWithUpdate: 10500, DlcWithUpdate: 1845, MissingDlc: 23456,
-			HasTitlesDatabase: true, GamesUpToDate: 10200, GamesUpToDatePct: 89, GamesWithFile: 11382},
+		TitleItemsPageData: TitleItemsPageData{GlobalPageData: global, Filter: filter, Views: web.libraryViews("all", "es", "")},
+		Facets:             LibraryFacets{All: 24116, Missing: 10338, Owned: 13778, WithFile: 13774, Size: 3 << 40, Update: 2610, Dlc: 840, DlcMissing: 4236, Complete: 10725},
 	}
 	var page strings.Builder
 	if err := set.execute(&page, "es", data); err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{`data-count="11382">11.382<`, `data-count="12345">12.345<`, "10.500 juegos y 1845 DLC", `data-count="23456">23.456<`, "(10.200 / 11.382)"} {
-		if !strings.Contains(page.String(), want) {
-			t.Errorf("the overview misses %q", want)
+	out := page.String()
+	for _, want := range []string{`<span class="kpi-value">24.116</span>`, "13.778 tuyos · " + i18n.FormatSizeIn("es", 3<<40), `<span class="kpi-value">2610</span>`, "4236 DLC en total",
+		`<span class="kpi-value">10.725</span>`, "Al día · 77%", "el 77% de los 13.774 juegos con archivo", `style="width: 77%"`,
+		`class="kpi kpi-warning is-active" href="?missing=0&amp;per_page=24&amp;sort_by=name&amp;sort_order=asc&amp;status=update" aria-current="true"`,
+		`class="kpi kpi-info" href="?missing=0&amp;per_page=24&amp;sort_by=name&amp;sort_order=asc&amp;status=dlc"`,
+		`<span class="kpi-name help-name">Con actualización</span><span class="form-text">`} {
+		if !strings.Contains(out, want) {
+			t.Errorf("the cards of the status miss %q", want)
 		}
+	}
+	if strings.Contains(out, "library-overview") || strings.Contains(out, "filter-pills") {
+		t.Error("the overview and the pills of the status are gone")
+	}
+	// the panel of filters is in the toolbar, after the search
+	if search, panel := strings.Index(out, `class="toolbar-search"`), strings.Index(out, `class="dropdown filter-panel"`); search < 0 || panel < search || !strings.Contains(out, `class="toolbar has-filters"`) {
+		t.Errorf("the panel of filters is not in the toolbar: %d, %d", search, panel)
 	}
 }
 

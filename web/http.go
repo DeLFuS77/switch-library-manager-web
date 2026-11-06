@@ -74,6 +74,9 @@ func (web *Web) HandleFiltered(pattern string, filteredPageData FilteredPageData
 			filter.Console = ""
 		}
 		filter.player = playUser(r)
+		if cookie, err := r.Cookie(recsCookie); err == nil && cookie.Value == "open" {
+			filter.recsOpen = true
+		}
 		// pages of cards: whole rows of the columns the browser shows
 		if cookie, err := r.Cookie(columnsCookie); err == nil {
 			if columns, err := strconv.Atoi(cookie.Value); err == nil {

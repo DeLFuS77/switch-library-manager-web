@@ -141,7 +141,6 @@
 // cards fade in one after the other
 @media (prefers-reduced-motion: no-preference) {
 	.game-grid > *,
-	.library-overview > .kpi,
 	.saga-list > .saga-card,
 	.save-list > .save-game {
 		animation: slm-fade-up .45s cubic-bezier(.2, .7, .2, 1) both;
@@ -149,7 +148,6 @@
 
 	@for $i from 1 through 12 {
 		.game-grid > :nth-child(#{$i}),
-		.library-overview > .kpi:nth-child(#{$i}),
 		.saga-list > .saga-card:nth-child(#{$i}),
 		.save-list > .save-game:nth-child(#{$i}) {
 			animation-delay: #{$i * 35}ms;

@@ -129,11 +129,10 @@ func (web *Web) HandleIndex() {
 				Filter:          filter,
 				Pagination:      p,
 				Recommendations: recommendations,
-				Views:           web.libraryViews(map[bool]string{true: "all", false: "mine"}[filter.ShowsMissing()], lang).withConsole(filter, facets, settings.ReadSettings(web.dataFolder).HasSwitch2),
+				Views:           web.libraryViews(map[bool]string{true: "all", false: "mine"}[filter.ShowsMissing()], lang, filter.Console).withConsole(filter, facets, settings.ReadSettings(web.dataFolder).HasSwitch2),
 			},
 			Facets:           facets,
 			Setup:            web.setupStatus(),
-			Stats:            web.getStatistics(lang),
 			WhatsNew:         web.whatsNew(lang),
 			UploadFolders:    web.uploadFolderChoices(),
 			SmartCollections: web.smartCollectionViews(filter, lang),
@@ -160,8 +159,37 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 		}
 	}
 	f.sortFacets()
+	f.facets.Switch1, f.facets.Switch2 = web.consoleFacets(f, lang)
 	items, p := f.page()
 	return items, p, f.facets
+}
+
+// consoleFacets counts the games of each console as its choice shows them, with every other
+// filter: those shown when both are, else those of the other console in a pass of their own.
+func (web *Web) consoleFacets(f *libraryFilter, lang string) (switch1 int, switch2 int) {
+	if f.filter.Console == "" {
+		for _, index := range f.matched {
+			if f.all[index].IsSwitch2() {
+				switch2++
+			} else {
+				switch1++
+			}
+		}
+		return switch1, switch2
+	}
+	other := *f.filter
+	other.Console = map[string]string{CONSOLE_SWITCH: CONSOLE_SWITCH2, CONSOLE_SWITCH2: CONSOLE_SWITCH}[f.filter.Console]
+	g := web.newLibraryFilter(&other, lang, f.all)
+	count := 0
+	for index := range f.all {
+		if g.takes(index) {
+			count++
+		}
+	}
+	if f.filter.Console == CONSOLE_SWITCH {
+		return len(f.matched), count
+	}
+	return count, len(f.matched)
 }
 
 // libraryFilter goes through the games of the Library with a filter: each step counts the games
@@ -184,31 +212,27 @@ type libraryFilter struct {
 	otherRegions map[string][]string
 	merged       map[string]regionStatus
 	// each game once: of a game the library has, no card of its other regions; of a game it does
-	// not have, one card of all of them
-	regionsByName map[string][]string
-	ownedNames    map[string]bool
-	shownMissing  map[string]bool
-	plays         map[string]userdata.PlayEntry
+	// not have, one card of all of them (nil when each region counts)
+	once  *missingOnce
+	plays map[string]userdata.PlayEntry
 }
 
 func (web *Web) newLibraryFilter(filter *TitleItemFilter, lang string, all []TitleItem) *libraryFilter {
 	f := &libraryFilter{filter: filter, all: all, matched: make([]int, 0, len(all)),
 		facets:  LibraryFacets{Formats: []string{}, Regions: []string{}, DemosHidden: settings.ReadSettings(web.dataFolder).HideDemoGames},
 		formats: map[string]struct{}{}, regions: map[string]struct{}{}, recentSince: time.Now().AddDate(0, 0, -recentDays),
-		collectionCounts: map[string]int{}, genreCounts: map[string]int{}, languageCounts: map[string]int{},
-		ownedNames: map[string]bool{}, shownMissing: map[string]bool{}}
+		collectionCounts: map[string]int{}, genreCounts: map[string]int{}, languageCounts: map[string]int{}}
 	f.leftOut, f.otherRegions = web.regionCopies(lang)
 	f.merged = web.mergedStatus(lang)
-	if settings.ReadSettings(web.dataFolder).CountRegionsOnce {
-		f.regionsByName = web.regionsByName()
-		for i := range all {
-			if !all[i].Missing {
-				f.ownedNames[regionalName(all[i].OriginalName)] = true
-			}
-		}
-	}
+	f.once = web.newMissingOnce()
 	f.plays = web.play().All(filter.player)
 	f.facets.Play = map[string]int{}
+	for _, entry := range f.plays {
+		if entry.Status != "" {
+			f.facets.PlayUsed = true
+			break
+		}
+	}
 	return f
 }
 
@@ -249,16 +273,7 @@ func (f *libraryFilter) formatAndRegion(item *TitleItem) bool {
 	if filter.Region != "" && item.Region != filter.Region && !hasValue(f.otherRegions[item.Id], regionCode(filter.Region)) {
 		return false
 	}
-	if item.Missing && f.regionsByName != nil {
-		name := regionalName(item.OriginalName)
-		if _, known := f.regionsByName[name]; known {
-			if f.ownedNames[name] || f.shownMissing[name] {
-				return false
-			}
-			f.shownMissing[name] = true
-		}
-	}
-	return true
+	return !item.Missing || f.once.takes(item)
 }
 
 // collection counts the collections of the game, and takes it in the collection chosen.
@@ -301,12 +316,8 @@ func (f *libraryFilter) attributes(item *TitleItem) bool {
 // collection, and takes it in the kind and the extra chosen.
 func (f *libraryFilter) kindAndExtra(item *TitleItem) bool {
 	filter, facets := f.filter, &f.facets
+	// the numbers of the consoles are of the games shown (see consoleFacets)
 	switch2 := item.IsSwitch2()
-	if switch2 {
-		facets.Switch2++
-	} else {
-		facets.Switch1++
-	}
 	if (filter.Console == CONSOLE_SWITCH && switch2) || (filter.Console == CONSOLE_SWITCH2 && !switch2) {
 		return false
 	}
@@ -361,24 +372,28 @@ func (f *libraryFilter) play(item *TitleItem) bool {
 }
 
 // status counts the game among the games with an update, DLC or complete, and takes it in the
-// status chosen; a game not in the library has none, and shows with "All" only.
+// status chosen; a game not in the library has none, and shows with "Any status" only, which
+// counts it whatever status is chosen.
 func (f *libraryFilter) status(item *TitleItem) bool {
 	facets := &f.facets
 	if item.Missing {
-		if f.filter.Status != "" {
-			return false
-		}
 		facets.Missing++
-		facets.All++
-		return true
-	}
-	// without a file its version is not known: it is neither up to date nor behind
-	if item.NoFile {
 		facets.All++
 		return f.filter.Status == ""
 	}
-	complete := item.Known && !item.UpdateAvailable && item.MissingDlcCount == 0 && !item.VersionsUnknown
+	// without a file its version is not known: it is neither up to date nor behind
 	facets.All++
+	facets.Owned++
+	if item.NoFile {
+		return f.filter.Status == ""
+	}
+	complete := item.Known && !item.UpdateAvailable && item.MissingDlcCount == 0 && !item.VersionsUnknown
+	facets.Size += item.Size
+	facets.DlcMissing += item.MissingDlcCount
+	// the share up to date leaves out, as the statistics do, a game whose updates no list knows
+	if !item.VersionsUnknown {
+		facets.WithFile++
+	}
 	if item.UpdateAvailable {
 		facets.Update++
 	}
@@ -432,8 +447,8 @@ func (f *libraryFilter) page() ([]TitleItem, pagination.Pagination) {
 		if status, ok := f.merged[item.Id]; ok {
 			status.apply(&item)
 		}
-		if f.regionsByName != nil {
-			item.MissingFlags = missingRegions(item, f.regionsByName)
+		if f.once != nil {
+			item.MissingFlags = missingRegions(item, f.once.byName)
 			if room := max(coverFlags-1-len(item.OtherFlags), 0); len(item.MissingFlags) > room {
 				item.MissingFlags, item.HiddenRegions = item.MissingFlags[:room], item.MissingFlags[room:]
 			}
@@ -444,24 +459,25 @@ func (f *libraryFilter) page() ([]TitleItem, pagination.Pagination) {
 	return items, p
 }
 
-// libraryViews counts the games of each view of the Library. My games counts as the list of the
-// Library does: without the demos when they are hidden, and the copies of a game from other
-// regions once when the settings say so.
-func (web *Web) libraryViews(current string, lang string) LibraryViews {
+// libraryViews counts the games of each view of the Library, of the console chosen ("" both): the
+// views keep it, so each one counts the games it shows without other filters. My games counts as
+// the list of the Library does: without the demos when they are hidden, and the copies of a game
+// from other regions once when the settings say so.
+func (web *Web) libraryViews(current string, lang string, console string) LibraryViews {
 	mine := web.derived("libraryCount:"+lang, func() any {
 		library := web.derived("library:"+lang, func() any { return web.buildLibrary(lang) }).([]TitleItem)
 		hideDemos := settings.ReadSettings(web.dataFolder).HideDemoGames
 		leftOut, _ := web.regionCopies(lang)
-		count := 0
+		counts := consoleCounts{}
 		for _, item := range library {
 			if leftOut[item.Id] || (hideDemos && item.Demo) {
 				continue
 			}
-			count++
+			counts.add(item.IsSwitch2())
 		}
-		return count
-	}).(int)
-	return LibraryViews{Current: current, Mine: mine, Missing: web.missingGamesCount()}
+		return counts
+	}).(consoleCounts)
+	return LibraryViews{Current: current, Mine: mine.of(console), Missing: web.missingGamesCounts().of(console)}
 }
 
 // buildLibraryWithMissing lists the games of the library and, greyed out, the games of the

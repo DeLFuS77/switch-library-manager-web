@@ -18,7 +18,7 @@
 {{- end}}
 
 {{- define "filter"}}
-			<form class="toolbar" role="search">
+			<form class="toolbar{{if or (eq .Page "index") (eq .Page "missing")}} has-filters{{end}}" role="search">
 				<div class="toolbar-search">
 					<span class="bi bi-search" aria-hidden="true"></span>
 					<input type="search" class="form-control" name="q" value="{{.Filter.Keyword}}" placeholder="{{t "Search by name or ID..."}}" aria-label="{{t "Search"}}">
@@ -63,132 +63,215 @@
 					<button type="button" class="btn btn-outline-secondary" data-view="compact" title="{{t "Small covers"}}" aria-pressed="false"><span class="bi bi-grid-3x3-gap" aria-hidden="true"></span><span class="visually-hidden">{{t "Small covers"}}</span></button>
 				</div>
 				{{- end}}
+				{{- /* the other filters of the Library and of the Missing games, beside the search */}}
+				{{- if eq .Page "index"}}
+				{{- template "filterPanel" (dict "Filter" .Filter "Facets" .Facets "Library" true "Count" .Pagination.NumItems)}}
+				{{- else if eq .Page "missing"}}
+				{{- template "filterPanel" (dict "Filter" .Filter "Facets" .Facets "Library" false "Count" .Pagination.NumItems)}}
+				{{- end}}
 				{{- /* every other filter of the list (My games, a collection, a genre...) is kept */}}
 				{{filterHidden .Filter "q" "sort_by" "sort_order"}}
 			</form>
 {{- end}}
 
-{{- /* the panel of filters of a list of games: the Library, or Missing (without its collections, formats and others) */}}
+{{- /* the panel of filters of a list of games, in the order they are used: what is yours, what the
+	game is, then what the file is; the Missing games have neither the first part nor the formats.
+	The long lists show their first choices, the most frequent, and the others a click away. */}}
 {{- define "filterPanel"}}
 				{{- $f := .Filter}}
 				{{- $fc := .Facets}}
+				{{- $kind := or $fc.Games $fc.Demos $f.Kind}}
+				{{- $formats := gt (len $fc.Formats) 1}}
+				{{- $regions := or (gt (len $fc.Regions) 1) $f.Region}}
+				{{- $genres := or $fc.Genres $f.Genre}}
+				{{- $players := or $fc.SinglePlayer $fc.TwoPlayers $f.Players}}
+				{{- $score := or $fc.Score70 $f.Score}}
+				{{- $languages := or $fc.Languages $f.GameLanguage}}
 				<div class="dropdown filter-panel">
-					<button class="btn btn-sm rounded-pill dropdown-toggle {{if $f.SecondaryCount}}btn-primary{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false"><span class="bi bi-sliders me-1" aria-hidden="true"></span>{{t "Filters"}}{{with $f.SecondaryCount}} <span class="badge text-bg-light ms-1">{{.}}</span>{{end}}</button>
-					<div class="dropdown-menu dropdown-menu-end filter-panel-menu">
-						{{- if or $fc.Collections $f.Collection}}
-						<section class="filter-group">
-							<h3 class="filter-group-title"><span class="bi bi-bookmark" aria-hidden="true"></span>{{t "Collections"}}</h3>
-							<div class="filter-choices">
-								<a class="filter-choice{{if not $f.Collection}} active{{end}}" href="{{filterUrl $f "collection" ""}}">{{t "All collections"}}</a>
-								{{- range $fc.Collections}}
-								<a class="filter-choice{{if eq $f.Collection .Name}} active{{end}}" href="{{filterUrl $f "collection" .Name}}">{{.Name}} <span class="filter-count">{{num .Count}}</span></a>
+					<button class="btn rounded-pill dropdown-toggle {{if $f.SecondaryCount}}is-filtered{{else}}btn-outline-secondary{{end}}" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false"><span class="bi bi-sliders" aria-hidden="true"></span><span class="filter-word">{{t "Filters"}}</span>{{with $f.SecondaryCount}}<span class="badge filter-badge">{{.}}</span>{{end}}</button>
+					<div class="dropdown-menu dropdown-menu-end filter-panel-menu" data-hover-help>
+						<div class="panel-cols">
+							<div class="panel-col">
+								{{- if .Library}}
+								<h3 class="panel-part-title">{{t "Yours"}}</h3>
+								<section class="filter-group">
+									<h4 class="filter-group-title"><span class="bi bi-funnel" aria-hidden="true"></span>{{t "Show only"}}</h4>
+									<div class="filter-choices">
+										<a class="filter-choice{{if not $f.Extra}} active{{end}}" href="{{filterUrl $f "extra" ""}}">{{t "All"}}</a>
+										{{- if or $fc.Favorites (eq $f.Extra "favorites")}}
+										<a class="filter-choice{{if eq $f.Extra "favorites"}} active{{end}}" href="{{filterUrl $f "extra" "favorites"}}"><span class="bi bi-star-fill text-warning" aria-hidden="true"></span> {{t "Favorites"}} <span class="filter-count">{{num $fc.Favorites}}</span></a>
+										{{- end}}
+										{{- if or $fc.Cheats (eq $f.Extra "cheats")}}
+										<a class="filter-choice{{if eq $f.Extra "cheats"}} active{{end}}" href="{{filterUrl $f "extra" "cheats"}}"><span class="bi bi-magic" aria-hidden="true"></span> {{t "With cheats for my version"}} <span class="filter-count">{{num $fc.Cheats}}</span></a>
+										{{- end}}
+										{{- if or $fc.CheatsOther (eq $f.Extra "cheats_other")}}
+										<a class="filter-choice{{if eq $f.Extra "cheats_other"}} active{{end}}" href="{{filterUrl $f "extra" "cheats_other"}}"><span class="bi bi-magic opacity-50" aria-hidden="true"></span> <span class="help-name">{{t "With cheats for another version"}}</span><span class="form-text">{{t "The cheats are for other versions: update the game, or keep the version they are for."}}</span> <span class="filter-count">{{num $fc.CheatsOther}}</span></a>
+										{{- end}}
+										{{- if or $fc.FirmwareTooNew (eq $f.Extra "firmware")}}
+										<a class="filter-choice{{if eq $f.Extra "firmware"}} active{{end}}" href="{{filterUrl $f "extra" "firmware"}}"><span class="bi bi-cpu text-danger" aria-hidden="true"></span> <span class="help-name">{{t "Need a newer firmware"}}</span><span class="form-text">{{t "The version you have needs a newer firmware than the one of your console, set in Settings: update the console to play them."}}</span> <span class="filter-count">{{num $fc.FirmwareTooNew}}</span></a>
+										{{- end}}
+										{{- if or $fc.Recent (eq $f.Extra "recent")}}
+										<a class="filter-choice{{if eq $f.Extra "recent"}} active{{end}}" href="{{filterUrl $f "extra" "recent"}}">{{t "Added in the last 30 days"}} <span class="filter-count">{{num $fc.Recent}}</span></a>
+										{{- end}}
+										{{- if or $fc.NoCover (eq $f.Extra "no_cover")}}
+										<a class="filter-choice{{if eq $f.Extra "no_cover"}} active{{end}}" href="{{filterUrl $f "extra" "no_cover"}}">{{t "Without a cover"}} <span class="filter-count">{{num $fc.NoCover}}</span></a>
+										{{- end}}
+										{{- if or $fc.Unknown (eq $f.Extra "unknown")}}
+										<a class="filter-choice{{if eq $f.Extra "unknown"}} active{{end}}" href="{{filterUrl $f "extra" "unknown"}}"><span class="help-name">{{t "Not recognized"}}</span><span class="form-text">{{t "Games the titles database does not know"}}</span> <span class="filter-count">{{num $fc.Unknown}}</span></a>
+										{{- end}}
+									</div>
+								</section>
+								{{- if or $fc.Collections $f.Collection}}
+								<section class="filter-group">
+									<h4 class="filter-group-title"><span class="bi bi-bookmark" aria-hidden="true"></span>{{t "Collections"}}</h4>
+									<div class="filter-choices">
+										<a class="filter-choice{{if not $f.Collection}} active{{end}}" href="{{filterUrl $f "collection" ""}}">{{t "All collections"}}</a>
+										{{- range $fc.Collections}}
+										<a class="filter-choice{{if eq $f.Collection .Name}} active{{end}}" href="{{filterUrl $f "collection" .Name}}">{{.Name}} <span class="filter-count">{{num .Count}}</span></a>
+										{{- end}}
+									</div>
+								</section>
+								{{- end}}
+								{{- if or $fc.PlayUsed $f.Play}}
+								<section class="filter-group">
+									<h4 class="filter-group-title"><span class="bi bi-joystick" aria-hidden="true"></span>{{t "My game"}}</h4>
+									<div class="filter-choices">
+										<a class="filter-choice{{if not $f.Play}} active{{end}}" href="{{filterUrl $f "play" ""}}">{{t "Any"}}</a>
+										{{- range playStates}}
+										<a class="filter-choice{{if eq $f.Play .Value}} active{{end}}" href="{{filterUrl $f "play" .Value}}"><span class="bi {{.Icon}}" aria-hidden="true"></span> {{t .Name}} <span class="filter-count">{{num (index $fc.Play .Value)}}</span></a>
+										{{- end}}
+										<a class="filter-choice{{if eq $f.Play "none"}} active{{end}}" href="{{filterUrl $f "play" "none"}}">{{t "Without a state"}} <span class="filter-count">{{num (index $fc.Play "none")}}</span></a>
+									</div>
+								</section>
+								{{- else}}
+								<p class="filter-note"><span class="bi bi-joystick" aria-hidden="true"></span>{{t "“My game” shows here once you mark how one of your games goes."}}</p>
+								{{- end}}
+								{{- end}}
+								{{- if or $kind $formats $regions}}
+								<h3 class="panel-part-title">{{t "The file"}}</h3>
+								{{- if $kind}}
+								<section class="filter-group">
+									<h4 class="filter-group-title"><span class="bi bi-controller" aria-hidden="true"></span>{{t "Type"}}</h4>
+									<div class="filter-choices">
+										<a class="filter-choice{{if not $f.Kind}} active{{end}}" href="{{filterUrl $f "kind" ""}}">{{if $fc.DemosHidden}}{{t "Games (demos hidden)"}}{{else}}{{t "Games and demos"}}{{end}}</a>
+										<a class="filter-choice{{if eq $f.Kind "game"}} active{{end}}" href="{{filterUrl $f "kind" "game"}}">{{t "Games only"}} <span class="filter-count">{{num $fc.Games}}</span></a>
+										<a class="filter-choice{{if eq $f.Kind "demo"}} active{{end}}" href="{{filterUrl $f "kind" "demo"}}">{{t "Demos only"}} <span class="filter-count">{{num $fc.Demos}}</span></a>
+									</div>
+								</section>
+								{{- end}}
+								{{- if $formats}}
+								<section class="filter-group">
+									<h4 class="filter-group-title"><span class="bi bi-file-earmark" aria-hidden="true"></span>{{t "Format"}}</h4>
+									<div class="filter-choices">
+										<a class="filter-choice{{if not $f.Format}} active{{end}}" href="{{filterUrl $f "format" ""}}">{{t "All formats"}}</a>
+										{{- range $fc.Formats}}
+										<a class="filter-choice{{if eq $f.Format .}} active{{end}}" href="{{filterUrl $f "format" (toLower .)}}">{{.}}</a>
+										{{- end}}
+									</div>
+								</section>
+								{{- end}}
+								{{- if $regions}}
+								{{- $open := false}}{{range $i, $r := $fc.Regions}}{{if and (ge $i 8) (eq $f.Region $r)}}{{$open = true}}{{end}}{{end}}
+								<section class="filter-group">
+									<h4 class="filter-group-title"><span class="bi bi-globe2" aria-hidden="true"></span>{{t "Region"}}</h4>
+									<div class="filter-choices">
+										<a class="filter-choice{{if not $f.Region}} active{{end}}" href="{{filterUrl $f "region" ""}}">{{t "All regions"}}</a>
+										{{- range $i, $r := $fc.Regions}}{{if lt $i 8}}
+										<a class="filter-choice{{if eq $f.Region $r}} active{{end}}" href="{{filterUrl $f "region" (toLower $r)}}"><span class="fi fi-{{$r | toLower}}" aria-hidden="true"></span> {{$r}}</a>
+										{{- end}}{{end}}
+									</div>
+									{{- if gt (len $fc.Regions) 8}}
+									<details class="filter-more"{{if $open}} open{{end}}>
+										<summary>{{t "Show %v more" (sub (len $fc.Regions) 8)}}<span class="bi bi-chevron-down" aria-hidden="true"></span></summary>
+										<div class="filter-choices">
+											{{- range $i, $r := $fc.Regions}}{{if ge $i 8}}
+											<a class="filter-choice{{if eq $f.Region $r}} active{{end}}" href="{{filterUrl $f "region" (toLower $r)}}"><span class="fi fi-{{$r | toLower}}" aria-hidden="true"></span> {{$r}}</a>
+											{{- end}}{{end}}
+										</div>
+									</details>
+									{{- end}}
+								</section>
+								{{- end}}
 								{{- end}}
 							</div>
-						</section>
-						{{- end}}
-						{{- if or $fc.Games $fc.Demos $f.Kind}}
-						<section class="filter-group">
-							<h3 class="filter-group-title"><span class="bi bi-controller" aria-hidden="true"></span>{{t "Type"}}</h3>
-							<div class="filter-choices">
-								<a class="filter-choice{{if not $f.Kind}} active{{end}}" href="{{filterUrl $f "kind" ""}}">{{if $fc.DemosHidden}}{{t "Games (demos hidden)"}}{{else}}{{t "Games and demos"}}{{end}}</a>
-								<a class="filter-choice{{if eq $f.Kind "game"}} active{{end}}" href="{{filterUrl $f "kind" "game"}}">{{t "Games only"}} <span class="filter-count">{{num $fc.Games}}</span></a>
-								<a class="filter-choice{{if eq $f.Kind "demo"}} active{{end}}" href="{{filterUrl $f "kind" "demo"}}">{{t "Demos only"}} <span class="filter-count">{{num $fc.Demos}}</span></a>
-							</div>
-						</section>
-						{{- end}}
-						{{- if or $fc.Genres $f.Genre}}
-						<section class="filter-group">
-							<h3 class="filter-group-title"><span class="bi bi-tags" aria-hidden="true"></span>{{t "Genre"}}</h3>
-							<div class="filter-choices">
-								<a class="filter-choice{{if not $f.Genre}} active{{end}}" href="{{filterUrl $f "genre" ""}}">{{t "All genres"}}</a>
-								{{- range $fc.Genres}}
-								<a class="filter-choice{{if eq $f.Genre .Name}} active{{end}}" href="{{filterUrl $f "genre" .Name}}">{{t .Name}} <span class="filter-count">{{num .Count}}</span></a>
+							{{- if or $genres $players $score $languages}}
+							<div class="panel-col">
+								<h3 class="panel-part-title">{{t "The game"}}</h3>
+								{{- if $genres}}
+								{{- $open := false}}{{range $i, $g := $fc.Genres}}{{if and (ge $i 8) (eq $f.Genre $g.Name)}}{{$open = true}}{{end}}{{end}}
+								<section class="filter-group">
+									<h4 class="filter-group-title"><span class="bi bi-tags" aria-hidden="true"></span>{{t "Genre"}}</h4>
+									<div class="filter-choices">
+										<a class="filter-choice{{if not $f.Genre}} active{{end}}" href="{{filterUrl $f "genre" ""}}">{{t "All genres"}}</a>
+										{{- range $i, $g := $fc.Genres}}{{if lt $i 8}}
+										<a class="filter-choice{{if eq $f.Genre $g.Name}} active{{end}}" href="{{filterUrl $f "genre" $g.Name}}">{{t $g.Name}} <span class="filter-count">{{num $g.Count}}</span></a>
+										{{- end}}{{end}}
+									</div>
+									{{- if gt (len $fc.Genres) 8}}
+									<details class="filter-more"{{if $open}} open{{end}}>
+										<summary>{{t "Show %v more" (sub (len $fc.Genres) 8)}}<span class="bi bi-chevron-down" aria-hidden="true"></span></summary>
+										<div class="filter-choices">
+											{{- range $i, $g := $fc.Genres}}{{if ge $i 8}}
+											<a class="filter-choice{{if eq $f.Genre $g.Name}} active{{end}}" href="{{filterUrl $f "genre" $g.Name}}">{{t $g.Name}} <span class="filter-count">{{num $g.Count}}</span></a>
+											{{- end}}{{end}}
+										</div>
+									</details>
+									{{- end}}
+								</section>
+								{{- end}}
+								{{- if $players}}
+								<section class="filter-group">
+									<h4 class="filter-group-title"><span class="bi bi-people" aria-hidden="true"></span>{{t "Players"}}</h4>
+									<div class="filter-choices">
+										<a class="filter-choice{{if not $f.Players}} active{{end}}" href="{{filterUrl $f "players" ""}}">{{t "Any number"}}</a>
+										<a class="filter-choice{{if eq $f.Players "1"}} active{{end}}" href="{{filterUrl $f "players" "1"}}">{{t "1 player"}} <span class="filter-count">{{num $fc.SinglePlayer}}</span></a>
+										<a class="filter-choice{{if eq $f.Players "2"}} active{{end}}" href="{{filterUrl $f "players" "2"}}">{{t "2 or more"}} <span class="filter-count">{{num $fc.TwoPlayers}}</span></a>
+										<a class="filter-choice{{if eq $f.Players "4"}} active{{end}}" href="{{filterUrl $f "players" "4"}}">{{t "4 or more"}} <span class="filter-count">{{num $fc.FourPlayers}}</span></a>
+									</div>
+								</section>
+								{{- end}}
+								{{- if $score}}
+								<section class="filter-group">
+									<h4 class="filter-group-title"><span class="bi bi-award" aria-hidden="true"></span>{{t "Score"}}</h4>
+									<div class="filter-choices">
+										<a class="filter-choice{{if not $f.Score}} active{{end}}" href="{{filterUrl $f "score" ""}}">{{t "Any score"}}</a>
+										<a class="filter-choice{{if eq $f.Score "90"}} active{{end}}" href="{{filterUrl $f "score" "90"}}">{{t "%v or more" 90}} <span class="filter-count">{{num $fc.Score90}}</span></a>
+										<a class="filter-choice{{if eq $f.Score "80"}} active{{end}}" href="{{filterUrl $f "score" "80"}}">{{t "%v or more" 80}} <span class="filter-count">{{num $fc.Score80}}</span></a>
+										<a class="filter-choice{{if eq $f.Score "70"}} active{{end}}" href="{{filterUrl $f "score" "70"}}">{{t "%v or more" 70}} <span class="filter-count">{{num $fc.Score70}}</span></a>
+									</div>
+								</section>
+								{{- end}}
+								{{- if $languages}}
+								{{- $open := false}}{{range $i, $l := $fc.Languages}}{{if and (ge $i 6) (eq $f.GameLanguage $l.Name)}}{{$open = true}}{{end}}{{end}}
+								<section class="filter-group">
+									<h4 class="filter-group-title"><span class="bi bi-translate" aria-hidden="true"></span>{{t "Language of the game"}}</h4>
+									<div class="filter-choices">
+										<a class="filter-choice{{if not $f.GameLanguage}} active{{end}}" href="{{filterUrl $f "languages" ""}}">{{t "Any language"}}</a>
+										{{- range $i, $l := $fc.Languages}}{{if lt $i 6}}
+										<a class="filter-choice{{if eq $f.GameLanguage $l.Name}} active{{end}}" href="{{filterUrl $f "languages" $l.Name}}">{{t (gameLanguage $l.Name)}} <span class="filter-count">{{num $l.Count}}</span></a>
+										{{- end}}{{end}}
+									</div>
+									{{- if gt (len $fc.Languages) 6}}
+									<details class="filter-more"{{if $open}} open{{end}}>
+										<summary>{{t "Show %v more" (sub (len $fc.Languages) 6)}}<span class="bi bi-chevron-down" aria-hidden="true"></span></summary>
+										<div class="filter-choices">
+											{{- range $i, $l := $fc.Languages}}{{if ge $i 6}}
+											<a class="filter-choice{{if eq $f.GameLanguage $l.Name}} active{{end}}" href="{{filterUrl $f "languages" $l.Name}}">{{t (gameLanguage $l.Name)}} <span class="filter-count">{{num $l.Count}}</span></a>
+											{{- end}}{{end}}
+										</div>
+									</details>
+									{{- end}}
+								</section>
 								{{- end}}
 							</div>
-						</section>
-						{{- end}}
-						{{- if or $fc.SinglePlayer $fc.TwoPlayers $f.Players}}
-						<section class="filter-group">
-							<h3 class="filter-group-title"><span class="bi bi-people" aria-hidden="true"></span>{{t "Players"}}</h3>
-							<div class="filter-choices">
-								<a class="filter-choice{{if not $f.Players}} active{{end}}" href="{{filterUrl $f "players" ""}}">{{t "Any number"}}</a>
-								<a class="filter-choice{{if eq $f.Players "1"}} active{{end}}" href="{{filterUrl $f "players" "1"}}">{{t "1 player"}} <span class="filter-count">{{num $fc.SinglePlayer}}</span></a>
-								<a class="filter-choice{{if eq $f.Players "2"}} active{{end}}" href="{{filterUrl $f "players" "2"}}">{{t "2 or more"}} <span class="filter-count">{{num $fc.TwoPlayers}}</span></a>
-								<a class="filter-choice{{if eq $f.Players "4"}} active{{end}}" href="{{filterUrl $f "players" "4"}}">{{t "4 or more"}} <span class="filter-count">{{num $fc.FourPlayers}}</span></a>
-							</div>
-						</section>
-						{{- end}}
-						{{- if or $fc.Score70 $f.Score}}
-						<section class="filter-group">
-							<h3 class="filter-group-title"><span class="bi bi-award" aria-hidden="true"></span>{{t "Score"}}</h3>
-							<div class="filter-choices">
-								<a class="filter-choice{{if not $f.Score}} active{{end}}" href="{{filterUrl $f "score" ""}}">{{t "Any score"}}</a>
-								<a class="filter-choice{{if eq $f.Score "90"}} active{{end}}" href="{{filterUrl $f "score" "90"}}">{{t "%v or more" 90}} <span class="filter-count">{{num $fc.Score90}}</span></a>
-								<a class="filter-choice{{if eq $f.Score "80"}} active{{end}}" href="{{filterUrl $f "score" "80"}}">{{t "%v or more" 80}} <span class="filter-count">{{num $fc.Score80}}</span></a>
-								<a class="filter-choice{{if eq $f.Score "70"}} active{{end}}" href="{{filterUrl $f "score" "70"}}">{{t "%v or more" 70}} <span class="filter-count">{{num $fc.Score70}}</span></a>
-							</div>
-						</section>
-						{{- end}}
-						{{- if or $fc.Languages $f.GameLanguage}}
-						<section class="filter-group">
-							<h3 class="filter-group-title"><span class="bi bi-translate" aria-hidden="true"></span>{{t "Language of the game"}}</h3>
-							<div class="filter-choices">
-								<a class="filter-choice{{if not $f.GameLanguage}} active{{end}}" href="{{filterUrl $f "languages" ""}}">{{t "Any language"}}</a>
-								{{- range $fc.Languages}}
-								<a class="filter-choice{{if eq $f.GameLanguage .Name}} active{{end}}" href="{{filterUrl $f "languages" .Name}}">{{t (gameLanguage .Name)}} <span class="filter-count">{{num .Count}}</span></a>
-								{{- end}}
-							</div>
-						</section>
-						{{- end}}
-						{{- if or (gt (len $fc.Regions) 1) $f.Region}}
-						<section class="filter-group">
-							<h3 class="filter-group-title"><span class="bi bi-globe2" aria-hidden="true"></span>{{t "Region"}}</h3>
-							<div class="filter-choices">
-								<a class="filter-choice{{if not $f.Region}} active{{end}}" href="{{filterUrl $f "region" ""}}">{{t "All regions"}}</a>
-								{{- range $fc.Regions}}
-								<a class="filter-choice{{if eq $f.Region .}} active{{end}}" href="{{filterUrl $f "region" (toLower .)}}"><span class="fi fi-{{. | toLower}}" aria-hidden="true"></span> {{.}}</a>
-								{{- end}}
-							</div>
-						</section>
-						{{- end}}
-						{{- if gt (len $fc.Formats) 1}}
-						<section class="filter-group">
-							<h3 class="filter-group-title"><span class="bi bi-file-earmark" aria-hidden="true"></span>{{t "Format"}}</h3>
-							<div class="filter-choices">
-								<a class="filter-choice{{if not $f.Format}} active{{end}}" href="{{filterUrl $f "format" ""}}">{{t "All formats"}}</a>
-								{{- range $fc.Formats}}
-								<a class="filter-choice{{if eq $f.Format .}} active{{end}}" href="{{filterUrl $f "format" (toLower .)}}">{{.}}</a>
-								{{- end}}
-							</div>
-						</section>
-						{{- end}}
-						{{- if .Library}}
-						<section class="filter-group">
-							<h3 class="filter-group-title"><span class="bi bi-joystick" aria-hidden="true"></span>{{t "My game"}}</h3>
-							<div class="filter-choices">
-								<a class="filter-choice{{if not $f.Play}} active{{end}}" href="{{filterUrl $f "play" ""}}">{{t "Any"}}</a>
-								{{- range playStates}}
-								<a class="filter-choice{{if eq $f.Play .Value}} active{{end}}" href="{{filterUrl $f "play" .Value}}"><span class="bi {{.Icon}}" aria-hidden="true"></span> {{t .Name}} <span class="filter-count">{{num (index $fc.Play .Value)}}</span></a>
-								{{- end}}
-								<a class="filter-choice{{if eq $f.Play "none"}} active{{end}}" href="{{filterUrl $f "play" "none"}}">{{t "Without a state"}} <span class="filter-count">{{num (index $fc.Play "none")}}</span></a>
-							</div>
-						</section>
-						<section class="filter-group">
-							<h3 class="filter-group-title"><span class="bi bi-funnel" aria-hidden="true"></span>{{t "Other"}}</h3>
-							<div class="filter-choices">
-								<a class="filter-choice{{if not $f.Extra}} active{{end}}" href="{{filterUrl $f "extra" ""}}">{{t "No other filter"}}</a>
-								<a class="filter-choice{{if eq $f.Extra "favorites"}} active{{end}}" href="{{filterUrl $f "extra" "favorites"}}"><span class="bi bi-star-fill text-warning" aria-hidden="true"></span> {{t "Favorites only"}} <span class="filter-count">{{num $fc.Favorites}}</span></a>
-								<a class="filter-choice{{if eq $f.Extra "cheats"}} active{{end}}" href="{{filterUrl $f "extra" "cheats"}}"><span class="bi bi-magic" aria-hidden="true"></span> {{t "With cheats for my version"}} <span class="filter-count">{{num $fc.Cheats}}</span></a>
-								<a class="filter-choice{{if eq $f.Extra "cheats_other"}} active{{end}}" href="{{filterUrl $f "extra" "cheats_other"}}" title="{{t "The cheats are for other versions: update the game, or keep the version they are for."}}"><span class="bi bi-magic opacity-50" aria-hidden="true"></span> {{t "With cheats for another version"}} <span class="filter-count">{{num $fc.CheatsOther}}</span></a>
-								{{- if or $fc.FirmwareTooNew (eq $f.Extra "firmware")}}
-								<a class="filter-choice{{if eq $f.Extra "firmware"}} active{{end}}" href="{{filterUrl $f "extra" "firmware"}}" title="{{t "The version you have needs a newer firmware than the one of your console, set in Settings: update the console to play them."}}"><span class="bi bi-cpu text-danger" aria-hidden="true"></span> {{t "Need a newer firmware"}} <span class="filter-count">{{num $fc.FirmwareTooNew}}</span></a>
-								{{- end}}
-								<a class="filter-choice{{if eq $f.Extra "recent"}} active{{end}}" href="{{filterUrl $f "extra" "recent"}}">{{t "Added in the last 30 days"}} <span class="filter-count">{{num $fc.Recent}}</span></a>
-								<a class="filter-choice{{if eq $f.Extra "no_cover"}} active{{end}}" href="{{filterUrl $f "extra" "no_cover"}}">{{t "Without a cover"}} <span class="filter-count">{{num $fc.NoCover}}</span></a>
-								<a class="filter-choice{{if eq $f.Extra "unknown"}} active{{end}}" href="{{filterUrl $f "extra" "unknown"}}" title="{{t "Games the titles database does not know"}}">{{t "Not recognized"}} <span class="filter-count">{{num $fc.Unknown}}</span></a>
-							</div>
-						</section>
-						{{- end}}
+							{{- end}}
+						</div>
+						<div class="panel-foot">
+							<strong>{{t "%v games" (num .Count)}}</strong>
+							{{- if $f.SecondaryCount}}
+							<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "genre" "" "players" "" "languages" "" "play" "" "score" ""}}">{{t "Clear filters"}}</a>
+							{{- end}}
+						</div>
 					</div>
 				</div>
 {{- end}}

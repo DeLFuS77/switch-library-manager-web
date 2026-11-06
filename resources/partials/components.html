@@ -73,6 +73,29 @@
 					</li>
 {{- end}}
 
+{{- /* the status of the games of the Library: each card is the filter of its games, with their
+	number as the list shows them; a ⓘ tells what a card counts when the mouse is on its name */}}
+{{- define "statusCards"}}
+			{{- $f := .Filter}}{{$fc := .Facets}}
+			{{- $all := formatSize $fc.Size}}{{if $fc.Missing}}{{$all = printf "%s · %s" (t "%v yours" (num $fc.Owned)) $all}}{{end}}
+			{{- $complete := t "Up to date"}}{{$help := ""}}{{$bar := -1}}
+			{{- if $fc.WithFile}}{{$complete = printf "%s · %d%%" $complete $fc.UpToDatePercent}}{{$help = t "With the latest update and all their DLC: %v of the %v games with a file." (printf "%d%%" $fc.UpToDatePercent) (num $fc.WithFile)}}{{$bar = $fc.UpToDatePercent}}{{end}}
+			<nav class="status-cards" aria-label="{{t "Filter by status"}}" data-hover-help>
+				{{- template "statusCard" (dict "Filter" $f "Value" "" "Tone" "kpi-neutral" "Icon" "bi-grid-3x3-gap" "Count" $fc.All "Name" (t "Any status") "Help" "" "Detail" $all "Bar" -1)}}
+				{{- template "statusCard" (dict "Filter" $f "Value" "update" "Tone" "kpi-warning" "Icon" "bi-arrow-up-circle" "Count" $fc.Update "Name" (t "With an update") "Help" (t "There is a newer version of the game. The updates of its DLC are on the Updates page.") "Detail" (t "games with a newer version") "Bar" -1)}}
+				{{- template "statusCard" (dict "Filter" $f "Value" "dlc" "Tone" "kpi-info" "Icon" "bi-puzzle" "Count" $fc.Dlc "Name" (t "Missing some DLC") "Help" (t "Games that miss at least one DLC, without the DLC you ignore.") "Detail" (t "%v DLC in all" (num $fc.DlcMissing)) "Bar" -1)}}
+				{{- template "statusCard" (dict "Filter" $f "Value" "complete" "Tone" "kpi-success" "Icon" "bi-check-circle" "Count" $fc.Complete "Name" $complete "Help" $help "Detail" "" "Bar" $bar)}}
+			</nav>
+{{- end}}
+{{- define "statusCard"}}
+				{{- $active := eq .Filter.Status .Value}}
+				<a class="kpi {{.Tone}}{{if $active}} is-active{{end}}" href="{{filterUrl .Filter "status" .Value}}"{{if $active}} aria-current="true"{{end}}>
+					<span class="kpi-check bi bi-check-circle-fill" aria-hidden="true"></span>
+					<span class="kpi-icon"><span class="bi {{.Icon}}" aria-hidden="true"></span></span>
+					<span class="kpi-value">{{num .Count}}</span>
+					<span class="kpi-label"><span class="kpi-name{{if .Help}} help-name{{end}}">{{.Name}}</span>{{with .Help}}<span class="form-text">{{.}}</span>{{end}}{{with .Detail}}<span class="kpi-detail">{{.}}</span>{{end}}{{if ge .Bar 0}}<span class="kpi-bar" aria-hidden="true"><span style="width: {{.Bar}}%"></span></span>{{end}}</span>
+				</a>
+{{- end}}
 {{- define "statusFilter"}}
 				{{- $f := .Filter}}
 				<li><a class="filter-pill{{if eq $f.Status .Value}} active{{end}}" href="{{filterUrl $f "status" .Value}}"{{if eq $f.Status .Value}} aria-current="true"{{end}}>{{if .Icon}}<span class="bi {{.Icon}}" aria-hidden="true"></span>{{end}}{{.Label}}{{if ge .Count 0}} <span class="filter-count">{{num .Count}}</span>{{end}}</a></li>
@@ -127,21 +150,26 @@
 				</article>
 {{- end}}
 
+{{- /* folded on one line, so the games of the list start higher up; opened, it stays open on the
+	next pages (the cookie slm-recs): Items are the recommendations, Open whether it was left open */}}
 {{- define "recommendations"}}
-			<section class="recommendations mb-4" aria-labelledby="recommendationsTitle">
-				<div class="d-flex flex-wrap align-items-baseline gap-2 mb-2">
-					<h2 class="section-title mb-0" id="recommendationsTitle"><span class="bi bi-stars" aria-hidden="true"></span>{{t "You might like"}}</h2>
-					<span class="small text-body-secondary">{{t "Games you do not have, like the ones you like most"}}</span>
-				</div>
+			<details class="recommendations rec-fold mb-3" data-rec-fold{{if .Open}} open{{end}}>
+				<summary class="rec-fold-line">
+					<span class="bi bi-stars" aria-hidden="true"></span>
+					<h2 class="rec-fold-title" id="recommendationsTitle">{{t "You might like"}}</h2>
+					<span class="rec-fold-hint">{{t "Games you do not have, like the ones you like most"}}</span>
+					<span class="rec-fold-covers" aria-hidden="true">{{range $i, $r := .Items}}{{if and (lt $i 4) $r.Item.ImageUrl}}<img src="{{$r.Item.ImageUrl}}" alt="" loading="lazy">{{end}}{{end}}</span>
+					<span class="bi bi-chevron-down rec-fold-chevron" aria-hidden="true"></span>
+				</summary>
 				<div class="rec-strip">
-					{{- range .}}
+					{{- range .Items}}
 					{{- $note := ""}}{{$icon := ""}}
 					{{- if .Saga}}{{$note = t "Same series as %v" .Saga}}{{$icon = "bi-collection"}}{{else if .Genre}}{{$note = t .Genre}}{{$icon = "bi-tags"}}{{end}}
 					{{- if not .Item.ReleaseDate.IsZero}}{{$note = printf "%s · %d" $note .Item.ReleaseDate.Year}}{{end}}
 					{{- template "miniCard" (dict "Item" .Item "Wish" true "Grey" false "Highlight" false "Badge" "" "Note" $note "NoteIcon" $icon)}}
 					{{- end}}
 				</div>
-			</section>
+			</details>
 {{- end}}
 
 {{- define "markLegend"}}

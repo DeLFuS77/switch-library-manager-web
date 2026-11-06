@@ -17,8 +17,8 @@
 	.app-footer,
 	.bottom-nav,
 	.page-note,
-	.library-overview,
-	.library-health {
+	.status-cards .kpi-detail,
+	.status-cards .kpi-bar {
 		display: none !important;
 	}
 
@@ -121,7 +121,7 @@
 .library-views {
 	display: inline-flex;
 	flex-wrap: wrap;
-	// room around the red of the view shown and between the views, so they do not touch
+	// room around the blue of the view shown and between the views, so they do not touch
 	gap: .5rem;
 	max-width: 100%;
 	padding: .375rem;
@@ -183,18 +183,19 @@
 		background: var(--slm-surface-muted);
 	}
 
+	// the view and the console chosen are in the blue of work: red is for errors and main actions
 	&.active {
-		color: #fff;
-		background: $slm-red;
+		color: var(--bs-body-bg);
+		background: rgb(var(--slm-work-rgb));
 	}
 }
 
-// while the page changes the red is only the gliding piece, which then stays under the view
+// while the page changes the blue is only the gliding piece, which then stays under the view
 :root:active-view-transition .library-views:not(.console-views) .library-view.active {
 	background: transparent;
 }
 
-// the red of the view shown, a piece of its own that glides between the views
+// the blue of the view shown, a piece of its own that glides between the views
 .library-view {
 	position: relative;
 	isolation: isolate;
@@ -205,7 +206,7 @@
 	inset: 0;
 	z-index: -1;
 	border-radius: inherit;
-	background: $slm-red;
+	background: rgb(var(--slm-work-rgb));
 	pointer-events: none;
 }
 
@@ -218,8 +219,8 @@
 	font-variant-numeric: tabular-nums;
 
 	.active > & {
-		background: rgba(0, 0, 0, .22);
-		color: #fff;
+		background: rgba(0, 0, 0, .2);
+		color: inherit;
 	}
 }
 
