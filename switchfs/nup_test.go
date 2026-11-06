@@ -195,6 +195,14 @@ func TestNupTypesCountedFromZero(t *testing.T) {
 	if meta := container.Packages[0].Meta; string(meta[1]) != "META npdm" || meta[0] != nil {
 		t.Errorf("the NPDM is not where the format puts it: %v", meta)
 	}
+	// Eglantine and Lichii read the types as they are written: told, in the metadata too
+	if emulators := container.Emulators(); !container.Packages[0].ZeroBased || !emulators.ZeroBased || emulators.Ok() ||
+		!strings.Contains(emulators.String(), "the types of its metadata are counted from 0") {
+		t.Errorf("counted from 0: %+v", emulators)
+	}
+	if game.Emulators == nil || !game.Emulators.ZeroBased {
+		t.Errorf("metadata: %+v", game.Emulators)
+	}
 }
 
 func readNupBytes(data []byte) (*NupContainer, error) {

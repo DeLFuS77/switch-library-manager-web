@@ -2111,5 +2111,7 @@ func init() {
 		"Eglantine and Lichii do not open this NUP: the file is whole, but it breaks a rule of these emulators.": "Eglantine 和 Lichii 打不开这个 NUP：文件完好，但违反了这些模拟器的一条规则。",
 		"Eglantine and Lichii cannot start the game of this NUP, though the file is whole.":                      "虽然文件完好，Eglantine 和 Lichii 仍无法启动这个 NUP 中的游戏。",
 		"failed to read %v [reason: %v]; Eglantine and Lichii do not open it either":                             "无法读取 %v [原因：%v]；Eglantine 和 Lichii 也打不开它",
+		"Eglantine and Lichii show its name, version and icon wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.":             "Eglantine 和 Lichii 会把它的名称、版本和图标显示错误：其元数据的类型从 0 开始计数，格式打包器的某个版本曾这样写入。",
+		"Eglantine and Lichii show the name, version and icon of this NUP wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.": "Eglantine 和 Lichii 会把这个 NUP 的名称、版本和图标显示错误：其元数据的类型从 0 开始计数，格式打包器的某个版本曾这样写入。",
 	}
 }

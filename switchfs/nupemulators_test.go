@@ -28,8 +28,18 @@ func emulatorsOf(t *testing.T, nup []byte) NupEmulators {
 
 func TestNupEmulatorsOpenAGoodNup(t *testing.T) {
 	got := emulatorsOf(t, testnup.Build(nupPlayable()))
-	if !got.Ok() || got.String() != "" {
+	if !got.Ok() || got.String() != "" || got.ZeroBased {
 		t.Errorf("%+v", got)
+	}
+}
+
+// A NUP counted from 0 that they do not start either tells both.
+func TestNupEmulatorsTellBothTroubles(t *testing.T) {
+	packages := nupGame()
+	packages[0].Meta = []testnup.Record{tlv(0, []byte("META npdm")), tlv(4, []byte("Made-up Quest"))}
+	got := emulatorsOf(t, testnup.Build(packages))
+	if !got.ZeroBased || got.NoStart == nil || got.String() != "Eglantine and Lichii cannot start it: the ExeFS of update v131072 lacks: main.npdm; "+NupEmulatorsZeroBased {
+		t.Errorf("%q", got.String())
 	}
 }
 

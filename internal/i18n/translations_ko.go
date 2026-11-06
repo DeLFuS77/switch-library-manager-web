@@ -2111,5 +2111,7 @@ func init() {
 		"Eglantine and Lichii do not open this NUP: the file is whole, but it breaks a rule of these emulators.": "Eglantine과 Lichii에서 이 NUP가 열리지 않습니다. 파일은 온전하지만 이 에뮬레이터의 규칙을 어깁니다.",
 		"Eglantine and Lichii cannot start the game of this NUP, though the file is whole.":                      "파일은 온전하지만 Eglantine과 Lichii에서 이 NUP의 게임을 시작할 수 없습니다.",
 		"failed to read %v [reason: %v]; Eglantine and Lichii do not open it either":                             "%v 읽기 실패 [이유: %v]; Eglantine과 Lichii에서도 열리지 않습니다",
+		"Eglantine and Lichii show its name, version and icon wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.":             "Eglantine과 Lichii에서 이름, 버전, 아이콘이 잘못 표시됩니다. 메타데이터의 종류가 0부터 세어져 있으며, 형식 패커의 한 버전이 그렇게 썼습니다.",
+		"Eglantine and Lichii show the name, version and icon of this NUP wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.": "Eglantine과 Lichii에서 이 NUP의 이름, 버전, 아이콘이 잘못 표시됩니다. 메타데이터의 종류가 0부터 세어져 있으며, 형식 패커의 한 버전이 그렇게 썼습니다.",
 	}
 }

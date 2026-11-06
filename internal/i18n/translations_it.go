@@ -2111,5 +2111,7 @@ func init() {
 		"Eglantine and Lichii do not open this NUP: the file is whole, but it breaks a rule of these emulators.": "Eglantine e Lichii non aprono questo NUP: il file è integro, ma viola una regola di questi emulatori.",
 		"Eglantine and Lichii cannot start the game of this NUP, though the file is whole.":                      "Eglantine e Lichii non possono avviare il gioco di questo NUP, anche se il file è integro.",
 		"failed to read %v [reason: %v]; Eglantine and Lichii do not open it either":                             "lettura di %v non riuscita [motivo: %v]; nemmeno Eglantine e Lichii lo aprono",
+		"Eglantine and Lichii show its name, version and icon wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.":             "Eglantine e Lichii ne mostrano male nome, versione e icona: i tipi dei suoi metadati sono contati da 0, come li scriveva una versione del packer del formato.",
+		"Eglantine and Lichii show the name, version and icon of this NUP wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.": "Eglantine e Lichii mostrano male nome, versione e icona di questo NUP: i tipi dei suoi metadati sono contati da 0, come li scriveva una versione del packer del formato.",
 	}
 }

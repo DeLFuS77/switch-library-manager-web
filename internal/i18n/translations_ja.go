@@ -2111,5 +2111,7 @@ func init() {
 		"Eglantine and Lichii do not open this NUP: the file is whole, but it breaks a rule of these emulators.": "Eglantine と Lichii ではこの NUP を開けません。ファイルは壊れていませんが、これらのエミュレーターの規則に反しています。",
 		"Eglantine and Lichii cannot start the game of this NUP, though the file is whole.":                      "ファイルは壊れていませんが、Eglantine と Lichii ではこの NUP のゲームを起動できません。",
 		"failed to read %v [reason: %v]; Eglantine and Lichii do not open it either":                             "%vを読み込めませんでした [理由: %v]。Eglantine と Lichii でも開けません",
+		"Eglantine and Lichii show its name, version and icon wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.":             "Eglantine と Lichii では名前、バージョン、アイコンが正しく表示されません。メタデータの種類が 0 から数えられています。形式のパッカーのあるバージョンがそう書いていました。",
+		"Eglantine and Lichii show the name, version and icon of this NUP wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.": "Eglantine と Lichii ではこの NUP の名前、バージョン、アイコンが正しく表示されません。メタデータの種類が 0 から数えられています。形式のパッカーのあるバージョンがそう書いていました。",
 	}
 }

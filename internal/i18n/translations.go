@@ -2138,6 +2138,8 @@ var Translations = map[string]map[string]string{
 		"Eglantine and Lichii do not open this NUP: the file is whole, but it breaks a rule of these emulators.": "Eglantine y Lichii no abren este NUP: el archivo está entero, pero se salta una regla de estos emuladores.",
 		"Eglantine and Lichii cannot start the game of this NUP, though the file is whole.":                      "Eglantine y Lichii no pueden arrancar el juego de este NUP, aunque el archivo está entero.",
 		"failed to read %v [reason: %v]; Eglantine and Lichii do not open it either":                             "no se pudo leer el %v [motivo: %v]; Eglantine y Lichii tampoco lo abren",
+		"Eglantine and Lichii show its name, version and icon wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.":             "Eglantine y Lichii muestran mal su nombre, su versión y su icono: los tipos de sus metadatos se cuentan desde 0, como los escribía una versión del empaquetador del formato.",
+		"Eglantine and Lichii show the name, version and icon of this NUP wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them.": "Eglantine y Lichii muestran mal el nombre, la versión y el icono de este NUP: los tipos de sus metadatos se cuentan desde 0, como los escribía una versión del empaquetador del formato.",
 	},
 }
 

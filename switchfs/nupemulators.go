@@ -94,11 +94,15 @@ type NupEmulators struct {
 	Refused []NupEmulatorIssue `json:"refused,omitempty"`
 	// why they cannot start its game, nil when they can
 	NoStart *NupEmulatorIssue `json:"no_start,omitempty"`
+	// its metadata has its types counted from 0, which they read as the format numbers them:
+	// they show the publisher as its name, its name as its version and a broken icon
+	ZeroBased bool `json:"zero_based,omitempty"`
 }
 
-// Ok tells a NUP they open and whose game they can start.
+// Ok tells a NUP they open, whose game they can start and whose name, version and icon they
+// show right.
 func (e NupEmulators) Ok() bool {
-	return len(e.Refused) == 0 && e.NoStart == nil
+	return len(e.Refused) == 0 && e.NoStart == nil && !e.ZeroBased
 }
 
 // the starts of what is said of a NUP the emulators do not read well, before its reasons
@@ -107,19 +111,28 @@ const (
 	NupEmulatorsCannotStart = "Eglantine and Lichii cannot start it: %v"
 )
 
+// NupEmulatorsZeroBased is said of a NUP whose metadata has its types counted from 0, as a build
+// of the packer of the format wrote them: the library reads them where the format puts them, the
+// emulators do not.
+const NupEmulatorsZeroBased = "Eglantine and Lichii show its name, version and icon wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them"
+
 // String tells, in English, what keeps them from the NUP; "" when nothing does.
 func (e NupEmulators) String() string {
+	notes := []string{}
 	switch {
 	case len(e.Refused) > 0:
 		reasons := make([]string, len(e.Refused))
 		for i, issue := range e.Refused {
 			reasons[i] = issue.String()
 		}
-		return fmt.Sprintf(NupEmulatorsDoNotOpen, strings.Join(reasons, "; "))
+		notes = append(notes, fmt.Sprintf(NupEmulatorsDoNotOpen, strings.Join(reasons, "; ")))
 	case e.NoStart != nil:
-		return fmt.Sprintf(NupEmulatorsCannotStart, e.NoStart)
+		notes = append(notes, fmt.Sprintf(NupEmulatorsCannotStart, e.NoStart))
 	}
-	return ""
+	if e.ZeroBased {
+		notes = append(notes, NupEmulatorsZeroBased)
+	}
+	return strings.Join(notes, "; ")
 }
 
 // Emulators tells whether Eglantine and Lichii open a NUP and can start its game.
@@ -132,6 +145,9 @@ func (container *NupContainer) Emulators() NupEmulators {
 		result.Refused = nil
 	}
 	result.NoStart = container.startFault()
+	for _, pkg := range container.Packages {
+		result.ZeroBased = result.ZeroBased || pkg.ZeroBased
+	}
 	return result
 }
 

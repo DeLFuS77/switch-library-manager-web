@@ -77,7 +77,8 @@ const (
 
 // NupReaderVersion is raised when what the reader tells of a NUP changes (a name cleaned up, a
 // record read), so the library reads its NUP files again instead of keeping what it cached.
-// Version 5 tells whether Eglantine and Lichii open it.
+// Version 5 tells whether Eglantine and Lichii open it, and a NUP whose metadata types are
+// counted from 0.
 const NupReaderVersion = 5
 
 // NupPackage is one package of a NUP: the game, one of its updates or one of its DLC.
@@ -93,6 +94,9 @@ type NupPackage struct {
 	ExefsDir uint32
 	// the metadata of the package by type, the first record of each type
 	Meta map[uint16][]byte
+	// its metadata has its types counted from 0, as a build of the packer of the format wrote
+	// them: read here where the format puts them, and read wrong by Eglantine and Lichii
+	ZeroBased bool
 }
 
 // NupDir is a folder of the tree of a package.
@@ -282,11 +286,11 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 			if _, err := r.ReadAt(block, int64(metaOffset)); err != nil {
 				return nil, fmt.Errorf("NUP package %d metadata: %w", i, err)
 			}
-			meta, err := parseNupTlvs(block)
+			meta, shifted, err := parseNupTlvs(block)
 			if err != nil {
 				return nil, nupRefused(fmt.Errorf("NUP package %d metadata: %w", i, err))
 			}
-			pkg.Meta = meta
+			pkg.Meta, pkg.ZeroBased = meta, shifted
 			if !nupStrictLocalized(block) {
 				result.strict = append(result.strict, nupIssue(nupIssueLocalized, i))
 			}
@@ -444,11 +448,11 @@ func nupLabel(pkg NupPackage) string {
 //
 // The packer of the format counted the types from 0 for a while (NPDM 0, NACP 1, the name 4,
 // the publisher 5), one below the ones the format gives them: type 0 is no type of the format,
-// so a block that has one is read with each of its types one up.
-func parseNupTlvs(block []byte) (map[uint16][]byte, error) {
+// so a block that has one is read with each of its types one up, and told as such.
+func parseNupTlvs(block []byte) (map[uint16][]byte, bool, error) {
 	result, err := splitNupTlvs(block)
 	if _, shifted := result[0]; err != nil || !shifted {
-		return result, err
+		return result, false, err
 	}
 	moved := map[uint16][]byte{}
 	for kind, value := range result {
@@ -457,7 +461,7 @@ func parseNupTlvs(block []byte) (map[uint16][]byte, error) {
 		}
 		moved[kind] = value
 	}
-	return moved, nil
+	return moved, true, nil
 }
 
 func splitNupTlvs(block []byte) (map[uint16][]byte, error) {

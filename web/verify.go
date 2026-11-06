@@ -38,6 +38,8 @@ const (
 	// open, or whose game they cannot start: no failure, the file is sound
 	NOTE_VERIFY_EMULATORS_REFUSE   = "Eglantine and Lichii do not open this NUP: the file is whole, but it breaks a rule of these emulators."
 	NOTE_VERIFY_EMULATORS_NO_START = "Eglantine and Lichii cannot start the game of this NUP, though the file is whole."
+	// a NUP checked whole whose metadata has its types counted from 0
+	NOTE_VERIFY_EMULATORS_ZERO_BASED = "Eglantine and Lichii show the name, version and icon of this NUP wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them."
 )
 
 // what a check of a file ended in, besides sound: its data does not match its hashes (damaged),
@@ -1113,6 +1115,9 @@ func (r *verifyRun) tellEmulators(name string, emulators *switchfs.NupEmulators)
 		r.web.taskLog().Warn(r.taskId, NOTE_VERIFY_EMULATORS_REFUSE, name+": "+strings.Join(reasons, "; "))
 	case emulators.NoStart != nil:
 		r.web.taskLog().Warn(r.taskId, NOTE_VERIFY_EMULATORS_NO_START, name+": "+emulators.NoStart.String())
+	}
+	if emulators.ZeroBased {
+		r.web.taskLog().Warn(r.taskId, NOTE_VERIFY_EMULATORS_ZERO_BASED, name+": the types of its metadata are counted from 0")
 	}
 }
 

@@ -53,6 +53,7 @@ type TitleEmulators struct {
 const (
 	emulatorsDoNotOpen   = "Eglantine and Lichii do not open it: %v."
 	emulatorsCannotStart = "Eglantine and Lichii cannot start it: %v."
+	emulatorsZeroBased   = "Eglantine and Lichii show its name, version and icon wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them."
 )
 
 // nupEmulators is what the emulators make of the NUP a file is; nil for any other file, and for
@@ -75,6 +76,9 @@ func nupEmulators(info db.SwitchFileInfo, lang string) *TitleEmulators {
 		result.Warnings = append(result.Warnings, i18n.Translatef(lang, emulatorsDoNotOpen, strings.Join(reasons, "; ")))
 	case emulators.NoStart != nil:
 		result.Warnings = append(result.Warnings, i18n.Translatef(lang, emulatorsCannotStart, issue(*emulators.NoStart)))
+	}
+	if emulators.ZeroBased {
+		result.Warnings = append(result.Warnings, i18n.Translate(lang, emulatorsZeroBased))
 	}
 	return result
 }
