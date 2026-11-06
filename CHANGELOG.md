@@ -17,6 +17,11 @@
 
 - A game of the library the titles database does not list gets from IGDB the day it came out on the Switch, no longer the first day on any platform: a game that came out on the PC years before showed that date. The games already looked up are asked again once.
 
+### Security
+
+- github.com/klauspost/compress 1.20.3 (GO-2026-6865), which fixes a crash with zstd data crafted for it
+- The tools that update the titles database use oauthlib 4.0.1 (GHSA-3jp2-3mrg-2vxc)
+
 ## 1.73.0
 
 ### Improvements
