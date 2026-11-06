@@ -345,7 +345,7 @@ func TestUploadsInTasks(t *testing.T) {
 	if task := uploadTaskOf(web, id); task.Running() || task.Error == nil || task.Error.Text != tasklog.NOTE_UPLOAD_CANCELED {
 		t.Fatalf("a cancelled upload: %+v", task)
 	}
-	for _, text := range []string{tasklog.NOTE_UPLOAD_CANCELED, tasklog.NOTE_UPLOAD_STOPPED, "Upload", "Upload to"} {
+	for _, text := range []string{tasklog.NOTE_UPLOAD_CANCELED, tasklog.NOTE_UPLOAD_STOPPED, "Upload", "Uploading games to %v", "Where to upload %v games (%v)?"} {
 		if i18n.Translate("es", text) == text {
 			t.Errorf("not translated: %q", text)
 		}
@@ -370,5 +370,22 @@ func TestUploadToAnotherFolderOfTheLibrary(t *testing.T) {
 	}
 	if folders := web.uploadFolders(); len(folders) != 2 || folders[0] != main {
 		t.Fatalf("the folders offered: %v", folders)
+	}
+}
+
+// With several folders, the Library asks where the files go: each folder once, the library
+// folder told as the main one, with what is free on its disk.
+func TestUploadFolderChoices(t *testing.T) {
+	web := newTestWeb(t)
+	main, other := t.TempDir(), t.TempDir()
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.Folder, s.ScanFolders = main, []string{main, other} })
+	choices := web.uploadFolderChoices()
+	if len(choices) != 2 || choices[0].Path != main || !choices[0].Main || choices[1].Path != other || choices[1].Main {
+		t.Fatalf("choices: %+v", choices)
+	}
+	for _, choice := range choices {
+		if choice.Free <= 0 {
+			t.Errorf("free space of %s: %d", choice.Path, choice.Free)
+		}
 	}
 }

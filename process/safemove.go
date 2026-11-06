@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
+	"time"
 )
 
 // rename gives a file a name no file has, as renameNoReplace; a variable for the tests, which
@@ -19,15 +21,50 @@ var rename = renameNoReplace
 // next to its destination under a hidden name, the copy is checked against the original and
 // takes the name, and only then is the original deleted.
 func moveFile(from string, to string) error {
+	return moveFileTelling(from, to, nil)
+}
+
+// CopyProgress is told how much of a file copied to another disk is written, about once a
+// second: a game of many GB takes minutes, and its task would look stuck.
+type CopyProgress func(written int64, total int64)
+
+// moveFileTelling is moveFile telling progress how a copy to another disk goes.
+func moveFileTelling(from string, to string, progress CopyProgress) error {
 	err := rename(from, to)
 	if err == nil || !crossDevice(err) {
 		return err
 	}
-	return copyAcross(from, to)
+	return copyAcross(from, to, progress)
+}
+
+// CopyingMessage is the progress of a task while a file is copied to another disk: "Copying "
+// and the file with how much of it is written, which the tasks page translates.
+func CopyingMessage(name string, written int64, total int64) string {
+	gb := func(n int64) string { return strconv.FormatFloat(float64(n)/1e9, 'f', 1, 64) }
+	return "Copying " + name + " (" + gb(written) + "/" + gb(total) + " GB)"
+}
+
+// progressWriter tells progress what was written through it, at most once a second.
+type progressWriter struct {
+	w        io.Writer
+	written  int64
+	total    int64
+	told     time.Time
+	progress CopyProgress
+}
+
+func (p *progressWriter) Write(data []byte) (int, error) {
+	n, err := p.w.Write(data)
+	p.written += int64(n)
+	if now := time.Now(); now.Sub(p.told) >= time.Second {
+		p.told = now
+		p.progress(p.written, p.total)
+	}
+	return n, err
 }
 
 // copyAcross is moveFile between two disks.
-func copyAcross(from string, to string) error {
+func copyAcross(from string, to string, progress CopyProgress) error {
 	source, err := os.Open(from)
 	if err != nil {
 		return err
@@ -45,7 +82,15 @@ func copyAcross(from string, to string) error {
 		if err != nil {
 			return err
 		}
-		written, err := io.Copy(target, source)
+		var destination io.Writer = target
+		if progress != nil {
+			destination = &progressWriter{w: target, total: before.Size(), told: time.Now(), progress: progress}
+		}
+		written, err := io.Copy(destination, source)
+		if err == nil && progress != nil {
+			// all of it, however fast it went
+			progress(written, before.Size())
+		}
 		if err == nil {
 			// on the disk before the original goes
 			err = target.Sync()

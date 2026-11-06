@@ -495,7 +495,8 @@ func (web *Web) lookupTimesToBeat(trigger string) bool {
 		// the genres, release date, description and cover of the games the titles database
 		// does not list, and of the games of the Switch 2 of the list of switchbrew
 		if failure == nil && !web.state.IsSynchronizing() {
-			if err := web.lookupLibraryTitles(ctx, client); errors.Is(err, errIgdbCredentials) {
+			tell := func(done int, total int, name string) { web.taskLog().Progress(taskId, done, total, name) }
+			if err := web.lookupLibraryTitles(ctx, client, tell); errors.Is(err, errIgdbCredentials) {
 				failure = &tasklog.Note{Text: NOTE_IGDB_CREDENTIALS}
 			}
 		}

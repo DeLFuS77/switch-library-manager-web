@@ -454,9 +454,25 @@ func TestSafeNext(t *testing.T) {
 		"//evil.example":       "/index.html",
 		"/\\evil.example":      "/index.html",
 		"/login.html":          "/index.html",
+		"/%2F%2Fevil.example":  "/index.html",
+		"/%5Cevil.example":     "/%5Cevil.example",
+		"/":                    "/",
 	} {
 		if got := safeNext(next); got != want {
 			t.Errorf("safeNext(%q) = %q, want %q", next, got, want)
+		}
+	}
+}
+
+// A path of this site is a slash, then neither a slash nor a backslash: "//host" and "/\host" are
+// other sites for a browser.
+func TestIsLocalPath(t *testing.T) {
+	for path, want := range map[string]bool{
+		"/": true, "/index.html": true, "/logout?x=1": true, "/%5Chost": true,
+		"": false, "//host": false, "/\\host": false, "https://host/": false, "index.html": false,
+	} {
+		if got := isLocalPath(path); got != want {
+			t.Errorf("isLocalPath(%q) = %v, want %v", path, got, want)
 		}
 	}
 }

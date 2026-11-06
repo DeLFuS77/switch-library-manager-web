@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -335,8 +336,9 @@ func (web *Web) libraryTitlesToLookUp(now time.Time) map[string]string {
 
 // lookupLibraryTitles asks IGDB about the games of the library the titles database does not
 // list, and about the games of the Switch 2 of the list of switchbrew, and puts what it tells in
-// their titles.
-func (web *Web) lookupLibraryTitles(ctx context.Context, client *igdbClient) error {
+// their titles. tell, when given, is told each game as it is asked: hundreds of them take
+// minutes the first time, as IGDB takes a few questions a second.
+func (web *Web) lookupLibraryTitles(ctx context.Context, client *igdbClient, tell func(done int, total int, name string)) error {
 	pending := web.libraryTitlesToLookUp(time.Now())
 	for prefix, name := range web.switch2TitlesToLookUp(time.Now()) {
 		pending[prefix] = name
@@ -350,9 +352,24 @@ func (web *Web) lookupLibraryTitles(ctx context.Context, client *igdbClient) err
 	// a game of the library IGDB gives a cover of, and that has none yet
 	newCover := false
 	_, localDB := web.state.get()
-	for prefix, name := range pending {
+	order := make([]string, 0, len(pending))
+	for prefix := range pending {
+		order = append(order, prefix)
+	}
+	sort.Strings(order)
+	done := 0
+	for _, prefix := range order {
+		name := pending[prefix]
 		if web.state.IsSynchronizing() {
 			break
+		}
+		if tell != nil {
+			tell(done, len(pending), name)
+		}
+		done++
+		// what was found is kept as it goes: a restart in the middle does not ask it all again
+		if done%20 == 0 {
+			store.save()
 		}
 		// a game of the Switch 2 is searched among the games of the Switch 2
 		platform, err := client.platformOf(ctx, prefix)

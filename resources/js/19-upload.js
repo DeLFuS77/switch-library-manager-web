@@ -5,6 +5,9 @@
 const UPLOAD_PIECE = 16 * 1024 * 1024;
 const UPLOAD_EXTENSIONS = ['.nsp', '.nsz', '.xci', '.xcz', '.nup'];
 const UPLOAD_RETRIES = 6;
+// the folder the last files went to, and the one to use always without asking, when there are several
+const UPLOAD_WHERE_KEY = 'slm.uploadWhere';
+const UPLOAD_WHERE_ALWAYS_KEY = 'slm.uploadWhereAlways';
 
 // whether games are being sent, or wait to be: the page is not reloaded meanwhile
 let gameUploadsWaiting = 0;
@@ -28,7 +31,7 @@ function initGameUpload() {
 	const answer = response => response.json().catch(() => ({})).then(json => ({ ok: response.ok, status: response.status, json }));
 	const failure = json => (json.globalError && json.globalError.message) || text('failed');
 
-	const addItem = file => {
+	const addItem = (file, folder) => {
 		const item = document.createElement('li');
 		item.className = 'upload-item';
 		item.innerHTML = '<div class="upload-item-line"><span class="upload-name"></span><span class="upload-state"></span>' +
@@ -41,9 +44,8 @@ function initGameUpload() {
 		cancel.setAttribute('aria-label', text('cancel') + ': ' + file.name);
 		list.appendChild(item);
 		panel.hidden = false;
-		// the folder chosen when the file was added
-		const folderField = document.getElementById('uploadFolder');
-		const job = { file, item, cancelled: false, ended: false, id: null, folder: folderField ? folderField.value : '' };
+		// the folder chosen when the file was added ('' the library folder)
+		const job = { file, item, cancelled: false, ended: false, id: null, folder: folder || '' };
 		cancel.addEventListener('click', () => {
 			// an ended file only leaves the list: what a failed one sent stays, to go on when it is chosen again
 			if (job.ended) {
@@ -212,10 +214,13 @@ function initGameUpload() {
 			});
 	};
 
-	const add = files => {
+	const add = (files, folder) => {
+		if (folder) {
+			panel.querySelector('#uploadPanelTitle').textContent = fill(text('uploadingTo'), folder);
+		}
 		[...files].forEach(file => {
 			const extension = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
-			const job = addItem(file);
+			const job = addItem(file, folder);
 			if (!UPLOAD_EXTENSIONS.includes(extension)) {
 				finishItem(job, false, text('badName'));
 				return;
@@ -226,10 +231,97 @@ function initGameUpload() {
 		next();
 	};
 
+	// with several folders of the library, each maybe another disk, the files ask where they go:
+	// the last folder chosen first, or none asked when one is to be used always
+	const where = document.getElementById('uploadWhere');
+	const stored = key => {
+		try {
+			return localStorage.getItem(key) || '';
+		} catch {
+			return '';
+		}
+	};
+	const store = (key, value) => {
+		try {
+			if (value) {
+				localStorage.setItem(key, value);
+			} else {
+				localStorage.removeItem(key);
+			}
+		} catch {
+			// a browser that keeps nothing asks every time
+		}
+	};
+	const choices = where ? [...where.querySelectorAll('input[name="uploadWhere"]')] : [];
+	const known = folder => choices.some(choice => choice.value === folder);
+	const again = panel.querySelector('.upload-where-again');
+	const showAgain = () => {
+		if (again) {
+			again.hidden = !known(stored(UPLOAD_WHERE_ALWAYS_KEY));
+		}
+	};
+	if (again) {
+		again.addEventListener('click', () => {
+			store(UPLOAD_WHERE_ALWAYS_KEY, '');
+			showAgain();
+		});
+	}
+	showAgain();
+	const chooseFolder = files => new Promise(resolve => {
+		if (!where || !choices.length) {
+			resolve('');
+			return;
+		}
+		const always = stored(UPLOAD_WHERE_ALWAYS_KEY);
+		if (known(always)) {
+			resolve(always);
+			return;
+		}
+		const games = [...files].filter(file => UPLOAD_EXTENSIONS.includes(file.name.slice(file.name.lastIndexOf('.')).toLowerCase()));
+		const size = formatSize(games.reduce((sum, file) => sum + file.size, 0));
+		where.querySelector('.upload-where-title').textContent = games.length === 1
+			? fill(where.dataset.titleOne, size) : fill(where.dataset.titleMany, String(games.length), size);
+		const last = stored(UPLOAD_WHERE_KEY);
+		(choices.find(choice => choice.value === last) || choices[0]).checked = true;
+		where.querySelector('#uploadWhereAlways').checked = false;
+		const modal = Modal.getOrCreateInstance(where);
+		let chosen = null;
+		const go = where.querySelector('#uploadWhereGo');
+		const onGo = () => {
+			const choice = choices.find(item => item.checked);
+			chosen = choice ? choice.value : '';
+			store(UPLOAD_WHERE_KEY, chosen);
+			if (where.querySelector('#uploadWhereAlways').checked) {
+				store(UPLOAD_WHERE_ALWAYS_KEY, chosen);
+				showAgain();
+			}
+			modal.hide();
+		};
+		go.addEventListener('click', onGo);
+		where.addEventListener('hidden.bs.modal', () => {
+			go.removeEventListener('click', onGo);
+			resolve(chosen);
+		}, { once: true });
+		modal.show();
+	});
+	const addAsking = files => {
+		const list = [...files];
+		if (!list.length) {
+			return;
+		}
+		chooseFolder(list).then(folder => {
+			// closed without choosing: nothing is sent
+			if (folder !== null) {
+				add(list, folder);
+			}
+		});
+	};
+
 	document.querySelectorAll('[data-upload-open]').forEach(button => button.addEventListener('click', () => input.click()));
 	input.addEventListener('change', () => {
-		add(input.files);
+		const files = [...input.files];
 		input.value = '';
+		addAsking(files);
 	});
 	// closing the page stops the upload: it goes on when the same file is chosen again
 	window.addEventListener('beforeunload', e => {
@@ -272,6 +364,6 @@ function initGameUpload() {
 		e.preventDefault();
 		depth = 0;
 		veil.hidden = true;
-		add(e.dataTransfer.files);
+		addAsking(e.dataTransfer.files);
 	});
 }

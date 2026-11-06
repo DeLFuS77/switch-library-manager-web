@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -342,8 +343,16 @@ func TestSwitch2GamesAreLookedUpOnTheirPlatform(t *testing.T) {
 		t.Fatalf("to look up: %v", pending)
 	}
 	client := newIgdbClient("my-id", "good-secret")
-	if err := web.lookupLibraryTitles(context.Background(), client); err != nil {
+	// each game asked is told, with how many there are: the task shows it instead of 0/0
+	told := []string{}
+	tell := func(done int, total int, name string) {
+		told = append(told, fmt.Sprintf("%d/%d %s", done, total, name))
+	}
+	if err := web.lookupLibraryTitles(context.Background(), client, tell); err != nil {
 		t.Fatal(err)
+	}
+	if len(told) != 2 || told[0] != "0/2 Comet Rally" || told[1] != "1/2 Kirby Air Riders" {
+		t.Errorf("told: %q", told)
 	}
 	if platforms.Load() != 1 || games.Load() != 2 {
 		t.Errorf("asked: %d platforms, %d games", platforms.Load(), games.Load())

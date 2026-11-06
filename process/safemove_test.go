@@ -134,3 +134,34 @@ func TestRenameNoReplace(t *testing.T) {
 		t.Fatal("renamed")
 	}
 }
+
+// progressRecorder keeps the messages of the progress of a task.
+type progressRecorder struct{ messages []string }
+
+func (r *progressRecorder) UpdateProgress(_ int, _ int, message string) {
+	r.messages = append(r.messages, message)
+}
+
+// A file copied to another disk tells how the copy goes, so its task does not look stuck: a
+// NUP takes many GB.
+func TestCopyToAnotherDiskTellsItsProgress(t *testing.T) {
+	baseFolder := t.TempDir()
+	source := filepath.Join(t.TempDir(), "incoming")
+	local, remote := fixtureLibrary(t, source)
+	acrossDisks(t, nil)
+	recorder := &progressRecorder{}
+
+	if _, err := OrganizeByFolders(baseFolder, local, remote, organizeOptions(), false, recorder); err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, message := range recorder.messages {
+		found = found || message == "Copying base.nsp (0.0/0.0 GB)"
+	}
+	if !found {
+		t.Fatalf("the copy of the game told: %q", recorder.messages)
+	}
+	if got := CopyingMessage("Game.nup", 3_200_000_000, 14_900_000_000); got != "Copying Game.nup (3.2/14.9 GB)" {
+		t.Fatalf("message: %q", got)
+	}
+}

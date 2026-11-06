@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/durable"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/process"
@@ -147,6 +148,35 @@ func (web *Web) uploadFolders() []string {
 		}
 	}
 	return folders
+}
+
+// UploadFolder is a folder of the library games can be uploaded to, as the Library asks for it
+// when there are several: each may be another disk.
+type UploadFolder struct {
+	Path string
+	// the bytes free on its disk, or -1 when it cannot be told
+	Free int64
+	// the library folder of the settings
+	Main bool
+}
+
+// uploadFolderChoices are the folders of uploadFolders, each once, with what is free on them.
+func (web *Web) uploadFolderChoices() []UploadFolder {
+	main := settings.ReadSettings(web.dataFolder).Folder
+	choices := []UploadFolder{}
+	seen := map[string]bool{}
+	for _, folder := range web.uploadFolders() {
+		if seen[folder] {
+			continue
+		}
+		seen[folder] = true
+		choice := UploadFolder{Path: folder, Free: -1, Main: folder == main}
+		if free, err := diskfree.Free(folder); err == nil {
+			choice.Free = int64(free)
+		}
+		choices = append(choices, choice)
+	}
+	return choices
 }
 
 // uploadFolder is the folder asked for, when it is one of the library, else the main one; ""

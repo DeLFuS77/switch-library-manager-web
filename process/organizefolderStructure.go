@@ -72,6 +72,8 @@ type fileOperations struct {
 	excluded func(dir string) bool
 	// finds the files that go with a game moved (see gameExtras), or nil when they stay
 	extras *gameExtras
+	// told how the copy of a file to another disk goes (see moveFileTelling), or nil
+	copying func(from string, written int64, total int64)
 }
 
 // pathKey is a path as the list of files to move keeps it: in any case where the disk takes
@@ -224,7 +226,13 @@ func (f *fileOperations) move(from string, to string) error {
 			f.movedFrom[from] = to
 			return nil
 		}
-		moveTo := moveFile
+		moveTo := func(from string, to string) error {
+			var progress CopyProgress
+			if f.copying != nil {
+				progress = func(written int64, total int64) { f.copying(from, written, total) }
+			}
+			return moveFileTelling(from, to, progress)
+		}
 		if caseOnly {
 			moveTo = os.Rename
 		}
@@ -718,7 +726,8 @@ func OrganizeByFolders(baseFolder string,
 
 // OrganizeLibrary is OrganizeByFolders for a library of several folders (roots, baseFolder
 // among them): none of them is the folder of a game, whose files would stay in it, and leave
-// the library with their updates and DLC moved below it.
+// the library with their updates and DLC moved below it. Each file is organized within the
+// folder of the library it lies in, which may be another disk: none moves to another one.
 func OrganizeLibrary(baseFolder string,
 	roots []string,
 	localDB *db.LocalSwitchFilesDB,
@@ -766,8 +775,16 @@ func organize(baseFolder string,
 	o := newLibraryOrganizer(baseFolder, roots, only, localDB, titlesDB, options, dryRun)
 	keys := sortedKeys(localDB.TitlesMap)
 	tasksSize := len(keys) + 1
+	// a copy to another disk tells how it goes, on the step of its game
+	step := 0
+	if updateProgress != nil {
+		o.ops.copying = func(from string, written int64, total int64) {
+			updateProgress.UpdateProgress(step, tasksSize, CopyingMessage(filepath.Base(from), written, total))
+		}
+	}
 	o.moveCollections()
 	for i, k := range keys {
+		step = i + 1
 		v := localDB.TitlesMap[k]
 		if !v.BaseExist && !options.ProcessWhenMissingBaseGame {
 			o.skipWithoutGame(v)
@@ -850,6 +867,53 @@ func (o *libraryOrganizer) isRoot(folder string) bool {
 	return false
 }
 
+// rootOf is the folder of the library a path lies in: the library folder or one of the roots, the
+// outermost one when one is inside another (a file moves within it as before, by a rename). A path
+// in none of them takes the library folder.
+func (o *libraryOrganizer) rootOf(path string) string {
+	key := pathKey(path)
+	best, bestKey := "", ""
+	for _, root := range append([]string{o.baseFolder}, o.roots...) {
+		if root == "" {
+			continue
+		}
+		rootKey := pathKey(root)
+		prefix := rootKey
+		if !strings.HasSuffix(prefix, string(filepath.Separator)) {
+			prefix += string(filepath.Separator)
+		}
+		if key != rootKey && !strings.HasPrefix(key, prefix) {
+			continue
+		}
+		if best == "" || len(rootKey) < len(bestKey) {
+			best, bestKey = root, rootKey
+		}
+	}
+	if best == "" {
+		return o.baseFolder
+	}
+	return best
+}
+
+// onDiskOf is folder, a folder of the library, in the folder of the library the file lies in,
+// by the same path below it: a file is organized within its own folder of the library and never
+// moved to another one, which may be another disk, where it would be copied whole (a NUP takes
+// many GB). The folder of a game is so named the same in each of them.
+func (o *libraryOrganizer) onDiskOf(file db.ExtendedFileInfo, folder string) string {
+	if folder == "" {
+		return folder
+	}
+	own, from := o.rootOf(file.BaseFolder), o.rootOf(folder)
+	if own == "" || from == "" || pathKey(own) == pathKey(from) {
+		return folder
+	}
+	below, err := filepath.Rel(from, folder)
+	if err != nil || below == ".." || strings.HasPrefix(below, ".."+string(filepath.Separator)) {
+		return folder
+	}
+	return filepath.Join(own, below)
+}
+
 // moveCollections names a file with several games (a collection on one cartridge) after all of
 // them, once, instead of after the game that comes last.
 func (o *libraryOrganizer) moveCollections() {
@@ -880,7 +944,8 @@ func (o *libraryOrganizer) moveCollections() {
 		folder := filepath.Dir(path)
 		// with the folders kept, a collection in a folder of its own stays there
 		if options.CreateFolderPerGame && !(o.keepFolders && !o.isRoot(folder)) {
-			folder = filepath.Join(o.baseFolder, avoidReserved(strings.TrimRight(collection, " .")))
+			// in its own folder of the library
+			folder = filepath.Join(o.rootOf(path), avoidReserved(strings.TrimRight(collection, " .")))
 		}
 		fileName := filepath.Base(path)
 		// a name with the ID of one of its games is one the user gave, as for a file of one game
@@ -1012,16 +1077,18 @@ func (o *libraryOrganizer) idFolder(templateData map[string]string, parent strin
 	return filepath.Join(parent, avoidReserved(strings.TrimRight(name, " .")))
 }
 
-// targetFolder is the destination folder of a file of the game, in its subfolder.
+// targetFolder is the destination folder of a file of the game, in its subfolder, in the folder of
+// the library the file lies in (see onDiskOf).
 func (o *libraryOrganizer) targetFolder(destinationPath string, file db.ExtendedFileInfo, subFolder string) string {
 	if o.options.CreateFolderPerGame {
+		destinationPath = o.onDiskOf(file, destinationPath)
 		if subFolder != "" {
 			return filepath.Join(destinationPath, subFolder)
 		}
 		return destinationPath
 	}
 	if subFolder != "" {
-		return resolveFolder(o.baseFolder, subFolder)
+		return resolveFolder(o.rootOf(file.BaseFolder), subFolder)
 	}
 	return file.BaseFolder
 }
