@@ -156,10 +156,7 @@ func (web *Web) notifyChanges() error {
 		return nil
 	}
 
-	lang := settingsObj.Language
-	if !i18n.IsSupportedLanguage(lang) {
-		lang = i18n.DEFAULT_LANGUAGE
-	}
+	lang := web.notificationLanguage(settingsObj.Language)
 	// without the titles or the library nothing is known: saved as empty, every update and
 	// DLC would be reported as new by the next synchronization
 	if switchDB, localDB := web.state.get(); switchDB == nil || localDB == nil {
@@ -223,10 +220,7 @@ func (web *Web) notifyNewContent(events []HistoryEvent) {
 	if !notify.Configured(options) || !options.NotifyNewGames {
 		return
 	}
-	lang := settingsObj.Language
-	if !i18n.IsSupportedLanguage(lang) {
-		lang = i18n.DEFAULT_LANGUAGE
-	}
+	lang := web.notificationLanguage(settingsObj.Language)
 	switchDB, _ := web.state.get()
 	items := []NotificationItem{}
 	for _, event := range events {

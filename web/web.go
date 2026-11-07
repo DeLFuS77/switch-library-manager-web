@@ -233,10 +233,12 @@ type Web struct {
 	remote        *remoteCovers
 	remoteOnce    sync.Once
 	languages     titleLanguages
-	auto          autoCompressor
-	updates       updateChecker
-	verify        *verifyStore
-	verifyOnce    sync.Once
+	// the language the interface was last used in, for the notifications
+	lastLanguage interfaceLanguage
+	auto         autoCompressor
+	updates      updateChecker
+	verify       *verifyStore
+	verifyOnce   sync.Once
 	// the files deleted that wait in the quarantine
 	quarantineItems *quarantineStore
 	quarantineOnce  sync.Once
