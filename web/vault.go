@@ -553,10 +553,7 @@ func (web *Web) notifyVaultUpload(path string) {
 	if !notify.Configured(settingsObj.Notifications) {
 		return
 	}
-	lang := settingsObj.Language
-	if !i18n.IsSupportedLanguage(lang) {
-		lang = i18n.DEFAULT_LANGUAGE
-	}
+	lang := web.notificationLanguage(settingsObj.Language)
 	name := filepath.Base(filepath.Dir(path))
 	if id, _, ok := jksvMeta(path); ok {
 		switchDB, _ := web.state.get()

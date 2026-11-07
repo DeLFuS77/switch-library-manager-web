@@ -30,10 +30,7 @@ func (web *Web) notifyTaskFailed(task tasklog.Task) {
 	if !notify.Configured(options) || !options.NotifyTaskFailures {
 		return
 	}
-	lang := settingsObj.Language
-	if !i18n.IsSupportedLanguage(lang) {
-		lang = i18n.DEFAULT_LANGUAGE
-	}
+	lang := web.notificationLanguage(settingsObj.Language)
 	kind := task.Kind
 	if name, ok := taskKindNames[kind]; ok {
 		kind = i18n.Translate(lang, name)

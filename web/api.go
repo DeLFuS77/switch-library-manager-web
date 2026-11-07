@@ -127,7 +127,8 @@ func (web *Web) HandleApi() {
 					}
 
 					titleId := strings.ToUpper(v.File.Metadata.TitleId)
-					latestUpdate := ApiUpdateItem{ApiExtendedFileInfo: ApiExtendedFileInfo{Version: v.LatestUpdate}}
+					// a game rebuilt with its update in it holds that update (see UpdateLevel)
+					latestUpdate := ApiUpdateItem{ApiExtendedFileInfo: ApiExtendedFileInfo{Version: v.UpdateLevel()}}
 					name := map[string]string{}
 
 					if v.File.Metadata.Ncap != nil {
