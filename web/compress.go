@@ -823,7 +823,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 			web.releaseFiles()
 			cancel()
 			// the files are free: the next task of the queue
-			go web.runQueue()
+			web.runQueueInBackground()
 		}()
 		// a panic outside the work on a file (each file has its own): the task ends failed, the
 		// files are let go, and it is not started again after a restart

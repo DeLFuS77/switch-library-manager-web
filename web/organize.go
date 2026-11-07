@@ -254,7 +254,7 @@ func (web *Web) runOrganizeFiles(action string, paths []string, trigger string) 
 	defer func() {
 		web.organizing.Store(false)
 		// the files are free: the next task of the queue
-		go web.runQueue()
+		web.runQueueInBackground()
 	}()
 	if web.compressionRunning() || web.measuring.Load() {
 		return nil, errOrganizeBusy
@@ -335,7 +335,7 @@ func (web *Web) removeFilesAsTask(files []db.ExtendedFileInfo, reasons []string)
 	defer func() {
 		web.organizing.Store(false)
 		// the files are free: the next task of the queue
-		go web.runQueue()
+		web.runQueueInBackground()
 	}()
 	if web.compressionRunning() || web.measuring.Load() {
 		return 0, 0, errOrganizeBusy

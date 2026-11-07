@@ -254,7 +254,7 @@ func (web *Web) queueAfterScan() {
 	}
 	queue.mutex.Unlock()
 	if waiting {
-		go web.runQueue()
+		web.runQueueInBackground()
 	}
 }
 
@@ -289,6 +289,16 @@ func (web *Web) runQueue() {
 	queue.items = queue.items[1:]
 	queue.save()
 	web.taskLog().Touch()
+}
+
+// runQueueInBackground runs the queue on a goroutine of its own, counted in queueRuns: what it
+// saves goes to the folder of the data, which a test waits for before removing it.
+func (web *Web) runQueueInBackground() {
+	web.queueRuns.Add(1)
+	go func() {
+		defer web.queueRuns.Done()
+		web.runQueue()
+	}()
 }
 
 // queueKinds are the kinds of tasks the queue runs.

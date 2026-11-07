@@ -242,7 +242,7 @@ func (web *Web) HandleMeasure() {
 		// once the measure ends, the next task of the queue
 		defer func() {
 			web.measuring.Store(false)
-			go web.runQueue()
+			web.runQueueInBackground()
 		}()
 		// a computer gone to sleep would end the measure, or spoil it
 		defer awake.Keep().Release()

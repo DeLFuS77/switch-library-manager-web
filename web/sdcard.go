@@ -403,7 +403,7 @@ func (web *Web) startSdCopy(ids []string, target string, dlc bool, lang string) 
 			web.releaseFiles()
 			cancel()
 			// the files are free: the next task of the queue
-			go web.runQueue()
+			web.runQueueInBackground()
 		}()
 		var done int64
 		copied := 0

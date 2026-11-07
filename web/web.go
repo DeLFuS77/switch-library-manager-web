@@ -186,6 +186,8 @@ type Web struct {
 	smartCollectionsOnce  sync.Once
 	// the history and the lists prepared after a scan (tests wait for them)
 	afterScanWork sync.WaitGroup
+	// the runs of the queue started on goroutines of their own, which save its file
+	queueRuns sync.WaitGroup
 	// scans and the work after them that are still running, for the tests to wait for them
 	backgroundWork atomic.Int32
 	// a scan was started at least once

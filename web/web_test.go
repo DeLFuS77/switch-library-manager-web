@@ -37,6 +37,8 @@ func newTestWeb(t *testing.T) *Web {
 	t.Cleanup(func() {
 		// files written in the background after a scan
 		waitForBackgroundWork(web)
+		// and the queue, which saves its file after each task
+		web.queueRuns.Wait()
 		web.afterScanWork.Wait()
 		if web.store != nil {
 			web.store.Close()

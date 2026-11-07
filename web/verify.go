@@ -749,7 +749,7 @@ func (web *Web) startVerificationSince(level string, paths []string, recheck tim
 			web.releaseFiles()
 			cancel()
 			// the files are free: the next task of the queue
-			go web.runQueue()
+			web.runQueueInBackground()
 		}()
 		// a panic outside the check of a file (each file has its own): the task ends failed with
 		// the results it has, the files are let go, and it is not started again after a restart
