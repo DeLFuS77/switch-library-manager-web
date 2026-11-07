@@ -2,8 +2,13 @@
 
 ## Unreleased
 
+### Improvements
+
+- Update now and the install at night take only a version signed by the app: each release now signs its checksums with the key of the project (SHA256SUMS.txt.minisig, minisign), and the app checks that signature, made for that version, before it replaces itself. A version without it, or with a wrong one, is never installed: the app only tells of it, with How to update (thanks @NikoMuffin, who asked for signed updates in NXPress #91)
+
 ### Fixes
 
+- The update no longer restarts the app while anything goes on: Update now and Go back wait for the tasks running or waiting in the queue, the files waiting for the automations, an upload, a measure and the work the app does by itself, and tell how many tasks they wait for, with Cancel; at night it waits within the hours of the night, or tries again the next night. While it installs, no task starts: the ones asked meanwhile wait in the queue for the new version, and uploads, the quarantine and restoring a backup wait for it to start again
 - A NUP whose metadata types are counted from 0 is told, and can be fixed, also when a package has no NPDM, such as a DLC: a record 0x0007 that is not the 32 bytes of a build ID marks it, the same rule as NXPress and the fix of the reference packer (a55uka/nup#32)
 
 ## 2.0.2
