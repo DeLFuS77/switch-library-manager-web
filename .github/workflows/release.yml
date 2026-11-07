@@ -114,6 +114,15 @@ jobs:
           sha256sum -- *.zip *.tar.gz > SHA256SUMS.txt
           ls -l
 
+      # the signature of the checksums with the key of the app (minisign), which the app checks
+      # before it installs a new version by itself; without the secret SLM_SIGNING_KEY, or with a
+      # key that is not the one the app is built with, the release goes out unsigned, and the app
+      # only tells of it
+      - name: Sign the checksums
+        env:
+          SLM_SIGNING_KEY: ${{ secrets.SLM_SIGNING_KEY }}
+        run: go run ./tools/releasesign -version "${GITHUB_REF_NAME}" dist/SHA256SUMS.txt
+
       # proof that each file was built by this workflow from this tag
       - name: Attest the programs
         id: attest
@@ -149,6 +158,9 @@ jobs:
           users update the container instead. `SHA256SUMS.txt` has the checksums of the files, and
           `gh attestation verify <file> -R DeLFuS77/switch-library-manager-web` proves a file was built here.
           EOF
+          if [ -f dist/SHA256SUMS.txt.minisig ]; then
+            echo '`SHA256SUMS.txt.minisig` is their signature with the key of the app (minisign), which the app checks before it installs a new version by itself.' >> release-notes.md
+          fi
 
       - name: Create release
         env:
@@ -158,7 +170,7 @@ jobs:
             --title "${GITHUB_REF_NAME}" \
             --notes-file release-notes.md \
             --verify-tag \
-            dist/*.zip dist/*.tar.gz dist/SHA256SUMS.txt dist/*.intoto.jsonl
+            dist/*.zip dist/*.tar.gz dist/SHA256SUMS.txt* dist/*.intoto.jsonl
 
       # the notes in #releases of the Discord server, through the webhook kept in the secret
       # DISCORD_WEBHOOK; without it (a fork) nothing is sent, and if Discord fails the release
