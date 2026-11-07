@@ -209,7 +209,7 @@ type compressor struct {
 // being moved or deleted, the server is being measured, or the app is stopping. The caller
 // holds the mutex of the compressor.
 func (web *Web) filesTaken() bool {
-	return web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() || web.stopping.Load()
+	return web.compressor.cancel != nil || web.organizing.Load() || web.measuring.Load() || web.stopping.Load() || web.updateHold.Load()
 }
 
 // rememberWritten keeps a compressed copy just written, until the scan that follows.
@@ -1453,7 +1453,7 @@ func (web *Web) cancelCompression() bool {
 // decompression, conversion, pack, organizing, cleanup or the measure of the server. Scans
 // wait for it to end.
 func (web *Web) filesBusy() bool {
-	return web.organizing.Load() || web.measuring.Load() || web.compressionRunning() || web.uploads.writing()
+	return web.organizing.Load() || web.measuring.Load() || web.compressionRunning() || web.uploads.writing() || web.updateHold.Load()
 }
 
 // spaceHeld gives the version of the check results the Space page follows while a task writes

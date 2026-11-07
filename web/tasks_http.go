@@ -353,6 +353,8 @@ func (web *Web) HandleTasks() {
 			select {
 			case <-r.Context().Done():
 				return
+			case <-web.closingPages():
+				return
 			case <-keepAlive.C:
 				fmt.Fprint(w, ": keep-alive\n\n")
 				flusher.Flush()

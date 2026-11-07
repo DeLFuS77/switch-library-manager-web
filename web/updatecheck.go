@@ -34,10 +34,22 @@ type AppUpdate struct {
 	files releaseFiles
 }
 
-// CanInstall tells whether the app can install this version by itself: with a key to check the
-// releases with, only a signed one.
+// CanInstall tells whether the app can install this version by itself: only one signed with a
+// key the app is built with, which it checks before it installs it.
 func (u *AppUpdate) CanInstall() bool {
 	return u.files.archiveUrl != "" && u.files.signed() && selfUpdatable()
+}
+
+// installable tells why the newer version found cannot be installed by Update now, nil when it can.
+func (web *Web) installable() error {
+	update := web.availableUpdate()
+	switch {
+	case update == nil || update.files.archiveUrl == "":
+		return errUpdateNone
+	case !update.files.signed():
+		return errUpdateSigned
+	}
+	return nil
 }
 
 // updateChecker remembers the latest release found on GitHub.
@@ -192,8 +204,12 @@ func (web *Web) StartUpdateChecker() {
 // nightlyCheckEvery is how often the app looks whether it is time to install a new version
 const nightlyCheckEvery = 15 * time.Minute
 
+// nightWaitFor is how long, at most, the night waits at each look for the work going on to end:
+// put off, the update is tried again at the next look, until 5, and else the next night.
+var nightWaitFor = 10 * time.Minute
+
 // installAtNight installs the new version found, by itself, between 3 and 5 in the morning when
-// the setting is on; a task that works on the files puts it off.
+// the setting is on, once no work goes on (see updateWhenIdle).
 func (web *Web) installAtNight(now time.Time) bool {
 	appSettings := settings.ReadSettings(web.dataFolder)
 	if !appSettings.AutoInstallUpdates || now.Hour() < 3 || now.Hour() >= 5 {
@@ -203,7 +219,13 @@ func (web *Web) installAtNight(now time.Time) bool {
 	if update == nil || !update.CanInstall() {
 		return false
 	}
-	if err := web.installUpdate(); err != nil {
+	cancel, asked := web.askUpdate()
+	if !asked {
+		// Update now was asked already, and waits
+		return false
+	}
+	wait := min(nightWaitFor, time.Date(now.Year(), now.Month(), now.Day(), 5, 0, 0, 0, now.Location()).Sub(now))
+	if err := web.updateWhenIdle(web.installUpdate, cancel, time.Now().Add(wait)); err != nil {
 		web.sugarLogger.Infof("[Update] not installed at night: %v", err)
 		return false
 	}

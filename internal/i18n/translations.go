@@ -1857,15 +1857,15 @@ var Translations = map[string]map[string]string{
 		"Back to the suggested copy": "Volver a la sugerida",
 		"This game has no copy from another region in the library.": "Este juego no tiene ninguna copia de otra región en la biblioteca.",
 		"Update now": "Actualizar ahora",
-		"The app downloads it from GitHub, checks it, keeps the version of now as .old and starts again.":                                             "La app la descarga de GitHub, la comprueba, guarda la versión de ahora como .old y se reinicia.",
-		"The new version could not be downloaded: try again later.":                                                                                   "No se pudo descargar la nueva versión: inténtalo más tarde.",
-		"The download does not match the checksum of the release: nothing was changed.":                                                               "La descarga no coincide con la huella de la versión: no se ha cambiado nada.",
-		"The new version does not start on this computer: nothing was changed.":                                                                       "La nueva versión no arranca en este equipo: no se ha cambiado nada.",
-		"The program could not be replaced: nothing was changed. Update it by hand.":                                                                  "No se pudo sustituir el programa: no se ha cambiado nada. Actualízalo a mano.",
-		"GitHub could not be reached: try again later.":                                                                                               "No se pudo contactar con GitHub: inténtalo más tarde.",
-		"There is no version of before to go back to.":                                                                                                "No hay una versión anterior a la que volver.",
-		"Install new versions by themselves at night":                                                                                                 "Instalar las versiones nuevas solas de madrugada",
-		"Between 3 and 5 in the morning, when no task is working on the files. The version of before is kept, to go back to it from the Update page.": "Entre las 3 y las 5 de la mañana, cuando ninguna tarea esté trabajando con los archivos. Se guarda la versión anterior, para volver a ella desde la página Actualizar la app.",
+		"The app downloads it from GitHub, checks it, keeps the version of now as .old and starts again.": "La app la descarga de GitHub, la comprueba, guarda la versión de ahora como .old y se reinicia.",
+		"The new version could not be downloaded: try again later.":                                       "No se pudo descargar la nueva versión: inténtalo más tarde.",
+		"The download does not match the checksum of the release: nothing was changed.":                   "La descarga no coincide con la huella de la versión: no se ha cambiado nada.",
+		"The new version does not start on this computer: nothing was changed.":                           "La nueva versión no arranca en este equipo: no se ha cambiado nada.",
+		"The program could not be replaced: nothing was changed. Update it by hand.":                      "No se pudo sustituir el programa: no se ha cambiado nada. Actualízalo a mano.",
+		"GitHub could not be reached: try again later.":                                                   "No se pudo contactar con GitHub: inténtalo más tarde.",
+		"There is no version of before to go back to.":                                                    "No hay una versión anterior a la que volver.",
+		"Install new versions by themselves at night":                                                     "Instalar las versiones nuevas solas de madrugada",
+		"Between 3 and 5 in the morning, once no task is running or waiting; with work going on, it waits for it or tries again the next night. The version of before is kept, to go back to it from the Update page.": "Entre las 3 y las 5 de la mañana, cuando no quede ninguna tarea en marcha ni en espera; si hay trabajo, lo espera o lo intenta la noche siguiente. Se guarda la versión de antes, para volver a ella desde la página Actualizar.",
 		"Look for a new version":      "Buscar ahora",
 		"Download of the new version": "Descarga de la nueva versión",
 		"Go back to version %v":       "Volver a la versión %v",
@@ -1896,6 +1896,14 @@ var Translations = map[string]map[string]string{
 
 		// the update, when the checksums of a release are not signed with the key of the app
 		"The signature of the release is missing or wrong: nothing was changed.": "La firma de la versión falta o no es válida: no se ha cambiado nada.",
+		// the update that waits for every work to end, and holds the files while it installs
+		"Tasks are still running: the update starts once they have finished.": "Aún hay tareas en marcha: la actualización empieza cuando terminen.",
+		"The update was cancelled.": "Se ha cancelado la actualización.",
+		"An update is being installed: try again once the app has started again.":              "Se está instalando una actualización: inténtalo de nuevo cuando la aplicación haya vuelto a arrancar.",
+		"Waiting for the paused task: resume it or cancel it, and the update starts after it.": "Esperando a la tarea en pausa: reanúdala o cancélala, y la actualización empieza después.",
+		"Waiting for 1 task to finish: the update starts after it.":                            "Esperando a que termine 1 tarea: la actualización empieza después.",
+		"Waiting for %v tasks to finish: the update starts after them.":                        "Esperando a que terminen %v tareas: la actualización empieza después.",
+		"Waiting for the work in the background to finish: the update starts after it.":        "Esperando a que termine el trabajo en segundo plano: la actualización empieza después.",
 
 		// the bot of Telegram, which answers in its chat
 		"Answer in the chat of Telegram": "Responder en el chat de Telegram",
@@ -2163,7 +2171,7 @@ var Translations = map[string]map[string]string{
 
 // texts used by web.js, sent to the browser in the page language
 var JSTexts = []string{
-	"Updating", "Downloading the new version...", "Checking the new version...", "Going back to the version of before...", "You have the latest version.", "Installed: the app starts again...", "The app does not answer: start it again by hand.",
+	"Updating", "The update was cancelled.", "Downloading the new version...", "Checking the new version...", "Going back to the version of before...", "You have the latest version.", "Installed: the app starts again...", "The app does not answer: start it again by hand.",
 	"Deleting empty folders...", "Tasks running: %v", "Failed tasks: %v",
 	"Close", "Synchronizing!", "The library is being updated.", "Synchronization progress", "Done!",
 	"The library has been updated.", "Error!", "Synchronization could not be started.", "Could not reach the server.",

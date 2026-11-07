@@ -1,0 +1,4 @@
+# The public keys the releases of Switch Library Manager Web are signed with (minisign), written
+# by tools/releasekey. With none, the app only tells of a new version.
+untrusted comment: minisign public key 5E149516CD819E58
+RWRYnoHNFpUUXvN/5SvX8kcXOeVxbGUDI/B/65Ag0X2SEBRezJIgIDfT
