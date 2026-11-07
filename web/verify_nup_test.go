@@ -59,13 +59,20 @@ func TestVerifyChecksNupFiles(t *testing.T) {
 	}
 	web.startVerificationAt(tasklog.VERIFY_LEVEL_BOTH, nil, verifyRecheckAll, tasklog.TRIGGER_MANUAL)
 	task := waitForTask(t, web, tasklog.TASK_VERIFY)
-	if task.Files != 2 || task.Damaged != 0 || len(task.Tiles) != 2 || task.Tiles[1].Failed {
+	// the tile of the NUP by its name: two workers finish the two files in any order
+	nupTile := -1
+	for i, tile := range task.Tiles {
+		if tile.Name == filepath.Base(path) {
+			nupTile = i
+		}
+	}
+	if task.Files != 2 || task.Damaged != 0 || len(task.Tiles) != 2 || nupTile < 0 || task.Tiles[nupTile].Failed {
 		t.Fatalf("the NSP and the NUP of the library: %+v", task)
 	}
 	// the NUP is whole, but its game has no main.npdm: Eglantine and Lichii cannot start it, told
 	// on a line of its own, its tile sound
 	if task.Status != tasklog.TASK_WARNING || len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_VERIFY_EMULATORS_NO_START ||
-		task.Warnings[0].Detail != filepath.Base(path)+": the ExeFS of the game lacks: main.npdm" || task.Tiles[1].Modified || task.Tiles[1].Skipped {
+		task.Warnings[0].Detail != filepath.Base(path)+": the ExeFS of the game lacks: main.npdm" || task.Tiles[nupTile].Modified || task.Tiles[nupTile].Skipped {
 		t.Fatalf("the emulators: %+v", task)
 	}
 	for _, file := range signed {
