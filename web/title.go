@@ -508,8 +508,14 @@ func titleVersions(name string, released map[int]string, local *db.SwitchGameFil
 				if update.Metadata != nil && update.Metadata.Ncap != nil {
 					entry.DisplayVersion = update.Metadata.Ncap.DisplayVersion
 				}
+			} else if local.BaseExist && local.File.Metadata != nil && local.File.Metadata.Version == version {
+				// the game was rebuilt with this update in it (see UpdateLevel)
+				entry.Owned = true
+				if local.File.Metadata.Ncap != nil {
+					entry.DisplayVersion = local.File.Metadata.Ncap.DisplayVersion
+				}
 			}
-			entry.Installed = local.BaseExist && local.LatestUpdate == version
+			entry.Installed = local.BaseExist && local.UpdateLevel() == version
 		}
 		query := name + " Nintendo Switch update"
 		if entry.DisplayVersion != "" {
