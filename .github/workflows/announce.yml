@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   discord:
-    # a version, not a prerelease (a beta announces itself) nor the "data" release of the titles
+    # a version, not a prerelease such as a beta, nor the "data" release of the titles
     if: ${{ !github.event.release.prerelease }}
     runs-on: ubuntu-24.04
     steps:
