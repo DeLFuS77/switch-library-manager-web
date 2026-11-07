@@ -1,25 +1,25 @@
 # Changelog
 
-## Unreleased
+## 2.0.2
 
 ### Improvements
 
-- The top of the Library is shorter, so the games start higher up: the four cards of the status are the filter of the list (Any status, With an update, Missing some DLC and Up to date, with the share of the games up to date), in place of the cards of before, the bar of the games up to date and the pills of the status. Each card tells what it counts in a bubble, on the ⓘ beside its name
-- Filters is beside the search, and its panel goes in the order the filters are used: what is yours first (show only the favorites, the games with cheats or added lately, your collections, My game), then the file (type, format, region) and the game (genre, players, score, language). The long lists show their first choices and the others a click away, the choices without games are left out, and the foot tells how many games the filters leave, with Clear filters
-- "You might like" is folded on one line, and stays open on the next pages once opened
-- The view, the console, the status and the filters chosen are in blue: red is kept for errors and the main actions
-- Shorter texts under the pages of the Discover and Tools menus, each on one line in every language (thanks @NikoMuffin, who suggested it for NXPress)
-- The help of "Scan automatically when files change" says which folders it watches: the folders to scan and every folder inside them, except the folders to skip (thanks @NikoMuffin, who asked it of NXPress)
-- The page of a game in a NUP tells whether Eglantine and Lichii, the emulators that open NUP files, open it and can start its game: they are stricter than the format, and refuse a NUP with packages of kind 3 or 4, package flags other than the first, codec flags, files of 0 bytes that point at data, files marked with the high bit in their folders, folders inside themselves or more than 128 deep, or names and icons by language that run past their record, and they need main and main.npdm in the ExeFS they start. Its row in Files tags Eglantine and Lichii in green or orange, with the reason under them; Check the files tells it on an orange line of the task, the file being whole. A NUP the app does not read for a reason they share says they do not open it either
-- A NUP whose metadata types are counted from 0, as a build of the packer of the format wrote them, is told on the page of its game and in Check the files: the app reads it, but Eglantine and Lichii show its name, version and icon wrong
-- A NUP whose metadata types are counted from 0 can be fixed from the page of its game: the button under the orange warning writes only those numbers again, in the NUP itself, as NXPress does, so Eglantine and Lichii show its name, version and icon right. The old blocks are kept beside it while it writes and put back if anything fails or the work is cut, and the NUP is read back after. It runs as a task, for administrators, and the file stays checked
+- The top of the Library is shorter: the four status cards (Any status, With an update, Missing some DLC, Up to date) are the filter of the list, each with its help on the ⓘ, and Filters sits beside the search, its panel in the order the filters are used and with how many games they leave
+- "You might like" is folded on one line, and the choices made in the Library are in blue: red is kept for errors and the main actions
+- The page of a game in a NUP tells whether Eglantine and Lichii, the emulators that open NUP files, open it and can start its game, and why not, in orange; Check the files tells it too
+- A NUP whose metadata types are counted from 0, as an early build of the packer of the format wrote them, is told, and a button on the page of its game fixes it in place, as NXPress does, so the emulators show its name, version and icon right (administrators only)
+- Shorter texts under the pages of the Discover and Tools menus, and the help of "Scan automatically when files change" says which folders it watches (thanks @NikoMuffin, who suggested both for NXPress)
 
 ### Fixes
 
-- Each number of the top of the Library is the number of games its click shows: All no longer counts the copies from other regions the list leaves out, Missing ones counts each game once when the settings count the games of several regions once (a game you have from another region is no longer missing), the consoles no longer count the hidden demos and follow the other filters, and the views and the cards follow the console chosen
-- Check the files reads the code of NUP files (main, rtld, sdk and subsdk of each ExeFS) and tells a NUP made of a dump whose code lost bytes: its hashes match while the game stops as it starts. It is told as damaged, with its own note in the task, on its cover and in Issues: dump the game again. NUP files found sound before are checked again
-- A game whose files give no name of their own, such as a NUP made of a dump without its control data, is named by its file made readable: MadeUpQuestv1.1.0 is Made Up Quest. A game IGDB did not find is asked again when its name changes, so it gets its cover
-- A game rebuilt with its update in it, as hacBrewPackLZ makes it, no longer shows an update available: the version it takes from the update counts as the update it holds, in the Library, on the page of the game and in Updates. The game as it was stays beside it as another version, never deleted as its duplicate, and a game or update stored with the LZ4 of its NCA, small once installed, is not offered to compress, as it is compressed already (thanks @VRtinker, #162)
+- Each number at the top of the Library matches the games its click shows: copies from other regions, hidden demos and the console chosen are counted as the list shows them
+- Check the files reads the code of NUP files and tells a NUP made from a dump whose code lost bytes, a game that stops as it starts: it must be dumped again. NUP files found sound before are checked again
+- A game whose files carry no name, such as a NUP made from a dump without its control data, gets a readable name from its file, and its cover from IGDB
+- A game rebuilt with its update in it, as hacBrewPackLZ makes it, no longer shows an update available, the original copy beside it is never deleted as its duplicate, and a game stored with the LZ4 of its NCA is not offered to compress (thanks @VRtinker, #162)
+
+### Next
+
+- Reading NUP v2, the new version of the format, once its specification settles
 
 ## 2.0.1
 
