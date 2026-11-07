@@ -8,7 +8,6 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"net/http"
@@ -16,11 +15,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/selfupdate"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
-	"golang.org/x/crypto/blake2b"
 )
 
 func TestSystemArchive(t *testing.T) {
@@ -102,19 +102,66 @@ func TestProgramOf(t *testing.T) {
 	}
 }
 
-// updateTestWeb serves a release with the archive given and its checksum, and puts a program
-// that runs in a folder of its own.
-func updateTestWeb(t *testing.T, archive []byte, sum string) (*Web, string, *bool) {
+// testSigningKey makes a key the app takes for the signatures of its releases, while the test
+// runs, and gives how it signs.
+func testSigningKey(t *testing.T) func(data []byte, version string) []byte {
+	t.Helper()
+	private, key := throwawayKey(t)
+	saved := updateSigningKeys
+	updateSigningKeys = []selfupdate.PublicKey{key}
+	t.Cleanup(func() { updateSigningKeys = saved })
+	return func(data []byte, version string) []byte {
+		return selfupdate.Sign(private, key.ID, data, selfupdate.Comment(version))
+	}
+}
+
+func throwawayKey(t *testing.T) (ed25519.PrivateKey, selfupdate.PublicKey) {
+	t.Helper()
+	public, private, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	key := selfupdate.PublicKey{Key: public}
+	rand.Read(key.ID[:])
+	return private, key
+}
+
+// testRelease is what the release of the tests serves: its checksums, and their signature
+// (nil: none, 404)
+type testRelease struct {
+	sums, signature []byte
+	sign            func(data []byte, version string) []byte
+}
+
+// updateTestWeb serves a release with the archive given and its checksum, signed with a key the
+// app takes, and puts a program that runs in a folder of its own.
+func updateTestWeb(t *testing.T, archive []byte, sum string) (*Web, string, *atomic.Bool) {
+	web, program, started, _ := signedUpdateTestWeb(t, archive, sum)
+	return web, program, started
+}
+
+// signedUpdateTestWeb is updateTestWeb, with the release it serves (to change) and how the key
+// signs.
+func signedUpdateTestWeb(t *testing.T, archive []byte, sum string) (*Web, string, *atomic.Bool, *testRelease) {
 	t.Helper()
 	web := newTestWeb(t)
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.CheckForUpdates = true })
 	name := systemArchive("linux", "amd64")
+	sign := testSigningKey(t)
+	release := &testRelease{sums: []byte(sum + "  " + name + "\n"), sign: sign}
+	release.signature = sign(release.sums, "1.70.0")
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch filepath.Base(r.URL.Path) {
 		case name:
 			w.Write(archive)
 		case "SHA256SUMS.txt":
-			w.Write([]byte(sum + "  " + name + "\n"))
+			w.Write(release.sums)
+		case sumsSignatureName:
+			if release.signature == nil {
+				http.NotFound(w, r)
+				return
+			}
+			w.Write(release.signature)
 		default:
 			http.NotFound(w, r)
 		}
@@ -124,7 +171,7 @@ func updateTestWeb(t *testing.T, archive []byte, sum string) (*Web, string, *boo
 	releaseDownloads = server.URL + "/"
 	program := filepath.Join(t.TempDir(), "switch-library-manager-web")
 	os.WriteFile(program, []byte("old"), 0o755)
-	started := false
+	started := &atomic.Bool{}
 	saved := []any{currentProgram, tryProgram, startProgram, stopProgram, afterAnswer}
 	currentProgram = func() (string, error) { return program, nil }
 	tryProgram = func(path string) (string, error) {
@@ -134,7 +181,7 @@ func updateTestWeb(t *testing.T, archive []byte, sum string) (*Web, string, *boo
 		}
 		return "1.70.0", nil
 	}
-	startProgram = func(string) error { started = true; return nil }
+	startProgram = func(string) error { started.Store(true); return nil }
 	stopProgram = func() {}
 	afterAnswer = func(then func()) { then() }
 	t.Cleanup(func() {
@@ -145,12 +192,13 @@ func updateTestWeb(t *testing.T, archive []byte, sum string) (*Web, string, *boo
 		stopProgram = saved[3].(func())
 		afterAnswer = saved[4].(func(func()))
 	})
-	files, ok := filesOfRelease(map[string]string{name: server.URL + "/1.70.0/" + name, "SHA256SUMS.txt": server.URL + "/1.70.0/SHA256SUMS.txt"}, name)
+	files, ok := filesOfRelease(map[string]string{name: server.URL + "/1.70.0/" + name, "SHA256SUMS.txt": server.URL + "/1.70.0/SHA256SUMS.txt",
+		sumsSignatureName: server.URL + "/1.70.0/" + sumsSignatureName}, name)
 	if !ok {
 		t.Fatal("files of the release")
 	}
 	web.updates.latest = &AppUpdate{Version: "1.70.0", files: files}
-	return web, program, &started
+	return web, program, started, release
 }
 
 // The new program replaces the one that runs, which stays as .old, and is started.
@@ -167,7 +215,7 @@ func TestInstallUpdate(t *testing.T) {
 	if data, _ := os.ReadFile(program + ".old"); string(data) != "old" {
 		t.Fatalf("the program of before: %q", data)
 	}
-	if !*started {
+	if !started.Load() {
 		t.Fatal("the new program was not started")
 	}
 }
@@ -185,7 +233,7 @@ func TestInstallUpdateRefused(t *testing.T) {
 	if err := web.installUpdate(); err != errUpdateProgram {
 		t.Fatalf("a program that does not run: %v", err)
 	}
-	if data, _ := os.ReadFile(program); string(data) != "old" || *started {
+	if data, _ := os.ReadFile(program); string(data) != "old" || started.Load() {
 		t.Fatalf("the program was changed: %q", data)
 	}
 	if _, err := os.Stat(program + ".new"); err == nil {
@@ -193,7 +241,7 @@ func TestInstallUpdateRefused(t *testing.T) {
 	}
 	// nothing is downloaded while a task works on the files
 	web.organizing.Store(true)
-	if err := web.installUpdate(); err != errOrganizeBusy {
+	if err := web.installUpdate(); err != errUpdateBusy {
 		t.Fatalf("while a task runs: %v", err)
 	}
 }
@@ -212,11 +260,11 @@ func TestRollBack(t *testing.T) {
 	if previousVersion() != settings.SLM_WEB_VERSION || web.organizing.Load() {
 		t.Fatalf("the version of before: %q", previousVersion())
 	}
-	*started = false
+	started.Store(false)
 	if err := web.rollBack(); err != nil {
 		t.Fatal(err)
 	}
-	if data, _ := os.ReadFile(program); string(data) != "old" || !*started {
+	if data, _ := os.ReadFile(program); string(data) != "old" || !started.Load() {
 		t.Fatalf("the program of before is back: %q", data)
 	}
 	if data, _ := os.ReadFile(program + ".old"); string(data) != "new" {
@@ -235,109 +283,74 @@ func TestReleaseSections(t *testing.T) {
 
 // At night the new version is installed by itself, only with the setting on and between 3 and 5.
 func TestInstallAtNight(t *testing.T) {
+	quickUpdateWait(t)
 	archive := tarArchive(t, map[string]string{"switch-library-manager-web/switch-library-manager-web": "new"})
 	sum := sha256.Sum256(archive)
 	web, _, started := updateTestWeb(t, archive, hex.EncodeToString(sum[:]))
 	night := time.Date(2026, 10, 27, 3, 30, 0, 0, time.Local)
-	if web.installAtNight(night) || *started {
+	if web.installAtNight(night) || started.Load() {
 		t.Fatal("installed with the setting off")
 	}
 	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.AutoInstallUpdates = true })
 	if web.installAtNight(night.Add(3 * time.Hour)) {
 		t.Fatal("installed in the day")
 	}
-	if selfUpdatable() && (!web.installAtNight(night) || !*started) {
+	if selfUpdatable() && (!web.installAtNight(night) || !started.Load()) {
 		t.Fatal("not installed at night")
 	}
 }
 
-// minisignKey makes a throwaway minisign key for a test: the public key as the second line of
-// minisign.pub, and a function that signs as minisign -S does (prehashed, or not with legacy).
-func minisignKey(t *testing.T) (string, func(data []byte, legacy bool) []byte) {
-	t.Helper()
-	public, private, err := ed25519.GenerateKey(rand.Reader)
-	if err != nil {
-		t.Fatal(err)
-	}
-	id := []byte{1, 2, 3, 4, 5, 6, 7, 8}
-	sign := func(data []byte, legacy bool) []byte {
-		algorithm, message := "ED", data
-		if legacy {
-			algorithm = "Ed"
-		} else {
-			hash := blake2b.Sum512(data)
-			message = hash[:]
-		}
-		signature := ed25519.Sign(private, message)
-		comment := "timestamp:1793000000\tfile:SHA256SUMS.txt\thashed"
-		global := ed25519.Sign(private, append(append([]byte{}, signature...), comment...))
-		line := append(append([]byte(algorithm), id...), signature...)
-		return []byte("untrusted comment: signature from minisign secret key\n" + base64.StdEncoding.EncodeToString(line) + "\n" +
-			"trusted comment: " + comment + "\n" + base64.StdEncoding.EncodeToString(global) + "\n")
-	}
-	return base64.StdEncoding.EncodeToString(append(append([]byte("Ed"), id...), public...)), sign
-}
-
-func TestVerifyMinisign(t *testing.T) {
-	key, sign := minisignKey(t)
-	other, _ := minisignKey(t)
-	data := []byte(strings.Repeat("ab", 32) + "  switch-library-manager-web-linux-x64.tar.gz\n")
-	for _, legacy := range []bool{false, true} {
-		if err := verifyMinisign(key, data, sign(data, legacy)); err != nil {
-			t.Fatalf("a signature (legacy %v): %v", legacy, err)
-		}
-	}
-	signature := sign(data, false)
-	tampered := bytes.Replace(signature, []byte("hashed"), []byte("hashes"), 1)
-	cases := map[string]error{
-		"other data":             verifyMinisign(key, append([]byte("x"), data...), signature),
-		"another key":            verifyMinisign(other, data, signature),
-		"a changed comment":      verifyMinisign(key, data, tampered),
-		"no signature":           verifyMinisign(key, data, nil),
-		"a key that is not one":  verifyMinisign("RWQ", data, signature),
-		"a signature cut in two": verifyMinisign(key, data, signature[:60]),
-	}
-	for name, err := range cases {
-		if err == nil {
-			t.Errorf("%s is accepted", name)
-		}
-	}
-}
-
-// With a key in the app, an update is installed only with a signature of its checksums made with
-// that key; without a key, as before, the checksums are enough.
+// An update is installed only with a signature of its checksums made by a key of the app for
+// that version: a missing signature, another key, checksums changed after they were signed or a
+// signature of another version change nothing, and an app built without a key installs none.
 func TestInstallUpdateChecksTheSignature(t *testing.T) {
 	archive := tarArchive(t, map[string]string{"switch-library-manager-web/switch-library-manager-web": "new"})
 	sum := sha256.Sum256(archive)
-	sums := []byte(hex.EncodeToString(sum[:]) + "  " + systemArchive("linux", "amd64") + "\n")
-	key, sign := minisignKey(t)
-	saved := updateSigningKey
-	updateSigningKey = key
-	t.Cleanup(func() { updateSigningKey = saved })
-	serve := func(signature []byte) string {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.Write(signature) }))
-		t.Cleanup(server.Close)
-		return server.URL + "/1.70.0/" + sumsSignatureName
+	good := hex.EncodeToString(sum[:])
+	refusedAs := func(want error, what string, change func(web *Web, release *testRelease)) {
+		t.Helper()
+		web, program, started, release := signedUpdateTestWeb(t, archive, good)
+		change(web, release)
+		if err := web.installUpdate(); err != want {
+			t.Fatalf("%s: %v", what, err)
+		}
+		if data, _ := os.ReadFile(program); string(data) != "old" || started.Load() {
+			t.Fatalf("%s: the program was changed: %q", what, data)
+		}
+		if web.organizing.Load() || web.updateHold.Load() || web.state.IsSynchronizing() {
+			t.Fatalf("%s: the files are still held", what)
+		}
 	}
-
-	web, program, started := updateTestWeb(t, archive, hex.EncodeToString(sum[:]))
-	if web.updates.latest.CanInstall() || web.installUpdate() != errUpdateSigned {
-		t.Fatal("a release without a signature")
+	refused := func(what string, change func(web *Web, release *testRelease)) {
+		t.Helper()
+		refusedAs(errUpdateSigned, what, change)
 	}
-	web.updates.latest.files.signatureUrl = serve(sign(append([]byte("x"), sums...), false))
-	if err := web.installUpdate(); err != errUpdateSigned {
-		t.Fatalf("a signature of other checksums: %v", err)
-	}
-	if data, _ := os.ReadFile(program); string(data) != "old" || *started {
-		t.Fatalf("the program was changed: %q", data)
-	}
-	web.updates.latest.files.signatureUrl = serve(sign(sums, false))
-	if err := web.installUpdate(); err != nil {
-		t.Fatal(err)
-	}
-	if data, _ := os.ReadFile(program); string(data) != "new" || !*started {
-		t.Fatalf("the program: %q", data)
-	}
+	refused("a wrong key", func(_ *Web, release *testRelease) {
+		private, other := throwawayKey(t)
+		release.signature = selfupdate.Sign(private, other.ID, release.sums, selfupdate.Comment("1.70.0"))
+	})
+	refused("tampered checksums", func(_ *Web, release *testRelease) {
+		release.sums = []byte(strings.Repeat("00", 32) + "  " + systemArchive("linux", "amd64") + "\n")
+	})
+	refused("a signature of another version", func(_ *Web, release *testRelease) {
+		release.signature = release.sign(release.sums, "1.69.0")
+	})
+	// listed in the release, but not there: nothing is installed either
+	refusedAs(errUpdateDownload, "a missing signature", func(web *Web, release *testRelease) {
+		release.signature = nil
+	})
+	refused("a release without a signature", func(web *Web, _ *testRelease) {
+		web.updates.latest.files.signatureUrl = ""
+		if web.updates.latest.CanInstall() || web.installable() != errUpdateSigned {
+			t.Fatal("a release without a signature can be installed")
+		}
+	})
+	refused("an app built without a key", func(web *Web, _ *testRelease) {
+		updateSigningKeys = nil
+		if web.updates.latest.CanInstall() {
+			t.Fatal("an app without a key installs")
+		}
+	})
 
 	// the signature is taken only from the releases of the app
 	files, _ := filesOfRelease(map[string]string{"a.tar.gz": releaseDownloads + "a.tar.gz", "SHA256SUMS.txt": releaseDownloads + "SHA256SUMS.txt",
@@ -345,8 +358,16 @@ func TestInstallUpdateChecksTheSignature(t *testing.T) {
 	if files.signatureUrl != "" || files.signed() {
 		t.Fatal("a signature from anywhere else")
 	}
-	updateSigningKey = ""
-	if !files.signed() {
-		t.Fatal("without a key the checksums are enough")
+
+	// a good one is installed
+	web, program, started, _ := signedUpdateTestWeb(t, archive, good)
+	if !web.updates.latest.files.signed() {
+		t.Fatal("a signed release is not taken")
+	}
+	if err := web.installUpdate(); err != nil {
+		t.Fatal(err)
+	}
+	if data, _ := os.ReadFile(program); string(data) != "new" || !started.Load() {
+		t.Fatalf("the program: %q", data)
 	}
 }

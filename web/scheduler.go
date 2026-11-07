@@ -47,13 +47,17 @@ func (web *Web) StartScheduler() {
 			if verifyDue(appSettings, web.verifications().lastRun(), now) && inBackgroundHours(appSettings, now) && !web.state.IsSynchronizing() && web.startVerificationOf(nil, time.Duration(appSettings.VerifyIntervalDays)*24*time.Hour, tasklog.TRIGGER_SCHEDULE) {
 				web.sugarLogger.Info("[Scheduled verification started]")
 			}
-			if now.Sub(backupFailed) >= time.Hour && web.autoBackupDue(now) {
+			// while an update holds the files, nothing is written nor deleted by itself
+			held := web.updateHold.Load()
+			if !held && now.Sub(backupFailed) >= time.Hour && web.autoBackupDue(now) {
 				if err := web.makeAutoBackup(now); err != nil {
 					backupFailed = now
 					web.sugarLogger.Errorf("Automatic backup failed: %v", err)
 				}
 			}
-			web.resumeBackgroundWork(now)
+			if !held {
+				web.resumeBackgroundWork(now)
+			}
 			// a rescan left for the end of a scan while none runs, so none will end to do it
 			if !web.state.IsSynchronizing() {
 				web.rescanIfPending()
@@ -65,6 +69,9 @@ func (web *Web) StartScheduler() {
 				web.runQueue()
 			}
 			web.checkDiskSpace()
+			if held {
+				continue
+			}
 			if gone := web.quarantine().expire(appSettings.Quarantine, now); gone > 0 {
 				web.sugarLogger.Infof("[Quarantine] %d files expired", gone)
 			}
