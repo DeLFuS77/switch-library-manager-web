@@ -4,7 +4,7 @@
 
 ### Improvements
 
-- Update now and the install at night take only a version signed by the app: each release now signs its checksums with the key of the project (SHA256SUMS.txt.minisig, minisign), and the app checks that signature, made for that version, before it replaces itself. A version without it, or with a wrong one, is never installed: the app only tells of it, with How to update (thanks @NikoMuffin, who asked for signed updates in NXPress #91)
+- Update now and the install at night take only a version signed by the app: each release now signs its checksums with the key of the project (SHA256SUMS.txt.minisig, minisign), and the app checks that signature, made for that version, before it replaces itself. A version without it, or with a wrong one, is never installed: the app only tells of it, with How to update
 
 ### Fixes
 
