@@ -37,6 +37,11 @@ const (
 	nupFileTag = 0x80000000
 	// folders inside folders: a RomFS goes a few levels deep, a loop would go on for ever
 	nupMaxDepth = 128
+	// a name of a folder or a file, and a path inside a package: the file system of the console
+	// takes paths of 0x300 bytes at most, so no game has longer ones. A crafted NUP that gives
+	// every record a name of megabytes would fill the memory as it is read
+	nupMaxName = 0x300
+	nupMaxPath = 0x400
 
 	// far above any real file: a damaged or hostile one is refused before it is read whole. The
 	// largest known game has 372587 files, a table of 34 MB.
@@ -237,13 +242,18 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 	case (poolOffset-records)%4 != 0:
 		return nil, errors.New("NUP list of the children of the folders is malformed")
 	}
-	pool := toc[poolOffset : poolOffset+poolSize]
+	// the names are parts of the pool, which is made a string once: records that all name the
+	// same bytes, as a crafted NUP has them, take no more memory than the pool
+	pool := string(toc[poolOffset : poolOffset+poolSize])
 	name := func(record []byte) (string, error) {
 		offset, length := uint64(le.Uint32(record)), uint64(le.Uint32(record[4:]))
 		if offset+length > poolSize {
 			return "", errors.New("NUP name is outside the table of contents")
 		}
-		return string(pool[offset : offset+length]), nil
+		if length > nupMaxName {
+			return "", fmt.Errorf("NUP name is too long (%d bytes)", length)
+		}
+		return pool[offset : offset+length], nil
 	}
 	children := (poolOffset - records) / 4
 
@@ -302,6 +312,9 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 	}
 
 	position := nupTocHeadSize + packageCount*nupPackageSize
+	// each folder has its own range of children, as the format lays them out: folders whose
+	// ranges overlap would make every walk go through the same children again and again
+	slots := uint64(0)
 	for i := range result.Dirs {
 		record := toc[position:][:nupDirSize]
 		position += nupDirSize
@@ -312,6 +325,9 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 		dir := NupDir{Name: dirName, FirstChild: le.Uint32(record[0x08:]), ChildCount: le.Uint32(record[0x0C:])}
 		if uint64(dir.FirstChild)+uint64(dir.ChildCount) > children {
 			return nil, fmt.Errorf("NUP folder %q has its children outside the table of contents", dirName)
+		}
+		if slots += uint64(dir.ChildCount); slots > children {
+			return nil, errors.New("NUP folders share their children")
 		}
 		result.Dirs[i] = dir
 	}
@@ -361,6 +377,9 @@ func readNup(r io.ReaderAt, size int64) (*NupContainer, error) {
 		}
 		result.Children[i] = node
 	}
+	if err := result.checkWalks(); err != nil {
+		return nil, err
+	}
 	switch {
 	case codecFlags == 1:
 		result.strict = append(result.strict, nupIssue(nupIssueCodecFlag))
@@ -388,7 +407,8 @@ func (container *NupContainer) Walk(pkg int, fn func(path string, file int) erro
 		open
 		walked
 	)
-	state := make([]byte, len(container.Dirs))
+	// only the folders met: a NUP of many packages is walked once for each of them
+	state := map[uint32]byte{}
 	type frame struct {
 		dir    uint32
 		next   uint32
@@ -412,7 +432,11 @@ func (container *NupContainer) Walk(pkg int, fn func(path string, file int) erro
 		node := container.Children[dir.FirstChild+top.next]
 		top.next++
 		if node >= dirCount {
-			if err := fn(top.prefix+container.Files[node-dirCount].Name, int(node-dirCount)); err != nil {
+			name := container.Files[node-dirCount].Name
+			if len(top.prefix)+len(name) > nupMaxPath {
+				return errors.New("NUP path is too long")
+			}
+			if err := fn(top.prefix+name, int(node-dirCount)); err != nil {
 				return err
 			}
 			continue
@@ -426,8 +450,52 @@ func (container *NupContainer) Walk(pkg int, fn func(path string, file int) erro
 		if len(stack) >= nupMaxDepth {
 			return errors.New("NUP folders go too deep")
 		}
+		prefix := top.prefix + container.Dirs[node].Name + "/"
+		if len(prefix) > nupMaxPath {
+			return errors.New("NUP path is too long")
+		}
 		state[node] = open
-		stack = append(stack, frame{dir: node, prefix: top.prefix + container.Dirs[node].Name + "/"})
+		stack = append(stack, frame{dir: node, prefix: prefix})
+	}
+	return nil
+}
+
+// checkWalks refuses a tree whose walks would go through the same children again and again. In
+// a NUP as packers write it each package has a tree of its own, so the walks of all the packages
+// together go through each child once; a crafted NUP whose packages all share one big tree
+// would keep the reader at it for hours. Folders are walked as Walk does, without the paths.
+func (container *NupContainer) checkWalks() error {
+	budget := 4*len(container.Children) + 1024
+	// the package whose walk last met each folder: 2p+1 while it is open, 2p+2 once walked
+	stamp := make([]uint32, len(container.Dirs))
+	dirCount := uint32(len(container.Dirs))
+	type frame struct {
+		dir, next uint32
+	}
+	for p, pkg := range container.Packages {
+		open := uint32(2*p + 1)
+		stack := []frame{{dir: pkg.RootDir}}
+		stamp[pkg.RootDir] = open
+		for len(stack) > 0 {
+			top := &stack[len(stack)-1]
+			dir := container.Dirs[top.dir]
+			if top.next == dir.ChildCount {
+				stamp[top.dir] = open + 1
+				stack = stack[:len(stack)-1]
+				continue
+			}
+			node := container.Children[dir.FirstChild+top.next]
+			top.next++
+			if budget--; budget < 0 {
+				return errors.New("NUP packages share their folders too many times")
+			}
+			// a folder inside itself, or too deep, is told by Walk
+			if node >= dirCount || stamp[node] >= open || len(stack) >= nupMaxDepth {
+				continue
+			}
+			stamp[node] = open
+			stack = append(stack, frame{dir: node})
+		}
 	}
 	return nil
 }

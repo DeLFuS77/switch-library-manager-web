@@ -8,6 +8,7 @@
 
 ### Fixes
 
+- A NUP made to harm, such as one from the Internet, no longer makes the app take gigabytes of memory or hours while it scans or checks it: names and paths longer than the ones of the console, folders that share their children and packages that share their folders are refused, and the check of the code of a NUP decompresses it as it reads it
 - The update no longer restarts the app while anything goes on: Update now and Go back wait for the tasks running or waiting in the queue, the files waiting for the automations, an upload, a measure and the work the app does by itself, and tell how many tasks they wait for, with Cancel; at night it waits within the hours of the night, or tries again the next night. While it installs, no task starts: the ones asked meanwhile wait in the queue for the new version, and uploads, the quarantine and restoring a backup wait for it to start again
 - A NUP whose metadata types are counted from 0 is told, and can be fixed, also when a package has no NPDM, such as a DLC: a record 0x0007 that is not the 32 bytes of a build ID marks it, the same rule as NXPress and the fix of the reference packer (a55uka/nup#32)
 
