@@ -10,12 +10,15 @@ import (
 func TestVerifyNupLooksAtTheMetadata(t *testing.T) {
 	npdm := append([]byte("META"), make([]byte, 0x80)...)
 	packages := []testnup.Package{
+		// counted from 0 with an NPDM (type 0): its build ID (6) is read as 0x0007, 31 bytes, and
+		// the rest one up too. A record 0x0007 that is not 32 bytes makes a block without type 0
+		// read as counted from 0, so a damaged build ID shows in a block that has one
 		{TitleId: 0x0400486024DEC000, Kind: testnup.Base,
 			Meta: []testnup.Record{
-				{Type: 0x0001, Payload: npdm},
-				{Type: 0x0007, Payload: make([]byte, 31)},
-				{Type: 0x0005, Payload: []byte{0xFF, 0xFE, 'x'}},
-				{Type: 0x0009, Payload: []byte{2, 'j', 'a', 9, 0, 0, 0, 'x'}},
+				{Type: 0x0000, Payload: npdm},
+				{Type: 0x0006, Payload: make([]byte, 31)},
+				{Type: 0x0004, Payload: []byte{0xFF, 0xFE, 'x'}},
+				{Type: 0x0008, Payload: []byte{2, 'j', 'a', 9, 0, 0, 0, 'x'}},
 			},
 			Files: []testnup.File{{Path: "exefs/main.npdm", Data: npdm}}},
 		// a DLC of a packer that counted the types from 0: its source dump (7) reads as a build

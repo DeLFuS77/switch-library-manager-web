@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- A NUP whose metadata types are counted from 0 is told, and can be fixed, also when a package has no NPDM, such as a DLC: a record 0x0007 that is not the 32 bytes of a build ID marks it, the same rule as NXPress and the fix of the reference packer (a55uka/nup#32)
+
 ## 2.0.2
 
 ### Improvements

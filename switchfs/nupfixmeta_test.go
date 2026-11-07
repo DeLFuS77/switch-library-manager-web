@@ -199,3 +199,41 @@ func TestFixNupZeroBasedReadOnly(t *testing.T) {
 		t.Errorf("backup left: %v", err)
 	}
 }
+
+// A block without an NPDM, as the one of a DLC, has no type 0: its source dump at 0x0007, not the
+// 32 bytes of a build ID, tells it is counted from 0 (the rule of NXPress and of the reference
+// packer, a55uka/nup#32). The blocks counted from 1 are left as they are.
+func TestFixNupZeroBasedWithoutNpdm(t *testing.T) {
+	packages := nupPlayable()
+	dlc := len(packages) - 1
+	if packages[dlc].Kind != testnup.Addon {
+		t.Fatalf("the last package is a DLC: %+v", packages[dlc])
+	}
+	packages[dlc].Meta = []testnup.Record{tlv(7, []byte("Made-up DLC dump"))}
+	path := writeNup(t, testnup.Build(packages))
+	before, err := ReadNup(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !before.Packages[dlc].ZeroBased || string(before.Packages[dlc].Meta[0x0008]) != "Made-up DLC dump" {
+		t.Fatalf("the DLC is read counted from 0: %+v", before.Packages[dlc])
+	}
+	for i := 0; i < dlc; i++ {
+		if before.Packages[i].ZeroBased {
+			t.Fatalf("package %d is counted from 1", i)
+		}
+	}
+	if fixed, err := FixNupZeroBased(path); err != nil || fixed != 1 {
+		t.Fatalf("%d %v", fixed, err)
+	}
+	after, err := ReadNup(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if after.Packages[dlc].ZeroBased || string(after.Packages[dlc].Meta[0x0008]) != "Made-up DLC dump" {
+		t.Fatalf("%+v", after.Packages[dlc])
+	}
+	if fixed, err := FixNupZeroBased(path); err != nil || fixed != 0 {
+		t.Fatalf("fixed again: %d %v", fixed, err)
+	}
+}
