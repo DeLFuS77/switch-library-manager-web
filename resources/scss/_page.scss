@@ -255,14 +255,15 @@
 		border-color: var(--bs-secondary-color);
 	}
 
+	// the status chosen is in the blue of work, as the view: red is for errors and main actions
 	&.active {
-		color: #fff;
-		background: $primary;
-		border-color: $primary;
+		color: var(--bs-body-bg);
+		background: rgb(var(--slm-work-rgb));
+		border-color: rgb(var(--slm-work-rgb));
 
 		.filter-count {
-			background: rgba(255, 255, 255, .25);
-			color: #fff;
+			background: rgba(0, 0, 0, .2);
+			color: inherit;
 		}
 	}
 

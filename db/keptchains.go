@@ -42,7 +42,9 @@ func resolveKeptChains(skipped map[ExtendedFileInfo]SkippedFile) {
 		seen := map[string]bool{fullPath(file): true}
 		for {
 			next, ok := byPath[kept]
-			if !ok || seen[kept] {
+			// a base game of another version stays (see SkippedFile.OtherVersion): the copies of it
+			// keep naming it
+			if !ok || seen[kept] || next.OtherVersion {
 				break
 			}
 			seen[kept] = true

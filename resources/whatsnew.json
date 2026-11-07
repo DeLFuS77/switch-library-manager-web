@@ -1,4 +1,72 @@
 {
+  "2.0.2": {
+    "en": [
+      "The top of the Library is shorter: the status cards filter the list, and Filters sits beside the search.",
+      "Games in NUP files tell whether Eglantine and Lichii open them, and a button fixes the NUP files they show wrong.",
+      "Check the files tells a NUP made from a dump whose game code is damaged.",
+      "Games rebuilt with their update, as hacBrewPackLZ makes them, no longer show an update available."
+    ],
+    "es": [
+      "La parte de arriba de la Biblioteca es más corta: las tarjetas de estado filtran la lista, y Filtros está junto a la búsqueda.",
+      "Los juegos en NUP dicen si Eglantine y Lichii los abren, y un botón arregla los NUP que muestran mal.",
+      "Comprobar los archivos avisa de un NUP hecho de un volcado con el código del juego dañado.",
+      "Los juegos reconstruidos con su actualización, como los de hacBrewPackLZ, ya no salen con actualización disponible."
+    ],
+    "de": [
+      "Der obere Bereich der Bibliothek ist kürzer: Die Statuskarten filtern die Liste, und Filter steht neben der Suche.",
+      "Spiele in NUP-Dateien zeigen, ob Eglantine und Lichii sie öffnen, und ein Knopf repariert NUP-Dateien, die sie falsch anzeigen.",
+      "Dateien prüfen meldet ein NUP aus einem Dump, dessen Spielcode beschädigt ist.",
+      "Mit ihrem Update neu gebaute Spiele, wie hacBrewPackLZ sie erstellt, zeigen kein verfügbares Update mehr."
+    ],
+    "fr": [
+      "Le haut de la Bibliothèque est plus court : les cartes d’état filtrent la liste, et Filtres est à côté de la recherche.",
+      "Les jeux en NUP indiquent si Eglantine et Lichii les ouvrent, et un bouton corrige les NUP qu’ils affichent mal.",
+      "Vérifier les fichiers signale un NUP fait d’un dump dont le code du jeu est endommagé.",
+      "Les jeux reconstruits avec leur mise à jour, comme ceux de hacBrewPackLZ, n’affichent plus de mise à jour disponible."
+    ],
+    "it": [
+      "La parte alta della Libreria è più corta: le schede di stato filtrano l’elenco e Filtri è accanto alla ricerca.",
+      "I giochi in NUP dicono se Eglantine e Lichii li aprono, e un pulsante corregge i NUP che mostrano male.",
+      "Controlla i file segnala un NUP fatto da un dump con il codice del gioco danneggiato.",
+      "I giochi ricostruiti con il loro aggiornamento, come quelli di hacBrewPackLZ, non mostrano più un aggiornamento disponibile."
+    ],
+    "pt": [
+      "A parte de cima da Biblioteca é mais curta: os cartões de estado filtram a lista, e Filtros fica ao lado da pesquisa.",
+      "Os jogos em NUP dizem se o Eglantine e o Lichii os abrem, e um botão corrige os NUP que eles mostram errado.",
+      "Verificar os arquivos avisa de um NUP feito de um dump com o código do jogo danificado.",
+      "Jogos reconstruídos com a sua atualização, como os do hacBrewPackLZ, já não mostram atualização disponível."
+    ],
+    "nl": [
+      "De bovenkant van de Bibliotheek is korter: de statuskaarten filteren de lijst, en Filters staat naast het zoeken.",
+      "Games in NUP-bestanden laten zien of Eglantine en Lichii ze openen, en een knop herstelt NUP-bestanden die ze verkeerd tonen.",
+      "Controleer de bestanden meldt een NUP uit een dump waarvan de spelcode beschadigd is.",
+      "Games die met hun update opnieuw zijn gebouwd, zoals hacBrewPackLZ ze maakt, tonen geen beschikbare update meer."
+    ],
+    "ru": [
+      "Верх Библиотеки стал короче: карточки статуса фильтруют список, а Фильтры стоят рядом с поиском.",
+      "Игры в NUP показывают, открывают ли их Eglantine и Lichii, а кнопка исправляет NUP, которые они показывают неверно.",
+      "Проверить файлы сообщает о NUP из дампа с повреждённым кодом игры.",
+      "Игры, пересобранные вместе с обновлением, как их делает hacBrewPackLZ, больше не показывают доступное обновление."
+    ],
+    "ja": [
+      "ライブラリの上部が短くなりました。状態カードで一覧を絞り込み、フィルターは検索の横にあります。",
+      "NUPのゲームは、EglantineとLichiiで開けるかを表示し、表示がおかしくなるNUPはボタンで修正できます。",
+      "ファイルを確認で、ゲームのコードが壊れたダンプから作られたNUPを知らせます。",
+      "hacBrewPackLZのように更新データを組み込んで作り直したゲームに、更新データありと表示されなくなりました。"
+    ],
+    "ko": [
+      "라이브러리 위쪽이 짧아졌습니다. 상태 카드로 목록을 거르고, 필터는 검색 옆에 있습니다.",
+      "NUP 게임은 Eglantine과 Lichii가 여는지 알려 주고, 잘못 보이는 NUP는 버튼으로 고칠 수 있습니다.",
+      "파일 검사하기가 게임 코드가 손상된 덤프로 만든 NUP를 알려 줍니다.",
+      "hacBrewPackLZ처럼 업데이트를 넣어 다시 만든 게임에 더 이상 업데이트 있음이 표시되지 않습니다."
+    ],
+    "zh": [
+      "游戏库顶部更短了：状态卡片用来筛选列表，筛选位于搜索旁边。",
+      "NUP 中的游戏会显示 Eglantine 和 Lichii 能否打开，并可用按钮修复它们显示错误的 NUP。",
+      "检查文件会提示由游戏代码损坏的转储制作的 NUP。",
+      "像 hacBrewPackLZ 那样连同更新重建的游戏，不再显示有可用更新。"
+    ]
+  },
   "2.0.1": {
     "en": [
       "The console is chosen beside the views of the Library: Both, Switch or Switch 2, kept from one view to the other.",

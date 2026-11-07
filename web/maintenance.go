@@ -238,7 +238,7 @@ func (web *Web) uncheckedFiles() (unchecked int, damaged int) {
 		for _, candidate := range files {
 			record, ok := store.records[candidate.Path]
 			switch {
-			case !ok || record.stale():
+			case !ok || record.stale(candidate.Path):
 				counts[0]++
 			case !record.OK:
 				counts[1]++

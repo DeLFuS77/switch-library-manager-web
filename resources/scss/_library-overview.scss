@@ -33,42 +33,6 @@
 	}
 }
 
-.library-overview {
-	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: .75rem;
-	margin-bottom: 1.25rem;
-
-	@include media-breakpoint-up(lg) {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: 1rem;
-	}
-
-	// phones: the four numbers in one row that slides sideways, so the games start higher up; the
-	// third one peeks at the edge to show there is more
-	@include media-breakpoint-down(sm) {
-		grid-template-columns: none;
-		grid-auto-flow: column;
-		grid-auto-columns: 42%;
-		gap: .6rem;
-		overflow-x: auto;
-		scroll-snap-type: x mandatory;
-		scrollbar-width: none;
-		margin-inline: -1rem;
-		padding: 0 1rem .25rem;
-		scroll-padding-inline: 1rem;
-
-		&::-webkit-scrollbar {
-			display: none;
-		}
-
-		> .kpi {
-			scroll-snap-align: start;
-			padding: .75rem .85rem;
-		}
-	}
-}
-
 .kpi {
 	--kpi-color: #{$slm-red};
 	--kpi-soft: var(--slm-accent-soft);
@@ -171,12 +135,7 @@
 	}
 }
 
-.library-health {
-	grid-column: 1 / -1;
-	padding: .2rem .2rem 0;
-}
-
-// the cards with a number (the overview of the library, the stat cards of Statistics and of
+// the cards with a number (the status of the Library, the stat cards of Statistics and of
 // the other pages): the color drifts slowly behind each one at its own pace, a second glow
 // answers from the other corner, and pointing at a card makes its glow grow and its icon turn
 .stat-card {
@@ -269,7 +228,6 @@
 
 	// each card at another moment of the drift, so they never move together
 	@for $i from 1 through 4 {
-		.library-overview > .kpi-live:nth-child(#{$i}),
 		.row > .col:nth-child(#{$i}) > .stat-card {
 			&::after {
 				animation-delay: -#{$i * 2.3}s;
@@ -305,18 +263,3 @@
 		transform: translate(2.6rem, -1.6rem) scale(1.35);
 	}
 }
-
-.health-bar {
-	height: .5rem;
-	border-radius: 1rem;
-	background: var(--slm-surface-muted);
-	overflow: hidden;
-
-	span {
-		display: block;
-		height: 100%;
-		border-radius: inherit;
-		background: linear-gradient(90deg, $slm-cyan, $success);
-	}
-}
-

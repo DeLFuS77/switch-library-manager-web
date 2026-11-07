@@ -46,6 +46,8 @@ type IgdbTitle struct {
 	Developer   string    `json:"developer,omitempty"`
 	Summary     string    `json:"summary,omitempty"`
 	Cover       string    `json:"cover,omitempty"`
+	// the name it was searched by: a game not found is asked again when its name changes
+	Name string `json:"name,omitempty"`
 }
 
 type igdbTitleStore struct {
@@ -94,9 +96,10 @@ func (s *igdbTitleStore) save() error {
 
 // needsLookup tells a game never asked, not found a while ago, or asked by an older version of
 // the app (see igdbTitleVersion).
-func (s *igdbTitleStore) needsLookup(prefix string, now time.Time) bool {
+func (s *igdbTitleStore) needsLookup(prefix string, name string, now time.Time) bool {
 	game, ok := s.get(prefix)
-	return !ok || !game.Found && now.Sub(game.Checked) > igdbTitleRetry || game.Version < igdbTitleVersion
+	return !ok || game.Version < igdbTitleVersion ||
+		!game.Found && (now.Sub(game.Checked) > igdbTitleRetry || game.Name != name)
 }
 
 // igdbGenres are the genres and themes of IGDB in the genres of the app; the others (Indie...)
@@ -327,7 +330,7 @@ func (web *Web) libraryTitlesToLookUp(now time.Time) map[string]string {
 	}
 	store := web.igdbTitles()
 	for prefix, title := range switchDB.TitlesMap {
-		if title.FromLibrary && usableName(title.Attributes.Name) && store.needsLookup(prefix, now) {
+		if title.FromLibrary && usableName(title.Attributes.Name) && store.needsLookup(prefix, title.Attributes.Name, now) {
 			pending[prefix] = title.Attributes.Name
 		}
 	}
@@ -384,6 +387,7 @@ func (web *Web) lookupLibraryTitles(ctx context.Context, client *igdbClient, tel
 			web.sugarLogger.Debugf("IGDB lookup of the title %q failed: %s", name, err)
 			continue
 		}
+		found.Name = name
 		store.set(prefix, found)
 		if localDB != nil && found.Found && found.Cover != "" {
 			if local, ok := localDB.TitlesMap[prefix]; ok && local.BaseExist && local.Icon == "" {

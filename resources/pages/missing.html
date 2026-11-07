@@ -11,11 +11,10 @@
 					{{- template "statusFilter" (dict "Filter" .Filter "Value" "wanted" "Label" (t "Wishlist") "Icon" "bi-heart" "Count" .WishedCount)}}
 				</ul>
 				<a class="btn btn-sm btn-outline-secondary rounded-pill" href="/upcoming.html"><span class="bi bi-calendar-event me-1" aria-hidden="true"></span>{{t "Upcoming releases"}}</a>
-				{{- template "filterPanel" (dict "Filter" .Filter "Facets" .Facets "Library" false)}}
 			</div>
 			{{- template "activeFilters" (dict "Filter" .Filter "Library" false)}}
 			{{- if gt (len .TitleItems) 0}}
-			{{- with .Recommendations}}{{template "recommendations" .}}{{end}}
+			{{- with .Recommendations}}{{template "recommendations" (dict "Items" . "Open" $.Filter.RecsOpen)}}{{end}}
 			{{- template "markLegend" (dict "Missing" "" "Favorites" false)}}
 			<div class="game-grid">
 				{{- range .TitleItems}}

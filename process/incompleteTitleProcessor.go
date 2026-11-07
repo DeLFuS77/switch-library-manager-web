@@ -71,6 +71,10 @@ func ScanForMissingUpdates(localDB map[string]*db.SwitchGameFiles,
 		if len(localVersions) != 0 {
 			switchTitle.LocalUpdate = localVersions[len(localVersions)-1]
 		}
+		// a game rebuilt with its update in it holds that update (see UpdateLevel)
+		if level := switchFile.UpdateLevel(); level > switchTitle.LocalUpdate {
+			switchTitle.LocalUpdate = level
+		}
 
 		//process updates
 		if len(remoteVersions) != 0 {

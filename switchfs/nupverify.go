@@ -16,7 +16,10 @@ import (
 
 // The check of a NUP is the one of NXPress: every piece of data read once, in the order it is
 // stored, and the SHA-256 of each file, decompressed when stored with zstd, compared with the
-// one its table of contents keeps.
+// one its table of contents keeps. The code modules of each ExeFS are read as their loader
+// reads them as they go by (nso.go): the hashes of a NUP are of the files as they were packed,
+// and a dump that lost bytes of its code gives a NUP whose hashes match but whose game does not
+// start.
 
 const (
 	// the data handed to a worker at once
@@ -40,6 +43,9 @@ type NupDamaged struct {
 	// its path inside the package: romfs/Data/stage.bin
 	Path   string
 	Reason string
+	// a code module of an ExeFS whose data is as it was packed, but that its own header tells
+	// damaged: the dump the NUP was made of lacks bytes of it
+	Code bool
 }
 
 func (d NupDamaged) String() string {
@@ -49,16 +55,43 @@ func (d NupDamaged) String() string {
 	return d.Package + "/" + d.Path + ": " + d.Reason
 }
 
+// NupCodeDamaged starts the error of a NUP whose files are whole but whose code is damaged.
+const NupCodeDamaged = "the code of the game is damaged in the dump this NUP was made of: dump the game again"
+
 // NupDamagedError is a NUP with damaged files: the first of them, and how many there are.
 type NupDamagedError struct {
 	Damaged []NupDamaged
 }
 
-func (e *NupDamagedError) Error() string {
-	if len(e.Damaged) == 1 {
-		return e.Damaged[0].String()
+// CodeOnly tells a NUP whose files are all as they were packed, but whose code is damaged.
+func (e *NupDamagedError) CodeOnly() bool {
+	for _, d := range e.Damaged {
+		if !d.Code {
+			return false
+		}
 	}
-	return fmt.Sprintf("%s (and %d more damaged files)", e.Damaged[0], len(e.Damaged)-1)
+	return len(e.Damaged) > 0
+}
+
+func (e *NupDamagedError) Error() string {
+	if e.CodeOnly() {
+		if len(e.Damaged) == 1 {
+			return fmt.Sprintf("%s (%s)", NupCodeDamaged, e.Damaged[0])
+		}
+		return fmt.Sprintf("%s (%s, and %d more damaged modules)", NupCodeDamaged, e.Damaged[0], len(e.Damaged)-1)
+	}
+	// the damaged data first: the code is told damaged by its data
+	first := e.Damaged[0]
+	for _, d := range e.Damaged {
+		if !d.Code {
+			first = d
+			break
+		}
+	}
+	if len(e.Damaged) == 1 {
+		return first.String()
+	}
+	return fmt.Sprintf("%s (and %d more damaged files)", first, len(e.Damaged)-1)
 }
 
 // nupExtent is a piece of data of the NUP to read and check, with the files it is the data of.
@@ -69,6 +102,9 @@ type nupExtent struct {
 	// why the data is damaged, "" when it is whole; and its SHA-256, once read whole
 	reason string
 	sum    [32]byte
+	// the data of a code module, and what its header tells wrong with it
+	code        bool
+	codeProblem string
 }
 
 // nupFeed is the data of one piece, handed by the reader to a worker chunk after chunk.
@@ -96,7 +132,23 @@ func VerifyNup(ctx context.Context, path string, progress func(done int64, total
 	}
 	container, err := readNup(file, info.Size())
 	if err != nil {
+		if NupEmulatorsRefuse(err) {
+			err = fmt.Errorf("%w; %s", err, NupEmulatorsRefuseToo)
+		}
 		return check, err
+	}
+	emulators := container.Emulators()
+	check.Emulators = &emulators
+
+	// the code modules of the ExeFS of each package
+	code := make([]bool, len(container.Files))
+	for i := range container.Packages {
+		if err := container.Walk(i, func(path string, index int) error {
+			code[index] = code[index] || IsCodeModule(path)
+			return nil
+		}); err != nil {
+			return check, err
+		}
 	}
 
 	// the pieces of data to read, each once, in the order they are stored
@@ -121,6 +173,7 @@ func VerifyNup(ctx context.Context, path string, progress func(done int64, total
 			byKey[k] = job
 		}
 		job.files = append(job.files, i)
+		job.code = job.code || code[i]
 	}
 	jobs := make([]*nupExtent, 0, len(byKey))
 	total := int64(0)
@@ -148,6 +201,8 @@ func VerifyNup(ctx context.Context, path string, progress func(done int64, total
 	}); err != nil {
 		return check, err
 	}
+	// a module whose data is not what was packed is damaged by its data, not by the dump
+	codeReasons := make([]string, len(container.Files))
 	for _, job := range jobs {
 		for _, index := range job.files {
 			switch {
@@ -155,6 +210,8 @@ func VerifyNup(ctx context.Context, path string, progress func(done int64, total
 				reasons[index] = job.reason
 			case container.Files[index].Hash != job.sum:
 				reasons[index] = "its SHA-256 does not match"
+			case code[index]:
+				codeReasons[index] = job.codeProblem
 			}
 		}
 	}
@@ -165,8 +222,12 @@ func VerifyNup(ctx context.Context, path string, progress func(done int64, total
 	for i, pkg := range container.Packages {
 		label := nupLabel(pkg)
 		err := container.Walk(i, func(path string, index int) error {
-			if !placed[index] && reasons[index] != "" {
+			switch {
+			case placed[index]:
+			case reasons[index] != "":
 				damaged = append(damaged, NupDamaged{Package: label, Path: path, Reason: reasons[index]})
+			case codeReasons[index] != "":
+				damaged = append(damaged, NupDamaged{Package: label, Path: path, Reason: codeReasons[index], Code: true})
 			}
 			placed[index] = true
 			return nil
@@ -318,7 +379,14 @@ func (h *nupHasher) check(f *nupFeed) {
 	var (
 		n   int64
 		err error
+		// a code module is read by its header as it is hashed
+		into   io.Writer = hash
+		module *nsoCheck
 	)
+	if job.code {
+		module = newNsoCheck(int64(job.size))
+		into = io.MultiWriter(hash, module)
+	}
 	if job.codec == nupCodecZstd {
 		if h.decoder == nil {
 			if h.decoder, err = zstd.NewReader(nil, zstd.WithDecoderConcurrency(1), zstd.WithDecoderMaxWindow(nupMaxWindow),
@@ -330,10 +398,10 @@ func (h *nupHasher) check(f *nupFeed) {
 		}
 		if err = h.decoder.Reset(source); err == nil {
 			// one byte more than the file has tells data that goes on past it
-			n, err = io.CopyBuffer(hash, io.LimitReader(h.decoder, int64(job.size)+1), h.out)
+			n, err = io.CopyBuffer(into, io.LimitReader(h.decoder, int64(job.size)+1), h.out)
 		}
 	} else {
-		n, err = source.hashAll(hash)
+		n, err = source.hashAll(into)
 	}
 	source.drain()
 	switch {
@@ -345,6 +413,9 @@ func (h *nupHasher) check(f *nupFeed) {
 		job.reason = fmt.Sprintf("its data decompresses to %d bytes instead of %d", n, job.size)
 	default:
 		copy(job.sum[:], hash.Sum(nil))
+		if module != nil {
+			job.codeProblem = module.result()
+		}
 	}
 }
 

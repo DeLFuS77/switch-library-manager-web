@@ -9,6 +9,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
 // the kinds of issues, for the summary at the top of the Issues page and its filter
@@ -131,6 +132,8 @@ func issueCause(kind, reason, lang string) string {
 		return i18n.Translatef(lang, "Cut short: the file ends before its contents do.")
 	case kind == ISSUE_UNREADABLE && strings.Contains(reason, "invalid NCA magic"):
 		return i18n.Translatef(lang, "Its contents cannot be decrypted: a damaged copy, or encrypted with keys other than yours.")
+	case kind == ISSUE_DAMAGED && strings.Contains(reason, switchfs.NupCodeDamaged):
+		return i18n.Translate(lang, NOTE_VERIFY_CODE)
 	}
 	return ""
 }

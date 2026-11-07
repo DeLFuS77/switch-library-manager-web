@@ -22,7 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.1
+  <Changes>### 2.0.2
+- Shorter top of the Library: the status cards filter the list, and Filters sits beside the search
+- Games in NUP files tell whether Eglantine and Lichii open them, with a fix for the ones counted from 0
+- Damaged game code in NUP files is told, and games rebuilt with their update count it
+### 2.0.1
 - Console (Both, Switch, Switch 2) beside the views of the Library
 - With several library folders, uploads ask where, and Organize keeps each file on its disk
 - Progress of long copies and of the IGDB lookups; safer redirects after signing in and out
@@ -125,7 +129,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-11-06</Date>
+  <Date>2026-11-07</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>

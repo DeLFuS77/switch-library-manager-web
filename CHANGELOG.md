@@ -1,5 +1,26 @@
 # Changelog
 
+## 2.0.2
+
+### Improvements
+
+- The top of the Library is shorter: the four status cards (Any status, With an update, Missing some DLC, Up to date) are the filter of the list, each with its help on the ⓘ, and Filters sits beside the search, its panel in the order the filters are used and with how many games they leave
+- "You might like" is folded on one line, and the choices made in the Library are in blue: red is kept for errors and the main actions
+- The page of a game in a NUP tells whether Eglantine and Lichii, the emulators that open NUP files, open it and can start its game, and why not, in orange; Check the files tells it too
+- A NUP whose metadata types are counted from 0, as an early build of the packer of the format wrote them, is told, and a button on the page of its game fixes it in place, as NXPress does, so the emulators show its name, version and icon right (administrators only)
+- Shorter texts under the pages of the Discover and Tools menus, and the help of "Scan automatically when files change" says which folders it watches (thanks @NikoMuffin, who suggested both for NXPress)
+
+### Fixes
+
+- Each number at the top of the Library matches the games its click shows: copies from other regions, hidden demos and the console chosen are counted as the list shows them
+- Check the files reads the code of NUP files and tells a NUP made from a dump whose code lost bytes, a game that stops as it starts: it must be dumped again. NUP files found sound before are checked again
+- A game whose files carry no name, such as a NUP made from a dump without its control data, gets a readable name from its file, and its cover from IGDB
+- A game rebuilt with its update in it, as hacBrewPackLZ makes it, no longer shows an update available, the original copy beside it is never deleted as its duplicate, and a game stored with the LZ4 of its NCA is not offered to compress (thanks @VRtinker, #162)
+
+### Next
+
+- Reading NUP v2, the new version of the format, once its specification settles
+
 ## 2.0.1
 
 ### Improvements

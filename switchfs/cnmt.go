@@ -43,6 +43,15 @@ type ContentMetaAttributes struct {
 	// for a package of a NUP: the bytes of the file its data takes, the data it shares with the
 	// game counted with the game (see NupContainer.Metadata); 0 for any other file
 	StoredSize int64 `json:"stored_size,omitempty"`
+	// for a package of a NUP: whether Eglantine and Lichii open the NUP and can start its game,
+	// the same for all its packages; nil for any other file
+	Emulators *NupEmulators `json:"emulators,omitempty"`
+	// for a game or an update in an NSP: whether its program is stored with the LZ4 of the
+	// compressed storage of the NCA (firmware 12 and later), as tools that rebuild a game to stay
+	// small once installed write it: it is compressed already. NcaLz4Read tells it was looked at,
+	// false in data cached before
+	NcaLz4     bool `json:"nca_lz4,omitempty"`
+	NcaLz4Read bool `json:"nca_lz4_read,omitempty"`
 }
 
 type ContentMeta struct {

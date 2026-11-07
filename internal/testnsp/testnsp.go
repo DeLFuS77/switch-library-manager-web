@@ -43,6 +43,13 @@ func WriteNspOf(path string, content string) ([]byte, error) {
 }
 
 func programNca(plain []byte) []byte {
+	return programNcaOf(plain, false)
+}
+
+// programNcaOf is programNca whose section, when lz4, tells in its FS header a table of the
+// compressed storage of firmware 12 (its size and a BKTR header), as tools that rebuild a game to
+// stay small once installed write it. The data is not compressed: only the header tells it.
+func programNcaOf(plain []byte, lz4 bool) []byte {
 	areaKey, _ := hex.DecodeString(AreaKey)
 	contentKey, _ := hex.DecodeString(ContentKey)
 	header := make([]byte, 0xC00)
@@ -53,6 +60,11 @@ func programNca(plain []byte) []byte {
 	header[0x403] = 2
 	header[0x404] = 3
 	binary.LittleEndian.PutUint32(header[0x540:], 1)
+	if lz4 {
+		binary.LittleEndian.PutUint64(header[0x400+0x178:], uint64(len(plain)))
+		binary.LittleEndian.PutUint64(header[0x400+0x180:], 0x30)
+		copy(header[0x400+0x188:], "BKTR")
+	}
 	fsHash := sha256.Sum256(header[0x400:0x600])
 	copy(header[0x280:], fsHash[:])
 	areaCipher, _ := aes.NewCipher(areaKey)
@@ -182,6 +194,8 @@ type Title struct {
 	Version uint32
 	// the text the program NCA of the title is made of
 	Content string
+	// the program NCA tells the compressed storage of firmware 12 (see programNcaOf)
+	Lz4 bool
 }
 
 // WriteMultiTitleNsp writes an NSP holding several titles, like a SuperNSP: for each one a
@@ -196,7 +210,7 @@ func WriteMultiTitleNsp(path string, titles []Title) ([]byte, error) {
 		for i := range plain {
 			plain[i] = text[i%len(text)]
 		}
-		program := programNca(plain)
+		program := programNcaOf(plain, title.Lz4)
 		programSum := sha256.Sum256(program)
 
 		cnmt := make([]byte, 0x20+0x38)

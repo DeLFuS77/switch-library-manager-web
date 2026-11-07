@@ -84,7 +84,7 @@ func TestConsoleBesideTheViews(t *testing.T) {
 		return out.String()
 	}
 	panel := func(filter *TitleItemFilter, facets LibraryFacets) string {
-		data := map[string]any{"Filter": filter, "Facets": facets, "Library": true, "Page": "index"}
+		data := map[string]any{"Filter": filter, "Facets": facets, "Library": true, "Page": "index", "Count": 0}
 		return render("filterPanel", data) + render("activeFilters", data)
 	}
 	if out := panel(defaultFilter(), LibraryFacets{Games: 4, Demos: 1, Switch1: 4, Switch2: 1}); strings.Contains(out, "console=") {

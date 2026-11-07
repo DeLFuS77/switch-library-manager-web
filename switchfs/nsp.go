@@ -46,6 +46,7 @@ func ReadNspMetadata(filePath string) (map[string]*ContentMetaAttributes, error)
 					zap.S().Debug("Failed to extract nacp [%v]\n", err.Error())
 				}
 				currCnmt.Ncap = nacp
+				noteNcaLz4(currCnmt, file, pfs0, 0)
 			}
 
 			contentMap[currCnmt.TitleId] = currCnmt

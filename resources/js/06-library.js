@@ -426,3 +426,26 @@ function initActivityFilter() {
 		el.addEventListener('change', apply);
 	});
 }
+
+// the recommendations of the Library and the Missing games, folded on one line: opened, they stay
+// open on the next pages (the cookie slm-recs, read by the server)
+function initRecommendationsFold() {
+	document.querySelectorAll('[data-rec-fold]').forEach(fold => {
+		fold.addEventListener('toggle', () => {
+			document.cookie = fold.open ? 'slm-recs=open; path=/; max-age=31536000; SameSite=Lax' : 'slm-recs=; path=/; max-age=0; SameSite=Lax';
+		});
+	});
+}
+
+// the panel of filters of the Library fits in the window under its button, so its foot (the games
+// left, Clear filters) is in sight and the choices scroll inside it
+function initFilterPanelRoom() {
+	document.addEventListener('shown.bs.dropdown', event => {
+		const menu = event.target.closest('.filter-panel')?.querySelector('.filter-panel-menu');
+		if (menu) {
+			// from the button: the menu may not be in its place yet
+			const below = window.innerHeight - event.target.getBoundingClientRect().bottom - 16;
+			menu.style.maxHeight = Math.max(240, Math.min(608, below)) + 'px';
+		}
+	});
+}

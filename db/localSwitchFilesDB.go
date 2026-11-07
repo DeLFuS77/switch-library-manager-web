@@ -187,6 +187,21 @@ type SwitchGameFiles struct {
 	Banner       string
 }
 
+// UpdateLevel is the version of the newest update the library holds for the game: its newest
+// update file, or the game itself when it was rebuilt with its update in it and takes the
+// version of that update (see SkippedFile.OtherVersion). LatestUpdate stays the key of the
+// newest update file in Updates.
+func (t *SwitchGameFiles) UpdateLevel() int {
+	if t == nil {
+		return 0
+	}
+	level := t.LatestUpdate
+	if t.BaseExist && t.File.Metadata != nil && t.File.Metadata.Version > level {
+		level = t.File.Metadata.Version
+	}
+	return level
+}
+
 type SkippedFile struct {
 	ReasonCode     int
 	ReasonText     string
@@ -194,6 +209,9 @@ type SkippedFile struct {
 	// the file could not be read as it ends before its contents do (see CutShort): told by the
 	// error of the reader, never by the text of the reason, which has the path of the file
 	CutShort bool
+	// a duplicate base game of another version than the copy kept: a game rebuilt with its update
+	// in it, and the game as it was (see addBase). Both stay, neither is deleted for the other
+	OtherVersion bool `json:",omitempty"`
 }
 
 // endsOfFile matches the text of an error of a reader that met the end of the file, at its end:
@@ -1046,6 +1064,18 @@ func (s *libraryScan) addUpdate(switchTitle *SwitchGameFiles, file ExtendedFileI
 func (s *libraryScan) addBase(switchTitle *SwitchGameFiles, idPrefix string, file ExtendedFileInfo, metadata *switchfs.ContentMetaAttributes) {
 	skipped := s.skipped
 	metadata.Type = "Base"
+	// a game rebuilt with its update in it takes the version of the update, while the game as it
+	// was is version 0: they are not copies of each other, both stay, and the newer is the game
+	// of the library, the update it holds counted as its update
+	if switchTitle.BaseExist && switchTitle.File.Metadata != nil && switchTitle.File.Metadata.Version != metadata.Version {
+		if metadata.Version > switchTitle.File.Metadata.Version {
+			skipped[switchTitle.File.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "base file of another version (" + fullPath(file) + ")", OtherVersion: true}
+			switchTitle.File = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
+			return
+		}
+		skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "base file of another version (" + fullPath(switchTitle.File.ExtendedInfo) + ")", OtherVersion: true}
+		return
+	}
 	if switchTitle.BaseExist && s.keepInstead(switchTitle.File.ExtendedInfo, file) {
 		skipped[switchTitle.File.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate base file (" + fullPath(file) + ")"}
 		switchTitle.File = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
@@ -1109,10 +1139,18 @@ func OtherFormat(a string, b string) bool {
 	return switchfs.IsNupFile(a) != switchfs.IsNupFile(b)
 }
 
-// KeptInOtherFormat tells a duplicate whose copy kept is of the other format (see OtherFormat).
+// KeptInOtherFormat tells a duplicate whose copy kept is of the other format (see OtherFormat),
+// or a base game of another version than the copy kept (see SkippedFile.OtherVersion): neither
+// is deleted for the other.
 func KeptInOtherFormat(file ExtendedFileInfo, skipped SkippedFile) bool {
+	if skipped.ReasonCode != REASON_DUPLICATE {
+		return false
+	}
+	if skipped.OtherVersion {
+		return true
+	}
 	kept := KeptBy(skipped.ReasonText)
-	return skipped.ReasonCode == REASON_DUPLICATE && kept != "" && OtherFormat(file.FileName, kept)
+	return kept != "" && OtherFormat(file.FileName, kept)
 }
 
 // PreferDuplicate tells whether the copy file is kept instead of found, the copy of the same
@@ -1186,6 +1224,23 @@ func needsNacp(metadata map[string]*switchfs.ContentMetaAttributes, generation i
 	return false
 }
 
+// needsNcaLz4 tells cached data of an NSP read before the app looked whether the program of its
+// game or update is stored with the LZ4 of its NCA (see ContentMetaAttributes.NcaLz4): it is
+// read again, once.
+func needsNcaLz4(fileName string, metadata map[string]*switchfs.ContentMetaAttributes) bool {
+	if !strings.HasSuffix(strings.ToLower(fileName), ".nsp") {
+		return false
+	}
+	for _, meta := range metadata {
+		if meta != nil && !meta.NcaLz4Read {
+			if kind, _ := metadataKind(meta); kind != KIND_DLC {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // noteNacpTried notes in the data of a file just read the generation of the keys its games and
 // updates without a NACP were read with.
 func noteNacpTried(metadata map[string]*switchfs.ContentMetaAttributes, generation int) {
@@ -1240,7 +1295,11 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 			result.cacheKey = fileKey
 			return result
 		}
-		result.skip = &SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: readErrorText("NUP", err), CutShort: CutShort(err, "")}
+		reason := readErrorText("NUP", err)
+		if switchfs.NupEmulatorsRefuse(err) {
+			reason += "; " + switchfs.NupEmulatorsRefuseToo
+		}
+		result.skip = &SkippedFile{ReasonCode: REASON_MALFORMED_FILE, ReasonText: reason, CutShort: CutShort(err, "")}
 		zap.S().Warnf("[file:%v] failed to read NUP [reason: %v]", file.FileName, err)
 	} else if keys != nil && keys.GetKey("header_key") != "" {
 		_, _, generation := settings.KeysSummary()
@@ -1248,7 +1307,7 @@ func (ldb *LocalSwitchDBManager) readGameMetadata(file ExtendedFileInfo) metadat
 		if err := ldb.db.GetEntry(DB_TABLE_FILE_SCAN_METADATA, fileKey, &metadata); err != nil {
 			zap.S().Warnf("%v", err)
 		}
-		if metadata != nil && !ldb.needsAttributes(metadata) && !needsNacp(metadata, generation) {
+		if metadata != nil && !ldb.needsAttributes(metadata) && !needsNacp(metadata, generation) && !needsNcaLz4(file.FileName, metadata) {
 			result.metadata = metadata
 			return result
 		}
@@ -1332,6 +1391,30 @@ func ParseTitleNameFromFileName(fileName string) string {
 		return fileName[:ind]
 	}
 	return fileName
+}
+
+// fileNameVersion is the version a dump or a file name may end with: "_v1.1.0", " v1.0.2",
+// "Resortv1.1.0". A number with no dot ("FIFA 23", "Game 2") is part of the name.
+var fileNameVersion = regexp.MustCompile(`[\s_.-]*[vV]?\d+(?:\.\d+)+$`)
+
+// camelBreak is where a name written without spaces changes from a small letter to a capital.
+var camelBreak = regexp.MustCompile(`(\p{Ll})(\p{Lu})`)
+
+// ReadableTitleName is a name taken from a file or dump name made readable, for a game whose
+// files give no name of their own: underscores are spaces, a version at its end goes, and a
+// name of three words or more written together ("NintendoSwitchSportsResort") is parted into
+// its words. A name with spaces keeps its letters as they are ("McPixel", "eBaseball").
+func ReadableTitleName(name string) string {
+	name = strings.TrimSpace(name)
+	clean := strings.TrimSpace(fileNameVersion.ReplaceAllString(strings.ReplaceAll(name, "_", " "), ""))
+	if !strings.ContainsAny(clean, " \t") && len(camelBreak.FindAllStringIndex(clean, -1)) >= 2 {
+		clean = camelBreak.ReplaceAllString(clean, "$1 $2")
+	}
+	clean = strings.Join(strings.Fields(clean), " ")
+	if clean == "" {
+		return name
+	}
+	return clean
 }
 
 func fullPath(file ExtendedFileInfo) string {

@@ -38,6 +38,51 @@ type TitleFile struct {
 	// the parts of a NUP, the game first, with what each takes of the file: told instead of
 	// AlsoHolds
 	Parts []TitleFilePart
+	// for a NUP: whether Eglantine and Lichii open it and can start its game
+	Emulators *TitleEmulators
+}
+
+// TitleEmulators is what Eglantine and Lichii, the emulators that open NUP files, make of one,
+// for its row in Files: whether they read it well, and what keeps them from it, translated.
+type TitleEmulators struct {
+	Ok       bool
+	Warnings []string
+	// its metadata is counted from 0: an administrator can fix it from the page (see nupfix.go)
+	ZeroBased bool
+}
+
+// what is said on the page of a NUP the emulators do not read well, before its reasons
+const (
+	emulatorsDoNotOpen   = "Eglantine and Lichii do not open it: %v."
+	emulatorsCannotStart = "Eglantine and Lichii cannot start it: %v."
+	emulatorsZeroBased   = "Eglantine and Lichii show its name, version and icon wrong: the types of its metadata are counted from 0, as a build of the packer of the format wrote them."
+)
+
+// nupEmulators is what the emulators make of the NUP a file is; nil for any other file, and for
+// a NUP read by a version that did not tell it.
+func nupEmulators(info db.SwitchFileInfo, lang string) *TitleEmulators {
+	if !switchfs.IsNupFile(info.ExtendedInfo.FileName) || info.Metadata == nil || info.Metadata.Emulators == nil {
+		return nil
+	}
+	emulators := info.Metadata.Emulators
+	result := &TitleEmulators{Ok: emulators.Ok(), ZeroBased: emulators.ZeroBased}
+	issue := func(issue switchfs.NupEmulatorIssue) string {
+		return i18n.Translatef(lang, issue.Text, issue.Values()...)
+	}
+	switch {
+	case len(emulators.Refused) > 0:
+		reasons := make([]string, len(emulators.Refused))
+		for i, refused := range emulators.Refused {
+			reasons[i] = issue(refused)
+		}
+		result.Warnings = append(result.Warnings, i18n.Translatef(lang, emulatorsDoNotOpen, strings.Join(reasons, "; ")))
+	case emulators.NoStart != nil:
+		result.Warnings = append(result.Warnings, i18n.Translatef(lang, emulatorsCannotStart, issue(*emulators.NoStart)))
+	}
+	if emulators.ZeroBased {
+		result.Warnings = append(result.Warnings, i18n.Translate(lang, emulatorsZeroBased))
+	}
+	return result
 }
 
 // TitleFilePart is a part of a NUP: the game, an update or a DLC, with the bytes of the file its
@@ -234,6 +279,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		}
 		detail.Regions = web.regionGroupOf(baseId, lang)
 		detail.Base = newTitleFile(local.File, strings.ToUpper(getType(local)), "/api/titles/"+baseId)
+		detail.Base.Emulators = nupEmulators(local.File, lang)
 		if local.Icon != "" {
 			detail.ImageUrl = "/i/" + local.Icon
 		}
@@ -244,6 +290,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		for _, version := range sortedVersions(local.Updates) {
 			update := local.Updates[version]
 			file := newTitleFile(update, "UPD", "/api/titles/"+baseId+"/updates/"+strconv.Itoa(version))
+			file.Emulators = nupEmulators(update, lang)
 			if update.ExtendedInfo == local.File.ExtendedInfo {
 				file.InGameFile = true
 				detail.Base.AlsoHolds = append(detail.Base.AlsoHolds, i18n.Translatef(lang, "update v%v", version))
@@ -259,7 +306,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		if inGameFile > 0 {
 			detail.Base.AlsoHolds = append(detail.Base.AlsoHolds, i18n.Translatef(lang, "%v DLC", inGameFile))
 		}
-		detail.LocalUpdate = local.LatestUpdate
+		detail.LocalUpdate = local.UpdateLevel()
 		required := installedRequirement(local)
 		detail.RequiredFirmware = firmwareVersion(required)
 		detail.FirmwareTooNew = web.firmwareTooNew(required)
@@ -490,6 +537,7 @@ func sortedVersions(updates map[int]db.SwitchFileInfo) []int {
 func (web *Web) HandleTitle() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/title.html")
 	web.handlePack()
+	web.handleNupFix()
 
 	web.router.HandleFunc("/title/{titleId}.html", func(w http.ResponseWriter, r *http.Request) {
 		detail, ok := web.getTitleDetail(mux.Vars(r)["titleId"], web.requestLanguage(r))

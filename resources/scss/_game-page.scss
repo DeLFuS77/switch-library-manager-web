@@ -750,3 +750,64 @@
 	font-variant-numeric: tabular-nums;
 	white-space: nowrap;
 }
+
+// whether Eglantine and Lichii, the emulators that open NUP files, read the NUP well: their names
+// in green, or in orange with what keeps them from it under them (never red: the file is whole);
+// the help of the check shows on hover, and stays under the names on a touch screen
+.nup-emulators {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: .375rem;
+	margin-top: .5rem;
+
+	.help-name {
+		margin-right: .25rem;
+		font-size: .8rem;
+		font-weight: 600;
+		color: var(--bs-secondary-color);
+	}
+
+	.chip {
+		font-size: .75rem;
+	}
+
+	.form-text {
+		order: 1;
+		flex-basis: 100%;
+		margin-top: 0;
+	}
+}
+
+.nup-emulator-warning {
+	margin-top: .35rem;
+	font-size: .85rem;
+
+	.bi {
+		margin-right: .3rem;
+	}
+}
+
+// the button that writes again the metadata of a NUP counted from 0: in the orange of the
+// warning above it, never red (nothing is wrong with the file); its help shows on hover, and it
+// keeps the hand of a button
+.nup-fix {
+	margin-top: .45rem;
+
+	.btn {
+		padding: .2rem .7rem;
+		font-size: .8rem;
+
+		.bi {
+			margin-right: .35rem;
+		}
+	}
+
+	.btn.has-help {
+		cursor: pointer;
+	}
+
+	.form-text {
+		margin-top: .35rem;
+	}
+}

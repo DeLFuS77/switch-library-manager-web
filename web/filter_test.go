@@ -43,7 +43,7 @@ func TestFilterFormsKeepEveryFilter(t *testing.T) {
 		hidden("extra", EXTRA_FAVORITES), hidden("status", STATUS_UPDATE), hidden("format", "nsz")}
 	render := func(name string) string {
 		var out strings.Builder
-		data := map[string]any{"Filter": f, "Page": "index", "Pagination": pagination.Calculate(f.Page, f.PerPage, 500)}
+		data := map[string]any{"Filter": f, "Page": "index", "Facets": LibraryFacets{}, "Pagination": pagination.Calculate(f.Page, f.PerPage, 500)}
 		if err := set[i18n.DEFAULT_LANGUAGE].ExecuteTemplate(&out, name, data); err != nil {
 			t.Fatal(err)
 		}

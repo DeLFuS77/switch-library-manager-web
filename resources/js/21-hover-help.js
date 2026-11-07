@@ -1,8 +1,10 @@
-// The help under the fields of Settings and Organize, as NXPress has it (its issue #67): on a
-// screen with a mouse it is out of the way, and shows in a card while the mouse is on the name of
-// the field, or the field has the focus of the keyboard; a small ⓘ after the name tells there is
-// one. The help stays in the page and describes its field to screen readers. On a touch screen it
-// stays under its field, as there is no mouse to point at it. Statuses and warnings stay in sight.
+// The help under the fields of Settings and Organize, and of the cards and the filters of the
+// Library, as NXPress has it (its issue #67): on a screen with a mouse it is out of the way, and
+// shows in a card while the mouse is on the name of the field, or the field has the focus of the
+// keyboard; a small ⓘ after the name tells there is one. The help stays in the page and describes
+// its field to screen readers. On a touch screen it stays under its field, as there is no mouse to
+// point at it (in a card or a choice of filter it is only read out). Statuses and warnings stay in
+// sight.
 // One of the files joined into resources/static/web.js by scripts/build-js.mjs, in the order of their names.
 
 const hoverHelp = { owners: new WeakMap(), open: null, control: null, timer: 0, hideTimer: 0, warm: 0 };
@@ -60,8 +62,9 @@ function initHoverHelp() {
 		name.classList.add('has-help');
 		name.dataset.help = help.id;
 		// the field the name goes with is the one described, and its focus shows the help; a name
-		// with no field of its own (the title of a group) takes the focus itself
-		const control = (name.matches('label') && name.control) || name;
+		// in a link (a card or a choice of filter) is the link's; a name with no field of its own
+		// (the title of a group) takes the focus itself
+		const control = (name.matches('label') && name.control) || name.closest('a, button') || name;
 		const described = (control.getAttribute('aria-describedby') || '').split(' ').filter(Boolean);
 		if (!described.includes(help.id)) {
 			control.setAttribute('aria-describedby', [...described, help.id].join(' '));

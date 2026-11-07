@@ -40,6 +40,38 @@ function initPack() {
 	});
 }
 
+// Game page > Files > a NUP counted from 0 > Fix for emulators: its metadata is written again as a
+// task, at once, followed as the others; the page reloads by itself once the library has read the
+// NUP again. Put in the queue, it says so, and the button stays off.
+function initNupFix() {
+	document.querySelectorAll('[data-nup-fix]').forEach(button => {
+		const label = [...button.childNodes];
+		button.addEventListener('click', () => {
+			button.disabled = true;
+			const spinner = document.createElement('span');
+			spinner.className = 'spinner-border spinner-border-sm me-1';
+			spinner.setAttribute('aria-hidden', 'true');
+			button.replaceChildren(spinner, t('Fixing…'));
+			runAsTask(() => apiFetch('/title/nup-fix', {
+				method: 'POST',
+				body: new URLSearchParams({ path: button.dataset.nupFix }).toString(),
+				headers: { 'Content-type': 'application/x-www-form-urlencoded' }
+			})).then(response => readJSON(response).then(json => {
+				if (!response.ok) {
+					throw new Error((json.globalError && json.globalError.message) || t('Unexpected server response (%v).', response.status));
+				}
+				if (json.queued) {
+					insertQueuedNote(mainContainer(), json.queued);
+				}
+			})).catch(error => {
+				button.replaceChildren(...label);
+				button.disabled = false;
+				insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+			});
+		});
+	});
+}
+
 // the measure of the server fills the compression settings with what compresses fastest here;
 // on the Settings page, or in the setup wizard with its own box
 function initMeasure(box = document.querySelector('[data-measure]')) {
