@@ -231,6 +231,26 @@ func TestSignAPublishedRelease(t *testing.T) {
 	}
 }
 
+// -check tells whether a key kept in a password manager is the one of release.pub, without
+// showing it.
+func TestCheckKey(t *testing.T) {
+	secret, key := testKey()
+	other, _ := testKey()
+	for given, ok := range map[string]bool{secret: true, other: false, "hello": false} {
+		var out bytes.Buffer
+		err := checkKey(tools{out: &out, readKey: func(string) (string, error) { return given, nil }}, []selfupdate.PublicKey{key})
+		if (err == nil) != ok {
+			t.Errorf("%v: %v", ok, err)
+		}
+		if strings.Contains(out.String(), given) || err != nil && strings.Contains(err.Error(), given) {
+			t.Error("the key was printed")
+		}
+	}
+	if err := checkKey(tools{readKey: func(string) (string, error) { return secret, nil }}, nil); err == nil {
+		t.Error("an app without keys")
+	}
+}
+
 func TestPeeled(t *testing.T) {
 	for listing, want := range map[string]string{
 		"aaa\trefs/tags/2.0.3\nbbb\trefs/tags/2.0.3^{}\n": "bbb",
