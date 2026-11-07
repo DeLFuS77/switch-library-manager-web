@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.0.3
 
 ### Improvements
 
@@ -13,6 +13,10 @@
 - A NUP whose metadata types are counted from 0 is told, and can be fixed, also when a package has no NPDM, such as a DLC: a record 0x0007 that is not the 32 bytes of a build ID marks it, the same rule as NXPress and the fix of the reference packer (a55uka/nup#32)
 - A game rebuilt with its update in it, as hacBrewPackLZ makes it, is no longer among the games with an update in the Library, and the history of versions on its page marks the version it holds as in the library and installed: 2.0.2 counted it in the missing updates only. Its complete pack takes no older update file and names the version it holds (thanks @VRtinker, #162)
 - Notifications, and the other messages the app sends by itself (automations, the end of the queue, a task that failed, a disk short of space, an upload), are written in the language of the interface also when none is chosen in the settings: the one the interface was last used in, kept across restarts. They went out in English (thanks @deafening832, #164)
+
+### Next
+
+- Reading NUP v2, the new version of the format, once its specification settles
 
 ## 2.0.2
 
