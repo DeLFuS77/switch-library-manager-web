@@ -263,3 +263,14 @@ func TestPeeled(t *testing.T) {
 		}
 	}
 }
+
+// The ID -check tells is the one release.pub shows: the first key and a spare one are told apart.
+func TestKeyName(t *testing.T) {
+	keys, err := selfupdate.ParsePublicKeys("untrusted comment: minisign public key 5E149516CD819E58\nRWRYnoHNFpUUXvN/5SvX8kcXOeVxbGUDI/B/65Ag0X2SEBRezJIgIDfT\n")
+	if err != nil || len(keys) != 1 {
+		t.Fatal(err)
+	}
+	if name := keyName(keys[0].ID); name != "5E149516CD819E58" {
+		t.Errorf("name %s", name)
+	}
+}
