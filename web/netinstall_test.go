@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
@@ -201,5 +202,48 @@ func TestNetInstallNotedInTheActivity(t *testing.T) {
 	}
 	if len(noted) != 1 || noted[0].User != "bob" || noted[0].Detail != `"Switch": Game [0100000000010000][v0].nsp` {
 		t.Fatalf("noted: %+v", noted)
+	}
+}
+
+// The list of files is kept between the pieces of a download, but a file written again in the
+// meantime is given as it is now, not as it was.
+func TestNetInstallKeptListFollowsTheDisk(t *testing.T) {
+	web, admin, key := netWeb(t)
+	console := &client{t: t, handler: admin.handler}
+	auth := basic("switch", key)
+	name := "Game [0100000000010000][v0].nsp"
+	first := console.do("GET", "/install/dbi/Games/"+url.PathEscape(name), nil, "Authorization", auth)
+	if first.Code != http.StatusOK || first.Body.String() != "data of "+name {
+		t.Fatalf("the game: %d %q", first.Code, first.Body.String())
+	}
+	kept, byId := web.netFilesKept(settings.ReadSettings(web.dataFolder).NetInstall)
+	if len(kept) != 3 || len(byId) != 3 {
+		t.Fatalf("the kept list: %d %d", len(kept), len(byId))
+	}
+
+	var path string
+	for _, file := range kept {
+		if strings.HasSuffix(file.path, name) {
+			path = file.path
+		}
+	}
+	os.WriteFile(path, []byte("written again, longer"), 0644)
+	later := time.Now().Add(2 * time.Second)
+	os.Chtimes(path, later, later)
+
+	again := console.do("GET", "/install/dbi/Games/"+url.PathEscape(name), nil, "Authorization", auth)
+	if again.Code != http.StatusOK || again.Body.String() != "written again, longer" {
+		t.Fatalf("the game written again: %d %q", again.Code, again.Body.String())
+	}
+	var index netTinfoilIndex
+	json.Unmarshal(console.do("GET", "/install/tinfoil", nil, "Authorization", auth).Body.Bytes(), &index)
+	for _, file := range index.Files {
+		if strings.Contains(file.Url, "0100000000010000") {
+			address, _ := url.Parse(file.Url)
+			got := console.do("GET", address.EscapedPath(), nil, "Authorization", auth)
+			if got.Body.String() != "written again, longer" {
+				t.Fatalf("by id: %q", got.Body.String())
+			}
+		}
 	}
 }

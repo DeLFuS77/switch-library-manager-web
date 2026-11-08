@@ -237,6 +237,60 @@ func (web *Web) netFiles(options settings.NetInstallOptions) []netFile {
 	return files
 }
 
+// netFilesCacheTime is how long the list of files is kept. An installer takes a file in many
+// pieces, one request each, and making the list looks at every file of the library: on a NAS
+// that is slow enough to hold the transfer back.
+const netFilesCacheTime = 30 * time.Second
+
+// netFilesCache is the list of files given last, and the same files by id.
+type netFilesCache struct {
+	mutex      sync.Mutex
+	localDB    *db.LocalSwitchFilesDB
+	allUpdates bool
+	until      time.Time
+	files      []netFile
+	byId       map[string]netFile
+}
+
+// netFilesKept is netFiles, kept for a while: the same library and options give the same list.
+func (web *Web) netFilesKept(options settings.NetInstallOptions) ([]netFile, map[string]netFile) {
+	_, localDB := web.state.get()
+	cache := &web.netList
+	cache.mutex.Lock()
+	if cache.files != nil && cache.localDB == localDB && cache.allUpdates == options.AllUpdates && time.Now().Before(cache.until) {
+		files, byId := cache.files, cache.byId
+		cache.mutex.Unlock()
+		return files, byId
+	}
+	cache.mutex.Unlock()
+
+	files := web.netFiles(options)
+	byId := make(map[string]netFile, len(files))
+	for _, file := range files {
+		byId[file.id] = file
+	}
+	cache.mutex.Lock()
+	cache.localDB, cache.allUpdates, cache.until, cache.files, cache.byId = localDB, options.AllUpdates, time.Now().Add(netFilesCacheTime), files, byId
+	cache.mutex.Unlock()
+	return files, byId
+}
+
+// netFilesForget drops the kept list, so the next request makes it again.
+func (web *Web) netFilesForget() {
+	web.netList.mutex.Lock()
+	web.netList.files, web.netList.byId = nil, nil
+	web.netList.mutex.Unlock()
+}
+
+// netFileChanged tells a kept file that is no longer what it was on disk: gone, or written again.
+func netFileChanged(file netFile) bool {
+	stat, err := os.Stat(file.path)
+	if err != nil || !stat.ModTime().Equal(file.modTime) {
+		return true
+	}
+	return file.stream == nil && stat.Size() != file.size
+}
+
 func sortedKeys[V any](m map[string]V) []string {
 	keys := make([]string, 0, len(m))
 	for key := range m {
@@ -357,7 +411,8 @@ func (web *Web) handleNetDbi(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	folders := netDbiFolders(web.netFiles(options))
+	kept, _ := web.netFilesKept(options)
+	folders := netDbiFolders(kept)
 	isFolder := rest == "" || strings.HasSuffix(rest, "/")
 	folder := strings.TrimSuffix(rest, "/")
 	if isFolder {
@@ -388,18 +443,26 @@ func (web *Web) handleNetDbi(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	parent, name := path.Split(folder)
-	files, ok := folders[strings.TrimSuffix(parent, "/")]
+	find := func(folders map[string][]netFile) (netFile, bool) {
+		for _, file := range netUniqueNames(folders[strings.TrimSuffix(parent, "/")]) {
+			if file.name == name {
+				return file, true
+			}
+		}
+		return netFile{}, false
+	}
+	file, ok := find(folders)
+	if ok && netFileChanged(file) {
+		// written again since the list was made: make it again
+		web.netFilesForget()
+		kept, _ = web.netFilesKept(options)
+		file, ok = find(netDbiFolders(kept))
+	}
 	if !ok {
 		http.NotFound(w, r)
 		return
 	}
-	for _, file := range netUniqueNames(files) {
-		if file.name == name {
-			web.serveNetFile(w, r, file)
-			return
-		}
-	}
-	http.NotFound(w, r)
+	web.serveNetFile(w, r, file)
 }
 
 // netListEntry is a line of a listing; a folder has size -1 and a name that ends with "/".
@@ -467,7 +530,8 @@ func (web *Web) handleNetTinfoil(w http.ResponseWriter, r *http.Request) {
 		scheme = "https"
 	}
 	index := netTinfoilIndex{Files: []netTinfoilFile{}, Success: strings.TrimSpace(options.Message)}
-	for _, file := range web.netFiles(options) {
+	kept, _ := web.netFilesKept(options)
+	for _, file := range kept {
 		address := url.URL{Scheme: scheme, Host: r.Host, Path: netInstallFiles + file.id + "/" + file.name, Fragment: file.name}
 		index.Files = append(index.Files, netTinfoilFile{Url: address.String(), Size: file.size})
 	}
@@ -483,13 +547,19 @@ func (web *Web) handleNetFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id, _, _ := strings.Cut(strings.TrimPrefix(r.URL.Path, netInstallFiles), "/")
-	for _, file := range web.netFiles(options) {
-		if file.id == id {
-			web.serveNetFile(w, r, file)
-			return
-		}
+	_, byId := web.netFilesKept(options)
+	file, ok := byId[id]
+	if ok && netFileChanged(file) {
+		// written again since the list was made: make it again
+		web.netFilesForget()
+		_, byId = web.netFilesKept(options)
+		file, ok = byId[id]
 	}
-	http.NotFound(w, r)
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	web.serveNetFile(w, r, file)
 }
 
 // netInstallNoteEvery is how often the same file sent to the same console is noted: an installer

@@ -172,6 +172,7 @@ type Web struct {
 	// what was read of the files given to the installers of the console (see netinstall.go)
 	netStreams      netInstallStreams
 	netNotes        netInstallNotes
+	netList         netFilesCache
 	coll            *userdata.Collections
 	collectionsOnce sync.Once
 	fav             *userdata.Favorites
