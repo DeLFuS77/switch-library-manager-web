@@ -247,3 +247,30 @@ func TestNetInstallKeptListFollowsTheDisk(t *testing.T) {
 		}
 	}
 }
+
+// The speed test gives a file of the size asked, with ranges, only with a key and only when the
+// network install is on.
+func TestNetInstallSpeedTest(t *testing.T) {
+	web, admin, key := netWeb(t)
+	console := &client{t: t, handler: admin.handler}
+	auth := basic("switch", key)
+	whole := console.do("GET", "/install/speedtest?size=3145739", nil, "Authorization", auth)
+	if whole.Code != http.StatusOK || whole.Body.Len() != 3145739 {
+		t.Fatalf("the whole file: %d %d", whole.Code, whole.Body.Len())
+	}
+	block := whole.Body.Bytes()
+	if string(block[:64]) != string(block[1<<20:1<<20+64]) {
+		t.Fatal("the block is not repeated")
+	}
+	piece := console.do("GET", "/install/speedtest?size=3145739", nil, "Authorization", auth, "Range", "bytes=1048570-1048585")
+	if piece.Code != http.StatusPartialContent || piece.Body.String() != string(block[1048570:1048586]) {
+		t.Fatalf("a piece across two blocks: %d %d", piece.Code, piece.Body.Len())
+	}
+	if anonymous := (&client{t: t, handler: admin.handler}).do("GET", "/install/speedtest?size=10", nil); anonymous.Code == http.StatusOK {
+		t.Fatalf("without a key: %d", anonymous.Code)
+	}
+	settings.UpdateSettings(web.dataFolder, func(s *settings.AppSettings) { s.NetInstall.Enabled = false })
+	if off := console.do("GET", "/install/speedtest?size=10", nil, "Authorization", auth); off.Code != http.StatusNotFound {
+		t.Fatalf("turned off: %d", off.Code)
+	}
+}
