@@ -154,10 +154,7 @@ func (web *Web) notifyLowDisks(disks []LowDisk) bool {
 	if !notify.Configured(options) {
 		return false
 	}
-	lang := settingsObj.Language
-	if !i18n.IsSupportedLanguage(lang) {
-		lang = i18n.DEFAULT_LANGUAGE
-	}
+	lang := web.notificationLanguage(settingsObj.Language)
 	items := []NotificationItem{}
 	for _, disk := range disks {
 		items = append(items, NotificationItem{Key: "disk:" + disk.Folder, Kind: "disk", Name: disk.Folder, Detail: i18n.Translatef(lang, "%v free (%v%%)", i18n.FormatSizeIn(lang, disk.Free), disk.Percent)})

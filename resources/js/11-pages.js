@@ -30,23 +30,54 @@ function initCollapsibleText() {
 }
 
 // Update now and Go back: the app puts the other version in place and starts it (see
-// selfupdate.go); the page shows the download, waits for the server to answer again and opens
-// the library. Check now asks GitHub at once.
+// selfupdate.go), once no work goes on (see updatewait.go); the page tells what it waits for,
+// shows the download, waits for the server to answer again and opens the library. Check now asks
+// GitHub at once.
 function initSelfUpdate() {
 	const status = document.querySelector('[data-update-status]');
 	const bar = document.querySelector('[data-update-progress]');
+	const cancel = document.querySelector('[data-update-cancel]');
+	const firstStatus = status ? status.textContent : '';
 	const buttons = () => document.querySelectorAll('[data-update-install], [data-update-rollback], [data-update-check]');
+	// without a line of its own (the notice of every page), a toast, once for each text
+	let said = '';
 	const say = text => {
+		if (text === said) {
+			return;
+		}
+		said = text;
 		if (status) {
 			status.textContent = text;
 		} else {
 			showToast('alert-info', 'bi-cloud-arrow-down', t('Updating'), text);
 		}
 	};
+	// what the update waits for, with an hourglass; in orange when it is a task paused, which
+	// waits for the user
+	const sayWaiting = (text, paused) => {
+		if (!status) {
+			say(text);
+			return;
+		}
+		if (cancel) {
+			cancel.hidden = false;
+		}
+		status.classList.toggle('text-warning-emphasis', !!paused);
+		if (text === said) {
+			return;
+		}
+		said = text;
+		const icon = document.createElement('span');
+		icon.className = 'bi ' + (paused ? 'bi-pause-circle' : 'bi-hourglass-split text-work') + ' me-1';
+		icon.setAttribute('aria-hidden', 'true');
+		status.replaceChildren(icon, document.createTextNode(text));
+	};
 	const fail = error => {
 		buttons().forEach(button => (button.disabled = false));
 		const message = error.message || t('Could not reach the server.');
+		said = '';
 		if (status) {
+			status.classList.remove('text-warning-emphasis');
 			status.textContent = message;
 		}
 		showToast('alert-danger', 'bi-exclamation-triangle', t('Error!'), message);
@@ -61,54 +92,30 @@ function initSelfUpdate() {
 				}
 				return json;
 			});
-	// the bytes downloaded, while the answer to install is awaited
-	let watching = null;
-	const watchProgress = () => {
-		if (!bar) {
-			return;
-		}
-		bar.hidden = false;
-		// asked again once answered, so an answer that comes late cannot move the bar back
-		const token = {};
-		watching = token;
-		const ask = () => fetch('/update/progress', { cache: 'no-store' })
-			.then(response => response.json())
-			.then(progress => {
-				if (watching !== token) {
-					return;
-				}
-				const percent = progress.total > 0 ? Math.min(100, Math.round((progress.done * 100) / progress.total)) : 0;
-				bar.firstElementChild.style.width = percent + '%';
-				bar.setAttribute('aria-valuenow', String(percent));
-				if (progress.step === 'check') {
-					say(t('Checking the new version...'));
-				}
-			})
-			.catch(() => {})
-			.then(() => {
-				if (watching === token) {
-					token.timer = setTimeout(ask, 500);
-				}
-			});
-		token.timer = setTimeout(ask, 500);
-	};
-	const stopWatching = () => {
-		if (watching) {
-			clearTimeout(watching.timer);
-		}
-		watching = null;
-	};
 	// the version that runs, or '' when it does not say
 	const runningVersion = () => fetch('/update/version', { cache: 'no-store', headers: { Accept: 'application/json' } })
 		.then(response => (response.ok ? response.json() : {}))
 		.then(json => json.version || '')
 		.catch(() => '');
+	// what the update does, asked again once answered, so an answer that comes late cannot move
+	// the bar back
+	let following = null;
+	const stopFollowing = () => {
+		if (following) {
+			clearTimeout(following.timer);
+		}
+		following = null;
+		if (cancel) {
+			cancel.hidden = true;
+		}
+	};
 	// the app is back when it answers its health check (a 503 while it starts and a 502 of a
 	// proxy are not an answer) and, when it says its version, it is not the one of before,
 	// which answers until it stops
 	const restart = before => {
-		stopWatching();
+		stopFollowing();
 		if (bar) {
+			bar.hidden = false;
 			bar.firstElementChild.style.width = '100%';
 		}
 		say(t('Installed: the app starts again...'));
@@ -137,27 +144,118 @@ function initSelfUpdate() {
 		};
 		setTimeout(wait, 2500);
 	};
+	// follows the update asked: while it waits for the work, what for (and Cancel); then the
+	// download, the check and the start of the new version; or why it did not happen
+	const follow = (before, text) => {
+		const token = {};
+		following = token;
+		let began = false;
+		const ask = () => fetch('/update/progress', { cache: 'no-store' })
+			.then(response => (response.ok ? response.json() : Promise.reject(response)))
+			.then(progress => {
+				if (following !== token) {
+					return;
+				}
+				if (progress.step === 'restart') {
+					restart(before);
+					return;
+				}
+				if (progress.error) {
+					stopFollowing();
+					if (bar) {
+						bar.hidden = true;
+					}
+					fail(new Error(progress.error));
+					return;
+				}
+				// cancelled from another page, or by the app: nothing more to follow
+				if (!progress.asked && !progress.step) {
+					stopFollowing();
+					buttons().forEach(button => (button.disabled = false));
+					said = '';
+					if (status) {
+						status.classList.remove('text-warning-emphasis');
+						status.textContent = firstStatus;
+					}
+					return;
+				}
+				if (progress.step === 'wait' && progress.message) {
+					sayWaiting(progress.message, progress.paused);
+				} else if (progress.step === 'download' || progress.step === 'check') {
+					began = true;
+					if (cancel) {
+						cancel.hidden = true;
+					}
+					if (status) {
+						status.classList.remove('text-warning-emphasis');
+					}
+					if (bar) {
+						bar.hidden = false;
+						const percent = progress.total > 0 ? Math.min(100, Math.round((progress.done * 100) / progress.total)) : 0;
+						bar.firstElementChild.style.width = percent + '%';
+						bar.setAttribute('aria-valuenow', String(percent));
+					}
+					say(progress.step === 'check' ? t('Checking the new version...') : text);
+				}
+				token.timer = setTimeout(ask, 700);
+			})
+			.catch(() => {
+				if (following !== token) {
+					return;
+				}
+				// the app stops once the new version is in place: it starts again
+				if (began) {
+					restart(before);
+					return;
+				}
+				token.timer = setTimeout(ask, 1500);
+			});
+		ask();
+	};
 	const run = (url, text) => {
 		buttons().forEach(button => (button.disabled = true));
 		say(text);
-		if (url === '/update/install') {
-			watchProgress();
-		}
 		let before = '';
 		runningVersion()
 			.then(version => {
 				before = version;
 				return post(url);
 			})
-			.then(() => restart(before))
+			.then(answer => {
+				if (answer.waiting && answer.message) {
+					sayWaiting(answer.message, answer.paused);
+				}
+				follow(before, text);
+			})
 			.catch(error => {
-				stopWatching();
+				stopFollowing();
 				if (bar) {
 					bar.hidden = true;
 				}
 				fail(error);
 			});
 	};
+	if (cancel) {
+		cancel.addEventListener('click', () => {
+			cancel.disabled = true;
+			post('/update/cancel')
+				.then(json => {
+					if (!json.cancelled) {
+						return;
+					}
+					stopFollowing();
+					buttons().forEach(button => (button.disabled = false));
+					said = '';
+					if (status) {
+						status.classList.remove('text-warning-emphasis');
+						status.textContent = firstStatus;
+					}
+					showToast('alert-info', 'bi-x-circle', t('Updating'), t('The update was cancelled.'));
+				})
+				.catch(fail)
+				.then(() => (cancel.disabled = false));
+		});
+	}
 	document.querySelectorAll('[data-update-install]').forEach(button =>
 		button.addEventListener('click', () => run('/update/install', t('Downloading the new version...')))
 	);

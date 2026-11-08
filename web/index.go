@@ -535,7 +535,8 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			version = v.File.Metadata.Ncap.DisplayVersion
 		}
 
-		if len(v.Updates) != 0 {
+		// a game rebuilt with a newer update in it than its update files shows its own version
+		if len(v.Updates) != 0 && v.LatestUpdate >= v.UpdateLevel() {
 			version = ""
 			if update, ok := v.Updates[v.LatestUpdate]; ok && update.Metadata != nil && update.Metadata.Ncap != nil {
 				version = update.Metadata.Ncap.DisplayVersion
@@ -595,8 +596,10 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			item.Languages = title.Attributes.Languages
 
 			if _, ignored := ignoredUpdates[strings.ToLower(v.File.Metadata.TitleId)]; !ignored {
+				// a game rebuilt with its update in it holds that update (see UpdateLevel)
+				level := v.UpdateLevel()
 				for version := range title.Updates {
-					if version > v.LatestUpdate {
+					if version > level {
 						item.UpdateAvailable = true
 						break
 					}

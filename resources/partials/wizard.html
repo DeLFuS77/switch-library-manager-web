@@ -353,7 +353,7 @@
 								<div class="form-check form-switch ms-4" data-wizard-auto-install>
 									<input class="form-check-input" type="checkbox" role="switch" id="wizard_auto_install_updates" name="auto_install_updates" value="true" aria-describedby="wizard_auto_install_help"{{if $s.AutoInstallUpdates}} checked{{end}}>
 									<label class="form-check-label" for="wizard_auto_install_updates">{{t "Install new versions by themselves at night"}}</label>
-									<div class="form-text" id="wizard_auto_install_help">{{t "Between 3 and 5 in the morning, when no task is working on the files. The version of before is kept, to go back to it from the Update page."}}</div>
+									<div class="form-text" id="wizard_auto_install_help">{{t "Between 3 and 5 in the morning, once no task is running or waiting; with work going on, it waits for it or tries again the next night. The version of before is kept, to go back to it from the Update page."}}</div>
 								</div>
 								{{- end}}
 							</div>

@@ -111,6 +111,7 @@ func (web *Web) requestLanguage(r *http.Request) string {
 	if principal := principalFrom(r); principal != nil && principal.Name != "" && web.auth != nil {
 		if user, ok := web.auth.users.Get(principal.Name); ok && i18n.IsSupportedLanguage(user.Language) {
 			web.noteLanguage(user.Language)
+			web.noteInterfaceLanguage(r, user.Language, true)
 			return user.Language
 		}
 	}
@@ -119,6 +120,7 @@ func (web *Web) requestLanguage(r *http.Request) string {
 		lang = i18n.LanguageFromHeader(r.Header.Get("Accept-Language"))
 	}
 	web.noteLanguage(lang)
+	web.noteInterfaceLanguage(r, lang, false)
 	return lang
 }
 

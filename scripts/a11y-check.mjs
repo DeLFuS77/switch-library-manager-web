@@ -132,8 +132,19 @@ function measure(checkWidth) {
 	const label = element => element.tagName.toLowerCase() + [...element.classList].slice(0, 3).map(c => '.' + c).join('');
 	const problems = new Set();
 	const skip = '[hidden], .visually-hidden, [aria-hidden="true"], .is-missing, :disabled, .disabled, .modal, .offcanvas, .toast-note, .year-hero';
+	// text for screen readers only is cut to a box of 1px (the visually-hidden mixin): nobody sees it
+	const forReadersOnly = element => {
+		for (let e = element; e && e !== document.body; e = e.parentElement) {
+			const box = e.getBoundingClientRect();
+			if (box.width <= 1 && box.height <= 1 && getComputedStyle(e).overflow === 'hidden') {
+				return true;
+			}
+		}
+		return false;
+	};
+	const unseen = element => !element.getClientRects().length || element.closest(skip) || forReadersOnly(element);
 	document.querySelectorAll('body *').forEach(element => {
-		if (!element.getClientRects().length || element.closest(skip)) {
+		if (unseen(element)) {
 			return;
 		}
 		const text = [...element.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim();
@@ -167,7 +178,7 @@ function measure(checkWidth) {
 		}
 	});
 	document.querySelectorAll('button, [role="button"], input[type="checkbox"]:not(.btn-check), input[type="radio"]:not(.btn-check), .page-link').forEach(element => {
-		if (!element.getClientRects().length || element.closest(skip)) {
+		if (unseen(element)) {
 			return;
 		}
 		const rect = element.getBoundingClientRect();

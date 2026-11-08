@@ -7,9 +7,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
-	"crypto/ed25519"
 	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -23,26 +21,26 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
+	"github.com/dtrunk90/switch-library-manager-web/internal/selfupdate"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
-	"golang.org/x/crypto/blake2b"
 )
 
 // The app updates itself where it runs as a program (Windows, macOS, Linux): the archive of its
 // system is downloaded from the release on GitHub, checked against SHA256SUMS.txt of the same
 // release, and its program is tried before it replaces the one that runs, which is kept as
-// .old. The app then starts the new program and stops. A container is updated by Docker
-// instead: the app has no right to replace its own image.
+// .old. The app then starts the new program and stops, once no work goes on (see
+// updatewait.go). A container is updated by Docker instead: the app has no right to replace its
+// own image.
 //
-// With releasePublicKey set, SHA256SUMS.txt must also carry a minisign signature of that key
-// (SHA256SUMS.txt.minisig in the release): the checksums then prove the archive was made by
-// whoever holds the secret key, not only that it is the one of the release on GitHub.
+// Only a release signed by the project is installed: SHA256SUMS.txt must carry a minisign
+// signature (SHA256SUMS.txt.minisig in the release) of a key of internal/selfupdate/release.pub,
+// made for that version, so the checksums prove the archive was made by whoever holds the
+// secret key, not only that it is the one of the release on GitHub. A release without it, or an
+// app built without a key, only tells of the new version.
 
-// releasePublicKey is the minisign public key the releases are signed with: the second line of
-// minisign.pub. Empty, the checksums of the release are trusted as GitHub serves them.
-const releasePublicKey = ""
-
-// updateSigningKey is the key the update checks the signature with; a variable for the tests.
-var updateSigningKey = releasePublicKey
+// updateSigningKeys are the keys the update checks the signature with; a variable for the tests.
+var updateSigningKeys = selfupdate.Keys()
 
 const (
 	appName = "switch-library-manager-web"
@@ -113,10 +111,10 @@ func filesOfRelease(assets map[string]string, archive string) (releaseFiles, boo
 	return files, ok
 }
 
-// signed tells whether the checksums of a release can be trusted: there is no key to check them
-// with, or the release has a signature to check.
+// signed tells whether the checksums of a release can be checked: the app has a key to check
+// them with, and the release a signature of them.
 func (f releaseFiles) signed() bool {
-	return updateSigningKey == "" || f.signatureUrl != ""
+	return len(updateSigningKeys) > 0 && f.signatureUrl != ""
 }
 
 // selfUpdatable tells whether this app can update itself: a program of a release, not in a
@@ -159,6 +157,7 @@ var updateProgress struct {
 }
 
 const (
+	UPDATE_STEP_WAIT     = "wait"
 	UPDATE_STEP_DOWNLOAD = "download"
 	UPDATE_STEP_CHECK    = "check"
 	UPDATE_STEP_RESTART  = "restart"
@@ -205,28 +204,16 @@ func runningProgram() (string, error) {
 	return filepath.EvalSymlinks(program)
 }
 
-// holdFiles keeps the files of the library still while the program is replaced: no task may
-// run, nor start, meanwhile. The function given ends it.
-func (web *Web) holdFiles() (func(), error) {
-	if !web.organizing.CompareAndSwap(false, true) {
-		return nil, errOrganizeBusy
-	}
-	if web.compressionRunning() || web.measuring.Load() || !installing.CompareAndSwap(false, true) {
-		web.organizing.Store(false)
-		return nil, errOrganizeBusy
-	}
-	return func() {
-		installing.Store(false)
-		web.organizing.Store(false)
-	}, nil
-}
-
 // installUpdate downloads, checks and puts in place the newer version found, and starts it once
-// the answer has left. The program that runs stays as .old.
+// the answer has left. The program that runs stays as .old. With work going on it does nothing
+// (errUpdateBusy): requestUpdate and the night wait for its end.
 func (web *Web) installUpdate() error {
 	update := web.availableUpdate()
 	if update == nil || update.files.archiveUrl == "" {
 		return errUpdateNone
+	}
+	if !update.files.signed() {
+		return errUpdateSigned
 	}
 	end, err := web.holdFiles()
 	if err != nil {
@@ -245,21 +232,16 @@ func (web *Web) installUpdate() error {
 		end()
 		return errUpdateDownload
 	}
-	if updateSigningKey != "" {
-		if !update.files.signed() {
-			end()
-			return errUpdateSigned
-		}
-		signature, err := download(update.files.signatureUrl, maxSignatureSize, false)
-		if err != nil {
-			end()
-			return errUpdateDownload
-		}
-		if err := verifyMinisign(updateSigningKey, sums, signature); err != nil {
-			web.sugarLogger.Warnf("[Update] the checksums of version %s are not signed by the key of the app: %v", update.Version, err)
-			end()
-			return errUpdateSigned
-		}
+	signature, err := download(update.files.signatureUrl, maxSignatureSize, false)
+	if err != nil {
+		end()
+		return errUpdateDownload
+	}
+	// signed by a key of the app, and for this version: the signature of another one does not pass
+	if comment, err := selfupdate.Verify(sums, signature, updateSigningKeys); err != nil || comment != selfupdate.Comment(update.Version) {
+		web.sugarLogger.Warnf("[Update] the checksums of version %s are not signed by the key of the app for it (%q, %v)", update.Version, comment, err)
+		end()
+		return errUpdateSigned
 	}
 	want, ok := checksumOf(sums, update.files.archive)
 	if !ok {
@@ -350,14 +332,13 @@ func swapPrograms(program string, next string, version string) error {
 }
 
 // restartWith starts the program put in place once the answer has left: this app leaves its
-// port first, so a version that does not wait for it starts too. If the program cannot be
-// started, the one of before is put back and started instead.
+// port first, letting the requests going on end, so a version that does not wait for it starts
+// too. If the program cannot be started, the one of before is put back and started instead.
+// The files stay held until this app has stopped.
 func (web *Web) restartWith(program string, end func()) {
 	updateProgress.step.Store(UPDATE_STEP_RESTART)
 	afterAnswer(func() {
-		if web.server != nil {
-			web.server.Close()
-		}
+		web.closeServer()
 		// the new program reads what the tasks have left
 		web.Stop()
 		if err := startProgram(program); err != nil {
@@ -370,8 +351,8 @@ func (web *Web) restartWith(program string, end func()) {
 				web.sugarLogger.Errorf("[Update] the program of before could not be started either: %v", err)
 			}
 		}
-		end()
 		stopProgram()
+		end()
 	})
 }
 
@@ -418,47 +399,6 @@ func checksumOf(sums []byte, name string) (string, bool) {
 		}
 	}
 	return "", false
-}
-
-// verifyMinisign checks a minisign signature of data with a public key, as minisign -V does:
-// the key is the base64 line of minisign.pub (the algorithm "Ed", its id, the Ed25519 key), the
-// signature has a line of the same id with the signature of the file ("Ed" of the file itself,
-// "ED" of its BLAKE2b-512 hash, as minisign makes by default) and a trusted comment signed with it.
-func verifyMinisign(publicKey string, data []byte, signature []byte) error {
-	key, err := base64.StdEncoding.DecodeString(strings.TrimSpace(publicKey))
-	if err != nil || len(key) != 2+8+ed25519.PublicKeySize || string(key[:2]) != "Ed" {
-		return errors.New("the public key cannot be read")
-	}
-	lines := strings.Split(strings.ReplaceAll(string(signature), "\r\n", "\n"), "\n")
-	if len(lines) < 4 || !strings.HasPrefix(lines[2], "trusted comment: ") {
-		return errors.New("the signature cannot be read")
-	}
-	signed, err := base64.StdEncoding.DecodeString(strings.TrimSpace(lines[1]))
-	if err != nil || len(signed) != 2+8+ed25519.SignatureSize {
-		return errors.New("the signature cannot be read")
-	}
-	if !bytes.Equal(signed[2:10], key[2:10]) {
-		return errors.New("signed with another key")
-	}
-	publicEd := ed25519.PublicKey(key[10:])
-	message := data
-	switch string(signed[:2]) {
-	case "Ed":
-	case "ED":
-		hash := blake2b.Sum512(data)
-		message = hash[:]
-	default:
-		return errors.New("an unknown kind of signature")
-	}
-	if !ed25519.Verify(publicEd, message, signed[10:]) {
-		return errors.New("the signature does not match")
-	}
-	global, err := base64.StdEncoding.DecodeString(strings.TrimSpace(lines[3]))
-	comment := strings.TrimPrefix(lines[2], "trusted comment: ")
-	if err != nil || !ed25519.Verify(publicEd, append(append([]byte{}, signed[10:]...), comment...), global) {
-		return errors.New("the trusted comment does not match")
-	}
-	return nil
 }
 
 // programOf takes the program out of an archive of a release: only the file
@@ -528,28 +468,35 @@ func restarted() bool {
 }
 
 func (web *Web) HandleSelfUpdate() {
-	// read-only users cannot reach the requests that change something (see viewerAllowed)
-	install := func(path string, action func() error) {
+	// read-only users cannot reach the requests that change something (see viewerAllowed).
+	// Update now and Go back are done in the background once no work goes on: the answer tells
+	// the work waited for, and the page follows it by /update/progress
+	install := func(path string, ready func() error, action func() error) {
 		web.router.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 			lang := web.requestLanguage(r)
 			if !selfUpdatable() {
 				writeGlobalError(w, http.StatusBadRequest, lang, errUpdateReplace.Error())
 				return
 			}
-			if err := action(); err != nil {
-				status := http.StatusBadGateway
-				if err == errOrganizeBusy || err == errUpdateNone || err == errUpdateNoOld {
-					status = http.StatusConflict
-				}
-				web.sugarLogger.Warnf("[Update] %s: %v", path, err)
-				writeGlobalError(w, status, lang, err.Error())
+			if err := ready(); err != nil {
+				writeGlobalError(w, http.StatusConflict, lang, err.Error())
 				return
 			}
-			writeJSON(w, http.StatusOK, map[string]any{"restarting": true})
+			work := web.requestUpdate(action)
+			writeJSON(w, http.StatusAccepted, map[string]any{"waiting": !work.idle(), "message": updateWaitText(lang, work), "paused": work.pausedOnly()})
 		}).Methods("POST")
 	}
-	install("/update/install", web.installUpdate)
-	install("/update/rollback", web.rollBack)
+	install("/update/install", web.installable, web.installUpdate)
+	install("/update/rollback", func() error {
+		if previousVersion() == "" {
+			return errUpdateNoOld
+		}
+		return nil
+	}, web.rollBack)
+	// stops waiting for the work to end; the download, once begun, goes on
+	web.router.HandleFunc("/update/cancel", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]bool{"cancelled": web.cancelUpdate()})
+	}).Methods("POST")
 	// Check now: GitHub is asked at once instead of once a day
 	web.router.HandleFunc("/update/check", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
@@ -563,11 +510,25 @@ func (web *Web) HandleSelfUpdate() {
 		}
 		writeJSON(w, http.StatusOK, map[string]string{"version": version})
 	}).Methods("POST")
-	// what the update does now, for the bar of the page
+	// what the update does now, for the bar of the page: what it waits for, how far the download
+	// is, or why it did not happen
 	web.router.HandleFunc("/update/progress", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
+		lang := web.requestLanguage(r)
 		step, _ := updateProgress.step.Load().(string)
-		writeJSON(w, http.StatusOK, map[string]any{"step": step, "done": updateProgress.done.Load(), "total": updateProgress.total.Load()})
+		progress := map[string]any{"step": step, "done": updateProgress.done.Load(), "total": updateProgress.total.Load()}
+		web.updateWait.mutex.Lock()
+		waiting, failure := web.updateWait.waiting, web.updateWait.failure
+		web.updateWait.mutex.Unlock()
+		progress["asked"] = waiting
+		if work := web.updateWait.work.Load(); waiting && step == UPDATE_STEP_WAIT && work != nil && !work.idle() {
+			progress["message"] = updateWaitText(lang, *work)
+			progress["paused"] = work.pausedOnly()
+		}
+		if !waiting && failure != "" {
+			progress["error"] = i18n.Translate(lang, failure)
+		}
+		writeJSON(w, http.StatusOK, progress)
 	}).Methods("GET")
 	// the version that runs, for the page that waits for the new one
 	web.router.HandleFunc("/update/version", func(w http.ResponseWriter, r *http.Request) {

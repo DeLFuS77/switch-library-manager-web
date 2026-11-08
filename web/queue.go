@@ -306,10 +306,7 @@ func (web *Web) notifyQueueDone(since time.Time) {
 	if !notify.Configured(options) || options.QueueDoneQuiet {
 		return
 	}
-	lang := settingsObj.Language
-	if !i18n.IsSupportedLanguage(lang) {
-		lang = i18n.DEFAULT_LANGUAGE
-	}
+	lang := web.notificationLanguage(settingsObj.Language)
 	tasks := []tasklog.Task{}
 	for _, task := range web.taskLog().Snapshot() {
 		if queueKinds[task.Kind] && !task.Running() && !task.Started.Before(since) {

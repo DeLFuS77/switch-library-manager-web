@@ -229,6 +229,10 @@ func (web *Web) watchUploads() {
 			ticker := time.NewTicker(30 * time.Second)
 			defer ticker.Stop()
 			for range ticker.C {
+				// while an update holds the files, no part file is deleted
+				if web.updateHold.Load() {
+					continue
+				}
 				web.endStalledUploads()
 				if time.Since(swept) >= uploadSweepEvery {
 					web.forgetIdleUploadsEverywhere()

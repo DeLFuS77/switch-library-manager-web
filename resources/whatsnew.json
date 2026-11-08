@@ -1,4 +1,72 @@
 {
+  "2.0.3": {
+    "en": [
+      "Update now installs only versions signed with the key of the project, and waits for every task to end before it restarts.",
+      "Games rebuilt with their update, as hacBrewPackLZ makes them, are no longer among the games with an update, and their page marks the version they hold.",
+      "Notifications come in the language you use the app in, also with no language chosen in Settings.",
+      "A NUP file made to harm can no longer make the app take gigabytes of memory or hours."
+    ],
+    "es": [
+      "Actualizar ahora solo instala versiones firmadas con la clave del proyecto, y espera a que acabe cada tarea antes de reiniciar.",
+      "Los juegos reconstruidos con su actualización, como los de hacBrewPackLZ, ya no salen entre los que tienen actualización, y su ficha marca la versión que llevan.",
+      "Las notificaciones llegan en el idioma en que usas la app, también sin idioma elegido en Ajustes.",
+      "Un archivo NUP hecho para dañar ya no puede hacer que la app use gigas de memoria u horas."
+    ],
+    "de": [
+      "Jetzt aktualisieren installiert nur noch Versionen, die mit dem Schlüssel des Projekts signiert sind, und wartet vor dem Neustart, bis jede Aufgabe beendet ist.",
+      "Mit ihrem Update neu gebaute Spiele, wie hacBrewPackLZ sie erstellt, stehen nicht mehr unter den Spielen mit Update, und ihre Seite markiert die enthaltene Version.",
+      "Benachrichtigungen kommen in der Sprache, in der du die App nutzt, auch ohne in den Einstellungen gewählte Sprache.",
+      "Eine schädlich gebaute NUP-Datei kann die App nicht mehr Gigabytes an Speicher oder Stunden kosten."
+    ],
+    "fr": [
+      "Mettre à jour n’installe plus que des versions signées avec la clé du projet, et attend la fin de chaque tâche avant de redémarrer.",
+      "Les jeux reconstruits avec leur mise à jour, comme ceux de hacBrewPackLZ, ne figurent plus parmi les jeux avec une mise à jour, et leur page indique la version qu’ils contiennent.",
+      "Les notifications arrivent dans la langue dans laquelle vous utilisez l’application, même sans langue choisie dans les Paramètres.",
+      "Un fichier NUP fait pour nuire ne peut plus faire prendre à l’application des gigaoctets de mémoire ou des heures."
+    ],
+    "it": [
+      "Aggiorna ora installa solo versioni firmate con la chiave del progetto, e aspetta la fine di ogni attività prima di riavviarsi.",
+      "I giochi ricostruiti con il loro aggiornamento, come quelli di hacBrewPackLZ, non sono più tra i giochi con un aggiornamento, e la loro pagina indica la versione che contengono.",
+      "Le notifiche arrivano nella lingua in cui usi l’app, anche senza una lingua scelta nelle Impostazioni.",
+      "Un file NUP fatto per nuocere non può più far usare all’app gigabyte di memoria o ore."
+    ],
+    "pt": [
+      "Atualizar agora só instala versões assinadas com a chave do projeto, e espera cada tarefa terminar antes de reiniciar.",
+      "Os jogos reconstruídos com sua atualização, como os do hacBrewPackLZ, não aparecem mais entre os jogos com atualização, e a página deles marca a versão que contêm.",
+      "As notificações chegam no idioma em que você usa o app, também sem idioma escolhido em Configurações.",
+      "Um arquivo NUP feito para causar danos não pode mais fazer o app gastar gigabytes de memória ou horas."
+    ],
+    "nl": [
+      "Nu bijwerken installeert alleen nog versies die met de sleutel van het project zijn ondertekend, en wacht tot elke taak klaar is voordat het herstart.",
+      "Games die met hun update opnieuw zijn gebouwd, zoals hacBrewPackLZ ze maakt, staan niet meer bij de games met een update, en hun pagina markeert de versie die ze bevatten.",
+      "Meldingen komen in de taal waarin je de app gebruikt, ook zonder gekozen taal in de Instellingen.",
+      "Een NUP-bestand dat gemaakt is om schade te doen, kan de app geen gigabytes geheugen of uren meer kosten."
+    ],
+    "ru": [
+      "«Обновить сейчас» устанавливает только версии, подписанные ключом проекта, и перед перезапуском ждёт завершения каждой задачи.",
+      "Игры, пересобранные вместе с обновлением, как их делает hacBrewPackLZ, больше не попадают в список игр с обновлением, а на их странице отмечена версия, которую они содержат.",
+      "Уведомления приходят на языке, на котором вы пользуетесь приложением, даже если язык не выбран в настройках.",
+      "Вредоносный файл NUP больше не может заставить приложение занять гигабайты памяти или работать часами."
+    ],
+    "ja": [
+      "「今すぐ更新」はプロジェクトの鍵で署名されたバージョンだけをインストールし、再起動の前にすべてのタスクが終わるのを待ちます。",
+      "hacBrewPackLZ のように更新データを含めて作り直したゲームは、更新のあるゲームに表示されなくなり、そのページには含まれているバージョンが表示されます。",
+      "設定で言語を選んでいなくても、通知はアプリを使っている言語で届きます。",
+      "害を与えるように作られた NUP ファイルで、アプリが何ギガバイトものメモリや何時間も使うことはなくなりました。"
+    ],
+    "ko": [
+      "지금 업데이트는 프로젝트 키로 서명된 버전만 설치하고, 다시 시작하기 전에 모든 작업이 끝나기를 기다립니다.",
+      "hacBrewPackLZ처럼 업데이트를 포함해 다시 만든 게임은 더 이상 업데이트가 있는 게임에 표시되지 않으며, 게임 페이지에 포함된 버전이 표시됩니다.",
+      "설정에서 언어를 고르지 않아도 알림은 앱을 사용하는 언어로 옵니다.",
+      "해를 끼치도록 만든 NUP 파일이 더 이상 앱에 수 기가바이트의 메모리나 몇 시간을 쓰게 할 수 없습니다."
+    ],
+    "zh": [
+      "“立即更新”只安装用项目密钥签名的版本，并在重启前等待每个任务完成。",
+      "像 hacBrewPackLZ 那样连同更新一起重建的游戏，不再出现在有更新的游戏中，其页面会标出所含的版本。",
+      "即使未在设置中选择语言，通知也会使用你使用本应用时的语言。",
+      "恶意制作的 NUP 文件不会再让应用占用数 GB 内存或耗费数小时。"
+    ]
+  },
   "2.0.2": {
     "en": [
       "The top of the Library is shorter: the status cards filter the list, and Filters sits beside the search.",

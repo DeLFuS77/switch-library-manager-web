@@ -1,6 +1,8 @@
-# Creates the GitHub release for a version tag, using the matching section of
+# Creates the GitHub release for a version tag, as a draft, using the matching section of
 # CHANGELOG.md as release notes, with the program for Windows, macOS, Linux and Raspberry Pi
-# attached. GitHub attaches the source code archives. The notes go to the Discord server too.
+# attached. GitHub attaches the source code archives. The maintainer then signs it on their own
+# computer and publishes it (go run ./tools/releasesign <tag>): the key the app trusts is never
+# on GitHub. Once published, announce.yml sends the notes to the Discord server.
 name: Release
 
 on:
@@ -92,8 +94,6 @@ jobs:
             echo "No section for ${GITHUB_REF_NAME} in CHANGELOG.md" >&2
             exit 1
           fi
-          # the notes alone, without how to download, for the Discord server
-          cp release-notes.md discord-notes.md
 
       # the C compiler of the zstd library in C, checked against its SHA-256
       - name: Set up Zig
@@ -114,7 +114,8 @@ jobs:
           sha256sum -- *.zip *.tar.gz > SHA256SUMS.txt
           ls -l
 
-      # proof that each file was built by this workflow from this tag
+      # proof that each file was built by this workflow from this tag, which releasesign checks
+      # before the maintainer signs the checksums
       - name: Attest the programs
         id: attest
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
@@ -148,33 +149,18 @@ jobs:
           the new version over the folder of the one you have (`switch-library-manager-web`). Docker and Unraid
           users update the container instead. `SHA256SUMS.txt` has the checksums of the files, and
           `gh attestation verify <file> -R DeLFuS77/switch-library-manager-web` proves a file was built here.
+          `SHA256SUMS.txt.minisig` is their signature with the key of the app (minisign), which the app checks before it installs a new version by itself.
           EOF
 
-      - name: Create release
+      # a draft: nobody sees it, nor the app, until the maintainer signs and publishes it
+      - name: Create the draft of the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${GITHUB_REF_NAME}" \
+            --draft \
             --title "${GITHUB_REF_NAME}" \
             --notes-file release-notes.md \
             --verify-tag \
             dist/*.zip dist/*.tar.gz dist/SHA256SUMS.txt dist/*.intoto.jsonl
-
-      # the notes in #releases of the Discord server, through the webhook kept in the secret
-      # DISCORD_WEBHOOK; without it (a fork) nothing is sent, and if Discord fails the release
-      # stays as it is
-      - name: Announce on Discord
-        continue-on-error: true
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        run: |
-          if [ -z "${DISCORD_WEBHOOK}" ]; then
-            echo "No DISCORD_WEBHOOK secret: nothing sent to Discord"
-            exit 0
-          fi
-          python3 .github/scripts/discord_release.py \
-            "Switch Library Manager Web ${GITHUB_REF_NAME}" \
-            "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}" \
-            discord-notes.md > discord-message.json
-          curl -fsS --retry 3 -H "Content-Type: application/json" \
-            --data @discord-message.json "${DISCORD_WEBHOOK}"
+          echo "Sign and publish it on your computer: go run ./tools/releasesign ${GITHUB_REF_NAME}"

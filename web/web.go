@@ -205,8 +205,16 @@ type Web struct {
 	measuring atomic.Bool
 	// the app was asked to stop: no task starts any more (see Stop)
 	stopping atomic.Bool
-	// the server of the pages, closed before an update starts the new program
-	server *http.Server
+	// the server of the pages, closed before an update starts the new program; closing ends the
+	// pages that stream (the events of Tasks) as it closes, so it does not wait for them
+	server      *http.Server
+	closing     chan struct{}
+	closingOnce sync.Once
+	closedOnce  sync.Once
+	// an update holds the files and the scans: no task starts (see holdFiles), and the update
+	// asked that waits for the work to end (see updatewait.go)
+	updateHold atomic.Bool
+	updateWait pendingUpdate
 	// the content of the Space page is being prepared
 	spacePreparing atomic.Bool
 	// the changes of Organize are being counted for the tune-up
@@ -225,10 +233,12 @@ type Web struct {
 	remote        *remoteCovers
 	remoteOnce    sync.Once
 	languages     titleLanguages
-	auto          autoCompressor
-	updates       updateChecker
-	verify        *verifyStore
-	verifyOnce    sync.Once
+	// the language the interface was last used in, for the notifications
+	lastLanguage interfaceLanguage
+	auto         autoCompressor
+	updates      updateChecker
+	verify       *verifyStore
+	verifyOnce   sync.Once
 	// the files deleted that wait in the quarantine
 	quarantineItems *quarantineStore
 	quarantineOnce  sync.Once
@@ -849,6 +859,7 @@ func (web *Web) Start() {
 	// Run http server
 	setStartingStep("Preparing the pages...")
 	web.router.Use(sameOriginOnly)
+	web.router.Use(web.heldForUpdate)
 	web.HandleResources()
 	web.HandleImages()
 	web.HandleIndex()

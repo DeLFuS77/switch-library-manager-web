@@ -41,7 +41,8 @@ func packFiles(local *db.SwitchGameFiles) []db.ExtendedFileInfo {
 		return nil
 	}
 	files := []db.ExtendedFileInfo{local.File.ExtendedInfo}
-	if update, ok := local.Updates[local.LatestUpdate]; ok {
+	// a game rebuilt with a newer update in it than its update files packs no older update
+	if update, ok := local.Updates[local.LatestUpdate]; ok && local.LatestUpdate >= local.UpdateLevel() {
 		files = append(files, update.ExtendedInfo)
 	}
 	for _, entry := range archiveEntries(local) {
@@ -112,8 +113,8 @@ func packSources(local *db.SwitchGameFiles, skipped map[db.ExtendedFileInfo]db.S
 // packName is the name of the pack of a game, next to its base file.
 func packName(name string, titleId string, local *db.SwitchGameFiles, compressed bool) string {
 	result := safeFileName(name) + " [" + strings.ToUpper(titleId) + "]"
-	if local.LatestUpdate > 0 {
-		result += fmt.Sprintf("[v%d]", local.LatestUpdate)
+	if level := local.UpdateLevel(); level > 0 {
+		result += fmt.Sprintf("[v%d]", level)
 	}
 	if len(local.Dlc) > 0 {
 		result += fmt.Sprintf("[+%d DLC]", len(local.Dlc))
@@ -129,7 +130,7 @@ func packName(name string, titleId string, local *db.SwitchGameFiles, compressed
 // game, its latest update and its DLC (1G+1U+2D).
 func packContents(local *db.SwitchGameFiles) string {
 	contents := "1G"
-	if _, ok := local.Updates[local.LatestUpdate]; ok {
+	if _, ok := local.Updates[local.LatestUpdate]; ok && local.LatestUpdate >= local.UpdateLevel() {
 		contents += "+1U"
 	}
 	if dlc := len(local.Dlc); dlc > 0 {
@@ -139,11 +140,13 @@ func packContents(local *db.SwitchGameFiles) string {
 }
 
 // dlcNeedsNewer is the version of its game a DLC of the game needs when the newest update of
-// the library is older, 0 else: the DLC of the pack would ask for an update it does not hold.
+// the library is older, 0 else: the DLC of the pack would ask for an update it does not hold. A
+// game rebuilt with its update in it holds that update (see UpdateLevel).
 func dlcNeedsNewer(local *db.SwitchGameFiles) int {
 	need := 0
+	level := local.UpdateLevel()
 	for _, dlc := range local.Dlc {
-		if dlc.Metadata != nil && dlc.Metadata.RequiredTitleVersion > local.LatestUpdate && dlc.Metadata.RequiredTitleVersion > need {
+		if dlc.Metadata != nil && dlc.Metadata.RequiredTitleVersion > level && dlc.Metadata.RequiredTitleVersion > need {
 			need = dlc.Metadata.RequiredTitleVersion
 		}
 	}
@@ -210,7 +213,7 @@ func (web *Web) packCandidates() []CompressCandidate {
 			for _, file := range files {
 				size += file.Size
 			}
-			candidates = append(candidates, CompressCandidate{Path: base, Name: name, Kind: "Base", Size: size, Files: len(files), Contents: packContents(local), NeedsGame: dlcNeedsNewer(local), Latest: local.LatestUpdate})
+			candidates = append(candidates, CompressCandidate{Path: base, Name: name, Kind: "Base", Size: size, Files: len(files), Contents: packContents(local), NeedsGame: dlcNeedsNewer(local), Latest: local.UpdateLevel()})
 		}
 		sort.Slice(candidates, func(i, j int) bool {
 			if candidates[i].Size == candidates[j].Size {

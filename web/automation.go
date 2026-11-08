@@ -506,10 +506,7 @@ func (web *Web) notifyAutomation(result AutomationResult) {
 	if !notify.Configured(settingsObj.Notifications) {
 		return
 	}
-	lang := settingsObj.Language
-	if !i18n.IsSupportedLanguage(lang) {
-		lang = i18n.DEFAULT_LANGUAGE
-	}
+	lang := web.notificationLanguage(settingsObj.Language)
 	title, text := automationMessage(lang, result)
 	if err := notify.Send(settingsObj.Notifications, title, text, result); err != nil {
 		web.sugarLogger.Warnf("Failed to send the automation message: %v", err)

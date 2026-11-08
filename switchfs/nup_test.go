@@ -271,7 +271,9 @@ func FuzzReadNup(f *testing.F) {
 		}
 		if len(data) > nupHeaderSize+nupTocHeadSize {
 			rehashed := append([]byte{}, data...)
-			if tocSize := binary.LittleEndian.Uint64(rehashed[0x10:]); tocSize <= uint64(len(rehashed)-nupHeaderSize) {
+			// the table may be anywhere the header says, not only after it
+			tocOffset, tocSize := binary.LittleEndian.Uint64(rehashed[0x08:]), binary.LittleEndian.Uint64(rehashed[0x10:])
+			if tocOffset <= uint64(len(rehashed)) && tocSize <= uint64(len(rehashed))-tocOffset {
 				rehash(rehashed)
 				if container, err := readNupBytes(rehashed); err == nil {
 					container.Metadata()
