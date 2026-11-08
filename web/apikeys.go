@@ -99,6 +99,10 @@ func lowerRole(a, b string) string {
 // downloading), and their own role when it may do more.
 func apiKeyRoles(userRole string) []string {
 	choices := []string{ROLE_VIEWER}
+	// a console downloads: only a user who may download makes a key for one
+	if roleRank(userRole) >= roleRank(ROLE_VIEWER) {
+		choices = append([]string{ROLE_CONSOLE}, choices...)
+	}
 	if roleRank(userRole) > roleRank(ROLE_VIEWER) {
 		choices = append(choices, userRole)
 	}
@@ -120,6 +124,9 @@ func apiKeyChoices(userRole string) []RoleChoice {
 func apiKeyRoleName(role string) string {
 	if role == ROLE_VIEWER {
 		return "Read only"
+	}
+	if role == ROLE_CONSOLE {
+		return "Console"
 	}
 	if name, ok := roleNames[role]; ok {
 		return name
@@ -421,6 +428,30 @@ func bearerKey(r *http.Request) (string, bool) {
 	return value, strings.HasPrefix(value, apiKeyPrefix)
 }
 
+// basicKey returns an API key sent as the password of basic authentication, as DBI and Tinfoil
+// sign in only with a user name and a password in the address of the source: the name is not
+// looked at, the key says who it is.
+func basicKey(r *http.Request) (string, bool) {
+	_, password, ok := r.BasicAuth()
+	if !ok || len(password) != len(apiKeyPrefix)+apiKeyLength || !strings.HasPrefix(password, apiKeyPrefix) {
+		return "", false
+	}
+	for _, c := range password[len(apiKeyPrefix):] {
+		if !strings.ContainsRune(apiKeyAlphabet, c) {
+			return "", false
+		}
+	}
+	return password, true
+}
+
+// requestKey returns the API key of a request, sent as a bearer token or as the password.
+func requestKey(r *http.Request) (string, bool) {
+	if secret, ok := bearerKey(r); ok {
+		return secret, true
+	}
+	return basicKey(r)
+}
+
 // fromAPIKey returns who a key signs in: its user, with the lower of the roles of the key and of
 // the user now.
 func (a *Auth) fromAPIKey(secret string) (*Principal, APIKey, bool) {
@@ -428,7 +459,12 @@ func (a *Auth) fromAPIKey(secret string) (*Principal, APIKey, bool) {
 	if !ok {
 		return nil, APIKey{}, false
 	}
-	return &Principal{Name: user.Name, Role: lowerRole(key.Role, user.Role), Source: "key"}, key, true
+	role := lowerRole(key.Role, user.Role)
+	// a console key downloads: its user must still be one who may
+	if key.Role == ROLE_CONSOLE && roleRank(user.Role) < roleRank(ROLE_VIEWER) {
+		role = ROLE_GUEST
+	}
+	return &Principal{Name: user.Name, Role: role, Source: "key"}, key, true
 }
 
 // keyAttempt notes a sign-in with an API key and tells the hook of it: a use once a day by key and

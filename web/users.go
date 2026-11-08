@@ -25,6 +25,9 @@ const (
 	ROLE_VIEWER = "viewer"
 	ROLE_EDITOR = "editor"
 	ROLE_ADMIN  = "admin"
+	// a role of API keys only, for a console: it lists the library at /install/ and downloads
+	// from it, and opens no page (see netinstall.go)
+	ROLE_CONSOLE = "console"
 
 	USERS_FILENAME = "users.json"
 )

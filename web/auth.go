@@ -436,7 +436,7 @@ var adminOnlyPages = map[string]struct{}{"/settings.html": {}, "/wizard": {}, "/
 
 // downloadPath matches what takes a file of the library out of it: games, updates, DLC, their
 // archives, cheats and the lists of the library
-var downloadPath = regexp.MustCompile(`^/api/titles/[^/]+(/updates/[^/]+|/dlc/[^/]+|/archive\.zip|/cheats\.(txt|zip))?$|^/api/cheats\.zip$|^/export/|^/sd/list\.txt$`)
+var downloadPath = regexp.MustCompile(`^/api/titles/[^/]+(/updates/[^/]+|/dlc/[^/]+|/archive\.zip|/cheats\.(txt|zip))?$|^/api/cheats\.zip$|^/export/|^/sd/list\.txt$|^/install/`)
 
 // editorPages are the pages of the tools an editor uses besides the ones of everybody
 var editorPages = map[string]struct{}{"/compress.html": {}, "/compress/xci-list": {}, "/compress/nsz-list": {}}
@@ -456,6 +456,8 @@ func roleAllows(role string, r *http.Request) bool {
 		return viewerAllowed(r) || editorAllowed(r)
 	case ROLE_VIEWER:
 		return viewerAllowed(r)
+	case ROLE_CONSOLE:
+		return consoleAllowed(r)
 	}
 	// a guest, or a role this version does not know: looks, without downloading
 	return viewerAllowed(r) && !downloadPath.MatchString(r.URL.Path)
@@ -534,7 +536,7 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 			if principal == nil {
 				ip := clientIp(r)
 				// an API key names no account: it counts against the address only
-				secret, bearer := bearerKey(r)
+				secret, bearer := requestKey(r)
 				name := ""
 				if !bearer {
 					name, _, _ = r.BasicAuth()

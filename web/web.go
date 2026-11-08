@@ -167,8 +167,10 @@ type Web struct {
 	ratiosStore    *ratioStore
 	ratiosOnce     sync.Once
 	// the save vault: verified passwords and what was read from the backups (see vault.go)
-	vault           vaultAuth
-	vaultFiles      vaultIndex
+	vault      vaultAuth
+	vaultFiles vaultIndex
+	// what was read of the files given to the installers of the console (see netinstall.go)
+	netStreams      netInstallStreams
 	coll            *userdata.Collections
 	collectionsOnce sync.Once
 	fav             *userdata.Favorites
@@ -911,6 +913,7 @@ func (web *Web) Start() {
 	web.HandlePlay()
 	web.HandleSmartCollections()
 	web.HandleFavorites()
+	web.HandleNetInstall()
 	if !isDemoMode() {
 		web.StartScheduler()
 		web.startTelegramBot()

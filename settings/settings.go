@@ -359,6 +359,20 @@ type AppSettings struct {
 	LastSyncTime      time.Time           `json:"last_sync_time"`
 	// signing in through a portal in front of the app (off by default)
 	Portal PortalOptions `json:"portal,omitzero"`
+	// installing from the library on the consoles of the user over the network (off by default)
+	NetInstall NetInstallOptions `json:"net_install,omitzero"`
+}
+
+// NetInstallOptions: the library listed for DBI and for installers that read an index of
+// Tinfoil, at /install/ (see web/netinstall.go). Only with users, never without a password.
+type NetInstallOptions struct {
+	Enabled bool `json:"enabled,omitempty"`
+	// every update of a game is listed, not only the newest
+	AllUpdates bool `json:"all_updates,omitempty"`
+	// it also answers from outside the local network
+	Remote bool `json:"remote,omitempty"`
+	// the message an installer of the kind of Tinfoil shows when it opens the index
+	Message string `json:"message,omitempty"`
 }
 
 func ReadSettings(dataFolder string) *AppSettings {
