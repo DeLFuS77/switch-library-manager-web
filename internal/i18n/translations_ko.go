@@ -1805,6 +1805,24 @@ func init() {
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "잘못된 설정 코드가 너무 많아요. 몇 분 기다리거나 앱을 다시 시작해 새 코드를 받으세요.",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "이 백업에는 사용자가 있어요. 복원하려면 설정 코드를 입력하세요. 앱 로그에서 SETUP CODE 라고 적힌 곳에 있어요.",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "비밀번호를 잊으셨나요?",
+		"Recover your password": "비밀번호 복구",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "사용자 이름을 입력하세요. 앱이 일회용 코드를 로그에 적어요.",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "그 이름의 사용자가 있으면 컨테이너 로그에서 %v 라고 적힌 곳에 코드를 적었어요. 15분 동안 쓸 수 있어요.",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "그 이름의 사용자가 있으면 프로그램 창에서 %v 라고 적힌 곳에 코드를 적었어요. 15분 동안 쓸 수 있어요.",
+		"Recovery code": "복구 코드",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "컨테이너 로그에서 RECOVERY CODE 라고 적힌 곳과, 앱의 appdata 폴더에 있는 recovery-code.txt 파일에 있어요. 한 번만 쓸 수 있어요.",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "프로그램 창에서 RECOVERY CODE 라고 적힌 곳과, 앱의 데이터 폴더에 있는 recovery-code.txt 파일에 있어요. 한 번만 쓸 수 있어요.",
+		"Change the password":  "비밀번호 변경",
+		"Ask for the code":     "코드 받기",
+		"Ask for another code": "다른 코드 받기",
+		"Back to the login":    "로그인으로 돌아가기",
+		"The password was changed. Log in with the new one.":                                             "비밀번호를 바꿨어요. 새 비밀번호로 로그인하세요.",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "코드가 맞지 않거나 만료됐어요. 다른 코드를 받아 앱 로그에서 복사하세요.",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "잘못된 코드가 너무 많아요. 몇 분 기다린 뒤 다른 코드를 받으세요.",
+		"with a recovery code": "복구 코드로",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "데모 모드: 서버의 폴더와 세부 정보는 표시하지 않아요.",
 

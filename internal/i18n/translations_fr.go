@@ -1805,6 +1805,24 @@ func init() {
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "Trop de codes de configuration erronés. Attendez quelques minutes, ou redémarrez l'application pour obtenir un nouveau code.",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "Cette sauvegarde contient des utilisateurs : pour les restaurer, saisissez le code de configuration. Il se trouve dans le journal de l'application, là où est écrit SETUP CODE.",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "Mot de passe oublié ?",
+		"Recover your password": "Récupérer le mot de passe",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "Saisissez votre nom d'utilisateur. L'application écrira un code à usage unique dans son journal.",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "S'il existe un utilisateur de ce nom, un code a été écrit dans le journal du conteneur, là où est écrit %v. Il est valable 15 minutes.",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "S'il existe un utilisateur de ce nom, un code a été écrit dans la fenêtre du programme, là où est écrit %v. Il est valable 15 minutes.",
+		"Recovery code": "Code de récupération",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "Il se trouve dans le journal du conteneur, là où est écrit RECOVERY CODE, et dans le fichier recovery-code.txt du dossier appdata de l'application. Il ne sert qu'une fois.",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "Il se trouve dans la fenêtre du programme, là où est écrit RECOVERY CODE, et dans le fichier recovery-code.txt du dossier de données de l'application. Il ne sert qu'une fois.",
+		"Change the password":  "Changer le mot de passe",
+		"Ask for the code":     "Demander le code",
+		"Ask for another code": "Demander un autre code",
+		"Back to the login":    "Retour à la connexion",
+		"The password was changed. Log in with the new one.":                                             "Le mot de passe a été changé. Connectez-vous avec le nouveau.",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "Le code n'est pas correct ou a expiré. Demandez-en un autre et copiez-le depuis le journal de l'application.",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "Trop de codes incorrects. Attendez quelques minutes et demandez-en un autre.",
+		"with a recovery code": "avec un code de récupération",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "Mode démo : les dossiers et les détails du serveur ne sont pas affichés.",
 

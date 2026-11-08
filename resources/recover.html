@@ -1,0 +1,70 @@
+{{- define "layout" -}}
+<!doctype html>
+<html class="min-vh-100" lang="{{lang}}" data-bs-theme="dark">
+<head>
+	<meta charset="utf-8" />
+	<script src="{{asset "/resources/static/theme.js"}}"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="noindex">
+	<title>{{t "Recover your password"}} - Switch Library Manager Web</title>
+	<link rel="preload" href="/resources/vendor/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+	<link rel="preload" href="/resources/vendor/bootstrap-icons/font/fonts/bootstrap-icons.woff2?24e3eb84d0bcaf83d77f904c78ac1f47" as="font" type="font/woff2" crossorigin>
+	<link rel="stylesheet" href="{{asset "/resources/static/web.css"}}">
+	<link rel="icon" type="image/png" sizes="32x32" href="/resources/static/favicon-32x32.png">
+	<link rel="shortcut icon" href="/resources/static/favicon.ico">
+	<link rel="apple-touch-icon" sizes="180x180" href="/resources/static/apple-touch-icon.png">
+	<link rel="manifest" href="/resources/static/site.webmanifest">
+	<meta name="theme-color" content="#0d1117">
+</head>
+<body class="login-page d-flex align-items-center justify-content-center min-vh-100 p-3">
+	<!-- a forgotten password: the name first, then the code of the log and the new password -->
+	<main class="surface login-card w-100" id="main"{{if .Asked}} data-hover-help{{end}}>
+		<div class="text-center mb-4">
+			<span class="brand-mark brand-mark-lg mb-3"><img src="/resources/static/icon.svg" alt="" aria-hidden="true"></span>
+			<h1 class="h4 fw-bold mb-1">{{t "Recover your password"}}</h1>
+			{{- if not .Asked}}
+			<p class="text-body-secondary mb-0">{{t "Write your user name. The app will write a one-time code in its log."}}</p>
+			{{- end}}
+		</div>
+		{{- if .Error}}
+		<div class="alert alert-danger d-flex align-items-center gap-2" role="alert"><span class="bi bi-exclamation-triangle-fill flex-shrink-0" aria-hidden="true"></span><div>{{.Error}}</div></div>
+		{{- end}}
+		{{- if .Asked}}
+		{{- if not .Error}}
+		<div class="alert alert-info d-flex gap-2 small" role="status"><span class="bi bi-journal-text flex-shrink-0 mt-1" aria-hidden="true"></span><div>{{if .InContainer}}{{tStrong "If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes." "RECOVERY CODE"}}{{else}}{{tStrong "If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes." "RECOVERY CODE"}}{{end}}</div></div>
+		{{- end}}
+		<form method="post" action="/recover/reset">
+			<div class="mb-3">
+				<label class="form-label fw-semibold" for="name">{{t "User name"}}</label>
+				<input class="form-control form-control-lg" id="name" name="name" value="{{.Name}}" autocomplete="username" readonly>
+			</div>
+			<div class="mb-3">
+				<label class="form-label fw-semibold" for="code">{{t "Recovery code"}}</label>
+				<input class="form-control form-control-lg font-monospace" id="code" name="code" placeholder="XXXX-XXXX-XXXX" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" maxlength="64" required autofocus>
+				<div class="form-text">{{if .InContainer}}{{t "It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once."}}{{else}}{{t "It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once."}}{{end}}</div>
+			</div>
+			<div class="mb-4">
+				<label class="form-label fw-semibold" for="password">{{t "New password"}}</label>
+				<input class="form-control form-control-lg" id="password" name="password" type="password" autocomplete="new-password" required minlength="10" maxlength="72">
+			</div>
+			<button class="btn btn-primary btn-lg rounded-pill w-100" type="submit"><span class="bi bi-check2-circle me-2" aria-hidden="true"></span>{{t "Change the password"}}</button>
+		</form>
+		<form class="text-center mt-3" method="post" action="/recover/ask">
+			<input type="hidden" name="name" value="{{.Name}}">
+			<button class="btn btn-link btn-sm fw-semibold text-work text-decoration-none" type="submit">{{t "Ask for another code"}}</button>
+		</form>
+		{{- else}}
+		<form method="post" action="/recover/ask">
+			<div class="mb-4">
+				<label class="form-label fw-semibold" for="name">{{t "User name"}}</label>
+				<input class="form-control form-control-lg" id="name" name="name" value="{{.Name}}" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="32" required autofocus>
+			</div>
+			<button class="btn btn-primary btn-lg rounded-pill w-100" type="submit"><span class="bi bi-envelope-paper me-2" aria-hidden="true"></span>{{t "Ask for the code"}}</button>
+		</form>
+		<div class="text-center mt-3"><a class="small fw-semibold text-work text-decoration-none" href="/login.html"><span class="bi bi-arrow-left me-1" aria-hidden="true"></span>{{t "Back to the login"}}</a></div>
+		{{- end}}
+	</main>
+	<script src="{{asset "/resources/static/web.js"}}"></script>
+</body>
+</html>
+{{- end}}

@@ -1525,6 +1525,24 @@ var Translations = map[string]map[string]string{
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "Demasiados códigos incorrectos. Espera unos minutos, o reinicia la app para tener un código nuevo.",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "Esta copia trae usuarios: para restaurarlos, escribe el código de configuración. Está en el log de la app, donde pone SETUP CODE.",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "¿Has olvidado la contraseña?",
+		"Recover your password": "Recuperar la contraseña",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "Escribe tu nombre de usuario. La app escribirá un código de un solo uso en su log.",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "Si hay un usuario con ese nombre, se ha escrito un código en el log del contenedor, donde pone %v. Sirve durante 15 minutos.",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "Si hay un usuario con ese nombre, se ha escrito un código en la ventana del programa, donde pone %v. Sirve durante 15 minutos.",
+		"Recovery code": "Código de recuperación",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "Está en el log del contenedor, donde pone RECOVERY CODE, y en el archivo recovery-code.txt de la carpeta appdata de la app. Sirve una sola vez.",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "Está en la ventana del programa, donde pone RECOVERY CODE, y en el archivo recovery-code.txt de la carpeta de datos de la app. Sirve una sola vez.",
+		"Change the password":  "Cambiar la contraseña",
+		"Ask for the code":     "Pedir el código",
+		"Ask for another code": "Pedir otro código",
+		"Back to the login":    "Volver a iniciar sesión",
+		"The password was changed. Log in with the new one.":                                             "Se ha cambiado la contraseña. Inicia sesión con la nueva.",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "El código no es correcto o ha caducado. Pide otro y cópialo del log de la app.",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "Demasiados códigos incorrectos. Espera unos minutos y pide otro.",
+		"with a recovery code": "con un código de recuperación",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "Modo demo: no se muestran las carpetas ni los detalles del servidor.",
 

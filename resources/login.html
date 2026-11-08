@@ -39,6 +39,9 @@
 			<h1 class="h4 fw-bold mb-1">Switch Library Manager</h1>
 			<p class="text-body-secondary mb-0">{{t "Log in to see your library."}}</p>
 		</div>
+		{{- if .Message}}
+		<div class="alert alert-success d-flex align-items-center gap-2" role="status"><span class="bi bi-check-circle-fill flex-shrink-0" aria-hidden="true"></span><div>{{.Message}}</div></div>
+		{{- end}}
 		{{- if .Error}}
 		<div class="alert alert-danger d-flex align-items-center gap-2" role="alert"><span class="bi bi-exclamation-triangle-fill flex-shrink-0" aria-hidden="true"></span><div>{{.Error}}</div></div>
 		{{- end}}
@@ -65,7 +68,10 @@
 				<input class="form-control form-control-lg" id="name" name="name" value="{{.Name}}" autocomplete="username" autocapitalize="none" spellcheck="false" required{{if not (or .Name .Oidc)}} autofocus{{end}}>
 			</div>
 			<div class="mb-4">
-				<label class="form-label fw-semibold" for="password">{{t "Password"}}</label>
+				<div class="d-flex justify-content-between align-items-baseline gap-2">
+					<label class="form-label fw-semibold" for="password">{{t "Password"}}</label>
+					<a class="small fw-semibold text-work text-decoration-none" href="/recover.html">{{t "Forgot your password?"}}</a>
+				</div>
 				<input class="form-control form-control-lg" id="password" name="password" type="password" autocomplete="current-password" required{{if .Name}} autofocus{{end}}>
 			</div>
 			<button class="btn {{if .Oidc}}btn-outline-primary{{else}}btn-primary{{end}} btn-lg rounded-pill w-100" type="submit"><span class="bi bi-box-arrow-in-right me-2" aria-hidden="true"></span>{{t "Log in"}}</button>

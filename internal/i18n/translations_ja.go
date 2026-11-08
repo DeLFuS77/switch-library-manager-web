@@ -1805,6 +1805,24 @@ func init() {
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "間違ったセットアップコードが多すぎます。数分待つか、アプリを再起動して新しいコードを取得してください。",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "このバックアップにはユーザーが含まれています。復元するにはセットアップコードを入力してください。アプリのログの SETUP CODE と書かれた行にあります。",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "パスワードをお忘れですか？",
+		"Recover your password": "パスワードの再設定",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "ユーザー名を入力してください。アプリが使い捨てのコードをログに書き出します。",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "その名前のユーザーがいれば、コンテナのログの %v と書かれた行にコードを書き出しました。15 分間有効です。",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "その名前のユーザーがいれば、プログラムのウィンドウの %v と書かれた行にコードを書き出しました。15 分間有効です。",
+		"Recovery code": "再設定コード",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "コンテナのログの RECOVERY CODE と書かれた行と、アプリの appdata フォルダーにある recovery-code.txt にあります。使えるのは 1 回だけです。",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "プログラムのウィンドウの RECOVERY CODE と書かれた行と、アプリのデータフォルダーにある recovery-code.txt にあります。使えるのは 1 回だけです。",
+		"Change the password":  "パスワードを変更",
+		"Ask for the code":     "コードを発行",
+		"Ask for another code": "別のコードを発行",
+		"Back to the login":    "ログインに戻る",
+		"The password was changed. Log in with the new one.":                                             "パスワードを変更しました。新しいパスワードでログインしてください。",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "コードが正しくないか、期限が切れています。別のコードを発行し、アプリのログからコピーしてください。",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "間違ったコードが多すぎます。数分待ってから別のコードを発行してください。",
+		"with a recovery code": "再設定コードで",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "デモモード：サーバーのフォルダーと詳細は表示しません。",
 
