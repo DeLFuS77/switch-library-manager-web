@@ -169,6 +169,7 @@ var (
 		portalUntrustedDetail:           portalUntrustedDetail,
 		portalTokenDetail:               portalTokenDetail,
 		oidcFailedDetail:                oidcFailedDetail,
+		recoveryActivityDetail:          recoveryActivityDetail,
 	}
 	activityPhrases = []string{", originals deleted after the check", ", NSZ deleted after the check"}
 )

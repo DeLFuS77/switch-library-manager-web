@@ -1805,6 +1805,24 @@ func init() {
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "Te veel verkeerde installatiecodes. Wacht een paar minuten, of start de app opnieuw voor een nieuwe code.",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "Deze back-up bevat gebruikers: vul de installatiecode in om ze te herstellen. Die staat in het log van de app, waar SETUP CODE staat.",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "Wachtwoord vergeten?",
+		"Recover your password": "Wachtwoord herstellen",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "Vul je gebruikersnaam in. De app schrijft een eenmalige code in zijn log.",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "Als er een gebruiker met die naam is, staat er nu een code in het log van de container, waar %v staat. Hij werkt 15 minuten.",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "Als er een gebruiker met die naam is, staat er nu een code in het venster van het programma, waar %v staat. Hij werkt 15 minuten.",
+		"Recovery code": "Herstelcode",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "Die staat in het log van de container, waar RECOVERY CODE staat, en in het bestand recovery-code.txt in de appdata-map van de app. Hij werkt één keer.",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "Die staat in het venster van het programma, waar RECOVERY CODE staat, en in het bestand recovery-code.txt in de gegevensmap van de app. Hij werkt één keer.",
+		"Change the password":  "Wachtwoord wijzigen",
+		"Ask for the code":     "Code aanvragen",
+		"Ask for another code": "Nieuwe code aanvragen",
+		"Back to the login":    "Terug naar inloggen",
+		"The password was changed. Log in with the new one.":                                             "Het wachtwoord is gewijzigd. Log in met het nieuwe.",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "De code klopt niet of is verlopen. Vraag een nieuwe aan en kopieer hem uit het log van de app.",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "Te veel verkeerde codes. Wacht een paar minuten en vraag een nieuwe aan.",
+		"with a recovery code": "met een herstelcode",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "Demomodus: de mappen en de details van de server worden niet getoond.",
 

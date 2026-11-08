@@ -1805,6 +1805,24 @@ func init() {
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "Muitos códigos de configuração errados. Espere alguns minutos, ou reinicie o app para ter um código novo.",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "Este backup tem usuários: para restaurá-los, digite o código de configuração. Ele está no log do app, onde aparece SETUP CODE.",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "Esqueceu a senha?",
+		"Recover your password": "Recuperar a senha",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "Digite seu nome de usuário. O app vai escrever um código de uso único no log.",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "Se houver um usuário com esse nome, um código foi escrito no log do contêiner, onde aparece %v. Ele vale por 15 minutos.",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "Se houver um usuário com esse nome, um código foi escrito na janela do programa, onde aparece %v. Ele vale por 15 minutos.",
+		"Recovery code": "Código de recuperação",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "Ele está no log do contêiner, onde aparece RECOVERY CODE, e no arquivo recovery-code.txt da pasta appdata do app. Vale uma única vez.",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "Ele está na janela do programa, onde aparece RECOVERY CODE, e no arquivo recovery-code.txt da pasta de dados do app. Vale uma única vez.",
+		"Change the password":  "Alterar a senha",
+		"Ask for the code":     "Pedir o código",
+		"Ask for another code": "Pedir outro código",
+		"Back to the login":    "Voltar ao login",
+		"The password was changed. Log in with the new one.":                                             "A senha foi alterada. Entre com a nova.",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "O código não está certo ou expirou. Peça outro e copie-o do log do app.",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "Códigos errados demais. Espere alguns minutos e peça outro.",
+		"with a recovery code": "com um código de recuperação",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "Modo demo: as pastas e os detalhes do servidor não são mostrados.",
 

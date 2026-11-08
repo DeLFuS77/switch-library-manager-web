@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Forgot your password? on the login page: the user writes their name, the app writes a one-time code in its log (the log of the container, or the window of the program) and in recovery-code.txt in the data folder, and with it the user sets a new password. The code works once, for 15 minutes; the sessions of the user end and Activity notes the change. Until now a forgotten password needed SLM_AUTH_USERNAME and SLM_AUTH_PASSWORD and a restart
+
 ## 2.0.3
 
 ### Improvements

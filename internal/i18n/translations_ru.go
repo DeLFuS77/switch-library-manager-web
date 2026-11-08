@@ -1805,6 +1805,24 @@ func init() {
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "Слишком много неверных кодов настройки. Подождите несколько минут или перезапустите приложение, чтобы получить новый код.",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "В этой копии есть пользователи: чтобы восстановить их, введите код настройки. Он в журнале приложения, в строке SETUP CODE.",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "Забыли пароль?",
+		"Recover your password": "Восстановление пароля",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "Введите имя пользователя. Приложение запишет одноразовый код в свой журнал.",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "Если пользователь с таким именем есть, код записан в журнал контейнера, в строку %v. Он действует 15 минут.",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "Если пользователь с таким именем есть, код записан в окно программы, в строку %v. Он действует 15 минут.",
+		"Recovery code": "Код восстановления",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "Он в журнале контейнера, в строке RECOVERY CODE, и в файле recovery-code.txt в папке appdata приложения. Действует один раз.",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "Он в окне программы, в строке RECOVERY CODE, и в файле recovery-code.txt в папке данных приложения. Действует один раз.",
+		"Change the password":  "Сменить пароль",
+		"Ask for the code":     "Получить код",
+		"Ask for another code": "Получить другой код",
+		"Back to the login":    "Назад ко входу",
+		"The password was changed. Log in with the new one.":                                             "Пароль изменён. Войдите с новым.",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "Код неверный или истёк. Получите другой и скопируйте его из журнала приложения.",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "Слишком много неверных кодов. Подождите несколько минут и получите другой.",
+		"with a recovery code": "с кодом восстановления",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "Деморежим: папки и сведения о сервере не показываются.",
 
