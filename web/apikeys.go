@@ -101,7 +101,7 @@ func apiKeyRoles(userRole string) []string {
 	choices := []string{ROLE_VIEWER}
 	// a console downloads: only a user who may download makes a key for one
 	if roleRank(userRole) >= roleRank(ROLE_VIEWER) {
-		choices = append([]string{ROLE_CONSOLE}, choices...)
+		choices = append(choices, ROLE_CONSOLE)
 	}
 	if roleRank(userRole) > roleRank(ROLE_VIEWER) {
 		choices = append(choices, userRole)
@@ -384,6 +384,8 @@ func (k KeyRow) MadeAsName() string { return apiKeyRoleName(k.MadeAs) }
 func (k KeyRow) Icon() string {
 	name := strings.ToLower(k.Name)
 	switch {
+	case k.Role == ROLE_CONSOLE:
+		return "bi-nintendo-switch"
 	case strings.Contains(name, "home assistant") || strings.Contains(name, "homeassistant") || strings.Contains(name, "hass"):
 		return "bi-house-gear"
 	case strings.Contains(name, "script") || strings.Contains(name, "cron") || strings.Contains(name, "curl"):

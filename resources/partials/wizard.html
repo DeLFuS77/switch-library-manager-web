@@ -729,6 +729,10 @@
 						<input type="password" name="vault_password" value="" autocomplete="off">
 						<input type="text" name="vault_keep" value="{{$s.Vault.Keep}}">
 						<input type="checkbox" name="vault_notify" value="true"{{if $s.Vault.Notify}} checked{{end}}>
+						<input type="checkbox" name="net_install_enabled" value="true"{{if $s.NetInstall.Enabled}} checked{{end}}>
+						<input type="checkbox" name="net_install_all_updates" value="true"{{if $s.NetInstall.AllUpdates}} checked{{end}}>
+						<input type="checkbox" name="net_install_remote" value="true"{{if $s.NetInstall.Remote}} checked{{end}}>
+						<input type="text" name="net_install_message" value="{{$s.NetInstall.Message}}">
 						<input type="text" name="compress_threads" value="{{$s.CompressThreads}}">
 						<input type="text" name="compress_files_at_once" value="{{$s.CompressFilesAtOnce}}">
 						<input type="checkbox" name="low_priority" value="true"{{if $s.LowPriority}} checked{{end}}>

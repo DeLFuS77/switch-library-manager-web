@@ -88,6 +88,81 @@
 	background: var(--slm-surface-muted);
 }
 
+// Settings > Install over the network
+[data-net-fields] {
+	transition: opacity .2s ease;
+
+	&.is-off {
+		opacity: .5;
+	}
+}
+
+.net-install-note {
+	font-size: .875rem;
+	padding: .5rem .75rem;
+	border-radius: $border-radius;
+	color: var(--bs-warning-text-emphasis);
+	background: var(--bs-warning-bg-subtle);
+}
+
+.net-console {
+	display: flex;
+	align-items: center;
+	gap: .75rem;
+	padding: .5rem 0;
+	border-bottom: 1px solid var(--bs-border-color);
+
+	&:last-child {
+		border-bottom: 0;
+	}
+
+	> .bi {
+		font-size: 1.3rem;
+		color: var(--bs-primary);
+	}
+}
+
+.net-error {
+	color: var(--bs-danger-text-emphasis);
+}
+
+.net-console-name {
+	max-width: 16rem;
+}
+
+.net-key {
+	padding: .75rem;
+	border: 1px dashed var(--bs-primary);
+	border-radius: $border-radius-lg;
+}
+
+.net-code {
+	display: block;
+	padding: .5rem .65rem;
+	border-radius: $border-radius;
+	background: var(--bs-tertiary-bg);
+	color: var(--bs-body-color);
+	word-break: break-all;
+	user-select: all;
+}
+
+.net-tabs .nav-link {
+	padding: .25rem .9rem;
+	border-radius: 999px;
+}
+
+.net-stat {
+	padding: .6rem .75rem;
+	border-radius: $border-radius-lg;
+	background: var(--slm-surface-muted);
+	font-size: .875rem;
+
+	b {
+		display: block;
+		font-size: 1.25rem;
+	}
+}
+
 // Settings > App on your phone
 .mobile-qr {
 	width: 11rem;

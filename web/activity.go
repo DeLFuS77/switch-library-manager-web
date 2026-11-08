@@ -163,6 +163,7 @@ var (
 		"password of the usual length":  "password of the usual length",
 		"password too short to be real": "password too short to be real",
 		"read only":                     "Read only",
+		ROLE_CONSOLE:                    "Console",
 		apiKeyFailDetail:                "unknown API key",
 		apiKeyBlockedDetail:             "API key",
 		portalUnknownDetail:             portalUnknownDetail,

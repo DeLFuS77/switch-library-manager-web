@@ -42,6 +42,10 @@ const (
 	netInstallDbi      = NET_INSTALL_PREFIX + "dbi/"
 	netInstallTinfoil  = NET_INSTALL_PREFIX + "tinfoil"
 	netInstallFiles    = NET_INSTALL_PREFIX + "f/"
+	// what the console will see, counted for Settings
+	netInstallSummaryPath = "/settings/net-install/summary"
+	// the longest message of the index
+	maxNetInstallMessage = 200
 
 	// the folders of the DBI listing
 	netFolderGames   = "Games"
@@ -261,8 +265,46 @@ func (web *Web) netInstallGate(w http.ResponseWriter, r *http.Request) (settings
 	return appSettings.NetInstall, true
 }
 
+// netInstallMessage is the message of the index, on one line and not too long.
+func netInstallMessage(message string) string {
+	message = strings.Join(strings.Fields(message), " ")
+	if runes := []rune(message); len(runes) > maxNetInstallMessage {
+		message = string(runes[:maxNetInstallMessage])
+	}
+	return message
+}
+
+// NetInstallSummary is what the console will see, for Settings.
+type NetInstallSummary struct {
+	Games      int `json:"games"`
+	Updates    int `json:"updates"`
+	Dlc        int `json:"dlc"`
+	Translated int `json:"translated"`
+}
+
+// handleNetInstallSummary counts what the console will see, with the settings as they are saved.
+func (web *Web) handleNetInstallSummary(w http.ResponseWriter, r *http.Request) {
+	summary := NetInstallSummary{}
+	for _, file := range web.netFiles(settings.ReadSettings(web.dataFolder).NetInstall) {
+		switch file.kind {
+		case netFolderGames:
+			summary.Games++
+		case netFolderUpdates:
+			summary.Updates++
+		case netFolderDlc:
+			summary.Dlc++
+		}
+		if file.stream != nil {
+			summary.Translated++
+		}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(summary)
+}
+
 // HandleNetInstall answers the installers of the console.
 func (web *Web) HandleNetInstall() {
+	web.router.HandleFunc(netInstallSummaryPath, web.handleNetInstallSummary).Methods(http.MethodGet)
 	web.router.PathPrefix(netInstallDbi).HandlerFunc(web.handleNetDbi).Methods(http.MethodGet, http.MethodHead)
 	web.router.HandleFunc(strings.TrimSuffix(netInstallDbi, "/"), func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, netInstallDbi, http.StatusMovedPermanently)
