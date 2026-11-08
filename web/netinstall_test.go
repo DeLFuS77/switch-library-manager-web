@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -179,5 +180,26 @@ func TestNetInstallPathsStayInside(t *testing.T) {
 		if code := console.do("GET", path, nil, "Authorization", basic("switch", key)).Code; code == http.StatusOK {
 			t.Fatalf("%s: %d", path, code)
 		}
+	}
+}
+
+// A file sent to a console is noted in the activity with the name of its key, once while the
+// installer asks for it again.
+func TestNetInstallNotedInTheActivity(t *testing.T) {
+	web, admin, key := netWeb(t)
+	console := &client{t: t, handler: admin.handler}
+	path := "/install/dbi/Games/" + url.PathEscape("Game [0100000000010000][v0].nsp")
+	for i := 0; i < 3; i++ {
+		console.do("GET", path, nil, "Authorization", basic("switch", key))
+	}
+	console.do("GET", path, nil, "Authorization", basic("switch", key), "Range", "bytes=10-20")
+	noted := []activity.Entry{}
+	for _, entry := range web.activities().List() {
+		if entry.Action == activity.ACTION_NET_INSTALL {
+			noted = append(noted, entry)
+		}
+	}
+	if len(noted) != 1 || noted[0].User != "bob" || noted[0].Detail != `"Switch": Game [0100000000010000][v0].nsp` {
+		t.Fatalf("noted: %+v", noted)
 	}
 }

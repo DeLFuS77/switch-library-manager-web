@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/internal/activity"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
@@ -491,6 +492,43 @@ func (web *Web) handleNetFile(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
+// netInstallNoteEvery is how often the same file sent to the same console is noted: an installer
+// that tries again asks for its start once more.
+const netInstallNoteEvery = 10 * time.Minute
+
+// netInstallNotes are the files noted last, by console and file, so a retry is not noted again.
+type netInstallNotes struct {
+	mutex sync.Mutex
+	last  map[string]time.Time
+}
+
+// noteNetInstall notes in the activity that a file starts going to a console: the user, the name
+// of the key of the console and the file.
+func (web *Web) noteNetInstall(r *http.Request, file netFile) {
+	principal := principalFrom(r)
+	web.sugarLogger.Infof("Network install: %s sent to %s (%s)", file.name, clientIp(r), principal.Name)
+	if isDemoMode() {
+		return
+	}
+	now := time.Now()
+	key := principal.Name + "|" + principal.KeyName + "|" + file.id
+	web.netNotes.mutex.Lock()
+	if web.netNotes.last == nil || len(web.netNotes.last) > 1000 {
+		web.netNotes.last = map[string]time.Time{}
+	}
+	if last, ok := web.netNotes.last[key]; ok && now.Sub(last) < netInstallNoteEvery {
+		web.netNotes.mutex.Unlock()
+		return
+	}
+	web.netNotes.last[key] = now
+	web.netNotes.mutex.Unlock()
+	detail := file.name
+	if principal.KeyName != "" {
+		detail = quotedKeyName(principal.KeyName) + ": " + file.name
+	}
+	web.activities().Add(activity.Entry{Time: now, User: principal.Name, Action: activity.ACTION_NET_INSTALL, Detail: detail, IP: clientIp(r)})
+}
+
 // serveNetFile gives a file with range requests: as it is, or the package made for the
 // installer when it holds an experimental NCZ.
 func (web *Web) serveNetFile(w http.ResponseWriter, r *http.Request, file netFile) {
@@ -498,9 +536,8 @@ func (web *Web) serveNetFile(w http.ResponseWriter, r *http.Request, file netFil
 	http.NewResponseController(w).SetWriteDeadline(time.Time{})
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Accept-Ranges", "bytes")
-	if r.Header.Get("Range") == "" || strings.HasPrefix(r.Header.Get("Range"), "bytes=0-") {
-		user := principalFrom(r).Name
-		web.sugarLogger.Infof("Network install: %s sent to %s (%s)", file.name, clientIp(r), user)
+	if r.Method == http.MethodGet && (r.Header.Get("Range") == "" || strings.HasPrefix(r.Header.Get("Range"), "bytes=0-")) {
+		web.noteNetInstall(r, file)
 	}
 	if file.stream != nil {
 		reader := file.stream.Reader()

@@ -52,11 +52,13 @@ const (
 	ACTION_PORTAL_SETTINGS = "Changed the sign-in portal"
 	// the temporary files of a task cut halfway, removed (see leftovers.go)
 	ACTION_LEFTOVERS = "Removed temporary files left halfway"
+	// a file of the library sent to the installer of a console (see web/netinstall.go)
+	ACTION_NET_INSTALL = "Sent a file to a console"
 )
 
 var Actions = []string{ACTION_SETTINGS, ACTION_ORGANIZE, ACTION_SPACE, ACTION_COMPRESS, ACTION_DECOMPRESS, ACTION_RESTORE, ACTION_USER_NEW, ACTION_USER_ROLE, ACTION_USER_PASS, ACTION_USER_DEL, ACTION_LEFTOVERS, ACTION_UPLOAD, ACTION_SYNC, ACTION_VERIFY, ACTION_LOGIN_OK, ACTION_LOGIN_FAIL, ACTION_LOGIN_LOCK,
 	ACTION_KEY_NEW, ACTION_KEY_USE, ACTION_KEY_DEL, ACTION_PORTAL_PROXY, ACTION_PORTAL_CF, ACTION_USER_EMAIL, ACTION_PORTAL_SETTINGS,
-	ACTION_PORTAL_OIDC, ACTION_OIDC_UNLINK}
+	ACTION_PORTAL_OIDC, ACTION_OIDC_UNLINK, ACTION_NET_INSTALL}
 
 // Entry is an action of a user.
 type Entry struct {

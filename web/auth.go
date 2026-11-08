@@ -64,6 +64,8 @@ type Principal struct {
 	Via string
 	// how the session was opened, kept when the session is renewed (see markedSessionCookie)
 	mark string
+	// the name of the API key it signed in with, if it did
+	KeyName string
 }
 
 func (p *Principal) IsAdmin() bool {

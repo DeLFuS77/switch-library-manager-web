@@ -171,6 +171,7 @@ type Web struct {
 	vaultFiles vaultIndex
 	// what was read of the files given to the installers of the console (see netinstall.go)
 	netStreams      netInstallStreams
+	netNotes        netInstallNotes
 	coll            *userdata.Collections
 	collectionsOnce sync.Once
 	fav             *userdata.Favorites
