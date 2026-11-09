@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/dtrunk90/switch-library-manager-web/internal/testnsp"
 	"github.com/dtrunk90/switch-library-manager-web/internal/testnup"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
@@ -24,9 +25,15 @@ func otherFormatNup(name string) []byte {
 // others are read by their names (no keys are loaded).
 func scanOtherFormat(t *testing.T, files map[string][]byte) (*LocalSwitchFilesDB, string) {
 	t.Helper()
-	if _, err := settings.InitSwitchKeys(t.TempDir()); err != nil {
+	// the keys of the tests, so the scan needs none of the computer (the CI has none)
+	keysDir := t.TempDir()
+	if err := testnsp.WriteKeys(keysDir); err != nil {
 		t.Fatal(err)
 	}
+	if _, err := settings.InitSwitchKeys(keysDir); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { settings.InitSwitchKeys(t.TempDir()) })
 	folder := t.TempDir()
 	for name, data := range files {
 		if err := os.WriteFile(filepath.Join(folder, name), data, 0o644); err != nil {
