@@ -1805,6 +1805,24 @@ func init() {
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "错误的设置码太多。请等几分钟，或重启应用以获取新的设置码。",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "此备份包含用户：要恢复它们，请输入设置码。它在应用日志中写着 SETUP CODE 的地方。",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "忘记密码？",
+		"Recover your password": "找回密码",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "请输入用户名。应用会在日志中写出一个一次性代码。",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "如果有这个名字的用户，代码已写在容器日志中写着 %v 的地方。15 分钟内有效。",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "如果有这个名字的用户，代码已写在程序窗口中写着 %v 的地方。15 分钟内有效。",
+		"Recovery code": "找回代码",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "它在容器日志中写着 RECOVERY CODE 的地方，也在应用 appdata 文件夹的 recovery-code.txt 文件里。只能用一次。",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "它在程序窗口中写着 RECOVERY CODE 的地方，也在应用数据文件夹的 recovery-code.txt 文件里。只能用一次。",
+		"Change the password":  "修改密码",
+		"Ask for the code":     "获取代码",
+		"Ask for another code": "获取新代码",
+		"Back to the login":    "返回登录",
+		"The password was changed. Log in with the new one.":                                             "密码已修改。请用新密码登录。",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "代码不正确或已过期。请获取新代码，并从应用日志中复制。",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "错误的代码太多。请等几分钟后再获取新代码。",
+		"with a recovery code": "使用找回代码",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "演示模式：不显示服务器的文件夹和详细信息。",
 
@@ -2138,6 +2156,14 @@ func init() {
 		"The NUP could not be fixed for the emulators: it is left as it was.":                                "无法为模拟器修复这个 NUP：它保持原样。",
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "NUP 旁边有另一个 NUP 的元数据副本（.nxpress-meta）：删除它后才能继续。",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "这个文件不是游戏库中元数据从 0 开始计数的 NUP。",
-		"Fixing…": "正在修复…",
+		"Fixing…":      "正在修复…",
+		"Set the icon": "设置图标",
+		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task.": "把此页显示的游戏封面（在“编辑”中选择的封面，否则为 titledb 的封面）设为 NUP 的图标：裁成居中的正方形并缩放为 256×256，与主机的图标一致。NUP 已有的内容都不会改变：游戏的元数据连同图标重新写在文件末尾，游戏文件不会被改动。写入时会在 NUP 旁保留文件头和目录的副本，若出错或工作中断则恢复。要使用其他图片，请先在“编辑”中更换封面：最好是 256×256 或更大的正方形图片。它以任务方式运行。",
+		"It carries no icon: Eglantine and Lichii show it without one.":                                               "没有图标：Eglantine 和 Lichii 中显示为无图像。",
+		"The icon could not be given to the NUP: it is left as it was.":                                               "无法为 NUP 设置图标：已保持原样。",
+		"Its game has no cover yet to make the icon of: choose one in Edit, or wait for the covers to download.":      "该游戏还没有可做图标的封面：请在“编辑”中选择一个，或等待封面下载完成。",
+		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "NUP 旁有另一个 NUP 的目录副本（.nxpress-icon）：删除它才能继续。",
+		"This file is not a NUP of the library without an icon.":                                                      "此文件不是库中缺少图标的 NUP。",
+		"Setting the icon…": "正在设置图标…",
 	}
 }

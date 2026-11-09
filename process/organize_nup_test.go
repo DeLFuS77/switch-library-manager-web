@@ -78,10 +78,11 @@ func TestCleanupKeepsANupAndAnNspOfAGame(t *testing.T) {
 			"0100000000010": {BaseExist: true, File: info(nsp, "0100000000010000", 0), Updates: map[int]db.SwitchFileInfo{}, Dlc: map[string]db.SwitchFileInfo{}},
 			"0100000000020": {BaseExist: true, File: info(nupGame, "0100000000020000", 0), Updates: map[int]db.SwitchFileInfo{}, Dlc: map[string]db.SwitchFileInfo{}},
 		},
+		// the scan lists the copy of the other format as such, never as a duplicate
 		Skipped: map[db.ExtendedFileInfo]db.SkippedFile{
-			nup:      {ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + filepath.Join(folder, nsp.FileName) + ")"},
+			nup:      {ReasonCode: db.REASON_OTHER_FORMAT, ReasonText: "same game in the other format, a NUP for emulators and an NSP or XCI to install: both kept (" + filepath.Join(folder, nsp.FileName) + ")"},
 			copy:     {ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + filepath.Join(folder, nsp.FileName) + ")"},
-			otherNsp: {ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + filepath.Join(folder, nupGame.FileName) + ")"},
+			otherNsp: {ReasonCode: db.REASON_OTHER_FORMAT, ReasonText: "same game in the other format, a NUP for emulators and an NSP or XCI to install: both kept (" + filepath.Join(folder, nupGame.FileName) + ")"},
 		},
 	}
 	operations := DeleteOldUpdates(folder, library, settings.OrganizeOptions{DeleteDuplicateFiles: true}, false, nil)
@@ -93,5 +94,26 @@ func TestCleanupKeepsANupAndAnNspOfAGame(t *testing.T) {
 		if op.From == filepath.Join(folder, nup.FileName) || op.From == filepath.Join(folder, otherNsp.FileName) {
 			t.Fatalf("not listed: %+v", operations)
 		}
+	}
+}
+
+// A library cached by an older version lists the NUP of a game kept in an NSP as its duplicate:
+// the cleanup keeps it all the same.
+func TestCleanupKeepsANupListedAsADuplicateBefore(t *testing.T) {
+	folder := t.TempDir()
+	nsp := writeFile(t, folder, "Game [0100000000010000][v0].nsp", 30)
+	nup := writeFile(t, folder, "Game [0100000000010000][v0].nup", 20)
+	library := &db.LocalSwitchFilesDB{
+		TitlesMap: map[string]*db.SwitchGameFiles{
+			"0100000000010": {BaseExist: true, File: info(nsp, "0100000000010000", 0), Updates: map[int]db.SwitchFileInfo{}, Dlc: map[string]db.SwitchFileInfo{}},
+		},
+		Skipped: map[db.ExtendedFileInfo]db.SkippedFile{
+			nup: {ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + filepath.Join(folder, nsp.FileName) + ")"},
+		},
+	}
+	operations := DeleteOldUpdates(folder, library, settings.OrganizeOptions{DeleteDuplicateFiles: true}, false, nil)
+	assertExists(t, filepath.Join(folder, nup.FileName), true)
+	if len(operations) != 0 {
+		t.Fatalf("nothing to do: %+v", operations)
 	}
 }

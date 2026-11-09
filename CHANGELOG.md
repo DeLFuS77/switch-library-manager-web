@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.4
+
+### Improvements
+
+- A NUP without an icon, such as one made of a dump folder without control data, is told on the page of its game, with Set the icon: the cover of its game shown there (the one chosen in Edit, else the one of titledb) becomes its icon, cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files stay as they were. It runs as a task, for administrators, and one cut goes on after a restart; the copy it keeps beside the NUP (.nxpress-icon) is the one of NXPress, so each puts back what the other left. The library reads its NUP files again once, to tell the ones without an icon (thanks QuickWick (Wicked on Discord), who suggested it on Discord and GBAtemp)
+- Forgot your password? on the login page: the user writes their name, the app writes a one-time code in its log (the log of the container, or the window of the program) and in recovery-code.txt in the data folder, and with it the user sets a new password. The code works once, for 15 minutes; the sessions of the user end and Activity notes the change. Until now a forgotten password needed SLM_AUTH_USERNAME and SLM_AUTH_PASSWORD and a restart
+
+### Fixes
+
+- A NUP and an NSP/NSZ/XCI/XCZ of the same game are no longer reported as duplicates: the NUP, for emulators, and the file to install are the same game for another console, and the scan keeps both without listing either in Issues, in Space or in the count of duplicates. Neither the game, nor the update, nor a DLC a NUP holds makes a separate file a duplicate or an old update any more, and the reverse; two NUP files, or two NSZ, of the same game are still duplicates of each other, and an update NSZ and an NSP of the same version too
+
+### Next
+
+- Reading NUP v2, the new version of the format, once its specification settles
+
 ## 2.0.3
 
 ### Improvements

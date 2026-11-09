@@ -1805,6 +1805,24 @@ func init() {
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "Слишком много неверных кодов настройки. Подождите несколько минут или перезапустите приложение, чтобы получить новый код.",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "В этой копии есть пользователи: чтобы восстановить их, введите код настройки. Он в журнале приложения, в строке SETUP CODE.",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "Забыли пароль?",
+		"Recover your password": "Восстановление пароля",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "Введите имя пользователя. Приложение запишет одноразовый код в свой журнал.",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "Если пользователь с таким именем есть, код записан в журнал контейнера, в строку %v. Он действует 15 минут.",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "Если пользователь с таким именем есть, код записан в окно программы, в строку %v. Он действует 15 минут.",
+		"Recovery code": "Код восстановления",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "Он в журнале контейнера, в строке RECOVERY CODE, и в файле recovery-code.txt в папке appdata приложения. Действует один раз.",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "Он в окне программы, в строке RECOVERY CODE, и в файле recovery-code.txt в папке данных приложения. Действует один раз.",
+		"Change the password":  "Сменить пароль",
+		"Ask for the code":     "Получить код",
+		"Ask for another code": "Получить другой код",
+		"Back to the login":    "Назад ко входу",
+		"The password was changed. Log in with the new one.":                                             "Пароль изменён. Войдите с новым.",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "Код неверный или истёк. Получите другой и скопируйте его из журнала приложения.",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "Слишком много неверных кодов. Подождите несколько минут и получите другой.",
+		"with a recovery code": "с кодом восстановления",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "Деморежим: папки и сведения о сервере не показываются.",
 
@@ -2138,6 +2156,14 @@ func init() {
 		"The NUP could not be fixed for the emulators: it is left as it was.":                                "Не удалось исправить NUP для эмуляторов: он оставлен как был.",
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "Рядом с NUP лежит копия метаданных другого NUP (.nxpress-meta): удалите её, чтобы продолжить.",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "Этот файл не является NUP библиотеки, метаданные которого отсчитываются от 0.",
-		"Fixing…": "Исправление…",
+		"Fixing…":      "Исправление…",
+		"Set the icon": "Поставить значок",
+		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task.": "Делает обложку игры, показанную на этой странице (выбранную в «Изменить», иначе из titledb), значком NUP: обрезает до квадрата по центру и приводит к 256×256, как значки консоли. Ничего из того, что уже есть в NUP, не меняется: метаданные игры записываются заново после его конца вместе со значком, а файлы игры не трогаются. Во время записи рядом с NUP лежит копия заголовка и оглавления, и она возвращается, если что-то пойдёт не так или работа прервётся. Для другого изображения сначала смените обложку в «Изменить»: лучше всего квадратное, 256×256 или больше. Выполняется как задача.",
+		"It carries no icon: Eglantine and Lichii show it without one.":                                               "Значка нет: Eglantine и Lichii показывают его без изображения.",
+		"The icon could not be given to the NUP: it is left as it was.":                                               "Не удалось поставить значок в NUP: он оставлен как был.",
+		"Its game has no cover yet to make the icon of: choose one in Edit, or wait for the covers to download.":      "У игры ещё нет обложки, из которой сделать значок: выберите её в «Изменить» или дождитесь загрузки обложек.",
+		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "Рядом с NUP лежит копия оглавления другого NUP (.nxpress-icon): удалите её, чтобы продолжить.",
+		"This file is not a NUP of the library without an icon.":                                                      "Этот файл не является NUP библиотеки без значка.",
+		"Setting the icon…": "Ставится значок…",
 	}
 }

@@ -1805,6 +1805,24 @@ func init() {
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "間違ったセットアップコードが多すぎます。数分待つか、アプリを再起動して新しいコードを取得してください。",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "このバックアップにはユーザーが含まれています。復元するにはセットアップコードを入力してください。アプリのログの SETUP CODE と書かれた行にあります。",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "パスワードをお忘れですか？",
+		"Recover your password": "パスワードの再設定",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "ユーザー名を入力してください。アプリが使い捨てのコードをログに書き出します。",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "その名前のユーザーがいれば、コンテナのログの %v と書かれた行にコードを書き出しました。15 分間有効です。",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "その名前のユーザーがいれば、プログラムのウィンドウの %v と書かれた行にコードを書き出しました。15 分間有効です。",
+		"Recovery code": "再設定コード",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "コンテナのログの RECOVERY CODE と書かれた行と、アプリの appdata フォルダーにある recovery-code.txt にあります。使えるのは 1 回だけです。",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "プログラムのウィンドウの RECOVERY CODE と書かれた行と、アプリのデータフォルダーにある recovery-code.txt にあります。使えるのは 1 回だけです。",
+		"Change the password":  "パスワードを変更",
+		"Ask for the code":     "コードを発行",
+		"Ask for another code": "別のコードを発行",
+		"Back to the login":    "ログインに戻る",
+		"The password was changed. Log in with the new one.":                                             "パスワードを変更しました。新しいパスワードでログインしてください。",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "コードが正しくないか、期限が切れています。別のコードを発行し、アプリのログからコピーしてください。",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "間違ったコードが多すぎます。数分待ってから別のコードを発行してください。",
+		"with a recovery code": "再設定コードで",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "デモモード：サーバーのフォルダーと詳細は表示しません。",
 
@@ -2138,6 +2156,14 @@ func init() {
 		"The NUP could not be fixed for the emulators: it is left as it was.":                                "エミュレーター向けに NUP を修正できませんでした。NUP は元のままです。",
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "NUP の横に別の NUP のメタデータのコピー（.nxpress-meta）があります。続けるには削除してください。",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "このファイルは、メタデータが 0 から数えられているライブラリの NUP ではありません。",
-		"Fixing…": "修正中…",
+		"Fixing…":      "修正中…",
+		"Set the icon": "アイコンを設定",
+		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task.": "このページに表示されているゲームのカバー（「編集」で選んだもの、なければtitledbのもの）をNUPのアイコンにします。中央の正方形に切り抜き、本体のアイコンと同じ256×256にします。NUPにすでにあるものは何も変わりません。ゲームのメタデータをアイコン付きで末尾に書き直し、ゲームのファイルには触れません。書き込み中はヘッダーと目次のコピーをNUPの横に置き、失敗したり作業が中断されたりしたら元に戻します。別の画像にするには、先に「編集」でカバーを変えてください。256×256以上の正方形の画像がきれいです。タスクとして実行されます。",
+		"It carries no icon: Eglantine and Lichii show it without one.":                                               "アイコンがありません。EglantineとLichiiでは画像なしで表示されます。",
+		"The icon could not be given to the NUP: it is left as it was.":                                               "NUPにアイコンを設定できませんでした。元のままにしてあります。",
+		"Its game has no cover yet to make the icon of: choose one in Edit, or wait for the covers to download.":      "このゲームにはアイコンにできるカバーがまだありません。「編集」で選ぶか、カバーのダウンロードを待ってください。",
+		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "NUPの横に別のNUPの目次のコピー（.nxpress-icon）があります。続けるには削除してください。",
+		"This file is not a NUP of the library without an icon.":                                                      "このファイルはアイコンのないライブラリのNUPではありません。",
+		"Setting the icon…": "アイコンを設定中…",
 	}
 }

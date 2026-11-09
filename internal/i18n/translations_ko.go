@@ -1805,6 +1805,24 @@ func init() {
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "잘못된 설정 코드가 너무 많아요. 몇 분 기다리거나 앱을 다시 시작해 새 코드를 받으세요.",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "이 백업에는 사용자가 있어요. 복원하려면 설정 코드를 입력하세요. 앱 로그에서 SETUP CODE 라고 적힌 곳에 있어요.",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "비밀번호를 잊으셨나요?",
+		"Recover your password": "비밀번호 복구",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "사용자 이름을 입력하세요. 앱이 일회용 코드를 로그에 적어요.",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "그 이름의 사용자가 있으면 컨테이너 로그에서 %v 라고 적힌 곳에 코드를 적었어요. 15분 동안 쓸 수 있어요.",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "그 이름의 사용자가 있으면 프로그램 창에서 %v 라고 적힌 곳에 코드를 적었어요. 15분 동안 쓸 수 있어요.",
+		"Recovery code": "복구 코드",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "컨테이너 로그에서 RECOVERY CODE 라고 적힌 곳과, 앱의 appdata 폴더에 있는 recovery-code.txt 파일에 있어요. 한 번만 쓸 수 있어요.",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "프로그램 창에서 RECOVERY CODE 라고 적힌 곳과, 앱의 데이터 폴더에 있는 recovery-code.txt 파일에 있어요. 한 번만 쓸 수 있어요.",
+		"Change the password":  "비밀번호 변경",
+		"Ask for the code":     "코드 받기",
+		"Ask for another code": "다른 코드 받기",
+		"Back to the login":    "로그인으로 돌아가기",
+		"The password was changed. Log in with the new one.":                                             "비밀번호를 바꿨어요. 새 비밀번호로 로그인하세요.",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "코드가 맞지 않거나 만료됐어요. 다른 코드를 받아 앱 로그에서 복사하세요.",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "잘못된 코드가 너무 많아요. 몇 분 기다린 뒤 다른 코드를 받으세요.",
+		"with a recovery code": "복구 코드로",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "데모 모드: 서버의 폴더와 세부 정보는 표시하지 않아요.",
 
@@ -2138,6 +2156,14 @@ func init() {
 		"The NUP could not be fixed for the emulators: it is left as it was.":                                "에뮬레이터용으로 NUP를 고칠 수 없습니다. NUP는 원래 상태 그대로입니다.",
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "NUP 옆에 다른 NUP의 메타데이터 사본(.nxpress-meta)이 있습니다. 계속하려면 삭제하세요.",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "이 파일은 메타데이터가 0부터 세어진 라이브러리의 NUP가 아닙니다.",
-		"Fixing…": "고치는 중…",
+		"Fixing…":      "고치는 중…",
+		"Set the icon": "아이콘 넣기",
+		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task.": "이 페이지에 보이는 게임 표지(편집에서 고른 것, 없으면 titledb의 것)를 NUP의 아이콘으로 만듭니다. 가운데 정사각형으로 잘라 본체 아이콘처럼 256×256으로 만듭니다. NUP에 이미 있는 것은 바뀌지 않습니다. 게임의 메타데이터를 아이콘과 함께 끝에 다시 쓰고, 게임 파일은 건드리지 않습니다. 쓰는 동안 헤더와 목차의 사본을 NUP 옆에 두고, 실패하거나 작업이 끊기면 되돌립니다. 다른 이미지를 쓰려면 먼저 편집에서 표지를 바꾸세요. 256×256 이상의 정사각형 이미지가 가장 좋습니다. 작업으로 실행됩니다.",
+		"It carries no icon: Eglantine and Lichii show it without one.":                                               "아이콘이 없습니다. Eglantine과 Lichii에서 이미지 없이 표시됩니다.",
+		"The icon could not be given to the NUP: it is left as it was.":                                               "NUP에 아이콘을 넣지 못했습니다. 그대로 두었습니다.",
+		"Its game has no cover yet to make the icon of: choose one in Edit, or wait for the covers to download.":      "아이콘을 만들 표지가 아직 없습니다. 편집에서 고르거나 표지가 내려받아질 때까지 기다리세요.",
+		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "NUP 옆에 다른 NUP의 목차 사본(.nxpress-icon)이 있습니다. 계속하려면 삭제하세요.",
+		"This file is not a NUP of the library without an icon.":                                                      "이 파일은 아이콘이 없는 라이브러리의 NUP가 아닙니다.",
+		"Setting the icon…": "아이콘을 넣는 중…",
 	}
 }

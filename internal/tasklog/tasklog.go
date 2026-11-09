@@ -33,6 +33,8 @@ const (
 	TASK_SPLIT      = "split"
 	// the metadata of a NUP counted from 0 written again, for Eglantine and Lichii
 	TASK_NUP_FIX = "nupfix"
+	// a NUP without an icon given the cover of its game
+	TASK_NUP_ICON = "nupicon"
 	// games copied to an SD card
 	TASK_COPY = "copy"
 	// background work after a scan

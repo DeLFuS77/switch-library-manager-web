@@ -22,7 +22,11 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.3
+  <Changes>### 2.0.4
+- Forgot your password? on the login page, with a one-time code from the log
+- A NUP without an icon can take the cover of its game as its icon
+- A NUP and an NSP or XCI of the same game are no longer reported as duplicates
+### 2.0.3
 - Update now installs only versions signed with the key of the project, and waits for every task to end before it restarts
 - Games rebuilt with their update no longer show an update available in the Library
 - Notifications in the language of the interface, and NUP files made to harm are refused
@@ -133,7 +137,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-11-08</Date>
+  <Date>2026-11-09</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>

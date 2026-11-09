@@ -127,7 +127,7 @@ func withBodyLimit(next http.Handler) http.Handler {
 			case "/uploads/chunk":
 				// a piece of a game uploaded from the browser (see upload.go)
 				limit = uploadChunkMax
-			case "/login.html":
+			case "/login.html", "/recover/ask", "/recover/reset":
 				limit = maxLoginBody
 				if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/") {
 					http.Error(w, "unsupported form", http.StatusUnsupportedMediaType)

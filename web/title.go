@@ -49,6 +49,8 @@ type TitleEmulators struct {
 	Warnings []string
 	// its metadata is counted from 0: an administrator can fix it from the page (see nupfix.go)
 	ZeroBased bool
+	// it carries no icon: an administrator can give it the cover of its game (see nupicon.go)
+	NoIcon bool
 }
 
 // what is said on the page of a NUP the emulators do not read well, before its reasons
@@ -65,7 +67,7 @@ func nupEmulators(info db.SwitchFileInfo, lang string) *TitleEmulators {
 		return nil
 	}
 	emulators := info.Metadata.Emulators
-	result := &TitleEmulators{Ok: emulators.Ok(), ZeroBased: emulators.ZeroBased}
+	result := &TitleEmulators{Ok: emulators.Ok(), ZeroBased: emulators.ZeroBased, NoIcon: emulators.NoIcon}
 	issue := func(issue switchfs.NupEmulatorIssue) string {
 		return i18n.Translatef(lang, issue.Text, issue.Values()...)
 	}
@@ -81,6 +83,9 @@ func nupEmulators(info db.SwitchFileInfo, lang string) *TitleEmulators {
 	}
 	if emulators.ZeroBased {
 		result.Warnings = append(result.Warnings, i18n.Translate(lang, emulatorsZeroBased))
+	}
+	if emulators.NoIcon {
+		result.Warnings = append(result.Warnings, i18n.Translate(lang, NUP_NO_ICON))
 	}
 	return result
 }
@@ -544,6 +549,7 @@ func (web *Web) HandleTitle() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/title.html")
 	web.handlePack()
 	web.handleNupFix()
+	web.handleNupIcon()
 
 	web.router.HandleFunc("/title/{titleId}.html", func(w http.ResponseWriter, r *http.Request) {
 		detail, ok := web.getTitleDetail(mux.Vars(r)["titleId"], web.requestLanguage(r))

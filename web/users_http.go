@@ -31,6 +31,8 @@ type LoginPageData struct {
 	// or the portal, and its name
 	Leaving     string
 	LeavingName string
+	// told after an action that leads to the login page: the password set with a recovery code
+	Message string
 }
 
 type UsersPageData struct {
@@ -108,6 +110,7 @@ func (web *Web) HandleUsers() {
 	web.handleAPIKeys()
 	web.handlePortal()
 	web.handleOidc()
+	web.handleRecovery()
 }
 
 // loginPage shows the login page, or goes on to the app when the person is signed in already.
@@ -135,6 +138,9 @@ func (web *Web) loginPage(login templateSet) http.HandlerFunc {
 			data.Portal, data.PortalVia = identity.named(), identity.Via
 		}
 		web.oidcLoginNotice(w, r, &data)
+		if r.URL.Query().Get("done") == "recovered" {
+			data.Message = i18n.Translate(web.requestLanguage(r), "The password was changed. Log in with the new one.")
+		}
 		web.renderLogin(w, r, login, data)
 	}
 }

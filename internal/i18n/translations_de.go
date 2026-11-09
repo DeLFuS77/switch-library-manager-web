@@ -1805,6 +1805,24 @@ func init() {
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "Zu viele falsche Einrichtungscodes. Warte ein paar Minuten oder starte die App neu, um einen neuen Code zu bekommen.",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "Diese Sicherung enthält Benutzer: Um sie wiederherzustellen, gib den Einrichtungscode ein. Er steht im Log der App, dort wo SETUP CODE steht.",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "Passwort vergessen?",
+		"Recover your password": "Passwort wiederherstellen",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "Gib deinen Benutzernamen ein. Die App schreibt einen Einmalcode in ihr Log.",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "Wenn es einen Benutzer mit diesem Namen gibt, steht jetzt ein Code im Log des Containers, dort wo %v steht. Er gilt 15 Minuten.",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "Wenn es einen Benutzer mit diesem Namen gibt, steht jetzt ein Code im Fenster des Programms, dort wo %v steht. Er gilt 15 Minuten.",
+		"Recovery code": "Wiederherstellungscode",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "Er steht im Log des Containers, dort wo RECOVERY CODE steht, und in der Datei recovery-code.txt im appdata-Ordner der App. Er gilt nur einmal.",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "Er steht im Fenster des Programms, dort wo RECOVERY CODE steht, und in der Datei recovery-code.txt im Datenordner der App. Er gilt nur einmal.",
+		"Change the password":  "Passwort ändern",
+		"Ask for the code":     "Code anfordern",
+		"Ask for another code": "Neuen Code anfordern",
+		"Back to the login":    "Zurück zur Anmeldung",
+		"The password was changed. Log in with the new one.":                                             "Das Passwort wurde geändert. Melde dich mit dem neuen an.",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "Der Code ist falsch oder abgelaufen. Fordere einen neuen an und kopiere ihn aus dem Log der App.",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "Zu viele falsche Codes. Warte ein paar Minuten und fordere einen neuen an.",
+		"with a recovery code": "mit einem Wiederherstellungscode",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "Demo-Modus: Die Ordner und die Details des Servers werden nicht angezeigt.",
 
@@ -2138,6 +2156,14 @@ func init() {
 		"The NUP could not be fixed for the emulators: it is left as it was.":                                "Das NUP konnte nicht für die Emulatoren repariert werden: Es bleibt, wie es war.",
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "Neben dem NUP liegt eine Kopie der Metadaten eines anderen NUP (.nxpress-meta): Lösche sie, um fortzufahren.",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "Diese Datei ist kein NUP der Bibliothek, dessen Metadaten ab 0 gezählt werden.",
-		"Fixing…": "Wird repariert…",
+		"Fixing…":      "Wird repariert…",
+		"Set the icon": "Symbol setzen",
+		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task.": "Macht das auf dieser Seite gezeigte Cover des Spiels (das in Bearbeiten gewählte, sonst das von titledb) zum Symbol der NUP: mittig quadratisch zugeschnitten und auf 256×256 gebracht, wie die Symbole der Konsole. Nichts, was die NUP hat, ändert sich: die Metadaten des Spiels werden mit dem Symbol hinter ihrem Ende neu geschrieben, die Dateien des Spiels werden nicht angefasst. Während des Schreibens liegt eine Kopie von Header und Inhaltsverzeichnis neben der NUP, die zurückgespielt wird, wenn etwas fehlschlägt oder die Arbeit abbricht. Für ein anderes Bild zuerst das Cover in Bearbeiten ändern: am besten ein quadratisches von 256×256 oder größer. Es läuft als Aufgabe.",
+		"It carries no icon: Eglantine and Lichii show it without one.":                                               "Sie hat kein Symbol: Eglantine und Lichii zeigen sie ohne Bild.",
+		"The icon could not be given to the NUP: it is left as it was.":                                               "Das Symbol konnte der NUP nicht gegeben werden: sie bleibt, wie sie war.",
+		"Its game has no cover yet to make the icon of: choose one in Edit, or wait for the covers to download.":      "Das Spiel hat noch kein Cover, aus dem das Symbol werden kann: wähle eines in Bearbeiten oder warte, bis die Cover geladen sind.",
+		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "Neben der NUP liegt eine Kopie des Inhaltsverzeichnisses einer anderen NUP (.nxpress-icon): lösche sie, um fortzufahren.",
+		"This file is not a NUP of the library without an icon.":                                                      "Diese Datei ist keine NUP der Bibliothek ohne Symbol.",
+		"Setting the icon…": "Symbol wird gesetzt…",
 	}
 }

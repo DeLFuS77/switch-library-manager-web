@@ -1805,6 +1805,24 @@ func init() {
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "Troppi codici di configurazione errati. Aspetta qualche minuto, o riavvia l'app per avere un codice nuovo.",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "Questo backup contiene utenti: per ripristinarli, scrivi il codice di configurazione. È nel log dell'app, dove c'è scritto SETUP CODE.",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "Password dimenticata?",
+		"Recover your password": "Recupera la password",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "Scrivi il tuo nome utente. L'app scriverà un codice monouso nel suo log.",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "Se esiste un utente con quel nome, è stato scritto un codice nel log del container, dove c'è scritto %v. Vale 15 minuti.",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "Se esiste un utente con quel nome, è stato scritto un codice nella finestra del programma, dove c'è scritto %v. Vale 15 minuti.",
+		"Recovery code": "Codice di recupero",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "È nel log del container, dove c'è scritto RECOVERY CODE, e nel file recovery-code.txt della cartella appdata dell'app. Vale una sola volta.",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "È nella finestra del programma, dove c'è scritto RECOVERY CODE, e nel file recovery-code.txt della cartella dei dati dell'app. Vale una sola volta.",
+		"Change the password":  "Cambia la password",
+		"Ask for the code":     "Chiedi il codice",
+		"Ask for another code": "Chiedi un altro codice",
+		"Back to the login":    "Torna all'accesso",
+		"The password was changed. Log in with the new one.":                                             "La password è stata cambiata. Accedi con quella nuova.",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "Il codice non è corretto o è scaduto. Chiedine un altro e copialo dal log dell'app.",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "Troppi codici sbagliati. Aspetta qualche minuto e chiedine un altro.",
+		"with a recovery code": "con un codice di recupero",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "Modalità demo: le cartelle e i dettagli del server non vengono mostrati.",
 
@@ -2138,6 +2156,14 @@ func init() {
 		"The NUP could not be fixed for the emulators: it is left as it was.":                                "Impossibile correggere il NUP per gli emulatori: è stato lasciato com’era.",
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "Accanto al NUP c’è una copia dei metadati di un altro NUP (.nxpress-meta): eliminala per continuare.",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "Questo file non è un NUP della libreria con i metadati contati da 0.",
-		"Fixing…": "Correzione…",
+		"Fixing…":      "Correzione…",
+		"Set the icon": "Imposta l'icona",
+		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task.": "Rende la copertina del gioco mostrata in questa pagina (quella scelta in Modifica, altrimenti quella di titledb) l'icona del NUP: ritagliata al quadrato centrale e portata a 256×256, come le icone della console. Non cambia nulla di ciò che il NUP contiene: i metadati del gioco vengono riscritti dopo la sua fine con l'icona e i file del gioco non vengono toccati. Mentre scrive tiene accanto al NUP una copia dell'intestazione e dell'indice, e la rimette se qualcosa va storto o il lavoro si interrompe. Per un'altra immagine, cambia prima la copertina in Modifica: rende meglio una quadrata di 256×256 o più. Viene eseguito come attività.",
+		"It carries no icon: Eglantine and Lichii show it without one.":                                               "Non ha un'icona: Eglantine e Lichii lo mostrano senza immagine.",
+		"The icon could not be given to the NUP: it is left as it was.":                                               "Non è stato possibile dare l'icona al NUP: è rimasto com'era.",
+		"Its game has no cover yet to make the icon of: choose one in Edit, or wait for the covers to download.":      "Il gioco non ha ancora una copertina da cui fare l'icona: scegline una in Modifica o attendi il download delle copertine.",
+		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "Accanto al NUP c'è una copia dell'indice di un altro NUP (.nxpress-icon): eliminala per continuare.",
+		"This file is not a NUP of the library without an icon.":                                                      "Questo file non è un NUP della libreria senza icona.",
+		"Setting the icon…": "Impostazione dell'icona…",
 	}
 }

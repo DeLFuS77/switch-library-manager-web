@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/diskfree"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
@@ -127,7 +128,14 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 		folders.Checks = append(folders.Checks, check)
 	}
 	if localDB != nil {
-		folders.Checks = append(folders.Checks, Check{Label: t("Files found"), Value: t("%v files, %v not recognized", num(lang, localDB.NumFiles), num(lang, len(localDB.Skipped))), Status: CHECK_INFO})
+		// the same game in the other format (a NUP and an NSP or XCI) is a file of the library
+		skipped := 0
+		for _, reason := range localDB.Skipped {
+			if reason.ReasonCode != db.REASON_OTHER_FORMAT {
+				skipped++
+			}
+		}
+		folders.Checks = append(folders.Checks, Check{Label: t("Files found"), Value: t("%v files, %v not recognized", num(lang, localDB.NumFiles), num(lang, skipped)), Status: CHECK_INFO})
 	}
 	if scan := lastTask(web.taskLog().Snapshot(), tasklog.TASK_SCAN); scan != nil {
 		check := Check{Label: t("Last scan"), Value: i18n.FormatDateTime(lang, scan.Started) + " · " + t("took %v", scan.Duration()), Status: CHECK_OK}

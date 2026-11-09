@@ -376,6 +376,9 @@ func (web *Web) unreadFiles() map[string]bool {
 func (web *Web) cleanupRefusal(file db.ExtendedFileInfo, skipped db.SkippedFile) string {
 	kept := keptBy(skipped.ReasonText)
 	switch skipped.ReasonCode {
+	case db.REASON_OTHER_FORMAT:
+		// the same game in the other format: never a copy to free
+		return NOTE_SPACE_OTHER_FORMAT
 	case db.REASON_DUPLICATE:
 		if db.KeptInOtherFormat(file, skipped) {
 			return NOTE_SPACE_OTHER_FORMAT

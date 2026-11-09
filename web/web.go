@@ -938,6 +938,8 @@ func (web *Web) Start() {
 	}
 	// the code that creates the first administrator, while there is none
 	web.logSetupCode(true)
+	// a recovery code of a start before works no more
+	web.removeRecoveryCodeFile()
 
 	// the app is ready: the pages take the place of the page of the start
 	front.set(withSecurityHeaders(withBodyLimit(withCompression(withHealthCheck(web.withVault(handler))))))

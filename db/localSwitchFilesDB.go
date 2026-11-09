@@ -36,12 +36,17 @@ const (
 	REASON_UNRECOGNISED
 	REASON_MALFORMED_FILE
 	REASON_FILENAME_FALLBACK
+	// a copy of a title in the other format than the copy of the library (see OtherFormat): a NUP
+	// for emulators next to an NSP or an XCI to install, or the other way round. It is no
+	// duplicate and no issue, it is never deleted for the other, and it is a file the user has.
+	// Last of the list: the cached libraries keep the numbers of the others.
+	REASON_OTHER_FORMAT
 )
 
 const (
 	// bump when the structure or keys of the cached local library change,
 	// so caches written by older versions are rebuilt instead of misread
-	LIBRARY_SCHEMA_VERSION = "2"
+	LIBRARY_SCHEMA_VERSION = "3"
 	DB_KEY_LIBRARY_SCHEMA  = "library_schema"
 	// fingerprint of the keys the cached library was scanned with
 	DB_KEY_LIBRARY_KEYS = "library_keys"
@@ -929,13 +934,16 @@ type libraryScan struct {
 	titlesInFile map[ExtendedFileInfo]int
 	// the covers of the games found
 	covers []coverDownload
+	// the best copy of each title found in the other format than the copy of the library (see
+	// OtherFormat and addOtherFormat), by slot: a game, an update of a version, a DLC
+	otherFormat map[string]SwitchFileInfo
 }
 
 func newLibraryScan(ldb *LocalSwitchDBManager, switchDB *SwitchTitlesDB, dataFolder string, titles map[string]*SwitchGameFiles,
 	skipped map[ExtendedFileInfo]SkippedFile) *libraryScan {
 	organizeOptions := settings.ReadSettings(dataFolder).OrganizeOptions
 	scan := &libraryScan{ldb: ldb, switchDB: switchDB, titles: titles, skipped: skipped, keepDuplicate: organizeOptions.KeepDuplicate,
-		chosen: map[string]bool{}, titlesInFile: map[ExtendedFileInfo]int{}, covers: []coverDownload{}}
+		chosen: map[string]bool{}, titlesInFile: map[ExtendedFileInfo]int{}, covers: []coverDownload{}, otherFormat: map[string]SwitchFileInfo{}}
 	for _, path := range organizeOptions.KeepFiles {
 		scan.chosen[filepath.Clean(path)] = true
 		// a copy chosen that the app compressed, decompressed or converted since is the file
@@ -954,7 +962,7 @@ func newLibraryScan(ldb *LocalSwitchDBManager, switchDB *SwitchTitlesDB, dataFol
 // (it was identified by its name only...)
 func (s *libraryScan) flagged(file ExtendedFileInfo) bool {
 	reason, ok := s.skipped[file]
-	return ok && reason.ReasonCode != REASON_DUPLICATE && reason.ReasonCode != REASON_OLD_UPDATE
+	return ok && reason.ReasonCode != REASON_DUPLICATE && reason.ReasonCode != REASON_OLD_UPDATE && reason.ReasonCode != REASON_OTHER_FORMAT
 }
 
 func (s *libraryScan) partly(file ExtendedFileInfo) bool {
@@ -1034,59 +1042,83 @@ func (s *libraryScan) addFile(file ExtendedFileInfo, isSplit bool, result metada
 }
 
 // addUpdate puts an update in its game, the newest of its copies kept, and the older updates
-// listed as such.
+// listed as such. A copy in the other format (see OtherFormat) is neither a duplicate nor an
+// older update of the copy of the library.
 func (s *libraryScan) addUpdate(switchTitle *SwitchGameFiles, file ExtendedFileInfo, metadata *switchfs.ContentMetaAttributes) {
-	skipped := s.skipped
 	metadata.Type = "Update"
+	found := SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
 
-	if update, ok := switchTitle.Updates[metadata.Version]; ok && s.keepInstead(update.ExtendedInfo, file) {
-		skipped[update.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate update file (" + fullPath(file) + ")"}
-		switchTitle.Updates[metadata.Version] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
-		return
-	} else if ok {
-		skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate update file (" + fullPath(update.ExtendedInfo) + ")"}
-		zap.S().Debugf("-->Duplicate update file found [%v] and [%v]", update.ExtendedInfo.FileName, file.FileName)
+	if update, ok := switchTitle.Updates[metadata.Version]; ok {
+		slot := "update|" + metadata.TitleId + "|" + strconv.Itoa(metadata.Version)
+		kept := update
+		if OtherFormat(update.ExtendedInfo.FileName, file.FileName) {
+			kept = s.addOtherFormat(slot, update, found, func(held, file SwitchFileInfo) bool {
+				return s.keepInstead(held.ExtendedInfo, file.ExtendedInfo)
+			}, s.competeUpdate)
+		} else {
+			kept = s.competeUpdate(update, found)
+		}
+		switchTitle.Updates[metadata.Version] = kept
+		if kept.ExtendedInfo != update.ExtendedInfo {
+			s.keptChanged(slot, kept.ExtendedInfo)
+		}
 		return
 	}
-	switchTitle.Updates[metadata.Version] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
+	switchTitle.Updates[metadata.Version] = found
 	if metadata.Version > switchTitle.LatestUpdate {
 		if switchTitle.LatestUpdate != 0 {
-			skipped[switchTitle.Updates[switchTitle.LatestUpdate].ExtendedInfo] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally (" + fullPath(file) + ")"}
+			s.markOlder(switchTitle.Updates[switchTitle.LatestUpdate].ExtendedInfo, file)
 		}
 		switchTitle.LatestUpdate = metadata.Version
 	} else {
-		skipped[file] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally (" + fullPath(switchTitle.Updates[switchTitle.LatestUpdate].ExtendedInfo) + ")"}
+		s.markOlder(file, switchTitle.Updates[switchTitle.LatestUpdate].ExtendedInfo)
 	}
 }
 
+// markOlder lists an update older than the one the library keeps, or, of the other format (see
+// OtherFormat), as kept next to it: a NUP and an NSP or XCI may not hold the same version, and
+// neither is deleted for the other.
+func (s *libraryScan) markOlder(older ExtendedFileInfo, newer ExtendedFileInfo) {
+	if OtherFormat(older.FileName, newer.FileName) {
+		s.markOtherFormat(older, newer)
+		return
+	}
+	s.skipped[older] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old update file, newer update exist locally (" + fullPath(newer) + ")"}
+}
+
+// competeUpdate tells which of two copies of an update of the same version and format stays,
+// the other listed as its duplicate.
+func (s *libraryScan) competeUpdate(held SwitchFileInfo, file SwitchFileInfo) SwitchFileInfo {
+	if s.keepInstead(held.ExtendedInfo, file.ExtendedInfo) {
+		s.skipped[held.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate update file (" + fullPath(file.ExtendedInfo) + ")"}
+		return file
+	}
+	s.skipped[file.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate update file (" + fullPath(held.ExtendedInfo) + ")"}
+	zap.S().Debugf("-->Duplicate update file found [%v] and [%v]", held.ExtendedInfo.FileName, file.ExtendedInfo.FileName)
+	return held
+}
+
 // addBase puts the base file of a game in the library, one copy of it kept, with the covers the
-// titles database has of it.
+// titles database has of it. A copy in the other format (see OtherFormat) is no duplicate of it.
 func (s *libraryScan) addBase(switchTitle *SwitchGameFiles, idPrefix string, file ExtendedFileInfo, metadata *switchfs.ContentMetaAttributes) {
-	skipped := s.skipped
 	metadata.Type = "Base"
-	// a game rebuilt with its update in it takes the version of the update, while the game as it
-	// was is version 0: they are not copies of each other, both stay, and the newer is the game
-	// of the library, the update it holds counted as its update
-	if switchTitle.BaseExist && switchTitle.File.Metadata != nil && switchTitle.File.Metadata.Version != metadata.Version {
-		if metadata.Version > switchTitle.File.Metadata.Version {
-			skipped[switchTitle.File.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "base file of another version (" + fullPath(file) + ")", OtherVersion: true}
-			switchTitle.File = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
-			return
-		}
-		skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "base file of another version (" + fullPath(switchTitle.File.ExtendedInfo) + ")", OtherVersion: true}
-		return
-	}
-	if switchTitle.BaseExist && s.keepInstead(switchTitle.File.ExtendedInfo, file) {
-		skipped[switchTitle.File.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate base file (" + fullPath(file) + ")"}
-		switchTitle.File = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
-		return
-	}
+	found := SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
 	if switchTitle.BaseExist {
-		skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate base file (" + fullPath(switchTitle.File.ExtendedInfo) + ")"}
-		zap.S().Debugf("-->Duplicate base file found [%v] and [%v]", file.FileName, switchTitle.File.ExtendedInfo.FileName)
+		slot := "base|" + idPrefix
+		held := switchTitle.File
+		kept := held
+		if OtherFormat(held.ExtendedInfo.FileName, file.FileName) {
+			kept = s.addOtherFormat(slot, held, found, s.newerOrKept, s.competeBase)
+		} else {
+			kept = s.competeBase(held, found)
+		}
+		switchTitle.File = kept
+		if kept.ExtendedInfo != held.ExtendedInfo {
+			s.keptChanged(slot, kept.ExtendedInfo)
+		}
 		return
 	}
-	switchTitle.File = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
+	switchTitle.File = found
 	switchTitle.BaseExist = true
 
 	if s.switchDB == nil {
@@ -1103,32 +1135,149 @@ func (s *libraryScan) addBase(switchTitle *SwitchGameFiles, idPrefix string, fil
 	}
 }
 
-// addDlc puts a DLC in its game, the newest of its copies kept, and the older versions listed as
-// such.
-func (s *libraryScan) addDlc(switchTitle *SwitchGameFiles, file ExtendedFileInfo, metadata *switchfs.ContentMetaAttributes) {
+// competeBase tells which of two copies of a game of the same format stays, the other listed as
+// its duplicate. A game rebuilt with its update in it takes the version of the update, while the
+// game as it was is version 0: they are not copies of each other, both stay, and the newer is the
+// game of the library, the update it holds counted as its update.
+func (s *libraryScan) competeBase(held SwitchFileInfo, file SwitchFileInfo) SwitchFileInfo {
 	skipped := s.skipped
-	if dlc, ok := switchTitle.Dlc[metadata.TitleId]; ok {
-		if metadata.Version < dlc.Metadata.Version {
-			skipped[file] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old DLC file, newer version exist locally (" + fullPath(dlc.ExtendedInfo) + ")"}
-			zap.S().Warnf("-->Old DLC file found [%v] and [%v]", file.FileName, dlc.ExtendedInfo.FileName)
-			return
-		} else if metadata.Version == dlc.Metadata.Version && s.keepInstead(dlc.ExtendedInfo, file) {
-			skipped[dlc.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate DLC file (" + fullPath(file) + ")"}
-			metadata.Type = "DLC"
-			switchTitle.Dlc[metadata.TitleId] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
-			return
-		} else if metadata.Version == dlc.Metadata.Version {
-			skipped[file] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate DLC file (" + fullPath(dlc.ExtendedInfo) + ")"}
-			zap.S().Debugf("-->Duplicate DLC file found [%v] and [%v]", file.FileName, dlc.ExtendedInfo.FileName)
-			return
+	if held.Metadata != nil && held.Metadata.Version != file.Metadata.Version {
+		if file.Metadata.Version > held.Metadata.Version {
+			skipped[held.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "base file of another version (" + fullPath(file.ExtendedInfo) + ")", OtherVersion: true}
+			return file
 		}
+		skipped[file.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "base file of another version (" + fullPath(held.ExtendedInfo) + ")", OtherVersion: true}
+		return held
 	}
-	if older, ok := switchTitle.Dlc[metadata.TitleId]; ok && older.ExtendedInfo != file {
-		// the older version stays listed, like an old update, instead of vanishing
-		skipped[older.ExtendedInfo] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old DLC file, newer version exist locally (" + fullPath(file) + ")"}
+	if s.keepInstead(held.ExtendedInfo, file.ExtendedInfo) {
+		skipped[held.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate base file (" + fullPath(file.ExtendedInfo) + ")"}
+		return file
 	}
-	metadata.Type = "DLC"
-	switchTitle.Dlc[metadata.TitleId] = SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
+	skipped[file.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate base file (" + fullPath(held.ExtendedInfo) + ")"}
+	zap.S().Debugf("-->Duplicate base file found [%v] and [%v]", file.ExtendedInfo.FileName, held.ExtendedInfo.FileName)
+	return held
+}
+
+// newerOrKept tells whether file takes the place of held, a copy of the same game or DLC: the
+// newer version, or for the same version the copy the settings keep.
+func (s *libraryScan) newerOrKept(held SwitchFileInfo, file SwitchFileInfo) bool {
+	if held.Metadata != nil && file.Metadata != nil && held.Metadata.Version != file.Metadata.Version {
+		return file.Metadata.Version > held.Metadata.Version
+	}
+	return s.keepInstead(held.ExtendedInfo, file.ExtendedInfo)
+}
+
+// addDlc puts a DLC in its game, the newest of its copies kept, and the older versions listed as
+// such. A copy in the other format (see OtherFormat) is neither a duplicate nor an older version
+// of the copy of the library.
+func (s *libraryScan) addDlc(switchTitle *SwitchGameFiles, file ExtendedFileInfo, metadata *switchfs.ContentMetaAttributes) {
+	found := SwitchFileInfo{ExtendedInfo: file, Metadata: metadata}
+	held, ok := switchTitle.Dlc[metadata.TitleId]
+	if !ok {
+		metadata.Type = "DLC"
+		switchTitle.Dlc[metadata.TitleId] = found
+		return
+	}
+	slot := "dlc|" + metadata.TitleId
+	kept := held
+	if OtherFormat(held.ExtendedInfo.FileName, file.FileName) {
+		kept = s.addOtherFormat(slot, held, found, s.newerOrKept, s.competeDlc)
+	} else {
+		kept = s.competeDlc(held, found)
+	}
+	if kept.ExtendedInfo == file || s.otherFormat[slot].ExtendedInfo == file {
+		metadata.Type = "DLC"
+	}
+	switchTitle.Dlc[metadata.TitleId] = kept
+	if kept.ExtendedInfo != held.ExtendedInfo {
+		s.keptChanged(slot, kept.ExtendedInfo)
+	}
+}
+
+// competeDlc tells which of two copies of a DLC of the same format stays: the newer version, the
+// older listed as such, or for the same version the copy the settings keep, the other listed as
+// its duplicate.
+func (s *libraryScan) competeDlc(held SwitchFileInfo, file SwitchFileInfo) SwitchFileInfo {
+	skipped := s.skipped
+	switch {
+	case file.Metadata.Version < held.Metadata.Version:
+		skipped[file.ExtendedInfo] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old DLC file, newer version exist locally (" + fullPath(held.ExtendedInfo) + ")"}
+		zap.S().Warnf("-->Old DLC file found [%v] and [%v]", file.ExtendedInfo.FileName, held.ExtendedInfo.FileName)
+		return held
+	case file.Metadata.Version == held.Metadata.Version && s.keepInstead(held.ExtendedInfo, file.ExtendedInfo):
+		skipped[held.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate DLC file (" + fullPath(file.ExtendedInfo) + ")"}
+		return file
+	case file.Metadata.Version == held.Metadata.Version:
+		skipped[file.ExtendedInfo] = SkippedFile{ReasonCode: REASON_DUPLICATE, ReasonText: "duplicate DLC file (" + fullPath(held.ExtendedInfo) + ")"}
+		zap.S().Debugf("-->Duplicate DLC file found [%v] and [%v]", file.ExtendedInfo.FileName, held.ExtendedInfo.FileName)
+		return held
+	}
+	// the older version stays listed, like an old update, instead of vanishing
+	if held.ExtendedInfo != file.ExtendedInfo {
+		skipped[held.ExtendedInfo] = SkippedFile{ReasonCode: REASON_OLD_UPDATE, ReasonText: "old DLC file, newer version exist locally (" + fullPath(file.ExtendedInfo) + ")"}
+	}
+	return file
+}
+
+// addOtherFormat files a copy of a title in the other format than kept, the copy of the library
+// (see OtherFormat): a NUP never competes with an NSP or an XCI, only with the other NUP files of
+// the title, and the other way round. The best copy of the other format stays next to the copy
+// of the library, listed with REASON_OTHER_FORMAT, never as a duplicate or an older version of
+// it; the others of its format are its duplicates or older versions, as always. replaces tells
+// whether the first copy of the other format takes the place of kept in the library, and compete
+// which of two copies of the same format stays, listing the other. It gives the copy of the
+// library, kept or file.
+func (s *libraryScan) addOtherFormat(slot string, kept SwitchFileInfo, file SwitchFileInfo,
+	replaces func(held, file SwitchFileInfo) bool, compete func(held, file SwitchFileInfo) SwitchFileInfo) SwitchFileInfo {
+	if s.otherFormat == nil {
+		s.otherFormat = map[string]SwitchFileInfo{}
+	}
+	held, ok := s.otherFormat[slot]
+	if !ok {
+		if replaces(kept, file) {
+			s.otherFormat[slot] = kept
+			s.markOtherFormat(kept.ExtendedInfo, file.ExtendedInfo)
+			return file
+		}
+		s.otherFormat[slot] = file
+		s.markOtherFormat(file.ExtendedInfo, kept.ExtendedInfo)
+		return kept
+	}
+	if winner := compete(held, file); winner.ExtendedInfo == file.ExtendedInfo {
+		s.otherFormat[slot] = file
+		s.markOtherFormat(file.ExtendedInfo, kept.ExtendedInfo)
+	}
+	return kept
+}
+
+// keptChanged names the new copy of the library in the reason of the copy of the other format of
+// its slot (see addOtherFormat).
+func (s *libraryScan) keptChanged(slot string, kept ExtendedFileInfo) {
+	held, ok := s.otherFormat[slot]
+	if !ok {
+		return
+	}
+	if reason, listed := s.skipped[held.ExtendedInfo]; listed && reason.ReasonCode == REASON_OTHER_FORMAT {
+		s.skipped[held.ExtendedInfo] = otherFormatReason(kept)
+	}
+}
+
+// markOtherFormat lists file as the copy in the other format of kept, the copy of the library
+// (see OtherFormat). A reason it has already stays: it was read by its name only, or it is a
+// duplicate as the copy of another title it holds.
+func (s *libraryScan) markOtherFormat(file ExtendedFileInfo, kept ExtendedFileInfo) {
+	if reason, listed := s.skipped[file]; listed && reason.ReasonCode != REASON_OTHER_FORMAT {
+		return
+	}
+	s.skipped[file] = otherFormatReason(kept)
+}
+
+// otherFormatReason is the reason of a copy of a title in the other format than kept, the copy
+// of the library. Its text ends with the path of kept in parentheses, and has no other ones
+// (see KeptBy).
+func otherFormatReason(kept ExtendedFileInfo) SkippedFile {
+	return SkippedFile{ReasonCode: REASON_OTHER_FORMAT,
+		ReasonText: "same game in the other format, a NUP for emulators and an NSP or XCI to install: both kept (" + fullPath(kept) + ")"}
 }
 
 // OtherFormat tells two copies of a game of which one is a NUP and the other is not. A NUP holds
@@ -1141,8 +1290,12 @@ func OtherFormat(a string, b string) bool {
 
 // KeptInOtherFormat tells a duplicate whose copy kept is of the other format (see OtherFormat),
 // or a base game of another version than the copy kept (see SkippedFile.OtherVersion): neither
-// is deleted for the other.
+// is deleted for the other. The scan lists a copy of the other format as REASON_OTHER_FORMAT, never
+// as a duplicate; a library cached by an older version may still list it so.
 func KeptInOtherFormat(file ExtendedFileInfo, skipped SkippedFile) bool {
+	if skipped.ReasonCode == REASON_OTHER_FORMAT {
+		return true
+	}
 	if skipped.ReasonCode != REASON_DUPLICATE {
 		return false
 	}

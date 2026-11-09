@@ -1525,6 +1525,24 @@ var Translations = map[string]map[string]string{
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "Demasiados códigos incorrectos. Espera unos minutos, o reinicia la app para tener un código nuevo.",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "Esta copia trae usuarios: para restaurarlos, escribe el código de configuración. Está en el log de la app, donde pone SETUP CODE.",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "¿Has olvidado la contraseña?",
+		"Recover your password": "Recuperar la contraseña",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "Escribe tu nombre de usuario. La app escribirá un código de un solo uso en su log.",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "Si hay un usuario con ese nombre, se ha escrito un código en el log del contenedor, donde pone %v. Sirve durante 15 minutos.",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "Si hay un usuario con ese nombre, se ha escrito un código en la ventana del programa, donde pone %v. Sirve durante 15 minutos.",
+		"Recovery code": "Código de recuperación",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "Está en el log del contenedor, donde pone RECOVERY CODE, y en el archivo recovery-code.txt de la carpeta appdata de la app. Sirve una sola vez.",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "Está en la ventana del programa, donde pone RECOVERY CODE, y en el archivo recovery-code.txt de la carpeta de datos de la app. Sirve una sola vez.",
+		"Change the password":  "Cambiar la contraseña",
+		"Ask for the code":     "Pedir el código",
+		"Ask for another code": "Pedir otro código",
+		"Back to the login":    "Volver a iniciar sesión",
+		"The password was changed. Log in with the new one.":                                             "Se ha cambiado la contraseña. Inicia sesión con la nueva.",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "El código no es correcto o ha caducado. Pide otro y cópialo del log de la app.",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "Demasiados códigos incorrectos. Espera unos minutos y pide otro.",
+		"with a recovery code": "con un código de recuperación",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "Modo demo: no se muestran las carpetas ni los detalles del servidor.",
 
@@ -2165,7 +2183,15 @@ var Translations = map[string]map[string]string{
 		"The NUP could not be fixed for the emulators: it is left as it was.":                                "No se ha podido arreglar el NUP para los emuladores: se ha dejado como estaba.",
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "Junto al NUP hay una copia de los metadatos de otro NUP (.nxpress-meta): bórrala para seguir.",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "Este archivo no es un NUP de la biblioteca con los metadatos contados desde 0.",
-		"Fixing…": "Arreglando…",
+		"Fixing…":      "Arreglando…",
+		"Set the icon": "Poner icono",
+		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task.": "Convierte la carátula de su juego que se ve en esta página (la elegida en Editar o, si no, la de titledb) en el icono del NUP: recortada al cuadrado del centro y a 256×256, como los iconos de la consola. No cambia nada de lo que el NUP ya tiene: los metadatos del juego se escriben de nuevo tras su final con el icono, y los archivos del juego no se tocan. Mientras escribe deja al lado una copia de la cabecera y del índice del NUP, y la vuelve a poner si algo falla o el trabajo se corta. Para otra imagen, cambia antes la carátula en Editar: queda mejor una cuadrada de 256×256 o más. Se hace como una tarea.",
+		"It carries no icon: Eglantine and Lichii show it without one.":                                               "No lleva icono: Eglantine y Lichii lo muestran sin imagen.",
+		"The icon could not be given to the NUP: it is left as it was.":                                               "No se ha podido poner el icono al NUP: se ha dejado como estaba.",
+		"Its game has no cover yet to make the icon of: choose one in Edit, or wait for the covers to download.":      "Su juego aún no tiene carátula con la que hacer el icono: elige una en Editar o espera a que se descarguen las carátulas.",
+		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "Junto al NUP hay una copia del índice de otro NUP (.nxpress-icon): bórrala para seguir.",
+		"This file is not a NUP of the library without an icon.":                                                      "Este archivo no es un NUP de la biblioteca sin icono.",
+		"Setting the icon…": "Poniendo el icono…",
 	},
 }
 
@@ -2189,5 +2215,5 @@ var JSTexts = []string{
 	"The new files may not fit. A file that fills its disk fails, and its original stays as it was.", "up to %v needed, %v free", "Start anyway?",
 	"Added to the queue.", "It starts when the tasks before it end: number %v in the queue.", "Reload",
 	"Saved!", "Back to the original", "The cover is too large: at most 5 MB and 6000 pixels a side.",
-	"Fixing…",
+	"Fixing…", "Setting the icon…",
 }

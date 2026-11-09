@@ -129,6 +129,8 @@ type Auth struct {
 	toldByIp   map[string]int
 	// the code that creates the first administrator, while login is off (see setupcode.go)
 	setup setupCode
+	// the code a user who forgot their password sets a new one with (see recoverycode.go)
+	recovery recoveryCode
 	// signing in through a portal in front of the app (see proxyauth.go): the options set in the
 	// environment and which ones are, the ones of Settings, the keys of Cloudflare Access, what is
 	// told of each sign-in and how it went last
@@ -411,7 +413,7 @@ func (a *Auth) forget() {
 
 // public paths work without login: the login page and the files it needs
 func isPublicPath(path string) bool {
-	return path == "/login.html" || path == "/logout" || path == "/sw.js" || path == oidcLoginPath || path == oidcCallbackPath ||
+	return path == "/login.html" || path == "/logout" || path == "/recover.html" || path == "/recover/ask" || path == "/recover/reset" || path == "/sw.js" || path == oidcLoginPath || path == oidcCallbackPath ||
 		strings.HasPrefix(path, "/resources/static/") || strings.HasPrefix(path, "/resources/vendor/")
 }
 

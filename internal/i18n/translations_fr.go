@@ -1805,6 +1805,24 @@ func init() {
 		"Too many wrong setup codes. Wait a few minutes, or start the app again for a new code.":                               "Trop de codes de configuration erronés. Attendez quelques minutes, ou redémarrez l'application pour obtenir un nouveau code.",
 		"This backup has users: to restore them, write the setup code. It is in the log of the app, where it says SETUP CODE.": "Cette sauvegarde contient des utilisateurs : pour les restaurer, saisissez le code de configuration. Il se trouve dans le journal de l'application, là où est écrit SETUP CODE.",
 
+		// a forgotten password, set again with a recovery code from the log
+		"Forgot your password?": "Mot de passe oublié ?",
+		"Recover your password": "Récupérer le mot de passe",
+		"Write your user name. The app will write a one-time code in its log.":                                                           "Saisissez votre nom d'utilisateur. L'application écrira un code à usage unique dans son journal.",
+		"If there is a user with that name, a code was written in the log of the container, where it says %v. It works for 15 minutes.":  "S'il existe un utilisateur de ce nom, un code a été écrit dans le journal du conteneur, là où est écrit %v. Il est valable 15 minutes.",
+		"If there is a user with that name, a code was written in the window of the program, where it says %v. It works for 15 minutes.": "S'il existe un utilisateur de ce nom, un code a été écrit dans la fenêtre du programme, là où est écrit %v. Il est valable 15 minutes.",
+		"Recovery code": "Code de récupération",
+		"It is in the log of the container, where it says RECOVERY CODE, and in the file recovery-code.txt in the appdata folder of the app. It works once.": "Il se trouve dans le journal du conteneur, là où est écrit RECOVERY CODE, et dans le fichier recovery-code.txt du dossier appdata de l'application. Il ne sert qu'une fois.",
+		"It is in the window of the program, where it says RECOVERY CODE, and in the file recovery-code.txt in the data folder of the app. It works once.":   "Il se trouve dans la fenêtre du programme, là où est écrit RECOVERY CODE, et dans le fichier recovery-code.txt du dossier de données de l'application. Il ne sert qu'une fois.",
+		"Change the password":  "Changer le mot de passe",
+		"Ask for the code":     "Demander le code",
+		"Ask for another code": "Demander un autre code",
+		"Back to the login":    "Retour à la connexion",
+		"The password was changed. Log in with the new one.":                                             "Le mot de passe a été changé. Connectez-vous avec le nouveau.",
+		"The code is not right or has expired. Ask for another one and copy it from the log of the app.": "Le code n'est pas correct ou a expiré. Demandez-en un autre et copiez-le depuis le journal de l'application.",
+		"Too many wrong codes. Wait a few minutes and ask for another one.":                              "Trop de codes incorrects. Attendez quelques minutes et demandez-en un autre.",
+		"with a recovery code": "avec un code de récupération",
+
 		// the demo shows nothing of the server it runs on
 		"Demo mode: the folders and the details of the server are not shown.": "Mode démo : les dossiers et les détails du serveur ne sont pas affichés.",
 
@@ -2138,6 +2156,14 @@ func init() {
 		"The NUP could not be fixed for the emulators: it is left as it was.":                                "Le NUP n’a pas pu être corrigé pour les émulateurs : il reste tel qu’il était.",
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "À côté du NUP se trouve une copie des métadonnées d’un autre NUP (.nxpress-meta) : supprime-la pour continuer.",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "Ce fichier n’est pas un NUP de la bibliothèque dont les métadonnées sont comptées à partir de 0.",
-		"Fixing…": "Correction…",
+		"Fixing…":      "Correction…",
+		"Set the icon": "Mettre l’icône",
+		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task.": "Fait de la jaquette de son jeu affichée sur cette page (celle choisie dans Modifier, sinon celle de titledb) l’icône du NUP : recadrée en carré au centre et mise en 256×256, comme les icônes de la console. Rien de ce que contient le NUP ne change : les métadonnées du jeu sont réécrites après sa fin avec l’icône, et les fichiers du jeu ne sont pas touchés. Pendant l’écriture, une copie de l’en-tête et de la table des matières reste à côté du NUP et est remise si quelque chose échoue ou si le travail est interrompu. Pour une autre image, changez d’abord la jaquette dans Modifier : une image carrée de 256×256 ou plus rend mieux. Cela se fait comme une tâche.",
+		"It carries no icon: Eglantine and Lichii show it without one.":                                               "Il n’a pas d’icône : Eglantine et Lichii l’affichent sans image.",
+		"The icon could not be given to the NUP: it is left as it was.":                                               "L’icône n’a pas pu être donnée au NUP : il est laissé tel quel.",
+		"Its game has no cover yet to make the icon of: choose one in Edit, or wait for the covers to download.":      "Son jeu n’a pas encore de jaquette pour en faire l’icône : choisissez-en une dans Modifier, ou attendez que les jaquettes se téléchargent.",
+		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "À côté du NUP se trouve une copie de la table des matières d’un autre NUP (.nxpress-icon) : supprimez-la pour continuer.",
+		"This file is not a NUP of the library without an icon.":                                                      "Ce fichier n’est pas un NUP de la bibliothèque sans icône.",
+		"Setting the icon…": "Ajout de l’icône…",
 	}
 }
