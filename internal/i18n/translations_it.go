@@ -2170,5 +2170,15 @@ func init() {
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "Accanto al NUP c’è una copia dei metadati di un altro NUP (.nxpress-meta): eliminala per continuare.",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "Questo file non è un NUP della libreria con i metadati contati da 0.",
 		"Fixing…": "Correzione…",
+		// pairing a console (see web/netpair.go)
+		"A console wants to connect":              "Una console vuole connettersi",
+		"Check that the console shows this code:": "Controlla che la console mostri questo codice:",
+		"Accept":             "Accetta",
+		"Accept and turn on": "Accetta e attiva",
+		"Refuse":             "Rifiuta",
+		"Install over the network is off: an administrator has to turn it on before the console can install.": "«Installa via rete» è disattivato: un amministratore deve attivarlo perché la console possa installare.",
+		"The console %v is connected.":                   "La console %v è connessa.",
+		"the console is no longer waiting":               "la console non è più in attesa",
+		"only a user who may download accepts a console": "solo un utente che può scaricare accetta una console",
 	}
 }

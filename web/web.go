@@ -173,6 +173,9 @@ type Web struct {
 	netStreams      netInstallStreams
 	netNotes        netInstallNotes
 	netList         netFilesCache
+	netPairs        netPairings
+	netIdOnce       sync.Once
+	netId           string
 	coll            *userdata.Collections
 	collectionsOnce sync.Once
 	fav             *userdata.Favorites
@@ -921,6 +924,7 @@ func (web *Web) Start() {
 		web.startTelegramBot()
 		web.StartFolderWatcher()
 		web.StartUpdateChecker()
+		web.StartNetDiscovery()
 	}
 
 	web.router.Handle("/", http.RedirectHandler("/index.html", http.StatusMovedPermanently))

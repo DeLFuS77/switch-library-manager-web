@@ -2170,5 +2170,15 @@ func init() {
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "NUP 旁边有另一个 NUP 的元数据副本（.nxpress-meta）：删除它后才能继续。",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "这个文件不是游戏库中元数据从 0 开始计数的 NUP。",
 		"Fixing…": "正在修复…",
+		// pairing a console (see web/netpair.go)
+		"A console wants to connect":              "有主机请求连接",
+		"Check that the console shows this code:": "请确认主机上显示的是这个代码：",
+		"Accept":             "接受",
+		"Accept and turn on": "接受并开启",
+		"Refuse":             "拒绝",
+		"Install over the network is off: an administrator has to turn it on before the console can install.": "“通过网络安装”已关闭：需要管理员开启后，主机才能安装。",
+		"The console %v is connected.":                   "主机 %v 已连接。",
+		"the console is no longer waiting":               "主机已不再等待",
+		"only a user who may download accepts a console": "只有可以下载的用户才能接受主机",
 	}
 }

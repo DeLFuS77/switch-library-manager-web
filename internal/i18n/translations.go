@@ -2197,6 +2197,16 @@ var Translations = map[string]map[string]string{
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "Junto al NUP hay una copia de los metadatos de otro NUP (.nxpress-meta): bórrala para seguir.",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "Este archivo no es un NUP de la biblioteca con los metadatos contados desde 0.",
 		"Fixing…": "Arreglando…",
+		// pairing a console (see web/netpair.go)
+		"A console wants to connect":              "Una consola quiere conectarse",
+		"Check that the console shows this code:": "Comprueba que en la consola sale este código:",
+		"Accept":             "Aceptar",
+		"Accept and turn on": "Aceptar y encender",
+		"Refuse":             "Rechazar",
+		"Install over the network is off: an administrator has to turn it on before the console can install.": "«Instalar por red» está apagado: un administrador tiene que encenderlo para que la consola pueda instalar.",
+		"The console %v is connected.":                   "La consola %v está conectada.",
+		"the console is no longer waiting":               "la consola ya no está esperando",
+		"only a user who may download accepts a console": "solo un usuario que puede descargar acepta una consola",
 	},
 }
 
@@ -2221,4 +2231,5 @@ var JSTexts = []string{
 	"Added to the queue.", "It starts when the tasks before it end: number %v in the queue.", "Reload",
 	"Saved!", "Back to the original", "The cover is too large: at most 5 MB and 6000 pixels a side.",
 	"Fixing…",
+	"A console wants to connect", "Check that the console shows this code:", "Accept", "Accept and turn on", "Refuse", "Install over the network is off: an administrator has to turn it on before the console can install.", "The console %v is connected.",
 }

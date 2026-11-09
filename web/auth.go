@@ -420,6 +420,10 @@ func isPublicPath(path string) bool {
 // isPublicRequest tells a request of a public path written plainly: a path with escapes or dots
 // (%2e%2e%2f, /../) is not taken for one, whatever it becomes once decoded and cleaned.
 func isPublicRequest(r *http.Request) bool {
+	if isConsolePublicRequest(r) {
+		// a console looking for the app or asking to be paired, before it has a key
+		return path.Clean(r.URL.Path) == r.URL.Path
+	}
 	return isPublicPath(r.URL.Path) && r.URL.EscapedPath() == r.URL.Path && path.Clean(r.URL.Path) == r.URL.Path
 }
 
@@ -495,7 +499,7 @@ func viewerAllowed(r *http.Request) bool {
 		// the list of files of the SD card planner is a download, as the pages are; every user
 		// makes their own API keys
 		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/account/color" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt" || r.URL.Path == "/play" ||
-			r.URL.Path == "/api/keys"
+			r.URL.Path == "/api/keys" || strings.HasPrefix(r.URL.Path, "/api/install/pairs/")
 	case http.MethodDelete:
 		// and revokes them
 		return strings.HasPrefix(r.URL.Path, "/api/keys/")

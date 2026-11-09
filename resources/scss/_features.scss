@@ -1033,3 +1033,58 @@
 	text-align: right;
 	color: var(--bs-secondary-color);
 }
+
+// a console asking to be paired (see 23-net-pair.js): the blue of work, not the red that tells
+// errors, on top of whatever page is open
+.net-pair {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: .5rem 1rem;
+	padding: .75rem 1rem;
+	border: 1px solid rgba(var(--slm-work-rgb), .35);
+	border-radius: $border-radius-lg;
+	background: rgba(var(--slm-work-rgb), .09);
+
+	> .bi {
+		font-size: 1.6rem;
+		color: rgb(var(--slm-work-rgb));
+	}
+}
+
+.net-pair-text {
+	flex: 1 1 16rem;
+	min-width: 0;
+}
+
+.net-pair-code {
+	font-family: var(--bs-font-monospace);
+	font-weight: 700;
+	letter-spacing: .12em;
+	padding: .05rem .5rem;
+	border: 1px solid var(--bs-border-color);
+	border-radius: $border-radius;
+	background: var(--bs-body-bg);
+	white-space: nowrap;
+}
+
+.net-pair-off {
+	flex-basis: 100%;
+	font-size: .875rem;
+	color: var(--bs-warning-text-emphasis);
+}
+
+.net-pair-accept {
+	--bs-btn-color: #fff;
+	--bs-btn-bg: rgb(var(--slm-work-rgb));
+	--bs-btn-border-color: rgb(var(--slm-work-rgb));
+	--bs-btn-hover-color: #fff;
+	--bs-btn-hover-bg: rgba(var(--slm-work-rgb), .88);
+	--bs-btn-hover-border-color: rgba(var(--slm-work-rgb), .88);
+	--bs-btn-active-color: #fff;
+	--bs-btn-active-bg: rgba(var(--slm-work-rgb), .8);
+	--bs-btn-active-border-color: rgba(var(--slm-work-rgb), .8);
+	--bs-btn-disabled-color: #fff;
+	--bs-btn-disabled-bg: rgba(var(--slm-work-rgb), .6);
+	--bs-btn-disabled-border-color: rgba(var(--slm-work-rgb), .6);
+}

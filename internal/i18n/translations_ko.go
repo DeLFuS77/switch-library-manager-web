@@ -2170,5 +2170,15 @@ func init() {
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "NUP 옆에 다른 NUP의 메타데이터 사본(.nxpress-meta)이 있습니다. 계속하려면 삭제하세요.",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "이 파일은 메타데이터가 0부터 세어진 라이브러리의 NUP가 아닙니다.",
 		"Fixing…": "고치는 중…",
+		// pairing a console (see web/netpair.go)
+		"A console wants to connect":              "콘솔이 연결을 요청합니다",
+		"Check that the console shows this code:": "콘솔에 이 코드가 표시되는지 확인하세요:",
+		"Accept":             "수락",
+		"Accept and turn on": "수락하고 켜기",
+		"Refuse":             "거절",
+		"Install over the network is off: an administrator has to turn it on before the console can install.": "'네트워크로 설치'가 꺼져 있습니다. 콘솔에서 설치하려면 관리자가 켜야 합니다.",
+		"The console %v is connected.":                   "콘솔 %v이(가) 연결되었습니다.",
+		"the console is no longer waiting":               "콘솔이 더 이상 기다리지 않습니다",
+		"only a user who may download accepts a console": "다운로드할 수 있는 사용자만 콘솔을 수락할 수 있습니다",
 	}
 }
