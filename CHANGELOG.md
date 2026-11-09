@@ -6,6 +6,10 @@
 
 - Forgot your password? on the login page: the user writes their name, the app writes a one-time code in its log (the log of the container, or the window of the program) and in recovery-code.txt in the data folder, and with it the user sets a new password. The code works once, for 15 minutes; the sessions of the user end and Activity notes the change. Until now a forgotten password needed SLM_AUTH_USERNAME and SLM_AUTH_PASSWORD and a restart
 
+### Fixes
+
+- A NUP and an NSP/NSZ/XCI/XCZ of the same game are no longer reported as duplicates: the NUP, for emulators, and the file to install are the same game for another console, and the scan keeps both without listing either in Issues, in Space or in the count of duplicates. Neither the game, nor the update, nor a DLC a NUP holds makes a separate file a duplicate or an old update any more, and the reverse; two NUP files, or two NSZ, of the same game are still duplicates of each other, and an update NSZ and an NSP of the same version too
+
 ## 2.0.3
 
 ### Improvements

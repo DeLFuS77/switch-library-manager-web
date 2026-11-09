@@ -186,7 +186,8 @@ func TestNupAndNspAreNeverDeletedForEachOther(t *testing.T) {
 	third := write("Third [0100000000030000][v0].nup", 90)
 	bundle := write("Bundle.nsp", 160)
 	_, localDB := web.state.get()
-	nupReason := db.SkippedFile{ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + kept + ")"}
+	// the scan lists the NUP as the same game in the other format, never as a duplicate
+	nupReason := db.SkippedFile{ReasonCode: db.REASON_OTHER_FORMAT, ReasonText: "same game in the other format, a NUP for emulators and an NSP or XCI to install: both kept (" + kept + ")"}
 	localDB.Skipped[nup] = nupReason
 	// a pack whose second game the library keeps only in a NUP
 	localDB.Skipped[bundle] = db.SkippedFile{ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + kept + ")"}
@@ -220,5 +221,21 @@ func TestNupAndNspAreNeverDeletedForEachOther(t *testing.T) {
 	}
 	if note := web.cleanupRefusal(bundle, localDB.Skipped[bundle]); note != NOTE_SPACE_OTHER_FORMAT {
 		t.Fatalf("the cleanup keeps the pack: %q", note)
+	}
+	// a library cached by an older version listed the NUP as a duplicate: kept all the same
+	if note := web.cleanupRefusal(nup, db.SkippedFile{ReasonCode: db.REASON_DUPLICATE, ReasonText: "duplicate base file (" + kept + ")"}); note != NOTE_SPACE_OTHER_FORMAT {
+		t.Fatalf("the cleanup keeps the NUP listed as a duplicate before: %q", note)
+	}
+	// no issue, and not counted among the files not recognized
+	web.invalidateDerived()
+	for _, issue := range web.getIssues() {
+		if issue.File == filepath.Join(dir, nup.FileName) {
+			t.Fatalf("the NUP is no issue: %+v", issue)
+		}
+	}
+	for _, summary := range web.issueSummaries(web.getIssues(), "en") {
+		if summary.Kind == ISSUE_DUPLICATE && summary.Count != 2 {
+			t.Fatalf("only the copy of the NSP and the pack are duplicates: %+v", summary)
+		}
 	}
 }
