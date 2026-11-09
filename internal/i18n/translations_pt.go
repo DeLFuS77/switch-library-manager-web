@@ -2156,6 +2156,14 @@ func init() {
 		"The NUP could not be fixed for the emulators: it is left as it was.":                                "Não foi possível corrigir o NUP para os emuladores: ele ficou como estava.",
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "Ao lado do NUP há uma cópia dos metadados de outro NUP (.nxpress-meta): apague-a para continuar.",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "Este arquivo não é um NUP da biblioteca com os metadados contados a partir de 0.",
-		"Fixing…": "Corrigindo…",
+		"Fixing…":      "Corrigindo…",
+		"Set the icon": "Pôr ícone",
+		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task.": "Faz da capa do jogo mostrada nesta página (a escolhida em Editar ou, se não houver, a do titledb) o ícone do NUP: recortada no quadrado do centro e em 256×256, como os ícones do console. Nada do que o NUP já tem muda: os metadados do jogo são reescritos depois do fim com o ícone, e os arquivos do jogo não são tocados. Enquanto escreve, deixa ao lado do NUP uma cópia do cabeçalho e do índice, e a repõe se algo falhar ou o trabalho for interrompido. Para outra imagem, troque antes a capa em Editar: fica melhor uma quadrada de 256×256 ou maior. Roda como uma tarefa.",
+		"It carries no icon: Eglantine and Lichii show it without one.":                                               "Não tem ícone: Eglantine e Lichii o mostram sem imagem.",
+		"The icon could not be given to the NUP: it is left as it was.":                                               "Não foi possível pôr o ícone no NUP: ficou como estava.",
+		"Its game has no cover yet to make the icon of: choose one in Edit, or wait for the covers to download.":      "O jogo ainda não tem capa para fazer o ícone: escolha uma em Editar ou espere as capas serem baixadas.",
+		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "Ao lado do NUP há uma cópia do índice de outro NUP (.nxpress-icon): apague-a para continuar.",
+		"This file is not a NUP of the library without an icon.":                                                      "Este arquivo não é um NUP da biblioteca sem ícone.",
+		"Setting the icon…": "Pondo o ícone…",
 	}
 }

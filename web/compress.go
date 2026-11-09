@@ -699,6 +699,9 @@ func (web *Web) resumeInterrupted() {
 	case tasklog.TASK_NUP_FIX:
 		// a fix cut leaves the blocks it had beside the NUP: it puts them back first
 		started = web.startNupFixBy(paths, tasklog.TRIGGER_RESUME)
+	case tasklog.TASK_NUP_ICON:
+		// one cut leaves the table of contents it had beside the NUP: it puts it back first
+		started = web.startNupIconBy(paths, tasklog.TRIGGER_RESUME)
 	}
 	// forgotten once it goes on: kept while another task on files keeps it from starting,
 	// for the next start of the app
@@ -1163,6 +1166,8 @@ func (r *fileTaskRun) finish() {
 			r.failure = &tasklog.Note{Text: NOTE_SPLIT_FAILED}
 		} else if r.kind == tasklog.TASK_NUP_FIX {
 			r.failure = &tasklog.Note{Text: NOTE_NUP_FIX_FAILED}
+		} else if r.kind == tasklog.TASK_NUP_ICON {
+			r.failure = &tasklog.Note{Text: NOTE_NUP_ICON_FAILED}
 		}
 	}
 	// ended by itself or cancelled: nothing goes on after a restart
@@ -1214,6 +1219,9 @@ func compressNote(kind string, err error) string {
 	}
 	if kind == tasklog.TASK_NUP_FIX {
 		return nupFixNote(err)
+	}
+	if kind == tasklog.TASK_NUP_ICON {
+		return nupIconNote(err)
 	}
 	if kind == tasklog.TASK_SPLIT {
 		switch {

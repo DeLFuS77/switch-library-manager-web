@@ -2156,6 +2156,14 @@ func init() {
 		"The NUP could not be fixed for the emulators: it is left as it was.":                                "无法为模拟器修复这个 NUP：它保持原样。",
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "NUP 旁边有另一个 NUP 的元数据副本（.nxpress-meta）：删除它后才能继续。",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "这个文件不是游戏库中元数据从 0 开始计数的 NUP。",
-		"Fixing…": "正在修复…",
+		"Fixing…":      "正在修复…",
+		"Set the icon": "设置图标",
+		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task.": "把此页显示的游戏封面（在“编辑”中选择的封面，否则为 titledb 的封面）设为 NUP 的图标：裁成居中的正方形并缩放为 256×256，与主机的图标一致。NUP 已有的内容都不会改变：游戏的元数据连同图标重新写在文件末尾，游戏文件不会被改动。写入时会在 NUP 旁保留文件头和目录的副本，若出错或工作中断则恢复。要使用其他图片，请先在“编辑”中更换封面：最好是 256×256 或更大的正方形图片。它以任务方式运行。",
+		"It carries no icon: Eglantine and Lichii show it without one.":                                               "没有图标：Eglantine 和 Lichii 中显示为无图像。",
+		"The icon could not be given to the NUP: it is left as it was.":                                               "无法为 NUP 设置图标：已保持原样。",
+		"Its game has no cover yet to make the icon of: choose one in Edit, or wait for the covers to download.":      "该游戏还没有可做图标的封面：请在“编辑”中选择一个，或等待封面下载完成。",
+		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "NUP 旁有另一个 NUP 的目录副本（.nxpress-icon）：删除它才能继续。",
+		"This file is not a NUP of the library without an icon.":                                                      "此文件不是库中缺少图标的 NUP。",
+		"Setting the icon…": "正在设置图标…",
 	}
 }

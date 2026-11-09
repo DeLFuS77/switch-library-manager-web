@@ -2183,7 +2183,15 @@ var Translations = map[string]map[string]string{
 		"The NUP could not be fixed for the emulators: it is left as it was.":                                "No se ha podido arreglar el NUP para los emuladores: se ha dejado como estaba.",
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "Junto al NUP hay una copia de los metadatos de otro NUP (.nxpress-meta): bórrala para seguir.",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "Este archivo no es un NUP de la biblioteca con los metadatos contados desde 0.",
-		"Fixing…": "Arreglando…",
+		"Fixing…":      "Arreglando…",
+		"Set the icon": "Poner icono",
+		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task.": "Convierte la carátula de su juego que se ve en esta página (la elegida en Editar o, si no, la de titledb) en el icono del NUP: recortada al cuadrado del centro y a 256×256, como los iconos de la consola. No cambia nada de lo que el NUP ya tiene: los metadatos del juego se escriben de nuevo tras su final con el icono, y los archivos del juego no se tocan. Mientras escribe deja al lado una copia de la cabecera y del índice del NUP, y la vuelve a poner si algo falla o el trabajo se corta. Para otra imagen, cambia antes la carátula en Editar: queda mejor una cuadrada de 256×256 o más. Se hace como una tarea.",
+		"It carries no icon: Eglantine and Lichii show it without one.":                                               "No lleva icono: Eglantine y Lichii lo muestran sin imagen.",
+		"The icon could not be given to the NUP: it is left as it was.":                                               "No se ha podido poner el icono al NUP: se ha dejado como estaba.",
+		"Its game has no cover yet to make the icon of: choose one in Edit, or wait for the covers to download.":      "Su juego aún no tiene carátula con la que hacer el icono: elige una en Editar o espera a que se descarguen las carátulas.",
+		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "Junto al NUP hay una copia del índice de otro NUP (.nxpress-icon): bórrala para seguir.",
+		"This file is not a NUP of the library without an icon.":                                                      "Este archivo no es un NUP de la biblioteca sin icono.",
+		"Setting the icon…": "Poniendo el icono…",
 	},
 }
 
@@ -2207,5 +2215,5 @@ var JSTexts = []string{
 	"The new files may not fit. A file that fills its disk fails, and its original stays as it was.", "up to %v needed, %v free", "Start anyway?",
 	"Added to the queue.", "It starts when the tasks before it end: number %v in the queue.", "Reload",
 	"Saved!", "Back to the original", "The cover is too large: at most 5 MB and 6000 pixels a side.",
-	"Fixing…",
+	"Fixing…", "Setting the icon…",
 }

@@ -2156,6 +2156,14 @@ func init() {
 		"The NUP could not be fixed for the emulators: it is left as it was.":                                "Het NUP kon niet worden hersteld voor de emulators: het blijft zoals het was.",
 		"Beside the NUP there is a copy of the metadata of another NUP (.nxpress-meta): remove it to go on.": "Naast het NUP staat een kopie van de metadata van een ander NUP (.nxpress-meta): verwijder die om verder te gaan.",
 		"This file is not a NUP of the library whose metadata is counted from 0.":                            "Dit bestand is geen NUP van de bibliotheek waarvan de metadata vanaf 0 worden geteld.",
-		"Fixing…": "Bezig met herstellen…",
+		"Fixing…":      "Bezig met herstellen…",
+		"Set the icon": "Pictogram instellen",
+		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task.": "Maakt de hoes van het spel die op deze pagina staat (de in Bewerken gekozen hoes, anders die van titledb) het pictogram van de NUP: in het midden vierkant bijgesneden en op 256×256 gebracht, zoals de pictogrammen van de console. Niets van wat de NUP al heeft verandert: de metadata van het spel worden met het pictogram na het einde opnieuw geschreven, en de bestanden van het spel worden niet aangeraakt. Tijdens het schrijven staat er een kopie van de header en de inhoudsopgave naast de NUP, die wordt teruggezet als er iets misgaat of het werk wordt afgebroken. Voor een andere afbeelding verander je eerst de hoes in Bewerken: een vierkante van 256×256 of groter ziet er het best uit. Het loopt als een taak.",
+		"It carries no icon: Eglantine and Lichii show it without one.":                                               "Er zit geen pictogram in: Eglantine en Lichii tonen hem zonder afbeelding.",
+		"The icon could not be given to the NUP: it is left as it was.":                                               "Het pictogram kon niet aan de NUP worden gegeven: hij is gelaten zoals hij was.",
+		"Its game has no cover yet to make the icon of: choose one in Edit, or wait for the covers to download.":      "Het spel heeft nog geen hoes om het pictogram van te maken: kies er een in Bewerken of wacht tot de hoezen zijn gedownload.",
+		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "Naast de NUP staat een kopie van de inhoudsopgave van een andere NUP (.nxpress-icon): verwijder hem om door te gaan.",
+		"This file is not a NUP of the library without an icon.":                                                      "Dit bestand is geen NUP van de bibliotheek zonder pictogram.",
+		"Setting the icon…": "Pictogram instellen…",
 	}
 }

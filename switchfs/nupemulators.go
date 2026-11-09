@@ -97,6 +97,9 @@ type NupEmulators struct {
 	// its metadata has its types counted from 0, which they read as the format numbers them:
 	// they show the publisher as its name, its name as its version and a broken icon
 	ZeroBased bool `json:"zero_based,omitempty"`
+	// it carries no icon (a NUP made from a dump folder without control data): they show it
+	// without one. It does not keep them from it, so Ok does not count it
+	NoIcon bool `json:"no_icon,omitempty"`
 }
 
 // Ok tells a NUP they open, whose game they can start and whose name, version and icon they
@@ -148,6 +151,7 @@ func (container *NupContainer) Emulators() NupEmulators {
 	for _, pkg := range container.Packages {
 		result.ZeroBased = result.ZeroBased || pkg.ZeroBased
 	}
+	result.NoIcon = !container.HasIcon()
 	return result
 }
 

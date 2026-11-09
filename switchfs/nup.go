@@ -83,8 +83,8 @@ const (
 // NupReaderVersion is raised when what the reader tells of a NUP changes (a name cleaned up, a
 // record read), so the library reads its NUP files again instead of keeping what it cached.
 // Version 5 tells whether Eglantine and Lichii open it, and a NUP whose metadata types are
-// counted from 0.
-const NupReaderVersion = 5
+// counted from 0. Version 6 tells a NUP that carries no icon.
+const NupReaderVersion = 6
 
 // NupPackage is one package of a NUP: the game, one of its updates or one of its DLC.
 type NupPackage struct {
