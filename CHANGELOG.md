@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.0.4
 
 ### Improvements
 
@@ -10,6 +10,10 @@
 ### Fixes
 
 - A NUP and an NSP/NSZ/XCI/XCZ of the same game are no longer reported as duplicates: the NUP, for emulators, and the file to install are the same game for another console, and the scan keeps both without listing either in Issues, in Space or in the count of duplicates. Neither the game, nor the update, nor a DLC a NUP holds makes a separate file a duplicate or an old update any more, and the reverse; two NUP files, or two NSZ, of the same game are still duplicates of each other, and an update NSZ and an NSP of the same version too
+
+### Next
+
+- Reading NUP v2, the new version of the format, once its specification settles
 
 ## 2.0.3
 

@@ -1,4 +1,61 @@
 {
+  "2.0.4": {
+    "en": [
+      "Forgot your password? on the login page: the app writes a one-time code in its log, and with it you set a new password.",
+      "A NUP without an icon is told on the page of its game, and Set the icon makes the cover of the game its icon.",
+      "A NUP and an NSP or XCI of the same game are no longer reported as duplicates: they are the same game for another console."
+    ],
+    "es": [
+      "¿Has olvidado la contraseña? en la página de entrada: la app escribe un código de un solo uso en su registro y con él pones una contraseña nueva.",
+      "Un NUP sin icono se avisa en la ficha de su juego, y Poner icono convierte la carátula del juego en su icono.",
+      "Un NUP y un NSP o XCI del mismo juego ya no salen como duplicados: son el mismo juego para otra consola."
+    ],
+    "de": [
+      "Passwort vergessen? auf der Anmeldeseite: Die App schreibt einen Einmalcode in ihr Protokoll, mit dem du ein neues Passwort festlegst.",
+      "Eine NUP ohne Symbol wird auf der Seite ihres Spiels gemeldet, und Symbol setzen macht das Cover des Spiels zu ihrem Symbol.",
+      "Eine NUP und eine NSP oder XCI desselben Spiels gelten nicht mehr als Duplikate: Es ist dasselbe Spiel für eine andere Konsole."
+    ],
+    "fr": [
+      "Mot de passe oublié ? sur la page de connexion : l’application écrit un code à usage unique dans son journal, et avec lui vous choisissez un nouveau mot de passe.",
+      "Un NUP sans icône est signalé sur la page de son jeu, et Mettre l’icône fait de la jaquette du jeu son icône.",
+      "Un NUP et un NSP ou XCI du même jeu ne sont plus signalés comme doublons : c’est le même jeu pour une autre console."
+    ],
+    "it": [
+      "Password dimenticata? nella pagina di accesso: l’app scrive un codice monouso nel suo registro, e con esso imposti una nuova password.",
+      "Un NUP senza icona viene segnalato nella pagina del suo gioco, e Imposta l'icona rende la copertina del gioco la sua icona.",
+      "Un NUP e un NSP o XCI dello stesso gioco non vengono più segnalati come duplicati: sono lo stesso gioco per un’altra console."
+    ],
+    "pt": [
+      "Esqueceu a senha? na página de entrada: o app escreve um código de uso único no seu registro, e com ele você define uma nova senha.",
+      "Um NUP sem ícone é avisado na página do seu jogo, e Pôr ícone transforma a capa do jogo no seu ícone.",
+      "Um NUP e um NSP ou XCI do mesmo jogo não aparecem mais como duplicados: são o mesmo jogo para outro console."
+    ],
+    "nl": [
+      "Wachtwoord vergeten? op de aanmeldpagina: de app schrijft een eenmalige code in zijn logboek, en daarmee stel je een nieuw wachtwoord in.",
+      "Een NUP zonder pictogram wordt gemeld op de pagina van zijn spel, en Pictogram instellen maakt de hoes van het spel zijn pictogram.",
+      "Een NUP en een NSP of XCI van hetzelfde spel worden niet langer als duplicaten gemeld: het is hetzelfde spel voor een andere console."
+    ],
+    "ru": [
+      "«Забыли пароль?» на странице входа: приложение записывает одноразовый код в свой журнал, и с ним вы задаёте новый пароль.",
+      "NUP без значка отмечается на странице его игры, а «Поставить значок» делает обложку игры его значком.",
+      "NUP и NSP или XCI одной игры больше не считаются дубликатами: это одна и та же игра для другой консоли."
+    ],
+    "ja": [
+      "ログイン画面に「パスワードをお忘れですか？」を追加：アプリがログに一度だけ使えるコードを書き出し、それで新しいパスワードを設定できます。",
+      "アイコンのない NUP はゲームのページで知らせ、「アイコンを設定」でゲームのカバーをアイコンにできます。",
+      "同じゲームの NUP と NSP・XCI は重複として表示されなくなりました：別の本体向けの同じゲームです。"
+    ],
+    "ko": [
+      "로그인 페이지에 '비밀번호를 잊으셨나요?' 추가: 앱이 로그에 일회용 코드를 기록하고, 그 코드로 새 비밀번호를 설정합니다.",
+      "아이콘이 없는 NUP는 게임 페이지에서 알려 주며, '아이콘 넣기'로 게임 커버를 아이콘으로 만듭니다.",
+      "같은 게임의 NUP와 NSP 또는 XCI는 더 이상 중복으로 표시되지 않습니다: 다른 기기용 같은 게임입니다."
+    ],
+    "zh": [
+      "登录页新增“忘记密码？”：应用会在日志中写入一次性代码，用它即可设置新密码。",
+      "没有图标的 NUP 会在其游戏页面提示，“设置图标”可将游戏封面设为它的图标。",
+      "同一游戏的 NUP 与 NSP 或 XCI 不再被报告为重复：它们是面向另一台主机的同一款游戏。"
+    ]
+  },
   "2.0.3": {
     "en": [
       "Update now installs only versions signed with the key of the project, and waits for every task to end before it restarts.",
