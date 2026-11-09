@@ -71,6 +71,10 @@ type netFile struct {
 	modTime time.Time
 	// the package made for the installer, when the file holds an experimental NCZ
 	stream *switchfs.InstallStream
+	// for the catalog of NXDock: the game it belongs to (its key in the library), the title ID
+	// and version of the file, the firmware it needs, the cover of the game and the name of a DLC
+	gameKey, titleId, cover, dlcName string
+	version, requiredSystem          int
 }
 
 // netInstallEnabled tells whether the network install answers.
@@ -150,7 +154,7 @@ func (web *Web) netFiles(options settings.NetInstallOptions) []netFile {
 		return files
 	}
 	seen := map[string]bool{}
-	add := func(file db.SwitchFileInfo, kind string, game string, dlcName string) {
+	add := func(file db.SwitchFileInfo, kind string, game string, dlcName string, gameKey string, cover string) {
 		info := compressedSinceScan(file.ExtendedInfo)
 		full := filepath.Join(info.BaseFolder, info.FileName)
 		extension := strings.ToLower(filepath.Ext(info.FileName))
@@ -162,7 +166,12 @@ func (web *Web) netFiles(options settings.NetInstallOptions) []netFile {
 			return
 		}
 		seen[full] = true
-		entry := netFile{id: netFileId(full), path: full, size: stat.Size(), kind: kind, game: game, modTime: stat.ModTime()}
+		entry := netFile{id: netFileId(full), path: full, size: stat.Size(), kind: kind, game: game, modTime: stat.ModTime(),
+			gameKey: gameKey, cover: cover, dlcName: dlcName}
+		if file.Metadata != nil {
+			entry.titleId, entry.version = strings.ToUpper(file.Metadata.TitleId), file.Metadata.Version
+			entry.requiredSystem = int(file.Metadata.RequiredTitleVersion)
+		}
 		if extension == ".nsz" || extension == ".xcz" {
 			if stream := web.netStreams.get(full, stat); stream != nil {
 				entry.stream, entry.size, extension = stream, stream.Size(), stream.Extension()
@@ -190,9 +199,15 @@ func (web *Web) netFiles(options settings.NetInstallOptions) []netFile {
 		entry.name = name + extension
 		files = append(files, entry)
 	}
-	for _, title := range localDB.TitlesMap {
+	for key, title := range localDB.TitlesMap {
 		if title.File.Metadata == nil && len(title.Updates) == 0 && len(title.Dlc) == 0 {
 			continue
+		}
+		cover := ""
+		if switchDB != nil {
+			cover = gameIcon(switchDB, key, title)
+		} else {
+			cover = title.Icon
 		}
 		game := ""
 		var known *db.SwitchTitle
@@ -206,7 +221,7 @@ func (web *Web) netFiles(options settings.NetInstallOptions) []netFile {
 			game = strings.TrimSpace(db.ParseTitleNameFromFileName(title.File.ExtendedInfo.FileName))
 		}
 		if title.BaseExist && !title.IsSplit {
-			add(title.File, netFolderGames, game, "")
+			add(title.File, netFolderGames, game, "", key, cover)
 		}
 		versions := make([]int, 0, len(title.Updates))
 		for version := range title.Updates {
@@ -215,7 +230,7 @@ func (web *Web) netFiles(options settings.NetInstallOptions) []netFile {
 		sort.Ints(versions)
 		for _, version := range versions {
 			if options.AllUpdates || version == title.LatestUpdate {
-				add(title.Updates[version], netFolderUpdates, game, "")
+				add(title.Updates[version], netFolderUpdates, game, "", key, cover)
 			}
 		}
 		for _, id := range sortedKeys(title.Dlc) {
@@ -225,7 +240,7 @@ func (web *Web) netFiles(options settings.NetInstallOptions) []netFile {
 					dlcName = entry.Name
 				}
 			}
-			add(title.Dlc[id], netFolderDlc, game, dlcName)
+			add(title.Dlc[id], netFolderDlc, game, dlcName, key, cover)
 		}
 	}
 	sort.SliceStable(files, func(i, j int) bool {
@@ -368,6 +383,8 @@ func (web *Web) HandleNetInstall() {
 	web.router.PathPrefix(netInstallFiles).HandlerFunc(web.handleNetFile).Methods(http.MethodGet, http.MethodHead)
 	web.router.HandleFunc(netInstallSpeedTest, web.handleNetSpeedTest).Methods(http.MethodGet, http.MethodHead)
 	web.handleNetPairing()
+	web.router.HandleFunc(netInstallCatalog, web.handleNetCatalog).Methods(http.MethodGet, http.MethodHead)
+	web.router.PathPrefix(netInstallCover).HandlerFunc(web.handleNetCover).Methods(http.MethodGet, http.MethodHead)
 }
 
 // netDbiFolders are the folders of the DBI listing and their files.
