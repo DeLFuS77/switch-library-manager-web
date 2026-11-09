@@ -4,6 +4,7 @@
 
 ### Improvements
 
+- A NUP without an icon, such as one made of a dump folder without control data, is told on the page of its game, with Set the icon: the cover of its game shown there (the one chosen in Edit, else the one of titledb) becomes its icon, cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files stay as they were. It runs as a task, for administrators, and one cut goes on after a restart; the copy it keeps beside the NUP (.nxpress-icon) is the one of NXPress, so each puts back what the other left. The library reads its NUP files again once, to tell the ones without an icon
 - Forgot your password? on the login page: the user writes their name, the app writes a one-time code in its log (the log of the container, or the window of the program) and in recovery-code.txt in the data folder, and with it the user sets a new password. The code works once, for 15 minutes; the sessions of the user end and Activity notes the change. Until now a forgotten password needed SLM_AUTH_USERNAME and SLM_AUTH_PASSWORD and a restart
 
 ### Fixes

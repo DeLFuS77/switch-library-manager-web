@@ -229,6 +229,8 @@ func (web *Web) startQueued(task QueuedTask) bool {
 		return web.startSplitBy(task.Paths, task.Delete, tasklog.TRIGGER_MANUAL)
 	case tasklog.TASK_NUP_FIX:
 		return web.startNupFixBy(task.Paths, tasklog.TRIGGER_MANUAL)
+	case tasklog.TASK_NUP_ICON:
+		return web.startNupIconBy(task.Paths, tasklog.TRIGGER_MANUAL)
 	case tasklog.TASK_VERIFY:
 		return web.startVerificationAt(task.CheckLevel(), task.Paths, task.Recheck, tasklog.TRIGGER_MANUAL)
 	}
@@ -293,7 +295,7 @@ func (web *Web) runQueue() {
 
 // queueKinds are the kinds of tasks the queue runs.
 var queueKinds = map[string]bool{tasklog.TASK_COMPRESS: true, tasklog.TASK_DECOMPRESS: true, tasklog.TASK_CONVERT: true, tasklog.TASK_PACK: true, tasklog.TASK_SPLIT: true, tasklog.TASK_VERIFY: true,
-	tasklog.TASK_NUP_FIX: true}
+	tasklog.TASK_NUP_FIX: true, tasklog.TASK_NUP_ICON: true}
 
 // notifyQueueDone tells by the channels of the notifications that the queue is done, with each
 // task on files that ran since it began and how it ended.

@@ -42,19 +42,25 @@ function initPack() {
 
 // Game page > Files > a NUP counted from 0 > Fix for emulators: its metadata is written again as a
 // task, at once, followed as the others; the page reloads by itself once the library has read the
-// NUP again. Put in the queue, it says so, and the button stays off.
+// NUP again. Put in the queue, it says so, and the button stays off. A NUP without an icon > Set
+// the icon: the cover of its game is given to it the same way.
 function initNupFix() {
-	document.querySelectorAll('[data-nup-fix]').forEach(button => {
+	initNupTask('[data-nup-fix]', 'nupFix', '/title/nup-fix', t('Fixing…'));
+	initNupTask('[data-nup-icon]', 'nupIcon', '/title/nup-icon', t('Setting the icon…'));
+}
+
+function initNupTask(selector, key, address, busy) {
+	document.querySelectorAll(selector).forEach(button => {
 		const label = [...button.childNodes];
 		button.addEventListener('click', () => {
 			button.disabled = true;
 			const spinner = document.createElement('span');
 			spinner.className = 'spinner-border spinner-border-sm me-1';
 			spinner.setAttribute('aria-hidden', 'true');
-			button.replaceChildren(spinner, t('Fixing…'));
-			runAsTask(() => apiFetch('/title/nup-fix', {
+			button.replaceChildren(spinner, busy);
+			runAsTask(() => apiFetch(address, {
 				method: 'POST',
-				body: new URLSearchParams({ path: button.dataset.nupFix }).toString(),
+				body: new URLSearchParams({ path: button.dataset[key] }).toString(),
 				headers: { 'Content-type': 'application/x-www-form-urlencoded' }
 			})).then(response => readJSON(response).then(json => {
 				if (!response.ok) {
