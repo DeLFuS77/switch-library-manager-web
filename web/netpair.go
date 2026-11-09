@@ -261,7 +261,8 @@ func (web *Web) handleNetPairWait(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusForbidden, map[string]string{"state": "rejected"})
 	case pairing.accepted:
 		delete(pairs.list, id)
-		writeJSON(w, http.StatusOK, map[string]any{"state": "accepted", "key": pairing.key, "name": pairing.keyName, "user": pairing.user, "app": web.netHello()})
+		hello := web.netHello()
+		writeJSON(w, http.StatusOK, map[string]any{"state": "accepted", "key": pairing.key, "name": pairing.keyName, "user": pairing.user, "enabled": hello.Enabled, "app": hello})
 	default:
 		writeJSON(w, http.StatusAccepted, map[string]string{"state": "waiting"})
 	}

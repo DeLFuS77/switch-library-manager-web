@@ -112,7 +112,7 @@ func TestNetPairAccepted(t *testing.T) {
 	}
 	code, answer := waitPair(console, id)
 	key, _ := answer["key"].(string)
-	if code != http.StatusOK || answer["state"] != "accepted" || !strings.HasPrefix(key, apiKeyPrefix) || answer["user"] != "bob" {
+	if code != http.StatusOK || answer["state"] != "accepted" || !strings.HasPrefix(key, apiKeyPrefix) || answer["user"] != "bob" || answer["enabled"] != true || answer["name"] != "Switch del salón" {
 		t.Fatalf("the key: %d %v", code, answer)
 	}
 	if code, _ := waitPair(console, id); code != http.StatusGone {
