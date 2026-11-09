@@ -444,6 +444,11 @@ func (web *Web) buildIssues() []Issue {
 		if v.ReasonCode == db.REASON_OLD_UPDATE && inUse[path] {
 			continue
 		}
+		// the same game in the other format (a NUP and an NSP or XCI) is a file the user keeps,
+		// no issue
+		if v.ReasonCode == db.REASON_OTHER_FORMAT {
+			continue
+		}
 		issues = append(issues, Issue{File: path, Reason: v.ReasonText, Kept: inUse[path], CutShort: v.CutShort})
 	}
 
