@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/internal/i18n"
@@ -139,10 +140,26 @@ func TestNupIconWithoutACover(t *testing.T) {
 	web.handleNupIcon()
 	path := noIconNupGame(t, web, false)
 	original, _ := os.ReadFile(path)
+	// the task fails, and the app tells of it in the background, reading the settings in the data
+	// folder: the test waits for it, or the folder may be removed while it is written
+	told := make(chan struct{})
+	tasks := web.taskLog()
+	tellFailed := tasks.OnFailed
+	tasks.OnFailed = func(task tasklog.Task) {
+		defer close(told)
+		if tellFailed != nil {
+			tellFailed(task)
+		}
+	}
 	if recorder := postNupIcon(t, web, path); recorder.Code != http.StatusAccepted {
 		t.Fatalf("%d %s", recorder.Code, recorder.Body.String())
 	}
 	task := waitForTask(t, web, tasklog.TASK_NUP_ICON)
+	select {
+	case <-told:
+	case <-time.After(20 * time.Second):
+		t.Fatal("the failed task was not told")
+	}
 	if task.Status != tasklog.TASK_FAILED || task.Error == nil || task.Error.Text != NOTE_NUP_ICON_FAILED ||
 		len(task.Warnings) != 1 || task.Warnings[0].Text != NOTE_NUP_ICON_NO_COVER {
 		t.Fatalf("%+v", task)
