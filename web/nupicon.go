@@ -31,7 +31,7 @@ const (
 	// the button on the page of the game, which is also the name of the task
 	NUP_ICON_ACTION = "Set the icon"
 	// what the button does, in its help (the same text as in title.html)
-	NUP_ICON_HELP = "Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first. It runs as a task."
+	NUP_ICON_HELP = "Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task."
 	// what is said of a NUP without an icon on the page of its game
 	NUP_NO_ICON        = "It carries no icon: Eglantine and Lichii show it without one."
 	errNupIconNotFound = errorString("This file is not a NUP of the library without an icon.")

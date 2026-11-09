@@ -27,7 +27,7 @@ import (
 func noIconNupGame(t *testing.T, web *Web, cover bool) string {
 	t.Helper()
 	nup := testnup.Build([]testnup.Package{{TitleId: 0x0400486024DEC000, Kind: testnup.Base, Version: 65536,
-		Meta: []testnup.Record{{Type: testnup.TitleName, Payload: []byte("Made-up Quest")}},
+		Meta:  []testnup.Record{{Type: testnup.TitleName, Payload: []byte("Made-up Quest")}},
 		Files: []testnup.File{{Path: "exefs/main", Data: []byte("code")}, {Path: "exefs/main.npdm", Data: []byte("META npdm")}}}})
 	folder := t.TempDir()
 	path := filepath.Join(folder, "Made-up Quest [0400486024DEC000][v65536].nup")
