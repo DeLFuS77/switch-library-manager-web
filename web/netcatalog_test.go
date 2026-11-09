@@ -10,6 +10,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
 // The catalog groups the files of a game, says what each is, and gives its cover to a console key.
@@ -73,5 +76,43 @@ func TestNetCatalog(t *testing.T) {
 	}
 	if anonymous := (&client{t: t, handler: admin.handler}).do("GET", "/install/catalog", nil); anonymous.Code == http.StatusOK {
 		t.Fatalf("the catalog without a key: %d", anonymous.Code)
+	}
+}
+
+// Game card files (XCI, XCZ) are in the catalog as they are, and download in pieces: NXDock reads
+// the container from the bytes.
+func TestNetCatalogGivesGameCardFiles(t *testing.T) {
+	web, admin, key := netWeb(t)
+	dir := t.TempDir()
+	file := func(name string, id string, version int) db.SwitchFileInfo {
+		os.WriteFile(filepath.Join(dir, name), []byte("card data of "+name), 0644)
+		return db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: name, BaseFolder: dir, Size: int64(len("card data of " + name))},
+			Metadata: &switchfs.ContentMetaAttributes{TitleId: id, Version: version}}
+	}
+	web.state.set(&db.SwitchTitlesDB{TitlesMap: map[string]*db.SwitchTitle{}}, &db.LocalSwitchFilesDB{TitlesMap: map[string]*db.SwitchGameFiles{
+		"0100000000020": {BaseExist: true, File: file("Card [0100000000020000][v0].xci", "0100000000020000", 0)},
+		"0100000000030": {BaseExist: true, File: file("Packed [0100000000030000][v0].xcz", "0100000000030000", 0)},
+	}})
+	web.netFilesForget()
+
+	console := &client{t: t, handler: admin.handler}
+	auth := basic("switch", key)
+	got := console.do("GET", "/install/catalog", nil, "Authorization", auth)
+	var catalog netCatalog
+	if err := json.Unmarshal(got.Body.Bytes(), &catalog); err != nil || got.Code != http.StatusOK {
+		t.Fatalf("the catalog: %d %s", got.Code, got.Body.String())
+	}
+	formats := map[string]bool{}
+	for _, game := range catalog.Games {
+		for _, f := range game.Files {
+			formats[f.Format] = true
+			piece := console.do("GET", f.Url, nil, "Authorization", auth, "Range", "bytes=0-3")
+			if piece.Code != http.StatusPartialContent || piece.Body.String() != "card" {
+				t.Fatalf("%s in pieces: %d %q", f.Url, piece.Code, piece.Body.String())
+			}
+		}
+	}
+	if len(catalog.Games) != 2 || !formats["xci"] || !formats["xcz"] {
+		t.Fatalf("an XCI and an XCZ: %+v", catalog.Games)
 	}
 }
