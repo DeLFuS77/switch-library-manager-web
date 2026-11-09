@@ -48,26 +48,32 @@ func (web *Web) noIconNup(requested string) (string, string) {
 	if localDB == nil || requested == "" {
 		return "", ""
 	}
-	wanted := web.moves.resolve(filepath.Clean(requested))
-	matches := func(info db.SwitchFileInfo) bool {
+	// a page drawn before Organize moved the file sends its old path: the moves of the app lead it
+	// to the new one, and it is only compared with the paths of the library
+	wanted := web.moves.follow(filepath.Clean(requested))
+	// the path of the library that matches, as the moves of the app lead it
+	matches := func(info db.SwitchFileInfo) string {
 		if info.Metadata == nil || info.Metadata.Emulators == nil || !info.Metadata.Emulators.NoIcon ||
 			!switchfs.IsNupFile(info.ExtendedInfo.FileName) {
-			return false
+			return ""
 		}
-		return web.moves.resolve(filepath.Join(info.ExtendedInfo.BaseFolder, info.ExtendedInfo.FileName)) == wanted
+		if path := web.moves.follow(filepath.Join(info.ExtendedInfo.BaseFolder, info.ExtendedInfo.FileName)); path == wanted {
+			return path
+		}
+		return ""
 	}
 	for prefix, game := range localDB.TitlesMap {
-		if matches(game.File) {
-			return wanted, prefix
+		if path := matches(game.File); path != "" {
+			return path, prefix
 		}
 		for _, update := range game.Updates {
-			if matches(update) {
-				return wanted, prefix
+			if path := matches(update); path != "" {
+				return path, prefix
 			}
 		}
 		for _, dlc := range game.Dlc {
-			if matches(dlc) {
-				return wanted, prefix
+			if path := matches(dlc); path != "" {
+				return path, prefix
 			}
 		}
 	}
