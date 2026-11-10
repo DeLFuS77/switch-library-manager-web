@@ -2,6 +2,7 @@ package web
 
 import (
 	"net/http"
+	"os"
 	"net/url"
 	"path/filepath"
 	"sort"
@@ -51,6 +52,9 @@ func (web *Web) handleNetCatalog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	files, _ := web.netFilesKept(options)
+	// a console that installs the NCZ of NXPress's extra compression itself (NXDock with
+	// ?ncz=native) gets them as they are: smaller, nothing to rebuild here
+	native := r.URL.Query().Get("ncz") == "native"
 	games := map[string]*netCatalogGame{}
 	for _, file := range files {
 		game, ok := games[file.gameKey]
@@ -65,9 +69,17 @@ func (web *Web) handleNetCatalog(w http.ResponseWriter, r *http.Request) {
 		if kind == "game" && game.TitleId == "" {
 			game.TitleId = file.titleId
 		}
-		game.Files = append(game.Files, netCatalogFile{Id: file.id, Kind: kind, TitleId: file.titleId, Version: file.version,
+		entry := netCatalogFile{Id: file.id, Kind: kind, TitleId: file.titleId, Version: file.version,
 			Size: file.size, Format: strings.TrimPrefix(strings.ToLower(filepath.Ext(file.name)), "."), Name: file.name,
-			DlcName: file.dlcName, RequiredSystem: file.requiredSystem, Url: netInstallFiles + file.id + "/" + url.PathEscape(file.name)})
+			DlcName: file.dlcName, RequiredSystem: file.requiredSystem, Url: netInstallFiles + file.id + "/" + url.PathEscape(file.name)}
+		if native && file.stream != nil {
+			if stat, err := os.Stat(file.path); err == nil {
+				entry.Size = stat.Size()
+				entry.Format = strings.TrimPrefix(strings.ToLower(filepath.Ext(file.path)), ".")
+				entry.Url += "?raw=1"
+			}
+		}
+		game.Files = append(game.Files, entry)
 	}
 	catalog := netCatalog{App: web.netHello(), Games: make([]netCatalogGame, 0, len(games))}
 	order := map[string]int{"game": 0, "update": 1, "dlc": 2}

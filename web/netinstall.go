@@ -633,7 +633,7 @@ func (web *Web) serveNetFile(w http.ResponseWriter, r *http.Request, file netFil
 	if r.Method == http.MethodGet && (r.Header.Get("Range") == "" || strings.HasPrefix(r.Header.Get("Range"), "bytes=0-")) {
 		web.noteNetInstall(r, file)
 	}
-	if file.stream != nil {
+	if file.stream != nil && r.URL.Query().Get("raw") != "1" {
 		reader := file.stream.Reader()
 		defer reader.Close()
 		http.ServeContent(w, r, "", file.modTime, reader)

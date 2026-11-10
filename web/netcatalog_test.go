@@ -116,3 +116,25 @@ func TestNetCatalogGivesGameCardFiles(t *testing.T) {
 		t.Fatalf("an XCI and an XCZ: %+v", catalog.Games)
 	}
 }
+
+// A console that installs NXPress's extra compression itself asks with ?ncz=native: files without
+// it are given as always.
+func TestNetCatalogNativeLeavesPlainFiles(t *testing.T) {
+	_, admin, key := netWeb(t)
+	console := &client{t: t, handler: admin.handler}
+	auth := basic("switch", key)
+	var plain, native netCatalog
+	json.Unmarshal(console.do("GET", "/install/catalog", nil, "Authorization", auth).Body.Bytes(), &plain)
+	json.Unmarshal(console.do("GET", "/install/catalog?ncz=native", nil, "Authorization", auth).Body.Bytes(), &native)
+	if len(plain.Games) != 1 || len(native.Games) != 1 || len(plain.Games[0].Files) != len(native.Games[0].Files) {
+		t.Fatalf("the same games: %+v %+v", plain, native)
+	}
+	for i, f := range native.Games[0].Files {
+		if f != plain.Games[0].Files[i] {
+			t.Fatalf("a plain file changed: %+v %+v", f, plain.Games[0].Files[i])
+		}
+		if got := console.do("GET", f.Url+"?raw=1", nil, "Authorization", auth); got.Code != http.StatusOK || int64(got.Body.Len()) != f.Size {
+			t.Fatalf("raw: %d %d", got.Code, got.Body.Len())
+		}
+	}
+}
