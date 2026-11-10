@@ -444,6 +444,33 @@
 	background-color: rgb(var(--slm-work-rgb));
 }
 
+// an action that starts work somewhere else (Send to console): the same blue, its text dark on
+// the light blue of the dark theme and white on the deep blue of the light one, both readable
+:root,
+[data-bs-theme="light"] {
+	--slm-on-work: #fff;
+}
+
+[data-bs-theme="dark"] {
+	--slm-on-work: #06212d;
+}
+
+.btn-work {
+	--bs-btn-color: var(--slm-on-work);
+	--bs-btn-bg: rgb(var(--slm-work-rgb));
+	--bs-btn-border-color: rgb(var(--slm-work-rgb));
+	--bs-btn-hover-color: var(--slm-on-work);
+	--bs-btn-hover-bg: rgba(var(--slm-work-rgb), .85);
+	--bs-btn-hover-border-color: rgba(var(--slm-work-rgb), .85);
+	--bs-btn-active-color: var(--slm-on-work);
+	--bs-btn-active-bg: rgba(var(--slm-work-rgb), .75);
+	--bs-btn-active-border-color: rgba(var(--slm-work-rgb), .75);
+	--bs-btn-disabled-color: var(--slm-on-work);
+	--bs-btn-disabled-bg: rgb(var(--slm-work-rgb));
+	--bs-btn-disabled-border-color: rgb(var(--slm-work-rgb));
+	--bs-btn-focus-shadow-rgb: var(--slm-work-rgb);
+}
+
 // spinners of work going on
 .text-work {
 	color: rgb(var(--slm-work-rgb)) !important;
