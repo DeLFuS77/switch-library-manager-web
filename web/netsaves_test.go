@@ -279,3 +279,14 @@ func TestNetSavesPage(t *testing.T) {
 		t.Fatal("not in the menu while the network install is off")
 	}
 }
+
+// Two saves of the same second are listed the newest first too.
+func TestNetSavesOfTheSameSecond(t *testing.T) {
+	_, _, _, console, auth, _, _ := pushWeb(t)
+	sendBody(console, "POST", "/install/saves/0100000000010000?note=first", saveZip(t, "a"), "Authorization", auth)
+	sendBody(console, "POST", "/install/saves/0100000000010000?note=second", saveZip(t, "a"), "Authorization", auth)
+	saves := listSaves(t, console, "/install/saves", "Authorization", auth)
+	if len(saves) != 2 || (saves[0].When == saves[1].When && saves[0].Note != "second") {
+		t.Fatalf("newest first: %+v", saves)
+	}
+}

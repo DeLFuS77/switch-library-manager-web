@@ -27,9 +27,11 @@
 						</tr>
 						{{- range .Saves}}
 						<tr class="net-save{{if .Pinned}} is-pinned{{end}}" data-net-save="/api/saves/{{.TitleId}}/{{.Id}}" data-net-save-game="{{or $group.Game .TitleId}}" data-net-save-when="{{formatDateTime .Time}}">
-							<td class="net-save-main">
-								<button type="button" class="btn btn-link net-save-pin" data-net-save-pin aria-pressed="{{if .Pinned}}true{{else}}false{{end}}" title="{{if .Pinned}}{{t "Unpin"}}{{else}}{{t "Pin"}}{{end}}"><span class="bi {{if .Pinned}}bi-pin-angle-fill{{else}}bi-pin-angle{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{if .Pinned}}{{t "Unpin"}}{{else}}{{t "Pin"}}{{end}}</span></button>
-								<span class="net-save-note{{if not .Note}} is-empty{{end}}" data-net-save-note>{{if .Note}}{{.Note}}{{else}}{{t "No note"}}{{end}}</span>
+							<td class="net-save-first">
+								<div class="net-save-main">
+									<button type="button" class="btn btn-link net-save-pin" data-net-save-pin aria-pressed="{{if .Pinned}}true{{else}}false{{end}}" title="{{if .Pinned}}{{t "Unpin"}}{{else}}{{t "Pin"}}{{end}}"><span class="bi {{if .Pinned}}bi-pin-angle-fill{{else}}bi-pin-angle{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{if .Pinned}}{{t "Unpin"}}{{else}}{{t "Pin"}}{{end}}</span></button>
+									<span class="net-save-note{{if not .Note}} is-empty{{end}}" data-net-save-note>{{if .Note}}{{.Note}}{{else}}{{t "No note"}}{{end}}</span>
+								</div>
 							</td>
 							<td data-label="{{t "Date"}}"><time datetime="{{.Time.UTC.Format "2006-01-02T15:04:05Z"}}">{{formatDateTime .Time}}</time></td>
 							<td data-label="{{t "Console"}}"><span>{{.Console}}{{if .Account}}<span class="net-save-account"><span class="bi bi-person" aria-hidden="true"></span>{{.Account}}</span>{{end}}</span></td>

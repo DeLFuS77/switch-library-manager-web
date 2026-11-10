@@ -264,10 +264,12 @@ func (web *Web) netSavesOf(user string, titleId string) ([]netSave, error) {
 	if err != nil {
 		return nil, err
 	}
+	// the index is in the order they came: read from its end, two saves of the same second are
+	// listed the newest first too
 	listed := []netSave{}
-	for _, save := range saves {
-		if titleId == "" || save.TitleId == titleId {
-			listed = append(listed, save)
+	for i := len(saves) - 1; i >= 0; i-- {
+		if titleId == "" || saves[i].TitleId == titleId {
+			listed = append(listed, saves[i])
 		}
 	}
 	sort.SliceStable(listed, func(i, j int) bool { return listed[i].When > listed[j].When })
