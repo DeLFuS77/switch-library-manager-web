@@ -733,6 +733,8 @@
 						<input type="checkbox" name="net_install_all_updates" value="true"{{if $s.NetInstall.AllUpdates}} checked{{end}}>
 						<input type="checkbox" name="net_install_remote" value="true"{{if $s.NetInstall.Remote}} checked{{end}}>
 						<input type="text" name="net_install_message" value="{{$s.NetInstall.Message}}">
+						<input type="checkbox" name="net_install_allow_uploads" value="true"{{if $s.NetInstall.UploadsAllowed}} checked{{end}}>
+						<input type="text" name="net_install_upload_folder" value="{{$s.NetInstall.UploadFolder}}">
 						<input type="text" name="compress_threads" value="{{$s.CompressThreads}}">
 						<input type="text" name="compress_files_at_once" value="{{$s.CompressFilesAtOnce}}">
 						<input type="checkbox" name="low_priority" value="true"{{if $s.LowPriority}} checked{{end}}>

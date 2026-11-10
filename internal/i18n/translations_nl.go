@@ -2220,5 +2220,10 @@ func init() {
 		"Delete this copy of %v (%v)? It cannot be undone.": "Deze kopie van %v (%v) verwijderen? Dit kan niet ongedaan worden gemaakt.",
 		"only a user who may download has saves":            "alleen een gebruiker die mag downloaden heeft opslagbestanden",
 		"this save is no longer kept":                       "dit opslagbestand wordt niet meer bewaard",
+		// the dumps the consoles upload (see web/netdumps.go)
+		"The consoles may upload the games they dump":                                                       "De consoles mogen de games uploaden die ze dumpen",
+		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "NXDock stuurt de op de console gedumpte game naar de map van de dumps, en de bibliotheek scant hem.",
+		"Folder of the dumps": "Map van de dumps",
+		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "Leeg: een map „NXDock dumps” in de map van de bibliotheek. Een andere map wordt alleen gescand als die in een map van de bibliotheek staat.",
 	}
 }

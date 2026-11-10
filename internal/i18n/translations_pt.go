@@ -2220,5 +2220,10 @@ func init() {
 		"Delete this copy of %v (%v)? It cannot be undone.": "Apagar esta cópia de %v (%v)? Não é possível desfazer.",
 		"only a user who may download has saves":            "só um usuário que pode baixar tem salvamentos",
 		"this save is no longer kept":                       "este salvamento já não está guardado",
+		// the dumps the consoles upload (see web/netdumps.go)
+		"The consoles may upload the games they dump":                                                       "Os consoles podem enviar os jogos que extraem",
+		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "O NXDock envia o jogo extraído no console para a pasta dos dumps, e a biblioteca o analisa.",
+		"Folder of the dumps": "Pasta dos dumps",
+		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "Vazia: uma pasta “NXDock dumps” na pasta da biblioteca. Outra pasta só é analisada se estiver dentro de uma pasta da biblioteca.",
 	}
 }

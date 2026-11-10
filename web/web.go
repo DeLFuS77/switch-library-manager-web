@@ -177,7 +177,9 @@ type Web struct {
 	netPushes      netPushQueue
 	netInventories sync.Mutex
 	// the index of the saves NXDock uploads, one file per user
-	netSaves        sync.Mutex
+	netSaves sync.Mutex
+	// the games the consoles upload as they dump them, by the file being written
+	netDumps        netDumpUploads
 	netIdOnce       sync.Once
 	netId           string
 	coll            *userdata.Collections

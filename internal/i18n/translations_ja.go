@@ -2220,5 +2220,10 @@ func init() {
 		"Delete this copy of %v (%v)? It cannot be undone.": "%v のこのコピー（%v）を削除しますか？元に戻せません。",
 		"only a user who may download has saves":            "セーブデータがあるのはダウンロードできるユーザーだけです",
 		"this save is no longer kept":                       "このセーブデータはもう保存されていません",
+		// the dumps the consoles upload (see web/netdumps.go)
+		"The consoles may upload the games they dump":                                                       "本体がダンプしたゲームをアップロードできる",
+		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "NXDockは本体でダンプしたゲームをダンプ用フォルダーに送り、ライブラリがそれをスキャンします。",
+		"Folder of the dumps": "ダンプ用フォルダー",
+		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "空欄：ライブラリのフォルダー内の「NXDock dumps」フォルダー。別のフォルダーは、ライブラリのフォルダー内にある場合だけスキャンされます。",
 	}
 }

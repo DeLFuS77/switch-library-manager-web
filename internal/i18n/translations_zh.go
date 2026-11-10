@@ -2220,5 +2220,10 @@ func init() {
 		"Delete this copy of %v (%v)? It cannot be undone.": "删除 %v 的这份副本（%v）？此操作无法撤销。",
 		"only a user who may download has saves":            "只有可以下载的用户才有存档",
 		"this save is no longer kept":                       "此存档已不再保留",
+		// the dumps the consoles upload (see web/netdumps.go)
+		"The consoles may upload the games they dump":                                                       "主机可以上传它们转储的游戏",
+		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "NXDock 会把在主机上转储的游戏发送到转储文件夹，然后由游戏库扫描。",
+		"Folder of the dumps": "转储文件夹",
+		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "留空：游戏库文件夹中的“NXDock dumps”文件夹。其他文件夹只有位于游戏库的文件夹内时才会被扫描。",
 	}
 }

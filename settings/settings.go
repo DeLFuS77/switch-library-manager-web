@@ -373,6 +373,17 @@ type NetInstallOptions struct {
 	Remote bool `json:"remote,omitempty"`
 	// the message an installer of the kind of Tinfoil shows when it opens the index
 	Message string `json:"message,omitempty"`
+	// the consoles may upload the games they dump (NXDock): on unless turned off, so it is a
+	// pointer, nil being on
+	AllowUploads *bool `json:"allow_uploads,omitempty"`
+	// the folder the dumps of the consoles go to; empty, a folder "NXDock dumps" in the first
+	// folder of the library
+	UploadFolder string `json:"upload_folder,omitempty"`
+}
+
+// UploadsAllowed tells whether the consoles may upload the games they dump.
+func (o NetInstallOptions) UploadsAllowed() bool {
+	return o.AllowUploads == nil || *o.AllowUploads
 }
 
 func ReadSettings(dataFolder string) *AppSettings {

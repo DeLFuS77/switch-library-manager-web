@@ -2247,6 +2247,11 @@ var Translations = map[string]map[string]string{
 		"Delete this copy of %v (%v)? It cannot be undone.": "¿Borrar esta copia de %v (%v)? No se puede deshacer.",
 		"only a user who may download has saves":            "solo un usuario que puede descargar tiene partidas",
 		"this save is no longer kept":                       "esta partida ya no está guardada",
+		// the dumps the consoles upload (see web/netdumps.go)
+		"The consoles may upload the games they dump":                                                       "Las consolas pueden subir los juegos que vuelcan",
+		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "NXDock envía el juego volcado en la consola a la carpeta de volcados, y la biblioteca lo analiza.",
+		"Folder of the dumps": "Carpeta de volcados",
+		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "Vacía: una carpeta «NXDock dumps» en la carpeta de la biblioteca. Otra carpeta solo se analiza si está dentro de una carpeta de la biblioteca.",
 	},
 }
 

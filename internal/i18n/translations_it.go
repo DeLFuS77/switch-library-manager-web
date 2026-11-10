@@ -2220,5 +2220,10 @@ func init() {
 		"Delete this copy of %v (%v)? It cannot be undone.": "Eliminare questa copia di %v (%v)? Non si può annullare.",
 		"only a user who may download has saves":            "solo un utente che può scaricare ha dei salvataggi",
 		"this save is no longer kept":                       "questo salvataggio non è più conservato",
+		// the dumps the consoles upload (see web/netdumps.go)
+		"The consoles may upload the games they dump":                                                       "Le console possono caricare i giochi di cui fanno il dump",
+		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "NXDock invia il gioco estratto sulla console nella cartella dei dump, e la libreria lo analizza.",
+		"Folder of the dumps": "Cartella dei dump",
+		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "Vuota: una cartella «NXDock dumps» nella cartella della libreria. Un'altra cartella viene analizzata solo se è dentro una cartella della libreria.",
 	}
 }

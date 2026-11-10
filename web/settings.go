@@ -103,6 +103,8 @@ type SettingsForm struct {
 	NetInstallAllUpdates  bool   `in:"form=net_install_all_updates"`
 	NetInstallRemote      bool   `in:"form=net_install_remote"`
 	NetInstallMessage     string `in:"form=net_install_message"`
+	NetInstallUploads     bool   `in:"form=net_install_allow_uploads"`
+	NetInstallUploadDir   string `in:"form=net_install_upload_folder"`
 	QuarantineKeep        string `in:"form=quarantine_keep"`
 	QuarantineLimit       int    `in:"form=quarantine_limit"`
 	QuarantineMakeRoom    bool   `in:"form=quarantine_make_room"`
@@ -530,8 +532,10 @@ func (form *SettingsForm) apply(appSettings *settings.AppSettings) {
 	appSettings.Vault.User = strings.TrimSpace(form.VaultUser)
 	appSettings.Vault.Keep = form.VaultKeep
 	appSettings.Vault.Notify = form.VaultNotify
+	allowUploads := form.NetInstallUploads
 	appSettings.NetInstall = settings.NetInstallOptions{Enabled: form.NetInstallEnabled, AllUpdates: form.NetInstallAllUpdates,
-		Remote: form.NetInstallRemote, Message: netInstallMessage(form.NetInstallMessage)}
+		Remote: form.NetInstallRemote, Message: netInstallMessage(form.NetInstallMessage), AllowUploads: &allowUploads,
+		UploadFolder: strings.TrimSpace(form.NetInstallUploadDir)}
 	appSettings.Quarantine = settings.QuarantineOptions{Keep: form.QuarantineKeep, LimitGB: form.QuarantineLimit,
 		MakeRoom: form.QuarantineMakeRoom, Originals: form.QuarantineOriginals}
 	if form.VaultPassword != "" {

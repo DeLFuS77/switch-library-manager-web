@@ -2220,5 +2220,10 @@ func init() {
 		"Delete this copy of %v (%v)? It cannot be undone.": "%v의 이 사본(%v)을 삭제할까요? 되돌릴 수 없습니다.",
 		"only a user who may download has saves":            "다운로드할 수 있는 사용자만 세이브가 있습니다",
 		"this save is no longer kept":                       "이 세이브는 더 이상 보관되어 있지 않습니다",
+		// the dumps the consoles upload (see web/netdumps.go)
+		"The consoles may upload the games they dump":                                                       "본체가 덤프한 게임을 업로드할 수 있음",
+		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "NXDock이 본체에서 덤프한 게임을 덤프 폴더로 보내고, 라이브러리가 이를 스캔합니다.",
+		"Folder of the dumps": "덤프 폴더",
+		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "비워 두면: 라이브러리 폴더 안의 “NXDock dumps” 폴더. 다른 폴더는 라이브러리 폴더 안에 있을 때만 스캔됩니다.",
 	}
 }

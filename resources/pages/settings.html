@@ -507,10 +507,18 @@
 											<label class="form-check-label" for="net_install_remote">{{t "Answer also from outside the local network"}}</label>
 											<div class="form-text">{{t "From outside your home, better with a VPN."}}</div>
 										</div>
+										<div class="form-check form-switch mt-2">
+											<input class="form-check-input" type="checkbox" role="switch" id="net_install_allow_uploads" name="net_install_allow_uploads" value="true"{{if $n.UploadsAllowed}} checked{{end}}>
+											<label class="form-check-label" for="net_install_allow_uploads">{{t "The consoles may upload the games they dump"}}</label>
+											<div class="form-text">{{t "NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it."}}</div>
+										</div>
 									</div>
 									<div class="col-md-6">
 										<label for="net_install_message" class="form-label fw-semibold">{{t "Message when it opens (Tinfoil, CyberFoil, Sphaira)"}}</label>
 										<input type="text" class="form-control" id="net_install_message" name="net_install_message" value="{{$n.Message}}" maxlength="200">
+										<label for="net_install_upload_folder" class="form-label fw-semibold mt-3">{{t "Folder of the dumps"}}</label>
+										<input type="text" class="form-control" id="net_install_upload_folder" name="net_install_upload_folder" value="{{$n.UploadFolder}}" placeholder="NXDock dumps" autocomplete="off" spellcheck="false">
+										<div class="form-text">{{t "Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library."}}</div>
 									</div>
 								</div>
 
