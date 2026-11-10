@@ -2180,5 +2180,14 @@ func init() {
 		"The console %v is connected.":                   "콘솔 %v이(가) 연결되었습니다.",
 		"the console is no longer waiting":               "콘솔이 더 이상 기다리지 않습니다",
 		"only a user who may download accepts a console": "다운로드할 수 있는 사용자만 콘솔을 수락할 수 있습니다",
+		// sending a game to a console and what is installed on it (see web/netpush.go)
+		"Sent a game to a console to install":                                  "설치할 게임을 콘솔로 보냄",
+		"A console accepted an install":                                        "콘솔이 설치를 수락함",
+		"A console declined an install":                                        "콘솔이 설치를 거절함",
+		"the console was not found":                                            "콘솔을 찾을 수 없습니다",
+		"choose at least one file to send":                                     "보낼 파일을 하나 이상 선택하세요",
+		"a file to send is no longer in the library":                           "보낼 파일이 더 이상 라이브러리에 없습니다",
+		"the console already has 50 installs waiting: open NXDock on it first": "콘솔에 이미 50개의 설치가 대기 중입니다. 먼저 콘솔에서 NXDock을 여세요",
+		"only a user who may download sends to a console":                      "다운로드할 수 있는 사용자만 콘솔로 보낼 수 있습니다",
 	}
 }

@@ -2180,5 +2180,14 @@ func init() {
 		"The console %v is connected.":                   "本体 %v が接続されました。",
 		"the console is no longer waiting":               "本体はもう待機していません",
 		"only a user who may download accepts a console": "本体を承認できるのはダウンロードできるユーザーだけです",
+		// sending a game to a console and what is installed on it (see web/netpush.go)
+		"Sent a game to a console to install":                                  "インストールするゲームを本体に送信",
+		"A console accepted an install":                                        "本体がインストールを承認",
+		"A console declined an install":                                        "本体がインストールを拒否",
+		"the console was not found":                                            "本体が見つかりません",
+		"choose at least one file to send":                                     "送信するファイルを1つ以上選んでください",
+		"a file to send is no longer in the library":                           "送信するファイルがライブラリにもうありません",
+		"the console already has 50 installs waiting: open NXDock on it first": "本体ではすでに50件のインストールが待機中です。先に本体でNXDockを開いてください",
+		"only a user who may download sends to a console":                      "本体に送信できるのはダウンロードできるユーザーだけです",
 	}
 }

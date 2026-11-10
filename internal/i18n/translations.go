@@ -2207,6 +2207,15 @@ var Translations = map[string]map[string]string{
 		"The console %v is connected.":                   "La consola %v está conectada.",
 		"the console is no longer waiting":               "la consola ya no está esperando",
 		"only a user who may download accepts a console": "solo un usuario que puede descargar acepta una consola",
+		// sending a game to a console and what is installed on it (see web/netpush.go)
+		"Sent a game to a console to install":                                  "Envió un juego a una consola para instalarlo",
+		"A console accepted an install":                                        "Una consola aceptó una instalación",
+		"A console declined an install":                                        "Una consola rechazó una instalación",
+		"the console was not found":                                            "no se ha encontrado la consola",
+		"choose at least one file to send":                                     "elige al menos un archivo para enviar",
+		"a file to send is no longer in the library":                           "un archivo para enviar ya no está en la biblioteca",
+		"the console already has 50 installs waiting: open NXDock on it first": "la consola ya tiene 50 instalaciones esperando: abre antes NXDock en ella",
+		"only a user who may download sends to a console":                      "solo un usuario que puede descargar envía a una consola",
 	},
 }
 

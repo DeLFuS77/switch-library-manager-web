@@ -174,6 +174,8 @@ type Web struct {
 	netNotes        netInstallNotes
 	netList         netFilesCache
 	netPairs        netPairings
+	netPushes       netPushQueue
+	netInventories  sync.Mutex
 	netIdOnce       sync.Once
 	netId           string
 	coll            *userdata.Collections

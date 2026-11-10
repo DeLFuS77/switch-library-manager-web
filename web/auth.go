@@ -64,8 +64,9 @@ type Principal struct {
 	Via string
 	// how the session was opened, kept when the session is renewed (see markedSessionCookie)
 	mark string
-	// the name of the API key it signed in with, if it did
+	// the name and the id of the API key it signed in with, if it did
 	KeyName string
+	KeyID   string
 }
 
 func (p *Principal) IsAdmin() bool {
@@ -499,10 +500,10 @@ func viewerAllowed(r *http.Request) bool {
 		// the list of files of the SD card planner is a download, as the pages are; every user
 		// makes their own API keys
 		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/account/color" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt" || r.URL.Path == "/play" ||
-			r.URL.Path == "/api/keys" || strings.HasPrefix(r.URL.Path, "/api/install/pairs/")
+			r.URL.Path == "/api/keys" || strings.HasPrefix(r.URL.Path, "/api/install/pairs/") || r.URL.Path == netInstallPushSend
 	case http.MethodDelete:
-		// and revokes them
-		return strings.HasPrefix(r.URL.Path, "/api/keys/")
+		// and revokes them, and forgets what is installed on their consoles
+		return strings.HasPrefix(r.URL.Path, "/api/keys/") || strings.HasPrefix(r.URL.Path, netInventoryForgetPrefix)
 	}
 	return false
 }

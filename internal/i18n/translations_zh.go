@@ -2180,5 +2180,14 @@ func init() {
 		"The console %v is connected.":                   "主机 %v 已连接。",
 		"the console is no longer waiting":               "主机已不再等待",
 		"only a user who may download accepts a console": "只有可以下载的用户才能接受主机",
+		// sending a game to a console and what is installed on it (see web/netpush.go)
+		"Sent a game to a console to install":                                  "向主机发送了要安装的游戏",
+		"A console accepted an install":                                        "主机接受了安装",
+		"A console declined an install":                                        "主机拒绝了安装",
+		"the console was not found":                                            "找不到该主机",
+		"choose at least one file to send":                                     "请至少选择一个要发送的文件",
+		"a file to send is no longer in the library":                           "要发送的文件已不在库中",
+		"the console already has 50 installs waiting: open NXDock on it first": "该主机已有 50 个安装在等待：请先在主机上打开 NXDock",
+		"only a user who may download sends to a console":                      "只有可以下载的用户才能发送到主机",
 	}
 }

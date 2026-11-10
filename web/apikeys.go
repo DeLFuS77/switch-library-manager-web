@@ -466,7 +466,7 @@ func (a *Auth) fromAPIKey(secret string) (*Principal, APIKey, bool) {
 	if key.Role == ROLE_CONSOLE && roleRank(user.Role) < roleRank(ROLE_VIEWER) {
 		role = ROLE_GUEST
 	}
-	return &Principal{Name: user.Name, Role: role, Source: "key", KeyName: key.Name}, key, true
+	return &Principal{Name: user.Name, Role: role, Source: "key", KeyName: key.Name, KeyID: key.ID}, key, true
 }
 
 // keyAttempt notes a sign-in with an API key and tells the hook of it: a use once a day by key and

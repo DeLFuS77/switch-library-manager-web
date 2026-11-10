@@ -2180,5 +2180,14 @@ func init() {
 		"The console %v is connected.":                   "La console %v è connessa.",
 		"the console is no longer waiting":               "la console non è più in attesa",
 		"only a user who may download accepts a console": "solo un utente che può scaricare accetta una console",
+		// sending a game to a console and what is installed on it (see web/netpush.go)
+		"Sent a game to a console to install":                                  "Ha inviato un gioco a una console da installare",
+		"A console accepted an install":                                        "Una console ha accettato un’installazione",
+		"A console declined an install":                                        "Una console ha rifiutato un’installazione",
+		"the console was not found":                                            "la console non è stata trovata",
+		"choose at least one file to send":                                     "scegli almeno un file da inviare",
+		"a file to send is no longer in the library":                           "un file da inviare non è più nella libreria",
+		"the console already has 50 installs waiting: open NXDock on it first": "la console ha già 50 installazioni in attesa: apri prima NXDock su di essa",
+		"only a user who may download sends to a console":                      "solo un utente che può scaricare invia a una console",
 	}
 }
