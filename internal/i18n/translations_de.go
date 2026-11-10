@@ -2203,5 +2203,22 @@ func init() {
 		"On %v: v%v":              "Auf %v: v%v",
 		"Tick at least one file.": "Hake mindestens eine Datei an.",
 		"Sent: the console asks before installing.": "Gesendet: Die Konsole fragt vor dem Installieren.",
+		// the saves NXDock uploads (see web/netsaves.go and 25-net-saves.js)
+		"Saves": "Spielstände",
+		"Copies your consoles uploaded with NXDock. 10 are kept per game; pinned ones are never deleted by themselves.": "Kopien, die deine Konsolen mit NXDock hochgeladen haben. Pro Spiel werden 10 behalten; angeheftete werden nie von selbst gelöscht.",
+		"No saves yet": "Noch keine Spielstände",
+		"Upload the save of a game with NXDock on your console: it appears here.": "Lade den Spielstand eines Spiels mit NXDock von deiner Konsole hoch: Er erscheint hier.",
+		"Game / note":      "Spiel / Notiz",
+		"Date":             "Datum",
+		"1 copy":           "1 Kopie",
+		"%v copies":        "%v Kopien",
+		"Pin":              "Anheften",
+		"Unpin":            "Lösen",
+		"No note":          "Keine Notiz",
+		"Note":             "Notiz",
+		"Note of the copy": "Notiz der Kopie",
+		"Delete this copy of %v (%v)? It cannot be undone.": "Diese Kopie von %v (%v) löschen? Das kann nicht rückgängig gemacht werden.",
+		"only a user who may download has saves":            "nur ein Benutzer, der herunterladen darf, hat Spielstände",
+		"this save is no longer kept":                       "dieser Spielstand wird nicht mehr aufbewahrt",
 	}
 }

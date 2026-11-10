@@ -2203,5 +2203,22 @@ func init() {
 		"On %v: v%v":              "%v：v%v",
 		"Tick at least one file.": "ファイルを1つ以上チェックしてください。",
 		"Sent: the console asks before installing.": "送信しました。本体はインストールの前に確認します。",
+		// the saves NXDock uploads (see web/netsaves.go and 25-net-saves.js)
+		"Saves": "セーブデータ",
+		"Copies your consoles uploaded with NXDock. 10 are kept per game; pinned ones are never deleted by themselves.": "あなたの本体がNXDockでアップロードしたコピーです。ゲームごとに10個まで保存し、ピン留めしたものは自動で削除されません。",
+		"No saves yet": "セーブデータはまだありません",
+		"Upload the save of a game with NXDock on your console: it appears here.": "本体のNXDockでゲームのセーブデータをアップロードすると、ここに表示されます。",
+		"Game / note":      "ゲーム / メモ",
+		"Date":             "日時",
+		"1 copy":           "1個のコピー",
+		"%v copies":        "%v個のコピー",
+		"Pin":              "ピン留め",
+		"Unpin":            "ピン留めを外す",
+		"No note":          "メモなし",
+		"Note":             "メモ",
+		"Note of the copy": "コピーのメモ",
+		"Delete this copy of %v (%v)? It cannot be undone.": "%v のこのコピー（%v）を削除しますか？元に戻せません。",
+		"only a user who may download has saves":            "セーブデータがあるのはダウンロードできるユーザーだけです",
+		"this save is no longer kept":                       "このセーブデータはもう保存されていません",
 	}
 }

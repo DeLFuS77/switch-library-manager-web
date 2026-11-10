@@ -2203,5 +2203,22 @@ func init() {
 		"On %v: v%v":              "%v 上：v%v",
 		"Tick at least one file.": "请至少勾选一个文件。",
 		"Sent: the console asks before installing.": "已发送：主机会在安装前询问。",
+		// the saves NXDock uploads (see web/netsaves.go and 25-net-saves.js)
+		"Saves": "存档",
+		"Copies your consoles uploaded with NXDock. 10 are kept per game; pinned ones are never deleted by themselves.": "你的主机通过 NXDock 上传的副本。每个游戏保留 10 份；固定的副本不会被自动删除。",
+		"No saves yet": "还没有存档",
+		"Upload the save of a game with NXDock on your console: it appears here.": "在主机上用 NXDock 上传游戏的存档，它会显示在这里。",
+		"Game / note":      "游戏 / 备注",
+		"Date":             "日期",
+		"1 copy":           "1 份副本",
+		"%v copies":        "%v 份副本",
+		"Pin":              "固定",
+		"Unpin":            "取消固定",
+		"No note":          "无备注",
+		"Note":             "备注",
+		"Note of the copy": "副本备注",
+		"Delete this copy of %v (%v)? It cannot be undone.": "删除 %v 的这份副本（%v）？此操作无法撤销。",
+		"only a user who may download has saves":            "只有可以下载的用户才有存档",
+		"this save is no longer kept":                       "此存档已不再保留",
 	}
 }

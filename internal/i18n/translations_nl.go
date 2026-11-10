@@ -2203,5 +2203,22 @@ func init() {
 		"On %v: v%v":              "Op %v: v%v",
 		"Tick at least one file.": "Vink minstens één bestand aan.",
 		"Sent: the console asks before installing.": "Verstuurd: de console vraagt het voor het installeren.",
+		// the saves NXDock uploads (see web/netsaves.go and 25-net-saves.js)
+		"Saves": "Opslagbestanden",
+		"Copies your consoles uploaded with NXDock. 10 are kept per game; pinned ones are never deleted by themselves.": "Kopieën die je consoles met NXDock hebben geüpload. Per game worden er 10 bewaard; vastgezette worden nooit vanzelf verwijderd.",
+		"No saves yet": "Nog geen opslagbestanden",
+		"Upload the save of a game with NXDock on your console: it appears here.": "Upload het opslagbestand van een game met NXDock vanaf je console: het verschijnt hier.",
+		"Game / note":      "Game / notitie",
+		"Date":             "Datum",
+		"1 copy":           "1 kopie",
+		"%v copies":        "%v kopieën",
+		"Pin":              "Vastzetten",
+		"Unpin":            "Losmaken",
+		"No note":          "Geen notitie",
+		"Note":             "Notitie",
+		"Note of the copy": "Notitie van de kopie",
+		"Delete this copy of %v (%v)? It cannot be undone.": "Deze kopie van %v (%v) verwijderen? Dit kan niet ongedaan worden gemaakt.",
+		"only a user who may download has saves":            "alleen een gebruiker die mag downloaden heeft opslagbestanden",
+		"this save is no longer kept":                       "dit opslagbestand wordt niet meer bewaard",
 	}
 }

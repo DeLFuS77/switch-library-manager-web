@@ -2203,5 +2203,22 @@ func init() {
 		"On %v: v%v":              "Sur %v : v%v",
 		"Tick at least one file.": "Coche au moins un fichier.",
 		"Sent: the console asks before installing.": "Envoyé : la console demande avant d’installer.",
+		// the saves NXDock uploads (see web/netsaves.go and 25-net-saves.js)
+		"Saves": "Sauvegardes",
+		"Copies your consoles uploaded with NXDock. 10 are kept per game; pinned ones are never deleted by themselves.": "Les copies que vos consoles ont envoyées avec NXDock. 10 sont gardées par jeu ; celles qui sont épinglées ne sont jamais supprimées d’elles-mêmes.",
+		"No saves yet": "Pas encore de sauvegarde",
+		"Upload the save of a game with NXDock on your console: it appears here.": "Envoyez la sauvegarde d’un jeu avec NXDock depuis votre console : elle apparaît ici.",
+		"Game / note":      "Jeu / note",
+		"Date":             "Date",
+		"1 copy":           "1 copie",
+		"%v copies":        "%v copies",
+		"Pin":              "Épingler",
+		"Unpin":            "Désépingler",
+		"No note":          "Sans note",
+		"Note":             "Note",
+		"Note of the copy": "Note de la copie",
+		"Delete this copy of %v (%v)? It cannot be undone.": "Supprimer cette copie de %v (%v) ? C’est définitif.",
+		"only a user who may download has saves":            "seul un utilisateur qui peut télécharger a des sauvegardes",
+		"this save is no longer kept":                       "cette sauvegarde n’est plus gardée",
 	}
 }

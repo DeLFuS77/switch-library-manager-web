@@ -476,6 +476,180 @@
 	color: rgb(var(--slm-work-rgb)) !important;
 }
 
+// the page Saves, of the saves NXDock uploads: a table by game, its actions as links in the blue of
+// work; Delete in the grey of the text until it is pointed at, as red tells errors. On a phone each
+// save is a card, its values with their labels
+.net-saves {
+	padding: 0;
+	overflow: hidden;
+}
+
+.net-saves-table {
+	th,
+	td {
+		vertical-align: middle;
+	}
+
+	thead th {
+		font-size: .8rem;
+		font-weight: 600;
+		color: var(--bs-secondary-color);
+		white-space: nowrap;
+	}
+
+	.net-save-group th {
+		background-color: var(--bs-tertiary-bg);
+		font-weight: 600;
+
+		.bi {
+			margin-right: .4rem;
+			color: var(--bs-secondary-color);
+		}
+
+		a {
+			color: inherit;
+			text-decoration: none;
+
+			&:hover,
+			&:focus-visible {
+				text-decoration: underline;
+			}
+		}
+	}
+
+	.net-save-count {
+		font-weight: 400;
+		color: var(--bs-secondary-color);
+	}
+}
+
+.net-save-main {
+	display: flex;
+	align-items: center;
+	gap: .4rem;
+	min-width: 12rem;
+}
+
+.net-save-note.is-empty {
+	color: var(--bs-secondary-color);
+	font-style: italic;
+}
+
+.net-save-input {
+	max-width: 22rem;
+}
+
+.net-save-pin {
+	padding: .1rem .25rem;
+	line-height: 1;
+	color: var(--bs-secondary-color);
+
+	&:hover,
+	&:focus-visible {
+		color: rgb(var(--slm-work-rgb));
+	}
+}
+
+.net-save.is-pinned .net-save-pin {
+	color: rgb(var(--slm-work-rgb));
+}
+
+.net-save-account {
+	display: block;
+	font-size: .8rem;
+	color: var(--bs-secondary-color);
+
+	.bi {
+		margin-right: .25rem;
+	}
+}
+
+.net-save-actions {
+	text-align: end;
+	white-space: nowrap;
+
+	.btn-link {
+		padding: 0;
+		border: 0;
+		font-size: .875rem;
+		vertical-align: baseline;
+		color: rgb(var(--slm-work-rgb));
+		text-decoration: none;
+
+		&:hover,
+		&:focus-visible {
+			text-decoration: underline;
+		}
+	}
+
+	.net-save-delete {
+		color: var(--bs-secondary-color);
+
+		&:hover,
+		&:focus-visible {
+			color: var(--bs-danger-text-emphasis);
+		}
+	}
+}
+
+.net-save-dot {
+	margin: 0 .4rem;
+	color: var(--bs-secondary-color);
+}
+
+@media (max-width: 767.98px) {
+	.net-saves-table {
+		thead {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip: rect(0 0 0 0);
+		}
+
+		&,
+		tbody,
+		tr,
+		th,
+		td {
+			display: block;
+			width: 100%;
+		}
+
+		.net-save {
+			padding: .6rem .75rem;
+			border-bottom: 1px solid var(--bs-border-color);
+		}
+
+		.net-save td {
+			display: flex;
+			justify-content: space-between;
+			gap: 1rem;
+			padding: .15rem 0;
+			border: 0;
+			text-align: end;
+		}
+
+		.net-save td[data-label]::before {
+			content: attr(data-label);
+			color: var(--bs-secondary-color);
+			text-align: start;
+		}
+
+		.net-save .net-save-main {
+			justify-content: flex-start;
+			padding-bottom: .3rem;
+			text-align: start;
+			font-weight: 600;
+		}
+
+		.net-save .net-save-actions {
+			justify-content: flex-start;
+			padding-top: .4rem;
+		}
+	}
+}
+
 // a file at work: the cover fills up from the bottom with its progress, with the share on it,
 // as in NXPress; the files waiting and ended keep their covers as they are
 .task-tile {

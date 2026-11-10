@@ -82,11 +82,12 @@ func netInstallEnabled(s *settings.AppSettings) bool {
 	return s.NetInstall.Enabled && !isDemoMode()
 }
 
-// consoleAllowed is what a key of the role Console may ask: reading the paths of /install/, and
-// telling the answer to an install sent from the web and what is installed on the console.
+// consoleAllowed is what a key of the role Console may ask: reading the paths of /install/,
+// telling the answer to an install sent from the web and what is installed on the console, and
+// uploading a save of a game.
 func consoleAllowed(r *http.Request) bool {
 	if r.Method == http.MethodPost {
-		return r.URL.Path == netInstallPushAnswer || r.URL.Path == netInstallInventory
+		return r.URL.Path == netInstallPushAnswer || r.URL.Path == netInstallInventory || netSaveUploadPath(r.URL.Path)
 	}
 	if r.Method != http.MethodGet && r.Method != http.MethodHead {
 		return false
@@ -390,6 +391,7 @@ func (web *Web) HandleNetInstall() {
 	web.router.HandleFunc(netInstallCatalog, web.handleNetCatalog).Methods(http.MethodGet, http.MethodHead)
 	web.router.PathPrefix(netInstallCover).HandlerFunc(web.handleNetCover).Methods(http.MethodGet, http.MethodHead)
 	web.handleNetPush()
+	web.handleNetSaves()
 }
 
 // netDbiFolders are the folders of the DBI listing and their files.

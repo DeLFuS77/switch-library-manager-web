@@ -170,12 +170,14 @@ type Web struct {
 	vault      vaultAuth
 	vaultFiles vaultIndex
 	// what was read of the files given to the installers of the console (see netinstall.go)
-	netStreams      netInstallStreams
-	netNotes        netInstallNotes
-	netList         netFilesCache
-	netPairs        netPairings
-	netPushes       netPushQueue
-	netInventories  sync.Mutex
+	netStreams     netInstallStreams
+	netNotes       netInstallNotes
+	netList        netFilesCache
+	netPairs       netPairings
+	netPushes      netPushQueue
+	netInventories sync.Mutex
+	// the index of the saves NXDock uploads, one file per user
+	netSaves        sync.Mutex
 	netIdOnce       sync.Once
 	netId           string
 	coll            *userdata.Collections
@@ -394,6 +396,8 @@ type GlobalPageData struct {
 	VaultEnabled bool
 	// the volumes of the library short of free space
 	LowDisks []LowDisk
+	// the network install is on: the saves NXDock uploads are in the menu of the account
+	NetInstall bool
 }
 
 // NavCounts are shown next to the navigation links, so pending work is visible everywhere.
@@ -703,6 +707,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 		WizardAuto:          web.wizardAuto(),
 		VaultEnabled:        vaultEnabled(settings.ReadSettings(web.dataFolder)) || isDemoMode(),
 		LowDisks:            web.lowDisks(),
+		NetInstall:          netInstallEnabled(settings.ReadSettings(web.dataFolder)),
 	}
 }
 
@@ -921,6 +926,7 @@ func (web *Web) Start() {
 	web.HandleSmartCollections()
 	web.HandleFavorites()
 	web.HandleNetInstall()
+	web.HandleNetSavesPage()
 	if !isDemoMode() {
 		web.StartScheduler()
 		web.startTelegramBot()

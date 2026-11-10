@@ -2203,5 +2203,22 @@ func init() {
 		"On %v: v%v":              "%v: v%v",
 		"Tick at least one file.": "파일을 하나 이상 선택하세요.",
 		"Sent: the console asks before installing.": "보냈습니다. 콘솔은 설치하기 전에 묻습니다.",
+		// the saves NXDock uploads (see web/netsaves.go and 25-net-saves.js)
+		"Saves": "세이브",
+		"Copies your consoles uploaded with NXDock. 10 are kept per game; pinned ones are never deleted by themselves.": "본체가 NXDock으로 업로드한 사본입니다. 게임마다 10개를 보관하며, 고정한 사본은 저절로 삭제되지 않습니다.",
+		"No saves yet": "아직 세이브가 없습니다",
+		"Upload the save of a game with NXDock on your console: it appears here.": "본체의 NXDock으로 게임 세이브를 업로드하면 여기에 나타납니다.",
+		"Game / note":      "게임 / 메모",
+		"Date":             "날짜",
+		"1 copy":           "사본 1개",
+		"%v copies":        "사본 %v개",
+		"Pin":              "고정",
+		"Unpin":            "고정 해제",
+		"No note":          "메모 없음",
+		"Note":             "메모",
+		"Note of the copy": "사본 메모",
+		"Delete this copy of %v (%v)? It cannot be undone.": "%v의 이 사본(%v)을 삭제할까요? 되돌릴 수 없습니다.",
+		"only a user who may download has saves":            "다운로드할 수 있는 사용자만 세이브가 있습니다",
+		"this save is no longer kept":                       "이 세이브는 더 이상 보관되어 있지 않습니다",
 	}
 }

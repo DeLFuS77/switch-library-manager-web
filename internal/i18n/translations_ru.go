@@ -2203,5 +2203,22 @@ func init() {
 		"On %v: v%v":              "На %v: v%v",
 		"Tick at least one file.": "Отметьте хотя бы один файл.",
 		"Sent: the console asks before installing.": "Отправлено: консоль спросит перед установкой.",
+		// the saves NXDock uploads (see web/netsaves.go and 25-net-saves.js)
+		"Saves": "Сохранения",
+		"Copies your consoles uploaded with NXDock. 10 are kept per game; pinned ones are never deleted by themselves.": "Копии, которые ваши консоли загрузили через NXDock. Для каждой игры хранится 10; закреплённые никогда не удаляются сами.",
+		"No saves yet": "Сохранений пока нет",
+		"Upload the save of a game with NXDock on your console: it appears here.": "Загрузите сохранение игры через NXDock с консоли: оно появится здесь.",
+		"Game / note":      "Игра / заметка",
+		"Date":             "Дата",
+		"1 copy":           "1 копия",
+		"%v copies":        "Копий: %v",
+		"Pin":              "Закрепить",
+		"Unpin":            "Открепить",
+		"No note":          "Без заметки",
+		"Note":             "Заметка",
+		"Note of the copy": "Заметка к копии",
+		"Delete this copy of %v (%v)? It cannot be undone.": "Удалить эту копию %v (%v)? Это нельзя отменить.",
+		"only a user who may download has saves":            "сохранения есть только у пользователя, которому можно скачивать",
+		"this save is no longer kept":                       "это сохранение больше не хранится",
 	}
 }

@@ -2230,6 +2230,23 @@ var Translations = map[string]map[string]string{
 		"On %v: v%v":              "En %v: v%v",
 		"Tick at least one file.": "Marca al menos un archivo.",
 		"Sent: the console asks before installing.": "Enviado: la consola pregunta antes de instalar.",
+		// the saves NXDock uploads (see web/netsaves.go and 25-net-saves.js)
+		"Saves": "Partidas",
+		"Copies your consoles uploaded with NXDock. 10 are kept per game; pinned ones are never deleted by themselves.": "Copias que han subido tus consolas con NXDock. Se guardan 10 por juego; las fijadas no se borran solas.",
+		"No saves yet": "Aún no hay partidas",
+		"Upload the save of a game with NXDock on your console: it appears here.": "Sube la partida de un juego con NXDock desde tu consola: aparece aquí.",
+		"Game / note":      "Juego / nota",
+		"Date":             "Fecha",
+		"1 copy":           "1 copia",
+		"%v copies":        "%v copias",
+		"Pin":              "Fijar",
+		"Unpin":            "Dejar de fijar",
+		"No note":          "Sin nota",
+		"Note":             "Nota",
+		"Note of the copy": "Nota de la copia",
+		"Delete this copy of %v (%v)? It cannot be undone.": "¿Borrar esta copia de %v (%v)? No se puede deshacer.",
+		"only a user who may download has saves":            "solo un usuario que puede descargar tiene partidas",
+		"this save is no longer kept":                       "esta partida ya no está guardada",
 	},
 }
 
@@ -2257,4 +2274,5 @@ var JSTexts = []string{
 	"A console wants to connect", "Check that the console shows this code:", "Accept", "Accept and turn on", "Refuse", "Install over the network is off: an administrator has to turn it on before the console can install.", "The console %v is connected.",
 	"Internal memory", "SD card", "Installed on this console: %v titles · updated %v", "Forget", "Forget what is installed on “%v”? The console sends it again the next time it is asked.",
 	"On %v: v%v (%v)", "On %v: v%v", "Game", "Update", "Tick at least one file.", "Sent: the console asks before installing.",
+	"Pin", "Unpin", "No note", "Note of the copy", "1 copy", "%v copies", "Delete this copy of %v (%v)? It cannot be undone.",
 }
