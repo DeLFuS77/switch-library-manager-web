@@ -1088,3 +1088,49 @@
 	--bs-btn-disabled-bg: rgba(var(--slm-work-rgb), .6);
 	--bs-btn-disabled-border-color: rgba(var(--slm-work-rgb), .6);
 }
+
+// a game sent to a console from its page, and what of it the consoles have (see 24-net-push.js),
+// in the blue of work
+.net-on {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .35rem;
+	margin-top: .75rem;
+
+	&[hidden] {
+		display: none;
+	}
+}
+
+.chip.chip-console {
+	background: rgba(var(--slm-work-rgb), .12);
+	color: rgb(var(--slm-work-rgb));
+}
+
+.net-send-files {
+	max-height: 18rem;
+	overflow-y: auto;
+
+	.form-check-label {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0 .5rem;
+	}
+}
+
+.net-inventory {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0 .5rem;
+
+	&[hidden] {
+		display: none;
+	}
+
+	.btn-link {
+		padding: 0;
+		font-size: inherit;
+		vertical-align: baseline;
+	}
+}

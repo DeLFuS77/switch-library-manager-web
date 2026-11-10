@@ -69,7 +69,12 @@ function initNetInstall() {
 		const detail = document.createElement('div');
 		detail.className = 'small text-body-secondary';
 		detail.textContent = key.hint + ' · ' + (key.lastUsed ? list.dataset.lastUsed.replace('%v', when(key.lastUsed)) : list.dataset.never);
-		text.append(name, detail);
+		// what is known to be installed on it, filled by fillConsoleInventories (24-net-push.js)
+		const inventory = document.createElement('div');
+		inventory.className = 'small text-body-secondary net-inventory';
+		inventory.dataset.consoleInventory = key.id;
+		inventory.hidden = true;
+		text.append(name, detail, inventory);
 		const remove = document.createElement('button');
 		remove.type = 'button';
 		remove.className = 'btn btn-sm btn-outline-secondary rounded-pill text-nowrap';
@@ -102,6 +107,7 @@ function initNetInstall() {
 			}
 			const consoles = (Array.isArray(json) ? json : json.keys || []).filter(key => key.role === 'console');
 			list.replaceChildren(...consoles.map(row));
+			fillConsoleInventories(list);
 			if (!consoles.length) {
 				const empty = document.createElement('li');
 				empty.className = 'small text-body-secondary';

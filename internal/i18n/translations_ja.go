@@ -2189,5 +2189,19 @@ func init() {
 		"a file to send is no longer in the library":                           "送信するファイルがライブラリにもうありません",
 		"the console already has 50 installs waiting: open NXDock on it first": "本体ではすでに50件のインストールが待機中です。先に本体でNXDockを開いてください",
 		"only a user who may download sends to a console":                      "本体に送信できるのはダウンロードできるユーザーだけです",
+		// Send to console on the page of a game, and what the consoles have (see 24-net-push.js)
+		"Send to console": "本体に送信",
+		"Send":            "送信",
+		"Ticked: the game and its newest update, unless the console is known to have them.": "チェック済み：ゲームと最新のアップデート（本体にあるとわかっている場合を除く）。",
+		"The console asks before installing: open NXDock on it.":                            "本体はインストールの前に確認します。本体でNXDockを開いてください。",
+		"Internal memory": "本体保存メモリー",
+		"SD card":         "SDカード",
+		"Installed on this console: %v titles · updated %v": "この本体にインストール済み：%v タイトル・更新 %v",
+		"Forget": "削除",
+		"Forget what is installed on “%v”? The console sends it again the next time it is asked.": "「%v」にインストールされている内容を削除しますか？次に求められたときに本体が再度送信します。",
+		"On %v: v%v (%v)":         "%v：v%v（%v）",
+		"On %v: v%v":              "%v：v%v",
+		"Tick at least one file.": "ファイルを1つ以上チェックしてください。",
+		"Sent: the console asks before installing.": "送信しました。本体はインストールの前に確認します。",
 	}
 }

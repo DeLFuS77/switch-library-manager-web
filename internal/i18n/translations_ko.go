@@ -2189,5 +2189,19 @@ func init() {
 		"a file to send is no longer in the library":                           "보낼 파일이 더 이상 라이브러리에 없습니다",
 		"the console already has 50 installs waiting: open NXDock on it first": "콘솔에 이미 50개의 설치가 대기 중입니다. 먼저 콘솔에서 NXDock을 여세요",
 		"only a user who may download sends to a console":                      "다운로드할 수 있는 사용자만 콘솔로 보낼 수 있습니다",
+		// Send to console on the page of a game, and what the consoles have (see 24-net-push.js)
+		"Send to console": "콘솔로 보내기",
+		"Send":            "보내기",
+		"Ticked: the game and its newest update, unless the console is known to have them.": "선택됨: 게임과 최신 업데이트(콘솔에 이미 있는 것으로 알려진 경우 제외).",
+		"The console asks before installing: open NXDock on it.":                            "콘솔은 설치하기 전에 묻습니다. 콘솔에서 NXDock을 여세요.",
+		"Internal memory": "본체 저장 메모리",
+		"SD card":         "SD 카드",
+		"Installed on this console: %v titles · updated %v": "이 콘솔에 설치됨: %v개 타이틀 · 업데이트 %v",
+		"Forget": "지우기",
+		"Forget what is installed on “%v”? The console sends it again the next time it is asked.": "“%v”에 설치된 내용을 지울까요? 다음에 요청받으면 콘솔이 다시 보냅니다.",
+		"On %v: v%v (%v)":         "%v: v%v (%v)",
+		"On %v: v%v":              "%v: v%v",
+		"Tick at least one file.": "파일을 하나 이상 선택하세요.",
+		"Sent: the console asks before installing.": "보냈습니다. 콘솔은 설치하기 전에 묻습니다.",
 	}
 }

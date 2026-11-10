@@ -2216,6 +2216,20 @@ var Translations = map[string]map[string]string{
 		"a file to send is no longer in the library":                           "un archivo para enviar ya no está en la biblioteca",
 		"the console already has 50 installs waiting: open NXDock on it first": "la consola ya tiene 50 instalaciones esperando: abre antes NXDock en ella",
 		"only a user who may download sends to a console":                      "solo un usuario que puede descargar envía a una consola",
+		// Send to console on the page of a game, and what the consoles have (see 24-net-push.js)
+		"Send to console": "Enviar a la consola",
+		"Send":            "Enviar",
+		"Ticked: the game and its newest update, unless the console is known to have them.": "Marcados: el juego y su actualización más reciente, salvo que se sepa que la consola ya los tiene.",
+		"The console asks before installing: open NXDock on it.":                            "La consola pregunta antes de instalar: abre NXDock en ella.",
+		"Internal memory": "Memoria interna",
+		"SD card":         "Tarjeta SD",
+		"Installed on this console: %v titles · updated %v": "Instalado en esta consola: %v títulos · actualizado %v",
+		"Forget": "Olvidar",
+		"Forget what is installed on “%v”? The console sends it again the next time it is asked.": "¿Olvidar lo que hay instalado en «%v»? La consola lo vuelve a enviar la próxima vez que se le pida.",
+		"On %v: v%v (%v)":         "En %v: v%v (%v)",
+		"On %v: v%v":              "En %v: v%v",
+		"Tick at least one file.": "Marca al menos un archivo.",
+		"Sent: the console asks before installing.": "Enviado: la consola pregunta antes de instalar.",
 	},
 }
 
@@ -2241,4 +2255,6 @@ var JSTexts = []string{
 	"Saved!", "Back to the original", "The cover is too large: at most 5 MB and 6000 pixels a side.",
 	"Fixing…",
 	"A console wants to connect", "Check that the console shows this code:", "Accept", "Accept and turn on", "Refuse", "Install over the network is off: an administrator has to turn it on before the console can install.", "The console %v is connected.",
+	"Internal memory", "SD card", "Installed on this console: %v titles · updated %v", "Forget", "Forget what is installed on “%v”? The console sends it again the next time it is asked.",
+	"On %v: v%v (%v)", "On %v: v%v", "Game", "Update", "Tick at least one file.", "Sent: the console asks before installing.",
 }

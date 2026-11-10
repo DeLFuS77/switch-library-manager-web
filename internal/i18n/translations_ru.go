@@ -2189,5 +2189,19 @@ func init() {
 		"a file to send is no longer in the library":                           "файла для отправки больше нет в библиотеке",
 		"the console already has 50 installs waiting: open NXDock on it first": "на консоли уже ждут 50 установок: сначала откройте на ней NXDock",
 		"only a user who may download sends to a console":                      "отправлять на консоль может только пользователь, которому разрешено скачивание",
+		// Send to console on the page of a game, and what the consoles have (see 24-net-push.js)
+		"Send to console": "Отправить на консоль",
+		"Send":            "Отправить",
+		"Ticked: the game and its newest update, unless the console is known to have them.": "Отмечены: игра и её последнее обновление, если не известно, что они уже есть на консоли.",
+		"The console asks before installing: open NXDock on it.":                            "Консоль спросит перед установкой: откройте на ней NXDock.",
+		"Internal memory": "Внутренняя память",
+		"SD card":         "SD-карта",
+		"Installed on this console: %v titles · updated %v": "Установлено на этой консоли: %v игр · обновлено %v",
+		"Forget": "Забыть",
+		"Forget what is installed on “%v”? The console sends it again the next time it is asked.": "Забыть, что установлено на «%v»? Консоль снова отправит это, когда её попросят.",
+		"On %v: v%v (%v)":         "На %v: v%v (%v)",
+		"On %v: v%v":              "На %v: v%v",
+		"Tick at least one file.": "Отметьте хотя бы один файл.",
+		"Sent: the console asks before installing.": "Отправлено: консоль спросит перед установкой.",
 	}
 }

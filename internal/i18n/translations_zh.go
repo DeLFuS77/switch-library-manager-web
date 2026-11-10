@@ -2189,5 +2189,19 @@ func init() {
 		"a file to send is no longer in the library":                           "要发送的文件已不在库中",
 		"the console already has 50 installs waiting: open NXDock on it first": "该主机已有 50 个安装在等待：请先在主机上打开 NXDock",
 		"only a user who may download sends to a console":                      "只有可以下载的用户才能发送到主机",
+		// Send to console on the page of a game, and what the consoles have (see 24-net-push.js)
+		"Send to console": "发送到主机",
+		"Send":            "发送",
+		"Ticked: the game and its newest update, unless the console is known to have them.": "已勾选：游戏及其最新更新，除非已知主机上已有。",
+		"The console asks before installing: open NXDock on it.":                            "主机会在安装前询问：请在主机上打开 NXDock。",
+		"Internal memory": "主机内存",
+		"SD card":         "SD 卡",
+		"Installed on this console: %v titles · updated %v": "此主机上已安装：%v 个游戏 · 更新于 %v",
+		"Forget": "忘记",
+		"Forget what is installed on “%v”? The console sends it again the next time it is asked.": "要忘记“%v”上已安装的内容吗？下次被询问时主机会再次发送。",
+		"On %v: v%v (%v)":         "%v 上：v%v（%v）",
+		"On %v: v%v":              "%v 上：v%v",
+		"Tick at least one file.": "请至少勾选一个文件。",
+		"Sent: the console asks before installing.": "已发送：主机会在安装前询问。",
 	}
 }

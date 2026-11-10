@@ -236,6 +236,9 @@
 							<div class="flex-grow-1 min-w-0">
 								<div class="fw-semibold text-break">{{.Key.Name}} <span class="chip {{if eq .Key.Role "admin"}}chip-success{{else}}chip-muted{{end}} ms-1">{{t .Key.RoleName}}</span></div>
 								<div class="small text-body-secondary">{{if .Owner}}{{.Key.User}}{{if eq .Key.User .Me}} ({{t "you"}}){{end}} &middot; {{end}}<span class="key-hint">{{.Key.Hint}}</span> &middot; {{t "Made %v" (formatDateTime .Key.Created)}} &middot; {{if .Key.LastUsed.IsZero}}{{t "Never used"}}{{else}}{{t "Last used %v" (formatDateTime .Key.LastUsed)}}{{end}}</div>
+								{{- if eq .Key.Role "console"}}
+								<div class="small text-body-secondary net-inventory" data-console-inventory="{{.Key.ID}}" hidden></div>
+								{{- end}}
 								{{- if .Key.MadeAs}}
 								<div class="key-lowered"><span class="bi bi-arrow-down-circle me-1" aria-hidden="true"></span>{{t "Made as %v: it does no more than its user does now." (t .Key.MadeAsName)}}</div>
 								{{- end}}
