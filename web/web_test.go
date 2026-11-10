@@ -725,11 +725,17 @@ func TestHealthCheckBypassesAuthentication(t *testing.T) {
 	}))
 	handler := withHealthCheck(protected)
 
-	for path, want := range map[string]int{"/healthz": http.StatusOK, "/index.html": http.StatusUnauthorized, "/healthz/x": http.StatusUnauthorized} {
+	// the script of the starting screen too: a starting screen still open when the app is ready
+	// asks for it, and behind the login it would wait forever
+	for path, want := range map[string]int{"/healthz": http.StatusOK, "/starting.js": http.StatusOK, "/index.html": http.StatusUnauthorized,
+		"/healthz/x": http.StatusUnauthorized, "/starting.js/x": http.StatusUnauthorized} {
 		recorder := httptest.NewRecorder()
 		handler.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, path, nil))
 		if recorder.Code != want {
 			t.Errorf("GET %s = %d, want %d", path, recorder.Code, want)
+		}
+		if path == "/starting.js" && !strings.Contains(recorder.Body.String(), "/healthz") {
+			t.Errorf("GET /starting.js is not the script of the starting screen: %q", recorder.Body.String())
 		}
 	}
 }
