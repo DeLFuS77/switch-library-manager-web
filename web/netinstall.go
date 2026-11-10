@@ -396,6 +396,7 @@ func (web *Web) HandleNetInstall() {
 	web.handleNetPush()
 	web.handleNetSaves()
 	web.handleNetDumps()
+	web.handleNetCheatsPaths()
 }
 
 // netDbiFolders are the folders of the DBI listing and their files.
