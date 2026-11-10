@@ -2225,5 +2225,23 @@ func init() {
 		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "NXDock 会把在主机上转储的游戏发送到转储文件夹，然后由游戏库扫描。",
 		"Folder of the dumps": "转储文件夹",
 		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "留空：游戏库文件夹中的“NXDock dumps”文件夹。其他文件夹只有位于游戏库的文件夹内时才会被扫描。",
+		// install over the network: the queue of the console (NXDock)
+		"Copying the save": "正在复制存档",
+		"Downloading":      "正在下载",
+		"Writing":          "正在写入",
+		"Checking":         "正在检查",
+		"Registering":      "正在注册",
+		"Cancel the install of %v? The console asks before cancelling.": "取消 %v 的安装？主机会在取消前询问。",
+		"Asked: the console asks before cancelling.":                    "已请求：主机会在取消前询问。",
+		"Asked: the console does it in a moment.":                       "已请求：主机马上处理。",
+		"The console is not answering":                                  "主机没有响应",
+		"Installing %v":                                                 "正在安装 %v",
+		"%v MB/s":                                                       "%v MB/s",
+		"%v min left":                                                   "还剩 %v 分钟",
+		"%v waiting":                                                    "%v 个等待中",
+		"Go on":                                                         "继续",
+		"Notify when a console finishes installing (NXDock)": "主机安装完成时通知（NXDock）",
+		"NXDock finished installing on %v":                   "NXDock 已在 %v 上完成安装",
+		"%v installed, %v failed":                            "已安装 %v 个，失败 %v 个",
 	}
 }

@@ -2225,5 +2225,23 @@ func init() {
 		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "NXDockは本体でダンプしたゲームをダンプ用フォルダーに送り、ライブラリがそれをスキャンします。",
 		"Folder of the dumps": "ダンプ用フォルダー",
 		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "空欄：ライブラリのフォルダー内の「NXDock dumps」フォルダー。別のフォルダーは、ライブラリのフォルダー内にある場合だけスキャンされます。",
+		// install over the network: the queue of the console (NXDock)
+		"Copying the save": "セーブデータをコピー中",
+		"Downloading":      "ダウンロード中",
+		"Writing":          "書き込み中",
+		"Checking":         "チェック中",
+		"Registering":      "登録中",
+		"Cancel the install of %v? The console asks before cancelling.": "%v のインストールを取り消しますか？ 取り消す前に本体で確認します。",
+		"Asked: the console asks before cancelling.":                    "依頼しました: 取り消す前に本体で確認します。",
+		"Asked: the console does it in a moment.":                       "依頼しました: 本体がすぐに行います。",
+		"The console is not answering":                                  "本体が応答しません",
+		"Installing %v":                                                 "%v をインストール中",
+		"%v MB/s":                                                       "%v MB/s",
+		"%v min left":                                                   "残り %v 分",
+		"%v waiting":                                                    "%v 件待機中",
+		"Go on":                                                         "再開",
+		"Notify when a console finishes installing (NXDock)": "本体のインストールが終わったら通知する（NXDock）",
+		"NXDock finished installing on %v":                   "NXDock が %v でインストールを終えました",
+		"%v installed, %v failed":                            "%v 件インストール、%v 件失敗",
 	}
 }

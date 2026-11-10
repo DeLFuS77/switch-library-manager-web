@@ -143,6 +143,7 @@ type SettingsForm struct {
 	NotifyNewGames        bool   `in:"form=notify_new_games"`
 	NotifyTaskFailures    bool   `in:"form=notify_task_failures"`
 	NotifyQueueDone       bool   `in:"form=notify_queue_done"`
+	NotifyConsoleQueue    bool   `in:"form=notify_console_queue"`
 	TelegramCommands      bool   `in:"form=telegram_commands"`
 	// the order of the files, sent by the setup wizard only: empty leaves the options of
 	// Organize as they are
@@ -191,6 +192,7 @@ func (f *SettingsForm) notificationOptions() settings.NotificationOptions {
 		NotifyNewGames:     f.NotifyNewGames,
 		NotifyTaskFailures: f.NotifyTaskFailures,
 		QueueDoneQuiet:     !f.NotifyQueueDone,
+		ConsoleQueueQuiet:  !f.NotifyConsoleQueue,
 		TelegramCommands:   f.TelegramCommands,
 	}
 }

@@ -500,7 +500,8 @@ func viewerAllowed(r *http.Request) bool {
 		// the list of files of the SD card planner is a download, as the pages are; every user
 		// makes their own API keys
 		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/account/color" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt" || r.URL.Path == "/play" ||
-			r.URL.Path == "/api/keys" || strings.HasPrefix(r.URL.Path, "/api/install/pairs/") || r.URL.Path == netInstallPushSend
+			r.URL.Path == "/api/keys" || strings.HasPrefix(r.URL.Path, "/api/install/pairs/") || r.URL.Path == netInstallPushSend ||
+			strings.HasPrefix(r.URL.Path, netQueueRead+"/")
 	case http.MethodPatch:
 		// the note and the pin of the saves their consoles upload
 		return strings.HasPrefix(r.URL.Path, netSavesApi+"/")

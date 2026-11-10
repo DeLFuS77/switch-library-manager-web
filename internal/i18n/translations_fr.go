@@ -2225,5 +2225,23 @@ func init() {
 		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "NXDock envoie le jeu dumpé sur la console dans le dossier des dumps, et la bibliothèque l’analyse.",
 		"Folder of the dumps": "Dossier des dumps",
 		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "Vide : un dossier « NXDock dumps » dans le dossier de la bibliothèque. Un autre dossier n’est analysé que s’il se trouve dans un dossier de la bibliothèque.",
+		// install over the network: the queue of the console (NXDock)
+		"Copying the save": "Copie de la sauvegarde",
+		"Downloading":      "Téléchargement",
+		"Writing":          "Écriture",
+		"Checking":         "Vérification",
+		"Registering":      "Enregistrement",
+		"Cancel the install of %v? The console asks before cancelling.": "Annuler l'installation de %v ? La console demande avant d'annuler.",
+		"Asked: the console asks before cancelling.":                    "Demandé : la console demande avant d'annuler.",
+		"Asked: the console does it in a moment.":                       "Demandé : la console le fait dans un instant.",
+		"The console is not answering":                                  "La console ne répond pas",
+		"Installing %v":                                                 "Installation de %v",
+		"%v MB/s":                                                       "%v Mo/s",
+		"%v min left":                                                   "encore %v min",
+		"%v waiting":                                                    "%v en attente",
+		"Go on":                                                         "Reprendre",
+		"Notify when a console finishes installing (NXDock)": "Prévenir quand une console a fini d'installer (NXDock)",
+		"NXDock finished installing on %v":                   "NXDock a fini d'installer sur %v",
+		"%v installed, %v failed":                            "%v installés, %v échoués",
 	}
 }

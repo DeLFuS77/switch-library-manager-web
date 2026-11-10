@@ -74,7 +74,12 @@ function initNetInstall() {
 		inventory.className = 'small text-body-secondary net-inventory';
 		inventory.dataset.consoleInventory = key.id;
 		inventory.hidden = true;
-		text.append(name, detail, inventory);
+		// what its queue does now, filled by fillConsoleQueues (24-net-push.js)
+		const queue = document.createElement('div');
+		queue.className = 'net-queue';
+		queue.dataset.consoleQueue = key.id;
+		queue.hidden = true;
+		text.append(name, detail, inventory, queue);
 		const remove = document.createElement('button');
 		remove.type = 'button';
 		remove.className = 'btn btn-sm btn-outline-secondary rounded-pill text-nowrap';
@@ -108,6 +113,7 @@ function initNetInstall() {
 			const consoles = (Array.isArray(json) ? json : json.keys || []).filter(key => key.role === 'console');
 			list.replaceChildren(...consoles.map(row));
 			fillConsoleInventories(list);
+			fillConsoleQueues(list);
 			if (!consoles.length) {
 				const empty = document.createElement('li');
 				empty.className = 'small text-body-secondary';

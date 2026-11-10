@@ -175,6 +175,7 @@ type Web struct {
 	netList        netFilesCache
 	netPairs       netPairings
 	netPushes      netPushQueue
+	netQueues      netQueues
 	netInventories sync.Mutex
 	// the index of the saves NXDock uploads, one file per user
 	netSaves sync.Mutex

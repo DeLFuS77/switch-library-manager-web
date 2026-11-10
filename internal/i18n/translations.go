@@ -2252,6 +2252,24 @@ var Translations = map[string]map[string]string{
 		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "NXDock envía el juego volcado en la consola a la carpeta de volcados, y la biblioteca lo analiza.",
 		"Folder of the dumps": "Carpeta de volcados",
 		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "Vacía: una carpeta «NXDock dumps» en la carpeta de la biblioteca. Otra carpeta solo se analiza si está dentro de una carpeta de la biblioteca.",
+		// install over the network: the queue of the console (NXDock)
+		"Copying the save": "Copiando la partida",
+		"Downloading":      "Descargando",
+		"Writing":          "Escribiendo",
+		"Checking":         "Comprobando",
+		"Registering":      "Registrando",
+		"Cancel the install of %v? The console asks before cancelling.": "¿Cancelar la instalación de %v? La consola pregunta antes de cancelar.",
+		"Asked: the console asks before cancelling.":                    "Pedido: la consola pregunta antes de cancelar.",
+		"Asked: the console does it in a moment.":                       "Pedido: la consola lo hace en un momento.",
+		"The console is not answering":                                  "La consola no responde",
+		"Installing %v":                                                 "Instalando %v",
+		"%v MB/s":                                                       "%v MB/s",
+		"%v min left":                                                   "faltan %v min",
+		"%v waiting":                                                    "%v en espera",
+		"Go on":                                                         "Seguir",
+		"Notify when a console finishes installing (NXDock)": "Avisar cuando una consola acabe de instalar (NXDock)",
+		"NXDock finished installing on %v":                   "NXDock terminó de instalar en %v",
+		"%v installed, %v failed":                            "%v instalados, %v fallidos",
 	},
 }
 
@@ -2280,4 +2298,5 @@ var JSTexts = []string{
 	"Internal memory", "SD card", "Installed on this console: %v titles · updated %v", "Forget", "Forget what is installed on “%v”? The console sends it again the next time it is asked.",
 	"On %v: v%v (%v)", "On %v: v%v", "Game", "Update", "Tick at least one file.", "Sent: the console asks before installing.",
 	"Pin", "Unpin", "No note", "Note of the copy", "1 copy", "%v copies", "Delete this copy of %v (%v)? It cannot be undone.",
+	"Copying the save", "Downloading", "Decompressing", "Writing", "Checking", "Registering", "Cancel the install of %v? The console asks before cancelling.", "Asked: the console asks before cancelling.", "Asked: the console does it in a moment.", "The console is not answering", "Paused", "Installing %v", "Waiting", "%v MB/s", "%v min left", "%v waiting", "Go on", "Pause", "Cancel",
 }

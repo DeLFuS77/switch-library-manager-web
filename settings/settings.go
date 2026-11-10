@@ -196,6 +196,8 @@ type NotificationOptions struct {
 	// no message when the queue of tasks is done: one is sent by default, also to the settings
 	// saved before it existed
 	QueueDoneQuiet bool `json:"queue_done_quiet,omitempty"`
+	// no message when the install queue of a console (NXDock) ends: one is sent by default
+	ConsoleQueueQuiet bool `json:"console_queue_quiet,omitempty"`
 	// the bot of Telegram answers in its chat: whether a game is in the library, what is new...
 	TelegramCommands bool `json:"telegram_commands,omitempty"`
 }

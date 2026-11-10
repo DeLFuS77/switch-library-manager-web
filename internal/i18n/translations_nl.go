@@ -2225,5 +2225,23 @@ func init() {
 		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "NXDock stuurt de op de console gedumpte game naar de map van de dumps, en de bibliotheek scant hem.",
 		"Folder of the dumps": "Map van de dumps",
 		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "Leeg: een map „NXDock dumps” in de map van de bibliotheek. Een andere map wordt alleen gescand als die in een map van de bibliotheek staat.",
+		// install over the network: the queue of the console (NXDock)
+		"Copying the save": "Opslagbestand kopiëren",
+		"Downloading":      "Downloaden",
+		"Writing":          "Schrijven",
+		"Checking":         "Controleren",
+		"Registering":      "Registreren",
+		"Cancel the install of %v? The console asks before cancelling.": "De installatie van %v annuleren? De console vraagt het voor het annuleren.",
+		"Asked: the console asks before cancelling.":                    "Gevraagd: de console vraagt het voor het annuleren.",
+		"Asked: the console does it in a moment.":                       "Gevraagd: de console doet het zo.",
+		"The console is not answering":                                  "De console antwoordt niet",
+		"Installing %v":                                                 "%v installeren",
+		"%v MB/s":                                                       "%v MB/s",
+		"%v min left":                                                   "nog %v min",
+		"%v waiting":                                                    "%v wachtend",
+		"Go on":                                                         "Doorgaan",
+		"Notify when a console finishes installing (NXDock)": "Melden wanneer een console klaar is met installeren (NXDock)",
+		"NXDock finished installing on %v":                   "NXDock is klaar met installeren op %v",
+		"%v installed, %v failed":                            "%v geïnstalleerd, %v mislukt",
 	}
 }

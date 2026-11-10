@@ -2225,5 +2225,23 @@ func init() {
 		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "NXDock invia il gioco estratto sulla console nella cartella dei dump, e la libreria lo analizza.",
 		"Folder of the dumps": "Cartella dei dump",
 		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "Vuota: una cartella «NXDock dumps» nella cartella della libreria. Un'altra cartella viene analizzata solo se è dentro una cartella della libreria.",
+		// install over the network: the queue of the console (NXDock)
+		"Copying the save": "Copia del salvataggio",
+		"Downloading":      "Download",
+		"Writing":          "Scrittura",
+		"Checking":         "Controllo",
+		"Registering":      "Registrazione",
+		"Cancel the install of %v? The console asks before cancelling.": "Annullare l'installazione di %v? La console chiede prima di annullare.",
+		"Asked: the console asks before cancelling.":                    "Chiesto: la console chiede prima di annullare.",
+		"Asked: the console does it in a moment.":                       "Chiesto: la console lo fa tra un momento.",
+		"The console is not answering":                                  "La console non risponde",
+		"Installing %v":                                                 "Installazione di %v",
+		"%v MB/s":                                                       "%v MB/s",
+		"%v min left":                                                   "mancano %v min",
+		"%v waiting":                                                    "%v in attesa",
+		"Go on":                                                         "Riprendi",
+		"Notify when a console finishes installing (NXDock)": "Avvisa quando una console finisce di installare (NXDock)",
+		"NXDock finished installing on %v":                   "NXDock ha finito di installare su %v",
+		"%v installed, %v failed":                            "%v installati, %v non riusciti",
 	}
 }

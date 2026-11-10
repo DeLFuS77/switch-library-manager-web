@@ -2225,5 +2225,23 @@ func init() {
 		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "NXDock이 본체에서 덤프한 게임을 덤프 폴더로 보내고, 라이브러리가 이를 스캔합니다.",
 		"Folder of the dumps": "덤프 폴더",
 		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "비워 두면: 라이브러리 폴더 안의 “NXDock dumps” 폴더. 다른 폴더는 라이브러리 폴더 안에 있을 때만 스캔됩니다.",
+		// install over the network: the queue of the console (NXDock)
+		"Copying the save": "세이브 복사 중",
+		"Downloading":      "다운로드 중",
+		"Writing":          "쓰는 중",
+		"Checking":         "검사 중",
+		"Registering":      "등록 중",
+		"Cancel the install of %v? The console asks before cancelling.": "%v 설치를 취소할까요? 본체가 취소하기 전에 묻습니다.",
+		"Asked: the console asks before cancelling.":                    "요청함: 본체가 취소하기 전에 묻습니다.",
+		"Asked: the console does it in a moment.":                       "요청함: 본체가 곧 처리합니다.",
+		"The console is not answering":                                  "본체가 응답하지 않습니다",
+		"Installing %v":                                                 "%v 설치 중",
+		"%v MB/s":                                                       "%v MB/s",
+		"%v min left":                                                   "%v분 남음",
+		"%v waiting":                                                    "%v개 대기 중",
+		"Go on":                                                         "계속",
+		"Notify when a console finishes installing (NXDock)": "본체가 설치를 마치면 알림(NXDock)",
+		"NXDock finished installing on %v":                   "NXDock이 %v에서 설치를 마쳤습니다",
+		"%v installed, %v failed":                            "%v개 설치, %v개 실패",
 	}
 }

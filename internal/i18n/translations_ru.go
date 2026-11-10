@@ -2225,5 +2225,23 @@ func init() {
 		"NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it.": "NXDock отправляет сдампленную на консоли игру в папку дампов, и библиотека её сканирует.",
 		"Folder of the dumps": "Папка дампов",
 		"Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library.": "Пусто: папка «NXDock dumps» в папке библиотеки. Другая папка сканируется, только если она находится внутри папки библиотеки.",
+		// install over the network: the queue of the console (NXDock)
+		"Copying the save": "Копирование сохранения",
+		"Downloading":      "Загрузка",
+		"Writing":          "Запись",
+		"Checking":         "Проверка",
+		"Registering":      "Регистрация",
+		"Cancel the install of %v? The console asks before cancelling.": "Отменить установку %v? Консоль спросит перед отменой.",
+		"Asked: the console asks before cancelling.":                    "Отправлено: консоль спросит перед отменой.",
+		"Asked: the console does it in a moment.":                       "Отправлено: консоль сделает это через мгновение.",
+		"The console is not answering":                                  "Консоль не отвечает",
+		"Installing %v":                                                 "Устанавливается %v",
+		"%v MB/s":                                                       "%v МБ/с",
+		"%v min left":                                                   "осталось %v мин",
+		"%v waiting":                                                    "в очереди: %v",
+		"Go on":                                                         "Продолжить",
+		"Notify when a console finishes installing (NXDock)": "Сообщать, когда консоль закончит установку (NXDock)",
+		"NXDock finished installing on %v":                   "NXDock закончил установку на %v",
+		"%v installed, %v failed":                            "установлено: %v, ошибок: %v",
 	}
 }
