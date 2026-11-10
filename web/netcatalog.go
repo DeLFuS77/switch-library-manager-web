@@ -2,8 +2,8 @@ package web
 
 import (
 	"net/http"
-	"os"
 	"net/url"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -32,11 +32,14 @@ type netCatalogFile struct {
 }
 
 type netCatalogGame struct {
-	Key     string           `json:"key"`
-	Name    string           `json:"name"`
-	TitleId string           `json:"titleId,omitempty"`
-	Cover   string           `json:"cover,omitempty"`
-	Files   []netCatalogFile `json:"files"`
+	Key     string `json:"key"`
+	Name    string `json:"name"`
+	TitleId string `json:"titleId,omitempty"`
+	Cover   string `json:"cover,omitempty"`
+	// when its newest file came to the library (its date on the disk), seconds since 1970: the
+	// console can sort by it
+	Added int64            `json:"added,omitempty"`
+	Files []netCatalogFile `json:"files"`
 }
 
 type netCatalog struct {
@@ -64,6 +67,9 @@ func (web *Web) handleNetCatalog(w http.ResponseWriter, r *http.Request) {
 				game.Cover = netInstallCover + url.PathEscape(file.cover)
 			}
 			games[file.gameKey] = game
+		}
+		if added := file.modTime.Unix(); !file.modTime.IsZero() && added > game.Added {
+			game.Added = added
 		}
 		kind := netCatalogKinds[file.kind]
 		if kind == "game" && game.TitleId == "" {

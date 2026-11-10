@@ -53,6 +53,9 @@ func TestNetCatalog(t *testing.T) {
 	if kinds[0] != "game" || kinds[1] != "update" || kinds[2] != "dlc" {
 		t.Fatalf("game, update and DLC in order: %v", kinds)
 	}
+	if game.Added <= 0 {
+		t.Fatalf("when the game came to the library: %d", game.Added)
+	}
 	update := game.Files[1]
 	if update.Version != 131072 || update.Format != "nsz" || update.TitleId != "0100000000010800" || update.Size <= 0 {
 		t.Fatalf("the update: %+v", update)
