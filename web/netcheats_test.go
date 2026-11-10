@@ -34,6 +34,14 @@ func TestNetCheatsForTheConsole(t *testing.T) {
 			t.Errorf("%s: %d %s", path, code, body)
 		}
 	}
+	// without cheats, the build ID still comes, for the check before an update
+	if code, _, body := get("/install/cheats/0100000000010000?build=9999999999999999"); code != http.StatusNotFound ||
+		!strings.Contains(body, `"build_id":"9999999999999999"`) {
+		t.Errorf("the build ID without cheats: %d %s", code, body)
+	}
+	if code, _, body := get("/install/cheats/0100000000010000?version=65536&build="); code != http.StatusOK || !strings.Contains(body, "2222222222222222") {
+		t.Errorf("a version with cheats: %d %s", code, body)
+	}
 	for _, path := range []string{"/install/cheats/0100000000010000?build=22", "/install/cheats/0100000000010000?version=new"} {
 		if code, _, _ := get(path); code != http.StatusBadRequest {
 			t.Errorf("%s: %d", path, code)

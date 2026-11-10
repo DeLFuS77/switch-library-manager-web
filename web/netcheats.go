@@ -2,10 +2,12 @@ package web
 
 import (
 	"net/http"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 	"github.com/gorilla/mux"
 )
 
@@ -87,6 +89,10 @@ func (web *Web) handleNetCheats(w http.ResponseWriter, r *http.Request) {
 		}
 		answer.Version = &version
 		answer.BuildId = cheats.buildID(titleId, version)
+		if answer.BuildId == "" {
+			// not in the database: read from the file the library has of that version
+			answer.BuildId = web.netBuildFromFile(titleId, version)
+		}
 	}
 	text := ""
 	if answer.BuildId != "" {
@@ -94,11 +100,47 @@ func (web *Web) handleNetCheats(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Cache-Control", "no-store")
 	if text == "" {
-		writeJSON(w, http.StatusNotFound, map[string]string{"error": "no cheats"})
+		// the build ID goes also without cheats: the console compares it with the cheats and mods
+		// it has before an update (19A)
+		missing := map[string]any{"error": "no cheats"}
+		if answer.BuildId != "" {
+			missing["build_id"] = answer.BuildId
+		}
+		if answer.Version != nil {
+			missing["version"] = *answer.Version
+		}
+		writeJSON(w, http.StatusNotFound, missing)
 		return
 	}
 	answer.Text, answer.Names = text, cheatNames(text)
 	writeJSON(w, http.StatusOK, answer)
+}
+
+// netBuildFromFile is the build ID of a version of a game read from the file the library has of
+// it (the game, or that update), when the database of versions does not know it; "" when there
+// is no such file or it cannot be read (the keys are needed).
+func (web *Web) netBuildFromFile(titleId string, version int) string {
+	_, localDB := web.state.get()
+	local := findLocalTitle(localDB, titleId)
+	if local == nil {
+		return ""
+	}
+	file, programId := local.File, titleId
+	if version > 0 {
+		update, ok := local.Updates[version]
+		if !ok {
+			return ""
+		}
+		file = update
+		if update.Metadata != nil {
+			programId = strings.ToUpper(update.Metadata.TitleId)
+		}
+	}
+	build, err := switchfs.ReadBuildID(filepath.Join(file.ExtendedInfo.BaseFolder, file.ExtendedInfo.FileName), programId)
+	if err != nil {
+		return ""
+	}
+	return build
 }
 
 // handleNetCheatsPaths adds the path of the cheats for the console.
