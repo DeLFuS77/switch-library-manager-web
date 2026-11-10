@@ -142,12 +142,19 @@ func withBodyLimit(next http.Handler) http.Handler {
 
 // withHealthCheck answers /healthz without authentication, so container health checks
 // work when a password is set. It reveals nothing but the fact that the app is running.
+// The script of the starting screen is answered here too: a starting screen still open when
+// the app is ready asks for it, and behind the login it would wait forever.
 func withHealthCheck(next http.Handler) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		w.Header().Set("Cache-Control", "no-store")
 		w.Write([]byte("ok"))
+	})
+	mux.HandleFunc("/starting.js", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/javascript; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-store")
+		w.Write([]byte(startingScript))
 	})
 	mux.Handle("/", next)
 	return mux
