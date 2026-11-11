@@ -155,6 +155,8 @@ type CompressPageData struct {
 	// files that hold several titles, and games a complete pack can be made of
 	SplitCount int
 	PackCount  int
+	// the games with an update that can be optimized for install
+	OptimizeCount int
 	// NSP and XCI files that already have a compressed copy (listed on the Space page)
 	AlreadyCompressed int
 	// files tried before that nothing could shrink, not listed
@@ -1497,7 +1499,7 @@ func (web *Web) HandleCompress() {
 
 	web.router.HandleFunc("/compress.html", func(w http.ResponseWriter, r *http.Request) {
 		candidates := web.uncompressedCandidates()
-		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, CompressedCount: len(web.decompressCandidates()), CardCount: len(web.convertCandidates()), SplitCount: len(web.splitCandidates()), PackCount: len(web.packCandidates()), Running: web.compressionRunning()}
+		data := CompressPageData{GlobalPageData: web.globalPageData("compress"), Candidates: candidates, CompressedCount: len(web.decompressCandidates()), CardCount: len(web.convertCandidates()), SplitCount: len(web.splitCandidates()), PackCount: len(web.packCandidates()), OptimizeCount: len(web.optimizeCandidates()), Running: web.compressionRunning()}
 		data.AlreadyCompressed = len(web.compressCandidates()) - len(candidates)
 		data.Level = settingsLevel(settings.ReadSettings(web.dataFolder))
 		data.Uncompressible = web.uncompressibleFiles()
@@ -1558,6 +1560,9 @@ func (web *Web) HandleCompress() {
 	}).Methods("GET")
 	web.router.HandleFunc("/compress/pack-list", func(w http.ResponseWriter, r *http.Request) {
 		web.writeFileRows(w, r, templates, "pack", true, web.packCandidates())
+	}).Methods("GET")
+	web.router.HandleFunc("/compress/optimize-list", func(w http.ResponseWriter, r *http.Request) {
+		web.writeFileRows(w, r, templates, "optimize", true, web.optimizeCandidates())
 	}).Methods("GET")
 	web.handleSplit()
 	web.handlePacks()

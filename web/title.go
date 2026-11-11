@@ -197,8 +197,9 @@ type TitleDetail struct {
 	// the files a complete pack of the game is made of (base, latest update and DLC)
 	PackFiles int
 	PackSize  int64
-	// Optimize for install: the game and its newest update it is made of, when it can be
-	// (OptimizeSize > 0), and the version it takes
+	// Optimize for install: whether the game can be, the size of the game and its newest update it
+	// is made of, and the version it takes
+	CanOptimize     bool
 	OptimizeSize    int64
 	OptimizeVersion int
 }
@@ -307,6 +308,10 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 			}
 			detail.Updates = append(detail.Updates, *file)
 		}
+		// a game merged with its update (optimized for install, or by another tool) holds that update
+		if local.File.Metadata != nil && local.File.Metadata.Version > 0 {
+			detail.Base.AlsoHolds = append(detail.Base.AlsoHolds, i18n.Translatef(lang, "update v%v, merged into the game", local.File.Metadata.Version))
+		}
 		inGameFile := 0
 		for _, dlc := range local.Dlc {
 			if dlc.ExtendedInfo == local.File.ExtendedInfo {
@@ -329,7 +334,8 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 			detail.PackSize += file.Size
 		}
 		if optimize.Built {
-			for _, file := range optimizeFiles(local) {
+			for _, file := range web.optimizeFiles(local) {
+				detail.CanOptimize = true
 				detail.OptimizeSize += file.Size
 			}
 			detail.OptimizeVersion = local.LatestUpdate

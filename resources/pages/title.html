@@ -83,7 +83,7 @@
 									{{- if gt $t.PackFiles 1}}
 									<li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#titlePack"><span class="bi bi-box-seam me-2" aria-hidden="true"></span>{{t "Combine the files"}}…</button></li>
 									{{- end}}
-									{{- if gt $t.OptimizeSize 0}}
+									{{- if $t.CanOptimize}}
 									<li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#titleOptimize"><span class="bi bi-lightning-charge me-2" aria-hidden="true"></span>{{t "Optimize for install"}}…</button></li>
 									{{- end}}
 								</ul>
@@ -413,7 +413,7 @@
 			{{- end}}{{end}}
 			{{- template "titleEdit" $t}}
 			{{- if gt $t.PackFiles 1}}{{template "titlePack" $t}}{{end}}
-			{{- if gt $t.OptimizeSize 0}}{{template "titleOptimize" $t}}{{end}}
+			{{- if $t.CanOptimize}}{{template "titleOptimize" $t}}{{end}}
 {{- end}}
 {{- define "titleOptimize"}}
 			{{- /* the game and its newest update made one NSP that takes the least room installed (experimental), as a task */}}
@@ -427,7 +427,7 @@
 						<div class="modal-body">
 							<p class="small mb-2">{{t "The game and its update (v%v, %v) become one NSP that takes much less room once installed: one game of the version of the update, its data compressed with the LZ4 the system reads. It is written next to the game." .OptimizeVersion (formatSize .OptimizeSize)}}</p>
 							<ul class="small mb-2 ps-3">
-								<li>{{t "Install it with DBI, with sigpatches and firmware 12.0.0 or newer."}}</li>
+								<li>{{t "Install it with NXDock or DBI, with sigpatches and firmware 12.0.0 or newer."}}</li>
 								<li>{{t "Do not install official updates over it: when a newer update comes, optimize the game again with it."}}</li>
 								<li>{{t "The game and its update are kept: the game is optimized again from them. DLC are left as they are."}}</li>
 							</ul>
