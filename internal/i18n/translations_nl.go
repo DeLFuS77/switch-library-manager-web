@@ -447,7 +447,7 @@ func init() {
 		"Make a backup of their saves in JKSV, if you play them.": "Maak een back-up van hun spelopslag in JKSV, als je ze speelt.",
 		// installing over the network
 		"Install over the network": "Installeren via het netwerk",
-		"Install your games on your consoles from this library, without copying them to the SD card: DBI and the installers that read an index of Tinfoil see it over the network. Off until you turn it on.": "Installeer je games vanuit deze bibliotheek op je consoles, zonder ze naar de SD-kaart te kopiëren: DBI en de installers die een Tinfoil-index lezen zien haar via het netwerk. Uit totdat je het aanzet.",
+		"Install your games on your consoles from this library, without copying them to the SD card: NXDock, DBI and the installers that read an index of Tinfoil see it over the network. Off until you turn it on.": "Installeer je games vanuit deze bibliotheek op je consoles, zonder ze naar de SD-kaart te kopiëren: NXDock, DBI en de installers die een Tinfoil-index lezen zien haar via het netwerk. Uit totdat je het aanzet.",
 		"Only for your own consoles: do not share the keys nor the address.": "Alleen voor je eigen consoles: deel de sleutels en het adres niet.",
 		"Installing over the network needs a user with a password.":          "Installeren via het netwerk heeft een gebruiker met een wachtwoord nodig.",
 		"Create one in Users":                                 "Maak er een aan bij Gebruikers",

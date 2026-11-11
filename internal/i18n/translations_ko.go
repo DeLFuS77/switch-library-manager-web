@@ -447,7 +447,7 @@ func init() {
 		"Make a backup of their saves in JKSV, if you play them.": "플레이하는 게임이라면 JKSV에서 세이브를 백업하세요.",
 		// installing over the network
 		"Install over the network": "네트워크로 설치",
-		"Install your games on your consoles from this library, without copying them to the SD card: DBI and the installers that read an index of Tinfoil see it over the network. Off until you turn it on.": "이 라이브러리의 게임을 SD 카드에 복사하지 않고 콘솔에 설치합니다. DBI와 Tinfoil 인덱스를 읽는 설치 프로그램이 네트워크로 봅니다. 켜기 전까지는 꺼져 있습니다.",
+		"Install your games on your consoles from this library, without copying them to the SD card: NXDock, DBI and the installers that read an index of Tinfoil see it over the network. Off until you turn it on.": "이 라이브러리의 게임을 SD 카드에 복사하지 않고 콘솔에 설치합니다. NXDock, DBI와 Tinfoil 인덱스를 읽는 설치 프로그램이 네트워크로 봅니다. 켜기 전까지는 꺼져 있습니다.",
 		"Only for your own consoles: do not share the keys nor the address.": "본인 콘솔 전용입니다. 키와 주소를 공유하지 마세요.",
 		"Installing over the network needs a user with a password.":          "네트워크로 설치하려면 비밀번호가 있는 사용자가 필요합니다.",
 		"Create one in Users":                                 "사용자에서 만들기",

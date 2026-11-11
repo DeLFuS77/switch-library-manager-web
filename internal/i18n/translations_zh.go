@@ -447,7 +447,7 @@ func init() {
 		"Make a backup of their saves in JKSV, if you play them.": "如果你在玩这些游戏，请在 JKSV 中备份它们的存档。",
 		// installing over the network
 		"Install over the network": "通过网络安装",
-		"Install your games on your consoles from this library, without copying them to the SD card: DBI and the installers that read an index of Tinfoil see it over the network. Off until you turn it on.": "无需复制到 SD 卡，即可把这个库中的游戏安装到你的主机上：DBI 以及读取 Tinfoil 索引的安装器会通过网络看到它。在你开启之前保持关闭。",
+		"Install your games on your consoles from this library, without copying them to the SD card: NXDock, DBI and the installers that read an index of Tinfoil see it over the network. Off until you turn it on.": "无需复制到 SD 卡，即可把这个库中的游戏安装到你的主机上：NXDock、DBI 以及读取 Tinfoil 索引的安装器会通过网络看到它。在你开启之前保持关闭。",
 		"Only for your own consoles: do not share the keys nor the address.": "仅限你自己的主机：不要分享密钥或地址。",
 		"Installing over the network needs a user with a password.":          "通过网络安装需要一个有密码的用户。",
 		"Create one in Users":                                 "在“用户”中创建一个",

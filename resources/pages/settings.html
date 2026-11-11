@@ -486,7 +486,7 @@
 						<section class="surface mb-4 settings-section" id="netinstall" aria-labelledby="netinstallTitle" data-net-install>
 							{{- $n := .Settings.NetInstall}}
 							<h2 class="section-title" id="netinstallTitle"><span class="bi bi-router" aria-hidden="true"></span>{{t "Install over the network"}}</h2>
-							<p class="text-body-secondary">{{t "Install your games on your consoles from this library, without copying them to the SD card: DBI and the installers that read an index of Tinfoil see it over the network. Off until you turn it on."}}</p>
+							<p class="text-body-secondary">{{t "Install your games on your consoles from this library, without copying them to the SD card: NXDock, DBI and the installers that read an index of Tinfoil see it over the network. Off until you turn it on."}}</p>
 							<div class="net-install-note mb-3"><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "Only for your own consoles: do not share the keys nor the address."}}</div>
 							{{- if not .NetInstallReady}}
 							<div class="net-install-note d-flex gap-2 align-items-start mb-3"><span class="bi bi-person-lock mt-1" aria-hidden="true"></span><div>{{t "Installing over the network needs a user with a password."}} <a class="fw-semibold" href="/users.html">{{t "Create one in Users"}}</a></div></div>

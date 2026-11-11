@@ -445,7 +445,7 @@ var Translations = map[string]map[string]string{
 		"Make a backup of their saves in JKSV, if you play them.": "Haz una copia de sus partidas en JKSV, si los juegas.",
 		// installing over the network
 		"Install over the network": "Instalar por red",
-		"Install your games on your consoles from this library, without copying them to the SD card: DBI and the installers that read an index of Tinfoil see it over the network. Off until you turn it on.": "Instala tus juegos en tus consolas desde esta biblioteca, sin copiarlos a la tarjeta SD: DBI y los instaladores que leen un índice de Tinfoil la ven por la red. Apagado hasta que lo enciendas.",
+		"Install your games on your consoles from this library, without copying them to the SD card: NXDock, DBI and the installers that read an index of Tinfoil see it over the network. Off until you turn it on.": "Instala tus juegos en tus consolas desde esta biblioteca, sin copiarlos a la tarjeta SD: NXDock, DBI y los instaladores que leen un índice de Tinfoil la ven por la red. Apagado hasta que lo enciendas.",
 		"Only for your own consoles: do not share the keys nor the address.": "Solo para tus propias consolas: no compartas las llaves ni la dirección.",
 		"Installing over the network needs a user with a password.":          "Instalar por red necesita un usuario con contraseña.",
 		"Create one in Users":                                 "Crea uno en Usuarios",
