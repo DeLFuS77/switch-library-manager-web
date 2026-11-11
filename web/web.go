@@ -170,7 +170,9 @@ type Web struct {
 	vault      vaultAuth
 	vaultFiles vaultIndex
 	// what was read of the files given to the installers of the console (see netinstall.go)
-	netStreams     netInstallStreams
+	netStreams netInstallStreams
+	// the bases of games NXDock merged, opened for the bytes a newer update needs (netbase.go)
+	netBases       netBases
 	netNotes       netInstallNotes
 	netList        netFilesCache
 	netPairs       netPairings

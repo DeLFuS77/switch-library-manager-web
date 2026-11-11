@@ -390,6 +390,7 @@ func (web *Web) HandleNetInstall() {
 	}).Methods(http.MethodGet, http.MethodHead)
 	web.router.HandleFunc(netInstallTinfoil, web.handleNetTinfoil).Methods(http.MethodGet, http.MethodHead)
 	web.router.PathPrefix(netInstallFiles).HandlerFunc(web.handleNetFile).Methods(http.MethodGet, http.MethodHead)
+	web.router.PathPrefix(netInstallBase).HandlerFunc(web.handleNetBase).Methods(http.MethodGet)
 	web.router.HandleFunc(netInstallSpeedTest, web.handleNetSpeedTest).Methods(http.MethodGet, http.MethodHead)
 	web.handleNetPairing()
 	web.router.HandleFunc(netInstallCatalog, web.handleNetCatalog).Methods(http.MethodGet, http.MethodHead)
