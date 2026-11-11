@@ -622,6 +622,7 @@
 								<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="wizard_notify_new_games" name="notify_new_games" value="true"{{if $s.Notifications.NotifyNewGames}} checked{{end}}><label class="form-check-label" for="wizard_notify_new_games">{{t "Notify games added to my folders"}}</label></div>
 								<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="wizard_notify_task_failures" name="notify_task_failures" value="true"{{if $s.Notifications.NotifyTaskFailures}} checked{{end}}><label class="form-check-label" for="wizard_notify_task_failures">{{t "Notify the tasks that fail"}}</label></div>
 								<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="wizard_notify_queue_done" name="notify_queue_done" value="true"{{if not $s.Notifications.QueueDoneQuiet}} checked{{end}}><label class="form-check-label" for="wizard_notify_queue_done">{{t "Notify when the queue of tasks is done"}}</label></div>
+								<div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="wizard_notify_console_queue" name="notify_console_queue" value="true"{{if not $s.Notifications.ConsoleQueueQuiet}} checked{{end}}><label class="form-check-label" for="wizard_notify_console_queue">{{t "Notify when a console finishes installing (NXDock)"}}</label></div>
 							</div>
 							<div class="d-flex flex-wrap align-items-center gap-2 mt-3">
 								<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-wizard-test-notification><span class="bi bi-send me-1" aria-hidden="true"></span>{{t "Send a test notification"}}</button>
@@ -729,6 +730,12 @@
 						<input type="password" name="vault_password" value="" autocomplete="off">
 						<input type="text" name="vault_keep" value="{{$s.Vault.Keep}}">
 						<input type="checkbox" name="vault_notify" value="true"{{if $s.Vault.Notify}} checked{{end}}>
+						<input type="checkbox" name="net_install_enabled" value="true"{{if $s.NetInstall.Enabled}} checked{{end}}>
+						<input type="checkbox" name="net_install_all_updates" value="true"{{if $s.NetInstall.AllUpdates}} checked{{end}}>
+						<input type="checkbox" name="net_install_remote" value="true"{{if $s.NetInstall.Remote}} checked{{end}}>
+						<input type="text" name="net_install_message" value="{{$s.NetInstall.Message}}">
+						<input type="checkbox" name="net_install_allow_uploads" value="true"{{if $s.NetInstall.UploadsAllowed}} checked{{end}}>
+						<input type="text" name="net_install_upload_folder" value="{{$s.NetInstall.UploadFolder}}">
 						<input type="text" name="compress_threads" value="{{$s.CompressThreads}}">
 						<input type="text" name="compress_files_at_once" value="{{$s.CompressFilesAtOnce}}">
 						<input type="checkbox" name="low_priority" value="true"{{if $s.LowPriority}} checked{{end}}>

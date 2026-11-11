@@ -167,8 +167,24 @@ type Web struct {
 	ratiosStore    *ratioStore
 	ratiosOnce     sync.Once
 	// the save vault: verified passwords and what was read from the backups (see vault.go)
-	vault           vaultAuth
-	vaultFiles      vaultIndex
+	vault      vaultAuth
+	vaultFiles vaultIndex
+	// what was read of the files given to the installers of the console (see netinstall.go)
+	netStreams netInstallStreams
+	// the bases of games NXDock merged, opened for the bytes a newer update needs (netbase.go)
+	netBases       netBases
+	netNotes       netInstallNotes
+	netList        netFilesCache
+	netPairs       netPairings
+	netPushes      netPushQueue
+	netQueues      netQueues
+	netInventories sync.Mutex
+	// the index of the saves NXDock uploads, one file per user
+	netSaves sync.Mutex
+	// the games the consoles upload as they dump them, by the file being written
+	netDumps        netDumpUploads
+	netIdOnce       sync.Once
+	netId           string
 	coll            *userdata.Collections
 	collectionsOnce sync.Once
 	fav             *userdata.Favorites
@@ -385,6 +401,8 @@ type GlobalPageData struct {
 	VaultEnabled bool
 	// the volumes of the library short of free space
 	LowDisks []LowDisk
+	// the network install is on: the saves NXDock uploads are in the menu of the account
+	NetInstall bool
 }
 
 // NavCounts are shown next to the navigation links, so pending work is visible everywhere.
@@ -694,6 +712,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 		WizardAuto:          web.wizardAuto(),
 		VaultEnabled:        vaultEnabled(settings.ReadSettings(web.dataFolder)) || isDemoMode(),
 		LowDisks:            web.lowDisks(),
+		NetInstall:          netInstallEnabled(settings.ReadSettings(web.dataFolder)),
 	}
 }
 
@@ -911,11 +930,14 @@ func (web *Web) Start() {
 	web.HandlePlay()
 	web.HandleSmartCollections()
 	web.HandleFavorites()
+	web.HandleNetInstall()
+	web.HandleNetSavesPage()
 	if !isDemoMode() {
 		web.StartScheduler()
 		web.startTelegramBot()
 		web.StartFolderWatcher()
 		web.StartUpdateChecker()
+		web.StartNetDiscovery()
 	}
 
 	web.router.Handle("/", http.RedirectHandler("/index.html", http.StatusMovedPermanently))

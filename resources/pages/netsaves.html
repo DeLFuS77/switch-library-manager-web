@@ -1,0 +1,51 @@
+{{define "title"}}{{t "Saves"}}{{end}}
+{{define "main"}}
+			{{- template "pageHeader" (dict "Title" (t "Saves") "Count" .Total "Subtitle" (t "Copies your consoles uploaded with NXDock. 10 are kept per game; pinned ones are never deleted by themselves."))}}
+			{{- if not .Groups}}
+			{{- template "emptyState" (dict "Icon" "bi-cloud-arrow-up" "Tone" "" "Title" (t "No saves yet") "Text" (t "Upload the save of a game with NXDock on your console: it appears here.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
+			{{- else}}
+			<div class="surface net-saves" data-net-saves>
+				<table class="table net-saves-table mb-0">
+					<thead>
+						<tr>
+							<th scope="col">{{t "Game / note"}}</th>
+							<th scope="col">{{t "Date"}}</th>
+							<th scope="col">{{t "Console"}}</th>
+							<th scope="col">{{t "Version"}}</th>
+							<th scope="col" class="text-end">{{t "Size"}}</th>
+							<th scope="col"><span class="visually-hidden">{{t "Actions"}}</span></th>
+						</tr>
+					</thead>
+					{{- range .Groups}}{{$group := .}}
+					<tbody data-net-save-group>
+						<tr class="net-save-group">
+							<th scope="rowgroup" colspan="6">
+								<span class="bi bi-controller" aria-hidden="true"></span>
+								{{- if .Game}}<a href="/title/{{.TitleId}}.html">{{.Game}}</a>{{else}}<span class="font-monospace">{{.TitleId}}</span>{{end}}
+								<span class="net-save-count"> &middot; <span data-net-save-count>{{if eq (len .Saves) 1}}{{t "1 copy"}}{{else}}{{t "%v copies" (len .Saves)}}{{end}}</span></span>
+							</th>
+						</tr>
+						{{- range .Saves}}
+						<tr class="net-save{{if .Pinned}} is-pinned{{end}}" data-net-save="/api/saves/{{.TitleId}}/{{.Id}}" data-net-save-game="{{or $group.Game .TitleId}}" data-net-save-when="{{formatDateTime .Time}}">
+							<td class="net-save-first">
+								<div class="net-save-main">
+									<button type="button" class="btn btn-link net-save-pin" data-net-save-pin aria-pressed="{{if .Pinned}}true{{else}}false{{end}}" title="{{if .Pinned}}{{t "Unpin"}}{{else}}{{t "Pin"}}{{end}}"><span class="bi {{if .Pinned}}bi-pin-angle-fill{{else}}bi-pin-angle{{end}}" aria-hidden="true"></span><span class="visually-hidden">{{if .Pinned}}{{t "Unpin"}}{{else}}{{t "Pin"}}{{end}}</span></button>
+									<span class="net-save-note{{if not .Note}} is-empty{{end}}" data-net-save-note>{{if .Note}}{{.Note}}{{else}}{{t "No note"}}{{end}}</span>
+								</div>
+							</td>
+							<td data-label="{{t "Date"}}"><time datetime="{{.Time.UTC.Format "2006-01-02T15:04:05Z"}}">{{formatDateTime .Time}}</time></td>
+							<td data-label="{{t "Console"}}"><span>{{.Console}}{{if .Account}}<span class="net-save-account"><span class="bi bi-person" aria-hidden="true"></span>{{.Account}}</span>{{end}}</span></td>
+							<td data-label="{{t "Version"}}"><span>v{{.Version}}</span></td>
+							<td data-label="{{t "Size"}}" class="text-end text-nowrap"><span>{{formatSize .Size}}</span></td>
+							<td class="net-save-actions">
+								<button type="button" class="btn btn-link" data-net-save-edit>{{t "Note"}}</button><span class="net-save-dot" aria-hidden="true">&middot;</span><a class="btn btn-link" href="/api/saves/{{.TitleId}}/{{.Id}}" download>{{t "Download"}}</a><span class="net-save-dot" aria-hidden="true">&middot;</span><button type="button" class="btn btn-link net-save-delete" data-net-save-delete>{{t "Delete"}}</button>
+							</td>
+						</tr>
+						{{- end}}
+					</tbody>
+					{{- end}}
+				</table>
+			</div>
+			<p class="small text-body-secondary mt-2">{{t "Total size"}}: {{formatSize .Size}}</p>
+			{{- end}}
+{{- end}}

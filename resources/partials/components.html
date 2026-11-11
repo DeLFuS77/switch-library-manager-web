@@ -118,6 +118,7 @@
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#notifications"><span class="bi bi-bell me-2" aria-hidden="true"></span>{{t "Notifications"}}</a></li>
 						<li class="settings-nav-heading d-none d-lg-block">{{t "Extras"}}</li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#vault"><span class="bi bi-safe me-2" aria-hidden="true"></span>{{t "Save vault"}}</a></li>
+						<li class="nav-item"><a class="nav-link" href="{{$base}}#netinstall"><span class="bi bi-router me-2" aria-hidden="true"></span>{{t "Install over the network"}}</a></li>
 						<li class="nav-item"><a class="nav-link" href="{{$base}}#mobile"><span class="bi bi-phone me-2" aria-hidden="true"></span>{{t "App on your phone"}}</a></li>
 						<li class="settings-nav-heading d-none d-lg-block">{{t "Access"}}</li>
 						<li class="nav-item"><a class="nav-link" href="/users.html"><span class="bi bi-people me-2" aria-hidden="true"></span>{{t "Users"}}</a></li>
@@ -235,6 +236,10 @@
 							<div class="flex-grow-1 min-w-0">
 								<div class="fw-semibold text-break">{{.Key.Name}} <span class="chip {{if eq .Key.Role "admin"}}chip-success{{else}}chip-muted{{end}} ms-1">{{t .Key.RoleName}}</span></div>
 								<div class="small text-body-secondary">{{if .Owner}}{{.Key.User}}{{if eq .Key.User .Me}} ({{t "you"}}){{end}} &middot; {{end}}<span class="key-hint">{{.Key.Hint}}</span> &middot; {{t "Made %v" (formatDateTime .Key.Created)}} &middot; {{if .Key.LastUsed.IsZero}}{{t "Never used"}}{{else}}{{t "Last used %v" (formatDateTime .Key.LastUsed)}}{{end}}</div>
+								{{- if eq .Key.Role "console"}}
+								<div class="small text-body-secondary net-inventory" data-console-inventory="{{.Key.ID}}" hidden></div>
+								<div class="net-queue" data-console-queue="{{.Key.ID}}" hidden></div>
+								{{- end}}
 								{{- if .Key.MadeAs}}
 								<div class="key-lowered"><span class="bi bi-arrow-down-circle me-1" aria-hidden="true"></span>{{t "Made as %v: it does no more than its user does now." (t .Key.MadeAsName)}}</div>
 								{{- end}}

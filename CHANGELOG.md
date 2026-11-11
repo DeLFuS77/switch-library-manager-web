@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- NXDock, the installer of the console, keeps the saves of its games in the app, ten per game, the pinned ones never deleted by themselves: the page Saves, in the menu of the account, shows them by game with their notes, to download or delete. It also uploads the games dumped on the console to the library, going on where an upload was cut (allowed in Settings, Install over the network, with the folder of the dumps), and gets the cheats of the version of a game
+
 ### Fixes
 
 - A starting screen still open when the app was ready waited forever once a user with a password existed: the script that watches for the app to be ready asked for the login. It is answered without the login now, as the health check is, and the page opens by itself

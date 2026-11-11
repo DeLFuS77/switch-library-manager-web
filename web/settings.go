@@ -55,6 +55,8 @@ type SettingsPageData struct {
 	QuarantineLimits []int
 	// the sign-in portal in front of the app
 	Portal PortalView
+	// installing over the network needs users: there are some
+	NetInstallReady bool
 }
 
 type SettingsForm struct {
@@ -97,6 +99,12 @@ type SettingsForm struct {
 	VaultPassword         string `in:"form=vault_password"`
 	VaultKeep             int    `in:"form=vault_keep"`
 	VaultNotify           bool   `in:"form=vault_notify"`
+	NetInstallEnabled     bool   `in:"form=net_install_enabled"`
+	NetInstallAllUpdates  bool   `in:"form=net_install_all_updates"`
+	NetInstallRemote      bool   `in:"form=net_install_remote"`
+	NetInstallMessage     string `in:"form=net_install_message"`
+	NetInstallUploads     bool   `in:"form=net_install_allow_uploads"`
+	NetInstallUploadDir   string `in:"form=net_install_upload_folder"`
 	QuarantineKeep        string `in:"form=quarantine_keep"`
 	QuarantineLimit       int    `in:"form=quarantine_limit"`
 	QuarantineMakeRoom    bool   `in:"form=quarantine_make_room"`
@@ -135,6 +143,7 @@ type SettingsForm struct {
 	NotifyNewGames        bool   `in:"form=notify_new_games"`
 	NotifyTaskFailures    bool   `in:"form=notify_task_failures"`
 	NotifyQueueDone       bool   `in:"form=notify_queue_done"`
+	NotifyConsoleQueue    bool   `in:"form=notify_console_queue"`
 	TelegramCommands      bool   `in:"form=telegram_commands"`
 	// the order of the files, sent by the setup wizard only: empty leaves the options of
 	// Organize as they are
@@ -183,6 +192,7 @@ func (f *SettingsForm) notificationOptions() settings.NotificationOptions {
 		NotifyNewGames:     f.NotifyNewGames,
 		NotifyTaskFailures: f.NotifyTaskFailures,
 		QueueDoneQuiet:     !f.NotifyQueueDone,
+		ConsoleQueueQuiet:  !f.NotifyConsoleQueue,
 		TelegramCommands:   f.TelegramCommands,
 	}
 }
@@ -524,6 +534,10 @@ func (form *SettingsForm) apply(appSettings *settings.AppSettings) {
 	appSettings.Vault.User = strings.TrimSpace(form.VaultUser)
 	appSettings.Vault.Keep = form.VaultKeep
 	appSettings.Vault.Notify = form.VaultNotify
+	allowUploads := form.NetInstallUploads
+	appSettings.NetInstall = settings.NetInstallOptions{Enabled: form.NetInstallEnabled, AllUpdates: form.NetInstallAllUpdates,
+		Remote: form.NetInstallRemote, Message: netInstallMessage(form.NetInstallMessage), AllowUploads: &allowUploads,
+		UploadFolder: strings.TrimSpace(form.NetInstallUploadDir)}
 	appSettings.Quarantine = settings.QuarantineOptions{Keep: form.QuarantineKeep, LimitGB: form.QuarantineLimit,
 		MakeRoom: form.QuarantineMakeRoom, Originals: form.QuarantineOriginals}
 	if form.VaultPassword != "" {
@@ -600,12 +614,15 @@ func (web *Web) settingsPageData() SettingsPageData {
 	shown := *current
 	shown.Notifications = notify.Masked(current.Notifications)
 	portal := PortalView{}
+	netInstallReady := false
 	if web.auth != nil {
 		portal = web.auth.portalView()
+		netInstallReady = web.auth.Enabled()
 	}
 	_, titleKeys, _ := settings.KeysSummary()
 	return SettingsPageData{
 		Portal:                  portal,
+		NetInstallReady:         netInstallReady,
 		GlobalPageData:          web.globalPageData("settings"),
 		Settings:                &shown,
 		NextSync:                nextSyncTime(current),

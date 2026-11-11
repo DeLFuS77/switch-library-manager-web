@@ -308,6 +308,9 @@
 {{- if .Auth.Enabled}}
 <li><span class="dropdown-item-text small text-body-secondary">{{.Auth.User}} &middot; {{t (roleName .Auth.Role)}}{{if .Auth.Via}} &middot; <span class="chip chip-info">{{if eq .Auth.Via "oidc"}}{{.Auth.Provider}}{{else if eq .Auth.Via "cloudflare"}}Cloudflare Access{{else}}{{t "through the proxy"}}{{end}}</span>{{end}}</span></li>
 <li><a class="dropdown-item{{if eq .Page "account"}} active{{end}}" href="/account.html"><span class="bi bi-person-gear me-2" aria-hidden="true"></span>{{t "My account"}}</a></li>
+{{- if and .NetInstall .Auth.CanDownload}}
+<li><a class="dropdown-item{{if eq .Page "netsaves"}} active{{end}}" href="/saves"{{if eq .Page "netsaves"}} aria-current="page"{{end}}><span class="bi bi-cloud-arrow-up me-2" aria-hidden="true"></span>{{t "Saves"}}</a></li>
+{{- end}}
 {{- else if .Auth.IsAdmin}}
 {{- /* without sign-in this menu is the gear itself */}}
 <li><a class="dropdown-item{{if or (eq .Page "settings") (eq .Page "users") (eq .Page "activity") (eq .Page "diagnostics")}} active{{end}}" href="/settings.html"><span class="bi bi-gear me-2" aria-hidden="true"></span>{{t "Settings"}}</a></li>
