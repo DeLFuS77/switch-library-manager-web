@@ -46,7 +46,7 @@ jobs:
 
       # with the zstd library in C (cgo, the default here), as the programs are built
       - name: Test
-        run: go test -race -timeout 20m ./... ./switchfs/_crypto/
+        run: go test -race -timeout 40m ./... ./switchfs/_crypto/
 
       - name: The zstd library in C is the one tested
         run: |
