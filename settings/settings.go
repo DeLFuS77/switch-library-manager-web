@@ -29,7 +29,7 @@ const (
 	TITLE_JSON_FILENAME    = "titles.json"
 	VERSIONS_JSON_FILENAME = "versions.json"
 	SLM_VERSION            = "1.4.0"
-	SLM_WEB_VERSION        = "2.0.4"
+	SLM_WEB_VERSION        = "2.0.5"
 	REPOSITORY_OWNER       = "DeLFuS77"
 	// the release where the "Update title data" workflow of this repository publishes the files
 	// it generates; next to each one it publishes the same file compressed (see CompressedFirst)
@@ -196,6 +196,8 @@ type NotificationOptions struct {
 	// no message when the queue of tasks is done: one is sent by default, also to the settings
 	// saved before it existed
 	QueueDoneQuiet bool `json:"queue_done_quiet,omitempty"`
+	// no message when the install queue of a console (NXDock) ends: one is sent by default
+	ConsoleQueueQuiet bool `json:"console_queue_quiet,omitempty"`
 	// the bot of Telegram answers in its chat: whether a game is in the library, what is new...
 	TelegramCommands bool `json:"telegram_commands,omitempty"`
 }
@@ -359,6 +361,31 @@ type AppSettings struct {
 	LastSyncTime      time.Time           `json:"last_sync_time"`
 	// signing in through a portal in front of the app (off by default)
 	Portal PortalOptions `json:"portal,omitzero"`
+	// installing from the library on the consoles of the user over the network (off by default)
+	NetInstall NetInstallOptions `json:"net_install,omitzero"`
+}
+
+// NetInstallOptions: the library listed for DBI and for installers that read an index of
+// Tinfoil, at /install/ (see web/netinstall.go). Only with users, never without a password.
+type NetInstallOptions struct {
+	Enabled bool `json:"enabled,omitempty"`
+	// every update of a game is listed, not only the newest
+	AllUpdates bool `json:"all_updates,omitempty"`
+	// it also answers from outside the local network
+	Remote bool `json:"remote,omitempty"`
+	// the message an installer of the kind of Tinfoil shows when it opens the index
+	Message string `json:"message,omitempty"`
+	// the consoles may upload the games they dump (NXDock): on unless turned off, so it is a
+	// pointer, nil being on
+	AllowUploads *bool `json:"allow_uploads,omitempty"`
+	// the folder the dumps of the consoles go to; empty, a folder "NXDock dumps" in the first
+	// folder of the library
+	UploadFolder string `json:"upload_folder,omitempty"`
+}
+
+// UploadsAllowed tells whether the consoles may upload the games they dump.
+func (o NetInstallOptions) UploadsAllowed() bool {
+	return o.AllowUploads == nil || *o.AllowUploads
 }
 
 func ReadSettings(dataFolder string) *AppSettings {

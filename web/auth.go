@@ -64,6 +64,9 @@ type Principal struct {
 	Via string
 	// how the session was opened, kept when the session is renewed (see markedSessionCookie)
 	mark string
+	// the name and the id of the API key it signed in with, if it did
+	KeyName string
+	KeyID   string
 }
 
 func (p *Principal) IsAdmin() bool {
@@ -420,6 +423,10 @@ func isPublicPath(path string) bool {
 // isPublicRequest tells a request of a public path written plainly: a path with escapes or dots
 // (%2e%2e%2f, /../) is not taken for one, whatever it becomes once decoded and cleaned.
 func isPublicRequest(r *http.Request) bool {
+	if isConsolePublicRequest(r) {
+		// a console looking for the app or asking to be paired, before it has a key
+		return path.Clean(r.URL.Path) == r.URL.Path
+	}
 	return isPublicPath(r.URL.Path) && r.URL.EscapedPath() == r.URL.Path && path.Clean(r.URL.Path) == r.URL.Path
 }
 
@@ -434,11 +441,11 @@ func (a *Auth) anonymous(r *http.Request) *Principal {
 
 // pages and actions of administrators; read-only users can only look and download
 var adminOnlyPages = map[string]struct{}{"/settings.html": {}, "/wizard": {}, "/wizard/check": {}, "/wizard/folders": {}, "/wizard/admin": {}, "/saves.html": {}, "/saves/download": {}, "/organize.html": {}, "/users.html": {}, "/activity.html": {}, "/activity.csv": {}, "/compress.html": {}, "/space.html": {}, "/update.html": {}, "/backup/download": {},
-	"/compress/xci-list": {}, "/compress/nsz-list": {}, "/diagnostics.html": {}, "/maintenance.html": {}}
+	"/compress/xci-list": {}, "/compress/nsz-list": {}, "/diagnostics.html": {}, "/maintenance.html": {}, netInstallSummaryPath: {}}
 
 // downloadPath matches what takes a file of the library out of it: games, updates, DLC, their
 // archives, cheats and the lists of the library
-var downloadPath = regexp.MustCompile(`^/api/titles/[^/]+(/updates/[^/]+|/dlc/[^/]+|/archive\.zip|/cheats\.(txt|zip))?$|^/api/cheats\.zip$|^/export/|^/sd/list\.txt$`)
+var downloadPath = regexp.MustCompile(`^/api/titles/[^/]+(/updates/[^/]+|/dlc/[^/]+|/archive\.zip|/cheats\.(txt|zip))?$|^/api/cheats\.zip$|^/export/|^/sd/list\.txt$|^/install/`)
 
 // editorPages are the pages of the tools an editor uses besides the ones of everybody
 var editorPages = map[string]struct{}{"/compress.html": {}, "/compress/xci-list": {}, "/compress/nsz-list": {}}
@@ -458,6 +465,8 @@ func roleAllows(role string, r *http.Request) bool {
 		return viewerAllowed(r) || editorAllowed(r)
 	case ROLE_VIEWER:
 		return viewerAllowed(r)
+	case ROLE_CONSOLE:
+		return consoleAllowed(r)
 	}
 	// a guest, or a role this version does not know: looks, without downloading
 	return viewerAllowed(r) && !downloadPath.MatchString(r.URL.Path)
@@ -493,10 +502,15 @@ func viewerAllowed(r *http.Request) bool {
 		// the list of files of the SD card planner is a download, as the pages are; every user
 		// makes their own API keys
 		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/account/color" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt" || r.URL.Path == "/play" ||
-			r.URL.Path == "/api/keys"
+			r.URL.Path == "/api/keys" || strings.HasPrefix(r.URL.Path, "/api/install/pairs/") || r.URL.Path == netInstallPushSend ||
+			strings.HasPrefix(r.URL.Path, netQueueRead+"/")
+	case http.MethodPatch:
+		// the note and the pin of the saves their consoles upload
+		return strings.HasPrefix(r.URL.Path, netSavesApi+"/")
 	case http.MethodDelete:
-		// and revokes them
-		return strings.HasPrefix(r.URL.Path, "/api/keys/")
+		// and revokes them, forgets what is installed on their consoles and deletes their saves
+		return strings.HasPrefix(r.URL.Path, "/api/keys/") || strings.HasPrefix(r.URL.Path, netInventoryForgetPrefix) ||
+			strings.HasPrefix(r.URL.Path, netSavesApi+"/")
 	}
 	return false
 }
@@ -536,7 +550,7 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 			if principal == nil {
 				ip := clientIp(r)
 				// an API key names no account: it counts against the address only
-				secret, bearer := bearerKey(r)
+				secret, bearer := requestKey(r)
 				name := ""
 				if !bearer {
 					name, _, _ = r.BasicAuth()

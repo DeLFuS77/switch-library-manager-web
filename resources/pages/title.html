@@ -51,6 +51,10 @@
 							{{- if and $t.Owned (gt $t.ArchiveFiles 1)}}
 							<a class="btn btn-primary rounded-pill" href="/api/titles/{{$t.Id}}/archive.zip"><span class="bi bi-file-earmark-zip me-2" aria-hidden="true"></span>{{t "Download all (%v files, %v)" $t.ArchiveFiles (formatSize $t.ArchiveSize)}}</a>
 							{{- end}}
+							{{- if and $t.Owned .Auth.Enabled}}
+							{{- /* shown by 24-net-push.js once it knows the user has a console */}}
+							<button type="button" class="btn btn-glass rounded-pill" data-net-send="{{$t.Id}}" hidden><span class="bi bi-nintendo-switch action-icon" aria-hidden="true"></span><span class="action-label">{{t "Send to console"}}</span></button>
+							{{- end}}
 							{{- if not $t.Owned}}
 							<button type="button" class="btn rounded-pill editor-only {{if $t.Marked}}btn-own{{else}}btn-glass{{end}}" data-own="{{$t.Id}}" data-owned="{{$t.Marked}}" aria-pressed="{{$t.Marked}}" title="{{if $t.Marked}}{{t "I have it (click to take it away)"}}{{else}}{{t "I have it, without the file"}}{{end}}"><svg class="own-icon action-icon" aria-hidden="true"><use href="#{{if $t.Marked}}own-on{{else}}own-off{{end}}"></use></svg><span class="action-label">{{t "I have it"}}</span></button>
 							{{- end}}
@@ -83,9 +87,16 @@
 									{{- if gt $t.PackFiles 1}}
 									<li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#titlePack"><span class="bi bi-box-seam me-2" aria-hidden="true"></span>{{t "Combine the files"}}…</button></li>
 									{{- end}}
+									{{- if $t.CanOptimize}}
+									<li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#titleOptimize"><span class="bi bi-lightning-charge me-2" aria-hidden="true"></span>{{t "Optimize for install"}}…</button></li>
+									{{- end}}
 								</ul>
 							</div>
 						</div>
+						{{- if .Auth.Enabled}}
+						{{- /* what of the game is installed on the consoles of the user (see 24-net-push.js) */}}
+						<div class="net-on" data-net-on="{{$t.Id}}" hidden></div>
+						{{- end}}
 					</div>
 				</div>
 				{{- if $t.HasGame}}
@@ -410,6 +421,62 @@
 			{{- end}}{{end}}
 			{{- template "titleEdit" $t}}
 			{{- if gt $t.PackFiles 1}}{{template "titlePack" $t}}{{end}}
+			{{- if and $t.Owned .Auth.Enabled}}{{template "netSend" $t}}{{end}}
+			{{- if $t.CanOptimize}}{{template "titleOptimize" $t}}{{end}}
+{{- end}}
+{{- define "netSend"}}
+			{{- /* files of the game sent to a console of the user, which asks before installing them */}}
+			<div class="modal fade" id="netSend" tabindex="-1" aria-labelledby="netSendTitle" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<form class="modal-content" data-net-send-form>
+						<div class="modal-header">
+							<h2 class="modal-title fs-5" id="netSendTitle"><span class="bi bi-nintendo-switch me-2" aria-hidden="true"></span>{{t "Send to console"}}</h2>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+						</div>
+						<div class="modal-body">
+							<label class="form-label small fw-semibold" for="net_send_console">{{t "Console"}}</label>
+							<select class="form-select mb-3" id="net_send_console" data-net-send-console></select>
+							<fieldset class="mb-0">
+								<legend class="small fw-semibold mb-1">{{t "Files"}}</legend>
+								<p class="small text-body-secondary mb-2">{{t "Ticked: the game and its newest update, unless the console is known to have them."}}</p>
+								<div class="net-send-files" data-net-send-files></div>
+							</fieldset>
+							<p class="small text-body-secondary mt-3 mb-0"><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "The console asks before installing: open NXDock on it."}}</p>
+							<div class="net-error small mt-2" role="alert" data-net-send-error hidden></div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">{{t "Cancel"}}</button>
+							<button type="submit" class="btn btn-work rounded-pill" data-net-send-go><span class="bi bi-send me-2" aria-hidden="true"></span>{{t "Send"}}</button>
+						</div>
+					</form>
+				</div>
+			</div>
+{{- end}}
+{{- define "titleOptimize"}}
+			{{- /* the game and its newest update made one NSP that takes the least room installed (experimental), as a task */}}
+			<div class="modal fade admin-only" id="titleOptimize" tabindex="-1" aria-labelledby="titleOptimizeTitle" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<form class="modal-content optimize-form" data-optimize="{{.Id}}">
+						<div class="modal-header">
+							<h2 class="modal-title fs-5" id="titleOptimizeTitle"><span class="bi bi-lightning-charge me-2" aria-hidden="true"></span>{{t "Optimize for install"}} <span class="badge text-bg-warning align-middle ms-1">{{t "Experimental"}}</span></h2>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+						</div>
+						<div class="modal-body">
+							<p class="small mb-2">{{t "The game and its update (v%v, %v) become one NSP that takes much less room once installed: one game of the version of the update, its data compressed with the LZ4 the system reads. It is written next to the game." .OptimizeVersion (formatSize .OptimizeSize)}}</p>
+							<ul class="small mb-2 ps-3">
+								<li>{{t "Install it with NXDock or DBI, with sigpatches and firmware 12.0.0 or newer."}}</li>
+								<li>{{t "Do not install official updates over it: when a newer update comes, optimize the game again with it."}}</li>
+								<li>{{t "The game and its update are kept: the game is optimized again from them. DLC are left as they are."}}</li>
+							</ul>
+							<p class="small text-body-secondary mb-0"><span class="bi bi-hdd me-1" aria-hidden="true"></span>{{t "It needs free space for the new file, and for an NSP of the game while it works when it is an NSZ or XCZ."}}</p>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">{{t "Cancel"}}</button>
+							<button type="submit" class="btn btn-primary rounded-pill"><span class="bi bi-lightning-charge me-2" aria-hidden="true"></span>{{t "Optimize for install"}}</button>
+						</div>
+					</form>
+				</div>
+			</div>
 {{- end}}
 {{- define "titlePack"}}
 			{{- /* one file with the game, its latest update and its DLC, made as a task */}}

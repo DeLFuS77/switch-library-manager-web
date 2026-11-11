@@ -105,6 +105,8 @@ func (web *Web) handleAPIKeys() {
 			return
 		}
 		web.sugarLogger.Infof("API key %q of %q revoked", key.Name, user)
+		// what was known to be installed on its console goes with it
+		web.netInventoryForget(key.ID)
 		detail := quotedKeyName(key.Name)
 		if user != actor.Name {
 			detail += " (" + user + ")"

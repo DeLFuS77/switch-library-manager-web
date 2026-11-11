@@ -45,6 +45,7 @@ function initCompress() {
 	bindFileForm(document.getElementById('convertForm'), '/convert/start');
 	bindFileForm(document.getElementById('splitForm'), '/split/start');
 	bindFileForm(document.getElementById('packForm'), '/packs/start');
+	bindFileForm(document.getElementById('optimizeForm'), '/optimize/start');
 	bindFileForm(document.getElementById('spaceForm'), '/space/clean');
 }
 

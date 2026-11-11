@@ -14,6 +14,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs/optimize"
 	"github.com/gorilla/mux"
 )
 
@@ -196,6 +197,11 @@ type TitleDetail struct {
 	// the files a complete pack of the game is made of (base, latest update and DLC)
 	PackFiles int
 	PackSize  int64
+	// Optimize for install: whether the game can be, the size of the game and its newest update it
+	// is made of, and the version it takes
+	CanOptimize     bool
+	OptimizeSize    int64
+	OptimizeVersion int
 }
 
 type TitlePageData struct {
@@ -302,6 +308,10 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 			}
 			detail.Updates = append(detail.Updates, *file)
 		}
+		// a game merged with its update (optimized for install, or by another tool) holds that update
+		if version := mergedUpdate(local); version > 0 {
+			detail.Base.AlsoHolds = append(detail.Base.AlsoHolds, i18n.Translatef(lang, "update v%v, merged into the game", version))
+		}
 		inGameFile := 0
 		for _, dlc := range local.Dlc {
 			if dlc.ExtendedInfo == local.File.ExtendedInfo {
@@ -322,6 +332,13 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		for _, file := range withCompressedCopies(packFiles(local), localDB.Skipped) {
 			detail.PackFiles++
 			detail.PackSize += file.Size
+		}
+		if optimize.Built {
+			for _, file := range web.optimizeFiles(local) {
+				detail.CanOptimize = true
+				detail.OptimizeSize += file.Size
+			}
+			detail.OptimizeVersion = local.LatestUpdate
 		}
 	}
 	if detail.Id == "" {
@@ -548,6 +565,7 @@ func sortedVersions(updates map[int]db.SwitchFileInfo) []int {
 func (web *Web) HandleTitle() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/title.html")
 	web.handlePack()
+	web.handleOptimize()
 	web.handleNupFix()
 	web.handleNupIcon()
 

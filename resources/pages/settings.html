@@ -483,6 +483,110 @@
 								</div>
 							</div>
 						</section>
+						<section class="surface mb-4 settings-section" id="netinstall" aria-labelledby="netinstallTitle" data-net-install>
+							{{- $n := .Settings.NetInstall}}
+							<h2 class="section-title" id="netinstallTitle"><span class="bi bi-router" aria-hidden="true"></span>{{t "Install over the network"}}</h2>
+							<p class="text-body-secondary">{{t "Install your games on your consoles from this library, without copying them to the SD card: NXDock, DBI and the installers that read an index of Tinfoil see it over the network. Off until you turn it on."}}</p>
+							<div class="net-install-note mb-3"><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "Only for your own consoles: do not share the keys nor the address."}}</div>
+							{{- if not .NetInstallReady}}
+							<div class="net-install-note d-flex gap-2 align-items-start mb-3"><span class="bi bi-person-lock mt-1" aria-hidden="true"></span><div>{{t "Installing over the network needs a user with a password."}} <a class="fw-semibold" href="/users.html">{{t "Create one in Users"}}</a></div></div>
+							{{- end}}
+							<div class="form-check form-switch mb-3">
+								<input class="form-check-input" type="checkbox" role="switch" id="net_install_enabled" name="net_install_enabled" value="true" data-net-master{{if $n.Enabled}} checked{{end}}>
+								<label class="form-check-label fw-semibold" for="net_install_enabled">{{t "Turn on installing over the network"}}</label>
+							</div>
+							<div data-net-fields>
+								<div class="row g-3">
+									<div class="col-md-6">
+										<div class="form-check form-switch">
+											<input class="form-check-input" type="checkbox" role="switch" id="net_install_all_updates" name="net_install_all_updates" value="true"{{if $n.AllUpdates}} checked{{end}}>
+											<label class="form-check-label" for="net_install_all_updates">{{t "Every update of each game, not only the newest"}}</label>
+										</div>
+										<div class="form-check form-switch mt-2">
+											<input class="form-check-input" type="checkbox" role="switch" id="net_install_remote" name="net_install_remote" value="true"{{if $n.Remote}} checked{{end}}>
+											<label class="form-check-label" for="net_install_remote">{{t "Answer also from outside the local network"}}</label>
+											<div class="form-text">{{t "From outside your home, better with a VPN."}}</div>
+										</div>
+										<div class="form-check form-switch mt-2">
+											<input class="form-check-input" type="checkbox" role="switch" id="net_install_allow_uploads" name="net_install_allow_uploads" value="true"{{if $n.UploadsAllowed}} checked{{end}}>
+											<label class="form-check-label" for="net_install_allow_uploads">{{t "The consoles may upload the games they dump"}}</label>
+											<div class="form-text">{{t "NXDock sends the game dumped on the console to the folder of the dumps, and the library scans it."}}</div>
+										</div>
+									</div>
+									<div class="col-md-6">
+										<label for="net_install_message" class="form-label fw-semibold">{{t "Message when it opens (Tinfoil, CyberFoil, Sphaira)"}}</label>
+										<input type="text" class="form-control" id="net_install_message" name="net_install_message" value="{{$n.Message}}" maxlength="200">
+										<label for="net_install_upload_folder" class="form-label fw-semibold mt-3">{{t "Folder of the dumps"}}</label>
+										<input type="text" class="form-control" id="net_install_upload_folder" name="net_install_upload_folder" value="{{$n.UploadFolder}}" placeholder="NXDock dumps" autocomplete="off" spellcheck="false">
+										<div class="form-text">{{t "Empty: a folder “NXDock dumps” in the folder of the library. Another folder is scanned only when it is inside a folder of the library."}}</div>
+									</div>
+								</div>
+
+								<h3 class="h6 fw-semibold mt-4"><span class="bi bi-nintendo-switch me-1" aria-hidden="true"></span>{{t "Your consoles"}}</h3>
+								<p class="small text-body-secondary mb-2">{{t "Each console signs in with its own key: it can only see the list and download, nothing else. If you lose a console, remove its key."}}</p>
+								<ul class="list-unstyled net-consoles mb-2" data-net-consoles data-empty="{{t "No console yet."}}" data-never="{{t "Never used"}}" data-last-used="{{t "Last used %v"}}" data-remove="{{t "Remove"}}" data-confirm="{{t "Remove the console “%v”? It stops installing from the library."}}"></ul>
+								<div class="d-flex flex-wrap gap-2" data-net-add>
+									<label class="visually-hidden" for="net_console_name">{{t "Name of the console"}}</label>
+									<input type="text" class="form-control form-control-sm net-console-name" id="net_console_name" placeholder="{{t "Name of the console"}}" maxlength="40" autocomplete="off">
+									<button type="button" class="btn btn-sm btn-primary rounded-pill" data-net-add-button><span class="bi bi-plus-lg me-1" aria-hidden="true"></span>{{t "Add console"}}</button>
+								</div>
+								<div class="net-error small mt-2" role="alert" data-net-error hidden></div>
+								<div class="net-key mt-3" data-net-key hidden>
+									<div class="fw-semibold mb-1"><span class="bi bi-key me-1" aria-hidden="true"></span><span data-net-key-title data-text="{{t "Key of “%v”: shown only now"}}"></span></div>
+									<div class="small text-body-secondary mb-2">{{t "Copy it into the installer now. If you lose it, remove the console and add it again."}}</div>
+									<div class="d-flex gap-2 align-items-start">
+										<code class="net-code flex-grow-1" data-net-key-secret></code>
+										<button type="button" class="btn btn-sm btn-outline-primary rounded-pill" data-copy="" data-net-key-copy aria-label="{{t "Copy"}}" title="{{t "Copy"}}"><span class="bi bi-clipboard" aria-hidden="true"></span></button>
+									</div>
+								</div>
+
+								<div class="vault-setup mt-4">
+									<h3 class="h6 fw-semibold">{{t "Set up the installer"}}</h3>
+									<ul class="nav nav-pills net-tabs mb-3" role="tablist">
+										<li class="nav-item" role="presentation"><button type="button" class="nav-link active" data-bs-toggle="pill" data-bs-target="#netDbi" role="tab" aria-controls="netDbi" aria-selected="true">DBI</button></li>
+										<li class="nav-item" role="presentation"><button type="button" class="nav-link" data-bs-toggle="pill" data-bs-target="#netTinfoil" role="tab" aria-controls="netTinfoil" aria-selected="false">Tinfoil, CyberFoil, Sphaira</button></li>
+									</ul>
+									<div class="mb-3">
+										<label for="net_origin" class="form-label small fw-semibold">{{t "Address of this server for the console"}}</label>
+										<input type="url" class="form-control form-control-sm font-monospace" id="net_origin" data-net-origin spellcheck="false">
+										<div class="form-text">{{t "The console needs the address of the server on your network (not localhost), like http://192.168.1.10:3000."}}</div>
+									</div>
+									<div class="tab-content">
+										<div class="tab-pane fade show active" id="netDbi" role="tabpanel">
+											<ol class="small mb-2">
+												<li>{{t "Save these settings with installing over the network on, and add a console above."}}</li>
+												<li>{{t "Add this line under %v in %v:" "[Network sources]" "sdmc:/switch/DBI/dbi.config"}}</li>
+											</ol>
+											<div class="d-flex gap-2 align-items-start">
+												<code class="net-code flex-grow-1" data-net-line="dbi"></code>
+												<button type="button" class="btn btn-sm btn-outline-primary rounded-pill" data-copy="" data-net-copy="dbi" aria-label="{{t "Copy"}}" title="{{t "Copy"}}"><span class="bi bi-clipboard" aria-hidden="true"></span></button>
+											</div>
+											<ol class="small mt-2 mb-0" start="3"><li>{{t "Open DBI: the library is among its network sources."}}</li></ol>
+										</div>
+										<div class="tab-pane fade" id="netTinfoil" role="tabpanel">
+											<ol class="small mb-2">
+												<li>{{t "Save these settings with installing over the network on, and add a console above."}}</li>
+												<li>{{t "Add a shop or location with this address, the user %v and the key of the console as the password:" "console"}}</li>
+											</ol>
+											<div class="d-flex gap-2 align-items-start">
+												<code class="net-code flex-grow-1" data-net-line="tinfoil"></code>
+												<button type="button" class="btn btn-sm btn-outline-primary rounded-pill" data-copy="" data-net-copy="tinfoil" aria-label="{{t "Copy"}}" title="{{t "Copy"}}"><span class="bi bi-clipboard" aria-hidden="true"></span></button>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<h3 class="h6 fw-semibold mt-4">{{t "What the console will see"}}</h3>
+								<div class="row g-2" data-net-summary>
+									<div class="col-6 col-md-3"><div class="net-stat"><b data-net-count="games">–</b>{{t "Games"}}</div></div>
+									<div class="col-6 col-md-3"><div class="net-stat"><b data-net-count="updates">–</b>{{t "Updates"}}</div></div>
+									<div class="col-6 col-md-3"><div class="net-stat"><b data-net-count="dlc">–</b>{{t "DLC"}}</div></div>
+									<div class="col-6 col-md-3"><div class="net-stat"><b data-net-count="translated">–</b>{{t "With extra compression"}}</div></div>
+								</div>
+								<div class="form-text mt-1">{{t "The ones with the extra compression of NXPress are sent decompressed as they are downloaded, so DBI installs them: more goes over the network, but nothing takes room on the server."}}</div>
+								<a class="btn btn-sm btn-outline-primary rounded-pill mt-2" href="/install/dbi/" target="_blank" rel="noopener"><span class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></span>{{t "See the list as DBI sees it"}}</a>
+							</div>
+						</section>
 						<section class="surface mb-4 settings-section" id="notifications" aria-labelledby="notificationsTitle">
 							<h2 class="section-title" id="notificationsTitle"><span class="bi bi-bell" aria-hidden="true"></span>{{t "Notifications"}}</h2>
 							<p class="text-body-secondary">{{t "After every synchronization, get a message when an update or a DLC of one of your games becomes available. Only new items are reported."}}</p>
@@ -520,6 +624,10 @@
 									<div class="form-check form-switch">
 										<input class="form-check-input" type="checkbox" role="switch" id="notify_queue_done" name="notify_queue_done" value="true"{{if not .Settings.Notifications.QueueDoneQuiet}} checked{{end}}>
 										<label class="form-check-label" for="notify_queue_done">{{t "Notify when the queue of tasks is done"}}</label>
+									</div>
+									<div class="form-check form-switch">
+										<input class="form-check-input" type="checkbox" role="switch" id="notify_console_queue" name="notify_console_queue" value="true"{{if not .Settings.Notifications.ConsoleQueueQuiet}} checked{{end}}>
+										<label class="form-check-label" for="notify_console_queue">{{t "Notify when a console finishes installing (NXDock)"}}</label>
 									</div>
 									<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill ms-sm-auto" id="notificationTest"><span class="bi bi-send me-1" aria-hidden="true"></span>{{t "Send a test notification"}}</button>
 								</div>
@@ -593,7 +701,7 @@
 							<p class="small text-body-secondary mb-2">{{t "Nothing is waiting in the quarantine."}}</p>
 							{{- end}}
 							{{- end}}
-							<p class="small text-body-secondary mb-0">{{t "The hidden folder (%v) is in each library folder: the app does not scan it nor offer it to DBI." ".slm-quarantine"}}</p>
+							<p class="small text-body-secondary mb-0">{{t "The hidden folder (%v) is in each library folder: the app does not scan it nor offer it to NXDock or DBI." ".slm-quarantine"}}</p>
 						</section>
 						<div class="save-bar d-flex align-items-center justify-content-between gap-3">
 							<span class="text-body-secondary small d-none d-sm-inline">{{t "Changes are applied when you save."}}</span>

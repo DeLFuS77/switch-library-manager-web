@@ -340,6 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initScreenshots();
 	initSpacePreparing();
 	initPack();
+	initOptimize();
 	initNupFix();
 	initMeasure();
 	initHeroMenus();

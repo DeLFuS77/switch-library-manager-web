@@ -94,6 +94,12 @@ Linux, Docker, NAS and Raspberry Pi.
 - **Times to beat** (optional, from [IGDB](https://www.igdb.com)): how long each game takes, quick, story and 100%,
   and how many hours your library adds up to
 
+**Install over the network**
+- Install the games of your library on your consoles without copying them to the SD card: NXDock (the installer for the
+  console of this project, coming soon), DBI and the installers that read an index of Tinfoil (CyberFoil, Sphaira) see it over the network. Off until you turn it on
+- NXDock finds the app by itself and is paired with a code; send a game to a console from its page and follow its install
+  queue from the web. NXDock also keeps the saves of its games in the app and uploads the games the console dumps
+
 **Save vault**
 - Keep the backups of your saves on your server: **JKSV** on the console uploads them over WebDAV, a ZIP per backup,
   matched to the games of your library, with their history, downloads, a limit of backups per game and a message for
@@ -127,7 +133,7 @@ Linux, Docker, NAS and Raspberry Pi.
   and the library organized by itself, with a message of what was done
 
 **Save space**
-- Compress NSP to NSZ and XCI to XCZ (10 to 60% smaller), installed directly by installers such as DBI;
+- Compress NSP to NSZ and XCI to XCZ (10 to 60% smaller), installed directly by NXDock or DBI;
   convert XCI to NSP
 - Every file is verified before the original is deleted; NSZ files can be decompressed back to NSP
 - See how much each file will likely save before compressing it, from what your earlier compressions saved
@@ -138,6 +144,7 @@ Linux, Docker, NAS and Raspberry Pi.
   deleted, only if you choose it
 - Split multi-title files ("SuperNSP", packs made here or by other tools) back into one NSP or NSZ per game, update
   and DLC, in bulk, without decompressing or changing what they hold; a cartridge with several games into one XCI or XCZ per game
+- Optimize for install (experimental): a game and its update in one NSP that takes much less room once installed
 - Space page: see how much old updates, duplicates and already compressed originals take, and free it safely
 - The same game from several regions (each with its own title ID): the copy to keep is suggested (your language,
   more languages, newer update, more DLC, not damaged, already compressed) and the others are deleted in one click
