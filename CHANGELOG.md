@@ -1,15 +1,17 @@
 # Changelog
 
-## Unreleased
+## 2.0.5
 
 ### Improvements
 
-- NXDock, the installer of the console, keeps the saves of its games in the app, ten per game, the pinned ones never deleted by themselves: the page Saves, in the menu of the account, shows them by game with their notes, to download or delete. It also uploads the games dumped on the console to the library, going on where an upload was cut (allowed in Settings, Install over the network, with the folder of the dumps), and gets the cheats of the version of a game
-- Optimize for install (experimental), in the More menu of a game with its update: the game and its update become one NSP that takes much less room once installed. It needs sigpatches, and official updates do not go over it
+- Install over the network, in Settings (off until it is turned on): NXDock, DBI and the installers that read an index of Tinfoil (CyberFoil, Sphaira) install the games of the library without copying them to the SD card. NXDock finds the app by itself and is paired with a code shown on both screens
+- Send to console on the page of a game: the console asks before installing, and its install queue can be followed, paused or cancelled from the web, with a message when it ends
+- NXDock keeps the saves of its games in the app (Saves, in the menu of the account), uploads the games dumped on the console to the library and gets the cheats of a game
+- Optimize for install (experimental), in the More menu of a game with its update: one NSP that takes much less room once installed, marked Optimized in the Library. It needs sigpatches, and official updates should not be installed over it
 
 ### Fixes
 
-- A starting screen still open when the app was ready waited forever once a user with a password existed: the script that watches for the app to be ready asked for the login. It is answered without the login now, as the health check is, and the page opens by itself
+- The starting screen opens by itself again when a password is set: it waited forever
 
 ## 2.0.4
 

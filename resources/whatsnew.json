@@ -1,4 +1,61 @@
 {
+  "2.0.5": {
+    "en": [
+      "Install over the network, in Settings: NXDock, DBI and Tinfoil install the games of the library without copying them to the SD card. NXDock is paired with a code.",
+      "Send to console on the page of a game: the console asks before installing, and you follow its install queue from the web.",
+      "Optimize for install (experimental): a game and its update in one NSP that takes much less room once installed."
+    ],
+    "es": [
+      "Instalar por red, en Ajustes: NXDock, DBI y Tinfoil instalan los juegos de la biblioteca sin copiarlos a la tarjeta SD. NXDock se empareja con un código.",
+      "Enviar a la consola en la ficha de un juego: la consola pregunta antes de instalar, y sigues su cola de instalación desde la web.",
+      "Optimizar para instalar (experimental): un juego y su actualización en un solo NSP que ocupa mucho menos una vez instalado."
+    ],
+    "de": [
+      "Über das Netzwerk installieren, in den Einstellungen: NXDock, DBI und Tinfoil installieren die Spiele der Bibliothek, ohne sie auf die SD-Karte zu kopieren. NXDock wird mit einem Code gekoppelt.",
+      "An Konsole senden auf der Seite eines Spiels: Die Konsole fragt vor der Installation, und du verfolgst ihre Installationswarteschlange im Web.",
+      "Für die Installation optimieren (experimentell): ein Spiel und sein Update in einer NSP, die installiert viel weniger Platz braucht."
+    ],
+    "fr": [
+      "Installer par le réseau, dans les Réglages : NXDock, DBI et Tinfoil installent les jeux de la bibliothèque sans les copier sur la carte SD. NXDock s’associe avec un code.",
+      "Envoyer à la console sur la page d’un jeu : la console demande avant d’installer, et vous suivez sa file d’installation depuis le web.",
+      "Optimiser pour l’installation (expérimental) : un jeu et sa mise à jour dans un seul NSP qui prend beaucoup moins de place une fois installé."
+    ],
+    "it": [
+      "Installa via rete, nelle Impostazioni: NXDock, DBI e Tinfoil installano i giochi della libreria senza copiarli sulla scheda SD. NXDock si associa con un codice.",
+      "Invia alla console nella pagina di un gioco: la console chiede prima di installare, e segui la sua coda di installazione dal web.",
+      "Ottimizza per l’installazione (sperimentale): un gioco e il suo aggiornamento in un solo NSP che occupa molto meno spazio una volta installato."
+    ],
+    "pt": [
+      "Instalar pela rede, nas Configurações: NXDock, DBI e Tinfoil instalam os jogos da biblioteca sem copiá-los para o cartão SD. O NXDock é pareado com um código.",
+      "Enviar ao console na página de um jogo: o console pergunta antes de instalar, e você acompanha a fila de instalação dele pela web.",
+      "Otimizar para instalar (experimental): um jogo e sua atualização em um único NSP que ocupa muito menos espaço depois de instalado."
+    ],
+    "nl": [
+      "Installeren via het netwerk, in Instellingen: NXDock, DBI en Tinfoil installeren de games van de bibliotheek zonder ze naar de SD-kaart te kopiëren. NXDock wordt gekoppeld met een code.",
+      "Naar console sturen op de pagina van een game: de console vraagt het eerst, en je volgt zijn installatiewachtrij via het web.",
+      "Optimaliseren voor installatie (experimenteel): een game en zijn update in één NSP die geïnstalleerd veel minder ruimte inneemt."
+    ],
+    "ru": [
+      "Установка по сети в настройках: NXDock, DBI и Tinfoil устанавливают игры из библиотеки, не копируя их на SD-карту. NXDock сопрягается по коду.",
+      "«Отправить на консоль» на странице игры: консоль спрашивает перед установкой, а за её очередью установки можно следить из веба.",
+      "Оптимизация для установки (экспериментально): игра и её обновление в одном NSP, который после установки занимает намного меньше места."
+    ],
+    "ja": [
+      "設定に「ネットワーク経由でインストール」を追加：NXDock、DBI、Tinfoil がライブラリのゲームを SD カードにコピーせずにインストールします。NXDock はコードでペアリングします。",
+      "ゲームのページに「本体に送信」を追加：本体はインストール前に確認し、そのインストールキューをウェブから確認できます。",
+      "インストール用に最適化（実験的）：ゲームとそのアップデートを、インストール後の容量がずっと小さい 1 つの NSP にします。"
+    ],
+    "ko": [
+      "설정에 '네트워크로 설치' 추가: NXDock, DBI, Tinfoil이 라이브러리의 게임을 SD 카드에 복사하지 않고 설치합니다. NXDock은 코드로 페어링합니다.",
+      "게임 페이지에 '콘솔로 보내기' 추가: 콘솔은 설치 전에 묻고, 설치 대기열은 웹에서 확인할 수 있습니다.",
+      "설치용 최적화(실험적): 게임과 업데이트를 설치 후 훨씬 적은 공간을 차지하는 하나의 NSP로 만듭니다."
+    ],
+    "zh": [
+      "设置中新增“通过网络安装”：NXDock、DBI 和 Tinfoil 无需复制到 SD 卡即可安装库中的游戏。NXDock 通过代码配对。",
+      "游戏页面新增“发送到主机”：主机在安装前会询问，你可以在网页上查看它的安装队列。",
+      "为安装优化（实验性）：把游戏和它的更新合成一个 NSP，安装后占用的空间少得多。"
+    ]
+  },
   "2.0.4": {
     "en": [
       "Forgot your password? on the login page: the app writes a one-time code in its log, and with it you set a new password.",
