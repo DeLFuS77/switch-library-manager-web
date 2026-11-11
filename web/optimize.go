@@ -34,6 +34,21 @@ const (
 
 var errOptimizeExists = errors.New("the optimized file already exists")
 
+// mergedUpdate is the version of the update a game merged with it holds (optimized for install, or
+// merged by another tool): its base file is of that version, and no update file of the library is
+// the same file (a NUP or a SuperNSP holds the game and its update apart). 0 for any other game.
+func mergedUpdate(local *db.SwitchGameFiles) int {
+	if local == nil || !local.BaseExist || local.File.Metadata == nil || local.File.Metadata.Version <= 0 {
+		return 0
+	}
+	for _, update := range local.Updates {
+		if update.ExtendedInfo == local.File.ExtendedInfo {
+			return 0
+		}
+	}
+	return local.File.Metadata.Version
+}
+
 // optimizeFiles gives the base file of the game as it was released (version 0) and the file of
 // its newest update, when both are single files. The base is the one of the game, or, once the game
 // was optimized (or merged) before, the original kept beside it as a base of another version: a

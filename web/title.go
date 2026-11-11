@@ -309,8 +309,8 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 			detail.Updates = append(detail.Updates, *file)
 		}
 		// a game merged with its update (optimized for install, or by another tool) holds that update
-		if local.File.Metadata != nil && local.File.Metadata.Version > 0 {
-			detail.Base.AlsoHolds = append(detail.Base.AlsoHolds, i18n.Translatef(lang, "update v%v, merged into the game", local.File.Metadata.Version))
+		if version := mergedUpdate(local); version > 0 {
+			detail.Base.AlsoHolds = append(detail.Base.AlsoHolds, i18n.Translatef(lang, "update v%v, merged into the game", version))
 		}
 		inGameFile := 0
 		for _, dlc := range local.Dlc {

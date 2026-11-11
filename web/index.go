@@ -555,6 +555,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			Size:         v.File.ExtendedInfo.Size,
 		}
 		item.Added = added["game:"+item.Id]
+		item.Optimized = mergedUpdate(v)
 		item.TimeToBeat = timesToBeat[item.Id].Main()
 		item.Score = timesToBeat[item.Id].Score()
 		item.Collections = collections[item.Id]

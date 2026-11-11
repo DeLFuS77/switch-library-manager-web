@@ -303,6 +303,9 @@ type TitleItem struct {
 	Wished bool
 	// the game is a demo (library)
 	Demo bool
+	// library: the game is merged with its update (optimized for install, or by another tool):
+	// the version of that update, 0 else
+	Optimized int
 	// library: how long the game takes to beat, in seconds (IGDB); 0 when not known
 	TimeToBeat int
 	// library: the score of the game on IGDB, of the critics or else of the users; 0 when none

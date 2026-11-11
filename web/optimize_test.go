@@ -77,7 +77,7 @@ func TestOptimizeNotesAndTexts(t *testing.T) {
 			t.Errorf("%v: %q, not %q", err, got, want)
 		}
 	}
-	texts := []string{OPTIMIZE_ACTION, tasklog.PHASE_OPTIMIZING, NOTE_OPTIMIZE_FAILED, NOTE_OPTIMIZE_EXISTS, NOTE_OPTIMIZE_NO_PAIR, NOTE_OPTIMIZE_NOT_BUILT, "Select the games to optimize.", "Optimize the games", "update v%v, merged into the game", "Install it with NXDock or DBI, with sigpatches and firmware 12.0.0 or newer."}
+	texts := []string{OPTIMIZE_ACTION, tasklog.PHASE_OPTIMIZING, NOTE_OPTIMIZE_FAILED, NOTE_OPTIMIZE_EXISTS, NOTE_OPTIMIZE_NO_PAIR, NOTE_OPTIMIZE_NOT_BUILT, "Select the games to optimize.", "Optimize the games", "update v%v, merged into the game", "Optimized", "Optimized for install (v%v): do not install official updates over it", "Install it with NXDock or DBI, with sigpatches and firmware 12.0.0 or newer."}
 	for lang, table := range i18n.Translations {
 		for _, text := range texts {
 			if table[text] == "" {
@@ -136,5 +136,27 @@ func TestOptimizeAgainFromTheOriginal(t *testing.T) {
 	web.invalidateDerived()
 	if files := web.optimizeFiles(local); files != nil {
 		t.Fatalf("no original: %v", files)
+	}
+}
+
+// A game merged with its update (optimized for install) is marked on its card in the Library,
+// with the version it holds; the other games are not.
+func TestOptimizedGameMarkedInTheLibrary(t *testing.T) {
+	web, _, _ := compressWebWithLibrary(t)
+	web.HandleIndex()
+	page := func() string {
+		recorder := httptest.NewRecorder()
+		web.router.ServeHTTP(recorder, httptest.NewRequest("GET", "/index.html", nil))
+		return recorder.Body.String()
+	}
+	if strings.Contains(page(), "badge-optimized") {
+		t.Fatal("a game as it was released is marked")
+	}
+	_, library := web.state.get()
+	local := library.TitlesMap["0100000000010"]
+	local.File.Metadata = &switchfs.ContentMetaAttributes{TitleId: "0100000000010000", Version: 65536}
+	web.invalidateDerived()
+	if body := page(); !strings.Contains(body, "badge-optimized") || !strings.Contains(body, "(v65536)") {
+		t.Fatal("the optimized game is not marked on its card")
 	}
 }
