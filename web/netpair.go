@@ -233,7 +233,7 @@ func (web *Web) handleNetPairAsk(w http.ResponseWriter, r *http.Request) {
 	pairs.list[pairing.id] = pairing
 	pairs.mutex.Unlock()
 
-	web.sugarLogger.Infof("Network install: a console (%s) asks to be paired from %s", pairing.console, ip)
+	web.sugarLogger.Infof("Network install: a console (%s) asks to be paired", pairing.console)
 	w.Header().Set("Cache-Control", "no-store")
 	writeJSON(w, http.StatusCreated, map[string]any{"id": pairing.id, "code": netShownCode(pairing.code), "expires": int(netPairLife.Seconds())})
 }
@@ -328,11 +328,11 @@ func (web *Web) handleNetPairDecide(w http.ResponseWriter, r *http.Request) {
 	if !accept {
 		pairing.rejected, pairing.decided = true, time.Now()
 		pairs.mutex.Unlock()
-		web.sugarLogger.Infof("Network install: %s refused the console %s (%s)", principal.Name, pairing.console, pairing.ip)
+		web.sugarLogger.Infof("Network install: %s refused the console %s", principal.Name, pairing.console)
 		writeJSON(w, http.StatusOK, map[string]string{"state": "rejected"})
 		return
 	}
-	console, ip := pairing.console, pairing.ip
+	console := pairing.console
 	pairs.mutex.Unlock()
 
 	if enable && principal.IsAdmin() && !netInstallEnabled(settings.ReadSettings(web.dataFolder)) {
@@ -375,7 +375,7 @@ func (web *Web) handleNetPairDecide(w http.ResponseWriter, r *http.Request) {
 		writeGlobalError(w, http.StatusGone, lang, errNetPairGone.Error())
 		return
 	}
-	web.sugarLogger.Infof("Network install: %s accepted the console %s (%s)", principal.Name, key.Name, ip)
+	web.sugarLogger.Infof("Network install: %s accepted the console %s", principal.Name, key.Name)
 	web.activities().Add(activity.Entry{Time: time.Now(), User: principal.Name, Action: activity.ACTION_KEY_NEW,
 		Detail: quotedKeyName(key.Name) + ": " + apiKeyRoleDetail(key.Role), IP: clientIp(r)})
 	writeJSON(w, http.StatusOK, map[string]string{"state": "accepted", "name": key.Name})

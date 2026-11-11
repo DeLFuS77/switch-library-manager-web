@@ -610,7 +610,7 @@ type netInstallNotes struct {
 // of the key of the console and the file.
 func (web *Web) noteNetInstall(r *http.Request, file netFile) {
 	principal := principalFrom(r)
-	web.sugarLogger.Infof("Network install: %s sent to %s (%s)", file.name, clientIp(r), principal.Name)
+	web.sugarLogger.Infof("Network install: %s sent to a console of %s", file.name, principal.Name)
 	if isDemoMode() {
 		return
 	}
