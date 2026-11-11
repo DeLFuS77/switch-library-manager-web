@@ -10,8 +10,10 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
@@ -139,5 +141,73 @@ func TestNetCatalogNativeLeavesPlainFiles(t *testing.T) {
 		if got := console.do("GET", f.Url+"?raw=1", nil, "Authorization", auth); got.Code != http.StatusOK || int64(got.Body.Len()) != f.Size {
 			t.Fatalf("raw: %d %d", got.Code, got.Body.Len())
 		}
+	}
+}
+
+// While the list of files is made, which in a big library on a NAS takes minutes the first time,
+// the catalog does not keep the console waiting: it tells how far it is and to ask again. An older
+// list is given at once, and made again behind it.
+func TestNetCatalogWhileTheListIsMade(t *testing.T) {
+	web, admin, key := netWeb(t)
+	waitWas := netCatalogWait
+	netCatalogWait = 50 * time.Millisecond
+	t.Cleanup(func() { netCatalogWait = waitWas })
+	console := &client{t: t, handler: admin.handler}
+	auth := basic("switch", key)
+
+	// a list being made that does not end yet
+	_, localDB := web.state.get()
+	options := settings.ReadSettings(web.dataFolder).NetInstall
+	web.netFilesForget()
+	making := make(chan struct{})
+	web.netList.mutex.Lock()
+	web.netList.making, web.netList.makingLocalDB, web.netList.makingAllUpdates = making, localDB, options.AllUpdates
+	web.netList.makingGeneration, web.netList.makingDone, web.netList.makingTotal = web.netList.generation, 5, 10
+	web.netList.mutex.Unlock()
+
+	started := time.Now()
+	got := console.do("GET", "/install/catalog", nil, "Authorization", auth)
+	var preparing struct {
+		Preparing bool `json:"preparing"`
+		Done      int  `json:"done"`
+		Total     int  `json:"total"`
+	}
+	if err := json.Unmarshal(got.Body.Bytes(), &preparing); err != nil || got.Code != http.StatusServiceUnavailable ||
+		!preparing.Preparing || preparing.Done != 5 || preparing.Total != 10 || got.Header().Get("Retry-After") == "" {
+		t.Fatalf("preparing: %d %q %s", got.Code, got.Header(), got.Body.String())
+	}
+	if time.Since(started) > 5*time.Second {
+		t.Fatalf("the console waited %s", time.Since(started))
+	}
+
+	// the list ends (here: is let go), and the next question gets the catalog
+	web.netList.mutex.Lock()
+	web.netList.making = nil
+	web.netList.mutex.Unlock()
+	close(making)
+	netCatalogWait = 30 * time.Second
+	if got := console.do("GET", "/install/catalog", nil, "Authorization", auth); got.Code != http.StatusOK {
+		t.Fatalf("the catalog once made: %d %s", got.Code, got.Body.String())
+	}
+
+	// an older list is given at once, and made again behind it
+	web.netList.mutex.Lock()
+	web.netList.until = time.Now().Add(-time.Second)
+	web.netList.mutex.Unlock()
+	if got := console.do("GET", "/install/catalog", nil, "Authorization", auth); got.Code != http.StatusOK {
+		t.Fatalf("the older list: %d %s", got.Code, got.Body.String())
+	}
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		web.netList.mutex.Lock()
+		fresh := time.Now().Before(web.netList.until)
+		web.netList.mutex.Unlock()
+		if fresh {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the older list was not made again")
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
 }

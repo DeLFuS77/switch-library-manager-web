@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.5
+  <Changes>### 2.0.6
+- Install over the network with a big library: the catalog answers at once, and tells a console while it is first prepared
+### 2.0.5
 - Install over the network: NXDock, DBI and Tinfoil install the games of the library, and NXDock is paired with a code
 - Send to console on the page of a game, with the install queue of the console on the web
 - Optimize for install (experimental): a game and its update in one NSP that takes much less room installed

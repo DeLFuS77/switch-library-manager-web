@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.6
+
+### Fixes
+
+- Install over the network with a big library: the catalog and the covers answer at once, as the list of files is made after each scan and kept. While it is first made, a console is told how far it is instead of waiting until it gives up
+
 ## 2.0.5
 
 ### Improvements

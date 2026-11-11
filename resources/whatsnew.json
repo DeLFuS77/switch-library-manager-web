@@ -1,4 +1,39 @@
 {
+  "2.0.6": {
+    "en": [
+      "Install over the network with a big library: the catalog answers at once, and a console is told how far it is while it is first prepared."
+    ],
+    "es": [
+      "Instalar por red con una biblioteca grande: el catálogo contesta al momento, y mientras se prepara la primera vez la consola ve cuánto lleva."
+    ],
+    "de": [
+      "Über das Netzwerk installieren mit einer großen Bibliothek: Der Katalog antwortet sofort, und während er zum ersten Mal vorbereitet wird, sieht die Konsole den Fortschritt."
+    ],
+    "fr": [
+      "Installer par le réseau avec une grande bibliothèque : le catalogue répond tout de suite, et pendant sa première préparation la console voit où il en est."
+    ],
+    "it": [
+      "Installa via rete con una libreria grande: il catalogo risponde subito, e mentre viene preparato la prima volta la console vede a che punto è."
+    ],
+    "pt": [
+      "Instalar pela rede com uma biblioteca grande: o catálogo responde na hora, e enquanto é preparado pela primeira vez o console vê quanto falta."
+    ],
+    "nl": [
+      "Installeren via het netwerk met een grote bibliotheek: de catalogus antwoordt meteen, en terwijl hij de eerste keer wordt voorbereid ziet de console hoe ver hij is."
+    ],
+    "ru": [
+      "Установка по сети с большой библиотекой: каталог отвечает сразу, а пока он готовится в первый раз, консоль видит, сколько уже сделано."
+    ],
+    "ja": [
+      "大きなライブラリでのネットワーク経由インストール：カタログがすぐに応答し、初回の準備中は本体に進み具合が表示されます。"
+    ],
+    "ko": [
+      "큰 라이브러리에서 네트워크로 설치: 카탈로그가 바로 응답하고, 처음 준비되는 동안 콘솔에 진행 상황이 표시됩니다."
+    ],
+    "zh": [
+      "大型游戏库的网络安装：目录会立即响应，首次准备期间主机会显示进度。"
+    ]
+  },
   "2.0.5": {
     "en": [
       "Install over the network, in Settings: NXDock, DBI and Tinfoil install the games of the library without copying them to the SD card. NXDock is paired with a code.",

@@ -54,7 +54,16 @@ func (web *Web) handleNetCatalog(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	files, _ := web.netFilesKept(options)
+	files, _, ready := web.netFilesReady(options, netCatalogWait)
+	if !ready {
+		// the list is being made, which in a big library on a NAS takes minutes the first time:
+		// the console is told so, and how far it is, and asks again
+		done, total := web.netFilesMaking()
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Retry-After", "5")
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{"preparing": true, "done": done, "total": total})
+		return
+	}
 	// a console that installs the NCZ of NXPress's extra compression itself (NXDock with
 	// ?ncz=native) gets them as they are: smaller, nothing to rebuild here
 	native := r.URL.Query().Get("ncz") == "native"
@@ -116,15 +125,7 @@ func (web *Web) handleNetCover(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	name := strings.TrimPrefix(r.URL.Path, netInstallCover)
-	files, _ := web.netFilesKept(options)
-	known := false
-	for _, file := range files {
-		if file.cover == name {
-			known = true
-			break
-		}
-	}
-	if !known || name == "" {
+	if name == "" || !web.netCoverKnown(options, name) {
 		http.NotFound(w, r)
 		return
 	}

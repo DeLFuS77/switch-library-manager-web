@@ -157,7 +157,14 @@ func netSafeName(name string) string {
 // netFiles lists the files of the library an installer takes: every game, the newest update of
 // each (or all of them) and every DLC.
 func (web *Web) netFiles(options settings.NetInstallOptions) []netFile {
-	switchDB, localDB := web.state.get()
+	_, localDB := web.state.get()
+	return web.netFilesOf(localDB, options, nil)
+}
+
+// netFilesOf is netFiles of this library, telling progress (if not nil) how many games it has
+// looked at, of how many, every few games.
+func (web *Web) netFilesOf(localDB *db.LocalSwitchFilesDB, options settings.NetInstallOptions, progress func(seen, total int)) []netFile {
+	switchDB, _ := web.state.get()
 	files := []netFile{}
 	if localDB == nil {
 		return files
@@ -208,7 +215,12 @@ func (web *Web) netFiles(options settings.NetInstallOptions) []netFile {
 		entry.name = name + extension
 		files = append(files, entry)
 	}
+	total, seenTitles := len(localDB.TitlesMap), 0
 	for key, title := range localDB.TitlesMap {
+		seenTitles++
+		if progress != nil && seenTitles%50 == 0 {
+			progress(seenTitles, total)
+		}
 		if title.File.Metadata == nil && len(title.Updates) == 0 && len(title.Dlc) == 0 {
 			continue
 		}
@@ -261,12 +273,18 @@ func (web *Web) netFiles(options settings.NetInstallOptions) []netFile {
 	return files
 }
 
-// netFilesCacheTime is how long the list of files is kept. An installer takes a file in many
-// pieces, one request each, and making the list looks at every file of the library: on a NAS
-// that is slow enough to hold the transfer back.
-const netFilesCacheTime = 30 * time.Second
+// netFilesCacheTime is how long the list of files is taken as it is. Making the list looks at
+// every file of the library, which on a NAS with a big library takes minutes the first time (each
+// NSZ and XCZ is opened) and many seconds after: an older list is still given at once, and made
+// again behind it. A file given is checked on the disk when it is sent (netFileChanged).
+const netFilesCacheTime = 2 * time.Minute
 
-// netFilesCache is the list of files given last, and the same files by id.
+// netCatalogWait is how long a console waits for a list that is being made before it is told to
+// ask again: less than the time NXDock waits for an answer. A variable for the tests.
+var netCatalogWait = 10 * time.Second
+
+// netFilesCache is the list of files given last, and the same files by id. One list is made at a
+// time: the ones who ask for it meanwhile wait for that one.
 type netFilesCache struct {
 	mutex      sync.Mutex
 	localDB    *db.LocalSwitchFilesDB
@@ -274,35 +292,146 @@ type netFilesCache struct {
 	until      time.Time
 	files      []netFile
 	byId       map[string]netFile
+	// the covers the list names, which are the only images given to a console
+	covers map[string]bool
+	// generation grows when the list is forgotten: a list made before is not taken after
+	generation int
+	// the list being made, and for which library, options and generation
+	making           chan struct{}
+	makingLocalDB    *db.LocalSwitchFilesDB
+	makingAllUpdates bool
+	makingGeneration int
+	// how many files of the library the list being made has looked at, and of how many
+	makingDone, makingTotal int
 }
 
-// netFilesKept is netFiles, kept for a while: the same library and options give the same list.
-func (web *Web) netFilesKept(options settings.NetInstallOptions) ([]netFile, map[string]netFile) {
+// netFilesMake starts making the list for this library and these options, unless it is being
+// made already, and gives what is closed when it is made. The cache is locked by the caller.
+func (web *Web) netFilesMake(localDB *db.LocalSwitchFilesDB, options settings.NetInstallOptions) chan struct{} {
+	cache := &web.netList
+	if cache.making != nil && cache.makingLocalDB == localDB && cache.makingAllUpdates == options.AllUpdates &&
+		cache.makingGeneration == cache.generation {
+		return cache.making
+	}
+	done := make(chan struct{})
+	cache.making, cache.makingLocalDB, cache.makingAllUpdates, cache.makingGeneration = done, localDB, options.AllUpdates, cache.generation
+	cache.makingDone, cache.makingTotal = 0, 0
+	generation := cache.generation
+	web.backgroundWork.Add(1)
+	go func() {
+		defer web.backgroundWork.Add(-1)
+		defer close(done)
+		files := web.netFilesOf(localDB, options, func(seen, total int) {
+			cache.mutex.Lock()
+			if cache.making == done {
+				cache.makingDone, cache.makingTotal = seen, total
+			}
+			cache.mutex.Unlock()
+		})
+		byId := make(map[string]netFile, len(files))
+		covers := map[string]bool{}
+		for _, file := range files {
+			byId[file.id] = file
+			if file.cover != "" {
+				covers[file.cover] = true
+			}
+		}
+		cache.mutex.Lock()
+		defer cache.mutex.Unlock()
+		if cache.making == done {
+			cache.making = nil
+		}
+		if generation != cache.generation {
+			return
+		}
+		cache.localDB, cache.allUpdates, cache.until, cache.files, cache.byId = localDB, options.AllUpdates, time.Now().Add(netFilesCacheTime), files, byId
+		cache.covers = covers
+	}()
+	return done
+}
+
+// netFilesReady gives the list of this library and these options, waiting for it at most wait
+// (forever when wait is 0). An older list of the same library is given at once and made again
+// behind it. ok is false when the list was not made in time.
+func (web *Web) netFilesReady(options settings.NetInstallOptions, wait time.Duration) ([]netFile, map[string]netFile, bool) {
 	_, localDB := web.state.get()
 	cache := &web.netList
-	cache.mutex.Lock()
-	if cache.files != nil && cache.localDB == localDB && cache.allUpdates == options.AllUpdates && time.Now().Before(cache.until) {
-		files, byId := cache.files, cache.byId
+	deadline := time.Now().Add(wait)
+	for {
+		cache.mutex.Lock()
+		if cache.files != nil && cache.localDB == localDB && cache.allUpdates == options.AllUpdates {
+			files, byId := cache.files, cache.byId
+			if !time.Now().Before(cache.until) {
+				web.netFilesMake(localDB, options)
+			}
+			cache.mutex.Unlock()
+			return files, byId, true
+		}
+		done := web.netFilesMake(localDB, options)
 		cache.mutex.Unlock()
-		return files, byId
+		if wait <= 0 {
+			<-done
+			continue
+		}
+		left := time.Until(deadline)
+		if left <= 0 {
+			return nil, nil, false
+		}
+		select {
+		case <-done:
+			// made: taken on the next turn, unless it was forgotten meanwhile
+		case <-time.After(left):
+			return nil, nil, false
+		}
 	}
-	cache.mutex.Unlock()
+}
 
-	files := web.netFiles(options)
-	byId := make(map[string]netFile, len(files))
-	for _, file := range files {
-		byId[file.id] = file
-	}
-	cache.mutex.Lock()
-	cache.localDB, cache.allUpdates, cache.until, cache.files, cache.byId = localDB, options.AllUpdates, time.Now().Add(netFilesCacheTime), files, byId
-	cache.mutex.Unlock()
+// netFilesKept is netFiles, kept: the same library and options give the same list.
+func (web *Web) netFilesKept(options settings.NetInstallOptions) ([]netFile, map[string]netFile) {
+	files, byId, _ := web.netFilesReady(options, 0)
 	return files, byId
+}
+
+// netCoverKnown tells whether the list of files names this cover, without going through the list.
+func (web *Web) netCoverKnown(options settings.NetInstallOptions, name string) bool {
+	web.netFilesKept(options)
+	web.netList.mutex.Lock()
+	defer web.netList.mutex.Unlock()
+	return web.netList.covers[name]
+}
+
+// netFilesMaking tells how far the list being made is: the files looked at, and of how many.
+func (web *Web) netFilesMaking() (int, int) {
+	web.netList.mutex.Lock()
+	defer web.netList.mutex.Unlock()
+	return web.netList.makingDone, web.netList.makingTotal
+}
+
+// warmNetFiles makes the list of files after a scan, when installing over the network is on, so
+// the first console that asks does not wait for it.
+func (web *Web) warmNetFiles() {
+	if isDemoMode() {
+		return
+	}
+	options := settings.ReadSettings(web.dataFolder).NetInstall
+	if !netInstallEnabled(settings.ReadSettings(web.dataFolder)) {
+		return
+	}
+	_, localDB := web.state.get()
+	if localDB == nil {
+		return
+	}
+	web.netList.mutex.Lock()
+	done := web.netFilesMake(localDB, options)
+	web.netList.mutex.Unlock()
+	<-done
 }
 
 // netFilesForget drops the kept list, so the next request makes it again.
 func (web *Web) netFilesForget() {
 	web.netList.mutex.Lock()
-	web.netList.files, web.netList.byId = nil, nil
+	web.netList.files, web.netList.byId, web.netList.covers = nil, nil, nil
+	web.netList.generation++
 	web.netList.mutex.Unlock()
 }
 
@@ -361,10 +490,12 @@ type NetInstallSummary struct {
 	Translated int `json:"translated"`
 }
 
-// handleNetInstallSummary counts what the console will see, with the settings as they are saved.
+// handleNetInstallSummary counts what the console will see, with the settings as they are saved:
+// the list the consoles are given, made once for both.
 func (web *Web) handleNetInstallSummary(w http.ResponseWriter, r *http.Request) {
 	summary := NetInstallSummary{}
-	for _, file := range web.netFiles(settings.ReadSettings(web.dataFolder).NetInstall) {
+	files, _ := web.netFilesKept(settings.ReadSettings(web.dataFolder).NetInstall)
+	for _, file := range files {
 		switch file.kind {
 		case netFolderGames:
 			summary.Games++
