@@ -2,7 +2,7 @@ module github.com/dtrunk90/switch-library-manager-web
 
 go 1.26.0
 
-toolchain go1.27.3
+toolchain go1.27.4
 
 require (
 	github.com/DataDog/zstd v1.5.7
