@@ -6,8 +6,8 @@ build:
 # binaries used by the Docker image, one per platform
 # static programs with the zstd library in C, built by Zig (.github/scripts/setup_zig.sh)
 docker-binaries:
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 CC="zig cc -target x86_64-linux-musl" go build -trimpath -ldflags="-s -w" -o build/switch-library-manager-web-linux-amd64 main.go
-	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 CC="zig cc -target aarch64-linux-musl" go build -trimpath -ldflags="-s -w" -o build/switch-library-manager-web-linux-arm64 main.go
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 CC="zig cc -target x86_64-linux-musl" CXX="zig c++ -target x86_64-linux-musl" go build -trimpath -ldflags="-s -w" -o build/switch-library-manager-web-linux-amd64 main.go
+	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 CC="zig cc -target aarch64-linux-musl" CXX="zig c++ -target aarch64-linux-musl" go build -trimpath -ldflags="-s -w" -o build/switch-library-manager-web-linux-arm64 main.go
 
 build-windows:
 	GOOS=windows CGO_ENABLED=0 go build -o build/switch-library-manager-web.exe main.go

@@ -650,6 +650,12 @@ func (web *Web) resumeInterrupted() {
 				continue
 			}
 			target = packed
+		case tasklog.TASK_OPTIMIZE:
+			optimized, _, _, err := web.optimizeTarget(path, "")
+			if err != nil {
+				continue
+			}
+			target = optimized
 		}
 		files = append(files, left{path, target})
 	}
@@ -694,6 +700,8 @@ func (web *Web) resumeInterrupted() {
 		started = web.startConversionBy(paths, resume.Delete, tasklog.TRIGGER_RESUME)
 	case tasklog.TASK_PACK:
 		started = web.startPacks(paths, nil, resume.Delete, tasklog.TRIGGER_RESUME)
+	case tasklog.TASK_OPTIMIZE:
+		started = web.startOptimize(paths, nil, tasklog.TRIGGER_RESUME)
 	case tasklog.TASK_SPLIT:
 		started = web.startSplitBy(paths, resume.Delete, tasklog.TRIGGER_RESUME)
 	case tasklog.TASK_NUP_FIX:
@@ -727,6 +735,7 @@ var filePhases = map[string][]string{
 	tasklog.TASK_DECOMPRESS: {tasklog.PHASE_DECOMPRESSING},
 	tasklog.TASK_CONVERT:    {tasklog.PHASE_CONVERTING},
 	tasklog.TASK_PACK:       {tasklog.PHASE_PACKING},
+	tasklog.TASK_OPTIMIZE:   {tasklog.PHASE_OPTIMIZING},
 	tasklog.TASK_SPLIT:      {PHASE_SPLITTING},
 }
 
@@ -793,7 +802,7 @@ func (web *Web) runFileTaskFull(kind string, trigger string, paths []string, siz
 	// the files go by name, not the biggest first: the count moves from the start and the list
 	// reads in order. A task resumed after a restart too: the file it was writing starts again
 	// anyway (its half written copy is removed), so its place in the list loses nothing
-	if kind == tasklog.TASK_COMPRESS || kind == tasklog.TASK_DECOMPRESS || kind == tasklog.TASK_CONVERT || kind == tasklog.TASK_PACK || kind == tasklog.TASK_SPLIT {
+	if kind == tasklog.TASK_COMPRESS || kind == tasklog.TASK_DECOMPRESS || kind == tasklog.TASK_CONVERT || kind == tasklog.TASK_PACK || kind == tasklog.TASK_SPLIT || kind == tasklog.TASK_OPTIMIZE {
 		paths, sizes = sortedByName(paths, sizes)
 	}
 	taskId := web.taskLog().Start(kind, trigger)
@@ -1162,6 +1171,8 @@ func (r *fileTaskRun) finish() {
 			r.failure = &tasklog.Note{Text: NOTE_DECOMPRESS_FAILED}
 		} else if r.kind == tasklog.TASK_PACK {
 			r.failure = &tasklog.Note{Text: NOTE_PACK_FAILED}
+		} else if r.kind == tasklog.TASK_OPTIMIZE {
+			r.failure = &tasklog.Note{Text: NOTE_OPTIMIZE_FAILED}
 		} else if r.kind == tasklog.TASK_SPLIT {
 			r.failure = &tasklog.Note{Text: NOTE_SPLIT_FAILED}
 		} else if r.kind == tasklog.TASK_NUP_FIX {
@@ -1233,6 +1244,9 @@ func compressNote(kind string, err error) string {
 			return NOTE_COMPRESS_DELETE
 		}
 		return NOTE_SPLIT_FAILED
+	}
+	if kind == tasklog.TASK_OPTIMIZE {
+		return optimizeNote(err)
 	}
 	if kind == tasklog.TASK_PACK {
 		switch {
@@ -1387,7 +1401,7 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 
 // pausableKinds are the tasks on files that hold where they are while paused; the others (a
 // check, a copy to the SD card) are only cancelled.
-var pausableKinds = map[string]bool{tasklog.TASK_COMPRESS: true, tasklog.TASK_DECOMPRESS: true, tasklog.TASK_CONVERT: true, tasklog.TASK_PACK: true, tasklog.TASK_SPLIT: true}
+var pausableKinds = map[string]bool{tasklog.TASK_COMPRESS: true, tasklog.TASK_DECOMPRESS: true, tasklog.TASK_CONVERT: true, tasklog.TASK_PACK: true, tasklog.TASK_SPLIT: true, tasklog.TASK_OPTIMIZE: true}
 
 // pauseCompression holds the running compression (or decompression, conversion, pack) where
 // it is, in the middle of a file too, or lets it go on; a cancel still stops it while paused.

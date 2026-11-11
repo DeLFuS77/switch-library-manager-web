@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- Optimize for install (experimental), in the More menu of a game with its update: the game and its update become one NSP that takes much less room once installed. It needs sigpatches, and official updates do not go over it
+
 ### Fixes
 
 - A starting screen still open when the app was ready waited forever once a user with a password existed: the script that watches for the app to be ready asked for the login. It is answered without the login now, as the health check is, and the page opens by itself

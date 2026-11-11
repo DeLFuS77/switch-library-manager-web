@@ -14,6 +14,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/internal/userdata"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs/optimize"
 	"github.com/gorilla/mux"
 )
 
@@ -196,6 +197,10 @@ type TitleDetail struct {
 	// the files a complete pack of the game is made of (base, latest update and DLC)
 	PackFiles int
 	PackSize  int64
+	// Optimize for install: the game and its newest update it is made of, when it can be
+	// (OptimizeSize > 0), and the version it takes
+	OptimizeSize    int64
+	OptimizeVersion int
 }
 
 type TitlePageData struct {
@@ -322,6 +327,12 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		for _, file := range withCompressedCopies(packFiles(local), localDB.Skipped) {
 			detail.PackFiles++
 			detail.PackSize += file.Size
+		}
+		if optimize.Built {
+			for _, file := range optimizeFiles(local) {
+				detail.OptimizeSize += file.Size
+			}
+			detail.OptimizeVersion = local.LatestUpdate
 		}
 	}
 	if detail.Id == "" {
@@ -548,6 +559,7 @@ func sortedVersions(updates map[int]db.SwitchFileInfo) []int {
 func (web *Web) HandleTitle() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/title.html")
 	web.handlePack()
+	web.handleOptimize()
 	web.handleNupFix()
 	web.handleNupIcon()
 

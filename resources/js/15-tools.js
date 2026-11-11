@@ -40,6 +40,28 @@ function initPack() {
 	});
 }
 
+// Game page > More > Optimize for install: the game and its update made one NSP that takes the
+// least room installed, as a task followed on the Tasks page; its window closes as it starts.
+function initOptimize() {
+	document.querySelectorAll('[data-optimize]').forEach(form => {
+		const submit = form.querySelector('[type="submit"]');
+		form.addEventListener('submit', e => {
+			e.preventDefault();
+			submit.disabled = true;
+			const modal = form.closest('.modal');
+			if (modal) {
+				Modal.getOrCreateInstance(modal).hide();
+			}
+			runAsTask(() => postForm('/title/optimize', { id: form.dataset.optimize }))
+				.then(() => { submit.disabled = false; })
+				.catch(error => {
+					submit.disabled = false;
+					insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+				});
+		});
+	});
+}
+
 // Game page > Files > a NUP counted from 0 > Fix for emulators: its metadata is written again as a
 // task, at once, followed as the others; the page reloads by itself once the library has read the
 // NUP again. Put in the queue, it says so, and the button stays off. A NUP without an icon > Set

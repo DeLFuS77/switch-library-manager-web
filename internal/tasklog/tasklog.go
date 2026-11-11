@@ -30,7 +30,9 @@ const (
 	TASK_VERIFY     = "verify"
 	TASK_CONVERT    = "convert"
 	TASK_PACK       = "pack"
-	TASK_SPLIT      = "split"
+	// a game and its update made one NSP that takes the least room installed (experimental)
+	TASK_OPTIMIZE = "optimize"
+	TASK_SPLIT    = "split"
 	// the metadata of a NUP counted from 0 written again, for Eglantine and Lichii
 	TASK_NUP_FIX = "nupfix"
 	// a NUP without an icon given the cover of its game
@@ -575,7 +577,7 @@ func (t Task) SpeedAt(now time.Time) int {
 // measuredInMegabytes tells the tasks whose progress counts megabytes of files.
 func measuredInMegabytes(kind string) bool {
 	switch kind {
-	case TASK_VERIFY, TASK_COPY, TASK_COMPRESS, TASK_DECOMPRESS, TASK_CONVERT, TASK_PACK, TASK_SPLIT:
+	case TASK_VERIFY, TASK_COPY, TASK_COMPRESS, TASK_DECOMPRESS, TASK_CONVERT, TASK_PACK, TASK_SPLIT, TASK_OPTIMIZE:
 		return true
 	}
 	return false
@@ -1134,6 +1136,7 @@ const (
 	PHASE_DECOMPRESSING = "Decompressing"
 	PHASE_CONVERTING    = "Converting"
 	PHASE_PACKING       = "Combining the files"
+	PHASE_OPTIMIZING    = "Optimizing for install"
 	PHASE_VERIFYING     = "Verifying"
 )
 

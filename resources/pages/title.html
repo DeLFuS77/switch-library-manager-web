@@ -83,6 +83,9 @@
 									{{- if gt $t.PackFiles 1}}
 									<li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#titlePack"><span class="bi bi-box-seam me-2" aria-hidden="true"></span>{{t "Combine the files"}}…</button></li>
 									{{- end}}
+									{{- if gt $t.OptimizeSize 0}}
+									<li><button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#titleOptimize"><span class="bi bi-lightning-charge me-2" aria-hidden="true"></span>{{t "Optimize for install"}}…</button></li>
+									{{- end}}
 								</ul>
 							</div>
 						</div>
@@ -410,6 +413,33 @@
 			{{- end}}{{end}}
 			{{- template "titleEdit" $t}}
 			{{- if gt $t.PackFiles 1}}{{template "titlePack" $t}}{{end}}
+			{{- if gt $t.OptimizeSize 0}}{{template "titleOptimize" $t}}{{end}}
+{{- end}}
+{{- define "titleOptimize"}}
+			{{- /* the game and its newest update made one NSP that takes the least room installed (experimental), as a task */}}
+			<div class="modal fade admin-only" id="titleOptimize" tabindex="-1" aria-labelledby="titleOptimizeTitle" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<form class="modal-content optimize-form" data-optimize="{{.Id}}">
+						<div class="modal-header">
+							<h2 class="modal-title fs-5" id="titleOptimizeTitle"><span class="bi bi-lightning-charge me-2" aria-hidden="true"></span>{{t "Optimize for install"}} <span class="badge text-bg-warning align-middle ms-1">{{t "Experimental"}}</span></h2>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+						</div>
+						<div class="modal-body">
+							<p class="small mb-2">{{t "The game and its update (v%v, %v) become one NSP that takes much less room once installed: one game of the version of the update, its data compressed with the LZ4 the system reads. It is written next to the game." .OptimizeVersion (formatSize .OptimizeSize)}}</p>
+							<ul class="small mb-2 ps-3">
+								<li>{{t "Install it with DBI, with sigpatches and firmware 12.0.0 or newer."}}</li>
+								<li>{{t "Do not install official updates over it: when a newer update comes, optimize the game again with it."}}</li>
+								<li>{{t "The game and its update are kept: the game is optimized again from them. DLC are left as they are."}}</li>
+							</ul>
+							<p class="small text-body-secondary mb-0"><span class="bi bi-hdd me-1" aria-hidden="true"></span>{{t "It needs free space for the new file, and for an NSP of the game while it works when it is an NSZ or XCZ."}}</p>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">{{t "Cancel"}}</button>
+							<button type="submit" class="btn btn-primary rounded-pill"><span class="bi bi-lightning-charge me-2" aria-hidden="true"></span>{{t "Optimize for install"}}</button>
+						</div>
+					</form>
+				</div>
+			</div>
 {{- end}}
 {{- define "titlePack"}}
 			{{- /* one file with the game, its latest update and its DLC, made as a task */}}
