@@ -39,6 +39,8 @@ func (web *Web) afterScan() {
 		// temporary files of tasks stopped in the middle that did not go on
 		web.cleanLeftovers()
 		web.warmPages()
+		// the list of files the consoles are given, when installing over the network is on
+		web.warmNetFiles()
 		web.lookupTimesToBeat(tasklog.TRIGGER_SCAN)
 		// the games without their title key, for Issues and Compress
 		web.checkTitleKeys()
