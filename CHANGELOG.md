@@ -4,7 +4,7 @@
 
 ### Improvements
 
-- Install over the network, in Settings (off until it is turned on): NXDock, DBI and the installers that read an index of Tinfoil (CyberFoil, Sphaira) install the games of the library without copying them to the SD card. NXDock finds the app by itself and is paired with a code shown on both screens
+- Install over the network, in Settings (off until it is turned on): NXDock, DBI and the installers that read an index of Tinfoil (CyberFoil, Sphaira) install the games of the library without copying them to the SD card. NXDock, the installer for the console of this project, comes out soon: it finds the app by itself and is paired with a code shown on both screens
 - Send to console on the page of a game: the console asks before installing, and its install queue can be followed, paused or cancelled from the web, with a message when it ends
 - NXDock keeps the saves of its games in the app (Saves, in the menu of the account), uploads the games dumped on the console to the library and gets the cheats of a game
 - Optimize for install (experimental), in the More menu of a game with its update: one NSP that takes much less room once installed, marked Optimized in the Library. It needs sigpatches, and official updates should not be installed over it

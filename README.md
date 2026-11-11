@@ -95,8 +95,8 @@ Linux, Docker, NAS and Raspberry Pi.
   and how many hours your library adds up to
 
 **Install over the network**
-- Install the games of your library on your consoles without copying them to the SD card: [NXDock](https://github.com/DeLFuS77/NXDock),
-  DBI and the installers that read an index of Tinfoil (CyberFoil, Sphaira) see it over the network. Off until you turn it on
+- Install the games of your library on your consoles without copying them to the SD card: NXDock (the installer for the
+  console of this project, coming soon), DBI and the installers that read an index of Tinfoil (CyberFoil, Sphaira) see it over the network. Off until you turn it on
 - NXDock finds the app by itself and is paired with a code; send a game to a console from its page and follow its install
   queue from the web. NXDock also keeps the saves of its games in the app and uploads the games the console dumps
 
