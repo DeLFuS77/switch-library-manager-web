@@ -1,6 +1,6 @@
 {{define "title"}}{{t "Compress"}}{{end}}
 {{define "main"}}
-			{{- template "pageHeader" (dict "Title" (t "Compress") "Count" -1 "Subtitle" (t "Compress your NSP files to NSZ and XCI files to XCZ to save space. Installers such as DBI install them directly. Every file is verified before the original is deleted."))}}
+			{{- template "pageHeader" (dict "Title" (t "Compress") "Count" -1 "Subtitle" (t "Compress your NSP files to NSZ and XCI files to XCZ to save space. Installers such as NXDock or DBI install them directly. Every file is verified before the original is deleted."))}}
 			{{- with maintenanceStep .Page}}<a class="maintenance-hint" href="/maintenance.html"><span class="bi bi-list-check" aria-hidden="true"></span>{{t "Step %v of 5 of the tune-up" .}} <span class="text-body-secondary">&middot; {{t "See the steps in order"}}</span></a>{{end}}
 			<p class="small text-body-secondary d-flex align-items-start gap-2 mb-4"><span class="bi bi-shield-lock flex-shrink-0 mt-1" aria-hidden="true"></span><span>{{t "Compression uses your own prod.keys (and title.keys for games without a ticket), dumped from your console. Keys are never included in the app, downloaded or uploaded."}}</span></p>
 			{{- if not .IsKeysFileAvailable}}
@@ -38,7 +38,7 @@
 			{{- if .Damaged}}
 			<p class="small text-body-secondary d-flex align-items-start gap-2 mb-4"><span class="bi bi-exclamation-triangle flex-shrink-0 mt-1 text-warning" aria-hidden="true"></span><span>{{t "%v damaged files are not listed: they cannot be compressed until they are replaced with a sound copy." .Damaged}} <a href="/issues.html?kind=damaged">{{t "Issues"}}</a></span></p>
 			{{- end}}
-			{{- $tabs := or .CardCount .SplitCount .PackCount .CompressedCount}}
+			{{- $tabs := or .CardCount .SplitCount .PackCount .OptimizeCount .CompressedCount}}
 			{{- if $tabs}}
 			<div class="page-tabs" role="tablist" aria-label="{{t "Compress"}}" data-page-tabs>
 				<button type="button" class="page-tab active" role="tab" id="tabCompress" data-tab="compress" aria-controls="panelCompress" aria-selected="true"><span class="bi bi-file-zip" aria-hidden="true"></span>{{t "Compress"}}{{with add (len .Candidates) .RestCount}} <span class="badge rounded-pill text-bg-secondary">{{num .}}</span>{{end}}</button>
@@ -50,6 +50,9 @@
 				{{- end}}
 				{{- if .PackCount}}
 				<button type="button" class="page-tab" role="tab" id="tabPacks" data-tab="packs" aria-controls="panelPacks" aria-selected="false" tabindex="-1"><span class="bi bi-box-seam" aria-hidden="true"></span>{{t "Combine"}} <span class="badge rounded-pill text-bg-secondary">{{num .PackCount}}</span></button>
+				{{- end}}
+				{{- if .OptimizeCount}}
+				<button type="button" class="page-tab" role="tab" id="tabOptimize" data-tab="optimize" aria-controls="panelOptimize" aria-selected="false" tabindex="-1"><span class="bi bi-lightning-charge" aria-hidden="true"></span>{{t "Optimize for install"}} <span class="badge rounded-pill text-bg-secondary">{{num .OptimizeCount}}</span></button>
 				{{- end}}
 				{{- if .CompressedCount}}
 				<button type="button" class="page-tab" role="tab" id="tabDecompress" data-tab="decompress" aria-controls="panelDecompress" aria-selected="false" tabindex="-1"><span class="bi bi-box-arrow-up" aria-hidden="true"></span>{{t "Decompress"}} <span class="badge rounded-pill text-bg-secondary">{{num .CompressedCount}}</span></button>
@@ -238,6 +241,33 @@
 							<label class="form-check-label" for="deletePackFiles">{{t "Delete the separate files after each combined file is checked"}}</label>
 						</div>
 						<button type="submit" class="btn btn-outline-primary rounded-pill px-4 text-nowrap"><span class="bi bi-box-seam me-2" aria-hidden="true"></span>{{t "Combine the games"}}</button>
+					</div>
+				</form>
+			</div>
+			{{- end}}
+			{{- if .OptimizeCount}}
+			<div class="surface" role="tabpanel" id="panelOptimize" aria-labelledby="tabOptimize" hidden>
+				<form id="optimizeForm">
+					<h2 class="section-title"><span class="bi bi-lightning-charge" aria-hidden="true"></span>{{t "Optimize for install"}} <span class="badge text-bg-warning align-middle ms-1">{{t "Experimental"}}</span></h2>
+					<p class="text-body-secondary mb-2">{{t "Each game with its newest update becomes one NSP that takes much less room once installed, written next to the game. The game and its update are kept: the game is optimized again from them when a newer update comes."}}</p>
+					<ul class="small text-body-secondary mb-3 ps-3">
+						<li>{{t "Install it with NXDock or DBI, with sigpatches and firmware 12.0.0 or newer."}}</li>
+						<li>{{t "Do not install official updates over it: when a newer update comes, optimize the game again with it."}}</li>
+					</ul>
+					<div class="file-list-head">
+						<div class="form-check mb-0">
+							<input class="form-check-input" type="checkbox" id="optimizeAll" data-file-all>
+							<label class="form-check-label fw-semibold" for="optimizeAll">{{t "Select all"}}</label>
+						</div>
+						<div class="toolbar-search file-filter">
+							<span class="bi bi-search" aria-hidden="true"></span>
+							<input type="search" class="form-control form-control-sm" data-file-filter placeholder="{{t "Filter by name..."}}" aria-label="{{t "Filter by name..."}}">
+						</div>
+						<div class="small text-body-secondary ms-sm-auto" data-file-summary data-template="{{t "%v games selected, %v"}}" data-template-one="{{t "%v game selected, %v"}}" aria-live="polite">{{t "%v games selected, %v" 0 (formatSize 0)}}</div>
+					</div>
+					<div data-file-list="/compress/optimize-list" class="mb-3"><p class="text-body-secondary small">{{t "Loading..."}}</p></div>
+					<div class="d-flex justify-content-end">
+						<button type="submit" class="btn btn-outline-primary rounded-pill px-4 text-nowrap"><span class="bi bi-lightning-charge me-2" aria-hidden="true"></span>{{t "Optimize the games"}}</button>
 					</div>
 				</form>
 			</div>

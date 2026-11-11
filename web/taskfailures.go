@@ -16,7 +16,7 @@ import (
 var taskKindNames = map[string]string{
 	tasklog.TASK_SYNC: "Synchronization", tasklog.TASK_SCAN: "Library scan", tasklog.TASK_ORGANIZE: "Organize files", tasklog.TASK_CLEANUP: "Delete old updates",
 	tasklog.TASK_COMPRESS: "Compression", tasklog.TASK_DECOMPRESS: "Decompression", tasklog.TASK_VERIFY: "File check", tasklog.TASK_COVERS: "Cover downloads",
-	tasklog.TASK_THUMBNAILS: "Thumbnails", tasklog.TASK_COPY: "Copy to the card", tasklog.TASK_CONVERT: "Conversion", tasklog.TASK_PACK: "Combine",
+	tasklog.TASK_THUMBNAILS: "Thumbnails", tasklog.TASK_COPY: "Copy to the card", tasklog.TASK_CONVERT: "Conversion", tasklog.TASK_PACK: "Combine", tasklog.TASK_OPTIMIZE: OPTIMIZE_ACTION,
 	tasklog.TASK_SPLIT: "Split files", TASK_TIMETOBEAT: "Times to beat and scores (IGDB)", TASK_UPLOAD: "Upload",
 	tasklog.TASK_NUP_FIX: NUP_FIX_ACTION, tasklog.TASK_NUP_ICON: NUP_ICON_ACTION,
 }

@@ -225,6 +225,8 @@ func (web *Web) startQueued(task QueuedTask) bool {
 		return web.startConversionBy(task.Paths, task.Delete, tasklog.TRIGGER_MANUAL)
 	case tasklog.TASK_PACK:
 		return web.startPacks(task.Paths, task.Names, task.Delete, tasklog.TRIGGER_MANUAL)
+	case tasklog.TASK_OPTIMIZE:
+		return web.startOptimize(task.Paths, task.Names, tasklog.TRIGGER_MANUAL)
 	case tasklog.TASK_SPLIT:
 		return web.startSplitBy(task.Paths, task.Delete, tasklog.TRIGGER_MANUAL)
 	case tasklog.TASK_NUP_FIX:
@@ -243,7 +245,7 @@ func (web *Web) startQueued(task QueuedTask) bool {
 // that changed the files, it waits for the scan that follows, or it would work on the files of
 // before (an NSP the compression deleted for its NSZ) or on a library found only in part.
 func readsLibrary(task QueuedTask) bool {
-	return task.Kind == tasklog.TASK_PACK || task.Kind == tasklog.TASK_VERIFY && task.Paths == nil
+	return task.Kind == tasklog.TASK_PACK || task.Kind == tasklog.TASK_OPTIMIZE || task.Kind == tasklog.TASK_VERIFY && task.Paths == nil
 }
 
 // queueAfterScan starts the task of the queue that waited for the scan that just ended.
@@ -294,7 +296,7 @@ func (web *Web) runQueue() {
 }
 
 // queueKinds are the kinds of tasks the queue runs.
-var queueKinds = map[string]bool{tasklog.TASK_COMPRESS: true, tasklog.TASK_DECOMPRESS: true, tasklog.TASK_CONVERT: true, tasklog.TASK_PACK: true, tasklog.TASK_SPLIT: true, tasklog.TASK_VERIFY: true,
+var queueKinds = map[string]bool{tasklog.TASK_COMPRESS: true, tasklog.TASK_DECOMPRESS: true, tasklog.TASK_CONVERT: true, tasklog.TASK_PACK: true, tasklog.TASK_SPLIT: true, tasklog.TASK_VERIFY: true, tasklog.TASK_OPTIMIZE: true,
 	tasklog.TASK_NUP_FIX: true, tasklog.TASK_NUP_ICON: true}
 
 // notifyQueueDone tells by the channels of the notifications that the queue is done, with each

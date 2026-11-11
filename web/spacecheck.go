@@ -60,6 +60,13 @@ func (web *Web) spaceShort(task QueuedTask) []SpaceShort {
 			}
 			writes = append(writes, spaceWrite{folder: filepath.Dir(path), need: need, source: filepath.Dir(path)})
 		}
+	case tasklog.TASK_OPTIMIZE:
+		// an NSZ or XCZ given is made an NSP first: room for that and for the new file
+		for _, path := range task.Paths {
+			if _, sources, size, err := web.optimizeTarget(path, ""); err == nil {
+				writes = append(writes, spaceWrite{folder: filepath.Dir(sources[0]), need: 2 * size, source: filepath.Dir(sources[0])})
+			}
+		}
 	case tasklog.TASK_PACK:
 		for _, path := range task.Paths {
 			if _, sources, size, err := web.packTarget(path, ""); err == nil {

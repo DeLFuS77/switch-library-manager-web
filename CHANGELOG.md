@@ -5,6 +5,7 @@
 ### Improvements
 
 - NXDock, the installer of the console, keeps the saves of its games in the app, ten per game, the pinned ones never deleted by themselves: the page Saves, in the menu of the account, shows them by game with their notes, to download or delete. It also uploads the games dumped on the console to the library, going on where an upload was cut (allowed in Settings, Install over the network, with the folder of the dumps), and gets the cheats of the version of a game
+- Optimize for install (experimental), in the More menu of a game with its update: the game and its update become one NSP that takes much less room once installed. It needs sigpatches, and official updates do not go over it
 
 ### Fixes
 
