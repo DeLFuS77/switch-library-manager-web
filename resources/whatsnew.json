@@ -1,4 +1,83 @@
 {
+  "2.0.7": {
+    "en": [
+      "Search the eShop for the cover of a game in Edit, and crop it before it is used.",
+      "Open the app from your phone: Diagnostics shows its addresses on the network, each with a QR code.",
+      "With several folders, the Library filters and sorts by folder, and Statistics shows the space of each.",
+      "Undo an Organize from its page: its files go back to their names and folders of before.",
+      "Catalogue: the games of the list, to print or save as PDF."
+    ],
+    "es": [
+      "Busca la carátula de un juego en la eShop desde Editar, y recórtala antes de usarla.",
+      "Abre la app desde el móvil: Diagnóstico muestra sus direcciones en la red, cada una con su código QR.",
+      "Con varias carpetas, la Biblioteca filtra y ordena por carpeta, y Estadísticas muestra el espacio de cada una.",
+      "Deshaz un Organizar desde su página: sus archivos vuelven a los nombres y carpetas de antes.",
+      "Catálogo: los juegos de la lista, para imprimir o guardar en PDF."
+    ],
+    "de": [
+      "Suche das Cover eines Spiels im eShop unter Bearbeiten und schneide es zu, bevor es verwendet wird.",
+      "Öffne die App vom Handy aus: Diagnose zeigt ihre Adressen im Netzwerk, jede mit einem QR-Code.",
+      "Mit mehreren Ordnern filtert und sortiert die Bibliothek nach Ordner, und die Statistik zeigt den Platz jedes Ordners.",
+      "Mache ein Organisieren auf seiner Seite rückgängig: Die Dateien kehren zu ihren früheren Namen und Ordnern zurück.",
+      "Katalog: die Spiele der Liste, zum Drucken oder als PDF."
+    ],
+    "fr": [
+      "Cherchez la jaquette d'un jeu dans l'eShop depuis Modifier, et recadrez-la avant de l'utiliser.",
+      "Ouvrez l'app depuis votre téléphone : Diagnostic affiche ses adresses sur le réseau, chacune avec un code QR.",
+      "Avec plusieurs dossiers, la Bibliothèque filtre et trie par dossier, et les Statistiques montrent l'espace de chacun.",
+      "Annulez une organisation depuis sa page : ses fichiers retrouvent leurs noms et dossiers d'avant.",
+      "Catalogue : les jeux de la liste, à imprimer ou enregistrer en PDF."
+    ],
+    "it": [
+      "Cerca la copertina di un gioco nell'eShop da Modifica, e ritagliala prima di usarla.",
+      "Apri l'app dal telefono: Diagnostica mostra i suoi indirizzi in rete, ognuno con un codice QR.",
+      "Con più cartelle, la Libreria filtra e ordina per cartella, e le Statistiche mostrano lo spazio di ognuna.",
+      "Annulla un'organizzazione dalla sua pagina: i file tornano ai nomi e alle cartelle di prima.",
+      "Catalogo: i giochi dell'elenco, da stampare o salvare in PDF."
+    ],
+    "pt": [
+      "Procure a capa de um jogo na eShop a partir de Editar, e recorte-a antes de a usar.",
+      "Abra a app no telemóvel: Diagnóstico mostra os seus endereços na rede, cada um com um código QR.",
+      "Com várias pastas, a Biblioteca filtra e ordena por pasta, e as Estatísticas mostram o espaço de cada uma.",
+      "Desfaça um Organizar a partir da sua página: os ficheiros voltam aos nomes e pastas de antes.",
+      "Catálogo: os jogos da lista, para imprimir ou guardar em PDF."
+    ],
+    "nl": [
+      "Zoek de cover van een game in de eShop vanuit Bewerken, en snijd hem bij voordat hij wordt gebruikt.",
+      "Open de app vanaf je telefoon: Diagnose toont de adressen op het netwerk, elk met een QR-code.",
+      "Met meerdere mappen filtert en sorteert de Bibliotheek per map, en Statistieken toont de ruimte van elke map.",
+      "Draai een Organiseren terug vanaf de pagina ervan: de bestanden krijgen hun oude namen en mappen terug.",
+      "Catalogus: de games van de lijst, om af te drukken of als PDF op te slaan."
+    ],
+    "ru": [
+      "Ищите обложку игры в eShop в разделе «Изменить» и обрезайте её перед использованием.",
+      "Открывайте приложение с телефона: в «Диагностике» показаны его адреса в сети, каждый с QR-кодом.",
+      "При нескольких папках Библиотека фильтрует и сортирует по папке, а Статистика показывает место каждой.",
+      "Отмените упорядочивание на его странице: файлы вернутся к прежним именам и папкам.",
+      "Каталог: игры из списка, чтобы распечатать или сохранить в PDF."
+    ],
+    "ja": [
+      "「編集」からeShopでゲームのカバーを探し、使う前に切り抜けます。",
+      "スマホからアプリを開けます：「診断」にネットワーク上のアドレスがQRコード付きで表示されます。",
+      "フォルダーが複数あると、ライブラリをフォルダーで絞り込み・並べ替えでき、統計で各フォルダーの容量を確認できます。",
+      "整理をそのページから元に戻せます：ファイルが以前の名前とフォルダーに戻ります。",
+      "カタログ：一覧のゲームを印刷またはPDFで保存できます。"
+    ],
+    "ko": [
+      "편집에서 eShop으로 게임 커버를 찾고, 사용하기 전에 자를 수 있습니다.",
+      "휴대폰에서 앱 열기: 진단에 네트워크 주소가 QR 코드와 함께 표시됩니다.",
+      "폴더가 여러 개면 라이브러리를 폴더별로 필터·정렬하고, 통계에서 각 폴더의 공간을 볼 수 있습니다.",
+      "정리를 해당 페이지에서 되돌리기: 파일이 이전 이름과 폴더로 돌아갑니다.",
+      "카탈로그: 목록의 게임을 인쇄하거나 PDF로 저장합니다."
+    ],
+    "zh": [
+      "在“编辑”中从 eShop 搜索游戏封面，并在使用前裁剪。",
+      "用手机打开应用：“诊断”会显示它在网络中的地址，每个都带二维码。",
+      "有多个文件夹时，游戏库可按文件夹筛选和排序，统计会显示每个文件夹的空间。",
+      "在整理页面撤销一次整理：文件会恢复到之前的名称和文件夹。",
+      "目录：列表中的游戏，可打印或保存为 PDF。"
+    ]
+  },
   "2.0.6": {
     "en": [
       "Install over the network with a big library: the catalog answers at once, and a console is told how far it is while it is first prepared."
