@@ -2191,7 +2191,21 @@ var Translations = map[string]map[string]string{
 		"Its game has no cover yet to make the icon of: choose one in Edit, or wait for the covers to download.":      "Su juego aún no tiene carátula con la que hacer el icono: elige una en Editar o espera a que se descarguen las carátulas.",
 		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "Junto al NUP hay una copia del índice de otro NUP (.nxpress-icon): bórrala para seguir.",
 		"This file is not a NUP of the library without an icon.":                                                      "Este archivo no es un NUP de la biblioteca sin icono.",
-		"Setting the icon…": "Poniendo el icono…",
+		"Setting the icon…":                          "Poniendo el icono…",
+		"Search the eShop":                           "Buscar en la eShop",
+		"Find the cover":                             "Buscar la carátula",
+		"Name of the game":                           "Nombre del juego",
+		"From the eShop of Europe":                   "De la eShop europea",
+		"Switch 2 only":                              "Solo Switch 2",
+		"You can also paste an image here (Ctrl+V).": "También puedes pegar una imagen aquí (Ctrl+V).",
+		"Search the web":                             "Buscar en la web",
+		"Use this one":                               "Usar esta",
+		"Write the name of the game.":                "Escribe el nombre del juego.",
+		"The name is too long.":                      "El nombre es demasiado largo.",
+		"The eShop could not be reached. Try again later, or search on the web.": "No se ha podido llegar a la eShop. Vuelve a probar más tarde o busca en la web.",
+		"Searching…": "Buscando…",
+		"%v games found: pick the cover and use it.":                                                "%v juegos encontrados: elige la carátula y úsala.",
+		"No game found with that name. Try another name, without Switch 2 only, or search the web.": "No hay ningún juego con ese nombre. Prueba otro nombre, sin «Solo Switch 2», o busca en la web.",
 	},
 }
 
@@ -2216,4 +2230,5 @@ var JSTexts = []string{
 	"Added to the queue.", "It starts when the tasks before it end: number %v in the queue.", "Reload",
 	"Saved!", "Back to the original", "The cover is too large: at most 5 MB and 6000 pixels a side.",
 	"Fixing…", "Setting the icon…",
+	"Write the name of the game.", "Searching…", "%v games found: pick the cover and use it.", "No game found with that name. Try another name, without Switch 2 only, or search the web.",
 }

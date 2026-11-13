@@ -811,3 +811,72 @@
 		margin-top: .35rem;
 	}
 }
+
+// the covers found in the eShop, to pick one: the one picked framed in the blue of work
+.cover-search-grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: .625rem;
+
+	@include media-breakpoint-down(sm) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.cover-search-hit {
+	display: flex;
+	flex-direction: column;
+	gap: .125rem;
+	padding: .25rem;
+	border: 2px solid transparent;
+	border-radius: $border-radius-lg;
+	background: var(--bs-tertiary-bg);
+	color: inherit;
+	text-align: start;
+	transition: border-color .15s, box-shadow .15s;
+
+	img {
+		display: block;
+		width: 100%;
+		aspect-ratio: 1;
+		object-fit: cover;
+		border-radius: $border-radius;
+		background: var(--bs-secondary-bg);
+	}
+
+	span {
+		font-size: .78rem;
+		line-height: 1.25;
+		margin: .25rem .125rem 0;
+	}
+
+	small {
+		font-size: .7rem;
+		color: var(--bs-secondary-color);
+		margin: 0 .125rem .125rem;
+	}
+
+	&:hover {
+		border-color: var(--bs-border-color);
+	}
+
+	&.is-chosen {
+		border-color: rgb(var(--slm-work-rgb));
+		box-shadow: 0 0 0 3px rgba(var(--slm-work-rgb), .2);
+	}
+
+	// an image the network cuts is shown as nothing, not as a broken image
+	&.is-broken img {
+		visibility: hidden;
+	}
+}
+
+.cover-search-paste {
+	margin-top: .75rem;
+	padding: .5rem .75rem;
+	border: 1px dashed var(--bs-border-color);
+	border-radius: $border-radius-lg;
+	font-size: .84rem;
+	color: var(--bs-secondary-color);
+	text-align: center;
+}

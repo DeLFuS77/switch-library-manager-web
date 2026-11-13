@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- Search the eShop… in Edit, on the page of a game, finds its cover in the eShop of Europe by its name, with Switch 2 only for the games of the Switch 2, which titledb often has no cover of. Search the web ↗ and an image pasted (Ctrl+V) are there for the games the eShop does not have
+
 ### Fixes
 
 - A starting screen still open when the app was ready waited forever once a user with a password existed: the script that watches for the app to be ready asked for the login. It is answered without the login now, as the health check is, and the page opens by itself

@@ -180,6 +180,29 @@ function initTitleEdit() {
 		})).catch(e => fail(e.message || t('Could not reach the server.')));
 	};
 
+	// an image pasted, in Edit or in the search of the eShop, is taken as one uploaded
+	const useFile = chosen => {
+		const list = new DataTransfer();
+		list.items.add(chosen);
+		file.files = list.files;
+		file.dispatchEvent(new Event('change'));
+	};
+	const useAddress = value => {
+		address.value = value;
+		address.dispatchEvent(new Event('input'));
+	};
+	const pasted = e => {
+		const item = Array.from((e.clipboardData && e.clipboardData.items) || []).find(entry => entry.kind === 'file' && /^image\/(png|jpeg|gif)$/.test(entry.type));
+		if (!item) {
+			return false;
+		}
+		e.preventDefault();
+		pastedImage(item.getAsFile()).then(useFile);
+		return true;
+	};
+	form.addEventListener('paste', pasted);
+	initCoverSearch(form, { useAddress, pasted });
+
 	file.addEventListener('change', () => {
 		const chosen = file.files[0];
 		if (!chosen) {
@@ -234,6 +257,153 @@ function initTitleEdit() {
 			body.delete('cover');
 		}
 		send('POST', body, t('Saved!'));
+	});
+}
+
+// pastedImage names an image pasted from the clipboard, and makes one too large for a cover (a
+// screenshot of a big screen in PNG) a JPEG of at most 2000 pixels a side, as a cover needs no more
+function pastedImage(image) {
+	const named = blob => new File([blob], 'pasted.' + (blob.type === 'image/jpeg' ? 'jpg' : blob.type.split('/')[1]), { type: blob.type });
+	if (image.size <= 5 * 1024 * 1024) {
+		return Promise.resolve(named(image));
+	}
+	return createImageBitmap(image).then(bitmap => {
+		const scale = Math.min(1, 2000 / Math.max(bitmap.width, bitmap.height));
+		const canvas = document.createElement('canvas');
+		canvas.width = Math.round(bitmap.width * scale);
+		canvas.height = Math.round(bitmap.height * scale);
+		canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+		return new Promise(resolve => canvas.toBlob(blob => resolve(named(blob)), 'image/jpeg', 0.9));
+	}).catch(() => named(image));
+}
+
+// the cover of a game found in the eShop of Europe by its name, from Edit: the window of the
+// search takes the place of Edit while it is open, and Edit comes back with the image chosen
+function initCoverSearch(form, edit) {
+	const element = document.querySelector('[data-cover-search]');
+	const open = form.querySelector('[data-cover-search-open]');
+	if (!element || !open) {
+		return;
+	}
+	const editElement = form.closest('.modal');
+	const editModal = Modal.getOrCreateInstance(editElement);
+	const modal = Modal.getOrCreateInstance(element);
+	const search = element.querySelector('[data-cover-search-form]');
+	const query = element.querySelector('[data-cover-search-query]');
+	const switch2 = element.querySelector('[data-cover-search-switch2]');
+	const status = element.querySelector('[data-cover-search-status]');
+	const results = element.querySelector('[data-cover-search-results]');
+	const web = element.querySelector('[data-cover-search-web]');
+	const use = element.querySelector('[data-cover-search-use]');
+	let chosen = '';
+	let searched = false;
+	// what to do in Edit once it is shown again
+	let then = null;
+	// the same search of the web the server gives, before any search is made
+	const webAddress = () => {
+		const console = switch2.checked ? 'Switch 2' : 'Switch';
+		const name = query.value.replace(/\s*[[(][^\])]*[\])]/g, ' ').trim() || 'Nintendo ' + console;
+		return 'https://duckduckgo.com/?' + new URLSearchParams({ q: name + ' ' + console + ' cover', ia: 'images', iax: 'images' });
+	};
+	const choose = (button, image) => {
+		results.querySelectorAll('.cover-search-hit').forEach(hit => {
+			hit.classList.toggle('is-chosen', hit === button);
+			hit.setAttribute('aria-pressed', hit === button ? 'true' : 'false');
+		});
+		chosen = image;
+		use.disabled = !chosen;
+	};
+	const finish = action => {
+		then = action;
+		modal.hide();
+	};
+	const run = () => {
+		const name = query.value.trim();
+		chosen = '';
+		use.disabled = true;
+		results.replaceChildren();
+		status.className = 'small mb-2 text-body-secondary';
+		if (!name) {
+			status.textContent = t('Write the name of the game.');
+			return;
+		}
+		status.textContent = t('Searching…');
+		const button = search.querySelector('button');
+		button.disabled = true;
+		postForm('/api/eshop/search', { q: name, switch2: switch2.checked ? 'true' : 'false' }).then(json => {
+			web.href = json.web || webAddress();
+			const games = json.games || [];
+			status.textContent = games.length ? t('%v games found: pick the cover and use it.', games.length) : t('No game found with that name. Try another name, without Switch 2 only, or search the web.');
+			games.forEach(game => {
+				const hit = document.createElement('button');
+				hit.type = 'button';
+				hit.className = 'cover-search-hit';
+				hit.setAttribute('aria-pressed', 'false');
+				const image = document.createElement('img');
+				image.alt = '';
+				image.loading = 'lazy';
+				image.referrerPolicy = 'no-referrer';
+				image.addEventListener('error', () => hit.classList.add('is-broken'));
+				image.src = game.image;
+				const title = document.createElement('span');
+				title.textContent = game.title;
+				const systems = document.createElement('small');
+				systems.textContent = (game.systems || []).join(' · ');
+				hit.append(image, title, systems);
+				hit.addEventListener('click', () => choose(hit, game.image));
+				hit.addEventListener('dblclick', () => finish(() => edit.useAddress(game.image)));
+				results.append(hit);
+			});
+		}).catch(e => {
+			status.className = 'small mb-2 text-danger-emphasis';
+			status.textContent = e.message || t('Could not reach the server.');
+		}).finally(() => {
+			button.disabled = false;
+		});
+	};
+
+	web.href = webAddress();
+	query.addEventListener('input', () => web.href = webAddress());
+	switch2.addEventListener('change', () => {
+		web.href = webAddress();
+		if (searched) {
+			run();
+		}
+	});
+	search.addEventListener('submit', e => {
+		e.preventDefault();
+		searched = true;
+		run();
+	});
+	use.addEventListener('click', () => finish(() => edit.useAddress(chosen)));
+	// an image pasted in the search goes to Edit, which shows it
+	element.addEventListener('paste', e => {
+		const item = Array.from((e.clipboardData && e.clipboardData.items) || []).find(entry => entry.kind === 'file' && /^image\/(png|jpeg|gif)$/.test(entry.type));
+		if (item) {
+			e.preventDefault();
+			const image = item.getAsFile();
+			finish(() => edit.pasted({ clipboardData: { items: [{ kind: 'file', type: image.type, getAsFile: () => image }] }, preventDefault() {} }));
+		}
+	});
+	// Edit gives its place to the search, and takes it back when the search closes
+	open.addEventListener('click', () => {
+		editElement.addEventListener('hidden.bs.modal', () => modal.show(), { once: true });
+		editModal.hide();
+	});
+	element.addEventListener('shown.bs.modal', () => {
+		if (!searched) {
+			searched = true;
+			run();
+		}
+		query.focus();
+	});
+	element.addEventListener('hidden.bs.modal', () => {
+		const action = then;
+		then = null;
+		if (action) {
+			editElement.addEventListener('shown.bs.modal', action, { once: true });
+		}
+		editModal.show();
 	});
 }
 

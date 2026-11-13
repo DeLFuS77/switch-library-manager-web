@@ -409,6 +409,7 @@
 			</section>
 			{{- end}}{{end}}
 			{{- template "titleEdit" $t}}
+			{{- template "coverSearch" $t}}
 			{{- if gt $t.PackFiles 1}}{{template "titlePack" $t}}{{end}}
 {{- end}}
 {{- define "titlePack"}}
@@ -459,6 +460,7 @@
 									<img src="{{if .ImageUrl}}{{fullImage .ImageUrl}}{{else}}/resources/static/noimage.png{{end}}" class="title-edit-cover" alt="{{t "Cover"}}" data-title-edit-preview>
 									<div class="d-grid gap-2 mt-2">
 										<label class="btn btn-sm btn-outline-secondary rounded-pill title-edit-file"><span class="bi bi-upload me-1" aria-hidden="true"></span>{{t "Upload an image"}}<input type="file" name="cover" accept="image/jpeg,image/png,image/gif" data-title-edit-file></label>
+										<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-cover-search-open><span class="bi bi-search me-1" aria-hidden="true"></span>{{t "Search the eShop"}}…</button>
 										<input type="url" class="form-control form-control-sm" name="coverUrl" maxlength="2000" placeholder="{{t "or paste an address (https://…)"}}" aria-label="{{t "Address of the cover"}}" data-title-edit-url>
 										{{- if .Edit.Cover}}
 										<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-title-edit-original-cover><span class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></span>{{t "Use the cover of the game"}}</button>
@@ -489,6 +491,37 @@
 							</div>
 						</div>
 					</form>
+				</div>
+			</div>
+{{- end}}
+{{define "coverSearch"}}
+			{{- /* the cover found in the eShop of Europe by the name of the game, for Edit; a search of the web
+			     and an image pasted for the games it does not have */}}
+			<div class="modal fade admin-only" id="coverSearch" tabindex="-1" aria-labelledby="coverSearchTitle" aria-hidden="true" data-cover-search>
+				<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h2 class="modal-title fs-5" id="coverSearchTitle"><span class="bi bi-search me-2" aria-hidden="true"></span>{{t "Find the cover"}}</h2>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+						</div>
+						<div class="modal-body">
+							<form class="d-flex gap-2" data-cover-search-form role="search">
+								<input type="search" class="form-control" name="q" maxlength="200" value="{{.Name}}" aria-label="{{t "Name of the game"}}" spellcheck="false" data-cover-search-query>
+								<button type="submit" class="btn btn-primary rounded-pill px-3 text-nowrap"><span class="bi bi-search me-1" aria-hidden="true"></span>{{t "Search"}}</button>
+							</form>
+							<p class="small text-body-secondary mt-2 mb-3">{{t "From the eShop of Europe"}} · <label class="text-nowrap"><input type="checkbox" class="form-check-input" data-cover-search-switch2{{if .IsSwitch2}} checked{{end}}> {{t "Switch 2 only"}}</label></p>
+							<p class="small mb-2" role="status" aria-live="polite" data-cover-search-status></p>
+							<div class="cover-search-grid" data-cover-search-results></div>
+							<div class="cover-search-paste"><span class="bi bi-clipboard me-1" aria-hidden="true"></span>{{t "You can also paste an image here (Ctrl+V)."}}</div>
+						</div>
+						<div class="modal-footer justify-content-between">
+							<a class="btn btn-link text-decoration-none px-0" href="#" target="_blank" rel="noopener noreferrer" data-cover-search-web>{{t "Search the web"}} ↗</a>
+							<div class="d-flex gap-2">
+								<button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">{{t "Cancel"}}</button>
+								<button type="button" class="btn btn-primary rounded-pill" data-cover-search-use disabled><span class="bi bi-check-lg me-1" aria-hidden="true"></span>{{t "Use this one"}}</button>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 {{- end}}
