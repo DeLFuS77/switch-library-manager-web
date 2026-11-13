@@ -157,6 +157,14 @@ function initTitleEdit() {
 	const removeCover = form.querySelector('[data-title-edit-remove-cover]');
 	const originalCover = form.querySelector('[data-title-edit-original-cover]');
 	const reset = form.querySelector('[data-title-edit-reset]');
+	const frame = form.querySelector('[data-title-edit-frame]');
+	const cropButton = form.querySelector('[data-title-edit-crop]');
+	const cropFields = {
+		x: form.querySelector('[data-title-edit-crop-x]'),
+		y: form.querySelector('[data-title-edit-crop-y]'),
+		size: form.querySelector('[data-title-edit-crop-size]'),
+		fit: form.querySelector('[data-title-edit-crop-fit]')
+	};
 	const shown = preview.getAttribute('src');
 	const buttons = () => form.querySelectorAll('button');
 	const fail = message => {
@@ -180,6 +188,54 @@ function initTitleEdit() {
 		})).catch(e => fail(e.message || t('Could not reach the server.')));
 	};
 
+	// the crop chosen for the cover shown, sent with it; a new image starts without one
+	const editElement = form.closest('.modal');
+	const setCrop = crop => {
+		cropFields.x.value = crop && !crop.fit ? crop.x.toFixed(6) : '';
+		cropFields.y.value = crop && !crop.fit ? crop.y.toFixed(6) : '';
+		cropFields.size.value = crop && !crop.fit ? crop.size.toFixed(6) : '';
+		cropFields.fit.value = crop && crop.fit ? 'true' : '';
+		showCoverCrop(frame, preview, crop);
+	};
+	// the crop takes the place of Edit while it is open, and Edit comes back with it
+	const crop = name => {
+		const source = preview.getAttribute('src');
+		editElement.addEventListener('hidden.bs.modal', () => {
+			cropCover(source, name).then(chosen => {
+				if (chosen) {
+					setCrop(chosen);
+				}
+				Modal.getOrCreateInstance(editElement).show();
+			});
+		}, { once: true });
+		Modal.getOrCreateInstance(editElement).hide();
+	};
+	cropButton.addEventListener('click', () => crop(''));
+
+	// an image pasted, in Edit or in the search of the eShop, is taken as one uploaded
+	const useFile = chosen => {
+		const list = new DataTransfer();
+		list.items.add(chosen);
+		file.files = list.files;
+		file.dispatchEvent(new Event('change'));
+	};
+	const useAddress = value => {
+		address.value = value;
+		address.dispatchEvent(new Event('input'));
+		crop('');
+	};
+	const pasted = e => {
+		const item = Array.from((e.clipboardData && e.clipboardData.items) || []).find(entry => entry.kind === 'file' && /^image\/(png|jpeg|gif)$/.test(entry.type));
+		if (!item) {
+			return false;
+		}
+		e.preventDefault();
+		pastedImage(item.getAsFile()).then(useFile);
+		return true;
+	};
+	form.addEventListener('paste', pasted);
+	initCoverSearch(form, { useAddress, pasted });
+
 	file.addEventListener('change', () => {
 		const chosen = file.files[0];
 		if (!chosen) {
@@ -195,7 +251,12 @@ function initTitleEdit() {
 		error.hidden = true;
 		// a data address: the policy of the pages shows no other kind of local image
 		const reader = new FileReader();
-		reader.onload = () => preview.src = reader.result;
+		reader.onload = () => {
+			setCrop(null);
+			preview.src = reader.result;
+			cropButton.hidden = false;
+			crop(chosen.name);
+		};
 		reader.readAsDataURL(chosen);
 	});
 	address.addEventListener('input', () => {
@@ -205,7 +266,14 @@ function initTitleEdit() {
 			removeCover.value = 'false';
 		}
 		// encoded as an address, keeping the escapes it already has: only an https image
+		setCrop(null);
 		preview.src = value.startsWith('https://') ? encodeURI(value).replace(/%25([0-9A-Fa-f]{2})/g, '%$1') : shown;
+	});
+	// an address written is cropped once it is complete
+	address.addEventListener('change', () => {
+		if (address.value.trim().startsWith('https://')) {
+			crop('');
+		}
 	});
 	preview.addEventListener('error', () => {
 		if (preview.getAttribute('src') !== shown) {
@@ -217,6 +285,7 @@ function initTitleEdit() {
 			file.value = '';
 			address.value = '';
 			removeCover.value = 'true';
+			setCrop(null);
 			preview.src = form.dataset.originalCover;
 		});
 	}
@@ -234,6 +303,336 @@ function initTitleEdit() {
 			body.delete('cover');
 		}
 		send('POST', body, t('Saved!'));
+	});
+}
+
+// the crop of a cover, as in NXPress: the square stays where it is and the image is moved and
+// zoomed under it (dragged, the wheel, the slider, the arrows and + and -); Fit whole takes the
+// whole image on white. It answers the part chosen in parts of the image (see CoverCrop), or null
+// when it is closed without one. The images of the eShop come from elsewhere: the preview is drawn
+// by the browser with the same image, never read back, so any image can be cropped.
+const CROP_STAGE = 340;
+const CROP_BOX = 280;
+const CROP_PREVIEW = 160;
+
+function cropCover(source, name) {
+	const element = document.querySelector('[data-cover-crop]');
+	if (!element) {
+		return Promise.resolve(null);
+	}
+	const modal = Modal.getOrCreateInstance(element);
+	const stage = element.querySelector('[data-cover-crop-stage]');
+	const image = element.querySelector('[data-cover-crop-image]');
+	const preview = element.querySelector('[data-cover-crop-preview]');
+	const shown = element.querySelector('[data-cover-crop-shown]');
+	const zoomer = element.querySelector('[data-cover-crop-zoom]');
+	const fitButton = element.querySelector('[data-cover-crop-fit]');
+	const resetButton = element.querySelector('[data-cover-crop-reset]');
+	const useButton = element.querySelector('[data-cover-crop-use]');
+	const label = element.querySelector('[data-cover-crop-name]');
+	// the stage is smaller on a phone: everything is measured on it as drawn
+	const size = () => stage.getBoundingClientRect().width || CROP_STAGE;
+	return new Promise(resolve => {
+		let width = 0, height = 0, base = 1, zoom = 1, x = 0, y = 0, fit = false, drag = null, answer = null;
+		const k = () => size() / CROP_STAGE;
+		const box = () => CROP_BOX * k();
+		const off = () => (size() - box()) / 2;
+		const scale = () => base * zoom;
+		const draw = () => {
+			const ratio = CROP_PREVIEW / box();
+			if (fit) {
+				const s = CROP_PREVIEW / Math.max(width, height);
+				Object.assign(shown.style, { width: width * s + 'px', height: height * s + 'px', left: (CROP_PREVIEW - width * s) / 2 + 'px', top: (CROP_PREVIEW - height * s) / 2 + 'px' });
+			} else {
+				const s = scale() * ratio;
+				Object.assign(shown.style, { width: width * s + 'px', height: height * s + 'px', left: (x - off()) * ratio + 'px', top: (y - off()) * ratio + 'px' });
+			}
+			preview.classList.toggle('is-fit', fit);
+			stage.classList.toggle('is-fit', fit);
+		};
+		const update = () => {
+			if (!width) {
+				return;
+			}
+			if (fit) {
+				const s = box() / Math.max(width, height);
+				image.style.transform = `translate(${off() + (box() - width * s) / 2}px, ${off() + (box() - height * s) / 2}px) scale(${s})`;
+			} else {
+				const s = scale();
+				// the square never shows outside the image
+				x = Math.min(off(), Math.max(off() + box() - width * s, x));
+				y = Math.min(off(), Math.max(off() + box() - height * s, y));
+				image.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
+			}
+			draw();
+		};
+		const reset = () => {
+			fit = false;
+			zoom = 1;
+			zoomer.value = 1;
+			base = box() / Math.min(width, height);
+			x = off() + (box() - width * base) / 2;
+			y = off() + (box() - height * base) / 2;
+			update();
+		};
+		const zoomTo = value => {
+			const before = scale(), center = off() + box() / 2;
+			const ix = (center - x) / before, iy = (center - y) / before;
+			zoom = Math.min(4, Math.max(1, value));
+			zoomer.value = zoom;
+			fit = false;
+			x = center - ix * scale();
+			y = center - iy * scale();
+			update();
+		};
+		stage.onpointerdown = e => {
+			if (!fit && width) {
+				drag = { px: e.clientX, py: e.clientY, x, y };
+				stage.setPointerCapture(e.pointerId);
+			}
+		};
+		stage.onpointermove = e => {
+			if (drag) {
+				x = drag.x + e.clientX - drag.px;
+				y = drag.y + e.clientY - drag.py;
+				update();
+			}
+		};
+		stage.onpointerup = stage.onpointercancel = () => drag = null;
+		stage.onwheel = e => {
+			e.preventDefault();
+			zoomTo(zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1));
+		};
+		stage.onkeydown = e => {
+			const step = { ArrowLeft: [10, 0], ArrowRight: [-10, 0], ArrowUp: [0, 10], ArrowDown: [0, -10] }[e.key];
+			if (step && !fit) {
+				x += step[0];
+				y += step[1];
+				update();
+				e.preventDefault();
+			} else if (e.key === '+' || e.key === '=') {
+				zoomTo(zoom * 1.1);
+				e.preventDefault();
+			} else if (e.key === '-') {
+				zoomTo(zoom / 1.1);
+				e.preventDefault();
+			}
+		};
+		zoomer.oninput = () => zoomTo(+zoomer.value);
+		fitButton.onclick = () => {
+			fit = true;
+			update();
+		};
+		resetButton.onclick = reset;
+		useButton.onclick = () => {
+			if (fit) {
+				answer = { fit: true };
+			} else {
+				const s = scale();
+				answer = { x: (off() - x) / s / width, y: (off() - y) / s / height, size: box() / s / width, fit: false };
+			}
+			modal.hide();
+		};
+		element.addEventListener('hidden.bs.modal', () => {
+			stage.onpointerdown = stage.onpointermove = stage.onwheel = stage.onkeydown = null;
+			resolve(answer);
+		}, { once: true });
+		element.addEventListener('shown.bs.modal', () => {
+			if (width) {
+				reset();
+			}
+			stage.focus();
+		}, { once: true });
+		image.onload = () => {
+			width = image.naturalWidth;
+			height = image.naturalHeight;
+			label.textContent = (name ? name + ' · ' : '') + width + '×' + height;
+			useButton.disabled = false;
+			reset();
+		};
+		image.onerror = () => {
+			label.textContent = t('The image could not be shown: it is kept as it is.');
+		};
+		useButton.disabled = true;
+		label.textContent = '';
+		// the same image again loads again, so it is shown as it is
+		image.removeAttribute('src');
+		shown.removeAttribute('src');
+		image.src = source;
+		shown.src = source;
+		modal.show();
+	});
+}
+
+// showCoverCrop shows a cover as a crop leaves it, in a square frame: the part chosen, or the
+// whole image on white; without a crop, as it is
+function showCoverCrop(frame, image, crop) {
+	frame.classList.toggle('is-cropped', !!crop && !crop.fit);
+	frame.classList.toggle('is-fit', !!crop && crop.fit);
+	if (!crop || crop.fit) {
+		image.style.width = image.style.height = image.style.left = image.style.top = '';
+		return;
+	}
+	const apply = () => {
+		const ratio = image.naturalHeight / image.naturalWidth;
+		Object.assign(image.style, {
+			width: 100 / crop.size + '%',
+			height: 100 * ratio / crop.size + '%',
+			left: -100 * crop.x / crop.size + '%',
+			top: -100 * crop.y * ratio / crop.size + '%'
+		});
+	};
+	if (image.complete && image.naturalWidth) {
+		apply();
+	} else {
+		image.addEventListener('load', apply, { once: true });
+	}
+}
+
+// pastedImage names an image pasted from the clipboard, and makes one too large for a cover (a
+// screenshot of a big screen in PNG) a JPEG of at most 2000 pixels a side, as a cover needs no more
+function pastedImage(image) {
+	const named = blob => new File([blob], 'pasted.' + (blob.type === 'image/jpeg' ? 'jpg' : blob.type.split('/')[1]), { type: blob.type });
+	if (image.size <= 5 * 1024 * 1024) {
+		return Promise.resolve(named(image));
+	}
+	return createImageBitmap(image).then(bitmap => {
+		const scale = Math.min(1, 2000 / Math.max(bitmap.width, bitmap.height));
+		const canvas = document.createElement('canvas');
+		canvas.width = Math.round(bitmap.width * scale);
+		canvas.height = Math.round(bitmap.height * scale);
+		canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+		return new Promise(resolve => canvas.toBlob(blob => resolve(named(blob)), 'image/jpeg', 0.9));
+	}).catch(() => named(image));
+}
+
+// the cover of a game found in the eShop of Europe by its name, from Edit: the window of the
+// search takes the place of Edit while it is open, and Edit comes back with the image chosen
+function initCoverSearch(form, edit) {
+	const element = document.querySelector('[data-cover-search]');
+	const open = form.querySelector('[data-cover-search-open]');
+	if (!element || !open) {
+		return;
+	}
+	const editElement = form.closest('.modal');
+	const editModal = Modal.getOrCreateInstance(editElement);
+	const modal = Modal.getOrCreateInstance(element);
+	const search = element.querySelector('[data-cover-search-form]');
+	const query = element.querySelector('[data-cover-search-query]');
+	const switch2 = element.querySelector('[data-cover-search-switch2]');
+	const status = element.querySelector('[data-cover-search-status]');
+	const results = element.querySelector('[data-cover-search-results]');
+	const web = element.querySelector('[data-cover-search-web]');
+	const use = element.querySelector('[data-cover-search-use]');
+	let chosen = '';
+	let searched = false;
+	// what to do in Edit once it is shown again
+	let then = null;
+	// the same search of the web the server gives, before any search is made
+	const webAddress = () => {
+		const console = switch2.checked ? 'Switch 2' : 'Switch';
+		const name = query.value.replace(/\s*[[(][^\])]*[\])]/g, ' ').trim() || 'Nintendo ' + console;
+		return 'https://duckduckgo.com/?' + new URLSearchParams({ q: name + ' ' + console + ' cover', ia: 'images', iax: 'images' });
+	};
+	const choose = (button, image) => {
+		results.querySelectorAll('.cover-search-hit').forEach(hit => {
+			hit.classList.toggle('is-chosen', hit === button);
+			hit.setAttribute('aria-pressed', hit === button ? 'true' : 'false');
+		});
+		chosen = image;
+		use.disabled = !chosen;
+	};
+	const finish = action => {
+		then = action;
+		modal.hide();
+	};
+	const run = () => {
+		const name = query.value.trim();
+		chosen = '';
+		use.disabled = true;
+		results.replaceChildren();
+		status.className = 'small mb-2 text-body-secondary';
+		if (!name) {
+			status.textContent = t('Write the name of the game.');
+			return;
+		}
+		status.textContent = t('Searching…');
+		const button = search.querySelector('button');
+		button.disabled = true;
+		postForm('/api/eshop/search', { q: name, switch2: switch2.checked ? 'true' : 'false' }).then(json => {
+			web.href = json.web || webAddress();
+			const games = json.games || [];
+			status.textContent = games.length ? t('%v games found: pick the cover and use it.', games.length) : t('No game found with that name. Try another name, without Switch 2 only, or search the web.');
+			games.forEach(game => {
+				const hit = document.createElement('button');
+				hit.type = 'button';
+				hit.className = 'cover-search-hit';
+				hit.setAttribute('aria-pressed', 'false');
+				const image = document.createElement('img');
+				image.alt = '';
+				image.loading = 'lazy';
+				image.referrerPolicy = 'no-referrer';
+				image.addEventListener('error', () => hit.classList.add('is-broken'));
+				image.src = game.image;
+				const title = document.createElement('span');
+				title.textContent = game.title;
+				const systems = document.createElement('small');
+				systems.textContent = (game.systems || []).join(' · ');
+				hit.append(image, title, systems);
+				hit.addEventListener('click', () => choose(hit, game.image));
+				hit.addEventListener('dblclick', () => finish(() => edit.useAddress(game.image)));
+				results.append(hit);
+			});
+		}).catch(e => {
+			status.className = 'small mb-2 text-danger-emphasis';
+			status.textContent = e.message || t('Could not reach the server.');
+		}).finally(() => {
+			button.disabled = false;
+		});
+	};
+
+	web.href = webAddress();
+	query.addEventListener('input', () => web.href = webAddress());
+	switch2.addEventListener('change', () => {
+		web.href = webAddress();
+		if (searched) {
+			run();
+		}
+	});
+	search.addEventListener('submit', e => {
+		e.preventDefault();
+		searched = true;
+		run();
+	});
+	use.addEventListener('click', () => finish(() => edit.useAddress(chosen)));
+	// an image pasted in the search goes to Edit, which shows it
+	element.addEventListener('paste', e => {
+		const item = Array.from((e.clipboardData && e.clipboardData.items) || []).find(entry => entry.kind === 'file' && /^image\/(png|jpeg|gif)$/.test(entry.type));
+		if (item) {
+			e.preventDefault();
+			const image = item.getAsFile();
+			finish(() => edit.pasted({ clipboardData: { items: [{ kind: 'file', type: image.type, getAsFile: () => image }] }, preventDefault() {} }));
+		}
+	});
+	// Edit gives its place to the search, and takes it back when the search closes
+	open.addEventListener('click', () => {
+		editElement.addEventListener('hidden.bs.modal', () => modal.show(), { once: true });
+		editModal.hide();
+	});
+	element.addEventListener('shown.bs.modal', () => {
+		if (!searched) {
+			searched = true;
+			run();
+		}
+		query.focus();
+	});
+	element.addEventListener('hidden.bs.modal', () => {
+		const action = then;
+		then = null;
+		if (action) {
+			editElement.addEventListener('shown.bs.modal', action, { once: true });
+		}
+		editModal.show();
 	});
 }
 

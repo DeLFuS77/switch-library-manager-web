@@ -31,7 +31,7 @@ const (
 	// the button on the page of the game, which is also the name of the task
 	NUP_ICON_ACTION = "Set the icon"
 	// what the button does, in its help (the same text as in title.html)
-	NUP_ICON_HELP = "Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task."
+	NUP_ICON_HELP = "Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut as you choose in the window that opens (a square at its middle to start with) and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first. It runs as a task."
 	// what is said of a NUP without an icon on the page of its game
 	NUP_NO_ICON        = "It carries no icon: Eglantine and Lichii show it without one."
 	errNupIconNotFound = errorString("This file is not a NUP of the library without an icon.")
@@ -81,8 +81,9 @@ func (web *Web) noIconNup(requested string) (string, string) {
 }
 
 // nupIconOf is the icon a NUP of the game of a title ID prefix takes: its cover the library shows,
-// else the one of titledb downloaded, made 256×256.
-func (web *Web) nupIconOf(prefix string) ([]byte, error) {
+// else the one of titledb downloaded, cut as chosen when it was asked (none: its middle) and made
+// 256×256.
+func (web *Web) nupIconOf(prefix string, crop *CoverCrop) ([]byte, error) {
 	switchDB, localDB := web.state.get()
 	var data []byte
 	if localDB != nil {
@@ -101,6 +102,13 @@ func (web *Web) nupIconOf(prefix string) ([]byte, error) {
 	}
 	if data == nil {
 		return nil, errNupIconNoCover
+	}
+	if crop != nil {
+		cut, err := cropImageData(data, *crop)
+		if err != nil {
+			return nil, err
+		}
+		data = cut
 	}
 	return switchfs.MakeNupIcon(data)
 }
@@ -125,7 +133,8 @@ func (web *Web) setNupIcon(path string) error {
 		return err
 	}
 	if container.HasIcon() {
-		// given one by NXPress since the scan: nothing to do
+		// given one by NXPress since the scan: nothing to do, and its crop is forgotten
+		web.nupIconCrops().set(path, nil)
 		return nil
 	}
 	pkg := container.Packages[container.IconPackage()]
@@ -133,7 +142,12 @@ func (web *Web) setNupIcon(path string) error {
 	if err != nil {
 		return err
 	}
-	icon, err := web.nupIconOf(strings.ToLower(prefix))
+	crops := web.nupIconCrops()
+	var crop *CoverCrop
+	if chosen, ok := crops.get(path); ok {
+		crop = &chosen
+	}
+	icon, err := web.nupIconOf(strings.ToLower(prefix), crop)
 	if err != nil {
 		return err
 	}
@@ -148,6 +162,7 @@ func (web *Web) setNupIcon(path string) error {
 	if err != nil || !set {
 		return err
 	}
+	crops.set(path, nil)
 	if info, err := os.Stat(path); err == nil && checked != nil {
 		record := *checked
 		record.Size, record.ModTime = info.Size(), info.ModTime().UnixNano()
@@ -178,6 +193,15 @@ func (web *Web) handleNupIcon() {
 		if path == "" {
 			writeGlobalError(w, http.StatusBadRequest, lang, string(errNupIconNotFound))
 			return
+		}
+		// the part of the cover chosen in the window of the crop, kept until the task gives it
+		crop, err := coverCropFrom(r)
+		if err != nil {
+			writeGlobalError(w, http.StatusBadRequest, lang, err.Error())
+			return
+		}
+		if err := web.nupIconCrops().set(path, crop); err != nil {
+			web.sugarLogger.Errorf("The crop of the icon of %s could not be kept: %v", path, err)
 		}
 		web.startOrQueue(w, QueuedTask{Kind: tasklog.TASK_NUP_ICON, Paths: []string{path}})
 	}).Methods("POST")

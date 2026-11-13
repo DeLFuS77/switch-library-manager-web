@@ -254,6 +254,7 @@ func (web *Web) HandleApi() {
 	web.router.HandleFunc("/api/titles/{titleId}/override", web.handleTitleOverrideGet).Methods("GET")
 	web.router.HandleFunc("/api/titles/{titleId}/override", web.handleTitleOverrideSet).Methods("POST")
 	web.router.HandleFunc("/api/titles/{titleId}/override", web.handleTitleOverrideDelete).Methods("DELETE")
+	web.router.HandleFunc("/api/eshop/search", web.handleEshopSearch).Methods("POST")
 
 	web.router.HandleFunc("/api/titles/{titleId}/updates/{version}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)

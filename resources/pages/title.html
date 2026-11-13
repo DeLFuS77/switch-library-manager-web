@@ -409,6 +409,8 @@
 			</section>
 			{{- end}}{{end}}
 			{{- template "titleEdit" $t}}
+			{{- template "coverSearch" $t}}
+			{{- template "coverCrop" $t}}
 			{{- if gt $t.PackFiles 1}}{{template "titlePack" $t}}{{end}}
 {{- end}}
 {{- define "titlePack"}}
@@ -456,9 +458,14 @@
 							<div class="alert alert-danger" role="alert" data-title-edit-error hidden><div class="d-flex gap-2"><span class="bi bi-exclamation-octagon-fill flex-shrink-0 mt-1" aria-hidden="true"></span><div><strong>{{t "Error!"}}</strong> <span data-title-edit-message></span></div></div></div>
 							<div class="row g-3">
 								<div class="col-sm-4">
-									<img src="{{if .ImageUrl}}{{fullImage .ImageUrl}}{{else}}/resources/static/noimage.png{{end}}" class="title-edit-cover" alt="{{t "Cover"}}" data-title-edit-preview>
+									<div class="title-edit-frame" data-title-edit-frame>
+										<img src="{{if .ImageUrl}}{{fullImage .ImageUrl}}{{else}}/resources/static/noimage.png{{end}}" class="title-edit-cover" alt="{{t "Cover"}}" data-title-edit-preview>
+										<button type="button" class="btn btn-sm btn-light rounded-pill title-edit-crop" data-title-edit-crop{{if not .ImageUrl}} hidden{{end}}><span class="bi bi-crop me-1" aria-hidden="true"></span>{{t "Crop"}}</button>
+									</div>
+									<input type="hidden" name="cropX" data-title-edit-crop-x><input type="hidden" name="cropY" data-title-edit-crop-y><input type="hidden" name="cropSize" data-title-edit-crop-size><input type="hidden" name="cropFit" data-title-edit-crop-fit>
 									<div class="d-grid gap-2 mt-2">
 										<label class="btn btn-sm btn-outline-secondary rounded-pill title-edit-file"><span class="bi bi-upload me-1" aria-hidden="true"></span>{{t "Upload an image"}}<input type="file" name="cover" accept="image/jpeg,image/png,image/gif" data-title-edit-file></label>
+										<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-cover-search-open><span class="bi bi-search me-1" aria-hidden="true"></span>{{t "Search the eShop"}}…</button>
 										<input type="url" class="form-control form-control-sm" name="coverUrl" maxlength="2000" placeholder="{{t "or paste an address (https://…)"}}" aria-label="{{t "Address of the cover"}}" data-title-edit-url>
 										{{- if .Edit.Cover}}
 										<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-title-edit-original-cover><span class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></span>{{t "Use the cover of the game"}}</button>
@@ -489,6 +496,72 @@
 							</div>
 						</div>
 					</form>
+				</div>
+			</div>
+{{- end}}
+{{define "coverSearch"}}
+			{{- /* the cover found in the eShop of Europe by the name of the game, for Edit; a search of the web
+			     and an image pasted for the games it does not have */}}
+			<div class="modal fade admin-only" id="coverSearch" tabindex="-1" aria-labelledby="coverSearchTitle" aria-hidden="true" data-cover-search>
+				<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h2 class="modal-title fs-5" id="coverSearchTitle"><span class="bi bi-search me-2" aria-hidden="true"></span>{{t "Find the cover"}}</h2>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+						</div>
+						<div class="modal-body">
+							<form class="d-flex gap-2" data-cover-search-form role="search">
+								<input type="search" class="form-control" name="q" maxlength="200" value="{{.Name}}" aria-label="{{t "Name of the game"}}" spellcheck="false" data-cover-search-query>
+								<button type="submit" class="btn btn-primary rounded-pill px-3 text-nowrap"><span class="bi bi-search me-1" aria-hidden="true"></span>{{t "Search"}}</button>
+							</form>
+							<p class="small text-body-secondary mt-2 mb-3">{{t "From the eShop of Europe"}} · <label class="text-nowrap"><input type="checkbox" class="form-check-input" data-cover-search-switch2{{if .IsSwitch2}} checked{{end}}> {{t "Switch 2 only"}}</label></p>
+							<p class="small mb-2" role="status" aria-live="polite" data-cover-search-status></p>
+							<div class="cover-search-grid" data-cover-search-results></div>
+							<div class="cover-search-paste"><span class="bi bi-clipboard me-1" aria-hidden="true"></span>{{t "You can also paste an image here (Ctrl+V)."}}</div>
+						</div>
+						<div class="modal-footer justify-content-between">
+							<a class="btn btn-link text-decoration-none px-0" href="#" target="_blank" rel="noopener noreferrer" data-cover-search-web>{{t "Search the web"}} ↗</a>
+							<div class="d-flex gap-2">
+								<button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">{{t "Cancel"}}</button>
+								<button type="button" class="btn btn-primary rounded-pill" data-cover-search-use disabled><span class="bi bi-check-lg me-1" aria-hidden="true"></span>{{t "Use this one"}}</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+{{- end}}
+{{define "coverCrop"}}
+			{{- /* the crop of a cover, as in NXPress: for Edit, and for the icon of a NUP */}}
+			<div class="modal fade admin-only" id="coverCrop" tabindex="-1" aria-labelledby="coverCropTitle" aria-hidden="true" data-cover-crop>
+				<div class="modal-dialog modal-lg modal-dialog-centered">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h2 class="modal-title fs-5" id="coverCropTitle"><span class="bi bi-crop me-2" aria-hidden="true"></span>{{t "Crop the cover"}}</h2>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+						</div>
+						<div class="modal-body">
+							<div class="cover-crop">
+								<div class="cover-crop-stage" tabindex="0" aria-label="{{t "Drag the image, or move it with the arrows; + and - zoom"}}" data-cover-crop-stage>
+									<img alt="" draggable="false" data-cover-crop-image>
+									<div class="cover-crop-box" aria-hidden="true"></div>
+								</div>
+								<div class="cover-crop-side">
+									<div class="cover-crop-preview" data-cover-crop-preview><img alt="" draggable="false" data-cover-crop-shown></div>
+									<span class="small text-body-secondary">{{t "As it will look (256×256 as the icon of a NUP)"}}</span>
+									<label class="small">{{t "Zoom"}}<input type="range" class="form-range" min="1" max="4" step="0.01" value="1" data-cover-crop-zoom></label>
+									<div class="d-flex flex-wrap gap-2">
+										<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-cover-crop-fit><span class="bi bi-arrows-angle-contract me-1" aria-hidden="true"></span>{{t "Fit whole"}}</button>
+										<button type="button" class="btn btn-sm btn-link link-secondary text-decoration-none" data-cover-crop-reset>{{t "Reset"}}</button>
+									</div>
+									<span class="small text-body-secondary text-break" data-cover-crop-name></span>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">{{t "Cancel"}}</button>
+							<button type="button" class="btn btn-primary rounded-pill" data-cover-crop-use><span class="bi bi-check-lg me-1" aria-hidden="true"></span>{{t "Use the crop"}}</button>
+						</div>
+					</div>
 				</div>
 			</div>
 {{- end}}
@@ -538,7 +611,7 @@
 							{{- /* the cover of its game made its icon, as a task, by an administrator; what it does shows on hover */}}
 							<div class="nup-fix admin-only" data-hover-help>
 								<button type="button" class="btn btn-sm btn-outline-primary rounded-pill help-name" data-nup-icon="{{$.Path}}"><span class="bi bi-image" aria-hidden="true"></span>{{t "Set the icon"}}</button>
-								<div class="form-text">{{t "Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut square at its middle and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first: a square one of 256×256 or bigger looks best. It runs as a task."}}</div>
+								<div class="form-text">{{t "Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut as you choose in the window that opens (a square at its middle to start with) and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first. It runs as a task."}}</div>
 							</div>
 							{{- end}}
 							{{- end}}

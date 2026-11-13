@@ -220,6 +220,84 @@
         }
       }
     },
+    "/api/eshop/search": {
+      "post": {
+        "summary": "Find the cover of a game in the eShop",
+        "description": "Searches the eShop of Europe by the name of a game, without the marks of file names ([title ID], [v0], the extension), for administrators. It gives the games with a square image of 500×500 (at most 24) and the address of a search of images on the web for the same name; the image chosen is then sent as the coverUrl of the change of a game.",
+        "tags": [
+          "Library"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "q"
+                ],
+                "properties": {
+                  "q": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "description": "The name of the game"
+                  },
+                  "switch2": {
+                    "type": "boolean",
+                    "description": "The games of the Switch 2 only"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The games found, and a search of the web",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "games": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string"
+                          },
+                          "systems": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "image": {
+                            "type": "string",
+                            "format": "uri"
+                          }
+                        }
+                      }
+                    },
+                    "web": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No name, or a name too long"
+          },
+          "502": {
+            "description": "The eShop could not be reached"
+          }
+        }
+      }
+    },
     "/api/titles/{titleId}/updates/{version}": {
       "get": {
         "summary": "Download an update file",
