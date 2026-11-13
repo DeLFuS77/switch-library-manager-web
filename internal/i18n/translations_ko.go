@@ -2198,5 +2198,14 @@ func init() {
 		"The part of the image chosen cannot be cut.":               "선택한 부분을 자를 수 없습니다.",
 		"The game has no cover yet to crop: choose an image first.": "자를 커버가 아직 없습니다. 먼저 이미지를 고르세요.",
 		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut as you choose in the window that opens (a square at its middle to start with) and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first. It runs as a task.": "이 페이지에 보이는 게임의 커버(편집에서 고른 것, 없으면 titledb의 것)를 NUP의 아이콘으로 만듭니다. 열리는 창에서 고른 대로 자르고(처음에는 가운데 정사각형) 콘솔 아이콘처럼 256×256으로 만듭니다. NUP에 있는 것은 바뀌지 않습니다. 게임의 메타데이터는 아이콘과 함께 끝부분 뒤에 다시 쓰이고 게임 파일은 건드리지 않습니다. 쓰는 동안 헤더와 목차의 복사본을 NUP 옆에 두고, 실패하거나 작업이 끊기면 되돌립니다. 다른 이미지를 쓰려면 먼저 편집에서 커버를 바꾸세요. 작업으로 실행됩니다.",
+
+		// the folders of the library
+		"Folder":               "폴더",
+		"All folders":          "모든 폴더",
+		"Space by folder":      "폴더별 공간",
+		"%v free of %v":        "%v 남음 (전체 %v)",
+		"Files of the folder":  "폴더의 파일",
+		"The rest of the disk": "디스크의 나머지",
+		"Free":                 "남은 공간",
 	}
 }

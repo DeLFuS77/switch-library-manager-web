@@ -2198,5 +2198,14 @@ func init() {
 		"The part of the image chosen cannot be cut.":               "无法裁剪所选部分。",
 		"The game has no cover yet to crop: choose an image first.": "该游戏还没有可裁剪的封面：请先选择图片。",
 		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut as you choose in the window that opens (a square at its middle to start with) and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first. It runs as a task.": "将本页显示的游戏封面（在“编辑”中选择的，否则为 titledb 的）设为 NUP 的图标：按你在弹出的窗口中选择的方式裁剪（初始为中间的正方形），并缩放为 256×256，与主机图标相同。NUP 已有的内容不会改变：游戏的元数据会连同图标一起重写在其末尾之后，游戏文件不会被改动。写入时会在 NUP 旁保留头部和目录的副本，若失败或中断则恢复。要使用其他图片，请先在“编辑”中更换封面。以任务方式运行。",
+
+		// the folders of the library
+		"Folder":               "文件夹",
+		"All folders":          "所有文件夹",
+		"Space by folder":      "按文件夹统计空间",
+		"%v free of %v":        "%v 可用，共 %v",
+		"Files of the folder":  "文件夹中的文件",
+		"The rest of the disk": "磁盘上的其他内容",
+		"Free":                 "可用",
 	}
 }

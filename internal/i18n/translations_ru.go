@@ -2198,5 +2198,14 @@ func init() {
 		"The part of the image chosen cannot be cut.":               "Выбранную часть изображения нельзя вырезать.",
 		"The game has no cover yet to crop: choose an image first.": "У игры ещё нет обложки для обрезки: сначала выберите изображение.",
 		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut as you choose in the window that opens (a square at its middle to start with) and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first. It runs as a task.": "Делает обложку игры, показанную на этой странице (выбранную в «Изменить», иначе из titledb), значком NUP: обрезанной так, как вы выберете в открывшемся окне (сначала квадрат по центру), и размером 256×256, как значки консоли. Ничего в NUP не меняется: метаданные игры записываются заново после его конца вместе со значком, а файлы игры не затрагиваются. Во время записи рядом с NUP хранится копия заголовка и оглавления, которая возвращается на место, если что-то пойдёт не так или работа прервётся. Чтобы взять другое изображение, сначала смените обложку в «Изменить». Выполняется как задача.",
+
+		// the folders of the library
+		"Folder":               "Папка",
+		"All folders":          "Все папки",
+		"Space by folder":      "Место по папкам",
+		"%v free of %v":        "Свободно %v из %v",
+		"Files of the folder":  "Файлы папки",
+		"The rest of the disk": "Остальное на диске",
+		"Free":                 "Свободно",
 	}
 }

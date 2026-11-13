@@ -208,6 +208,7 @@ type libraryFilter struct {
 	regions          map[string]struct{}
 	recentSince      time.Time
 	collectionCounts map[string]int
+	folderCounts     map[string]int
 	genreCounts      map[string]int
 	languageCounts   map[string]int
 	// the copies of the games of several regions left out, and the regions of the others
@@ -218,13 +219,16 @@ type libraryFilter struct {
 	// not have, one card of all of them (nil when each region counts)
 	once  *missingOnce
 	plays map[string]userdata.PlayEntry
+	// the folders of the library, for its filter
+	folders []LibraryFolder
 }
 
 func (web *Web) newLibraryFilter(filter *TitleItemFilter, lang string, all []TitleItem) *libraryFilter {
 	f := &libraryFilter{filter: filter, all: all, matched: make([]int, 0, len(all)),
 		facets:  LibraryFacets{Formats: []string{}, Regions: []string{}, DemosHidden: settings.ReadSettings(web.dataFolder).HideDemoGames},
 		formats: map[string]struct{}{}, regions: map[string]struct{}{}, recentSince: time.Now().AddDate(0, 0, -recentDays),
-		collectionCounts: map[string]int{}, genreCounts: map[string]int{}, languageCounts: map[string]int{}}
+		collectionCounts: map[string]int{}, folderCounts: map[string]int{}, genreCounts: map[string]int{}, languageCounts: map[string]int{}}
+	f.folders = libraryFolders(settings.ReadSettings(web.dataFolder))
 	f.leftOut, f.otherRegions = web.regionCopies(lang)
 	f.merged = web.mergedStatus(lang)
 	f.once = web.newMissingOnce()
@@ -264,6 +268,12 @@ func (f *libraryFilter) formatAndRegion(item *TitleItem) bool {
 		f.formats[item.Type] = struct{}{}
 	}
 	if filter.Format != "" && item.Type != filter.Format {
+		return false
+	}
+	if item.folder != "" {
+		f.folderCounts[item.folder]++
+	}
+	if filter.Folder != "" && item.folder != filter.Folder {
 		return false
 	}
 	if item.Region != "" {
@@ -429,6 +439,15 @@ func (f *libraryFilter) sortFacets() {
 		facets.Regions = append(facets.Regions, region)
 	}
 	sort.Strings(facets.Regions)
+	// the folders in the order of the settings; one without games of the search is left out,
+	// unless it is the one chosen
+	facets.ShowFolders = len(f.folders) > 1
+	facets.Folders = []FolderChoice{}
+	for _, folder := range f.folders {
+		if count := f.folderCounts[folder.Id]; count > 0 || folder.Id == f.filter.Folder {
+			facets.Folders = append(facets.Folders, FolderChoice{Id: folder.Id, Name: folder.Name, Count: count})
+		}
+	}
 	facets.Genres = sortedCounts(f.genreCounts)
 	facets.Languages = sortedCounts(f.languageCounts)
 	for name, count := range f.collectionCounts {
@@ -516,6 +535,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 	favorites := web.favorites().Snapshot()
 	timesToBeat := web.timesToBeat().snapshot()
 	cheats := web.cheats()
+	findFolder := folderFinder(libraryFolders(settingsObj))
 
 	for k, v := range localDB.TitlesMap {
 		if !v.BaseExist || v.File.Metadata == nil {
@@ -560,6 +580,9 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 		item.Collections = collections[item.Id]
 		item.Selectable = true
 		item.Favorite = favorites[item.Id]
+		if folder := findFolder(v.File.ExtendedInfo.BaseFolder); folder != nil {
+			item.folder, item.folderName = folder.Id, strings.ToLower(folder.Name)
+		}
 		item.Cheats = cheats.has(item.Id, v.LatestUpdate)
 		item.CheatsOther = !item.Cheats && cheats.hasAny(item.Id)
 		// every file once: a game card can hold the game, its update and DLC

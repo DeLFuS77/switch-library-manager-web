@@ -2198,5 +2198,14 @@ func init() {
 		"The part of the image chosen cannot be cut.":               "La parte dell'immagine scelta non può essere ritagliata.",
 		"The game has no cover yet to crop: choose an image first.": "Il gioco non ha ancora una copertina da ritagliare: scegli prima un'immagine.",
 		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut as you choose in the window that opens (a square at its middle to start with) and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first. It runs as a task.": "Rende la copertina del gioco mostrata in questa pagina (quella scelta in Modifica, altrimenti quella di titledb) l'icona del NUP: ritagliata come scegli nella finestra che si apre (all'inizio il quadrato centrale) e portata a 256×256, come le icone della console. Nulla di ciò che il NUP contiene cambia: i metadati del gioco vengono riscritti dopo la sua fine con l'icona e i file del gioco non vengono toccati. Durante la scrittura tiene accanto al NUP una copia dell'intestazione e dell'indice, e la rimette se qualcosa fallisce o il lavoro si interrompe. Per un'altra immagine, cambia prima la copertina in Modifica. Viene eseguito come attività.",
+
+		// the folders of the library
+		"Folder":               "Cartella",
+		"All folders":          "Tutte le cartelle",
+		"Space by folder":      "Spazio per cartella",
+		"%v free of %v":        "%v liberi su %v",
+		"Files of the folder":  "File della cartella",
+		"The rest of the disk": "Il resto del disco",
+		"Free":                 "Libero",
 	}
 }

@@ -2225,6 +2225,15 @@ var Translations = map[string]map[string]string{
 		"The part of the image chosen cannot be cut.":               "No se puede recortar la parte de la imagen elegida.",
 		"The game has no cover yet to crop: choose an image first.": "El juego aún no tiene carátula que recortar: elige antes una imagen.",
 		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut as you choose in the window that opens (a square at its middle to start with) and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first. It runs as a task.": "Convierte la carátula de su juego que se ve en esta página (la elegida en Editar o, si no, la de titledb) en el icono del NUP: recortada como elijas en la ventana que se abre (de entrada, el cuadrado del centro) y a 256×256, como los iconos de la consola. No cambia nada de lo que el NUP ya tiene: los metadatos del juego se escriben de nuevo tras su final con el icono, y los archivos del juego no se tocan. Mientras escribe deja al lado una copia de la cabecera y del índice del NUP, y la vuelve a poner si algo falla o el trabajo se corta. Para otra imagen, cambia antes la carátula en Editar. Se hace como una tarea.",
+
+		// the folders of the library
+		"Folder":               "Carpeta",
+		"All folders":          "Todas las carpetas",
+		"Space by folder":      "Espacio por carpeta",
+		"%v free of %v":        "%v libres de %v",
+		"Files of the folder":  "Archivos de la carpeta",
+		"The rest of the disk": "Lo demás del disco",
+		"Free":                 "Libre",
 	},
 }
 

@@ -48,6 +48,9 @@
 					{{- if or .Scores (eq .Filter.SortBy "score")}}
 					<option value="score"{{if eq .Filter.SortBy "score"}} selected{{end}}>{{t "Score"}}</option>
 					{{- end}}
+					{{- if or .Facets.ShowFolders (eq .Filter.SortBy "folder")}}
+					<option value="folder"{{if eq .Filter.SortBy "folder"}} selected{{end}}>{{t "Folder"}}</option>
+					{{- end}}
 					{{- end}}
 					<option value="id"{{if eq .Filter.SortBy "id"}} selected{{end}}>{{t "ID"}}</option>
 				</select>
@@ -83,6 +86,7 @@
 				{{- $kind := or $fc.Games $fc.Demos $f.Kind}}
 				{{- $formats := gt (len $fc.Formats) 1}}
 				{{- $regions := or (gt (len $fc.Regions) 1) $f.Region}}
+				{{- $folders := and .Library (or $fc.ShowFolders $f.Folder)}}
 				{{- $genres := or $fc.Genres $f.Genre}}
 				{{- $players := or $fc.SinglePlayer $fc.TwoPlayers $f.Players}}
 				{{- $score := or $fc.Score70 $f.Score}}
@@ -147,7 +151,7 @@
 								<p class="filter-note"><span class="bi bi-joystick" aria-hidden="true"></span>{{t "“My game” shows here once you mark how one of your games goes."}}</p>
 								{{- end}}
 								{{- end}}
-								{{- if or $kind $formats $regions}}
+								{{- if or $kind $formats $regions $folders}}
 								<h3 class="panel-part-title">{{t "The file"}}</h3>
 								{{- if $kind}}
 								<section class="filter-group">
@@ -166,6 +170,18 @@
 										<a class="filter-choice{{if not $f.Format}} active{{end}}" href="{{filterUrl $f "format" ""}}">{{t "All formats"}}</a>
 										{{- range $fc.Formats}}
 										<a class="filter-choice{{if eq $f.Format .}} active{{end}}" href="{{filterUrl $f "format" (toLower .)}}">{{.}}</a>
+										{{- end}}
+									</div>
+								</section>
+								{{- end}}
+								{{- if $folders}}
+								{{- /* the folders by their names alone: the filter tells no path */}}
+								<section class="filter-group">
+									<h4 class="filter-group-title"><span class="bi bi-folder2" aria-hidden="true"></span>{{t "Folder"}}</h4>
+									<div class="filter-choices">
+										<a class="filter-choice{{if not $f.Folder}} active{{end}}" href="{{filterUrl $f "folder" ""}}">{{t "All folders"}}</a>
+										{{- range $fc.Folders}}
+										<a class="filter-choice{{if eq $f.Folder .Id}} active{{end}}" href="{{filterUrl $f "folder" .Id}}"><span class="bi bi-folder2" aria-hidden="true"></span> {{.Name}} <span class="filter-count">{{num .Count}}</span></a>
 										{{- end}}
 									</div>
 								</section>
@@ -269,7 +285,7 @@
 						<div class="panel-foot">
 							<strong>{{t "%v games" (num .Count)}}</strong>
 							{{- if $f.SecondaryCount}}
-							<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "genre" "" "players" "" "languages" "" "play" "" "score" ""}}">{{t "Clear filters"}}</a>
+							<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "genre" "" "players" "" "languages" "" "play" "" "score" "" "folder" ""}}">{{t "Clear filters"}}</a>
 							{{- end}}
 						</div>
 					</div>
@@ -283,6 +299,7 @@
 				{{- if $f.Kind}}<a class="active-filter" href="{{filterUrl $f "kind" ""}}"><span class="bi bi-controller" aria-hidden="true"></span>{{if eq $f.Kind "demo"}}{{t "Demos only"}}{{else}}{{t "Games only"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Console}}<a class="active-filter" href="{{filterUrl $f "console" "all"}}"><span class="bi bi-nintendo-switch" aria-hidden="true"></span>{{if eq . "switch2"}}Switch 2{{else}}Switch{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Region}}<a class="active-filter" href="{{filterUrl $f "region" ""}}"><span class="fi fi-{{. | toLower}}" aria-hidden="true"></span>{{.}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
+				{{- with $f.Folder}}{{$id := .}}{{$name := t "Folder"}}{{range $.Folders}}{{if eq .Id $id}}{{$name = .Name}}{{end}}{{end}}<a class="active-filter" href="{{filterUrl $f "folder" ""}}"><span class="bi bi-folder2" aria-hidden="true"></span>{{$name}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Format}}<a class="active-filter" href="{{filterUrl $f "format" ""}}"><span class="bi bi-file-earmark" aria-hidden="true"></span>{{.}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Genre}}<a class="active-filter" href="{{filterUrl $f "genre" ""}}"><span class="bi bi-tags" aria-hidden="true"></span>{{t .}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Players}}<a class="active-filter" href="{{filterUrl $f "players" ""}}"><span class="bi bi-people" aria-hidden="true"></span>{{if eq . "1"}}{{t "1 player"}}{{else if eq . "2"}}{{t "2 or more"}}{{else}}{{t "4 or more"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
@@ -290,7 +307,7 @@
 				{{- with $f.Score}}<a class="active-filter" href="{{filterUrl $f "score" ""}}"><span class="bi bi-award" aria-hidden="true"></span>{{t "Score of %v or more" .}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- if $f.Extra}}<a class="active-filter" href="{{filterUrl $f "extra" ""}}"><span class="bi bi-funnel" aria-hidden="true"></span>{{if eq $f.Extra "recent"}}{{t "Added in the last 30 days"}}{{else if eq $f.Extra "no_cover"}}{{t "Without a cover"}}{{else if eq $f.Extra "favorites"}}{{t "Favorites only"}}{{else if eq $f.Extra "cheats"}}{{t "With cheats for my version"}}{{else if eq $f.Extra "cheats_other"}}{{t "With cheats for another version"}}{{else if eq $f.Extra "firmware"}}{{t "Need a newer firmware"}}{{else}}{{t "Not recognized"}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
 				{{- with $f.Play}}<a class="active-filter" href="{{filterUrl $f "play" ""}}"><span class="bi bi-joystick" aria-hidden="true"></span>{{if eq . "none"}}{{t "Without a state"}}{{else}}{{t (playStateName .)}}{{end}}<span class="bi bi-x" aria-label="{{t "Remove"}}"></span></a>{{end}}
-				<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "genre" "" "players" "" "languages" "" "play" "" "score" ""}}">{{t "Clear filters"}}</a>
+				<a class="btn btn-sm btn-link text-decoration-none px-1" href="{{filterUrl $f "collection" "" "kind" "" "region" "" "format" "" "extra" "" "genre" "" "players" "" "languages" "" "play" "" "score" "" "folder" ""}}">{{t "Clear filters"}}</a>
 			</div>
 			{{- end}}
 {{- end}}

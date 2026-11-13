@@ -2198,5 +2198,14 @@ func init() {
 		"The part of the image chosen cannot be cut.":               "Het gekozen deel van de afbeelding kan niet worden uitgesneden.",
 		"The game has no cover yet to crop: choose an image first.": "Het spel heeft nog geen cover om bij te snijden: kies eerst een afbeelding.",
 		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut as you choose in the window that opens (a square at its middle to start with) and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first. It runs as a task.": "Maakt de cover van het spel op deze pagina (de in Bewerken gekozen, anders die van titledb) het pictogram van de NUP: bijgesneden zoals je kiest in het venster dat opent (eerst het vierkant in het midden) en op 256×256 gebracht, zoals de pictogrammen van de console. Niets van wat de NUP heeft verandert: de metadata van het spel worden na het einde opnieuw geschreven met het pictogram, en de bestanden van het spel worden niet aangeraakt. Tijdens het schrijven ligt er een kopie van de header en de inhoudsopgave naast de NUP, die wordt teruggezet als er iets misgaat of het werk wordt onderbroken. Voor een andere afbeelding wijzig je eerst de cover in Bewerken. Het loopt als taak.",
+
+		// the folders of the library
+		"Folder":               "Map",
+		"All folders":          "Alle mappen",
+		"Space by folder":      "Ruimte per map",
+		"%v free of %v":        "%v vrij van %v",
+		"Files of the folder":  "Bestanden van de map",
+		"The rest of the disk": "De rest van de schijf",
+		"Free":                 "Vrij",
 	}
 }

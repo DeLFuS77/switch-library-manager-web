@@ -2198,5 +2198,14 @@ func init() {
 		"The part of the image chosen cannot be cut.":               "選んだ部分を切り抜けません。",
 		"The game has no cover yet to crop: choose an image first.": "切り抜くカバーがまだありません。先に画像を選んでください。",
 		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut as you choose in the window that opens (a square at its middle to start with) and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first. It runs as a task.": "このページに表示されているゲームのカバー（編集で選んだもの、なければ titledb のもの）を NUP のアイコンにします。開くウィンドウで選んだとおりに切り抜き（最初は中央の正方形）、本体のアイコンと同じ 256×256 にします。NUP の中身は変わりません。ゲームのメタデータはアイコン付きで末尾の後に書き直され、ゲームのファイルには触れません。書き込み中はヘッダーと目次のコピーを NUP の横に置き、失敗したり中断されたりしたら元に戻します。別の画像にするには、先に編集でカバーを変更してください。タスクとして実行されます。",
+
+		// the folders of the library
+		"Folder":               "フォルダー",
+		"All folders":          "すべてのフォルダー",
+		"Space by folder":      "フォルダー別の容量",
+		"%v free of %v":        "%v 空き（全 %v）",
+		"Files of the folder":  "フォルダーのファイル",
+		"The rest of the disk": "ディスクのその他",
+		"Free":                 "空き",
 	}
 }

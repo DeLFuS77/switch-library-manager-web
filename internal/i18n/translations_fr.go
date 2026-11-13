@@ -2198,5 +2198,14 @@ func init() {
 		"The part of the image chosen cannot be cut.":               "La partie de l’image choisie ne peut pas être découpée.",
 		"The game has no cover yet to crop: choose an image first.": "Le jeu n’a pas encore de jaquette à recadrer : choisissez d’abord une image.",
 		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut as you choose in the window that opens (a square at its middle to start with) and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first. It runs as a task.": "Fait de la jaquette de son jeu affichée sur cette page (celle choisie dans Modifier, sinon celle de titledb) l’icône du NUP : recadrée comme vous le choisissez dans la fenêtre qui s’ouvre (au départ, le carré du centre) et mise en 256×256, comme les icônes de la console. Rien de ce que le NUP contient ne change : les métadonnées du jeu sont réécrites après sa fin avec l’icône, et les fichiers du jeu ne sont pas touchés. Pendant l’écriture, une copie de l’en-tête et de la table des matières est gardée à côté du NUP et remise en place si quelque chose échoue ou si le travail est interrompu. Pour une autre image, changez d’abord la jaquette dans Modifier. Cela s’exécute comme une tâche.",
+
+		// the folders of the library
+		"Folder":               "Dossier",
+		"All folders":          "Tous les dossiers",
+		"Space by folder":      "Espace par dossier",
+		"%v free of %v":        "%v libres sur %v",
+		"Files of the folder":  "Fichiers du dossier",
+		"The rest of the disk": "Le reste du disque",
+		"Free":                 "Libre",
 	}
 }

@@ -2198,5 +2198,14 @@ func init() {
 		"The part of the image chosen cannot be cut.":               "Der gewählte Teil des Bildes kann nicht ausgeschnitten werden.",
 		"The game has no cover yet to crop: choose an image first.": "Das Spiel hat noch kein Cover zum Zuschneiden: Wähle zuerst ein Bild.",
 		"Makes the cover of its game shown on this page (the one chosen in Edit, else the one of titledb) the icon of the NUP: cut as you choose in the window that opens (a square at its middle to start with) and made 256×256, as the icons of the console are. Nothing the NUP has changes: the metadata of the game is written again after its end with the icon, and the files of the game are not touched. While it writes, it keeps a copy of the header and the table of contents beside the NUP, and puts it back if anything fails or the work is cut. For another image, change the cover in Edit first. It runs as a task.": "Macht das auf dieser Seite gezeigte Cover des Spiels (das in Bearbeiten gewählte, sonst das von titledb) zum Symbol der NUP: so zugeschnitten, wie du es im sich öffnenden Fenster wählst (anfangs das Quadrat in der Mitte), und auf 256×256 gebracht, wie die Symbole der Konsole. Nichts, was die NUP hat, ändert sich: die Metadaten des Spiels werden mit dem Symbol hinter ihrem Ende neu geschrieben, die Dateien des Spiels werden nicht angefasst. Während des Schreibens liegt eine Kopie von Header und Inhaltsverzeichnis neben der NUP, die zurückgespielt wird, wenn etwas fehlschlägt oder die Arbeit abbricht. Für ein anderes Bild zuerst das Cover in Bearbeiten ändern. Es läuft als Aufgabe.",
+
+		// the folders of the library
+		"Folder":               "Ordner",
+		"All folders":          "Alle Ordner",
+		"Space by folder":      "Speicher nach Ordner",
+		"%v free of %v":        "%v frei von %v",
+		"Files of the folder":  "Dateien des Ordners",
+		"The rest of the disk": "Der Rest der Festplatte",
+		"Free":                 "Frei",
 	}
 }
