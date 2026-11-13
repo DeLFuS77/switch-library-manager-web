@@ -2165,5 +2165,14 @@ func init() {
 		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "NUP 旁有另一个 NUP 的目录副本（.nxpress-icon）：删除它才能继续。",
 		"This file is not a NUP of the library without an icon.":                                                      "此文件不是库中缺少图标的 NUP。",
 		"Setting the icon…": "正在设置图标…",
+
+		// the folders of the library
+		"Folder":               "文件夹",
+		"All folders":          "所有文件夹",
+		"Space by folder":      "按文件夹统计空间",
+		"%v free of %v":        "%v 可用，共 %v",
+		"Files of the folder":  "文件夹中的文件",
+		"The rest of the disk": "磁盘上的其他内容",
+		"Free":                 "可用",
 	}
 }

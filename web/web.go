@@ -346,6 +346,10 @@ type TitleItem struct {
 	// DLC the titles database knows of it, which are not counted without a file
 	NoFile   bool
 	KnownDlc int
+	// library: the folder scanned that holds the file of the game (see folderId), and its name
+	// as it is sorted; never shown, as it tells the path
+	folder     string
+	folderName string
 }
 
 // IsSwitch2 reports whether the game is of the Nintendo Switch 2 alone: its card says so.
@@ -485,6 +489,9 @@ type LibraryFacets struct {
 	DlcMissing int
 	// the user marked how some game goes: the filter My game is offered
 	PlayUsed bool
+	// the folders of the library, with their games: the filter is offered when there are two or more
+	Folders     []FolderChoice
+	ShowFolders bool
 	// genres and languages of the games, the most frequent first, and the games by players
 	Genres       []NamedCount
 	Languages    []NamedCount

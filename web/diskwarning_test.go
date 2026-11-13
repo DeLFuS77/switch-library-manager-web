@@ -56,18 +56,27 @@ func TestRoomToCompress(t *testing.T) {
 	}
 }
 
-// The header warns of a volume short of space, with its free space.
+// The header warns the administrators of a volume short of space, with its free space; the
+// others do not see the paths of the folders.
 func TestLowDiskBanner(t *testing.T) {
 	set, err := parseTemplates(os.DirFS(".."), "resources/layout.html", "resources/partials/*.html", "resources/pages/maintenance.html")
 	if err != nil {
 		t.Fatal(err)
 	}
 	var out strings.Builder
-	data := MaintenancePageData{GlobalPageData: GlobalPageData{IsKeysFileAvailable: true, LowDisks: []LowDisk{{Folder: "/mnt/games", Free: 3 << 30, Total: 100 << 30, Percent: 3}}}}
+	data := MaintenancePageData{GlobalPageData: GlobalPageData{IsKeysFileAvailable: true, Auth: AuthInfo{IsAdmin: true}, LowDisks: []LowDisk{{Folder: "/mnt/games", Free: 3 << 30, Total: 100 << 30, Percent: 3}}}}
 	if err := set["es"].ExecuteTemplate(&out, "layout", data); err != nil {
 		t.Fatal(err)
 	}
 	if !strings.Contains(out.String(), "Queda poco espacio en /mnt/games: 3") || !strings.Contains(out.String(), "(3%)") {
 		t.Errorf("no warning in the header")
+	}
+	out.Reset()
+	data.Auth = AuthInfo{Role: ROLE_VIEWER}
+	if err := set["es"].ExecuteTemplate(&out, "layout", data); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(out.String(), "/mnt/games") {
+		t.Errorf("a user who only looks sees the path")
 	}
 }

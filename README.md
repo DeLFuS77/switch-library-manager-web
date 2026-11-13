@@ -77,8 +77,8 @@ Linux, Docker, NAS and Raspberry Pi.
 **Your library at a glance**
 - Scans your folders (NSP, NSZ, XCI, XCZ and split files) and rescans by itself when files change
 - Missing updates (for games and DLC), missing DLC and missing games, with filters and search
-- Library filters by status, genre, players, language, format, region, collection, games or demos, and games
-  without a cover; sort by size, date added or time to beat; a search that forgives typos
+- Library filters by status, genre, players, language, format, region, folder, collection, games or demos, and
+  games without a cover; sort by size, date added, folder or time to beat; a search that forgives typos
 - Quick search from any page (<kbd>Ctrl</kbd>+<kbd>K</kbd>, <kbd>/</kbd> or the magnifier in the header): games,
   series, collections, pages and sections of Settings, chosen with the arrows and opened with Enter
 - Game pages with description, screenshots, DLC, downloads (a whole game as one ZIP) and the **version history**:
@@ -105,7 +105,8 @@ Linux, Docker, NAS and Raspberry Pi.
   downloaded once a day at most; it can be turned off in Settings
 
 **Statistics**
-- Charts of your library: space by content and format, genres, publishers, years, the largest games and its history
+- Charts of your library: space by content, format and folder (with the free space of each disk), genres, publishers,
+  years, the largest games and its history
 - **Your year on Switch**: what came to your library in a year (games, updates, DLC, the busiest month, your
   favorite genre and more), ready to download as an image and share
 - Export as CSV, JSON or a web page to share

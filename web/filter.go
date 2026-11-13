@@ -48,6 +48,8 @@ type TitleItemFilter struct {
 	Play string `in:"form=play"`
 	// library only: the lowest score of the games on IGDB ("70", "80" or "90")
 	Score string `in:"form=score"`
+	// library only: the games of one of the folders scanned, by its id (see folderId)
+	Folder string `in:"form=folder"`
 	// the user who looks, for Play (set by the handler)
 	player string
 	// the recommendations were left open (recsCookie, set by the handler)
@@ -112,7 +114,7 @@ const recentDays = 30
 
 var (
 	allowedPerPage = map[int]struct{}{12: {}, 24: {}, 48: {}, 96: {}}
-	allowedSortBy  = map[string]struct{}{"added": {}, "favorite": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}, "duration": {}, "score": {}}
+	allowedSortBy  = map[string]struct{}{"added": {}, "favorite": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}, "duration": {}, "score": {}, "folder": {}}
 	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}, userdata.STATUS_WANTED: {}}
 	allowedKind    = map[string]struct{}{"": {}, KIND_GAME: {}, KIND_DEMO: {}}
 	allowedConsole = map[string]struct{}{"": {}, CONSOLE_SWITCH: {}, CONSOLE_SWITCH2: {}, CONSOLE_ALL: {}}
@@ -206,12 +208,16 @@ func (f *TitleItemFilter) Normalize() {
 	if !regionPattern.MatchString(f.Region) {
 		f.Region = ""
 	}
+	f.Folder = strings.ToLower(strings.TrimSpace(f.Folder))
+	if !folderIdPattern.MatchString(f.Folder) {
+		f.Folder = ""
+	}
 }
 
 // Active reports whether the items are filtered by a keyword, a status, a format or another
 // library filter.
 func (f *TitleItemFilter) Active() bool {
-	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Console != "" || f.Region != "" || f.Extra != "" || f.Collection != "" || f.Play != ""
+	return f.Keyword != "" || f.Status != "" || f.Format != "" || f.Kind != "" || f.Console != "" || f.Region != "" || f.Extra != "" || f.Collection != "" || f.Play != "" || f.Folder != ""
 }
 
 // Filters reports whether the Library shows only some of its games: what a smart collection
@@ -240,7 +246,7 @@ func (f *TitleItemFilter) ShowsMissing() bool {
 // collection, kind, region, format and the others.
 func (f *TitleItemFilter) SecondaryCount() int {
 	count := 0
-	for _, value := range []string{f.Collection, f.Kind, f.Console, f.Region, f.Format, f.Extra, f.Genre, f.Players, f.GameLanguage, f.Play, f.Score} {
+	for _, value := range []string{f.Collection, f.Kind, f.Console, f.Region, f.Format, f.Extra, f.Genre, f.Players, f.GameLanguage, f.Play, f.Score, f.Folder} {
 		if value != "" {
 			count++
 		}
@@ -267,6 +273,7 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("languages", f.GameLanguage)
 	values.Set("play", f.Play)
 	values.Set("score", f.Score)
+	values.Set("folder", f.Folder)
 	values.Set("per_page", strconv.Itoa(f.chosenPerPage()))
 	values.Set("sort_by", f.SortBy)
 	values.Set("sort_order", f.SortOrder)
@@ -358,6 +365,18 @@ type TitleItemByReleaseDate []TitleItem
 type TitleItemByType []TitleItem
 type TitleItemByFavorite []TitleItem
 type TitleItemBySize []TitleItem
+
+// TitleItemByFolder sorts by the name of the folder of the games, then by their names.
+type TitleItemByFolder []TitleItem
+
+func (a TitleItemByFolder) Len() int      { return len(a) }
+func (a TitleItemByFolder) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a TitleItemByFolder) Less(i, j int) bool {
+	if a[i].folderName == a[j].folderName {
+		return lessName(a[i], a[j])
+	}
+	return a[i].folderName < a[j].folderName
+}
 
 func (a TitleItemByFavorite) Len() int      { return len(a) }
 func (a TitleItemByFavorite) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
@@ -537,6 +556,26 @@ func sortItems(filter *TitleItemFilter, items []TitleItem) error {
 		data = TitleItemByAdded(items)
 	case "favorite":
 		data = TitleItemByFavorite(items)
+	case "folder":
+		// the games without a folder (not in the library, or marked as owned without a file) go
+		// last in both orders
+		known := items[:0:0]
+		unknown := []TitleItem{}
+		for _, item := range items {
+			if item.folderName != "" {
+				known = append(known, item)
+			} else {
+				unknown = append(unknown, item)
+			}
+		}
+		var sorter sort.Interface = TitleItemByFolder(known)
+		if filter.SortOrder == "desc" {
+			sorter = sort.Reverse(sorter)
+		}
+		sort.Sort(sorter)
+		sort.Sort(TitleItemByName(unknown))
+		copy(items, append(known, unknown...))
+		return nil
 	case "duration", "score":
 		// the games without a time or a score go last in both orders
 		known := items[:0:0]

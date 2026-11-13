@@ -52,6 +52,42 @@
 						</section>
 					</div>
 				</div>
+				{{- with .Folders}}
+				{{- /* the administrators see the paths and the disks; the others the names alone */}}
+				<section class="surface mb-4" aria-labelledby="folderSpaceTitle">
+					<h2 class="section-title" id="folderSpaceTitle"><span class="bi bi-folder2-open" aria-hidden="true"></span>{{t "Space by folder"}}</h2>
+					{{- $disk := false}}
+					<div class="folder-spaces">
+					{{- range .}}
+					<div class="folder-space">
+						<div class="d-flex justify-content-between gap-2 flex-wrap">
+							<div class="min-w-0">
+								<span class="fw-semibold"><span class="bi bi-folder2 me-1" aria-hidden="true"></span>{{.Name}}</span>
+								{{- with .Path}}
+								<div class="small text-body-secondary folder-space-path">{{.}}</div>
+								{{- end}}
+							</div>
+							<div class="small text-end">
+								<span class="fw-semibold">{{if eq .Games 1}}{{t "1 game"}}{{else}}{{t "%v games" (num .Games)}}{{end}}</span> &middot; {{formatSize .Size}}
+								{{- if .HasDisk}}
+								<div class="text-body-secondary">{{t "%v free of %v" (formatSize .Free) (formatSize .Total)}}</div>
+								{{- end}}
+							</div>
+						</div>
+						{{- if .HasDisk}}{{$disk = true}}
+						<div class="disk-bar" role="img" aria-label="{{t "%v free of %v" (formatSize .Free) (formatSize .Total)}}">
+							<div class="disk-bar-folder" style="width: {{.FolderPercent}}%"></div>
+							<div class="disk-bar-other" style="width: {{.OtherPercent}}%"></div>
+						</div>
+						{{- end}}
+					</div>
+					{{- end}}
+					</div>
+					{{- if $disk}}
+					<div class="disk-legend"><span><i class="disk-bar-folder" aria-hidden="true"></i>{{t "Files of the folder"}}</span><span><i class="disk-bar-other" aria-hidden="true"></i>{{t "The rest of the disk"}}</span><span><i class="is-free" aria-hidden="true"></i>{{t "Free"}}</span></div>
+					{{- end}}
+				</section>
+				{{- end}}
 				<div class="row g-3">
 					<div class="col-lg-6">
 						<section class="surface h-100">

@@ -2165,5 +2165,14 @@ func init() {
 		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "Naast de NUP staat een kopie van de inhoudsopgave van een andere NUP (.nxpress-icon): verwijder hem om door te gaan.",
 		"This file is not a NUP of the library without an icon.":                                                      "Dit bestand is geen NUP van de bibliotheek zonder pictogram.",
 		"Setting the icon…": "Pictogram instellen…",
+
+		// the folders of the library
+		"Folder":               "Map",
+		"All folders":          "Alle mappen",
+		"Space by folder":      "Ruimte per map",
+		"%v free of %v":        "%v vrij van %v",
+		"Files of the folder":  "Bestanden van de map",
+		"The rest of the disk": "De rest van de schijf",
+		"Free":                 "Vrij",
 	}
 }

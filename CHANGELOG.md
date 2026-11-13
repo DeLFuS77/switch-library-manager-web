@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- With two or more folders, the Library filters and sorts by folder, and Statistics › Space shows each folder with its games, its size and the free space of its disk. Users who only look see the names of the folders, never their paths
+
 ### Fixes
 
 - A starting screen still open when the app was ready waited forever once a user with a password existed: the script that watches for the app to be ready asked for the login. It is answered without the login now, as the health check is, and the page opens by itself

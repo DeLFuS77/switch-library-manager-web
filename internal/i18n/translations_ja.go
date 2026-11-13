@@ -2165,5 +2165,14 @@ func init() {
 		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "NUPの横に別のNUPの目次のコピー（.nxpress-icon）があります。続けるには削除してください。",
 		"This file is not a NUP of the library without an icon.":                                                      "このファイルはアイコンのないライブラリのNUPではありません。",
 		"Setting the icon…": "アイコンを設定中…",
+
+		// the folders of the library
+		"Folder":               "フォルダー",
+		"All folders":          "すべてのフォルダー",
+		"Space by folder":      "フォルダー別の容量",
+		"%v free of %v":        "%v 空き（全 %v）",
+		"Files of the folder":  "フォルダーのファイル",
+		"The rest of the disk": "ディスクのその他",
+		"Free":                 "空き",
 	}
 }

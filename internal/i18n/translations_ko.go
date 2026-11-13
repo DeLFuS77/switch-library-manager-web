@@ -2165,5 +2165,14 @@ func init() {
 		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "NUP 옆에 다른 NUP의 목차 사본(.nxpress-icon)이 있습니다. 계속하려면 삭제하세요.",
 		"This file is not a NUP of the library without an icon.":                                                      "이 파일은 아이콘이 없는 라이브러리의 NUP가 아닙니다.",
 		"Setting the icon…": "아이콘을 넣는 중…",
+
+		// the folders of the library
+		"Folder":               "폴더",
+		"All folders":          "모든 폴더",
+		"Space by folder":      "폴더별 공간",
+		"%v free of %v":        "%v 남음 (전체 %v)",
+		"Files of the folder":  "폴더의 파일",
+		"The rest of the disk": "디스크의 나머지",
+		"Free":                 "남은 공간",
 	}
 }

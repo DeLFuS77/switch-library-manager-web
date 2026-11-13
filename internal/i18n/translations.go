@@ -2192,6 +2192,15 @@ var Translations = map[string]map[string]string{
 		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "Junto al NUP hay una copia del índice de otro NUP (.nxpress-icon): bórrala para seguir.",
 		"This file is not a NUP of the library without an icon.":                                                      "Este archivo no es un NUP de la biblioteca sin icono.",
 		"Setting the icon…": "Poniendo el icono…",
+
+		// the folders of the library
+		"Folder":               "Carpeta",
+		"All folders":          "Todas las carpetas",
+		"Space by folder":      "Espacio por carpeta",
+		"%v free of %v":        "%v libres de %v",
+		"Files of the folder":  "Archivos de la carpeta",
+		"The rest of the disk": "Lo demás del disco",
+		"Free":                 "Libre",
 	},
 }
 
