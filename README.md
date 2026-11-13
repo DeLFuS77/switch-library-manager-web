@@ -153,7 +153,7 @@ Linux, Docker, NAS and Raspberry Pi.
 - Low priority, so the other programs of the server stay responsive while it compresses
 - Live tasks page, scheduled synchronization and notifications (Discord, Telegram, ntfy, Gotify, Pushover, email
   or a webhook) of new updates, DLC and games
-- Weekly backups of your configuration, and a Diagnostics page that checks everything at a glance
+- Weekly backups of your configuration, and a Diagnostics page that checks everything at a glance and shows the addresses (with a QR code) to open the app from other devices
 - JSON API with OpenAPI description, e.g. for Home Assistant, with API keys per user instead of passwords
 - Installable on your phone's home screen like an app
 - Accessible: the contrast of WCAG AA in both themes, full use with the keyboard and texts of 12px at least, checked

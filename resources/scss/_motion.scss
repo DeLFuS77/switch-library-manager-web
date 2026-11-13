@@ -1839,6 +1839,92 @@
 	color: var(--bs-danger-text-emphasis);
 }
 
+// Diagnostics > Open from other devices: the QR code of the address chosen and the addresses
+.other-devices-body {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: .75rem;
+}
+
+.qr-box {
+	flex-shrink: 0;
+	width: calc(136px + 1rem);
+	padding: .5rem;
+	border-radius: .75rem;
+	// the code is read on white in both themes
+	background: #fff;
+	line-height: 0;
+
+	svg {
+		width: 136px;
+		height: 136px;
+	}
+}
+
+.device-addresses {
+	flex: 1 1 12rem;
+	min-width: 0;
+}
+
+.device-address {
+	display: flex;
+	align-items: center;
+	gap: .125rem;
+	margin-bottom: .25rem;
+}
+
+.device-address-pick {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: flex-start;
+	gap: .35rem;
+	min-width: 0;
+	padding: .375rem .4rem;
+	border: 1px solid transparent;
+	border-radius: .5rem;
+	background: none;
+	color: var(--bs-body-color);
+	text-align: left;
+
+	&:hover {
+		background: var(--bs-tertiary-bg);
+	}
+
+	&.is-on {
+		border-color: rgb(var(--slm-work-rgb));
+		background: rgba(var(--slm-work-rgb), .12);
+	}
+
+	code {
+		color: var(--bs-body-color);
+		font-size: var(--slm-text-sm);
+		// broken only when it does not fit, not at its first dot
+		overflow-wrap: anywhere;
+	}
+
+	.bi {
+		margin-top: .1rem;
+		color: var(--bs-secondary-color);
+	}
+}
+
+.device-copy {
+	flex-shrink: 0;
+	padding-inline: .25rem;
+	color: var(--bs-secondary-color);
+
+	&:hover,
+	&:focus-visible,
+	&.is-copied {
+		color: var(--bs-body-color);
+	}
+
+	&.is-copied .bi::before {
+		content: "\F26E";
+	}
+}
+
 // the space of the scroll bar is always kept, so pages shorter than the window (and the
 // sections of Settings) do not move sideways when the bar appears or goes away
 html {

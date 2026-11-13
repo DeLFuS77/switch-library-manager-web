@@ -19,6 +19,7 @@ import (
 	"html/template"
 	"io/fs"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -797,6 +798,9 @@ func (web *Web) Start() {
 		}
 		web.sugarLogger.Error(fmt.Errorf("running http server failed: %w", err))
 		log.Fatal(err)
+	}
+	if address, ok := listener.Addr().(*net.TCPAddr); ok {
+		listeningPort.Store(int64(address.Port))
 	}
 	front := &switchHandler{}
 	icon, _ := fs.ReadFile(web.embedFS, "resources/static/icon.svg")
