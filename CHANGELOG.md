@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- The card of all the games, first at the top of the Library, is violet, so it stands out as the other three do
+
 ### Fixes
 
 - A starting screen still open when the app was ready waited forever once a user with a password existed: the script that watches for the app to be ready asked for the login. It is answered without the login now, as the health check is, and the page opens by itself

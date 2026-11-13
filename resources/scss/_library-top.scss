@@ -21,10 +21,16 @@
 		cursor: pointer;
 	}
 
-	// "Any status" is in no colour of its own: grey, never red
+	// "Any status" in violet, the one colour the other three cards have not (never red, which tells
+	// errors): the violet of the months of Upcoming
 	.kpi-neutral {
-		--kpi-color: var(--bs-secondary-color);
-		--kpi-soft: rgba(127, 127, 127, .14);
+		--kpi-color: #6a4ae0;
+		--kpi-soft: rgba(106, 74, 224, .14);
+	}
+
+	[data-bs-theme="dark"] & .kpi-neutral {
+		--kpi-color: #9d86ff;
+		--kpi-soft: rgba(157, 134, 255, .18);
 	}
 
 	.kpi-label {
