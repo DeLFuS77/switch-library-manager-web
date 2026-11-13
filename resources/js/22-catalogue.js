@@ -57,9 +57,26 @@ function initCatalogue() {
 		}
 		return node;
 	};
+	// only an address of an image of this app or of the web is shown: anything else (a javascript:
+	// address, for one) gets the image of no cover
+	const noImage = '/resources/static/noimage.png';
+	const safeImage = address => {
+		if (typeof address !== 'string' || address === '') {
+			return noImage;
+		}
+		try {
+			const url = new URL(address, window.location.origin);
+			if (url.protocol === 'https:' || url.protocol === 'http:') {
+				return url.href;
+			}
+		} catch (e) {
+			// not an address
+		}
+		return noImage;
+	};
 	const cover = game => {
 		const img = element('img');
-		img.src = game.cover || '/resources/static/noimage.png';
+		img.src = safeImage(game.cover);
 		img.alt = '';
 		img.loading = 'lazy';
 		img.decoding = 'async';
