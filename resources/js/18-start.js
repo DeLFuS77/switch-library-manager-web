@@ -345,6 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initHeroMenus();
 	initVaultSettings();
 	initMobileApp();
+	initOtherDevices();
 	initSaveDelete();
 
 	// forms that delete something ask first

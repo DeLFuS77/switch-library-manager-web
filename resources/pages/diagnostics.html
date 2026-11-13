@@ -36,6 +36,35 @@
 					</ul>
 				</section>
 				{{- end}}
+				{{- with .OtherDevices}}
+				<section class="surface other-devices" data-other-devices>
+					<h2 class="section-title"><span class="bi bi-phone" aria-hidden="true"></span>{{t "Open from other devices"}}</h2>
+					{{- if .InContainer}}
+					<p class="small text-body-secondary mb-0">{{t "The app runs in a container, so the addresses it sees are not the ones of your network. Open the address of the NAS or computer that runs it, with the port published for the app (in the container it listens on %v)." .Port}}</p>
+					<div class="other-devices-body mt-3" data-device-page hidden>
+						<div class="qr-box" data-device-qr aria-hidden="true"></div>
+						<ul class="list-unstyled mb-0 device-addresses">
+							<li class="device-address"><button type="button" class="device-address-pick is-on" data-device-address="" aria-pressed="true"><span class="bi bi-link-45deg" aria-hidden="true"></span><span class="min-w-0"><code data-device-url></code><span class="d-block small text-body-secondary">{{t "The address of this page"}}</span></span></button><button type="button" class="btn btn-sm btn-link device-copy" data-copy="" title="{{t "Copy"}}" aria-label="{{t "Copy"}}"><span class="bi bi-clipboard" aria-hidden="true"></span></button></li>
+						</ul>
+					</div>
+					{{- else if .Addresses}}
+					<p class="small text-body-secondary mb-0">{{t "On a phone, a tablet or another computer on the same network, open one of these addresses or scan the code with the camera."}}</p>
+					<div class="other-devices-body mt-3">
+						<div class="qr-box" data-device-qr aria-hidden="true"></div>
+						<ul class="list-unstyled mb-0 device-addresses">
+							{{- range $i, $address := .Addresses}}
+							<li class="device-address"><button type="button" class="device-address-pick{{if eq $i 0}} is-on{{end}}" data-device-address="{{$address.Url}}" aria-pressed="{{if eq $i 0}}true{{else}}false{{end}}"><span class="bi bi-link-45deg" aria-hidden="true"></span><span class="min-w-0"><code>{{$address.Url}}</code><span class="d-block small text-body-secondary text-break">{{$address.Name}}</span></span></button><button type="button" class="btn btn-sm btn-link device-copy" data-copy="{{$address.Url}}" title="{{t "Copy"}}" aria-label="{{t "Copy"}}"><span class="bi bi-clipboard" aria-hidden="true"></span></button></li>
+							{{- end}}
+						</ul>
+					</div>
+					{{- else}}
+					<p class="small text-body-secondary mb-0">{{t "No network was found: connect this computer to your network to open the app from other devices."}}</p>
+					{{- end}}
+					{{- if .FirewallHint}}
+					<div class="check-row check-info mt-3"><span class="check-icon bi bi-info-circle" aria-hidden="true"></span><div class="check-hint mt-0">{{t "Does it not open? Windows Firewall may block it: allow Switch Library Manager on private networks (Settings › Privacy & security › Windows Security › Firewall & network protection)."}}</div></div>
+					{{- end}}
+				</section>
+				{{- end}}
 			</div>
 			</div>
 			</div>
