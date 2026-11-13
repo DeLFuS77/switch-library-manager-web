@@ -23,22 +23,25 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
+// waitForTask waits for the task of a kind to end and gives it. A task just started may not have
+// taken the compressor yet, so it waits for the task itself to be there and done, not only for the
+// compressor to be free: on a slow machine the first look came before the task ran.
 func waitForTask(t *testing.T, web *Web, kind string) tasklog.Task {
 	t.Helper()
 	deadline := time.Now().Add(20 * time.Second)
-	for web.compressionRunning() {
+	for {
+		if !web.compressionRunning() {
+			for _, task := range web.taskLog().Snapshot() {
+				if task.Kind == kind && !task.Running() {
+					return task
+				}
+			}
+		}
 		if time.Now().After(deadline) {
-			t.Fatal("the task did not finish")
+			t.Fatalf("no %s task ended", kind)
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
-	for _, task := range web.taskLog().Snapshot() {
-		if task.Kind == kind {
-			return task
-		}
-	}
-	t.Fatalf("no %s task", kind)
-	return tasklog.Task{}
 }
 
 func TestVerifyFindsDamagedFiles(t *testing.T) {
