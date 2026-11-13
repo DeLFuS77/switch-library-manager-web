@@ -28,6 +28,8 @@ const (
 type OrganizePageData struct {
 	GlobalPageData
 	Settings *settings.AppSettings
+	// the runs of Organize that can be undone, the newest first
+	UndoRuns []UndoRunRow
 }
 
 type OrganizeForm struct {
@@ -277,6 +279,12 @@ func (web *Web) runOrganizeFiles(action string, paths []string, trigger string) 
 	web.uncompressible().follow(operations)
 	web.moves.record(operations)
 	web.followKeptChoices(operations)
+	// what it moved and renamed can be put back (see organizeundo.go)
+	if action != ORGANIZE_ACTION_CLEANUP {
+		if err := web.organizeRuns().add(action, operations); err != nil {
+			web.sugarLogger.Warnf("Failed to keep what Organize moved, to undo it: %v", err)
+		}
+	}
 	if err == nil {
 		web.taskLog().SetResult(taskId, 0, web.noteOrganized(taskId, operations))
 	} else {
@@ -431,6 +439,7 @@ func (web *Web) HandleOrganize() {
 		return OrganizePageData{
 			GlobalPageData: web.globalPageData("organize"),
 			Settings:       settings.ReadSettings(web.dataFolder),
+			UndoRuns:       web.undoRows(),
 		}
 	}, func(value any, lang string) ErrorResponse {
 		form := value.(*OrganizeForm)
@@ -479,6 +488,7 @@ func (web *Web) HandleOrganize() {
 	}, web.embedFS, fsPatterns...)
 
 	web.handleOrganizeActions()
+	web.handleOrganizeUndo()
 }
 
 func (web *Web) handleOrganizeActions() {

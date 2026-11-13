@@ -278,3 +278,60 @@
 	}
 }
 
+
+// Organize: the earlier runs that can be undone, and the files of an undo
+.undo-run {
+	display: flex;
+	gap: .75rem;
+	align-items: center;
+	flex-wrap: wrap;
+	padding: .65rem 0;
+	border-bottom: 1px solid var(--bs-border-color);
+
+	// the icon stays beside its text on a phone; the button goes below when it has no room
+	> div {
+		flex: 1 1 12rem;
+	}
+
+	&:last-child {
+		border-bottom: 0;
+		padding-bottom: 0;
+	}
+}
+
+.undo-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+
+	li {
+		display: flex;
+		gap: .6rem;
+		align-items: flex-start;
+		padding: .5rem 0;
+		border-bottom: 1px solid var(--bs-border-color);
+		font-size: .85rem;
+
+		&:last-child {
+			border-bottom: 0;
+		}
+	}
+
+	.paths {
+		min-width: 0;
+		flex: 1;
+
+		div {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+	}
+
+	// what happens to the file, whole: the path where it goes back is the point
+	.paths .from {
+		color: var(--bs-secondary-color);
+		overflow-wrap: anywhere;
+		white-space: normal;
+	}
+}
