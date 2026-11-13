@@ -2237,5 +2237,16 @@ func init() {
 		"Nothing is written over. The folders that Organize made and are left empty are deleted; nothing else.": "Ничего не перезаписывается. Удаляются только папки, созданные упорядочиванием и оставшиеся пустыми.",
 		"Putting the files back… The task goes on even if you close this window.":                               "Файлы возвращаются… Задача продолжится, даже если закрыть это окно.",
 		"%v files put back": "Возвращено файлов: %v",
+
+		// the catalogue to print
+		"Catalogue": "Каталог",
+		"A catalogue of these games, to print or save as PDF": "Каталог этих игр для печати или сохранения в PDF",
+		"My library":                         "Моя библиотека",
+		"List":                               "Список",
+		"Small":                              "Маленькие",
+		"Large":                              "Большие",
+		"Print or save as PDF":               "Печать или сохранение в PDF",
+		"Print now":                          "Печатать сейчас",
+		"Getting the covers ready: %v of %v": "Подготовка обложек: %v из %v",
 	}
 }

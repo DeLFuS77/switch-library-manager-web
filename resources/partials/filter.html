@@ -66,6 +66,10 @@
 					<button type="button" class="btn btn-outline-secondary" data-view="compact" title="{{t "Small covers"}}" aria-pressed="false"><span class="bi bi-grid-3x3-gap" aria-hidden="true"></span><span class="visually-hidden">{{t "Small covers"}}</span></button>
 				</div>
 				{{- end}}
+				{{- if or (eq .Page "index") (eq .Page "missing")}}
+				{{- /* the games of the list on a sheet to print or save as PDF, with the same filter */}}
+				<a class="btn btn-outline-secondary rounded-pill catalogue-link" href="/catalogue.html{{if eq .Page "missing"}}{{filterUrl .Filter "list" "missing" "per_page" ""}}{{else}}{{filterUrl .Filter "per_page" ""}}{{end}}" title="{{t "A catalogue of these games, to print or save as PDF"}}"><span class="bi bi-printer" aria-hidden="true"></span><span class="catalogue-word">{{t "Catalogue"}}</span></a>
+				{{- end}}
 				{{- /* the other filters of the Library and of the Missing games, beside the search */}}
 				{{- if eq .Page "index"}}
 				{{- template "filterPanel" (dict "Filter" .Filter "Facets" .Facets "Library" true "Count" .Pagination.NumItems)}}

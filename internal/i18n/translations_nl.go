@@ -2237,5 +2237,16 @@ func init() {
 		"Nothing is written over. The folders that Organize made and are left empty are deleted; nothing else.": "Er wordt niets overschreven. De mappen die Organiseren maakte en leeg blijven, worden verwijderd; verder niets.",
 		"Putting the files back… The task goes on even if you close this window.":                               "De bestanden worden teruggezet… De taak gaat door, ook als je dit venster sluit.",
 		"%v files put back": "%v bestanden teruggezet",
+
+		// the catalogue to print
+		"Catalogue": "Catalogus",
+		"A catalogue of these games, to print or save as PDF": "Een catalogus van deze games, om af te drukken of als pdf op te slaan",
+		"My library":                         "Mijn bibliotheek",
+		"List":                               "Lijst",
+		"Small":                              "Klein",
+		"Large":                              "Groot",
+		"Print or save as PDF":               "Afdrukken of opslaan als pdf",
+		"Print now":                          "Nu afdrukken",
+		"Getting the covers ready: %v of %v": "Covers worden klaargezet: %v van %v",
 	}
 }

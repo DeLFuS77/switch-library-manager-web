@@ -9,6 +9,7 @@
 - Diagnostics shows the addresses to open the app from a phone or another computer on the same network, each with its QR code
 - With two or more folders, the Library filters and sorts by folder, and Statistics › Space shows each folder with its games, its size and the free space of its disk. Users who only look see the names of the folders, never their paths
 - Organize keeps its last 10 runs, and Earlier organizes on its page puts the files of one back to their names and folders of before. It shows first what goes back and what is skipped, and never writes over a file
+- Catalogue, beside the filters of the Library and of the Missing games: the games of the list, with its filter, on a sheet to print or save as PDF, as covers or as a list
 
 ### Fixes
 

@@ -2237,5 +2237,16 @@ func init() {
 		"Nothing is written over. The folders that Organize made and are left empty are deleted; nothing else.": "Non si sovrascrive nulla. Le cartelle create da Organizza che restano vuote vengono eliminate; nient’altro.",
 		"Putting the files back… The task goes on even if you close this window.":                               "Rimessa a posto dei file… L’attività continua anche se chiudi questa finestra.",
 		"%v files put back": "%v file rimessi a posto",
+
+		// the catalogue to print
+		"Catalogue": "Catalogo",
+		"A catalogue of these games, to print or save as PDF": "Un catalogo di questi giochi, da stampare o salvare in PDF",
+		"My library":                         "La mia libreria",
+		"List":                               "Elenco",
+		"Small":                              "Piccole",
+		"Large":                              "Grandi",
+		"Print or save as PDF":               "Stampa o salva in PDF",
+		"Print now":                          "Stampa ora",
+		"Getting the covers ready: %v of %v": "Preparazione delle copertine: %v di %v",
 	}
 }

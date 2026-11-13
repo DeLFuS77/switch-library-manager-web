@@ -2237,5 +2237,16 @@ func init() {
 		"Nothing is written over. The folders that Organize made and are left empty are deleted; nothing else.": "Nada é substituído. As pastas que Organizar criou e fiquem vazias são apagadas; mais nada.",
 		"Putting the files back… The task goes on even if you close this window.":                               "A devolver os ficheiros… A tarefa continua mesmo que feches esta janela.",
 		"%v files put back": "%v ficheiros devolvidos",
+
+		// the catalogue to print
+		"Catalogue": "Catálogo",
+		"A catalogue of these games, to print or save as PDF": "Um catálogo destes jogos, para imprimir ou guardar em PDF",
+		"My library":                         "A minha biblioteca",
+		"List":                               "Lista",
+		"Small":                              "Pequenas",
+		"Large":                              "Grandes",
+		"Print or save as PDF":               "Imprimir ou guardar em PDF",
+		"Print now":                          "Imprimir já",
+		"Getting the covers ready: %v of %v": "A preparar as capas: %v de %v",
 	}
 }

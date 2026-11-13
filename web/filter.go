@@ -50,6 +50,8 @@ type TitleItemFilter struct {
 	Score string `in:"form=score"`
 	// library only: the games of one of the folders scanned, by its id (see folderId)
 	Folder string `in:"form=folder"`
+	// catalogue only: the list it is of, the Library ("") or the Missing games (CATALOGUE_MISSING)
+	List string `in:"form=list"`
 	// the user who looks, for Play (set by the handler)
 	player string
 	// the recommendations were left open (recsCookie, set by the handler)
@@ -212,6 +214,9 @@ func (f *TitleItemFilter) Normalize() {
 	if !folderIdPattern.MatchString(f.Folder) {
 		f.Folder = ""
 	}
+	if f.List != CATALOGUE_MISSING {
+		f.List = ""
+	}
 }
 
 // Active reports whether the items are filtered by a keyword, a status, a format or another
@@ -274,6 +279,7 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("play", f.Play)
 	values.Set("score", f.Score)
 	values.Set("folder", f.Folder)
+	values.Set("list", f.List)
 	values.Set("per_page", strconv.Itoa(f.chosenPerPage()))
 	values.Set("sort_by", f.SortBy)
 	values.Set("sort_order", f.SortOrder)

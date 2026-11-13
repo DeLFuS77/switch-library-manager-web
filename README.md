@@ -110,6 +110,7 @@ Linux, Docker, NAS and Raspberry Pi.
 - **Your year on Switch**: what came to your library in a year (games, updates, DLC, the busiest month, your
   favorite genre and more), ready to download as an image and share
 - Export as CSV, JSON or a web page to share
+- A catalogue of the games shown, with the filter of the Library, as covers or as a list, to print or save as PDF
 
 **Like a console**
 - Move through the app with a **game controller**: the D-pad or the stick go from card to card, A opens, B goes back

@@ -2237,5 +2237,16 @@ func init() {
 		"Nothing is written over. The folders that Organize made and are left empty are deleted; nothing else.": "何も上書きしません。整理が作って空になったフォルダーだけを削除し、ほかは消しません。",
 		"Putting the files back… The task goes on even if you close this window.":                               "ファイルを元に戻しています… このウィンドウを閉じてもタスクは続きます。",
 		"%v files put back": "%v 件のファイルを元に戻しました",
+
+		// the catalogue to print
+		"Catalogue": "カタログ",
+		"A catalogue of these games, to print or save as PDF": "これらのゲームのカタログ。印刷または PDF に保存できます",
+		"My library":                         "マイライブラリ",
+		"List":                               "リスト",
+		"Small":                              "小",
+		"Large":                              "大",
+		"Print or save as PDF":               "印刷または PDF に保存",
+		"Print now":                          "今すぐ印刷",
+		"Getting the covers ready: %v of %v": "カバー画像を準備中: %v / %v",
 	}
 }

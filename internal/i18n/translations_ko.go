@@ -2237,5 +2237,16 @@ func init() {
 		"Nothing is written over. The folders that Organize made and are left empty are deleted; nothing else.": "아무것도 덮어쓰지 않습니다. 정리가 만들었고 비게 된 폴더만 지우며, 그 밖에는 지우지 않습니다.",
 		"Putting the files back… The task goes on even if you close this window.":                               "파일을 되돌리는 중… 이 창을 닫아도 작업은 계속됩니다.",
 		"%v files put back": "파일 %v개 되돌림",
+
+		// the catalogue to print
+		"Catalogue": "카탈로그",
+		"A catalogue of these games, to print or save as PDF": "이 게임들의 카탈로그. 인쇄하거나 PDF로 저장할 수 있습니다",
+		"My library":                         "내 라이브러리",
+		"List":                               "목록",
+		"Small":                              "작게",
+		"Large":                              "크게",
+		"Print or save as PDF":               "인쇄 또는 PDF로 저장",
+		"Print now":                          "지금 인쇄",
+		"Getting the covers ready: %v of %v": "커버 준비 중: %v / %v",
 	}
 }

@@ -877,6 +877,7 @@ func (web *Web) Start() {
 	web.HandleImages()
 	web.HandleIndex()
 	web.HandleMissing()
+	web.HandleCatalogue()
 	web.HandleUpdates()
 	web.HandleDLC()
 	web.HandleIssues()

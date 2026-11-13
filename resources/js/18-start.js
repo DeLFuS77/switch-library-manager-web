@@ -321,6 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initTaskIndicator();
 	initQueue();
 	initYearReview();
+	initCatalogue();
 	initAutomationSettings();
 	initWizard();
 	initRegionRemove();

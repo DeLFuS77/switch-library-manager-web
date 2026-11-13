@@ -2264,6 +2264,17 @@ var Translations = map[string]map[string]string{
 		"Nothing is written over. The folders that Organize made and are left empty are deleted; nothing else.": "No se sobrescribe nada. Las carpetas que Organizar creó y queden vacías se borran; nada más.",
 		"Putting the files back… The task goes on even if you close this window.":                               "Devolviendo los archivos… La tarea sigue aunque cierres esta ventana.",
 		"%v files put back": "%v archivos devueltos",
+
+		// the catalogue to print
+		"Catalogue": "Catálogo",
+		"A catalogue of these games, to print or save as PDF": "Un catálogo de estos juegos, para imprimir o guardar en PDF",
+		"My library":                         "Mi biblioteca",
+		"List":                               "Lista",
+		"Small":                              "Pequeñas",
+		"Large":                              "Grandes",
+		"Print or save as PDF":               "Imprimir o guardar en PDF",
+		"Print now":                          "Imprimir ya",
+		"Getting the covers ready: %v of %v": "Preparando las portadas: %v de %v",
 	},
 }
 

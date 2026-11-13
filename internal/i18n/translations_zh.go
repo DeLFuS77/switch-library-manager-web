@@ -2237,5 +2237,16 @@ func init() {
 		"Nothing is written over. The folders that Organize made and are left empty are deleted; nothing else.": "不会覆盖任何内容。只删除整理创建且已变空的文件夹，其他都不删。",
 		"Putting the files back… The task goes on even if you close this window.":                               "正在放回文件… 即使关闭此窗口，任务也会继续。",
 		"%v files put back": "已放回 %v 个文件",
+
+		// the catalogue to print
+		"Catalogue": "目录",
+		"A catalogue of these games, to print or save as PDF": "这些游戏的目录，可打印或保存为 PDF",
+		"My library":                         "我的游戏库",
+		"List":                               "列表",
+		"Small":                              "小",
+		"Large":                              "大",
+		"Print or save as PDF":               "打印或保存为 PDF",
+		"Print now":                          "立即打印",
+		"Getting the covers ready: %v of %v": "正在准备封面：%v / %v",
 	}
 }
