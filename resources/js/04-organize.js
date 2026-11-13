@@ -311,6 +311,113 @@ function initOrganize() {
 	});
 }
 
+// the icons of the files of an undo, by how each one stands
+const UNDO_STATE_ICONS = {
+	back: 'bi-check-circle text-success-emphasis',
+	done: 'bi-check-circle text-success-emphasis',
+	gone: 'bi-dash-circle text-body-secondary',
+	failed: 'bi-x-octagon text-danger-emphasis'
+};
+
+// undoFileRow is a file of an undo: where it is, and what happens to it
+function undoFileRow(file) {
+	const warned = !UNDO_STATE_ICONS[file.state];
+	const row = document.createElement('li');
+	const icon = document.createElement('span');
+	icon.className = `bi ${UNDO_STATE_ICONS[file.state] || 'bi-exclamation-triangle text-warning-emphasis'}`;
+	icon.setAttribute('aria-hidden', 'true');
+	const paths = document.createElement('div');
+	paths.className = 'paths';
+	const path = document.createElement('div');
+	path.textContent = file.path;
+	path.title = file.path;
+	const text = document.createElement('div');
+	text.className = `from${warned ? ' text-warning-emphasis' : ''}${file.state === 'failed' ? ' text-danger-emphasis' : ''}`;
+	text.textContent = file.text;
+	paths.append(path, text);
+	row.append(icon, paths);
+	return row;
+}
+
+// Undo of an earlier organize: the window looks at each file first without changing anything,
+// and puts back the ones that can go back once confirmed, as a task
+function initUndoOrganize() {
+	const element = document.getElementById('undoModal');
+	if (!element) {
+		return;
+	}
+	const modal = Modal.getOrCreateInstance(element);
+	const part = name => element.querySelector(`[data-undo-${name}]`);
+	const confirm = part('confirm');
+	const cancel = part('cancel');
+	let runId = null;
+	let done = false;
+	// d-none as well: a part laid out with d-flex shows whatever hidden says
+	const showOnly = name => ['loading', 'check', 'running', 'done'].forEach(other => {
+		part(other).hidden = other !== name;
+		part(other).classList.toggle('d-none', other !== name);
+	});
+
+	document.querySelectorAll('[data-undo-run]').forEach(button => button.addEventListener('click', () => {
+		runId = button.dataset.undoRun;
+		done = false;
+		part('title').textContent = button.closest('.undo-run').querySelector('.fw-semibold').textContent;
+		confirm.disabled = true;
+		confirm.hidden = false;
+		cancel.disabled = false;
+		part('button').textContent = '';
+		showOnly('loading');
+		modal.show();
+		postForm('/organize/undo/check', { id: runId }).then(response => {
+			part('title').textContent = response.title;
+			part('back').textContent = response.backText;
+			part('skipped').textContent = response.skippedText;
+			part('gone').textContent = response.goneText;
+			part('button').textContent = response.buttonText;
+			part('files').replaceChildren(...response.files.map(undoFileRow));
+			const more = part('more');
+			more.hidden = !response.more;
+			more.textContent = more.dataset.text.replace('%v', response.more);
+			confirm.disabled = response.back === 0;
+			showOnly('check');
+		}).catch(error => {
+			modal.hide();
+			insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+		});
+	}));
+
+	confirm.addEventListener('click', () => {
+		if (!runId) {
+			return;
+		}
+		confirm.disabled = true;
+		cancel.disabled = true;
+		showOnly('running');
+		postForm('/organize/undo/run', { id: runId }).then(response => {
+			done = true;
+			part('message').textContent = response.message;
+			part('left').replaceChildren(...response.skipped.map(undoFileRow));
+			showOnly('done');
+			confirm.hidden = true;
+			cancel.textContent = t('Close');
+			showSyncAlert();
+			watchSync();
+		}).catch(error => {
+			modal.hide();
+			insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
+		}).finally(() => {
+			cancel.disabled = false;
+		});
+	});
+
+	// the list of the organizes kept changed: drawn again
+	element.addEventListener('hidden.bs.modal', () => {
+		if (done) {
+			window.location.reload();
+		}
+	});
+}
+
 function initIgnoreButtons() {
 	document.querySelectorAll('[data-ignore-kind]').forEach(button => button.addEventListener('click', e => {
 		e.preventDefault();

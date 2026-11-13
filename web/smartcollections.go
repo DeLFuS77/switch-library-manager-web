@@ -21,7 +21,7 @@ const (
 )
 
 // the parameters of the Library a smart collection keeps; the page and its size are not kept
-var smartCollectionKeys = []string{"q", "status", "format", "kind", "region", "extra", "collection", "missing", "genre", "players", "languages", "play", "score", "sort_by", "sort_order"}
+var smartCollectionKeys = []string{"q", "status", "format", "kind", "region", "extra", "collection", "missing", "genre", "players", "languages", "play", "score", "folder", "sort_by", "sort_order"}
 
 // SmartCollection is a filter of the Library with a name.
 type SmartCollection struct {
@@ -119,7 +119,7 @@ func cleanSmartQuery(query string) string {
 	filter := &TitleItemFilter{Keyword: values.Get("q"), Status: values.Get("status"), Format: values.Get("format"), Kind: values.Get("kind"),
 		Region: values.Get("region"), Extra: values.Get("extra"), Collection: values.Get("collection"), WithMissing: values.Get("missing"),
 		Genre: values.Get("genre"), Players: values.Get("players"), GameLanguage: values.Get("languages"), Play: values.Get("play"), Score: values.Get("score"),
-		SortBy: values.Get("sort_by"), SortOrder: values.Get("sort_order"), PerPage: 24, Page: 1}
+		Folder: values.Get("folder"), SortBy: values.Get("sort_by"), SortOrder: values.Get("sort_order"), PerPage: 24, Page: 1}
 	filter.Normalize()
 	if !filter.Filters() {
 		return ""
@@ -153,7 +153,7 @@ func (web *Web) smartCollectionViews(filter *TitleItemFilter, lang string) []Sma
 		saved := &TitleItemFilter{Keyword: values.Get("q"), Status: values.Get("status"), Format: values.Get("format"), Kind: values.Get("kind"),
 			Region: values.Get("region"), Extra: values.Get("extra"), Collection: values.Get("collection"), WithMissing: values.Get("missing"),
 			Genre: values.Get("genre"), Players: values.Get("players"), GameLanguage: values.Get("languages"), Play: values.Get("play"), Score: values.Get("score"),
-			SortBy: values.Get("sort_by"), SortOrder: values.Get("sort_order"), PerPage: 24, Page: 1}
+			Folder: values.Get("folder"), SortBy: values.Get("sort_by"), SortOrder: values.Get("sort_order"), PerPage: 24, Page: 1}
 		saved.Normalize()
 		saved.player = filter.player
 		_, p, _ := web.getLibraryWithFacets(saved, lang)

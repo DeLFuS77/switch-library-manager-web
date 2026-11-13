@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initKeysUpload();
 	initPageTabs();
 	initOrganize();
+	initUndoOrganize();
 	initIgnoreButtons();
 	initLibraryBulk();
 	initCollections();
@@ -320,6 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initTaskIndicator();
 	initQueue();
 	initYearReview();
+	initCatalogue();
 	initAutomationSettings();
 	initWizard();
 	initRegionRemove();
@@ -346,6 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initHeroMenus();
 	initVaultSettings();
 	initMobileApp();
+	initOtherDevices();
 	initSaveDelete();
 
 	// forms that delete something ask first

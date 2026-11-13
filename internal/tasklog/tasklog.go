@@ -37,6 +37,8 @@ const (
 	TASK_NUP_FIX = "nupfix"
 	// a NUP without an icon given the cover of its game
 	TASK_NUP_ICON = "nupicon"
+	// the files of a run of Organize put back where they were
+	TASK_UNDO_ORGANIZE = "undoorganize"
 	// games copied to an SD card
 	TASK_COPY = "copy"
 	// background work after a scan

@@ -80,6 +80,56 @@
 					<p class="text-body-secondary small mb-2">{{t "Paths are relative to the library folder."}}</p>
 					<ul class="op-list list-unstyled mb-0" id="organizeOperations"></ul>
 				</section>
+				{{- if .UndoRuns}}
+				<section class="surface undo-runs mt-4 admin-only" aria-labelledby="undoRunsTitle">
+					<h2 class="section-title" id="undoRunsTitle"><span class="bi bi-arrow-counterclockwise" aria-hidden="true"></span>{{t "Earlier organizes"}}</h2>
+					<p class="small text-body-secondary">{{t "You can put the files back to the name and folder they had before."}}</p>
+					<ul class="list-unstyled mb-0">
+						{{- range .UndoRuns}}
+						<li class="undo-run">
+							<span class="bi {{if eq .Action "new"}}bi-box-arrow-in-down{{else}}bi-folder-symlink{{end}} fs-5" aria-hidden="true"></span>
+							<div class="flex-grow-1 min-w-0">
+								<div class="fw-semibold">{{formatDateTime .Time}}</div>
+								<div class="small text-body-secondary">{{if eq .Action "new"}}{{t "Place new files"}}{{else}}{{t "Organize files"}}{{end}} &middot; {{if .Undone}}{{t "%v files left from an undo" (num .Files)}}{{else}}{{t "%v files moved or renamed" (num .Files)}}{{end}}</div>
+							</div>
+							<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-undo-run="{{.Id}}"><span class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></span>{{t "Undo…"}}</button>
+						</li>
+						{{- end}}
+					</ul>
+				</section>
+				<div class="modal fade" id="undoModal" tabindex="-1" aria-labelledby="undoModalTitle" aria-hidden="true">
+					<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h2 class="modal-title fs-5" id="undoModalTitle"><span class="bi bi-arrow-counterclockwise me-2" aria-hidden="true"></span><span data-undo-title></span></h2>
+								<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+							</div>
+							<div class="modal-body" aria-live="polite">
+								<div class="d-flex align-items-center gap-2 text-body-secondary" data-undo-loading><span class="spinner-border spinner-border-sm text-work" aria-hidden="true"></span>{{t "Looking at the files…"}}</div>
+								<div data-undo-check hidden>
+									<div class="d-flex gap-2 flex-wrap mb-2">
+										<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span><span data-undo-back></span></span>
+										<span class="chip chip-warning"><span class="bi bi-exclamation-triangle" aria-hidden="true"></span><span data-undo-skipped></span></span>
+										<span class="chip chip-muted"><span class="bi bi-dash-circle" aria-hidden="true"></span><span data-undo-gone></span></span>
+									</div>
+									<ul class="undo-list" data-undo-files></ul>
+									<p class="small text-body-secondary mt-2 mb-0" data-undo-more data-text="{{t "And %v more files."}}" hidden></p>
+									<p class="small text-body-secondary mt-2 mb-0">{{t "Nothing is written over. The folders that Organize made and are left empty are deleted; nothing else."}}</p>
+								</div>
+								<div class="d-none d-flex flex-wrap align-items-center gap-2" data-undo-running hidden><span class="spinner-border spinner-border-sm text-work" aria-hidden="true"></span>{{t "Putting the files back… The task goes on even if you close this window."}} <a href="/tasks.html">{{t "See it in Tasks"}}</a></div>
+								<div data-undo-done hidden>
+									<p class="fw-semibold mb-2"><span class="bi bi-check-circle text-success-emphasis me-2" aria-hidden="true"></span><span data-undo-message></span></p>
+									<ul class="undo-list" data-undo-left></ul>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal" data-undo-cancel>{{t "Cancel"}}</button>
+								<button type="button" class="btn btn-primary rounded-pill" data-undo-confirm disabled><span class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></span><span data-undo-button></span></button>
+							</div>
+						</div>
+					</div>
+				</div>
+				{{- end}}
 			</div>
 			<div role="tabpanel" id="panelOptions" aria-labelledby="tabOptions" hidden>
 				<form class="row g-3 mb-4" id="organizeForm" method="post" data-save-when-changed data-hover-help>

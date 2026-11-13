@@ -152,3 +152,59 @@
 		color: var(--bs-secondary-color);
 	}
 }
+
+// the space by folder of the statistics: a row for each folder, with the bar of its disk; the
+// files of the folder in the blue of work, the rest used of the disk in grey, the free part empty
+.folder-space {
+	padding: .65rem 0;
+	border-bottom: 1px solid var(--bs-border-color);
+	font-variant-numeric: tabular-nums;
+
+	&:last-child {
+		border-bottom: 0;
+	}
+}
+
+.folder-space-path {
+	overflow-wrap: anywhere;
+}
+
+.disk-bar {
+	display: flex;
+	height: .75rem;
+	margin-top: .4rem;
+	overflow: hidden;
+	border-radius: 1rem;
+	background: var(--slm-surface-muted);
+}
+
+.disk-bar-folder {
+	background: rgb(var(--slm-work-rgb));
+}
+
+.disk-bar-other {
+	background: #8a93a3;
+}
+
+.disk-legend {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .35rem 1rem;
+	margin-top: .5rem;
+	font-size: var(--slm-text-xs);
+	color: var(--bs-secondary-color);
+
+	i {
+		display: inline-block;
+		width: .65rem;
+		height: .65rem;
+		margin-right: .3rem;
+		border-radius: .2rem;
+		vertical-align: -.05rem;
+	}
+
+	.is-free {
+		background: var(--slm-surface-muted);
+		box-shadow: inset 0 0 0 1px var(--bs-secondary-color);
+	}
+}

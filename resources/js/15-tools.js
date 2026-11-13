@@ -68,13 +68,21 @@ function initOptimize() {
 // the icon: the cover of its game is given to it the same way.
 function initNupFix() {
 	initNupTask('[data-nup-fix]', 'nupFix', '/title/nup-fix', t('Fixing…'));
-	initNupTask('[data-nup-icon]', 'nupIcon', '/title/nup-icon', t('Setting the icon…'));
+	// the icon is the cover shown, cut as chosen in the window of the crop first
+	initNupTask('[data-nup-icon]', 'nupIcon', '/title/nup-icon', t('Setting the icon…'), () => {
+		const cover = document.querySelector('.title-cover');
+		return cropCover(cover ? cover.getAttribute('src') : '', '').then(crop => crop && (crop.fit ? { cropFit: 'true' } : { cropX: crop.x.toFixed(6), cropY: crop.y.toFixed(6), cropSize: crop.size.toFixed(6) }));
+	});
 }
 
-function initNupTask(selector, key, address, busy) {
+// before, when given, is asked first: it answers more fields to send, or nothing to stop
+function initNupTask(selector, key, address, busy, before) {
 	document.querySelectorAll(selector).forEach(button => {
 		const label = [...button.childNodes];
-		button.addEventListener('click', () => {
+		button.addEventListener('click', () => (before ? before() : Promise.resolve({})).then(fields => {
+			if (!fields) {
+				return;
+			}
 			button.disabled = true;
 			const spinner = document.createElement('span');
 			spinner.className = 'spinner-border spinner-border-sm me-1';
@@ -82,7 +90,7 @@ function initNupTask(selector, key, address, busy) {
 			button.replaceChildren(spinner, busy);
 			runAsTask(() => apiFetch(address, {
 				method: 'POST',
-				body: new URLSearchParams({ path: button.dataset[key] }).toString(),
+				body: new URLSearchParams({ path: button.dataset[key], ...fields }).toString(),
 				headers: { 'Content-type': 'application/x-www-form-urlencoded' }
 			})).then(response => readJSON(response).then(json => {
 				if (!response.ok) {
@@ -96,7 +104,7 @@ function initNupTask(selector, key, address, busy) {
 				button.disabled = false;
 				insertAlert(mainContainer(), 'alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), error.message);
 			});
-		});
+		}));
 	});
 }
 

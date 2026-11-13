@@ -139,11 +139,17 @@ func (f *fileOperations) mkdir(dir string) error {
 		return nil
 	}
 	var err error
+	op := Operation{Kind: OP_MKDIR, To: dir}
+	// From is the first of the folders made for it, when its parents were missing too: an undo of
+	// the run deletes only the folders it made (see MadeFolders). A preview tells the same.
+	if top := topMissingFolder(dir, f.plannedDirs); top != dir {
+		op.From = top
+	}
 	if !f.dryRun {
 		err = os.MkdirAll(dir, os.ModePerm)
 	}
 	f.plannedDirs[dir] = true
-	f.record(Operation{Kind: OP_MKDIR, To: dir}, err)
+	f.record(op, err)
 	return err
 }
 

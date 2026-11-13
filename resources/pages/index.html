@@ -22,8 +22,9 @@
 			{{- if not .Demo}}
 			<div class="editor-only">
 				<input type="file" id="uploadInput" accept=".nsp,.nsz,.xci,.xcz,.nup" multiple hidden>
-				{{- if gt (len .UploadFolders) 1}}
-				{{- /* with several folders, each maybe another disk, the files chosen or dropped ask where they go */}}
+				{{- if and .Auth.CanEdit (gt (len .UploadFolders) 1)}}
+				{{- /* with several folders, each maybe another disk, the files chosen or dropped ask where they go;
+					only to those who upload, as it tells the paths */}}
 				<div class="modal fade" id="uploadWhere" tabindex="-1" aria-labelledby="uploadWhereTitle" aria-hidden="true"
 					data-title-one="{{t "Where to upload this game (%v)?"}}" data-title-many="{{t "Where to upload %v games (%v)?"}}">
 					<div class="modal-dialog modal-dialog-centered">
@@ -96,7 +97,7 @@
 			{{- if or .HasLibrary .Filter.Active}}
 			{{- template "statusCards" (dict "Filter" .Filter "Facets" .Facets)}}
 			{{- template "filter" .}}
-			{{- template "activeFilters" (dict "Filter" .Filter "Library" true)}}
+			{{- template "activeFilters" (dict "Filter" .Filter "Library" true "Folders" .Facets.Folders)}}
 			{{- if or .SmartCollections .SmartSavable}}
 			<div class="smart-collections d-flex flex-wrap align-items-center gap-2 mb-3" data-smart-collections data-ask-name="{{t "Name of the smart collection"}}" data-ask-delete="{{t "Delete the smart collection “%v”? Its games stay in the library."}}">
 				{{- if .SmartCollections}}<span class="small fw-semibold text-body-secondary me-1"><span class="bi bi-lightning-charge me-1" aria-hidden="true"></span>{{t "Smart collections"}}</span>{{end}}

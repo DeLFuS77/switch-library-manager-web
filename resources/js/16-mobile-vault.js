@@ -73,6 +73,46 @@ function initMobileApp() {
 	}
 }
 
+// Diagnostics > Open from other devices: the QR code of the address chosen, always in view. In a
+// container the app does not know the addresses of the network, so the one of this page is
+// shown, when it is not this computer.
+function initOtherDevices() {
+	const section = document.querySelector('[data-other-devices]');
+	const box = section?.querySelector('[data-device-qr]');
+	if (!box) {
+		return;
+	}
+	const page = section.querySelector('[data-device-page]');
+	if (page) {
+		if (['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)) {
+			return;
+		}
+		const address = window.location.origin;
+		page.querySelector('[data-device-url]').textContent = address;
+		page.querySelector('[data-device-address]').dataset.deviceAddress = address;
+		page.querySelector('[data-copy]').dataset.copy = address;
+		page.hidden = false;
+	}
+	const show = address => {
+		const code = qrcode(0, 'M');
+		code.addData(address);
+		code.make();
+		box.innerHTML = code.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+	};
+	const picks = section.querySelectorAll('[data-device-address]');
+	picks.forEach(pick => pick.addEventListener('click', () => {
+		picks.forEach(other => {
+			other.classList.toggle('is-on', other === pick);
+			other.setAttribute('aria-pressed', other === pick ? 'true' : 'false');
+		});
+		show(pick.dataset.deviceAddress);
+	}));
+	const chosen = section.querySelector('[data-device-address].is-on') || picks[0];
+	if (chosen) {
+		show(chosen.dataset.deviceAddress);
+	}
+}
+
 // Settings > Save vault: the webdav.json file of JKSV, made in the browser with the address of
 // the server and the user and password written above (the password is never sent back by the
 // server, so it has to be written to be put in the file).
