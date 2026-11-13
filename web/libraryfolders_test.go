@@ -238,3 +238,13 @@ func TestReadOnlyUsersSeeNoPathOfTheFolders(t *testing.T) {
 		}
 	}
 }
+
+// The catalogue of a folder lists only its games and tells the name of the folder, never its path.
+func TestCatalogueOfAFolder(t *testing.T) {
+	web, paths := foldersTestWeb(t)
+	filter := &TitleItemFilter{Folder: folderId(paths[1])}
+	data := web.catalogue(filter, "en")
+	if len(data.Games) != 1 || data.Games[0].Name != "Charlie" || data.Folder != "Games (usb)" {
+		t.Fatalf("%q %+v", data.Folder, data.Games)
+	}
+}

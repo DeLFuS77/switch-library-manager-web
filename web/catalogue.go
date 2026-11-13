@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"math"
 	"time"
 
@@ -23,6 +24,8 @@ type CataloguePageData struct {
 	BackUrl string
 	Games   []catalogueGame
 	Date    time.Time
+	// the name of the folder of the filter, never its path
+	Folder string
 }
 
 // catalogueGame is a game as the catalogue shows it.
@@ -68,6 +71,13 @@ func (web *Web) catalogue(filter *TitleItemFilter, lang string) CataloguePageDat
 		data.View, data.BackUrl = "all", "/index.html"
 		if !filter.ShowsMissing() {
 			data.View = "mine"
+		}
+	}
+	if filter.Folder != "" {
+		for _, folder := range libraryFolders(settings.ReadSettings(web.dataFolder)) {
+			if folder.Id == filter.Folder {
+				data.Folder = folder.Name
+			}
 		}
 	}
 	// the same list, back where it was: both consoles are asked for, over the one the list
