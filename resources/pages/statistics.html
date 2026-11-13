@@ -67,7 +67,7 @@
 								<div class="small text-body-secondary folder-space-path">{{.}}</div>
 								{{- end}}
 							</div>
-							<div class="small text-end">
+							<div class="small text-sm-end">
 								<span class="fw-semibold">{{if eq .Games 1}}{{t "1 game"}}{{else}}{{t "%v games" (num .Games)}}{{end}}</span> &middot; {{formatSize .Size}}
 								{{- if .HasDisk}}
 								<div class="text-body-secondary">{{t "%v free of %v" (formatSize .Free) (formatSize .Total)}}</div>
