@@ -2165,5 +2165,16 @@ func init() {
 		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "Naast de NUP staat een kopie van de inhoudsopgave van een andere NUP (.nxpress-icon): verwijder hem om door te gaan.",
 		"This file is not a NUP of the library without an icon.":                                                      "Dit bestand is geen NUP van de bibliotheek zonder pictogram.",
 		"Setting the icon…": "Pictogram instellen…",
+
+		// the catalogue to print
+		"Catalogue": "Catalogus",
+		"A catalogue of these games, to print or save as PDF": "Een catalogus van deze games, om af te drukken of als pdf op te slaan",
+		"My library":                         "Mijn bibliotheek",
+		"List":                               "Lijst",
+		"Small":                              "Klein",
+		"Large":                              "Groot",
+		"Print or save as PDF":               "Afdrukken of opslaan als pdf",
+		"Print now":                          "Nu afdrukken",
+		"Getting the covers ready: %v of %v": "Covers worden klaargezet: %v van %v",
 	}
 }

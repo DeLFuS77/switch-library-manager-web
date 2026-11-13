@@ -2192,6 +2192,17 @@ var Translations = map[string]map[string]string{
 		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "Junto al NUP hay una copia del índice de otro NUP (.nxpress-icon): bórrala para seguir.",
 		"This file is not a NUP of the library without an icon.":                                                      "Este archivo no es un NUP de la biblioteca sin icono.",
 		"Setting the icon…": "Poniendo el icono…",
+
+		// the catalogue to print
+		"Catalogue": "Catálogo",
+		"A catalogue of these games, to print or save as PDF": "Un catálogo de estos juegos, para imprimir o guardar en PDF",
+		"My library":                         "Mi biblioteca",
+		"List":                               "Lista",
+		"Small":                              "Pequeñas",
+		"Large":                              "Grandes",
+		"Print or save as PDF":               "Imprimir o guardar en PDF",
+		"Print now":                          "Imprimir ya",
+		"Getting the covers ready: %v of %v": "Preparando las portadas: %v de %v",
 	},
 }
 

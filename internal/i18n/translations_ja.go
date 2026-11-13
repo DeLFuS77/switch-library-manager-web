@@ -2165,5 +2165,16 @@ func init() {
 		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "NUPの横に別のNUPの目次のコピー（.nxpress-icon）があります。続けるには削除してください。",
 		"This file is not a NUP of the library without an icon.":                                                      "このファイルはアイコンのないライブラリのNUPではありません。",
 		"Setting the icon…": "アイコンを設定中…",
+
+		// the catalogue to print
+		"Catalogue": "カタログ",
+		"A catalogue of these games, to print or save as PDF": "これらのゲームのカタログ。印刷または PDF に保存できます",
+		"My library":                         "マイライブラリ",
+		"List":                               "リスト",
+		"Small":                              "小",
+		"Large":                              "大",
+		"Print or save as PDF":               "印刷または PDF に保存",
+		"Print now":                          "今すぐ印刷",
+		"Getting the covers ready: %v of %v": "カバー画像を準備中: %v / %v",
 	}
 }

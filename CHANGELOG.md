@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- Catalogue, beside the filters of the Library and of the Missing games: the games of the list, with its filter, on a sheet to print or save as PDF, as covers or as a list
+
 ### Fixes
 
 - A starting screen still open when the app was ready waited forever once a user with a password existed: the script that watches for the app to be ready asked for the login. It is answered without the login now, as the health check is, and the page opens by itself

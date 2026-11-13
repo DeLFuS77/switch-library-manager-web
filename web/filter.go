@@ -48,6 +48,8 @@ type TitleItemFilter struct {
 	Play string `in:"form=play"`
 	// library only: the lowest score of the games on IGDB ("70", "80" or "90")
 	Score string `in:"form=score"`
+	// catalogue only: the list it is of, the Library ("") or the Missing games (CATALOGUE_MISSING)
+	List string `in:"form=list"`
 	// the user who looks, for Play (set by the handler)
 	player string
 	// the recommendations were left open (recsCookie, set by the handler)
@@ -206,6 +208,9 @@ func (f *TitleItemFilter) Normalize() {
 	if !regionPattern.MatchString(f.Region) {
 		f.Region = ""
 	}
+	if f.List != CATALOGUE_MISSING {
+		f.List = ""
+	}
 }
 
 // Active reports whether the items are filtered by a keyword, a status, a format or another
@@ -267,6 +272,7 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("languages", f.GameLanguage)
 	values.Set("play", f.Play)
 	values.Set("score", f.Score)
+	values.Set("list", f.List)
 	values.Set("per_page", strconv.Itoa(f.chosenPerPage()))
 	values.Set("sort_by", f.SortBy)
 	values.Set("sort_order", f.SortOrder)

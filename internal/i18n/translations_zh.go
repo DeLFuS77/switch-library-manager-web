@@ -2165,5 +2165,16 @@ func init() {
 		"Beside the NUP there is a copy of the table of contents of another NUP (.nxpress-icon): remove it to go on.": "NUP 旁有另一个 NUP 的目录副本（.nxpress-icon）：删除它才能继续。",
 		"This file is not a NUP of the library without an icon.":                                                      "此文件不是库中缺少图标的 NUP。",
 		"Setting the icon…": "正在设置图标…",
+
+		// the catalogue to print
+		"Catalogue": "目录",
+		"A catalogue of these games, to print or save as PDF": "这些游戏的目录，可打印或保存为 PDF",
+		"My library":                         "我的游戏库",
+		"List":                               "列表",
+		"Small":                              "小",
+		"Large":                              "大",
+		"Print or save as PDF":               "打印或保存为 PDF",
+		"Print now":                          "立即打印",
+		"Getting the covers ready: %v of %v": "正在准备封面：%v / %v",
 	}
 }
