@@ -5,6 +5,7 @@
 ### Improvements
 
 - Search the eShop… in Edit, on the page of a game, finds its cover in the eShop of Europe by its name, with Switch 2 only for the games of the Switch 2, which titledb often has no cover of. Search the web ↗ and an image pasted (Ctrl+V) are there for the games the eShop does not have
+- Crop the cover, as in NXPress: choosing an image in Edit opens a square that stays still while the image is moved and zoomed under it, with Fit whole and Reset, and Crop on the cover cuts the one kept again. Set the icon of a NUP opens the same crop first
 
 ### Fixes
 

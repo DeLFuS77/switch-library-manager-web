@@ -414,14 +414,14 @@ func TestNormalizeCover(t *testing.T) {
 		"text": []byte("hello"),
 		"html": []byte("<html><img src=x onerror=alert(1)></html>"),
 	} {
-		if _, _, err := normalizeCover(data); !errors.Is(err, errOverrideNotImage) {
+		if _, _, err := normalizeCover(data, nil); !errors.Is(err, errOverrideNotImage) {
 			t.Errorf("%s refused: %v", name, err)
 		}
 	}
-	if _, _, err := normalizeCover(append(testCover(t, 10, 10, false), make([]byte, maxOverrideCoverBytes)...)); !errors.Is(err, errOverrideCoverLarge) {
+	if _, _, err := normalizeCover(append(testCover(t, 10, 10, false), make([]byte, maxOverrideCoverBytes)...), nil); !errors.Is(err, errOverrideCoverLarge) {
 		t.Errorf("a file too large: %v", err)
 	}
-	if _, _, err := normalizeCover(testCover(t, 10, maxOverrideCoverSide+1, false)); !errors.Is(err, errOverrideCoverLarge) {
+	if _, _, err := normalizeCover(testCover(t, 10, maxOverrideCoverSide+1, false), nil); !errors.Is(err, errOverrideCoverLarge) {
 		t.Errorf("an image too large: %v", err)
 	}
 	animated := &bytes.Buffer{}
@@ -437,7 +437,7 @@ func TestNormalizeCover(t *testing.T) {
 		"transparent": {testCover(t, 100, 100, true), "png", 100, 100},
 		"gif":         {animated.Bytes(), "jpg", 40, 30},
 	} {
-		data, extension, err := normalizeCover(test.data)
+		data, extension, err := normalizeCover(test.data, nil)
 		if err != nil {
 			t.Fatalf("%s: %v", name, err)
 		}
@@ -459,7 +459,7 @@ func TestNormalizeCover(t *testing.T) {
 func TestBackupKeepsTheChangesByHand(t *testing.T) {
 	source := newTestWeb(t)
 	settings.UpdateSettings(source.dataFolder, func(s *settings.AppSettings) { s.Folder = "/games" })
-	cover, err := source.saveOverrideCover(overrideTestId, testCover(t, 50, 50, false))
+	cover, err := source.saveOverrideCover(overrideTestId, testCover(t, 50, 50, false), nil)
 	if err != nil {
 		t.Fatal(err)
 	}

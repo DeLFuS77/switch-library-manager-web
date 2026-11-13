@@ -157,6 +157,14 @@ function initTitleEdit() {
 	const removeCover = form.querySelector('[data-title-edit-remove-cover]');
 	const originalCover = form.querySelector('[data-title-edit-original-cover]');
 	const reset = form.querySelector('[data-title-edit-reset]');
+	const frame = form.querySelector('[data-title-edit-frame]');
+	const cropButton = form.querySelector('[data-title-edit-crop]');
+	const cropFields = {
+		x: form.querySelector('[data-title-edit-crop-x]'),
+		y: form.querySelector('[data-title-edit-crop-y]'),
+		size: form.querySelector('[data-title-edit-crop-size]'),
+		fit: form.querySelector('[data-title-edit-crop-fit]')
+	};
 	const shown = preview.getAttribute('src');
 	const buttons = () => form.querySelectorAll('button');
 	const fail = message => {
@@ -180,6 +188,30 @@ function initTitleEdit() {
 		})).catch(e => fail(e.message || t('Could not reach the server.')));
 	};
 
+	// the crop chosen for the cover shown, sent with it; a new image starts without one
+	const editElement = form.closest('.modal');
+	const setCrop = crop => {
+		cropFields.x.value = crop && !crop.fit ? crop.x.toFixed(6) : '';
+		cropFields.y.value = crop && !crop.fit ? crop.y.toFixed(6) : '';
+		cropFields.size.value = crop && !crop.fit ? crop.size.toFixed(6) : '';
+		cropFields.fit.value = crop && crop.fit ? 'true' : '';
+		showCoverCrop(frame, preview, crop);
+	};
+	// the crop takes the place of Edit while it is open, and Edit comes back with it
+	const crop = name => {
+		const source = preview.getAttribute('src');
+		editElement.addEventListener('hidden.bs.modal', () => {
+			cropCover(source, name).then(chosen => {
+				if (chosen) {
+					setCrop(chosen);
+				}
+				Modal.getOrCreateInstance(editElement).show();
+			});
+		}, { once: true });
+		Modal.getOrCreateInstance(editElement).hide();
+	};
+	cropButton.addEventListener('click', () => crop(''));
+
 	// an image pasted, in Edit or in the search of the eShop, is taken as one uploaded
 	const useFile = chosen => {
 		const list = new DataTransfer();
@@ -190,6 +222,7 @@ function initTitleEdit() {
 	const useAddress = value => {
 		address.value = value;
 		address.dispatchEvent(new Event('input'));
+		crop('');
 	};
 	const pasted = e => {
 		const item = Array.from((e.clipboardData && e.clipboardData.items) || []).find(entry => entry.kind === 'file' && /^image\/(png|jpeg|gif)$/.test(entry.type));
@@ -218,7 +251,12 @@ function initTitleEdit() {
 		error.hidden = true;
 		// a data address: the policy of the pages shows no other kind of local image
 		const reader = new FileReader();
-		reader.onload = () => preview.src = reader.result;
+		reader.onload = () => {
+			setCrop(null);
+			preview.src = reader.result;
+			cropButton.hidden = false;
+			crop(chosen.name);
+		};
 		reader.readAsDataURL(chosen);
 	});
 	address.addEventListener('input', () => {
@@ -228,7 +266,14 @@ function initTitleEdit() {
 			removeCover.value = 'false';
 		}
 		// encoded as an address, keeping the escapes it already has: only an https image
+		setCrop(null);
 		preview.src = value.startsWith('https://') ? encodeURI(value).replace(/%25([0-9A-Fa-f]{2})/g, '%$1') : shown;
+	});
+	// an address written is cropped once it is complete
+	address.addEventListener('change', () => {
+		if (address.value.trim().startsWith('https://')) {
+			crop('');
+		}
 	});
 	preview.addEventListener('error', () => {
 		if (preview.getAttribute('src') !== shown) {
@@ -240,6 +285,7 @@ function initTitleEdit() {
 			file.value = '';
 			address.value = '';
 			removeCover.value = 'true';
+			setCrop(null);
 			preview.src = form.dataset.originalCover;
 		});
 	}
@@ -258,6 +304,189 @@ function initTitleEdit() {
 		}
 		send('POST', body, t('Saved!'));
 	});
+}
+
+// the crop of a cover, as in NXPress: the square stays where it is and the image is moved and
+// zoomed under it (dragged, the wheel, the slider, the arrows and + and -); Fit whole takes the
+// whole image on white. It answers the part chosen in parts of the image (see CoverCrop), or null
+// when it is closed without one. The images of the eShop come from elsewhere: the preview is drawn
+// by the browser with the same image, never read back, so any image can be cropped.
+const CROP_STAGE = 340;
+const CROP_BOX = 280;
+const CROP_PREVIEW = 160;
+
+function cropCover(source, name) {
+	const element = document.querySelector('[data-cover-crop]');
+	if (!element) {
+		return Promise.resolve(null);
+	}
+	const modal = Modal.getOrCreateInstance(element);
+	const stage = element.querySelector('[data-cover-crop-stage]');
+	const image = element.querySelector('[data-cover-crop-image]');
+	const preview = element.querySelector('[data-cover-crop-preview]');
+	const shown = element.querySelector('[data-cover-crop-shown]');
+	const zoomer = element.querySelector('[data-cover-crop-zoom]');
+	const fitButton = element.querySelector('[data-cover-crop-fit]');
+	const resetButton = element.querySelector('[data-cover-crop-reset]');
+	const useButton = element.querySelector('[data-cover-crop-use]');
+	const label = element.querySelector('[data-cover-crop-name]');
+	// the stage is smaller on a phone: everything is measured on it as drawn
+	const size = () => stage.getBoundingClientRect().width || CROP_STAGE;
+	return new Promise(resolve => {
+		let width = 0, height = 0, base = 1, zoom = 1, x = 0, y = 0, fit = false, drag = null, answer = null;
+		const k = () => size() / CROP_STAGE;
+		const box = () => CROP_BOX * k();
+		const off = () => (size() - box()) / 2;
+		const scale = () => base * zoom;
+		const draw = () => {
+			const ratio = CROP_PREVIEW / box();
+			if (fit) {
+				const s = CROP_PREVIEW / Math.max(width, height);
+				Object.assign(shown.style, { width: width * s + 'px', height: height * s + 'px', left: (CROP_PREVIEW - width * s) / 2 + 'px', top: (CROP_PREVIEW - height * s) / 2 + 'px' });
+			} else {
+				const s = scale() * ratio;
+				Object.assign(shown.style, { width: width * s + 'px', height: height * s + 'px', left: (x - off()) * ratio + 'px', top: (y - off()) * ratio + 'px' });
+			}
+			preview.classList.toggle('is-fit', fit);
+			stage.classList.toggle('is-fit', fit);
+		};
+		const update = () => {
+			if (!width) {
+				return;
+			}
+			if (fit) {
+				const s = box() / Math.max(width, height);
+				image.style.transform = `translate(${off() + (box() - width * s) / 2}px, ${off() + (box() - height * s) / 2}px) scale(${s})`;
+			} else {
+				const s = scale();
+				// the square never shows outside the image
+				x = Math.min(off(), Math.max(off() + box() - width * s, x));
+				y = Math.min(off(), Math.max(off() + box() - height * s, y));
+				image.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
+			}
+			draw();
+		};
+		const reset = () => {
+			fit = false;
+			zoom = 1;
+			zoomer.value = 1;
+			base = box() / Math.min(width, height);
+			x = off() + (box() - width * base) / 2;
+			y = off() + (box() - height * base) / 2;
+			update();
+		};
+		const zoomTo = value => {
+			const before = scale(), center = off() + box() / 2;
+			const ix = (center - x) / before, iy = (center - y) / before;
+			zoom = Math.min(4, Math.max(1, value));
+			zoomer.value = zoom;
+			fit = false;
+			x = center - ix * scale();
+			y = center - iy * scale();
+			update();
+		};
+		stage.onpointerdown = e => {
+			if (!fit && width) {
+				drag = { px: e.clientX, py: e.clientY, x, y };
+				stage.setPointerCapture(e.pointerId);
+			}
+		};
+		stage.onpointermove = e => {
+			if (drag) {
+				x = drag.x + e.clientX - drag.px;
+				y = drag.y + e.clientY - drag.py;
+				update();
+			}
+		};
+		stage.onpointerup = stage.onpointercancel = () => drag = null;
+		stage.onwheel = e => {
+			e.preventDefault();
+			zoomTo(zoom * (e.deltaY < 0 ? 1.1 : 1 / 1.1));
+		};
+		stage.onkeydown = e => {
+			const step = { ArrowLeft: [10, 0], ArrowRight: [-10, 0], ArrowUp: [0, 10], ArrowDown: [0, -10] }[e.key];
+			if (step && !fit) {
+				x += step[0];
+				y += step[1];
+				update();
+				e.preventDefault();
+			} else if (e.key === '+' || e.key === '=') {
+				zoomTo(zoom * 1.1);
+				e.preventDefault();
+			} else if (e.key === '-') {
+				zoomTo(zoom / 1.1);
+				e.preventDefault();
+			}
+		};
+		zoomer.oninput = () => zoomTo(+zoomer.value);
+		fitButton.onclick = () => {
+			fit = true;
+			update();
+		};
+		resetButton.onclick = reset;
+		useButton.onclick = () => {
+			if (fit) {
+				answer = { fit: true };
+			} else {
+				const s = scale();
+				answer = { x: (off() - x) / s / width, y: (off() - y) / s / height, size: box() / s / width, fit: false };
+			}
+			modal.hide();
+		};
+		element.addEventListener('hidden.bs.modal', () => {
+			stage.onpointerdown = stage.onpointermove = stage.onwheel = stage.onkeydown = null;
+			resolve(answer);
+		}, { once: true });
+		element.addEventListener('shown.bs.modal', () => {
+			if (width) {
+				reset();
+			}
+			stage.focus();
+		}, { once: true });
+		image.onload = () => {
+			width = image.naturalWidth;
+			height = image.naturalHeight;
+			label.textContent = (name ? name + ' · ' : '') + width + '×' + height;
+			useButton.disabled = false;
+			reset();
+		};
+		image.onerror = () => {
+			label.textContent = t('The image could not be shown: it is kept as it is.');
+		};
+		useButton.disabled = true;
+		label.textContent = '';
+		// the same image again loads again, so it is shown as it is
+		image.removeAttribute('src');
+		shown.removeAttribute('src');
+		image.src = source;
+		shown.src = source;
+		modal.show();
+	});
+}
+
+// showCoverCrop shows a cover as a crop leaves it, in a square frame: the part chosen, or the
+// whole image on white; without a crop, as it is
+function showCoverCrop(frame, image, crop) {
+	frame.classList.toggle('is-cropped', !!crop && !crop.fit);
+	frame.classList.toggle('is-fit', !!crop && crop.fit);
+	if (!crop || crop.fit) {
+		image.style.width = image.style.height = image.style.left = image.style.top = '';
+		return;
+	}
+	const apply = () => {
+		const ratio = image.naturalHeight / image.naturalWidth;
+		Object.assign(image.style, {
+			width: 100 / crop.size + '%',
+			height: 100 * ratio / crop.size + '%',
+			left: -100 * crop.x / crop.size + '%',
+			top: -100 * crop.y * ratio / crop.size + '%'
+		});
+	};
+	if (image.complete && image.naturalWidth) {
+		apply();
+	} else {
+		image.addEventListener('load', apply, { once: true });
+	}
 }
 
 // pastedImage names an image pasted from the clipboard, and makes one too large for a cover (a

@@ -251,8 +251,9 @@ func cleanOverrideText(text string, limit int, oneLine bool) string {
 // normalizeCover checks that data is a real image (JPEG, PNG or a GIF, of which the first frame
 // is kept) and makes it again: at most overrideCoverSize pixels a side, in JPEG, or in PNG when
 // it has transparent parts. What else the file held (a script hidden in it, where and when a
-// photo was taken) is left out. It returns the image and its extension.
-func normalizeCover(data []byte) ([]byte, string, error) {
+// photo was taken) is left out. With a crop, only the part of it chosen is kept (see covercrop.go).
+// It returns the image and its extension.
+func normalizeCover(data []byte, crop *CoverCrop) ([]byte, string, error) {
 	if len(data) > maxOverrideCoverBytes {
 		return nil, "", errOverrideCoverLarge
 	}
@@ -271,6 +272,9 @@ func normalizeCover(data []byte) ([]byte, string, error) {
 	source, _, err := image.Decode(bytes.NewReader(data))
 	if err != nil {
 		return nil, "", errOverrideNotImage
+	}
+	if crop != nil {
+		source = crop.cut(source)
 	}
 	result := source
 	if bounds := source.Bounds(); bounds.Dx() > overrideCoverSize || bounds.Dy() > overrideCoverSize {
@@ -294,8 +298,8 @@ func normalizeCover(data []byte) ([]byte, string, error) {
 
 // saveOverrideCover keeps the cover chosen for the game of id, named with its ID, and makes its
 // thumbnail; it returns the name of its file.
-func (web *Web) saveOverrideCover(id string, data []byte) (string, error) {
-	encoded, extension, err := normalizeCover(data)
+func (web *Web) saveOverrideCover(id string, data []byte, crop *CoverCrop) (string, error) {
+	encoded, extension, err := normalizeCover(data, crop)
 	if err != nil {
 		return "", err
 	}
@@ -443,6 +447,11 @@ func (web *Web) handleTitleOverrideSet(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("removeCover") == "true" {
 		override.Cover = ""
 	}
+	crop, err := coverCropFrom(r)
+	if err != nil {
+		writeGlobalError(w, http.StatusBadRequest, lang, err.Error())
+		return
+	}
 	var cover []byte
 	if file, _, err := r.FormFile("cover"); err == nil {
 		cover, err = io.ReadAll(io.LimitReader(file, maxOverrideCoverBytes+1))
@@ -457,8 +466,15 @@ func (web *Web) handleTitleOverrideSet(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	if cover == nil && crop != nil {
+		// the cover shown cut: the one chosen before, or the one of the game asked for again
+		if cover, err = web.coverToCrop(id, override.Cover); err != nil {
+			writeGlobalError(w, http.StatusBadRequest, lang, err.Error())
+			return
+		}
+	}
 	if cover != nil {
-		name, err := web.saveOverrideCover(id, cover)
+		name, err := web.saveOverrideCover(id, cover, crop)
 		if err != nil {
 			status, message := http.StatusBadRequest, err.Error()
 			if !errors.Is(err, errOverrideNotImage) && !errors.Is(err, errOverrideCoverLarge) {
