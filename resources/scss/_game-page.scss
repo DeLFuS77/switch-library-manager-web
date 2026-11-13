@@ -811,3 +811,200 @@
 		margin-top: .35rem;
 	}
 }
+
+// the covers found in the eShop, to pick one: the one picked framed in the blue of work
+.cover-search-grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: .625rem;
+
+	@include media-breakpoint-down(sm) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.cover-search-hit {
+	display: flex;
+	flex-direction: column;
+	gap: .125rem;
+	padding: .25rem;
+	border: 2px solid transparent;
+	border-radius: $border-radius-lg;
+	background: var(--bs-tertiary-bg);
+	color: inherit;
+	text-align: start;
+	transition: border-color .15s, box-shadow .15s;
+
+	img {
+		display: block;
+		width: 100%;
+		aspect-ratio: 1;
+		object-fit: cover;
+		border-radius: $border-radius;
+		background: var(--bs-secondary-bg);
+	}
+
+	span {
+		font-size: .78rem;
+		line-height: 1.25;
+		margin: .25rem .125rem 0;
+	}
+
+	small {
+		font-size: .7rem;
+		color: var(--bs-secondary-color);
+		margin: 0 .125rem .125rem;
+	}
+
+	&:hover {
+		border-color: var(--bs-border-color);
+	}
+
+	&.is-chosen {
+		border-color: rgb(var(--slm-work-rgb));
+		box-shadow: 0 0 0 3px rgba(var(--slm-work-rgb), .2);
+	}
+
+	// an image the network cuts is shown as nothing, not as a broken image
+	&.is-broken img {
+		visibility: hidden;
+	}
+}
+
+.cover-search-paste {
+	margin-top: .75rem;
+	padding: .5rem .75rem;
+	border: 1px dashed var(--bs-border-color);
+	border-radius: $border-radius-lg;
+	font-size: .84rem;
+	color: var(--bs-secondary-color);
+	text-align: center;
+}
+
+// the cover of Edit as a crop leaves it: the part chosen fills the square, or the whole image on
+// white; the button to crop it again sits on it
+.title-edit-frame {
+	position: relative;
+	overflow: hidden;
+	aspect-ratio: 1;
+	border-radius: $border-radius-lg;
+	box-shadow: 0 10px 24px -14px rgba(0, 0, 0, .6);
+
+	@include media-breakpoint-down(sm) {
+		max-width: 10rem;
+		margin-inline: auto;
+	}
+
+	.title-edit-cover {
+		box-shadow: none;
+		max-width: none;
+		margin: 0;
+	}
+
+	&.is-cropped .title-edit-cover {
+		position: absolute;
+		object-fit: fill;
+		border-radius: 0;
+	}
+
+	&.is-fit .title-edit-cover {
+		object-fit: contain;
+		background: #fff;
+	}
+}
+
+.title-edit-crop {
+	position: absolute;
+	right: .5rem;
+	bottom: .5rem;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, .35);
+}
+
+// the crop: a square that stays where it is, and the image moved and zoomed under it
+.cover-crop {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1.25rem;
+	justify-content: center;
+}
+
+.cover-crop-stage {
+	position: relative;
+	flex: 0 0 auto;
+	width: min(340px, 100%);
+	aspect-ratio: 1;
+	overflow: hidden;
+	border-radius: $border-radius-lg;
+	background: #0b0d10;
+	cursor: grab;
+	touch-action: none;
+
+	&:active {
+		cursor: grabbing;
+	}
+
+	&.is-fit {
+		background: #fff;
+		cursor: default;
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--slm-focus);
+		outline-offset: 2px;
+	}
+
+	img {
+		position: absolute;
+		left: 0;
+		top: 0;
+		max-width: none;
+		transform-origin: 0 0;
+		user-select: none;
+		pointer-events: none;
+	}
+}
+
+// the square, the rest of the image darkened around it (280 of 340)
+.cover-crop-box {
+	position: absolute;
+	inset: 8.8235%;
+	border: 2px solid #fff;
+	border-radius: .25rem;
+	box-shadow: 0 0 0 9999px rgba(0, 0, 0, .55);
+	pointer-events: none;
+}
+
+.cover-crop-side {
+	display: flex;
+	flex-direction: column;
+	gap: .6rem;
+	min-width: 13rem;
+
+	// the zoom in the blue of work, as the other controls in use: red is for errors
+	.form-range::-webkit-slider-thumb {
+		background-color: rgb(var(--slm-work-rgb));
+	}
+
+	.form-range::-moz-range-thumb {
+		background-color: rgb(var(--slm-work-rgb));
+	}
+
+	.form-range:focus::-webkit-slider-thumb {
+		box-shadow: 0 0 0 1px var(--bs-body-bg), 0 0 0 .25rem rgba(var(--slm-work-rgb), .25);
+	}
+}
+
+.cover-crop-preview {
+	position: relative;
+	width: 160px;
+	height: 160px;
+	overflow: hidden;
+	border-radius: .75rem;
+	border: 1px solid var(--bs-border-color);
+	background: #fff;
+
+	img {
+		position: absolute;
+		max-width: none;
+	}
+}

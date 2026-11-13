@@ -48,6 +48,10 @@ func (web *Web) activities() *activity.Log {
 var recordedActions = map[string]func(r *http.Request) (string, string){
 	"/settings.html": func(r *http.Request) (string, string) { return activity.ACTION_SETTINGS, "" },
 	"/organize/run":  func(r *http.Request) (string, string) { return activity.ACTION_ORGANIZE, r.FormValue("action") },
+	"/organize/undo/run": func(r *http.Request) (string, string) {
+		// how many went back, which the handler adds to the form (see handleOrganizeUndo)
+		return activity.ACTION_UNDO_ORGANIZE, r.FormValue(undoActivityFiles) + " files"
+	},
 	"/space/clean": func(r *http.Request) (string, string) {
 		detail := strconv.Itoa(len(r.Form["path"])) + " files"
 		for _, group := range r.Form["rest"] {

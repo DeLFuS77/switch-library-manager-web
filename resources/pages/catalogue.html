@@ -1,0 +1,62 @@
+{{define "title"}}{{t "Catalogue"}}{{end}}
+{{define "main"}}
+			{{- $f := .Filter}}
+			{{- /* the bar is not printed; under it, the sheet as it will be printed */}}
+			<div class="catalogue" data-catalogue data-wait="{{t "Getting the covers ready: %v of %v"}}">
+				<div class="catalogue-bar" role="toolbar" aria-label="{{t "Catalogue"}}">
+					<a class="btn btn-sm btn-outline-secondary rounded-pill" href="{{.BackUrl}}"><span class="bi bi-arrow-left me-1" aria-hidden="true"></span>{{t "Back"}}</a>
+					<span class="catalogue-bar-title"><span class="bi bi-printer me-1" aria-hidden="true"></span>{{t "Catalogue"}}</span>
+					<div class="catalogue-seg" role="group" aria-label="{{t "View"}}">
+						<button type="button" data-catalogue-layout="grid" aria-pressed="true">{{t "Covers"}}</button>
+						<button type="button" data-catalogue-layout="list" aria-pressed="false">{{t "List"}}</button>
+					</div>
+					<div class="catalogue-seg" role="group" aria-label="{{t "Covers"}}" data-catalogue-sizes>
+						<button type="button" data-catalogue-covers="small" aria-pressed="true">{{t "Small"}}</button>
+						<button type="button" data-catalogue-covers="large" aria-pressed="false">{{t "Large"}}</button>
+					</div>
+					<div class="form-check form-check-inline mb-0 small">
+						<input class="form-check-input" type="checkbox" id="catalogueSize" data-catalogue-show="size" checked>
+						<label class="form-check-label" for="catalogueSize">{{t "Size"}}</label>
+					</div>
+					<div class="form-check form-check-inline mb-0 small me-0">
+						<input class="form-check-input" type="checkbox" id="catalogueVersion" data-catalogue-show="version" checked>
+						<label class="form-check-label" for="catalogueVersion">{{t "Version"}}</label>
+					</div>
+					<button type="button" class="btn btn-primary btn-sm rounded-pill ms-auto" data-catalogue-print{{if not .Games}} disabled{{end}}><span class="bi bi-printer me-1" aria-hidden="true"></span>{{t "Print or save as PDF"}}</button>
+				</div>
+				<div class="catalogue-wait" role="status" data-catalogue-wait hidden>
+					<span class="spinner-border spinner-border-sm text-work flex-shrink-0" aria-hidden="true"></span>
+					<span data-catalogue-wait-text></span>
+					<button type="button" class="btn btn-link btn-sm p-0" data-catalogue-print-now>{{t "Print now"}}</button>
+				</div>
+				<article class="catalogue-sheet" data-catalogue-sheet data-layout="grid" data-covers="small"
+					data-name="{{t "Name"}}" data-id="{{t "ID"}}" data-version="{{t "Version"}}" data-region="{{t "Region"}}" data-size="{{t "Size"}}" data-missing="{{t "Not in your library"}}">
+					<header class="catalogue-head">
+						<h1 class="catalogue-title">{{if eq .View "missing"}}{{if .Wishlist}}{{t "Wishlist"}}{{else}}{{t "Missing Games"}}{{end}}{{else}}{{t "My library"}}{{end}}</h1>
+						<p class="catalogue-sub">
+							{{- if eq .View "all"}}<span class="catalogue-part">{{t "All"}}</span>{{else if eq .View "mine"}}<span class="catalogue-part">{{t "My games"}}</span>{{else if not .Wishlist}}<span class="catalogue-part">{{t "Missing ones"}}</span>{{end}}
+							{{- with $f.Console}}<span class="catalogue-part">{{if eq . "switch2"}}Switch 2{{else}}Switch{{end}}</span>{{end}}
+							{{- if eq $f.Status "update"}}<span class="catalogue-part">{{t "With an update"}}</span>{{else if eq $f.Status "dlc"}}<span class="catalogue-part">{{t "Missing some DLC"}}</span>{{else if eq $f.Status "complete"}}<span class="catalogue-part">{{t "Up to date"}}</span>{{end}}
+							{{- with $f.Keyword}}<span class="catalogue-part">{{t "Search"}}: “{{.}}”</span>{{end}}
+							{{- with $f.Collection}}<span class="catalogue-part">{{.}}</span>{{end}}
+							{{- if eq $f.Kind "demo"}}<span class="catalogue-part">{{t "Demos only"}}</span>{{else if eq $f.Kind "game"}}<span class="catalogue-part">{{t "Games only"}}</span>{{end}}
+							{{- with $f.Region}}<span class="catalogue-part">{{.}}</span>{{end}}
+							{{- with $f.Format}}<span class="catalogue-part">{{.}}</span>{{end}}{{with $.Folder}}<span class="catalogue-part"><span class="bi bi-folder2 me-1" aria-hidden="true"></span>{{.}}</span>{{end}}
+							{{- with $f.Genre}}<span class="catalogue-part">{{t .}}</span>{{end}}
+							{{- with $f.Players}}<span class="catalogue-part">{{if eq . "1"}}{{t "1 player"}}{{else if eq . "2"}}{{t "2 or more"}}{{else}}{{t "4 or more"}}{{end}}</span>{{end}}
+							{{- with $f.GameLanguage}}<span class="catalogue-part">{{t (gameLanguage .)}}</span>{{end}}
+							{{- with $f.Score}}<span class="catalogue-part">{{t "Score of %v or more" .}}</span>{{end}}
+							{{- if $f.Extra}}<span class="catalogue-part">{{if eq $f.Extra "recent"}}{{t "Added in the last 30 days"}}{{else if eq $f.Extra "no_cover"}}{{t "Without a cover"}}{{else if eq $f.Extra "favorites"}}{{t "Favorites only"}}{{else if eq $f.Extra "cheats"}}{{t "With cheats for my version"}}{{else if eq $f.Extra "cheats_other"}}{{t "With cheats for another version"}}{{else if eq $f.Extra "firmware"}}{{t "Need a newer firmware"}}{{else}}{{t "Not recognized"}}{{end}}</span>{{end}}
+							{{- with $f.Play}}<span class="catalogue-part">{{if eq . "none"}}{{t "Without a state"}}{{else}}{{t (playStateName .)}}{{end}}</span>{{end}}
+							{{- ""}}<span class="catalogue-count">{{t "%v games" (num (len .Games))}} · {{formatTime .Date}}</span>
+						</p>
+					</header>
+					{{- if .Games}}
+					<div data-catalogue-games></div>
+					{{- else}}
+					<p class="catalogue-empty">{{t "No game matches these filters."}}</p>
+					{{- end}}
+				</article>
+				<script type="application/json" id="catalogueGames">{{.Games}}</script>
+			</div>
+{{- end}}

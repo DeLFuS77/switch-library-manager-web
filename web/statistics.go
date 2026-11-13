@@ -66,6 +66,9 @@ type Statistics struct {
 	ScoreBands    []ScoreBand
 	MaxScoreBand  int
 	TopScored     []ScoredGame
+	// the folders of the library, in the order of the settings, with their games and the size of
+	// the files in them; without their paths, added for the administrators (see folderSpaces)
+	Folders []FolderSpace
 	// the highest count of each list, for the bars
 	MaxGenre     int
 	MaxPublisher int
@@ -111,6 +114,8 @@ type StatisticsPageData struct {
 	// what changed in the folders, newest first, and the library over time
 	History []HistoryEvent
 	Charts  *HistoryCharts
+	// the folders of the library as the user who looks sees them
+	Folders []FolderSpace
 }
 
 func percent(part int64, total int64) int {
@@ -137,12 +142,19 @@ func (web *Web) buildStatistics(lang string) Statistics {
 	formats := map[string]*SizeShare{}
 	// every file once in the sizes: a game card can hold the game, its update and DLC
 	counted := map[string]bool{}
+	// the files of each folder of the library, and its games
+	folders := libraryFolders(settings.ReadSettings(web.dataFolder))
+	findFolder := folderFinder(folders)
+	folderSizes, folderGames := map[string]int64{}, map[string]int{}
 	firstTime := func(file db.ExtendedFileInfo) bool {
 		path := filepath.Join(file.BaseFolder, file.FileName)
 		if counted[path] {
 			return false
 		}
 		counted[path] = true
+		if folder := findFolder(file.BaseFolder); folder != nil {
+			folderSizes[folder.Id] += file.Size
+		}
 		return true
 	}
 	addFile := func(fileName string, size int64) {
@@ -164,6 +176,9 @@ func (web *Web) buildStatistics(lang string) Statistics {
 		var gameSize int64
 		if local.BaseExist {
 			stats.Games++
+			if folder := findFolder(local.File.ExtendedInfo.BaseFolder); folder != nil {
+				folderGames[folder.Id]++
+			}
 			if firstTime(local.File.ExtendedInfo) {
 				baseSize += local.File.ExtendedInfo.Size
 				gameSize += local.File.ExtendedInfo.Size
@@ -253,6 +268,8 @@ func (web *Web) buildStatistics(lang string) Statistics {
 		// the games count as the library counts them: without the demos it hides, and up to
 		// date as its "Up to date" filter, with every update and DLC
 		games, withFile := 0, 0
+		// the games of each folder too
+		folderGames = map[string]int{}
 		leftOut, _ := web.regionCopies(lang)
 		merged := web.mergedStatus(lang)
 		scores := web.timesToBeat().snapshot()
@@ -267,6 +284,9 @@ func (web *Web) buildStatistics(lang string) Statistics {
 				continue
 			}
 			games++
+			if item.folder != "" && !item.NoFile {
+				folderGames[item.folder]++
+			}
 			if item.Score > 0 {
 				value := scores[item.Id]
 				if score := value.Critics(); score > 0 {
@@ -338,6 +358,10 @@ func (web *Web) buildStatistics(lang string) Statistics {
 		stats.MissingGames = web.missingGamesCount()
 	}
 
+	for _, folder := range folders {
+		stats.Folders = append(stats.Folders, FolderSpace{Id: folder.Id, Name: folder.Name, Games: folderGames[folder.Id], Size: folderSizes[folder.Id]})
+	}
+
 	return stats
 }
 
@@ -388,8 +412,10 @@ func (web *Web) HandleStatistics() {
 
 	web.router.HandleFunc("/statistics.html", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
-		web.render(w, r, templates, StatisticsPageData{GlobalPageData: web.globalPageData("statistics"), Stats: web.getStatistics(lang),
-			Mine: web.scoreComparison(playUser(r), lang), History: web.history().recent(50), Charts: historyCharts(web.history().days(), lang)})
+		stats := web.getStatistics(lang)
+		web.render(w, r, templates, StatisticsPageData{GlobalPageData: web.globalPageData("statistics"), Stats: stats,
+			Mine: web.scoreComparison(playUser(r), lang), History: web.history().recent(50), Charts: historyCharts(web.history().days(), lang),
+			Folders: web.folderSpaces(stats, isAdminRequest(r))})
 	}).Methods("GET")
 }
 

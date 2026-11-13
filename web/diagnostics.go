@@ -53,6 +53,8 @@ type DiagnosticsPageData struct {
 	Problems int
 	// the whole diagnostics as text, to paste when asking for help
 	Report string
+	// the addresses to open the app from other devices, not in the report
+	OtherDevices OtherDevices
 }
 
 var appStarted = time.Now()
@@ -218,7 +220,7 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 	}
 	groups = append(groups, work)
 
-	result := DiagnosticsPageData{Groups: groups}
+	result := DiagnosticsPageData{Groups: groups, OtherDevices: otherDevices(appSettings.Port, lang)}
 	var report strings.Builder
 	fmt.Fprintf(&report, "Switch Library Manager Web %s — %s\n", settings.SLM_WEB_VERSION, time.Now().Format(time.RFC3339))
 	for _, group := range groups {
