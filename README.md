@@ -118,7 +118,7 @@ Linux, Docker, NAS and Raspberry Pi.
 
 **Keep it tidy**
 - Issues: unsupported, duplicate, old, damaged or unidentified files
-- Organize files in folders and rename them from templates, always with a preview first
+- Organize files in folders and rename them from templates, always with a preview first, and undo any of the last 10 runs
 - Delete old updates, duplicates and empty folders, choosing which copy of a duplicate stays: the NSP or NSZ, the XCI
   or XCZ, or the one the app picks (a file with several titles is never deleted while it holds something the
   library keeps)

@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initKeysUpload();
 	initPageTabs();
 	initOrganize();
+	initUndoOrganize();
 	initIgnoreButtons();
 	initLibraryBulk();
 	initCollections();

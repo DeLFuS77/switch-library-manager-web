@@ -247,6 +247,8 @@ type Web struct {
 	organizing atomic.Bool
 	// the files deleted so far by the cleanup running, for the page to take them off its list
 	removing removedSoFar
+	// the runs of Organize that can be undone (see organizeundo.go)
+	undoRuns organizeRuns
 	// where the files moved by Organize went, for the lists made before
 	moves     movedFiles
 	cache     derivedCache

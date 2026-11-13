@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- Organize keeps its last 10 runs, and Earlier organizes on its page puts the files of one back to their names and folders of before. It shows first what goes back and what is skipped, and never writes over a file
+
 ### Fixes
 
 - A starting screen still open when the app was ready waited forever once a user with a password existed: the script that watches for the app to be ready asked for the login. It is answered without the login now, as the health check is, and the page opens by itself
