@@ -157,7 +157,8 @@ func EstimateCompression(ctx context.Context, source string, options CompressOpt
 			}
 			finish = encoder.Close
 		} else {
-			encoder, err := newStreamEncoder(counter, options.Level, 1)
+			// the samples are small: a long window would find nothing more in them
+			encoder, err := newStreamEncoder(counter, options.Level, 1, false)
 			if err != nil {
 				return err
 			}

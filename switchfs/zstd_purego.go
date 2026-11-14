@@ -8,11 +8,11 @@ import "io"
 // Go only.
 const NativeZstd = false
 
-func newNativeStreamEncoder(output io.Writer, level string, workers int) (io.WriteCloser, bool, error) {
+func newNativeStreamEncoder(output io.Writer, level string, workers int, long bool) (io.WriteCloser, bool, error) {
 	return nil, false, nil
 }
 
-func nativeJobSize(level string) int64 {
+func nativeJobSize(level string, long bool) int64 {
 	return 0
 }
 

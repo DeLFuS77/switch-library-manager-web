@@ -10,8 +10,9 @@ import (
 )
 
 // The stream of an NCZ, from the zstd library in C with several threads or from the encoder in
-// Go, is standard zstd with a window of at most nczWindowSize, which a console always has:
-// the decoder in Go, limited to that window, gives the data back byte for byte.
+// Go, is standard zstd with a window of at most nczWindowSize, or of LongWindowLog when long
+// (the default of the zstd library in C): the decoder in Go, limited to that window, gives the
+// data back byte for byte.
 func TestStreamEncoderWindowAndRoundTrip(t *testing.T) {
 	// compressible data with repeats further apart than a block, like the data of a game
 	random := rand.New(rand.NewSource(1))
@@ -23,9 +24,17 @@ func TestStreamEncoderWindowAndRoundTrip(t *testing.T) {
 		data = append(data, piece[:min(len(piece), 64<<10, cap(data)-len(data))]...)
 	}
 	for _, level := range []string{LevelFast, LevelBalanced, LevelMax, "1", "9", "18", "19"} {
-		for _, workers := range []int{1, 4} {
+		for _, run := range []struct {
+			workers int
+			long    bool
+		}{{1, false}, {4, false}, {1, true}, {4, true}} {
+			workers := run.workers
+			window := uint64(nczWindowSize)
+			if run.long && NativeZstd {
+				window = 1 << LongWindowLog
+			}
 			var out bytes.Buffer
-			encoder, err := newStreamEncoder(&out, level, workers)
+			encoder, err := newStreamEncoder(&out, level, workers, run.long)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -38,10 +47,10 @@ func TestStreamEncoderWindowAndRoundTrip(t *testing.T) {
 				t.Fatal(err)
 			}
 			var header zstd.Header
-			if err := header.Decode(out.Bytes()); err != nil || header.WindowSize > nczWindowSize {
+			if err := header.Decode(out.Bytes()); err != nil || header.WindowSize > window {
 				t.Fatalf("%s with %d threads: window %d (%v)", level, workers, header.WindowSize, err)
 			}
-			decoder, _ := zstd.NewReader(bytes.NewReader(out.Bytes()), zstd.WithDecoderMaxWindow(nczWindowSize))
+			decoder, _ := zstd.NewReader(bytes.NewReader(out.Bytes()), zstd.WithDecoderMaxWindow(window))
 			back, err := io.ReadAll(decoder)
 			decoder.Close()
 			if err != nil || !bytes.Equal(back, data) {
@@ -60,7 +69,7 @@ func TestStreamEncoderWindowAndRoundTrip(t *testing.T) {
 func TestStreamEncoderClosesOnce(t *testing.T) {
 	for _, level := range []string{LevelFast, LevelBalanced, LevelMax, "1", "9", "18", "19"} {
 		var out bytes.Buffer
-		encoder, err := newStreamEncoder(&out, level, 2)
+		encoder, err := newStreamEncoder(&out, level, 2, true)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -70,6 +79,42 @@ func TestStreamEncoderClosesOnce(t *testing.T) {
 		}
 		encoder.Close()
 		encoder.Close()
+	}
+}
+
+// With the zstd library in C, the long window finds data a game repeats further apart than the
+// window of the levels: 24 MiB repeated 32 MiB later is stored about once.
+func TestStreamEncoderLongWindowFindsFarRepeats(t *testing.T) {
+	if !NativeZstd {
+		t.Skip("the encoder in Go keeps a window of nczWindowSize")
+	}
+	random := rand.New(rand.NewSource(3))
+	piece := make([]byte, 24<<20)
+	random.Read(piece)
+	gap := make([]byte, 8<<20)
+	random.Read(gap)
+	data := append(append(append([]byte{}, piece...), gap...), piece...)
+	size := func(long bool) int {
+		var out bytes.Buffer
+		encoder, err := newStreamEncoder(&out, "18", 4, long)
+		if err != nil {
+			t.Fatal(err)
+		}
+		encoder.Write(data)
+		if err := encoder.Close(); err != nil {
+			t.Fatal(err)
+		}
+		decoder, _ := zstd.NewReader(bytes.NewReader(out.Bytes()), zstd.WithDecoderMaxWindow(1<<LongWindowLog))
+		back, err := io.ReadAll(decoder)
+		decoder.Close()
+		if err != nil || !bytes.Equal(back, data) {
+			t.Fatalf("long %v: the data back differs (%v)", long, err)
+		}
+		return out.Len()
+	}
+	short, long := size(false), size(true)
+	if long > len(piece)+len(gap)+len(piece)/10 || long >= short {
+		t.Fatalf("the long window did not find the repeat: %d bytes long, %d short", long, short)
 	}
 }
 

@@ -55,7 +55,7 @@ func MeasureCompression(ctx context.Context, source string, from float64, option
 	if options.Blocks {
 		encoder, err = newMeasureBlockWriter(output, options.Level, options.Workers)
 	} else {
-		encoder, err = newStreamEncoder(output, options.Level, options.Workers)
+		encoder, err = newStreamEncoder(output, options.Level, options.Workers, !options.ShortWindow)
 	}
 	if err != nil {
 		return 0, err
@@ -72,7 +72,7 @@ func MeasureCompression(ctx context.Context, source string, from float64, option
 	buffer := make([]byte, nczChunkSize)
 	var round uint64
 	if !options.Blocks && options.Workers > 1 {
-		round = uint64(nativeJobSize(options.Level)) * uint64(options.Workers)
+		round = uint64(nativeJobSize(options.Level, !options.ShortWindow)) * uint64(options.Workers)
 	}
 	if options.Blocks {
 		workers := options.Workers

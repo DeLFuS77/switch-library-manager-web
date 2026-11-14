@@ -59,10 +59,14 @@ func nativeLevel(level string) (int, bool) {
 
 // newNativeStreamEncoder gives the encoder of the zstd library in C for a level it covers,
 // with workers threads; ok is false for the levels left to the encoder in Go.
-func newNativeStreamEncoder(output io.Writer, level string, workers int) (io.WriteCloser, bool, error) {
+func newNativeStreamEncoder(output io.Writer, level string, workers int, long bool) (io.WriteCloser, bool, error) {
 	native, ok := nativeLevel(level)
 	if !ok {
 		return nil, false, nil
+	}
+	if long {
+		encoder, err := newZstdEncoder(output, native, workers, LongWindowLog, true)
+		return encoder, true, err
 	}
 	encoder := &nativeEncoder{writer: zstd.NewWriterLevel(output, native)}
 	if workers > 1 {
@@ -77,10 +81,13 @@ func newNativeStreamEncoder(output io.Writer, level string, workers int) (io.Wri
 // nativeJobSize is the data each thread of the zstd library in C takes at once on one stream
 // at a level of the app, 0 for the levels left to the encoder in Go: 4 times the window of
 // the level (zstdmt_compress.c), which grows with the level (clevels.h).
-func nativeJobSize(level string) int64 {
+func nativeJobSize(level string, long bool) int64 {
 	native, ok := nativeLevel(level)
 	if !ok {
 		return 0
+	}
+	if long {
+		return 1 << (LongWindowLog + 2)
 	}
 	windowLog := 23
 	switch {
