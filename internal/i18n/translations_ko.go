@@ -1517,6 +1517,7 @@ func init() {
 		"They go to the folder their game has, or to a new one, and the rest of the library stays as it is.":                  "해당 게임의 폴더나 새 폴더로 가고, 라이브러리의 나머지는 그대로입니다.",
 		"A file whose name has its title ID in brackets, like [0100ABCD12345000], is only moved: the name you gave it stays.": "이름에 [0100ABCD12345000]처럼 대괄호 안에 Title ID가 있는 파일은 옮기기만 하고, 붙인 이름은 그대로 둡니다.",
 		"{DLC_NUMBER}: the number of a DLC (1, 2...), for names like [DLC 1]":                                                 "{DLC_NUMBER}: DLC 번호(1, 2...), [DLC 1] 같은 이름에 사용",
+		"{LANGUAGE}: the languages of the game as No-Intro writes them (En,Ja,Fr)":                                            "{LANGUAGE}: 게임의 언어(No-Intro 표기, En,Ja,Fr)",
 		"Synchronization":                       "동기화",
 		"Synchronization could not be started.": "동기화를 시작할 수 없어요.",
 		"Synchronization progress":              "동기화 진행 상황",

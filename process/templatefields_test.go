@@ -5,6 +5,7 @@ import (
 
 	"github.com/dtrunk90/switch-library-manager-web/db"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
+	"github.com/dtrunk90/switch-library-manager-web/switchfs"
 )
 
 // The fields of a file: the titles of each kind it holds and its size, also in a template.
@@ -50,5 +51,21 @@ func TestDlcNumberAndKeptNames(t *testing.T) {
 	}
 	if got := getFileName(options, "My name [0100000000011003].nsp", data, 0); got != "Game [DLC 2] [0100000000011002][v0].nsp" {
 		t.Errorf("a name with another title ID: %q", got)
+	}
+}
+
+// {LANGUAGE} writes the languages of the game as No-Intro does: the ones its file tells, else
+// the ones of the database of titles.
+func TestLanguageField(t *testing.T) {
+	title := &db.SwitchTitle{Attributes: db.TitleAttributes{Id: "0100000000010000", Region: "US", Languages: []string{"de", "en"}}}
+	game := &db.SwitchGameFiles{File: db.SwitchFileInfo{ExtendedInfo: db.ExtendedFileInfo{FileName: "Game.nsp"}}}
+	data := titleTemplateData(title, game, "Game")
+	if got := applyTemplate(data, false, "{TITLE_NAME} ({REGION}) ({LANGUAGE})", 0); got != "Game (US) (En,De)" {
+		t.Errorf("from the database: %q", got)
+	}
+	game.File.Metadata = &switchfs.ContentMetaAttributes{Ncap: &switchfs.Nacp{SupportedLanguageFlag: 1<<0 | 1<<2}}
+	data = titleTemplateData(title, game, "Game")
+	if got := applyTemplate(data, false, "{TITLE_NAME} ({LANGUAGE})", 0); got != "Game (En,Ja)" {
+		t.Errorf("from the file: %q", got)
 	}
 }

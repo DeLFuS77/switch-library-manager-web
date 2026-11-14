@@ -85,3 +85,27 @@ func TestMeasureTrials(t *testing.T) {
 		t.Fatalf("%d processors", n)
 	}
 }
+
+// Languages as No-Intro writes them, from the tags of a NACP or of the database of titles.
+func TestLanguageCodes(t *testing.T) {
+	for _, test := range []struct {
+		tags []string
+		want string
+	}{
+		{[]string{"en-US", "en-GB", "ja", "fr-CA", "es-419", "pt-BR", "zh-Hant", "zh-Hans", "ko"}, "En,Ja,Fr,Es,Pt,Zh,Ko"},
+		{[]string{"zh", "en", "de"}, "En,De,Zh"},
+		{[]string{"und"}, ""},
+		{nil, ""},
+	} {
+		if got := LanguageCodes(test.tags); got != test.want {
+			t.Errorf("%v: %q, want %q", test.tags, got, test.want)
+		}
+	}
+	nacp := &Nacp{SupportedLanguageFlag: 1<<0 | 1<<2 | 1<<13}
+	if got := LanguageCodes(nacp.LanguageTags()); got != "En,Ja,Zh" {
+		t.Errorf("from a NACP: %q", got)
+	}
+	if (*Nacp)(nil).LanguageTags() != nil {
+		t.Error("a missing NACP has languages")
+	}
+}

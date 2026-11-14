@@ -1517,6 +1517,7 @@ func init() {
 		"They go to the folder their game has, or to a new one, and the rest of the library stays as it is.":                  "它们会放进其游戏的文件夹或新文件夹，库的其余部分保持不变。",
 		"A file whose name has its title ID in brackets, like [0100ABCD12345000], is only moved: the name you gave it stays.": "名称中带方括号 Title ID（如 [0100ABCD12345000]）的文件只会被移动，保留你起的名字。",
 		"{DLC_NUMBER}: the number of a DLC (1, 2...), for names like [DLC 1]":                                                 "{DLC_NUMBER}：DLC 的编号（1、2…），用于 [DLC 1] 这样的名称",
+		"{LANGUAGE}: the languages of the game as No-Intro writes them (En,Ja,Fr)":                                            "{LANGUAGE}：游戏的语言（按 No-Intro 的写法，En,Ja,Fr）",
 		"Synchronization":                       "同步",
 		"Synchronization could not be started.": "无法开始同步。",
 		"Synchronization progress":              "同步进度",

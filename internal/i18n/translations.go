@@ -1782,6 +1782,7 @@ var Translations = map[string]map[string]string{
 		"They go to the folder their game has, or to a new one, and the rest of the library stays as it is.":                  "Van a la carpeta que ya tiene su juego, o a una nueva, y el resto de la biblioteca se queda como está.",
 		"A file whose name has its title ID in brackets, like [0100ABCD12345000], is only moved: the name you gave it stays.": "Un archivo cuyo nombre lleva su Title ID entre corchetes, como [0100ABCD12345000], solo se mueve: conserva el nombre que le pusiste.",
 		"{DLC_NUMBER}: the number of a DLC (1, 2...), for names like [DLC 1]":                                                 "{DLC_NUMBER}: el número de un DLC (1, 2...), para nombres como [DLC 1]",
+		"{LANGUAGE}: the languages of the game as No-Intro writes them (En,Ja,Fr)":                                            "{LANGUAGE}: los idiomas del juego como los escribe No-Intro (En,Ja,Fr)",
 		"Cleanup":                     "Limpieza",
 		"Also delete duplicate files": "Borrar también los duplicados",
 		"Copy of a duplicate to keep": "Copia que se conserva de un duplicado",

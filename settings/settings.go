@@ -90,6 +90,8 @@ const (
 	TEMPLATE_SIZE_MB          = "SIZE_MB"
 	// the number of a DLC among the ones of its game, from its title ID: 1, 2...
 	TEMPLATE_DLC_NUMBER = "DLC_NUMBER"
+	// the languages of the game as No-Intro writes them: En,Ja,Fr
+	TEMPLATE_LANGUAGE = "LANGUAGE"
 )
 
 type OrganizeOptions struct {
