@@ -241,6 +241,10 @@ func (web *Web) netFilesOf(localDB *db.LocalSwitchFilesDB, options settings.NetI
 		if game == "" {
 			game = strings.TrimSpace(db.ParseTitleNameFromFileName(title.File.ExtendedInfo.FileName))
 		}
+		if game == "" && title.File.Metadata == nil {
+			// only updates or DLC: the game is named by the titles database or by their files
+			game, known = netNameWithoutBase(switchDB, title)
+		}
 		if title.BaseExist && !title.IsSplit {
 			add(title.File, netFolderGames, game, "", key, cover)
 		}
@@ -271,6 +275,39 @@ func (web *Web) netFilesOf(localDB *db.LocalSwitchFilesDB, options settings.NetI
 		return files[i].name < files[j].name
 	})
 	return files
+}
+
+// netNameWithoutBase names a title of the library that has no game, only updates or DLC: the name
+// the titles database has for the title ID of one of them (with that title, for the names of the
+// DLC), else the name in the file name of one of them. The newest update first, then the DLC.
+func netNameWithoutBase(switchDB *db.SwitchTitlesDB, title *db.SwitchGameFiles) (string, *db.SwitchTitle) {
+	versions := make([]int, 0, len(title.Updates))
+	for version := range title.Updates {
+		versions = append(versions, version)
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(versions)))
+	files := make([]db.SwitchFileInfo, 0, len(versions)+len(title.Dlc))
+	for _, version := range versions {
+		files = append(files, title.Updates[version])
+	}
+	for _, id := range sortedKeys(title.Dlc) {
+		files = append(files, title.Dlc[id])
+	}
+	fallback := ""
+	for _, file := range files {
+		if file.Metadata != nil && switchDB != nil {
+			if prefix, err := db.TitleIDPrefix(file.Metadata.TitleId); err == nil {
+				if known := switchDB.TitlesMap[prefix]; known != nil && usableName(known.Attributes.Name) {
+					return known.Attributes.Name, known
+				}
+			}
+		}
+		if fallback == "" {
+			name := strings.TrimSuffix(file.ExtendedInfo.FileName, filepath.Ext(file.ExtendedInfo.FileName))
+			fallback = strings.TrimSpace(db.ParseTitleNameFromFileName(name))
+		}
+	}
+	return fallback, nil
 }
 
 // netFilesCacheTime is how long the list of files is taken as it is. Making the list looks at

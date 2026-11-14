@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/dtrunk90/switch-library-manager-web/db"
 )
 
 // The catalog NXDock shows: the games of the library with their files (the game, its updates and
@@ -117,6 +119,10 @@ func (web *Web) handleNetCatalog(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, catalog)
 }
 
+// netCoverRetryAfter is the seconds a console waits before asking again for a cover the cover
+// server did not give.
+const netCoverRetryAfter = "30"
+
 // handleNetCover gives the cover of a game of the catalog, as a small JPEG the console decodes
 // quickly. Only the covers the catalog names: no other image of the data folder.
 func (web *Web) handleNetCover(w http.ResponseWriter, r *http.Request) {
@@ -134,6 +140,12 @@ func (web *Web) handleNetCover(w http.ResponseWriter, r *http.Request) {
 		fetched, err := web.fetchRemoteCover(name)
 		if err == nil {
 			original, found = fetched, true
+		} else if !db.IsNotFoundAnswer(err) {
+			// the cover server did not answer now (no connection, too slow): the cover is there,
+			// the console asks again later instead of taking the game as one without a cover
+			w.Header().Set("Retry-After", netCoverRetryAfter)
+			http.Error(w, "the cover could not be fetched now", http.StatusServiceUnavailable)
+			return
 		}
 	}
 	if !found {
