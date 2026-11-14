@@ -1,4 +1,50 @@
 {
+  "2.0.8": {
+    "en": [
+      "Optimize for install: a game whose base Nintendo cut down no longer asks for its update when it starts. Optimize such games again.",
+      "Install over the network: games with only their updates or DLC show their name, and NXDock no longer shows \"?\" for covers not ready yet."
+    ],
+    "es": [
+      "Optimizar para instalar: un juego cuya base recortó Nintendo ya no pide su actualización al arrancar. Vuelve a optimizar esos juegos.",
+      "Instalar por red: los juegos con solo sus actualizaciones o DLC muestran su nombre, y NXDock ya no muestra \"?\" en las carátulas que aún no están listas."
+    ],
+    "de": [
+      "Für die Installation optimieren: Ein Spiel, dessen Basis Nintendo gekürzt hat, verlangt beim Start nicht mehr nach seinem Update. Optimiere solche Spiele erneut.",
+      "Über das Netzwerk installieren: Spiele mit nur ihren Updates oder DLC zeigen ihren Namen, und NXDock zeigt kein \"?\" mehr für Cover, die noch nicht bereit sind."
+    ],
+    "fr": [
+      "Optimiser pour l'installation : un jeu dont Nintendo a réduit la base ne demande plus sa mise à jour au démarrage. Optimisez à nouveau ces jeux.",
+      "Installer par le réseau : les jeux avec seulement leurs mises à jour ou DLC affichent leur nom, et NXDock n'affiche plus « ? » pour les jaquettes pas encore prêtes."
+    ],
+    "it": [
+      "Ottimizza per l'installazione: un gioco la cui base è stata ridotta da Nintendo non chiede più il suo aggiornamento all'avvio. Ottimizza di nuovo quei giochi.",
+      "Installa in rete: i giochi con solo i loro aggiornamenti o DLC mostrano il loro nome, e NXDock non mostra più \"?\" per le copertine non ancora pronte."
+    ],
+    "pt": [
+      "Otimizar para instalar: um jogo cuja base a Nintendo reduziu já não pede a sua atualização ao iniciar. Otimize esses jogos de novo.",
+      "Instalar pela rede: os jogos só com as suas atualizações ou DLC mostram o seu nome, e o NXDock já não mostra \"?\" nas capas que ainda não estão prontas."
+    ],
+    "nl": [
+      "Optimaliseren voor installatie: een spel waarvan Nintendo de basis heeft ingekort, vraagt bij het starten niet meer om zijn update. Optimaliseer zulke spellen opnieuw.",
+      "Installeren via het netwerk: spellen met alleen hun updates of DLC tonen hun naam, en NXDock toont geen \"?\" meer voor covers die nog niet klaar zijn."
+    ],
+    "ru": [
+      "Оптимизация для установки: игра, базу которой урезала Nintendo, больше не просит своё обновление при запуске. Оптимизируйте такие игры заново.",
+      "Установка по сети: игры, у которых есть только обновления или DLC, показывают своё название, а NXDock больше не показывает «?» для обложек, которые ещё не готовы."
+    ],
+    "ja": [
+      "インストール用に最適化：Nintendo がベースを縮小したゲームが、起動時に更新データを求めなくなりました。そのようなゲームはもう一度最適化してください。",
+      "ネットワークでインストール：更新データや DLC だけのゲームに名前が表示され、まだ準備できていないカバーに NXDock が「?」を表示しなくなりました。"
+    ],
+    "ko": [
+      "설치용 최적화: Nintendo가 기본 게임을 줄인 게임이 시작할 때 더 이상 업데이트를 요구하지 않습니다. 그런 게임은 다시 최적화하세요.",
+      "네트워크로 설치: 업데이트나 DLC만 있는 게임에 이름이 표시되고, 아직 준비되지 않은 커버에 NXDock이 더 이상 \"?\"를 표시하지 않습니다."
+    ],
+    "zh": [
+      "为安装优化：Nintendo 裁剪过本体的游戏启动时不再要求下载更新。请重新优化这些游戏。",
+      "通过网络安装：只有更新或 DLC 的游戏会显示名称，NXDock 不再为尚未准备好的封面显示“?”。"
+    ]
+  },
   "2.0.7": {
     "en": [
       "Search the eShop for the cover of a game in Edit, and crop it before it is used.",

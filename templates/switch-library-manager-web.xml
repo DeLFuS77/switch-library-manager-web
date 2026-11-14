@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.7
+  <Changes>### 2.0.8
+- Optimize for install: a cut-down base no longer asks for its update; Install over the network: names for games with only updates or DLC, and covers asked again
+### 2.0.7
 - Search the eShop for a cover and crop it; open the app from a phone with a QR code; the Library by folder; undo an Organize; a catalogue to print or save as PDF
 ### 2.0.6
 - Install over the network with a big library: the catalog answers at once, and tells a console while it is first prepared
@@ -145,7 +147,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-11-11</Date>
+  <Date>2026-11-14</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>
