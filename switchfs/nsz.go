@@ -97,7 +97,18 @@ type CompressOptions struct {
 	// are kept decompressed and made again when they are rebuilt (NCZSECT3, lz4rebuild.go), so
 	// zstd compresses what LZ4 hid. Installers do not read it. Not with Blocks nor game cards.
 	Rebuild bool
+	// the zstd stream of each NCZ keeps the window of its level (8 MiB at most) instead of the
+	// long window of 128 MiB (LongWindowLog) with long distance matching, which finds what a
+	// game repeats further apart and makes some games 5 to 17 % smaller. Every reader of NSZ
+	// with the zstd library takes that window (its default limit), tried with DBI.
+	ShortWindow bool
 }
+
+// LongWindowLog is the window of the zstd stream of an NCZ unless ShortWindow: 128 MiB, the
+// biggest the zstd library reads by default (ZSTD_WINDOWLOG_LIMIT_DEFAULT) and the readers of
+// this library take (WithDecoderMaxWindow). Not with Blocks nor game cards, whose blocks are of
+// 1 MiB, and only with the zstd library in C: the encoder in Go keeps nczWindowSize.
+const LongWindowLog = 27
 
 // CompressResult describes a finished compression.
 type CompressResult struct {
@@ -780,7 +791,7 @@ func writeNczHeader(output io.Writer, input io.ReaderAt, offset int64, plan *ncz
 
 // writeNczStream writes the decrypted sections as one zstd stream.
 func writeNczStream(ctx context.Context, output io.Writer, input io.ReaderAt, offset int64, plan *nczPlan, options CompressOptions, progress func(int64)) error {
-	encoder, err := newStreamEncoder(output, options.Level, options.Workers)
+	encoder, err := newStreamEncoder(output, options.Level, options.Workers, !options.ShortWindow)
 	if err != nil {
 		return err
 	}

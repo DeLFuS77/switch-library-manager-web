@@ -169,7 +169,7 @@ func recompressNcz(ctx context.Context, output *os.File, input io.ReaderAt, offs
 		}
 		return writeNczBlockData(ctx, output, dataSize, fill, options, func(int64) {})
 	}
-	encoder, err := newStreamEncoder(output, options.Level, options.Workers)
+	encoder, err := newStreamEncoder(output, options.Level, options.Workers, !options.ShortWindow)
 	if err != nil {
 		return err
 	}
