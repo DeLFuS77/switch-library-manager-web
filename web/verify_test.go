@@ -25,12 +25,14 @@ import (
 
 // waitForTask waits for the task of a kind to end and gives it. A task just started may not have
 // taken the compressor yet, so it waits for the task itself to be there and done, not only for the
-// compressor to be free: on a slow machine the first look came before the task ran.
+// compressor to be free: on a slow machine the first look came before the task ran. It also waits
+// for the queue the task ran from to be done: when it empties, the queue writes its file in the
+// folder of the app, and a test that ended before that write had its folder removed under it.
 func waitForTask(t *testing.T, web *Web, kind string) tasklog.Task {
 	t.Helper()
 	deadline := time.Now().Add(20 * time.Second)
 	for {
-		if !web.compressionRunning() {
+		if !web.compressionRunning() && queueDone(web) {
 			for _, task := range web.taskLog().Snapshot() {
 				if task.Kind == kind && !task.Running() {
 					return task
@@ -450,4 +452,14 @@ func TestIssuesDeleteDamagedFilesChecksThemAgain(t *testing.T) {
 	if readsNow(filepath.Join(filepath.Dir(separate), "gone.nsz")) {
 		t.Fatal("a file gone does not read")
 	}
+}
+
+// queueDone tells whether the queue has no task left and has written that its run ended: the run
+// of a queue ends (started cleared, its file saved) under its lock, so once it is seen cleared the
+// file is written.
+func queueDone(web *Web) bool {
+	queue := web.queue()
+	queue.mutex.Lock()
+	defer queue.mutex.Unlock()
+	return len(queue.items) == 0 && queue.started.IsZero()
 }
