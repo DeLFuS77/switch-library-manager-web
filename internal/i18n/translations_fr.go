@@ -1564,6 +1564,7 @@ func init() {
 		"They go to the folder their game has, or to a new one, and the rest of the library stays as it is.":                  "Ils vont dans le dossier de leur jeu, ou dans un nouveau, et le reste de la bibliothèque reste tel quel.",
 		"A file whose name has its title ID in brackets, like [0100ABCD12345000], is only moved: the name you gave it stays.": "Un fichier dont le nom contient son Title ID entre crochets, comme [0100ABCD12345000], est seulement déplacé : il garde le nom que vous lui avez donné.",
 		"{DLC_NUMBER}: the number of a DLC (1, 2...), for names like [DLC 1]":                                                 "{DLC_NUMBER} : le numéro d'un DLC (1, 2...), pour des noms comme [DLC 1]",
+		"{LANGUAGE}: the languages of the game as No-Intro writes them (En,Ja,Fr)":                                            "{LANGUAGE} : les langues du jeu, comme les écrit No-Intro (En,Ja,Fr)",
 		"Synchronization":                       "Synchronisation",
 		"Synchronization could not be started.": "La synchronisation n'a pas pu être lancée.",
 		"Synchronization progress":              "Progression de la synchronisation",

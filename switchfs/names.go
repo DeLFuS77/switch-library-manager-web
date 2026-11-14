@@ -55,3 +55,41 @@ func GameTitleID(titleID string, kind string) (uint64, error) {
 	}
 	return id &^ 0xFFF, nil
 }
+
+// noIntroLanguages are the languages of games as No-Intro writes them, in its order, by the
+// first part of their tags: the variants of a language (en-US, en-GB) are one.
+var noIntroLanguages = []struct{ tag, code string }{
+	{"en", "En"}, {"ja", "Ja"}, {"fr", "Fr"}, {"de", "De"}, {"es", "Es"}, {"it", "It"},
+	{"nl", "Nl"}, {"pt", "Pt"}, {"ru", "Ru"}, {"zh", "Zh"}, {"ko", "Ko"},
+}
+
+// LanguageCodes are languages, as tags of the control data (en-US, zh-Hant) or of the database
+// of titles (en, zh), written as No-Intro writes them: En,Ja,Fr,De; "" for none.
+func LanguageCodes(tags []string) string {
+	has := map[string]bool{}
+	for _, tag := range tags {
+		primary, _, _ := strings.Cut(strings.ToLower(strings.TrimSpace(tag)), "-")
+		has[primary] = true
+	}
+	codes := []string{}
+	for _, language := range noIntroLanguages {
+		if has[language.tag] {
+			codes = append(codes, language.code)
+		}
+	}
+	return strings.Join(codes, ",")
+}
+
+// LanguageTags are the languages a NACP tells its game comes in, tagged en-US, ja, zh-Hant.
+func (n *Nacp) LanguageTags() []string {
+	if n == nil {
+		return nil
+	}
+	var tags []string
+	for language := Language(0); language < 16; language++ {
+		if n.SupportedLanguageFlag&(1<<uint(language)) != 0 {
+			tags = append(tags, language.ToLanguageTag())
+		}
+	}
+	return tags
+}

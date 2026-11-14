@@ -1008,6 +1008,13 @@ func titleTemplateData(title *db.SwitchTitle, v *db.SwitchGameFiles, titleName s
 	if title != nil {
 		templateData[settings.TEMPLATE_REGION] = title.Attributes.Region
 	}
+	// the languages the game comes in: the ones its file tells, else the database of titles
+	if v.File.Metadata != nil && v.File.Metadata.Ncap != nil {
+		templateData[settings.TEMPLATE_LANGUAGE] = switchfs.LanguageCodes(v.File.Metadata.Ncap.LanguageTags())
+	}
+	if templateData[settings.TEMPLATE_LANGUAGE] == "" && title != nil {
+		templateData[settings.TEMPLATE_LANGUAGE] = switchfs.LanguageCodes(title.Attributes.Languages)
+	}
 
 	// a multi content file is named with the latest update it holds itself, not with a
 	// newer one in a file of its own
@@ -1676,6 +1683,7 @@ func applyTemplate(templateData map[string]string, useSafeNames bool, template s
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_TYPE+"}", templateData[settings.TEMPLATE_TYPE])
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_VERSION_TXT+"}", templateData[settings.TEMPLATE_VERSION_TXT])
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_REGION+"}", templateData[settings.TEMPLATE_REGION])
+	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_LANGUAGE+"}", templateData[settings.TEMPLATE_LANGUAGE])
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_PACKAGE_CONTENTS+"}", templateData[settings.TEMPLATE_PACKAGE_CONTENTS])
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_SIZE_GB+"}", templateData[settings.TEMPLATE_SIZE_GB])
 	result = strings.ReplaceAll(result, "{"+settings.TEMPLATE_SIZE_MB+"}", templateData[settings.TEMPLATE_SIZE_MB])

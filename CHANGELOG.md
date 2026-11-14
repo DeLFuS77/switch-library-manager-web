@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Organize: {LANGUAGE} writes the languages of the game as No-Intro does (En,Ja,Fr), from its files or else from the titles database
+
 ## 2.0.8
 
 ### Fixes

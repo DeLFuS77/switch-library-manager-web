@@ -1517,6 +1517,7 @@ func init() {
 		"They go to the folder their game has, or to a new one, and the rest of the library stays as it is.":                  "そのゲームのフォルダーか新しいフォルダーに入り、ライブラリのほかの部分はそのままです。",
 		"A file whose name has its title ID in brackets, like [0100ABCD12345000], is only moved: the name you gave it stays.": "名前に [0100ABCD12345000] のように Title ID を角かっこで含むファイルは移動だけされ、付けた名前はそのまま残ります。",
 		"{DLC_NUMBER}: the number of a DLC (1, 2...), for names like [DLC 1]":                                                 "{DLC_NUMBER}：DLC の番号（1、2…）。[DLC 1] のような名前に使えます",
+		"{LANGUAGE}: the languages of the game as No-Intro writes them (En,Ja,Fr)":                                            "{LANGUAGE}：ゲームの言語（No-Intro の書き方、En,Ja,Fr）",
 		"Synchronization":                       "同期",
 		"Synchronization could not be started.": "同期を開始できませんでした。",
 		"Synchronization progress":              "同期の進行状況",
