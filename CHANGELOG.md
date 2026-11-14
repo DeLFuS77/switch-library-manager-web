@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- Optimize for install: a game whose base Nintendo cut down no longer asks to download its update when it starts. Optimize such games again
+- Optimize for install: a game whose base Nintendo cut down no longer asks to download its update when it starts. Optimize such games again. Thanks to Trickster101 (GBAtemp) for reporting it
 - Optimize for install: the page of the game and Compress tell to delete the update of the game from the console before installing an optimized game. An update left there is read over it and the game closes with an error
 
 ## 2.0.7
