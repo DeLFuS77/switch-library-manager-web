@@ -1,9 +1,11 @@
 # Changelog
 
-## Unreleased
+## 2.0.8
 
 ### Fixes
 
+- Install over the network: a game with only its updates or DLC in the library is shown with its name, taken from the titles database or from its files
+- Install over the network: a cover that is not ready yet is asked for again later, so NXDock no longer keeps showing "?" in its place
 - Optimize for install: a game whose base Nintendo cut down no longer asks to download its update when it starts. Optimize such games again. Thanks to Trickster101 (GBAtemp) for reporting it
 - Optimize for install: the page of the game and Compress tell to delete the update of the game from the console before installing an optimized game. An update left there is read over it and the game closes with an error
 
