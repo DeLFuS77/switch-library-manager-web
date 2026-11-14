@@ -134,6 +134,18 @@ type unanswered struct{ error }
 
 func (e unanswered) Unwrap() error { return e.error }
 
+// notFoundAnswer is the failure of a request whose server answered that there is no such file.
+type notFoundAnswer struct{ error }
+
+func (e notFoundAnswer) Unwrap() error { return e.error }
+
+// IsNotFoundAnswer tells whether a download failed because its server answered that the file
+// is not there (404 or 410), and not because it could not be asked or failed itself.
+func IsNotFoundAnswer(err error) bool {
+	var notFound notFoundAnswer
+	return errors.As(err, &notFound)
+}
+
 // LoadAndUpdate is LoadAndUpdateFile, also telling whether a new version was downloaded.
 // Downloads are streamed to a temporary file, checked for truncation and for a valid JSON
 // document, and only then replace the local copy, so an interrupted download never
@@ -474,7 +486,11 @@ func download(client *http.Client, url string, etag string, limit int64) ([]byte
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, "", errors.New("got a non 200 response - " + resp.Status)
+		err := errors.New("got a non 200 response - " + resp.Status)
+		if resp.StatusCode == http.StatusNotFound || resp.StatusCode == http.StatusGone {
+			return nil, "", notFoundAnswer{err}
+		}
+		return nil, "", err
 	}
 
 	if resp.ContentLength > limit {
