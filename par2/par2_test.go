@@ -167,3 +167,19 @@ func BenchmarkCreate(b *testing.B) {
 		}
 	}
 }
+
+func TestDescribe(t *testing.T) {
+	folder := t.TempDir()
+	file := filepath.Join(folder, "game.nsp")
+	writeRandom(t, file, 2*1024*1024, 4)
+	if err := Create(context.Background(), file, Path(file), 10, nil); err != nil {
+		t.Fatal(err)
+	}
+	slices, recovery, err := Describe(Path(file))
+	if err != nil || slices != 512 || recovery != 52 {
+		t.Fatalf("%d slices, %d recovery: %v", slices, recovery, err)
+	}
+	if _, _, err := Describe(file); err == nil {
+		t.Fatal("a game is no recovery file")
+	}
+}

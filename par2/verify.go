@@ -309,3 +309,14 @@ func Repair(ctx context.Context, recoveryPath string, file string, progress func
 	}
 	return result, input.Sync()
 }
+
+// Describe tells how many slices the file of a recovery file has, and how many recovery slices
+// it holds whole.
+func Describe(recoveryPath string) (slices int, recovery int, err error) {
+	set, file, err := readSet(recoveryPath)
+	if err != nil {
+		return 0, 0, err
+	}
+	file.Close()
+	return len(set.file.checks), len(set.recovery), nil
+}
