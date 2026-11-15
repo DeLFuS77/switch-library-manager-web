@@ -320,3 +320,38 @@ func Describe(recoveryPath string) (slices int, recovery int, err error) {
 	file.Close()
 	return len(set.file.checks), len(set.recovery), nil
 }
+
+// Checker checks the slices of a file against its recovery file one by one, as the file is read
+// for something else: what reads it can tell a damaged slice before it uses it.
+type Checker struct {
+	file *fileDescription
+}
+
+// NewChecker reads the checksums of a recovery file.
+func NewChecker(recoveryPath string) (*Checker, error) {
+	set, file, err := readSet(recoveryPath)
+	if err != nil {
+		return nil, err
+	}
+	file.Close()
+	return &Checker{file: set.file}, nil
+}
+
+// SliceSize is the size of the slices of the file.
+func (c *Checker) SliceSize() int64 { return c.file.slice }
+
+// Length is the length the file must have.
+func (c *Checker) Length() int64 { return c.file.length }
+
+// ReadSlice reads slice index of input as the checksums take it (padded with zeros past the end
+// of the file) into buffer, of SliceSize bytes, and tells whether it is whole.
+func (c *Checker) ReadSlice(input io.ReaderAt, index int, buffer []byte) (bool, error) {
+	if index < 0 || index >= len(c.file.checks) || int64(len(buffer)) != c.file.slice {
+		return false, errors.New("no such slice")
+	}
+	if _, err := readSlice(input, buffer, int64(index)*c.file.slice, c.file.length); err != nil {
+		return false, err
+	}
+	check := c.file.checks[index]
+	return md5.Sum(buffer) == check.md5 && crc32.ChecksumIEEE(buffer) == check.crc32, nil
+}

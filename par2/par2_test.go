@@ -183,3 +183,27 @@ func TestDescribe(t *testing.T) {
 		t.Fatal("a game is no recovery file")
 	}
 }
+
+func TestChecker(t *testing.T) {
+	folder := t.TempDir()
+	file := filepath.Join(folder, "game.nsz")
+	data := writeRandom(t, file, 100000, 5)
+	if err := Create(context.Background(), file, Path(file), 10, nil); err != nil {
+		t.Fatal(err)
+	}
+	c, err := NewChecker(Path(file))
+	if err != nil || c.Length() != 100000 || c.SliceSize() != 4096 {
+		t.Fatalf("%v", err)
+	}
+	data[5000] ^= 1
+	os.WriteFile(file, data, 0o644)
+	input, _ := os.Open(file)
+	defer input.Close()
+	buffer := make([]byte, c.SliceSize())
+	for i := 0; i < 25; i++ {
+		whole, err := c.ReadSlice(input, i, buffer)
+		if err != nil || whole != (i != 1) {
+			t.Fatalf("slice %d: %v %v", i, whole, err)
+		}
+	}
+}
