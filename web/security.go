@@ -120,6 +120,14 @@ func withBodyLimit(next http.Handler) http.Handler {
 			case strings.HasPrefix(r.URL.Path, VAULT_PREFIX+"/"):
 				// the save backups that JKSV uploads to the vault
 				limit = maxSaveBody
+			case netDumpUploadPath(r.URL.Path):
+				// a game a console dumps to the library, whole or in pieces (NXDock sends 32 MiB):
+				// only a console key gets to the upload, which stops at the free space of the disk
+				next.ServeHTTP(w, r)
+				return
+			case netSaveUploadPath(r.URL.Path):
+				// a save a console uploads as a ZIP
+				limit = netSaveMaxSize
 			}
 			switch r.URL.Path {
 			case "/backup/restore":
