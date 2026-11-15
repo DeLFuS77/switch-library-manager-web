@@ -12,13 +12,22 @@ import (
 // ErrNothingToMeasure is returned when a game holds no NCA that would be compressed.
 var ErrNothingToMeasure = errors.New("no part of this game is compressed")
 
+// measureRoundMax is the most data a round of a measure compresses: counting 512 MiB a thread
+// with the long window, 28 threads made rounds of 14 GB, and a measure took 50 minutes.
+const measureRoundMax = 1 << 30
+
+// measureTimeLimit is how many times its duration a measure takes at most.
+const measureTimeLimit = 10
+
 // MeasureCompression compresses the biggest NCA of a game to output as a compression
 // would, from the share from (0 to 1) of it on and for about duration, and gives the bytes
 // of the game it compressed: what reading, decrypting, compressing and writing do together
 // on this computer. The zstd library in C gives each of its threads a piece of several MiB
 // of one stream: the measure stops only once every thread had whole pieces, else the threads
 // left without one at the end would count as slow; the NCA is read again from its start if
-// it is too small for that.
+// it is too small for that. A round of pieces is measureRoundMax at most, and a measure
+// stops after measureTimeLimit times duration even mid-round, so a slow computer with many
+// threads still finishes each trial in seconds.
 func MeasureCompression(ctx context.Context, source string, from float64, options CompressOptions, duration time.Duration, output io.Writer) (int64, error) {
 	input, err := os.Open(source)
 	if err != nil {
@@ -72,7 +81,7 @@ func MeasureCompression(ctx context.Context, source string, from float64, option
 	buffer := make([]byte, nczChunkSize)
 	var round uint64
 	if !options.Blocks && options.Workers > 1 {
-		round = uint64(nativeJobSize(options.Level, !options.ShortWindow)) * uint64(options.Workers)
+		round = min(uint64(nativeJobSize(options.Level, !options.ShortWindow))*uint64(options.Workers), measureRoundMax)
 	}
 	if options.Blocks {
 		workers := options.Workers
@@ -86,6 +95,9 @@ func MeasureCompression(ctx context.Context, source string, from float64, option
 	for time.Since(start) < duration || (round > 0 && uint64(done)%round != 0) {
 		if err := ctx.Err(); err != nil {
 			return done, err
+		}
+		if duration > 0 && time.Since(start) >= measureTimeLimit*duration {
+			break
 		}
 		if position >= uint64(biggest.size) {
 			if round == 0 {
