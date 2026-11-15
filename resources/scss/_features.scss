@@ -1316,6 +1316,104 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0 .5rem;
+		width: 100%;
+	}
+
+	.net-send-size {
+		margin-left: auto;
+		font-variant-numeric: tabular-nums;
+	}
+}
+
+// how the files go: Normal in the blue of work, Compressed (experimental) in the violet of the
+// tools, deeper on the light theme and lighter on the dark one; never red, which tells errors.
+// Two cards big enough for a finger
+.net-send-modes,
+.net-send-less,
+.net-send-saving {
+	--net-exp: #{$slm-violet-deep};
+
+	[data-bs-theme="dark"] & {
+		--net-exp: #{$slm-violet-light};
+	}
+}
+
+.net-send-modes {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: .5rem;
+	margin-top: .25rem;
+}
+
+.net-send-mode {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	min-height: 3.5rem;
+	margin: 0;
+	padding: .5rem .75rem;
+	border: 1px solid var(--bs-border-color);
+	border-radius: .625rem;
+	background: var(--bs-tertiary-bg);
+	cursor: pointer;
+	transition: border-color .2s, box-shadow .2s, transform .15s;
+
+	&:hover {
+		transform: translateY(-1px);
+	}
+
+	.btn-check:checked + & {
+		border-color: rgb(var(--slm-work-rgb));
+		box-shadow: inset 0 0 0 1px rgb(var(--slm-work-rgb));
+	}
+
+	.btn-check:checked + &.net-send-mode-exp {
+		border-color: var(--net-exp);
+		box-shadow: inset 0 0 0 1px var(--net-exp);
+	}
+
+	.btn-check:focus-visible + & {
+		outline: 2px solid rgb(var(--slm-work-rgb));
+		outline-offset: 2px;
+	}
+}
+
+.net-send-mode-name {
+	font-size: .875rem;
+	font-weight: 600;
+}
+
+.net-send-mode-why {
+	font-size: .75rem;
+	color: var(--bs-secondary-color);
+}
+
+.net-send-exp {
+	display: inline-block;
+	margin-left: .25rem;
+	padding: 0 .4rem;
+	border: 1px solid var(--net-exp);
+	border-radius: 999px;
+	color: var(--net-exp);
+	font-size: .6875rem;
+	font-weight: 700;
+	letter-spacing: .03em;
+	text-transform: uppercase;
+	vertical-align: .1rem;
+}
+
+.net-send-files .net-send-size.net-send-less,
+.net-send-saving {
+	color: var(--net-exp);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.net-send-mode {
+		transition: none;
+
+		&:hover {
+			transform: none;
+		}
 	}
 }
 

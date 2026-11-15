@@ -7,6 +7,7 @@
 - Organize: {LANGUAGE} writes the languages of the game as No-Intro does (En,Ja,Fr), from its files or else from the titles database
 - Compress: NSZ files use a window of 128 MiB, which makes some games 5 to 17 % smaller. Tried with DBI
 - Optimize for install: the game and its update are merged in one pass instead of two, which takes less time
+- Send to console: a Compressed (experimental) option sends less over the network; NXDock decompresses it while installing
 
 ## 2.0.8
 

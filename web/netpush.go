@@ -97,6 +97,10 @@ type netPush struct {
 	made                                    time.Time
 	// as it was given to the console
 	item netPushItem
+	// sent Compressed: the file as it is, in the experimental format of NXPress, or the copy made
+	// of it to send (see netsend.go)
+	native bool
+	copy   string
 }
 
 // netPushQueue holds the files sent to each console, by the id of its key.
@@ -278,6 +282,8 @@ func (web *Web) handleNetPushSend(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		KeyId   string   `json:"keyId"`
 		FileIds []string `json:"fileIds"`
+		// in the experimental format of NXPress, which NXDock decompresses while it installs
+		Compressed bool `json:"compressed"`
 	}
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 16<<10)).Decode(&body); err != nil {
 		writeGlobalError(w, http.StatusBadRequest, lang, errNetPushNoFiles.Error())
@@ -293,8 +299,13 @@ func (web *Web) handleNetPushSend(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, byId := web.netFilesKept(appSettings.NetInstall)
+	web.netSendSweep(false)
 	now := time.Now()
 	pushes := []*netPush{}
+	// with Compressed, the NSP to compress first, and their files
+	later := []*netPush{}
+	sources := map[string]string{}
+	var room int64
 	seen := map[string]bool{}
 	games := []string{}
 	for _, id := range body.FileIds {
@@ -309,22 +320,51 @@ func (web *Web) handleNetPushSend(w http.ResponseWriter, r *http.Request) {
 		seen[id] = true
 		random := make([]byte, 16)
 		rand.Read(random)
-		pushes = append(pushes, &netPush{id: hex.EncodeToString(random), keyId: console.ID, keyName: console.Name, owner: principal.Name,
-			fileId: id, game: file.game, made: now})
+		push := &netPush{id: hex.EncodeToString(random), keyId: console.ID, keyName: console.Name, owner: principal.Name,
+			fileId: id, game: file.game, made: now}
 		if !containsString(games, file.game) {
 			games = append(games, file.game)
+		}
+		if body.Compressed {
+			switch netSendModeOf(file) {
+			case netSendNative:
+				push.native = true
+			case netSendPrepare:
+				if copy, _, ok := web.netSendFresh(file); ok {
+					// made before and still good: the next 24 hours count from now
+					os.Chtimes(copy, now, now)
+					push.copy = copy
+					break
+				}
+				later = append(later, push)
+				sources[id] = file.path
+				room += file.size
+				continue
+			}
+		}
+		pushes = append(pushes, push)
+	}
+	if len(later) > 0 {
+		if web.netPushes.waiting(console.ID)+web.netSends.count(console.ID)+len(pushes)+len(later) > netPushMax {
+			writeGlobalError(w, http.StatusTooManyRequests, lang, errNetPushFull.Error())
+			return
+		}
+		if err := web.netSendRoom(room); err != nil {
+			writeGlobalError(w, http.StatusInsufficientStorage, lang, NOTE_NET_SEND_SPACE)
+			return
 		}
 	}
 	if err := web.netPushes.add(pushes); err != nil {
 		writeGlobalError(w, http.StatusTooManyRequests, lang, err.Error())
 		return
 	}
-	web.sugarLogger.Infof("Network install: %s sent %d files to the console %s", principal.Name, len(pushes), console.Name)
+	web.netSendPrepare(later, sources)
+	web.sugarLogger.Infof("Network install: %s sent %d files to the console %s, %d to compress first", principal.Name, len(pushes)+len(later), console.Name, len(later))
 	if !isDemoMode() {
 		web.activities().Add(activity.Entry{Time: now, User: principal.Name, Action: activity.ACTION_NET_PUSH,
 			Detail: quotedKeyName(console.Name) + ": " + strings.Join(games, ", "), IP: clientIp(r)})
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"sent": len(pushes), "console": console.Name})
+	writeJSON(w, http.StatusOK, map[string]any{"sent": len(pushes) + len(later), "preparing": len(later), "console": console.Name})
 }
 
 func containsString(list []string, value string) bool {
@@ -370,7 +410,7 @@ func (web *Web) handleNetPushWait(w http.ResponseWriter, r *http.Request) {
 					// gone from the library since it was sent
 					continue
 				}
-				push.item = netPushItemOf(file)
+				push.item = web.netPushItemFor(push, file)
 				push.item.Id, push.item.From = push.id, push.owner
 				web.netPushes.given(push)
 				items = append(items, push.item)
@@ -422,6 +462,12 @@ func (web *Web) handleNetPushAnswer(w http.ResponseWriter, r *http.Request) {
 		action, word = activity.ACTION_NET_PUSH_YES, "accepted"
 	}
 	web.sugarLogger.Infof("Network install: the console %s (%s) %s %s", key.KeyName, key.Name, word, push.item.Name)
+	// a copy made to send and declined is not needed; one accepted is downloaded next, and goes
+	// once nothing has used it for 24 hours
+	if push.copy != "" && !body.Accepted {
+		web.netSendDiscard(push.fileId)
+	}
+	web.netSendSweep(false)
 	if !isDemoMode() {
 		web.activities().Add(activity.Entry{Time: time.Now(), User: key.Name, Action: action,
 			Detail: quotedKeyName(key.KeyName) + ": " + push.item.Name, IP: clientIp(r)})
@@ -662,6 +708,11 @@ type netGameFile struct {
 	Size    int64  `json:"size"`
 	// ticked at first: the game and its newest update, as what the console has is not known
 	Checked bool `json:"checked"`
+	// what Compressed sends: its size (0 while not known), an NSP compressed first, or a file
+	// compressed already or a game card, sent as it is
+	CompressedSize int64 `json:"compressedSize"`
+	CompressFirst  bool  `json:"compressFirst"`
+	AsIs           bool  `json:"asIs"`
 }
 
 // handleNetGame gives, for the page of a game, the consoles of the user with what of the game is
@@ -695,8 +746,21 @@ func (web *Web) handleNetGame(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		kind := netCatalogKinds[file.kind]
-		files = append(files, netGameFile{Id: file.id, Kind: kind, Version: file.version, Name: netPushName(file), Size: file.size,
-			Checked: kind == "game" || (kind == "update" && file.version == newest)})
+		entry := netGameFile{Id: file.id, Kind: kind, Version: file.version, Name: netPushName(file), Size: file.size,
+			Checked: kind == "game" || (kind == "update" && file.version == newest)}
+		switch netSendModeOf(file) {
+		case netSendNative:
+			entry.CompressedSize, _, _ = netNativeOf(file)
+		case netSendPrepare:
+			if _, copied, ok := web.netSendFresh(file); ok {
+				entry.CompressedSize = copied.Size()
+			} else {
+				entry.CompressFirst = true
+			}
+		default:
+			entry.CompressedSize, entry.AsIs = file.size, true
+		}
+		files = append(files, entry)
 	}
 	order := map[string]int{"game": 0, "update": 1, "dlc": 2}
 	sort.SliceStable(files, func(i, j int) bool {
@@ -741,4 +805,7 @@ func (web *Web) handleNetPush() {
 	web.router.HandleFunc(netInstallConsoles, web.handleNetConsoles).Methods(http.MethodGet)
 	web.router.HandleFunc(netInstallGame+"{titleId:[0-9A-Fa-f]{16}}", web.handleNetGame).Methods(http.MethodGet)
 	web.router.HandleFunc(netInventoryForgetPrefix+"{id:[0-9a-f]{16}}", web.handleNetInventoryForget).Methods(http.MethodDelete)
+	web.router.PathPrefix(netInstallCompressed).HandlerFunc(web.handleNetCompressed).Methods(http.MethodGet, http.MethodHead)
+	// what the last run of the app made to send no longer waits for anything
+	web.netSendSweep(true)
 }

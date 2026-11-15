@@ -738,7 +738,9 @@ var filePhases = map[string][]string{
 	tasklog.TASK_CONVERT:    {tasklog.PHASE_CONVERTING},
 	tasklog.TASK_PACK:       {tasklog.PHASE_PACKING},
 	tasklog.TASK_OPTIMIZE:   {tasklog.PHASE_OPTIMIZING},
-	tasklog.TASK_SPLIT:      {PHASE_SPLITTING},
+	// as a compression: compressed (and hashed meanwhile), then verified
+	tasklog.TASK_NET_PREPARE: {tasklog.PHASE_COMPRESSING, tasklog.PHASE_VERIFYING},
+	tasklog.TASK_SPLIT:       {PHASE_SPLITTING},
 }
 
 // stepMeasureMin is how long a step must have run before its speed is trusted.
@@ -1175,6 +1177,8 @@ func (r *fileTaskRun) finish() {
 			r.failure = &tasklog.Note{Text: NOTE_PACK_FAILED}
 		} else if r.kind == tasklog.TASK_OPTIMIZE {
 			r.failure = &tasklog.Note{Text: NOTE_OPTIMIZE_FAILED}
+		} else if r.kind == tasklog.TASK_NET_PREPARE {
+			r.failure = &tasklog.Note{Text: NOTE_NET_PREPARE_FAILED}
 		} else if r.kind == tasklog.TASK_SPLIT {
 			r.failure = &tasklog.Note{Text: NOTE_SPLIT_FAILED}
 		} else if r.kind == tasklog.TASK_NUP_FIX {
@@ -1188,6 +1192,12 @@ func (r *fileTaskRun) finish() {
 		r.web.taskLog().SetResume(r.taskId, nil)
 	}
 	r.web.taskLog().Finish(r.taskId, r.failure)
+	if r.kind == tasklog.TASK_NET_PREPARE {
+		// what was sent with the files not done (cancelled) no longer waits; the copies are in
+		// the data folder, not in the library, which has nothing new to scan
+		r.web.netPrepareEnded(r.paths)
+		return
+	}
 	// files were written, or the library still lists files that are gone
 	if r.processed > 0 || r.gone > 0 {
 		r.web.Rescan(tasklog.TRIGGER_COMPRESS)
@@ -1249,6 +1259,9 @@ func compressNote(kind string, err error) string {
 	}
 	if kind == tasklog.TASK_OPTIMIZE {
 		return optimizeNote(err)
+	}
+	if kind == tasklog.TASK_NET_PREPARE {
+		return netPrepareNote(err)
 	}
 	if kind == tasklog.TASK_PACK {
 		switch {
@@ -1403,7 +1416,8 @@ func (web *Web) decompressFile(ctx context.Context, path string, deleteCompresse
 
 // pausableKinds are the tasks on files that hold where they are while paused; the others (a
 // check, a copy to the SD card) are only cancelled.
-var pausableKinds = map[string]bool{tasklog.TASK_COMPRESS: true, tasklog.TASK_DECOMPRESS: true, tasklog.TASK_CONVERT: true, tasklog.TASK_PACK: true, tasklog.TASK_SPLIT: true, tasklog.TASK_OPTIMIZE: true}
+var pausableKinds = map[string]bool{tasklog.TASK_COMPRESS: true, tasklog.TASK_DECOMPRESS: true, tasklog.TASK_CONVERT: true, tasklog.TASK_PACK: true, tasklog.TASK_SPLIT: true, tasklog.TASK_OPTIMIZE: true,
+	tasklog.TASK_NET_PREPARE: true}
 
 // pauseCompression holds the running compression (or decompression, conversion, pack) where
 // it is, in the middle of a file too, or lets it go on; a cancel still stops it while paused.
