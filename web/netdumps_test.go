@@ -1,7 +1,9 @@
 package web
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -99,6 +101,32 @@ func TestNetDumpUploadedInPieces(t *testing.T) {
 	// done without anything sent is refused
 	if got := sendBody(console, "PUT", dumpPath("Other.xci", "done=1"), nil, "Authorization", auth); got.Code != http.StatusBadRequest {
 		t.Fatalf("an empty dump: %d", got.Code)
+	}
+}
+
+// NXDock sends the dump in pieces of 32 MiB, bigger than a form: they get past the limit of the
+// request bodies, and so does a save bigger than a form.
+func TestNetDumpPiecesGetPastTheBodyLimit(t *testing.T) {
+	_, _, console, auth, library, _ := dumpsWeb(t)
+	limited := &client{t: t, handler: withBodyLimit(console.handler), cookies: console.cookies, ip: console.ip}
+	name := "Game [0100000000040000][v0].nsp"
+	piece := 32 << 20
+	got := sendBody(limited, "PUT", dumpPath(name, "done=1"), make([]byte, piece), "Authorization", auth)
+	if got.Code != http.StatusOK || dumpReply(t, got).Have != int64(piece) {
+		t.Fatalf("a piece of 32 MiB: %d %s", got.Code, got.Body.String())
+	}
+	if info, err := os.Stat(filepath.Join(library, netDumpsFolderName, name)); err != nil || info.Size() != int64(piece) {
+		t.Fatalf("the file: %v %v", info, err)
+	}
+
+	read := int64(0)
+	saves := withBodyLimit(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		read, _ = io.Copy(io.Discard, r.Body)
+	}))
+	save := 16 << 20
+	saves.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest(http.MethodPost, netInstallSaves+"/0100000000040000", bytes.NewReader(make([]byte, save))))
+	if read != int64(save) {
+		t.Fatalf("a save of 16 MiB is read whole: %d", read)
 	}
 }
 

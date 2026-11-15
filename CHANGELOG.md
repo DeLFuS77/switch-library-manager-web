@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Install over the network: games dumped with NXDock are uploaded to the library again; they stopped at 8 MiB with "The library has no space". Saves over 8 MiB are uploaded too. Thanks to @beryll71 for reporting it (#174)
+
 ## 2.0.9
 
 ### Improvements
