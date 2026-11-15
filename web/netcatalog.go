@@ -3,7 +3,6 @@ package web
 import (
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -89,11 +88,9 @@ func (web *Web) handleNetCatalog(w http.ResponseWriter, r *http.Request) {
 		entry := netCatalogFile{Id: file.id, Kind: kind, TitleId: file.titleId, Version: file.version,
 			Size: file.size, Format: strings.TrimPrefix(strings.ToLower(filepath.Ext(file.name)), "."), Name: file.name,
 			DlcName: file.dlcName, RequiredSystem: file.requiredSystem, Url: netInstallFiles + file.id + "/" + url.PathEscape(file.name)}
-		if native && file.stream != nil {
-			if stat, err := os.Stat(file.path); err == nil {
-				entry.Size = stat.Size()
-				entry.Format = strings.TrimPrefix(strings.ToLower(filepath.Ext(file.path)), ".")
-				entry.Url += "?raw=1"
+		if native {
+			if size, format, ok := netNativeOf(file); ok {
+				entry.Size, entry.Format, entry.Url = size, format, entry.Url+"?raw=1"
 			}
 		}
 		game.Files = append(game.Files, entry)

@@ -173,11 +173,13 @@ type Web struct {
 	// what was read of the files given to the installers of the console (see netinstall.go)
 	netStreams netInstallStreams
 	// the bases of games NXDock merged, opened for the bytes a newer update needs (netbase.go)
-	netBases       netBases
-	netNotes       netInstallNotes
-	netList        netFilesCache
-	netPairs       netPairings
-	netPushes      netPushQueue
+	netBases  netBases
+	netNotes  netInstallNotes
+	netList   netFilesCache
+	netPairs  netPairings
+	netPushes netPushQueue
+	// the pushes sent Compressed that wait for the copy of their file (netsend.go)
+	netCopyWaits   netCopyWaits
 	netQueues      netQueues
 	netSends       netSends // what the consoles are sent, as it is sent (see netprogress.go)
 	netInventories sync.Mutex

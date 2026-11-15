@@ -291,6 +291,26 @@ function fillConsoleQueues(root) {
 		.catch(() => again(false));
 }
 
+// how the files of Send to console go: Normal, or Compressed (experimental), remembered in this
+// browser
+const netSendModeKey = 'slm-net-send-mode';
+
+function netSendModeRemembered() {
+	try {
+		return localStorage.getItem(netSendModeKey) === 'compressed' ? 'compressed' : 'normal';
+	} catch (e) {
+		return 'normal';
+	}
+}
+
+function netSendModeRemember(mode) {
+	try {
+		localStorage.setItem(netSendModeKey, mode);
+	} catch (e) {
+		// a browser that keeps nothing: Normal the next time
+	}
+}
+
 function initNetSend() {
 	const button = document.querySelector('[data-net-send]');
 	const on = document.querySelector('[data-net-on]');
@@ -351,6 +371,44 @@ function initNetSend() {
 		return file.name;
 	};
 
+	const compressedMode = () => {
+		const checked = form.querySelector('[data-net-send-mode]:checked');
+		return !!checked && checked.value === 'compressed';
+	};
+
+	// the note of the way chosen, the size each file sends, and what Compressed saves when every
+	// file ticked has its size known
+	const showMode = () => {
+		const compressed = compressedMode();
+		form.querySelector('[data-net-send-note]').textContent = compressed
+			? t('Less data goes over the network and NXDock decompresses it while installing. What is not compressed so yet, the app compresses first and it shows in Tasks.')
+			: t('It is sent in the format every installer reads. What is stored in an experimental format is converted while it is sent.');
+		let normal = 0, less = 0, known = true;
+		form.querySelectorAll('[data-net-send-files] input[type=checkbox]').forEach(box => {
+			const file = game.files.find(item => item.id === box.value);
+			const row = box.closest('.form-check');
+			const size = row.querySelector('[data-net-send-size]');
+			const how = row.querySelector('[data-net-send-how]');
+			const sent = compressed && file.compressedSize > 0 ? file.compressedSize : file.size;
+			size.textContent = formatSize(sent);
+			const smaller = compressed && sent < file.size;
+			size.classList.toggle('net-send-less', smaller);
+			size.classList.toggle('text-body-secondary', !smaller);
+			how.textContent = !compressed ? '' : file.compressFirst ? t('compressed first') : file.asIs ? t('already compressed: sent as it is') : '';
+			how.hidden = !how.textContent;
+			if (box.checked) {
+				normal += file.size;
+				less += file.compressedSize;
+				known = known && file.compressedSize > 0;
+			}
+		});
+		const saving = form.querySelector('[data-net-send-saving]');
+		saving.hidden = !(compressed && known && normal > less);
+		if (!saving.hidden) {
+			saving.textContent = t('%v less over the network (−%v %)', formatSize(normal - less), Math.round((1 - less / normal) * 100));
+		}
+	};
+
 	const fillDialog = () => {
 		const select = form.querySelector('[data-net-send-console]');
 		select.replaceChildren(...game.consoles.map(console => {
@@ -374,15 +432,33 @@ function initNetSend() {
 			const name = document.createElement('span');
 			name.className = 'text-break';
 			name.textContent = fileLabel(file);
+			const how = document.createElement('span');
+			how.className = 'text-body-secondary';
+			how.dataset.netSendHow = '';
+			how.hidden = true;
 			const size = document.createElement('span');
-			size.className = 'text-body-secondary';
+			size.className = 'net-send-size text-body-secondary';
+			size.dataset.netSendSize = '';
 			size.textContent = formatSize(file.size);
-			label.append(name, size);
+			label.append(name, how, size);
 			item.append(box, label);
+			box.addEventListener('change', showMode);
 			return item;
 		}));
 		ticks(game.consoles[0]);
-		select.onchange = () => ticks(game.consoles.find(console => console.id === select.value));
+		select.onchange = () => {
+			ticks(game.consoles.find(console => console.id === select.value));
+			showMode();
+		};
+		const mode = netSendModeRemembered();
+		form.querySelectorAll('[data-net-send-mode]').forEach(radio => {
+			radio.checked = radio.value === mode;
+			radio.onchange = () => {
+				netSendModeRemember(radio.value);
+				showMode();
+			};
+		});
+		showMode();
 	};
 
 	const error = form && form.querySelector('[data-net-send-error]');
@@ -424,13 +500,16 @@ function initNetSend() {
 		showError('');
 		const send = form.querySelector('[data-net-send-go]');
 		send.disabled = true;
-		apiFetch('/api/install/push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ keyId, fileIds }) })
+		const compressed = compressedMode();
+		apiFetch('/api/install/push', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ keyId, fileIds, compressed }) })
 			.then(response => readJSON(response).then(json => {
 				if (!response.ok) {
 					throw new Error(netErrorMessage(response, json));
 				}
 				Modal.getOrCreateInstance(modalElement).hide();
-				showToast('alert-success', 'bi-check-circle-fill', '', t('Sent: the console asks before installing.'));
+				showToast('alert-success', 'bi-check-circle-fill', '', json.preparing
+					? t('Sent: the console asks before installing. What is compressed first goes once it is ready (see Tasks).')
+					: t('Sent: the console asks before installing.'));
 			}))
 			.catch(e => showError(e.message || t('Could not reach the server.')))
 			.finally(() => {
