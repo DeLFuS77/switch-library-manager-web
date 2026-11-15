@@ -1,4 +1,61 @@
 {
+  "2.0.10": {
+    "en": [
+      "Install over the network: games dumped with NXDock are uploaded to the library again, and saves over 8 MiB too.",
+      "Compress: at the highest levels every thread keeps working, so games compress faster.",
+      "Measure this server: each setting is tried for seconds instead of taking up to an hour."
+    ],
+    "es": [
+      "Instalar por red: los juegos volcados con NXDock vuelven a subir a la biblioteca, y también las partidas de más de 8 MiB.",
+      "Comprimir: en los niveles más altos trabajan todos los hilos, así que los juegos se comprimen más rápido.",
+      "Medir este servidor: cada ajuste se prueba en segundos en lugar de tardar hasta una hora."
+    ],
+    "de": [
+      "Über das Netzwerk installieren: mit NXDock gedumpte Spiele werden wieder in die Bibliothek hochgeladen, auch Spielstände über 8 MiB.",
+      "Komprimieren: auf den höchsten Stufen arbeiten alle Threads, Spiele werden also schneller komprimiert.",
+      "Diesen Server messen: jede Einstellung wird in Sekunden getestet statt bis zu einer Stunde."
+    ],
+    "fr": [
+      "Installer par le réseau : les jeux dumpés avec NXDock sont de nouveau envoyés à la bibliothèque, ainsi que les sauvegardes de plus de 8 Mio.",
+      "Compresser : aux niveaux les plus élevés, tous les threads travaillent, donc les jeux se compressent plus vite.",
+      "Mesurer ce serveur : chaque réglage est testé en quelques secondes au lieu de prendre jusqu'à une heure."
+    ],
+    "it": [
+      "Installa via rete: i giochi estratti con NXDock vengono di nuovo caricati nella libreria, e anche i salvataggi oltre 8 MiB.",
+      "Comprimi: ai livelli più alti lavorano tutti i thread, quindi i giochi si comprimono più in fretta.",
+      "Misura questo server: ogni impostazione si prova in pochi secondi invece di arrivare a un'ora."
+    ],
+    "pt": [
+      "Instalar pela rede: os jogos extraídos com o NXDock voltam a ser enviados para a biblioteca, e também os saves com mais de 8 MiB.",
+      "Comprimir: nos níveis mais altos todos os threads trabalham, por isso os jogos comprimem mais depressa.",
+      "Medir este servidor: cada definição é testada em segundos em vez de demorar até uma hora."
+    ],
+    "nl": [
+      "Installeren via het netwerk: met NXDock gedumpte games worden weer naar de bibliotheek geüpload, en ook saves boven 8 MiB.",
+      "Comprimeren: op de hoogste niveaus werken alle threads, dus games worden sneller gecomprimeerd.",
+      "Deze server meten: elke instelling wordt in seconden getest in plaats van tot een uur."
+    ],
+    "ru": [
+      "Установка по сети: игры, сдампленные в NXDock, снова загружаются в библиотеку, как и сохранения больше 8 МиБ.",
+      "Сжатие: на самых высоких уровнях работают все потоки, поэтому игры сжимаются быстрее.",
+      "Измерение сервера: каждая настройка проверяется за секунды, а не до часа."
+    ],
+    "ja": [
+      "ネットワークインストール：NXDock でダンプしたゲームが再びライブラリにアップロードされ、8 MiB を超えるセーブデータも送れます。",
+      "圧縮：最高レベルでもすべてのスレッドが働くので、ゲームの圧縮が速くなります。",
+      "このサーバーを測定：各設定を数秒で試すので、最大 1 時間かかることはなくなりました。"
+    ],
+    "ko": [
+      "네트워크 설치: NXDock으로 덤프한 게임이 다시 라이브러리에 업로드되며, 8 MiB가 넘는 세이브도 업로드됩니다.",
+      "압축: 가장 높은 레벨에서도 모든 스레드가 작업하므로 게임이 더 빨리 압축됩니다.",
+      "이 서버 측정: 각 설정을 몇 초 만에 시험하므로 최대 1시간이 걸리지 않습니다."
+    ],
+    "zh": [
+      "网络安装：用 NXDock 转储的游戏可以再次上传到库中，超过 8 MiB 的存档也可以上传。",
+      "压缩：在最高级别下所有线程都会工作，游戏压缩更快。",
+      "测量此服务器：每个设置只需几秒测试，不再需要长达一小时。"
+    ]
+  },
   "2.0.9": {
     "en": [
       "Send to console: a Compressed (experimental) option sends less over the network; NXDock decompresses it while installing.",
