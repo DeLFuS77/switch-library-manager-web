@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Install over the network: a game with recovery data next to it ("<name>.par2", written by NXPress) is checked as it is sent. A part damaged on the disk is repaired with it first, so the console never gets damaged data. Organize moves the .par2 with its game. Thanks to TeleTubby666 (GBAtemp) for the idea
+
 ## 2.0.10
 
 ### Fixes

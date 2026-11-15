@@ -16,7 +16,7 @@ import (
 // extraFileTypes are the extensions of the files that go with a game: notes of the release,
 // checksums and images.
 var extraFileTypes = map[string]bool{".nfo": true, ".diz": true, ".txt": true, ".sfv": true, ".md5": true,
-	".sha1": true, ".sha256": true, ".sha512": true, ".crc": true,
+	".sha1": true, ".sha256": true, ".sha512": true, ".crc": true, ".par2": true,
 	".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true, ".bmp": true}
 
 func isExtraFile(name string) bool {
@@ -143,6 +143,13 @@ func (f *fileOperations) moveExtras(from string, to string) {
 	for _, name := range folder.named[strings.ToLower(nameStem(filepath.Base(from)))] {
 		named[name] = true
 		f.moveExtra(filepath.Join(dir, name), filepath.Join(toDir, toStem+filepath.Ext(name)))
+	}
+	// its recovery data, "<the name of the game>.par2" as NXPress writes it, takes its new name:
+	// it is what the game is checked with when it is sent to a console
+	recovery := filepath.Base(from) + ".par2"
+	if _, err := os.Lstat(filepath.Join(dir, recovery)); err == nil {
+		named[recovery] = true
+		f.moveExtra(filepath.Join(dir, recovery), filepath.Join(toDir, filepath.Base(to)+".par2"))
 	}
 	if !f.ownFolder(dir, toDir, folder) {
 		return

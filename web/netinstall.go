@@ -832,5 +832,13 @@ func (web *Web) serveNetFile(w http.ResponseWriter, r *http.Request, file netFil
 		return
 	}
 	defer source.Close()
+	// a game with recovery data is checked as it is sent, and rebuilt first when damaged
+	if stat, err := source.Stat(); err == nil {
+		repair := func() error { return repairNetFile(r.Context(), file.path) }
+		if checked := newCheckedReader(source, file.path, stat.Size(), repair, func(text string) { web.sugarLogger.Info(text) }); checked != nil {
+			http.ServeContent(w, r, "", file.modTime, checked)
+			return
+		}
+	}
 	http.ServeContent(w, r, "", file.modTime, source)
 }

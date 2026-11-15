@@ -203,3 +203,24 @@ func TestNewFileTakesItsExtras(t *testing.T) {
 	assertExists(t, filepath.Join(library, "Test Game", "Test Game [0100E95004039000][BASE][v0].nfo"), true)
 	assertExists(t, filepath.Join(library, "update.nfo"), true)
 }
+
+// The recovery data of a game, "<name of the game>.par2", goes with it and takes its new name,
+// the whole name of the game with .par2; the one of another game in the folder stays.
+func TestRecoveryDataGoesWithItsGame(t *testing.T) {
+	library := t.TempDir()
+	local, remote := fixtureLibrary(t, library)
+	writeFixture(t, filepath.Join(library, "base.nsp.par2"), "par2")
+	writeFixture(t, filepath.Join(library, "base.nsz.par2"), "another game")
+
+	ops, err := OrganizeByFolders(library, local, remote, organizeOptions(), false, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if failed := failedOps(ops); len(failed) != 0 {
+		t.Fatalf("no errors: %+v", failed)
+	}
+	folder := filepath.Join(library, "Test Game")
+	assertExists(t, filepath.Join(folder, "Test Game [0100E95004039000][BASE][v0].nsp.par2"), true)
+	assertExists(t, filepath.Join(library, "base.nsp.par2"), false)
+	assertExists(t, filepath.Join(library, "base.nsz.par2"), true)
+}
