@@ -259,7 +259,7 @@ jobs:
           # stopped first: the app saves its settings as it stops, which would put the port back
           docker stop slm
           sudo sed -i 's/"port": 3000/"port": 8080/' data/settings.json
-          grep -q '"port": 8080' data/settings.json
+          sudo grep -q '"port": 8080' data/settings.json
           docker start slm
           for i in $(seq 1 45); do
             status=$(docker inspect -f '{{.State.Health.Status}}' slm)
