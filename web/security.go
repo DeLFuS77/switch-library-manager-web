@@ -118,8 +118,12 @@ func withBodyLimit(next http.Handler) http.Handler {
 			limit := int64(maxRequestBody)
 			switch {
 			case strings.HasPrefix(r.URL.Path, VAULT_PREFIX+"/"):
-				// the save backups that JKSV uploads to the vault
-				limit = maxSaveBody
+			    // the save backups that JKSV uploads to the vault
+			    limit = maxSaveBody
+			
+			case r.Method == http.MethodPut && netDumpUploadPath(r.URL.Path):
+			    // Allow NXDock dump uploads in 32 MiB chunks.
+			    limit = 64 << 20
 			}
 			switch r.URL.Path {
 			case "/backup/restore":
