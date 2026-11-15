@@ -25,6 +25,18 @@ func ConvertedPath(path string) string {
 	}
 }
 
+// CardPath is the name of the game card of an NSP (.xci), or of an NSZ (.xcz): the other way
+// round of ConvertedPath.
+func CardPath(path string) string {
+	extension := filepath.Ext(path)
+	switch strings.ToLower(extension) {
+	case ".nsz":
+		return strings.TrimSuffix(path, extension) + ".xcz"
+	default:
+		return strings.TrimSuffix(path, extension) + ".xci"
+	}
+}
+
 // ConvertXciToNsp writes the files of the secure partition of an XCI or XCZ to an NSP or
 // NSZ at target; the target is removed if the conversion fails.
 func ConvertXciToNsp(ctx context.Context, source string, target string, progress func(done int64, total int64)) error {
@@ -32,10 +44,24 @@ func ConvertXciToNsp(ctx context.Context, source string, target string, progress
 	return err
 }
 
-// ConvertAndCheck is ConvertXciToNsp that checks the NSP while writing it, instead of reading
-// it again (see DecompressAndCheck). On an error the NSP is removed.
+// ConvertNspToXci writes the files of an NSP or NSZ to the secure partition of a new game card,
+// an XCI or XCZ, at target (see convert_card.go); the target is removed if the conversion fails.
+func ConvertNspToXci(ctx context.Context, source string, target string, progress func(done int64, total int64)) error {
+	_, err := convertNspToXci(ctx, source, target, progress)
+	return err
+}
+
+// ConvertAndCheck converts a game card dump into an NSP (ConvertXciToNsp), or an NSP into a game
+// card dump (ConvertNspToXci), and checks the new file while writing it, instead of reading it
+// again (see DecompressAndCheck). On an error the new file is removed.
 func ConvertAndCheck(ctx context.Context, source string, target string, progress func(done int64, total int64)) (FileCheck, error) {
-	written, err := convertXciToNsp(ctx, source, target, progress)
+	convert := convertXciToNsp
+	if card, err := isCardFile(source); err != nil {
+		return FileCheck{}, err
+	} else if !card {
+		convert = convertNspToXci
+	}
+	written, err := convert(ctx, source, target, progress)
 	if err != nil {
 		return FileCheck{}, err
 	}
@@ -110,4 +136,19 @@ func convertXciToNsp(ctx context.Context, source string, target string, progress
 		return nil, err
 	}
 	return written, nil
+}
+
+// isCardFile tells whether the file at path is a game card dump (XCI or XCZ) rather than an NSP
+// or NSZ, by what it holds.
+func isCardFile(path string) (bool, error) {
+	input, err := os.Open(path)
+	if err != nil {
+		return false, err
+	}
+	defer input.Close()
+	pkg, err := openGamePackage(input)
+	if err != nil {
+		return false, err
+	}
+	return pkg.xci, nil
 }
