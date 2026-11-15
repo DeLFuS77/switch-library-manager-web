@@ -59,6 +59,7 @@ func i18nFuncs(lang string) template.FuncMap {
 		// sizes with the decimal separator of the language
 		"formatSize":  func(size int64) string { return i18n.FormatSizeIn(lang, size) },
 		"formatBytes": func(size int) string { return i18n.FormatSizeIn(lang, int64(size)) },
+		"formatSpeed": func(megabytes float64) string { return i18n.FormatSpeedIn(lang, megabytes) },
 	}
 }
 

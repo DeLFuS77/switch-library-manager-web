@@ -1,7 +1,7 @@
 // Install over the network, from the web: on the page of a game, Send to console (the files go to
 // a console of the user, which asks before installing them) and what of the game the consoles
 // have; with the console keys (Settings and My account), what is known to be installed on each
-// console, and Forget.
+// console, and Forget; under each console, what it is sent now or got lately.
 // One of the files joined into resources/static/web.js by scripts/build-js.mjs, in the order of their names.
 
 function netStorageName(storage) {
@@ -71,18 +71,18 @@ function fillConsoleInventories(root) {
 		.catch(() => {});
 }
 
-// fillConsoleQueues shows, under each console of root, what its install queue does now (NXDock
-// tells it every few seconds while it works): the game installing, its stage, speed and time
-// left, what waits, and Pause, Go on and Cancel. The console asks on its screen before
-// cancelling what the web asks to cancel.
+// fillConsoleQueues shows, under each console of root, what it is sent now: with DBI and Tinfoil
+// what the app counts of the files it serves, with NXDock what its queue tells (the stage, what
+// waits, and Pause, Go on and Cancel; the console asks on its screen before cancelling). Once it
+// ended, what it got stays there for half an hour, with the average speed of each file.
 const netQueueStages = { copy: 'Copying the save', network: 'Downloading', decompress: 'Decompressing', write: 'Writing', check: 'Checking', register: 'Registering' };
 let netQueueTimer = 0;
 
-function netQueueAsk(console, action, job, game) {
+function netQueueAsk(consoleId, action, job, game) {
 	if (action === 'cancel' && !window.confirm(t('Cancel the install of %v? The console asks before cancelling.', game))) {
 		return;
 	}
-	apiFetch('/api/install/queue/' + encodeURIComponent(console.id), {
+	apiFetch('/api/install/queue/' + encodeURIComponent(consoleId), {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ action, job }),
@@ -96,70 +96,169 @@ function netQueueAsk(console, action, job, game) {
 		.catch(e => showToast('alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), e.message));
 }
 
-function netQueueLine(console) {
+// Pause, Go on and Cancel of NXDock, also on the Tasks page, whose list is drawn again often
+document.addEventListener('click', e => {
+	const button = e.target.closest('[data-net-ask]');
+	if (button) {
+		netQueueAsk(button.dataset.netConsole, button.dataset.netAsk, Number(button.dataset.netJob || 0), button.dataset.netGame || '');
+	}
+});
+
+function netSpeed(value) {
+	return t('%v MB/s', (value || 0).toLocaleString(document.documentElement.lang || undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 }));
+}
+
+// netShortDuration is a time as "1h 5m", "2m 08s" or "40s", as the Tasks page writes it
+function netShortDuration(seconds) {
+	const total = Math.round(seconds || 0);
+	const hours = Math.floor(total / 3600);
+	const minutes = Math.floor(total / 60) % 60;
+	if (hours) {
+		return hours + 'h ' + minutes + 'm';
+	}
+	return minutes ? minutes + 'm ' + String(total % 60).padStart(2, '0') + 's' : total + 's';
+}
+
+function netFileName(file) {
+	if (file.kind === 'update') {
+		return file.name + ' · ' + t('Update') + ' ' + file.label;
+	}
+	if (file.kind === 'game') {
+		return file.name + ' · ' + t('Game');
+	}
+	return file.name + (file.label ? ' · ' + file.label : '');
+}
+
+function netPercent(file) {
+	return file.size > 0 ? Math.min(100, file.done / file.size * 100) : (file.state === 'done' ? 100 : 0);
+}
+
+// what a run that ended did, in a few words, as the Tasks page says it
+function netCounts(send) {
+	const parts = [send.via === 'NXDock' ? t('%v installed', send.ok) : t('%v sent whole', send.ok)];
+	if (send.cut) {
+		parts.push(t('%v cut', send.cut));
+	}
+	if (send.failed) {
+		parts.push(t('%v with an error', send.failed));
+	}
+	if (send.cancelled) {
+		parts.push(t('%v cancelled', send.cancelled));
+	}
+	return parts.join(', ');
+}
+
+function netLine(className, text) {
+	const line = document.createElement('div');
+	line.className = className;
+	line.textContent = text;
+	return line;
+}
+
+function netSendRunning(send) {
 	const box = document.createElement('div');
-	box.className = 'net-queue-box';
-	const running = console.jobs.find(job => job.state === 'running');
-	const waiting = console.jobs.filter(job => job.state === 'waiting');
+	box.className = 'net-queue-box is-work';
+	const running = send.files.find(file => file.state === 'running');
+	const waiting = send.files.filter(file => file.state === 'waiting');
 	const head = document.createElement('div');
 	head.className = 'small fw-semibold';
 	const icon = document.createElement('span');
-	icon.className = 'bi ' + (console.paused ? 'bi-pause-circle' : 'bi-arrow-down-circle') + ' me-1';
+	icon.className = 'bi ' + (send.paused ? 'bi-pause-circle' : send.gone ? 'bi-wifi-off' : 'bi-arrow-down-circle text-work') + ' me-1';
 	icon.setAttribute('aria-hidden', 'true');
-	head.append(icon, document.createTextNode(console.gone ? t('The console is not answering') : console.paused ? t('Paused') : running ? t('Installing %v', running.game + (running.label ? ' · ' + running.label : '')) : t('Waiting')));
+	head.append(icon, document.createTextNode(send.gone ? t('The console is not answering') : send.paused ? t('Paused') : running ? t('Installing %v', netFileName(running)) : t('Waiting')));
 	box.append(head);
-	if (running && !console.gone) {
+	if (running && !send.gone) {
+		const percent = netPercent(running);
 		const bar = document.createElement('div');
 		bar.className = 'progress net-queue-bar';
 		bar.setAttribute('role', 'progressbar');
-		bar.setAttribute('aria-valuenow', String(Math.round(running.percent || 0)));
+		bar.setAttribute('aria-valuenow', String(Math.round(percent)));
 		bar.setAttribute('aria-valuemin', '0');
 		bar.setAttribute('aria-valuemax', '100');
 		const fill = document.createElement('div');
-		fill.className = 'progress-bar';
-		fill.style.width = (running.percent || 0).toFixed(1) + '%';
+		fill.className = 'progress-bar progress-bar-striped progress-bar-animated is-work';
+		fill.style.width = percent.toFixed(1) + '%';
 		bar.append(fill);
-		const facts = document.createElement('div');
-		facts.className = 'small text-body-secondary';
-		const parts = [Math.round(running.percent || 0) + ' %'];
+		const parts = [Math.round(percent) + ' %'];
 		if (running.stage) {
 			parts.push(t(netQueueStages[running.stage] || running.stage));
 		}
 		if (running.speed) {
-			parts.push(t('%v MB/s', running.speed.toFixed(1)));
+			parts.push(netSpeed(running.speed));
+		}
+		if (running.average) {
+			parts.push(t('%v on average', netSpeed(running.average)));
 		}
 		if (running.left) {
-			const minutes = Math.max(1, Math.round(running.left / 60));
-			parts.push(t('%v min left', minutes));
+			parts.push(t('%v left', netShortDuration(running.left)));
 		}
-		facts.textContent = parts.join(' · ');
-		box.append(bar, facts);
+		box.append(bar, netLine('small text-body-secondary', parts.join(' · ')));
 	}
 	if (waiting.length) {
-		const next = document.createElement('div');
-		next.className = 'small text-body-secondary';
-		next.textContent = t('%v waiting', waiting.length) + ': ' + waiting.slice(0, 3).map(job => job.game).join(', ') + (waiting.length > 3 ? '…' : '');
-		box.append(next);
+		box.append(netLine('small text-body-secondary', t('%v waiting', waiting.length) + ': ' + waiting.slice(0, 3).map(file => file.name).join(', ') + (waiting.length > 3 ? '…' : '')));
 	}
-	if (!console.gone && (running || waiting.length)) {
+	if (send.via === 'NXDock' && !send.gone && (running || waiting.length)) {
 		const buttons = document.createElement('div');
 		buttons.className = 'd-flex flex-wrap gap-2 mt-1';
 		const pause = document.createElement('button');
 		pause.type = 'button';
 		pause.className = 'btn btn-sm btn-outline-secondary rounded-pill';
-		pause.textContent = console.paused ? t('Go on') : t('Pause');
-		pause.addEventListener('click', () => netQueueAsk(console, console.paused ? 'resume' : 'pause', 0, ''));
+		pause.textContent = send.paused ? t('Go on') : t('Pause');
+		pause.dataset.netAsk = send.paused ? 'resume' : 'pause';
+		pause.dataset.netConsole = send.id;
 		buttons.append(pause);
 		if (running) {
 			const cancel = document.createElement('button');
 			cancel.type = 'button';
 			cancel.className = 'btn btn-sm btn-outline-danger rounded-pill';
 			cancel.textContent = t('Cancel');
-			cancel.addEventListener('click', () => netQueueAsk(console, 'cancel', running.id, running.game));
+			cancel.dataset.netAsk = 'cancel';
+			cancel.dataset.netConsole = send.id;
+			cancel.dataset.netJob = String(running.job);
+			cancel.dataset.netGame = running.name;
 			buttons.append(cancel);
 		}
 		box.append(buttons);
 	}
+	return box;
+}
+
+function netSendEnded(send) {
+	const box = document.createElement('div');
+	const failedAll = send.failed && !send.ok;
+	const warn = send.cut || send.failed;
+	box.className = 'net-queue-box ' + (failedAll ? 'is-ended-fail' : warn ? 'is-ended-warn' : 'is-ended');
+	const head = document.createElement('div');
+	head.className = 'small fw-semibold';
+	const icon = document.createElement('span');
+	icon.className = 'bi ' + (failedAll ? 'bi-x-circle text-danger-emphasis' : warn ? 'bi-exclamation-circle text-warning-emphasis' : 'bi-check-circle text-success-emphasis') + ' me-1';
+	icon.setAttribute('aria-hidden', 'true');
+	const at = new Date(send.ended).toLocaleTimeString(document.documentElement.lang || undefined, { hour: '2-digit', minute: '2-digit' });
+	head.append(icon, document.createTextNode(t('Ended at %v', at) + ': ' + netCounts(send)));
+	box.append(head);
+	const facts = [t('%v in %v', formatSize(send.done), netShortDuration(send.seconds))];
+	if (send.average) {
+		facts.push(t('%v on average', netSpeed(send.average)));
+	}
+	box.append(netLine('small text-body-secondary', facts.join(' · ')));
+	const marks = { done: '✓ ', cut: '✂ ', failed: '✗ ', cancelled: '⊘ ' };
+	const files = document.createElement('div');
+	files.className = 'small text-body-secondary';
+	send.files.slice(0, 10).forEach(file => {
+		files.append(netLine('', (marks[file.state] || '· ') + netFileName(file) + (file.average ? ' (' + netSpeed(file.average) + ')' : '')));
+	});
+	if (send.files.length > 10) {
+		files.append(netLine('', t('and %v more', send.files.length - 10)));
+	}
+	box.append(files);
+	const note = document.createElement('div');
+	note.className = 'net-fade-note mt-1';
+	const link = document.createElement('a');
+	link.href = '/tasks.html';
+	link.className = 'fw-semibold text-work';
+	link.textContent = t('See it in Tasks');
+	note.append(document.createTextNode(t('Shown here for half an hour.') + ' '), link);
+	box.append(note);
 	return box;
 }
 
@@ -173,19 +272,19 @@ function fillConsoleQueues(root) {
 		netQueueTimer = setTimeout(() => fillConsoleQueues(document), document.hidden ? 15000 : busy ? 3000 : 10000);
 	};
 	fetch('/api/install/queue', { headers: { Accept: 'application/json' } })
-		.then(response => (response.ok ? response.json() : { queues: [] }))
+		.then(response => (response.ok ? response.json() : { sends: [] }))
 		.then(answer => {
-			const byId = new Map((answer.queues || []).map(queue => [queue.id, queue]));
+			const byId = new Map((answer.sends || []).map(send => [send.id, send]));
 			let busy = false;
 			lines.forEach(line => {
-				const queue = byId.get(line.dataset.consoleQueue);
-				const working = queue && queue.jobs.some(job => job.state === 'running' || job.state === 'waiting');
-				line.hidden = !working;
+				const send = byId.get(line.dataset.consoleQueue);
+				line.hidden = !send;
 				line.replaceChildren();
-				if (working) {
-					busy = busy || !queue.gone;
-					line.append(netQueueLine(queue));
+				if (!send) {
+					return;
 				}
+				busy = busy || (send.running && !send.gone);
+				line.append(send.running ? netSendRunning(send) : netSendEnded(send));
 			});
 			again(busy);
 		})

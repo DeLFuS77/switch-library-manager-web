@@ -165,6 +165,10 @@ func (web *Web) handleNetQueue(w http.ResponseWriter, r *http.Request) {
 	live := cleanNetQueue(body)
 	live.Updated = time.Now()
 	commands := web.netQueues.put(key.KeyID, live)
+	id, console := netSendWho(key)
+	web.netSends.queue(id, console, key.Name, live, web.netCoverOfGame, time.Now())
+	web.netSendChanged()
+	web.netSendSweep()
 	w.Header().Set("Cache-Control", "no-store")
 	writeJSON(w, http.StatusOK, map[string]any{"commands": commands})
 }
@@ -193,6 +197,11 @@ func (web *Web) handleNetQueueDone(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 256<<10)).Decode(&body); err != nil {
 		http.Error(w, "what the queue installed, as JSON", http.StatusBadRequest)
 		return
+	}
+	// the run of the console ends now, in the history of the tasks
+	id, _ := netSendWho(key)
+	if run := web.netSends.end(id, time.Now()); run != nil {
+		web.netSendEnded([]*netSendRun{run})
 	}
 	sent := false
 	appSettings := settings.ReadSettings(web.dataFolder)
@@ -245,7 +254,24 @@ func netQueueDoneText(lang string, console string, body netQueueDone) (string, s
 // handleNetQueueRead gives the queues of the user's consoles, for the web.
 func (web *Web) handleNetQueueRead(w http.ResponseWriter, r *http.Request) {
 	queues := []netQueueLive{}
+	// what each console is sent now, or was sent last if that ended lately (see netprogress.go)
+	sends := []NetSendView{}
 	if principal, ok := netPairer(r); ok {
+		live, ended := web.netSends.views(time.Now())
+		for _, key := range web.netUserConsoles(principal.Name) {
+			found := false
+			for _, view := range live {
+				if view.Id == key.ID {
+					sends, found = append(sends, view), true
+					break
+				}
+			}
+			for _, view := range ended {
+				if !found && view.Id == key.ID {
+					sends, found = append(sends, view), true
+				}
+			}
+		}
 		for _, key := range web.netUserConsoles(principal.Name) {
 			live, asked, ok := web.netQueues.get(key.ID)
 			if !ok {
@@ -258,7 +284,7 @@ func (web *Web) handleNetQueueRead(w http.ResponseWriter, r *http.Request) {
 	}
 	sort.SliceStable(queues, func(i, j int) bool { return strings.ToLower(queues[i].Name) < strings.ToLower(queues[j].Name) })
 	w.Header().Set("Cache-Control", "no-store")
-	writeJSON(w, http.StatusOK, map[string]any{"queues": queues})
+	writeJSON(w, http.StatusOK, map[string]any{"queues": queues, "sends": sends})
 }
 
 // handleNetQueueAsk asks something of the queue of a console of the user: it takes it the next
