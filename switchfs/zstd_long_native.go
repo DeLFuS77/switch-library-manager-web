@@ -32,10 +32,30 @@ const (
 	zstdCompressionLevel  = 100
 	zstdWindowLog         = 101
 	zstdEnableLongMatches = 160
+	zstdLdmBucketSizeLog  = 163
+	zstdLdmHashRateLog    = 164
 	zstdNbWorkers         = 400
+	zstdJobSize           = 401
 	zstdEndContinue       = 0
 	zstdEndEnd            = 2
 )
+
+// The library finds the long matches of all the threads of a stream on one thread, before
+// they compress. Above level 11 it searches hard (buckets of 2^6 to 2^8, a look every 2^4 or
+// 2^5 bytes): that one thread made at most 40 MB/s at level 19, however many the others, and
+// 28 threads compressed as fast as 14. Above level 11 the search of level 11 is used (buckets
+// of 2^5, a look every 2^6 bytes): 1.5 to 1.7 times as fast at level 19, the files 0.1 to
+// 0.9 % bigger.
+const (
+	longLightLevel       = 11
+	longLdmBucketSizeLog = 5
+	longLdmHashRateLog   = 6
+)
+
+// longJobSize is the data each thread takes at once on a stream with the long window above
+// level 11, where the library took 32 or 64 MiB by the level: a game of 4 GB gets more than
+// 100 pieces, so all the threads of a big processor keep working to its end.
+const longJobSize = 32 << 20
 
 const longOutputSize = 1 << 20
 
@@ -73,8 +93,15 @@ func newZstdEncoder(output io.Writer, native int, workers int, windowLog int, ld
 		lm = 1 // ZSTD_ps_enable
 	}
 	params := [][2]int{{zstdCompressionLevel, native}, {zstdWindowLog, windowLog}, {zstdEnableLongMatches, lm}}
+	heavy := ldm && native > longLightLevel
+	if heavy {
+		params = append(params, [2]int{zstdLdmBucketSizeLog, longLdmBucketSizeLog}, [2]int{zstdLdmHashRateLog, longLdmHashRateLog})
+	}
 	if workers > 1 {
 		params = append(params, [2]int{zstdNbWorkers, workers})
+		if heavy {
+			params = append(params, [2]int{zstdJobSize, longJobSize})
+		}
 	}
 	for _, p := range params {
 		if err := zstdCheck(C.ZSTD_CCtx_setParameter(cctx, C.int(p[0]), C.int(p[1]))); err != nil {

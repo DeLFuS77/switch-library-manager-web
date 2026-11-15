@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.10
+
+### Fixes
+
+- Install over the network: games dumped with NXDock are uploaded to the library again; they stopped at 8 MiB with "The library has no space". Saves over 8 MiB are uploaded too. Thanks to @beryll71 for reporting it (#174)
+- Compress: at the highest levels every thread keeps working with the window of 128 MiB, so games compress faster; they can be up to 1 % bigger
+- Measure this server: each setting is tried for seconds; with a big game the measure took up to an hour
+
 ## 2.0.9
 
 ### Improvements

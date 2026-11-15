@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.9
+  <Changes>### 2.0.10
+- Games dumped with NXDock are uploaded to the library again; compression keeps every thread busy and Measure takes seconds per setting
+### 2.0.9
 - NSZ 5 to 17 % smaller in some games with a window of 128 MiB; Optimize for install in one pass; {LANGUAGE} in Organize; Send to console compressed (experimental); network installs in Tasks
 ### 2.0.8
 - Optimize for install: a cut-down base no longer asks for its update; Install over the network: names for games with only updates or DLC, and covers asked again
