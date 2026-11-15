@@ -274,19 +274,25 @@ func (web *Web) makeOptimized(ctx context.Context, sources []string, target stri
 	defer os.Remove(temporary)
 	bar := filling(size, report(0))
 	threads := settings.ReadSettings(web.dataFolder).CompressThreads
+	measured := false
 	_, err := optimize.Run(ctx, sources, temporary, optimize.Options{
 		Threads: threads,
 		Work:    filepath.Dir(target),
 		Progress: func(step string, done int64, total int64) {
-			at := 0
+			at, steps := 0, 1
 			for i, s := range optimizeSteps {
 				if s == step {
 					at = i
 				}
 			}
+			measured = measured || step == "Measuring"
+			if step == "Writing" && !measured {
+				// in one pass, writing is measuring too: its share and the one of Measuring
+				at, steps = at-1, 2
+			}
 			share := float64(at) / float64(len(optimizeSteps))
 			if total > 0 {
-				share += float64(done) / float64(total) / float64(len(optimizeSteps))
+				share += float64(steps) * float64(done) / float64(total) / float64(len(optimizeSteps))
 			}
 			bar(int64(share*float64(size)), size)
 		},
