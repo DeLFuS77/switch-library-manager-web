@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Improvements
+
+- Install over the network: Tasks shows what each console is being sent, also with DBI and Tinfoil (progress, speed, time left), and keeps a summary when it ends with the average speed of each file. Settings shows it under the console for half an hour
+
 ## 2.0.9
 
 ### Improvements

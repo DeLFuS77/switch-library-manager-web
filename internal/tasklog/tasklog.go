@@ -208,6 +208,11 @@ type Task struct {
 	LeftAt    time.Time     `json:"leftAt,omitempty"`
 	// on the Tasks page only: the next file a task on files will take, and its cover
 	Next *Lane `json:"-"`
+	// an install over the network: the console, how it asked (DBI, Tinfoil, NXDock) and what it
+	// was sent (see netinstall.go)
+	Console string     `json:"console,omitempty"`
+	Via     string     `json:"via,omitempty"`
+	Sent    []SentFile `json:"sent,omitempty"`
 }
 
 // Lane is a file a running task is working on, with its own progress in bytes.

@@ -16,9 +16,9 @@
 {{define "taskList"}}
 				{{- /* each part folds with a click on its title, and stays as it was left (see
 				   initTaskSections) */}}
-				{{- if .Running}}
+				{{- if or .Running .NetRunning}}
 				<details class="task-section mb-4" data-task-section="running" open>
-					<summary class="section-title"><span class="bi bi-activity" aria-hidden="true"></span>{{t "Running"}} <span class="badge rounded-pill text-bg-secondary">{{len .Running}}</span><span class="bi bi-chevron-down task-section-chevron" aria-hidden="true"></span></summary>
+					<summary class="section-title"><span class="bi bi-activity" aria-hidden="true"></span>{{t "Running"}} <span class="badge rounded-pill text-bg-secondary">{{add (len .Running) (len .NetRunning)}}</span><span class="bi bi-chevron-down task-section-chevron" aria-hidden="true"></span></summary>
 					{{- range .Running}}
 					{{- $stalled := .StalledText}}
 					<article id="task-{{.Id}}" class="surface task-card mb-3{{if .Paused}} is-paused{{end}}{{if $stalled}} is-stalled{{end}}" data-task-id="{{.Id}}">
@@ -104,6 +104,9 @@
 						{{- template "taskResults" .}}
 					</article>
 					{{- end}}
+					{{- range .NetRunning}}
+					{{- template "netRunning" .}}
+					{{- end}}
 				</details>
 				{{- end}}
 				{{- if .Queue}}
@@ -148,7 +151,7 @@
 							<span class="stat-icon task-icon flex-shrink-0"><span class="bi {{template "taskIcon" .Kind}}" aria-hidden="true"></span></span>
 							<div class="flex-grow-1 min-w-0">
 								<div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-									<h3 class="h6 fw-semibold mb-0">{{template "taskKind" .Kind}}</h3>
+									<h3 class="h6 fw-semibold mb-0">{{template "taskKind" .Kind}}{{with .Console}} &rarr; {{.}}{{end}}</h3>
 									{{- if eq .Status "success"}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{t "Completed"}}</span>
 									{{- else if eq .Status "warning"}}<span class="chip chip-warning"><span class="bi bi-exclamation-circle" aria-hidden="true"></span>{{t "Completed with warnings"}}</span>
 									{{- else if eq $ending "continued"}}<span class="chip chip-muted"><span class="bi bi-arrow-repeat" aria-hidden="true"></span>{{t "Continued after a restart"}}</span>
@@ -156,6 +159,7 @@
 									{{- else if eq $ending "cancelled"}}<span class="chip chip-muted"><span class="bi bi-slash-circle" aria-hidden="true"></span>{{t "Cancelled"}}</span>
 									{{- else}}<span class="chip chip-danger"><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Failed"}}</span>{{end}}
 									{{- with .Level}}<span class="chip chip-muted">{{template "verifyLevel" .}}</span>{{end}}
+									{{- with .Via}}<span class="net-via{{if eq . "NXDock"}} is-nxdock{{end}}">{{.}}</span>{{end}}
 									{{- if gt .Count 1}}<span class="chip chip-muted" title="{{t "%v times in a row, the last one shown" .Count}}"><span class="bi bi-layers" aria-hidden="true"></span>&times;{{.Count}}</span>{{end}}
 								</div>
 								<div class="small text-body-secondary">
@@ -174,11 +178,13 @@
 									{{- else if eq .Kind "nupicon"}}
 									{{- else if eq .Kind "undoorganize"}} &middot; {{t "%v files put back" .Files}}
 									{{- else if eq .Kind "thumbnails"}} &middot; {{t "%v thumbnails made" .Files}}
+									{{- else if eq .Kind "netinstall"}} &middot; {{template "netCounts" .}} &middot; {{formatSize .SentBytes}}{{with .SentAverage}} &middot; {{t "%v on average" (formatSpeed .)}}{{end}}
 									{{- else if eq .Kind "timetobeat"}} &middot; {{t "%v of %v games with times" .Games .Files}}
 									{{- else if or .Games .Files}} &middot; {{if or (eq .Kind "organize") (eq .Kind "cleanup")}}{{t "%v files changed" .Files}}{{else}}{{t "%v games, %v files" .Games .Files}}{{end}}{{end}}
 								</div>
 								{{- template "verifyBreakdown" .Breakdown}}
 								{{- template "taskTiles" .}}
+								{{- template "netSent" .}}
 								{{- if eq $ending "continued"}}
 								<div class="task-note text-body-secondary"><span class="bi bi-arrow-repeat me-1" aria-hidden="true"></span>{{if .StoppedToday}}{{t "It stopped at %v because the app was restarted, and went on by itself." .StoppedClock}}{{else}}{{t "It stopped on %v because the app was restarted, and went on by itself." (formatDateTime .Finished)}}{{end}} <a class="fw-semibold text-work" href="#task-{{.ContinuedIn}}">{{t "See the task that went on"}}</a></div>
 								{{- else if eq $ending "stopped"}}
@@ -198,7 +204,7 @@
 						{{- end}}
 					</ul>
 				</details>
-				{{- else if not (or .Running .Queue)}}
+				{{- else if not (or .Running .NetRunning .Queue)}}
 				{{- template "emptyState" (dict "Icon" "bi-list-task" "Tone" "" "Title" (t "No tasks yet") "Text" (t "Synchronizations, scans, compressions, checks and cleanups appear here.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 				{{- end}}
 {{- end}}
@@ -324,7 +330,7 @@
 
 {{define "verifyLevel"}}{{if eq . "signature"}}<span class="bi bi-patch-check me-1" aria-hidden="true"></span>{{t "Signature"}}{{else if eq . "hash"}}<span class="bi bi-shield-check me-1" aria-hidden="true"></span>{{t "Hash"}}{{else}}{{t "Both"}}{{end}}{{end}}
 
-{{define "taskKind"}}{{if eq . "sync"}}{{t "Synchronization"}}{{else if eq . "scan"}}{{t "Library scan"}}{{else if eq . "organize"}}{{t "Organize files"}}{{else if eq . "cleanup"}}{{t "Delete old updates"}}{{else if eq . "compress"}}{{t "Compression"}}{{else if eq . "decompress"}}{{t "Decompression"}}{{else if eq . "verify"}}{{t "File check"}}{{else if eq . "covers"}}{{t "Cover downloads"}}{{else if eq . "thumbnails"}}{{t "Thumbnails"}}{{else if eq . "copy"}}{{t "Copy to the card"}}{{else if eq . "convert"}}{{t "Conversion"}}{{else if eq . "pack"}}{{t "Combine"}}{{else if eq . "split"}}{{t "Split files"}}{{else if eq . "nupfix"}}{{t "Fix for emulators"}}{{else if eq . "nupicon"}}{{t "Set the icon"}}{{else if eq . "undoorganize"}}{{t "Undo Organize"}}{{else if eq . "timetobeat"}}{{t "Times to beat and scores (IGDB)"}}{{else if eq . "upload"}}{{t "Upload"}}{{else}}{{.}}{{end}}{{end}}
+{{define "taskKind"}}{{if eq . "sync"}}{{t "Synchronization"}}{{else if eq . "scan"}}{{t "Library scan"}}{{else if eq . "organize"}}{{t "Organize files"}}{{else if eq . "cleanup"}}{{t "Delete old updates"}}{{else if eq . "compress"}}{{t "Compression"}}{{else if eq . "decompress"}}{{t "Decompression"}}{{else if eq . "verify"}}{{t "File check"}}{{else if eq . "covers"}}{{t "Cover downloads"}}{{else if eq . "thumbnails"}}{{t "Thumbnails"}}{{else if eq . "copy"}}{{t "Copy to the card"}}{{else if eq . "convert"}}{{t "Conversion"}}{{else if eq . "pack"}}{{t "Combine"}}{{else if eq . "split"}}{{t "Split files"}}{{else if eq . "nupfix"}}{{t "Fix for emulators"}}{{else if eq . "nupicon"}}{{t "Set the icon"}}{{else if eq . "undoorganize"}}{{t "Undo Organize"}}{{else if eq . "timetobeat"}}{{t "Times to beat and scores (IGDB)"}}{{else if eq . "upload"}}{{t "Upload"}}{{else if eq . "netinstall"}}{{t "Install over the network"}}{{else}}{{.}}{{end}}{{end}}
 
 {{/* the bar of a cover at work: whole, or split in the steps of the file (hashes, work, check)
 with the one it is in written above it, as in the view by bars */}}
@@ -338,6 +344,117 @@ with the one it is in written above it, as in the view by bars */}}
 		<span class="progress task-tile-bar" role="progressbar" aria-label="{{.Name}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100"><span class="progress-bar progress-bar-striped progress-bar-animated" style="width: {{.Percent}}%"></span></span>
 {{- end}}
 {{- end}}
-{{define "taskIcon"}}{{if eq . "sync"}}bi-arrow-repeat{{else if eq . "scan"}}bi-search{{else if eq . "organize"}}bi-folder-symlink{{else if eq . "cleanup"}}bi-trash3{{else if eq . "compress"}}bi-file-zip{{else if eq . "decompress"}}bi-box-arrow-up{{else if eq . "verify"}}bi-shield-check{{else if eq . "covers"}}bi-images{{else if eq . "thumbnails"}}bi-aspect-ratio{{else if eq . "copy"}}bi-sd-card{{else if eq . "convert"}}bi-arrow-left-right{{else if eq . "pack"}}bi-box-seam{{else if eq . "split"}}bi-scissors{{else if eq . "nupfix"}}bi-wrench-adjustable{{else if eq . "nupicon"}}bi-image{{else if eq . "undoorganize"}}bi-arrow-counterclockwise{{else if eq . "timetobeat"}}bi-hourglass-split{{else if eq . "upload"}}bi-upload{{else}}bi-gear{{end}}{{end}}
+{{define "taskIcon"}}{{if eq . "sync"}}bi-arrow-repeat{{else if eq . "scan"}}bi-search{{else if eq . "organize"}}bi-folder-symlink{{else if eq . "cleanup"}}bi-trash3{{else if eq . "compress"}}bi-file-zip{{else if eq . "decompress"}}bi-box-arrow-up{{else if eq . "verify"}}bi-shield-check{{else if eq . "covers"}}bi-images{{else if eq . "thumbnails"}}bi-aspect-ratio{{else if eq . "copy"}}bi-sd-card{{else if eq . "convert"}}bi-arrow-left-right{{else if eq . "pack"}}bi-box-seam{{else if eq . "split"}}bi-scissors{{else if eq . "nupfix"}}bi-wrench-adjustable{{else if eq . "nupicon"}}bi-image{{else if eq . "undoorganize"}}bi-arrow-counterclockwise{{else if eq . "timetobeat"}}bi-hourglass-split{{else if eq . "upload"}}bi-upload{{else if eq . "netinstall"}}bi-router{{else}}bi-gear{{end}}{{end}}
 
-{{define "taskTrigger"}}{{if eq . "manual"}}{{t "Started by you"}}{{else if eq . "schedule"}}{{t "Scheduled"}}{{else if eq . "watcher"}}{{t "Files changed"}}{{else if eq . "settings"}}{{t "Settings saved"}}{{else if eq . "startup"}}{{t "App started"}}{{else if eq . "organize"}}{{t "After organizing"}}{{else if eq . "compress"}}{{t "After compressing"}}{{else if eq . "upload"}}{{t "After an upload"}}{{else if eq . "scan"}}{{t "After the scan"}}{{else if eq . "automation"}}{{t "Automations"}}{{else if eq . "resume"}}{{t "Going on after a restart"}}{{else}}{{.}}{{end}}{{end}}
+{{define "taskTrigger"}}{{if eq . "manual"}}{{t "Started by you"}}{{else if eq . "schedule"}}{{t "Scheduled"}}{{else if eq . "watcher"}}{{t "Files changed"}}{{else if eq . "settings"}}{{t "Settings saved"}}{{else if eq . "startup"}}{{t "App started"}}{{else if eq . "organize"}}{{t "After organizing"}}{{else if eq . "compress"}}{{t "After compressing"}}{{else if eq . "upload"}}{{t "After an upload"}}{{else if eq . "scan"}}{{t "After the scan"}}{{else if eq . "automation"}}{{t "Automations"}}{{else if eq . "resume"}}{{t "Going on after a restart"}}{{else if eq . "console"}}{{t "From the console"}}{{else}}{{.}}{{end}}{{end}}
+
+{{/* an install over the network going on: one card per console, its files in lanes (see
+web/netprogress.go). Pause and Cancel only for NXDock, on a console of who looks: NXDock asks on
+its screen before cancelling */}}
+{{define "netRunning"}}
+					<article id="net-{{.Id}}" class="surface task-card mb-3 net-task{{if .Paused}} is-paused{{end}}" data-task-id="net-{{.Id}}">
+						<div class="d-flex align-items-center gap-3 mb-3">
+							<span class="stat-icon task-icon is-net"><span class="bi bi-arrow-down-circle" aria-hidden="true"></span></span>
+							<div class="flex-grow-1 min-w-0">
+								<h3 class="h6 fw-semibold mb-0">{{t "Install over the network"}} &rarr; {{.Console}} <span class="net-via{{if eq .Via "NXDock"}} is-nxdock{{end}}">{{.Via}}</span></h3>
+								<div class="small text-body-secondary">{{t "From the console"}} &middot; {{t "started %v" (formatDateTime .Started)}}{{if ne .Via "NXDock"}} &middot; {{t "counted from what the app sends"}}{{end}}</div>
+							</div>
+							{{- if and (eq .Via "NXDock") .Mine (not .Gone)}}
+							{{- if .Paused}}
+							<button type="button" class="btn btn-sm btn-primary rounded-pill" data-net-ask="resume" data-net-console="{{.Id}}"><span class="bi bi-play-fill me-1" aria-hidden="true"></span>{{t "Go on"}}</button>
+							{{- else}}
+							<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-net-ask="pause" data-net-console="{{.Id}}"><span class="bi bi-pause-fill me-1" aria-hidden="true"></span>{{t "Pause"}}</button>
+							{{- end}}
+							{{- with .Current}}
+							<button type="button" class="btn btn-sm btn-outline-danger rounded-pill" data-net-ask="cancel" data-net-console="{{$.Id}}" data-net-job="{{.Job}}" data-net-game="{{.Name}}"><span class="bi bi-x-circle me-1" aria-hidden="true"></span>{{t "Cancel"}}</button>
+							{{- end}}
+							{{- end}}
+							{{- if .Paused}}
+							<span class="chip chip-warning flex-shrink-0"><span class="bi bi-pause-circle" aria-hidden="true"></span>{{t "Paused"}}</span>
+							{{- else if .Gone}}
+							<span class="chip chip-warning flex-shrink-0"><span class="bi bi-wifi-off" aria-hidden="true"></span>{{t "The console is not answering"}}</span>
+							{{- else}}
+							<span class="spinner-border spinner-border-sm text-work flex-shrink-0" aria-hidden="true"></span>
+							{{- end}}
+						</div>
+						<div class="d-flex justify-content-between gap-2 small fw-semibold mb-1"><span>{{t "Total"}}</span><span class="text-body-secondary text-nowrap task-file-count">{{if eq .Via "NXDock"}}{{t "%v of %v files" (num .Number) (num (len .Files))}}{{else}}{{t "%v files asked for" (num (len .Files))}}{{end}}</span></div>
+						<div class="progress mb-2" role="progressbar" aria-label="{{t "Progress"}}" aria-valuenow="{{printf "%.0f" .Percent}}" aria-valuemin="0" aria-valuemax="100">
+							<div class="progress-bar progress-bar-striped progress-bar-animated task-total-bar" style="width: {{.PercentText}}%; --pct: {{.PercentText}}"></div>
+						</div>
+						<div class="d-flex flex-wrap justify-content-between column-gap-3 small text-body-secondary">
+							<span class="text-truncate task-message">{{with .Current}}{{t "Now: %v" .Name}}{{end}}</span>
+							<span class="text-nowrap">{{formatSize .Done}} / {{formatSize .Size}} &middot; {{printf "%.0f" .Percent}}%{{with .Speed}} &middot; {{formatSpeed .}}{{end}}{{with .LeftText}} &middot; {{t "%v left" .}}{{end}}</span>
+						</div>
+						<ul class="task-lanes list-unstyled mb-0 mt-3" aria-label="{{t "Files"}}">
+							{{- range $i, $file := .Files}}
+							<li class="task-lane{{if eq .State "waiting"}} net-lane-waiting{{end}}">
+								{{- if .Cover}}
+								<span class="task-lane-thumb" style="--lane-fill: {{printf "%.1f" .Percent}}%"><img class="task-lane-cover" src="{{.Cover}}" alt="" width="36" height="36" loading="lazy" decoding="async"></span>
+								{{- else}}
+								<span class="task-lane-number" aria-hidden="true" style="--lane-fill: {{printf "%.1f" .Percent}}%">{{add $i 1}}</span>
+								{{- end}}
+								<div class="task-lane-main">
+									<div class="task-file-line small">
+										<span class="text-truncate" title="{{.Name}}{{with .Label}} · {{.}}{{end}}">{{template "netFileName" .}}</span>
+										{{- if eq .State "running"}}
+										{{- with .StageName}}<span class="task-phase text-nowrap"><span class="lane-dot lane-{{$file.Tone}}" aria-hidden="true"></span>{{t .}}</span>{{end}}
+										<span class="text-nowrap text-body-secondary">{{formatSize .Done}} / {{formatSize .Size}} &middot; {{printf "%.0f" .Percent}}%{{with .Speed}} &middot; {{formatSpeed .}}{{end}}{{with .Average}} &middot; {{t "%v on average" (formatSpeed .)}}{{end}}{{with .LeftText}} &middot; {{t "%v left" .}}{{end}}</span>
+										{{- else}}
+										<span class="net-lane-state">{{template "netChip" (dict "State" .State "Via" $.Via "Error" .Error)}}</span>
+										{{- end}}
+									</div>
+									{{- if eq .State "running"}}
+									<div class="progress task-lane-bar" role="progressbar" aria-label="{{.Name}}" aria-valuenow="{{printf "%.0f" .Percent}}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar progress-bar-striped progress-bar-animated {{with .Tone}}lane-{{.}}{{else}}is-work{{end}}" style="width: {{printf "%.1f" .Percent}}%"></div></div>
+									{{- end}}
+								</div>
+							</li>
+							{{- end}}
+						</ul>
+					</article>
+{{- end}}
+
+{{/* the name of a file sent: the game, then the update, the DLC or what NXDock calls it */}}
+{{define "netFileName"}}{{.Name}}{{if eq .Kind "update"}} &middot; {{t "Update"}} {{.Label}}{{else if eq .Kind "game"}} &middot; {{t "Game"}}{{else if .Label}} &middot; {{.Label}}{{end}}{{end}}
+
+{{/* how a file sent ended: installed (NXDock tells it) or sent whole, cut, failed, cancelled */}}
+{{define "netChip"}}
+{{- if eq .State "done"}}<span class="chip chip-success"><span class="bi bi-check-circle" aria-hidden="true"></span>{{if eq .Via "NXDock"}}{{t "Install done"}}{{else}}{{t "Sent"}}{{end}}</span>
+{{- else if eq .State "cut"}}<span class="chip chip-warning" title="{{t "The console stopped asking for it for a minute."}}"><span class="bi bi-scissors" aria-hidden="true"></span>{{t "Cut"}}</span>
+{{- else if eq .State "failed"}}<span class="chip chip-danger"{{with .Error}} title="{{.}}"{{end}}><span class="bi bi-x-circle" aria-hidden="true"></span>{{t "Error"}}</span>
+{{- else if eq .State "cancelled"}}<span class="chip chip-muted"><span class="bi bi-slash-circle" aria-hidden="true"></span>{{t "Cancelled"}}</span>
+{{- else}}<span class="chip chip-muted"><span class="bi bi-hourglass" aria-hidden="true"></span>{{t "Waiting"}}</span>
+{{- end}}
+{{- end}}
+
+{{/* how the files of an install over the network ended, in a few words */}}
+{{define "netCounts"}}
+{{- if eq .Via "NXDock"}}{{t "%v installed" (.SentCount "done")}}{{else}}{{t "%v sent whole" (.SentCount "done")}}{{end}}
+{{- with .SentCount "cut"}}, {{t "%v cut" .}}{{end}}
+{{- with .SentCount "failed"}}, {{t "%v with an error" .}}{{end}}
+{{- with .SentCount "cancelled"}}, {{t "%v cancelled" .}}{{end}}
+{{- end}}
+
+{{/* what an install over the network sent: each file with how much, how long, its average (a bar
+to compare them) and how it ended */}}
+{{define "netSent"}}
+{{- if .Sent}}
+{{- $fastest := .SentFastest}}
+{{- $via := .Via}}
+<details class="task-results net-results mt-2" data-task-results="{{.Id}}" open>
+	<summary class="small fw-semibold">{{t "Files"}} ({{len .Sent}})</summary>
+	<ul class="list-unstyled small mb-0 mt-1 net-result-list">
+		{{- range .Sent}}
+		<li>
+			{{- if .Cover}}<img class="net-result-cover" src="{{.Cover}}" alt="" width="28" height="28" loading="lazy" decoding="async">{{else}}<span class="net-result-cover bi bi-file-earmark-zip" aria-hidden="true"></span>{{end}}
+			<span class="net-result-name">
+				<span class="d-block text-truncate" title="{{.Name}}{{with .Label}} · {{.}}{{end}}">{{template "netFileName" .}}</span>
+				<span class="text-body-secondary">{{if eq .State "done"}}{{formatSize .Size}}{{else}}{{t "%v of %v" (formatSize .Done) (formatSize .Size)}}{{end}}{{if .Seconds}} &middot; {{.Took}}{{end}}{{if .Error}} &middot; <span class="text-danger-emphasis">{{.Error}}</span>{{else if eq .State "cut"}} &middot; {{t "the console stopped asking for it"}}{{end}}</span>
+			</span>
+			{{- with .Average}}<span class="net-result-speed text-nowrap text-body-secondary"><span class="net-speedline" aria-hidden="true"><span style="width: {{speedWidth . $fastest}}%"></span></span>{{t "%v on average" (formatSpeed .)}}</span>{{end}}
+			{{- template "netChip" (dict "State" .State "Via" $via "Error" .Error)}}
+		</li>
+		{{- end}}
+	</ul>
+</details>
+{{- end}}
+{{- end}}
