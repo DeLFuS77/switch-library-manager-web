@@ -1316,6 +1316,104 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0 .5rem;
+		width: 100%;
+	}
+
+	.net-send-size {
+		margin-left: auto;
+		font-variant-numeric: tabular-nums;
+	}
+}
+
+// how the files go: Normal in the blue of work, Compressed (experimental) in the violet of the
+// tools, deeper on the light theme and lighter on the dark one; never red, which tells errors.
+// Two cards big enough for a finger
+.net-send-modes,
+.net-send-less,
+.net-send-saving {
+	--net-exp: #{$slm-violet-deep};
+
+	[data-bs-theme="dark"] & {
+		--net-exp: #{$slm-violet-light};
+	}
+}
+
+.net-send-modes {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: .5rem;
+	margin-top: .25rem;
+}
+
+.net-send-mode {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	min-height: 3.5rem;
+	margin: 0;
+	padding: .5rem .75rem;
+	border: 1px solid var(--bs-border-color);
+	border-radius: .625rem;
+	background: var(--bs-tertiary-bg);
+	cursor: pointer;
+	transition: border-color .2s, box-shadow .2s, transform .15s;
+
+	&:hover {
+		transform: translateY(-1px);
+	}
+
+	.btn-check:checked + & {
+		border-color: rgb(var(--slm-work-rgb));
+		box-shadow: inset 0 0 0 1px rgb(var(--slm-work-rgb));
+	}
+
+	.btn-check:checked + &.net-send-mode-exp {
+		border-color: var(--net-exp);
+		box-shadow: inset 0 0 0 1px var(--net-exp);
+	}
+
+	.btn-check:focus-visible + & {
+		outline: 2px solid rgb(var(--slm-work-rgb));
+		outline-offset: 2px;
+	}
+}
+
+.net-send-mode-name {
+	font-size: .875rem;
+	font-weight: 600;
+}
+
+.net-send-mode-why {
+	font-size: .75rem;
+	color: var(--bs-secondary-color);
+}
+
+.net-send-exp {
+	display: inline-block;
+	margin-left: .25rem;
+	padding: 0 .4rem;
+	border: 1px solid var(--net-exp);
+	border-radius: 999px;
+	color: var(--net-exp);
+	font-size: .6875rem;
+	font-weight: 700;
+	letter-spacing: .03em;
+	text-transform: uppercase;
+	vertical-align: .1rem;
+}
+
+.net-send-files .net-send-size.net-send-less,
+.net-send-saving {
+	color: var(--net-exp);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.net-send-mode {
+		transition: none;
+
+		&:hover {
+			transform: none;
+		}
 	}
 }
 
@@ -1348,8 +1446,118 @@
 .net-queue-box {
 	padding: .5rem .75rem;
 	border: 1px solid var(--bs-border-color);
-	border-left: 3px solid var(--bs-primary);
+	// progress in the blue of the work; how it ended once it ended (red only for an error)
+	border-left: 3px solid rgb(var(--slm-work-rgb));
 	border-radius: .5rem;
+
+	&.is-ended { border-left-color: var(--bs-success); }
+	&.is-ended-warn { border-left-color: var(--bs-warning); }
+	&.is-ended-fail { border-left-color: var(--bs-danger); }
+}
+
+.net-fade-note {
+	font-size: var(--slm-text-xs);
+	color: var(--bs-secondary-color);
+}
+
+// an install over the network on the Tasks page (see tasks.html, netRunning and netSent)
+.net-via {
+	display: inline-block;
+	padding: .05rem .45rem;
+	border: 1px solid var(--bs-border-color);
+	border-radius: 1rem;
+	font-size: var(--slm-text-xs);
+	font-weight: 600;
+	line-height: 1.4;
+	color: var(--bs-secondary-color);
+	vertical-align: .1rem;
+
+	&.is-nxdock {
+		border-color: rgba(var(--slm-work-rgb), .55);
+		color: rgb(var(--slm-work-rgb));
+	}
+}
+
+.task-icon.is-net .bi {
+	color: rgb(var(--slm-work-rgb));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.net-task .task-icon.is-net .bi-arrow-down-circle {
+		display: inline-block;
+		animation: net-drop 1.6s ease-in-out infinite;
+	}
+}
+
+@keyframes net-drop {
+	0%, 100% { transform: translateY(-1px); }
+	50% { transform: translateY(2px); }
+}
+
+.net-lane-waiting {
+	opacity: .55;
+}
+
+.net-lane-state {
+	font-size: var(--slm-text-xs);
+}
+
+// the files are always listed, also in the view by covers
+.tasks-by-covers .net-task .task-lanes,
+.tasks-by-covers .net-results {
+	display: block;
+}
+
+.tasks-by-covers .net-task .task-lane-bar {
+	display: flex;
+}
+
+.net-result-list li {
+	display: flex;
+	align-items: center;
+	gap: .6rem;
+	padding: .3rem 0;
+	border-top: 1px solid var(--bs-border-color-translucent);
+
+	&:first-child { border-top: 0; }
+}
+
+.net-result-cover {
+	flex-shrink: 0;
+	width: 28px;
+	height: 28px;
+	border-radius: .3rem;
+	text-align: center;
+	line-height: 28px;
+}
+
+.net-result-name {
+	flex-grow: 1;
+	min-width: 0;
+}
+
+// the average of a file against the fastest of its run
+.net-speedline {
+	display: inline-block;
+	width: 4.5rem;
+	height: .3rem;
+	margin-right: .35rem;
+	overflow: hidden;
+	border-radius: 1rem;
+	background: rgba(127, 127, 127, .25);
+	vertical-align: middle;
+
+	> span {
+		display: block;
+		height: 100%;
+		border-radius: inherit;
+		background: rgb(var(--slm-work-rgb));
+	}
+}
+
+@media (max-width: 575.98px) {
+	.net-result-list li { flex-wrap: wrap; }
+	.net-result-speed { order: 3; width: 100%; padding-left: calc(28px + .6rem); }
 }
 
 .net-queue-bar {

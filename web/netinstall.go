@@ -811,7 +811,16 @@ func (web *Web) serveNetFile(w http.ResponseWriter, r *http.Request, file netFil
 	if r.Method == http.MethodGet && (r.Header.Get("Range") == "" || strings.HasPrefix(r.Header.Get("Range"), "bytes=0-")) {
 		web.noteNetInstall(r, file)
 	}
-	if file.stream != nil && r.URL.Query().Get("raw") != "1" {
+	raw := r.URL.Query().Get("raw") == "1"
+	// what is sent is counted, for the Tasks page: a file given as it is, by its size on disk
+	counted := file
+	if file.stream != nil && raw {
+		if stat, err := os.Stat(file.path); err == nil {
+			counted.size = stat.Size()
+		}
+	}
+	w = web.netSendCounted(w, r, counted)
+	if file.stream != nil && !raw {
 		reader := file.stream.Reader()
 		defer reader.Close()
 		http.ServeContent(w, r, "", file.modTime, reader)

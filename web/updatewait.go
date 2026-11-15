@@ -40,7 +40,8 @@ func (b busyWork) pausedOnly() bool {
 // work tells the work going on. While the update holds the files and the scans itself (held),
 // those holds are not work.
 func (web *Web) work(held bool) busyWork {
-	b := busyWork{Tasks: web.taskLog().RunningCount() + len(web.queue().list())}
+	// a console installing over the network counts as a task
+	b := busyWork{Tasks: web.taskLog().RunningCount() + len(web.queue().list()) + web.netSends.count()}
 	if web.automationPending() > 0 {
 		b.Tasks++
 	}

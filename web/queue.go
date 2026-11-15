@@ -227,6 +227,8 @@ func (web *Web) startQueued(task QueuedTask) bool {
 		return web.startPacks(task.Paths, task.Names, task.Delete, tasklog.TRIGGER_MANUAL)
 	case tasklog.TASK_OPTIMIZE:
 		return web.startOptimize(task.Paths, task.Names, tasklog.TRIGGER_MANUAL)
+	case tasklog.TASK_NET_PREPARE:
+		return web.startNetPrepare(task.Paths, task.Names, tasklog.TRIGGER_MANUAL)
 	case tasklog.TASK_SPLIT:
 		return web.startSplitBy(task.Paths, task.Delete, tasklog.TRIGGER_MANUAL)
 	case tasklog.TASK_NUP_FIX:
@@ -297,7 +299,7 @@ func (web *Web) runQueue() {
 
 // queueKinds are the kinds of tasks the queue runs.
 var queueKinds = map[string]bool{tasklog.TASK_COMPRESS: true, tasklog.TASK_DECOMPRESS: true, tasklog.TASK_CONVERT: true, tasklog.TASK_PACK: true, tasklog.TASK_SPLIT: true, tasklog.TASK_VERIFY: true, tasklog.TASK_OPTIMIZE: true,
-	tasklog.TASK_NUP_FIX: true, tasklog.TASK_NUP_ICON: true}
+	tasklog.TASK_NUP_FIX: true, tasklog.TASK_NUP_ICON: true, tasklog.TASK_NET_PREPARE: true}
 
 // notifyQueueDone tells by the channels of the notifications that the queue is done, with each
 // task on files that ran since it began and how it ended.
@@ -340,9 +342,20 @@ func (web *Web) notifyQueueDone(since time.Time) {
 // startOrQueue starts a task now when nothing works on the files, or puts it at the end of
 // the queue, and answers which: {"started": files} or {"queued": its place}.
 func (web *Web) startOrQueue(w http.ResponseWriter, task QueuedTask) {
+	if position := web.enqueue(task); position > 0 {
+		writeJSON(w, http.StatusAccepted, map[string]any{"queued": position})
+		return
+	}
+	writeJSON(w, http.StatusAccepted, map[string]any{"started": len(task.Paths)})
+}
+
+// enqueue starts a task now when nothing works on the files, or puts it at the end of the queue,
+// and tells its place there: 0 when it started.
+func (web *Web) enqueue(task QueuedTask) int {
 	id := web.queue().add(task)
 	web.runQueue()
-	if position := web.queue().position(id); position > 0 {
+	position := web.queue().position(id)
+	if position > 0 {
 		// the run of the queue begins with the task working now
 		begun := time.Now()
 		for _, running := range web.taskLog().Snapshot() {
@@ -352,10 +365,8 @@ func (web *Web) startOrQueue(w http.ResponseWriter, task QueuedTask) {
 		}
 		web.queue().begin(begun)
 		web.taskLog().Touch()
-		writeJSON(w, http.StatusAccepted, map[string]any{"queued": position})
-		return
 	}
-	writeJSON(w, http.StatusAccepted, map[string]any{"started": len(task.Paths)})
+	return position
 }
 
 // QueuedView is a task of the queue as the page of the tasks shows it.
@@ -387,6 +398,12 @@ func (web *Web) handleQueue() {
 				if id, err := strconv.ParseInt(strings.TrimSpace(part), 10, 64); err == nil {
 					ids[id] = true
 				}
+			}
+		}
+		// what was sent to a console with a game to compress first no longer waits for it
+		for _, item := range web.queue().list() {
+			if ids[item.Id] && item.Kind == tasklog.TASK_NET_PREPARE {
+				web.netPrepareEnded(item.Paths)
 			}
 		}
 		removed := web.queue().remove(ids)

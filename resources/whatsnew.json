@@ -1,4 +1,83 @@
 {
+  "2.0.9": {
+    "en": [
+      "Send to console: a Compressed (experimental) option sends less over the network; NXDock decompresses it while installing.",
+      "Tasks shows what each console is being sent, also with DBI and Tinfoil, and a summary with the average speed when it ends.",
+      "Compress: NSZ files use a window of 128 MiB, which makes some games 5 to 17 % smaller.",
+      "Optimize for install: the game and its update are merged in one pass, in less time.",
+      "Organize: the new field {LANGUAGE} writes the languages of the game (En,Ja,Fr)."
+    ],
+    "es": [
+      "Enviar a la consola: la opción Comprimido (experimental) envía menos datos por la red; NXDock lo descomprime al instalar.",
+      "Tareas enseña lo que se envía a cada consola, también con DBI y Tinfoil, y un resumen con la velocidad media al acabar.",
+      "Comprimir: los NSZ usan una ventana de 128 MiB, que deja algunos juegos entre un 5 y un 17 % más pequeños.",
+      "Optimizar para instalar: el juego y su actualización se juntan en una sola pasada, en menos tiempo.",
+      "Organizar: el campo nuevo {LANGUAGE} escribe los idiomas del juego (En,Ja,Fr)."
+    ],
+    "de": [
+      "An die Konsole senden: die Option Komprimiert (experimentell) schickt weniger über das Netzwerk; NXDock entpackt es beim Installieren.",
+      "Aufgaben zeigt, was an jede Konsole gesendet wird, auch mit DBI und Tinfoil, und am Ende eine Übersicht mit der durchschnittlichen Geschwindigkeit.",
+      "Komprimieren: NSZ-Dateien nutzen ein Fenster von 128 MiB, das manche Spiele 5 bis 17 % kleiner macht.",
+      "Für die Installation optimieren: Spiel und Update werden in einem Durchgang zusammengeführt, in kürzerer Zeit.",
+      "Organisieren: das neue Feld {LANGUAGE} schreibt die Sprachen des Spiels (En,Ja,Fr)."
+    ],
+    "fr": [
+      "Envoyer à la console : l'option Compressé (expérimental) envoie moins de données sur le réseau ; NXDock le décompresse pendant l'installation.",
+      "Tâches montre ce qui est envoyé à chaque console, aussi avec DBI et Tinfoil, et un résumé avec la vitesse moyenne à la fin.",
+      "Compresser : les NSZ utilisent une fenêtre de 128 Mio, qui rend certains jeux de 5 à 17 % plus petits.",
+      "Optimiser pour l'installation : le jeu et sa mise à jour sont fusionnés en une seule passe, en moins de temps.",
+      "Organiser : le nouveau champ {LANGUAGE} écrit les langues du jeu (En,Ja,Fr)."
+    ],
+    "it": [
+      "Invia alla console: l'opzione Compresso (sperimentale) invia meno dati in rete; NXDock lo decomprime durante l'installazione.",
+      "Attività mostra cosa viene inviato a ogni console, anche con DBI e Tinfoil, e un riepilogo con la velocità media alla fine.",
+      "Comprimi: i file NSZ usano una finestra di 128 MiB, che rende alcuni giochi più piccoli dal 5 al 17 %.",
+      "Ottimizza per l'installazione: il gioco e il suo aggiornamento vengono uniti in un solo passaggio, in meno tempo.",
+      "Organizza: il nuovo campo {LANGUAGE} scrive le lingue del gioco (En,Ja,Fr)."
+    ],
+    "pt": [
+      "Enviar para a consola: a opção Comprimido (experimental) envia menos dados pela rede; o NXDock descomprime-o ao instalar.",
+      "Tarefas mostra o que é enviado a cada consola, também com DBI e Tinfoil, e um resumo com a velocidade média no fim.",
+      "Comprimir: os NSZ usam uma janela de 128 MiB, que deixa alguns jogos de 5 a 17 % menores.",
+      "Otimizar para instalar: o jogo e a sua atualização são juntados numa só passagem, em menos tempo.",
+      "Organizar: o novo campo {LANGUAGE} escreve os idiomas do jogo (En,Ja,Fr)."
+    ],
+    "nl": [
+      "Naar console sturen: de optie Gecomprimeerd (experimenteel) stuurt minder over het netwerk; NXDock pakt het uit tijdens het installeren.",
+      "Taken toont wat naar elke console wordt gestuurd, ook met DBI en Tinfoil, en aan het eind een overzicht met de gemiddelde snelheid.",
+      "Comprimeren: NSZ-bestanden gebruiken een venster van 128 MiB, waardoor sommige games 5 tot 17 % kleiner worden.",
+      "Optimaliseren voor installatie: de game en zijn update worden in één keer samengevoegd, in minder tijd.",
+      "Ordenen: het nieuwe veld {LANGUAGE} schrijft de talen van de game (En,Ja,Fr)."
+    ],
+    "ru": [
+      "Отправка на консоль: вариант «Сжато (экспериментально)» передаёт по сети меньше данных; NXDock распаковывает его при установке.",
+      "«Задачи» показывают, что отправляется на каждую консоль, также с DBI и Tinfoil, и в конце сводку со средней скоростью.",
+      "Сжатие: файлы NSZ используют окно 128 МиБ, и некоторые игры становятся меньше на 5–17 %.",
+      "Оптимизация для установки: игра и её обновление объединяются за один проход, быстрее.",
+      "Упорядочивание: новое поле {LANGUAGE} записывает языки игры (En,Ja,Fr)."
+    ],
+    "ja": [
+      "本体に送信：「圧縮（実験的）」を選ぶとネットワークで送るデータが減り、NXDock がインストール中に展開します。",
+      "タスクで各本体に送信中の内容を表示（DBI と Tinfoil も対応）し、終了後は平均速度付きのまとめを表示します。",
+      "圧縮：NSZ は 128 MiB のウィンドウを使い、一部のゲームが 5〜17 % 小さくなります。",
+      "インストール向けに最適化：ゲームと更新データを 1 回で統合し、時間が短くなりました。",
+      "整理：新しい項目 {LANGUAGE} でゲームの言語（En,Ja,Fr）を書き込めます。"
+    ],
+    "ko": [
+      "콘솔로 보내기: '압축(실험적)' 옵션으로 네트워크로 보내는 데이터가 줄고, NXDock이 설치하면서 압축을 풉니다.",
+      "작업에서 각 콘솔로 보내는 내용을 보여 주며(DBI, Tinfoil 포함), 끝나면 평균 속도가 담긴 요약을 보여 줍니다.",
+      "압축: NSZ 파일이 128 MiB 창을 사용해 일부 게임이 5~17 % 작아집니다.",
+      "설치용 최적화: 게임과 업데이트를 한 번에 합쳐 시간이 줄었습니다.",
+      "정리: 새 필드 {LANGUAGE}가 게임의 언어(En,Ja,Fr)를 씁니다."
+    ],
+    "zh": [
+      "发送到主机：「压缩（实验性）」选项通过网络发送的数据更少，NXDock 在安装时解压。",
+      "任务页显示正在发送到每台主机的内容（也支持 DBI 和 Tinfoil），结束后显示含平均速度的摘要。",
+      "压缩：NSZ 文件使用 128 MiB 的窗口，部分游戏可缩小 5% 到 17%。",
+      "为安装优化：游戏与其更新一次合并完成，用时更短。",
+      "整理：新字段 {LANGUAGE} 写入游戏的语言（En,Ja,Fr）。"
+    ]
+  },
   "2.0.8": {
     "en": [
       "Optimize for install: a game whose base Nintendo cut down no longer asks for its update when it starts. Optimize such games again.",

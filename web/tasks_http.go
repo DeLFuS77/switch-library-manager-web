@@ -21,6 +21,8 @@ type TasksPageData struct {
 	Finished []TaskGroup
 	// the tasks on files waiting for their turn
 	Queue []QueuedView
+	// what the consoles are sent over the network now (see netprogress.go)
+	NetRunning []NetSendView
 	// what waits while a task on files is paused
 	Waits PausedWaits
 	// the version of the task list, so the page knows when to refresh
@@ -73,16 +75,21 @@ func (web *Web) pausedWaits() PausedWaits {
 	return waits
 }
 
-func (web *Web) tasksPageData() TasksPageData {
-	data := web.taskListData()
+func (web *Web) tasksPageData(r *http.Request) TasksPageData {
+	data := web.taskListData(r)
 	data.GlobalPageData = web.globalPageData("tasks")
 	return data
 }
 
 // taskListData is the list of tasks alone, refreshed by the page while tasks run: it needs
 // none of the header.
-func (web *Web) taskListData() TasksPageData {
+func (web *Web) taskListData(r *http.Request) TasksPageData {
 	data := TasksPageData{Running: []tasklog.Task{}, ListVersion: web.taskLog().Version()}
+	data.NetRunning, _ = web.netSends.views(time.Now())
+	viewer := principalFrom(r).Name
+	for i := range data.NetRunning {
+		data.NetRunning[i].Mine = viewer != "" && strings.EqualFold(data.NetRunning[i].User, viewer)
+	}
 	finished := []tasklog.Task{}
 	paused := false
 	for _, task := range web.taskLog().Snapshot() {
@@ -265,7 +272,8 @@ type TaskGroup struct {
 func groupTasks(tasks []tasklog.Task) []TaskGroup {
 	groups := []TaskGroup{}
 	quiet := func(task tasklog.Task) bool {
-		return task.Status == tasklog.TASK_SUCCESS && task.Error == nil && len(task.Warnings) == 0
+		// an install over the network tells what each console got: each is kept apart
+		return task.Status == tasklog.TASK_SUCCESS && task.Error == nil && len(task.Warnings) == 0 && task.Kind != tasklog.TASK_NET_INSTALL
 	}
 	for _, task := range tasks {
 		if n := len(groups); n > 0 {
@@ -304,12 +312,12 @@ func (web *Web) HandleTasks() {
 			// the list alone, refreshed by the page while tasks run
 			w.Header().Set("Cache-Control", "no-store")
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			if err := templates.executeTemplate(w, web.requestLanguage(r), "taskList", web.taskListData()); err != nil {
+			if err := templates.executeTemplate(w, web.requestLanguage(r), "taskList", web.taskListData(r)); err != nil {
 				web.sugarLogger.Error(fmt.Errorf("executing template failed: %w", err))
 			}
 			return
 		}
-		web.render(w, r, templates, web.tasksPageData())
+		web.render(w, r, templates, web.tasksPageData(r))
 	}).Methods("GET")
 
 	web.router.HandleFunc("/api/tasks", func(w http.ResponseWriter, r *http.Request) {

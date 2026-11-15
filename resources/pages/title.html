@@ -438,10 +438,23 @@
 						<div class="modal-body">
 							<label class="form-label small fw-semibold" for="net_send_console">{{t "Console"}}</label>
 							<select class="form-select mb-3" id="net_send_console" data-net-send-console></select>
+							{{- /* Normal, or the experimental format of NXPress, which NXDock decompresses while it installs; what it is shows on hover */}}
+							<div class="mb-3" data-hover-help>
+								<span class="small fw-semibold help-name" id="netSendHow">{{t "How it is sent"}}</span>
+								<div class="form-text">{{t "Normal: the format every installer reads. Compressed (experimental): the format of NXPress that compresses more. Less data goes over the network and NXDock decompresses it while installing. A game not stored so is compressed first by the app (it shows in Tasks). It is new: if it fails, send it as Normal."}}</div>
+								<div class="net-send-modes" role="radiogroup" aria-labelledby="netSendHow">
+									<input type="radio" class="btn-check" name="net_send_mode" id="net_send_normal" value="normal" checked data-net-send-mode>
+									<label class="net-send-mode" for="net_send_normal"><span class="net-send-mode-name">{{t "Normal"}}</span><span class="net-send-mode-why">{{t "Always works"}}</span></label>
+									<input type="radio" class="btn-check" name="net_send_mode" id="net_send_compressed" value="compressed" data-net-send-mode>
+									<label class="net-send-mode net-send-mode-exp" for="net_send_compressed"><span class="net-send-mode-name">{{t "Compressed"}} <span class="net-send-exp">{{t "exp."}}</span></span><span class="net-send-mode-why">{{t "Less data over the network"}}</span></label>
+								</div>
+								<p class="small text-body-secondary mt-2 mb-0" data-net-send-note aria-live="polite"></p>
+							</div>
 							<fieldset class="mb-0">
 								<legend class="small fw-semibold mb-1">{{t "Files"}}</legend>
 								<p class="small text-body-secondary mb-2">{{t "Ticked: the game and its newest update, unless the console is known to have them."}}</p>
 								<div class="net-send-files" data-net-send-files></div>
+								<p class="net-send-saving small mt-2 mb-0" data-net-send-saving hidden></p>
 							</fieldset>
 							<p class="small text-body-secondary mt-3 mb-0"><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "The console asks before installing: open NXDock on it."}}</p>
 							<div class="net-error small mt-2" role="alert" data-net-send-error hidden></div>

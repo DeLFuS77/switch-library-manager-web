@@ -33,6 +33,9 @@ const (
 	// a game and its update made one NSP that takes the least room installed (experimental)
 	TASK_OPTIMIZE = "optimize"
 	TASK_SPLIT    = "split"
+	// a game compressed in the experimental format of NXPress to be sent to a console, into the
+	// data folder: the library is not touched
+	TASK_NET_PREPARE = "net-prepare"
 	// the metadata of a NUP counted from 0 written again, for Eglantine and Lichii
 	TASK_NUP_FIX = "nupfix"
 	// a NUP without an icon given the cover of its game
@@ -116,9 +119,10 @@ const (
 
 // formatChanges are the formats a task on files turns a file into, by kind and extension.
 var formatChanges = map[string]map[string]string{
-	TASK_COMPRESS:   {".nsp": "NSP → NSZ", ".xci": "XCI → XCZ"},
-	TASK_DECOMPRESS: {".nsz": "NSZ → NSP", ".xcz": "XCZ → XCI"},
-	TASK_CONVERT:    {".xci": "XCI → NSP", ".xcz": "XCZ → NSZ"},
+	TASK_COMPRESS:    {".nsp": "NSP → NSZ", ".xci": "XCI → XCZ"},
+	TASK_DECOMPRESS:  {".nsz": "NSZ → NSP", ".xcz": "XCZ → XCI"},
+	TASK_CONVERT:     {".xci": "XCI → NSP", ".xcz": "XCZ → NSZ"},
+	TASK_NET_PREPARE: {".nsp": "NSP → NSZ"},
 }
 
 // FormatChange is the change of format of a file in a task on files, e.g. "NSP → NSZ", or ""
@@ -208,6 +212,11 @@ type Task struct {
 	LeftAt    time.Time     `json:"leftAt,omitempty"`
 	// on the Tasks page only: the next file a task on files will take, and its cover
 	Next *Lane `json:"-"`
+	// an install over the network: the console, how it asked (DBI, Tinfoil, NXDock) and what it
+	// was sent (see netinstall.go)
+	Console string     `json:"console,omitempty"`
+	Via     string     `json:"via,omitempty"`
+	Sent    []SentFile `json:"sent,omitempty"`
 }
 
 // Lane is a file a running task is working on, with its own progress in bytes.
@@ -579,7 +588,7 @@ func (t Task) SpeedAt(now time.Time) int {
 // measuredInMegabytes tells the tasks whose progress counts megabytes of files.
 func measuredInMegabytes(kind string) bool {
 	switch kind {
-	case TASK_VERIFY, TASK_COPY, TASK_COMPRESS, TASK_DECOMPRESS, TASK_CONVERT, TASK_PACK, TASK_SPLIT, TASK_OPTIMIZE:
+	case TASK_VERIFY, TASK_COPY, TASK_COMPRESS, TASK_DECOMPRESS, TASK_CONVERT, TASK_PACK, TASK_SPLIT, TASK_OPTIMIZE, TASK_NET_PREPARE:
 		return true
 	}
 	return false

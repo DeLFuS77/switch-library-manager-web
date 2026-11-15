@@ -130,6 +130,16 @@ func FormatSizeIn(lang string, size int64) string {
 	return text
 }
 
+// FormatSpeedIn is a speed in MB/s with one decimal and the separator of the language: 41.2 MB/s,
+// 41,2 MB/s.
+func FormatSpeedIn(lang string, megabytes float64) string {
+	text := fmt.Sprintf("%.1f", megabytes)
+	if separator, ok := DecimalSeparators[lang]; ok {
+		text = strings.Replace(text, ".", separator, 1)
+	}
+	return Translatef(lang, "%v MB/s", text)
+}
+
 // FormatShortNumber writes a big number short, for the room of a phone: 24943 is "25k", and
 // "2.5万" in Japanese and Chinese, "2.5만" in Korean, which count by ten thousands.
 func FormatShortNumber(lang string, value int) string {
