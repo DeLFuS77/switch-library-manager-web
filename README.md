@@ -297,6 +297,9 @@ version or offer it over a network, its source code must stay available under th
 fork is based on did not publish a license, so their code remains under the copyright of their authors; see
 [NOTICE](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/NOTICE.md).
 
+A changed version must say it is one, and must not present itself as the version published here. See
+[TRADEMARKS.md](https://github.com/DeLFuS77/switch-library-manager-web/blob/master/TRADEMARKS.md).
+
 ### Thanks
 
 ❤️ The app is free and will stay free. If it saves you time, you can support its development with a tip on
