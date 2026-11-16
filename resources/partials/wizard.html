@@ -282,7 +282,7 @@
 						<section class="wizard-step" data-step="keys" data-icon="bi-key" data-caption="{{t "Your keys"}}" hidden>
 							<h2 class="wizard-title">{{t "Your keys"}}</h2>
 							<p class="wizard-lead">{{t "With the prod.keys dumped from your own console, the app reads the content of your files: it recognizes games whatever their name, finds damaged files and compresses. Without them it still works, from the file names. Write where they are on the server, or upload them from this computer: they stay on the server of the app and are never sent anywhere else."}}</p>
-							{{- if not .Auto}}<p class="wizard-now"><span class="bi bi-info-circle" aria-hidden="true"></span>{{t "Now:"}} {{if .KeysAvailable}}{{t "Keys found"}}{{else}}{{t "Keys not found"}}{{end}}</p>{{end}}
+							{{- if not .Auto}}<p class="wizard-now"><span class="bi bi-info-circle" aria-hidden="true"></span>{{t "Now:"}} {{if .KeysAvailable}}{{t "Keys found"}}{{else}}<span class="text-danger fw-semibold">{{t "Keys not found"}}</span>{{end}}</p>{{end}}
 							<label for="wizard_prod_keys" class="form-label fw-semibold">{{t "Your keys (prod.keys)"}}</label>
 							<div class="input-group">
 								<span class="input-group-text"><span class="bi bi-key" aria-hidden="true"></span></span>
