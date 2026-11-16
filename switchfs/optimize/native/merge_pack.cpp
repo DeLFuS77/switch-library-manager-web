@@ -337,56 +337,53 @@ bool Pack(uint64_t virt_size, const std::vector<Run>& runs_in, int level, uint32
         uint32_t n = 0;
         bool run_start = false;
         bool moved = false;
+        bool skip = false; // stored before, or the head: not compressed
         std::string key;
-        int64_t same_in_batch = -1;
         int64_t c = -1;
         std::vector<uint8_t> plain, packed, work;
     };
-    std::vector<Job> jobs(size_t(threads) * 8);
-    for (auto& j : jobs) {
-        j.plain.resize(kBlock);
-        j.packed.resize(nx_lz4_bound(kBlock));
-        j.work.resize(NX_LZ4_WORK_SIZE);
+    // Two batches: the next one is read and planned while the cores compress the one before
+    // (reading is mostly waiting on the storage, compressing is the cores), then that one is
+    // written in order. What the cores look at is only their batch: which blocks to skip is
+    // decided as it is planned.
+    struct Batch {
+        std::vector<Job> jobs;
+        size_t count = 0;
+        std::vector<std::thread> workers;
+    };
+    Batch sets[2];
+    for (auto& b : sets) {
+        b.jobs.resize(size_t(threads) * 8);
+        for (auto& j : b.jobs) {
+            j.plain.resize(kBlock);
+            j.packed.resize(nx_lz4_bound(kBlock));
+            j.work.resize(NX_LZ4_WORK_SIZE);
+        }
     }
     std::vector<uint8_t> old_bytes;
     uint64_t current_run = UINT64_MAX;
     Planner plan(read, hash);
     bool in_run = false, first_block = false;
-
     size_t i = 0;
-    while (in_run || i < items.size()) {
-        if (!in_run && items[i].copy_of >= 0) {
-            // a run the same as an earlier one: its entries again, moved to this place
-            if (current_run != UINT64_MAX) {
-                run_entries[current_run].second = out.entries.size();
-                current_run = UINT64_MAX;
-            }
-            const auto it = run_entries.find(uint64_t(items[i].copy_of));
-            if (it == run_entries.end()) return false;
-            const uint64_t shift = items[i].virt - uint64_t(items[i].copy_of);
-            const size_t first = out.entries.size();
-            for (size_t e = it->second.first; e < it->second.second; e++) {
-                Entry copy = out.entries[e];
-                copy.virt += shift;
-                out.entries.push_back(copy);
-            }
-            run_entries[items[i].virt] = {first, out.entries.size()};
-            stats.runs_again += items[i].size;
-            raw_open = false;
-            if (step && !step(items[i].virt + items[i].size)) return false;
-            i++;
-            continue;
-        }
-        // a batch of blocks of the new runs, up to the next run copied
-        size_t count = 0;
-        const Planner::SeenFn seen = [&](const std::string& key) {
+
+    // the next blocks of the new runs into b, up to a run copied or the end; `other` is the batch
+    // being compressed meanwhile, whose blocks are stored before these
+    const auto plan_batch = [&](Batch& b, const Batch* other) {
+        b.count = 0;
+        const auto known = [&](const std::string& key, size_t upto) {
             if (by_hash.count(key)) return true;
-            for (size_t k = 0; k < count; k++) {
-                if (jobs[k].key == key) return true;
+            if (other) {
+                for (size_t k = 0; k < other->count; k++) {
+                    if (other->jobs[k].virt != 0 && other->jobs[k].key == key) return true;
+                }
+            }
+            for (size_t k = 0; k < upto; k++) {
+                if (b.jobs[k].virt != 0 && b.jobs[k].key == key) return true;
             }
             return false;
         };
-        while (count < jobs.size()) {
+        const Planner::SeenFn seen = [&](const std::string& key) { return known(key, b.count); };
+        while (b.count < b.jobs.size()) {
             if (!in_run) {
                 if (i >= items.size() || items[i].copy_of >= 0) break;
                 plan.Start(items[i].virt, items[i].size, items[i].base);
@@ -394,44 +391,44 @@ bool Pack(uint64_t virt_size, const std::vector<Run>& runs_in, int level, uint32
                 in_run = true;
                 first_block = true;
             }
-            Job& j = jobs[count];
+            Job& j = b.jobs[b.count];
             if (!plan.Next(j.virt, j.n, j.plain.data(), j.key, j.moved, seen)) return false;
             j.run_start = first_block;
             first_block = false;
-            j.same_in_batch = -1;
+            j.skip = j.virt == 0 || known(j.key, b.count);
             j.c = -1;
-            for (size_t k = 0; k < count; k++) {
-                if (jobs[k].key == j.key) {
-                    j.same_in_batch = int64_t(k);
-                    break;
-                }
-            }
-            count++;
+            b.count++;
             if (plan.Done()) in_run = false;
         }
-        // compressed side by side: the blocks not stored before
-        const auto run = [&](size_t first_job) {
-            for (size_t k = first_job; k < count; k += threads) {
-                Job& j = jobs[k];
-                if (j.virt == 0 || j.same_in_batch >= 0 || by_hash.count(j.key)) continue;
+        return true;
+    };
+    const auto start = [&](Batch& b) {
+        const auto run = [&b, level, threads](size_t first) {
+            for (size_t k = first; k < b.count; k += threads) {
+                Job& j = b.jobs[k];
+                if (j.skip) continue;
                 j.c = nx_lz4_compress(j.plain.data(), j.n, j.packed.data(), j.packed.size(), level, j.work.data());
             }
         };
-        if (threads > 1 && count > 1) {
-            std::vector<std::thread> helpers;
-            for (unsigned t = 1; t < threads && t < count; t++) {
-                helpers.emplace_back([&run, t] {
+        if (threads > 1 && b.count > 1) {
+            for (unsigned t = 0; t < threads && t < b.count; t++) {
+                b.workers.emplace_back([run, t] {
                     nxdock::WorkThread(int(t)); // below the screen, each on its core
                     run(t);
                 });
             }
-            run(0);
-            for (auto& h : helpers) h.join();
         } else {
             run(0);
         }
-        for (size_t k = 0; k < count; k++) {
-            Job& j = jobs[k];
+    };
+    const auto join = [](Batch& b) {
+        for (auto& w : b.workers) w.join();
+        b.workers.clear();
+    };
+    // a batch compressed, written in order
+    const auto emit = [&](Batch& b) {
+        for (size_t k = 0; k < b.count; k++) {
+            Job& j = b.jobs[k];
             // the run this block starts
             if (j.run_start) {
                 if (current_run != UINT64_MAX) run_entries[current_run].second = out.entries.size();
@@ -446,7 +443,7 @@ bool Pack(uint64_t virt_size, const std::vector<Run>& runs_in, int level, uint32
                 stats.blocks_again += j.n;
                 if (j.moved) stats.moved_again += j.n;
                 raw_open = false;
-            } else if (j.moved) {
+            } else if (j.moved || (j.skip && j.virt != 0)) {
                 return false; // a block known before is always stored before it
             } else {
                 const uint8_t* bytes = j.packed.data();
@@ -481,6 +478,57 @@ bool Pack(uint64_t virt_size, const std::vector<Run>& runs_in, int level, uint32
                 if (j.virt != 0) by_hash.emplace(j.key, ref);
             }
             if (step && !step(j.virt + j.n)) return false;
+        }
+        return true;
+    };
+    // a run the same as an earlier one: its entries again, moved to this place
+    const auto copy_run = [&](const Item& item) {
+        if (current_run != UINT64_MAX) {
+            run_entries[current_run].second = out.entries.size();
+            current_run = UINT64_MAX;
+        }
+        const auto it = run_entries.find(uint64_t(item.copy_of));
+        if (it == run_entries.end()) return false;
+        const uint64_t shift = item.virt - uint64_t(item.copy_of);
+        const size_t first = out.entries.size();
+        for (size_t e = it->second.first; e < it->second.second; e++) {
+            Entry copy = out.entries[e];
+            copy.virt += shift;
+            out.entries.push_back(copy);
+        }
+        run_entries[item.virt] = {first, out.entries.size()};
+        stats.runs_again += item.size;
+        raw_open = false;
+        return !step || step(item.virt + item.size);
+    };
+
+    int cur = 0;
+    bool ok = true;
+    for (;;) {
+        // runs copied come when nothing is planned ahead of them
+        if (!in_run && sets[cur].count == 0) {
+            while (i < items.size() && items[i].copy_of >= 0) {
+                if (!copy_run(items[i])) return false;
+                i++;
+            }
+            if (i >= items.size()) break;
+            if (!plan_batch(sets[cur], nullptr)) return false;
+            if (sets[cur].count == 0) return false;
+            start(sets[cur]);
+        }
+        Batch& a = sets[cur];
+        Batch& b = sets[cur ^ 1];
+        // the next batch read while `a` compresses
+        ok = plan_batch(b, &a);
+        join(a);
+        if (!ok || !emit(a)) {
+            join(b);
+            return false;
+        }
+        a.count = 0;
+        if (b.count > 0) {
+            start(b);
+            cur ^= 1;
         }
     }
     if (current_run != UINT64_MAX) run_entries[current_run].second = out.entries.size();
