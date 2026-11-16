@@ -1,10 +1,17 @@
 # Changelog
 
-## Unreleased
+## 2.0.11
 
 ### Improvements
 
 - Install over the network: a game with recovery data next to it ("<name>.par2", written by NXPress) is checked as it is sent. A part damaged on the disk is repaired with it first, so the console never gets damaged data. Organize moves the .par2 with its game. Thanks to TeleTubby666 (GBAtemp) for the idea
+- Optimize for install (experimental): what a game holds more than once is stored once, wherever it is, and the next part is read while the one before is compressed: some games come out about 10 % smaller, and faster
+- Keys not found is said in red: in the notice at the top, Compress, Settings and the wizard
+- TRADEMARKS.md: a changed version must say it is one, and must not present itself as the version published here
+
+### Fixes
+
+- Measure this server: Cancel stops it at once, not about 30 seconds later
 
 ## 2.0.10
 

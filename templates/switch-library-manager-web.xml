@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.10
+  <Changes>### 2.0.11
+- Install over the network checks and repairs a game with its .par2 as it is sent; Optimize for install stores once what a game repeats (some games about 10 % smaller); Cancel of Measure at once; missing keys in red
+### 2.0.10
 - Games dumped with NXDock are uploaded to the library again; compression keeps every thread busy and Measure takes seconds per setting
 ### 2.0.9
 - NSZ 5 to 17 % smaller in some games with a window of 128 MiB; Optimize for install in one pass; {LANGUAGE} in Organize; Send to console compressed (experimental); network installs in Tasks
@@ -151,7 +153,7 @@
 - The queue of tasks can be put in order and tells when it is done, Organize tells the files it left and why, and games the titles database does not list get their updates, publisher and IGDB details
 ### 1.54.0
 - A queue of tasks, tabs in Organize, Compress and Statistics, faster pages, tasks that follow the files Organize moved, a fan of the tasks next to Synchronize on phones, and a measure of the server that saves its setting</Changes>
-  <Date>2026-11-15</Date>
+  <Date>2026-11-16</Date>
   <MinVer>6.9.0</MinVer>
   <ExtraParams/>
   <PostArgs/>
