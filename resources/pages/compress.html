@@ -4,7 +4,7 @@
 			{{- with maintenanceStep .Page}}<a class="maintenance-hint" href="/maintenance.html"><span class="bi bi-list-check" aria-hidden="true"></span>{{t "Step %v of 5 of the tune-up" .}} <span class="text-body-secondary">&middot; {{t "See the steps in order"}}</span></a>{{end}}
 			<p class="small text-body-secondary d-flex align-items-start gap-2 mb-4"><span class="bi bi-shield-lock flex-shrink-0 mt-1" aria-hidden="true"></span><span>{{t "Compression uses your own prod.keys (and title.keys for games without a ticket), dumped from your console. Keys are never included in the app, downloaded or uploaded."}}</span></p>
 			{{- if not .IsKeysFileAvailable}}
-			<div class="alert alert-warning d-flex align-items-start gap-2" role="alert">
+			<div class="alert alert-danger d-flex align-items-start gap-2" role="alert">
 				<span class="bi bi-key-fill flex-shrink-0 mt-1" aria-hidden="true"></span>
 				<div>{{t "prod.keys is needed to compress games."}} <a class="alert-link" href="/settings.html#library">{{t "Set the keys path"}}</a></div>
 			</div>

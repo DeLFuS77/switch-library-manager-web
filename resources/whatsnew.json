@@ -1,4 +1,61 @@
 {
+  "2.0.11": {
+    "en": [
+      "Install over the network: a game with its .par2 recovery data is checked as it is sent, and repaired first if a part is damaged.",
+      "Optimize for install: what a game holds more than once is stored once, so some games come out about 10 % smaller.",
+      "Measure this server stops at once when cancelled, and missing keys are shown in red."
+    ],
+    "es": [
+      "Instalar por red: un juego con sus datos de recuperación .par2 se comprueba mientras se envía, y se repara antes si una parte está dañada.",
+      "Optimizar para instalar: lo que un juego tiene repetido se guarda una sola vez, así que algunos juegos quedan un 10 % más pequeños.",
+      "Medir este servidor se para al momento al cancelar, y las claves que faltan se muestran en rojo."
+    ],
+    "de": [
+      "Über das Netzwerk installieren: ein Spiel mit seinen .par2-Wiederherstellungsdaten wird beim Senden geprüft und zuerst repariert, wenn ein Teil beschädigt ist.",
+      "Für die Installation optimieren: was ein Spiel mehrfach enthält, wird nur einmal gespeichert, manche Spiele werden so etwa 10 % kleiner.",
+      "Diesen Server messen stoppt beim Abbrechen sofort, und fehlende Schlüssel werden rot angezeigt."
+    ],
+    "fr": [
+      "Installer par le réseau : un jeu avec ses données de récupération .par2 est vérifié pendant l'envoi, et réparé d'abord si une partie est endommagée.",
+      "Optimiser pour l'installation : ce qu'un jeu contient plusieurs fois n'est stocké qu'une fois, certains jeux sont donc environ 10 % plus petits.",
+      "Mesurer ce serveur s'arrête aussitôt quand on l'annule, et les clés manquantes s'affichent en rouge."
+    ],
+    "it": [
+      "Installa via rete: un gioco con i suoi dati di recupero .par2 viene controllato mentre viene inviato e riparato prima se una parte è danneggiata.",
+      "Ottimizza per l'installazione: ciò che un gioco contiene più volte viene salvato una sola volta, quindi alcuni giochi sono circa il 10 % più piccoli.",
+      "Misura questo server si ferma subito quando viene annullato, e le chiavi mancanti sono mostrate in rosso."
+    ],
+    "pt": [
+      "Instalar pela rede: um jogo com seus dados de recuperação .par2 é verificado enquanto é enviado, e reparado antes se uma parte estiver danificada.",
+      "Otimizar para instalar: o que um jogo contém mais de uma vez é guardado uma só vez, então alguns jogos ficam cerca de 10 % menores.",
+      "Medir este servidor para na hora ao cancelar, e as chaves que faltam aparecem em vermelho."
+    ],
+    "nl": [
+      "Installeren via het netwerk: een game met zijn .par2-herstelgegevens wordt gecontroleerd tijdens het verzenden, en eerst hersteld als een deel beschadigd is.",
+      "Optimaliseren voor installatie: wat een game meerdere keren bevat, wordt maar één keer opgeslagen, dus sommige games worden zo'n 10 % kleiner.",
+      "Deze server meten stopt meteen bij annuleren, en ontbrekende sleutels worden rood getoond."
+    ],
+    "ru": [
+      "Установка по сети: игра с данными восстановления .par2 проверяется при отправке и сначала восстанавливается, если часть повреждена.",
+      "Оптимизация для установки: повторяющиеся данные игры хранятся один раз, поэтому некоторые игры становятся примерно на 10 % меньше.",
+      "Измерение этого сервера сразу останавливается при отмене, а отсутствующие ключи показываются красным."
+    ],
+    "ja": [
+      "ネットワークでインストール：.par2 の修復データがあるゲームは送信しながら確認され、壊れた部分があれば先に修復されます。",
+      "インストール用に最適化：ゲーム内で重複するデータは一度だけ保存されるため、一部のゲームは約 10 % 小さくなります。",
+      "このサーバーを測定はキャンセルするとすぐに止まり、見つからないキーは赤で表示されます。"
+    ],
+    "ko": [
+      "네트워크로 설치: .par2 복구 데이터가 있는 게임은 보내는 동안 확인되고, 손상된 부분이 있으면 먼저 복구됩니다.",
+      "설치용 최적화: 게임 안에서 반복되는 데이터는 한 번만 저장되어 일부 게임은 약 10 % 작아집니다.",
+      "이 서버 측정은 취소하면 바로 멈추고, 없는 키는 빨간색으로 표시됩니다."
+    ],
+    "zh": [
+      "通过网络安装：带有 .par2 恢复数据的游戏会在发送时检查，若有部分损坏会先修复。",
+      "为安装优化：游戏中重复的数据只保存一次，因此部分游戏会小约 10 %。",
+      "测量此服务器在取消时立即停止，缺少的密钥会以红色显示。"
+    ]
+  },
   "2.0.10": {
     "en": [
       "Install over the network: games dumped with NXDock are uploaded to the library again, and saves over 8 MiB too.",

@@ -81,3 +81,16 @@ func TestMeasurableGames(t *testing.T) {
 		t.Fatal("a broken game alone is measured")
 	}
 }
+
+// A trial cancelled drops its file at once: what zstd still writes goes into nothing.
+func TestDroppableWriterWritesNothingOnceDropped(t *testing.T) {
+	var file bytes.Buffer
+	w := &droppableWriter{to: &file}
+	if n, err := w.Write([]byte("abc")); n != 3 || err != nil || file.String() != "abc" {
+		t.Fatalf("before drop: %d %v %q", n, err, file.String())
+	}
+	w.drop()
+	if n, err := w.Write([]byte("def")); n != 3 || err != nil || file.String() != "abc" {
+		t.Fatalf("after drop: %d %v %q", n, err, file.String())
+	}
+}

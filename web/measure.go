@@ -202,20 +202,73 @@ const measureMaxWrite = 4 << 30
 // measureOne compresses a part of a game for a trial into a hidden file next to it, as a
 // compression writes its NSZ there, and deletes it. Without the free space for it, nothing
 // is written: the measure then leaves the writing out.
+//
+// Cancelled, it returns at once: the part zstd has taken, tens of MB at the max level with the
+// long window, is compressed to its end behind, into nothing, as its file is deleted right away
+// (it kept Cancel waiting about 30 seconds; NXPress #149).
 func (web *Web) measureOne(ctx context.Context, game string, from float64, options switchfs.CompressOptions) (int64, error) {
 	folder := filepath.Dir(game)
+	output := &droppableWriter{}
+	var file *os.File
 	release, err := web.reserveSpace(folder, measureMaxWrite)
-	if err != nil {
-		return switchfs.MeasureCompression(ctx, game, from, options, measureTrialTime, io.Discard)
+	if err == nil {
+		if file, err = os.CreateTemp(folder, ".slm-measure-*.tmp"); err == nil {
+			output.to = file
+		} else {
+			file = nil
+		}
+	} else {
+		release = nil
 	}
-	defer release()
-	output, err := os.CreateTemp(folder, ".slm-measure-*.tmp")
-	if err != nil {
-		return switchfs.MeasureCompression(ctx, game, from, options, measureTrialTime, io.Discard)
+	drop := func() {
+		output.drop()
+		if file != nil {
+			file.Close()
+			os.Remove(file.Name())
+		}
+		if release != nil {
+			release()
+		}
 	}
-	defer os.Remove(output.Name())
-	defer output.Close()
-	return switchfs.MeasureCompression(ctx, game, from, options, measureTrialTime, output)
+	type result struct {
+		done int64
+		err  error
+	}
+	ended := make(chan result, 1)
+	go func() {
+		done, err := switchfs.MeasureCompression(ctx, game, from, options, measureTrialTime, output)
+		ended <- result{done, err}
+	}()
+	select {
+	case r := <-ended:
+		drop()
+		return r.done, r.err
+	case <-ctx.Done():
+		drop()
+		return 0, ctx.Err()
+	}
+}
+
+// droppableWriter writes to its file until it is dropped, and then into nothing: a write going
+// on ends before drop returns, so the file can be closed and deleted.
+type droppableWriter struct {
+	mutex sync.Mutex
+	to    io.Writer
+}
+
+func (w *droppableWriter) Write(p []byte) (int, error) {
+	w.mutex.Lock()
+	defer w.mutex.Unlock()
+	if w.to == nil {
+		return len(p), nil
+	}
+	return w.to.Write(p)
+}
+
+func (w *droppableWriter) drop() {
+	w.mutex.Lock()
+	w.to = nil
+	w.mutex.Unlock()
 }
 
 func megabytesPerSecond(bytes int64, elapsed time.Duration) int {
