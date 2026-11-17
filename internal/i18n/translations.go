@@ -1427,7 +1427,17 @@ var Translations = map[string]map[string]string{
 		"Settings sections":                  "Secciones de los ajustes",
 		"General":                            "General",
 		"Keys found":                         "Claves encontradas",
-		"Keys not found":                     "Claves no encontradas",
+		"Take them from my games":            "Sacarlas de mis juegos",
+		"Adds to title.keys the title keys of the tickets of your games, for other copies of them without a ticket.": "Añade a title.keys las title keys de los tickets de tus juegos, para otras copias de ellos sin ticket.",
+		"No new title keys: the tickets of your games hold none that title.keys lacks.":                              "No hay title keys nuevas: los tickets de tus juegos no tienen ninguna que le falte a title.keys.",
+		"%v title keys taken from the tickets of your games.":                                                        "%v title keys sacadas de los tickets de tus juegos.",
+		"up to firmware %v":      "hasta el firmware %v",
+		"newer than firmware %v": "más nuevas que el firmware %v",
+		"Some keys do not agree with the others: dump them again from your console.": "Algunas claves no cuadran con las demás: vuelve a volcarlas de tu consola.",
+		"%v keys, up to firmware %v": "%v claves, hasta el firmware %v",
+		"Check of the keys":          "Comprobación de las claves",
+		"%v keys checked":            "%v claves comprobadas",
+		"Keys not found":             "Claves no encontradas",
 
 		// sign-in portal in front of the app (Authelia, Authentik, Cloudflare Access): Settings, Users,
 		// the login page and the activity
