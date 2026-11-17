@@ -1,6 +1,10 @@
 # Changelog
 
-## Unreleased
+## 2.0.12
+
+### Improvements
+
+- Saves: Upload from emulator keeps a save of Eden, Citron, Sudachi or Ryujinx (its files, its folder or a ZIP) as a new copy marked emulator, which NXDock restores. For emulator downloads a save with the steps to use it in one
 
 ### Fixes
 
