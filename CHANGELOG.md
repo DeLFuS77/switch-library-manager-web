@@ -5,6 +5,7 @@
 ### Fixes
 
 - Organize: on a disk that does not tell upper and lower case apart (a share of a NAS such as TrueNAS, Windows, macOS), a folder whose name only changes its case is renamed too. The same changes no longer come back after every run. Thanks to @TerrorSource for reporting it (#179)
+- Install over the network: Tinfoil, CyberFoil and Sphaira connect with the address of the server alone (http://IP:port), as well as with /install/tinfoil after it. Thanks to @TerrorSource for reporting it (#180)
 
 ## 2.0.11
 

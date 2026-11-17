@@ -127,6 +127,15 @@ func TestNetInstallKeysAndRoles(t *testing.T) {
 	if code := console.do("GET", "/install/dbi/", nil, "Authorization", basic("switch", "slm_"+strings.Repeat("A", apiKeyLength))).Code; code != http.StatusUnauthorized {
 		t.Fatalf("a wrong key: %d", code)
 	}
+	// a shop given only the address of the server (Sphaira, #180): its root is the index of the
+	// kind of Tinfoil, with the key checked as there; a wrong key is still refused
+	root := console.do("GET", "/", nil, "Authorization", basic("console", key))
+	if root.Code != http.StatusOK || !strings.Contains(root.Body.String(), `"files"`) {
+		t.Fatalf("the root as a shop: %d %s", root.Code, root.Body.String())
+	}
+	if code := console.do("GET", "/", nil, "Authorization", basic("console", "slm_"+strings.Repeat("A", apiKeyLength))).Code; code != http.StatusUnauthorized {
+		t.Fatalf("the root with a wrong key: %d", code)
+	}
 
 	// a guest does not download, nor the key of a user who became one
 	web.auth.users.Add("dave", "delta-secret-44", ROLE_GUEST)

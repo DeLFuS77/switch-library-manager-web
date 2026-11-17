@@ -518,6 +518,7 @@ func viewerAllowed(r *http.Request) bool {
 // middleware requires a login when users exist and limits read-only users.
 func (a *Auth) middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		shortShopAddress(r)
 		var principal *Principal
 		switch {
 		case isPublicRequest(r):
@@ -609,6 +610,20 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), principalKey{}, principal)))
 	})
+}
+
+// shortShopAddress takes a shop of the kind of Tinfoil (Tinfoil, CyberFoil, Sphaira) given only the
+// address of the server, with the key of a console as its password, to the index it asks for: its
+// root is the index then, as /install/tinfoil is (#180). The key is checked as at that path; a
+// browser, which sends no key, still gets the pages.
+func shortShopAddress(r *http.Request) {
+	if (r.Method != http.MethodGet && r.Method != http.MethodHead) || (r.URL.Path != "/" && r.URL.Path != "") {
+		return
+	}
+	if _, ok := basicKey(r); !ok {
+		return
+	}
+	r.URL.Path, r.URL.RawPath = netInstallTinfoil, ""
 }
 
 // attemptName is the name of a sign-in attempt as it is told and logged: one that cannot be
