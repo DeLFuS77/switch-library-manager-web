@@ -373,6 +373,7 @@
 // the tasks by covers: a grid of the files instead of their bars; the choice is a class of the
 // list (see initTaskView)
 .task-tiles,
+.task-check-filter,
 .task-tiles-more {
 	display: none;
 }
@@ -385,6 +386,10 @@
 .tasks-by-covers {
 	.task-tiles {
 		display: grid;
+	}
+
+	.task-check-filter {
+		display: flex;
 	}
 
 	.task-tiles-more {
@@ -1645,4 +1650,65 @@
 .net-queue-bar {
 	height: .4rem;
 	margin: .35rem 0 .25rem;
+}
+
+// the files of a check by how it ended, above their covers (as Verify in NXPress)
+.task-check-filter {
+	flex-wrap: wrap;
+	gap: 0.35rem;
+}
+
+.task-check-choice {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	padding: 0.2rem 0.75rem;
+	font-size: var(--slm-text-sm);
+	color: var(--bs-body-color);
+	background: transparent;
+	border: 1px solid var(--bs-border-color);
+	border-radius: 999px;
+
+	b {
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		color: var(--bs-secondary-color);
+	}
+
+	&:hover {
+		background: var(--bs-tertiary-bg);
+	}
+
+	&.active {
+		color: rgb(var(--slm-work-rgb));
+		border-color: rgba(var(--slm-work-rgb), 0.6);
+		background: rgba(var(--slm-work-rgb), 0.12);
+
+		b {
+			color: inherit;
+		}
+	}
+}
+
+.task-check-dot {
+	width: 0.45rem;
+	height: 0.45rem;
+	border-radius: 50%;
+
+	&.is-all {
+		display: none;
+	}
+
+	&.is-ok {
+		background: var(--bs-success);
+	}
+
+	&.is-failed {
+		background: var(--bs-danger);
+	}
+
+	&.is-modified,
+	&.is-skipped {
+		background: var(--bs-warning);
+	}
 }
