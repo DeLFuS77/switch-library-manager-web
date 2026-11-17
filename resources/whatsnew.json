@@ -1,4 +1,39 @@
 {
+  "2.0.13": {
+    "en": [
+      "Organize: in Docker on a NAS that does not tell upper and lower case apart, a folder that only changes its case is now really renamed, and the same changes no longer come back."
+    ],
+    "es": [
+      "Organizar: en Docker sobre un NAS que no distingue mayúsculas, una carpeta que solo cambia de mayúsculas ahora se renombra de verdad, y los mismos cambios ya no vuelven."
+    ],
+    "de": [
+      "Organisieren: in Docker auf einem NAS ohne Unterscheidung von Groß- und Kleinschreibung wird ein Ordner, der nur die Schreibweise ändert, jetzt wirklich umbenannt, und dieselben Änderungen kommen nicht mehr zurück."
+    ],
+    "fr": [
+      "Organiser : dans Docker sur un NAS qui ne distingue pas majuscules et minuscules, un dossier qui ne change que de casse est maintenant vraiment renommé, et les mêmes modifications ne reviennent plus."
+    ],
+    "it": [
+      "Organizza: in Docker su un NAS che non distingue maiuscole e minuscole, una cartella che cambia solo le maiuscole ora viene davvero rinominata, e le stesse modifiche non tornano più."
+    ],
+    "pt": [
+      "Organizar: no Docker num NAS que não distingue maiúsculas, uma pasta que só muda de maiúsculas agora é mesmo renomeada, e as mesmas alterações já não voltam."
+    ],
+    "nl": [
+      "Organiseren: in Docker op een NAS zonder onderscheid tussen hoofd- en kleine letters wordt een map die alleen van hoofdletters verandert nu echt hernoemd, en komen dezelfde wijzigingen niet meer terug."
+    ],
+    "ru": [
+      "Упорядочить: в Docker на NAS без учёта регистра папка, у которой меняется только регистр, теперь действительно переименовывается, и одни и те же изменения больше не возвращаются."
+    ],
+    "ja": [
+      "整理：大文字と小文字を区別しない NAS 上の Docker で、大文字・小文字だけが変わるフォルダーが実際に名前変更されるようになり、同じ変更が戻ってこなくなりました。"
+    ],
+    "ko": [
+      "정리: 대소문자를 구분하지 않는 NAS의 Docker에서 대소문자만 바뀌는 폴더의 이름이 이제 실제로 바뀌며, 같은 변경이 다시 나타나지 않습니다."
+    ],
+    "zh": [
+      "整理：在不区分大小写的 NAS 上的 Docker 中，只改变大小写的文件夹现在会真正重命名，相同的更改不会再出现。"
+    ]
+  },
   "2.0.12": {
     "en": [
       "Saves: Upload from emulator keeps a save of Eden, Citron, Sudachi or Ryujinx as a new copy, which NXDock restores; For emulator takes a save to one, with the steps.",

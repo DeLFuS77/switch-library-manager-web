@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.12
+  <Changes>### 2.0.13
+- Organize: in Docker on a NAS that does not tell upper and lower case apart, a folder that only changes its case is really renamed
+### 2.0.12
 - Saves: a save of an emulator is uploaded as a new copy that NXDock restores, and each save can be downloaded for an emulator
 - Organize no longer finds the same changes again on a disk that does not tell upper and lower case apart; Tinfoil, CyberFoil and Sphaira connect with the address of the server alone
 ### 2.0.11
