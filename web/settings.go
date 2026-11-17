@@ -31,7 +31,9 @@ type SettingsPageData struct {
 	// the copies of the configuration made every week
 	AutoBackups []AutoBackup
 	// what the automations need: the keys (to compress) and a notification channel
-	KeysAvailable           bool
+	KeysAvailable bool
+	// how far the keys go and whether they agree with each other (see settings.CheckKeys)
+	KeysCheck               settings.KeysCheck
 	NotificationsConfigured bool
 	// the title keys loaded from title.keys
 	TitleKeys int
@@ -635,6 +637,7 @@ func (web *Web) settingsPageData() SettingsPageData {
 		Quarantine:              web.quarantineSummary(),
 		QuarantineLimits:        quarantineLimits,
 		KeysAvailable:           settings.IsKeysFileAvailable(),
+		KeysCheck:               settings.CheckKeys(),
 		TitleKeys:               titleKeys,
 		NotificationsConfigured: notify.Configured(current.Notifications),
 		NotifyServices:          notify.Services(current.Notifications),
