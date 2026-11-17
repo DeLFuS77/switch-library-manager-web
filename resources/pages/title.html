@@ -39,7 +39,7 @@
 						<div class="d-flex flex-wrap gap-1 mb-2">{{range .}}<a class="chip chip-muted text-decoration-none" href="/index.html?collection={{.}}"><span class="bi bi-bookmark" aria-hidden="true"></span>{{.}}</a>{{end}}</div>
 						{{- end}}
 						{{- if $t.Publisher}}
-						<p class="title-publisher"><span class="bi bi-building" aria-hidden="true"></span>{{$t.Publisher}}</p>
+						<p class="title-publisher"><span class="bi bi-building" aria-hidden="true"></span><a class="title-publisher-link" href="/index.html?publisher={{$t.Publisher}}" title="{{t "Games of %v" $t.Publisher}}">{{$t.Publisher}}</a></p>
 						{{- end}}
 						{{- with $t.TimeToBeat}}{{if .HasScores}}
 						<div class="title-scores" title="{{t "Scores on IGDB"}}">
