@@ -1,46 +1,57 @@
 {
   "2.0.13": {
     "en": [
+      "Library: filter by publisher in Filters, and the publisher on the page of a game leads to its games.",
       "Organize: in Docker on a NAS that does not tell upper and lower case apart, a folder that only changes its case is now really renamed, and the same changes no longer come back.",
       "Install over the network: Sphaira connects, as to a shop of the kind of Ownfoil, with the same address and console key."
     ],
     "es": [
+      "Biblioteca: filtro por editor en Filtros, y el editor en la página de un juego lleva a sus juegos.",
       "Organizar: en Docker sobre un NAS que no distingue mayúsculas, una carpeta que solo cambia de mayúsculas ahora se renombra de verdad, y los mismos cambios ya no vuelven.",
       "Instalar por red: Sphaira se conecta, como a una tienda de tipo Ownfoil, con la misma dirección y clave de consola."
     ],
     "de": [
+      "Bibliothek: nach Publisher filtern unter Filter, und der Publisher auf der Seite eines Spiels führt zu seinen Spielen.",
       "Organisieren: in Docker auf einem NAS ohne Unterscheidung von Groß- und Kleinschreibung wird ein Ordner, der nur die Schreibweise ändert, jetzt wirklich umbenannt, und dieselben Änderungen kommen nicht mehr zurück.",
       "Über das Netzwerk installieren: Sphaira verbindet sich wie mit einem Shop nach Art von Ownfoil, mit derselben Adresse und demselben Konsolenschlüssel."
     ],
     "fr": [
+      "Bibliothèque : filtre par éditeur dans Filtres, et l'éditeur sur la page d'un jeu mène à ses jeux.",
       "Organiser : dans Docker sur un NAS qui ne distingue pas majuscules et minuscules, un dossier qui ne change que de casse est maintenant vraiment renommé, et les mêmes modifications ne reviennent plus.",
       "Installer par le réseau : Sphaira se connecte, comme à une boutique de type Ownfoil, avec la même adresse et la même clé de console."
     ],
     "it": [
+      "Libreria: filtro per publisher in Filtri, e il publisher nella pagina di un gioco porta ai suoi giochi.",
       "Organizza: in Docker su un NAS che non distingue maiuscole e minuscole, una cartella che cambia solo le maiuscole ora viene davvero rinominata, e le stesse modifiche non tornano più.",
       "Installa via rete: Sphaira si collega, come a un negozio di tipo Ownfoil, con lo stesso indirizzo e la stessa chiave della console."
     ],
     "pt": [
+      "Biblioteca: filtro por publicadora em Filtros, e a publicadora na página de um jogo leva aos seus jogos.",
       "Organizar: no Docker num NAS que não distingue maiúsculas, uma pasta que só muda de maiúsculas agora é mesmo renomeada, e as mesmas alterações já não voltam.",
       "Instalar pela rede: o Sphaira conecta-se, como a uma loja do tipo Ownfoil, com o mesmo endereço e a mesma chave da consola."
     ],
     "nl": [
+      "Bibliotheek: filteren op uitgever in Filters, en de uitgever op de pagina van een game leidt naar zijn games.",
       "Organiseren: in Docker op een NAS zonder onderscheid tussen hoofd- en kleine letters wordt een map die alleen van hoofdletters verandert nu echt hernoemd, en komen dezelfde wijzigingen niet meer terug.",
       "Installeren via het netwerk: Sphaira verbindt, zoals met een winkel van het type Ownfoil, met hetzelfde adres en dezelfde consolesleutel."
     ],
     "ru": [
+      "Библиотека: фильтр по издателю в «Фильтрах», а издатель на странице игры ведёт к его играм.",
       "Упорядочить: в Docker на NAS без учёта регистра папка, у которой меняется только регистр, теперь действительно переименовывается, и одни и те же изменения больше не возвращаются.",
       "Установка по сети: Sphaira подключается как к магазину типа Ownfoil, с тем же адресом и ключом консоли."
     ],
     "ja": [
+      "ライブラリ：フィルターでパブリッシャー別に絞り込め、ゲームのページのパブリッシャーからそのゲーム一覧へ移動できます。",
       "整理：大文字と小文字を区別しない NAS 上の Docker で、大文字・小文字だけが変わるフォルダーが実際に名前変更されるようになり、同じ変更が戻ってこなくなりました。",
       "ネットワークでインストール：Sphaira が Ownfoil 型のショップとして、同じアドレスとコンソールキーで接続できます。"
     ],
     "ko": [
+      "라이브러리: 필터에서 배급사로 거를 수 있고, 게임 페이지의 배급사를 누르면 그 배급사의 게임으로 이동합니다.",
       "정리: 대소문자를 구분하지 않는 NAS의 Docker에서 대소문자만 바뀌는 폴더의 이름이 이제 실제로 바뀌며, 같은 변경이 다시 나타나지 않습니다.",
       "네트워크로 설치: Sphaira가 Ownfoil 방식의 상점처럼 같은 주소와 콘솔 키로 연결됩니다."
     ],
     "zh": [
+      "游戏库：可在“筛选”中按发行商筛选，游戏页面上的发行商可跳转到其游戏。",
       "整理：在不区分大小写的 NAS 上的 Docker 中，只改变大小写的文件夹现在会真正重命名，相同的更改不会再出现。",
       "通过网络安装：Sphaira 可像连接 Ownfoil 类商店一样，用相同的地址和主机密钥连接。"
     ]
