@@ -22,6 +22,9 @@
 				<div class="toolbar-search">
 					<span class="bi bi-search" aria-hidden="true"></span>
 					<input type="search" class="form-control" name="q" value="{{.Filter.Keyword}}" placeholder="{{t "Search by name or ID..."}}" aria-label="{{t "Search"}}">
+					{{- /* Enter in the search sends the form: a form without a button of its own is not sent by Enter
+						once it has a second text field, as the box to find a publisher in the filters (#187) */}}
+					<button type="submit" class="visually-hidden" tabindex="-1" aria-hidden="true"></button>
 				</div>
 				<label class="visually-hidden" for="sortBy">{{t "Sort by"}}</label>
 				<select class="form-select" id="sortBy" name="sort_by" data-autosubmit>

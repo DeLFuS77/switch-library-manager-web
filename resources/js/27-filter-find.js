@@ -16,3 +16,10 @@ document.addEventListener('input', event => {
 		choice.hidden = wanted !== '' && !filterFindText(choice.textContent).includes(wanted);
 	});
 });
+
+// Enter in that box only finds: it does not send the search of the page the box is in
+document.addEventListener('keydown', event => {
+	if (event.key === 'Enter' && event.target.closest('[data-filter-find]')) {
+		event.preventDefault();
+	}
+});
