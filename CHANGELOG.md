@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.13
+
+### Improvements
+
+- Library: filter by publisher, in Filters › The game, with a box to find one in a long list. The publisher on the page of a game leads to its games. Thanks to @iManu900809 for the idea (#183)
+
+### Fixes
+
+- Install over the network: Sphaira connects. It reads no index of Tinfoil, it reads shops of the kind of Ownfoil: the app now answers as one, at the address of the server or of the index of Tinfoil, with the key of a console as the password. Thanks to @TerrorSource for reporting it (#180)
+- Organize: in Docker on a NAS (a TrueNAS dataset or a share that does not tell upper and lower case apart), a folder whose name only changes its case is now really renamed. 2.0.12 still found the same changes again there. Thanks to @TerrorSource for checking it (#179)
+
 ## 2.0.12
 
 ### Improvements

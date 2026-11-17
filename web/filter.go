@@ -40,7 +40,8 @@ type TitleItemFilter struct {
 	// "0" (My games); the "1" of the links of before, when they were not shown by default, is the same
 	// as empty
 	WithMissing string `in:"form=missing"`
-	// library only: a genre, the players ("1", "2" or "4") and a language of the games
+	// library only: a genre, the players ("1", "2" or "4"), a language and a publisher of the games
+	Publisher    string `in:"form=publisher"`
 	Genre        string `in:"form=genre"`
 	Players      string `in:"form=players"`
 	GameLanguage string `in:"form=languages"`
@@ -193,6 +194,7 @@ func (f *TitleItemFilter) Normalize() {
 	if !knownGenreSet[f.Genre] {
 		f.Genre = ""
 	}
+	f.Publisher = cleanPublisher(f.Publisher)
 	if f.Players != "1" && f.Players != "2" && f.Players != "4" {
 		f.Players = ""
 	}
@@ -228,12 +230,12 @@ func (f *TitleItemFilter) Active() bool {
 // Filters reports whether the Library shows only some of its games: what a smart collection
 // keeps.
 func (f *TitleItemFilter) Filters() bool {
-	return f.Active() || f.Genre != "" || f.Players != "" || f.GameLanguage != "" || f.Score != ""
+	return f.Active() || f.Genre != "" || f.Players != "" || f.GameLanguage != "" || f.Score != "" || f.Publisher != ""
 }
 
 // Plain reports whether the first page is shown without any filter (in any view of the Library).
 func (f *TitleItemFilter) Plain() bool {
-	return !f.Active() && f.Genre == "" && f.Players == "" && f.GameLanguage == "" && f.Score == "" && f.Page <= 1
+	return !f.Active() && f.Genre == "" && f.Players == "" && f.GameLanguage == "" && f.Score == "" && f.Publisher == "" && f.Page <= 1
 }
 
 // RecsOpen reports whether the recommendations were left open (recsCookie).
@@ -251,7 +253,7 @@ func (f *TitleItemFilter) ShowsMissing() bool {
 // collection, kind, region, format and the others.
 func (f *TitleItemFilter) SecondaryCount() int {
 	count := 0
-	for _, value := range []string{f.Collection, f.Kind, f.Console, f.Region, f.Format, f.Extra, f.Genre, f.Players, f.GameLanguage, f.Play, f.Score, f.Folder} {
+	for _, value := range []string{f.Collection, f.Kind, f.Console, f.Region, f.Format, f.Extra, f.Genre, f.Players, f.GameLanguage, f.Play, f.Score, f.Folder, f.Publisher} {
 		if value != "" {
 			count++
 		}
@@ -274,6 +276,7 @@ func (f *TitleItemFilter) query(replace ...string) url.Values {
 	values.Set("kind_of_issue", f.IssueKind)
 	values.Set("missing", f.WithMissing)
 	values.Set("genre", f.Genre)
+	values.Set("publisher", f.Publisher)
 	values.Set("players", f.Players)
 	values.Set("languages", f.GameLanguage)
 	values.Set("play", f.Play)
@@ -617,4 +620,23 @@ func sortItems(filter *TitleItemFilter, items []TitleItem) error {
 	sort.Stable(data)
 
 	return nil
+}
+
+// maxPublisher is the longest publisher a filter takes.
+const maxPublisher = 200
+
+// cleanPublisher is a publisher as a filter takes it: on one line, without spaces around and
+// not too long.
+func cleanPublisher(publisher string) string {
+	publisher = strings.Join(strings.Fields(publisher), " ")
+	if runes := []rune(publisher); len(runes) > maxPublisher {
+		publisher = string(runes[:maxPublisher])
+	}
+	return publisher
+}
+
+// publisherMatches tells whether a game of a publisher is taken by the publisher chosen ("" for
+// any), whatever the case of its letters.
+func publisherMatches(publisher string, chosen string) bool {
+	return chosen == "" || strings.EqualFold(strings.Join(strings.Fields(publisher), " "), chosen)
 }
