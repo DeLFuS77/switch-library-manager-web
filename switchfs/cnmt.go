@@ -125,7 +125,14 @@ func readBinaryCnmt(pfs0 *PFS0, data []byte) (*ContentMetaAttributes, error) {
 		case 6:
 			contentType = "DeltaFragment"
 		}
-		contents[contentType] = Content{ID: fmt.Sprintf("%x", ncaId)}
+		// a game of several programs (a collection) has a Program, a Control and more for each:
+		// the first program keeps the plain name of its type, the others take their ID offset after
+		// it ("Program#1"), so none is lost
+		key := contentType
+		if idOffset := cnmt[position+0x37]; idOffset != 0 {
+			key = fmt.Sprintf("%s#%d", contentType, idOffset)
+		}
+		contents[key] = Content{ID: fmt.Sprintf("%x", ncaId)}
 	}
 	metaType := ""
 	switch cnmt[0xC:0xD][0] {
