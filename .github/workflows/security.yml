@@ -70,6 +70,10 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
-      # the packages bundled in the pages and the build tools
+      # the packages bundled in the pages at high; the build tools (sass, esbuild), which never
+      # reach the pages, at critical, so a flaw with no fix yet in the file watcher of sass does
+      # not stop a version
       - name: npm audit
-        run: npm audit --audit-level=high
+        run: |
+          npm audit --audit-level=high --omit=dev
+          npm audit --audit-level=critical
