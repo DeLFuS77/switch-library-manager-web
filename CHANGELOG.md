@@ -1,11 +1,11 @@
 # Changelog
 
-## Unreleased
+## 2.0.15
 
 ### Improvements
 
-- Keys: Settings and Diagnostics tell up to which firmware your keys go, and which keys do not agree with the others (damaged, or mixed from another dump)
-- Keys: "Take them from my games" adds to title.keys the title keys of the tickets of your games, for other copies of them without a ticket
+- Keys: Settings and Diagnostics tell up to which firmware the keys go, and which keys do not agree with the others (damaged, or mixed from another dump)
+- Keys: "Take them from my games" adds to title.keys the title keys of the tickets of the games, for other copies of them without a ticket
 
 ### Fixes
 

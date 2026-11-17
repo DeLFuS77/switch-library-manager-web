@@ -1,4 +1,61 @@
 {
+  "2.0.15": {
+    "en": [
+      "Keys: Settings and Diagnostics tell up to which firmware the keys go, and which ones do not agree with the others.",
+      "Keys: the title keys of the tickets of the games can be added to title.keys.",
+      "A game of several programs keeps all of them, and NSZ and XCZ files with sections inside the NCA header are no longer refused."
+    ],
+    "es": [
+      "Claves: Ajustes y Diagnóstico dicen hasta qué firmware llegan las claves y cuáles no cuadran con las demás.",
+      "Claves: las title keys de los tickets de los juegos se pueden añadir a title.keys.",
+      "Un juego de varios programas los conserva todos, y los NSZ y XCZ con secciones dentro de la cabecera del NCA ya no se rechazan."
+    ],
+    "de": [
+      "Schlüssel: Einstellungen und Diagnose zeigen, bis zu welcher Firmware die Schlüssel reichen und welche nicht zu den anderen passen.",
+      "Schlüssel: die Title Keys der Tickets der Spiele lassen sich zu title.keys hinzufügen.",
+      "Ein Spiel aus mehreren Programmen behält sie alle, und NSZ- und XCZ-Dateien mit Abschnitten im NCA-Header werden nicht mehr abgelehnt."
+    ],
+    "fr": [
+      "Clés : Réglages et Diagnostic indiquent jusqu'à quel firmware vont les clés et lesquelles ne concordent pas avec les autres.",
+      "Clés : les title keys des tickets des jeux peuvent être ajoutées à title.keys.",
+      "Un jeu de plusieurs programmes les garde tous, et les NSZ et XCZ avec des sections dans l'en-tête du NCA ne sont plus refusés."
+    ],
+    "it": [
+      "Chiavi: Impostazioni e Diagnostica dicono fino a quale firmware arrivano le chiavi e quali non concordano con le altre.",
+      "Chiavi: le title key dei ticket dei giochi si possono aggiungere a title.keys.",
+      "Un gioco di più programmi li conserva tutti, e i file NSZ e XCZ con sezioni dentro l'intestazione dell'NCA non vengono più rifiutati."
+    ],
+    "pt": [
+      "Chaves: Definições e Diagnóstico dizem até que firmware chegam as chaves e quais não batem certo com as outras.",
+      "Chaves: as title keys dos tickets dos jogos podem ser adicionadas a title.keys.",
+      "Um jogo de vários programas mantém-nos todos, e os ficheiros NSZ e XCZ com secções dentro do cabeçalho do NCA já não são recusados."
+    ],
+    "nl": [
+      "Sleutels: Instellingen en Diagnose tonen tot welke firmware de sleutels gaan en welke niet kloppen met de andere.",
+      "Sleutels: de title keys van de tickets van de games kunnen aan title.keys worden toegevoegd.",
+      "Een game met meerdere programma's houdt ze allemaal, en NSZ- en XCZ-bestanden met secties in de NCA-header worden niet meer geweigerd."
+    ],
+    "ru": [
+      "Ключи: Настройки и Диагностика показывают, до какой прошивки доходят ключи и какие не согласуются с остальными.",
+      "Ключи: title keys из тикетов игр можно добавить в title.keys.",
+      "Игра из нескольких программ сохраняет их все, а файлы NSZ и XCZ с разделами внутри заголовка NCA больше не отклоняются."
+    ],
+    "ja": [
+      "キー：設定と診断で、キーがどのファームウェアまで対応しているか、他と合わないキーはどれかがわかります。",
+      "キー：ゲームのチケットのタイトルキーを title.keys に追加できます。",
+      "複数のプログラムを持つゲームはすべて保持され、NCA ヘッダー内にセクションがある NSZ・XCZ も拒否されなくなりました。"
+    ],
+    "ko": [
+      "키: 설정과 진단에서 키가 어느 펌웨어까지 지원하는지, 다른 키와 맞지 않는 키가 무엇인지 알려 줍니다.",
+      "키: 게임 티켓의 타이틀 키를 title.keys에 추가할 수 있습니다.",
+      "여러 프로그램으로 된 게임은 모두 유지되며, NCA 헤더 안에 섹션이 있는 NSZ·XCZ 파일도 더 이상 거부되지 않습니다."
+    ],
+    "zh": [
+      "密钥：设置和诊断会显示密钥支持到哪个固件，以及哪些与其他密钥不一致。",
+      "密钥：可将游戏票据中的标题密钥添加到 title.keys。",
+      "包含多个程序的游戏会全部保留，NCA 头部内带有分段的 NSZ 和 XCZ 文件也不再被拒绝。"
+    ]
+  },
   "2.0.14": {
     "en": [
       "Tasks: the files of a check can be shown by how it ended (verified, corrupted, modified or skipped), with how many there are."
