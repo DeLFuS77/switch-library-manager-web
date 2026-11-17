@@ -1106,6 +1106,14 @@ func decompressNczPlain(ctx context.Context, output io.Writer, input io.ReaderAt
 		sections = append(sections, section)
 	}
 
+	// sections that lie wholly inside the copied header have nothing in the stream: some
+	// NCA files list small sections there, and other tools keep them in the table
+	for len(sections) > 0 && sections[0].offset < nczHeaderSize && sections[0].offset+sections[0].size >= sections[0].offset && sections[0].offset+sections[0].size <= nczHeaderSize {
+		sections = sections[1:]
+	}
+	if len(sections) == 0 {
+		return errors.New("invalid NCZ section table")
+	}
 	// like nsz: the bytes between the copied header and a first section that starts later
 	// are stored without encryption, and a first section that starts earlier continues
 	// where the copied header ends

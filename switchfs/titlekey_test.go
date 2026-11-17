@@ -1,6 +1,7 @@
 package switchfs
 
 import (
+	"encoding/hex"
 	"os"
 	"path/filepath"
 	"testing"
@@ -36,5 +37,20 @@ func TestMissingTitleKey(t *testing.T) {
 	initNszKeys(t, testRightsId+" = 00112233445566778899aabbccddeeff\n")
 	if missing, err := MissingTitleKey(without); err != nil || missing != "" {
 		t.Fatalf("title.keys has it: %q %v", missing, err)
+	}
+}
+
+// The title keys of the common tickets of a game come out by their rights ID, as title.keys
+// writes them.
+func TestTicketTitleKeys(t *testing.T) {
+	rightsId := "0100000000010000000000000000000a"
+	ticket := makeTicket(rightsId)
+	path := filepath.Join(t.TempDir(), "game.nsp")
+	if err := os.WriteFile(path, makePFS0(pfs0Magic, []string{rightsId + ".tik", "x.nca"}, [][]byte{ticket, make([]byte, 0x10)}), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	keys, err := TicketTitleKeys(path)
+	if err != nil || len(keys) != 1 || keys[rightsId] != hex.EncodeToString(ticket[0x180:0x190]) {
+		t.Fatalf("the title keys: %v %v", keys, err)
 	}
 }

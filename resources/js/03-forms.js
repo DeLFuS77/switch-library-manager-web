@@ -70,6 +70,31 @@ function setupKeysUpload(box, saved) {
 // on the Settings page the new state of the keys shows after a reload
 function initKeysUpload() {
 	setupKeysUpload(document.querySelector('#settingsForm [data-keys-upload]'), () => setTimeout(() => window.location.reload(), 1500));
+	// the title keys of the tickets of the games of the library, into title.keys
+	const collect = document.querySelector('[data-title-keys-collect]');
+	if (collect) {
+		collect.addEventListener('click', () => {
+			collect.disabled = true;
+			apiFetch('/settings/title-keys/collect', { method: 'POST' })
+				.then(response => readJSON(response).then(json => ({ ok: response.ok, status: response.status, json })))
+				.then(({ ok, status, json }) => {
+					collect.disabled = false;
+					if (!ok) {
+						const error = json.globalError || {};
+						showToast('alert-danger', 'bi-exclamation-triangle-fill', error.strongMessage || t('Error!'), error.message || t('Unexpected server response (%v).', status));
+						return;
+					}
+					showToast('alert-success', 'bi-check-circle-fill', json.strongMessage, json.message);
+					if (json.added > 0) {
+						setTimeout(() => window.location.reload(), 1500);
+					}
+				})
+				.catch(() => {
+					collect.disabled = false;
+					showToast('alert-danger', 'bi-exclamation-triangle-fill', t('Error!'), t('Could not reach the server.'));
+				});
+		});
+	}
 }
 
 function initSaveWhenChanged() {

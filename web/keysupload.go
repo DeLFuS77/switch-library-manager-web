@@ -114,6 +114,7 @@ func readUpload(r *http.Request, field string) ([]byte, error) {
 // alone when a prod.keys is in use: the app reads the one of the data folder too. Their contents
 // are never logged nor shown; only administrators can send them (a POST), never in the demo.
 func (web *Web) HandleKeysUpload() {
+	web.router.HandleFunc(titleKeysCollectPath, web.handleTitleKeysCollect).Methods("POST")
 	web.router.HandleFunc("/settings/keys", func(w http.ResponseWriter, r *http.Request) {
 		lang := web.requestLanguage(r)
 		r.Body = http.MaxBytesReader(w, r.Body, 3*maxKeysUpload)

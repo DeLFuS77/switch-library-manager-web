@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.15
+
+### Improvements
+
+- Keys: Settings and Diagnostics tell up to which firmware the keys go, and which keys do not agree with the others (damaged, or mixed from another dump)
+- Keys: "Take them from my games" adds to title.keys the title keys of the tickets of the games, for other copies of them without a ticket
+
+### Fixes
+
+- A game of several programs (a collection) keeps all of them in what is read of it, not only the last one
+- NSZ and XCZ files whose NCZ lists sections inside the NCA header are verified and decompressed instead of being refused as damaged
+
 ## 2.0.14
 
 ### Improvements

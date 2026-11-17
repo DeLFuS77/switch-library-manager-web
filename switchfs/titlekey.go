@@ -55,3 +55,26 @@ func MissingTitleKey(path string) (string, error) {
 	}
 	return "", nil
 }
+
+// TicketTitleKeys returns the title keys of the common tickets of an NSP or NSZ, by lower case
+// rights ID, as title.keys writes them: what another copy of the game without its ticket needs.
+func TicketTitleKeys(path string) (map[string]string, error) {
+	input, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer input.Close()
+	pkg, err := openGamePackage(input)
+	if err != nil {
+		return nil, err
+	}
+	tickets, err := readTickets(input, pkg.files)
+	if err != nil {
+		return nil, err
+	}
+	keys := map[string]string{}
+	for rightsId, key := range tickets {
+		keys[strings.ToLower(rightsId)] = hex.EncodeToString(key)
+	}
+	return keys, nil
+}

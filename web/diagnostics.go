@@ -87,7 +87,19 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 	keys := CheckGroup{Title: t("Keys"), Icon: "bi-key"}
 	count, titleKeys, generation := settings.KeysSummary()
 	if settings.IsKeysFileAvailable() {
-		keys.Checks = append(keys.Checks, Check{Label: "prod.keys", Value: t("%v keys, up to generation %v", count, generation), Status: CHECK_OK})
+		check := settings.CheckKeys()
+		if check.Firmware != "" {
+			keys.Checks = append(keys.Checks, Check{Label: "prod.keys", Value: t("%v keys, up to firmware %v", count, check.Firmware), Status: CHECK_OK})
+		} else {
+			keys.Checks = append(keys.Checks, Check{Label: "prod.keys", Value: t("%v keys, up to generation %v", count, generation), Status: CHECK_OK})
+		}
+		// the keys that do not come out of their master key were damaged or mixed from another dump
+		if len(check.Wrong) > 0 {
+			keys.Checks = append(keys.Checks, Check{Label: t("Check of the keys"), Value: strings.Join(check.Wrong, ", "), Status: CHECK_ERROR,
+				Hint: t("Some keys do not agree with the others: dump them again from your console.")})
+		} else if check.Checked > 0 {
+			keys.Checks = append(keys.Checks, Check{Label: t("Check of the keys"), Value: t("%v keys checked", check.Checked), Status: CHECK_OK})
+		}
 	} else {
 		keys.Checks = append(keys.Checks, Check{Label: "prod.keys", Value: t("Not found"), Status: CHECK_ERROR, Hint: t("Games are recognized by their file names only, and compression is off. Add your own prod.keys, dumped from your console.")})
 	}
