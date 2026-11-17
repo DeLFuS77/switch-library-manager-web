@@ -357,10 +357,11 @@ type TitleItem struct {
 	// games without their base game: the updates and DLC the library has of them
 	OrphanUpdates int
 	OrphanDlc     int
-	// from the titles database: genres, number of players and language codes
+	// from the titles database: genres, number of players, language codes and publisher
 	Genres    []string
 	Players   int
 	Languages []string
+	Publisher string
 	// computed once when a list is sorted (see sorted), for sorting and searching
 	sortKey     string
 	searchKey   string
@@ -520,8 +521,10 @@ type LibraryFacets struct {
 	Folders     []FolderChoice
 	ShowFolders bool
 	// genres and languages of the games, the most frequent first, and the games by players
-	Genres       []NamedCount
-	Languages    []NamedCount
+	Genres    []NamedCount
+	Languages []NamedCount
+	// the publishers of the games, the one with the most games first
+	Publishers   []NamedCount
 	SinglePlayer int
 	TwoPlayers   int
 	FourPlayers  int

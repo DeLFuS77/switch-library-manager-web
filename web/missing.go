@@ -49,7 +49,8 @@ func (web *Web) getMissingGames(filter *TitleItemFilter, lang string) ([]TitleIt
 }
 
 // getMissingGamesWithFacets gives the page of the missing games that match the filter: the
-// Wishlist, the search, the region, the genre, the players, the language and games or demos.
+// Wishlist, the search, the region, the genre, the players, the language, the publisher and
+// games or demos.
 // Each filter is counted before its own choice, like in the Library.
 func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) ([]TitleItem, pagination.Pagination, LibraryFacets) {
 	all := web.sorted("missingGames:"+lang, filter, func() []TitleItem { return web.buildMissingGames(lang) })
@@ -57,6 +58,7 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 	regions := map[string]struct{}{}
 	genreCounts := map[string]int{}
 	languageCounts := map[string]int{}
+	publisherCounts := map[string]int{}
 	matched := make([]int, 0, len(all))
 	once := web.newMissingOnce()
 	filter.searchIn(all)
@@ -80,6 +82,9 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 		for _, language := range item.Languages {
 			languageCounts[language]++
 		}
+		if item.Publisher != "" {
+			publisherCounts[item.Publisher]++
+		}
 		switch {
 		case item.Players == 1:
 			facets.SinglePlayer++
@@ -90,7 +95,8 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 			facets.TwoPlayers++
 		}
 		if (filter.Genre != "" && !hasValue(item.Genres, filter.Genre)) || !playersMatch(item.Players, filter.Players) ||
-			(filter.GameLanguage != "" && !hasValue(item.Languages, filter.GameLanguage)) || !scoreMatches(item.Score, filter.Score) {
+			(filter.GameLanguage != "" && !hasValue(item.Languages, filter.GameLanguage)) || !scoreMatches(item.Score, filter.Score) ||
+			!publisherMatches(item.Publisher, filter.Publisher) {
 			continue
 		}
 		// the console and the kind are the last filters: each console counts the games of its own
@@ -122,6 +128,7 @@ func (web *Web) getMissingGamesWithFacets(filter *TitleItemFilter, lang string) 
 	sort.Strings(facets.Regions)
 	facets.Genres = sortedCounts(genreCounts)
 	facets.Languages = sortedCounts(languageCounts)
+	facets.Publishers = sortedCounts(publisherCounts)
 
 	// the items are already sorted; only the shown page is copied
 	p := pagination.Calculate(filter.Page, filter.PerPage, len(matched))
@@ -335,6 +342,7 @@ func (web *Web) buildMissingGames(lang string) []TitleItem {
 				Genres:       v.Attributes.Genres,
 				Players:      v.Attributes.Players,
 				Languages:    v.Attributes.Languages,
+				Publisher:    strings.TrimSpace(v.Attributes.Publisher),
 			})
 		}
 	}

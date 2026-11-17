@@ -252,6 +252,12 @@
 	margin-bottom: .6rem;
 }
 
+// the box that finds a choice of a long list as it is typed (the publishers)
+.filter-find {
+	max-width: 17rem;
+	margin: .5rem 0;
+}
+
 // the choices after the first ones of a long list, a click away
 .filter-more {
 	margin-top: .45rem;
