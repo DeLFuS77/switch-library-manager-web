@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- A game of several programs (a collection) keeps all of them in what is read of it, not only the last one
+
 ## 2.0.14
 
 ### Improvements
