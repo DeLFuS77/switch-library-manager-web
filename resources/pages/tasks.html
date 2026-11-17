@@ -222,7 +222,7 @@
    and an ended one, show the files at work and the files ended */}}
 {{- $verify := eq .Kind "verify"}}
 {{- if .Plan}}
-<ul class="task-tiles list-unstyled mb-0 mt-3" aria-label="{{t "Files"}}">
+<ul class="task-tiles list-unstyled mb-0 mt-3" aria-label="{{t "Files"}}"{{if $verify}} data-check-tiles data-l-all="{{t "All"}}" data-l-ok="{{t "Verified"}}" data-l-failed="{{t "Corrupted"}}" data-l-modified="{{t "Modified"}}" data-l-skipped="{{t "Skipped"}}" data-l-filters="{{t "Filters"}}"{{end}}>
 	{{- range .Plan}}
 	<li class="task-tile{{if .Working}} is-working{{else if .Waiting}} is-waiting{{else if .Failed}} is-failed{{else if .Skipped}} is-skipped{{else if .Modified}} is-modified{{end}}"{{if .Working}} style="--lane-fill: {{.Percent}}%"{{with .Step}} data-step="{{.}}"{{end}}{{end}}>
 		<span class="task-tile-cover">{{if .Cover}}<img class="task-tile-img" src="{{.Cover}}" alt="" loading="lazy" decoding="async">{{else}}<span class="bi bi-file-earmark-zip" aria-hidden="true"></span>{{end}}{{if .Working}}<span class="task-tile-pct">{{.Percent}}%</span>{{end}}</span>
@@ -247,7 +247,7 @@
 <p class="task-tiles-more small text-body-secondary mb-0 mt-2">{{t "and %v more" (num .HiddenAfter)}}</p>
 {{- end}}
 {{- else if or .Lanes .Tiles}}
-<ul class="task-tiles list-unstyled mb-0 mt-3" aria-label="{{t "Files"}}">
+<ul class="task-tiles list-unstyled mb-0 mt-3" aria-label="{{t "Files"}}"{{if $verify}} data-check-tiles data-l-all="{{t "All"}}" data-l-ok="{{t "Verified"}}" data-l-failed="{{t "Corrupted"}}" data-l-modified="{{t "Modified"}}" data-l-skipped="{{t "Skipped"}}" data-l-filters="{{t "Filters"}}"{{end}}>
 	{{- range .Lanes}}
 	{{- with .Tile}}
 	<li class="task-tile is-working" style="--lane-fill: {{.Percent}}%"{{with .Step}} data-step="{{.}}"{{end}}>

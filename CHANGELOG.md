@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.14
+
+### Improvements
+
+- Tasks: the files of a check, by covers, can be shown by how their check ended (verified, corrupted, modified or skipped), with how many there are, as Verify does in NXPress
+
 ## 2.0.13
 
 ### Improvements

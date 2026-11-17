@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.13
+  <Changes>### 2.0.14
+- Tasks: the files of a check can be shown by how their check ended
+### 2.0.13
 - Library: filter by publisher
 - Install over the network: Sphaira connects, as to a shop of the kind of Ownfoil
 - Organize: in Docker on a NAS that does not tell upper and lower case apart, a folder that only changes its case is really renamed

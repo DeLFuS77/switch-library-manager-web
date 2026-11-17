@@ -1,4 +1,39 @@
 {
+  "2.0.14": {
+    "en": [
+      "Tasks: the files of a check can be shown by how it ended (verified, corrupted, modified or skipped), with how many there are."
+    ],
+    "es": [
+      "Tareas: los archivos de una comprobación se pueden mostrar según cómo acabó (verificado, corrupto, modificado u omitido), con cuántos hay."
+    ],
+    "de": [
+      "Aufgaben: die Dateien einer Prüfung lassen sich nach ihrem Ergebnis anzeigen (geprüft, beschädigt, verändert oder übersprungen), mit ihrer Anzahl."
+    ],
+    "fr": [
+      "Tâches : les fichiers d'une vérification peuvent être affichés selon leur résultat (vérifié, corrompu, modifié ou ignoré), avec leur nombre."
+    ],
+    "it": [
+      "Attività: i file di una verifica si possono mostrare in base al risultato (verificato, danneggiato, modificato o saltato), con quanti sono."
+    ],
+    "pt": [
+      "Tarefas: os ficheiros de uma verificação podem ser mostrados conforme o resultado (verificado, corrompido, modificado ou ignorado), com quantos são."
+    ],
+    "nl": [
+      "Taken: de bestanden van een controle kunnen worden getoond naar hun uitkomst (gecontroleerd, beschadigd, gewijzigd of overgeslagen), met hoeveel het er zijn."
+    ],
+    "ru": [
+      "Задачи: файлы проверки можно показывать по её итогу (проверен, повреждён, изменён или пропущен), с их количеством."
+    ],
+    "ja": [
+      "タスク：検証のファイルを結果（検証済み、破損、変更、スキップ）ごとに件数付きで表示できます。"
+    ],
+    "ko": [
+      "작업: 검사한 파일을 결과(확인됨, 손상, 수정됨, 건너뜀)별로 개수와 함께 볼 수 있습니다."
+    ],
+    "zh": [
+      "任务：可按检查结果（已验证、已损坏、已修改或已跳过）显示检查的文件及其数量。"
+    ]
+  },
   "2.0.13": {
     "en": [
       "Library: filter by publisher in Filters, and the publisher on the page of a game leads to its games.",
