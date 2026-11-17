@@ -1,6 +1,7 @@
 {{define "title"}}{{t "Saves"}}{{end}}
 {{define "main"}}
-			{{- template "pageHeader" (dict "Title" (t "Saves") "Count" .Total "Subtitle" (t "Copies your consoles uploaded with NXDock. 10 are kept per game; pinned ones are never deleted by themselves."))}}
+			{{- template "pageHeader" (dict "Title" (t "Saves") "Count" .Total "Subtitle" (t "Copies your consoles uploaded with NXDock, and the ones you bring from an emulator. 10 are kept per game; pinned ones are never deleted by themselves."))}}
+			{{- $games := .Games}}
 			{{- if not .Groups}}
 			{{- template "emptyState" (dict "Icon" "bi-cloud-arrow-up" "Tone" "" "Title" (t "No saves yet") "Text" (t "Upload the save of a game with NXDock on your console: it appears here.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 			{{- else}}
@@ -23,6 +24,7 @@
 								<span class="bi bi-controller" aria-hidden="true"></span>
 								{{- if .Game}}<a href="/title/{{.TitleId}}.html">{{.Game}}</a>{{else}}<span class="font-monospace">{{.TitleId}}</span>{{end}}
 								<span class="net-save-count"> &middot; <span data-net-save-count>{{if eq (len .Saves) 1}}{{t "1 copy"}}{{else}}{{t "%v copies" (len .Saves)}}{{end}}</span></span>
+								<button type="button" class="btn btn-link btn-sm net-save-upload" data-net-save-upload="{{.TitleId}}" data-net-save-upload-game="{{or .Game .TitleId}}"><span class="bi bi-pc-display me-1" aria-hidden="true"></span>{{t "Upload from emulator"}}</button>
 							</th>
 						</tr>
 						{{- range .Saves}}
@@ -34,11 +36,11 @@
 								</div>
 							</td>
 							<td data-label="{{t "Date"}}"><time datetime="{{.Time.UTC.Format "2006-01-02T15:04:05Z"}}">{{formatDateTime .Time}}</time></td>
-							<td data-label="{{t "Console"}}"><span>{{.Console}}{{if .Account}}<span class="net-save-account"><span class="bi bi-person" aria-hidden="true"></span>{{.Account}}</span>{{end}}</span></td>
-							<td data-label="{{t "Version"}}"><span>v{{.Version}}</span></td>
+							<td data-label="{{t "Console"}}"><span>{{.Console}}{{if .Emulator}}<span class="badge net-save-emulator"><span class="bi bi-pc-display" aria-hidden="true"></span> {{t "emulator"}}</span>{{end}}{{if .Account}}<span class="net-save-account"><span class="bi bi-person" aria-hidden="true"></span>{{.Account}}</span>{{end}}</span></td>
+							<td data-label="{{t "Version"}}"><span>{{if and .Emulator (eq .Version 0)}}&mdash;{{else}}v{{.Version}}{{end}}</span></td>
 							<td data-label="{{t "Size"}}" class="text-end text-nowrap"><span>{{formatSize .Size}}</span></td>
 							<td class="net-save-actions">
-								<button type="button" class="btn btn-link" data-net-save-edit>{{t "Note"}}</button><span class="net-save-dot" aria-hidden="true">&middot;</span><a class="btn btn-link" href="/api/saves/{{.TitleId}}/{{.Id}}" download>{{t "Download"}}</a><span class="net-save-dot" aria-hidden="true">&middot;</span><button type="button" class="btn btn-link net-save-delete" data-net-save-delete>{{t "Delete"}}</button>
+								<button type="button" class="btn btn-link" data-net-save-edit>{{t "Note"}}</button><span class="net-save-dot" aria-hidden="true">&middot;</span><a class="btn btn-link" href="/api/saves/{{.TitleId}}/{{.Id}}" download>{{t "Download"}}</a><span class="net-save-dot" aria-hidden="true">&middot;</span><button type="button" class="btn btn-link" data-net-save-emulator data-net-save-version="{{if and .Emulator (eq .Version 0)}}{{else}}{{.Version}}{{end}}">{{t "For emulator"}}</button><span class="net-save-dot" aria-hidden="true">&middot;</span><button type="button" class="btn btn-link net-save-delete" data-net-save-delete>{{t "Delete"}}</button>
 							</td>
 						</tr>
 						{{- end}}
@@ -47,5 +49,83 @@
 				</table>
 			</div>
 			<p class="small text-body-secondary mt-2">{{t "Total size"}}: {{formatSize .Size}}</p>
+			{{- end}}
+			{{- if .Owner}}
+			{{- if $games}}
+			<p class="mt-3"><button type="button" class="btn btn-outline-primary btn-sm rounded-pill" data-net-save-upload=""><span class="bi bi-pc-display me-1" aria-hidden="true"></span>{{t "Upload from emulator"}}</button></p>
+			{{- end}}
+
+			<div class="modal fade" id="netSaveEmulator" tabindex="-1" aria-labelledby="netSaveEmulatorTitle" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h2 class="modal-title fs-5" id="netSaveEmulatorTitle"><span class="bi bi-pc-display me-2" aria-hidden="true"></span><span data-net-emu-title data-text="{{t "%v in an emulator"}}"></span></h2>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+						</div>
+						<div class="modal-body">
+							<div class="btn-group btn-group-sm mb-3" role="group" aria-label="{{t "Emulator"}}">
+								<input type="radio" class="btn-check" name="netEmuKind" id="netEmuEden" value="eden" checked><label class="btn btn-outline-primary" for="netEmuEden">Eden, Citron, Sudachi</label>
+								<input type="radio" class="btn-check" name="netEmuKind" id="netEmuRyujinx" value="ryujinx"><label class="btn btn-outline-primary" for="netEmuRyujinx">Ryujinx</label>
+							</div>
+							<ol class="net-emu-steps">
+								<li>{{t "Download the save: a ZIP with its files."}}</li>
+								<li data-net-emu-step="eden" data-text="{{t "In the emulator, right-click %v › Open Save Data Location. Open the game in the emulator once before, so the folder is there."}}"></li>
+								<li data-net-emu-step="ryujinx" data-text="{{t "In the emulator, right-click %v › Open User Save Directory. Open the game in the emulator once before, so the folder is there."}}" hidden></li>
+								<li>{{t "Close the game and unzip the ZIP into that folder, replacing what is there."}}</li>
+							</ol>
+							<div class="alert alert-warning small mb-0" data-net-emu-version data-text="{{t "This save is from version %v of the game. Use it with that version or a newer one: with an older one the game may not read it."}}" hidden></div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-link" data-bs-dismiss="modal">{{t "Cancel"}}</button>
+							<a class="btn btn-primary rounded-pill px-4" data-net-emu-download download><span class="bi bi-download me-2" aria-hidden="true"></span>{{t "Download for the emulator"}}</a>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="modal fade" id="netSaveUpload" tabindex="-1" aria-labelledby="netSaveUploadTitle" aria-hidden="true">
+				<div class="modal-dialog modal-dialog-centered">
+					<form class="modal-content" data-net-upload-form>
+						<div class="modal-header">
+							<h2 class="modal-title fs-5" id="netSaveUploadTitle"><span class="bi bi-cloud-arrow-up me-2" aria-hidden="true"></span>{{t "Upload a save from an emulator"}}</h2>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{t "Close"}}"></button>
+						</div>
+						<div class="alert alert-danger mx-3 mt-3 mb-0" role="alert" data-net-upload-error hidden></div>
+						<div class="modal-body">
+							<label class="form-label fw-semibold" for="netUploadGame">{{t "Game"}}</label>
+							<select class="form-select mb-3" id="netUploadGame" name="game" required>
+								{{- range $games}}<option value="{{.TitleId}}">{{.Name}}</option>{{end}}
+							</select>
+							<span class="form-label fw-semibold d-block">{{t "Emulator"}}</span>
+							<div class="btn-group btn-group-sm mb-3 flex-wrap" role="group" aria-label="{{t "Emulator"}}">
+								<input type="radio" class="btn-check" name="emulator" id="netUpEden" value="eden" checked><label class="btn btn-outline-primary" for="netUpEden">Eden</label>
+								<input type="radio" class="btn-check" name="emulator" id="netUpCitron" value="citron"><label class="btn btn-outline-primary" for="netUpCitron">Citron</label>
+								<input type="radio" class="btn-check" name="emulator" id="netUpSudachi" value="sudachi"><label class="btn btn-outline-primary" for="netUpSudachi">Sudachi</label>
+								<input type="radio" class="btn-check" name="emulator" id="netUpRyujinx" value="ryujinx"><label class="btn btn-outline-primary" for="netUpRyujinx">Ryujinx</label>
+								<input type="radio" class="btn-check" name="emulator" id="netUpOther" value="other"><label class="btn btn-outline-primary" for="netUpOther">{{t "Other"}}</label>
+							</div>
+							<p class="small text-body-secondary mb-2">{{t "In the emulator, right-click the game › Open Save Data Location (Open User Save Directory in Ryujinx). Drop here everything in that folder, the folder itself, or a ZIP."}}</p>
+							<div class="net-upload-drop mb-2" data-net-upload-drop>
+								<span class="bi bi-folder2-open" aria-hidden="true"></span>
+								<span class="d-block">{{t "Drop the files, the folder or a ZIP here"}}</span>
+								<span class="d-flex gap-2 justify-content-center mt-2">
+									<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" data-net-upload-pick="files">{{t "Choose files"}}</button>
+									<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" data-net-upload-pick="folder">{{t "Choose a folder"}}</button>
+								</span>
+								<input type="file" class="visually-hidden" multiple data-net-upload-files tabindex="-1" aria-hidden="true">
+								<input type="file" class="visually-hidden" webkitdirectory data-net-upload-folder tabindex="-1" aria-hidden="true">
+							</div>
+							<div class="net-upload-chosen small" data-net-upload-chosen></div>
+							<label class="form-label fw-semibold mt-3" for="netUploadNote">{{t "Note"}}</label>
+							<input class="form-control" id="netUploadNote" name="note" maxlength="200" autocomplete="off">
+							<p class="small text-body-secondary mt-3 mb-0"><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "It is kept as a new copy, marked emulator. NXDock sees it on the console and restores it as any other."}}</p>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-link" data-bs-dismiss="modal">{{t "Cancel"}}</button>
+							<button type="submit" class="btn btn-primary rounded-pill px-4" data-net-upload-submit><span class="bi bi-cloud-arrow-up me-2" aria-hidden="true"></span>{{t "Upload"}}</button>
+						</div>
+					</form>
+				</div>
+			</div>
 			{{- end}}
 {{- end}}

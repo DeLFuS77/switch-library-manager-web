@@ -521,6 +521,88 @@
 		font-weight: 400;
 		color: var(--bs-secondary-color);
 	}
+
+	// Upload from emulator, at the right of the name of the game
+	.net-save-group .net-save-upload {
+		float: right;
+		padding: 0;
+		font-size: .85rem;
+		font-weight: 400;
+
+		.bi {
+			color: inherit;
+		}
+	}
+
+	// a copy of an emulator
+	.net-save-emulator {
+		margin-left: .4rem;
+		font-weight: 600;
+		color: var(--bs-info-text-emphasis);
+		background-color: var(--bs-info-bg-subtle);
+	}
+}
+
+// For emulator: the steps, numbered in circles
+.net-emu-steps {
+	counter-reset: step;
+	list-style: none;
+	padding: 0;
+	margin: 0 0 1rem;
+
+	li {
+		counter-increment: step;
+		position: relative;
+		padding: .35rem 0 .35rem 2.1rem;
+
+		&::before {
+			content: counter(step);
+			position: absolute;
+			left: 0;
+			top: .3rem;
+			display: grid;
+			place-items: center;
+			width: 1.5rem;
+			height: 1.5rem;
+			border-radius: 50%;
+			font-size: .75rem;
+			font-weight: 700;
+			color: var(--bs-primary-text-emphasis);
+			background-color: var(--bs-primary-bg-subtle);
+		}
+	}
+}
+
+// Upload from emulator: where the files are dropped, and the ones chosen
+.net-upload-drop {
+	padding: 1.25rem;
+	border: 2px dashed var(--bs-border-color);
+	border-radius: 1rem;
+	text-align: center;
+	color: var(--bs-secondary-color);
+
+	> .bi {
+		display: block;
+		font-size: 1.75rem;
+		margin-bottom: .35rem;
+	}
+
+	&.is-over {
+		border-color: var(--bs-primary);
+		background-color: var(--bs-primary-bg-subtle);
+	}
+}
+
+.net-upload-chip {
+	display: inline-block;
+	max-width: 100%;
+	margin: .25rem .25rem 0 0;
+	padding: .1rem .6rem;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	border-radius: 999px;
+	background-color: var(--bs-tertiary-bg);
 }
 
 .net-save-main {
