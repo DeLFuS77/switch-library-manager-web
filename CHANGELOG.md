@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Organize: on a disk that does not tell upper and lower case apart (a share of a NAS such as TrueNAS, Windows, macOS), a folder whose name only changes its case is renamed too. The same changes no longer come back after every run. Thanks to @TerrorSource for reporting it (#179)
+
 ## 2.0.11
 
 ### Improvements

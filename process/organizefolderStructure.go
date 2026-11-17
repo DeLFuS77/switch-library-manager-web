@@ -240,7 +240,20 @@ func (f *fileOperations) move(from string, to string) error {
 			return moveFileTelling(from, to, progress)
 		}
 		if caseOnly {
-			moveTo = os.Rename
+			// the same file with another case: on a file system that does not tell cases apart
+			// (Windows, macOS, a share of a NAS) a rename leaves its folders as they were, so the
+			// folders whose name only changes its case are renamed first, or the change would be
+			// found again on every run (#179)
+			moved, err := renameFolderCase(from, to)
+			if err != nil {
+				return err
+			}
+			moveTo = func(_ string, to string) error {
+				if moved == to {
+					return nil
+				}
+				return os.Rename(moved, to)
+			}
 		}
 		if err := moveTo(from, to); err != nil {
 			// a file that came at the destination since it was looked at is never written over
@@ -268,6 +281,39 @@ func (f *fileOperations) move(from string, to string) error {
 		f.moveExtras(from, to)
 	}
 	return err
+}
+
+// renameFolderCase gives the folders of the path have the case they have in want, where a
+// folder is the same one with another case, and tells where the file is then. Only the folders
+// whose name differs in its case alone are renamed, from the top down; a path whose folders differ
+// otherwise is left as it is.
+func renameFolderCase(have string, want string) (string, error) {
+	sep := string(filepath.Separator)
+	haveDir, wantDir := filepath.Dir(have), filepath.Dir(want)
+	if haveDir == wantDir {
+		return have, nil
+	}
+	hp, wp := strings.Split(haveDir, sep), strings.Split(wantDir, sep)
+	if len(hp) != len(wp) {
+		return have, nil
+	}
+	for i := range hp {
+		if hp[i] != wp[i] && !strings.EqualFold(hp[i], wp[i]) {
+			return have, nil
+		}
+	}
+	for i := 1; i < len(hp); i++ {
+		if hp[i] == wp[i] {
+			continue
+		}
+		// the folders above have their new case already
+		oldPath := strings.Join(append(append([]string{}, wp[:i]...), hp[i]), sep)
+		newPath := strings.Join(wp[:i+1], sep)
+		if err := os.Rename(oldPath, newPath); err != nil {
+			return have, err
+		}
+	}
+	return filepath.Join(wantDir, filepath.Base(have)), nil
 }
 
 // renameInPlace gives a file that cannot go to its destination, as its name is taken there, its
