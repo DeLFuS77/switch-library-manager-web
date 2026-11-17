@@ -19,9 +19,53 @@ func caseInsensitive(t *testing.T, folder string) bool {
 	return err == nil
 }
 
+// linuxCaseRename is the rename of Linux on a file system that does not tell cases apart (a share
+// of a NAS, a dataset that ignores case): the new name is the same file, so it does nothing and
+// says it did.
+func linuxCaseRename(t *testing.T) {
+	t.Cleanup(func() { renameSys = os.Rename })
+	renameSys = func(from string, to string) error {
+		if strings.EqualFold(from, to) {
+			return nil
+		}
+		return os.Rename(from, to)
+	}
+}
+
+// A file or a folder takes its new case even where the system takes the rename as one to itself
+// (#179 in Docker, on a share of a NAS).
+func TestRenameCaseWhereTheSystemDoesNothing(t *testing.T) {
+	linuxCaseRename(t)
+	root := t.TempDir()
+	from := filepath.Join(root, "Astral Chain [01007300020FA000]")
+	if err := os.MkdirAll(from, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	os.WriteFile(filepath.Join(from, "game.nsz"), []byte("data"), 0o644)
+	to := filepath.Join(root, "ASTRAL CHAIN [01007300020FA000]")
+	if err := renameCase(from, to); err != nil {
+		t.Fatal(err)
+	}
+	entries, _ := os.ReadDir(root)
+	if len(entries) != 1 || entries[0].Name() != "ASTRAL CHAIN [01007300020FA000]" {
+		t.Fatalf("the folder: %v", entries)
+	}
+	if data, err := os.ReadFile(filepath.Join(to, "game.nsz")); err != nil || string(data) != "data" {
+		t.Fatalf("its file: %q %v", data, err)
+	}
+}
+
 // A folder whose name only changes its case is renamed too, so the next run finds nothing to do
-// (#179: the same changes came back after every run).
+// (#179: the same changes came back after every run), with the rename of Linux too.
 func TestMoveRenamesAFolderThatOnlyChangesItsCase(t *testing.T) {
+	t.Run("system", testMoveRenamesAFolderThatOnlyChangesItsCase)
+	t.Run("linux", func(t *testing.T) {
+		linuxCaseRename(t)
+		testMoveRenamesAFolderThatOnlyChangesItsCase(t)
+	})
+}
+
+func testMoveRenamesAFolderThatOnlyChangesItsCase(t *testing.T) {
 	root := t.TempDir()
 	if !caseInsensitive(t, root) {
 		t.Skip("the file system tells cases apart: a folder with another case is another folder")

@@ -252,7 +252,7 @@ func (f *fileOperations) move(from string, to string) error {
 				if moved == to {
 					return nil
 				}
-				return os.Rename(moved, to)
+				return renameCase(moved, to)
 			}
 		}
 		if err := moveTo(from, to); err != nil {
@@ -309,7 +309,7 @@ func renameFolderCase(have string, want string) (string, error) {
 		// the folders above have their new case already
 		oldPath := strings.Join(append(append([]string{}, wp[:i]...), hp[i]), sep)
 		newPath := strings.Join(wp[:i+1], sep)
-		if err := os.Rename(oldPath, newPath); err != nil {
+		if err := renameCase(oldPath, newPath); err != nil {
 			return have, err
 		}
 	}
@@ -340,7 +340,7 @@ func (f *fileOperations) renameInPlace(from string, to string, renamed string, k
 			if !os.SameFile(fromInfo, inPlaceInfo) {
 				return errNameTakenInPlace
 			}
-			renameTo = os.Rename
+			renameTo = renameCase
 		}
 		f.plan(inPlace, from)
 		if !f.dryRun {
