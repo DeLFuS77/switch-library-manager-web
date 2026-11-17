@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixes
+
+- Organize: in Docker on a NAS (a TrueNAS dataset or a share that does not tell upper and lower case apart), a folder whose name only changes its case is now really renamed. 2.0.12 still found the same changes again there. Thanks to @TerrorSource for checking it (#179)
+
 ## 2.0.12
 
 ### Improvements
