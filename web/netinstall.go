@@ -27,7 +27,8 @@ import (
 //
 //   - /install/dbi/ lists folders and files as the directory listing of nginx, which DBI reads
 //     as a source of the kind ApacheHTTP: Games, Updates, DLC and a folder per game.
-//   - /install/tinfoil is the index of the kind of Tinfoil, which CyberFoil and Sphaira read too.
+//   - /install/tinfoil is the index of the kind of Tinfoil, which CyberFoil reads too.
+//   - /install/ownfoil is the shop of the kind of Ownfoil, which Sphaira reads (netownfoil.go).
 //   - /install/f/{id}/{name} is a file of the index.
 //
 // It is off until it is turned on in Settings, it needs users (never without a password) and it
@@ -75,6 +76,8 @@ type netFile struct {
 	// and version of the file, the firmware it needs, the cover of the game and the name of a DLC
 	gameKey, titleId, cover, dlcName string
 	version, requiredSystem          int
+	// the version the file shows (1.2.0), for the shop of Sphaira
+	displayVersion string
 }
 
 // netInstallEnabled tells whether the network install answers.
@@ -86,6 +89,10 @@ func netInstallEnabled(s *settings.AppSettings) bool {
 // telling the answer to an install sent from the web and what is installed on the console,
 // uploading a save of a game and uploading a game it dumped, and what its queue does.
 func consoleAllowed(r *http.Request) bool {
+	// and the shop of the kind of Ownfoil that Sphaira reads: its hello and its queries
+	if netOwnfoilPath(r) {
+		return true
+	}
 	if r.Method == http.MethodPost {
 		return r.URL.Path == netInstallPushAnswer || r.URL.Path == netInstallInventory || netSaveUploadPath(r.URL.Path) ||
 			r.URL.Path == netInstallQueue || r.URL.Path == netInstallQueueDone
@@ -187,6 +194,9 @@ func (web *Web) netFilesOf(localDB *db.LocalSwitchFilesDB, options settings.NetI
 		if file.Metadata != nil {
 			entry.titleId, entry.version = strings.ToUpper(file.Metadata.TitleId), file.Metadata.Version
 			entry.requiredSystem = int(file.Metadata.RequiredTitleVersion)
+			if file.Metadata.Ncap != nil {
+				entry.displayVersion = file.Metadata.Ncap.DisplayVersion
+			}
 		}
 		if extension == ".nsz" || extension == ".xcz" {
 			if stream := web.netStreams.get(full, stat); stream != nil {
@@ -568,6 +578,7 @@ func (web *Web) HandleNetInstall() {
 	web.handleNetDumps()
 	web.handleNetCheatsPaths()
 	web.handleNetQueuePaths()
+	web.handleNetOwnfoilPaths()
 }
 
 // netDbiFolders are the folders of the DBI listing and their files.
