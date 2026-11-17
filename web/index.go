@@ -211,6 +211,7 @@ type libraryFilter struct {
 	folderCounts     map[string]int
 	genreCounts      map[string]int
 	languageCounts   map[string]int
+	publisherCounts  map[string]int
 	// the copies of the games of several regions left out, and the regions of the others
 	leftOut      map[string]bool
 	otherRegions map[string][]string
@@ -227,7 +228,7 @@ func (web *Web) newLibraryFilter(filter *TitleItemFilter, lang string, all []Tit
 	f := &libraryFilter{filter: filter, all: all, matched: make([]int, 0, len(all)),
 		facets:  LibraryFacets{Formats: []string{}, Regions: []string{}, DemosHidden: settings.ReadSettings(web.dataFolder).HideDemoGames},
 		formats: map[string]struct{}{}, regions: map[string]struct{}{}, recentSince: time.Now().AddDate(0, 0, -recentDays),
-		collectionCounts: map[string]int{}, folderCounts: map[string]int{}, genreCounts: map[string]int{}, languageCounts: map[string]int{}}
+		collectionCounts: map[string]int{}, folderCounts: map[string]int{}, genreCounts: map[string]int{}, languageCounts: map[string]int{}, publisherCounts: map[string]int{}}
 	f.folders = libraryFolders(settings.ReadSettings(web.dataFolder))
 	f.leftOut, f.otherRegions = web.regionCopies(lang)
 	f.merged = web.mergedStatus(lang)
@@ -311,6 +312,9 @@ func (f *libraryFilter) attributes(item *TitleItem) bool {
 	for _, language := range item.Languages {
 		f.languageCounts[language]++
 	}
+	if item.Publisher != "" {
+		f.publisherCounts[item.Publisher]++
+	}
 	switch {
 	case item.Players == 1:
 		facets.SinglePlayer++
@@ -322,7 +326,8 @@ func (f *libraryFilter) attributes(item *TitleItem) bool {
 	}
 	countScore(facets, item.Score)
 	return !((filter.Genre != "" && !hasValue(item.Genres, filter.Genre)) || !playersMatch(item.Players, filter.Players) ||
-		(filter.GameLanguage != "" && !hasValue(item.Languages, filter.GameLanguage)) || !scoreMatches(item.Score, filter.Score))
+		(filter.GameLanguage != "" && !hasValue(item.Languages, filter.GameLanguage)) || !scoreMatches(item.Score, filter.Score) ||
+		!publisherMatches(item.Publisher, filter.Publisher))
 }
 
 // kindAndExtra counts the kinds and extras of the game whatever they are set to, within the
@@ -428,7 +433,7 @@ func (f *libraryFilter) status(item *TitleItem) bool {
 	return true
 }
 
-// sortFacets puts the formats, regions, genres, languages and collections found in order.
+// sortFacets puts the formats, regions, genres, languages, publishers and collections found in order.
 func (f *libraryFilter) sortFacets() {
 	facets := &f.facets
 	for format := range f.formats {
@@ -450,6 +455,7 @@ func (f *libraryFilter) sortFacets() {
 	}
 	facets.Genres = sortedCounts(f.genreCounts)
 	facets.Languages = sortedCounts(f.languageCounts)
+	facets.Publishers = sortedCounts(f.publisherCounts)
 	for name, count := range f.collectionCounts {
 		facets.Collections = append(facets.Collections, userdata.CollectionCount{Name: name, Count: count})
 	}
@@ -618,6 +624,7 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			item.Genres = title.Attributes.Genres
 			item.Players = title.Attributes.Players
 			item.Languages = title.Attributes.Languages
+			item.Publisher = strings.TrimSpace(title.Attributes.Publisher)
 
 			if _, ignored := ignoredUpdates[strings.ToLower(v.File.Metadata.TitleId)]; !ignored {
 				// a game rebuilt with its update in it holds that update (see UpdateLevel)
@@ -683,6 +690,7 @@ func (web *Web) noFileItems(switchDB *db.SwitchTitlesDB, localDB *db.LocalSwitch
 			Genres:       attributes.Genres,
 			Players:      attributes.Players,
 			Languages:    attributes.Languages,
+			Publisher:    strings.TrimSpace(attributes.Publisher),
 			Added:        marked,
 			NoFile:       true,
 		}
