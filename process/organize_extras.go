@@ -202,7 +202,7 @@ func (f *fileOperations) moveExtra(from string, to string) {
 		}
 		moveTo := moveFile
 		if caseOnly {
-			moveTo = os.Rename
+			moveTo = renameCase
 		}
 		if err := moveTo(from, to); err != nil {
 			// a file that came at the destination since it was looked at is never written over

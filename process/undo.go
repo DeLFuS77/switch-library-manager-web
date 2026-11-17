@@ -132,7 +132,7 @@ func PutBack(move UndoMove, progress CopyProgress) (string, error) {
 		if err != nil || !os.SameFile(fromInfo, toInfo) {
 			return UNDO_TAKEN, nil
 		}
-		moveTo = os.Rename
+		moveTo = renameCase
 	}
 	if err := moveTo(move.To, move.From); err != nil {
 		if errors.Is(err, fs.ErrExist) {
