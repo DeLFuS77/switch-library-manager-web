@@ -85,3 +85,27 @@ func TestReadXmlCnmtTitleID(t *testing.T) {
 		t.Fatal("expected malformed XML error")
 	}
 }
+
+// A collection of two programs keeps both: the first under its type, the second under its type and
+// its ID offset, as the CNMT lists each with the offset of its program.
+func TestReadBinaryCnmtKeepsEveryProgram(t *testing.T) {
+	first := [16]byte{1}
+	second := [16]byte{2}
+	cnmtData := makeCNMT(0x0100000000010000, 0, ContentMetaType_Application, first, second)
+	// both are programs, the second of the program with offset 1
+	cnmtData[0x20+0x36] = 1
+	cnmtData[0x20+0x38+0x36] = 1
+	cnmtData[0x20+0x38+0x37] = 1
+	container := makePFS0(pfs0Magic, []string{"x.cnmt.nca"}, [][]byte{cnmtData})
+	parsed, err := readPfs0(bytes.NewReader(container), 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	meta, err := readBinaryCnmt(parsed, container)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if meta.Contents["Program"].ID != "01000000000000000000000000000000" || meta.Contents["Program#1"].ID != "02000000000000000000000000000000" {
+		t.Fatalf("the programs: %#v", meta.Contents)
+	}
+}
