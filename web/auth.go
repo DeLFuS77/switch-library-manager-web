@@ -521,6 +521,7 @@ func viewerAllowed(r *http.Request) bool {
 func (a *Auth) middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		shortShopAddress(r)
+		ownfoilShopAddress(r)
 		var principal *Principal
 		switch {
 		case isPublicRequest(r):
@@ -614,7 +615,7 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 	})
 }
 
-// shortShopAddress takes a shop of the kind of Tinfoil (Tinfoil, CyberFoil, Sphaira) given only the
+// shortShopAddress takes a shop of the kind of Tinfoil (Tinfoil, CyberFoil) given only the
 // address of the server, with the key of a console as its password, to the index it asks for: its
 // root is the index then, as /install/tinfoil is (#180). The key is checked as at that path; a
 // browser, which sends no key, still gets the pages.
