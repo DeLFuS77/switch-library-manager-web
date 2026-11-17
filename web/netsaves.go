@@ -88,6 +88,8 @@ type netSave struct {
 	Console string `json:"console"`
 	Size    int64  `json:"size"`
 	Pinned  bool   `json:"pinned"`
+	// a save of an emulator, uploaded from the page Saves: Console is the emulator
+	Emulator bool `json:"emulator,omitempty"`
 }
 
 // netSavesFile is the index of the saves of a user.
@@ -574,6 +576,7 @@ func (web *Web) handleNetSaves() {
 	web.router.HandleFunc(netSavesApi+saveOf, web.handleNetSaveGet).Methods(http.MethodGet, http.MethodHead)
 	web.router.HandleFunc(netSavesApi+saveOf, web.handleNetSaveChange).Methods(http.MethodPatch)
 	web.router.HandleFunc(netSavesApi+saveOf, web.handleNetSaveDelete).Methods(http.MethodDelete)
+	web.router.HandleFunc(netSavesApi+"/{titleId:[0-9A-Fa-f]{16}}", web.handleNetSaveEmulatorUpload).Methods(http.MethodPost)
 }
 
 // NetSavesPageData is the page Saves: the saves of the user signed in, by game.
@@ -583,6 +586,10 @@ type NetSavesPageData struct {
 	// all the saves, and the room they take
 	Total int
 	Size  int64
+	// the games of the library, for a save of an emulator; Owner tells that the one looking has
+	// saves (a user who may download), so may bring one
+	Games []NetSaveGame
+	Owner bool
 }
 
 // NetSaveGroup is a game and its saves, newest first.
@@ -618,8 +625,9 @@ func netSaveGroups(saves []netSave) []NetSaveGroup {
 func (web *Web) HandleNetSavesPage() {
 	templates := web.mustParseTemplates(web.embedFS, "resources/layout.html", "resources/pages/netsaves.html")
 	web.router.HandleFunc(netSavesPage, func(w http.ResponseWriter, r *http.Request) {
-		data := NetSavesPageData{GlobalPageData: web.globalPageData("netsaves"), Groups: []NetSaveGroup{}}
+		data := NetSavesPageData{GlobalPageData: web.globalPageData("netsaves"), Groups: []NetSaveGroup{}, Games: web.netSaveGameChoices()}
 		if principal, ok := netPairer(r); ok {
+			data.Owner = true
 			if saves, err := web.netSavesOf(principal.Name, ""); err == nil {
 				data.Groups = netSaveGroups(saves)
 				for _, save := range saves {

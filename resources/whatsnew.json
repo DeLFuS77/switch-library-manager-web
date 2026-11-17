@@ -1,4 +1,61 @@
 {
+  "2.0.12": {
+    "en": [
+      "Saves: Upload from emulator keeps a save of Eden, Citron, Sudachi or Ryujinx as a new copy, which NXDock restores; For emulator takes a save to one, with the steps.",
+      "Organize: on a NAS share that does not tell upper and lower case apart, the same changes no longer come back after every run.",
+      "Install over the network: Tinfoil, CyberFoil and Sphaira connect with the address of the server alone."
+    ],
+    "es": [
+      "Partidas: Subir desde emulador guarda una partida de Eden, Citron, Sudachi o Ryujinx como copia nueva, que NXDock restaura; Para emulador lleva una partida a uno, con los pasos.",
+      "Organizar: en una carpeta compartida de un NAS que no distingue mayúsculas, los mismos cambios ya no vuelven tras cada pasada.",
+      "Instalar por red: Tinfoil, CyberFoil y Sphaira se conectan solo con la dirección del servidor."
+    ],
+    "de": [
+      "Spielstände: Aus Emulator hochladen speichert einen Spielstand von Eden, Citron, Sudachi oder Ryujinx als neue Kopie, die NXDock wiederherstellt; Für Emulator bringt einen Spielstand in einen Emulator, mit den Schritten.",
+      "Organisieren: auf einer NAS-Freigabe ohne Unterscheidung von Groß- und Kleinschreibung kommen dieselben Änderungen nicht mehr nach jedem Lauf zurück.",
+      "Über das Netzwerk installieren: Tinfoil, CyberFoil und Sphaira verbinden sich nur mit der Adresse des Servers."
+    ],
+    "fr": [
+      "Sauvegardes : Envoyer depuis un émulateur garde une sauvegarde d'Eden, Citron, Sudachi ou Ryujinx comme nouvelle copie, que NXDock restaure ; Pour émulateur emmène une sauvegarde vers un émulateur, avec les étapes.",
+      "Organiser : sur un partage NAS qui ne distingue pas majuscules et minuscules, les mêmes modifications ne reviennent plus après chaque passage.",
+      "Installer par le réseau : Tinfoil, CyberFoil et Sphaira se connectent avec la seule adresse du serveur."
+    ],
+    "it": [
+      "Salvataggi: Carica da emulatore conserva un salvataggio di Eden, Citron, Sudachi o Ryujinx come nuova copia, che NXDock ripristina; Per emulatore porta un salvataggio in un emulatore, con i passaggi.",
+      "Organizza: su una condivisione NAS che non distingue maiuscole e minuscole, le stesse modifiche non tornano più dopo ogni passaggio.",
+      "Installa via rete: Tinfoil, CyberFoil e Sphaira si collegano con il solo indirizzo del server."
+    ],
+    "pt": [
+      "Salvamentos: Enviar do emulador guarda um salvamento de Eden, Citron, Sudachi ou Ryujinx como nova cópia, que o NXDock restaura; Para emulador leva um salvamento para um emulador, com os passos.",
+      "Organizar: numa pasta partilhada de NAS que não distingue maiúsculas, as mesmas alterações não voltam depois de cada execução.",
+      "Instalar pela rede: Tinfoil, CyberFoil e Sphaira conectam-se só com o endereço do servidor."
+    ],
+    "nl": [
+      "Opslagbestanden: Uploaden uit emulator bewaart een opslagbestand van Eden, Citron, Sudachi of Ryujinx als nieuwe kopie, die NXDock terugzet; Voor emulator brengt een opslagbestand naar een emulator, met de stappen.",
+      "Organiseren: op een NAS-share zonder onderscheid tussen hoofd- en kleine letters komen dezelfde wijzigingen niet meer terug na elke ronde.",
+      "Installeren via het netwerk: Tinfoil, CyberFoil en Sphaira verbinden met alleen het adres van de server."
+    ],
+    "ru": [
+      "Сохранения: «Загрузить из эмулятора» сохраняет сохранение Eden, Citron, Sudachi или Ryujinx как новую копию, которую восстанавливает NXDock; «Для эмулятора» переносит сохранение в эмулятор, с шагами.",
+      "Упорядочить: на общей папке NAS без учёта регистра одни и те же изменения больше не возвращаются после каждого запуска.",
+      "Установка по сети: Tinfoil, CyberFoil и Sphaira подключаются только по адресу сервера."
+    ],
+    "ja": [
+      "セーブデータ：「エミュレーターからアップロード」で Eden、Citron、Sudachi、Ryujinx のセーブを新しいコピーとして保存し、NXDock で復元できます。「エミュレーター用」は手順付きでセーブをエミュレーターへ移します。",
+      "整理：大文字と小文字を区別しない NAS の共有フォルダーで、同じ変更が毎回戻ってこなくなりました。",
+      "ネットワークでインストール：Tinfoil、CyberFoil、Sphaira がサーバーのアドレスだけで接続できます。"
+    ],
+    "ko": [
+      "세이브: '에뮬레이터에서 올리기'로 Eden, Citron, Sudachi, Ryujinx의 세이브를 새 사본으로 보관하고 NXDock이 복원합니다. '에뮬레이터용'은 단계 안내와 함께 세이브를 에뮬레이터로 옮깁니다.",
+      "정리: 대소문자를 구분하지 않는 NAS 공유 폴더에서 같은 변경이 실행할 때마다 다시 나타나지 않습니다.",
+      "네트워크로 설치: Tinfoil, CyberFoil, Sphaira가 서버 주소만으로 연결됩니다."
+    ],
+    "zh": [
+      "存档：“从模拟器上传”将 Eden、Citron、Sudachi 或 Ryujinx 的存档保存为新副本，由 NXDock 恢复；“用于模拟器”附带步骤，将存档带到模拟器中。",
+      "整理：在不区分大小写的 NAS 共享文件夹上，相同的更改不会每次都再出现。",
+      "通过网络安装：Tinfoil、CyberFoil 和 Sphaira 只需服务器地址即可连接。"
+    ]
+  },
   "2.0.11": {
     "en": [
       "Install over the network: a game with its .par2 recovery data is checked as it is sent, and repaired first if a part is damaged.",

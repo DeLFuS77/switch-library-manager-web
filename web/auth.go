@@ -503,7 +503,9 @@ func viewerAllowed(r *http.Request) bool {
 		// makes their own API keys
 		return r.URL.Path == "/account/password" || r.URL.Path == "/account/language" || r.URL.Path == "/account/color" || r.URL.Path == "/logout" || r.URL.Path == "/sd/list.txt" || r.URL.Path == "/play" ||
 			r.URL.Path == "/api/keys" || strings.HasPrefix(r.URL.Path, "/api/install/pairs/") || r.URL.Path == netInstallPushSend ||
-			strings.HasPrefix(r.URL.Path, netQueueRead+"/")
+			strings.HasPrefix(r.URL.Path, netQueueRead+"/") ||
+			// the saves they bring from an emulator, kept with the ones of their consoles
+			strings.HasPrefix(r.URL.Path, netSavesApi+"/")
 	case http.MethodPatch:
 		// the note and the pin of the saves their consoles upload
 		return strings.HasPrefix(r.URL.Path, netSavesApi+"/")
@@ -518,6 +520,7 @@ func viewerAllowed(r *http.Request) bool {
 // middleware requires a login when users exist and limits read-only users.
 func (a *Auth) middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		shortShopAddress(r)
 		var principal *Principal
 		switch {
 		case isPublicRequest(r):
@@ -609,6 +612,20 @@ func (a *Auth) middleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), principalKey{}, principal)))
 	})
+}
+
+// shortShopAddress takes a shop of the kind of Tinfoil (Tinfoil, CyberFoil, Sphaira) given only the
+// address of the server, with the key of a console as its password, to the index it asks for: its
+// root is the index then, as /install/tinfoil is (#180). The key is checked as at that path; a
+// browser, which sends no key, still gets the pages.
+func shortShopAddress(r *http.Request) {
+	if (r.Method != http.MethodGet && r.Method != http.MethodHead) || (r.URL.Path != "/" && r.URL.Path != "") {
+		return
+	}
+	if _, ok := basicKey(r); !ok {
+		return
+	}
+	r.URL.Path, r.URL.RawPath = netInstallTinfoil, ""
 }
 
 // attemptName is the name of a sign-in attempt as it is told and logged: one that cannot be
