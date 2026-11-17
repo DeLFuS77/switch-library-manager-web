@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.16
+
+### Fixes
+
+- Library: Enter in the search works again in a library with many publishers, broken since 2.0.13 by the box to find a publisher in the filters. Thanks to @TerrorSource for reporting it (#187)
+
 ## 2.0.15
 
 ### Improvements

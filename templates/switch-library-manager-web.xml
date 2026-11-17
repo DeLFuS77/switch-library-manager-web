@@ -22,7 +22,9 @@
   <ReadMe>https://raw.githubusercontent.com/DeLFuS77/switch-library-manager-web/master/README.md</ReadMe>
   <ExtraSearchTerms>nintendo switch nsp nsz xci xcz backup library titledb</ExtraSearchTerms>
   <License>AGPL-3.0</License>
-  <Changes>### 2.0.15
+  <Changes>### 2.0.16
+- Library: Enter in the search works again in a library with many publishers
+### 2.0.15
 - Keys: up to which firmware they go, and which ones do not agree with the others
 - Keys: the title keys of the tickets of the games can be taken into title.keys
 - A game of several programs keeps all of them; NSZ and XCZ files with sections inside the NCA header are no longer refused

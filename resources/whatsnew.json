@@ -1,4 +1,39 @@
 {
+  "2.0.16": {
+    "en": [
+      "Library: Enter in the search works again in a library with many publishers."
+    ],
+    "es": [
+      "Biblioteca: Intro en la búsqueda vuelve a funcionar en una biblioteca con muchas editoras."
+    ],
+    "de": [
+      "Bibliothek: Enter in der Suche funktioniert wieder in einer Bibliothek mit vielen Publishern."
+    ],
+    "fr": [
+      "Bibliothèque : Entrée dans la recherche fonctionne de nouveau dans une bibliothèque avec beaucoup d'éditeurs."
+    ],
+    "it": [
+      "Libreria: Invio nella ricerca funziona di nuovo in una libreria con molti editori."
+    ],
+    "pt": [
+      "Biblioteca: Enter na pesquisa volta a funcionar numa biblioteca com muitas editoras."
+    ],
+    "nl": [
+      "Bibliotheek: Enter in de zoekbalk werkt weer in een bibliotheek met veel uitgevers."
+    ],
+    "ru": [
+      "Библиотека: Enter в поиске снова работает в библиотеке с большим числом издателей."
+    ],
+    "ja": [
+      "ライブラリ：パブリッシャーが多いライブラリでも、検索の Enter が再び使えるようになりました。"
+    ],
+    "ko": [
+      "라이브러리: 퍼블리셔가 많은 라이브러리에서도 검색의 Enter가 다시 작동합니다."
+    ],
+    "zh": [
+      "游戏库：发行商较多的游戏库中，搜索框的 Enter 键重新生效。"
+    ]
+  },
   "2.0.15": {
     "en": [
       "Keys: Settings and Diagnostics tell up to which firmware the keys go, and which ones do not agree with the others.",
