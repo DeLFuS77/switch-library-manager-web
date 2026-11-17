@@ -5,6 +5,7 @@
 ### Fixes
 
 - A game of several programs (a collection) keeps all of them in what is read of it, not only the last one
+- NSZ and XCZ files whose NCZ lists sections inside the NCA header are verified and decompressed instead of being refused as damaged
 
 ## 2.0.14
 
