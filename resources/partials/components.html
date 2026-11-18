@@ -249,3 +249,8 @@
 							</div>
 						</li>
 {{- end}}
+
+{{- /* a program not built by the workflows of this repository (without the build tag "official",
+	TRADEMARKS.md) says so: an orange chip whose ⓘ tells what it means when the mouse is on it or it
+	has the focus of the keyboard (21-hover-help.js); on a touch screen the text is under it */}}
+{{- define "unofficialBuild"}}<span class="unofficial-build" data-hover-help><span class="chip chip-warning help-name">{{t "Unofficial build"}}</span><span class="form-text">{{t "This program was not built by the workflow of the repository, so it is not an official version: report its problems to whoever built it."}}</span></span>{{end}}

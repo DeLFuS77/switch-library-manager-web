@@ -1,6 +1,16 @@
 {{define "title"}}{{t "Disclaimer"}}{{end}}
 {{define "main"}}
 			{{- template "pageHeader" (dict "Title" (t "Disclaimer") "Count" -1 "Subtitle" "")}}
+			{{- /* who makes the app, its license and that it has no warranty, for every user of the pages,
+				as the AGPL asks; a modified version keeps it (TRADEMARKS.md) */}}
+			<section class="surface code-license mb-4" aria-labelledby="code-license-title">
+				<h2 class="section-title" id="code-license-title"><span class="bi bi-code-slash text-body-secondary" aria-hidden="true"></span>{{t "Code and license"}}</h2>
+				<p>{{t "Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one."}}</p>
+				<div class="d-flex flex-wrap gap-2">
+					<a class="btn btn-sm btn-outline-secondary rounded-pill" href="https://github.com/DeLFuS77/switch-library-manager-web/blob/master/LICENSE"><span class="bi bi-file-earmark-text me-1" aria-hidden="true"></span>{{t "See the license"}}</a>
+					<a class="btn btn-sm btn-outline-secondary rounded-pill" href="https://github.com/DeLFuS77/switch-library-manager-web"><span class="bi bi-github me-1" aria-hidden="true"></span>{{t "See the code"}}</a>
+				</div>
+			</section>
 			<section class="surface disclaimer">
 				<p><span class="bi bi-shield-exclamation me-2 text-warning" aria-hidden="true"></span>{{t "Switch Library Manager Web is free software, provided as it is, without any warranty, as its license (AGPL-3.0) says."}}</p>
 				<p>{{t "It moves, renames, compresses and deletes files only when you ask it to or turn on an automation, and it checks the files before deleting originals or copies. Even so, no program is free of mistakes and disks fail: keep a backup of anything you could not get again, and look at the previews before applying changes."}}</p>

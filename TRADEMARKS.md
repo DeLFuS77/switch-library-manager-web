@@ -6,7 +6,7 @@ The name "Switch Library Manager Web" and its icon come from the projects this f
 
 1. **A modified version must say it is one** (section 7, paragraph c). It must not present itself as the version published at https://github.com/DeLFuS77/switch-library-manager-web, or as a version published by its author: its name, or its pages, must make clear that it is a modified version. Saying that it is based on this one, with a link to this repository, is welcome.
 2. **No trademark rights are given** (section 7, paragraph e) to the names and logos of NXPress and NXDock, which this app links to, nor to the name of the author of this repository.
-3. **The author is named** (section 7, paragraph b). A modified version keeps, where it tells what it is based on (the footer of its pages), the notice "Based on Switch Library Manager Web by DeLFuS77" with a link to https://github.com/DeLFuS77/switch-library-manager-web, and the notice of who makes the app and its license that the app shows under Code and license.
+3. **The author is named** (section 7, paragraph b). A modified version keeps, where it tells what it is based on (the footer of its pages), the notice "Based on Switch Library Manager Web by DeLFuS77" with a link to https://github.com/DeLFuS77/switch-library-manager-web, and the notice of who makes the app and its license that the app shows at the top of its Disclaimer page.
 
 These terms do not limit anything else the license allows: a modified version can be built, used and shared as the license says.
 

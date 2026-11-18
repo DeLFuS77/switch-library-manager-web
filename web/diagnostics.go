@@ -234,7 +234,13 @@ func (web *Web) diagnostics(r *http.Request, lang string) DiagnosticsPageData {
 
 	result := DiagnosticsPageData{Groups: groups, OtherDevices: otherDevices(appSettings.Port, lang)}
 	var report strings.Builder
-	fmt.Fprintf(&report, "Switch Library Manager Web %s — %s\n", settings.SLM_WEB_VERSION, time.Now().Format(time.RFC3339))
+	// a program not built by the workflows of this repository says so, in English as the rest of
+	// the first line, for whoever reads the report (TRADEMARKS.md)
+	build := ""
+	if !settings.OFFICIAL_BUILD {
+		build = " · unofficial build"
+	}
+	fmt.Fprintf(&report, "Switch Library Manager Web %s%s — %s\n", settings.SLM_WEB_VERSION, build, time.Now().Format(time.RFC3339))
 	for _, group := range groups {
 		fmt.Fprintf(&report, "\n[%s]\n", group.Title)
 		for _, check := range group.Checks {

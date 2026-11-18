@@ -2446,5 +2446,14 @@ func init() {
 		"Print or save as PDF":               "打印或保存为 PDF",
 		"Print now":                          "立即打印",
 		"Getting the covers ready: %v of %v": "正在准备封面：%v / %v",
+
+		// who makes the app and its license (the Disclaimer page and the footer), and a program
+		// not built by the workflows of the repository (TRADEMARKS.md)
+		"Unofficial build": "非官方构建",
+		"This program was not built by the workflow of the repository, so it is not an official version: report its problems to whoever built it.": "此程序不是由仓库的工作流构建的，因此不是官方版本：请向构建者报告问题。",
+		"Code and license": "代码与许可证",
+		"Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one.": "Switch Library Manager Web © 2026 DeLFuS77，基于 giwty、dtrunk90 和 trembon 的成果。采用 AGPL-3.0 许可的自由软件，不附带任何担保。修改过的版本必须说明自己是修改版。",
+		"See the license": "查看许可证",
+		"See the code":    "查看代码",
 	}
 }

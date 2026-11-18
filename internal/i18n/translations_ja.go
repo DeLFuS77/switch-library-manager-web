@@ -2446,5 +2446,14 @@ func init() {
 		"Print or save as PDF":               "印刷または PDF に保存",
 		"Print now":                          "今すぐ印刷",
 		"Getting the covers ready: %v of %v": "カバー画像を準備中: %v / %v",
+
+		// who makes the app and its license (the Disclaimer page and the footer), and a program
+		// not built by the workflows of the repository (TRADEMARKS.md)
+		"Unofficial build": "非公式ビルド",
+		"This program was not built by the workflow of the repository, so it is not an official version: report its problems to whoever built it.": "このプログラムはリポジトリのワークフローでビルドされていないため、公式バージョンではありません。不具合はビルドした人に報告してください。",
+		"Code and license": "コードとライセンス",
+		"Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one.": "Switch Library Manager Web © 2026 DeLFuS77。giwty、dtrunk90、trembon の成果をもとにしています。AGPL-3.0 のフリーソフトウェアで、保証は一切ありません。変更したバージョンは、変更版であることを示す必要があります。",
+		"See the license": "ライセンスを見る",
+		"See the code":    "コードを見る",
 	}
 }

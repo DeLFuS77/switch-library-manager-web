@@ -2473,6 +2473,15 @@ var Translations = map[string]map[string]string{
 		"Print or save as PDF":               "Imprimir o guardar en PDF",
 		"Print now":                          "Imprimir ya",
 		"Getting the covers ready: %v of %v": "Preparando las portadas: %v de %v",
+
+		// who makes the app and its license (the Disclaimer page and the footer), and a program
+		// not built by the workflows of the repository (TRADEMARKS.md)
+		"Unofficial build": "Compilación no oficial",
+		"This program was not built by the workflow of the repository, so it is not an official version: report its problems to whoever built it.": "Este programa no se ha compilado con el flujo de trabajo del repositorio, así que no es una versión oficial: avisa de sus fallos a quien lo compiló.",
+		"Code and license": "Código y licencia",
+		"Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one.": "Switch Library Manager Web © 2026 DeLFuS77, basado en el trabajo de giwty, dtrunk90 y trembon. Software libre con licencia AGPL-3.0, sin ninguna garantía. Una versión cambiada debe decir que lo es.",
+		"See the license": "Ver la licencia",
+		"See the code":    "Ver el código",
 	},
 }
 

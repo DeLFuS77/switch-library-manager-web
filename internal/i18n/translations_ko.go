@@ -2446,5 +2446,14 @@ func init() {
 		"Print or save as PDF":               "인쇄 또는 PDF로 저장",
 		"Print now":                          "지금 인쇄",
 		"Getting the covers ready: %v of %v": "커버 준비 중: %v / %v",
+
+		// who makes the app and its license (the Disclaimer page and the footer), and a program
+		// not built by the workflows of the repository (TRADEMARKS.md)
+		"Unofficial build": "비공식 빌드",
+		"This program was not built by the workflow of the repository, so it is not an official version: report its problems to whoever built it.": "이 프로그램은 저장소의 워크플로로 빌드되지 않았으므로 공식 버전이 아닙니다. 문제는 빌드한 사람에게 알려 주세요.",
+		"Code and license": "코드와 라이선스",
+		"Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one.": "Switch Library Manager Web © 2026 DeLFuS77, giwty, dtrunk90, trembon의 작업을 바탕으로 합니다. AGPL-3.0의 자유 소프트웨어이며 어떠한 보증도 없습니다. 변경한 버전은 변경 버전임을 밝혀야 합니다.",
+		"See the license": "라이선스 보기",
+		"See the code":    "코드 보기",
 	}
 }

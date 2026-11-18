@@ -2446,5 +2446,14 @@ func init() {
 		"Print or save as PDF":               "Stampa o salva in PDF",
 		"Print now":                          "Stampa ora",
 		"Getting the covers ready: %v of %v": "Preparazione delle copertine: %v di %v",
+
+		// who makes the app and its license (the Disclaimer page and the footer), and a program
+		// not built by the workflows of the repository (TRADEMARKS.md)
+		"Unofficial build": "Build non ufficiale",
+		"This program was not built by the workflow of the repository, so it is not an official version: report its problems to whoever built it.": "Questo programma non è stato compilato dal workflow del repository, quindi non è una versione ufficiale: segnala i suoi problemi a chi l'ha compilato.",
+		"Code and license": "Codice e licenza",
+		"Switch Library Manager Web © 2026 DeLFuS77, based on the work of giwty, dtrunk90 and trembon. Free software under the AGPL-3.0, with no warranty. A changed version must say it is one.": "Switch Library Manager Web © 2026 DeLFuS77, basato sul lavoro di giwty, dtrunk90 e trembon. Software libero con licenza AGPL-3.0, senza alcuna garanzia. Una versione modificata deve dire di esserlo.",
+		"See the license": "Vedi la licenza",
+		"See the code":    "Vedi il codice",
 	}
 }

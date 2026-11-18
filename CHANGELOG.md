@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Improvements
+
+- Disclaimer: Code and license at the top, with who makes the app, its license and links to the license and the code; the footer shows the license
+- A program not built by the workflows of this repository says it is an unofficial build
+
 ### Fixes
 
 - Optimize for install: the DLC inside the file of a game are kept in the optimized file, as they were, instead of being left out

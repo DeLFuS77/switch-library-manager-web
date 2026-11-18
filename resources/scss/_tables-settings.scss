@@ -226,6 +226,56 @@
 	}
 }
 
+// the version, its license and what it is based on, each part kept whole when the line wraps
+.footer-about {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	column-gap: .35em;
+	row-gap: .25rem;
+	text-align: center;
+
+	@include media-breakpoint-up(sm) {
+		justify-content: flex-start;
+		text-align: start;
+	}
+}
+
+// "Unofficial build" (components.html): an orange chip, the colour of what waits for you, never
+// the red of errors; its ⓘ in its own orange. On a screen with a mouse its text shows in the card
+// of the help (21-hover-help.js); on a touch screen it goes under the line it is in.
+.unofficial-build {
+	display: contents;
+
+	.chip {
+		white-space: nowrap;
+	}
+
+	.chip.has-help::after {
+		background-color: currentColor;
+		opacity: 1;
+	}
+
+	.chip.has-help:focus-visible {
+		outline: 2px solid var(--slm-focus);
+		outline-offset: 2px;
+	}
+
+	> .form-text {
+		order: 1;
+		flex-basis: 100%;
+		margin: 0;
+		font-size: var(--slm-text-xs);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		> .form-text {
+			display: none;
+		}
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
 	// an endless animation of .01ms would show a random frame each time, flickering: it ends
 	// at once instead
