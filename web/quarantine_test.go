@@ -212,3 +212,31 @@ func TestQuarantineReasons(t *testing.T) {
 		}
 	}
 }
+
+// The bin of the header shows the quarantine only while it is on: empty, then with the files
+// waiting, the room they take and when the oldest goes for good.
+func TestNavCountsQuarantine(t *testing.T) {
+	web, library := quarantineWeb(t, settings.QuarantineOptions{})
+	counts := NavCounts{}
+	web.countQuarantine(&counts)
+	if counts.QuarantineOn {
+		t.Fatal("no bin while files are deleted at once")
+	}
+
+	web, library = quarantineWeb(t, settings.QuarantineOptions{Keep: QUARANTINE_WEEK})
+	counts = NavCounts{}
+	web.countQuarantine(&counts)
+	if !counts.QuarantineOn || counts.QuarantineFiles != 0 {
+		t.Fatalf("an empty bin: %+v", counts)
+	}
+	path := filepath.Join(library, "Zelda", "zelda [v1].nsp")
+	writeGame(t, path)
+	if err := web.discard(path, SPACE_OLD_UPDATES); err != nil {
+		t.Fatal(err)
+	}
+	counts = NavCounts{}
+	web.countQuarantine(&counts)
+	if counts.QuarantineFiles != 1 || counts.QuarantineSize != int64(len("game")) || counts.QuarantineNext.IsZero() {
+		t.Fatalf("a full bin: %+v", counts)
+	}
+}

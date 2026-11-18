@@ -436,6 +436,12 @@ type NavCounts struct {
 	TuneUp bool
 	// the issues by kind, for the panel of the header
 	IssueKinds []IssueKindCount
+	// the quarantine, for its bin in the header: on when deleted files wait in it, how many
+	// files wait, the room they take, and when the oldest goes for good (zero when they stay)
+	QuarantineOn    bool
+	QuarantineFiles int
+	QuarantineSize  int64
+	QuarantineNext  time.Time
 }
 
 type TitleItemsPageData struct {
@@ -740,6 +746,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 // navCounts counts the missing updates and DLC (respecting the ignore lists) and the issues.
 func (web *Web) navCounts() NavCounts {
 	counts := NavCounts{FailedTasks: web.taskLog().FailedCount(), RunningTasks: web.taskLog().RunningCount(), Wished: web.wishes().Count()}
+	web.countQuarantine(&counts)
 	switchDB, localDB := web.state.get()
 	if localDB == nil {
 		return counts
