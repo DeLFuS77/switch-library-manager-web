@@ -327,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	initRegionRemove();
 	initRegionMain();
 	initMaintenance();
+	initHashDetails();
 	initHistoryCharts();
 	initIssueDelete();
 	initIssueKeep();

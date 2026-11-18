@@ -463,9 +463,43 @@ function initHistoryCharts() {
 	});
 }
 
+// a link to a group that folds (the shortcuts of the tune-up to the groups of Space) opens it
+function initHashDetails() {
+	const open = () => {
+		const id = decodeURIComponent(window.location.hash.slice(1));
+		const target = id ? document.getElementById(id) : null;
+		if (target && target.matches('details') && !target.open) {
+			target.open = true;
+			target.scrollIntoView({ block: 'start' });
+		}
+	};
+	open();
+	window.addEventListener('hashchange', open);
+}
+
 // the tune-up: "Review again" scans the library, and while steps are worked out the page
-// asks again by itself
+// asks again by itself. The tile of a step opened grows into the header of the page of its
+// tool, where the app has transitions between pages: it is named for it as the page goes.
 function initMaintenance() {
+	const grid = document.querySelector('.tune-grid');
+	if (grid && !reducedMotion()) {
+		const tiles = [...grid.querySelectorAll('.tune-tile')];
+		const toolPages = ['/organize.html', '/space.html', '/compress.html'];
+		window.addEventListener('pageswap', event => {
+			if (!event.viewTransition || !event.activation || !event.activation.entry) {
+				return;
+			}
+			const path = new URL(event.activation.entry.url, window.location.href).pathname;
+			const link = grid.querySelector('[data-tune-link][href="' + path + '"]');
+			if (link && toolPages.includes(path)) {
+				link.closest('.tune-tile').style.viewTransitionName = 'tune-step';
+			}
+		});
+		// back from the page, the tile is a tile again
+		window.addEventListener('pageshow', () => tiles.forEach(tile => {
+			tile.style.viewTransitionName = '';
+		}));
+	}
 	const button = document.querySelector('[data-maintenance-review]');
 	if (button) {
 		button.addEventListener('click', () => {
@@ -478,11 +512,13 @@ function initMaintenance() {
 		});
 	}
 	if (document.querySelector('[data-maintenance-preparing]')) {
+		// asked again, the page does not come in again: the steps only change in place
+		const again = () => window.location.replace(window.location.pathname + '?again=1');
 		setTimeout(() => {
 			if (document.visibilityState === 'visible') {
-				window.location.reload();
+				again();
 			} else {
-				document.addEventListener('visibilitychange', () => window.location.reload(), { once: true });
+				document.addEventListener('visibilitychange', again, { once: true });
 			}
 		}, 3000);
 	}

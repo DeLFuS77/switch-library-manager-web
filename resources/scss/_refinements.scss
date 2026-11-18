@@ -16,7 +16,6 @@
 
 .saga-card:has(.saga-title a:focus-visible),
 .setup-step:has(:focus-visible),
-.maintenance-step:has(:focus-visible),
 .kpi:focus-visible {
 	outline: 3px solid var(--slm-focus);
 	outline-offset: 3px;

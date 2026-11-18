@@ -269,9 +269,9 @@
 				</ul>
 			</section>
 			{{- with $t.Regions}}
-			<section class="mb-4" id="regions" aria-labelledby="regionsTitle">
-				<h2 class="section-title" id="regionsTitle"><span class="bi bi-globe2" aria-hidden="true"></span>{{t "Other regions"}} <span class="badge rounded-pill text-bg-secondary">{{len .Copies}}</span></h2>
-				<p class="small text-body-secondary">{{t "You have this game from several regions: each one is a game of its own, with its own updates and DLC. The main copy is the one the library shows when each game counts once, with the flags of all, and the one Space keeps."}}</p>
+			<section class="mb-4" id="regions" aria-labelledby="regionsTitle" data-hover-help>
+				<h2 class="section-title help-name" id="regionsTitle"><span class="bi bi-globe2" aria-hidden="true"></span>{{t "Other regions"}} <span class="badge rounded-pill text-bg-secondary">{{len .Copies}}</span></h2>
+				<p class="form-text">{{t "You have this game from several regions: each one is a game of its own, with its own updates and DLC. The main copy is the one the library shows when each game counts once, with the flags of all, and the one Space keeps."}}</p>
 				<ul class="item-list mb-0">
 					{{- range .Copies}}
 					<li class="item-row{{if .Keep}} region-keep{{end}}">
@@ -301,9 +301,9 @@
 			</section>
 			{{- end}}
 			{{- with $t.Cheats}}
-			<section class="mb-4">
+			<section class="mb-4" data-hover-help>
 				<div class="section-head">
-					<h2 class="section-title mb-0"><span class="bi bi-magic" aria-hidden="true"></span>{{t "Cheats"}}{{if .Names}} <span class="badge rounded-pill text-bg-secondary">{{len .Names}}</span>{{end}}</h2>
+					<h2 class="section-title mb-0 help-name"><span class="bi bi-magic" aria-hidden="true"></span>{{t "Cheats"}}{{if .Names}} <span class="badge rounded-pill text-bg-secondary">{{len .Names}}</span>{{end}}</h2>
 					{{- if .BuildID}}
 					<div class="d-flex flex-wrap gap-2">
 						<div class="dropdown">
@@ -319,7 +319,7 @@
 					{{- end}}
 				</div>
 				{{- if .BuildID}}
-				<p class="small text-body-secondary">{{t "For the version you have (v%v, build %v). Unzip it at the root of the SD card: Atmosphère loads them from atmosphere/contents." .Version .BuildID}}</p>
+				<p class="form-text">{{t "For the version you have (v%v, build %v). Unzip it at the root of the SD card: Atmosphère loads them from atmosphere/contents." .Version .BuildID}}</p>
 				<ul class="cheat-list list-unstyled mb-0">
 					{{- range .Names}}
 					<li><span class="bi bi-dot" aria-hidden="true"></span>{{.}}</li>
@@ -333,8 +333,8 @@
 			{{- end}}
 			{{- end}}
 			{{- if $t.Versions}}
-			<section class="mb-4">
-				<h2 class="section-title"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "Version history"}} <span class="badge rounded-pill text-bg-secondary">{{len $t.Versions}}</span></h2>
+			<section class="mb-4" data-hover-help>
+				<h2 class="section-title help-name"><span class="bi bi-clock-history" aria-hidden="true"></span>{{t "Version history"}} <span class="badge rounded-pill text-bg-secondary">{{len $t.Versions}}</span></h2>
 				<ol class="version-history list-unstyled mb-0">
 					{{- range $i, $v := $t.Versions}}
 					{{- if eq $i 5}}
@@ -349,7 +349,7 @@
 				{{- if gt (len $t.Versions) 5}}
 				</details>
 				{{- end}}
-				<p class="small text-body-secondary mt-2 mb-0">{{t "The titles database only has the date of each update. The button searches the web for its notes."}}</p>
+				<p class="form-text">{{t "The titles database only has the date of each update. The button searches the web for its notes."}}</p>
 			</section>
 			{{- end}}
 			{{- if $t.Saves}}

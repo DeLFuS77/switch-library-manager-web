@@ -1,10 +1,11 @@
-// The help under the fields of Settings and Organize, and of the cards and the filters of the
-// Library, as NXPress has it (its issue #67): on a screen with a mouse it is out of the way, and
-// shows in a card while the mouse is on the name of the field, or the field has the focus of the
-// keyboard; a small ⓘ after the name tells there is one. The help stays in the page and describes
-// its field to screen readers. On a touch screen it stays under its field, as there is no mouse to
-// point at it (in a card or a choice of filter it is only read out). Statuses and warnings stay in
-// sight.
+// The help of the fields, the titles and the cards of the app, as NXPress has it (its issue #67): a
+// small ⓘ after a name tells there is some, and it shows in a card. With a mouse, while the mouse is
+// on the name or the field has the focus of the keyboard. On a touch screen a touch opens it and
+// another one closes it: on the name of a title, or on a ⓘ of its own after the name of a field or
+// a button, as a touch on those changes the field or presses the button. The help of a card or a
+// choice of filter of the Library is the link's: on a touch screen it is only read out. The help
+// stays in the page and describes its field to screen readers. Statuses, warnings and what must be
+// read now stay in sight.
 // One of the files joined into resources/static/web.js by scripts/build-js.mjs, in the order of their names.
 
 const hoverHelp = { owners: new WeakMap(), open: null, control: null, timer: 0, hideTimer: 0, warm: 0 };
@@ -19,6 +20,11 @@ function helpName(help) {
 	for (let element = help.previousElementSibling; element; element = element.previousElementSibling) {
 		if (element.matches('.form-label, legend, .help-name')) {
 			return element;
+		}
+		// a head with the name in it, like a title next to its buttons
+		const inner = element.querySelector(':scope > .help-name');
+		if (inner) {
+			return inner;
 		}
 		// a field just before it, in a box of its own: its label
 		const next = element.nextElementSibling;
@@ -38,9 +44,7 @@ function helpName(help) {
 }
 
 function initHoverHelp() {
-	if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-		return;
-	}
+	const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 	const helps = document.querySelectorAll('[data-hover-help] .form-text:not(.help-keep)');
 	if (!helps.length) {
 		return;
@@ -54,27 +58,47 @@ function initHoverHelp() {
 	document.body.append(pop);
 	helps.forEach((help, i) => {
 		const name = helpName(help);
-		if (!name || name.classList.contains('has-help')) {
+		if (!name || name.dataset.help) {
 			return;
 		}
-		help.id ||= 'hover-help-' + i;
-		help.classList.add('help-text');
-		name.classList.add('has-help');
-		name.dataset.help = help.id;
 		// the field the name goes with is the one described, and its focus shows the help; a name
 		// in a link (a card or a choice of filter) is the link's; a name with no field of its own
 		// (the title of a group) takes the focus itself
 		const control = (name.matches('label') && name.control) || name.closest('a, button') || name;
+		if (!fine && control.closest('a')) {
+			return;
+		}
+		help.id ||= 'hover-help-' + i;
+		help.classList.add('help-text');
+		name.dataset.help = help.id;
 		const described = (control.getAttribute('aria-describedby') || '').split(' ').filter(Boolean);
 		if (!described.includes(help.id)) {
 			control.setAttribute('aria-describedby', [...described, help.id].join(' '));
 		}
 		hoverHelp.owners.set(control, name);
+		if (!fine && (control !== name || name.matches('button'))) {
+			// a touch on the name of a field changes it, and one on a button presses it: the ⓘ is a
+			// button of its own, after the name
+			const mark = document.createElement('button');
+			mark.type = 'button';
+			mark.className = 'help-mark';
+			mark.dataset.help = help.id;
+			mark.dataset.helpTitle = name.textContent.trim();
+			mark.setAttribute('aria-label', t('Help about %v', name.textContent.trim()));
+			mark.setAttribute('aria-expanded', 'false');
+			name.after(mark);
+			return;
+		}
+		name.classList.add('has-help');
 		if (control === name) {
 			name.tabIndex = 0;
 		}
 	});
 	document.addEventListener('pointerover', event => {
+		// a finger opens the card with a touch, below
+		if (event.pointerType === 'touch') {
+			return;
+		}
 		if (pop.contains(event.target)) {
 			clearTimeout(hoverHelp.hideTimer);
 			return;
@@ -93,6 +117,9 @@ function initHoverHelp() {
 		hoverHelp.timer = setTimeout(() => showHoverHelp(name, null), hoverHelp.open || Date.now() < hoverHelp.warm ? 40 : 300);
 	});
 	document.addEventListener('pointerout', event => {
+		if (event.pointerType === 'touch') {
+			return;
+		}
 		const name = event.target.closest('.has-help');
 		if (!name && !pop.contains(event.target)) {
 			return;
@@ -113,7 +140,8 @@ function initHoverHelp() {
 		if (hoverHelp.owners.has(element)) {
 			return hoverHelp.owners.get(element);
 		}
-		const group = element.closest && element.closest('[aria-labelledby]');
+		// a group of fields, not a whole section, whose title has a help
+		const group = element.closest && element.closest('[aria-labelledby]:not(section)');
 		const title = group && document.getElementById(group.getAttribute('aria-labelledby'));
 		return title && title.classList.contains('has-help') ? title : null;
 	};
@@ -133,12 +161,28 @@ function initHoverHelp() {
 			hideHoverHelp();
 		}
 	});
-	// a click elsewhere closes it; one in the field being filled in leaves it open
+	// a click elsewhere closes it; one in the field being filled in, or on the name of the card,
+	// leaves it open
 	document.addEventListener('pointerdown', event => {
-		if (!pop.contains(event.target) && !(hoverHelp.control && hoverHelp.control.contains(event.target))) {
+		if (!pop.contains(event.target) && !(hoverHelp.control && hoverHelp.control.contains(event.target)) && !(hoverHelp.open && hoverHelp.open.contains(event.target))) {
 			hideHoverHelp();
 		}
 	});
+	// on a touch screen, a touch on the name or its ⓘ opens its card and another one closes it
+	if (!fine) {
+		document.addEventListener('click', event => {
+			const name = event.target.closest('.has-help, .help-mark');
+			if (!name) {
+				return;
+			}
+			event.preventDefault();
+			if (hoverHelp.open === name) {
+				hideHoverHelp();
+			} else {
+				showHoverHelp(name, null);
+			}
+		});
+	}
 	document.addEventListener('scroll', hideHoverHelp, true);
 	window.addEventListener('blur', hideHoverHelp);
 }
@@ -155,12 +199,18 @@ function showHoverHelp(name, control) {
 	clearTimeout(hoverHelp.hideTimer);
 	if (hoverHelp.open && hoverHelp.open !== name) {
 		hoverHelp.open.classList.remove('help-open');
+		if (hoverHelp.open.matches('.help-mark')) {
+			hoverHelp.open.setAttribute('aria-expanded', 'false');
+		}
 	}
 	hoverHelp.open = name;
 	hoverHelp.control = control;
 	name.classList.add('help-open');
+	if (name.matches('.help-mark')) {
+		name.setAttribute('aria-expanded', 'true');
+	}
 	pop.classList.remove('in', 'above');
-	pop.querySelector('.help-title span:last-child').textContent = name.textContent.trim();
+	pop.querySelector('.help-title span:last-child').textContent = name.dataset.helpTitle || name.textContent.trim();
 	// the help as the page has it, with its links and codes, its ids left out
 	const body = pop.querySelector('.help-body');
 	body.replaceChildren(...[...help.childNodes].map(node => node.cloneNode(true)));
@@ -196,6 +246,9 @@ function hideHoverHelp() {
 		return;
 	}
 	hoverHelp.open.classList.remove('help-open');
+	if (hoverHelp.open.matches('.help-mark')) {
+		hoverHelp.open.setAttribute('aria-expanded', 'false');
+	}
 	hoverHelp.open = null;
 	hoverHelp.control = null;
 	hoverHelp.warm = Date.now() + 600;
