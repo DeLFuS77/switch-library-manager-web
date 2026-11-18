@@ -38,8 +38,9 @@ func TestInfoPoints(t *testing.T) {
 	if strings.Count(organize, `<h3 class="h6 fw-semibold mb-1 help-name">`) != 3 || !strings.Contains(organize, `<h2 class="section-title help-name" id="undoRunsTitle">`) {
 		t.Error("what each action of Organize does, in its ⓘ")
 	}
-	// each of these is in a part of the page whose help goes into the ⓘ
-	for name, want := range map[string]int{"organize.html": 3, "compress.html": 6, "title.html": 8} {
+	// each of these is in a part of the page whose help goes into the ⓘ (on the page of a game, also
+	// what installers and emulators take each file)
+	for name, want := range map[string]int{"organize.html": 3, "compress.html": 6, "title.html": 9} {
 		if got := strings.Count(read(name), "data-hover-help"); got != want {
 			t.Errorf("%s: %d parts with the help in the ⓘ, not %d", name, got, want)
 		}
