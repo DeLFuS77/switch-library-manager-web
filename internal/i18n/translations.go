@@ -2473,6 +2473,23 @@ var Translations = map[string]map[string]string{
 		"Print or save as PDF":               "Imprimir o guardar en PDF",
 		"Print now":                          "Imprimir ya",
 		"Getting the covers ready: %v of %v": "Preparando las portadas: %v de %v",
+
+		// which installers and emulators a file works with
+		"Installers: all":                            "Instaladores: todos",
+		"Installers: all but Awoo":                   "Instaladores: todos menos Awoo",
+		"Installers: only NXDock":                    "Instaladores: solo NXDock",
+		"Installers: NXDock or DBI, with sigpatches": "Instaladores: NXDock o DBI, con sigpatches",
+		"Emulators: as it is":                        "Emuladores: tal cual",
+		"Emulators: decompress it first":             "Emuladores: descomprímelo antes",
+		"Emulators: no":                              "Emuladores: no",
+		"Installers and emulators: unknown":          "Instaladores y emuladores: no se sabe",
+		"How the file is stored could not be read: the file may be missing, or it is damaged.":                                                                               "No se ha podido leer cómo está guardado el archivo: puede que falte o que esté dañado.",
+		"Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is.":                                      "Sin comprimir: lo instalan todos los instaladores (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) y los emuladores lo abren tal cual.",
+		"Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first.":               "Comprimido de una pieza (sólido): lo instalan todos los instaladores (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira); los emuladores lo necesitan descomprimido antes.",
+		"Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is.":                                              "Comprimido en bloques: lo instalan todos los instaladores menos Awoo, y los emuladores que leen NSZ y XCZ lo abren tal cual.",
+		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "Hecho con la compresión extra de NXPress. NXDock lo instala tal cual; para DBI, Tinfoil y los emuladores, descomprímelo antes con NXPress.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "El juego juntado con su actualización (optimizado para instalar, o con otra herramienta): instálalo con NXDock o DBI, con sigpatches. Los emuladores lo abren tal cual.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "El juego juntado con su actualización (optimizado para instalar, o con otra herramienta): instálalo con NXDock o DBI, con sigpatches. Los emuladores lo necesitan descomprimido antes.",
 	},
 }
 

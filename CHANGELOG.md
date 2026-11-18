@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- The page of a game tells under each file which installers take it and whether emulators open it as it is (NSP and XCI, NSZ solid or in blocks, XCZ, the extra compression of NXPress, a game merged with its update)
+
 ### Fixes
 
 - Optimize for install: the DLC inside the file of a game are kept in the optimized file, as they were, instead of being left out

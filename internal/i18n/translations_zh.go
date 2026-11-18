@@ -2446,5 +2446,22 @@ func init() {
 		"Print or save as PDF":               "打印或保存为 PDF",
 		"Print now":                          "立即打印",
 		"Getting the covers ready: %v of %v": "正在准备封面：%v / %v",
+
+		// which installers and emulators a file works with
+		"Installers: all":                            "安装程序：全部",
+		"Installers: all but Awoo":                   "安装程序：除 Awoo 外全部",
+		"Installers: only NXDock":                    "安装程序：仅 NXDock",
+		"Installers: NXDock or DBI, with sigpatches": "安装程序：NXDock 或 DBI，需要 sigpatches",
+		"Emulators: as it is":                        "模拟器：直接打开",
+		"Emulators: decompress it first":             "模拟器：需先解压",
+		"Emulators: no":                              "模拟器：不支持",
+		"Installers and emulators: unknown":          "安装程序和模拟器：未知",
+		"How the file is stored could not be read: the file may be missing, or it is damaged.":                                                                               "无法读取文件的存储方式：文件可能不存在或已损坏。",
+		"Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is.":                                      "未压缩：所有安装程序（NXDock、DBI、Tinfoil、Awoo、CyberFoil、Sphaira）都能安装，模拟器也能直接打开。",
+		"Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first.":               "整体压缩（固实）：所有安装程序（NXDock、DBI、Tinfoil、Awoo、CyberFoil、Sphaira）都能安装；模拟器需要先解压。",
+		"Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is.":                                              "分块压缩：除 Awoo 外所有安装程序都能安装，能读取 NSZ 和 XCZ 的模拟器可直接打开。",
+		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "用 NXPress 的额外压缩制作。NXDock 可直接安装；用于 DBI、Tinfoil 和模拟器时，请先用 NXPress 解压。",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "已并入更新的游戏（为安装优化，或由其他工具合并）：请用 NXDock 或 DBI 安装，需要 sigpatches。模拟器可直接打开。",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "已并入更新的游戏（为安装优化，或由其他工具合并）：请用 NXDock 或 DBI 安装，需要 sigpatches。模拟器需要先解压。",
 	}
 }

@@ -2446,5 +2446,22 @@ func init() {
 		"Print or save as PDF":               "Imprimir ou guardar em PDF",
 		"Print now":                          "Imprimir já",
 		"Getting the covers ready: %v of %v": "A preparar as capas: %v de %v",
+
+		// which installers and emulators a file works with
+		"Installers: all":                            "Instaladores: todos",
+		"Installers: all but Awoo":                   "Instaladores: todos exceto o Awoo",
+		"Installers: only NXDock":                    "Instaladores: só o NXDock",
+		"Installers: NXDock or DBI, with sigpatches": "Instaladores: NXDock ou DBI, com sigpatches",
+		"Emulators: as it is":                        "Emuladores: tal como está",
+		"Emulators: decompress it first":             "Emuladores: descomprima-o primeiro",
+		"Emulators: no":                              "Emuladores: não",
+		"Installers and emulators: unknown":          "Instaladores e emuladores: desconhecido",
+		"How the file is stored could not be read: the file may be missing, or it is damaged.":                                                                               "Não foi possível ler como o ficheiro está guardado: pode estar em falta ou danificado.",
+		"Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is.":                                      "Sem compressão: todos os instaladores (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) o instalam e os emuladores abrem-no tal como está.",
+		"Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first.":               "Comprimido numa só peça (sólido): todos os instaladores (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) o instalam; os emuladores precisam dele descomprimido primeiro.",
+		"Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is.":                                              "Comprimido em blocos: todos os instaladores exceto o Awoo o instalam, e os emuladores que leem NSZ e XCZ abrem-no tal como está.",
+		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "Feito com a compressão extra do NXPress. O NXDock instala-o tal como está; para o DBI, o Tinfoil e os emuladores, descomprima-o primeiro com o NXPress.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "O jogo juntado com a sua atualização (otimizado para instalar, ou por outra ferramenta): instale-o com o NXDock ou DBI, com sigpatches. Os emuladores abrem-no tal como está.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "O jogo juntado com a sua atualização (otimizado para instalar, ou por outra ferramenta): instale-o com o NXDock ou DBI, com sigpatches. Os emuladores precisam dele descomprimido primeiro.",
 	}
 }

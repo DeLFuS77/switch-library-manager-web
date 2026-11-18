@@ -155,9 +155,15 @@ func (web *Web) loadDemo() {
 			continue
 		}
 		size := int64(1+i%7) << 30
+		// the games compressed in blocks, most of them, or as one piece (solid), which emulators
+		// read once decompressed; their updates and DLC are not compressed
+		storage := switchfs.StorageBlocks
+		if i%3 == 1 {
+			storage = switchfs.StorageSolid
+		}
 		files := &db.SwitchGameFiles{
 			BaseExist: true,
-			File:      db.SwitchFileInfo{ExtendedInfo: file(fmt.Sprintf("%s [%s][v0].nsz", game.name, id), size), Metadata: &switchfs.ContentMetaAttributes{TitleId: id, Type: "BaseGame"}},
+			File:      db.SwitchFileInfo{ExtendedInfo: file(fmt.Sprintf("%s [%s][v0].nsz", game.name, id), size), Metadata: &switchfs.ContentMetaAttributes{TitleId: id, Type: "BaseGame", Storage: storage}},
 			Updates:   map[int]db.SwitchFileInfo{},
 			Dlc:       map[string]db.SwitchFileInfo{},
 			Icon:      icon,
@@ -168,7 +174,7 @@ func (web *Web) loadDemo() {
 			updateId := id[:13] + "800"
 			files.Updates[version] = db.SwitchFileInfo{
 				ExtendedInfo: file(fmt.Sprintf("%s [%s][v%d].nsp", game.name, updateId, version), 256<<20),
-				Metadata:     &switchfs.ContentMetaAttributes{TitleId: updateId, Version: version, Type: "Update"},
+				Metadata:     &switchfs.ContentMetaAttributes{TitleId: updateId, Version: version, Type: "Update", Storage: switchfs.StoragePlain},
 			}
 			files.LatestUpdate = version
 		}
@@ -180,7 +186,7 @@ func (web *Web) loadDemo() {
 			owned++
 			files.Dlc[dlcId] = db.SwitchFileInfo{
 				ExtendedInfo: file(fmt.Sprintf("%s [%s][v0].nsp", dlc.Name, dlcId), 512<<20),
-				Metadata:     &switchfs.ContentMetaAttributes{TitleId: dlcId, Type: "AddOnContent"},
+				Metadata:     &switchfs.ContentMetaAttributes{TitleId: dlcId, Type: "AddOnContent", Storage: switchfs.StoragePlain},
 			}
 		}
 		localDB.TitlesMap[strings.ToLower(id[:13])] = files

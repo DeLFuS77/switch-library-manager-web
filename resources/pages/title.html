@@ -375,6 +375,7 @@
 						<div class="item-main">
 							<div class="item-name">{{.Name}}</div>
 							<div class="item-meta">{{template "copyId" .Id}}{{if .File}}{{if .File.InGameFile}}<span>{{t "In the file of the game"}}</span>{{else}}<span>{{formatSize .File.Size}}</span>{{end}}{{end}}</div>
+							{{- with .File}}{{with .Works}}{{template "worksWith" .}}{{end}}{{end}}
 						</div>
 						<div class="item-end">
 							{{- if .Owned}}
@@ -656,6 +657,7 @@
 								<span>{{formatSize .Size}}</span>
 								{{- if .RequiredFirmware}}<span title="{{t "Required firmware"}}"><span class="bi bi-cpu me-1" aria-hidden="true"></span>{{.RequiredFirmware}}</span>{{end}}
 							</div>
+							{{- with .Works}}{{template "worksWith" .}}{{end}}
 							{{- with .GamesInFile}}
 							<div class="item-meta"><span><span class="bi bi-collection me-1" aria-hidden="true"></span>{{t "This file holds %v games: %v" (len .) (join . ", ")}}</span></div>
 							{{- end}}
@@ -702,6 +704,18 @@
 						</div>
 						<a class="btn btn-sm btn-outline-secondary" href="{{.DownloadUrl}}" title="{{t "Download %v" .FileName}}"><span class="bi bi-download" aria-hidden="true"></span><span class="visually-hidden">{{t "Download %v" .FileName}}</span></a>
 					</li>
+{{- end}}
+{{- /* which installers and emulators a file works with: a dot in green when everything does, in
+	orange when there is a limit, never red; the case shows on hover, and stays under the line on a
+	touch screen (21-hover-help.js) */}}
+{{define "worksWith"}}
+							<div class="works-with{{if .Unknown}} is-unknown{{end}}" data-hover-help>
+								<span class="help-name">
+									{{- if .Unknown}}<span class="works-part"><span class="works-dot" aria-hidden="true"></span>{{t .Installers}}</span>
+									{{- else}}<span class="works-part {{if .InstallersOk}}is-ok{{else}}is-limit{{end}}"><span class="works-dot" aria-hidden="true"></span>{{t .Installers}}</span> · <span class="works-part {{if .EmulatorsOk}}is-ok{{else}}is-limit{{end}}"><span class="works-dot" aria-hidden="true"></span>{{t .Emulators}}</span>{{end -}}
+								</span>
+								<div class="form-text">{{t .Help}}</div>
+							</div>
 {{- end}}
 {{define "titleVersion"}}
 					<li class="version-item{{if .Installed}} is-installed{{else if .Owned}} is-owned{{end}}">

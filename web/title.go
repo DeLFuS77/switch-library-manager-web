@@ -41,6 +41,8 @@ type TitleFile struct {
 	Parts []TitleFilePart
 	// for a NUP: whether Eglantine and Lichii open it and can start its game
 	Emulators *TitleEmulators
+	// for any other file: which installers take it and whether emulators open it as it is
+	Works *FileWorks
 }
 
 // TitleEmulators is what Eglantine and Lichii, the emulators that open NUP files, make of one,
@@ -291,6 +293,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 		detail.Regions = web.regionGroupOf(baseId, lang)
 		detail.Base = newTitleFile(local.File, strings.ToUpper(getType(local)), "/api/titles/"+baseId)
 		detail.Base.Emulators = nupEmulators(local.File, lang)
+		detail.Base.Works = fileWorks(local.File, mergedUpdate(local) > 0)
 		if local.Icon != "" {
 			detail.ImageUrl = "/i/" + local.Icon
 		}
@@ -302,6 +305,7 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 			update := local.Updates[version]
 			file := newTitleFile(update, "UPD", "/api/titles/"+baseId+"/updates/"+strconv.Itoa(version))
 			file.Emulators = nupEmulators(update, lang)
+			file.Works = fileWorks(update, false)
 			if update.ExtendedInfo == local.File.ExtendedInfo {
 				file.InGameFile = true
 				detail.Base.AlsoHolds = append(detail.Base.AlsoHolds, i18n.Translatef(lang, "update v%v", version))
@@ -431,6 +435,9 @@ func (web *Web) getTitleDetail(titleId string, lang string) (TitleDetail, bool) 
 				dlc.Owned = true
 				dlc.File = newTitleFile(file, "DLC", "/api/titles/"+detail.Id+"/dlc/"+dlc.Id)
 				dlc.File.InGameFile = local.BaseExist && file.ExtendedInfo == local.File.ExtendedInfo
+				if !dlc.File.InGameFile {
+					dlc.File.Works = fileWorks(file, false)
+				}
 				if dlc.Name == "" {
 					dlc.Name = strings.TrimSpace(db.ParseTitleNameFromFileName(file.ExtendedInfo.FileName))
 				}
@@ -575,6 +582,7 @@ func (web *Web) HandleTitle() {
 			http.NotFound(w, r)
 			return
 		}
+		readUnknownStorage(&detail)
 		web.render(w, r, templates, TitlePageData{GlobalPageData: web.globalPageData("title"), Title: detail,
 			Collections: web.collections().Of(detail.Id), AllCollections: web.collections().Names(),
 			Favorite: web.favorites().Has(detail.Id), Saga: web.sameSaga(detail.Id, detail.Name, web.requestLanguage(r)),

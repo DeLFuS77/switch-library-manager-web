@@ -2446,5 +2446,22 @@ func init() {
 		"Print or save as PDF":               "Печать или сохранение в PDF",
 		"Print now":                          "Печатать сейчас",
 		"Getting the covers ready: %v of %v": "Подготовка обложек: %v из %v",
+
+		// which installers and emulators a file works with
+		"Installers: all":                            "Установщики: все",
+		"Installers: all but Awoo":                   "Установщики: все, кроме Awoo",
+		"Installers: only NXDock":                    "Установщики: только NXDock",
+		"Installers: NXDock or DBI, with sigpatches": "Установщики: NXDock или DBI, с sigpatches",
+		"Emulators: as it is":                        "Эмуляторы: как есть",
+		"Emulators: decompress it first":             "Эмуляторы: сначала распакуйте",
+		"Emulators: no":                              "Эмуляторы: нет",
+		"Installers and emulators: unknown":          "Установщики и эмуляторы: неизвестно",
+		"How the file is stored could not be read: the file may be missing, or it is damaged.":                                                                               "Не удалось прочитать, как сохранён файл: возможно, его нет или он повреждён.",
+		"Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is.":                                      "Без сжатия: его устанавливают все установщики (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira), а эмуляторы открывают как есть.",
+		"Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first.":               "Сжат целиком (solid): его устанавливают все установщики (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira); для эмуляторов его сначала нужно распаковать.",
+		"Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is.":                                              "Сжат блоками: его устанавливают все установщики, кроме Awoo, а эмуляторы, которые читают NSZ и XCZ, открывают как есть.",
+		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "Сделан с дополнительным сжатием NXPress. NXDock устанавливает его как есть; для DBI, Tinfoil и эмуляторов сначала распакуйте его в NXPress.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "Игра, объединённая со своим обновлением (оптимизирована для установки или другой программой): устанавливайте через NXDock или DBI, с sigpatches. Эмуляторы открывают её как есть.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "Игра, объединённая со своим обновлением (оптимизирована для установки или другой программой): устанавливайте через NXDock или DBI, с sigpatches. Для эмуляторов её сначала нужно распаковать.",
 	}
 }

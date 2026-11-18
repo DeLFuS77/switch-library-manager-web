@@ -2446,5 +2446,22 @@ func init() {
 		"Print or save as PDF":               "인쇄 또는 PDF로 저장",
 		"Print now":                          "지금 인쇄",
 		"Getting the covers ready: %v of %v": "커버 준비 중: %v / %v",
+
+		// which installers and emulators a file works with
+		"Installers: all":                            "설치 프로그램: 모두",
+		"Installers: all but Awoo":                   "설치 프로그램: Awoo 빼고 모두",
+		"Installers: only NXDock":                    "설치 프로그램: NXDock만",
+		"Installers: NXDock or DBI, with sigpatches": "설치 프로그램: NXDock 또는 DBI, sigpatches 필요",
+		"Emulators: as it is":                        "에뮬레이터: 그대로",
+		"Emulators: decompress it first":             "에뮬레이터: 먼저 압축 해제",
+		"Emulators: no":                              "에뮬레이터: 안 됨",
+		"Installers and emulators: unknown":          "설치 프로그램과 에뮬레이터: 알 수 없음",
+		"How the file is stored could not be read: the file may be missing, or it is damaged.":                                                                               "파일이 어떻게 저장됐는지 읽지 못했어요. 파일이 없거나 손상됐을 수 있어요.",
+		"Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is.":                                      "압축되지 않았어요. 모든 설치 프로그램(NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira)이 설치하고, 에뮬레이터도 그대로 열어요.",
+		"Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first.":               "한 덩어리로(솔리드) 압축됐어요. 모든 설치 프로그램(NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira)이 설치하지만, 에뮬레이터는 먼저 압축을 풀어야 해요.",
+		"Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is.":                                              "블록 단위로 압축됐어요. Awoo를 뺀 모든 설치 프로그램이 설치하고, NSZ와 XCZ를 읽는 에뮬레이터는 그대로 열어요.",
+		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "NXPress의 추가 압축으로 만들어졌어요. NXDock은 그대로 설치해요. DBI, Tinfoil, 에뮬레이터에서는 먼저 NXPress로 압축을 푸세요.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "업데이트를 합친 게임이에요(설치용 최적화 또는 다른 도구). NXDock 또는 DBI로, sigpatches를 갖추고 설치하세요. 에뮬레이터는 그대로 열어요.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "업데이트를 합친 게임이에요(설치용 최적화 또는 다른 도구). NXDock 또는 DBI로, sigpatches를 갖추고 설치하세요. 에뮬레이터는 먼저 압축을 풀어야 해요.",
 	}
 }

@@ -2446,5 +2446,22 @@ func init() {
 		"Print or save as PDF":               "印刷または PDF に保存",
 		"Print now":                          "今すぐ印刷",
 		"Getting the covers ready: %v of %v": "カバー画像を準備中: %v / %v",
+
+		// which installers and emulators a file works with
+		"Installers: all":                            "インストーラー: すべて",
+		"Installers: all but Awoo":                   "インストーラー: Awoo 以外すべて",
+		"Installers: only NXDock":                    "インストーラー: NXDock のみ",
+		"Installers: NXDock or DBI, with sigpatches": "インストーラー: NXDock または DBI(sigpatches が必要)",
+		"Emulators: as it is":                        "エミュレーター: そのまま",
+		"Emulators: decompress it first":             "エミュレーター: 先に展開が必要",
+		"Emulators: no":                              "エミュレーター: 不可",
+		"Installers and emulators: unknown":          "インストーラーとエミュレーター: 不明",
+		"How the file is stored could not be read: the file may be missing, or it is damaged.":                                                                               "ファイルの保存形式を読み取れませんでした。ファイルがないか、壊れている可能性があります。",
+		"Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is.":                                      "非圧縮です。すべてのインストーラー(NXDock、DBI、Tinfoil、Awoo、CyberFoil、Sphaira)でインストールでき、エミュレーターでもそのまま開けます。",
+		"Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first.":               "一体で圧縮(ソリッド)されています。すべてのインストーラー(NXDock、DBI、Tinfoil、Awoo、CyberFoil、Sphaira)でインストールできますが、エミュレーターでは先に展開が必要です。",
+		"Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is.":                                              "ブロック単位で圧縮されています。Awoo 以外のすべてのインストーラーでインストールでき、NSZ と XCZ を読めるエミュレーターならそのまま開けます。",
+		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "NXPress の追加圧縮で作られています。NXDock ならそのままインストールできます。DBI、Tinfoil、エミュレーターでは、先に NXPress で展開してください。",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "アップデートを統合したゲームです(インストール用の最適化、または別のツールによるもの)。NXDock または DBI で、sigpatches を入れてインストールしてください。エミュレーターではそのまま開けます。",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "アップデートを統合したゲームです(インストール用の最適化、または別のツールによるもの)。NXDock または DBI で、sigpatches を入れてインストールしてください。エミュレーターでは先に展開が必要です。",
 	}
 }

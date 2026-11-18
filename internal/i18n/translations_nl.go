@@ -2446,5 +2446,22 @@ func init() {
 		"Print or save as PDF":               "Afdrukken of opslaan als pdf",
 		"Print now":                          "Nu afdrukken",
 		"Getting the covers ready: %v of %v": "Covers worden klaargezet: %v van %v",
+
+		// which installers and emulators a file works with
+		"Installers: all":                            "Installatieprogramma's: alle",
+		"Installers: all but Awoo":                   "Installatieprogramma's: alle behalve Awoo",
+		"Installers: only NXDock":                    "Installatieprogramma's: alleen NXDock",
+		"Installers: NXDock or DBI, with sigpatches": "Installatieprogramma's: NXDock of DBI, met sigpatches",
+		"Emulators: as it is":                        "Emulators: direct",
+		"Emulators: decompress it first":             "Emulators: eerst decomprimeren",
+		"Emulators: no":                              "Emulators: nee",
+		"Installers and emulators: unknown":          "Installatieprogramma's en emulators: onbekend",
+		"How the file is stored could not be read: the file may be missing, or it is damaged.":                                                                               "Hoe het bestand is opgeslagen kon niet worden gelezen: het ontbreekt misschien of is beschadigd.",
+		"Not compressed: every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it, and emulators open it as it is.":                                      "Niet gecomprimeerd: elk installatieprogramma (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installeert het, en emulators openen het direct.",
+		"Compressed in one piece (solid): every installer (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installs it; emulators need it decompressed first.":               "In één stuk gecomprimeerd (solid): elk installatieprogramma (NXDock, DBI, Tinfoil, Awoo, CyberFoil, Sphaira) installeert het; emulators hebben het eerst gedecomprimeerd nodig.",
+		"Compressed in blocks: every installer but Awoo installs it, and the emulators that read NSZ and XCZ open it as it is.":                                              "In blokken gecomprimeerd: elk installatieprogramma behalve Awoo installeert het, en emulators die NSZ en XCZ lezen openen het direct.",
+		"Made with the extra compression of NXPress. NXDock installs it as it is; for DBI, Tinfoil and the emulators, decompress it first with NXPress.":                     "Gemaakt met de extra compressie van NXPress. NXDock installeert het direct; decomprimeer het voor DBI, Tinfoil en de emulators eerst met NXPress.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators open it as it is.":           "Het spel samengevoegd met zijn update (geoptimaliseerd voor installatie, of met een ander programma): installeer het met NXDock of DBI, met sigpatches. Emulators openen het direct.",
+		"The game merged with its update (optimized for install, or by another tool): install it with NXDock or DBI, with sigpatches. Emulators need it decompressed first.": "Het spel samengevoegd met zijn update (geoptimaliseerd voor installatie, of met een ander programma): installeer het met NXDock of DBI, met sigpatches. Emulators hebben het eerst gedecomprimeerd nodig.",
 	}
 }
