@@ -283,7 +283,8 @@ var Translations = map[string]map[string]string{
 		"Regions":                             "Regiones",
 		"Your library is tuned up":            "Tu biblioteca está a punto",
 		"Checked, in order, without leftovers and compressed.": "Comprobada, en orden, sin sobrantes y comprimida.",
-		"Other tools": "Otras herramientas",
+		"Other tools":   "Otras herramientas",
+		"Help about %v": "Ayuda sobre %v",
 		"A copy of the same size is already at the destination: it is a duplicate, the Space page can free it.":                                                     "En el destino ya hay una copia del mismo tamaño: es un duplicado, la página Espacio puede liberarlo.",
 		"another file with the same name is already at the destination":                                                                                             "en el destino ya hay otro archivo con el mismo nombre",
 		"%v files are kept until the copy that stays is checked, so a copy is never deleted for one that might be damaged. Check those copies, then preview again.": "%v archivos se conservan hasta que se compruebe la copia que se queda, para no borrar nunca una copia a cambio de otra que podría estar dañada. Comprueba esas copias y vuelve a ver la vista previa.",
@@ -2490,6 +2491,7 @@ var Translations = map[string]map[string]string{
 
 // texts used by web.js, sent to the browser in the page language
 var JSTexts = []string{
+	"Help about %v",
 	"Updating", "The update was cancelled.", "Downloading the new version...", "Checking the new version...", "Going back to the version of before...", "You have the latest version.", "Installed: the app starts again...", "The app does not answer: start it again by hand.",
 	"Deleting empty folders...", "Tasks running: %v", "Failed tasks: %v",
 	"Close", "Synchronizing!", "The library is being updated.", "Synchronization progress", "Done!",

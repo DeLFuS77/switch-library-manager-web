@@ -64,10 +64,10 @@
 			{{- template "emptyState" (dict "Icon" "bi-file-zip" "Tone" "success" "Title" (t "Nothing to compress") "Text" (t "Your library has no NSP or XCI files to compress.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 			{{- else}}
 			<form id="compressForm">
-				<div class="row g-3 mb-4">
+				<div class="row g-3 mb-4" data-hover-help>
 					<div class="col-lg-7">
 						<section class="surface h-100">
-							<h2 class="section-title"><span class="bi bi-speedometer2" aria-hidden="true"></span>{{t "Compression"}}</h2>
+							<h2 class="section-title help-name"><span class="bi bi-speedometer2" aria-hidden="true"></span>{{t "Compression"}}</h2>
 							<div class="compress-levels" role="radiogroup" aria-label="{{t "Compression level"}}" aria-describedby="compressLevelsHelp">
 								<input type="radio" class="btn-check" name="level" id="levelFast" value="fast"{{if eq .Level "fast"}} checked{{end}}>
 								<label class="compress-level" for="levelFast"><span class="fw-semibold">{{t "Fast"}}</span><span class="small text-body-secondary">{{t "Quick, saves a bit less"}}</span></label>
@@ -165,9 +165,9 @@
 
 			{{- if .CardCount}}
 			<div class="surface" role="tabpanel" id="panelConvert" aria-labelledby="tabConvert" hidden>
-				<form id="convertForm">
-					<h2 class="section-title"><span class="bi bi-arrow-left-right" aria-hidden="true"></span>{{t "Convert XCI to NSP"}}</h2>
-					<p class="text-body-secondary">{{t "Turn game card files (XCI, XCZ) into NSP and NSZ files with the same content, for installers and tools that prefer them. Every new file is checked before the original is deleted."}}</p>
+				<form id="convertForm" data-hover-help>
+					<h2 class="section-title help-name"><span class="bi bi-arrow-left-right" aria-hidden="true"></span>{{t "Convert XCI to NSP"}}</h2>
+					<p class="form-text">{{t "Turn game card files (XCI, XCZ) into NSP and NSZ files with the same content, for installers and tools that prefer them. Every new file is checked before the original is deleted."}}</p>
 					<div class="file-list-head">
 						<div class="form-check mb-0">
 							<input class="form-check-input" type="checkbox" id="convertAll" data-file-all>
@@ -192,10 +192,9 @@
 			{{- end}}
 			{{- if .SplitCount}}
 			<div class="surface" role="tabpanel" id="panelSplit" aria-labelledby="tabSplit" hidden>
-				<form id="splitForm">
-					<h2 class="section-title"><span class="bi bi-scissors" aria-hidden="true"></span>{{t "Split multi-title files"}}</h2>
-					<p class="text-body-secondary">{{t "Turn files that hold several titles (a game with its updates and DLC in one NSP or NSZ) back into one file per title. Nothing is decompressed or changed: each part keeps the files of its title as they are, and every part is checked before the original is deleted."}}</p>
-					<p class="text-body-secondary">{{t "A game card dump with several games (a collection on one cartridge) splits into one XCI or XCZ per game, with its update and DLC, so the files made for a game card stay as they are."}}</p>
+				<form id="splitForm" data-hover-help>
+					<h2 class="section-title help-name"><span class="bi bi-scissors" aria-hidden="true"></span>{{t "Split multi-title files"}}</h2>
+					<p class="form-text">{{t "Turn files that hold several titles (a game with its updates and DLC in one NSP or NSZ) back into one file per title. Nothing is decompressed or changed: each part keeps the files of its title as they are, and every part is checked before the original is deleted."}} {{t "A game card dump with several games (a collection on one cartridge) splits into one XCI or XCZ per game, with its update and DLC, so the files made for a game card stay as they are."}}</p>
 					<div class="file-list-head">
 						<div class="form-check mb-0">
 							<input class="form-check-input" type="checkbox" id="splitAll" data-file-all>
@@ -220,9 +219,9 @@
 			{{- end}}
 			{{- if .PackCount}}
 			<div class="surface" role="tabpanel" id="panelPacks" aria-labelledby="tabPacks" hidden>
-				<form id="packForm">
-					<h2 class="section-title"><span class="bi bi-box-seam" aria-hidden="true"></span>{{t "Combine games"}}</h2>
-					<p class="text-body-secondary">{{t "Combine each game with its latest update and its DLC into one NSP (or NSZ), for installers that take several titles at once. Older updates and delta fragments are left out. Every combined file is checked before the separate files are deleted."}}</p>
+				<form id="packForm" data-hover-help>
+					<h2 class="section-title help-name"><span class="bi bi-box-seam" aria-hidden="true"></span>{{t "Combine games"}}</h2>
+					<p class="form-text">{{t "Combine each game with its latest update and its DLC into one NSP (or NSZ), for installers that take several titles at once. Older updates and delta fragments are left out. Every combined file is checked before the separate files are deleted."}}</p>
 					<div class="file-list-head">
 						<div class="form-check mb-0">
 							<input class="form-check-input" type="checkbox" id="packAll" data-file-all>
@@ -247,9 +246,9 @@
 			{{- end}}
 			{{- if .OptimizeCount}}
 			<div class="surface" role="tabpanel" id="panelOptimize" aria-labelledby="tabOptimize" hidden>
-				<form id="optimizeForm">
-					<h2 class="section-title"><span class="bi bi-lightning-charge" aria-hidden="true"></span>{{t "Optimize for install"}} <span class="badge text-bg-warning align-middle ms-1">{{t "Experimental"}}</span></h2>
-					<p class="text-body-secondary mb-2">{{t "Each game with its newest update becomes one NSP that takes much less room once installed, written next to the game. The game and its update are kept: the game is optimized again from them when a newer update comes."}}</p>
+				<form id="optimizeForm" data-hover-help>
+					<h2 class="section-title help-name"><span class="bi bi-lightning-charge" aria-hidden="true"></span>{{t "Optimize for install"}} <span class="badge text-bg-warning align-middle ms-1">{{t "Experimental"}}</span></h2>
+					<p class="form-text mb-2">{{t "Each game with its newest update becomes one NSP that takes much less room once installed, written next to the game. The game and its update are kept: the game is optimized again from them when a newer update comes."}}</p>
 					<ul class="small text-body-secondary mb-3 ps-3">
 						<li>{{t "Install it with NXDock or DBI, with sigpatches and firmware 12.0.0 or newer."}}</li>
 						<li>{{t "Do not install official updates over it: when a newer update comes, optimize the game again with it."}}</li>
@@ -275,9 +274,9 @@
 			{{- end}}
 			{{- if .CompressedCount}}
 			<div class="surface" role="tabpanel" id="panelDecompress" aria-labelledby="tabDecompress" hidden>
-				<form id="decompressForm">
-					<h2 class="section-title"><span class="bi bi-box-arrow-up" aria-hidden="true"></span>{{t "Decompress"}}</h2>
-					<p class="text-body-secondary">{{t "Turn NSZ files back into NSP files, for tools that do not read NSZ. Every NSP is checked before the NSZ is deleted."}}</p>
+				<form id="decompressForm" data-hover-help>
+					<h2 class="section-title help-name"><span class="bi bi-box-arrow-up" aria-hidden="true"></span>{{t "Decompress"}}</h2>
+					<p class="form-text">{{t "Turn NSZ files back into NSP files, for tools that do not read NSZ. Every NSP is checked before the NSZ is deleted."}}</p>
 					<div class="file-list-head">
 						<div class="form-check mb-0">
 							<input class="form-check-input" type="checkbox" id="decompressAll" data-file-all>

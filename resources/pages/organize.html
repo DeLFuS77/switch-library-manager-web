@@ -19,14 +19,14 @@
 				<button type="button" class="page-tab" role="tab" id="tabOptions" data-tab="options" aria-controls="panelOptions" aria-selected="false" tabindex="-1"><span class="bi bi-sliders" aria-hidden="true"></span>{{t "Options"}}</button>
 			</div>
 			<div role="tabpanel" id="panelActions" aria-labelledby="tabActions">
-				<div class="row g-3 mb-4">
+				<div class="row g-3 mb-4" data-hover-help>
 					<div class="col-md-4">
 						<div class="surface stat-card h-100 align-items-start">
 							<div class="stat-icon"><span class="bi bi-box-arrow-in-down" aria-hidden="true"></span></div>
 							<div class="d-flex flex-column h-100">
-								<h3 class="h6 fw-semibold mb-1">{{t "Organize new files"}}</h3>
-								<p class="text-body-secondary small flex-fill">{{t "Put the files that lie loose in the library folders, like the uploaded ones, in the folder their game has, or in a new one. Nothing else moves."}}</p>
-								<div><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="new"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
+								<h3 class="h6 fw-semibold mb-1 help-name">{{t "Organize new files"}}</h3>
+								<p class="form-text">{{t "Put the files that lie loose in the library folders, like the uploaded ones, in the folder their game has, or in a new one. Nothing else moves."}}</p>
+								<div class="mt-auto pt-2"><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="new"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
 							</div>
 						</div>
 					</div>
@@ -34,9 +34,9 @@
 						<div class="surface stat-card h-100 align-items-start">
 							<div class="stat-icon"><span class="bi bi-folder-symlink" aria-hidden="true"></span></div>
 							<div class="d-flex flex-column h-100">
-								<h3 class="h6 fw-semibold mb-1">{{t "Organize all files"}}</h3>
-								<p class="text-body-secondary small flex-fill">{{t "Move and rename games, updates and DLC according to the options."}}</p>
-								<div><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="organize"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
+								<h3 class="h6 fw-semibold mb-1 help-name">{{t "Organize all files"}}</h3>
+								<p class="form-text">{{t "Move and rename games, updates and DLC according to the options."}}</p>
+								<div class="mt-auto pt-2"><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="organize"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
 							</div>
 						</div>
 					</div>
@@ -44,9 +44,9 @@
 						<div class="surface stat-card h-100 align-items-start">
 							<div class="stat-icon is-cyan"><span class="bi bi-trash3" aria-hidden="true"></span></div>
 							<div class="d-flex flex-column h-100">
-								<h3 class="h6 fw-semibold mb-1">{{t "Delete old updates"}}</h3>
-								<p class="text-body-secondary small flex-fill">{{if $o.DeleteDuplicateFiles}}{{t "Delete update and DLC files replaced by a newer version, and duplicate files."}}{{else}}{{t "Delete update and DLC files replaced by a newer version."}}{{end}}</p>
-								<div><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="cleanup"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
+								<h3 class="h6 fw-semibold mb-1 help-name">{{t "Delete old updates"}}</h3>
+								<p class="form-text">{{if $o.DeleteDuplicateFiles}}{{t "Delete update and DLC files replaced by a newer version, and duplicate files."}}{{else}}{{t "Delete update and DLC files replaced by a newer version."}}{{end}}</p>
+								<div class="mt-auto pt-2"><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="cleanup"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
 							</div>
 						</div>
 					</div>
@@ -81,9 +81,9 @@
 					<ul class="op-list list-unstyled mb-0" id="organizeOperations"></ul>
 				</section>
 				{{- if .UndoRuns}}
-				<section class="surface undo-runs mt-4 admin-only" id="undo" aria-labelledby="undoRunsTitle">
-					<h2 class="section-title" id="undoRunsTitle"><span class="bi bi-arrow-counterclockwise" aria-hidden="true"></span>{{t "Earlier organizes"}}</h2>
-					<p class="small text-body-secondary">{{t "You can put the files back to the name and folder they had before."}}</p>
+				<section class="surface undo-runs mt-4 admin-only" id="undo" aria-labelledby="undoRunsTitle" data-hover-help>
+					<h2 class="section-title help-name" id="undoRunsTitle"><span class="bi bi-arrow-counterclockwise" aria-hidden="true"></span>{{t "Earlier organizes"}}</h2>
+					<p class="form-text">{{t "You can put the files back to the name and folder they had before."}}</p>
 					<ul class="list-unstyled mb-0">
 						{{- range .UndoRuns}}
 						<li class="undo-run">

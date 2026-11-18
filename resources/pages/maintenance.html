@@ -32,7 +32,7 @@
 				{{- end}}
 				<div class="tune-hero-side" data-hover-help{{if .Preparing}} data-maintenance-preparing{{end}}>
 					<div class="tune-mini" aria-hidden="true">{{range .Steps}}<span class="step-{{.Status}}{{if .Next}} is-next{{end}}"></span>{{end}}</div>
-					<button type="button" class="btn btn-sm btn-outline-primary rounded-pill admin-only help-name" data-maintenance-review><span class="bi bi-arrow-clockwise me-1" aria-hidden="true"></span>{{t "Review again"}}</button>
+					<span class="tune-review"><button type="button" class="btn btn-sm btn-outline-primary rounded-pill admin-only help-name" data-maintenance-review><span class="bi bi-arrow-clockwise me-1" aria-hidden="true"></span>{{t "Review again"}}</button></span>
 					<div class="form-text">{{if not .LastReview.IsZero}}{{t "Last reviewed %v. After changing files outside the app, review again." (formatDateTime .LastReview)}}{{else}}{{t "After changing files outside the app, review again."}}{{end}}</div>
 					{{- if and .Preparing .NextStep}}
 					<div class="form-text help-keep"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{t "Working out the steps; the page updates by itself."}}</div>
@@ -41,7 +41,7 @@
 			</section>
 			{{- /* the steps in order: what is left in each, why it comes there (on its name) and the
 			parts of its tool */}}
-			<div class="tune-grid{{if .Again}} is-again{{end}}" data-hover-help="touch">
+			<div class="tune-grid{{if .Again}} is-again{{end}}" data-hover-help>
 				{{- range .Steps}}
 				<article class="tune-tile step-{{.Status}}{{if .Next}} is-next{{end}}" data-step="{{.Id}}" style="--i: {{.Number}}">
 					<a class="tune-tile-link" href="{{.Href}}" data-tune-link aria-label="{{.Title}}, {{t "Step %v of 5 of the tune-up" .Number}}"></a>

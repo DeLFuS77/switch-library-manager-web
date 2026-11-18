@@ -35,6 +35,48 @@ $help-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vi
 	}
 }
 
+// on a touch screen, the ⓘ of a field or a button is a button of its own after its name, as a touch
+// on the name changes the field or presses the button; it can be touched in a bigger place than
+// it is drawn
+.help-mark {
+	position: relative;
+	display: inline-grid;
+	place-items: center;
+	width: 1.1rem;
+	height: 1.1rem;
+	margin-left: .35rem;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: none;
+	color: var(--bs-secondary-color);
+	vertical-align: -.15rem;
+
+	&::before {
+		content: "";
+		width: .875rem;
+		height: .875rem;
+		background-color: currentColor;
+		mask: $help-mark center / contain no-repeat;
+	}
+
+	&::after {
+		content: "";
+		position: absolute;
+		inset: -.8rem;
+	}
+
+	&.help-open,
+	&:focus-visible {
+		color: rgb(var(--slm-work-rgb));
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--slm-focus);
+		outline-offset: 2px;
+	}
+}
+
 // the label of a switch toggles it, and a button does what it says: they keep the hand of a click
 label.has-help,
 .btn.has-help {

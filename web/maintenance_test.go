@@ -42,7 +42,7 @@ func TestMaintenancePage(t *testing.T) {
 	}
 	// the step to do now on top, the reason of each step in the help of its name (on touch too),
 	// and the other tools
-	for _, want := range []string{`class="surface tune-hero`, `data-hover-help="touch"`, `class="tune-tile-title help-name"`, `href="/sd.html"`, "Other tools"} {
+	for _, want := range []string{`class="surface tune-hero`, `class="tune-grid" data-hover-help>`, `class="tune-tile-title help-name"`, `href="/sd.html"`, "Other tools"} {
 		if !strings.Contains(page, want) {
 			t.Errorf("the page has no %s", want)
 		}
