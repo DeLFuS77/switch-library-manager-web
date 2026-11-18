@@ -378,6 +378,9 @@ type TitleItem struct {
 	// as it is sorted; never shown, as it tells the path
 	folder     string
 	folderName string
+	// library: the firmware the installed game needs (a system version, 0 when not known), for
+	// the consoles of the user who looks (see firmwareCheck)
+	requiredFirmware int
 }
 
 // IsSwitch2 reports whether the game is of the Nintendo Switch 2 alone: its card says so.
@@ -504,8 +507,10 @@ type LibraryFacets struct {
 	// games with cheats for the version the library has, and for other versions only
 	Cheats      int
 	CheatsOther int
-	// games that need a newer firmware than the console has
-	FirmwareTooNew int
+	// games that need a newer firmware than the console has, and whether the consoles of the user
+	// told theirs (else the one of Settings counts)
+	FirmwareTooNew   int
+	ConsoleFirmwares bool
 	// the games of the user by how they go, and those without a state ("none")
 	Play map[string]int
 	// games not in the library, shown in the All view

@@ -2543,6 +2543,12 @@ var Translations = map[string]map[string]string{
 		"On the console":      "En la consola",
 		"Not installed on %v": "No instalado en %v",
 		"Out of date on %v":   "Desactualizado en %v",
+		// the firmware the consoles tell (see web/firmware.go)
+		"The version you have needs a newer firmware than one of your consoles tells: update that console to play them.": "La versión que tienes necesita un firmware más nuevo que el que dice una de tus consolas: actualiza esa consola para jugarlos.",
+		"Needs a newer firmware than %v": "Necesita un firmware más nuevo que el de %v",
+		"Firmware of your consoles":      "Firmware de tus consolas",
+		"told by the console":            "lo dice la consola",
+		"Games and updates that need a newer firmware are marked, with the console that falls short. Without a console that tells it, it is written here by hand.": "Se marcan los juegos y actualizaciones que necesitan un firmware más nuevo, con la consola que se queda corta. Sin una consola que lo diga, se escribe aquí a mano.",
 	},
 }
 

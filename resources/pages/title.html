@@ -30,7 +30,8 @@
 							{{- end}}
 							{{- if $t.IsSwitch2}}<span class="chip chip-muted">Switch 2</span>{{end}}
 							{{- if $t.UpdateMissing}}{{if not $t.UpdatesIgnored}}<span class="chip chip-warning"><span class="bi bi-arrow-up-circle" aria-hidden="true"></span>{{t "Update available"}}</span>{{end}}{{end}}
-							{{- if $t.FirmwareTooNew}}<span class="chip chip-danger"><span class="bi bi-cpu" aria-hidden="true"></span>{{t "Your console needs firmware %v or newer for this game" $t.RequiredFirmware}}</span>{{end}}
+							{{- if .ShortConsoles}}<span class="chip chip-danger"><span class="bi bi-cpu" aria-hidden="true"></span>{{t "Needs a newer firmware than %v" (join .ShortConsoles ", ")}}</span>
+							{{- else if $t.FirmwareTooNew}}<span class="chip chip-danger"><span class="bi bi-cpu" aria-hidden="true"></span>{{t "Your console needs firmware %v or newer for this game" $t.RequiredFirmware}}</span>{{end}}
 							{{- if gt $t.MissingDlc 0}}<span class="chip chip-info"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC missing" $t.MissingDlc}}</span>{{else if and (not $t.Owned) $t.Dlc}}<span class="chip chip-muted"><span class="bi bi-puzzle" aria-hidden="true"></span>{{t "%v DLC" (len $t.Dlc)}}</span>{{end}}
 							{{- if $t.Edited}}<span class="chip chip-muted" title="{{t "Original: %v" $t.OriginalName}}"><span class="bi bi-pencil" aria-hidden="true"></span>{{t "Edited by hand"}}<span class="visually-hidden"> ({{t "Original: %v" $t.OriginalName}})</span></span>{{end}}
 						</div>

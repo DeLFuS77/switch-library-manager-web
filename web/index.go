@@ -224,6 +224,8 @@ type libraryFilter struct {
 	folders []LibraryFolder
 	// the consoles of the user that told what is installed on them, for the filter On the console
 	consoles []*libraryConsole
+	// the firmware of the consoles of the user, for the games that need a newer one
+	firmware firmwareCheck
 }
 
 func (web *Web) newLibraryFilter(filter *TitleItemFilter, lang string, all []TitleItem) *libraryFilter {
@@ -237,6 +239,8 @@ func (web *Web) newLibraryFilter(filter *TitleItemFilter, lang string, all []Tit
 	f.once = web.newMissingOnce()
 	f.plays = web.play().All(filter.player)
 	f.consoles = web.libraryConsoles(filter.player, filter)
+	f.firmware = web.userFirmwareCheck(filter.player)
+	f.facets.ConsoleFirmwares = f.firmware.told()
 	f.facets.OnConsoleLabel = onConsoleLabel(filter, f.consoles, lang)
 	f.facets.Play = map[string]int{}
 	for _, entry := range f.plays {
@@ -370,10 +374,12 @@ func (f *libraryFilter) kindAndExtra(item *TitleItem) bool {
 	if item.CheatsOther {
 		facets.CheatsOther++
 	}
-	if item.FirmwareTooNew {
+	// too new for a console of the user, or for the one of Settings
+	firmwareTooNew := f.firmware.tooNew(item.requiredFirmware)
+	if firmwareTooNew {
 		facets.FirmwareTooNew++
 	}
-	if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) || (filter.Extra == EXTRA_RECENT && !recent) || (filter.Extra == EXTRA_FAVORITES && !item.Favorite) || (filter.Extra == EXTRA_CHEATS && !item.Cheats) || (filter.Extra == EXTRA_CHEATS_OTHER && !item.CheatsOther) || (filter.Extra == EXTRA_FIRMWARE && !item.FirmwareTooNew) {
+	if (filter.Extra == EXTRA_NO_COVER && item.ImageUrl != "") || (filter.Extra == EXTRA_UNKNOWN && item.Known) || (filter.Extra == EXTRA_RECENT && !recent) || (filter.Extra == EXTRA_FAVORITES && !item.Favorite) || (filter.Extra == EXTRA_CHEATS && !item.Cheats) || (filter.Extra == EXTRA_CHEATS_OTHER && !item.CheatsOther) || (filter.Extra == EXTRA_FIRMWARE && !firmwareTooNew) {
 		return false
 	}
 	return true
@@ -490,6 +496,10 @@ func (f *libraryFilter) page() ([]TitleItem, pagination.Pagination) {
 			}
 		}
 		item.Play = f.plays[item.Id]
+		item.FirmwareTooNew, item.RequiredFirmware = f.firmware.tooNew(item.requiredFirmware), ""
+		if item.FirmwareTooNew {
+			item.RequiredFirmware = firmwareVersion(item.requiredFirmware)
+		}
 		items = append(items, item)
 	}
 	return items, p
@@ -615,7 +625,9 @@ func (web *Web) buildLibrary(lang string) []TitleItem {
 			addSize(dlc.ExtendedInfo)
 		}
 
-		if required := installedRequirement(v); web.firmwareTooNew(required) {
+		required := installedRequirement(v)
+		item.requiredFirmware = required
+		if web.firmwareTooNew(required) {
 			item.RequiredFirmware = firmwareVersion(required)
 			item.FirmwareTooNew = true
 		}

@@ -76,3 +76,57 @@ func (web *Web) firmwareTooNew(required int) bool {
 	console := web.consoleFirmware()
 	return console > 0 && required > console
 }
+
+// firmwareCheck tells, for a user, whether a game needs a newer firmware: than the one of a
+// console of theirs, as the consoles tell it (see netUserFirmwares); with none, than the one
+// written in Settings.
+type firmwareCheck struct {
+	consoles []netConsoleFirmware
+	manual   int
+}
+
+// userFirmwareCheck is the firmware check of a user.
+func (web *Web) userFirmwareCheck(user string) firmwareCheck {
+	check := firmwareCheck{manual: web.consoleFirmware()}
+	if user == "" || web.auth == nil {
+		return check
+	}
+	for _, firmware := range web.netUserFirmwares(user) {
+		if firmware.Code > 0 {
+			check.consoles = append(check.consoles, firmware)
+		}
+	}
+	return check
+}
+
+// told reports whether a console of the user told its firmware: the one of Settings is not used.
+func (c firmwareCheck) told() bool {
+	return len(c.consoles) > 0
+}
+
+// tooNew reports whether a game that needs a firmware cannot start on a console of the user.
+func (c firmwareCheck) tooNew(required int) bool {
+	if required <= 0 {
+		return false
+	}
+	if !c.told() {
+		return c.manual > 0 && required > c.manual
+	}
+	for _, console := range c.consoles {
+		if required > console.Code {
+			return true
+		}
+	}
+	return false
+}
+
+// short are the names of the consoles of the user whose firmware is older than a game needs.
+func (c firmwareCheck) short(required int) []string {
+	names := []string{}
+	for _, console := range c.consoles {
+		if required > 0 && required > console.Code {
+			names = append(names, console.Name)
+		}
+	}
+	return names
+}

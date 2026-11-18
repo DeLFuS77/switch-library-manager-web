@@ -2516,5 +2516,11 @@ func init() {
 		"On the console":      "本体",
 		"Not installed on %v": "%v に未インストール",
 		"Out of date on %v":   "%v で更新あり",
+		// the firmware the consoles tell (see web/firmware.go)
+		"The version you have needs a newer firmware than one of your consoles tells: update that console to play them.": "お持ちのバージョンには、本体のどれかが知らせたものより新しいシステムバージョンが必要です。遊ぶにはその本体を更新してください。",
+		"Needs a newer firmware than %v": "%v より新しいシステムバージョンが必要",
+		"Firmware of your consoles":      "本体のシステムバージョン",
+		"told by the console":            "本体からの情報",
+		"Games and updates that need a newer firmware are marked, with the console that falls short. Without a console that tells it, it is written here by hand.": "新しいシステムバージョンが必要なゲームとアップデートには、足りない本体とともに印が付きます。知らせる本体がなければ、ここに手で入力します。",
 	}
 }

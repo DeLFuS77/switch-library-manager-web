@@ -2516,5 +2516,11 @@ func init() {
 		"On the console":      "主机上",
 		"Not installed on %v": "%v 上未安装",
 		"Out of date on %v":   "%v 上需要更新",
+		// the firmware the consoles tell (see web/firmware.go)
+		"The version you have needs a newer firmware than one of your consoles tells: update that console to play them.": "你拥有的版本需要比某台主机告知的更新的固件：更新那台主机即可游玩。",
+		"Needs a newer firmware than %v": "需要比 %v 更新的固件",
+		"Firmware of your consoles":      "你的主机的固件",
+		"told by the console":            "由主机告知",
+		"Games and updates that need a newer firmware are marked, with the console that falls short. Without a console that tells it, it is written here by hand.": "需要更新固件的游戏和更新会被标出，并注明是哪台主机不够新。没有告知固件的主机时，在这里手动填写。",
 	}
 }

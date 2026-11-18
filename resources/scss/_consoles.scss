@@ -321,3 +321,31 @@
 		min-height: 2.75rem;
 	}
 }
+
+// Settings › Game data: the firmware each console of the administrator tells, in place of the
+// field to write it
+.console-firmwares {
+	display: grid;
+	gap: .35rem;
+
+	li {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: .35rem .6rem;
+		padding: .5rem .75rem;
+		border-radius: $border-radius;
+		border: 1px solid var(--slm-border);
+		background: var(--slm-surface-muted);
+
+		> .bi {
+			color: rgb(var(--slm-work-rgb));
+		}
+	}
+}
+
+.console-firmwares-name {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}

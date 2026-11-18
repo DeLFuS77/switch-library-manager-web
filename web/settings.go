@@ -8,6 +8,7 @@ import (
 	"github.com/dtrunk90/switch-library-manager-web/internal/tasklog"
 	"github.com/dtrunk90/switch-library-manager-web/settings"
 	"github.com/dtrunk90/switch-library-manager-web/switchfs"
+	"net/http"
 	"os"
 	"regexp"
 	"runtime"
@@ -42,6 +43,9 @@ type SettingsPageData struct {
 	SmtpSecurityChoices []string
 	// the last measure of the server, nil when there is none
 	LastMeasure *ServerMeasure
+	// the firmware the consoles of the user who looks told (see netUserFirmwares): with one, it is
+	// shown in place of the field to write it
+	ConsoleFirmwares []netConsoleFirmware
 	// files waiting for the automations
 	AutomationPending int
 	// the threads offered to compress each file, the processors of this computer and the
@@ -229,8 +233,8 @@ func (web *Web) HandleSettings() {
 		"resources/partials/notifications.html",
 	}
 
-	web.HandleValidated("/settings.html", SettingsForm{}, func() any {
-		return web.settingsPageData()
+	web.HandleValidated("/settings.html", SettingsForm{}, func(r *http.Request) any {
+		return web.settingsPageFor(r)
 	}, func(value any, lang string) ErrorResponse {
 		return web.settingsErrors(value.(*SettingsForm), lang)
 	}, func(value any, lang string) SuccessResponse {
@@ -606,6 +610,14 @@ func verifySpeedOptions() []VerifySpeedOption {
 		{Value: "", Label: "Normal", Workers: verifyWorkers(VERIFY_SPEED_NORMAL, cores)},
 		{Value: VERIFY_SPEED_FAST, Label: "Fast", Workers: verifyWorkers(VERIFY_SPEED_FAST, cores)},
 	}
+}
+
+// settingsPageFor is the Settings page of the administrator of a request: with the firmware their
+// consoles tell.
+func (web *Web) settingsPageFor(r *http.Request) SettingsPageData {
+	data := web.settingsPageData()
+	data.ConsoleFirmwares = web.netUserFirmwares(playUser(r))
+	return data
 }
 
 // settingsPageData is what the Settings page and the setup wizard show: the current settings

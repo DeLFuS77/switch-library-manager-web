@@ -2516,5 +2516,11 @@ func init() {
 		"On the console":      "콘솔",
 		"Not installed on %v": "%v에 설치되지 않음",
 		"Out of date on %v":   "%v에서 업데이트 필요",
+		// the firmware the consoles tell (see web/firmware.go)
+		"The version you have needs a newer firmware than one of your consoles tells: update that console to play them.": "가지고 있는 버전에는 콘솔 중 하나가 알려 준 것보다 새로운 펌웨어가 필요합니다. 플레이하려면 그 콘솔을 업데이트하세요.",
+		"Needs a newer firmware than %v": "%v보다 새로운 펌웨어 필요",
+		"Firmware of your consoles":      "콘솔의 펌웨어",
+		"told by the console":            "콘솔이 알려 줌",
+		"Games and updates that need a newer firmware are marked, with the console that falls short. Without a console that tells it, it is written here by hand.": "새로운 펌웨어가 필요한 게임과 업데이트는 부족한 콘솔과 함께 표시됩니다. 알려 주는 콘솔이 없으면 여기에 직접 입력합니다.",
 	}
 }

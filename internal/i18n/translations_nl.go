@@ -2516,5 +2516,11 @@ func init() {
 		"On the console":      "Op de console",
 		"Not installed on %v": "Niet geïnstalleerd op %v",
 		"Out of date on %v":   "Niet bijgewerkt op %v",
+		// the firmware the consoles tell (see web/firmware.go)
+		"The version you have needs a newer firmware than one of your consoles tells: update that console to play them.": "De versie die je hebt heeft nieuwere firmware nodig dan een van je consoles doorgeeft: werk die console bij om ze te spelen.",
+		"Needs a newer firmware than %v": "Heeft nieuwere firmware nodig dan %v",
+		"Firmware of your consoles":      "Firmware van je consoles",
+		"told by the console":            "doorgegeven door de console",
+		"Games and updates that need a newer firmware are marked, with the console that falls short. Without a console that tells it, it is written here by hand.": "Games en updates die nieuwere firmware nodig hebben worden gemarkeerd, met de console die tekortschiet. Zonder console die het doorgeeft, vul je het hier zelf in.",
 	}
 }
