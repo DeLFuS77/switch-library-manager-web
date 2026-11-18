@@ -328,6 +328,58 @@ func TestEdenConflicts(t *testing.T) {
 	}
 }
 
+// The choice of a conflict made in NXPress: only by the computer of the conflict, only console or
+// emulator, kept as the page keeps it, with the same activity.
+func TestEdenConflictChosenOnTheComputer(t *testing.T) {
+	web, _, bob, console, auth, _, _ := pushWeb(t)
+	key, _ := pairPc(t, web, bob, "NXPress on DESK-1", "192.168.1.60")
+	otherKey, _ := pairPc(t, web, bob, "NXPress on DESK-2", "192.168.1.61")
+	pc := &client{t: t, handler: bob.handler}
+	sendBody(console, "POST", "/install/saves/0100000000010000?account=Bob", saveZip(t, "console.dat"), "Authorization", auth)
+	emulatorSave := pcUpload(t, pc, key, "0100000000010000", "emulator=eden&auto=1&profile="+edenPlayer.String(), saveZip(t, "eden.dat")).Id
+	consoleSave := ""
+	for _, save := range listSaves(t, pc, "/install/saves", "Authorization", bearer(key)) {
+		if !save.Emulator {
+			consoleSave = save.Id
+		}
+	}
+	body := `{"titleId":"0100000000010000","profile":"` + edenPlayer.String() + `","consoleSave":"` + consoleSave + `","emulatorSave":"` + emulatorSave + `"}`
+	var told struct{ Id string }
+	if got := sendJSON(pc, "POST", "/install/saves/conflicts", body, "Authorization", bearer(key)); got.Code != http.StatusOK || json.Unmarshal(got.Body.Bytes(), &told) != nil {
+		t.Fatalf("told: %d %s", got.Code, got.Body.String())
+	}
+	keep := "/install/saves/conflicts/" + told.Id + "/keep"
+	if got := sendJSON(pc, "POST", keep, `{"keep":"both"}`, "Authorization", bearer(key)); got.Code != http.StatusBadRequest {
+		t.Fatalf("an unknown choice: %d", got.Code)
+	}
+	if got := sendJSON(pc, "POST", keep, `{"keep":"console"}`, "Authorization", bearer(otherKey)); got.Code != http.StatusNotFound {
+		t.Fatalf("another computer chooses: %d", got.Code)
+	}
+	if got := sendJSON(pc, "POST", "/install/saves/conflicts/00000000000000aa/keep", `{"keep":"console"}`, "Authorization", bearer(key)); got.Code != http.StatusNotFound || !strings.Contains(got.Body.String(), `"error"`) {
+		t.Fatalf("a conflict that is not there: %d %s", got.Code, got.Body.String())
+	}
+	if got := sendJSON(bob, "POST", keep, `{"keep":"console"}`); got.Code == http.StatusOK {
+		t.Fatal("the web chooses through the path of the computers")
+	}
+	got := sendJSON(pc, "POST", keep, `{"keep":"emulator"}`, "Authorization", bearer(key))
+	var decided edensync.Conflict
+	if got.Code != http.StatusOK || json.Unmarshal(got.Body.Bytes(), &decided) != nil || decided.Keep != edensync.KeepEmulator || decided.Decided == 0 {
+		t.Fatalf("chosen: %d %s", got.Code, got.Body.String())
+	}
+	var answer struct{ Conflicts []edensync.Conflict }
+	json.Unmarshal(pc.do("GET", "/install/saves/conflicts", nil, "Authorization", bearer(key)).Body.Bytes(), &answer)
+	if len(answer.Conflicts) != 1 || answer.Conflicts[0].Keep != edensync.KeepEmulator {
+		t.Fatalf("the choice told to the computer: %+v", answer.Conflicts)
+	}
+	actions := map[string]string{}
+	for _, entry := range web.activities().List() {
+		actions[entry.Action] = entry.Detail
+	}
+	if actions[activity.ACTION_SAVES_CHOICE] != "Game + Eden" {
+		t.Fatalf("the activity: %v", actions)
+	}
+}
+
 // fakeEdenFolder is a data folder of Eden with one profile, Player, and a save of a game.
 func fakeEdenFolder(t *testing.T, files map[string]string) (edensync.Folder, string) {
 	t.Helper()

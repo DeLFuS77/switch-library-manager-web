@@ -54,6 +54,8 @@
 //	PUT  /install/saves/profiles              {"emulator": "eden", "profiles": [ProfileReport…]}
 //	POST /install/saves/conflicts             Conflict without id; answers {"id"}
 //	GET  /install/saves/conflicts             {"conflicts": [Conflict…]} of this computer
+//	POST /install/saves/conflicts/{id}/keep   {"keep": "console" or "emulator"}, the choice made
+//	                                          on the computer, as on the page Saves
 //	POST /install/saves/conflicts/{id}/done   the choice was applied
 //
 // The saves listed for a computer tell the hash of their files (LibrarySave.Hash), the one

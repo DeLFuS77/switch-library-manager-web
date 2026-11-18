@@ -36,6 +36,8 @@ import (
 //   - GET /install/saves/conflicts: {"conflicts": [{"id", "titleId", "profile", "consoleSave",
 //     "emulatorSave", "when", "keep", "decided"}]} of the computer, "keep" being "console" or
 //     "emulator" once the user chose on the web;
+//   - POST /install/saves/conflicts/{id}/keep {"keep": "console" or "emulator"}: the user chose
+//     in NXPress, as on the page Saves; only a conflict of the computer;
 //   - POST /install/saves/conflicts/{id}/done: the computer applied the choice.
 //
 // On the web, the page Saves shows the computers, pairs the profiles with the accounts of the
@@ -75,7 +77,7 @@ func pcAllowed(r *http.Request) bool {
 		return p == netInstallSaves || strings.HasPrefix(p, netInstallSaves+"/")
 	case http.MethodPost:
 		return netSaveUploadPath(p) || p == netInstallSavesConflicts ||
-			(strings.HasPrefix(p, netInstallSavesConflicts+"/") && strings.HasSuffix(p, "/done"))
+			(strings.HasPrefix(p, netInstallSavesConflicts+"/") && (strings.HasSuffix(p, "/done") || strings.HasSuffix(p, "/keep")))
 	case http.MethodPut:
 		return p == netInstallSavesProfiles
 	}
@@ -591,17 +593,7 @@ func (web *Web) handleEdenConflictDecide(w http.ResponseWriter, r *http.Request)
 		writeGlobalError(w, http.StatusBadRequest, lang, "Invalid request")
 		return
 	}
-	var decided edenConflict
-	err := web.changeEden(principal.Name, func(file *edenFile) error {
-		for i := range file.Conflicts {
-			if file.Conflicts[i].Id == mux.Vars(r)["id"] {
-				file.Conflicts[i].Keep, file.Conflicts[i].Decided = body.Keep, time.Now().Unix()
-				decided = file.Conflicts[i]
-				return nil
-			}
-		}
-		return errEdenConflictGone
-	})
+	decided, err := web.edenDecide(principal.Name, "", mux.Vars(r)["id"], body.Keep, clientIp(r))
 	if errors.Is(err, errEdenConflictGone) {
 		writeGlobalError(w, http.StatusNotFound, lang, errEdenConflictGone.Error())
 		return
@@ -610,20 +602,71 @@ func (web *Web) handleEdenConflictDecide(w http.ResponseWriter, r *http.Request)
 		writeGlobalError(w, http.StatusInternalServerError, lang, "Error!")
 		return
 	}
+	writeJSON(w, http.StatusOK, decided.shared())
+}
+
+// edenDecide notes which save the emulator keeps for a conflict of a user, of any of their
+// computers (device "") or of that device only, with its activity: both saves stay in the
+// library whatever is chosen.
+func (web *Web) edenDecide(user, device, id, keep, ip string) (edenConflict, error) {
+	var decided edenConflict
+	err := web.changeEden(user, func(file *edenFile) error {
+		for i := range file.Conflicts {
+			if file.Conflicts[i].Id == id && (device == "" || file.Conflicts[i].Device == device) {
+				file.Conflicts[i].Keep, file.Conflicts[i].Decided = keep, time.Now().Unix()
+				decided = file.Conflicts[i]
+				return nil
+			}
+		}
+		return errEdenConflictGone
+	})
+	if err != nil {
+		return decided, err
+	}
 	// the source of the save kept, as the activity translates it
 	source := ROLE_CONSOLE
 	keptId := decided.ConsoleSave
-	if body.Keep == edensync.KeepEmulator {
+	if keep == edensync.KeepEmulator {
 		keptId = decided.EmulatorSave
 	}
-	if save, ok := web.netSaveFind(principal.Name, decided.TitleId, keptId); ok && save.Emulator {
+	if save, ok := web.netSaveFind(user, decided.TitleId, keptId); ok && save.Emulator {
 		source = save.Console
 	}
-	web.activities().Add(activity.Entry{Time: time.Now(), User: principal.Name, Action: activity.ACTION_SAVES_CHOICE,
-		Detail: web.netSaveGameName(principal.Name, decided.TitleId) + " + " + source, IP: clientIp(r)})
+	web.activities().Add(activity.Entry{Time: time.Now(), User: user, Action: activity.ACTION_SAVES_CHOICE,
+		Detail: web.netSaveGameName(user, decided.TitleId) + " + " + source, IP: ip})
 	if decided.Device == edenLocalDevice {
 		web.edenLocalWake()
 	}
+	return decided, nil
+}
+
+// handlePcConflictKeep notes the choice the user made in NXPress for a conflict of its computer,
+// as on the page Saves.
+func (web *Web) handlePcConflictKeep(w http.ResponseWriter, r *http.Request) {
+	if _, ok := web.netInstallGate(w, r); !ok {
+		return
+	}
+	key, ok := netPcKey(w, r)
+	if !ok {
+		return
+	}
+	var body struct {
+		Keep string `json:"keep"`
+	}
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&body); err != nil || (body.Keep != edensync.KeepConsole && body.Keep != edensync.KeepEmulator) {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "the body is {\"keep\": \"console\" or \"emulator\"}"})
+		return
+	}
+	decided, err := web.edenDecide(key.Name, key.KeyID, mux.Vars(r)["id"], body.Keep, clientIp(r))
+	if errors.Is(err, errEdenConflictGone) {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": err.Error()})
+		return
+	}
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "the choice cannot be kept"})
+		return
+	}
+	web.sugarLogger.Infof("Eden saves: %s keeps the %s save of %s", key.KeyName, body.Keep, decided.TitleId)
 	writeJSON(w, http.StatusOK, decided.shared())
 }
 
@@ -633,6 +676,7 @@ func (web *Web) handleEdenSaves() {
 	web.router.HandleFunc(netInstallSavesConflicts, web.handlePcConflicts).Methods(http.MethodGet)
 	web.router.HandleFunc(netInstallSavesConflicts, web.handlePcConflictReport).Methods(http.MethodPost)
 	web.router.HandleFunc(netInstallSavesConflicts+"/{id:[0-9a-f]{16}}/done", web.handlePcConflictDone).Methods(http.MethodPost)
+	web.router.HandleFunc(netInstallSavesConflicts+"/{id:[0-9a-f]{16}}/keep", web.handlePcConflictKeep).Methods(http.MethodPost)
 	web.router.HandleFunc(netSavesApi+"/profiles", web.handleEdenProfileChange).Methods(http.MethodPost)
 	web.router.HandleFunc(netSavesApi+"/conflicts/{id:[0-9a-f]{16}}", web.handleEdenConflictDecide).Methods(http.MethodPost)
 	web.router.HandleFunc(netSavesApi+"/eden-local", web.handleEdenLocalSwitch).Methods(http.MethodPost)
