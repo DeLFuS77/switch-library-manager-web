@@ -107,8 +107,10 @@ func (web *Web) netInstanceId() string {
 
 func (web *Web) netHello() netHelloAnswer {
 	appSettings := settings.ReadSettings(web.dataFolder)
+	// the port the library is reached on from the local network, as the discovery of CyberFoil and
+	// Sphaira says it (netport.go)
 	return netHelloAnswer{App: netAppName, Id: web.netInstanceId(), Name: "Switch Library Manager", Version: settings.SLM_WEB_VERSION,
-		Port: appSettings.Port, Enabled: netInstallEnabled(appSettings)}
+		Port: web.netLanPort(appSettings.Port), Enabled: netInstallEnabled(appSettings)}
 }
 
 // netPairGate answers a console that the app does not take now: without users (never without a

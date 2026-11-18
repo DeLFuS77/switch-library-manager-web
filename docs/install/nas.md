@@ -20,10 +20,11 @@ Container Manager > Container > the app > Details > Log; Portainer: Containers >
 changes every time the app starts.
 
 The compose files and the templates also publish the UDP port `8465`: there CyberFoil and Sphaira find the library on
-the local network by themselves while **Install over the network** is on. They are given the port of the app inside the
-container, so they find it when the web interface keeps the same number on both sides (`3000:3000`). If another app,
-such as Ownfoil, already uses UDP `8465` on the NAS, remove that port: the consoles still connect with the address of
-the server. If they do not find it, the container can use the network of the host (`network_mode: host`).
+the local network by themselves while **Install over the network** is on. They are given the port the web interface is
+opened on from the local network, also when it is published on another one (`8080:3000`): open the app once from a
+browser of the network, or connect a console once, for the app to learn it. If another app, such as Ownfoil, already
+uses UDP `8465` on the NAS, remove that port: the consoles still connect with the address of the server. If they do not
+find it, the container can use the network of the host (`network_mode: host`).
 
 - [Synology](#synology)
 - [Portainer](#portainer)

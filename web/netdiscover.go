@@ -29,11 +29,12 @@ import (
 //     uid of the hello of the shop (OPTIONS, netownfoil.go) and finds it by it among the answers:
 //     both say the same one, or the server found again would be listed twice.
 //   - name and version are shown in the list (CyberFoil cuts them at 48 and 24 bytes).
-//   - port is the port of the web server. The address is never in the answer: both installers
-//     take the one the answer comes from and open http://<that address>:<port>/. There Sphaira
-//     says hello with OPTIONS and asks POST /api/graphql, and CyberFoil reads the index of
-//     Tinfoil, which the app answers at the address of the server alone with the key of a console
-//     (ownfoilShopAddress, shortShopAddress).
+//   - port is the port of the web server as the local network reaches it (in Docker it may be
+//     published on another one, see netport.go). The address is never in the answer: both
+//     installers take the one the answer comes from and open http://<that address>:<port>/. There
+//     Sphaira says hello with OPTIONS and asks POST /api/graphql, and CyberFoil reads the index
+//     of Tinfoil, which the app answers at the address of the server alone with the key of a
+//     console (ownfoilShopAddress, shortShopAddress).
 //   - public false: the shop needs a login, so both ask for the user and the password. No key nor
 //     password is ever in the answer; the key of the console is typed on the console as before.
 //   - remote, an address from outside the network, is optional and not sent.
@@ -182,13 +183,9 @@ func (web *Web) ownfoilDiscoveryAnswerTo(question []byte, from net.IP) ([]byte, 
 	if !appSettings.NetInstall.Remote && !isLocalAddress(from.String()) {
 		return nil, false
 	}
+	// the port the library is reached on from the local network, as NXDock is told it (netport.go)
 	hello := web.netHello()
-	// the port the app listens on; the one of the settings until it listens
-	port := hello.Port
-	if listening := int(listeningPort.Load()); listening > 0 {
-		port = listening
-	}
 	answer, err := json.Marshal(ownfoilDiscoveryAnswer{Magic: ownfoilDiscoveryMagic, Uid: web.netShopUid(), Name: hello.Name,
-		Version: hello.Version, Port: port})
+		Version: hello.Version, Port: hello.Port})
 	return answer, err == nil
 }

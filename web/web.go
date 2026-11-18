@@ -186,8 +186,10 @@ type Web struct {
 	// the index of the saves NXDock uploads, one file per user
 	netSaves sync.Mutex
 	// the games the consoles upload as they dump them, by the file being written
-	netDumps        netDumpUploads
-	netIdOnce       sync.Once
+	netDumps  netDumpUploads
+	netIdOnce sync.Once
+	// the port the library is reached on from the local network (netport.go)
+	lanPort         netLanPortSeen
 	netId           string
 	coll            *userdata.Collections
 	collectionsOnce sync.Once
@@ -970,7 +972,7 @@ func (web *Web) Start() {
 
 	http.Handle("/", web.router)
 
-	handler := web.auth.middleware(web.withActivityLog(limitHeavy(http.DefaultServeMux)))
+	handler := web.auth.middleware(web.withLanPort(web.withActivityLog(limitHeavy(http.DefaultServeMux))))
 	if isDemoMode() {
 		handler = web.demoReadOnly(handler)
 	}
