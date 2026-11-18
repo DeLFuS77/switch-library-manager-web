@@ -578,11 +578,13 @@ func (web *Web) handleNetInventory(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	// the system and the titles played are read fact by fact: one told wrong is left out, not the
+	// whole inventory
 	var body struct {
 		Off     bool               `json:"off"`
 		Items   []netInventoryItem `json:"items"`
-		Console *netConsoleFacts   `json:"console"`
-		Play    []netPlayEntry     `json:"play"`
+		Console json.RawMessage    `json:"console"`
+		Play    []json.RawMessage  `json:"play"`
 	}
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, netInventoryMaxBody)).Decode(&body); err != nil {
 		http.Error(w, "the titles installed on the console, as JSON", http.StatusBadRequest)
@@ -607,16 +609,13 @@ func (web *Web) handleNetInventory(w http.ResponseWriter, r *http.Request) {
 	}
 	now := time.Now().UTC()
 	inventory := netInventory{KeyId: key.KeyID, Console: key.KeyName, Owner: key.Name, Updated: now, Items: cleanNetInventory(body.Items)}
-	if body.Console != nil {
-		facts, err := cleanNetConsoleFacts(*body.Console)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		inventory.System = &facts
+	facts, dropped := netConsoleFactsOf(body.Console)
+	inventory.System = facts
+	if len(dropped) > 0 {
+		web.sugarLogger.Warnf("Network install: the console %s (%s) told its system wrong, left out: %s", key.KeyName, key.Name, strings.Join(dropped, ", "))
 	}
 	if body.Play != nil {
-		inventory.Play = cleanNetPlay(body.Play)
+		inventory.Play = netPlayOf(body.Play)
 	}
 	data, err := json.Marshal(inventory)
 	if err == nil {

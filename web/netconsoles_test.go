@@ -97,26 +97,48 @@ func TestNetInventoryExtendedStoredAndCleaned(t *testing.T) {
 	}
 }
 
-// A system told wrong refuses the whole inventory, which stays as it was; so do too many titles
-// played.
-func TestNetInventoryBadValuesRefused(t *testing.T) {
+// A fact of the system told wrong is left out, with its free space or total; the other facts, the
+// titles installed and the time played are kept. A title played told wrong goes alone. Too many
+// titles played refuse the whole inventory, which stays as it was.
+func TestNetInventoryBadFactsLeftOut(t *testing.T) {
 	web, _, _, console, auth, keyId, _ := pushWeb(t)
+	items := `"items":[{"titleId":"0100000000010000","type":"game","version":0,"storage":"sd"}]`
+	for name, c := range map[string]struct {
+		system string
+		want   netConsoleFacts
+	}{
+		"a number below 0":     {`{"firmware":"18.0.0","sdFree":-1,"sdTotal":456,"nandFree":1,"nandTotal":2}`, netConsoleFacts{Firmware: "18.0.0", NandFree: 1, NandTotal: 2}},
+		"more free than total": {`{"firmware":"18.0.0","nandFree":2000,"nandTotal":1000,"sdFree":5,"sdTotal":9}`, netConsoleFacts{Firmware: "18.0.0", SdFree: 5, SdTotal: 9}},
+		"a long text":          {`{"firmware":"` + strings.Repeat("1", 33) + `","atmosphere":"1.8.0"}`, netConsoleFacts{Atmosphere: "1.8.0"}},
+		"markup":               {`{"firmware":"18.0.0","atmosphere":"<b>1.8.0</b>"}`, netConsoleFacts{Firmware: "18.0.0"}},
+		"a line break":         {`{"firmware":"18.0.0","sigpatches":"sys-patch\nmore","emummc":true}`, netConsoleFacts{Firmware: "18.0.0", Emummc: true}},
+		"not a number":         {`{"firmware":"18.0.0","sdFree":"lots","sdTotal":9}`, netConsoleFacts{Firmware: "18.0.0"}},
+		"a fraction":           {`{"firmware":"18.0.0","sdFree":1.5,"sdTotal":9}`, netConsoleFacts{Firmware: "18.0.0"}},
+		"not a yes or no":      {`{"firmware":"18.0.0","emummc":"yes"}`, netConsoleFacts{Firmware: "18.0.0"}},
+	} {
+		body := `{` + items + `,"console":` + c.system + `,"play":[{"titleId":"0100000000010000","minutes":"lots"},{"titleId":"0100000000020000","minutes":7}]}`
+		got := sendJSON(console, "POST", "/install/inventory", body, "Authorization", auth)
+		if got.Code != http.StatusOK || !strings.Contains(got.Body.String(), `"stored":1`) || !strings.Contains(got.Body.String(), `"played":1`) {
+			t.Errorf("%s: %d %s", name, got.Code, got.Body.String())
+			continue
+		}
+		inventory, ok := web.readNetInventory(keyId)
+		if !ok || len(inventory.Items) != 1 || inventory.System == nil || *inventory.System != c.want || len(inventory.Play) != 1 || inventory.Play[0].Minutes != 7 {
+			t.Errorf("%s: the inventory: %+v %+v", name, inventory, inventory.System)
+		}
+	}
+	// a system that is not an object, or tells nothing right: none, and the titles all the same
+	for _, system := range []string{`"nonsense"`, `[1,2]`, `{"firmware":"<b>"}`} {
+		if code := sendJSON(console, "POST", "/install/inventory", `{`+items+`,"console":`+system+`}`, "Authorization", auth).Code; code != http.StatusOK {
+			t.Errorf("%s: %d", system, code)
+		}
+		if inventory, ok := web.readNetInventory(keyId); !ok || len(inventory.Items) != 1 || inventory.System != nil {
+			t.Errorf("%s: the inventory: %+v", system, inventory)
+		}
+	}
+
 	if code := sendJSON(console, "POST", "/install/inventory", consoleInventory, "Authorization", auth).Code; code != http.StatusOK {
 		t.Fatalf("stored: %d", code)
-	}
-	for name, system := range map[string]string{
-		"a number below 0":     `{"sdFree":-1,"sdTotal":456}`,
-		"more free than total": `{"nandFree":2000,"nandTotal":1000}`,
-		"a long text":          `{"firmware":"` + strings.Repeat("1", 33) + `"}`,
-		"markup":               `{"atmosphere":"<b>1.8.0</b>"}`,
-		"a line break":         `{"sigpatches":"sys-patch\nmore"}`,
-		"not a number":         `{"sdFree":"lots"}`,
-		"a fraction":           `{"sdFree":1.5}`,
-	} {
-		body := `{"items":[],"console":` + system + `}`
-		if code := sendJSON(console, "POST", "/install/inventory", body, "Authorization", auth).Code; code != http.StatusBadRequest {
-			t.Errorf("%s: %d", name, code)
-		}
 	}
 	many := make([]netPlayEntry, netPlayMax+1)
 	for i := range many {

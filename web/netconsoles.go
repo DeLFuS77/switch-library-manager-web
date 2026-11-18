@@ -45,15 +45,16 @@ const (
 
 var (
 	// the texts of the system of a console: a version, a name
-	netConsoleTextPattern   = regexp.MustCompile(`^[0-9A-Za-z .+_()-]*$`)
-	netConsoleUpdatePattern = regexp.MustCompile(`^` + netInstallConsoles + `/[0-9a-f]{16}/update$`)
-	errNetConsoleFacts      = errors.New("the system of the console: numbers not below 0, the free space not above the total, and texts of at most 32 letters, digits, spaces and . + - _ ( )")
-	errNetConsoleUnknown    = errors.New("the console has not told what is installed on it")
+	netConsoleTextPattern = regexp.MustCompile(`^[0-9A-Za-z .+_()-]*$`)
+	// what a user asks of a console of theirs: to bring it up to date, to remove a game
+	netConsoleAskPattern = regexp.MustCompile(`^` + netInstallConsoles + `/[0-9a-f]{16}/(update|remove)$`)
+	errNetConsoleUnknown = errors.New("the console has not told what is installed on it")
 )
 
-// netConsoleUpdatePath tells the path that brings a console up to date, which its user may ask.
-func netConsoleUpdatePath(path string) bool {
-	return netConsoleUpdatePattern.MatchString(path)
+// netConsoleAskPath tells a path that asks something of a console (bring it up to date, remove a
+// game), which its user may ask.
+func netConsoleAskPath(path string) bool {
+	return netConsoleAskPattern.MatchString(path)
 }
 
 // netConsoleFacts is the system of a console, as it told it last. The space is in bytes.
@@ -68,22 +69,82 @@ type netConsoleFacts struct {
 	Sigpatches string `json:"sigpatches"`
 }
 
-// cleanNetConsoleFacts checks the system a console tells: short texts of safe letters, no number
-// below 0 and no free space above the total.
-func cleanNetConsoleFacts(facts netConsoleFacts) (netConsoleFacts, error) {
-	for _, text := range []*string{&facts.Firmware, &facts.Atmosphere, &facts.Sigpatches} {
-		*text = strings.TrimSpace(*text)
-		if len(*text) > netConsoleTextMax || !netConsoleTextPattern.MatchString(*text) {
-			return netConsoleFacts{}, errNetConsoleFacts
+// netConsoleFactsOf reads the system a console tells ("console"), fact by fact, so one told wrong
+// does not lose the others: a text too long or with other signs than letters, digits, spaces and
+// . + - _ ( ), a number below 0 or not a whole one, a free space above its total. The facts left
+// out are named in dropped; the system is nil when it tells nothing, or is not an object.
+func netConsoleFactsOf(raw json.RawMessage) (*netConsoleFacts, []string) {
+	if len(raw) == 0 || string(raw) == "null" {
+		return nil, nil
+	}
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &fields); err != nil || fields == nil {
+		return nil, []string{"console"}
+	}
+	facts, dropped := netConsoleFacts{}, []string{}
+	text := func(name string, into *string) {
+		value, ok := fields[name]
+		if !ok {
+			return
+		}
+		var told string
+		if json.Unmarshal(value, &told) != nil {
+			dropped = append(dropped, name)
+			return
+		}
+		told = strings.TrimSpace(told)
+		if len(told) > netConsoleTextMax || !netConsoleTextPattern.MatchString(told) {
+			dropped = append(dropped, name)
+			return
+		}
+		*into = told
+	}
+	number := func(name string, into *int64) bool {
+		value, ok := fields[name]
+		if !ok {
+			return true
+		}
+		var told int64
+		if json.Unmarshal(value, &told) != nil || told < 0 {
+			return false
+		}
+		*into = told
+		return true
+	}
+	text("firmware", &facts.Firmware)
+	text("atmosphere", &facts.Atmosphere)
+	text("sigpatches", &facts.Sigpatches)
+	if value, ok := fields["emummc"]; ok && json.Unmarshal(value, &facts.Emummc) != nil {
+		dropped = append(dropped, "emummc")
+	}
+	// a free space goes with its total: both, or none of them
+	for _, space := range []struct {
+		free, total     string
+		freeTo, totalTo *int64
+	}{{"sdFree", "sdTotal", &facts.SdFree, &facts.SdTotal}, {"nandFree", "nandTotal", &facts.NandFree, &facts.NandTotal}} {
+		freeOk, totalOk := number(space.free, space.freeTo), number(space.total, space.totalTo)
+		if !freeOk || !totalOk || (*space.totalTo > 0 && *space.freeTo > *space.totalTo) {
+			dropped = append(dropped, space.free+"/"+space.total)
+			*space.freeTo, *space.totalTo = 0, 0
 		}
 	}
-	for _, space := range [][2]int64{{facts.SdFree, facts.SdTotal}, {facts.NandFree, facts.NandTotal}} {
-		free, total := space[0], space[1]
-		if free < 0 || total < 0 || (total > 0 && free > total) {
-			return netConsoleFacts{}, errNetConsoleFacts
+	if facts == (netConsoleFacts{}) {
+		return nil, dropped
+	}
+	return &facts, dropped
+}
+
+// netPlayOf reads the titles played a console tells, one by one: one that is not as described (a
+// number that is not a whole one, a title ID that is not a text) is left out, not the others.
+func netPlayOf(raw []json.RawMessage) []netPlayEntry {
+	entries := make([]netPlayEntry, 0, len(raw))
+	for _, value := range raw {
+		var entry netPlayEntry
+		if json.Unmarshal(value, &entry) == nil {
+			entries = append(entries, entry)
 		}
 	}
-	return facts, nil
+	return cleanNetPlay(entries)
 }
 
 // netPlayEntry is how much a title was played on a console, as it told it: the minutes, the times
