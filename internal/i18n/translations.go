@@ -2393,6 +2393,8 @@ var Translations = map[string]map[string]string{
 		"The console could not install what it was sent.":    "La consola no pudo instalar lo que se le envió.",
 		"The install was cancelled on the console.":          "La instalación se canceló en la consola.",
 		"Notify when a console finishes installing (NXDock)": "Avisar cuando una consola acabe de instalar (NXDock)",
+		"Notify what the automations did":                    "Avisar de lo que hicieron las automatizaciones",
+		"Notify every new backup of saves":                   "Avisar de cada copia nueva de partidas",
 		"NXDock finished installing on %v":                   "NXDock terminó de instalar en %v",
 		"%v installed, %v failed":                            "%v instalados, %v fallidos",
 		"Search the eShop":                                   "Buscar en la eShop",

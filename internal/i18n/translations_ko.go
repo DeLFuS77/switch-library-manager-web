@@ -2366,6 +2366,8 @@ func init() {
 		"The console could not install what it was sent.":    "본체가 받은 것을 설치하지 못했습니다.",
 		"The install was cancelled on the console.":          "본체에서 설치가 취소되었습니다.",
 		"Notify when a console finishes installing (NXDock)": "본체가 설치를 마치면 알림(NXDock)",
+		"Notify what the automations did":                    "자동화가 한 일을 알림",
+		"Notify every new backup of saves":                   "세이브 데이터의 새 백업마다 알림",
 		"NXDock finished installing on %v":                   "NXDock이 %v에서 설치를 마쳤습니다",
 		"%v installed, %v failed":                            "%v개 설치, %v개 실패",
 		"Search the eShop":                                   "e숍에서 찾기",
