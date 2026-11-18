@@ -24,7 +24,7 @@
 						<div class="surface stat-card h-100 align-items-start">
 							<div class="stat-icon"><span class="bi bi-box-arrow-in-down" aria-hidden="true"></span></div>
 							<div class="d-flex flex-column h-100">
-								<h3 class="h6 fw-semibold mb-1">{{t "Place new files"}}</h3>
+								<h3 class="h6 fw-semibold mb-1">{{t "Organize new files"}}</h3>
 								<p class="text-body-secondary small flex-fill">{{t "Put the files that lie loose in the library folders, like the uploaded ones, in the folder their game has, or in a new one. Nothing else moves."}}</p>
 								<div><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="new"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
 							</div>
@@ -34,7 +34,7 @@
 						<div class="surface stat-card h-100 align-items-start">
 							<div class="stat-icon"><span class="bi bi-folder-symlink" aria-hidden="true"></span></div>
 							<div class="d-flex flex-column h-100">
-								<h3 class="h6 fw-semibold mb-1">{{t "Organize files"}}</h3>
+								<h3 class="h6 fw-semibold mb-1">{{t "Organize all files"}}</h3>
 								<p class="text-body-secondary small flex-fill">{{t "Move and rename games, updates and DLC according to the options."}}</p>
 								<div><button type="button" class="btn btn-outline-primary rounded-pill px-3" data-organize-action="organize"><span class="bi bi-eye me-2" aria-hidden="true"></span>{{t "Preview"}}</button></div>
 							</div>
@@ -90,7 +90,7 @@
 							<span class="bi {{if eq .Action "new"}}bi-box-arrow-in-down{{else}}bi-folder-symlink{{end}} fs-5" aria-hidden="true"></span>
 							<div class="flex-grow-1 min-w-0">
 								<div class="fw-semibold">{{formatDateTime .Time}}</div>
-								<div class="small text-body-secondary">{{if eq .Action "new"}}{{t "Place new files"}}{{else}}{{t "Organize files"}}{{end}} &middot; {{if .Undone}}{{t "%v files left from an undo" (num .Files)}}{{else}}{{t "%v files moved or renamed" (num .Files)}}{{end}}</div>
+								<div class="small text-body-secondary">{{if eq .Action "new"}}{{t "Organize new files"}}{{else}}{{t "Organize all files"}}{{end}} &middot; {{if .Undone}}{{t "%v files left from an undo" (num .Files)}}{{else}}{{t "%v files moved or renamed" (num .Files)}}{{end}}</div>
 							</div>
 							<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-undo-run="{{.Id}}"><span class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></span>{{t "Undo…"}}</button>
 						</li>

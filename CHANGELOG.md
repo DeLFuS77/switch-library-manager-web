@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- Organize: the three actions are called Organize new files, Organize all files and Delete old updates, so it is clear what each one takes
+
 ### Fixes
 
 - Optimize for install: the DLC inside the file of a game are kept in the optimized file, as they were, instead of being left out
