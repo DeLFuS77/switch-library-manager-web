@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Improvements
+
+- Consoles: a page with each console paired with NXDock, its system, free space and the games out of date, with Bring up to date and Remove from console
+- Library: the filter On the console, with the games installed, not installed or out of date on each console
+- Firmware: told by the consoles, in Settings, in the filter Need a newer firmware and on the page of a game
+- Time played: on the page of a game, the Library sorted by Most played and Played lately, and the hours of Your year
+- Diagnostics: the reports NXDock sends from the consoles, to download or delete
+
 ### Fixes
 
 - Optimize for install: the DLC inside the file of a game are kept in the optimized file, as they were, instead of being left out
