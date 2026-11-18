@@ -185,8 +185,10 @@ type Web struct {
 	netInventories sync.Mutex
 	// the reports the consoles send (see netreports.go)
 	netReports netReportStore
-	// the index of the saves NXDock uploads, one file per user
+	// the index of the saves NXDock uploads, one file per user, and eden.json of each
 	netSaves sync.Mutex
+	// the passes of Eden on the computer the app runs on (see netsaves_edenlocal.go)
+	edenLocal edenLocalRunner
 	// the games the consoles upload as they dump them, by the file being written
 	netDumps  netDumpUploads
 	netIdOnce sync.Once
@@ -999,6 +1001,7 @@ func (web *Web) Start() {
 		web.StartUpdateChecker()
 		web.StartNetDiscovery()
 		web.StartOwnfoilDiscovery()
+		web.StartEdenLocal()
 	}
 
 	web.router.Handle("/", http.RedirectHandler("/index.html", http.StatusMovedPermanently))
@@ -1266,6 +1269,8 @@ func (web *Web) Stop() {
 		}
 	}
 	web.taskLog().Flush()
+	// NXPress may keep the saves of Eden in step at once
+	web.edenLocalStop()
 	web.sugarLogger.Info("[SLM stops]")
 }
 

@@ -58,9 +58,17 @@ type netHelloAnswer struct {
 	Enabled bool   `json:"enabled"`
 }
 
-// netPairing is a console that asked to be paired.
+// the kinds of what asks to be paired: a console (NXDock), or a computer whose emulator keeps its
+// saves in step with the library (NXPress), which gets a key of the role PC
+const (
+	netPairConsole = "console"
+	netPairPc      = "pc"
+)
+
+// netPairing is a console, or a computer, that asked to be paired.
 type netPairing struct {
 	id, code, console, ip string
+	kind                  string
 	made                  time.Time
 	accepted, rejected    bool
 	decided               time.Time
@@ -78,6 +86,7 @@ type netPairRow struct {
 	Id        string `json:"id"`
 	Code      string `json:"code"`
 	Console   string `json:"console"`
+	Kind      string `json:"kind"`
 	Ip        string `json:"ip"`
 	Expires   int64  `json:"expires"`
 	Enabled   bool   `json:"enabled"`
@@ -208,13 +217,21 @@ func (web *Web) handleNetPairAsk(w http.ResponseWriter, r *http.Request) {
 	}
 	var body struct {
 		Console string `json:"console"`
+		// "pc" for a computer (NXPress), else a console
+		Kind string `json:"kind"`
 	}
 	json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&body)
 	ip := clientIp(r)
 	now := time.Now()
 	idBytes := make([]byte, 16)
 	rand.Read(idBytes)
-	pairing := &netPairing{id: hex.EncodeToString(idBytes), code: newNetPairCode(), console: cleanNetConsoleName(body.Console), ip: ip, made: now}
+	pairing := &netPairing{id: hex.EncodeToString(idBytes), code: newNetPairCode(), console: cleanNetConsoleName(body.Console), kind: netPairConsole, ip: ip, made: now}
+	if body.Kind == netPairPc {
+		pairing.kind = netPairPc
+		if strings.TrimSpace(body.Console) == "" || pairing.console == "NXDock" {
+			pairing.console = "NXPress"
+		}
+	}
 
 	pairs := &web.netPairs
 	pairs.mutex.Lock()
@@ -223,7 +240,7 @@ func (web *Web) handleNetPairAsk(w http.ResponseWriter, r *http.Request) {
 	}
 	pairs.forgetOld(now)
 	for id, other := range pairs.list {
-		if other.ip == ip && !other.accepted && !other.rejected {
+		if other.ip == ip && other.kind == pairing.kind && !other.accepted && !other.rejected {
 			delete(pairs.list, id)
 		}
 	}
@@ -235,7 +252,7 @@ func (web *Web) handleNetPairAsk(w http.ResponseWriter, r *http.Request) {
 	pairs.list[pairing.id] = pairing
 	pairs.mutex.Unlock()
 
-	web.sugarLogger.Infof("Network install: a console (%s) asks to be paired", pairing.console)
+	web.sugarLogger.Infof("Network install: a %s (%s) asks to be paired", map[string]string{netPairConsole: "console", netPairPc: "computer"}[pairing.kind], pairing.console)
 	w.Header().Set("Cache-Control", "no-store")
 	writeJSON(w, http.StatusCreated, map[string]any{"id": pairing.id, "code": netShownCode(pairing.code), "expires": int(netPairLife.Seconds())})
 }
@@ -296,7 +313,7 @@ func (web *Web) handleNetPairList(w http.ResponseWriter, r *http.Request) {
 		if pairing.accepted || pairing.rejected {
 			continue
 		}
-		rows = append(rows, netPairRow{Id: pairing.id, Code: netShownCode(pairing.code), Console: pairing.console, Ip: pairing.ip,
+		rows = append(rows, netPairRow{Id: pairing.id, Code: netShownCode(pairing.code), Console: pairing.console, Kind: pairing.kind, Ip: pairing.ip,
 			Expires: int64(netPairLife.Seconds() - now.Sub(pairing.made).Seconds()), Enabled: enabled, CanEnable: principal.IsAdmin()})
 	}
 	pairs.mutex.Unlock()
@@ -335,6 +352,11 @@ func (web *Web) handleNetPairDecide(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	console := pairing.console
+	// a computer keeps saves only, with a key of its own role
+	role := ROLE_CONSOLE
+	if pairing.kind == netPairPc {
+		role = ROLE_PC
+	}
 	pairs.mutex.Unlock()
 
 	if enable && principal.IsAdmin() && !netInstallEnabled(settings.ReadSettings(web.dataFolder)) {
@@ -354,7 +376,7 @@ func (web *Web) handleNetPairDecide(w http.ResponseWriter, r *http.Request) {
 			}
 			name = string([]rune(console)[:min(len([]rune(console)), maxAPIKeyName-len(suffix))]) + suffix
 		}
-		secret, key, err = web.auth.users.AddAPIKey(principal.Name, name, ROLE_CONSOLE)
+		secret, key, err = web.auth.users.AddAPIKey(principal.Name, name, role)
 		if !errors.Is(err, ErrAPIKeyName) {
 			break
 		}
@@ -377,10 +399,14 @@ func (web *Web) handleNetPairDecide(w http.ResponseWriter, r *http.Request) {
 		writeGlobalError(w, http.StatusGone, lang, errNetPairGone.Error())
 		return
 	}
-	web.sugarLogger.Infof("Network install: %s accepted the console %s", principal.Name, key.Name)
+	web.sugarLogger.Infof("Network install: %s accepted %s (%s)", principal.Name, key.Name, role)
 	web.activities().Add(activity.Entry{Time: time.Now(), User: principal.Name, Action: activity.ACTION_KEY_NEW,
 		Detail: quotedKeyName(key.Name) + ": " + apiKeyRoleDetail(key.Role), IP: clientIp(r)})
-	writeJSON(w, http.StatusOK, map[string]string{"state": "accepted", "name": key.Name})
+	kind := netPairConsole
+	if role == ROLE_PC {
+		kind = netPairPc
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"state": "accepted", "name": key.Name, "kind": kind})
 }
 
 // StartNetDiscovery answers the installers that ask the local network where the app is. Only

@@ -1,7 +1,29 @@
 {{define "title"}}{{t "Saves"}}{{end}}
 {{define "main"}}
-			{{- template "pageHeader" (dict "Title" (t "Saves") "Count" .Total "Subtitle" (t "Copies your consoles uploaded with NXDock, and the ones you bring from an emulator. 10 are kept per game; pinned ones are never deleted by themselves."))}}
+			{{- template "pageHeader" (dict "Title" (t "Saves") "Count" .Total "Subtitle" (t "Copies your consoles uploaded with NXDock, and the ones of your emulators. 10 are kept per game for the consoles and 10 for each emulator; pinned ones are never deleted by themselves."))}}
 			{{- $games := .Games}}
+			{{- with .Eden.Conflicts}}
+			{{- /* a game whose save changed both in an emulator and in the library: the user chooses which one the emulator keeps */}}
+			<div class="eden-conflicts" data-eden-conflicts>
+				{{- range .}}{{$conflict := .}}
+				<section class="eden-conflict" data-eden-conflict="/api/saves/conflicts/{{.Id}}" aria-labelledby="edenConflict{{.Id}}">
+					<h2 class="eden-conflict-title" id="edenConflict{{.Id}}"><span class="bi bi-exclamation-triangle" aria-hidden="true"></span>{{t "%v: both saves have changed" .Game}}</h2>
+					<ul class="eden-conflict-saves">
+						{{- range $i, $save := .Saves}}
+						<li>
+							<span class="eden-conflict-save" id="edenConflict{{$conflict.Id}}{{$i}}">
+								{{- if .Emulator}}<span class="badge net-save-emulator"><span class="bi bi-pc-display" aria-hidden="true"></span> {{.Source}}</span>{{else}}<span class="badge net-save-console"><span class="bi bi-nintendo-switch" aria-hidden="true"></span> {{t "Console"}}</span>{{end}}
+								<span>{{if .Found}}{{formatDateTime .Time}} &middot; {{formatSize .Size}}{{else}}{{t "no longer in the library"}}{{end}}</span>
+							</span>
+							<button type="button" class="btn btn-sm btn-outline-secondary rounded-pill eden-keep" data-eden-keep="{{.Keep}}" aria-describedby="edenConflict{{$conflict.Id}}{{$i}}"{{if not .Found}} disabled{{end}}>{{t "Keep this save"}}</button>
+						</li>
+						{{- end}}
+					</ul>
+					<p class="small text-body-secondary mb-0">{{t "Both stay in the library, whichever you choose."}}</p>
+				</section>
+				{{- end}}
+			</div>
+			{{- end}}
 			{{- if not .Groups}}
 			{{- template "emptyState" (dict "Icon" "bi-cloud-arrow-up" "Tone" "" "Title" (t "No saves yet") "Text" (t "Upload the save of a game with NXDock on your console: it appears here.") "ActionHref" "" "ActionLabel" "" "ActionIcon" "")}}
 			{{- else}}
@@ -36,7 +58,11 @@
 								</div>
 							</td>
 							<td data-label="{{t "Date"}}"><time datetime="{{.Time.UTC.Format "2006-01-02T15:04:05Z"}}">{{formatDateTime .Time}}</time></td>
-							<td data-label="{{t "Console"}}"><span>{{.Console}}{{if .Emulator}}<span class="badge net-save-emulator"><span class="bi bi-pc-display" aria-hidden="true"></span> {{t "emulator"}}</span>{{end}}{{if .Account}}<span class="net-save-account"><span class="bi bi-person" aria-hidden="true"></span>{{.Account}}</span>{{end}}</span></td>
+							<td data-label="{{t "Console"}}"><span>
+								{{- if .Emulator}}<span class="badge net-save-emulator"><span class="bi bi-pc-display" aria-hidden="true"></span> {{.Console}}<span class="visually-hidden"> ({{t "emulator"}})</span></span>{{if .Device}} <span class="net-save-device">{{.Device}}</span>{{end}}
+								{{- else}}<span class="badge net-save-console"><span class="bi bi-nintendo-switch" aria-hidden="true"></span> {{t "Console"}}</span> {{.Console}}{{end}}
+								{{- if .Auto}}<span class="net-save-auto"><span class="bi bi-arrow-repeat" aria-hidden="true"></span>{{t "uploaded by itself"}}</span>{{end}}
+								{{- if .Account}}<span class="net-save-account"><span class="bi bi-person" aria-hidden="true"></span>{{.Account}}</span>{{end}}</span></td>
 							<td data-label="{{t "Version"}}"><span>{{if and .Emulator (eq .Version 0)}}&mdash;{{else}}v{{.Version}}{{end}}</span></td>
 							<td data-label="{{t "Size"}}" class="text-end text-nowrap"><span>{{formatSize .Size}}</span></td>
 							<td class="net-save-actions">
@@ -54,6 +80,53 @@
 			{{- if $games}}
 			<p class="mt-3"><button type="button" class="btn btn-outline-primary btn-sm rounded-pill" data-net-save-upload=""><span class="bi bi-pc-display me-1" aria-hidden="true"></span>{{t "Upload from emulator"}}</button></p>
 			{{- end}}
+
+			{{- /* Eden on the computers of the user: the ones paired, the one the app runs on, and which profile goes with which account of the console */}}
+			<section class="surface eden-section mt-4" aria-labelledby="edenTitle" data-eden data-hover-help>
+				<h2 class="h5 eden-title help-name" id="edenTitle"><span class="bi bi-pc-display" aria-hidden="true"></span>{{t "Eden on your computers"}}</h2>
+				<div class="form-text">{{t "Pair NXPress on the computer where Eden is with a code, as NXDock. While Eden is closed, its new saves come here by themselves and the newest save of your console goes into Eden; a copy of the save replaced always stays here."}}</div>
+				{{- with .Eden.Local}}
+				<div class="eden-local">
+					<div class="form-check form-switch">
+						<input class="form-check-input" type="checkbox" role="switch" id="edenLocal" data-eden-local{{if .On}} checked{{end}}{{if .Other}} disabled{{end}}>
+						<label class="form-check-label" for="edenLocal">{{t "%v on this computer" .Emulator}}</label>
+						<div class="form-text">{{t "Every minute and when the app starts, only while %v is closed: its new saves come here and the newest save of your console goes into it. A copy of the save replaced always stays here, and when both changed you are asked on this page." .Emulator}}</div>
+					</div>
+					<div class="small text-body-secondary eden-local-folder"><span class="bi bi-folder2" aria-hidden="true"></span> <span class="font-monospace">{{.Folder}}</span>{{if .On}} &middot; {{t "Last sync"}}: {{formatDateTime .Sync}}{{end}}</div>
+					{{- if .Other}}<p class="small text-warning-emphasis mb-0 mt-1">{{t "Another user keeps it in step with their saves."}}</p>{{end}}
+					{{- if .NXPress}}<p class="small text-warning-emphasis mb-0 mt-1">{{t "NXPress keeps these saves in step on this computer: turn it off there to use this one."}}</p>{{end}}
+				</div>
+				{{- end}}
+				{{- with .Eden.Computers}}
+				<ul class="eden-computers list-unstyled mb-0">
+					{{- range .}}
+					<li class="eden-computer">
+						<span class="bi bi-pc-display" aria-hidden="true"></span>
+						<span class="eden-computer-name">{{.Name}}</span>
+						<span class="eden-computer-times">{{t "Last seen"}}: {{formatDateTime .Seen}} &middot; {{t "Last sync"}}: {{formatDateTime .Sync}}</span>
+					</li>
+					{{- end}}
+				</ul>
+				{{- else}}
+				{{- if not .Eden.Local}}<p class="small text-body-secondary mb-0 mt-2">{{t "No computer is paired yet."}}</p>{{end}}
+				{{- end}}
+				{{- with .Eden.Profiles}}
+				<h3 class="h6 mt-3 mb-2">{{t "Which console account each profile of Eden is"}}</h3>
+				<ul class="eden-profiles list-unstyled mb-0">
+					{{- range .}}{{$profile := .}}
+					<li class="eden-profile">
+						<span class="eden-profile-name"><span class="bi bi-person" aria-hidden="true"></span><strong>{{.Name}}</strong> <span class="small text-body-secondary">{{.Emulator}} &middot; {{.Computer}}</span></span>
+						<span class="eden-profile-arrow" aria-hidden="true">&#8644;</span>
+						<select class="form-select form-select-sm eden-profile-account" data-eden-profile data-device="{{.Device}}" data-profile="{{.Profile}}" aria-label="{{t "Console account of %v" .Name}}">
+							<option value="">{{t "None"}}</option>
+							{{- range .Choices}}<option value="{{.}}"{{if eq . $profile.Account}} selected{{end}}>{{.}}</option>{{end}}
+						</select>
+					</li>
+					{{- end}}
+				</ul>
+				{{- if not $.Eden.Accounts}}<p class="small text-body-secondary mb-0 mt-2">{{t "Upload a save with NXDock first: the accounts of your console show here."}}</p>{{end}}
+				{{- end}}
+			</section>
 
 			<div class="modal fade" id="netSaveEmulator" tabindex="-1" aria-labelledby="netSaveEmulatorTitle" aria-hidden="true">
 				<div class="modal-dialog modal-dialog-centered">
