@@ -128,6 +128,9 @@ func apiKeyRoleName(role string) string {
 	if role == ROLE_CONSOLE {
 		return "Console"
 	}
+	if role == ROLE_PC {
+		return "Computer"
+	}
 	if name, ok := roleNames[role]; ok {
 		return name
 	}
@@ -228,7 +231,9 @@ func (s *UserStore) AddAPIKey(owner string, name string, role string) (string, A
 	if !ok {
 		return "", APIKey{}, ErrUserNotFound
 	}
-	if !slices.Contains(apiKeyRoles(user.Role), role) {
+	// the key of a computer is made when one is paired, for a user who may download
+	pc := role == ROLE_PC && roleRank(user.Role) >= roleRank(ROLE_VIEWER)
+	if !pc && !slices.Contains(apiKeyRoles(user.Role), role) {
 		return "", APIKey{}, ErrAPIKeyRole
 	}
 	if len(user.APIKeys) >= maxAPIKeys {
@@ -386,6 +391,8 @@ func (k KeyRow) Icon() string {
 	switch {
 	case k.Role == ROLE_CONSOLE:
 		return "bi-nintendo-switch"
+	case k.Role == ROLE_PC:
+		return "bi-pc-display"
 	case strings.Contains(name, "home assistant") || strings.Contains(name, "homeassistant") || strings.Contains(name, "hass"):
 		return "bi-house-gear"
 	case strings.Contains(name, "script") || strings.Contains(name, "cron") || strings.Contains(name, "curl"):
@@ -462,8 +469,9 @@ func (a *Auth) fromAPIKey(secret string) (*Principal, APIKey, bool) {
 		return nil, APIKey{}, false
 	}
 	role := lowerRole(key.Role, user.Role)
-	// a console key downloads: its user must still be one who may
-	if key.Role == ROLE_CONSOLE && roleRank(user.Role) < roleRank(ROLE_VIEWER) {
+	// a console key downloads, and the key of a computer keeps saves: its user must still be one
+	// who may
+	if (key.Role == ROLE_CONSOLE || key.Role == ROLE_PC) && roleRank(user.Role) < roleRank(ROLE_VIEWER) {
 		role = ROLE_GUEST
 	}
 	return &Principal{Name: user.Name, Role: role, Source: "key", KeyName: key.Name, KeyID: key.ID}, key, true

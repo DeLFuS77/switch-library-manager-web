@@ -467,6 +467,8 @@ func roleAllows(role string, r *http.Request) bool {
 		return viewerAllowed(r)
 	case ROLE_CONSOLE:
 		return consoleAllowed(r)
+	case ROLE_PC:
+		return pcAllowed(r)
 	}
 	// a guest, or a role this version does not know: looks, without downloading
 	return viewerAllowed(r) && !downloadPath.MatchString(r.URL.Path)

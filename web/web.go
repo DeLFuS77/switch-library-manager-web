@@ -183,8 +183,10 @@ type Web struct {
 	netQueues      netQueues
 	netSends       netSends // what the consoles are sent, as it is sent (see netprogress.go)
 	netInventories sync.Mutex
-	// the index of the saves NXDock uploads, one file per user
+	// the index of the saves NXDock uploads, one file per user, and eden.json of each
 	netSaves sync.Mutex
+	// the passes of Eden on the computer the app runs on (see netsaves_edenlocal.go)
+	edenLocal edenLocalRunner
 	// the games the consoles upload as they dump them, by the file being written
 	netDumps        netDumpUploads
 	netIdOnce       sync.Once
@@ -963,6 +965,7 @@ func (web *Web) Start() {
 		web.StartFolderWatcher()
 		web.StartUpdateChecker()
 		web.StartNetDiscovery()
+		web.StartEdenLocal()
 	}
 
 	web.router.Handle("/", http.RedirectHandler("/index.html", http.StatusMovedPermanently))

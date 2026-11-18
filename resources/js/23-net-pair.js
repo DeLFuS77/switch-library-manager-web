@@ -20,8 +20,10 @@ function initNetPair() {
 		box.setAttribute('role', 'status');
 		box.setAttribute('aria-live', 'polite');
 
+		// a computer (NXPress) keeps the saves of its emulator in step, a console installs
+		const computer = pairing.kind === 'pc';
 		const icon = document.createElement('span');
-		icon.className = 'bi bi-nintendo-switch flex-shrink-0';
+		icon.className = 'bi ' + (computer ? 'bi-pc-display' : 'bi-nintendo-switch') + ' flex-shrink-0';
 		icon.setAttribute('aria-hidden', 'true');
 		box.appendChild(icon);
 
@@ -29,12 +31,12 @@ function initNetPair() {
 		text.className = 'net-pair-text';
 		const title = document.createElement('div');
 		const strong = document.createElement('strong');
-		strong.textContent = t('A console wants to connect');
+		strong.textContent = computer ? t('A computer wants to connect') : t('A console wants to connect');
 		title.appendChild(strong);
 		title.appendChild(document.createTextNode(' · ' + pairing.console + ' · ' + pairing.ip));
 		const check = document.createElement('div');
 		check.className = 'small text-body-secondary';
-		check.appendChild(document.createTextNode(t('Check that the console shows this code:') + ' '));
+		check.appendChild(document.createTextNode((computer ? t('Check that the computer shows this code:') : t('Check that the console shows this code:')) + ' '));
 		const code = document.createElement('span');
 		code.className = 'net-pair-code';
 		code.textContent = pairing.code;
@@ -72,7 +74,7 @@ function initNetPair() {
 						const error = json.globalError || {};
 						showToast('alert-danger', 'bi-exclamation-triangle-fill', error.strongMessage || t('Error!'), error.message || response.statusText);
 					} else if (action === 'accept') {
-						showToast('alert-success', 'bi-check-circle-fill', '', t('The console %v is connected.', json.name || pairing.console));
+						showToast('alert-success', 'bi-check-circle-fill', '', computer ? t('The computer %v is connected.', json.name || pairing.console) : t('The console %v is connected.', json.name || pairing.console));
 					}
 				})
 				.catch(() => {

@@ -168,6 +168,7 @@ var (
 		"password too short to be real": "password too short to be real",
 		"read only":                     "Read only",
 		ROLE_CONSOLE:                    "Console",
+		ROLE_PC:                         "Computer",
 		apiKeyFailDetail:                "unknown API key",
 		apiKeyBlockedDetail:             "API key",
 		portalUnknownDetail:             portalUnknownDetail,
