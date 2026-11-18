@@ -60,6 +60,9 @@ const (
 	ACTION_NET_PUSH_NO  = "A console declined an install"
 	// the files of a run of Organize put back where they were
 	ACTION_UNDO_ORGANIZE = "Undid an organize"
+	// a report of what went wrong sent by a console (see web/netreports.go): not in Actions until
+	// it is translated, with the page of the reports
+	ACTION_NET_REPORT = "A console sent a report"
 )
 
 var Actions = []string{ACTION_SETTINGS, ACTION_ORGANIZE, ACTION_SPACE, ACTION_COMPRESS, ACTION_DECOMPRESS, ACTION_RESTORE, ACTION_USER_NEW, ACTION_USER_ROLE, ACTION_USER_PASS, ACTION_USER_DEL, ACTION_LEFTOVERS, ACTION_UPLOAD, ACTION_SYNC, ACTION_VERIFY, ACTION_LOGIN_OK, ACTION_LOGIN_FAIL, ACTION_LOGIN_LOCK,

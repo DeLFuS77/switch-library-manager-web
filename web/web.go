@@ -183,6 +183,8 @@ type Web struct {
 	netQueues      netQueues
 	netSends       netSends // what the consoles are sent, as it is sent (see netprogress.go)
 	netInventories sync.Mutex
+	// the reports the consoles send (see netreports.go)
+	netReports netReportStore
 	// the index of the saves NXDock uploads, one file per user
 	netSaves sync.Mutex
 	// the games the consoles upload as they dump them, by the file being written
