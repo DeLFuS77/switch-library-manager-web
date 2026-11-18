@@ -240,6 +240,15 @@
 		justify-content: flex-start;
 		text-align: start;
 	}
+
+	// on a phone each part goes on a line of its own, without the dots between them
+	@include media-breakpoint-down(sm) {
+		flex-direction: column;
+
+		.footer-sep {
+			display: none;
+		}
+	}
 }
 
 // "Unofficial build" (components.html): an orange chip, the colour of what waits for you, never
