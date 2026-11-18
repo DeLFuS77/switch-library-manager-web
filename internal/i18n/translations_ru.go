@@ -2522,5 +2522,13 @@ func init() {
 		"Firmware of your consoles":      "Прошивка ваших консолей",
 		"told by the console":            "сообщает консоль",
 		"Games and updates that need a newer firmware are marked, with the console that falls short. Without a console that tells it, it is written here by hand.": "Игры и обновления, которым нужна более новая прошивка, отмечаются вместе с консолью, которой её не хватает. Без консоли, которая её сообщает, она вводится здесь вручную.",
+		// the time played on the consoles: the page of a game and Your year (see web/titleplay.go)
+		"Played":                       "Сыграно",
+		"%v consoles":                  "Консолей: %v",
+		"Played longer than the story": "Сыграно дольше, чем сюжет",
+		"%v of %v h":                   "%v из %v ч",
+		"about %v h left":              "осталось около %v ч",
+		"Hours played":                 "Часов в игре",
+		"since %v":                     "с %v",
 	}
 }

@@ -2522,5 +2522,13 @@ func init() {
 		"Firmware of your consoles":      "콘솔의 펌웨어",
 		"told by the console":            "콘솔이 알려 줌",
 		"Games and updates that need a newer firmware are marked, with the console that falls short. Without a console that tells it, it is written here by hand.": "새로운 펌웨어가 필요한 게임과 업데이트는 부족한 콘솔과 함께 표시됩니다. 알려 주는 콘솔이 없으면 여기에 직접 입력합니다.",
+		// the time played on the consoles: the page of a game and Your year (see web/titleplay.go)
+		"Played":                       "플레이",
+		"%v consoles":                  "콘솔 %v대",
+		"Played longer than the story": "스토리보다 오래 플레이함",
+		"%v of %v h":                   "%v / %v시간",
+		"about %v h left":              "약 %v시간 남음",
+		"Hours played":                 "플레이 시간",
+		"since %v":                     "%v부터",
 	}
 }

@@ -2522,5 +2522,13 @@ func init() {
 		"Firmware of your consoles":      "你的主机的固件",
 		"told by the console":            "由主机告知",
 		"Games and updates that need a newer firmware are marked, with the console that falls short. Without a console that tells it, it is written here by hand.": "需要更新固件的游戏和更新会被标出，并注明是哪台主机不够新。没有告知固件的主机时，在这里手动填写。",
+		// the time played on the consoles: the page of a game and Your year (see web/titleplay.go)
+		"Played":                       "已游玩",
+		"%v consoles":                  "%v 台主机",
+		"Played longer than the story": "游玩时间已超过主线",
+		"%v of %v h":                   "%v / %v 小时",
+		"about %v h left":              "还剩约 %v 小时",
+		"Hours played":                 "游玩时长",
+		"since %v":                     "自 %v 起",
 	}
 }

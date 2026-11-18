@@ -51,6 +51,11 @@
 					{{- if or .Scores (eq .Filter.SortBy "score")}}
 					<option value="score"{{if eq .Filter.SortBy "score"}} selected{{end}}>{{t "Score"}}</option>
 					{{- end}}
+					{{- /* how much the user played each game on their consoles, as they tell it */}}
+					{{- if or .Facets.Played (eq .Filter.SortBy "played") (eq .Filter.SortBy "played_recent")}}
+					<option value="played"{{if eq .Filter.SortBy "played"}} selected{{end}}>{{t "Most played"}}</option>
+					<option value="played_recent"{{if eq .Filter.SortBy "played_recent"}} selected{{end}}>{{t "Played lately"}}</option>
+					{{- end}}
 					{{- if or .Facets.ShowFolders (eq .Filter.SortBy "folder")}}
 					<option value="folder"{{if eq .Filter.SortBy "folder"}} selected{{end}}>{{t "Folder"}}</option>
 					{{- end}}

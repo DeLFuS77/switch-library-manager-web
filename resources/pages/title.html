@@ -186,6 +186,13 @@
 						<dd class="fact-value">v{{$t.LatestUpdate}}{{if not $t.LatestUpdateDate.IsZero}}<span class="fact-sub">{{$t.LatestUpdateDate | formatTime}}</span>{{end}}</dd>
 					</div>
 					{{- end}}
+					{{- /* how much the user played it on their consoles, as NXDock tells it */}}
+					{{- with .Played}}
+					<div class="fact fact-wide">
+						<dt class="fact-label"><span class="bi bi-joystick" aria-hidden="true"></span>{{t "Played"}}</dt>
+						<dd class="fact-value fact-played">{{.Text}}{{if gt .Consoles 1}} <span class="chip chip-console">{{t "%v consoles" .Consoles}}</span>{{end}}</dd>
+					</div>
+					{{- end}}
 					{{- with $t.TimeToBeat}}{{if .Known}}
 					<div class="fact fact-wide">
 						<dt class="fact-label"><span class="bi bi-hourglass-split" aria-hidden="true"></span>{{t "Time to beat"}}</dt>
@@ -193,6 +200,12 @@
 							{{- if .Normally}}<span><span class="time-to-beat-value">{{hours .Normally}}</span><span class="fact-sub">{{t "Story"}}</span></span>{{end}}
 							{{- if .Hastily}}<span><span class="time-to-beat-value">{{hours .Hastily}}</span><span class="fact-sub">{{t "Quick"}}</span></span>{{end}}
 							{{- if .Completely}}<span><span class="time-to-beat-value">{{hours .Completely}}</span><span class="fact-sub">{{t "100%"}}</span></span>{{end}}
+							{{- with $.Played}}{{if .Story}}
+							<span class="time-played">
+								<span class="progress time-played-bar" role="progressbar" aria-label="{{t "Played"}}" aria-valuenow="{{.Percent}}" aria-valuemin="0" aria-valuemax="100" aria-valuetext="{{.Story}}"><span class="progress-bar is-work" style="width: {{.Percent}}%"></span></span>
+								<span class="time-played-text">{{.Story}}</span>
+							</span>
+							{{- end}}{{end}}
 							<span class="time-to-beat-source">{{t "Data from IGDB"}}{{if .Count}} · {{t "%v players" .Count}}{{end}}</span>
 						</dd>
 					</div>

@@ -2549,6 +2549,14 @@ var Translations = map[string]map[string]string{
 		"Firmware of your consoles":      "Firmware de tus consolas",
 		"told by the console":            "lo dice la consola",
 		"Games and updates that need a newer firmware are marked, with the console that falls short. Without a console that tells it, it is written here by hand.": "Se marcan los juegos y actualizaciones que necesitan un firmware más nuevo, con la consola que se queda corta. Sin una consola que lo diga, se escribe aquí a mano.",
+		// the time played on the consoles: the page of a game and Your year (see web/titleplay.go)
+		"Played":                       "Jugado",
+		"%v consoles":                  "%v consolas",
+		"Played longer than the story": "Jugado más que la historia",
+		"%v of %v h":                   "%v de %v h",
+		"about %v h left":              "te quedan unas %v h",
+		"Hours played":                 "Horas jugadas",
+		"since %v":                     "desde el %v",
 	},
 }
 

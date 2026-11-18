@@ -218,6 +218,8 @@ type TitlePageData struct {
 	PlayStates []userdata.PlayState
 	// the consoles of the user whose firmware is older than the game needs, as they tell it
 	ShortConsoles []string
+	// how much the user played the game on their consoles, as they tell it; nil when never
+	Played *TitlePlayed
 }
 
 func newTitleFile(info db.SwitchFileInfo, fileType string, downloadUrl string) *TitleFile {
@@ -581,6 +583,9 @@ func (web *Web) HandleTitle() {
 			Collections: web.collections().Of(detail.Id), AllCollections: web.collections().Names(),
 			Favorite: web.favorites().Has(detail.Id), Saga: web.sameSaga(detail.Id, detail.Name, web.requestLanguage(r)),
 			Play: web.play().Of(playUser(r), detail.Id), PlayStates: userdata.PlayStates()}
+		if stats, consoles := web.netTitlePlayed(playUser(r), detail.Id); consoles > 0 {
+			data.Played = titlePlayed(web.requestLanguage(r), stats, consoles, detail.TimeToBeat, time.Now())
+		}
 		// the firmware the consoles of the user tell, in place of the one of Settings
 		if required, ok := parseFirmware(detail.RequiredFirmware); ok {
 			check := web.userFirmwareCheck(playUser(r))

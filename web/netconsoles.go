@@ -275,10 +275,16 @@ func (web *Web) keepNetPlayDay(keyId string, play []netPlayEntry, now time.Time)
 // minutes and the launches summed, the latest time it was played. ok is false when no console of
 // the user told it played.
 func (web *Web) netTitlePlay(user string, titleId string) (netPlayStats, bool) {
+	stats, consoles := web.netTitlePlayed(user, titleId)
+	return stats, consoles > 0
+}
+
+// netTitlePlayed is netTitlePlay with the number of consoles of the user that told the game played.
+func (web *Web) netTitlePlayed(user string, titleId string) (netPlayStats, int) {
 	prefix := netGamePrefix(strings.ToUpper(strings.TrimSpace(titleId)))
-	stats, found := netPlayStats{}, false
-	if prefix == "" {
-		return stats, false
+	stats, consoles := netPlayStats{}, 0
+	if prefix == "" || user == "" || web.auth == nil {
+		return stats, 0
 	}
 	for _, key := range web.netUserConsoles(user) {
 		inventory, ok := web.readNetInventory(key.ID)
@@ -287,10 +293,156 @@ func (web *Web) netTitlePlay(user string, titleId string) (netPlayStats, bool) {
 		}
 		if played, ok := netPlayByGame(inventory.Play)[prefix]; ok {
 			stats.add(played.Minutes, played.Launches, played.LastPlayed)
-			found = true
+			consoles++
 		}
 	}
-	return stats, found
+	return stats, consoles
+}
+
+// playInYear is the time played in a year on a console, by title, from the time played kept once
+// a day (see keepNetPlayDay): what each title grew from one day kept to the next, counted in the
+// year of the later one. The first day kept counts nothing, as what was played before it is not
+// known; a title first told on a later day counts all of it; a time that went down (the console
+// was reset) counts nothing. first is the first day kept, and kept tells whether a day of the year
+// is kept.
+func playInYear(history *netPlayHistory, year int) (minutes map[string]int64, first time.Time, kept bool) {
+	minutes = map[string]int64{}
+	if history == nil {
+		return minutes, first, false
+	}
+	days := make([]string, 0, len(history.Days))
+	for day := range history.Days {
+		days = append(days, day)
+	}
+	sort.Strings(days)
+	last := map[string]int64{}
+	for i, day := range days {
+		when, err := time.Parse(time.DateOnly, day)
+		if err != nil {
+			continue
+		}
+		if first.IsZero() {
+			first = when
+		}
+		inYear := when.Year() == year
+		kept = kept || inYear
+		for title, played := range history.Days[day] {
+			before, seen := last[title]
+			if i > 0 && inYear && played > before {
+				// a title first told after the first day was not played before it
+				if !seen {
+					before = 0
+				}
+				minutes[title] += played - before
+			}
+			last[title] = played
+		}
+		if when.Year() > year {
+			break
+		}
+	}
+	return minutes, first, kept
+}
+
+// YearPlay is the time a user played in a year on their consoles, as they tell it: in all, since
+// when it is counted when that is in the year, and the games played most.
+type YearPlay struct {
+	Minutes int64
+	Since   time.Time
+	Top     []YearPlayedGame
+}
+
+// YearPlayedGame is a game played in a year, and for how long.
+type YearPlayedGame struct {
+	Id      string
+	Name    string
+	Cover   string
+	Minutes int64
+}
+
+// yearPlayTop is how many games Your year names as the most played
+const yearPlayTop = 3
+
+// netYearPlay is the time a user played in a year on their consoles; nil when no console of theirs
+// kept a day of that year.
+func (web *Web) netYearPlay(user string, year int, lang string) *YearPlay {
+	if user == "" || web.auth == nil {
+		return nil
+	}
+	games := map[string]int64{}
+	var since time.Time
+	kept := false
+	for _, key := range web.netUserConsoles(user) {
+		history, ok := web.readNetPlayHistory(key.ID)
+		if !ok {
+			continue
+		}
+		minutes, first, inYear := playInYear(history, year)
+		if !inYear {
+			continue
+		}
+		kept = true
+		if since.IsZero() || first.Before(since) {
+			since = first
+		}
+		for title, played := range minutes {
+			if prefix := netGamePrefix(title); prefix != "" {
+				games[prefix] += played
+			}
+		}
+	}
+	if !kept {
+		return nil
+	}
+	play := &YearPlay{Top: []YearPlayedGame{}}
+	if since.Year() == year {
+		play.Since = since
+	}
+	prefixes := make([]string, 0, len(games))
+	for prefix, minutes := range games {
+		play.Minutes += minutes
+		if minutes > 0 {
+			prefixes = append(prefixes, prefix)
+		}
+	}
+	sort.Slice(prefixes, func(i, j int) bool {
+		if games[prefixes[i]] != games[prefixes[j]] {
+			return games[prefixes[i]] > games[prefixes[j]]
+		}
+		return prefixes[i] < prefixes[j]
+	})
+	looks := web.netGameLooks(lang)
+	for _, prefix := range prefixes[:min(len(prefixes), yearPlayTop)] {
+		game := YearPlayedGame{Id: strings.ToUpper(prefix) + "000", Name: strings.ToUpper(prefix) + "000", Minutes: games[prefix]}
+		if look, ok := looks[prefix]; ok {
+			game.Id, game.Name = look.Id, look.Name
+			if look.ImageUrl != "" {
+				game.Cover = thumbUrl(look.ImageUrl)
+			}
+		}
+		play.Top = append(play.Top, game)
+	}
+	return play
+}
+
+// netUserPlay is how much a user played each game on their consoles, by the prefix of the game.
+func (web *Web) netUserPlay(user string) map[string]netPlayStats {
+	games := map[string]netPlayStats{}
+	if user == "" || web.auth == nil {
+		return games
+	}
+	for _, key := range web.netUserConsoles(user) {
+		inventory, ok := web.readNetInventory(key.ID)
+		if !ok {
+			continue
+		}
+		for prefix, played := range netPlayByGame(inventory.Play) {
+			stats := games[prefix]
+			stats.add(played.Minutes, played.Launches, played.LastPlayed)
+			games[prefix] = stats
+		}
+	}
+	return games
 }
 
 // netConsoleFirmware is the firmware a console of a user told: as it told it, and as a system

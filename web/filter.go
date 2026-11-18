@@ -132,12 +132,19 @@ func (f *TitleItemFilter) onConsoleChoice() (string, string) {
 	return state, id
 }
 
+// the orders of the Library by how much the user played each game on their consoles, and by when
+// they played it last (see sortByPlay)
+const (
+	SORT_PLAYED        = "played"
+	SORT_PLAYED_RECENT = "played_recent"
+)
+
 // games found in the folders in the last days count as recently added
 const recentDays = 30
 
 var (
 	allowedPerPage = map[int]struct{}{12: {}, 24: {}, 48: {}, 96: {}}
-	allowedSortBy  = map[string]struct{}{"added": {}, "favorite": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}, "duration": {}, "score": {}, "folder": {}}
+	allowedSortBy  = map[string]struct{}{"added": {}, "favorite": {}, "id": {}, "latest_update_date": {}, "missing": {}, "name": {}, "region": {}, "release_date": {}, "size": {}, "type": {}, "duration": {}, "score": {}, "folder": {}, SORT_PLAYED: {}, SORT_PLAYED_RECENT: {}}
 	allowedStatus  = map[string]struct{}{"": {}, STATUS_UPDATE: {}, STATUS_DLC: {}, STATUS_COMPLETE: {}, userdata.STATUS_WANTED: {}}
 	allowedKind    = map[string]struct{}{"": {}, KIND_GAME: {}, KIND_DEMO: {}}
 	allowedConsole = map[string]struct{}{"": {}, CONSOLE_SWITCH: {}, CONSOLE_SWITCH2: {}, CONSOLE_ALL: {}}
@@ -589,6 +596,10 @@ func sortItems(filter *TitleItemFilter, items []TitleItem) error {
 		data = TitleItemByAdded(items)
 	case "favorite":
 		data = TitleItemByFavorite(items)
+	case SORT_PLAYED, SORT_PLAYED_RECENT:
+		// by name: the time played is of each user, and orders the games taken (see sortByPlay)
+		sort.Stable(TitleItemByName(items))
+		return nil
 	case "folder":
 		// the games without a folder (not in the library, or marked as owned without a file) go
 		// last in both orders

@@ -541,6 +541,8 @@ type LibraryFacets struct {
 	Score90 int
 	// the collections with their number of games, before the collection filter
 	Collections []userdata.CollectionCount
+	// the consoles of the user told how much each game was played: the Library sorts by it
+	Played bool
 	// the consoles of the user that told what is installed on them, with the games of each choice
 	// of the filter On the console, before it; and the choice made, as its chip tells it
 	Consoles       []ConsoleChoice

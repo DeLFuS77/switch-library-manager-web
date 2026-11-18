@@ -40,10 +40,12 @@ type libraryConsole struct {
 }
 
 // libraryConsoles are the consoles of a user that told what is installed on them, by their names,
-// with what the library has newer for them when its list of files is ready.
-func (web *Web) libraryConsoles(user string, filter *TitleItemFilter) []*libraryConsole {
+// with what the library has newer for them when its list of files is ready; and how much the user
+// played each game on them, by the prefix of the game (to sort the Library by it).
+func (web *Web) libraryConsoles(user string, filter *TitleItemFilter) ([]*libraryConsole, map[string]netPlayStats) {
+	played := map[string]netPlayStats{}
 	if user == "" || web.auth == nil {
-		return nil
+		return nil, played
 	}
 	keys := web.netUserConsoles(user)
 	sort.SliceStable(keys, func(i, j int) bool { return strings.ToLower(keys[i].Name) < strings.ToLower(keys[j].Name) })
@@ -56,6 +58,11 @@ func (web *Web) libraryConsoles(user string, filter *TitleItemFilter) []*library
 		inventory, ok := web.readNetInventory(key.ID)
 		if !ok {
 			continue
+		}
+		for prefix, game := range netPlayByGame(inventory.Play) {
+			stats := played[prefix]
+			stats.add(game.Minutes, game.Launches, game.LastPlayed)
+			played[prefix] = stats
 		}
 		console := &libraryConsole{choice: ConsoleChoice{Id: key.ID, Name: key.Name}, installed: map[string]bool{}, outdated: map[string]bool{}}
 		for _, item := range inventory.Items {
@@ -82,7 +89,33 @@ func (web *Web) libraryConsoles(user string, filter *TitleItemFilter) []*library
 		}
 		consoles = append(consoles, console)
 	}
-	return consoles
+	return consoles, played
+}
+
+// sortByPlay puts the games taken in the order of how much the user played them on their consoles
+// (SORT_PLAYED) or of when they played them last (SORT_PLAYED_RECENT): the most, or the latest,
+// first, and the other way with the order Descending; the games never played after them, by name.
+func (f *libraryFilter) sortByPlay() {
+	keys := make(map[int]int64, len(f.matched))
+	for _, index := range f.matched {
+		stats := f.played[netGamePrefix(f.all[index].Id)]
+		if f.filter.SortBy == SORT_PLAYED_RECENT {
+			keys[index] = stats.LastPlayed
+		} else {
+			keys[index] = stats.Minutes
+		}
+	}
+	descending := f.filter.SortOrder == "desc"
+	sort.SliceStable(f.matched, func(i, j int) bool {
+		a, b := keys[f.matched[i]], keys[f.matched[j]]
+		if (a > 0) != (b > 0) {
+			return a > 0
+		}
+		if descending {
+			return a < b
+		}
+		return a > b
+	})
 }
 
 // onConsoleLabel is the choice of the filter On the console, as its chip and the Catalogue tell it.

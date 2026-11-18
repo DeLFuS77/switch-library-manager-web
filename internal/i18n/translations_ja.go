@@ -2522,5 +2522,13 @@ func init() {
 		"Firmware of your consoles":      "本体のシステムバージョン",
 		"told by the console":            "本体からの情報",
 		"Games and updates that need a newer firmware are marked, with the console that falls short. Without a console that tells it, it is written here by hand.": "新しいシステムバージョンが必要なゲームとアップデートには、足りない本体とともに印が付きます。知らせる本体がなければ、ここに手で入力します。",
+		// the time played on the consoles: the page of a game and Your year (see web/titleplay.go)
+		"Played":                       "プレイ時間",
+		"%v consoles":                  "本体 %v 台",
+		"Played longer than the story": "ストーリーより長くプレイ",
+		"%v of %v h":                   "%v / %v 時間",
+		"about %v h left":              "残り約 %v 時間",
+		"Hours played":                 "プレイ時間",
+		"since %v":                     "%v から",
 	}
 }

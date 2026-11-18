@@ -163,6 +163,10 @@ func (web *Web) getLibraryWithFacets(filter *TitleItemFilter, lang string) ([]Ti
 	}
 	f.sortFacets()
 	f.facets.Switch1, f.facets.Switch2 = web.consoleFacets(f, lang)
+	// the orders of how much the user played are the user's own: made on the games taken
+	if filter.SortBy == SORT_PLAYED || filter.SortBy == SORT_PLAYED_RECENT {
+		f.sortByPlay()
+	}
 	items, p := f.page()
 	return items, p, f.facets
 }
@@ -226,6 +230,8 @@ type libraryFilter struct {
 	consoles []*libraryConsole
 	// the firmware of the consoles of the user, for the games that need a newer one
 	firmware firmwareCheck
+	// how much the user played each game on their consoles, by the prefix of the game
+	played map[string]netPlayStats
 }
 
 func (web *Web) newLibraryFilter(filter *TitleItemFilter, lang string, all []TitleItem) *libraryFilter {
@@ -238,7 +244,8 @@ func (web *Web) newLibraryFilter(filter *TitleItemFilter, lang string, all []Tit
 	f.merged = web.mergedStatus(lang)
 	f.once = web.newMissingOnce()
 	f.plays = web.play().All(filter.player)
-	f.consoles = web.libraryConsoles(filter.player, filter)
+	f.consoles, f.played = web.libraryConsoles(filter.player, filter)
+	f.facets.Played = len(f.played) > 0
 	f.firmware = web.userFirmwareCheck(filter.player)
 	f.facets.ConsoleFirmwares = f.firmware.told()
 	f.facets.OnConsoleLabel = onConsoleLabel(filter, f.consoles, lang)

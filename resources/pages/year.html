@@ -26,6 +26,8 @@
 			<p class="small text-body-secondary mt-3 mb-0"><span class="bi bi-info-circle me-1" aria-hidden="true"></span>{{t "The app keeps your history since %v: the games you already had then are not counted as added." (formatTime $y.Since)}}</p>
 			{{- end}}
 
+			{{- with .Play}}{{template "yearPlay" .}}{{end}}
+
 			{{- if $y.Empty}}
 			<div class="mt-4">
 			{{- template "emptyState" (dict "Icon" "bi-calendar-heart" "Tone" "" "Title" (t "Nothing added yet") "Text" (t "No games, updates or DLC were added to your library in %v. Come back when you add some." $y.Year) "ActionHref" "/statistics.html" "ActionLabel" (t "Statistics") "ActionIcon" "bi-bar-chart")}}
@@ -100,4 +102,30 @@
 			</section>
 			{{- end}}
 			{{- end}}
+{{- end}}
+
+{{- /* the time played that year on the consoles of the user, as NXDock tells it: counted since the
+	first day kept, when that is in the year */}}
+{{- define "yearPlay"}}
+			<div class="year-play" aria-label="{{t "Hours played"}}" role="group">
+				<section class="surface year-play-tile">
+					<h2 class="year-play-label"><span class="bi bi-joystick" aria-hidden="true"></span>{{t "Hours played"}}</h2>
+					<p class="year-play-value">{{playedTime .Minutes}}</p>
+					{{- if not .Since.IsZero}}<p class="year-play-since">{{t "since %v" (formatDay .Since)}}</p>{{end}}
+				</section>
+				{{- if .Top}}
+				<section class="surface year-play-tile">
+					<h2 class="year-play-label"><span class="bi bi-trophy" aria-hidden="true"></span>{{t "Most played"}}</h2>
+					<ol class="year-play-top list-unstyled mb-0">
+						{{- range .Top}}
+						<li>
+							<img class="console-cover" src="{{if .Cover}}{{.Cover}}{{else}}/resources/static/noimage.png{{end}}" alt="" loading="lazy" decoding="async">
+							<a class="year-play-name" href="/title/{{.Id}}.html">{{.Name}}</a>
+							<strong class="year-play-hours">{{playedTime .Minutes}}</strong>
+						</li>
+						{{- end}}
+					</ol>
+				</section>
+				{{- end}}
+			</div>
 {{- end}}

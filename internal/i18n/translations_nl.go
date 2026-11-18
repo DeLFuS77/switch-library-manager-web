@@ -2522,5 +2522,13 @@ func init() {
 		"Firmware of your consoles":      "Firmware van je consoles",
 		"told by the console":            "doorgegeven door de console",
 		"Games and updates that need a newer firmware are marked, with the console that falls short. Without a console that tells it, it is written here by hand.": "Games en updates die nieuwere firmware nodig hebben worden gemarkeerd, met de console die tekortschiet. Zonder console die het doorgeeft, vul je het hier zelf in.",
+		// the time played on the consoles: the page of a game and Your year (see web/titleplay.go)
+		"Played":                       "Gespeeld",
+		"%v consoles":                  "%v consoles",
+		"Played longer than the story": "Langer gespeeld dan het verhaal",
+		"%v of %v h":                   "%v van %v uur",
+		"about %v h left":              "nog ongeveer %v uur",
+		"Hours played":                 "Gespeelde uren",
+		"since %v":                     "sinds %v",
 	}
 }
