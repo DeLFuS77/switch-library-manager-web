@@ -1,4 +1,39 @@
 {
+  "2.0.17": {
+    "en": [
+      "Settings: the messages of the automations and of the save vault can also be turned off in the list of Notifications."
+    ],
+    "es": [
+      "Ajustes: los mensajes de las automatizaciones y de la bóveda de partidas también se pueden apagar en la lista de Notificaciones."
+    ],
+    "de": [
+      "Einstellungen: Die Nachrichten der Automatisierungen und des Spielstand-Tresors lassen sich auch in der Liste der Benachrichtigungen ausschalten."
+    ],
+    "fr": [
+      "Paramètres : les messages des automatisations et du coffre de sauvegardes peuvent aussi être désactivés dans la liste des Notifications."
+    ],
+    "it": [
+      "Impostazioni: i messaggi delle automazioni e della cassaforte dei salvataggi si possono disattivare anche nell'elenco delle Notifiche."
+    ],
+    "pt": [
+      "Configurações: as mensagens das automatizações e do cofre de jogos guardados também se podem desligar na lista de Notificações."
+    ],
+    "nl": [
+      "Instellingen: de berichten van de automatiseringen en van de opslagkluis kunnen ook in de lijst van Meldingen worden uitgezet."
+    ],
+    "ru": [
+      "Настройки: сообщения автоматизаций и хранилища сохранений можно отключить и в списке уведомлений."
+    ],
+    "ja": [
+      "設定：自動化とセーブデータ保管庫のメッセージも、通知の一覧でオフにできるようになりました。"
+    ],
+    "ko": [
+      "설정: 자동화와 세이브 보관함의 메시지도 알림 목록에서 끌 수 있습니다."
+    ],
+    "zh": [
+      "设置：自动化和存档库的消息现在也可以在通知列表中关闭。"
+    ]
+  },
   "2.0.16": {
     "en": [
       "Library: Enter in the search works again in a library with many publishers."
