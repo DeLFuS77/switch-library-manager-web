@@ -22,6 +22,9 @@ Thanks for wanting to help. Switch Library Manager Web is free software under th
    go test ./...
    ```
 
+   A program you build from the code (`make build`, `go build`) is an unofficial build: only the workflows of this
+   repository build the app with the build tag `official` ([TRADEMARKS.md](TRADEMARKS.md)).
+
    The pages are Go templates in `resources/pages`, `resources/partials` and `resources/layout.html`. Their styles
    are in `resources/web.scss` and its partials in `resources/scss`, and their script in the files of `resources/js`,
    one per subject, joined in the order of their names into one script by `scripts/build-js.mjs`. `npm run build`

@@ -40,7 +40,11 @@ jobs:
       - name: Build assets
         run: npm ci && npm run build
 
+      # "official": the versions of this repository only (TRADEMARKS.md); a build without it is an
+      # unofficial build
       - name: Build the programs
+        env:
+          TAGS: official
         run: bash .github/scripts/build_release.sh "${GITHUB_REF_NAME}" macos-apple macos-intel
 
       - name: Keep the programs
@@ -99,7 +103,10 @@ jobs:
       - name: Set up Zig
         run: bash .github/scripts/setup_zig.sh
 
+      # "official": the versions of this repository only (TRADEMARKS.md)
       - name: Build the programs
+        env:
+          TAGS: official
         run: bash .github/scripts/build_release.sh "${GITHUB_REF_NAME}"
 
       - name: Get the programs of macOS

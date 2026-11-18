@@ -6,13 +6,16 @@
 # the program and keeps the data, instead of starting without it in a folder of its own. The web
 # assets must be built first (npm run build).
 #
-# Usage: .github/scripts/build_release.sh 1.24.0 [system...]
+# Usage: [TAGS=official] .github/scripts/build_release.sh 1.24.0 [system...]
 set -euo pipefail
 
 version="${1:?version}"
 shift
 wanted=" $* "
 name="switch-library-manager-web"
+# the build tags, comma-separated: the workflows of this repository give "official", which only
+# they use (TRADEMARKS.md); without it the programs are unofficial builds
+tags="${TAGS:-}"
 root="$(pwd)"
 rm -rf dist
 mkdir -p dist
@@ -82,7 +85,7 @@ for target in "${targets[@]}"; do
 		extra+=("CGO_ENABLED=1" "CC=zig cc -target ${zigtarget}" "CXX=zig c++ -target ${zigtarget}")
 	fi
 	env GOOS="${goos}" GOARCH="${goarch}" "${extra[@]}" \
-		go build -trimpath -ldflags="-s -w" -o "${folder}/${binary}" .
+		go build -trimpath -tags "${tags}" -ldflags="-s -w" -o "${folder}/${binary}" .
 	# a program meant to have the zstd library in C has it, and one of Linux needs no library
 	# of the system: else the release stops here instead of shipping a program that is slower
 	# or does not start on some systems

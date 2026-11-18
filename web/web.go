@@ -405,6 +405,9 @@ type GlobalPageData struct {
 	SlmVersion          string
 	Version             string
 	Counts              NavCounts
+	// built by the workflows of this repository with the tag "official": a program built from the
+	// code in any other way is an unofficial build (settings.OFFICIAL_BUILD, TRADEMARKS.md)
+	OfficialBuild bool
 	// some games have their time to beat (IGDB): the library can be sorted by it
 	TimesToBeat bool
 	// some games have a score (IGDB): the library can be sorted and filtered by it
@@ -726,6 +729,7 @@ func (web *Web) globalPageData(page string) GlobalPageData {
 		Page:                page,
 		SlmVersion:          settings.SLM_VERSION,
 		Version:             settings.SLM_WEB_VERSION,
+		OfficialBuild:       settings.OFFICIAL_BUILD,
 		Counts:              web.navCounts(),
 		Update:              web.availableUpdate(),
 		TimesToBeat:         web.timesToBeat().hasKnown(),
