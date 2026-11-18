@@ -1977,3 +1977,38 @@ html[data-section="backup"] #settingsForm .save-bar {
 		background: rgba(0, 0, 0, .72);
 	}
 }
+
+// the bin of the quarantine in the header: it gives a small jump when files have dropped in
+// since the last page, its count pops in, and its lid lifts on hover
+@media (prefers-reduced-motion: no-preference) {
+	.nav-quarantine .nav-bin {
+		transition: transform .2s ease;
+	}
+
+	.nav-quarantine:hover .nav-bin,
+	.nav-quarantine:focus-visible .nav-bin {
+		transform: rotate(-6deg) translateY(-1px);
+	}
+
+	.nav-quarantine.is-dropped .nav-bin {
+		animation: slm-bin-drop .6s cubic-bezier(.3, 1.4, .5, 1);
+	}
+
+	.nav-quarantine.is-dropped .nav-bin-count {
+		animation: slm-bin-pop .35s ease-out;
+	}
+}
+
+@keyframes slm-bin-drop {
+	0% { transform: translateY(0) rotate(0); }
+	25% { transform: translateY(-3px) rotate(-8deg); }
+	55% { transform: translateY(1px) rotate(5deg); }
+	80% { transform: translateY(0) rotate(-2deg); }
+	100% { transform: none; }
+}
+
+@keyframes slm-bin-pop {
+	0% { transform: scale(.4); opacity: 0; }
+	70% { transform: scale(1.15); opacity: 1; }
+	100% { transform: scale(1); }
+}

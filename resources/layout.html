@@ -149,6 +149,28 @@
 							{{- else}}
 							{{- template "navLink" (dict "Page" .Page "Id" "issues" "Href" "/issues.html" "Icon" "bi-exclamation-triangle" "Label" (t "Issues") "Count" .Counts.Issues "Badge" "text-bg-danger")}}
 							{{- end}}
+							{{- /* the quarantine, while deleted files go to it: the bin empty, or full with the files
+								waiting in it and a panel with them; a click opens it in Settings */}}
+							{{- if and .Auth.IsAdmin .Counts.QuarantineOn}}
+							<li class="nav-item nav-hint">
+								<a class="nav-link nav-quarantine{{if .Counts.QuarantineFiles}} is-full{{end}}" href="/settings.html#quarantine"{{if .Counts.QuarantineFiles}} aria-describedby="quarantineHint"{{end}} data-quarantine-files="{{.Counts.QuarantineFiles}}">
+									<span class="bi {{if .Counts.QuarantineFiles}}bi-trash3-fill{{else}}bi-trash3{{end}} nav-bin" aria-hidden="true"></span><span class="nav-label">{{t "Quarantine"}}</span>{{if .Counts.QuarantineFiles}}<span class="badge rounded-pill nav-count nav-bin-count ms-auto ms-full-0">{{num .Counts.QuarantineFiles}}</span>{{end}}
+								</a>
+								{{- if .Counts.QuarantineFiles}}
+								<div class="nav-hint-panel" id="quarantineHint" role="tooltip">
+									<div class="nav-hint-title">{{t "In the quarantine now"}}</div>
+									<ul class="list-unstyled mb-0">
+										<li class="tone-info"><span class="nav-hint-icon bi bi-files" aria-hidden="true"></span><span class="flex-grow-1">{{t "Files"}}</span><span class="nav-hint-count">{{num .Counts.QuarantineFiles}}</span></li>
+										<li class="tone-info"><span class="nav-hint-icon bi bi-hdd" aria-hidden="true"></span><span class="flex-grow-1">{{t "Room they take"}}</span><span class="nav-hint-count">{{formatSize .Counts.QuarantineSize}}</span></li>
+										{{- if not .Counts.QuarantineNext.IsZero}}
+										<li class="tone-warning"><span class="nav-hint-icon bi bi-hourglass-split" aria-hidden="true"></span><span class="flex-grow-1">{{t "The oldest is deleted for good"}}</span><span class="nav-hint-count">{{formatDateTime .Counts.QuarantineNext}}</span></li>
+										{{- end}}
+									</ul>
+									<div class="small text-body-secondary mt-2">{{t "Click to see them, put them back or empty it."}}</div>
+								</div>
+								{{- end}}
+							</li>
+							{{- end}}
 							{{- template "navLink" (dict "Page" .Page "Id" "tasks" "Href" "/tasks.html" "Icon" (or (and .Counts.RunningTasks "bi-fan nav-busy") "bi-list-task") "Label" (t "Tasks") "Count" .Counts.FailedTasks "Badge" "text-bg-danger" "Running" .Counts.RunningTasks "CountLabel" (t "Failed tasks: %v" (num .Counts.FailedTasks)))}}
 						</ul>
 						{{- if or .Auth.Enabled .Auth.IsAdmin}}

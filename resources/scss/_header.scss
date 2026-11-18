@@ -960,6 +960,18 @@ $task-fan: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' vie
 	line-height: 1.2;
 }
 
+// the quarantine in the header: its count in grey, as red is for errors only
+.nav-bin-count {
+	border: 1px solid var(--bs-border-color);
+	background: var(--bs-secondary-bg);
+	color: var(--bs-body-color);
+}
+
+.nav-quarantine .nav-bin {
+	display: inline-block;
+	transform-origin: 50% 90%;
+}
+
 // the tasks running, in the violet of the tools (the red count next to it is the failed ones)
 .nav-running {
 	background: $slm-violet-deep;
