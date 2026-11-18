@@ -7,6 +7,8 @@
 - Header: the quarantine has its bin next to Issues and Tasks while it is on: empty, or full with the number of files waiting and a panel with the room they take and when the oldest goes; a click opens it in Settings
 - Organize: the three actions are called Organize new files, Organize all files and Delete old updates, so it is clear what each one takes
 - Organize: a notice at the top tells the files it leaves out because it cannot read them, such as games that need newer keys, with a link to see them and to upload newer keys
+- Tune-up: the next step on top, and each step as a tile with what is left and shortcuts to the parts of its tool; Organize, Space and Compress show the five steps, and the Tools menu follows their order
+- The long explanations of Settings, Organize, Compress and the page of a game go in an ⓘ, which opens with a tap on touch screens
 - Consoles: a page with each console paired with NXDock, its system, free space and the games out of date, with Bring up to date and Remove from console
 - Library: the filter On the console, with the games installed, not installed or out of date on each console
 - Firmware: told by the consoles, in Settings, in the filter Need a newer firmware and on the page of a game
